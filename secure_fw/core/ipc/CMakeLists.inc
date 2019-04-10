@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2018, Arm Limited. All rights reserved.
+# Copyright (c) 2018-2019, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -43,6 +43,7 @@ elseif (TFM_PSA_API)
 			"${SS_IPC_DIR}/tfm_message_queue.c"
 			"${SS_IPC_DIR}/tfm_pools.c"
 			"${SS_IPC_DIR}/tfm_spm.c"
+			"${SS_IPC_DIR}/tfm_psa_client_call.c"
 			"${SS_IPC_DIR}/../tfm_core.c"
 			"${SS_IPC_DIR}/../tfm_secure_api.c"
 			"${SS_IPC_DIR}/../tfm_spm_services.c"
