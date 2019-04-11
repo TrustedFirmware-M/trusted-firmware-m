@@ -11,6 +11,6 @@
 
 int32_t tfm_secure_client_run_tests(void)
 {
-    tfm_secure_client_service_veneer_run_tests();
+//    tfm_secure_client_service_veneer_run_tests();
     return 0;
 }

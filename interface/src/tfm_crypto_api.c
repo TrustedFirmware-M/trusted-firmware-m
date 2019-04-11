@@ -25,7 +25,7 @@ psa_status_t psa_import_key(psa_key_slot_t key,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_import_key,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)key,
                                (uint32_t)type,
                                (uint32_t)data,
@@ -38,7 +38,7 @@ psa_status_t psa_destroy_key(psa_key_slot_t key)
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_destroy_key,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)key,
                                0,
                                0,
@@ -53,7 +53,7 @@ psa_status_t psa_get_key_information(psa_key_slot_t key,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_get_key_information,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)key,
                                (uint32_t)type,
                                (uint32_t)bits,
@@ -69,7 +69,7 @@ psa_status_t psa_export_key(psa_key_slot_t key,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_export_key,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)key,
                                (uint32_t)data,
                                (uint32_t)data_size,
@@ -95,7 +95,7 @@ psa_status_t psa_export_public_key(psa_key_slot_t key,
 void psa_key_policy_init(psa_key_policy_t *policy)
 {
     /* PSA API returns void so just ignore error value returned */
-    (void)tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_key_policy_init,
+    (void)tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)policy,
                                0,
                                0,
@@ -108,7 +108,7 @@ void psa_key_policy_set_usage(psa_key_policy_t *policy,
 {
     /* PSA API returns void so just ignore error value returned */
     (void)tfm_ns_lock_dispatch(
-                              (veneer_fn)tfm_crypto_veneer_key_policy_set_usage,
+                              (veneer_fn)0,
                               (uint32_t)policy,
                               (uint32_t)usage,
                               (uint32_t)alg,
@@ -126,7 +126,7 @@ psa_key_usage_t psa_key_policy_get_usage(const psa_key_policy_t *policy)
 
     /* The PSA API does not return an error, so ignore any error from TF-M */
     (void)tfm_ns_lock_dispatch(
-                              (veneer_fn)tfm_crypto_veneer_key_policy_get_usage,
+                              (veneer_fn)0,
                               (uint32_t)policy,
                               (uint32_t)&usage,
                               0,
@@ -146,7 +146,7 @@ psa_algorithm_t psa_key_policy_get_algorithm(const psa_key_policy_t *policy)
 
     /* The PSA API does not return an error, so ignore any error from TF-M */
     (void)tfm_ns_lock_dispatch(
-                          (veneer_fn)tfm_crypto_veneer_key_policy_get_algorithm,
+                          (veneer_fn)0,
                           (uint32_t)policy,
                           (uint32_t)&alg,
                           0,
@@ -160,7 +160,7 @@ psa_status_t psa_set_key_policy(psa_key_slot_t key,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_set_key_policy,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)key,
                                (uint32_t)policy,
                                0,
@@ -174,7 +174,7 @@ psa_status_t psa_get_key_policy(psa_key_slot_t key,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_get_key_policy,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)key,
                                (uint32_t)policy,
                                0,
@@ -188,7 +188,7 @@ psa_status_t psa_set_key_lifetime(psa_key_slot_t key,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_set_key_lifetime,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)key,
                                (uint32_t)lifetime,
                                0,
@@ -202,7 +202,7 @@ psa_status_t psa_get_key_lifetime(psa_key_slot_t key,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_get_key_lifetime,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)key,
                                (uint32_t)lifetime,
                                0,
@@ -217,7 +217,7 @@ psa_status_t psa_cipher_set_iv(psa_cipher_operation_t *operation,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_cipher_set_iv,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                (uint32_t)iv,
                                (uint32_t)iv_length,
@@ -233,7 +233,7 @@ psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
     enum tfm_crypto_err_t err;
 
     err = tfm_ns_lock_dispatch(
-                              (veneer_fn)tfm_crypto_veneer_cipher_encrypt_setup,
+                              (veneer_fn)0,
                               (uint32_t)operation,
                               (uint32_t)key,
                               (uint32_t)alg,
@@ -249,7 +249,7 @@ psa_status_t psa_cipher_decrypt_setup(psa_cipher_operation_t *operation,
     enum tfm_crypto_err_t err;
 
     err = tfm_ns_lock_dispatch(
-                              (veneer_fn)tfm_crypto_veneer_cipher_decrypt_setup,
+                              (veneer_fn)0,
                               (uint32_t)operation,
                               (uint32_t)key,
                               (uint32_t)alg,
@@ -277,7 +277,7 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
                                                 .output_length =
                                                                output_length};
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_cipher_update,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                (uint32_t)&input_s,
                                (uint32_t)&output_s,
@@ -290,7 +290,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation)
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_cipher_abort,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                0,
                                0,
@@ -306,7 +306,7 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_cipher_finish,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                (uint32_t)output,
                                (uint32_t)output_size,
@@ -320,7 +320,7 @@ psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_hash_setup,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                (uint32_t)alg,
                                0,
@@ -335,7 +335,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_hash_update,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                (uint32_t)input,
                                (uint32_t)input_length,
@@ -351,7 +351,7 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_hash_finish,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                (uint32_t)hash,
                                (uint32_t)hash_size,
@@ -366,7 +366,7 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_hash_verify,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                (uint32_t)hash,
                                (uint32_t)hash_length,
@@ -379,7 +379,7 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation)
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_hash_abort,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                0,
                                0,
@@ -394,7 +394,7 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_mac_sign_setup,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                (uint32_t)key,
                                (uint32_t)alg,
@@ -409,7 +409,7 @@ psa_status_t psa_mac_verify_setup(psa_mac_operation_t *operation,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_mac_verify_setup,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                (uint32_t)key,
                                (uint32_t)alg,
@@ -424,7 +424,7 @@ psa_status_t psa_mac_update(psa_mac_operation_t *operation,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_mac_update,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                (uint32_t)input,
                                (uint32_t)input_length,
@@ -440,7 +440,7 @@ psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_mac_sign_finish,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                (uint32_t)mac,
                                (uint32_t)mac_size,
@@ -455,7 +455,7 @@ psa_status_t psa_mac_verify_finish(psa_mac_operation_t *operation,
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_mac_verify_finish,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                (uint32_t)mac,
                                (uint32_t)mac_length,
@@ -468,7 +468,7 @@ psa_status_t psa_mac_abort(psa_mac_operation_t *operation)
 {
     enum tfm_crypto_err_t err;
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_mac_abort,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)operation,
                                0,
                                0,
@@ -510,7 +510,7 @@ psa_status_t psa_aead_encrypt(psa_key_slot_t key,
                                                .ciphertext_length =
                                                              ciphertext_length};
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_aead_encrypt,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)&input_s,
                                (uint32_t)&output_s,
                                0,
@@ -551,7 +551,7 @@ psa_status_t psa_aead_decrypt(psa_key_slot_t key,
                                                .plaintext_length =
                                                               plaintext_length};
 
-    err = tfm_ns_lock_dispatch((veneer_fn)tfm_crypto_veneer_aead_decrypt,
+    err = tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)&input_s,
                                (uint32_t)&output_s,
                                0,

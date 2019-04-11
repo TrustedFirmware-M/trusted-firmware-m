@@ -26,7 +26,7 @@ psa_initial_attest_get_token(const uint8_t *challenge_obj,
     out_vec[0].base = token;
     out_vec[0].len  = *token_size;
 
-    res = tfm_ns_lock_dispatch((veneer_fn)tfm_initial_attest_get_token_veneer,
+    res = tfm_ns_lock_dispatch((veneer_fn)0,
                                 (uint32_t)in_vec,  1,
                                 (uint32_t)out_vec, 1);
 
@@ -49,7 +49,7 @@ psa_initial_attest_get_token_size(uint32_t  challenge_size,
     out_vec[0].len  = sizeof(uint32_t);
 
     return tfm_ns_lock_dispatch((veneer_fn) \
-                                tfm_initial_attest_get_token_size_veneer,
+                                0,
                                 (uint32_t)in_vec,  1,
                                 (uint32_t)out_vec, 1);
 }

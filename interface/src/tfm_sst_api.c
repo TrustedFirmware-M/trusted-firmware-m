@@ -30,7 +30,7 @@ psa_ps_status_t psa_ps_set(psa_ps_uid_t uid,
         { .base = &err , .len = sizeof(err) }
     };
 
-    status = tfm_ns_lock_dispatch((veneer_fn)tfm_tfm_sst_set_req_veneer,
+    status = tfm_ns_lock_dispatch((veneer_fn)0,
                                   (uint32_t)in_vec,  IOVEC_LEN(in_vec),
                                   (uint32_t)out_vec, IOVEC_LEN(out_vec));
     if (status != PSA_SUCCESS) {
@@ -58,7 +58,7 @@ psa_ps_status_t psa_ps_get(psa_ps_uid_t uid,
         { .base = p_data, .len = data_length }
     };
 
-    status = tfm_ns_lock_dispatch((veneer_fn)tfm_tfm_sst_get_req_veneer,
+    status = tfm_ns_lock_dispatch((veneer_fn)0,
                                   (uint32_t)in_vec,  IOVEC_LEN(in_vec),
                                   (uint32_t)out_vec, IOVEC_LEN(out_vec));
 
@@ -83,7 +83,7 @@ psa_ps_status_t psa_ps_get_info(psa_ps_uid_t uid, struct psa_ps_info_t *p_info)
         { .base = p_info, .len = sizeof(*p_info) }
     };
 
-    status = tfm_ns_lock_dispatch((veneer_fn)tfm_tfm_sst_get_info_req_veneer,
+    status = tfm_ns_lock_dispatch((veneer_fn)0,
                                   (uint32_t)in_vec,  IOVEC_LEN(in_vec),
                                   (uint32_t)out_vec, IOVEC_LEN(out_vec));
 
@@ -107,7 +107,7 @@ psa_ps_status_t psa_ps_remove(psa_ps_uid_t uid)
         { .base = &err, .len = sizeof(err) }
     };
 
-    status = tfm_ns_lock_dispatch((veneer_fn)tfm_tfm_sst_remove_req_veneer,
+    status = tfm_ns_lock_dispatch((veneer_fn)0,
                                   (uint32_t)in_vec,  IOVEC_LEN(in_vec),
                                   (uint32_t)out_vec, IOVEC_LEN(out_vec));
 
@@ -146,7 +146,7 @@ uint32_t psa_ps_get_support(void)
     /* The PSA API does not return an error, so any error from TF-M is
      * ignored.
      */
-    (void)tfm_ns_lock_dispatch((veneer_fn)tfm_tfm_sst_get_support_req_veneer,
+    (void)tfm_ns_lock_dispatch((veneer_fn)0,
                                (uint32_t)NULL,  0,
                                (uint32_t)out_vec, IOVEC_LEN(out_vec));
 

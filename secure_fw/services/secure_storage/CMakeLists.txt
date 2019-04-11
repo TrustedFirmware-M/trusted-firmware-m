@@ -53,7 +53,7 @@ add_library(tfm_storage STATIC ${ALL_SRC_ASM} ${ALL_SRC_C})
 config_setting_shared_compiler_flags(tfm_storage)
 config_setting_shared_linker_flags(tfm_storage)
 
-embedded_set_target_compile_defines(TARGET tfm_storage LANGUAGE C DEFINES __ARM_FEATURE_CMSE=3 __thumb2__ TFM_LVL=${TFM_LVL})
+embedded_set_target_compile_defines(TARGET tfm_storage LANGUAGE C DEFINES  __thumb2__ TFM_LVL=${TFM_LVL})
 #Add a dependency on the mbed_tls_lib_install target.
 add_dependencies(tfm_storage ${MBEDTLS_TARGET_NAME}_install)
 #Ask the compiler to merge the mbedtls and the secure storage libraries.

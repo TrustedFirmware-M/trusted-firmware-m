@@ -17,9 +17,9 @@
  * Registers will be cleared before branching so that no information leaks
  * from secure to non-secure world.
  */
-typedef void __attribute__((cmse_nonsecure_call)) (*nsfptr_t) (void);
+//typedef void __attribute__((cmse_nonsecure_call)) (*nsfptr_t) (void);
 
-extern nsfptr_t ns_entry;
+//extern nsfptr_t ns_entry;
 
 /**
  * \brief Signal that secure partition initialisation is finished

@@ -73,7 +73,7 @@ int32_t tfm_nspm_get_current_client_id()
 /// Initialize secure context memory system
 /// \return execution status (1: success, 0: error)
 /* This veneer is TF-M internal, not a secure service */
-__attribute__((cmse_nonsecure_entry))
+//
 uint32_t TZ_InitContextSystem_S(void)
 {
     int32_t i;
@@ -104,7 +104,7 @@ uint32_t TZ_InitContextSystem_S(void)
 /// \return value != 0 id TrustZone memory slot identifier
 /// \return value 0    no memory available or internal error
 /* This veneer is TF-M internal, not a secure service */
-__attribute__((cmse_nonsecure_entry))
+
 TZ_MemoryId_t TZ_AllocModuleContext_S (TZ_ModuleId_t module)
 {
     TZ_MemoryId_t tz_id;
@@ -137,7 +137,7 @@ TZ_MemoryId_t TZ_AllocModuleContext_S (TZ_ModuleId_t module)
 /// \param[in]  id  TrustZone memory slot identifier
 /// \return execution status (1: success, 0: error)
 /* This veneer is TF-M internal, not a secure service */
-__attribute__((cmse_nonsecure_entry))
+
 uint32_t TZ_FreeModuleContext_S (TZ_MemoryId_t id)
 {
     uint32_t index;
@@ -182,7 +182,7 @@ uint32_t TZ_FreeModuleContext_S (TZ_MemoryId_t id)
 /// \param[in]  id  TrustZone memory slot identifier
 /// \return execution status (1: success, 0: error)
 /* This veneer is TF-M internal, not a secure service */
-__attribute__((cmse_nonsecure_entry))
+
 uint32_t TZ_LoadContext_S (TZ_MemoryId_t id)
 {
     uint32_t index;
@@ -221,7 +221,7 @@ uint32_t TZ_LoadContext_S (TZ_MemoryId_t id)
 /// \param[in]  id  TrustZone memory slot identifier
 /// \return execution status (1: success, 0: error)
 /* This veneer is TF-M internal, not a secure service */
-__attribute__((cmse_nonsecure_entry))
+
 uint32_t TZ_StoreContext_S (TZ_MemoryId_t id)
 {
     uint32_t index;
@@ -266,7 +266,7 @@ uint32_t TZ_StoreContext_S (TZ_MemoryId_t id)
 }
 
 #ifdef TFM_NS_CLIENT_IDENTIFICATION
-__attribute__((cmse_nonsecure_entry))
+
 enum tfm_status_e tfm_register_client_id (int32_t ns_client_id)
 {
     int current_client_id;

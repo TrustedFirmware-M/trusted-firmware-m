@@ -12,9 +12,6 @@
 /* SVC function implementations */
 uint32_t tfm_nspm_svc_register_client_id(uint32_t client_id)
 {
-    if (tfm_register_client_id(client_id) == TFM_SUCCESS) {
-        return 1;
-    }
 
     return 0;
 }

@@ -56,6 +56,7 @@ __asm("  .global __ARM_use_no_argv\n");
 REGION_DECLARE(Image$$, TFM_UNPRIV_SCRATCH, $$ZI$$Base);
 REGION_DECLARE(Image$$, TFM_UNPRIV_SCRATCH, $$ZI$$Limit);
 
+#if 0
 void configure_ns_code(void)
 {
     /* SCB_NS.VTOR points to the Non-secure vector table base address */
@@ -67,13 +68,14 @@ void configure_ns_code(void)
     __TZ_set_MSP_NS(ns_msp);
 
     /* Get the address of non-secure code entry point to jump there */
-    uint32_t entry_ptr = tfm_spm_hal_get_ns_entry_point();
+//    uint32_t entry_ptr = tfm_spm_hal_get_ns_entry_point();
 
     /* Clears LSB of the function address to indicate the function-call
      * will perform the switch from secure to non-secure
      */
-    ns_entry = (nsfptr_t) cmse_nsfptr_create(entry_ptr);
+    //ns_entry = (nsfptr_t) cmse_nsfptr_create(entry_ptr);
 }
+#endif
 
 int32_t tfm_core_init(void)
 {
@@ -84,7 +86,7 @@ int32_t tfm_core_init(void)
     system_reset_cfg();
 
     /* Configures debug authentication */
-    tfm_spm_hal_init_debug();
+//    tfm_spm_hal_init_debug();
 
     __enable_irq();
 
@@ -99,7 +101,7 @@ int32_t tfm_core_init(void)
 
     tfm_spm_hal_init_isolation_hw();
 
-    configure_ns_code();
+    //configure_ns_code();
 
     /* Configures all interrupts to retarget NS state, except for
      * secure peripherals
@@ -152,10 +154,11 @@ void tfm_core_spm_request_handler(const struct tfm_exc_stack_t *svc_ctx)
     }
 }
 
+void rpc_simulate();
+
 int main(void)
 {
     tfm_core_init();
-
     tfm_spm_db_init();
 
     tfm_spm_hal_setup_isolation_hw();
@@ -163,19 +166,22 @@ int main(void)
     tfm_spm_partition_set_state(TFM_SP_CORE_ID, SPM_PARTITION_STATE_RUNNING);
 
     extern uint32_t Image$$ARM_LIB_STACK$$ZI$$Base[];
-    uint32_t psp_stack_bottom = (uint32_t)Image$$ARM_LIB_STACK$$ZI$$Base;
+//    uint32_t psp_stack_bottom = (uint32_t)Image$$ARM_LIB_STACK$$ZI$$Base;
 
-    __set_PSPLIM(psp_stack_bottom);
+//    __set_PSPLIM(psp_stack_bottom);
 
-    if (tfm_spm_partition_init() != SPM_ERR_OK) {
-        /* Certain systems might refuse to boot altogether if partitions fail
-         * to initialize. This is a placeholder for such an error handler
-         */
-    }
-
+//    if (tfm_spm_partition_init() != SPM_ERR_OK) {
+//        /* Certain systems might refuse to boot altogether if partitions fail
+//         * to initialize. This is a placeholder for such an error handler
+//         */
+//    }
+//
 #ifdef TFM_PSA_API
     tfm_spm_init();
 #endif
+
+while(1)
+   rpc_simulate();
 
 #ifdef TFM_CORE_DEBUG
     /* Jumps to non-secure code */

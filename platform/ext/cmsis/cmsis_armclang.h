@@ -322,7 +322,7 @@ __attribute__((always_inline)) __STATIC_INLINE void __set_MSP(uint32_t topOfMain
  */
 __attribute__((always_inline)) __STATIC_INLINE void __TZ_set_MSP_NS(uint32_t topOfMainStack)
 {
-  __ASM volatile ("MSR msp_ns, %0" : : "r" (topOfMainStack) : );
+//  __ASM volatile ("MSR msp_ns, %0" : : "r" (topOfMainStack) : );
 }
 #endif
 
@@ -403,7 +403,7 @@ __attribute__((always_inline)) __STATIC_INLINE void __set_PRIMASK(uint32_t priMa
  */
 __attribute__((always_inline)) __STATIC_INLINE void __TZ_set_PRIMASK_NS(uint32_t priMask)
 {
-  __ASM volatile ("MSR primask_ns, %0" : : "r" (priMask) : "memory");
+//  __ASM volatile ("MSR primask_ns, %0" : : "r" (priMask) : "memory");
 }
 #endif
 

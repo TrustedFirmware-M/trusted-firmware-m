@@ -14,7 +14,7 @@
 
 enum tfm_platform_err_t tfm_platform_system_reset(void)
 {
-    return tfm_ns_lock_dispatch((veneer_fn)tfm_platform_veneer_system_reset,
+    return tfm_ns_lock_dispatch((veneer_fn)0,
                                 0,
                                 0,
                                 0,
@@ -44,7 +44,7 @@ tfm_platform_set_pin_alt_func(uint32_t alt_func, uint64_t pin_mask,
     out_vec.base = (void *)result;
     out_vec.len = sizeof(*result);
 
-    ret = tfm_ns_lock_dispatch((veneer_fn)tfm_platform_sp_pin_service_veneer,
+    ret = tfm_ns_lock_dispatch((veneer_fn)0,
                                 (uint32_t)&in_vec,  1,
                                 (uint32_t)&out_vec, 1);
 
@@ -75,7 +75,7 @@ tfm_platform_set_pin_default_in(uint32_t alt_func, uint32_t pin_value,
     out_vec.base = (void *)result;
     out_vec.len = sizeof(*result);
 
-    ret = tfm_ns_lock_dispatch((veneer_fn)tfm_platform_sp_pin_service_veneer,
+    ret = tfm_ns_lock_dispatch((veneer_fn)0,
                                 (uint32_t)&in_vec,  1,
                                 (uint32_t)&out_vec, 1);
 
@@ -105,7 +105,7 @@ tfm_platform_set_pin_mode(uint64_t pin_mask, uint32_t pin_mode,
     out_vec.base = (void *)result;
     out_vec.len = sizeof(*result);
 
-    ret = tfm_ns_lock_dispatch((veneer_fn)tfm_platform_sp_pin_service_veneer,
+    ret = tfm_ns_lock_dispatch((veneer_fn)0,
                                 (uint32_t)&in_vec,  1,
                                 (uint32_t)&out_vec, 1);
 

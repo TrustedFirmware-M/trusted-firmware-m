@@ -13,7 +13,7 @@
 
 uint32_t psa_framework_version(void)
 {
-    return tfm_ns_lock_dispatch((veneer_fn)tfm_psa_framework_version_veneer,
+    return tfm_ns_lock_dispatch((veneer_fn)0,
                                 0,
                                 0,
                                 0,
@@ -22,20 +22,26 @@ uint32_t psa_framework_version(void)
 
 uint32_t psa_version(uint32_t sid)
 {
-    return tfm_ns_lock_dispatch((veneer_fn)tfm_psa_version_veneer,
+    return tfm_ns_lock_dispatch((veneer_fn)0,
                                 sid,
                                 0,
                                 0,
                                 0);
 }
 
+volatile int* tfm_shared_mem = (int*) 0x08000000;
+volatile int* tfm_shared_mem_ns = (int*)0x08000004;
+volatile int* tfm_shared_mem_ipc_hdl = (int*)0x08000008;
+
 psa_handle_t psa_connect(uint32_t sid, uint32_t minor_version)
 {
-    return tfm_ns_lock_dispatch((veneer_fn)tfm_psa_connect_veneer,
-                                sid,
-                                minor_version,
-                                0,
-                                0);
+    
+       *tfm_shared_mem_ns = 0;
+       *tfm_shared_mem = 1;
+        while (*tfm_shared_mem_ns != 1)
+        ;
+       *tfm_shared_mem_ns = 0;
+       return *tfm_shared_mem_ipc_hdl;
 }
 
 psa_status_t psa_call(psa_handle_t handle,
@@ -57,7 +63,7 @@ psa_status_t psa_call(psa_handle_t handle,
     in_vecs.len = in_len;
     out_vecs.base = out_vec;
     out_vecs.len = out_len;
-    return tfm_ns_lock_dispatch((veneer_fn)tfm_psa_call_veneer,
+    return tfm_ns_lock_dispatch((veneer_fn)0,
                                 (uint32_t)handle,
                                 (uint32_t)&in_vecs,
                                 (uint32_t)&out_vecs,
@@ -66,7 +72,7 @@ psa_status_t psa_call(psa_handle_t handle,
 
 void psa_close(psa_handle_t handle)
 {
-    tfm_ns_lock_dispatch((veneer_fn)tfm_psa_close_veneer,
+    tfm_ns_lock_dispatch((veneer_fn)0,
                          (uint32_t)handle,
                          0,
                          0,

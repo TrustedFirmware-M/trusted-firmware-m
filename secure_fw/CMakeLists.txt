@@ -147,7 +147,7 @@ function(set_up_secure_fw_build)
 	add_dependencies(${EXE_NAME} tfm_attest)
 
 	#Set macro definitions for the project.
-	embedded_set_target_compile_defines(TARGET ${PROJECT_OBJ_LIB} LANGUAGE C DEFINES __thumb2__ __ARM_FEATURE_CMSE=3 TFM_LVL=${TFM_LVL} DAUTH_CHIP_DEFAULT APPEND)
+	embedded_set_target_compile_defines(TARGET ${PROJECT_OBJ_LIB} LANGUAGE C DEFINES __thumb2__ TFM_LVL=${TFM_LVL} DAUTH_CHIP_DEFAULT APPEND)
 
 	if (REGRESSION OR CORE_TEST OR CORE_IPC)
 		if (DEFINED TFM_PARTITION_TEST_SECURE_SERVICES AND TFM_PARTITION_TEST_SECURE_SERVICES)

@@ -14,7 +14,7 @@
 
 uint8_t *tfm_scratch_area;
 int32_t tfm_scratch_area_size;
-nsfptr_t ns_entry;
+//nsfptr_t ns_entry;
 
 void jump_to_ns_code(void)
 {
@@ -31,7 +31,7 @@ void jump_to_ns_code(void)
     __ISB();
 
     /* Calls the non-secure Reset_Handler to jump to the non-secure binary */
-    ns_entry();
+//    ns_entry();
 }
 
 #if defined(__ARM_ARCH_8M_MAIN__)

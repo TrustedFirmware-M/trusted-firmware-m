@@ -57,7 +57,7 @@ endif()
 
 #Specify what we build (for the audit logging service, build as a static library)
 add_library(tfm_audit STATIC ${ALL_SRC_ASM} ${ALL_SRC_C})
-embedded_set_target_compile_defines(TARGET tfm_audit LANGUAGE C DEFINES __ARM_FEATURE_CMSE=3 __thumb2__ TFM_LVL=${TFM_LVL})
+embedded_set_target_compile_defines(TARGET tfm_audit LANGUAGE C DEFINES  __thumb2__ TFM_LVL=${TFM_LVL})
 
 if (AUDIT_LOG_BUILD_MBEDTLS)
 	#Add a dependency on the mbed_tls_lib_install target.

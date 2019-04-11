@@ -19,8 +19,7 @@
  *
  * \brief Attributes for secure gateway functions
  */
-#define __tfm_secure_gateway_attributes__ \
-        __attribute__((cmse_nonsecure_entry, noinline, section("SFN")))
+#define __tfm_secure_gateway_attributes__
 
 /* Hide specific errors if not debugging */
 #ifdef TFM_CORE_DEBUG
@@ -106,7 +105,7 @@ int32_t tfm_core_partition_request(uint32_t id, void *fn, int32_t iovec_api,
     desc.sp_id = id;
     desc.sfn = fn;
     desc.args = args;
-    desc.ns_caller = cmse_nonsecure_caller();
+//    desc.ns_caller = cmse_nonsecure_caller();
     desc.iovec_api = iovec_api;
     if (__get_active_exc_num() != EXC_NUM_THREAD_MODE) {
         /* FixMe: Error severity TBD */

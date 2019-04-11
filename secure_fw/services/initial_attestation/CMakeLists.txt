@@ -35,7 +35,7 @@ add_subdirectory(${TFM_ROOT_DIR}/lib/t_cose ${CMAKE_CURRENT_BINARY_DIR}/t_cose)
 
 #Specify what we build (for the initial attestation service, build as a static library)
 add_library(tfm_attest STATIC ${ALL_SRC_ASM} ${ALL_SRC_C} $<TARGET_OBJECTS:tfm_qcbor> $<TARGET_OBJECTS:tfm_t_cose>)
-embedded_set_target_compile_defines(TARGET tfm_attest LANGUAGE C DEFINES __ARM_FEATURE_CMSE=3 __thumb2__ TFM_LVL=${TFM_LVL})
+embedded_set_target_compile_defines(TARGET tfm_attest LANGUAGE C DEFINES __thumb2__ TFM_LVL=${TFM_LVL})
 
 #Set common compiler flags
 config_setting_shared_compiler_flags(tfm_attest)

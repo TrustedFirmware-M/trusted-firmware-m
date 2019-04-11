@@ -15,6 +15,7 @@
 
 int ipc_client_init(void)
 {
+#if 0
     psa_handle_t handle;
     psa_status_t status;
     char str1[] = "123";
@@ -43,5 +44,6 @@ int ipc_client_init(void)
     }
 
     psa_close(handle);
+#endif
     return 0;
 }
