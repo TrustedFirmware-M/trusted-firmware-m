@@ -138,6 +138,23 @@ cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../ConfigPsaApiTest.cmake` -
 cmake --build ./ -- install
 ```
 
+## Build for ref twincpu platform
+
+Current build system for twincpu platform build require building secure and host
+side separately. Please follow the instructions below
+
+```
+cd <TF-M base folder>
+cd trusted-firmware-m
+mkdir sc_build
+mkdir host_build
+cd sc_build
+cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../ConfigCoreIPC.cmake` -DTARGET_PLATFORM=ref_twincpu_sc -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
+cmake --build ./ -- install
+cd ../host_build
+cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../ConfigCoreIPC.cmake` -DTARGET_PLATFORM=ref_twincpu_host -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
+cmake --build ./ -- install
+```
 ## Building the Reference Manual
 Please ensure the dependencies for building the firmware and the documentation
 are installed as explained in the [software requirements](tfm_sw_requirement.md).
