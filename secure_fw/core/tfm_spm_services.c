@@ -95,6 +95,45 @@ __attribute__((naked)) int32_t tfm_core_sfn_request(
             , [SVC_RET] "I" (TFM_SVC_SFN_RETURN)
           : "r0");
 }
+#elif defined(__ARM_ARCH_6M__) || (__ARM_ARCH_7M__)
+__attribute__((naked)) int32_t tfm_core_sfn_request(
+                                                 struct tfm_sfn_req_s *desc_ptr)
+{
+    __ASM(
+          ".syntax unified\n"
+          "PUSH   {lr}\n"
+          "PUSH   {r4-r7}\n"
+          "MOV    r4, r8\n"
+          "MOV    r5, r9\n"
+          "MOV    r6, r10\n"
+          "MOV    r7, r11\n"
+          "PUSH   {r4-r7}\n"
+          "MOV    r4, r12\n"
+          "PUSH   {r4}\n"
+          "SVC    %[SVC_REQ]\n"
+          "MOVS   r4, #0\n"
+          "MOV    r5, r4\n"
+          "MOV    r6, r4\n"
+          "MOV    r7, r4\n"
+          "MOV    r8, r4\n"
+          "MOV    r9, r4\n"
+          "MOV    r10, r4\n"
+          "MOV    r11, r4\n"
+          "BLX    lr\n"
+          "SVC    %[SVC_RET]\n"
+          "POP    {r4}\n"
+          "MOV    r12, r4\n"
+          "POP    {r4-r7}\n"
+          "MOV    r8, r4\n"
+          "MOV    r9, r5\n"
+          "MOV    r10, r6\n"
+          "MOV    r11, r7\n"
+          "POP    {r4-r7}\n"
+          "POP    {pc}\n"
+          : : [SVC_REQ] "I" (TFM_SVC_SFN_REQUEST)
+            , [SVC_RET] "I" (TFM_SVC_SFN_RETURN)
+          : "r0");
+}
 #else
 #error "Unsupported ARM Architecture."
 #endif

@@ -136,6 +136,32 @@ __attribute__((naked)) void PendSV_Handler(void)
         "bx      lr                         \n"
     );
 }
+#elif defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_7M__)
+__attribute__((naked)) void PendSV_Handler(void)
+{
+    __ASM(
+        "mrs     r0, psp                    \n"
+        "push    {r0, r1, r2, lr}           \n"
+        "push    {r4-r7}                    \n"
+        "mov     r4, r8                     \n"
+        "mov     r5, r9                     \n"
+        "mov     r6, r10                    \n"
+        "mov     r7, r11                    \n"
+        "push    {r4-r7}                    \n"
+        "mov     r0, sp                     \n"
+        "bl      tfm_pendsv_do_schedule     \n"
+        "pop     {r4-r7}                    \n"
+        "mov     r8, r4                     \n"
+        "mov     r9, r5                     \n"
+        "mov     r10, r6                    \n"
+        "mov     r11, r7                    \n"
+        "pop     {r4-r7}                    \n"
+        "pop     {r0-r3}                    \n"
+        "mov     lr, r3                     \n"
+        "msr     psp, r0                    \n"
+        "bx      lr                         \n"
+    );
+}
 #else
 #error "Unsupported ARM Architecture."
 #endif

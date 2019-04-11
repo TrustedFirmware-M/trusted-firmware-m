@@ -96,6 +96,23 @@ void HardFault_Handler(void)
         ;
     }
 }
+#elif defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_7M__)
+/**
+ * \brief Overwrites default Hard fault handler.
+ *
+ * In case of a baseline implementation fault conditions that would generate a
+ * SecureFault in a mainline implementation instead generate a Secure HardFault.
+ */
+void HardFault_Handler(void)
+{
+    /* In a baseline implementation there is no way, to find out whether this is
+     * a hard fault triggered directly, or another fault that has been
+     * escalated.
+     */
+    while (1) {
+        ;
+    }
+}
 #else
 #error "Unsupported ARM Architecture."
 #endif
@@ -114,6 +131,25 @@ __attribute__((naked)) void SVC_Handler(void)
     );
 }
 #elif defined(__ARM_ARCH_8M_BASE__)
+__attribute__((naked)) void SVC_Handler(void)
+{
+    __ASM(
+    ".syntax unified\n"
+    "MOVS    r0, #4\n"  /* Check store SP in thread mode to r0 */
+    "MOV     r1, lr\n"
+    "TST     r0, r1\n"
+    "BEQ     handler\n"
+    "MRS     r0, PSP\n"  /* Coming from thread mode */
+    "B sp_stored\n"
+    "handler:\n"
+    "BX      lr\n"  /* Coming from handler mode */
+    "sp_stored:\n"
+    "MOV     r1, lr\n"
+    "BL      SVCHandler_main\n"
+    "BX      r0\n"
+    );
+}
+#elif defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_7M__)
 __attribute__((naked)) void SVC_Handler(void)
 {
     __ASM(
