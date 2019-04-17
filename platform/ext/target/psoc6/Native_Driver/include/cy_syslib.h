@@ -477,7 +477,7 @@ typedef enum
      * attributes at the first place of declaration/definition.
      * For example: CY_NOINIT uint32_t noinitVar;
      */
-    #define CY_NOINIT           __attribute__ ((section(".noinit"), zero_init))
+    #define CY_NOINIT           __attribute__ ((section(".bss.noinit")))
     #define CY_SECTION(name)    __attribute__ ((section(name)))
     #define CY_UNUSED           __attribute__ ((unused))
     #define CY_NOINLINE         __attribute__ ((noinline))

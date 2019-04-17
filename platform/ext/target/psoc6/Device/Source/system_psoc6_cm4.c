@@ -492,7 +492,7 @@ void Cy_SysIpcPipeIsrCm4(void)
 * linker configuration files. The following symbols used by the cymcuelftool.
 *
 *******************************************************************************/
-#if defined (__ARMCC_VERSION)
+#if defined (__ARMCC_VERSION) && (__ARMCC_VERSION < 6010050)
 __asm void Cy_MemorySymbols(void)
 {
     /* Flash */
@@ -546,7 +546,7 @@ __cy_memory_4_length    EQU __cpp(0x100000)
 __cy_memory_4_row_size  EQU __cpp(1)
 }
 
-#endif /* defined (__ARMCC_VERSION) */
+#endif /* defined (__ARMCC_VERSION) && (__ARMCC_VERSION < 6010050) */
 
 
 /* [] END OF FILE */
