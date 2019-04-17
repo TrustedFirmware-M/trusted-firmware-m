@@ -28,8 +28,6 @@
 #include "cy_device_headers.h"
 #include "cy_syslib.h"
 #include "cy_wdt.h"
-#include "system_psoc6_cm0plus_flash_init.h"
-#include "psoc6_utils.h"
 
 #if !defined(CY_IPC_DEFAULT_CFG_DISABLE)
     #include "cy_ipc_sema.h"
@@ -158,26 +156,6 @@ uint32_t cy_delay32kMs    = CY_DELAY_MS_OVERFLOW_THRESHOLD *
 #define CY_SYS_CM4_PWR_CTL_KEY_CLOSE (0xFA05UL)
 #define CY_SYS_CM4_VECTOR_TABLE_VALID_ADDR  (0x000003FFUL)
 
-/*******************************************************************************
-* Function Name: mbed_sdk_init
-****************************************************************************//**
-*
-* Mbed's post-memory-initialization function.
-* Used here to initialize common parts of the Cypress libraries.
-*
-*******************************************************************************/
-void mbed_sdk_init(void)
-{
-    /* Initialize shared resource manager */
-    cy_srm_initialize();
-    /* Initialize system and clocks. */
-    /* Placed here as it must be done after proper LIBC initialization. */
-    SystemInit();
-}
-
-#if defined(COMPONENT_SPM_MAILBOX)
-void mailbox_init(void);
-#endif
 
 /*******************************************************************************
 * Function Name: SystemInit
@@ -216,9 +194,6 @@ void SystemInit(void)
     Cy_SystemInit();
     SystemCoreClockUpdate();
 
-#if defined(COMPONENT_SPM_MAILBOX)
-    mailbox_init();
-#endif
 #if defined(CY_DEVICE_PSOC6ABLE2) && !defined(CY_PSOC6ABLE2_REV_0A_SUPPORT_DISABLE)
     if (CY_SYSLIB_DEVICE_REV_0A == Cy_SysLib_GetDeviceRevision())
     {
@@ -289,8 +264,6 @@ void SystemInit(void)
     Cy_Flash_Init();
 #endif /* defined(CY_DEVICE_PSOC6ABLE2) */
 
-#else/* !defined(CY_IPC_DEFAULT_CFG_DISABLE) */
-    Cy_SemaIpcFlashInit();
 #endif /* !defined(CY_IPC_DEFAULT_CFG_DISABLE) */
 }
 
