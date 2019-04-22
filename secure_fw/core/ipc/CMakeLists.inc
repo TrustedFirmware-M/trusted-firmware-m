@@ -56,6 +56,7 @@ elseif (TFM_PSA_API)
 	# Add multi-core topology support
 	if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
 		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/tfm_rpc.c")
+		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/tfm_spe_mailbox.c")
 	endif ()
 
 endif()
