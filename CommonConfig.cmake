@@ -123,6 +123,10 @@ if (CORE_IPC)
 endif()
 
 if (TFM_PSA_API)
+	if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
+		add_definitions(-DTFM_MULTI_CORE_TOPOLOGY=1)
+	endif()
+
 	add_definitions(-DTFM_PSA_API)
 endif()
 
