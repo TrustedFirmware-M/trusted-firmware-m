@@ -115,6 +115,8 @@ int main(void)
     (void)NS_DRIVER_STDIO.Initialize(NULL);
     NS_DRIVER_STDIO.Control(ARM_USART_MODE_ASYNCHRONOUS, 115200);
 
+    LOG_MSG("NS code running on CM4\r\n");
+
     status = osKernelInitialize();
 
     /* Initialize the TFM NS lock */

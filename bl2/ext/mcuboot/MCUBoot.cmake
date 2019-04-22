@@ -52,7 +52,7 @@ function(mcuboot_create_boot_payload)
 						#Create concatenated binary image from the two binary file
 						COMMAND ${PYTHON_EXECUTABLE} ${MCUBOOT_DIR}/scripts/assemble.py
 						ARGS -l ${FLASH_LAYOUT}
-							 -s $<TARGET_FILE_DIR:${_MY_PARAMS_S_BIN}>/${_MY_PARAMS_S_BIN}.bin
+							 -s ${CMAKE_BINARY_DIR}/../cmake_psoc_cm0p/app/secure_fw/${_MY_PARAMS_S_BIN}.bin
 							 -n $<TARGET_FILE_DIR:${_MY_PARAMS_NS_BIN}>/${_MY_PARAMS_NS_BIN}.bin
 							 -o ${CMAKE_BINARY_DIR}/${_MY_PARAMS_FULL_BIN}.bin
 

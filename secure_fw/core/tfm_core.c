@@ -127,9 +127,11 @@ static int32_t tfm_core_set_secure_exception_priorities(void)
     /* Set PRIS flag is AIRCR */
     AIRCR = scb->AIRCR;
     VECTKEY = (~AIRCR & SCB_AIRCR_VECTKEYSTAT_Msk);
+#if 0
     scb->AIRCR = SCB_AIRCR_PRIS_Msk |
                  VECTKEY |
                  (AIRCR & ~SCB_AIRCR_VECTKEY_Msk);
+#endif
 
     /* FixMe: Explicitly set secure fault and Secure SVC priority to highest */
 
@@ -178,6 +180,11 @@ int main(void)
 //
 #ifdef TFM_PSA_API
     tfm_spm_init();
+#endif
+
+#ifdef CY_PSOC6_CM0P
+    printf("Starting Cortex-M4 at 0x%x\r\n", NS_CODE_START);
+    Cy_SysEnableCM4(NS_CODE_START);
 #endif
 
 while(1)

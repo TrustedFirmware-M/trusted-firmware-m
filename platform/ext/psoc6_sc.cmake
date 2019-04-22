@@ -13,6 +13,7 @@
 set(TWIN_CPU On)
 add_definitions(-DTWIN_CPU=1 -DCY_IPC_DEFAULT_CFG_DISABLE=1 -DCY_PSOC6_CM0P -DCY8C6247BZI_D54=1)
 add_definitions(-DCY_FLASH_RWW_DRV_SUPPORT_DISABLED=1 -DCY_ARM_FAULT_DEBUG=0 -DNDEBUG=1)
+add_definitions(-DTFM_CORE_DEBUG)
 
 # Cortex M0plus.
 include("Common/CpuM0p")
