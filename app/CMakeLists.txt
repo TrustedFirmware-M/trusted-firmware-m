@@ -43,13 +43,11 @@ set(NS_APP_SRC "${CMSIS_5_DIR}/CMSIS/RTOS2/RTX/Config/RTX_Config.c"
 	"${APP_DIR}/main_ns.c"
 	"${APP_DIR}/tfm_integ_test.c"
 	"${APP_DIR}/os_wrapper_rtx.c"
-	"${INTERFACE_DIR}/src/tfm_sst_api.c"
-	"${INTERFACE_DIR}/src/tfm_audit_api.c"
-	"${INTERFACE_DIR}/src/tfm_crypto_api.c"
-	"${INTERFACE_DIR}/src/tfm_platform_api.c"
-	"${INTERFACE_DIR}/src/tfm_initial_attestation_api.c"
-	"${INTERFACE_DIR}/src/tfm_ns_lock_rtx.c"
 	)
+
+if (NOT DEFINED TFM_MULTI_CORE_TOPOLOGY OR NOT TFM_MULTI_CORE_TOPOLOGY)
+	list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_ns_lock_rtx.c")
+endif ()
 
 if (NOT DEFINED TFM_NS_CLIENT_IDENTIFICATION)
 	message(FATAL_ERROR "Incomplete build configuration: TFM_NS_CLIENT_IDENTIFICATION is undefined.")
@@ -67,7 +65,20 @@ endif()
 if (NOT DEFINED TFM_PSA_API)
 	message(FATAL_ERROR "Incomplete build configuration: TFM_PSA_API is undefined. ")
 elseif (TFM_PSA_API)
-	list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_psa_ns_api.c")
+	if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
+		list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_ns_mailbox.c"
+			 "${INTERFACE_DIR}/src/tfm_mailbox_psa_ns_api.c")
+	else ()
+		list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_psa_ns_api.c")
+	endif ()
+else ()
+	list(APPEND NS_APP_SRC
+		"${INTERFACE_DIR}/src/tfm_sst_api.c"
+		"${INTERFACE_DIR}/src/tfm_audit_api.c"
+		"${INTERFACE_DIR}/src/tfm_crypto_api.c"
+		"${INTERFACE_DIR}/src/tfm_platform_api.c"
+		"${INTERFACE_DIR}/src/tfm_initial_attestation_api.c"
+		)
 endif()
 
 set(BUILD_CMSIS_CORE On)
