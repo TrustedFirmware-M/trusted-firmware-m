@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, Arm Limited. All rights reserved.
+ * Copyright (c) 2017-2019, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -22,6 +22,7 @@
 #include "tfm_wait.h"
 #include "tfm_message_queue.h"
 #include "tfm_spm.h"
+#include "tfm_spe_mailbox.h"
 #endif
 
 /*
@@ -118,6 +119,7 @@ int32_t tfm_core_init(void)
     return 0;
 }
 
+#if !TFM_MULTI_CORE_TOPOLOGY
 static int32_t tfm_core_set_secure_exception_priorities(void)
 {
     uint32_t VECTKEY;
@@ -137,6 +139,7 @@ static int32_t tfm_core_set_secure_exception_priorities(void)
 
     return TFM_SUCCESS;
 }
+#endif
 
 void tfm_core_spm_request_handler(const struct tfm_exc_stack_t *svc_ctx)
 {
@@ -155,8 +158,6 @@ void tfm_core_spm_request_handler(const struct tfm_exc_stack_t *svc_ctx)
         *res_ptr = TFM_ERROR_INVALID_PARAMETER;
     }
 }
-
-void rpc_simulate();
 
 int main(void)
 {
@@ -187,8 +188,18 @@ int main(void)
     Cy_SysEnableCM4(NS_CODE_START);
 #endif
 
-while(1)
-   rpc_simulate();
+#if TFM_MULTI_CORE_TOPOLOGY
+    tfm_mailbox_init();
+
+    /*
+     * FIXME
+     * In latest TF-M implementatoin on master branch, the main() will be
+     * switched out finally.
+     * This dead loop can be removed after applying the changes of latest
+     * TF-M implementation on master branch.
+     */
+    while (1) {};
+#else
 
 #ifdef TFM_CORE_DEBUG
     /* Jumps to non-secure code */
@@ -208,4 +219,5 @@ while(1)
     tfm_core_set_secure_exception_priorities();
 
     jump_to_ns_code();
+#endif
 }
