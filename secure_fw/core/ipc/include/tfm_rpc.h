@@ -13,8 +13,16 @@
 #ifndef _TFM_RPC_H_
 #define _TFM_RPC_H_
 
+#if TFM_MULTI_CORE_TOPOLOGY
+
+#include <stdbool.h>
 #include <stdint.h>
+#include "cmsis_compiler.h"
 #include "psa_client.h"
+#include "psa_service.h"
+#include "tfm_thread.h"
+#include "tfm_wait.h"
+#include "tfm_message_queue.h"
 
 #define TFM_RPC_SUCCESS             (0)
 #define TFM_RPC_INVAL_PARAM         (INT32_MIN + 1)
@@ -160,4 +168,41 @@ void tfm_rpc_client_call_handler(void);
  */
 void tfm_rpc_client_call_reply(void *owner, int32_t ret);
 
+/*
+ * Check if the message was allocated for a non-secure request via RPC
+ *
+ * \param[in] msg           The message body context pointer
+ *                          \ref msg_body_t structures
+ *
+ * \retval true             The message was allocated for a NS request via RPC.
+ * \retval false            Otherwsie.
+ */
+__STATIC_INLINE bool is_tfm_rpc_msg(const struct tfm_msg_body_t *msg)
+{
+    /*
+     * FIXME
+     * The ID should be smaller than 0 if the message is allocted by a
+     * non-secure caller.
+     * However, current TF-M implementation use 0 as the default non-secure
+     * caller ID. Therefore, treat the caller as non-secure when client_id == 0.
+     *
+     * This conditiion check should be improved after TF-M non-secure client ID
+     * management is implemented.
+     */
+    if (msg && (msg->msg.client_id <= 0) && !msg->ack_evnt.owner) {
+        return true;
+    }
+
+    return false;
+}
+#else /* TFM_MULIT_CORE_TOPOLOGY */
+
+/* RPC is only available in mulit-core scenario */
+#define is_tfm_rpc_msg(x)             (false)
+
+#define tfm_rpc_client_call_handler() do {} while (0)
+
+#define tfm_rpc_client_call_reply(owner, ret)   do {} while (0)
+
+#endif /* TFM_MULIT_CORE_TOPOLOGY */
 #endif

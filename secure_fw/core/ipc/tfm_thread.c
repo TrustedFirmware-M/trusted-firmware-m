@@ -10,6 +10,7 @@
 #include "tfm_thread.h"
 #include "tfm_utils.h"
 #include "tfm_memory_utils.h"
+#include "tfm_rpc.h"
 
 /* Force ZERO in case ZI(bss) clear is missing */
 static struct tfm_thrd_ctx *p_thrd_head = NULL;
@@ -195,4 +196,6 @@ void tfm_pendsv_do_schedule(struct tfm_state_context_ext *ctxb)
     if (pth && pth != CURR_THRD) {
         tfm_thrd_context_switch(ctxb, CURR_THRD, pth);
     }
+
+    tfm_rpc_client_call_handler();
 }

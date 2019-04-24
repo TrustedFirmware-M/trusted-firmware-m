@@ -20,6 +20,7 @@
 #include "tfm_message_queue.h"
 #include "tfm_list.h"
 #include "tfm_pools.h"
+#include "tfm_rpc.h"
 #include "tfm_spm.h"
 #include "tfm_spm_signal_defs.h"
 #include "tfm_thread.h"
@@ -408,7 +409,13 @@ int32_t tfm_spm_send_event(struct tfm_spm_service_t *service,
                    (service->partition->signals &
                     service->partition->signal_mask));
 
-    tfm_event_wait(&msg->ack_evnt);
+    /*
+     * If it is a NS request via RPC, it is unnecessary to block current
+     * thread.
+     */
+    if (!is_tfm_rpc_msg(msg)) {
+        tfm_event_wait(&msg->ack_evnt);
+    }
 
     return IPC_SUCCESS;
 }

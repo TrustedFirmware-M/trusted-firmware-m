@@ -22,6 +22,7 @@
 #include "tfm_secure_api.h"
 #include "tfm_memory_utils.h"
 #include "tfm_psa_client_call.h"
+#include "tfm_rpc.h"
 
 #define PSA_TIMEOUT_MASK        PSA_BLOCK
 
@@ -542,7 +543,10 @@ static void update_caller_outvec_len(struct tfm_msg_body_t *msg)
      * FixeMe: abstract these part into dedicated functions to avoid
      * accessing thread context in psa layer
      */
-    TFM_ASSERT(msg->ack_evnt.owner->status == THRD_STAT_BLOCK);
+    /* If it is a NS request via RPC, the owner of this message is not set */
+    if (!is_tfm_rpc_msg(msg)) {
+        TFM_ASSERT(msg->ack_evnt.owner->status == THRD_STAT_BLOCK);
+    }
 
     while (msg->msg.out_size[i] != 0) {
         TFM_ASSERT(msg->caller_outvec[i].base == msg->outvec[i].base);
@@ -659,7 +663,11 @@ static void tfm_svcall_psa_reply(uint32_t *args)
         tfm_panic();
     }
 
-    tfm_event_wake(&msg->ack_evnt, ret);
+    if (is_tfm_rpc_msg(msg)) {
+        tfm_rpc_client_call_reply(NULL, ret);
+    } else {
+        tfm_event_wake(&msg->ack_evnt, ret);
+    }
 
     /* Message should not be unsed anymore */
     tfm_spm_free_msg(msg);
