@@ -10,7 +10,10 @@
 # PsoC 6 has a Cortex-M4 on the host side
 
 include("Common/CpuM4")
-add_definitions(-DTWIN_CPU=1 -DCY_PSOC6_CM4 -DCY8C6247BZI_D54=1 -DCY_IPC_DEFAULT_CFG_DISABLE=1)
+
+set(TFM_MULTI_CORE_TOPOLOGY ON)
+
+add_definitions(-DCY8C6247BZI_D54=1 -DCY_IPC_DEFAULT_CFG_DISABLE=1)
 add_definitions(-DCY_FLASH_RWW_DRV_SUPPORT_DISABLED=1 -DCY_ARM_FAULT_DEBUG=0 -DNDEBUG=1)
 add_definitions(-DTFM_CORE_DEBUG)
 
@@ -54,10 +57,16 @@ embedded_include_directories(PATH "${PLATFORM_DIR}/target/psoc6/Device/Config" A
 embedded_include_directories(PATH "${PLATFORM_DIR}/target/psoc6/Device/Include" ABSOLUTE)
 embedded_include_directories(PATH "${PLATFORM_DIR}/target/psoc6/Native_Driver/include" ABSOLUTE)
 embedded_include_directories(PATH "${PLATFORM_DIR}/target/psoc6/Native_Driver/generated_source" ABSOLUTE)
+embedded_include_directories(PATH "${PLATFORM_DIR}/target/psoc6/mailbox" ABSOLUTE)
 embedded_include_directories(PATH "${PLATFORM_DIR}/target/psoc6/partition" ABSOLUTE)
 embedded_include_directories(PATH "${TFM_ROOT_DIR}/interface/include" ABSOLUTE)
+embedded_include_directories(PATH "${TFM_ROOT_DIR}/secure_fw/core/ipc/include" ABSOLUTE)
 
 #Gather all source files we need.
+list(APPEND ALL_SRC_C "${PLATFORM_DIR}/target/psoc6/mailbox/platform_mailbox.c")
+list(APPEND ALL_SRC_C_NS "${PLATFORM_DIR}/target/psoc6/mailbox/platform_ns_mailbox.c")
+list(APPEND ALL_SRC_C_S "${PLATFORM_DIR}/target/psoc6/mailbox/platform_spe_mailbox.c")
+
 if (NOT DEFINED BUILD_CMSIS_CORE)
   message(FATAL_ERROR "Configuration variable BUILD_CMSIS_CORE (true|false) is undefined!")
 elseif(BUILD_CMSIS_CORE)

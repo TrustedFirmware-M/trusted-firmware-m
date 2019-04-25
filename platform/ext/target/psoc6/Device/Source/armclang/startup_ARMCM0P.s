@@ -66,7 +66,7 @@ __Vectors       ;Core Interrupts
                 DCD    MHU0_IRQHandler                 ;  6: Message Handling Unit 0 Interrupt
                 DCD    MHU1_IRQHandler                 ;  7: Message Handling Unit 1 Interrupt
                 DCD    CRYPTOCELL_IRQHandler           ;  8: CryptoCell-312 Interrupt
-                DCD    MPC_Handler                     ;  9: Secure Combined MPC Interrupt
+                DCD    NvicMux9_IRQHandler             ;  9: CM0 + NVIC Mux input 9
                 DCD    PPC_Handler                     ; 10: Secure Combined PPC Interrupt
                 DCD    S_MSC_COMBINED_IRQHandler       ; 11: Secure Combined MSC Interrupt
                 DCD    S_BRIDGE_ERR_IRQHandler         ; 12: Secure Bridge Error Combined Interrupt
@@ -289,7 +289,7 @@ $handler_name   PROC
                 Default_Handler MHU0_IRQHandler
                 Default_Handler MHU1_IRQHandler
                 Default_Handler CRYPTOCELL_IRQHandler
-                Default_Handler MPC_Handler
+                Default_Handler NvicMux9_IRQHandler
                 Default_Handler PPC_Handler
                 Default_Handler S_MSC_COMBINED_IRQHandler
                 Default_Handler S_BRIDGE_ERR_IRQHandler
