@@ -62,7 +62,7 @@ LR_CODE S_CODE_START {
         dummy_nv_counters.o (+RO)
         dummy_boot_seed.o (+RO)
         dummy_device_id.o (+RO)
-        platform_retarget_dev.o (+RO)
+        device_definition.o (+RO)
         *(SFN)
         *armlib*
     }
@@ -242,17 +242,6 @@ LR_CODE S_CODE_START {
      * size of the SRAM available.
      */
     ScatterAssert(ImageLimit(SRAM_WATERMARK) <= S_DATA_START + S_DATA_SIZE)
-}
-
-LR_VENEER CMSE_VENEER_REGION_START {
-    /*
-     * Place the CMSE Veneers (containing the SG instruction) in a separate
-     * 32 bytes aligned region so that the SAU can be programmed to
-     * just set this region as Non-Secure Callable.
-     */
-    ER_CODE_CMSE_VENEER CMSE_VENEER_REGION_START CMSE_VENEER_REGION_SIZE {
-        *(Veneer$$CMSE)
-    }
 }
 
 LR_NS_PARTITION NS_PARTITION_START {

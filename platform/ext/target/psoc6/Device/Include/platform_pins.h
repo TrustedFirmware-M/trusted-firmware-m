@@ -22,24 +22,4 @@
 #ifndef __PLATFORM_PINS__
 #define __PLATFORM_PINS__
 
-/* AHB GPIO pin names */
-enum arm_gpio_pin_name_t {
-  AHB_GPIO0_0 = 0U,
-  AHB_GPIO0_1,
-  AHB_GPIO0_2,
-  AHB_GPIO0_3,
-  AHB_GPIO0_4,
-  AHB_GPIO0_5,
-  AHB_GPIO0_6,
-  AHB_GPIO0_7,
-  AHB_GPIO0_8,
-  AHB_GPIO0_9,
-  AHB_GPIO0_10,
-  AHB_GPIO0_11,
-  AHB_GPIO0_12,
-  AHB_GPIO0_13,
-  AHB_GPIO0_14,
-  AHB_GPIO0_15,
-};
-
 #endif  /* __PLATFORM_PINS__ */

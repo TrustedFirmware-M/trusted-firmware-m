@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef __MUSCA_CMSIS_H__
-#define __MUSCA_CMSIS_H__
+#ifndef __CMSIS_H__
+#define __CMSIS_H__
 
-/* CMSIS wrapper for Musca board */
+/* CMSIS wrapper for PSoC 6 board */
 
-#include "system_cmsdk_ref_twincpu.h"
+#include "cmsis_compiler.h"
+#include "system_psoc6.h"
+#include "cy_device_headers.h"
 #include "platform_regs.h"              /* Platform registers */
-#include "platform_retarget.h"          /* Peripherals base addresses */
+#include "platform_base_address.h"      /* Peripherals base addresses */
 
-#endif /*__MUSCA_CMSIS_H__ */
+#endif /*__CMSIS_H__ */

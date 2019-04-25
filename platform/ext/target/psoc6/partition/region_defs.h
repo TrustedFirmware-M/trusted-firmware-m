@@ -20,7 +20,7 @@
 #include "flash_layout.h"
 
 #define TOTAL_ROM_SIZE FLASH_TOTAL_SIZE
-#define TOTAL_RAM_SIZE (0x0048000)     /* 2 MB */
+#define TOTAL_RAM_SIZE (0x00048000) /* CY_SRAM0_SIZE */
 
 #define BL2_HEAP_SIZE           0x0001000
 #define BL2_MSP_STACK_SIZE      0x0001000
@@ -52,12 +52,11 @@
 #endif /* BL2 */
 
 #ifndef LINK_TO_SECONDARY_PARTITION
-#define NS_IMAGE_PRIMARY_PARTITION_OFFSET (0x80000)
+#define NS_IMAGE_PRIMARY_PARTITION_OFFSET (FLASH_AREA_IMAGE_0_OFFSET + FLASH_PARTITION_SIZE)
 #else
-#define NS_IMAGE_PRIMARY_PARTITION_OFFSET (0x200000)
+#define NS_IMAGE_PRIMARY_PARTITION_OFFSET (FLASH_AREA_IMAGE_1_OFFSET + FLASH_PARTITION_SIZE)
 #endif /* !LINK_TO_SECONDARY_PARTITION */
 
-#define NS_IMAGE_PRIMARY_PARTITION_OFFSET (0x80000)
 /*
  * Boot partition structure if MCUBoot is used:
  * 0x0_0000 Bootloader header
@@ -69,18 +68,16 @@
  * for the image header and trailer introduced by the bootloader.
  */
 #ifdef BL2
-#define BL2_HEADER_SIZE      (0)
-#define BL2_TRAILER_SIZE     (0x10000)
+#define BL2_HEADER_SIZE      (0x400)
+#define BL2_TRAILER_SIZE     (0x01000)
 #else
 /* No header if no bootloader, but keep IMAGE_CODE_SIZE the same */
 #define BL2_HEADER_SIZE      (0x0)
-#define BL2_TRAILER_SIZE     (0x10400)
+#define BL2_TRAILER_SIZE     (0x01400)
 #endif /* BL2 */
 
 #define IMAGE_CODE_SIZE \
             (FLASH_PARTITION_SIZE - BL2_HEADER_SIZE - BL2_TRAILER_SIZE)
-
-#define CMSE_VENEER_REGION_SIZE     (0x000001C0)
 
 /* Use SRAM1 memory to store Code data */
 #define S_ROM_ALIAS_BASE  (0x10000000)
@@ -97,15 +94,12 @@
 #define  S_IMAGE_PRIMARY_AREA_OFFSET \
              (S_IMAGE_PRIMARY_PARTITION_OFFSET + BL2_HEADER_SIZE)
 #define S_CODE_START    (S_ROM_ALIAS(S_IMAGE_PRIMARY_AREA_OFFSET))
-#define S_CODE_SIZE     (IMAGE_CODE_SIZE - CMSE_VENEER_REGION_SIZE)
+#define S_CODE_SIZE     IMAGE_CODE_SIZE
 #define S_CODE_LIMIT    (S_CODE_START + S_CODE_SIZE - 1)
 
 #define S_DATA_START    (S_RAM_ALIAS(0x0))
 #define S_DATA_SIZE     (TOTAL_RAM_SIZE / 2)
 #define S_DATA_LIMIT    (S_DATA_START + S_DATA_SIZE - 1)
-
-/* CMSE Veneers region */
-#define CMSE_VENEER_REGION_START  (S_CODE_LIMIT + 1)
 
 /* Non-secure regions */
 #define NS_IMAGE_PRIMARY_AREA_OFFSET \

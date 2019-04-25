@@ -45,7 +45,7 @@
 typedef enum {
 #if ((defined(__GNUC__)        && (__ARM_ARCH == 6) && (__ARM_ARCH_6M__ == 1)) || \
      (defined(__ICCARM__)      && (__CORE__ == __ARM6M__)) || \
-     (defined(__ARMCC_VERSION) && (__TARGET_ARCH_THUMB == 3)) || \
+     (defined(__ARMCC_VERSION) && ((__TARGET_ARCH_THUMB == 3) || (__ARM_ARCH_6M__ == 1))) || \
      (defined(__ghs__)         && defined(__CORE_CORTEXM0PLUS__)))
   /* ARM Cortex-M0+ Core Interrupt Numbers */
   Reset_IRQn                        = -15,      /*!< -15 Reset Vector, invoked on Power up and warm reset */
@@ -255,7 +255,7 @@ typedef enum {
 
 #if ((defined(__GNUC__)        && (__ARM_ARCH == 6) && (__ARM_ARCH_6M__ == 1)) || \
      (defined(__ICCARM__)      && (__CORE__ == __ARM6M__)) || \
-     (defined(__ARMCC_VERSION) && (__TARGET_ARCH_THUMB == 3)) || \
+     (defined(__ARMCC_VERSION) && ((__TARGET_ARCH_THUMB == 3) || (__ARM_ARCH_6M__ == 1))) || \
      (defined(__ghs__)         && defined(__CORE_CORTEXM0PLUS__)))
 
 /* CY8C6247BZI-D54 interrupts that can be routed to the CM0+ NVIC */
@@ -418,7 +418,7 @@ typedef enum {
 
 #if ((defined(__GNUC__)        && (__ARM_ARCH == 6) && (__ARM_ARCH_6M__ == 1)) || \
      (defined(__ICCARM__)      && (__CORE__ == __ARM6M__)) || \
-     (defined(__ARMCC_VERSION) && (__TARGET_ARCH_THUMB == 3)) || \
+     (defined(__ARMCC_VERSION) && ((__TARGET_ARCH_THUMB == 3) || (__ARM_ARCH_6M__ == 1))) || \
      (defined(__ghs__)         && defined(__CORE_CORTEXM0PLUS__)))
 
 /* Configuration of the ARM Cortex-M0+ Processor and Core Peripherals */

@@ -418,7 +418,7 @@ extern "C" {
 *******************************************************************************/
 #if ((defined(__GNUC__)        &&  (__ARM_ARCH == 6) && (__ARM_ARCH_6M__ == 1)) || \
      (defined (__ICCARM__)     &&  (__CORE__ == __ARM6M__))  || \
-     (defined(__ARMCC_VERSION) &&  (__TARGET_ARCH_THUMB == 3)))
+     (defined(__ARMCC_VERSION) &&  ((__TARGET_ARCH_THUMB == 3) || (__ARM_ARCH_6M__ == 1))))
     #define CY_SYSTEM_CPU_CM0P          1UL
 #else
     #define CY_SYSTEM_CPU_CM0P          0UL

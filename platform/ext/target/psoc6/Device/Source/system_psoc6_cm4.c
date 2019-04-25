@@ -28,7 +28,7 @@
 #include "cy_device_headers.h"
 #include "cy_syslib.h"
 #include "cy_wdt.h"
-
+#include "cycfg.h"
 #if !defined(CY_IPC_DEFAULT_CFG_DISABLE)
     #include "cy_ipc_sema.h"
     #include "cy_ipc_pipe.h"
@@ -158,14 +158,24 @@ uint32_t cy_delay32kMs    = CY_DELAY_MS_OVERFLOW_THRESHOLD *
 * Initializes the system:
 * - Restores FLL registers to the default state for single core devices.
 * - Unlocks and disables WDT.
-* - Calls Cy_PDL_Init() function to define the driver library.
 * - Calls the Cy_SystemInit() function, if compiled from PSoC Creator.
 * - Calls \ref SystemCoreClockUpdate().
 * \endcond
 *******************************************************************************/
 void SystemInit(void)
 {
-    Cy_PDL_Init(CY_DEVICE_CFG);
+#if defined (__VTOR_PRESENT) && (__VTOR_PRESENT == 1U)
+    extern uint32_t __Vectors;
+    SCB->VTOR = (uint32_t) &__Vectors;
+#endif
+
+    /*
+     * FIXME:
+     * Even if __FPU_USED is undefined or cleared, FP registers are still
+     * accessed inside armclang library. Not sure about why armclang doesn't
+     * care about the __FPU_USED.
+     */
+    SCB->CPACR |= SCB_CPACR_CP10_CP11_ENABLE;
 
 #ifdef __CM0P_PRESENT
     #if (__CM0P_PRESENT == 0)

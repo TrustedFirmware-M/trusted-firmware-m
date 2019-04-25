@@ -1,5 +1,6 @@
 ;/*
 ; * Copyright (c) 2017-2018 ARM Limited
+; * Copyright (c) 2019, Cypress Semiconductor Corporation. All rights reserved.
 ; *
 ; * Licensed under the Apache License, Version 2.0 (the "License");
 ; * you may not use this file except in compliance with the License.
@@ -34,11 +35,12 @@
                 EXPORT  __Vectors
                 EXPORT  __Vectors_End
                 EXPORT  __Vectors_Size
+                EXPORT  __ramVectors
 
 __Vectors       ;Core Interrupts
                 DCD     |Image$$ARM_LIB_STACK$$ZI$$Limit|  ; Top of Stack
                 DCD     Reset_Handler                  ; Reset Handler
-                DCD     NMI_Handler                    ; NMI Handler
+                DCD     0x0000000D                     ; NMI Handler located at ROM code
                 DCD     HardFault_Handler              ; Hard Fault Handler
                 DCD     MemManage_Handler              ; MPU Fault Handler
                 DCD     BusFault_Handler               ; Bus Fault Handler
@@ -136,6 +138,11 @@ __Vectors_End
 
 __Vectors_Size  EQU     __Vectors_End - __Vectors
 
+                AREA    RESET_RAM, READWRITE, NOINIT
+__ramVectors
+                SPACE   __Vectors_Size
+
+
 ; Reset Handler
                 AREA    |.text|, CODE, READONLY
 Reset_Handler   PROC
@@ -150,6 +157,99 @@ Reset_Handler   PROC
 End_Of_Main
                 B       .
 
+; Saves and disables the interrupts
+Cy_SaveIRQ      PROC
+                EXPORT  Cy_SaveIRQ
+                MRS r0, PRIMASK
+                CPSID i
+                BX LR
+                ENDP
+
+; Restores the interrupts
+Cy_RestoreIRQ   PROC
+                EXPORT Cy_RestoreIRQ
+                MSR PRIMASK, r0
+                BX LR
+                ENDP
+
+;-------------------------------------------------------------------------------
+; Function Name: Cy_SysLib_DelayCycles
+;-------------------------------------------------------------------------------
+;
+; Summary:
+;  Delays for the specified number of cycles.
+;
+; Parameters:
+;  uint32_t cycles: The number of cycles to delay.
+;
+;-------------------------------------------------------------------------------
+; void Cy_SysLib_DelayCycles(uint32_t cycles)
+Cy_SysLib_DelayCycles FUNCTION
+                EXPORT Cy_SysLib_DelayCycles
+                            ; cycles bytes
+                ADDS r0, r0, #2         ;    1    2    Round to the nearest multiple of 4.
+                LSRS r0, r0, #2         ;    1    2    Divide by 4 and set flags.
+                BEQ Cy_DelayCycles_done ;    2    2    Skip if 0.
+Cy_DelayCycles_loop
+                ADDS r0, r0, #1         ;    1    2    Increment the counter.
+                SUBS r0, r0, #2         ;    1    2    Decrement the counter by 2.
+                BNE Cy_DelayCycles_loop ;    2    2    2 CPU cycles (if branch is taken).
+                NOP                     ;    1    2    Loop alignment padding.
+Cy_DelayCycles_done
+                BX lr                   ;    3    2
+                ENDFUNC
+
+
+;-------------------------------------------------------------------------------
+; Function Name: Cy_SysLib_EnterCriticalSection
+;-------------------------------------------------------------------------------
+;
+; Summary:
+;  Cy_SysLib_EnterCriticalSection disables interrupts and returns a value
+;  indicating whether interrupts were previously enabled.
+;
+;  Note Implementation of Cy_SysLib_EnterCriticalSection manipulates the IRQ
+;  enable bit with interrupts still enabled. The test and set of the interrupt
+;  bits are not atomic. Therefore, to avoid a corrupting processor state, it must
+;  be the policy that all interrupt routines restore the interrupt enable bits as
+;  they were found on entry.
+;
+; Return:
+;  uint8_t
+;   Returns 0 if interrupts were previously enabled or 1 if interrupts
+;   were previously disabled.
+;
+;-------------------------------------------------------------------------------
+; uint8_t Cy_SysLib_EnterCriticalSection(void)
+Cy_SysLib_EnterCriticalSection FUNCTION
+                EXPORT Cy_SysLib_EnterCriticalSection
+                MRS r0, PRIMASK         ; Save and return an interrupt state.
+                CPSID I                 ; Disable the interrupts.
+                BX lr
+                ENDFUNC
+
+
+;-------------------------------------------------------------------------------
+; Function Name: Cy_SysLib_ExitCriticalSection
+;-------------------------------------------------------------------------------
+;
+; Summary:
+;  Cy_SysLib_ExitCriticalSection re-enables interrupts if they were enabled
+;  before Cy_SysLib_EnterCriticalSection was called. The argument should be the
+;  value returned from Cy_SysLib_EnterCriticalSection.
+;
+; Parameters:
+;  uint8_t savedIntrStatus:
+;   The saved interrupt status returned by the Cy_SysLib_EnterCriticalSection
+;   function.
+;
+;-------------------------------------------------------------------------------
+; void Cy_SysLib_ExitCriticalSection(uint8_t savedIntrStatus)
+Cy_SysLib_ExitCriticalSection FUNCTION
+                EXPORT Cy_SysLib_ExitCriticalSection
+                MSR PRIMASK, r0         ; Restore the interrupt state.
+                BX lr
+                ENDFUNC
 
 ; Dummy Exception Handlers (infinite loops which can be modified)
                 MACRO

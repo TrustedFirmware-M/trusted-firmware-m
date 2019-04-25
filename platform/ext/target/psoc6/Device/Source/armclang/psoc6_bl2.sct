@@ -20,9 +20,9 @@
 
 LR_CODE BL2_CODE_START {
     ER_CODE BL2_CODE_START {
-        startup_cmsdk_ref_twincpu_bl2.o (RESET +First)
-        startup_cmsdk_ref_twincpu_bl2.o (+RO)
-        system_cmsdk_ref_twincpu.o (+RO)             ; SystemInit
+        startup_psoc6_bl2.o (RESET +First)
+        startup_psoc6_bl2.o (+RO)
+        system_psoc6_cm0plus.o (+RO)          ; SystemInit
         *(InRoot$$Sections)                    ; ARM library sections
         .ANY (+RO) ; app code that gets copied from Flash to SRAM
     }
