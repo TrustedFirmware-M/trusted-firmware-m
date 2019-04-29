@@ -10,6 +10,7 @@ cmake_minimum_required(VERSION 3.7)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include("Common/BuildSys")
 
+add_subdirectory(secure_fw)
 add_subdirectory(app)
 add_subdirectory(bl2/ext/mcuboot)
 

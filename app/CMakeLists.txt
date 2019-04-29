@@ -287,8 +287,10 @@ function(set_up_app_build)
 	if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
 		message (STATUS "TFM_MULTI_CORE_TOPOLOGY is defined, not adding s_veneer.o")
 	else()
-		#Add the veneers to the executable.
-		set(S_VENEER_FILE "${CMAKE_CURRENT_BINARY_DIR}/${VENEER_NAME}")
+		if(NOT DEFINED S_VENEER_FILE)
+			message(FATAL_ERROR "ERROR: S_VENEER_FILE no defined, Check if secure_fw is built.")
+		endif()
+
 		set_property(TARGET ${EXE_NAME} APPEND PROPERTY LINK_LIBRARIES ${S_VENEER_FILE})
 	endif()
 
@@ -301,11 +303,6 @@ function(set_up_app_build)
 				  ${CMAKE_CURRENT_BINARY_DIR}/${EXE_NAME}.bin
 			DESTINATION outputs/fvp/)
 endfunction()
-
-if (NOT TARGET_TFM_S_EXISTED)
-	set(S_VENEER_FILE_LOCATION "${CMAKE_CURRENT_BINARY_DIR}")
-	add_subdirectory(../secure_fw ${CMAKE_CURRENT_BINARY_DIR}/secure_fw)
-endif()
 
 if (LINK_TO_BOTH_MEMORY_REGION)
 	#Link to primary memory region
