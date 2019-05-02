@@ -22,6 +22,7 @@
 #endif
 #include "target_cfg.h"
 #include "Driver_USART.h"
+#include "tfm_ns_mailbox.h"
 
 /* For UART the CMSIS driver is used */
 extern ARM_DRIVER_USART NS_DRIVER_STDIO;
@@ -104,6 +105,10 @@ static const osThreadAttr_t psa_api_test_attr = {
 static osStatus_t   status;
 static osThreadId_t thread_id;
 
+#if TFM_MULTI_CORE_TOPOLOGY
+static struct ns_mailbox_queue_t ns_mailbox_queue;
+#endif
+
 /**
  * \brief main() function
  */
@@ -116,6 +121,10 @@ int main(void)
     NS_DRIVER_STDIO.Control(ARM_USART_MODE_ASYNCHRONOUS, 115200);
 
     LOG_MSG("NS code running on CM4\r\n");
+
+#if TFM_MULTI_CORE_TOPOLOGY
+    mailbox_init(&ns_mailbox_queue);
+#endif
 
     status = osKernelInitialize();
 
