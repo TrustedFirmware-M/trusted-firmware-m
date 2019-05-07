@@ -61,7 +61,7 @@
 #define FLASH_TOTAL_SIZE                (0x00100000) /* 1 MB */
 
 /* Flash layout info for BL2 bootloader */
-#define FLASH_BASE_ADDRESS              (0x10000000) /* same as FLASH0_BASE */
+#define FLASH_BASE_ADDRESS              (0x10000000U) /* same as FLASH0_BASE */
 
 /* Offset and size definitions of the flash partitions that are handled by the
  * bootloader. The image swapping is done between IMAGE_0 and IMAGE_1, SCRATCH

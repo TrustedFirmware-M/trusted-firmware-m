@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018 ARM Limited
+ * Copyright (c) 2019, Cypress Semiconductor Corporation. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,24 +45,18 @@ struct tfm_spm_partition_platform_data_t
 };
 
 /**
- * \brief Configures the Memory Protection Controller.
+ * \brief Configures the Shared Memory Protection Units.
  */
-void mpc_init_cfg(void);
+void smpu_init_cfg(void);
 
 /**
- * \brief Configures the Peripheral Protection Controller.
+ * \brief Configures the Peripheral Protection Units.
  */
-void ppc_init_cfg(void);
+void ppu_init_cfg(void);
 
 /**
- * \brief Clears PPC interrupt.
+ * \brief Configure bus masters/Protectoin Contexts.
  */
-void ppc_clear_irq(void);
-
-/**
- * \brief Configures SAU and IDAU.
- */
-void sau_and_idau_cfg(void);
-
+void bus_masters_cfg(void);
 
 #endif /* __TARGET_CFG_H__ */

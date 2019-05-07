@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018, Arm Limited. All rights reserved.
+ * Copyright (c) 2019, Cypress Semiconductor Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -27,11 +28,18 @@ extern const struct memory_region_limits memory_regions;
 
 void tfm_spm_hal_init_isolation_hw(void)
 {
+    smpu_init_cfg();
+    ppu_init_cfg();
+    bus_masters_cfg();
 }
 
 void tfm_spm_hal_configure_default_isolation(
         const struct tfm_spm_partition_platform_data_t *platform_data)
 {
+    printf("In %s()\n", __func__);
+    if (platform_data) {
+        /* TBD */
+    }
 }
 
 #if TFM_LVL != 1
@@ -187,6 +195,14 @@ enum spm_err_t tfm_spm_hal_set_share_region(
 
 void tfm_spm_hal_setup_isolation_hw(void)
 {
+#if TFM_LVL != 1
+    if (tfm_spm_mpu_init() != SPM_ERR_OK) {
+        ERROR_MSG("Failed to set up initial MPU configuration! Halting.");
+        while (1) {
+            ;
+        }
+    }
+#endif
 }
 
 uint32_t tfm_spm_hal_get_ns_VTOR(void)
