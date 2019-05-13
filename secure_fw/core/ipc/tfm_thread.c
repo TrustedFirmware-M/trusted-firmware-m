@@ -149,82 +149,9 @@ static struct tfm_thrd_ctx *init_idle_thread(struct tfm_thrd_ctx *pth)
     return pth;
 }
 
-#include "tfm_rpc.h"
-
-volatile int* tfm_shared_mem = (int*) 0x08000000;
-volatile int* tfm_shared_mem_ns = (int*)0x08000004;
-/* Simulate share memory */
- uint8_t rwdata[128];
-
-/* Simulate secure side ISR handler */
-void rpocesss(void);
-
-
-void rpc_psa_connect(uint32_t sid, uint32_t ver)
-{
-    uint32_t conn_param[4];
-
-    conn_param[0] = TRPC_CTRL_CONNECT;
-    conn_param[1] = sid;
-    conn_param[2] = ver;
-    conn_param[3] = 0;
-
-    tfm_rpc_client_message(rwdata, sizeof(rwdata));
-    tfm_rpc_client_payload(rwdata, sizeof(rwdata), TRPC_PAYLOAD_CTRL, conn_param, sizeof(conn_param));
-    tfm_rpc_client_ready(rwdata, sizeof(rwdata));
-}
-
-void rpc_psa_call(uint32_t handle, void *in, uint32_t inlen)
-{
-    uint32_t call_param[3];
-
-    call_param[0] = TRPC_CTRL_CALL;
-    call_param[1] = handle;
-    call_param[2] = 0;
-
-    tfm_rpc_client_message(rwdata, sizeof(rwdata));
-    tfm_rpc_client_payload(rwdata, sizeof(rwdata), TRPC_PAYLOAD_CTRL, call_param, sizeof(call_param));
-    tfm_rpc_client_payload(rwdata, sizeof(rwdata), TRPC_PAYLOAD_INPUT, in, inlen);
-    tfm_rpc_client_ready(rwdata, sizeof(rwdata));
-}
-
-
-/* Outbuf support to be added */
-void rpc_psa_close(uint32_t handle)
-{
-    uint32_t call_param[2];
-    call_param[0] = TRPC_CTRL_CLOSE;
-    call_param[1] = handle;
-
-    tfm_rpc_client_message(rwdata, sizeof(rwdata));
-    tfm_rpc_client_payload(rwdata, sizeof(rwdata), TRPC_PAYLOAD_CTRL, call_param, sizeof(call_param));
-    tfm_rpc_client_ready(rwdata, sizeof(rwdata));
-}
-
-volatile int* tfm_shared_mem_ipc_hdl = (int*)0x08000008;
-
- void rpc_simulate()
-{
-    uint32_t *pld;
-    if (*tfm_shared_mem == 1){
-       *tfm_shared_mem = 0;
-       rpc_psa_connect(0x1000, 0x0001);
-    }
-       pld = tfm_rpc_client_recv(rwdata, sizeof(rwdata), NULL);
-       if(pld){
-           *tfm_shared_mem_ipc_hdl = pld[6];
-           *tfm_shared_mem_ns = 1;
-       }
-
-    rpocesss();
-}
-
-
-
 /* Scheduling won't happen immediately but after the exception returns */
 void tfm_thrd_activate_schedule(void)
 {
-
     /*
      * The current thread can be NULL only when initializing. Create the IDLE
      * thread and set it as the current thread to collect caller context.
@@ -232,10 +159,6 @@ void tfm_thrd_activate_schedule(void)
     if (CURR_THRD == NULL) {
         CURR_THRD = init_idle_thread(&idle_thread);
     }
-
-//#if RPC_SIMULATE
-   // rpc_simulate();
-//#endif
 
     tfm_trigger_pendsv();
 }
@@ -259,10 +182,6 @@ void tfm_thrd_context_switch(struct tfm_state_context_ext *ctxb,
     CURR_THRD = next;
 }
 
-
-#define IPC_TEST_SERVICE1_SID        (0x1000)
-#define IPC_TEST_SERVICE1_MIN_VER    (0x0001)
-
 /*
  * This function is a reference implementation for PendSV handler in
  * isolation level 1. More jobs (sandboxing e.g.) need to be done while
@@ -276,7 +195,4 @@ void tfm_pendsv_do_schedule(struct tfm_state_context_ext *ctxb)
     if (pth && pth != CURR_THRD) {
         tfm_thrd_context_switch(ctxb, CURR_THRD, pth);
     }
-
 }
-
-

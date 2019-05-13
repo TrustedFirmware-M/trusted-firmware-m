@@ -21,8 +21,6 @@
 #include "tfm_api.h"
 #include "tfm_secure_api.h"
 #include "tfm_memory_utils.h"
-#include "tfm_rpc.h"
-extern uint8_t rwdata[128];
 
 #define PSA_TIMEOUT_MASK        PSA_BLOCK
 
@@ -31,11 +29,6 @@ extern uint8_t rwdata[128];
 uint32_t tfm_svcall_psa_framework_version(void)
 {
     return PSA_FRAMEWORK_VERSION;
-}
-
-void rpocesss(void)
-{
-    tfm_rpc_service_process(rwdata, sizeof(rwdata));
 }
 
 uint32_t tfm_svcall_psa_version(uint32_t *args, int32_t ns_caller)
@@ -164,18 +157,10 @@ psa_status_t tfm_svcall_psa_call(uint32_t *args, int32_t ns_caller, uint32_t lr)
             tfm_panic();
         }
 
-        inptr = (psa_invec *)args[1];
-        in_num = (size_t)args[2];
-        outptr = (psa_outvec *)args[3];
-        /*
-         * FixMe: 5th parameter is pushed at stack top before SVC; plus
-         * exception stacked contents, 5th parameter is now at 8th position
-         * in SVC handler. However, if thread mode applies FloatPoint, then
-         * FloatPoint context is pushed into stack and then 5th parameter
-         * will not be args[8].
-         * Will refine it later.
-         */
-         out_num = (size_t)args[4];
+        inptr = (psa_invec *)((psa_invec *)args[1])->base;
+        in_num = ((psa_invec *)args[1])->len;
+        outptr = (psa_outvec *)((psa_invec *)args[2])->base;
+        out_num = ((psa_invec *)args[2])->len;
     }
 
     /* It is a fatal error if in_len + out_len > PSA_MAX_IOVEC. */
@@ -714,12 +699,6 @@ static void update_caller_outvec_len(struct tfm_msg_body_t *msg)
         i++;
     }
 }
-
-static void rpc_reply(uint32_t reply, psa_outvec *outvec)
-{
-    tfm_rpc_service_reply(rwdata, sizeof(rwdata), reply, outvec);
-}
-
 /**
  * \brief SVC handler for \ref psa_reply.
  *
@@ -833,9 +812,6 @@ static void tfm_svcall_psa_reply(uint32_t *args)
 
     /* Message should not be unsed anymore */
     tfm_spm_free_msg(msg);
-    if (msg->msg.client_id < 0)
-        rpc_reply(ret, msg->outvec);
-
 }
 
 /**
