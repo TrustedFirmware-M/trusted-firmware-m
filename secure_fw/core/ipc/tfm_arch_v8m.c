@@ -136,7 +136,7 @@ __attribute__((naked)) void PendSV_Handler(void)
         "bx      lr                         \n"
     );
 }
-#elif defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_7M__)
+#elif defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
 __attribute__((naked)) void PendSV_Handler(void)
 {
     __ASM(

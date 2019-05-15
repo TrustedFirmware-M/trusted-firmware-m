@@ -96,7 +96,7 @@ void HardFault_Handler(void)
         ;
     }
 }
-#elif defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_7M__)
+#elif defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
 /**
  * \brief Overwrites default Hard fault handler.
  *
@@ -149,7 +149,7 @@ __attribute__((naked)) void SVC_Handler(void)
     "BX      r0\n"
     );
 }
-#elif defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_7M__)
+#elif defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
 __attribute__((naked)) void SVC_Handler(void)
 {
     __ASM(

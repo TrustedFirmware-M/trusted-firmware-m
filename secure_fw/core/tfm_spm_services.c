@@ -95,7 +95,7 @@ __attribute__((naked)) int32_t tfm_core_sfn_request(
             , [SVC_RET] "I" (TFM_SVC_SFN_RETURN)
           : "r0");
 }
-#elif defined(__ARM_ARCH_6M__) || (__ARM_ARCH_7M__)
+#elif defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
 __attribute__((naked)) int32_t tfm_core_sfn_request(
                                                  struct tfm_sfn_req_s *desc_ptr)
 {
