@@ -55,6 +55,19 @@ if (NOT DEFINED IMAGE_VERSION)
 	set(IMAGE_VERSION 0.0.0+0)
 endif()
 
+# Select the corresponding CPU type and configuration according to current
+# building status in multi-core scenario.
+# The updated configuration will be used in following compiler setting.
+if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
+	include("Common/MultiCore")
+
+	if (NOT DEFINED TFM_BUILD_IN_SPE)
+		message(FATAL_ERROR "Flag of building in SPE is not specified. Please set TFM_BUILD_IN_SPE.")
+	else()
+		select_arm_cpu_type(${TFM_BUILD_IN_SPE})
+	endif()
+endif()
+
 if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
 	# CMSE is unnecessary in multi-core scenarios.
 	# TODO: Need further discussion about if CMSE is required when an Armv8-M
@@ -64,7 +77,7 @@ if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
 else ()
 	set (CMSE_FLAGS "-mcmse")
 	set (ARM_FEATURE_CMSE 3)
-endif ()
+endif()
 
 if(${COMPILER} STREQUAL "ARMCLANG")
 	#Use any ARMCLANG version found on PATH. Note: Only versions supported by the

@@ -7,6 +7,8 @@
 
 cmake_minimum_required(VERSION 3.7)
 
+set(TFM_BUILD_IN_SPE OFF)
+
 #Tell cmake where our modules can be found
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../cmake)
 

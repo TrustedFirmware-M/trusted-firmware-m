@@ -7,6 +7,8 @@
 
 cmake_minimum_required(VERSION 3.7)
 
+set(TFM_BUILD_IN_SPE ON)
+
 #Tell cmake where our modules can be found
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../cmake)
 
@@ -86,6 +88,12 @@ embedded_target_include_directories(TARGET ${PROJECT_NAME} PATH ${TFM_ROOT_DIR} 
 #with different memory map need to be linked(BL2 non-swapping)
 set(PROJECT_OBJ_LIB ${PROJECT_NAME}_obj_lib)
 add_library(${PROJECT_OBJ_LIB} OBJECT ${ALL_SRC_C} ${ALL_SRC_C_S} ${ALL_SRC_ASM} ${ALL_SRC_ASM_S})
+
+#Add platform specific definitions in SPE
+if (DEFINED TFM_PLATFORM_SECURE_DEFS)
+	embedded_set_target_compile_defines(TARGET ${PROJECT_OBJ_LIB} LANGUAGE C DEFINES ${TFM_PLATFORM_SECURE_DEFS} APPEND)
+	embedded_set_target_compile_defines(TARGET ${PROJECT_OBJ_LIB} LANGUAGE ASM DEFINES ${TFM_PLATFORM_SECURE_DEFS} APPEND)
+endif()
 
 #Set common compiler flags
 config_setting_shared_compiler_flags(${PROJECT_OBJ_LIB})

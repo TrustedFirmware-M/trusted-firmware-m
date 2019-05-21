@@ -7,6 +7,8 @@
 
 cmake_minimum_required(VERSION 3.7)
 
+set(TFM_BUILD_IN_SPE ON)
+
 #Tell cmake where our modules can be found
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../../cmake)
 
@@ -51,6 +53,12 @@ elseif(NOT EXISTS ${PLATFORM_CMAKE_FILE})
 	message (FATAL_ERROR "Platform specific CMake \"${PLATFORM_CMAKE_FILE}\" file does not exist. Please fix value of PLATFORM_CMAKE_FILE.")
 else()
 	include(${PLATFORM_CMAKE_FILE})
+endif()
+
+#Add platform specific definitions in SPE
+if (DEFINED TFM_PLATFORM_SECURE_DEFS)
+	embedded_set_target_compile_defines(TARGET ${PROJECT_NAME} LANGUAGE C DEFINES ${TFM_PLATFORM_SECURE_DEFS} APPEND)
+	embedded_set_target_compile_defines(TARGET ${PROJECT_NAME} LANGUAGE ASM DEFINES ${TFM_PLATFORM_SECURE_DEFS} APPEND)
 endif()
 
 #Append all our source files to global lists.
@@ -100,7 +108,7 @@ if(NOT DEFINED PLATFORM_LINK_INCLUDES)
 endif()
 embedded_set_target_link_includes(TARGET ${PROJECT_NAME} INCLUDES "${PLATFORM_LINK_INCLUDES}")
 
-add_executable(${PROJECT_NAME} ${ALL_SRC_ASM} ${ALL_SRC_ASM_BL2} ${ALL_SRC_C} ${ALL_SRC_CXX})
+add_executable(${PROJECT_NAME} ${ALL_SRC_ASM} ${ALL_SRC_C_BL2} ${ALL_SRC_ASM_BL2} ${ALL_SRC_C} ${ALL_SRC_CXX})
 
 #Set common compiler and linker flags
 config_setting_shared_compiler_flags(${PROJECT_NAME})
