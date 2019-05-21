@@ -318,7 +318,7 @@ function(set_up_secure_fw_build)
 endfunction()
 
 #Adds the test directory
-add_subdirectory(${TFM_ROOT_DIR}/test ${CMAKE_BINARY_DIR}/test)
+add_subdirectory(${TFM_ROOT_DIR}/test ${CMAKE_BINARY_DIR}/test/secure_test)
 
 #Add the crypto library target
 add_subdirectory(${SECURE_FW_DIR}/services/crypto)
