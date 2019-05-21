@@ -6,19 +6,26 @@
 #
 #-------------------------------------------------------------------------------
 
-#This file gathers all Cypress PSoC 6 CM0plus specific files in the application.
+#This file gathers all Cypress PSoC 6 specific files in the application.
 
-#PSoC 6 platform has a Cortex-M0+ on the SC side
+include("Common/MultiCore")
 
-set(TFM_MULTI_CORE_TOPOLOGY ON)
+# Select configuration of multi-core topology
+enable_multi_core_topology_config()
+
 set(TFM_NS_CLIENT_IDENTIFICATION OFF)
 
-add_definitions(-DCY_IPC_DEFAULT_CFG_DISABLE=1 -DCY_PSOC6_CM0P=1 -DCY8C6247BZI_D54=1)
+add_definitions(-DCY_IPC_DEFAULT_CFG_DISABLE=1 -DCY8C6247BZI_D54=1)
 add_definitions(-DCY_FLASH_RWW_DRV_SUPPORT_DISABLED=1 -DCY_ARM_FAULT_DEBUG=0 -DNDEBUG=1)
 add_definitions(-DTFM_CORE_DEBUG)
 
-# Cortex M0plus.
-include("Common/CpuM0p")
+# Set Cortex-M0plus as secure core
+set_secure_cpu_type("CpuM0p")
+# Set Cortex-M4 as non-secure core
+set_ns_cpu_type("CpuM4")
+
+# Set PSoC62 specific secure definitions
+add_platform_secure_definitions(CY_PSOC6_CM0P=1)
 
 set(PLATFORM_DIR ${CMAKE_CURRENT_LIST_DIR})
 
@@ -29,7 +36,7 @@ if(COMPILER STREQUAL "ARMCLANG")
     set (NS_SCATTER_FILE_NAME  "${PLATFORM_DIR}/target/psoc6/Device/Source/armclang/psoc6_ns.sct")
     if (DEFINED CMSIS_5_DIR)
       # not all project defines CMSIS_5_DIR, only the ones that use it.
-      set (RTX_LIB_PATH "${CMSIS_5_DIR}/CMSIS/RTOS2/RTX/Library/ARM/RTX_CM0.lib")
+      set (RTX_LIB_PATH "${CMSIS_5_DIR}/CMSIS/RTOS2/RTX/Library/ARM/RTX_CM4F.lib")
     endif()
 elseif(COMPILER STREQUAL "GNUARM")
     set (BL2_SCATTER_FILE_NAME "${PLATFORM_DIR}/target/psoc6/Device/Source/gcc/psoc6_bl2.ld")
@@ -37,7 +44,8 @@ elseif(COMPILER STREQUAL "GNUARM")
     set (NS_SCATTER_FILE_NAME  "${PLATFORM_DIR}/target/psoc6/Device/Source/gcc/psoc6_ns.ld")
     if (DEFINED CMSIS_5_DIR)
       # not all project defines CMSIS_5_DIR, only the ones that use it.
-      set (RTX_LIB_PATH "${CMSIS_5_DIR}/CMSIS/RTOS2/RTX/Library/GCC/libRTX_CM0.a")
+      # [libRTX_CM3.a should be used for CM4 without FPU]
+      set (RTX_LIB_PATH "${CMSIS_5_DIR}/CMSIS/RTOS2/RTX/Library/GCC/libRTX_CM3.a")
     endif()
 else()
     message(FATAL_ERROR "No startup file is available for compiler '${CMAKE_C_COMPILER_ID}'.")
@@ -65,17 +73,19 @@ embedded_include_directories(PATH "${TFM_ROOT_DIR}/interface/include" ABSOLUTE)
 embedded_include_directories(PATH "${TFM_ROOT_DIR}/secure_fw/core/arch/include" ABSOLUTE)
 embedded_include_directories(PATH "${TFM_ROOT_DIR}/secure_fw/core/ipc/include" ABSOLUTE)
 
-
 #Gather all source files we need.
 list(APPEND ALL_SRC_C "${PLATFORM_DIR}/target/psoc6/mailbox/platform_multicore.c")
 list(APPEND ALL_SRC_C_S "${PLATFORM_DIR}/target/psoc6/mailbox/mailbox_ipc_intr.c")
 list(APPEND ALL_SRC_C_NS "${PLATFORM_DIR}/target/psoc6/mailbox/platform_ns_mailbox.c")
+list(APPEND ALL_SRC_C_S "${PLATFORM_DIR}/target/psoc6/mailbox/mailbox_ipc_intr.c")
 list(APPEND ALL_SRC_C_S "${PLATFORM_DIR}/target/psoc6/mailbox/platform_spe_mailbox.c")
 
 if (NOT DEFINED BUILD_CMSIS_CORE)
   message(FATAL_ERROR "Configuration variable BUILD_CMSIS_CORE (true|false) is undefined!")
 elseif(BUILD_CMSIS_CORE)
-  list(APPEND ALL_SRC_C "${PLATFORM_DIR}/target/psoc6/Device/Source/system_psoc6_cm0plus.c")
+  list(APPEND ALL_SRC_C_S "${PLATFORM_DIR}/target/psoc6/Device/Source/system_psoc6_cm0plus.c")
+  list(APPEND ALL_SRC_C_NS "${PLATFORM_DIR}/target/psoc6/Device/Source/system_psoc6_cm4.c")
+  list(APPEND ALL_SRC_C_BL2 "${PLATFORM_DIR}/target/psoc6/Device/Source/system_psoc6_cm0plus.c")
 endif()
 
 if (NOT DEFINED BUILD_RETARGET)
