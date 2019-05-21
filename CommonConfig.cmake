@@ -90,7 +90,7 @@ elseif(${COMPILER} STREQUAL "GNUARM")
 	include("Common/FindGNUARM")
 	include("Common/${GNUARM_MODULE}")
 
-	set (COMMON_COMPILE_FLAGS -fshort-enums -fshort-wchar -funsigned-char -msoft-float --specs=nano.specs ${CMSE_FLAGS})
+	set (COMMON_COMPILE_FLAGS -fshort-enums -fshort-wchar -funsigned-char -msoft-float -ffunction-sections -fdata-sections --specs=nano.specs ${CMSE_FLAGS})
 	##Shared compiler and linker settings.
 	function(config_setting_shared_compiler_flags tgt)
 		embedded_set_target_compile_flags(TARGET ${tgt} LANGUAGE C FLAGS -xc -std=c99 ${COMMON_COMPILE_FLAGS} -Wall -Werror -Wno-format -Wno-return-type -Wno-unused-but-set-variable)
@@ -102,8 +102,8 @@ elseif(${COMPILER} STREQUAL "GNUARM")
 		#with short wchars, however the standard library is compiled with normal
 		#wchar, and this generates linker time warnings. TF-M code does not use
 		#wchar, so the warning can be suppressed.
-		embedded_set_target_link_flags(TARGET ${tgt} FLAGS -Xlinker -check-sections -Xlinker -fatal-warnings --entry=Reset_Handler -Wl,--no-wchar-size-warning --specs=nano.specs
-						-Wl,--print-memory-usage)
+		embedded_set_target_link_flags(TARGET ${tgt} FLAGS -Xlinker -check-sections -Xlinker -fatal-warnings --entry=Reset_Handler --specs=nano.specs
+						-Wl,--no-wchar-size-warning,--print-memory-usage,--gc-sections)
 	endfunction()
 endif()
 
