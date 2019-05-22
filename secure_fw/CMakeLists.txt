@@ -73,7 +73,7 @@ embedded_target_include_directories(TARGET ${PROJECT_NAME} PATH ${TFM_ROOT_DIR} 
 #Create an object library to avoid compiling all source files twice, when two executables
 #with different memory map need to be linked(BL2 non-swapping)
 set(PROJECT_OBJ_LIB ${PROJECT_NAME}_obj_lib)
-add_library(${PROJECT_OBJ_LIB} OBJECT ${ALL_SRC_C} ${ALL_SRC_C_S} ${ALL_SRC_ASM_S})
+add_library(${PROJECT_OBJ_LIB} OBJECT ${ALL_SRC_C} ${ALL_SRC_C_S} ${ALL_SRC_ASM} ${ALL_SRC_ASM_S})
 
 #Set common compiler flags
 config_setting_shared_compiler_flags(${PROJECT_OBJ_LIB})

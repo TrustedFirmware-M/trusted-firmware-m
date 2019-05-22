@@ -110,7 +110,7 @@ embedded_set_target_linker_file(TARGET ${PROJECT_NAME} PATH  "${NS_SCATTER_FILE_
 #Create an object library to avoid compiling all source files twice, when two executables
 #with different memory map need to be linked(BL2 non-swapping)
 set(PROJECT_OBJ_LIB ${PROJECT_NAME}_obj_lib)
-add_library(${PROJECT_OBJ_LIB} OBJECT ${ALL_SRC_C} ${ALL_SRC_C_NS} ${ALL_SRC_ASM_NS} ${NS_APP_SRC})
+add_library(${PROJECT_OBJ_LIB} OBJECT ${ALL_SRC_C} ${ALL_SRC_C_NS} ${ALL_SRC_ASM} ${ALL_SRC_ASM_NS} ${NS_APP_SRC})
 
 #Set common compiler flags
 config_setting_shared_compiler_flags(${PROJECT_OBJ_LIB})

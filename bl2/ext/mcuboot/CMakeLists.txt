@@ -99,7 +99,7 @@ if(NOT DEFINED PLATFORM_LINK_INCLUDES)
 endif()
 embedded_set_target_link_includes(TARGET ${PROJECT_NAME} INCLUDES "${PLATFORM_LINK_INCLUDES}")
 
-add_executable(${PROJECT_NAME} ${ALL_SRC_ASM_BL2} ${ALL_SRC_C} ${ALL_SRC_CXX})
+add_executable(${PROJECT_NAME} ${ALL_SRC_ASM} ${ALL_SRC_ASM_BL2} ${ALL_SRC_C} ${ALL_SRC_CXX})
 
 #Set common compiler and linker flags
 config_setting_shared_compiler_flags(${PROJECT_NAME})
