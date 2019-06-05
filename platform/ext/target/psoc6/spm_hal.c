@@ -6,6 +6,7 @@
  */
 
 #include <stdio.h>
+#include "uart_stdout.h"
 #include "platform/include/tfm_spm_hal.h"
 #include "spm_api.h"
 #include "spm_db.h"
@@ -14,6 +15,13 @@
 #include "region_defs.h"
 #include "secure_utilities.h"
 #include "cycfg.h"
+
+#include "cy_device.h"
+#include "cy_device_headers.h"
+#include "cy_ipc_drv.h"
+#include "cy_sysint.h"
+
+#include "spe_ipc_config.h"
 
 /* Get address of memory regions to configure MPU */
 extern const struct memory_region_limits memory_regions;
@@ -196,3 +204,51 @@ uint32_t tfm_spm_hal_get_ns_entry_point(void)
 {
     return *((uint32_t *)(memory_regions.non_secure_code_start+ 4));
 }
+
+
+#if defined (CY_PSOC6_CM0P)
+void tfm_spm_hal_boot_ns_cpu(uintptr_t start_addr)
+{
+    printf("Starting Cortex-M4 at 0x%x\r\n", start_addr);
+    Cy_SysEnableCM4(start_addr);
+}
+
+void tfm_spm_hal_wait_for_ns_cpu_ready(void)
+{
+    uint32_t data;
+    cy_en_ipcdrv_status_t status;
+
+    Cy_IPC_Drv_SetInterruptMask(Cy_IPC_Drv_GetIntrBaseAddr(IPC_RX_INTR_STRUCT),
+                                0, IPC_RX_INT_MASK);
+
+    status = Cy_IPC_Drv_SendMsgWord(Cy_IPC_Drv_GetIpcBaseAddress(IPC_TX_CHAN),
+                                 IPC_TX_NOTIFY_MASK, IPC_SYNC_MAGIC);
+    while (1)
+    {
+        status = Cy_IPC_Drv_GetInterruptStatusMasked(
+                        Cy_IPC_Drv_GetIntrBaseAddr(IPC_RX_INTR_STRUCT));
+        status >>= CY_IPC_NOTIFY_SHIFT;
+        if (status & IPC_RX_INT_MASK) {
+            Cy_IPC_Drv_ClearInterrupt(Cy_IPC_Drv_GetIntrBaseAddr(
+                                      IPC_RX_INTR_STRUCT),
+                                      0, IPC_RX_INT_MASK);
+
+            status = Cy_IPC_Drv_ReadMsgWord(Cy_IPC_Drv_GetIpcBaseAddress(
+                                            IPC_RX_CHAN),
+                                            &data);
+            if (status == CY_IPC_DRV_SUCCESS) {
+                Cy_IPC_Drv_ReleaseNotify(Cy_IPC_Drv_GetIpcBaseAddress(IPC_RX_CHAN),
+                                         IPC_RX_RELEASE_MASK);
+                if (data == ~IPC_SYNC_MAGIC) {
+                    printf("Cores sync success.\r\n");
+                    break;
+                }
+            }
+        }
+    }
+}
+#else
+/* FIXME: Stubs for NS - remove when build system is ready for twincpu*/
+void tfm_spm_hal_boot_ns_cpu(uintptr_t start_addr){}
+void tfm_spm_hal_wait_for_ns_cpu_ready(void){}
+#endif

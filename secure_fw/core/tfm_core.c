@@ -183,12 +183,11 @@ int main(void)
     tfm_spm_init();
 #endif
 
-#ifdef CY_PSOC6_CM0P
-    printf("Starting Cortex-M4 at 0x%x\r\n", NS_CODE_START);
-    Cy_SysEnableCM4(NS_CODE_START);
-#endif
-
 #if TFM_MULTI_CORE_TOPOLOGY
+
+    tfm_spm_hal_boot_ns_cpu(tfm_spm_hal_get_ns_VTOR());
+    tfm_spm_hal_wait_for_ns_cpu_ready();
+
     tfm_mailbox_init();
 
     /*

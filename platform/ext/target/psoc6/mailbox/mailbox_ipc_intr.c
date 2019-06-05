@@ -12,7 +12,7 @@
 
 #include "cy_ipc_drv.h"
 #include "spe_ipc_config.h"
-#include "platform_mailbox.h"
+#include "platform_multicore.h"
 
 __STATIC_INLINE void tfm_trigger_pendsv(void)
 {

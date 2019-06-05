@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019 Arm Limited. All rights reserved.
+ * Copyright (c) 2019 Cypress Semiconductor Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -8,7 +9,7 @@
 #include "cmsis_compiler.h"
 
 #include "tfm_ns_mailbox.h"
-#include "platform_mailbox.h"
+#include "platform_multicore.h"
 
 #include "cy_ipc_drv.h"
 #include "cy_sysint.h"
@@ -17,6 +18,7 @@
 #else
 #include "ns_ipc_config.h"
 #endif
+#include "tfm_peripherals_def.h"
 
 int platform_mailbox_fetch_msg_ptr(void **msg_ptr)
 {
@@ -100,4 +102,31 @@ void platform_mailbox_wait_for_notify(void)
 
     Cy_IPC_Drv_ClearInterrupt(Cy_IPC_Drv_GetIntrBaseAddr(IPC_RX_INTR_STRUCT),
                               0, IPC_RX_INT_MASK);
+}
+
+int platform_ns_ipc_init(void)
+{
+    Cy_IPC_Drv_SetInterruptMask(Cy_IPC_Drv_GetIntrBaseAddr(IPC_RX_INTR_STRUCT),
+                                0, IPC_RX_INT_MASK);
+    return PLATFORM_MAILBOX_SUCCESS;
+}
+
+int platform_ns_wait_for_s_cpu_ready(void)
+{
+    uint32_t data = 0;
+
+    if (platform_ns_ipc_init() != PLATFORM_MAILBOX_SUCCESS) {
+        return PLATFORM_MAILBOX_INVAL_PARAMS;
+    }
+    while(data != IPC_SYNC_MAGIC)
+    {
+        platform_mailbox_wait_for_notify();
+        platform_mailbox_fetch_msg_data(&data);
+    }
+
+    if (platform_mailbox_send_msg_data(~IPC_SYNC_MAGIC) !=
+        PLATFORM_MAILBOX_SUCCESS) {
+        return PLATFORM_MAILBOX_RX_ERROR;
+    }
+    return PLATFORM_MAILBOX_SUCCESS;
 }

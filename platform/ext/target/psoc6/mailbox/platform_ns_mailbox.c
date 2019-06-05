@@ -15,7 +15,7 @@
 
 #include "ns_ipc_config.h"
 #include "tfm_ns_mailbox.h"
-#include "platform_mailbox.h"
+#include "platform_multicore.h"
 
 /* -------------------------------------- HAL API ------------------------------------ */
 

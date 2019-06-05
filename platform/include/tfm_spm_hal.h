@@ -146,6 +146,22 @@ uint32_t tfm_spm_hal_get_ns_MSP(void);
  */
 uint32_t tfm_spm_hal_get_ns_entry_point(void);
 
+#if TFM_MULTI_CORE_TOPOLOGY
+/**
+ * \brief Performs the necessary actions to start the non-secure CPU running
+ *        the code at the specified address.
+ */
+void tfm_spm_hal_boot_ns_cpu(uintptr_t start_addr);
+
+/**
+ * \brief Called on the secure CPU.
+ *        Flags that the secure CPU has completed its initialization
+ *        Waits, if necessary, for the non-secure CPU to flag that
+ *        it has completed its initialisation
+ */
+void tfm_spm_hal_wait_for_ns_cpu_ready(void);
+
+#endif /*TFM_MULTI_CORE_TOPOLOGY*/
 
 #if TFM_LVL != 1
 /**

@@ -8,6 +8,8 @@
 #ifndef __TFM_PERIPHERALS_DEF_H__
 #define __TFM_PERIPHERALS_DEF_H__
 
+#define IPC_SYNC_MAGIC 0x7DADE011
+
 struct tfm_spm_partition_platform_data_t;
 
 extern struct tfm_spm_partition_platform_data_t tfm_peripheral_std_uart;

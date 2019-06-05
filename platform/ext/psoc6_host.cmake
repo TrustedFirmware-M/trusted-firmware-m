@@ -63,7 +63,7 @@ embedded_include_directories(PATH "${TFM_ROOT_DIR}/interface/include" ABSOLUTE)
 embedded_include_directories(PATH "${TFM_ROOT_DIR}/secure_fw/core/ipc/include" ABSOLUTE)
 
 #Gather all source files we need.
-list(APPEND ALL_SRC_C "${PLATFORM_DIR}/target/psoc6/mailbox/platform_mailbox.c")
+list(APPEND ALL_SRC_C "${PLATFORM_DIR}/target/psoc6/mailbox/platform_multicore.c")
 list(APPEND ALL_SRC_C_NS "${PLATFORM_DIR}/target/psoc6/mailbox/platform_ns_mailbox.c")
 list(APPEND ALL_SRC_C_S "${PLATFORM_DIR}/target/psoc6/mailbox/platform_spe_mailbox.c")
 

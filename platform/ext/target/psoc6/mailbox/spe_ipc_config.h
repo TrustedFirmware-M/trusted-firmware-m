@@ -7,7 +7,7 @@
 #ifndef _IPC_CONFIG_H_
 #define _IPC_CONFIG_H_
 
-#include "platform_mailbox.h"
+#include "platform_multicore.h"
 #include "cy_device_headers.h"
 
 #define IPC_RX_CHAN                             IPC_PSA_CLIENT_CALL_CHAN

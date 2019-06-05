@@ -14,6 +14,11 @@
 #include "tfm_integ_test.h"
 #include "tfm_ns_svc.h"
 #include "tfm_ns_lock.h"
+#include "tfm_platform_api.h"
+#if TFM_MULTI_CORE_TOPOLOGY
+#include "tfm_multicore_api.h"
+#endif
+
 #ifdef TEST_FRAMEWORK_NS
 #include "test/framework/test_framework_integ_test.h"
 #endif
@@ -123,6 +128,10 @@ int main(void)
     LOG_MSG("NS code running on CM4\r\n");
 
 #if TFM_MULTI_CORE_TOPOLOGY
+    if (tfm_ns_wait_for_s_cpu_ready() != TFM_PLATFORM_ERR_SUCCESS)
+    {
+        LOG_MSG("Error sync'ing with SPE core\r\n");
+    }
     mailbox_init(&ns_mailbox_queue);
 #endif
 
