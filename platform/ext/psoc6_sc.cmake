@@ -44,8 +44,8 @@ else()
 endif()
 set (FLASH_LAYOUT          "${PLATFORM_DIR}/target/psoc6/partition/flash_layout.h")
 set (PLATFORM_LINK_INCLUDES "${PLATFORM_DIR}/target/psoc6/partition")
-# AINH: FLASH AREA size
-set (SIGN_BIN_SIZE         0x46000)
+# The size of NS + S image partition
+set (SIGN_BIN_SIZE         0x68000)
 
 if (BL2)
   set (BL2_LINKER_CONFIG ${BL2_SCATTER_FILE_NAME})

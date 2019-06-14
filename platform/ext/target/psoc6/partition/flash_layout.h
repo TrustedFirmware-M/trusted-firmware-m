@@ -20,17 +20,17 @@
 
 /* Flash layout on PSoC6 CY8CKIT_062 with BL2:
  *
- * 0x1000_0000 BL2 - MCUBoot(140KB)
- * 0x1002_3000 Flash_area_image_0(280KB):
- *    0x1002_3000 Secure     image primary
- *    0x1004_6000 Non-secure image primary
- * 0x1006_9000 Flash_area_image_1(280KB):
- *    0x1006_9000 Secure     image secondary
- *    0x1008_c000 Non-secure image secondary
- * 0x100a_f000 Scratch area(280KB)
- * 0x100f_5000 Secure Storage Area(0.02 MB)
- * 0x100f_a000 NV counters area(16 Bytes)
- * 0x100f_a010 Unused(23KB)
+ * 0x1000_0000 BL2 - MCUBoot(128 KB)
+ * 0x1002_0000 Flash_area_image_0(416 KB):
+ *    0x1002_0000 Secure     image primary
+ *    0x1006_0000 Non-secure image primary
+ * 0x1008_8000 Flash_area_image_1(416 KB):
+ *    0x1008_8000 Secure     image secondary
+ *    0x100c_8000 Non-secure image secondary
+ * 0x100f_0000 Scratch area(32 KB)
+ * 0x100f_8000 Secure Storage Area(0.02 MB)
+ * 0x100f_d000 NV counters area(16 Bytes)
+ * 0x100f_d014 Unused(12 KB)
  *
  * Flash layout if BL2 not defined:
  * TBD
@@ -44,14 +44,19 @@
  * with comment.
  */
 
-/* The size of a partition. This should be large enough to contain a S or NS
- * sw binary. Each FLASH_AREA_IMAGE contains two partitions. See Flash layout
- * above.
+/* The size of S partition */
+#define FLASH_S_PARTITION_SIZE          0x40000      /* 256 KB */
+/* The size of NS partition */
+#define FLASH_NS_PARTITION_SIZE         0x28000      /* 160 KB */
+/*
+ * Each FLASH_AREA_IMAGE contains NS and S partitions.
+ * See Flash layout above.
  */
-#define FLASH_PARTITION_SIZE            (0x23000)    /* 140 kB */
+#define FLASH_PARTITION_SIZE            (FLASH_S_PARTITION_SIZE + \
+                                         FLASH_NS_PARTITION_SIZE)
 
 /* Sector size of the flash hardware; same as FLASH0_SECTOR_SIZE */
-#define FLASH_AREA_IMAGE_SECTOR_SIZE    (0x200)     /* 512 B */
+#define FLASH_AREA_IMAGE_SECTOR_SIZE    (0x200)      /* 512 B */
 /* Same as FLASH0_SIZE */
 #define FLASH_TOTAL_SIZE                (0x00100000) /* 1 MB */
 
@@ -63,23 +68,23 @@
  * is used as a temporary storage during image swapping.
  */
 #define FLASH_AREA_BL2_OFFSET           (0x0)
-#define FLASH_AREA_BL2_SIZE             (FLASH_PARTITION_SIZE)
+#define FLASH_AREA_BL2_SIZE             (0x20000)  /* 128 kB */
 
 #define FLASH_AREA_IMAGE_0_OFFSET       (FLASH_AREA_BL2_SIZE)
-#define FLASH_AREA_IMAGE_0_SIZE         (2 * FLASH_PARTITION_SIZE)
+#define FLASH_AREA_IMAGE_0_SIZE         (FLASH_PARTITION_SIZE)
 
 #define FLASH_AREA_IMAGE_1_OFFSET       (FLASH_AREA_IMAGE_0_OFFSET + FLASH_AREA_IMAGE_0_SIZE)
-#define FLASH_AREA_IMAGE_1_SIZE         (2 * FLASH_PARTITION_SIZE)
+#define FLASH_AREA_IMAGE_1_SIZE         (FLASH_PARTITION_SIZE)
 
 #define FLASH_AREA_IMAGE_SCRATCH_OFFSET (FLASH_AREA_IMAGE_1_OFFSET + FLASH_AREA_IMAGE_1_SIZE)
-#define FLASH_AREA_IMAGE_SCRATCH_SIZE   (2 * FLASH_PARTITION_SIZE)
+#define FLASH_AREA_IMAGE_SCRATCH_SIZE   (0x8000)   /* 32 KB */
 
 /* Maximum number of status entries supported by the bootloader. */
-#define BOOT_STATUS_MAX_ENTRIES         ((2 * FLASH_PARTITION_SIZE) / \
+#define BOOT_STATUS_MAX_ENTRIES         (FLASH_PARTITION_SIZE / \
                                          FLASH_AREA_IMAGE_SCRATCH_SIZE)
 
 /** Maximum number of image sectors supported by the bootloader. */
-#define BOOT_MAX_IMG_SECTORS            ((2 * FLASH_PARTITION_SIZE) / \
+#define BOOT_MAX_IMG_SECTORS            (FLASH_PARTITION_SIZE / \
                                          FLASH_AREA_IMAGE_SECTOR_SIZE)
 
 #define FLASH_SST_AREA_OFFSET           (FLASH_AREA_IMAGE_SCRATCH_OFFSET + FLASH_AREA_IMAGE_SCRATCH_SIZE)
@@ -90,10 +95,10 @@
 
 /* Offset and size definition in flash area, used by assemble.py */
 #define SECURE_IMAGE_OFFSET             0x0
-#define SECURE_IMAGE_MAX_SIZE           0x23000
+#define SECURE_IMAGE_MAX_SIZE           0x40000
 
-#define NON_SECURE_IMAGE_OFFSET         0x23000
-#define NON_SECURE_IMAGE_MAX_SIZE       0x23000
+#define NON_SECURE_IMAGE_OFFSET         0x40000
+#define NON_SECURE_IMAGE_MAX_SIZE       0x28000
 
 /* Flash device name used by BL2 and SST
  * Name is defined in flash driver file: Driver_Flash.c
