@@ -15,12 +15,15 @@
 #include "tfm_api.h"
 #include "bl2/include/tfm_boot_status.h"
 
+#if !TFM_MULTI_CORE_TOPOLOGY
 /*!
  * \def __tfm_secure_gateway_attributes__
  *
  * \brief Attributes for secure gateway functions
  */
-#define __tfm_secure_gateway_attributes__
+#define __tfm_secure_gateway_attributes__ \
+        __attribute__((cmse_nonsecure_entry, noinline, section("SFN")))
+#endif
 
 /* Hide specific errors if not debugging */
 #ifdef TFM_CORE_DEBUG

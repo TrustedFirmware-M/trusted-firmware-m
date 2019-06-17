@@ -31,7 +31,7 @@ endif()
 
 #Specify what we build (for the audit logging service, build as a static library)
 add_library(tfm_audit STATIC ${ALL_SRC_ASM} ${ALL_SRC_C})
-embedded_set_target_compile_defines(TARGET tfm_audit LANGUAGE C DEFINES  __thumb2__ TFM_LVL=${TFM_LVL})
+embedded_set_target_compile_defines(TARGET tfm_audit LANGUAGE C DEFINES __ARM_FEATURE_CMSE=${ARM_FEATURE_CMSE} __thumb2__ TFM_LVL=${TFM_LVL})
 
 #Set common compiler and linker flags
 config_setting_shared_compiler_flags(tfm_audit)

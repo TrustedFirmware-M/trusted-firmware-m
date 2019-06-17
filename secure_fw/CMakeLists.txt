@@ -40,7 +40,9 @@ if (NOT DEFINED TFM_PARTITION_PLATFORM)
 endif()
 
 include(${SECURE_FW_DIR}/spm/CMakeLists.inc)
-include(${SECURE_FW_DIR}/ns_callable/CMakeLists.inc)
+if (NOT DEFINED TFM_MULTI_CORE_TOPOLOGY OR NOT TFM_MULTI_CORE_TOPOLOGY)
+	include(${SECURE_FW_DIR}/ns_callable/CMakeLists.inc)
+endif ()
 #Involve all IPC related sources in ipc's CMakeLists.inc, and switch core between IPC and Library.
 if(TFM_PSA_API)
 	include(${SECURE_FW_DIR}/core/ipc/CMakeLists.inc)
@@ -165,7 +167,7 @@ function(set_up_secure_fw_build)
 	endif()
 
 	#Set macro definitions for the project.
-	embedded_set_target_compile_defines(TARGET ${PROJECT_OBJ_LIB} LANGUAGE C DEFINES __thumb2__ TFM_LVL=${TFM_LVL} ${DEBUG_AUTHENTICATION} APPEND)
+	embedded_set_target_compile_defines(TARGET ${PROJECT_OBJ_LIB} LANGUAGE C DEFINES __thumb2__ __ARM_FEATURE_CMSE=${ARM_FEATURE_CMSE} TFM_LVL=${TFM_LVL} ${DEBUG_AUTHENTICATION} APPEND)
 
 	if (REGRESSION OR CORE_TEST)
 		if (DEFINED TFM_PARTITION_TEST_SECURE_SERVICES AND TFM_PARTITION_TEST_SECURE_SERVICES)
@@ -248,6 +250,9 @@ function(set_up_secure_fw_build)
 		message(FATAL_ERROR "Incomplete build configuration: TFM_PSA_API is undefined. ")
 	elseif (TFM_PSA_API)
 		embedded_set_target_link_defines(TARGET ${EXE_NAME} DEFINES "TFM_PSA_API")
+		if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
+			embedded_set_target_link_defines(TARGET ${EXE_NAME} DEFINES "TFM_MULTI_CORE_TOPOLOGY")
+		endif()
 	endif()
 
 	if(CORE_TEST)

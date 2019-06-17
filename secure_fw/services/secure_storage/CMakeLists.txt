@@ -36,6 +36,6 @@ add_library(tfm_storage STATIC ${ALL_SRC_ASM} ${ALL_SRC_C})
 config_setting_shared_compiler_flags(tfm_storage)
 config_setting_shared_linker_flags(tfm_storage)
 
-embedded_set_target_compile_defines(TARGET tfm_storage LANGUAGE C DEFINES __thumb2__ TFM_LVL=${TFM_LVL})
+embedded_set_target_compile_defines(TARGET tfm_storage LANGUAGE C DEFINES __ARM_FEATURE_CMSE=${ARM_FEATURE_CMSE} __thumb2__ TFM_LVL=${TFM_LVL})
 
 embedded_project_end(tfm_storage)

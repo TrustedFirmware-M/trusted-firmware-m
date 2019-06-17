@@ -55,6 +55,17 @@ if (NOT DEFINED IMAGE_VERSION)
 	set(IMAGE_VERSION 0.0.0+0)
 endif()
 
+if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
+	# CMSE is unnecessary in multi-core scenarios.
+	# TODO: Need further discussion about if CMSE is required when an Armv8-M
+	# core acts as secure core in multi-core scenario.
+	set (CMSE_FLAGS "")
+	set (ARM_FEATURE_CMSE 0)
+else ()
+	set (CMSE_FLAGS "-mcmse")
+	set (ARM_FEATURE_CMSE 3)
+endif ()
+
 if(${COMPILER} STREQUAL "ARMCLANG")
 	#Use any ARMCLANG version found on PATH. Note: Only versions supported by the
 	#build system will work. A file cmake/Common/CompilerArmClangXY.cmake
@@ -62,7 +73,7 @@ if(${COMPILER} STREQUAL "ARMCLANG")
 	include("Common/FindArmClang")
 	include("Common/${ARMCLANG_MODULE}")
 
-	set (COMMON_COMPILE_FLAGS -fshort-enums -fshort-wchar -funsigned-char -mfpu=none )
+	set (COMMON_COMPILE_FLAGS -fshort-enums -fshort-wchar -funsigned-char -mfpu=none ${CMSE_FLAGS})
 	##Shared compiler settings.
 	function(config_setting_shared_compiler_flags tgt)
 		embedded_set_target_compile_flags(TARGET ${tgt} LANGUAGE C FLAGS -xc -std=c99 ${COMMON_COMPILE_FLAGS} -Wall -Werror)
@@ -79,7 +90,7 @@ elseif(${COMPILER} STREQUAL "GNUARM")
 	include("Common/FindGNUARM")
 	include("Common/${GNUARM_MODULE}")
 
-	set (COMMON_COMPILE_FLAGS -fshort-enums -fshort-wchar -funsigned-char -msoft-float  --specs=nano.specs)
+	set (COMMON_COMPILE_FLAGS -fshort-enums -fshort-wchar -funsigned-char -msoft-float --specs=nano.specs ${CMSE_FLAGS})
 	##Shared compiler and linker settings.
 	function(config_setting_shared_compiler_flags tgt)
 		embedded_set_target_compile_flags(TARGET ${tgt} LANGUAGE C FLAGS -xc -std=c99 ${COMMON_COMPILE_FLAGS} -Wall -Werror -Wno-format -Wno-return-type -Wno-unused-but-set-variable)
@@ -278,7 +289,7 @@ else() #BL2 is turned off
 endif()
 
 ##Set Mbed TLS compiler flags and variables for audit log and crypto
-set(MBEDTLS_C_FLAGS_SERVICES "-D__thumb2__ ${COMMON_COMPILE_FLAGS_STR} -I${CMAKE_CURRENT_LIST_DIR}/platform/ext/common")
+set(MBEDTLS_C_FLAGS_SERVICES "-D__ARM_FEATURE_CMSE=${ARM_FEATURE_CMSE} -D__thumb2__ ${COMMON_COMPILE_FLAGS_STR} -I${CMAKE_CURRENT_LIST_DIR}/platform/ext/common")
 
 #Default TF-M secure storage flags.
 #These flags values can be overwritten by setting them in platform/ext/<TARGET_NAME>.cmake
@@ -320,7 +331,7 @@ if (NOT DEFINED MBEDTLS_DEBUG)
 endif()
 
 ##Set mbedTLS compiler flags for BL2 bootloader
-set(MBEDTLS_C_FLAGS_BL2 "-D__thumb2__ ${COMMON_COMPILE_FLAGS_STR} -DMBEDTLS_CONFIG_FILE=\\\\\\\"config-boot.h\\\\\\\" -I${CMAKE_CURRENT_LIST_DIR}/bl2/ext/mcuboot/include")
+set(MBEDTLS_C_FLAGS_BL2 "-D__ARM_FEATURE_CMSE=${ARM_FEATURE_CMSE} -D__thumb2__ ${COMMON_COMPILE_FLAGS_STR} -DMBEDTLS_CONFIG_FILE=\\\\\\\"config-boot.h\\\\\\\" -I${CMAKE_CURRENT_LIST_DIR}/bl2/ext/mcuboot/include")
 if (MCUBOOT_SIGNATURE_TYPE STREQUAL "RSA-3072")
 	string(APPEND MBEDTLS_C_FLAGS_BL2 " -DMCUBOOT_SIGN_RSA_LEN=3072")
 endif()

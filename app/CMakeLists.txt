@@ -129,7 +129,7 @@ add_library(${PROJECT_OBJ_LIB} OBJECT ${ALL_SRC_C} ${ALL_SRC_C_NS} ${ALL_SRC_ASM
 config_setting_shared_compiler_flags(${PROJECT_OBJ_LIB})
 
 #Set macro definitions
-target_compile_definitions(${PROJECT_OBJ_LIB} PRIVATE __thumb2__ __DOMAIN_NS=1 __ARM_FEATURE_CMSE=3 LOG_MSG_HANDLER_MODE_PRINTF_ENABLED)
+target_compile_definitions(${PROJECT_OBJ_LIB} PRIVATE __thumb2__ __DOMAIN_NS=1 __ARM_FEATURE_CMSE=${ARM_FEATURE_CMSE} LOG_MSG_HANDLER_MODE_PRINTF_ENABLED)
 
 #Set include directories.
 embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${TEST_INTERFACE_DIR}/include ABSOLUTE APPEND)

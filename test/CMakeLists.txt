@@ -85,7 +85,7 @@ add_library(tfm_secure_tests STATIC ${ALL_SRC_C} ${ALL_SRC_C_S} $<TARGET_OBJECTS
 config_setting_shared_compiler_flags(tfm_secure_tests)
 config_setting_shared_linker_flags(tfm_secure_tests)
 
-embedded_set_target_compile_defines(TARGET tfm_secure_tests LANGUAGE C DEFINES __thumb2__  TFM_LVL=${TFM_LVL} APPEND)
+embedded_set_target_compile_defines(TARGET tfm_secure_tests LANGUAGE C DEFINES __thumb2__ __ARM_FEATURE_CMSE=${ARM_FEATURE_CMSE} TFM_LVL=${TFM_LVL} APPEND)
 
 
 #Build the non-secure library
@@ -96,7 +96,7 @@ add_library(tfm_non_secure_tests STATIC ${ALL_SRC_C} ${ALL_SRC_C_NS} $<TARGET_OB
 config_setting_shared_compiler_flags(tfm_non_secure_tests)
 config_setting_shared_linker_flags(tfm_non_secure_tests)
 
-embedded_set_target_compile_defines(TARGET tfm_non_secure_tests LANGUAGE C DEFINES __thumb2__  __DOMAIN_NS=1 TFM_LVL=${TFM_LVL} APPEND)
+embedded_set_target_compile_defines(TARGET tfm_non_secure_tests LANGUAGE C DEFINES __thumb2__ __ARM_FEATURE_CMSE=${ARM_FEATURE_CMSE} __DOMAIN_NS=1 TFM_LVL=${TFM_LVL} APPEND)
 #__DOMAIN_NS=1
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)

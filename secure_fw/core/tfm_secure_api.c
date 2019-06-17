@@ -138,7 +138,13 @@ int32_t tfm_core_has_read_access_to_region(const void *p, size_t s,
                                            uint32_t ns_caller,
                                            uint32_t privileged)
 {
-#if 0
+#if TFM_MULTI_CORE_TOPOLOGY
+    /*
+     * TODO
+     * Multi-core memory check will be implemented later.
+     */
+    return TFM_SUCCESS;
+#else
     int flags = CMSE_MPU_READ;
 
     if (privileged == TFM_PARTITION_UNPRIVILEGED_MODE) {
@@ -150,8 +156,6 @@ int32_t tfm_core_has_read_access_to_region(const void *p, size_t s,
     }
 
     return has_access_to_region(p, s, flags);
-#else
-    return TFM_SUCCESS;
 #endif
 }
 
@@ -159,7 +163,13 @@ int32_t tfm_core_has_write_access_to_region(void *p, size_t s,
                                             uint32_t ns_caller,
                                             uint32_t privileged)
 {
-#if 0
+#if TFM_MULTI_CORE_TOPOLOGY
+    /*
+     * TODO
+     * Multi-core memory check will be implemented later.
+     */
+    return TFM_SUCCESS;
+#else
     int flags = CMSE_MPU_READWRITE;
 
     if (privileged == TFM_PARTITION_UNPRIVILEGED_MODE) {
@@ -171,8 +181,6 @@ int32_t tfm_core_has_write_access_to_region(void *p, size_t s,
     }
 
     return has_access_to_region(p, s, flags);
-#else
-    return TFM_SUCCESS;
 #endif
 }
 

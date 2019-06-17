@@ -38,7 +38,7 @@ endif()
 include(CMakeLists.inc)
 
 #Create a list of the C defines
-list(APPEND TFM_CRYPTO_C_DEFINES_LIST __ARM_FEATURE_CMSE=3 __thumb2__ TFM_LVL=${TFM_LVL})
+list(APPEND TFM_CRYPTO_C_DEFINES_LIST __ARM_FEATURE_CMSE=${ARM_FEATURE_CMSE} __thumb2__ TFM_LVL=${TFM_LVL})
 
 if (CRYPTO_ENGINE_MBEDTLS)
   list(APPEND TFM_CRYPTO_C_DEFINES_LIST TFM_CRYPTO_ENGINE_MBEDTLS MBEDTLS_CONFIG_FILE="platform/ext/common/tfm_mbedcrypto_config.h")

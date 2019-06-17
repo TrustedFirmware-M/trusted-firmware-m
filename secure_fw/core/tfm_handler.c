@@ -51,9 +51,11 @@ uint32_t SVCHandler_main(uint32_t *svc_args, uint32_t lr)
     }
     switch (svc_number) {
 #ifdef TFM_PSA_API
+#if !TFM_MULTI_CORE_TOPOLOGY
     case TFM_SVC_IPC_REQUEST:
         tfm_psa_ipc_request_handler(svc_args);
         break;
+#endif
     case TFM_SVC_SCHEDULE:
     case TFM_SVC_EXIT_THRD:
     case TFM_SVC_PSA_FRAMEWORK_VERSION:
