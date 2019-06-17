@@ -60,7 +60,8 @@ get_mbedtls_version()
 string(APPEND MBEDTLS_C_FLAGS ${CMAKE_C_FLAGS})
 
 # Workaround Mbed TLS issue https://github.com/ARMmbed/mbedtls/issues/1077
-if(${ARM_CPU_ARCHITECTURE} STREQUAL "ARMv8-M.BASE")
+if ((${ARM_CPU_ARCHITECTURE} STREQUAL "ARMv8-M.BASE") OR
+	(${ARM_CPU_ARCHITECTURE} STREQUAL "ARMv6-M"))
 	string(APPEND MBEDTLS_C_FLAGS " -DMULADDC_CANNOT_USE_R7")
 endif()
 
