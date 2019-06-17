@@ -25,7 +25,7 @@ set(PLATFORM_DIR ${CMAKE_CURRENT_LIST_DIR})
 #Specify the location of platform specific build dependencies.
 if(COMPILER STREQUAL "ARMCLANG")
     set (BL2_SCATTER_FILE_NAME "${PLATFORM_DIR}/target/psoc6/Device/Source/armclang/psoc6_bl2.sct")
-    set (S_SCATTER_FILE_NAME   "${PLATFORM_DIR}/target/psoc6/Device/Source/armclang/psoc6_s.sct")
+    set (S_SCATTER_FILE_NAME   "${PLATFORM_DIR}/common/armclang/tfm_common_s.sct")
     set (NS_SCATTER_FILE_NAME  "${PLATFORM_DIR}/target/psoc6/Device/Source/armclang/psoc6_ns.sct")
     if (DEFINED CMSIS_5_DIR)
       # not all project defines CMSIS_5_DIR, only the ones that use it.
