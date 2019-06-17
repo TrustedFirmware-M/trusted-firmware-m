@@ -91,7 +91,7 @@
 #define FLASH_SST_AREA_SIZE             (0x5000)   /* 20 KB */
 
 #define FLASH_NV_COUNTERS_AREA_OFFSET   (FLASH_SST_AREA_OFFSET + FLASH_SST_AREA_SIZE)
-#define FLASH_NV_COUNTERS_AREA_SIZE     (0x10)     /* 16 Bytes */
+#define FLASH_NV_COUNTERS_AREA_SIZE     (0x14)     /* 20 Bytes */
 
 /* Offset and size definition in flash area, used by assemble.py */
 #define SECURE_IMAGE_OFFSET             0x0
