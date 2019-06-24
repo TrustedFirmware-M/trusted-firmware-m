@@ -27,6 +27,9 @@
 ;   <o> Stack Size (in Bytes) <0x0-0xFFFFFFFF:8>
 ; </h>
 
+; Address of the NMI handler in ROM
+CY_NMI_HANLDER_ADDR    EQU    0x0000000D
+
                 PRESERVE8
 
                 IMPORT |Image$$ARM_LIB_STACK_MSP$$ZI$$Limit|
@@ -42,7 +45,7 @@
 __Vectors       ;Core Interrupts
                 DCD     |Image$$ARM_LIB_STACK_MSP$$ZI$$Limit|  ; Top of Stack
                 DCD     Reset_Handler                  ; Reset Handler
-                DCD     NMI_Handler                    ; NMI Handler
+                DCD     CY_NMI_HANLDER_ADDR            ; NMI Handler
                 DCD     HardFault_Handler              ; Hard Fault Handler
                 DCD     MemManage_Handler              ; MPU Fault Handler
                 DCD     BusFault_Handler               ; Bus Fault Handler
@@ -176,7 +179,6 @@ $handler_name   PROC
                 ENDP
                 MEND
 
-                Default_Handler NMI_Handler
                 Default_Handler HardFault_Handler
                 Default_Handler MemManage_Handler
                 Default_Handler BusFault_Handler
