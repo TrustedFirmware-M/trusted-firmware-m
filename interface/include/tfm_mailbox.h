@@ -42,6 +42,7 @@
 #define MAILBOX_NO_PEND_EVENT               (INT32_MIN + 4)
 #define MAILBOX_CHAN_BUSY                   (INT32_MIN + 5)
 #define MAILBOX_CALLBACK_REG_ERROR          (INT32_MIN + 6)
+#define MAILBOX_INIT_ERROR                  (INT32_MIN + 7)
 
 /* Mailbox message passed from NSPE to SPE to deliver a PSA client call */
 struct mailbox_msg_t {

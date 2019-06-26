@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019, Arm Limited. All rights reserved.
+ * Copyright (c) 2019, Cypress Semiconductor Corporation. All rights reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -33,6 +34,12 @@
 #define PLATFORM_MAILBOX_INVAL_PARAMS    (INT32_MIN + 1)
 #define PLATFORM_MAILBOX_TX_ERROR        (INT32_MIN + 2)
 #define PLATFORM_MAILBOX_RX_ERROR        (INT32_MIN + 3)
+#define PLATFORM_MAILBOX_INIT_ERROR      (INT32_MIN + 4)
+
+/* Inter-Processor Communication (IPC) data channel for the Semaphores */
+#define PLATFORM_MAILBOX_IPC_CHAN_SEMA   CY_IPC_CHAN_SEMA
+#define MAILBOX_SEMAPHORE_NUM            (0)
+
 
 /**
  * \brief Fetch a pointer from mailbox message

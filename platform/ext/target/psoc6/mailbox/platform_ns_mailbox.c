@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019, Arm Limited. All rights reserved.
+ * Copyright (c) 2019, Cypress Semiconductor Corporation. All rights reserved
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -12,6 +13,7 @@
 
 #include "cy_ipc_drv.h"
 #include "cy_sysint.h"
+#include "cy_ipc_sema.h"
 
 #include "ns_ipc_config.h"
 #include "tfm_ns_mailbox.h"
@@ -40,6 +42,15 @@ int32_t mailbox_notify_peer(void)
     }
 }
 
+static int32_t mailbox_sema_init(void)
+{
+    if (Cy_IPC_Sema_Init(PLATFORM_MAILBOX_IPC_CHAN_SEMA, (uint32_t)NULL,
+                         (uint32_t *)NULL) != CY_IPC_SEMA_SUCCESS) {
+        return PLATFORM_MAILBOX_INIT_ERROR;
+    }
+    return PLATFORM_MAILBOX_SUCCESS;
+}
+
 int32_t mailbox_hal_init(struct ns_mailbox_queue_t *queue)
 {
     uint32_t stage;
@@ -47,6 +58,10 @@ int32_t mailbox_hal_init(struct ns_mailbox_queue_t *queue)
     if (!queue) {
         return MAILBOX_INVAL_PARAMS;
     }
+
+    /* Init semaphores used for critical sections */
+    if (mailbox_sema_init() != PLATFORM_MAILBOX_SUCCESS)
+        return MAILBOX_INIT_ERROR;
 
     /*
      * FIXME
@@ -87,9 +102,14 @@ int32_t mailbox_hal_init(struct ns_mailbox_queue_t *queue)
 
 void mailbox_enter_critical(void)
 {
+    while (Cy_IPC_Sema_Set(MAILBOX_SEMAPHORE_NUM, false) !=
+           CY_IPC_SEMA_SUCCESS) {
+    }
 }
 
 void mailbox_exit_critical(void)
 {
-
+    while (Cy_IPC_Sema_Clear(MAILBOX_SEMAPHORE_NUM, false) !=
+           CY_IPC_SEMA_SUCCESS) {
+    }
 }
