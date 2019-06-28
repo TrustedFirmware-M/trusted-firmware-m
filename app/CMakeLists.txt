@@ -284,9 +284,13 @@ function(set_up_app_build)
 	#Ensure secure_fw is built before our executable.
 	add_dependencies(${EXE_NAME} ${S_BIN})
 
-	#Add the veneers to the executable.
-	set(S_VENEER_FILE "${CMAKE_CURRENT_BINARY_DIR}/${VENEER_NAME}")
-	set_property(TARGET ${EXE_NAME} APPEND PROPERTY LINK_LIBRARIES ${S_VENEER_FILE})
+	if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
+		message (STATUS "TFM_MULTI_CORE_TOPOLOGY is defined, not adding s_veneer.o")
+	else()
+		#Add the veneers to the executable.
+		set(S_VENEER_FILE "${CMAKE_CURRENT_BINARY_DIR}/${VENEER_NAME}")
+		set_property(TARGET ${EXE_NAME} APPEND PROPERTY LINK_LIBRARIES ${S_VENEER_FILE})
+	endif()
 
 	#Collect executables to common location: build/install/outputs/
 	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${EXE_NAME}.axf
