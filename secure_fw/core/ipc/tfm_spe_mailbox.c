@@ -25,6 +25,7 @@ static int32_t tfm_mailbox_dispatch(uint32_t call_type,
                                     int32_t client_id, uint32_t *psa_ret)
 {
     TFM_ASSERT(params != NULL);
+    TFM_ASSERT(psa_ret != NULL);
 
     if (!psa_ret) {
         return MAILBOX_INVAL_PARAMS;
@@ -69,11 +70,8 @@ __STATIC_INLINE void clear_spe_queue_empty_status(uint8_t idx)
 
 __STATIC_INLINE bool get_spe_queue_empty_status(uint8_t idx)
 {
-    if (idx >= NUM_MAILBOX_QUEUE_SLOT) {
-        return false;
-    }
-
-    if (spe_mailbox_queue.empty_slots & (1 << idx)) {
+    if ((idx < NUM_MAILBOX_QUEUE_SLOT) &&
+        (spe_mailbox_queue.empty_slots & (1 << idx))) {
         return true;
     }
 
@@ -181,7 +179,7 @@ int32_t tfm_mailbox_handle_msg(void)
 {
     uint8_t idx;
     int32_t result;
-    uint32_t psa_ret;
+    uint32_t psa_ret = PSA_DROP_CONNECTION;
     mailbox_queue_status_t mask_bits, pend_slots, reply_slots = 0;
     struct ns_mailbox_queue_t *ns_queue = spe_mailbox_queue.ns_queue;
     struct mailbox_msg_t *msg_ptr;
@@ -330,16 +328,14 @@ static void mailbox_handle_req(void)
 /* RPC reply() callback */
 static void mailbox_reply(void *owner, int32_t ret)
 {
-    mailbox_msg_handle_t *handle;
+    mailbox_msg_handle_t handle = MAILBOX_MSG_NULL_HANDLE;
 
-    /* If the owner is not specified */
-    if (!owner) {
-        tfm_mailbox_reply_msg(MAILBOX_MSG_NULL_HANDLE, ret);
-        return;
+    /* If the owner is specified */
+    if (owner) {
+        handle = *((mailbox_msg_handle_t *)owner);
     }
 
-    handle = (mailbox_msg_handle_t *)owner;
-    (void)tfm_mailbox_reply_msg(*handle, ret);
+    (void)tfm_mailbox_reply_msg(handle, ret);
 }
 
 /* Mailbox specific operations callback for TF-M RPC */
