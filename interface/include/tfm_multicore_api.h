@@ -8,10 +8,6 @@
 #ifndef __TFM_MULTICORE_API__
 #define __TFM_MULTICORE_API__
 
-#include <limits.h>
-#include <stdbool.h>
-#include "tfm_api.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,9 +17,10 @@ extern "C" {
  *        Flags that the non-secure side has completed its initialization.
  *        Waits, if necessary, for the secure CPU to flag that it has completed
  *        its initialization.
+ *
+ * \return Return 0 if succeeds. Otherwise, return specific error code.
  */
-enum tfm_platform_err_t tfm_ns_wait_for_s_cpu_ready(void);
-
+int tfm_ns_wait_for_s_cpu_ready(void);
 
 #ifdef __cplusplus
 }
