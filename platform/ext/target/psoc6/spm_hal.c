@@ -6,7 +6,6 @@
  */
 
 #include <stdio.h>
-#include "uart_stdout.h"
 #include "platform/include/tfm_spm_hal.h"
 #include "spm_api.h"
 #include "spm_db.h"
