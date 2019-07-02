@@ -7,11 +7,10 @@
 
 #include <stdint.h>
 #include <stdio.h>
-
-#include "tfm_utils.h"
-
-#include "tfm_rpc.h"
+#include "spm_api.h"
 #include "tfm_psa_client_call.h"
+#include "tfm_rpc.h"
+#include "tfm_utils.h"
 
 static const struct tfm_rpc_ops_t *rpc_ops_ptr = NULL;
 
@@ -45,7 +44,8 @@ psa_status_t tfm_rpc_psa_call(const struct client_call_params_t *params,
     TFM_ASSERT(params != NULL);
 
     return tfm_psa_call(params->handle, params->in_vec, params->in_len,
-                        params->out_vec, params->out_len, ns_caller);
+                        params->out_vec, params->out_len, ns_caller,
+                        TFM_PARTITION_UNPRIVILEGED_MODE);
 }
 
 void tfm_rpc_psa_close(const struct client_call_params_t *params,

@@ -121,7 +121,8 @@ psa_status_t tfm_svcall_psa_call(uint32_t *args, int32_t ns_caller, uint32_t lr)
         out_num = ((psa_invec *)args[2])->len;
     }
 
-    return tfm_psa_call(handle, inptr, in_num, outptr, out_num, ns_caller);
+    return tfm_psa_call(handle, inptr, in_num, outptr, out_num, ns_caller,
+                        privileged);
 }
 
 void tfm_svcall_psa_close(uint32_t *args, int32_t ns_caller)

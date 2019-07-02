@@ -49,11 +49,21 @@ psa_status_t tfm_psa_connect(uint32_t sid, uint32_t minor_version,
 {
     struct tfm_spm_service_t *service;
     struct tfm_msg_body_t *msg;
+    psa_handle_t connect_handle;
 
     /* It is a fatal error if the RoT Service does not exist on the platform */
     service = tfm_spm_get_service_by_sid(sid);
     if (!service) {
         tfm_panic();
+    }
+
+    /*
+     * Create connection handle here since it is possible to return the error
+     * code to client when creation fails.
+     */
+    connect_handle = tfm_spm_create_conn_handle(service);
+    if (connect_handle == PSA_NULL_HANDLE) {
+        return PSA_CONNECTION_BUSY;
     }
 
     /*
@@ -73,9 +83,10 @@ psa_status_t tfm_psa_connect(uint32_t sid, uint32_t minor_version,
     }
 
     /* No input or output needed for connect message */
-    msg = tfm_spm_create_msg(service, PSA_NULL_HANDLE, PSA_IPC_CONNECT,
+    msg = tfm_spm_create_msg(service, connect_handle, PSA_IPC_CONNECT,
                              ns_caller, NULL, 0, NULL, 0, NULL);
     if (!msg) {
+        /* Have no enough resource to create message */
         return PSA_CONNECTION_BUSY;
     }
 
@@ -88,9 +99,9 @@ psa_status_t tfm_psa_connect(uint32_t sid, uint32_t minor_version,
     return PSA_SUCCESS;
 }
 
-psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *in_vec,
-                          size_t in_len, psa_outvec *out_vec, size_t out_len,
-                          int32_t ns_caller)
+psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *inptr,
+                          size_t in_num, psa_outvec *outptr, size_t out_num,
+                          int32_t ns_caller, uint32_t privileged)
 {
     psa_invec invecs[PSA_MAX_IOVEC];
     psa_outvec outvecs[PSA_MAX_IOVEC];
@@ -99,7 +110,7 @@ psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *in_vec,
     int i;
 
     /* It is a fatal error if in_len + out_len > PSA_MAX_IOVEC. */
-    if (in_len + out_len > PSA_MAX_IOVEC) {
+    if (in_num + out_num > PSA_MAX_IOVEC) {
         tfm_panic();
     }
 
@@ -110,13 +121,22 @@ psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *in_vec,
         tfm_panic();
     }
 
-    /* It is a fatal error if an invalid memory reference was provide. */
-    if (tfm_memory_check((void *)in_vec, in_len * sizeof(psa_invec),
-        ns_caller) != IPC_SUCCESS) {
+    /*
+     * Read client invecs from the wrap input vector. It is a fatal error
+     * if the memory reference for the wrap input vector is invalid or not
+     * readable.
+     */
+    if (tfm_memory_check((void *)inptr, in_num * sizeof(psa_invec),
+        ns_caller, TFM_MEMORY_ACCESS_RO, privileged) != IPC_SUCCESS) {
         tfm_panic();
     }
-    if (tfm_memory_check(out_vec, out_len * sizeof(psa_outvec),
-        ns_caller) != IPC_SUCCESS) {
+    /*
+     * Read client outvecs from the wrap output vector and will update the
+     * actual length later. It is a fatal error if the memory reference for
+     * the wrap output vector is invalid or not read-write.
+     */
+    if (tfm_memory_check((void *)outptr, out_num * sizeof(psa_outvec),
+        ns_caller, TFM_MEMORY_ACCESS_RW, privileged) != IPC_SUCCESS) {
         tfm_panic();
     }
 
@@ -124,22 +144,26 @@ psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *in_vec,
     tfm_memset(outvecs, 0, sizeof(outvecs));
 
     /* Copy the address out to avoid TOCTOU attacks. */
-    tfm_memcpy(invecs, in_vec, in_len * sizeof(psa_invec));
-    tfm_memcpy(outvecs, out_vec, out_len * sizeof(psa_outvec));
+    tfm_memcpy(invecs, inptr, in_num * sizeof(psa_invec));
+    tfm_memcpy(outvecs, outptr, out_num * sizeof(psa_outvec));
 
     /*
-     * It is a fatal error if an invalid payload memory reference
-     * was provided.
+     * For client input vector, it is a fatal error if the provided payload
+     * memory reference was invalid or not readable.
      */
-    for (i = 0; i < in_len; i++) {
+    for (i = 0; i < in_num; i++) {
         if (tfm_memory_check((void *)invecs[i].base, invecs[i].len,
-            ns_caller) != IPC_SUCCESS) {
+            ns_caller, TFM_MEMORY_ACCESS_RO, privileged) != IPC_SUCCESS) {
             tfm_panic();
         }
     }
-    for (i = 0; i < out_len; i++) {
+    /*
+     * For client output vector, it is a fatal error if the provided payload
+     * memory reference was invalid or not read-write.
+     */
+    for (i = 0; i < out_num; i++) {
         if (tfm_memory_check(outvecs[i].base, outvecs[i].len,
-            ns_caller) != IPC_SUCCESS) {
+            ns_caller, TFM_MEMORY_ACCESS_RW, privileged) != IPC_SUCCESS) {
             tfm_panic();
         }
     }
@@ -149,7 +173,7 @@ psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *in_vec,
      * Service or incorrectly formatted.
      */
     msg = tfm_spm_create_msg(service, handle, PSA_IPC_CALL, ns_caller, invecs,
-                             in_len, outvecs, out_len, out_vec);
+                             in_num, outvecs, out_num, outptr);
     if (!msg) {
         /* FixMe: Need to implement one mechanism to resolve this failure. */
         tfm_panic();
@@ -163,7 +187,6 @@ psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *in_vec,
         /* FixMe: Need to refine failure process here. */
         tfm_panic();
     }
-
     return PSA_SUCCESS;
 }
 

@@ -58,16 +58,19 @@ psa_status_t tfm_psa_connect(uint32_t sid, uint32_t minor_version,
  *
  * \param[in] handle            Service handle to the established connection,
  *                              \ref psa_handle_t
- * \param[in] in_vec            Array of input psa_invec structures.
+ * \param[in] inptr             Array of input psa_invec structures.
  *                              \ref psa_invec
- * \param[in] in_len            Number of input psa_invec structures.
+ * \param[in] in_num            Number of input psa_invec structures.
  *                              \ref psa_invec
- * \param[in] out_vec           Array of output psa_outvec structures.
+ * \param[in] outptr            Array of output psa_outvec structures.
  *                              \ref psa_outvec
- * \param[in] out_len           Number of outut psa_outvec structures.
+ * \param[in] out_num           Number of outut psa_outvec structures.
  *                              \ref psa_outvec
  * \param[in] ns_caller         If 'non-zero', call from non-secure client.
  *                              Or from secure client.
+ * \param[in] privileged        Privileged mode or unprivileged mode:
+ *                              \ref TFM_PARTITION_UNPRIVILEGED_MODE
+ *                              \ref TFM_PARTITION_PRIVILEGED_MODE
  *
  * \retval PSA_SUCCESS          Success.
  * \retval "Does not return"    The call is invalid, one or more of the
@@ -75,13 +78,13 @@ psa_status_t tfm_psa_connect(uint32_t sid, uint32_t minor_version,
  * \arg                           An invalid handle was passed.
  * \arg                           The connection is already handling a request.
  * \arg                           An invalid memory reference was provided.
- * \arg                           in_len + out_len > PSA_MAX_IOVEC.
+ * \arg                           in_num + out_num > PSA_MAX_IOVEC.
  * \arg                           The message is unrecognized by the RoT
  *                                Service or incorrectly formatted.
  */
-psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *in_vec,
-                          size_t in_len, psa_outvec *out_vec, size_t out_len,
-                          int32_t ns_caller);
+psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *inptr,
+                          size_t in_num, psa_outvec *outptr, size_t out_num,
+                          int32_t ns_caller, uint32_t privileged);
 
 /**
  * \brief handler for \ref psa_close.
