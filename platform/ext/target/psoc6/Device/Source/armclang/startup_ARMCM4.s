@@ -129,15 +129,31 @@ Reset_Handler   PROC
                 ENDP
 
 
+                EXPORT Cy_SysLib_FaultHandler     [WEAK]
+                AREA    |.text|, CODE, READONLY
+Cy_SysLib_FaultHandler
+                B       .
+
+                EXPORT  HardFault_Handler         [WEAK]
+                AREA    |.text|, CODE, READONLY
+HardFault_Handler
+                movs    r0, #4
+                mov     r1, LR
+                tst     r0, r1
+                beq     L_MSP
+                mrs     r0, PSP
+                b       L_API_call
+L_MSP
+                mrs     r0, MSP
+L_API_call
+                ; Storing LR content for Creator call stack trace
+                push    {LR}
+                bl      Cy_SysLib_FaultHandler
+
 ; Dummy Exception Handlers (infinite loops which can be modified)
 
 NMI_Handler     PROC
                 EXPORT  NMI_Handler               [WEAK]
-                B       .
-                ENDP
-HardFault_Handler\
-                PROC
-                EXPORT  HardFault_Handler         [WEAK]
                 B       .
                 ENDP
 MemManage_Handler\
