@@ -186,7 +186,7 @@ int main(void)
     uint32_t msp_stack_bottom =
             (uint32_t)&REGION_NAME(Image$$, ARM_LIB_STACK_MSP, $$ZI$$Base);
 
-    __set_MSPLIM(msp_stack_bottom);
+    tfm_arch_set_msplim(msp_stack_bottom);
 
     if (tfm_core_init() != 0) {
         /* Placeholder for error handling, currently ignored. */

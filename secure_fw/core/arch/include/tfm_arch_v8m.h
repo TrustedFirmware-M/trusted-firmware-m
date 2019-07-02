@@ -83,7 +83,17 @@ __STATIC_INLINE bool is_return_secure_stack(uint32_t lr)
  */
 __STATIC_INLINE void tfm_arch_set_psplim(uint32_t psplim)
 {
-    (void)__set_PSPLIM(psplim);
+    __set_PSPLIM(psplim);
+}
+
+/**
+ * \brief Set MSPLIM register.
+ *
+ * \param[in] msplim        Register value to be written into MSPLIM.
+ */
+__STATIC_INLINE void tfm_arch_set_msplim(uint32_t msplim)
+{
+    __set_MSPLIM(msplim);
 }
 
 #endif
