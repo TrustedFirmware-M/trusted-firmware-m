@@ -55,6 +55,7 @@ elseif (TFM_PSA_API)
 	if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
 		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/tfm_rpc.c")
 		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/tfm_spe_mailbox.c")
+		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/tfm_multi_core.c")
 	endif ()
 
 endif()

@@ -245,21 +245,5 @@ int main(void)
 #endif
 
     tfm_spm_init();
-
-    /*
-     * FIXME
-     * The following multi-core operations actually cannot work in current
-     * IPC model initialization.
-     * The multi-core booting and initialization will be fixed later to fit
-     * current IPC model initialization process.
-     */
-#if TFM_MULTI_CORE_TOPOLOGY
-    tfm_spm_hal_boot_ns_cpu(tfm_spm_hal_get_ns_VTOR());
-    tfm_spm_hal_wait_for_ns_cpu_ready();
-
-    tfm_mailbox_init();
-
-    while (1) {};
-#endif
 #endif
 }
