@@ -15,6 +15,9 @@
 
 #if defined(__ARM_ARCH_8M_MAIN__) || defined(__ARM_ARCH_8M_BASE__)
 #include "tfm_arch_v8m.h"
+#elif defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_7M__) || \
+      defined(__ARM_ARCH_7EM__)
+#include "tfm_arch_v6m_v7m.h"
 #else
 #error "Unsupported ARM Architecture."
 #endif

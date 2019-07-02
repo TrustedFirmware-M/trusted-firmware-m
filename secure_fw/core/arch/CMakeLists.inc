@@ -34,6 +34,13 @@ elseif (${ARM_CPU_ARCHITECTURE} STREQUAL "ARMv8-M.MAIN")
 	set(TFM_ARCH_C_SRC "${TFM_ARCH_DIR}/tfm_arch_v8m_main.c")
 elseif (${ARM_CPU_ARCHITECTURE} STREQUAL "ARMv8-M.BASE")
 	set(TFM_ARCH_C_SRC "${TFM_ARCH_DIR}/tfm_arch_v8m_base.c")
+elseif (${ARM_CPU_ARCHITECTURE} STREQUAL "ARMv7-M" OR
+		${ARM_CPU_ARCHITECTURE} STREQUAL "ARMv6-M")
+	if (NOT DEFINED TFM_MULTI_CORE_TOPOLOGY OR NOT TFM_MULTI_CORE_TOPOLOGY)
+		message(FATAL_ERROR "Armv6-M/Armv7-M can only support multi-core TF-M.")
+	endif()
+
+	set(TFM_ARCH_C_SRC "${TFM_ARCH_DIR}/tfm_arch_v6m_v7m.c")
 else ()
 	message(FATAL_ERROR "Unsupported architecture.")
 endif()
