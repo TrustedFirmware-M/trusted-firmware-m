@@ -77,6 +77,20 @@ __STATIC_INLINE bool is_return_secure_stack(uint32_t lr)
 }
 
 /**
+ * \brief Check whether the stack frame for this exception has space allocated
+ *        for Floating Point(FP) state information.
+ *
+ * \param[in] lr            LR register containing the EXC_RETURN value.
+ *
+ * \retval true             The stack allocates space for FP information
+ * \retval false            The stack doesn't allocate space for FP information
+ */
+__STATIC_INLINE bool is_stack_alloc_fp_space(uint32_t lr)
+{
+    return (lr & EXC_RETURN_FPU_FRAME_BASIC) ? false : true;
+}
+
+/**
  * \brief Set PSPLIM register.
  *
  * \param[in] psplim        Register value to be written into PSPLIM.

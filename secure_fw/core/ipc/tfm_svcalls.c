@@ -88,7 +88,7 @@ psa_status_t tfm_svcall_psa_call(uint32_t *args, int32_t ns_caller, uint32_t lr)
          * - if FP is used and FPCCR_S.TS is 1, 5th parameter is at 42th
          *   position counting from SP.
          */
-         if (lr & EXC_RETURN_FPU_FRAME_BASIC) {
+         if (!is_stack_alloc_fp_space(lr)) {
             out_num = (size_t)args[8];
 #if defined (__FPU_USED) && (__FPU_USED == 1U)
          } else if (FPU->FPCCR & FPU_FPCCR_TS_Msk) {
