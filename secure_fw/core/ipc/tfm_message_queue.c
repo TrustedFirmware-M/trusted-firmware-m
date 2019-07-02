@@ -1,15 +1,9 @@
 /*
- * Copyright (c) 2018, Arm Limited. All rights reserved.
+ * Copyright (c) 2018-2019, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
-#include <inttypes.h>
-#include <stdio.h>
-#include "tfm_thread.h"
-#include "tfm_wait.h"
-#include "psa_client.h"
-#include "psa_service.h"
 #include "tfm_internal_defines.h"
 #include "tfm_message_queue.h"
 

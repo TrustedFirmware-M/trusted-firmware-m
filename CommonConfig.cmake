@@ -9,8 +9,6 @@ if(NOT DEFINED REGRESSION)
 	message(FATAL_ERROR "ERROR: Incomplete Configuration: REGRESSION not defined, Include this file from a Config*.cmake")
 elseif(NOT DEFINED CORE_TEST)
 	message(FATAL_ERROR "ERROR: Incomplete Configuration: CORE_TEST not defined, Include this file from a Config*.cmake")
-elseif(NOT DEFINED BL2)
-	message(FATAL_ERROR "ERROR: Incomplete Configuration: BL2 not defined, Include this file from a Config*.cmake")
 elseif(NOT DEFINED TFM_LVL)
 	message(FATAL_ERROR "ERROR: Incomplete Configuration: TFM_LVL not defined, Include this file from a Config*.cmake")
 endif()
@@ -19,6 +17,17 @@ if(NOT DEFINED COMPILER)
 	message(FATAL_ERROR "ERROR: COMPILER is not set in command line")
 elseif((NOT ${COMPILER} STREQUAL "ARMCLANG") AND (NOT ${COMPILER} STREQUAL "GNUARM"))
 	message(FATAL_ERROR "ERROR: Compiler \"${COMPILER}\" is not supported.")
+endif()
+
+#BL2 bootloader (MCUBoot) related settings
+if(NOT DEFINED BL2)
+	set(BL2 True CACHE BOOL "Configure TF-M to use BL2 and enable building BL2")
+endif()
+if (BL2)
+	if (NOT DEFINED MCUBOOT_UPGRADE_STRATEGY)
+		set (MCUBOOT_UPGRADE_STRATEGY "OVERWRITE_ONLY" CACHE STRING "Configure BL2 which upgrade strategy to use")
+		set_property(CACHE MCUBOOT_UPGRADE_STRATEGY PROPERTY STRINGS "OVERWRITE_ONLY;SWAP;NO_SWAP;RAM_LOADING")
+	endif()
 endif()
 
 set(BUILD_CMSIS_CORE Off)
@@ -94,9 +103,9 @@ list_to_string(COMMON_COMPILE_FLAGS_STR ${COMMON_COMPILE_FLAGS})
 #Settings which shall be set for all projects the same way based
 # on the variables above.
 set (TFM_PARTITION_TEST_CORE OFF)
+set (TFM_PARTITION_TEST_CORE_IPC OFF)
 set (CORE_TEST_POSITIVE OFF)
 set (CORE_TEST_INTERACTIVE OFF)
-set (TEST_FRAMEWORK_S OFF)
 set (REFERENCE_PLATFORM OFF)
 set (TFM_PARTITION_TEST_SECURE_SERVICES OFF)
 set (SERVICES_TEST_ENABLED OFF)
@@ -105,6 +114,9 @@ set (TEST_FRAMEWORK_NS OFF)
 set (TFM_PSA_API OFF)
 set (TFM_LEGACY_API ON)
 set (CORE_TEST_IPC OFF)
+
+option(TFM_PARTITION_AUDIT_LOG "Enable the TF-M Audit Log partition" ON)
+option(TFM_PARTITION_PLATFORM "Enable the TF-M Platform partition" ON)
 
 if(${TARGET_PLATFORM} STREQUAL "AN521" OR ${TARGET_PLATFORM} STREQUAL "AN519")
 	set (REFERENCE_PLATFORM ON)
@@ -119,7 +131,6 @@ endif()
 
 if (CORE_IPC)
 	set(TFM_PSA_API ON)
-	set(CORE_TEST_IPC ON)
 endif()
 
 if (TFM_PSA_API)
@@ -137,16 +148,20 @@ endif()
 if (SERVICES_TEST_ENABLED)
 	set(SERVICE_TEST_S ON)
 	set(SERVICE_TEST_NS ON)
-	if (REFERENCE_PLATFORM)
+	if (CORE_IPC)
+		set(CORE_TEST_IPC ON)
+	elseif (REFERENCE_PLATFORM)
 		set(CORE_TEST_POSITIVE ON)
 	endif()
 endif()
 
 if (CORE_TEST)
-	set(CORE_TEST_POSITIVE ON)
-	set(CORE_TEST_INTERACTIVE OFF)
-	set(TFM_PARTITION_TEST_SECURE_SERVICES ON)
-	add_definitions(-DTFM_PARTITION_TEST_SECURE_SERVICES)
+	if (CORE_IPC)
+		set(CORE_TEST_IPC ON)
+	elseif (REFERENCE_PLATFORM)
+		set(CORE_TEST_POSITIVE ON)
+		set(CORE_TEST_INTERACTIVE OFF)
+	endif()
 endif()
 
 if (CORE_TEST_INTERACTIVE)
@@ -163,18 +178,19 @@ endif()
 
 if (CORE_TEST_IPC)
 	add_definitions(-DCORE_TEST_IPC)
-	set(TFM_PARTITION_TEST_SECURE_SERVICES ON)
+	set(TEST_FRAMEWORK_NS ON)
+	set(TFM_PARTITION_TEST_CORE_IPC ON)
+elseif (CORE_IPC AND (NOT PSA_API_TEST) AND (TFM_LVL EQUAL 1))
+	# FIXME: Running the Core IPC tests in this config is deprecated and will
+	# be removed in the future.
+	set(CORE_TEST_IPC ON)
+	add_definitions(-DCORE_TEST_IPC)
 	set(TEST_FRAMEWORK_NS ON)
 endif()
 
 if (SERVICE_TEST_S)
 	add_definitions(-DSERVICES_TEST_S)
 	set(TEST_FRAMEWORK_S ON)
-	set(TFM_PARTITION_TEST_SECURE_SERVICES ON)
-endif()
-
-if (TFM_PARTITION_TEST_SECURE_SERVICES)
-	add_definitions(-DTFM_PARTITION_TEST_SECURE_SERVICES)
 endif()
 
 if (SERVICE_TEST_NS)
@@ -184,14 +200,37 @@ endif()
 
 if (TEST_FRAMEWORK_S)
 	add_definitions(-DTEST_FRAMEWORK_S)
+	# The secure client partition is required to run secure tests
+	set(TFM_PARTITION_TEST_SECURE_SERVICES ON)
 endif()
 
 if (TEST_FRAMEWORK_NS)
 	add_definitions(-DTEST_FRAMEWORK_NS)
 endif()
 
+if (CORE_IPC)
+	set(TFM_PARTITION_AUDIT_LOG OFF)
+	set(TFM_PARTITION_PLATFORM OFF)
+endif()
+
+if (TFM_PARTITION_AUDIT_LOG)
+	add_definitions(-DTFM_PARTITION_AUDIT_LOG)
+endif()
+
+if (TFM_PARTITION_PLATFORM)
+	add_definitions(-DTFM_PARTITION_PLATFORM)
+endif()
+
 if (TFM_PARTITION_TEST_CORE)
 	add_definitions(-DTFM_PARTITION_TEST_CORE)
+endif()
+
+if (TFM_PARTITION_TEST_CORE_IPC)
+	add_definitions(-DTFM_PARTITION_TEST_CORE_IPC)
+endif()
+
+if (TFM_PARTITION_TEST_SECURE_SERVICES)
+	add_definitions(-DTFM_PARTITION_TEST_SECURE_SERVICES)
 endif()
 
 if (PSA_API_TEST)
@@ -216,20 +255,30 @@ endif()
 
 if (BL2)
 	add_definitions(-DBL2)
-	if (MCUBOOT_NO_SWAP)
+	if (NOT ${MCUBOOT_SIGNATURE_TYPE} STREQUAL "RSA-2048" AND NOT ${MCUBOOT_SIGNATURE_TYPE} STREQUAL "RSA-3072")
+		message(FATAL_ERROR "MCUBoot only supports RSA-2048 and RSA-3072 signature")
+	endif()
+	if (NOT DEFINED MCUBOOT_SIGNATURE_TYPE)
+		set(MCUBOOT_SIGNATURE_TYPE "RSA-3072")
+	endif()
+	if (NOT ${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "OVERWRITE_ONLY" AND
+		NOT ${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "SWAP" AND
+		NOT ${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "NO_SWAP" AND
+		NOT ${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "RAM_LOADING")
+		message(FATAL_ERROR "ERROR: MCUBoot supports OVERWRITE_ONLY, SWAP, NO_SWAP and RAM_LOADING upgrade strategies only.")
+	endif()
+	if (${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "NO_SWAP")
 		set(LINK_TO_BOTH_MEMORY_REGION ON)
 	endif()
-	if (MCUBOOT_NO_SWAP AND MCUBOOT_RAM_LOADING)
-		message (FATAL_ERROR "Bootloader: MCUBOOT_RAM_LOADING and MCUBOOT_NO_SWAP are not supported together")
-	endif()
-else()
-	if (MCUBOOT_NO_SWAP)
-		message (FATAL_ERROR "Bootloader build is turned off, not possible to specify bootloader behavior")
+else() #BL2 is turned off
+	if (DEFINED MCUBOOT_UPGRADE_STRATEGY)
+		message (WARNING "Ignoring value of MCUBOOT_UPGRADE_STRATEGY as BL2 option is set to False.")
+		unset (MCUBOOT_UPGRADE_STRATEGY)
 	endif()
 endif()
 
-##Set mbedTLS compiler flags and variables for secure storage, audit log and crypto
-set(MBEDTLS_C_FLAGS_SERVICES " ${COMMON_COMPILE_FLAGS_STR} -D__thumb__ -DMBEDTLS_CONFIG_FILE=\\\\\\\"tfm_mbedtls_config.h\\\\\\\" -I${CMAKE_CURRENT_LIST_DIR}/platform/ext/common")
+##Set Mbed TLS compiler flags and variables for audit log and crypto
+set(MBEDTLS_C_FLAGS_SERVICES "-D__thumb2__ ${COMMON_COMPILE_FLAGS_STR} -I${CMAKE_CURRENT_LIST_DIR}/platform/ext/common")
 
 #Default TF-M secure storage flags.
 #These flags values can be overwritten by setting them in platform/ext/<TARGET_NAME>.cmake
@@ -258,9 +307,20 @@ if (NOT DEFINED SST_RAM_FS)
 	endif()
 endif()
 
+if (NOT DEFINED SST_TEST_NV_COUNTERS)
+	if (REGRESSION AND (TFM_LVL EQUAL 1))
+		set(SST_TEST_NV_COUNTERS ON)
+	else()
+		set(SST_TEST_NV_COUNTERS OFF)
+	endif()
+endif()
+
 if (NOT DEFINED MBEDTLS_DEBUG)
 	set(MBEDTLS_DEBUG OFF)
 endif()
 
 ##Set mbedTLS compiler flags for BL2 bootloader
-set(MBEDTLS_C_FLAGS_BL2 " ${COMMON_COMPILE_FLAGS_STR} -D__thumb__ -DMBEDTLS_CONFIG_FILE=\\\\\\\"config-boot.h\\\\\\\" -I${CMAKE_CURRENT_LIST_DIR}/bl2/ext/mcuboot/include")
+set(MBEDTLS_C_FLAGS_BL2 "-D__thumb2__ ${COMMON_COMPILE_FLAGS_STR} -DMBEDTLS_CONFIG_FILE=\\\\\\\"config-boot.h\\\\\\\" -I${CMAKE_CURRENT_LIST_DIR}/bl2/ext/mcuboot/include")
+if (MCUBOOT_SIGNATURE_TYPE STREQUAL "RSA-3072")
+	string(APPEND MBEDTLS_C_FLAGS_BL2 " -DMCUBOOT_SIGN_RSA_LEN=3072")
+endif()

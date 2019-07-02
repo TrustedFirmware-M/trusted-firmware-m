@@ -17,6 +17,13 @@
  * under the License.
  */
 
+/*
+ * Original code taken from mcuboot project at:
+ * https://github.com/JuulLabs-OSS/mcuboot
+ * Git SHA of the original version: b69841820462fa0227d7fb407620405f6426bb4b
+ * Modifications are Copyright (c) 2018-2019 Arm Limited.
+ */
+
 #include <errno.h>
 #include <stdbool.h>
 
@@ -88,7 +95,7 @@ int flash_device_base(uint8_t fd_id, uintptr_t *ret)
     if (fd_id != FLASH_DEVICE_ID) {
         BOOT_LOG_ERR("invalid flash ID %d; expected %d",
                      fd_id, FLASH_DEVICE_ID);
-        return -EINVAL;
+        return -1;
     }
     *ret = FLASH_DEVICE_BASE;
     return 0;
@@ -155,11 +162,44 @@ void flash_area_warn_on_open(void)
     }
 }
 
-int flash_area_read(const struct flash_area *area, uint32_t off, void *dst,
-            uint32_t len)
+uint8_t flash_area_erased_val(const struct flash_area *area)
 {
-    BOOT_LOG_DBG("read  area=%d, off=%#x, len=%#x", area->fa_id, off, len);
+    (void)area;
+
+    return FLASH_DEV_NAME.GetInfo()->erased_value;
+}
+
+int flash_area_read(const struct flash_area *area, uint32_t off, void *dst,
+                    uint32_t len)
+{
+    BOOT_LOG_DBG("read area=%d, off=%#x, len=%#x", area->fa_id, off, len);
     return FLASH_DEV_NAME.ReadData(area->fa_off + off, dst, len);
+}
+
+int flash_area_read_is_empty(const struct flash_area *area, uint32_t off,
+                             void *dst, uint32_t len)
+{
+    uint32_t i;
+    uint8_t *u8dst;
+    int rc;
+
+    BOOT_LOG_DBG("read_is_empty area=%d, off=%#x, len=%#x",
+                 area->fa_id, off, len);
+
+    rc = FLASH_DEV_NAME.ReadData(area->fa_off + off, dst, len);
+    if(rc != 0) {
+        return -1;
+    }
+
+    u8dst = (uint8_t*)dst;
+
+    for (i = 0; i < len; i++) {
+        if (u8dst[i] != flash_area_erased_val(area)) {
+            return 0;
+        }
+    }
+
+    return 1;
 }
 
 int flash_area_write(const struct flash_area *area, uint32_t off,

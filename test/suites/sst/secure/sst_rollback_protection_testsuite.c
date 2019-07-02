@@ -8,8 +8,8 @@
 #include "sst_tests.h"
 
 #include <stdio.h>
-#include <string.h>
 
+#include "secure_fw/services/secure_storage/nv_counters/sst_nv_counters.h"
 #include "nv_counters/test_sst_nv_counters.h"
 #include "psa_protected_storage.h"
 #include "secure_fw/core/tfm_memory_utils.h"
@@ -111,8 +111,8 @@ static void tfm_sst_test_4001(struct test_result_t *ret)
     const uint32_t data_len = WRITE_DATA_SIZE;
     const uint32_t offset = 0;
     uint32_t old_nvc_1, nvc_1, nvc_2, nvc_3;
-    uint8_t write_data[] = WRITE_DATA;
-    uint8_t read_data[]  = READ_DATA;
+    const uint8_t write_data[] = WRITE_DATA;
+    uint8_t read_data[] = READ_DATA;
 
     /* Creates an asset in the SST area to generate a new SST area version */
     status = psa_ps_set(uid, data_len, write_data, flags);
@@ -224,7 +224,7 @@ static void tfm_sst_test_4002(struct test_result_t *ret)
     const psa_ps_uid_t uid = TEST_UID;
     const psa_ps_create_flags_t flags = PSA_PS_FLAG_NONE;
     const uint32_t data_len = WRITE_DATA_SIZE;
-    uint8_t write_data[] = WRITE_DATA;
+    const uint8_t write_data[] = WRITE_DATA;
 
     /* Creates an asset in the SST area to generate a new SST area version */
     status = psa_ps_set(uid, data_len, write_data, flags);
@@ -323,8 +323,8 @@ static void tfm_sst_test_4003(struct test_result_t *ret)
     const psa_ps_create_flags_t flags = PSA_PS_FLAG_NONE;
     const uint32_t data_len = WRITE_DATA_SIZE;
     const uint32_t offset = 0;
-    uint8_t write_data[] = WRITE_DATA;
-    uint8_t read_data[]  = READ_DATA;
+    const uint8_t write_data[] = WRITE_DATA;
+    uint8_t read_data[] = READ_DATA;
 
     /* Creates an asset in the SST area to generate a new SST area version */
     status = psa_ps_set(uid, data_len, write_data, flags);
@@ -392,8 +392,8 @@ static void tfm_sst_test_4004(struct test_result_t *ret)
     const psa_ps_create_flags_t flags = PSA_PS_FLAG_NONE;
     const uint32_t data_len = WRITE_DATA_SIZE;
     const uint32_t offset = 0;
-    uint8_t write_data[] = WRITE_DATA;
-    uint8_t read_data[]  = READ_DATA;
+    const uint8_t write_data[] = WRITE_DATA;
+    uint8_t read_data[] = READ_DATA;
 
     /* Creates an asset in the SST area to generate a new SST area version */
     status = psa_ps_set(uid, data_len, write_data, flags);
@@ -461,8 +461,8 @@ static void tfm_sst_test_4005(struct test_result_t *ret)
     const psa_ps_create_flags_t flags = PSA_PS_FLAG_NONE;
     const uint32_t data_len = WRITE_DATA_SIZE;
     const uint32_t offset = 0;
-    uint8_t write_data[] = WRITE_DATA;
-    uint8_t read_data[]  = READ_DATA;
+    const uint8_t write_data[] = WRITE_DATA;
+    uint8_t read_data[] = READ_DATA;
 
     /* Creates an asset in the SST area to generate a new SST area version */
     status = psa_ps_set(uid, data_len, write_data, flags);
@@ -532,8 +532,8 @@ static void tfm_sst_test_4006(struct test_result_t *ret)
     const psa_ps_create_flags_t flags = PSA_PS_FLAG_NONE;
     const uint32_t data_len = WRITE_DATA_SIZE;
     const uint32_t offset = 0;
-    uint8_t write_data[] = WRITE_DATA;
-    uint8_t read_data[]  = READ_DATA;
+    const uint8_t write_data[] = WRITE_DATA;
+    uint8_t read_data[] = READ_DATA;
 
     /* Creates an asset in the SST area to generate a new SST area version */
     status = psa_ps_set(uid, data_len, write_data, flags);
@@ -608,7 +608,7 @@ static void tfm_sst_test_4007(struct test_result_t *ret)
     const psa_ps_uid_t uid = TEST_UID;
     const psa_ps_create_flags_t flags = PSA_PS_FLAG_NONE;
     const uint32_t data_len = WRITE_DATA_SIZE;
-    uint8_t write_data[] = WRITE_DATA;
+    const uint8_t write_data[] = WRITE_DATA;
 
     /* Creates an asset in the SST area to generate a new SST area version */
     status = psa_ps_set(uid, data_len, write_data, flags);
@@ -694,7 +694,7 @@ static void tfm_sst_test_4008(struct test_result_t *ret)
     const psa_ps_uid_t uid = TEST_UID;
     const psa_ps_create_flags_t flags = PSA_PS_FLAG_NONE;
     const uint32_t data_len = WRITE_DATA_SIZE;
-    uint8_t write_data[] = WRITE_DATA;
+    const uint8_t write_data[] = WRITE_DATA;
 
     /* Creates an asset in the SST area to generate a new SST area version */
     status = psa_ps_set(uid, data_len, write_data, flags);
@@ -792,7 +792,7 @@ static void tfm_sst_test_4009(struct test_result_t *ret)
     const psa_ps_uid_t uid = TEST_UID;
     const psa_ps_create_flags_t flags = PSA_PS_FLAG_NONE;
     const uint32_t data_len = WRITE_DATA_SIZE;
-    uint8_t write_data[] = WRITE_DATA;
+    const uint8_t write_data[] = WRITE_DATA;
 
     /* Disables increment function to simulate that NV counter 1 has
      * reached its maximum value.

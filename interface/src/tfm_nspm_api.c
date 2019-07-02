@@ -64,7 +64,7 @@ __attribute__ ((naked))
 static uint32_t tfm_nspm_svc_register_client(uint32_t client_id)
 {
     SVC(SVC_TFM_NSPM_REGISTER_CLIENT_ID);
-    __ASM("BX LR");
+    __ASM volatile("BX LR");
 }
 
 uint32_t tfm_nspm_register_client_id(void)

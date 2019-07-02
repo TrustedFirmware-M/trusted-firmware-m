@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2017-2018, Arm Limited. All rights reserved.
+# Copyright (c) 2017-2019, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -10,11 +10,15 @@ cmake_minimum_required(VERSION 3.7)
 #Tell cmake where our modules can be found
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../../cmake)
 
+#Set variables to appropriate path
+set(MCUBOOT_DIR ${CMAKE_CURRENT_LIST_DIR})
+get_filename_component(TFM_ROOT_DIR "${MCUBOOT_DIR}/../../.." ABSOLUTE)
+
 #Include common stuff to control cmake.
 include("Common/BuildSys")
 
 #Start an embedded project.
-embedded_project_start(CONFIG "${CMAKE_CURRENT_LIST_DIR}/../../../ConfigDefault.cmake")
+embedded_project_start(CONFIG "${TFM_ROOT_DIR}/configs/ConfigDefault.cmake")
 project(mcuboot LANGUAGES ASM C)
 embedded_project_fixup()
 
@@ -30,17 +34,13 @@ if (NOT DEFINED MBEDTLS_C_FLAGS_BL2)
 	message(FATAL_ERROR "Incomplete build configuration: MBEDTLS_C_FLAGS_BL2 is undefined.")
 endif()
 
-#Set variables to appropriate path
-set(MCUBOOT_DIR ${CMAKE_CURRENT_LIST_DIR})
-get_filename_component(TFM_ROOT_DIR "${MCUBOOT_DIR}/../../.." ABSOLUTE)
-
 set(BUILD_CMSIS_CORE On)
 set(BUILD_RETARGET On)
 set(BUILD_NATIVE_DRIVERS On)
 set(BUILD_STARTUP On)
 set(BUILD_TARGET_CFG Off)
 set(BUILD_TARGET_HARDWARE_KEYS Off)
-set(BUILD_TARGET_NV_COUNTERS Off)
+set(BUILD_TARGET_NV_COUNTERS On)
 set(BUILD_CMSIS_DRIVERS On)
 set(BUILD_TIME Off)
 set(BUILD_UART_STDOUT On)
@@ -64,6 +64,7 @@ list(APPEND ALL_SRC_C
 		"${MCUBOOT_DIR}/bootutil/src/image_rsa.c"
 		"${MCUBOOT_DIR}/bootutil/src/caps.c"
 		"${TFM_ROOT_DIR}/bl2/src/boot_record.c"
+		"${TFM_ROOT_DIR}/bl2/src/security_cnt.c"
 	)
 
 #Define location of mbedtls source, build, and installation directory.
@@ -129,18 +130,29 @@ compiler_generate_binary_output(${PROJECT_NAME})
 
 #Set macro definitions for the project.
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-							MCUBOOT_SIGN_RSA
 							MCUBOOT_VALIDATE_SLOT0
 							MCUBOOT_USE_FLASH_AREA_GET_SECTORS
 							MBEDTLS_CONFIG_FILE="config-boot.h"
 							MCUBOOT_TARGET_CONFIG="flash_layout.h")
 
-if (MCUBOOT_NO_SWAP)
-	target_compile_definitions(${PROJECT_NAME} PRIVATE MCUBOOT_NO_SWAP)
+if (MCUBOOT_SIGNATURE_TYPE STREQUAL "RSA-3072")
+	target_compile_definitions(${PROJECT_NAME} PRIVATE MCUBOOT_SIGN_RSA MCUBOOT_SIGN_RSA_LEN=3072)
+elseif(MCUBOOT_SIGNATURE_TYPE STREQUAL "RSA-2048")
+	target_compile_definitions(${PROJECT_NAME} PRIVATE MCUBOOT_SIGN_RSA MCUBOOT_SIGN_RSA_LEN=2048)
+else()
+	message(FATAL_ERROR "${MCUBOOT_SIGNATURE_TYPE} is not supported as firmware signing algorithm")
 endif()
 
-if (MCUBOOT_RAM_LOADING)
+if (${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "OVERWRITE_ONLY")
+	target_compile_definitions(${PROJECT_NAME} PRIVATE MCUBOOT_OVERWRITE_ONLY)
+elseif (${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "NO_SWAP")
+	target_compile_definitions(${PROJECT_NAME} PRIVATE MCUBOOT_NO_SWAP)
+elseif (${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "RAM_LOADING")
 	target_compile_definitions(${PROJECT_NAME} PRIVATE MCUBOOT_RAM_LOADING)
+elseif (${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "SWAP")
+	#No compile definition needs to be specified for this upgrade strategy
+else()
+	message(FATAL_ERROR "ERROR: MCUBoot supports OVERWRITE_ONLY, SWAP, NO_SWAP and RAM_LOADING upgrade strategies only.")
 endif()
 
 #Set install location. Keep original value to avoid overriding command line settings.

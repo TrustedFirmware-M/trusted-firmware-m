@@ -3,6 +3,8 @@
  *
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  Copyright (C) 2016, Linaro Ltd
+ *  Copyright (c) 2019, Arm Limited.
+ *
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -29,31 +31,18 @@
 #ifndef MBEDTLS_CONFIG_BOOT_H
 #define MBEDTLS_CONFIG_BOOT_H
 
-/* TODO: Configure this between app and target.  Really, we want the
- * config to come from the app. */
-#define CONFIG_BOOT_VERIFY_RSA_SIGNATURE
-
 /* System support */
 #define MBEDTLS_PLATFORM_C
 #define MBEDTLS_PLATFORM_MEMORY
 #define MBEDTLS_MEMORY_BUFFER_ALLOC_C
-#define MBEDTLS_PLATFORM_EXIT_ALT
 #define MBEDTLS_NO_PLATFORM_ENTROPY
 #define MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES
+
+#define MBEDTLS_PLATFORM_EXIT_ALT
 #define MBEDTLS_PLATFORM_PRINTF_ALT
 
-#if defined(CONFIG_MBEDTLS_TEST)
-#define MBEDTLS_SELF_TEST
-#define MBEDTLS_DEBUG_C
-#else
-#define MBEDTLS_ENTROPY_C
-#define MBEDTLS_TEST_NULL_ENTROPY
-#endif
-
-#ifdef CONFIG_BOOT_VERIFY_RSA_SIGNATURE
 #define MBEDTLS_RSA_C
 #define MBEDTLS_PKCS1_V15
-#endif
 
 /* mbed TLS modules */
 #define MBEDTLS_ASN1_PARSE_C
@@ -64,12 +53,10 @@
 #define MBEDTLS_SHA256_C
 
 /* Save RAM by adjusting to our exact needs */
-#ifdef CONFIG_BOOT_VERIFY_RSA_SIGNATURE
-#define MBEDTLS_ECP_MAX_BITS             2048
+#if MCUBOOT_SIGN_RSA_LEN == 3072
+#define MBEDTLS_MPI_MAX_SIZE              384
+#else /* RSA2048 */
 #define MBEDTLS_MPI_MAX_SIZE              256
-#else
-#define MBEDTLS_ECP_MAX_BITS             256
-#define MBEDTLS_MPI_MAX_SIZE              32 // 256 bits is 32 bytes
 #endif
 
 #define MBEDTLS_SSL_MAX_CONTENT_LEN 1024

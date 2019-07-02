@@ -56,6 +56,43 @@ if("ASM" IN_LIST languages)
 	include(Compiler/ARMClang-ASM)
 endif()
 
+function(compiler_get_preinclude_option_string INCLUDE RES)
+	set(${RES} "-include ${INCLUDE}" PARENT_SCOPE)
+endfunction()
+
+function(compiler_set_preinclude_file)
+	#Option (on/off) arguments.
+	set( _OPTIONS_ARGS GLOBAL)
+	#Single option arguments.
+	set( _ONE_VALUE_ARGS INCLUDE)
+	#List arguments
+	set( _MULTI_VALUE_ARGS TARGETS FILES)
+	cmake_parse_arguments(_MY_PARAMS "${_OPTIONS_ARGS}" "${_ONE_VALUE_ARGS}" "${_MULTI_VALUE_ARGS}" ${ARGN} )
+	if(NOT DEFINED _MY_PARAMS)
+        	message(FATAL_ERROR "compiler_set_preinclude_file: missing mandatory parameter INCLUDE.")
+	endif()
+	compiler_get_preinclude_option_string(${INCLUDE} _OPTION_STRING)
+	#If include is to be set globally, we ignore TARGETS and FILES
+	if(_MY_PARAMS_GLOBAL)
+		set_property(DIRECTORY ${CMAKE_SOURCE_DIR} APPEND PROPERTY COMPILE_OPTIONS "${_OPTION_STRING}")
+	else()
+	#If GLOBAL was not passed, then either TARGETS or FILES must be present
+		if(NOT DEFINED _MY_PARAM_TARGETS AND NOT DEFINED _MY_PARAM_FILES)
+			message(FATAL_ERROR "compiler_set_preinclude_file: missing mandatory parameter. Either TARGETS and/or FILES must be specified.")
+		endif()
+		#Iterate over targets. Note: call embedded_set_target_compile_flags to
+		#allow the target to be defined after this function call. This helps
+		#modularisation
+		foreach(_TGT IN_LISTS _MY_PARAM_TARGETS)
+			embedded_set_target_compile_flags(TARGET ${_TGT} LANGUAGE "C" FLAGS "${_OPTION_STRING}")
+		endforeach()
+		#Iterate over files
+		foreach(_FILE IN_LISTS _MY_PARAM_FILES)
+			set_property(FILE ${_FILE} APPEND PROPERTY COMPILE_OPTIONS "${_OPTION_STRING}")
+		endforeach()
+	endif()
+endfunction()
+
 function(compiler_set_linkercmdfile)
 	set( _OPTIONS_ARGS )							#Option (on/off) arguments.
 	set( _ONE_VALUE_ARGS TARGET PATH)				#Single option arguments.
@@ -147,4 +184,76 @@ endfunction()
 
 function(compiler_generate_binary_output TARGET)
 	add_custom_command(TARGET ${TARGET} POST_BUILD COMMAND ${CMAKE_ARMCCLANG_FROMELF} ARGS --bincombined --output=$<TARGET_FILE_DIR:${TARGET}>/${TARGET}.bin $<TARGET_FILE:${TARGET}>)
+endfunction()
+
+# Function for creating a new target that preprocesses a .c file
+#INPUTS:
+#    SRC - (mandatory) - file to be preprocessed
+#    DST - (mandatory) - output file for the preprocessing
+#    TARGET_PREFIX - (optional) - prefix for the target that this function creates and which manages the preprocessing
+#    BEFORE_TARGET - (optional) - target which is dependent on the preprocessing target in the below function
+function(compiler_preprocess_file)
+	#Option (on/off) arguments.
+	set( _OPTIONS_ARGS)
+	#Single option arguments.
+	set( _ONE_VALUE_ARGS SRC DST TARGET_PREFIX BEFORE_TARGET)
+	#List arguments
+	set( _MULTI_VALUE_ARGS)
+	cmake_parse_arguments(_MY_PARAMS "${_OPTIONS_ARGS}" "${_ONE_VALUE_ARGS}" "${_MULTI_VALUE_ARGS}" ${ARGN} )
+
+	#Check passed parameters
+	if(NOT DEFINED _MY_PARAMS_SRC)
+		message(FATAL_ERROR "compiler_preprocess_file: mandatory parameter 'SRC' is missing.")
+	endif()
+
+	if(NOT DEFINED _MY_PARAMS_DST)
+		message(FATAL_ERROR "compiler_preprocess_file: mandatory parameter 'DST' is missing.")
+	endif()
+
+	if(DEFINED _MY_PARAMS_BEFORE_TARGET)
+		if(NOT TARGET ${_MY_PARAMS_BEFORE_TARGET})
+			message(FATAL_ERROR "compiler_preprocess_file: optional parameter 'BEFORE_TARGET' is not target.")
+		endif()
+	endif()
+
+	#The compiler flag might contain leading spaces which can fail the preprocess operation, these are removed
+	STRING(STRIP ${CMAKE_C_FLAGS_CPU} _MY_TEMP_CMAKE_C_FLAGS_CPU)
+	#If a string contains spaces, then it is inserted amongst quotation marks. Furthermore the compiler fails if it is
+	#called with multiple switches included in one quotation mark. If the extra spaces are replaced by semicolons,
+	#then the insertion will be advantageous for the compiler.
+	STRING(REPLACE " " ";" _MY_TEMP2_CMAKE_C_FLAGS_CPU ${_MY_TEMP_CMAKE_C_FLAGS_CPU})
+	set(_LOCAL_CMAKE_C_FLAGS_CPU "")
+	foreach(_C_FLAG IN LISTS _MY_TEMP2_CMAKE_C_FLAGS_CPU)
+		list(APPEND _LOCAL_CMAKE_C_FLAGS_CPU "${_C_FLAG}")
+	endforeach()
+
+	add_custom_command(OUTPUT ${_MY_PARAMS_DST}
+		COMMAND ${CMAKE_C_COMPILER} ${_LOCAL_CMAKE_C_FLAGS_CPU} -E -P -xc ${_MY_PARAMS_SRC} -o ${_MY_PARAMS_DST}
+		DEPENDS ${_MY_PARAMS_SRC}
+		COMMENT "Preprocess the ${_MY_PARAMS_SRC} file"
+	)
+
+	set(_MY_TARGET_PREFIX "")
+	if(TARGET ${_MY_PARAMS_TARGET_PREFIX})
+		set(_MY_TARGET_PREFIX "${_MY_PARAMS_TARGET_PREFIX}")
+	endif()
+	#The preprocessing related target name is obtained by indexing the file's name that is to be preprocessed
+	get_filename_component(_MY_FILENAME_TO_BE_INDEXED ${_MY_PARAMS_SRC} NAME_WE)
+	foreach(_SUFFIX RANGE 1 100)
+		if (NOT TARGET ${_MY_TARGET_PREFIX}_pp_${_MY_FILENAME_TO_BE_INDEXED}_${_SUFFIX})
+				set(_PREPROCESS_TARGET_NAME "${_MY_TARGET_PREFIX}_pp_${_MY_FILENAME_TO_BE_INDEXED}_${_SUFFIX}")
+				break()
+		endif()
+		if (_SUFFIX EQUAL 100)
+			message(FATAL_ERROR "You have called 'compiler_preprocess_file' too many times (${_SUFFIX} function calls).")
+		endif()
+	endforeach()
+
+	#Make the original target depend on the new one.
+	if(TARGET ${_MY_PARAMS_BEFORE_TARGET})
+		add_custom_target(${_PREPROCESS_TARGET_NAME} DEPENDS ${_MY_PARAMS_DST})
+		add_dependencies(${_MY_PARAMS_BEFORE_TARGET} ${_PREPROCESS_TARGET_NAME})
+	else()
+		add_custom_target(${_PREPROCESS_TARGET_NAME} ALL DEPENDS ${_MY_PARAMS_DST})
+	endif()
 endfunction()

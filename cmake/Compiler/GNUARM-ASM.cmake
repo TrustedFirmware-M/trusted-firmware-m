@@ -1,10 +1,9 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2017-2018, Arm Limited. All rights reserved.
+# Copyright (c) 2017-2019, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
 
-include(Compiler/GNUARM)
 set(CMAKE_ASM_SOURCE_FILE_EXTENSIONS s;S;asm)
-__compiler_gnuarm(ASM)
+#No furhter configuration is needed to extend cmake's buit-in GCC support.

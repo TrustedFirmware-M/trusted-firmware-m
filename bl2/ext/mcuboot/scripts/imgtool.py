@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 #
 # Copyright 2017 Linaro Limited
-# Copyright (c) 2018, Arm Limited.
+# Copyright (c) 2018-2019, Arm Limited.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -80,10 +80,14 @@ def next_version_number(args, defaultVersion, path):
     return newVersion
 
 def gen_rsa2048(args):
-    keys.RSA2048.generate().export_private(args.key)
+    keys.RSAutil.generate().export_private(args.key)
+
+def gen_rsa3072(args):
+    keys.RSAutil.generate(key_size=3072).export_private(args.key)
 
 keygens = {
-        'rsa-2048': gen_rsa2048, }
+        'rsa-2048': gen_rsa2048,
+        'rsa-3072': gen_rsa3072, }
 
 def do_keygen(args):
     if args.type not in keygens:
@@ -102,13 +106,24 @@ def do_getpub(args):
 def do_sign(args):
     if args.rsa_pkcs1_15:
         keys.sign_rsa_pss = False
+
+    version_num = next_version_number(args,
+                                      version.decode_version("0"),
+                                      "lastVerNum.txt")
+
+    if args.security_counter is None:
+        # Security counter has not been explicitly provided,
+        # generate it from the version number
+        args.security_counter = ((version_num.major << 24)
+                                 + (version_num.minor << 16)
+                                 + version_num.revision)
+
     img = image.Image.load(args.infile,
-            version=next_version_number(args,
-                                        version.decode_version("0"),
-                                        "lastVerNum.txt"),
-            header_size=args.header_size,
-            included_header=args.included_header,
-            pad=args.pad)
+                           version=version_num,
+                           header_size=args.header_size,
+                           security_cnt=args.security_counter,
+                           included_header=args.included_header,
+                           pad=args.pad)
     key = keys.load(args.key) if args.key else None
     img.sign(key, find_load_address(args))
 
@@ -155,6 +170,8 @@ def args():
     sign.add_argument("--align", type=alignment_value, required=True)
     sign.add_argument("-v", "--version", type=version.decode_version,
                       default="0.0.0+0")
+    sign.add_argument("-s", "--security-counter", type=intparse,
+                      help='Specify explicitly the security counter value')
     sign.add_argument("-H", "--header-size", type=intparse, required=True)
     sign.add_argument("--included-header", default=False, action='store_true',
                       help='Image has gap for header')

@@ -12,7 +12,7 @@
 static const char verification_service_url[] = "www.trustedfirmware.org";
 
 /* Example profile definition document for initial attestation token */
-static const char attestation_profile_definition[] = "psa-tfm-profile-1.md";
+static const char attestation_profile_definition[] = "PSA_IOT_PROFILE_1";
 
 enum tfm_security_lifecycle_t tfm_attest_hal_get_security_lifecycle(void)
 {

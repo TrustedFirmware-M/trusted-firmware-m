@@ -5,7 +5,7 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
- * See BSD-3-Clause license in README.mdE.
+ * See BSD-3-Clause license in README.md.
  */
 
 
@@ -13,8 +13,12 @@
 #define __T_COSE_UTIL_H__
 
 #include <stdint.h>
-#include "useful_buf.h"
+#include "q_useful_buf.h"
 #include "t_cose_common.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \file t_cose_util.h
@@ -22,6 +26,24 @@
  * \brief Utility functions used internally by the t_cose implementation.
  *
  */
+
+
+/**
+ * The modes in which the payload is passed to create_tbs_hash().  This
+ * exists so the TBS bytes can be hashed in two separate chunks and
+ * avoids needing a second buffer the size of the payload in the
+ * t_cose implementation.
+ */
+enum t_cose_tbs_hash_mode_t {
+    /** The bytes passed for the payload include a wrapping bstr so
+     * one does not need to be added.
+     */
+    T_COSE_TBS_PAYLOAD_IS_BSTR_WRAPPED,
+    /** The bytes passed for the payload do NOT have a wrapping bstr
+     * so one must be added.
+     */
+    T_COSE_TBS_BARE_PAYLOAD
+};
 
 
 /**
@@ -60,7 +82,10 @@ int32_t hash_alg_id_from_sig_alg_id(int32_t cose_sig_alg_id);
  * \param[out] hash             Pointer and length of the
  *                              resulting hash.
  * \param[in] protected_headers The CBOR encoded protected headers.
- * \param[in] payload           The CBOR encoded payload
+ * \param[in] payload_mode      See \ref t_cose_tbs_hash_mode_t.
+ * \param[in] payload           The CBOR encoded payload. It may or may
+ *                              not have a wrapping bstr per
+ *                              \c payload_mode.
  *
  * \return This returns one of the error codes defined by \ref t_cose_err_t.
  *
@@ -79,10 +104,11 @@ int32_t hash_alg_id_from_sig_alg_id(int32_t cose_sig_alg_id);
  * "TBS" bytes.
  */
 enum t_cose_err_t create_tbs_hash(int32_t cose_alg_id,
-                                  struct useful_buf buffer_for_hash,
-                                  struct useful_buf_c *hash,
-                                  struct useful_buf_c protected_headers,
-                                  struct useful_buf_c payload);
+                                  struct q_useful_buf buffer_for_hash,
+                                  struct q_useful_buf_c *hash,
+                                  struct q_useful_buf_c protected_headers,
+                                  enum t_cose_tbs_hash_mode_t payload_mode,
+                                  struct q_useful_buf_c payload);
 
 
 /**
@@ -120,7 +146,11 @@ enum t_cose_err_t create_tbs_hash(int32_t cose_alg_id,
  *
  */
 enum t_cose_err_t
-get_short_circuit_kid(struct useful_buf buffer_for_kid,
-                      struct useful_buf_c *kid);
+get_short_circuit_kid(struct q_useful_buf buffer_for_kid,
+                      struct q_useful_buf_c *kid);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __T_COSE_UTIL_H__ */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Arm Limited. All rights reserved.
+ * Copyright (c) 2018-2019, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -17,9 +17,11 @@
  * Registers will be cleared before branching so that no information leaks
  * from secure to non-secure world.
  */
-//typedef void __attribute__((cmse_nonsecure_call)) (*nsfptr_t) (void);
+#if !TFM_MULTI_CORE_TOPOLOGY
+typedef void (*nsfptr_t) (void) __attribute__((cmse_nonsecure_call));
 
-//extern nsfptr_t ns_entry;
+extern nsfptr_t ns_entry;
+#endif
 
 /**
  * \brief Signal that secure partition initialisation is finished
@@ -35,7 +37,7 @@ void jump_to_ns_code(void);
  * \brief Called if veneer is running in thread mode
  */
 uint32_t tfm_core_partition_request_svc_handler(
-        uint32_t *svc_args, uint32_t lr);
+        const uint32_t *svc_args, uint32_t lr);
 
 /**
  * \brief Called when secure service returns

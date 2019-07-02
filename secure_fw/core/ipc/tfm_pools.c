@@ -6,7 +6,6 @@
  */
 #include <inttypes.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include "tfm_thread.h"
 #include "tfm_wait.h"

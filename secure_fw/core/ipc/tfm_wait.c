@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
-#include <stdio.h>
 #include "tfm_thread.h"
 #include "tfm_utils.h"
 #include "tfm_wait.h"

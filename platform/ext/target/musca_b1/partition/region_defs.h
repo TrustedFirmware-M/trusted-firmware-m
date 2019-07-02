@@ -23,7 +23,7 @@
 #define TOTAL_RAM_SIZE (0x00080000) /* 512 KB */
 
 #define BL2_HEAP_SIZE           0x0001000
-#define BL2_MSP_STACK_SIZE      0x0001000
+#define BL2_MSP_STACK_SIZE      0x0001800
 
 #define S_HEAP_SIZE             0x0001000
 #define S_MSP_STACK_SIZE_INIT   0x0000400
@@ -33,6 +33,12 @@
 #define NS_HEAP_SIZE            0x0001000
 #define NS_MSP_STACK_SIZE       0x0000400
 #define NS_PSP_STACK_SIZE       0x0000C00
+
+/*
+ * This size of buffer is big enough to store an attestation
+ * token produced by initial attestation service
+ */
+#define PSA_INITIAL_ATTEST_TOKEN_MAX_SIZE   0x200
 
 /*
  * MPC granularity is 128 KB on Musca. Alignment
@@ -52,10 +58,10 @@
 
 #ifndef LINK_TO_SECONDARY_PARTITION
 #define NS_IMAGE_PRIMARY_PARTITION_OFFSET (FLASH_AREA_IMAGE_0_OFFSET \
-                                           + FLASH_PARTITION_SIZE)
+                                           + FLASH_S_PARTITION_SIZE)
 #else
 #define NS_IMAGE_PRIMARY_PARTITION_OFFSET (FLASH_AREA_IMAGE_1_OFFSET \
-                                           + FLASH_PARTITION_SIZE)
+                                           + FLASH_S_PARTITION_SIZE)
 #endif /* !LINK_TO_SECONDARY_PARTITION */
 
 /*
@@ -77,8 +83,10 @@
 #define BL2_TRAILER_SIZE     (0x800)
 #endif /* BL2 */
 
-#define IMAGE_CODE_SIZE \
-            (FLASH_PARTITION_SIZE - BL2_HEADER_SIZE - BL2_TRAILER_SIZE)
+#define IMAGE_S_CODE_SIZE \
+            (FLASH_S_PARTITION_SIZE - BL2_HEADER_SIZE - BL2_TRAILER_SIZE)
+#define IMAGE_NS_CODE_SIZE \
+            (FLASH_NS_PARTITION_SIZE - BL2_HEADER_SIZE - BL2_TRAILER_SIZE)
 
 /* FIXME: veneer region size is increased temporarily while both legacy veneers
  * and their iovec-based equivalents co-exist for secure partitions. To be
@@ -104,7 +112,7 @@
 #define  S_IMAGE_PRIMARY_AREA_OFFSET \
              (S_IMAGE_PRIMARY_PARTITION_OFFSET + BL2_HEADER_SIZE)
 #define S_CODE_START    (S_ROM_ALIAS(S_IMAGE_PRIMARY_AREA_OFFSET))
-#define S_CODE_SIZE     (IMAGE_CODE_SIZE - CMSE_VENEER_REGION_SIZE)
+#define S_CODE_SIZE     (IMAGE_S_CODE_SIZE - CMSE_VENEER_REGION_SIZE)
 #define S_CODE_LIMIT    (S_CODE_START + S_CODE_SIZE - 1)
 
 #define S_DATA_START    (S_RAM_ALIAS(0x0))
@@ -118,7 +126,7 @@
 #define NS_IMAGE_PRIMARY_AREA_OFFSET \
                         (NS_IMAGE_PRIMARY_PARTITION_OFFSET + BL2_HEADER_SIZE)
 #define NS_CODE_START   (NS_ROM_ALIAS(NS_IMAGE_PRIMARY_AREA_OFFSET))
-#define NS_CODE_SIZE    (IMAGE_CODE_SIZE)
+#define NS_CODE_SIZE    (IMAGE_NS_CODE_SIZE)
 #define NS_CODE_LIMIT   (NS_CODE_START + NS_CODE_SIZE - 1)
 
 #define NS_DATA_START   (NS_RAM_ALIAS(TOTAL_RAM_SIZE / 2))
@@ -129,7 +137,7 @@
 #define NS_PARTITION_START \
             (NS_ROM_ALIAS(NS_IMAGE_PRIMARY_PARTITION_OFFSET))
 
-#define NS_PARTITION_SIZE (FLASH_PARTITION_SIZE)
+#define NS_PARTITION_SIZE (FLASH_NS_PARTITION_SIZE)
 
 /* Secondary partition for new images in case of firmware upgrade */
 #define SECONDARY_PARTITION_START \

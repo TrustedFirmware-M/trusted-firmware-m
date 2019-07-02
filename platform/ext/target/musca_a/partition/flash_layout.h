@@ -26,8 +26,8 @@
  *    0x0032_0000 Secure     image secondary
  *    0x003A_0000 Non-secure image secondary
  * 0x0042_0000 Secure Storage Area(0.02 MB)
- * 0x0042_5000 NV counters area(16 Bytes)
- * 0x0042_5010 Unused
+ * 0x0042_5000 NV counters area(20 Bytes)
+ * 0x0042_5014 Unused
  */
 
 /* Code SRAM layout on Musca (with BL2, which is mandatory) after the newest
@@ -74,12 +74,12 @@
 #define FLASH_AREA_IMAGE_1_OFFSET       (0x120000)
 #define FLASH_AREA_IMAGE_1_SIZE         (2 * FLASH_PARTITION_SIZE)
 
-/* Not used, only RAM loading is supported on Musca A1 */
+/* Not used, only RAM loading is supported on Musca-A */
 #define FLASH_AREA_IMAGE_SCRATCH_OFFSET (0x220000)
 #define FLASH_AREA_IMAGE_SCRATCH_SIZE   (0)
 
 /*
- * Not used, only RAM loading is supported on Musca A1.
+ * Not used, only RAM loading is supported on Musca-A.
  * The maximum number of status entries supported by the bootloader.
  */
 #define BOOT_STATUS_MAX_ENTRIES         (0)
@@ -94,7 +94,7 @@
 
 #define FLASH_NV_COUNTERS_AREA_OFFSET   (FLASH_SST_AREA_OFFSET + \
                                          FLASH_SST_AREA_SIZE)
-#define FLASH_NV_COUNTERS_AREA_SIZE     (0x10)     /* 16 Bytes */
+#define FLASH_NV_COUNTERS_AREA_SIZE     (0x14)     /* 20 Bytes */
 
 /* Offset and size definition in flash area, used by assemble.py */
 #define SECURE_IMAGE_OFFSET             0x0

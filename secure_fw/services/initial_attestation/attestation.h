@@ -10,6 +10,7 @@
 
 #include "psa_initial_attestation_api.h"
 #include "tfm_client.h"
+#include "bl2/include/tfm_boot_status.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,7 +35,9 @@ enum attest_memory_access_t {
  * \return Returns error code as specified in \ref psa_attest_err_t
  */
 enum psa_attest_err_t
-attest_get_boot_data(uint8_t major_type, void *ptr, uint32_t len);
+attest_get_boot_data(uint8_t major_type,
+                     struct tfm_boot_data *boot_data,
+                     uint32_t len);
 
 /*!
  * \brief Get the ID of the caller thread.

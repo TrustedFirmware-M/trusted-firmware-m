@@ -254,26 +254,26 @@ boot_add_data_to_shared_area(uint8_t        major_type,
                              const uint8_t *data)
 {
     struct shared_data_tlv_entry tlv_entry = {0};
-    struct shared_data_tlv_header *tlv_header;
+    struct tfm_boot_data *boot_data;
     uint8_t *next_tlv;
     uintptr_t tlv_end, offset;
 
-    tlv_header = (struct shared_data_tlv_header *)BOOT_TFM_SHARED_DATA_BASE;
+    boot_data = (struct tfm_boot_data *)BOOT_TFM_SHARED_DATA_BASE;
 
     /* Check whether first time to call this function. If does then initialise
      * shared data area.
      */
     if (shared_memory_init_done == SHARED_MEMORY_UNINITIALZED) {
         memset((void *)BOOT_TFM_SHARED_DATA_BASE, 0, BOOT_TFM_SHARED_DATA_SIZE);
-        tlv_header->tlv_magic   = SHARED_DATA_TLV_INFO_MAGIC;
-        tlv_header->tlv_tot_len = SHARED_DATA_HEADER_SIZE;
+        boot_data->header.tlv_magic   = SHARED_DATA_TLV_INFO_MAGIC;
+        boot_data->header.tlv_tot_len = SHARED_DATA_HEADER_SIZE;
         shared_memory_init_done = SHARED_MEMORY_INITIALZED;
     }
 
     /* Check whether TLV entry is already added.
      * Get the boundaries of TLV section
      */
-    tlv_end = BOOT_TFM_SHARED_DATA_BASE + tlv_header->tlv_tot_len;
+    tlv_end = BOOT_TFM_SHARED_DATA_BASE + boot_data->header.tlv_tot_len;
     offset  = BOOT_TFM_SHARED_DATA_BASE + SHARED_DATA_HEADER_SIZE;
 
     /* Iterates over the TLV section looks for the same entry if found then
@@ -293,18 +293,18 @@ boot_add_data_to_shared_area(uint8_t        major_type,
     tlv_entry.tlv_len  = SHARED_DATA_ENTRY_SIZE(size);
 
     /* Verify overflow of shared area */
-    if ((tlv_header->tlv_tot_len + tlv_entry.tlv_len) >
+    if ((boot_data->header.tlv_tot_len + tlv_entry.tlv_len) >
          BOOT_TFM_SHARED_DATA_SIZE){
         return SHARED_MEMORY_OVERFLOW;
     }
 
-    next_tlv = (uint8_t *)tlv_header + tlv_header->tlv_tot_len;
+    next_tlv = (uint8_t *)boot_data + boot_data->header.tlv_tot_len;
     memcpy(next_tlv, &tlv_entry, SHARED_DATA_ENTRY_HEADER_SIZE);
 
     next_tlv += SHARED_DATA_ENTRY_HEADER_SIZE;
     memcpy(next_tlv, data, size);
 
-    tlv_header->tlv_tot_len = tlv_header->tlv_tot_len + tlv_entry.tlv_len;
+    boot_data->header.tlv_tot_len += tlv_entry.tlv_len;
 
     return SHARED_MEMORY_OK;
 }

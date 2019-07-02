@@ -10,18 +10,18 @@ cmake_minimum_required(VERSION 3.7)
 #Tell cmake where our modules can be found
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../cmake)
 
-#Include common stuff to control cmake.
-include("Common/BuildSys")
-
-#Start an embedded project.
-embedded_project_start(CONFIG "${CMAKE_CURRENT_LIST_DIR}/../ConfigDefault.cmake")
-project(tfm_ns LANGUAGES ASM C)
-embedded_project_fixup()
-
 set(APP_DIR ${CMAKE_CURRENT_LIST_DIR})
 get_filename_component(TFM_ROOT_DIR ${APP_DIR}/.. ABSOLUTE)
 set(INTERFACE_DIR ${TFM_ROOT_DIR}/interface)
 set(TEST_DIR ${TFM_ROOT_DIR}/test)
+
+#Include common stuff to control cmake.
+include("Common/BuildSys")
+
+#Start an embedded project.
+embedded_project_start(CONFIG "${TFM_ROOT_DIR}/configs/ConfigDefault.cmake")
+project(tfm_ns LANGUAGES ASM C)
+embedded_project_fixup()
 
 #Include BL2 bootloader related functions
 set(MCUBOOT_DIR "${TFM_ROOT_DIR}/bl2/ext/mcuboot")
@@ -38,16 +38,35 @@ if (NOT DEFINED BL2)
 	message(FATAL_ERROR "Incomplete build configuration: BL2 is undefined. ")
 endif ()
 
+if (NOT DEFINED TFM_PARTITION_AUDIT_LOG)
+	message(FATAL_ERROR "Incomplete build configuration: TFM_PARTITION_AUDIT_LOG is undefined.")
+endif()
+
+if (NOT DEFINED TFM_PARTITION_PLATFORM)
+	message(FATAL_ERROR "Incomplete build configuration: TFM_PARTITION_PLATFORM is undefined.")
+endif()
+
 set(NS_APP_SRC "${CMSIS_5_DIR}/CMSIS/RTOS2/RTX/Config/RTX_Config.c"
 	"${CMSIS_5_DIR}/CMSIS/RTOS2/RTX/Source/rtx_lib.c"
 	"${APP_DIR}/main_ns.c"
 	"${APP_DIR}/tfm_integ_test.c"
 	"${APP_DIR}/os_wrapper_rtx.c"
+	"${INTERFACE_DIR}/src/tfm_sst_api.c"
+	"${INTERFACE_DIR}/src/tfm_crypto_api.c"
+	"${INTERFACE_DIR}/src/tfm_initial_attestation_api.c"
 	)
 
 if (NOT DEFINED TFM_MULTI_CORE_TOPOLOGY OR NOT TFM_MULTI_CORE_TOPOLOGY)
 	list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_ns_lock_rtx.c")
-endif ()
+endif()
+
+if (TFM_PARTITION_AUDIT_LOG)
+	list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_audit_api.c")
+endif()
+
+if (TFM_PARTITION_PLATFORM)
+	list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_platform_api.c")
+endif()
 
 if (NOT DEFINED TFM_NS_CLIENT_IDENTIFICATION)
 	message(FATAL_ERROR "Incomplete build configuration: TFM_NS_CLIENT_IDENTIFICATION is undefined.")
@@ -67,19 +86,12 @@ if (NOT DEFINED TFM_PSA_API)
 elseif (TFM_PSA_API)
 	if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
 		list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_ns_mailbox.c"
-			 "${INTERFACE_DIR}/src/tfm_mailbox_psa_ns_api.c"
-			 "${INTERFACE_DIR}/src/tfm_multicore_api.c")
-	else ()
+				"${INTERFACE_DIR}/src/tfm_mailbox_psa_ns_api.c"
+				"${INTERFACE_DIR}/src/tfm_multicore_api.c"
+				)
+	else()
 		list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_psa_ns_api.c")
-	endif ()
-else ()
-	list(APPEND NS_APP_SRC
-		"${INTERFACE_DIR}/src/tfm_sst_api.c"
-		"${INTERFACE_DIR}/src/tfm_audit_api.c"
-		"${INTERFACE_DIR}/src/tfm_crypto_api.c"
-		"${INTERFACE_DIR}/src/tfm_platform_api.c"
-		"${INTERFACE_DIR}/src/tfm_initial_attestation_api.c"
-		)
+	endif()
 endif()
 
 set(BUILD_CMSIS_CORE On)
@@ -129,12 +141,6 @@ embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${CMSIS_5_DIR
 embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${CMSIS_5_DIR}/CMSIS/RTOS2/Include ABSOLUTE APPEND)
 embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${CMSIS_5_DIR}/CMSIS/RTOS2/RTX/Config  ABSOLUTE APPEND)
 
-if (NOT DEFINED CORE_TEST)
-	message(FATAL_ERROR "Incomplete build configuration: CORE_TEST is undefined. ")
-elseif(CORE_TEST)
-	target_compile_definitions(${PROJECT_OBJ_LIB} PRIVATE CORE_TEST)
-endif()
-
 if (NOT DEFINED TFM_NS_CLIENT_IDENTIFICATION)
 	message(FATAL_ERROR "Incomplete build configuration: TFM_NS_CLIENT_IDENTIFICATION is undefined.")
 elseif (TFM_NS_CLIENT_IDENTIFICATION)
@@ -178,7 +184,7 @@ function(set_up_app_build)
 	set(VENEER_NAME ${_MY_PARAMS_VENEER_NAME}${_MY_PARAMS_POSTFIX}.o)
 
 	#Create linker target: add object library to executable
-	add_executable(${EXE_NAME} $<TARGET_OBJECTS:${PROJECT_OBJ_LIB}> $<TARGET_OBJECTS:tfm_qcbor>)
+	add_executable(${EXE_NAME} $<TARGET_OBJECTS:${PROJECT_OBJ_LIB}>)
 
 	#Set common linker flags
 	config_setting_shared_linker_flags(${EXE_NAME})
@@ -238,6 +244,12 @@ function(set_up_app_build)
 		embedded_set_target_link_defines(TARGET ${EXE_NAME} DEFINES "TFM_PARTITION_TEST_CORE")
 	endif()
 
+	if (NOT DEFINED TFM_PARTITION_TEST_CORE_IPC)
+		message(FATAL_ERROR "Incomplete build configuration: TFM_PARTITION_TEST_CORE_IPC is undefined.")
+	elseif (TFM_PARTITION_TEST_CORE_IPC)
+		embedded_set_target_link_defines(TARGET ${EXE_NAME} DEFINES "TFM_PARTITION_TEST_CORE_IPC")
+	endif()
+
 	if (NOT DEFINED TFM_PARTITION_TEST_SECURE_SERVICES)
 		message(FATAL_ERROR "Incomplete build configuration: TFM_PARTITION_TEST_SECURE_SERVICES is undefined. ")
 	elseif (TFM_PARTITION_TEST_SECURE_SERVICES)
@@ -291,18 +303,13 @@ if (NOT TARGET_TFM_S_EXISTED)
 	add_subdirectory(../secure_fw ${CMAKE_CURRENT_BINARY_DIR}/secure_fw)
 endif()
 
-if (NOT TARGET tfm_qcbor)
-	add_subdirectory(${TFM_ROOT_DIR}/lib/ext/qcbor ${CMAKE_CURRENT_BINARY_DIR}/qcbor)
-endif()
-
 if (LINK_TO_BOTH_MEMORY_REGION)
 	#Link to primary memory region
 	set_up_app_build(NS_TARGET     ${PROJECT_NAME}
 					 S_TARGET      tfm_s
 					 FULL_BIN      tfm_full
 					 SIGN_BIN      tfm_sign
-					 VENEER_NAME   s_veneers
-					 POSTFIX       "_0")
+					 VENEER_NAME   s_veneers)
 
 	#Link to secondary memory region(add extra linker flag)
 	set_up_app_build(NS_TARGET     ${PROJECT_NAME}
@@ -334,10 +341,6 @@ endif()
 #Finally let CMake system apply changes after the whole project is defined.
 if (TARGET ${PROJECT_NAME})
 	embedded_project_end(${PROJECT_NAME})
-endif()
-
-if (TARGET ${PROJECT_NAME}_0)
-	embedded_project_end(${PROJECT_NAME}_0)
 endif()
 
 if (TARGET ${PROJECT_NAME}_1)

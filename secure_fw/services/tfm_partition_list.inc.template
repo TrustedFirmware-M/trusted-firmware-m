@@ -16,7 +16,7 @@
     {% endif %}
 /******** {{manifest.manifest.name}} ********/
 PARTITION_DECLARE({{manifest.manifest.name}}, 0
-    {% if manifest.manifest.tfm_partition_ipc %}
+    {% if manifest.attr.tfm_partition_ipc %}
     | SPM_PART_FLAG_IPC
     {% endif %}
     , "{{manifest.manifest.type}}", {{manifest.manifest.id}}, {{manifest.manifest.priority}});

@@ -12,7 +12,7 @@ from jinja2 import Environment, BaseLoader, select_autoescape
 try:
     import yaml
 except ImportError as e:
-    print (e + " To install it, type:")
+    print (str(e) + " To install it, type:")
     print ("pip install PyYAML")
     exit(1)
 

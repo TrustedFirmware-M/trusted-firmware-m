@@ -19,9 +19,17 @@
     /* Evaluates to 0 if array is an array; compile error if not array (e.g.
      * pointer)
      */
+#if defined(NO_TYPEOF)
+    /* __typeof__ is a non-standard gcc extension, not universally available.
+     * As this is just compile time data type test, assume things are ok for
+     * tool chains missing this feature.
+     */
+#define IS_ARRAY(array) 0
+#else
 #define IS_ARRAY(array) \
         ZERO_OR_COMPILE_ERROR(!__builtin_types_compatible_p(__typeof__(array), \
                               __typeof__(&(array)[0])))
+#endif
 
 #define ARRAY_SIZE(array) \
     ((unsigned long) (IS_ARRAY(array) + \

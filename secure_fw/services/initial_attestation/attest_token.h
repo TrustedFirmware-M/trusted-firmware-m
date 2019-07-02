@@ -1,7 +1,7 @@
 /*
  * attest_token.h
  *
- * Copyright (c) 2018-2019, Laurence Lundblade. All rights reserved.
+ * Copyright (c) 2018-2019, Laurence Lundblade.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -15,6 +15,10 @@
 #include "qcbor.h"
 #include "t_cose_sign1_sign.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /**
  * \file attest_token.h
@@ -24,7 +28,7 @@
  * The context and functions here are the way to create an attestation
  * token. The steps are roughly:
  *
- *   -# Creation and initialize an attest_token_ctx indicating the
+ *   -# Create and initialize an attest_token_ctx indicating the
  *   options, key and such using attest_token_start().
  *
  *   -# Use various add methods to fill in the payload with claims. The
@@ -75,7 +79,13 @@ enum attest_token_err_t {
     /** Tampering detected in cryptographic function. */
     ATTEST_TOKEN_ERR_TAMPERING_DETECTED,
     /** Verification key is not found or of wrong type. */
-    ATTEST_TOKEN_ERR_VERIFICATION_KEY
+    ATTEST_TOKEN_ERR_VERIFICATION_KEY,
+    /** No token was given or validated */
+    ATTEST_TOKEN_ERR_NO_VALID_TOKEN,
+    /** Data item with label wasn't found. */
+    ATTEST_TOKEN_ERR_NOT_FOUND,
+    /** SW Compoments absence not correctly indicated. */
+    ATTEST_TOKEN_ERR_SW_COMPONENTS_MISSING
 };
 
 
@@ -153,7 +163,7 @@ attest_token_start(struct attest_token_ctx *me,
                    uint32_t opt_flags,
                    int32_t key_select,
                    int32_t cose_alg_id,
-                   const struct useful_buf *out_buffer);
+                   const struct q_useful_buf *out_buffer);
 
 
 
@@ -193,7 +203,7 @@ void attest_token_add_integer(struct attest_token_ctx *me,
  */
 void attest_token_add_bstr(struct attest_token_ctx *me,
                            int32_t label,
-                           const struct useful_buf_c *value);
+                           const struct q_useful_buf_c *value);
 
 /**
  * \brief Add a text string claim
@@ -204,7 +214,7 @@ void attest_token_add_bstr(struct attest_token_ctx *me,
  */
 void attest_token_add_tstr(struct attest_token_ctx *me,
                            int32_t label,
-                           const struct useful_buf_c *value);
+                           const struct q_useful_buf_c *value);
 
 /**
  * \brief Add some already-encoded CBOR to payload
@@ -219,7 +229,7 @@ void attest_token_add_tstr(struct attest_token_ctx *me,
  */
 void attest_token_add_encoded(struct attest_token_ctx *me,
                               int32_t label,
-                              const struct useful_buf_c *encoded);
+                              const struct q_useful_buf_c *encoded);
 
 
 /**
@@ -236,6 +246,10 @@ void attest_token_add_encoded(struct attest_token_ctx *me,
  */
 enum attest_token_err_t
 attest_token_finish(struct attest_token_ctx *me,
-                    struct useful_buf_c *completed_token);
+                    struct q_useful_buf_c *completed_token);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __ATTEST_TOKEN_H__ */

@@ -7,7 +7,10 @@
 #ifndef __TFM_MESSAGE_QUEUE_H__
 #define __TFM_MESSAGE_QUEUE_H__
 
-#define TFM_MSG_QUEUE_MAX_MSG_NUM   128
+#include "psa_service.h"
+#include "tfm_wait.h"
+
+#define TFM_MSG_QUEUE_MAX_MSG_NUM   16
 #define TFM_MSG_MAGIC               0x15154343
 /* Message struct to collect parameter from client */
 struct tfm_msg_body_t {

@@ -6,7 +6,6 @@
  */
 #include <inttypes.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include "psa_client.h"
 #include "psa_service.h"
@@ -23,6 +22,7 @@
 #include "tfm_memory_utils.h"
 #include "tfm_psa_client_call.h"
 #include "tfm_rpc.h"
+#include "spm_api.h"
 
 #define PSA_TIMEOUT_MASK        PSA_BLOCK
 
@@ -61,9 +61,18 @@ psa_status_t tfm_svcall_psa_call(uint32_t *args, int32_t ns_caller, uint32_t lr)
     psa_invec *inptr;
     psa_outvec *outptr;
     size_t in_num, out_num;
+    struct tfm_spm_ipc_partition_t *partition = NULL;
+    uint32_t privileged;
 
     TFM_ASSERT(args != NULL);
     handle = (psa_handle_t)args[0];
+
+    partition = tfm_spm_get_running_partition();
+    if (!partition) {
+        tfm_panic();
+    }
+    privileged = tfm_spm_partition_get_privileged_mode(partition->index);
+
     if (!ns_caller) {
         inptr = (psa_invec *)args[1];
         in_num = (size_t)args[2];
@@ -93,12 +102,16 @@ psa_status_t tfm_svcall_psa_call(uint32_t *args, int32_t ns_caller, uint32_t lr)
          * FixMe: From non-secure caller, vec and len are composed into a new
          * struct parameter. Need to extract them.
          */
+        /*
+         * Read parameters from the arguments. It is a fatal error if the
+         * memory reference for buffer is invalid or not readable.
+         */
         if (tfm_memory_check((void *)args[1], sizeof(uint32_t),
-            ns_caller) != IPC_SUCCESS) {
+            ns_caller, TFM_MEMORY_ACCESS_RO, privileged) != IPC_SUCCESS) {
             tfm_panic();
         }
         if (tfm_memory_check((void *)args[2], sizeof(uint32_t),
-            ns_caller) != IPC_SUCCESS) {
+            ns_caller, TFM_MEMORY_ACCESS_RO, privileged) != IPC_SUCCESS) {
             tfm_panic();
         }
 
@@ -198,6 +211,7 @@ static psa_status_t tfm_svcall_psa_get(uint32_t *args)
     struct tfm_spm_service_t *service = NULL;
     struct tfm_msg_body_t *tmp_msg = NULL;
     struct tfm_spm_ipc_partition_t *partition = NULL;
+    uint32_t privileged;
 
     TFM_ASSERT(args != NULL);
     signal = (psa_signal_t)args[0];
@@ -211,17 +225,18 @@ static psa_status_t tfm_svcall_psa_get(uint32_t *args)
         tfm_panic();
     }
 
-    /*
-     * It is a fatal error if the input msg pointer is not a valid memory
-     * reference.
-     */
-    if (tfm_memory_check((void *)msg, sizeof(psa_msg_t),
-        false) != IPC_SUCCESS) {
-        tfm_panic();
-    }
-
     partition = tfm_spm_get_running_partition();
     if (!partition) {
+        tfm_panic();
+    }
+    privileged = tfm_spm_partition_get_privileged_mode(partition->index);
+
+    /*
+     * Write the message to the service buffer. It is a fatal error if the
+     * input msg pointer is not a valid memory reference or not read-write.
+     */
+    if (tfm_memory_check((void *)msg, sizeof(psa_msg_t),
+        false, TFM_MEMORY_ACCESS_RW, privileged) != IPC_SUCCESS) {
         tfm_panic();
     }
 
@@ -334,6 +349,8 @@ static size_t tfm_svcall_psa_read(uint32_t *args)
     size_t num_bytes;
     size_t bytes;
     struct tfm_msg_body_t *msg = NULL;
+    uint32_t privileged;
+    struct tfm_spm_ipc_partition_t *partition = NULL;
 
     TFM_ASSERT(args != NULL);
     msg_handle = (psa_handle_t)args[0];
@@ -346,6 +363,9 @@ static size_t tfm_svcall_psa_read(uint32_t *args)
     if (!msg) {
         tfm_panic();
     }
+
+    partition = msg->service->partition;
+    privileged = tfm_spm_partition_get_privileged_mode(partition->index);
 
     /*
      * It is a fatal error if message handle does not refer to a PSA_IPC_CALL
@@ -369,11 +389,11 @@ static size_t tfm_svcall_psa_read(uint32_t *args)
     }
 
     /*
-     * It is a fatal error if the memory reference for buffer is invalid or
-     * not writable
+     * Copy the client data to the service buffer. It is a fatal error
+     * if the memory reference for buffer is invalid or not read-write.
      */
-    /* FixMe: write permission check to be added */
-    if (tfm_memory_check(buffer, num_bytes, false) != IPC_SUCCESS) {
+    if (tfm_memory_check(buffer, num_bytes, false,
+        TFM_MEMORY_ACCESS_RW, privileged) != IPC_SUCCESS) {
         tfm_panic();
     }
 
@@ -485,6 +505,8 @@ static void tfm_svcall_psa_write(uint32_t *args)
     void *buffer = NULL;
     size_t num_bytes;
     struct tfm_msg_body_t *msg = NULL;
+    uint32_t privileged;
+    struct tfm_spm_ipc_partition_t *partition = NULL;
 
     TFM_ASSERT(args != NULL);
     msg_handle = (psa_handle_t)args[0];
@@ -497,6 +519,9 @@ static void tfm_svcall_psa_write(uint32_t *args)
     if (!msg) {
         tfm_panic();
     }
+
+    partition = msg->service->partition;
+    privileged = tfm_spm_partition_get_privileged_mode(partition->index);
 
     /*
      * It is a fatal error if message handle does not refer to a PSA_IPC_CALL
@@ -523,8 +548,12 @@ static void tfm_svcall_psa_write(uint32_t *args)
         tfm_panic();
     }
 
-    /* It is a fatal error if the memory reference for buffer is valid */
-    if (tfm_memory_check(buffer, num_bytes, false) != IPC_SUCCESS) {
+    /*
+     * Copy the service buffer to client outvecs. It is a fatal error
+     * if the memory reference for buffer is invalid or not readable.
+     */
+    if (tfm_memory_check(buffer, num_bytes, false,
+        TFM_MEMORY_ACCESS_RO, privileged) != IPC_SUCCESS) {
         tfm_panic();
     }
 
@@ -573,7 +602,6 @@ static void tfm_svcall_psa_reply(uint32_t *args)
     psa_status_t status;
     struct tfm_spm_service_t *service = NULL;
     struct tfm_msg_body_t *msg = NULL;
-    psa_handle_t connect_handle;
     int32_t ret = PSA_SUCCESS;
 
     TFM_ASSERT(args != NULL);
@@ -603,20 +631,16 @@ static void tfm_svcall_psa_reply(uint32_t *args)
     switch (msg->msg.type) {
     case PSA_IPC_CONNECT:
         /*
-         * Reply to PSA_IPC_CONNECT message. Connect handle is created if the
+         * Reply to PSA_IPC_CONNECT message. Connect handle is returned if the
          * input status is PSA_SUCCESS. Others return values are based on the
          * input status.
          */
         if (status == PSA_SUCCESS) {
-            connect_handle = tfm_spm_create_conn_handle(service);
-            if (connect_handle == PSA_NULL_HANDLE) {
-                tfm_panic();
-            }
-            ret = connect_handle;
+            ret = msg->handle;
 
             /* Set reverse handle after connection created if needed. */
             if (msg->msg.rhandle) {
-                tfm_spm_set_rhandle(service, connect_handle, msg->msg.rhandle);
+                tfm_spm_set_rhandle(service, msg->handle, msg->msg.rhandle);
             }
         } else if (status == PSA_CONNECTION_REFUSED) {
             ret = PSA_CONNECTION_REFUSED;
@@ -794,6 +818,9 @@ int32_t SVC_Handler_IPC(tfm_svc_number_t svc_num, uint32_t *ctx, uint32_t lr)
     switch (svc_num) {
     case TFM_SVC_SCHEDULE:
         tfm_thrd_activate_schedule();
+        break;
+    case TFM_SVC_EXIT_THRD:
+        tfm_svcall_thrd_exit();
         break;
     case TFM_SVC_PSA_FRAMEWORK_VERSION:
         return tfm_svcall_psa_framework_version();

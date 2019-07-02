@@ -1,18 +1,20 @@
 /*
- * Copyright (c) 2018, Arm Limited. All rights reserved.
+ * Copyright (c) 2018-2019, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
-/* NOTE: This API should be implemented by platform vendor. For the
- * security of the secure storage system rollback protection and others, it is
- * CRITICAL to use a internal (in-die) persistent memory for multiple time
- * programabe (MTP) non-volatile counters or use a One-time Programmable (OTP)
+/* NOTE: This API should be implemented by platform vendor. For the security of
+ * the secure storage system's and the bootloader's rollback protection etc. it
+ * is CRITICAL to use a internal (in-die) persistent memory for multiple time
+ * programmable (MTP) non-volatile counters or use a One-time Programmable (OTP)
  * non-volatile counters solution.
  *
  * AN519 does not have any available MTP or OTP non-volatile counters, so a
- * software dummy implementation has been implemented in this case.
+ * software dummy implementation has been implemented in this case. The current
+ * implementation is not resistant to asynchronous power failures and should
+ * not be used in production code. It is exclusively for testing purposes.
  */
 
 #include "platform/include/tfm_plat_nv_counters.h"
@@ -62,6 +64,11 @@ enum tfm_plat_err_t tfm_plat_init_nv_counter(void)
                              / NV_COUNTER_SIZE);
     uint32_t *p_nv_counter;
     uint8_t sector_data[TFM_NV_COUNTERS_SECTOR_SIZE] = {0};
+
+    err = FLASH_DEV_NAME.Initialize(NULL);
+    if (err != ARM_DRIVER_OK) {
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
 
     /* Read the whole sector to be able to erase and write later in the flash */
     err = FLASH_DEV_NAME.ReadData(TFM_NV_COUNTERS_SECTOR_ADDR, sector_data,
@@ -123,8 +130,8 @@ enum tfm_plat_err_t tfm_plat_read_nv_counter(enum tfm_nv_counter_t counter_id,
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-enum tfm_plat_err_t tfm_plat_increment_nv_counter(
-                                               enum tfm_nv_counter_t counter_id)
+enum tfm_plat_err_t tfm_plat_set_nv_counter(enum tfm_nv_counter_t counter_id,
+                                            uint32_t value)
 {
     int32_t  err;
     uint32_t *p_nv_counter;
@@ -141,25 +148,48 @@ enum tfm_plat_err_t tfm_plat_increment_nv_counter(
     p_nv_counter = (uint32_t *)(sector_data + NV_COUNTERS_AREA_OFFSET +
                                 (counter_id * NV_COUNTER_SIZE));
 
-    if (*p_nv_counter == UINT32_MAX) {
-        return TFM_PLAT_ERR_MAX_VALUE;
-    }
+    if (value != *p_nv_counter) {
 
-    /* Next value is the current value + 1 */
-    *p_nv_counter = *p_nv_counter + 1;
+        if (value > *p_nv_counter) {
+            *p_nv_counter = value;
+        } else {
+            return TFM_PLAT_ERR_INVALID_INPUT;
+        }
 
-    /* Erase sector before write in it */
-    err = FLASH_DEV_NAME.EraseSector(TFM_NV_COUNTERS_SECTOR_ADDR);
-    if (err != ARM_DRIVER_OK) {
-        return TFM_PLAT_ERR_SYSTEM_ERR;
-    }
+        /* Erase sector before write in it */
+        err = FLASH_DEV_NAME.EraseSector(TFM_NV_COUNTERS_SECTOR_ADDR);
+        if (err != ARM_DRIVER_OK) {
+            return TFM_PLAT_ERR_SYSTEM_ERR;
+        }
 
-    /* Write in flash the in-memory block content after modification */
-    err = FLASH_DEV_NAME.ProgramData(TFM_NV_COUNTERS_SECTOR_ADDR, sector_data,
-                                     TFM_NV_COUNTERS_SECTOR_SIZE);
-    if (err != ARM_DRIVER_OK) {
-        return TFM_PLAT_ERR_SYSTEM_ERR;
+        /* Write in flash the in-memory block content after modification */
+        err = FLASH_DEV_NAME.ProgramData(TFM_NV_COUNTERS_SECTOR_ADDR,
+                                         sector_data,
+                                         TFM_NV_COUNTERS_SECTOR_SIZE);
+        if (err != ARM_DRIVER_OK) {
+            return TFM_PLAT_ERR_SYSTEM_ERR;
+        }
     }
 
     return TFM_PLAT_ERR_SUCCESS;
+}
+
+enum tfm_plat_err_t tfm_plat_increment_nv_counter(
+                                           enum tfm_nv_counter_t counter_id)
+{
+    uint32_t security_cnt;
+    enum tfm_plat_err_t err;
+
+    err = tfm_plat_read_nv_counter(counter_id,
+                                   sizeof(security_cnt),
+                                   (uint8_t *)&security_cnt);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    if (security_cnt == UINT32_MAX) {
+        return TFM_PLAT_ERR_MAX_VALUE;
+    }
+
+    return tfm_plat_set_nv_counter(counter_id, security_cnt + 1u);
 }

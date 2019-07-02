@@ -16,25 +16,20 @@
   "secure_functions": [
     {
       "sfid": "TFM_SP_PLATFORM_SYSTEM_RESET_SFID",
-      "signal": "TFM_SP_PLATFORM_SYSTEM_RESET",
-      "tfm_symbol": "platform_sp_system_reset",
+      "signal": "PLATFORM_SP_SYSTEM_RESET",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
-      "sfid": "TFM_SP_PLATFORM_PIN_SERVICE_SFID",
-      "signal": "TFM_SP_PLATFORM_PIN_SERVICE",
-      "tfm_symbol": "platform_sp_pin_service",
+      "sfid": "TFM_SP_PLATFORM_IOCTL_SFID",
+      "signal": "PLATFORM_SP_IOCTL",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
      }
   ],
-  "source_files": [
-    "platform_sp.c",
-  ],
-  "tfm_linker_pattern": {
+  "linker_pattern": {
     "library_list": [
       "*tfm_platform*"
     ]

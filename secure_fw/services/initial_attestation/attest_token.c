@@ -81,7 +81,7 @@ enum attest_token_err_t attest_token_start(struct attest_token_ctx *me,
                                            uint32_t opt_flags,
                                            int32_t key_select,
                                            int32_t cose_alg_id,
-                                           const struct useful_buf *out_buf)
+                                           const struct q_useful_buf *out_buf)
 {
     /* approximate stack usage on 32-bit machine: 4 bytes */
     enum t_cose_err_t cose_return_value;
@@ -146,7 +146,7 @@ void attest_token_add_integer(struct attest_token_ctx *me,
  */
 void attest_token_add_bstr(struct attest_token_ctx *me,
                            int32_t label,
-                           const struct useful_buf_c *bstr)
+                           const struct q_useful_buf_c *bstr)
 {
     QCBOREncode_AddBytesToMapN(&(me->cbor_enc_ctx),
                                label,
@@ -159,7 +159,7 @@ void attest_token_add_bstr(struct attest_token_ctx *me,
  */
 void attest_token_add_tstr(struct attest_token_ctx *me,
                            int32_t label,
-                           const struct useful_buf_c *tstr)
+                           const struct q_useful_buf_c *tstr)
 {
     QCBOREncode_AddTextToMapN(&(me->cbor_enc_ctx), label, *tstr);
 }
@@ -170,7 +170,7 @@ void attest_token_add_tstr(struct attest_token_ctx *me,
  */
 void attest_token_add_encoded(struct attest_token_ctx *me,
                               int32_t label,
-                              const struct useful_buf_c *encoded)
+                              const struct q_useful_buf_c *encoded)
 {
     QCBOREncode_AddEncodedToMapN(&(me->cbor_enc_ctx), label, *encoded);
 }
@@ -181,14 +181,14 @@ void attest_token_add_encoded(struct attest_token_ctx *me,
  */
 enum attest_token_err_t
 attest_token_finish(struct attest_token_ctx *me,
-                    struct useful_buf_c *completed_token)
+                    struct q_useful_buf_c *completed_token)
 {
     /* approximate stack usage on 32-bit machine: 4 + 4 + 8 + 8 = 24 */
     enum attest_token_err_t return_value = ATTEST_TOKEN_ERR_SUCCESS;
     /* The payload with all the claims that is signed */
-    struct useful_buf_c     token_payload_ub;
+    struct q_useful_buf_c   token_payload_ub;
     /* The completed and signed encoded cose_sign1 */
-    struct useful_buf_c     completed_token_ub;
+    struct q_useful_buf_c   completed_token_ub;
     QCBORError              qcbor_result;
     enum t_cose_err_t       cose_return_value;
 

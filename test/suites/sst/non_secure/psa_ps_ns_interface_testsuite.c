@@ -27,12 +27,6 @@
 #define INVALID_FLAG             (1U << 31)
 #define INVALID_THREAD_NAME      "Thread_INVALID"
 
-/* Memory bounds to check */
-#define ROM_ADDR_LOCATION        ((void *)0x00100000)
-#define DEV_ADDR_LOCATION        ((void *)0x40000000)
-#define SECURE_ADDR_LOCATION     ((void *)0x30000000)
-#define NON_EXIST_ADDR_LOCATION  ((void *)0xEFFFFFFF)
-
 /* Write once data */
 #define WRITE_ONCE_DATA          "THE_FIVE_BOXING_WIZARDS_JUMP_QUICKLY"
 #define WRITE_ONCE_DATA_SIZE     (sizeof(WRITE_ONCE_DATA) - 1)
@@ -237,16 +231,15 @@ TFM_SST_NS_TEST(1002, "Thread_A")
 
 /**
  * \brief Tests set function with:
- * - NULL data pointer
+ * - NULL data pointer and zero data length
+ *
+ * \note A request with a null data pointer and data length not equal to zero is
+ *       treated as a secure violation. TF-M framework will reject such requests
+ *       and not return to the NSPE so this case is not tested here.
+ *
  */
 TFM_SST_NS_TEST(1003, "Thread_A")
 {
-    /* A parameter with a null pointer and data length different from 0 is
-     * treated as a secure violation.
-     * TF-M framework will stop this transaction and not return from this
-     * request to NSPE.
-     */
-
     psa_ps_status_t status;
     const psa_ps_uid_t uid = TEST_UID_3;
     const psa_ps_create_flags_t flags = PSA_PS_FLAG_NONE;
@@ -254,8 +247,8 @@ TFM_SST_NS_TEST(1003, "Thread_A")
 
     /* Set with NULL data pointer */
     status = psa_ps_set(uid, data_len, NULL, flags);
-    if (status != PSA_PS_ERROR_INVALID_ARGUMENT) {
-        TEST_FAIL("Set should not succeed with NULL data pointer");
+    if (status != PSA_PS_SUCCESS) {
+        TEST_FAIL("Set should succeed with NULL data pointer and zero length");
         return;
     }
 
@@ -597,16 +590,15 @@ TFM_SST_NS_TEST(1009, "Thread_A")
 
 /**
  * \brief Tests get function with:
- * - NULL data pointer
+ * - NULL data pointer and zero data length
+ *
+ * \note A request with a null data pointer and data length not equal to zero is
+ *       treated as a secure violation. TF-M framework will reject such requests
+ *       and not return to the NSPE so this case is not tested here.
+ *
  */
 TFM_SST_NS_TEST(1010, "Thread_A")
 {
-    /* A parameter with a null pointer and data length different from 0 is
-     * treated as a secure violation.
-     * TF-M framework will stop this transaction and not return from this
-     * request to NSPE.
-     */
-
     psa_ps_status_t status;
     const psa_ps_uid_t uid = TEST_UID_3;
     const psa_ps_create_flags_t flags = PSA_PS_FLAG_NONE;
@@ -622,8 +614,8 @@ TFM_SST_NS_TEST(1010, "Thread_A")
 
     /* Get with NULL data pointer */
     status = psa_ps_get(uid, offset, 0, NULL);
-    if (status != PSA_PS_ERROR_INVALID_ARGUMENT) {
-        TEST_FAIL("Get should not succeed with NULL data pointer");
+    if (status != PSA_PS_SUCCESS) {
+        TEST_FAIL("Get should succeed with NULL data pointer and zero length");
         return;
     }
 

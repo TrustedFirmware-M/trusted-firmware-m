@@ -7,6 +7,8 @@
 #ifndef __TFM_UTILS_H__
 #define __TFM_UTILS_H__
 
+#include <stdio.h>
+
 /* CPU spin here */
 void tfm_panic(void);
 

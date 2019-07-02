@@ -8,9 +8,9 @@
 #ifndef __TFM_SST_REQ_MNGR_H__
 #define __TFM_SST_REQ_MNGR_H__
 
-#include <stdint.h>
+#include <stddef.h>
 
-#include "tfm_veneers.h"
+#include "psa_client.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,8 +29,8 @@ extern "C" {
  * \return A status indicating the success/failure of the operation as specified
  *         in \ref psa_status_t
  */
-psa_status_t tfm_sst_set_req(struct psa_invec *in_vec, size_t in_len,
-                             struct psa_outvec *out_vec, size_t out_len);
+psa_status_t tfm_sst_set_req(psa_invec *in_vec, size_t in_len,
+                             psa_outvec *out_vec, size_t out_len);
 
 /**
  * \brief Handles the get request.
@@ -45,8 +45,8 @@ psa_status_t tfm_sst_set_req(struct psa_invec *in_vec, size_t in_len,
  * \return A status indicating the success/failure of the operation as specified
  *         in \ref psa_status_t
  */
-psa_status_t tfm_sst_get_req(struct psa_invec *in_vec, size_t in_len,
-                             struct psa_outvec *out_vec, size_t out_len);
+psa_status_t tfm_sst_get_req(psa_invec *in_vec, size_t in_len,
+                             psa_outvec *out_vec, size_t out_len);
 
 /**
  * \brief Handles the get info request.
@@ -61,8 +61,8 @@ psa_status_t tfm_sst_get_req(struct psa_invec *in_vec, size_t in_len,
  * \return A status indicating the success/failure of the operation as specified
  *         in \ref psa_status_t
  */
-psa_status_t tfm_sst_get_info_req(struct psa_invec *in_vec, size_t in_len,
-                                  struct psa_outvec *out_vec, size_t out_len);
+psa_status_t tfm_sst_get_info_req(psa_invec *in_vec, size_t in_len,
+                                  psa_outvec *out_vec, size_t out_len);
 
 /**
  * \brief Handles the remove request.
@@ -77,8 +77,8 @@ psa_status_t tfm_sst_get_info_req(struct psa_invec *in_vec, size_t in_len,
  * \return A status indicating the success/failure of the operation as specified
  *         in \ref psa_status_t
  */
-psa_status_t tfm_sst_remove_req(struct psa_invec *in_vec, size_t in_len,
-                                struct psa_outvec *out_vec, size_t out_len);
+psa_status_t tfm_sst_remove_req(psa_invec *in_vec, size_t in_len,
+                                psa_outvec *out_vec, size_t out_len);
 
 /**
  * \brief Handles the get support request.
@@ -94,10 +94,8 @@ psa_status_t tfm_sst_remove_req(struct psa_invec *in_vec, size_t in_len,
  *         in \ref psa_status_t
  *
  */
-psa_status_t tfm_sst_get_support_req(struct psa_invec *in_vec,
-                                     size_t in_len,
-                                     struct psa_outvec *out_vec,
-                                     size_t out_len);
+psa_status_t tfm_sst_get_support_req(psa_invec *in_vec, size_t in_len,
+                                     psa_outvec *out_vec, size_t out_len);
 
 #ifdef __cplusplus
 }

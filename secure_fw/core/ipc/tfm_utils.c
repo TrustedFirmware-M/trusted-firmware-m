@@ -5,7 +5,6 @@
  *
  */
 #include <inttypes.h>
-#include <stdio.h>
 #include "tfm_utils.h"
 
 void tfm_panic(void)

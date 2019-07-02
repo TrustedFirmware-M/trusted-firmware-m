@@ -23,7 +23,7 @@ uint32_t os_wrapper_new_thread(const char* name, uint32_t stack_size,
     task_attribs.attr_bits = osThreadJoinable;
     task_attribs.stack_size = stack_size;
     task_attribs.name = name;
-    task_attribs.priority = priority;
+    task_attribs.priority = (osPriority_t) priority;
 
     thread_id = osThreadNew(func, arg, &task_attribs);
     if (thread_id == NULL) {

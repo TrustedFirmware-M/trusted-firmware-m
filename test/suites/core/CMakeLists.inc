@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2017-2018, Arm Limited. All rights reserved.
+# Copyright (c) 2017-2019, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -25,7 +25,7 @@ if(NOT DEFINED TFM_ROOT_DIR)
 endif()
 
 if (NOT DEFINED TFM_PARTITION_TEST_CORE)
-	message(FATAL_ERROR "Incomplete build configuration: CORE_TEST is undefined. ")
+	message(FATAL_ERROR "Incomplete build configuration: TFM_PARTITION_TEST_CORE is undefined. ")
 elseif (TFM_PARTITION_TEST_CORE)
 	list(APPEND ALL_SRC_C_NS "${CORE_TEST_DIR}/non_secure/core_test_api.c")
 endif()
@@ -46,4 +46,3 @@ endif()
 embedded_include_directories(PATH ${TFM_ROOT_DIR} ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/test/interface/include ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/interface/include ABSOLUTE)
-

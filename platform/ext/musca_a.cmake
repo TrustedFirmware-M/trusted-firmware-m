@@ -7,23 +7,23 @@
 
 #This file gathers all Musca-A specific files in the application.
 
-#MUSCA-A has a Cortex M33 CPU.
+#Musca-A has a Cortex M33 CPU.
 include("Common/CpuM33")
 
 set(PLATFORM_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 #Specify the location of platform specific build dependencies.
 if(COMPILER STREQUAL "ARMCLANG")
+    set (S_SCATTER_FILE_NAME   "${PLATFORM_DIR}/common/armclang/tfm_common_s.sct")
     set (BL2_SCATTER_FILE_NAME "${PLATFORM_DIR}/target/musca_a/Device/Source/armclang/musca_bl2.sct")
-    set (S_SCATTER_FILE_NAME   "${PLATFORM_DIR}/target/musca_a/Device/Source/armclang/musca_s.sct")
     set (NS_SCATTER_FILE_NAME  "${PLATFORM_DIR}/target/musca_a/Device/Source/armclang/musca_ns.sct")
     if (DEFINED CMSIS_5_DIR)
       # not all project defines CMSIS_5_DIR, only the ones that use it.
       set (RTX_LIB_PATH "${CMSIS_5_DIR}/CMSIS/RTOS2/RTX/Library/ARM/RTX_V8MMN.lib")
     endif()
 elseif(COMPILER STREQUAL "GNUARM")
+    set (S_SCATTER_FILE_NAME   "${PLATFORM_DIR}/common/gcc/tfm_common_s.ld")
     set (BL2_SCATTER_FILE_NAME "${PLATFORM_DIR}/target/musca_a/Device/Source/gcc/musca_bl2.ld")
-    set (S_SCATTER_FILE_NAME   "${PLATFORM_DIR}/target/musca_a/Device/Source/gcc/musca_s.ld")
     set (NS_SCATTER_FILE_NAME  "${PLATFORM_DIR}/target/musca_a/Device/Source/gcc/musca_ns.ld")
     if (DEFINED CMSIS_5_DIR)
       # not all project defines CMSIS_5_DIR, only the ones that use it.
@@ -121,7 +121,9 @@ elseif(BUILD_TARGET_CFG)
   list(APPEND ALL_SRC_C_S "${PLATFORM_DIR}/target/musca_a/spm_hal.c")
   list(APPEND ALL_SRC_C_S "${PLATFORM_DIR}/target/musca_a/attest_hal.c")
   list(APPEND ALL_SRC_C_S "${PLATFORM_DIR}/target/musca_a/Native_Driver/mpu_armv8m_drv.c")
-  list(APPEND ALL_SRC_C_S "${PLATFORM_DIR}/target/musca_a/tfm_platform_system.c")
+  if (TFM_PARTITION_PLATFORM)
+    list(APPEND ALL_SRC_C_S "${PLATFORM_DIR}/target/musca_a/services/src/tfm_platform_system.c")
+  endif()
   embedded_include_directories(PATH "${PLATFORM_DIR}/common" ABSOLUTE)
 endif()
 
@@ -168,17 +170,14 @@ elseif(BUILD_FLASH)
 endif()
 
 if (NOT BL2)
-	message(STATUS "WARNING: BL2 is mandatory on target \"${TARGET_PLATFORM}\" Your choice was override.")
-	set(BL2 True)
-endif()
-
-if (NOT MCUBOOT_RAM_LOADING)
-	message(STATUS "WARNING: MCUBOOT_RAM_LOADING is mandatory on target \"${TARGET_PLATFORM}\" Your choice was override.")
-	set(MCUBOOT_RAM_LOADING True)
-endif()
-
-if (MCUBOOT_NO_SWAP)
-	message (FATAL_ERROR "MCUBOOT_NO_SWAP configuration is not supported on " ${TARGET_PLATFORM})
+    message(WARNING "BL2 is mandatory on target '${TARGET_PLATFORM}'. Your choice was overriden.")
+    set(BL2 True)
+    set(MCUBOOT_UPGRADE_STRATEGY "RAM_LOADING")
+else() #BL2 is True
+    if (NOT ${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "RAM_LOADING")
+        message(WARNING "RAM_LOADING upgrade strategy is mandatory on target '${TARGET_PLATFORM}'. Your choice was overriden.")
+        set(MCUBOOT_UPGRADE_STRATEGY "RAM_LOADING")
+    endif()
 endif()
 
 if (NOT DEFINED BUILD_BOOT_SEED)

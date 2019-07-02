@@ -27,8 +27,10 @@ endif()
 if (NOT DEFINED ENABLE_CRYPTO_SERVICE_TESTS)
   message(FATAL_ERROR "Incomplete build configuration: ENABLE_CRYPTO_SERVICE_TESTS is undefined. ")
 elseif (ENABLE_CRYPTO_SERVICE_TESTS)
-  list(APPEND ALL_SRC_C_S "${CRYPTO_TEST_DIR}/secure/crypto_sec_interface_testsuite.c")
-  list(APPEND ALL_SRC_C_NS "${CRYPTO_TEST_DIR}/non_secure/crypto_ns_interface_testsuite.c")
+  list(APPEND ALL_SRC_C_S "${CRYPTO_TEST_DIR}/secure/crypto_sec_interface_testsuite.c"
+                          "${CRYPTO_TEST_DIR}/crypto_tests_common.c")
+  list(APPEND ALL_SRC_C_NS "${CRYPTO_TEST_DIR}/non_secure/crypto_ns_interface_testsuite.c"
+                           "${CRYPTO_TEST_DIR}/crypto_tests_common.c")
 
   #Setting include directories
   embedded_include_directories(PATH ${TFM_ROOT_DIR} ABSOLUTE)

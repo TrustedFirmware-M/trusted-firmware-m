@@ -46,9 +46,9 @@
  */
 static inline enum t_cose_err_t
 short_circuit_sign(int32_t cose_alg_id,
-                   struct useful_buf_c hash_to_sign,
-                   struct useful_buf signature_buffer,
-                   struct useful_buf_c *signature)
+                   struct q_useful_buf_c hash_to_sign,
+                   struct q_useful_buf signature_buffer,
+                   struct q_useful_buf_c *signature)
 {
     /* approximate stack use on 32-bit machine: local use: 16
      */
@@ -119,28 +119,28 @@ Done:
  */
 static enum t_cose_err_t
 t_cose_encode_cose_key(int32_t key_select,
-                       struct useful_buf buffer_for_cose_key,
-                       struct useful_buf_c *cose_key)
+                       struct q_useful_buf buffer_for_cose_key,
+                       struct q_useful_buf_c *cose_key)
 {
     /* approximate stack use on 32-bit machine:
      * local use: 328
      * with calls: 370
      */
-    enum t_cose_err_t         return_value;
-    QCBORError                qcbor_result;
-    QCBOREncodeContext        cbor_encode_ctx;
-    USEFUL_BUF_MAKE_STACK_UB( buffer_for_x_coord,
-                                  T_COSE_CRYPTO_EC_P256_COORD_SIZE);
-    USEFUL_BUF_MAKE_STACK_UB( buffer_for_y_coord,
-                                  T_COSE_CRYPTO_EC_P256_COORD_SIZE);
-    struct useful_buf_c       x_coord;
-    struct useful_buf_c       y_coord;
-    int32_t                   cose_curve_id;
-    struct useful_buf_c       encoded_key_id;
+    enum t_cose_err_t           return_value;
+    QCBORError                  qcbor_result;
+    QCBOREncodeContext          cbor_encode_ctx;
+    Q_USEFUL_BUF_MAKE_STACK_UB( buffer_for_x_coord,
+                                    T_COSE_CRYPTO_EC_P256_COORD_SIZE);
+    Q_USEFUL_BUF_MAKE_STACK_UB( buffer_for_y_coord,
+                                    T_COSE_CRYPTO_EC_P256_COORD_SIZE);
+    struct q_useful_buf_c       x_coord;
+    struct q_useful_buf_c       y_coord;
+    int32_t                     cose_curve_id;
+    struct q_useful_buf_c       encoded_key_id;
 
     /* Get the public key x and y */
     return_value = t_cose_crypto_get_ec_pub_key(key_select,
-                                                NULL_USEFUL_BUF_C,
+                                                NULL_Q_USEFUL_BUF_C,
                                                 &cose_curve_id,
                                                 buffer_for_x_coord,
                                                 buffer_for_y_coord,
@@ -199,9 +199,9 @@ Done:
  * Having this as a separate function helps keep stack usage down and
  * is convenient.
  */
-static enum t_cose_err_t quick_sha256(struct useful_buf_c bytes_to_hash,
-                                      struct useful_buf buffer_for_hash,
-                                      struct useful_buf_c *hash)
+static enum t_cose_err_t quick_sha256(struct q_useful_buf_c bytes_to_hash,
+                                      struct q_useful_buf buffer_for_hash,
+                                      struct q_useful_buf_c *hash)
 {
     /* approximate stack use on 32-bit machine:
      local use: 132
@@ -241,18 +241,18 @@ Done:
  * created here.
  */
 static inline enum t_cose_err_t get_keyid(int32_t key_select,
-                                          struct useful_buf buffer_for_key_id,
-                                          struct useful_buf_c *key_id)
+                                          struct q_useful_buf buffer_for_key_id,
+                                          struct q_useful_buf_c *key_id)
 {
     /* approximate stack use on 32-bit machine:
      * local use: 100
      * with calls inlined: 560
      * with calls not inlined: 428
      */
-    enum t_cose_err_t           return_value;
-    USEFUL_BUF_MAKE_STACK_UB(   buffer_for_cose_key,
-                                    MAX_ENCODED_COSE_KEY_SIZE);
-    struct useful_buf_c         cose_key;
+    enum t_cose_err_t             return_value;
+    Q_USEFUL_BUF_MAKE_STACK_UB(   buffer_for_cose_key,
+                                      MAX_ENCODED_COSE_KEY_SIZE);
+    struct q_useful_buf_c         cose_key;
 
     /* Doing the COSE encoding and the hashing in separate functions
      * called from here reduces the stack usage in this function by a
@@ -285,28 +285,28 @@ Done:
  *                               headers is put.
  *
  * \return The pointer and length of the protected headers is
- * returned, or \c NULL_USEFUL_BUF_C if this fails.
+ * returned, or \c NULL_Q_USEFUL_BUF_C if this fails.
  *
  * The protected headers are returned in fully encoded CBOR format as
  * they are added to the \c COSE_Sign1 as a binary string. This is
  * different from the unprotected headers which are not handled this
  * way.
  *
- * This returns \c NULL_USEFUL_BUF_C if buffer_for_header was too
+ * This returns \c NULL_Q_USEFUL_BUF_C if buffer_for_header was too
  * small. See also definition of \ref T_COSE_SIGN1_MAX_PROT_HEADER
  */
-static inline struct useful_buf_c
+static inline struct q_useful_buf_c
 make_protected_header(int32_t cose_alg_id,
-                      struct useful_buf buffer_for_header)
+                      struct q_useful_buf buffer_for_header)
 {
     /* approximate stack use on 32-bit machine:
      * local use: 170
      * with calls: 210
      */
-    struct useful_buf_c protected_headers;
-    QCBORError          qcbor_result;
-    QCBOREncodeContext  cbor_encode_ctx;
-    struct useful_buf_c return_value;
+    struct q_useful_buf_c protected_headers;
+    QCBORError            qcbor_result;
+    QCBOREncodeContext    cbor_encode_ctx;
+    struct q_useful_buf_c return_value;
 
     QCBOREncode_Init(&cbor_encode_ctx, buffer_for_header);
     QCBOREncode_OpenMap(&cbor_encode_ctx);
@@ -319,7 +319,7 @@ make_protected_header(int32_t cose_alg_id,
     if(qcbor_result == QCBOR_SUCCESS) {
         return_value = protected_headers;
     } else {
-        return_value = NULL_USEFUL_BUF_C;
+        return_value = NULL_Q_USEFUL_BUF_C;
     }
 
     return return_value;
@@ -338,7 +338,7 @@ make_protected_header(int32_t cose_alg_id,
  * The unprotected headers added by this are just the key ID
  */
 static inline void add_unprotected_headers(QCBOREncodeContext *cbor_encode_ctx,
-                                           struct useful_buf_c kid)
+                                           struct q_useful_buf_c kid)
 {
     QCBOREncode_OpenMap(cbor_encode_ctx);
     QCBOREncode_AddBytesToMapN(cbor_encode_ctx, COSE_HEADER_PARAM_KID, kid);
@@ -361,11 +361,11 @@ enum t_cose_err_t t_cose_sign1_init(struct t_cose_sign1_ctx *me,
      * with calls not inlined: 500
      */
 
-    int32_t                     hash_alg;
-    enum t_cose_err_t           return_value;
-    USEFUL_BUF_MAKE_STACK_UB(   buffer_for_kid, T_COSE_CRYPTO_SHA256_SIZE);
-    struct useful_buf_c         kid;
-    struct useful_buf           buffer_for_protected_header;
+    int32_t                       hash_alg;
+    enum t_cose_err_t             return_value;
+    Q_USEFUL_BUF_MAKE_STACK_UB(   buffer_for_kid, T_COSE_CRYPTO_SHA256_SIZE);
+    struct q_useful_buf_c         kid;
+    struct q_useful_buf           buffer_for_protected_header;
 
     /* Check the cose_alg_id now by getting the hash alg as an early
      error check even though it is not used until later. */
@@ -398,10 +398,10 @@ enum t_cose_err_t t_cose_sign1_init(struct t_cose_sign1_ctx *me,
 
     /* The protected headers, which are added as a wrapped bstr  */
     buffer_for_protected_header =
-        USEFUL_BUF_FROM_BYTE_ARRAY(me->buffer_for_protected_headers);
+        Q_USEFUL_BUF_FROM_BYTE_ARRAY(me->buffer_for_protected_headers);
     me->protected_headers = make_protected_header(cose_alg_id,
                                                   buffer_for_protected_header);
-    if(useful_buf_c_is_null(me->protected_headers)) {
+    if(q_useful_buf_c_is_null(me->protected_headers)) {
         /* The sizing of storage for protected headers is
           off (should never happen in tested, released code) */
         return_value = T_COSE_SUCCESS;
@@ -427,64 +427,77 @@ Done:
  * Public function. See t_cose_sign1_sign.h
  */
 enum t_cose_err_t t_cose_sign1_finish(struct t_cose_sign1_ctx *me,
-                                      struct useful_buf_c signed_payload)
+                                      struct q_useful_buf_c signed_payload)
 {
     /* approximate stack use on 32-bit machine:
      *   local use: 116
      * with calls inline: 500
      * with calls not inlined; 450
      */
-    enum t_cose_err_t          return_value;
+    enum t_cose_err_t            return_value;
     /* pointer and length of the completed tbs hash */
-    struct useful_buf_c        tbs_hash;
+    struct q_useful_buf_c        tbs_hash;
     /* Pointer and length of the completed signature */
-    struct useful_buf_c        signature;
+    struct q_useful_buf_c        signature;
     /* Buffer for the actual signature */
-    USEFUL_BUF_MAKE_STACK_UB(  buffer_for_signature,
-                                   T_COSE_MAX_EC_SIG_SIZE);
+    Q_USEFUL_BUF_MAKE_STACK_UB(  buffer_for_signature,
+                                     T_COSE_MAX_EC_SIG_SIZE);
     /* Buffer for the tbs hash. Only big enough for SHA256 */
-    USEFUL_BUF_MAKE_STACK_UB(  buffer_for_tbs_hash,
-                                   T_COSE_CRYPTO_SHA256_SIZE);
+    Q_USEFUL_BUF_MAKE_STACK_UB(  buffer_for_tbs_hash,
+                                     T_COSE_CRYPTO_SHA256_SIZE);
 
-    /* Create the hash of the to-be-signed bytes. Inputs to the hash
-     * are the protected headers, the payload that getting signed, the
-     * cose signature alg from which the hash alg is determined. The
-     * cose_algorithm_id was checked in t_cose_sign1_init() so it
-     * doesn't need to be checked here.
-     */
-    return_value = create_tbs_hash(me->cose_algorithm_id,
-                                   buffer_for_tbs_hash,
-                                   &tbs_hash,
-                                   me->protected_headers,
-                                   signed_payload);
-    if(return_value) {
-        goto Done;
-    }
+    if (QCBOREncode_IsBufferNULL(me->cbor_encode_ctx)) {
+        /* Just calculating sizes. All that is needed is the
+         * signature size.
+         */
+        return_value  = T_COSE_SUCCESS;
 
-    /* Compute the signature using public key crypto. The key selector
-     * and algorithm ID are passed in to know how and what to sign
-     * with. The hash of the TBS bytes are what is signed. A buffer in
-     * which to place the signature is passed in and the signature is
-     * returned.
-     *
-     * Short-circuit signing is invoked if requested. It does no
-     * public key operation and requires no key. It is just a test
-     * mode that always works.
-     */
-    if(me->short_circuit_sign) {
-        return_value = short_circuit_sign(me->cose_algorithm_id,
-                                          tbs_hash,
-                                          buffer_for_signature,
-                                          &signature);
+        signature.ptr = NULL;
+        signature.len = t_cose_signature_size(me->cose_algorithm_id);
+
     } else {
-        return_value = t_cose_crypto_pub_key_sign(me->cose_algorithm_id,
-                                                  me->key_select,
-                                                  tbs_hash,
-                                                  buffer_for_signature,
-                                                  &signature);
-    }
-    if(return_value) {
-        goto Done;
+
+        /* Create the hash of the to-be-signed bytes. Inputs to the hash
+         * are the protected headers, the payload that getting signed, the
+         * cose signature alg from which the hash alg is determined. The
+         * cose_algorithm_id was checked in t_cose_sign1_init() so it
+         * doesn't need to be checked here.
+         */
+        return_value = create_tbs_hash(me->cose_algorithm_id,
+                                       buffer_for_tbs_hash,
+                                       &tbs_hash,
+                                       me->protected_headers,
+                                       T_COSE_TBS_PAYLOAD_IS_BSTR_WRAPPED,
+                                       signed_payload);
+        if (return_value) {
+            goto Done;
+        }
+
+        /* Compute the signature using public key crypto. The key selector
+         * and algorithm ID are passed in to know how and what to sign
+         * with. The hash of the TBS bytes are what is signed. A buffer in
+         * which to place the signature is passed in and the signature is
+         * returned.
+         *
+         * Short-circuit signing is invoked if requested. It does no
+         * public key operation and requires no key. It is just a test
+         * mode that always works.
+         */
+        if (me->short_circuit_sign) {
+            return_value = short_circuit_sign(me->cose_algorithm_id,
+                                              tbs_hash,
+                                              buffer_for_signature,
+                                              &signature);
+        } else {
+            return_value = t_cose_crypto_pub_key_sign(me->cose_algorithm_id,
+                                                      me->key_select,
+                                                      tbs_hash,
+                                                      buffer_for_signature,
+                                                      &signature);
+        }
+        if (return_value) {
+            goto Done;
+        }
     }
 
     /* Add signature to CBOR and close out the array */

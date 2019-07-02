@@ -108,7 +108,7 @@ else()
 	find_program (
 	  _GNUARM_PATH
 	  ${_GCC_BINARY_NAME}
-	  PATHS ${GNUARM_PATH}
+	  PATHS ${GNUARM_PATH}/bin NO_DEFAULT_PATH
 	  DOC "GNUARM compiler location."
 	)
 endif()

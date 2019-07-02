@@ -1,5 +1,5 @@
 ;/*
-; * Copyright (c) 2018 ARM Limited
+; * Copyright (c) 2018-2019 Arm Limited
 ; *
 ; * Licensed under the Apache License, Version 2.0 (the "License");
 ; * you may not use this file except in compliance with the License.
@@ -200,6 +200,7 @@ SECTIONS
     {
         . += __msp_stack_size__;
     } > RAM
+    Image$$ARM_LIB_STACK$$ZI$$Base = ADDR(.msp_stack);
     Image$$ARM_LIB_STACK$$ZI$$Limit = ADDR(.msp_stack) + SIZEOF(.msp_stack);
 
     .heap : ALIGN(8)

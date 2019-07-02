@@ -10,16 +10,17 @@ cmake_minimum_required(VERSION 3.7)
 #Tell cmake where our modules can be found
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../../cmake)
 
+#Some project global settings
+set (QCBOR_DIR "${CMAKE_CURRENT_LIST_DIR}")
+get_filename_component(TFM_ROOT_DIR "${QCBOR_DIR}/../../.." ABSOLUTE)
+
 #Include common stuff to control cmake.
 include("Common/BuildSys")
 
 #Start an embedded project.
-embedded_project_start(CONFIG "${CMAKE_CURRENT_LIST_DIR}/../../../ConfigDefault.cmake")
+embedded_project_start(CONFIG "${TFM_ROOT_DIR}/configs/ConfigDefault.cmake")
 project(tfm_qcbor LANGUAGES C)
 embedded_project_fixup()
-
-#Some project global settings
-set (QCBOR_DIR "${CMAKE_CURRENT_LIST_DIR}")
 
 #Append all our source files to global lists.
 list(APPEND ALL_SRC_C

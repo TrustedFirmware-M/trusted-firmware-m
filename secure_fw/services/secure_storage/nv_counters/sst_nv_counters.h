@@ -20,7 +20,11 @@
 #include "psa_protected_storage.h"
 #include "platform/include/tfm_plat_nv_counters.h"
 
-#define SST_NV_COUNTER_SIZE        4 /* In bytes */
+#define TFM_SST_NV_COUNTER_1        PLAT_NV_COUNTER_0
+#define TFM_SST_NV_COUNTER_2        PLAT_NV_COUNTER_1
+#define TFM_SST_NV_COUNTER_3        PLAT_NV_COUNTER_2
+
+#define SST_NV_COUNTER_SIZE         4 /* In bytes */
 
 #ifdef __cplusplus
 extern "C" {

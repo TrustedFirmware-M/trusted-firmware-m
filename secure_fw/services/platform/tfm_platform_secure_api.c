@@ -6,113 +6,42 @@
  */
 
 #include "tfm_platform_api.h"
-#include "tfm_platform_veneers.h"
-#include "tfm_platform_defs.h"
 #include "tfm_veneers.h"
 
 __attribute__((section("SFN")))
 enum tfm_platform_err_t tfm_platform_system_reset(void)
 {
-    return tfm_platform_veneer_system_reset();
+    return (enum tfm_platform_err_t) tfm_platform_sp_system_reset_veneer(
+                                                              NULL, 0, NULL, 0);
 }
 
 __attribute__((section("SFN")))
 enum tfm_platform_err_t
-tfm_platform_set_pin_alt_func(uint32_t alt_func, uint64_t pin_mask,
-                              uint32_t *result)
+tfm_platform_ioctl(tfm_platform_ioctl_req_t request,
+                   psa_invec *input, psa_outvec *output)
 {
-    psa_status_t ret;
-    psa_invec in_vec;
-    psa_outvec out_vec;
-    struct tfm_pin_service_args_t args;
+    tfm_platform_ioctl_req_t req = request;
+    struct psa_invec in_vec[2];
+    size_t inlen, outlen;
 
-    if (result == NULL) {
-        return TFM_PLATFORM_ERR_INVALID_PARAM;
+    in_vec[0].base = &req;
+    in_vec[0].len = sizeof(req);
+    if (input != NULL) {
+        in_vec[1].base = input->base;
+        in_vec[1].len = input->len;
+        inlen = 2;
+    } else {
+        inlen = 1;
     }
 
-    args.type = TFM_PIN_SERVICE_TYPE_SET_ALTFUNC;
-    args.u.set_altfunc.alt_func = alt_func;
-    args.u.set_altfunc.pin_mask = pin_mask;
-
-    in_vec.base = (const void *)&args;
-    in_vec.len = sizeof(args);
-
-    out_vec.base = (void *)result;
-    out_vec.len = sizeof(*result);
-
-    ret = tfm_platform_sp_pin_service_veneer(&in_vec,  1, &out_vec, 1);
-
-    if (ret != PSA_SUCCESS) {
-        return TFM_PLATFORM_ERR_SYSTEM_ERROR;
+    if (output != NULL) {
+        outlen = 1;
+    } else {
+        outlen = 0;
     }
 
-    return TFM_PLATFORM_ERR_SUCCESS;
-}
+    return (enum tfm_platform_err_t) tfm_platform_sp_ioctl_veneer(
+                                                in_vec, inlen, output, outlen);
 
-__attribute__((section("SFN")))
-enum tfm_platform_err_t
-tfm_platform_set_pin_default_in(uint32_t alt_func, uint32_t pin_value,
-                              bool default_in_value, uint32_t *result)
-{
-    psa_status_t ret;
-    psa_invec in_vec;
-    psa_outvec out_vec;
-    struct tfm_pin_service_args_t args;
-
-    if (result == NULL) {
-        return TFM_PLATFORM_ERR_INVALID_PARAM;
-    }
-
-    args.type = TFM_PIN_SERVICE_TYPE_SET_DEFAULT_IN;
-    args.u.set_default_in.alt_func = alt_func;
-    args.u.set_default_in.pin_value = pin_value;
-    args.u.set_default_in.default_in_value = default_in_value;
-
-    in_vec.base = (const void *)&args;
-    in_vec.len = sizeof(args);
-
-    out_vec.base = (void *)result;
-    out_vec.len = sizeof(*result);
-
-    ret = tfm_platform_sp_pin_service_veneer(&in_vec,  1, &out_vec, 1);
-
-    if (ret != PSA_SUCCESS) {
-        return TFM_PLATFORM_ERR_SYSTEM_ERROR;
-    }
-
-    return TFM_PLATFORM_ERR_SUCCESS;
-}
-
-__attribute__((section("SFN")))
-enum tfm_platform_err_t
-tfm_platform_set_pin_mode(uint64_t pin_mask, uint32_t pin_mode,
-                          uint32_t *result)
-{
-    psa_status_t ret;
-    psa_invec in_vec;
-    psa_outvec out_vec;
-    struct tfm_pin_service_args_t args;
-
-    if (result == NULL) {
-        return TFM_PLATFORM_ERR_INVALID_PARAM;
-    }
-
-    args.type = TFM_PIN_SERVICE_TYPE_SET_PIN_MODE;
-    args.u.set_pin_mode.pin_mask = pin_mask;
-    args.u.set_pin_mode.pin_mode = pin_mode;
-
-    in_vec.base = (const void *)&args;
-    in_vec.len = sizeof(args);
-
-    out_vec.base = (void *)result;
-    out_vec.len = sizeof(*result);
-
-    ret = tfm_platform_sp_pin_service_veneer(&in_vec,  1, &out_vec, 1);
-
-    if (ret != PSA_SUCCESS) {
-        return TFM_PLATFORM_ERR_SYSTEM_ERROR;
-    }
-
-    return TFM_PLATFORM_ERR_SUCCESS;
 }
 

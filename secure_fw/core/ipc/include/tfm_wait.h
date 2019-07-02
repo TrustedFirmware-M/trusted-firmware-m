@@ -7,6 +7,8 @@
 #ifndef __TFM_WAIT_H__
 #define __TFM_WAIT_H__
 
+#include <stddef.h>
+
 #include "cmsis_compiler.h"
 
 /* The magic number has two purposes: corruption detection and debug */

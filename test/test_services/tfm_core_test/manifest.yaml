@@ -11,9 +11,8 @@
   "priority": "NORMAL",
   "id": "0x00000002",
   "entry_point": "core_test_init",
-  "tfm_partition_ipc": true,
-  "stack_size": "0x0400",
-  "heap_size": "0x0400",
+  "stack_size": "0x0300",
+  "heap_size": "0",
   "mmio_regions": [
     {
       "name": "TFM_PERIPHERAL_FPGA_IO",
@@ -23,33 +22,27 @@
   "secure_functions": [
     {
       "sfid": "TFM_CORE_TEST_SFN_SFID",
-      "signal": "TFM_CORE_TEST_SFN",
-      "tfm_symbol": "spm_core_test_sfn",
+      "signal": "SPM_CORE_TEST_SFN",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
       "sfid": "TFM_CORE_TEST_SFN_INIT_SUCCESS_SFID",
-      "signal": "TFM_CORE_TEST_SFN_INIT_SUCCESS",
-      "tfm_symbol": "spm_core_test_sfn_init_success",
+      "signal": "SPM_CORE_TEST_SFN_INIT_SUCCESS",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
       "sfid": "TFM_CORE_TEST_SFN_DIRECT_RECURSION_SFID",
-      "signal": "TFM_CORE_TEST_SFN_DIRECT_RECURSION",
-      "tfm_symbol": "spm_core_test_sfn_direct_recursion",
+      "signal": "SPM_CORE_TEST_SFN_DIRECT_RECURSION",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     }
   ],
-  "source_files": [
-    "./tfm_ss_core_test.c"
-  ],
-  "tfm_linker_pattern": {
+  "linker_pattern": {
     "object_list": [
       "*tfm_ss_core_test.*"
     ]

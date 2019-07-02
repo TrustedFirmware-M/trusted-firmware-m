@@ -11,8 +11,8 @@
   "priority": "NORMAL",
   "id": "0x00000005",
   "entry_point": "tfm_secure_client_service_init",
-  "stack_size": "0x1000",
-  "heap_size": "0x0400",
+  "stack_size": "0x0C00",
+  "heap_size": "0",
   "mmio_regions": [
     {
       "name": "TFM_PERIPHERAL_STD_UART",
@@ -22,27 +22,34 @@
   "secure_functions": [
     {
       "sfid": "TFM_SECURE_CLIENT_SFN_RUN_TESTS_SFID",
-      "signal": "TFM_SECURE_CLIENT_SFN_RUN_TESTS",
-      "tfm_symbol": "tfm_secure_client_service_sfn_run_tests",
+      "signal": "TFM_SECURE_CLIENT_SERVICE_SFN_RUN_TESTS",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     },
   ],
-  "source_files": [
-    "tfm_secure_client_service.c"
+  "services": [
+    {
+      "name": "TFM_SECURE_CLIENT_SFN_RUN_TESTS_SID",
+      "sid": "0x0000F000",
+      "signal": "TFM_SECURE_CLIENT_SFN_RUN_TESTS_SIG",
+      "non_secure_clients": "true",
+      "minor_version": 1,
+      "minor_policy": "STRICT"
+    }
   ],
 # Currently there is no platform dependent section of the manifest file,
 # therefore all platform dependent files must be listed here which can be used
 # on any supported platform.
-  "tfm_linker_pattern": {
+  "linker_pattern": {
     "object_list": [
       "*tfm_secure_client_service.*",
       "*test_framework*",
       "*uart_stdout.*",
       "*Driver_USART.*",
       "*arm_uart_drv.*",   # MPS2-AN521, MPS2-AN519
-      "*uart_pl011_drv.*", # Musca-A1, Musca-B1
+      "*uart_pl011_drv.*", # Musca-A, Musca-B1
+      "*uart_cmsdk_drv*",  # MPS3-AN524
       "*secure_suites.*",
       "*attestation_s_interface_testsuite.*"
     ]

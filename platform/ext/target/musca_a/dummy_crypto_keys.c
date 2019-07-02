@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 ARM Limited
+ * Copyright (c) 2017-2019 Arm Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
  * key. For the security of the attestation, it is critical to use a unique key
  * pair and keep the private key is secret.
  *
- * Musca A does not have any available hardware unique key engine, so a
+ * Musca-A does not have any available hardware unique key engine, so a
  * software stub has been implemented in this case.
  */
 

@@ -18,9 +18,10 @@
  */
 
 /*
- Original code taken from mcuboot project at:
- https://github.com/runtimeco/mcuboot
- Modifications are Copyright (c) 2018 Arm Limited.
+ * Original code taken from mcuboot project at:
+ * https://github.com/JuulLabs-OSS/mcuboot
+ * Git SHA of the original version: b69841820462fa0227d7fb407620405f6426bb4b
+ * Modifications are Copyright (c) 2018-2019 Arm Limited.
  */
 
 #ifndef H_UTIL_FLASH_MAP_
@@ -127,10 +128,22 @@ void flash_area_close(const struct flash_area *area);
 int flash_area_read(const struct flash_area *area, uint32_t off, void *dst,
                     uint32_t len);
 
+/*
+ * Returns 1 if read data is erased, 0 if non-erased, and -1 on failure.
+ */
+int flash_area_read_is_empty(const struct flash_area *area, uint32_t off,
+                             void *dst, uint32_t len);
+
 int flash_area_write(const struct flash_area *area, uint32_t off,
                      const void *src, uint32_t len);
 
 int flash_area_erase(const struct flash_area *area, uint32_t off, uint32_t len);
+
+/*
+ * Returns the value expected to be read when accessing any erased
+ * flash byte.
+ */
+uint8_t flash_area_erased_val(const struct flash_area *area);
 
 /*
  * Alignment restriction for flash writes.

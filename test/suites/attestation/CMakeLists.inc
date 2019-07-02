@@ -27,15 +27,27 @@ endif()
 if (NOT DEFINED ENABLE_ATTESTATION_SERVICE_TESTS)
 	message(FATAL_ERROR "Incomplete build configuration: ENABLE_ATTESTATION_SERVICE_TESTS is undefined. ")
 elseif(ENABLE_ATTESTATION_SERVICE_TESTS)
-	list(APPEND ALL_SRC_C_S  "${ATTESTATION_TEST_DIR}/secure/attestation_s_interface_testsuite.c")
-	list(APPEND ALL_SRC_C_NS "${ATTESTATION_TEST_DIR}/non_secure/attestation_ns_interface_testsuite.c")
-	list(APPEND ALL_SRC_C_NS "${ATTESTATION_TEST_DIR}/token_test.c")
+	list(APPEND ALL_SRC_C_S
+		"${ATTESTATION_TEST_DIR}/secure/attestation_s_interface_testsuite.c"
+		"${ATTESTATION_TEST_DIR}/attest_token_test.c"
+		"${ATTESTATION_TEST_DIR}/attest_token_decode.c"
+		"${ATTESTATION_TEST_DIR}/attest_public_key.c"
+		"${TFM_ROOT_DIR}/lib/ext/qcbor/util/qcbor_util.c"
+	)
+
+	list(APPEND ALL_SRC_C_NS
+		"${ATTESTATION_TEST_DIR}/non_secure/attestation_ns_interface_testsuite.c"
+		"${ATTESTATION_TEST_DIR}/attest_token_test.c"
+		"${ATTESTATION_TEST_DIR}/attest_token_decode.c"
+		"${ATTESTATION_TEST_DIR}/attest_public_key.c"
+		"${TFM_ROOT_DIR}/lib/ext/qcbor/util/qcbor_util.c"
+	)
 
 	#Setting include directories
 	embedded_include_directories(PATH ${TFM_ROOT_DIR} ABSOLUTE)
 	embedded_include_directories(PATH ${TFM_ROOT_DIR}/interface/include ABSOLUTE)
 	embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/services/initial_attestation ABSOLUTE)
 	embedded_include_directories(PATH ${TFM_ROOT_DIR}/lib/ext/qcbor/inc ABSOLUTE)
+	embedded_include_directories(PATH ${TFM_ROOT_DIR}/lib/ext/qcbor/util ABSOLUTE)
 	embedded_include_directories(PATH ${TFM_ROOT_DIR}/lib/t_cose/inc ABSOLUTE)
-	embedded_include_directories(PATH ${TFM_ROOT_DIR}/lib/t_cose/src ABSOLUTE)
 endif()

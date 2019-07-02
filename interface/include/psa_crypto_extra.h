@@ -16,9 +16,9 @@
  */
 
 /**
- *\note This implementation currently doesn't provide support to any
- *      vendor-specific extension or definition, so this header file
- *      is empty.
+ * \note This implementation currently doesn't provide support to any
+ *       vendor-specific extension or definition, so this header file
+ *       is empty.
  */
 
 #ifndef PSA_CRYPTO_EXTRA_H

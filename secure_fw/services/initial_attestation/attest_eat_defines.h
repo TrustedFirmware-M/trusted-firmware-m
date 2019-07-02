@@ -32,6 +32,12 @@ extern "C" {
 #define EAT_CBOR_SW_COMPONENT_SIGNER_ID         (5)
 #define EAT_CBOR_SW_COMPONENT_MEASUREMENT_DESC  (6)
 
+/* Indicates that the boot status intentionally (i.e. boot loader does not
+ * capable to produce it) does not contain any SW components' measurement.
+ * Required integer value for claim labeled EAT_CBOR_ARM_LABEL_NO_SW_COMPONENTS.
+ */
+#define NO_SW_COMPONENT_FIXED_VALUE 1
+
 #ifdef __cplusplus
 }
 #endif

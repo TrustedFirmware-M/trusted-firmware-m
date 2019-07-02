@@ -7,11 +7,11 @@
 #include <inttypes.h>
 #include <limits.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include "psa_client.h"
 #include "psa_service.h"
 #include "tfm_utils.h"
+#include "platform/include/tfm_spm_hal.h"
 #include "spm_api.h"
 #include "spm_db.h"
 #include "spm_db_setup.h"
@@ -27,6 +27,7 @@
 #include "region_defs.h"
 #include "tfm_nspm.h"
 #include "tfm_memory_utils.h"
+#include "tfm_rpc.h"
 
 /*
  * IPC partitions.
@@ -38,6 +39,8 @@ static struct tfm_spm_ipc_partition_t
 /* Extern SPM variable */
 extern struct spm_partition_db_t g_spm_partition_db;
 
+/* Extern secure lock variable */
+extern int32_t tfm_secure_lock;
 /* Pools */
 TFM_POOL_DECLARE(conn_handle_pool, sizeof(struct tfm_conn_handle_t),
                  TFM_CONN_HANDLE_MAX_NUM);
@@ -272,7 +275,7 @@ int32_t tfm_spm_check_client_version(struct tfm_spm_service_t *service,
 
     switch (service->service_db->minor_policy) {
     case TFM_VERSION_POLICY_RELAXED:
-        if (minor_version < service->service_db->minor_version) {
+        if (minor_version > service->service_db->minor_version) {
             return IPC_ERROR_VERSION;
         }
         break;
@@ -437,17 +440,6 @@ tfm_spm_partition_get_thread_info_ext(uint32_t partition_idx)
     return &g_spm_partition_db.partitions[partition_idx].sp_thrd;
 }
 
-static uint32_t tfm_spm_partition_get_stack_base_ext(uint32_t partition_idx)
-{
-    return (uint32_t)&(g_spm_partition_db.partitions[partition_idx].
-                       stack[TFM_STACK_SIZE]);
-}
-
-static uint32_t tfm_spm_partition_get_stack_limit_ext(uint32_t partition_idx)
-{
-    return (uint32_t)&g_spm_partition_db.partitions[partition_idx].stack;
-}
-
 static tfm_thrd_func_t
         tfm_spm_partition_get_init_func_ext(uint32_t partition_idx)
 {
@@ -461,44 +453,11 @@ static uint32_t tfm_spm_partition_get_priority_ext(uint32_t partition_idx)
                     partition_priority;
 }
 
-/* Macros to pick linker symbols and allow references to sections in all level*/
-#define REGION_DECLARE_EXT(a, b, c) extern uint32_t REGION_NAME(a, b, c)
-
-REGION_DECLARE_EXT(Image$$, ER_TFM_DATA, $$ZI$$Base);
-REGION_DECLARE_EXT(Image$$, ER_TFM_DATA, $$ZI$$Limit);
-REGION_DECLARE_EXT(Image$$, ER_TFM_DATA, $$RW$$Base);
-REGION_DECLARE_EXT(Image$$, ER_TFM_DATA, $$RW$$Limit);
-REGION_DECLARE_EXT(Image$$, TFM_SECURE_STACK, $$ZI$$Base);
-REGION_DECLARE_EXT(Image$$, TFM_SECURE_STACK, $$ZI$$Limit);
-REGION_DECLARE_EXT(Image$$, TFM_UNPRIV_SCRATCH, $$ZI$$Base);
-REGION_DECLARE_EXT(Image$$, TFM_UNPRIV_SCRATCH, $$ZI$$Limit);
-
-/*
- * \brief                         Check the memory whether in the given range.
- *
- * \param[in] buffer              Pointer of memory reference
- * \param[in] len                 Length of memory reference in bytes
- * \param[in] base                The base address
- * \param[in] limit               The limit address, the first byte of next
- *                                area memory
- *
- * \retval IPC_SUCCESS            Success
- * \retval IPC_ERROR_MEMORY_CHECK Check failed
- */
-static int32_t memory_check_range(const void *buffer, size_t len,
-                                  uintptr_t base, uintptr_t limit)
+int32_t tfm_memory_check(void *buffer, size_t len, int32_t ns_caller,
+                         enum tfm_memory_access_e access,
+                         uint32_t privileged)
 {
-    if (((uintptr_t)buffer >= base) &&
-        ((uintptr_t)((uint8_t *)buffer + len - 1) < limit)) {
-        return IPC_SUCCESS;
-    }
-    return IPC_ERROR_MEMORY_CHECK;
-}
-
-/* FixMe: This is only valid for TFM LVL 1 now */
-int32_t tfm_memory_check(void *buffer, size_t len, int32_t ns_caller)
-{
-    uintptr_t base, limit;
+    int32_t err;
 
     /* If len is zero, this indicates an empty buffer and base is ignored */
     if (len == 0) {
@@ -513,40 +472,27 @@ int32_t tfm_memory_check(void *buffer, size_t len, int32_t ns_caller)
         return IPC_ERROR_MEMORY_CHECK;
     }
 
-    if (ns_caller) {
-        base = (uintptr_t)NS_DATA_START;
-        limit = (uintptr_t)(NS_DATA_START + NS_DATA_SIZE);
-        if (memory_check_range(buffer, len, base, limit) == IPC_SUCCESS) {
-            return IPC_SUCCESS;
-        }
+    if (access == TFM_MEMORY_ACCESS_RW) {
+        err = tfm_core_has_write_access_to_region(buffer, len, ns_caller,
+                                                  privileged);
     } else {
-        base = (uintptr_t)&REGION_NAME(Image$$, ER_TFM_DATA, $$RW$$Base);
-        limit = (uintptr_t)&REGION_NAME(Image$$, ER_TFM_DATA, $$RW$$Limit);
-        if (memory_check_range(buffer, len, base, limit) == IPC_SUCCESS) {
-            return IPC_SUCCESS;
-        }
-
-        base = (uintptr_t)&REGION_NAME(Image$$, ER_TFM_DATA, $$ZI$$Base);
-        limit = (uintptr_t)&REGION_NAME(Image$$, ER_TFM_DATA, $$ZI$$Limit);
-        if (memory_check_range(buffer, len, base, limit) == IPC_SUCCESS) {
-            return IPC_SUCCESS;
-        }
-
-        base = (uintptr_t)&REGION_NAME(Image$$, TFM_SECURE_STACK, $$ZI$$Base);
-        limit = (uintptr_t)&REGION_NAME(Image$$, TFM_SECURE_STACK, $$ZI$$Limit);
-        if (memory_check_range(buffer, len, base, limit) == IPC_SUCCESS) {
-            return IPC_SUCCESS;
-        }
-
-        base = (uintptr_t)&REGION_NAME(Image$$, TFM_UNPRIV_SCRATCH, $$ZI$$Base);
-        limit = (uintptr_t)&REGION_NAME(Image$$, TFM_UNPRIV_SCRATCH,
-                                        $$ZI$$Limit);
-        if (memory_check_range(buffer, len, base, limit) == IPC_SUCCESS) {
-            return IPC_SUCCESS;
-        }
+        err = tfm_core_has_read_access_to_region(buffer, len, ns_caller,
+                                                 privileged);
+    }
+    if (err == TFM_SUCCESS) {
+        return IPC_SUCCESS;
     }
 
     return IPC_ERROR_MEMORY_CHECK;
+}
+
+uint32_t tfm_spm_partition_get_privileged_mode(uint32_t partition_idx)
+{
+    if (tfm_spm_partition_get_flags(partition_idx) & SPM_PART_FLAG_PSA_ROT) {
+        return TFM_PARTITION_PRIVILEGED_MODE;
+    } else {
+        return TFM_PARTITION_UNPRIVILEGED_MODE;
+    }
 }
 
 /********************** SPM functions for thread mode ************************/
@@ -556,7 +502,8 @@ void tfm_spm_init(void)
     uint32_t i, num;
     struct tfm_spm_ipc_partition_t *partition;
     struct tfm_spm_service_t *service;
-    struct tfm_thrd_ctx *pth;
+    struct tfm_thrd_ctx *pth, this_thrd;
+    struct spm_partition_desc_t *part;
 
     tfm_pool_init(conn_handle_pool,
                   POOL_BUFFER_SIZE(conn_handle_pool),
@@ -571,10 +518,12 @@ void tfm_spm_init(void)
 
     /* Init partition first for it will be used when init service */
     for (i = 0; i < SPM_MAX_PARTITIONS; i++) {
+        part = &g_spm_partition_db.partitions[i];
+        tfm_spm_hal_configure_default_isolation(part->platform_data);
+        g_spm_ipc_partition[i].index = i;
         if ((tfm_spm_partition_get_flags(i) & SPM_PART_FLAG_IPC) == 0) {
             continue;
         }
-        g_spm_ipc_partition[i].index = i;
         g_spm_ipc_partition[i].id = tfm_spm_partition_get_partition_id(i);
 
         tfm_event_init(&g_spm_ipc_partition[i].signal_evnt);
@@ -588,8 +537,9 @@ void tfm_spm_init(void)
         tfm_thrd_init(pth,
                       tfm_spm_partition_get_init_func_ext(i),
                       NULL,
-                      (uint8_t *)tfm_spm_partition_get_stack_base_ext(i),
-                      (uint8_t *)tfm_spm_partition_get_stack_limit_ext(i));
+                      (uint8_t *)tfm_spm_partition_get_stack_top(i),
+                      (uint8_t *)tfm_spm_partition_get_stack_bottom(i));
+
         pth->prior = tfm_spm_partition_get_priority_ext(i);
 
         /* Kick off */
@@ -616,6 +566,60 @@ void tfm_spm_init(void)
         tfm_list_add_tail(&partition->service_list, &service->list);
     }
 
-    /* All thread inited.... trigger scheduler */
-    tfm_thrd_activate_schedule();
+    /*
+     * All threads initialized, start the scheduler.
+     *
+     * NOTE:
+     * Here is the booting privileged thread mode, and will never
+     * return to this place after scheduler is started. The start
+     * function has to save current runtime context to act as a
+     * 'current thread' to avoid repeating NULL 'current thread'
+     * checking while context switching. This saved context is worthy
+     * of being saved somewhere if there are potential usage purpose.
+     * Let's save this context in a local variable 'this_thrd' at
+     * current since there is no usage for it.
+     * Also set tfm_nspm_thread_entry as pfn for this thread to
+     * use in detecting NS/S thread scheduling changes.
+     */
+    this_thrd.pfn = (tfm_thrd_func_t)tfm_nspm_thread_entry;
+    tfm_thrd_start_scheduler(&this_thrd);
+}
+
+void tfm_pendsv_do_schedule(struct tfm_state_context_ext *ctxb)
+{
+#if TFM_LVL == 2
+    struct spm_partition_desc_t *p_next_partition;
+    uint32_t is_privileged;
+#endif
+    struct tfm_thrd_ctx *pth_next = tfm_thrd_next_thread();
+    struct tfm_thrd_ctx *pth_curr = tfm_thrd_curr_thread();
+
+    if (pth_curr != pth_next) {
+#if TFM_LVL == 2
+        p_next_partition = TFM_GET_CONTAINER_PTR(pth_next,
+                                                 struct spm_partition_desc_t,
+                                                 sp_thrd);
+
+        if (p_next_partition->static_data.partition_flags &
+            SPM_PART_FLAG_PSA_ROT) {
+            is_privileged = TFM_PARTITION_PRIVILEGED_MODE;
+        } else {
+            is_privileged = TFM_PARTITION_UNPRIVILEGED_MODE;
+        }
+
+        tfm_spm_partition_change_privilege(is_privileged);
+#endif
+        /* Increase the secure lock, if we enter secure from non-secure */
+        if ((void *)pth_curr->pfn == (void *)tfm_nspm_thread_entry) {
+            ++tfm_secure_lock;
+        }
+        /* Decrease the secure lock, if we return from secure to non-secure */
+        if ((void *)pth_next->pfn == (void *)tfm_nspm_thread_entry) {
+            --tfm_secure_lock;
+        }
+
+        tfm_thrd_context_switch(ctxb, pth_curr, pth_next);
+    }
+
+    tfm_rpc_client_call_handler();
 }

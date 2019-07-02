@@ -19,6 +19,8 @@ enum tfm_plat_err_t {
     TFM_PLAT_ERR_SUCCESS = 0,
     TFM_PLAT_ERR_SYSTEM_ERR,
     TFM_PLAT_ERR_MAX_VALUE,
+    TFM_PLAT_ERR_INVALID_INPUT,
+    TFM_PLAT_ERR_UNSUPPORTED,
     /* Following entry is only to ensure the error code of int size */
     TFM_PLAT_ERR_FORCE_INT_SIZE = INT_MAX
 };

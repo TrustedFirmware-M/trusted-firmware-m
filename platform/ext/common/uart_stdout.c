@@ -27,11 +27,6 @@
 /* Imports USART driver */
 extern ARM_DRIVER_USART TFM_DRIVER_STDIO;
 
-/* Struct FILE is implemented in stdio.h. Used to redirect printf to
- * TFM_DRIVER_STDIO
- */
-FILE __stdout;
-
 static void uart_putc(unsigned char c)
 {
     int32_t ret = ARM_DRIVER_OK;
@@ -42,6 +37,11 @@ static void uart_putc(unsigned char c)
 
 /* Redirects printf to TFM_DRIVER_STDIO in case of ARMCLANG*/
 #if defined(__ARMCC_VERSION)
+/* Struct FILE is implemented in stdio.h. Used to redirect printf to
+ * TFM_DRIVER_STDIO
+ */
+FILE __stdout;
+
 /* __ARMCC_VERSION is only defined starting from Arm compiler version 6 */
 int fputc(int ch, FILE *f)
 {
@@ -64,6 +64,15 @@ int _write(int fd, char *str, int len)
 
     /* Return the number of characters written */
     return len;
+}
+#elif defined(__ICCARM__)
+int putchar(int ch)
+{
+    /* Send byte to USART */
+    uart_putc(ch);
+
+    /* Return character written */
+    return ch;
 }
 #endif
 

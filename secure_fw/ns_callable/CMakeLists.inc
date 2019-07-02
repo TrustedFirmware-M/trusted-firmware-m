@@ -23,10 +23,15 @@ if(NOT DEFINED TFM_ROOT_DIR)
 	message(FATAL_ERROR "Please set TFM_ROOT_DIR before including this file.")
 endif()
 
-set (SS_NS_CALLABLE_C_SRC "${CMAKE_CURRENT_LIST_DIR}/tfm_veneers.c"
-                          "${CMAKE_CURRENT_LIST_DIR}/tfm_audit_veneers.c"
-                          "${CMAKE_CURRENT_LIST_DIR}/tfm_crypto_veneers.c"
-                          "${CMAKE_CURRENT_LIST_DIR}/tfm_platform_veneers.c")
+if (TFM_PSA_API)
+	set (SS_NS_CALLABLE_C_SRC "${CMAKE_CURRENT_LIST_DIR}/tfm_psa_api_veneers.c")
+else()
+	set (SS_NS_CALLABLE_C_SRC "${CMAKE_CURRENT_LIST_DIR}/tfm_veneers.c")
+endif()
+
+if (TFM_PARTITION_AUDIT_LOG)
+	list(APPEND SS_NS_CALLABLE_C_SRC "${CMAKE_CURRENT_LIST_DIR}/tfm_audit_veneers.c")
+endif()
 
 #Append all our source files to global lists.
 list(APPEND ALL_SRC_C ${SS_NS_CALLABLE_C_SRC})

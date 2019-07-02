@@ -11,47 +11,40 @@
   "priority": "NORMAL",
   "id": "0x00000003",
   "entry_point": "core_test_2_init",
-  "tfm_partition_ipc": true,
-  "stack_size": "0x0400",
-  "heap_size": "0x0400",
+  "stack_size": "0x0200",
+  "heap_size": "0",
   "secure_functions": [
     {
       "sfid": "TFM_CORE_TEST_2_SFN_SLAVE_SERVICE_SFID",
-      "signal": "TFM_CORE_TEST_2_SFN_SLAVE_SERVICE",
-      "tfm_symbol": "spm_core_test_2_slave_service",
+      "signal": "SPM_CORE_TEST_2_SLAVE_SERVICE",
       "non_secure_clients": false,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
       "sfid": "TFM_CORE_TEST_2_SFN_INVERT_SFID",
-      "signal": "TFM_CORE_TEST_2_SFN_INVERT",
-      "tfm_symbol": "spm_core_test_2_sfn_invert",
+      "signal": "SPM_CORE_TEST_2_SFN_INVERT",
+
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
       "sfid": "TFM_CORE_TEST_2_SFN_CHECK_CALLER_CLIENT_ID_SFID",
-      "signal": "TFM_CORE_TEST_2_SFN_CHECK_CALLER_CLIENT_ID",
-      "tfm_symbol": "spm_core_test_2_check_caller_client_id",
+      "signal": "SPM_CORE_TEST_2_CHECK_CALLER_CLIENT_ID",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
       "sfid": "TFM_CORE_TEST_2_SFN_GET_EVERY_SECOND_BYTE",
-      "signal": "TFM_CORE_TEST_2_SFN_GET_EVERY_SECOND_BYTE",
-      "tfm_symbol": "spm_core_test_2_get_every_second_byte",
+      "signal": "SPM_CORE_TEST_2_GET_EVERY_SECOND_BYTE",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     }
   ],
-  "source_files": [
-    "./tfm_ss_core_test_2.c"
-  ],
-  "tfm_linker_pattern": {
+  "linker_pattern": {
     "object_list": [
       "*tfm_ss_core_test_2.*"
     ]

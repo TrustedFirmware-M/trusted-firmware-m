@@ -23,8 +23,7 @@ extern "C" {
  * \param[in] test_suite_cnt  The number of test suites to be executed.
  */
 void integ_test(const char *suite_type,
-                struct test_suite_t test_suites[],
-                uint32_t test_suite_cnt);
+                struct test_suite_t test_suites[]);
 
 #ifdef __cplusplus
 }

@@ -38,7 +38,7 @@ struct spm_partition_db_t {
         data.partition_priority = TFM_PRIORITY(priority);                     \
     } while (0)
 
-#if TFM_LVL == 1
+#if (TFM_LVL == 1) && !defined(TFM_PSA_API)
 #define PARTITION_INIT_MEMORY_DATA(data, partition)
 #else
 #define PARTITION_INIT_MEMORY_DATA(data, partition)                            \
@@ -55,7 +55,6 @@ struct spm_partition_db_t {
         data.stack_top       = PART_REGION_ADDR(partition, _STACK$$ZI$$Limit); \
     } while (0)
 #endif
-
 
 #if TFM_LVL == 1
 #define PARTITION_INIT_RUNTIME_DATA(data, partition)            \
@@ -111,21 +110,21 @@ struct spm_partition_db_t {
         ++g_spm_partition_db.partition_count;                                \
     } while (0)
 
-#define PARTITION_ADD_INIT_FUNC(partition, init_func)                 \
-    do {                                                              \
-        extern int32_t init_func(void);                               \
-        uint32_t partition_idx = get_partition_idx(partition##_ID);   \
-        struct spm_partition_desc_t *part_ptr =                       \
-            &(g_spm_partition_db.partitions[partition_idx]);          \
-        part_ptr->static_data.partition_init = init_func;             \
+#define PARTITION_ADD_INIT_FUNC(partition, init_func)                     \
+    do {                                                                  \
+        extern int32_t init_func(void);                                   \
+        uint32_t partition_idx = get_partition_idx(partition##_ID);       \
+        struct spm_partition_desc_t *part_ptr =                           \
+            &(g_spm_partition_db.partitions[partition_idx]);              \
+        part_ptr->static_data.partition_init = init_func;                 \
     } while (0)
 
-#define PARTITION_ADD_PERIPHERAL(partition, peripheral)               \
-    do {                                                               \
-        uint32_t partition_idx = get_partition_idx(partition##_ID);    \
-        struct spm_partition_desc_t *part_ptr =                        \
-            &(g_spm_partition_db.partitions[partition_idx]);           \
-        part_ptr->platform_data = peripheral;                          \
+#define PARTITION_ADD_PERIPHERAL(partition, peripheral)                    \
+    do {                                                                   \
+        uint32_t partition_idx = get_partition_idx(partition##_ID);        \
+        struct spm_partition_desc_t *part_ptr =                            \
+            &(g_spm_partition_db.partitions[partition_idx]);               \
+        part_ptr->platform_data = peripheral;                              \
     } while (0)
 
 #endif /* __SPM_DB_SETUP_H__ */

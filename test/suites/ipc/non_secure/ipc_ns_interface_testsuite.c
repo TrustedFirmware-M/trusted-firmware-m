@@ -10,24 +10,77 @@
 #include "psa_client.h"
 #include "test/framework/test_framework_helpers.h"
 
-#define IPC_TEST_SERVICE1_SID        (0x1000)
-#define IPC_TEST_SERVICE1_MIN_VER    (0x0001)
+/* Define the SID. These SIDs should align with the value in manifest file. */
+#define IPC_CLIENT_TEST_BASIC_SID                               (0x00001100)
+#define IPC_CLIENT_TEST_PSA_ACCESS_APP_MEM_SID                  (0x00001101)
+#define IPC_CLIENT_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_SID        (0x00001102)
+#define IPC_CLIENT_TEST_APP_ACCESS_PSA_MEM_SID                  (0x00001103)
+#define IPC_CLIENT_TEST_MEM_CHECK_SID                           (0x00001104)
+#define IPC_SERVICE_TEST_BASIC_SID                              (0x00001000)
+
+/*
+ * Define the MIN_VER. These MIN_VER should align with the value in
+ * manifest file.
+ */
+#define IPC_CLIENT_TEST_BASIC_MIN_VER                           (0x0001)
+#define IPC_CLIENT_TEST_PSA_ACCESS_APP_MEM_MIN_VER              (0x0001)
+#define IPC_CLIENT_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_MIN_VER    (0x0001)
+#define IPC_CLIENT_TEST_APP_ACCESS_PSA_MEM_MIN_VER              (0x0001)
+#define IPC_CLIENT_TEST_MEM_CHECK_MIN_VER                       (0x0001)
+#define IPC_BASIC_MIN_VER                                       (0x0001)
 
 /* List of tests */
 static void tfm_ipc_test_1001(struct test_result_t *ret);
+#ifdef TFM_PARTITION_TEST_CORE_IPC
 static void tfm_ipc_test_1002(struct test_result_t *ret);
 static void tfm_ipc_test_1003(struct test_result_t *ret);
 static void tfm_ipc_test_1004(struct test_result_t *ret);
+static void tfm_ipc_test_1005(struct test_result_t *ret);
+static void tfm_ipc_test_1006(struct test_result_t *ret);
+
+#ifdef TFM_IPC_ISOLATION_2_TEST_READ_ONLY_MEM
+static void tfm_ipc_test_1007(struct test_result_t *ret);
+#endif
+
+#ifdef TFM_IPC_ISOLATION_2_APP_ACCESS_PSA_MEM
+static void tfm_ipc_test_1008(struct test_result_t *ret);
+#endif
+
+#ifdef TFM_IPC_ISOLATION_2_MEM_CHECK
+static void tfm_ipc_test_1009(struct test_result_t *ret);
+#endif
+#endif /* TFM_PARTITION_TEST_CORE_IPC */
 
 static struct test_t ipc_veneers_tests[] = {
+#ifdef TFM_PARTITION_TEST_CORE_IPC
     {&tfm_ipc_test_1001, "TFM_IPC_TEST_1001",
-     "Get PSA framework version", {0} },
+     "Get PSA framework version", {0}},
     {&tfm_ipc_test_1002, "TFM_IPC_TEST_1002",
-     "Get minor version of a RoT Service", {0} },
+     "Get minor version of a RoT Service", {0}},
     {&tfm_ipc_test_1003, "TFM_IPC_TEST_1003",
-     "Connect to a RoT Service", {0} },
+     "Connect to a RoT Service", {0}},
     {&tfm_ipc_test_1004, "TFM_IPC_TEST_1004",
-     "Call a RoT Service", {0} }
+     "Call a RoT Service", {0}},
+    {&tfm_ipc_test_1005, "TFM_IPC_TEST_1005",
+     "Call IPC_INIT_BASIC_TEST service", {0}},
+    {&tfm_ipc_test_1006, "TFM_IPC_TEST_1006",
+     "Call PSA RoT access APP RoT memory test service", {0}},
+#ifdef TFM_IPC_ISOLATION_2_TEST_READ_ONLY_MEM
+    {&tfm_ipc_test_1007, "TFM_IPC_TEST_1007",
+     "Call PSA RoT access APP RoT readonly memory test service", {0}},
+#endif
+#ifdef TFM_IPC_ISOLATION_2_APP_ACCESS_PSA_MEM
+    {&tfm_ipc_test_1008, "TFM_IPC_TEST_1008",
+     "Call APP RoT access PSA RoT memory test service", {0}},
+#endif
+#ifdef TFM_IPC_ISOLATION_2_MEM_CHECK
+    {&tfm_ipc_test_1009, "TFM_IPC_TEST_1009",
+     "Call APP RoT memory check test service", {0}},
+#endif
+#else /* TFM_PARTITION_TEST_CORE_IPC */
+    {&tfm_ipc_test_1001, "TFM_IPC_TEST_1001",
+     "Deprecated", {0} },
+#endif /* TFM_PARTITION_TEST_CORE_IPC */
 };
 
 void register_testsuite_ns_ipc_interface(struct test_suite_t *p_test_suite)
@@ -49,6 +102,7 @@ void register_testsuite_ns_ipc_interface(struct test_suite_t *p_test_suite)
  */
 static void tfm_ipc_test_1001(struct test_result_t *ret)
 {
+#ifdef TFM_PARTITION_TEST_CORE_IPC
     uint32_t version;
 
     version = psa_framework_version();
@@ -58,8 +112,12 @@ static void tfm_ipc_test_1001(struct test_result_t *ret)
         TEST_FAIL("The version of the PSA Framework API is not valid!\r\n");
         return;
     }
+#else /* TFM_PARTITION_TEST_CORE_IPC */
+    TEST_LOG("Running IPC tests in this config is deprecated\r\n");
+#endif /* TFM_PARTITION_TEST_CORE_IPC */
 }
 
+#ifdef TFM_PARTITION_TEST_CORE_IPC
 /**
  * \brief Retrieve the minor version of a RoT Service.
  */
@@ -67,7 +125,7 @@ static void tfm_ipc_test_1002(struct test_result_t *ret)
 {
     uint32_t version;
 
-    version = psa_version(IPC_TEST_SERVICE1_SID);
+    version = psa_version(IPC_SERVICE_TEST_BASIC_SID);
     if (version == PSA_VERSION_NONE) {
         TEST_FAIL("RoT Service is not implemented or caller is not authorized" \
                   "to access it!\r\n");
@@ -86,7 +144,7 @@ static void tfm_ipc_test_1003(struct test_result_t *ret)
 {
     psa_handle_t handle;
 
-    handle = psa_connect(IPC_TEST_SERVICE1_SID, IPC_TEST_SERVICE1_MIN_VER);
+    handle = psa_connect(IPC_SERVICE_TEST_BASIC_SID, IPC_BASIC_MIN_VER);
     if (handle > 0) {
         TEST_LOG("Connect success!\r\n");
     } else {
@@ -113,9 +171,9 @@ static void tfm_ipc_test_1004(struct test_result_t *ret)
     psa_status_t status;
     uint32_t min_version;
 
-    min_version = psa_version(IPC_TEST_SERVICE1_SID);
+    min_version = psa_version(IPC_SERVICE_TEST_BASIC_SID);
     TEST_LOG("TFM service support minor version is %d.\r\n", min_version);
-    handle = psa_connect(IPC_TEST_SERVICE1_SID, IPC_TEST_SERVICE1_MIN_VER);
+    handle = psa_connect(IPC_SERVICE_TEST_BASIC_SID, IPC_BASIC_MIN_VER);
     status = psa_call(handle, invecs, 2, outvecs, 2);
     if (status >= 0) {
         TEST_LOG("psa_call is successful!\r\n");
@@ -126,8 +184,170 @@ static void tfm_ipc_test_1004(struct test_result_t *ret)
         TEST_FAIL("psa_call is failed!\r\n");
         return;
     }
+
     TEST_LOG("outvec1 is: %s\r\n", outvecs[0].base);
     TEST_LOG("outvec2 is: %s\r\n", outvecs[1].base);
     psa_close(handle);
     ret->val = TEST_PASSED;
 }
+
+/**
+ * \brief Call IPC_CLIENT_TEST_BASIC_SID RoT Service to run the IPC basic test.
+ */
+static void tfm_ipc_test_1005(struct test_result_t *ret)
+{
+    psa_handle_t handle;
+    psa_status_t status;
+    int test_result;
+    struct psa_outvec outvecs[1] = {{&test_result, sizeof(test_result)}};
+
+    handle = psa_connect(IPC_CLIENT_TEST_BASIC_SID,
+                         IPC_CLIENT_TEST_BASIC_MIN_VER);
+    if (handle > 0) {
+        TEST_LOG("Connect success!");
+    } else {
+        TEST_LOG("The RoT Service has refused the connection!");
+        ret->val = TEST_FAILED;
+        return;
+    }
+
+    status = psa_call(handle, NULL, 0, outvecs, 1);
+    if (status >= 0) {
+        TEST_LOG("Call success!");
+        if (test_result > 0) {
+            ret->val = TEST_PASSED;
+        } else {
+            ret->val = TEST_FAILED;
+        }
+    } else {
+        TEST_LOG("Call failed!");
+        ret->val = TEST_FAILED;
+    }
+
+    psa_close(handle);
+}
+
+/**
+ * \brief Call IPC_CLIENT_TEST_PSA_ACCESS_APP_MEM_SID RoT Service
+ *  to run the IPC PSA access APP mem test.
+ */
+static void tfm_ipc_test_1006(struct test_result_t *ret)
+{
+    psa_handle_t handle;
+    psa_status_t status;
+    int test_result;
+    struct psa_outvec outvecs[1] = {{&test_result, sizeof(test_result)}};
+
+    handle = psa_connect(IPC_CLIENT_TEST_PSA_ACCESS_APP_MEM_SID,
+                         IPC_CLIENT_TEST_PSA_ACCESS_APP_MEM_MIN_VER);
+    if (handle > 0) {
+        TEST_LOG("Connect success!");
+    } else {
+        TEST_LOG("The RoT Service has refused the connection!");
+        ret->val = TEST_FAILED;
+        return;
+    }
+
+    status = psa_call(handle, NULL, 0, outvecs, 1);
+    if (status >= 0) {
+        TEST_LOG("Call success!");
+        if (test_result > 0) {
+            ret->val = TEST_PASSED;
+        } else {
+            ret->val = TEST_FAILED;
+        }
+    } else {
+        TEST_LOG("Call failed!");
+        ret->val = TEST_FAILED;
+    }
+
+    psa_close(handle);
+}
+
+#ifdef TFM_IPC_ISOLATION_2_TEST_READ_ONLY_MEM
+/**
+ * \brief Call IPC_CLIENT_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_SID RoT Service
+ *  to run the IPC PSA access APP readonly mem test.
+ */
+static void tfm_ipc_test_1007(struct test_result_t *ret)
+{
+    psa_handle_t handle;
+    int test_result;
+    struct psa_outvec outvecs[1] = {{&test_result, sizeof(test_result)}};
+
+    handle = psa_connect(IPC_CLIENT_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_SID,
+                         IPC_CLIENT_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_MIN_VER);
+    if (handle > 0) {
+        TEST_LOG("Connect success!");
+    } else {
+        TEST_LOG("The RoT Service has refused the connection!");
+        ret->val = TEST_FAILED;
+        return;
+    }
+
+    psa_call(handle, NULL, 0, outvecs, 1);
+
+    /* The system should panic in psa_call. If runs here, the test fails. */
+    ret->val = TEST_FAILED;
+    psa_close(handle);
+}
+#endif
+
+#ifdef TFM_IPC_ISOLATION_2_APP_ACCESS_PSA_MEM
+/**
+ * \brief Call IPC_CLIENT_TEST_APP_ACCESS_PSA_MEM_SID RoT Service
+ *  to run the IPC APP access PSA mem test.
+ */
+static void tfm_ipc_test_1008(struct test_result_t *ret)
+{
+    psa_handle_t handle;
+    int test_result;
+    struct psa_outvec outvecs[1] = {{&test_result, sizeof(test_result)}};
+
+    handle = psa_connect(IPC_CLIENT_TEST_APP_ACCESS_PSA_MEM_SID,
+                         IPC_CLIENT_TEST_APP_ACCESS_PSA_MEM_MIN_VER);
+    if (handle > 0) {
+        TEST_LOG("Connect success!");
+    } else {
+        TEST_LOG("The RoT Service has refused the connection!");
+        ret->val = TEST_FAILED;
+        return;
+    }
+
+    psa_call(handle, NULL, 0, outvecs, 1);
+
+    /* The system should panic in psa_call. If runs here, the test fails. */
+    ret->val = TEST_FAILED;
+    psa_close(handle);
+}
+#endif
+
+#ifdef TFM_IPC_ISOLATION_2_MEM_CHECK
+/**
+ * \brief Call IPC_CLIENT_TEST_MEM_CHECK_SID RoT Service
+ *  to run the IPC mem check test.
+ */
+static void tfm_ipc_test_1009(struct test_result_t *ret)
+{
+    psa_handle_t handle;
+    int test_result;
+    struct psa_outvec outvecs[1] = {{&test_result, sizeof(test_result)}};
+
+    handle = psa_connect(IPC_CLIENT_TEST_MEM_CHECK_SID,
+                         IPC_CLIENT_TEST_MEM_CHECK_MIN_VER);
+    if (handle > 0) {
+        TEST_LOG("Connect success!");
+    } else {
+        TEST_LOG("The RoT Service has refused the connection!");
+        ret->val = TEST_FAILED;
+        return;
+    }
+
+    psa_call(handle, NULL, 0, outvecs, 1);
+
+    /* The system should panic in psa_call. If runs here, the test fails. */
+    ret->val = TEST_FAILED;
+    psa_close(handle);
+}
+#endif
+#endif /* TFM_PARTITION_TEST_CORE_IPC */

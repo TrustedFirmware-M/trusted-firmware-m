@@ -7,11 +7,14 @@
 
 #include "sst_object_table.h"
 
+#include <stddef.h>
+
 #include "cmsis_compiler.h"
 #include "crypto/sst_crypto_interface.h"
 #include "flash/sst_flash.h"
 #include "flash_fs/sst_flash_fs.h"
 #include "nv_counters/sst_nv_counters.h"
+#include "secure_fw/core/tfm_memory_utils.h"
 #include "sst_utils.h"
 #include "tfm_sst_defs.h"
 
@@ -48,7 +51,7 @@ struct sst_obj_table_entry_t {
  *
  * \brief Object table structure.
  */
-struct __attribute__((__packed__)) sst_obj_table_t {
+struct __attribute__((__aligned__(SST_FLASH_PROGRAM_UNIT))) sst_obj_table_t {
 #ifdef SST_ENCRYPTION
   union sst_crypto_t crypto;     /*!< Crypto metadata. */
 #endif
@@ -59,9 +62,6 @@ struct __attribute__((__packed__)) sst_obj_table_t {
   uint8_t swap_count;            /*!< Swap counter to distinguish 2 different
                                   *   object tables.
                                   */
-  uint8_t reserved[2];           /*!< 32 bits alignment. */
-#else
-  uint8_t reserved[3];           /*!< 32 bits alignment. */
 #endif /* SST_ROLLBACK_PROTECTION */
 
   struct sst_obj_table_entry_t obj_db[SST_OBJ_TABLE_ENTRIES]; /*!< Table's
@@ -119,11 +119,10 @@ struct __attribute__((__packed__)) sst_obj_table_t {
  *
  * \brief Object table context structure.
  */
-struct __attribute__((__packed__)) sst_obj_table_ctx_t {
+struct sst_obj_table_ctx_t {
     struct sst_obj_table_t obj_table; /*!< Object tables */
     uint8_t active_table;             /*!< Active object table */
     uint8_t scratch_table;            /*!< Scratch object table */
-    uint8_t reserved[2];              /*!< 32 bits alignment */
 };
 
 /* Object table context */
@@ -135,19 +134,11 @@ static struct sst_obj_table_ctx_t sst_obj_table_ctx;
 /* Object table entry size */
 #define SST_OBJECTS_TABLE_ENTRY_SIZE  sizeof(struct sst_obj_table_entry_t)
 
-/* Size of object table without any entries in it */
-#define SST_EMPTY_OBJ_TABLE_SIZE  \
-          (SST_OBJ_TABLE_SIZE - (SST_NUM_ASSETS * SST_OBJECTS_TABLE_ENTRY_SIZE))
-
 /* Size of the data that is not required to authenticate */
 #define SST_NON_AUTH_OBJ_TABLE_SIZE   sizeof(union sst_crypto_t)
 
 /* Start position to store the object table data in the FS object */
 #define SST_OBJECT_TABLE_OBJECT_OFFSET 0
-
-/* Defines an object table with empty content */
-#define SST_OBJECT_TABLE_EMPTY_SIZE  0
-#define SST_OBJECT_TABLE_EMPTY       NULL
 
 /* The associated data is the header minus the crypto data */
 #define SST_CRYPTO_ASSOCIATED_DATA(crypto) ((uint8_t *)crypto + \
@@ -199,7 +190,7 @@ enum sst_obj_table_state {
  * \brief Object table init context structure.
  */
 struct sst_obj_table_init_ctx_t {
-    struct sst_obj_table_t *p_table[SST_NUM_OBJ_TABLES]; /*!< Pointer to
+    struct sst_obj_table_t *p_table[SST_NUM_OBJ_TABLES]; /*!< Pointers to
                                                           *   object tables
                                                           */
     enum sst_obj_table_state table_state[SST_NUM_OBJ_TABLES]; /*!< Array to
@@ -371,7 +362,7 @@ __STATIC_INLINE psa_ps_status_t sst_object_table_nvc_generate_auth_tag(
     sst_crypto_get_iv(crypto);
 
     assoc_data.nv_counter = nvc_1;
-    sst_utils_memcpy(assoc_data.obj_table_data,
+    (void)tfm_memcpy(assoc_data.obj_table_data,
                      SST_CRYPTO_ASSOCIATED_DATA(crypto),
                      SST_OBJ_TABLE_AUTH_DATA_SIZE);
 
@@ -395,7 +386,7 @@ static void sst_object_table_authenticate(uint8_t table_idx,
 
     /* Init associated data with NVC 1 */
     assoc_data.nv_counter = init_ctx->nvc_1;
-    sst_utils_memcpy(assoc_data.obj_table_data,
+    (void)tfm_memcpy(assoc_data.obj_table_data,
                      SST_CRYPTO_ASSOCIATED_DATA(crypto),
                      SST_OBJ_TABLE_AUTH_DATA_SIZE);
 
@@ -594,6 +585,12 @@ static psa_ps_status_t sst_object_table_save_table(
 #endif /* SST_ROLLBACK_PROTECTION */
 
     if (err != PSA_PS_SUCCESS) {
+        (void)sst_crypto_destroykey();
+        return err;
+    }
+
+    err = sst_crypto_destroykey();
+    if (err != PSA_PS_SUCCESS) {
         return err;
     }
 #endif /* SST_ENCRYPTION */
@@ -669,7 +666,7 @@ static psa_ps_status_t sst_set_active_object_table(
           /* As table 1 is the active object, load the content into the
            * SST object table context.
            */
-          sst_utils_memcpy(&sst_obj_table_ctx.obj_table,
+          (void)tfm_memcpy(&sst_obj_table_ctx.obj_table,
                            init_ctx->p_table[SST_OBJ_TABLE_IDX_1],
                            SST_OBJ_TABLE_SIZE);
 
@@ -741,7 +738,7 @@ static psa_ps_status_t sst_set_active_object_table(
      * SST object table context.
      */
     if (sst_obj_table_ctx.active_table == SST_OBJ_TABLE_IDX_1) {
-        sst_utils_memcpy(&sst_obj_table_ctx.obj_table,
+        (void)tfm_memcpy(&sst_obj_table_ctx.obj_table,
                          init_ctx->p_table[SST_OBJ_TABLE_IDX_1],
                          SST_OBJ_TABLE_SIZE);
     }
@@ -817,7 +814,7 @@ static void sst_table_delete_entry(uint32_t idx)
     p_table->obj_db[idx].client_id = 0;
 
 #ifdef SST_ENCRYPTION
-    sst_utils_memset(p_table->obj_db[idx].tag, SST_DEFAULT_EMPTY_BUFF_VAL,
+    (void)tfm_memset(p_table->obj_db[idx].tag, SST_DEFAULT_EMPTY_BUFF_VAL,
                      SST_OBJECTS_TABLE_ENTRY_SIZE);
 #else
     p_table->obj_db[idx].version = 0;
@@ -839,7 +836,7 @@ psa_ps_status_t sst_object_table_create(void)
 #endif
 
     /* Initialize object structure */
-    sst_utils_memset(&sst_obj_table_ctx, SST_DEFAULT_EMPTY_BUFF_VAL,
+    (void)tfm_memset(&sst_obj_table_ctx, SST_DEFAULT_EMPTY_BUFF_VAL,
                      sizeof(struct sst_obj_table_ctx_t));
 
     /* Invert the other in the context as sst_object_table_save_table will
@@ -858,8 +855,12 @@ psa_ps_status_t sst_object_table_init(uint8_t *obj_data)
 {
     psa_ps_status_t err;
     struct sst_obj_table_init_ctx_t init_ctx = {
-        .p_table = {&sst_obj_table_ctx.obj_table, 0},
-        .table_state = {0, 0}
+        .p_table = {&sst_obj_table_ctx.obj_table, NULL},
+        .table_state = {SST_OBJ_TABLE_VALID, SST_OBJ_TABLE_VALID},
+#ifdef SST_ROLLBACK_PROTECTION
+        .nvc_1 = 0U,
+        .nvc_3 = 0U,
+#endif /* SST_ROLLBACK_PROTECTION */
     };
 
     init_ctx.p_table[SST_OBJ_TABLE_IDX_1] = (struct sst_obj_table_t *)obj_data;
@@ -878,18 +879,24 @@ psa_ps_status_t sst_object_table_init(uint8_t *obj_data)
     /* Initialize SST NV counters */
     err = sst_init_nv_counter();
     if (err != PSA_PS_SUCCESS) {
+        (void)sst_crypto_destroykey();
         return err;
     }
 
     /* Authenticate table */
     err = sst_object_table_nvc_authenticate(&init_ctx);
     if (err != PSA_PS_SUCCESS) {
+        (void)sst_crypto_destroykey();
         return err;
     }
 #else
     sst_object_table_authenticate_ctx_tables(&init_ctx);
 #endif /* SST_ROLLBACK_PROTECTION */
 
+    err = sst_crypto_destroykey();
+    if (err != PSA_PS_SUCCESS) {
+        return err;
+    }
 #endif /* SST_ENCRYPTION */
 
     /* Check tables version */
@@ -915,10 +922,6 @@ psa_ps_status_t sst_object_table_init(uint8_t *obj_data)
         return err;
     }
 #endif /* SST_ROLLBACK_PROTECTION */
-
-#ifdef SST_ENCRYPTION
-    sst_crypto_set_iv(&sst_obj_table_ctx.obj_table.crypto);
-#endif
 
 #ifdef SST_ENCRYPTION
     sst_crypto_set_iv(&sst_obj_table_ctx.obj_table.crypto);
@@ -976,7 +979,15 @@ psa_ps_status_t sst_object_table_set_obj_tbl_info(psa_ps_uid_t uid,
     psa_ps_status_t err;
     uint32_t idx = 0;
     uint32_t backup_idx = 0;
-    struct sst_obj_table_entry_t backup_entry;
+    struct sst_obj_table_entry_t backup_entry = {
+#ifdef SST_ENCRYPTION
+        .tag = {0U},
+#else
+        .version = 0U,
+#endif /* SST_ENCRYPTION */
+        .uid = TFM_SST_INVALID_UID,
+        .client_id = 0,
+    };
     struct sst_obj_table_t *p_table = &sst_obj_table_ctx.obj_table;
 
     err = sst_get_object_entry_idx(uid, client_id, &backup_idx);
@@ -984,8 +995,7 @@ psa_ps_status_t sst_object_table_set_obj_tbl_info(psa_ps_uid_t uid,
         /* If an entry exists for this UID, it creates a backup copy in case
          * an error happens while updating the new table in the filesystem.
          */
-        sst_utils_memcpy((uint8_t *)&backup_entry,
-                         (const uint8_t *)&p_table->obj_db[backup_idx],
+        (void)tfm_memcpy(&backup_entry, &p_table->obj_db[backup_idx],
                          SST_OBJECTS_TABLE_ENTRY_SIZE);
 
         /* Deletes old object information if it exist in the table */
@@ -998,7 +1008,7 @@ psa_ps_status_t sst_object_table_set_obj_tbl_info(psa_ps_uid_t uid,
 
     /* Add new object information */
 #ifdef SST_ENCRYPTION
-    sst_utils_memcpy(p_table->obj_db[idx].tag, obj_tbl_info->tag,
+    (void)tfm_memcpy(p_table->obj_db[idx].tag, obj_tbl_info->tag,
                      SST_TAG_LEN_BYTES);
 #else
     p_table->obj_db[idx].version = obj_tbl_info->version;
@@ -1006,10 +1016,11 @@ psa_ps_status_t sst_object_table_set_obj_tbl_info(psa_ps_uid_t uid,
 
     err = sst_object_table_save_table(p_table);
     if (err != PSA_PS_SUCCESS) {
-        /* Rollback the change in the table */
-        sst_utils_memcpy((uint8_t *)&p_table->obj_db[backup_idx],
-                        (const uint8_t *)&backup_entry,
-                        SST_OBJECTS_TABLE_ENTRY_SIZE);
+        if (backup_entry.uid != TFM_SST_INVALID_UID) {
+            /* Rollback the change in the table */
+            (void)tfm_memcpy(&p_table->obj_db[backup_idx], &backup_entry,
+                             SST_OBJECTS_TABLE_ENTRY_SIZE);
+        }
 
         sst_table_delete_entry(idx);
     }
@@ -1033,7 +1044,7 @@ psa_ps_status_t sst_object_table_get_obj_tbl_info(psa_ps_uid_t uid,
     obj_tbl_info->fid = SST_OBJECT_FS_ID(idx);
 
 #ifdef SST_ENCRYPTION
-    sst_utils_memcpy(obj_tbl_info->tag, p_table->obj_db[idx].tag,
+    (void)tfm_memcpy(obj_tbl_info->tag, p_table->obj_db[idx].tag,
                      SST_TAG_LEN_BYTES);
 #else
     obj_tbl_info->version = p_table->obj_db[idx].version;
@@ -1063,8 +1074,7 @@ psa_ps_status_t sst_object_table_delete_object(psa_ps_uid_t uid,
         return err;
     }
 
-    sst_utils_memcpy((uint8_t *)&backup_entry,
-                     (const uint8_t *)&p_table->obj_db[backup_idx],
+    (void)tfm_memcpy(&backup_entry, &p_table->obj_db[backup_idx],
                      SST_OBJECTS_TABLE_ENTRY_SIZE);
 
     sst_table_delete_entry(backup_idx);
@@ -1072,8 +1082,7 @@ psa_ps_status_t sst_object_table_delete_object(psa_ps_uid_t uid,
     err = sst_object_table_save_table(p_table);
     if (err != PSA_PS_SUCCESS) {
        /* Rollback the change in the table */
-       sst_utils_memcpy((uint8_t *)&p_table->obj_db[backup_idx],
-                        (const uint8_t *)&backup_entry,
+       (void)tfm_memcpy(&p_table->obj_db[backup_idx], &backup_entry,
                         SST_OBJECTS_TABLE_ENTRY_SIZE);
     }
 

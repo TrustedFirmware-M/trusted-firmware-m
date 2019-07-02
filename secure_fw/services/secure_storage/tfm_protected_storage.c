@@ -31,6 +31,9 @@ psa_ps_status_t tfm_sst_init(void)
          * layout in that area.
          */
         err = sst_system_wipe_all();
+        if (err != PSA_PS_SUCCESS) {
+            return err;
+        }
 
         /* Attempt to initialise again */
         err = sst_system_prepare();
@@ -51,10 +54,6 @@ psa_ps_status_t tfm_sst_set(int32_t client_id,
         return PSA_PS_ERROR_INVALID_ARGUMENT;
     }
 
-    if (p_data == NULL) {
-        return PSA_PS_ERROR_INVALID_ARGUMENT;
-    }
-
     /* Check that the create_flags does not contain any unsupported flags */
     if (create_flags & ~PSA_PS_FLAG_WRITE_ONCE) {
         return PSA_PS_ERROR_FLAGS_NOT_SUPPORTED;
@@ -72,10 +71,6 @@ psa_ps_status_t tfm_sst_get(int32_t client_id,
 {
     /* Check that the UID is valid */
     if (uid == TFM_SST_INVALID_UID) {
-        return PSA_PS_ERROR_INVALID_ARGUMENT;
-    }
-
-    if (p_data == NULL) {
         return PSA_PS_ERROR_INVALID_ARGUMENT;
     }
 

@@ -10,66 +10,88 @@
   "type": "PSA-ROT",
   "priority": "NORMAL",
   "id": "0x00000100",
-  "entry_point": "tfm_sst_init",
-  "stack_size": "0x2000",
-  "heap_size": "0x0400",
+  "entry_point": "tfm_sst_req_mngr_init",
+  "stack_size": "0x1800",
+  "heap_size": "0",
   "secure_functions": [
     {
       "sfid": "TFM_SST_SET_SFID",
-      "signal": "TFM_SST_SET",
-      "tfm_symbol": "tfm_sst_set_req",
+      "signal": "TFM_SST_SET_REQ",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
       "sfid": "TFM_SST_GET_SFID",
-      "signal": "TFM_SST_GET",
-      "tfm_symbol": "tfm_sst_get_req",
+      "signal": "TFM_SST_GET_REQ",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
       "sfid": "TFM_SST_GET_INFO_SFID",
-      "signal": "TFM_SST_GET_INFO",
-      "tfm_symbol": "tfm_sst_get_info_req",
+      "signal": "TFM_SST_GET_INFO_REQ",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
       "sfid": "TFM_SST_REMOVE_SFID",
-      "signal": "TFM_SST_REMOVE",
-      "tfm_symbol": "tfm_sst_remove_req",
+      "signal": "TFM_SST_REMOVE_REQ",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
       "sfid": "TFM_SST_GET_SUPPORT_SFID",
-      "signal": "TFM_SST_GET_SUPPORT",
-      "tfm_symbol": "tfm_sst_get_support_req",
+      "signal": "TFM_SST_GET_SUPPORT_REQ",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     }
   ],
-  "source_files": [
-    "sst_encrypted_object.c",
-    "sst_object_system.c",
-    "sst_object_table.c",
-    "sst_utils.c",
-    "tfm_protected_storage.c",
-    "tfm_sst_req_mngr.c",
-    "crypto/sst_crypto_interface.c",
-    "flash/sst_flash.c",
-    "flash_fs/sst_flash_fs.c",
-    "flash_fs/sst_flash_dblock.c",
-    "flash_fs/sst_flash_mbock.c",
-    "nv_counters/sst_nv_counters.c",
+  "services" : [{
+    "name": "TFM_SST_SET_SID",
+    "sid": "0x00002000",
+    "signal": "TFM_SST_SET_SIG",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+   },
+   {
+    "name": "TFM_SST_GET_SID",
+    "sid": "0x00002001",
+    "signal": "TFM_SST_GET_SIG",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+   },
+   {
+    "name": "TFM_SST_GET_INFO_SID",
+    "sid": "0x00002002",
+    "signal": "TFM_SST_GET_INFO_SIG",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+   },
+   {
+    "name": "TFM_SST_REMOVE_SID",
+    "sid": "0x00002003",
+    "signal": "TFM_SST_REMOVE_SIG",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+   },
+   {
+    "name": "TFM_SST_GET_SUPPORT_SID",
+    "sid": "0x00002004",
+    "signal": "TFM_SST_GET_SUPPORT_SIG",
+    "non_secure_clients": "true",
+    "minor_version": 1,
+    "minor_policy": "STRICT"
+   }
   ],
-  "tfm_linker_pattern": {
+  "linker_pattern": {
     "library_list": [
       "*tfm_storage*"
     ]

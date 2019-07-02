@@ -339,7 +339,11 @@ psa_ps_status_t sst_flash_fs_file_delete(uint32_t fid)
     file_meta.cur_size = 0;
 
     /* Update file metadata in to the scratch block */
-    sst_flash_fs_mblock_update_scratch_file_meta(del_file_idx, &file_meta);
+    err = sst_flash_fs_mblock_update_scratch_file_meta(del_file_idx,
+                                                       &file_meta);
+    if (err != PSA_PS_SUCCESS) {
+        return err;
+    }
 
     /* Read all file metadata */
     for (idx = 0; idx < SST_MAX_NUM_OBJECTS; idx++) {
@@ -380,7 +384,10 @@ psa_ps_status_t sst_flash_fs_file_delete(uint32_t fid)
             }
         }
         /* Update file metadata in to the scratch block */
-        sst_flash_fs_mblock_update_scratch_file_meta(idx, &file_meta);
+        err = sst_flash_fs_mblock_update_scratch_file_meta(idx, &file_meta);
+        if (err != PSA_PS_SUCCESS) {
+            return err;
+        }
     }
 
     /* Compact data block */
@@ -409,7 +416,7 @@ psa_ps_status_t sst_flash_fs_file_delete(uint32_t fid)
     /* Update the metablock header, swap scratch and active blocks,
      * erase scratch blocks.
      */
-    sst_flash_fs_mblock_meta_update_finalize();
+    err = sst_flash_fs_mblock_meta_update_finalize();
 
     return err;
 }

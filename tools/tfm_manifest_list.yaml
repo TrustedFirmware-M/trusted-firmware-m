@@ -16,6 +16,7 @@
       "short_name": "SST",
       "manifest": "secure_fw/services/secure_storage/manifest.yaml",
       "tfm_extensions": true,
+      "tfm_partition_ipc": true,
       "version_major": 0,
       "version_minor": 1
     },
@@ -23,7 +24,9 @@
       "name": "TFM Audit Log Service",
       "short_name": "TFM_Audit_Log",
       "manifest": "secure_fw/services/audit_logging/manifest.yaml",
+      "conditional": "TFM_PARTITION_AUDIT_LOG",
       "tfm_extensions": true,
+      "tfm_partition_ipc": false,
       "version_major": 0,
       "version_minor": 1
     },
@@ -32,6 +35,7 @@
       "short_name": "TFM_Crypto",
       "manifest": "secure_fw/services/crypto/manifest.yaml",
       "tfm_extensions": true,
+      "tfm_partition_ipc": true,
       "version_major": 0,
       "version_minor": 1
     },
@@ -40,6 +44,8 @@
       "short_name": "TFM_SP_Platform",
       "manifest": "secure_fw/services/platform/manifest.yaml",
       "tfm_extensions": true,
+      "tfm_partition_ipc": false,
+      "conditional": "TFM_PARTITION_PLATFORM",
       "version_major": 0,
       "version_minor": 1
     },
@@ -48,6 +54,7 @@
       "short_name": "TFM_Init_Attest",
       "manifest": "secure_fw/services/initial_attestation/manifest.yaml",
       "tfm_extensions": true,
+      "tfm_partition_ipc": true,
       "version_major": 0,
       "version_minor": 1
     },
@@ -56,6 +63,7 @@
       "short_name": "TFM_Core_Test",
       "manifest": "test/test_services/tfm_core_test/manifest.yaml",
       "tfm_extensions": true,
+      "tfm_partition_ipc": true,
       "conditional": "TFM_PARTITION_TEST_CORE",
       "version_major": 0,
       "version_minor": 1
@@ -65,6 +73,7 @@
       "short_name": "TFM_Core_Test_2",
       "manifest": "test/test_services/tfm_core_test_2/manifest.yaml",
       "tfm_extensions": true,
+      "tfm_partition_ipc": true,
       "conditional": "TFM_PARTITION_TEST_CORE",
       "version_major": 0,
       "version_minor": 1
@@ -74,6 +83,7 @@
       "short_name": "TFM_Secure_Client",
       "manifest": "test/test_services/tfm_secure_client_service/manifest.yaml",
       "tfm_extensions": true,
+      "tfm_partition_ipc": true,
       "conditional": "TFM_PARTITION_TEST_SECURE_SERVICES",
       "version_major": 0,
       "version_minor": 1
@@ -83,7 +93,8 @@
       "short_name": "TFM_IPC_Service",
       "manifest": "test/test_services/tfm_ipc_service/tfm_ipc_service_partition.yaml",
       "tfm_extensions": true,
-      "conditional": "TFM_PSA_API",
+      "tfm_partition_ipc": true,
+      "conditional": "TFM_PARTITION_TEST_CORE_IPC",
       "version_major": 0,
       "version_minor": 1
     },
@@ -92,7 +103,8 @@
       "short_name": "TFM_IPC_Client",
       "manifest": "test/test_services/tfm_ipc_client/tfm_ipc_client_partition.yaml",
       "tfm_extensions": true,
-      "conditional": "TFM_PSA_API",
+      "tfm_partition_ipc": true,
+      "conditional": "TFM_PARTITION_TEST_CORE_IPC",
       "version_major": 0,
       "version_minor": 1
     }

@@ -8,7 +8,6 @@
 #include "sst_tests.h"
 
 #include <stdio.h>
-#include <string.h>
 
 #include "psa_protected_storage.h"
 #include "secure_fw/core/tfm_memory_utils.h"
@@ -62,8 +61,8 @@ static void tfm_sst_test_3001(struct test_result_t *ret)
     const uint32_t data_len = WRITE_DATA_SIZE;
     const uint32_t offset = 0;
     uint32_t itr;
-    uint8_t write_data[] = WRITE_DATA;
-    uint8_t read_data[]  = READ_DATA;
+    const uint8_t write_data[] = WRITE_DATA;
+    uint8_t read_data[] = READ_DATA;
 
     for (itr = 0; itr < LOOP_ITERATIONS_001; itr++) {
         TEST_LOG("  > Iteration %d of %d\r", itr + 1, LOOP_ITERATIONS_001);
@@ -116,8 +115,8 @@ static void tfm_sst_test_3002(struct test_result_t *ret)
     const uint32_t data_len = WRITE_DATA_SIZE;
     const uint32_t offset = 0;
     uint32_t itr;
-    uint8_t write_data[] = WRITE_DATA;
-    uint8_t read_data[]  = READ_DATA;
+    const uint8_t write_data[] = WRITE_DATA;
+    uint8_t read_data[] = READ_DATA;
 
     for (itr = 0; itr < LOOP_ITERATIONS_002; itr++) {
         TEST_LOG("  > Iteration %d of %d\r", itr + 1, LOOP_ITERATIONS_002);

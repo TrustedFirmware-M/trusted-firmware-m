@@ -10,18 +10,56 @@
   "type": "APPLICATION-ROT",
   "priority": "NORMAL",
   "id": "0x00000006",
-  "entry_point": "ipc_client_init",
-  "stack_size": "0x1000",
+  "entry_point": "ipc_client_test_main",
+  "stack_size": "0x0200",
   "heap_size": "0",
   "secure_functions": [
   ],
-  "tfm_partition_ipc": true,
-  "source_files": [
-    "ipc_client_test.c",
+  "services" : [
+    {
+      "name": "IPC_CLIENT_TEST_BASIC_SID",
+      "sid": "0x00001100",
+      "signal": "IPC_CLIENT_TEST_BASIC_SIGNAL",
+      "non_secure_clients": "true",
+      "minor_version": 1,
+      "minor_policy": "STRICT"
+    },
+    {
+      "name": "IPC_CLIENT_TEST_PSA_ACCESS_APP_MEM_SID",
+      "sid": "0x00001101",
+      "signal": "IPC_CLIENT_TEST_PSA_ACCESS_APP_MEM_SIGNAL",
+      "non_secure_clients": "true",
+      "minor_version": 1,
+      "minor_policy": "STRICT"
+    },
+    {
+      "name": "IPC_CLIENT_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_SID",
+      "sid": "0x00001102",
+      "signal": "IPC_CLIENT_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_SIGNAL",
+      "non_secure_clients": "true",
+      "minor_version": 1,
+      "minor_policy": "STRICT"
+    },
+    {
+      "name": "IPC_CLIENT_TEST_APP_ACCESS_PSA_MEM_SID",
+      "sid": "0x00001103",
+      "signal": "IPC_CLIENT_TEST_APP_ACCESS_PSA_MEM_SIGNAL",
+      "non_secure_clients": "true",
+      "minor_version": 1,
+      "minor_policy": "STRICT"
+    },
+    {
+      "name": "IPC_CLIENT_TEST_MEM_CHECK_SID",
+      "sid": "0x00001104",
+      "signal": "IPC_CLIENT_TEST_MEM_CHECK_SIGNAL",
+      "non_secure_clients": "true",
+      "minor_version": 1,
+      "minor_policy": "STRICT"
+    }
   ],
-  "tfm_linker_pattern": {
-    "library_list": [
-      "*ipc_client_test*"
+  "linker_pattern": {
+    "object_list": [
+      "*ipc_client_test.*"
     ]
   }
 }

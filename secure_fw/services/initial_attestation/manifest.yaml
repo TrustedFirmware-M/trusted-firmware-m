@@ -10,38 +10,46 @@
   "type": "PSA-ROT",
   "priority": "NORMAL",
   "id": "0x00000103",
-  "entry_point": "attest_init",
-  "stack_size": "0x0400",
+  "entry_point": "attest_partition_init",
+  "stack_size": "0x0A00",
   "heap_size": "0x0400",
-  "tfm_init_symbol": "attest_init",
   "secure_functions": [
     {
       "sfid": "TFM_ATTEST_GET_TOKEN_SFID",
-      "signal": "TFM_ATTEST_GET_TOKEN",
-      "tfm_symbol": "initial_attest_get_token",
+      "signal": "INITIAL_ATTEST_GET_TOKEN",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
       "sfid": "TFM_ATTEST_GET_TOKEN_SIZE_SFID",
-      "signal": "TFM_ATTEST_GET_TOKEN_SIZE",
-      "tfm_symbol": "initial_attest_get_token_size",
+      "signal": "INITIAL_ATTEST_GET_TOKEN_SIZE",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     }
   ],
-  "source_files": [
-    "attestation_core.c",
-    "attestation_crypto_stub.c",
-    "attestation_key.c",
-    "attest_token.c",
-    "tfm_attestation.c",
-  ],
-  "tfm_linker_pattern": {
+  "linker_pattern": {
     "library_list": [
       "*tfm_attest*"
     ]
-  }
+  },
+  "services": [
+    {
+      "name": "TFM_ATTEST_GET_TOKEN_SID",
+      "sid": "0x00000020",
+      "signal": "PSA_ATTEST_GET_TOKEN_SIG",
+      "non_secure_clients": "true",
+      "minor_version": 1,
+      "minor_policy": "STRICT"
+    },
+    {
+      "name": "TFM_ATTEST_GET_TOKEN_SIZE_SID",
+      "sid": "0x00000021",
+      "signal": "PSA_ATTEST_GET_TOKEN_SIZE_SIG",
+      "non_secure_clients": "true",
+      "minor_version": 1,
+      "minor_policy": "STRICT"
+    }
+  ]
 }

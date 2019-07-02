@@ -5,30 +5,30 @@
 #
 #-------------------------------------------------------------------------------
 
-# FindPlantuml
-# -----------
-# PlantUML is a diagram generation tool. It can generate various UML and non-UML
-# diagrams. See: http://plantuml.com/
+#FindPlantuml
+#-----------
+#PlantUML is a diagram generation tool. It can generate various UML and non-UML
+#diagrams. See: http://plantuml.com/
 #
-# This module checks PlantUML availability and checks if the Java runtime is
-# available.
-# For Windows PlantUML is distributed as a jar archive and thus there is no
-# standard install location where it could be searched for.
-# Most Linux distributions come with a proper PlantUML package which installs
-# a shell script to easy starting PlantUML, but the location of the .jar file
-# is hidden.
-# Thus there is no standard location to search for the .jar file and this module
-# depends on user input.
+#This module checks PlantUML availability and checks if the Java runtime is
+#available.
+#For Windows PlantUML is distributed as a jar archive and thus there is no
+#standard install location where it could be searched for.
+#Most Linux distributions come with a proper PlantUML package which installs
+#a shell script to easy starting PlantUML, but the location of the .jar file
+#is hidden.
+#Thus there is no standard location to search for the .jar file and this module
+#depends on user input.
 #
-# This module has the following parameters:
-#    PLANTUML_JAR_PATH   = variable specifying where the PlantUML java archive
-#                          (plantuml.jar) can be found. If it is not defined,
-#                          the environment variable with the same name is used.
-#                          If both is missing, that is an error.
+#This module has the following parameters:
+#   PLANTUML_JAR_PATH   = variable specifying where the PlantUML java archive
+#                         (plantuml.jar) can be found. If it is not defined,
+#                         the environment variable with the same name is used.
+#                         If both is missing, that is an error.
 #
-# This module defines the following variables:
-#    PLANTUML_VERSION        = The version reported by "plantuml.jar -version"
-#    PLANTUML_FOUND          = Was the .jar file found and sucesfuly executed.
+#This module defines the following variables:
+#   PLANTUML_VERSION        = The version reported by "plantuml.jar -version"
+#   PLANTUML_FOUND          = Was the .jar file found and sucesfuly executed.
 #
 
 find_package(Java 1.8 COMPONENTS Runtime)
@@ -44,17 +44,7 @@ if(Java_Runtime_FOUND)
 	if (NOT DEFINED PLANTUML_JAR_PATH)
 		message(STATUS "PLANTUML_JAR_PATH variable is missing, PlantUML jar location is unknown.")
 	else()
-		#To avoid trouble on windows change directory separator.
-		if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
-			#Do not convert directory separator if there are forward slashes
-			#present. This is to avoid mixing up escaped characters in cygwin
-			#or mingw paths (i.e. c:/Program\ Files/something)
-			string(FIND "${PLANTUML_JAR_PATH}" "/" _is_found)
-			if (_is_found LESS 0)
-				string(REPLACE "\\" "/" PLANTUML_JAR_PATH "${PLANTUML_JAR_PATH}")
-			endif()
-		endif()
-
+		win_fix_dir_sep(PATH PLANTUML_JAR_PATH)
 		#Get plantuml version
 		execute_process(COMMAND "${Java_JAVA_EXECUTABLE}" "-jar" "${PLANTUML_JAR_PATH}" "-version" OUTPUT_VARIABLE _PLANTUML_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
 		#Parse plantuml output

@@ -31,18 +31,27 @@ static struct test_suite_t test_suites[] = {
     {&register_testsuite_s_psa_ps_interface, 0, 0, 0},
     {&register_testsuite_s_psa_ps_reliability, 0, 0, 0},
 
-#if defined(SST_ROLLBACK_PROTECTION) && defined(SST_ENCRYPTION)
+#ifdef SST_TEST_NV_COUNTERS
     {&register_testsuite_s_rollback_protection, 0, 0, 0},
 #endif
-
-    /* Secure Audit Logging test cases */
-    {&register_testsuite_s_audit_interface, 0, 0, 0},
 
     /* Crypto test cases */
     {&register_testsuite_s_crypto_interface, 0, 0, 0},
 
     /* Secure initial attestation service test cases */
     {&register_testsuite_s_attestation_interface, 0, 0, 0},
+
+#ifndef TFM_PSA_API
+    /*
+     * FixMe: since the following partitions haven't implement the IPC model,
+     * they will block the process. Skip them in IPC model.
+     */
+#ifdef ENABLE_AUDIT_LOGGING_SERVICE_TESTS
+    /* Secure Audit Logging test cases */
+    {&register_testsuite_s_audit_interface, 0, 0, 0},
+#endif
+
+#endif
 
 #ifdef TFM_PARTITION_TEST_CORE
     /* Secure invert test cases */
@@ -56,6 +65,8 @@ static struct test_suite_t test_suites[] = {
 #endif
 #endif /* SERVICES_TEST_S */
 #endif /* TFM_LVL == 3 */
+    /* End of test suites */
+    {0, 0, 0, 0}
 };
 
 static void setup_integ_test(void)
@@ -75,8 +86,6 @@ static void tear_down_integ_test(void)
 void start_integ_test(void)
 {
     setup_integ_test();
-    integ_test("Secure",
-               test_suites,
-               sizeof(test_suites)/sizeof(test_suites[0]));
+    integ_test("Secure", test_suites);
     tear_down_integ_test();
 }

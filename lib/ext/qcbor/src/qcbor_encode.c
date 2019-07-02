@@ -42,6 +42,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  when               who             what, where, why
  --------           ----            ---------------------------------------------------
+ 4/6/19             llundblade      Wrapped bstr returned now includes the wrapping bstr
  12/30/18           llundblade      Small efficient clever encode of type & argument.
  11/29/18           llundblade      Rework to simpler handling of tags and labels.
  11/9/18            llundblade      Error codes are now enums.
@@ -392,26 +393,41 @@ void QCBOREncode_AddInt64(QCBOREncodeContext *me, int64_t nNum)
 
 
 /*
- Semi-private function. It is exposed to user of the interface,
- but they will usually call one of the inline wrappers rather than this.
+ Semi-private function. It is exposed to user of the interface, but
+ they will usually call one of the inline wrappers rather than this.
 
  See header qcbor.h
 
- Does the work of adding some bytes to the CBOR output. Works for a
- byte and text strings, which are the same in in CBOR though they have
- different major types.  This is also used to insert raw
- pre-encoded CBOR.
+ Does the work of adding actual strings bytes to the CBOR output (as
+ opposed to numbers and opening / closing aggregate types).
+
+ There are four use cases:
+   CBOR_MAJOR_TYPE_BYTE_STRING -- Byte strings
+   CBOR_MAJOR_TYPE_TEXT_STRING -- Text strings
+   CBOR_MAJOR_NONE_TYPE_RAW -- Already-encoded CBOR
+   CBOR_MAJOR_NONE_TYPE_BSTR_LEN_ONLY -- Special case
+
+ The first two add the type and length plus the actual bytes. The
+ third just adds the bytes as the type and length are presumed to be
+ in the bytes. The fourth just adds the type and length for the very
+ special case of QCBOREncode_AddBytesLenOnly().
  */
 void QCBOREncode_AddBuffer(QCBOREncodeContext *me, uint8_t uMajorType, UsefulBufC Bytes)
 {
    if(me->uError == QCBOR_SUCCESS) {
       // If it is not Raw CBOR, add the type and the length
       if(uMajorType != CBOR_MAJOR_NONE_TYPE_RAW) {
-         AppendEncodedTypeAndNumber(me, uMajorType, Bytes.len);
+         uint8_t uRealMajorType = uMajorType;
+         if(uRealMajorType == CBOR_MAJOR_NONE_TYPE_BSTR_LEN_ONLY) {
+            uRealMajorType = CBOR_MAJOR_TYPE_BYTE_STRING;
+         }
+         AppendEncodedTypeAndNumber(me, uRealMajorType, Bytes.len);
       }
 
-      // Actually add the bytes
-      UsefulOutBuf_AppendUsefulBuf(&(me->OutBuf), Bytes);
+      if(uMajorType != CBOR_MAJOR_NONE_TYPE_BSTR_LEN_ONLY) {
+         // Actually add the bytes
+         UsefulOutBuf_AppendUsefulBuf(&(me->OutBuf), Bytes);
+      }
 
       // Update the array counting if there is any nesting at all
       me->uError = Nesting_Increment(&(me->nesting));
@@ -541,12 +557,11 @@ void QCBOREncode_CloseMapOrArray(QCBOREncodeContext *me,
          // Return pointer and length to the enclosed encoded CBOR. The intended
          // use is for it to be hashed (e.g., SHA-256) in a COSE implementation.
          // This must be used right away, as the pointer and length go invalid
-         // on any subsequent calls to this function because of the
-         // InsertEncodedTypeAndNumber() call that slides data to the right.
+         // on any subsequent calls to this function because there might be calls to
+         // InsertEncodedTypeAndNumber() that slides data to the right.
          if(pWrappedCBOR) {
             const UsefulBufC PartialResult = UsefulOutBuf_OutUBuf(&(me->OutBuf));
-            const size_t uBstrLen = UsefulOutBuf_GetEndPosition(&(me->OutBuf)) - uEndPosition;
-            *pWrappedCBOR = UsefulBuf_Tail(PartialResult, uInsertPosition+uBstrLen);
+            *pWrappedCBOR = UsefulBuf_Tail(PartialResult, uInsertPosition);
          }
          Nesting_Decrease(&(me->nesting));
       }
@@ -561,7 +576,7 @@ void QCBOREncode_CloseMapOrArray(QCBOREncodeContext *me,
  */
 QCBORError QCBOREncode_Finish(QCBOREncodeContext *me, UsefulBufC *pEncodedCBOR)
 {
-   QCBORError uReturn = me->uError;
+   QCBORError uReturn = (QCBORError) me->uError;
 
    if(uReturn != QCBOR_SUCCESS) {
       goto Done;
@@ -573,7 +588,7 @@ QCBORError QCBOREncode_Finish(QCBOREncodeContext *me, UsefulBufC *pEncodedCBOR)
    }
 
    if(UsefulOutBuf_GetError(&(me->OutBuf))) {
-      // Stuff didn't fit in the buffer.
+      // Items didn't fit in the buffer.
       // This check catches this condition for all the appends and inserts
       // so checks aren't needed when the appends and inserts are performed.
       // And of course UsefulBuf will never overrun the input buffer given

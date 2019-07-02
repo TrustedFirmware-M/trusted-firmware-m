@@ -496,7 +496,7 @@ static const struct uart_pl011_dev_cfg_t UART0_PL011_DEV_CFG_S = {
     .def_parity = UART_PL011_PARITY_DISABLED,
     .def_stopbit = UART_PL011_STOPBIT_1};
 static struct uart_pl011_dev_data_t UART0_PL011_DEV_DATA_S = {
-    .state = 0,
+    .state = UART_PL011_UNINITIALIZED,
     .uart_clk = 0,
     .baudrate = 0};
 struct uart_pl011_dev_t UART0_PL011_DEV_S = {&(UART0_PL011_DEV_CFG_S),
@@ -511,7 +511,7 @@ static const struct uart_pl011_dev_cfg_t UART0_PL011_DEV_CFG_NS = {
     .def_parity = UART_PL011_PARITY_DISABLED,
     .def_stopbit = UART_PL011_STOPBIT_1};
 static struct uart_pl011_dev_data_t UART0_PL011_DEV_DATA_NS = {
-    .state = 0,
+    .state = UART_PL011_UNINITIALIZED,
     .uart_clk = 0,
     .baudrate = 0};
 struct uart_pl011_dev_t UART0_PL011_DEV_NS = {&(UART0_PL011_DEV_CFG_NS),
@@ -526,7 +526,7 @@ static const struct uart_pl011_dev_cfg_t UART1_PL011_DEV_CFG_S = {
     .def_parity = UART_PL011_PARITY_DISABLED,
     .def_stopbit = UART_PL011_STOPBIT_1};
 static struct uart_pl011_dev_data_t UART1_PL011_DEV_DATA_S = {
-    .state = 0,
+    .state = UART_PL011_UNINITIALIZED,
     .uart_clk = 0,
     .baudrate = 0};
 struct uart_pl011_dev_t UART1_PL011_DEV_S = {&(UART1_PL011_DEV_CFG_S),
@@ -541,7 +541,7 @@ static const struct uart_pl011_dev_cfg_t UART1_PL011_DEV_CFG_NS = {
     .def_parity = UART_PL011_PARITY_DISABLED,
     .def_stopbit = UART_PL011_STOPBIT_1};
 static struct uart_pl011_dev_data_t UART1_PL011_DEV_DATA_NS = {
-    .state = 0,
+    .state = UART_PL011_UNINITIALIZED,
     .uart_clk = 0,
     .baudrate = 0};
 struct uart_pl011_dev_t UART1_PL011_DEV_NS = {&(UART1_PL011_DEV_CFG_NS),
@@ -572,7 +572,7 @@ struct spi_ip6524_dev_t SPI0_DEV_NS = {&(SPI0_DEV_CFG_NS),
 static const struct qspi_ip6514e_dev_cfg_t QSPI_DEV_CFG_S = {
     .base = MUSCA_QSPI_REG_S_BASE,
     /*
-     * On Musca-A1, only the 18 first address bits are used for any AHB
+     * On Musca-A, only the 18 first address bits are used for any AHB
      * address in a request coming to the QSPI Flash controller.
      * It means that direct accesses are limited to the first 256 KiB of the
      * Flash memory (if the Remap register is not used) and that the Indirect
@@ -589,7 +589,7 @@ struct qspi_ip6514e_dev_t QSPI_DEV_S = {
 static const struct qspi_ip6514e_dev_cfg_t QSPI_DEV_CFG_NS = {
     .base = MUSCA_QSPI_REG_NS_BASE,
     /*
-     * On Musca-A1, only the 18 first address bits are used for any AHB
+     * On Musca-A, only the 18 first address bits are used for any AHB
      * address in a request coming to the QSPI Flash controller.
      * It means that direct accesses are limited to the first 256 KiB of the
      * Flash memory (if the Remap register is not used) and that the Indirect

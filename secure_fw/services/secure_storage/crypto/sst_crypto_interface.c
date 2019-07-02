@@ -6,51 +6,32 @@
  */
 
 #include "sst_crypto_interface.h"
-#include "secure_fw/services/secure_storage/sst_utils.h"
 
-/* Pre include Mbed TLS headers */
-#define LIB_PREFIX_NAME __tfm_storage__
-#include "mbedtls_global_symbols.h"
+#include <stdbool.h>
 
-/* Include the Mbed TLS configuration file, the way Mbed TLS does it
- * in each of its header files.
- */
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "platform/ext/common/tfm_mbedtls_config.h"
-#else
-#include MBEDTLS_CONFIG_FILE
-#endif
-
-#include "mbedtls/gcm.h"
-#include "mbedtls/memory_buffer_alloc.h"
 #include "platform/include/tfm_plat_crypto_keys.h"
+#include "psa_crypto.h"
+#include "secure_fw/core/tfm_memory_utils.h"
 
-/* FIXME: most of this implementation will be replaced by crypto service API
- *        calls
+/* FIXME: HUK management should be part of Crypto service, with keys hidden from
+ *        SST.
  */
 
-#define SST_MBEDTLS_MEM_BUF_LEN 512
+/* The PSA key type used by this implementation */
+#define SST_KEY_TYPE PSA_KEY_TYPE_AES
+/* The PSA key usage required by this implementation */
+#define SST_KEY_USAGE (PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT)
+/* The PSA algorithm used by this implementation */
+#define SST_CRYPTO_ALG \
+    PSA_ALG_AEAD_WITH_TAG_LENGTH(PSA_ALG_GCM, SST_TAG_LEN_BYTES)
 
-static mbedtls_gcm_context sst_crypto_gcm_ctx = { { 0 } };
+static psa_key_handle_t sst_key_handle;
 static uint8_t sst_crypto_iv_buf[SST_IV_LEN_BYTES];
-
-/* Static buffer to be used by mbedtls for memory allocation */
-static uint8_t mbedtls_mem_buf[SST_MBEDTLS_MEM_BUF_LEN];
 
 psa_ps_status_t sst_crypto_init(void)
 {
-    mbedtls_gcm_free(&sst_crypto_gcm_ctx);
-
-    /* Initialise the mbedtls static memory allocator so that mbedtls allocates
-     * memory from the provided static buffer instead of from the heap.
-     */
-    mbedtls_memory_buffer_alloc_init(mbedtls_mem_buf, SST_MBEDTLS_MEM_BUF_LEN);
-
-    mbedtls_gcm_init(&sst_crypto_gcm_ctx);
-
-    /* Currently returns SUCCESS as the mbedtls functions called
-     * are void. When integrated with crypto engine or service
-     * a return value may be required.
+    /* Currently, no initialisation is required. This may change if key
+     * handling is changed.
      */
     return PSA_PS_SUCCESS;
 }
@@ -77,11 +58,37 @@ psa_ps_status_t sst_crypto_getkey(uint32_t key_len, uint8_t *key)
 
 psa_ps_status_t sst_crypto_setkey(uint32_t key_len, const uint8_t *key)
 {
-    int32_t err;
+    psa_status_t status;
+    psa_key_policy_t key_policy = PSA_KEY_POLICY_INIT;
 
-    err = mbedtls_gcm_setkey(&sst_crypto_gcm_ctx, MBEDTLS_CIPHER_ID_AES,
-                             key, key_len*8);
-    if (err != 0) {
+    /* Allocate a transient key handle for SST */
+    status = psa_allocate_key(&sst_key_handle);
+    if (status != PSA_SUCCESS) {
+        return PSA_PS_ERROR_OPERATION_FAILED;
+    }
+
+    /* Set the key policy */
+    psa_key_policy_set_usage(&key_policy, SST_KEY_USAGE, SST_CRYPTO_ALG);
+    status = psa_set_key_policy(sst_key_handle, &key_policy);
+    if (status != PSA_SUCCESS) {
+        return PSA_PS_ERROR_OPERATION_FAILED;
+    }
+
+    status = psa_import_key(sst_key_handle, SST_KEY_TYPE, key, key_len);
+    if (status != PSA_SUCCESS) {
+        return PSA_PS_ERROR_OPERATION_FAILED;
+    }
+
+    return PSA_PS_SUCCESS;
+}
+
+psa_ps_status_t sst_crypto_destroykey(void)
+{
+    psa_status_t status;
+
+    /* Destroy the transient key */
+    status = psa_destroy_key(sst_key_handle);
+    if (status != PSA_SUCCESS) {
         return PSA_PS_ERROR_OPERATION_FAILED;
     }
 
@@ -90,7 +97,7 @@ psa_ps_status_t sst_crypto_setkey(uint32_t key_len, const uint8_t *key)
 
 void sst_crypto_set_iv(const union sst_crypto_t *crypto)
 {
-    sst_utils_memcpy(sst_crypto_iv_buf, crypto->ref.iv, SST_IV_LEN_BYTES);
+    (void)tfm_memcpy(sst_crypto_iv_buf, crypto->ref.iv, SST_IV_LEN_BYTES);
 }
 
 void sst_crypto_get_iv(union sst_crypto_t *crypto)
@@ -120,8 +127,8 @@ void sst_crypto_get_iv(union sst_crypto_t *crypto)
     uint64_t iv_l;
     uint32_t iv_h;
 
-    sst_utils_memcpy(&iv_l, sst_crypto_iv_buf, sizeof(iv_l));
-    sst_utils_memcpy(&iv_h, (sst_crypto_iv_buf+sizeof(iv_l)), sizeof(iv_h));
+    (void)tfm_memcpy(&iv_l, sst_crypto_iv_buf, sizeof(iv_l));
+    (void)tfm_memcpy(&iv_h, (sst_crypto_iv_buf+sizeof(iv_l)), sizeof(iv_h));
     iv_l++;
     /* If overflow, increment the MSBs */
     if (iv_l == 0) {
@@ -129,46 +136,60 @@ void sst_crypto_get_iv(union sst_crypto_t *crypto)
     }
 
     /* Update the local buffer */
-    sst_utils_memcpy(sst_crypto_iv_buf, &iv_l, sizeof(iv_l));
-    sst_utils_memcpy((sst_crypto_iv_buf + sizeof(iv_l)), &iv_h, sizeof(iv_h));
+    (void)tfm_memcpy(sst_crypto_iv_buf, &iv_l, sizeof(iv_l));
+    (void)tfm_memcpy((sst_crypto_iv_buf + sizeof(iv_l)), &iv_h, sizeof(iv_h));
     /* Update the caller buffer */
-    sst_utils_memcpy(crypto->ref.iv, sst_crypto_iv_buf, SST_IV_LEN_BYTES);
+    (void)tfm_memcpy(crypto->ref.iv, sst_crypto_iv_buf, SST_IV_LEN_BYTES);
 }
 
 psa_ps_status_t sst_crypto_encrypt_and_tag(union sst_crypto_t *crypto,
                                            const uint8_t *add,
-                                           uint32_t add_len,
+                                           size_t add_len,
                                            const uint8_t *in,
-                                           uint32_t len,
-                                           uint8_t *out)
+                                           size_t in_len,
+                                           uint8_t *out,
+                                           size_t out_size,
+                                           size_t *out_len)
 {
-    int32_t err;
+    psa_status_t status;
 
-    err = mbedtls_gcm_crypt_and_tag(&sst_crypto_gcm_ctx, MBEDTLS_GCM_ENCRYPT,
-                                    len, crypto->ref.iv, SST_IV_LEN_BYTES, add,
-                                    add_len, in, out, SST_TAG_LEN_BYTES,
-                                    crypto->ref.tag);
-    if (err != 0) {
+    status = psa_aead_encrypt(sst_key_handle, SST_CRYPTO_ALG,
+                              crypto->ref.iv, SST_IV_LEN_BYTES,
+                              add, add_len,
+                              in, in_len,
+                              out, out_size, out_len);
+    if (status != PSA_SUCCESS) {
         return PSA_PS_ERROR_OPERATION_FAILED;
     }
+
+    /* Copy the tag out of the output buffer */
+    *out_len -= SST_TAG_LEN_BYTES;
+    (void)tfm_memcpy(crypto->ref.tag, (out + *out_len), SST_TAG_LEN_BYTES);
 
     return PSA_PS_SUCCESS;
 }
 
 psa_ps_status_t sst_crypto_auth_and_decrypt(const union sst_crypto_t *crypto,
                                             const uint8_t *add,
-                                            uint32_t add_len,
-                                            const uint8_t *in,
-                                            uint32_t len,
-                                            uint8_t *out)
+                                            size_t add_len,
+                                            uint8_t *in,
+                                            size_t in_len,
+                                            uint8_t *out,
+                                            size_t out_size,
+                                            size_t *out_len)
 {
-    int32_t err;
+    psa_status_t status;
 
-    err = mbedtls_gcm_auth_decrypt(&sst_crypto_gcm_ctx, len, crypto->ref.iv,
-                                   SST_IV_LEN_BYTES, add, add_len,
-                                   crypto->ref.tag, SST_TAG_LEN_BYTES,
-                                   in, out);
-    if (err != 0) {
+    /* Copy the tag into the input buffer */
+    (void)tfm_memcpy((in + in_len), crypto->ref.tag, SST_TAG_LEN_BYTES);
+    in_len += SST_TAG_LEN_BYTES;
+
+    status = psa_aead_decrypt(sst_key_handle, SST_CRYPTO_ALG,
+                              crypto->ref.iv, SST_IV_LEN_BYTES,
+                              add, add_len,
+                              in, in_len,
+                              out, out_size, out_len);
+    if (status != PSA_SUCCESS) {
         return PSA_PS_ERROR_AUTH_FAILED;
     }
 
@@ -179,18 +200,36 @@ psa_ps_status_t sst_crypto_generate_auth_tag(union sst_crypto_t *crypto,
                                              const uint8_t *add,
                                              uint32_t add_len)
 {
-    psa_ps_status_t ret;
+    psa_status_t status;
+    size_t out_len;
 
-    ret = sst_crypto_encrypt_and_tag(crypto, add, add_len, 0, 0, 0);
-    return ret;
+    status = psa_aead_encrypt(sst_key_handle, SST_CRYPTO_ALG,
+                              crypto->ref.iv, SST_IV_LEN_BYTES,
+                              add, add_len,
+                              0, 0,
+                              crypto->ref.tag, SST_TAG_LEN_BYTES, &out_len);
+    if (status != PSA_SUCCESS || out_len != SST_TAG_LEN_BYTES) {
+        return PSA_PS_ERROR_OPERATION_FAILED;
+    }
+
+    return PSA_PS_SUCCESS;
 }
 
 psa_ps_status_t sst_crypto_authenticate(const union sst_crypto_t *crypto,
                                         const uint8_t *add,
                                         uint32_t add_len)
 {
-    uint32_t ret;
+    psa_status_t status;
+    size_t out_len;
 
-    ret = sst_crypto_auth_and_decrypt(crypto, add, add_len, 0, 0, 0);
-    return ret;
+    status = psa_aead_decrypt(sst_key_handle, SST_CRYPTO_ALG,
+                              crypto->ref.iv, SST_IV_LEN_BYTES,
+                              add, add_len,
+                              crypto->ref.tag, SST_TAG_LEN_BYTES,
+                              0, 0, &out_len);
+    if (status != PSA_SUCCESS || out_len != 0) {
+        return PSA_PS_ERROR_AUTH_FAILED;
+    }
+
+    return PSA_PS_SUCCESS;
 }

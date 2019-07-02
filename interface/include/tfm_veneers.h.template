@@ -22,7 +22,7 @@ extern "C" {
     {% endif %}
 /******** {{manifest.manifest.name}} ********/
     {% for function in manifest.manifest.secure_functions%}
-psa_status_t tfm_{{function.tfm_symbol}}_veneer(psa_invec *in_vec, size_t in_len, psa_outvec *out_vec, size_t out_len);
+psa_status_t tfm_{{function.signal.lower()}}_veneer(psa_invec *in_vec, size_t in_len, psa_outvec *out_vec, size_t out_len);
     {% endfor %}
     {% if manifest.attr.conditional %}
 #endif /* {{manifest.attr.conditional}} */

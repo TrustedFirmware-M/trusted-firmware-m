@@ -11,17 +11,35 @@
 #define __TFM_SERVICE_LIST_INC__
 
 {% for manifest in manifests %}
-    {% if manifest.attr.conditional %}
+    {% if manifest.attr.tfm_partition_ipc %}
+        {% if manifest.attr.conditional %}
 #ifdef {{manifest.attr.conditional}}
-    {% endif %}
+        {% endif %}
 /******** {{manifest.manifest.name}} ********/
     {% if manifest.manifest.services %}
         {% for service in manifest.manifest.services %}
-{{'{'}}"{{service.name}}", {{manifest.manifest.name}}_ID, {{service.signal}}, {{service.sid}}, {{service.non_secure_clients}}, {{service.minor_version}}, TFM_VERSION_POLICY_{{service.minor_policy}}{{'}'}},
+{{'{'}}
+        "{{service.name}}",
+        {{manifest.manifest.name}}_ID,
+        {{service.signal}},
+        {{service.sid}},
+        {{service.non_secure_clients}},
+    {% if service.minor_version %}
+        {{service.minor_version}},
+    {% else %}
+        1,
+    {% endif %}
+    {% if service.minor_policy %}
+        TFM_VERSION_POLICY_{{service.minor_policy}}
+    {% else %}
+        TFM_VERSION_POLICY_STRICT
+    {% endif %}
+{{'}'}},
         {% endfor %}
     {% endif %}
     {% if manifest.attr.conditional %}
 #endif /* {{manifest.attr.conditional}} */
+        {% endif %}
     {% endif %}
 
 {% endfor %}

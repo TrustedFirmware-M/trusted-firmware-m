@@ -28,11 +28,6 @@ enum tfm_platform_err_t platform_sp_system_reset(void)
 
     /* FIXME: The system reset functionality is only supported in isolation
      *        level 1.
-     *        Currently, the mechanism by which PRoT services should run in
-     *        privileged mode in level 3, it is not in place due to an ongoing
-     *        work in TF-M Core. So, the NVIC_SystemReset call performed by the
-     *        service, it is expected to generate a memory fault when it tries
-     *        to access the SCB->AIRCR register in level 3 isolation.
      */
 
     tfm_platform_hal_system_reset();
@@ -41,13 +36,23 @@ enum tfm_platform_err_t platform_sp_system_reset(void)
 }
 
 enum tfm_platform_err_t
-platform_sp_pin_service(const psa_invec  *in_vec,  uint32_t num_invec,
-                        const psa_outvec *out_vec, uint32_t num_outvec)
+platform_sp_ioctl(psa_invec  *in_vec,  uint32_t num_invec,
+                  psa_outvec *out_vec, uint32_t num_outvec)
 {
-    enum tfm_plat_err_t ret = tfm_platform_hal_pin_service(in_vec, num_invec,
-                                                           out_vec, num_outvec);
+    void *input, *output;
+    tfm_platform_ioctl_req_t request;
 
-    return ((ret == TFM_PLAT_ERR_SUCCESS) ? TFM_PLATFORM_ERR_SUCCESS :
-                                                 TFM_PLATFORM_ERR_SYSTEM_ERROR);
+    if ((num_invec < 1) || (num_invec > 2) ||
+        (num_outvec > 1) ||
+        (in_vec[0].base == NULL) ||
+        (in_vec[0].len != sizeof(tfm_platform_ioctl_req_t))) {
+        return TFM_PLATFORM_ERR_SYSTEM_ERROR;
+    }
+
+    input = (num_invec == 1) ? NULL : &in_vec[1];
+    output = out_vec;
+    request = *((tfm_platform_ioctl_req_t *)in_vec[0].base);
+
+    return tfm_platform_hal_ioctl(request, input, output);
 }
 

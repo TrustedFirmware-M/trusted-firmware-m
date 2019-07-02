@@ -22,8 +22,8 @@ extern "C" {
 
 /* FIXME: Support other flash program units.*/
 #if ((SST_FLASH_PROGRAM_UNIT != 1) && (SST_FLASH_PROGRAM_UNIT != 2) \
-      && (SST_FLASH_PROGRAM_UNIT != 4))
-#error "The supported SST_FLASH_PROGRAM_UNIT values are 1, 2 or 4 bytes"
+      && (SST_FLASH_PROGRAM_UNIT != 4) && (SST_FLASH_PROGRAM_UNIT != 8))
+#error "The supported SST_FLASH_PROGRAM_UNIT values are 1, 2 or 4, 8 bytes"
 #endif
 
 /**
@@ -39,7 +39,7 @@ extern "C" {
  *          "... error: 'err_msg' declared as an array with a negative size"
  */
 #define SST_UTILS_BOUND_CHECK(err_msg, data_size, data_buf_size) \
-typedef char err_msg[(data_size <= data_buf_size) - 1]
+typedef char err_msg[(data_size <= data_buf_size)*2 - 1]
 
 /**
  * \brief Macro to get the number of bytes aligned with the
@@ -83,38 +83,6 @@ void sst_global_unlock(void);
 psa_ps_status_t sst_utils_check_contained_in(uint32_t superset_size,
                                              uint32_t subset_offset,
                                              uint32_t subset_size);
-
-/* FIXME: following functions(memcpy and memset) will be provided
- * by core. This is only an interim abstraction. In the current
- * implementation the stdlib is linked and protected as part of the TFM core
- * and not available for services.
- */
-/**
- * \brief Memory copy function
- *
- * \param[out] dest  Destination position
- * \param[in]  src   Source position
- * \param[in]  size  Size of data to copy
- */
-void sst_utils_memcpy(void *dest, const void *src, uint32_t size);
-
-/**
- * \brief Memory set function
- *
- * \param[out] dest     Destination position
- * \param[in]  pattern  Pattern value to set
- * \param[in]  size     Size of data to set
- */
-void sst_utils_memset(void *dest, const uint8_t pattern, uint32_t size);
-
-/**
- * \brief Checks if the sst function caller is located in the secure or
- *        non-secure space.
- *
- * \return Returns 0 if the caller is located in the secure area, otherwise
- *         returns unspecified non-zero value if it is in the non-secure area
- */
-uint32_t sst_utils_validate_secure_caller(void);
 
 /**
  * \brief Validates file ID

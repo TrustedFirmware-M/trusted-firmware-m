@@ -41,9 +41,6 @@ static struct test_suite_t test_suites[] = {
 
     {&register_testsuite_ns_psa_ps_interface, 0, 0, 0},
 
-    /* Non-secure Audit Logging test cases */
-    {&register_testsuite_ns_audit_interface, 0, 0, 0},
-
     /* Non-secure Crypto test cases */
     {&register_testsuite_ns_crypto_interface, 0, 0, 0},
 
@@ -52,6 +49,18 @@ static struct test_suite_t test_suites[] = {
 
     /* Non-secure QCBOR library test cases */
     {&register_testsuite_ns_qcbor, 0, 0, 0},
+
+#ifndef TFM_PSA_API
+    /*
+     * FixMe: skip below test cases temporary since target service is not
+     * IPC compatible yet.
+     */
+#ifdef ENABLE_AUDIT_LOGGING_SERVICE_TESTS
+    /* Non-secure Audit Logging test cases */
+    {&register_testsuite_ns_audit_interface, 0, 0, 0},
+#endif
+
+#endif
 
 #ifdef TFM_PARTITION_TEST_CORE
     /* Non-secure invert test cases */
@@ -62,8 +71,10 @@ static struct test_suite_t test_suites[] = {
 #endif /* TFM_LVL == 3 */
 
 #ifdef CORE_TEST_POSITIVE
+#if !((TFM_LVL == 2) && defined(TFM_PSA_API))
     /* Non-secure core test cases */
     {&register_testsuite_ns_core_positive, 0, 0, 0},
+#endif
 #endif
 
 #ifdef CORE_TEST_INTERACTIVE
@@ -75,12 +86,13 @@ static struct test_suite_t test_suites[] = {
     /* Non-secure IPC test cases */
     {&register_testsuite_ns_ipc_interface, 0, 0, 0},
 #endif
+    /* End of test suites */
+    {0, 0, 0, 0}
 };
 
 void start_integ_test(void)
 {
-    integ_test("Non-secure", test_suites,
-               sizeof(test_suites)/sizeof(test_suites[0]));
+    integ_test("Non-secure", test_suites);
 }
 
 /* Service stand-in for NS tests. To be called from a non-secure context */

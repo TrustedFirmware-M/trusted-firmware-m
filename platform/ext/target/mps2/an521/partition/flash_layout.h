@@ -28,8 +28,8 @@
  *    0x0020_0000 Non-secure image secondary
  * 0x0028_0000 Scratch area(1 MB)
  * 0x0038_0000 Secure Storage Area(0.02 MB)
- * 0x0038_5000 NV counters area(16 Bytes)
- * 0x0038_5010 Unused(0.491 MB)
+ * 0x0038_5000 NV counters area(20 Bytes)
+ * 0x0038_5014 Unused(0.480 MB)
  *
  * Flash layout on MPS2 AN521, if BL2 not defined:
  * 0x0000_0000 Secure     image
@@ -85,7 +85,7 @@
 #define FLASH_SST_AREA_SIZE             (0x5000)   /* 20 KB */
 
 #define FLASH_NV_COUNTERS_AREA_OFFSET   (0x385000)
-#define FLASH_NV_COUNTERS_AREA_SIZE     (0x10)     /* 16 Bytes */
+#define FLASH_NV_COUNTERS_AREA_SIZE     (0x14)     /* 20 Bytes */
 
 /* Offset and size definition in flash area, used by assemble.py */
 #define SECURE_IMAGE_OFFSET             0x0

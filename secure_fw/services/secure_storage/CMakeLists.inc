@@ -9,7 +9,6 @@
 #This file assumes it will be included from a project specific cmakefile, and
 #will not create a library or executable.
 #Inputs:
-#	MBEDTLS_INSTALL_DIR - directory where mbedtls headers and libraries can be found.
 #	TFM_ROOT_DIR		- root directory of the TF-M repository.
 #Outputs:
 #	Will modify include directories to make the source compile.
@@ -22,10 +21,6 @@
 set(SECURE_STORAGE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 #Check input variables
-if (NOT DEFINED MBEDTLS_INSTALL_DIR)
-	message(FATAL_ERROR "Please set MBEDTLS_INSTALL_DIR before including this file.")
-endif()
-
 if (NOT DEFINED TFM_ROOT_DIR)
 	message(FATAL_ERROR "Please set TFM_ROOT_DIR before including this file.")
 endif()
@@ -50,6 +45,10 @@ if (NOT DEFINED SST_RAM_FS)
 	message(FATAL_ERROR "Incomplete build configuration: SST_RAM_FS is undefined. ")
 endif()
 
+if (NOT DEFINED SST_TEST_NV_COUNTERS)
+	message(FATAL_ERROR "Incomplete build configuration: SST_TEST_NV_COUNTERS is undefined.")
+endif()
+
 set (SECURE_STORAGE_C_SRC
 	"${SECURE_STORAGE_DIR}/tfm_sst_secure_api.c"
 	"${SECURE_STORAGE_DIR}/tfm_sst_req_mngr.c"
@@ -69,13 +68,14 @@ if (SST_ENCRYPTION)
 		"${SECURE_STORAGE_DIR}/sst_encrypted_object.c"
 	)
 	set_property(SOURCE ${SECURE_STORAGE_C_SRC} APPEND PROPERTY COMPILE_DEFINITIONS SST_ENCRYPTION)
-	set_property(DIRECTORY ${TEST_DIR} APPEND PROPERTY COMPILE_DEFINITIONS SST_ENCRYPTION)
 
 	if (SST_ROLLBACK_PROTECTION)
-		if (NOT REGRESSION OR TFM_LVL GREATER 1)
-			# In case of regression test executed in TFM level 1, the SST rollback test suite has
-			# its own implementation of sst_nv_counters intefaces to be able to test different scenarios.
-			list (APPEND SECURE_STORAGE_C_SRC
+		# Only build the NV counters implementation if the SST_TEST_NV_COUNTERS
+		# flag is off. When this flag is on, a virtual implementation of the SST
+		# NV counters interface is used instead. Full documentation for this
+		# flag can be found in the SST Integration Guide.
+		if (NOT SST_TEST_NV_COUNTERS)
+			list(APPEND SECURE_STORAGE_C_SRC
 				"${SECURE_STORAGE_DIR}/nv_counters/sst_nv_counters.c")
 		endif()
 		set_property(SOURCE ${SECURE_STORAGE_C_SRC} APPEND PROPERTY COMPILE_DEFINITIONS SST_ROLLBACK_PROTECTION)
@@ -109,11 +109,11 @@ endif()
 message("- SST_VALIDATE_METADATA_FROM_FLASH: " ${SST_VALIDATE_METADATA_FROM_FLASH})
 message("- SST_CREATE_FLASH_LAYOUT: " ${SST_CREATE_FLASH_LAYOUT})
 message("- SST_RAM_FS: " ${SST_RAM_FS})
+message("- SST_TEST_NV_COUNTERS: " ${SST_TEST_NV_COUNTERS})
 
 #Setting include directories
 embedded_include_directories(PATH ${TFM_ROOT_DIR} ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/interface/include ABSOLUTE)
-embedded_include_directories(PATH ${MBEDTLS_INSTALL_DIR}/include ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/spm ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/core ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/platform/ext/common ABSOLUTE)

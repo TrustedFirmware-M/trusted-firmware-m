@@ -116,6 +116,9 @@ struct tfm_spm_partition_platform_data_t tfm_peripheral_fpga_io = {
 
 void enable_fault_handlers(void)
 {
+    /* Explicitly set secure fault priority to the highest */
+    NVIC_SetPriority(SecureFault_IRQn, 0);
+
     /* Enables BUS, MEM, USG and Secure faults */
     SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk
                   | SCB_SHCSR_BUSFAULTENA_Msk

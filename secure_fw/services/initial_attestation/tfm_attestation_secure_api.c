@@ -10,12 +10,19 @@
 #include "tfm_memory_utils.h"
 #include "tfm_client.h"
 #include "tfm_secure_api.h"
+#ifdef TFM_PSA_API
+#include "tfm_attest_defs.h"
+#endif
 #include <string.h>
 
+#ifndef TFM_PSA_API
 /* FIXME: If iovec will be supported by SPM then remove the usage of
  * scratch area.
  */
 extern uint8_t *tfm_scratch_area;
+#else
+#define IOVEC_LEN(x) (sizeof(x)/sizeof(x[0]))
+#endif
 
 __attribute__((section("SFN")))
 enum psa_attest_err_t
@@ -24,12 +31,42 @@ psa_initial_attest_get_token(const uint8_t *challenge_obj,
                              uint8_t       *token,
                              uint32_t      *token_size)
 {
-    enum psa_attest_err_t err;
+    psa_status_t status;
+#ifdef TFM_PSA_API
+    psa_handle_t handle = PSA_NULL_HANDLE;
+    psa_invec in_vec[] = {
+        {challenge_obj, challenge_size}
+    };
+    psa_outvec out_vec[] = {
+        {token, *token_size}
+    };
+#else
     psa_invec *in_vec;
     psa_outvec *out_vec;
     uint8_t *challenge_buff;
     uint8_t *token_buff;
+#endif
 
+#ifdef TFM_PSA_API
+    handle = psa_connect(TFM_ATTEST_GET_TOKEN_SID,
+                         TFM_ATTEST_GET_TOKEN_MINOR_VER);
+    if (handle <= 0) {
+        return PSA_ATTEST_ERR_GENERAL;
+    }
+
+    status = psa_call(handle,
+                      in_vec, IOVEC_LEN(in_vec),
+                      out_vec, IOVEC_LEN(out_vec));
+    psa_close(handle);
+
+    if (status < PSA_SUCCESS) {
+        return PSA_ATTEST_ERR_GENERAL;
+    }
+
+    if (status == PSA_SUCCESS) {
+        *token_size = out_vec[0].len;
+    }
+#else
     if (tfm_core_set_buffer_area(TFM_BUFFER_SHARE_SCRATCH) != TFM_SUCCESS) {
         return PSA_ATTEST_ERR_GENERAL;
     }
@@ -50,38 +87,61 @@ psa_initial_attest_get_token(const uint8_t *challenge_obj,
     /* Copy challenge object to scratch area */
     tfm_memcpy(challenge_buff, challenge_obj, challenge_size);
 
-
     in_vec[0].base = challenge_buff;
     in_vec[0].len  = challenge_size;
 
     out_vec[0].base = token_buff;
     out_vec[0].len  = *token_size;
 
-    err = tfm_initial_attest_get_token_veneer(in_vec, 1, out_vec, 1);
-    if (err != PSA_ATTEST_ERR_SUCCESS) {
-        return err;
+    status = tfm_initial_attest_get_token_veneer(in_vec, 1, out_vec, 1);
+    if (status == PSA_ATTEST_ERR_SUCCESS) {
+        tfm_memcpy(token, out_vec[0].base, out_vec[0].len);
+        *token_size = out_vec[0].len;
     }
+#endif
 
-    /* Copy output token to local buffer */
-    tfm_memcpy(token, out_vec[0].base, out_vec[0].len);
-    *token_size = out_vec[0].len;
-
-    return err;
+    return (enum psa_attest_err_t)status;
 }
 
 __attribute__((section("SFN")))
 enum psa_attest_err_t
-psa_initial_attest_get_token_size(uint32_t  challenge_size,
+psa_initial_attest_get_token_size(uint32_t challenge_size,
                                   uint32_t *token_size)
 {
-    enum psa_attest_err_t err;
+    psa_status_t status;
+#ifdef TFM_PSA_API
+    psa_handle_t handle = PSA_NULL_HANDLE;
+    psa_invec in_vec[] = {
+        {&challenge_size, sizeof(challenge_size) }
+    };
+    psa_outvec out_vec[] = {
+        {token_size, sizeof(uint32_t)}
+    };
+#else
     struct paramters_t {
         psa_invec in_vec;
         uint32_t challenge_size;
         psa_outvec out_vec;
         uint32_t token_size;
     };
+#endif
 
+#ifdef TFM_PSA_API
+    handle = psa_connect(TFM_ATTEST_GET_TOKEN_SIZE_SID,
+                         TFM_ATTEST_GET_TOKEN_SIZE_MINOR_VER);
+    if (handle <= 0) {
+        return PSA_ATTEST_ERR_GENERAL;
+    }
+
+    status = psa_call(handle,
+                      in_vec, IOVEC_LEN(in_vec),
+                      out_vec, IOVEC_LEN(out_vec));
+    psa_close(handle);
+
+    if (status < PSA_SUCCESS) {
+        return PSA_ATTEST_ERR_GENERAL;
+    }
+#else
     if (tfm_core_set_buffer_area(TFM_BUFFER_SHARE_SCRATCH) != TFM_SUCCESS) {
         return PSA_ATTEST_ERR_GENERAL;
     }
@@ -99,12 +159,12 @@ psa_initial_attest_get_token_size(uint32_t  challenge_size,
     param->out_vec.base = &param->token_size;
     param->out_vec.len  = sizeof(uint32_t);
 
-    err = tfm_initial_attest_get_token_size_veneer(&param->in_vec,  1,
-                                                   &param->out_vec, 1);
-    if (err != PSA_ATTEST_ERR_SUCCESS) {
-        return err;
+    status = tfm_initial_attest_get_token_size_veneer(&param->in_vec,  1,
+                                                      &param->out_vec, 1);
+    if (status == PSA_ATTEST_ERR_SUCCESS) {
+        *token_size = param->token_size;
     }
-    *token_size = param->token_size;
+#endif
 
-    return err;
+    return (enum psa_attest_err_t)status;
 }

@@ -26,31 +26,39 @@
 #define EAT_SW_COMPONENT_NESTED     1  /* Nested map */
 #define EAT_SW_COMPONENT_NOT_NESTED 0  /* Flat structure */
 
-/* Indicates that the boot status does not contain any SW components'
- * measurement
+/*!
+ * \struct attest_boot_data
+ *
+ * \brief Contains the received boot status information from bootloader
+ *
+ * \details This is a redefinition of \ref tfm_boot_data to allocate the
+ *          appropriate, service dependent size of \ref boot_data.
  */
-#define NO_SW_COMPONENT_FIXED_VALUE 1
+struct attest_boot_data {
+    struct shared_data_tlv_header header;
+    uint8_t data[MAX_BOOT_STATUS];
+};
 
 /*!
- * \var boot_status
+ * \var boot_data
  *
- * \brief Array variable to store the boot status in service's memory.
+ * \brief Store the boot status in service's memory.
  *
  * \details Boot status comes from the secure bootloader and primarily stored
  *          on a memory area which is shared between bootloader and SPM.
  *          SPM provides the \ref tfm_core_get_boot_data() API to retrieve
  *          the service related data from shared area.
  */
-
-/* Enforcement of 4 byte alignment, which is checked by TF-M SPM */
 __attribute__ ((aligned(4)))
-static uint8_t boot_status[MAX_BOOT_STATUS];
+static struct attest_boot_data boot_data;
 
 enum psa_attest_err_t attest_init(void)
 {
     enum psa_attest_err_t res;
 
-    res = attest_get_boot_data(TLV_MAJOR_IAS, boot_status, MAX_BOOT_STATUS);
+    res = attest_get_boot_data(TLV_MAJOR_IAS,
+                               (struct tfm_boot_data *)&boot_data,
+                               MAX_BOOT_STATUS);
 
     return res;
 }
@@ -141,21 +149,19 @@ static int32_t attest_get_tlv_by_module(uint8_t    module,
                                         uint16_t  *tlv_len,
                                         uint8_t  **tlv_ptr)
 {
-    struct shared_data_tlv_header *tlv_header;
     struct shared_data_tlv_entry tlv_entry;
     uint8_t *tlv_end;
     uint8_t *tlv_curr;
 
-    tlv_header = (struct shared_data_tlv_header *)boot_status;
-    if (tlv_header->tlv_magic != SHARED_DATA_TLV_INFO_MAGIC) {
+    if (boot_data.header.tlv_magic != SHARED_DATA_TLV_INFO_MAGIC) {
         return -1;
     }
 
     /* Get the boundaries of TLV section where to lookup*/
-    tlv_end  = (uint8_t *)boot_status + tlv_header->tlv_tot_len;
+    tlv_end = (uint8_t *)&boot_data + boot_data.header.tlv_tot_len;
     if (*tlv_ptr == NULL) {
         /* At first call set to the beginning of the TLV section */
-        tlv_curr = (uint8_t *)boot_status + SHARED_DATA_HEADER_SIZE;
+        tlv_curr = boot_data.data;
     } else {
         /* Any subsequent call set to the next TLV entry */
         tfm_memcpy(&tlv_entry, *tlv_ptr, SHARED_DATA_ENTRY_HEADER_SIZE);
@@ -237,7 +243,7 @@ static int32_t attest_get_tlv_by_id(uint8_t    claim,
 static enum psa_attest_err_t
 attest_add_sw_component_claim(struct attest_token_ctx *token_ctx,
                               uint8_t tlv_id,
-                              const struct useful_buf_c *claim_value)
+                              const struct q_useful_buf_c *claim_value)
 {
     int32_t res;
     uint32_t value;
@@ -308,7 +314,7 @@ attest_add_single_sw_measurment(struct attest_token_ctx *token_ctx,
     uint8_t  tlv_id;
     uint8_t *tlv_ptr = tlv_address;
     int32_t found = 1;
-    struct useful_buf_c claim_value;
+    struct q_useful_buf_c claim_value;
     enum psa_attest_err_t res;
     QCBOREncodeContext *cbor_encode_ctx;
 
@@ -376,7 +382,7 @@ attest_add_single_sw_component(struct attest_token_ctx *token_ctx,
     uint8_t *tlv_ptr = tlv_address;
     int32_t found = 1;
     uint32_t measurement_claim_cnt = 0;
-    struct useful_buf_c claim_value;
+    struct q_useful_buf_c claim_value;
     QCBOREncodeContext *cbor_encode_ctx;
 
     /* Create local copy to avoid unaligned access */
@@ -500,7 +506,7 @@ attest_add_boot_seed_claim(struct attest_token_ctx *token_ctx)
     __attribute__ ((aligned(4)))
     uint8_t boot_seed[BOOT_SEED_SIZE];
     enum tfm_plat_err_t res;
-    struct useful_buf_c claim_value = {0};
+    struct q_useful_buf_c claim_value = {0};
     uint16_t tlv_len;
     uint8_t *tlv_ptr = NULL;
     int32_t found = 0;
@@ -529,11 +535,6 @@ attest_add_boot_seed_claim(struct attest_token_ctx *token_ctx)
     return PSA_ATTEST_ERR_SUCCESS;
 }
 
-/* FixMe: Remove this #if when MPU will be configured properly. Currently
- *        in case of TFM_LVL == 3 unaligned access triggers a usage fault
- *        exception.
- */
-#if !defined(TFM_LVL) || (TFM_LVL == 1)
 /*!
  * \brief Static function to add instance id claim to attestation token.
  *
@@ -552,7 +553,7 @@ attest_add_instance_id_claim(struct attest_token_ctx *token_ctx)
     uint8_t instance_id[INSTANCE_ID_MAX_SIZE];
     enum tfm_plat_err_t res_plat;
     uint32_t size = sizeof(instance_id);
-    struct useful_buf_c claim_value;
+    struct q_useful_buf_c claim_value;
 
     res_plat = tfm_plat_get_instance_id(&size, instance_id);
     if (res_plat != TFM_PLAT_ERR_SUCCESS) {
@@ -586,7 +587,7 @@ attest_add_implementation_id_claim(struct attest_token_ctx *token_ctx)
     uint8_t implementation_id[IMPLEMENTATION_ID_MAX_SIZE];
     enum tfm_plat_err_t res_plat;
     uint32_t size = sizeof(implementation_id);
-    struct useful_buf_c claim_value;
+    struct q_useful_buf_c claim_value;
 
     res_plat = tfm_plat_get_implementation_id(&size, implementation_id);
     if (res_plat != TFM_PLAT_ERR_SUCCESS) {
@@ -620,7 +621,7 @@ attest_add_hw_version_claim(struct attest_token_ctx *token_ctx)
     uint8_t hw_version[HW_VERSION_MAX_SIZE];
     enum tfm_plat_err_t res_plat;
     uint32_t size = sizeof(hw_version);
-    struct useful_buf_c claim_value = {0};
+    struct q_useful_buf_c claim_value = {0};
     uint16_t tlv_len;
     uint8_t *tlv_ptr = NULL;
     int32_t found = 0;
@@ -650,7 +651,6 @@ attest_add_hw_version_claim(struct attest_token_ctx *token_ctx)
 
     return PSA_ATTEST_ERR_SUCCESS;
 }
-#endif
 
 /*!
  * \brief Static function to add caller id claim to attestation token.
@@ -663,7 +663,7 @@ static enum psa_attest_err_t
 attest_add_caller_id_claim(struct attest_token_ctx *token_ctx)
 {
     enum psa_attest_err_t res;
-    int32_t  caller_id;
+    int32_t caller_id;
 
     res = attest_get_caller_client_id(&caller_id);
     if (res != PSA_ATTEST_ERR_SUCCESS) {
@@ -691,7 +691,7 @@ attest_add_security_lifecycle_claim(struct attest_token_ctx *token_ctx)
     enum tfm_security_lifecycle_t security_lifecycle;
     uint32_t slc_value;
     int32_t res;
-    struct useful_buf_c claim_value = {0};
+    struct q_useful_buf_c claim_value = {0};
     uint16_t tlv_len;
     uint8_t *tlv_ptr = NULL;
     int32_t found = 0;
@@ -738,7 +738,7 @@ attest_add_security_lifecycle_claim(struct attest_token_ctx *token_ctx)
  */
 static enum psa_attest_err_t
 attest_add_challenge_claim(struct attest_token_ctx   *token_ctx,
-                           const struct useful_buf_c *challenge)
+                           const struct q_useful_buf_c *challenge)
 {
     attest_token_add_bstr(token_ctx, EAT_CBOR_ARM_LABEL_CHALLENGE, challenge);
 
@@ -756,7 +756,7 @@ attest_add_challenge_claim(struct attest_token_ctx   *token_ctx,
 static enum psa_attest_err_t
 attest_add_verification_service(struct attest_token_ctx *token_ctx)
 {
-    struct useful_buf_c service;
+    struct q_useful_buf_c service;
     uint32_t size;
 
     service.ptr = tfm_attest_hal_get_verification_service(&size);
@@ -781,7 +781,7 @@ attest_add_verification_service(struct attest_token_ctx *token_ctx)
 static enum psa_attest_err_t
 attest_add_profile_definition(struct attest_token_ctx *token_ctx)
 {
-    struct useful_buf_c profile;
+    struct q_useful_buf_c profile;
     uint32_t size;
 
     profile.ptr = tfm_attest_hal_get_profile_definition(&size);
@@ -813,11 +813,61 @@ static enum psa_attest_err_t attest_verify_challenge_size(size_t challenge_size)
     case PSA_INITIAL_ATTEST_CHALLENGE_SIZE_32:
     case PSA_INITIAL_ATTEST_CHALLENGE_SIZE_48:
     case PSA_INITIAL_ATTEST_CHALLENGE_SIZE_64:
-    case (PSA_INITIAL_ATTEST_CHALLENGE_SIZE_32 + 4): /* Test purpose */
         return PSA_ATTEST_ERR_SUCCESS;
     }
 
     return PSA_ATTEST_ERR_INVALID_INPUT;
+}
+
+/*!
+ * \brief Static function to get the option flags from challenge object
+ *
+ * Option flags are passed in if the challenge is 64 bytes long and the last
+ * 60 bytes are all 0. In this case the first 4 bytes of the challenge is
+ * the option flags for test.
+ *
+ * See flag definition in attest_token.h
+ *
+ * \param[in]  challenge     Structure to carry the challenge value:
+ *                           pointer + challeng's length.
+ * \param[out] option_flags  Flags to select different custom options,
+ *                           for example \ref TOKEN_OPT_OMIT_CLAIMS.
+ * \param[out] key_select    Selects which attestation key to sign with.
+ */
+static void attest_get_option_flags(struct q_useful_buf_c *challenge,
+                                    uint32_t *option_flags,
+                                    int32_t  *key_select)
+{
+    uint32_t found_option_flags = 1;
+    uint32_t option_flags_size = sizeof(uint32_t);
+    uint8_t *challenge_end;
+    uint8_t *challenge_data;
+
+    /* Get option flags if there is encoded in the challenge object */
+    if (challenge->len == PSA_INITIAL_ATTEST_CHALLENGE_SIZE_64) {
+        challenge_end  = ((uint8_t *)challenge->ptr) + challenge->len;
+        challenge_data = ((uint8_t *)challenge->ptr) + option_flags_size;
+
+        /* Compare bytes(4-63) with 0 */
+        while (challenge_data < challenge_end) {
+            if (*challenge_data++ != 0) {
+                found_option_flags = 0;
+                break;
+            }
+        }
+    } else {
+        found_option_flags = 0;
+    }
+
+    if (found_option_flags) {
+        tfm_memcpy(option_flags, challenge->ptr, option_flags_size);
+
+        /* Lower three bits are the key select */
+        *key_select = *option_flags & 0x7;
+    } else {
+        *option_flags = 0;
+        *key_select = 0;
+    }
 }
 
 /*!
@@ -833,35 +883,17 @@ static enum psa_attest_err_t attest_verify_challenge_size(size_t challenge_size)
  * \return Returns error code as specified in \ref psa_attest_err_t
  */
 static enum psa_attest_err_t
-attest_create_token(struct useful_buf_c *challenge,
-                    struct useful_buf   *token,
-                    struct useful_buf_c *completed_token)
+attest_create_token(struct q_useful_buf_c *challenge,
+                    struct q_useful_buf   *token,
+                    struct q_useful_buf_c *completed_token)
 {
     enum psa_attest_err_t attest_err = PSA_ATTEST_ERR_SUCCESS;
     enum attest_token_err_t token_err;
     struct attest_token_ctx attest_token_ctx;
     int32_t key_select;
-    int32_t alg_select;
-    uint32_t option_flags = 0;
+    uint32_t option_flags;
 
-    if (challenge->len == 36) {
-        /* FixMe: Special challenge with option flags appended. This might can
-         *        be removed when the public API can take option_flags.
-         */
-        option_flags = *(uint32_t *)(challenge->ptr + 32);
-        challenge->len = 32;
-    }
-
-    /* Lower three bits are the key select */
-    key_select = option_flags & 0x7;
-
-    /* Map the key select to an algorithm. Maybe someday we'll support something
-     * other than ES256
-     */
-    switch (key_select) {
-    default:
-        alg_select = COSE_ALGORITHM_ES256;
-    }
+    attest_get_option_flags(challenge, &option_flags, &key_select);
 
     /* Get started creating the token. This sets up the CBOR and COSE contexts
      * which causes the COSE headers to be constructed.
@@ -899,11 +931,6 @@ attest_create_token(struct useful_buf_c *challenge,
             goto error;
         }
 
-        /* FixMe: Remove this #if when MPU will be configured properly.
-         *        Currently in case of TFM_LVL == 3 unaligned access triggers
-         *        a usage fault exception.
-         */
-#if !defined(TFM_LVL) || (TFM_LVL == 1)
         attest_err = attest_add_instance_id_claim(&attest_token_ctx);
         if (attest_err != PSA_ATTEST_ERR_SUCCESS) {
             goto error;
@@ -918,7 +945,6 @@ attest_create_token(struct useful_buf_c *challenge,
         if (attest_err != PSA_ATTEST_ERR_SUCCESS) {
             goto error;
         }
-#endif
 
         attest_err = attest_add_caller_id_claim(&attest_token_ctx);
         if (attest_err != PSA_ATTEST_ERR_SUCCESS) {
@@ -959,9 +985,9 @@ initial_attest_get_token(const psa_invec  *in_vec,  uint32_t num_invec,
                                psa_outvec *out_vec, uint32_t num_outvec)
 {
     enum psa_attest_err_t attest_err = PSA_ATTEST_ERR_SUCCESS;
-    struct useful_buf_c challenge;
-    struct useful_buf token;
-    struct useful_buf_c completed_token;
+    struct q_useful_buf_c challenge;
+    struct q_useful_buf token;
+    struct q_useful_buf_c completed_token;
 
     challenge.ptr = in_vec[0].base;
     challenge.len = in_vec[0].len;
@@ -977,6 +1003,11 @@ initial_attest_get_token(const psa_invec  *in_vec,  uint32_t num_invec,
                                             challenge.len,
                                             TFM_ATTEST_ACCESS_RO);
     if (attest_err != PSA_ATTEST_ERR_SUCCESS) {
+        goto error;
+    }
+
+    if (token.len == 0) {
+        attest_err = PSA_ATTEST_ERR_INVALID_INPUT;
         goto error;
     }
 
@@ -1007,9 +1038,9 @@ initial_attest_get_token_size(const psa_invec  *in_vec,  uint32_t num_invec,
     enum psa_attest_err_t attest_err = PSA_ATTEST_ERR_SUCCESS;
     uint32_t  challenge_size = *(uint32_t *)in_vec[0].base;
     uint32_t *token_buf_size = (uint32_t *)out_vec[0].base;
-    struct useful_buf_c challenge;
-    struct useful_buf token;
-    struct useful_buf_c completed_token;
+    struct q_useful_buf_c challenge;
+    struct q_useful_buf token;
+    struct q_useful_buf_c completed_token;
 
     /* Only the size of the challenge is needed */
     challenge.ptr = NULL;

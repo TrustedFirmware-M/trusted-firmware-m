@@ -63,6 +63,7 @@ extern void * const osRtxUserSVC[1+USER_SVC_COUNT];
  */
 };
 
+#if defined(__ARMCC_VERSION)
 /* Struct FILE is implemented in stdio.h. Used to redirect printf to
  * NS_DRIVER_STDIO
  */
@@ -74,6 +75,7 @@ int fputc(int ch, FILE *f) {
     /* Return character written */
     return ch;
 }
+#elif defined(__GNUC__)
 /* redirects gcc printf to NS_DRIVER_STDIO */
 int _write(int fd, char * str, int len)
 {
@@ -81,6 +83,15 @@ int _write(int fd, char * str, int len)
 
     return len;
 }
+#elif defined(__ICCARM__)
+int putchar(int ch)
+{
+    /* Send byte to NS_DRIVER_STDIO */
+    (void)NS_DRIVER_STDIO.Send((const unsigned char *)&ch, 1);
+    /* Return character written */
+    return ch;
+}
+#endif
 
 /**
  * \brief List of RTOS thread attributes

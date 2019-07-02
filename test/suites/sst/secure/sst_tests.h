@@ -28,8 +28,7 @@ void register_testsuite_s_psa_ps_interface(struct test_suite_t *p_test_suite);
  */
 void register_testsuite_s_psa_ps_reliability(struct test_suite_t *p_test_suite);
 
-#if defined(SST_ROLLBACK_PROTECTION) && defined(SST_ENCRYPTION) \
-    && (TFM_LVL == 1)
+#ifdef SST_TEST_NV_COUNTERS
 /**
  * \brief Register testsuite for the sst rollback protection tests.
  *

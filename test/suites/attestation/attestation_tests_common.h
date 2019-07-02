@@ -8,6 +8,8 @@
 #ifndef __ATTESTATION_TESTS_COMMON_H__
 #define __ATTESTATION_TESTS_COMMON_H__
 
+#include "psa_initial_attestation_api.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,7 +34,7 @@ extern "C" {
  *
  * \brief Size of challenge object in bytes used for test.
  */
-#define TEST_CHALLENGE_OBJ_SIZE (32u)
+#define TEST_CHALLENGE_OBJ_SIZE (PSA_INITIAL_ATTEST_CHALLENGE_SIZE_64)
 
 /*!
  * \def INVALID_CHALLENGE_OBJECT_SIZE
@@ -40,17 +42,6 @@ extern "C" {
  * \brief Size of challenge object that is
  */
 #define INVALID_CHALLENGE_OBJECT_SIZE (PSA_INITIAL_ATTEST_CHALLENGE_SIZE_32 + 1)
-
-/*!
- * \def CHALLENGE_FOR_TEST
- *
- * \brief Fix value used as challenge object, because currently random number
- *        generation is not supported on secure side.
- */
-#define CHALLENGE_FOR_TEST    0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7, \
-                              0xD8, 0xD9, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE, 0xDF, \
-                              0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, \
-                              0xE8, 0xE9, 0xEA, 0xEB, 0xEC, 0xEE, 0xEE, 0xEF,
 
 #ifdef __cplusplus
 }

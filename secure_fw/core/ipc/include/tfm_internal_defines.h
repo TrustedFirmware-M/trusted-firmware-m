@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2018, Arm Limited. All rights reserved.
+ * Copyright (c) 2018-2019, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 #ifndef __TFM_INTERNAL_DEFINES_H__
 #define __TFM_INTERNAL_DEFINES_H__
+
+#include <inttypes.h>
 
 /* IPC internal return status */
 #define IPC_SUCCESS                     0

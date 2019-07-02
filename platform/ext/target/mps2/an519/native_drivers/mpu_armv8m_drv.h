@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, Arm Limited. All rights reserved.
+ * Copyright (c) 2017-2019, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -14,6 +14,14 @@
 
 #define PRIVILEGED_DEFAULT_ENABLE 1
 #define HARDFAULT_NMI_ENABLE      1
+
+/* MAIR_ATTR */
+#define MPU_ARMV8M_MAIR_ATTR_DEVICE_VAL      0x04
+#define MPU_ARMV8M_MAIR_ATTR_DEVICE_IDX      0
+#define MPU_ARMV8M_MAIR_ATTR_CODE_VAL        0xAA
+#define MPU_ARMV8M_MAIR_ATTR_CODE_IDX        1
+#define MPU_ARMV8M_MAIR_ATTR_DATA_VAL        0xFF
+#define MPU_ARMV8M_MAIR_ATTR_DATA_IDX        2
 
 struct mpu_armv8m_dev_t {
     const uint32_t base;
@@ -47,6 +55,7 @@ struct mpu_armv8m_region_cfg_t {
     uint32_t region_nr;
     uint32_t region_base;
     uint32_t region_limit;
+    uint32_t region_attridx;
     enum mpu_armv8m_attr_exec_t     attr_exec;
     enum mpu_armv8m_attr_access_t   attr_access;
     enum mpu_armv8m_attr_shared_t   attr_sh;

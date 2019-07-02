@@ -19,8 +19,9 @@
 
 /*
  * Original code taken from mcuboot project at:
- * https://github.com/runtimeco/mcuboot
- * Modifications are Copyright (c) 2018 Arm Limited.
+ * https://github.com/JuulLabs-OSS/mcuboot
+ * Git SHA of the original version: b5b59f16a5768c5175cf6c7ab082e84a5843f06f
+ * Modifications are Copyright (c) 2018-2019 Arm Limited.
  */
 
 #ifndef H_IMAGE_
@@ -66,6 +67,8 @@ struct flash_area;
 #define IMAGE_TLV_KEYHASH           0x01   /* hash of the public key */
 #define IMAGE_TLV_SHA256            0x10   /* SHA256 of image hdr and body */
 #define IMAGE_TLV_RSA2048_PSS       0x20   /* RSA2048 of hash output */
+#define IMAGE_TLV_RSA3072_PSS       0x23   /* RSA3072 of hash output */
+#define IMAGE_TLV_SEC_CNT           0x50   /* security counter */
 
 #define IMAGE_VER_MAJOR_LENGTH      8
 #define IMAGE_VER_MINOR_LENGTH      8
@@ -83,12 +86,12 @@ struct image_version {
 struct image_header {
     uint32_t ih_magic;
     uint32_t ih_load_addr;
-    uint16_t ih_hdr_size; /* Size of image header (bytes). */
-    uint16_t _pad1;
-    uint32_t ih_img_size; /* Does not include header. */
-    uint32_t ih_flags;    /* IMAGE_F_[...]. */
+    uint16_t ih_hdr_size;            /* Size of image header (bytes). */
+    uint16_t ih_protect_tlv_size;    /* Size of protected TLV area (bytes). */
+    uint32_t ih_img_size;            /* Does not include header. */
+    uint32_t ih_flags;               /* IMAGE_F_[...]. */
     struct image_version ih_ver;
-    uint32_t _pad2;
+    uint32_t _pad1;
 };
 
 /** Image TLV header.  All fields in little endian. */
@@ -111,6 +114,10 @@ int bootutil_img_validate(struct image_header *hdr,
                           const struct flash_area *fap,
                           uint8_t *tmp_buf, uint32_t tmp_buf_sz,
                           uint8_t *seed, int seed_len, uint8_t *out_hash);
+
+int32_t bootutil_get_img_security_cnt(struct image_header *hdr,
+                                      const struct flash_area *fap,
+                                      uint32_t *security_cnt);
 
 #ifdef MCUBOOT_RAM_LOADING
 int bootutil_check_hash_after_loading(struct image_header *hdr);

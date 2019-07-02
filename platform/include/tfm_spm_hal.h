@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Arm Limited. All rights reserved.
+ * Copyright (c) 2018-2019, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -28,7 +28,7 @@
  */
 struct tfm_spm_partition_platform_data_t;
 
-#if TFM_LVL != 1
+#if defined (TFM_PSA_API) || (TFM_LVL != 1)
 /**
  * \brief Holds SPM db fields that define the memory regions used by a
  *        partition.
@@ -101,7 +101,9 @@ void tfm_spm_hal_configure_default_isolation(
 void tfm_spm_hal_init_debug(void);
 
 /**
- * \brief Enables the fault handlers
+ * \brief Enables the fault handlers and sets priorities.
+ *
+ * Secure fault (if present) must have the highest possible priority
  */
 void enable_fault_handlers(void);
 
@@ -146,6 +148,18 @@ uint32_t tfm_spm_hal_get_ns_MSP(void);
  */
 uint32_t tfm_spm_hal_get_ns_entry_point(void);
 
+/**
+ * \brief Set the priority of a secure IRQ
+ *
+ * \param[in] irq_line    The IRQ to set the priority for. Might be less than 0
+ * \param[in] priority    The priority to set. [0..255]
+ *
+ * \details This function sets the priority for the IRQ passed in the parameter.
+ *          The precision of the priority value might be adjusted to match the
+ *          available priority bits in the underlying target platform.
+ */
+void tfm_spm_hal_set_secure_irq_priority(int32_t irq_line, uint32_t priority);
+
 #if TFM_MULTI_CORE_TOPOLOGY
 /**
  * \brief Performs the necessary actions to start the non-secure CPU running
@@ -163,7 +177,7 @@ void tfm_spm_hal_wait_for_ns_cpu_ready(void);
 
 #endif /*TFM_MULTI_CORE_TOPOLOGY*/
 
-#if TFM_LVL != 1
+#if (TFM_LVL != 1) && !defined(TFM_PSA_API)
 /**
  * \brief Configure the sandbox for a partition.
  *

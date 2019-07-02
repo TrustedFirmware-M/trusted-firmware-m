@@ -1,5 +1,5 @@
 # Copyright 2017 Linaro Limited
-# Copyright (c) 2018, Arm Limited.
+# Copyright (c) 2018-2019, Arm Limited.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ import struct
 
 IMAGE_MAGIC = 0x96f3b83d
 IMAGE_HEADER_SIZE = 32
+TLV_HEADER_SIZE = 4
+PAYLOAD_DIGEST_SIZE = 32  # SHA256 hash
+KEYHASH_SIZE = 32
 
 # Image header flags.
 IMAGE_F = {
@@ -32,7 +35,9 @@ IMAGE_F = {
 TLV_VALUES = {
         'KEYHASH': 0x01,
         'SHA256' : 0x10,
-        'RSA2048': 0x20, }
+        'RSA2048': 0x20,
+        'RSA3072': 0x23,
+        'SEC_CNT': 0x50, }
 
 TLV_INFO_SIZE = 4
 TLV_INFO_MAGIC = 0x6907
@@ -79,15 +84,19 @@ class Image():
         obj.check()
         return obj
 
-    def __init__(self, version, header_size=IMAGE_HEADER_SIZE, pad=0):
+    def __init__(self, version, header_size=IMAGE_HEADER_SIZE, security_cnt=0,
+                 pad=0):
         self.version = version
         self.header_size = header_size or IMAGE_HEADER_SIZE
+        self.security_cnt = security_cnt
         self.pad = pad
 
     def __repr__(self):
-        return "<Image version={}, header_size={}, pad={}, payloadlen=0x{:x}>".format(
+        return "<Image version={}, header_size={}, security_counter={}, \
+                 pad={}, payloadlen=0x{:x}>".format(
                 self.version,
                 self.header_size,
+                self.security_cnt,
                 self.pad,
                 len(self.payload))
 
@@ -104,9 +113,25 @@ class Image():
                 raise Exception("Padding requested, but image does not start with zeros")
 
     def sign(self, key, ramLoadAddress):
-        self.add_header(key, ramLoadAddress)
+        # Size of the security counter TLV:
+        # header ('BBH') + payload ('I') = 8 Bytes
+        protected_tlv_size = TLV_INFO_SIZE + 8
+
+        self.add_header(key, protected_tlv_size, ramLoadAddress)
 
         tlv = TLV()
+
+        payload = struct.pack('I', self.security_cnt)
+        tlv.add('SEC_CNT', payload)
+        # Full TLV size needs to be calculated in advance, because the
+        # header will be protected as well
+        full_size = (TLV_INFO_SIZE + len(tlv.buf) + TLV_HEADER_SIZE
+                     + PAYLOAD_DIGEST_SIZE)
+        if key is not None:
+            full_size += (TLV_HEADER_SIZE + KEYHASH_SIZE
+                          + TLV_HEADER_SIZE + key.sig_len())
+        tlv_header = struct.pack('HH', TLV_INFO_MAGIC, full_size)
+        self.payload += tlv_header + bytes(tlv.buf)
 
         sha = hashlib.sha256()
         sha.update(self.payload)
@@ -124,9 +149,9 @@ class Image():
             sig = key.sign(self.payload)
             tlv.add(key.sig_tlv(), sig)
 
-        self.payload += tlv.get()
+        self.payload += tlv.get()[protected_tlv_size:]
 
-    def add_header(self, key, ramLoadAddress):
+    def add_header(self, key, protected_tlv_size, ramLoadAddress):
         """Install the image header.
 
         The key is needed to know the type of signature, and
@@ -140,28 +165,28 @@ class Image():
 
         fmt = ('<' +
             # type ImageHdr struct {
-            'I' +   # Magic uint32
-            'I' +   # LoadAddr uint32
-            'H' +   # HdrSz uint16
-            'H' +   # Pad1  uint16
-            'I' +   # ImgSz uint32
-            'I' +   # Flags uint32
-            'BBHI' + # Vers  ImageVersion
-            'I'     # Pad2  uint32
+            'I' +    # Magic    uint32
+            'I' +    # LoadAddr uint32
+            'H' +    # HdrSz    uint16
+            'H' +    # PTLVSz   uint16
+            'I' +    # ImgSz    uint32
+            'I' +    # Flags    uint32
+            'BBHI' + # Vers     ImageVersion
+            'I'      # Pad1     uint32
             ) # }
         assert struct.calcsize(fmt) == IMAGE_HEADER_SIZE
         header = struct.pack(fmt,
                 IMAGE_MAGIC,
                 0 if (ramLoadAddress is None) else ramLoadAddress, # LoadAddr
                 self.header_size,
-                0, # Pad1
+                protected_tlv_size,  # TLV info header + security counter TLV
                 len(self.payload) - self.header_size, # ImageSz
                 flags, # Flags
                 self.version.major,
                 self.version.minor or 0,
                 self.version.revision or 0,
                 self.version.build or 0,
-                0) # Pad2
+                0)  # Pad1
         self.payload = bytearray(self.payload)
         self.payload[:len(header)] = header
 

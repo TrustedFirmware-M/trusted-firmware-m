@@ -23,7 +23,7 @@
 #define TOTAL_RAM_SIZE (0x00200000)     /* 2 MB */
 
 #define BL2_HEAP_SIZE           0x0001000
-#define BL2_MSP_STACK_SIZE      0x0001000
+#define BL2_MSP_STACK_SIZE      0x0001800
 
 #define S_HEAP_SIZE             0x0001000
 #define S_MSP_STACK_SIZE_INIT   0x0000400
@@ -33,6 +33,12 @@
 #define NS_HEAP_SIZE            0x0001000
 #define NS_MSP_STACK_SIZE       0x0000400
 #define NS_PSP_STACK_SIZE       0x0000C00
+
+/*
+ * This size of buffer is big enough to store an attestation
+ * token produced by initial attestation service
+ */
+#define PSA_INITIAL_ATTEST_TOKEN_MAX_SIZE   0x200
 
 /*
  * MPC granularity is 128 KB on AN519 MPS2 FPGA image. Alignment

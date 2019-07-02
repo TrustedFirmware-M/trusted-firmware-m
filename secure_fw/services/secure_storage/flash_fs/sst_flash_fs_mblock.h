@@ -40,7 +40,7 @@
  *
  * \brief Structure to store information about each physical flash memory block.
  */
-struct sst_block_meta_t {
+struct __attribute__((__aligned__(SST_FLASH_PROGRAM_UNIT))) sst_block_meta_t {
     uint32_t phy_id;      /*!< Physical ID of this logical block */
     uint32_t data_start;  /*!< Offset from the beginning of the
                            *   block to the location where the data
@@ -58,7 +58,7 @@ struct sst_block_meta_t {
  * \brief Structure to store file metadata.
  *
  */
-struct sst_file_meta_t {
+struct __attribute__((__aligned__(SST_FLASH_PROGRAM_UNIT))) sst_file_meta_t {
     uint32_t lblock;    /*!< Logical datablock where file is stored */
     uint32_t data_idx;  /*!< Offset in the logical data block */
     uint32_t cur_size;  /*!< Size in storage system for this fragment */

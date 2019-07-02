@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2017-2018, Arm Limited. All rights reserved.
+# Copyright (c) 2017-2019, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -37,9 +37,9 @@ set (CMAKE_C_COMPILER_FORCED true)
 #	To use global project config:
 #		embedded_project_start()
 #	To use config file relative to the top level CmakeLists.txt:
-#		embedded_project_start(./ConfigDefault.cmake)
+#		embedded_project_start(./configs/ConfigDefault.cmake)
 #	To use config file relative to the CmakeLists.txt file where this macro is used:
-#		embedded_project_start(${CMAKE_CURRENT_LIST_DIR}/ConfigDefault.cmake)
+#		embedded_project_start(${TFM_ROOT_DIR}/configs/ConfigDefault.cmake)
 macro(embedded_project_start)
 	#Default project configuration file
 	if (DEFINED PROJ_CONFIG) #Take the global setting as default value
@@ -51,10 +51,10 @@ macro(embedded_project_start)
 	set( _MULTI_VALUE_ARGS )		#One list argument (e.g. LANGUAGES C ASM CXX)
 	cmake_parse_arguments(_MY_PARAMS "${_OPTIONS_ARGS}" "${_ONE_VALUE_ARGS}" "${_MULTI_VALUE_ARGS}" ${ARGN} )
 
-	#Cehck passed parameters
+	#Check passed parameters
 	if(NOT _MY_PARAMS_CONFIG)
 		if(NOT DEFINED _PROJ_CONFIG)
-			set(_PROJ_CONFIG "./ConfigDefault.cmake")
+			set(_PROJ_CONFIG "${TFM_ROOT_DIR}/configs/ConfigDefault.cmake")
 			message(STATUS "embedded_project_start: no project configuration file defined, falling back to default.")
 		endif()
 	elseif(NOT DEFINED PROJ_CONFIG)
@@ -62,25 +62,20 @@ macro(embedded_project_start)
 	endif()
 
 	get_filename_component(_ABS_PROJ_CONFIG ${_PROJ_CONFIG} ABSOLUTE)
-	message( STATUS "embedded_project_start: using project specific config file (PROJ_CONFIG = ${_ABS_PROJ_CONFIG})")
+	message(STATUS "embedded_project_start: using project specific config file (PROJ_CONFIG = ${_ABS_PROJ_CONFIG})")
 	include("${_PROJ_CONFIG}")
 endmacro()
 
 #Override CMake default behaviour
 macro(embedded_project_fixup)
 	get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
-	if("CXX" IN_LIST languages)
-		include(Common/CompilerDetermineCXX)
-		#since all CMake "built in" scripts already executed, we need fo fix up some things here.
-		embedded_fixup_build_type_vars(CXX)
-	endif()
-	if("C" IN_LIST languages)
-		include(Common/CompilerDetermineC)
-		embedded_fixup_build_type_vars(C)
-	endif()
 
 	#Merge CPU and configuration specific compiler and linker flags.
 	foreach(LNG ${languages})
+		include(Common/CompilerDetermine${LNG})
+		#since all CMake "built in" scripts already executed, we need fo fix up some things here.
+		embedded_fixup_build_type_vars(${LNG})
+
 		#Apply CPU specific and configuration specific compile flags.
 		if(NOT CMAKE_${LNG}_FLAGS MATCHES ".*${CMAKE_${LNG}_FLAGS_CPU}.*")
 			set(CMAKE_${LNG}_FLAGS "${CMAKE_${LNG}_FLAGS} ${CMAKE_${LNG}_FLAGS_CPU}")
@@ -118,10 +113,10 @@ endmacro()
 
 macro(embedded_fixup_build_type_vars LANG)
 	#since all CMake "built in" scripts already executed, we need fo fix up some things here.
-	set (CMAKE_${LANG}_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG_INIT}" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
-	set (CMAKE_${LANG}_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL_INIT}" CACHE STRING "Flags used by the compiler during release builds for minimum size." FORCE)
-	set (CMAKE_${LANG}_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE_INIT}" CACHE STRING "Flags used by the compiler during release builds." FORCE)
-	set (CMAKE_${LANG}_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO_INIT}" CACHE STRING "Flags used by the compiler during release builds with debug info." FORCE)
+	set (CMAKE_${LANG}_FLAGS_DEBUG "${CMAKE_${LANG}_FLAGS_DEBUG_INIT}" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
+	set (CMAKE_${LANG}_FLAGS_MINSIZEREL "${CMAKE_${LANG}_FLAGS_MINSIZEREL_INIT}" CACHE STRING "Flags used by the compiler during release builds for minimum size." FORCE)
+	set (CMAKE_${LANG}_FLAGS_RELEASE "${CMAKE_${LANG}_FLAGS_RELEASE_INIT}" CACHE STRING "Flags used by the compiler during release builds." FORCE)
+	set (CMAKE_${LANG}_FLAGS_RELWITHDEBINFO "${CMAKE_${LANG}_FLAGS_RELWITHDEBINFO_INIT}" CACHE STRING "Flags used by the compiler during release builds with debug info." FORCE)
 endmacro()
 
 

@@ -5,13 +5,16 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
- * See BSD-3-Clause license in README.mdE.
+ * See BSD-3-Clause license in README.md.
  */
 
 
 #ifndef __T_COSE_COMMON_H__
 #define __T_COSE_COMMON_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \file t_cose_common.h
@@ -143,6 +146,9 @@ enum t_cose_err_t {
     T_COSE_ERR_SHORT_CIRCUIT_SIG
 };
 
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* __T_COSE_COMMON_H__ */

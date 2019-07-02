@@ -9,25 +9,31 @@
 #include "psa_initial_attestation_api.h"
 #include "secure_fw/services/initial_attestation/attestation.h"
 #include "../attestation_tests_common.h"
-#include "secure_utilities.h"
-#include "platform/include/tfm_plat_device_id.h"
-#include "platform/include/tfm_plat_boot_seed.h"
-#include <string.h>
-#include <stdlib.h>
+#include "../attest_token_test_values.h"
+#include "../attest_token_test.h"
 
 static uint8_t token_buffer[TEST_TOKEN_SIZE];
-static const uint8_t challenge_buffer[TEST_CHALLENGE_OBJ_SIZE] =
-                                     {CHALLENGE_FOR_TEST};
+static const uint8_t challenge_buffer[TEST_CHALLENGE_OBJ_SIZE] = {
+                                      TOKEN_TEST_NONCE_BYTES};
 
 /* Define test suite for attestation service tests */
 /* List of tests */
 static void tfm_attest_test_1001(struct test_result_t *ret);
 static void tfm_attest_test_1002(struct test_result_t *ret);
+static void tfm_attest_test_1003(struct test_result_t *ret);
+static void tfm_attest_test_1004(struct test_result_t *ret);
+static void tfm_attest_test_1005(struct test_result_t *ret);
 
 static struct test_t attestation_interface_tests[] = {
     {&tfm_attest_test_1001, "TFM_ATTEST_TEST_1001",
-     "Get attestation token and check claims", {0} },
+     "Minimal token test of attest token", {0} },
     {&tfm_attest_test_1002, "TFM_ATTEST_TEST_1002",
+     "Minimal token size test of attest token", {0} },
+    {&tfm_attest_test_1003, "TFM_ATTEST_TEST_1003",
+     "Short circuit signature test of attest token", {0} },
+    {&tfm_attest_test_1004, "TFM_ATTEST_TEST_1004",
+     "ECDSA signature test of attest token", {0} },
+    {&tfm_attest_test_1005, "TFM_ATTEST_TEST_1005",
      "Negative test cases for initial attestation service", {0} },
 };
 
@@ -45,38 +51,83 @@ register_testsuite_s_attestation_interface(struct test_suite_t *p_test_suite)
 }
 
 /*!
- * \brief Positive tests for initial attestation service
+ * \brief Get minimal token, only include a hard coded challenge, but omit the
+ *        rest of the claims
  *
- *      - Calling Initial Attestation service to get token
+ * Calling the minimal_test, which just retrieves a specific token:
+ *  - only hard coded challenge is included
+ *  - token signature is the hash of the token concatenated twice
  */
 static void tfm_attest_test_1001(struct test_result_t *ret)
 {
-    enum psa_attest_err_t err;
-    uint32_t token_size;
+    int32_t err;
 
-    /* Get attestation token size */
-    err = psa_initial_attest_get_token_size(TEST_CHALLENGE_OBJ_SIZE,
-                                            &token_size);
-    if (err != PSA_ATTEST_ERR_SUCCESS) {
-        TEST_FAIL("Get token size failed");
+    err = minimal_test();
+    if (err != 0) {
+        TEST_LOG("minimal_test() returned: %d\r\n", err);
+        TEST_FAIL("Attest token minimal_test() has failed");
         return;
     }
 
-    if (token_size > TEST_TOKEN_SIZE) {
-        TEST_FAIL("Allocated buffer is smaller than required");
+    ret->val = TEST_PASSED;
+}
+
+/*!
+ * \brief Get the size of the minimal token, only include a hard coded
+ *        challenge, but omit the rest of the claims
+ */
+static void tfm_attest_test_1002(struct test_result_t *ret)
+{
+    int32_t err;
+
+    err = minimal_get_size_test();
+    if (err != 0) {
+        TEST_LOG("minimal_get_size_test() returned: %d\r\n", err);
+        TEST_FAIL("Attest token minimal_get_size_test() has failed");
         return;
     }
 
-    /* Get attestation token
-     * FixMe: Hard coded challenge is used, because currently there is no
-     *        support for random source(RNG, rand(), etc.) on secure side.
-     */
-    err = psa_initial_attest_get_token(challenge_buffer,
-                                       TEST_CHALLENGE_OBJ_SIZE,
-                                       token_buffer,
-                                       &token_size);
-    if (err != PSA_ATTEST_ERR_SUCCESS) {
-        TEST_FAIL("Get token failed");
+    ret->val = TEST_PASSED;
+}
+
+/*!
+ * \brief Get an IAT with short circuit signature (signature is composed of
+ *        hash of token). Parse the token, validate presence of claims and
+ *        compare them against expected values in token_test_values.h
+ *
+ * More info in token_test.h
+ */
+static void tfm_attest_test_1003(struct test_result_t *ret)
+{
+    int32_t err;
+
+    err = decode_test_short_circuit_sig();
+    if (err != 0) {
+        TEST_LOG("decode_test_short_circuit_sig() returned: %d\r\n", err);
+        TEST_FAIL("Attest token decode_test_short_circuit_sig() has failed");
+        return;
+    }
+
+    ret->val = TEST_PASSED;
+}
+
+/*!
+ * \brief Get an IAT with proper ECDSA signature. Parse the token, validate
+ *        presence of claims and compare them against expected values in
+ *        token_test_values.h
+ *
+ * ECDSA signing is currently not supported in TF_M.
+ *
+ * More info in token_test.h
+ */
+static void tfm_attest_test_1004(struct test_result_t *ret)
+{
+    int32_t err;
+
+    err = decode_test_normal_sig();
+    if (err != 0) {
+        TEST_LOG("decode_test_normal_sig() returned: %d\r\n", err);
+        TEST_FAIL("Attest token decode_test_normal_sig() has failed");
         return;
     }
 
@@ -91,7 +142,7 @@ static void tfm_attest_test_1001(struct test_result_t *ret)
  *    - Calling initial attestation service with smaller buffer size than the
  *      expected size of the token.
  */
-static void tfm_attest_test_1002(struct test_result_t *ret)
+static void tfm_attest_test_1005(struct test_result_t *ret)
 {
     enum psa_attest_err_t err;
     uint32_t token_size = TEST_TOKEN_SIZE;

@@ -9,7 +9,7 @@
 #This file assumes it will be included from a project specific cmakefile, and
 #will not create a library or executable.
 #Inputs:
-#       MBEDTLS_INSTALL_DIR - directory where mbed TLS headers and libraries can be found. Needed only when using CRYPTO_ENGINE_MBEDTLS ON.
+#       MBEDTLS_INSTALL_DIR - directory where Mbed Crypto headers and libraries can be found. Needed only when using CRYPTO_ENGINE_MBEDTLS ON.
 #       TFM_ROOT_DIR        - root directory of the TF-M repository.
 #Outputs:
 #       Will modify include directories to make the source compile.
@@ -47,10 +47,9 @@ if (ENABLE_CRYPTO)
                     "${CRYPTO_DIR}/crypto_hash.c"
                     "${CRYPTO_DIR}/crypto_mac.c"
                     "${CRYPTO_DIR}/crypto_key.c"
-                    "${CRYPTO_DIR}/crypto_wrappers.c"
-                    "${CRYPTO_DIR}/crypto_utils.c"
-                    "${CRYPTO_DIR}/crypto_engine.c"
                     "${CRYPTO_DIR}/crypto_aead.c"
+                    "${CRYPTO_DIR}/crypto_asymmetric.c"
+                    "${CRYPTO_DIR}/crypto_generator.c"
                     "${CRYPTO_DIR}/tfm_crypto_secure_api.c"
       )
 
@@ -67,21 +66,22 @@ if (ENABLE_CRYPTO)
 
   #Inform the user about Crypto service features selected based on the Crypto service cmake flags
   message("The Crypto service compile configuration is as follows:")
-  message("- CRYPTO_ENGINE_MBEDTLS: " ${CRYPTO_ENGINE_MBEDTLS})
-  if (NOT DEFINED CRYPTO_KEY_STORAGE_NUM)
-    message("- CRYPTO_KEY_STORAGE_NUM using default value")
-  else()
-    message("- CRYPTO_KEY_STORAGE_NUM: " ${CRYPTO_KEY_STORAGE_NUM})
-  endif()
-  if (NOT DEFINED CRYPTO_KEY_MAX_KEY_LENGTH)
-    message("- CRYPTO_KEY_MAX_KEY_LENGTH using default value")
-  else()
-    message("- CRYPTO_KEY_MAX_KEY_LENGTH: " ${CRYPTO_KEY_MAX_KEY_LENGTH})
-  endif()
   if (NOT DEFINED CRYPTO_ENGINE_BUF_SIZE)
     message("- CRYPTO_ENGINE_BUF_SIZE using default value")
   else()
     message("- CRYPTO_ENGINE_BUF_SIZE: " ${CRYPTO_ENGINE_BUF_SIZE})
+  endif()
+  if (NOT DEFINED CRYPTO_CONC_OPER_NUM)
+    message("- CRYPTO_CONC_OPER_NUM using default value")
+  else()
+    message("- CRYPTO_CONC_OPER_NUM: " ${CRYPTO_CONC_OPER_NUM})
+  endif()
+  if (TFM_PSA_API)
+    if (NOT DEFINED CRYPTO_IOVEC_BUFFER_SIZE)
+      message("- CRYPTO_IOVEC_BUFFER_SIZE using default value")
+    else()
+      message("- CRYPTO_IOVEC_BUFFER_SIZE: " ${CRYPTO_IOVEC_BUFFER_SIZE})
+    endif()
   endif()
 
 else()

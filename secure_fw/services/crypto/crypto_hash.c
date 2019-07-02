@@ -5,46 +5,18 @@
  *
  */
 
-#include <limits.h>
+#include <stddef.h>
+#include <stdint.h>
 
-#include "tfm_crypto_defs.h"
-#include "crypto_engine.h"
-#include "psa_crypto.h"
-
-#include "tfm_crypto_struct.h"
+/* FixMe: Use PSA_CONNECTION_REFUSED when performing parameter
+ *        integrity checks but this will have to be revised
+ *        when the full set of error codes mandated by PSA FF
+ *        is available.
+ */
+#include "tfm_mbedcrypto_include.h"
 
 #include "tfm_crypto_api.h"
-#include "crypto_utils.h"
-
-/**
- * \brief Release all resources associated with a hash operation.
- *
- * \param[in] operation  Frontend hash operation context
- * \param[in] ctx        Backend hash operation context
- *
- * \return Return values as described in \ref tfm_crypto_err_t
- */
-static enum tfm_crypto_err_t tfm_crypto_hash_release(
-                                               psa_hash_operation_t *operation,
-                                               struct tfm_hash_operation_s *ctx)
-{
-    psa_status_t status;
-    enum tfm_crypto_err_t err;
-
-    /* Release resources in the engine */
-    status = tfm_crypto_engine_hash_release(&(ctx->engine_ctx));
-    if (status != PSA_SUCCESS) {
-        return PSA_STATUS_TO_TFM_CRYPTO_ERR(status);
-    }
-
-    /* Release the operation context */
-    err = tfm_crypto_operation_release(TFM_CRYPTO_HASH_OPERATION, operation);
-    if (err != TFM_CRYPTO_ERR_PSA_SUCCESS) {
-        return err;
-    }
-
-    return TFM_CRYPTO_ERR_PSA_SUCCESS;
-}
+#include "tfm_crypto_defs.h"
 
 /*!
  * \defgroup public_psa Public functions, PSA
@@ -52,213 +24,274 @@ static enum tfm_crypto_err_t tfm_crypto_hash_release(
  */
 
 /*!@{*/
-enum tfm_crypto_err_t tfm_crypto_hash_setup(psa_hash_operation_t *operation,
-                                            psa_algorithm_t alg)
+psa_status_t tfm_crypto_hash_setup(psa_invec in_vec[],
+                                   size_t in_len,
+                                   psa_outvec out_vec[],
+                                   size_t out_len)
 {
     psa_status_t status = PSA_SUCCESS;
-    enum tfm_crypto_err_t err;
-    struct tfm_hash_operation_s *ctx = NULL;
-    struct hash_engine_info engine_info;
+    psa_hash_operation_t *operation = NULL;
 
-    /* Validate pointers */
-    err = tfm_crypto_memory_check(operation,
-                                  sizeof(psa_hash_operation_t),
-                                  TFM_MEMORY_ACCESS_RW);
-    if (err != TFM_CRYPTO_ERR_PSA_SUCCESS) {
-        return TFM_CRYPTO_ERR_PSA_ERROR_INVALID_ARGUMENT;
+    if ((in_len != 1) || (out_len != 1)) {
+        return PSA_CONNECTION_REFUSED;
     }
 
-    if (PSA_ALG_IS_HASH(alg) == 0) {
-        return TFM_CRYPTO_ERR_PSA_ERROR_INVALID_ARGUMENT;
+    if ((out_vec[0].len != sizeof(uint32_t)) ||
+        (in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec))) {
+        return PSA_CONNECTION_REFUSED;
     }
+    const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
+    uint32_t handle = iov->op_handle;
+    uint32_t *handle_out = out_vec[0].base;
+    psa_algorithm_t alg = iov->alg;
 
-    /* Setup the engine for the requested algorithm */
-    status = tfm_crypto_engine_hash_setup(alg, &engine_info);
-    if (status != PSA_SUCCESS) {
-        return TFM_CRYPTO_ERR_PSA_ERROR_NOT_SUPPORTED;
-    }
+    /* Init the handle in the operation with the one passed from the iov */
+    *handle_out = iov->op_handle;
 
     /* Allocate the operation context in the secure world */
-    err = tfm_crypto_operation_alloc(TFM_CRYPTO_HASH_OPERATION,
-                                     operation,
-                                     (void **)&ctx);
-    if (err != TFM_CRYPTO_ERR_PSA_SUCCESS) {
-        return err;
+    status = tfm_crypto_operation_alloc(TFM_CRYPTO_HASH_OPERATION,
+                                        &handle,
+                                        (void **)&operation);
+    if (status != PSA_SUCCESS) {
+        return status;
     }
 
-    /* Bind the algorithm to the hash context */
-    ctx->alg = alg;
+    *handle_out = handle;
 
-    /* Start the engine */
-    status = tfm_crypto_engine_hash_start(&(ctx->engine_ctx), &engine_info);
+    status = psa_hash_setup(operation, alg);
     if (status != PSA_SUCCESS) {
         /* Release the operation context, ignore if the operation fails. */
-        (void)tfm_crypto_hash_release(operation, ctx);
-        return PSA_STATUS_TO_TFM_CRYPTO_ERR(status);
+        (void)tfm_crypto_operation_release(handle_out);
+        return status;
     }
 
-    return TFM_CRYPTO_ERR_PSA_SUCCESS;
+    return PSA_SUCCESS;
 }
 
-enum tfm_crypto_err_t tfm_crypto_hash_update(psa_hash_operation_t *operation,
-                                             const uint8_t *input,
-                                             size_t input_length)
+psa_status_t tfm_crypto_hash_update(psa_invec in_vec[],
+                                    size_t in_len,
+                                    psa_outvec out_vec[],
+                                    size_t out_len)
 {
     psa_status_t status = PSA_SUCCESS;
-    enum tfm_crypto_err_t err;
-    struct tfm_hash_operation_s *ctx = NULL;
+    psa_hash_operation_t *operation = NULL;
 
-    /* Validate pointers */
-    err = tfm_crypto_memory_check(operation,
-                                  sizeof(psa_hash_operation_t),
-                                  TFM_MEMORY_ACCESS_RW);
-    if (err != TFM_CRYPTO_ERR_PSA_SUCCESS) {
-        return TFM_CRYPTO_ERR_PSA_ERROR_INVALID_ARGUMENT;
+    if ((in_len != 2) || (out_len != 1)) {
+        return PSA_CONNECTION_REFUSED;
     }
-    err = tfm_crypto_memory_check((void *)input,
-                                  input_length,
-                                  TFM_MEMORY_ACCESS_RO);
-    if (err != TFM_CRYPTO_ERR_PSA_SUCCESS) {
-        return TFM_CRYPTO_ERR_PSA_ERROR_INVALID_ARGUMENT;
+
+    if ((in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) ||
+        (out_vec[0].len != sizeof(uint32_t))) {
+        return PSA_CONNECTION_REFUSED;
     }
+    const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
+    uint32_t handle = iov->op_handle;
+    uint32_t *handle_out = out_vec[0].base;
+    const uint8_t *input = in_vec[1].base;
+    size_t input_length = in_vec[1].len;
+
+    /* Init the handle in the operation with the one passed from the iov */
+    *handle_out = iov->op_handle;
 
     /* Look up the corresponding operation context */
-    err = tfm_crypto_operation_lookup(TFM_CRYPTO_HASH_OPERATION,
-                                      operation,
-                                      (void **)&ctx);
-    if (err != TFM_CRYPTO_ERR_PSA_SUCCESS) {
-        return err;
-    }
-
-    /* Process the input chunk with the engine */
-    status = tfm_crypto_engine_hash_update(&(ctx->engine_ctx),
-                                           input,
-                                           input_length);
+    status = tfm_crypto_operation_lookup(TFM_CRYPTO_HASH_OPERATION,
+                                         handle,
+                                         (void **)&operation);
     if (status != PSA_SUCCESS) {
-        (void)tfm_crypto_hash_release(operation, ctx);
-        return PSA_STATUS_TO_TFM_CRYPTO_ERR(status);
+        return status;
     }
 
-    return TFM_CRYPTO_ERR_PSA_SUCCESS;
+    status = psa_hash_update(operation, input, input_length);
+    if (status != PSA_SUCCESS) {
+        /* Release the operation context, ignore if the operation fails. */
+        (void)tfm_crypto_operation_release(handle_out);
+        return status;
+    }
+
+    return PSA_SUCCESS;
 }
 
-enum tfm_crypto_err_t tfm_crypto_hash_finish(psa_hash_operation_t *operation,
-                                             uint8_t *hash,
-                                             size_t hash_size,
-                                             size_t *hash_length)
+psa_status_t tfm_crypto_hash_finish(psa_invec in_vec[],
+                                    size_t in_len,
+                                    psa_outvec out_vec[],
+                                    size_t out_len)
 {
     psa_status_t status = PSA_SUCCESS;
-    enum tfm_crypto_err_t err;
-    struct tfm_hash_operation_s *ctx = NULL;
+    psa_hash_operation_t *operation = NULL;
 
-    /* Validate pointers */
-    err = tfm_crypto_memory_check(operation,
-                                  sizeof(psa_hash_operation_t),
-                                  TFM_MEMORY_ACCESS_RW);
-    if (err != TFM_CRYPTO_ERR_PSA_SUCCESS) {
-        return TFM_CRYPTO_ERR_PSA_ERROR_INVALID_ARGUMENT;
+    if ((in_len != 1) || (out_len != 2)) {
+        return PSA_CONNECTION_REFUSED;
     }
-    err = tfm_crypto_memory_check(hash,
-                                  hash_size,
-                                  TFM_MEMORY_ACCESS_RW);
-    if (err != TFM_CRYPTO_ERR_PSA_SUCCESS) {
-        return TFM_CRYPTO_ERR_PSA_ERROR_INVALID_ARGUMENT;
+
+    if ((in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) ||
+        (out_vec[0].len != sizeof(uint32_t))) {
+        return PSA_CONNECTION_REFUSED;
     }
-    err = tfm_crypto_memory_check(hash_length,
-                                  sizeof(size_t),
-                                  TFM_MEMORY_ACCESS_RW);
-    if (err != TFM_CRYPTO_ERR_PSA_SUCCESS) {
-        return TFM_CRYPTO_ERR_PSA_ERROR_INVALID_ARGUMENT;
-    }
+    const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
+    uint32_t handle = iov->op_handle;
+    uint32_t *handle_out = out_vec[0].base;
+    uint8_t *hash = out_vec[1].base;
+    size_t hash_size = out_vec[1].len;
+
+    /* Init the handle in the operation with the one passed from the iov */
+    *handle_out = iov->op_handle;
+
+    /* Initialise hash_length to zero */
+    out_vec[1].len = 0;
 
     /* Look up the corresponding operation context */
-    err = tfm_crypto_operation_lookup(TFM_CRYPTO_HASH_OPERATION,
-                                      operation,
-                                      (void **)&ctx);
-    if (err != TFM_CRYPTO_ERR_PSA_SUCCESS) {
-        return err;
-    }
-
-    if (hash_size < PSA_HASH_SIZE(ctx->alg)) {
-        (void)tfm_crypto_hash_release(operation, ctx);
-        return TFM_CRYPTO_ERR_PSA_ERROR_BUFFER_TOO_SMALL;
-    }
-
-    /* Finalise the hash value using the engine */
-    status = tfm_crypto_engine_hash_finish(&(ctx->engine_ctx), hash);
+    status = tfm_crypto_operation_lookup(TFM_CRYPTO_HASH_OPERATION,
+                                         handle,
+                                         (void **)&operation);
     if (status != PSA_SUCCESS) {
-        (void)tfm_crypto_hash_release(operation, ctx);
-        return PSA_STATUS_TO_TFM_CRYPTO_ERR(status);
+        return status;
     }
 
-    /* Set the length of the hash that has been produced */
-    *hash_length = PSA_HASH_SIZE(ctx->alg);
+    status = psa_hash_finish(operation, hash, hash_size, &out_vec[1].len);
+    if (status != PSA_SUCCESS) {
+        /* Release the operation context, ignore if the operation fails. */
+        (void)tfm_crypto_operation_release(handle_out);
+        return status;
+    }
 
-    return tfm_crypto_hash_release(operation, ctx);
+    status = tfm_crypto_operation_release(handle_out);
+
+    return status;
 }
 
-enum tfm_crypto_err_t tfm_crypto_hash_verify(psa_hash_operation_t *operation,
-                                             const uint8_t *hash,
-                                             size_t hash_length)
+psa_status_t tfm_crypto_hash_verify(psa_invec in_vec[],
+                                    size_t in_len,
+                                    psa_outvec out_vec[],
+                                    size_t out_len)
 {
-    enum tfm_crypto_err_t err;
-    uint8_t digest[PSA_HASH_MAX_SIZE] = {0};
-    size_t digest_length;
-    uint32_t idx, comp_mismatch = 0;
+    psa_status_t status = PSA_SUCCESS;
+    psa_hash_operation_t *operation = NULL;
 
-    /* Validate pointers */
-    err = tfm_crypto_memory_check(operation,
-                                  sizeof(psa_hash_operation_t),
-                                  TFM_MEMORY_ACCESS_RW);
-    if (err != TFM_CRYPTO_ERR_PSA_SUCCESS) {
-        return TFM_CRYPTO_ERR_PSA_ERROR_INVALID_ARGUMENT;
+    if ((in_len != 2) || (out_len != 1)) {
+        return PSA_CONNECTION_REFUSED;
     }
 
-    /* Finalise the hash operation */
-    err = tfm_crypto_hash_finish(operation,
-                                 digest,
-                                 PSA_HASH_MAX_SIZE,
-                                 &digest_length);
-
-    if (err != TFM_CRYPTO_ERR_PSA_SUCCESS) {
-        return err;
+    if ((in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) ||
+        (out_vec[0].len != sizeof(uint32_t))) {
+        return PSA_CONNECTION_REFUSED;
     }
+    const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
+    uint32_t handle = iov->op_handle;
+    uint32_t *handle_out = out_vec[0].base;
+    const uint8_t *hash = in_vec[1].base;
+    size_t hash_length = in_vec[1].len;
 
-    /* Verify that the computed hash matches the provided one */
-    for (idx=0; idx<(uint32_t)digest_length; idx++) {
-        if (digest[idx] != hash[idx]) {
-            comp_mismatch = 1;
-        }
-    }
-
-    if (comp_mismatch == 1) {
-        return TFM_CRYPTO_ERR_PSA_ERROR_INVALID_SIGNATURE;
-    }
-
-    return TFM_CRYPTO_ERR_PSA_SUCCESS;
-}
-
-enum tfm_crypto_err_t tfm_crypto_hash_abort(psa_hash_operation_t *operation)
-{
-    enum tfm_crypto_err_t err;
-    struct tfm_hash_operation_s *ctx = NULL;
-
-    /* Validate pointers */
-    err = tfm_crypto_memory_check(operation,
-                                  sizeof(psa_hash_operation_t),
-                                  TFM_MEMORY_ACCESS_RW);
-    if (err != TFM_CRYPTO_ERR_PSA_SUCCESS) {
-        return TFM_CRYPTO_ERR_PSA_ERROR_INVALID_ARGUMENT;
-    }
+    /* Init the handle in the operation with the one passed from the iov */
+    *handle_out = iov->op_handle;
 
     /* Look up the corresponding operation context */
-    err = tfm_crypto_operation_lookup(TFM_CRYPTO_HASH_OPERATION,
-                                      operation,
-                                      (void **)&ctx);
-    if (err != TFM_CRYPTO_ERR_PSA_SUCCESS) {
-        return err;
+    status = tfm_crypto_operation_lookup(TFM_CRYPTO_HASH_OPERATION,
+                                         handle,
+                                         (void **)&operation);
+    if (status != PSA_SUCCESS) {
+        return status;
     }
 
-    return tfm_crypto_hash_release(operation, ctx);
+    status = psa_hash_verify(operation, hash, hash_length);
+    if (status != PSA_SUCCESS) {
+        /* Release the operation context, ignore if the operation fails. */
+        (void)tfm_crypto_operation_release(handle_out);
+        return status;
+    }
+
+    status = tfm_crypto_operation_release(handle_out);
+
+    return status;
+}
+
+psa_status_t tfm_crypto_hash_abort(psa_invec in_vec[],
+                                   size_t in_len,
+                                   psa_outvec out_vec[],
+                                   size_t out_len)
+{
+    psa_status_t status = PSA_SUCCESS;
+    psa_hash_operation_t *operation = NULL;
+
+    if ((in_len != 1) || (out_len != 1)) {
+        return PSA_CONNECTION_REFUSED;
+    }
+
+    if ((in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) ||
+        (out_vec[0].len != sizeof(uint32_t))) {
+        return PSA_CONNECTION_REFUSED;
+    }
+    const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
+    uint32_t handle = iov->op_handle;
+    uint32_t *handle_out = out_vec[0].base;
+
+    /* Init the handle in the operation with the one passed from the iov */
+    *handle_out = iov->op_handle;
+
+    /* Look up the corresponding operation context */
+    status = tfm_crypto_operation_lookup(TFM_CRYPTO_HASH_OPERATION,
+                                         handle,
+                                         (void **)&operation);
+    if (status != PSA_SUCCESS) {
+        /* Operation does not exist, so abort has no effect */
+        return PSA_SUCCESS;
+    }
+
+    status = psa_hash_abort(operation);
+    if (status != PSA_SUCCESS) {
+        /* Release the operation context, ignore if the operation fails. */
+        (void)tfm_crypto_operation_release(handle_out);
+        return status;
+    }
+
+    status = tfm_crypto_operation_release(handle_out);
+
+    return status;
+}
+
+psa_status_t tfm_crypto_hash_clone(psa_invec in_vec[],
+                                   size_t in_len,
+                                   psa_outvec out_vec[],
+                                   size_t out_len)
+{
+    psa_status_t status = PSA_SUCCESS;
+    psa_hash_operation_t *source_operation = NULL;
+    psa_hash_operation_t *target_operation = NULL;
+
+    if ((in_len != 1) || (out_len != 1)) {
+        return PSA_CONNECTION_REFUSED;
+    }
+
+    if ((in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) ||
+        (out_vec[0].len != sizeof(uint32_t))) {
+        return PSA_CONNECTION_REFUSED;
+    }
+    const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
+    uint32_t source_handle = iov->op_handle;
+    uint32_t *target_handle = out_vec[0].base;
+
+    /* Look up the corresponding source operation context */
+    status = tfm_crypto_operation_lookup(TFM_CRYPTO_HASH_OPERATION,
+                                         source_handle,
+                                         (void **)&source_operation);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    /* Allocate the target operation context in the secure world */
+    status = tfm_crypto_operation_alloc(TFM_CRYPTO_HASH_OPERATION,
+                                        target_handle,
+                                        (void **)&target_operation);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    status = psa_hash_clone(source_operation, target_operation);
+    if (status != PSA_SUCCESS) {
+        /* Release the target operation context, ignore if it fails. */
+        (void)tfm_crypto_operation_release(target_handle);
+        return status;
+    }
+
+    return status;
 }
 /*!@}*/

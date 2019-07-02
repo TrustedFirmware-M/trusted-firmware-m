@@ -11,8 +11,8 @@
   "priority": "NORMAL",
   "id": "0x00000101",
   "entry_point": "audit_core_init",
-  "stack_size": "0x1000",
-  "heap_size": "0x0400",
+  "stack_size": "0x0200",
+  "heap_size": "0",
   "mmio_regions" : [
     {
       "name": "TFM_PERIPHERAL_UART1",
@@ -23,51 +23,41 @@
   "secure_functions": [
     {
       "sfid": "TFM_AUDIT_RETRIEVE_RECORD_SFID",
-      "signal": "TFM_AUDIT_RETRIEVE_RECORD",
-      "tfm_symbol": "audit_core_retrieve_record",
+      "signal": "AUDIT_CORE_RETRIEVE_RECORD",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
       "sfid": "TFM_AUDIT_ADD_RECORD_SFID",
-      "signal": "TFM_AUDIT_ADD_RECORD",
-      "tfm_symbol": "audit_core_add_record",
+      "signal": "AUDIT_CORE_ADD_RECORD",
       "non_secure_clients": false,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
       "sfid": "TFM_AUDIT_GET_INFO_SFID",
-      "signal": "TFM_AUDIT_GET_INFO",
-      "tfm_symbol": "audit_core_get_info",
+      "signal": "AUDIT_CORE_GET_INFO",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
       "sfid": "TFM_AUDIT_GET_RECORD_INFO_SFID",
-      "signal": "TFM_AUDIT_GET_RECORD_INFO",
-      "tfm_symbol": "audit_core_get_record_info",
+      "signal": "AUDIT_CORE_GET_RECORD_INFO",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     },
     {
       "sfid": "TFM_AUDIT_DELETE_RECORD_SFID",
-      "signal": "TFM_AUDIT_DELETE_RECORD",
-      "tfm_symbol": "audit_core_delete_record",
+      "signal": "AUDIT_CORE_DELETE_RECORD",
       "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "strict"
     }
   ],
-  "source_files": [
-    "audit_core.c",
-    "audit_wrappers.c",
-    "tfm_audit_secure_api.c"
-  ],
-  "tfm_linker_pattern": {
+  "linker_pattern": {
     "library_list": [
       "*tfm_audit*"
     ]

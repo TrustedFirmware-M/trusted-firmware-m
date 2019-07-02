@@ -116,8 +116,9 @@ struct tfm_spm_partition_platform_data_t tfm_peripheral_fpga_io = {
 
 void enable_fault_handlers(void)
 {
-    /* Fault handles enable registers are not present in a baseline
-     * implementation
+    /* Secure fault is not present in the Baseline implementation. */
+    /* Fault handler enable registers are not present in a Baseline
+     * implementation.
      */
 }
 

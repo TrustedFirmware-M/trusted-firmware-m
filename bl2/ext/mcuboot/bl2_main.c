@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2012-2014 Wind River Systems, Inc.
- * Copyright (c) 2017-2018 Arm Limited.
+ * Copyright (c) 2017-2019 Arm Limited.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,20 @@
 #include "bootutil/bootutil.h"
 #include "flash_map/flash_map.h"
 #include "bl2/include/boot_record.h"
+#include "security_cnt.h"
 
 /* Avoids the semihosting issue */
 #if defined (__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
 __asm("  .global __ARM_use_no_argv\n");
+#endif
+
+#if defined(__ARM_ARCH_8M_MAIN__) || defined(__ARM_ARCH_8M_BASE__)
+/* Macros to pick linker symbols */
+#define REGION(a, b, c) a##b##c
+#define REGION_NAME(a, b, c) REGION(a, b, c)
+#define REGION_DECLARE(a, b, c) extern uint32_t REGION_NAME(a, b, c)
+
+REGION_DECLARE(Image$$, ARM_LIB_STACK, $$ZI$$Base);
 #endif
 
 /* Flash device name must be specified by target */
@@ -85,6 +95,14 @@ static void do_boot(struct boot_rsp *rsp)
 
     stdio_uninit();
 
+#if defined(__ARM_ARCH_8M_MAIN__) || defined(__ARM_ARCH_8M_BASE__)
+    /* Restore the Main Stack Pointer Limit register's reset value
+     * before passing execution to runtime firmware to make the
+     * bootloader transparent to it.
+     */
+    __set_MSPLIM(0);
+#endif
+
     __set_MSP(vt->msp);
     __DSB();
     __ISB();
@@ -94,8 +112,16 @@ static void do_boot(struct boot_rsp *rsp)
 
 int main(void)
 {
+#if defined(__ARM_ARCH_8M_MAIN__) || defined(__ARM_ARCH_8M_BASE__)
+    uint32_t msp_stack_bottom =
+            (uint32_t)&REGION_NAME(Image$$, ARM_LIB_STACK, $$ZI$$Base);
+#endif
     struct boot_rsp rsp;
     int rc;
+
+#if defined(__ARM_ARCH_8M_MAIN__) || defined(__ARM_ARCH_8M_BASE__)
+    __set_MSPLIM(msp_stack_bottom);
+#endif
 
     stdio_init();
 
@@ -109,6 +135,13 @@ int main(void)
     rc = FLASH_DEV_NAME.Initialize(NULL);
     if(rc != ARM_DRIVER_OK) {
         BOOT_LOG_ERR("Error while initializing Flash Interface");
+        while (1)
+            ;
+    }
+
+    rc = boot_nv_security_counter_init();
+    if (rc != 0) {
+        BOOT_LOG_ERR("Error while initializing the security counter");
         while (1)
             ;
     }

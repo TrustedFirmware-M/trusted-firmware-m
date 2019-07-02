@@ -17,6 +17,13 @@
  * under the License.
  */
 
+/*
+ * Original code taken from mcuboot project at:
+ * https://github.com/JuulLabs-OSS/mcuboot
+ * Git SHA of the original version: 178be54bd6e5f035cc60e98205535682acd26e64
+ * Modifications are Copyright (c) 2018-2019 Arm Limited.
+ */
+
 #ifndef H_BOOTUTIL_PRIV_
 #define H_BOOTUTIL_PRIV_
 
@@ -37,6 +44,7 @@ struct flash_area;
 #define BOOT_EBADSTATUS 5
 #define BOOT_ENOMEM     6
 #define BOOT_EBADARGS   7
+#define BOOT_EBADMAGIC  8
 
 #define BOOT_TMPBUF_SZ  256
 
@@ -50,9 +58,24 @@ struct boot_status {
     uint32_t swap_size;   /* Total size of swapped image */
 };
 
-#define BOOT_MAGIC_GOOD  1
-#define BOOT_MAGIC_BAD   2
-#define BOOT_MAGIC_UNSET 3
+#define BOOT_MAGIC_GOOD     1
+#define BOOT_MAGIC_BAD      2
+#define BOOT_MAGIC_UNSET    3
+#define BOOT_MAGIC_ANY      4  /* NOTE: control only, not dependent on sector */
+
+/*
+ * NOTE: leave BOOT_FLAG_SET equal to one, this is written to flash!
+ */
+#define BOOT_FLAG_SET       1
+#define BOOT_FLAG_BAD       2
+#define BOOT_FLAG_UNSET     3
+#define BOOT_FLAG_ANY       4  /* NOTE: control only, not dependent on sector */
+
+#define BOOT_STATUS_IDX_0   1
+
+#define BOOT_STATUS_STATE_0 1
+#define BOOT_STATUS_STATE_1 2
+#define BOOT_STATUS_STATE_2 3
 
 /**
  * End-of-image slot structure.
@@ -66,11 +89,11 @@ struct boot_status {
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * |                          Swap size                            |
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * ~                  0xff padding (MAX ALIGN - 4)                 ~
+ * ~             padding with erased val (MAX ALIGN - 4)           ~
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |   Copy done   |          0xff padding (MAX ALIGN - 1)         ~
+ * |   Copy done   |   padding with erased val (MAX ALIGN - 1)     ~
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * |   Image OK    |          0xff padding (MAX ALIGN - 1)         ~
+ * |   Image OK    |   padding with erased val (MAX ALIGN - 1)     ~
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * ~                        MAGIC (16 octets)                      ~
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -84,7 +107,22 @@ struct boot_swap_state {
     uint8_t image_ok;
 };
 
-#define BOOT_STATUS_STATE_COUNT 3
+/*
+ * The current flashmap API does not check the amount of space allocated when
+ * loading sector data from the flash device, allowing for smaller counts here
+ * would most surely incur in overruns.
+ *
+ * TODO: make flashmap API receive the current sector array size.
+ */
+#if BOOT_MAX_IMG_SECTORS < 32
+#error "Too few sectors, please increase BOOT_MAX_IMG_SECTORS to at least 32"
+#endif
+
+/** Number of image slots in flash; currently limited to two. */
+#define BOOT_NUM_SLOTS             2
+
+/** Maximum number of image sectors supported by the bootloader. */
+#define BOOT_STATUS_STATE_COUNT    3
 
 #define BOOT_STATUS_SOURCE_NONE    0
 #define BOOT_STATUS_SOURCE_SCRATCH 1
@@ -93,13 +131,7 @@ struct boot_swap_state {
 #define BOOT_FLAG_IMAGE_OK         0
 #define BOOT_FLAG_COPY_DONE        1
 
-#define BOOT_FLAG_SET              0x01
-#define BOOT_FLAG_UNSET            0xff
-
 extern const uint32_t BOOT_MAGIC_SZ;
-
-/** Number of image slots in flash; currently limited to two. */
-#define BOOT_NUM_SLOTS              2
 
 /**
  * Compatibility shim for flash sector type.
@@ -126,8 +158,8 @@ struct boot_loader_state {
     uint8_t write_sz;
 };
 
-int bootutil_verify_sig(uint8_t *hash, uint32_t hlen, uint8_t *sig, int slen,
-    uint8_t key_id);
+int bootutil_verify_sig(uint8_t *hash, uint32_t hlen, uint8_t *sig,
+                        size_t slen, uint8_t key_id);
 
 uint32_t boot_slots_trailer_sz(uint8_t min_write_sz);
 int boot_status_entries(const struct flash_area *fap);

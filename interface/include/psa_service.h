@@ -14,6 +14,8 @@ extern "C" {
 
 #include <inttypes.h>
 
+#include "psa_client.h"
+
 /********************** PSA Secure Partition Macros and Types ****************/
 
 /* PSA wait timeouts */

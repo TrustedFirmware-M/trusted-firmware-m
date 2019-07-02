@@ -5,21 +5,76 @@
  *
  */
 
-#include <stdio.h>
-
 #include "test/framework/test_framework_helpers.h"
-#include "psa_crypto.h"
-
-#define BIT_SIZE_TEST_KEY (128)
-#define BYTE_SIZE_TEST_KEY (BIT_SIZE_TEST_KEY/8)
-#define TEST_KEY_SLOT (1)
+#include "tfm_api.h"
+#include "../crypto_tests_common.h"
 
 /* List of tests */
 static void tfm_crypto_test_5001(struct test_result_t *ret);
+static void tfm_crypto_test_5002(struct test_result_t *ret);
+static void tfm_crypto_test_5003(struct test_result_t *ret);
+static void tfm_crypto_test_5005(struct test_result_t *ret);
+static void tfm_crypto_test_5007(struct test_result_t *ret);
+static void tfm_crypto_test_5008(struct test_result_t *ret);
+static void tfm_crypto_test_5009(struct test_result_t *ret);
+static void tfm_crypto_test_5010(struct test_result_t *ret);
+static void tfm_crypto_test_5011(struct test_result_t *ret);
+static void tfm_crypto_test_5012(struct test_result_t *ret);
+static void tfm_crypto_test_5013(struct test_result_t *ret);
+static void tfm_crypto_test_5014(struct test_result_t *ret);
+static void tfm_crypto_test_5019(struct test_result_t *ret);
+static void tfm_crypto_test_5020(struct test_result_t *ret);
+static void tfm_crypto_test_5021(struct test_result_t *ret);
+static void tfm_crypto_test_5022(struct test_result_t *ret);
+static void tfm_crypto_test_5024(struct test_result_t *ret);
+static void tfm_crypto_test_5030(struct test_result_t *ret);
+static void tfm_crypto_test_5031(struct test_result_t *ret);
+static void tfm_crypto_test_5032(struct test_result_t *ret);
+static void tfm_crypto_test_5033(struct test_result_t *ret);
 
 static struct test_t crypto_tests[] = {
     {&tfm_crypto_test_5001, "TFM_CRYPTO_TEST_5001",
-     "Secure Key management interface", {0}},
+     "Secure Key management interface", {0} },
+    {&tfm_crypto_test_5002, "TFM_CRYPTO_TEST_5002",
+     "Secure Symmetric encryption (AES-128-CBC) interface", {0} },
+    {&tfm_crypto_test_5003, "TFM_CRYPTO_TEST_5003",
+     "Secure Symmetric encryption (AES-128-CFB) interface", {0} },
+    {&tfm_crypto_test_5005, "TFM_CRYPTO_TEST_5005",
+     "Secure Symmetric encryption (AES-128-CTR) interface", {0} },
+    {&tfm_crypto_test_5007, "TFM_CRYPTO_TEST_5007",
+     "Secure Symmetric encryption invalid cipher (AES-128-GCM)", {0} },
+    {&tfm_crypto_test_5008, "TFM_CRYPTO_TEST_5008",
+     "Secure Symmetric encryption invalid cipher (AES-152-CBC)", {0} },
+    {&tfm_crypto_test_5009, "TFM_CRYPTO_TEST_5009",
+     "Secure Symmetric encryption invalid cipher (HMAC-128-CFB)", {0} },
+    {&tfm_crypto_test_5010, "TFM_CRYPTO_TEST_5010",
+     "Secure Hash (SHA-1) interface", {0} },
+    {&tfm_crypto_test_5011, "TFM_CRYPTO_TEST_5011",
+     "Secure Hash (SHA-224) interface", {0} },
+    {&tfm_crypto_test_5012, "TFM_CRYPTO_TEST_5012",
+     "Secure Hash (SHA-256) interface", {0} },
+    {&tfm_crypto_test_5013, "TFM_CRYPTO_TEST_5013",
+     "Secure Hash (SHA-384) interface", {0} },
+    {&tfm_crypto_test_5014, "TFM_CRYPTO_TEST_5014",
+     "Secure Hash (SHA-512) interface", {0} },
+    {&tfm_crypto_test_5019, "TFM_CRYPTO_TEST_5019",
+     "Secure HMAC (SHA-1) interface", {0} },
+    {&tfm_crypto_test_5020, "TFM_CRYPTO_TEST_5020",
+     "Secure HMAC (SHA-256) interface", {0} },
+    {&tfm_crypto_test_5021, "TFM_CRYPTO_TEST_5021",
+     "Secure HMAC (SHA-384) interface", {0} },
+    {&tfm_crypto_test_5022, "TFM_CRYPTO_TEST_5022",
+     "Secure HMAC (SHA-512) interface", {0} },
+    {&tfm_crypto_test_5024, "TFM_CRYPTO_TEST_5024",
+     "Secure HMAC with long key (SHA-1) interface", {0} },
+    {&tfm_crypto_test_5030, "TFM_CRYPTO_TEST_5030",
+     "Secure AEAD (AES-128-CCM) interface", {0} },
+    {&tfm_crypto_test_5031, "TFM_CRYPTO_TEST_5031",
+     "Secure AEAD (AES-128-GCM) interface", {0} },
+    {&tfm_crypto_test_5032, "TFM_CRYPTO_TEST_5032",
+     "Secure key policy interface", {0} },
+    {&tfm_crypto_test_5033, "TFM_CRYPTO_TEST_5033",
+     "Secure key policy check permissions", {0} },
 };
 
 void register_testsuite_s_crypto_interface(struct test_suite_t *p_test_suite)
@@ -33,86 +88,115 @@ void register_testsuite_s_crypto_interface(struct test_suite_t *p_test_suite)
 /**
  * \brief Secure interface test for Crypto
  *
- * \details The scope of this test is to perform a basic validation of
- *          the secure interface for the Key management module.
+ * \details The scope of this set of tests is to functionally verify
+ *          the interfaces specified by psa_crypto.h are working
+ *          as expected. This is not meant to cover all possible
+ *          scenarios and corner cases.
+ *
  */
 static void tfm_crypto_test_5001(struct test_result_t *ret)
 {
-    psa_status_t status;
-    uint32_t i = 0;
-    const psa_key_slot_t slot = TEST_KEY_SLOT;
-    uint8_t data[] = "THIS IS MY KEY1";
-    psa_key_type_t type = PSA_KEY_TYPE_NONE;
-    size_t bits = 0;
-    uint8_t exported_data[sizeof(data)] = {0};
-    size_t exported_data_size = 0;
-    psa_key_policy_t policy;
+    psa_key_interface_test(PSA_KEY_TYPE_AES, ret);
+}
 
-    /* Setup the key policy */
-    psa_key_policy_init(&policy);
-    psa_key_policy_set_usage(&policy, PSA_KEY_USAGE_EXPORT, 0);
-    status = psa_set_key_policy(slot, &policy);
-    if (status != PSA_SUCCESS) {
-        TEST_FAIL("Failed to set key policy");
-        return;
-    }
+static void tfm_crypto_test_5002(struct test_result_t *ret)
+{
+    psa_cipher_test(PSA_KEY_TYPE_AES, PSA_ALG_CBC_NO_PADDING, ret);
+}
 
-    status = psa_import_key(slot, PSA_KEY_TYPE_AES, data, sizeof(data));
-    if (status != PSA_SUCCESS) {
-        TEST_FAIL("Error importing a key");
-        return;
-    }
+static void tfm_crypto_test_5003(struct test_result_t *ret)
+{
+    psa_cipher_test(PSA_KEY_TYPE_AES, PSA_ALG_CFB, ret);
+}
 
-    status = psa_get_key_information(slot, &type, &bits);
-    if (status != PSA_SUCCESS) {
-        TEST_FAIL("Error getting key metadata");
-        return;
-    }
+static void tfm_crypto_test_5005(struct test_result_t *ret)
+{
+    psa_cipher_test(PSA_KEY_TYPE_AES, PSA_ALG_CTR, ret);
+}
 
-    if (bits != BIT_SIZE_TEST_KEY) {
-        TEST_FAIL("The number of key bits is different from expected");
-        return;
-    }
+static void tfm_crypto_test_5007(struct test_result_t *ret)
+{
+    /* GCM is an AEAD mode */
+    psa_invalid_cipher_test(PSA_KEY_TYPE_AES, PSA_ALG_GCM, 16, ret);
+}
 
-    if (type != PSA_KEY_TYPE_AES) {
-        TEST_FAIL("The type of the key is different from expected");
-        return;
-    }
+static void tfm_crypto_test_5008(struct test_result_t *ret)
+{
+    psa_invalid_key_length_test(ret);
+}
 
-    status = psa_export_key(slot,
-                            exported_data,
-                            sizeof(data),
-                            &exported_data_size);
+static void tfm_crypto_test_5009(struct test_result_t *ret)
+{
+    /* HMAC is not a block cipher */
+    psa_invalid_cipher_test(PSA_KEY_TYPE_HMAC, PSA_ALG_CFB, 16, ret);
+}
 
-    if (status != PSA_SUCCESS) {
-        TEST_FAIL("Error exporting a key");
-        return;
-    }
+static void tfm_crypto_test_5010(struct test_result_t *ret)
+{
+    psa_hash_test(PSA_ALG_SHA_1, ret);
+}
 
-    if (exported_data_size != BYTE_SIZE_TEST_KEY) {
-        TEST_FAIL("Number of bytes of exported key different from expected");
-        return;
-    }
+static void tfm_crypto_test_5011(struct test_result_t *ret)
+{
+    psa_hash_test(PSA_ALG_SHA_224, ret);
+}
 
-    /* Check that the exported key is the same as the imported one */
-    for (i=0; i<exported_data_size; i++) {
-        if (exported_data[i] != data[i]) {
-            TEST_FAIL("Exported key doesn't match the imported key");
-            return;
-        }
-    }
+static void tfm_crypto_test_5012(struct test_result_t *ret)
+{
+    psa_hash_test(PSA_ALG_SHA_256, ret);
+}
 
-    status = psa_destroy_key(slot);
-    if (status != PSA_SUCCESS) {
-        TEST_FAIL("Error destroying the key");
-        return;
-    }
+static void tfm_crypto_test_5013(struct test_result_t *ret)
+{
+    psa_hash_test(PSA_ALG_SHA_384, ret);
+}
 
-    status = psa_get_key_information(slot, &type, &bits);
-    if (status != PSA_ERROR_EMPTY_SLOT) {
-        TEST_FAIL("Key slot should be empty now");
-        return;
-    }
+static void tfm_crypto_test_5014(struct test_result_t *ret)
+{
+    psa_hash_test(PSA_ALG_SHA_512, ret);
+}
 
-    ret->val = TEST_PASSED;
+static void tfm_crypto_test_5019(struct test_result_t *ret)
+{
+    psa_mac_test(PSA_ALG_HMAC(PSA_ALG_SHA_1), 0, ret);
+}
+
+static void tfm_crypto_test_5020(struct test_result_t *ret)
+{
+    psa_mac_test(PSA_ALG_HMAC(PSA_ALG_SHA_256), 0, ret);
+}
+
+static void tfm_crypto_test_5021(struct test_result_t *ret)
+{
+    psa_mac_test(PSA_ALG_HMAC(PSA_ALG_SHA_384), 0, ret);
+}
+
+static void tfm_crypto_test_5022(struct test_result_t *ret)
+{
+    psa_mac_test(PSA_ALG_HMAC(PSA_ALG_SHA_512), 0, ret);
+}
+
+static void tfm_crypto_test_5024(struct test_result_t *ret)
+{
+    psa_mac_test(PSA_ALG_HMAC(PSA_ALG_SHA_1), 1, ret);
+}
+
+static void tfm_crypto_test_5030(struct test_result_t *ret)
+{
+    psa_aead_test(PSA_KEY_TYPE_AES, PSA_ALG_CCM, ret);
+}
+
+static void tfm_crypto_test_5031(struct test_result_t *ret)
+{
+    psa_aead_test(PSA_KEY_TYPE_AES, PSA_ALG_GCM, ret);
+}
+
+static void tfm_crypto_test_5032(struct test_result_t *ret)
+{
+    psa_policy_key_interface_test(ret);
+}
+
+static void tfm_crypto_test_5033(struct test_result_t *ret)
+{
+    psa_policy_invalid_policy_usage_test(ret);
 }

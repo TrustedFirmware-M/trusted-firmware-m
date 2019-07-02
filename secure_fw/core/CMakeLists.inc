@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2017-2018, Arm Limited. All rights reserved.
+# Copyright (c) 2017-2019, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -34,6 +34,7 @@ set (SS_CORE_C_SRC
 		"${SS_CORE_DIR}/tfm_core.c"
 		"${SS_CORE_DIR}/tfm_handler.c"
 		"${SS_CORE_DIR}/tfm_secure_api.c"
+		"${SS_CORE_DIR}/tfm_func_api.c"
 		"${SS_CORE_DIR}/tfm_spm_services.c"
 		"${SS_CORE_DIR}/tfm_nspm.c"
 		"${SS_CORE_DIR}/tfm_boot_data.c"
@@ -48,6 +49,7 @@ embedded_include_directories(PATH ${TFM_ROOT_DIR} ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/interface/include ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/spm ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/core ABSOLUTE)
+embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/core/arch/include ABSOLUTE)
 
 set(BUILD_CMSIS_CORE Off)
 set(BUILD_RETARGET Off)

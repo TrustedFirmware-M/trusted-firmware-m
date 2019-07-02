@@ -21,8 +21,6 @@ typedef psa_status_t(*sp_init_function)(void);
 #define TFM_PARTITION_TYPE_APP   "APPLICATION-ROT"
 #define TFM_PARTITION_TYPE_PSA   "PSA-ROT"
 
-#define TFM_STACK_SIZE  1024
-
 #ifdef TFM_PSA_API
 enum tfm_partition_priority {
     TFM_PRIORITY_LOW = THRD_PRIOR_LOWEST,
@@ -59,24 +57,18 @@ struct spm_partition_desc_t {
     struct spm_partition_static_data_t static_data;
     struct spm_partition_runtime_data_t runtime_data;
     struct tfm_spm_partition_platform_data_t *platform_data;
-#if TFM_LVL != 1
+#if (TFM_LVL != 1) || defined(TFM_PSA_API)
     struct tfm_spm_partition_memory_data_t memory_data;
 #endif
 #ifdef TFM_PSA_API
     struct tfm_thrd_ctx sp_thrd;
-    /*
-     * FixMe: Hard code stack is not aligned with the definition in the
-     * manifest. It will use the partition stacks in the linker scripts/sct
-     * files include Level 1 to 3.
-     */
-    uint8_t stack[TFM_STACK_SIZE] __attribute__((aligned(8)));
 #endif
 };
 
 /* Macros to pick linker symbols and allow to form the partition data base */
 #define REGION(a, b, c) a##b##c
 #define REGION_NAME(a, b, c) REGION(a, b, c)
-#if TFM_LVL == 1
+#if (TFM_LVL == 1) && !defined(TFM_PSA_API)
 #define REGION_DECLARE(a, b, c)
 #else
 #define REGION_DECLARE(a, b, c) extern uint32_t REGION_NAME(a, b, c)

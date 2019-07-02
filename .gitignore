@@ -1,10 +1,13 @@
 # List of files and extensions to be ignored
 
-# Eclipse projects
+# Eclipse
 *.project
 *.cproject
 .pydevproject
 .settings/
+
+# Visual Studio Code
+.vscode/
 
 # Garbage files
 build*/

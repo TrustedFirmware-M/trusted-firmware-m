@@ -10,7 +10,7 @@
 #include <string.h>
 #include "cmsis_compiler.h"
 #include "Driver_Flash.h"
-#include "secure_fw/services/secure_storage/sst_utils.h"
+#include "secure_fw/core/tfm_memory_utils.h"
 #include "tfm_sst_defs.h"
 
 #ifndef SST_FLASH_AREA_ADDR
@@ -60,7 +60,7 @@ static psa_ps_status_t flash_read(uint32_t flash_addr, uint32_t size,
 {
     uint32_t idx = flash_addr - SST_FLASH_AREA_ADDR;
 
-    sst_utils_memcpy(buff, &block_data[idx], size);
+    (void)tfm_memcpy(buff, &block_data[idx], size);
 
     return PSA_PS_SUCCESS;
 }
@@ -70,7 +70,7 @@ static psa_ps_status_t flash_write(uint32_t flash_addr, uint32_t size,
 {
     uint32_t idx = flash_addr - SST_FLASH_AREA_ADDR;
 
-    sst_utils_memcpy(&block_data[idx], buff, size);
+    (void)tfm_memcpy(&block_data[idx], buff, size);
 
     return PSA_PS_SUCCESS;
 }
@@ -79,9 +79,7 @@ static psa_ps_status_t flash_erase(uint32_t flash_addr)
 {
     uint32_t idx = flash_addr - SST_FLASH_AREA_ADDR;
 
-    sst_utils_memset(&block_data[idx],
-                     SST_FLASH_DEFAULT_VAL,
-                     SST_BLOCK_SIZE);
+    (void)tfm_memset(&block_data[idx], SST_FLASH_DEFAULT_VAL, SST_BLOCK_SIZE);
 
     return PSA_PS_SUCCESS;
 }

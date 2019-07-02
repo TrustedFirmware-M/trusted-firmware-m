@@ -10,7 +10,7 @@
  * \brief PSA cryptography module: platform definitions
  *
  * \note This file may not be included directly. Applications must
- * include psa/crypto.h.
+ * include psa_crypto.h.
  *
  * This file contains platform-dependent type definitions.
  *
@@ -26,7 +26,7 @@
 /* PSA requires several types which C99 provides in stdint.h. */
 #include <stdint.h>
 
-/* Integral type representing a key slot number. */
-typedef uint16_t psa_key_slot_t;
+/* Integral type representing a key handle. */
+typedef uint16_t psa_key_handle_t;
 
 #endif /* PSA_CRYPTO_PLATFORM_H */

@@ -101,7 +101,7 @@ test_entry2 s_tests2[] = {
 
 test_entry s_tests[] = {
     TEST_ENTRY(ParseMapAsArrayTest),
-    TEST_ENTRY_DISABLED(AllocAllStringsTest),
+    TEST_ENTRY(AllocAllStringsTest),
     TEST_ENTRY(IndefiniteLengthNestTest),
     TEST_ENTRY(NestedMapTestIndefLen),
     TEST_ENTRY(ParseSimpleTest),
@@ -118,7 +118,7 @@ test_entry s_tests[] = {
     TEST_ENTRY(ParseTooDeepArrayTest),
     TEST_ENTRY(ComprehensiveInputTest),
     TEST_ENTRY(ParseMapTest),
-    TEST_ENTRY_DISABLED(IndefiniteLengthArrayMapTest),
+    TEST_ENTRY(IndefiniteLengthArrayMapTest),
     TEST_ENTRY(BasicEncodeTest),
     TEST_ENTRY(NestedMapTest),
     TEST_ENTRY(BignumParseTest),
@@ -129,8 +129,8 @@ test_entry s_tests[] = {
     TEST_ENTRY(ParseDeepArrayTest),
     TEST_ENTRY(SimpleArrayTest),
     TEST_ENTRY(IntegerValuesParseTest),
-    TEST_ENTRY_DISABLED(MemPoolTest),
-    TEST_ENTRY_DISABLED(IndefiniteLengthStringTest),
+    TEST_ENTRY(MemPoolTest),
+    TEST_ENTRY(IndefiniteLengthStringTest),
     TEST_ENTRY(HalfPrecisionDecodeBasicTests),
     TEST_ENTRY(DoubleAsSmallestTest),
     TEST_ENTRY(HalfPrecisionAgainstRFCCodeTest),
@@ -141,6 +141,7 @@ test_entry s_tests[] = {
     TEST_ENTRY(StringDecoderModeFailTest),
     TEST_ENTRY_DISABLED(BigComprehensiveInputTest),
     TEST_ENTRY(EncodeErrorTests),
+    TEST_ENTRY(SetUpAllocatorTest),
     //TEST_ENTRY(fail_test),
 };
 
@@ -278,7 +279,6 @@ void PrintSizes(OutputStringCB pfOutput, void *pOutCtx)
    PrintSize("sizeof(QCBORDecodeNesting)",  (uint32_t)sizeof(QCBORDecodeNesting), pfOutput, pOutCtx);
    PrintSize("sizeof(QCBORDecodeContext)",  (uint32_t)sizeof(QCBORDecodeContext), pfOutput, pOutCtx);
    PrintSize("sizeof(QCBORItem)",           (uint32_t)sizeof(QCBORItem), pfOutput, pOutCtx);
-   PrintSize("sizeof(QCBORStringAllocator)",(uint32_t)sizeof(QCBORStringAllocator), pfOutput, pOutCtx);
    PrintSize("sizeof(QCBORTagListIn)",      (uint32_t)sizeof(QCBORTagListIn), pfOutput, pOutCtx);
    PrintSize("sizeof(QCBORTagListOut)",     (uint32_t)sizeof(QCBORTagListOut), pfOutput, pOutCtx);
    (*pfOutput)("", pOutCtx, 1);

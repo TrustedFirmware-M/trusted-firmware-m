@@ -56,7 +56,7 @@ function(DoxyFindTools)
 		set(DOXYGEN_EXECUTABLE "${DOXYGEN_EXECUTABLE}" PARENT_SCOPE)
 		set(DOXYGEN_DOT_EXECUTABLE "${DOXYGEN_DOT_EXECUTABLE}" PARENT_SCOPE)
 		set(PLANTUML_JAR_PATH "${PLANTUML_JAR_PATH}" PARENT_SCOPE)
-		set(_NODOC False PARENT_SCOPE)
+		set(NODOC False PARENT_SCOPE)
 	else()
 		message(WARNING "Some tools are missing for document generation. Document generation target is not created.")
 		set(NODOC True PARENT_SCOPE)
@@ -85,7 +85,7 @@ if (NOT NODOC)
 	#Version ID of TF-M.
 	#TODO: this shall not be hard-coded here. A process need to defined for
 	#      versioning the document (and TF-M).
-	set(DOXYCFG_TFM_VERSION "v0.01")
+	set(DOXYCFG_TFM_VERSION "v1.0.0-Beta")
 
 	#Using add_custom_command allows CMake to generate proper clean commands
 	#for document generation.

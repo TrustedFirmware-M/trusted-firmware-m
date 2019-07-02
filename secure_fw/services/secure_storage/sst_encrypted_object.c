@@ -11,6 +11,7 @@
 
 #include "crypto/sst_crypto_interface.h"
 #include "flash_fs/sst_flash_fs.h"
+#include "secure_fw/core/tfm_memory_utils.h"
 #include "sst_object_defs.h"
 #include "sst_utils.h"
 
@@ -27,7 +28,12 @@
 #define SST_MAX_ENCRYPTED_OBJ_SIZE GET_ALIGNED_FLASH_BYTES( \
                                      SST_ENCRYPT_SIZE(SST_MAX_OBJECT_DATA_SIZE))
 
-static uint8_t sst_crypto_buf[SST_MAX_ENCRYPTED_OBJ_SIZE];
+/* FIXME: add the tag length to the crypto buffer size to account for the tag
+ * being appended to the ciphertext by the crypto layer.
+ */
+#define SST_CRYPTO_BUF_LEN (SST_MAX_ENCRYPTED_OBJ_SIZE + SST_TAG_LEN_BYTES)
+
+static uint8_t sst_crypto_buf[SST_CRYPTO_BUF_LEN];
 
 /**
  * \brief Gets the encryption key and sets it as the key to be used for
@@ -76,11 +82,14 @@ static psa_ps_status_t sst_object_auth_decrypt(uint32_t fid,
 {
     psa_ps_status_t err;
     uint8_t *p_obj_data = (uint8_t *)&obj->header.info;
+    size_t out_len;
 
     err = sst_object_set_encryption_key();
     if (err != PSA_PS_SUCCESS) {
         return err;
     }
+
+    (void)tfm_memcpy(sst_crypto_buf, p_obj_data, cur_size);
 
     /* Use File ID as a part of the associated data to authenticate
      * the object in the FS. The tag will be stored in the object table and
@@ -90,20 +99,17 @@ static psa_ps_status_t sst_object_auth_decrypt(uint32_t fid,
     err = sst_crypto_auth_and_decrypt(&obj->header.crypto,
                                       (const uint8_t *)&fid,
                                       sizeof(fid),
-                                      p_obj_data,
+                                      sst_crypto_buf,
                                       cur_size,
-                                      sst_crypto_buf);
-    if (err != PSA_PS_SUCCESS) {
+                                      p_obj_data,
+                                      sizeof(*obj) - sizeof(obj->header.crypto),
+                                      &out_len);
+    if (err != PSA_PS_SUCCESS || out_len != cur_size) {
+        (void)sst_crypto_destroykey();
         return err;
     }
 
-    sst_utils_memcpy(p_obj_data, sst_crypto_buf, cur_size);
-
-    /* Clear the plaintext buffer from previous data */
-    sst_utils_memset(sst_crypto_buf, SST_CRYPTO_CLEAR_BUF_VALUE,
-                     sizeof(sst_crypto_buf));
-
-    return PSA_PS_SUCCESS;
+    return sst_crypto_destroykey();
 }
 
 /**
@@ -123,6 +129,7 @@ static psa_ps_status_t sst_object_auth_encrypt(uint32_t fid,
 {
     psa_ps_status_t err;
     uint8_t *p_obj_data = (uint8_t *)&obj->header.info;
+    size_t out_len;
 
     err = sst_object_set_encryption_key();
     if (err != PSA_PS_SUCCESS) {
@@ -143,14 +150,17 @@ static psa_ps_status_t sst_object_auth_encrypt(uint32_t fid,
                                      sizeof(fid),
                                      p_obj_data,
                                      cur_size,
-                                     sst_crypto_buf);
-    if (err != PSA_PS_SUCCESS) {
+                                     sst_crypto_buf,
+                                     sizeof(sst_crypto_buf),
+                                     &out_len);
+    if (err != PSA_PS_SUCCESS || out_len != cur_size) {
+        (void)sst_crypto_destroykey();
         return err;
     }
 
-    sst_utils_memcpy(p_obj_data, sst_crypto_buf, cur_size);
+    (void)tfm_memcpy(p_obj_data, sst_crypto_buf, cur_size);
 
-    return PSA_PS_SUCCESS;
+    return sst_crypto_destroykey();
 }
 
 psa_ps_status_t sst_encrypted_object_read(uint32_t fid,
@@ -197,6 +207,14 @@ psa_ps_status_t sst_encrypted_object_write(uint32_t fid,
                sizeof(obj->header.crypto.ref.iv);
 
     wrt_size = GET_ALIGNED_FLASH_BYTES(wrt_size);
+
+#if (SST_FLASH_PROGRAM_UNIT!=1)
+    /* FIX ME
+     * As GET_ALIGNED_FLASH_BYTES is called twice
+     * to align  IV ,and header + payload
+     */
+    wrt_size +=SST_FLASH_PROGRAM_UNIT;
+#endif
 
     /* Create an object in the object system */
     err = sst_flash_fs_file_create(fid, wrt_size, SST_EMPTY_OBJECT_SIZE, NULL);
