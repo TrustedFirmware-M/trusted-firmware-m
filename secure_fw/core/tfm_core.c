@@ -23,7 +23,6 @@
 #include "tfm_wait.h"
 #include "tfm_message_queue.h"
 #include "tfm_spm.h"
-#include "tfm_spe_mailbox.h"
 #endif
 
 /*

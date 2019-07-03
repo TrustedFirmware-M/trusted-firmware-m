@@ -16,6 +16,7 @@
 #include "tfm_ns_lock.h"
 #if TFM_MULTI_CORE_TOPOLOGY
 #include "tfm_multicore_api.h"
+#include "tfm_ns_mailbox.h"
 #endif
 
 #ifdef TEST_FRAMEWORK_NS
@@ -26,7 +27,6 @@
 #endif
 #include "target_cfg.h"
 #include "Driver_USART.h"
-#include "tfm_ns_mailbox.h"
 
 /* For UART the CMSIS driver is used */
 extern ARM_DRIVER_USART NS_DRIVER_STDIO;
