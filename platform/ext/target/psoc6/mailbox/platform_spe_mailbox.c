@@ -39,17 +39,18 @@ static void mailbox_ipc_config(void)
 
 static int32_t tfm_mailbox_sema_init(void)
 {
-    /* semaphore data */
-    static uint32_t tfm_sema;
-
-    if (Cy_IPC_Sema_Init(PLATFORM_MAILBOX_IPC_CHAN_SEMA,
-                         sizeof(tfm_sema) * 8ul/*bits per byte*/,
-                         &tfm_sema) == CY_IPC_SEMA_SUCCESS) {
-        if (MAILBOX_SEMAPHORE_NUM < Cy_IPC_Sema_GetMaxSems()){
-            return PLATFORM_MAILBOX_SUCCESS;
-        }
+    if (Cy_IPC_Sema_Init(PLATFORM_MAILBOX_IPC_CHAN_SEMA, 0,
+                         NULL) != CY_IPC_SEMA_SUCCESS) {
+        return PLATFORM_MAILBOX_INIT_ERROR;
     }
-    return PLATFORM_MAILBOX_INIT_ERROR;
+
+    if (MAILBOX_SEMAPHORE_NUM >= Cy_IPC_Sema_GetMaxSems()) {
+        return PLATFORM_MAILBOX_INIT_ERROR;
+    }
+
+    /* TODO Check that the semaphore data is in NS memory */
+
+    return PLATFORM_MAILBOX_SUCCESS;
 }
 
 #else

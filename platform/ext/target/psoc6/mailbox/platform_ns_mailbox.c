@@ -6,6 +6,7 @@
  */
 
 /* -------------------------------------- Includes ----------------------------------- */
+#include <limits.h>
 #include <string.h>
 
 #include "cmsis.h"
@@ -44,8 +45,12 @@ int32_t mailbox_notify_peer(void)
 
 static int32_t mailbox_sema_init(void)
 {
-    if (Cy_IPC_Sema_Init(PLATFORM_MAILBOX_IPC_CHAN_SEMA, (uint32_t)NULL,
-                         (uint32_t *)NULL) != CY_IPC_SEMA_SUCCESS) {
+    /* semaphore data */
+    static uint32_t tfm_sema;
+
+    if (Cy_IPC_Sema_Init(PLATFORM_MAILBOX_IPC_CHAN_SEMA,
+                         sizeof(tfm_sema) * CHAR_BIT,
+                         &tfm_sema) != CY_IPC_SEMA_SUCCESS) {
         return PLATFORM_MAILBOX_INIT_ERROR;
     }
     return PLATFORM_MAILBOX_SUCCESS;
