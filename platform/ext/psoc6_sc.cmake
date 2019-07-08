@@ -33,7 +33,7 @@ if(COMPILER STREQUAL "ARMCLANG")
     endif()
 elseif(COMPILER STREQUAL "GNUARM")
     set (BL2_SCATTER_FILE_NAME "${PLATFORM_DIR}/target/psoc6/Device/Source/gcc/psoc6_bl2.ld")
-    set (S_SCATTER_FILE_NAME   "${PLATFORM_DIR}/target/psoc6/Device/Source/gcc/psoc6_s.ld")
+    set (S_SCATTER_FILE_NAME   "${PLATFORM_DIR}/common/gcc/tfm_common_s.ld")
     set (NS_SCATTER_FILE_NAME  "${PLATFORM_DIR}/target/psoc6/Device/Source/gcc/psoc6_ns.ld")
     if (DEFINED CMSIS_5_DIR)
       # not all project defines CMSIS_5_DIR, only the ones that use it.
