@@ -28,7 +28,9 @@ MEMORY
 {
   FLASH   (rx)  : ORIGIN = S_CODE_START, LENGTH = S_CODE_SIZE
   RAM     (rwx) : ORIGIN = S_DATA_START, LENGTH = S_DATA_SIZE
+#if !TFM_MULTI_CORE_TOPOLOGY
   VENEERS (rx)  : ORIGIN = CMSE_VENEER_REGION_START, LENGTH = CMSE_VENEER_REGION_SIZE
+#endif
 }
 
 __heap_size__  = S_HEAP_SIZE;
@@ -40,12 +42,14 @@ GROUP(libgcc.a libc.a libm.a libnosys.a libc_nano.a)
 
 ENTRY(Reset_Handler)
 
+#if !TFM_MULTI_CORE_TOPOLOGY
 /*
  * The test service veneers may not be referenced in the secure binary so the
  * veneer objects are explicitly declared here as extern, so the linker includes
  * the veneers in the resulting binary.
  */
 EXTERN(tfm_secure_client_service_veneer_run_tests)
+#endif
 
 SECTIONS
 {
@@ -964,6 +968,7 @@ SECTIONS
     Image$$ER_TFM_DATA$$Base = ADDR(.TFM_DATA);
     Image$$ER_TFM_DATA$$Limit = ADDR(.TFM_DATA) + SIZEOF(.TFM_DATA) + SIZEOF(.TFM_BSS);
 
+#if !TFM_MULTI_CORE_TOPOLOGY
     /*
      * Place the CMSE Veneers (containing the SG instruction) after the code, in a
      * separate 32 bytes aligned region so that the SAU can programmed to just set
@@ -976,6 +981,7 @@ SECTIONS
     } > VENEERS AT> VENEERS
     Load$$LR$$LR_VENEER$$Base = ADDR(.gnu.sgstubs);
     Load$$LR$$LR_VENEER$$Limit = ADDR(.gnu.sgstubs) + SIZEOF(.gnu.sgstubs);
+#endif
 
     Load$$LR$$LR_NS_PARTITION$$Base = NS_PARTITION_START;
 
