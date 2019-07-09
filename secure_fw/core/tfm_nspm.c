@@ -73,7 +73,6 @@ int32_t tfm_nspm_get_current_client_id()
     }
 }
 
-#if !TFM_MULTI_CORE_TOPOLOGY
 /* TF-M implementation of the CMSIS TZ RTOS thread context management API */
 
 /// Initialize secure context memory system
@@ -322,5 +321,4 @@ psa_status_t tfm_nspm_thread_entry(void)
     TFM_ASSERT(false);
     return PSA_SUCCESS;
 }
-#endif
 #endif

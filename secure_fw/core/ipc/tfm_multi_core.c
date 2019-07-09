@@ -12,6 +12,17 @@
 #include "tfm_nspm.h"
 #include "tfm_spe_mailbox.h"
 
+#define DEFAULT_NS_CLIENT_ID            (-1)
+
+void tfm_nspm_configure_clients(void)
+{
+}
+
+int32_t tfm_nspm_get_current_client_id(void)
+{
+    return DEFAULT_NS_CLIENT_ID;
+}
+
 psa_status_t tfm_nspm_thread_entry(void)
 {
 #ifdef TFM_CORE_DEBUG

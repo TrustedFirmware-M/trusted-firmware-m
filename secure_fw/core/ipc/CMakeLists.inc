@@ -47,7 +47,6 @@ elseif (TFM_PSA_API)
 			"${SS_IPC_DIR}/../tfm_secure_api.c"
 			"${SS_IPC_DIR}/../tfm_spm_services.c"
 			"${SS_IPC_DIR}/../tfm_handler.c"
-			"${SS_IPC_DIR}/../tfm_nspm.c"
 			"${SS_IPC_DIR}/../tfm_boot_data.c"
 			)
 
@@ -56,7 +55,9 @@ elseif (TFM_PSA_API)
 		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/tfm_rpc.c")
 		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/tfm_spe_mailbox.c")
 		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/tfm_multi_core.c")
-	endif ()
+	else()
+		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/../tfm_nspm.c")
+	endif()
 
 endif()
 
