@@ -6,12 +6,14 @@
  */
 
 #include <stdbool.h>
+#include "cmsis_compiler.h"
+#include "platform/include/tfm_spm_hal.h"
 #include "secure_utilities.h"
 #include "tfm_arch.h"
 #include "tfm_api.h"
+#include "tfm_internal.h"
 #if TFM_PSA_API
 #include "tfm_utils.h"
-#include "tfm_internal.h"
 #endif
 
 #ifndef TFM_MAX_NS_THREAD_COUNT
@@ -23,6 +25,15 @@
 
 #define INVALID_NS_CLIENT_IDX (-1)
 #define DEFAULT_NS_CLIENT_IDX   0
+
+#if defined ( __GNUC__ )
+/* The macro cmse_nsfptr_create defined in the gcc library uses the non-standard
+ * gcc C lanuage extension 'typeof'. TF-M is built with '-std=c99' so typeof
+ * cannot be used in the code. As a workaround cmse_nsfptr_create is redefined
+ * here to use only standard language elements. */
+#undef cmse_nsfptr_create
+#define cmse_nsfptr_create(p) ((intptr_t) (p) & ~1)
+#endif
 
 typedef uint32_t TZ_ModuleId_t;
 typedef uint32_t TZ_MemoryId_t;
@@ -322,3 +333,22 @@ psa_status_t tfm_nspm_thread_entry(void)
     return PSA_SUCCESS;
 }
 #endif
+
+void configure_ns_code(void)
+{
+    /* SCB_NS.VTOR points to the Non-secure vector table base address */
+    SCB_NS->VTOR = tfm_spm_hal_get_ns_VTOR();
+
+    /* Setups Main stack pointer of the non-secure code */
+    uint32_t ns_msp = tfm_spm_hal_get_ns_MSP();
+
+    __TZ_set_MSP_NS(ns_msp);
+
+    /* Get the address of non-secure code entry point to jump there */
+    uint32_t entry_ptr = tfm_spm_hal_get_ns_entry_point();
+
+    /* Clears LSB of the function address to indicate the function-call
+     * will perform the switch from secure to non-secure
+     */
+    ns_entry = (nsfptr_t) cmse_nsfptr_create(entry_ptr);
+}

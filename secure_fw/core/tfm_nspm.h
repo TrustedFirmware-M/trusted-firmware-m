@@ -34,4 +34,14 @@ int32_t tfm_nspm_get_current_client_id(void);
 psa_status_t tfm_nspm_thread_entry(void);
 #endif
 
+#ifdef TFM_MULTI_CORE_TOPOLOGY
+/* Unnecessary to configure Non-secure side code */
+#define configure_ns_code()               do {} while (0)
+#else
+/*
+ * \brief Configure Non-secure code, such as vector table, MSP and entry point.
+ */
+void configure_ns_code(void);
+#endif
+
 #endif /* __TFM_NSPM_H__ */
