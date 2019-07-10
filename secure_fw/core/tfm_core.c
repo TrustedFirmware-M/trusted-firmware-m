@@ -11,6 +11,7 @@
 #include "tfm_internal.h"
 #include "tfm_api.h"
 #include "tfm_arch.h"
+#include "tfm_core_topology.h"
 #include "tfm_nspm.h"
 #include "platform/include/tfm_spm_hal.h"
 #include "uart_stdout.h"
@@ -103,7 +104,6 @@ int32_t tfm_core_init(void)
     return 0;
 }
 
-#if !TFM_MULTI_CORE_TOPOLOGY
 static int32_t tfm_core_set_secure_exception_priorities(void)
 {
     tfm_arch_prioritize_secure_exception();
@@ -111,26 +111,10 @@ static int32_t tfm_core_set_secure_exception_priorities(void)
     /* Explicitly set Secure SVC priority to highest */
     tfm_spm_hal_set_secure_irq_priority(SVCall_IRQn, 0);
 
-    /*
-     * Set secure PendSV priority to the lowest in SECURE state.
-     *
-     * IMPORTANT NOTE:
-     *
-     * Although the priority of the secure PendSV must be the lowest possible
-     * among other interrupts in the Secure state, it must be ensured that
-     * PendSV is not preempted nor masked by Non-Secure interrupts to ensure
-     * the integrity of the Secure operation.
-     * When AIRCR.PRIS is set, the Non-Secure execution can act on
-     * FAULTMASK_NS, PRIMASK_NS or BASEPRI_NS register to boost its priority
-     * number up to the value 0x80.
-     * For this reason, set the priority of the PendSV interrupt to the next
-     * priority level configurable on the platform, just below 0x80.
-     */
-    NVIC_SetPriority(PendSV_IRQn, (1 << (__NVIC_PRIO_BITS - 1)) - 1);
+    tfm_core_topology_set_pendsv_priority();
 
     return TFM_SUCCESS;
 }
-#endif
 
 void tfm_core_spm_request_handler(const struct tfm_exc_stack_t *svc_ctx)
 {
@@ -202,13 +186,11 @@ int main(void)
 
     jump_to_ns_code();
 #else
-#if !TFM_MULTI_CORE_TOPOLOGY
     /*
      * Prioritise secure exceptions to avoid NS being able to pre-empt
      * secure SVC or SecureFault. Do it before PSA API initialization.
      */
     tfm_core_set_secure_exception_priorities();
-#endif
 
     tfm_spm_init();
 #endif
