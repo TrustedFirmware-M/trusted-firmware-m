@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Arm Limited. All rights reserved.
+ * Copyright (c) 2018-2019, Arm Limited. All rights reserved.
  * Copyright (c) 2019, Cypress Semiconductor Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -260,4 +260,10 @@ void tfm_spm_hal_wait_for_ns_cpu_ready(void)
             }
         }
     }
+}
+
+void tfm_spm_hal_set_secure_irq_priority(int32_t irq_line, uint32_t priority)
+{
+    uint32_t quantized_priority = priority >> (8U - __NVIC_PRIO_BITS);
+    NVIC_SetPriority(irq_line, quantized_priority);
 }
