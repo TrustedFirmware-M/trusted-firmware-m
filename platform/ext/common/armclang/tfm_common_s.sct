@@ -342,6 +342,7 @@ LR_CODE S_CODE_START {
     ScatterAssert(ImageLimit(SRAM_WATERMARK) <= S_DATA_START + S_DATA_SIZE)
 }
 
+#if !TFM_MULTI_CORE_TOPOLOGY
 LR_VENEER CMSE_VENEER_REGION_START {
     /*
      * Place the CMSE Veneers (containing the SG instruction) in a separate
@@ -352,6 +353,7 @@ LR_VENEER CMSE_VENEER_REGION_START {
         *(Veneer$$CMSE)
     }
 }
+#endif
 
 LR_NS_PARTITION NS_PARTITION_START {
     /* Reserved place for NS application.
