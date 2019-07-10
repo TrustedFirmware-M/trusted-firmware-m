@@ -28,8 +28,6 @@ int32_t tfm_mailbox_notify_peer(void)
 
 static void mailbox_ipc_config(void)
 {
-    NVIC_SetPriority(PendSV_IRQn, (1 << __NVIC_PRIO_BITS) - 1);
-
     Cy_SysInt_SetIntSource(PSA_CLIENT_CALL_IRQn, cpuss_interrupts_ipc_4_IRQn);
 
     NVIC_SetPriority(PSA_CLIENT_CALL_IRQn, PSA_CLIENT_CALL_INTR_PRIORITY);
