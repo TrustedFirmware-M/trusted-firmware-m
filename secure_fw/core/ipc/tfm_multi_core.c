@@ -35,8 +35,6 @@ psa_status_t tfm_nspm_thread_entry(void)
 
     tfm_mailbox_init();
 
-    jump_to_ns_code();
-
     /*
      * TODO
      * The infinite-loop can be replaced with low-power sleep and resume

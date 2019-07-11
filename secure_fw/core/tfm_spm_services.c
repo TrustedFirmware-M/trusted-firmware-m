@@ -15,9 +15,7 @@
 
 uint8_t *tfm_scratch_area;
 uint32_t tfm_scratch_area_size;
-#if !TFM_MULTI_CORE_TOPOLOGY
 nsfptr_t ns_entry;
-#endif
 
 void jump_to_ns_code(void)
 {
@@ -29,10 +27,8 @@ void jump_to_ns_code(void)
     __DSB();
     __ISB();
 
-#if !TFM_MULTI_CORE_TOPOLOGY
     /* Calls the non-secure Reset_Handler to jump to the non-secure binary */
     ns_entry();
-#endif
 }
 
 #ifndef TFM_PSA_API
