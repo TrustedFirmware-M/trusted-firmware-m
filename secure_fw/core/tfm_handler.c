@@ -19,14 +19,28 @@
 #ifdef TFM_PSA_API
 #include <stdbool.h>
 #include "tfm_svcalls.h"
+#ifdef TFM_MULTI_CORE_TOPOLOGY
+#include "tfm_utils.h"
+#endif
 #endif
 
 /* This SVC handler is called when a secure partition requests access to a
  * buffer area
  */
 extern int32_t tfm_core_set_buffer_area_handler(const uint32_t args[]);
+
 #ifdef TFM_PSA_API
+#if TFM_MULTI_CORE_TOPOLOGY
+__STATIC_INLINE void tfm_psa_ipc_request_handler(const uint32_t svc_args[])
+{
+    (void)svc_args;
+
+    /* Should not recieve any request from ns-callable in multi-core topology */
+    TFM_ASSERT(false);
+}
+#else
 extern void tfm_psa_ipc_request_handler(const uint32_t svc_args[]);
+#endif
 #endif
 
 uint32_t SVCHandler_main(uint32_t *svc_args, uint32_t lr)
@@ -51,11 +65,9 @@ uint32_t SVCHandler_main(uint32_t *svc_args, uint32_t lr)
     }
     switch (svc_number) {
 #ifdef TFM_PSA_API
-#if !TFM_MULTI_CORE_TOPOLOGY
     case TFM_SVC_IPC_REQUEST:
         tfm_psa_ipc_request_handler(svc_args);
         break;
-#endif
     case TFM_SVC_SCHEDULE:
     case TFM_SVC_EXIT_THRD:
     case TFM_SVC_PSA_FRAMEWORK_VERSION:
