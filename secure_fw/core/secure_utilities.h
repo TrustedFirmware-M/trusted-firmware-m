@@ -35,14 +35,10 @@ struct tfm_exc_stack_t {
 #define LOG_MSG_HDLR(MSG) printf("[Sec Handler] %s\r\n", MSG)
 #endif
 
-#if 0
 #define LOG_MSG_THR(MSG) \
             __ASM volatile("MOV r0, %0\n" \
                            "SVC %1\n" \
                            : : "r" (MSG), "I" (TFM_SVC_PRINT))
-#else
-#define LOG_MSG_THR(MSG) printf("[Sec Handler] %s\r\n", MSG)
-#endif
 
 #define LOG_MSG(MSG) \
             do { \

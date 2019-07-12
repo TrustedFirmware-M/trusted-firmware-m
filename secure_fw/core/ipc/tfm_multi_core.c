@@ -26,8 +26,8 @@ int32_t tfm_nspm_get_current_client_id(void)
 psa_status_t tfm_nspm_thread_entry(void)
 {
 #ifdef TFM_CORE_DEBUG
-    /* Boot up non-secure code */
-    LOG_MSG("Enabling non-secure code...");
+    /* Boot up non-secure core */
+    LOG_MSG("Enabling non-secure core...");
 #endif
 
     tfm_spm_hal_boot_ns_cpu(tfm_spm_hal_get_ns_VTOR());

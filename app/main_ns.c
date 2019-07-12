@@ -135,11 +135,11 @@ int main(void)
     (void)NS_DRIVER_STDIO.Initialize(NULL);
     NS_DRIVER_STDIO.Control(ARM_USART_MODE_ASYNCHRONOUS, 115200);
 
-    LOG_MSG("NS code running on CM4\r\n");
-
 #if TFM_MULTI_CORE_TOPOLOGY
+    LOG_MSG("Non-secure code running on non-secure core.");
+
     if (tfm_ns_wait_for_s_cpu_ready()) {
-        LOG_MSG("Error sync'ing with SPE core\r\n");
+        LOG_MSG("Error sync'ing with secure core.");
 
         /* Avoid undefined behavior after multi-core sync-up failed */
         for (;;) {
