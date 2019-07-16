@@ -9,6 +9,10 @@ Building Multi-Core TF-M on Cypress PSoC 6
 Please make sure you have all required software installed as explained in the
 :doc:`software requirements </docs/user_guides/tfm_sw_requirement>`.
 
+Please also download and install ModusToolbox from `Cypress
+<https://www.cypress.com/products/modustoolbox-software-environment>`_
+and ensure that it is able to communicate with the PSoC 6 board.
+
 Please also make sure that all the source code are fetched by following
 :doc:`general building instruction </docs/user_guides/tfm_build_instruction>`.
 
@@ -107,11 +111,49 @@ listed above.
     cmake --build cmake_psoc_cm4 -- -j VERBOSE=1
 
 
-*****************
-Programming Steps
-*****************
+**********************
+Programming the Device
+**********************
 
-TBD
+After building, the mcuboot image must be signed using the ModusToolbox tools
+and the signed mcuboot image and the TFM image must be programmed into flash
+memory on the PSoC 6 device.
 
+The instructions below assume that you have set up an environment variable CYSDK
+that points to your ModusToolbox installation, for example like this:
+
+.. code-block:: bash
+
+    export CYSDK=~/ModusToolbox_1.1
+
+To program the primary image to the device:
+
+.. code-block:: bash
+
+    ${CYSDK}/tools/openocd-2.1/bin/openocd       -s "${CYSDK}/tools/openocd-2.1/scripts"       -c "source [find interface/kitprog3.cfg]"       -c "source [find target/psoc6.cfg]"       -c "program ./cmake_psoc_cm4/tfm_sign.bin offset 0x10020000 verify"       -c "reset_config srst_only;psoc6.dap dpreg 0x04 0x00;shutdown"
+
+Note that the "0x10020000" in the command above must match the start address
+of the secure primary image specified in the file::
+
+    platform/ext/target/psoc6/partition/flash_layout.h
+
+so be sure to change it if you change that file.
+
+To sign the mcuboot image:
+
+.. code-block:: bash
+
+    ${CYSDK}/tools/cymcuelftool-1.0/bin/cymcuelftool --sign ./cmake_psoc_cm0p/bl2/ext/mcuboot/mcuboot.axf --output ./cmake_psoc_cm0p/mcuboot_signed.elf
+
+To program the signed mcuboot image to the device:
+
+.. code-block:: bash
+
+    ${CYSDK}/tools/openocd-2.1/bin/openocd       -s "${CYSDK}/tools/openocd-2.1/scripts"       -c "source [find interface/kitprog3.cfg]"       -c "source [find target/psoc6.cfg]"       -c "program ./cmake_psoc_cm0p/mcuboot_signed.elf verify"       -c "reset_config srst_only;reset run;psoc6.dap dpreg 0x04 0x00;shutdown"
+
+Alternatively, it is possible to program the device using ModusToolbox. For
+details, please refer to the ModusToolbox documentation.
 
 *Copyright (c) 2017-2019, Arm Limited. All rights reserved.*
+
+*Copyright (c) 2019, Cypress Semiconductor Corporation. All rights reserved.*
