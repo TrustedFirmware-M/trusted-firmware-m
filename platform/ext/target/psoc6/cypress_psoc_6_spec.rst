@@ -119,8 +119,8 @@ After building, the mcuboot image must be signed using the ModusToolbox tools
 and the signed mcuboot image and the TFM image must be programmed into flash
 memory on the PSoC 6 device.
 
-The instructions below assume that you have set up an environment variable CYSDK
-that points to your ModusToolbox installation, for example like this:
+The instructions below assume that you have set up an environment variable
+``CYSDK`` that points to your ModusToolbox installation, for example like this:
 
 .. code-block:: bash
 
@@ -130,9 +130,9 @@ To program the primary image to the device:
 
 .. code-block:: bash
 
-    ${CYSDK}/tools/openocd-2.1/bin/openocd       -s "${CYSDK}/tools/openocd-2.1/scripts"       -c "source [find interface/kitprog3.cfg]"       -c "source [find target/psoc6.cfg]"       -c "program ./cmake_psoc_cm4/tfm_sign.bin offset 0x10020000 verify"       -c "reset_config srst_only;psoc6.dap dpreg 0x04 0x00;shutdown"
+    ${CYSDK}/tools/openocd-2.1/bin/openocd -s "${CYSDK}/tools/openocd-2.1/scripts" -c "source [find interface/kitprog3.cfg]" -c "source [find target/psoc6.cfg]" -c "program ./cmake_psoc_cm4/tfm_sign.bin offset 0x10020000 verify" -c "reset_config srst_only;psoc6.dap dpreg 0x04 0x00;shutdown"
 
-Note that the "0x10020000" in the command above must match the start address
+Note that the ``0x10020000`` in the command above must match the start address
 of the secure primary image specified in the file::
 
     platform/ext/target/psoc6/partition/flash_layout.h
@@ -149,7 +149,7 @@ To program the signed mcuboot image to the device:
 
 .. code-block:: bash
 
-    ${CYSDK}/tools/openocd-2.1/bin/openocd       -s "${CYSDK}/tools/openocd-2.1/scripts"       -c "source [find interface/kitprog3.cfg]"       -c "source [find target/psoc6.cfg]"       -c "program ./cmake_psoc_cm0p/mcuboot_signed.elf verify"       -c "reset_config srst_only;reset run;psoc6.dap dpreg 0x04 0x00;shutdown"
+    ${CYSDK}/tools/openocd-2.1/bin/openocd -s "${CYSDK}/tools/openocd-2.1/scripts" -c "source [find interface/kitprog3.cfg]" -c "source [find target/psoc6.cfg]" -c "program ./cmake_psoc_cm0p/mcuboot_signed.elf verify" -c "reset_config srst_only;reset run;psoc6.dap dpreg 0x04 0x00;shutdown"
 
 Alternatively, it is possible to program the device using ModusToolbox. For
 details, please refer to the ModusToolbox documentation.
