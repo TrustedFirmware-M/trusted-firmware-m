@@ -97,15 +97,13 @@ __STATIC_INLINE void *check_access_address_range(const void *p, size_t s,
     return cmse_check_address_range((void *)p, s, flags);
 }
 #else /* __ARM_FEATURE_CMSE && 0x1 */
-#if (TFM_LVL == 1)
 /*
- * Memory check implementation in TF-M Isolation Level 1 when
- * CMSE is unavailable, such as in multi-core scenario with Armv6-M/Armv7-M.
- * Ignore non-privileged/privileged flag and skip check of MPU since MPU is not
- * enabled in TF-M Isolation Level 1.
+ * Memory check implementation when CMSE is unavailable,
+ * such as in multi-core scenario with Armv6-M/Armv7-M.
  * If the address range is valid, return the base address p.
  * Otherwise, return NULL.
  */
+/* TODO Re-work this function for TFM_LVL 2 */
 static void *check_access_address_range(const void *p, size_t s, int flags)
 {
     uintptr_t base;
@@ -151,9 +149,6 @@ static void *check_access_address_range(const void *p, size_t s, int flags)
 
     return NULL;
 }
-#else  /* TFM_LVL == 1 */
-#error "Access range check is not implemented in current TF-M Isolation Level."
-#endif /* TFM_LVL == 1 */
 #endif /* __ARM_FEATURE_CMSE && 0x1 */
 
 /**
