@@ -75,7 +75,7 @@ static ARM_FLASH_INFO ARM_FLASH0_DEV_DATA = {
     .sector_count = FLASH0_SIZE / FLASH0_SECTOR_SIZE,
     .sector_size  = FLASH0_SECTOR_SIZE,
     .page_size    = FLASH0_PAGE_SIZE,
-    .program_unit = 4,
+    .program_unit = SST_FLASH_PROGRAM_UNIT,
     .erased_value = ARM_FLASH_DRV_ERASE_VALUE
 };
 
