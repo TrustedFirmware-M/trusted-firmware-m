@@ -39,10 +39,14 @@ line arguments:
              ``ConfigCoreIPC.cmake``
            - IPC model with regression test suites in Isolation Level 1
              ``ConfigRegressionIPC.cmake``
+           - IPC model with PSA API test suite in Isolation Level 1
+             ``ConfigPsaApiTestIPC.cmake``
            - IPC model without regression test suites in Isolation Level 2
              ``ConfigCoreIPCTfmLevel2.cmake``
            - IPC model with regression test suites in Isolation Level 2
              ``ConfigRegressionIPCTfmLevel2.cmake``
+           - IPC model with PSA API test suite in Isolation Level 2
+             ``ConfigPsaApiTestIPCTfmLevel2.cmake``
 
    * - -DTARGET_PLATFORM=psoc6
      - Specifies target platform name ``psoc6``
@@ -97,6 +101,46 @@ listed above.
     popd
     cmake --build <build folder> -- -j VERBOSE=1
 
+The following instructions build multi-core TF-M with PSA API test suite for
+the attestation service in Isolation Level 1 on Linux.
+Both the compiler and the debugging type can be changed to other configurations
+listed above.
+
+.. list-table::
+   :widths: 20 80
+
+   * - -DPSA_API_TEST_BUILD_PATH=<path> (optional)
+     - Specifies the path to the PSA API build directory
+
+         - ``${TFM_ROOT_DIR}/../psa-arch-tests/api-tests/BUILD`` (default)
+
+   * - -D<PSA_API_TEST_xxx>=1 (choose exactly one)
+     - Specifies the service to support
+       The possible values are:
+
+         - ``PSA_API_TEST_ATTESTATION``
+         - ``PSA_API_TEST_CRYPTO``
+         - ``PSA_API_TEST_SECURE_STORAGE``
+         - ``PSA_API_TEST_INTERNAL_TRUSTED_STORAGE``
+
+.. code-block:: bash
+
+    cd <TF-M base folder>
+    cd <trusted-firmware-m folder>
+
+    mkdir <build folder>
+    pushd <build folder>
+    cmake ../ \
+        -G"Unix Makefiles" \
+        -DPROJ_CONFIG=`readlink -f ../configs/ConfigPsaApiTestIPC.cmake` \
+        -DPSA_API_TEST_BUILD_PATH=../psa-arch-tests/api-tests/BUILD_ATT.GNUARM
+        -DPSA_API_TEST_ATTESTATION=1 \
+        -DTARGET_PLATFORM=psoc6 \
+        -DCOMPILER=ARMCLANG \
+        -DCMAKE_BUILD_TYPE=Debug
+    popd
+    cmake --build <build folder> -- -j VERBOSE=1
+
 The following instructions build multi-core TF-M without regression test suites
 in Isolation Level 2 on Linux.
 Both the compiler and the debugging type can be changed to other configurations
@@ -126,6 +170,46 @@ listed above.
     mkdir <build folder>
     pushd <build folder>
     cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigRegressionIPCTfmLevel2.cmake` -DTARGET_PLATFORM=psoc6 -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
+    popd
+    cmake --build <build folder> -- -j VERBOSE=1
+
+The following instructions build multi-core TF-M with PSA API test suite for
+the protected storage service in Isolation Level 2 on Linux.
+Both the compiler and the debugging type can be changed to other configurations
+listed above.
+
+.. list-table::
+   :widths: 20 80
+
+   * - -DPSA_API_TEST_BUILD_PATH=<path> (optional)
+     - Specifies the path to the PSA API build directory
+
+         - ``${TFM_ROOT_DIR}/../psa-arch-tests/api-tests/BUILD`` (default)
+
+   * - -D<PSA_API_TEST_xxx>=1 (choose exactly one)
+     - Specifies the service to support
+       The possible values are:
+
+         - ``PSA_API_TEST_ATTESTATION``
+         - ``PSA_API_TEST_CRYPTO``
+         - ``PSA_API_TEST_SECURE_STORAGE``
+         - ``PSA_API_TEST_INTERNAL_TRUSTED_STORAGE``
+
+.. code-block:: bash
+
+    cd <TF-M base folder>
+    cd <trusted-firmware-m folder>
+
+    mkdir <build folder>
+    pushd <build folder>
+    cmake ../ \
+        -G"Unix Makefiles" \
+        -DPROJ_CONFIG=`readlink -f ../configs/ConfigPsaApiTestIPCTfmLevel2.cmake` \
+        -DPSA_API_TEST_BUILD_PATH=../psa-arch-tests/api-tests/BUILD_PS.GNUARM
+        -DPSA_API_TEST_SECURE_STORAGE=1 \
+        -DTARGET_PLATFORM=psoc6 \
+        -DCOMPILER=ARMCLANG \
+        -DCMAKE_BUILD_TYPE=Debug
     popd
     cmake --build <build folder> -- -j VERBOSE=1
 
