@@ -40,13 +40,8 @@ line arguments:
            - IPC model with regression test suites
              ``ConfigRegressionIPC.cmake``
 
-   * - -DTARGET_PLATFORM=<target platform name>
-     - Specifies target names of builds on secure and non-secure cores
-
-         - ``psoc6_sc``
-           target name of build on secure core
-         - ``psoc6_host``
-           target name of build on non-secure core
+   * - -DTARGET_PLATFORM=psoc6
+     - Specifies target platform name ``psoc6``
 
    * - -DCOMPILER=<compiler name>
      - Specifies the compiler toolchain
@@ -76,17 +71,11 @@ listed above.
     cd <TF-M base folder>
     cd <trusted-firmware-m folder>
 
-    mkdir cmake_psoc_cm0p
-    pushd cmake_psoc_cm0p
-    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigCoreIPC.cmake` -DTARGET_PLATFORM=psoc6_sc -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
+    mkdir <build folder>
+    pushd <build folder>
+    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigCoreIPC.cmake` -DTARGET_PLATFORM=psoc6 -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
     popd
-    cmake --build cmake_psoc_cm0p -- -j VERBOSE=1
-
-    mkdir cmake_psoc_cm4
-    pushd cmake_psoc_cm4
-    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigCoreIPC.cmake` -DTARGET_PLATFORM=psoc6_host -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
-    popd
-    cmake --build cmake_psoc_cm4 -- -j VERBOSE=1
+    cmake --build <build folder> -- -j VERBOSE=1
 
 The following instructions build multi-core TF-M with regression test suites
 enabled on Linux.
@@ -98,17 +87,11 @@ listed above.
     cd <TF-M base folder>
     cd <trusted-firmware-m folder>
 
-    mkdir cmake_psoc_cm0p
-    pushd cmake_psoc_cm0p
-    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigRegressionIPC.cmake` -DTARGET_PLATFORM=psoc6_sc -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
+    mkdir <build folder>
+    pushd <build folder>
+    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigRegressionIPC.cmake` -DTARGET_PLATFORM=psoc6 -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
     popd
-    cmake --build cmake_psoc_cm0p -- -j VERBOSE=1
-
-    mkdir cmake_psoc_cm4
-    pushd cmake_psoc_cm4
-    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigRegressionIPC.cmake` -DTARGET_PLATFORM=psoc6_host -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
-    popd
-    cmake --build cmake_psoc_cm4 -- -j VERBOSE=1
+    cmake --build <build folder> -- -j VERBOSE=1
 
 
 **********************
@@ -126,11 +109,14 @@ The instructions below assume that you have set up an environment variable
 
     export CYSDK=~/ModusToolbox_1.1
 
+All the ``<build folder>`` in the commands below are the build folder created
+by build commands above.
+
 To program the primary image to the device:
 
 .. code-block:: bash
 
-    ${CYSDK}/tools/openocd-2.1/bin/openocd -s "${CYSDK}/tools/openocd-2.1/scripts" -c "source [find interface/kitprog3.cfg]" -c "source [find target/psoc6.cfg]" -c "program ./cmake_psoc_cm4/tfm_sign.bin offset 0x10020000 verify" -c "reset_config srst_only;psoc6.dap dpreg 0x04 0x00;shutdown"
+    ${CYSDK}/tools/openocd-2.1/bin/openocd -s "${CYSDK}/tools/openocd-2.1/scripts" -c "source [find interface/kitprog3.cfg]" -c "source [find target/psoc6.cfg]" -c "program ./<build folder>/tfm_sign.bin offset 0x10020000 verify" -c "reset_config srst_only;psoc6.dap dpreg 0x04 0x00;shutdown"
 
 Note that the ``0x10020000`` in the command above must match the start address
 of the secure primary image specified in the file::
@@ -143,13 +129,13 @@ To sign the mcuboot image:
 
 .. code-block:: bash
 
-    ${CYSDK}/tools/cymcuelftool-1.0/bin/cymcuelftool --sign ./cmake_psoc_cm0p/bl2/ext/mcuboot/mcuboot.axf --output ./cmake_psoc_cm0p/mcuboot_signed.elf
+    ${CYSDK}/tools/cymcuelftool-1.0/bin/cymcuelftool --sign ./<build folder>/bl2/ext/mcuboot/mcuboot.axf --output ./<build folder>/mcuboot_signed.elf
 
 To program the signed mcuboot image to the device:
 
 .. code-block:: bash
 
-    ${CYSDK}/tools/openocd-2.1/bin/openocd -s "${CYSDK}/tools/openocd-2.1/scripts" -c "source [find interface/kitprog3.cfg]" -c "source [find target/psoc6.cfg]" -c "program ./cmake_psoc_cm0p/mcuboot_signed.elf verify" -c "reset_config srst_only;reset run;psoc6.dap dpreg 0x04 0x00;shutdown"
+    ${CYSDK}/tools/openocd-2.1/bin/openocd -s "${CYSDK}/tools/openocd-2.1/scripts" -c "source [find interface/kitprog3.cfg]" -c "source [find target/psoc6.cfg]" -c "program ./<build folder>/mcuboot_signed.elf verify" -c "reset_config srst_only;reset run;psoc6.dap dpreg 0x04 0x00;shutdown"
 
 Alternatively, it is possible to program the device using ModusToolbox. For
 details, please refer to the ModusToolbox documentation.
