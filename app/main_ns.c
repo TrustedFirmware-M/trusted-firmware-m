@@ -122,6 +122,21 @@ static osThreadId_t thread_id;
 
 #if TFM_MULTI_CORE_TOPOLOGY
 static struct ns_mailbox_queue_t ns_mailbox_queue;
+
+static void tfm_ns_multi_core_boot(void)
+{
+    LOG_MSG("Non-secure code running on non-secure core.");
+
+    if (tfm_ns_wait_for_s_cpu_ready()) {
+        LOG_MSG("Error sync'ing with secure core.");
+
+        /* Avoid undefined behavior after multi-core sync-up failed */
+        for (;;) {
+        }
+    }
+
+    mailbox_init(&ns_mailbox_queue);
+}
 #endif
 
 /**
@@ -136,17 +151,7 @@ int main(void)
     NS_DRIVER_STDIO.Control(ARM_USART_MODE_ASYNCHRONOUS, 115200);
 
 #if TFM_MULTI_CORE_TOPOLOGY
-    LOG_MSG("Non-secure code running on non-secure core.");
-
-    if (tfm_ns_wait_for_s_cpu_ready()) {
-        LOG_MSG("Error sync'ing with secure core.");
-
-        /* Avoid undefined behavior after multi-core sync-up failed */
-        for (;;) {
-        }
-    }
-
-    mailbox_init(&ns_mailbox_queue);
+    tfm_ns_multi_core_boot();
 #endif
 
     status = osKernelInitialize();
