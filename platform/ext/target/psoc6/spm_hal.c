@@ -221,8 +221,6 @@ uint32_t tfm_spm_hal_get_ns_entry_point(void)
     return *((uint32_t *)(memory_regions.non_secure_code_start+ 4));
 }
 
-
-#if defined (CY_PSOC6_CM0P)
 void tfm_spm_hal_boot_ns_cpu(uintptr_t start_addr)
 {
     printf("Starting Cortex-M4 at 0x%x\r\n", start_addr);
@@ -263,8 +261,3 @@ void tfm_spm_hal_wait_for_ns_cpu_ready(void)
         }
     }
 }
-#else
-/* FIXME: Stubs for NS - remove when build system is ready for twincpu*/
-void tfm_spm_hal_boot_ns_cpu(uintptr_t start_addr){}
-void tfm_spm_hal_wait_for_ns_cpu_ready(void){}
-#endif

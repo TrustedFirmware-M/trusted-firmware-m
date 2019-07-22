@@ -25,7 +25,7 @@ int32_t tfm_mailbox_notify_peer(void)
 {
     return MAILBOX_SUCCESS;
 }
-#if CY_SYSTEM_CPU_CM0P
+
 static void mailbox_ipc_config(void)
 {
     NVIC_SetPriority(PendSV_IRQn, (1 << __NVIC_PRIO_BITS) - 1);
@@ -52,14 +52,6 @@ static int32_t tfm_mailbox_sema_init(void)
 
     return PLATFORM_MAILBOX_SUCCESS;
 }
-
-#else
-__STATIC_INLINE  void mailbox_ipc_config(void)
-{
-}
-__STATIC_INLINE int32_t tfm_mailbox_sema_init(void)
-{return PLATFORM_MAILBOX_SUCCESS;}
-#endif
 
 int32_t tfm_mailbox_hal_init(struct secure_mailbox_queue_t *s_queue)
 {
