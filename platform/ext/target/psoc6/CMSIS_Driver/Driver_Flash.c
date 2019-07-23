@@ -198,6 +198,19 @@ static int32_t ARM_Flash_ProgramData(uint32_t addr, const void *data,
         uint32_t row_address = address / CY_FLASH_SIZEOF_ROW * CY_FLASH_SIZEOF_ROW;
         memcpy(prog_buf, (const void *)row_address, CY_FLASH_SIZEOF_ROW);
         memcpy(prog_buf + offset, data_ptr, chunk_size);
+
+        /* Erase Row if needed */
+        uint8_t *row_ptr = (uint8_t *)row_address;
+        for (int i = offset; i < CY_FLASH_SIZEOF_ROW; i++) {
+            if (prog_buf[i] != row_ptr[i] && row_ptr[i] != 0x00) {
+                cy_status = Cy_Flash_EraseRow(row_address);
+                if (cy_status != CY_FLASH_DRV_SUCCESS) {
+                    return ARM_DRIVER_ERROR;
+                }
+                break;
+            }
+        }
+
         cy_status = Cy_Flash_ProgramRow(row_address, (const uint32_t *)prog_buf);
         if (cy_status != CY_FLASH_DRV_SUCCESS) {
             break;
