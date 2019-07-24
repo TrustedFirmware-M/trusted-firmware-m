@@ -7,21 +7,22 @@
  */
 
 #include <stdio.h>
+
 #include "platform/include/tfm_spm_hal.h"
-#include "spm_api.h"
-#include "spm_db.h"
-#include "tfm_platform_core_api.h"
-#include "target_cfg.h"
+
 #include "region_defs.h"
 #include "secure_utilities.h"
-#include "cycfg.h"
+#include "spe_ipc_config.h"
+#include "spm_api.h"
+#include "spm_db.h"
+#include "target_cfg.h"
+#include "tfm_platform_core_api.h"
 
+#include "cycfg.h"
 #include "cy_device.h"
 #include "cy_device_headers.h"
 #include "cy_ipc_drv.h"
 #include "cy_sysint.h"
-
-#include "spe_ipc_config.h"
 
 /* Get address of memory regions to configure MPU */
 extern const struct memory_region_limits memory_regions;
