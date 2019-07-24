@@ -40,6 +40,7 @@
 #define PLATFORM_MAILBOX_IPC_CHAN_SEMA   CY_IPC_CHAN_SEMA
 #define MAILBOX_SEMAPHORE_NUM            (0)
 
+#define IPC_SYNC_MAGIC                   0x7DADE011
 
 /**
  * \brief Fetch a pointer from mailbox message

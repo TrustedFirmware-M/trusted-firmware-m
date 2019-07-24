@@ -5,7 +5,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "cmsis.h"
 #include "cmsis_compiler.h"
 
 #include "tfm_ns_mailbox.h"
@@ -18,7 +17,6 @@
 #else
 #include "ns_ipc_config.h"
 #endif
-#include "tfm_peripherals_def.h"
 
 int platform_mailbox_fetch_msg_ptr(void **msg_ptr)
 {

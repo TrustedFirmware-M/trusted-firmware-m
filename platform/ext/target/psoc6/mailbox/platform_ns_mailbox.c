@@ -9,7 +9,6 @@
 #include <limits.h>
 #include <string.h>
 
-#include "cmsis.h"
 #include "cmsis_compiler.h"
 
 #include "cy_ipc_drv.h"
