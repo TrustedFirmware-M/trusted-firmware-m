@@ -21,17 +21,8 @@
 #include "ppu_config.h"
 #include "RTE_Device.h"
 
+#include "cy_device_headers.h"
 #include "cy_prot.h"
-
-/* PSoC 6 has 6 different kinds of PPU */
-enum ppu_type {
-    MS_PPU_PR,
-    MS_PPU_FX,
-    PPU_PR,
-    PPU_GR,
-    GR_PPU_SL,
-    GR_PPU_RG,
-};
 
 struct ms_ppu_config {
     uint16_t pcMask;

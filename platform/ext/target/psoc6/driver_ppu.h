@@ -20,6 +20,17 @@
 #include "cy_prot.h"
 #include "RTE_Device.h"
 
+/* PSoC 6 has 6 different kinds of PPU */
+enum ppu_type {
+    MS_PPU_PR,
+    MS_PPU_FX,
+    PPU_PR,
+    PPU_GR,
+    GR_PPU_SL,
+    GR_PPU_RG,
+    NO_PPU
+};
+
 typedef struct ppu_resources PPU_Resources;
 
 /* Shared Driver wrapper functions */
