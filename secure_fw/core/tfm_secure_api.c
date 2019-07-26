@@ -32,27 +32,15 @@ REGION_DECLARE(Image$$, TFM_UNPRIV_SCRATCH, $$ZI$$Base);
 REGION_DECLARE(Image$$, TFM_UNPRIV_SCRATCH, $$ZI$$Limit);
 #endif /* !defined(TFM_PSA_API) */
 
-#if (__ARM_FEATURE_CMSE && 0x1)
-/* If CMSE support is available */
-#define MEM_CHECK_MPU_READWRITE   CMSE_MPU_READWRITE
-#define MEM_CHECK_MPU_UNPRIV      CMSE_MPU_UNPRIV
-#define MEM_CHECK_MPU_READ        CMSE_MPU_READ
-#define MEM_CHECK_NONSECURE       CMSE_NONSECURE
-#else /* __ARM_FEATURE_CMSE && 0x1 */
-/* Follow CMSE flag definitions */
-#define MEM_CHECK_MPU_READWRITE   (1 << 0x0)
-#define MEM_CHECK_AU_NONSECURE    (1 << 0x1)
-#define MEM_CHECK_MPU_UNPRIV      (1 << 0x2)
-#define MEM_CHECK_MPU_READ        (1 << 0x3)
-#define MEM_CHECK_MPU_NONSECURE   (1 << 0x4)
-#define MEM_CHECK_NONSECURE       (MEM_CHECK_AU_NONSECURE | \
-                                   MEM_CHECK_MPU_NONSECURE)
-#endif
-
 /* This is the "Big Lock" on the secure side, to guarantee single entry
  * to SPE
  */
 int32_t tfm_secure_lock;
+
+bool tfm_is_one_bit_set(uint32_t n)
+{
+    return ((n && !(n & (n-1))) ? true : false);
+}
 
 /**
  * \brief Check whether a memory range is inside a memory region.
@@ -67,8 +55,9 @@ int32_t tfm_secure_lock;
  * \return TFM_SUCCESS if the region contains the range,
  *         TFM_ERROR_GENERIC otherwise.
  */
-static int32_t check_address_range(const void *p, size_t s,
-                                   uintptr_t region_start, uint32_t region_len)
+static enum tfm_status_e check_address_range(const void *p, size_t s,
+                                             uintptr_t region_start,
+                                             uint32_t region_len)
 {
     int32_t range_in_region;
 
@@ -89,68 +78,6 @@ static int32_t check_address_range(const void *p, size_t s,
     }
 }
 
-#if (__ARM_FEATURE_CMSE && 0x1)
-__STATIC_INLINE void *check_access_address_range(const void *p, size_t s,
-                                                 int flags)
-{
-    /* Use the TT instruction to check access to the partition's regions*/
-    return cmse_check_address_range((void *)p, s, flags);
-}
-#else /* __ARM_FEATURE_CMSE && 0x1 */
-/*
- * Memory check implementation when CMSE is unavailable,
- * such as in multi-core scenario with Armv6-M/Armv7-M.
- * If the address range is valid, return the base address p.
- * Otherwise, return NULL.
- */
-/* TODO Re-work this function for TFM_LVL 2 */
-static void *check_access_address_range(const void *p, size_t s, int flags)
-{
-    uintptr_t base;
-    uint32_t len;
-
-    if (!p || (s == 0)) {
-        return NULL;
-    }
-
-    if ((uintptr_t)p > (UINTPTR_MAX - s)) {
-        return NULL;
-    }
-
-    if (flags & MEM_CHECK_NONSECURE) {
-        base = (uintptr_t)NS_DATA_START;
-        len = NS_DATA_SIZE;
-        if (check_address_range(p, s, base, len) == TFM_SUCCESS) {
-            return (void *)p;
-        }
-
-        if (flags & MEM_CHECK_MPU_READ) {
-            base = (uintptr_t)NS_CODE_START;
-            len = NS_CODE_SIZE;
-            if (check_address_range(p, s, base, len) == TFM_SUCCESS) {
-                return (void *)p;
-            }
-        }
-    } else {
-        base = (uintptr_t)S_DATA_START;
-        len = S_DATA_SIZE;
-        if (check_address_range(p, s, base, len) == TFM_SUCCESS) {
-            return (void *)p;
-        }
-
-        if (flags & MEM_CHECK_MPU_READ) {
-            base = (uintptr_t)S_CODE_START;
-            len = S_CODE_SIZE;
-            if (check_address_range(p, s, base, len) == TFM_SUCCESS) {
-                return (void *)p;
-            }
-        }
-    }
-
-    return NULL;
-}
-#endif /* __ARM_FEATURE_CMSE && 0x1 */
-
 /**
  * \brief Check whether the current partition has access to a memory range
  *
@@ -169,6 +96,8 @@ static void *check_access_address_range(const void *p, size_t s, int flags)
  */
 static int32_t has_access_to_region(const void *p, size_t s, int flags)
 {
+    int32_t range_access_allowed_by_mpu;
+
 #ifndef TFM_PSA_API /* Only use scratch if using veneer functions, not IPC */
     uint32_t scratch_base =
         (uint32_t)&REGION_NAME(Image$$, TFM_UNPRIV_SCRATCH, $$ZI$$Base);
@@ -176,8 +105,11 @@ static int32_t has_access_to_region(const void *p, size_t s, int flags)
         (uint32_t)&REGION_NAME(Image$$, TFM_UNPRIV_SCRATCH, $$ZI$$Limit);
 #endif /* !defined(TFM_PSA_API) */
 
-    /* Check access to the partition's regions*/
-    if (check_access_address_range(p, s, flags) != NULL) {
+    /* Use the TT instruction to check access to the partition's regions*/
+    range_access_allowed_by_mpu =
+                          cmse_check_address_range((void *)p, s, flags) != NULL;
+
+    if (range_access_allowed_by_mpu) {
         return TFM_SUCCESS;
     }
 
@@ -185,7 +117,7 @@ static int32_t has_access_to_region(const void *p, size_t s, int flags)
     /* If the check for the current MPU settings fails, check for the share
      * region, only if the partition is secure
      */
-    if ((flags & MEM_CHECK_NONSECURE) == 0) {
+    if ((flags & CMSE_NONSECURE) == 0) {
         if (check_address_range(p, s, scratch_base,
                                 scratch_limit+1-scratch_base) == TFM_SUCCESS) {
             return TFM_SUCCESS;
@@ -210,14 +142,14 @@ int32_t tfm_core_has_read_access_to_region(const void *p, size_t s,
                                            uint32_t ns_caller,
                                            uint32_t privileged)
 {
-    int flags = MEM_CHECK_MPU_READ;
+    int flags = CMSE_MPU_READ;
 
     if (privileged == TFM_PARTITION_UNPRIVILEGED_MODE) {
-        flags |= MEM_CHECK_MPU_UNPRIV;
+        flags |= CMSE_MPU_UNPRIV;
     }
 
     if (ns_caller) {
-        flags |= MEM_CHECK_NONSECURE;
+        flags |= CMSE_NONSECURE;
     }
 
     return has_access_to_region(p, s, flags);
@@ -227,14 +159,14 @@ int32_t tfm_core_has_write_access_to_region(void *p, size_t s,
                                             uint32_t ns_caller,
                                             uint32_t privileged)
 {
-    int flags = MEM_CHECK_MPU_READWRITE;
+    int flags = CMSE_MPU_READWRITE;
 
     if (privileged == TFM_PARTITION_UNPRIVILEGED_MODE) {
-        flags |= MEM_CHECK_MPU_UNPRIV;
+        flags |= CMSE_MPU_UNPRIV;
     }
 
     if (ns_caller) {
-        flags |= MEM_CHECK_NONSECURE;
+        flags |= CMSE_NONSECURE;
     }
 
     return has_access_to_region(p, s, flags);

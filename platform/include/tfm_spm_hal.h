@@ -11,6 +11,9 @@
 #include <stdint.h>
 #include "tfm_secure_api.h"
 #include "spm_api.h"
+#if TFM_MULTI_CORE_TOPOLOGY
+#include "tfm_multi_core.h"
+#endif
 
 /**
  * \brief Holds peripheral specific data fields required to manage the
@@ -174,6 +177,45 @@ void tfm_spm_hal_boot_ns_cpu(uintptr_t start_addr);
  *        it has completed its initialisation
  */
 void tfm_spm_hal_wait_for_ns_cpu_ready(void);
+
+/**
+ * \brief Retrieve the current active security configuration information and
+ *        fills the \ref security_attr_info_t.
+ *
+ * \param[in]  p               Base address of target memory region
+ * \param[in]  s               Size of target memory region
+ * \param[out] p_attr          Address of \ref security_attr_info_t to be filled
+ *
+ * \return void
+ */
+void tfm_spm_hal_get_mem_security_attr(const void *p, size_t s,
+                                       struct security_attr_info_t *p_attr);
+
+/**
+ * \brief Retrieve the secure memory protection configuration information and
+ *        fills the \ref mem_attr_info_t.
+ *
+ * \param[in]  p               Base address of target memory region
+ * \param[in]  s               Size of target memory region
+ * \param[out] p_attr          Address of \ref mem_attr_info_t to be filled
+ *
+ * \return void
+ */
+void tfm_spm_hal_get_secure_access_attr(const void *p, size_t s,
+                                        struct mem_attr_info_t *p_attr);
+
+/**
+ * \brief Retrieve the non-secure memory protection configuration information
+ *        and fills the \ref mem_attr_info_t.
+ *
+ * \param[in]  p               Base address of target memory region
+ * \param[in]  s               Size of target memory region
+ * \param[out] p_attr          Address of \ref mem_attr_info_t to be filled
+ *
+ * \return void
+ */
+void tfm_spm_hal_get_ns_access_attr(const void *p, size_t s,
+                                    struct mem_attr_info_t *p_attr);
 
 #endif /*TFM_MULTI_CORE_TOPOLOGY*/
 

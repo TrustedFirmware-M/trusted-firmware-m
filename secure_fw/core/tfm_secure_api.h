@@ -8,7 +8,9 @@
 #ifndef __TFM_SECURE_API_H__
 #define __TFM_SECURE_API_H__
 
+#if !TFM_MULTI_CORE_TOPOLOGY
 #include <arm_cmse.h>
+#endif
 #include "tfm_arch.h"
 #include "tfm_svc.h"
 #include "tfm_core.h"

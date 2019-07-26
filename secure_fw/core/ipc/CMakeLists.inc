@@ -44,7 +44,6 @@ elseif (TFM_PSA_API)
 			"${SS_IPC_DIR}/tfm_spm.c"
 			"${SS_IPC_DIR}/tfm_psa_client_call.c"
 			"${SS_IPC_DIR}/../tfm_core.c"
-			"${SS_IPC_DIR}/../tfm_secure_api.c"
 			"${SS_IPC_DIR}/../tfm_spm_services.c"
 			"${SS_IPC_DIR}/../tfm_handler.c"
 			"${SS_IPC_DIR}/../tfm_boot_data.c"
@@ -52,11 +51,15 @@ elseif (TFM_PSA_API)
 
 	# Add multi-core topology support
 	if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
-		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/tfm_rpc.c")
-		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/tfm_spe_mailbox.c")
-		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/tfm_multi_core.c")
-	else()
-		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/../tfm_nspm.c")
+		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/tfm_rpc.c"
+				"${SS_IPC_DIR}/tfm_spe_mailbox.c"
+				"${SS_IPC_DIR}/tfm_multi_core.c"
+				"${SS_IPC_DIR}/tfm_multi_core_mem_check.c"
+				)
+	else ()
+		list(APPEND SS_IPC_C_SRC "${SS_IPC_DIR}/../tfm_nspm.c"
+				"${SS_IPC_DIR}/../tfm_secure_api.c"
+				)
 	endif()
 
 endif()

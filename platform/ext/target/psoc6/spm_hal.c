@@ -16,6 +16,7 @@
 #include "spm_api.h"
 #include "spm_db.h"
 #include "target_cfg.h"
+#include "tfm_multi_core.h"
 #include "tfm_platform_core_api.h"
 
 #include "cycfg.h"
@@ -266,4 +267,58 @@ void tfm_spm_hal_set_secure_irq_priority(int32_t irq_line, uint32_t priority)
 {
     uint32_t quantized_priority = priority >> (8U - __NVIC_PRIO_BITS);
     NVIC_SetPriority(irq_line, quantized_priority);
+}
+
+void tfm_spm_hal_get_mem_security_attr(const void *p, size_t s,
+                                       struct security_attr_info_t *p_attr)
+{
+    /*
+     * FIXME
+     * Need to check if the memory region is valid according to platform
+     * specific memory mapping.
+     */
+
+    /*
+     * TODO
+     * Currently only check static memory region layout to get security
+     * information.
+     * Check of hardware SMPU configuration can be added.
+     */
+    tfm_get_mem_region_security_attr(p, s, p_attr);
+}
+
+void tfm_spm_hal_get_secure_access_attr(const void *p, size_t s,
+                                        struct mem_attr_info_t *p_attr)
+{
+    /*
+     * FIXME
+     * Need to check if the memory region is valid according to platform
+     * specific memory mapping.
+     */
+
+    /*
+     * TODO
+     * Currently only check static memory region layout to get attributes.
+     * Check of secure memory protection configuration from hardware can be
+     * added.
+     */
+    tfm_get_secure_mem_region_attr(p, s, p_attr);
+}
+
+void tfm_spm_hal_get_ns_access_attr(const void *p, size_t s,
+                                    struct mem_attr_info_t *p_attr)
+{
+    /*
+     * FIXME
+     * Need to check if the memory region is valid according to platform
+     * specific memory mapping.
+     */
+
+    /*
+     * TODO
+     * Currently only check static memory region layout to get attributes.
+     * Check of non-secure memory protection configuration from hardware can be
+     * added.
+     */
+    tfm_get_ns_mem_region_attr(p, s, p_attr);
 }

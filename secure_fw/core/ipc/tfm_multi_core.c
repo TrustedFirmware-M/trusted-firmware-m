@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <stdbool.h>
 #include "platform/include/tfm_spm_hal.h"
 #include "psa_client.h"
 #include "secure_utilities.h"
@@ -14,6 +13,12 @@
 
 #define DEFAULT_NS_CLIENT_ID            (-1)
 
+/*
+ * TODO
+ * This lock will be removed or optimized later according to TF-M further change
+ */
+int32_t tfm_secure_lock;
+
 void tfm_nspm_configure_clients(void)
 {
 }
@@ -21,6 +26,14 @@ void tfm_nspm_configure_clients(void)
 int32_t tfm_nspm_get_current_client_id(void)
 {
     return DEFAULT_NS_CLIENT_ID;
+}
+
+void tfm_secure_api_error_handler(void)
+{
+    ERROR_MSG("Security violation when calling secure API");
+    while (1) {
+        ;
+    }
 }
 
 psa_status_t tfm_nspm_thread_entry(void)
