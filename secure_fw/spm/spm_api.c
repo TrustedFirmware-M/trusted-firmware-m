@@ -84,6 +84,12 @@ uint32_t get_partition_idx(uint32_t partition_id)
     return SPM_INVALID_PARTITION_IDX;
 }
 
+#if TFM_MULTI_CORE_TOPOLOGY
+#define NSPM_PART_ROT_TYPE           (SPM_PART_FLAG_PSA_ROT)
+#else
+#define NSPM_PART_ROT_TYPE           (SPM_PART_FLAG_APP_ROT)
+#endif
+
 enum spm_err_t tfm_spm_db_init(void)
 {
     struct spm_partition_desc_t *part_ptr;
@@ -113,7 +119,7 @@ enum spm_err_t tfm_spm_db_init(void)
             g_spm_partition_db.partition_count]);
     part_ptr->static_data.partition_id = TFM_SP_NON_SECURE_ID;
 #if TFM_PSA_API
-    part_ptr->static_data.partition_flags = SPM_PART_FLAG_APP_ROT |
+    part_ptr->static_data.partition_flags = NSPM_PART_ROT_TYPE |
                                             SPM_PART_FLAG_IPC;
     part_ptr->static_data.partition_priority = TFM_PRIORITY_LOW;
     part_ptr->static_data.partition_init = tfm_nspm_thread_entry;
