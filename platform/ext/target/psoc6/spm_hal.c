@@ -6,6 +6,7 @@
  *
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "platform/include/tfm_spm_hal.h"
@@ -23,7 +24,9 @@
 #include "cy_device.h"
 #include "cy_device_headers.h"
 #include "cy_ipc_drv.h"
+#include "cy_prot.h"
 #include "cy_sysint.h"
+#include "pc_config.h"
 
 /* Get address of memory regions to configure MPU */
 extern const struct memory_region_limits memory_regions;
@@ -290,6 +293,8 @@ void tfm_spm_hal_get_mem_security_attr(const void *p, size_t s,
 void tfm_spm_hal_get_secure_access_attr(const void *p, size_t s,
                                         struct mem_attr_info_t *p_attr)
 {
+    uint32_t pc;
+
     /*
      * FIXME
      * Need to check if the memory region is valid according to platform
@@ -303,6 +308,14 @@ void tfm_spm_hal_get_secure_access_attr(const void *p, size_t s,
      * added.
      */
     tfm_get_secure_mem_region_attr(p, s, p_attr);
+
+    pc = Cy_Prot_GetActivePC(CPUSS_MS_ID_CM0);
+    /* Check whether the current active PC is configured as the expected one .*/
+    if (pc == CY_PROT_SPM_DEFAULT) {
+        p_attr->is_mpu_enabled = true;
+    } else {
+        p_attr->is_mpu_enabled = false;
+    }
 }
 
 void tfm_spm_hal_get_ns_access_attr(const void *p, size_t s,
