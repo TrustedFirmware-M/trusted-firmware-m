@@ -18,7 +18,6 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "psa_client.h"
-#include "tfm_rpc.h"
 
 /*
  * The number of slots in NSPE mailbox queue and SPE mailbox queue.
@@ -44,10 +43,38 @@
 #define MAILBOX_CALLBACK_REG_ERROR          (INT32_MIN + 6)
 #define MAILBOX_INIT_ERROR                  (INT32_MIN + 7)
 
+/*
+ * This structure holds the parameters used in a PSA client call.
+ */
+struct psa_client_params_t {
+    union {
+        struct {
+            uint32_t        sid;
+        } psa_version_params;
+
+        struct {
+            uint32_t        sid;
+            uint32_t        minor_version;
+        } psa_connect_params;
+
+        struct {
+            psa_handle_t    handle;
+            const psa_invec *in_vec;
+            size_t          in_len;
+            psa_outvec      *out_vec;
+            size_t          out_len;
+        } psa_call_params;
+
+        struct {
+            psa_handle_t    handle;
+        } psa_close_params;
+    };
+};
+
 /* Mailbox message passed from NSPE to SPE to deliver a PSA client call */
 struct mailbox_msg_t {
     uint32_t                    call_type; /* PSA client call type */
-    struct client_call_params_t params;    /* Contain parameters used in PSA
+    struct psa_client_params_t  params;    /* Contain parameters used in PSA
                                             * client call
                                             */
 

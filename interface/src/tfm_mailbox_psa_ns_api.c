@@ -68,7 +68,7 @@ uint32_t tfm_ns_lock_init()
 
 uint32_t psa_framework_version(void)
 {
-    struct client_call_params_t params = { 0 };
+    struct psa_client_params_t params;
     mailbox_msg_handle_t handle;
     uint32_t version;
     int32_t ret;
@@ -96,12 +96,12 @@ uint32_t psa_framework_version(void)
 
 uint32_t psa_version(uint32_t sid)
 {
-    struct client_call_params_t params = { 0 };
+    struct psa_client_params_t params;
     mailbox_msg_handle_t handle;
     uint32_t version;
     int32_t ret;
 
-    params.sid = sid;
+    params.psa_version_params.sid = sid;
 
     osMutexAcquire(ns_lock_id, osWaitForever);
 
@@ -126,13 +126,13 @@ uint32_t psa_version(uint32_t sid)
 
 psa_handle_t psa_connect(uint32_t sid, uint32_t minor_version)
 {
-    struct client_call_params_t params = { 0 };
+    struct psa_client_params_t params;
     mailbox_msg_handle_t handle;
     psa_handle_t psa_handle;
     int32_t ret;
 
-    params.sid = sid;
-    params.minor_version = minor_version;
+    params.psa_connect_params.sid = sid;
+    params.psa_connect_params.minor_version = minor_version;
 
     osMutexAcquire(ns_lock_id, osWaitForever);
 
@@ -161,16 +161,16 @@ psa_status_t psa_call(psa_handle_t handle,
                       psa_outvec *out_vec,
                       size_t out_len)
 {
-    struct client_call_params_t params = { 0 };
+    struct psa_client_params_t params;
     mailbox_msg_handle_t msg_handle;
     int32_t ret;
     psa_status_t status;
 
-    params.handle = handle;
-    params.in_vec = in_vec;
-    params.in_len = in_len;
-    params.out_vec = out_vec;
-    params.out_len = out_len;
+    params.psa_call_params.handle = handle;
+    params.psa_call_params.in_vec = in_vec;
+    params.psa_call_params.in_len = in_len;
+    params.psa_call_params.out_vec = out_vec;
+    params.psa_call_params.out_len = out_len;
 
     osMutexAcquire(ns_lock_id, osWaitForever);
 
@@ -195,11 +195,11 @@ psa_status_t psa_call(psa_handle_t handle,
 
 void psa_close(psa_handle_t handle)
 {
-    struct client_call_params_t params = { 0 };
+    struct psa_client_params_t params;
     mailbox_msg_handle_t msg_handle;
     int32_t reply;
 
-    params.handle = handle;
+    params.psa_close_params.handle = handle;
 
     osMutexAcquire(ns_lock_id, osWaitForever);
 

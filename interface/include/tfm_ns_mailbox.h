@@ -26,7 +26,7 @@
  * \retval < 0                  Operation failed with an error code.
  */
 mailbox_msg_handle_t mailbox_tx_client_call_req(uint32_t call_type,
-                                    const struct client_call_params_t *params,
+                                    const struct psa_client_params_t *params,
                                     int32_t client_id);
 
 /**

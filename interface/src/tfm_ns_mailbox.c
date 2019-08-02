@@ -91,7 +91,7 @@ static uint8_t acquire_empty_slot(const struct ns_mailbox_queue_t *queue)
 }
 
 mailbox_msg_handle_t mailbox_tx_client_call_req(uint32_t call_type,
-                                    const struct client_call_params_t *params,
+                                    const struct psa_client_params_t *params,
                                     int32_t client_id)
 {
     uint8_t idx;
