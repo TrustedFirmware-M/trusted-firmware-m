@@ -127,36 +127,9 @@ LR_CODE S_CODE_START {
     ARM_LIB_STACK_MSP S_DATA_START ALIGN 32 OVERLAY EMPTY S_MSP_STACK_SIZE {
     }
 
-    /* PSP */
-    ARM_LIB_STACK +0 ALIGN 32 EMPTY S_PSP_STACK_SIZE {
-    }
-
-    ARM_LIB_HEAP +0 ALIGN 8 EMPTY S_HEAP_SIZE {
-    }
-
     ER_TFM_DATA +0 {
         .ANY (+RW +ZI)
     }
-
-#if (TFM_LVL == 1) && !defined(TFM_PSA_API)
-    TFM_SECURE_STACK +0 ALIGN 128 EMPTY 0x2000 {
-    }
-#endif /* (TFM_LVL == 1) && !defined(TFM_PSA_API) */
-
-    TFM_UNPRIV_DATA +0 ALIGN 32 {
-        tfm_spm_services.o (+RW +ZI)
-        dummy_crypto_keys.o (+RW +ZI)
-        dummy_nv_counters.o (+RW +ZI)
-        dummy_boot_seed.o (+RW +ZI)
-        dummy_device_id.o (+RW +ZI)
-        platform_retarget_dev.o (+RW +ZI)
-        device_definition.o (+RW +ZI)
-    }
-
-#if !defined(TFM_PSA_API)
-    TFM_UNPRIV_SCRATCH +0 ALIGN 32 EMPTY 0x400 {
-    }
-#endif /* TFM_PSA_API */
 
     /**** PSA RoT DATA start here */
     /*
@@ -210,6 +183,33 @@ LR_CODE S_CODE_START {
      */
     TFM_PSA_RW_STACK_END +0 ALIGN 32 EMPTY 0x0 {
     }
+
+    /* PSP */
+    ARM_LIB_STACK +0 ALIGN 32 EMPTY S_PSP_STACK_SIZE {
+    }
+
+#if (TFM_LVL == 1) && !defined(TFM_PSA_API)
+    TFM_SECURE_STACK +0 ALIGN 128 EMPTY 0x2000 {
+    }
+#endif /* (TFM_LVL == 1) && !defined(TFM_PSA_API) */
+
+    ARM_LIB_HEAP +0 ALIGN 8 EMPTY S_HEAP_SIZE {
+    }
+
+    TFM_UNPRIV_DATA +0 ALIGN 32 {
+        tfm_spm_services.o (+RW +ZI)
+        dummy_crypto_keys.o (+RW +ZI)
+        dummy_nv_counters.o (+RW +ZI)
+        dummy_boot_seed.o (+RW +ZI)
+        dummy_device_id.o (+RW +ZI)
+        platform_retarget_dev.o (+RW +ZI)
+        device_definition.o (+RW +ZI)
+    }
+
+#if !defined(TFM_PSA_API)
+    TFM_UNPRIV_SCRATCH +0 ALIGN 32 EMPTY 0x400 {
+    }
+#endif /* TFM_PSA_API */
 
     /**** APP RoT DATA start here */
     /*

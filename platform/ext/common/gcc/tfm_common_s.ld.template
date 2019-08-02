@@ -284,79 +284,6 @@ SECTIONS
     Image$$ARM_LIB_STACK_MSP$$ZI$$Base = ADDR(.msp_stack);
     Image$$ARM_LIB_STACK_MSP$$ZI$$Limit = ADDR(.msp_stack) + SIZEOF(.msp_stack);
 
-    .psp_stack : ALIGN(32)
-    {
-        . += __psp_stack_size__;
-    } > RAM
-    Image$$ARM_LIB_STACK$$ZI$$Base = ADDR(.psp_stack);
-    Image$$ARM_LIB_STACK$$ZI$$Limit = ADDR(.psp_stack) + SIZEOF(.psp_stack);
-
-#if TFM_LVL == 1
-
-#if !defined(TFM_PSA_API)
-    .TFM_SECURE_STACK : ALIGN(128)
-    {
-        . += 0x2000;
-    } > RAM
-    Image$$TFM_SECURE_STACK$$ZI$$Base = ADDR(.TFM_SECURE_STACK);
-    Image$$TFM_SECURE_STACK$$ZI$$Limit = ADDR(.TFM_SECURE_STACK) + SIZEOF(.TFM_SECURE_STACK);
-#endif /* !defined(TFM_PSA_API) */
-
-    .heap : ALIGN(8)
-    {
-        __end__ = .;
-        PROVIDE(end = .);
-        __HeapBase = .;
-        . += __heap_size__;
-        __HeapLimit = .;
-        __heap_limit = .; /* Add for _sbrk */
-    } > RAM
-#else /* TFM_LVL == 1 */
-    .TFM_UNPRIV_DATA : ALIGN(32)
-    {
-        */tfm_spm_services.o(.data*)
-        */dummy_crypto_keys.o(.data*)
-        */dummy_nv_counters.o(.data*)
-        */dummy_boot_seed.o(.data*)
-        */dummy_device_id.o(.data*)
-        */platform_retarget_dev.o(.data*)
-        */device_definition.o(.data*)
-        . = ALIGN(32);
-    } > RAM AT> FLASH
-    Image$$TFM_UNPRIV_DATA$$RW$$Base = ADDR(.TFM_UNPRIV_DATA);
-    Image$$TFM_UNPRIV_DATA$$RW$$Limit = ADDR(.TFM_UNPRIV_DATA) + SIZEOF(.TFM_UNPRIV_DATA);
-
-    .TFM_UNPRIV_BSS : ALIGN(32)
-    {
-        */tfm_spm_services.o(.bss*)
-        */platform_retarget_dev.o(.bss*)
-        */device_definition.o(.bss*)
-        */dummy_crypto_keys.o(.bss*)
-        */dummy_nv_counters.o(.bss*)
-        */dummy_boot_seed.o(.bss*)
-        */dummy_device_id.o(.bss*)
-        */tfm_spm_services.o(COMMON)
-        */platform_retarget_dev.o(COMMON)
-        */device_definition.o(COMMON)
-        */dummy_crypto_keys.o(COMMON)
-        */dummy_nv_counters.o(COMMON)
-        */dummy_boot_seed.o(COMMON)
-        */dummy_device_id.o(COMMON)
-        . = ALIGN(32);
-    } > RAM AT> RAM
-    Image$$TFM_UNPRIV_DATA$$ZI$$Base = ADDR(.TFM_UNPRIV_BSS);
-    Image$$TFM_UNPRIV_DATA$$ZI$$Limit = ADDR(.TFM_UNPRIV_BSS) + SIZEOF(.TFM_UNPRIV_BSS);
-#endif /* TFM_LVL == 1 */
-
-#if !defined(TFM_PSA_API)
-    .TFM_UNPRIV_SCRATCH : ALIGN(32)
-    {
-        . += 0x400;
-    } > RAM
-    Image$$TFM_UNPRIV_SCRATCH$$ZI$$Base = ADDR(.TFM_UNPRIV_SCRATCH);
-    Image$$TFM_UNPRIV_SCRATCH$$ZI$$Limit = ADDR(.TFM_UNPRIV_SCRATCH) + SIZEOF(.TFM_UNPRIV_SCRATCH);
-#endif /* !defined(TFM_PSA_API) */
-
     /**** PSA RoT DATA start here */
     Image$$TFM_PSA_RW_STACK_START$$Base = .;
 
@@ -434,6 +361,79 @@ SECTIONS
 {% endfor %}
     /**** PSA RoT DATA end here */
     Image$$TFM_PSA_RW_STACK_END$$Base = .;
+
+    .psp_stack : ALIGN(32)
+    {
+        . += __psp_stack_size__;
+    } > RAM
+    Image$$ARM_LIB_STACK$$ZI$$Base = ADDR(.psp_stack);
+    Image$$ARM_LIB_STACK$$ZI$$Limit = ADDR(.psp_stack) + SIZEOF(.psp_stack);
+
+#if TFM_LVL == 1
+
+#if !defined(TFM_PSA_API)
+    .TFM_SECURE_STACK : ALIGN(128)
+    {
+        . += 0x2000;
+    } > RAM
+    Image$$TFM_SECURE_STACK$$ZI$$Base = ADDR(.TFM_SECURE_STACK);
+    Image$$TFM_SECURE_STACK$$ZI$$Limit = ADDR(.TFM_SECURE_STACK) + SIZEOF(.TFM_SECURE_STACK);
+#endif /* !defined(TFM_PSA_API) */
+
+    .heap : ALIGN(8)
+    {
+        __end__ = .;
+        PROVIDE(end = .);
+        __HeapBase = .;
+        . += __heap_size__;
+        __HeapLimit = .;
+        __heap_limit = .; /* Add for _sbrk */
+    } > RAM
+#else /* TFM_LVL == 1 */
+    .TFM_UNPRIV_DATA : ALIGN(32)
+    {
+        */tfm_spm_services.o(.data*)
+        */dummy_crypto_keys.o(.data*)
+        */dummy_nv_counters.o(.data*)
+        */dummy_boot_seed.o(.data*)
+        */dummy_device_id.o(.data*)
+        */platform_retarget_dev.o(.data*)
+        */device_definition.o(.data*)
+        . = ALIGN(32);
+    } > RAM AT> FLASH
+    Image$$TFM_UNPRIV_DATA$$RW$$Base = ADDR(.TFM_UNPRIV_DATA);
+    Image$$TFM_UNPRIV_DATA$$RW$$Limit = ADDR(.TFM_UNPRIV_DATA) + SIZEOF(.TFM_UNPRIV_DATA);
+
+    .TFM_UNPRIV_BSS : ALIGN(32)
+    {
+        */tfm_spm_services.o(.bss*)
+        */platform_retarget_dev.o(.bss*)
+        */device_definition.o(.bss*)
+        */dummy_crypto_keys.o(.bss*)
+        */dummy_nv_counters.o(.bss*)
+        */dummy_boot_seed.o(.bss*)
+        */dummy_device_id.o(.bss*)
+        */tfm_spm_services.o(COMMON)
+        */platform_retarget_dev.o(COMMON)
+        */device_definition.o(COMMON)
+        */dummy_crypto_keys.o(COMMON)
+        */dummy_nv_counters.o(COMMON)
+        */dummy_boot_seed.o(COMMON)
+        */dummy_device_id.o(COMMON)
+        . = ALIGN(32);
+    } > RAM AT> RAM
+    Image$$TFM_UNPRIV_DATA$$ZI$$Base = ADDR(.TFM_UNPRIV_BSS);
+    Image$$TFM_UNPRIV_DATA$$ZI$$Limit = ADDR(.TFM_UNPRIV_BSS) + SIZEOF(.TFM_UNPRIV_BSS);
+#endif /* TFM_LVL == 1 */
+
+#if !defined(TFM_PSA_API)
+    .TFM_UNPRIV_SCRATCH : ALIGN(32)
+    {
+        . += 0x400;
+    } > RAM
+    Image$$TFM_UNPRIV_SCRATCH$$ZI$$Base = ADDR(.TFM_UNPRIV_SCRATCH);
+    Image$$TFM_UNPRIV_SCRATCH$$ZI$$Limit = ADDR(.TFM_UNPRIV_SCRATCH) + SIZEOF(.TFM_UNPRIV_SCRATCH);
+#endif /* !defined(TFM_PSA_API) */
 
     /**** APPLICATION RoT DATA start here */
     Image$$TFM_APP_RW_STACK_START$$Base = .;
