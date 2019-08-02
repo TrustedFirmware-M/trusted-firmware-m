@@ -161,7 +161,7 @@
 #error "Flash layout has changed - SMPU8 needs updating"
 #endif
 
-/* SMPU9 - 128KB at S_DATA_START in SRAM */
+/* SMPU9 - 128KB of unprivileged secure data at S_DATA_START in SRAM */
 #define SMPU9_BASE S_DATA_START
 #define SMPU9_REGIONSIZE CY_PROT_SIZE_128KB
 #define SMPU9_SLAVE_CONFIG {\
@@ -181,14 +181,14 @@
 #error "Flash layout has changed - SMPU9 needs updating"
 #endif
 
-/* SMPU10 - remaining 16KB of secure data in SRAM */
+/* SMPU10 - 16KB of privileged secure data in SRAM */
 #define SMPU10_BASE (SMPU9_BASE + REGIONSIZE_TO_BYTES(SMPU9_REGIONSIZE))
 #define SMPU10_REGIONSIZE CY_PROT_SIZE_16KB
 #define SMPU10_SLAVE_CONFIG {\
     .address = (void *)SMPU10_BASE, \
     .regionSize = SMPU10_REGIONSIZE, \
     .subregions = ALL_ENABLED, \
-    .userPermission = CY_PROT_PERM_DISABLED, \
+    .userPermission = CY_PROT_PERM_RW, \
     .privPermission = CY_PROT_PERM_RW, \
     .secure = true, \
     .pcMatch = false, \
@@ -199,6 +199,13 @@
 /* SMPU requires base address aligned to size */
 #if SMPU10_BASE % REGIONSIZE_TO_BYTES(SMPU10_REGIONSIZE)
 #error "Flash layout has changed - SMPU10 needs updating"
+#endif
+
+/* S_DATA_UNPRIV_START must be set to the base address of SMPU10 */
+#if S_DATA_UNPRIV_START != (SMPU9_BASE + 128*1024)
+/* Ideally, the line above would be changed to the line below, but for some reason that fails */
+//#if S_DATA_UNPRIV_START != SMPU10_BASE
+#error "S_DATA_UNPRIV_START isn't the base address of SMPU10"
 #endif
 
 /* SMPUs 9 and 10 should cover all the secure RAM */
