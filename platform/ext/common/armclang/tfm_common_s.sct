@@ -259,6 +259,12 @@ LR_CODE S_CODE_START {
     ARM_LIB_STACK +0 ALIGN 32 EMPTY S_PSP_STACK_SIZE {
     }
 
+#if TFM_MULTI_CORE_TOPOLOGY && defined(S_DATA_UNPRIV_START)
+    /* PSP Stack is privileged in Multi-core */
+    TFM_PRIV_UNPRIV_DATA_BOUNDARY S_DATA_UNPRIV_START {
+    }
+#endif
+
 #if (TFM_LVL == 1) && !defined(TFM_PSA_API)
     TFM_SECURE_STACK +0 ALIGN 128 EMPTY 0x2000 {
     }

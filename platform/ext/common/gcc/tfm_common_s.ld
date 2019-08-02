@@ -715,6 +715,14 @@ SECTIONS
     Image$$ARM_LIB_STACK$$ZI$$Base = ADDR(.psp_stack);
     Image$$ARM_LIB_STACK$$ZI$$Limit = ADDR(.psp_stack) + SIZEOF(.psp_stack);
 
+#if TFM_MULTI_CORE_TOPOLOGY && defined(S_DATA_UNPRIV_START)
+    /* PSP Stack is privileged in Multi-core */
+    .tfm_priv_unpriv_data_boundary :
+    {
+        . = ABSOLUTE(S_DATA_UNPRIV_START) ;
+    }
+#endif
+
 #if TFM_LVL == 1
 
 #if !defined(TFM_PSA_API)
