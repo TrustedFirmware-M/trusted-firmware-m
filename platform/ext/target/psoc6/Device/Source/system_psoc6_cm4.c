@@ -165,7 +165,7 @@ uint32_t cy_delay32kMs    = CY_DELAY_MS_OVERFLOW_THRESHOLD *
 void SystemInit(void)
 {
 #if defined (__VTOR_PRESENT) && (__VTOR_PRESENT == 1U)
-    extern uint32_t __Vectors;
+    extern const cy_israddress __Vectors[]; /* Vector Table in flash */
     SCB->VTOR = (uint32_t) &__Vectors;
 #endif
 
