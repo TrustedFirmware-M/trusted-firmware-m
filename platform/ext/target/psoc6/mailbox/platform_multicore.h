@@ -11,12 +11,12 @@
 
 #include <stdint.h>
 
-#define IPC_PSA_CLIENT_CALL_CHAN         (7)
+#define IPC_PSA_CLIENT_CALL_CHAN         (8)
 #define IPC_PSA_CLIENT_CALL_INTR_STRUCT  (4)
 #define IPC_PSA_CLIENT_CALL_INTR_MASK    (1 << IPC_PSA_CLIENT_CALL_CHAN)
 #define IPC_PSA_CLIENT_CALL_NOTIFY_MASK  (1 << IPC_PSA_CLIENT_CALL_INTR_STRUCT)
 
-#define IPC_PSA_CLIENT_REPLY_CHAN        (8)
+#define IPC_PSA_CLIENT_REPLY_CHAN        (9)
 #define IPC_PSA_CLIENT_REPLY_INTR_STRUCT (5)
 #define IPC_PSA_CLIENT_REPLY_INTR_MASK   (1 << IPC_PSA_CLIENT_REPLY_CHAN)
 #define IPC_PSA_CLIENT_REPLY_NOTIFY_MASK (1 << IPC_PSA_CLIENT_REPLY_INTR_STRUCT)
@@ -38,7 +38,7 @@
 
 /* Inter-Processor Communication (IPC) data channel for the Semaphores */
 #define PLATFORM_MAILBOX_IPC_CHAN_SEMA   CY_IPC_CHAN_SEMA
-#define MAILBOX_SEMAPHORE_NUM            (0)
+#define MAILBOX_SEMAPHORE_NUM            (16)
 
 #define IPC_SYNC_MAGIC                   0x7DADE011
 
