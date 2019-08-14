@@ -33,7 +33,7 @@
 }
 
 /* Flash - BL2 image */
-#define SMPU5_SLAVE_CONFIG {\
+#define SMPU4_SLAVE_CONFIG {\
     .address = (void *)BL2_CODE_START, \
     .regionSize = CY_PROT_SIZE_128KB, \
     .subregions = ALL_ENABLED, \
@@ -43,16 +43,29 @@
     .pcMatch = false, \
     .pcMask = SECURE_PCS_MASK, \
 }
-#define SMPU5_MASTER_CONFIG COMMON_SMPU_MASTER_CONFIG
+#define SMPU4_MASTER_CONFIG COMMON_SMPU_MASTER_CONFIG
 
 #if FLASH_AREA_BL2_SIZE != 128*1024
-#error "Flash layout has changed - SMPU5 config needs updating"
+#error "Flash layout has changed - SMPU4 config needs updating"
 #endif
 
-/* Flash - secure primary image */
+/* Flash - secure primary image (first half) */
+#define SMPU5_SLAVE_CONFIG {\
+    .address = (void *)S_ROM_ALIAS(FLASH_AREA_IMAGE_0_OFFSET), \
+    .regionSize = CY_PROT_SIZE_128KB, \
+    .subregions = ALL_ENABLED, \
+    .userPermission = CY_PROT_PERM_RWX, \
+    .privPermission = CY_PROT_PERM_RWX, \
+    .secure = true, \
+    .pcMatch = false, \
+    .pcMask = SECURE_PCS_MASK, \
+}
+#define SMPU5_MASTER_CONFIG COMMON_SMPU_MASTER_CONFIG
+
+/* Flash - secure primary image (second half) */
 #define SMPU6_SLAVE_CONFIG {\
-    .address = (void *)S_CODE_START, \
-    .regionSize = CY_PROT_SIZE_256KB, \
+    .address = (void *)(S_ROM_ALIAS(FLASH_AREA_IMAGE_0_OFFSET) + (128*1024)), \
+    .regionSize = CY_PROT_SIZE_128KB, \
     .subregions = ALL_ENABLED, \
     .userPermission = CY_PROT_PERM_RWX, \
     .privPermission = CY_PROT_PERM_RWX, \
@@ -62,8 +75,8 @@
 }
 #define SMPU6_MASTER_CONFIG COMMON_SMPU_MASTER_CONFIG
 
-#if SECURE_IMAGE_MAX_SIZE != 256*1024
-#error "Flash layout has changed - SMPU6 config needs updating"
+#if SECURE_IMAGE_MAX_SIZE != 2*128*1024
+#error "Flash layout has changed - SMPU5/SMPU6 config needs updating"
 #endif
 
 /* Most of secondary images  - 0x10088000..0x100c0000 */
