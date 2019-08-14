@@ -81,11 +81,11 @@ cy_en_prot_status_t SMPU_Configure(const SMPU_Resources *smpu_dev)
            __func__,
            smpu_name(smpu_dev),
            smpu_dev->slave_config.address,
-           1 << (1 + smpu_dev->slave_config.regionSize),
+           REGIONSIZE_TO_BYTES(smpu_dev->slave_config.regionSize),
            smpu_dev->slave_config.subregions == ALL_ENABLED ? "all" : "some");
     if (smpu_dev->slave_config.subregions != ALL_ENABLED) {
         printf("\tsubregion size = %#x bytes\n",
-               (1 << (1 + smpu_dev->slave_config.regionSize))/8);
+               REGIONSIZE_TO_BYTES(smpu_dev->slave_config.regionSize)/8);
         for (int i=0; i<CPUSS_PROT_SMPU_STRUCT_NR; i++) {
             printf("\tsubregion %d %s\n",
                    i,
