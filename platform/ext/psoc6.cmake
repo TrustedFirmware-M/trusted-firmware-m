@@ -80,6 +80,14 @@ list(APPEND ALL_SRC_C_NS "${PLATFORM_DIR}/target/psoc6/mailbox/platform_ns_mailb
 list(APPEND ALL_SRC_C_S "${PLATFORM_DIR}/target/psoc6/mailbox/mailbox_ipc_intr.c")
 list(APPEND ALL_SRC_C_S "${PLATFORM_DIR}/target/psoc6/mailbox/platform_spe_mailbox.c")
 
+install(FILES ${PLATFORM_DIR}/target/psoc6/mailbox/ns_ipc_config.h
+        ${PLATFORM_DIR}/target/psoc6/mailbox/platform_multicore.h
+        DESTINATION export/tfm/inc)
+
+install(FILES ${PLATFORM_DIR}/target/psoc6/mailbox/platform_multicore.c
+        ${PLATFORM_DIR}/target/psoc6/mailbox/platform_ns_mailbox.c
+        DESTINATION export/tfm/src)
+
 if (NOT DEFINED BUILD_CMSIS_CORE)
   message(FATAL_ERROR "Configuration variable BUILD_CMSIS_CORE (true|false) is undefined!")
 elseif(BUILD_CMSIS_CORE)
