@@ -88,8 +88,8 @@ if (NOT DEFINED TFM_PSA_API)
 elseif (TFM_PSA_API)
 	if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
 		list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_ns_mailbox.c"
-				"${INTERFACE_DIR}/src/tfm_mailbox_psa_ns_api.c"
-				"${INTERFACE_DIR}/src/tfm_multicore_api.c"
+				"${INTERFACE_DIR}/src/tfm_multi_core_psa_ns_api.c"
+				"${INTERFACE_DIR}/src/tfm_multi_core_api.c"
 				)
 	else()
 		list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_psa_ns_api.c")

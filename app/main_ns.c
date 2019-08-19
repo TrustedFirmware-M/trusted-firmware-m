@@ -15,7 +15,7 @@
 #include "tfm_ns_svc.h"
 #include "tfm_ns_lock.h"
 #if TFM_MULTI_CORE_TOPOLOGY
-#include "tfm_multicore_api.h"
+#include "tfm_multi_core_api.h"
 #include "tfm_ns_mailbox.h"
 #endif
 

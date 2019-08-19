@@ -5,8 +5,8 @@
  *
  */
 
-#ifndef __TFM_MULTICORE_API__
-#define __TFM_MULTICORE_API__
+#ifndef __TFM_MULTI_CORE_API__
+#define __TFM_MULTI_CORE_API__
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,4 +26,4 @@ int tfm_ns_wait_for_s_cpu_ready(void);
 }
 #endif
 
-#endif /* __TFM_MULTICORE_API__ */
+#endif /* __TFM_MULTI_CORE_API__ */

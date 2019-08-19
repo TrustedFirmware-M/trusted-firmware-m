@@ -36,32 +36,11 @@
  */
 #define PSA_INTER_CORE_COMM_ERR         (INT32_MIN + 0xFF)
 
-static osMutexId_t ns_lock_id;
-
-/**
- * \brief Mutex properties, NS lock
- */
-static const osMutexAttr_t ns_lock_attrib = {
-    .name = "ns_lock",
-    .attr_bits = osMutexPrioInherit
-};
+extern osMutexId_t ns_lock_id;
 
 static void mailbox_wait_reply(mailbox_msg_handle_t handle)
 {
     while (!mailbox_is_msg_replied(handle)) {};
-}
-
-/**
- * \brief NS world, Init NS lock
- */
-uint32_t tfm_ns_lock_init()
-{
-    ns_lock_id = osMutexNew(&ns_lock_attrib);
-    if (ns_lock_id != NULL) {
-        return TFM_SUCCESS;
-    } else {
-        return TFM_ERROR_GENERIC;
-    }
 }
 
 /**** API functions ****/
