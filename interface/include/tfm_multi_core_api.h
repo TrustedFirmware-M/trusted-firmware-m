@@ -22,6 +22,17 @@ extern "C" {
  */
 int tfm_ns_wait_for_s_cpu_ready(void);
 
+/**
+ * \brief Synchronisation with secure CPU, platform-specific implementation.
+ *        Flags that the non-secure side has completed its initialization.
+ *        Waits, if necessary, for the secure CPU to flag that it has completed
+ *        its initialization.
+ *
+ * \retval 0               The operation succeeds.
+ * \retval else            The operation fails.
+ */
+int tfm_platform_ns_wait_for_s_cpu_ready(void);
+
 #ifdef __cplusplus
 }
 #endif

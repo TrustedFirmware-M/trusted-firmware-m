@@ -7,7 +7,6 @@
 
 #include "cmsis_os2.h"
 
-#include "platform_multicore.h"
 #include "tfm_api.h"
 #include "tfm_multi_core_api.h"
 #include "tfm_ns_lock.h"
@@ -37,5 +36,5 @@ enum tfm_status_e tfm_ns_lock_init(void)
 
 int tfm_ns_wait_for_s_cpu_ready(void)
 {
-    return platform_ns_wait_for_s_cpu_ready();
+    return tfm_platform_ns_wait_for_s_cpu_ready();
 }

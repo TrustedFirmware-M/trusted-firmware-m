@@ -97,16 +97,4 @@ void platform_mailbox_wait_for_notify(void);
  */
 int platform_ns_ipc_init(void);
 
-/**
- * \brief Synchronisation with secure CPU, platform-specific implementation.
- *        Flags that the non-secure side has completed its initialization.
- *        Waits, if necessary, for the secure CPU to flag that it has completed
- *        its initialization.
- *
- *
- * \retval 0               The operation succeeds.
- * \retval else            The operation fails.
- */
-int platform_ns_wait_for_s_cpu_ready(void);
-
 #endif
