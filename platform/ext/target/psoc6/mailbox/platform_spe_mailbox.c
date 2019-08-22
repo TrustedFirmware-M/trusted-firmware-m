@@ -28,11 +28,11 @@ int32_t tfm_mailbox_notify_peer(void)
 
 static void mailbox_ipc_config(void)
 {
-    Cy_SysInt_SetIntSource(PSA_CLIENT_CALL_IRQn, cpuss_interrupts_ipc_4_IRQn);
+    Cy_SysInt_SetIntSource(PSA_CLIENT_CALL_NVIC_IRQn, PSA_CLIENT_CALL_IPC_INTR);
 
-    NVIC_SetPriority(PSA_CLIENT_CALL_IRQn, PSA_CLIENT_CALL_INTR_PRIORITY);
+    NVIC_SetPriority(PSA_CLIENT_CALL_NVIC_IRQn, PSA_CLIENT_CALL_IRQ_PRIORITY);
 
-    NVIC_EnableIRQ(PSA_CLIENT_CALL_IRQn);
+    NVIC_EnableIRQ(PSA_CLIENT_CALL_NVIC_IRQn);
 }
 
 static int32_t tfm_mailbox_sema_init(void)

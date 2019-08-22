@@ -10,11 +10,13 @@
 #define _TFM_PLATFORM_MAILBOX_
 
 #include <stdint.h>
+#include "cy_device_headers.h"
 
 #define IPC_PSA_CLIENT_CALL_CHAN         (8)
-#define IPC_PSA_CLIENT_CALL_INTR_STRUCT  (4)
+#define IPC_PSA_CLIENT_CALL_INTR_STRUCT  (6)
 #define IPC_PSA_CLIENT_CALL_INTR_MASK    (1 << IPC_PSA_CLIENT_CALL_CHAN)
 #define IPC_PSA_CLIENT_CALL_NOTIFY_MASK  (1 << IPC_PSA_CLIENT_CALL_INTR_STRUCT)
+#define IPC_PSA_CLIENT_CALL_IPC_INTR     cpuss_interrupts_ipc_6_IRQn
 
 #define IPC_PSA_CLIENT_REPLY_CHAN        (9)
 #define IPC_PSA_CLIENT_REPLY_INTR_STRUCT (5)
