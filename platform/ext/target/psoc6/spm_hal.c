@@ -31,11 +31,13 @@
 /* Get address of memory regions to configure MPU */
 extern const struct memory_region_limits memory_regions;
 
-void tfm_spm_hal_init_isolation_hw(void)
+enum tfm_plat_err_t tfm_spm_hal_init_isolation_hw(void)
 {
     smpu_init_cfg();
     ppu_init_cfg();
     bus_masters_cfg();
+
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 void tfm_spm_hal_configure_default_isolation(
@@ -180,14 +182,14 @@ enum spm_err_t tfm_spm_hal_partition_sandbox_config(
     return SPM_ERR_OK;
 }
 
-void tfm_spm_hal_setup_isolation_hw(void)
+enum tfm_plat_err_t tfm_spm_hal_setup_isolation_hw(void)
 {
     if (tfm_spm_mpu_init() != SPM_ERR_OK) {
         ERROR_MSG("Failed to set up initial MPU configuration! Halting.");
-        while (1) {
-            ;
-        }
+        return TFM_PLAT_ERR_SYSTEM_ERR;
     }
+
+    return TFM_PLAT_ERR_SUCCESS;
 }
 #endif /* TFM_LVL != 1 */
 
@@ -247,10 +249,13 @@ void tfm_spm_hal_wait_for_ns_cpu_ready(void)
     }
 }
 
-void tfm_spm_hal_set_secure_irq_priority(int32_t irq_line, uint32_t priority)
+enum tfm_plat_err_t tfm_spm_hal_set_secure_irq_priority(int32_t irq_line,
+                                                        uint32_t priority)
 {
     uint32_t quantized_priority = priority >> (8U - __NVIC_PRIO_BITS);
     NVIC_SetPriority(irq_line, quantized_priority);
+
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 void tfm_spm_hal_get_mem_security_attr(const void *p, size_t s,
