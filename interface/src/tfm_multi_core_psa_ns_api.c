@@ -134,11 +134,9 @@ psa_handle_t psa_connect(uint32_t sid, uint32_t minor_version)
     return psa_handle;
 }
 
-psa_status_t psa_call(psa_handle_t handle,
-                      const psa_invec *in_vec,
-                      size_t in_len,
-                      psa_outvec *out_vec,
-                      size_t out_len)
+psa_status_t psa_call(psa_handle_t handle, int32_t type,
+                      const psa_invec *in_vec, size_t in_len,
+                      psa_outvec *out_vec, size_t out_len)
 {
     struct psa_client_params_t params;
     mailbox_msg_handle_t msg_handle;
@@ -146,6 +144,7 @@ psa_status_t psa_call(psa_handle_t handle,
     psa_status_t status;
 
     params.psa_call_params.handle = handle;
+    params.psa_call_params.type = type;
     params.psa_call_params.in_vec = in_vec;
     params.psa_call_params.in_len = in_len;
     params.psa_call_params.out_vec = out_vec;

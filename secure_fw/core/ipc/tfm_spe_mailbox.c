@@ -51,6 +51,7 @@ static int32_t tfm_mailbox_dispatch(uint32_t call_type,
         return MAILBOX_SUCCESS;
     case MAILBOX_PSA_CALL:
         spm_params.handle = params->psa_call_params.handle;
+        spm_params.type = params->psa_call_params.type;
         spm_params.in_vec = params->psa_call_params.in_vec;
         spm_params.in_len = params->psa_call_params.in_len;
         spm_params.out_vec = params->psa_call_params.out_vec;

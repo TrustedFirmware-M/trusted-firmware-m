@@ -35,6 +35,7 @@
 struct client_call_params_t {
     uint32_t        sid;
     psa_handle_t    handle;
+    int32_t         type;
     const psa_invec *in_vec;
     size_t          in_len;
     psa_outvec      *out_vec;
