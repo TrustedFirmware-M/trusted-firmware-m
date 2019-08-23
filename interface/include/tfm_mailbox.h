@@ -17,7 +17,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "psa_client.h"
+#include "psa/client.h"
 
 /*
  * The number of slots in NSPE mailbox queue and SPE mailbox queue.

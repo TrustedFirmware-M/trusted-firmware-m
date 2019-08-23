@@ -10,7 +10,7 @@
 
 #include "cmsis_os2.h"
 
-#include "interface/include/psa_client.h"
+#include "psa/client.h"
 #include "tfm_api.h"
 #include "tfm_ns_mailbox.h"
 

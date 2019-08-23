@@ -9,7 +9,7 @@
 #define __TFM_PSA_CLIENT_CALL_H__
 
 #include <stdint.h>
-#include "psa_client.h"
+#include "psa/client.h"
 
 /* Common handlers for PSA client calls */
 

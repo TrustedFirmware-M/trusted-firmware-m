@@ -18,8 +18,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "cmsis_compiler.h"
-#include "psa_client.h"
-#include "psa_service.h"
+#include "psa/client.h"
+#include "psa/service.h"
 #include "tfm_thread.h"
 #include "tfm_wait.h"
 #include "tfm_message_queue.h"

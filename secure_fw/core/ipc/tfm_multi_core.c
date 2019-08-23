@@ -5,7 +5,7 @@
  */
 
 #include "platform/include/tfm_spm_hal.h"
-#include "psa_client.h"
+#include "psa/client.h"
 #include "secure_utilities.h"
 #include "tfm_internal.h"
 #include "tfm_nspm.h"
