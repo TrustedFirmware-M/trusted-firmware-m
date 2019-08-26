@@ -57,12 +57,9 @@ else()
 endif()
 set (FLASH_LAYOUT          "${PLATFORM_DIR}/target/psoc6/partition/flash_layout.h")
 set (PLATFORM_LINK_INCLUDES "${PLATFORM_DIR}/target/psoc6/partition")
-# The size of NS + S image partition
-set (SIGN_BIN_SIZE         0x68000)
 
 if (BL2)
   set (BL2_LINKER_CONFIG ${BL2_SCATTER_FILE_NAME})
-  #set (MCUBOOT_NO_SWAP True)
 endif()
 
 embedded_include_directories(PATH "${PLATFORM_DIR}/cmsis" ABSOLUTE)
@@ -230,15 +227,6 @@ elseif(BUILD_FLASH)
   set(SST_CREATE_FLASH_LAYOUT ON)
   embedded_include_directories(PATH "${PLATFORM_DIR}/target/psoc6/CMSIS_Driver" ABSOLUTE)
   embedded_include_directories(PATH "${PLATFORM_DIR}/driver" ABSOLUTE)
-endif()
-
-if (NOT BL2)
-	message(STATUS "WARNING: BL2 is mandatory on target \"${TARGET_PLATFORM}\" Your choice was override.")
-	set(BL2 True)
-endif()
-
-if (MCUBOOT_NO_SWAP)
-	message (FATAL_ERROR "MCUBOOT_NO_SWAP configuration is not supported on " ${TARGET_PLATFORM})
 endif()
 
 if (NOT DEFINED BUILD_BOOT_SEED)

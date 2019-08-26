@@ -65,7 +65,7 @@
 #endif
 
 /* SMPU5 - secure primary image (first half) in Flash */
-#define SMPU5_BASE       S_ROM_ALIAS(FLASH_AREA_IMAGE_0_OFFSET)
+#define SMPU5_BASE       S_ROM_ALIAS(FLASH_AREA_0_OFFSET)
 #define SMPU5_REGIONSIZE PROT_SIZE_128KB_BIT_SHIFT
 #define SMPU5_SLAVE_CONFIG {\
     .address = (void *)SMPU5_BASE, \
