@@ -87,11 +87,6 @@ void system_reset_cfg(void)
     SCB->AIRCR = reg_value;
 }
 
-void tfm_spm_hal_init_debug(void)
-{
-    printf("%s()\n", __func__);
-}
-
 enum tfm_plat_err_t nvic_interrupt_target_state_cfg(void)
 {
     printf("%s()\n", __func__);

@@ -356,3 +356,20 @@ enum tfm_plat_err_t tfm_spm_hal_nvic_interrupt_target_state_cfg(void)
 {
     return nvic_interrupt_target_state_cfg();
 }
+
+enum tfm_plat_err_t tfm_spm_hal_enable_fault_handlers(void)
+{
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
+enum tfm_plat_err_t tfm_spm_hal_system_reset_cfg(void)
+{
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
+enum tfm_plat_err_t tfm_spm_hal_init_debug(void)
+{
+    printf("%s()\n", __func__);
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
