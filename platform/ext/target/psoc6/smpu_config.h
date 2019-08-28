@@ -1,5 +1,7 @@
 /*
  * Copyright (c) 2019, Cypress Semiconductor Corporation. All rights reserved.
+ * Copyright (c) 2019 Arm Limited. All rights reserved.
+ *
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +26,7 @@
 #include "cy_prot.h"
 
 /* This macro depends on the actual CY_PROT_REGIONSIZE_XXX values */
-#define REGIONSIZE_TO_BYTES(X) (1 << (1 + (X)))
+#define REGIONSIZE_TO_BYTES(X)      (1UL << (1 + (X)))
 
 /* The actual SMPU configs */
 
@@ -38,8 +40,8 @@
 }
 
 /* SMPU4 - BL2 image in Flash */
-#define SMPU4_BASE BL2_CODE_START
-#define SMPU4_REGIONSIZE CY_PROT_SIZE_128KB
+#define SMPU4_BASE       BL2_CODE_START
+#define SMPU4_REGIONSIZE PROT_SIZE_128KB_BIT_SHIFT
 #define SMPU4_SLAVE_CONFIG {\
     .address = (void *)SMPU4_BASE, \
     .regionSize = SMPU4_REGIONSIZE, \
@@ -58,15 +60,13 @@
 #endif
 
 /* SMPU4 should cover the whole BL2 image */
-#if FLASH_AREA_BL2_SIZE != 128*1024
-/* Ideally, the line above would be changed to the line below, but for some reason that fails */
-//#if FLASH_AREA_BL2_SIZE != REGIONSIZE_TO_BYTES(SMPU4_REGIONSIZE)
+#if FLASH_AREA_BL2_SIZE != REGIONSIZE_TO_BYTES(SMPU4_REGIONSIZE)
 #error "Flash layout has changed - SMPU4 config needs updating"
 #endif
 
 /* SMPU5 - secure primary image (first half) in Flash */
-#define SMPU5_BASE S_ROM_ALIAS(FLASH_AREA_IMAGE_0_OFFSET)
-#define SMPU5_REGIONSIZE CY_PROT_SIZE_128KB
+#define SMPU5_BASE       S_ROM_ALIAS(FLASH_AREA_IMAGE_0_OFFSET)
+#define SMPU5_REGIONSIZE PROT_SIZE_128KB_BIT_SHIFT
 #define SMPU5_SLAVE_CONFIG {\
     .address = (void *)SMPU5_BASE, \
     .regionSize = SMPU5_REGIONSIZE, \
@@ -85,8 +85,8 @@
 #endif
 
 /* SMPU6 - secure primary image (second half) in Flash */
-#define SMPU6_BASE (SMPU5_BASE + REGIONSIZE_TO_BYTES(SMPU5_REGIONSIZE))
-#define SMPU6_REGIONSIZE CY_PROT_SIZE_128KB
+#define SMPU6_BASE       (SMPU5_BASE + REGIONSIZE_TO_BYTES(SMPU5_REGIONSIZE))
+#define SMPU6_REGIONSIZE PROT_SIZE_128KB_BIT_SHIFT
 #define SMPU6_SLAVE_CONFIG {\
     .address = (void *)SMPU6_BASE, \
     .regionSize = SMPU6_REGIONSIZE, \
@@ -105,15 +105,15 @@
 #endif
 
 /* SMPUs 5 and 6 should cover the whole secure primary image */
-#if SECURE_IMAGE_MAX_SIZE != 2*128*1024
-/* Ideally, the line above would be changed to the line below, but for some reason that fails */
-//#if SECURE_IMAGE_MAX_SIZE != (REGIONSIZE_TO_BYTES(SMPU5_REGIONSIZE) + REGIONSIZE_TO_BYTES(SMPU6_REGIONSIZE))
+#if SECURE_IMAGE_MAX_SIZE != (REGIONSIZE_TO_BYTES(SMPU5_REGIONSIZE) + \
+                              REGIONSIZE_TO_BYTES(SMPU6_REGIONSIZE))
 #error "Flash layout has changed - SMPU5/SMPU6 config needs updating"
 #endif
 
 /* SMPU7 - Most of secondary images in Flash (0x10088000..0x100c0000) */
-#define SMPU7_BASE (CY_FLASH_BASE + 512*1024)
-#define SMPU7_REGIONSIZE CY_PROT_SIZE_256KB
+#define SMPU7_BASE       S_ROM_ALIAS(REGIONSIZE_TO_BYTES(\
+                                     PROT_SIZE_512KB_BIT_SHIFT))
+#define SMPU7_REGIONSIZE PROT_SIZE_256KB_BIT_SHIFT
 #define SMPU7_SLAVE_CONFIG {\
     .address = (void *)SMPU7_BASE, \
     .regionSize = SMPU7_REGIONSIZE, \
@@ -142,8 +142,8 @@
 
 /* SMPU8 - rest of secondary images, scratch space, secure storage,
  * NV counters, and unused space in flash */
-#define SMPU8_BASE (SMPU7_BASE + REGIONSIZE_TO_BYTES(SMPU7_REGIONSIZE))
-#define SMPU8_REGIONSIZE CY_PROT_SIZE_256KB
+#define SMPU8_BASE       (SMPU7_BASE + REGIONSIZE_TO_BYTES(SMPU7_REGIONSIZE))
+#define SMPU8_REGIONSIZE PROT_SIZE_256KB_BIT_SHIFT
 #define SMPU8_SLAVE_CONFIG {\
     .address = (void *)SMPU8_BASE, \
     .regionSize = SMPU8_REGIONSIZE, \
@@ -162,8 +162,8 @@
 #endif
 
 /* SMPU9 - 128KB of unprivileged secure data at S_DATA_START in SRAM */
-#define SMPU9_BASE S_DATA_START
-#define SMPU9_REGIONSIZE CY_PROT_SIZE_128KB
+#define SMPU9_BASE       S_DATA_START
+#define SMPU9_REGIONSIZE PROT_SIZE_128KB_BIT_SHIFT
 #define SMPU9_SLAVE_CONFIG {\
     .address = (void *)SMPU9_BASE, \
     .regionSize = SMPU9_REGIONSIZE, \
@@ -182,8 +182,8 @@
 #endif
 
 /* SMPU10 - 16KB of privileged secure data in SRAM */
-#define SMPU10_BASE (SMPU9_BASE + REGIONSIZE_TO_BYTES(SMPU9_REGIONSIZE))
-#define SMPU10_REGIONSIZE CY_PROT_SIZE_16KB
+#define SMPU10_BASE       (SMPU9_BASE + REGIONSIZE_TO_BYTES(SMPU9_REGIONSIZE))
+#define SMPU10_REGIONSIZE PROT_SIZE_16KB_BIT_SHIFT
 #define SMPU10_SLAVE_CONFIG {\
     .address = (void *)SMPU10_BASE, \
     .regionSize = SMPU10_REGIONSIZE, \
@@ -202,16 +202,13 @@
 #endif
 
 /* S_DATA_UNPRIV_START must be set to the base address of SMPU10 */
-#if S_DATA_UNPRIV_START != (SMPU9_BASE + 128*1024)
-/* Ideally, the line above would be changed to the line below, but for some reason that fails */
-//#if S_DATA_UNPRIV_START != SMPU10_BASE
+#if S_DATA_UNPRIV_START != SMPU10_BASE
 #error "S_DATA_UNPRIV_START isn't the base address of SMPU10"
 #endif
 
 /* SMPUs 9 and 10 should cover all the secure RAM */
-#if S_DATA_SIZE != (128+16)*1024
-/* Ideally, the line above would be changed to the line below, but for some reason that fails */
-//#if S_DATA_SIZE != (REGIONSIZE_TO_BYTES(SMPU9_REGIONSIZE) + REGIONSIZE_TO_BYTES(SMPU10_REGIONSIZE))
+#if S_DATA_SIZE != (REGIONSIZE_TO_BYTES(SMPU9_REGIONSIZE) + \
+                    REGIONSIZE_TO_BYTES(SMPU10_REGIONSIZE))
 #error "Flash layout has changed - SMPU9/SMPU10 config needs updating"
 #endif
 
