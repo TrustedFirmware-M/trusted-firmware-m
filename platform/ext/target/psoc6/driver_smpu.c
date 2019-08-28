@@ -86,7 +86,7 @@ cy_en_prot_status_t SMPU_Configure(const SMPU_Resources *smpu_dev)
     if (smpu_dev->slave_config.subregions != ALL_ENABLED) {
         printf("\tsubregion size = %#x bytes\n",
                REGIONSIZE_TO_BYTES(smpu_dev->slave_config.regionSize)/8);
-        for (int i=0; i<CPUSS_PROT_SMPU_STRUCT_NR; i++) {
+        for (int i=0; i<8; i++) {
             printf("\tsubregion %d %s\n",
                    i,
                    smpu_dev->slave_config.subregions & (1<<i) ? "disabled" : "enabled");
