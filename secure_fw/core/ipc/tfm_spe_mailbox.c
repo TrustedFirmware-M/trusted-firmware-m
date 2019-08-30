@@ -337,7 +337,7 @@ static void mailbox_handle_req(void)
 }
 
 /* RPC reply() callback */
-static void mailbox_reply(void *owner, int32_t ret)
+static void mailbox_reply(const void *owner, int32_t ret)
 {
     mailbox_msg_handle_t handle = MAILBOX_MSG_NULL_HANDLE;
 

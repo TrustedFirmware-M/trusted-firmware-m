@@ -53,7 +53,7 @@ struct client_call_params_t {
  */
 struct tfm_rpc_ops_t {
     void (*handle_req)(void);
-    void (*reply)(void *owner, int32_t ret);
+    void (*reply)(const void *owner, int32_t ret);
 };
 
 /**
@@ -166,7 +166,7 @@ void tfm_rpc_client_call_handler(void);
  *                              client call.
  * \param[in] ret               PSA client call return result value.
  */
-void tfm_rpc_client_call_reply(void *owner, int32_t ret);
+void tfm_rpc_client_call_reply(const void *owner, int32_t ret);
 
 /*
  * Check if the message was allocated for a non-secure request via RPC
