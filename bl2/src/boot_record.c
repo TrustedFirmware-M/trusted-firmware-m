@@ -6,6 +6,7 @@
  */
 
 #include "boot_record.h"
+#include "region_defs.h"
 #include "tfm_boot_status.h"
 #include "target.h"
 #include "../ext/mcuboot/bootutil/include/bootutil/image.h"

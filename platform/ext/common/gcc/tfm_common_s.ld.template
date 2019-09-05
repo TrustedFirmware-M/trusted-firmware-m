@@ -268,6 +268,24 @@ SECTIONS
         KEEP(*(.eh_frame*))
     } > FLASH
 
+    /**** Base address of secure data area */
+    .tfm_secure_data_start :
+    {
+        . = ABSOLUTE(S_DATA_START) ;
+    } > RAM
+
+    /*
+     * MPU on Armv6-M/v7-M core in multi-core topology may require more strict
+     * alignment that MPU region base address must align with the MPU region
+     * size.
+     * As a result, in multi-core topology, to save memory resource and MPU
+     * regions, unprivileged data sections and privileged data sections are
+     * separated and gathered in unprivileged/privileged data area respectively.
+     * Keep BL2 shared data and MSP stack at the beginning of the secure data
+     * area in single Armv8-M topology, while move the two areas to the
+     * beginning of privileged data region in multi-core topology.
+     */
+#if !TFM_MULTI_CORE_TOPOLOGY
     /* shared_data and msp_stack are overlapping on purpose when
      * msp_stack is extended until the beginning of RAM, when shared_date
      * was read out by partitions
@@ -284,97 +302,13 @@ SECTIONS
     Image$$ARM_LIB_STACK_MSP$$ZI$$Base = ADDR(.msp_stack);
     Image$$ARM_LIB_STACK_MSP$$ZI$$Limit = ADDR(.msp_stack) + SIZEOF(.msp_stack);
 
-    /**** PSA RoT DATA start here */
-    Image$$TFM_PSA_RW_STACK_START$$Base = .;
-
-{% for manifest in manifests %}
-    {% if manifest.manifest.type == 'PSA-ROT' %}
-    {% if manifest.attr.conditional %}
-#ifdef {{manifest.attr.conditional}}
-    {% endif %}
-    .{{manifest.manifest.name}}_DATA : ALIGN(32)
-    {
-    {% if manifest.manifest.linker_pattern.library_list %}
-        {% for pattern in manifest.manifest.linker_pattern.library_list %}
-        {{pattern}}:*(.data*)
-        {% endfor %}
-    {% endif %}
-    {% if manifest.manifest.linker_pattern.object_list %}
-        {% for pattern in manifest.manifest.linker_pattern.object_list %}
-        {{pattern}}(.data*)
-        {% endfor %}
-    {% endif %}
-        . = ALIGN(32);
-    } > RAM AT> FLASH
-    Image$${{manifest.manifest.name}}_DATA$$RW$$Base = ADDR(.{{manifest.manifest.name}}_DATA);
-    Image$${{manifest.manifest.name}}_DATA$$RW$$Limit = ADDR(.{{manifest.manifest.name}}_DATA) + SIZEOF(.{{manifest.manifest.name}}_DATA);
-
-    .{{manifest.manifest.name}}_BSS : ALIGN(32)
-    {
-        start_of_{{manifest.manifest.name}} = .;
-    {% if manifest.manifest.linker_pattern.library_list %}
-        {% for pattern in manifest.manifest.linker_pattern.library_list %}
-        {{pattern}}:*(.bss*)
-        {{pattern}}:*(COMMON)
-        {% endfor %}
-    {% endif %}
-    {% if manifest.manifest.linker_pattern.object_list %}
-        {% for pattern in manifest.manifest.linker_pattern.object_list %}
-        {{pattern}}(.bss*)
-        {{pattern}}(COMMON)
-        {% endfor %}
-    {% endif %}
-        . += (. - start_of_{{manifest.manifest.name}}) ? 0 : 4;
-        . = ALIGN(32);
-    } > RAM AT> RAM
-    Image$${{manifest.manifest.name}}_DATA$$ZI$$Base = ADDR(.{{manifest.manifest.name}}_BSS);
-    Image$${{manifest.manifest.name}}_DATA$$ZI$$Limit = ADDR(.{{manifest.manifest.name}}_BSS) + SIZEOF(.{{manifest.manifest.name}}_BSS);
-
-    {% if manifest.attr.tfm_partition_ipc %}
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
-    .{{manifest.manifest.name}}_STACK : ALIGN(128)
-    {
-        . += {{manifest.manifest.stack_size}};
-    } > RAM
-    Image$${{manifest.manifest.name}}_STACK$$ZI$$Base = ADDR(.{{manifest.manifest.name}}_STACK);
-    Image$${{manifest.manifest.name}}_STACK$$ZI$$Limit = ADDR(.{{manifest.manifest.name}}_STACK) + SIZEOF(.{{manifest.manifest.name}}_STACK);
-#endif
-    {% else %}
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
-    .{{manifest.manifest.name}}_STACK : ALIGN(128)
-    {
-        {# Note: Don't allocate stack for partition when using TFM_PSA_API if tfm_partition_ipc is false #}
-#if !defined(TFM_PSA_API)
-        . += {{manifest.manifest.stack_size}};
-#endif
-    } > RAM
-    Image$${{manifest.manifest.name}}_STACK$$ZI$$Base = ADDR(.{{manifest.manifest.name}}_STACK);
-    Image$${{manifest.manifest.name}}_STACK$$ZI$$Limit = ADDR(.{{manifest.manifest.name}}_STACK) + SIZEOF(.{{manifest.manifest.name}}_STACK);
-#endif
-    {% endif %}
-
-    {% if manifest.attr.conditional %}
-#endif /* {{manifest.attr.conditional}} */
-    {% endif %}
-
-    {% endif %}
-{% endfor %}
-    /**** PSA RoT DATA end here */
-    Image$$TFM_PSA_RW_STACK_END$$Base = .;
-
+    /* PSP is unprivileged in single-core topology */
     .psp_stack : ALIGN(32)
     {
         . += __psp_stack_size__;
     } > RAM
     Image$$ARM_LIB_STACK$$ZI$$Base = ADDR(.psp_stack);
     Image$$ARM_LIB_STACK$$ZI$$Limit = ADDR(.psp_stack) + SIZEOF(.psp_stack);
-
-#if TFM_MULTI_CORE_TOPOLOGY && defined(S_DATA_UNPRIV_START)
-    /* PSP Stack is privileged in Multi-core */
-    .tfm_priv_unpriv_data_boundary :
-    {
-        . = ABSOLUTE(S_DATA_UNPRIV_START) ;
-    }
 #endif
 
 #if TFM_LVL == 1
@@ -563,6 +497,123 @@ SECTIONS
     } > RAM AT> RAM
 #endif /* TFM_PARTITION_TEST_SECURE_SERVICES */
 #endif /* TFM_LVL != 1 */
+
+#if TFM_MULTI_CORE_TOPOLOGY && defined(S_DATA_PRIV_START)
+    /**** Privileged data area base address specified by multi-core platform */
+    .tfm_secure_priv_data_boundary :
+    {
+        . = ABSOLUTE(S_DATA_PRIV_START) ;
+    } > RAM
+#endif
+
+#if TFM_MULTI_CORE_TOPOLOGY
+    /*
+     * Move BL2 shared area and MSP stack to the beginning of privileged data
+     * area in multi-core topology.
+     */
+
+    /* shared_data and msp_stack are overlapping on purpose when
+     * msp_stack is extended until the beginning of RAM, when shared_date
+     * was read out by partitions
+     */
+    .tfm_bl2_shared_data : ALIGN(32)
+    {
+        . += BOOT_TFM_SHARED_DATA_SIZE;
+    } > RAM AT> RAM
+
+    .msp_stack : ALIGN(32)
+    {
+        . += __msp_init_stack_size__;
+    } > RAM
+    Image$$ARM_LIB_STACK_MSP$$ZI$$Base = ADDR(.msp_stack);
+    Image$$ARM_LIB_STACK_MSP$$ZI$$Limit = ADDR(.msp_stack) + SIZEOF(.msp_stack);
+
+    /* PSP is privileged in multi-core topology */
+    .psp_stack : ALIGN(32)
+    {
+        . += __psp_stack_size__;
+    } > RAM
+    Image$$ARM_LIB_STACK$$ZI$$Base = ADDR(.psp_stack);
+    Image$$ARM_LIB_STACK$$ZI$$Limit = ADDR(.psp_stack) + SIZEOF(.psp_stack);
+#endif
+
+    /**** PSA RoT DATA start here */
+    Image$$TFM_PSA_RW_STACK_START$$Base = .;
+
+{% for manifest in manifests %}
+    {% if manifest.manifest.type == 'PSA-ROT' %}
+    {% if manifest.attr.conditional %}
+#ifdef {{manifest.attr.conditional}}
+    {% endif %}
+    .{{manifest.manifest.name}}_DATA : ALIGN(32)
+    {
+    {% if manifest.manifest.linker_pattern.library_list %}
+        {% for pattern in manifest.manifest.linker_pattern.library_list %}
+        {{pattern}}:*(.data*)
+        {% endfor %}
+    {% endif %}
+    {% if manifest.manifest.linker_pattern.object_list %}
+        {% for pattern in manifest.manifest.linker_pattern.object_list %}
+        {{pattern}}(.data*)
+        {% endfor %}
+    {% endif %}
+        . = ALIGN(32);
+    } > RAM AT> FLASH
+    Image$${{manifest.manifest.name}}_DATA$$RW$$Base = ADDR(.{{manifest.manifest.name}}_DATA);
+    Image$${{manifest.manifest.name}}_DATA$$RW$$Limit = ADDR(.{{manifest.manifest.name}}_DATA) + SIZEOF(.{{manifest.manifest.name}}_DATA);
+
+    .{{manifest.manifest.name}}_BSS : ALIGN(32)
+    {
+        start_of_{{manifest.manifest.name}} = .;
+    {% if manifest.manifest.linker_pattern.library_list %}
+        {% for pattern in manifest.manifest.linker_pattern.library_list %}
+        {{pattern}}:*(.bss*)
+        {{pattern}}:*(COMMON)
+        {% endfor %}
+    {% endif %}
+    {% if manifest.manifest.linker_pattern.object_list %}
+        {% for pattern in manifest.manifest.linker_pattern.object_list %}
+        {{pattern}}(.bss*)
+        {{pattern}}(COMMON)
+        {% endfor %}
+    {% endif %}
+        . += (. - start_of_{{manifest.manifest.name}}) ? 0 : 4;
+        . = ALIGN(32);
+    } > RAM AT> RAM
+    Image$${{manifest.manifest.name}}_DATA$$ZI$$Base = ADDR(.{{manifest.manifest.name}}_BSS);
+    Image$${{manifest.manifest.name}}_DATA$$ZI$$Limit = ADDR(.{{manifest.manifest.name}}_BSS) + SIZEOF(.{{manifest.manifest.name}}_BSS);
+
+    {% if manifest.attr.tfm_partition_ipc %}
+#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+    .{{manifest.manifest.name}}_STACK : ALIGN(128)
+    {
+        . += {{manifest.manifest.stack_size}};
+    } > RAM
+    Image$${{manifest.manifest.name}}_STACK$$ZI$$Base = ADDR(.{{manifest.manifest.name}}_STACK);
+    Image$${{manifest.manifest.name}}_STACK$$ZI$$Limit = ADDR(.{{manifest.manifest.name}}_STACK) + SIZEOF(.{{manifest.manifest.name}}_STACK);
+#endif
+    {% else %}
+#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+    .{{manifest.manifest.name}}_STACK : ALIGN(128)
+    {
+        {# Note: Don't allocate stack for partition when using TFM_PSA_API if tfm_partition_ipc is false #}
+#if !defined(TFM_PSA_API)
+        . += {{manifest.manifest.stack_size}};
+#endif
+    } > RAM
+    Image$${{manifest.manifest.name}}_STACK$$ZI$$Base = ADDR(.{{manifest.manifest.name}}_STACK);
+    Image$${{manifest.manifest.name}}_STACK$$ZI$$Limit = ADDR(.{{manifest.manifest.name}}_STACK) + SIZEOF(.{{manifest.manifest.name}}_STACK);
+#endif
+    {% endif %}
+
+    {% if manifest.attr.conditional %}
+#endif /* {{manifest.attr.conditional}} */
+    {% endif %}
+
+    {% endif %}
+{% endfor %}
+    /**** PSA RoT DATA end here */
+    Image$$TFM_PSA_RW_STACK_END$$Base = .;
 
     .TFM_DATA : ALIGN(4)
     {

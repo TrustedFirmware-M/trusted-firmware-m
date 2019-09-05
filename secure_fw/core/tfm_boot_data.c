@@ -7,10 +7,10 @@
 
 #include <stdint.h>
 #include "bl2/include/tfm_boot_status.h"
+#include "region_defs.h"
 #include "tfm_memory_utils.h"
 #include "tfm_internal.h"
 #include "tfm_api.h"
-#include "flash_layout.h"
 #include "secure_fw/spm/spm_api.h"
 #ifdef TFM_PSA_API
 #include "tfm_internal_defines.h"

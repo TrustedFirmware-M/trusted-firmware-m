@@ -112,23 +112,26 @@
 #define S_CODE_LIMIT    (S_CODE_START + S_CODE_SIZE - 1)
 
 #define S_DATA_START    (S_RAM_ALIAS(0x0))
-#define S_DATA_SIZE     (TOTAL_RAM_SIZE / 2)
-/* We need the unprivileged data area to be aligned so that an SMPU
+#define S_UNPRIV_DATA_SIZE  0x8000
+#define S_PRIV_DATA_SIZE    0x20000
+/* Unprivileged data area + privileged data area */
+#define S_DATA_SIZE     (S_UNPRIV_DATA_SIZE + S_PRIV_DATA_SIZE)
+#define S_DATA_LIMIT    (S_DATA_START + S_DATA_SIZE - 1)
+
+/* We need the privileged data area to be aligned so that an SMPU
  * region can cover it.
  */
 /* TODO It would be nice to figure this out automatically.
  * In theory, in the linker script, we could determine the amount
- * of secure data space available after all the privileged data,
+ * of secure data space available after all the unprivileged data,
  * round that down to a power of 2 to get the actual size we want
- * to use for unprivileged data, and then determine this value from
+ * to use for privileged data, and then determine this value from
  * that. We'd also potentially have to update the configs for SMPU9
  * and SMPU10.
+ * Leave the SMPU alignment check in SMPU configuration file.
  */
-#define S_DATA_UNPRIV_START (S_RAM_ALIAS(0x20000))
-#if S_DATA_UNPRIV_START % (S_DATA_SIZE - (S_DATA_UNPRIV_START - S_DATA_START))
-#error "S_DATA_UNPRIV_START doesn't meet SMPU alignment constraints"
-#endif
-#define S_DATA_LIMIT    (S_DATA_START + S_DATA_SIZE - 1)
+#define S_DATA_PRIV_OFFSET       S_UNPRIV_DATA_SIZE
+#define S_DATA_PRIV_START        S_RAM_ALIAS(S_DATA_PRIV_OFFSET)
 
 /* Non-secure regions */
 #define NS_IMAGE_PRIMARY_AREA_OFFSET \
@@ -137,8 +140,8 @@
 #define NS_CODE_SIZE    IMAGE_NS_CODE_SIZE
 #define NS_CODE_LIMIT   (NS_CODE_START + NS_CODE_SIZE - 1)
 
-#define NS_DATA_START   (NS_RAM_ALIAS(TOTAL_RAM_SIZE / 2))
-#define NS_DATA_SIZE    (TOTAL_RAM_SIZE / 2)
+#define NS_DATA_START   (NS_RAM_ALIAS(S_DATA_SIZE))
+#define NS_DATA_SIZE    (TOTAL_RAM_SIZE - S_DATA_SIZE)
 #define NS_DATA_LIMIT   (NS_DATA_START + NS_DATA_SIZE - 1)
 
 /* NS partition information is used for MPC and SAU configuration */
@@ -163,6 +166,13 @@
 #define BL2_DATA_SIZE     (TOTAL_RAM_SIZE)
 #define BL2_DATA_LIMIT    (BL2_DATA_START + BL2_DATA_SIZE - 1)
 #endif /* BL2 */
+
+/* Shared data area between bootloader and runtime firmware.
+ * Shared data area is allocated at the beginning of the privileged data area,
+ * it is overlapping with TF-M Secure code's MSP stack
+ */
+#define BOOT_TFM_SHARED_DATA_BASE S_DATA_PRIV_START
+#define BOOT_TFM_SHARED_DATA_SIZE 0x400
 
 #endif /* __REGION_DEFS_H__ */
 

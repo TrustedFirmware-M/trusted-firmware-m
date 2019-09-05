@@ -119,78 +119,32 @@ LR_CODE S_CODE_START {
     TFM_APP_CODE_END +0 ALIGN 32 EMPTY 0x0 {
     }
 
+    /**** Base address of secure data area */
+    TFM_SECURE_DATA_START S_DATA_START {
+    }
+
+    /*
+     * MPU on Armv6-M/v7-M core in multi-core topology may require more strict
+     * alignment that MPU region base address must align with the MPU region
+     * size.
+     * As a result, in multi-core topology, to save memory resource and MPU
+     * regions, unprivileged data sections and privileged data sections are
+     * separated and gathered in unprivileged/privileged data area respectively.
+     * Keep BL2 shared data and MSP stack at the beginning of the secure data
+     * area in single Armv8-M topology, while move the two areas to the
+     * beginning of privileged data region in multi-core topology.
+     */
+#if !TFM_MULTI_CORE_TOPOLOGY
     /* Shared area between BL2 and runtime to exchange data */
-    TFM_SHARED_DATA S_DATA_START ALIGN 32 OVERLAY EMPTY BOOT_TFM_SHARED_DATA_SIZE {
+    TFM_SHARED_DATA +0 ALIGN 32 OVERLAY EMPTY BOOT_TFM_SHARED_DATA_SIZE {
     }
 
     /* MSP */
-    ARM_LIB_STACK_MSP S_DATA_START ALIGN 32 OVERLAY EMPTY S_MSP_STACK_SIZE {
+    ARM_LIB_STACK_MSP +0 ALIGN 32 OVERLAY EMPTY S_MSP_STACK_SIZE {
     }
 
-    ER_TFM_DATA +0 {
-        .ANY (+RW +ZI)
-    }
-
-    /**** PSA RoT DATA start here */
-    /*
-     * This empty, zero long execution region is here to mark the start address
-     * of PSA RoT RW and Stack.
-     */
-    TFM_PSA_RW_STACK_START +0 ALIGN 32 EMPTY 0x0 {
-    }
-
-{% for manifest in manifests %}
-    {% if manifest.manifest.type == 'PSA-ROT' %}
-    {% if manifest.attr.conditional %}
-#ifdef {{manifest.attr.conditional}}
-    {% endif %}
-    {{manifest.manifest.name}}_DATA +0 ALIGN 32 {
-    {% if manifest.manifest.linker_pattern.library_list %}
-        {% for pattern in manifest.manifest.linker_pattern.library_list %}
-        {{pattern}} (+RW +ZI)
-        {% endfor %}
-    {% endif %}
-    {% if manifest.manifest.linker_pattern.object_list %}
-        {% for pattern in manifest.manifest.linker_pattern.object_list %}
-        {{pattern}} (+RW +ZI)
-        {% endfor %}
-    {% endif %}
-    }
-
-    {% if manifest.attr.tfm_partition_ipc %}
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
-    {{manifest.manifest.name}}_STACK +0 ALIGN 128 EMPTY {{manifest.manifest.stack_size}} {
-    }
-#endif
-    {% else %}
-#if defined (TFM_PSA_API)
-    {{manifest.manifest.name}}_STACK +0 ALIGN 128 EMPTY 0 {
-    }
-#elif TFM_LVL != 1
-    {{manifest.manifest.name}}_STACK +0 ALIGN 128 EMPTY {{manifest.manifest.stack_size}} {
-    }
-#endif
-    {% endif %}
-    {% if manifest.attr.conditional %}
-#endif /* {{manifest.attr.conditional}} */
-    {% endif %}
-
-    {% endif %}
-{% endfor %}
-    /*
-     * This empty, zero long execution region is here to mark the end address
-     * of PSA RoT RW and Stack.
-     */
-    TFM_PSA_RW_STACK_END +0 ALIGN 32 EMPTY 0x0 {
-    }
-
-    /* PSP */
+    /* PSP is unprivileged in single-core topology */
     ARM_LIB_STACK +0 ALIGN 32 EMPTY S_PSP_STACK_SIZE {
-    }
-
-#if TFM_MULTI_CORE_TOPOLOGY && defined(S_DATA_UNPRIV_START)
-    /* PSP Stack is privileged in Multi-core */
-    TFM_PRIV_UNPRIV_DATA_BOUNDARY S_DATA_UNPRIV_START {
     }
 #endif
 
@@ -198,9 +152,6 @@ LR_CODE S_CODE_START {
     TFM_SECURE_STACK +0 ALIGN 128 EMPTY 0x2000 {
     }
 #endif /* (TFM_LVL == 1) && !defined(TFM_PSA_API) */
-
-    ARM_LIB_HEAP +0 ALIGN 8 EMPTY S_HEAP_SIZE {
-    }
 
     TFM_UNPRIV_DATA +0 ALIGN 32 {
         tfm_spm_services.o (+RW +ZI)
@@ -268,6 +219,90 @@ LR_CODE S_CODE_START {
      * of APP RoT RW and Stack.
      */
     TFM_APP_RW_STACK_END +0 ALIGN 32 EMPTY 0x0 {
+    }
+
+#if TFM_MULTI_CORE_TOPOLOGY && defined(S_DATA_PRIV_START)
+    /**** Privileged data area base address specified by multi-core platform */
+    TFM_SECURE_PRIV_DATA_BOUNDARY S_DATA_PRIV_START {
+    }
+#endif
+
+#if TFM_MULTI_CORE_TOPOLOGY
+    /*
+     * Move BL2 shared area and MSP stack to the beginning of privileged data
+     * area in multi-core topology.
+     */
+    /* Shared area between BL2 and runtime to exchange data */
+    TFM_SHARED_DATA +0 ALIGN 32 OVERLAY EMPTY BOOT_TFM_SHARED_DATA_SIZE {
+    }
+
+    /* MSP */
+    ARM_LIB_STACK_MSP +0 ALIGN 32 OVERLAY EMPTY S_MSP_STACK_SIZE {
+    }
+
+    /* PSP is privileged in multi-core topology */
+    ARM_LIB_STACK +0 ALIGN 32 EMPTY S_PSP_STACK_SIZE {
+    }
+#endif
+
+    ARM_LIB_HEAP +0 ALIGN 8 EMPTY S_HEAP_SIZE {
+    }
+
+    ER_TFM_DATA +0 {
+        .ANY (+RW +ZI)
+    }
+
+    /**** PSA RoT DATA start here */
+    /*
+     * This empty, zero long execution region is here to mark the start address
+     * of PSA RoT RW and Stack.
+     */
+    TFM_PSA_RW_STACK_START +0 ALIGN 32 EMPTY 0x0 {
+    }
+
+{% for manifest in manifests %}
+    {% if manifest.manifest.type == 'PSA-ROT' %}
+    {% if manifest.attr.conditional %}
+#ifdef {{manifest.attr.conditional}}
+    {% endif %}
+    {{manifest.manifest.name}}_DATA +0 ALIGN 32 {
+    {% if manifest.manifest.linker_pattern.library_list %}
+        {% for pattern in manifest.manifest.linker_pattern.library_list %}
+        {{pattern}} (+RW +ZI)
+        {% endfor %}
+    {% endif %}
+    {% if manifest.manifest.linker_pattern.object_list %}
+        {% for pattern in manifest.manifest.linker_pattern.object_list %}
+        {{pattern}} (+RW +ZI)
+        {% endfor %}
+    {% endif %}
+    }
+
+    {% if manifest.attr.tfm_partition_ipc %}
+#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+    {{manifest.manifest.name}}_STACK +0 ALIGN 128 EMPTY {{manifest.manifest.stack_size}} {
+    }
+#endif
+    {% else %}
+#if defined (TFM_PSA_API)
+    {{manifest.manifest.name}}_STACK +0 ALIGN 128 EMPTY 0 {
+    }
+#elif TFM_LVL != 1
+    {{manifest.manifest.name}}_STACK +0 ALIGN 128 EMPTY {{manifest.manifest.stack_size}} {
+    }
+#endif
+    {% endif %}
+    {% if manifest.attr.conditional %}
+#endif /* {{manifest.attr.conditional}} */
+    {% endif %}
+
+    {% endif %}
+{% endfor %}
+    /*
+     * This empty, zero long execution region is here to mark the end address
+     * of PSA RoT RW and Stack.
+     */
+    TFM_PSA_RW_STACK_END +0 ALIGN 32 EMPTY 0x0 {
     }
 
     /* This empty, zero long execution region is here to mark the limit address

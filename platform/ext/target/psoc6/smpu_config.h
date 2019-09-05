@@ -161,14 +161,14 @@
 #error "Flash layout has changed - SMPU8 needs updating"
 #endif
 
-/* SMPU9 - 128KB of unprivileged secure data at S_DATA_START in SRAM */
+/* SMPU9 - 32KB of unprivileged secure data in SRAM */
 #define SMPU9_BASE       S_DATA_START
-#define SMPU9_REGIONSIZE PROT_SIZE_128KB_BIT_SHIFT
+#define SMPU9_REGIONSIZE PROT_SIZE_32KB_BIT_SHIFT
 #define SMPU9_SLAVE_CONFIG {\
     .address = (void *)SMPU9_BASE, \
     .regionSize = SMPU9_REGIONSIZE, \
     .subregions = ALL_ENABLED, \
-    .userPermission = CY_PROT_PERM_DISABLED, \
+    .userPermission = CY_PROT_PERM_RW, \
     .privPermission = CY_PROT_PERM_RW, \
     .secure = true, \
     .pcMatch = false, \
@@ -181,14 +181,18 @@
 #error "Flash layout has changed - SMPU9 needs updating"
 #endif
 
-/* SMPU10 - 16KB of privileged secure data in SRAM */
-#define SMPU10_BASE       (SMPU9_BASE + REGIONSIZE_TO_BYTES(SMPU9_REGIONSIZE))
-#define SMPU10_REGIONSIZE PROT_SIZE_16KB_BIT_SHIFT
+/* SMPU10 - 128KB of privileged secure data at S_DATA_PRIV_START in SRAM */
+#define SMPU10_BASE       S_DATA_START
+#define SMPU10_REGIONSIZE PROT_SIZE_256KB_BIT_SHIFT
+#define SMPU10_SUBREGION_DIS    (CY_PROT_SUBREGION_DIS0 | \
+                                 CY_PROT_SUBREGION_DIS5 | \
+                                 CY_PROT_SUBREGION_DIS6 | \
+                                 CY_PROT_SUBREGION_DIS7)
 #define SMPU10_SLAVE_CONFIG {\
     .address = (void *)SMPU10_BASE, \
     .regionSize = SMPU10_REGIONSIZE, \
-    .subregions = ALL_ENABLED, \
-    .userPermission = CY_PROT_PERM_RW, \
+    .subregions = SMPU10_SUBREGION_DIS, \
+    .userPermission = CY_PROT_PERM_DISABLED, \
     .privPermission = CY_PROT_PERM_RW, \
     .secure = true, \
     .pcMatch = false, \
@@ -201,14 +205,23 @@
 #error "Flash layout has changed - SMPU10 needs updating"
 #endif
 
-/* S_DATA_UNPRIV_START must be set to the base address of SMPU10 */
-#if S_DATA_UNPRIV_START != SMPU10_BASE
-#error "S_DATA_UNPRIV_START isn't the base address of SMPU10"
+/*
+ * S_DATA_PRIV_START must equal the base address of the second sub-region of
+ * SMPU10
+ */
+#if S_DATA_PRIV_START != (SMPU10_BASE + \
+                          (REGIONSIZE_TO_BYTES(SMPU10_REGIONSIZE) / 8))
+#error "Flash layout has changed - S_DATA_PRIV_START doesn't fit the second sub-region of SMPU10"
 #endif
 
-/* SMPUs 9 and 10 should cover all the secure RAM */
+/* S_DATA_PRIV_START must not overlap with unprivileged data section */
+#if S_DATA_PRIV_START < (SMPU9_BASE + REGIONSIZE_TO_BYTES(SMPU9_REGIONSIZE))
+#error "S_DATA_PRIV_START overlaps with unprivileged data section"
+#endif
+
+/* SMPUs 9, 10 should cover the whole secure data area in the RAM */
 #if S_DATA_SIZE != (REGIONSIZE_TO_BYTES(SMPU9_REGIONSIZE) + \
-                    REGIONSIZE_TO_BYTES(SMPU10_REGIONSIZE))
+                    REGIONSIZE_TO_BYTES(SMPU10_REGIONSIZE) / 2)
 #error "Flash layout has changed - SMPU9/SMPU10 config needs updating"
 #endif
 

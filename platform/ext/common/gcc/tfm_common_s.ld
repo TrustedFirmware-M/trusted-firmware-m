@@ -447,6 +447,24 @@ SECTIONS
         KEEP(*(.eh_frame*))
     } > FLASH
 
+    /**** Base address of secure data area */
+    .tfm_secure_data_start :
+    {
+        . = ABSOLUTE(S_DATA_START) ;
+    } > RAM
+
+    /*
+     * MPU on Armv6-M/v7-M core in multi-core topology may require more strict
+     * alignment that MPU region base address must align with the MPU region
+     * size.
+     * As a result, in multi-core topology, to save memory resource and MPU
+     * regions, unprivileged data sections and privileged data sections are
+     * separated and gathered in unprivileged/privileged data area respectively.
+     * Keep BL2 shared data and MSP stack at the beginning of the secure data
+     * area in single Armv8-M topology, while move the two areas to the
+     * beginning of privileged data region in multi-core topology.
+     */
+#if !TFM_MULTI_CORE_TOPOLOGY
     /* shared_data and msp_stack are overlapping on purpose when
      * msp_stack is extended until the beginning of RAM, when shared_date
      * was read out by partitions
@@ -462,6 +480,262 @@ SECTIONS
     } > RAM
     Image$$ARM_LIB_STACK_MSP$$ZI$$Base = ADDR(.msp_stack);
     Image$$ARM_LIB_STACK_MSP$$ZI$$Limit = ADDR(.msp_stack) + SIZEOF(.msp_stack);
+
+    /* PSP is unprivileged in single-core topology */
+    .psp_stack : ALIGN(32)
+    {
+        . += __psp_stack_size__;
+    } > RAM
+    Image$$ARM_LIB_STACK$$ZI$$Base = ADDR(.psp_stack);
+    Image$$ARM_LIB_STACK$$ZI$$Limit = ADDR(.psp_stack) + SIZEOF(.psp_stack);
+#endif
+
+#if TFM_LVL == 1
+
+#if !defined(TFM_PSA_API)
+    .TFM_SECURE_STACK : ALIGN(128)
+    {
+        . += 0x2000;
+    } > RAM
+    Image$$TFM_SECURE_STACK$$ZI$$Base = ADDR(.TFM_SECURE_STACK);
+    Image$$TFM_SECURE_STACK$$ZI$$Limit = ADDR(.TFM_SECURE_STACK) + SIZEOF(.TFM_SECURE_STACK);
+#endif /* !defined(TFM_PSA_API) */
+
+    .heap : ALIGN(8)
+    {
+        __end__ = .;
+        PROVIDE(end = .);
+        __HeapBase = .;
+        . += __heap_size__;
+        __HeapLimit = .;
+        __heap_limit = .; /* Add for _sbrk */
+    } > RAM
+#else /* TFM_LVL == 1 */
+    .TFM_UNPRIV_DATA : ALIGN(32)
+    {
+        */tfm_spm_services.o(.data*)
+        */dummy_crypto_keys.o(.data*)
+        */dummy_nv_counters.o(.data*)
+        */dummy_boot_seed.o(.data*)
+        */dummy_device_id.o(.data*)
+        */platform_retarget_dev.o(.data*)
+        */device_definition.o(.data*)
+        . = ALIGN(32);
+    } > RAM AT> FLASH
+    Image$$TFM_UNPRIV_DATA$$RW$$Base = ADDR(.TFM_UNPRIV_DATA);
+    Image$$TFM_UNPRIV_DATA$$RW$$Limit = ADDR(.TFM_UNPRIV_DATA) + SIZEOF(.TFM_UNPRIV_DATA);
+
+    .TFM_UNPRIV_BSS : ALIGN(32)
+    {
+        */tfm_spm_services.o(.bss*)
+        */platform_retarget_dev.o(.bss*)
+        */device_definition.o(.bss*)
+        */dummy_crypto_keys.o(.bss*)
+        */dummy_nv_counters.o(.bss*)
+        */dummy_boot_seed.o(.bss*)
+        */dummy_device_id.o(.bss*)
+        */tfm_spm_services.o(COMMON)
+        */platform_retarget_dev.o(COMMON)
+        */device_definition.o(COMMON)
+        */dummy_crypto_keys.o(COMMON)
+        */dummy_nv_counters.o(COMMON)
+        */dummy_boot_seed.o(COMMON)
+        */dummy_device_id.o(COMMON)
+        . = ALIGN(32);
+    } > RAM AT> RAM
+    Image$$TFM_UNPRIV_DATA$$ZI$$Base = ADDR(.TFM_UNPRIV_BSS);
+    Image$$TFM_UNPRIV_DATA$$ZI$$Limit = ADDR(.TFM_UNPRIV_BSS) + SIZEOF(.TFM_UNPRIV_BSS);
+#endif /* TFM_LVL == 1 */
+
+#if !defined(TFM_PSA_API)
+    .TFM_UNPRIV_SCRATCH : ALIGN(32)
+    {
+        . += 0x400;
+    } > RAM
+    Image$$TFM_UNPRIV_SCRATCH$$ZI$$Base = ADDR(.TFM_UNPRIV_SCRATCH);
+    Image$$TFM_UNPRIV_SCRATCH$$ZI$$Limit = ADDR(.TFM_UNPRIV_SCRATCH) + SIZEOF(.TFM_UNPRIV_SCRATCH);
+#endif /* !defined(TFM_PSA_API) */
+
+    /**** APPLICATION RoT DATA start here */
+    Image$$TFM_APP_RW_STACK_START$$Base = .;
+
+#ifdef TFM_PARTITION_TEST_CORE
+    .TFM_SP_CORE_TEST_DATA : ALIGN(32)
+    {
+        *tfm_ss_core_test.*(.data*)
+        . = ALIGN(32);
+    } > RAM AT> FLASH
+    Image$$TFM_SP_CORE_TEST_DATA$$RW$$Base = ADDR(.TFM_SP_CORE_TEST_DATA);
+    Image$$TFM_SP_CORE_TEST_DATA$$RW$$Limit = ADDR(.TFM_SP_CORE_TEST_DATA) + SIZEOF(.TFM_SP_CORE_TEST_DATA);
+
+    .TFM_SP_CORE_TEST_BSS : ALIGN(32)
+    {
+        start_of_TFM_SP_CORE_TEST = .;
+        *tfm_ss_core_test.*(.bss*)
+        *tfm_ss_core_test.*(COMMON)
+        . += (. - start_of_TFM_SP_CORE_TEST) ? 0 : 4;
+        . = ALIGN(32);
+    } > RAM AT> RAM
+    Image$$TFM_SP_CORE_TEST_DATA$$ZI$$Base = ADDR(.TFM_SP_CORE_TEST_BSS);
+    Image$$TFM_SP_CORE_TEST_DATA$$ZI$$Limit = ADDR(.TFM_SP_CORE_TEST_BSS) + SIZEOF(.TFM_SP_CORE_TEST_BSS);
+
+#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+    .TFM_SP_CORE_TEST_STACK : ALIGN(128)
+    {
+        . += 0x0300;
+    } > RAM
+    Image$$TFM_SP_CORE_TEST_STACK$$ZI$$Base = ADDR(.TFM_SP_CORE_TEST_STACK);
+    Image$$TFM_SP_CORE_TEST_STACK$$ZI$$Limit = ADDR(.TFM_SP_CORE_TEST_STACK) + SIZEOF(.TFM_SP_CORE_TEST_STACK);
+#endif
+
+#endif /* TFM_PARTITION_TEST_CORE */
+
+#ifdef TFM_PARTITION_TEST_CORE
+    .TFM_SP_CORE_TEST_2_DATA : ALIGN(32)
+    {
+        *tfm_ss_core_test_2.*(.data*)
+        . = ALIGN(32);
+    } > RAM AT> FLASH
+    Image$$TFM_SP_CORE_TEST_2_DATA$$RW$$Base = ADDR(.TFM_SP_CORE_TEST_2_DATA);
+    Image$$TFM_SP_CORE_TEST_2_DATA$$RW$$Limit = ADDR(.TFM_SP_CORE_TEST_2_DATA) + SIZEOF(.TFM_SP_CORE_TEST_2_DATA);
+
+    .TFM_SP_CORE_TEST_2_BSS : ALIGN(32)
+    {
+        start_of_TFM_SP_CORE_TEST_2 = .;
+        *tfm_ss_core_test_2.*(.bss*)
+        *tfm_ss_core_test_2.*(COMMON)
+        . += (. - start_of_TFM_SP_CORE_TEST_2) ? 0 : 4;
+        . = ALIGN(32);
+    } > RAM AT> RAM
+    Image$$TFM_SP_CORE_TEST_2_DATA$$ZI$$Base = ADDR(.TFM_SP_CORE_TEST_2_BSS);
+    Image$$TFM_SP_CORE_TEST_2_DATA$$ZI$$Limit = ADDR(.TFM_SP_CORE_TEST_2_BSS) + SIZEOF(.TFM_SP_CORE_TEST_2_BSS);
+
+#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+    .TFM_SP_CORE_TEST_2_STACK : ALIGN(128)
+    {
+        . += 0x0200;
+    } > RAM
+    Image$$TFM_SP_CORE_TEST_2_STACK$$ZI$$Base = ADDR(.TFM_SP_CORE_TEST_2_STACK);
+    Image$$TFM_SP_CORE_TEST_2_STACK$$ZI$$Limit = ADDR(.TFM_SP_CORE_TEST_2_STACK) + SIZEOF(.TFM_SP_CORE_TEST_2_STACK);
+#endif
+
+#endif /* TFM_PARTITION_TEST_CORE */
+
+#ifdef TFM_PARTITION_TEST_CORE_IPC
+    .TFM_SP_IPC_CLIENT_TEST_DATA : ALIGN(32)
+    {
+        *ipc_client_test.*(.data*)
+        . = ALIGN(32);
+    } > RAM AT> FLASH
+    Image$$TFM_SP_IPC_CLIENT_TEST_DATA$$RW$$Base = ADDR(.TFM_SP_IPC_CLIENT_TEST_DATA);
+    Image$$TFM_SP_IPC_CLIENT_TEST_DATA$$RW$$Limit = ADDR(.TFM_SP_IPC_CLIENT_TEST_DATA) + SIZEOF(.TFM_SP_IPC_CLIENT_TEST_DATA);
+
+    .TFM_SP_IPC_CLIENT_TEST_BSS : ALIGN(32)
+    {
+        start_of_TFM_SP_IPC_CLIENT_TEST = .;
+        *ipc_client_test.*(.bss*)
+        *ipc_client_test.*(COMMON)
+        . += (. - start_of_TFM_SP_IPC_CLIENT_TEST) ? 0 : 4;
+        . = ALIGN(32);
+    } > RAM AT> RAM
+    Image$$TFM_SP_IPC_CLIENT_TEST_DATA$$ZI$$Base = ADDR(.TFM_SP_IPC_CLIENT_TEST_BSS);
+    Image$$TFM_SP_IPC_CLIENT_TEST_DATA$$ZI$$Limit = ADDR(.TFM_SP_IPC_CLIENT_TEST_BSS) + SIZEOF(.TFM_SP_IPC_CLIENT_TEST_BSS);
+
+#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+    .TFM_SP_IPC_CLIENT_TEST_STACK : ALIGN(128)
+    {
+        . += 0x0200;
+    } > RAM
+    Image$$TFM_SP_IPC_CLIENT_TEST_STACK$$ZI$$Base = ADDR(.TFM_SP_IPC_CLIENT_TEST_STACK);
+    Image$$TFM_SP_IPC_CLIENT_TEST_STACK$$ZI$$Limit = ADDR(.TFM_SP_IPC_CLIENT_TEST_STACK) + SIZEOF(.TFM_SP_IPC_CLIENT_TEST_STACK);
+#endif
+
+#endif /* TFM_PARTITION_TEST_CORE_IPC */
+
+    /**** APPLICATION RoT DATA end here */
+    Image$$TFM_APP_RW_STACK_END$$Base = .;
+
+#if TFM_LVL != 1
+#ifdef TFM_PARTITION_TEST_SECURE_SERVICES
+    .TFM_SP_SECURE_TEST_PARTITION_DATA : ALIGN(32)
+    {
+        *libc_nano*:*(.data*)
+        . = ALIGN(32);
+    } > RAM AT> FLASH
+
+    .TFM_SP_SECURE_TEST_PARTITION_BSS : ALIGN(32)
+    {
+        /* FixMe:
+         * Test framework use printf to print out test result. Implementation of
+         * printf in GCC libc use static data and heap as well. To be able to
+         * execute test suites with TFM_LVL=3 this workaround is needed to
+         * allocate libc static data and heap within the data section of secure
+         * test partition. This can be removed if test service will be executed
+         * in privileged mode.
+         */
+        *libc_nano*:*(.bss*)
+        *libc_nano*:*(COMMON)
+
+        __end__ = .;
+        PROVIDE(end = .);
+        __HeapBase = .;
+        . += __heap_size__;
+        __HeapLimit = .;
+        __heap_limit = .; /* Add for _sbrk */
+
+        . = ALIGN(32);
+    } > RAM AT> RAM
+#else /* TFM_PARTITION_TEST_SECURE_SERVICES */
+    .heap : ALIGN(8)
+    {
+        __end__ = .;
+        PROVIDE(end = .);
+        __HeapBase = .;
+        . += __heap_size__;
+        __HeapLimit = .;
+        __heap_limit = .; /* Add for _sbrk */
+    } > RAM AT> RAM
+#endif /* TFM_PARTITION_TEST_SECURE_SERVICES */
+#endif /* TFM_LVL != 1 */
+
+#if TFM_MULTI_CORE_TOPOLOGY && defined(S_DATA_PRIV_START)
+    /**** Privileged data area base address specified by multi-core platform */
+    .tfm_secure_priv_data_boundary :
+    {
+        . = ABSOLUTE(S_DATA_PRIV_START) ;
+    } > RAM
+#endif
+
+#if TFM_MULTI_CORE_TOPOLOGY
+    /*
+     * Move BL2 shared area and MSP stack to the beginning of privileged data
+     * area in multi-core topology.
+     */
+
+    /* shared_data and msp_stack are overlapping on purpose when
+     * msp_stack is extended until the beginning of RAM, when shared_date
+     * was read out by partitions
+     */
+    .tfm_bl2_shared_data : ALIGN(32)
+    {
+        . += BOOT_TFM_SHARED_DATA_SIZE;
+    } > RAM AT> RAM
+
+    .msp_stack : ALIGN(32)
+    {
+        . += __msp_init_stack_size__;
+    } > RAM
+    Image$$ARM_LIB_STACK_MSP$$ZI$$Base = ADDR(.msp_stack);
+    Image$$ARM_LIB_STACK_MSP$$ZI$$Limit = ADDR(.msp_stack) + SIZEOF(.msp_stack);
+
+    /* PSP is privileged in multi-core topology */
+    .psp_stack : ALIGN(32)
+    {
+        . += __psp_stack_size__;
+    } > RAM
+    Image$$ARM_LIB_STACK$$ZI$$Base = ADDR(.psp_stack);
+    Image$$ARM_LIB_STACK$$ZI$$Limit = ADDR(.psp_stack) + SIZEOF(.psp_stack);
+#endif
 
     /**** PSA RoT DATA start here */
     Image$$TFM_PSA_RW_STACK_START$$Base = .;
@@ -707,229 +981,6 @@ SECTIONS
 
     /**** PSA RoT DATA end here */
     Image$$TFM_PSA_RW_STACK_END$$Base = .;
-
-    .psp_stack : ALIGN(32)
-    {
-        . += __psp_stack_size__;
-    } > RAM
-    Image$$ARM_LIB_STACK$$ZI$$Base = ADDR(.psp_stack);
-    Image$$ARM_LIB_STACK$$ZI$$Limit = ADDR(.psp_stack) + SIZEOF(.psp_stack);
-
-#if TFM_MULTI_CORE_TOPOLOGY && defined(S_DATA_UNPRIV_START)
-    /* PSP Stack is privileged in Multi-core */
-    .tfm_priv_unpriv_data_boundary :
-    {
-        . = ABSOLUTE(S_DATA_UNPRIV_START) ;
-    }
-#endif
-
-#if TFM_LVL == 1
-
-#if !defined(TFM_PSA_API)
-    .TFM_SECURE_STACK : ALIGN(128)
-    {
-        . += 0x2000;
-    } > RAM
-    Image$$TFM_SECURE_STACK$$ZI$$Base = ADDR(.TFM_SECURE_STACK);
-    Image$$TFM_SECURE_STACK$$ZI$$Limit = ADDR(.TFM_SECURE_STACK) + SIZEOF(.TFM_SECURE_STACK);
-#endif /* !defined(TFM_PSA_API) */
-
-    .heap : ALIGN(8)
-    {
-        __end__ = .;
-        PROVIDE(end = .);
-        __HeapBase = .;
-        . += __heap_size__;
-        __HeapLimit = .;
-        __heap_limit = .; /* Add for _sbrk */
-    } > RAM
-#else /* TFM_LVL == 1 */
-    .TFM_UNPRIV_DATA : ALIGN(32)
-    {
-        */tfm_spm_services.o(.data*)
-        */dummy_crypto_keys.o(.data*)
-        */dummy_nv_counters.o(.data*)
-        */dummy_boot_seed.o(.data*)
-        */dummy_device_id.o(.data*)
-        */platform_retarget_dev.o(.data*)
-        */device_definition.o(.data*)
-        . = ALIGN(32);
-    } > RAM AT> FLASH
-    Image$$TFM_UNPRIV_DATA$$RW$$Base = ADDR(.TFM_UNPRIV_DATA);
-    Image$$TFM_UNPRIV_DATA$$RW$$Limit = ADDR(.TFM_UNPRIV_DATA) + SIZEOF(.TFM_UNPRIV_DATA);
-
-    .TFM_UNPRIV_BSS : ALIGN(32)
-    {
-        */tfm_spm_services.o(.bss*)
-        */platform_retarget_dev.o(.bss*)
-        */device_definition.o(.bss*)
-        */dummy_crypto_keys.o(.bss*)
-        */dummy_nv_counters.o(.bss*)
-        */dummy_boot_seed.o(.bss*)
-        */dummy_device_id.o(.bss*)
-        */tfm_spm_services.o(COMMON)
-        */platform_retarget_dev.o(COMMON)
-        */device_definition.o(COMMON)
-        */dummy_crypto_keys.o(COMMON)
-        */dummy_nv_counters.o(COMMON)
-        */dummy_boot_seed.o(COMMON)
-        */dummy_device_id.o(COMMON)
-        . = ALIGN(32);
-    } > RAM AT> RAM
-    Image$$TFM_UNPRIV_DATA$$ZI$$Base = ADDR(.TFM_UNPRIV_BSS);
-    Image$$TFM_UNPRIV_DATA$$ZI$$Limit = ADDR(.TFM_UNPRIV_BSS) + SIZEOF(.TFM_UNPRIV_BSS);
-#endif /* TFM_LVL == 1 */
-
-#if !defined(TFM_PSA_API)
-    .TFM_UNPRIV_SCRATCH : ALIGN(32)
-    {
-        . += 0x400;
-    } > RAM
-    Image$$TFM_UNPRIV_SCRATCH$$ZI$$Base = ADDR(.TFM_UNPRIV_SCRATCH);
-    Image$$TFM_UNPRIV_SCRATCH$$ZI$$Limit = ADDR(.TFM_UNPRIV_SCRATCH) + SIZEOF(.TFM_UNPRIV_SCRATCH);
-#endif /* !defined(TFM_PSA_API) */
-
-    /**** APPLICATION RoT DATA start here */
-    Image$$TFM_APP_RW_STACK_START$$Base = .;
-
-#ifdef TFM_PARTITION_TEST_CORE
-    .TFM_SP_CORE_TEST_DATA : ALIGN(32)
-    {
-        *tfm_ss_core_test.*(.data*)
-        . = ALIGN(32);
-    } > RAM AT> FLASH
-    Image$$TFM_SP_CORE_TEST_DATA$$RW$$Base = ADDR(.TFM_SP_CORE_TEST_DATA);
-    Image$$TFM_SP_CORE_TEST_DATA$$RW$$Limit = ADDR(.TFM_SP_CORE_TEST_DATA) + SIZEOF(.TFM_SP_CORE_TEST_DATA);
-
-    .TFM_SP_CORE_TEST_BSS : ALIGN(32)
-    {
-        start_of_TFM_SP_CORE_TEST = .;
-        *tfm_ss_core_test.*(.bss*)
-        *tfm_ss_core_test.*(COMMON)
-        . += (. - start_of_TFM_SP_CORE_TEST) ? 0 : 4;
-        . = ALIGN(32);
-    } > RAM AT> RAM
-    Image$$TFM_SP_CORE_TEST_DATA$$ZI$$Base = ADDR(.TFM_SP_CORE_TEST_BSS);
-    Image$$TFM_SP_CORE_TEST_DATA$$ZI$$Limit = ADDR(.TFM_SP_CORE_TEST_BSS) + SIZEOF(.TFM_SP_CORE_TEST_BSS);
-
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
-    .TFM_SP_CORE_TEST_STACK : ALIGN(128)
-    {
-        . += 0x0300;
-    } > RAM
-    Image$$TFM_SP_CORE_TEST_STACK$$ZI$$Base = ADDR(.TFM_SP_CORE_TEST_STACK);
-    Image$$TFM_SP_CORE_TEST_STACK$$ZI$$Limit = ADDR(.TFM_SP_CORE_TEST_STACK) + SIZEOF(.TFM_SP_CORE_TEST_STACK);
-#endif
-
-#endif /* TFM_PARTITION_TEST_CORE */
-
-#ifdef TFM_PARTITION_TEST_CORE
-    .TFM_SP_CORE_TEST_2_DATA : ALIGN(32)
-    {
-        *tfm_ss_core_test_2.*(.data*)
-        . = ALIGN(32);
-    } > RAM AT> FLASH
-    Image$$TFM_SP_CORE_TEST_2_DATA$$RW$$Base = ADDR(.TFM_SP_CORE_TEST_2_DATA);
-    Image$$TFM_SP_CORE_TEST_2_DATA$$RW$$Limit = ADDR(.TFM_SP_CORE_TEST_2_DATA) + SIZEOF(.TFM_SP_CORE_TEST_2_DATA);
-
-    .TFM_SP_CORE_TEST_2_BSS : ALIGN(32)
-    {
-        start_of_TFM_SP_CORE_TEST_2 = .;
-        *tfm_ss_core_test_2.*(.bss*)
-        *tfm_ss_core_test_2.*(COMMON)
-        . += (. - start_of_TFM_SP_CORE_TEST_2) ? 0 : 4;
-        . = ALIGN(32);
-    } > RAM AT> RAM
-    Image$$TFM_SP_CORE_TEST_2_DATA$$ZI$$Base = ADDR(.TFM_SP_CORE_TEST_2_BSS);
-    Image$$TFM_SP_CORE_TEST_2_DATA$$ZI$$Limit = ADDR(.TFM_SP_CORE_TEST_2_BSS) + SIZEOF(.TFM_SP_CORE_TEST_2_BSS);
-
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
-    .TFM_SP_CORE_TEST_2_STACK : ALIGN(128)
-    {
-        . += 0x0200;
-    } > RAM
-    Image$$TFM_SP_CORE_TEST_2_STACK$$ZI$$Base = ADDR(.TFM_SP_CORE_TEST_2_STACK);
-    Image$$TFM_SP_CORE_TEST_2_STACK$$ZI$$Limit = ADDR(.TFM_SP_CORE_TEST_2_STACK) + SIZEOF(.TFM_SP_CORE_TEST_2_STACK);
-#endif
-
-#endif /* TFM_PARTITION_TEST_CORE */
-
-#ifdef TFM_PARTITION_TEST_CORE_IPC
-    .TFM_SP_IPC_CLIENT_TEST_DATA : ALIGN(32)
-    {
-        *ipc_client_test.*(.data*)
-        . = ALIGN(32);
-    } > RAM AT> FLASH
-    Image$$TFM_SP_IPC_CLIENT_TEST_DATA$$RW$$Base = ADDR(.TFM_SP_IPC_CLIENT_TEST_DATA);
-    Image$$TFM_SP_IPC_CLIENT_TEST_DATA$$RW$$Limit = ADDR(.TFM_SP_IPC_CLIENT_TEST_DATA) + SIZEOF(.TFM_SP_IPC_CLIENT_TEST_DATA);
-
-    .TFM_SP_IPC_CLIENT_TEST_BSS : ALIGN(32)
-    {
-        start_of_TFM_SP_IPC_CLIENT_TEST = .;
-        *ipc_client_test.*(.bss*)
-        *ipc_client_test.*(COMMON)
-        . += (. - start_of_TFM_SP_IPC_CLIENT_TEST) ? 0 : 4;
-        . = ALIGN(32);
-    } > RAM AT> RAM
-    Image$$TFM_SP_IPC_CLIENT_TEST_DATA$$ZI$$Base = ADDR(.TFM_SP_IPC_CLIENT_TEST_BSS);
-    Image$$TFM_SP_IPC_CLIENT_TEST_DATA$$ZI$$Limit = ADDR(.TFM_SP_IPC_CLIENT_TEST_BSS) + SIZEOF(.TFM_SP_IPC_CLIENT_TEST_BSS);
-
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
-    .TFM_SP_IPC_CLIENT_TEST_STACK : ALIGN(128)
-    {
-        . += 0x0200;
-    } > RAM
-    Image$$TFM_SP_IPC_CLIENT_TEST_STACK$$ZI$$Base = ADDR(.TFM_SP_IPC_CLIENT_TEST_STACK);
-    Image$$TFM_SP_IPC_CLIENT_TEST_STACK$$ZI$$Limit = ADDR(.TFM_SP_IPC_CLIENT_TEST_STACK) + SIZEOF(.TFM_SP_IPC_CLIENT_TEST_STACK);
-#endif
-
-#endif /* TFM_PARTITION_TEST_CORE_IPC */
-
-    /**** APPLICATION RoT DATA end here */
-    Image$$TFM_APP_RW_STACK_END$$Base = .;
-
-#if TFM_LVL != 1
-#ifdef TFM_PARTITION_TEST_SECURE_SERVICES
-    .TFM_SP_SECURE_TEST_PARTITION_DATA : ALIGN(32)
-    {
-        *libc_nano*:*(.data*)
-        . = ALIGN(32);
-    } > RAM AT> FLASH
-
-    .TFM_SP_SECURE_TEST_PARTITION_BSS : ALIGN(32)
-    {
-        /* FixMe:
-         * Test framework use printf to print out test result. Implementation of
-         * printf in GCC libc use static data and heap as well. To be able to
-         * execute test suites with TFM_LVL=3 this workaround is needed to
-         * allocate libc static data and heap within the data section of secure
-         * test partition. This can be removed if test service will be executed
-         * in privileged mode.
-         */
-        *libc_nano*:*(.bss*)
-        *libc_nano*:*(COMMON)
-
-        __end__ = .;
-        PROVIDE(end = .);
-        __HeapBase = .;
-        . += __heap_size__;
-        __HeapLimit = .;
-        __heap_limit = .; /* Add for _sbrk */
-
-        . = ALIGN(32);
-    } > RAM AT> RAM
-#else /* TFM_PARTITION_TEST_SECURE_SERVICES */
-    .heap : ALIGN(8)
-    {
-        __end__ = .;
-        PROVIDE(end = .);
-        __HeapBase = .;
-        . += __heap_size__;
-        __HeapLimit = .;
-        __heap_limit = .; /* Add for _sbrk */
-    } > RAM AT> RAM
-#endif /* TFM_PARTITION_TEST_SECURE_SERVICES */
-#endif /* TFM_LVL != 1 */
 
     .TFM_DATA : ALIGN(4)
     {
