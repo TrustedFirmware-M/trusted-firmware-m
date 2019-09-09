@@ -35,10 +35,14 @@ line arguments:
          ``-DPROJ_CONFIG=`readlink -f ../configs/ConfigRegressionIPC.cmake```
        | Supported configurations files
 
-           - IPC model without regression test suites
+           - IPC model without regression test suites in Isolation Level 1
              ``ConfigCoreIPC.cmake``
-           - IPC model with regression test suites
+           - IPC model with regression test suites in Isolation Level 1
              ``ConfigRegressionIPC.cmake``
+           - IPC model without regression test suites in Isolation Level 2
+             ``ConfigCoreIPCTfmLevel2.cmake``
+           - IPC model with regression test suites in Isolation Level 2
+             ``ConfigRegressionIPCTfmLevel2.cmake``
 
    * - -DTARGET_PLATFORM=psoc6
      - Specifies target platform name ``psoc6``
@@ -62,7 +66,7 @@ Build Instructions
 ==================
 
 The following instructions build multi-core TF-M without regression test suites
-on Linux.
+in Isolation Level 1 on Linux.
 Both the compiler and the debugging type can be changed to other configurations
 listed above.
 
@@ -78,7 +82,7 @@ listed above.
     cmake --build <build folder> -- -j VERBOSE=1
 
 The following instructions build multi-core TF-M with regression test suites
-enabled on Linux.
+in Isolation Level 1 on Linux.
 Both the compiler and the debugging type can be changed to other configurations
 listed above.
 
@@ -93,6 +97,37 @@ listed above.
     popd
     cmake --build <build folder> -- -j VERBOSE=1
 
+The following instructions build multi-core TF-M without regression test suites
+in Isolation Level 2 on Linux.
+Both the compiler and the debugging type can be changed to other configurations
+listed above.
+
+.. code-block:: bash
+
+    cd <TF-M base folder>
+    cd <trusted-firmware-m folder>
+
+    mkdir <build folder>
+    pushd <build folder>
+    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigCoreIPCTfmLevel2.cmake` -DTARGET_PLATFORM=psoc6 -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
+    popd
+    cmake --build <build folder> -- -j VERBOSE=1
+
+The following instructions build multi-core TF-M with regression test suites
+in Isolation Level 2 on Linux.
+Both the compiler and the debugging type can be changed to other configurations
+listed above.
+
+.. code-block:: bash
+
+    cd <TF-M base folder>
+    cd <trusted-firmware-m folder>
+
+    mkdir <build folder>
+    pushd <build folder>
+    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigRegressionIPCTfmLevel2.cmake` -DTARGET_PLATFORM=psoc6 -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
+    popd
+    cmake --build <build folder> -- -j VERBOSE=1
 
 **********************
 Programming the Device
