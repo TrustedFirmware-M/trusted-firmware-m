@@ -92,17 +92,20 @@ void tfm_spm_hal_init_debug(void)
     printf("%s()\n", __func__);
 }
 
-void nvic_interrupt_target_state_cfg(void)
+enum tfm_plat_err_t nvic_interrupt_target_state_cfg(void)
 {
     printf("%s()\n", __func__);
+
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
-void nvic_interrupt_enable(void)
+enum tfm_plat_err_t nvic_interrupt_enable(void)
 {
     /* PPU and SMPU don't generate interrupts.
      * USART and Flash drivers don't export an EnableInterrupt function.
      * So there's nothing to do here.
      */
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 static cy_en_prot_status_t set_bus_master_attr(void)

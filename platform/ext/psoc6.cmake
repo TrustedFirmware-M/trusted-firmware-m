@@ -75,6 +75,7 @@ embedded_include_directories(PATH "${PLATFORM_DIR}/target/psoc6/Native_Driver/ge
 embedded_include_directories(PATH "${PLATFORM_DIR}/target/psoc6/mailbox" ABSOLUTE)
 embedded_include_directories(PATH "${PLATFORM_DIR}/target/psoc6/partition" ABSOLUTE)
 embedded_include_directories(PATH "${TFM_ROOT_DIR}/interface/include" ABSOLUTE)
+embedded_include_directories(PATH "${TFM_ROOT_DIR}/platform/include" ABSOLUTE)
 embedded_include_directories(PATH "${TFM_ROOT_DIR}/secure_fw/core/arch/include" ABSOLUTE)
 embedded_include_directories(PATH "${TFM_ROOT_DIR}/secure_fw/core/ipc/include" ABSOLUTE)
 

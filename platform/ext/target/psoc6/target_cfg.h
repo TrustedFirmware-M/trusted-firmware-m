@@ -59,4 +59,22 @@ void ppu_init_cfg(void);
  */
 void bus_masters_cfg(void);
 
+/**
+ * \brief Configures all external interrupts to target the
+ *        NS state, apart for the ones associated to secure
+ *        peripherals.
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
+ */
+enum tfm_plat_err_t nvic_interrupt_target_state_cfg(void);
+
+/**
+ * \brief This function enable the interrupts associated
+ *        to the secure peripherals (plus the isolation boundary violation
+ *        interrupts)
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
+ */
+enum tfm_plat_err_t nvic_interrupt_enable(void);
+
 #endif /* __TARGET_CFG_H__ */

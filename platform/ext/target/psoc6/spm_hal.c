@@ -321,3 +321,38 @@ void tfm_spm_hal_get_ns_access_attr(const void *p, size_t s,
      */
     tfm_get_ns_mem_region_attr(p, s, p_attr);
 }
+
+enum tfm_plat_err_t tfm_spm_hal_nvic_interrupt_enable(void)
+{
+    return nvic_interrupt_enable();
+}
+
+void tfm_spm_hal_clear_pending_irq(int32_t irq_line)
+{
+       (void)irq_line;
+}
+
+void tfm_spm_hal_enable_irq(int32_t irq_line)
+{
+    (void)irq_line;
+}
+
+void tfm_spm_hal_disable_irq(int32_t irq_line)
+{
+    (void)irq_line;
+}
+
+enum irq_target_state_t tfm_spm_hal_set_irq_target_state(
+                                          int32_t irq_line,
+                                          enum irq_target_state_t target_state)
+{
+    (void)irq_line;
+    (void)target_state;
+
+    return TFM_IRQ_TARGET_STATE_SECURE;
+}
+
+enum tfm_plat_err_t tfm_spm_hal_nvic_interrupt_target_state_cfg(void)
+{
+    return nvic_interrupt_target_state_cfg();
+}
