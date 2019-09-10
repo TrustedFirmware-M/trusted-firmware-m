@@ -8,7 +8,7 @@
 #ifndef __ATTESTATION_TESTS_COMMON_H__
 #define __ATTESTATION_TESTS_COMMON_H__
 
-#include "psa_initial_attestation_api.h"
+#include "psa/initial_attestation.h"
 
 #ifdef __cplusplus
 extern "C" {

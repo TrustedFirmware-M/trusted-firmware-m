@@ -8,11 +8,6 @@
 #ifndef __SPM_DB_H__
 #define __SPM_DB_H__
 
-
-#ifdef TFM_PSA_API
-#include "tfm_thread.h"
-#endif
-
 struct spm_partition_desc_t;
 struct spm_partition_db_t;
 
@@ -22,17 +17,13 @@ typedef psa_status_t(*sp_init_function)(void);
 #define TFM_PARTITION_TYPE_PSA   "PSA-ROT"
 
 #ifdef TFM_PSA_API
-enum tfm_partition_priority {
-    TFM_PRIORITY_LOW = THRD_PRIOR_LOWEST,
-    TFM_PRIORITY_NORMAL = THRD_PRIOR_MEDIUM,
-    TFM_PRIORITY_HIGH = THRD_PRIOR_HIGHEST,
-};
+#define TFM_PRIORITY_LOW    THRD_PRIOR_LOWEST
+#define TFM_PRIORITY_NORMAL THRD_PRIOR_MEDIUM
+#define TFM_PRIORITY_HIGH   THRD_PRIOR_HIGHEST
 #else
-enum tfm_partition_priority {
-    TFM_PRIORITY_LOW = 0xFF,
-    TFM_PRIORITY_NORMAL = 0x7F,
-    TFM_PRIORITY_HIGH = 0,
-};
+#define TFM_PRIORITY_LOW    0xFF
+#define TFM_PRIORITY_NORMAL 0x7F
+#define TFM_PRIORITY_HIGH   0
 #endif
 
 #define TFM_PRIORITY(LEVEL)      TFM_PRIORITY_##LEVEL
@@ -54,21 +45,27 @@ struct spm_partition_static_data_t {
  * divided to structures, to keep the related fields close to each other.
  */
 struct spm_partition_desc_t {
-    struct spm_partition_static_data_t static_data;
     struct spm_partition_runtime_data_t runtime_data;
-    struct tfm_spm_partition_platform_data_t *platform_data;
-#if (TFM_LVL != 1) || defined(TFM_PSA_API)
-    struct tfm_spm_partition_memory_data_t memory_data;
+    const struct spm_partition_static_data_t *static_data;
+    const struct tfm_spm_partition_platform_data_t *platform_data;
+#if TFM_PSA_API
+    const struct tfm_spm_partition_memory_data_t *memory_data;
 #endif
-#ifdef TFM_PSA_API
-    struct tfm_thrd_ctx sp_thrd;
-#endif
+};
+
+struct spm_partition_db_t {
+    uint32_t is_init;
+    uint32_t partition_count;
+#ifndef TFM_PSA_API
+    uint32_t running_partition_idx;
+#endif /* !defined(TFM_PSA_API) */
+    struct spm_partition_desc_t *partitions;
 };
 
 /* Macros to pick linker symbols and allow to form the partition data base */
 #define REGION(a, b, c) a##b##c
 #define REGION_NAME(a, b, c) REGION(a, b, c)
-#if (TFM_LVL == 1) && !defined(TFM_PSA_API)
+#ifndef TFM_PSA_API
 #define REGION_DECLARE(a, b, c)
 #else
 #define REGION_DECLARE(a, b, c) extern uint32_t REGION_NAME(a, b, c)

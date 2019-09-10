@@ -12,7 +12,7 @@
 
 #include "tfm_crypto_api.h"
 #include "tfm_crypto_defs.h"
-#include "secure_fw/core/tfm_memory_utils.h"
+#include "tfm_memory_utils.h"
 
 /**
  * \def TFM_CRYPTO_CONC_OPER_NUM

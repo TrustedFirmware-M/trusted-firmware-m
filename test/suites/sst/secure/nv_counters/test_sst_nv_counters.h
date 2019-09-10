@@ -9,7 +9,7 @@
 #define __TEST_SST_NV_COUNTERS_H__
 
 #include <stdint.h>
-#include "psa_protected_storage.h"
+#include "psa/protected_storage.h"
 #include "platform/include/tfm_plat_nv_counters.h"
 
 #ifdef __cplusplus

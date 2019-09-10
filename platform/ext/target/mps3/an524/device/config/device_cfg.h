@@ -46,4 +46,10 @@
 #define UART1_CMSDK_S
 #define UART1_CMSDK_NS
 
+/* CMSDK Timers */
+#define CMSDK_TIMER0_S
+#define CMSDK_TIMER0_NS
+#define CMSDK_TIMER1_S
+#define CMSDK_TIMER1_NS
+
 #endif  /* __ARM_LTD_DEVICE_CFG_H__ */

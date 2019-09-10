@@ -100,6 +100,8 @@ psa_status_t tfm_spm_core_test_2_slave_service_veneer(psa_invec *in_vec, size_t 
 psa_status_t tfm_spm_core_test_2_sfn_invert_veneer(psa_invec *in_vec, size_t in_len, psa_outvec *out_vec, size_t out_len);
 psa_status_t tfm_spm_core_test_2_check_caller_client_id_veneer(psa_invec *in_vec, size_t in_len, psa_outvec *out_vec, size_t out_len);
 psa_status_t tfm_spm_core_test_2_get_every_second_byte_veneer(psa_invec *in_vec, size_t in_len, psa_outvec *out_vec, size_t out_len);
+psa_status_t tfm_spm_core_test_2_prepare_test_scenario_veneer(psa_invec *in_vec, size_t in_len, psa_outvec *out_vec, size_t out_len);
+psa_status_t tfm_spm_core_test_2_execute_test_scenario_veneer(psa_invec *in_vec, size_t in_len, psa_outvec *out_vec, size_t out_len);
 #endif /* TFM_PARTITION_TEST_CORE */
 
 #ifdef TFM_PARTITION_TEST_SECURE_SERVICES
@@ -114,6 +116,12 @@ psa_status_t tfm_tfm_secure_client_service_sfn_run_tests_veneer(psa_invec *in_ve
 #ifdef TFM_PARTITION_TEST_CORE_IPC
 /******** TFM_SP_IPC_CLIENT_TEST ********/
 #endif /* TFM_PARTITION_TEST_CORE_IPC */
+
+#ifdef TFM_ENABLE_IRQ_TEST
+/******** TFM_IRQ_TEST_1 ********/
+psa_status_t tfm_spm_irq_test_1_prepare_test_scenario_veneer(psa_invec *in_vec, size_t in_len, psa_outvec *out_vec, size_t out_len);
+psa_status_t tfm_spm_irq_test_1_execute_test_scenario_veneer(psa_invec *in_vec, size_t in_len, psa_outvec *out_vec, size_t out_len);
+#endif /* TFM_ENABLE_IRQ_TEST */
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2017-2018, Arm Limited. All rights reserved.
+# Copyright (c) 2017-2019, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -26,6 +26,11 @@ endif()
 
 set (SS_SPM_C_SRC "${SS_SPM_DIR}/spm_api.c")
 
+if(TFM_PSA_API)
+	list(APPEND SS_SPM_C_SRC "${SS_SPM_DIR}/spm_api_ipc.c")
+else()
+	list(APPEND SS_SPM_C_SRC "${SS_SPM_DIR}/spm_api_func.c")
+endif()
 
 #Append all our source files to global lists.
 list(APPEND ALL_SRC_C ${SS_SPM_C_SRC})
@@ -35,7 +40,7 @@ unset(SS_SPM_C_SRC)
 embedded_include_directories(PATH ${TFM_ROOT_DIR} ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/interface/include ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/spm ABSOLUTE)
-embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/core ABSOLUTE)
+embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/core/include ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR} ABSOLUTE)
 
 set(BUILD_CMSIS_CORE Off)
@@ -51,6 +56,7 @@ set(BUILD_UART_STDOUT Off)
 set(BUILD_FLASH Off)
 set(BUILD_BOOT_SEED Off)
 set(BUILD_DEVICE_ID Off)
+set(BUILD_PLAT_TEST Off)
 if(NOT DEFINED PLATFORM_CMAKE_FILE)
 	message (FATAL_ERROR "Platform specific CMake is not defined. Please set PLATFORM_CMAKE_FILE.")
 elseif(NOT EXISTS ${PLATFORM_CMAKE_FILE})

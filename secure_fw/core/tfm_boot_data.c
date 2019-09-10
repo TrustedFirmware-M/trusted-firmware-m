@@ -15,11 +15,12 @@
 #ifdef TFM_PSA_API
 #include "tfm_internal_defines.h"
 #include "tfm_utils.h"
-#include "psa_service.h"
+#include "psa/service.h"
 #include "tfm_thread.h"
 #include "tfm_wait.h"
 #include "tfm_message_queue.h"
-#include "tfm_spm.h"
+#include "tfm_spm_hal.h"
+#include "spm_db.h"
 #endif
 
 /*!
@@ -77,7 +78,7 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
                 tfm_spm_partition_get_running_partition_idx();
     uint32_t res;
 #else
-    struct tfm_spm_ipc_partition_t *partition = NULL;
+    struct spm_partition_desc_t *partition = NULL;
     uint32_t privileged;
 #endif
 
@@ -91,7 +92,7 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
                                        2); /* Check 4 bytes alignment */
     if (!res) {
         /* Not in accessible range, return error */
-        args[0] = TFM_ERROR_INVALID_PARAMETER;
+        args[0] = (uint32_t)TFM_ERROR_INVALID_PARAMETER;
         return;
     }
 #else
@@ -99,12 +100,14 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
     if (!partition) {
         tfm_panic();
     }
-    privileged = tfm_spm_partition_get_privileged_mode(partition->index);
+    privileged =
+        tfm_spm_partition_get_privileged_mode(partition->static_data->
+                                              partition_flags);
 
     if (tfm_memory_check(buf_start, buf_size, false, TFM_MEMORY_ACCESS_RW,
         privileged) != IPC_SUCCESS) {
         /* Not in accessible range, return error */
-        args[0] = TFM_ERROR_INVALID_PARAMETER;
+        args[0] = (uint32_t)TFM_ERROR_INVALID_PARAMETER;
         return;
     }
 #endif
@@ -112,7 +115,7 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
     /* FixMe: Check whether caller has access right to given tlv_major_type */
 
     if (is_boot_data_valid != BOOT_DATA_VALID) {
-        args[0] = TFM_ERROR_INVALID_PARAMETER;
+        args[0] = (uint32_t)TFM_ERROR_INVALID_PARAMETER;
         return;
     }
 
@@ -123,7 +126,7 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
 
     /* Add header to output buffer as well */
     if (buf_size < SHARED_DATA_HEADER_SIZE) {
-        args[0] = TFM_ERROR_INVALID_PARAMETER;
+        args[0] = (uint32_t)TFM_ERROR_INVALID_PARAMETER;
         return;
     } else {
         boot_data = (struct tfm_boot_data *)buf_start;
@@ -137,22 +140,22 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
      */
     for (; offset < tlv_end; offset += tlv_entry.tlv_len) {
         /* Create local copy to avoid unaligned access */
-        tfm_memcpy(&tlv_entry,
-                   (const void *)offset,
-                   SHARED_DATA_ENTRY_HEADER_SIZE);
+        (void)tfm_memcpy(&tlv_entry,
+                         (const void *)offset,
+                         SHARED_DATA_ENTRY_HEADER_SIZE);
         if (GET_MAJOR(tlv_entry.tlv_type) == tlv_major) {
             /* Check buffer overflow */
             if (((ptr - buf_start) + tlv_entry.tlv_len) > buf_size) {
-                args[0] = TFM_ERROR_INVALID_PARAMETER;
+                args[0] = (uint32_t)TFM_ERROR_INVALID_PARAMETER;
                 return;
             }
 
-            tfm_memcpy(ptr, (const void *)offset, tlv_entry.tlv_len);
+            (void)tfm_memcpy(ptr, (const void *)offset, tlv_entry.tlv_len);
 
             ptr += tlv_entry.tlv_len;
             boot_data->header.tlv_tot_len += tlv_entry.tlv_len;
         }
     }
-    args[0] = TFM_SUCCESS;
+    args[0] = (uint32_t)TFM_SUCCESS;
     return;
 }

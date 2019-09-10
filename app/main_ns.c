@@ -13,12 +13,11 @@
 #include "cmsis_os2.h"
 #include "tfm_integ_test.h"
 #include "tfm_ns_svc.h"
-#include "tfm_ns_lock.h"
+#include "tfm_ns_interface.h"
 #if TFM_MULTI_CORE_TOPOLOGY
 #include "tfm_multi_core_api.h"
 #include "tfm_ns_mailbox.h"
 #endif
-
 #ifdef TEST_FRAMEWORK_NS
 #include "test/framework/test_framework_integ_test.h"
 #endif
@@ -95,21 +94,12 @@ int putchar(int ch)
 /**
  * \brief List of RTOS thread attributes
  */
-#ifdef TEST_FRAMEWORK_NS
-/* Allocate dedicated stack for test executor thread.
- * It must be 64 bit aligned.
- */
+#if defined(TEST_FRAMEWORK_NS) || defined(PSA_API_TEST_NS)
 static uint64_t test_app_stack[(3u * 1024u) / (sizeof(uint64_t))]; /* 3KB */
-
-static const osThreadAttr_t tserv_test = {
-    .name = "test_app",
-    .stack_size = sizeof(test_app_stack),
+static const osThreadAttr_t thread_attr = {
+    .name = "test_thread",
     .stack_mem = test_app_stack,
-};
-#elif PSA_API_TEST_NS
-static const osThreadAttr_t psa_api_test_attr = {
-    .name = "psa_api_test",
-    .stack_size = 3072U
+    .stack_size = sizeof(test_app_stack),
 };
 #endif
 
@@ -117,8 +107,9 @@ static const osThreadAttr_t psa_api_test_attr = {
  * \brief Static globals to hold RTOS related quantities,
  *        main thread
  */
-static osStatus_t   status;
-static osThreadId_t thread_id;
+static osStatus_t     status;
+static osThreadId_t   thread_id;
+static osThreadFunc_t thread_func;
 
 #if TFM_MULTI_CORE_TOPOLOGY
 static struct ns_mailbox_queue_t ns_mailbox_queue;
@@ -156,15 +147,20 @@ int main(void)
 
     status = osKernelInitialize();
 
-    /* Initialize the TFM NS lock */
-    tfm_ns_lock_init();
+    /* Initialize the TFM NS interface */
+    tfm_ns_interface_init();
 
-#ifdef TEST_FRAMEWORK_NS
-    thread_id = osThreadNew(test_app, NULL, &tserv_test);
-#elif PSA_API_TEST_NS
-    thread_id = osThreadNew(psa_api_test, NULL, &psa_api_test_attr);
+#if defined(TEST_FRAMEWORK_NS)
+    thread_func = test_app;
+#elif defined(PSA_API_TEST_NS)
+    thread_func = psa_api_test;
+#endif
+
+#if defined(TEST_FRAMEWORK_NS) || defined(PSA_API_TEST_NS)
+    thread_id = osThreadNew(thread_func, NULL, &thread_attr);
 #else
     UNUSED_VARIABLE(thread_id);
+    UNUSED_VARIABLE(thread_func);
 #endif
 
     status = osKernelStart();

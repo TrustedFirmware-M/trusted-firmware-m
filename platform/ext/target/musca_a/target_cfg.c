@@ -20,6 +20,10 @@
 #include "device_definition.h"
 #include "region_defs.h"
 #include "tfm_secure_api.h"
+#include "tfm_plat_defs.h"
+
+#define MIN(A, B) (((A) < (B)) ? (A) : (B))
+#define MAX(A, B) (((A) > (B)) ? (A) : (B))
 
 /* Macros to pick linker symbols */
 #define REGION(a, b, c) a##b##c
@@ -91,7 +95,14 @@ struct tfm_spm_partition_platform_data_t tfm_peripheral_std_uart = {
         -1
 };
 
-void enable_fault_handlers(void)
+struct tfm_spm_partition_platform_data_t tfm_peripheral_timer0 = {
+        MUSCA_CMSDK_TIMER0_S_BASE,
+        MUSCA_CMSDK_TIMER1_S_BASE - 1,
+        PPC_SP_APB_PPC0,
+        CMSDK_TIMER0_APB_PPC_POS
+};
+
+enum tfm_plat_err_t enable_fault_handlers(void)
 {
     /* Explicitly set secure fault priority to the highest */
     NVIC_SetPriority(SecureFault_IRQn, 0);
@@ -101,9 +112,10 @@ void enable_fault_handlers(void)
                   | SCB_SHCSR_BUSFAULTENA_Msk
                   | SCB_SHCSR_MEMFAULTENA_Msk
                   | SCB_SHCSR_SECUREFAULTENA_Msk;
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
-void system_reset_cfg(void)
+enum tfm_plat_err_t system_reset_cfg(void)
 {
     struct sysctrl_t *sysctrl = (struct sysctrl_t *)CMSDK_SYSCTRL_BASE_S;
     uint32_t reg_value = SCB->AIRCR;
@@ -120,9 +132,11 @@ void system_reset_cfg(void)
     reg_value |= (uint32_t)(SCB_AIRCR_WRITE_MASK | SCB_AIRCR_SYSRESETREQS_Msk);
 
     SCB->AIRCR = reg_value;
+
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
-void tfm_spm_hal_init_debug(void)
+enum tfm_plat_err_t init_debug(void)
 {
     volatile struct sysctrl_t *sys_ctrl =
                                        (struct sysctrl_t *)CMSDK_SYSCTRL_BASE_S;
@@ -158,10 +172,11 @@ void tfm_spm_hal_init_debug(void)
      * input signals.
      */
 #endif
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 /*----------------- NVIC interrupt target state to NS configuration ----------*/
-void nvic_interrupt_target_state_cfg()
+enum tfm_plat_err_t nvic_interrupt_target_state_cfg(void)
 {
     /* Target every interrupt to NS; unimplemented interrupts will be WI */
     for (uint8_t i=0; i<sizeof(NVIC->ITNS)/sizeof(NVIC->ITNS[0]); i++) {
@@ -171,16 +186,25 @@ void nvic_interrupt_target_state_cfg()
     /* Make sure that MPC and PPC are targeted to S state */
     NVIC_ClearTargetState(S_MPC_COMBINED_IRQn);
     NVIC_ClearTargetState(S_PPC_COMBINED_IRQn);
+
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 /*----------------- NVIC interrupt enabling for S peripherals ----------------*/
-void nvic_interrupt_enable()
+enum tfm_plat_err_t nvic_interrupt_enable(void)
 {
     struct spctrl_def* spctrl = CMSDK_SPCTRL;
+    int32_t ret = ARM_DRIVER_OK;
 
     /* MPC interrupt enabling */
-    Driver_QSPI_MPC.EnableInterrupt();
-    Driver_CODE_SRAM_MPC.EnableInterrupt();
+    ret = Driver_QSPI_MPC.EnableInterrupt();
+    if (ret != ARM_DRIVER_OK) {
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
+    ret = Driver_CODE_SRAM_MPC.EnableInterrupt();
+    if (ret != ARM_DRIVER_OK) {
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
     NVIC_EnableIRQ(S_MPC_COMBINED_IRQn);
 
     /* PPC interrupt enabling */
@@ -200,6 +224,8 @@ void nvic_interrupt_enable()
     spctrl->secppcinten |= CMSDK_APB_PPCEXP2_INT_POS_MASK;
     spctrl->secppcinten |= CMSDK_APB_PPCEXP3_INT_POS_MASK;
     NVIC_EnableIRQ(S_PPC_COMBINED_IRQn);
+
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 /*------------------- SAU/IDAU configuration functions -----------------------*/
@@ -241,53 +267,136 @@ void sau_and_idau_cfg(void)
 
 /*------------------- Memory configuration functions -------------------------*/
 
-void mpc_init_cfg(void)
+int32_t mpc_init_region_with_attr(ARM_DRIVER_MPC *region,
+                         uintptr_t region_base, uintptr_t region_limit,
+                         uintptr_t attr_range_start, uintptr_t attr_range_limit,
+                         ARM_MPC_SEC_ATTR attr)
 {
+    uintptr_t range_start = MAX(region_base, attr_range_start);
+    uintptr_t range_limit = MIN(region_limit, attr_range_limit);
+
+    if (range_start < range_limit) {
+        /* ConfigRegion checks whether the range addresses are aligned at MPC
+         * block border
+         */
+        return region->ConfigRegion(range_start, range_limit, attr);
+    }
+    return ARM_DRIVER_OK;
+}
+
+int32_t mpc_init_cfg(void)
+{
+    int32_t ret = ARM_DRIVER_OK;
+
     ARM_DRIVER_MPC* mpc_data_region0 = &Driver_ISRAM0_MPC;
     ARM_DRIVER_MPC* mpc_data_region1 = &Driver_ISRAM1_MPC;
     ARM_DRIVER_MPC* mpc_data_region2 = &Driver_ISRAM2_MPC;
     ARM_DRIVER_MPC* mpc_data_region3 = &Driver_ISRAM3_MPC;
 
-    Driver_CODE_SRAM_MPC.Initialize();
-    Driver_CODE_SRAM_MPC.ConfigRegion(memory_regions.non_secure_partition_base,
-                                 memory_regions.non_secure_partition_limit,
-                                 ARM_MPC_ATTR_NONSECURE);
+    ret = Driver_QSPI_MPC.Initialize();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
 
-    mpc_data_region0->Initialize();
-    mpc_data_region0->ConfigRegion(MPC_ISRAM0_RANGE_BASE_S,
+    ret = Driver_CODE_SRAM_MPC.Initialize();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+    ret = Driver_CODE_SRAM_MPC.ConfigRegion(
+                                      memory_regions.non_secure_partition_base,
+                                      memory_regions.non_secure_partition_limit,
+                                      ARM_MPC_ATTR_NONSECURE);
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+
+    ret = mpc_data_region0->Initialize();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+    ret = mpc_data_region0->ConfigRegion(MPC_ISRAM0_RANGE_BASE_S,
                                    MPC_ISRAM0_RANGE_LIMIT_S,
                                    ARM_MPC_ATTR_SECURE);
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
 
-    mpc_data_region1->Initialize();
-    mpc_data_region1->ConfigRegion(MPC_ISRAM1_RANGE_BASE_S,
+    ret = mpc_data_region1->Initialize();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+    ret = mpc_data_region1->ConfigRegion(MPC_ISRAM1_RANGE_BASE_S,
                                    MPC_ISRAM1_RANGE_LIMIT_S,
                                    ARM_MPC_ATTR_SECURE);
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
 
-    mpc_data_region2->Initialize();
-    mpc_data_region2->ConfigRegion(MPC_ISRAM2_RANGE_BASE_S,
+    ret = mpc_data_region2->Initialize();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+    ret = mpc_data_region2->ConfigRegion(MPC_ISRAM2_RANGE_BASE_S,
                                    MPC_ISRAM2_RANGE_LIMIT_S,
                                    ARM_MPC_ATTR_SECURE);
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
 
-    /* First three regions (96KB) are marked Secure, the last region of
-     * 32 KB is marked Non-Secure
-     */
-    mpc_data_region3->Initialize();
-    mpc_data_region3->ConfigRegion(MPC_ISRAM3_RANGE_BASE_NS,
-                                   MPC_ISRAM3_RANGE_LIMIT_NS,
-                                   ARM_MPC_ATTR_NONSECURE);
+    /* Set MPC_ISRAM3 based on regions defined in region_defs.h */
+    ret = mpc_data_region3->Initialize();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+    ret = mpc_init_region_with_attr(mpc_data_region3,
+                              MPC_ISRAM3_RANGE_BASE_S, MPC_ISRAM3_RANGE_LIMIT_S,
+                              S_DATA_START, S_DATA_LIMIT,
+                              ARM_MPC_ATTR_SECURE);
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+    ret = mpc_init_region_with_attr(
+                            mpc_data_region3,
+                            MPC_ISRAM3_RANGE_BASE_NS, MPC_ISRAM3_RANGE_LIMIT_NS,
+                            NS_DATA_START, NS_DATA_LIMIT,
+                            ARM_MPC_ATTR_NONSECURE);
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
 
     /* Lock down the MPC configuration */
-    Driver_CODE_SRAM_MPC.LockDown();
-    mpc_data_region0->LockDown();
-    mpc_data_region1->LockDown();
-    mpc_data_region2->LockDown();
-    mpc_data_region3->LockDown();
+    ret = Driver_QSPI_MPC.LockDown();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+    ret = Driver_CODE_SRAM_MPC.LockDown();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+    ret = mpc_data_region0->LockDown();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+    ret = mpc_data_region1->LockDown();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+    ret = mpc_data_region2->LockDown();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+    ret = mpc_data_region3->LockDown();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
 
     /* Add barriers to assure the MPC configuration is done before continue
      * the execution.
      */
     __DSB();
     __ISB();
+
+    return ARM_DRIVER_OK;
 }
 
 /*---------------------- PPC configuration functions -------------------------*/

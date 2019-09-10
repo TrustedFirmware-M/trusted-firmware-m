@@ -8,8 +8,8 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include "tfm_svc.h"
-#include "psa_client.h"
-#include "psa_service.h"
+#include "psa/client.h"
+#include "psa/service.h"
 
 __attribute__((naked, section("SFN")))
 psa_signal_t psa_wait(psa_signal_t signal_mask, uint32_t timeout)

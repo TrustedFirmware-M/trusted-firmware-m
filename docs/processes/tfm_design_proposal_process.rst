@@ -95,7 +95,7 @@ Process steps
   !define REJECTED_DIR **docs/design_documents/rejected/**
   !define GERRIT_URL https://review.trustedfirmware.org
   !define GERRIT_LINK [[GERRIT_URL trustedfirmware.org]]
-  !define MAINTAINER_RST_URL https://git.trustedfirmware.org/trusted-firmware-m.git/tree/maintainers.rst
+  !define MAINTAINER_RST_URL https://git.trustedfirmware.org/trusted-firmware-m.git/tree/docs/maintainers.rst
   !define TFM_MAILING_LIST mailto:tf-m@lists.trustedfirmware.org
   !define NO_DECISION **no**
   !define YES_DECISION **yes**

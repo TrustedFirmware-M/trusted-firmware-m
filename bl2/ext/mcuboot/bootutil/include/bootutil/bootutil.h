@@ -26,13 +26,19 @@
 extern "C" {
 #endif
 
-/** Attempt to boot the contents of slot 0. */
+/** Attempt to boot the contents of the primary slot. */
 #define BOOT_SWAP_TYPE_NONE     1
 
-/** Swap to slot 1.  Absent a confirm command, revert back on next boot. */
+/**
+ * Swap to the secondary slot.
+ * Absent a confirm command, revert back on next boot.
+ */
 #define BOOT_SWAP_TYPE_TEST     2
 
-/** Swap to slot 1, and permanently switch to booting its contents. */
+/**
+ * Swap to the secondary slot,
+ * and permanently switch to booting its contents.
+ */
 #define BOOT_SWAP_TYPE_PERM     3
 
 /** Swap back to alternate slot.  A confirm changes this state to NONE. */
@@ -68,10 +74,12 @@ struct boot_rsp {
  * when attempting to read/write a trailer.
  */
 struct image_trailer {
-    uint8_t copy_done;
+    uint8_t swap_type;
     uint8_t pad1[MAX_FLASH_ALIGN - 1];
-    uint8_t image_ok;
+    uint8_t copy_done;
     uint8_t pad2[MAX_FLASH_ALIGN - 1];
+    uint8_t image_ok;
+    uint8_t pad3[MAX_FLASH_ALIGN - 1];
     uint8_t magic[16];
 };
 

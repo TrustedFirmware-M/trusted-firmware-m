@@ -27,14 +27,14 @@ LR_CODE BL2_CODE_START {
     }
 
     ER_CODE_SRAM BL2_CODE_SRAM_BASE {
-        .ANY (+RO) ; app code that gets copied from Flash to SRAM
+        * (+RO) ; app code that gets copied from Flash to SRAM
     }
 
     TFM_SHARED_DATA BL2_DATA_START ALIGN 32 EMPTY BOOT_TFM_SHARED_DATA_SIZE {
     }
 
     ER_DATA +0 BL2_DATA_SIZE {
-        .ANY (+ZI +RW)
+        * (+ZI +RW)
     }
 
     /* MSP */

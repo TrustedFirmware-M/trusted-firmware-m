@@ -8,7 +8,6 @@
 #include "platform_sp.h"
 
 #include "platform/include/tfm_platform_system.h"
-#include "secure_fw/core/tfm_secure_api.h"
 #include "secure_fw/include/tfm_spm_services_api.h"
 
 enum tfm_platform_err_t platform_sp_init(void)

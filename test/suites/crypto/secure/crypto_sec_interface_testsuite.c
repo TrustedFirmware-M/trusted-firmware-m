@@ -89,7 +89,7 @@ void register_testsuite_s_crypto_interface(struct test_suite_t *p_test_suite)
  * \brief Secure interface test for Crypto
  *
  * \details The scope of this set of tests is to functionally verify
- *          the interfaces specified by psa_crypto.h are working
+ *          the interfaces specified by psa/crypto.h are working
  *          as expected. This is not meant to cover all possible
  *          scenarios and corner cases.
  *

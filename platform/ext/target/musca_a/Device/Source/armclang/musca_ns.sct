@@ -1,7 +1,7 @@
 #! armclang --target=arm-arm-none-eabi -march=armv8-m.main -E -xc
 
 /*
- * Copyright (c) 2018 ARM Limited
+ * Copyright (c) 2018-2019 Arm Limited. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@
 LR_CODE NS_CODE_START {
     ER_CODE NS_CODE_START NS_CODE_SIZE {
         *.o (RESET +First)
-        .ANY (+RO)
+        * (+RO)
     }
 
     ER_DATA NS_DATA_START NS_DATA_SIZE {
-        .ANY (+ZI +RW)
+        * (+ZI +RW)
     }
 
     /* MSP */
@@ -39,4 +39,3 @@ LR_CODE NS_CODE_START {
     ARM_LIB_HEAP +0 ALIGN 8 EMPTY NS_HEAP_SIZE {
     }
 }
-

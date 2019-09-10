@@ -113,12 +113,12 @@ static inline int32_t get_uint(const void *int_ptr,
         break;
     case 2:
         /* Avoid unaligned access */
-        tfm_memcpy(&uint16, int_ptr, sizeof(uint16));
+        (void)tfm_memcpy(&uint16, int_ptr, sizeof(uint16));
         *value = (uint32_t)uint16;
         break;
     case 4:
         /* Avoid unaligned access */
-        tfm_memcpy(value, int_ptr, sizeof(uint32_t));
+        (void)tfm_memcpy(value, int_ptr, sizeof(uint32_t));
         break;
     default:
         return -1;
@@ -164,7 +164,7 @@ static int32_t attest_get_tlv_by_module(uint8_t    module,
         tlv_curr = boot_data.data;
     } else {
         /* Any subsequent call set to the next TLV entry */
-        tfm_memcpy(&tlv_entry, *tlv_ptr, SHARED_DATA_ENTRY_HEADER_SIZE);
+        (void)tfm_memcpy(&tlv_entry, *tlv_ptr, SHARED_DATA_ENTRY_HEADER_SIZE);
         tlv_curr  = (*tlv_ptr) + tlv_entry.tlv_len;
     }
 
@@ -173,7 +173,7 @@ static int32_t attest_get_tlv_by_module(uint8_t    module,
      */
     for (; tlv_curr < tlv_end; tlv_curr += tlv_entry.tlv_len) {
         /* Create local copy to avoid unaligned access */
-        tfm_memcpy(&tlv_entry, tlv_curr, SHARED_DATA_ENTRY_HEADER_SIZE);
+        (void)tfm_memcpy(&tlv_entry, tlv_curr, SHARED_DATA_ENTRY_HEADER_SIZE);
         if (GET_IAS_MODULE(tlv_entry.tlv_type) == module) {
             *claim   = GET_IAS_CLAIM(tlv_entry.tlv_type);
             *tlv_ptr = tlv_curr;
@@ -319,7 +319,7 @@ attest_add_single_sw_measurment(struct attest_token_ctx *token_ctx,
     QCBOREncodeContext *cbor_encode_ctx;
 
     /* Create local copy to avoid unaligned access */
-    tfm_memcpy(&tlv_entry, tlv_address, SHARED_DATA_ENTRY_HEADER_SIZE);
+    (void)tfm_memcpy(&tlv_entry, tlv_address, SHARED_DATA_ENTRY_HEADER_SIZE);
     tlv_len = tlv_entry.tlv_len;
     tlv_id = GET_IAS_CLAIM(tlv_entry.tlv_type);
 
@@ -333,10 +333,10 @@ attest_add_single_sw_measurment(struct attest_token_ctx *token_ctx,
 
     /* Look up all measurement TLV entry which belongs to the SW component */
     while (found) {
-         /* Here only measurement claims are added to the token */
-         if (GET_IAS_MEASUREMENT_CLAIM(tlv_id)) {
+        /* Here only measurement claims are added to the token */
+        if (GET_IAS_MEASUREMENT_CLAIM(tlv_id)) {
             claim_value.ptr = tlv_ptr + SHARED_DATA_ENTRY_HEADER_SIZE;
-            claim_value.len  = tlv_len - SHARED_DATA_ENTRY_HEADER_SIZE;
+            claim_value.len = tlv_len - SHARED_DATA_ENTRY_HEADER_SIZE;
             res = attest_add_sw_component_claim(token_ctx,
                                                 tlv_id,
                                                 &claim_value);
@@ -384,9 +384,10 @@ attest_add_single_sw_component(struct attest_token_ctx *token_ctx,
     uint32_t measurement_claim_cnt = 0;
     struct q_useful_buf_c claim_value;
     QCBOREncodeContext *cbor_encode_ctx;
+    enum psa_attest_err_t res;
 
     /* Create local copy to avoid unaligned access */
-    tfm_memcpy(&tlv_entry, tlv_address, SHARED_DATA_ENTRY_HEADER_SIZE);
+    (void)tfm_memcpy(&tlv_entry, tlv_address, SHARED_DATA_ENTRY_HEADER_SIZE);
     tlv_len = tlv_entry.tlv_len;
     tlv_id = GET_IAS_CLAIM(tlv_entry.tlv_type);
 
@@ -394,23 +395,32 @@ attest_add_single_sw_component(struct attest_token_ctx *token_ctx,
     cbor_encode_ctx = attest_token_borrow_cbor_cntxt(token_ctx);
     QCBOREncode_OpenMap(cbor_encode_ctx);
 
-    /*Look up all TLV entry which belongs to the same SW component */
+    /* Look up all TLV entry which belongs to the same SW component */
     while (found) {
         /* Check whether claim is measurement claim */
         if (GET_IAS_MEASUREMENT_CLAIM(tlv_id)) {
             if (measurement_claim_cnt == 0) {
                 /* Call only once when first measurement claim found */
                 measurement_claim_cnt++;
-                attest_add_single_sw_measurment(token_ctx,
-                                                module,
-                                                tlv_ptr,
-                                                EAT_SW_COMPONENT_NOT_NESTED);
+                res = attest_add_single_sw_measurment(
+                                                   token_ctx,
+                                                   module,
+                                                   tlv_ptr,
+                                                   EAT_SW_COMPONENT_NOT_NESTED);
+                if (res != PSA_ATTEST_ERR_SUCCESS) {
+                    return res;
+                }
             }
         } else {
             /* Adding top level claims */
             claim_value.ptr = tlv_ptr + SHARED_DATA_ENTRY_HEADER_SIZE;
-            claim_value.len  = tlv_len - SHARED_DATA_ENTRY_HEADER_SIZE;
-            attest_add_sw_component_claim(token_ctx, tlv_id, &claim_value);
+            claim_value.len = tlv_len - SHARED_DATA_ENTRY_HEADER_SIZE;
+            res = attest_add_sw_component_claim(token_ctx,
+                                                tlv_id,
+                                                &claim_value);
+            if (res != PSA_ATTEST_ERR_SUCCESS) {
+                return res;
+            }
         }
 
         /* Look up next entry which belongs to SW component */
@@ -445,6 +455,7 @@ attest_add_all_sw_components(struct attest_token_ctx *token_ctx)
     uint32_t cnt = 0;
     uint32_t module;
     QCBOREncodeContext *cbor_encode_ctx;
+    enum psa_attest_err_t res;
 
     /* Starting from module 1, because module 0 contains general claims which
      * are not related to SW module(i.e: boot_seed, etc.)
@@ -470,7 +481,10 @@ attest_add_all_sw_components(struct attest_token_ctx *token_ctx)
                 QCBOREncode_OpenArrayInMapN(cbor_encode_ctx,
                                             EAT_CBOR_ARM_LABEL_SW_COMPONENTS);
             }
-            attest_add_single_sw_component(token_ctx, module, tlv_ptr);
+            res = attest_add_single_sw_component(token_ctx, module, tlv_ptr);
+            if (res != PSA_ATTEST_ERR_SUCCESS) {
+                return res;
+            }
         }
     }
 
@@ -499,11 +513,6 @@ attest_add_all_sw_components(struct attest_token_ctx *token_ctx)
 static enum psa_attest_err_t
 attest_add_boot_seed_claim(struct attest_token_ctx *token_ctx)
 {
-    /* FixMe: Enforcement of 4 byte alignment can be removed as soon as memory
-     *        type is configured in the MPU to be normal, instead of device,
-     *        which prohibits unaligned access.
-     */
-    __attribute__ ((aligned(4)))
     uint8_t boot_seed[BOOT_SEED_SIZE];
     enum tfm_plat_err_t res;
     struct q_useful_buf_c claim_value = {0};
@@ -545,11 +554,6 @@ attest_add_boot_seed_claim(struct attest_token_ctx *token_ctx)
 static enum psa_attest_err_t
 attest_add_instance_id_claim(struct attest_token_ctx *token_ctx)
 {
-    /* FixMe: Enforcement of 4 byte alignment can be removed as soon as memory
-     *        type is configured in the MPU to be normal, instead of device,
-     *        which prohibits unaligned access.
-     */
-    __attribute__ ((aligned(4)))
     uint8_t instance_id[INSTANCE_ID_MAX_SIZE];
     enum tfm_plat_err_t res_plat;
     uint32_t size = sizeof(instance_id);
@@ -579,11 +583,6 @@ attest_add_instance_id_claim(struct attest_token_ctx *token_ctx)
 static enum psa_attest_err_t
 attest_add_implementation_id_claim(struct attest_token_ctx *token_ctx)
 {
-    /* FixMe: Enforcement of 4 byte alignment can be removed as soon as memory
-     *        type is configured in the MPU to be normal, instead of device,
-     *        which prohibits unaligned access.
-     */
-    __attribute__ ((aligned(4)))
     uint8_t implementation_id[IMPLEMENTATION_ID_MAX_SIZE];
     enum tfm_plat_err_t res_plat;
     uint32_t size = sizeof(implementation_id);
@@ -613,11 +612,6 @@ attest_add_implementation_id_claim(struct attest_token_ctx *token_ctx)
 static enum psa_attest_err_t
 attest_add_hw_version_claim(struct attest_token_ctx *token_ctx)
 {
-    /* FixMe: Enforcement of 4 byte alignment can be removed as soon as memory
-     *        type is configured in the MPU to be normal, instead of device,
-     *        which prohibits unaligned access.
-     */
-    __attribute__ ((aligned(4)))
     uint8_t hw_version[HW_VERSION_MAX_SIZE];
     enum tfm_plat_err_t res_plat;
     uint32_t size = sizeof(hw_version);
@@ -860,7 +854,7 @@ static void attest_get_option_flags(struct q_useful_buf_c *challenge,
     }
 
     if (found_option_flags) {
-        tfm_memcpy(option_flags, challenge->ptr, option_flags_size);
+        (void)tfm_memcpy(option_flags, challenge->ptr, option_flags_size);
 
         /* Lower three bits are the key select */
         *key_select = *option_flags & 0x7;

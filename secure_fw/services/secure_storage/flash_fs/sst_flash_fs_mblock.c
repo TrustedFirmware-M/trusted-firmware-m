@@ -10,9 +10,9 @@
 #include <stddef.h>
 
 #include "cmsis_compiler.h"
-#include "secure_fw/core/tfm_memory_utils.h"
 #include "secure_fw/services/secure_storage/sst_object_defs.h"
 #include "secure_fw/services/secure_storage/sst_utils.h"
+#include "tfm_memory_utils.h"
 
 #if ((SST_TOTAL_NUM_OF_BLOCKS < 2) || (SST_TOTAL_NUM_OF_BLOCKS == 3))
   /* The minimum number of blocks is 2. In this case, metadata and data are

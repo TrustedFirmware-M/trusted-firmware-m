@@ -5,13 +5,13 @@
  *
  */
 
-#include "psa_protected_storage.h"
+#include "psa/protected_storage.h"
 #include "tfm_veneers.h"
-#include "tfm_sst_defs.h"
+#ifdef TFM_PSA_API
+#include "psa_manifest/sid.h"
+#endif
 
 #define IOVEC_LEN(x) (sizeof(x)/sizeof(x[0]))
-/* FixMe: Check if PSA framework header would provide similar macro. */
-#define TFM_PSA_HANDLE_IS_VALID(handle)  ((handle) > (psa_handle_t)0)
 
 __attribute__((section("SFN")))
 psa_ps_status_t psa_ps_set(psa_ps_uid_t uid,
@@ -36,12 +36,12 @@ psa_ps_status_t psa_ps_set(psa_ps_uid_t uid,
     };
 
 #ifdef TFM_PSA_API
-    handle = psa_connect(TFM_SST_SET_SID, TFM_SST_SET_MIN_VER);
-    if (!TFM_PSA_HANDLE_IS_VALID(handle)) {
+    handle = psa_connect(TFM_SST_SET_SID, TFM_SST_SET_VERSION);
+    if (!PSA_HANDLE_IS_VALID(handle)) {
         return PSA_PS_ERROR_OPERATION_FAILED;
     }
 
-    status = psa_call(handle, in_vec, IOVEC_LEN(in_vec), out_vec,
+    status = psa_call(handle, PSA_IPC_CALL, in_vec, IOVEC_LEN(in_vec), out_vec,
                       IOVEC_LEN(out_vec));
 
     psa_close(handle);
@@ -83,12 +83,12 @@ psa_ps_status_t psa_ps_get(psa_ps_uid_t uid,
     };
 
 #ifdef TFM_PSA_API
-    handle = psa_connect(TFM_SST_GET_SID, TFM_SST_GET_MIN_VER);
-    if (!TFM_PSA_HANDLE_IS_VALID(handle)) {
+    handle = psa_connect(TFM_SST_GET_SID, TFM_SST_GET_VERSION);
+    if (!PSA_HANDLE_IS_VALID(handle)) {
         return PSA_PS_ERROR_OPERATION_FAILED;
     }
 
-    status = psa_call(handle, in_vec, IOVEC_LEN(in_vec), out_vec,
+    status = psa_call(handle, PSA_IPC_CALL, in_vec, IOVEC_LEN(in_vec), out_vec,
                       IOVEC_LEN(out_vec));
 
     psa_close(handle);
@@ -126,12 +126,12 @@ psa_ps_status_t psa_ps_get_info(psa_ps_uid_t uid, struct psa_ps_info_t *p_info)
     };
 
 #ifdef TFM_PSA_API
-    handle = psa_connect(TFM_SST_GET_INFO_SID, TFM_SST_GET_INFO_MIN_VER);
-    if (!TFM_PSA_HANDLE_IS_VALID(handle)) {
+    handle = psa_connect(TFM_SST_GET_INFO_SID, TFM_SST_GET_INFO_VERSION);
+    if (!PSA_HANDLE_IS_VALID(handle)) {
         return PSA_PS_ERROR_OPERATION_FAILED;
     }
 
-    status = psa_call(handle, in_vec, IOVEC_LEN(in_vec), out_vec,
+    status = psa_call(handle, PSA_IPC_CALL, in_vec, IOVEC_LEN(in_vec), out_vec,
                       IOVEC_LEN(out_vec));
 
     psa_close(handle);
@@ -169,12 +169,12 @@ psa_ps_status_t psa_ps_remove(psa_ps_uid_t uid)
     };
 
 #ifdef TFM_PSA_API
-    handle = psa_connect(TFM_SST_REMOVE_SID, TFM_SST_REMOVE_MIN_VER);
-    if (!TFM_PSA_HANDLE_IS_VALID(handle)) {
+    handle = psa_connect(TFM_SST_REMOVE_SID, TFM_SST_REMOVE_VERSION);
+    if (!PSA_HANDLE_IS_VALID(handle)) {
         return PSA_PS_ERROR_OPERATION_FAILED;
     }
 
-    status = psa_call(handle, in_vec, IOVEC_LEN(in_vec), out_vec,
+    status = psa_call(handle, PSA_IPC_CALL, in_vec, IOVEC_LEN(in_vec), out_vec,
                       IOVEC_LEN(out_vec));
 
     psa_close(handle);
@@ -236,12 +236,12 @@ uint32_t psa_ps_get_support(void)
      * ignored.
      */
 #ifdef TFM_PSA_API
-    handle = psa_connect(TFM_SST_GET_SUPPORT_SID, TFM_SST_GET_SUPPORT_MIN_VER);
-    if (!TFM_PSA_HANDLE_IS_VALID(handle)) {
+    handle = psa_connect(TFM_SST_GET_SUPPORT_SID, TFM_SST_GET_SUPPORT_VERSION);
+    if (!PSA_HANDLE_IS_VALID(handle)) {
         return support_flags;
     }
 
-    (void)psa_call(handle, NULL, 0, out_vec, IOVEC_LEN(out_vec));
+    (void)psa_call(handle, PSA_IPC_CALL, NULL, 0, out_vec, IOVEC_LEN(out_vec));
 
     psa_close(handle);
 #else

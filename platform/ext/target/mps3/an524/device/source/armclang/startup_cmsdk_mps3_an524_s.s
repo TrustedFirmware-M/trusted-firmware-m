@@ -56,7 +56,7 @@ __Vectors
     DCD     NONSEC_WATCHDOG_RESET_Handler ; 0 Non-Secure Watchdog Reset Handler
     DCD     NONSEC_WATCHDOG_Handler       ; 1 Non-Secure Watchdog Handler
     DCD     S32K_TIMER_Handler            ; 2 S32K Timer Handler
-    DCD     TIMER0_Handler                ; 3 TIMER 0 Handler
+    DCD     TFM_TIMER0_IRQ_Handler        ; 3 TIMER 0 Handler
     DCD     TIMER1_Handler                ; 4 TIMER 1 Handler
     DCD     DUALTIMER_Handler             ; 5 Dual Timer Handler
     DCD     0                             ; 6 Reserved
@@ -289,7 +289,7 @@ Default_Handler \
                                                 ;   Reset Handler
     EXPORT NONSEC_WATCHDOG_Handler       [WEAK] ; 1 Non-Secure Watchdog Handler
     EXPORT S32K_TIMER_Handler            [WEAK] ; 2 S32K Timer Handler
-    EXPORT TIMER0_Handler                [WEAK] ; 3 TIMER 0 Handler
+    EXPORT TFM_TIMER0_IRQ_Handler        [WEAK] ; 3 TIMER 0 Handler
     EXPORT TIMER1_Handler                [WEAK] ; 4 TIMER 1 Handler
     EXPORT DUALTIMER_Handler             [WEAK] ; 5 Dual Timer Handler
     EXPORT MHU0_Handler                  [WEAK] ; 6 Message Handling Unit 0
@@ -405,7 +405,7 @@ Default_Handler \
 NONSEC_WATCHDOG_RESET_Handler  ; 0 Non-Secure Watchdog Reset Handler
 NONSEC_WATCHDOG_Handler        ; 1 Non-Secure Watchdog Handler
 S32K_TIMER_Handler             ; 2 S32K Timer Handler
-TIMER0_Handler                 ; 3 TIMER 0 Handler
+TFM_TIMER0_IRQ_Handler         ; 3 TIMER 0 Handler
 TIMER1_Handler                 ; 4 TIMER 1 Handler
 DUALTIMER_Handler              ; 5 Dual Timer Handler
 MHU0_Handler                   ; 6 Message Handling Unit 0

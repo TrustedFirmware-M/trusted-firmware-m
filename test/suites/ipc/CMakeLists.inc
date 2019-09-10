@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2018, Arm Limited. All rights reserved.
+# Copyright (c) 2018-2019, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -24,9 +24,9 @@ if(NOT DEFINED TFM_ROOT_DIR)
 	message(FATAL_ERROR "Please set TFM_ROOT_DIR before including this file.")
 endif()
 
-if (NOT DEFINED CORE_TEST_IPC)
-	message(FATAL_ERROR "Incomplete build configuration: CORE_TEST_IPC is undefined. ")
-elseif(CORE_TEST_IPC)
+if (NOT DEFINED IPC_TEST)
+	message(FATAL_ERROR "Incomplete build configuration: IPC_TEST is undefined. ")
+elseif(IPC_TEST)
 	list(APPEND ALL_SRC_C_S "${IPC_TEST_DIR}/secure/ipc_s_interface_testsuite.c")
 	list(APPEND ALL_SRC_C_NS "${IPC_TEST_DIR}/non_secure/ipc_ns_interface_testsuite.c")
 

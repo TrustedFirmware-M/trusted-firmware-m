@@ -20,7 +20,7 @@
 /*
  * Original code taken from mcuboot project at:
  * https://github.com/JuulLabs-OSS/mcuboot
- * Git SHA of the original version: b69841820462fa0227d7fb407620405f6426bb4b
+ * Git SHA of the original version: 3c469bc698a9767859ed73cd0201c44161204d5c
  * Modifications are Copyright (c) 2018-2019 Arm Limited.
  */
 
@@ -58,34 +58,54 @@ struct flash_map_entry {
 
 /*
  * The flash area describes essentially the partition table of the
- * flash.  In this case, it starts with FLASH_AREA_IMAGE_0.
+ * flash.  In this case, it starts with FLASH_AREA_IMAGE_PRIMARY.
  */
 static struct flash_map_entry part_map[] = {
     {
         .magic = FLASH_MAP_ENTRY_MAGIC,
         .area = {
-            .fa_id = FLASH_AREA_IMAGE_0,
+            .fa_id = FLASH_AREA_0_ID,
             .fa_device_id = FLASH_DEVICE_ID,
-            .fa_off = FLASH_AREA_IMAGE_0_OFFSET,
-            .fa_size = FLASH_AREA_IMAGE_0_SIZE,
+            .fa_off = FLASH_AREA_0_OFFSET,
+            .fa_size = FLASH_AREA_0_SIZE,
         },
     },
     {
         .magic = FLASH_MAP_ENTRY_MAGIC,
         .area = {
-            .fa_id = FLASH_AREA_IMAGE_1,
+            .fa_id = FLASH_AREA_2_ID,
             .fa_device_id = FLASH_DEVICE_ID,
-            .fa_off = FLASH_AREA_IMAGE_1_OFFSET,
-            .fa_size = FLASH_AREA_IMAGE_1_SIZE,
+            .fa_off = FLASH_AREA_2_OFFSET,
+            .fa_size = FLASH_AREA_2_SIZE,
+        },
+    },
+#if (MCUBOOT_IMAGE_NUMBER == 2)
+    {
+        .magic = FLASH_MAP_ENTRY_MAGIC,
+        .area = {
+            .fa_id = FLASH_AREA_1_ID,
+            .fa_device_id = FLASH_DEVICE_ID,
+            .fa_off = FLASH_AREA_1_OFFSET,
+            .fa_size = FLASH_AREA_1_SIZE,
         },
     },
     {
         .magic = FLASH_MAP_ENTRY_MAGIC,
         .area = {
-            .fa_id = FLASH_AREA_IMAGE_SCRATCH,
+            .fa_id = FLASH_AREA_3_ID,
             .fa_device_id = FLASH_DEVICE_ID,
-            .fa_off = FLASH_AREA_IMAGE_SCRATCH_OFFSET,
-            .fa_size = FLASH_AREA_IMAGE_SCRATCH_SIZE,
+            .fa_off = FLASH_AREA_3_OFFSET,
+            .fa_size = FLASH_AREA_3_SIZE,
+        },
+    },
+#endif
+    {
+        .magic = FLASH_MAP_ENTRY_MAGIC,
+        .area = {
+            .fa_id = FLASH_AREA_SCRATCH_ID,
+            .fa_device_id = FLASH_DEVICE_ID,
+            .fa_off = FLASH_AREA_SCRATCH_OFFSET,
+            .fa_size = FLASH_AREA_SCRATCH_SIZE,
         },
     }
 };
@@ -246,12 +266,36 @@ uint8_t flash_area_align(const struct flash_area *area)
 }
 
 /*
- * This depends on the mappings defined in sysflash.h, and assumes
- * that slot 0, slot 1, and the scratch area area contiguous.
+ * This depends on the mappings defined in sysflash.h, and assumes that the
+ * primary slot, the secondary slot, and the scratch area are contiguous.
  */
 int flash_area_id_from_image_slot(int slot)
 {
-    return slot + FLASH_AREA_IMAGE_0;
+#if (MCUBOOT_IMAGE_NUMBER == 1)
+    static
+#endif
+    const int area_id_tab[] = {FLASH_AREA_IMAGE_PRIMARY,
+                               FLASH_AREA_IMAGE_SECONDARY,
+                               FLASH_AREA_IMAGE_SCRATCH};
+
+    if (slot >= 0 && slot < ARRAY_SIZE(area_id_tab)) {
+        return area_id_tab[slot];
+    }
+
+    return -EINVAL; /* flash_area_open will fail on that */
+}
+
+int flash_area_id_to_image_slot(int area_id)
+{
+    if (area_id == FLASH_AREA_IMAGE_PRIMARY) {
+        return 0;
+    }
+    if (area_id == FLASH_AREA_IMAGE_SECONDARY) {
+        return 1;
+    }
+
+    BOOT_LOG_ERR("invalid flash area ID");
+    return -1;
 }
 
 static int validate_idx(int idx, uint32_t *off, uint32_t *len)
@@ -262,17 +306,27 @@ static int validate_idx(int idx, uint32_t *off, uint32_t *len)
      */
 
     switch (idx) {
-    case FLASH_AREA_IMAGE_0:
-        *off = FLASH_AREA_IMAGE_0_OFFSET;
-        *len = FLASH_AREA_IMAGE_0_SIZE;
+    case FLASH_AREA_0_ID:
+        *off = FLASH_AREA_0_OFFSET;
+        *len = FLASH_AREA_0_SIZE;
         break;
-    case FLASH_AREA_IMAGE_1:
-        *off = FLASH_AREA_IMAGE_1_OFFSET;
-        *len = FLASH_AREA_IMAGE_1_SIZE;
+    case FLASH_AREA_2_ID:
+        *off = FLASH_AREA_2_OFFSET;
+        *len = FLASH_AREA_2_SIZE;
         break;
-    case FLASH_AREA_IMAGE_SCRATCH:
-        *off = FLASH_AREA_IMAGE_SCRATCH_OFFSET;
-        *len = FLASH_AREA_IMAGE_SCRATCH_SIZE;
+#if (MCUBOOT_IMAGE_NUMBER == 2)
+    case FLASH_AREA_1_ID:
+        *off = FLASH_AREA_1_OFFSET;
+        *len = FLASH_AREA_1_SIZE;
+        break;
+    case FLASH_AREA_3_ID:
+        *off = FLASH_AREA_3_OFFSET;
+        *len = FLASH_AREA_3_SIZE;
+        break;
+#endif
+    case FLASH_AREA_SCRATCH_ID:
+        *off = FLASH_AREA_SCRATCH_OFFSET;
+        *len = FLASH_AREA_SCRATCH_SIZE;
         break;
     default:
         BOOT_LOG_ERR("unknown flash area %d", idx);

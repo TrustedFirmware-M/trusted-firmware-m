@@ -10,7 +10,7 @@
 #include <string.h>
 #include "cmsis_compiler.h"
 #include "Driver_Flash.h"
-#include "secure_fw/core/tfm_memory_utils.h"
+#include "tfm_memory_utils.h"
 #include "tfm_sst_defs.h"
 
 #ifndef SST_FLASH_AREA_ADDR

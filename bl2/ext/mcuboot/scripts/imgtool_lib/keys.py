@@ -43,12 +43,16 @@ class RSAPublicKey(univ.Sequence):
             namedtype.NamedType('publicExponent', univ.Integer()))
 
 class RSAutil():
-    def __init__(self, key):
+    def __init__(self, key, public_key_format='hash'):
         """Construct an RSA key with the given key data"""
         self.key = key
+        self.public_key_format = public_key_format
 
     def key_size(self):
         return self.key.n.bit_length()
+
+    def get_public_key_format(self):
+        return self.public_key_format
 
     @staticmethod
     def generate(key_size=2048):
@@ -104,11 +108,11 @@ class RSAutil():
         assert len(signature) == self.sig_len()
         return signature
 
-def load(path):
+def load(path, public_key_format='hash'):
     with open(path, 'rb') as f:
         pem = f.read()
     try:
         key = RSA.importKey(pem)
-        return RSAutil(key)
+        return RSAutil(key, public_key_format)
     except ValueError:
         raise Exception("Unsupported RSA key file")

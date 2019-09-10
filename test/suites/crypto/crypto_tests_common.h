@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-#include "psa_crypto.h"
+#include "psa/crypto.h"
 #include "test/framework/test_framework_helpers.h"
 
 /**

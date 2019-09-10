@@ -12,6 +12,7 @@
 #include "tfm_internal.h"
 #include "secure_fw/include/tfm_spm_services_api.h"
 #include "spm_api.h"
+#include "psa/service.h"
 
 uint8_t *tfm_scratch_area;
 uint32_t tfm_scratch_area_size;
@@ -19,14 +20,6 @@ nsfptr_t ns_entry;
 
 void jump_to_ns_code(void)
 {
-#if TFM_LVL == 3 || ((!defined(TFM_PSA_API)) && (TFM_LVL != 1))
-    /* Initialization is done, set thread mode to unprivileged. */
-    tfm_spm_partition_change_privilege(TFM_PARTITION_UNPRIVILEGED_MODE);
-#endif
-    /* All changes made to memory will be effective after this point */
-    __DSB();
-    __ISB();
-
     /* Calls the non-secure Reset_Handler to jump to the non-secure binary */
     ns_entry();
 }
@@ -80,7 +73,7 @@ int32_t tfm_core_validate_secure_caller(void)
 }
 
 __attribute__((naked))
-int32_t tfm_core_set_buffer_area(enum tfm_buffer_share_region_e share)
+int32_t tfm_core_set_buffer_area(uint32_t share)
 {
     __ASM volatile(
         "SVC    %0\n"
@@ -99,3 +92,58 @@ int32_t tfm_core_get_boot_data(uint8_t major_type,
         "BX     lr\n"
         : : "I" (TFM_SVC_GET_BOOT_DATA));
 }
+
+__attribute__((naked))
+void tfm_enable_irq(psa_signal_t irq_signal)
+{
+    __ASM("SVC %0\n"
+          "BX LR\n"
+          : : "I" (TFM_SVC_ENABLE_IRQ));
+}
+
+__attribute__((naked))
+void tfm_disable_irq(psa_signal_t irq_signal)
+{
+    __ASM("SVC %0\n"
+          "BX LR\n"
+          : : "I" (TFM_SVC_DISABLE_IRQ));
+}
+
+#ifndef TFM_PSA_API
+
+__attribute__((naked))
+static psa_signal_t psa_wait_internal(psa_signal_t signal_mask,
+                                      uint32_t timeout)
+{
+    __ASM("SVC %0\n"
+          "BX LR\n"
+          : : "I" (TFM_SVC_PSA_WAIT));
+}
+
+psa_signal_t psa_wait(psa_signal_t signal_mask, uint32_t timeout)
+{
+    /* FIXME: By using the 'WFI' instruction this function blocks until an
+     * interrupt happens. It is necessary to do this here as tfm_core_psa_wait
+     * runs with the priority of the SVC, so it cannot be interrupted, so
+     * waiting in it for the required interrupt to happen is not an option.
+     */
+    psa_signal_t actual_signal_mask;
+
+    while (1) {
+        actual_signal_mask = psa_wait_internal(signal_mask, timeout);
+        if ((actual_signal_mask & signal_mask) != 0) {
+            return actual_signal_mask;
+        }
+        __WFI();
+    }
+}
+
+__attribute__((naked))
+void psa_eoi(psa_signal_t irq_signal)
+{
+    __ASM("SVC %0\n"
+          "BX LR\n"
+          : : "I" (TFM_SVC_PSA_EOI));
+}
+
+#endif

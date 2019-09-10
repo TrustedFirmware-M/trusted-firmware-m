@@ -8,7 +8,7 @@
 #if DOMAIN_NS == 1
 #include <string.h>
 #else
-#include "secure_fw/core/tfm_memory_utils.h"
+#include "tfm_memory_utils.h"
 #endif
 #include "crypto_tests_common.h"
 

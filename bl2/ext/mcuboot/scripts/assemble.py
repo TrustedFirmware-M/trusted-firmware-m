@@ -25,26 +25,10 @@ import io
 import re
 import os
 import shutil
+import macro_parser
 
-offset_re = re.compile(r"^\s*RE_([0-9A-Z_]+)_IMAGE_OFFSET\s*=\s*(((0x)?[0-9a-fA-F]+)\s*([\+\-]\s*((0x)?[0-9a-fA-F]+)\s*)*)")
-size_re = re.compile(r"^\s*RE_([0-9A-Z_]+)_IMAGE_MAX_SIZE\s*=\s*(((0x)?[0-9a-fA-F]+)\s*([\+\-]\s*((0x)?[0-9a-fA-F]+)\s*)*)")
-
-#Simple parser that takes a string and evaluates an expression from it.
-#The expression might contain additions and subtractions amongst numbers that are
-#written in decimal or hexadecimal form.
-def parse_and_sum(text):
-    nums = re.findall(r'[0x\d]+|[\d]+', text)
-    for i in range(len(nums)):
-        nums[i] = int(nums[i], 0)
-    ops = re.findall(r'\+|\-', text)
-    sum = nums[0]
-    for i in range(len(ops)):
-        if ops[i] == '+':
-            sum += nums[i+1]
-        else:
-            sum -= nums[i+1]
-    return sum
-
+offset_re = re.compile(r"^\s*RE_([0-9A-Z_]+)_IMAGE_OFFSET\s*=\s*(.*)")
+size_re = re.compile(r"^\s*RE_([0-9A-Z_]+)_IMAGE_MAX_SIZE\s*=\s*(.*)")
 
 class Assembly():
     def __init__(self, layout_path, output):
@@ -61,20 +45,8 @@ class Assembly():
         offsets = {}
         sizes = {}
 
-        if os.path.isabs(self.layout_path):
-            configFile = self.layout_path
-        else:
-            scriptsDir = os.path.dirname(os.path.abspath(__file__))
-            configFile = os.path.join(scriptsDir, self.layout_path)
-
-        with open(configFile, 'r') as fd:
-            for line in fd:
-                m = offset_re.match(line)
-                if m is not None:
-                    offsets[m.group(1)] = parse_and_sum(m.group(2))
-                m = size_re.match(line)
-                if m is not None:
-                    sizes[m.group(1)] = parse_and_sum(m.group(2))
+        offsets = macro_parser.evaluate_macro(self.layout_path, offset_re, 1, 2)
+        sizes = macro_parser.evaluate_macro(self.layout_path, size_re, 1, 2)
 
         if 'SECURE' not in offsets:
             raise Exception("Image config does not have secure partition")
@@ -103,7 +75,7 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-l', '--layout', required=True,
-            help='Location of the memory layout file')
+            help='Location of the file that contains preprocessed macros')
     parser.add_argument('-s', '--secure', required=True,
             help='Unsigned secure image')
     parser.add_argument('-n', '--non_secure',

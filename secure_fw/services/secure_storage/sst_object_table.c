@@ -14,7 +14,7 @@
 #include "flash/sst_flash.h"
 #include "flash_fs/sst_flash_fs.h"
 #include "nv_counters/sst_nv_counters.h"
-#include "secure_fw/core/tfm_memory_utils.h"
+#include "tfm_memory_utils.h"
 #include "sst_utils.h"
 #include "tfm_sst_defs.h"
 

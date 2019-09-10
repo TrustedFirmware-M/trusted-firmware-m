@@ -123,7 +123,7 @@ Code structure
 **************
 The PSA interface for the Initial Attestation Service is located in
 ``interface/include``. The only header to be included by applications that want
-to use functions from the PSA API is ``psa_initial_attestation.h``.
+to use functions from the PSA API is ``psa/initial_attestation.h``.
 
 The TF-M Initial Attestation Service source files are located in
 ``secure_fw/services/initial_attestation``.
@@ -148,14 +148,14 @@ Service source files
     - ``lib/t_cose/src/t_cose_crypto.h``: Expose an API to bind ``t_cose``
       library with available crypto library in the device.
     - ``lib/t_cose/src/t_cose_psa_crypto.c``: Implements the exposed API
-      and ports ``t_cose`` to psa_crypto library.
+      and ports ``t_cose`` to the PSA Crypto API.
     - Initial Attestation Service:
         - ``attestation_core.c`` : Implements core functionalities such as
           implementation of APIs, retrieval of claims and token creation.
         - ``attest_token.c``: Implements the token creation function such as
           start and finish token creation and adding claims to the token.
         - ``attestation_key.c``: Get the attestation key from platform layer
-          and register it to psa_crypto service for further usage.
+          and register it to the TF-M Crypto service for further usage.
         - ``tfm_attestation.c``: Implements the SPM abstraction layer, and bind
           the attestation service to the SPM implementation in TF-M project.
         - ``tfm_attestation_secure_api.c``: Implements the secure API layer to
@@ -184,7 +184,7 @@ Service interface definitions
     - ``attestation.h``: Expose an API to bind attestation service to an SPM
       implementation.
 - **PSA interface**:
-    - ``psa_initial_attestation.h``: Public API definition of initial
+    - ``psa/initial_attestation.h``: Public API definition of initial
       attestation service.
 - **Crypto interface**:
     - ``t_cose_crypto.h``: Expose an API to bind the ``t_cose`` implementation

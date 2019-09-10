@@ -12,7 +12,7 @@
 #include "tfm_arch.h"
 #include "tfm_memory_utils.h"
 #include "tfm_secure_api.h"
-#include "tfm_spm.h"
+#include "spm_api.h"
 #include "tfm_svc.h"
 
 #if !defined(__ARM_ARCH_8M_MAIN__)
@@ -29,8 +29,6 @@ struct tfm_fault_context_s {
     uint32_t ReturnAddress;
     uint32_t RETPSR;
 } tfm_fault_context;
-
-extern uint32_t SVCHandler_main(uint32_t *svc_args, uint32_t lr);
 
 #ifdef TFM_PSA_API
 /*
@@ -108,6 +106,39 @@ int32_t tfm_core_sfn_request(const struct tfm_sfn_req_s *desc_ptr)
             [SVC_RET] "I" (TFM_SVC_SFN_RETURN)
         : "r0");
 }
+
+__attribute__((section("SFN"), naked))
+void priv_irq_handler_main(uint32_t partition_id,
+                                                  uint32_t unpriv_handler,
+                                                  uint32_t irq_signal,
+                                                  uint32_t irq_line)
+{
+    __ASM(
+          /* Save the callee saved registers*/
+          "PUSH   {r4-r12, lr}              \n"
+          /* Request SVC to configure environment for the unpriv IRQ handler */
+          "SVC    %[SVC_REQ]                \n"
+          /* clear the callee saved registers to prevent information leak */
+          "MOV    r4, #0                    \n"
+          "MOV    r5, #0                    \n"
+          "MOV    r6, #0                    \n"
+          "MOV    r7, #0                    \n"
+          "MOV    r8, #0                    \n"
+          "MOV    r9, #0                    \n"
+          "MOV    r10, #0                   \n"
+          "MOV    r11, #0                   \n"
+          /* Branch to the unprivileged handler */
+          "BLX    lr                        \n"
+          /* Request SVC to reconfigure the environment of the interrupted
+           * partition
+           */
+          "SVC    %[SVC_RET]                \n"
+            /* restore callee saved registers and return */
+          "POP    {r4-r12, pc}              \n"
+          : : [SVC_REQ] "I" (TFM_SVC_DEPRIV_REQ)
+            , [SVC_RET] "I" (TFM_SVC_DEPRIV_RET)
+          : "r0");
+}
 #endif
 
 /**
@@ -152,13 +183,15 @@ void SecureFault_Handler(void)
 __attribute__((naked)) void SVC_Handler(void)
 {
     __ASM volatile(
-        "TST     lr, #4            \n" /* Check store SP in thread mode to r0 */
-        "IT      EQ                \n"
-        "BXEQ    lr                \n"
-        "MRS     r0, PSP           \n"
-        "MOV     r1, lr            \n"
-        "BL      SVCHandler_main   \n"
-        "BX      r0                \n"
+    "MRS     r2, MSP                        \n"
+    /* Check store SP in thread mode to r0 */
+    "TST     lr, #4                         \n"
+    "ITE     EQ                             \n"
+    "MOVEQ   r0, r2                         \n"
+    "MRSNE   r0, PSP                        \n"
+    "MOV     r1, lr                         \n"
+    "BL      tfm_core_svc_handler           \n"
+    "BX      r0                             \n"
     );
 }
 

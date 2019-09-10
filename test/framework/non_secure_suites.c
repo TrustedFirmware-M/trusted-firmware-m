@@ -20,22 +20,6 @@
 #include "test/suites/ipc/non_secure/ipc_ns_tests.h"
 
 static struct test_suite_t test_suites[] = {
-#if TFM_LVL == 3
-#ifdef SERVICES_TEST_NS
-    /* List test cases which compliant with level 3 isolation */
-
-    /* Non-secure QCBOR library test cases */
-    {&register_testsuite_ns_qcbor, 0, 0, 0},
-
-#ifdef TFM_PARTITION_TEST_CORE
-    /* Non-secure invert test cases */
-    /* Note: since this is sample code, only run if test services are enabled */
-    {&register_testsuite_ns_invert_interface, 0, 0, 0},
-#endif
-#endif /* SERVICES_TEST_NS */
-
-#else /* TFM_LVL == 3 */
-
 #ifdef SERVICES_TEST_NS
     /* List test cases which are compliant with level 1 isolation */
 
@@ -68,10 +52,9 @@ static struct test_suite_t test_suites[] = {
     {&register_testsuite_ns_invert_interface, 0, 0, 0},
 #endif
 #endif /* SERVICES_TEST_NS */
-#endif /* TFM_LVL == 3 */
 
 #ifdef CORE_TEST_POSITIVE
-#if !((TFM_LVL == 2) && defined(TFM_PSA_API))
+#if !defined(TFM_PSA_API) || (TFM_LVL == 1)
     /* Non-secure core test cases */
     {&register_testsuite_ns_core_positive, 0, 0, 0},
 #endif
@@ -82,7 +65,7 @@ static struct test_suite_t test_suites[] = {
     {&register_testsuite_ns_core_interactive, 0, 0, 0},
 #endif
 
-#ifdef CORE_TEST_IPC
+#ifdef ENABLE_IPC_TEST
     /* Non-secure IPC test cases */
     {&register_testsuite_ns_ipc_interface, 0, 0, 0},
 #endif

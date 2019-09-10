@@ -6,14 +6,14 @@
  */
 
 #include <stdlib.h>
-#include "tfm_psa_client_call.h"
 #include "psa_service.h"
+#include "spm_api.h"
+#include "tfm_internal_defines.h"
+#include "tfm_memory_utils.h"
+#include "tfm_message_queue.h"
+#include "tfm_psa_client_call.h"
 #include "tfm_utils.h"
 #include "tfm_wait.h"
-#include "tfm_internal_defines.h"
-#include "tfm_message_queue.h"
-#include "tfm_spm.h"
-#include "tfm_memory_utils.h"
 
 uint32_t tfm_psa_framework_version(void)
 {
@@ -63,7 +63,7 @@ psa_status_t tfm_psa_connect(uint32_t sid, uint32_t minor_version,
      */
     connect_handle = tfm_spm_create_conn_handle(service);
     if (connect_handle == PSA_NULL_HANDLE) {
-        return PSA_CONNECTION_BUSY;
+        return PSA_ERROR_CONNECTION_BUSY;
     }
 
     /*
@@ -82,13 +82,15 @@ psa_status_t tfm_psa_connect(uint32_t sid, uint32_t minor_version,
         tfm_panic();
     }
 
-    /* No input or output needed for connect message */
-    msg = tfm_spm_create_msg(service, connect_handle, PSA_IPC_CONNECT,
-                             ns_caller, NULL, 0, NULL, 0, NULL);
+    msg = tfm_spm_get_msg_buffer_from_conn_handle(connect_handle);
     if (!msg) {
         /* Have no enough resource to create message */
-        return PSA_CONNECTION_BUSY;
+        return PSA_ERROR_CONNECTION_BUSY;
     }
+
+    /* No input or output needed for connect message */
+    tfm_spm_fill_msg(msg, service, connect_handle, PSA_IPC_CONNECT,
+                     ns_caller, NULL, 0, NULL, 0, NULL);
 
     /*
      * Send message and wake up the SP who is waiting on message queue,
@@ -99,8 +101,9 @@ psa_status_t tfm_psa_connect(uint32_t sid, uint32_t minor_version,
     return PSA_SUCCESS;
 }
 
-psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *inptr,
-                          size_t in_num, psa_outvec *outptr, size_t out_num,
+psa_status_t tfm_psa_call(psa_handle_t handle, int32_t type,
+                          const psa_invec *inptr, size_t in_num,
+                          psa_outvec *outptr, size_t out_num,
                           int32_t ns_caller, uint32_t privileged)
 {
     psa_invec invecs[PSA_MAX_IOVEC];
@@ -126,8 +129,8 @@ psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *inptr,
      * if the memory reference for the wrap input vector is invalid or not
      * readable.
      */
-    if (tfm_memory_check((void *)inptr, in_num * sizeof(psa_invec),
-        ns_caller, TFM_MEMORY_ACCESS_RO, privileged) != IPC_SUCCESS) {
+    if (tfm_memory_check(inptr, in_num * sizeof(psa_invec), ns_caller,
+        TFM_MEMORY_ACCESS_RO, privileged) != IPC_SUCCESS) {
         tfm_panic();
     }
     /*
@@ -135,8 +138,8 @@ psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *inptr,
      * actual length later. It is a fatal error if the memory reference for
      * the wrap output vector is invalid or not read-write.
      */
-    if (tfm_memory_check((void *)outptr, out_num * sizeof(psa_outvec),
-        ns_caller, TFM_MEMORY_ACCESS_RW, privileged) != IPC_SUCCESS) {
+    if (tfm_memory_check(outptr, out_num * sizeof(psa_outvec), ns_caller,
+        TFM_MEMORY_ACCESS_RW, privileged) != IPC_SUCCESS) {
         tfm_panic();
     }
 
@@ -152,8 +155,8 @@ psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *inptr,
      * memory reference was invalid or not readable.
      */
     for (i = 0; i < in_num; i++) {
-        if (tfm_memory_check((void *)invecs[i].base, invecs[i].len,
-            ns_caller, TFM_MEMORY_ACCESS_RO, privileged) != IPC_SUCCESS) {
+        if (tfm_memory_check(invecs[i].base, invecs[i].len, ns_caller,
+            TFM_MEMORY_ACCESS_RO, privileged) != IPC_SUCCESS) {
             tfm_panic();
         }
     }
@@ -172,12 +175,14 @@ psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *inptr,
      * FixMe: Need to check if the message is unrecognized by the RoT
      * Service or incorrectly formatted.
      */
-    msg = tfm_spm_create_msg(service, handle, PSA_IPC_CALL, ns_caller, invecs,
-                             in_num, outvecs, out_num, outptr);
+    msg = tfm_spm_get_msg_buffer_from_conn_handle(handle);
     if (!msg) {
         /* FixMe: Need to implement one mechanism to resolve this failure. */
         tfm_panic();
     }
+
+    tfm_spm_fill_msg(msg, service, handle, type, ns_caller, invecs,
+                     in_num, outvecs, out_num, outptr);
 
     /*
      * Send message and wake up the SP who is waiting on message queue,
@@ -210,13 +215,15 @@ void tfm_psa_close(psa_handle_t handle, int32_t ns_caller)
         tfm_panic();
     }
 
-    /* No input or output needed for close message */
-    msg = tfm_spm_create_msg(service, handle, PSA_IPC_DISCONNECT, ns_caller,
-                             NULL, 0, NULL, 0, NULL);
+    msg = tfm_spm_get_msg_buffer_from_conn_handle(handle);
     if (!msg) {
         /* FixMe: Need to implement one mechanism to resolve this failure. */
-        return;
+        tfm_panic();
     }
+
+    /* No input or output needed for close message */
+    tfm_spm_fill_msg(msg, service, handle, PSA_IPC_DISCONNECT, ns_caller,
+                     NULL, 0, NULL, 0, NULL);
 
     /*
      * Send message and wake up the SP who is waiting on message queue,

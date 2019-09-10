@@ -11,7 +11,7 @@
 #include <stdint.h>
 
 #include "flash_layout.h"
-#include "psa_protected_storage.h"
+#include "psa/protected_storage.h"
 
 #ifdef __cplusplus
 extern "C" {

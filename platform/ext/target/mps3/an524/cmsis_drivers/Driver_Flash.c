@@ -42,7 +42,7 @@
 
 #define FLASH_REDIRECT_BASE   SST_FLASH_AREA_ADDR
 #define FLASH_REDIRECT_LIMIT  (FLASH_REDIRECT_BASE   \
-                               + SST_FLASH_AREA_SIZE \
+                               + FLASH_SST_AREA_SIZE \
                                + FLASH_NV_COUNTERS_AREA_SIZE)
 #define FLASH_REDIRECT_DEST   0x38000000
 

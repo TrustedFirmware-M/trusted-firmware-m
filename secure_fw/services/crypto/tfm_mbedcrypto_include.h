@@ -9,7 +9,7 @@
 #define __TFM_MBEDCRYPTO_INCLUDE_H__
 
 /* FIXME: The PSA Crypto headers in Mbed Crypto define PSA_SUCCESS and typedef
- * psa_status_t. To prevent redefinition errors in psa_client.h, use the
+ * psa_status_t. To prevent redefinition errors in psa/client.h, use the
  * preprocessor to prefix psa_status_t in the Mbed Crypto headers, and then
  * undef psa_status_t and PSA_SUCCESS after the include.
  */

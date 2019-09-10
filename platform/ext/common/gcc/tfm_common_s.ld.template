@@ -93,13 +93,8 @@ SECTIONS
         LONG (ADDR(.TFM_BSS))
         LONG (SIZEOF(.TFM_BSS))
 #if !defined(TFM_PSA_API)
-#if TFM_LVL == 1
         LONG (ADDR(.TFM_SECURE_STACK))
         LONG (SIZEOF(.TFM_SECURE_STACK))
-#else /* TFM_LVL == 1 */
-        LONG (ADDR(.TFM_UNPRIV_BSS))
-        LONG (SIZEOF(.TFM_UNPRIV_BSS))
-#endif /* TFM_LVL == 1 */
 #endif /* !defined(TFM_PSA_API) */
 {% for manifest in manifests %}
     {% if manifest.attr.conditional %}
@@ -107,7 +102,7 @@ SECTIONS
     {% endif %}
         LONG (ADDR(.{{manifest.manifest.name}}_BSS))
         LONG (SIZEOF(.{{manifest.manifest.name}}_BSS))
-#if defined(TFM_PSA_API) || (TFM_LVL != 1)
+#if defined(TFM_PSA_API)
         LONG (ADDR(.{{manifest.manifest.name}}_STACK))
         LONG (SIZEOF(.{{manifest.manifest.name}}_STACK))
 #endif
@@ -122,7 +117,6 @@ SECTIONS
         __zero_table_end__ = .;
     } > FLASH
 
-#if TFM_LVL != 1
     .TFM_UNPRIV_CODE : ALIGN(32)
     {
         *libc_nano*:*(.text*)
@@ -148,7 +142,6 @@ SECTIONS
     } > FLASH
     Image$$TFM_UNPRIV_CODE$$RO$$Base = ADDR(.TFM_UNPRIV_CODE);
     Image$$TFM_UNPRIV_CODE$$RO$$Limit = ADDR(.TFM_UNPRIV_CODE) + SIZEOF(.TFM_UNPRIV_CODE);
-#endif /* TFM_LVL != 1 */
 
     /**** PSA RoT RO part (CODE + RODATA) start here */
     Image$$TFM_PSA_CODE_START$$Base = .;
@@ -397,6 +390,7 @@ SECTIONS
         {{pattern}}(.data*)
         {% endfor %}
     {% endif %}
+        *({{manifest.manifest.name}}_ATTR_RW)
         . = ALIGN(32);
     } > RAM AT> FLASH
     Image$${{manifest.manifest.name}}_DATA$$RW$$Base = ADDR(.{{manifest.manifest.name}}_DATA);
@@ -417,6 +411,7 @@ SECTIONS
         {{pattern}}(COMMON)
         {% endfor %}
     {% endif %}
+        *({{manifest.manifest.name}}_ATTR_ZI)
         . += (. - start_of_{{manifest.manifest.name}}) ? 0 : 4;
         . = ALIGN(32);
     } > RAM AT> RAM
@@ -424,22 +419,10 @@ SECTIONS
     Image$${{manifest.manifest.name}}_DATA$$ZI$$Limit = ADDR(.{{manifest.manifest.name}}_BSS) + SIZEOF(.{{manifest.manifest.name}}_BSS);
 
     {% if manifest.attr.tfm_partition_ipc %}
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+#if defined (TFM_PSA_API)
     .{{manifest.manifest.name}}_STACK : ALIGN(128)
     {
         . += {{manifest.manifest.stack_size}};
-    } > RAM
-    Image$${{manifest.manifest.name}}_STACK$$ZI$$Base = ADDR(.{{manifest.manifest.name}}_STACK);
-    Image$${{manifest.manifest.name}}_STACK$$ZI$$Limit = ADDR(.{{manifest.manifest.name}}_STACK) + SIZEOF(.{{manifest.manifest.name}}_STACK);
-#endif
-    {% else %}
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
-    .{{manifest.manifest.name}}_STACK : ALIGN(128)
-    {
-        {# Note: Don't allocate stack for partition when using TFM_PSA_API if tfm_partition_ipc is false #}
-#if !defined(TFM_PSA_API)
-        . += {{manifest.manifest.stack_size}};
-#endif
     } > RAM
     Image$${{manifest.manifest.name}}_STACK$$ZI$$Base = ADDR(.{{manifest.manifest.name}}_STACK);
     Image$${{manifest.manifest.name}}_STACK$$ZI$$Limit = ADDR(.{{manifest.manifest.name}}_STACK) + SIZEOF(.{{manifest.manifest.name}}_STACK);
@@ -557,6 +540,7 @@ SECTIONS
         {{pattern}}(.data*)
         {% endfor %}
     {% endif %}
+        *({{manifest.manifest.name}}_ATTR_RW)
         . = ALIGN(32);
     } > RAM AT> FLASH
     Image$${{manifest.manifest.name}}_DATA$$RW$$Base = ADDR(.{{manifest.manifest.name}}_DATA);
@@ -577,6 +561,7 @@ SECTIONS
         {{pattern}}(COMMON)
         {% endfor %}
     {% endif %}
+        *({{manifest.manifest.name}}_ATTR_ZI)
         . += (. - start_of_{{manifest.manifest.name}}) ? 0 : 4;
         . = ALIGN(32);
     } > RAM AT> RAM
@@ -584,22 +569,10 @@ SECTIONS
     Image$${{manifest.manifest.name}}_DATA$$ZI$$Limit = ADDR(.{{manifest.manifest.name}}_BSS) + SIZEOF(.{{manifest.manifest.name}}_BSS);
 
     {% if manifest.attr.tfm_partition_ipc %}
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+#if defined (TFM_PSA_API)
     .{{manifest.manifest.name}}_STACK : ALIGN(128)
     {
         . += {{manifest.manifest.stack_size}};
-    } > RAM
-    Image$${{manifest.manifest.name}}_STACK$$ZI$$Base = ADDR(.{{manifest.manifest.name}}_STACK);
-    Image$${{manifest.manifest.name}}_STACK$$ZI$$Limit = ADDR(.{{manifest.manifest.name}}_STACK) + SIZEOF(.{{manifest.manifest.name}}_STACK);
-#endif
-    {% else %}
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
-    .{{manifest.manifest.name}}_STACK : ALIGN(128)
-    {
-        {# Note: Don't allocate stack for partition when using TFM_PSA_API if tfm_partition_ipc is false #}
-#if !defined(TFM_PSA_API)
-        . += {{manifest.manifest.stack_size}};
-#endif
     } > RAM
     Image$${{manifest.manifest.name}}_STACK$$ZI$$Base = ADDR(.{{manifest.manifest.name}}_STACK);
     Image$${{manifest.manifest.name}}_STACK$$ZI$$Limit = ADDR(.{{manifest.manifest.name}}_STACK) + SIZEOF(.{{manifest.manifest.name}}_STACK);

@@ -8,7 +8,7 @@
 #include "attestation_key.h"
 #include <stdint.h>
 #include <stddef.h>
-#include "psa_initial_attestation_api.h"
+#include "psa/initial_attestation.h"
 #include "platform/include/tfm_plat_defs.h"
 #include "platform/include/tfm_plat_crypto_keys.h"
 

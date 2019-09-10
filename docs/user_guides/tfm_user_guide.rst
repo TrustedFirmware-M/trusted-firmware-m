@@ -62,9 +62,9 @@ Test software upgrade with BL2 bootloader
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 BL2 bootloader is mandatory to test software update. Furthermore two TF-M blob
 must be built. Outputs of example application and regression test can be used to
-test it. Load output of example application to slot 0 (0x10080000) and output of
-regression test to slot 1 (0x10180000). Add the following line to the end of
-the previous chapter:
+test it. Load output of example application to the primary slot (0x10080000) and
+output of regression test to the secondary slot (0x10180000). Add the following
+line to the end of the previous chapter:
 
 .. code-block:: bash
 
@@ -111,7 +111,7 @@ Example application
     [INF] Starting bootloader
     [INF] Image 0: magic=good, copy_done=0xff, image_ok=0xff
     [INF] Scratch: magic=bad, copy_done=0x5, image_ok=0xcf
-    [INF] Boot source: slot 0
+    [INF] Boot source: primary slot
     [INF] Swap type: none
     [INF] Bootloader chainload address offset: 0x80000
     [INF] Jumping to the first image slot
@@ -125,7 +125,7 @@ port (baud 115200 8n1) the following messages::
     [INF] Starting bootloader
     [INF] Image 0: magic=good, copy_done=0xff, image_ok=0xff
     [INF] Scratch: magic=bad, copy_done=0x5, image_ok=0xcf
-    [INF] Boot source: slot 0
+    [INF] Boot source: primary slot
     [INF] Swap type: none
     [INF] Bootloader chainload address offset: 0x80000
     [INF] Jumping to the first image slot
@@ -256,7 +256,7 @@ Example application with BL2 bootloader
     [INF] Starting bootloader
     [INF] Image 0: magic=good, copy_done=0xff, image_ok=0xff
     [INF] Scratch: magic=bad, copy_done=0x5, image_ok=0xd9
-    [INF] Boot source: slot 0
+    [INF] Boot source: primary slot
     [INF] Swap type: none
     [INF] Bootloader chainload address offset: 0x20000
     [INF] Jumping to the first image slot
@@ -270,7 +270,7 @@ DAPLink UART (baud 115200 8n1)::
     [INF] Starting bootloader
     [INF] Image 0: magic=good, copy_done=0xff, image_ok=0xff
     [INF] Scratch: magic=bad, copy_done=0x5, image_ok=0x9
-    [INF] Boot source: slot 0
+    [INF] Boot source: primary slot
     [INF] Swap type: none
     [INF] Bootloader chainload address offset: 0x20000
     [INF] Jumping to the first image slot

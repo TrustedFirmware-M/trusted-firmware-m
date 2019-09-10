@@ -10,7 +10,7 @@
 #include "platform_description.h"
 #include "target_cfg.h"
 #include "device_definition.h"
-#include "psa_client.h"
+#include "psa/client.h"
 #include "tfm_secure_api.h"
 #include "services/include/tfm_ioctl_api.h"
 
@@ -113,4 +113,3 @@ enum tfm_platform_err_t tfm_platform_hal_ioctl(tfm_platform_ioctl_req_t request,
             return TFM_PLATFORM_ERR_NOT_SUPPORTED;
     }
 }
-

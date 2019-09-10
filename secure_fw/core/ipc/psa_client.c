@@ -8,7 +8,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include "tfm_svc.h"
-#include "psa_client.h"
+#include "psa/client.h"
 
 __attribute__((naked, section("SFN")))
 uint32_t psa_framework_version(void)
@@ -27,7 +27,7 @@ uint32_t psa_version(uint32_t sid)
 }
 
 __attribute__((naked, section("SFN")))
-psa_handle_t psa_connect(uint32_t sid, uint32_t minor_version)
+psa_handle_t psa_connect(uint32_t sid, uint32_t version)
 {
     __ASM volatile("SVC %0           \n"
                    "BX LR            \n"
@@ -36,6 +36,7 @@ psa_handle_t psa_connect(uint32_t sid, uint32_t minor_version)
 
 __attribute__((naked, section("SFN")))
 psa_status_t psa_call(psa_handle_t handle,
+                      int32_t type,
                       const psa_invec *in_vec,
                       size_t in_len,
                       psa_outvec *out_vec,

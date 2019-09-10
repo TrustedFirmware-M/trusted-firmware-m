@@ -34,11 +34,6 @@ else()
 endif()
 set (FLASH_LAYOUT          "${PLATFORM_DIR}/target/musca_a/partition/flash_layout.h")
 set (PLATFORM_LINK_INCLUDES "${PLATFORM_DIR}/target/musca_a/partition")
-set (SIGN_BIN_SIZE         0x100000)
-
-if (BL2)
-  set (BL2_LINKER_CONFIG ${BL2_SCATTER_FILE_NAME})
-endif()
 
 embedded_include_directories(PATH "${PLATFORM_DIR}/cmsis" ABSOLUTE)
 embedded_include_directories(PATH "${PLATFORM_DIR}/target/musca_a" ABSOLUTE)
@@ -48,6 +43,7 @@ embedded_include_directories(PATH "${PLATFORM_DIR}/target/musca_a/Device/Include
 embedded_include_directories(PATH "${PLATFORM_DIR}/target/musca_a/Native_Driver" ABSOLUTE)
 embedded_include_directories(PATH "${PLATFORM_DIR}/target/musca_a/partition" ABSOLUTE)
 embedded_include_directories(PATH "${PLATFORM_DIR}/target/musca_a/Libraries" ABSOLUTE)
+embedded_include_directories(PATH "${PLATFORM_DIR}/../include" ABSOLUTE)
 
 #Gather all source files we need.
 if (NOT DEFINED BUILD_CMSIS_CORE)
@@ -92,7 +88,7 @@ endif()
 if (NOT DEFINED BUILD_TIME)
   message(FATAL_ERROR "Configuration variable BUILD_TIME (true|false) is undefined!")
 elseif(BUILD_TIME)
-  list(APPEND ALL_SRC_C "${PLATFORM_DIR}/target/musca_a/Native_Driver/timer_cmsdk.c")
+  list(APPEND ALL_SRC_C "${PLATFORM_DIR}/target/musca_a/Native_Driver/timer_cmsdk_drv.c")
   embedded_include_directories(PATH "${PLATFORM_DIR}/target/musca_a/Native_Driver" ABSOLUTE)
 endif()
 
@@ -127,10 +123,17 @@ elseif(BUILD_TARGET_CFG)
   embedded_include_directories(PATH "${PLATFORM_DIR}/common" ABSOLUTE)
 endif()
 
+if (NOT DEFINED BUILD_PLAT_TEST)
+  message(FATAL_ERROR "Configuration variable BUILD_PLAT_TEST (true|false) is undefined!")
+elseif(BUILD_PLAT_TEST)
+  list(APPEND ALL_SRC_C "${PLATFORM_DIR}/target/musca_a/plat_test.c")
+endif()
+
 if (NOT DEFINED BUILD_TARGET_HARDWARE_KEYS)
   message(FATAL_ERROR "Configuration variable BUILD_TARGET_HARDWARE_KEYS (true|false) is undefined!")
 elseif(BUILD_TARGET_HARDWARE_KEYS)
   list(APPEND ALL_SRC_C "${PLATFORM_DIR}/common/tfm_initial_attestation_key_material.c")
+  list(APPEND ALL_SRC_C "${PLATFORM_DIR}/common/tfm_rotpk.c")
   list(APPEND ALL_SRC_C "${PLATFORM_DIR}/target/musca_a/dummy_crypto_keys.c")
 endif()
 
@@ -171,12 +174,30 @@ endif()
 
 if (NOT BL2)
     message(WARNING "BL2 is mandatory on target '${TARGET_PLATFORM}'. Your choice was overriden.")
+    add_definitions(-DBL2)
     set(BL2 True)
-    set(MCUBOOT_UPGRADE_STRATEGY "RAM_LOADING")
+    set(MCUBOOT_IMAGE_NUMBER 1)
+    mcuboot_override_upgrade_strategy("RAM_LOADING")
+    message(STATUS "MCUBOOT_UPGRADE_STRATEGY was not set, using the mandatory value for '${TARGET_PLATFORM}': ${MCUBOOT_UPGRADE_STRATEGY}.")
+    set(MCUBOOT_SIGNATURE_TYPE "RSA-3072")
+    message(STATUS "MCUBOOT_SIGNATURE_TYPE was not set, using default value: ${MCUBOOT_SIGNATURE_TYPE}.")
 else() #BL2 is True
     if (NOT ${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "RAM_LOADING")
         message(WARNING "RAM_LOADING upgrade strategy is mandatory on target '${TARGET_PLATFORM}'. Your choice was overriden.")
-        set(MCUBOOT_UPGRADE_STRATEGY "RAM_LOADING")
+        mcuboot_override_upgrade_strategy("RAM_LOADING")
+    endif()
+endif()
+
+if (BL2)
+    set(BL2_LINKER_CONFIG ${BL2_SCATTER_FILE_NAME})
+
+    #FixMe: MCUBOOT_SIGN_RSA_LEN can be removed when ROTPK won't be hard coded in platform/ext/common/tfm_rotpk.c
+    #       instead independently loaded from secure code as a blob.
+    if (${MCUBOOT_SIGNATURE_TYPE} STREQUAL "RSA-2048")
+        add_definitions(-DMCUBOOT_SIGN_RSA_LEN=2048)
+    endif()
+    if (${MCUBOOT_SIGNATURE_TYPE} STREQUAL "RSA-3072")
+        add_definitions(-DMCUBOOT_SIGN_RSA_LEN=3072)
     endif()
 endif()
 

@@ -188,18 +188,32 @@ boot_save_sw_epoch(uint8_t sw_module)
 static enum boot_status_err_t
 boot_save_sw_type(uint8_t sw_module)
 {
-    /*FixMe: Use a hard coded value for now. Later on when multiple image will
-     *       be handled by MCUBoot then this must be revisited.
-     */
     uint16_t ias_minor;
     enum shared_memory_err_t res;
-    char sw_type[] = "NSPE_SPE";
+    const char *sw_type;
+    static const char sw_comp_s[] = "SPE";
+    static const char sw_comp_ns[] = "NSPE";
+    static const char sw_comp_ns_s[] = "NSPE_SPE";
+
+    switch (sw_module) {
+    case SW_SPE:
+        sw_type = sw_comp_s;
+        break;
+    case SW_NSPE:
+        sw_type = sw_comp_ns;
+        break;
+    case SW_S_NS:
+        sw_type = sw_comp_ns_s;
+        break;
+    default:
+        return BOOT_STATUS_ERROR;
+    }
 
     /* Add the type identifier of the SW component to the shared data area */
     ias_minor = SET_IAS_MINOR(sw_module, SW_TYPE);
     res = boot_add_data_to_shared_area(TLV_MAJOR_IAS,
                                        ias_minor,
-                                       sizeof(sw_type) - 1,
+                                       strlen(sw_type),
                                        (const uint8_t *)sw_type);
     if (res) {
         return BOOT_STATUS_ERROR;

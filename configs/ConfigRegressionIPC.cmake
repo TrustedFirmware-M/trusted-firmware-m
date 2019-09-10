@@ -31,15 +31,18 @@ else()
 	message(FATAL_ERROR "ERROR: Target \"${TARGET_PLATFORM}\" is not supported.")
 endif()
 
+# Select IPC model
+set (CORE_IPC True)
+
 ##These variables select how the projects are built. Each project will set
 #various project specific settings (e.g. what files to build, macro
 #definitions) based on these.
 set (REGRESSION True)
-set (CORE_TEST False)
-set (CORE_IPC True)
+set (CORE_TEST True)
+set (IPC_TEST True)
 set (PSA_API_TEST False)
 
-# TF-M isolation level: 1..3
+# TF-M isolation level: 1, 2
 set (TFM_LVL 1)
 
 #BL2 bootloader(MCUBoot) related settings

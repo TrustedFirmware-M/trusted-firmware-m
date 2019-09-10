@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Arm Limited. All rights reserved.
+ * Copyright (c) 2018-2019, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -82,7 +82,7 @@ void register_testsuite_ns_audit_interface(struct test_suite_t *p_test_suite)
  */
 static void tfm_audit_test_1001(struct test_result_t *ret)
 {
-    enum psa_audit_err err;
+    psa_status_t status;
 
     uint8_t local_buffer[LOCAL_BUFFER_SIZE];
     uint32_t idx, stored_size, num_records, retrieved_size;
@@ -90,8 +90,8 @@ static void tfm_audit_test_1001(struct test_result_t *ret)
     struct psa_audit_record *retrieved_buffer;
 
     /* Get the log size (current state) */
-    err = psa_audit_get_info(&num_records, &stored_size);
-    if (err != PSA_AUDIT_ERR_SUCCESS) {
+    status = psa_audit_get_info(&num_records, &stored_size);
+    if (status != PSA_SUCCESS) {
         TEST_FAIL("Getting log info has returned error");
         return;
     }
@@ -108,8 +108,8 @@ static void tfm_audit_test_1001(struct test_result_t *ret)
 
     /* Check the length of each record individually */
     for (idx=0; idx<num_records; idx++) {
-        err = psa_audit_get_record_info(idx, &stored_size);
-        if (err != PSA_AUDIT_ERR_SUCCESS) {
+        status = psa_audit_get_record_info(idx, &stored_size);
+        if (status != PSA_SUCCESS) {
             TEST_FAIL("Getting record size individually has returned error");
             return;
         }
@@ -121,8 +121,8 @@ static void tfm_audit_test_1001(struct test_result_t *ret)
     }
 
     /* Check that if requesting length of a record which is not there fails */
-    err = psa_audit_get_record_info(num_records, &stored_size);
-    if (err != PSA_AUDIT_ERR_FAILURE) {
+    status = psa_audit_get_record_info(num_records, &stored_size);
+    if (status == PSA_SUCCESS) {
         TEST_FAIL("Getting record size for non-existent record has not failed");
         return;
     }
@@ -131,7 +131,7 @@ static void tfm_audit_test_1001(struct test_result_t *ret)
      * the full contents of the log, one record at a time
      */
     for (idx=0; idx<INITIAL_LOG_RECORDS; idx++) {
-        err = psa_audit_retrieve_record(
+        status = psa_audit_retrieve_record(
                                      idx,
                                      LOCAL_BUFFER_SIZE,
                                      NULL,
@@ -139,7 +139,7 @@ static void tfm_audit_test_1001(struct test_result_t *ret)
                                      &local_buffer[idx*STANDARD_LOG_ENTRY_SIZE],
                                      &retrieved_size);
 
-        if (err != PSA_AUDIT_ERR_SUCCESS) {
+        if (status != PSA_SUCCESS) {
             TEST_FAIL("Log retrieval from NS returned error");
             return;
         }
@@ -156,14 +156,14 @@ static void tfm_audit_test_1001(struct test_result_t *ret)
      * been returned, and if they're zeros items / zero bytes, there is
      * no point in checking the contents of the local_buffer.
      */
-    err = psa_audit_retrieve_record(0,
-                                    LOCAL_BUFFER_SIZE/4,
-                                    NULL,
-                                    0,
-                                    &local_buffer[0],
-                                    &retrieved_size);
+    status = psa_audit_retrieve_record(0,
+                                       LOCAL_BUFFER_SIZE/4,
+                                       NULL,
+                                       0,
+                                       &local_buffer[0],
+                                       &retrieved_size);
 
-    if (err != PSA_AUDIT_ERR_FAILURE) {
+    if (status == PSA_SUCCESS) {
         TEST_FAIL("Log retrieval from NS should fail, buffer too small");
         return;
     }
@@ -176,14 +176,14 @@ static void tfm_audit_test_1001(struct test_result_t *ret)
     /* Retrieve into a buffer which can hold a single element, but start from
      * the second element that is stored in the log
      */
-    err = psa_audit_retrieve_record(1,
-                                    STANDARD_LOG_ENTRY_SIZE,
-                                    NULL,
-                                    0,
-                                    &local_buffer[0],
-                                    &retrieved_size);
+    status = psa_audit_retrieve_record(1,
+                                       STANDARD_LOG_ENTRY_SIZE,
+                                       NULL,
+                                       0,
+                                       &local_buffer[0],
+                                       &retrieved_size);
 
-    if (err != PSA_AUDIT_ERR_SUCCESS) {
+    if (status != PSA_SUCCESS) {
         TEST_FAIL("Log retrieval from NS returned error");
         return;
     }
@@ -205,15 +205,15 @@ static void tfm_audit_test_1001(struct test_result_t *ret)
     }
 
     /* Delete oldest element in the log */
-    err = psa_audit_delete_record(0, NULL, 0);
-    if (err != PSA_AUDIT_ERR_SUCCESS) {
+    status = psa_audit_delete_record(0, NULL, 0);
+    if (status != PSA_SUCCESS) {
         TEST_FAIL("Log record deletion from NS returned error");
         return;
     }
 
     /* Get the log size (current state) */
-    err = psa_audit_get_info(&num_records, &stored_size);
-    if (err != PSA_AUDIT_ERR_SUCCESS) {
+    status = psa_audit_get_info(&num_records, &stored_size);
+    if (status != PSA_SUCCESS) {
         TEST_FAIL("Getting log info has returned error");
         return;
     }
@@ -229,15 +229,15 @@ static void tfm_audit_test_1001(struct test_result_t *ret)
     }
 
     /* Delete oldest element in the log. After this, the log will be empty */
-    err = psa_audit_delete_record(0, NULL, 0);
-    if (err != PSA_AUDIT_ERR_SUCCESS) {
+    status = psa_audit_delete_record(0, NULL, 0);
+    if (status != PSA_SUCCESS) {
         TEST_FAIL("Log record deletion from NS returned error");
         return;
     }
 
     /* Get the log size (current state) */
-    err = psa_audit_get_info(&num_records, &stored_size);
-    if (err != PSA_AUDIT_ERR_SUCCESS) {
+    status = psa_audit_get_info(&num_records, &stored_size);
+    if (status != PSA_SUCCESS) {
         TEST_FAIL("Getting log info has returned error");
         return;
     }

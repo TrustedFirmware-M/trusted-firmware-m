@@ -14,6 +14,7 @@
 #if TFM_MULTI_CORE_TOPOLOGY
 #include "tfm_multi_core.h"
 #endif
+#include "tfm_plat_defs.h"
 
 /**
  * \brief Holds peripheral specific data fields required to manage the
@@ -31,7 +32,12 @@
  */
 struct tfm_spm_partition_platform_data_t;
 
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+enum irq_target_state_t {
+    TFM_IRQ_TARGET_STATE_SECURE,
+    TFM_IRQ_TARGET_STATE_NON_SECURE,
+};
+
+#ifdef TFM_PSA_API
 /**
  * \brief Holds SPM db fields that define the memory regions used by a
  *        partition.
@@ -68,15 +74,21 @@ struct tfm_spm_partition_memory_data_t
  *        default configuration for them.
  *
  * This function is called during TF-M core early startup, before DB init
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
  */
-void tfm_spm_hal_init_isolation_hw(void);
+enum tfm_plat_err_t tfm_spm_hal_init_isolation_hw(void);
 
+#if TFM_LVL != 1
 /**
  * \brief This function initialises the HW used for isolation, and sets the
  *        default configuration for them.
  * This function is called during TF-M core early startup, after DB init
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
  */
-void tfm_spm_hal_setup_isolation_hw(void);
+enum tfm_plat_err_t tfm_spm_hal_setup_isolation_hw(void);
+#endif
 
 /**
  * \brief Configure peripherals for a partition based on the platfotm data from
@@ -100,34 +112,44 @@ void tfm_spm_hal_configure_default_isolation(
  *        option unless explicitly noted by the chip vendor.
  *        The implementation has to expect that one of those defines is going to
  *        be set. Otherwise, a compile error needs to be triggered.
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
  */
-void tfm_spm_hal_init_debug(void);
+enum tfm_plat_err_t tfm_spm_hal_init_debug(void);
 
 /**
  * \brief Enables the fault handlers and sets priorities.
  *
  * Secure fault (if present) must have the highest possible priority
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
  */
-void enable_fault_handlers(void);
+enum tfm_plat_err_t tfm_spm_hal_enable_fault_handlers(void);
 
 /**
  * \brief Configures the system reset request properties
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
  */
-void system_reset_cfg(void);
+enum tfm_plat_err_t tfm_spm_hal_system_reset_cfg(void);
 
 /**
  * \brief Configures all external interrupts to target the
  *        NS state, apart for the ones associated to secure
  *        peripherals (plus MPC and PPC)
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
  */
-void nvic_interrupt_target_state_cfg(void);
+enum tfm_plat_err_t tfm_spm_hal_nvic_interrupt_target_state_cfg(void);
 
 /**
  * \brief This function enable the interrupts associated
  *        to the secure peripherals (plus the isolation boundary violation
  *        interrupts)
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
  */
-void nvic_interrupt_enable(void);
+enum tfm_plat_err_t tfm_spm_hal_nvic_interrupt_enable(void);
 
 /**
  * \brief Get the VTOR value of non-secure image
@@ -160,8 +182,11 @@ uint32_t tfm_spm_hal_get_ns_entry_point(void);
  * \details This function sets the priority for the IRQ passed in the parameter.
  *          The precision of the priority value might be adjusted to match the
  *          available priority bits in the underlying target platform.
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
  */
-void tfm_spm_hal_set_secure_irq_priority(int32_t irq_line, uint32_t priority);
+enum tfm_plat_err_t tfm_spm_hal_set_secure_irq_priority(int32_t irq_line,
+                                                        uint32_t priority);
 
 #if TFM_MULTI_CORE_TOPOLOGY
 /**
@@ -219,44 +244,40 @@ void tfm_spm_hal_get_ns_access_attr(const void *p, size_t s,
 
 #endif /*TFM_MULTI_CORE_TOPOLOGY*/
 
-#if (TFM_LVL != 1) && !defined(TFM_PSA_API)
 /**
- * \brief Configure the sandbox for a partition.
+ * \brief Clears a pending IRQ
  *
- * \param[in] memory_data      The memory ranges from the partition DB for this
- *                             partition
- * \param[in] platform_data    The platform fields of the partition DB record
- *                             for this partition. Can be NULL.
- *
- * \return Returns the result operation as per \ref spm_err_t
+ * \param[in] irq_line    The IRQ to clear pending for.
  */
-enum spm_err_t tfm_spm_hal_partition_sandbox_config(
-                 const struct tfm_spm_partition_memory_data_t *memory_data,
-                 const struct tfm_spm_partition_platform_data_t *platform_data);
+void tfm_spm_hal_clear_pending_irq(int32_t irq_line);
 
 /**
- * \brief Deconfigure the sandbox for a partition.
+ * \brief Enables an IRQ
  *
- * \param[in] memory_data      The memory ranges from the partition DB for this
- *                             partition
- * \param[in] platform_data    The platform fields of the partition DB record
- *                             for this partition. Can be NULL.
- *
- * \return Returns the result operation as per \ref spm_err_t
+ * \param[in] irq_line    The IRQ to be enabled.
  */
-enum spm_err_t tfm_spm_hal_partition_sandbox_deconfig(
-                 const struct tfm_spm_partition_memory_data_t *memory_data,
-                 const struct tfm_spm_partition_platform_data_t *platform_data);
+void tfm_spm_hal_enable_irq(int32_t irq_line);
 
 /**
- * \brief Set the share region mode
+ * \brief Disables an IRQ
  *
- * \param[in] share      The mode to set
- *
- * \return Returns the result operation as per \ref spm_err_t
+ * \param[in] irq_line    The IRQ to be disabled
  */
-enum spm_err_t tfm_spm_hal_set_share_region(
-                                          enum tfm_buffer_share_region_e share);
-#endif
+void tfm_spm_hal_disable_irq(int32_t irq_line);
+
+/**
+ * \brief Set the target state of an IRQ
+ *
+ * \param[in] irq_line      The IRQ to set the priority for.
+ * \param[in] target_state  Target state to ret for the IRQ.
+ *
+ * \return                TFM_IRQ_TARGET_STATE_SECURE if interrupt is assigned
+ *                        to Secure
+ *                        TFM_IRQ_TARGET_STATE_NON_SECURE if interrupt is
+ *                        assigned to Non-Secure
+ */
+enum irq_target_state_t tfm_spm_hal_set_irq_target_state(
+                                          int32_t irq_line,
+                                          enum irq_target_state_t target_state);
 
 #endif /* __TFM_SPM_HAL_H__ */

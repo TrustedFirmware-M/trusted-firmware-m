@@ -33,11 +33,11 @@ endif()
 #various project specific settings (e.g. what files to build, macro
 #definitions) based on these.
 set (REGRESSION True)
-set (CORE_TEST False)
+set (CORE_TEST True)
 set (CORE_IPC False)
 set (PSA_API_TEST False)
 
-# TF-M isolation level: 1..3
+# TF-M isolation level: 1
 set (TFM_LVL 1)
 
 include ("${TFM_ROOT_DIR}/CommonConfig.cmake")

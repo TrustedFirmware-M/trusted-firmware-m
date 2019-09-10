@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 ARM Limited
+ * Copyright (c) 2016-2019 Arm Limited
  *
  * Licensed under the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
 #include "platform_retarget_dev.h"
 #include "platform_retarget.h"
 #include "system_cmsdk_mps2_an521.h"
+#include "platform/include/tfm_plat_defs.h"
 
 /* ARM UART driver structures */
 #ifdef ARM_UART0_S
@@ -300,12 +301,16 @@ struct ppc_sse200_dev_t APB_PPCEXP3_DEV_S = {
 
 /* CMSDK Timer driver structures */
 #ifdef CMSDK_TIMER0_S
-static const struct cmsdk_timer_dev_cfg_t CMSDK_TIMER0_DEV_CFG_S = {
-    .base = CMSDK_TIMER0_BASE_S};
-static struct cmsdk_timer_dev_data_t CMSDK_TIMER0_DEV_DATA_S = {
-    .is_initialized = 0};
-struct cmsdk_timer_dev_t CMSDK_TIMER0_DEV_S = {&(CMSDK_TIMER0_DEV_CFG_S),
-                                               &(CMSDK_TIMER0_DEV_DATA_S)};
+static const struct cmsdk_timer_dev_cfg_t CMSDK_TIMER0_DEV_CFG_S
+    TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_IRQ_TEST_1")
+    = {.base = CMSDK_TIMER0_BASE_S};
+static struct cmsdk_timer_dev_data_t CMSDK_TIMER0_DEV_DATA_S
+    TFM_LINK_SET_RW_IN_PARTITION_SECTION("TFM_IRQ_TEST_1")
+    = {.is_initialized = 0};
+
+struct cmsdk_timer_dev_t CMSDK_TIMER0_DEV_S
+       TFM_LINK_SET_RW_IN_PARTITION_SECTION("TFM_IRQ_TEST_1")
+       = {&(CMSDK_TIMER0_DEV_CFG_S), &(CMSDK_TIMER0_DEV_DATA_S)};
 #endif
 #ifdef CMSDK_TIMER0_NS
 static const struct cmsdk_timer_dev_cfg_t CMSDK_TIMER0_DEV_CFG_NS = {

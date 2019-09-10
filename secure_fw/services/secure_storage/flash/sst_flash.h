@@ -9,7 +9,7 @@
 #define __SST_FLASH_H__
 
 #include <stdint.h>
-#include "psa_protected_storage.h"
+#include "psa/protected_storage.h"
 #include "flash_layout.h"
 
 #ifdef __cplusplus

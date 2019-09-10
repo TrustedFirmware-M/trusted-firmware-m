@@ -31,13 +31,15 @@
 #   PLANTUML_FOUND          = Was the .jar file found and sucesfuly executed.
 #
 
+include(Common/Utils)
+
 find_package(Java 1.8 COMPONENTS Runtime)
 if(Java_Runtime_FOUND)
 	#Check if the jar file is at the user defined location.
 	#Prefer the cmake variable to the environment setting.
 	if (NOT DEFINED PLANTUML_JAR_PATH)
 		if (DEFINED ENV{PLANTUML_JAR_PATH})
-			set(PLANTUML_JAR_PATH "$ENV{PLANTUML_JAR_PATH}")
+			set(PLANTUML_JAR_PATH "$ENV{PLANTUML_JAR_PATH}" CACHE STRING "PLANTUML location." )
 		endif()
 	endif()
 

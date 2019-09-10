@@ -8,7 +8,7 @@
 #ifndef __ATTESTATION_H__
 #define __ATTESTATION_H__
 
-#include "psa_initial_attestation_api.h"
+#include "psa/initial_attestation.h"
 #include "tfm_client.h"
 #include "bl2/include/tfm_boot_status.h"
 

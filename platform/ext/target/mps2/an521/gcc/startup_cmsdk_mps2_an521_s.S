@@ -47,7 +47,7 @@ __Vectors:
     .long    NONSEC_WATCHDOG_RESET_Handler  /* 0: Non-Secure Watchdog Reset Handler */
     .long    NONSEC_WATCHDOG_Handler        /* 1: Non-Secure Watchdog Handler */
     .long    S32K_TIMER_Handler             /* 2: S32K Timer Handler */
-    .long    TIMER0_Handler                 /* 3: TIMER 0 Handler */
+    .long    TFM_TIMER0_IRQ_Handler         /* 3: TIMER 0 Handler */
     .long    TIMER1_Handler                 /* 4: TIMER 1 Handler */
     .long    DUALTIMER_Handler              /* 5: Dual Timer Handler */
     .long    MHU0_Handler                   /* 6: Message Handling Unit 0 */
@@ -310,7 +310,7 @@ Reset_Handler:
     def_irq_handler     NONSEC_WATCHDOG_RESET_Handler  /* 0: Non-Secure Watchdog Reset Handler */
     def_irq_handler     NONSEC_WATCHDOG_Handler        /* 1: Non-Secure Watchdog Handler */
     def_irq_handler     S32K_TIMER_Handler             /* 2: S32K Timer Handler */
-    def_irq_handler     TIMER0_Handler                 /* 3: TIMER 0 Handler */
+    def_irq_handler     TFM_TIMER0_IRQ_Handler         /* 3: TIMER 0 Handler */
     def_irq_handler     TIMER1_Handler                 /* 4: TIMER 1 Handler */
     def_irq_handler     DUALTIMER_Handler              /* 5: Dual Timer Handler */
     def_irq_handler     MHU0_Handler                   /* 6: Message Handling Unit 0 */

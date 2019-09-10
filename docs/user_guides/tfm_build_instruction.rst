@@ -56,6 +56,13 @@ line arguments:
          - ``Minsizerel``
    * - -DMBEDTLS_DEBUG=<ON|OFF>
      - Enables debug symbols for the Mbed TLS and Mbed Crypto libraries.
+   * - -DBUILD_DWARF_VERSION=<dwarf version>
+     - Configures DWARF version.
+       The possible values are:
+
+         - 2
+         - 3
+         - 4
 
 .. Note::
     Follow :doc:`secure boot <./tfm_secure_boot>` to build the binaries with or
@@ -64,7 +71,7 @@ line arguments:
 *******************
 External dependency
 *******************
-- CMSIS_5 is used to import RTX for the example non-secure app
+- `CMSIS_5` is used to import RTX for the example non-secure app
 - Mbed TLS and Mbed Crypto are used as crypto libraries on the secure side
 
 ****************
@@ -85,8 +92,13 @@ Getting the source-code
     cd <TF-M base folder>
     git clone https://git.trustedfirmware.org/trusted-firmware-m.git
     git clone https://github.com/ARMmbed/mbedtls.git -b mbedtls-2.7.9
-    git clone https://github.com/ARMmbed/mbed-crypto.git -b mbedcrypto-1.0.0
-    git clone https://github.com/ARM-software/CMSIS_5.git -b 5.2.0
+    git clone https://github.com/ARMmbed/mbed-crypto.git -b mbedcrypto-1.1.0
+    git clone https://github.com/ARM-software/CMSIS_5.git -b 5.5.0
+
+.. Note::
+   `CMSIS_5` now uses `git-lfs` for storing large size binaries so the cloning
+   process has changed from previous releases. Please refer to the `CMSIS_5`
+   documentation for more details.
 
 Build steps for the AN521 target platform:
 ==========================================
@@ -149,7 +161,7 @@ tests for the Crypto service only:
     cd trusted-firmware-m
     mkdir cmake_psa_test
     cd cmake_psa_test
-    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigPsaApiTest.cmake` -DPSA_API_TEST_CRYPTO -DTARGET_PLATFORM=AN521 -DCOMPILER=ARMCLANG ../
+    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigPsaApiTest.cmake` -DPSA_API_TEST_CRYPTO=ON -DTARGET_PLATFORM=AN521 -DCOMPILER=ARMCLANG ../
     cmake --build ./ -- install
 
 Location of build artifacts

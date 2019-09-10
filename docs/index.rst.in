@@ -5,7 +5,7 @@
    before the documentation is built.
    This file will be copied to the top level and thus please use relative paths
    as if this file would be in <TFM_ROOT_DIR>.
-   
+
    The values between @ characters will be filled in by CMake.
 
 
@@ -17,10 +17,10 @@ Welcome to TF-M's documentation!
     :glob:
     :hidden:
 
-    contributing
+    docs/contributing
     docs/dco
-    glossary
-    maintainers
+    docs/glossary
+    docs/maintainers
     docs/user_guides/tfm_sw_requirement
     docs/user_guides/tfm_build_instruction
     docs/coding_guide
@@ -29,6 +29,7 @@ Welcome to TF-M's documentation!
     docs/user_guides/tfm_integration_guide
     docs/user_guides/tfm_ns_client_identification
     docs/user_guides/tfm_secure_boot
+    docs/user_guides/tfm_secure_irq_handling
 
 .. toctree::
     :maxdepth: 2
@@ -85,6 +86,13 @@ Welcome to TF-M's documentation!
     :hidden:
 
     @REJECTED_DD_LIST@
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Tools
+    :glob:
+    :hidden:
+    tools/iat-verifier/*
 
 .. include:: readme.rst
 

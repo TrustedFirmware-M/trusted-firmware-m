@@ -8,7 +8,7 @@
 #include "tfm_api.h"
 #include "tfm_secure_api.h"
 #include "attestation.h"
-#include "psa_initial_attestation_api.h"
+#include "psa/initial_attestation.h"
 #include "bl2/include/tfm_boot_status.h"
 
 #ifdef TFM_PSA_API
@@ -22,15 +22,15 @@ attest_check_memory_access(void *addr,
 {
     enum psa_attest_err_t attest_res = PSA_ATTEST_ERR_SUCCESS;
 #ifndef TFM_PSA_API
-    enum tfm_status_e tfm_res;
+    int32_t tfm_res;
 
-    tfm_res = tfm_core_memory_permission_check(addr, size, access);
+    tfm_res = tfm_core_memory_permission_check(addr, size, (int32_t)access);
     if (tfm_res) {
-        attest_res =  PSA_ATTEST_ERR_INVALID_INPUT;
-     }
+        attest_res = PSA_ATTEST_ERR_INVALID_INPUT;
+    }
 #endif
 
-     return attest_res;
+    return attest_res;
 }
 
 enum psa_attest_err_t
@@ -38,12 +38,12 @@ attest_get_caller_client_id(int32_t *caller_id)
 {
     enum psa_attest_err_t attest_res = PSA_ATTEST_ERR_SUCCESS;
 #ifndef TFM_PSA_API
-    enum tfm_status_e tfm_res;
+    int32_t tfm_res;
 
-    tfm_res =  tfm_core_get_caller_client_id(caller_id);
+    tfm_res = tfm_core_get_caller_client_id(caller_id);
     if (tfm_res) {
-        attest_res =  PSA_ATTEST_ERR_CLAIM_UNAVAILABLE;
-     }
+        attest_res = PSA_ATTEST_ERR_CLAIM_UNAVAILABLE;
+    }
 #else
     *caller_id = g_attest_caller_id;
 #endif
@@ -66,10 +66,10 @@ attest_get_boot_data(uint8_t major_type,
     boot_data->header.tlv_magic   = SHARED_DATA_TLV_INFO_MAGIC;
     boot_data->header.tlv_tot_len = SHARED_DATA_HEADER_SIZE;
 #else
-    enum tfm_status_e tfm_res;
+    int32_t tfm_res;
 
     tfm_res = tfm_core_get_boot_data(major_type, boot_data, len);
-    if (tfm_res != TFM_SUCCESS) {
+    if (tfm_res != (int32_t)TFM_SUCCESS) {
         attest_res =  PSA_ATTEST_ERR_INIT_FAILED;
     }
 #endif /* BL2 */

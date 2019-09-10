@@ -10,7 +10,7 @@
 
 #include "attest_token_test.h"
 #include "q_useful_buf.h"
-#include "psa_initial_attestation_api.h"
+#include "psa/initial_attestation.h"
 #include "attest_token_decode.h"
 #include "attest_token_test_values.h"
 

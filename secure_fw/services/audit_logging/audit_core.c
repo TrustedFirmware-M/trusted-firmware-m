@@ -292,15 +292,15 @@ static void audit_replace_record(const uint32_t size,
  * \param[out] dest Pointer to the destination buffer
  *
  */
-static enum psa_audit_err audit_buffer_copy(const uint8_t *src,
-                                            const uint32_t size,
-                                            uint8_t *dest)
+static psa_status_t audit_buffer_copy(const uint8_t *src,
+                                      const uint32_t size,
+                                      uint8_t *dest)
 {
     uint32_t idx = 0;
     uint32_t dest_idx = (uint32_t)dest - (uint32_t)&log_buffer[0];
 
     if ((dest_idx >= LOG_SIZE) || (size > LOG_SIZE)) {
-        return PSA_AUDIT_ERR_FAILURE;
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
     /* TODO: This can be an optimized copy using uint32_t
@@ -312,7 +312,7 @@ static enum psa_audit_err audit_buffer_copy(const uint8_t *src,
         log_buffer[(dest_idx + idx) % LOG_SIZE] = src[idx];
     }
 
-    return PSA_AUDIT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }
 
 /*!
@@ -323,9 +323,9 @@ static enum psa_audit_err audit_buffer_copy(const uint8_t *src,
  * \param[out] dest Pointer to the destination buffer
  *
  */
-static enum psa_audit_err audit_memcpy(const uint8_t *src,
-                                       const uint32_t size,
-                                       uint8_t *dest)
+static psa_status_t audit_memcpy(const uint8_t *src,
+                                 const uint32_t size,
+                                 uint8_t *dest)
 {
     uint32_t idx = 0;
 
@@ -333,7 +333,7 @@ static enum psa_audit_err audit_memcpy(const uint8_t *src,
         dest[idx] = src[idx];
     }
 
-    return PSA_AUDIT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }
 
 /*!
@@ -345,15 +345,15 @@ static enum psa_audit_err audit_memcpy(const uint8_t *src,
  * \param[out] buffer       Pointer to the buffer to format
  *
  */
-static enum psa_audit_err audit_format_buffer(
-                                          const struct psa_audit_record *record,
-                                          const int32_t partition_id,
-                                          uint64_t *buffer)
+static psa_status_t audit_format_buffer(const struct psa_audit_record *record,
+                                        const int32_t partition_id,
+                                        uint64_t *buffer)
 {
     struct log_hdr *hdr = NULL;
     struct log_tlr *tlr = NULL;
     uint32_t size;
     uint8_t idx;
+    psa_status_t status;
 
     /* Get the size from the record */
     size = record->size;
@@ -374,10 +374,11 @@ static enum psa_audit_err audit_format_buffer(
     hdr->partition_id = partition_id;
 
     /* Copy the record into the scratch buffer */
-    if (audit_memcpy( (const uint8_t *) record,
-                  size+4,
-                  (uint8_t *) &(hdr->size) ) != PSA_AUDIT_ERR_SUCCESS) {
-        return PSA_AUDIT_ERR_FAILURE;
+    status = audit_memcpy((const uint8_t *) record,
+                          size+4,
+                          (uint8_t *) &(hdr->size));
+    if (status != PSA_SUCCESS) {
+        return status;
     }
 
     /* FIXME: The MAC here is just a dummy value for prototyping. It will be
@@ -388,7 +389,7 @@ static enum psa_audit_err audit_format_buffer(
         tlr->mac[idx] = idx;
     }
 
-    return PSA_AUDIT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }
 
 /*!
@@ -421,26 +422,60 @@ static void audit_uart_redirection(const uint32_t start_idx)
 #endif
 }
 
+static psa_status_t _audit_core_get_info(uint32_t *num_records, uint32_t *size)
+{
+    /* Return the number of records that are currently stored */
+    *num_records = log_state.num_records;
+
+    /* Return the size of the records currently stored */
+    *size = log_state.stored_size;
+
+    return PSA_SUCCESS;
+}
+
+static psa_status_t _audit_core_get_record_info(const uint32_t record_index,
+                                                uint32_t *size)
+{
+    uint32_t start_idx, idx;
+
+    if (record_index >= log_state.num_records) {
+        return PSA_ERROR_PROGRAMMER_ERROR;
+    }
+
+    /* First element to read from the log */
+    start_idx = log_state.first_el_idx;
+
+    /* Move the start_idx index to the desired element */
+    for (idx = 0; idx < record_index; idx++) {
+        start_idx = GET_NEXT_LOG_INDEX(start_idx);
+    }
+
+    /* Get the size of the requested record */
+    *size = COMPUTE_LOG_ENTRY_SIZE(*GET_SIZE_FIELD_POINTER(start_idx));
+
+    return PSA_SUCCESS;
+}
+
 /*!
  * \defgroup public Public functions
  *
  */
 
 /*!@{*/
-enum psa_audit_err audit_core_init(void)
+psa_status_t audit_core_init(void)
 {
 #if (AUDIT_UART_REDIRECTION == 1U)
     int32_t ret = ARM_DRIVER_OK;
 
     ret = LOG_UART_NAME.Initialize(NULL);
     if (ret != ARM_DRIVER_OK) {
-        return PSA_AUDIT_ERR_FAILURE;
+        return PSA_ERROR_GENERIC_ERROR;
     }
 
     ret = LOG_UART_NAME.Control(ARM_USART_MODE_ASYNCHRONOUS,
                                 LOG_UART_BAUD_RATE);
     if (ret != ARM_DRIVER_OK) {
-        return PSA_AUDIT_ERR_FAILURE;
+        return PSA_ERROR_GENERIC_ERROR;
     }
 
     /* If we get to this point, UART init is successful */
@@ -450,21 +485,34 @@ enum psa_audit_err audit_core_init(void)
     /* Clear the log state variables */
     audit_update_state(0,0,0,0);
 
-    return PSA_AUDIT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }
 
-enum psa_audit_err audit_core_delete_record(const uint32_t record_index,
-                                            const uint8_t *token,
-                                            const uint32_t token_size)
+psa_status_t audit_core_delete_record(psa_invec in_vec[],
+                                      size_t in_len,
+                                      psa_outvec out_vec[],
+                                      size_t out_len)
 {
     uint32_t first_el_idx, size_removed;
+
+    if ((in_len != 2) || (out_len != 0)) {
+        return PSA_ERROR_CONNECTION_REFUSED;
+    }
+
+    if (in_vec[0].len != sizeof(uint32_t)) {
+        return PSA_ERROR_CONNECTION_REFUSED;
+    }
+
+    const uint32_t record_index = *((uint32_t *)in_vec[0].base);
+    const uint8_t *token = in_vec[1].base;
+    const uint32_t token_size = in_vec[1].len;
 
     /* FixMe: Currently only the removal of the oldest entry, i.e.
      *        record_index 0, is supported. This has to be extended
      *        to support removal of random records
      */
     if (record_index > 0) {
-        return PSA_AUDIT_ERR_NOT_SUPPORTED;
+        return PSA_ERROR_NOT_SUPPORTED;
     }
 
     /* FixMe: Currently token and token_size parameters are not evaluated
@@ -472,12 +520,12 @@ enum psa_audit_err audit_core_delete_record(const uint32_t record_index,
      *        authorised
      */
     if ((token != NULL) || (token_size != 0)) {
-        return PSA_AUDIT_ERR_NOT_SUPPORTED;
+        return PSA_ERROR_NOT_SUPPORTED;
     }
 
     /* Check that the record index to be removed is contained in the log */
     if (record_index >= log_state.num_records) {
-        return PSA_AUDIT_ERR_FAILURE;
+        return PSA_ERROR_PROGRAMMER_ERROR;
     }
 
     /* If the log contains just one element, reset the state and return */
@@ -486,7 +534,7 @@ enum psa_audit_err audit_core_delete_record(const uint32_t record_index,
         /* Clear the log state variables */
         audit_update_state(0,0,0,0);
 
-        return PSA_AUDIT_ERR_SUCCESS;
+        return PSA_SUCCESS;
     }
 
     /* Get the index to the element to be removed */
@@ -506,59 +554,101 @@ enum psa_audit_err audit_core_delete_record(const uint32_t record_index,
     log_state.num_records--;
     log_state.stored_size -= size_removed;
 
-    return PSA_AUDIT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }
 
-enum psa_audit_err audit_core_get_info(uint32_t *num_records,
-                                       uint32_t *size)
+psa_status_t audit_core_get_info(psa_invec in_vec[],
+                                 size_t in_len,
+                                 psa_outvec out_vec[],
+                                 size_t out_len)
 {
+    if ((in_len != 0) || (out_len != 2)) {
+        return PSA_ERROR_CONNECTION_REFUSED;
+    }
+
+    if ((out_vec[0].len != sizeof(uint32_t)) ||
+	(out_vec[1].len != sizeof(uint32_t))) {
+        return PSA_ERROR_CONNECTION_REFUSED;
+    }
+
+    uint32_t *num_records = out_vec[0].base;
+    uint32_t *size = out_vec[1].base;
+
     /* Return the number of records that are currently stored */
     *num_records = log_state.num_records;
 
     /* Return the size of the records currently stored */
     *size = log_state.stored_size;
 
-    return PSA_AUDIT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }
 
-enum psa_audit_err audit_core_get_record_info(const uint32_t record_index,
-                                              uint32_t *size)
+psa_status_t audit_core_get_record_info(psa_invec in_vec[],
+                                        size_t in_len,
+                                        psa_outvec out_vec[],
+                                        size_t out_len)
 {
     uint32_t start_idx, idx;
 
+    if ((in_len != 1) || (out_len != 1)) {
+        return PSA_ERROR_CONNECTION_REFUSED;
+    }
+
+    if ((in_vec[0].len != sizeof(uint32_t)) ||
+        (out_vec[0].len != sizeof(uint32_t))) {
+        return PSA_ERROR_CONNECTION_REFUSED;
+    }
+
+    const uint32_t record_index = *((uint32_t *)in_vec[0].base);
+    uint32_t *size = out_vec[0].base;
+
     if (record_index >= log_state.num_records) {
-        return PSA_AUDIT_ERR_FAILURE;
+        return PSA_ERROR_PROGRAMMER_ERROR;
     }
 
     /* First element to read from the log */
     start_idx = log_state.first_el_idx;
 
     /* Move the start_idx index to the desired element */
-    for (idx=0; idx<record_index; idx++) {
+    for (idx = 0; idx < record_index; idx++) {
         start_idx = GET_NEXT_LOG_INDEX(start_idx);
     }
 
     /* Get the size of the requested record */
     *size = COMPUTE_LOG_ENTRY_SIZE(*GET_SIZE_FIELD_POINTER(start_idx));
 
-    return PSA_AUDIT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }
 
-enum psa_audit_err audit_core_add_record(const struct psa_audit_record *record)
+psa_status_t audit_core_add_record(psa_invec in_vec[],
+                                   size_t in_len,
+                                   psa_outvec out_vec[],
+                                   size_t out_len)
 {
     uint32_t start_pos = 0, stop_pos = 0;
     uint32_t first_el_idx = 0, last_el_idx = 0, size = 0;
     uint32_t num_items = 0, stored_size = 0;
     int32_t partition_id;
+    psa_status_t status;
+
+    if ((in_len != 1) || (out_len != 0)) {
+        return PSA_ERROR_CONNECTION_REFUSED;
+    }
+
+    if (in_vec[0].len != sizeof(struct psa_audit_record)) {
+        return PSA_ERROR_CONNECTION_REFUSED;
+    }
+
+    const struct psa_audit_record *record = in_vec[0].base;
 
     /* Get the value of the partition ID of the caller through TFM secure API */
-    if (tfm_core_get_caller_client_id(&partition_id) != TFM_SUCCESS) {
-        return PSA_AUDIT_ERR_FAILURE;
+    if (tfm_core_get_caller_client_id(&partition_id) != (int32_t)TFM_SUCCESS) {
+        return PSA_ERROR_NOT_PERMITTED;
     }
 
     /* Check if the partition ID of the caller is from NS world */
     if (TFM_CLIENT_ID_IS_NS(partition_id)) {
-        return PSA_AUDIT_ERR_FAILURE;
+        return PSA_ERROR_NOT_PERMITTED;
     }
 
     /* Read the size from the input record */
@@ -566,20 +656,20 @@ enum psa_audit_err audit_core_add_record(const struct psa_audit_record *record)
 
     /* Check that size is a 4-byte multiple as expected */
     if (size % 4) {
-        return PSA_AUDIT_ERR_FAILURE;
+        return PSA_ERROR_NOT_SUPPORTED;
     }
 
     /* Check that the entry to be added is not greater than the
      * maximum space available
      */
     if (size > (LOG_SIZE - (LOG_FIXED_FIELD_SIZE+LOG_MAC_SIZE))) {
-        return PSA_AUDIT_ERR_FAILURE;
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
     }
 
     /* Get the size in bytes and num of elements present in the log */
-    if (audit_core_get_info(&num_items, &stored_size) !=
-                                                        PSA_AUDIT_ERR_SUCCESS) {
-        return PSA_AUDIT_ERR_FAILURE;
+    status = _audit_core_get_info(&num_items, &stored_size);
+    if (status !=  PSA_SUCCESS) {
+        return status;
     }
 
     if (num_items == 0) {
@@ -597,19 +687,19 @@ enum psa_audit_err audit_core_add_record(const struct psa_audit_record *record)
     }
 
     /* Format the scratch buffer with the complete log item */
-    if (audit_format_buffer(record, partition_id, &scratch_buffer[0])
-                                                     != PSA_AUDIT_ERR_SUCCESS) {
-        return PSA_AUDIT_ERR_FAILURE;
+    status = audit_format_buffer(record, partition_id, &scratch_buffer[0]);
+    if (status != PSA_SUCCESS) {
+        return status;
     }
 
     /* TODO: At this point, encryption should be called if supported */
 
     /* Do the copy of the log item to be added in the log */
-    if (audit_buffer_copy( (const uint8_t *) &scratch_buffer[0],
-                       COMPUTE_LOG_ENTRY_SIZE(size),
-                       (uint8_t *) &log_buffer[start_pos] )
-                                                     != PSA_AUDIT_ERR_SUCCESS) {
-        return PSA_AUDIT_ERR_FAILURE;
+    status = audit_buffer_copy((const uint8_t *) &scratch_buffer[0],
+                               COMPUTE_LOG_ENTRY_SIZE(size),
+                               (uint8_t *) &log_buffer[start_pos]);
+    if (status != PSA_SUCCESS) {
+        return status;
     }
 
     /* Retrieve current log state */
@@ -634,41 +724,52 @@ enum psa_audit_err audit_core_add_record(const struct psa_audit_record *record)
     /* Stream to a secure UART if available for the platform and built */
     audit_uart_redirection(last_el_idx);
 
-    return PSA_AUDIT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }
 
-enum psa_audit_err audit_core_retrieve_record(const uint32_t record_index,
-                                             const uint32_t buffer_size,
-                                             const uint8_t *token,
-                                             const uint32_t token_size,
-                                             uint8_t *buffer,
-                                             uint32_t *record_size)
-
+psa_status_t audit_core_retrieve_record(psa_invec in_vec[],
+                                        size_t in_len,
+                                        psa_outvec out_vec[],
+                                        size_t out_len)
 {
     uint32_t idx, start_idx, record_size_tmp;
+    psa_status_t status;
 
-    enum psa_audit_err err;
+    if ((in_len != 2) || (out_len != 1)) {
+        return PSA_ERROR_CONNECTION_REFUSED;
+    }
+
+    if (in_vec[0].len != sizeof(uint32_t)) {
+        return PSA_ERROR_CONNECTION_REFUSED;
+    }
+    const uint32_t record_index = *((uint32_t *)in_vec[0].base);
+    const uint8_t *token = in_vec[1].base;
+    const uint32_t token_size = in_vec[1].len;
+    uint8_t *buffer = out_vec[0].base;
+    uint32_t buffer_size = out_vec[0].len;
 
     /* FixMe: Currently token and token_size parameters are not evaluated
      *        to be used as a challenge for encryption as encryption support
      *        is still not yet available
      */
     if ((token != NULL) || (token_size != 0)) {
-        return PSA_AUDIT_ERR_NOT_SUPPORTED;
+        out_vec[0].len = 0;
+        return PSA_ERROR_NOT_SUPPORTED;
     }
 
     /* Get the size of the record we want to retrieve */
-    err = audit_core_get_record_info(record_index, &record_size_tmp);
+    status = _audit_core_get_record_info(record_index, &record_size_tmp);
 
     /* Propagate the error to the caller in case of failure */
-    if (err != PSA_AUDIT_ERR_SUCCESS) {
-        return err;
+    if (status != PSA_SUCCESS) {
+        out_vec[0].len = 0;
+        return status;
     }
 
     /* buffer_size must be enough to hold the requested record */
     if (buffer_size < record_size_tmp) {
-        *record_size = 0;
-        return PSA_AUDIT_ERR_FAILURE;
+        out_vec[0].len = 0;
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
     /* First element to read from the log */
@@ -685,8 +786,8 @@ enum psa_audit_err audit_core_retrieve_record(const uint32_t record_index,
     }
 
     /* Update the retrieved size */
-    *record_size = record_size_tmp;
+    out_vec[0].len = record_size_tmp;
 
-    return PSA_AUDIT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }
 /*!@}*/

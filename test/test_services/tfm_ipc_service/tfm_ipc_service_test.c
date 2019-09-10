@@ -8,12 +8,12 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "psa_client.h"
-#include "psa_service.h"
-#include "secure_fw/core/secure_utilities.h"
-#include "secure_fw/core/tfm_secure_api.h"
+#include "psa/client.h"
+#include "psa/service.h"
+#include "secure_utilities.h"
+#include "tfm_secure_api.h"
 #include "tfm_api.h"
-#include "tfm_ipc_service_partition.h"
+#include "psa_manifest/tfm_ipc_service_partition.h"
 
 #define IPC_SERVICE_BUFFER_LEN                          32
 
@@ -46,7 +46,7 @@ static void ipc_service_basic(void)
     switch (msg.type) {
     case PSA_IPC_CONNECT:
         if (service_in_use & IPC_SERVICE_TEST_BASIC_SIGNAL) {
-            r = PSA_CONNECTION_REFUSED;
+            r = PSA_ERROR_CONNECTION_REFUSED;
         } else {
             service_in_use |= IPC_SERVICE_TEST_BASIC_SIGNAL;
             r = PSA_SUCCESS;
@@ -87,7 +87,7 @@ static void ipc_service_psa_access_app_mem(void)
     switch (msg.type) {
     case PSA_IPC_CONNECT:
         if (service_in_use & IPC_SERVICE_TEST_PSA_ACCESS_APP_MEM_SIGNAL) {
-            r = PSA_CONNECTION_REFUSED;
+            r = PSA_ERROR_CONNECTION_REFUSED;
         } else {
             service_in_use |= IPC_SERVICE_TEST_PSA_ACCESS_APP_MEM_SIGNAL;
             r = PSA_SUCCESS;
@@ -139,7 +139,7 @@ static void ipc_service_psa_access_app_readonly_mem(void)
     case PSA_IPC_CONNECT:
         if (service_in_use &
             IPC_SERVICE_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_SIGNAL) {
-            r = PSA_CONNECTION_REFUSED;
+            r = PSA_ERROR_CONNECTION_REFUSED;
         } else {
             service_in_use |=
                           IPC_SERVICE_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_SIGNAL;
@@ -194,7 +194,7 @@ static void ipc_service_app_access_psa_mem(void)
     switch (msg.type) {
     case PSA_IPC_CONNECT:
         if (service_in_use & IPC_SERVICE_TEST_APP_ACCESS_PSA_MEM_SIGNAL) {
-            r = PSA_CONNECTION_REFUSED;
+            r = PSA_ERROR_CONNECTION_REFUSED;
         } else {
             service_in_use |= IPC_SERVICE_TEST_APP_ACCESS_PSA_MEM_SIGNAL;
             r = PSA_SUCCESS;

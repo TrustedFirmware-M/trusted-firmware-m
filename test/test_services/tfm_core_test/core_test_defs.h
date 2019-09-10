@@ -15,6 +15,7 @@ extern "C" {
 #include <inttypes.h>
 #include <limits.h>
 #include "tfm_api.h"
+#include "tfm_core.h"
 
 /* These definitions are used in symbols, only digits are permitted */
 #define CORE_TEST_ID_NS_THREAD            1001
@@ -31,43 +32,22 @@ extern "C" {
 #define CORE_TEST_ID_SPM_REQUEST          1014
 #define CORE_TEST_ID_IOVEC_SANITIZATION   1015
 #define CORE_TEST_ID_OUTVEC_WRITE         1016
+#define CORE_TEST_ID_SECURE_IRQ           1017
 #define CORE_TEST_ID_BLOCK                2001
 
-#define SPM_CORE_TEST_INIT_SUCCESS_SID                 0x00002100
-#define SPM_CORE_TEST_DIRECT_RECURSION_SID             0x00002101
-#define SPM_CORE_TEST_MPU_ACCESS_SID                   0x00002102
-#define SPM_CORE_TEST_MEMORY_PERMISSIONS_SID           0x00002103
-#define SPM_CORE_TEST_SHARE_REDIRECTION_SID            0x00002104
-#define SPM_CORE_TEST_SS_TO_SS_SID                     0x00002105
-#define SPM_CORE_TEST_SS_TO_SS_BUFFER_SID              0x00002106
-#define SPM_CORE_TEST_OUTVEC_WRITE_SID                 0x00002107
-#define SPM_CORE_TEST_PERIPHERAL_ACCESS_SID            0x00002108
-#define SPM_CORE_TEST_GET_CALLER_CLIENT_ID_SID         0x00002109
-#define SPM_CORE_TEST_SPM_REQUEST_SID                  0x0000210A
-#define SPM_CORE_TEST_BLOCK_SID                        0x0000210B
-#define SPM_CORE_TEST_NS_THREAD_SID                    0x0000210C
-#define SPM_CORE_TEST_INIT_SUCCESS_MIN_VER                 0x0001
-#define SPM_CORE_TEST_DIRECT_RECURSION_MIN_VER             0x0001
-#define SPM_CORE_TEST_MPU_ACCESS_MIN_VER                   0x0001
-#define SPM_CORE_TEST_MEMORY_PERMISSIONS_MIN_VER           0x0001
-#define SPM_CORE_TEST_SHARE_REDIRECTION_MIN_VER            0x0001
-#define SPM_CORE_TEST_SS_TO_SS_MIN_VER                     0x0001
-#define SPM_CORE_TEST_SS_TO_SS_BUFFER_MIN_VER              0x0001
-#define SPM_CORE_TEST_OUTVEC_WRITE_MIN_VER                 0x0001
-#define SPM_CORE_TEST_PERIPHERAL_ACCESS_MIN_VER            0x0001
-#define SPM_CORE_TEST_GET_CALLER_CLIENT_ID_MIN_VER         0x0001
-#define SPM_CORE_TEST_SPM_REQUEST_MIN_VER                  0x0001
-#define SPM_CORE_TEST_BLOCK_MIN_VER                        0x0001
-#define SPM_CORE_TEST_NS_THREAD_MIN_VER                    0x0001
+enum irq_test_scenario_t {
+    IRQ_TEST_SCENARIO_NONE,
+    IRQ_TEST_SCENARIO_1,
+    IRQ_TEST_SCENARIO_2,
+    IRQ_TEST_SCENARIO_3,
+    IRQ_TEST_SCENARIO_4,
+    IRQ_TEST_SCENARIO_5,
+};
 
-#define SPM_CORE_TEST_2_SLAVE_SERVICE_SID              0x00002200
-#define SPM_CORE_TEST_2_CHECK_CALLER_CLIENT_ID_SID     0x00002201
-#define SPM_CORE_TEST_2_GET_EVERY_SECOND_BYTE_SID      0x00002202
-#define SPM_CORE_TEST_2_INVERT_SID                     0x00002203
-#define SPM_CORE_TEST_2_SLAVE_SERVICE_MIN_VER              0x0001
-#define SPM_CORE_TEST_2_CHECK_CALLER_CLIENT_ID_MIN_VER     0x0001
-#define SPM_CORE_TEST_2_GET_EVERY_SECOND_BYTE_MIN_VER      0x0001
-#define SPM_CORE_TEST_2_INVERT_MIN_VER                     0x0001
+struct irq_test_execution_data_t {
+    volatile int32_t timer0_triggered;
+    volatile int32_t timer1_triggered;
+};
 
 /* Use lower 16 bits in return value for error code, upper 16 for line number
  * in test service
@@ -77,6 +57,7 @@ extern "C" {
 #define CORE_TEST_ERROR_GET_CODE(x) (x & 0xFFFF)
 
 enum core_test_errno_t {
+    CORE_TEST_ERRNO_TEST_NOT_SUPPORTED         = -13,
     CORE_TEST_ERRNO_SP_NOT_INITED              = -12,
     CORE_TEST_ERRNO_UNEXPECTED_CORE_BEHAVIOUR  = -11,
     CORE_TEST_ERRNO_SP_RECURSION_NOT_REJECTED  = -10,

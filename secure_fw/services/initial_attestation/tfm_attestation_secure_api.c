@@ -5,13 +5,13 @@
  *
  */
 
-#include "psa_initial_attestation_api.h"
+#include "psa/initial_attestation.h"
 #include "tfm_veneers.h"
 #include "tfm_memory_utils.h"
 #include "tfm_client.h"
 #include "tfm_secure_api.h"
 #ifdef TFM_PSA_API
-#include "tfm_attest_defs.h"
+#include "psa_manifest/sid.h"
 #endif
 #include <string.h>
 
@@ -49,12 +49,12 @@ psa_initial_attest_get_token(const uint8_t *challenge_obj,
 
 #ifdef TFM_PSA_API
     handle = psa_connect(TFM_ATTEST_GET_TOKEN_SID,
-                         TFM_ATTEST_GET_TOKEN_MINOR_VER);
+                         TFM_ATTEST_GET_TOKEN_VERSION);
     if (handle <= 0) {
         return PSA_ATTEST_ERR_GENERAL;
     }
 
-    status = psa_call(handle,
+    status = psa_call(handle, PSA_IPC_CALL,
                       in_vec, IOVEC_LEN(in_vec),
                       out_vec, IOVEC_LEN(out_vec));
     psa_close(handle);
@@ -67,7 +67,8 @@ psa_initial_attest_get_token(const uint8_t *challenge_obj,
         *token_size = out_vec[0].len;
     }
 #else
-    if (tfm_core_set_buffer_area(TFM_BUFFER_SHARE_SCRATCH) != TFM_SUCCESS) {
+    if (tfm_core_set_buffer_area(TFM_BUFFER_SHARE_SCRATCH) !=
+                                                         (int32_t)TFM_SUCCESS) {
         return PSA_ATTEST_ERR_GENERAL;
     }
 
@@ -85,7 +86,7 @@ psa_initial_attest_get_token(const uint8_t *challenge_obj,
     token_buff     = (uint8_t *)(challenge_buff + challenge_size);
 
     /* Copy challenge object to scratch area */
-    tfm_memcpy(challenge_buff, challenge_obj, challenge_size);
+    (void)tfm_memcpy(challenge_buff, challenge_obj, challenge_size);
 
     in_vec[0].base = challenge_buff;
     in_vec[0].len  = challenge_size;
@@ -94,8 +95,8 @@ psa_initial_attest_get_token(const uint8_t *challenge_obj,
     out_vec[0].len  = *token_size;
 
     status = tfm_initial_attest_get_token_veneer(in_vec, 1, out_vec, 1);
-    if (status == PSA_ATTEST_ERR_SUCCESS) {
-        tfm_memcpy(token, out_vec[0].base, out_vec[0].len);
+    if (status == (psa_status_t)PSA_ATTEST_ERR_SUCCESS) {
+        (void)tfm_memcpy(token, out_vec[0].base, out_vec[0].len);
         *token_size = out_vec[0].len;
     }
 #endif
@@ -128,12 +129,12 @@ psa_initial_attest_get_token_size(uint32_t challenge_size,
 
 #ifdef TFM_PSA_API
     handle = psa_connect(TFM_ATTEST_GET_TOKEN_SIZE_SID,
-                         TFM_ATTEST_GET_TOKEN_SIZE_MINOR_VER);
+                         TFM_ATTEST_GET_TOKEN_SIZE_VERSION);
     if (handle <= 0) {
         return PSA_ATTEST_ERR_GENERAL;
     }
 
-    status = psa_call(handle,
+    status = psa_call(handle, PSA_IPC_CALL,
                       in_vec, IOVEC_LEN(in_vec),
                       out_vec, IOVEC_LEN(out_vec));
     psa_close(handle);
@@ -142,7 +143,8 @@ psa_initial_attest_get_token_size(uint32_t challenge_size,
         return PSA_ATTEST_ERR_GENERAL;
     }
 #else
-    if (tfm_core_set_buffer_area(TFM_BUFFER_SHARE_SCRATCH) != TFM_SUCCESS) {
+    if (tfm_core_set_buffer_area(TFM_BUFFER_SHARE_SCRATCH) !=
+                                                         (int32_t)TFM_SUCCESS) {
         return PSA_ATTEST_ERR_GENERAL;
     }
 
@@ -161,7 +163,7 @@ psa_initial_attest_get_token_size(uint32_t challenge_size,
 
     status = tfm_initial_attest_get_token_size_veneer(&param->in_vec,  1,
                                                       &param->out_vec, 1);
-    if (status == PSA_ATTEST_ERR_SUCCESS) {
+    if (status == (psa_status_t)PSA_ATTEST_ERR_SUCCESS) {
         *token_size = param->token_size;
     }
 #endif

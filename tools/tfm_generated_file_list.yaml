@@ -19,7 +19,7 @@
     {
         "name": "Secure Partition declarations",
         "short_name": "tfm_partition_list",
-        "output": "secure_fw/services/tfm_partition_list.inc"
+        "output": "secure_fw/services/tfm_spm_db.inc"
     },
     {
         "name": "Secure Service list",
@@ -45,6 +45,21 @@
         "name": "Secure Veneers H file",
         "short_name": "tfm_veneers_h",
         "output": "interface/include/tfm_veneers.h"
+    },
+    {
+        "name": "Secure IRQ handlers",
+        "short_name": "tfm_secure_irq_handlers",
+        "output": "secure_fw/core/tfm_secure_irq_handlers.inc"
+    },
+    {
+        "name": "Secure IRQ handlers for PSA API",
+        "short_name": "tfm_secure_irq_handlers_ipc",
+        "output": "secure_fw/core/ipc/tfm_secure_irq_handlers_ipc.inc"
+    },
+    {
+        "name": "SID H file",
+        "short_name": "sid.h",
+        "output": "interface/include/psa_manifest/sid.h"
     }
   ]
 }

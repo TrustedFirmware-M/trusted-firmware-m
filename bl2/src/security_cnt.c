@@ -11,6 +11,7 @@
 #include <stdint.h>
 
 #define TFM_BOOT_NV_COUNTER_0    PLAT_NV_COUNTER_3   /* NV counter of Image 0 */
+#define TFM_BOOT_NV_COUNTER_1    PLAT_NV_COUNTER 4   /* NV counter of Image 1 */
 #define TFM_BOOT_NV_COUNTER_MAX  PLAT_NV_COUNTER_MAX
 
 static enum tfm_nv_counter_t get_nv_counter_from_image_id(uint32_t image_id)

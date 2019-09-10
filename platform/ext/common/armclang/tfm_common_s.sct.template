@@ -25,7 +25,7 @@ LR_CODE S_CODE_START {
     /****  This initial section contains common code for secure binary */
     ER_TFM_CODE S_CODE_START S_CODE_SIZE {
         *.o (RESET +First)
-        .ANY (+RO)
+        * (+RO)
     }
 
     /**** Unprivileged Secure code start here */
@@ -148,10 +148,10 @@ LR_CODE S_CODE_START {
     }
 #endif
 
-#if (TFM_LVL == 1) && !defined(TFM_PSA_API)
+#if !defined(TFM_PSA_API)
     TFM_SECURE_STACK +0 ALIGN 128 EMPTY 0x2000 {
     }
-#endif /* (TFM_LVL == 1) && !defined(TFM_PSA_API) */
+#endif /* !defined(TFM_PSA_API) */
 
     TFM_UNPRIV_DATA +0 ALIGN 32 {
         tfm_spm_services.o (+RW +ZI)
@@ -192,19 +192,18 @@ LR_CODE S_CODE_START {
         {{pattern}} (+RW +ZI)
         {% endfor %}
     {% endif %}
+        *({{manifest.manifest.name}}_ATTR_RW)
+        *({{manifest.manifest.name}}_ATTR_ZI)
     }
 
     {% if manifest.attr.tfm_partition_ipc %}
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+#if defined (TFM_PSA_API)
     {{manifest.manifest.name}}_STACK +0 ALIGN 128 EMPTY {{manifest.manifest.stack_size}} {
     }
 #endif
     {% else %}
 #if defined (TFM_PSA_API)
     {{manifest.manifest.name}}_STACK +0 ALIGN 128 EMPTY 0 {
-    }
-#elif TFM_LVL != 1
-    {{manifest.manifest.name}}_STACK +0 ALIGN 128 EMPTY {{manifest.manifest.stack_size}} {
     }
 #endif
     {% endif %}
@@ -276,10 +275,12 @@ LR_CODE S_CODE_START {
         {{pattern}} (+RW +ZI)
         {% endfor %}
     {% endif %}
+        *({{manifest.manifest.name}}_ATTR_RW)
+        *({{manifest.manifest.name}}_ATTR_ZI)
     }
 
     {% if manifest.attr.tfm_partition_ipc %}
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+#if defined (TFM_PSA_API)
     {{manifest.manifest.name}}_STACK +0 ALIGN 128 EMPTY {{manifest.manifest.stack_size}} {
     }
 #endif
@@ -287,10 +288,6 @@ LR_CODE S_CODE_START {
 #if defined (TFM_PSA_API)
     {{manifest.manifest.name}}_STACK +0 ALIGN 128 EMPTY 0 {
     }
-#elif TFM_LVL != 1
-    {{manifest.manifest.name}}_STACK +0 ALIGN 128 EMPTY {{manifest.manifest.stack_size}} {
-    }
-#endif
     {% endif %}
     {% if manifest.attr.conditional %}
 #endif /* {{manifest.attr.conditional}} */

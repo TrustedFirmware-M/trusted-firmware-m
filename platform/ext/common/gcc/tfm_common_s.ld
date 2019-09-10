@@ -117,6 +117,11 @@ SECTIONS
         LONG (ADDR(.TFM_SP_IPC_CLIENT_TEST_DATA))
         LONG (SIZEOF(.TFM_SP_IPC_CLIENT_TEST_DATA))
 #endif /* TFM_PARTITION_TEST_CORE_IPC */
+#ifdef TFM_ENABLE_IRQ_TEST
+        LONG (LOADADDR(.TFM_IRQ_TEST_1_DATA))
+        LONG (ADDR(.TFM_IRQ_TEST_1_DATA))
+        LONG (SIZEOF(.TFM_IRQ_TEST_1_DATA))
+#endif /* TFM_ENABLE_IRQ_TEST */
         __copy_table_end__ = .;
     } > FLASH
 
@@ -126,52 +131,47 @@ SECTIONS
         LONG (ADDR(.TFM_BSS))
         LONG (SIZEOF(.TFM_BSS))
 #if !defined(TFM_PSA_API)
-#if TFM_LVL == 1
         LONG (ADDR(.TFM_SECURE_STACK))
         LONG (SIZEOF(.TFM_SECURE_STACK))
-#else /* TFM_LVL == 1 */
-        LONG (ADDR(.TFM_UNPRIV_BSS))
-        LONG (SIZEOF(.TFM_UNPRIV_BSS))
-#endif /* TFM_LVL == 1 */
 #endif /* !defined(TFM_PSA_API) */
         LONG (ADDR(.TFM_SP_STORAGE_BSS))
         LONG (SIZEOF(.TFM_SP_STORAGE_BSS))
-#if defined(TFM_PSA_API) || (TFM_LVL != 1)
+#if defined(TFM_PSA_API)
         LONG (ADDR(.TFM_SP_STORAGE_STACK))
         LONG (SIZEOF(.TFM_SP_STORAGE_STACK))
 #endif
 #ifdef TFM_PARTITION_AUDIT_LOG
         LONG (ADDR(.TFM_SP_AUDIT_LOG_BSS))
         LONG (SIZEOF(.TFM_SP_AUDIT_LOG_BSS))
-#if defined(TFM_PSA_API) || (TFM_LVL != 1)
+#if defined(TFM_PSA_API)
         LONG (ADDR(.TFM_SP_AUDIT_LOG_STACK))
         LONG (SIZEOF(.TFM_SP_AUDIT_LOG_STACK))
 #endif
 #endif /* TFM_PARTITION_AUDIT_LOG */
         LONG (ADDR(.TFM_SP_CRYPTO_BSS))
         LONG (SIZEOF(.TFM_SP_CRYPTO_BSS))
-#if defined(TFM_PSA_API) || (TFM_LVL != 1)
+#if defined(TFM_PSA_API)
         LONG (ADDR(.TFM_SP_CRYPTO_STACK))
         LONG (SIZEOF(.TFM_SP_CRYPTO_STACK))
 #endif
 #ifdef TFM_PARTITION_PLATFORM
         LONG (ADDR(.TFM_SP_PLATFORM_BSS))
         LONG (SIZEOF(.TFM_SP_PLATFORM_BSS))
-#if defined(TFM_PSA_API) || (TFM_LVL != 1)
+#if defined(TFM_PSA_API)
         LONG (ADDR(.TFM_SP_PLATFORM_STACK))
         LONG (SIZEOF(.TFM_SP_PLATFORM_STACK))
 #endif
 #endif /* TFM_PARTITION_PLATFORM */
         LONG (ADDR(.TFM_SP_INITIAL_ATTESTATION_BSS))
         LONG (SIZEOF(.TFM_SP_INITIAL_ATTESTATION_BSS))
-#if defined(TFM_PSA_API) || (TFM_LVL != 1)
+#if defined(TFM_PSA_API)
         LONG (ADDR(.TFM_SP_INITIAL_ATTESTATION_STACK))
         LONG (SIZEOF(.TFM_SP_INITIAL_ATTESTATION_STACK))
 #endif
 #ifdef TFM_PARTITION_TEST_CORE
         LONG (ADDR(.TFM_SP_CORE_TEST_BSS))
         LONG (SIZEOF(.TFM_SP_CORE_TEST_BSS))
-#if defined(TFM_PSA_API) || (TFM_LVL != 1)
+#if defined(TFM_PSA_API)
         LONG (ADDR(.TFM_SP_CORE_TEST_STACK))
         LONG (SIZEOF(.TFM_SP_CORE_TEST_STACK))
 #endif
@@ -179,7 +179,7 @@ SECTIONS
 #ifdef TFM_PARTITION_TEST_CORE
         LONG (ADDR(.TFM_SP_CORE_TEST_2_BSS))
         LONG (SIZEOF(.TFM_SP_CORE_TEST_2_BSS))
-#if defined(TFM_PSA_API) || (TFM_LVL != 1)
+#if defined(TFM_PSA_API)
         LONG (ADDR(.TFM_SP_CORE_TEST_2_STACK))
         LONG (SIZEOF(.TFM_SP_CORE_TEST_2_STACK))
 #endif
@@ -187,7 +187,7 @@ SECTIONS
 #ifdef TFM_PARTITION_TEST_SECURE_SERVICES
         LONG (ADDR(.TFM_SP_SECURE_TEST_PARTITION_BSS))
         LONG (SIZEOF(.TFM_SP_SECURE_TEST_PARTITION_BSS))
-#if defined(TFM_PSA_API) || (TFM_LVL != 1)
+#if defined(TFM_PSA_API)
         LONG (ADDR(.TFM_SP_SECURE_TEST_PARTITION_STACK))
         LONG (SIZEOF(.TFM_SP_SECURE_TEST_PARTITION_STACK))
 #endif
@@ -195,7 +195,7 @@ SECTIONS
 #ifdef TFM_PARTITION_TEST_CORE_IPC
         LONG (ADDR(.TFM_SP_IPC_SERVICE_TEST_BSS))
         LONG (SIZEOF(.TFM_SP_IPC_SERVICE_TEST_BSS))
-#if defined(TFM_PSA_API) || (TFM_LVL != 1)
+#if defined(TFM_PSA_API)
         LONG (ADDR(.TFM_SP_IPC_SERVICE_TEST_STACK))
         LONG (SIZEOF(.TFM_SP_IPC_SERVICE_TEST_STACK))
 #endif
@@ -203,11 +203,19 @@ SECTIONS
 #ifdef TFM_PARTITION_TEST_CORE_IPC
         LONG (ADDR(.TFM_SP_IPC_CLIENT_TEST_BSS))
         LONG (SIZEOF(.TFM_SP_IPC_CLIENT_TEST_BSS))
-#if defined(TFM_PSA_API) || (TFM_LVL != 1)
+#if defined(TFM_PSA_API)
         LONG (ADDR(.TFM_SP_IPC_CLIENT_TEST_STACK))
         LONG (SIZEOF(.TFM_SP_IPC_CLIENT_TEST_STACK))
 #endif
 #endif /* TFM_PARTITION_TEST_CORE_IPC */
+#ifdef TFM_ENABLE_IRQ_TEST
+        LONG (ADDR(.TFM_IRQ_TEST_1_BSS))
+        LONG (SIZEOF(.TFM_IRQ_TEST_1_BSS))
+#if defined(TFM_PSA_API)
+        LONG (ADDR(.TFM_IRQ_TEST_1_STACK))
+        LONG (SIZEOF(.TFM_IRQ_TEST_1_STACK))
+#endif
+#endif /* TFM_ENABLE_IRQ_TEST */
 #if !defined(TFM_PSA_API)
         LONG (ADDR(.TFM_UNPRIV_SCRATCH))
         LONG (SIZEOF(.TFM_UNPRIV_SCRATCH))
@@ -215,7 +223,6 @@ SECTIONS
         __zero_table_end__ = .;
     } > FLASH
 
-#if TFM_LVL != 1
     .TFM_UNPRIV_CODE : ALIGN(32)
     {
         *libc_nano*:*(.text*)
@@ -241,7 +248,6 @@ SECTIONS
     } > FLASH
     Image$$TFM_UNPRIV_CODE$$RO$$Base = ADDR(.TFM_UNPRIV_CODE);
     Image$$TFM_UNPRIV_CODE$$RO$$Limit = ADDR(.TFM_UNPRIV_CODE) + SIZEOF(.TFM_UNPRIV_CODE);
-#endif /* TFM_LVL != 1 */
 
     /**** PSA RoT RO part (CODE + RODATA) start here */
     Image$$TFM_PSA_CODE_START$$Base = .;
@@ -401,6 +407,22 @@ SECTIONS
     Image$$TFM_SP_IPC_CLIENT_TEST$$Base = ADDR(.TFM_SP_IPC_CLIENT_TEST);
     Image$$TFM_SP_IPC_CLIENT_TEST$$Limit = ADDR(.TFM_SP_IPC_CLIENT_TEST) + SIZEOF(.TFM_SP_IPC_CLIENT_TEST);
 #endif /* TFM_PARTITION_TEST_CORE_IPC */
+
+#ifdef TFM_ENABLE_IRQ_TEST
+    .TFM_IRQ_TEST_1 : ALIGN(32)
+    {
+        *tfm_irq_test_service_1.*(.text*)
+        *tfm_irq_test_service_1.*(.rodata*)
+        *timer_cmsdk*(.text*)
+        *timer_cmsdk*(.rodata*)
+        *(TFM_IRQ_TEST_1_ATTR_FN)
+        . = ALIGN(32);
+    } > FLASH
+    Image$$TFM_IRQ_TEST_1$$RO$$Base = ADDR(.TFM_IRQ_TEST_1);
+    Image$$TFM_IRQ_TEST_1$$RO$$Limit = ADDR(.TFM_IRQ_TEST_1) + SIZEOF(.TFM_IRQ_TEST_1);
+    Image$$TFM_IRQ_TEST_1$$Base = ADDR(.TFM_IRQ_TEST_1);
+    Image$$TFM_IRQ_TEST_1$$Limit = ADDR(.TFM_IRQ_TEST_1) + SIZEOF(.TFM_IRQ_TEST_1);
+#endif /* TFM_ENABLE_IRQ_TEST */
 
     /**** APPLICATION RoT RO part (CODE + RODATA) end here */
     Image$$TFM_APP_CODE_END$$Base = .;
@@ -563,6 +585,7 @@ SECTIONS
     .TFM_SP_CORE_TEST_DATA : ALIGN(32)
     {
         *tfm_ss_core_test.*(.data*)
+        *(TFM_SP_CORE_TEST_ATTR_RW)
         . = ALIGN(32);
     } > RAM AT> FLASH
     Image$$TFM_SP_CORE_TEST_DATA$$RW$$Base = ADDR(.TFM_SP_CORE_TEST_DATA);
@@ -573,13 +596,14 @@ SECTIONS
         start_of_TFM_SP_CORE_TEST = .;
         *tfm_ss_core_test.*(.bss*)
         *tfm_ss_core_test.*(COMMON)
+        *(TFM_SP_CORE_TEST_ATTR_ZI)
         . += (. - start_of_TFM_SP_CORE_TEST) ? 0 : 4;
         . = ALIGN(32);
     } > RAM AT> RAM
     Image$$TFM_SP_CORE_TEST_DATA$$ZI$$Base = ADDR(.TFM_SP_CORE_TEST_BSS);
     Image$$TFM_SP_CORE_TEST_DATA$$ZI$$Limit = ADDR(.TFM_SP_CORE_TEST_BSS) + SIZEOF(.TFM_SP_CORE_TEST_BSS);
 
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+#if defined (TFM_PSA_API)
     .TFM_SP_CORE_TEST_STACK : ALIGN(128)
     {
         . += 0x0300;
@@ -594,6 +618,7 @@ SECTIONS
     .TFM_SP_CORE_TEST_2_DATA : ALIGN(32)
     {
         *tfm_ss_core_test_2.*(.data*)
+        *(TFM_SP_CORE_TEST_2_ATTR_RW)
         . = ALIGN(32);
     } > RAM AT> FLASH
     Image$$TFM_SP_CORE_TEST_2_DATA$$RW$$Base = ADDR(.TFM_SP_CORE_TEST_2_DATA);
@@ -604,13 +629,14 @@ SECTIONS
         start_of_TFM_SP_CORE_TEST_2 = .;
         *tfm_ss_core_test_2.*(.bss*)
         *tfm_ss_core_test_2.*(COMMON)
+        *(TFM_SP_CORE_TEST_2_ATTR_ZI)
         . += (. - start_of_TFM_SP_CORE_TEST_2) ? 0 : 4;
         . = ALIGN(32);
     } > RAM AT> RAM
     Image$$TFM_SP_CORE_TEST_2_DATA$$ZI$$Base = ADDR(.TFM_SP_CORE_TEST_2_BSS);
     Image$$TFM_SP_CORE_TEST_2_DATA$$ZI$$Limit = ADDR(.TFM_SP_CORE_TEST_2_BSS) + SIZEOF(.TFM_SP_CORE_TEST_2_BSS);
 
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+#if defined (TFM_PSA_API)
     .TFM_SP_CORE_TEST_2_STACK : ALIGN(128)
     {
         . += 0x0200;
@@ -625,6 +651,7 @@ SECTIONS
     .TFM_SP_IPC_CLIENT_TEST_DATA : ALIGN(32)
     {
         *ipc_client_test.*(.data*)
+        *(TFM_SP_IPC_CLIENT_TEST_ATTR_RW)
         . = ALIGN(32);
     } > RAM AT> FLASH
     Image$$TFM_SP_IPC_CLIENT_TEST_DATA$$RW$$Base = ADDR(.TFM_SP_IPC_CLIENT_TEST_DATA);
@@ -635,22 +662,59 @@ SECTIONS
         start_of_TFM_SP_IPC_CLIENT_TEST = .;
         *ipc_client_test.*(.bss*)
         *ipc_client_test.*(COMMON)
+        *(TFM_SP_IPC_CLIENT_TEST_ATTR_ZI)
         . += (. - start_of_TFM_SP_IPC_CLIENT_TEST) ? 0 : 4;
         . = ALIGN(32);
     } > RAM AT> RAM
     Image$$TFM_SP_IPC_CLIENT_TEST_DATA$$ZI$$Base = ADDR(.TFM_SP_IPC_CLIENT_TEST_BSS);
     Image$$TFM_SP_IPC_CLIENT_TEST_DATA$$ZI$$Limit = ADDR(.TFM_SP_IPC_CLIENT_TEST_BSS) + SIZEOF(.TFM_SP_IPC_CLIENT_TEST_BSS);
 
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+#if defined (TFM_PSA_API)
     .TFM_SP_IPC_CLIENT_TEST_STACK : ALIGN(128)
     {
-        . += 0x0200;
+        . += 0x0220;
     } > RAM
     Image$$TFM_SP_IPC_CLIENT_TEST_STACK$$ZI$$Base = ADDR(.TFM_SP_IPC_CLIENT_TEST_STACK);
     Image$$TFM_SP_IPC_CLIENT_TEST_STACK$$ZI$$Limit = ADDR(.TFM_SP_IPC_CLIENT_TEST_STACK) + SIZEOF(.TFM_SP_IPC_CLIENT_TEST_STACK);
 #endif
 
 #endif /* TFM_PARTITION_TEST_CORE_IPC */
+
+#ifdef TFM_ENABLE_IRQ_TEST
+    .TFM_IRQ_TEST_1_DATA : ALIGN(32)
+    {
+        *tfm_irq_test_service_1.*(.data*)
+        *timer_cmsdk*(.data*)
+        *(TFM_IRQ_TEST_1_ATTR_RW)
+        . = ALIGN(32);
+    } > RAM AT> FLASH
+    Image$$TFM_IRQ_TEST_1_DATA$$RW$$Base = ADDR(.TFM_IRQ_TEST_1_DATA);
+    Image$$TFM_IRQ_TEST_1_DATA$$RW$$Limit = ADDR(.TFM_IRQ_TEST_1_DATA) + SIZEOF(.TFM_IRQ_TEST_1_DATA);
+
+    .TFM_IRQ_TEST_1_BSS : ALIGN(32)
+    {
+        start_of_TFM_IRQ_TEST_1 = .;
+        *tfm_irq_test_service_1.*(.bss*)
+        *tfm_irq_test_service_1.*(COMMON)
+        *timer_cmsdk*(.bss*)
+        *timer_cmsdk*(COMMON)
+        *(TFM_IRQ_TEST_1_ATTR_ZI)
+        . += (. - start_of_TFM_IRQ_TEST_1) ? 0 : 4;
+        . = ALIGN(32);
+    } > RAM AT> RAM
+    Image$$TFM_IRQ_TEST_1_DATA$$ZI$$Base = ADDR(.TFM_IRQ_TEST_1_BSS);
+    Image$$TFM_IRQ_TEST_1_DATA$$ZI$$Limit = ADDR(.TFM_IRQ_TEST_1_BSS) + SIZEOF(.TFM_IRQ_TEST_1_BSS);
+
+#if defined (TFM_PSA_API)
+    .TFM_IRQ_TEST_1_STACK : ALIGN(128)
+    {
+        . += 0x0400;
+    } > RAM
+    Image$$TFM_IRQ_TEST_1_STACK$$ZI$$Base = ADDR(.TFM_IRQ_TEST_1_STACK);
+    Image$$TFM_IRQ_TEST_1_STACK$$ZI$$Limit = ADDR(.TFM_IRQ_TEST_1_STACK) + SIZEOF(.TFM_IRQ_TEST_1_STACK);
+#endif
+
+#endif /* TFM_ENABLE_IRQ_TEST */
 
     /**** APPLICATION RoT DATA end here */
     Image$$TFM_APP_RW_STACK_END$$Base = .;
@@ -743,6 +807,7 @@ SECTIONS
     .TFM_SP_STORAGE_DATA : ALIGN(32)
     {
         *tfm_storage*:*(.data*)
+        *(TFM_SP_STORAGE_ATTR_RW)
         . = ALIGN(32);
     } > RAM AT> FLASH
     Image$$TFM_SP_STORAGE_DATA$$RW$$Base = ADDR(.TFM_SP_STORAGE_DATA);
@@ -753,13 +818,14 @@ SECTIONS
         start_of_TFM_SP_STORAGE = .;
         *tfm_storage*:*(.bss*)
         *tfm_storage*:*(COMMON)
+        *(TFM_SP_STORAGE_ATTR_ZI)
         . += (. - start_of_TFM_SP_STORAGE) ? 0 : 4;
         . = ALIGN(32);
     } > RAM AT> RAM
     Image$$TFM_SP_STORAGE_DATA$$ZI$$Base = ADDR(.TFM_SP_STORAGE_BSS);
     Image$$TFM_SP_STORAGE_DATA$$ZI$$Limit = ADDR(.TFM_SP_STORAGE_BSS) + SIZEOF(.TFM_SP_STORAGE_BSS);
 
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+#if defined (TFM_PSA_API)
     .TFM_SP_STORAGE_STACK : ALIGN(128)
     {
         . += 0x1800;
@@ -773,6 +839,7 @@ SECTIONS
     .TFM_SP_AUDIT_LOG_DATA : ALIGN(32)
     {
         *tfm_audit*:*(.data*)
+        *(TFM_SP_AUDIT_LOG_ATTR_RW)
         . = ALIGN(32);
     } > RAM AT> FLASH
     Image$$TFM_SP_AUDIT_LOG_DATA$$RW$$Base = ADDR(.TFM_SP_AUDIT_LOG_DATA);
@@ -783,28 +850,20 @@ SECTIONS
         start_of_TFM_SP_AUDIT_LOG = .;
         *tfm_audit*:*(.bss*)
         *tfm_audit*:*(COMMON)
+        *(TFM_SP_AUDIT_LOG_ATTR_ZI)
         . += (. - start_of_TFM_SP_AUDIT_LOG) ? 0 : 4;
         . = ALIGN(32);
     } > RAM AT> RAM
     Image$$TFM_SP_AUDIT_LOG_DATA$$ZI$$Base = ADDR(.TFM_SP_AUDIT_LOG_BSS);
     Image$$TFM_SP_AUDIT_LOG_DATA$$ZI$$Limit = ADDR(.TFM_SP_AUDIT_LOG_BSS) + SIZEOF(.TFM_SP_AUDIT_LOG_BSS);
 
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
-    .TFM_SP_AUDIT_LOG_STACK : ALIGN(128)
-    {
-#if !defined(TFM_PSA_API)
-        . += 0x0200;
-#endif
-    } > RAM
-    Image$$TFM_SP_AUDIT_LOG_STACK$$ZI$$Base = ADDR(.TFM_SP_AUDIT_LOG_STACK);
-    Image$$TFM_SP_AUDIT_LOG_STACK$$ZI$$Limit = ADDR(.TFM_SP_AUDIT_LOG_STACK) + SIZEOF(.TFM_SP_AUDIT_LOG_STACK);
-#endif
 
 #endif /* TFM_PARTITION_AUDIT_LOG */
 
     .TFM_SP_CRYPTO_DATA : ALIGN(32)
     {
         *tfm_crypto*:*(.data*)
+        *(TFM_SP_CRYPTO_ATTR_RW)
         . = ALIGN(32);
     } > RAM AT> FLASH
     Image$$TFM_SP_CRYPTO_DATA$$RW$$Base = ADDR(.TFM_SP_CRYPTO_DATA);
@@ -815,13 +874,14 @@ SECTIONS
         start_of_TFM_SP_CRYPTO = .;
         *tfm_crypto*:*(.bss*)
         *tfm_crypto*:*(COMMON)
+        *(TFM_SP_CRYPTO_ATTR_ZI)
         . += (. - start_of_TFM_SP_CRYPTO) ? 0 : 4;
         . = ALIGN(32);
     } > RAM AT> RAM
     Image$$TFM_SP_CRYPTO_DATA$$ZI$$Base = ADDR(.TFM_SP_CRYPTO_BSS);
     Image$$TFM_SP_CRYPTO_DATA$$ZI$$Limit = ADDR(.TFM_SP_CRYPTO_BSS) + SIZEOF(.TFM_SP_CRYPTO_BSS);
 
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+#if defined (TFM_PSA_API)
     .TFM_SP_CRYPTO_STACK : ALIGN(128)
     {
         . += 0x2000;
@@ -835,6 +895,7 @@ SECTIONS
     .TFM_SP_PLATFORM_DATA : ALIGN(32)
     {
         *tfm_platform*:*(.data*)
+        *(TFM_SP_PLATFORM_ATTR_RW)
         . = ALIGN(32);
     } > RAM AT> FLASH
     Image$$TFM_SP_PLATFORM_DATA$$RW$$Base = ADDR(.TFM_SP_PLATFORM_DATA);
@@ -845,28 +906,20 @@ SECTIONS
         start_of_TFM_SP_PLATFORM = .;
         *tfm_platform*:*(.bss*)
         *tfm_platform*:*(COMMON)
+        *(TFM_SP_PLATFORM_ATTR_ZI)
         . += (. - start_of_TFM_SP_PLATFORM) ? 0 : 4;
         . = ALIGN(32);
     } > RAM AT> RAM
     Image$$TFM_SP_PLATFORM_DATA$$ZI$$Base = ADDR(.TFM_SP_PLATFORM_BSS);
     Image$$TFM_SP_PLATFORM_DATA$$ZI$$Limit = ADDR(.TFM_SP_PLATFORM_BSS) + SIZEOF(.TFM_SP_PLATFORM_BSS);
 
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
-    .TFM_SP_PLATFORM_STACK : ALIGN(128)
-    {
-#if !defined(TFM_PSA_API)
-        . += 0x0400;
-#endif
-    } > RAM
-    Image$$TFM_SP_PLATFORM_STACK$$ZI$$Base = ADDR(.TFM_SP_PLATFORM_STACK);
-    Image$$TFM_SP_PLATFORM_STACK$$ZI$$Limit = ADDR(.TFM_SP_PLATFORM_STACK) + SIZEOF(.TFM_SP_PLATFORM_STACK);
-#endif
 
 #endif /* TFM_PARTITION_PLATFORM */
 
     .TFM_SP_INITIAL_ATTESTATION_DATA : ALIGN(32)
     {
         *tfm_attest*:*(.data*)
+        *(TFM_SP_INITIAL_ATTESTATION_ATTR_RW)
         . = ALIGN(32);
     } > RAM AT> FLASH
     Image$$TFM_SP_INITIAL_ATTESTATION_DATA$$RW$$Base = ADDR(.TFM_SP_INITIAL_ATTESTATION_DATA);
@@ -877,13 +930,14 @@ SECTIONS
         start_of_TFM_SP_INITIAL_ATTESTATION = .;
         *tfm_attest*:*(.bss*)
         *tfm_attest*:*(COMMON)
+        *(TFM_SP_INITIAL_ATTESTATION_ATTR_ZI)
         . += (. - start_of_TFM_SP_INITIAL_ATTESTATION) ? 0 : 4;
         . = ALIGN(32);
     } > RAM AT> RAM
     Image$$TFM_SP_INITIAL_ATTESTATION_DATA$$ZI$$Base = ADDR(.TFM_SP_INITIAL_ATTESTATION_BSS);
     Image$$TFM_SP_INITIAL_ATTESTATION_DATA$$ZI$$Limit = ADDR(.TFM_SP_INITIAL_ATTESTATION_BSS) + SIZEOF(.TFM_SP_INITIAL_ATTESTATION_BSS);
 
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+#if defined (TFM_PSA_API)
     .TFM_SP_INITIAL_ATTESTATION_STACK : ALIGN(128)
     {
         . += 0x0A00;
@@ -905,6 +959,7 @@ SECTIONS
         *uart_cmsdk_drv*(.data*)
         *secure_suites.*(.data*)
         *attestation_s_interface_testsuite.*(.data*)
+        *(TFM_SP_SECURE_TEST_PARTITION_ATTR_RW)
         . = ALIGN(32);
     } > RAM AT> FLASH
     Image$$TFM_SP_SECURE_TEST_PARTITION_DATA$$RW$$Base = ADDR(.TFM_SP_SECURE_TEST_PARTITION_DATA);
@@ -931,13 +986,14 @@ SECTIONS
         *secure_suites.*(COMMON)
         *attestation_s_interface_testsuite.*(.bss*)
         *attestation_s_interface_testsuite.*(COMMON)
+        *(TFM_SP_SECURE_TEST_PARTITION_ATTR_ZI)
         . += (. - start_of_TFM_SP_SECURE_TEST_PARTITION) ? 0 : 4;
         . = ALIGN(32);
     } > RAM AT> RAM
     Image$$TFM_SP_SECURE_TEST_PARTITION_DATA$$ZI$$Base = ADDR(.TFM_SP_SECURE_TEST_PARTITION_BSS);
     Image$$TFM_SP_SECURE_TEST_PARTITION_DATA$$ZI$$Limit = ADDR(.TFM_SP_SECURE_TEST_PARTITION_BSS) + SIZEOF(.TFM_SP_SECURE_TEST_PARTITION_BSS);
 
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+#if defined (TFM_PSA_API)
     .TFM_SP_SECURE_TEST_PARTITION_STACK : ALIGN(128)
     {
         . += 0x0C00;
@@ -952,6 +1008,7 @@ SECTIONS
     .TFM_SP_IPC_SERVICE_TEST_DATA : ALIGN(32)
     {
         *ipc_service_test.*(.data*)
+        *(TFM_SP_IPC_SERVICE_TEST_ATTR_RW)
         . = ALIGN(32);
     } > RAM AT> FLASH
     Image$$TFM_SP_IPC_SERVICE_TEST_DATA$$RW$$Base = ADDR(.TFM_SP_IPC_SERVICE_TEST_DATA);
@@ -962,16 +1019,17 @@ SECTIONS
         start_of_TFM_SP_IPC_SERVICE_TEST = .;
         *ipc_service_test.*(.bss*)
         *ipc_service_test.*(COMMON)
+        *(TFM_SP_IPC_SERVICE_TEST_ATTR_ZI)
         . += (. - start_of_TFM_SP_IPC_SERVICE_TEST) ? 0 : 4;
         . = ALIGN(32);
     } > RAM AT> RAM
     Image$$TFM_SP_IPC_SERVICE_TEST_DATA$$ZI$$Base = ADDR(.TFM_SP_IPC_SERVICE_TEST_BSS);
     Image$$TFM_SP_IPC_SERVICE_TEST_DATA$$ZI$$Limit = ADDR(.TFM_SP_IPC_SERVICE_TEST_BSS) + SIZEOF(.TFM_SP_IPC_SERVICE_TEST_BSS);
 
-#if defined (TFM_PSA_API) || (TFM_LVL != 1)
+#if defined (TFM_PSA_API)
     .TFM_SP_IPC_SERVICE_TEST_STACK : ALIGN(128)
     {
-        . += 0x0200;
+        . += 0x0220;
     } > RAM
     Image$$TFM_SP_IPC_SERVICE_TEST_STACK$$ZI$$Base = ADDR(.TFM_SP_IPC_SERVICE_TEST_STACK);
     Image$$TFM_SP_IPC_SERVICE_TEST_STACK$$ZI$$Limit = ADDR(.TFM_SP_IPC_SERVICE_TEST_STACK) + SIZEOF(.TFM_SP_IPC_SERVICE_TEST_STACK);

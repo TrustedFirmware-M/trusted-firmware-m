@@ -12,7 +12,7 @@
 
 #include "secure_fw/services/secure_storage/flash/sst_flash.h"
 #include "secure_fw/services/secure_storage/sst_object_defs.h"
-#include "psa_protected_storage.h"
+#include "psa/protected_storage.h"
 
 /*!
  * \def SST_SUPPORTED_VERSION

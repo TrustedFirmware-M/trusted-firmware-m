@@ -28,7 +28,7 @@ if (NOT DEFINED ENABLE_AUDIT_LOGGING_SERVICE_TESTS)
 endif()
 
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/spm ABSOLUTE)
-embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/core ABSOLUTE)
+embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/core/include ABSOLUTE)
 
 # Include the test framework
 include(${CMAKE_CURRENT_LIST_DIR}/framework/CMakeLists.inc)

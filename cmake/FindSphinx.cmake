@@ -82,7 +82,7 @@ endif()
 execute_process(COMMAND "${SPHINX_EXECUTABLE}" "--version" OUTPUT_VARIABLE _SPHINX_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
 #Parse output
 if(_SPHINX_VERSION)
-	if(_SPHINX_VERSION MATCHES ".*sphinx-build ([0-9.]+).*")
+	if(_SPHINX_VERSION MATCHES ".*sphinx-build[^0-9.]*([0-9.]+).*")
 		string(REGEX REPLACE ".*sphinx-build ([0-9.]+).*" "\\1" SPHINX_VERSION "${_SPHINX_VERSION}")
 	endif()
 endif()

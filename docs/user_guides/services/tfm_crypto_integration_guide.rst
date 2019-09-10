@@ -14,17 +14,17 @@ Code structure
 **************
 The PSA interfaces for the Crypto service are located in ``interface\include``.
 The only header to be included by applications that want to use functions from
-the PSA API is ``psa_crypto.h``.
+the PSA API is ``psa/crypto.h``.
 The TF-M Crypto service source files are located in
 ``secure_fw\services\crypto``.
 
 PSA interfaces
 ==============
 The TF-M Crypto service exposes the PSA interfaces detailed in the header
-``psa_crypto.h``. This header, in turn, includes several other headers which
+``psa/crypto.h``. This header, in turn, includes several other headers which
 are not meant to be included directly by user applications. For a detailed
 description of the PSA API interface, please refer to the comments in the
-``psa_crypto.h`` header itself.
+``psa/crypto.h`` header itself.
 
 Service source files
 ====================
@@ -67,7 +67,7 @@ In this section, a brief description of the required flow of operation for the
 functionalities exported by the PSA Crypto interface is given, with particular
 focus on the TF-M Crypto service specific operations. For the details of the
 generic PSA Crypto interface operations, please refer directly to the header
-``psa_crypto.h``.
+``psa/crypto.h``.
 
 Most of the PSA Crypto multipart APIs require an operation context to be
 allocated by the application and then to be passed as a pointer during the
@@ -80,7 +80,7 @@ below:
 - ``psa_cipher_operation_t`` - Operation context for multipart cipher operations
 
 The user applications are not allowed to make any assumption about the original
-types behind these typedefs, which are defined inside ``psa_crypto.h``.
+types behind these typedefs, which are defined inside ``psa/crypto.h``.
 In the scope of the TF-M Crypto service, these types are regarded as handles to
 the corresponding implementation defined structures which are stored in the
 Secure world.

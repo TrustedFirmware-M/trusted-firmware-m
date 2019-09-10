@@ -10,21 +10,23 @@
 #include "tfm_api.h"
 #include "test/test_services/tfm_core_test/core_test_defs.h"
 #include "tfm_veneers.h"
-#include "secure_fw/core/secure_utilities.h"
-#include "secure_fw/core/tfm_secure_api.h"
+#include "secure_utilities.h"
+#include "tfm_secure_api.h"
 #include "secure_fw/include/tfm_spm_services_api.h"
 #include "spm_partition_defs.h"
-#include "psa_service.h"
-#include "test/test_services/tfm_core_test/tfm_ss_core_test_signal.h"
-#include "test/test_services/tfm_core_test_2/tfm_ss_core_test_2_signal.h"
-
-#include "smm_mps2.h"
+#include "psa/service.h"
+#include "tfm_plat_test.h"
+#include "psa_manifest/tfm_test_core.h"
+#ifdef TFM_PSA_API
+#include "psa_manifest/sid.h"
+#endif
 
 static int32_t partition_init_done;
 
 #define INVALID_NS_CLIENT_ID  0x49abcdef
 #define EXPECTED_NS_CLIENT_ID (-1)
 
+#ifndef TFM_PSA_API
 /* Don't initialise caller_partition_id_zi and expect it to be linked in the
  * zero-initialised data area
  */
@@ -37,7 +39,8 @@ static int32_t caller_client_id_rw = INVALID_NS_CLIENT_ID;
 
 static int32_t* invalid_addresses [] = {(int32_t*)0x0, (int32_t*)0xFFF12000};
 
-#ifdef TFM_PSA_API
+#else /* !defined(TFM_PSA_API) */
+
 static psa_status_t psa_test_common(uint32_t sid, uint32_t minor_version,
                                     const psa_invec *in_vecs, size_t in_len,
                                     psa_outvec *out_vecs, size_t out_len)
@@ -50,7 +53,7 @@ static psa_status_t psa_test_common(uint32_t sid, uint32_t minor_version,
         return CORE_TEST_ERRNO_INVALID_PARAMETER;
     }
 
-    status = psa_call(handle, in_vecs, in_len, out_vecs, out_len);
+    status = psa_call(handle, PSA_IPC_CALL, in_vecs, in_len, out_vecs, out_len);
     if (status < 0) {
         status = CORE_TEST_ERRNO_UNEXPECTED_CORE_BEHAVIOUR;
     }
@@ -58,7 +61,7 @@ static psa_status_t psa_test_common(uint32_t sid, uint32_t minor_version,
     psa_close(handle);
     return status;
 }
-#endif /* TFM_PSA_API */
+#endif /* !defined(TFM_PSA_API) */
 
 psa_status_t spm_core_test_sfn_init_success(
                                      struct psa_invec *in_vec, size_t in_len,
@@ -75,6 +78,7 @@ psa_status_t spm_core_test_sfn_init_success(
     }
 }
 
+#ifndef TFM_PSA_API
 psa_status_t spm_core_test_sfn_direct_recursion(
                                      struct psa_invec *in_vec, size_t in_len,
                                      struct psa_outvec *out_vec, size_t out_len)
@@ -113,8 +117,6 @@ psa_status_t spm_core_test_sfn_direct_recursion(
 
 /* Service RW data array for testing memory accesses */
 static int32_t mem[4] = {1, 2, 3, 4};
-
-#define MPS2_USERLED_MASK   (0x3)
 
 static psa_status_t test_mpu_access(
     uint32_t *data_r_ptr, uint32_t *code_ptr, uint32_t *data_w_ptr)
@@ -199,6 +201,7 @@ static psa_status_t test_memory_permissions(
 
     return CORE_TEST_ERRNO_SUCCESS;
 }
+#endif /* !defined(TFM_PSA_API) */
 
 static psa_status_t test_share_redirection(void)
 {
@@ -208,7 +211,7 @@ static psa_status_t test_share_redirection(void)
     if (tfm_core_set_buffer_area(TFM_BUFFER_SHARE_SCRATCH) != TFM_SUCCESS) {
         return CORE_TEST_ERRNO_UNEXPECTED_CORE_BEHAVIOUR;
     }
-#endif /* TFM_PSA_API */
+#endif /* !defined(TFM_PSA_API) */
 
     /* Read from scratch */
     tmp = tfm_scratch_area[0];
@@ -220,20 +223,25 @@ static psa_status_t test_share_redirection(void)
 
 static psa_status_t test_peripheral_access(void)
 {
-    struct arm_mps2_fpgaio_t *fpgaio = SEC_MPS2_FPGAIO;
-    /* Check read access */
-    uint32_t leds = fpgaio->LED;
-    /* Write access */
-    fpgaio->LED = ~leds;
-    /* Check result of write access, only compare 2 valid bits */
-    uint32_t invleds = fpgaio->LED;
+#ifdef TFM_ENABLE_PERIPH_ACCESS_TEST
+    uint32_t leds;
+    uint32_t invleds;
+    uint32_t userled_mask;
 
-    if ((invleds & MPS2_USERLED_MASK) != (~leds & MPS2_USERLED_MASK)) {
+    leds = tfm_plat_test_get_led_status();
+    tfm_plat_test_set_led_status(~leds);
+    invleds = tfm_plat_test_get_led_status();
+    userled_mask = tfm_plat_test_get_userled_mask();
+
+    if ((invleds & userled_mask) != (~leds & userled_mask)) {
         /* Code failed to invert value in peripheral reg */
         return CORE_TEST_ERRNO_PERIPHERAL_ACCESS_FAILED;
     }
 
     return CORE_TEST_ERRNO_SUCCESS;
+#else
+    return CORE_TEST_ERRNO_TEST_NOT_SUPPORTED;
+#endif
 }
 
 #define SS_BUFFER_LEN 16
@@ -243,11 +251,17 @@ static psa_status_t test_ss_to_ss_buffer(uint32_t *in_ptr, uint32_t *out_ptr,
 {
     int32_t i;
     /* Service internal buffer */
-    uint32_t ss_buffer[SS_BUFFER_LEN];
+    uint32_t ss_buffer[SS_BUFFER_LEN] = {0};
     /* Slave service has to use scratch area */
+#ifdef TFM_PSA_API
+    uint32_t slave_buffer [len];
+    int32_t result;
+    int32_t *result_ptr = &result;
+#else
     uint32_t *slave_buffer = (uint32_t *)tfm_scratch_area;
-    /* Store result at end of scratch area to test entire range for RW access */
     int32_t *result_ptr = (int32_t *)&tfm_scratch_area[tfm_scratch_area_size-4];
+#endif /* TFM_PSA_API */
+    /* Store result at end of scratch area to test entire range for RW access */
     int32_t res;
     psa_invec in_vec[] = { {slave_buffer, len*sizeof(uint32_t)} };
     psa_outvec outvec[] = { {slave_buffer, len*sizeof(uint32_t)},
@@ -265,7 +279,7 @@ static psa_status_t test_ss_to_ss_buffer(uint32_t *in_ptr, uint32_t *out_ptr,
         TFM_MEMORY_ACCESS_RW) != TFM_SUCCESS)) {
         return CORE_TEST_ERRNO_INVALID_BUFFER;
     }
-#endif /* TFM_PSA_API */
+#endif /* !defined(TFM_PSA_API) */
 
     for (i = 0; i < len; i++) {
         ss_buffer[i] = in_ptr[i];
@@ -275,7 +289,7 @@ static psa_status_t test_ss_to_ss_buffer(uint32_t *in_ptr, uint32_t *out_ptr,
     if (tfm_core_set_buffer_area(TFM_BUFFER_SHARE_SCRATCH) != TFM_SUCCESS) {
         return CORE_TEST_ERRNO_UNEXPECTED_CORE_BEHAVIOUR;
     }
-#endif /* TFM_PSA_API */
+#endif /* !defined(TFM_PSA_API) */
 
     for (i = 0; i < len; i++) {
         slave_buffer[i] = ss_buffer[i];
@@ -285,11 +299,11 @@ static psa_status_t test_ss_to_ss_buffer(uint32_t *in_ptr, uint32_t *out_ptr,
 
 #ifdef TFM_PSA_API
     res = psa_test_common(SPM_CORE_TEST_2_INVERT_SID,
-                          SPM_CORE_TEST_2_INVERT_MIN_VER,
+                          SPM_CORE_TEST_2_INVERT_VERSION,
                           in_vec, 1, outvec, 2);
-#else
+#else /* defined(TFM_PSA_API) */
     res = tfm_spm_core_test_2_sfn_invert_veneer(in_vec, 1, outvec, 2);
-#endif
+#endif /* defined(TFM_PSA_API) */
 
     if (res != CORE_TEST_ERRNO_SUCCESS) {
         return CORE_TEST_ERRNO_SLAVE_SP_CALL_FAILURE;
@@ -306,7 +320,7 @@ static psa_status_t test_ss_to_ss_buffer(uint32_t *in_ptr, uint32_t *out_ptr,
     if (tfm_core_set_buffer_area(TFM_BUFFER_SHARE_DEFAULT) != TFM_SUCCESS) {
         return CORE_TEST_ERRNO_UNEXPECTED_CORE_BEHAVIOUR;
     }
-#endif /* TFM_PSA_API */
+#endif /* !defined(TFM_PSA_API) */
 
     for (i = 0; i < len; i++) {
         out_ptr[i] = ss_buffer[i];
@@ -319,7 +333,12 @@ static psa_status_t test_outvec_write(void)
 {
     int32_t err;
     int i;
-    uint8_t *scratch_ptr = (uint8_t *)tfm_scratch_area;
+#ifdef TFM_PSA_API
+    uint8_t data_buf [36]; /* (6 + 12) * 2 = 36 plus some alignment */
+    uint8_t *data_buf_ptr = data_buf;
+#else
+    uint8_t *data_buf_ptr = (uint8_t *)tfm_scratch_area;
+#endif
     psa_invec in_vec [2];
     psa_outvec out_vec [2];
     uint8_t *in_buf_0;
@@ -331,44 +350,44 @@ static psa_status_t test_outvec_write(void)
     if (tfm_core_set_buffer_area(TFM_BUFFER_SHARE_SCRATCH) != TFM_SUCCESS) {
         return CORE_TEST_ERRNO_UNEXPECTED_CORE_BEHAVIOUR;
     }
-#endif /* TFM_PSA_API */
+#endif /* !defined(TFM_PSA_API) */
 
-    in_buf_0 = scratch_ptr;
-    for (i = 0; i < 5; ++i, ++scratch_ptr)
+    in_buf_0 = data_buf_ptr;
+    for (i = 0; i < 5; ++i, ++data_buf_ptr)
     {
-        *scratch_ptr = i;
+        *data_buf_ptr = i;
     }
     in_vec[0].base = in_buf_0;
-    in_vec[0].len = scratch_ptr - in_buf_0;
+    in_vec[0].len = data_buf_ptr - in_buf_0;
 
-    in_buf_1 = scratch_ptr;
-    *(scratch_ptr++) = 1;
-    *(scratch_ptr++) = 1;
-    for (i = 2; i < 11; ++i, ++scratch_ptr)
+    in_buf_1 = data_buf_ptr;
+    *(data_buf_ptr++) = 1;
+    *(data_buf_ptr++) = 1;
+    for (i = 2; i < 11; ++i, ++data_buf_ptr)
     {
-        *scratch_ptr = *(scratch_ptr-1) + *(scratch_ptr-2);
+        *data_buf_ptr = *(data_buf_ptr-1) + *(data_buf_ptr-2);
     }
     in_vec[1].base = in_buf_1;
-    in_vec[1].len = scratch_ptr - in_buf_1;
+    in_vec[1].len = data_buf_ptr - in_buf_1;
 
-    out_buf_0 = scratch_ptr;
-    scratch_ptr += in_vec[0].len;
+    out_buf_0 = data_buf_ptr;
+    data_buf_ptr += in_vec[0].len;
     out_vec[0].base = out_buf_0;
-    out_vec[0].len = scratch_ptr - out_buf_0;
+    out_vec[0].len = data_buf_ptr - out_buf_0;
 
-    out_buf_1 = scratch_ptr;
-    scratch_ptr += in_vec[1].len;
+    out_buf_1 = data_buf_ptr;
+    data_buf_ptr += in_vec[1].len;
     out_vec[1].base = out_buf_0;
-    out_vec[1].len = scratch_ptr - out_buf_0;
+    out_vec[1].len = data_buf_ptr - out_buf_0;
 
 #ifdef TFM_PSA_API
     err = psa_test_common(SPM_CORE_TEST_2_GET_EVERY_SECOND_BYTE_SID,
-                          SPM_CORE_TEST_2_GET_EVERY_SECOND_BYTE_MIN_VER,
+                          SPM_CORE_TEST_2_GET_EVERY_SECOND_BYTE_VERSION,
                           in_vec, 2, out_vec, 2);
-#else
+#else /* defined(TFM_PSA_API) */
     err = tfm_spm_core_test_2_get_every_second_byte_veneer(in_vec, 2,
                                                            out_vec, 2);
-#endif
+#endif /* defined(TFM_PSA_API) */
 
     if (err != CORE_TEST_ERRNO_SUCCESS) {
         return CORE_TEST_ERRNO_TEST_FAULT;
@@ -393,7 +412,7 @@ static psa_status_t test_outvec_write(void)
     if (tfm_core_set_buffer_area(TFM_BUFFER_SHARE_DEFAULT) != TFM_SUCCESS) {
         return CORE_TEST_ERRNO_UNEXPECTED_CORE_BEHAVIOUR;
     }
-#endif /* TFM_PSA_API */
+#endif /* !defined(TFM_PSA_API) */
 
     return CORE_TEST_ERRNO_SUCCESS;
 }
@@ -404,11 +423,11 @@ static psa_status_t test_ss_to_ss(void)
     /* Call to a different service, should be successful */
 #ifdef TFM_PSA_API
     ret = psa_test_common(SPM_CORE_TEST_2_SLAVE_SERVICE_SID,
-                          SPM_CORE_TEST_2_SLAVE_SERVICE_MIN_VER,
+                          SPM_CORE_TEST_2_SLAVE_SERVICE_VERSION,
                           NULL, 0, NULL, 0);
-#else /* TFM_PAS_API*/
+#else /* defined(TFM_PSA_API) */
     ret = tfm_spm_core_test_2_slave_service_veneer(NULL, 0, NULL, 0);
-#endif /* TFM_PAS_API*/
+#endif /* defined(TFM_PSA_API) */
     if (ret == CORE_TEST_ERRNO_SUCCESS_2) {
         return CORE_TEST_ERRNO_SUCCESS;
     } else {
@@ -416,6 +435,7 @@ static psa_status_t test_ss_to_ss(void)
     }
 }
 
+#ifndef TFM_PSA_API
 static psa_status_t test_get_caller_client_id(void)
 {
     /* Call to a special service that checks the caller service ID */
@@ -470,31 +490,19 @@ static psa_status_t test_spm_request(void)
 
     return CORE_TEST_ERRNO_SUCCESS;
 }
+#endif /* !defined(TFM_PSA_API) */
 
 #ifdef CORE_TEST_INTERACTIVE
-#define MPS2_USERPB0_BASE   (0x50302008)
-#define MPS2_USERPB0_MASK   (0x1)
-
 static void wait_button_event(void)
 {
-    volatile uint32_t *p_btn = (volatile uint32_t *) MPS2_USERPB0_BASE;
-    *p_btn = *p_btn;
-
-    /* Wait until user button 0 is pressed */
-    while (!(*p_btn & MPS2_USERPB0_MASK)) {
-      ;
-    }
-
+    tfm_plat_test_wait_user_button_pressed();
     /*
      * The follow wait is required to skip multiple continues in one go due to
      * the fast execution of the code and time used by the user to
      * release button.
      */
 
-    /* Wait until user button 0 is released */
-    while ((*p_btn & MPS2_USERPB0_MASK)) {
-      ;
-    }
+    tfm_plat_test_wait_user_button_released();
 }
 
 psa_status_t test_wait_button(void)
@@ -504,19 +512,20 @@ psa_status_t test_wait_button(void)
     LOG_MSG("Leaving the service");
     return CORE_TEST_ERRNO_SUCCESS;
 }
-#endif
+#endif /* defined(CORE_TEST_INTERACTIVE) */
 
 static psa_status_t test_block(void)
 {
 #ifdef CORE_TEST_INTERACTIVE
     /* Only block if interactive test is turned on */
     return test_wait_button();
-#else
+#else /* defined(CORE_TEST_INTERACTIVE) */
     /* This test should not be run if interactive tests are disabled */
     return CORE_TEST_ERRNO_TEST_FAULT;
-#endif /* CORE_TEST_INTERACTIVE */
+#endif /* defined(CORE_TEST_INTERACTIVE) */
 }
 
+#ifndef TFM_PSA_API
 psa_status_t spm_core_test_sfn(struct psa_invec *in_vec, size_t in_len,
                           struct psa_outvec *out_vec, size_t out_len)
 {
@@ -590,7 +599,7 @@ psa_status_t spm_core_test_sfn(struct psa_invec *in_vec, size_t in_len,
     }
 }
 
-#ifdef TFM_PSA_API
+#else /* !defined(TFM_PSA_API) */
 
 #define SS_TO_SS_BUFFER_SIZE (16*4)
 
@@ -608,64 +617,12 @@ static psa_status_t tfm_core_test_sfn_wrap_direct_recursion(psa_msg_t *msg)
 
 static psa_status_t tfm_core_test_sfn_wrap_mpu_access(psa_msg_t *msg)
 {
-    size_t num;
-    uint32_t *data_r_ptr;
-    uint32_t *code_ptr;
-    uint32_t *data_w_ptr;
-
-    if ((msg->in_size[0] < sizeof(int32_t)) ||
-        (msg->in_size[1] < sizeof(int32_t)) ||
-        (msg->in_size[2] < sizeof(int32_t))) {
-        return CORE_TEST_ERRNO_INVALID_PARAMETER;
-    }
-
-    num = psa_read(msg->handle, 0, &data_r_ptr, sizeof(int32_t));
-    if (num != sizeof(int32_t)) {
-        return CORE_TEST_ERRNO_INVALID_PARAMETER;
-    }
-
-    num = psa_read(msg->handle, 1, &code_ptr, sizeof(int32_t));
-    if (num != sizeof(int32_t)) {
-        return CORE_TEST_ERRNO_INVALID_PARAMETER;
-    }
-
-    num = psa_read(msg->handle, 2, &data_w_ptr, sizeof(int32_t));
-    if (num != sizeof(int32_t)) {
-        return CORE_TEST_ERRNO_INVALID_PARAMETER;
-    }
-
-    return test_mpu_access(data_r_ptr, code_ptr, data_w_ptr);
+    return CORE_TEST_ERRNO_TEST_NOT_SUPPORTED;
 }
 
 static psa_status_t tfm_core_test_sfn_wrap_memory_permissions(psa_msg_t *msg)
 {
-    size_t num;
-    uint32_t *data_r_ptr;
-    uint32_t *code_ptr;
-    uint32_t *data_w_ptr;
-
-    if ((msg->in_size[0] < sizeof(int32_t)) ||
-        (msg->in_size[1] < sizeof(int32_t)) ||
-        (msg->in_size[2] < sizeof(int32_t))) {
-        return CORE_TEST_ERRNO_INVALID_PARAMETER;
-    }
-
-    num = psa_read(msg->handle, 0, &data_r_ptr, sizeof(int32_t));
-    if (num != sizeof(int32_t)) {
-        return CORE_TEST_ERRNO_INVALID_PARAMETER;
-    }
-
-    num = psa_read(msg->handle, 1, &code_ptr, sizeof(int32_t));
-    if (num != sizeof(int32_t)) {
-        return CORE_TEST_ERRNO_INVALID_PARAMETER;
-    }
-
-    num = psa_read(msg->handle, 2, &data_w_ptr, sizeof(int32_t));
-    if (num != sizeof(int32_t)) {
-        return CORE_TEST_ERRNO_INVALID_PARAMETER;
-    }
-
-    return test_memory_permissions(data_r_ptr, code_ptr, data_w_ptr);
+    return CORE_TEST_ERRNO_TEST_NOT_SUPPORTED;
 }
 
 static psa_status_t tfm_core_test_sfn_wrap_share_redirection(psa_msg_t *msg)
@@ -728,12 +685,12 @@ static psa_status_t tfm_core_test_sfn_wrap_peripheral_access(psa_msg_t *msg)
 
 static psa_status_t tfm_core_test_sfn_wrap_get_caller_client_id(psa_msg_t *msg)
 {
-    return test_get_caller_client_id();
+    return CORE_TEST_ERRNO_TEST_NOT_SUPPORTED;
 }
 
 static psa_status_t tfm_core_test_sfn_wrap_spm_request(psa_msg_t *msg)
 {
-    return test_spm_request();
+    return CORE_TEST_ERRNO_TEST_NOT_SUPPORTED;
 }
 
 static psa_status_t tfm_core_test_sfn_wrap_block(psa_msg_t *msg)
@@ -771,13 +728,13 @@ static void core_test_signal_handle(psa_signal_t signal, core_test_func_t pfn)
         break;
     }
 }
-#endif
+#endif /* !defined(TFM_PSA_API) */
 
 psa_status_t core_test_init(void)
 {
 #ifdef TFM_PSA_API
     psa_signal_t signals = 0;
-#endif
+#endif /* defined(TFM_PSA_API) */
 
     partition_init_done = 1;
 
@@ -827,7 +784,7 @@ psa_status_t core_test_init(void)
             ; /* do nothing */
         }
     }
-#endif
+#endif /* defined(TFM_PSA_API) */
 
     return CORE_TEST_ERRNO_SUCCESS;
 }

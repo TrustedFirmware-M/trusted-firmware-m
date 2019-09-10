@@ -11,48 +11,48 @@
   "priority": "NORMAL",
   "id": "0x00000006",
   "entry_point": "ipc_client_test_main",
-  "stack_size": "0x0200",
+  "stack_size": "0x0220",
   "heap_size": "0",
   "secure_functions": [
   ],
   "services" : [
     {
-      "name": "IPC_CLIENT_TEST_BASIC_SID",
-      "sid": "0x00001100",
+      "name": "IPC_CLIENT_TEST_BASIC",
+      "sid": "0x0000F060",
       "signal": "IPC_CLIENT_TEST_BASIC_SIGNAL",
-      "non_secure_clients": "true",
+      "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "STRICT"
     },
     {
-      "name": "IPC_CLIENT_TEST_PSA_ACCESS_APP_MEM_SID",
-      "sid": "0x00001101",
+      "name": "IPC_CLIENT_TEST_PSA_ACCESS_APP_MEM",
+      "sid": "0x0000F061",
       "signal": "IPC_CLIENT_TEST_PSA_ACCESS_APP_MEM_SIGNAL",
-      "non_secure_clients": "true",
+      "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "STRICT"
     },
     {
-      "name": "IPC_CLIENT_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_SID",
-      "sid": "0x00001102",
+      "name": "IPC_CLIENT_TEST_PSA_ACCESS_APP_READ_ONLY_MEM",
+      "sid": "0x0000F062",
       "signal": "IPC_CLIENT_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_SIGNAL",
-      "non_secure_clients": "true",
+      "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "STRICT"
     },
     {
-      "name": "IPC_CLIENT_TEST_APP_ACCESS_PSA_MEM_SID",
-      "sid": "0x00001103",
+      "name": "IPC_CLIENT_TEST_APP_ACCESS_PSA_MEM",
+      "sid": "0x0000F063",
       "signal": "IPC_CLIENT_TEST_APP_ACCESS_PSA_MEM_SIGNAL",
-      "non_secure_clients": "true",
+      "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "STRICT"
     },
     {
-      "name": "IPC_CLIENT_TEST_MEM_CHECK_SID",
-      "sid": "0x00001104",
+      "name": "IPC_CLIENT_TEST_MEM_CHECK",
+      "sid": "0x0000F064",
       "signal": "IPC_CLIENT_TEST_MEM_CHECK_SIGNAL",
-      "non_secure_clients": "true",
+      "non_secure_clients": true,
       "minor_version": 1,
       "minor_policy": "STRICT"
     }

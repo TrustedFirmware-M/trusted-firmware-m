@@ -1,7 +1,7 @@
 #! armclang --target=arm-arm-none-eabi -march=armv8-m.main -E -xc
 
 /*
- * Copyright (c) 2017-2018 Arm Limited. All rights reserved.
+ * Copyright (c) 2017-2019 Arm Limited. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@
 LR_CODE BL2_CODE_START {
     ER_CODE BL2_CODE_START BL2_CODE_SIZE {
         *.o (RESET +First)
-        .ANY (+RO)
+        * (+RO)
     }
 
     TFM_SHARED_DATA BL2_DATA_START ALIGN 32 EMPTY BOOT_TFM_SHARED_DATA_SIZE {
     }
 
     ER_DATA +0 BL2_DATA_SIZE {
-        .ANY (+ZI +RW)
+        * (+ZI +RW)
     }
 
     /* MSP */

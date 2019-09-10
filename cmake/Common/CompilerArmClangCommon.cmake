@@ -192,13 +192,15 @@ endfunction()
 #    DST - (mandatory) - output file for the preprocessing
 #    TARGET_PREFIX - (optional) - prefix for the target that this function creates and which manages the preprocessing
 #    BEFORE_TARGET - (optional) - target which is dependent on the preprocessing target in the below function
+#    DEFINES - (optional) - additional command line switches from macro definitions for preprocessing
+#    INCLUDES - (optional) - additional command line switches from include paths for preprocessing
 function(compiler_preprocess_file)
 	#Option (on/off) arguments.
 	set( _OPTIONS_ARGS)
 	#Single option arguments.
 	set( _ONE_VALUE_ARGS SRC DST TARGET_PREFIX BEFORE_TARGET)
 	#List arguments
-	set( _MULTI_VALUE_ARGS)
+	set( _MULTI_VALUE_ARGS DEFINES INCLUDES)
 	cmake_parse_arguments(_MY_PARAMS "${_OPTIONS_ARGS}" "${_ONE_VALUE_ARGS}" "${_MULTI_VALUE_ARGS}" ${ARGN} )
 
 	#Check passed parameters
@@ -216,6 +218,21 @@ function(compiler_preprocess_file)
 		endif()
 	endif()
 
+	#Compose additional command line switches from macro definitions.
+	set(_FLAGS "")
+	if (_MY_PARAMS_DEFINES)
+		foreach(_DEFINE IN LISTS _MY_PARAMS_DEFINES)
+			list(APPEND _FLAGS "-D${_DEFINE}")
+		endforeach()
+	endif()
+
+	#Compose additional command line switches from include paths.
+	if (_MY_PARAMS_INCLUDES)
+		foreach(_INCLUDE IN LISTS _MY_PARAMS_INCLUDES)
+			list(APPEND _FLAGS "-I${_INCLUDE}")
+		endforeach()
+	endif()
+
 	#The compiler flag might contain leading spaces which can fail the preprocess operation, these are removed
 	STRING(STRIP ${CMAKE_C_FLAGS_CPU} _MY_TEMP_CMAKE_C_FLAGS_CPU)
 	#If a string contains spaces, then it is inserted amongst quotation marks. Furthermore the compiler fails if it is
@@ -228,7 +245,7 @@ function(compiler_preprocess_file)
 	endforeach()
 
 	add_custom_command(OUTPUT ${_MY_PARAMS_DST}
-		COMMAND ${CMAKE_C_COMPILER} ${_LOCAL_CMAKE_C_FLAGS_CPU} -E -P -xc ${_MY_PARAMS_SRC} -o ${_MY_PARAMS_DST}
+		COMMAND ${CMAKE_C_COMPILER} ${_LOCAL_CMAKE_C_FLAGS_CPU} -E -P -xc ${_FLAGS} ${_MY_PARAMS_SRC} -o ${_MY_PARAMS_DST}
 		DEPENDS ${_MY_PARAMS_SRC}
 		COMMENT "Preprocess the ${_MY_PARAMS_SRC} file"
 	)

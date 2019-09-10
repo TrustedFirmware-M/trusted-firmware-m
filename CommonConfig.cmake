@@ -11,6 +11,8 @@ elseif(NOT DEFINED CORE_TEST)
 	message(FATAL_ERROR "ERROR: Incomplete Configuration: CORE_TEST not defined, Include this file from a Config*.cmake")
 elseif(NOT DEFINED TFM_LVL)
 	message(FATAL_ERROR "ERROR: Incomplete Configuration: TFM_LVL not defined, Include this file from a Config*.cmake")
+elseif(NOT DEFINED CORE_IPC)
+	message(FATAL_ERROR "ERROR: Incomplete Configuration: CORE_IPC not deinfed. Include this file from a Config*.cmake")
 endif()
 
 if(NOT DEFINED COMPILER)
@@ -19,16 +21,18 @@ elseif((NOT ${COMPILER} STREQUAL "ARMCLANG") AND (NOT ${COMPILER} STREQUAL "GNUA
 	message(FATAL_ERROR "ERROR: Compiler \"${COMPILER}\" is not supported.")
 endif()
 
-#BL2 bootloader (MCUBoot) related settings
-if(NOT DEFINED BL2)
-	set(BL2 True CACHE BOOL "Configure TF-M to use BL2 and enable building BL2")
-endif()
-if (BL2)
-	if (NOT DEFINED MCUBOOT_UPGRADE_STRATEGY)
-		set (MCUBOOT_UPGRADE_STRATEGY "OVERWRITE_ONLY" CACHE STRING "Configure BL2 which upgrade strategy to use")
-		set_property(CACHE MCUBOOT_UPGRADE_STRATEGY PROPERTY STRINGS "OVERWRITE_ONLY;SWAP;NO_SWAP;RAM_LOADING")
+if(CORE_IPC)
+	if (TFM_LVL EQUAL 3)
+		message(FATAL_ERROR "ERROR: Invalid isolation level!")
+	endif()
+else()
+	if(NOT TFM_LVL EQUAL 1)
+		message(FATAL_ERROR "ERROR: Invalid isolation level!")
 	endif()
 endif()
+
+#BL2 bootloader (MCUBoot) related settings
+include(${CMAKE_CURRENT_LIST_DIR}/bl2/ext/mcuboot/MCUBootConfig.cmake)
 
 set(BUILD_CMSIS_CORE Off)
 set(BUILD_RETARGET Off)
@@ -43,6 +47,7 @@ set(BUILD_UART_STDOUT Off)
 set(BUILD_FLASH Off)
 set(BUILD_BOOT_SEED Off)
 set(BUILD_DEVICE_ID Off)
+set(BUILD_PLAT_TEST Off)
 if(NOT DEFINED PLATFORM_CMAKE_FILE)
 	message (FATAL_ERROR "Platform specific CMake is not defined. Please set PLATFORM_CMAKE_FILE.")
 elseif(NOT EXISTS ${PLATFORM_CMAKE_FILE})
@@ -51,14 +56,14 @@ else()
 	include(${PLATFORM_CMAKE_FILE})
 endif()
 
-if (NOT DEFINED IMAGE_VERSION)
-	set(IMAGE_VERSION 0.0.0+0)
-endif()
-
 # Select the corresponding CPU type and configuration according to current
 # building status in multi-core scenario.
 # The updated configuration will be used in following compiler setting.
 if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
+	if (NOT CORE_IPC)
+		message(FATAL_ERROR "CORE_IPC is OFF. Multi-core topology should work in IPC model.")
+	endif()
+
 	include("Common/MultiCore")
 
 	if (NOT DEFINED TFM_BUILD_IN_SPE)
@@ -66,9 +71,7 @@ if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
 	else()
 		select_arm_cpu_type(${TFM_BUILD_IN_SPE})
 	endif()
-endif()
 
-if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
 	# CMSE is unnecessary in multi-core scenarios.
 	# TODO: Need further discussion about if CMSE is required when an Armv8-M
 	# core acts as secure core in multi-core scenario.
@@ -86,7 +89,7 @@ if(${COMPILER} STREQUAL "ARMCLANG")
 	include("Common/FindArmClang")
 	include("Common/${ARMCLANG_MODULE}")
 
-	set (COMMON_COMPILE_FLAGS -fshort-enums -fshort-wchar -funsigned-char -mfpu=none ${CMSE_FLAGS})
+	set (COMMON_COMPILE_FLAGS -fshort-enums -fshort-wchar -funsigned-char -mfpu=none ${CMSE_FLAGS} -ffunction-sections -fdata-sections)
 	##Shared compiler settings.
 	function(config_setting_shared_compiler_flags tgt)
 		embedded_set_target_compile_flags(TARGET ${tgt} LANGUAGE C FLAGS -xc -std=c99 ${COMMON_COMPILE_FLAGS} -Wall -Werror)
@@ -94,7 +97,7 @@ if(${COMPILER} STREQUAL "ARMCLANG")
 
 	##Shared linker settings.
 	function(config_setting_shared_linker_flags tgt)
-		embedded_set_target_link_flags(TARGET ${tgt} FLAGS --strict --map --symbols --xref --entry=Reset_Handler --info=summarysizes,sizes,totals,unused,veneers)
+		embedded_set_target_link_flags(TARGET ${tgt} FLAGS --strict --map --symbols --xref --entry=Reset_Handler --remove --info=summarysizes,sizes,totals,unused,veneers)
 	endfunction()
 elseif(${COMPILER} STREQUAL "GNUARM")
 	#Use any GNUARM version found on PATH. Note: Only versions supported by the
@@ -103,7 +106,7 @@ elseif(${COMPILER} STREQUAL "GNUARM")
 	include("Common/FindGNUARM")
 	include("Common/${GNUARM_MODULE}")
 
-	set (COMMON_COMPILE_FLAGS -fshort-enums -fshort-wchar -funsigned-char -msoft-float -ffunction-sections -fdata-sections --specs=nano.specs ${CMSE_FLAGS})
+	set (COMMON_COMPILE_FLAGS -fshort-enums -fshort-wchar -funsigned-char -msoft-float ${CMSE_FLAGS} -ffunction-sections -fdata-sections --specs=nano.specs)
 	##Shared compiler and linker settings.
 	function(config_setting_shared_compiler_flags tgt)
 		embedded_set_target_compile_flags(TARGET ${tgt} LANGUAGE C FLAGS -xc -std=c99 ${COMMON_COMPILE_FLAGS} -Wall -Werror -Wno-format -Wno-return-type -Wno-unused-but-set-variable)
@@ -115,8 +118,7 @@ elseif(${COMPILER} STREQUAL "GNUARM")
 		#with short wchars, however the standard library is compiled with normal
 		#wchar, and this generates linker time warnings. TF-M code does not use
 		#wchar, so the warning can be suppressed.
-		embedded_set_target_link_flags(TARGET ${tgt} FLAGS -Xlinker -check-sections -Xlinker -fatal-warnings --entry=Reset_Handler --specs=nano.specs
-						-Wl,--no-wchar-size-warning,--print-memory-usage,--gc-sections)
+		embedded_set_target_link_flags(TARGET ${tgt} FLAGS -Wl,-check-sections,-fatal-warnings,--gc-sections,--no-wchar-size-warning,--print-memory-usage --entry=Reset_Handler --specs=nano.specs)
 	endfunction()
 endif()
 
@@ -137,7 +139,6 @@ set (TEST_FRAMEWORK_S  OFF)
 set (TEST_FRAMEWORK_NS OFF)
 set (TFM_PSA_API OFF)
 set (TFM_LEGACY_API ON)
-set (CORE_TEST_IPC OFF)
 
 option(TFM_PARTITION_AUDIT_LOG "Enable the TF-M Audit Log partition" ON)
 option(TFM_PARTITION_PLATFORM "Enable the TF-M Platform partition" ON)
@@ -155,6 +156,14 @@ endif()
 
 if (CORE_IPC)
 	set(TFM_PSA_API ON)
+
+	# Disable IPC Test by default if the config or platform doesn't explicitly
+	# require it
+	if (NOT DEFINED IPC_TEST)
+		set(IPC_TEST OFF)
+	endif()
+else()
+	set(IPC_TEST OFF)
 endif()
 
 if (TFM_PSA_API)
@@ -172,20 +181,11 @@ endif()
 if (SERVICES_TEST_ENABLED)
 	set(SERVICE_TEST_S ON)
 	set(SERVICE_TEST_NS ON)
-	if (CORE_IPC)
-		set(CORE_TEST_IPC ON)
-	elseif (REFERENCE_PLATFORM)
-		set(CORE_TEST_POSITIVE ON)
-	endif()
 endif()
 
 if (CORE_TEST)
-	if (CORE_IPC)
-		set(CORE_TEST_IPC ON)
-	elseif (REFERENCE_PLATFORM)
-		set(CORE_TEST_POSITIVE ON)
-		set(CORE_TEST_INTERACTIVE OFF)
-	endif()
+	set(CORE_TEST_POSITIVE ON)
+	set(CORE_TEST_INTERACTIVE OFF)
 endif()
 
 if (CORE_TEST_INTERACTIVE)
@@ -200,16 +200,24 @@ if (CORE_TEST_POSITIVE)
 	set(TFM_PARTITION_TEST_CORE ON)
 endif()
 
-if (CORE_TEST_IPC)
-	add_definitions(-DCORE_TEST_IPC)
+if (TFM_PARTITION_TEST_CORE)
+	# If the platform or the topology doesn't specify whether IRQ test is
+	# supported, enable it by default.
+	if (NOT DEFINED TFM_ENABLE_IRQ_TEST)
+		set(TFM_ENABLE_IRQ_TEST ON)
+	endif()
+
+	if (TFM_ENABLE_IRQ_TEST)
+		add_definitions(-DTFM_ENABLE_IRQ_TEST)
+	endif()
+else()
+	set(TFM_ENABLE_IRQ_TEST OFF)
+endif()
+
+if (IPC_TEST)
+	add_definitions(-DENABLE_IPC_TEST)
 	set(TEST_FRAMEWORK_NS ON)
 	set(TFM_PARTITION_TEST_CORE_IPC ON)
-elseif (CORE_IPC AND (NOT PSA_API_TEST) AND (TFM_LVL EQUAL 1))
-	# FIXME: Running the Core IPC tests in this config is deprecated and will
-	# be removed in the future.
-	set(CORE_TEST_IPC ON)
-	add_definitions(-DCORE_TEST_IPC)
-	set(TEST_FRAMEWORK_NS ON)
 endif()
 
 if (SERVICE_TEST_S)
@@ -278,26 +286,11 @@ if (NOT DEFINED TFM_NS_CLIENT_IDENTIFICATION)
 endif()
 
 if (BL2)
-	add_definitions(-DBL2)
-	if (NOT ${MCUBOOT_SIGNATURE_TYPE} STREQUAL "RSA-2048" AND NOT ${MCUBOOT_SIGNATURE_TYPE} STREQUAL "RSA-3072")
-		message(FATAL_ERROR "MCUBoot only supports RSA-2048 and RSA-3072 signature")
-	endif()
-	if (NOT DEFINED MCUBOOT_SIGNATURE_TYPE)
-		set(MCUBOOT_SIGNATURE_TYPE "RSA-3072")
-	endif()
-	if (NOT ${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "OVERWRITE_ONLY" AND
-		NOT ${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "SWAP" AND
-		NOT ${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "NO_SWAP" AND
-		NOT ${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "RAM_LOADING")
-		message(FATAL_ERROR "ERROR: MCUBoot supports OVERWRITE_ONLY, SWAP, NO_SWAP and RAM_LOADING upgrade strategies only.")
-	endif()
+	# Add MCUBOOT_IMAGE_NUMBER definition to the compiler command line.
+	add_definitions(-DMCUBOOT_IMAGE_NUMBER=${MCUBOOT_IMAGE_NUMBER})
+
 	if (${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "NO_SWAP")
 		set(LINK_TO_BOTH_MEMORY_REGION ON)
-	endif()
-else() #BL2 is turned off
-	if (DEFINED MCUBOOT_UPGRADE_STRATEGY)
-		message (WARNING "Ignoring value of MCUBOOT_UPGRADE_STRATEGY as BL2 option is set to False.")
-		unset (MCUBOOT_UPGRADE_STRATEGY)
 	endif()
 endif()
 

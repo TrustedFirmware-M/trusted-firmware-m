@@ -31,6 +31,7 @@ enum tfm_nv_counter_t {
     PLAT_NV_COUNTER_1,      /* Used by SST service */
     PLAT_NV_COUNTER_2,      /* Used by SST service */
     PLAT_NV_COUNTER_3,      /* Used by bootloader */
+    PLAT_NV_COUNTER_4,      /* Used by bootloader */
     PLAT_NV_COUNTER_MAX
 };
 

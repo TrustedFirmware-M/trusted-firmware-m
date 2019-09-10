@@ -58,21 +58,74 @@ The BL2 bootloader requires the following definitions:
 - ``FLASH_AREA_BL2_OFFSET`` - Defines the offset from the flash base address
   where the BL2 - MCUBOOT area starts.
 - ``FLASH_AREA_BL2_SIZE`` - Defines the size of the BL2 area.
-- ``FLASH_AREA_IMAGE_0_OFFSET`` - Defines the offset from the flash base address
-  where the image 0 area starts, which hosts the active firmware image.
-- ``FLASH_AREA_IMAGE_0_SIZE`` - Defines the size of the image 0 area.
-- ``FLASH_AREA_IMAGE_1_OFFSET`` - Defines the offset from the flash base address
-  where the image 1 area starts, which is a placeholder for new firmware images.
-- ``FLASH_AREA_IMAGE_1_SIZE`` - Defines the size of the image 1 area.
-- ``FLASH_AREA_IMAGE_SCRATCH_OFFSET`` - Defines the offset from the flash base
+- ``FLASH_AREA_SCRATCH_OFFSET`` - Defines the offset from the flash base
   address where the scratch area starts, which is used during image swapping.
-- ``FLASH_AREA_IMAGE_SCRATCH_SIZE`` - Defines the size of the scratch area. The
+- ``FLASH_AREA_SCRATCH_SIZE`` - Defines the size of the scratch area. The
   minimal size must be as the biggest sector size in the flash.
 - ``FLASH_DEV_NAME`` - Specifies the flash device used by BL2.
 
+The BL2 requires further definitions depending on the number of images, the
+meaning of these macros are also slightly different:
+
+- Required definitions in case of 1 image (S and NS images are concatenated
+  and handled together as one binary blob):
+
+    - ``FLASH_AREA_0_OFFSET`` - Defines the offset from the flash base address
+      where the primary image area starts, which hosts the active firmware
+      image.
+    - ``FLASH_AREA_0_SIZE`` - Defines the size of the primary image area.
+    - ``FLASH_AREA_2_OFFSET`` - Defines the offset from the flash base address
+      where the secondary image area starts, which is a placeholder for new
+      firmware images.
+    - ``FLASH_AREA_2_SIZE`` - Defines the size of the secondary image area.
+
+- Required definitions in case of 2 images (S and NS images are handled and
+  updated separately):
+
+    - ``FLASH_AREA_0_OFFSET`` - Defines the offset from the flash base address
+      where the primary image areas start, which host the active firmware
+      images. It is also the offset of the primary (active) secure image area.
+    - ``FLASH_AREA_0_SIZE`` - Defines the size of the primary secure image area.
+    - ``FLASH_AREA_1_OFFSET`` - Defines the offset from the flash base address
+      where the primary (active) non-secure image area starts.
+    - ``FLASH_AREA_1_SIZE`` - Defines the size of the primary non-secure image
+      area.
+    - ``FLASH_AREA_2_OFFSET`` - Defines the offset from the flash base address
+      where the secondary image areas start, which are placeholders for new
+      firmware images. It is also the offset of the secondary secure image area.
+    - ``FLASH_AREA_2_SIZE`` - Defines the size of the secondary secure image
+      area.
+    - ``FLASH_AREA_3_OFFSET`` - Defines the offset from the flash base address
+      where the secondary non-secure image area starts.
+    - ``FLASH_AREA_3_SIZE`` - Defines the size of the secondary non-secure image
+      area.
+
+The table below shows a fraction of the flash layout in case of 2 and 1
+updatable images with the related flash areas that hold the firmware images:
+
++-----------------------+--------------------+-----------------------+-----------------------------+
+| Image number: 2                            | Image number: 1                                     |
++=======================+====================+=======================+=============================+
+| **Flash area**        | **Content**        | **Flash area**        | **Content**                 |
++-----------------------+--------------------+-----------------------+-----------------------------+
+| FLASH_AREA_0          | | Secure image     | FLASH_AREA_0          | | Secure + Non-secure image |
+|                       | | primary slot     |                       | | primary slot              |
++-----------------------+--------------------+-----------------------+                             +
+| FLASH_AREA_1          | | Non-secure image |                       |                             |
+|                       | | primary slot     |                       |                             |
++-----------------------+--------------------+-----------------------+-----------------------------+
+| FLASH_AREA_2          | | Secure image     | FLASH_AREA_2          | | Secure + Non-secure image |
+|                       | | secondary slot   |                       | | secondary slot            |
++-----------------------+--------------------+-----------------------+                             +
+| FLASH_AREA_3          | | Non-secure image |                       |                             |
+|                       | | secondary slot   |                       |                             |
++-----------------------+--------------------+-----------------------+-----------------------------+
+| FLASH_AREA_SCRATCH    | Scratch area       | FLASH_AREA_SCRATCH    | Scratch area                |
++-----------------------+--------------------+-----------------------+-----------------------------+
+
 Assemble tool
 ^^^^^^^^^^^^^
-The ``assemble.py`` tools is used to concatenate secure and non-secure binary
+The ``assemble.py`` tool is used to concatenate secure and non-secure binary
 to a single binary blob. It requires the following definitions:
 
 - ``SECURE_IMAGE_OFFSET`` - Defines the offset from the single binary blob base
@@ -82,6 +135,15 @@ to a single binary blob. It requires the following definitions:
   base address,   where the non-secure image starts.
 - ``NON_SECURE_IMAGE_MAX_SIZE`` - Defines the maximum size of the non-secure
   image area.
+
+Image tool
+^^^^^^^^^^^^^
+The ``imgtool.py`` tool is used to handle the tasks related to signing the
+binary. It requires the following definition:
+
+- ``IMAGE_LOAD_ADDRESS`` - Defines the address to where the image is loaded
+  and is executed from. Only used in case the ``MCUBOOT_UPGRADE_STRATEGY``
+  is configured to be ``RAM_LOADING``.
 
 Secure Storage (SST) Service definitions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

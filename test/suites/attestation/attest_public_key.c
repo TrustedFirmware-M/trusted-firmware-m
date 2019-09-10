@@ -6,8 +6,8 @@
  */
 
 #include "attest_public_key.h"
-#include "psa_initial_attestation_api.h"
-#include "psa_crypto.h"
+#include "psa/initial_attestation.h"
+#include "psa/crypto.h"
 #include <stdint.h>
 
 /*!
@@ -20,7 +20,7 @@
 
 /*!
  *   Byte string representation of ECC public key according to
- *   psa_export_public_key() in interface/include/psa_crypto.h
+ *   psa_export_public_key() in interface/include/psa/crypto.h
  */
 struct ecc_public_key_t {
     const uint8_t a;

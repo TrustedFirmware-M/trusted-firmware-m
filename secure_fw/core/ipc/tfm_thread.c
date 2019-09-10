@@ -76,20 +76,20 @@ static void update_running_head(struct tfm_thrd_ctx **runn,
         (*runn == NULL || (node->prior < (*runn)->prior))) {
         *runn = node;
     } else {
-        *runn = find_next_running_thread(LIST_HEAD);
+        *runn = LIST_HEAD;
     }
 }
 
 /* Set context members only. No validation here */
 void tfm_thrd_init(struct tfm_thrd_ctx *pth,
                    tfm_thrd_func_t pfn, void *param,
-                   uint8_t *sp_base, uint8_t *sp_top)
+                   uintptr_t sp_btm, uintptr_t sp_top)
 {
     pth->prior = THRD_PRIOR_MEDIUM;
     pth->status = THRD_STAT_CREATING;
     pth->pfn = pfn;
     pth->param = param;
-    pth->sp_base = sp_base;
+    pth->sp_btm = sp_btm;
     pth->sp_top = sp_top;
 }
 
@@ -100,15 +100,15 @@ static void exit_zone(void)
 }
 
 static void tfm_thrd_initialize_context(struct tfm_state_context *ctx,
-                                        uint32_t param, uint32_t pfn,
-                                        uint32_t sp_base, uint32_t sp_limit)
+                                        void *param, uintptr_t pfn,
+                                        uintptr_t sp_btm, uintptr_t sp_top)
 {
     /*
      * For security consideration, set unused registers into ZERO;
      * and only necessary registers are set here.
      */
-    struct tfm_state_context_base *p_ctxa =
-                            (struct tfm_state_context_base *)sp_base;
+    struct tfm_state_context_t *p_ctxa =
+                            (struct tfm_state_context_t *)sp_btm;
 
     /*
      * Shift back SP to leave space for holding base context
@@ -118,14 +118,14 @@ static void tfm_thrd_initialize_context(struct tfm_state_context *ctx,
 
     /* Basic context is considerate at thread start.*/
     tfm_memset(p_ctxa, 0, sizeof(*p_ctxa));
-    p_ctxa->r0 = param;
-    p_ctxa->ra = pfn;
-    p_ctxa->ra_lr = (uint32_t)exit_zone;
+    p_ctxa->r0 = (uint32_t)param;
+    p_ctxa->ra = (uint32_t)pfn;
+    p_ctxa->lr = (uint32_t)exit_zone;
     p_ctxa->xpsr = XPSR_T32;
 
     tfm_memset(ctx, 0, sizeof(*ctx));
 
-    tfm_arch_initialize_ctx_ext(&ctx->ctxb, (uint32_t)p_ctxa, sp_limit);
+    tfm_arch_initialize_ctx_ext(&ctx->ctxb, (uint32_t)p_ctxa, (uint32_t)sp_top);
 }
 
 uint32_t tfm_thrd_start(struct tfm_thrd_ctx *pth)
@@ -133,15 +133,15 @@ uint32_t tfm_thrd_start(struct tfm_thrd_ctx *pth)
     /* Validate parameters before really start */
     if ((pth->status != THRD_STAT_CREATING) ||
         (pth->pfn == NULL)                  ||
-        (pth->sp_base == NULL)              ||
-        (pth->sp_top == NULL)) {
+        (pth->sp_btm == 0)              ||
+        (pth->sp_top == 0)) {
         return THRD_ERR_INVALID_PARAM;
     }
 
     /* Thread management runs in handler mode; set context for thread mode. */
     tfm_thrd_initialize_context(&pth->state_ctx,
-                                (uint32_t)pth->param, (uint32_t)pth->pfn,
-                                (uint32_t)pth->sp_base, (uint32_t)pth->sp_top);
+                                pth->param, (uintptr_t)pth->pfn,
+                                pth->sp_btm, pth->sp_top);
 
     /* Insert a new thread with priority */
     insert_by_prior(&LIST_HEAD, pth);

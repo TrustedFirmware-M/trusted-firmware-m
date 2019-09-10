@@ -25,6 +25,7 @@
 
 #include "device_definition.h"
 #include "platform_base_address.h"
+#include "platform/include/tfm_plat_defs.h"
 
 /* UART CMSDK driver structures */
 #ifdef UART0_CMSDK_S
@@ -342,16 +343,19 @@ struct ppc_sse200_dev_t APB_PPCEXP2_DEV_S = {
 
 /* CMSDK Timer driver structures */
 #ifdef CMSDK_TIMER0_S
-static const struct timer_cmsdk_dev_cfg_t CMSDK_TIMER0_DEV_CFG_S = {
-    .base = CMSDK_TIMER0_BASE_S
-};
-static struct timer_cmsdk_dev_data_t CMSDK_TIMER0_DEV_DATA_S = {
-    .is_initialized = 0
-};
-struct timer_cmsdk_dev_t CMSDK_TIMER0_DEV_S = {
-    &(CMSDK_TIMER0_DEV_CFG_S),
-    &(CMSDK_TIMER0_DEV_DATA_S)
-};
+static const struct timer_cmsdk_dev_cfg_t CMSDK_TIMER0_DEV_CFG_S
+    TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_IRQ_TEST_1") = {
+        .base = CMSDK_TIMER0_BASE_S
+    };
+static struct timer_cmsdk_dev_data_t CMSDK_TIMER0_DEV_DATA_S
+    TFM_LINK_SET_RW_IN_PARTITION_SECTION("TFM_IRQ_TEST_1") = {
+        .is_initialized = 0
+    };
+struct timer_cmsdk_dev_t CMSDK_TIMER0_DEV_S
+    TFM_LINK_SET_RW_IN_PARTITION_SECTION("TFM_IRQ_TEST_1") = {
+        &(CMSDK_TIMER0_DEV_CFG_S),
+        &(CMSDK_TIMER0_DEV_DATA_S)
+    };
 #endif
 #ifdef CMSDK_TIMER0_NS
 static const struct timer_cmsdk_dev_cfg_t CMSDK_TIMER0_DEV_CFG_NS = {

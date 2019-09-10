@@ -7,15 +7,9 @@
 
 #include "tfm_secure_client_service_api.h"
 #ifdef TFM_PSA_API
-#include "psa_client.h"
+#include "psa/client.h"
 #include "tfm_api.h"
-
-/*
- * Defines for SID and minor version number. These SIDs should align with the
- * value in service manifest file.
- */
-#define TFM_SECURE_CLIENT_SFN_RUN_TESTS_SID     (0x0000F000)
-#define TFM_SECURE_CLIENT_SFN_RUN_TESTS_MIN_VER (0x00000001)
+#include "psa_manifest/sid.h"
 #else /* TFM_PSA_API */
 #include "tfm_secure_client_service_veneers.h"
 #endif /* TFM_PSA_API */
@@ -27,12 +21,12 @@ int32_t tfm_secure_client_run_tests(void)
     psa_status_t status;
 
     handle = psa_connect(TFM_SECURE_CLIENT_SFN_RUN_TESTS_SID,
-                         TFM_SECURE_CLIENT_SFN_RUN_TESTS_MIN_VER);
+                         TFM_SECURE_CLIENT_SFN_RUN_TESTS_VERSION);
     if (handle <= 0) {
         return TFM_ERROR_GENERIC;
     }
 
-    status = psa_call(handle, NULL, 0, NULL, 0);
+    status = psa_call(handle, PSA_IPC_CALL, NULL, 0, NULL, 0);
     psa_close(handle);
 
     if (status != PSA_SUCCESS) {

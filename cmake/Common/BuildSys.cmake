@@ -159,6 +159,37 @@ function(assert_generator_is)
 		endif()
 endfunction()
 
+#Check the value of a cache variable whether it is valid.
+#
+# This function currently only supports 'STRING' type variables and uses
+# the 'STRINGS' cache entry property as the validation list.
+#
+#Examples:
+#  validate_cache_value(MCUBOOT_SIGNATURE_TYPE)
+#
+#INPUTS:
+#  variable_name - (mandatory) - Name of the cache variable to be checked.
+#
+#OUTPUTS:
+#  n/a
+#
+function(validate_cache_value variable_name)
+	#Check if the type of the variable is STRING.
+	get_property(_type CACHE ${variable_name} PROPERTY TYPE)
+	if(NOT ${_type} STREQUAL "STRING")
+		message(FATAL_ERROR "validate_cache_value: type of CACHE variable must be 'STRING', the type of '${variable_name}' variable is '${_type}'.")
+	endif()
+	get_property(_validation_list CACHE ${variable_name} PROPERTY STRINGS)
+	#Check if validation list is set.
+	if (NOT _validation_list)
+		message(FATAL_ERROR "validate_cache_value: CACHE variable '${variable_name}' has no 'STRINGS' validation list set.")
+	endif()
+	#See if the value of the variable is in the list.
+	if (NOT ${${variable_name}} IN_LIST _validation_list)
+		message(FATAL_ERROR "validate_cache_value: variable value '${${variable_name}}' of variable '${variable_name}' is not matching the validation list ${_validation_list}.")
+	endif()
+endfunction()
+
 #Specify an include path for the compiler
 #
 # Specify a global include directory for all non external targets in the current
@@ -625,8 +656,8 @@ endfunction()
 #
 function(embedded_set_target_link_defines)
 	set( _OPTIONS_ARGS )				#Option (on/off) arguments (e.g. IGNORE_CASE)
-	set( _ONE_VALUE_ARGS  TARGET DEFINES)	#Single option arguments (e.g. PATH "./foo/bar")
-	set( _MULTI_VALUE_ARGS )			#List arguments (e.g. LANGUAGES C ASM CXX)
+	set( _ONE_VALUE_ARGS TARGET)	#Single option arguments (e.g. PATH "./foo/bar")
+	set( _MULTI_VALUE_ARGS DEFINES)			#List arguments (e.g. LANGUAGES C ASM CXX)
 	cmake_parse_arguments(_MY_PARAMS "${_OPTIONS_ARGS}" "${_ONE_VALUE_ARGS}" "${_MULTI_VALUE_ARGS}" ${ARGN} )
 
 	if (NOT DEFINED _MY_PARAMS_TARGET)

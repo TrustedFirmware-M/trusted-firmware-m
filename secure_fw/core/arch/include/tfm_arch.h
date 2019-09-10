@@ -25,13 +25,13 @@
 #define XPSR_T32            0x01000000
 
 /* General core state context */
-struct tfm_state_context_base {
+struct tfm_state_context_t {
     uint32_t    r0;
     uint32_t    r1;
     uint32_t    r2;
     uint32_t    r3;
     uint32_t    r12;
-    uint32_t    ra_lr;
+    uint32_t    lr;
     uint32_t    ra;
     uint32_t    xpsr;
 };
@@ -40,15 +40,9 @@ struct tfm_state_context_base {
 struct tfm_state_context_ext;
 
 #define TFM_STATE_1ST_ARG(ctx)     \
-                    (((struct tfm_state_context_base *)(ctx)->ctxb.sp)->r0)
-#define TFM_STATE_2ND_ARG(ctx)     \
-                    (((struct tfm_state_context_base *)(ctx)->ctxb.sp)->r1)
-#define TFM_STATE_3RD_ARG(ctx)     \
-                    (((struct tfm_state_context_base *)(ctx)->ctxb.sp)->r2)
-#define TFM_STATE_4TH_ARG(ctx)     \
-                    (((struct tfm_state_context_base *)(ctx)->ctxb.sp)->r3)
+                    (((struct tfm_state_context_t *)(ctx)->ctxb.sp)->r0)
 #define TFM_STATE_RET_VAL(ctx)     \
-                    (((struct tfm_state_context_base *)(ctx)->ctxb.sp)->r0)
+                    (((struct tfm_state_context_t *)(ctx)->ctxb.sp)->r0)
 
 __attribute__ ((always_inline))
 __STATIC_INLINE void tfm_arch_trigger_pendsv(void)

@@ -41,12 +41,19 @@ set(BUILD_RETARGET On)
 set(BUILD_NATIVE_DRIVERS On)
 set(BUILD_STARTUP On)
 set(BUILD_TARGET_CFG Off)
-set(BUILD_TARGET_HARDWARE_KEYS Off)
 set(BUILD_TARGET_NV_COUNTERS On)
 set(BUILD_CMSIS_DRIVERS On)
 set(BUILD_TIME Off)
 set(BUILD_UART_STDOUT On)
 set(BUILD_FLASH On)
+set(BUILD_PLAT_TEST Off)
+
+if (MCUBOOT_HW_KEY)
+	set(BUILD_TARGET_HARDWARE_KEYS On)
+else()
+	set(BUILD_TARGET_HARDWARE_KEYS Off)
+endif()
+
 if(NOT DEFINED PLATFORM_CMAKE_FILE)
 	message (FATAL_ERROR "Platform specific CMake is not defined. Please set PLATFORM_CMAKE_FILE.")
 elseif(NOT EXISTS ${PLATFORM_CMAKE_FILE})
@@ -70,7 +77,6 @@ list(APPEND ALL_SRC_C
 		"${MCUBOOT_DIR}/bootutil/src/bootutil_misc.c"
 		"${MCUBOOT_DIR}/bootutil/src/image_validate.c"
 		"${MCUBOOT_DIR}/bootutil/src/image_rsa.c"
-		"${MCUBOOT_DIR}/bootutil/src/caps.c"
 		"${TFM_ROOT_DIR}/bl2/src/boot_record.c"
 		"${TFM_ROOT_DIR}/bl2/src/security_cnt.c"
 	)
@@ -114,8 +120,8 @@ add_executable(${PROJECT_NAME} ${ALL_SRC_ASM} ${ALL_SRC_C_BL2} ${ALL_SRC_ASM_BL2
 config_setting_shared_compiler_flags(${PROJECT_NAME})
 config_setting_shared_linker_flags(${PROJECT_NAME})
 
-#Add BL2 define to linker to resolve symbols in region_defs.h
-embedded_set_target_link_defines(TARGET ${PROJECT_NAME} DEFINES "BL2")
+#Add BL2 and MCUBOOT_IMAGE_NUMBER defines to linker to resolve symbols in region_defs.h and flash_layout.h
+embedded_set_target_link_defines(TARGET ${PROJECT_NAME} DEFINES "BL2" "MCUBOOT_IMAGE_NUMBER=${MCUBOOT_IMAGE_NUMBER}")
 
 if(NOT DEFINED TEST_FRAMEWORK_S)
 	message(FATAL_ERROR "Incomplete build configuration: TEST_FRAMEWORK_S is undefined.")
@@ -136,9 +142,14 @@ add_dependencies(${PROJECT_NAME} ${MBEDTLS_TARGET_NAME}_install)
 #Generate binary file from axf
 compiler_generate_binary_output(${PROJECT_NAME})
 
+message(STATUS "MCUBOOT_IMAGE_NUMBER is set to: '${MCUBOOT_IMAGE_NUMBER}'.")
+message(STATUS "MCUBOOT_UPGRADE_STRATEGY is set to: '${MCUBOOT_UPGRADE_STRATEGY}'.")
+message(STATUS "MCUBOOT_SIGNATURE_TYPE is set to: '${MCUBOOT_SIGNATURE_TYPE}'.")
+message(STATUS "MCUBOOT_HW_KEY is set to: '${MCUBOOT_HW_KEY}'.")
+
 #Set macro definitions for the project.
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-							MCUBOOT_VALIDATE_SLOT0
+							MCUBOOT_VALIDATE_PRIMARY_SLOT
 							MCUBOOT_USE_FLASH_AREA_GET_SECTORS
 							MBEDTLS_CONFIG_FILE="config-boot.h"
 							MCUBOOT_TARGET_CONFIG="flash_layout.h")
@@ -160,7 +171,12 @@ elseif (${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "RAM_LOADING")
 elseif (${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "SWAP")
 	#No compile definition needs to be specified for this upgrade strategy
 else()
-	message(FATAL_ERROR "ERROR: MCUBoot supports OVERWRITE_ONLY, SWAP, NO_SWAP and RAM_LOADING upgrade strategies only.")
+	get_property(_upgrade_strategies CACHE MCUBOOT_UPGRADE_STRATEGY PROPERTY STRINGS)
+	message(FATAL_ERROR "ERROR: MCUBoot supports the ${_upgrade_strategies} upgrade strategies only.")
+endif()
+
+if (MCUBOOT_HW_KEY)
+	target_compile_definitions(${PROJECT_NAME} PRIVATE MCUBOOT_HW_KEY)
 endif()
 
 #Set install location. Keep original value to avoid overriding command line settings.

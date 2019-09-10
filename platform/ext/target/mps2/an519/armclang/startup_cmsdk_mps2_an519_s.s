@@ -58,7 +58,7 @@ __Vectors       DCD     |Image$$ARM_LIB_STACK_MSP$$ZI$$Limit|  ; Top of Stack
                 DCD     NONSEC_WATCHDOG_RESET_Handler  ; - 0 Non-Secure Watchdog Reset Handler
                 DCD     NONSEC_WATCHDOG_Handler        ; - 1 Non-Secure Watchdog Handler
                 DCD     S32K_TIMER_Handler             ; - 2 S32K Timer Handler
-                DCD     TIMER0_Handler                 ; - 3 TIMER 0 Handler
+                DCD     TFM_TIMER0_IRQ_Handler         ; - 3 TIMER 0 Handler
                 DCD     TIMER1_Handler                 ; - 4 TIMER 1 Handler
                 DCD     DUALTIMER_Handler              ; - 5 Dual Timer Handler
                 DCD     0                              ; Reserved - 6
@@ -219,7 +219,7 @@ Default_Handler PROC
                 EXPORT NONSEC_WATCHDOG_RESET_Handler   [WEAK] ; - 0 Non-Secure Watchdog Reset Handler
                 EXPORT NONSEC_WATCHDOG_Handler         [WEAK] ; - 1 Non-Secure Watchdog Handler
                 EXPORT S32K_TIMER_Handler              [WEAK] ; - 2 S32K Timer Handler
-                EXPORT TIMER0_Handler                  [WEAK] ; - 3 TIMER 0 Handler
+                EXPORT TFM_TIMER0_IRQ_Handler          [WEAK] ; - 3 TIMER 0 Handler
                 EXPORT TIMER1_Handler                  [WEAK] ; - 4 TIMER 1 Handler
                 EXPORT DUALTIMER_Handler               [WEAK] ; - 5 Dual Timer Handler
 ; External Interrupts
@@ -292,7 +292,7 @@ Default_Handler PROC
 NONSEC_WATCHDOG_RESET_Handler  ; - 0 Non-Secure Watchdog Reset Handler
 NONSEC_WATCHDOG_Handler        ; - 1 Non-Secure Watchdog Handler
 S32K_TIMER_Handler             ; - 2 S32K Timer Handler
-TIMER0_Handler                 ; - 3 TIMER 0 Handler
+TFM_TIMER0_IRQ_Handler         ; - 3 TIMER 0 Handler
 TIMER1_Handler                 ; - 4 TIMER 1 Handler
 DUALTIMER_Handler              ; - 5 Dual Timer Handler
 ; External Interrupts

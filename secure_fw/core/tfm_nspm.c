@@ -12,7 +12,7 @@
 #include "tfm_arch.h"
 #include "tfm_api.h"
 #include "tfm_internal.h"
-#if TFM_PSA_API
+#ifdef TFM_PSA_API
 #include "tfm_utils.h"
 #endif
 

@@ -44,8 +44,10 @@ uint32_t tfm_psa_version(uint32_t sid, int32_t ns_caller);
  *                              Or from secure client.
  *
  * \retval PSA_SUCCESS          Success.
- * \retval PSA_CONNECTION_BUSY  The SPM cannot make the connection
- *                              at the moment.
+ * \retval PSA_ERROR_CONNECTION_REFUSED The SPM or RoT Service has refused the
+ *                              connection.
+ * \retval PSA_ERROR_CONNECTION_BUSY The SPM or RoT Service cannot make the
+ *                              connection at the moment.
  * \retval "Does not return"    The RoT Service ID and version are not
  *                              supported, or the caller is not permitted to
  *                              access the service.
@@ -58,6 +60,8 @@ psa_status_t tfm_psa_connect(uint32_t sid, uint32_t minor_version,
  *
  * \param[in] handle            Service handle to the established connection,
  *                              \ref psa_handle_t
+ * \param[in] type              The request type.
+ *                              Must be zero( \ref PSA_IPC_CALL) or positive.
  * \param[in] inptr             Array of input psa_invec structures.
  *                              \ref psa_invec
  * \param[in] in_num            Number of input psa_invec structures.
@@ -82,8 +86,9 @@ psa_status_t tfm_psa_connect(uint32_t sid, uint32_t minor_version,
  * \arg                           The message is unrecognized by the RoT
  *                                Service or incorrectly formatted.
  */
-psa_status_t tfm_psa_call(psa_handle_t handle, const psa_invec *inptr,
-                          size_t in_num, psa_outvec *outptr, size_t out_num,
+psa_status_t tfm_psa_call(psa_handle_t handle, int32_t type,
+                          const psa_invec *inptr, size_t in_num,
+                          psa_outvec *outptr, size_t out_num,
                           int32_t ns_caller, uint32_t privileged);
 
 /**

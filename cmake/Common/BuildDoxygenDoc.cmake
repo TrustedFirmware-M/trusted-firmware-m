@@ -119,8 +119,14 @@ if (NOT NODOC)
 	#If PDF documentation is being made.
 	if (LATEX_PDFLATEX_FOUND)
 		if (NOT CMAKE_GENERATOR MATCHES "Makefiles")
-			message(WARNING "make tool is missing. PDF document generation target is not created.")
+			message(WARNING "Generator is not make based. PDF document generation target is not created.")
 		else()
+			#This file shall not be included before cmake did finish finding the make tool and thus
+			#setting CMAKE_MAKE_PROGRAM. Currently the search is triggered by the project() command.
+			if(NOT CMAKE_MAKE_PROGRAM)
+				message(FATAL_ERROR "CMAKE_MAKE_PROGRAM is not set. This file must be included after the project command is run.")
+			endif()
+
 			#The add_custom_command is not used here to get proper clean
 			#command since the clean rules "added" above will remove the entire
 			#doc directory, and thus clean the PDF output too.

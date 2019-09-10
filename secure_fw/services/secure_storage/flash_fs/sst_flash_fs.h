@@ -17,7 +17,7 @@
  */
 
 #include <stdint.h>
-#include "psa_protected_storage.h"
+#include "psa/protected_storage.h"
 
 /*!
  * \struct sst_file_info_t

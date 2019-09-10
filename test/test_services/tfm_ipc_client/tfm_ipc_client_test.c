@@ -7,26 +7,12 @@
 
 #include <stdio.h>
 #include <assert.h>
-#include "psa_client.h"
+#include "psa/client.h"
 #include "secure_utilities.h"
-#include "psa_service.h"
-#include "tfm_ipc_client_partition.h"
+#include "psa/service.h"
+#include "psa_manifest/tfm_ipc_client_partition.h"
 #include "tfm_utils.h"
-
-/* Define the SID. These SIDs should align with the value in manifest file. */
-#define IPC_SERVICE_TEST_BASIC_SID                                 (0x00001000)
-#define IPC_SERVICE_TEST_PSA_ACCESS_APP_MEM_SID                    (0x00001001)
-#define IPC_SERVICE_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_SID          (0x00001002)
-#define IPC_SERVICE_TEST_APP_ACCESS_PSA_MEM_SID                    (0x00001003)
-
-/*
- * Define the MIN_VER. These MIN_VER should align with the value in
- * manifest file.
- */
-#define IPC_SERVICE_TEST_BASIC_MIN_VER                             (0x0001)
-#define IPC_SERVICE_TEST_PSA_ACCESS_APP_MEM_MIN_VER                (0x0001)
-#define IPC_SERVICE_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_MIN_VER      (0x0001)
-#define IPC_SERVICE_TEST_APP_ACCESS_PSA_MEM_MIN_VER                (0x0001)
+#include "psa_manifest/sid.h"
 
 /* Define the return status */
 #define IPC_SP_TEST_SUCCESS     (1)
@@ -63,13 +49,13 @@ static int ipc_isolation_2_psa_access_app_readonly_memory(void)
     struct psa_invec invecs[1] = {{&client_data_p, sizeof(client_data_p)}};
 
     handle = psa_connect(IPC_SERVICE_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_SID,
-                         IPC_SERVICE_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_MIN_VER);
+                         IPC_SERVICE_TEST_PSA_ACCESS_APP_READ_ONLY_MEM_VERSION);
 
     if (handle <= 0) {
         return IPC_SP_TEST_FAILED;
     }
 
-    status = psa_call(handle, invecs, 1, NULL, 0);
+    status = psa_call(handle, PSA_IPC_CALL, invecs, 1, NULL, 0);
 
     /* The system should panic before here. */
     psa_close(handle);
@@ -87,13 +73,13 @@ static int ipc_isolation_2_psa_access_app_memory(void)
     struct psa_invec invecs[1] = {{&client_data_p, sizeof(client_data_p)}};
 
     handle = psa_connect(IPC_SERVICE_TEST_PSA_ACCESS_APP_MEM_SID,
-                         IPC_SERVICE_TEST_PSA_ACCESS_APP_MEM_MIN_VER);
+                         IPC_SERVICE_TEST_PSA_ACCESS_APP_MEM_VERSION);
 
     if (handle <= 0) {
         return result;
     }
 
-    status = psa_call(handle, invecs, 1, NULL, 0);
+    status = psa_call(handle, PSA_IPC_CALL, invecs, 1, NULL, 0);
 
     if ((client_data == 'B') && (status >= 0)) {
         result = IPC_SP_TEST_SUCCESS;
@@ -117,12 +103,12 @@ static int ipc_client_base_test(void)
                                     {str4, sizeof(str4)/sizeof(char)}};
 
     handle = psa_connect(IPC_SERVICE_TEST_BASIC_SID,
-                         IPC_SERVICE_TEST_BASIC_MIN_VER);
+                         IPC_SERVICE_TEST_BASIC_VERSION);
     if (handle <= 0) {
         return result;
     }
 
-    status = psa_call(handle, invecs, 2, outvecs, 2);
+    status = psa_call(handle, PSA_IPC_CALL, invecs, 2, outvecs, 2);
     if (status >= 0) {
         result = IPC_SP_TEST_SUCCESS;
     }
@@ -140,13 +126,13 @@ static int ipc_client_app_access_psa_mem_test(void)
     struct psa_outvec outvecs[1] = {{outvec_data, sizeof(outvec_data[0])}};
 
     handle = psa_connect(IPC_SERVICE_TEST_APP_ACCESS_PSA_MEM_SID,
-                         IPC_SERVICE_TEST_APP_ACCESS_PSA_MEM_MIN_VER);
+                         IPC_SERVICE_TEST_APP_ACCESS_PSA_MEM_VERSION);
 
     if (handle <= 0) {
         return IPC_SP_TEST_FAILED;
     }
 
-    status = psa_call(handle, NULL, 0, outvecs, 1);
+    status = psa_call(handle, PSA_IPC_CALL, NULL, 0, outvecs, 1);
     if (status >= 0) {
         /*
          * outvecs should contain the pointer pointed to ipc service parition
@@ -174,13 +160,13 @@ static int ipc_client_mem_check_test(void)
     struct psa_invec invecs[1] = {{NULL, 0}};
 
     handle = psa_connect(IPC_SERVICE_TEST_APP_ACCESS_PSA_MEM_SID,
-                         IPC_SERVICE_TEST_APP_ACCESS_PSA_MEM_MIN_VER);
+                         IPC_SERVICE_TEST_APP_ACCESS_PSA_MEM_VERSION);
 
     if (handle <= 0) {
         return IPC_SP_TEST_FAILED;
     }
 
-    status = psa_call(handle, NULL, 0, outvecs, 1);
+    status = psa_call(handle, PSA_IPC_CALL, NULL, 0, outvecs, 1);
     if (status >= 0) {
         /*
          * outvecs should contain the pointer pointed to ipc service parition
@@ -192,7 +178,7 @@ static int ipc_client_mem_check_test(void)
         if (psa_data_p) {
             invecs[0].base = psa_data_p;
             invecs[0].len = sizeof(psa_data_p);
-            psa_call(handle, invecs, 1, NULL, 0);
+            psa_call(handle, PSA_IPC_CALL, invecs, 1, NULL, 0);
         }
     }
 
@@ -211,7 +197,7 @@ static void ipc_client_handle_ser_req(psa_msg_t msg, uint32_t signals,
     switch (msg.type) {
     case PSA_IPC_CONNECT:
         if (service_in_use & signals) {
-            r = PSA_CONNECTION_REFUSED;
+            r = PSA_ERROR_CONNECTION_REFUSED;
         } else {
             service_in_use |= signals;
             r = PSA_SUCCESS;

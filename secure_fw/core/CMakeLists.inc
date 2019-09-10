@@ -32,12 +32,14 @@ endif()
 
 set (SS_CORE_C_SRC
 		"${SS_CORE_DIR}/tfm_core.c"
-		"${SS_CORE_DIR}/tfm_handler.c"
+		"${SS_CORE_DIR}/tfm_core_svcalls_func.c"
 		"${SS_CORE_DIR}/tfm_secure_api.c"
 		"${SS_CORE_DIR}/tfm_func_api.c"
 		"${SS_CORE_DIR}/tfm_spm_services.c"
 		"${SS_CORE_DIR}/tfm_nspm.c"
 		"${SS_CORE_DIR}/tfm_boot_data.c"
+		"${SS_CORE_DIR}/tfm_utils.c"
+		"${SS_CORE_DIR}/tfm_core_mem_check.c"
 	)
 
 #Append all our source files to global lists.
@@ -48,7 +50,7 @@ unset(SS_CORE_C_SRC)
 embedded_include_directories(PATH ${TFM_ROOT_DIR} ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/interface/include ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/spm ABSOLUTE)
-embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/core ABSOLUTE)
+embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/core/include ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/core/arch/include ABSOLUTE)
 
 set(BUILD_CMSIS_CORE Off)
@@ -64,6 +66,7 @@ set(BUILD_UART_STDOUT Off)
 set(BUILD_FLASH Off)
 set(BUILD_BOOT_SEED Off)
 set(BUILD_DEVICE_ID Off)
+set(BUILD_PLAT_TEST Off)
 if(NOT DEFINED PLATFORM_CMAKE_FILE)
 	message (FATAL_ERROR "Platform specific CMake is not defined. Please set PLATFORM_CMAKE_FILE.")
 elseif(NOT EXISTS ${PLATFORM_CMAKE_FILE})

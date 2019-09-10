@@ -16,6 +16,12 @@ except ImportError as e:
     print ("pip install PyYAML")
     exit(1)
 
+donotedit_warning = \
+                    "/*********** " + \
+                    "WARNING: This is an auto-generated file. Do not edit!" + \
+                    " ***********/"
+manifest_list_yaml_file_path = os.path.join('tools', 'tfm_manifest_list.yaml')
+
 class TemplateLoader(BaseLoader):
     """
     Template loader class.
@@ -69,6 +75,54 @@ def load_manifest_list(file):
 
     return db
 
+def generate_manifestfilename(env):
+    """
+    Generate manifestfilename header file.
+
+    Parameters
+    ----------
+    env :
+        The instance of Environment.
+    """
+    manifest_header_list = []
+    with open(manifest_list_yaml_file_path) as manifest_list_yaml_file:
+        manifest_list = yaml.load(manifest_list_yaml_file)
+        templatefile_name = 'secure_fw/services/manifestfilename.template'
+        template = env.get_template(templatefile_name)
+
+        for manifest_file in manifest_list["manifest_list"]:
+            manifest_path = manifest_file['manifest']
+            file = open(manifest_path)
+            manifest = yaml.load(file)
+
+            utilities = {}
+            utilities['donotedit_warning']=donotedit_warning
+
+            context = {}
+            context['manifest'] = manifest
+            context['attr'] = manifest_file
+            context['utilities'] = utilities
+
+            manifest_dir, sep, manifest_name = manifest_path.rpartition('/')
+            outfile_name = manifest_name.replace('yaml', 'h')
+            outfile_path = manifest_dir + sep + "psa_manifest/" + outfile_name
+
+            context['file_name'] = outfile_name.replace('.h', '')
+
+            manifest_header_list.append(outfile_path)
+
+            print ("Generating " + outfile_path)
+
+            if not os.path.exists(os.path.dirname(outfile_path)):
+                try:
+                    os.makedirs(os.path.dirname(outfile_path))
+                except OSError:
+                        raise Exception ("Failed to create folder" + os.path.dirname(outfile_path))
+
+            outfile = io.open(outfile_path, "w", newline='\n')
+            outfile.write(template.render(context))
+            outfile.close()
+    return manifest_header_list
 
 def main():
     """
@@ -76,11 +130,6 @@ def main():
 
     Generates the output files based on the templates and the manifests.
     """
-    donotedit_warning = \
-                    "/*********** " + \
-                    "WARNING: This is an auto-generated file. Do not edit!" + \
-                    " ***********/"
-
     env = Environment(
         loader = TemplateLoader(),
         autoescape = select_autoescape(['html', 'xml']),
@@ -89,15 +138,18 @@ def main():
         keep_trailing_newline = True
     )
 
-    with open(os.path.join('tools', 'tfm_manifest_list.yaml')) \
-                                                    as manifest_list_yaml_file:
+    # Generate manifestfilename
+    manifest_header_list = generate_manifestfilename(env)
+    utilities = {}
+    context = {}
+
+    with open(manifest_list_yaml_file_path) as manifest_list_yaml_file:
         # Read manifest list file, build database
         db = load_manifest_list(manifest_list_yaml_file)
 
-        utilities = {}
         utilities['donotedit_warning']=donotedit_warning
+        utilities['manifest_header_list']=manifest_header_list
 
-        context = {}
         context['manifests'] = db
         context['utilities'] = utilities
 
@@ -117,6 +169,7 @@ def main():
             outfile = io.open(outfile_name, "w", newline='\n')
             outfile.write(template.render(context))
             outfile.close()
+
     print ("Generation of files done")
 
 if __name__ == "__main__":

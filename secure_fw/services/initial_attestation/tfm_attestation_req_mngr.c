@@ -6,13 +6,13 @@
  */
 
 #include <string.h>
-#include "psa_initial_attestation_api.h"
+#include "psa/initial_attestation.h"
 #include "attestation.h"
 
 #ifdef TFM_PSA_API
-#include "tfm_attest_signal.h"
+#include "psa_manifest/tfm_initial_attestation.h"
 #include "tfm_client.h"
-#include "psa_service.h"
+#include "psa/service.h"
 #include "region_defs.h"
 
 #define IOVEC_LEN(x) (sizeof(x)/sizeof(x[0]))

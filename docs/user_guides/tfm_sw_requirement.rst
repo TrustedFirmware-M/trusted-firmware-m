@@ -228,9 +228,9 @@ To import Arm Compiler v6.10 in your bash shell console:
 .. code-block:: bash
 
     export PATH=<DS-5_PATH>/sw/ARMCompiler6.10/bin:$PATH
-    export ARM_TOOL_VARIANT="ult"
-    export ARM_PRODUCT_PATH="<DS-5_PATH>/sw/mappings"
-    export ARMLMD_LICENSE_FILE="<LICENSE_FILE_PATH>"
+    export ARM_TOOL_VARIANT=ult
+    export ARM_PRODUCT_PATH=<DS-5_PATH>/sw/mappings
+    export ARMLMD_LICENSE_FILE=<LICENSE_FILE_PATH>
 
 To import CMake in your bash shell console:
 
@@ -285,10 +285,10 @@ Armclang + DS-5
 
 .. code-block:: bash
 
-    export PATH="/cygdrive/c/<DS-5_PATH>/sw/ARMCompiler6.10/bin":$PATH
-    export ARM_PRODUCT_PATH="C:/<DS-5_PATH>/sw/mappings"
-    export ARM_TOOL_VARIANT="ult"
-    export ARMLMD_LICENSE_FILE="<LICENSE_FILE_PATH>"
+    export PATH=/cygdrive/c/<DS-5_PATH>/sw/ARMCompiler6.10/bin:$PATH
+    export ARM_PRODUCT_PATH=C:/<DS-5_PATH>/sw/mappings
+    export ARM_TOOL_VARIANT=ult
+    export ARMLMD_LICENSE_FILE=<LICENSE_FILE_PATH>
 
 Armclang + Keil MDK Arm
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -301,7 +301,7 @@ Armclang + Keil MDK Arm
 
 .. code-block:: bash
 
-    export PATH="/cygdrive/c/<uVision path>/ARM/ARMCLANG/bin":$PATH
+    export PATH=/cygdrive/c/<uVision path>/ARM/ARMCLANG/bin:$PATH
 
 GNU Arm
 ^^^^^^^
@@ -397,7 +397,7 @@ Linux
 
 ::
 
-    export PLANTUML_JAR_PATH="~/plantuml/plantuml.jar"
+    export PLANTUML_JAR_PATH=~/plantuml/plantuml.jar
 
 Windows + Cygwin
 """"""""""""""""
@@ -410,7 +410,7 @@ Assumptions for the settings below:
 
 ::
 
-    export PLANTUML_JAR_PATH="c:/plantuml/plantuml.jar"
+    export PLANTUML_JAR_PATH=c:/plantuml/plantuml.jar
     export PATH=$PATH:/cygdrive/c/<DS-5 path>/sw/java/bin
 
 To compile the TF-M User Guide
@@ -483,7 +483,7 @@ Linux
 """""
 .. code-block:: bash
 
-    export PLANTUML_JAR_PATH="~/plantuml/plantuml.jar"
+    export PLANTUML_JAR_PATH=~/plantuml/plantuml.jar
 
 Windows + Cygwin
 """"""""""""""""
@@ -496,7 +496,7 @@ Assumptions for the settings below:
 
 .. code-block:: bash
 
-    export PLANTUML_JAR_PATH="c:/plantuml/plantuml.jar"
+    export PLANTUML_JAR_PATH=c:/plantuml/plantuml.jar
     export PATH=$PATH:/cygdrive/c/<DS-5 path>/sw/java/bin
 
 --------------

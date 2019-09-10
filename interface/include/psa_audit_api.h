@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Arm Limited. All rights reserved.
+ * Copyright (c) 2018-2019, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -15,6 +15,7 @@
 #define PSA_AUDIT_API_VERSION_MINOR (1)
 
 #include "psa_audit_defs.h"
+#include "psa/error.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,15 +41,15 @@ extern "C" {
  * \param[out] buffer       Buffer used to store the retrieved record
  * \param[out] record_size  Size in bytes of the retrieved record
  *
- * \return Returns values as specified by the \ref psa_audit_err
+ * \return Returns values as specified by the \ref psa_status_t
  *
  */
-enum psa_audit_err psa_audit_retrieve_record(const uint32_t record_index,
-                                             const uint32_t buffer_size,
-                                             const uint8_t *token,
-                                             const uint32_t token_size,
-                                             uint8_t *buffer,
-                                             uint32_t *record_size);
+psa_status_t psa_audit_retrieve_record(const uint32_t record_index,
+                                       const uint32_t buffer_size,
+                                       const uint8_t *token,
+                                       const uint32_t token_size,
+                                       uint8_t *buffer,
+                                       uint32_t *record_size);
 /**
  * \brief Returns the total number and size of the records stored
  *
@@ -58,10 +59,10 @@ enum psa_audit_err psa_audit_retrieve_record(const uint32_t record_index,
  * \param[out] num_records Total number of records stored
  * \param[out] size        Total size of the records stored, in bytes
  *
- * \return Returns values as specified by the \ref psa_audit_err
+ * \return Returns values as specified by the \ref psa_status_t
  *
  */
-enum psa_audit_err psa_audit_get_info(uint32_t *num_records, uint32_t *size);
+psa_status_t psa_audit_get_info(uint32_t *num_records, uint32_t *size);
 
 /**
  * \brief Returns the size of the record at the specified index
@@ -72,11 +73,11 @@ enum psa_audit_err psa_audit_get_info(uint32_t *num_records, uint32_t *size);
  * \param[in]  record_index Index of the record to return the size
  * \param[out] size         Size of the specified record, in bytes
  *
- * \return Returns values as specified by the \ref psa_audit_err
+ * \return Returns values as specified by the \ref psa_status_t
  *
  */
-enum psa_audit_err psa_audit_get_record_info(const uint32_t record_index,
-                                             uint32_t *size);
+psa_status_t psa_audit_get_record_info(const uint32_t record_index,
+                                       uint32_t *size);
 
 /**
  * \brief Deletes a record at the specified index
@@ -97,12 +98,12 @@ enum psa_audit_err psa_audit_get_record_info(const uint32_t record_index,
  * \param[in] token_size   Must be set to 0. Size in bytes of the token used as
  *                         authorisation for removal
  *
- * \return Returns values as specified by the \ref psa_audit_err
+ * \return Returns values as specified by the \ref psa_status_t
  *
  */
-enum psa_audit_err psa_audit_delete_record(const uint32_t record_index,
-                                           const uint8_t *token,
-                                           const uint32_t token_size);
+psa_status_t psa_audit_delete_record(const uint32_t record_index,
+                                     const uint8_t *token,
+                                     const uint32_t token_size);
 /**
  * \brief Adds a record
  *
@@ -114,10 +115,10 @@ enum psa_audit_err psa_audit_delete_record(const uint32_t record_index,
  * \param[in] record Pointer to the memory buffer containing the record
  *                   to be added
  *
- * \return Returns values as specified by the \ref psa_audit_err
+ * \return Returns values as specified by the \ref psa_status_t
  *
  */
-enum psa_audit_err psa_audit_add_record(const struct psa_audit_record *record);
+psa_status_t psa_audit_add_record(const struct psa_audit_record *record);
 
 #ifdef __cplusplus
 }

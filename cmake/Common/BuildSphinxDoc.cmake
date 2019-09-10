@@ -25,9 +25,9 @@ Include(CMakeParseArguments)
 #Outputs:
 #   SPHINX_NODOC - will be defined and set to true is any mandatory tool is
 #                  missing.
-#   PDFLATEX_COMPILER - path to pdflatex executable
-#   SPHINX_EXECUTABLE - path to sphinx-build
-#   PLANTUML_JAR_PATH - path to PlantUML
+#   LATEX_PDFLATEX_FOUND - true if pdflatex executable found
+#   SPHINX_EXECUTABLE    - path to sphinx-build
+#   PLANTUML_JAR_PATH    - path to PlantUML
 
 #Examples
 #   SphinxFindTools()
@@ -44,9 +44,7 @@ function(SphinxFindTools)
 
 	#Find tools needed for PDF generation.
 	find_package(LATEX COMPONENTS PDFLATEX)
-	if (LATEX_PDFLATEX_FOUND)
-		set (PDFLATEX_COMPILER "${PDFLATEX_COMPILER}" PARENT_SCOPE)
-	endif()
+	set (LATEX_PDFLATEX_FOUND "${LATEX_PDFLATEX_FOUND}" PARENT_SCOPE)
 
 	if (SPHINX_FOUND AND PLANTUML_FOUND AND PY_M2R_FOUND
 			AND PY_SPHINX-RTD-THEME_FOUND AND PY_SPHINXCONTRIB.PLANTUML)
@@ -90,16 +88,16 @@ if (NOT SPHINX_NODOC)
 
 	get_filename_component(_NDX_FILE_DIR ${SPHINX_CONFIGURED_INDEX_FILE} DIRECTORY )
 
-	#This command does not generates the specifyed output file and thus it will
-	#allways be run. Any other command or target depending on the "run-allways"
-	#output will be alwways executed too.
+	#This command does not generates the specified output file and thus it will
+	#always be run. Any other command or target depending on the "run-allways"
+	#output will be always executed too.
 	add_custom_command(OUTPUT run-allways
 		COMMAND "${CMAKE_COMMAND}" -E echo)
 
 	#Using add_custom_command allows CMake to generate proper clean commands
 	#for document generation.
 	add_custom_command(OUTPUT "${SPHINX_TMP_DOC_DIR}"
-								"${SPHINX_CONFIGURED_INDEX_FILE}"
+						"${SPHINX_CONFIGURED_INDEX_FILE}"
 		#Create target directory for SPHINX_CONFIGURED_INDEX_FILE. Needed
 		#by the next command.
 		COMMAND "${CMAKE_COMMAND}" -E make_directory "${_NDX_FILE_DIR}"
@@ -146,38 +144,48 @@ if (NOT SPHINX_NODOC)
 		)
 
 	#If PDF documentation is being made.
-	if (PDFLATEX_COMPILER)
-		set(_PDF_FILE "${SPHINXCFG_OUTPUT_PATH}/latex/TF-M.pdf")
+	if (LATEX_PDFLATEX_FOUND)
+		if (NOT CMAKE_GENERATOR MATCHES "Makefiles")
+			message(WARNING "Generator is not make based. PDF document generation target is not created.")
+		else()
+			#This file shall not be included before cmake did finish finding the make tool and thus
+			#setting CMAKE_MAKE_PROGRAM. Currently the search is triggered by the project() command.
+			if(NOT CMAKE_MAKE_PROGRAM)
+				message(FATAL_ERROR "CMAKE_MAKE_PROGRAM is not set. This file must be included after the project command is run.")
+			endif()
 
-		add_custom_command(OUTPUT "${SPHINXCFG_OUTPUT_PATH}/latex"
-			COMMAND "${SPHINX_EXECUTABLE}" -c "${SPHINXCFG_OUTPUT_PATH}" -b latex "${SPHINX_TMP_DOC_DIR}" "${SPHINXCFG_OUTPUT_PATH}/latex"
-			WORKING_DIRECTORY "${TFM_ROOT_DIR}"
-			DEPENDS create_sphinx_input
-			COMMENT "Running Sphinx to generate user guide (LaTeX)."
-			VERBATIM
-			)
+			set(_PDF_FILE "${SPHINXCFG_OUTPUT_PATH}/latex/TF-M.pdf")
 
-		add_custom_command(OUTPUT "${_PDF_FILE}"
-			COMMAND "${CMAKE_MAKE_PROGRAM}" all-pdf
-			WORKING_DIRECTORY ${SPHINXCFG_OUTPUT_PATH}/latex
-			DEPENDS "${SPHINXCFG_OUTPUT_PATH}/latex"
-			COMMENT "Generating PDF version of User Guide..."
-			VERBATIM
-			)
+			add_custom_command(OUTPUT "${SPHINXCFG_OUTPUT_PATH}/latex"
+				COMMAND "${SPHINX_EXECUTABLE}" -c "${SPHINXCFG_OUTPUT_PATH}" -b latex "${SPHINX_TMP_DOC_DIR}" "${SPHINXCFG_OUTPUT_PATH}/latex"
+				WORKING_DIRECTORY "${TFM_ROOT_DIR}"
+				DEPENDS create_sphinx_input
+				COMMENT "Running Sphinx to generate user guide (LaTeX)."
+				VERBATIM
+				)
 
-		#We do not use the add_custom_command trick here to get proper clean
-		#command since the clean rules "added" above will remove the entire
-		#doc directory, and thus clean the PDF output too.
-		add_custom_target(doc_userguide_pdf
-			COMMENT "Generating PDF version of TF-M User Guide..."
-			SOURCES "${_PDF_FILE}"
-			VERBATIM)
+			add_custom_command(OUTPUT "${_PDF_FILE}"
+				COMMAND "${CMAKE_MAKE_PROGRAM}" all-pdf
+				WORKING_DIRECTORY ${SPHINXCFG_OUTPUT_PATH}/latex
+				DEPENDS "${SPHINXCFG_OUTPUT_PATH}/latex"
+				COMMENT "Generating PDF version of User Guide..."
+				VERBATIM
+				)
 
-		#Add the pdf documentation to install content
-		install(FILES "${_PDF_FILE}" DESTINATION "doc/user_guide"
-			RENAME "tf-m_user_guide.pdf"
-			COMPONENT user_guide
-			EXCLUDE_FROM_ALL)
+			#We do not use the add_custom_command trick here to get proper clean
+			#command since the clean rules "added" above will remove the entire
+			#doc directory, and thus clean the PDF output too.
+			add_custom_target(doc_userguide_pdf
+				COMMENT "Generating PDF version of TF-M User Guide..."
+				SOURCES "${_PDF_FILE}"
+				VERBATIM)
+
+			#Add the pdf documentation to install content
+			install(FILES "${_PDF_FILE}" DESTINATION "doc/user_guide"
+				RENAME "tf-m_user_guide.pdf"
+				COMPONENT user_guide
+				EXCLUDE_FROM_ALL)
+		endif()
 	else()
 		message(WARNING "PDF generation tools are missing. PDF document generation target is not created.")
 	endif()

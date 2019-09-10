@@ -10,8 +10,8 @@
 #include <stdbool.h>
 
 #include "platform/include/tfm_plat_crypto_keys.h"
-#include "psa_crypto.h"
-#include "secure_fw/core/tfm_memory_utils.h"
+#include "psa/crypto.h"
+#include "tfm_memory_utils.h"
 
 /* FIXME: HUK management should be part of Crypto service, with keys hidden from
  *        SST.

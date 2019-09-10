@@ -34,12 +34,19 @@ else()
 endif()
 set (FLASH_LAYOUT          "${PLATFORM_DIR}/target/mps2/an519/partition/flash_layout.h")
 set (PLATFORM_LINK_INCLUDES "${PLATFORM_DIR}/target/mps2/an519/partition/")
-set (SIGN_BIN_SIZE         0x100000)
 
 if (BL2)
   set (BL2_LINKER_CONFIG ${BL2_SCATTER_FILE_NAME})
   if (${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "RAM_LOADING")
       message(FATAL_ERROR "ERROR: RAM_LOADING upgrade strategy is not supported on target '${TARGET_PLATFORM}'.")
+  endif()
+  #FixMe: MCUBOOT_SIGN_RSA_LEN can be removed when ROTPK won't be hard coded in platform/ext/common/tfm_rotpk.c
+  #       instead independently loaded from secure code as a blob.
+  if (${MCUBOOT_SIGNATURE_TYPE} STREQUAL "RSA-2048")
+      add_definitions(-DMCUBOOT_SIGN_RSA_LEN=2048)
+  endif()
+  if (${MCUBOOT_SIGNATURE_TYPE} STREQUAL "RSA-3072")
+      add_definitions(-DMCUBOOT_SIGN_RSA_LEN=3072)
   endif()
 endif()
 
@@ -50,6 +57,7 @@ embedded_include_directories(PATH "${PLATFORM_DIR}/target/mps2/an519/cmsis_core"
 embedded_include_directories(PATH "${PLATFORM_DIR}/target/mps2/an519/retarget" ABSOLUTE)
 embedded_include_directories(PATH "${PLATFORM_DIR}/target/mps2/an519/native_drivers" ABSOLUTE)
 embedded_include_directories(PATH "${PLATFORM_DIR}/target/mps2/an519/partition" ABSOLUTE)
+embedded_include_directories(PATH "${PLATFORM_DIR}/../include" ABSOLUTE)
 
 #Gather all source files we need.
 if (NOT DEFINED BUILD_CMSIS_CORE)
@@ -126,10 +134,17 @@ elseif(BUILD_TARGET_CFG)
   embedded_include_directories(PATH "${PLATFORM_DIR}/common" ABSOLUTE)
 endif()
 
+if (NOT DEFINED BUILD_PLAT_TEST)
+  message(FATAL_ERROR "Configuration variable BUILD_PLAT_TEST (true|false) is undefined!")
+elseif(BUILD_PLAT_TEST)
+  list(APPEND ALL_SRC_C "${PLATFORM_DIR}/target/mps2/an519/plat_test.c")
+endif()
+
 if (NOT DEFINED BUILD_TARGET_HARDWARE_KEYS)
   message(FATAL_ERROR "Configuration variable BUILD_TARGET_HARDWARE_KEYS (true|false) is undefined!")
 elseif(BUILD_TARGET_HARDWARE_KEYS)
   list(APPEND ALL_SRC_C "${PLATFORM_DIR}/common/tfm_initial_attestation_key_material.c")
+  list(APPEND ALL_SRC_C "${PLATFORM_DIR}/common/tfm_rotpk.c")
   list(APPEND ALL_SRC_C "${PLATFORM_DIR}/target/mps2/an519/dummy_crypto_keys.c")
 endif()
 

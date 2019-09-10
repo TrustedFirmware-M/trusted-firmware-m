@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ARM Limited
+ * Copyright (c) 2018-2019 Arm Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,8 +73,10 @@ struct tfm_spm_partition_platform_data_t
 
 /**
  * \brief Configures the Memory Protection Controller.
+ *
+ * \return  Returns error code.
  */
-void mpc_init_cfg(void);
+int32_t mpc_init_cfg(void);
 
 /**
  * \brief Configures the Peripheral Protection Controller.
@@ -111,5 +113,43 @@ void ppc_clear_irq(void);
  */
 void sau_and_idau_cfg(void);
 
+/**
+ * \brief Enables the fault handlers and sets priorities.
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
+ */
+enum tfm_plat_err_t enable_fault_handlers(void);
+
+/**
+ * \brief Configures the system reset request properties
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
+ */
+enum tfm_plat_err_t system_reset_cfg(void);
+
+/**
+ * \brief Configures the system debug properties.
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
+ */
+enum tfm_plat_err_t init_debug(void);
+
+/**
+ * \brief Configures all external interrupts to target the
+ *        NS state, apart for the ones associated to secure
+ *        peripherals (plus MPC and PPC)
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
+ */
+enum tfm_plat_err_t nvic_interrupt_target_state_cfg(void);
+
+/**
+ * \brief This function enable the interrupts associated
+ *        to the secure peripherals (plus the isolation boundary violation
+ *        interrupts)
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
+ */
+enum tfm_plat_err_t nvic_interrupt_enable(void);
 
 #endif /* __TARGET_CFG_H__ */

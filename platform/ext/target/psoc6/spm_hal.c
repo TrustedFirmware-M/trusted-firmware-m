@@ -180,35 +180,16 @@ enum spm_err_t tfm_spm_hal_partition_sandbox_config(
     return SPM_ERR_OK;
 }
 
-enum spm_err_t tfm_spm_hal_partition_sandbox_deconfig(
-        const struct tfm_spm_partition_memory_data_t *memory_data,
-        const struct tfm_spm_partition_platform_data_t *platform_data)
-{
-    return SPM_ERR_OK;
-}
-
-/**
- * Set share region to which the partition needs access
- */
-enum spm_err_t tfm_spm_hal_set_share_region(
-        enum tfm_buffer_share_region_e share)
-{
-    return SPM_ERR_OK;
-}
-
-#endif /* TFM_LVL != 1 */
-
 void tfm_spm_hal_setup_isolation_hw(void)
 {
-#if TFM_LVL != 1
     if (tfm_spm_mpu_init() != SPM_ERR_OK) {
         ERROR_MSG("Failed to set up initial MPU configuration! Halting.");
         while (1) {
             ;
         }
     }
-#endif
 }
+#endif /* TFM_LVL != 1 */
 
 uint32_t tfm_spm_hal_get_ns_VTOR(void)
 {

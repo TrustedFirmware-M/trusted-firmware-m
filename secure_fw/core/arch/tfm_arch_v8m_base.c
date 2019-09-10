@@ -10,14 +10,12 @@
 #include "secure_utilities.h"
 #include "tfm_arch.h"
 #include "tfm_secure_api.h"
-#include "tfm_spm.h"
+#include "spm_api.h"
 #include "tfm_svc.h"
 
 #if !defined(__ARM_ARCH_8M_BASE__)
 #error "Unsupported ARM Architecture."
 #endif
-
-extern uint32_t SVCHandler_main(uint32_t *svc_args, uint32_t lr);
 
 #ifdef TFM_PSA_API
 /*
@@ -123,6 +121,53 @@ int32_t tfm_core_sfn_request(const struct tfm_sfn_req_s *desc_ptr)
             [SVC_RET] "I" (TFM_SVC_SFN_RETURN)
         : "r0");
 }
+
+__attribute__((section("SFN"), naked))
+void priv_irq_handler_main(uint32_t partition_id,
+                                                  uint32_t unpriv_handler,
+                                                  uint32_t irq_signal,
+                                                  uint32_t irq_line)
+{
+    __ASM(
+          /* Save the callee saved registers*/
+          "PUSH   {r4-r7, lr}               \n"
+          "MOV    r4, r8                    \n"
+          "MOV    r5, r9                    \n"
+          "MOV    r6, r10                   \n"
+          "MOV    r7, r11                   \n"
+          "PUSH   {r4-r7}                   \n"
+          "MOV    r4, r12                   \n"
+          "PUSH   {r4}                      \n"
+          /* Request SVC to configure environment for the unpriv IRQ handler */
+          "SVC    %[SVC_REQ]                \n"
+          /* clear the callee saved registers to prevent information leak */
+          "MOVS   r4, #0                    \n"
+          "MOV    r5, r4                    \n"
+          "MOV    r6, r4                    \n"
+          "MOV    r7, r4                    \n"
+          "MOV    r8, r4                    \n"
+          "MOV    r9, r4                    \n"
+          "MOV    r10, r4                   \n"
+          "MOV    r11, r4                   \n"
+          /* Branch to the unprivileged handler */
+          "BLX    lr                        \n"
+          /* Request SVC to reconfigure the environment of the interrupted
+           * partition
+           */
+          "SVC    %[SVC_RET]                \n"
+          /* restore callee saved registers and return */
+          "POP    {r4}                      \n"
+          "MOV    r12, r4                   \n"
+          "POP    {r4-r7}                   \n"
+          "MOV    r8, r4                    \n"
+          "MOV    r9, r5                    \n"
+          "MOV    r10, r6                   \n"
+          "MOV    r11, r7                   \n"
+          "POP   {r4-r7, pc}                \n"
+          : : [SVC_REQ] "I" (TFM_SVC_DEPRIV_REQ)
+          , [SVC_RET] "I" (TFM_SVC_DEPRIV_RET)
+          : "r0");
+}
 #endif
 
 /**
@@ -145,19 +190,19 @@ void HardFault_Handler(void)
 __attribute__((naked)) void SVC_Handler(void)
 {
     __ASM volatile(
-        ".syntax unified\n"
-        "MOVS    r0, #4            \n" /* Check store SP in thread mode to r0 */
-        "MOV     r1, lr            \n"
-        "TST     r0, r1            \n"
-        "BEQ     handler           \n"
-        "MRS     r0, PSP           \n" /* Coming from thread mode */
-        "B sp_stored               \n"
-        "handler:                  \n"
-        "BX      lr                \n" /* Coming from handler mode */
-        "sp_stored:                \n"
-        "MOV     r1, lr            \n"
-        "BL      SVCHandler_main   \n"
-        "BX      r0                \n"
+    ".syntax unified                        \n"
+    "MRS     r2, MSP                        \n"
+    "MOVS    r1, #4                         \n"
+    "MOV     r3, lr                         \n"
+    "MOV     r0, r2                         \n"
+    "TST     r1, r3                         \n"
+    "BEQ     handler                        \n"
+    /* If SVC was made from thread mode, overwrite r0 with PSP */
+    "MRS     r0, PSP                        \n"
+    "handler:                               \n"
+    "MOV     r1, lr                         \n"
+    "BL      tfm_core_svc_handler           \n"
+    "BX      r0                             \n"
     );
 }
 

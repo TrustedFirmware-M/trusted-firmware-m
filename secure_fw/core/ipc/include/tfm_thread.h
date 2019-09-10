@@ -7,6 +7,8 @@
 #ifndef __TFM_THREAD_H__
 #define __TFM_THREAD_H__
 
+#include <stdint.h>
+#include <stddef.h>
 #include "tfm_arch.h"
 #include "cmsis_compiler.h"
 
@@ -41,15 +43,15 @@ struct tfm_state_context {
 
 /* Thread context */
 struct tfm_thrd_ctx {
-    tfm_thrd_func_t pfn;          /* entry function      */
-    void            *param;       /* entry parameter     */
-    uint8_t         *sp_base;     /* stack bottom        */
-    uint8_t         *sp_top;      /* stack top           */
-    uint32_t        prior;        /* priority            */
-    uint32_t        status;       /* status              */
+    tfm_thrd_func_t pfn;                /* entry function               */
+    void            *param;             /* entry parameter              */
+    uintptr_t       sp_btm;             /* stack bottom (higher address)*/
+    uintptr_t       sp_top;             /* stack top    (lower address) */
+    uint32_t        prior;              /* priority                     */
+    uint32_t        status;             /* status                       */
 
-    struct tfm_state_context state_ctx; /* State context */
-    struct tfm_thrd_ctx *next;    /* next thread in list */
+    struct tfm_state_context state_ctx; /* State context                */
+    struct tfm_thrd_ctx *next;          /* next thread in list          */
 };
 
 /*
@@ -59,7 +61,7 @@ struct tfm_thrd_ctx {
  *  pth         -    pointer of caller provided thread context
  *  pfn         -    thread entry function
  *  param       -    thread entry function parameter
- *  sp_base     -    stack pointer base (higher address)
+ *  sp_btm      -    stack pointer bottom (higher address)
  *  sp_top      -    stack pointer top (lower address)
  *
  * Notes :
@@ -68,7 +70,7 @@ struct tfm_thrd_ctx {
  */
 void tfm_thrd_init(struct tfm_thrd_ctx *pth,
                    tfm_thrd_func_t pfn, void *param,
-                   uint8_t *sp_base, uint8_t *sp_top);
+                   uintptr_t sp_btm, uintptr_t sp_top);
 
 /* Set thread priority.
  *

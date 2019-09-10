@@ -121,7 +121,7 @@ version 1.0:
 For the moment, it does not support the extended version of those APIs.
 
 These PSA PS interfaces and SST TF-M types are defined and documented in
-``interface/include/psa_protected_storage.h`` and
+``interface/include/psa/protected_storage.h`` and
 ``interface/include/tfm_sst_defs.h``
 
 Core Files

@@ -27,7 +27,6 @@ endif()
 set (AUDIT_LOGGING_C_SRC
 	"${AUDIT_LOGGING_DIR}/tfm_audit_secure_api.c"
 	"${AUDIT_LOGGING_DIR}/audit_core.c"
-	"${AUDIT_LOGGING_DIR}/audit_wrappers.c"
 )
 
 #Append all our source files to global lists.
@@ -38,5 +37,5 @@ unset(AUDIT_LOGGING_C_SRC)
 embedded_include_directories(PATH ${TFM_ROOT_DIR} ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/interface/include ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/spm ABSOLUTE)
-embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/core ABSOLUTE)
+embedded_include_directories(PATH ${TFM_ROOT_DIR}/secure_fw/core/include ABSOLUTE)
 embedded_include_directories(PATH ${TFM_ROOT_DIR}/platform/ext/common ABSOLUTE)

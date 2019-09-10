@@ -8,8 +8,8 @@
 #include "tfm_secure_client_service.h"
 #include "test/framework/test_framework_integ_test.h"
 #ifdef TFM_PSA_API
-#include "psa_client.h"
-#include "psa_service.h"
+#include "psa/client.h"
+#include "psa/service.h"
 #include "tfm_sec_client_ser_sig.h"
 #endif
 

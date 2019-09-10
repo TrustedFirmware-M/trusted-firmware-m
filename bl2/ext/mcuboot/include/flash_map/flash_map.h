@@ -20,7 +20,7 @@
 /*
  * Original code taken from mcuboot project at:
  * https://github.com/JuulLabs-OSS/mcuboot
- * Git SHA of the original version: b69841820462fa0227d7fb407620405f6426bb4b
+ * Git SHA of the original version: 3c469bc698a9767859ed73cd0201c44161204d5c
  * Modifications are Copyright (c) 2018-2019 Arm Limited.
  */
 
@@ -50,9 +50,27 @@ extern "C" {
  */
 #include <inttypes.h>
 
-#define FLASH_AREA_IMAGE_0       1
-#define FLASH_AREA_IMAGE_1       2
-#define FLASH_AREA_IMAGE_SCRATCH 3
+extern uint8_t current_image;
+
+#if (MCUBOOT_IMAGE_NUMBER == 1)
+#define FLASH_AREA_IMAGE_PRIMARY     FLASH_AREA_0_ID
+#define FLASH_AREA_IMAGE_SECONDARY   FLASH_AREA_2_ID
+#elif (MCUBOOT_IMAGE_NUMBER == 2)
+/* MCUBoot currently supports only up to 2 updatable firmware images.
+ * If the number of the current image is greater than MCUBOOT_IMAGE_NUMBER - 1
+ * then a dummy value will be assigned to the flash area macros.
+ */
+#define FLASH_AREA_IMAGE_PRIMARY     ((current_image == 0) ? FLASH_AREA_0_ID : \
+                                      (current_image == 1) ? FLASH_AREA_1_ID : \
+                                                             255 )
+#define FLASH_AREA_IMAGE_SECONDARY   ((current_image == 0) ? FLASH_AREA_2_ID : \
+                                      (current_image == 1) ? FLASH_AREA_3_ID : \
+                                                             255 )
+#else
+#error "Image slot and flash area mapping is not defined"
+#endif
+
+#define FLASH_AREA_IMAGE_SCRATCH     FLASH_AREA_SCRATCH_ID
 
 /**
  * @brief Structure describing an area on a flash device.

@@ -48,26 +48,49 @@ if (NOT DEFINED TFM_PARTITION_PLATFORM)
 	message(FATAL_ERROR "Incomplete build configuration: TFM_PARTITION_PLATFORM is undefined.")
 endif()
 
+if (NOT DEFINED TFM_PSA_API)
+	message(FATAL_ERROR "Incomplete build configuration: TFM_PSA_API is undefined.")
+endif()
+
 set(NS_APP_SRC "${CMSIS_5_DIR}/CMSIS/RTOS2/RTX/Config/RTX_Config.c"
 	"${CMSIS_5_DIR}/CMSIS/RTOS2/RTX/Source/rtx_lib.c"
 	"${APP_DIR}/main_ns.c"
 	"${APP_DIR}/tfm_integ_test.c"
-	"${APP_DIR}/os_wrapper_rtx.c"
-	"${INTERFACE_DIR}/src/tfm_sst_api.c"
-	"${INTERFACE_DIR}/src/tfm_crypto_api.c"
-	"${INTERFACE_DIR}/src/tfm_initial_attestation_api.c"
+	"${APP_DIR}/os_wrapper_cmsis_rtos_v2.c"
 	)
 
+if (TFM_PSA_API)
+	list(APPEND NS_APP_SRC
+		"${INTERFACE_DIR}/src/tfm_sst_ipc_api.c"
+		"${INTERFACE_DIR}/src/tfm_crypto_ipc_api.c"
+		"${INTERFACE_DIR}/src/tfm_initial_attestation_ipc_api.c"
+	)
+else()
+	list(APPEND NS_APP_SRC
+		"${INTERFACE_DIR}/src/tfm_sst_func_api.c"
+		"${INTERFACE_DIR}/src/tfm_crypto_func_api.c"
+		"${INTERFACE_DIR}/src/tfm_initial_attestation_func_api.c"
+	)
+endif()
+
 if (NOT DEFINED TFM_MULTI_CORE_TOPOLOGY OR NOT TFM_MULTI_CORE_TOPOLOGY)
-	list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_ns_lock_rtx.c")
+	list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_ns_interface.c")
 endif()
 
 if (TFM_PARTITION_AUDIT_LOG)
-	list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_audit_api.c")
+	if (TFM_PSA_API)
+		message(FATAL_ERROR "Audit log has not been supported in IPC model yet.")
+	else()
+		list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_audit_func_api.c")
+	endif()
 endif()
 
 if (TFM_PARTITION_PLATFORM)
-	list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_platform_api.c")
+	if (TFM_PSA_API)
+		message(FATAL_ERROR "Platform service has not been supported in IPC model yet.")
+	else()
+		list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_platform_func_api.c")
+	endif()
 endif()
 
 if (NOT DEFINED TFM_NS_CLIENT_IDENTIFICATION)
@@ -83,9 +106,7 @@ if (PSA_API_TEST_NS)
 	list(APPEND NS_APP_SRC "${APP_DIR}/psa_api_test.c")
 endif()
 
-if (NOT DEFINED TFM_PSA_API)
-	message(FATAL_ERROR "Incomplete build configuration: TFM_PSA_API is undefined. ")
-elseif (TFM_PSA_API)
+if (TFM_PSA_API)
 	if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
 		list(APPEND NS_APP_SRC "${INTERFACE_DIR}/src/tfm_ns_mailbox.c"
 				"${INTERFACE_DIR}/src/tfm_multi_core_psa_ns_api.c"
@@ -99,7 +120,7 @@ endif()
 set(BUILD_CMSIS_CORE On)
 set(BUILD_RETARGET On)
 set(BUILD_NATIVE_DRIVERS On)
-set(BUILD_TIME Off)
+set(BUILD_TIME On)
 set(BUILD_STARTUP On)
 set(BUILD_TARGET_CFG Off)
 set(BUILD_TARGET_HARDWARE_KEYS Off)
@@ -109,6 +130,13 @@ set(BUILD_UART_STDOUT Off)
 set(BUILD_FLASH Off)
 set(BUILD_BOOT_SEED Off)
 set(BUILD_DEVICE_ID Off)
+if(CORE_TEST_POSITIVE)
+	set(BUILD_PLAT_TEST On)
+	set(BUILD_TIME On)
+else()
+	set(BUILD_PLAT_TEST Off)
+	set(BUILD_TIME Off)
+endif()
 if(NOT DEFINED PLATFORM_CMAKE_FILE)
 	message (FATAL_ERROR "Platform specific CMake is not defined. Please set PLATFORM_CMAKE_FILE.")
 elseif(NOT EXISTS ${PLATFORM_CMAKE_FILE})
@@ -131,14 +159,15 @@ add_library(${PROJECT_OBJ_LIB} OBJECT ${ALL_SRC_C} ${ALL_SRC_C_NS} ${ALL_SRC_ASM
 config_setting_shared_compiler_flags(${PROJECT_OBJ_LIB})
 
 #Set macro definitions
-target_compile_definitions(${PROJECT_OBJ_LIB} PRIVATE __thumb2__ __DOMAIN_NS=1 __ARM_FEATURE_CMSE=${ARM_FEATURE_CMSE} LOG_MSG_HANDLER_MODE_PRINTF_ENABLED)
+set(TARGET_COMPILE_DEFINITIONS __thumb2__ __DOMAIN_NS=1 DOMAIN_NS=__DOMAIN_NS __ARM_FEATURE_CMSE=${ARM_FEATURE_CMSE})
+target_compile_definitions(${PROJECT_OBJ_LIB} PRIVATE ${TARGET_COMPILE_DEFINITIONS})
 
 #Set include directories.
 embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${TEST_INTERFACE_DIR}/include ABSOLUTE APPEND)
 embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${INTERFACE_DIR}/include ABSOLUTE APPEND)
 embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${TFM_ROOT_DIR} ABSOLUTE APPEND)
 embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${TFM_ROOT_DIR}/secure_fw/spm ABSOLUTE APPEND)
-embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${TFM_ROOT_DIR}/secure_fw/core ABSOLUTE APPEND)
+embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${TFM_ROOT_DIR}/secure_fw/core/include ABSOLUTE APPEND)
 embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${CMSIS_5_DIR}/CMSIS/RTOS2/RTX/Include ABSOLUTE APPEND)
 embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${CMSIS_5_DIR}/CMSIS/RTOS2/Include ABSOLUTE APPEND)
 embedded_target_include_directories(TARGET ${PROJECT_OBJ_LIB} PATH ${CMSIS_5_DIR}/CMSIS/RTOS2/RTX/Config  ABSOLUTE APPEND)
@@ -152,9 +181,9 @@ endif()
 add_subdirectory(${TFM_ROOT_DIR}/test ${CMAKE_BINARY_DIR}/test/non_secure_test)
 
 # For the non-swapping BL2 configuration two executables need to be built.
-# One can be executed from flash partition slot_0 and other from slot_1.
-# Only the linking phase is different. This function captures common settings
-# and eliminates copy-paste.
+# One can be executed from the primary slot flash partition and other from the
+# secondary slot. Only the linking phase is different. This function captures
+# common settings and eliminates copy-paste.
 function(set_up_app_build)
 	set( _OPTIONS_ARGS)                                                            #Option (on/off) arguments (e.g. IGNORE_CASE)
 	set( _ONE_VALUE_ARGS NS_TARGET S_TARGET FULL_BIN SIGN_BIN VENEER_NAME POSTFIX) #Single option arguments (e.g. PATH "./foo/bar")
@@ -274,7 +303,8 @@ function(set_up_app_build)
 
 	#Set BL2 specific settings.
 	if (BL2)
-		embedded_set_target_link_defines(TARGET ${EXE_NAME} DEFINES "BL2")
+		#Add BL2 and MCUBOOT_IMAGE_NUMBER defines to linker to resolve symbols in region_defs.h and flash_layout.h
+		embedded_set_target_link_defines(TARGET ${EXE_NAME} DEFINES "BL2" "MCUBOOT_IMAGE_NUMBER=${MCUBOOT_IMAGE_NUMBER}")
 	endif()
 
 	#We depend on the non secure tests. See if the library target is available.
@@ -291,10 +321,16 @@ function(set_up_app_build)
 	if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
 		message (STATUS "TFM_MULTI_CORE_TOPOLOGY is defined, not adding s_veneer.o")
 	else()
-		if(NOT DEFINED S_VENEER_FILE)
-			message(FATAL_ERROR "ERROR: S_VENEER_FILE no defined, Check if secure_fw is built.")
+		if (NOT DEFINED S_VENEER_PATH)
+			if (EXISTS ${CMAKE_CURRENT_BINARY_DIR}/../secure_fw)
+				set (S_VENEER_PATH "${CMAKE_CURRENT_BINARY_DIR}/../secure_fw")
+			else()
+				message(FATAL_ERROR "No valid path for S_VENEER_PATH, secure_fw is built?")
+			endif()
 		endif()
 
+		#Add the veneers to the executable.
+		set(S_VENEER_FILE "${S_VENEER_PATH}/${VENEER_NAME}")
 		set_property(TARGET ${EXE_NAME} APPEND PROPERTY LINK_LIBRARIES ${S_VENEER_FILE})
 	endif()
 

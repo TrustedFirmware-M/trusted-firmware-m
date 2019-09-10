@@ -33,14 +33,14 @@
  */
 
 /* Type of the EC curve which the key belongs to */
-TFM_LINK_SET_OBJECT_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
+TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
 const enum ecc_curve_t initial_attestation_curve_type = P_256;
 
 /* Initial attestation private key in raw format, without any encoding.
  * It belongs to the ECDSA P-256 curve.
  * It MUST present on the device-
  */
-TFM_LINK_SET_OBJECT_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
+TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
 const uint8_t initial_attestation_private_key[] =
 {
     0xA9, 0xB4, 0x54, 0xB2, 0x6D, 0x6F, 0x90, 0xA4,
@@ -49,7 +49,7 @@ const uint8_t initial_attestation_private_key[] =
     0x4B, 0x92, 0xA1, 0x93, 0x71, 0x34, 0x58, 0x5F
 };
 
-TFM_LINK_SET_OBJECT_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
+TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
 const uint32_t initial_attestation_private_key_size =
         sizeof(initial_attestation_private_key);
 
@@ -58,7 +58,7 @@ const uint32_t initial_attestation_private_key_size =
  * It belongs to the ECDSA P-256 curve.
  * It MIGHT be present on the device.
  */
-TFM_LINK_SET_OBJECT_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
+TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
 const uint8_t initial_attestation_public_x_key[] =
 {
     0x79, 0xEB, 0xA9, 0x0E, 0x8B, 0xF4, 0x50, 0xA6,
@@ -67,7 +67,7 @@ const uint8_t initial_attestation_public_x_key[] =
     0x00, 0x36, 0xED, 0x49, 0xA2, 0xD0, 0xFC, 0x3F
 };
 
-TFM_LINK_SET_OBJECT_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
+TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
 const uint32_t initial_attestation_public_x_key_size =
         sizeof(initial_attestation_public_x_key);
 
@@ -76,7 +76,7 @@ const uint32_t initial_attestation_public_x_key_size =
  * It belongs to the ECDSA P-256 curve.
  * It MIGHT be present on the device.
  */
-TFM_LINK_SET_OBJECT_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
+TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
 const uint8_t initial_attestation_public_y_key[] =
 {
     0xBF, 0xCD, 0xFA, 0x89, 0x56, 0xB5, 0x68, 0xBF,
@@ -85,16 +85,16 @@ const uint8_t initial_attestation_public_y_key[] =
     0x0F, 0x34, 0x11, 0x7D, 0x97, 0x1D, 0x68, 0x64
 };
 
-TFM_LINK_SET_OBJECT_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
+TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
 const uint32_t initial_attestation_public_y_key_size =
         sizeof(initial_attestation_public_y_key);
 
 /* Hash (SHA256) of initial attestation public key.
  * Byte string representation of ECC public key according to
- * psa_export_public_key() in interface/include/psa_crypto.h:
+ * psa_export_public_key() in interface/include/psa/crypto.h:
  * 0x04 || X_coord || Y_coord
  */
-TFM_LINK_SET_OBJECT_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
+TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
 const uint8_t initial_attestation_raw_public_key_hash[] =
 {
     0xfa, 0x58, 0x75, 0x5f, 0x65, 0x86, 0x27, 0xce,
@@ -103,6 +103,6 @@ const uint8_t initial_attestation_raw_public_key_hash[] =
     0x90, 0x28, 0x0e, 0xfc, 0xbc, 0xb5, 0x02, 0x48
 };
 
-TFM_LINK_SET_OBJECT_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
+TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_SP_INITIAL_ATTESTATION")
 const uint32_t initial_attestation_raw_public_key_hash_size =
         sizeof(initial_attestation_raw_public_key_hash);

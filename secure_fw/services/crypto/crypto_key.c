@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* FixMe: Use PSA_CONNECTION_REFUSED when performing parameter
+/* FixMe: Use PSA_ERROR_CONNECTION_REFUSED when performing parameter
  *        integrity checks but this will have to be revised
  *        when the full set of error codes mandated by PSA FF
  *        is available.
@@ -28,8 +28,10 @@ struct tfm_crypto_handle_owner_s {
     uint8_t in_use;          /*!< Flag to indicate if this in use */
 };
 
+#if (TFM_CRYPTO_KEY_MODULE_DISABLED == 0)
 static struct tfm_crypto_handle_owner_s
                                  handle_owner[TFM_CRYPTO_MAX_KEY_HANDLES] = {0};
+#endif
 /*!
  * \defgroup public Public functions
  *
@@ -39,6 +41,9 @@ static struct tfm_crypto_handle_owner_s
 psa_status_t tfm_crypto_check_handle_owner(psa_key_handle_t handle,
                                            uint32_t *index)
 {
+#if (TFM_CRYPTO_KEY_MODULE_DISABLED != 0)
+    return PSA_ERROR_NOT_SUPPORTED;
+#else
     int32_t partition_id = 0;
     uint32_t i = 0;
     psa_status_t status;
@@ -62,6 +67,7 @@ psa_status_t tfm_crypto_check_handle_owner(psa_key_handle_t handle,
     }
 
     return PSA_ERROR_INVALID_HANDLE;
+#endif /* TFM_CRYPTO_KEY_MODULE_DISABLED */
 }
 
 psa_status_t tfm_crypto_allocate_key(psa_invec in_vec[],
@@ -69,13 +75,16 @@ psa_status_t tfm_crypto_allocate_key(psa_invec in_vec[],
                                      psa_outvec out_vec[],
                                      size_t out_len)
 {
+#if (TFM_CRYPTO_KEY_MODULE_DISABLED != 0)
+    return PSA_ERROR_NOT_SUPPORTED;
+#else
     if ((in_len != 1) || (out_len != 1)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
 
     if ((in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) ||
         (out_vec[0].len != sizeof(psa_key_handle_t))) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
 
     psa_key_handle_t *key_handle = out_vec[0].base;
@@ -109,6 +118,7 @@ psa_status_t tfm_crypto_allocate_key(psa_invec in_vec[],
     }
 
     return status;
+#endif /* TFM_CRYPTO_KEY_MODULE_DISABLED */
 }
 
 psa_status_t tfm_crypto_import_key(psa_invec in_vec[],
@@ -116,14 +126,17 @@ psa_status_t tfm_crypto_import_key(psa_invec in_vec[],
                                    psa_outvec out_vec[],
                                    size_t out_len)
 {
+#if (TFM_CRYPTO_KEY_MODULE_DISABLED != 0)
+    return PSA_ERROR_NOT_SUPPORTED;
+#else
     (void)out_vec;
 
     if ((in_len != 2) || (out_len != 0)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
 
     if (in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
     const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
 
@@ -138,6 +151,7 @@ psa_status_t tfm_crypto_import_key(psa_invec in_vec[],
     }
 
     return psa_import_key(key, type, data, data_length);
+#endif /* TFM_CRYPTO_KEY_MODULE_DISABLED */
 }
 
 psa_status_t tfm_crypto_destroy_key(psa_invec in_vec[],
@@ -145,14 +159,17 @@ psa_status_t tfm_crypto_destroy_key(psa_invec in_vec[],
                                     psa_outvec out_vec[],
                                     size_t out_len)
 {
+#if (TFM_CRYPTO_KEY_MODULE_DISABLED != 0)
+    return PSA_ERROR_NOT_SUPPORTED;
+#else
     (void)out_vec;
 
     if ((in_len != 1) || (out_len != 0)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
 
     if (in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
     const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
 
@@ -173,6 +190,7 @@ psa_status_t tfm_crypto_destroy_key(psa_invec in_vec[],
     }
 
     return status;
+#endif /* TFM_CRYPTO_KEY_MODULE_DISABLED */
 }
 
 psa_status_t tfm_crypto_get_key_information(psa_invec in_vec[],
@@ -180,14 +198,17 @@ psa_status_t tfm_crypto_get_key_information(psa_invec in_vec[],
                                             psa_outvec out_vec[],
                                             size_t out_len)
 {
+#if (TFM_CRYPTO_KEY_MODULE_DISABLED != 0)
+    return PSA_ERROR_NOT_SUPPORTED;
+#else
     if ((in_len != 1) || (out_len != 2)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
 
     if ((in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) ||
         (out_vec[0].len != sizeof(psa_key_type_t)) ||
         (out_vec[1].len != sizeof(size_t))) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
     const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
 
@@ -196,6 +217,7 @@ psa_status_t tfm_crypto_get_key_information(psa_invec in_vec[],
     size_t *bits = out_vec[1].base;
 
     return psa_get_key_information(key, type, bits);
+#endif /* TFM_CRYPTO_KEY_MODULE_DISABLED */
 }
 
 psa_status_t tfm_crypto_export_key(psa_invec in_vec[],
@@ -203,12 +225,15 @@ psa_status_t tfm_crypto_export_key(psa_invec in_vec[],
                                    psa_outvec out_vec[],
                                    size_t out_len)
 {
+#if (TFM_CRYPTO_KEY_MODULE_DISABLED != 0)
+    return PSA_ERROR_NOT_SUPPORTED;
+#else
     if ((in_len != 1) || (out_len != 1)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
 
     if (in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
     const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
 
@@ -217,6 +242,7 @@ psa_status_t tfm_crypto_export_key(psa_invec in_vec[],
     size_t data_size = out_vec[0].len;
 
     return psa_export_key(key, data, data_size, &(out_vec[0].len));
+#endif /* TFM_CRYPTO_KEY_MODULE_DISABLED */
 }
 
 psa_status_t tfm_crypto_export_public_key(psa_invec in_vec[],
@@ -224,12 +250,15 @@ psa_status_t tfm_crypto_export_public_key(psa_invec in_vec[],
                                           psa_outvec out_vec[],
                                           size_t out_len)
 {
+#if (TFM_CRYPTO_KEY_MODULE_DISABLED != 0)
+    return PSA_ERROR_NOT_SUPPORTED;
+#else
     if ((in_len != 1) || (out_len != 1)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
 
     if (in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
     const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
 
@@ -238,6 +267,7 @@ psa_status_t tfm_crypto_export_public_key(psa_invec in_vec[],
     size_t data_size = out_vec[0].len;
 
     return psa_export_public_key(key, data, data_size, &(out_vec[0].len));
+#endif /* TFM_CRYPTO_KEY_MODULE_DISABLED */
 }
 
 psa_status_t tfm_crypto_copy_key(psa_invec in_vec[],
@@ -245,16 +275,19 @@ psa_status_t tfm_crypto_copy_key(psa_invec in_vec[],
                                  psa_outvec out_vec[],
                                  size_t out_len)
 {
+#if (TFM_CRYPTO_KEY_MODULE_DISABLED != 0)
+    return PSA_ERROR_NOT_SUPPORTED;
+#else
     (void)out_vec;
 
     if ((in_len != 3) || (out_len != 0)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
 
     if ((in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) ||
         (in_vec[1].len != sizeof(psa_key_handle_t)) ||
         (in_vec[2].len != sizeof(psa_key_policy_t))) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
     const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
 
@@ -263,6 +296,7 @@ psa_status_t tfm_crypto_copy_key(psa_invec in_vec[],
     const psa_key_policy_t *policy = in_vec[2].base;
 
     return psa_copy_key(source_handle, target_handle, policy);
+#endif /* TFM_CRYPTO_KEY_MODULE_DISABLED */
 }
 
 psa_status_t tfm_crypto_set_key_policy(psa_invec in_vec[],
@@ -270,15 +304,18 @@ psa_status_t tfm_crypto_set_key_policy(psa_invec in_vec[],
                                        psa_outvec out_vec[],
                                        size_t out_len)
 {
+#if (TFM_CRYPTO_KEY_MODULE_DISABLED != 0)
+    return PSA_ERROR_NOT_SUPPORTED;
+#else
     (void)out_vec;
 
     if ((in_len != 2) || (out_len != 0)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
 
     if ((in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) ||
         (in_vec[1].len != sizeof(psa_key_policy_t))) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
     const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
 
@@ -291,6 +328,7 @@ psa_status_t tfm_crypto_set_key_policy(psa_invec in_vec[],
     } else {
         return status;
     }
+#endif /* TFM_CRYPTO_KEY_MODULE_DISABLED */
 }
 
 psa_status_t tfm_crypto_get_key_policy(psa_invec in_vec[],
@@ -298,13 +336,16 @@ psa_status_t tfm_crypto_get_key_policy(psa_invec in_vec[],
                                        psa_outvec out_vec[],
                                        size_t out_len)
 {
+#if (TFM_CRYPTO_KEY_MODULE_DISABLED != 0)
+    return PSA_ERROR_NOT_SUPPORTED;
+#else
     if ((in_len != 1) || (out_len != 1)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
 
     if ((in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) ||
         (out_vec[0].len != sizeof(psa_key_policy_t))) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
     const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
 
@@ -312,6 +353,7 @@ psa_status_t tfm_crypto_get_key_policy(psa_invec in_vec[],
     psa_key_policy_t *policy = out_vec[0].base;
 
     return psa_get_key_policy(key, policy);
+#endif /* TFM_CRYPTO_KEY_MODULE_DISABLED */
 }
 
 psa_status_t tfm_crypto_get_key_lifetime(psa_invec in_vec[],
@@ -319,13 +361,16 @@ psa_status_t tfm_crypto_get_key_lifetime(psa_invec in_vec[],
                                          psa_outvec out_vec[],
                                          size_t out_len)
 {
+#if (TFM_CRYPTO_KEY_MODULE_DISABLED != 0)
+    return PSA_ERROR_NOT_SUPPORTED;
+#else
     if ((in_len != 1) || (out_len != 1)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
 
     if ((in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec)) ||
         (out_vec[0].len != sizeof(psa_key_lifetime_t))) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
     const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
 
@@ -333,5 +378,6 @@ psa_status_t tfm_crypto_get_key_lifetime(psa_invec in_vec[],
     psa_key_lifetime_t *lifetime = out_vec[0].base;
 
     return psa_get_key_lifetime(key, lifetime);
+#endif /* TFM_CRYPTO_KEY_MODULE_DISABLED */
 }
 /*!@}*/

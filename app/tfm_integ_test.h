@@ -47,14 +47,10 @@ void execute_ns_interactive_tests(void);
  */
 __attribute__((always_inline)) __STATIC_INLINE void LOG_MSG(const char *MSG)
 {
-#ifndef LOG_MSG_HANDLER_MODE_PRINTF_ENABLED
     /* if IPSR is non-zero, exception is active. NOT banked S/NS */
     if (!__get_IPSR()) {
         printf("\t\033[1;32m[Non-Sec] %s\033[0m\r\n", MSG);
     }
-#else
-    printf("\t\033[1;32m[Non-Sec] %s\033[0m\r\n", MSG);
-#endif
 }
 
 #ifdef __cplusplus

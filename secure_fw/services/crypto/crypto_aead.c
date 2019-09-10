@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* FixMe: Use PSA_CONNECTION_REFUSED when performing parameter
+/* FixMe: Use PSA_ERROR_CONNECTION_REFUSED when performing parameter
  *        integrity checks but this will have to be revised
  *        when the full set of error codes mandated by PSA FF
  *        is available.
@@ -29,14 +29,17 @@ psa_status_t tfm_crypto_aead_encrypt(psa_invec in_vec[],
                                      psa_outvec out_vec[],
                                      size_t out_len)
 {
+#if (TFM_CRYPTO_AEAD_MODULE_DISABLED != 0)
+    return PSA_ERROR_NOT_SUPPORTED;
+#else
     psa_status_t status = PSA_SUCCESS;
 
     if ( !((in_len == 2) || (in_len == 3)) || (out_len != 1)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
 
     if ((in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec))) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
     const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
     const struct tfm_crypto_aead_pack_input *aead_pack_input = &iov->aead_in;
@@ -70,6 +73,7 @@ psa_status_t tfm_crypto_aead_encrypt(psa_invec in_vec[],
     }
 
     return status;
+#endif /* TFM_CRYPTO_AEAD_MODULE_DISABLED */
 }
 
 psa_status_t tfm_crypto_aead_decrypt(psa_invec in_vec[],
@@ -77,14 +81,17 @@ psa_status_t tfm_crypto_aead_decrypt(psa_invec in_vec[],
                                      psa_outvec out_vec[],
                                      size_t out_len)
 {
+#if (TFM_CRYPTO_AEAD_MODULE_DISABLED != 0)
+    return PSA_ERROR_NOT_SUPPORTED;
+#else
     psa_status_t status = PSA_SUCCESS;
 
     if ( !((in_len == 2) || (in_len == 3)) || (out_len > 1)) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
 
     if ((in_vec[0].len != sizeof(struct tfm_crypto_pack_iovec))) {
-        return PSA_CONNECTION_REFUSED;
+        return PSA_ERROR_CONNECTION_REFUSED;
     }
     const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
     const struct tfm_crypto_aead_pack_input *aead_pack_input = &iov->aead_in;
@@ -118,5 +125,6 @@ psa_status_t tfm_crypto_aead_decrypt(psa_invec in_vec[],
     }
 
     return status;
+#endif /* TFM_CRYPTO_AEAD_MODULE_DISABLED */
 }
 /*!@}*/

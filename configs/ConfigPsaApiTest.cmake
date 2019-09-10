@@ -23,6 +23,8 @@ elseif(${TARGET_PLATFORM} STREQUAL "MUSCA_A")
 	set(PLATFORM_CMAKE_FILE "${TFM_ROOT_DIR}/platform/ext/musca_a.cmake")
 elseif(${TARGET_PLATFORM} STREQUAL "MUSCA_B1")
 	set(PLATFORM_CMAKE_FILE "${TFM_ROOT_DIR}/platform/ext/musca_b1.cmake")
+elseif(${TARGET_PLATFORM} STREQUAL "AN524")
+	set(PLATFORM_CMAKE_FILE "${TFM_ROOT_DIR}/platform/ext/Mps3AN524.cmake")
 else()
 	message(FATAL_ERROR "ERROR: Target \"${TARGET_PLATFORM}\" is not supported.")
 endif()
@@ -35,7 +37,7 @@ set (CORE_TEST False)
 set (CORE_IPC False)
 set (PSA_API_TEST True)
 
-#TF-M isolation level: 1..3
+#TF-M isolation level: 1
 set (TFM_LVL 1)
 
 #Service specific configuration for the PSA API Compliance test requirements

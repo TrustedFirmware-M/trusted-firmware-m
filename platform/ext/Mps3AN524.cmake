@@ -42,13 +42,21 @@ else()
 endif()
 set (FLASH_LAYOUT "${AN524_DIR}/partition/flash_layout.h")
 set (PLATFORM_LINK_INCLUDES "${AN524_DIR}/partition/")
-set (SIGN_BIN_SIZE 0x80000)
 
 if (BL2)
     set (BL2_LINKER_CONFIG ${BL2_SCATTER_FILE_NAME})
     if (NOT ${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "NO_SWAP")
         message(WARNING "NO_SWAP upgrade strategy is mandatory on target '${TARGET_PLATFORM}'. Your choice was overriden.")
-        set(MCUBOOT_UPGRADE_STRATEGY "NO_SWAP")
+        mcuboot_override_upgrade_strategy("NO_SWAP")
+    endif()
+
+    #FixMe: MCUBOOT_SIGN_RSA_LEN can be removed when ROTPK won't be hard coded in platform/ext/common/tfm_rotpk.c
+    #       instead independently loaded from secure code as a blob.
+    if (${MCUBOOT_SIGNATURE_TYPE} STREQUAL "RSA-2048")
+        add_definitions(-DMCUBOOT_SIGN_RSA_LEN=2048)
+    endif()
+    if (${MCUBOOT_SIGNATURE_TYPE} STREQUAL "RSA-3072")
+        add_definitions(-DMCUBOOT_SIGN_RSA_LEN=3072)
     endif()
 endif()
 
@@ -133,10 +141,17 @@ elseif(BUILD_TARGET_CFG)
   embedded_include_directories(PATH "${PLATFORM_DIR}/common" ABSOLUTE)
 endif()
 
+if (NOT DEFINED BUILD_PLAT_TEST)
+  message(FATAL_ERROR "Configuration variable BUILD_PLAT_TEST (true|false) is undefined!")
+elseif(BUILD_PLAT_TEST)
+  list(APPEND ALL_SRC_C "${AN524_DIR}/plat_test.c")
+endif()
+
 if (NOT DEFINED BUILD_TARGET_HARDWARE_KEYS)
   message(FATAL_ERROR "Configuration variable BUILD_TARGET_HARDWARE_KEYS (true|false) is undefined!")
 elseif(BUILD_TARGET_HARDWARE_KEYS)
   list(APPEND ALL_SRC_C "${PLATFORM_DIR}/common/tfm_initial_attestation_key_material.c")
+  list(APPEND ALL_SRC_C "${PLATFORM_DIR}/common/tfm_rotpk.c")
   list(APPEND ALL_SRC_C "${AN524_DIR}/dummy_crypto_keys.c")
 endif()
 

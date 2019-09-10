@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Arm Limited. All rights reserved.
+ * Copyright (c) 2018-2019, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -14,21 +14,6 @@ extern "C" {
 
 #include <stdint.h>
 #include "tfm_api.h"
-#include "limits.h"
-
-/* The return value is shared with the TFM partition status value. The Audit
- * Log return codes shouldn't overlap with predefined TFM status values
- */
-#define PSA_AUDIT_ERR_OFFSET (TFM_PARTITION_SPECIFIC_ERROR_MIN)
-
-enum psa_audit_err {
-    PSA_AUDIT_ERR_SUCCESS = 0,                    /*!< Operation successful */
-    PSA_AUDIT_ERR_FAILURE = PSA_AUDIT_ERR_OFFSET, /*!< Generic failure */
-    PSA_AUDIT_ERR_NOT_SUPPORTED,                  /*!< Operation not supported */
-
-    /* Following entry is only to ensure the error code of int size */
-    PSA_AUDIT_ERR_FORCE_INT_SIZE = INT_MAX
-};
 
 /*!
  * \struct psa_audit_record

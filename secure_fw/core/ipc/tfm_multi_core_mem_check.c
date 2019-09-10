@@ -29,48 +29,6 @@
 #define MEM_CHECK_NONSECURE             (MEM_CHECK_AU_NONSECURE | \
                                          MEM_CHECK_MPU_NONSECURE)
 
-/*
- * TODO
- * Multi-core memory access check will share the same check_address_range() with
- * single Armv8-M memory access check later.
- * The following check_address_range() will be removed then.
- */
-/**
- * \brief Check whether a memory range is inside a memory region.
- *
- * \param[in] p             The start address of the range to check
- * \param[in] s             The size of the range to check
- * \param[in] region_start  The start address of the region, which should
- *                          contain the range
- * \param[in] region_limit  The end address of the region, which should contain
- *                          the range
- *
- * \return TFM_SUCCESS if the region contains the range,
- *         TFM_ERROR_GENERIC otherwise.
- */
-static enum tfm_status_e check_address_range(const void *p, size_t s,
-                                             uintptr_t region_start,
-                                             uintptr_t region_limit)
-{
-    bool range_in_region;
-
-    /* Check for overflow in the range parameters */
-    if ((uintptr_t)p > UINTPTR_MAX - s) {
-        return TFM_ERROR_GENERIC;
-    }
-
-    /* We trust the region parameters, and don't check for overflow */
-
-    /* Calculate the result */
-    range_in_region = ((uintptr_t)p >= region_start) &&
-                      ((uintptr_t)(p + s - 1) <= region_limit);
-    if (range_in_region) {
-        return TFM_SUCCESS;
-    }
-
-    return TFM_ERROR_GENERIC;
-}
-
 void tfm_get_mem_region_security_attr(const void *p, size_t s,
                                       struct security_attr_info_t *p_attr)
 {

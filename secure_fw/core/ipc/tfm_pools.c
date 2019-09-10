@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include "tfm_thread.h"
 #include "tfm_wait.h"
-#include "psa_client.h"
-#include "psa_service.h"
+#include "psa/client.h"
+#include "psa/service.h"
 #include "tfm_internal_defines.h"
 #include "cmsis_compiler.h"
 #include "tfm_utils.h"

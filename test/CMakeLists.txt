@@ -42,6 +42,10 @@ if (NOT DEFINED TFM_PARTITION_AUDIT_LOG)
 	message(FATAL_ERROR "Incomplete build configuration: TFM_PARTITION_AUDIT_LOG is undefined.")
 endif()
 
+if (NOT DEFINED TFM_ENABLE_IRQ_TEST)
+	message(FATAL_ERROR "Incomplete build configuration: TFM_ENABLE_IRQ_TEST is undefined.")
+endif()
+
 #Configure our options as needed.
 if (CORE_TEST_INTERACTIVE OR CORE_TEST_POSITIVE)
 	set(ENABLE_CORE_TESTS True)
@@ -49,6 +53,26 @@ if (CORE_TEST_INTERACTIVE OR CORE_TEST_POSITIVE)
 else()
 	set(ENABLE_CORE_TESTS False)
 	set(ENABLE_CORE_TESTS_2 False)
+endif()
+
+if (TFM_ENABLE_IRQ_TEST)
+	set(ENABLE_IRQ_TEST_SERVICES ON)
+else()
+	set(ENABLE_IRQ_TEST_SERVICES OFF)
+endif()
+
+if (ENABLE_CORE_TESTS)
+	# If the platform doesn't specify whether the peripheral test is enabled
+	# or not, select it by default.
+	if (NOT DEFINED TFM_ENABLE_PERIPH_ACCESS_TEST)
+		set(TFM_ENABLE_PERIPH_ACCESS_TEST TRUE)
+	endif()
+
+	if (TFM_ENABLE_PERIPH_ACCESS_TEST)
+		add_definitions(-DTFM_ENABLE_PERIPH_ACCESS_TEST)
+	endif()
+else()
+	set(TFM_ENABLE_PERIPH_ACCESS_TEST FALSE)
 endif()
 
 set(ENABLE_SECURE_STORAGE_SERVICE_TESTS TRUE)
@@ -112,8 +136,9 @@ else ()
 	config_setting_shared_compiler_flags(tfm_non_secure_tests)
 	config_setting_shared_linker_flags(tfm_non_secure_tests)
 
-	embedded_set_target_compile_defines(TARGET tfm_non_secure_tests LANGUAGE C DEFINES __thumb2__ __ARM_FEATURE_CMSE=${ARM_FEATURE_CMSE} __DOMAIN_NS=1 TFM_LVL=${TFM_LVL} APPEND)
-	#__DOMAIN_NS=1
+	#Set macro definitions
+	set(TARGET_COMPILE_DEFINITIONS __thumb2__ __DOMAIN_NS=1 DOMAIN_NS=__DOMAIN_NS __ARM_FEATURE_CMSE=${ARM_FEATURE_CMSE} TFM_LVL=${TFM_LVL})
+	embedded_set_target_compile_defines(TARGET tfm_non_secure_tests LANGUAGE C DEFINES ${TARGET_COMPILE_DEFINITIONS} APPEND)
 
 	if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 		set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE
@@ -121,12 +146,16 @@ else ()
 			FORCE)
 	endif()
 
-	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/suites/sst/non_secure/os_wrapper.h
-			DESTINATION export/tfm/test/inc)
-
 	install(TARGETS tfm_non_secure_tests
 			DESTINATION export/tfm/test/lib
 			PUBLIC_HEADER DESTINATION export/tfm/test/inc)
 
+	if(ENABLE_SECURE_STORAGE_SERVICE_TESTS)
+		#only SST tests are using semaphore and thread APIs
+		install(FILES ${TFM_ROOT_DIR}/interface/include/os_wrapper/semaphore.h
+				${TFM_ROOT_DIR}/interface/include/os_wrapper/thread.h
+				DESTINATION export/tfm/include/os_wrapper)
+	endif()
+
 	embedded_project_end(tfm_non_secure_tests)
-endif ()
+endif()

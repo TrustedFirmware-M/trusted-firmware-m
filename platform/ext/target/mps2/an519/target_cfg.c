@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 ARM Limited
+ * Copyright (c) 2018-2019 Arm Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@
 #include "platform_retarget_dev.h"
 #include "region_defs.h"
 #include "tfm_secure_api.h"
+#include "tfm_plat_defs.h"
+
+#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof(arr[0]))
 
 /* Macros to pick linker symbols */
 #define REGION(a, b, c) a##b##c
@@ -114,15 +117,23 @@ struct tfm_spm_partition_platform_data_t tfm_peripheral_fpga_io = {
         CMSDK_FPGA_IO_PPC_POS
 };
 
-void enable_fault_handlers(void)
+struct tfm_spm_partition_platform_data_t tfm_peripheral_timer0 = {
+        CMSDK_TIMER0_BASE_S,
+        CMSDK_TIMER1_BASE_S - 1,
+        PPC_SP_APB_PPC0,
+        CMSDK_TIMER0_APB_PPC_POS
+};
+
+enum tfm_plat_err_t enable_fault_handlers(void)
 {
     /* Secure fault is not present in the Baseline implementation. */
     /* Fault handler enable registers are not present in a Baseline
      * implementation.
      */
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
-void system_reset_cfg(void)
+enum tfm_plat_err_t system_reset_cfg(void)
 {
     struct sysctrl_t *sysctrl = (struct sysctrl_t *)CMSDK_SYSCTRL_BASE_S;
     uint32_t reg_value = SCB->AIRCR;
@@ -139,9 +150,11 @@ void system_reset_cfg(void)
     reg_value |= (uint32_t)(SCB_AIRCR_WRITE_MASK | SCB_AIRCR_SYSRESETREQS_Msk);
 
     SCB->AIRCR = reg_value;
+
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
-void tfm_spm_hal_init_debug(void)
+enum tfm_plat_err_t init_debug(void)
 {
     volatile struct sysctrl_t *sys_ctrl =
                                        (struct sysctrl_t *)CMSDK_SYSCTRL_BASE_S;
@@ -177,10 +190,11 @@ void tfm_spm_hal_init_debug(void)
      * input signals.
      */
 #endif
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 /*----------------- NVIC interrupt target state to NS configuration ----------*/
-void nvic_interrupt_target_state_cfg()
+enum tfm_plat_err_t nvic_interrupt_target_state_cfg(void)
 {
     /* Target every interrupt to NS; unimplemented interrupts will be WI */
     for (uint8_t i=0; i<sizeof(NVIC->ITNS)/sizeof(NVIC->ITNS[0]); i++) {
@@ -197,16 +211,25 @@ void nvic_interrupt_target_state_cfg()
     NVIC_ClearTargetState(UARTTX1_IRQn);
     NVIC_ClearTargetState(UART1_IRQn);
 #endif
+
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 /*----------------- NVIC interrupt enabling for S peripherals ----------------*/
-void nvic_interrupt_enable()
+enum tfm_plat_err_t nvic_interrupt_enable(void)
 {
     struct spctrl_def* spctrl = CMSDK_SPCTRL;
+    int32_t ret = ARM_DRIVER_OK;
 
     /* MPC interrupt enabling */
-    Driver_SRAM1_MPC.EnableInterrupt();
-    Driver_SRAM2_MPC.EnableInterrupt();
+    ret = Driver_SRAM1_MPC.EnableInterrupt();
+    if (ret != ARM_DRIVER_OK) {
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
+    ret = Driver_SRAM2_MPC.EnableInterrupt();
+    if (ret != ARM_DRIVER_OK) {
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
     NVIC_EnableIRQ(MPC_IRQn);
 
     /* PPC interrupt enabling */
@@ -219,103 +242,147 @@ void nvic_interrupt_enable()
     spctrl->secppcintclr = CMSDK_APB_PPC0_INT_POS_MASK;
 
     /* Enable PPC interrupts for APB PPC */
-    spctrl->secppcinten |= CMSDK_APB_PPC0_INT_POS_MASK;
-    spctrl->secppcinten |= CMSDK_APB_PPC1_INT_POS_MASK;
-    spctrl->secppcinten |= CMSDK_APB_PPCEXP0_INT_POS_MASK;
-    spctrl->secppcinten |= CMSDK_APB_PPCEXP1_INT_POS_MASK;
-    spctrl->secppcinten |= CMSDK_APB_PPCEXP2_INT_POS_MASK;
-    spctrl->secppcinten |= CMSDK_APB_PPCEXP3_INT_POS_MASK;
+    spctrl->secppcinten |= CMSDK_APB_PPC0_INT_POS_MASK |
+                           CMSDK_APB_PPC1_INT_POS_MASK |
+                           CMSDK_APB_PPCEXP0_INT_POS_MASK |
+                           CMSDK_APB_PPCEXP1_INT_POS_MASK |
+                           CMSDK_APB_PPCEXP2_INT_POS_MASK |
+                           CMSDK_APB_PPCEXP3_INT_POS_MASK;
     NVIC_EnableIRQ(PPC_IRQn);
+
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 /*------------------- SAU/IDAU configuration functions -----------------------*/
 
+struct sau_cfg_t {
+    uint32_t RNR;
+    uint32_t RBAR;
+    uint32_t RLAR;
+};
+
+const struct sau_cfg_t sau_cfg[] = {
+    {
+        TFM_NS_REGION_CODE,
+        ((uint32_t)&REGION_NAME(Load$$LR$$, LR_NS_PARTITION, $$Base)),
+        ((uint32_t)&REGION_NAME(Load$$LR$$, LR_NS_PARTITION, $$Base) +
+        NS_PARTITION_SIZE - 1)
+    },
+    {
+        TFM_NS_REGION_DATA,
+        NS_DATA_START,
+        NS_DATA_LIMIT
+    },
+    {
+        TFM_NS_REGION_VENEER,
+        (uint32_t)&REGION_NAME(Load$$LR$$, LR_VENEER, $$Base),
+        (uint32_t)&REGION_NAME(Load$$LR$$, LR_VENEER, $$Limit)
+    },
+    {
+        TFM_NS_REGION_PERIPH_1,
+        PERIPHERALS_BASE_NS_START,
+#ifdef SECURE_UART1
+        (UART1_BASE_NS - 1)
+    },
+    {
+        TFM_NS_REGION_PERIPH_2,
+        UART2_BASE_NS,
+#endif
+        PERIPHERALS_BASE_NS_END
+    }
+#ifdef BL2
+    ,
+    {
+        TFM_NS_SECONDARY_IMAGE_REGION,
+        (uint32_t)&REGION_NAME(Load$$LR$$, LR_SECONDARY_PARTITION, $$Base),
+        (uint32_t)&REGION_NAME(Load$$LR$$, LR_SECONDARY_PARTITION, $$Base) +
+        SECONDARY_PARTITION_SIZE - 1
+    }
+#endif
+};
+
 void sau_and_idau_cfg(void)
 {
+    int32_t i;
+    struct spctrl_def* spctrl = CMSDK_SPCTRL;
+
     /* Enables SAU */
     TZ_SAU_Enable();
 
-    /* Configures SAU regions to be non-secure */
-    SAU->RNR  = TFM_NS_REGION_CODE;
-    SAU->RBAR = (memory_regions.non_secure_partition_base
-                & SAU_RBAR_BADDR_Msk);
-    SAU->RLAR = (memory_regions.non_secure_partition_limit
-                & SAU_RLAR_LADDR_Msk)
-                | SAU_RLAR_ENABLE_Msk;
-
-
-    SAU->RNR  = TFM_NS_REGION_DATA;
-    SAU->RBAR = (NS_DATA_START & SAU_RBAR_BADDR_Msk);
-    SAU->RLAR = (NS_DATA_LIMIT & SAU_RLAR_LADDR_Msk) | SAU_RLAR_ENABLE_Msk;
-
-    /* Configures veneers region to be non-secure callable */
-    SAU->RNR  = TFM_NS_REGION_VENEER;
-    SAU->RBAR = (memory_regions.veneer_base  & SAU_RBAR_BADDR_Msk);
-    SAU->RLAR = (memory_regions.veneer_limit & SAU_RLAR_LADDR_Msk)
-                | SAU_RLAR_ENABLE_Msk
-                | SAU_RLAR_NSC_Msk;
-
-    /* Configure the peripherals space */
-    /* Only UART1 is configured as a secure peripheral */
-    SAU->RNR  = TFM_NS_REGION_PERIPH_1;
-    SAU->RBAR = (PERIPHERALS_BASE_NS_START & SAU_RBAR_BADDR_Msk);
-
-#ifdef SECURE_UART1
-    /* To statically configure a peripheral range as secure, close NS peripheral
-     * region before range, and open a new NS region after the reserved space.
-     */
-    SAU->RLAR = ((UART1_BASE_NS-1) & SAU_RLAR_LADDR_Msk)
-                | SAU_RLAR_ENABLE_Msk;
-
-    SAU->RNR  = TFM_NS_REGION_PERIPH_2;
-    SAU->RBAR = (UART2_BASE_NS & SAU_RBAR_BADDR_Msk);
-#endif
-
-    SAU->RLAR = (PERIPHERALS_BASE_NS_END & SAU_RLAR_LADDR_Msk)
-                | SAU_RLAR_ENABLE_Msk;
-
-#ifdef BL2
-    /* Secondary image partition */
-    SAU->RNR  = TFM_NS_SECONDARY_IMAGE_REGION;
-    SAU->RBAR = (memory_regions.secondary_partition_base  & SAU_RBAR_BADDR_Msk);
-    SAU->RLAR = (memory_regions.secondary_partition_limit & SAU_RLAR_LADDR_Msk)
-                | SAU_RLAR_ENABLE_Msk;
-#endif /* BL2 */
+    for (i = 0; i < ARRAY_SIZE(sau_cfg); i++) {
+        SAU->RNR = sau_cfg[i].RNR;
+        SAU->RBAR = sau_cfg[i].RBAR & SAU_RBAR_BADDR_Msk;
+        if (sau_cfg[i].RNR == TFM_NS_REGION_VENEER) {
+            SAU->RLAR = sau_cfg[i].RLAR | SAU_RLAR_ENABLE_Msk |
+                        SAU_RLAR_NSC_Msk;
+        } else {
+            SAU->RLAR = (sau_cfg[i].RLAR & SAU_RLAR_LADDR_Msk) |
+                        SAU_RLAR_ENABLE_Msk;
+        }
+    }
 
     /* Allows SAU to define the code region as a NSC */
-    struct spctrl_def* spctrl = CMSDK_SPCTRL;
     spctrl->nsccfg |= NSCCFG_CODENSC;
 }
 
 /*------------------- Memory configuration functions -------------------------*/
 
-void mpc_init_cfg(void)
+int32_t mpc_init_cfg(void)
 {
-    Driver_SRAM1_MPC.Initialize();
-    Driver_SRAM1_MPC.ConfigRegion(memory_regions.non_secure_partition_base,
-                                  memory_regions.non_secure_partition_limit,
-                                  ARM_MPC_ATTR_NONSECURE);
+    int32_t ret = ARM_DRIVER_OK;
+
+    ret = Driver_SRAM1_MPC.Initialize();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+
+    ret = Driver_SRAM1_MPC.ConfigRegion(
+                                      memory_regions.non_secure_partition_base,
+                                      memory_regions.non_secure_partition_limit,
+                                      ARM_MPC_ATTR_NONSECURE);
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
 
 #ifdef BL2
     /* Secondary image region */
-    Driver_SRAM1_MPC.ConfigRegion(memory_regions.secondary_partition_base,
+    ret = Driver_SRAM1_MPC.ConfigRegion(memory_regions.secondary_partition_base,
                                   memory_regions.secondary_partition_limit,
                                   ARM_MPC_ATTR_NONSECURE);
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
 #endif /* BL2 */
 
-    Driver_SRAM2_MPC.Initialize();
-    Driver_SRAM2_MPC.ConfigRegion(NS_DATA_START, NS_DATA_LIMIT,
-                                  ARM_MPC_ATTR_NONSECURE);
+    ret = Driver_SRAM2_MPC.Initialize();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+
+    ret = Driver_SRAM2_MPC.ConfigRegion(NS_DATA_START, NS_DATA_LIMIT,
+                                        ARM_MPC_ATTR_NONSECURE);
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
 
     /* Lock down the MPC configuration */
-    Driver_SRAM1_MPC.LockDown();
-    Driver_SRAM2_MPC.LockDown();
+    ret = Driver_SRAM1_MPC.LockDown();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+
+    ret = Driver_SRAM2_MPC.LockDown();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
 
     /* Add barriers to assure the MPC configuration is done before continue
      * the execution.
      */
     __DSB();
     __ISB();
+
+    return ARM_DRIVER_OK;
 }
 
 /*---------------------- PPC configuration functions -------------------------*/
@@ -328,60 +395,60 @@ void ppc_init_cfg(void)
     /* Grant non-secure access to peripherals in the PPC0
      * (timer0 and 1, dualtimer, watchdog, mhu 0 and 1)
      */
-    spctrl->apbnsppc0 |= (1U << CMSDK_TIMER0_APB_PPC_POS);
-    spctrl->apbnsppc0 |= (1U << CMSDK_TIMER1_APB_PPC_POS);
-    spctrl->apbnsppc0 |= (1U << CMSDK_DTIMER_APB_PPC_POS);
-    spctrl->apbnsppc0 |= (1U << CMSDK_MHU0_APB_PPC_POS);
-    spctrl->apbnsppc0 |= (1U << CMSDK_MHU1_APB_PPC_POS);
+    spctrl->apbnsppc0 |= (1U << CMSDK_TIMER0_APB_PPC_POS) |
+                         (1U << CMSDK_TIMER1_APB_PPC_POS) |
+                         (1U << CMSDK_DTIMER_APB_PPC_POS) |
+                         (1U << CMSDK_MHU0_APB_PPC_POS) |
+                         (1U << CMSDK_MHU1_APB_PPC_POS);
     /* Grant non-secure access to S32K Timer in PPC1*/
     spctrl->apbnsppc1 |= (1U << CMSDK_S32K_TIMER_PPC_POS);
     /* Grant non-secure access for APB peripherals on EXP1 */
-    spctrl->apbnsppcexp1 |= (1U << CMSDK_SPI0_APB_PPC_POS);
-    spctrl->apbnsppcexp1 |= (1U << CMSDK_SPI1_APB_PPC_POS);
-    spctrl->apbnsppcexp1 |= (1U << CMSDK_SPI2_APB_PPC_POS);
-    spctrl->apbnsppcexp1 |= (1U << CMSDK_SPI3_APB_PPC_POS);
-    spctrl->apbnsppcexp1 |= (1U << CMSDK_SPI4_APB_PPC_POS);
-    spctrl->apbnsppcexp1 |= (1U << CMSDK_UART0_APB_PPC_POS);
+    spctrl->apbnsppcexp1 |= (1U << CMSDK_SPI0_APB_PPC_POS) |
+                            (1U << CMSDK_SPI1_APB_PPC_POS) |
+                            (1U << CMSDK_SPI2_APB_PPC_POS) |
+                            (1U << CMSDK_SPI3_APB_PPC_POS) |
+                            (1U << CMSDK_SPI4_APB_PPC_POS) |
+                            (1U << CMSDK_UART0_APB_PPC_POS) |
 #ifdef SECURE_UART1
     /* To statically configure a peripheral as secure, skip PPC NS peripheral
      * configuration for the given device.
      */
 #else
-    spctrl->apbnsppcexp1 |= (1U << CMSDK_UART1_APB_PPC_POS);
+                            (1U << CMSDK_UART1_APB_PPC_POS) |
 #endif
-    spctrl->apbnsppcexp1 |= (1U << CMSDK_UART2_APB_PPC_POS);
-    spctrl->apbnsppcexp1 |= (1U << CMSDK_UART3_APB_PPC_POS);
-    spctrl->apbnsppcexp1 |= (1U << CMSDK_UART4_APB_PPC_POS);
-    spctrl->apbnsppcexp1 |= (1U << CMSDK_I2C0_APB_PPC_POS);
-    spctrl->apbnsppcexp1 |= (1U << CMSDK_I2C1_APB_PPC_POS);
-    spctrl->apbnsppcexp1 |= (1U << CMSDK_I2C2_APB_PPC_POS);
-    spctrl->apbnsppcexp1 |= (1U << CMSDK_I2C3_APB_PPC_POS);
+                            (1U << CMSDK_UART2_APB_PPC_POS) |
+                            (1U << CMSDK_UART3_APB_PPC_POS) |
+                            (1U << CMSDK_UART4_APB_PPC_POS) |
+                            (1U << CMSDK_I2C0_APB_PPC_POS) |
+                            (1U << CMSDK_I2C1_APB_PPC_POS) |
+                            (1U << CMSDK_I2C2_APB_PPC_POS) |
+                            (1U << CMSDK_I2C3_APB_PPC_POS);
     /* Grant non-secure access for APB peripherals on EXP2 */
-    spctrl->apbnsppcexp2 |= (1U << CMSDK_FPGA_SCC_PPC_POS);
-    spctrl->apbnsppcexp2 |= (1U << CMSDK_FPGA_AUDIO_PPC_POS);
-    spctrl->apbnsppcexp2 |= (1U << CMSDK_FPGA_IO_PPC_POS);
+    spctrl->apbnsppcexp2 |= (1U << CMSDK_FPGA_SCC_PPC_POS) |
+                            (1U << CMSDK_FPGA_AUDIO_PPC_POS) |
+                            (1U << CMSDK_FPGA_IO_PPC_POS);
 
     /* Grant non-secure access to all peripherals on AHB EXP:
      * Make sure that all possible peripherals are enabled by default
      */
-    spctrl->ahbnsppcexp0 |= (1U << CMSDK_VGA_PPC_POS);
-    spctrl->ahbnsppcexp0 |= (1U << CMSDK_GPIO0_PPC_POS);
-    spctrl->ahbnsppcexp0 |= (1U << CMSDK_GPIO1_PPC_POS);
-    spctrl->ahbnsppcexp0 |= (1U << CMSDK_GPIO2_PPC_POS);
-    spctrl->ahbnsppcexp0 |= (1U << CMSDK_GPIO3_PPC_POS);
-    spctrl->ahbnsppcexp0 |= (1U << MPS2_ETHERNET_PPC_POS);
+    spctrl->ahbnsppcexp0 |= (1U << CMSDK_VGA_PPC_POS) |
+                            (1U << CMSDK_GPIO0_PPC_POS) |
+                            (1U << CMSDK_GPIO1_PPC_POS) |
+                            (1U << CMSDK_GPIO2_PPC_POS) |
+                            (1U << CMSDK_GPIO3_PPC_POS) |
+                            (1U << MPS2_ETHERNET_PPC_POS);
 
-    spctrl->ahbnsppcexp1 |= (1U << CMSDK_DMA0_PPC_POS);
-    spctrl->ahbnsppcexp1 |= (1U << CMSDK_DMA1_PPC_POS);
-    spctrl->ahbnsppcexp1 |= (1U << CMSDK_DMA2_PPC_POS);
-    spctrl->ahbnsppcexp1 |= (1U << CMSDK_DMA3_PPC_POS);
+    spctrl->ahbnsppcexp1 |= (1U << CMSDK_DMA0_PPC_POS) |
+                            (1U << CMSDK_DMA1_PPC_POS) |
+                            (1U << CMSDK_DMA2_PPC_POS) |
+                            (1U << CMSDK_DMA3_PPC_POS);
 
     /* in NS, grant un-privileged for UART0 */
     nspctrl->apbnspppcexp1 |= (1U << CMSDK_UART0_APB_PPC_POS);
 
     /* in NS, grant un-privileged access for LEDs */
-    nspctrl->apbnspppcexp2 |= (1U << CMSDK_FPGA_SCC_PPC_POS);
-    nspctrl->apbnspppcexp2 |= (1U << CMSDK_FPGA_IO_PPC_POS);
+    nspctrl->apbnspppcexp2 |= (1U << CMSDK_FPGA_SCC_PPC_POS) |
+                              (1U << CMSDK_FPGA_IO_PPC_POS);
 
     /* Configure the response to a security violation as a
      * bus error instead of RAZ/WI

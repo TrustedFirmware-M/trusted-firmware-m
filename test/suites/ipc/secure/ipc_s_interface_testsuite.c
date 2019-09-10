@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2018, Arm Limited. All rights reserved.
+ * Copyright (c) 2018-2019, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
 #include "ipc_s_tests.h"
-#include "psa_client.h"
+#include "psa/client.h"
 #include "test/framework/test_framework_helpers.h"
 
 /* List of tests */

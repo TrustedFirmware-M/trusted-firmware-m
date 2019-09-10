@@ -20,7 +20,7 @@
 /*
  * Original code taken from mcuboot project at:
  * https://github.com/JuulLabs-OSS/mcuboot
- * Git SHA of the original version: 178be54bd6e5f035cc60e98205535682acd26e64
+ * Git SHA of the original version: 3c469bc698a9767859ed73cd0201c44161204d5c
  * Modifications are Copyright (c) 2018-2019 Arm Limited.
  */
 
@@ -42,6 +42,10 @@
 #include "mbedtls/asn1.h"
 
 #include "bootutil_priv.h"
+
+#ifdef MCUBOOT_HW_KEY
+#include "platform/include/tfm_plat_crypto_keys.h"
+#endif
 
 /*
  * Compute SHA256 over the image.
@@ -67,9 +71,9 @@ bootutil_img_hash(struct image_header *hdr, const struct flash_area *fap,
     /* Hash is computed over image header and image itself. */
     size = hdr->ih_img_size + hdr->ih_hdr_size;
 
-    /* If a security counter TLV is present then the TLV info header and the
-     * security counter are also protected and must be included in the hash
-     * calculation.
+    /* If a security counter TLV and/or a dependency TLV(s) are present then the
+     * TLV info header, the security counter TLV and/or the dependency TLV(s)
+     * are also protected and must be included in the hash calculation.
      */
     if (hdr->ih_protect_tlv_size != 0) {
         size += hdr->ih_protect_tlv_size;
@@ -122,6 +126,34 @@ bootutil_img_hash(struct image_header *hdr, const struct flash_area *fap,
 #endif
 
 #ifdef EXPECTED_SIG_TLV
+#ifdef MCUBOOT_HW_KEY
+extern unsigned int pub_key_len;
+extern uint8_t current_image;
+static int
+bootutil_find_key(uint8_t *key, uint16_t key_len)
+{
+    bootutil_sha256_context sha256_ctx;
+    uint8_t hash[32];
+    uint8_t key_hash[32];
+    uint32_t key_hash_size= sizeof(key_hash);
+    enum tfm_plat_err_t plat_err;
+
+    bootutil_sha256_init(&sha256_ctx);
+    bootutil_sha256_update(&sha256_ctx, key, key_len);
+    bootutil_sha256_finish(&sha256_ctx, hash);
+
+    plat_err = tfm_plat_get_rotpk_hash(current_image, key_hash, &key_hash_size);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return -1;
+    }
+    if (!memcmp(hash, key_hash, key_hash_size)) {
+        bootutil_keys[0].key = key;
+        pub_key_len = key_len;
+        return 0;
+    }
+    return -1;
+}
+#else
 static int
 bootutil_find_key(uint8_t *keyhash, uint8_t keyhash_len)
 {
@@ -143,6 +175,7 @@ bootutil_find_key(uint8_t *keyhash, uint8_t keyhash_len)
     }
     return -1;
 }
+#endif
 #endif
 
 #ifdef MCUBOOT_RAM_LOADING
@@ -328,6 +361,10 @@ bootutil_img_validate(struct image_header *hdr, const struct flash_area *fap,
 #ifdef EXPECTED_SIG_TLV
     int valid_signature = 0;
     int key_id = -1;
+#ifdef MCUBOOT_HW_KEY
+    /* Few extra bytes for encoding and for public exponent */
+    uint8_t key_buf[SIG_BUF_SIZE + 24];
+#endif
 #endif
     struct image_tlv tlv;
     uint8_t buf[SIG_BUF_SIZE];
@@ -388,6 +425,7 @@ bootutil_img_validate(struct image_header *hdr, const struct flash_area *fap,
 
             sha256_valid = 1;
 #ifdef EXPECTED_SIG_TLV
+#ifndef MCUBOOT_HW_KEY
         } else if (tlv.it_type == IMAGE_TLV_KEYHASH) {
             /*
              * Determine which key we should be checking.
@@ -404,23 +442,39 @@ bootutil_img_validate(struct image_header *hdr, const struct flash_area *fap,
              * The key may not be found, which is acceptable.  There
              * can be multiple signatures, each preceded by a key.
              */
+#else
+        } else if (tlv.it_type == IMAGE_TLV_KEY) {
+            /*
+             * Determine which key we should be checking.
+             */
+            if (tlv.it_len > sizeof(key_buf)) {
+                return -1;
+            }
+            rc = flash_area_read(fap, off + sizeof(tlv), key_buf, tlv.it_len);
+            if (rc) {
+                return rc;
+            }
+            key_id = bootutil_find_key(key_buf, tlv.it_len);
+            /*
+             * The key may not be found, which is acceptable.  There
+             * can be multiple signatures, each preceded by a key.
+             */
+#endif /* MCUBOOT_HW_KEY */
         } else if (tlv.it_type == EXPECTED_SIG_TLV) {
             /* Ignore this signature if it is out of bounds. */
-            if (key_id < 0 || key_id >= bootutil_key_cnt) {
-                key_id = -1;
-                continue;
-            }
-            if (!EXPECTED_SIG_LEN(tlv.it_len) || tlv.it_len > sizeof(buf)) {
-                return -1;
-            }
-            rc = flash_area_read(fap, off + sizeof(tlv), buf, tlv.it_len);
-            if (rc) {
-                return -1;
-            }
-            rc = bootutil_verify_sig(hash, sizeof(hash), buf, tlv.it_len,
-                                     key_id);
-            if (rc == 0) {
-                valid_signature = 1;
+            if (key_id >= 0 && key_id < bootutil_key_cnt) {
+                if (!EXPECTED_SIG_LEN(tlv.it_len) || tlv.it_len > sizeof(buf)) {
+                    return -1;
+                }
+                rc = flash_area_read(fap, off + sizeof(tlv), buf, tlv.it_len);
+                if (rc) {
+                    return -1;
+                }
+                rc = bootutil_verify_sig(hash, sizeof(hash), buf, tlv.it_len,
+                                         key_id);
+                if (rc == 0) {
+                    valid_signature = 1;
+                }
             }
             key_id = -1;
 #endif

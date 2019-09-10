@@ -9,8 +9,8 @@
 
 #include <stdio.h>
 
-#include "psa_protected_storage.h"
-#include "secure_fw/core/tfm_memory_utils.h"
+#include "psa/protected_storage.h"
+#include "tfm_memory_utils.h"
 #include "s_test_helpers.h"
 #include "test/framework/test_framework_helpers.h"
 

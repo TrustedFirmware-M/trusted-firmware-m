@@ -26,6 +26,7 @@
 #include "region_defs.h"
 #include "RTE_Device.h"
 #include "target_cfg.h"
+#include "tfm_plat_defs.h"
 
 /* Macros to pick linker symbols */
 #define REGION(a, b, c) a##b##c

@@ -8,8 +8,8 @@
 #ifndef __ATTEST_PUBLIC_KEY_H__
 #define __ATTEST_PUBLIC_KEY_H__
 
-#include "psa_initial_attestation_api.h"
-#include "psa_crypto.h"
+#include "psa/initial_attestation.h"
+#include "psa/crypto.h"
 
 #ifdef __cplusplus
 extern "C" {

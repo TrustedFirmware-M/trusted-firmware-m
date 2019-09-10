@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 #include "sst_flash_fs_mblock.h"
-#include "psa_protected_storage.h"
+#include "psa/protected_storage.h"
 
 #ifdef __cplusplus
 extern "C" {

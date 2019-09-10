@@ -94,6 +94,8 @@ psa_status_t spm_core_test_2_slave_service(psa_invec *, size_t, psa_outvec *, si
 psa_status_t spm_core_test_2_sfn_invert(psa_invec *, size_t, psa_outvec *, size_t);
 psa_status_t spm_core_test_2_check_caller_client_id(psa_invec *, size_t, psa_outvec *, size_t);
 psa_status_t spm_core_test_2_get_every_second_byte(psa_invec *, size_t, psa_outvec *, size_t);
+psa_status_t spm_core_test_2_prepare_test_scenario(psa_invec *, size_t, psa_outvec *, size_t);
+psa_status_t spm_core_test_2_execute_test_scenario(psa_invec *, size_t, psa_outvec *, size_t);
 #endif /* TFM_PARTITION_TEST_CORE */
 
 #ifdef TFM_PARTITION_TEST_SECURE_SERVICES
@@ -108,6 +110,12 @@ psa_status_t tfm_secure_client_service_sfn_run_tests(psa_invec *, size_t, psa_ou
 #ifdef TFM_PARTITION_TEST_CORE_IPC
 /******** TFM_SP_IPC_CLIENT_TEST ********/
 #endif /* TFM_PARTITION_TEST_CORE_IPC */
+
+#ifdef TFM_ENABLE_IRQ_TEST
+/******** TFM_IRQ_TEST_1 ********/
+psa_status_t spm_irq_test_1_prepare_test_scenario(psa_invec *, size_t, psa_outvec *, size_t);
+psa_status_t spm_irq_test_1_execute_test_scenario(psa_invec *, size_t, psa_outvec *, size_t);
+#endif /* TFM_ENABLE_IRQ_TEST */
 
 
 #define TFM_VENEER_FUNCTION(partition_name, sfn_name) \
@@ -206,6 +214,8 @@ TFM_VENEER_FUNCTION(TFM_SP_CORE_TEST_2, spm_core_test_2_slave_service)
 TFM_VENEER_FUNCTION(TFM_SP_CORE_TEST_2, spm_core_test_2_sfn_invert)
 TFM_VENEER_FUNCTION(TFM_SP_CORE_TEST_2, spm_core_test_2_check_caller_client_id)
 TFM_VENEER_FUNCTION(TFM_SP_CORE_TEST_2, spm_core_test_2_get_every_second_byte)
+TFM_VENEER_FUNCTION(TFM_SP_CORE_TEST_2, spm_core_test_2_prepare_test_scenario)
+TFM_VENEER_FUNCTION(TFM_SP_CORE_TEST_2, spm_core_test_2_execute_test_scenario)
 #endif /* TFM_PARTITION_TEST_CORE */
 
 #ifdef TFM_PARTITION_TEST_SECURE_SERVICES
@@ -220,4 +230,10 @@ TFM_VENEER_FUNCTION(TFM_SP_SECURE_TEST_PARTITION, tfm_secure_client_service_sfn_
 #ifdef TFM_PARTITION_TEST_CORE_IPC
 /******** TFM_SP_IPC_CLIENT_TEST ********/
 #endif /* TFM_PARTITION_TEST_CORE_IPC */
+
+#ifdef TFM_ENABLE_IRQ_TEST
+/******** TFM_IRQ_TEST_1 ********/
+TFM_VENEER_FUNCTION(TFM_IRQ_TEST_1, spm_irq_test_1_prepare_test_scenario)
+TFM_VENEER_FUNCTION(TFM_IRQ_TEST_1, spm_irq_test_1_execute_test_scenario)
+#endif /* TFM_ENABLE_IRQ_TEST */
 

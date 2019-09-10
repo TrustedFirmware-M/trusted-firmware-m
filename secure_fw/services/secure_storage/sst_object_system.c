@@ -11,7 +11,7 @@
 
 #include "cmsis_compiler.h"
 #include "flash_fs/sst_flash_fs.h"
-#include "secure_fw/core/tfm_memory_utils.h"
+#include "tfm_memory_utils.h"
 #ifdef SST_ENCRYPTION
 #include "sst_encrypted_object.h"
 #endif

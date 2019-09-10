@@ -6,7 +6,7 @@
  */
 
 #include "t_cose_crypto.h"
-#include "psa_crypto.h"
+#include "psa/crypto.h"
 #include "attest_public_key.h"
 
 /* Avoid compiler warning due to unused argument */

@@ -19,73 +19,55 @@
 
 #include "flash_layout.h"
 
-#define TOTAL_ROM_SIZE (0x00200000) /* 2 MB */
-#define TOTAL_RAM_SIZE (0x00020000) /* 128KB */
+#define BL2_HEAP_SIZE           (0x0001000)
+#define BL2_MSP_STACK_SIZE      (0x0001800)
 
-#define BL2_HEAP_SIZE           0x0001000
-#define BL2_MSP_STACK_SIZE      0x0001800
+#define S_HEAP_SIZE             (0x0001000)
+#define S_MSP_STACK_SIZE_INIT   (0x0000400)
+#define S_MSP_STACK_SIZE        (0x0000800)
+#define S_PSP_STACK_SIZE        (0x0000800)
 
-#define S_HEAP_SIZE             0x0001000
-#define S_MSP_STACK_SIZE_INIT   0x0000400
-#define S_MSP_STACK_SIZE        0x0000800
-#define S_PSP_STACK_SIZE        0x0000800
+#define NS_HEAP_SIZE            (0x0001000)
+#define NS_MSP_STACK_SIZE       (0x0000400)
+#define NS_PSP_STACK_SIZE       (0x0000C00)
 
-#define NS_HEAP_SIZE            0x0001000
-#define NS_MSP_STACK_SIZE       0x0000400
-#define NS_PSP_STACK_SIZE       0x0000C00
-
-/*
- * This size of buffer is big enough to store an attestation
+/* This size of buffer is big enough to store an attestation
  * token produced by initial attestation service
  */
-#define PSA_INITIAL_ATTEST_TOKEN_MAX_SIZE   0x200
+#define PSA_INITIAL_ATTEST_TOKEN_MAX_SIZE   (0x250)
 
-/*
- * MPC granularity is 128 KB on Musca. Alignment
+/* MPC granularity is 128 KB on Musca_A. Alignment
  * of partitions is defined in accordance with this constraint.
  */
-#define S_IMAGE_PRIMARY_PARTITION_OFFSET   (FLASH_AREA_IMAGE_0_OFFSET)
-#define S_IMAGE_SECONDARY_PARTITION_OFFSET (FLASH_AREA_IMAGE_1_OFFSET)
+#define S_IMAGE_PRIMARY_PARTITION_OFFSET   (FLASH_AREA_0_OFFSET)
+#define S_IMAGE_SECONDARY_PARTITION_OFFSET (FLASH_AREA_2_OFFSET)
 
-#define NS_IMAGE_PRIMARY_PARTITION_OFFSET (S_IMAGE_PRIMARY_PARTITION_OFFSET + \
-                                           FLASH_PARTITION_SIZE)
+#define NS_IMAGE_PRIMARY_PARTITION_OFFSET (FLASH_AREA_0_OFFSET \
+                                           + FLASH_S_PARTITION_SIZE)
 
-/*
- * Boot partition structure if MCUBoot is used:
+/* Boot partition structure if MCUBoot is used:
  * 0x0_0000 Bootloader header
  * 0x0_0400 Image area
  * 0x1_FC00 Trailer
  */
 /* IMAGE_CODE_SIZE is the space available for the software binary image.
- * It is less than the FLASH_PARTITION_SIZE because we reserve space
- * for the image header and trailer introduced by the bootloader.
+ * It is less than the FLASH_S_PARTITION_SIZE + FLASH_NS_PARTITION_SIZE
+ * because we reserve space for the image header and trailer introduced
+ * by the bootloader.
  */
-#define BL2_HEADER_SIZE      (0x400)
-#define BL2_TRAILER_SIZE     (0x400)
+#define BL2_HEADER_SIZE      (0x400)       /* 1 KB */
+#define BL2_TRAILER_SIZE     (0x400)       /* 1 KB */
 
-#define IMAGE_CODE_SIZE \
-            (FLASH_PARTITION_SIZE - BL2_HEADER_SIZE - BL2_TRAILER_SIZE)
+#define IMAGE_S_CODE_SIZE \
+            (FLASH_S_PARTITION_SIZE - BL2_HEADER_SIZE - BL2_TRAILER_SIZE)
+#define IMAGE_NS_CODE_SIZE \
+            (FLASH_NS_PARTITION_SIZE - BL2_HEADER_SIZE - BL2_TRAILER_SIZE)
 
 /* FIXME: veneer region size is increased temporarily while both legacy veneers
  * and their iovec-based equivalents co-exist for secure partitions. To be
  * adjusted as legacy veneers are eliminated
  */
-#define CMSE_VENEER_REGION_SIZE     (0x00000380)
-
-/*
- * Since we enable/disable flash during s/ns code copy to code sram we cannot
- * access bl2 code from flash, hence we need to copy the bl2 code to code sram
- */
-#define BL2_CODE_SRAM_ALIAS_BASE (S_SRAM_ALIAS_BASE)
-#define BL2_CODE_SRAM_ALIAS(x) (BL2_CODE_SRAM_ALIAS_BASE + x)
-#define BL2_CODE_SRAM_BASE  (BL2_CODE_SRAM_ALIAS(FLASH_AREA_BL2_OFFSET))
-
-/* Use QSPI Flash memory to store Code data */
-#define S_ROM_ALIAS_BASE  (0x10200000)
-#define NS_ROM_ALIAS_BASE (0x00200000)
-
-#define S_RAM_ALIAS_BASE  (0x30000000)
-#define NS_RAM_ALIAS_BASE (0x20000000)
+#define CMSE_VENEER_REGION_SIZE     (0x380)
 
 /* Alias definitions for secure and non-secure areas*/
 #define S_ROM_ALIAS(x)  (S_SRAM_ALIAS_BASE + (x))
@@ -95,18 +77,18 @@
 #define NS_RAM_ALIAS(x) (NS_RAM_ALIAS_BASE + (x))
 
 /* Secure regions */
-#define  S_IMAGE_PRIMARY_AREA_OFFSET \
+#define S_IMAGE_PRIMARY_AREA_OFFSET \
              (S_IMAGE_PRIMARY_PARTITION_OFFSET + BL2_HEADER_SIZE)
 #define S_CODE_START    (S_ROM_ALIAS(S_IMAGE_PRIMARY_AREA_OFFSET))
-#define S_CODE_SIZE     (IMAGE_CODE_SIZE - CMSE_VENEER_REGION_SIZE)
+#define S_CODE_SIZE     (IMAGE_S_CODE_SIZE - CMSE_VENEER_REGION_SIZE)
 #define S_CODE_LIMIT    (S_CODE_START + S_CODE_SIZE - 1)
 
 #define S_DATA_START    (S_RAM_ALIAS(0x0))
-/* Reserve 96 KB of RAM to the SPE to meet worst case scenario
+/* Reserve 104 KB of RAM to the SPE to meet worst case scenario
  * requirements which are encountered in IPC mode and regression
- * tests enabled. Leave the remaining 32 KB to the NSPE.
+ * tests enabled. Leave the remaining 24 KB to the NSPE.
  */
-#define S_DATA_SIZE     ((TOTAL_RAM_SIZE / 2) + (TOTAL_RAM_SIZE / 4))
+#define S_DATA_SIZE     ((TOTAL_RAM_SIZE / 16) * 13)
 #define S_DATA_LIMIT    (S_DATA_START + S_DATA_SIZE - 1)
 
 /* CMSE Veneers region */
@@ -116,7 +98,7 @@
 #define NS_IMAGE_PRIMARY_AREA_OFFSET \
                         (NS_IMAGE_PRIMARY_PARTITION_OFFSET + BL2_HEADER_SIZE)
 #define NS_CODE_START   (NS_ROM_ALIAS(NS_IMAGE_PRIMARY_AREA_OFFSET))
-#define NS_CODE_SIZE    (IMAGE_CODE_SIZE - FLASH_AREA_BL2_SIZE)
+#define NS_CODE_SIZE    (IMAGE_NS_CODE_SIZE - FLASH_AREA_BL2_SIZE)
 #define NS_CODE_LIMIT   (NS_CODE_START + NS_CODE_SIZE - 1)
 
 #define NS_DATA_START   (NS_RAM_ALIAS(S_DATA_SIZE))
@@ -127,14 +109,13 @@
 /* NS partition information is used for MPC and SAU configuration */
 #define NS_PARTITION_START \
             (NS_ROM_ALIAS(NS_IMAGE_PRIMARY_PARTITION_OFFSET))
-
-#define NS_PARTITION_SIZE (FLASH_PARTITION_SIZE)
+#define NS_PARTITION_SIZE (FLASH_NS_PARTITION_SIZE)
 
 /* Secondary partition for new images in case of firmware upgrade */
 #define SECONDARY_PARTITION_START \
             (NS_ROM_ALIAS(S_IMAGE_SECONDARY_PARTITION_OFFSET))
-
-#define SECONDARY_PARTITION_SIZE (FLASH_AREA_IMAGE_1_SIZE)
+#define SECONDARY_PARTITION_SIZE (FLASH_S_PARTITION_SIZE + \
+                                  FLASH_NS_PARTITION_SIZE)
 
 /* Code SRAM area */
 #define TOTAL_CODE_SRAM_SIZE     (TOTAL_ROM_SIZE)
@@ -149,6 +130,13 @@
                                  (TOTAL_CODE_SRAM_SIZE / 2))
 #define NS_CODE_SRAM_EXEC_LIMIT  (NS_CODE_SRAM_EXEC_BASE + \
                                  (TOTAL_CODE_SRAM_SIZE / 2) - 1)
+
+/* Since we enable/disable flash during s/ns code copy to code sram we cannot
+ * access bl2 code from flash, hence we need to copy the bl2 code to code sram
+ */
+#define BL2_CODE_SRAM_ALIAS_BASE (S_SRAM_ALIAS_BASE)
+#define BL2_CODE_SRAM_ALIAS(x)   (BL2_CODE_SRAM_ALIAS_BASE + x)
+#define BL2_CODE_SRAM_BASE       (BL2_CODE_SRAM_ALIAS(FLASH_AREA_BL2_OFFSET))
 
 /* Bootloader regions */
 #define BL2_CODE_START    (S_QSPI_ALIAS_BASE)

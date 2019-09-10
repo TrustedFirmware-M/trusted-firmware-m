@@ -70,25 +70,6 @@ struct tfm_spm_partition_platform_data_t {
 struct mpu_armv8m_region_cfg_t;
 
 /**
- * \brief Enables the fault handlers BusFault, UsageFault,
- *        MemManageFault and SecureFault.
- */
-void enable_fault_handlers(void);
-
-/**
- * \brief Configures all external interrupts to target the
- *        NS state, apart for the ones associated to secure
- *        peripherals (plus MPC and PPC)
- */
-void nvic_interrupt_target_state_cfg(void);
-
-/**
- * \brief This function enable the interrupts associated
- *        to the secure peripherals (plus MPC and PPC)
- */
-void nvic_interrupt_enable(void);
-
-/**
  * \brief This function enables the MPU
  */
 enum mpu_armv8m_error_t mpu_enable(uint32_t privdef_en, uint32_t hfnmi_en);
@@ -116,8 +97,10 @@ enum mpu_armv8m_error_t mpu_clean(void);
 
 /**
  * \brief Configures the Memory Protection Controller.
+ *
+ * \return  Returns error code.
  */
-void mpc_init_cfg(void);
+int32_t mpc_init_cfg(void);
 
 /**
  * \brief Clear MPC interrupt.
@@ -126,8 +109,10 @@ void mpc_clear_irq(void);
 
 /**
  * \brief Configures the Peripheral Protection Controller.
+ *
+ * \return  Returns error code.
  */
-void ppc_init_cfg(void);
+int32_t ppc_init_cfg(void);
 
 /**
  * \brief Restict access to peripheral to secure privileged
@@ -153,5 +138,37 @@ void ppc_clear_irq(void);
  * \brief Configures SAU and IDAU.
  */
 void sau_and_idau_cfg(void);
+
+/**
+ * \brief Enables the fault handlers and sets priorities.
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
+ */
+enum tfm_plat_err_t enable_fault_handlers(void);
+
+/**
+ * \brief Configures the system reset request properties
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
+ */
+enum tfm_plat_err_t system_reset_cfg(void);
+
+/**
+ * \brief Configures all external interrupts to target the
+ *        NS state, apart for the ones associated to secure
+ *        peripherals (plus MPC and PPC)
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
+ */
+enum tfm_plat_err_t nvic_interrupt_target_state_cfg(void);
+
+/**
+ * \brief This function enable the interrupts associated
+ *        to the secure peripherals (plus the isolation boundary violation
+ *        interrupts)
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
+ */
+enum tfm_plat_err_t nvic_interrupt_enable(void);
 
 #endif /* __TARGET_CFG_H__ */

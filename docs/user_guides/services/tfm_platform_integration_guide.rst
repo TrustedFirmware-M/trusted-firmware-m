@@ -87,8 +87,8 @@ Current Service Limitations
 Debug authentication settings
 *****************************
 A platform may provide the option to configure debug authentication. TF-M core
-calls the HAL function ``void tfm_spm_hal_init_debug(void)`` which configures
-debug authentication based on the following defines:
+calls the HAL function ``enum tfm_plat_err_t tfm_spm_hal_init_debug(void)``
+which configures debug authentication based on the following defines:
 
   - `DAUTH_NONE`: Debugging the system is not enabled.
   - `DAUTH_NS_ONLY`: Invasive and non invasive debugging of non-secure code is
@@ -104,9 +104,9 @@ the options above to the cmake command with the
 `DEBUG_AUTHENTICATION` is `DAUTH_CHIP_DEFAULT`.
 
 .. Note::
-   ``void tfm_spm_hal_init_debug(void)`` is called during the TF-M core
-   initialisation phase, before initialising secure partition. This means that BL2
-   runs with the chip default setting.
+   ``enum tfm_plat_err_t tfm_spm_hal_init_debug(void)`` is called during the
+   TF-M core initialisation phase, before initialising secure partition. This
+   means that BL2 runs with the chip default setting.
 
 --------------
 

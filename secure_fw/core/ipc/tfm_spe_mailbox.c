@@ -11,6 +11,7 @@
 
 #include "cmsis_compiler.h"
 
+#include "psa/error.h"
 #include "tfm_memory_utils.h"
 #include "tfm_utils.h"
 #include "tfm_spe_mailbox.h"
@@ -190,7 +191,7 @@ int32_t tfm_mailbox_handle_msg(void)
 {
     uint8_t idx;
     int32_t result;
-    uint32_t psa_ret = PSA_DROP_CONNECTION;
+    uint32_t psa_ret = PSA_ERROR_GENERIC_ERROR;
     mailbox_queue_status_t mask_bits, pend_slots, reply_slots = 0;
     struct ns_mailbox_queue_t *ns_queue = spe_mailbox_queue.ns_queue;
     struct mailbox_msg_t *msg_ptr;

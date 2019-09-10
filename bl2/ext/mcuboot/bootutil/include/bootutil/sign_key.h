@@ -26,12 +26,22 @@
 extern "C" {
 #endif
 
+#ifdef MCUBOOT_HW_KEY
+struct bootutil_key {
+    uint8_t *key;
+    unsigned int *len;
+};
+
+extern struct bootutil_key bootutil_keys[];
+#else
 struct bootutil_key {
     const uint8_t *key;
     const unsigned int *len;
 };
 
 extern const struct bootutil_key bootutil_keys[];
+#endif
+
 extern const int bootutil_key_cnt;
 
 #ifdef __cplusplus

@@ -18,13 +18,6 @@
 #include "test/suites/ipc/secure/ipc_s_tests.h"
 
 static struct test_suite_t test_suites[] = {
-#if TFM_LVL == 3
-#ifdef SERVICES_TEST_S
-    /* List test cases which compliant with level 3 isolation */
-#endif /* SERVICES_TEST_S */
-
-#else /* TFM_LVL == 3 */
-
 #ifdef SERVICES_TEST_S
     /* List test cases which are compliant with level 1 isolation */
 
@@ -59,12 +52,11 @@ static struct test_suite_t test_suites[] = {
     {&register_testsuite_s_invert_interface, 0, 0, 0},
 #endif /* TFM_PARTITION_TEST_CORE*/
 
-#ifdef CORE_TEST_IPC
+#ifdef ENABLE_IPC_TEST
     /* Secure IPC test cases */
     {&register_testsuite_s_ipc_interface, 0, 0, 0},
 #endif
 #endif /* SERVICES_TEST_S */
-#endif /* TFM_LVL == 3 */
     /* End of test suites */
     {0, 0, 0, 0}
 };

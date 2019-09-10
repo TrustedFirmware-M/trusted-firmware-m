@@ -5,16 +5,22 @@
  *
  */
 
-#include "core_ns_tests.h"
-#include "tfm_api.h"
-#include "test/suites/core/non_secure/core_test_api.h"
-#include "test/test_services/tfm_core_test/core_test_defs.h"
-#ifndef TFM_PSA_API
-#include "tfm_veneers.h"
-#endif /* TFM_PSA_API */
-
 #include <stdio.h>
 #include <string.h>
+
+#include "core_ns_tests.h"
+#include "tfm_api.h"
+#include "tfm_plat_test.h"
+#include "test/suites/core/non_secure/core_test_api.h"
+#include "test/test_services/tfm_core_test/core_test_defs.h"
+#ifdef TFM_PSA_API
+#include "psa_manifest/sid.h"
+#else  /* TFM_PSA_API */
+#include "tfm_veneers.h"
+#endif /* TFM_PSA_API */
+#ifdef TFM_ENABLE_IRQ_TEST
+#include "platform_irq.h"
+#endif
 
 /* Define test suite for core tests */
 /* List of tests */
@@ -29,6 +35,7 @@ static void tfm_core_test_permissions(struct test_result_t *ret);
 static void tfm_core_test_mpu_access(struct test_result_t *ret);
 static void tfm_core_test_share_change(struct test_result_t *ret);
 static void tfm_core_test_get_caller_client_id(struct test_result_t *ret);
+static void tfm_core_test_spm_request(struct test_result_t *ret);
 #endif /* TFM_PSA_API */
 static void tfm_core_test_ns_thread(struct test_result_t *ret);
 static void tfm_core_test_check_init(struct test_result_t *ret);
@@ -36,10 +43,17 @@ static void tfm_core_test_recursion(struct test_result_t *ret);
 static void tfm_core_test_buffer_check(struct test_result_t *ret);
 static void tfm_core_test_ss_to_ss(struct test_result_t *ret);
 static void tfm_core_test_ss_to_ss_buffer(struct test_result_t *ret);
+#ifdef TFM_ENABLE_PERIPH_ACCESS_TEST
 static void tfm_core_test_peripheral_access(struct test_result_t *ret);
-static void tfm_core_test_spm_request(struct test_result_t *ret);
+#endif
 static void tfm_core_test_iovec_sanitization(struct test_result_t *ret);
 static void tfm_core_test_outvec_write(struct test_result_t *ret);
+#ifdef TFM_ENABLE_IRQ_TEST
+static void tfm_core_test_irq(struct test_result_t *ret);
+
+static enum irq_test_scenario_t executing_irq_test_scenario = IRQ_TEST_SCENARIO_NONE;
+static struct irq_test_execution_data_t irq_test_execution_data = {0};
+#endif
 
 static struct test_t core_tests[] = {
 CORE_TEST_DESCRIPTION(CORE_TEST_ID_NS_THREAD, tfm_core_test_ns_thread,
@@ -52,6 +66,13 @@ CORE_TEST_DESCRIPTION(CORE_TEST_ID_RECURSION, tfm_core_test_recursion,
 CORE_TEST_DESCRIPTION(CORE_TEST_ID_MEMORY_PERMISSIONS,
     tfm_core_test_permissions,
     "Test secure service memory access permissions"),
+#endif /* TFM_PSA_API */
+#ifdef TFM_ENABLE_IRQ_TEST
+CORE_TEST_DESCRIPTION(CORE_TEST_ID_SECURE_IRQ,
+    tfm_core_test_irq,
+    "Test secure irq"),
+#endif
+#ifndef TFM_PSA_API
 CORE_TEST_DESCRIPTION(CORE_TEST_ID_MPU_ACCESS, tfm_core_test_mpu_access,
     "Test secure service MPU accesses"),
 #endif /* TFM_PSA_API */
@@ -67,17 +88,19 @@ CORE_TEST_DESCRIPTION(CORE_TEST_ID_SHARE_REDIRECTION,
 CORE_TEST_DESCRIPTION(CORE_TEST_ID_SS_TO_SS_BUFFER,
     tfm_core_test_ss_to_ss_buffer,
     "Test secure service to service call with buffer handling"),
+#ifdef TFM_ENABLE_PERIPH_ACCESS_TEST
 CORE_TEST_DESCRIPTION(CORE_TEST_ID_PERIPHERAL_ACCESS,
     tfm_core_test_peripheral_access,
     "Test service peripheral access"),
+#endif
 #ifndef TFM_PSA_API
 CORE_TEST_DESCRIPTION(CORE_TEST_ID_GET_CALLER_CLIENT_ID,
     tfm_core_test_get_caller_client_id,
     "Test get caller client ID function"),
-#endif /* TFM_PSA_API */
 CORE_TEST_DESCRIPTION(CORE_TEST_ID_SPM_REQUEST,
     tfm_core_test_spm_request,
     "Test SPM request function"),
+#endif /* TFM_PSA_API */
 CORE_TEST_DESCRIPTION(CORE_TEST_ID_IOVEC_SANITIZATION,
     tfm_core_test_iovec_sanitization,
     "Test service parameter sanitization"),
@@ -109,7 +132,7 @@ static psa_status_t psa_test_common(uint32_t sid, uint32_t minor_version,
         return CORE_TEST_ERRNO_INVALID_PARAMETER;
     }
 
-    status = psa_call(handle, in_vecs, in_len, out_vecs, out_len);
+    status = psa_call(handle, PSA_IPC_CALL, in_vecs, in_len, out_vecs, out_len);
     if (status < 0) {
         status = CORE_TEST_ERRNO_UNEXPECTED_CORE_BEHAVIOUR;
     }
@@ -129,7 +152,7 @@ static void tfm_core_test_ns_thread(struct test_result_t *ret)
     err = tfm_spm_core_test_sfn_veneer(in_vec, 1, NULL, 0);
 #else /* TFM_PSA_API */
     err = psa_test_common(SPM_CORE_TEST_NS_THREAD_SID,
-                          SPM_CORE_TEST_NS_THREAD_MIN_VER,
+                          SPM_CORE_TEST_NS_THREAD_VERSION,
                           NULL, 0, NULL, 0);
 #endif /* TFM_PSA_API */
 
@@ -141,6 +164,7 @@ static void tfm_core_test_ns_thread(struct test_result_t *ret)
     ret->val = TEST_PASSED;
 }
 
+#ifdef TFM_ENABLE_PERIPH_ACCESS_TEST
 static void tfm_core_test_peripheral_access(struct test_result_t *ret)
 {
     int32_t err;
@@ -153,7 +177,7 @@ static void tfm_core_test_peripheral_access(struct test_result_t *ret)
     err = tfm_core_test_call(tfm_spm_core_test_sfn_veneer, &args);
 #else /* TFM_PSA_API */
     err = psa_test_common(SPM_CORE_TEST_PERIPHERAL_ACCESS_SID,
-                          SPM_CORE_TEST_PERIPHERAL_ACCESS_MIN_VER,
+                          SPM_CORE_TEST_PERIPHERAL_ACCESS_VERSION,
                           NULL, 0, NULL, 0);
 #endif /* TFM_PSA_API */
 
@@ -169,6 +193,8 @@ static void tfm_core_test_peripheral_access(struct test_result_t *ret)
         return;
     }
 }
+#endif
+
 static void empty_iovecs(psa_invec invec[], psa_outvec outvec[])
 {
     int i = 0;
@@ -218,7 +244,7 @@ static void tfm_core_test_iovec_sanitization(struct test_result_t *ret)
     err = tfm_core_test_call(tfm_spm_core_test_2_slave_service_veneer, &args);
 #else /* TFM_PSA_API */
     err = psa_test_common(SPM_CORE_TEST_2_SLAVE_SERVICE_SID,
-                          SPM_CORE_TEST_2_SLAVE_SERVICE_MIN_VER,
+                          SPM_CORE_TEST_2_SLAVE_SERVICE_VERSION,
                           NULL, 0, NULL, 0);
 #endif /* TFM_PSA_API */
     if (err != CORE_TEST_ERRNO_SUCCESS_2) {
@@ -236,7 +262,7 @@ static void tfm_core_test_iovec_sanitization(struct test_result_t *ret)
     err = tfm_core_test_call(tfm_spm_core_test_2_slave_service_veneer, &args);
 #else /* TFM_PSA_API */
     err = psa_test_common(SPM_CORE_TEST_2_SLAVE_SERVICE_SID,
-                          SPM_CORE_TEST_2_SLAVE_SERVICE_MIN_VER,
+                          SPM_CORE_TEST_2_SLAVE_SERVICE_VERSION,
                           in_vec, 2, out_vec, 2);
 #endif /* TFM_PSA_API */
     if (err != CORE_TEST_ERRNO_SUCCESS_2) {
@@ -254,7 +280,7 @@ static void tfm_core_test_iovec_sanitization(struct test_result_t *ret)
     err = tfm_core_test_call(tfm_spm_core_test_2_slave_service_veneer, &args);
 #else /* TFM_PSA_API */
     err = psa_test_common(SPM_CORE_TEST_2_SLAVE_SERVICE_SID,
-                          SPM_CORE_TEST_2_SLAVE_SERVICE_MIN_VER,
+                          SPM_CORE_TEST_2_SLAVE_SERVICE_VERSION,
                           in_vec, 2, out_vec, 1);
 #endif /* TFM_PSA_API */
     if (err != CORE_TEST_ERRNO_SUCCESS_2) {
@@ -280,7 +306,7 @@ static void tfm_core_test_iovec_sanitization(struct test_result_t *ret)
     err = tfm_core_test_call(tfm_spm_core_test_2_slave_service_veneer, &args);
 #else /* TFM_PSA_API */
     err = psa_test_common(SPM_CORE_TEST_2_SLAVE_SERVICE_SID,
-                          SPM_CORE_TEST_2_SLAVE_SERVICE_MIN_VER,
+                          SPM_CORE_TEST_2_SLAVE_SERVICE_VERSION,
                           in_vec, 2, out_vec, 1);
 #endif /* TFM_PSA_API */
     if (err != CORE_TEST_ERRNO_SUCCESS_2) {
@@ -301,7 +327,7 @@ static void tfm_core_test_iovec_sanitization(struct test_result_t *ret)
     err = tfm_core_test_call(tfm_spm_core_test_2_slave_service_veneer, &args);
 #else /* TFM_PSA_API */
     err = psa_test_common(SPM_CORE_TEST_2_SLAVE_SERVICE_SID,
-                          SPM_CORE_TEST_2_SLAVE_SERVICE_MIN_VER,
+                          SPM_CORE_TEST_2_SLAVE_SERVICE_VERSION,
                           in_vec, 2, out_vec, 1);
 #endif /* TFM_PSA_API */
     if (err != CORE_TEST_ERRNO_SUCCESS_2) {
@@ -321,7 +347,7 @@ static void tfm_core_test_iovec_sanitization(struct test_result_t *ret)
     err = tfm_core_test_call(tfm_spm_core_test_2_slave_service_veneer, &args);
 #else /* TFM_PSA_API */
     err = psa_test_common(SPM_CORE_TEST_2_SLAVE_SERVICE_SID,
-                          SPM_CORE_TEST_2_SLAVE_SERVICE_MIN_VER,
+                          SPM_CORE_TEST_2_SLAVE_SERVICE_VERSION,
                           in_vec, 2, out_vec, 2);
 #endif /* TFM_PSA_API */
     if (err != CORE_TEST_ERRNO_SUCCESS_2) {
@@ -341,7 +367,7 @@ static void tfm_core_test_iovec_sanitization(struct test_result_t *ret)
     err = tfm_core_test_call(tfm_spm_core_test_2_slave_service_veneer, &args);
 #else /* TFM_PSA_API */
     err = psa_test_common(SPM_CORE_TEST_2_SLAVE_SERVICE_SID,
-                          SPM_CORE_TEST_2_SLAVE_SERVICE_MIN_VER,
+                          SPM_CORE_TEST_2_SLAVE_SERVICE_VERSION,
                           in_vec, 2, out_vec, 2);
 #endif /* TFM_PSA_API */
     if (err != CORE_TEST_ERRNO_SUCCESS_2) {
@@ -374,7 +400,7 @@ static void tfm_core_test_outvec_write(struct test_result_t *ret)
                                                                         &args1);
 #else /* TFM_PSA_API */
     err = psa_test_common(SPM_CORE_TEST_2_GET_EVERY_SECOND_BYTE_SID,
-                          SPM_CORE_TEST_2_GET_EVERY_SECOND_BYTE_MIN_VER,
+                          SPM_CORE_TEST_2_GET_EVERY_SECOND_BYTE_VERSION,
                           in_vec, 2, out_vec, 2);
 #endif /* TFM_PSA_API */
 
@@ -408,7 +434,7 @@ static void tfm_core_test_outvec_write(struct test_result_t *ret)
     err = tfm_core_test_call(tfm_spm_core_test_sfn_veneer, &args2);
 #else /* TFM_PSA_API */
     err = psa_test_common(SPM_CORE_TEST_OUTVEC_WRITE_SID,
-                          SPM_CORE_TEST_OUTVEC_WRITE_MIN_VER,
+                          SPM_CORE_TEST_OUTVEC_WRITE_VERSION,
                           in_vec, 0, out_vec, 0);
 #endif /* TFM_PSA_API */
 
@@ -420,6 +446,192 @@ static void tfm_core_test_outvec_write(struct test_result_t *ret)
     ret->val = TEST_PASSED;
 }
 
+#ifdef TFM_ENABLE_IRQ_TEST
+static int32_t prepare_test_scenario_ns(
+                               enum irq_test_scenario_t test_scenario,
+                               struct irq_test_execution_data_t *execution_data)
+{
+    executing_irq_test_scenario = test_scenario;
+    switch (test_scenario) {
+    case IRQ_TEST_SCENARIO_NONE:
+        return CORE_TEST_ERRNO_INVALID_PARAMETER;
+    case IRQ_TEST_SCENARIO_1:
+    case IRQ_TEST_SCENARIO_2:
+    case IRQ_TEST_SCENARIO_3:
+    case IRQ_TEST_SCENARIO_4:
+        /* nothing to be done here */
+        break;
+    case IRQ_TEST_SCENARIO_5:
+        execution_data->timer1_triggered = 0;
+        tfm_plat_test_non_secure_timer_start();
+        break;
+    default:
+        return CORE_TEST_ERRNO_INVALID_PARAMETER;
+    }
+
+    return CORE_TEST_ERRNO_SUCCESS;
+}
+
+static int32_t execute_test_scenario_ns(
+                               enum irq_test_scenario_t test_scenario,
+                               struct irq_test_execution_data_t *execution_data)
+{
+
+    switch (test_scenario) {
+    case IRQ_TEST_SCENARIO_NONE:
+        return CORE_TEST_ERRNO_INVALID_PARAMETER;
+    case IRQ_TEST_SCENARIO_1:
+        if (execution_data->timer0_triggered) {
+            return CORE_TEST_ERRNO_TEST_FAULT;
+        }
+        while (!execution_data->timer0_triggered) {
+            ;
+        }
+        break;
+    case IRQ_TEST_SCENARIO_2:
+    case IRQ_TEST_SCENARIO_3:
+    case IRQ_TEST_SCENARIO_4:
+    case IRQ_TEST_SCENARIO_5:
+        /* nothing to be done here */
+        break;
+    default:
+        return CORE_TEST_ERRNO_INVALID_PARAMETER;
+    }
+
+    return CORE_TEST_ERRNO_SUCCESS;
+}
+
+void TIMER1_Handler (void)
+{
+    tfm_plat_test_non_secure_timer_stop();
+
+    switch (executing_irq_test_scenario) {
+    case IRQ_TEST_SCENARIO_NONE:
+    case IRQ_TEST_SCENARIO_1:
+    case IRQ_TEST_SCENARIO_2:
+    case IRQ_TEST_SCENARIO_3:
+    case IRQ_TEST_SCENARIO_4:
+        while (1) {}
+        /* shouldn't happen */
+        break;
+    case IRQ_TEST_SCENARIO_5:
+        irq_test_execution_data.timer1_triggered = 1;
+        break;
+    default:
+        while (1) {}
+        /* shouldn't happen */
+        break;
+    }
+}
+
+static int32_t tfm_core_test_irq_scenario(
+                                         enum irq_test_scenario_t test_scenario)
+{
+    struct irq_test_execution_data_t *execution_data_address = &irq_test_execution_data;
+    uint32_t scenario = test_scenario;
+
+    psa_invec in_vec[] = {
+                 {&scenario, sizeof(uint32_t)},
+                 {&execution_data_address,
+                                  sizeof(struct irq_test_execution_data_t *)} };
+    int32_t err;
+
+#ifdef TFM_PSA_API
+    err = psa_test_common(SPM_CORE_IRQ_TEST_1_PREPARE_TEST_SCENARIO_SID,
+                          SPM_CORE_IRQ_TEST_1_PREPARE_TEST_SCENARIO_VERSION,
+                          in_vec, 2, NULL, 0);
+#else
+    err = tfm_spm_irq_test_1_prepare_test_scenario_veneer(in_vec, 2, NULL, 0);
+#endif
+    if (err != CORE_TEST_ERRNO_SUCCESS) {
+        return err;
+    }
+
+#ifdef TFM_PSA_API
+    err = psa_test_common(SPM_CORE_TEST_2_PREPARE_TEST_SCENARIO_SID,
+                          SPM_CORE_TEST_2_PREPARE_TEST_SCENARIO_VERSION,
+                          in_vec, 2, NULL, 0);
+#else
+    err = tfm_spm_core_test_2_prepare_test_scenario_veneer(in_vec, 2, NULL, 0);
+#endif
+    if (err != CORE_TEST_ERRNO_SUCCESS) {
+        return err;
+    }
+
+    err = prepare_test_scenario_ns(test_scenario, &irq_test_execution_data);
+    if (err != CORE_TEST_ERRNO_SUCCESS) {
+        return err;
+    }
+
+#ifdef TFM_PSA_API
+    err = psa_test_common(SPM_CORE_IRQ_TEST_1_EXECUTE_TEST_SCENARIO_SID,
+                          SPM_CORE_IRQ_TEST_1_EXECUTE_TEST_SCENARIO_VERSION,
+                          in_vec, 2, NULL, 0);
+#else
+    err = tfm_spm_irq_test_1_execute_test_scenario_veneer(in_vec, 1, NULL, 0);
+#endif
+    if (err != CORE_TEST_ERRNO_SUCCESS) {
+        return err;
+    }
+
+#ifdef TFM_PSA_API
+    err = psa_test_common(SPM_CORE_TEST_2_EXECUTE_TEST_SCENARIO_SID,
+                          SPM_CORE_TEST_2_EXECUTE_TEST_SCENARIO_VERSION,
+                          in_vec, 2, NULL, 0);
+#else
+    err = tfm_spm_core_test_2_execute_test_scenario_veneer(in_vec, 1, NULL, 0);
+#endif
+    if (err != CORE_TEST_ERRNO_SUCCESS) {
+        return err;
+    }
+
+    err = execute_test_scenario_ns(test_scenario, &irq_test_execution_data);
+    if (err != CORE_TEST_ERRNO_SUCCESS) {
+        return err;
+    }
+
+    return CORE_TEST_ERRNO_SUCCESS;
+}
+
+static void tfm_core_test_irq(struct test_result_t *ret)
+{
+    int32_t err;
+
+    NVIC_EnableIRQ(4);
+
+    err = tfm_core_test_irq_scenario(IRQ_TEST_SCENARIO_1);
+    if (err != CORE_TEST_ERRNO_SUCCESS) {
+        TEST_FAIL("Failed to execute IRQ test scenario 1.");
+        return;
+    }
+
+    err = tfm_core_test_irq_scenario(IRQ_TEST_SCENARIO_2);
+    if (err != CORE_TEST_ERRNO_SUCCESS) {
+        TEST_FAIL("Failed to execute IRQ test scenario 2.");
+        return;
+    }
+
+    err = tfm_core_test_irq_scenario(IRQ_TEST_SCENARIO_3);
+    if (err != CORE_TEST_ERRNO_SUCCESS) {
+        TEST_FAIL("Failed to execute IRQ test scenario 3.");
+        return;
+    }
+
+    err = tfm_core_test_irq_scenario(IRQ_TEST_SCENARIO_4);
+    if (err != CORE_TEST_ERRNO_SUCCESS) {
+        TEST_FAIL("Failed to execute IRQ test scenario 4.");
+        return;
+    }
+
+    err = tfm_core_test_irq_scenario(IRQ_TEST_SCENARIO_5);
+    if (err != CORE_TEST_ERRNO_SUCCESS) {
+        TEST_FAIL("Failed to execute IRQ test scenario 5.");
+        return;
+    }
+
+    ret->val = TEST_PASSED;
+}
+#endif
 
 /*
  * \brief Tests whether the initialisation of the service was successful.
@@ -434,7 +646,7 @@ static void tfm_core_test_check_init(struct test_result_t *ret)
     err = tfm_core_test_call(tfm_spm_core_test_sfn_init_success_veneer, &args);
 #else /* TFM_PSA_API */
     err = psa_test_common(SPM_CORE_TEST_INIT_SUCCESS_SID,
-                          SPM_CORE_TEST_INIT_SUCCESS_MIN_VER,
+                          SPM_CORE_TEST_INIT_SUCCESS_VERSION,
                           NULL, 0, NULL, 0);
 #endif /* TFM_PSA_API */
 
@@ -535,7 +747,7 @@ static void tfm_core_test_buffer_check(struct test_result_t *ret)
     res = tfm_core_test_call(tfm_spm_core_test_2_sfn_invert_veneer, &args);
 #else /* TFM_PSA_API */
     res = psa_test_common(SPM_CORE_TEST_2_INVERT_SID,
-                          SPM_CORE_TEST_2_INVERT_MIN_VER,
+                          SPM_CORE_TEST_2_INVERT_VERSION,
                           in_vec, 1, outvec, 2);
 #endif /* TFM_PSA_API */
     if (res != CORE_TEST_ERRNO_SUCCESS) {
@@ -575,7 +787,7 @@ static void tfm_core_test_ss_to_ss(struct test_result_t *ret)
     err = tfm_core_test_call(tfm_spm_core_test_sfn_veneer, &args);
 #else /* TFM_PSA_API */
     err = psa_test_common(SPM_CORE_TEST_SS_TO_SS_SID,
-                          SPM_CORE_TEST_SS_TO_SS_MIN_VER,
+                          SPM_CORE_TEST_SS_TO_SS_VERSION,
                           NULL, 0, NULL, 0);
 #endif /* TFM_PSA_API */
 
@@ -627,7 +839,7 @@ static void tfm_core_test_ss_to_ss_buffer(struct test_result_t *ret)
                           {&len, sizeof(int32_t)} };
 
     res = psa_test_common(SPM_CORE_TEST_SS_TO_SS_BUFFER_SID,
-                          SPM_CORE_TEST_SS_TO_SS_BUFFER_MIN_VER,
+                          SPM_CORE_TEST_SS_TO_SS_BUFFER_VERSION,
                           in_vec, 2, out_vec, 1);
 #endif /* TFM_PSA_API */
     switch (res) {
@@ -678,7 +890,6 @@ static void tfm_core_test_get_caller_client_id(struct test_result_t *ret)
 
     ret->val = TEST_PASSED;
 }
-#endif /* TFM_PSA_API */
 
 static void tfm_core_test_spm_request(struct test_result_t *ret)
 {
@@ -691,7 +902,7 @@ static void tfm_core_test_spm_request(struct test_result_t *ret)
     err = tfm_core_test_call(tfm_spm_core_test_sfn_veneer, &args);
 #else /* TFM_PSA_API */
     err = psa_test_common(SPM_CORE_TEST_SPM_REQUEST_SID,
-                          SPM_CORE_TEST_SPM_REQUEST_MIN_VER,
+                          SPM_CORE_TEST_SPM_REQUEST_VERSION,
                           NULL, 0, NULL, 0);
 #endif /* TFM_PSA_API */
 
@@ -702,3 +913,5 @@ static void tfm_core_test_spm_request(struct test_result_t *ret)
 
     ret->val = TEST_PASSED;
 }
+
+#endif /* TFM_PSA_API */

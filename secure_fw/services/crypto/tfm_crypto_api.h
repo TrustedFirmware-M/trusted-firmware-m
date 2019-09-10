@@ -15,9 +15,9 @@ extern "C" {
 #include <stdint.h>
 #include "tfm_api.h"
 #include "tfm_crypto_defs.h"
-#include "psa_crypto.h"
+#include "psa/crypto.h"
 #ifdef TFM_PSA_API
-#include "psa_service.h"
+#include "psa/service.h"
 
 /**
  * \brief This define is a function pointer type to the Uniform Signature API

@@ -17,6 +17,10 @@ extern "C" {
 #include <limits.h>
 
 #include "psa_audit_defs.h"
+#include "psa/error.h"
+
+#define UNIFORM_SIGNATURE_API(api_name) \
+    psa_status_t api_name(psa_invec[], size_t, psa_outvec[], size_t)
 
 /*!
  * \struct log_entry
@@ -126,105 +130,21 @@ struct log_tlr {
  * \brief Initializes the Audit logging service
  *        during the TFM boot up process
  *
- * \return Returns PSA_AUDIT_ERR_SUCCESS if init has been completed,
- *         otherwise error as specified in \ref psa_audit_err
+ * \return Returns PSA_STATUS_T_SUCCESS if init has been completed,
+ *         otherwise error as specified in \ref psa_status_t
  */
-enum psa_audit_err audit_core_init(void);
+psa_status_t audit_core_init(void);
 
-/*!
- * \brief Retrieves a record at the specified index
- *
- * \details The function retrieves an item specified by index and returns
- *          it on the buffer provided. The token is passed as a challenge
- *          value for the encryption scheme
- *
- * \note Currently the cryptography support is not yet enabled, so the
- *       token value is not used and must be passed as NULL, with 0 size
- *
- * \param[in]  record_index Index of the record to retrieve
- * \param[in]  buffer_size  Size in bytes of the provided buffer
- * \param[in]  token        Must be set to NULL. Token used as a challenge
- *                          for encryption, to protect against rollback
- *                          attacks
- * \param[in]  token_size   Must be set to 0. Size in bytes of the token
- *                          used as challenge
- * \param[out] buffer       Buffer used to store the retrieved record
- * \param[out] record_size  Size in bytes of the retrieved record
- *
- * \return Returns values as specified by the \ref psa_audit_err
- *
- */
-enum psa_audit_err audit_core_retrieve_record(const uint32_t record_index,
-                                              const uint32_t buffer_size,
-                                              const uint8_t *token,
-                                              const uint32_t token_size,
-                                              uint8_t *buffer,
-                                              uint32_t *record_size);
-/*!
- * \brief Adds a record
- *
- * \details This function adds a record in the Audit log
- *
- * \param[in] record Pointer to the memory buffer containing the record
- *                   to be added
- *
- * \return Returns values as specified by the \ref psa_audit_err
- *
- */
-enum psa_audit_err audit_core_add_record(const struct psa_audit_record *record);
+#define LIST_TFM_AUDIT_UNIFORM_SIGNATURE_API \
+    X(audit_core_delete_record)              \
+    X(audit_core_get_info)                   \
+    X(audit_core_get_record_info)            \
+    X(audit_core_add_record)                 \
+    X(audit_core_retrieve_record)            \
 
-/*!
- * \brief Returns the total number and size of the records stored
- *
- * \details The function returns the total size in bytes and the
- *          total number of records stored
- *
- * \param[out] num_records Total number of records stored
- * \param[out] size        Total size of the records stored, in bytes
- *
- * \return Returns values as specified by the \ref psa_audit_err
- *
- */
-enum psa_audit_err audit_core_get_info(uint32_t *num_records,
-                                       uint32_t *size);
-
-/*!
- * \brief Returns the size of the record at the specified index
- *
- * \details The function returns the size of the record at the given index
- *          provided as input
- *
- * \param[in]  record_index Index of the record to return the size
- * \param[out] size         Size of the specified record, in bytes
- *
- * \return Returns values as specified by the \ref psa_audit_err
- *
- */
-enum psa_audit_err audit_core_get_record_info(const uint32_t record_index,
-                                              uint32_t *size);
-/*!
- * \brief Deletes a record at the specified index
- *
- * \details The function removes a record at the specified index. It passes
- *          an authorisation token for removal which is a MAC of the plain text
- *
- * \note Currently the cryptography support is not yet enabled, so the
- *       token value is not used and must be passed as NULL, with 0 size
- *
- * \param[in] record_index Index of the record to be removed. Currently, only
- *                         the removal of the oldest entry, i.e. record_index 0
- *                         is supported
- * \param[in] token        Must be set to NULL. Token used as authorisation for
- *                         removal of the specified record_index
- * \param[in] token_size   Must be set to 0. Size in bytes of the token used as
- *                         authorisation for removal
- *
- * \return Returns values as specified by the \ref psa_audit_err
- *
- */
-enum psa_audit_err audit_core_delete_record(const uint32_t record_index,
-                                            const uint8_t *token,
-                                            const uint32_t token_size);
+#define X(api_name) UNIFORM_SIGNATURE_API(api_name);
+LIST_TFM_AUDIT_UNIFORM_SIGNATURE_API
+#undef X
 
 #ifdef __cplusplus
 }

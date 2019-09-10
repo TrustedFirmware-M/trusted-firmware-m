@@ -10,7 +10,7 @@
 
 #include <stddef.h>
 
-#include "psa_client.h"
+#include "psa/client.h"
 
 #ifdef __cplusplus
 extern "C" {

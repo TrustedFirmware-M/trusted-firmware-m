@@ -40,9 +40,11 @@ uint32_t tfm_svcall_psa_version(uint32_t *args, int32_t ns_caller);
  * \param[in] ns_caller         If 'non-zero', call from non-secure client.
  *                              Or from secure client.
  *
- * \retval PSA_SUCCESS          Success.
- * \retval PSA_CONNECTION_BUSY  The SPM cannot make the connection
- *                              at the moment.
+ * \retval > 0                  A handle for the connection.
+ * \retval PSA_ERROR_CONNECTION_REFUSED The SPM or RoT Service has refused the
+ *                              connection.
+ * \retval PSA_ERROR_CONNECTION_BUSY The SPM or RoT Service cannot make the
+ *                              connection at the moment.
  * \retval "Does not return"    The RoT Service ID and version are not
  *                              supported, or the caller is not permitted to
  *                              access the service.
@@ -60,13 +62,12 @@ psa_status_t tfm_svcall_psa_connect(uint32_t *args, int32_t ns_caller);
  *
  * \retval >=0                  RoT Service-specific status value.
  * \retval <0                   RoT Service-specific error code.
- * \retval PSA_DROP_CONNECTION  The connection has been dropped by the RoT
- *                              Service. This indicates that either this or
- *                              a previous message was invalid.
- * \retval "Does not return"    The call is invalid, one or more of the
- *                              following are true:
+ * \retval PSA_ERROR_PROGRAMMER_ERROR The connection has been terminated by the
+ *                              RoT Service. The call is a PROGRAMMER ERROR if
+ *                              one or more of the following are true:
  * \arg                           An invalid handle was passed.
  * \arg                           The connection is already handling a request.
+ * \arg                           type < 0.
  * \arg                           An invalid memory reference was provided.
  * \arg                           in_len + out_len > PSA_MAX_IOVEC.
  * \arg                           The message is unrecognized by the RoT
@@ -94,13 +95,23 @@ void tfm_svcall_psa_close(uint32_t *args, int32_t ns_caller);
 /**
  * \brief SVC handler for IPC functions
  *
- * \param[in] svc_num           SVC number
- * \param[in] ctx               Argument context
+ * \param[in] svc_num           SVC number.
+ * \param[in] ctx               Argument context.
  * \param[in] lr                EXC_RETURN value of the SVC.
  *
  * \returns                     Return values from those who has,
  *                              or PSA_SUCCESS.
  */
 int32_t SVC_Handler_IPC(tfm_svc_number_t svc_num, uint32_t *ctx, uint32_t lr);
+
+/**
+ * \brief The C source of SVCall handlers
+ *
+ * \param[in] svc_args          The arguments list.
+ * \param[in] exc_return        EXC_RETURN value of the SVC.
+ *
+ * \returns                     EXC_RETURN value indicates where to return.
+ */
+uint32_t tfm_core_svc_handler(uint32_t *svc_args, uint32_t exc_return);
 
 #endif

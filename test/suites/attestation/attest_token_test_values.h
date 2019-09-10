@@ -84,8 +84,7 @@
       (uint8_t[]){TOKEN_TEST_NONCE_BYTES},\
         64\
     }
-#define TOKEN_TEST_REQUIRE_NONCE true
-
+#define TOKEN_TEST_REQUIRE_NONCE true /* Mandatory claim */
 
 /* A 32 byte mostly random value. Binary.
  *    platform/ext/common/tfm_initial_attestation_key_material.c
@@ -101,8 +100,7 @@
         },\
         33\
     }
-#define TOKEN_TEST_REQUIRE_UEID true
-
+#define TOKEN_TEST_REQUIRE_UEID true /* Mandatory claim */
 
 /* A 32 byte mostly random value. Binary.
  *    platform/ext/target/<TARGET>/dummy_boot_seed.c
@@ -117,14 +115,13 @@
         },\
         32\
     }
-#define TOKEN_TEST_REQUIRE_BOOT_SEED true
+#define TOKEN_TEST_REQUIRE_BOOT_SEED true /* Mandatory claim */
 
-
-/* A text string mostly in EAN 13 format
+/* A text string in EAN 13 format
  *    platform/ext/target/<TARGET>/dummy_device_id.c
  */
-#define TOKEN_TEST_VALUE_HW_VERSION "060456527282910010"
-#define TOKEN_TEST_REQUIRE_HW_VERSION false /* Optional field */
+#define TOKEN_TEST_VALUE_HW_VERSION "060456527282910010" /* Hard-coded value */
+#define TOKEN_TEST_REQUIRE_HW_VERSION false /* Optional claim */
 
 /* A 32 byte mostly random value. Binary.
  *    platform/ext/target/<TARGET>/dummy_device_id.c
@@ -139,23 +136,17 @@
         },\
         32\
     }
-#define TOKEN_TEST_REQUIRE_IMPLEMENTATION_ID true
-
+#define TOKEN_TEST_REQUIRE_IMPLEMENTATION_ID true /* Mandatory claim */
 
 /* A small unsigned integer
  *    platform/ext/target/<TARGET>/attest_hal.c
  */
-#define TOKEN_TEST_VALUE_SECURITY_LIFECYCLE  0x3000u
-#define TOKEN_TEST_REQUIRE_SECURITY_LIFECYCLE true
-
-
-/* Disable checking value of client ID */
-#define TOKEN_TEST_VALUE_CLIENT_ID INT32_MAX
-#define TOKEN_TEST_REQUIRE_CLIENT_ID true
+#define TOKEN_TEST_VALUE_SECURITY_LIFECYCLE  0x3000u /* Hard-coded value */
+#define TOKEN_TEST_REQUIRE_SECURITY_LIFECYCLE true /* Mandatory claim */
 
 /* An integer (can be positive or negative */
-/* #define TOKEN_TEST_VALUE_CLIENT_ID  589 */
-
+#define TOKEN_TEST_VALUE_CLIENT_ID INT32_MAX /* Value not checked */
+#define TOKEN_TEST_REQUIRE_CLIENT_ID true /* Mandatory claim */
 
 /* Text string naming the profile definition:
  *    platform/ext/target/<TARGET>/attest_hal.c
@@ -168,8 +159,6 @@
  */
 #define TOKEN_TEST_VALUE_ORIGINATION "www.trustedfirmware.org"
 #define TOKEN_TEST_REQUIRE_ORIGINATION false /* Optional field */
-
-
 
 /**
  * \c TOKEN_TEST_REQUIRED_NUM_SWC can be either 0, 1, 2 or \c
@@ -196,13 +185,11 @@
 #define TOKEN_TEST_REQUIRED_NUM_SWC 0
 
 /* Text string */
-#define TOKEN_TEST_VALUE_SWC1_MEASUREMENT_TYPE "NSPE_SPE"
+#define TOKEN_TEST_VALUE_SWC1_MEASUREMENT_TYPE NULL /* Value not checked */
 #define TOKEN_TEST_REQUIRE_SWC1_MEASUREMENT_TYPE false /* Optional field */
 
-/* Disable check of measurement value */
+/* A 32 byte mostly random value. Binary. Value not checked */
 #define TOKEN_TEST_VALUE_SWC1_MEASUREMENT_VAL NULL_Q_USEFUL_BUF_C
-
-/* A 32 byte mostly random value. Binary. */
 /*
 #define TOKEN_TEST_VALUE_SWC1_MEASUREMENT_VAL \
     (struct q_useful_buf_c) {\
@@ -215,28 +202,18 @@
         32\
     }
 */
-#define TOKEN_TEST_REQUIRE_SWC1_MEASUREMENT_VAL true
+#define TOKEN_TEST_REQUIRE_SWC1_MEASUREMENT_VAL true /* Mandatory field */
 
-
-/* Small unsigned integer, disable to check because it was removed from
- * specification 1.0-Beta-1
- */
-#define TOKEN_TEST_VALUE_SWC1_EPOCH INT32_MAX
+/* Small unsigned integer */
+#define TOKEN_TEST_VALUE_SWC1_EPOCH INT32_MAX /* Value not checked */
 #define TOKEN_TEST_REQUIRE_SWC1_EPOCH false /* Optional field */
 
-
-/* Disable check of software version */
-#define TOKEN_TEST_VALUE_SWC1_VERSION NULL
-
 /* Text string */
-/* #define TOKEN_TEST_VALUE_SWC1_VERSION "v1.2.4.8" */
+#define TOKEN_TEST_VALUE_SWC1_VERSION NULL /* Value not checked */
 #define TOKEN_TEST_REQUIRE_SWC1_VERSION false /* Optional field */
 
-
-/* Disable check of signer ID */
+/* A 32 byte mostly random value. Binary. Value not checked */
 #define TOKEN_TEST_VALUE_SWC1_SIGNER_ID NULL_Q_USEFUL_BUF_C
-
-/* A 32 byte mostly random value. Binary. */
 /*
 #define TOKEN_TEST_VALUE_SWC1_SIGNER_ID \
     (struct q_useful_buf_c) {\
@@ -249,20 +226,19 @@
         32\
     }
 */
-#define TOKEN_TEST_REQUIRE_SWC1_SIGNER_ID true
+#define TOKEN_TEST_REQUIRE_SWC1_SIGNER_ID false /* Optional field */
 
 /* Text string */
-#define TOKEN_TEST_VALUE_SWC1_MEASUREMENT_DESC "SHA256"
+#define TOKEN_TEST_VALUE_SWC1_MEASUREMENT_DESC "SHA256" /* Hard-coded value */
 #define TOKEN_TEST_REQUIRE_SWC1_MEASUREMENT_DESC false /* Optional field */
 
-
-
 /* Text string */
-#define TOKEN_TEST_VALUE_SWC2_MEASUREMENT_TYPE "type service"
-#define TOKEN_TEST_REQUIRE_SWC2_MEASUREMENT_TYPE true
+#define TOKEN_TEST_VALUE_SWC2_MEASUREMENT_TYPE NULL /* Value not checked */
+#define TOKEN_TEST_REQUIRE_SWC2_MEASUREMENT_TYPE false /* Optional field */
 
-
-/* A 32 byte mostly random value. Binary. */
+/* A 32 byte mostly random value. Binary. Value not checked */
+#define TOKEN_TEST_VALUE_SWC2_MEASUREMENT_VAL NULL_Q_USEFUL_BUF_C
+/*
 #define TOKEN_TEST_VALUE_SWC2_MEASUREMENT_VAL \
     (struct q_useful_buf_c) {\
         (uint8_t[]){ \
@@ -273,17 +249,20 @@
         },\
         32\
     }
-#define TOKEN_TEST_REQUIRE_SWC2_MEASUREMENT_VAL true
+*/
+#define TOKEN_TEST_REQUIRE_SWC2_MEASUREMENT_VAL true /* Mandatory field */
 
 /* Small unsigned integer */
-#define TOKEN_TEST_VALUE_SWC2_EPOCH 4
-#define TOKEN_TEST_REQUIRE_SWC2_EPOCH true
+#define TOKEN_TEST_VALUE_SWC2_EPOCH INT32_MAX /* Value not checked */
+#define TOKEN_TEST_REQUIRE_SWC2_EPOCH false /* Optional field */
 
 /* Text string */
-#define TOKEN_TEST_VALUE_SWC2_VERSION "v3.9.27"
-#define TOKEN_TEST_REQUIRE_SWC2_VERSION true
+#define TOKEN_TEST_VALUE_SWC2_VERSION NULL /* Value not checked */
+#define TOKEN_TEST_REQUIRE_SWC2_VERSION false /* Optional field */
 
-/* A 32 byte mostly random value. Binary. */
+/* A 32 byte mostly random value. Binary. Value not checked */
+#define TOKEN_TEST_VALUE_SWC2_SIGNER_ID NULL_Q_USEFUL_BUF_C
+/*
 #define TOKEN_TEST_VALUE_SWC2_SIGNER_ID \
     (struct q_useful_buf_c) {\
         (uint8_t[]){ \
@@ -294,15 +273,16 @@
         },\
         32\
     }
-#define TOKEN_TEST_REQUIRE_SWC2_SIGNER_ID true
+*/
+#define TOKEN_TEST_REQUIRE_SWC2_SIGNER_ID false /* Optional field */
 
 /* Text string */
-#define TOKEN_TEST_VALUE_SWC2_MEASUREMENT_DESC "dynamically-loaded"
-#define TOKEN_TEST_REQUIRE_SWC2_MEASUREMENT_DESC true
+#define TOKEN_TEST_VALUE_SWC2_MEASUREMENT_DESC "SHA256" /* Hard-coded value */
+#define TOKEN_TEST_REQUIRE_SWC2_MEASUREMENT_DESC false /* Optional field */
 
 /* Attest token maximum size, there are also platform dependent values
  * defined in region_defs.h
  */
-#define ATTEST_TOKEN_MAX_SIZE  0x200
+#define ATTEST_TOKEN_MAX_SIZE  0x250
 
 #endif /* __ATTEST_TOKEN_TEST_VALUES_H__ */
