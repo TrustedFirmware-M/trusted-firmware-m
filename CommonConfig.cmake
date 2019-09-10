@@ -77,6 +77,9 @@ if (DEFINED TFM_MULTI_CORE_TOPOLOGY AND TFM_MULTI_CORE_TOPOLOGY)
 	# core acts as secure core in multi-core scenario.
 	set (CMSE_FLAGS "")
 	set (ARM_FEATURE_CMSE 0)
+
+	# Skip IRQ test until secure interrupt is supported in multi-core topology
+	set (TFM_ENABLE_IRQ_TEST OFF)
 else ()
 	set (CMSE_FLAGS "-mcmse")
 	set (ARM_FEATURE_CMSE 3)

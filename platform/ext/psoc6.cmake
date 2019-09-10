@@ -19,6 +19,11 @@ add_definitions(-DCY_IPC_DEFAULT_CFG_DISABLE=1 -DCY8C6247BZI_D54=1)
 add_definitions(-DCY_FLASH_RWW_DRV_SUPPORT_DISABLED=1 -DNDEBUG=1)
 add_definitions(-DTFM_CORE_DEBUG)
 
+# Skip Core Test temporarily
+set(CORE_TEST OFF)
+# Skip peripheral access test
+set(TFM_ENABLE_PERIPH_ACCESS_TEST OFF)
+
 # Set Cortex-M0plus as secure core
 set_secure_cpu_type("CpuM0p")
 # Set Cortex-M4 as non-secure core
