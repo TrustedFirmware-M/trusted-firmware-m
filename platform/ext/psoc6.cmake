@@ -59,7 +59,15 @@ set (FLASH_LAYOUT          "${PLATFORM_DIR}/target/psoc6/partition/flash_layout.
 set (PLATFORM_LINK_INCLUDES "${PLATFORM_DIR}/target/psoc6/partition")
 
 if (BL2)
-  set (BL2_LINKER_CONFIG ${BL2_SCATTER_FILE_NAME})
+    set (BL2_LINKER_CONFIG ${BL2_SCATTER_FILE_NAME})
+    #FixMe: MCUBOOT_SIGN_RSA_LEN can be removed when ROTPK won't be hard coded in platform/ext/common/tfm_rotpk.c
+    #       instead independently loaded from secure code as a blob.
+    if (${MCUBOOT_SIGNATURE_TYPE} STREQUAL "RSA-2048")
+        add_definitions(-DMCUBOOT_SIGN_RSA_LEN=2048)
+    endif()
+    if (${MCUBOOT_SIGNATURE_TYPE} STREQUAL "RSA-3072")
+        add_definitions(-DMCUBOOT_SIGN_RSA_LEN=3072)
+    endif()
 endif()
 
 embedded_include_directories(PATH "${PLATFORM_DIR}/cmsis" ABSOLUTE)
@@ -191,6 +199,7 @@ if (NOT DEFINED BUILD_TARGET_HARDWARE_KEYS)
   message(FATAL_ERROR "Configuration variable BUILD_TARGET_HARDWARE_KEYS (true|false) is undefined!")
 elseif(BUILD_TARGET_HARDWARE_KEYS)
   list(APPEND ALL_SRC_C "${PLATFORM_DIR}/common/tfm_initial_attestation_key_material.c")
+  list(APPEND ALL_SRC_C "${PLATFORM_DIR}/common/tfm_rotpk.c")
   list(APPEND ALL_SRC_C "${PLATFORM_DIR}/target/psoc6/dummy_crypto_keys.c")
 endif()
 
