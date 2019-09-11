@@ -158,17 +158,17 @@
 #define BL2_CODE_SIZE     (FLASH_AREA_BL2_SIZE)
 #define BL2_CODE_LIMIT    (BL2_CODE_START + BL2_CODE_SIZE - 1)
 
-#define BL2_DATA_START    (S_RAM_ALIAS(0x0))
-#define BL2_DATA_SIZE     (TOTAL_RAM_SIZE)
+#define BL2_DATA_START    (S_RAM_ALIAS(S_DATA_PRIV_OFFSET))
+#define BL2_DATA_SIZE     (S_PRIV_DATA_SIZE)
 #define BL2_DATA_LIMIT    (BL2_DATA_START + BL2_DATA_SIZE - 1)
-#endif /* BL2 */
 
 /* Shared data area between bootloader and runtime firmware.
  * Shared data area is allocated at the beginning of the privileged data area,
  * it is overlapping with TF-M Secure code's MSP stack
  */
-#define BOOT_TFM_SHARED_DATA_BASE S_DATA_PRIV_START
+#define BOOT_TFM_SHARED_DATA_BASE BL2_DATA_START
 #define BOOT_TFM_SHARED_DATA_SIZE 0x400
+#endif /* BL2 */
 
 #endif /* __REGION_DEFS_H__ */
 

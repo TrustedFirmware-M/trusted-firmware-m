@@ -197,6 +197,13 @@ SECTIONS
 
     __etext =  . ;
 
+    .tfm_bl2_shared_data BOOT_TFM_SHARED_DATA_BASE : ALIGN(32)
+    {
+        . += BOOT_TFM_SHARED_DATA_SIZE;
+    } > ram
+    Image$$SHARED_DATA$$RW$$Base = ADDR(.tfm_bl2_shared_data);
+    Image$$SHARED_DATA$$RW$$Limit = ADDR(.tfm_bl2_shared_data) + SIZEOF(.tfm_bl2_shared_data);
+
 #ifdef RAM_VECTORS_SUPPORT
     .ramVectors (NOLOAD) : ALIGN(8)
     {
