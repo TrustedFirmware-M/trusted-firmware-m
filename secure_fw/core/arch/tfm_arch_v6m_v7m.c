@@ -82,19 +82,19 @@ void tfm_arch_initialize_ctx_ext(struct tfm_state_context_ext *p_ctxb,
 __attribute__((naked)) void SVC_Handler(void)
 {
     __ASM volatile(
-        ".syntax unified           \n"
-        "MOVS    r0, #4            \n" /* Check store SP in thread mode to r0 */
-        "MOV     r1, lr            \n"
-        "TST     r0, r1            \n"
-        "BEQ     handler           \n"
-        "MRS     r0, PSP           \n" /* Coming from thread mode */
-        "B       sp_stored         \n"
-        "handler:                  \n"
-        "BX      lr                \n" /* Coming from handler mode */
-        "sp_stored:                \n"
-        "MOV     r1, lr            \n"
-        "BL      SVCHandler_main   \n"
-        "BX      r0                \n"
+    ".syntax unified               \n"
+    "MOVS    r0, #4                \n" /* Check store SP in thread mode to r0 */
+    "MOV     r1, lr                \n"
+    "TST     r0, r1                \n"
+    "BEQ     handler               \n"
+    "MRS     r0, PSP               \n" /* Coming from thread mode */
+    "B       sp_stored             \n"
+    "handler:                      \n"
+    "BX      lr                    \n" /* Coming from handler mode */
+    "sp_stored:                    \n"
+    "MOV     r1, lr                \n"
+    "BL      tfm_core_svc_handler  \n"
+    "BX      r0                    \n"
     );
 }
 
