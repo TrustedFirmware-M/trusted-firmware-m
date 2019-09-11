@@ -288,6 +288,7 @@ LR_CODE S_CODE_START {
 #if defined (TFM_PSA_API)
     {{manifest.manifest.name}}_STACK +0 ALIGN 128 EMPTY 0 {
     }
+#endif
     {% endif %}
     {% if manifest.attr.conditional %}
 #endif /* {{manifest.attr.conditional}} */
