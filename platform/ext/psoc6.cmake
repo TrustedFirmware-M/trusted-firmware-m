@@ -60,6 +60,11 @@ set (PLATFORM_LINK_INCLUDES "${PLATFORM_DIR}/target/psoc6/partition")
 
 if (BL2)
     set (BL2_LINKER_CONFIG ${BL2_SCATTER_FILE_NAME})
+
+    # Turn off hardware key feature to work around the issue that booting is
+    # stuck in mbed-crypto RSA operations. Wait for further debugging.
+    set (MCUBOOT_HW_KEY OFF)
+
     #FixMe: MCUBOOT_SIGN_RSA_LEN can be removed when ROTPK won't be hard coded in platform/ext/common/tfm_rotpk.c
     #       instead independently loaded from secure code as a blob.
     if (${MCUBOOT_SIGNATURE_TYPE} STREQUAL "RSA-2048")
