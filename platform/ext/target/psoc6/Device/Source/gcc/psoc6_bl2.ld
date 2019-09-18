@@ -245,7 +245,7 @@ SECTIONS
         KEEP(*(.jcr*))
         . = ALIGN(4);
 
-        KEEP(*(.cy_ramfunc*))
+        KEEP(*(.ramfunc))
         . = ALIGN(4);
 
         __data_end__ = .;

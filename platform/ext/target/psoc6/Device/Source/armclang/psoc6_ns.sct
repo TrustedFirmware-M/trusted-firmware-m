@@ -38,5 +38,11 @@ LR_CODE NS_CODE_START {
 
     ARM_LIB_HEAP +0 ALIGN 8 EMPTY NS_HEAP_SIZE {
     }
+
+    /* Executable code allocated in RAM */
+    TFM_RAM_CODE +0 ALIGN 32 {
+        * (.ramfunc)
+    }
+
 }
 

@@ -68,6 +68,15 @@
                                            FLASH_S_PARTITION_SIZE)
 #endif /* !LINK_TO_SECONDARY_PARTITION */
 
+/* TFM PSoC6 CY8CKIT_062 RAM layout:
+ *
+ * 0x0800_0000 Secure unprivileged data (S_UNPRIV_DATA_SIZE, 32KB)
+ * 0x0800_8000 Secure priviliged data (S_PRIV_DATA_SIZE, 96KB)
+ * 0x0802_0000 Secure priv code executable from RAM (S_RAM_CODE_SIZE, 4KB)
+ * 0x0802_1000 Non-secure data (NS_DATA_SIZE, 156KB)
+ * 0x0804_8000 End of RAM
+ */
+
 /*
  * Boot partition structure if MCUBoot is used:
  * 0x0_0000 Bootloader header
@@ -109,10 +118,13 @@
 
 #define S_DATA_START    (S_RAM_ALIAS(0x0))
 #define S_UNPRIV_DATA_SIZE  0x8000
-#define S_PRIV_DATA_SIZE    0x20000
-/* Unprivileged data area + privileged data area */
-#define S_DATA_SIZE     (S_UNPRIV_DATA_SIZE + S_PRIV_DATA_SIZE)
-#define S_DATA_LIMIT    (S_DATA_START + S_DATA_SIZE - 1)
+#define S_PRIV_DATA_SIZE    0x18000
+/* Reserve 4KB for RAM-based executable code */
+#define S_RAM_CODE_SIZE     0x1000
+
+/* Secure data area */
+#define S_DATA_SIZE  (S_UNPRIV_DATA_SIZE + S_PRIV_DATA_SIZE + S_RAM_CODE_SIZE)
+#define S_DATA_LIMIT (S_DATA_START + S_DATA_SIZE - 1)
 
 /* We need the privileged data area to be aligned so that an SMPU
  * region can cover it.
@@ -128,6 +140,10 @@
  */
 #define S_DATA_PRIV_OFFSET       S_UNPRIV_DATA_SIZE
 #define S_DATA_PRIV_START        S_RAM_ALIAS(S_DATA_PRIV_OFFSET)
+
+/* Reserve area for RAM-based executable code right after secure unprivilaged
+ * and privilaged data areas*/
+#define S_RAM_CODE_START (S_DATA_START + S_UNPRIV_DATA_SIZE + S_PRIV_DATA_SIZE)
 
 /* Non-secure regions */
 #define NS_IMAGE_PRIMARY_AREA_OFFSET \

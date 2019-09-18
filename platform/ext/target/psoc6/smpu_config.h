@@ -181,10 +181,11 @@
 #error "Flash layout has changed - SMPU9 needs updating"
 #endif
 
-/* SMPU10 - 128KB of privileged secure data at S_DATA_PRIV_START in SRAM */
+/* SMPU10 - 96KB of privileged secure data at S_DATA_PRIV_START in SRAM */
 #define SMPU10_BASE       S_DATA_START
 #define SMPU10_REGIONSIZE PROT_SIZE_256KB_BIT_SHIFT
 #define SMPU10_SUBREGION_DIS    (CY_PROT_SUBREGION_DIS0 | \
+                                 CY_PROT_SUBREGION_DIS4 | \
                                  CY_PROT_SUBREGION_DIS5 | \
                                  CY_PROT_SUBREGION_DIS6 | \
                                  CY_PROT_SUBREGION_DIS7)
@@ -205,6 +206,31 @@
 #error "Flash layout has changed - SMPU10 needs updating"
 #endif
 
+/* SMPU11 - 4KB of privileged executable data in SRAM
+ * Note: Region resides in subregion 4 of SMPU 10*/
+#define SMPU11_BASE S_RAM_CODE_START
+#define SMPU11_REGIONSIZE PROT_SIZE_4KB_BIT_SHIFT
+#define SMPU11_SLAVE_CONFIG {\
+    .address = (void *)SMPU11_BASE, \
+    .regionSize = SMPU11_REGIONSIZE, \
+    .subregions = ALL_ENABLED, \
+    .userPermission = CY_PROT_PERM_DISABLED, \
+    .privPermission = CY_PROT_PERM_RX, \
+    .secure = true, \
+    .pcMatch = false, \
+    .pcMask = SECURE_PCS_MASK, \
+}
+#define SMPU11_MASTER_CONFIG COMMON_SMPU_MASTER_CONFIG
+
+#if S_RAM_CODE_SIZE != REGIONSIZE_TO_BYTES(SMPU11_REGIONSIZE)
+#error "SMPU11_REGIONSIZE is not equal S_RAM_CODE_SIZE"
+#endif
+
+/* SMPU requires base address aligned to size */
+#if SMPU11_BASE % REGIONSIZE_TO_BYTES(SMPU11_REGIONSIZE)
+#error "Flash layout has changed - SMPU11 needs updating"
+#endif
+
 /*
  * S_DATA_PRIV_START must equal the base address of the second sub-region of
  * SMPU10
@@ -219,9 +245,10 @@
 #error "S_DATA_PRIV_START overlaps with unprivileged data section"
 #endif
 
-/* SMPUs 9, 10 should cover the whole secure data area in the RAM */
+/* SMPUs 9, 10, 11 should cover the whole secure data area in the RAM */
 #if S_DATA_SIZE != (REGIONSIZE_TO_BYTES(SMPU9_REGIONSIZE) + \
-                    REGIONSIZE_TO_BYTES(SMPU10_REGIONSIZE) / 2)
+                    3*REGIONSIZE_TO_BYTES(SMPU10_REGIONSIZE)/8 + \
+                    REGIONSIZE_TO_BYTES(SMPU11_REGIONSIZE) )
 #error "Flash layout has changed - SMPU9/SMPU10 config needs updating"
 #endif
 

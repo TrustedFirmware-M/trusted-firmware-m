@@ -41,4 +41,9 @@ LR_CODE BL2_CODE_START {
 
     ARM_LIB_HEAP +0 ALIGN 8 EMPTY BL2_HEAP_SIZE {
     }
+
+    /* Executable code allocated in RAM */
+    TFM_RAM_CODE +0 ALIGN 32 {
+        * (.ramfunc)
+    }
 }
