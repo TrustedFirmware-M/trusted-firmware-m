@@ -122,6 +122,11 @@ SECTIONS
         LONG (ADDR(.TFM_IRQ_TEST_1_DATA))
         LONG (SIZEOF(.TFM_IRQ_TEST_1_DATA))
 #endif /* TFM_ENABLE_IRQ_TEST */
+#if defined (S_RAM_CODE_START)
+        LONG (LOADADDR(.TFM_RAM_CODE))
+        LONG (ADDR(.TFM_RAM_CODE))
+        LONG (SIZEOF(.TFM_RAM_CODE))
+#endif
         __copy_table_end__ = .;
     } > FLASH
 
@@ -1084,6 +1089,14 @@ SECTIONS
 
     Image$$ER_TFM_DATA$$Base = ADDR(.TFM_DATA);
     Image$$ER_TFM_DATA$$Limit = ADDR(.TFM_DATA) + SIZEOF(.TFM_DATA) + SIZEOF(.TFM_BSS);
+
+#if defined (S_RAM_CODE_START)
+    /* Code executed from RAM */
+    .TFM_RAM_CODE S_RAM_CODE_START :
+    {
+        KEEP(*(.ramfunc))
+    } > RAM AT> FLASH
+#endif
 
 #if !TFM_MULTI_CORE_TOPOLOGY
     /*
