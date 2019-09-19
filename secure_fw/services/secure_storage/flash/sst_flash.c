@@ -79,7 +79,7 @@ static psa_ps_status_t flash_erase(uint32_t flash_addr)
 {
     uint32_t idx = flash_addr - SST_FLASH_AREA_ADDR;
 
-    (void)tfm_memset(&block_data[idx], SST_FLASH_DEFAULT_VAL, SST_BLOCK_SIZE);
+    (void)tfm_memset(&block_data[idx], SST_FLASH_DEFAULT_VAL, SST_SECTOR_SIZE);
 
     return PSA_PS_SUCCESS;
 }
@@ -218,11 +218,26 @@ psa_ps_status_t sst_flash_block_to_block_move(uint32_t dst_block,
 psa_ps_status_t sst_flash_erase_block(uint32_t block_id)
 {
     uint32_t flash_addr;
+    uint32_t offset = BLOCK_START_OFFSET;
+    uint32_t sectors_to_erase = SST_SECTORS_PER_BLOCK;
+    psa_ps_status_t status;
 
-    /* Calculate flash address location defined by block ID and
-     * BLOCK_START_OFFSET parameters.
-     */
-    flash_addr = get_phys_address(block_id, BLOCK_START_OFFSET);
+    while (sectors_to_erase > 0) {
+        /* Get the flash address defined by block ID and BLOCK_START_OFFSET
+         * parameters.
+         */
+        flash_addr = get_phys_address(block_id, offset);
 
-    return flash_erase(flash_addr);
+        status = flash_erase(flash_addr);
+        if (status != PSA_PS_SUCCESS) {
+            break;
+        }
+
+        sectors_to_erase--;
+
+        /* Move to next sector */
+        offset += SST_SECTOR_SIZE;
+    }
+
+    return status;
 }

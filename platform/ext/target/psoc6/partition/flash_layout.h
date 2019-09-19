@@ -178,11 +178,12 @@
 /* In this target the CMSIS driver requires only the offset from the base
  * address instead of the full memory address.
  */
-#define SST_FLASH_AREA_ADDR  FLASH_SST_AREA_OFFSET
-// AINH: SST_SECTOR_SIZE has to be bigger than SST_ALIGNED_MAX_FILE_SIZE
-#define SST_SECTOR_SIZE      (8 * FLASH_AREA_IMAGE_SECTOR_SIZE)
-/* The sectors must be in consecutive memory location */
-#define SST_NBR_OF_SECTORS  (FLASH_SST_AREA_SIZE / SST_SECTOR_SIZE)
+#define SST_FLASH_AREA_ADDR     FLASH_SST_AREA_OFFSET
+/* Dedicated flash area for SST */
+#define SST_FLASH_AREA_SIZE     FLASH_SST_AREA_SIZE
+#define SST_SECTOR_SIZE         FLASH_AREA_IMAGE_SECTOR_SIZE
+/* Number of SST_SECTOR_SIZE per block */
+#define SST_SECTORS_PER_BLOCK   0x8
 /* Specifies the smallest flash programmable unit in bytes */
 #define SST_FLASH_PROGRAM_UNIT  0x1
 /* The maximum asset size to be stored in the SST area */

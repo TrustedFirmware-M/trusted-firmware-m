@@ -18,18 +18,18 @@ extern "C" {
 
 /* Adjust to match your system's block size */
 #ifndef SST_SECTOR_SIZE
-#error "SST_SECTOR_SIZE must be defined by the target in flash_layout.h file"
+#error "SST_SECTOR_SIZE must be defined by the target in flash_layout.h"
 #define SST_BLOCK_SIZE 0
 #else
-#define SST_BLOCK_SIZE SST_SECTOR_SIZE
+#define SST_BLOCK_SIZE  (SST_SECTOR_SIZE * SST_SECTORS_PER_BLOCK)
 #endif
 
 /* Adjust to a size that will allow all assets to fit */
-#ifndef SST_NBR_OF_SECTORS
-#error "SST_NBR_OF_SECTORS must be defined by the target in flash_layout.h file"
+#ifndef SST_FLASH_AREA_SIZE
+#error "SST_FLASH_AREA_SIZE must be defined by the target in flash_layout.h"
 #define SST_TOTAL_NUM_OF_BLOCKS 0
 #else
-#define SST_TOTAL_NUM_OF_BLOCKS SST_NBR_OF_SECTORS
+#define SST_TOTAL_NUM_OF_BLOCKS (SST_FLASH_AREA_SIZE / SST_BLOCK_SIZE)
 #endif
 
 #ifndef SST_FLASH_PROGRAM_UNIT
