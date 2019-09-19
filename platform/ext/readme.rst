@@ -151,9 +151,11 @@ The SST service requires the following definitions:
 
 - ``SST_FLASH_AREA_ADDR`` - Defines the flash area address where the secure
   store area starts.
+- ``SST_FLASH_AREA_SIZE`` - Defines the size of the dedicated flash area
+  for secure storage.
 - ``SST_SECTOR_SIZE`` - Defines the size of the flash sectors.
-- ``SST_NBR_OF_SECTORS`` - Defines the number of sectors available for the
-  secure area.
+- ``SST_SECTORS_PER_BLOCK`` - Defines the number of contiguous SST_SECTOR_SIZE
+  to form an SST_BLOCK_SIZE.
 - ``SST_FLASH_DEV_NAME`` - Specifies the flash device used by SST to store the
   data.
 - ``SST_FLASH_PROGRAM_UNIT`` - Defines the smallest flash programmable unit in

@@ -179,15 +179,9 @@ Flash Interface
   The CMSIS flash interface **must** be implemented for each target based on
   its flash controller.
 
-The block size (``SST_SECTOR_SIZE``) and number of blocks
-(``SST_NBR_OF_SECTORS``) used by the secure storage area, are defined in
-``flash_layout.h`` located in ``platform/ext/target/<TARGET_NAME>/partition``.
-Those values **must** be defined in that header file based on flash
-specifications and vendor specific considerations.
-It is also required to define the ``SST_FLASH_AREA_ADDR`` which defines the
-address of the first sector to be used as secure storage. The sectors reserved
-to be used as secure storage **must** be contiguous sectors starting at
-``SST_FLASH_AREA_ADDR``.
+The SST flash interface depends on target-specific definitions from
+``platform/ext/target/<TARGET_NAME>/partition/flash_layout.h``.
+Please see the `Secure Storage Service Definitions` section for details.
 
 Cryptographic Interface
 =======================
@@ -235,9 +229,11 @@ The SST service requires the following platform definitions:
 
 - ``SST_FLASH_AREA_ADDR`` - Defines the flash address where the secure store
   area starts.
+- ``SST_FLASH_AREA_SIZE`` - Defines the size of the dedicated flash area
+  for secure storage.
 - ``SST_SECTOR_SIZE`` - Defines the size of the flash sectors.
-- ``SST_NBR_OF_SECTORS`` - Defines the number of sectors available for the
-  secure area. The sectors must be consecutive.
+- ``SST_SECTORS_PER_BLOCK`` - Defines the number of contiguous SST_SECTOR_SIZE
+  to form an SST_BLOCK_SIZE.
 - ``SST_FLASH_DEV_NAME`` - Specifies the flash device used by SST to store the
   data.
 - ``SST_FLASH_PROGRAM_UNIT`` - Defines the smallest flash programmable unit in
@@ -251,6 +247,9 @@ The SST service requires the following platform definitions:
   RAM (fast access) and flash (persistent storage). The memory used by the
   object table is allocated statically as SST does not use dynamic memory
   allocation.
+
+The sectors reserved to be used as secure storage **must** be contiguous
+sectors starting at ``SST_FLASH_AREA_ADDR``.
 
 Target must provide a header file, called ``flash_layout.h``, which defines the
 information explained above. The defines must be named as they are specified
