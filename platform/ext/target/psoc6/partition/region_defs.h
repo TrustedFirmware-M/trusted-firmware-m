@@ -20,7 +20,9 @@
 #include "flash_layout.h"
 
 #define TOTAL_ROM_SIZE FLASH_TOTAL_SIZE
-#define TOTAL_RAM_SIZE (0x00048000) /* CY_SRAM0_SIZE */
+/* 2KB of RAM (at the end of the SRAM) are reserved for system use. Using
+ * this memory region for other purposes will lead to unexpected behavior.*/
+#define TOTAL_RAM_SIZE (0x00047800) /* CY_SRAM0_SIZE - 2KB*/
 
 #define BL2_HEAP_SIZE           0x0001000
 #define BL2_MSP_STACK_SIZE      0x0001000
@@ -73,7 +75,8 @@
  * 0x0800_0000 Secure unprivileged data (S_UNPRIV_DATA_SIZE, 32KB)
  * 0x0800_8000 Secure priviliged data (S_PRIV_DATA_SIZE, 96KB)
  * 0x0802_0000 Secure priv code executable from RAM (S_RAM_CODE_SIZE, 4KB)
- * 0x0802_1000 Non-secure data (NS_DATA_SIZE, 156KB)
+ * 0x0802_1000 Non-secure data (NS_DATA_SIZE, 154KB)
+ * 0x0804_7800 System reserved memory (2KB)
  * 0x0804_8000 End of RAM
  */
 
