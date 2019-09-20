@@ -11,21 +11,8 @@
 #include "tfm_internal.h"
 #include "tfm_svc.h"
 #include "tfm_svcalls.h"
-#if TFM_MULTI_CORE_TOPOLOGY
-#include "tfm_utils.h"
-#endif
 
-#if TFM_MULTI_CORE_TOPOLOGY
-__STATIC_INLINE void tfm_psa_ipc_request_handler(const uint32_t svc_args[])
-{
-    (void)svc_args;
-
-    /* Should not receive any request from ns-callable in multi-core topology */
-    tfm_panic();
-}
-#else
 extern void tfm_psa_ipc_request_handler(const uint32_t svc_args[]);
-#endif
 
 uint32_t tfm_core_svc_handler(uint32_t *svc_args, uint32_t exc_return)
 {

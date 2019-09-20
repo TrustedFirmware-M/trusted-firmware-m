@@ -10,6 +10,7 @@
 #include "tfm_internal.h"
 #include "tfm_nspm.h"
 #include "tfm_spe_mailbox.h"
+#include "tfm_utils.h"
 
 #define DEFAULT_NS_CLIENT_ID            (-1)
 
@@ -44,4 +45,12 @@ psa_status_t tfm_nspm_thread_entry(void)
 
     /* Should not run here */
     return PSA_SUCCESS;
+}
+
+void tfm_psa_ipc_request_handler(const uint32_t svc_args[])
+{
+    (void)svc_args;
+
+    /* Should not receive any request from ns-callable in multi-core topology */
+    tfm_panic();
 }
