@@ -70,6 +70,21 @@ struct tfm_spm_partition_memory_data_t
 #endif
 
 /**
+ * \brief This function initializes platform peripherals.
+ *
+ * Contrarily to SystemInit() intended for a high-priority hw initialization
+ * (for example clock and power subsystems), and called on a very early boot
+ * stage from startup code, this function is called from C code, hence variables
+ * and other drivers data are protected from being cleared up by the C library
+ * init.
+ * Implemented as a "weak" function (platform/ext/common/tfm_platform.c),
+ * it can be overwritten by a platform specific implementation.
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
+ */
+enum tfm_plat_err_t tfm_spm_hal_post_platform_init(void);
+
+/**
  * \brief This function initialises the HW used for isolation, and sets the
  *        default configuration for them.
  *

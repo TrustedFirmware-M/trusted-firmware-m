@@ -86,9 +86,12 @@ int32_t tfm_core_init(void)
         return TFM_ERROR_GENERIC;
     }
 
-    __enable_irq();
+    /* Performs platform specific initialization */
+    plat_err = tfm_spm_hal_post_platform_init();
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return TFM_ERROR_GENERIC;
+    }
 
-    stdio_init();
     LOG_MSG("Secure image initializing!");
 
 #ifdef TFM_CORE_DEBUG

@@ -138,6 +138,7 @@ elseif(BUILD_TARGET_CFG)
   list(APPEND ALL_SRC_C_S "${AN524_DIR}/attest_hal.c")
   list(APPEND ALL_SRC_C_S "${AN524_DIR}/native_drivers/mpu_armv8m_drv.c")
   list(APPEND ALL_SRC_C_S "${AN524_DIR}/services/src/tfm_platform_system.c")
+  list(APPEND ALL_SRC_C_S "${PLATFORM_DIR}/common/tfm_platform.c")
   embedded_include_directories(PATH "${PLATFORM_DIR}/common" ABSOLUTE)
 endif()
 
