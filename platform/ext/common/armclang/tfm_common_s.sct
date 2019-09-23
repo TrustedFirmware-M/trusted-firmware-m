@@ -296,7 +296,7 @@ LR_CODE S_CODE_START {
     }
 
     ER_TFM_DATA +0 {
-        .ANY (+RW +ZI)
+        * (+RW +ZI)
     }
 
     /**** PSA RoT DATA start here */
