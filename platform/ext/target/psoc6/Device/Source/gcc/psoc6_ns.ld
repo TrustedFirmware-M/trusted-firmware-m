@@ -311,6 +311,13 @@ SECTIONS
     Image$$ER_TFM_DATA$$Base = ADDR(.data);
     Image$$ER_TFM_DATA$$Limit = ADDR(.data) + SIZEOF(.data) + SIZEOF(.bss);
 
+#if defined (NS_DATA_SHARED_START)
+    .TFM_SHARED NS_DATA_SHARED_START (NOLOAD) :
+    {
+        . = ALIGN(4);
+        . += NS_DATA_SHARED_SIZE;
+    } > ram
+#endif
 
     /* Used for the digital signature of the secure application and the Bootloader SDK appication.
     * The size of the section depends on the required data size. */

@@ -75,7 +75,8 @@
  * 0x0800_0000 Secure unprivileged data (S_UNPRIV_DATA_SIZE, 32KB)
  * 0x0800_8000 Secure priviliged data (S_PRIV_DATA_SIZE, 96KB)
  * 0x0802_0000 Secure priv code executable from RAM (S_RAM_CODE_SIZE, 4KB)
- * 0x0802_1000 Non-secure data (NS_DATA_SIZE, 154KB)
+ * 0x0802_1000 Non-secure data (NS_DATA_SIZE, 153KB)
+ * 0x0804_7400 Shared memory (NS_DATA_SHARED_SIZE, 1KB)
  * 0x0804_7800 System reserved memory (2KB)
  * 0x0804_8000 End of RAM
  */
@@ -158,6 +159,17 @@
 #define NS_DATA_START   (NS_RAM_ALIAS(S_DATA_SIZE))
 #define NS_DATA_SIZE    (TOTAL_RAM_SIZE - S_DATA_SIZE)
 #define NS_DATA_LIMIT   (NS_DATA_START + NS_DATA_SIZE - 1)
+
+/* Shared memory */
+#define NS_DATA_SHARED_SIZE  0x400
+#define NS_DATA_SHARED_START (NS_DATA_START + NS_DATA_SIZE - \
+                              NS_DATA_SHARED_SIZE)
+#define NS_DATA_SHARED_LIMIT (NS_DATA_SHARED_START + NS_DATA_SHARED_SIZE - 1)
+
+/* Shared variables addresses */
+/* ipcWaitMessageStc, cy_flash.c */
+#define IPC_WAIT_MESSAGE_STC_ADDR NS_DATA_SHARED_START
+#define IPC_WAIT_MESSAGE_STC_SIZE 4
 
 /* NS partition information is used for MPC and SAU configuration */
 #define NS_PARTITION_START \

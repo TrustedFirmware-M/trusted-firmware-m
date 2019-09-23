@@ -44,5 +44,10 @@ LR_CODE NS_CODE_START {
         * (.ramfunc)
     }
 
+#if defined (NS_DATA_SHARED_START)
+    /* Shared memory data */
+    TFM_SHARED_MEM NS_DATA_SHARED_START EMPTY NS_DATA_SHARED_SIZE {
+    }
+#endif
 }
 
