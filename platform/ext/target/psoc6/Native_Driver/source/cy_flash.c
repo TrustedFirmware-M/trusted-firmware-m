@@ -265,7 +265,7 @@ static volatile cy_stc_flash_context_t flashContext;
         #pragma diag_suppress=Ta023
         __ramfunc
     #else
-        CY_SECTION(".cy_ramfunc") CY_NOINLINE
+        CY_SECTION(".ramfunc") CY_NOINLINE
     #endif
     static void Cy_Flash_NotifyHandler(uint32_t * msgPtr)
     {
@@ -356,7 +356,7 @@ void Cy_Flash_Init(void)
     #pragma diag_suppress=Ta023
     __ramfunc
 #else
-    CY_SECTION(".cy_ramfunc") CY_NOINLINE
+    CY_SECTION(".ramfunc") CY_NOINLINE
 #endif
 static cy_en_flashdrv_status_t Cy_Flash_SendCmd(uint32_t mode, uint32_t microseconds)
 {
@@ -516,7 +516,7 @@ static cy_en_flashdrv_status_t Cy_Flash_SendCmd(uint32_t mode, uint32_t microsec
         #pragma diag_suppress=Ta023
         __ramfunc
     #else
-        CY_SECTION(".cy_ramfunc") CY_NOINLINE
+        CY_SECTION(".ramfunc") CY_NOINLINE
     #endif
     static void Cy_Flash_RAMDelay(uint32_t microseconds)
     {
@@ -579,7 +579,7 @@ static cy_en_flashdrv_status_t Cy_Flash_SendCmd(uint32_t mode, uint32_t microsec
             #pragma diag_suppress=Ta023
             __ramfunc
         #else
-            CY_SECTION(".cy_ramfunc") CY_NOINLINE
+            CY_SECTION(".ramfunc") CY_NOINLINE
         #endif
         void Cy_Flash_ResumeIrqHandler(void)
         {
