@@ -121,6 +121,11 @@
 #error "Flash layout has changed - SMPU6 needs updating"
 #endif
 
+/* S_DATA_PRIV_START must not overlap with unprivileged data section */
+#if S_DATA_PRIV_START < (SMPU6_BASE + REGIONSIZE_TO_BYTES(SMPU6_REGIONSIZE))
+#error "S_DATA_PRIV_START overlaps with unprivileged data section"
+#endif
+
 /* SMPU7 - 96KB of privileged secure data at S_DATA_PRIV_START in SRAM */
 #define SMPU7_BASE       S_DATA_START
 #define SMPU7_REGIONSIZE PROT_SIZE_256KB_BIT_SHIFT
@@ -146,6 +151,15 @@
 #error "Flash layout has changed - SMPU7 needs updating"
 #endif
 
+/*
+ * S_DATA_PRIV_START must equal the base address of the second sub-region of
+ * SMPU7
+ */
+#if S_DATA_PRIV_START != (SMPU7_BASE + \
+                          (REGIONSIZE_TO_BYTES(SMPU7_REGIONSIZE) / 8))
+#error "Flash layout has changed - S_DATA_PRIV_START doesn't fit the second sub-region of SMPU7"
+#endif
+
 /* SMPU10 - 4KB of privileged executable data in SRAM
  * Note: Region resides in subregion 4 of SMPU 7*/
 #define SMPU10_BASE S_RAM_CODE_START
@@ -162,27 +176,13 @@
 }
 #define SMPU10_MASTER_CONFIG COMMON_SMPU_MASTER_CONFIG
 
-#if S_RAM_CODE_SIZE != REGIONSIZE_TO_BYTES(SMPU10_REGIONSIZE)
-#error "SMPU10_REGIONSIZE is not equal S_RAM_CODE_SIZE"
-#endif
-
 /* SMPU requires base address aligned to size */
 #if SMPU10_BASE % REGIONSIZE_TO_BYTES(SMPU10_REGIONSIZE)
 #error "Flash layout has changed - SMPU10 needs updating"
 #endif
 
-/*
- * S_DATA_PRIV_START must equal the base address of the second sub-region of
- * SMPU7
- */
-#if S_DATA_PRIV_START != (SMPU7_BASE + \
-                          (REGIONSIZE_TO_BYTES(SMPU7_REGIONSIZE) / 8))
-#error "Flash layout has changed - S_DATA_PRIV_START doesn't fit the second sub-region of SMPU7"
-#endif
-
-/* S_DATA_PRIV_START must not overlap with unprivileged data section */
-#if S_DATA_PRIV_START < (SMPU6_BASE + REGIONSIZE_TO_BYTES(SMPU6_REGIONSIZE))
-#error "S_DATA_PRIV_START overlaps with unprivileged data section"
+#if S_RAM_CODE_SIZE != REGIONSIZE_TO_BYTES(SMPU10_REGIONSIZE)
+#error "SMPU10_REGIONSIZE is not equal S_RAM_CODE_SIZE"
 #endif
 
 /* SMPUs 6, 7, 10 should cover the whole secure data area in the RAM */
