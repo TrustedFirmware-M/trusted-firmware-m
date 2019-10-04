@@ -60,6 +60,11 @@ void ppu_init_cfg(void);
 void bus_masters_cfg(void);
 
 /**
+ * \brief Performs platform specific hw initialization.
+ */
+void platform_init(void);
+
+/**
  * \brief Configures all external interrupts to target the
  *        NS state, apart for the ones associated to secure
  *        peripherals.

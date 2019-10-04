@@ -39,6 +39,8 @@
     #endif /* defined(CY_DEVICE_PSOC6ABLE2) */
 #endif /* !defined(CY_IPC_DEFAULT_CFG_DISABLE) */
 
+#include "target_cfg.h"
+#include "Driver_USART.h"
 
 /*******************************************************************************
 * SystemCoreClockUpdate()
@@ -201,75 +203,6 @@ void SystemInit(void)
 
     Cy_SystemInit();
     SystemCoreClockUpdate();
-
-#if !defined(CY_IPC_DEFAULT_CFG_DISABLE)
-
-#ifdef __CM0P_PRESENT
-    #if (__CM0P_PRESENT == 0)
-        /* Allocate and initialize semaphores for the system operations. */
-        static uint32_t ipcSemaArray[CY_IPC_SEMA_COUNT / CY_IPC_SEMA_PER_WORD];
-        (void) Cy_IPC_Sema_Init(CY_IPC_CHAN_SEMA, CY_IPC_SEMA_COUNT, ipcSemaArray);
-    #else
-        (void) Cy_IPC_Sema_Init(CY_IPC_CHAN_SEMA, 0ul, NULL);
-    #endif /* (__CM0P_PRESENT) */
-#else
-    (void) Cy_IPC_Sema_Init(CY_IPC_CHAN_SEMA, 0ul, NULL);
-#endif /* __CM0P_PRESENT */
-
-
-    /********************************************************************************
-    *
-    * Initializes the system pipes. The system pipes are used by BLE and Flash.
-    *
-    * If the default startup file is not used, or SystemInit() is not called in your
-    * project, call the following three functions prior to executing any flash or
-    * EmEEPROM write or erase operation:
-    *  -# Cy_IPC_Sema_Init()
-    *  -# Cy_IPC_Pipe_Config()
-    *  -# Cy_IPC_Pipe_Init()
-    *  -# Cy_Flash_Init()
-    *
-    *******************************************************************************/
-    /* Create an array of endpoint structures */
-    static cy_stc_ipc_pipe_ep_t systemIpcPipeEpArray[CY_IPC_MAX_ENDPOINTS];
-
-    Cy_IPC_Pipe_Config(systemIpcPipeEpArray);
-
-    static cy_ipc_pipe_callback_ptr_t systemIpcPipeSysCbArray[CY_SYS_CYPIPE_CLIENT_CNT];
-
-    static const cy_stc_ipc_pipe_config_t systemIpcPipeConfigCm4 =
-    {
-    /* .ep0ConfigData */
-        {
-            /* .ipcNotifierNumber    */  CY_IPC_INTR_CYPIPE_EP0,
-            /* .ipcNotifierPriority  */  CY_SYS_INTR_CYPIPE_PRIOR_EP0,
-            /* .ipcNotifierMuxNumber */  CY_SYS_INTR_CYPIPE_MUX_EP0,
-            /* .epAddress            */  CY_IPC_EP_CYPIPE_CM0_ADDR,
-            /* .epConfig             */  CY_SYS_CYPIPE_CONFIG_EP0
-        },
-    /* .ep1ConfigData */
-        {
-            /* .ipcNotifierNumber    */  CY_IPC_INTR_CYPIPE_EP1,
-            /* .ipcNotifierPriority  */  CY_SYS_INTR_CYPIPE_PRIOR_EP1,
-            /* .ipcNotifierMuxNumber */  0u,
-            /* .epAddress            */  CY_IPC_EP_CYPIPE_CM4_ADDR,
-            /* .epConfig             */  CY_SYS_CYPIPE_CONFIG_EP1
-        },
-    /* .endpointClientsCount     */  CY_SYS_CYPIPE_CLIENT_CNT,
-    /* .endpointsCallbacksArray  */  systemIpcPipeSysCbArray,
-    /* .userPipeIsrHandler       */  &Cy_SysIpcPipeIsrCm4
-    };
-
-    if (cy_device->flashPipeRequired != 0u)
-    {
-        Cy_IPC_Pipe_Init(&systemIpcPipeConfigCm4);
-    }
-
-#if defined(CY_DEVICE_PSOC6ABLE2)
-    Cy_Flash_Init();
-#endif /* defined(CY_DEVICE_PSOC6ABLE2) */
-
-#endif /* !defined(CY_IPC_DEFAULT_CFG_DISABLE) */
 }
 
 
@@ -479,20 +412,6 @@ void Cy_SystemInitFpuEnable(void)
 }
 
 
-#if !defined(CY_IPC_DEFAULT_CFG_DISABLE)
-/*******************************************************************************
-* Function Name: Cy_SysIpcPipeIsrCm4
-****************************************************************************//**
-*
-* This is the interrupt service routine for the system pipe.
-*
-*******************************************************************************/
-void Cy_SysIpcPipeIsrCm4(void)
-{
-    Cy_IPC_Pipe_ExecuteCallback(CY_IPC_EP_CYPIPE_CM4_ADDR);
-}
-#endif
-
 /*******************************************************************************
 * Function Name: Cy_MemorySymbols
 ****************************************************************************//**
@@ -558,5 +477,112 @@ __cy_memory_4_row_size  EQU __cpp(1)
 
 #endif /* defined (__ARMCC_VERSION) && (__ARMCC_VERSION < 6010050) */
 
+
+#if !defined(CY_IPC_DEFAULT_CFG_DISABLE) && !defined(CY_FLASH_RWW_DRV_SUPPORT_DISABLED)
+/*******************************************************************************
+* Function Name: Cy_SysIpcPipeIsrCm4
+****************************************************************************//**
+*
+* This is the interrupt service routine for the system pipe.
+*
+*******************************************************************************/
+void Cy_SysIpcPipeIsrCm4(void)
+{
+    Cy_IPC_Pipe_ExecuteCallback(CY_IPC_EP_CYPIPE_CM4_ADDR);
+}
+#endif
+
+
+/* For UART the CMSIS driver is used */
+extern ARM_DRIVER_USART NS_DRIVER_STDIO;
+
+/*******************************************************************************
+* Function Name: Cy_Platform_Init
+****************************************************************************//**
+*
+* CM4 custom HW initialization
+*
+*******************************************************************************/
+void Cy_Platform_Init(void)
+{
+    Cy_PDL_Init(CY_DEVICE_CFG);
+
+    (void)NS_DRIVER_STDIO.Initialize(NULL);
+    NS_DRIVER_STDIO.Control(ARM_USART_MODE_ASYNCHRONOUS, 115200);
+
+#if !defined(CY_IPC_DEFAULT_CFG_DISABLE)
+#ifdef __CM0P_PRESENT
+    /* Allocate and initialize semaphores for the system operations. */
+    static uint32_t ipcSemaArray[CY_IPC_SEMA_COUNT / CY_IPC_SEMA_PER_WORD];
+    (void) Cy_IPC_Sema_Init(CY_IPC_CHAN_SEMA, CY_IPC_SEMA_COUNT, ipcSemaArray);
+#else
+    (void) Cy_IPC_Sema_Init(CY_IPC_CHAN_SEMA, 0ul, NULL);
+#endif /* __CM0P_PRESENT */
+
+#if !defined(CY_FLASH_RWW_DRV_SUPPORT_DISABLED)
+    /********************************************************************************
+    *
+    * Initializes the system pipes. The system pipes are used by BLE and Flash.
+    *
+    * If the default startup file is not used, or SystemInit() is not called in your
+    * project, call the following three functions prior to executing any flash or
+    * EmEEPROM write or erase operation:
+    *  -# Cy_IPC_Sema_Init()
+    *  -# Cy_IPC_Pipe_Config()
+    *  -# Cy_IPC_Pipe_Init()
+    *  -# Cy_Flash_Init()
+    *
+    *******************************************************************************/
+    /* Create an array of endpoint structures */
+    static cy_stc_ipc_pipe_ep_t systemIpcPipeEpArray[CY_IPC_MAX_ENDPOINTS];
+
+    Cy_IPC_Pipe_Config(systemIpcPipeEpArray);
+
+    static cy_ipc_pipe_callback_ptr_t systemIpcPipeSysCbArray[CY_SYS_CYPIPE_CLIENT_CNT];
+
+    static const cy_stc_ipc_pipe_config_t systemIpcPipeConfigCm4 =
+    {
+    /* .ep0ConfigData */
+        {
+            /* .ipcNotifierNumber    */  CY_IPC_INTR_CYPIPE_EP0,
+            /* .ipcNotifierPriority  */  CY_SYS_INTR_CYPIPE_PRIOR_EP0,
+            /* .ipcNotifierMuxNumber */  CY_SYS_INTR_CYPIPE_MUX_EP0,
+            /* .epAddress            */  CY_IPC_EP_CYPIPE_CM0_ADDR,
+            /* .epConfig             */  CY_SYS_CYPIPE_CONFIG_EP0
+
+        },
+    /* .ep1ConfigData */
+        {
+            /* .ipcNotifierNumber    */  CY_IPC_INTR_CYPIPE_EP1,
+            /* .ipcNotifierPriority  */  CY_SYS_INTR_CYPIPE_PRIOR_EP1,
+            /* .ipcNotifierMuxNumber */  0u,
+            /* .epAddress            */  CY_IPC_EP_CYPIPE_CM4_ADDR,
+            /* .epConfig             */  CY_SYS_CYPIPE_CONFIG_EP1
+        },
+    /* .endpointClientsCount     */  CY_SYS_CYPIPE_CLIENT_CNT,
+    /* .endpointsCallbacksArray  */  systemIpcPipeSysCbArray,
+    /* .userPipeIsrHandler       */  &Cy_SysIpcPipeIsrCm4
+    };
+
+    if (cy_device->flashPipeRequired != 0u)
+    {
+        Cy_IPC_Pipe_Init(&systemIpcPipeConfigCm4);
+    }
+
+#if defined(CY_DEVICE_PSOC6ABLE2)
+    Cy_Flash_Init();
+#endif /* defined(CY_DEVICE_PSOC6ABLE2) */
+#endif /* !defined(CY_FLASH_RWW_DRV_SUPPORT_DISABLED) */
+#endif /* !defined(CY_IPC_DEFAULT_CFG_DISABLE) */
+
+    return;
+}
+
+
+int32_t tfm_ns_platform_init (void)
+{
+    Cy_Platform_Init();
+    return ARM_DRIVER_OK;
+}
 
 /* [] END OF FILE */
