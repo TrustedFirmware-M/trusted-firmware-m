@@ -510,18 +510,18 @@ typedef enum
     #define CY_NOINLINE         __attribute__ ((noinline))
     /* Specifies the minimum alignment (in bytes) for variables of the specified type. */
     #define CY_ALIGN(align)     __ALIGNED(align)
-    #define CY_RAMFUNC_BEGIN    __attribute__ ((section(".cy_ramfunc")))
+    #define CY_RAMFUNC_BEGIN    __attribute__ ((section(".ramfunc")))
     #define CY_RAMFUNC_END
 #elif defined (__GNUC__)
     #if defined (__clang__)
         #define CY_NOINIT           __attribute__ ((section("__DATA, __noinit")))
         #define CY_SECTION(name)    __attribute__ ((section("__DATA, "name)))
-        #define CY_RAMFUNC_BEGIN    __attribute__ ((section("__DATA, .cy_ramfunc")))
+        #define CY_RAMFUNC_BEGIN    __attribute__ ((section("__DATA, .ramfunc")))
         #define CY_RAMFUNC_END
     #else
         #define CY_NOINIT           __attribute__ ((section(".noinit")))
         #define CY_SECTION(name)    __attribute__ ((section(name)))
-        #define CY_RAMFUNC_BEGIN    __attribute__ ((section(".cy_ramfunc")))
+        #define CY_RAMFUNC_BEGIN    __attribute__ ((section(".ramfunc")))
         #define CY_RAMFUNC_END
     #endif
     

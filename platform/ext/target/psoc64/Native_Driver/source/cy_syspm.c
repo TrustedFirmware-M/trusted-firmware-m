@@ -2903,11 +2903,9 @@ void Cy_SysPm_RestoreRegisters(cy_stc_syspm_backup_regs_t const *regs)
 * - false - System Deep Sleep was not occurred.
 *
 *******************************************************************************/
-#if defined (__ICCARM__)
-    #pragma diag_suppress=Ta023
-    __ramfunc
-#else
-    CY_SECTION(".cy_ramfunc") CY_NOINLINE
+CY_RAMFUNC_BEGIN
+#if !defined (__ICCARM__)
+    CY_NOINLINE
 #endif
 static bool EnterDeepSleepRam(cy_en_syspm_waitfor_t waitFor)
 {
@@ -3082,9 +3080,7 @@ static bool EnterDeepSleepRam(cy_en_syspm_waitfor_t waitFor)
     
     return retVal;
 }
-#if defined (__ICCARM__)
-    #pragma diag_default=Ta023
-#endif
+CY_RAMFUNC_END
 
 
 /*******************************************************************************
