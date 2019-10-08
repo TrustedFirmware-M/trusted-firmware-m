@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef _TFM_PLATFORM_MAILBOX_
-#define _TFM_PLATFORM_MAILBOX_
+#ifndef _TFM_PLATFORM_MULTICORE_
+#define _TFM_PLATFORM_MULTICORE_
 
 #include <stdint.h>
 #include "cy_device_headers.h"
