@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_syslib.h
-* \version 2.20
+* \version 2.40.1
 *
 * Provides an API declaration of the SysLib driver.
 *
@@ -158,6 +158,29 @@
 * \section group_syslib_changelog Changelog
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>2.40.1</td>
+*     <td>Correct the CY_RAMFUNC_BEGIN macro for the IAR compiler.</td>
+*     <td>Removed the IAR compiler warning.</td>
+*   </tr>
+*   <tr>
+*     <td>2.40</td>
+*     <td>Added new macros CY_SYSLIB_DIV_ROUND and CY_SYSLIB_DIV_ROUNDUP to easy perform integer division with rounding.</td>
+*     <td>Improve PDL code base.</td>
+*   </tr>
+*   <tr>
+*     <td rowspan="3">2.30</td>
+*     <td>Updated implementation of the Cy_SysLib_AsmInfiniteLoop() function to be compatible with ARMC6.</td>
+*     <td>Provided support for the ARM Compiler 6.</td>
+*   </tr>
+*   <tr>
+*     <td>Minor documentation edits.</td>
+*     <td>Documentation update and clarification.</td>
+*   </tr>
+*	<tr>
+*     <td>Added new macros CY_RAMFUNC_BEGIN and CY_RAMFUNC_END for convenient placement function in RAM for all supported compilers.</td>
+*     <td>Improve user experience.</td>
+*   </tr>
 *   <tr>
 *     <td rowspan="2">2.20</td>
 *     <td>Updated implementation of the \ref Cy_SysLib_AssertFailed() function to be available in Release and Debug modes.</td>
@@ -440,7 +463,7 @@ typedef enum
 #define CY_SYSLIB_DRV_VERSION_MAJOR    2
 
 /** The driver minor version */
-#define CY_SYSLIB_DRV_VERSION_MINOR    20
+#define CY_SYSLIB_DRV_VERSION_MINOR    40
 
 
 /*******************************************************************************
@@ -477,19 +500,29 @@ typedef enum
      * attributes at the first place of declaration/definition.
      * For example: CY_NOINIT uint32_t noinitVar;
      */
-    #define CY_NOINIT           __attribute__ ((section(".bss.noinit")))
+    #if (__ARMCC_VERSION >= 6010050)
+        #define CY_NOINIT           __attribute__ ((section(".noinit")))
+    #else
+        #define CY_NOINIT           __attribute__ ((section(".noinit"), zero_init))
+    #endif /* (__ARMCC_VERSION >= 6010050) */
     #define CY_SECTION(name)    __attribute__ ((section(name)))
     #define CY_UNUSED           __attribute__ ((unused))
     #define CY_NOINLINE         __attribute__ ((noinline))
     /* Specifies the minimum alignment (in bytes) for variables of the specified type. */
     #define CY_ALIGN(align)     __ALIGNED(align)
+    #define CY_RAMFUNC_BEGIN    __attribute__ ((section(".cy_ramfunc")))
+    #define CY_RAMFUNC_END
 #elif defined (__GNUC__)
     #if defined (__clang__)
         #define CY_NOINIT           __attribute__ ((section("__DATA, __noinit")))
         #define CY_SECTION(name)    __attribute__ ((section("__DATA, "name)))
+        #define CY_RAMFUNC_BEGIN    __attribute__ ((section("__DATA, .cy_ramfunc")))
+        #define CY_RAMFUNC_END
     #else
         #define CY_NOINIT           __attribute__ ((section(".noinit")))
         #define CY_SECTION(name)    __attribute__ ((section(name)))
+        #define CY_RAMFUNC_BEGIN    __attribute__ ((section(".cy_ramfunc")))
+        #define CY_RAMFUNC_END
     #endif
     
     #define CY_UNUSED           __attribute__ ((unused))
@@ -501,6 +534,8 @@ typedef enum
     #define CY_SECTION(name)    CY_PRAGMA(location = name)
     #define CY_UNUSED
     #define CY_NOINLINE         CY_PRAGMA(optimize = no_inline)
+    #define CY_RAMFUNC_BEGIN    CY_PRAGMA(diag_suppress = Ta023) __ramfunc
+    #define CY_RAMFUNC_END      CY_PRAGMA(diag_default = Ta023)
     #if (__VER__ < 8010001)
         #define CY_ALIGN(align) CY_PRAGMA(data_alignment = align)
     #else
@@ -854,6 +889,28 @@ typedef double   float64_t; /**< Specific-length typedef for the basic numerical
 *
 *******************************************************************************/
 #define _FLD2BOOL(field, value) (((value) & (field ## _Msk)) != 0UL)
+
+
+/*******************************************************************************
+* Macro Name: CY_SYSLIB_DIV_ROUND
+****************************************************************************//**
+*
+*  Calculates a / b with rounding to the nearest integer,
+*  a and b must have the same sign.
+*
+*******************************************************************************/
+#define CY_SYSLIB_DIV_ROUND(a, b) (((a) + ((b) / 2U)) / (b))
+
+
+/*******************************************************************************
+* Macro Name: CY_SYSLIB_DIV_ROUNDUP
+****************************************************************************//**
+*
+*  Calculates a / b with rounding up if remainder != 0,
+*  both a and b must be positive.
+*
+*******************************************************************************/
+#define CY_SYSLIB_DIV_ROUNDUP(a, b) ((((a) - 1U) / (b)) + 1U)
 
 
 /******************************************************************************

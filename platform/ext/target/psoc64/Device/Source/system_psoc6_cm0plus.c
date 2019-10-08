@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file system_psoc6_cm0plus.c
-* \version 2.30
+* \version 2.60
 *
 * The device system-source file.
 *
@@ -28,8 +28,6 @@
 #include "cy_device_headers.h"
 #include "cy_syslib.h"
 #include "cy_wdt.h"
-#include "Driver_Flash.h"
-#include "flash_layout.h"
 
 #if !defined(CY_IPC_DEFAULT_CFG_DISABLE)
     #include "cy_ipc_sema.h"
@@ -158,7 +156,6 @@ uint32_t cy_delay32kMs    = CY_DELAY_MS_OVERFLOW_THRESHOLD *
 #define CY_SYS_CM4_PWR_CTL_KEY_CLOSE (0xFA05UL)
 #define CY_SYS_CM4_VECTOR_TABLE_VALID_ADDR  (0x000003FFUL)
 
-void Cy_Platform_Init(void);
 
 /*******************************************************************************
 * Function Name: SystemInit
@@ -167,16 +164,14 @@ void Cy_Platform_Init(void);
 * Initializes the system:
 * - Restores FLL registers to the default state.
 * - Unlocks and disables WDT.
+* - Calls Cy_PDL_Init() function to define the driver library.
 * - Calls the Cy_SystemInit() function, if compiled from PSoC Creator.
 * - Calls \ref SystemCoreClockUpdate().
 *
 *******************************************************************************/
 void SystemInit(void)
 {
-#if defined (__VTOR_PRESENT) && (__VTOR_PRESENT == 1U)
-    extern const cy_israddress __Vectors[]; /* Vector Table in flash */;
-    SCB->VTOR = (uint32_t) &__Vectors;
-#endif
+    Cy_PDL_Init(CY_DEVICE_CFG);
 
     /* Restore FLL registers to the default state as they are not restored by the ROM code */
     uint32_t copy = SRSS->CLK_FLL_CONFIG;
@@ -208,6 +203,69 @@ void SystemInit(void)
         IPC_STRUCT7->RELEASE = 0UL;
     }
 #endif /* defined(CY_DEVICE_PSOC6ABLE2) && !defined(CY_PSOC6ABLE2_REV_0A_SUPPORT_DISABLE) */
+
+#if !defined(CY_IPC_DEFAULT_CFG_DISABLE)
+    /* Allocate and initialize semaphores for the system operations. */
+    CY_SECTION(".cy_sharedmem")
+    static uint32_t ipcSemaArray[CY_IPC_SEMA_COUNT / CY_IPC_SEMA_PER_WORD];
+
+    (void) Cy_IPC_Sema_Init(CY_IPC_CHAN_SEMA, CY_IPC_SEMA_COUNT, ipcSemaArray);
+
+
+    /********************************************************************************
+    *
+    * Initializes the system pipes. The system pipes are used by BLE and Flash.
+    *
+    * If the default startup file is not used, or SystemInit() is not called in your
+    * project, call the following three functions prior to executing any flash or
+    * EmEEPROM write or erase operation:
+    *  -# Cy_IPC_Sema_Init()
+    *  -# Cy_IPC_Pipe_Config()
+    *  -# Cy_IPC_Pipe_Init()
+    *  -# Cy_Flash_Init()
+    *
+    *******************************************************************************/
+
+    /* Create an array of endpoint structures */
+    static cy_stc_ipc_pipe_ep_t systemIpcPipeEpArray[CY_IPC_MAX_ENDPOINTS];
+
+    Cy_IPC_Pipe_Config(systemIpcPipeEpArray);
+
+    static cy_ipc_pipe_callback_ptr_t systemIpcPipeSysCbArray[CY_SYS_CYPIPE_CLIENT_CNT];
+
+    static const cy_stc_ipc_pipe_config_t systemIpcPipeConfigCm0 =
+    {
+    /* .ep0ConfigData */
+        {
+            /* .ipcNotifierNumber    */  CY_IPC_INTR_CYPIPE_EP0,
+            /* .ipcNotifierPriority  */  CY_SYS_INTR_CYPIPE_PRIOR_EP0,
+            /* .ipcNotifierMuxNumber */  CY_SYS_INTR_CYPIPE_MUX_EP0,
+            /* .epAddress            */  CY_IPC_EP_CYPIPE_CM0_ADDR,
+            /* .epConfig             */  CY_SYS_CYPIPE_CONFIG_EP0
+        },
+    /* .ep1ConfigData */
+        {
+            /* .ipcNotifierNumber    */  CY_IPC_INTR_CYPIPE_EP1,
+            /* .ipcNotifierPriority  */  CY_SYS_INTR_CYPIPE_PRIOR_EP1,
+            /* .ipcNotifierMuxNumber */  0u,
+            /* .epAddress            */  CY_IPC_EP_CYPIPE_CM4_ADDR,
+            /* .epConfig             */  CY_SYS_CYPIPE_CONFIG_EP1
+        },
+    /* .endpointClientsCount     */  CY_SYS_CYPIPE_CLIENT_CNT,
+    /* .endpointsCallbacksArray  */  systemIpcPipeSysCbArray,
+    /* .userPipeIsrHandler       */  &Cy_SysIpcPipeIsrCm0
+    };
+
+    if (cy_device->flashPipeRequired != 0u)
+    {
+        Cy_IPC_Pipe_Init(&systemIpcPipeConfigCm0);
+    }
+
+#if defined(CY_DEVICE_PSOC6ABLE2)
+    Cy_Flash_Init();
+#endif /* defined(CY_DEVICE_PSOC6ABLE2) */
+
+#endif /* !defined(CY_IPC_DEFAULT_CFG_DISABLE) */
 }
 
 
@@ -569,8 +627,7 @@ void Cy_SysResetCM4(void)
 }
 #endif /* #if (CY_SYSTEM_CPU_CM0P == 1UL) || defined(CY_DOXYGEN) */
 
-
-#if !defined(CY_IPC_DEFAULT_CFG_DISABLE) && !defined(CY_FLASH_RWW_DRV_SUPPORT_DISABLED)
+#if !defined(CY_IPC_DEFAULT_CFG_DISABLE)
 /*******************************************************************************
 * Function Name: Cy_SysIpcPipeIsrCm0
 ****************************************************************************//**
@@ -594,7 +651,7 @@ void Cy_SysIpcPipeIsrCm0(void)
 * linker configuration files. The following symbols used by the cymcuelftool.
 *
 *******************************************************************************/
-#if defined (__ARMCC_VERSION)  && (__ARMCC_VERSION < 6010050)
+#if defined (__ARMCC_VERSION) && (__ARMCC_VERSION < 6010050)
 __asm void Cy_MemorySymbols(void)
 {
     /* Flash */
@@ -621,7 +678,6 @@ __asm void Cy_MemorySymbols(void)
     EXPORT __cy_memory_4_start
     EXPORT __cy_memory_4_length
     EXPORT __cy_memory_4_row_size
-
 
     /* Flash */
 __cy_memory_0_start     EQU __cpp(CY_FLASH_BASE)
@@ -650,98 +706,5 @@ __cy_memory_4_row_size  EQU __cpp(1)
 }
 #endif /* defined (__ARMCC_VERSION) && (__ARMCC_VERSION < 6010050) */
 
-
-/*******************************************************************************
-* Function Name: Cy_Platform_Init
-****************************************************************************//**
-*
-* CM0 custom HW initialization
-*
-*******************************************************************************/
-void Cy_Platform_Init(void)
-{
-    Cy_PDL_Init(CY_DEVICE_CFG);
-
-#if !defined(CY_IPC_DEFAULT_CFG_DISABLE)
-    /* Initialize semaphores for the system operations.*/
-    (void) Cy_IPC_Sema_Init(CY_IPC_CHAN_SEMA, 0ul, NULL);
-
-#if !defined(CY_FLASH_RWW_DRV_SUPPORT_DISABLED)
-    /********************************************************************************
-    *
-    * Initializes the system pipes. The system pipes are used by BLE and Flash.
-    *
-    * If the default startup file is not used, or SystemInit() is not called in your
-    * project, call the following three functions prior to executing any flash or
-    * EmEEPROM write or erase operation:
-    *  -# Cy_IPC_Sema_Init()
-    *  -# Cy_IPC_Pipe_Config()
-    *  -# Cy_IPC_Pipe_Init()
-    *  -# Cy_Flash_Init()
-    *
-    *******************************************************************************/
-
-    /* Create an array of endpoint structures */
-    static cy_stc_ipc_pipe_ep_t systemIpcPipeEpArray[CY_IPC_MAX_ENDPOINTS];
-
-    Cy_IPC_Pipe_Config(systemIpcPipeEpArray);
-
-    static cy_ipc_pipe_callback_ptr_t systemIpcPipeSysCbArray[CY_SYS_CYPIPE_CLIENT_CNT];
-
-    static const cy_stc_ipc_pipe_config_t systemIpcPipeConfigCm0 =
-    {
-    /* .ep0ConfigData */
-        {
-            /* .ipcNotifierNumber    */  CY_IPC_INTR_CYPIPE_EP0,
-            /* .ipcNotifierPriority  */  CY_SYS_INTR_CYPIPE_PRIOR_EP0,
-            /* .ipcNotifierMuxNumber */  CY_SYS_INTR_CYPIPE_MUX_EP0,
-            /* .epAddress            */  CY_IPC_EP_CYPIPE_CM0_ADDR,
-            /* .epConfig             */  CY_SYS_CYPIPE_CONFIG_EP0
-        },
-    /* .ep1ConfigData */
-        {
-            /* .ipcNotifierNumber    */  CY_IPC_INTR_CYPIPE_EP1,
-            /* .ipcNotifierPriority  */  CY_SYS_INTR_CYPIPE_PRIOR_EP1,
-            /* .ipcNotifierMuxNumber */  0u,
-            /* .epAddress            */  CY_IPC_EP_CYPIPE_CM4_ADDR,
-            /* .epConfig             */  CY_SYS_CYPIPE_CONFIG_EP1
-        },
-    /* .endpointClientsCount     */  CY_SYS_CYPIPE_CLIENT_CNT,
-    /* .endpointsCallbacksArray  */  systemIpcPipeSysCbArray,
-    /* .userPipeIsrHandler       */  &Cy_SysIpcPipeIsrCm0
-    };
-
-    if (cy_device->flashPipeRequired != 0u)
-    {
-        Cy_IPC_Pipe_Init(&systemIpcPipeConfigCm0);
-    }
-
-#if defined(CY_DEVICE_PSOC6ABLE2)
-    Cy_Flash_Init();
-#endif /* defined(CY_DEVICE_PSOC6ABLE2) */
-
-#endif /* !defined(CY_FLASH_RWW_DRV_SUPPORT_DISABLED) */
-
-#endif /* !defined(CY_IPC_DEFAULT_CFG_DISABLE) */
-
-
-    return;
-}
-
-#ifdef BL2
-/* Flash device name must be specified by target */
-extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
-
-uint32_t bl2_platform_init(void)
-{
-    /* make sure CM4 is disabled */
-    if (CY_SYS_CM4_STATUS_ENABLED == Cy_SysGetCM4Status()) {
-        Cy_SysDisableCM4();
-    }
-    Cy_Platform_Init();
-
-    return FLASH_DEV_NAME.Initialize(NULL);
-}
-#endif
 
 /* [] END OF FILE */

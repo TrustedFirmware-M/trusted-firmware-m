@@ -5,7 +5,7 @@
 * CY8C6247BZI-D54 device header
 *
 * \note
-* Generator version: 1.4.0.1232
+* Generator version: 1.5.0.1286
 *
 ********************************************************************************
 * \copyright
@@ -45,7 +45,7 @@
 typedef enum {
 #if ((defined(__GNUC__)        && (__ARM_ARCH == 6) && (__ARM_ARCH_6M__ == 1)) || \
      (defined(__ICCARM__)      && (__CORE__ == __ARM6M__)) || \
-     (defined(__ARMCC_VERSION) && ((__TARGET_ARCH_THUMB == 3) || (__ARM_ARCH_6M__ == 1))) || \
+     (defined(__ARMCC_VERSION) && (__TARGET_ARCH_THUMB == 3)) || \
      (defined(__ghs__)         && defined(__CORE_CORTEXM0PLUS__)))
   /* ARM Cortex-M0+ Core Interrupt Numbers */
   Reset_IRQn                        = -15,      /*!< -15 Reset Vector, invoked on Power up and warm reset */
@@ -255,7 +255,7 @@ typedef enum {
 
 #if ((defined(__GNUC__)        && (__ARM_ARCH == 6) && (__ARM_ARCH_6M__ == 1)) || \
      (defined(__ICCARM__)      && (__CORE__ == __ARM6M__)) || \
-     (defined(__ARMCC_VERSION) && ((__TARGET_ARCH_THUMB == 3) || (__ARM_ARCH_6M__ == 1))) || \
+     (defined(__ARMCC_VERSION) && (__TARGET_ARCH_THUMB == 3)) || \
      (defined(__ghs__)         && defined(__CORE_CORTEXM0PLUS__)))
 
 /* CY8C6247BZI-D54 interrupts that can be routed to the CM0+ NVIC */
@@ -418,7 +418,7 @@ typedef enum {
 
 #if ((defined(__GNUC__)        && (__ARM_ARCH == 6) && (__ARM_ARCH_6M__ == 1)) || \
      (defined(__ICCARM__)      && (__CORE__ == __ARM6M__)) || \
-     (defined(__ARMCC_VERSION) && ((__TARGET_ARCH_THUMB == 3) || (__ARM_ARCH_6M__ == 1))) || \
+     (defined(__ARMCC_VERSION) && (__TARGET_ARCH_THUMB == 3)) || \
      (defined(__ghs__)         && defined(__CORE_CORTEXM0PLUS__)))
 
 /* Configuration of the ARM Cortex-M0+ Processor and Core Peripherals */
@@ -442,6 +442,9 @@ typedef enum {
 #define __MPU_PRESENT                   1       /*!< MPU present or not */
 #define __FPU_PRESENT                   1       /*!< FPU present or not */
 #define __CM0P_PRESENT                  1       /*!< CM0P present or not */
+#define __DTCM_PRESENT                  0       /*!< DTCM present or not */
+#define __ICACHE_PRESENT                0       /*!< ICACHE present or not */
+#define __DCACHE_PRESENT                0       /*!< DCACHE present or not */
 
 /** \} Configuration_of_CMSIS */
 
@@ -514,7 +517,7 @@ typedef enum {
 #define CY_IP_MXS40PASS_INSTANCES       1u
 #define CY_IP_MXS40PASS_VERSION         1u
 #define CY_IP_MXS40PASS_SAR             1u
-#define CY_IP_MXS40PASS_SAR_INSTANCES   16u
+#define CY_IP_MXS40PASS_SAR_INSTANCES   1u
 #define CY_IP_MXS40PASS_SAR_VERSION     1u
 #define CY_IP_MXS40PASS_CTDAC           1u
 #define CY_IP_MXS40PASS_CTDAC_INSTANCES 1u
