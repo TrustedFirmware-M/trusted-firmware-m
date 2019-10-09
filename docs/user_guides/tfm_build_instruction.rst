@@ -35,10 +35,10 @@ line arguments:
             ``-DTARGET_PLATFORM=MUSCA_B1``
           - Cortex-M33 SSE-200 subsystem for MPS3 (AN524)
             ``-DTARGET_PLATFORM=AN524``
-          - Cypress PSoC 6 platform
+          - Cypress PSoC 62 platform
             refer to target platform name in
             :doc:`Cypress PSoC 6 platform specifics
-            </platform/ext/target/psoc6/cypress_psoc_6_spec>`.
+            </platform/ext/target/psoc62/cypress_psoc_6_spec>`.
 
    * - -DCOMPILER=<compiler name>
      - Specifies the compiler toolchain
@@ -114,7 +114,7 @@ Build steps for the AN521 target platform:
 Build steps for Cypress PSoC 6 platform:
 ========================================
 Please see build steps in :doc:`Cypress PSoC 6 platform specifics
-</platform/ext/target/psoc6/cypress_psoc_6_spec>`.
+</platform/ext/target/psoc62/cypress_psoc_6_spec>`.
 
 Regression Tests for the AN521 target platform
 ==============================================

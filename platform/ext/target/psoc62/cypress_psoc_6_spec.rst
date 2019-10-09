@@ -48,8 +48,8 @@ line arguments:
            - IPC model with PSA API test suite in Isolation Level 2
              ``ConfigPsaApiTestIPCTfmLevel2.cmake``
 
-   * - -DTARGET_PLATFORM=psoc6
-     - Specifies target platform name ``psoc6``
+   * - -DTARGET_PLATFORM=psoc62
+     - Specifies target platform name ``psoc62``
 
    * - -DCOMPILER=<compiler name>
      - Specifies the compiler toolchain
@@ -81,7 +81,7 @@ listed above.
 
     mkdir <build folder>
     pushd <build folder>
-    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigCoreIPC.cmake` -DTARGET_PLATFORM=psoc6 -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
+    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigCoreIPC.cmake` -DTARGET_PLATFORM=psoc62 -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
     popd
     cmake --build <build folder> -- -j VERBOSE=1
 
@@ -97,7 +97,7 @@ listed above.
 
     mkdir <build folder>
     pushd <build folder>
-    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigRegressionIPC.cmake` -DTARGET_PLATFORM=psoc6 -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
+    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigRegressionIPC.cmake` -DTARGET_PLATFORM=psoc62 -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
     popd
     cmake --build <build folder> -- -j VERBOSE=1
 
@@ -135,7 +135,7 @@ listed above.
         -DPROJ_CONFIG=`readlink -f ../configs/ConfigPsaApiTestIPC.cmake` \
         -DPSA_API_TEST_BUILD_PATH=../psa-arch-tests/api-tests/BUILD_ATT.GNUARM
         -DPSA_API_TEST_ATTESTATION=1 \
-        -DTARGET_PLATFORM=psoc6 \
+        -DTARGET_PLATFORM=psoc62 \
         -DCOMPILER=ARMCLANG \
         -DCMAKE_BUILD_TYPE=Debug
     popd
@@ -153,7 +153,7 @@ listed above.
 
     mkdir <build folder>
     pushd <build folder>
-    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigCoreIPCTfmLevel2.cmake` -DTARGET_PLATFORM=psoc6 -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
+    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigCoreIPCTfmLevel2.cmake` -DTARGET_PLATFORM=psoc62 -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
     popd
     cmake --build <build folder> -- -j VERBOSE=1
 
@@ -169,7 +169,7 @@ listed above.
 
     mkdir <build folder>
     pushd <build folder>
-    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigRegressionIPCTfmLevel2.cmake` -DTARGET_PLATFORM=psoc6 -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
+    cmake -G"Unix Makefiles" -DPROJ_CONFIG=`readlink -f ../configs/ConfigRegressionIPCTfmLevel2.cmake` -DTARGET_PLATFORM=psoc62 -DCOMPILER=ARMCLANG -DCMAKE_BUILD_TYPE=Debug ../
     popd
     cmake --build <build folder> -- -j VERBOSE=1
 
@@ -207,7 +207,7 @@ listed above.
         -DPROJ_CONFIG=`readlink -f ../configs/ConfigPsaApiTestIPCTfmLevel2.cmake` \
         -DPSA_API_TEST_BUILD_PATH=../psa-arch-tests/api-tests/BUILD_PS.GNUARM
         -DPSA_API_TEST_SECURE_STORAGE=1 \
-        -DTARGET_PLATFORM=psoc6 \
+        -DTARGET_PLATFORM=psoc62 \
         -DCOMPILER=ARMCLANG \
         -DCMAKE_BUILD_TYPE=Debug
     popd
@@ -240,7 +240,7 @@ To program the primary image to the device:
 Note that the ``0x10020000`` in the command above must match the start address
 of the secure primary image specified in the file::
 
-    platform/ext/target/psoc6/partition/flash_layout.h
+    platform/ext/target/psoc62/partition/flash_layout.h
 
 so be sure to change it if you change that file.
 
