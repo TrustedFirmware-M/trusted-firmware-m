@@ -39,6 +39,10 @@ line arguments:
             refer to target platform name in
             :doc:`Cypress PSoC 6 platform specifics
             </platform/ext/target/psoc62/cypress_psoc_6_spec>`.
+          - Cypress PSoC 64 platform
+            refer to target platform name in
+            :doc:`Cypress PSoC 6 platform specifics
+            </platform/ext/target/psoc64/cypress_psoc_6_spec>`.
 
    * - -DCOMPILER=<compiler name>
      - Specifies the compiler toolchain
@@ -113,8 +117,10 @@ Build steps for the AN521 target platform:
 
 Build steps for Cypress PSoC 6 platform:
 ========================================
-Please see build steps in :doc:`Cypress PSoC 6 platform specifics
-</platform/ext/target/psoc62/cypress_psoc_6_spec>`.
+Please see build steps in :doc:`Cypress PSoC 62 platform specifics
+</platform/ext/target/psoc62/cypress_psoc_6_spec>` or
+:doc:`Cypress PSoC 64 platform specifics
+</platform/ext/target/psoc64/cypress_psoc_6_spec>`.
 
 Regression Tests for the AN521 target platform
 ==============================================
