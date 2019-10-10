@@ -164,14 +164,16 @@ uint32_t cy_delay32kMs    = CY_DELAY_MS_OVERFLOW_THRESHOLD *
 * Initializes the system:
 * - Restores FLL registers to the default state.
 * - Unlocks and disables WDT.
-* - Calls Cy_PDL_Init() function to define the driver library.
 * - Calls the Cy_SystemInit() function, if compiled from PSoC Creator.
 * - Calls \ref SystemCoreClockUpdate().
 *
 *******************************************************************************/
 void SystemInit(void)
 {
-    Cy_PDL_Init(CY_DEVICE_CFG);
+#if defined (__VTOR_PRESENT) && (__VTOR_PRESENT == 1U)
+    extern const cy_israddress __Vectors[]; /* Vector Table in flash */;
+    SCB->VTOR = (uint32_t) &__Vectors;
+#endif
 
     /* Restore FLL registers to the default state as they are not restored by the ROM code */
     uint32_t copy = SRSS->CLK_FLL_CONFIG;
