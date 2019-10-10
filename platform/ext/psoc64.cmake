@@ -15,7 +15,7 @@ enable_multi_core_topology_config()
 
 set(TFM_NS_CLIENT_IDENTIFICATION OFF)
 
-add_definitions(-DCY_IPC_DEFAULT_CFG_DISABLE=1 -DCY8C6247BZI_D54=1)
+add_definitions(-DCY8C6247BZI_D54=1)
 add_definitions(-DCY_FLASH_RWW_DRV_SUPPORT_DISABLED=1 -DNDEBUG=1)
 add_definitions(-DTFM_CORE_DEBUG)
 

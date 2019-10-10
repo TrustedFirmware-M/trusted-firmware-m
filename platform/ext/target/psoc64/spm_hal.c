@@ -373,3 +373,11 @@ enum tfm_plat_err_t tfm_spm_hal_init_debug(void)
 
     return TFM_PLAT_ERR_SUCCESS;
 }
+
+enum tfm_plat_err_t tfm_spm_hal_post_platform_init(void)
+{
+    platform_init();
+    __enable_irq();
+    stdio_init();
+    return TFM_PLAT_ERR_SUCCESS;
+}
