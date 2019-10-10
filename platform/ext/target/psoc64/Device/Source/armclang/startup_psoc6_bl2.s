@@ -40,6 +40,8 @@ CY_NMI_HANLDER_ADDR    EQU    0x0000000D
                 EXPORT  __Vectors_Size
                 EXPORT  __ramVectors
 
+                IMPORT  Cy_SysIpcPipeIsrCm0
+
 __Vectors       ;Core Interrupts
                 DCD     |Image$$ARM_LIB_STACK$$ZI$$Limit|  ; Top of Stack
                 DCD     Reset_Handler             ; Reset Handler
@@ -60,7 +62,7 @@ __Vectors       ;Core Interrupts
 
                 ; External interrupts               Description
                 DCD     NvicMux0_IRQHandler       ; CM0+ NVIC Mux input 0
-                DCD     NvicMux1_IRQHandler       ; CM0+ NVIC Mux input 1
+                DCD     Cy_SysIpcPipeIsrCm0
                 DCD     NvicMux2_IRQHandler       ; CM0+ NVIC Mux input 2
                 DCD     NvicMux3_IRQHandler       ; CM0+ NVIC Mux input 3
                 DCD     NvicMux4_IRQHandler       ; CM0+ NVIC Mux input 4
@@ -131,7 +133,6 @@ $handler_name   PROC
                 Default_Handler PendSV_Handler
                 Default_Handler SysTick_Handler
                 Default_Handler NvicMux0_IRQHandler
-                Default_Handler NvicMux1_IRQHandler
                 Default_Handler NvicMux2_IRQHandler
                 Default_Handler NvicMux3_IRQHandler
                 Default_Handler NvicMux4_IRQHandler
