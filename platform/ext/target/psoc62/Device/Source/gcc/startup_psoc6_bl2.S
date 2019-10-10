@@ -53,7 +53,7 @@ __Vectors:
 
      /* External interrupts                             Description */
     .long    NvicMux0_IRQHandler                     /* CM0 + NVIC Mux input 0 */
-    .long    NvicMux1_IRQHandler                     /* CM0 + NVIC Mux input 1 */
+    .long    Cy_SysIpcPipeIsrCm0
     .long    NvicMux2_IRQHandler                     /* CM0 + NVIC Mux input 2 */
     .long    NvicMux3_IRQHandler                     /* CM0 + NVIC Mux input 3 */
     .long    NvicMux4_IRQHandler                     /* CM0 + NVIC Mux input 4 */
@@ -109,7 +109,7 @@ __ramVectors:
 
     /* Device startup customization */
     .weak   Cy_OnResetUser
-    .func Cy_OnResetUser, Cy_OnResetUser
+    .func   Cy_OnResetUser, Cy_OnResetUser
     .type   Cy_OnResetUser, %function
 Cy_OnResetUser:
 
@@ -348,7 +348,6 @@ Fault_Handler:
     def_irq_handler    SysTick_Handler
 
     def_irq_handler  NvicMux0_IRQHandler                     /* CM0 + NVIC Mux input 0 */
-    def_irq_handler  NvicMux1_IRQHandler                     /* CM0 + NVIC Mux input 1 */
     def_irq_handler  NvicMux2_IRQHandler                     /* CM0 + NVIC Mux input 2 */
     def_irq_handler  NvicMux3_IRQHandler                     /* CM0 + NVIC Mux input 3 */
     def_irq_handler  NvicMux4_IRQHandler                     /* CM0 + NVIC Mux input 4 */

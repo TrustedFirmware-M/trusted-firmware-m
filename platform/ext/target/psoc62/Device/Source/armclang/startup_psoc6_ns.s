@@ -60,6 +60,8 @@ __heap_limit
                 EXPORT  __Vectors_End
                 EXPORT  __Vectors_Size
                 EXPORT  __ramVectors
+                IMPORT  Cy_SysIpcPipeIsrCm4
+                IMPORT  Cy_Flash_ResumeIrqHandler
 
 __Vectors       DCD     __initial_sp              ; Top of Stack
                 DCD     Reset_Handler             ; Reset Handler
@@ -108,7 +110,7 @@ __Vectors       DCD     __initial_sp              ; Top of Stack
                 DCD     cpuss_interrupts_ipc_1_IRQHandler     ; CPUSS Inter Process Communication Interrupt #1
                 DCD     cpuss_interrupts_ipc_2_IRQHandler     ; CPUSS Inter Process Communication Interrupt #2
                 DCD     cpuss_interrupts_ipc_3_IRQHandler     ; CPUSS Inter Process Communication Interrupt #3
-                DCD     cpuss_interrupts_ipc_4_IRQHandler     ; CPUSS Inter Process Communication Interrupt #4
+                DCD     Cy_SysIpcPipeIsrCm4
                 DCD     cpuss_interrupts_ipc_5_IRQHandler     ; CPUSS Inter Process Communication Interrupt #5
                 DCD     cpuss_interrupts_ipc_6_IRQHandler     ; CPUSS Inter Process Communication Interrupt #6
                 DCD     cpuss_interrupts_ipc_7_IRQHandler     ; CPUSS Inter Process Communication Interrupt #7
@@ -164,7 +166,7 @@ __Vectors       DCD     __initial_sp              ; Top of Stack
                 DCD     cpuss_interrupts_fault_0_IRQHandler   ; CPUSS Fault Structure Interrupt #0
                 DCD     cpuss_interrupts_fault_1_IRQHandler   ; CPUSS Fault Structure Interrupt #1
                 DCD     cpuss_interrupt_crypto_IRQHandler     ; CRYPTO Accelerator Interrupt
-                DCD     cpuss_interrupt_fm_IRQHandler         ; FLASH Macro Interrupt
+                DCD     Cy_Flash_ResumeIrqHandler
                 DCD     cpuss_interrupts_cm0_cti_0_IRQHandler ; CM0+ CTI #0
                 DCD     cpuss_interrupts_cm0_cti_1_IRQHandler ; CM0+ CTI #1
                 DCD     cpuss_interrupts_cm4_cti_0_IRQHandler ; CM4 CTI #0
@@ -341,7 +343,6 @@ Default_Handler     PROC
                     EXPORT  cpuss_interrupts_ipc_1_IRQHandler     [WEAK]
                     EXPORT  cpuss_interrupts_ipc_2_IRQHandler     [WEAK]
                     EXPORT  cpuss_interrupts_ipc_3_IRQHandler     [WEAK]
-                    EXPORT  cpuss_interrupts_ipc_4_IRQHandler     [WEAK]
                     EXPORT  cpuss_interrupts_ipc_5_IRQHandler     [WEAK]
                     EXPORT  cpuss_interrupts_ipc_6_IRQHandler     [WEAK]
                     EXPORT  cpuss_interrupts_ipc_7_IRQHandler     [WEAK]
@@ -397,7 +398,6 @@ Default_Handler     PROC
                     EXPORT  cpuss_interrupts_fault_0_IRQHandler   [WEAK]
                     EXPORT  cpuss_interrupts_fault_1_IRQHandler   [WEAK]
                     EXPORT  cpuss_interrupt_crypto_IRQHandler     [WEAK]
-                    EXPORT  cpuss_interrupt_fm_IRQHandler         [WEAK]
                     EXPORT  cpuss_interrupts_cm0_cti_0_IRQHandler [WEAK]
                     EXPORT  cpuss_interrupts_cm0_cti_1_IRQHandler [WEAK]
                     EXPORT  cpuss_interrupts_cm4_cti_0_IRQHandler [WEAK]
@@ -489,7 +489,6 @@ cpuss_interrupts_ipc_0_IRQHandler
 cpuss_interrupts_ipc_1_IRQHandler
 cpuss_interrupts_ipc_2_IRQHandler
 cpuss_interrupts_ipc_3_IRQHandler
-cpuss_interrupts_ipc_4_IRQHandler
 cpuss_interrupts_ipc_5_IRQHandler
 cpuss_interrupts_ipc_6_IRQHandler
 cpuss_interrupts_ipc_7_IRQHandler
@@ -545,7 +544,6 @@ cpuss_interrupts_dw1_15_IRQHandler
 cpuss_interrupts_fault_0_IRQHandler
 cpuss_interrupts_fault_1_IRQHandler
 cpuss_interrupt_crypto_IRQHandler
-cpuss_interrupt_fm_IRQHandler
 cpuss_interrupts_cm0_cti_0_IRQHandler
 cpuss_interrupts_cm0_cti_1_IRQHandler
 cpuss_interrupts_cm4_cti_0_IRQHandler
