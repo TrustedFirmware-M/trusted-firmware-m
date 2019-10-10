@@ -20,15 +20,14 @@
 #include "target.h"
 #include "cmsis.h"
 #include "uart_stdout.h"
-#include "Driver_Flash.h"
 #include "mbedtls/memory_buffer_alloc.h"
 #define BOOT_LOG_LEVEL BOOT_LOG_LEVEL_INFO
 #include "bootutil/bootutil_log.h"
 #include "bootutil/image.h"
 #include "bootutil/bootutil.h"
-#include "flash_map/flash_map.h"
 #include "bl2/include/boot_record.h"
 #include "security_cnt.h"
+#include "tfm_plat_bl2.h"
 
 /* Avoids the semihosting issue */
 #if defined (__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
@@ -127,17 +126,15 @@ int main(void)
 
     BOOT_LOG_INF("Starting bootloader");
 
+    /* Performs platform specific initialization */
+    if (bl2_platform_init() != ARM_DRIVER_OK) {
+        while (1)
+            ;
+    }
     /* Initialise the mbedtls static memory allocator so that mbedtls allocates
      * memory from the provided static buffer instead of from the heap.
      */
     mbedtls_memory_buffer_alloc_init(mbedtls_mem_buf, BL2_MBEDTLS_MEM_BUF_LEN);
-
-    rc = FLASH_DEV_NAME.Initialize(NULL);
-    if(rc != ARM_DRIVER_OK) {
-        BOOT_LOG_ERR("Error while initializing Flash Interface");
-        while (1)
-            ;
-    }
 
     rc = boot_nv_security_counter_init();
     if (rc != 0) {
