@@ -25,10 +25,7 @@
 #include "psa_api_test.h"
 #endif
 #include "target_cfg.h"
-#include "Driver_USART.h"
-
-/* For UART the CMSIS driver is used */
-extern ARM_DRIVER_USART NS_DRIVER_STDIO;
+#include "tfm_plat_ns.h"
 
 /**
  * \brief Modified table template for user defined SVC functions
@@ -60,36 +57,6 @@ extern void * const osRtxUserSVC[1+USER_SVC_COUNT];
  *  ...
  */
 };
-
-#if defined(__ARMCC_VERSION)
-/* Struct FILE is implemented in stdio.h. Used to redirect printf to
- * NS_DRIVER_STDIO
- */
-FILE __stdout;
-/* Redirects armclang printf to NS_DRIVER_STDIO */
-int fputc(int ch, FILE *f) {
-    /* Send byte to NS_DRIVER_STDIO */
-    (void)NS_DRIVER_STDIO.Send((const unsigned char *)&ch, 1);
-    /* Return character written */
-    return ch;
-}
-#elif defined(__GNUC__)
-/* redirects gcc printf to NS_DRIVER_STDIO */
-int _write(int fd, char * str, int len)
-{
-    (void)NS_DRIVER_STDIO.Send(str, len);
-
-    return len;
-}
-#elif defined(__ICCARM__)
-int putchar(int ch)
-{
-    /* Send byte to NS_DRIVER_STDIO */
-    (void)NS_DRIVER_STDIO.Send((const unsigned char *)&ch, 1);
-    /* Return character written */
-    return ch;
-}
-#endif
 
 /**
  * \brief List of RTOS thread attributes
@@ -138,8 +105,10 @@ __attribute__((noreturn))
 #endif
 int main(void)
 {
-    (void)NS_DRIVER_STDIO.Initialize(NULL);
-    NS_DRIVER_STDIO.Control(ARM_USART_MODE_ASYNCHRONOUS, 115200);
+    if (tfm_ns_platform_init() != ARM_DRIVER_OK) {
+        /* Avoid undefined behavior if platform init failed */
+        while(1);
+    }
 
 #if TFM_MULTI_CORE_TOPOLOGY
     tfm_ns_multi_core_boot();
