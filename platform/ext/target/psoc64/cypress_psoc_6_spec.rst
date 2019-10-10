@@ -9,9 +9,14 @@ Building Multi-Core TF-M on Cypress PSoC 6
 Please make sure you have all required software installed as explained in the
 :doc:`software requirements </docs/user_guides/tfm_sw_requirement>`.
 
-Please also download and install ModusToolbox from `Cypress
-<https://www.cypress.com/products/modustoolbox-software-environment>`_
-and ensure that it is able to communicate with the PSoC 6 board.
+Please install CySecureTools with (requires Python3.7):
+
+.. code-block:: bash
+
+    pip install cysecuretools
+
+For more details please refer to
+`CySecureTools <https://pypi.org/project/cysecuretools>`_ page.
 
 Please also make sure that all the source code are fetched by following
 :doc:`general building instruction </docs/user_guides/tfm_build_instruction>`.
@@ -214,50 +219,113 @@ listed above.
     cmake --build <build folder> -- -j VERBOSE=1
 
 **********************
+Signing the images
+**********************
+
+First, convert tfm_s.axf and tfm_ns.axf images to hex format. This also places
+resulting files one folder level up.
+
+GNUARM build:
+
+.. code-block:: bash
+
+    arm-none-eabi-objcopy -O ihex <build folder>/secure_fw/tfm_s.axf <build folder>/tfm_s.hex
+    arm-none-eabi-objcopy -O ihex <build folder>/app/tfm_ns.axf <build folder>/tfm_ns.hex
+
+ARMCLANG build:
+
+.. code-block:: bash
+
+    fromelf --i32 --output=<build folder>/tfm_s.hex <build folder>/secure_fw/tfm_s.axf
+    fromelf --i32 --output=<build folder>/tfm_ns.hex <build folder>/app/tfm_ns.axf
+
+Copy secure keys used in the board provisioning process to
+platform/ext/target/psoc64/security/keys:
+
+MCUBOOT_CM0P_KEY.json - private OEM key for signing CM0P image
+USERAPP_CM4_KEY.json  - private OEM key for signing CM4 image
+
+Note: provisioned board in SECURE claimed state is required, otherwise refer to
+Cypress documentation for details on the provisioning process.
+
+Sign the images (sign.py overwrites unsigned files with signed ones):
+
+.. code-block:: bash
+
+    ./platform/ext/target/psoc64/security/sign.py \
+      -s <build folder>/tfm_s.hex \
+      -n <build folder>/tfm_ns.hex \
+      -p platform/ext/target/psoc6/security/policy_dual_stage_CM0p_CM4.json
+
+**********************
 Programming the Device
 **********************
 
-After building, the mcuboot image must be signed using the ModusToolbox tools
-and the signed mcuboot image and the TFM image must be programmed into flash
+After building and signing, the TFM images must be programmed into flash
 memory on the PSoC 6 device.
 
-The instructions below assume that you have set up an environment variable
-``CYSDK`` that points to your ModusToolbox installation, for example like this:
+There are two methods to program psoc6 device.
+
+DAPLink mode
+============
+
+Using KitProg3 mode button, switch it to DAPLink mode.
+Mode LED should start blinking rapidly and depending on the host computer
+settings DAPLINK will be mounted as a media storage device. 
+Otherwise, mount it manually.
+
+Copy tfm hex files one by one to the DAPLINK device:
 
 .. code-block:: bash
 
-    export CYSDK=~/ModusToolbox_1.1
+    cp <build folder>/tfm_ns.hex <mount point>/DAPLINK/; sync
+    cp <build folder>/tfm_s.hex <mount point>/DAPLINK/; sync
 
-All the ``<build folder>`` in the commands below are the build folder created
-by build commands above.
+OpenOCD v.2.2
+=============
 
-To program the primary image to the device:
+Using KitProg3 mode button, switch to KitProg3 CMSIS-DAP BULK mode.
+Status LED should be ON and not blinking.
+To program the signed tfm_s image to the device with openocd (assuming
+OPENOCD_PATH is pointing at the openocd installation directory) run the
+following commands:
 
 .. code-block:: bash
 
-    ${CYSDK}/tools/openocd-2.1/bin/openocd -s "${CYSDK}/tools/openocd-2.1/scripts" -c "source [find interface/kitprog3.cfg]" -c "source [find target/psoc6.cfg]" -c "program ./<build folder>/tfm_sign.bin offset 0x10020000 verify" -c "reset_config srst_only;psoc6.dap dpreg 0x04 0x00;shutdown"
+    ${OPENOCD_PATH}/bin/openocd \
+            -s ${OPENOCD_PATH}/scripts \
+            -f interface/kitprog3.cfg \
+            -c "set ENABLE_ACQUIRE 0" \
+            -f target/psoc6_secure.cfg \
+            -c "init; reset init; flash write_image erase <build folder>/tfm_s.hex" \
+            -c "resume; reset; exit"
 
-Note that the ``0x10020000`` in the command above must match the start address
-of the secure primary image specified in the file::
+    ${OPENOCD_PATH}/bin/openocd \
+            -s ${OPENOCD_PATH}/scripts \
+            -f interface/kitprog3.cfg \
+            -c "set ENABLE_ACQUIRE 0" \
+            -f target/psoc6_secure.cfg \
+            -c "init; reset init; flash write_image erase <build folder>/tfm_ns.hex" \
+            -c "resume; reset; exit"
+
+Optionally, erase SST partition:
+
+.. code-block:: bash
+
+    ${OPENOCD_PATH}/bin/openocd \
+            -s ${OPENOCD_PATH}/scripts \
+            -f interface/kitprog3.cfg \
+            -f target/psoc6_secure.cfg \
+            -c "init; reset init" \
+            -c "flash erase_address 0x100c0000 0x10000" \
+            -c "shutdown"
+
+Note that the ``0x100C0000`` in the command above must match the SST start
+address of the secure primary image specified in the file:
 
     platform/ext/target/psoc64/partition/flash_layout.h
 
 so be sure to change it if you change that file.
-
-To sign the mcuboot image:
-
-.. code-block:: bash
-
-    ${CYSDK}/tools/cymcuelftool-1.0/bin/cymcuelftool --sign ./<build folder>/bl2/ext/mcuboot/mcuboot.axf --output ./<build folder>/mcuboot_signed.elf
-
-To program the signed mcuboot image to the device:
-
-.. code-block:: bash
-
-    ${CYSDK}/tools/openocd-2.1/bin/openocd -s "${CYSDK}/tools/openocd-2.1/scripts" -c "source [find interface/kitprog3.cfg]" -c "source [find target/psoc6.cfg]" -c "program ./<build folder>/mcuboot_signed.elf verify" -c "reset_config srst_only;reset run;psoc6.dap dpreg 0x04 0x00;shutdown"
-
-Alternatively, it is possible to program the device using ModusToolbox. For
-details, please refer to the ModusToolbox documentation.
 
 *Copyright (c) 2017-2019, Arm Limited. All rights reserved.*
 

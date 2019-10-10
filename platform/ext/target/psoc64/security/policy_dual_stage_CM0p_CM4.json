@@ -1,0 +1,175 @@
+{
+    "debug" :
+    {
+        "m0p" : {
+            "permission" : "enabled",
+            "control" : "firmware",
+            "key" : 5
+        },
+        "m4" : {
+            "permission" : "allowed",
+            "control" : "firmware",
+            "key" : 5
+        },
+        "system" : {
+            "permission" : "enabled",
+            "control" : "firmware",
+            "key" : 5,
+            "syscall": true,
+            "mmio": true,
+            "flash": true,
+            "workflash": true,
+            "sflash": true,
+            "sram": true
+        },
+        "rma" : {
+            "permission" : "allowed",
+            "destroy_fuses" : [
+                {
+                    "start" : 888,
+                    "size" : 136
+                },
+                {
+                    "start" : 648,
+                    "size" : 104
+                }
+            ],
+            "destroy_flash" : [
+                {
+                    "start" : 268435456,
+                    "size" : 851968
+                },
+                {
+                    "start" : 269483520,
+                    "size" : 16
+                }
+            ],
+            "key" : 5
+        }
+    },
+    "wounding" :
+    {
+    },
+    "boot_upgrade" :
+    {
+        "firmware": [
+            {
+                "boot_auth": [
+                    3
+                ],
+                "id": 0,
+                "launch": 1,
+                "monotonic": 0,
+                "smif_id": 0,
+                "upgrade": false,
+                "upgrade_auth": [
+                    3
+                ],
+                "upgrade_keys": [
+                    { "kid": 3, "key": "./keys/MCUBOOT_CM0P_KEY.json" }
+                ],
+                "backup": false,
+                "resources": [
+                    {
+                        "type": "FLASH_PC1_SPM",
+                        "address": 269287424,
+                        "size": 65536
+                    },
+                    {
+                        "type": "SRAM_SPM_PRIV",
+                        "address": 134348800,
+                        "size": 65536
+                    }
+                ]
+            },
+            {
+                "boot_auth": [
+                    6
+                ],
+                "boot_keys": [
+                    { "kid": 6, "key": "./keys/MCUBOOT_CM0P_KEY.json" }
+                ],
+                "id": 1,
+                "launch": 16,
+                "monotonic": 0,
+                "smif_id": 0,
+                "version": "0.1",
+                "rollback_counter": 0,
+                "upgrade": false,
+                "encrypt": false,
+                "encrypt_key_id": 1,
+                "upgrade_auth": [
+                    6
+                ],
+                "upgrade_keys": [
+                    { "kid": 6, "key": "./keys/MCUBOOT_CM0P_KEY.json" }
+                ],
+                "backup": false,
+                "resources": [
+                    {
+                        "type": "BOOT",
+                        "address": 268959744,
+                        "size": 327680
+                    },
+                    {
+                        "type": "UPGRADE",
+                        "address": 268730368,
+                        "size": 327680
+                    }
+                ]
+            },
+            {
+                "boot_auth": [
+                    8
+                ],
+                "boot_keys": [
+                    { "kid": 8, "key": "./keys/USERAPP_CM4_KEY.json" }
+                ],
+                "id": 16,
+                "monotonic": 0,
+                "smif_id": 0,
+                "version": "0.1",
+                "rollback_counter": 0,
+                "upgrade": false,
+                "upgrade_auth": [
+                    8
+                ],
+                "upgrade_keys": [
+                    { "kid": 8, "key": "./keys/USERAPP_CM4_KEY.json" }
+                ],
+                "backup": false,
+                "resources": [
+                    {
+                        "type": "BOOT",
+                        "address": 268435456,
+                        "size": 163840
+                    },
+                    {
+                        "type": "UPGRADE",
+                        "address": 268730368,
+                        "size": 262144
+                    }
+                ]
+            }
+        ],
+        "reprogram": [
+            {
+                "size": 917504,
+                "start": 268435456
+            },
+            {
+                "size": 131072,
+                "start": 268828672
+            }
+        ],
+        "reprovision": {
+            "boot_loader": false,
+            "keys_and_policies": true
+        },
+        "title": "upgrade_policy"
+    },
+    "cy_bootloader":
+    {
+        "mode": "debug"
+    }
+}
