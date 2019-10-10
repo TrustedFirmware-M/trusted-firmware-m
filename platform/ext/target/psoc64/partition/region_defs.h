@@ -21,8 +21,10 @@
 
 #define TOTAL_ROM_SIZE FLASH_TOTAL_SIZE
 /* 2KB of RAM (at the end of the SRAM) are reserved for system use. Using
- * this memory region for other purposes will lead to unexpected behavior.*/
-#define TOTAL_RAM_SIZE (0x00047800) /* CY_SRAM0_SIZE - 2KB*/
+ * this memory region for other purposes will lead to unexpected behavior.
+ * 94KB of RAM (just before the memory reserved for system use) are
+ * allocated and protected by Cypress Bootloader */
+#define TOTAL_RAM_SIZE (0x00030000) /* CY_SRAM0_SIZE - 96KB */
 
 #define BL2_HEAP_SIZE           0x0001000
 #define BL2_MSP_STACK_SIZE      0x0001000
@@ -69,12 +71,12 @@
 
 /* TFM PSoC6 CY8CKIT_064 RAM layout:
  *
- * 0x0800_0000 Secure unprivileged data (S_UNPRIV_DATA_SIZE, 32KB)
- * 0x0800_8000 Secure priviliged data (S_PRIV_DATA_SIZE, 96KB)
- * 0x0802_0000 Secure priv code executable from RAM (S_RAM_CODE_SIZE, 4KB)
- * 0x0802_1000 Non-secure data (NS_DATA_SIZE, 153KB)
- * 0x0804_7400 Shared memory (NS_DATA_SHARED_SIZE, 1KB)
- * 0x0804_7800 System reserved memory (2KB)
+ * 0x0800_0000 Non-secure data (NS_DATA_SIZE, 63KB)
+ * 0x0800_FC00 Shared memory (NS_DATA_SHARED_SIZE, 1KB)
+ * 0x0801_0000 Secure unprivileged data (S_UNPRIV_DATA_SIZE, 32KB)
+ * 0x0801_8000 Secure priviliged data (S_PRIV_DATA_SIZE, 92KB)
+ * 0x0802_F000 Secure priv code executable from RAM (S_RAM_CODE_SIZE, 4KB)
+ * 0x0803_0000 System reserved memory (96KB)
  * 0x0804_8000 End of RAM
  */
 
@@ -89,8 +91,18 @@
  * because we reserve space for the image header and trailer introduced by the
  * bootloader.
  */
+#ifdef BL2
 #define BL2_HEADER_SIZE      (0x400)
 #define BL2_TRAILER_SIZE     (0x400)
+#else
+/* Even though TFM BL2 is excluded from the build,
+ * CY BL built externally is used and it needs offsets for header and trailer
+ * to be taken in account.
+ * */
+#define BL2_HEADER_SIZE      (0x400)
+#define BL2_TRAILER_SIZE     (0x400)
+
+#endif /* BL2 */
 
 #define IMAGE_S_CODE_SIZE \
             (FLASH_S_PARTITION_SIZE - BL2_HEADER_SIZE - BL2_TRAILER_SIZE)
@@ -105,15 +117,15 @@
 #define NS_RAM_ALIAS(x) (NS_RAM_ALIAS_BASE + (x))
 
 /* Secure regions */
-#define  S_IMAGE_PRIMARY_AREA_OFFSET \
+#define S_IMAGE_PRIMARY_AREA_OFFSET \
              (S_IMAGE_PRIMARY_PARTITION_OFFSET + BL2_HEADER_SIZE)
 #define S_CODE_START    (S_ROM_ALIAS(S_IMAGE_PRIMARY_AREA_OFFSET))
 #define S_CODE_SIZE     IMAGE_S_CODE_SIZE
 #define S_CODE_LIMIT    (S_CODE_START + S_CODE_SIZE - 1)
 
-#define S_DATA_START    (S_RAM_ALIAS(0x0))
+#define S_DATA_START    (S_RAM_ALIAS(NS_DATA_SIZE))
 #define S_UNPRIV_DATA_SIZE  0x8000
-#define S_PRIV_DATA_SIZE    0x18000
+#define S_PRIV_DATA_SIZE    0x17000
 /* Reserve 4KB for RAM-based executable code */
 #define S_RAM_CODE_SIZE     0x1000
 
@@ -133,7 +145,7 @@
  * and SMPU10.
  * Leave the SMPU alignment check in SMPU configuration file.
  */
-#define S_DATA_PRIV_OFFSET       S_UNPRIV_DATA_SIZE
+#define S_DATA_PRIV_OFFSET       (NS_DATA_SIZE + S_UNPRIV_DATA_SIZE)
 #define S_DATA_PRIV_START        S_RAM_ALIAS(S_DATA_PRIV_OFFSET)
 
 /* Reserve area for RAM-based executable code right after secure unprivilaged
@@ -147,7 +159,7 @@
 #define NS_CODE_SIZE    IMAGE_NS_CODE_SIZE
 #define NS_CODE_LIMIT   (NS_CODE_START + NS_CODE_SIZE - 1)
 
-#define NS_DATA_START   (NS_RAM_ALIAS(S_DATA_SIZE))
+#define NS_DATA_START   (S_RAM_ALIAS(0))
 #define NS_DATA_SIZE    (TOTAL_RAM_SIZE - S_DATA_SIZE)
 #define NS_DATA_LIMIT   (NS_DATA_START + NS_DATA_SIZE - 1)
 

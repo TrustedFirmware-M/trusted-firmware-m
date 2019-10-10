@@ -121,17 +121,17 @@
 #error "Flash layout has changed - SMPU6 needs updating"
 #endif
 
-/* S_DATA_PRIV_START must not overlap with unprivileged data section */
+/* S_DATA_PRIV_START must not overlap with SMPU6 region */
 #if S_DATA_PRIV_START < (SMPU6_BASE + REGIONSIZE_TO_BYTES(SMPU6_REGIONSIZE))
 #error "S_DATA_PRIV_START overlaps with unprivileged data section"
 #endif
 
 /* SMPU7 - 96KB of privileged secure data at S_DATA_PRIV_START in SRAM */
-#define SMPU7_BASE       S_DATA_START
+#define SMPU7_BASE       S_RAM_ALIAS(0)
 #define SMPU7_REGIONSIZE PROT_SIZE_256KB_BIT_SHIFT
 #define SMPU7_SUBREGION_DIS    (CY_PROT_SUBREGION_DIS0 | \
-                                 CY_PROT_SUBREGION_DIS4 | \
-                                 CY_PROT_SUBREGION_DIS5 | \
+                                 CY_PROT_SUBREGION_DIS1 | \
+                                 CY_PROT_SUBREGION_DIS2 | \
                                  CY_PROT_SUBREGION_DIS6 | \
                                  CY_PROT_SUBREGION_DIS7)
 #define SMPU7_SLAVE_CONFIG {\
@@ -152,16 +152,22 @@
 #endif
 
 /*
- * S_DATA_PRIV_START must equal the base address of the second sub-region of
+ * S_DATA_PRIV_START must equal the base address of the subregion 3 of
  * SMPU7
  */
 #if S_DATA_PRIV_START != (SMPU7_BASE + \
-                          (REGIONSIZE_TO_BYTES(SMPU7_REGIONSIZE) / 8))
-#error "Flash layout has changed - S_DATA_PRIV_START doesn't fit the second sub-region of SMPU7"
+                          (3 * REGIONSIZE_TO_BYTES(SMPU7_REGIONSIZE) / 8))
+#error "Flash layout has changed - S_DATA_PRIV_START isn't subregion 3 of SMPU7"
+#endif
+
+/* SMPUs 6 and 7 should cover the whole secure data area in the RAM */
+#if S_DATA_SIZE != (REGIONSIZE_TO_BYTES(SMPU6_REGIONSIZE) + \
+                    3*REGIONSIZE_TO_BYTES(SMPU7_REGIONSIZE)/8)
+#error "Flash layout has changed - SMPU6/SMPU7 config needs updating"
 #endif
 
 /* SMPU10 - 4KB of privileged executable data in SRAM
- * Note: Region resides in subregion 4 of SMPU 7*/
+ * Note: Region resides in subregion 5 of SMPU 7*/
 #define SMPU10_BASE S_RAM_CODE_START
 #define SMPU10_REGIONSIZE PROT_SIZE_4KB_BIT_SHIFT
 #define SMPU10_SLAVE_CONFIG {\
@@ -185,11 +191,14 @@
 #error "SMPU10_REGIONSIZE is not equal S_RAM_CODE_SIZE"
 #endif
 
-/* SMPUs 6, 7, 10 should cover the whole secure data area in the RAM */
-#if S_DATA_SIZE != (REGIONSIZE_TO_BYTES(SMPU6_REGIONSIZE) + \
-                    3*REGIONSIZE_TO_BYTES(SMPU7_REGIONSIZE)/8 + \
-                    REGIONSIZE_TO_BYTES(SMPU10_REGIONSIZE) )
-#error "Flash layout has changed - SMPU6/SMPU7/SMPU10 config needs updating"
+/* SMPU10 should be contained within SMPU7 */
+#if (SMPU10_BASE + SMPU10_REGIONSIZE) < (SMPU7_BASE + \
+                    3*REGIONSIZE_TO_BYTES(SMPU7_REGIONSIZE)/8)
+#error "SMPU10 is below SMPU7"
+#endif
+#if SMPU10_BASE > (SMPU7_BASE + \
+                    6*REGIONSIZE_TO_BYTES(SMPU7_REGIONSIZE)/8)
+#error "SMPU10 is above SMPU7"
 #endif
 
 #endif /* __SMPU_CONFIG_H__ */
