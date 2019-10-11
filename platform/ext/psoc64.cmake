@@ -15,7 +15,7 @@ enable_multi_core_topology_config()
 
 set(TFM_NS_CLIENT_IDENTIFICATION OFF)
 
-add_definitions(-DCY8C6247BZI_D54=1)
+add_definitions(-DCYB06447BZI_D54=1)
 add_definitions(-DNDEBUG=1)
 add_definitions(-DTFM_CORE_DEBUG)
 

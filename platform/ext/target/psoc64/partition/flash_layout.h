@@ -18,22 +18,21 @@
 #ifndef __FLASH_LAYOUT_H__
 #define __FLASH_LAYOUT_H__
 
-/* Flash layout on PSoC6 CY8CKIT_062 with BL2:
+/* Flash layout with BL2:
  *
- * 0x1000_0000 BL2 - MCUBoot(128 KB)
- * 0x1002_0000 Flash_area_image_0:
- *    0x1002_0000 Secure     image primary (256KB)
- *    0x1006_0000 Non-secure image primary (160KB)
- * 0x1008_8000 Flash_area_image_1:
- *    0x1008_8000 Secure     image secondary (256KB)
- *    0x100c_8000 Non-secure image secondary (160KB)
- * 0x100f_0000 Scratch area(32 KB)
- * 0x100f_8000 Secure Storage Area(0.02 MB)
- * 0x100f_d000 NV counters area(24 Bytes)
- * 0x100f_d018 Unused(12 KB)
+ * TBD
+ *
  *
  * Flash layout if BL2 not defined:
- * TBD
+ *
+ * 0x1000_0000 Non-secure image primary (256 KB)
+ * 0x1004_0000 Secure/Non-secure image secondary (256 KB)
+ *  Note that only one image can be upgraded per boot
+ * 0x1008_0000 Secure     image primary (256 KB)
+ * 0x100c_0000 Secure Storage Area (20 KB)
+ * 0x100c_5000 NV counters area (24 Bytes)
+ * 0x100c_5018 Unused (almost 44 KB)
+ * 0x100d_0000 Reserved (192 KB)
  *
  */
 
@@ -49,7 +48,7 @@
 /* The size of S partition */
 #define FLASH_S_PARTITION_SIZE          0x40000      /* 256 KB */
 /* The size of NS partition */
-#define FLASH_NS_PARTITION_SIZE         0x28000      /* 160 KB */
+#define FLASH_NS_PARTITION_SIZE         0x40000      /* 256 KB */
 
 /*
  * Each FLASH_AREA_IMAGE contains NS and S partitions.
@@ -57,6 +56,8 @@
  */
 #define FLASH_PARTITION_SIZE            (FLASH_S_PARTITION_SIZE + \
                                          FLASH_NS_PARTITION_SIZE)
+#define FLASH_MAX_PARTITION_SIZE        MAX(FLASH_S_PARTITION_SIZE, \
+                                            FLASH_NS_PARTITION_SIZE)
 
 /* Sector size of the flash hardware; same as FLASH0_SECTOR_SIZE */
 #define FLASH_AREA_IMAGE_SECTOR_SIZE    (0x200)      /* 512 B */
@@ -66,6 +67,7 @@
 /* Flash layout info for BL2 bootloader */
 #define FLASH_BASE_ADDRESS              (0x10000000U) /* same as FLASH0_BASE */
 
+#ifdef BL2
 /* Offset and size definitions of the flash partitions that are handled by the
  * bootloader. The image swapping is done between IMAGE_PRIMARY and
  * IMAGE_SECONDARY.
@@ -101,8 +103,6 @@
 #define BOOT_MAX_IMG_SECTORS            (FLASH_PARTITION_SIZE / \
                                          FLASH_AREA_IMAGE_SECTOR_SIZE)
 #elif (MCUBOOT_IMAGE_NUMBER == 2)
-#define FLASH_MAX_PARTITION_SIZE        MAX(FLASH_S_PARTITION_SIZE, \
-                                            FLASH_NS_PARTITION_SIZE)
 
 /* Secure image primary slot */
 #define FLASH_AREA_0_ID                 (1)
@@ -148,6 +148,13 @@
 #error "Only MCUBOOT_IMAGE_NUMBER 1 and 2 are supported!"
 #endif /* MCUBOOT_IMAGE_NUMBER */
 
+#else /* BL2 */
+/* SST area follows scratch area */
+#define FLASH_AREA_SCRATCH_OFFSET       (SECURE_IMAGE_OFFSET + \
+                                         FLASH_S_PARTITION_SIZE)
+#define FLASH_AREA_SCRATCH_SIZE         (0)   /* None */
+#endif /* BL2 */
+
 #define FLASH_SST_AREA_OFFSET           (FLASH_AREA_SCRATCH_OFFSET + \
                                          FLASH_AREA_SCRATCH_SIZE)
 #define FLASH_SST_AREA_SIZE             (0x5000)   /* 20 KB */
@@ -157,11 +164,21 @@
 #define FLASH_NV_COUNTERS_AREA_SIZE     (0x18)     /* 24 Bytes */
 
 /* Offset and size definition in flash area, used by assemble.py */
+#ifdef BL2
 #define SECURE_IMAGE_OFFSET             0x0
+#else
+#define SECURE_IMAGE_OFFSET             (NON_SECURE_IMAGE_OFFSET + \
+                                         FLASH_NS_PARTITION_SIZE + \
+                                         FLASH_MAX_PARTITION_SIZE)
+#endif
 #define SECURE_IMAGE_MAX_SIZE           FLASH_S_PARTITION_SIZE
 
+#ifdef BL2
 #define NON_SECURE_IMAGE_OFFSET         (SECURE_IMAGE_OFFSET + \
                                          SECURE_IMAGE_MAX_SIZE)
+#else
+#define NON_SECURE_IMAGE_OFFSET         0x0
+#endif
 #define NON_SECURE_IMAGE_MAX_SIZE       FLASH_NS_PARTITION_SIZE
 
 /* Flash device name used by BL2 and SST

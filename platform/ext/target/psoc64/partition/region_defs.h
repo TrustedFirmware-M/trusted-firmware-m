@@ -54,23 +54,20 @@
 #ifndef LINK_TO_SECONDARY_PARTITION
 #define S_IMAGE_PRIMARY_PARTITION_OFFSET    (FLASH_AREA_0_OFFSET)
 #define S_IMAGE_SECONDARY_PARTITION_OFFSET  (FLASH_AREA_2_OFFSET)
-#else
-#define S_IMAGE_PRIMARY_PARTITION_OFFSET    (FLASH_AREA_2_OFFSET)
-#define S_IMAGE_SECONDARY_PARTITION_OFFSET  (FLASH_AREA_0_OFFSET)
-#endif /* !LINK_TO_SECONDARY_PARTITION */
-#else
-#define  S_IMAGE_PRIMARY_PARTITION_OFFSET (0x0)
-#endif /* BL2 */
-
-#ifndef LINK_TO_SECONDARY_PARTITION
 #define NS_IMAGE_PRIMARY_PARTITION_OFFSET (FLASH_AREA_0_OFFSET + \
                                            FLASH_S_PARTITION_SIZE)
 #else
+#define S_IMAGE_PRIMARY_PARTITION_OFFSET    (FLASH_AREA_2_OFFSET)
+#define S_IMAGE_SECONDARY_PARTITION_OFFSET  (FLASH_AREA_0_OFFSET)
 #define NS_IMAGE_PRIMARY_PARTITION_OFFSET (FLASH_AREA_2_OFFSET + \
                                            FLASH_S_PARTITION_SIZE)
 #endif /* !LINK_TO_SECONDARY_PARTITION */
+#else
+#define S_IMAGE_PRIMARY_PARTITION_OFFSET  SECURE_IMAGE_OFFSET
+#define NS_IMAGE_PRIMARY_PARTITION_OFFSET NON_SECURE_IMAGE_OFFSET
+#endif /* BL2 */
 
-/* TFM PSoC6 CY8CKIT_062 RAM layout:
+/* TFM PSoC6 CY8CKIT_064 RAM layout:
  *
  * 0x0800_0000 Secure unprivileged data (S_UNPRIV_DATA_SIZE, 32KB)
  * 0x0800_8000 Secure priviliged data (S_PRIV_DATA_SIZE, 96KB)
@@ -92,14 +89,8 @@
  * because we reserve space for the image header and trailer introduced by the
  * bootloader.
  */
-#ifdef BL2
 #define BL2_HEADER_SIZE      (0x400)
 #define BL2_TRAILER_SIZE     (0x400)
-#else
-/* No header if no bootloader, but keep image code size the same */
-#define BL2_HEADER_SIZE      (0x0)
-#define BL2_TRAILER_SIZE     (0x800)
-#endif /* BL2 */
 
 #define IMAGE_S_CODE_SIZE \
             (FLASH_S_PARTITION_SIZE - BL2_HEADER_SIZE - BL2_TRAILER_SIZE)
