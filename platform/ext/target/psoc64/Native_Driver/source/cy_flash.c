@@ -30,7 +30,9 @@
 #include "cy_ipc_pipe.h"
 #include "cy_device.h"
 #include "cy_syslib.h"
-
+#ifdef TFM_MULTI_CORE_TOPOLOGY
+    #include "region_defs.h"
+#endif
 
 /***************************************
 * Data Structure definitions
@@ -326,10 +328,16 @@ static volatile cy_stc_flash_context_t flashContext;
 void Cy_Flash_Init(void)
 {
     #if !defined(CY_FLASH_RWW_DRV_SUPPORT_DISABLED)    
-        CY_SECTION(".cy_sharedmem")
-        CY_ALIGN(4) static cy_stc_flash_notify_t ipcWaitMessageStc;
-        
-        Cy_Flash_InitExt(&ipcWaitMessageStc);
+        #if defined TFM_MULTI_CORE_TOPOLOGY && CY_CPU_CORTEX_M0P
+            cy_stc_flash_notify_t *ipcWaitMessageStc =
+                    (cy_stc_flash_notify_t *)IPC_WAIT_MESSAGE_STC_ADDR;
+
+            Cy_Flash_InitExt(ipcWaitMessageStc);
+        #else
+            CY_ALIGN(4) static cy_stc_flash_notify_t ipcWaitMessageStc;
+
+            Cy_Flash_InitExt(&ipcWaitMessageStc);
+        #endif
     #endif /* !defined(CY_FLASH_RWW_DRV_SUPPORT_DISABLED) */
 }
 
