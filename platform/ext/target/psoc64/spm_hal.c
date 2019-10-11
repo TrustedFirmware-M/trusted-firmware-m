@@ -33,6 +33,13 @@ extern const struct memory_region_limits memory_regions;
 
 enum tfm_plat_err_t tfm_spm_hal_init_isolation_hw(void)
 {
+    cy_en_prot_status_t ret;
+
+    /* Ensure that CM0+ is in secure mode */
+    ret = Cy_Prot_ConfigBusMaster(CPUSS_MS_ID_CM0, true, true, SECURE_PCS_MASK);
+    if (ret != CY_PROT_SUCCESS) {
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
     smpu_init_cfg();
     ppu_init_cfg();
     bus_masters_cfg();
