@@ -23,12 +23,14 @@
 #define {{"%-56s"|format("CONFIG_TFM_SLIH_API")}} {{config_impl['CONFIG_TFM_SLIH_API']}}
 
 #if CONFIG_TFM_SPM_BACKEND_IPC == 1
+#ifndef CONFIG_TFM_NS_AGENT_TZ_STACK_SIZE
 /* Trustzone NS agent working stack size. */
 #if defined(TFM_FIH_PROFILE_ON) && TFM_ISOLATION_LEVEL == 1
 #define {{"%-56s"|format("CONFIG_TFM_NS_AGENT_TZ_STACK_SIZE")}} 1256
 #else
 #define {{"%-56s"|format("CONFIG_TFM_NS_AGENT_TZ_STACK_SIZE")}} 1024
 #endif
+#endif /* CONFIG_TFM_NS_AGENT_TZ_STACK_SIZE */
 
 #if !defined CONFIG_TFM_USE_TRUSTZONE
 #if !defined CONFIG_TFM_SPM_THREAD_STACK_SIZE
