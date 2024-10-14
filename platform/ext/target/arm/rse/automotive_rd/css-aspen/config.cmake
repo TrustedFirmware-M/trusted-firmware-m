@@ -20,9 +20,6 @@ set(TFM_ATTESTATION_SCHEME              OFF      CACHE STRING  "Attestation sche
 set(TFM_BL1_MEMORY_MAPPED_FLASH         OFF      CACHE BOOL    "Whether BL1 can directly access flash content")
 set(TFM_LOAD_NS_IMAGE                   OFF      CACHE BOOL    "Whether to load an NS image")
 set(TFM_MBEDCRYPTO_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH  ""    CACHE PATH      "Config to append to standard PSA Crypto setting for Mbed Crypto, used by platforms to configure cryptographic feature support.")
-set(TFM_PLAT_SPECIFIC_MULTI_CORE_COMM   OFF      CACHE BOOL    "Whether to use a platform specific inter-core communication instead of mailbox in dual-cpu topology")
 
 # Once all cache options are set, set common options as fallback
 include(${CMAKE_CURRENT_LIST_DIR}/../../common/config.cmake)
-
-set(TFM_MULTI_CORE_TOPOLOGY             OFF)

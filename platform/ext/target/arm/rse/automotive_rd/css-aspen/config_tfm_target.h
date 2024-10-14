@@ -34,4 +34,7 @@
 /* Maximum RSE Comms payload size using Embed protocol */
 #define RSE_COMMS_PAYLOAD_MAX_SIZE (0x3FE0)
 
+/* Allow NS client ID 0 */
+#define MAILBOX_SUPPORT_NS_CLIENT_ID_ZERO 1
+
 #endif /* __CONFIG_TFM_TARGET_H__ */
