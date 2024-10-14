@@ -1,0 +1,24 @@
+/*
+ * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+ */
+
+#ifndef __HOST_DEVICE_DEFINITION_H__
+#define __HOST_DEVICE_DEFINITION_H__
+
+#include "host_device_cfg.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef RSE_USE_HOST_UART
+#include "uart_pl011_drv.h"
+extern struct uart_pl011_dev_t UART0_PL011_DEV_NS;
+#endif /* RSE_USE_HOST_UART */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /* __HOST_DEVICE_DEFINITION_H__ */

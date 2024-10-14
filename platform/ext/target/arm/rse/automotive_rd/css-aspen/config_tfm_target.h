@@ -1,0 +1,37 @@
+/*
+ * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+ */
+
+/**
+ * \file flash_layout.h
+ * \brief This file contains configurations for secure runtime partitions.
+ */
+
+#ifndef __CONFIG_TFM_TARGET_H__
+#define __CONFIG_TFM_TARGET_H__
+
+#include "config_tfm_target_rse_common.h"
+
+/* Use stored NV seed to provide entropy */
+#define CRYPTO_NV_SEED                          0
+
+/* Use external RNG to provide entropy */
+#define CRYPTO_EXT_RNG                         1
+
+/* The stack size of the NS Agent Mailbox Secure Partition */
+#define NS_AGENT_MAILBOX_STACK_SIZE             0x1000
+
+/* Run the scheduler after handling a secure interrupt if the NSPE was pre-empted */
+#define CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED 1
+
+/* Default RSE SYSCLK/CPU0CLK value in Hz */
+#define SYSCLK         100000000UL /* 100 MHz */
+
+/* Clock configuration value to write to CLK_CFG1.SYSCLKCFG to drive SYSCLKCFG signal */
+#define SYSCLKCFG_VAL  0
+
+/* Maximum RSE Comms payload size using Embed protocol */
+#define RSE_COMMS_PAYLOAD_MAX_SIZE (0x3FE0)
+
+#endif /* __CONFIG_TFM_TARGET_H__ */
