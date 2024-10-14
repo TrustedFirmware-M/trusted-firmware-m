@@ -21,8 +21,10 @@
  * Offset    Image (Size)
  *  0x0_7000 BL2 - MCUBoot primary slot   (128 KB)
  *  0x2_7000 Secure image  primary slot   (256 KB)
- *  0x6_7000 BL2 - MCUBoot secondary slot (128 KB)
- *  0x8_7000 Secure image  secondary slot (256 KB)
+ *  0x6_7000 SI CL0        primary slot   (1024 KB)
+ * 0x16_7000 BL2 - MCUBoot secondary slot (128 KB)
+ * 0x18_7000 Secure image  secondary slot (256 KB)
+ * 0x1C_7000 SI CL0        secondary slot (1024 KB)
  *
  * Flash layout on AP Secure flash with BL2 (multiple image boot):
  *
@@ -47,6 +49,7 @@
 #define FLASH_S_PARTITION_SIZE          (SIZE_DEF_S_IMAGE)   /* S   partition */
 #define FLASH_NS_PARTITION_SIZE         (SIZE_DEF_NS_IMAGE)  /* NS  partition */
 #define FLASH_AP_FIP_PARTITION_SIZE     (AP_FLASH_FIP_SIZE) /* AP FIP partition */
+#define FLASH_SI_CL0_PARTITION_SIZE     (SIZE_DEF_SI_CL0_IMAGE) /* SI CL0 partition */
 #define FLASH_MAX_PARTITION_SIZE        ((FLASH_S_PARTITION_SIZE >   \
                                           FLASH_NS_PARTITION_SIZE) ? \
                                          FLASH_S_PARTITION_SIZE :    \
@@ -78,19 +81,27 @@
 #define FLASH_AREA_2_ID            (FLASH_AREA_0_ID + 2)
 #define FLASH_AREA_2_OFFSET        (FLASH_AREA_0_OFFSET + FLASH_AREA_0_SIZE)
 #define FLASH_AREA_2_SIZE          (FLASH_S_PARTITION_SIZE)
+/* SI CL0 image primary slot */
+#define FLASH_AREA_4_ID            (FLASH_AREA_2_ID + 2)
+#define FLASH_AREA_4_OFFSET        (FLASH_AREA_2_OFFSET + FLASH_AREA_2_SIZE)
+#define FLASH_AREA_4_SIZE          (FLASH_SI_CL0_PARTITION_SIZE)
 
 /* Secondary Bank */
 /* BL2 secondary slot */
 #define FLASH_AREA_1_ID            (FLASH_AREA_0_ID + 1)
-#define FLASH_AREA_1_OFFSET        (FLASH_AREA_2_OFFSET + FLASH_AREA_2_SIZE)
+#define FLASH_AREA_1_OFFSET        (FLASH_AREA_4_OFFSET + FLASH_AREA_4_SIZE)
 #define FLASH_AREA_1_SIZE          (FLASH_BL2_PARTITION_SIZE)
 /* Secure image secondary slot. */
 #define FLASH_AREA_3_ID            (FLASH_AREA_1_ID + 2)
 #define FLASH_AREA_3_OFFSET        (FLASH_AREA_1_OFFSET + FLASH_AREA_1_SIZE)
 #define FLASH_AREA_3_SIZE          (FLASH_S_PARTITION_SIZE)
+/* SI CL0 image secondary slot */
+#define FLASH_AREA_5_ID            (FLASH_AREA_3_ID + 2)
+#define FLASH_AREA_5_OFFSET        (FLASH_AREA_3_OFFSET + FLASH_AREA_3_SIZE)
+#define FLASH_AREA_5_SIZE          (FLASH_SI_CL0_PARTITION_SIZE)
 
 /* AP FIP image primary slot */
-#define AP_FLASH_AREA_0_ID          (FLASH_AREA_3_ID + 1)
+#define AP_FLASH_AREA_0_ID          (FLASH_AREA_5_ID + 1)
 #define AP_FLASH_AREA_0_OFFSET      (AP_FLASH_FIP_OFFSET)
 #define AP_FLASH_AREA_0_SIZE        (FLASH_AP_FIP_PARTITION_SIZE)
 /* AP FIP image secondary slot */
@@ -104,7 +115,7 @@
                                     FLASH_AREA_IMAGE_SECTOR_SIZE)
 
 /* Check that all the images can fit in the Flash area. */
-#if (FLASH_AREA_3_OFFSET + FLASH_AREA_3_SIZE > FLASH_TOTAL_SIZE)
+#if (FLASH_AREA_5_OFFSET + FLASH_AREA_5_SIZE > FLASH_TOTAL_SIZE)
 #error "Out of RSE Flash memory!"
 #endif
 
@@ -114,10 +125,12 @@
 
 #define FLASH_AREA_IMAGE_PRIMARY(x) \
         (((x) == RSE_FIRMWARE_SECURE_ID)     ? FLASH_AREA_2_ID : \
+         ((x) == RSE_FIRMWARE_SI_CL0_ID)     ? FLASH_AREA_4_ID : \
          ((x) == RSE_FIRMWARE_AP_BL2_ID)     ? AP_FLASH_AREA_0_ID : \
                                               255)
 #define FLASH_AREA_IMAGE_SECONDARY(x) \
         (((x) == RSE_FIRMWARE_SECURE_ID)     ? FLASH_AREA_3_ID : \
+         ((x) == RSE_FIRMWARE_SI_CL0_ID)     ? FLASH_AREA_5_ID : \
          ((x) == RSE_FIRMWARE_AP_BL2_ID)     ? AP_FLASH_AREA_1_ID : \
                                               255)
 
