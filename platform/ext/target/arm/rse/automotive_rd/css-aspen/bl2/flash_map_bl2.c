@@ -21,7 +21,7 @@ const ARM_DRIVER_FLASH *flash_driver[] = {
 };
 const int flash_driver_entry_num = ARRAY_SIZE(flash_driver);
 
-const struct flash_area flash_map[] = {
+struct flash_area flash_map[] = {
     {
         .fa_id = FLASH_AREA_2_ID,
         .fa_device_id = FLASH_DEVICE_ID,
@@ -35,6 +35,20 @@ const struct flash_area flash_map[] = {
         .fa_driver = &FLASH_DEV_NAME,
         .fa_off = FLASH_AREA_3_OFFSET,
         .fa_size = FLASH_AREA_3_SIZE,
+    },
+    {
+        .fa_id = AP_FLASH_AREA_0_ID,
+        .fa_device_id = FLASH_DEVICE_ID,
+        .fa_driver = &AP_FLASH_DEV_NAME,
+        .fa_off = AP_FLASH_AREA_0_OFFSET,
+        .fa_size = AP_FLASH_AREA_0_SIZE,
+    },
+    {
+        .fa_id = AP_FLASH_AREA_1_ID,
+        .fa_device_id = FLASH_DEVICE_ID,
+        .fa_driver = &AP_FLASH_DEV_NAME,
+        .fa_off = AP_FLASH_AREA_1_OFFSET,
+        .fa_size = AP_FLASH_AREA_1_SIZE,
     },
 };
 
@@ -61,6 +75,9 @@ int boot_get_image_exec_ram_info(uint32_t image_id,
     if (image_id == RSE_FIRMWARE_SECURE_ID) {
         *exec_ram_start = S_IMAGE_LOAD_ADDRESS;
         *exec_ram_size  = SECURE_IMAGE_MAX_SIZE;
+    } else if (image_id == RSE_FIRMWARE_AP_BL2_ID) {
+        *exec_ram_start = HOST_AP_BL2_IMG_HDR_BASE_S;
+        *exec_ram_size  = HOST_AP_BL2_ATU_SIZE;
     } else {
         rc = -1;
     }

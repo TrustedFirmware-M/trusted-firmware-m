@@ -9,15 +9,47 @@
 #include "crypto_hw.h"
 #include "device_definition.h"
 #include "fih.h"
+#include "fip_parser.h"
 #include "flash_layout.h"
 #include "flash_map/flash_map.h"
 #include "host_base_address.h"
 #include "platform_base_address.h"
 #include "platform_regs.h"
+#include "tfm_plat_defs.h"
 
 #include <string.h>
 
+extern struct flash_area flash_map[];
+extern const int flash_map_entry_num;
 extern ARM_DRIVER_FLASH AP_FLASH_DEV_NAME;
+
+static int32_t fill_secure_flash_map_with_data(void)
+{
+    uint64_t tfa_offset = 0;
+    size_t tfa_size = 0;
+    enum tfm_plat_err_t result;
+    uint8_t i, id, flash_id;
+
+    result = fip_get_entry_by_uuid(&AP_FLASH_DEV_NAME,
+                AP_FLASH_FIP_OFFSET, AP_FLASH_FIP_SIZE,
+                UUID_TRUSTED_BOOT_FIRMWARE_BL2, &tfa_offset, &tfa_size);
+    if (result != TFM_PLAT_ERR_SUCCESS) {
+        return 1;
+    }
+
+    flash_id = FLASH_AREA_IMAGE_PRIMARY(RSE_FIRMWARE_AP_BL2_ID);
+
+    for (i = 0; i < flash_map_entry_num; i++) {
+        id = flash_map[i].fa_id;
+
+        if (id == flash_id) {
+            flash_map[i].fa_off = AP_FLASH_FIP_OFFSET + tfa_offset;
+            flash_map[i].fa_size = tfa_size;
+        }
+    }
+
+    return 0;
+}
 
 /*
  * ============================ INIT FUNCTIONS =================================
@@ -57,6 +89,93 @@ static int boot_platform_post_load_secure(void)
 }
 
 /*
+ * =========================== AP BL2 LOAD FUNCTIONS ===========================
+ */
+
+/* Function called before AP BL2 firmware is loaded. */
+static int boot_platform_pre_load_ap_bl2(void)
+{
+    enum atu_error_t atu_err;
+
+    BOOT_LOG_INF("BL2: AP BL2 pre load start");
+
+    /* Configure RSE ATU to access AP Secure Flash for AP BL2 */
+    atu_err = atu_initialize_region(&ATU_DEV_S,
+                                    HOST_AP_FLASH_ATU_ID,
+                                    HOST_AP_FLASH_BASE,
+                                    HOST_AP_FLASH_PHY_BASE,
+                                    HOST_AP_FLASH_SIZE);
+    if (atu_err != ATU_ERR_NONE) {
+        return 1;
+    }
+
+    /* Configure RSE ATU to access RSE header region for AP BL2 */
+    atu_err = atu_initialize_region(&ATU_DEV_S,
+                                    RSE_ATU_IMG_HDR_LOAD_ID,
+                                    HOST_AP_BL2_HDR_ATU_WINDOW_BASE_S,
+                                    HOST_AP_BL2_HDR_PHYS_BASE,
+                                    RSE_IMG_HDR_ATU_WINDOW_SIZE);
+    if (atu_err != ATU_ERR_NONE) {
+        return 1;
+    }
+
+    /* Configure RSE ATU to access AP BL2 Shared SRAM region */
+    atu_err = atu_initialize_region(&ATU_DEV_S,
+                                    RSE_ATU_IMG_CODE_LOAD_ID,
+                                    HOST_AP_BL2_IMG_CODE_BASE_S,
+                                    HOST_AP_BL2_PHYS_BASE,
+                                    HOST_AP_BL2_ATU_SIZE);
+    if (atu_err != ATU_ERR_NONE) {
+        return 1;
+    }
+
+    if (fill_secure_flash_map_with_data() != 0) {
+        BOOT_LOG_ERR("BL2: Unable to extract AP BL2 from FIP");
+        return 1;
+    }
+
+    BOOT_LOG_INF("BL2: AP BL2 pre load complete");
+
+    return 0;
+}
+
+/* Function called after AP BL2 firmware is loaded. */
+static int boot_platform_post_load_ap_bl2(void)
+{
+    enum atu_error_t atu_err;
+
+    BOOT_LOG_INF("BL2: AP BL2 post load start");
+
+    /*
+     * Since the measurement are taken at this point, clear the image
+     * header part in the Shared SRAM before releasing AP BL2 out of reset.
+     */
+    memset(HOST_AP_BL2_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
+
+    /* Close RSE ATU to access AP Secure Flash for AP BL2 */
+    atu_err = atu_uninitialize_region(&ATU_DEV_S, HOST_AP_FLASH_ATU_ID);
+    if (atu_err != ATU_ERR_NONE) {
+        return 1;
+    }
+
+    /* Close RSE ATU region configured to access RSE header region for AP BL2 */
+    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_HDR_LOAD_ID);
+    if (atu_err != ATU_ERR_NONE) {
+        return 1;
+    }
+
+    /* Close RSE ATU region configured to access AP BL2 Shared SRAM region */
+    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_CODE_LOAD_ID);
+    if (atu_err != ATU_ERR_NONE) {
+        return 1;
+    }
+
+    BOOT_LOG_INF("BL2: AP BL2 post load complete");
+
+    return 0;
+}
+
+/*
  * ================================= VECTORS ==================================
  */
 
@@ -66,6 +185,7 @@ static int boot_platform_post_load_secure(void)
  */
 static int (*boot_platform_pre_load_vector[RSE_FIRMWARE_COUNT]) (void) = {
     [RSE_FIRMWARE_SECURE_ID]        = boot_platform_pre_load_secure,
+    [RSE_FIRMWARE_AP_BL2_ID]        = boot_platform_pre_load_ap_bl2,
 };
 
 /*
@@ -74,6 +194,7 @@ static int (*boot_platform_pre_load_vector[RSE_FIRMWARE_COUNT]) (void) = {
  */
 static int (*boot_platform_post_load_vector[RSE_FIRMWARE_COUNT]) (void) = {
     [RSE_FIRMWARE_SECURE_ID]        = boot_platform_post_load_secure,
+    [RSE_FIRMWARE_AP_BL2_ID]        = boot_platform_post_load_ap_bl2,
 };
 
 /*

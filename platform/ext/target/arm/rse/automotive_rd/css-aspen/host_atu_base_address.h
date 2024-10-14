@@ -127,8 +127,34 @@ enum rse_atu_ids {
  * Note: MCUBoot requires that the logical addresses do not overlap.
  */
 
+/* AP BL2 */
+
+/* AP BL2 ATU HEADER logical address start */
+#define HOST_AP_BL2_HDR_ATU_WINDOW_BASE_S HOST_ACCESS_BASE_S
+/* AP BL2 Image address start, offset so end of HEADER at end of ATU HEADER */
+#define HOST_AP_BL2_IMG_HDR_BASE_S        (HOST_AP_BL2_HDR_ATU_WINDOW_BASE_S + \
+                                           RSE_IMG_HDR_ATU_WINDOW_SIZE -       \
+                                           BL2_HEADER_SIZE)
+/* AP BL2 Code region logical address start */
+#define HOST_AP_BL2_IMG_CODE_BASE_S       (HOST_AP_BL2_HDR_ATU_WINDOW_BASE_S + \
+                                           RSE_IMG_HDR_ATU_WINDOW_SIZE)
+/* AP BL2 Shared SRAM physical address start */
+#define HOST_AP_BL2_PHYS_BASE             (HOST_AP_SHARED_SRAM_PHYS_BASE +     \
+                                           0x82000UL)
+/* AP BL2 ATU CODE size */
+#define HOST_AP_BL2_ATU_SIZE              ALIGN_UP(SIZE_DEF_AP_BL2_IMAGE,      \
+                                                   RSE_ATU_PAGE_SIZE)
+/* AP BL2 HEADER physical address start (mapped to end of AP ITCM) */
+#define HOST_AP_BL2_HDR_PHYS_BASE         (HOST_AP_BL2_PHYS_BASE +             \
+                                           HOST_AP_BL2_ATU_SIZE -              \
+                                           RSE_IMG_HDR_ATU_WINDOW_SIZE)
+
+/* Last RSE logical address used for loading images */
+#define RSE_IMAGE_LOADING_END             (HOST_AP_BL2_IMG_CODE_BASE_S +       \
+                                           HOST_AP_BL2_ATU_SIZE)
+
 /* ATU region mapping to access AP secure flash */
-#define HOST_AP_FLASH_BASE      HOST_ACCESS_BASE_S
+#define HOST_AP_FLASH_BASE      RSE_IMAGE_LOADING_END
 #define HOST_AP_FLASH_SIZE      ALIGN_UP(AP_BOOT_FLASH_SIZE, RSE_ATU_PAGE_SIZE)
 #define HOST_AP_FLASH_PHY_BASE  (HOST_AP_MEM_EXP_PHYS_BASE + HOST_AP_MEM_EXP_FLASH_OFFSET)
 #define HOST_AP_FLASH_ATU_ID    RSE_ATU_AP_FLASH_ID

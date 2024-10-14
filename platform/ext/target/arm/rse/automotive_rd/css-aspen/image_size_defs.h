@@ -15,4 +15,7 @@
 /* Non-Secure Firmware */
 #define SIZE_DEF_NS_IMAGE           (0x0)     /* 0 KB */
 
+/* Host Firmware */
+#define SIZE_DEF_AP_BL2_IMAGE       (0x80000) /* 512 KB */
+
 #endif /* __IMAGE_SIZE_DEFS_H__ */
