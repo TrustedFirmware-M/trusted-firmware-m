@@ -12,6 +12,7 @@
 #ifndef __RSE_EXPANSION_DEVICE_DEFINITION_H__
 #define __RSE_EXPANSION_DEVICE_DEFINITION_H__
 
+#include "mhu_v3_x.h"
 #include "rse_expansion_device_cfg.h"
 #include "spi_strataflashj3_flash_lib.h"
 

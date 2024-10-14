@@ -9,6 +9,7 @@
 set(CONFIG_TFM_SPM_BACKEND              IPC      CACHE STRING  "The SPM backend")
 set(MCUBOOT_IMAGE_NUMBER                2        CACHE STRING  "Number of images supported by MCUBoot")
 set(PLATFORM_HAS_BOOT_DMA               OFF      CACHE BOOL    "Enable dma support for memory transactions for bootloader")
+set(PLAT_MHU_VERSION                    3        CACHE STRING  "Supported MHU version by platform")
 set(RSE_HAS_EXPANSION_PERIPHERALS       ON       CACHE BOOL    "Whether RSE has sub-platform specific peripherals in the expansion layer")
 set(RSE_USE_HOST_FLASH                  OFF      CACHE BOOL    "Enable RSE using the host flash.")
 set(RSE_USE_HOST_UART                   ON       CACHE BOOL    "Whether RSE should use the UART from the host system (opposed to dedicated UART private to RSE)")
