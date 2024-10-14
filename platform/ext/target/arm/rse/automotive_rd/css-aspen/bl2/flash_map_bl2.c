@@ -12,10 +12,12 @@
 
 /* Flash device names must be specified by target */
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
+extern ARM_DRIVER_FLASH AP_FLASH_DEV_NAME;
 
 /* Default Drivers list */
 const ARM_DRIVER_FLASH *flash_driver[] = {
     &FLASH_DEV_NAME,
+    &AP_FLASH_DEV_NAME,
 };
 const int flash_driver_entry_num = ARRAY_SIZE(flash_driver);
 

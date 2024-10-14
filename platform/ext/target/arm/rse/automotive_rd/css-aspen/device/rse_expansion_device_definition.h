@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 extern struct cfi_strataflashj3_dev_t SPI_STRATAFLASHJ3_DEV;
+extern struct cfi_strataflashj3_dev_t SPI_STRATAFLASHJ3_AP_DEV;
 
 #ifdef __cplusplus
 }

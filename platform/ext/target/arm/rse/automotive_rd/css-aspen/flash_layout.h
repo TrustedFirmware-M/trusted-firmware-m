@@ -116,4 +116,9 @@
 /* Smallest flash programmable unit in bytes */
 #define TFM_HAL_FLASH_PROGRAM_UNIT      (0x1)
 
+/*
+ * Application Processor Secure Flash used by BL2
+ */
+#define AP_FLASH_DEV_NAME       Driver_FLASH1
+
 #endif /* __FLASH_LAYOUT_H__ */

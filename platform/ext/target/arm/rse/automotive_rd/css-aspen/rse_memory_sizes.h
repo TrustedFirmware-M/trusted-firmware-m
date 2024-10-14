@@ -18,6 +18,7 @@
 #define RETAINED_RAM_SIZE  0x20000 /* 128 KiB */
 
 #define BOOT_FLASH_SIZE    0x4000000 /* 64MB */
+#define AP_BOOT_FLASH_SIZE 0x4000000 /* 64MB */
 
 /*
  * The size of the SRAM which is allocated to NS. This may be increased

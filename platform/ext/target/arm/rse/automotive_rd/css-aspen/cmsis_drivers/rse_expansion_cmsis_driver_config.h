@@ -16,4 +16,6 @@
 
 #define FLASH0_DEV                   SPI_STRATAFLASHJ3_DEV
 
+#define FLASH1_DEV                   SPI_STRATAFLASHJ3_AP_DEV
+
 #endif  /* __RSE_EXPANSION_CMSIS_DRIVER_CONFIG_H__ */

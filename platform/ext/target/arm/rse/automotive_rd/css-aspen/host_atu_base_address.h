@@ -30,6 +30,9 @@ enum rse_atu_ids {
     RSE_ATU_IMG_CODE_LOAD_ID,
     /* ID to use for region initializing firmware */
     RSE_ATU_FW_INIT_ID,
+
+    /* ATU region ID for AP secure flash */
+    RSE_ATU_AP_FLASH_ID,
 };
 
 /*
@@ -123,5 +126,11 @@ enum rse_atu_ids {
  * Note: these need to consistent with values used when signing the images.
  * Note: MCUBoot requires that the logical addresses do not overlap.
  */
+
+/* ATU region mapping to access AP secure flash */
+#define HOST_AP_FLASH_BASE      HOST_ACCESS_BASE_S
+#define HOST_AP_FLASH_SIZE      ALIGN_UP(AP_BOOT_FLASH_SIZE, RSE_ATU_PAGE_SIZE)
+#define HOST_AP_FLASH_PHY_BASE  (HOST_AP_MEM_EXP_PHYS_BASE + HOST_AP_MEM_EXP_FLASH_OFFSET)
+#define HOST_AP_FLASH_ATU_ID    RSE_ATU_AP_FLASH_ID
 
 #endif  /* __HOST_ATU_BASE_ADDRESS_H__ */

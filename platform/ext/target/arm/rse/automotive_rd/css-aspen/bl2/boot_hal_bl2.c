@@ -17,6 +17,8 @@
 
 #include <string.h>
 
+extern ARM_DRIVER_FLASH AP_FLASH_DEV_NAME;
+
 /*
  * ============================ INIT FUNCTIONS =================================
  */
@@ -24,6 +26,11 @@
 int32_t boot_platform_post_init(void)
 {
     int32_t result;
+
+    result = AP_FLASH_DEV_NAME.Initialize(NULL);
+    if (result != 0) {
+        return result;
+    }
 
     result = crypto_hw_accelerator_init();
     if (result) {
