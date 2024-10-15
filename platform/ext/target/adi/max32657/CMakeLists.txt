@@ -195,3 +195,55 @@ target_include_directories(platform_s
         ${HAL_ADI_CMSIS_INC_DIR}
         ${PLATFORM_DIR}/..
 )
+
+#========================= Files for building NS platform =====================#
+
+install(FILES       ${TARGET_PLATFORM_PATH}/cmsis_drivers/Driver_USART.c
+                    DESTINATION ${INSTALL_PLATFORM_NS_DIR})
+
+install(FILES       ${TARGET_PLATFORM_PATH}/partition/region_defs.h
+                    ${TARGET_PLATFORM_PATH}/partition/flash_layout.h
+                    ${TARGET_PLATFORM_PATH}/device/inc/mpc_sie200_drv.h
+                    ${TARGET_PLATFORM_PATH}/platform_retarget.h
+                    ${TARGET_PLATFORM_PATH}/target_cfg.h
+                    ${TARGET_PLATFORM_PATH}/device_cfg.h
+                    ${TARGET_PLATFORM_PATH}/tfm_peripherals_def.h
+                    ${TARGET_PLATFORM_PATH}/RTE_Device.h
+                    ${TARGET_PLATFORM_PATH}/cmsis.h
+                    ${PLATFORM_DIR}/ext/common/test_interrupt.h
+                    ${PLATFORM_DIR}/ext/driver/Driver_USART.h
+                    ${PLATFORM_DIR}/ext/driver/Driver_Common.h
+                    ${PLATFORM_DIR}/include/tfm_plat_defs.h
+                    ${CMAKE_SOURCE_DIR}/lib/fih/inc/fih.h
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/include)
+
+install(DIRECTORY   ${HAL_ADI_PERIPH_INC_DIR}
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/include)
+
+install(DIRECTORY   ${HAL_ADI_CMSIS_INC_DIR}
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/include/cmsis)
+
+install(FILES       ${TARGET_PLATFORM_PATH}/device/src/startup_${TARGET_LC}.c
+                    ${TARGET_PLATFORM_PATH}/device/src/system_${TARGET_LC}.c
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/device/src)
+
+install(FILES       ${HAL_ADI_CMSIS_INC_DIR}/max32657.h
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/device/inc)
+
+install(FILES       ${PLATFORM_DIR}/ext/common/gcc/tfm_common_ns.ld
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/linker_scripts)
+
+# copy all files from active platform directory
+install(DIRECTORY   ${TARGET_PLATFORM_PATH}/ns/
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR})
+
+install(FILES       ${TARGET_PLATFORM_PATH}/cpuarch.cmake
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR})
+
+# Copy the platform specific config
+install(FILES       ${TARGET_PLATFORM_PATH}/config.cmake
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR})
+
+# Install test configs
+install(DIRECTORY   ${TARGET_PLATFORM_PATH}/tests
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR})
