@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -40,7 +40,7 @@
  * attempt_version: attempted versions for the image
  *
  */
-enum fwu_agent_error_t fmp_set_image_info(struct efi_guid *guid,
+psa_status_t fmp_set_image_info(struct efi_guid *guid,
                      uint32_t current_version, uint32_t attempt_version,
                      uint32_t last_attempt_status);
 
@@ -51,6 +51,5 @@ enum fwu_agent_error_t fmp_set_image_info(struct efi_guid *guid,
  * size : size of the buffer
  *
  */
-enum fwu_agent_error_t fmp_get_image_info(void *buffer, uint32_t size);
-
+psa_status_t fmp_get_image_info(void *buffer, uint32_t size);
 #endif /* UEFI_FMP_H */

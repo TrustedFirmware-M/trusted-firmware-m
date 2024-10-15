@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -9,11 +9,12 @@
 #include <stdbool.h>
 #include "tfm_hal_device_header.h"
 #include "uefi_fmp.h"
+#include "flash_layout.h"
 
 /* The count will increase when partial update is supported.
  * At present, only full WIC is considered as updatable image.
  */
-#define NUMBER_OF_FMP_IMAGES 1
+#define NUMBER_OF_FMP_IMAGES    NR_OF_IMAGES_IN_FW_BANK
 #define NO_OF_FMP_VARIABLES_PER_IMAGE   6
 
 #define UEFI_ARCHITECTURE_64
@@ -74,18 +75,41 @@ typedef __PACKED_STRUCT {
     uint32_t ImageVersionNameSize;
 } EFI_FIRMWARE_MANAGEMENT_PROTOCOL_IMAGE_INFO;
 
+struct corstone_image_info {
+    uint8_t corstone_image_name[50];
+    uint8_t corstone_version_name[50];
+} __packed;
 
-static uint16_t corstone_image_name0[] = { 'C', 'O', 'R', 'S', 'T', 'O', 'N', 'E', '1', '0', '0', '0', '_', 'W', 'I', 'C', '\0' };
-static uint16_t corstone_version_name0[] = { 'C', 'O', 'R', 'S', 'T', 'O', 'N', 'E', '1', '0', '0', '0', '_', 'B', 'E', 'S', 'T', '\0'};
-
+/* Change image names and version name when partial update is implemented */
+struct corstone_image_info image_info[NUMBER_OF_FMP_IMAGES] = {
+    {
+        { 'C', 'O', 'R', 'S', 'T', 'O', 'N', 'E', '1', '0', '0', '0', '_', 'W', 'I', 'C', '\0' },
+	{ 'C', 'O', 'R', 'S', 'T', 'O', 'N', 'E', '1', '0', '0', '0', '_', 'B', 'E', 'S', 'T', '\0'},
+    },
+    {
+        { 'C', 'O', 'R', 'S', 'T', 'O', 'N', 'E', '1', '0', '0', '0', '_', 'W', 'I', 'C', '\0' },
+	{ 'C', 'O', 'R', 'S', 'T', 'O', 'N', 'E', '1', '0', '0', '0', '_', 'B', 'E', 'S', 'T', '\0'},
+    },
+    {
+        { 'C', 'O', 'R', 'S', 'T', 'O', 'N', 'E', '1', '0', '0', '0', '_', 'W', 'I', 'C', '\0' },
+	{ 'C', 'O', 'R', 'S', 'T', 'O', 'N', 'E', '1', '0', '0', '0', '_', 'B', 'E', 'S', 'T', '\0'},
+    },
+    {
+        { 'C', 'O', 'R', 'S', 'T', 'O', 'N', 'E', '1', '0', '0', '0', '_', 'W', 'I', 'C', '\0' },
+	{ 'C', 'O', 'R', 'S', 'T', 'O', 'N', 'E', '1', '0', '0', '0', '_', 'B', 'E', 'S', 'T', '\0'},
+    },
+};
 static EFI_FIRMWARE_MANAGEMENT_PROTOCOL_IMAGE_INFO fmp_info[NUMBER_OF_FMP_IMAGES];
 
-extern struct efi_guid full_capsule_image_guid;
+extern fwu_bank_image_info_t fwu_image[];
 
 static bool is_fmp_info_initialized = false;
 
 static void init_fmp_info(void)
 {
+    if(is_fmp_info_initialized) {
+        return;
+    }
     memset(fmp_info, 0,
      sizeof(EFI_FIRMWARE_MANAGEMENT_PROTOCOL_IMAGE_INFO) * NUMBER_OF_FMP_IMAGES);
 
@@ -93,42 +117,44 @@ static void init_fmp_info(void)
      * Add further details when partial image is supported.
      */
 
-    fmp_info[0].DescriptorVersion = 4;
-    fmp_info[0].DescriptorCount = NUMBER_OF_FMP_IMAGES;
-    fmp_info[0].DescriptorsSize =
-                 sizeof(EFI_FIRMWARE_IMAGE_DESCRIPTOR) +
-                 sizeof(corstone_image_name0) + sizeof(corstone_version_name0);
+    for (int i = 0; i < NUMBER_OF_FMP_IMAGES; i++)
+    {
+        fmp_info[i].DescriptorVersion = 4;
+        fmp_info[i].DescriptorCount = NUMBER_OF_FMP_IMAGES;
+        fmp_info[i].DescriptorsSize =
+                     sizeof(EFI_FIRMWARE_IMAGE_DESCRIPTOR) +
+                     sizeof(image_info[i].corstone_image_name) + sizeof(image_info[i].corstone_version_name);
 
-    fmp_info[0].ImageDescriptor.ImageIndex = 1;
+        fmp_info[i].ImageDescriptor.ImageIndex = i+1;
 
-    memcpy(&fmp_info[0].ImageDescriptor.ImageTypeId, &full_capsule_image_guid,
-            sizeof(struct efi_guid));
+        memcpy(&fmp_info[i].ImageDescriptor.ImageTypeId, &fwu_image[i].image_guid,
+                sizeof(struct efi_guid));
 
-    fmp_info[0].ImageDescriptor.ImageId = 1;
-    fmp_info[0].ImageDescriptor.Version = FWU_IMAGE_INITIAL_VERSION;
-    fmp_info[0].ImageDescriptor.AttributesSupported = 1;
-    fmp_info[0].ImageDescriptor.AttributesSetting = (
-            IMAGE_ATTRIBUTE_IMAGE_UPDATABLE | IMAGE_ATTRIBUTE_RESET_REQUIRED);
-    fmp_info[0].ImageDescriptor.LowestSupportedImageVersion =
-            FWU_IMAGE_INITIAL_VERSION;
-    fmp_info[0].ImageDescriptor.LastAttemptVersion = FWU_IMAGE_INITIAL_VERSION;
-    fmp_info[0].ImageDescriptor.LastAttemptStatus = LAST_ATTEMPT_STATUS_SUCCESS;
+        fmp_info[i].ImageDescriptor.ImageId = i+1;
+        fmp_info[i].ImageDescriptor.Version = FWU_IMAGE_INITIAL_VERSION;
+        fmp_info[i].ImageDescriptor.AttributesSupported = 1;
+        fmp_info[i].ImageDescriptor.AttributesSetting = (
+                IMAGE_ATTRIBUTE_IMAGE_UPDATABLE | IMAGE_ATTRIBUTE_RESET_REQUIRED);
+        fmp_info[i].ImageDescriptor.LowestSupportedImageVersion =
+                FWU_IMAGE_INITIAL_VERSION;
+        fmp_info[i].ImageDescriptor.LastAttemptVersion = FWU_IMAGE_INITIAL_VERSION;
+        fmp_info[i].ImageDescriptor.LastAttemptStatus = LAST_ATTEMPT_STATUS_SUCCESS;
 
-    fmp_info[0].ImageName = corstone_image_name0;
-    fmp_info[0].ImageNameSize = sizeof(corstone_image_name0);
-    fmp_info[0].ImageVersionName = corstone_version_name0;
-    fmp_info[0].ImageVersionNameSize = sizeof(corstone_version_name0);
-
+        fmp_info[i].ImageName = image_info[i].corstone_image_name;
+        fmp_info[i].ImageNameSize = sizeof(image_info[i].corstone_image_name);
+        fmp_info[i].ImageVersionName = image_info[i].corstone_version_name;
+        fmp_info[i].ImageVersionNameSize = sizeof(image_info[i].corstone_version_name);
+    }
     is_fmp_info_initialized = true;
 
     return;
 }
 
-enum fwu_agent_error_t fmp_set_image_info(struct efi_guid *guid,
+psa_status_t fmp_set_image_info(struct efi_guid *guid,
                      uint32_t current_version, uint32_t attempt_version,
                      uint32_t last_attempt_status)
 {
-    enum fwu_agent_error_t status = FWU_AGENT_ERROR;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
     FWU_LOG_MSG("%s:%d Enter\n\r", __func__, __LINE__);
 
@@ -149,7 +175,7 @@ enum fwu_agent_error_t fmp_set_image_info(struct efi_guid *guid,
                             "version=%u last_attempt_version=%u.\n\r",
                             last_attempt_status, current_version,
                             attempt_version);
-            status = FWU_AGENT_SUCCESS;
+            status = PSA_SUCCESS;
             break;
         }
     }
@@ -161,7 +187,7 @@ enum fwu_agent_error_t fmp_set_image_info(struct efi_guid *guid,
 
 #define NO_OF_FMP_VARIABLES    (NUMBER_OF_FMP_IMAGES * NO_OF_FMP_VARIABLES_PER_IMAGE)
 
-static enum fwu_agent_error_t pack_image_info(void *buffer, uint32_t size)
+static psa_status_t pack_image_info(void *buffer, uint32_t size)
 {
     typedef __PACKED_STRUCT {
         uint32_t variable_count;
@@ -178,7 +204,7 @@ static enum fwu_agent_error_t pack_image_info(void *buffer, uint32_t size)
 
     if (size < current_size) {
         FWU_LOG_MSG("%s:%d Buffer too small.\n\r", __func__, __LINE__);
-        return FWU_AGENT_ERROR;
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     packed_buffer->variable_count = NO_OF_FMP_VARIABLES;
@@ -201,7 +227,7 @@ static enum fwu_agent_error_t pack_image_info(void *buffer, uint32_t size)
 
        if (size < current_size) {
            FWU_LOG_MSG("%s:%d Buffer too small.\n\r", __func__, __LINE__);
-           return FWU_AGENT_ERROR;
+           return PSA_ERROR_BUFFER_TOO_SMALL;
        }
 
        FWU_LOG_MSG("%s:%d ImageInfo size = %u, ImageName size = %u, "
@@ -222,12 +248,12 @@ static enum fwu_agent_error_t pack_image_info(void *buffer, uint32_t size)
 
     }
 
-    return FWU_AGENT_SUCCESS;
+    return PSA_SUCCESS;
 }
 
-enum fwu_agent_error_t fmp_get_image_info(void *buffer, uint32_t size)
+psa_status_t fmp_get_image_info(void *buffer, uint32_t size)
 {
-    enum fwu_agent_error_t status;
+    psa_status_t status;
 
     FWU_LOG_MSG("%s:%d Enter\n\r", __func__, __LINE__);
 
@@ -237,4 +263,3 @@ enum fwu_agent_error_t fmp_get_image_info(void *buffer, uint32_t size)
 
     return status;
 }
-

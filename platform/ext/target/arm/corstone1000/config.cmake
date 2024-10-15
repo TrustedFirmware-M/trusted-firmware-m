@@ -59,6 +59,9 @@ set(TFM_PARTITION_FIRMWARE_UPDATE         ON         CACHE BOOL      "Enable fir
 set(PLATFORM_HAS_FIRMWARE_UPDATE_SUPPORT  ON         CACHE BOOL      "Whether the platform has firmware update support")
 set(MCUBOOT_DATA_SHARING                  ON         CACHE BOOL      "Enable Data Sharing")
 set(TFM_FWU_BOOTLOADER_LIB                "${CMAKE_CURRENT_LIST_DIR}/bootloader/mcuboot"   CACHE STRING    "Bootloader configuration file for Firmware Update partition")
+set(TFM_CONFIG_FWU_MAX_MANIFEST_SIZE      0          CACHE STRING    "The maximum permitted size for manifest in psa_fwu_start(), in bytes.")
+set(TFM_CONFIG_FWU_MAX_WRITE_SIZE         4096       CACHE STRING    "The maximum permitted size for block in psa_fwu_write, in bytes.")
+set(FWU_SUPPORT_TRIAL_STATE               ON         CACHE BOOL      "Device support TRIAL component state.")
 
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug OR ${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
   set(ENABLE_FWU_AGENT_DEBUG_LOGS     TRUE          CACHE BOOL      "Enable Firmware update agent debug logs.")

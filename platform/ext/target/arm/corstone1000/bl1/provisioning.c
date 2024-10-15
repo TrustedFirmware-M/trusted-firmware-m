@@ -98,7 +98,7 @@ enum tfm_plat_err_t provision_assembly_and_test(void)
     }
 
     err = fwu_metadata_provision();
-    if (err != FWU_AGENT_SUCCESS) {
+    if (err != PSA_SUCCESS) {
         return 1;
     }
 

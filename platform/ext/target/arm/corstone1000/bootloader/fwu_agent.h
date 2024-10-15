@@ -8,17 +8,16 @@
 #ifndef FWU_AGENT_H
 #define FWU_AGENT_H
 
+#include "psa/error.h"
+#include "../fip_parser/external/uuid.h"
+
+#define ENABLE_FWU_AGENT_DEBUG_LOGS
 #ifdef ENABLE_FWU_AGENT_DEBUG_LOGS
     #include "tfm_log.h"
     #define FWU_LOG_MSG(f_, ...) tfm_log(LOG_MARKER_RAW f_, ##__VA_ARGS__)
 #else
     #define FWU_LOG_MSG(f_, ...)
 #endif
-
-enum fwu_agent_error_t {
-        FWU_AGENT_SUCCESS = 0,
-        FWU_AGENT_ERROR = (-1)
-};
 
 #define FWU_ASSERT(_c_)                                                        \
                 if (!(_c_)) {                                                  \
@@ -30,19 +29,63 @@ enum fwu_agent_error_t {
 /* Version used for the very first image of the device. */
 #define FWU_IMAGE_INITIAL_VERSION 0
 
-enum fwu_agent_error_t fwu_metadata_provision(void);
-enum fwu_agent_error_t fwu_metadata_init(void);
+#define EFI_SYSTEM_RESOURCE_TABLE_FIRMWARE_RESOURCE_VERSION  1
+typedef struct {
+    uint32_t signature;
+    uint32_t header_size;
+    uint32_t fw_version;
+    uint32_t lowest_supported_version;
+} __packed fmp_payload_header_t;
+
+typedef struct {
+    fmp_payload_header_t fmp_hdr;
+    size_t fmp_hdr_size_recvd;
+    size_t image_size_recvd;
+} __packed fmp_header_image_info_t;
+
+/* Store image information common for both the banks */
+typedef struct {
+    /* Total size of the image */
+    uint32_t image_size;
+
+    /* Offset of image within a bank */
+    uint32_t image_offset;
+
+    /* Image GUID */
+    struct efi_guid image_guid;
+} __packed fwu_bank_image_info_t;
+
+/* ESRT v1 */
+struct __attribute__((__packed__)) efi_system_resource_entry {
+    struct   efi_guid fw_class;
+    uint32_t fw_type;
+    uint32_t fw_version;
+    uint32_t lowest_supported_fw_version;
+    uint32_t capsule_flags;
+    uint32_t last_attempt_version;
+    uint32_t last_attempt_status;
+};
+
+struct __attribute__((__packed__)) efi_system_resource_table {
+    uint32_t fw_resource_count;
+    uint32_t fw_resource_count_max;
+    uint64_t fw_resource_version;
+    struct   efi_system_resource_entry entries[];
+};
+
+psa_status_t fwu_metadata_provision(void);
+psa_status_t fwu_metadata_init(void);
 
 /* host to secure enclave:
  * firwmare update image is sent accross
  */
-enum fwu_agent_error_t corstone1000_fwu_flash_image(void);
+psa_status_t corstone1000_fwu_flash_image(void);
 
 /* host to secure enclave:
  * host responds with this api to acknowledge its successful
  * boot.
  */
-enum fwu_agent_error_t corstone1000_fwu_host_ack(void);
+psa_status_t corstone1000_fwu_host_ack(void);
 
 void bl1_get_active_bl2_image(uint32_t *bank_offset);
 uint8_t bl2_get_boot_bank(void);
@@ -67,7 +110,14 @@ enum fwu_nv_counter_index_t {
  * the function assumes that the api is called in the boot loading
  * stage
  */
-enum fwu_agent_error_t fwu_stage_nv_counter(enum fwu_nv_counter_index_t index,
+psa_status_t fwu_stage_nv_counter(enum fwu_nv_counter_index_t index,
         uint32_t img_security_cnt);
+
+/*
+ * Check if both metadata replica is valid by calculating and comparing crc32.
+ * If one of the replica is corrupted then update it with the valid replica.
+ * If both of the replicas are corrupted then the correction is not possible.
+ */
+psa_status_t fwu_metadata_check_and_correct_integrity(void);
 
 #endif /* FWU_AGENT_H */

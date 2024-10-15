@@ -76,8 +76,8 @@ int32_t boot_nv_security_counter_update(uint32_t image_id,
 {
     enum tfm_nv_counter_t nv_counter;
     enum tfm_plat_err_t err;
-    enum fwu_agent_error_t fwu_err;
     bool provisioning_required;
+    psa_status_t fwu_err;
 
     nv_counter = get_nv_counter_from_image_id(image_id);
     if (nv_counter >= TFM_BOOT_NV_COUNTER_MAX) {
@@ -105,7 +105,7 @@ int32_t boot_nv_security_counter_update(uint32_t image_id,
             return -1;
         }
 
-        if (fwu_err != FWU_AGENT_SUCCESS) {
+        if (fwu_err != PSA_SUCCESS) {
             return -1;
         }
 

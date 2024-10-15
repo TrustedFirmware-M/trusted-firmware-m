@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,8 +134,16 @@
                                              */
 
 /* Bank configurations */
-#define BANK_PARTITION_SIZE             (0xFE0000)   /* 15.875 MB */
-#define TFM_PARTITION_SIZE              (0x50000)    /* 320 KiB */
+#define BANK_PARTITION_SIZE               (0xFE0000)   /* 15.875 MB */
+#define SE_BL2_PARTITION_BANK_OFFSET      (0)
+#define TFM_PARTITION_SIZE                (0x50000)    /* 320 KB */
+#define TFM_PARTITION_BANK_OFFSET         (SE_BL2_PARTITION_SIZE)
+
+#define FIP_PARTITION_SIZE                (0x200000)   /* 2 MB */
+#define FIP_PARTITION_BANK_OFFSET         (TFM_PARTITION_BANK_OFFSET + TFM_PARTITION_SIZE)
+
+#define INITRAMFS_PARTITION_SIZE          (0xC00000)   /* 12 MB */
+#define INITRAMFS_PARTITION_BANK_OFFSET   (FIP_PARTITION_BANK_OFFSET + FIP_PARTITION_SIZE)
 
 /************************************************************/
 /* Bank : Images flash offsets are with respect to the bank */

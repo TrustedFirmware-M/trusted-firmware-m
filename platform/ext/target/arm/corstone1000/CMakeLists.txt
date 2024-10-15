@@ -115,7 +115,7 @@ target_include_directories(platform_s
         ${PLATFORM_DIR}/ext/target/arm/drivers/usart/pl011
     INTERFACE
         cc312
-        fw_update_agent
+        bootloader
         soft_crc
         io
         partition
@@ -133,9 +133,8 @@ target_sources(platform_s
         Native_Driver/watchdog.c
         Native_Driver/arm_watchdog_drv.c
         $<$<BOOL:TFM_PARTITION_PLATFORM>:${CMAKE_CURRENT_SOURCE_DIR}/services/src/tfm_platform_system.c>
-        fw_update_agent/uefi_capsule_parser.c
-        fw_update_agent/fwu_agent.c
-        fw_update_agent/uefi_fmp.c
+        bootloader/mcuboot/tfm_mcuboot_fwu.c
+        bootloader/mcuboot/uefi_fmp.c
         soft_crc/soft_crc.c
         io/io_block.c
         io/io_flash.c
@@ -198,10 +197,15 @@ target_sources(platform_bl1_1
         ./Native_Driver/watchdog.c
         ./bl1/boot_hal_bl1_1.c
         ./bl1/provisioning.c
-        ./fw_update_agent/fwu_agent.c
-        ./fw_update_agent/uefi_capsule_parser.c
-        ./fw_update_agent/uefi_fmp.c
+        ./bootloader/mcuboot/tfm_mcuboot_fwu.c
+        ./bootloader/mcuboot/uefi_fmp.c
         ./soft_crc/soft_crc.c
+        ./partition/partition.c
+        ./partition/gpt.c
+        ./platform.c
+        ./io/io_block.c
+        ./io/io_flash.c
+        ./io/io_storage.c
         $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_OTP}>>:${PLATFORM_DIR}/ext/accelerator/cc312/otp_cc312.c>
         $<$<NOT:$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>>:${CMAKE_CURRENT_SOURCE_DIR}/bl1/cc312_rom_crypto.c>
         $<$<NOT:$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>>:${CMAKE_CURRENT_SOURCE_DIR}/bl1/cc312_rom_random.c>
@@ -224,8 +228,10 @@ target_include_directories(platform_bl1_1_interface
         ./Device/Config
         ./Native_Driver
         ./CMSIS_Driver/Config
-        ./fw_update_agent
+        ./bootloader
         ./soft_crc
+        ./partition
+        ./io
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/cfi
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/common
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/strata
@@ -236,11 +242,17 @@ target_include_directories(platform_bl1_1_interface
         ${PLATFORM_DIR}/ext/target/arm/drivers/usart/pl011
         $<$<BOOL:${CRYPTO_HW_ACCELERATOR}>:${CMAKE_SOURCE_DIR}/platform/ext/accelerator/interface>
         ${PLATFORM_DIR}/ext/accelerator/cc312/
+	${CMAKE_SOURCE_DIR}/lib/fih/inc/
 )
 
 target_link_libraries(platform_bl1_1
     PRIVATE
         $<$<NOT:$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>>:cc3xx>
+)
+
+target_include_directories(platform_bl1_1
+    PRIVATE
+    ${CMAKE_SOURCE_DIR}/interface/include # for psa/error.h
 )
 
 target_sources(platform_bl1_2
@@ -268,7 +280,7 @@ target_include_directories(platform_bl1_2
         ./Device/Config
         ./Native_Driver
         ./CMSIS_Driver/Config
-        ./fw_update_agent
+        ./bootloader
         ./soft_crc
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/common
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/cfi
@@ -277,6 +289,7 @@ target_include_directories(platform_bl1_2
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/n25q256a/
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/sst26vf064b/
         ${PLATFORM_DIR}/ext/accelerator/cc312/
+	${CMAKE_SOURCE_DIR}/interface/include # for psa/error.h
 )
 
 #========================= Platform BL2 =======================================#
@@ -293,7 +306,7 @@ target_sources(platform_bl2
         Native_Driver/watchdog.c
         Native_Driver/arm_watchdog_drv.c
         fip_parser/fip_parser.c
-        fw_update_agent/fwu_agent.c
+        bootloader/mcuboot/tfm_mcuboot_fwu.c
         bl2/security_cnt_bl2.c
         $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_OTP}>>:${PLATFORM_DIR}/ext/accelerator/cc312/otp_cc312.c>
         io/io_block.c
@@ -348,6 +361,12 @@ target_compile_definitions(bl2
         $<$<BOOL:${CRYPTO_HW_ACCELERATOR_OTP_PROVISIONING}>:CRYPTO_HW_ACCELERATOR_OTP_PROVISIONING>
         $<$<BOOL:${PLATFORM_PSA_ADAC_SECURE_DEBUG}>:PLATFORM_PSA_ADAC_SECURE_DEBUG>
 )
+
+target_include_directories(bl2
+    PRIVATE
+       ${CMAKE_SOURCE_DIR}/interface/include # for psa/error.h
+)
+
 target_compile_definitions(bootutil
     PRIVATE
         MULTIPLE_EXECUTABLE_RAM_REGIONS
@@ -359,7 +378,7 @@ target_include_directories(platform_bl2
         Device/Include
         fip_parser
         Native_Driver
-        fw_update_agent
+        bootloader
         soft_crc
         io
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/common
@@ -378,6 +397,7 @@ target_include_directories(platform_bl2
         ${MCUBOOT_PATH}/boot/bootutil/include # for fault_injection_hardening.h only
         ${CMAKE_BINARY_DIR}/bl2/ext/mcuboot # for mcuboot_config.h only
         $<BUILD_INTERFACE:${BL2_SOURCE}/ext/mcuboot/include>
+	${CMAKE_SOURCE_DIR}/interface/include # for psa/error.h
 )
 
 #========================= ns_agent_mailbox ===================================#
