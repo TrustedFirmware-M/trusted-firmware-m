@@ -1,0 +1,53 @@
+#-------------------------------------------------------------------------------
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+#-------------------------------------------------------------------------------
+
+# The "manifest" field must be a path relative to this file, a path relative to
+# the directory that tfm_parse_manifest_list.py is run in (which by default is
+# the TF-M root directory), or an absolute path.
+#
+# Files per Secure Partition are generated to:
+#   - "output_path", if it is a absolute path - not recommended
+#   - generated_file_root/"output_path", if "output_path" is relative path
+#   - generated_file_root/, if "output_path" is not specified
+#       * generated_file_root is the path passed to tfm_parse_manifest_list.py
+#         by -o/--outdir
+
+{
+  "description": "TF-M secure partition manifests",
+  "type": "manifest_list",
+  "version_major": 0,
+  "version_minor": 1,
+  "manifest_list": [
+    {
+      "description": "Non-Secure Mailbox Agent",
+      "manifest": "platform/ext/target/arm/rse/automotive_rd/css-aspen/manifest/ns_agent_mailbox.yaml",
+      "output_path": "secure_fw/partitions/ns_agent_mailbox",
+      "conditional": "TFM_PARTITION_NS_AGENT_MAILBOX",
+      "version_major": 0,
+      "version_minor": 1,
+      "pid": 262,
+      "linker_pattern": {
+        "library_list": [
+           "*tfm_*ns_agent_mailbox.*"
+         ],
+      },
+      "non_ffm_attributes": ['ns_agent']
+    },
+    {
+      "description": "TF-M Platform Partition",
+      "manifest": "secure_fw/partitions/platform/tfm_platform.yaml",
+      "output_path": "secure_fw/partitions/platform",
+      "conditional": "TFM_PARTITION_PLATFORM",
+      "version_major": 0,
+      "version_minor": 1,
+      "pid": 260,
+      "linker_pattern": {
+        "library_list": [
+           "*tfm_*partition_platform.*"
+         ]
+      }
+    },
+  ]
+}

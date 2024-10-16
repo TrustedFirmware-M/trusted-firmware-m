@@ -1,0 +1,33 @@
+#-------------------------------------------------------------------------------
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+#-------------------------------------------------------------------------------
+
+{
+  "psa_framework_version": 1.1,
+  "name": "TFM_NS_MAILBOX_AGENT",
+  "type": "PSA-ROT",
+  "ns_agent": true,
+  "priority": "LOW",
+  "model": "IPC",
+  "entry_point": "ns_agent_mailbox_entry",
+  "stack_size": "NS_AGENT_MAILBOX_STACK_SIZE",
+  "client_id_base": "-0x0800ffff",
+  "client_id_limit": "-0x04000000",
+  "irqs": [
+    {
+      "source": "MAILBOX_IRQ",
+      "name": "MAILBOX_INTERRUPT",
+      "handling": "SLIH",
+      "client_id_base": "-0x0400ffff",
+      "client_id_limit": "-0x04000000",
+    },
+    {
+      "source": "MAILBOX_IRQ_2",
+      "name": "MAILBOX_INTERRUPT_2",
+      "handling": "SLIH",
+      "client_id_base": "-0x0800ffff",
+      "client_id_limit": "-0x08000000",
+    }
+  ],
+}
