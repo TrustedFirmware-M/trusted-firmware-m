@@ -25,6 +25,9 @@
 /* Run the scheduler after handling a secure interrupt if the NSPE was pre-empted */
 #define CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED 1
 
+/* The maximum number of assets to be stored in the Protected Storage area. */
+#define PS_NUM_ASSETS 20
+
 /* Default RSE SYSCLK/CPU0CLK value in Hz */
 #define SYSCLK         100000000UL /* 100 MHz */
 

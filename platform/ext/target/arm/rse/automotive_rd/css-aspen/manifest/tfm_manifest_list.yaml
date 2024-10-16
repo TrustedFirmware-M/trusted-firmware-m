@@ -36,6 +36,20 @@
       "non_ffm_attributes": ['ns_agent']
     },
     {
+      "description": "Protected Storage Partition",
+      "manifest": "secure_fw/partitions/protected_storage/tfm_protected_storage.yaml",
+      "output_path": "secure_fw/partitions/protected_storage",
+      "conditional": "TFM_PARTITION_PROTECTED_STORAGE",
+      "version_major": 0,
+      "version_minor": 1,
+      "pid": 256,
+      "linker_pattern": {
+        "library_list": [
+           "*tfm_*partition_ps.*"
+         ],
+      }
+    },
+    {
       "description": "TF-M Crypto Partition",
       "manifest": "secure_fw/partitions/crypto/tfm_crypto.yaml",
       "output_path": "secure_fw/partitions/crypto",

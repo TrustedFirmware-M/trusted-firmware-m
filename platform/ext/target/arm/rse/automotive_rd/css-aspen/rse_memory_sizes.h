@@ -48,4 +48,16 @@
 /* The maximum size for secret values in the provisioning bundle */
 #define PROVISIONING_BUNDLE_VALUES_SIZE (0x3D00)
 
+/* RSE flash layout */
+/*
+ * ┌─────────────────────┬──────────────────────┬
+ * │    Signed Images    │  Protected Storage   │
+ * │     (48MB)          │       (64KB)         │
+ * └─────────────────────┴──────────────────────┴
+ */
+/* This part is for signed images. 48MB */
+#define RSE_FLASH_IMG_SIZE          0x3000000UL
+/* This part is for Protected Storage. 64KB */
+#define RSE_FLASH_PS_SIZE           0x10000UL
+
 #endif /* __RSE_MEMORY_SIZES_H__ */

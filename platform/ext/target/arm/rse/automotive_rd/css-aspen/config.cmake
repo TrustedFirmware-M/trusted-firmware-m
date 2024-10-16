@@ -9,6 +9,7 @@
 set(CONFIG_TFM_SPM_BACKEND              IPC      CACHE STRING  "The SPM backend")
 set(MCUBOOT_IMAGE_NUMBER                4        CACHE STRING  "Number of images supported by MCUBoot")
 set(PLATFORM_HAS_BOOT_DMA               OFF      CACHE BOOL    "Enable dma support for memory transactions for bootloader")
+set(PLATFORM_HAS_PS_NV_OTP_COUNTERS     ON       CACHE BOOL    "Platform supports nvm counters for PS in OTP")
 set(PLATFORM_HOST_HAS_SI_CL0            ON       CACHE BOOL    "Enable SI CL0 support")
 set(PLATFORM_RSE_HAS_ATU_OWNERSHIP      ON       CACHE BOOL    "Enable RSE ATU ownership")
 set(PLAT_MHU_VERSION                    3        CACHE STRING  "Supported MHU version by platform")

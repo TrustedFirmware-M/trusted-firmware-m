@@ -165,4 +165,30 @@
               {0x3e, 0x4d}, 0xa5, 0x44, \
               {0xc3, 0x9d, 0x81, 0xc7, 0x3f, 0x0a}})
 
+#define RSE_FLASH_IMG_OFFSET        FLASH_AREA_0_OFFSET
+#define RSE_FLASH_PS_OFFSET         RSE_FLASH_IMG_OFFSET + RSE_FLASH_IMG_SIZE
+
+#define FLASH_DEV_NAME_SE_SECURE_FLASH  Driver_FLASH0
+
+/*******************************/
+/* PS */
+/*******************************/
+/* Protected Storage (PS) Service definitions
+ * Note: Further documentation of these definitions can be found in the
+ * TF-M PS Integration Guide.
+ */
+#define TFM_HAL_PS_FLASH_DRIVER FLASH_DEV_NAME_SE_SECURE_FLASH
+
+/* In this target the CMSIS driver requires only the offset from the base
+ * address instead of the full memory address.
+ */
+/* Base address of dedicated flash area for PS */
+#define TFM_HAL_PS_FLASH_AREA_ADDR      RSE_FLASH_PS_OFFSET
+/* Size of dedicated flash area for PS */
+#define TFM_HAL_PS_FLASH_AREA_SIZE      RSE_FLASH_PS_SIZE
+/* Number of physical erase sectors per logical FS block */
+#define TFM_HAL_PS_SECTORS_PER_BLOCK    (4)
+/* Smallest flash programmable unit in bytes */
+#define TFM_HAL_PS_PROGRAM_UNIT         (1)
+
 #endif /* __FLASH_LAYOUT_H__ */
