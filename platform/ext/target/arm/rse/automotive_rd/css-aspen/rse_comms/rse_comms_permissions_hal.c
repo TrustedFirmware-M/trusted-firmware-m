@@ -21,6 +21,10 @@
 #include "tfm_ps_defs.h"
 #endif /* TFM_PARTITION_PROTECTED_STORAGE */
 
+#ifdef TFM_PARTITION_INTERNAL_TRUSTED_STORAGE
+#include "tfm_its_defs.h"
+#endif /* TFM_PARTITION_INTERNAL_TRUSTED_STORAGE */
+
 #define INVALID_REGION_COUNTER_MAX  128
 #define INVALID_SERVICE_COUNTER_MAX 64
 
@@ -118,6 +122,18 @@ enum tfm_plat_err_t comms_permissions_service_check(psa_handle_t handle,
             goto out_err;
         }
 #endif /* TFM_PARTITION_PROTECTED_STORAGE */
+#ifdef TFM_PARTITION_INTERNAL_TRUSTED_STORAGE
+    case TFM_INTERNAL_TRUSTED_STORAGE_SERVICE_HANDLE:
+        switch (type) {
+        case TFM_ITS_SET:
+        case TFM_ITS_GET:
+        case TFM_ITS_GET_INFO:
+        case TFM_ITS_REMOVE:
+            return TFM_PLAT_ERR_SUCCESS;
+        default:
+            goto out_err;
+        }
+#endif /* TFM_PARTITION_INTERNAL_TRUSTED_STORAGE */
     default:
         goto out_err;
     }

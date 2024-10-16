@@ -50,14 +50,16 @@
 
 /* RSE flash layout */
 /*
- * ┌─────────────────────┬──────────────────────┬
- * │    Signed Images    │  Protected Storage   │
- * │     (48MB)          │       (64KB)         │
- * └─────────────────────┴──────────────────────┴
+ * ┌─────────────────────┬──────────────────────┬──────────────────────────┐
+ * │    Signed Images    │  Protected Storage   │ Internal Trusted Storage │
+ * │     (48MB)          │       (64KB)         │           (1MB)          │
+ * └─────────────────────┴──────────────────────┴──────────────────────────┘
  */
 /* This part is for signed images. 48MB */
 #define RSE_FLASH_IMG_SIZE          0x3000000UL
 /* This part is for Protected Storage. 64KB */
 #define RSE_FLASH_PS_SIZE           0x10000UL
+/* This part is for Internal Trusted Storage. 1MB */
+#define RSE_FLASH_ITS_SIZE          0x100000UL
 
 #endif /* __RSE_MEMORY_SIZES_H__ */

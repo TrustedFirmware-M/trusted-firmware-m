@@ -50,6 +50,20 @@
       }
     },
     {
+      "description": "TF-M Internal Trusted Storage Partition",
+      "manifest": "secure_fw/partitions/internal_trusted_storage/tfm_internal_trusted_storage.yaml",
+      "output_path": "secure_fw/partitions/internal_trusted_storage",
+      "conditional": "TFM_PARTITION_INTERNAL_TRUSTED_STORAGE",
+      "version_major": 0,
+      "version_minor": 1,
+      "pid": 257,
+      "linker_pattern": {
+        "library_list": [
+           "*tfm_*partition_its.*"
+         ]
+      }
+    },
+    {
       "description": "TF-M Crypto Partition",
       "manifest": "secure_fw/partitions/crypto/tfm_crypto.yaml",
       "output_path": "secure_fw/partitions/crypto",

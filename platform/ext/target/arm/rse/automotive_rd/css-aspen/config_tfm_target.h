@@ -25,6 +25,15 @@
 /* Run the scheduler after handling a secure interrupt if the NSPE was pre-empted */
 #define CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED 1
 
+/* The maximum asset size to be stored in the Internal Trusted Storage */
+#define ITS_MAX_ASSET_SIZE 4096
+
+/*
+ * The maximum number of assets to be stored in the Internal Trusted
+ * Storage area.
+ */
+#define ITS_NUM_ASSETS 20
+
 /* The maximum number of assets to be stored in the Protected Storage area. */
 #define PS_NUM_ASSETS 20
 

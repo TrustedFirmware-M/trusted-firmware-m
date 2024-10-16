@@ -167,6 +167,7 @@
 
 #define RSE_FLASH_IMG_OFFSET        FLASH_AREA_0_OFFSET
 #define RSE_FLASH_PS_OFFSET         RSE_FLASH_IMG_OFFSET + RSE_FLASH_IMG_SIZE
+#define RSE_FLASH_ITS_OFFSET        RSE_FLASH_PS_OFFSET + RSE_FLASH_PS_SIZE
 
 #define FLASH_DEV_NAME_SE_SECURE_FLASH  Driver_FLASH0
 
@@ -190,5 +191,26 @@
 #define TFM_HAL_PS_SECTORS_PER_BLOCK    (4)
 /* Smallest flash programmable unit in bytes */
 #define TFM_HAL_PS_PROGRAM_UNIT         (1)
+
+/*******************************/
+/* ITS */
+/*******************************/
+/* Internal Trusted Storage (ITS) Service definitions
+ * Note: Further documentation of these definitions can be found in the
+ * TF-M ITS Integration Guide.
+ */
+#define TFM_HAL_ITS_FLASH_DRIVER FLASH_DEV_NAME_SE_SECURE_FLASH
+
+/* In this target the CMSIS driver requires only the offset from the base
+ * address instead of the full memory address.
+ */
+/* Base address of dedicated flash area for ITS */
+#define TFM_HAL_ITS_FLASH_AREA_ADDR     RSE_FLASH_ITS_OFFSET
+/* Size of dedicated flash area for ITS */
+#define TFM_HAL_ITS_FLASH_AREA_SIZE     RSE_FLASH_ITS_SIZE
+/* Number of physical erase sectors per logical FS block */
+#define TFM_HAL_ITS_SECTORS_PER_BLOCK   (1)
+/* Smallest flash programmable unit in bytes */
+#define TFM_HAL_ITS_PROGRAM_UNIT        (1)
 
 #endif /* __FLASH_LAYOUT_H__ */

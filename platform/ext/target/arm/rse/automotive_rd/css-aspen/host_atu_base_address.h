@@ -214,4 +214,12 @@ enum rse_atu_ids {
 #define HOST_FLASH0_PS_BASE        (0x8000060000000ULL + RSE_FLASH_IMG_SIZE)
 #define HOST_FLASH0_PS_SIZE        RSE_FLASH_PS_SIZE
 
+/* ATU region mapping to access Internal Storage */
+#define HOST_ACCESS_ITS_BASE_S      (HOST_ACCESS_PS_BASE_S + \
+                                     HOST_FLASH0_PS_SIZE)
+#define HOST_ACCESS_ITS_BASE_OFFSET (HOST_ACCESS_PS_BASE_OFFSET + \
+                                     HOST_FLASH0_PS_SIZE)
+#define HOST_FLASH0_ITS_BASE        (HOST_FLASH0_PS_BASE + HOST_FLASH0_PS_SIZE)
+#define HOST_FLASH0_ITS_SIZE        RSE_FLASH_ITS_SIZE
+
 #endif  /* __HOST_ATU_BASE_ADDRESS_H__ */
