@@ -36,6 +36,20 @@
       "non_ffm_attributes": ['ns_agent']
     },
     {
+      "description": "TF-M Crypto Partition",
+      "manifest": "secure_fw/partitions/crypto/tfm_crypto.yaml",
+      "output_path": "secure_fw/partitions/crypto",
+      "conditional": "TFM_PARTITION_CRYPTO",
+      "version_major": 0,
+      "version_minor": 1,
+      "pid": 259,
+      "linker_pattern": {
+        "library_list": [
+           "*tfm_*partition_crypto.*"
+         ]
+      }
+    },
+    {
       "description": "TF-M Platform Partition",
       "manifest": "secure_fw/partitions/platform/tfm_platform.yaml",
       "output_path": "secure_fw/partitions/platform",
