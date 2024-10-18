@@ -59,6 +59,7 @@ target_sources(platform_bl2
         cmsis_drivers/Driver_Flash.c
         device/host_device_definition.c
         device/rse_expansion_device_definition.c
+        $<$<BOOL:${PLATFORM_HOST_HAS_SI_CL0}>:${CMAKE_CURRENT_SOURCE_DIR}/host_drivers/ppu_drv.c>
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/cfi/cfi_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/strata/spi_strataflashj3_flash_lib.c
         ${PLATFORM_DIR}/ext/target/arm/rse/common/fip_parser/fip_parser.c
@@ -71,11 +72,17 @@ target_include_directories(platform_bl2
         bl2
         cmsis_drivers
         device
+        host_drivers
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/cfi
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/common
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/strata
         ${PLATFORM_DIR}/ext/target/arm/rse/common/fip_parser
         $<$<BOOL:${RSE_USE_HOST_UART}>:${PLATFORM_DIR}/ext/target/arm/drivers/usart/pl011>
+)
+
+target_compile_definitions(platform_bl2
+    PRIVATE
+        $<$<BOOL:${PLATFORM_HOST_HAS_SI_CL0}>:PLATFORM_HOST_HAS_SI_CL0>
 )
 
 #========================= Platform Secure ====================================#

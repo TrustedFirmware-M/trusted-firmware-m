@@ -175,8 +175,19 @@ enum rse_atu_ids {
 #define RSE_IMAGE_LOADING_END             (HOST_SI_CL0_IMG_CODE_BASE_S +       \
                                            HOST_SI_CL0_ATU_SIZE)
 
+/* SI CL0 Cluster Utility Bus logical address start */
+#define HOST_SI_CL0_CUB_ATU_WINDOW_BASE_S RSE_IMAGE_LOADING_END
+/* SI CL0 Cluster Utility Bus physical address start */
+#define HOST_SI_CL0_CUB_BASE              HOST_SI_CL0_CL_UTIL_BASE
+/* SI CL0 Cluster Utility Bus ATU size */
+#define HOST_SI_CL0_CUB_SIZE              ALIGN_UP(0x120000U,                  \
+                                                   RSE_ATU_PAGE_SIZE)
+/* SI CL0 Cluster Utility Bus ATU region id */
+#define HOST_SI_CL0_CUB_ATU_ID            RSE_ATU_FW_INIT_ID
+
 /* ATU region mapping to access AP secure flash */
-#define HOST_AP_FLASH_BASE      RSE_IMAGE_LOADING_END
+#define HOST_AP_FLASH_BASE      (HOST_SI_CL0_CUB_ATU_WINDOW_BASE_S +           \
+                                 HOST_SI_CL0_CUB_SIZE)
 #define HOST_AP_FLASH_SIZE      ALIGN_UP(AP_BOOT_FLASH_SIZE, RSE_ATU_PAGE_SIZE)
 #define HOST_AP_FLASH_PHY_BASE  (HOST_AP_MEM_EXP_PHYS_BASE + HOST_AP_MEM_EXP_FLASH_OFFSET)
 #define HOST_AP_FLASH_ATU_ID    RSE_ATU_AP_FLASH_ID

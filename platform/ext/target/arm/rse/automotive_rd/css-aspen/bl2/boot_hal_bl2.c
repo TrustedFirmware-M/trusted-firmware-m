@@ -215,6 +215,7 @@ static int boot_platform_pre_load_si_cl0(void)
 static int boot_platform_post_load_si_cl0(void)
 {
     enum atu_error_t atu_err;
+    enum ppu_error_t si_cl0_err;
 
     BOOT_LOG_INF("BL2: SI CL0 post load start");
 
@@ -223,6 +224,35 @@ static int boot_platform_post_load_si_cl0(void)
      * header part in the Shared SRAM before releasing SI CL0 out of reset.
      */
     memset(HOST_SI_CL0_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
+
+    /* Configure RSE ATU to access SI CL0 Cluster Utility Bus */
+    atu_err = atu_initialize_region(&ATU_DEV_S,
+                                    HOST_SI_CL0_CUB_ATU_ID,
+                                    HOST_SI_CL0_CUB_ATU_WINDOW_BASE_S,
+                                    HOST_SI_CL0_CUB_BASE,
+                                    HOST_SI_CL0_CUB_SIZE);
+    if (atu_err != ATU_ERR_NONE) {
+        return 1;
+    }
+
+    /* Power up SI CL0 */
+    si_cl0_err = ppu_driver_power_on(&HOST_SI_CL0_CLUS_PPU_DEV);
+    if (si_cl0_err != PPU_ERR_NONE) {
+        BOOT_LOG_ERR("BL2: SI CL0 CLUS release failed: %d", (int)si_cl0_err);
+        return 1;
+    }
+    si_cl0_err = ppu_driver_power_on(&HOST_SI_CL0_CORE0_PPU_DEV);
+    if (si_cl0_err != PPU_ERR_NONE) {
+        BOOT_LOG_ERR("BL2: SI CL0 CORE0 release failed: %d", (int)si_cl0_err);
+        return 1;
+    }
+    BOOT_LOG_INF("BL2: SI CL0 is released out of reset");
+
+    /* Close RSE ATU region configured to access SI CL0 Cluster Utility Bus */
+    atu_err = atu_uninitialize_region(&ATU_DEV_S, HOST_SI_CL0_CUB_ATU_ID);
+    if (atu_err != ATU_ERR_NONE) {
+        return 1;
+    }
 
     /* Close RSE ATU region configured to access RSE header region for SI CL0 */
     atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_HDR_LOAD_ID);
