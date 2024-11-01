@@ -11,8 +11,9 @@ set(TFM_PARTITION_PLATFORM              OFF          CACHE BOOL      "Enable Pla
 set(TFM_PARTITION_CRYPTO                ON          CACHE BOOL      "Enable Crypto partition")
 set(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE ON       CACHE BOOL      "Enable Internal Trusted Storage partition")
 set(TFM_PARTITION_NS_AGENT_TZ           ON         CACHE BOOL      "Enable Non-Secure Agent in Secure partition")
-set(CONFIG_TFM_BOOT_STORE_MEASUREMENTS          OFF  CACHE BOOL      "Store measurement values from all the boot stages. Used for initial attestation token.")
-set(CONFIG_TFM_BOOT_STORE_ENCODED_MEASUREMENTS  OFF  CACHE BOOL      "Enable storing of encoded measurements in boot.")
+set(CONFIG_TFM_BOOT_STORE_MEASUREMENTS          ON   CACHE BOOL      "Store measurement values from all the boot stages. Used for initial attestation token.")
+set(CONFIG_TFM_BOOT_STORE_ENCODED_MEASUREMENTS  ON   CACHE BOOL      "Enable storing of encoded measurements in boot.")
+set(TFM_PARTITION_INITIAL_ATTESTATION           ON   CACHE BOOL      "Enable Initial Attestation partition")
 set(CONFIG_TFM_HALT_ON_CORE_PANIC               ON   CACHE BOOL      "On fatal errors in the secure firmware, halt instead of rebooting.")
 set(PLATFORM_DEFAULT_OTP                OFF          CACHE BOOL      "Use trusted on-chip flash to implement OTP memory")
 
@@ -21,3 +22,9 @@ set(HAL_ADI_VERSION                     "dd1c525"   CACHE STRING    "The version
 
 set(MCUBOOT_USE_PSA_CRYPTO             ON          CACHE BOOL      "Use PSA Crypto for MCUBOOT")
 set(CRYPTO_HW_ACCELERATOR              OFF)
+
+if (CONFIG_TFM_PROFILE_SMALL)
+    # Static Buffer size for MBEDTLS allocations - Has been increased from the default value of small profile
+    # to ensure that initial attestation testcases in regression build passes
+    add_compile_definitions(CRYPTO_ENGINE_BUF_SIZE=0x500)
+endif()
