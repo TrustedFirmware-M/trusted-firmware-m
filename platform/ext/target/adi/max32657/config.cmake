@@ -18,3 +18,6 @@ set(PLATFORM_DEFAULT_OTP                OFF          CACHE BOOL      "Use truste
 
 set(HAL_ADI_PATH                        "DOWNLOAD"  CACHE PATH      "Path to hal_adi (or DOWNLOAD to fetch automatically")
 set(HAL_ADI_VERSION                     "dd1c525"   CACHE STRING    "The version of hal_adi to use")
+
+set(MCUBOOT_USE_PSA_CRYPTO             ON          CACHE BOOL      "Use PSA Crypto for MCUBOOT")
+set(CRYPTO_HW_ACCELERATOR              OFF)
