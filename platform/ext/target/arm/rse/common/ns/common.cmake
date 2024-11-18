@@ -66,7 +66,7 @@ target_compile_definitions(platform_region_defs
 target_include_directories(platform_region_defs
     INTERFACE
         partition
-        subplatform_pal_config
+        config
         bl1_2_config
 )
 

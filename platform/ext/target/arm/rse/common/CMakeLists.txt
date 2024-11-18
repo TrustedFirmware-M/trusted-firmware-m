@@ -1103,7 +1103,7 @@ if (TFM_LOAD_NS_IMAGE)
     )
 
     install(DIRECTORY   ${RSE_SUBPLATFORM_PAL_CONFIG_DIR}/
-            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/subplatform_pal_config
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/config
     )
 
     install(DIRECTORY   ${BL1_1_CONFIG_DIR}/
@@ -1115,11 +1115,11 @@ if (TFM_LOAD_NS_IMAGE)
     )
 
     install(FILES       rse_otp_check_config.h
-            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/subplatform_pal_config/
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/config
     )
 
     install(FILES       rse_rotpk_auto_generated_mappings.h
-            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/subplatform_pal_config/
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/config
     )
 
     install(FILES       target_cfg.h
