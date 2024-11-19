@@ -5,6 +5,7 @@
 
 #include "rse_comms_permissions_hal.h"
 
+#include "device_definition.h"
 #include "psa_manifest/sid.h"
 #include "tfm_hal_platform.h"
 #include "host_base_address.h"
@@ -58,22 +59,33 @@ static void counter_check(void)
 }
 
 /*
- * This interface is accessed only from root world, so we don't care about the
- * owners of host memory. However, we should still be somewhat discerning about
- * where data is coming from or going to.
+ * Check that RSE comms callers have permission to access a memory buffer.
+ * The owner must be an MHU device on the platform. Different shared memory
+ * space is used for different MHU device.
  */
+#define AP_S_NODE_ID (2)
+
 enum tfm_plat_err_t comms_permissions_memory_check(rse_comms_node_id_t node_id,
                                                    uint64_t host_ptr,
                                                    uint32_t size,
                                                    bool is_write)
 {
-    /* Accessed only from root world - can be ignored */
-    (void)node_id;
+    if (node_id == AP_S_NODE_ID) {
+        /* Is fully within the AP Shared SRAM? */
+        if (host_ptr >= HOST_AP_SHARED_SRAM_PHYS_BASE &&
+            size <= (HOST_AP_SHARED_SRAM_PHYS_LIMIT -
+                     HOST_AP_SHARED_SRAM_PHYS_BASE) &&
+            host_ptr + size <= HOST_AP_SHARED_SRAM_PHYS_LIMIT) {
+            return TFM_PLAT_ERR_SUCCESS;
+        }
 
-    /* Is fully within the AP Shared SRAM? */
-    if (host_ptr >= HOST_AP_SHARED_SRAM_PHYS_BASE &&
-        host_ptr + size <= HOST_AP_SHARED_SRAM_PHYS_LIMIT) {
-        return TFM_PLAT_ERR_SUCCESS;
+        /* Is fully within the AP shared DRAM for MHU? */
+        if (host_ptr >= HOST_AP_MHU_POINTER_ACCESS_PHYS_BASE &&
+            size <= (HOST_AP_MHU_POINTER_ACCESS_PHYS_LIMIT -
+                     HOST_AP_MHU_POINTER_ACCESS_PHYS_BASE) &&
+            host_ptr + size <= HOST_AP_MHU_POINTER_ACCESS_PHYS_LIMIT) {
+            return TFM_PLAT_ERR_SUCCESS;
+        }
     }
 
     invalid_region_counter++;
