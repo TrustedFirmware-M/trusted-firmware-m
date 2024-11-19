@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2021-2023 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -278,6 +278,7 @@ const struct partition_{{manifest.name|lower}}_load_info_t {{manifest.name|lower
             {% set irq_info.client_id_base = irq.source + "_CLIENT_ID_BASE" %}
             {% set irq_info.client_id_limit = irq.source + "_CLIENT_ID_LIMIT" %}
         {% endif %}
+        {% set irq_info.mbox_flags = irq.mbox_flags %}
         {
             .init = {{irq_info.source_symbol + "_init"}},
             .flih_func = {{irq_info.flih_func}},
@@ -287,6 +288,11 @@ const struct partition_{{manifest.name|lower}}_load_info_t {{manifest.name|lower
         {% if manifest.ns_agent is sameas true %}
             .client_id_base = {{irq_info.client_id_base}},
             .client_id_limit = {{irq_info.client_id_limit}},
+        {% endif %}
+        {% if irq.mbox_flags is defined %}
+            .mbox_flags = {{irq_info.mbox_flags}},
+        {% else %}
+            .mbox_flags = MBOX_IRQ_FLAGS_NONE,
         {% endif %}
         },
     {% endfor %}

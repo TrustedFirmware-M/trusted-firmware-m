@@ -3,6 +3,7 @@
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  */
 
+#include <assert.h>
 #include <stddef.h>
 
 #include "array.h"
@@ -37,6 +38,18 @@ void tfm_multi_core_clear_mbox_irq(void)
 void tfm_multi_core_set_mbox_irq(const struct irq_load_info_t *p_ildi)
 {
     size_t i;
+
+    assert(p_ildi != NULL);
+
+#if (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_BALANCED)
+    if (p_ildi->mbox_flags != MBOX_IRQ_FLAGS_DEFER_SCHEDULE) {
+        /*
+         * This request will be processed immediately, the IRQ will be cleared
+         * and re-enabled via the standard rpc flow.
+         */
+        return;
+    }
+#endif
 
     for (i = 0; i < MAILBOX_INTERRUPT_IRQ_COUNT; i++) {
         if (irq_load_info_refs[i] == NULL) {

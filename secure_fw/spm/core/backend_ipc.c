@@ -410,10 +410,12 @@ psa_signal_t backend_wait_signals(struct partition_t *p_pt, psa_signal_t signals
     return ret;
 }
 
-#if (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_NSPE)
-static void backend_assert_hybridplat_signal(
+#if (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_NSPE) || \
+    (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_BALANCED)
+static void hybridplat_mbox_irq_signal_assert(
     struct partition_t *p_pt, psa_signal_t signal)
 {
+
     const struct irq_load_info_t *irq_info;
     uint32_t irq_info_idx;
     uint32_t nirqs;
@@ -434,14 +436,40 @@ static void backend_assert_hybridplat_signal(
             /*
              * The incoming signal is found in the irq_load_info_t,
              * do not assert the signal now.
-             * NSPE will drive the processing for this request via the mailbox
-             * dedicated auxiliary service.
+             * Local NSPE will drive the processing for this request via the
+             * mailbox dedicated auxiliary service.
              */
             return;
         }
     }
 
     p_pt->signals_asserted |= signal;
+}
+
+static void backend_assert_hybridplat_signal(
+    struct partition_t *p_pt, psa_signal_t signal)
+{
+
+    if (!IS_NS_AGENT_MAILBOX(p_pt->p_ldinf)) {
+        /* Exit early if not a mailbox-related event */
+        p_pt->signals_asserted |= signal;
+
+        return;
+    }
+
+#if (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_BALANCED)
+    const struct irq_load_info_t *p_ildi = LOAD_INFO_IRQ(p_pt->p_ldinf);
+
+    if (p_ildi->mbox_flags == MBOX_IRQ_FLAGS_DEFAULT_SCHEDULE) {
+        p_pt->signals_asserted |= signal;
+    } else if (p_ildi->mbox_flags == MBOX_IRQ_FLAGS_DEFER_SCHEDULE) {
+        hybridplat_mbox_irq_signal_assert(p_pt, signal);
+    }
+#endif
+
+#if (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_NSPE)
+    hybridplat_mbox_irq_signal_assert(p_pt, signal);
+#endif
 }
 #endif
 
@@ -456,7 +484,8 @@ psa_status_t backend_assert_signal(struct partition_t *p_pt, psa_signal_t signal
 
     CRITICAL_SECTION_ENTER(cs_signal);
 
-#if (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_NSPE)
+#if (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_NSPE) || \
+    (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_BALANCED)
     backend_assert_hybridplat_signal(p_pt, signal);
 #else
     p_pt->signals_asserted |= signal;

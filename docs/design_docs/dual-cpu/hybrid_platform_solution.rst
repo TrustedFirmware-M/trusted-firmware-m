@@ -6,12 +6,10 @@ Scheduling for a Hybrid Platform Solution
 :Contact: tf-m@lists.trustedfirmware.org
 
 .. Warning::
-  This feature is currently in EXPERIMENTAL and DEVELOPMENT stage.
-  Documentation, support and testing is limited.
+  This feature is completed but documentation, support and testing are limited.
 
-  Please provide any feedback or comments via the TF-M mailing list or in the
-  review.trustedfirmware.org topic
-  `hybrid-plat-nspe <https://review.trustedfirmware.org/q/topic:%22hybrid-plat-nspe%22>`_
+  Please provide any feedback or comments via the TF-M mailing list or submit
+  a patch in review.trustedfirmware.org.
 
 
 ************
@@ -22,7 +20,7 @@ The Hybrid Platform solution is an extension of the Dual-CPU systems [1]_
 already supported in TF-M.
 A Hybrid Platform solution requires applications to run from both local and
 remote clients.
-This inevitably brings some scheduling trade-off and limitations on the table.
+This inevitably brings some scheduling trade-offs and limitations on the table.
 
 The implementation provided and explained in this section aims to give a
 reference implementation for some use-cases where different systems need to
@@ -44,16 +42,16 @@ System Architecture
 A Hybrid Platform is a system topology where there is an instance of SPE and one
 or multiple instances of NSPE running at the same time.
 
-It would usually look like this:
+A common layout is:
 
 .. code-block:: output
 
-        ┌──────────────────┐        ┌──────────────────┐
-      ┌──────────────────┐ │        │┌────────────────┐│
-    ┌──────────────────┐ │ │        ││                ││
+        ┌──────────────────┐cpuN    ┌──────────────────┐cpu0
+      ┌──────────────────┐cpu2      │┌────────────────┐│
+    ┌──────────────────┐cpu1        ││                ││
     │                  │ │ │        ││                ││
     │                  │ │ │        ││      TF-M      ││
-    │                  │ │ │        ││                ││
+    │                  │ │ │        ││      (SPE)     ││
     │                  │ │ │        ││                ││
     │                  │ │ │        │└────────────────┘│
     │                  │ │ │        │                  │
@@ -62,7 +60,7 @@ It would usually look like this:
     │                  │ │ │        │┌────────────────┐│
     │                  │ │ │        ││                ││
     │  remote client   │ │ │        ││  local client  ││
-    │                  │ │ │        ││                ││
+    │                  │ │ │        ││     (NSPE)     ││
     │                  │ │ │        │└────────────────┘│
     │                  │ │─┘        └──────────────────┘
     │                  │─┘
@@ -86,7 +84,7 @@ Typically, a Hybrid Platform would fall into two categories:
 | Homogeneous   | M-Class processor running TF-M and secure services.          |
 | topology      |                                                              |
 |               | Non-secure applications running in both the Normal World of  |
-|               | the M-Class and in one or more other identical M-Class cores |
+|               | the M-Class and in one or more other identical M-Class cores.|
 +---------------+--------------------------------------------------------------+
 | Remark:                                                                      |
 | When the M-Class core hosting the Secure World does NOT have a Normal World, |
@@ -98,7 +96,7 @@ Typically, a Hybrid Platform would fall into two categories:
 Scheduling Scenarios
 ********************
 
-There are routinely two sets of scheduling use-cases depending on how the
+There are commonly two classes of scheduling use-cases depending on how the
 workload importance is distributed:
 
 - Local NSPE can be interrupted anytime when a secure service is requested by
@@ -136,24 +134,28 @@ the build config ``CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE``.
 |                                   | The incoming requests may be queued but execution does   |
 |                                   | not switch to SPE.                                       |
 |                                   | The local NSPE makes its own decisions on when it is     |
-|                                   | good time to give up cycles to execute the mailbox       |
-|                                   | requests.                                                |
+|                                   | an appropriate point to yield execution to execute the   |
+|                                   | mailbox requests.                                        |
 |                                   |                                                          |
 |                                   | To do so, NSPE performs a psa_call to a stateless service|
 |                                   | in the mailbox partition and let the execution to proceed|
 |                                   | in SPE.                                                  |
 |                                   | Note that the local NSPE does not have knowledge of any  |
-|                                   | pending messages in the mailbox awaiting for processing. |
-|                                   | It can only start their processing.                      |
+|                                   | pending messages in the mailbox awaiting processing.     |
+|                                   | It can only attempt to start their processing.           |
 |                                   |                                                          |
 +-----------------------------------+----------------------------------------------------------+
-| TFM_HYBRID_PLAT_SCHED_BALANCED    | Not yet implemented!                                     |
+| TFM_HYBRID_PLAT_SCHED_BALANCED    | When multiple mailbox channels, and their respective     |
+|                                   | interrupts, are available on a platform, then it is      |
+|                                   | possible to schedule independently the different sources.|
+|                                   | That is, some messages can be configured to be scheduled |
+|                                   | according to the ``SCHED_SPE`` mechanism, while others   |
+|                                   | can be configured to be scheduled according to the       |
+|                                   | ``SCHED_NSPE`` (deferred to local NSPE) mechanism.       |
 |                                   |                                                          |
-|                                   | It will provide a build-time configurable trade-off      |
-|                                   | between the two options above.                           |
-|                                   |                                                          |
+|                                   | This can be achieved via a special attribute in the      |
+|                                   | manifest: ``mbox_flags``.                                |
 +-----------------------------------+----------------------------------------------------------+
-
 
 The definitions for the options above are available in
 ``secure_fw/spm/include/tfm_hybrid_platform.h``.
@@ -220,6 +222,9 @@ shown below.
   }
 
 
+The counterpart ``tfm_multi_core_clear_mbox_irq()`` is called instead by the
+mailbox partition.
+
 In the platform configuration settings file  ``config_tfm_target.h`` choose
 
 .. code-block:: c
@@ -254,6 +259,49 @@ messages:
   }
 
 
+Hybrid Platform with BALANCED scheduling
+========================================
+
+All the above for ``TFM_HYBRID_PLAT_SCHED_NSPE`` plus the following changes,
+where required, for the mailbox manifest.
+
+.. code-block:: c
+
+  "services": [
+    {
+      "<attribute>" : "<value>"
+      ...
+    },
+  ],
+  "irqs": [
+    {
+      "<attribute>" : "<value>"
+      ...
+      "mbox_flags": MBOX_IRQ_FLAGS_<DEFAULT|DEFER>_SCHEDULE,
+    },
+    ...
+  ],
+
+Currently, the mailbox flags ``mbox_flags`` supported are:
+
+- MBOX_IRQ_FLAGS_DEFAULT_SCHEDULE: the requests via mailbox transport are managed
+  accordingly to the default hybrid platform scheduling options (this is always
+  the default option)
+
+- MBOX_IRQ_FLAGS_DEFER_SCHEDULE: the requests via mailbox transport are deferred
+  until the local NSPE calls the mailbox partition auxiliary service
+  ``NS_AGENT_MBOX_PROCESS_NEW_MSG``
+
+The ``mbox_flags`` is optional, it can be omitted when this feature is not
+required.
+
+In the platform configuration settings file  ``config_tfm_target.h`` choose
+
+.. code-block:: c
+
+  #define CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE   TFM_HYBRID_PLAT_SCHED_BALANCED
+
+
 Hybrid Platform and common binary image
 =======================================
 
@@ -272,7 +320,7 @@ The redirection choice is made at initialization time, where the local or remote
 NSPE sets the respective interface API.
 
 For such hybrid platforms, the common build flags configuration would be
-as follow:
+as follows:
 
 
 +---------------------------------------+---------------------+
@@ -295,8 +343,8 @@ as follow:
 The NSPE is expected to have a mechanism to detect its execution target, that is
 being remote or local. This is *IMPLEMENTATION DEFINED*.
 
-Such mechanism should drive the main application to initialize either the
-interfaces, where the API broker is configured for the correct execution
+This mechanism should drive the main application to initialize the appropriate
+interface, where the API broker is configured for the correct execution
 environment.
 
 See an example below.
@@ -309,7 +357,7 @@ See an example below.
   bool plat_is_this_client_local(void)
   {
       /*
-       * Some implementation-defined mechanism to detect the execution target.
+       * An implementation-defined mechanism to detect the execution target.
        * For example, a RO memory location could hold such information.
        */
 
@@ -505,7 +553,7 @@ Limitations
 ===========
 
 Currently Hybrid Platform is supported only for the IPC model.
-
+Testing is limited.
 
 **********
 References

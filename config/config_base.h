@@ -1,8 +1,5 @@
 /*
- * Copyright (c) 2022-2025, Arm Limited. All rights reserved.
- * Copyright (c) 2023-2024 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -321,7 +318,8 @@
     /* default, nothing to do, no overrides */
 #endif
 
-#if (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_SPE)
+#if (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_SPE) || \
+    (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE == TFM_HYBRID_PLAT_SCHED_BALANCED)
     #ifndef CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED
     #define CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED 1
     #define CONFIG_TFM_SPM_BACKEND_IPC 1
