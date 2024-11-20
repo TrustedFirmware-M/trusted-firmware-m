@@ -52,6 +52,7 @@ if(BL2)
         PRIVATE
             ${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/device/src/startup_${TARGET_LC}.c
             ${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/device/src/system_${TARGET_LC}.c
+            ${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/device/src/sla_header_${TARGET_LC}.c
     )
 
     # Add includes for BL2

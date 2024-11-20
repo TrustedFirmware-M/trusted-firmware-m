@@ -1,5 +1,6 @@
 ;/*
 ; * Copyright (c) 2022-2024 Arm Limited. All rights reserved.
+; * Copyright (C) 2024-2025 Analog Devices, Inc.
 ; *
 ; * Licensed under the Apache License, Version 2.0 (the "License");
 ; * you may not use this file except in compliance with the License.
@@ -41,6 +42,8 @@ SECTIONS
         __Vectors_End = .;
         __Vectors_Size = __Vectors_End - __Vectors;
         __end__ = .;
+        . = ALIGN(1024);      /* Authentication header is 1024 byte aligned. */
+        KEEP(*(.sla_header)) /* authentication header */
 
         *(.text*)
 
@@ -200,4 +203,17 @@ SECTIONS
     Image$$ARM_LIB_HEAP$$ZI$$Limit = ADDR(.heap) + SIZEOF(.heap);
 
     PROVIDE(__stack = Image$$ARM_LIB_STACK$$ZI$$Limit);
+
+    /* End of flash image. */
+    /* This segment is required during the signing operation to
+     * enforce any padding in previous FLASH segments.
+     */
+    .end_of_flash_image :
+    {
+        FILL(0xFF)
+        KEEP(*(.end_of_flash_image))
+        /* End marker. */
+        LONG(0x55AA55AA);
+        _application_end = .;
+    } > FLASH
 }
