@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Portions Copyright (C) 2024 Analog Devices, Inc.
+# Portions Copyright (C) 2024-2025 Analog Devices, Inc.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -32,3 +32,62 @@ set(HAL_ADI_CMSIS_SRC_DIR   ${HAL_ADI_CMSIS_DIR}/Source)
 set(HAL_ADI_PERIPH_DIR      ${HAL_ADI_LIBRARY_DIR}/PeriphDrivers)
 set(HAL_ADI_PERIPH_INC_DIR  ${HAL_ADI_PERIPH_DIR}/Include/${TARGET_UC})
 set(HAL_ADI_PERIPH_SRC_DIR  ${HAL_ADI_PERIPH_DIR}/Source)
+
+###### BL2 Related Cmake Configurations ########################################
+if(BL2)
+    # Add scatter files for BL2
+    target_add_scatter_file(bl2
+        $<$<C_COMPILER_ID:GNU>:${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/device/gcc/${TARGET_LC}_sla.ld>
+    )
+
+    # Add startup file for BL2
+    target_sources(bl2
+        PRIVATE
+            ${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/device/src/startup_${TARGET_LC}.c
+            ${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/device/src/system_${TARGET_LC}.c
+    )
+
+    # Add includes for BL2
+    target_include_directories(platform_bl2
+        PUBLIC
+            ${HAL_ADI_PERIPH_INC_DIR}
+            ${HAL_ADI_CMSIS_INC_DIR}
+        PRIVATE
+            .
+            ${PLATFORM_DIR}/..
+    )
+
+    target_compile_options(platform_bl2
+        PUBLIC
+            -mno-unaligned-access # Added to mitigate the unaligned access problem
+    )
+
+    target_sources(platform_bl2
+        PRIVATE
+            ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_common.c
+            ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_me30.c
+            ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_revb.c
+            ${HAL_ADI_PERIPH_SRC_DIR}/SYS/sys_me30.c
+            ${HAL_ADI_PERIPH_SRC_DIR}/SYS/mxc_delay.c
+            ${HAL_ADI_PERIPH_SRC_DIR}/FLC/flc_me30.c
+            ${HAL_ADI_PERIPH_SRC_DIR}/FLC/flc_common.c
+            ${HAL_ADI_PERIPH_SRC_DIR}/FLC/flc_reva.c
+            ${HAL_ADI_PERIPH_SRC_DIR}/GPIO/gpio_me30.c
+            ${HAL_ADI_PERIPH_SRC_DIR}/GPIO/gpio_reva.c
+            ${HAL_ADI_PERIPH_SRC_DIR}/GPIO/gpio_common.c
+            ${HAL_ADI_PERIPH_SRC_DIR}/SYS/pins_me30.c
+    )
+
+    target_compile_definitions(platform_bl2
+        PUBLIC
+            TARGET=${TARGET_UC}
+            TARGET_REV=0x4131
+            CMSIS_device_header="${TARGET_LC}.h"
+            CONFIG_TRUSTED_EXECUTION_SECURE
+            IS_SECURE_ENVIRONMENT
+
+            __MXC_FLASH_MEM_BASE=0x11000000
+            __MXC_FLASH_MEM_SIZE=0x00100000
+    )
+
+endif()
