@@ -11,6 +11,7 @@ fetch_remote_library(
     LIB_PATCH_DIR           ${CMAKE_CURRENT_LIST_DIR}
     FETCH_CONTENT_ARGS
         GIT_REPOSITORY      "https://review.mlplatform.org/ml/ethos-u/ethos-u-core-driver"
-        GIT_TAG             "24.05"
+        GIT_TAG             "24.08"
+        GIT_SHALLOW         TRUE
         GIT_PROGRESS        TRUE
 )

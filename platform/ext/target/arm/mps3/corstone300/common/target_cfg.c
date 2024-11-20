@@ -803,7 +803,7 @@ enum tfm_plat_err_t ppc_init_cfg(void)
     err |= Driver_PPC_SSE300_PERIPH_EXP3.Initialize();
 
     /* initialize and config NPU */
-    err |= ethosu_dev_init(&ETHOS_S);
+    err |= !ethosu_dev_init(&ETHOS_S, ETHOS_S.reg, ETHOS_S.secure, ETHOS_S.privileged);
 
     /*
      * Configure the response to a security violation as a

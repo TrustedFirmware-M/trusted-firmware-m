@@ -782,7 +782,7 @@ enum tfm_plat_err_t ppc_init_cfg(void)
     err |= Driver_PERIPH_EXP3_PPC_CORSTONE310.Initialize();
 
     /* initialize and config NPU */
-    err |= ethosu_dev_init(&NPU0_S);
+    err |= !ethosu_dev_init(&NPU0_S, NPU0_S.reg, NPU0_S.secure, NPU0_S.privileged);
 
     /*
      * Configure the response to a security violation as a
