@@ -148,6 +148,8 @@ target_compile_options(platform_s
 
 target_sources(platform_s
     PRIVATE
+        cmsis_drivers/Driver_PPC.c
+
         ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_common.c
         ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_me30.c
         ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_revb.c
