@@ -56,6 +56,7 @@ if(BL2)
     # Add includes for BL2
     target_include_directories(platform_bl2
         PUBLIC
+            partition
             ${HAL_ADI_PERIPH_INC_DIR}
             ${HAL_ADI_CMSIS_INC_DIR}
         PRIVATE
@@ -171,6 +172,7 @@ target_include_directories(platform_s
     PUBLIC
         .
         ../common
+        partition
         ${HAL_ADI_PERIPH_INC_DIR}
         ${HAL_ADI_CMSIS_INC_DIR}
         ${PLATFORM_DIR}/..
