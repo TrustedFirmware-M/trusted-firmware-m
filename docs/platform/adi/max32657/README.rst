@@ -49,6 +49,40 @@ Secure Boot ROM
 MAX32657 has Secure Boot ROM that used to authenticate user code via ECDSA 256 public key.
 The Secure Boot ROM is disabled on default, to enable it user need to provision device first.
 
+ADI provides enable_secure_boot.py (under <CMAKE_BINARY_DIR>/lib/ext/tesa-toolkit-src/devices/max32657/scripts/bl1_provision)
+script to simply provision the device. This script reads user certificate via command line parameter
+then writes user key on the device and disables debug interface.
+
+To create pub & private key pair for MAX32657 run:
+
+.. code-block:: bash
+
+    openssl ecparam -out <MY_CERT_FILE.pem> -genkey -name prime256v1
+
+
+.. note::
+
+   Debug interface will be disabled after secure boot is enabled.
+   User must write final firmware before provisioning the device. It can
+   be written during device provision, Just add your final firmware hex file in
+   JLinkScript under <CMAKE_BINARY_DIR>/lib/ext/tesa-toolkit-src/devices/max32657/scripts/bl1_provision folder.
+
+
+After secure boot has been enabled BL2 image must be signed with user certificate
+otherwise Secure Boot ROM will not validate BL2 image and will not execute it.
+The sign process will be done automatically if BL1 be ON ``-DBL1=ON``
+The sign key can be sepecified over command line option -DTFM_BL2_SIGNING_KEY_PATH=<MY_KEY_FILE>
+or by setting the flag in <TF-M base folder>/platform/ext/target/adi/max32657/config.cmake
+Development purpose test certificate is here:
+<CMAKE_BINARY_DIR>/lib/ext/tesa-toolkit-src/devices/max32657/keys/bl1_dummy.pem
+It shall not been used for production purpose just for development purpose.
+
+.. note::
+
+   The signature generation depends on ecdsa that's have to be installed::
+
+    pip3 install ecdsa
+
 
 Building TF-M
 -------------
@@ -114,6 +148,10 @@ Merge hex files as follows:
 .. code-block:: console
 
     srec_cat.exe build_spe/bin/bl2.hex -Intel build_spe/bin/tfm_s_signed.hex -Intel build_test/bin/tfm_ns_signed.hex -Intel -o tfm_merged.hex -Intel
+
+.. note::
+
+   Use bl2_signed.hex instead bl2.hex if Secure Boot ROM is enabled.
 
 
 Flash them with JLink as follows:

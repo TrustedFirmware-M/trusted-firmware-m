@@ -5,6 +5,10 @@
 #
 #-------------------------------------------------------------------------------
 
+set(BL1                                 OFF         CACHE BOOL      "Enable/disable ADI Secure Boot ROM, BL2 image will be signed")
+set(PLATFORM_DEFAULT_BL1                OFF         CACHE STRING    "ADI provides Secure Boot ROM so that disable default BL1")
+set(TFM_BL2_SIGNING_KEY_PATH            ""          CACHE FILEPATH  "")
+
 set(BL2                                 ON         CACHE BOOL     "Whether to build BL2")
 set(CONFIG_TFM_USE_TRUSTZONE            ON)
 set(TFM_PARTITION_PLATFORM              OFF          CACHE BOOL      "Enable Platform partition")

@@ -105,6 +105,11 @@ if(BL2)
             __MXC_FLASH_MEM_SIZE=0x00100000
     )
 
+    #
+    # Process Trusted Edge Security Arhictecture (TESA) extention
+    #
+    include(tesa-toolkit.cmake)
+
 endif()
 
 ###### TF-M Related Cmake Configurations #######################################
