@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 {% for partition in partitions %}
-#define {{"%-62s"|format(partition.manifest.name)}} ({{partition.attr.pid}})
+#define {{"%-62s"|format(partition.manifest.name)}} (0x{{"%0x"|format(partition.attr.pid)}})
 {% endfor %}
 
 #define {{"%-62s"|format("TFM_MAX_USER_PARTITIONS")}} ({{partitions | length()}})
