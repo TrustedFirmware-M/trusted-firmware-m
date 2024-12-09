@@ -36,6 +36,7 @@ set(HAL_ADI_PERIPH_SRC_DIR  ${HAL_ADI_PERIPH_DIR}/Source)
 ########################## Platform region defs ################################
 target_include_directories(platform_region_defs
     INTERFACE
+        ./
         partition
 )
 
@@ -72,6 +73,7 @@ if(BL2)
     target_sources(platform_bl2
         PRIVATE
             cmsis_drivers/Driver_Flash.c
+            $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_OTP}>>:${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/otp_max32657.c>
 
             ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_common.c
             ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_me30.c
@@ -153,6 +155,7 @@ target_sources(platform_s
     PRIVATE
         cmsis_drivers/Driver_Flash.c
         cmsis_drivers/Driver_PPC.c
+        $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_OTP}>>:${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/otp_max32657.c>
 
         ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_common.c
         ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_me30.c
