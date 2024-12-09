@@ -195,7 +195,6 @@ extern const VECTOR_TABLE_Type __VECTOR_TABLE[];
 #pragma GCC diagnostic pop
 #endif
 
-#ifdef RSE_ENABLE_TRAM
 static uint32_t tram_key_prefill_value;
 static uint32_t tram_erase_value;
 static uint32_t tram_key[8];
@@ -303,7 +302,6 @@ static inline void __attribute__ ((always_inline)) setup_tram_encryption(void)
     *(volatile uint32_t *)(CC3XX_BASE_S + 0x12c) = 0x00000000;
     *(volatile uint32_t *)(CC3XX_BASE_S + 0x1c4) = 0x00000000;
 };
-#endif /* RSE_ENABLE_TRAM */
 
 #if !(defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM))
 static inline void __attribute__ ((always_inline)) erase_vm0_and_vm1(void)
@@ -345,7 +343,7 @@ static inline void __attribute__ ((always_inline)) erase_vm0_and_vm1(void)
         *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x000) = 0x00000001;
     }
 }
-#endif
+#endif /* !(RSE_BL1_TEST_BINARY && RSE_TEST_BINARY_IN_SRAM) */
 
 /*----------------------------------------------------------------------------
   Reset Handler called on controller reset
@@ -365,9 +363,7 @@ void __NO_RETURN Reset_Handler(void)
      */
     ICB->ACTLR |= ICB_ACTLR_DISNWAMODE_Msk;
 
-#ifdef RSE_ENABLE_TRAM
     setup_tram_encryption();
-#endif /* RSE_ENABLE_TRAM */
 
 #if !(defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM))
     erase_vm0_and_vm1();

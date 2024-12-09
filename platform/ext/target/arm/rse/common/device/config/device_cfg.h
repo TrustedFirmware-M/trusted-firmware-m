@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,9 +67,7 @@
 #endif
 
 /* ARM TRAM */
-#ifdef RSE_ENABLE_TRAM
 #define TRAM_S
-#endif /* RSE_ENABLE_TRAM */
 
 /* ARM Integrity Checker */
 #define INTEGRITY_CHECKER_S
