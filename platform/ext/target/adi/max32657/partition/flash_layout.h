@@ -163,8 +163,16 @@
 #define NON_SECURE_IMAGE_OFFSET         (SECURE_IMAGE_OFFSET + SECURE_IMAGE_MAX_SIZE)
 #define NON_SECURE_IMAGE_MAX_SIZE       FLASH_NS_PARTITION_SIZE
 
+/* Flash device name used by BL2 */
+#define FLASH_DEV_NAME Driver_FLASH0
 /* Smallest flash programmable unit in bytes - MAX32657: 128 bits */
 #define TFM_HAL_FLASH_PROGRAM_UNIT       (0x00000010)
+
+/* Protected Storage (PS) Service definitions
+ * Note: Further documentation of these definitions can be found in the
+ * TF-M PS Integration Guide.
+ */
+#define TFM_HAL_PS_FLASH_DRIVER Driver_FLASH0
 
 /* In this target the CMSIS driver requires only the offset from the base
  * address instead of the full memory address.
@@ -178,6 +186,14 @@
 #define TFM_HAL_PS_SECTORS_PER_BLOCK  (1)
 /* Smallest flash programmable unit in bytes */
 #define TFM_HAL_PS_PROGRAM_UNIT       (0x00000010)
+
+/* Internal Trusted Storage (ITS) Service definitions
+ * Note: Further documentation of these definitions can be found in the
+ * TF-M ITS Integration Guide. The ITS should be in the internal flash, but is
+ * allocated in the external flash just for development platforms that don't
+ * have internal flash available.
+ */
+#define TFM_HAL_ITS_FLASH_DRIVER Driver_FLASH0
 
 /* In this target the CMSIS driver requires only the offset from the base
  * address instead of the full memory address.

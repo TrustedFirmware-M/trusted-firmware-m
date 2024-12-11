@@ -71,6 +71,8 @@ if(BL2)
 
     target_sources(platform_bl2
         PRIVATE
+            cmsis_drivers/Driver_Flash.c
+
             ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_common.c
             ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_me30.c
             ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_revb.c
@@ -149,6 +151,7 @@ target_compile_options(platform_s
 
 target_sources(platform_s
     PRIVATE
+        cmsis_drivers/Driver_Flash.c
         cmsis_drivers/Driver_PPC.c
 
         ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_common.c
