@@ -20,6 +20,11 @@
 #ifndef __RTE_DEVICE_H
 #define __RTE_DEVICE_H
 
+// <e> USART (Universal synchronous - asynchronous receiver transmitter) [Driver_USART0]
+// <i> Configuration settings for Driver_USART0 in component ::Drivers:USART
+#define   RTE_USART0                     1
+// </e> USART (Universal synchronous - asynchronous receiver transmitter) [Driver_USART0]
+
 // <e> PPC (Peripheral Protection Controller) [Driver_PPC]
 // <i> Configuration settings for Driver_PPC in component ::Drivers:PPC
 #define   RTE_PPC                1
