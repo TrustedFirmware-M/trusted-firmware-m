@@ -35,4 +35,34 @@
 #define   RTE_FLASH0                     1
 // </e> FLASH (Flash Memory) [Driver_FLASH0]
 
+// <e> MPC (Memory Protection Controller) [Driver_SRAM0_MPC]
+// <i> Configuration settings for Driver_SRAM0_MPC in component ::Drivers:MPC
+#define RTE_SRAM0_MPC 1
+// </e> MPC (Memory Protection Controller) [Driver_SRAM0_MPC]
+
+// <e> MPC (Memory Protection Controller) [Driver_SRAM1_MPC]
+// <i> Configuration settings for Driver_SRAM1_MPC in component ::Drivers:MPC
+#define RTE_SRAM1_MPC 1
+// </e> MPC (Memory Protection Controller) [Driver_SRAM1_MPC]
+
+// <e> MPC (Memory Protection Controller) [Driver_SRAM2_MPC]
+// <i> Configuration settings for Driver_SRAM2_MPC in component ::Drivers:MPC
+#define RTE_SRAM2_MPC 1
+// </e> MPC (Memory Protection Controller) [Driver_SRAM2_MPC]
+
+// <e> MPC (Memory Protection Controller) [Driver_SRAM3_MPC]
+// <i> Configuration settings for Driver_SRAM3_MPC in component ::Drivers:MPC
+#define RTE_SRAM3_MPC 1
+// </e> MPC (Memory Protection Controller) [Driver_SRAM3_MPC]
+
+// <e> MPC (Memory Protection Controller) [Driver_SRAM4_MPC]
+// <i> Configuration settings for Driver_SRAM4_MPC in component ::Drivers:MPC
+#define RTE_SRAM4_MPC 1
+// </e> MPC (Memory Protection Controller) [Driver_SRAM4_MPC]
+
+// <e> MPC (Memory Protection Controller) [Driver_FLASH_MPC]
+// <i> Configuration settings for Driver_FLASH_MPC in component ::Drivers:MPC
+#define RTE_FLASH_MPC 1
+// </e> MPC (Memory Protection Controller) [Driver_FLASH_MPC]
+
 #endif  /* __RTE_DEVICE_H */

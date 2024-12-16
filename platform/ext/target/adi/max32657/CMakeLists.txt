@@ -157,6 +157,8 @@ target_sources(platform_s
         cmsis_drivers/Driver_Flash.c
         cmsis_drivers/Driver_USART.c
         cmsis_drivers/Driver_PPC.c
+        cmsis_drivers/Driver_MPC.c
+        device/src/mpc_sie200_drv.c
         $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_OTP}>>:${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/otp_max32657.c>
 
         ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_common.c
@@ -182,6 +184,7 @@ target_include_directories(platform_s
         .
         ../common
         partition
+        device/inc
         services/include
         ${HAL_ADI_PERIPH_INC_DIR}
         ${HAL_ADI_CMSIS_INC_DIR}
