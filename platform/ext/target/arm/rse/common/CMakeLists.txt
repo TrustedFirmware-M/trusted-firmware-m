@@ -188,6 +188,8 @@ target_include_directories(platform_s
         ${PLATFORM_DIR}/ext/target/arm/drivers/cc3xx/low_level_driver/include
         ${PLATFORM_DIR}/ext/target/arm/drivers/cc3xx/common
         soft_crc
+        ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/include
+        ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/default_config
 )
 
 target_sources(platform_s
@@ -379,6 +381,8 @@ target_include_directories(platform_bl2
         ${PLATFORM_DIR}/ext/target/arm/drivers/kmu
         ${PLATFORM_DIR}/ext/target/arm/drivers/lcm
         ${PLATFORM_DIR}/ext/target/arm/drivers/gpio/pl061
+        ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/include
+        ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/default_config
         ./bringup_helpers
         ./cc3xx
         bl2/cc3xx
@@ -460,6 +464,8 @@ target_sources(platform_bl1_1
         ./bl1/bl1_1_debug.c
         ./rse_permanently_disable_device.c
         ./rse_zero_count.c
+        $<$<BOOL:${RSE_HAS_DCSU}>:${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/src/dcsu_drv.c>
+        $<$<BOOL:${RSE_HAS_DCSU}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>
 )
 
 target_compile_definitions(platform_bl1_1
@@ -488,6 +494,8 @@ target_include_directories(platform_bl1_1_interface
         ${PLATFORM_DIR}/ext/target/arm/drivers/cc3xx/low_level_driver/include
         ${PLATFORM_DIR}/ext/target/arm/drivers/cc3xx/common
         ${PLATFORM_DIR}/ext/target/arm/drivers/gpio/pl061
+        ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/include
+        ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/default_config
         ./bringup_helpers
         ./cc3xx
         ./bl1/cc3xx
@@ -501,6 +509,7 @@ target_compile_definitions(platform_bl1_1_interface
         $<$<BOOL:${TFM_PARTITION_DPE}>:RSE_BOOT_KEYS_DPE>
         KMU_CONFIG_EXTERNAL_SECURE_WORD_COPY
         $<$<BOOL:${RSE_ENCRYPTED_OTP_KEYS}>:RSE_ENCRYPTED_OTP_KEYS>
+        $<$<BOOL:${RSE_HAS_DCSU}>:RSE_HAS_DCSU>
 )
 
 target_link_libraries(platform_bl1_1
@@ -598,6 +607,8 @@ target_include_directories(platform_bl1_2
         ${PLATFORM_DIR}/ext/target/arm/drivers/dma/dma350
         ${PLATFORM_DIR}/ext/target/arm/drivers/kmu
         ${PLATFORM_DIR}/ext/target/arm/drivers/lcm
+        ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/include
+        ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/default_config
         ./tests/rse_test_executable
 )
 
@@ -918,6 +929,10 @@ install(DIRECTORY   partition
 
 install(DIRECTORY   ${RSE_SUBPLATFORM_PAL_CONFIG_DIR}/
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/subplatform_pal_config
+)
+
+install(DIRECTORY   ${BL1_1_CONFIG_DIR}/
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/bl1_1_config
 )
 
 install(DIRECTORY   ${BL1_2_CONFIG_DIR}/

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 Arm Limited
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,6 +142,9 @@
 #define SLOWCLK_TIMER_CMSDK_BASE_S       0x5802F000 /* CMSDK based SLOWCLK Timer Secure base address */
 #define SYSWDOG_ARMV8_M_CNTRL_BASE_S     0x58040000 /* Secure Watchdog Timer control frame Secure base address */
 #define SYSWDOG_ARMV8_M_REFRESH_BASE_S   0x58041000 /* Secure Watchdog Timer refresh frame Secure base address */
+#define ILCU_BASE_S                      0x58110000 /* Integration Layer Control Unit Secure base address */
+#define OTP_WRAPPER_BASE_S               0x58111000 /* OTP Wrapper Secure base address */
+#define DCSU_BASE_S                      0x58112000 /* Diagnostics Control and Status Unit Secure base address */
 #define RSE_DEBUG_UART0_BASE_S           0xF0305000 /* Debug UART attached to RSE subsystem */
 
 /* Secure Host region */

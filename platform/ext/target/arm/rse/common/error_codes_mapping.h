@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -42,6 +42,10 @@
 
 #ifndef INTEGRITY_CHECKER_ERROR_BASE
 #define INTEGRITY_CHECKER_ERROR_BASE 0x90000000
+#endif
+
+#ifndef DCSU_ERROR_BASE
+#define DCSU_ERROR_BASE 0xa0000000
 #endif
 
 #ifndef CC3XX_ERROR_BASE

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -217,6 +217,11 @@ extern struct lcm_dev_t LCM_DEV_S;
 #ifdef INTEGRITY_CHECKER_S
 #include "integrity_checker_drv.h"
 extern struct integrity_checker_dev_t INTEGRITY_CHECKER_DEV_S;
+#endif
+
+#ifdef RSE_HAS_DCSU
+#include "dcsu_drv.h"
+extern struct dcsu_dev_t DCSU_DEV_S;
 #endif
 
 #ifdef DMA350_DMA0_S

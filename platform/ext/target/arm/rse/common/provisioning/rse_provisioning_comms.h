@@ -26,7 +26,8 @@ extern "C" {
  * @return enum tfm_plat_err_t
  */
 enum tfm_plat_err_t provisioning_comms_receive(const struct rse_provisioning_message_t *msg,
-                                               size_t msg_size, size_t *msg_len);
+                                               size_t msg_len, size_t *msg_size);
+
 /**
  * @brief
  *

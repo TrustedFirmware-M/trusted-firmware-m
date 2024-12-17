@@ -104,6 +104,11 @@
 /* Arm LCM */
 #define LCM_S
 
+/* Arm DCSU */
+#ifdef RSE_HAS_DCSU
+#define DCSU_S
+#endif /* RSE_HAS_DCSU */
+
 /* DMA350 defines */
 #define DMA350_DMA0_S
 #define DMA350_DMA0_CHANNEL_COUNT 4

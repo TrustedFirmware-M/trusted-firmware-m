@@ -12,6 +12,7 @@ set(RSE_XIP                             OFF        CACHE BOOL     "Whether to ru
 set(RSE_USE_HOST_UART                   ON         CACHE BOOL     "Whether RSE should setup to use the UART from the host system")
 set(RSE_USE_LOCAL_UART                  OFF        CACHE BOOL     "Whether RSE should setup to use the UART local to the RSE subsystem")
 set(RSE_HAS_EXPANSION_PERIPHERALS       OFF        CACHE BOOL     "Whether RSE has sub-platform specific peripherals in the expansion layer")
+set(RSE_HAS_DCSU                        OFF        CACHE BOOL     "Whether RSE contains a DCSU")
 
 set(RSE_DEFAULT_CLOCK_CONFIG            ON         CACHE BOOL "Use default RSE clock config implementation")
 

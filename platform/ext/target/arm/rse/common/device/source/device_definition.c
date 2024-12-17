@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -567,6 +567,19 @@ static struct integrity_checker_dev_cfg_t INTEGRITY_CHECKER_DEV_CFG_S = {
 };
 struct integrity_checker_dev_t INTEGRITY_CHECKER_DEV_S = {
     .cfg = &(INTEGRITY_CHECKER_DEV_CFG_S)
+};
+#endif
+
+#ifdef DCSU_S
+static struct dcsu_dev_cfg_t DCSU_DEV_CFG_S = {
+    .base = DCSU_BASE_S
+};
+struct dcsu_dev_t DCSU_DEV_S = {
+    .cfg = &(DCSU_DEV_CFG_S),
+    .rx_buf = NULL,
+    .rx_buf_len = 0,
+    .rx_buf_offset = 0,
+    .handler = NULL,
 };
 #endif
 

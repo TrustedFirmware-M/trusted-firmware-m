@@ -22,7 +22,8 @@ target_sources(platform_bl2
 target_sources(platform_bl1_1
     PRIVATE
         ./bl1_provisioning.c
-        ./rse_provisioning_comms.c
+        $<$<BOOL:${RSE_HAS_DCSU}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_provisioning_comms_dcsu.c>
+        $<$<NOT:$<BOOL:${RSE_HAS_DCSU}>>:${CMAKE_CURRENT_SOURCE_DIR}/rse_provisioning_comms_stub.c>
         ./rse_provisioning_message_handler.c
         ./rse_provisioning_rotpk.c
         ./rse_provisioning_tci_key.c
