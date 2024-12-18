@@ -134,6 +134,11 @@ target_compile_definitions(tfm_s
         __MXC_FLASH_MEM_SIZE=0x00100000
 )
 
+target_sources(tfm_spm
+    PRIVATE
+        target_cfg.c
+)
+
 target_compile_definitions(platform_s
     PUBLIC
         TARGET=${TARGET_UC}
