@@ -137,6 +137,7 @@ target_compile_definitions(tfm_s
 target_sources(tfm_spm
     PRIVATE
         target_cfg.c
+        tfm_hal_platform.c
 )
 
 target_compile_definitions(platform_s
