@@ -26,6 +26,7 @@
 #include "system_max32657.h"
 #include "gcr_regs.h"
 #include "mpc.h"
+#include "icc.h"
 
 
 uint32_t SystemCoreClock = IPO_FREQ; // Part defaults to IPO on startup
@@ -114,6 +115,10 @@ void SystemInit(void)
 
     /* Enable interrupts */
     __enable_irq();
+
+#if CONFIG_TRUSTED_EXECUTION_SECURE
+     MXC_ICC_Enable();
+#endif
 
     /* Change system clock source to the main high-speed clock */
     MXC_SYS_Clock_Select(MXC_SYS_CLOCK_IPO);

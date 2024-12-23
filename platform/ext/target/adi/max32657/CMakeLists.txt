@@ -88,6 +88,8 @@ if(BL2)
             ${HAL_ADI_PERIPH_SRC_DIR}/GPIO/gpio_reva.c
             ${HAL_ADI_PERIPH_SRC_DIR}/GPIO/gpio_common.c
             ${HAL_ADI_PERIPH_SRC_DIR}/SYS/pins_me30.c
+            ${HAL_ADI_PERIPH_SRC_DIR}/ICC/icc_me30.c
+            ${HAL_ADI_PERIPH_SRC_DIR}/ICC/icc_reva.c
     )
 
     target_compile_definitions(platform_bl2
@@ -180,6 +182,8 @@ target_sources(platform_s
         ${HAL_ADI_PERIPH_SRC_DIR}/GPIO/gpio_common.c
         ${HAL_ADI_PERIPH_SRC_DIR}/SYS/pins_me30.c
         ${HAL_ADI_PERIPH_SRC_DIR}/TZ/spc_me30.c
+        ${HAL_ADI_PERIPH_SRC_DIR}/ICC/icc_me30.c
+        ${HAL_ADI_PERIPH_SRC_DIR}/ICC/icc_reva.c
 
         $<$<BOOL:TFM_PARTITION_PLATFORM>:${CMAKE_CURRENT_SOURCE_DIR}/services/src/tfm_platform_system.c>
         $<$<BOOL:TFM_PARTITION_PLATFORM>:${CMAKE_CURRENT_SOURCE_DIR}/services/src/tfm_platform_hal_ioctl.c>
