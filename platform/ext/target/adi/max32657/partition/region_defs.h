@@ -92,9 +92,15 @@
 /* Size of vector table: 69 interrupt handlers + 16 bytes of reserved space */
 #define S_CODE_VECTOR_TABLE_SIZE    (0x00000124)
 
+#define S_TOTAL_DATA_SIZE  KB(64)
+#define S_RAM_CODE_SIZE    KB(1)  /* ramfuncs section size*/
+
 #define S_DATA_START    (S_RAM_ALIAS(0x00000000))
-#define S_DATA_SIZE     KB(64)
+#define S_DATA_SIZE     (S_TOTAL_DATA_SIZE - S_RAM_CODE_SIZE)
 #define S_DATA_LIMIT    (S_DATA_START + S_DATA_SIZE - 1)
+
+#define S_RAM_CODE_START  (S_DATA_START + S_DATA_SIZE) /* ramfuncs section start */
+#define S_RAM_CODE_EXTRA_SECTION_NAME ".flashprog"  /* ramfuncs section name */
 
 /* Non-secure regions
  * MPC block aligned 32KB, NS binary need to aling that
@@ -104,12 +110,12 @@
 #define NS_CODE_SIZE    (IMAGE_NS_CODE_SIZE)
 #define NS_CODE_LIMIT   (NS_CODE_START + NS_CODE_SIZE - 1)
 
-#define NS_DATA_START   (NS_RAM_ALIAS( S_DATA_SIZE ))
+#define NS_DATA_START   (NS_RAM_ALIAS( S_TOTAL_DATA_SIZE ))
 #if defined(PSA_API_TEST_NS) && !defined(PSA_API_TEST_IPC)
 #define DEV_APIS_TEST_NVMEM_REGION_SIZE  KB(1)
-#define NS_DATA_SIZE    (TOTAL_RAM_SIZE - S_DATA_SIZE - DEV_APIS_TEST_NVMEM_REGION_SIZE)
+#define NS_DATA_SIZE    (TOTAL_RAM_SIZE - S_TOTAL_DATA_SIZE - DEV_APIS_TEST_NVMEM_REGION_SIZE)
 #else
-#define NS_DATA_SIZE    (TOTAL_RAM_SIZE - S_DATA_SIZE)
+#define NS_DATA_SIZE    (TOTAL_RAM_SIZE - S_TOTAL_DATA_SIZE)
 #endif
 #define NS_DATA_LIMIT   (NS_DATA_START + NS_DATA_SIZE - 1)
 
