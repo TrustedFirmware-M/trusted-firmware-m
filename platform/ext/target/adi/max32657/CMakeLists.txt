@@ -153,6 +153,9 @@ target_compile_definitions(platform_s
 
         __MXC_FLASH_MEM_BASE=0x11000000
         __MXC_FLASH_MEM_SIZE=0x00100000
+
+        $<$<BOOL:${TFM_S_REG_TEST}>:TFM_S_REG_TEST>
+        $<$<BOOL:${TFM_NS_REG_TEST}>:TFM_NS_REG_TEST>
 )
 
 target_compile_options(platform_s

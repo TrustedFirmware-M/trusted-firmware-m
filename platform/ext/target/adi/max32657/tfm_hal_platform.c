@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
- * Copyright (C) 2024 Analog Devices, Inc.
+ * Copyright (C) 2024-2025 Analog Devices, Inc.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -17,6 +17,11 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_platform_init(void)
     enum tfm_plat_err_t plat_err = TFM_PLAT_ERR_SYSTEM_ERR;
 
     __enable_irq();
+#if defined(TFM_SPM_LOG_RAW_ENABLED) &&  \
+    !defined(TFM_NS_REG_TEST) && \
+    !defined(TFM_S_REG_TEST)
+    stdio_init();
+#endif
 
     plat_err = nvic_interrupt_target_state_cfg();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {

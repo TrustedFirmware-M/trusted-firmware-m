@@ -145,7 +145,9 @@ uint8_t ns_periph_arr[] = {
    SPC_TIMER4,
    SPC_TIMER5,
    SPC_I3C,
+#if !defined(TFM_S_REG_TEST)
    SPC_UART,
+#endif
    SPC_SPI,
    SPC_TRNG,
    SPC_BTLE_DBB,
@@ -173,7 +175,9 @@ uint8_t nvic_set_ns[] = {
     TMR4_IRQn,
     TMR5_IRQn,
     I3C_IRQn,
+#if !defined(TFM_S_REG_TEST)
     UART_IRQn,
+#endif
     SPI_IRQn,
     GPIO0_IRQn,
     DMA0_CH0_IRQn,
