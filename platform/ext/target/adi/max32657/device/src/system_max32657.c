@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright (C) 2024 Analog Devices, Inc.
+ * Copyright (C) 2024-2025 Analog Devices, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,4 +124,13 @@ void SystemInit(void)
     MXC_SYS_Clock_Select(MXC_SYS_CLOCK_IPO);
     MXC_SYS_SetClockDiv(MXC_SYS_CLOCK_DIV_1);
     SystemCoreClockUpdate();
+
+    /*
+     * FPCA bit of CONTROL register can be enabled while
+     * performing floating point operation in Secure domain.
+     * It will trigger fault if it is not  cleared before
+     * switching to Non-secure domain.
+     * Hence, clearing FPCA bit during initialization firmware
+     */
+    __set_CONTROL(__get_CONTROL() & ~0x4);
 }
