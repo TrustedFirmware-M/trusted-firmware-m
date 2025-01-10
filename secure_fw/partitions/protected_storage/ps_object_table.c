@@ -922,14 +922,6 @@ psa_status_t ps_object_table_init(uint8_t *obj_data)
         return err;
     }
 
-#if PS_ROLLBACK_PROTECTION
-    /* Align PS NV counters */
-    err = ps_object_table_align_nv_counters(init_ctx.nvc_1);
-    if (err != PSA_SUCCESS) {
-        return err;
-    }
-#endif /* PS_ROLLBACK_PROTECTION */
-
 #ifdef PS_ENCRYPTION
     ps_crypto_set_iv(&ps_obj_table_ctx.obj_table.crypto);
 #endif
