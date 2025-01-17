@@ -59,6 +59,61 @@ int32_t tfm_ns_interface_dispatch(veneer_fn fn,
  */
 uint32_t tfm_ns_interface_init(void);
 
+/***************************** Reentrancy checks  *****************************/
+
+/*!
+ * \enum tfm_reenter_check_err_t
+ *
+ * \brief Reentrancy check error returned type
+ *
+ */
+enum tfm_reenter_check_err_t {
+    TFM_REENTRANCY_CHECK_ERR_INVALID_ACCESS = -2,
+    TFM_REENTRANCY_CHECK_ERR_FLAG_STATUS = -1,
+    TFM_REENTRANCY_CHECK_SUCCESS = 0,
+
+    _TFM_REENTRANCY_CHECK_ERR_MAX = INT32_MAX
+};
+
+/**
+ * \brief Perform a reentrancy check before safely proceeding with a PSA
+ *        Function Call
+ *
+ * \note  Requires TFM_TZ_REENTRANCY_CHECK option to be enabled
+ *
+ * \return Returns \ref tfm_reenter_check_err_t status code.
+
+ * \return #TFM_REENTRANCY_CHECK_SUCCESS
+ *         The caller can then perform the psa_call successfully
+ * \return #TFM_REENTRANCY_CHECK_ERR_FLAG_STATUS
+ *         Either:
+ *         The check flag has been set already, thus either another call is in
+ *         progress or it needs to be cleared.
+ *         Or:
+ *         TFM_TZ_REENTRANCY_CHECK is not enabled
+ * \return #TFM_REENTRANCY_CHECK_ERR_INVALID_ACCESS
+ *         The caller cannot safely proceed with a psa_call because the secure
+ *         state was interrupted and reuires completion. Try later.
+ */
+enum tfm_reenter_check_err_t tfm_ns_check_safe_entry(void);
+
+/**
+ * \brief Release the reentrancy flag
+ *
+ * \note  Requires TFM_TZ_REENTRANCY_CHECK option to be enabled
+ *
+ * \return Returns \ref tfm_reenter_check_err_t status code.
+ *
+ * \return #TFM_REENTRANCY_CHECK_SUCCESS
+ *         The caller successfully cleared the previously set flag
+ * \return #TFM_REENTRANCY_CHECK_ERR_FLAG_STATUS
+ *         Either:
+ *         There was an attempt to clear twice the check flag
+ *         Or:
+ *         TFM_TZ_REENTRANCY_CHECK is not enabled
+ */
+enum tfm_reenter_check_err_t tfm_ns_check_exit(void);
+
 #ifdef __cplusplus
 }
 #endif

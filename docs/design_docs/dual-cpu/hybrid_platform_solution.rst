@@ -334,6 +334,173 @@ broker.
   }
 
 
+Hybrid Platform and NSPE reentrancy
+===================================
+
+With scheduling set to ``TFM_HYBRID_PLAT_SCHED_SPE``, the non-secure state can
+be interrupted, allowing execution to switch to the secure side until it
+completes.
+In systems where NSPE has no knowledge on when - or even if - there is a secure
+service in action, a non-secure application can interrupt and take over
+execution.
+This is the case, for example, when a standard RTOS runs its scheduler (by
+pre-empting the secure side) and later a new task runs.
+That task can attempt to request services from the secure state, which could
+lead to an intentional system panic.
+To safely deal with such scenario, NSPE has a way to detect if reentrancy is
+allowed. To do so, enable ``TFM_TZ_REENTRANCY_CHECK`` in the build and
+include a validation check at run-time.
+The following diagram illustrates an example for a NSPE with an RTOS and a
+possible scenario of a secure service pre-empted by a new task.
+
+
+.. uml::
+
+    @startuml
+    skinparam ParticipantPadding 15
+
+    participant task1
+    participant task2
+    participant task3
+    participant RTOS2
+    participant TZ #119911
+    participant Sec
+
+    [-> task1 : App
+    activate task1
+
+    participant SRV
+    participant mbox
+
+    task1 --[#red]> mbox : S-irq
+    deactivate task1
+    activate mbox
+
+    mbox -> SRV
+    deactivate mbox
+    activate SRV
+
+    SRV --[#blue]> RTOS2 : SysTick_NS
+    deactivate SRV
+    activate RTOS2 #FF22BB
+    ||5||
+    note left: OS ctx switch
+
+    RTOS2 -[#grey]>> task2
+    deactivate RTOS2
+
+    activate task2
+
+    task2 -> Sec: tfm_ns_check_safe_entry
+    activate Sec #FFBBBB
+    Sec -> task2: ret != SUCCESS
+    deactivate Sec
+    task2 -> task2: **yield**
+    task2 -[#grey]>> RTOS2: c/s
+
+    deactivate task2
+
+    activate RTOS2 #FF22BB
+    ||5||
+    note right: OS ctx switch
+
+    RTOS2 -[#grey]>> task3
+    deactivate RTOS2
+    activate task3
+    task3 -> task3 : do_work
+    task3 --[#blue]> RTOS2 : SysTick_NS
+    deactivate task3
+    activate RTOS2 #FF22BB
+    ||5||
+    note right: OS ctx switch
+
+    RTOS2 -> SRV
+    deactivate RTOS2
+    activate SRV
+
+    SRV -> mbox
+    deactivate SRV
+    activate mbox
+
+    mbox --[#red]> task1 : return
+    deactivate mbox
+
+    activate task1
+
+    task1 --[#blue]> RTOS2 : SysTick_NS
+    deactivate task1
+    activate RTOS2 #FF22BB
+    ||5||
+    note right: OS ctx switch
+    RTOS2 -[#grey]>> task2
+    deactivate RTOS2
+    activate task2
+
+    task2 -> Sec: tfm_ns_check_safe_entry
+    activate Sec #FFBBBB
+    Sec -> task2: ret == SUCCESS
+    deactivate Sec
+    task2 -> SRV: do_work
+    activate SRV
+    SRV -> task2
+    deactivate SRV
+    task2 --[#blue]> RTOS2 : SysTick_NS
+    deactivate task2
+
+    activate RTOS2 #FF22BB
+    ||5||
+    note right: OS ctx switch
+    RTOS2 -[#grey]>> task3
+    deactivate RTOS2
+    activate task3
+
+    @enduml
+
+
+.. note::
+   The sequence diagram above demonstrates the denial of re-entry until the
+   secure service completes; non-secure applications must check
+   tfm_ns_check_safe_entry() and yield otherwise.
+
+For the task in the non-secure side that makes a request to a secure service
+(attempting to reenter), below is a possible use case of the reentrancy check:
+
+
+.. code-block:: c
+
+  psa_status_t ns_status = PSA_ERROR_CONNECTION_REFUSED;
+  enum tfm_reenter_check_err_t reenter_status;
+  os_status_t os_status;
+
+  reenter_status = tfm_ns_check_safe_entry();
+  if (reenter_status == TFM_REENTRANCY_CHECK_SUCCESS) {
+      ns_status = psa_call(
+          SERVICE_HANDLE,
+          SERVICE_ID,
+          in_vec, IOVEC_LEN(in_vec),
+          out_vec, IOVEC_LEN(in_vec));
+      if (ns_status != PSA_SUCCESS) {
+          /* handle error */
+      }
+
+      /*
+       * Release re-entry guard.
+       * Must be called on the same call path after a successful secure entry.
+       */
+      tfm_ns_check_exit();
+  } else {
+      os_status = osThreadYield(); /* also possible osDelay(delayTime); */
+      if (os_status != osOK) {
+          /* handle error */
+      }
+  }
+
+The RTOS yielding mechanism directly influences task scheduling and the
+continuation of preempted secure services.
+There may be better functions than the one shown above that allow to achieve the
+sought scheduling sequence.
+
+
 Limitations
 ===========
 

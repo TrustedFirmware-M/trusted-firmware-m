@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -13,6 +13,8 @@
 #include "tfm_psa_call_pack.h"
 
 #include "psa/client.h"
+#include "psa/service.h"
+#include "psa_api_veneers_common.h"
 
 /*
  * This is the veneers of FF-M Client APIs, except for Armv8.0-m.
@@ -27,6 +29,11 @@ __tz_c_veneer
 uint32_t tfm_psa_framework_version_veneer(void)
 {
     uint32_t ret;
+
+#if TFM_TZ_REENTRANCY_CHECK == 1
+    tfm_psa_test_reentrancy_flag();
+#endif
+
 #if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
     __set_BASEPRI(SECURE_THREAD_EXECUTION_PRIORITY);
 #endif
@@ -41,6 +48,11 @@ __tz_c_veneer
 uint32_t tfm_psa_version_veneer(uint32_t sid)
 {
     uint32_t ret;
+
+#if TFM_TZ_REENTRANCY_CHECK == 1
+    tfm_psa_test_reentrancy_flag();
+#endif
+
 #if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
     __set_BASEPRI(SECURE_THREAD_EXECUTION_PRIORITY);
 #endif
@@ -58,6 +70,11 @@ psa_status_t tfm_psa_call_veneer(psa_handle_t handle,
                                  psa_outvec *out_vec)
 {
     psa_status_t ret;
+
+#if TFM_TZ_REENTRANCY_CHECK == 1
+    tfm_psa_test_reentrancy_flag();
+#endif
+
 #if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
     __set_BASEPRI(SECURE_THREAD_EXECUTION_PRIORITY);
 #endif
@@ -76,6 +93,11 @@ __tz_c_veneer
 psa_handle_t tfm_psa_connect_veneer(uint32_t sid, uint32_t version)
 {
     psa_handle_t ret;
+
+#if TFM_TZ_REENTRANCY_CHECK == 1
+    tfm_psa_test_reentrancy_flag();
+#endif
+
 #if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
     __set_BASEPRI(SECURE_THREAD_EXECUTION_PRIORITY);
 #endif
@@ -89,6 +111,11 @@ psa_handle_t tfm_psa_connect_veneer(uint32_t sid, uint32_t version)
 __tz_c_veneer
 void tfm_psa_close_veneer(psa_handle_t handle)
 {
+
+#if TFM_TZ_REENTRANCY_CHECK == 1
+    tfm_psa_test_reentrancy_flag();
+#endif
+
 #if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
     __set_BASEPRI(SECURE_THREAD_EXECUTION_PRIORITY);
 #endif

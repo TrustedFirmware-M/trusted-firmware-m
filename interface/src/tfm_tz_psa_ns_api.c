@@ -12,6 +12,36 @@
 #include "tfm_ns_interface.h"
 #include "tfm_psa_call_pack.h"
 
+/**** API functions for reentrancy check ****/
+
+#if TFM_TZ_REENTRANCY_CHECK == 1
+enum tfm_reenter_check_err_t tfm_ns_check_safe_entry(void)
+{
+    return tfm_ns_interface_dispatch(
+        (veneer_fn)tfm_ns_check_safe_entry_veneer, 0, 0, 0, 0);
+}
+
+enum tfm_reenter_check_err_t tfm_ns_check_exit(void)
+{
+    return tfm_ns_interface_dispatch(
+        (veneer_fn)tfm_ns_check_exit_veneer, 0, 0, 0, 0);
+}
+#else
+/*
+ * NS client can only use the reenter protection flag mechanism when its
+ * implementation is available in TF-M. If not, return an error by default.
+ */
+enum tfm_reenter_check_err_t tfm_ns_check_safe_entry(void)
+{
+    return TFM_REENTRANCY_CHECK_ERR_FLAG_STATUS;
+}
+
+enum tfm_reenter_check_err_t tfm_ns_check_exit(void)
+{
+    return TFM_REENTRANCY_CHECK_ERR_FLAG_STATUS;
+}
+#endif
+
 /*
  **** API functions for TrustZone Interface ****
  *

@@ -97,6 +97,17 @@ tfm_invalid_config(TFM_PROFILE STREQUAL "profile_small" AND CONFIG_TFM_SPM_BACKE
 
 tfm_invalid_config(TFM_PXN_ENABLE AND NOT TFM_SYSTEM_ARCHITECTURE STREQUAL "armv8.1-m.main")
 
+# TFM_TZ_REENTRANCY_CHECK is only supported for v8-m
+tfm_invalid_config(TFM_TZ_REENTRANCY_CHECK AND NOT
+    (TFM_SYSTEM_ARCHITECTURE STREQUAL "armv8.1-m.main" OR
+    TFM_SYSTEM_ARCHITECTURE STREQUAL "armv8-m.base" OR
+    TFM_SYSTEM_ARCHITECTURE STREQUAL "armv8-m.main"))
+
+# TFM_TZ_REENTRANCY_CHECK is compatible only when both TrustZone and
+# Multicore are selected
+tfm_invalid_config(TFM_TZ_REENTRANCY_CHECK AND NOT
+    (CONFIG_TFM_USE_TRUSTZONE AND TFM_MULTI_CORE_TOPOLOGY))
+
 ######################## Sanitization checks ###################################
 
 tfm_invalid_config(BL1_1_SANITIZE AND C_COMPILER_ID:IAR)

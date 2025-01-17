@@ -34,6 +34,7 @@ target_sources(tfm_s
     PRIVATE
         "$<$<IN_LIST:${TFM_SYSTEM_ARCHITECTURE},${ARM_V80M_ARCH}>:${CMAKE_CURRENT_SOURCE_DIR}/psa_api_veneers_v80m.c>"
         "$<$<NOT:$<IN_LIST:${TFM_SYSTEM_ARCHITECTURE},${ARM_V80M_ARCH}>>:${CMAKE_CURRENT_SOURCE_DIR}/psa_api_veneers.c>"
+        "$<$<BOOL:${TFM_TZ_REENTRANCY_CHECK}>:${CMAKE_CURRENT_SOURCE_DIR}/psa_api_veneers_common.c>"
 )
 
 target_compile_definitions(tfm_config

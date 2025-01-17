@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -16,6 +16,28 @@ extern "C" {
 #endif
 
 /********************* Secure function declarations ***************************/
+
+/**
+ * \brief NS-side to perform a safety check for reentrancy before proceeding
+ *        with a PSA Call.
+ *
+ * \note  Requires TFM_TZ_REENTRANCY_CHECK option to be enabled
+ *
+ * \return              \c 0 on success.
+ * \return              \c -1 the test flag was already set.
+ * \return              \c -2 invalid reenter attempt.
+ */
+int32_t tfm_ns_check_safe_entry_veneer(void);
+
+/**
+ * \brief NS-side to let the test flag go.
+ *
+ * \note  Requires TFM_TZ_REENTRANCY_CHECK option to be enabled
+ *
+ * \return              \c 0 on success.
+ * \return              \c -1 failure to clear the test flag.
+ */
+int32_t tfm_ns_check_exit_veneer(void);
 
 /**
  * \brief Retrieve the version of the PSA Framework API that is implemented.

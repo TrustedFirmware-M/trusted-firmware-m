@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -17,6 +17,7 @@
 #include "psa/client.h"
 #include "psa/service.h"
 #include "tfm_arch.h"
+#include "psa_api_veneers_common.h"
 
 /*
  * This is the veneers of FF-M Client APIs for Armv8.0-m.
@@ -81,6 +82,19 @@ static void clear_caller_context(void)
     );
 }
 
+#if TFM_TZ_REENTRANCY_CHECK == 1
+__attribute__((naked, used))
+static void test_for_reenter_flag(void)
+{
+    __ASM volatile(
+        TFM_PSA_TEST_REENTRANCY_FLAG_v80
+        " BX        lr          \n"
+    );
+}
+#endif
+
+
+
 __tz_naked_veneer
 uint32_t tfm_psa_framework_version_veneer(void)
 {
@@ -90,10 +104,16 @@ uint32_t tfm_psa_framework_version_veneer(void)
         "   ldr    r2, ="M2S(SECURE_THREAD_EXECUTION_PRIORITY)"\n"
         "   msr    basepri, r2                                \n"
 #endif
+#if TFM_TZ_REENTRANCY_CHECK == 1
+        "   push   {lr}                                       \n"
+        "   bl     test_for_reenter_flag                      \n"
+        "   ldr.w  lr, [sp], #4                               \n"
+#else
         "   ldr    r2, [sp]                                   \n"
         "   ldr    r3, ="M2S(STACK_SEAL_PATTERN)"             \n"
         "   cmp    r2, r3                                     \n"
         "   bne    reent_panic1                               \n"
+#endif
         "   push   {r4, lr}                                   \n"
         "   bl     "M2S(psa_framework_version)"               \n"
         "   bl     clear_caller_context                       \n"
@@ -120,11 +140,16 @@ uint32_t tfm_psa_version_veneer(uint32_t sid)
         "   ldr    r2, ="M2S(SECURE_THREAD_EXECUTION_PRIORITY)"\n"
         "   msr    basepri, r2                                \n"
 #endif
+#if TFM_TZ_REENTRANCY_CHECK == 1
+        "   push   {lr}                                       \n"
+        "   bl     test_for_reenter_flag                      \n"
+        "   ldr.w  lr, [sp], #4                               \n"
+#else
         "   ldr    r2, [sp]                                   \n"
         "   ldr    r3, ="M2S(STACK_SEAL_PATTERN)"             \n"
         "   cmp    r2, r3                                     \n"
         "   bne    reent_panic2                               \n"
-
+#endif
         "   push   {r4, lr}                                   \n"
         "   bl     "M2S(psa_version)"                         \n"
         "   bl     clear_caller_context                       \n"
@@ -155,10 +180,16 @@ psa_status_t tfm_psa_call_veneer(psa_handle_t handle,
         "   ldr    r2, ="M2S(SECURE_THREAD_EXECUTION_PRIORITY)"\n"
         "   msr    basepri, r2                                \n"
 #endif
+#if TFM_TZ_REENTRANCY_CHECK == 1
+        "   push   {lr}                                       \n"
+        "   bl     test_for_reenter_flag                      \n"
+        "   ldr.w  lr, [sp], #4                               \n"
+#else
         "   ldr    r2, [sp, #8]                               \n"
         "   ldr    r3, ="M2S(STACK_SEAL_PATTERN)"             \n"
         "   cmp    r2, r3                                     \n"
         "   bne    reent_panic4                               \n"
+#endif
         "   ldr    r3, ="M2S(NS_VEC_DESC_BIT)"                \n"
         "   orrs   r1, r3                                     \n"
         "   pop    {r2, r3}                                   \n"
@@ -191,10 +222,16 @@ psa_handle_t tfm_psa_connect_veneer(uint32_t sid, uint32_t version)
         "   ldr    r2, ="M2S(SECURE_THREAD_EXECUTION_PRIORITY)"\n"
         "   msr    basepri, r2                                \n"
 #endif
+#if TFM_TZ_REENTRANCY_CHECK == 1
+        "   push   {lr}                                       \n"
+        "   bl     test_for_reenter_flag                      \n"
+        "   ldr.w  lr, [sp], #4                               \n"
+#else
         "   ldr    r2, [sp]                                   \n"
         "   ldr    r3, ="M2S(STACK_SEAL_PATTERN)"             \n"
         "   cmp    r2, r3                                     \n"
         "   bne    reent_panic3                               \n"
+#endif
         "   push   {r4, lr}                                   \n"
         "   bl     "M2S(psa_connect)"                         \n"
         "   bl     clear_caller_context                       \n"
@@ -221,11 +258,16 @@ void tfm_psa_close_veneer(psa_handle_t handle)
         "   ldr    r2, ="M2S(SECURE_THREAD_EXECUTION_PRIORITY)"\n"
         "   msr    basepri, r2                                \n"
 #endif
+#if TFM_TZ_REENTRANCY_CHECK == 1
+        "   push   {lr}                                       \n"
+        "   bl     test_for_reenter_flag                      \n"
+        "   ldr.w  lr, [sp], #4                               \n"
+#else
         "   ldr    r2, [sp]                                   \n"
         "   ldr    r3, ="M2S(STACK_SEAL_PATTERN)"             \n"
         "   cmp    r2, r3                                     \n"
         "   bne    reent_panic5                               \n"
-
+#endif
         "   push   {r4, lr}                                   \n"
         "   bl     "M2S(psa_close)"                           \n"
         "   bl     clear_caller_context                       \n"
@@ -263,11 +305,16 @@ psa_handle_t tfm_psa_connect_veneer(uint32_t sid, uint32_t version)
 {
     __ASM volatile(
         SYNTAX_UNIFIED
+#if TFM_TZ_REENTRANCY_CHECK == 1
+        "   push   {lr}                                       \n"
+        "   bl     test_for_reenter_flag                      \n"
+        "   ldr.w  lr, [sp], #4                               \n"
+#else
         "   ldr    r2, [sp]                                   \n"
         "   ldr    r3, ="M2S(STACK_SEAL_PATTERN)"             \n"
         "   cmp    r2, r3                                     \n"
         "   bne    reent_panic3                               \n"
-
+#endif
         "   ldr    r1, =ret_err                               \n"
         "   ldr    r0, [r1]                                   \n"
         "   bxns   lr                                         \n"
@@ -282,11 +329,16 @@ void tfm_psa_close_veneer(psa_handle_t handle)
 {
     __ASM volatile(
         SYNTAX_UNIFIED
+#if TFM_TZ_REENTRANCY_CHECK == 1
+        "   push   {lr}                                       \n"
+        "   bl     test_for_reenter_flag                      \n"
+        "   ldr.w  lr, [sp], #4                               \n"
+#else
         "   ldr    r2, [sp]                                   \n"
         "   ldr    r3, ="M2S(STACK_SEAL_PATTERN)"             \n"
         "   cmp    r2, r3                                     \n"
         "   bne    reent_panic5                               \n"
-
+#endif
         "   bxns   lr                                         \n"
 
         "reent_panic5:                                        \n"

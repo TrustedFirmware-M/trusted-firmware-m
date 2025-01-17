@@ -353,7 +353,8 @@ void tfm_arch_config_extensions(void)
 #endif
 #endif /* CONFIG_TFM_FLOAT_ABI >= 1 */
 
-#if defined(__ARM_ARCH_8_1M_MAIN__) && (__ARM_ARCH_8_1M_MAIN__ == 1)
+#if defined(__ARM_ARCH_8_1M_MAIN__) && (__ARM_ARCH_8_1M_MAIN__ == 1) && \
+    (TFM_TZ_REENTRANCY_CHECK == 0)
     SCB->CCR |= SCB_CCR_TRD_Msk;
 #endif
 

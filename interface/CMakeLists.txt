@@ -40,6 +40,7 @@ target_compile_definitions(psa_interface
         $<$<BOOL:${CONFIG_TFM_PARTITION_META}>:CONFIG_TFM_PARTITION_META>
         $<$<BOOL:${TEST_NS_MULTI_CORE}>:TFM_MULTI_CORE_TEST>
         $<$<BOOL:${TFM_HYBRID_PLATFORM_API_BROKER}>:TFM_HYBRID_PLATFORM_API_BROKER>
+        $<$<BOOL:${TFM_TZ_REENTRANCY_CHECK}>:TFM_TZ_REENTRANCY_CHECK>
 )
 
 add_dependencies(psa_interface manifest_tool)

@@ -273,6 +273,13 @@ NS Agent Mailbox Secure Partition
 |MAILBOX_IS_UNCACHED_NS               | Component |   1        |
 +-------------------------------------+-----------+------------+
 
+NS Agent TrustZone Secure Partition
+===================================
++-------------------------------------+-----------+------------+
+| Options                             | Type      | Base Value |
++=====================================+===========+============+
+|TFM_TZ_REENTRANCY_CHECK              | Component |   OFF      |
++-------------------------------------+-----------+------------+
 
 Secure Partition Manager
 ========================
