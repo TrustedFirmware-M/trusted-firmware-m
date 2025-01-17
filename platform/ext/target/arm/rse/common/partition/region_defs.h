@@ -40,7 +40,7 @@
  * VM0  |                                                        |
  *      |---------------------------------------------------------
  *      |---------------------------------------------------------
- * VM1  |                                        | OTP_EMULATION |
+ * VM1  |                            | PERS_DATA | OTP_EMULATION |
  *      |---------------------------------------------------------
  *
  * If the size of VM0 and VM1 are larger than 64KiB, the size of BL1 code/data
@@ -55,7 +55,7 @@
  * VM0  | BL2_CODE                                               |
  *      |---------------------------------------------------------
  *      |---------------------------------------------------------
- * VM1  |  XIP tables  | BL2_DATA              | OTP_EMULATION   |
+ * VM1  |  XIP tables  | BL2_DATA  | PERS_DATA | OTP_EMULATION   |
  *      |---------------------------------------------------------
  *
  * If the size of VM0 and VM1 are larger than 64KiB, the size of BL2 code can be
@@ -71,7 +71,7 @@
  * VM0  | S_DATA                                                 |
  *      |---------------------------------------------------------
  *      |---------------------------------------------------------
- * VM1  | S_DATA                     | NS_DATA   | OTP_EMULATION |
+ * VM1  | S_DATA         | NS_DATA   | PERS_DATA | OTP_EMULATION |
  *      |---------------------------------------------------------
  *
  * RSE memory layout is as follows during Runtime with XIP mode disabled. Note
@@ -85,7 +85,7 @@
  * VM0  | S_CODE                                           | S_DATA            |
  *      |----------------------------------------------------------------------|
  *      |----------------------------------------------------------------------|
- * VM1  |  NS_DATA          | NS_CODE                      | OTP_EMULATION     |
+ * VM1  |  NS_DATA          | NS_CODE          | PERS_DATA | OTP_EMULATION     |
  *      |----------------------------------------------------------------------|
  */
 
@@ -101,6 +101,12 @@
 
 #define NS_HEAP_SIZE            (0x0001000)
 #define NS_STACK_SIZE           (0x0001000)
+
+/* Store persistent data at the end of VM1 as will not be cleared on reset */
+#define PERSISTENT_DATA_SIZE (0x400)
+#define PERSISTENT_DATA_BASE \
+    ((VM1_BASE_S + VM1_SIZE) - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
+#define PERSISTENT_DATA_LIMIT ((PERSISTENT_DATA_BASE + PERSISTENT_DATA_SIZE) - 1)
 
 /* SRAM allocated to store data when using OTP emulation mode.
  * This must match the size of the OTP
@@ -157,7 +163,8 @@
 /* Secure Data stored in VM0. Size defined in flash layout */
 #ifdef RSE_XIP
 #define S_DATA_START    (VM0_BASE_S)
-#define S_DATA_SIZE     (VM0_SIZE + VM1_SIZE - NS_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
+#define S_DATA_SIZE \
+    (VM0_SIZE + VM1_SIZE - NS_DATA_SIZE - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
 #else
 #define S_DATA_START    (VM0_BASE_S + FLASH_S_PARTITION_SIZE)
 #define S_DATA_SIZE     (VM0_SIZE - FLASH_S_PARTITION_SIZE)
@@ -185,7 +192,8 @@
  * of VM1) so platforms should instead alter the size of the NS image.
  */
 #undef  NS_DATA_SIZE
-#define NS_DATA_SIZE    (VM1_SIZE - FLASH_NS_PARTITION_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
+#define NS_DATA_SIZE \
+    (VM1_SIZE - FLASH_NS_PARTITION_SIZE - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
 #endif
 #define NS_DATA_LIMIT   (NS_DATA_START + NS_DATA_SIZE - 1)
 
@@ -250,7 +258,9 @@
  * runtime driver supports DMA remapping.
  */
 #define BL2_DATA_START    (BL2_XIP_TABLES_START + BL2_XIP_TABLES_SIZE)
-#define BL2_DATA_SIZE     (VM0_SIZE + VM1_SIZE - BL2_XIP_TABLES_SIZE - FLASH_BL2_PARTITION_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
+#define BL2_DATA_SIZE                                                                              \
+    (VM0_SIZE + VM1_SIZE - BL2_XIP_TABLES_SIZE - FLASH_BL2_PARTITION_SIZE - PERSISTENT_DATA_SIZE - \
+     RSE_OTP_EMULATION_SRAM_SIZE)
 #define BL2_DATA_LIMIT    (BL2_DATA_START + BL2_DATA_SIZE - 1)
 
 /* We use various calculations which give some sections space remaining
@@ -269,15 +279,17 @@
 #error Partition size calculations incorrect
 #endif
 
-#if ((BL2_CODE_SIZE + BL2_XIP_TABLES_SIZE + BL2_DATA_SIZE + RSE_OTP_EMULATION_SRAM_SIZE) > (VM0_SIZE + VM1_SIZE))
+#if ((BL2_CODE_SIZE + BL2_XIP_TABLES_SIZE + BL2_DATA_SIZE + PERSISTENT_DATA_SIZE + \
+      RSE_OTP_EMULATION_SRAM_SIZE) > (VM0_SIZE + VM1_SIZE))
 #error BL2 partitions do not fit in SRAM
 #endif
 
-#if defined(RSE_XIP) && \
-    ((S_DATA_SIZE + NS_DATA_SIZE + RSE_OTP_EMULATION_SRAM_SIZE) > (VM0_SIZE + VM1_SIZE))
+#if defined(RSE_XIP) && ((S_DATA_SIZE + NS_DATA_SIZE + PERSISTENT_DATA_SIZE + \
+                          RSE_OTP_EMULATION_SRAM_SIZE) > (VM0_SIZE + VM1_SIZE))
 #error XIP enabled runtime partitions do not fit in SRAM
-#elif !defined(RSE_XIP) && \
-    ((S_CODE_SIZE + S_DATA_SIZE + NS_CODE_SIZE + NS_DATA_SIZE + RSE_OTP_EMULATION_SRAM_SIZE) > (VM0_SIZE + VM1_SIZE))
+#elif !defined(RSE_XIP) &&                                                             \
+    ((S_CODE_SIZE + S_DATA_SIZE + NS_CODE_SIZE + NS_DATA_SIZE + PERSISTENT_DATA_SIZE + \
+      RSE_OTP_EMULATION_SRAM_SIZE) > (VM0_SIZE + VM1_SIZE))
 #error XIP disabled runtime partitions do not fit in SRAM
 #endif
 
@@ -302,7 +314,7 @@
 #define PROVISIONING_BUNDLE_VALUES_START (DTCM_BASE_S)
 #define PROVISIONING_BUNDLE_VALUES_SIZE  (DTCM_SIZE - BOOT_TFM_SHARED_DATA_SIZE - BL1_1_DATA_SIZE - BL1_2_DATA_SIZE)
 #define PROVISIONING_BUNDLE_DATA_START   (VM1_BASE_S)
-#define PROVISIONING_BUNDLE_DATA_SIZE    (VM1_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
+#define PROVISIONING_BUNDLE_DATA_SIZE    (VM1_SIZE - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
 
 /* Blob chainloading requires us to limit the size of the blob
  * to allow for loading two blobs simultaneously. It is simpler just

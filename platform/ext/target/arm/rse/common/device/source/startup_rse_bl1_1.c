@@ -25,6 +25,7 @@
 #include "device_definition.h"
 #include "region_defs.h"
 #include "rse_kmu_slot_ids.h"
+#include "rse_persistent_data.h"
 #include "trng.h"
 #if defined(RSE_ENABLE_TRAM)
 #include "uart_stdout.h"
@@ -311,6 +312,8 @@ void Reset_Handler(void)
 #endif /* RSE_ENABLE_TRAM */
 
     __set_MSPLIM((uint32_t)(&__STACK_LIMIT));
+
+    rse_setup_persistent_data();
 
     SystemInit();                    /* CMSIS System Initialization */
     __PROGRAM_START();               /* Enter PreMain (C library entry point) */

@@ -459,6 +459,7 @@ target_sources(platform_bl1_1
         ./bl1/bl1_1_debug.c
         ./rse_permanently_disable_device.c
         ./rse_zero_count.c
+        ./rse_persistent_data.c
         $<$<BOOL:${RSE_HAS_DCSU}>:${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/src/dcsu_drv.c>
         $<$<BOOL:${RSE_HAS_DCSU}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>
 )
