@@ -108,6 +108,7 @@ static void dump_exception_info(bool stack_error,
     VERBOSE_RAW("    MSP_NS:  0x%08x\n", __TZ_get_MSP_NS());
     VERBOSE_RAW("    PSP_NS:  0x%08x\n", __TZ_get_PSP_NS());
 #endif
+    VERBOSE_RAW("    BASEPRI: 0x%08x\n", __get_BASEPRI());
 
     VERBOSE_RAW("    Exception frame at:   0x%08x\n", (uint32_t)ctx->EXC_FRAME);
     if (stack_error) {
