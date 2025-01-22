@@ -22,6 +22,10 @@ extern "C" {
 
 extern struct cfi_strataflashj3_dev_t SPI_STRATAFLASHJ3_DEV;
 extern struct cfi_strataflashj3_dev_t SPI_STRATAFLASHJ3_AP_DEV;
+extern struct mhu_v3_x_dev_t MHU_SI_CL0_SENDER_DEV_S;
+extern struct mhu_v3_x_dev_t MHU_SI_CL0_RECEIVER_DEV_S;
+
+#define SI_CL0_RSE_CMU_MHU_Receiver_IRQn 139
 
 #ifdef __cplusplus
 }
