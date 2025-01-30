@@ -47,6 +47,8 @@ Supported Platforms
           <https://www.nordicsemi.com/Software-and-tools/Development-Kits/nRF5340-DK>`_
         - `BL5340 DVK (lairdconnectivity/bl5340_dvk_cpuapp).
           <https://www.lairdconnect.com/wireless-modules/bluetooth-modules/bluetooth-5-modules/bl5340-series-multi-core-bluetooth-52-802154-nfc-modules>`_
+        - `MAX32657 (adi/max32657).
+          <https://www.analog.com/en/products/max32657.html>`_
 
     - Cortex-M23 system:
 

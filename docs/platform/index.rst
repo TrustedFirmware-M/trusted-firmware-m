@@ -7,6 +7,7 @@ TF-M Platforms
 .. toctree::
     :maxdepth: 2
 
+    Analog Devices, Inc. <adi/index>
     Arm <arm/index>
     ArmChina <armchina/index>
     Cypress <cypress/index>
