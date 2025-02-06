@@ -35,6 +35,8 @@ enum rse_atu_ids {
     RSE_ATU_AP_FLASH_ID,
     /* ATU region ID for programming SI ATU */
     RSE_ATU_SI_ATU_ID,
+    /* ATU region ID for programming AP ATU */
+    RSE_ATU_AP_ATU_ID,
 };
 
 /*
@@ -199,5 +201,11 @@ enum rse_atu_ids {
 #define HOST_SI_ATU_PHYS_BASE      0x4000031000000ULL
 #define HOST_SI_ATU_GPV_SIZE       ALIGN_UP(0x10000, RSE_ATU_PAGE_SIZE)
 #define HOST_SI_ATU_ID             RSE_ATU_SI_ATU_ID
+
+/* ATU region mapping to access AP's ATU from RSE */
+#define HOST_AP_ATU_BASE_S         (HOST_SI_ATU_BASE_S + HOST_SI_ATU_GPV_SIZE)
+#define HOST_AP_ATU_PHYS_BASE      0x20000D0080000ULL
+#define HOST_AP_ATU_GPV_SIZE       ALIGN_UP(0x10000, RSE_ATU_PAGE_SIZE)
+#define HOST_AP_ATU_ID             RSE_ATU_AP_ATU_ID
 
 #endif  /* __HOST_ATU_BASE_ADDRESS_H__ */

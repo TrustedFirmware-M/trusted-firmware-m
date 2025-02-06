@@ -26,6 +26,7 @@ extern const struct ppu_dev_t HOST_SI_CL0_CORE0_PPU_DEV;
 #ifdef PLATFORM_RSE_HAS_ATU_OWNERSHIP
 #include "atu_rse_drv.h"
 extern struct atu_dev_t HOST_SI_ATU_DEV;
+extern struct atu_dev_t HOST_AP_ATU_DEV;
 
 enum ATU_ACCESS_TYPE {
     ATU_ACCESS_DEFAULT,
@@ -57,8 +58,17 @@ enum SI_ATU_REGIONS {
     SI_ATU_REGION_COUNT,
 };
 
+/* Indices for AP ATU regions */
+enum AP_ATU_REGIONS {
+    AP_ATU_REGION_IDX_GENERIC_TIMER,
+    AP_ATU_REGION_IDX_PC_SI_MHU,
+    AP_ATU_REGION_COUNT,
+};
+
 /* List of ATU regions configured by RSE in SI ATU */
 extern struct atu_map si_atu_regions[SI_ATU_REGION_COUNT];
+/* List of ATU regions configured by RSE in AP ATU */
+extern const struct atu_map ap_atu_regions[AP_ATU_REGION_COUNT];
 #endif /* PLATFORM_RSE_HAS_ATU_OWNERSHIP */
 
 #ifdef __cplusplus

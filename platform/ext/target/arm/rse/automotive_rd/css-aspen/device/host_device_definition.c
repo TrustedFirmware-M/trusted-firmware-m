@@ -96,4 +96,26 @@ struct atu_map si_atu_regions[SI_ATU_REGION_COUNT] = {
         .access_type = ATU_ACCESS_SECURE,
     },
 };
+
+static const struct atu_dev_cfg_t HOST_AP_ATU_DEV_CFG = {
+    .base = HOST_AP_ATU_BASE_S,
+};
+struct atu_dev_t HOST_AP_ATU_DEV = {
+    .cfg = &HOST_AP_ATU_DEV_CFG,
+};
+
+const struct atu_map ap_atu_regions[AP_ATU_REGION_COUNT] = {
+    [AP_ATU_REGION_IDX_GENERIC_TIMER] = {
+        .log_addr = 0x40000000UL,
+        .phy_addr = 0x20000D0100000ULL,
+        .size = 0x20000UL,
+        .access_type = ATU_ACCESS_SECURE,
+    },
+    [AP_ATU_REGION_IDX_PC_SI_MHU] = {
+        .log_addr = 0x40020000UL,
+        .phy_addr = 0x400003B000000ULL,
+        .size = 0x600000UL,
+        .access_type = ATU_ACCESS_SECURE,
+    },
+};
 #endif /* PLATFORM_RSE_HAS_ATU_OWNERSHIP */
