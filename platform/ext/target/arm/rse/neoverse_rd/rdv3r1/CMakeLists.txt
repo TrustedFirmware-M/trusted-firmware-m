@@ -59,6 +59,11 @@ target_include_directories(platform_bl2
         bl2
 )
 
+target_compile_definitions(platform_bl2
+    INTERFACE
+        $<$<BOOL:${TFM_S_REG_TEST}>:TFM_S_REG_TEST>
+)
+
 #========================= Platform BL1_1 =====================================#
 
 target_sources(platform_bl1_1

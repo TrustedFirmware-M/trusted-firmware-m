@@ -21,6 +21,10 @@
 #define RSE_FIRMWARE_MCP_ID          4
 #define RSE_FIRMWARE_SCP_ID          5
 /* Number of firmware loaded by BL2 */
+#ifdef TFM_S_REG_TEST
+#define RSE_FIRMWARE_COUNT           (RSE_FIRMWARE_NON_SECURE_ID + 1)
+#else
 #define RSE_FIRMWARE_COUNT           6
+#endif
 
 #endif /* __BL2_IMAGE_ID_H__ */

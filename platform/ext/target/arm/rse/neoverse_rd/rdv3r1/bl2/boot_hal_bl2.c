@@ -886,10 +886,12 @@ static int (*boot_platform_pre_load_vector[RSE_FIRMWARE_COUNT]) (void) = {
 #ifdef RSE_LOAD_NS_IMAGE
     [RSE_FIRMWARE_NON_SECURE_ID]    = boot_platform_pre_load_non_secure,
 #endif /* RSE_LOAD_NS_IMAGE */
+#ifndef TFM_S_REG_TEST
     [RSE_FIRMWARE_SCP_ID]           = boot_platform_pre_load_scp,
     [RSE_FIRMWARE_MCP_ID]           = boot_platform_pre_load_mcp,
     [RSE_FIRMWARE_LCP_ID]           = boot_platform_pre_load_lcp,
     [RSE_FIRMWARE_AP_BL1_ID]        = boot_platform_pre_load_ap_bl1,
+#endif
 };
 
 /*
@@ -901,11 +903,14 @@ static int (*boot_platform_post_load_vector[RSE_FIRMWARE_COUNT]) (void) = {
 #ifdef RSE_LOAD_NS_IMAGE
     [RSE_FIRMWARE_NON_SECURE_ID]    = boot_platform_post_load_non_secure,
 #endif /* RSE_LOAD_NS_IMAGE */
+#ifndef TFM_S_REG_TEST
     [RSE_FIRMWARE_SCP_ID]           = boot_platform_post_load_scp,
     [RSE_FIRMWARE_MCP_ID]           = boot_platform_post_load_mcp,
     [RSE_FIRMWARE_LCP_ID]           = boot_platform_post_load_lcp,
     [RSE_FIRMWARE_AP_BL1_ID]        = boot_platform_post_load_ap_bl1,
+#endif
 };
+
 
 /*
  * ============================== LOAD FUNCTIONS ==============================
