@@ -500,12 +500,15 @@ target_sources(platform_bl1_1
         ./rse_soc_uid.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m/mpu_armv8m_drv.c
         $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_get_rse_id_from_otp.c>
+        $<$<BOOL:${RSE_ENABLE_ROM_SELF_TESTS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_boot_self_tests.c>
 )
 
 target_compile_definitions(platform_bl1_1
     PRIVATE
         $<$<BOOL:${PLATFORM_PSA_ADAC_SECURE_DEBUG}>:PLATFORM_PSA_ADAC_SECURE_DEBUG>
         $<$<BOOL:${RSE_ENABLE_FIH_SW_DELAY}>:RSE_ENABLE_FIH_SW_DELAY>
+        $<$<BOOL:${RSE_ENABLE_ROM_SELF_TESTS}>:RSE_ENABLE_ROM_SELF_TESTS>
+        $<$<BOOL:${RSE_ENABLE_ECDSA_SELF_TEST}>:RSE_ENABLE_ECDSA_SELF_TEST>
 )
 
 target_include_directories(platform_bl1_1_interface

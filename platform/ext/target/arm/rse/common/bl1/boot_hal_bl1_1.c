@@ -27,6 +27,7 @@
 #include "cc3xx_drv.h"
 #endif /* CRYPTO_HW_ACCELERATOR */
 #include "cmsis_compiler.h"
+#include "rse_boot_self_tests.h"
 #ifdef RSE_ENABLE_BRINGUP_HELPERS
 #include "rse_bringup_helpers.h"
 #endif /* RSE_ENABLE_BRINGUP_HELPERS */
@@ -197,6 +198,13 @@ int32_t boot_platform_init(void)
 
     fih_delay_init();
 #endif /* CRYPTO_HW_ACCELERATOR */
+
+#ifdef RSE_ENABLE_ROM_SELF_TESTS
+    const rse_boot_self_test_ret_t self_tests = rse_boot_do_boot_self_tests();
+    if (!RSE_BOOT_SELF_TESTS_CHECK_OK(self_tests)) {
+        return (int32_t)self_tests;
+    }
+#endif /* RSE_ENABLE_ROM_SELF_TESTS */
 
     /* Init KMU */
     err = bl1_random_generate_secure(prbg_seed, sizeof(prbg_seed));
