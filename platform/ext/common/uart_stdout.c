@@ -37,6 +37,10 @@ int stdio_output_string(const char *str, uint32_t len)
 {
     int32_t ret;
 
+    if (!is_initialized) {
+        return 0;
+    }
+
     ret = STDIO_DRIVER.Send(str, len);
     if (ret != ARM_DRIVER_OK) {
         return 0;
