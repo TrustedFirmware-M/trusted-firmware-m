@@ -173,6 +173,7 @@ target_sources(platform_s
         cmsis_drivers/Driver_MPC.c
         device/src/mpc_sie200_drv.c
         $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_OTP}>>:${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/otp_max32657.c>
+        ${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/device/src/system_${TARGET_LC}.c
 
         ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_common.c
         ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_me30.c
@@ -205,6 +206,17 @@ target_include_directories(platform_s
         ${HAL_ADI_CMSIS_INC_DIR}
         ${PLATFORM_DIR}/..
 )
+
+if(NOT PLATFORM_DEFAULT_PROVISIONING)
+    add_subdirectory(${PLATFORM_DIR}/ext/common/provisioning_bundle provisioning)
+
+    target_compile_definitions(platform_region_defs
+        INTERFACE
+            PROVISIONING_CODE_PADDED_SIZE=${PROVISIONING_CODE_PADDED_SIZE}
+            PROVISIONING_VALUES_PADDED_SIZE=${PROVISIONING_VALUES_PADDED_SIZE}
+            PROVISIONING_DATA_PADDED_SIZE=${PROVISIONING_DATA_PADDED_SIZE}
+    )
+endif()
 
 #========================= Files for building NS platform =====================#
 
