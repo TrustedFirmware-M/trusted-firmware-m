@@ -113,6 +113,7 @@ if (RSE_USE_ROM_LIB_FROM_SRAM)
     endif()
 endif()
 
+set(RSE_DMA_ICS_CONFIG_PATH              ${CMAKE_CURRENT_LIST_DIR}/bl1/scripts/dma_config.yaml CACHE FILEPATH "Path to DMA ICS config")
 ######################### BL2 ##################################################
 
 set(MCUBOOT_IMAGE_NUMBER              4          CACHE STRING   "Number of images supported by MCUBoot")
