@@ -31,6 +31,15 @@ extern "C" {
 
 #define COUNTER_BYTES(x) ALIGN((ROUND_UP((x), 8) / 8), 4)
 
+/**
+ * @defgroup cod_otp_defs Chip Output Data (COD) size definitions
+ * @{
+ */
+#define RSE_OTP_COD_CMAC_SIZE         16
+#define RSE_OTP_COD_RAK_PUB_SIZE      96
+#define RSE_OTP_COD_DMA_ICS_HASH_SIZE 48
+/** @} */
+
 __PACKED_STRUCT rse_otp_area_info_t {
     __PACKED_UNION {
         __PACKED_STRUCT {

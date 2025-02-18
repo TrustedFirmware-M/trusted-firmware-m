@@ -5,6 +5,7 @@
  *
  */
 #include "bl1_random.h"
+#include "bl1_1_config.h"
 #include "tfm_plat_otp.h"
 #include "rse_provisioning_values.h"
 #include "device_definition.h"
@@ -12,14 +13,17 @@
 #include "region_defs.h"
 #include "cc3xx_drv.h"
 #include "tfm_log.h"
+#include "rse_kmu_keys.h"
 #include "rse_zero_count.h"
 #include "rse_permanently_disable_device.h"
 #include "rse_provisioning_message_handler.h"
+#include "rse_soc_uid.h"
 #include "tfm_plat_nv_counters.h"
 #include "psa/crypto.h"
 
 /* Non secret provisioning values are placed directly after the
- * blob code DATA section */
+ * blob code DATA section
+ */
 extern uint32_t Image$$DATA$$Limit[];
 
 #ifndef RSE_COMBINED_PROVISIONING_BUNDLES
@@ -74,9 +78,7 @@ static enum tfm_plat_err_t provision_derived_key(enum kmu_hardware_keyslot_t inp
         return (enum tfm_plat_err_t)lcm_err;
     }
 
-    if (input_key == KMU_HW_SLOT_KRTL
-     && tp_mode == LCM_TP_MODE_TCI
-     && input_key_buf == NULL) {
+    if ((input_key == KMU_HW_SLOT_KRTL) && (tp_mode == LCM_TP_MODE_TCI) && (input_key_buf == NULL)) {
         input_key_buf = all_zero_key;
     }
 
@@ -114,6 +116,12 @@ enum tfm_plat_err_t do_cm_provision(void) {
     uint32_t zero_count;
     uint32_t krtl_usage_counter;
     psa_status_t status;
+#ifdef RSE_ENABLE_CHIP_OUTPUT_DATA
+    struct rse_otp_cm_area_t cm_area_temp;
+    struct rse_chip_output_data_fields_t cod_fields = {0};
+    uint8_t rak[48]; /* ECDSA, P-384 private key */
+    cc3xx_err_t cc_err;
+#endif /* RSE_ENABLE_CHIP_OUTPUT_DATA */
 
     if (P_RSE_OTP_HEADER->device_status != 0) {
         rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_MODIFIED_BEFORE_CM_PROVISIONING);
@@ -246,13 +254,7 @@ enum tfm_plat_err_t do_cm_provision(void) {
     }
     message_handling_status_report_continue(PROVISIONING_REPORT_STEP_BL1_2_PROVISIONING);
 
-    INFO("Writing CM provisioning values\n");
-    lcm_err = lcm_otp_write(&LCM_DEV_S, values->cm_area_info.offset,
-                            sizeof(values->cm), (uint8_t *)(&values->cm));
-    if (lcm_err != LCM_ERROR_NONE) {
-        return (enum tfm_plat_err_t)lcm_err;
-    }
-
+    /* Generate the HUK */
     status = psa_generate_random((uint8_t *)generated_key_buf,
                                  sizeof(generated_key_buf));
     if (status != PSA_SUCCESS) {
@@ -266,6 +268,83 @@ enum tfm_plat_err_t do_cm_provision(void) {
         return err;
     }
 
+#ifdef RSE_ENABLE_CHIP_OUTPUT_DATA
+    /* Copy the CM provisioning values into a temporary local buffer */
+    memcpy(&cm_area_temp, &(values->cm), sizeof(cm_area_temp));
+
+    INFO("Deriving IAK_seed\r\n");
+    /* Derive IAK seed from HUK, which is passed as raw bytes input as just generated */
+    err = rse_setup_iak_seed(generated_key_buf, sizeof(generated_key_buf));
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    /* Clear the HUK as is not needed anymore */
+    (void)bl1_random_generate_fast(generated_key_buf, sizeof(generated_key_buf));
+
+    INFO("Deriving RAK\r\n");
+    /* Derive RAK from IAK seed */
+    err = bl1_ecc_derive_key(TFM_BL1_CURVE_P384, TFM_BL1_KEY_IAK_SEED,
+                             "RAPK_PRIV", sizeof("RAPK_PRIV"), NULL, 0, rak,
+                             sizeof(rak));
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    /* We need to manually fill the CM related values which have not been
+     * provisioned yet
+     */
+    cod_fields.cm_prov_blob_version = values->cm.provisioning_blob_version;
+
+    /* Extract the public part of the RAK which is part of the COD structure in
+     * the cod_fields
+     */
+    /* FixMe: This directly calls the crypto driver but it should go through PSA
+     *        by importing the private rak key and exporting the public key. The
+     *        thin layer needs to be extended to support such export feature
+     */
+    cc_err = cc3xx_lowlevel_ecdsa_getpub(CC3XX_EC_CURVE_SECP_384_R1, rak, sizeof(rak),
+                                         &cod_fields.rak_pub[0], 48, NULL,
+                                         &(cod_fields.rak_pub[48]), 48, NULL);
+    if (cc_err != CC3XX_ERR_SUCCESS) {
+        return (enum tfm_plat_err_t)cc_err;
+    }
+
+    memcpy(cm_area_temp.cod.rak_pub, sizeof(cm_area_temp.cod.rak_pub), cod_fields.rak_pub);
+
+    /* Clear the RAK private key as is not needed anymore */
+    (void)bl1_random_generate_fast(rak, sizeof(rak));
+
+    /* Fetch OTP fields to fill the cod_data structure, don't read the CM area */
+    err = rse_fetch_cod_data_fields_from_otp(&cod_fields, false);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    INFO("Generating COD content\n");
+    err = rse_chip_output_data_setup_key();
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    err = rse_generate_chip_output_data(&cod_fields, cm_area_temp.cod.cod_cmac,
+                                        sizeof(cm_area_temp.cod.cod_cmac));
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    INFO("Writing CM provisioning values\n");
+    lcm_err = lcm_otp_write(&LCM_DEV_S, values->cm_area_info.offset,
+                            sizeof(cm_area_temp), (uint8_t *)(&cm_area_temp));
+#else
+    INFO("Writing CM provisioning values\n");
+    lcm_err = lcm_otp_write(&LCM_DEV_S, values->cm_area_info.offset,
+                            sizeof(values->cm), (uint8_t *)(&values->cm));
+#endif /* RSE_ENABLE_CHIP_OUTPUT_DATA */
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
 #ifdef RSE_CM_PROVISION_KCE_CM
     INFO("Provisioning KCE_CM\n");
     err = tfm_plat_otp_write(PLAT_OTP_ID_CM_CODE_ENCRYPTION_KEY,
@@ -275,7 +354,7 @@ enum tfm_plat_err_t do_cm_provision(void) {
     err = provision_derived_key(0, generated_key_buf,
                                 (uint8_t *)"KCE_CM", sizeof("KCE_CM"), NULL, 0,
                                 PLAT_OTP_ID_CM_CODE_ENCRYPTION_KEY, 32);
-#endif
+#endif /* RSE_CM_PROVISION_KCE_CM */
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }

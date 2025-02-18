@@ -8,14 +8,22 @@
 #ifndef __RSE_PROVISIONING_MESSAGE_H__
 #define __RSE_PROVISIONING_MESSAGE_H__
 
+#include <stdint.h>
 #include "rse_otp_layout.h"
 #include "rse_provisioning_config.h"
-
-#include <stdint.h>
+#include "rse_chip_output_data.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#ifndef __PACKED_STRUCT
+#define __PACKED_STRUCT struct __attribute__((packed))
+#endif /* PACKED_STRUCT */
+
+#ifndef __PACKED_UNION
+#define __PACKED_UNION union __attribute__((packed))
+#endif /* PACKED_UNION */
 
 enum rse_provisioning_message_type_t {
     RSE_PROVISIONING_MESSAGE_TYPE_BLOB                      = 0x1111B10B,
@@ -130,7 +138,7 @@ enum rse_provisioning_plain_data_type_t {
     RSE_PROVISIONING_PLAIN_DATA_TYPE_DM_ROTPK_ARRAY_REVOCATION                 = 0x05,
 };
 
-struct __attribute__((__packed__)) rse_provisioning_authentication_header_t {
+__PACKED_STRUCT rse_provisioning_authentication_header_t {
     uint32_t signature_size;
     uint8_t signature[96]; /*!< In the case of ECDSA signature, this is held as a raw format
                             * (r,s)
@@ -155,41 +163,57 @@ struct __attribute__((__packed__)) rse_provisioning_authentication_header_t {
                               */
 };
 
-struct __attribute__((__packed__)) rse_provisioning_message_blob_t {
+__PACKED_STRUCT rse_provisioning_message_blob_t {
     struct rse_provisioning_authentication_header_t header;
 
     uint8_t code_and_data_and_secret_values[];
 };
 
-struct __attribute__((__packed__)) rse_provisioning_message_plain_t {
+__PACKED_STRUCT rse_provisioning_message_plain_t {
     uint32_t plain_metadata;
 
     uint8_t data[];
 };
 
-struct __attribute__((__packed__)) rse_provisioning_message_authenticated_plain_t {
+__PACKED_STRUCT rse_provisioning_message_authenticated_plain_t {
     struct rse_provisioning_authentication_header_t header;
 
     struct rse_provisioning_message_plain_t plain_data;
 };
 
-struct __attribute__((__packed__)) rse_provisioning_message_cert_t {
+__PACKED_STRUCT rse_provisioning_message_cert_t {
     uint32_t cert_metadata;
 
     uint8_t data[];
 };
 
-struct __attribute__((__packed__)) rse_provisioning_message_t {
-    struct __attribute__((__packed__)) {
+__PACKED_STRUCT rse_provisioning_message_t {
+    __PACKED_STRUCT {
         enum rse_provisioning_message_type_t type;
         uint32_t data_length;
     } header;
 
-    union __attribute__((__packed__)) {
+    __PACKED_UNION {
         struct rse_provisioning_message_blob_t blob;
         struct rse_provisioning_message_plain_t plain;
         struct rse_provisioning_message_authenticated_plain_t authenticated_plain;
         struct rse_provisioning_message_cert_t cert;
+    };
+};
+
+__PACKED_STRUCT rse_provisioning_reply_cod_t {
+    uint32_t cod_metadata;
+    struct rse_chip_output_data_structure_t data;
+};
+
+__PACKED_STRUCT rse_provisioning_reply_t {
+    __PACKED_STRUCT {
+        enum rse_provisioning_reply_type_t type;
+        uint32_t data_length;
+    } header;
+
+    __PACKED_UNION {
+        struct rse_provisioning_reply_cod_t cod;
     };
 };
 

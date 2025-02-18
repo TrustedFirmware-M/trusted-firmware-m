@@ -545,6 +545,8 @@ target_sources(platform_bl1_1
         runtime_shared_data.c
         soft_crc/soft_crc.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/lcm/lcm_drv.c
+        ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog/arm_watchdog_drv.c
+        ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m/mpu_armv8m_drv.c
         ./device/source/device_definition.c
         ./bl1/bl1_1_debug.c
         ./rse_permanently_disable_device.c
@@ -556,10 +558,9 @@ target_sources(platform_bl1_1
         $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>
         ./platform_shared_measurement_data.c
         ./rse_soc_uid.c
-        ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m/mpu_armv8m_drv.c
         $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_get_rse_id_from_otp.c>
         $<$<BOOL:${RSE_ENABLE_ROM_SELF_TESTS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_boot_self_tests.c>
-        ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog/arm_watchdog_drv.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/rse_chip_output_data.c
 )
 
 target_compile_definitions(platform_bl1_1
@@ -611,6 +612,7 @@ target_compile_definitions(platform_bl1_1_interface
         $<$<OR:$<BOOL:${TFM_BL1_2_IMAGE_BINDING}>,$<BOOL:${MCUBOOT_IMAGE_BINDING}>>:RSE_BOOT_KEYS_BINDING>
         KMU_CONFIG_EXTERNAL_SECURE_WORD_COPY
         $<$<BOOL:${RSE_ENCRYPTED_OTP_KEYS}>:RSE_ENCRYPTED_OTP_KEYS>
+        $<$<BOOL:${RSE_ENABLE_CHIP_OUTPUT_DATA}>:RSE_ENABLE_CHIP_OUTPUT_DATA>
 )
 
 target_link_libraries(platform_bl1_1

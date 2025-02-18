@@ -6,6 +6,7 @@ INTEGRITY_CHECKER_DEV_S
 LCM_DEV_S
 SAM_DEV_S
 DCSU_DEV_S
+SLOWCLK_WATCHDOG_DEV_S
 atu_rse_set_start_logical_address
 atu_rse_get_start_logical_address
 atu_rse_set_end_logical_address
@@ -181,4 +182,3 @@ sfcp_send_reply
 sfcp_receive_msg
 sfcp_receive_reply
 sfcp_register_trusted_subnet
-SLOWCLK_WATCHDOG_DEV_S

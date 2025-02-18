@@ -18,6 +18,9 @@
 #include <stddef.h>
 #include "config_tfm.h"
 #include "region_defs.h"
+#ifdef RSE_ENABLE_CHIP_OUTPUT_DATA
+#include "rse_provisioning_message.h"
+#endif /* RSE_ENABLE_CHIP_OUTPUT_DATA */
 
 #define RSE_PERSISTENT_DATA ((struct rse_persistent_data *)PERSISTENT_DATA_BASE)
 
@@ -86,6 +89,16 @@ struct rse_persistent_data {
         uint32_t certified_debug_vector[4];
         /* Whether the KMU HW keys are initialized or not */
         bool is_hw_key_invalidated;
+#ifdef RSE_ENABLE_CHIP_OUTPUT_DATA
+        // FIXME: rse_provisioning_reply_t might not get resolved in BL2/runtime
+        /* This stores ~200B of COD reply in SRAM instead of wasting BL1 DATA
+         * region
+         */
+        struct {
+            struct rse_provisioning_reply_t cod_reply; /*!< Stored COD reply in SRAM */
+            bool cod_reply_is_valid;                   /*!< Whether COD reply is valid */
+        };
+#endif /* RSE_ENABLE_CHIP_OUTPUT_DATA */
     } bl1_data;
 
     /* Data shared between bootloaders and runtime */

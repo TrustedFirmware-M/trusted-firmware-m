@@ -37,4 +37,9 @@ void rse_setup_persistent_data(void)
     if (!is_persistent_data_initialized(RSE_PERSISTENT_DATA)) {
         initialize_rse_persistent_data(RSE_PERSISTENT_DATA);
     }
+
+#ifdef RSE_ENABLE_CHIP_OUTPUT_DATA
+    /* Assume that the COD reply validity across cold resets is not guaranteed */
+    RSE_PERSISTENT_DATA->bl1_data.cod_reply_is_valid = false;
+#endif /* RSE_ENABLE_CHIP_OUTPUT_DATA */
 }
