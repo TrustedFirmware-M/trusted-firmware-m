@@ -44,6 +44,7 @@ set(ITS_ENCRYPTION                      ON           CACHE BOOL      "Enable aut
 set(PLATFORM_DEFAULT_NV_SEED            OFF          CACHE BOOL      "Use default NV seed implementation.")
 set(PLATFORM_DEFAULT_OTP                OFF          CACHE BOOL      "Use trusted on-chip flash to implement OTP memory")
 set(PLATFORM_DEFAULT_NV_COUNTERS        OFF          CACHE BOOL      "Use default nv counter implementation.")
+set(PLATFORM_DEFAULT_ATTEST_HAL         OFF          CACHE BOOL      "Use default attest hal implementation.")
 
 set(PLATFORM_DEFAULT_CRYPTO_KEYS        OFF          CACHE BOOL      "Use default crypto keys implementation.")
 

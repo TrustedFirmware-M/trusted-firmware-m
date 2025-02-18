@@ -167,6 +167,8 @@ target_link_libraries(platform_s
         pico_crt0
         pico_rand
         pico_multicore
+        $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_ATTEST_HAL}>>:pico_bootrom>
+        $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_ATTEST_HAL}>>:pico_sha256>
         hardware_regs
         hardware_flash
         hardware_uart
@@ -185,6 +187,7 @@ target_sources(platform_s
 
         rpi_trng.c
 
+        $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_ATTEST_HAL}>>:${CMAKE_CURRENT_SOURCE_DIR}/attest_hal.c>
         $<$<OR:$<BOOL:${TFM_S_REG_TEST}>,$<BOOL:${TFM_NS_REG_TEST}>>:${CMAKE_CURRENT_SOURCE_DIR}/plat_test.c>
         $<$<BOOL:${TFM_PARTITION_PLATFORM}>:${CMAKE_CURRENT_SOURCE_DIR}/services/src/tfm_platform_system.c>
         $<$<AND:$<BOOL:${ITS_ENCRYPTION}>,$<BOOL:${TFM_PARTITION_INTERNAL_TRUSTED_STORAGE}>>:${PLATFORM_DIR}/ext/common/template/tfm_hal_its_encryption.c>
