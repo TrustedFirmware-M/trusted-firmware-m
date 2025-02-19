@@ -11,6 +11,7 @@
 #include "device_definition.h"
 #include "tfm_plat_shared_measurement_data.h"
 #include "Driver_Flash.h"
+#include "fih.h"
 #include "flash_layout.h"
 #include "host_base_address.h"
 #include "region_defs.h"
@@ -22,7 +23,6 @@
 #include "device_definition.h"
 #include "platform_regs.h"
 #ifdef CRYPTO_HW_ACCELERATOR
-#include "fih.h"
 #include "cc3xx_drv.h"
 #endif /* CRYPTO_HW_ACCELERATOR */
 #include "cmsis_compiler.h"
@@ -37,6 +37,7 @@
 #include "rse_persistent_data.h"
 #include "startup_bl1_1_helpers.h"
 #include "psa/crypto.h"
+#include "bl1_random.h"
 
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
@@ -198,6 +199,9 @@ int32_t boot_platform_init(void)
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
+
+    /* Set the configuration of the noise source for the platform */
+    bl1_random_set_noise_source_config();
 
 #ifdef RSE_ENABLE_BRINGUP_HELPERS
     lcm_err = lcm_get_tp_mode(&LCM_DEV_S, &tp_mode);

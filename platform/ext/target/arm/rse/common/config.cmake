@@ -158,12 +158,14 @@ set(RSE_NON_ENDORSED_DM_PROVISIONING           OFF        CACHE BOOL "Whether to
 set(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING   OFF        CACHE BOOL "Whether to allow endorsement certificate provisioning")
 set(RSE_DM_CHAINED_PROVISIONING                OFF        CACHE BOOL "Whether to use DM bundle chained provisioning flow")
 set(RSE_BOOT_IN_DM_LCS                         OFF        CACHE BOOL "Whether to boot as far as possible in DM state")
-set(RSE_ROTPK_REVOCATION                      OFF        CACHE BOOL "Whether to allow ROTPK revocation")
+set(RSE_ROTPK_REVOCATION                       OFF        CACHE BOOL "Whether to allow ROTPK revocation")
 
 set(TFM_PARTITION_RUNTIME_PROVISIONING         OFF        CACHE BOOL "Whether to enable runtime secure provisioning partition")
 
-set(RSE_CM_BLOB_VERSION                     0          CACHE STRING "Version of CM blob")
-set(RSE_DM_BLOB_VERSION                     0          CACHE STRING "Version of DM blob")
+set(RSE_CM_BLOB_VERSION                        0          CACHE STRING "Version of CM blob")
+set(RSE_DM_BLOB_VERSION                        0          CACHE STRING "Version of DM blob")
+
+set(RSE_OTP_HAS_CC_TRNG_CONFIG                 ON         CACHE BOOL "Whether the RSE OTP contains the CryptoCell TRNG configuration")
 
 # Specific BL1_1 provisioning tests configuration
 if (TEST_BL1_1)

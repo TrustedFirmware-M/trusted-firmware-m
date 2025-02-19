@@ -7,6 +7,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "fih.h"
 
 #ifndef __BL1_RANDOM_H__
 #define __BL1_RANDOM_H__
@@ -57,6 +58,17 @@ int32_t bl1_random_generate_fast(uint8_t *output, size_t output_size);
  * @return int32_t 0 on success
  */
 int32_t bl1_random_generate_noise(uint8_t *output, size_t output_size);
+
+/**
+ * @brief Set the configuration on the underlying noise source
+ *
+ * @note  The operations performed by this function depend on the implemented
+ *        platform noise source, for example it can set parameters on a TRNG
+ *
+ * @note  In case this function can't apply the configuration from the OTP for
+ *        any reason, falls back to using build time definitions
+ */
+void bl1_random_set_noise_source_config(void);
 
 #ifdef __cplusplus
 }

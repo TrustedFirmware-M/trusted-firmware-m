@@ -83,6 +83,12 @@ __PACKED_STRUCT rse_otp_cod_cm_area_t {
     uint8_t rak_pub[RSE_OTP_COD_RAK_PUB_SIZE];
 };
 
+__PACKED_STRUCT rse_otp_cc_trng_config_t {
+    uint32_t trng_rosc_sc[4];
+    uint8_t trng_in_use;
+    uint8_t padding[3];
+};
+
 __PACKED_STRUCT rse_otp_cm_area_t {
     uint32_t zero_count;
     uint32_t provisioning_blob_version;
@@ -97,6 +103,10 @@ __PACKED_STRUCT rse_otp_cm_area_t {
 
 #ifdef RSE_OTP_CM_SUBPLATFORM_ITEMS
     struct rse_otp_subplatform_cm_area_t subplatform;
+#endif
+
+#ifdef RSE_OTP_HAS_CC_TRNG_CONFIG
+    struct rse_otp_cc_trng_config_t cc_trng_config;
 #endif
 
     struct rse_otp_cod_cm_area_t cod;
