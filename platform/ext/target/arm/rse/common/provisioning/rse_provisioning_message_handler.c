@@ -19,6 +19,7 @@
 #include "crypto.h"
 #include "tfm_plat_otp.h"
 #include "rse_otp_dev.h"
+#include "rse_provisioning_comms.h"
 
 #include <string.h>
 
@@ -531,6 +532,41 @@ static enum tfm_plat_err_t run_blob(void *code_ptr)
     return TFM_PLAT_ERR_SUCCESS;
 }
 
+enum tfm_plat_err_t
+blob_handling_status_report_continue(enum provisioning_message_report_step_t step)
+{
+    struct provisioning_message_status_report_t status_report = {
+        .type = PROVISIONING_STATUS_SUCCESS_CONTINUE,
+        .report_step = step,
+        .error_code = 0,
+    };
+
+    return provisioning_comms_send_response((uint32_t *)&status_report, sizeof(status_report));
+}
+
+enum tfm_plat_err_t blob_handling_status_report_error(enum provisioning_message_report_step_t step,
+                                                      uint32_t error)
+{
+    struct provisioning_message_status_report_t status_report = {
+        .type = PROVISIONING_STATUS_ERROR,
+        .report_step = step,
+        .error_code = error,
+    };
+
+    return provisioning_comms_send_response((uint32_t *)&status_report, sizeof(status_report));
+}
+
+enum tfm_plat_err_t blob_provisioning_finished(void)
+{
+    struct provisioning_message_status_report_t status_report = {
+        .type = PROVISIONING_STATUS_SUCCESS_COMPLETE,
+        .report_step = PROVISIONING_REPORT_STEP_RUN_BLOB,
+        .error_code = 0,
+    };
+
+    return provisioning_comms_send_response((uint32_t *)&status_report, sizeof(status_report));
+}
+
 enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_blob_t *blob,
                                          size_t msg_size, const void *ctx)
 {
@@ -562,8 +598,11 @@ enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_b
         if (tp_mode == LCM_TP_MODE_VIRGIN && blob_tp_mode == LCM_TP_MODE_PCI) {
             lcm_err = lcm_set_tp_mode(&LCM_DEV_S, LCM_TP_MODE_PCI);
             if (lcm_err != LCM_ERROR_NONE) {
+                blob_handling_status_report_error(PROVISIONING_REPORT_STEP_SET_TP_MODE_PCI,
+                                                  lcm_err);
                 return (enum tfm_plat_err_t)lcm_err;
             }
+            blob_handling_status_report_continue(PROVISIONING_REPORT_STEP_SET_TP_MODE_PCI);
 #ifdef RSE_PROVISIONING_ISSUE_SELF_RESET
             tfm_hal_system_reset();
 #endif
@@ -573,8 +612,11 @@ enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_b
         if (tp_mode == LCM_TP_MODE_VIRGIN && blob_tp_mode == LCM_TP_MODE_TCI) {
             lcm_err = lcm_set_tp_mode(&LCM_DEV_S, LCM_TP_MODE_TCI);
             if (lcm_err != LCM_ERROR_NONE) {
+                blob_handling_status_report_error(PROVISIONING_REPORT_STEP_SET_TP_MODE_TCI,
+                                                  lcm_err);
                 return (enum tfm_plat_err_t)lcm_err;
             }
+            blob_handling_status_report_continue(PROVISIONING_REPORT_STEP_SET_TP_MODE_TCI);
 #ifdef RSE_PROVISIONING_ISSUE_SELF_RESET
             tfm_hal_system_reset();
 #endif
@@ -666,8 +708,11 @@ enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_b
                                    PROVISIONING_BUNDLE_VALUES_SIZE,
                                    blob_ctx->setup_aes_key, blob_ctx->get_rotpk);
     if (err != TFM_PLAT_ERR_SUCCESS) {
+        blob_handling_status_report_error(PROVISIONING_REPORT_STEP_VALIDATE_BLOB, err);
         return err;
     }
+
+    blob_handling_status_report_continue(PROVISIONING_REPORT_STEP_VALIDATE_BLOB);
 
     err = run_blob((void *)PROVISIONING_BUNDLE_CODE_START);
     if (err != TFM_PLAT_ERR_SUCCESS) {

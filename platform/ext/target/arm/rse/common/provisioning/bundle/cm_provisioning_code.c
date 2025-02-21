@@ -14,6 +14,7 @@
 #include "tfm_log.h"
 #include "rse_zero_count.h"
 #include "rse_permanently_disable_device.h"
+#include "rse_provisioning_message_handler.h"
 
 #ifndef RSE_COMBINED_PROVISIONING_BUNDLES
 static const struct rse_cm_provisioning_values_t *values =
@@ -193,16 +194,18 @@ enum tfm_plat_err_t do_cm_provision(void) {
     }
 #endif /* OTP_CONFIG_DM_SETS_DM_AND_DYNAMIC_AREA_SIZE */
 
-    INFO("Writing CM provisioning values\n");
-    lcm_err = lcm_otp_write(&LCM_DEV_S, values->cm_area_info.offset,
-                            sizeof(values->cm), (uint8_t *)(&values->cm));
-    if (lcm_err != LCM_ERROR_NONE) {
-        return (enum tfm_plat_err_t)lcm_err;
-    }
-
     INFO("Writing BL1_2 provisioning values\n");
     lcm_err = lcm_otp_write(&LCM_DEV_S, values->bl1_2_area_info.offset,
                             sizeof(values->bl1_2), (uint8_t *)(&values->bl1_2));
+    if (lcm_err != LCM_ERROR_NONE) {
+        blob_handling_status_report_error(PROVISIONING_REPORT_STEP_BL1_2_PROVISIONING, lcm_err);
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+    blob_handling_status_report_continue(PROVISIONING_REPORT_STEP_BL1_2_PROVISIONING);
+
+    INFO("Writing CM provisioning values\n");
+    lcm_err = lcm_otp_write(&LCM_DEV_S, values->cm_area_info.offset,
+                            sizeof(values->cm), (uint8_t *)(&values->cm));
     if (lcm_err != LCM_ERROR_NONE) {
         return (enum tfm_plat_err_t)lcm_err;
     }
@@ -235,6 +238,8 @@ enum tfm_plat_err_t do_cm_provision(void) {
         return err;
     }
 
+    blob_handling_status_report_continue(PROVISIONING_REPORT_STEP_CM_PROVISIONING);
+
     INFO("Transitioning to DM LCS\n");
     new_lcs = PLAT_OTP_LCS_PSA_ROT_PROVISIONING;
     err = tfm_plat_otp_write(PLAT_OTP_ID_LCS, sizeof(new_lcs),
@@ -242,6 +247,10 @@ enum tfm_plat_err_t do_cm_provision(void) {
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
+
+#ifndef RSE_COMBINED_PROVISIONING_BUNDLES
+    blob_provisioning_finished();
+#endif
 
     return err;
 }

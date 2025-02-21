@@ -126,6 +126,7 @@ __attribute__((section("DO_PROVISION"))) enum tfm_plat_err_t do_provision(void) 
                                       &config, (void *)&ctx);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         memset((void *)provisioning_message, 0, RSE_PROVISIONING_MESSAGE_MAX_SIZE);
+        blob_handling_status_report_error(PROVISIONING_REPORT_STEP_RUN_BLOB, err);
         return err;
     }
 

@@ -54,3 +54,9 @@ enum tfm_plat_err_t provisioning_comms_send(const struct rse_provisioning_messag
 {
     return (enum tfm_plat_err_t)dcsu_send_data(&DCSU_DEV_S, (uint8_t *)msg, msg_size);
 }
+
+enum tfm_plat_err_t provisioning_comms_send_response(uint32_t *msg,
+                                                     size_t msg_size)
+{
+    return (enum tfm_plat_err_t)dcsu_report_status(&DCSU_DEV_S, msg, msg_size);
+}

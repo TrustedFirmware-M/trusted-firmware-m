@@ -38,6 +38,17 @@ enum tfm_plat_err_t provisioning_comms_receive(const struct rse_provisioning_mes
 enum tfm_plat_err_t provisioning_comms_send(const struct rse_provisioning_message_t *msg,
                                             size_t msg_size);
 
+/**
+ * @brief
+ *
+ * @param msg
+ * @param msg_size
+ * @return enum tfm_plat_err_t
+ */
+enum tfm_plat_err_t provisioning_comms_send_response(uint32_t *msg,
+                                                     size_t msg_size);
+
+
 #ifdef __cplusplus
 }
 #endif

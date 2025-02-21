@@ -11,6 +11,7 @@
 #include "rse_otp_dev.h"
 #include "region_defs.h"
 #include "tfm_log.h"
+#include "rse_provisioning_message_handler.h"
 
 
 #ifndef RSE_COMBINED_PROVISIONING_BUNDLES
@@ -115,6 +116,8 @@ enum tfm_plat_err_t do_dm_provision(void) {
         return (enum tfm_plat_err_t)lcm_err;
     }
 
+    blob_handling_status_report_continue(PROVISIONING_REPORT_STEP_MANDATORY_EARLY_DM_PROVISIONING);
+
     INFO("Transitioning to SE LCS\n");
     new_lcs = PLAT_OTP_LCS_SECURED;
     err = tfm_plat_otp_write(PLAT_OTP_ID_LCS,
@@ -123,6 +126,8 @@ enum tfm_plat_err_t do_dm_provision(void) {
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
+
+    blob_provisioning_finished();
 
     return err;
 }

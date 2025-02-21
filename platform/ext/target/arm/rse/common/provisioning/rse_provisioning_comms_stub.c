@@ -26,3 +26,9 @@ enum tfm_plat_err_t provisioning_comms_send(const struct rse_provisioning_messag
 {
     return TFM_PLAT_ERR_SUCCESS;
 }
+
+enum tfm_plat_err_t provisioning_comms_send_response(uint32_t *msg,
+                                                     size_t msg_size)
+{
+    return TFM_PLAT_ERR_SUCCESS;
+}
