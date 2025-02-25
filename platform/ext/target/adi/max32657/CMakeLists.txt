@@ -10,6 +10,9 @@ set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 ################################################################################
 
+# Get S - NS peripheral and memory access
+include(s_ns_access.cmake)
+
 # Add hal_adi in build system
 include(hal_adi.cmake)
 
@@ -204,3 +207,41 @@ install(FILES       ${TARGET_PLATFORM_PATH}/config.cmake
 # Install test configs
 install(DIRECTORY   ${TARGET_PLATFORM_PATH}/tests
         DESTINATION ${INSTALL_PLATFORM_NS_DIR})
+
+# Copy the S-NS peripheral & memory configuration
+install(FILES       ${TARGET_PLATFORM_PATH}/s_ns_access.cmake
+        DESTINATION ${CMAKE_BINARY_DIR}/../)
+
+# Export configuration flags
+target_compile_definitions(tfm_spm
+    PUBLIC
+        $<$<BOOL:${ADI_NS_PRPH_GCR}>:ADI_NS_PRPH_GCR>
+        $<$<BOOL:${ADI_NS_PRPH_SIR}>:ADI_NS_PRPH_SIR>
+        $<$<BOOL:${ADI_NS_PRPH_FCR}>:ADI_NS_PRPH_FCR>
+        $<$<BOOL:${ADI_NS_PRPH_WDT}>:ADI_NS_PRPH_WDT>
+        $<$<BOOL:${ADI_NS_PRPH_AES}>:ADI_NS_PRPH_AES>
+        $<$<BOOL:${ADI_NS_PRPH_AESKEY}>:ADI_NS_PRPH_AESKEY>
+        $<$<BOOL:${ADI_NS_PRPH_CRC}>:ADI_NS_PRPH_CRC>
+        $<$<BOOL:${ADI_NS_PRPH_GPIO0}>:ADI_NS_PRPH_GPIO0>
+        $<$<BOOL:${ADI_NS_PRPH_TIMER0}>:ADI_NS_PRPH_TIMER0>
+        $<$<BOOL:${ADI_NS_PRPH_TIMER1}>:ADI_NS_PRPH_TIMER1>
+        $<$<BOOL:${ADI_NS_PRPH_TIMER2}>:ADI_NS_PRPH_TIMER2>
+        $<$<BOOL:${ADI_NS_PRPH_TIMER3}>:ADI_NS_PRPH_TIMER3>
+        $<$<BOOL:${ADI_NS_PRPH_TIMER4}>:ADI_NS_PRPH_TIMER4>
+        $<$<BOOL:${ADI_NS_PRPH_TIMER5}>:ADI_NS_PRPH_TIMER5>
+        $<$<BOOL:${ADI_NS_PRPH_I3C}>:ADI_NS_PRPH_I3C>
+        $<$<BOOL:${ADI_NS_PRPH_UART}>:ADI_NS_PRPH_UART>
+        $<$<BOOL:${ADI_NS_PRPH_SPI}>:ADI_NS_PRPH_SPI>
+        $<$<BOOL:${ADI_NS_PRPH_TRNG}>:ADI_NS_PRPH_TRNG>
+        $<$<BOOL:${ADI_NS_PRPH_BTLE_DBB}>:ADI_NS_PRPH_BTLE_DBB>
+        $<$<BOOL:${ADI_NS_PRPH_BTLE_RFFE}>:ADI_NS_PRPH_BTLE_RFFE>
+        $<$<BOOL:${ADI_NS_PRPH_RSTZ}>:ADI_NS_PRPH_RSTZ>
+        $<$<BOOL:${ADI_NS_PRPH_BOOST}>:ADI_NS_PRPH_BOOST>
+        $<$<BOOL:${ADI_NS_PRPH_BBSIR}>:ADI_NS_PRPH_BBSIR>
+        $<$<BOOL:${ADI_NS_PRPH_BBFCR}>:ADI_NS_PRPH_BBFCR>
+        $<$<BOOL:${ADI_NS_PRPH_RTC}>:ADI_NS_PRPH_RTC>
+        $<$<BOOL:${ADI_NS_PRPH_WUT0}>:ADI_NS_PRPH_WUT0>
+        $<$<BOOL:${ADI_NS_PRPH_WUT1}>:ADI_NS_PRPH_WUT1>
+        $<$<BOOL:${ADI_NS_PRPH_PWR}>:ADI_NS_PRPH_PWR>
+        $<$<BOOL:${ADI_NS_PRPH_MCR}>:ADI_NS_PRPH_MCR>
+)

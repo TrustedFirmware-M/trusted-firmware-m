@@ -130,68 +130,156 @@ static NS_MPC_Config ns_mpc_config_arr[] = {
  */
 
 uint8_t ns_periph_arr[] = {
-   SPC_GCR,
-   SPC_SIR,
-   SPC_FCR,
-   SPC_WDT,
-   SPC_AES,
-   SPC_AESKEY,
-   SPC_CRC,
-   SPC_GPIO0,
-   SPC_TIMER0,
-   SPC_TIMER1,
-   SPC_TIMER2,
-   SPC_TIMER3,
-   SPC_TIMER4,
-   SPC_TIMER5,
-   SPC_I3C,
-#if !defined(TFM_S_REG_TEST)
-   SPC_UART,
+#if defined(ADI_NS_PRPH_GCR)
+    SPC_GCR,
 #endif
-   SPC_SPI,
-   SPC_TRNG,
-   SPC_BTLE_DBB,
-   SPC_BTLE_RFFE,
-   SPC_RSTZ,
-   SPC_BOOST,
-   SPC_BBSIR,
-   SPC_BBFCR,
-   SPC_RTC,
-   SPC_WUT0,
-   SPC_WUT1,
-   SPC_PWR,
-   SPC_MCR,
+#if defined(ADI_NS_PRPH_SIR)
+    SPC_SIR,
+#endif
+#if defined(ADI_NS_PRPH_FCR)
+    SPC_FCR,
+#endif
+#if defined(ADI_NS_PRPH_WDT)
+    SPC_WDT,
+#endif
+#if defined(ADI_NS_PRPH_AES)
+    SPC_AES,
+#endif
+#if defined(ADI_NS_PRPH_AESKEY)
+    SPC_AESKEY,
+#endif
+#if defined(ADI_NS_PRPH_CRC)
+    SPC_CRC,
+#endif
+#if defined(ADI_NS_PRPH_GPIO0)
+    SPC_GPIO0,
+#endif
+#if defined(ADI_NS_PRPH_TIMER0)
+    SPC_TIMER0,
+#endif
+#if defined(ADI_NS_PRPH_TIMER1)
+    SPC_TIMER1,
+#endif
+#if defined(ADI_NS_PRPH_TIMER2)
+    SPC_TIMER2,
+#endif
+#if defined(ADI_NS_PRPH_TIMER3)
+    SPC_TIMER3,
+#endif
+#if defined(ADI_NS_PRPH_TIMER4)
+    SPC_TIMER4,
+#endif
+#if defined(ADI_NS_PRPH_TIMER5)
+    SPC_TIMER5,
+#endif
+#if defined(ADI_NS_PRPH_I3C)
+    SPC_I3C,
+#endif
+#if defined(ADI_NS_PRPH_UART) && !defined(TFM_S_REG_TEST)
+    SPC_UART,
+#endif
+#if defined(ADI_NS_PRPH_SPI)
+    SPC_SPI,
+#endif
+#if defined(ADI_NS_PRPH_TRNG)
+    SPC_TRNG,
+#endif
+#if defined(ADI_NS_PRPH_BTLE_DBB)
+    SPC_BTLE_DBB,
+#endif
+#if defined(ADI_NS_PRPH_BTLE_RFFE)
+    SPC_BTLE_RFFE,
+#endif
+#if defined(ADI_NS_PRPH_RSTZ)
+    SPC_RSTZ,
+#endif
+#if defined(ADI_NS_PRPH_BOOST)
+    SPC_BOOST,
+#endif
+#if defined(ADI_NS_PRPH_BBSIR)
+    SPC_BBSIR,
+#endif
+#if defined(ADI_NS_PRPH_BBFCR)
+    SPC_BBFCR,
+#endif
+#if defined(ADI_NS_PRPH_RTC)
+    SPC_RTC,
+#endif
+#if defined(ADI_NS_PRPH_WUT0)
+    SPC_WUT0,
+#endif
+#if defined(ADI_NS_PRPH_WUT1)
+    SPC_WUT1,
+#endif
+#if defined(ADI_NS_PRPH_PWR)
+    SPC_PWR,
+#endif
+#if defined(ADI_NS_PRPH_MCR)
+    SPC_MCR,
+#endif
 };
 
 uint8_t nvic_set_ns[] = {
-    ICE_IRQn,
+#if defined(ADI_NS_PRPH_WDT)
     WDT_IRQn,
+#endif
+#if defined(ADI_NS_PRPH_RTC)
     RTC_IRQn,
+#endif
+#if defined(ADI_NS_PRPH_TRNG)
     TRNG_IRQn,
+#endif
+#if defined(ADI_NS_PRPH_TIMER0)
     TMR0_IRQn,
+#endif
+#if defined(ADI_NS_PRPH_TIMER1)
     TMR1_IRQn,
+#endif
+#if defined(ADI_NS_PRPH_TIMER2)
     TMR2_IRQn,
+#endif
+#if defined(ADI_NS_PRPH_TIMER3)
     TMR3_IRQn,
+#endif
+#if defined(ADI_NS_PRPH_TIMER4)
     TMR4_IRQn,
+#endif
+#if defined(ADI_NS_PRPH_TIMER5)
     TMR5_IRQn,
+#endif
+#if defined(ADI_NS_PRPH_I3C)
     I3C_IRQn,
-#if !defined(TFM_S_REG_TEST)
+#endif
+#if defined(ADI_NS_PRPH_UART) && !defined(TFM_S_REG_TEST)
     UART_IRQn,
 #endif
+#if defined(ADI_NS_PRPH_SPI)
     SPI_IRQn,
+#endif
+#if defined(ADI_NS_PRPH_GPIO0)
     GPIO0_IRQn,
+#endif
     DMA0_CH0_IRQn,
     DMA0_CH1_IRQn,
     DMA0_CH2_IRQn,
     DMA0_CH3_IRQn,
+#if defined(ADI_NS_PRPH_WUT0)
     WUT0_IRQn,
+#endif
+#if defined(ADI_NS_PRPH_WUT1)
     WUT1_IRQn,
+#endif
+#if defined(ADI_NS_PRPH_GPIO0)
     GPIOWAKE_IRQn,
+#endif
+#if defined(ADI_NS_PRPH_CRC)
     CRC_IRQn,
+#endif
+#if defined(ADI_NS_PRPH_AES)
     AES_IRQn,
+#endif
     ERFO_IRQn,
     BOOST_IRQn,
-    ECC_IRQn,
     BTLE_TX_DONE_IRQn,
     BTLE_RX_RCVD_IRQn,
     BTLE_RX_ENG_DET_IRQn,
