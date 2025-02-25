@@ -66,6 +66,7 @@
 #define RSE_OTP_CM_ROTPK_MAX_REVOCATIONS 3
 #define RSE_ROUTING_TABLES_SIZE 0
 #define RSE_OTP_CM_RESERVED_SIZE 4
+#define RSE_OTP_COD_SIZE 144
 
 /* The following options control the BL1_2 area, and can be changed without
  * altering the ROM.
@@ -91,6 +92,7 @@
  */
 
 #define RSE_OTP_MAX_REPROVISIONINGS 8
+#define RSE_OTP_RESERVED_COUNTER_BYTES 0
 /* #define RSE_OTP_HAS_IAK_ENDORSEMENT_CERTIFICATE */
 /* #define RSE_OTP_ENDORSEMENT_CERTIFICATE_SIZE 0x60 */
 /* #define RSE_OTP_ENDORSEMENT_CERTIFICATE_METADATA_SIZE 0x30 */

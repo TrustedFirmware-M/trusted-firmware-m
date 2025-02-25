@@ -523,9 +523,9 @@ static enum tfm_plat_err_t check_areas_for_tampering(enum lcm_lcs_t lcs)
 #endif
 
 #ifdef RSE_OTP_HAS_SOC_AREA
-    err = rse_check_zero_bit_count((uint8_t *)&P_RSE_OTP_SOC->unique_id,
-                                   sizeof(P_RSE_OTP_SOC->unique_id),
-                                   P_RSE_OTP_SOC->zero_count);
+    err = rse_check_zero_bit_count((uint8_t *)&P_RSE_OTP_SOC->soc_id_area.unique_id,
+                                   sizeof(P_RSE_OTP_SOC->soc_id_area.unique_id),
+                                   P_RSE_OTP_SOC->soc_id_area.zero_count_unique_id);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
         FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_SOC_ZERO_COUNT_ERR);

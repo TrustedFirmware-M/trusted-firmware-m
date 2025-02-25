@@ -28,7 +28,7 @@ extern "C" {
 #define ROUND_UP(x, bound) ((((x) + bound - 1) / bound) * bound)
 #define ALIGN(x, bound) ROUND_UP(x, bound)
 
-#define COUNTER_BYTES(x) ALIGN((ROUND_UP((x), 8) / 8), 8)
+#define COUNTER_BYTES(x) ALIGN((ROUND_UP((x), 8) / 8), 4)
 
 __PACKED_STRUCT rse_otp_area_info_t {
     __PACKED_UNION {
@@ -54,8 +54,6 @@ __PACKED_STRUCT rse_otp_header_area_t {
     struct rse_otp_area_info_t soc_area_info;
     uint32_t soc_area_info_zero_count;
 
-    uint32_t device_status;
-
 #ifdef RSE_OTP_HAS_KRTL_USAGE_COUNTER
     uint8_t krtl_usage_counter[COUNTER_BYTES(RSE_OTP_KRTL_COUNTER_MAX_VALUE)];
 #endif
@@ -63,16 +61,18 @@ __PACKED_STRUCT rse_otp_header_area_t {
     uint8_t lft_counter[COUNTER_BYTES(RSE_OTP_LFT_COUNTER_MAX_VALUE)];
 #endif
 
+    uint32_t device_status;
+
 #ifdef RSE_OTP_HEADER_SUBPLATFORM_ITEMS
     struct rse_otp_subplatform_header_area_t subplatform;
 #endif
 
+    uint32_t dma_ics_size;
     uint8_t dma_ics[RSE_OTP_DMA_ICS_SIZE];
 };
 
 struct rse_otp_cm_rotpk_area_t {
     uint32_t zero_count;
-    uint32_t _pad;
     uint32_t cm_rotpk_policies;
     uint8_t rotpk[RSE_OTP_CM_ROTPK_AMOUNT][RSE_OTP_CM_ROTPK_SIZE];
 };
@@ -97,6 +97,8 @@ __PACKED_STRUCT rse_otp_cm_area_t {
     struct rse_otp_subplatform_cm_area_t subplatform;
 #endif
 
+    uint8_t cod[RSE_OTP_COD_SIZE];
+
     uint8_t reserved[RSE_OTP_CM_RESERVED_SIZE];
     struct rse_otp_cm_rotpk_area_t rotpk_areas[RSE_OTP_CM_ROTPK_MAX_REVOCATIONS + 1];
 };
@@ -116,7 +118,6 @@ __PACKED_STRUCT rse_otp_bl1_2_area_t {
 
 struct rse_otp_dm_rotpk_area_t {
     uint32_t zero_count;
-    uint32_t _pad;
     uint32_t dm_rotpk_policies;
     uint8_t rotpk[RSE_OTP_DM_ROTPK_AMOUNT][RSE_OTP_DM_ROTPK_SIZE];
 };
@@ -139,7 +140,7 @@ __PACKED_STRUCT rse_otp_dynamic_area_t {
     uint8_t cm_reprovisioning[COUNTER_BYTES(RSE_OTP_MAX_REPROVISIONINGS)];
     uint8_t cm_rotpk_revocation[COUNTER_BYTES(RSE_OTP_CM_ROTPK_MAX_REVOCATIONS)];
     uint8_t dm_rotpk_revocation[COUNTER_BYTES(RSE_OTP_DM_ROTPK_MAX_REVOCATIONS)];
-
+    uint8_t reserved_counters[RSE_OTP_RESERVED_COUNTER_BYTES];
     /* 4 banks of NV counters are provided. Each bank must be a fixed size, so
      * there can be up to 4 different sizes of NV counters in the unlocked area,
      * but with unlimited amounts of each size of counter.
@@ -148,7 +149,6 @@ __PACKED_STRUCT rse_otp_dynamic_area_t {
     uint8_t security_version_counters_bank_1[RSE_OTP_NV_COUNTERS_BANK_1_AMOUNT][COUNTER_BYTES(RSE_OTP_NV_COUNTERS_BANK_1_MAX_VALUE)];
     uint8_t security_version_counters_bank_2[RSE_OTP_NV_COUNTERS_BANK_2_AMOUNT][COUNTER_BYTES(RSE_OTP_NV_COUNTERS_BANK_2_MAX_VALUE)];
     uint8_t security_version_counters_bank_3[RSE_OTP_NV_COUNTERS_BANK_3_AMOUNT][COUNTER_BYTES(RSE_OTP_NV_COUNTERS_BANK_3_MAX_VALUE)];
-
 
 #ifdef RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE
     uint8_t iak_endorsement_certificate[RSE_OTP_ENDORSEMENT_CERTIFICATE_SIZE];
@@ -161,16 +161,22 @@ __PACKED_STRUCT rse_otp_dynamic_area_t {
 };
 
 __PACKED_STRUCT rse_otp_soc_area_t {
-    uint32_t zero_count;
-    uint8_t unique_id[12];
-    uint8_t family_id[4];
-    uint8_t serial_number[8];
+    __PACKED_STRUCT {
+        uint32_t zero_count_unique_id;
+        uint8_t unique_id[12];
+        uint32_t zero_count_id;
+        uint8_t family_id[4];
+        uint8_t ieee_ecid[16];
+    } soc_id_area;
 
+    __PACKED_STRUCT {
+        uint32_t soc_cfg_data_zc;
+        uint32_t soc_cfg_data_size;
 #ifdef RSE_OTP_SOC_SUBPLATFORM_ITEMS
-    struct rse_otp_subplatform_soc_area_t subplatform;
+        struct rse_otp_subplatform_soc_area_t subplatform;
 #endif
-
-    uint8_t reserved[RSE_OTP_SOC_RESERVED_SIZE];
+        uint8_t reserved[RSE_OTP_SOC_RESERVED_SIZE];
+    } soc_cfg_area;
 };
 
 /* Accessor macros for CM defined policies specified at
