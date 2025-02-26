@@ -277,9 +277,9 @@
  * runtime driver supports DMA remapping.
  */
 #define BL2_DATA_START    (BL2_XIP_TABLES_START + BL2_XIP_TABLES_SIZE)
-#define BL2_DATA_SIZE                                                                              \
-    (VM0_SIZE + VM1_SIZE - BL2_XIP_TABLES_SIZE - FLASH_BL2_PARTITION_SIZE - PERSISTENT_DATA_SIZE - \
-     RSE_OTP_EMULATION_SRAM_SIZE)
+#define BL2_DATA_SIZE                                                           \
+    (VM0_SIZE + VM1_SIZE - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE - \
+     (BL2_DATA_START - VM0_BASE_S))
 #define BL2_DATA_LIMIT    (BL2_DATA_START + BL2_DATA_SIZE - 1)
 
 /* Runtime addresses for DTCM and ITCM. */
