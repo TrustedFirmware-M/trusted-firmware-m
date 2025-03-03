@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -42,6 +42,7 @@
 #define LOG_MARKER_WARNING  "\x1e"  /* 30 */
 #define LOG_MARKER_INFO     "\x28"  /* 40 */
 #define LOG_MARKER_VERBOSE  "\x32"  /* 50 */
+#define LOG_MARKER_RAW      "\x3c"  /* 60 */
 
 /* Function called to output a string to the terminal */
 typedef void (*tfm_log_output_str)(void *priv, const char *str, uint32_t len);

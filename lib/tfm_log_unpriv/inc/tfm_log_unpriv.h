@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -30,33 +30,43 @@
 #endif
 
 #if LOG_LEVEL_UNPRIV >= LOG_LEVEL_ERROR
-# define ERROR_UNPRIV(...)    tfm_log_unpriv(LOG_MARKER_ERROR __VA_ARGS__)
+# define ERROR_UNPRIV(...)          tfm_log_unpriv(LOG_MARKER_ERROR __VA_ARGS__)
+# define ERROR_UNPRIV_RAW(...)      tfm_log_unpriv(LOG_MARKER_RAW __VA_ARGS__)
 #else
-# define ERROR_UNPRIV(...)    no_tfm_log_unpriv(LOG_MARKER_ERROR __VA_ARGS__)
+# define ERROR_UNPRIV(...)          no_tfm_log_unpriv(LOG_MARKER_ERROR __VA_ARGS__)
+# define ERROR_UNPRIV_RAW(...)      no_tfm_log_unpriv(LOG_MARKER_RAW __VA_ARGS__)
 #endif
 
 #if LOG_LEVEL_UNPRIV >= LOG_LEVEL_NOTICE
-# define NOTICE_UNPRIV(...)    tfm_log_unpriv(LOG_MARKER_NOTICE __VA_ARGS__)
+# define NOTICE_UNPRIV(...)         tfm_log_unpriv(LOG_MARKER_NOTICE __VA_ARGS__)
+# define NOTICE_UNPRIV_RAW(...)     tfm_log_unpriv(LOG_MARKER_RAW __VA_ARGS__)
 #else
-# define NOTICE_UNPRIV(...)    no_tfm_log_unpriv(LOG_MARKER_NOTICE __VA_ARGS__)
+# define NOTICE_UNPRIV(...)         no_tfm_log_unpriv(LOG_MARKER_NOTICE __VA_ARGS__)
+# define NOTICE_UNPRIV_RAW(...)     no_tfm_log_unpriv(LOG_MARKER_RAW __VA_ARGS__)
 #endif
 
 #if LOG_LEVEL_UNPRIV >= LOG_LEVEL_WARNING
-# define WARN_UNPRIV(...)    tfm_log_unpriv(LOG_MARKER_WARNING __VA_ARGS__)
+# define WARN_UNPRIV(...)           tfm_log_unpriv(LOG_MARKER_WARNING __VA_ARGS__)
+# define WARN_UNPRIV_RAW(...)       tfm_log_unpriv(LOG_MARKER_RAW __VA_ARGS__)
 #else
-# define WARN_UNPRIV(...)    no_tfm_log_unpriv(LOG_MARKER_WARNING __VA_ARGS__)
+# define WARN_UNPRIV(...)           no_tfm_log_unpriv(LOG_MARKER_WARNING __VA_ARGS__)
+# define WARN_UNPRIV_RAW(...)       no_tfm_log_unpriv(LOG_MARKER_RAW __VA_ARGS__)
 #endif
 
 #if LOG_LEVEL_UNPRIV >= LOG_LEVEL_INFO
-# define INFO_UNPRIV(...)    tfm_log_unpriv(LOG_MARKER_INFO __VA_ARGS__)
+# define INFO_UNPRIV(...)       tfm_log_unpriv(LOG_MARKER_INFO __VA_ARGS__)
+# define INFO_UNPRIV_RAW(...)   tfm_log_unpriv(LOG_MARKER_RAW __VA_ARGS__)
 #else
-# define INFO_UNPRIV(...)    no_tfm_log_unpriv(LOG_MARKER_INFO __VA_ARGS__)
+# define INFO_UNPRIV(...)       no_tfm_log_unpriv(LOG_MARKER_INFO __VA_ARGS__)
+# define INFO_UNPRIV_RAW(...)   no_tfm_log_unpriv(LOG_MARKER_RAW __VA_ARGS__)
 #endif
 
 #if LOG_LEVEL_UNPRIV >= LOG_LEVEL_VERBOSE
-# define VERBOSE_UNPRIV(...)    tfm_log_unpriv(LOG_MARKER_VERBOSE __VA_ARGS__)
+# define VERBOSE_UNPRIV(...)        tfm_log_unpriv(LOG_MARKER_VERBOSE __VA_ARGS__)
+# define VERBOSE_UNPRIV_RAW(...)    tfm_log_unpriv(LOG_MARKER_RAW __VA_ARGS__)
 #else
-# define VERBOSE_UNPRIV(...)    no_tfm_log_unpriv(LOG_MARKER_VERBOSE __VA_ARGS__)
+# define VERBOSE_UNPRIV(...)        no_tfm_log_unpriv(LOG_MARKER_VERBOSE __VA_ARGS__)
+# define VERBOSE_UNPRIV_RAW(...)    no_tfm_log_unpriv(LOG_MARKER_RAW __VA_ARGS__)
 #endif
 
 #if defined(__ICCARM__)
