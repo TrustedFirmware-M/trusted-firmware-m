@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 ARM Limited. All rights reserved.
+ * Copyright (c) 2013-2025 ARM Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include "Driver_Flash.h"
 #include "test_flash.h"
-#include "tfm_sp_log.h"
+#include "tfm_log_unpriv.h"
 
 #ifndef ARG_UNUSED
 #define ARG_UNUSED(arg)  ((void)arg)

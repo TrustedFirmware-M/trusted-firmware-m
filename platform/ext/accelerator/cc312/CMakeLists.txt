@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -25,7 +25,7 @@ target_include_directories(psa_crypto_library_config
 # CC log level is controlled indirectly through the SP log level. When SP log is
 # disabled we can assume that the CC log should also be turned off. Otherwise,
 # enable only if debugging information may be needed.
-if(${TFM_PARTITION_LOG_LEVEL} STREQUAL TFM_PARTITION_LOG_LEVEL_SILENCE)
+if(${TFM_PARTITION_LOG_LEVEL} STREQUAL LOG_LEVEL_NONE)
     set(CC_LOG_ENABLED OFF)
 else()
     set(CC_LOG_ENABLED $<CONFIG:Debug,relwithdebinfo>)

@@ -21,7 +21,7 @@
 #include "tfm_attest_iat_defs.h"
 #include "t_cose/t_cose_common.h"
 #include "tfm_crypto_defs.h"
-#include "tfm_sp_log.h"
+#include "tfm_log_unpriv.h"
 
 #if ATTEST_TOKEN_PROFILE_ARM_CCA
 #include "tfm_strnlen.h"
@@ -132,7 +132,7 @@ attest_add_all_sw_components(struct attest_token_encode_ctx *token_ctx)
                                         (int64_t)NO_SW_COMPONENT_FIXED_VALUE);
 #else
         /* Mandatory to have SW components claim in the token */
-        LOG_ERRFMT("[ERR][Attest] Boot record is not available\r\n");
+        ERROR_UNPRIV("[Attest] Boot record is not available\n");
         return PSA_ATTEST_ERR_CLAIM_UNAVAILABLE;
 #endif
     }
@@ -540,7 +540,7 @@ static enum psa_attest_err_t attest_get_t_cose_algorithm(
             return PSA_ATTEST_ERR_GENERAL;
         }
     } else {
-        LOG_DBGFMT("Attestation: Unexpected key_type for TFM_BUILTIN_KEY_ID_IAK. Key storage may be corrupted!\r\n");
+        VERBOSE_UNPRIV_RAW("Attestation: Unexpected key_type for TFM_BUILTIN_KEY_ID_IAK. Key storage may be corrupted!\n");
         return PSA_ATTEST_ERR_GENERAL;
     }
 

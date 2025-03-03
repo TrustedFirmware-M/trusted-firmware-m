@@ -21,7 +21,7 @@
 #include "psa_manifest/pid.h"
 #include "tfm_its_defs.h"
 #include "its_utils.h"
-#include "tfm_sp_log.h"
+#include "tfm_log_unpriv.h"
 
 #ifdef ITS_ENCRYPTION
 #include "its_crypto_interface.h"
@@ -300,7 +300,7 @@ psa_status_t tfm_its_init(void)
         /* Remove all data in the ITS memory area and create a valid ITS flash
          * layout in that area.
          */
-        LOG_INFFMT("Creating an empty ITS flash layout.\r\n");
+        INFO_UNPRIV_RAW("Creating an empty ITS flash layout.\n");
         status = its_flash_fs_wipe_all(&fs_ctx_its);
         if (status != PSA_SUCCESS) {
             return status;
@@ -347,7 +347,7 @@ psa_status_t tfm_its_init(void)
         /* Remove all data in the PS memory area and create a valid PS flash
          * layout in that area.
          */
-        LOG_INFFMT("Creating an empty PS flash layout.\r\n");
+        INFO_UNPRIV_RAW("Creating an empty PS flash layout.\n");
         status = its_flash_fs_wipe_all(&fs_ctx_ps);
         if (status != PSA_SUCCESS) {
             return status;

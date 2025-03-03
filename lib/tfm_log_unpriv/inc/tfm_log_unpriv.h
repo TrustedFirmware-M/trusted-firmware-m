@@ -14,6 +14,16 @@
 #include "tfm_vprintf.h"
 
 /*
+ * FixMe: Note that this library is for logging from unprivileged App RoT partitions
+ * that cannot access the UART. Logging is therefore routed through to the SPM
+ * via an SVC. There is no harm in also using this for PSA RoT partitions as well but
+ * this should not be necessary and will be a performance hit.
+ *
+ * Uses of this library throughout PSA RoT partitions should be vetting and possibly
+ * changed to use tfm_log.h which writes directly to the UART.
+ */
+
+/*
  * If the log output is too low then this macro is used in place of tfm_log_unpriv()
  * below. The intent is to get the compiler to evaluate the function call for
  * type checking and format specifier correctness but let it optimize it out.

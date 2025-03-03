@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -89,7 +89,8 @@ target_link_libraries(tfm_psa_rot_partition_crypto
         platform_s
         crypto_service_mbedcrypto
         tfm_config
-        tfm_sp_log
+        tfm_log_unpriv_headers
+        tfm_vprintf_headers
 )
 target_compile_definitions(tfm_psa_rot_partition_crypto
     PRIVATE

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -12,7 +12,7 @@
 #include "io_block.h"
 #include "io_driver.h"
 #include "io_flash.h"
-#include "tfm_sp_log.h"
+#include "tfm_log_unpriv.h"
 
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(*(array)))
 
@@ -86,17 +86,17 @@ void s_test_io_storage_multiple_flash_simultaneous(struct test_result_t *ret) {
     io_write(flash0_handle, test_data, ARRAY_LENGTH(test_data),
              &bytes_written_count);
     if (bytes_written_count != ARRAY_LENGTH(test_data)) {
-        LOG_ERRFMT("io_write failed to write %d bytes for flash0",
+        ERROR_UNPRIV_RAW("io_write failed to write %d bytes for flash0",
                    ARRAY_LENGTH(test_data));
-        LOG_ERRFMT("bytes_written_count %d for flash0", bytes_written_count);
+        ERROR_UNPRIV_RAW("bytes_written_count %d for flash0", bytes_written_count);
         ret->val = TEST_FAILED;
     }
     io_write(flash_emu_handle, test_data, ARRAY_LENGTH(test_data),
              &bytes_written_count);
     if (bytes_written_count != ARRAY_LENGTH(test_data)) {
-        LOG_ERRFMT("io_write failed to write %d bytes for flash emu",
+        ERROR_UNPRIV_RAW("io_write failed to write %d bytes for flash emu",
                    ARRAY_LENGTH(test_data));
-        LOG_ERRFMT("bytes_written_count %d for flash emu", bytes_written_count);
+        ERROR_UNPRIV_RAW("bytes_written_count %d for flash emu", bytes_written_count);
         ret->val = TEST_FAILED;
     }
     io_close(flash0_handle);
@@ -114,14 +114,14 @@ void s_test_io_storage_multiple_flash_simultaneous(struct test_result_t *ret) {
     io_read(flash0_handle, actual_data, ARRAY_LENGTH(actual_data),
             &bytes_read_count);
     if (bytes_read_count != ARRAY_LENGTH(test_data)) {
-        LOG_ERRFMT("io_read failed to read %d bytes for flash0",
+        ERROR_UNPRIV_RAW("io_read failed to read %d bytes for flash0",
                    ARRAY_LENGTH(test_data));
-        LOG_ERRFMT("bytes_read_count %d for flash0", bytes_read_count);
+        ERROR_UNPRIV_RAW("bytes_read_count %d for flash0", bytes_read_count);
         ret->val = TEST_FAILED;
     }
     if (memcmp((uint8_t*)test_data, actual_data, ARRAY_LENGTH(actual_data)) !=
         0) {
-        LOG_ERRFMT("Data written != Data read\r\n");
+        ERROR_UNPRIV_RAW("Data written != Data read\n");
         ret->val = TEST_FAILED;
     }
 
@@ -131,17 +131,17 @@ void s_test_io_storage_multiple_flash_simultaneous(struct test_result_t *ret) {
     io_read(flash_emu_handle, actual_data, ARRAY_LENGTH(actual_data),
             &bytes_read_count);
     if (bytes_read_count != ARRAY_LENGTH(test_data)) {
-        LOG_ERRFMT("io_read failed to read %d bytes for flash emu",
+        ERROR_UNPRIV_RAW("io_read failed to read %d bytes for flash emu",
                    ARRAY_LENGTH(test_data));
-        LOG_ERRFMT("bytes_read_count %d for flash emu", bytes_read_count);
+        ERROR_UNPRIV_RAW("bytes_read_count %d for flash emu", bytes_read_count);
         ret->val = TEST_FAILED;
     }
     if (memcmp((uint8_t*)test_data, actual_data, ARRAY_LENGTH(actual_data)) !=
         0) {
-        LOG_ERRFMT("Data written != Data read\r\n");
+        ERROR_UNPRIV_RAW("Data written != Data read\n");
         ret->val = TEST_FAILED;
     }
 
-    LOG_INFFMT("PASS: %s\n\r", __func__);
+    INFO_UNPRIV_RAW("PASS: %s\n\r", __func__);
     ret->val = TEST_PASSED;
 }

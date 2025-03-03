@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2020-2021 IAR Systems AB
  * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
@@ -72,7 +72,6 @@ define block VENEER_ALIGN with alignment = TFM_LINKER_VENEERS_ALIGNMENT, size = 
 define block ER_UNPRIV_CODE {
     ro code object *(:sys), /* IAR runtime libraries */
     ro code object *libtfm_sprt*,
-    ro code object *libtfm_sp_log*,
     ro code object *libqcbor*,
     ro code object *libtfm_t_cose_s*,
 };

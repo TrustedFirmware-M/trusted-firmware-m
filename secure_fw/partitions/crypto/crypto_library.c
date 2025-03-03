@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "tfm_sp_log.h"
+#include "tfm_log_unpriv.h"
 
 #include "config_tfm.h"
 #include "psa/crypto.h"
@@ -94,7 +94,7 @@ psa_status_t tfm_crypto_core_library_init(void)
 
     mbedtls_platform_set_printf(null_printf);
 
-    LOG_DBGFMT("[DBG][Crypto] Internal heap size is %d bytes\r\n", sizeof(mbedtls_mem_buf));
+    VERBOSE_UNPRIV("[Crypto] Internal heap size is %d bytes\n", sizeof(mbedtls_mem_buf));
 
     return PSA_SUCCESS;
 }

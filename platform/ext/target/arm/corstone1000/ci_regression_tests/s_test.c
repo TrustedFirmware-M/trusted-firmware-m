@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-22, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-25, Arm Limited. All rights reserved.
  * Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
@@ -10,7 +10,7 @@
 #include "extra_s_tests.h"
 #include "platform_base_address.h"
 #include "firewall.h"
-#include "tfm_sp_log.h"
+#include "tfm_log_unpriv.h"
 #include "s_io_storage_test.h"
 
 /* TODO: if needed each test function can be made as a separate test case, in
@@ -48,11 +48,11 @@ static int test_host_firewall_status(void)
     fc_select((void *)CORSTONE1000_HOST_FIREWALL_BASE, any_component_id);
     status = fw_get_lockdown_status();
     if (status != FW_LOCKED) {
-        LOG_INFFMT("FAIL: %s.\n\r", __func__);
+        INFO_UNPRIV_RAW("FAIL: %s.\n\r", __func__);
         return EXTRA_TEST_FAILED;
     }
 
-    LOG_INFFMT("PASS: %s\n\r", __func__);
+    INFO_UNPRIV_RAW("PASS: %s\n\r", __func__);
     return EXTRA_TEST_SUCCESS;
 }
 
@@ -69,7 +69,7 @@ static int test_host_firewall_external_flash_configurations(void)
     expected_rights = (RGN_MPL_ANY_MST_MASK | RGN_MPL_SECURE_READ_MASK |
                                               RGN_MPL_SECURE_WRITE_MASK);
     if (mpl_rights != expected_rights) {
-        LOG_INFFMT("FAIL1: %s.\n\r", __func__);
+        INFO_UNPRIV_RAW("FAIL1: %s.\n\r", __func__);
         return EXTRA_TEST_FAILED;
     }
     /* XIP Permissions */
@@ -80,7 +80,7 @@ static int test_host_firewall_external_flash_configurations(void)
                               RGN_MPL_SECURE_READ_MASK |
                               RGN_MPL_NONSECURE_READ_MASK);
     if (mpl_rights != expected_rights) {
-        LOG_INFFMT("FAIL2: %s.\n\r", __func__);
+        INFO_UNPRIV_RAW("FAIL2: %s.\n\r", __func__);
         return EXTRA_TEST_FAILED;
     }
 #else
@@ -102,7 +102,7 @@ static int test_host_firewall_external_flash_configurations(void)
     */
 #endif
 
-    LOG_INFFMT("PASS: %s\n\r", __func__);
+    INFO_UNPRIV_RAW("PASS: %s\n\r", __func__);
     return EXTRA_TEST_SUCCESS;
 }
 
@@ -119,12 +119,12 @@ static int test_host_firewall_secure_flash_configurations(void)
     expected_rights = (RGN_MPL_ANY_MST_MASK | RGN_MPL_SECURE_READ_MASK |
                                               RGN_MPL_SECURE_WRITE_MASK);
     if (mpl_rights != expected_rights) {
-        LOG_INFFMT("FAIL: %s.\n\r", __func__);
+        INFO_UNPRIV_RAW("FAIL: %s.\n\r", __func__);
         return EXTRA_TEST_FAILED;
     }
 #endif
 
-    LOG_INFFMT("PASS: %s\n\r", __func__);
+    INFO_UNPRIV_RAW("PASS: %s\n\r", __func__);
     return EXTRA_TEST_SUCCESS;
 }
 
@@ -137,11 +137,11 @@ static int test_bir_programming(void)
     bir_base[0] = 0x1;
     bir_base[0] = 0x2;
     if (bir_base[0] != 0x1) {
-        LOG_INFFMT("FAIL: %s : (%u)\n\r", __func__, bir_base[0]);
+        INFO_UNPRIV_RAW("FAIL: %s : (%u)\n\r", __func__, bir_base[0]);
         return EXTRA_TEST_FAILED;
     }
 
-    LOG_INFFMT("PASS: %s\n\r", __func__);
+    INFO_UNPRIV_RAW("PASS: %s\n\r", __func__);
     return EXTRA_TEST_SUCCESS;
 }
 
@@ -175,12 +175,12 @@ void s_test(struct test_result_t *ret)
 #endif
 
     if (failures) {
-        LOG_INFFMT("Not all platform test could pass: failures=%d\n\r", failures);
+        INFO_UNPRIV_RAW("Not all platform test could pass: failures=%d\n\r", failures);
         ret->val = TEST_FAILED;
         return;
     }
 
-    LOG_INFFMT("ALL_PASS: corstone1000 platform test cases passed.\n\r");
+    INFO_UNPRIV_RAW("ALL_PASS: corstone1000 platform test cases passed.\n\r");
     ret->val = TEST_PASSED;
 }
 

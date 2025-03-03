@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -9,7 +9,6 @@
 #include <stdint.h>
 #include <string.h>
 #include "config_tfm.h"
-#include "tfm_sp_log.h"
 
 #include "tfm_mbedcrypto_include.h"
 

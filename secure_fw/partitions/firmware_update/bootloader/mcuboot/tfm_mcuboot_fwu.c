@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -7,7 +7,7 @@
 #include <string.h>
 #include "psa/crypto.h"
 #include "psa/error.h"
-#include "tfm_sp_log.h"
+#include "tfm_log_unpriv.h"
 #include "bootutil_priv.h"
 #include "bootutil/bootutil.h"
 #include "bootutil/image.h"
@@ -116,12 +116,12 @@ psa_status_t fwu_bootloader_staging_area_init(psa_fwu_component_t component,
 
     if (flash_area_open(FLASH_AREA_IMAGE_SECONDARY(component),
                         &fap) != 0) {
-        LOG_ERRFMT("TFM FWU: opening flash failed.\r\n");
+        ERROR_UNPRIV_RAW("TFM FWU: opening flash failed.\n");
         return PSA_ERROR_STORAGE_FAILURE;
     }
 
     if (flash_area_erase(fap, 0, fap->fa_size) != 0) {
-        LOG_ERRFMT("TFM FWU: erasing flash failed.\r\n");
+        ERROR_UNPRIV_RAW("TFM FWU: erasing flash failed.\n");
         return PSA_ERROR_GENERIC_ERROR;
     }
 
@@ -152,7 +152,7 @@ psa_status_t fwu_bootloader_load_image(psa_fwu_component_t component,
     }
 
     if (flash_area_write(fap, image_offset, block, block_size) != 0) {
-        LOG_ERRFMT("TFM FWU: write flash failed.\r\n");
+        ERROR_UNPRIV_RAW("TFM FWU: write flash failed.\n");
         return PSA_ERROR_STORAGE_FAILURE;
     }
 
@@ -561,7 +561,7 @@ static psa_status_t get_second_image_digest(psa_fwu_component_t component,
     }
     if ((flash_area_open(FLASH_AREA_IMAGE_SECONDARY(component),
                             &fap)) != 0) {
-        LOG_ERRFMT("TFM FWU: opening flash failed.\r\n");
+        ERROR_UNPRIV_RAW("TFM FWU: opening flash failed.\n");
         return PSA_ERROR_STORAGE_FAILURE;
     }
 
@@ -599,7 +599,7 @@ psa_status_t fwu_bootloader_get_image_info(psa_fwu_component_t component,
 
     if ((flash_area_open(FLASH_AREA_IMAGE_PRIMARY(component),
                         &fap)) != 0) {
-        LOG_ERRFMT("TFM FWU: opening flash failed.\r\n");
+        ERROR_UNPRIV_RAW("TFM FWU: opening flash failed.\n");
         return PSA_ERROR_STORAGE_FAILURE;
     }
     info->max_size = fap->fa_size;

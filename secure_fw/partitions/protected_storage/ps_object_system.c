@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2024 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
@@ -22,7 +22,7 @@
 #include "ps_object_table.h"
 #include "ps_utils.h"
 #include "tfm_ps_req_mngr.h"
-#include "tfm_sp_log.h"
+#include "tfm_log_unpriv.h"
 #include "utilities.h"
 
 #ifndef PS_ENCRYPTION
@@ -287,12 +287,12 @@ psa_status_t ps_system_prepare(void)
 #if PS_AES_KEY_USAGE_LIMIT != 0
     /* Sanity check that the largest allowed object can actually be written and read back */
     if (2 * ps_encrypted_object_blocks(PS_MAX_ASSET_SIZE) > PS_AES_KEY_USAGE_LIMIT) {
-        LOG_ERRFMT("Config error: PS_AES_KEY_USAGE_LIMIT prevents storing largest allowable PS object\r\n");
+        ERROR_UNPRIV_RAW("Config error: PS_AES_KEY_USAGE_LIMIT prevents storing largest allowable PS object\n");
         return PSA_ERROR_GENERIC_ERROR;
     }
     /* Ensure that we can never overflow a uint32_t block counter */
     if (ps_encrypted_object_blocks(PS_MAX_ASSET_SIZE) > UINT32_MAX - PS_AES_KEY_USAGE_LIMIT) {
-        LOG_ERRFMT("Config error: PS_AES_KEY_USAGE_LIMIT too large to safely count key usage\r\n");
+        ERROR_UNPRIV_RAW("Config error: PS_AES_KEY_USAGE_LIMIT too large to safely count key usage\n");
         return PSA_ERROR_GENERIC_ERROR;
     }
 #endif

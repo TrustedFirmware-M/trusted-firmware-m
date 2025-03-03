@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
@@ -78,7 +78,6 @@ LR_CODE S_CODE_START S_CODE_SIZE {
     ER_UNPRIV_CODE +0 {
         *armlib*(+RO-CODE)
         *libtfm_sprt*(+RO-CODE)
-        *libtfm_sp_log*(+RO-CODE)
         *libqcbor*(+RO-CODE)
         *libtfm_t_cose_s*(+RO-CODE)
     }

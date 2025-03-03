@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2021-2023 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
@@ -17,14 +17,14 @@
 #include "tfm_hal_platform.h"
 #include "tfm_multi_core.h"
 #include "tfm_rpc.h"
-#include "tfm_sp_log.h"
+#include "tfm_log_unpriv.h"
 
 #include "compiler_ext_defs.h"
 
 static void boot_ns_core(void)
 {
     /* Boot up non-secure core */
-    LOG_DBGFMT("Enabling non-secure core...\r\n");
+    VERBOSE_UNPRIV_RAW("Enabling non-secure core...\n");
 
     tfm_hal_boot_ns_cpu(tfm_hal_get_ns_VTOR());
     tfm_hal_wait_for_ns_cpu_ready();
@@ -37,7 +37,7 @@ void ns_agent_mailbox_entry(void)
     boot_ns_core();
 
     if (tfm_inter_core_comm_init()) {
-        LOG_ERRFMT("Inter-core communication init failed\r\n");
+        ERROR_UNPRIV_RAW("Inter-core communication init failed\n");
         psa_panic();
     }
 

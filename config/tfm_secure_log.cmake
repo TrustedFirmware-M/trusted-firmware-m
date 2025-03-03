@@ -1,17 +1,17 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
 
 set(TFM_SPM_LOG_LEVEL           TFM_SPM_LOG_LEVEL_SILENCE       CACHE STRING    "Set default SPM log level as INFO level")
-set(TFM_PARTITION_LOG_LEVEL     TFM_PARTITION_LOG_LEVEL_SILENCE   CACHE STRING    "Set default Secure Partition log level as INFO level")
+set(TFM_PARTITION_LOG_LEVEL     LOG_LEVEL_NONE   CACHE STRING    "Set default Secure Partition log level as INFO level")
 
 # Secure regression tests also require SP log function
 # Enable SP log raw dump when SP log level is higher than silence or TF-M
 # regression test is enabled.
-if ((NOT ${TFM_PARTITION_LOG_LEVEL} STREQUAL TFM_PARTITION_LOG_LEVEL_SILENCE)
+if ((NOT ${TFM_PARTITION_LOG_LEVEL} STREQUAL LOG_LEVEL_NONE)
     OR TFM_S_REG_TEST OR TFM_NS_REG_TEST)
     set(TFM_SP_LOG_RAW_ENABLED ON)
 endif()

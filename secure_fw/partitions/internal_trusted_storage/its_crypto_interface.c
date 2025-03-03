@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -15,7 +15,6 @@
 #include "tfm_hal_ps.h"
 #include "tfm_internal_trusted_storage.h"
 #include "tfm_its_defs.h"
-#include "tfm_sp_log.h"
 
 /**
  * \brief Fills the AEAD additional data used for the encryption/decryption

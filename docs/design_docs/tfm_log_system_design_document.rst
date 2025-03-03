@@ -135,19 +135,21 @@ Take debug message as an example:
 Partition Log System
 ====================
 Partition log outputting required rich formatting in particular cases. There is
-a customized print inside TF-M(``printf``), and it is wrapped as macro.
+a customized print inside TF-M(``tfm_log_unpriv``), and it is wrapped as macro.
 
 Level Control
 -------------
 Three log levels for partition log system are defined:
 
-  - TFM_PARTITION_LOG_LEVEL_DEBUG
-  - TFM_PARTITION_LOG_LEVEL_INFO
-  - TFM_PARTITION_LOG_LEVEL_ERROR
-  - TFM_PARTITION_LOG_LEVEL_SILENCE
+  - LOG_LEVEL_NONE
+  - LOG_LEVEL_ERROR
+  - LOG_LEVEL_NOTICE
+  - LOG_LEVEL_WARNING
+  - LOG_LEVEL_INFO
+  - LOG_LEVEL_VERBOSE
 
 Then a macro ``TFM_PARTITION_LOG_LEVEL`` is defined as an indicator. It should
-be equal to one of the four log levels and it is an overall setting for all
+be equal to one of the six log levels and it is an overall setting for all
 partitions.
 
 Log Format
@@ -160,30 +162,48 @@ log APIs use a format outputting to output various type of data:
   %d - decimal signed integer
   %u - decimal unsigned integer
   %x - hex(hexadecimal)
-  %c - char(character)
   %s - string
 
 API Definition
 --------------
 Define partition log APIs:
 
-  LOG_DBGFMT(...);
+  VERBOSE_UNPRIV_RAW(...);
+  VERBOSE_UNPRIV(...);
 
-  LOG_INFFMT(...);
+  INFO_UNPRIV_RAW(...);
+  INFO_UNPRIV(...);
 
-  LOG_ERRFMT(...);
+  WARN_UNPRIV(...);
+  WARN_UNPRIV_RAW(...);
+
+  NOTICE_UNPRIV(...);
+  NOTICE_UNPRIV_RAW(...);
+
+  ERROR_UNPRIV(...);
+  ERROR_UNPRIV_RAW(...);
 
 Here is a table about the effective APIs with different partition log level.
 
-+------------+-------------------------------+---------------------------------+---------------------------------+---------------------------------+
-|            | TFM_PARTITION_LOG_LEVEL_DEBUG | TFM_PARTITION_LOG_LEVEL_INFO    | TFM_PARTITION_LOG_LEVEL_ERROR   | TFM_PARTITION_LOG_LEVEL_SILENCE |
-+============+===============================+=================================+=================================+=================================+
-| LOG_DBGFMT |              Yes              |                No               |                No               |               No                |
-+------------+-------------------------------+---------------------------------+---------------------------------+---------------------------------+
-| LOG_INFFMT |              Yes              |                Yes              |                No               |               No                |
-+------------+-------------------------------+---------------------------------+---------------------------------+---------------------------------+
-| LOG_ERRFMT |              Yes              |                Yes              |                Yes              |               No                |
-+------------+-------------------------------+---------------------------------+---------------------------------+---------------------------------+
++--------------------+--------+------+-------+------+
+|                    | DEBUG  | INFO | ERROR | NONE |
++====================+========+======+=======+======+
+| VERBOSE_UNPRIV_RAW |  Yes   |  No  |   No  |  No  |
+| VERBOSE_UNPRIV     |        |      |       |      |
++--------------------+--------+------+-------+------+
+| INFO_UNPRIV_RAW    |  Yes   | Yes  |   No  |  No  |
+| INFO_UNPRIV        |        |      |       |      |
++--------------------+--------+------+-------+------+
+| NOTICE_UNPRIV_RAW  |  Yes   | Yes  |   No  |  No  |
+| NOTICE_UNPRIV      |        |      |       |      |
++--------------------+--------+------+-------+------+
+| WARN_UNPRIV_RAW    |  Yes   | Yes  |   No  |  No  |
+| WARN_UNPRIV        |        |      |       |      |
++--------------------+--------+------+-------+------+
+| ERROR_UNPRIV_RAW   |  Yes   | Yes  |  Yes  |  No  |
+| ERROR_UNPRIV       |        |      |       |      |
++--------------------+--------+------+-------+------+
+
 
 HAL API
 -------
@@ -206,4 +226,4 @@ These log device interfaces are abstracted into HAL APIs.
 
 --------------
 
-*Copyright (c) 2020, Arm Limited. All rights reserved.*
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*

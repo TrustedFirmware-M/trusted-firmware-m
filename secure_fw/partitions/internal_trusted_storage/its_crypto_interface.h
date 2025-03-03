@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -14,7 +14,6 @@
 #include "tfm_hal_ps.h"
 #include "tfm_internal_trusted_storage.h"
 #include "tfm_its_defs.h"
-#include "tfm_sp_log.h"
 
 /**
  * \brief Perform encryption/decryption of the buffer using the

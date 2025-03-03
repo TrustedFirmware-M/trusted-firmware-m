@@ -1,5 +1,5 @@
 ;/*
-; * Copyright (c) 2009-2024 Arm Limited
+; * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 ; * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon company)
 ; * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 ; *
@@ -111,7 +111,6 @@ SECTIONS
         *libc_nano*:(SORT_BY_ALIGNMENT(.text*))
         *libg_nano*:(SORT_BY_ALIGNMENT(.text*))
         *libtfm_sprt*:(SORT_BY_ALIGNMENT(.text*))
-        *libtfm_sp_log*:(SORT_BY_ALIGNMENT(.text*))
         *libqcbor*:(SORT_BY_ALIGNMENT(.text*))
         *libtfm_t_cose_s*:(SORT_BY_ALIGNMENT(.text*))
 

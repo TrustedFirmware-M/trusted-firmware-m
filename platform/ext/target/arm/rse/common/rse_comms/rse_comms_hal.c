@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -13,7 +13,7 @@
 #include "tfm_hal_device_header.h"
 #include "device_definition.h"
 #include "tfm_peripherals_def.h"
-#include "tfm_sp_log.h"
+#include "tfm_log_unpriv.h"
 #include "tfm_pools.h"
 #include "rse_comms_protocol.h"
 #include <string.h>
@@ -33,14 +33,14 @@ static enum tfm_plat_err_t initialize_mhu(void)
 
     err = mhu_init_sender(&MHU_RSE_TO_AP_MONITOR_DEV);
     if (err != MHU_ERR_NONE) {
-        LOG_ERRFMT("[COMMS] RSE to AP_MONITOR MHU driver init failed: %i\r\n",
+        ERROR_UNPRIV_RAW("[COMMS] RSE to AP_MONITOR MHU driver init failed: %i\n",
             err);
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
     err = mhu_init_receiver(&MHU_AP_MONITOR_TO_RSE_DEV);
     if (err != MHU_ERR_NONE) {
-        LOG_ERRFMT("[COMMS] AP_MONITOR to RSE MHU driver init failed: %i\r\n",
+        ERROR_UNPRIV_RAW("[COMMS] AP_MONITOR to RSE MHU driver init failed: %i\n",
             err);
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
@@ -48,13 +48,13 @@ static enum tfm_plat_err_t initialize_mhu(void)
 #ifdef MHU_AP_NS_TO_RSE_DEV
     err = mhu_init_sender(&MHU_RSE_TO_AP_NS_DEV);
     if (err != MHU_ERR_NONE) {
-        LOG_ERRFMT("[COMMS] RSE to AP_NS MHU driver init failed: %i\r\n", err);
+        ERROR_UNPRIV_RAW("[COMMS] RSE to AP_NS MHU driver init failed: %i\n", err);
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
     err = mhu_init_receiver(&MHU_AP_NS_TO_RSE_DEV);
     if (err != MHU_ERR_NONE) {
-        LOG_ERRFMT("[COMMS] AP_NS to RSE MHU driver init failed: %i\r\n", err);
+        ERROR_UNPRIV_RAW("[COMMS] AP_NS to RSE MHU driver init failed: %i\n", err);
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 #endif /* MHU_AP_NS_TO_RSE_DEV */
@@ -62,18 +62,18 @@ static enum tfm_plat_err_t initialize_mhu(void)
 #ifdef MHU_RSE_TO_AP_S_DEV
     err = mhu_init_sender(&MHU_RSE_TO_AP_S_DEV);
     if (err != MHU_ERR_NONE) {
-        LOG_ERRFMT("[COMMS] RSE to AP_S MHU driver init failed: %i\r\n", err);
+        ERROR_UNPRIV_RAW("[COMMS] RSE to AP_S MHU driver init failed: %i\n", err);
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
     err = mhu_init_receiver(&MHU_AP_S_TO_RSE_DEV);
     if (err != MHU_ERR_NONE) {
-        LOG_ERRFMT("[COMMS] AP_S to RSE MHU driver init failed: %i\r\n", err);
+        ERROR_UNPRIV_RAW("[COMMS] AP_S to RSE MHU driver init failed: %i\n", err);
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 #endif /* MHU_RSE_TO_AP_S_DEV */
 
-    LOG_DBGFMT("[COMMS] MHU driver initialized successfully.\r\n");
+    VERBOSE_UNPRIV_RAW("[COMMS] MHU driver initialized successfully.\n");
     return TFM_PLAT_ERR_SUCCESS;
 }
 
@@ -137,7 +137,7 @@ out_return_err:
         == TFM_PLAT_ERR_SUCCESS) {
         mhu_err = mhu_send_data(mhu_sender_dev, (uint8_t *)&reply, reply_size);
         if (mhu_err != MHU_ERR_NONE) {
-            LOG_ERRFMT("[COMMS] Cannot send failure message: %i\r\n", mhu_err);
+            ERROR_UNPRIV_RAW("[COMMS] Cannot send failure message: %i\n", mhu_err);
         }
     }
 
@@ -167,18 +167,18 @@ enum tfm_plat_err_t tfm_multi_core_hal_reply(struct client_request_t *req)
 
     err = rse_protocol_serialize_reply(req, &reply, &reply_size);
     if (err != TFM_PLAT_ERR_SUCCESS) {
-        LOG_DBGFMT("[COMMS] Serialize reply failed: %i\r\n", err);
+        VERBOSE_UNPRIV_RAW("[COMMS] Serialize reply failed: %i\n", err);
         goto out_free_req;
     }
 
     mhu_err = mhu_send_data(req->mhu_sender_dev, (uint8_t *)&reply, reply_size);
     if (mhu_err != MHU_ERR_NONE) {
-        LOG_DBGFMT("[COMMS] MHU send failed: %i\r\n", mhu_err);
+        VERBOSE_UNPRIV_RAW("[COMMS] MHU send failed: %i\n", mhu_err);
         err = TFM_PLAT_ERR_SYSTEM_ERR;
         goto out_free_req;
     }
 
-    LOG_DBGFMT("[COMMS] Sent reply\r\n");
+    VERBOSE_UNPRIV_RAW("[COMMS] Sent reply\n");
 
 out_free_req:
     tfm_pool_free(req_pool, req);
