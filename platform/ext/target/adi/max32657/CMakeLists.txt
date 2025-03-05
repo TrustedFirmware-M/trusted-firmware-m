@@ -163,6 +163,31 @@ if(NOT PLATFORM_DEFAULT_PROVISIONING)
     )
 endif()
 
+if(ITS_ENCRYPTION)
+
+    set(SECURE_FW_PARTITION_CRYPTO_DIR  ${PLATFORM_DIR}/../secure_fw/partitions/crypto)
+    set(TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH ${TFM_MBEDCRYPTO_CONFIG_PATH})
+
+    target_compile_definitions(tfm_psa_rot_partition_its
+        PRIVATE
+            ITS_ENCRYPTION
+            MBEDTLS_CONFIG_FILE="${TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH}"
+            MBEDTLS_PSA_CRYPTO_CONFIG_FILE="${TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH}"
+    )
+
+    target_include_directories(tfm_psa_rot_partition_its
+        PRIVATE
+        $<BUILD_INTERFACE:${PLATFORM_DIR}/../interface/include>
+        ${SECURE_FW_PARTITION_CRYPTO_DIR}/psa_driver_api
+    )
+
+    target_sources(tfm_psa_rot_partition_its
+        PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/tfm_hal_its_encryption_mbed.c
+    )
+
+endif()
+
 #========================= Files for building NS platform =====================#
 
 install(FILES       ${TARGET_PLATFORM_PATH}/cmsis_drivers/Driver_USART.c
