@@ -21,18 +21,11 @@ extern "C" {
 
 enum dcsu_rx_command {
     DCSU_RX_COMMAND_NOP,
-    DCSU_RX_COMMAND_GENERATE_SOC_UNIQUE_ID,
-    DCSU_RX_COMMAND_WRITE_SOC_AREA,
-    DCSU_RX_COMMAND_COMPUTE_INTEGRITY_CHECK_SOC_AREA,
-    DCSU_RX_COMMAND_WRITE_DATA,
-    DCSU_RX_COMMAND_COMMIT_WRITE,
-
     _DCSU_RX_COMMAND_PAD = UINT32_MAX,
 };
 
 enum dcsu_tx_command {
     DCSU_TX_COMMAND_NOP,
-    DCSU_TX_COMMAND_EXPORT_DATA,
 
     _DCSU_TX_COMMAND_PAD = UINT32_MAX,
 };
@@ -196,21 +189,6 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev);
  */
 enum dcsu_error_t dcsu_respond_to_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_command command,
                                              enum dcsu_rx_msg_error_t response);
-
-/**
- * \brief This function receives data from the DCSU synchronously. It will not
- *        return until a DCSU command has been received.
- *
- * \param[in]  dev        The DCSU device structure.
- * \param[out] data       The data buffer to receive data into.
- * \param[in]  data_len   The size of the data buffer.
- * \param[out] data_size  The amount of data received.
- *
- * \return  DCSU_RX_MSG_ERROR_SUCCESS if the operation has succeeded, else an
- *          error code as specified in \ref dcsu_error_t.
- */
-enum dcsu_error_t dcsu_receive_data(struct dcsu_dev_t *dev, uint8_t *data, size_t data_len,
-                                    size_t *data_size);
 
 /**
  * \brief This function sends data via the DCSU synchronously.

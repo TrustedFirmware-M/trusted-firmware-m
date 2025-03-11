@@ -116,81 +116,16 @@ void dcsu_wait_for_tx_response(struct dcsu_dev_t *dev)
     p_dcsu->diag_cmd_irq_clear = 0b1 << 1;
 }
 
-static enum dcsu_error_t rx_generate_soc_unique_id(struct dcsu_dev_t *dev)
-{
-    enum dcsu_rx_msg_error_t msg_err;
-
-    msg_err = dcsu_hal_generate_soc_unique_id();
-
-    return rx_return_send(dev, msg_err);
-}
-
-static enum dcsu_error_t rx_write_soc_area(struct dcsu_dev_t *dev)
-{
-    struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
-    enum dcsu_rx_msg_error_t msg_err;
-    uint32_t write_num_words = ((p_dcsu->diag_rx_command >> 8) & 0b11) + 1;
-
-    msg_err = dcsu_hal_write_soc_area(p_dcsu->diag_rx_large_param, (uint32_t *)p_dcsu->diag_rx_data,
-                                      write_num_words * sizeof(uint32_t));
-
-    return rx_return_send(dev, msg_err);
-}
-
-static enum dcsu_error_t rx_compute_integrity_check_soc_area(struct dcsu_dev_t *dev)
-{
-    enum dcsu_rx_msg_error_t msg_err;
-
-    msg_err = dcsu_hal_compute_integrity_check_soc_area();
-
-    return rx_return_send(dev, msg_err);
-}
-
-static enum dcsu_error_t rx_commit_write(struct dcsu_dev_t *dev)
-{
-    enum dcsu_rx_msg_error_t msg_err;
-
-    if (dev->handler == NULL) {
-        msg_err = DCSU_RX_MSG_ERROR_COMMIT_HANDLER_NOT_SET_UP;
-        goto out;
-    }
-
-    msg_err = dev->handler(dev->rx_buf, dev->rx_buf_len);
-
-out:
-    dev->rx_buf_offset = 0;
-
-    return rx_return_send(dev, msg_err);
-}
-
 enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
 {
     enum dcsu_error_t err;
-    size_t size_written;
 
     err = dcsu_poll_for_any_rx_command(dev);
     if (err != DCSU_ERROR_NONE) {
         return err;
     }
 
-    switch (get_rx_command(dev)) {
-    case DCSU_RX_COMMAND_GENERATE_SOC_UNIQUE_ID:
-        err = rx_generate_soc_unique_id(dev);
-        break;
-    case DCSU_RX_COMMAND_WRITE_SOC_AREA:
-        err = rx_write_soc_area(dev);
-        break;
-    case DCSU_RX_COMMAND_COMPUTE_INTEGRITY_CHECK_SOC_AREA:
-        err = rx_compute_integrity_check_soc_area(dev);
-        break;
-    case DCSU_RX_COMMAND_WRITE_DATA:
-        err = dcsu_receive_data(dev, dev->rx_buf + dev->rx_buf_offset,
-                                dev->rx_buf_len - dev->rx_buf_offset, &size_written);
-        dev->rx_buf_offset += size_written;
-        break;
-    case DCSU_RX_COMMAND_COMMIT_WRITE:
-        err = rx_commit_write(dev);
-        break;
+    switch(get_rx_command(dev)) {
     default:
         FATAL_ERR(DCSU_ERROR_RX_MSG_BASE + DCSU_RX_MSG_ERROR_INVALID_COMMAND);
         err = rx_return_send(dev, DCSU_RX_MSG_ERROR_INVALID_COMMAND);
@@ -211,91 +146,6 @@ enum dcsu_error_t dcsu_respond_to_rx_command(struct dcsu_dev_t *dev, enum dcsu_r
     }
 
     return rx_return_send(dev, response);
-}
-
-static enum dcsu_error_t rx_write_receive(struct dcsu_dev_t *dev, uint8_t *data, size_t data_len,
-                                          size_t *data_size)
-{
-    struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
-    uint32_t recv_num_words = ((p_dcsu->diag_rx_command >> 8) & 0b11) + 1;
-    uint32_t recv_buf[MAX_RX_SIZE / sizeof(uint32_t)];
-    enum dcsu_rx_msg_error_t msg_err;
-    enum dcsu_error_t err;
-
-    assert(data_len <= MAX_RX_SIZE);
-
-    err = dcsu_wait_for_rx_command(dev, DCSU_RX_COMMAND_WRITE_DATA);
-    if (err != DCSU_ERROR_NONE) {
-        msg_err = DCSU_RX_MSG_ERROR_UNEXPECTED_COMMAND;
-        goto out;
-    }
-
-    if (data_len > recv_num_words * sizeof(uint32_t)) {
-        data_len = recv_num_words * sizeof(uint32_t);
-    }
-
-    for (uint32_t idx = 0; idx < recv_num_words; idx++) {
-        recv_buf[idx] = p_dcsu->diag_rx_data[idx];
-    }
-
-    memcpy(data, recv_buf, data_len);
-
-    *data_size = data_len;
-
-    dcsu_clear_pending_rx_interupt(dev);
-
-    msg_err = DCSU_RX_MSG_ERROR_SUCCESS;
-
-out:
-    return rx_return_send(dev, msg_err);
-}
-
-enum dcsu_error_t dcsu_receive_data(struct dcsu_dev_t *dev, uint8_t *data, size_t data_len,
-                                    size_t *data_size)
-{
-    struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
-    size_t total_data_size;
-    size_t current_recv_size;
-    size_t current_recv_actual_size;
-    const size_t max_recv_size = MAX_RX_SIZE;
-    size_t data_recv_size;
-    enum dcsu_error_t err;
-
-    err = dcsu_wait_for_rx_command(dev, DCSU_RX_COMMAND_WRITE_DATA);
-    if (err != DCSU_ERROR_NONE) {
-        return err;
-    }
-
-    total_data_size = p_dcsu->diag_rx_large_param;
-
-    if (data == NULL) {
-        dcsu_clear_pending_rx_interupt(dev);
-        return rx_return_send(dev, DCSU_RX_MSG_ERROR_BUFFER_NOT_SET_UP);
-    }
-
-    if (total_data_size > data_len) {
-        dcsu_clear_pending_rx_interupt(dev);
-        return rx_return_send(dev, DCSU_RX_MSG_ERROR_SIZE_TOO_LARGE);
-    }
-
-    for (data_recv_size = 0; data_recv_size < total_data_size;) {
-        current_recv_size = (data_recv_size + max_recv_size < data_len) ?
-                                max_recv_size :
-                                (data_len - data_recv_size);
-        err = rx_write_receive(dev, data + data_recv_size, current_recv_size,
-                               &current_recv_actual_size);
-        if (err != DCSU_ERROR_NONE) {
-            return err;
-        }
-
-        data_recv_size += current_recv_actual_size;
-    }
-
-    if (data_size != NULL) {
-        *data_size = data_recv_size;
-    }
-
-    return DCSU_ERROR_NONE;
 }
 
 static enum dcsu_error_t tx_command_send(struct dcsu_dev_t *dev, enum dcsu_tx_command tx_command,

@@ -21,14 +21,8 @@ def _round_up(x, boundary):
     return ((x + (boundary - 1)) // boundary) * boundary
 
 class dcsu_tx_command(Enum):
-    DCSU_TX_COMMAND_GENERATE_SOC_UNIQUE_ID = 0x1
-    DCSU_TX_COMMAND_WRITE_SOC_AREA = 0x2
-    DCSU_TX_COMMAND_COMPUTE_INTEGRITY_CHECK_SOC_AREA = 0x3
-    DCSU_TX_COMMAND_WRITE_DATA = 0x4
-    DCSU_TX_COMMAND_COMMIT_WRITE = 0x5
 
 class dcsu_rx_command(Enum):
-    DCSU_RX_COMMAND_EXPORT_DATA = 0x1
 
 class dcsu_tx_message_error(Enum):
     DCSU_TX_MSG_ERROR_SUCCESS = 0x1,
@@ -107,41 +101,7 @@ def rx_command_receive(backend, ctx, command : dcsu_rx_command) -> bytes:
     return data
 
 def _get_data_from_args(args:argparse.Namespace) -> bytes:
-    data = args.data.replace("0x", "")
-    assert (len(data) % 2  == 0), "Data must be a multiple of 2 hex digits"
-    return bytes.fromhex(data)
 
-def dcsu_tx_command_generate_soc_unique_id(backend, ctx, args: argparse.Namespace):
-    return tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_GENERATE_SOC_UNIQUE_ID)
-
-def dcsu_tx_command_write_soc_area(backend, ctx, args: argparse.Namespace):
-    offset = int(args.offset, 0)
-    backend.write_register(ctx, "DIAG_RX_LARGE_PARAM", offset)
-
-    data = _get_data_from_args(args)
-
-    return tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_GENERATE_SOC_UNIQUE_ID, data)
-
-def dcsu_tx_command_compute_integrity_check_soc_area(backend, ctx, args: argparse.Namespace):
-    return tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_COMPUTE_INTEGRITY_CHECK_SOC_AREA)
-
-def dcsu_tx_command_write_data(backend, ctx, args: argparse.Namespace):
-    data = _get_data_from_args(args)
-
-    backend.write_register(ctx, "DIAG_RX_LARGE_PARAM", len(data))
-    data_chunks = chunk_bytes(data, 32)
-
-    for c in data_chunks:
-        err: dcsu_tx_message_error = tx_command_send(backend, ctx,
-                                                     dcsu_tx_command.DCSU_TX_COMMAND_COMMIT_WRITE,
-                                                     c)
-        if (err != dcsu_tx_message_error.DCSU_TX_MSG_ERROR_SUCCESS):
-            return err
-
-    return dcsu_tx_message_error.DCSU_TX_MSG_ERROR_SUCCESS
-
-def dcsu_tx_command_commit_write(backend, ctx, args: argparse.Namespace):
-    return tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_COMMIT_WRITE)
 
 
 def dcsu_rx_command_export_data(backend, ctx, args: argparse.Namespace):
@@ -160,13 +120,6 @@ def dcsu_rx_command_export_data(backend, ctx, args: argparse.Namespace):
 def dcsu_command(backend, ctx, command, args: argparse.Namespace):
 
     dcsu_command_handlers = {
-        dcsu_tx_command.DCSU_TX_COMMAND_GENERATE_SOC_UNIQUE_ID: dcsu_tx_command_generate_soc_unique_id,
-        dcsu_tx_command.DCSU_TX_COMMAND_WRITE_SOC_AREA: dcsu_tx_command_write_soc_area,
-        dcsu_tx_command.DCSU_TX_COMMAND_COMPUTE_INTEGRITY_CHECK_SOC_AREA: dcsu_tx_command_compute_integrity_check_soc_area,
-        dcsu_tx_command.DCSU_TX_COMMAND_WRITE_DATA: dcsu_tx_command_write_data,
-        dcsu_tx_command.DCSU_TX_COMMAND_COMMIT_WRITE: dcsu_tx_command_commit_write,
-
-        dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA: dcsu_rx_command_export_data,
     }
     return dcsu_command_handlers[command](backend, ctx, args)
 
@@ -181,34 +134,6 @@ amounts of data)
 """
 
 command_description = {
-    "DCSU_TX_COMMAND_GENERATE_SOC_UNIQUE_ID": """
-The DCSU_TX_COMMAND_GENERATE_SOC_UNIQUE_ID command triggers the DCSU to generate
-the SOC unique ID.
-""",
-    "DCSU_TX_COMMAND_WRITE_SOC_AREA": """
-The DCSU_TX_COMMAND_WRITE_SOC_AREA command write the input data at the input
-offset in the SOC OTP area.
-""",
-    "DCSU_TX_COMMAND_COMPUTE_INTEGRITY_CHECK_SOC_AREA": """
-The DCSU_TX_COMMAND_COMPUTE_INTEGRITY_CHECK_SOC_AREA command computes the
-integrity check on the SOC OTP area (and hence locks the SOC OTP area preventing
-further writes)
-""",
-    "DCSU_TX_COMMAND_WRITE_DATA": """
-The DCSU_TX_COMMAND_WRITE_DATA command writes data to the DCSU TX data buffer.
-This command may trigger multiple commands in order to copy more data than the
-DCSU RX buffer size.
-""",
-    "DCSU_TX_COMMAND_COMMIT_WRITE": """
-The DCSU_TX_COMMAND_COMMIT_WRITE command triggers the DCSU to run the
-pre-defined handler on the data in the TX data buffer.
-""",
-
-    "DCSU_RX_COMMAND_EXPORT_DATA": """
-The DCSU_RX_COMMAND_EXPORT_DATA command waits for data to be exported from the
-DCSU. This command may trigger multiple commands in order to copy more data than
-the DCSU TX buffer size.
-""",
 }
 if __name__ == "__main__":
     backend_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "backends")
@@ -225,11 +150,6 @@ if __name__ == "__main__":
 
     parsers = {x : subparsers.add_parser(x, description=command_description[x]) for x in dcsu_tx_command._member_names_ + dcsu_rx_command._member_names_}
 
-    for c in ["DCSU_TX_COMMAND_WRITE_SOC_AREA"]:
-        parsers[c].add_argument("--offset", help="Offset to write", required=True, default="0")
-
-    for c in ["DCSU_TX_COMMAND_WRITE_SOC_AREA", "DCSU_TX_COMMAND_WRITE_DATA"]:
-        parsers[c].add_argument("--data",   help="Data to write", required=True, default="0x00")
 
     backend_name = pre_parse_backend(backends, parser)
     backend = setup_backend(backend_name)
