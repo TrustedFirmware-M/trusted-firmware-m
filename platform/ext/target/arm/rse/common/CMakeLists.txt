@@ -481,6 +481,7 @@ target_sources(platform_bl1_1
         $<$<BOOL:${RSE_HAS_DCSU}>:${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/src/dcsu_drv.c>
         $<$<BOOL:${RSE_HAS_DCSU}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>
         ./platform_shared_measurement_data.c
+        ./rse_soc_uid.c
 )
 
 target_compile_definitions(platform_bl1_1

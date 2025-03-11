@@ -14,6 +14,8 @@
 
 #include <string.h>
 
+#ifdef RSE_OTP_HAS_SOC_AREA
+
 bool rse_soc_uid_is_generated(void)
 {
     uint32_t all_zero_uid[sizeof(P_RSE_OTP_SOC->soc_id_area.unique_id) / sizeof(uint32_t)] = {0};
@@ -80,3 +82,5 @@ enum tfm_plat_err_t rse_lock_soc_uid(void)
                                         P_RSE_OTP_SOC->soc_id_area.zero_count_unique_id);
     }
 }
+
+#endif /* RSE_OTP_HAS_SOC_AREA */
