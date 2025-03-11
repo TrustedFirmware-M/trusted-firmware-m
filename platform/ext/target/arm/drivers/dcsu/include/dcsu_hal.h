@@ -16,6 +16,16 @@ extern "C" {
 #endif
 
 /**
+ * \brief This function calculates the checksum of data
+ *
+ * \param data                  Data to write
+ * \param word_count            Number of 32 bit words in the data
+ *
+ * \retval calculated checksum
+ */
+uint32_t dcsu_hal_checksum_data(uint32_t *data, uint32_t word_count);
+
+/**
  * \brief This function flags that an import should be completed
  *
  * \param[out] response     The response to send via the DCSU command status

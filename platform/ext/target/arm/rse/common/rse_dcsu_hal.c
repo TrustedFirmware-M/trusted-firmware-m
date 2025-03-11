@@ -28,6 +28,24 @@ static enum dcsu_rx_msg_response_t rse_dcsu_hal_resp_mapping(uint32_t err)
     }
 }
 
+uint32_t dcsu_hal_checksum_data(uint32_t *data, uint32_t word_count)
+{
+    uint32_t sum = 0;
+    uint32_t idx;
+
+    uint32_t word;
+    uint8_t *bytes = (uint8_t *)&word;
+
+    for (idx = 0; idx < word_count; idx++) {
+        word = data[idx];
+        sum += bytes[0] + bytes[1] + bytes[2] + bytes[3];
+    }
+
+    sum = sum % ((1 << 14) - 1);
+
+    return sum;
+}
+
 enum dcsu_error_t dcsu_hal_complete_import_data(enum dcsu_rx_msg_response_t *response)
 {
     /* Use no response to delay response to after import verification */

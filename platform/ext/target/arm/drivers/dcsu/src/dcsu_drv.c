@@ -133,6 +133,7 @@ static enum dcsu_error_t rx_import_data(struct dcsu_dev_t *dev, bool use_checksu
     uint32_t *receive_buf;
     uint32_t buf_len = dev->rx_buf_len;
     uint32_t idx;
+    uint32_t checksum;
 
     if (buf_len == 0) {
         *msg_resp = DCSU_RX_MSG_RESP_UNEXPECTED_IMPORT;
@@ -145,6 +146,15 @@ static enum dcsu_error_t rx_import_data(struct dcsu_dev_t *dev, bool use_checksu
     if (write_offset >= buf_len - write_size) {
         *msg_resp = DCSU_RX_MSG_RESP_TOO_LARGE_ACCESS_REQUEST;
         return DCSU_ERROR_NONE;
+    }
+
+    if (use_checksum) {
+        checksum = dcsu_hal_checksum_data((uint32_t *)p_dcsu->diag_rx_data, write_num_words);
+        if (checksum != DCSU_get_swd_data(p_dcsu)) {
+            dev->import_checksum_failed = true;
+            *msg_resp = DCSU_RX_MSG_RESP_BAD_INTEGRITY_VALUE;
+            return DCSU_ERROR_NONE;
+        }
     }
 
     receive_buf = (uint32_t *)((dev->rx_buf + write_offset));
@@ -160,12 +170,17 @@ static enum dcsu_error_t rx_import_data(struct dcsu_dev_t *dev, bool use_checksu
 static enum dcsu_error_t rx_complete_import(struct dcsu_dev_t *dev,
                                             enum dcsu_rx_msg_response_t *msg_resp)
 {
+    if (dev->import_checksum_failed) {
+        *msg_resp = DCSU_RX_MSG_RESP_BAD_INTEGRITY_VALUE;
+        return DCSU_ERROR_NONE;
+    }
     return dcsu_hal_complete_import_data(msg_resp);
 }
 
 static enum dcsu_error_t rx_cancel_import(struct dcsu_dev_t *dev,
                                           enum dcsu_rx_msg_response_t *msg_resp)
 {
+    dev->import_checksum_failed = false;
     return dcsu_hal_cancel_import_data(&msg_resp);
 }
 
@@ -228,7 +243,7 @@ enum dcsu_error_t dcsu_respond_to_rx_command(struct dcsu_dev_t *dev,
 }
 
 static enum dcsu_error_t tx_command_send(struct dcsu_dev_t *dev, enum dcsu_tx_command tx_command,
-                                         uint32_t data_word_size)
+                                         uint32_t data_word_size, uint32_t checksum)
 {
     struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
     enum dcsu_tx_msg_response_t msg_resp;
@@ -238,6 +253,7 @@ static enum dcsu_error_t tx_command_send(struct dcsu_dev_t *dev, enum dcsu_tx_co
 
     tx_command_word |= ((data_word_size - 1) & 0b11) << 8;
     tx_command_word |= tx_command & 0xFF;
+    tx_command_word |= (checksum & 0x3FFF) << 10;
 
     p_dcsu->diag_tx_command = tx_command_word;
 
@@ -272,7 +288,7 @@ static enum dcsu_error_t tx_export_send(struct dcsu_dev_t *dev, const uint8_t *d
         p_dcsu->diag_tx_data[idx] = send_buf[idx];
     }
 
-    return tx_command_send(dev, DCSU_TX_COMMAND_EXPORT_DATA, send_num_words);
+    return tx_command_send(dev, DCSU_TX_COMMAND_EXPORT_DATA, send_num_words, 0);
 }
 
 enum dcsu_error_t dcsu_send_data(struct dcsu_dev_t *dev, const uint8_t *data, size_t data_size)
@@ -325,6 +341,7 @@ enum dcsu_error_t dcsu_init(struct dcsu_dev_t *dev, uint8_t *rx_buf, size_t rx_b
     dev->rx_buf = rx_buf;
     dev->rx_buf_len = rx_buf_len;
     dev->handler = handler;
+    dev->import_checksum_failed = false;
 
 #ifdef DCSU_CONFIG_WFI_ENABLE
     p_dcsu->diag_cmd_irq_en = 0b11;

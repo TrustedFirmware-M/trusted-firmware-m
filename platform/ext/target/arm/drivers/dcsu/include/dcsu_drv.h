@@ -120,6 +120,7 @@ struct dcsu_dev_t {
     size_t rx_buf_len;
     size_t rx_buf_offset;
     dcsu_commit_write_handler_t handler;
+    uint8_t import_checksum_failed;
 };
 
 /**

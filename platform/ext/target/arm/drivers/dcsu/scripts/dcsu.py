@@ -63,7 +63,7 @@ def pre_parse_backend(backends : [str], parser : argparse.ArgumentParser, prefix
     parsed, _ = pre_arg_parser.parse_known_args()
     return parsed.backend
 
-def tx_command_send(backend, ctx, command : dcsu_tx_command, data : bytes = None, size = None, byteorder='big'):
+def tx_command_send(backend, ctx, command : dcsu_tx_command, data : bytes = None, size = None, byteorder='big', checksum=True):
     command_word = command.value
 
     # Clear the register before sending message
@@ -79,6 +79,14 @@ def tx_command_send(backend, ctx, command : dcsu_tx_command, data : bytes = None
 
         for r,w in zip(["DIAG_RX_DATA{}".format(i) for i in range(len(data_words))], data_words):
             backend.write_register(ctx, r, w)
+
+        if checksum:
+            checksum_value = sum(data) % ((1 << 14) - 1)
+            command_word |= (checksum_value & 0x3FFF) << 10
+
+    if (not data and size is not None):
+        assert (size <= 4), "Data too large"
+        command_word |= ((size - 1) & 0b11) << 8
 
     logger.info("Sending command {}".format(command.name))
     backend.write_register(ctx, "DIAG_RX_COMMAND", command_word)
