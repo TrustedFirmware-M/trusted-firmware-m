@@ -11,6 +11,8 @@
 #include "fatal_error.h"
 #include "device_definition.h"
 
+#include "tfm_log.h"
+
 enum tfm_plat_err_t provisioning_comms_receive(const struct rse_provisioning_message_t *msg,
                                                size_t msg_len, size_t *msg_size)
 {
@@ -26,6 +28,9 @@ enum tfm_plat_err_t provisioning_comms_receive(const struct rse_provisioning_mes
     if (err != DCSU_ERROR_NONE) {
         return (enum tfm_plat_err_t)err;
     }
+
+    INFO("Signal DCSU ready\n");
+    dcsu_import_ready(&DCSU_DEV_S);
 
     while (!got_complete) {
         if (dcsu_wait_for_rx_command(&DCSU_DEV_S, DCSU_RX_COMMAND_COMPLETE_IMPORT_DATA) ==

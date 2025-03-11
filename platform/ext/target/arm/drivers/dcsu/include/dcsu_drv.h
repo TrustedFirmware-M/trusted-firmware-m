@@ -30,6 +30,10 @@ enum dcsu_rx_command {
 
 enum dcsu_tx_command {
     DCSU_TX_COMMAND_NOP,
+    DCSU_TX_COMMAND_READY_FOR_IMPORT = 0x1,
+    DCSU_TX_COMMAND_REPORT_STATUS = 0x2,
+    DCSU_TX_COMMAND_EXPORT_DATA_WITH_CHECKSUM = 0x3,
+    DCSU_TX_COMMAND_EXPORT_DATA_NO_CHECKSUM = 0x4,
 
     _DCSU_TX_COMMAND_PAD = UINT32_MAX,
 };
@@ -204,6 +208,30 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev);
 enum dcsu_error_t dcsu_respond_to_rx_command(struct dcsu_dev_t *dev,
                                              enum dcsu_rx_command command,
                                              enum dcsu_rx_msg_response_t response);
+
+/**
+ * \brief This function sends the Import Ready command to signal to external
+ * tooling that RSE is ready to receive commands.
+ *
+ * \param[in]  dev        The DCSU device structure.
+ *
+ * \return  DCSU_ERROR_NONE if the operation has succeeded, else an
+ *          error code as specified in \ref dcsu_error_t.
+ */
+enum dcsu_error_t dcsu_import_ready(struct dcsu_dev_t *dev);
+
+/**
+ * \brief This function sends the report status command with a status update.
+ * Used by message handling to report what has been done so far.
+ *
+ * \param[in]  dev        The DCSU device structure.
+ * \param[in]  status     The status data to report
+ * \param[in]  size       size of status
+ *
+ * \return  DCSU_ERROR_NONE if the operation has succeeded, else an
+ *          error code as specified in \ref dcsu_error_t.
+ */
+enum dcsu_error_t dcsu_report_status(struct dcsu_dev_t *dev, uint32_t *status, uint32_t size);
 
 /**
  * \brief This function sends data via the DCSU synchronously.

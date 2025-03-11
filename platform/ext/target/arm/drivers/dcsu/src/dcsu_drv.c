@@ -288,7 +288,7 @@ static enum dcsu_error_t tx_export_send(struct dcsu_dev_t *dev, const uint8_t *d
         p_dcsu->diag_tx_data[idx] = send_buf[idx];
     }
 
-    return tx_command_send(dev, DCSU_TX_COMMAND_EXPORT_DATA, send_num_words, 0);
+    return tx_command_send(dev, DCSU_TX_COMMAND_EXPORT_DATA_NO_CHECKSUM, send_num_words, 0);
 }
 
 enum dcsu_error_t dcsu_send_data(struct dcsu_dev_t *dev, const uint8_t *data, size_t data_size)
@@ -329,6 +329,31 @@ enum dcsu_error_t dcsu_write_sw_status(struct dcsu_dev_t *dev, uint32_t status,
     p_dcsu->sw_defined[status_reg_idx] = status;
 
     return DCSU_ERROR_NONE;
+}
+
+enum dcsu_error_t dcsu_import_ready(struct dcsu_dev_t *dev)
+{
+    return tx_command_send(dev, DCSU_TX_COMMAND_READY_FOR_IMPORT, 0, 0);
+}
+
+enum dcsu_error_t dcsu_report_status(struct dcsu_dev_t *dev, uint32_t *status, uint32_t size)
+{
+    struct _dcsu_reg_map_t* p_dcsu = (struct _dcsu_reg_map_t*)dev->cfg->base;
+    uint32_t idx = 0;
+    uint32_t checksum;
+    uint32_t send_num_words = (size + (sizeof(uint32_t) - 1)) / sizeof(uint32_t);
+
+    if (send_num_words > 4) {
+        return DCSU_ERROR_TX_MSG_PAYLOAD_TOO_LARGE;
+    }
+
+    for (idx = 0; idx < send_num_words; idx++) {
+        p_dcsu->diag_tx_data[idx] = status[idx];
+    }
+
+    checksum = dcsu_hal_checksum_data((uint32_t *)p_dcsu->diag_tx_data, send_num_words);
+
+    return tx_command_send(dev, DCSU_TX_COMMAND_REPORT_STATUS, send_num_words, checksum);
 }
 
 enum dcsu_error_t dcsu_init(struct dcsu_dev_t *dev, uint8_t *rx_buf, size_t rx_buf_len,

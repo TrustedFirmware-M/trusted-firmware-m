@@ -27,6 +27,10 @@ class dcsu_tx_command(Enum):
     DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM = 0xD
 
 class dcsu_rx_command(Enum):
+    DCSU_RX_COMMAND_IMPORT_READY = 0x1
+    DCSU_RX_COMMAND_REPORT_STATUS = 0x2
+    DCSU_RX_COMMAND_EXPORT_DATA_WITH_CHECKSUM = 0x3
+    DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM = 0x4
 
 class dcsu_tx_message_error(Enum):
     DCSU_TX_MSG_RESP_NO_RESP = 0x0
@@ -116,14 +120,16 @@ def rx_wait_for_command(backend, ctx, command : dcsu_rx_command):
     assert (command.value == recieved_command), "Unexpected command {} received".format(dcsu_rx_command(recieved_command))
 
 def rx_command_receive(backend, ctx, command : dcsu_rx_command) -> bytes:
-    rx_wait_for_command(command)
+    rx_wait_for_command(backend, ctx, command)
 
-    if dcsu_rx_command in [DCSU_RX_COMMAND_EXPORT_DATA]:
+    if command in [dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM,
+                           dcsu_rx_command.DCSU_RX_COMMAND_REPORT_STATUS]:
+        print("reading data")
         data = bytes(0)
-        if command == DCSU_RX_COMMAND_WRITE_DATA:
-            data_word_size = backend.read_register((ctx, "DIAG_TX_COMMAND", command_word) >> 8) & 0xb11
-            for r in ["DIAG_TX_DATA_{}".format(i) for i in range(len(data_words))]:
-                data += backend.read_register(ctx, r).to_bytes(4, 'little')
+        data_word_size = (backend.read_register(ctx, "DIAG_TX_COMMAND") >> 8) & 0b11
+
+        for r in ["DIAG_TX_DATA{}".format(i) for i in range(data_word_size)]:
+            data += backend.read_register(ctx, r).to_bytes(4, 'little')
     else:
         data = None
 
@@ -177,12 +183,65 @@ def dcsu_tx_command_import_data_no_checksum(backend, ctx, args: argparse.Namespa
 def dcsu_tx_command_import_data_checksum(backend, ctx, args: argparse.Namespace):
     return dcsu_tx_command_import_data(backend, ctx, args, checksum=True)
 
+class provisioning_message_status(Enum):
+    PROVISIONING_STATUS_SUCCESS_CONTINUE = 0x1
+    PROVISIONING_STATUS_SUCCESS_COMPLETE = 0x2
+    PROVISIONING_STATUS_ERROR = 0x3
+
+def dcsu_rx_command_report_status(backend, ctx, args: argparse.Namespace):
+    responses = []
+    data = rx_command_receive(backend, ctx, dcsu_rx_command.DCSU_RX_COMMAND_REPORT_STATUS)
+    responses.append(data)
+    status = provisioning_message_status(int.from_bytes(data[0:4], 'little'))
+
+    match(status):
+        case provisioning_message_status.PROVISIONING_STATUS_SUCCESS_CONTINUE:
+            report = int.from_bytes(data[4:8], 'little')
+            logger.info(f"Status Report {report}...")
+            return 0
+        case provisioning_message_status.PROVISIONING_STATUS_SUCCESS_COMPLETE:
+            report = int.from_bytes(data[4:8], 'little')
+            logger.info(f"Final Status Report {report}")
+            return 0
+        case provisioning_message_status.PROVISIONING_STATUS_ERROR:
+            report = int.from_bytes(data[4:8], 'little')
+            err = int.from_bytes(data[8:12], 'little')
+            logger.error(f"Error Report {report}: {hex(err)}")
+            return err
 
 def dcsu_tx_command_complete_import(backend, ctx, args: argparse.Namespace):
     res = tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_COMPLETE_IMPORT_DATA)
 
     if res != dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS:
         return res
+
+    responses = []
+
+    while(1):
+        # Wait for status report
+        data = rx_command_receive(backend, ctx, dcsu_rx_command.DCSU_RX_COMMAND_REPORT_STATUS)
+        responses.append(data)
+        status = provisioning_message_status(int.from_bytes(data[0:4], 'little'))
+
+        match(status):
+            case provisioning_message_status.PROVISIONING_STATUS_SUCCESS_CONTINUE:
+                report = int.from_bytes(data[4:8], 'little')
+                logger.info(f"Status Report {report}...")
+            case provisioning_message_status.PROVISIONING_STATUS_SUCCESS_COMPLETE:
+                report = int.from_bytes(data[4:8], 'little')
+                logger.info(f"Final Status Report {report}")
+                return res
+            case provisioning_message_status.PROVISIONING_STATUS_ERROR:
+                report = int.from_bytes(data[4:8], 'little')
+                err = int.from_bytes(data[8:12], 'little')
+                logger.error(f"Error Report {report}: {hex(err)}")
+                return err
+
+        if status == provisioning_message_status.PROVISIONING_STATUS_SUCCESS_COMPLETE:
+            return responses
+        time.sleep(0.1)
+
+
 
 def dcsu_tx_command_cancel_import(backend, ctx, args: argparse.Namespace):
     return tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM)
@@ -192,7 +251,7 @@ def dcsu_rx_command_import_ready(backend, ctx, args: argparse.Namespace):
     return 0
 
 def dcsu_rx_command_export_data(backend, ctx, args: argparse.Namespace):
-    rx_wait_for_command(backend, ctx, dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA)
+    rx_wait_for_command(backend, ctx, dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM)
 
     bytes_to_read = backend.read_register(ctx, "DIAG_TX_LARGE_PARAM")
     bytes_received = bytes(0)
@@ -200,7 +259,7 @@ def dcsu_rx_command_export_data(backend, ctx, args: argparse.Namespace):
     while len(bytes_received) < bytes_to_read:
          bytes_received += rx_command_receive(backend,
                                               ctx,
-                                              dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA)
+                                              dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM)
     return bytes_received
 
 
@@ -211,6 +270,9 @@ def dcsu_command(backend, ctx, command, args: argparse.Namespace):
         dcsu_tx_command.DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM: dcsu_tx_command_import_data_checksum,
         dcsu_tx_command.DCSU_TX_COMMAND_COMPLETE_IMPORT_DATA: dcsu_tx_command_complete_import,
         dcsu_tx_command.DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM: dcsu_tx_command_cancel_import,
+        dcsu_rx_command.DCSU_RX_COMMAND_IMPORT_READY: dcsu_rx_command_import_ready,
+        dcsu_rx_command.DCSU_RX_COMMAND_REPORT_STATUS: dcsu_rx_command_report_status,
+        dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM: dcsu_rx_command_export_data,
     }
     return dcsu_command_handlers[command](backend, ctx, args)
 
@@ -242,6 +304,18 @@ pre-defined handler on the data in the TX data buffer.
     "DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM": """
 The DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM command triggers the DCSU
 to discard the incomplete previous loaded data.
+""",
+    "DCSU_RX_COMMAND_IMPORT_READY": """
+The DCSU_RX_COMMAND_IMPORT_READY command waits for the DCSU to signal it is
+ready for importing data.
+""",
+    "DCSU_RX_COMMAND_REPORT_STATUS": """
+The DCSU_RX_COMMAND_REPORT_STATUS command waits for a status report from DCSU.
+""",
+    "DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM": """
+The DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM command waits for data to be exported from the
+DCSU. This command may trigger multiple commands in order to copy more data than
+the DCSU TX buffer size.
 """,
 }
 if __name__ == "__main__":
