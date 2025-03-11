@@ -348,23 +348,29 @@ if __name__ == "__main__":
         parsers[c].add_argument("--byte-order", help="Byte order of data", default="big")
 
     backend_name = pre_parse_backend(backends, parser)
-    backend = setup_backend(backend_name)
+    try:
+        backend = setup_backend(backend_name)
 
-    backend.add_args(parser)
+        backend.add_args(parser)
 
-    args = parser.parse_args()
-    logging.basicConfig(level=args.log_level)
+        args = parser.parse_args()
+        logging.basicConfig(level=args.log_level)
 
-    logger.info("Using {} backend".format(backend_name))
+        logger.info("Using {} backend".format(backend_name))
 
-    ctx = backend.setup_ctx(args)
+        ctx = backend.setup_ctx(args)
 
-    if "_RX_" in args.command:
-        command = dcsu_rx_command[args.command]
-        print(hex(dcsu_command(backend, ctx, command, args)))
-        exit(0)
-    else:
-        command = dcsu_tx_command[args.command]
-        output = dcsu_command(backend, ctx, command, args)
-        print(output)
-        exit(0 if output == dcsu_tx_message_error.DCSU_TX_MSG_ERROR_SUCCESS else output.value)
+        if "_RX_" in args.command:
+            command = dcsu_rx_command[args.command]
+            logger.info(f"res: {hex(dcsu_command(backend, ctx, command, args))}")
+            exit(0)
+        else:
+            command = dcsu_tx_command[args.command]
+            match dcsu_command(backend, ctx, command, args):
+                case output, data:
+                    logger.info(f"res {output}: {data.hex() if data is not None else data}")
+                case output:
+                    logger.info(f"res {output}")
+            exit(0 if output == dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS else output.value)
+    except KeyboardInterrupt:
+        exit(1)

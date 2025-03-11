@@ -28,7 +28,7 @@ def setup_ctx(args):
     assert (len(dcsu_targets) > 0), "Model does not contain a DCSU"
 
     if (len(dcsu_targets)) > 1 and args.iris_dcsu_component_string:
-        dcsu_targets = [d for d in dcsu_targets[0] if args.iris_dcsu_component_string in d]
+        dcsu_targets = [d for d in dcsu_targets if args.iris_dcsu_component_string in d]
 
     assert (len(dcsu_targets) == 1)
     dcsu_target = dcsu_targets[0]
@@ -37,9 +37,9 @@ def setup_ctx(args):
 
 def write_register(dcsu : iris.debug.Target, register : str, value: int):
     logger.debug("Writing {} to register {}".format(hex(value), register))
-    dcsu.write_register("Registers.RegisterOffset::{}".format(register), value)
+    dcsu.write_register(register, value)
 
 def read_register(dcsu : iris.debug.Target, register : str) -> int:
-    value = dcsu.read_register("Registers.RegisterOffset::{}".format(register))
-    logger.debug("Read {} from register {}".format(value, register))
+    value = dcsu.read_register(register)
+    logger.debug("Read {} from register {}".format(hex(value), register))
     return value
