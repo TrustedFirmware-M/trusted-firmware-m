@@ -34,6 +34,8 @@ class dcsu_tx_command(Enum):
     DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM = 0xB
     DCSU_TX_COMMAND_COMPLETE_IMPORT_DATA = 0xC
     DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM = 0xD
+    DCSU_TX_COMMAND_READ_COD_DATA = 0xE
+    DCSU_TX_COMMAND_READ_EC_PARAMS = 0xF
 
 class dcsu_rx_command(Enum):
     DCSU_RX_COMMAND_IMPORT_READY = 0x1
@@ -316,6 +318,32 @@ def dcsu_tx_command_complete_import(backend, ctx, args: argparse.Namespace):
 def dcsu_tx_command_cancel_import(backend, ctx, args: argparse.Namespace):
     return tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM)
 
+def dcsu_tx_command_read_cod_data(backend, ctx, args: argparse.Namespace):
+    offset = int(args.offset, 0)
+    backend.write_register(ctx, "DIAG_RX_LARGE_PARAM", offset)
+
+    size = int(args.size, 0)
+
+    res = tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_READ_COD_DATA, size=size, byteorder=args.byte_order)
+    time.sleep(0.1)
+    if res == dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS:
+        data = tx_command_read_data(backend, ctx, size, byteorder=args.byte_order)
+        return res, data
+    return res, None
+
+def dcsu_tx_command_read_ec_params(backend, ctx, args: argparse.Namespace):
+    offset = int(args.offset, 0)
+    backend.write_register(ctx, "DIAG_RX_LARGE_PARAM", offset)
+
+    size = int(args.size, 0)
+
+    res = tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_READ_EC_PARAMS, size=size, byteorder=args.byte_order)
+    time.sleep(0.1)
+    if res == dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS:
+        data = tx_command_read_data(backend, ctx, size, byteorder=args.byte_order)
+        return res, data
+    return res, None
+
 def dcsu_rx_command_import_ready(backend, ctx, args: argparse.Namespace):
     rx_command_receive(backend, ctx, dcsu_rx_command.DCSU_RX_COMMAND_IMPORT_READY)
     return 0
@@ -357,6 +385,8 @@ def dcsu_command(backend, ctx, command, args: argparse.Namespace):
         dcsu_tx_command.DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM: dcsu_tx_command_import_data_checksum,
         dcsu_tx_command.DCSU_TX_COMMAND_COMPLETE_IMPORT_DATA: dcsu_tx_command_complete_import,
         dcsu_tx_command.DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM: dcsu_tx_command_cancel_import,
+        dcsu_tx_command.DCSU_TX_COMMAND_READ_COD_DATA: dcsu_tx_command_read_cod_data,
+        dcsu_tx_command.DCSU_TX_COMMAND_READ_EC_PARAMS: dcsu_tx_command_read_ec_params,
         dcsu_rx_command.DCSU_RX_COMMAND_IMPORT_READY: dcsu_rx_command_import_ready,
         dcsu_rx_command.DCSU_RX_COMMAND_REPORT_STATUS: dcsu_rx_command_report_status,
         dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM: dcsu_rx_command_export_data,
@@ -449,6 +479,14 @@ the DCSU TX buffer size.
 The DCSU_RX_COMMAND_COMPLETE_EXPORT_DATA command indicates to the DCSU that the export has
 completed and that the data can be returned from the script.
 """,
+    "DCSU_TX_COMMAND_READ_COD_DATA": """
+The DCSU_TX_COMMAND_READ_COD_DATA command reads the data from the input
+offset in the COD OTP area.
+""",
+    "DCSU_TX_COMMAND_READ_EC_PARAMS": """
+The DCSU_TX_COMMAND_READ_EC_PARAMS command reads the data from the input
+offset in the endorsement certificate and params area.
+""",
 }
 if __name__ == "__main__":
     backend_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "backends")
@@ -470,7 +508,9 @@ if __name__ == "__main__":
               "DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM"]:
         parsers[c].add_argument("--offset", help="Offset to write", required=True, default="0")
 
-    for c in ["DCSU_TX_COMMAND_READ_SOC_CONFIG_DATA"]:
+    for c in ["DCSU_TX_COMMAND_READ_SOC_CONFIG_DATA",
+              "DCSU_TX_COMMAND_READ_COD_DATA",
+              "DCSU_TX_COMMAND_READ_EC_PARAMS"]:
         parsers[c].add_argument("--offset", help="Offset to read", required=True, default="0")
 
     for c in ["DCSU_TX_COMMAND_WRITE_SOC_FAMILY_ID",
@@ -482,7 +522,9 @@ if __name__ == "__main__":
         mgroup.add_argument("--data",   help="Data to write", default="0x00")
         mgroup.add_argument("--data-file",   help="Data file to load and write")
 
-    for c in ["DCSU_TX_COMMAND_READ_SOC_CONFIG_DATA"]:
+    for c in ["DCSU_TX_COMMAND_READ_SOC_CONFIG_DATA",
+              "DCSU_TX_COMMAND_READ_COD_DATA",
+              "DCSU_TX_COMMAND_READ_EC_PARAMS"]:
         parsers[c].add_argument("--size", help="Size (in number of words) to read", required=True, default="4")
 
     for c in ["DCSU_TX_COMMAND_WRITE_SOC_FAMILY_ID",
@@ -492,7 +534,9 @@ if __name__ == "__main__":
               "DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM",
               "DCSU_TX_COMMAND_READ_SOC_FAMILY_ID",
               "DCSU_TX_COMMAND_READ_SOC_IEEE_ECID",
-              "DCSU_TX_COMMAND_READ_SOC_CONFIG_DATA"]:
+              "DCSU_TX_COMMAND_READ_SOC_CONFIG_DATA",
+              "DCSU_TX_COMMAND_READ_COD_DATA",
+              "DCSU_TX_COMMAND_READ_EC_PARAMS"]:
         parsers[c].add_argument("--byte-order", help="Byte order of data", default="little")
 
     backend_name = pre_parse_backend(backends, parser)

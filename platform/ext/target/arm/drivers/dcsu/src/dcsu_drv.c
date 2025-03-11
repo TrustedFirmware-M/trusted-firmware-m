@@ -403,6 +403,12 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
     case DCSU_RX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM:
         err = rx_cancel_import(dev, &msg_resp);
         break;
+    case DCSU_RX_COMMAND_READ_COD_DATA:
+        err = rx_read_partial_field(dev, DCSU_OTP_FIELD_CM_COD, &msg_resp);
+        break;
+    case DCSU_RX_COMMAND_READ_EC_PARAMS:
+        err = rx_read_partial_field(dev, DCSU_OTP_FIELD_EC_PARAMS, &msg_resp);
+        break;
     default:
         err = DCSU_ERROR_NONE;
         msg_resp = DCSU_RX_MSG_RESP_INVALID_COMMAND;

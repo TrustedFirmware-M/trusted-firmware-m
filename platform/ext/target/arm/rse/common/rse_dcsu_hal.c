@@ -70,6 +70,14 @@ enum dcsu_error_t dcsu_hal_get_field_offset(enum dcsu_otp_field_t field, uint32_
         *offset = OTP_OFFSET(P_RSE_OTP_SOC->soc_cfg_area.soc_cfg_data_size);
         break;
 #endif /* RSE_OTP_HAS_SOC_AREA */
+    case DCSU_OTP_FIELD_CM_COD:
+        *offset = OTP_OFFSET(P_RSE_OTP_CM->cod);
+        break;
+#ifdef RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE
+    case DCSU_OTP_FIELD_EC_PARAMS:
+        *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->iak_endorsement_certificate);
+        break;
+#endif /* RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE */
     default:
         *offset = 0;
         return DCSU_ERROR_RX_MSG_INVALID_OTP_FIELD;
@@ -108,6 +116,15 @@ enum dcsu_error_t dcsu_hal_get_field_size(enum dcsu_otp_field_t field, uint32_t 
                 sizeof(P_RSE_OTP_SOC->soc_cfg_area.soc_cfg_data_zc);
         break;
 #endif /* RSE_OTP_HAS_SOC_AREA */
+    case DCSU_OTP_FIELD_CM_COD:
+        *size = sizeof(P_RSE_OTP_CM->cod);
+        break;
+#ifdef RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE
+    case DCSU_OTP_FIELD_EC_PARAMS:
+        *size = sizeof(P_RSE_OTP_DYNAMIC->iak_endorsement_certificate) +
+                sizeof(P_RSE_OTP_DYNAMIC->iak_endorsement_parameters);
+        break;
+#endif /* RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE */
     default:
         *size = 0;
         return DCSU_ERROR_RX_MSG_INVALID_OTP_FIELD;
@@ -197,15 +214,14 @@ enum dcsu_error_t dcsu_hal_read_otp(enum dcsu_otp_field_t otp_field, uint32_t ot
                                     uint32_t *data, size_t data_size,
                                     enum dcsu_rx_msg_response_t *response)
 {
-    if ((data == NULL) || (response == NULL)) {
-        return DCSU_ERROR_INVALID_POINTER;
-    }
-
-#ifdef RSE_OTP_HAS_SOC_AREA
     enum lcm_error_t lcm_err;
     enum dcsu_error_t msg_err;
     uint32_t field_offset;
     uint32_t field_max_size;
+
+    if ((data == NULL) || (response == NULL)) {
+        return DCSU_ERROR_INVALID_POINTER;
+    }
 
     msg_err = dcsu_hal_get_field_offset(otp_field, &field_offset);
     if (msg_err != DCSU_ERROR_NONE) {
@@ -239,10 +255,6 @@ enum dcsu_error_t dcsu_hal_read_otp(enum dcsu_otp_field_t otp_field, uint32_t ot
 
     *response = DCSU_RX_MSG_RESP_SUCCESS;
     return DCSU_ERROR_NONE;
-#else
-    *response = DCSU_RX_MSG_RESP_INVALID_COMMAND;
-    return DCSU_ERROR_RX_MSG_INVALID_OTP_FIELD;
-#endif /* RSE_OTP_HAS_SOC_AREA */
 }
 
 enum dcsu_error_t dcsu_hal_write_zero_count(enum dcsu_otp_field_t otp_field,
