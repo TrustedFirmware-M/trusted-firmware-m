@@ -19,6 +19,10 @@
 #define MAX_RX_SIZE (sizeof(((struct _dcsu_reg_map_t *)0)->diag_rx_data))
 #define MAX_TX_SIZE (sizeof(((struct _dcsu_reg_map_t *)0)->diag_tx_data))
 
+#define DCSU_get_number_of_words(p_dcsu) (((p_dcsu)->diag_rx_command >> 8) & 0b11) + 1
+#define DCSU_get_word_offset(p_dcsu) ((p_dcsu)->diag_rx_large_param)
+#define DCSU_get_swd_data(p_dcsu) (((p_dcsu)->diag_rx_command >> 10) & 0x3FFF)
+
 static enum dcsu_rx_command get_rx_command(struct dcsu_dev_t *dev)
 {
     struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
@@ -118,6 +122,53 @@ void dcsu_wait_for_tx_response(struct dcsu_dev_t *dev)
     p_dcsu->diag_cmd_irq_clear = 0b1 << 1;
 }
 
+static enum dcsu_error_t rx_import_data(struct dcsu_dev_t *dev, bool use_checksum,
+                                        enum dcsu_rx_msg_response_t *msg_resp)
+{
+    enum dcsu_error_t msg_err;
+    struct _dcsu_reg_map_t* p_dcsu = (struct _dcsu_reg_map_t*)dev->cfg->base;
+    uint32_t write_num_words = DCSU_get_number_of_words(p_dcsu);
+    uint32_t write_offset = DCSU_get_word_offset(p_dcsu);
+    uint32_t write_size = write_num_words * sizeof(uint32_t);
+    uint32_t *receive_buf;
+    uint32_t buf_len = dev->rx_buf_len;
+    uint32_t idx;
+
+    if (buf_len == 0) {
+        *msg_resp = DCSU_RX_MSG_RESP_UNEXPECTED_IMPORT;
+        return DCSU_ERROR_NONE;
+    }
+    if (write_offset >= buf_len) {
+        *msg_resp = DCSU_RX_MSG_RESP_TOO_LARGE_OFFSET_PARAM;
+        return DCSU_ERROR_NONE;
+    }
+    if (write_offset >= buf_len - write_size) {
+        *msg_resp = DCSU_RX_MSG_RESP_TOO_LARGE_ACCESS_REQUEST;
+        return DCSU_ERROR_NONE;
+    }
+
+    receive_buf = (uint32_t *)((dev->rx_buf + write_offset));
+
+    for (idx = 0; idx < write_num_words; idx++) {
+        receive_buf[idx] = p_dcsu->diag_rx_data[idx];
+    }
+
+    *msg_resp = DCSU_RX_MSG_RESP_SUCCESS;
+    return DCSU_ERROR_NONE;
+}
+
+static enum dcsu_error_t rx_complete_import(struct dcsu_dev_t *dev,
+                                            enum dcsu_rx_msg_response_t *msg_resp)
+{
+    return dcsu_hal_complete_import_data(msg_resp);
+}
+
+static enum dcsu_error_t rx_cancel_import(struct dcsu_dev_t *dev,
+                                          enum dcsu_rx_msg_response_t *msg_resp)
+{
+    return dcsu_hal_cancel_import_data(&msg_resp);
+}
+
 enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
 {
     enum dcsu_error_t err;
@@ -135,6 +186,18 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
     INFO("DCSU command %x\r\n", cmd);
 
     switch(cmd) {
+    case DCSU_RX_COMMAND_IMPORT_DATA_NO_CHECKSUM:
+        err = rx_import_data(dev, false, &msg_resp);
+        break;
+    case DCSU_RX_COMMAND_IMPORT_DATA_CHECKSUM:
+        err = rx_import_data(dev, true, &msg_resp);
+        break;
+    case DCSU_RX_COMMAND_COMPLETE_IMPORT_DATA:
+        err = rx_complete_import(dev, &msg_resp);
+        break;
+    case DCSU_RX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM:
+        err = rx_cancel_import(dev, &msg_resp);
+        break;
     default:
         err = DCSU_ERROR_NONE;
         msg_resp = DCSU_RX_MSG_RESP_INVALID_COMMAND;

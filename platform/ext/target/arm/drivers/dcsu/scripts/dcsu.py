@@ -21,6 +21,10 @@ def _round_up(x, boundary):
     return ((x + (boundary - 1)) // boundary) * boundary
 
 class dcsu_tx_command(Enum):
+    DCSU_TX_COMMAND_IMPORT_DATA_NO_CHECKSUM = 0xA
+    DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM = 0xB
+    DCSU_TX_COMMAND_COMPLETE_IMPORT_DATA = 0xC
+    DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM = 0xD
 
 class dcsu_rx_command(Enum):
 
@@ -59,7 +63,7 @@ def pre_parse_backend(backends : [str], parser : argparse.ArgumentParser, prefix
     parsed, _ = pre_arg_parser.parse_known_args()
     return parsed.backend
 
-def tx_command_send(backend, ctx, command : dcsu_tx_command, data : bytes = None):
+def tx_command_send(backend, ctx, command : dcsu_tx_command, data : bytes = None, size = None, byteorder='big'):
     command_word = command.value
 
     # Clear the register before sending message
@@ -68,12 +72,12 @@ def tx_command_send(backend, ctx, command : dcsu_tx_command, data : bytes = None
     print(hex(backend.read_register(ctx, "DIAG_RX_COMMAND")))
 
     if (data):
-        data_words = [int.from_bytes(b, byteorder='big') for b in _chunk_bytes(data, 4)]
+        data_words = [int.from_bytes(b, byteorder=byteorder) for b in _chunk_bytes(data, 4)]
 
         assert (len(data_words) <= 4), "Data too large"
         command_word |= ((len(data_words) - 1) & 0b11) << 8
 
-        for r,w in zip(["DIAG_RX_DATA_{}".format(i) for i in range(len(data_words))], data_words):
+        for r,w in zip(["DIAG_RX_DATA{}".format(i) for i in range(len(data_words))], data_words):
             backend.write_register(ctx, r, w)
 
     logger.info("Sending command {}".format(command.name))
@@ -122,8 +126,62 @@ def rx_command_receive(backend, ctx, command : dcsu_rx_command) -> bytes:
     return data
 
 def _get_data_from_args(args:argparse.Namespace) -> bytes:
+    if args.data_file is not None:
+        file = args.data_file
+        with open(file, "rb") as f:
+            data_bytes = f.read()
+    else:
+        data = args.data.replace("0x", "")
+        assert (len(data) % 2  == 0), "Data must be a multiple of 2 hex digits"
+        data_bytes = bytes.fromhex(data)
+
+    padding =  4 - len(data_bytes) % 4
+    if padding != 4:
+        data_bytes += b'\0' * padding
+
+    return data_bytes
 
 
+
+def dcsu_tx_command_import_data(backend, ctx, args: argparse.Namespace, checksum=False):
+    offset = int(args.offset, 0)
+    data = _get_data_from_args(args)
+    data_chunks = _chunk_bytes(data, 16)
+
+    command = (dcsu_tx_command.DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM if checksum
+                else dcsu_tx_command.DCSU_TX_COMMAND_IMPORT_DATA_NO_CHECKSUM)
+    for c in data_chunks:
+        logger.info(f"@0x{hex(offset)}: 0x{c.hex()}")
+        backend.write_register(ctx, "DIAG_RX_LARGE_PARAM", offset)
+        err: dcsu_tx_message_error = tx_command_send(backend, ctx,
+                                                     command,
+                                                     data=c, byteorder=args.byte_order,
+                                                     checksum=checksum)
+        if (err != dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS):
+            return err
+        offset += 16
+
+    return dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS
+
+def dcsu_tx_command_import_data_no_checksum(backend, ctx, args: argparse.Namespace):
+    return dcsu_tx_command_import_data(backend, ctx, args, checksum=False)
+
+def dcsu_tx_command_import_data_checksum(backend, ctx, args: argparse.Namespace):
+    return dcsu_tx_command_import_data(backend, ctx, args, checksum=True)
+
+
+def dcsu_tx_command_complete_import(backend, ctx, args: argparse.Namespace):
+    res = tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_COMPLETE_IMPORT_DATA)
+
+    if res != dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS:
+        return res
+
+def dcsu_tx_command_cancel_import(backend, ctx, args: argparse.Namespace):
+    return tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM)
+
+def dcsu_rx_command_import_ready(backend, ctx, args: argparse.Namespace):
+    rx_command_receive(backend, ctx, dcsu_rx_command.DCSU_RX_COMMAND_IMPORT_READY)
+    return 0
 
 def dcsu_rx_command_export_data(backend, ctx, args: argparse.Namespace):
     rx_wait_for_command(backend, ctx, dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA)
@@ -141,6 +199,10 @@ def dcsu_rx_command_export_data(backend, ctx, args: argparse.Namespace):
 def dcsu_command(backend, ctx, command, args: argparse.Namespace):
 
     dcsu_command_handlers = {
+        dcsu_tx_command.DCSU_TX_COMMAND_IMPORT_DATA_NO_CHECKSUM: dcsu_tx_command_import_data_no_checksum,
+        dcsu_tx_command.DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM: dcsu_tx_command_import_data_checksum,
+        dcsu_tx_command.DCSU_TX_COMMAND_COMPLETE_IMPORT_DATA: dcsu_tx_command_complete_import,
+        dcsu_tx_command.DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM: dcsu_tx_command_cancel_import,
     }
     return dcsu_command_handlers[command](backend, ctx, args)
 
@@ -155,6 +217,24 @@ amounts of data)
 """
 
 command_description = {
+    "DCSU_TX_COMMAND_IMPORT_DATA_NO_CHECKSUM": """
+The DCSU_TX_COMMAND_IMPORT_DATA_NO_CHECKSUM command writes data to the DCSU TX
+data buffer. This command may trigger multiple commands in order to copy more
+data than the DCSU RX buffer size.
+""",
+    "DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM": """
+The DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM command writes data to the DCSU TX
+data buffer along with a checksum. This command may trigger multiple commands
+in order to copy more data than the DCSU RX buffer size.
+""",
+    "DCSU_TX_COMMAND_COMPLETE_IMPORT_DATA": """
+The DCSU_TX_COMMAND_COMPLETE_IMPORT_DATA command triggers the DCSU to run the
+pre-defined handler on the data in the TX data buffer.
+""",
+    "DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM": """
+The DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM command triggers the DCSU
+to discard the incomplete previous loaded data.
+""",
 }
 if __name__ == "__main__":
     backend_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "backends")
@@ -171,6 +251,19 @@ if __name__ == "__main__":
 
     parsers = {x : subparsers.add_parser(x, description=command_description[x]) for x in dcsu_tx_command._member_names_ + dcsu_rx_command._member_names_}
 
+    for c in ["DCSU_TX_COMMAND_IMPORT_DATA_NO_CHECKSUM",
+              "DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM"]:
+        parsers[c].add_argument("--offset", help="Offset to write", required=True, default="0")
+
+    for c in ["DCSU_TX_COMMAND_IMPORT_DATA_NO_CHECKSUM",
+              "DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM"]:
+        mgroup = parsers[c].add_mutually_exclusive_group(required=True)
+        mgroup.add_argument("--data",   help="Data to write", default="0x00")
+        mgroup.add_argument("--data-file",   help="Data file to load and write")
+
+    for c in ["DCSU_TX_COMMAND_IMPORT_DATA_NO_CHECKSUM",
+              "DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM"]:
+        parsers[c].add_argument("--byte-order", help="Byte order of data", default="big")
 
     backend_name = pre_parse_backend(backends, parser)
     backend = setup_backend(backend_name)

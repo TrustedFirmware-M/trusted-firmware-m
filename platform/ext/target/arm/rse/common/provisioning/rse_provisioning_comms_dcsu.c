@@ -7,6 +7,7 @@
 
 #include "rse_provisioning_comms.h"
 
+#include "dcsu_drv.h"
 #include "fatal_error.h"
 #include "device_definition.h"
 
@@ -25,7 +26,7 @@ enum tfm_plat_err_t provisioning_comms_receive(const struct rse_provisioning_mes
         return (enum tfm_plat_err_t)err;
     }
 
-    while (dcsu_wait_for_rx_command(&DCSU_DEV_S, DCSU_RX_COMMAND_COMMIT_WRITE)
+    while (dcsu_wait_for_rx_command(&DCSU_DEV_S, DCSU_RX_COMMAND_COMPLETE_IMPORT_DATA)
            != DCSU_ERROR_NONE) {
         err = dcsu_handle_rx_command(&DCSU_DEV_S);
         if (err != DCSU_ERROR_NONE) {

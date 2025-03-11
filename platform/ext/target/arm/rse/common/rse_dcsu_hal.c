@@ -27,3 +27,16 @@ static enum dcsu_rx_msg_response_t rse_dcsu_hal_resp_mapping(uint32_t err)
         return DCSU_ERROR_RX_MSG_GENERIC_ERROR;
     }
 }
+
+enum dcsu_error_t dcsu_hal_complete_import_data(enum dcsu_rx_msg_response_t *response)
+{
+    /* Use no response to delay response to after import verification */
+    *response = DCSU_RX_MSG_RESP_SUCCESS;
+    return DCSU_ERROR_NONE;
+}
+
+enum dcsu_error_t dcsu_hal_cancel_import_data(enum dcsu_rx_msg_response_t *response)
+{
+    *response = DCSU_RX_MSG_RESP_SUCCESS;
+    return 0;
+}
