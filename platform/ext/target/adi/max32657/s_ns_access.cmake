@@ -35,9 +35,26 @@ set(ADI_NS_PRPH_WUT1        ON         CACHE BOOL "")
 set(ADI_NS_PRPH_PWR         ON         CACHE BOOL "")
 set(ADI_NS_PRPH_MCR         ON         CACHE BOOL "")
 
+# SRAMs
+set(ADI_NS_SRAM_0           OFF        CACHE BOOL "Size: 32KB")
+set(ADI_NS_SRAM_1           OFF        CACHE BOOL "Size: 32KB")
+set(ADI_NS_SRAM_2           ON         CACHE BOOL "Size: 64KB")
+set(ADI_NS_SRAM_3           ON         CACHE BOOL "Size: 64KB")
+set(ADI_NS_SRAM_4           ON         CACHE BOOL "Size: 64KB")
+
 #
 # Allow user set S-NS resources ownership by overlay file
 #
 if(EXISTS "${CMAKE_BINARY_DIR}/../../s_ns_access_overlay.cmake")
     include(${CMAKE_BINARY_DIR}/../../s_ns_access_overlay.cmake)
 endif()
+
+target_compile_definitions(platform_region_defs
+    INTERFACE
+        # SRAMs
+        $<$<BOOL:${ADI_NS_SRAM_0}>:ADI_NS_SRAM_0>
+        $<$<BOOL:${ADI_NS_SRAM_1}>:ADI_NS_SRAM_1>
+        $<$<BOOL:${ADI_NS_SRAM_2}>:ADI_NS_SRAM_2>
+        $<$<BOOL:${ADI_NS_SRAM_3}>:ADI_NS_SRAM_3>
+        $<$<BOOL:${ADI_NS_SRAM_4}>:ADI_NS_SRAM_4>
+)

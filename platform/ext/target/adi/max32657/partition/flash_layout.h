@@ -225,4 +225,71 @@
 #define TOTAL_ROM_SIZE FLASH_TOTAL_SIZE
 #define TOTAL_RAM_SIZE KB(256)
 
+// SRAM_0
+#define MAX32657_SRAM0_OFFSET  0
+#define MAX32657_SRAM0_SIZE    KB(32)
+// SRAM_1
+#define MAX32657_SRAM1_OFFSET  0x00008000UL
+#define MAX32657_SRAM1_SIZE    KB(32)
+// SRAM_2
+#define MAX32657_SRAM2_OFFSET  0x00010000UL
+#define MAX32657_SRAM2_SIZE    KB(64)
+// SRAM_3
+#define MAX32657_SRAM3_OFFSET  0x00020000UL
+#define MAX32657_SRAM3_SIZE    KB(64)
+// SRAM_4
+#define MAX32657_SRAM4_OFFSET  0x00030000UL
+#define MAX32657_SRAM4_SIZE    KB(64)
+
+
+#if defined(ADI_NS_SRAM_0)
+    #define MAX32657_S_SRAM0_SIZE 0
+#else
+    #define MAX32657_S_SRAM0_SIZE MAX32657_SRAM0_SIZE
+#endif
+
+#if defined(ADI_NS_SRAM_1)
+    #define MAX32657_S_SRAM1_SIZE 0
+#else
+    #define MAX32657_S_SRAM1_SIZE MAX32657_SRAM1_SIZE
+#endif
+
+#if defined(ADI_NS_SRAM_2)
+    #define MAX32657_S_SRAM2_SIZE 0
+#else
+    #define MAX32657_S_SRAM2_SIZE MAX32657_SRAM2_SIZE
+#endif
+
+#if defined(ADI_NS_SRAM_3)
+    #define MAX32657_S_SRAM3_SIZE 0
+#else
+    #define MAX32657_S_SRAM3_SIZE MAX32657_SRAM3_SIZE
+#endif
+
+#if defined(ADI_NS_SRAM_4)
+    #define MAX32657_S_SRAM4_SIZE 0
+#else
+    #define MAX32657_S_SRAM4_SIZE MAX32657_SRAM4_SIZE
+#endif
+
+/* RAM shall be defined sequential */
+#if !defined(ADI_NS_SRAM_0)
+    // SRAM0 on secure world
+    #define MAX32657_S_DATA_OFFSET MAX32657_SRAM0_OFFSET
+#elif !defined(ADI_NS_SRAM_1)
+    // SRAM1 on secure world
+    #define MAX32657_S_DATA_OFFSET MAX32657_SRAM1_OFFSET
+#elif !defined(ADI_NS_SRAM_2)
+    // SRAM2 on secure world
+    #define MAX32657_S_DATA_OFFSET MAX32657_SRAM2_OFFSET
+#elif !defined(ADI_NS_SRAM_3)
+    // SRAM3 on secure world
+    #define MAX32657_S_DATA_OFFSET MAX32657_SRAM3_OFFSET
+#elif !defined(ADI_NS_SRAM_4)
+    // SRAM4 on secure world
+    #define MAX32657_S_DATA_OFFSET MAX32657_SRAM4_OFFSET
+#else
+    #error "SRAM Not Defined for TF-M"
+#endif
+
 #endif /* __FLASH_LAYOUT_H__ */

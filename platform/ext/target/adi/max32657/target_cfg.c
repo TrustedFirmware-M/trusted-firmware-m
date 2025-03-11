@@ -102,21 +102,41 @@ typedef struct {
  *
  */
 static NS_MPC_Config ns_mpc_config_arr[] = {
+#if defined(ADI_NS_SRAM_0)
+    {
+        &Driver_SRAM0_MPC,
+        MPC_SRAM0_RANGE_BASE_NS,
+        MPC_SRAM0_RANGE_LIMIT_NS
+    },
+#endif
+#if defined(ADI_NS_SRAM_1)
+    {
+        &Driver_SRAM1_MPC,
+        MPC_SRAM1_RANGE_BASE_NS,
+        MPC_SRAM1_RANGE_LIMIT_NS
+    },
+#endif
+#if defined(ADI_NS_SRAM_2)
     {
         &Driver_SRAM2_MPC,
         MPC_SRAM2_RANGE_BASE_NS,
         MPC_SRAM2_RANGE_LIMIT_NS
     },
+#endif
+#if defined(ADI_NS_SRAM_3)
     {
         &Driver_SRAM3_MPC,
         MPC_SRAM3_RANGE_BASE_NS,
         MPC_SRAM3_RANGE_LIMIT_NS
     },
+#endif
+#if defined(ADI_NS_SRAM_4)
     {
         &Driver_SRAM4_MPC,
         MPC_SRAM4_RANGE_BASE_NS,
         MPC_SRAM4_RANGE_LIMIT_NS
     },
+#endif
     {
         &Driver_FLASH_MPC,
         memory_regions.non_secure_partition_base,
