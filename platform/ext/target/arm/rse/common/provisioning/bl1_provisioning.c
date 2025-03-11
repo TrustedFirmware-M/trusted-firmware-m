@@ -140,7 +140,6 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
                                       RSE_PROVISIONING_MESSAGE_MAX_SIZE,
                                       &config, (void *)&ctx);
     if (err != TFM_PLAT_ERR_SUCCESS) {
-        provisioning_comms_return_status(err);
         memset((void *)provisioning_message, 0, RSE_PROVISIONING_MESSAGE_MAX_SIZE);
         return err;
     }

@@ -21,11 +21,6 @@ enum tfm_plat_err_t provisioning_comms_receive(const struct rse_provisioning_mes
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-enum tfm_plat_err_t provisioning_comms_return_status(enum tfm_plat_err_t status)
-{
-    return TFM_PLAT_ERR_SUCCESS;
-}
-
 enum tfm_plat_err_t provisioning_comms_send(const struct rse_provisioning_message_t *msg,
                                             size_t msg_size)
 {

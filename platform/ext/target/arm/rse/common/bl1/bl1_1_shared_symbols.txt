@@ -94,7 +94,6 @@ tfm_log
 default_blob_handler
 provisioning_comms_receive
 handle_provisioning_message
-provisioning_comms_return_status
 rse_setup_master_key
 rse_setup_provisioning_key
 rse_permanently_disable_device

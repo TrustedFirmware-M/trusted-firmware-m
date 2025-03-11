@@ -31,14 +31,6 @@ enum tfm_plat_err_t provisioning_comms_receive(const struct rse_provisioning_mes
 /**
  * @brief
  *
- * @param status
- * @return enum tfm_plat_err_t
- */
-enum tfm_plat_err_t provisioning_comms_return_status(enum tfm_plat_err_t status);
-
-/**
- * @brief
- *
  * @param msg
  * @param msg_size
  * @return enum tfm_plat_err_t

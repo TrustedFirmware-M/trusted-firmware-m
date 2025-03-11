@@ -31,37 +31,43 @@ enum dcsu_tx_command {
 };
 
 /**
- * \brief Arm DCSU received message error codes
+ * \brief Arm DCSU received message response codes
+ * These will be sent as a response to an RX DCSU command
  */
-enum dcsu_rx_msg_error_t {
-    DCSU_RX_MSG_ERROR_SUCCESS = 0x1,
-    DCSU_RX_MSG_ERROR_OTP_ALREADY_WRITTEN = 0x2,
-    DCSU_RX_MSG_ERROR_OTP_WRITE_FAILED = 0x3,
-    DCSU_RX_MSG_ERROR_SOC_UID_NOT_GENERATED = 0x4,
-    DCSU_RX_MSG_ERROR_INVALID_NUM_WORDS = 0x5,
-    DCSU_RX_MSG_ERROR_OFFSET_TOO_LARGE = 0x6,
-    DCSU_RX_MSG_ERROR_OFFSET_INVALID = 0x7,
-    DCSU_RX_MSG_ERROR_SIZE_TOO_LARGE = 0x8,
+enum dcsu_rx_msg_response_t {
+    DCSU_RX_MSG_RESP_NO_RESP = 0x0,
+    DCSU_RX_MSG_RESP_SUCCESS = 0x1,
+    DCSU_RX_MSG_RESP_OTP_ALREADY_WRITTEN = 0x2,
+    DCSU_RX_MSG_RESP_OTP_WRITE_FAILED = 0x3,
+    DCSU_RX_MSG_RESP_TOO_LARGE_OFFSET_PARAM = 0x4,
+    DCSU_RX_MSG_RESP_TOO_LARGE_ACCESS_REQUEST = 0x5,
+    DCSU_RX_MSG_RESP_BAD_INTEGRITY_VALUE = 0x6,
+    DCSU_RX_MSG_RESP_SOC_FAM_ID_NOT_INIT = 0x7,
+    DCSU_RX_MSG_RESP_SOC_IEEE_ECID_NOT_INIT = 0x8,
+    DCSU_RX_MSG_RESP_GENERATE_SOC_UNIQUE_ID_NI = 0x9,
+    DCSU_RX_MSG_RESP_VERIFY_BLOB_FAILED = 0xA,
+    DCSU_RX_MSG_RESP_UNEXPECTED_NUMBER_OF_WORDS = 0xB,
+    DCSU_RX_MSG_RESP_UNEXPECTED_IMPORT = 0xC,
+    DCSU_RX_MSG_RESP_RANGE_NOT_INITIALIZED = 0xD,
 
-    DCSU_RX_MSG_ERROR_BUFFER_NOT_SET_UP = 0xF0,
-    DCSU_RX_MSG_ERROR_COMMIT_HANDLER_NOT_SET_UP = 0xF1,
-    DCSU_RX_MSG_ERROR_UNEXPECTED_COMMAND = 0xF2,
-    DCSU_RX_MSG_ERROR_GENERIC_ERROR = 0xF3,
-    DCSU_RX_MSG_ERROR_INVALID_COMMAND = 0xFF,
+    DCSU_RX_MSG_RESP_INVALID_COMMAND = 0xFF,
 
-    _DCSU_RX_MSG_ERROR_MAX = 0x100,
-    _DCSU_RX_MSG_ERROR_PAD = UINT32_MAX,
+    _DCSU_RX_MSG_RESP_MAX = 0x100,
+    _DCSU_RX_MSG_RESP_PAD = UINT32_MAX,
 };
 
 /**
- * \brief Arm DCSU transmitted message error codes
+ * \brief Arm DCSU transmitted message response codes
  */
-enum dcsu_tx_msg_error_t {
-    DCSU_TX_MSG_ERROR_SUCCESS = 0x1,
-    DCSU_TX_MSG_ERROR_GENERIC_FAILURE = 0x2,
-
-    _DCSU_TX_MSG_ERROR_MAX = 0x100,
-    _DCSU_TX_MSG_ERROR_PAD = UINT32_MAX,
+enum dcsu_tx_msg_response_t {
+    DCSU_TX_MSG_RESP_NO_RESP = 0x0,
+    DCSU_TX_MSG_RESP_SUCCESS = 0x1,
+    DCSU_TX_MSG_RESP_TOO_LARGE_OFFSET_PARAM = 0x4,
+    DCSU_TX_MSG_RESP_TOO_LARGE_ACCESS_REQUEST = 0x5,
+    DCSU_TX_MSG_RESP_BAD_INTEGRITY_VALUE = 0x6,
+    DCSU_TX_MSG_RESP_UNEXPECTED_IN_CURRENT_CONTEXT = 0x7,
+    _DCSU_TX_MSG_RESP_MAX = 0x100,
+    _DCSU_TX_MSG_RESP_PAD = UINT32_MAX,
 };
 
 /**
@@ -76,11 +82,14 @@ enum dcsu_error_t {
 
     DCSU_ERROR_SW_STATUS_INVALID_IDX,
 
-    DCSU_ERROR_RX_MSG_BASE,
-    DCSU_ERROR_RX_MSG_MAX = DCSU_ERROR_RX_MSG_BASE + _DCSU_RX_MSG_ERROR_MAX,
+    DCSU_ERROR_RX_MSG_GENERIC_ERROR,
+    DCSU_ERROR_RX_MSG_INVALID_OTP_FIELD,
+    DCSU_ERROR_RX_MSG_OTP_WRITE_FAILED,
 
-    DCSU_ERROR_TX_MSG_BASE,
-    DCSU_ERROR_TX_MSG_MAX = DCSU_ERROR_TX_MSG_BASE + _DCSU_TX_MSG_ERROR_MAX,
+    DCSU_ERROR_TX_MSG_GENERIC_FAILURE,
+    DCSU_ERROR_TX_MSG_PAYLOAD_TOO_LARGE,
+    DCSU_ERROR_TX_MSG_RESP_BASE,
+    DCSU_ERROR_TX_MSG_RESP_MAX = DCSU_ERROR_TX_MSG_RESP_BASE + _DCSU_TX_MSG_RESP_MAX,
 
     _DCSU_ERROR_PAD = UINT32_MAX,
 };
@@ -88,7 +97,7 @@ enum dcsu_error_t {
 /**
  * \brief COMMIT_WRITE command handler
  */
-typedef enum dcsu_rx_msg_error_t (*dcsu_commit_write_handler_t)(uint8_t *rx_buf, size_t rx_buf_len);
+typedef enum dcsu_error_t (*dcsu_commit_write_handler_t)(uint8_t *rx_buf, size_t rx_buf_len);
 
 /**
  * \brief Arm DCSU device configuration structure
@@ -120,7 +129,7 @@ struct dcsu_dev_t {
  *                        DCSU_RX_COMMAND_COMMIT_WRITE is received in
  *                        asynchronous handler mode.
  *
- * \return  DCSU_RX_MSG_ERROR_SUCCESS if the operation has succeeded, else an
+ * \return  DCSU_ERROR_NONE if the operation has succeeded, else an
  *          error code as specified in \ref dcsu_error_t.
  */
 enum dcsu_error_t dcsu_init(struct dcsu_dev_t *dev, uint8_t *rx_buf, size_t rx_buf_len,
@@ -139,7 +148,7 @@ void dcsu_wait_for_any_rx_command(struct dcsu_dev_t *dev);
  * \param[in]  dev        The DCSU device structure.
  * \param[in]  command    The command to check for.
  *
- * \return  DCSU_RX_MSG_ERROR_SUCCESS if the command is pending, else an
+ * \return  DCSU_ERROR_NONE if the command is pending, else an
  *          error code as specified in \ref dcsu_error_t.
  */
 enum dcsu_error_t dcsu_wait_for_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_command command);
@@ -149,7 +158,7 @@ enum dcsu_error_t dcsu_wait_for_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_
  *
  * \param[in]  dev        The DCSU device structure.
  *
- * \return  DCSU_RX_MSG_ERROR_SUCCESS if a command is pending, else an
+ * \return  DCSU_ERROR_NONE if a command is pending, else an
  *          error code as specified in \ref dcsu_error_t.
  */
 enum dcsu_error_t dcsu_poll_for_any_rx_command(struct dcsu_dev_t *dev);
@@ -160,7 +169,7 @@ enum dcsu_error_t dcsu_poll_for_any_rx_command(struct dcsu_dev_t *dev);
  * \param[in]  dev        The DCSU device structure.
  * \param[in]  command    The command to check for.
  *
- * \return  DCSU_RX_MSG_ERROR_SUCCESS if the command is pending, else an
+ * \return  DCSU_ERROR_NONE if the command is pending, else an
  *          error code as specified in \ref dcsu_error_t.
  */
 enum dcsu_error_t dcsu_poll_for_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_command command);
@@ -171,7 +180,7 @@ enum dcsu_error_t dcsu_poll_for_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_
  *
  * \param[in]  dev        The DCSU device structure.
  *
- * \return  DCSU_RX_MSG_ERROR_SUCCESS if the operation has succeeded, else an
+ * \return  DCSU_ERROR_NONE if the operation has succeeded, else an
  *          error code as specified in \ref dcsu_error_t.
  */
 enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev);
@@ -184,11 +193,12 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev);
  *                        pending an error will be returned.
  * \param[in]  response   The response code to be sent to the host via the DCSU.
  *
- * \return  DCSU_RX_MSG_ERROR_SUCCESS if the operation has succeeded, else an
+ * \return  DCSU_ERROR_NONE if the operation has succeeded, else an
  *          error code as specified in \ref dcsu_error_t.
  */
-enum dcsu_error_t dcsu_respond_to_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_command command,
-                                             enum dcsu_rx_msg_error_t response);
+enum dcsu_error_t dcsu_respond_to_rx_command(struct dcsu_dev_t *dev,
+                                             enum dcsu_rx_command command,
+                                             enum dcsu_rx_msg_response_t response);
 
 /**
  * \brief This function sends data via the DCSU synchronously.
@@ -197,7 +207,7 @@ enum dcsu_error_t dcsu_respond_to_rx_command(struct dcsu_dev_t *dev, enum dcsu_r
  * \param[in] data       The data buffer to be sent.
  * \param[in]  data_size  The amount of data to be sent.
  *
- * \return  DCSU_RX_MSG_ERROR_SUCCESS if the operation has succeeded, else an
+ * \return  DCSU_ERROR_NONE if the operation has succeeded, else an
  *          error code as specified in \ref dcsu_error_t.
  */
 enum dcsu_error_t dcsu_send_data(struct dcsu_dev_t *dev, const uint8_t *data, size_t data_size);
@@ -209,7 +219,7 @@ enum dcsu_error_t dcsu_send_data(struct dcsu_dev_t *dev, const uint8_t *data, si
  * \param[in]  status         The value to write to the status register.
  * \param[in]  status_reg_idx The index of the status register to write.
  *
- * \return  DCSU_RX_MSG_ERROR_SUCCESS if the operation has succeeded, else an
+ * \return  DCSU_ERROR_NONE if the operation has succeeded, else an
  *          error code as specified in \ref dcsu_error_t.
  */
 enum dcsu_error_t dcsu_write_sw_status(struct dcsu_dev_t *dev, uint32_t status,
@@ -220,7 +230,7 @@ enum dcsu_error_t dcsu_write_sw_status(struct dcsu_dev_t *dev, uint32_t status,
  *
  * \param[in]  dev        The DCSU device structure.
  *
- * \return  DCSU_RX_MSG_ERROR_SUCCESS if the operation has succeeded, else an
+ * \return  DCSU_ERROR_NONE if the operation has succeeded, else an
  *          error code as specified in \ref dcsu_error_t.
  */
 enum dcsu_error_t dcsu_finish(struct dcsu_dev_t *dev);

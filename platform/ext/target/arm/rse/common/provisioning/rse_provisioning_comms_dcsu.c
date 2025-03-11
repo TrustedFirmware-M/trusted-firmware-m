@@ -38,27 +38,6 @@ enum tfm_plat_err_t provisioning_comms_receive(const struct rse_provisioning_mes
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-static enum dcsu_rx_msg_error_t plat_err_to_rx_error(uint32_t err)
-{
-    switch(err) {
-    case TFM_PLAT_ERR_SUCCESS:
-        return DCSU_RX_MSG_ERROR_SUCCESS;
-    case LCM_ERROR_OTP_WRITE_INVALID_WRITE:
-        return DCSU_RX_MSG_ERROR_OTP_ALREADY_WRITTEN;
-    case LCM_ERROR_OTP_WRITE_WRITE_VERIFY_FAIL:
-        return DCSU_RX_MSG_ERROR_OTP_WRITE_FAILED;
-    default:
-        return DCSU_RX_MSG_ERROR_GENERIC_ERROR;
-    }
-}
-
-enum tfm_plat_err_t provisioning_comms_return_status(enum tfm_plat_err_t status)
-{
-    return (enum tfm_plat_err_t)dcsu_respond_to_rx_command(&DCSU_DEV_S,
-                                                           DCSU_RX_COMMAND_COMMIT_WRITE,
-                                                           plat_err_to_rx_error(status));
-}
-
 enum tfm_plat_err_t provisioning_comms_send(const struct rse_provisioning_message_t *msg,
                                             size_t msg_size)
 {
