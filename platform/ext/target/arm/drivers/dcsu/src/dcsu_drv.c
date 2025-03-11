@@ -31,6 +31,14 @@ static enum dcsu_error_t tx_msg_err_to_dcsu_err(enum dcsu_tx_msg_response_t msg_
     return msg_err == DCSU_TX_MSG_RESP_SUCCESS ? DCSU_ERROR_NONE : DCSU_ERROR_TX_MSG_RESP_BASE + msg_err;
 }
 
+static enum dcsu_error_t rx_clear_return(struct dcsu_dev_t *dev)
+{
+    struct _dcsu_reg_map_t* p_dcsu = (struct _dcsu_reg_map_t*)dev->cfg->base;
+
+    p_dcsu->diag_rx_command &= ~(0xFF << 24);
+    return DCSU_ERROR_NONE;
+}
+
 static enum dcsu_error_t rx_return_send(struct dcsu_dev_t *dev, enum dcsu_rx_msg_response_t msg_rsp)
 {
     struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
@@ -121,7 +129,12 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
         return err;
     }
 
-    switch(get_rx_command(dev)) {
+    cmd = get_rx_command(dev);
+    rx_clear_return(dev);
+
+    INFO("DCSU command %x\r\n", cmd);
+
+    switch(cmd) {
     default:
         err = DCSU_ERROR_NONE;
         msg_resp = DCSU_RX_MSG_RESP_INVALID_COMMAND;
@@ -158,7 +171,9 @@ static enum dcsu_error_t tx_command_send(struct dcsu_dev_t *dev, enum dcsu_tx_co
     enum dcsu_tx_msg_response_t msg_resp;
     uint32_t tx_command_word = 0;
 
-    tx_command_word |= (data_word_size - 1) << 8;
+    INFO("Sending %x\r\n", tx_command);
+
+    tx_command_word |= ((data_word_size - 1) & 0b11) << 8;
     tx_command_word |= tx_command & 0xFF;
 
     p_dcsu->diag_tx_command = tx_command_word;
@@ -167,6 +182,8 @@ static enum dcsu_error_t tx_command_send(struct dcsu_dev_t *dev, enum dcsu_tx_co
     dcsu_wait_for_tx_response(dev);
 
     msg_resp = (p_dcsu->diag_tx_command >> 24) & 0xFF;
+
+    p_dcsu->diag_tx_command = 0;
 
     INFO("Rec: %x\r\n", msg_resp);
 
