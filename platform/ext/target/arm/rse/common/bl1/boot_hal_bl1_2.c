@@ -347,7 +347,8 @@ int32_t boot_platform_post_init(void)
         return plat_err;
     }
 
-    plat_err = rse_setup_iak_seed();
+    /* Derive IAK_SEED from HUK in the KMU */
+    plat_err = rse_setup_iak_seed(NULL, 0);
     if (plat_err) {
         return plat_err;
     }

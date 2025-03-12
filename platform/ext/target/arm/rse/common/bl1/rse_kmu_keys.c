@@ -6,7 +6,7 @@
  */
 
 #include "rse_kmu_keys.h"
-
+#include <assert.h>
 #include <stdint.h>
 #include <string.h>
 #include "device_definition.h"
@@ -328,13 +328,56 @@ enum tfm_plat_err_t setup_key_from_rng(enum rse_kmu_slot_id_t slot,
     return plat_err;
 }
 
-enum tfm_plat_err_t rse_setup_iak_seed(void)
+/* An all-zero, 256-bit key */
+static const uint32_t zero_key[8] = {0};
+
+static enum tfm_plat_err_t
+setup_hardware_key_or_zero_key(enum rse_kmu_slot_id_t slot,
+                               enum rse_kmu_slot_id_t *input_slot,
+                               uint32_t **key_buf)
+{
+    assert(slot == KMU_HW_SLOT_HUK);
+    const enum kmu_error_t kmu_err = kmu_get_slot_invalid(&KMU_DEV_S, slot);
+
+    if (kmu_err == KMU_ERROR_NONE) {
+        /* If the slot is valid, use it. This is what we expect in Secure Boot
+         * enable configurations, for example in PCI
+         */
+        *input_slot = slot;
+        *key_buf = NULL;
+    } else if (kmu_err == KMU_ERROR_SLOT_INVALIDATED) {
+        /* If the slot has been invalidated, that means that debug is open so
+         * it is acceptable to work with an all-zero HUK, for example in TCI or
+         * PCI-dev or PCI with debug open if allowed
+         */
+        *input_slot = (enum rse_kmu_slot_id_t)0;
+        *key_buf = (uint8_t *)zero_key;
+    } else {
+        return (enum tfm_plat_err_t)kmu_err;
+    }
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
+static bool is_kmu_slot_locked(enum rse_kmu_slot_id_t slot)
+{
+    const enum kmu_error_t locked = kmu_get_key_locked(&KMU_DEV_S, slot);
+    const enum kmu_error_t config_locked =
+        kmu_get_key_export_config_locked(&KMU_DEV_S, slot);
+
+    return ((config_locked == KMU_ERROR_SLOT_LOCKED) ||
+            (locked == KMU_ERROR_SLOT_LOCKED));
+}
+
+enum tfm_plat_err_t rse_setup_iak_seed(uint32_t *huk_buf, size_t huk_size)
 {
     const uint8_t iak_seed_label[] = "BL1_IAK_SEED_DERIVATION";
+    enum tfm_plat_err_t plat_err;
+    enum kmu_error_t kmu_err;
+    enum rse_kmu_slot_id_t input_slot;
+    uint32_t *key_buf;
 
     /* FixMe: updated spec removes the context and simplifies the procedure */
-#if defined(RSE_BOOT_KEYS_CCA ) || defined(RSE_BOOT_KEYS_DPE)
-
+#if defined(RSE_BOOT_KEYS_CCA) || defined(RSE_BOOT_KEYS_DPE)
 #ifdef PLATFORM_PSA_ADAC_SECURE_DEBUG
     const boot_state_include_mask boot_state_config =
         RSE_BOOT_STATE_INCLUDE_LCS | RSE_BOOT_STATE_INCLUDE_TP_MODE |
@@ -345,21 +388,54 @@ enum tfm_plat_err_t rse_setup_iak_seed(void)
         RSE_BOOT_STATE_INCLUDE_LCS | RSE_BOOT_STATE_INCLUDE_TP_MODE |
         RSE_BOOT_STATE_INCLUDE_BL1_2_HASH | RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
 #endif /* PLATFORM_PSA_ADAC_SECURE_DEBUG */
-
 #else
-
     const boot_state_include_mask boot_state_config = RSE_BOOT_STATE_INCLUDE_NONE;
-
 #endif /* RSE_BOOT_KEYS_CCA || RSE_BOOT_KEYS_DPE */
+
+    if (huk_buf) {
+        assert(huk_size == 32);
+        return TFM_PLAT_ERR_INVALID_INPUT;
+    }
+
+    /* If IAK_SEED slot is locked, invalidate it first */
+    if (is_kmu_slot_locked(RSE_KMU_SLOT_IAK_SEED)) {
+        kmu_err = kmu_set_slot_invalid(&KMU_DEV_S, RSE_KMU_SLOT_IAK_SEED);
+        if (kmu_err != KMU_ERROR_NONE) {
+            return kmu_err;
+        }
+    }
+
+    if (huk_buf == NULL) {
+        plat_err =
+            setup_hardware_key_or_zero_key(KMU_HW_SLOT_HUK, &input_slot, &key_buf);
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return plat_err;
+        }
+    } else {
+        /* Just use 0 as the value is not used when the key_buf is not NULL */
+        input_slot = (enum rse_kmu_slot_id_t)0;
+        key_buf = huk_buf;
+    }
 
     /* This derives from HUK, there is a typo in the spec, not from GUK.
      * FixMe: this should be configurable per platform
      */
-    return setup_key_from_derivation(KMU_HW_SLOT_HUK, NULL, iak_seed_label,
-                                     sizeof(iak_seed_label), NULL, 0,
-                                     RSE_KMU_SLOT_IAK_SEED,
-                                     &aes_key0_export_config, NULL, false,
-                                     boot_state_config);
+    plat_err = setup_key_from_derivation(input_slot, key_buf, iak_seed_label,
+                                         sizeof(iak_seed_label), NULL, 0,
+                                         RSE_KMU_SLOT_IAK_SEED,
+                                         &aes_key0_export_config, NULL, false,
+                                         boot_state_config);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
+    }
+
+    /* TODO: Should be removed once setup_key properly locks KMU slots */
+    kmu_err = kmu_set_key_locked(&KMU_DEV_S, RSE_KMU_SLOT_IAK_SEED);
+    if (kmu_err != KMU_ERROR_NONE) {
+        return (enum tfm_plat_err_t) kmu_err;
+    }
+
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 #ifdef RSE_BOOT_KEYS_CCA

@@ -55,11 +55,20 @@ enum tfm_plat_err_t rse_derive_vhuk_seed(uint32_t *vhuk_seed, size_t vhuk_seed_b
                                          size_t *vhuk_seed_size);
 
 /**
- * \brief                     setup the IAK seed, and lock in a KMU slot.
+ * @brief                     Setup the IAK seed and lock in a KMU slot.
  *
- * \return                    TFM_PLAT_ERR_SUCCESS on success, non-zero on error.
+ * @note                      This function derives from HUK. The HUK bytes can
+ *                            be passed as raw input to this function in case
+ *                            the HUK KMU slot is not yet available. In case
+ *                            the HUK passed is NULL, the function derives
+ *                            from the HUK KMU slot
+ *
+ * @param[in] huk_buf         The buffer containing the HUK from which to derive IAK_SEED
+ * @param[in] huk_size        The size in bytes for the \p huk_buf buffer
+ *
+ * @return                    TFM_PLAT_ERR_SUCCESS on success, non-zero on error.
  */
-enum tfm_plat_err_t rse_setup_iak_seed(void);
+enum tfm_plat_err_t rse_setup_iak_seed(uint32_t *huk_buf, size_t huk_size);
 
 /**
  * \brief                     setup the DAK seed, and lock in a KMU slot.
