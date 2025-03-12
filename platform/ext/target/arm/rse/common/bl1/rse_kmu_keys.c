@@ -597,6 +597,34 @@ enum tfm_plat_err_t rse_setup_master_key(const uint8_t *label, size_t label_len,
                                          RSE_BOOT_STATE_INCLUDE_NONE);
 }
 
+enum tfm_plat_err_t rse_setup_export_key(const uint8_t *label, size_t label_len,
+                                         const uint8_t *context, size_t context_len)
+{
+    enum tfm_plat_err_t err;
+    enum kmu_error_t kmu_err;
+
+    err = setup_key_from_derivation((enum kmu_hardware_keyslot_t)RSE_KMU_SLOT_MASTER_KEY,
+                                     NULL, label, label_len,
+                                     context, context_len,
+                                     RSE_KMU_SLOT_EXPORT_KEY,
+                                     &aes_key0_export_config, NULL,
+                                     false, RSE_BOOT_STATE_INCLUDE_NONE);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    /*
+     * Until we can lock all the keys, just lock the ones only used in
+     * BL1/provisioning.
+     */
+    kmu_err = kmu_set_key_locked(&KMU_DEV_S, RSE_KMU_SLOT_EXPORT_KEY);
+    if (kmu_err != KMU_ERROR_NONE) {
+        return (enum tfm_plat_err_t) kmu_err;
+    }
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
 enum tfm_plat_err_t rse_setup_provisioning_key(const uint8_t *label, size_t label_len,
                                                const uint8_t *context, size_t context_len)
 {

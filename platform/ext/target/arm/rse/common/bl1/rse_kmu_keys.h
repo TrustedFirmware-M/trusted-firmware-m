@@ -155,6 +155,14 @@ enum tfm_plat_err_t rse_setup_master_key(const uint8_t *label, size_t label_len,
                                          const uint8_t *context, size_t context_len);
 
 /**
+ * \brief                     Setup the export key, and lock into KMU slot.
+ *
+ * \return                    TFM_PLAT_ERR_SUCCESS on success, non-zero on error.
+ */
+enum tfm_plat_err_t rse_setup_export_key(const uint8_t *label, size_t label_len,
+                                         const uint8_t *context, size_t context_len);
+
+/**
  * \brief                     Setup the provisioning key, and lock into two
  *                            KMU slots.
  *
