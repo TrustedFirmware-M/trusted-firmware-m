@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021-2022, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -31,6 +31,8 @@ target_include_directories(tfm_fwu_mcuboot_util
 target_link_libraries(tfm_fwu_mcuboot_util
     INTERFACE
         platform_region_defs
+        tfm_log_headers
+        tfm_vprintf_headers
 )
 
 target_link_libraries(tfm_psa_rot_partition_fwu
@@ -42,4 +44,5 @@ target_compile_definitions(tfm_psa_rot_partition_fwu
     PRIVATE
         MCUBOOT_${MCUBOOT_UPGRADE_STRATEGY}
         $<$<BOOL:${MCUBOOT_DIRECT_XIP_REVERT}>:MCUBOOT_DIRECT_XIP_REVERT>
+        LOG_LEVEL=${BL2_LOG_LEVEL}
 )

@@ -212,9 +212,12 @@ if(BL2)
             platform_region_defs
             cmsis_stack_override
             cmsis
+            tfm_log_headers
+            tfm_vprintf_headers
         PRIVATE
             bl2_crypto
             bl2_hal
+            tfm_log
             mcuboot_config
             $<$<AND:$<BOOL:${CONFIG_TFM_BOOT_STORE_MEASUREMENTS}>,$<NOT:$<BOOL:${CONFIG_TFM_BOOT_STORE_ENCODED_MEASUREMENTS}>>>:tfm_boot_status>
     )
@@ -235,6 +238,7 @@ if(BL2)
             $<$<AND:$<BOOL:${CONFIG_TFM_BOOT_STORE_MEASUREMENTS}>,$<NOT:$<BOOL:${CONFIG_TFM_BOOT_STORE_ENCODED_MEASUREMENTS}>>>:TFM_MEASURED_BOOT_API>
             $<$<AND:$<BOOL:${TFM_LOG_FATAL_ERRORS}>,$<BOOL:${MCUBOOT_LOG_LEVEL}>>:LOG_FATAL_ERRORS>
             $<$<AND:$<BOOL:${TFM_LOG_NONFATAL_ERRORS}>,$<BOOL:${MCUBOOT_LOG_LEVEL}>>:LOG_NONFATAL_ERRORS>
+            LOG_LEVEL=${BL2_LOG_LEVEL}
     )
 
     target_compile_options(platform_bl2

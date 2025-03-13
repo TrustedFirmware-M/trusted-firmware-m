@@ -26,6 +26,21 @@ set(BL2_TRAILER_SIZE                    0x400       CACHE STRING    "Trailer siz
 set(MCUBOOT_ALIGN_VAL                   1           CACHE STRING    "align option for mcuboot and build image with imgtool [1, 2, 4, 8, 16, 32]")
 set(MCUBOOT_CONFIRM_IMAGE               OFF         CACHE BOOL      "Whether to confirm the image if REVERT is supported in MCUboot")
 
+# Determine TF-M BL2 logging level based on configured MCUBOOT_LOG_LEVEL
+if(${MCUBOOT_LOG_LEVEL} STREQUAL "OFF")
+    set(BL2_LOG_LEVEL                   "LOG_LEVEL_NONE" CACHE STRING "Level of logging defined in TF-M logging library")
+elseif(${MCUBOOT_LOG_LEVEL} STREQUAL "ERROR")
+    set(BL2_LOG_LEVEL                   "LOG_LEVEL_ERROR" CACHE STRING "Level of logging defined in TF-M logging library")
+elseif(${MCUBOOT_LOG_LEVEL} STREQUAL "WARNING")
+    set(BL2_LOG_LEVEL                    "LOG_LEVEL_WARNING" CACHE STRING "Level of logging defined in TF-M logging library")
+elseif(${MCUBOOT_LOG_LEVEL} STREQUAL "INFO")
+    set(BL2_LOG_LEVEL                   "LOG_LEVEL_INFO" CACHE STRING "Level of logging defined in TF-M logging library")
+elseif(${MCUBOOT_LOG_LEVEL} STREQUAL "DEBUG")
+    set(BL2_LOG_LEVEL                   "LOG_LEVEL_VERBOSE" CACHE STRING "Level of logging defined in TF-M logging library")
+else()
+    message(FATAL_ERROR "Invalid MCUBOOT_LOG_LEVEL")
+endif()
+
 # Specifying a scope of the accepted values of MCUBOOT_UPGRADE_STRATEGY for
 # platforms to choose a specific upgrade strategy for images. These certain
 # configurations will be used to facilitate the later validation.

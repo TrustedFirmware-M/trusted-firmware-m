@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024, Arm Limited. All rights reserved.
+  * <h2><center>&copy; SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
   * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
@@ -21,6 +21,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <string.h>
+#include <stdio.h>
 #include "boot_hal_cfg.h"
 #include "boot_hal.h"
 #ifdef CRYPTO_HW_ACCELERATOR
