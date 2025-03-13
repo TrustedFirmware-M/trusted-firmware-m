@@ -204,6 +204,7 @@ if(BL2)
             $<$<BOOL:${PLATFORM_DEFAULT_OTP}>:ext/common/template/otp_flash.c>
             $<$<BOOL:${BL2_SANITIZE}>:ext/common/tfm_sanitize_handlers.c>
             ./ext/common/tfm_fatal_error.c
+            ./ext/common/tfm_assert.c
     )
 
     target_link_libraries(platform_bl2
@@ -309,6 +310,7 @@ if(BL1 AND PLATFORM_DEFAULT_BL1)
             $<$<BOOL:${PLATFORM_DEFAULT_OTP}>:ext/common/template/otp_flash.c>
             $<$<OR:$<BOOL:${BL1_1_SANITIZE}>,$<BOOL:${TFM_BL1_2_SANITIZE}>>:ext/common/tfm_sanitize_handlers.c>
             ./ext/common/tfm_fatal_error.c
+            ./ext/common/tfm_assert.c
     )
 
     target_link_libraries(platform_bl1_1

@@ -27,6 +27,8 @@ tfm_plat_read_nv_counter
 tfm_plat_set_nv_counter
 log_error
 log_error_permissions_check
+__assert_func
+__assert_puts
 _write
 fputc
 putchar

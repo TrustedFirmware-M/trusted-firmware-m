@@ -35,6 +35,8 @@ tfm_plat_set_nv_counter
 __ubsan_*
 log_error
 log_error_permissions_check
+__assert_func
+__assert_puts
 _write
 tfm_vprintf
 tfm_log

@@ -83,6 +83,8 @@ __got_end__
 __ubsan_*
 log_error
 log_error_permissions_check
+__assert_func
+__assert_puts
 _write
 fputc
 putchar
