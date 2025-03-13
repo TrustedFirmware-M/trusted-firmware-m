@@ -39,8 +39,7 @@ enum tfm_plat_err_t rse_generate_soc_uid(void)
         return TFM_PLAT_ERR_SOC_UID_ALREADY_GENERATED;
     }
 
-    cc_err = cc3xx_lowlevel_rng_get_random(soc_uid, sizeof(soc_uid),
-                                           CC3XX_RNG_DRBG);
+    cc_err = bl1_random_generate_secure(soc_uid, sizeof(soc_uid));
     if (cc_err != CC3XX_ERR_SUCCESS) {
         return (enum tfm_plat_err_t)cc_err;
     }

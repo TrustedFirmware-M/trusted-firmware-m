@@ -72,7 +72,6 @@ mhu_wait_data
 mhu_receive_data
 MHU_RSE_TO_RSE_SENDER_DEVS
 MHU_RSE_TO_RSE_RECEIVER_DEVS
-cc3xx_lowlevel_rng_get_random
 cc3xx_lowlevel_aes_init
 cc3xx_lowlevel_aes_update_authed_data
 cc3xx_lowlevel_aes_set_tag_len
