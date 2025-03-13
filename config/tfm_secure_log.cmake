@@ -5,7 +5,7 @@
 #
 #-------------------------------------------------------------------------------
 
-set(TFM_SPM_LOG_LEVEL           TFM_SPM_LOG_LEVEL_SILENCE       CACHE STRING    "Set default SPM log level as INFO level")
+set(TFM_SPM_LOG_LEVEL           LOG_LEVEL_NONE   CACHE STRING    "Set default SPM log level as INFO level")
 set(TFM_PARTITION_LOG_LEVEL     LOG_LEVEL_NONE   CACHE STRING    "Set default Secure Partition log level as INFO level")
 
 # Secure regression tests also require SP log function
@@ -18,7 +18,7 @@ endif()
 
 # SP log relies on SPM log.
 # Enable SPM log when SPM log level is higher than silence or SP log is active.
-if ((NOT ${TFM_SPM_LOG_LEVEL} STREQUAL TFM_SPM_LOG_LEVEL_SILENCE)
+if ((NOT ${TFM_SPM_LOG_LEVEL} STREQUAL LOG_LEVEL_NONE)
     OR TFM_SP_LOG_RAW_ENABLED)
     set(TFM_SPM_LOG_RAW_ENABLED ON)
 endif()

@@ -31,8 +31,8 @@ set(PLATFORM_HAS_FIRMWARE_UPDATE_SUPPORT   ON           CACHE BOOL      "Wheter 
 set(TFM_OTP_DEFAULT_PROVIONNING            ON           CACHE BOOL      "OTP AREA provisionning by TFM")
 set(DEFAULT_SHARED_DATA                    ON           CACHE BOOL       "SHARED_DATA provisionning by TFM")
 ################################## LOG LEVEL #############################################################
-set(TFM_SPM_LOG_LEVEL                      TFM_SPM_LOG_LEVEL_DEBUG         CACHE STRING    "Set default SPM log level as INFO level")
-set(TFM_PARTITION_LOG_LEVEL                LOG_LEVEL_VERBOSE               CACHE STRING    "Set default Secure Partition log level as INFO level")
+set(TFM_SPM_LOG_LEVEL                      LOG_LEVEL_VERBOSE         CACHE STRING    "Set default SPM log level as INFO level")
+set(TFM_PARTITION_LOG_LEVEL                LOG_LEVEL_VERBOSE         CACHE STRING    "Set default Secure Partition log level as INFO level")
 ################################## FIRMWARE_UPDATE #############################################################
 set(TFM_PARTITION_FIRMWARE_UPDATE          ON          CACHE BOOL "Enable firmware update partition")
 set(TFM_FWU_BOOTLOADER_LIB                 "mcuboot"   CACHE STRING    "Bootloader configure file for Firmware Update partition")

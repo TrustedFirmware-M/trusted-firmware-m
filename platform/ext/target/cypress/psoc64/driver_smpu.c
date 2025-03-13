@@ -2,7 +2,7 @@
  * Copyright (c) 2019-2022 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@
 #include "region_defs.h"
 #include "RTE_Device.h"
 #include "smpu_config.h"
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 #include "tfm_hal_its.h"
 #ifdef TFM_PARTITION_PROTECTED_STORAGE
 #include "tfm_hal_ps.h"
@@ -290,19 +290,19 @@ static cy_en_prot_status_t populate_region(const PROT_SMPU_SMPU_STRUCT_Type *smp
 
 static void print_smpu_config(const cy_stc_smpu_cfg_t *slave_config)
 {
-    SPMLOG_INFMSGVAL(" Address = ", (uintptr_t)slave_config->address);
-    SPMLOG_INFMSGVAL(" Size (bytes) = ",
+    INFO_RAW(" Address = 0x%08x\n", (uintptr_t)slave_config->address);
+    INFO_RAW(" Size (bytes) = 0x%08x\n",
                      REGIONSIZE_TO_BYTES(slave_config->regionSize));
     if (slave_config->subregions == ALL_ENABLED) {
-        SPMLOG_INFMSG(" All subregions enabled\r\n");
+        INFO_RAW(" All subregions enabled\n");
     } else {
-        SPMLOG_INFMSGVAL("\tsubregion size (bytes) = ",
+        INFO_RAW("\tsubregion size (bytes) = 0x%08x\n",
                          REGIONSIZE_TO_BYTES(slave_config->regionSize)/8);
         for (int i=0; i<8; i++) {
             if (slave_config->subregions & (1<<i)) {
-                SPMLOG_INFMSGVAL("\tDisabled subregion ", i);
+                INFO_RAW("\tDisabled subregion 0x%08x\n", i);
             } else {
-                SPMLOG_INFMSGVAL("\tEnabled subregion ", i);
+                INFO_RAW("\tEnabled subregion 0x%08x\n", i);
             }
         }
     }
@@ -343,30 +343,30 @@ static void dump_smpu(const PROT_SMPU_SMPU_STRUCT_Type *smpu)
     uint32_t subregions;
 
     if (CY_PROT_SUCCESS == get_region(smpu, &base, &size)) {
-        SPMLOG_INFMSGVAL(" Wanted address = ", base);
-        SPMLOG_INFMSGVAL(" Wanted size (bytes) = ", size);
+        INFO_RAW(" Wanted address = 0x%08x\n", base);
+        INFO_RAW(" Wanted size (bytes) = 0x%08x\n", size);
     } else {
-        SPMLOG_ERRMSG(" Unsupported dynamic SMPU region\r\n");
+        ERROR_RAW(" Unsupported dynamic SMPU region\n");
     }
 
     if (SMPU_Read_Region(smpu, &base, &size32, &subregions, NULL) == CY_PROT_SUCCESS) {
-        SPMLOG_INFMSGVAL(" Configured address = ", base);
-        SPMLOG_INFMSGVAL(" Configured size (bytes) = ", size32);
+        INFO_RAW(" Configured address = 0x%08x\n", base);
+        INFO_RAW(" Configured size (bytes) = 0x%08x\n", size32);
 
         if (subregions == ALL_ENABLED) {
-            SPMLOG_INFMSG(" All subregions enabled\r\n");
+            INFO_RAW(" All subregions enabled\n");
         } else {
-            SPMLOG_INFMSGVAL("\tsubregion size (bytes) = ", size32/8);
+            INFO_RAW("\tsubregion size (bytes) = 0x%08x\n", size32/8);
             for (int i=0; i<8; i++) {
                 if (subregions & (1<<i)) {
-                    SPMLOG_INFMSGVAL("\tDisabled subregion ", i);
+                    INFO_RAW("\tDisabled subregion 0x%08x\n", i);
                 } else {
-                    SPMLOG_INFMSGVAL("\tEnabled subregion ", i);
+                    INFO_RAW("\tEnabled subregion 0x%08x\n", i);
                 }
             }
         }
     } else {
-        SPMLOG_ERRMSG("SMPU slave is disabled\r\n");
+        ERROR_RAW("SMPU slave is disabled\n");
     }
 }
 
@@ -463,13 +463,13 @@ void SMPU_Print_Config(const SMPU_Resources *smpu_dev)
     char smpu_str[SMPU_NAME_MAX_SIZE] = {0};
 
     strcpy(smpu_str, smpu_name(smpu_dev));
-    SPMLOG_INFMSG(smpu_str);
+    INFO_RAW("%s", smpu_str);
     if (is_runtime(smpu_dev)) {
-        SPMLOG_INFMSG(" - configured algorithmically.\r\n");
+        INFO_RAW(" - configured algorithmically.\n");
 
         dump_smpu(smpu_dev->smpu);
     } else {
-        SPMLOG_INFMSG(" - configured at compile time.\r\n");
+        INFO_RAW(" - configured at compile time.\n");
 
         print_smpu_config(&smpu_dev->slave_config);
     }

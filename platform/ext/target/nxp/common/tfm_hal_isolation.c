@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright 2020-2022 NXP. All rights reserved.
  * Copyright (c) 2024 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
@@ -170,8 +170,8 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
     n_configured_regions++;
 
 #if TARGET_DEBUG_LOG //NXP
-    SPMLOG_DBGMSGVAL("Veneers starts from : ", region_cfg.region_base);
-    SPMLOG_DBGMSGVAL("Veneers ends at : ", region_cfg.region_base +
+    VERBOSE_RAW("Veneers starts from : 0x%08x\n", region_cfg.region_base);
+    VERBOSE_RAW("Veneers ends at : 0x%08x\n", region_cfg.region_base +
                                            region_cfg.region_limit);
 #endif
 
@@ -192,8 +192,8 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
     n_configured_regions++;
 
 #if TARGET_DEBUG_LOG //NXP
-    SPMLOG_DBGMSGVAL("Code section starts from : ", region_cfg.region_base);
-    SPMLOG_DBGMSGVAL("Code section ends at : ", region_cfg.region_base +
+    VERBOSE_RAW("Code section starts from : 0x%08x\n", region_cfg.region_base);
+    VERBOSE_RAW("Code section ends at : 0x%08x\n", region_cfg.region_base +
                                                 region_cfg.region_limit);
 #endif
 
@@ -214,8 +214,8 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
     n_configured_regions++;
 
 #if TARGET_DEBUG_LOG //NXP
-    SPMLOG_DBGMSGVAL("RO APP CODE starts from : ", region_cfg.region_base);
-    SPMLOG_DBGMSGVAL("RO APP CODE ends at : ", region_cfg.region_base +
+    VERBOSE_RAW("RO APP CODE starts from : 0x%08x\n", region_cfg.region_base);
+    VERBOSE_RAW("RO APP CODE ends at : 0x%08x\n", region_cfg.region_base +
                                                region_cfg.region_limit);
 #endif
 
@@ -236,8 +236,8 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
     n_configured_regions++;
 
 #if TARGET_DEBUG_LOG //NXP
-    SPMLOG_DBGMSGVAL("RW, ZI APP starts from : ", region_cfg.region_base);
-    SPMLOG_DBGMSGVAL("RW, ZI APP ends at : ", region_cfg.region_base +
+    VERBOSE_RAW("RW, ZI APP starts from : 0x%08x\n", region_cfg.region_base);
+    VERBOSE_RAW("RW, ZI APP ends at : 0x%08x\n", region_cfg.region_base +
                                               region_cfg.region_limit);
 #endif
 
@@ -256,8 +256,8 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
     n_configured_regions++;
 
 #if TARGET_DEBUG_LOG
-    SPMLOG_DBGMSGVAL("NS Data starts from : ", region_cfg.region_base);
-    SPMLOG_DBGMSGVAL("NS Data ends at : ", region_cfg.region_base +
+    VERBOSE_RAW("NS Data starts from : 0x%08x\n", region_cfg.region_base);
+    VERBOSE_RAW("NS Data ends at : 0x%08x\n", region_cfg.region_base +
                                            region_cfg.region_limit);
 #endif
 

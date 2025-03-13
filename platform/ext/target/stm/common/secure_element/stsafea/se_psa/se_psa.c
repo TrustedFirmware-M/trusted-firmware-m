@@ -28,7 +28,7 @@
 #include "string.h"
 #include "psa_manifest/pid.h"
 #include "tfm_nspm.h"
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 #include "tfm_plat_defs.h"
 #include "tfm_plat_crypto_keys.h"
 
@@ -81,7 +81,7 @@ int32_t debug_print(char const *fmt, ...)
   char trace_buf[500];
 
   len = vsnprintf(trace_buf, sizeof(trace_buf), fmt, args);
-  SPMLOG_DBGMSG(trace_buf);
+  VERBOSE_RAW("%s", trace_buf);
   return 0;
 }
 

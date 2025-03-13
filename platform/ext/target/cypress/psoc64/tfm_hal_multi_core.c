@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2019-2021, Cypress Semiconductor Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -12,17 +12,17 @@
 #include "spe_ipc_config.h"
 #include "target_cfg.h"
 #include "tfm_plat_defs.h"
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 #include "tfm_hal_multi_core.h"
 
 static enum tfm_plat_err_t handle_boot_wdt(void)
 {
     /* Update watchdog timer to mark successfull start up of the image */
-    SPMLOG_INFMSG("Checking boot watchdog\r\n");
+    INFO_RAW("Checking boot watchdog\n");
     if (cy_p64_wdg_is_enabled()) {
         cy_p64_wdg_stop();
         cy_p64_wdg_free();
-        SPMLOG_INFMSG("Disabled boot watchdog\r\n");
+        INFO_RAW("Disabled boot watchdog\n");
     }
 
     return TFM_PLAT_ERR_SUCCESS;
@@ -40,10 +40,10 @@ void tfm_hal_boot_ns_cpu(uintptr_t start_addr)
         /* The delay is required after Access port was enabled for
         * debugger/programmer to connect and set TEST BIT */
         Cy_SysLib_Delay(100);
-        SPMLOG_INFMSG("Enabled CM4_AP DAP control\r\n");
+        INFO_RAW("Enabled CM4_AP DAP control\n");
     }
 
-    SPMLOG_INFMSGVAL("Starting Cortex-M4 at ", start_addr);
+    INFO_RAW("Starting Cortex-M4 at 0x%08x\n", start_addr);
     Cy_SysEnableCM4(start_addr);
 }
 
@@ -74,7 +74,7 @@ void tfm_hal_wait_for_ns_cpu_ready(void)
                 Cy_IPC_Drv_ReleaseNotify(Cy_IPC_Drv_GetIpcBaseAddress(IPC_RX_CHAN),
                                          IPC_RX_RELEASE_MASK);
                 if (data == ~IPC_SYNC_MAGIC) {
-                    SPMLOG_INFMSG("Cores sync success.\r\n");
+                    INFO_RAW("Cores sync success.\n");
                     break;
                 }
             }

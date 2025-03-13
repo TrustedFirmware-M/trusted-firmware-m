@@ -80,7 +80,7 @@ enum tfm_plat_err_t dma_init_cfg(void)
         dma_err = dma350_set_trigin_nonsecure(&DMA350_DMA0_DEV_S, i);
         if(dma_err != DMA350_ERR_NONE)
         {
-            SPMLOG_ERRMSGVAL("Failed to set the following Trigger input of DMA350_DMA0_DEV_S to NS: ", i);
+            ERROR_RAW("Failed to set the following Trigger input of DMA350_DMA0_DEV_S to NS: 0x%08x\n", i);
             return TFM_PLAT_ERR_SYSTEM_ERR;
         }
     }

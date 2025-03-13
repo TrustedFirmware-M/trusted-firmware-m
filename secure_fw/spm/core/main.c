@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -13,7 +13,7 @@
 #include "spm.h"
 #include "tfm_hal_isolation.h"
 #include "tfm_hal_platform.h"
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 #include "tfm_version.h"
 #include "tfm_plat_otp.h"
 #include "tfm_plat_provisioning.h"
@@ -54,7 +54,7 @@ static fih_int tfm_core_init(void)
      * Print the TF-M version now that the platform has initialized
      * the logging backend.
      */
-    SPMLOG_INFMSG("\033[1;34mBooting TF-M "VERSION_FULLSTR"\033[0m\r\n");
+    INFO_RAW("\033[1;34mBooting TF-M "VERSION_FULLSTR"\033[0m\n");
 
     plat_err = tfm_plat_otp_init();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
@@ -74,16 +74,16 @@ static fih_int tfm_core_init(void)
     /* Configures architecture */
     tfm_arch_config_extensions();
 
-    SPMLOG_INFMSG("\033[1;34m[Sec Thread] Secure image initializing!\033[0m\r\n");
+    INFO_RAW("\033[1;34m[Sec Thread] Secure image initializing!\033[0m\n");
 
-    SPMLOG_DBGMSGVAL("TF-M isolation level is: ", TFM_ISOLATION_LEVEL);
+    VERBOSE_RAW("TF-M isolation level is: 0x%08x\n", TFM_ISOLATION_LEVEL);
 
 #if (CONFIG_TFM_FLOAT_ABI == 2)
-    SPMLOG_INFMSG("TF-M Float ABI: Hard\r\n");
+    INFO_RAW("TF-M Float ABI: Hard\n");
 #ifdef CONFIG_TFM_LAZY_STACKING
-    SPMLOG_INFMSG("Lazy stacking enabled\r\n");
+    INFO_RAW("Lazy stacking enabled\n");
 #else
-    SPMLOG_INFMSG("Lazy stacking disabled\r\n");
+    INFO_RAW("Lazy stacking disabled\n");
 #endif
 #endif
 

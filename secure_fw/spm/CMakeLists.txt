@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2023, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2021-2023 Cypress Semiconductor Corporation (an Infineon
 # company) or an affiliate of Cypress Semiconductor Corporation. All rights
 # reserved.
@@ -48,7 +48,6 @@ target_sources(tfm_spm
     PRIVATE
         core/tfm_boot_data.c
         core/utilities.c
-        $<$<NOT:$<STREQUAL:${TFM_SPM_LOG_LEVEL},TFM_SPM_LOG_LEVEL_SILENCE>>:core/spm_log.c>
         core/arch/tfm_arch.c
         core/main.c
         core/spm_ipc.c

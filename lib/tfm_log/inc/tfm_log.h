@@ -61,6 +61,15 @@
 # define INFO_RAW(...)  no_tfm_log(LOG_MARKER_RAW __VA_ARGS__)
 #endif
 
+/* FixMe: psa_arch_tests currently defines a VERBOSE macro in the build
+ * system to specify the verbosity of its logging. Usually this would be
+ * fine as the psa_arch_tests do not use tfm_log at all. However, because of
+ * the redefinition of 'assert.h' in the SPM, we end up indirectly including
+ * tfm_log.h via various system headers. This should be fixed by reworking
+ * the SPM 'assert.h' implementation but for now, avoid redefining the
+ * VERBOSE macro
+ */
+#ifndef VERBOSE
 #if LOG_LEVEL >= LOG_LEVEL_VERBOSE
 # define VERBOSE(...)       tfm_log(LOG_MARKER_VERBOSE __VA_ARGS__)
 # define VERBOSE_RAW(...)   tfm_log(LOG_MARKER_RAW __VA_ARGS__)
@@ -68,6 +77,7 @@
 # define VERBOSE(...)       no_tfm_log(LOG_MARKER_VERBOSE __VA_ARGS__)
 # define VERBOSE_RAW(...)   no_tfm_log(LOG_MARKER_RAW __VA_ARGS__)
 #endif
+#endif /* VERBOSE */
 
 #if defined(__ICCARM__)
 #pragma __printf_args

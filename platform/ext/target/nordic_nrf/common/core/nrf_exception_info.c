@@ -6,41 +6,41 @@
 
 #include <string.h>
 #include "nrf_exception_info.h"
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 #include "spu.h"
 
 static struct nrf_exception_info nrf_exc_info;
 
 static void dump_exception_info(struct nrf_exception_info *ctx)
 {
-    SPMLOG_ERRMSG("Platform Exception:\r\n");
+    ERROR_RAW("Platform Exception:\n");
 
     /* Report which type of violation occured */
     if (ctx->events & SPU_EVENT_RAMACCERR) {
-        SPMLOG_DBGMSG("  SPU.RAMACCERR\r\n");
+        VERBOSE_RAW("  SPU.RAMACCERR\n");
     }
 
     if (ctx->events & SPU_EVENT_PERIPHACCERR) {
-        SPMLOG_DBGMSG("  SPU.PERIPHACCERR\r\n");
-        SPMLOG_DBGMSGVAL(" Target addr: ", ctx->periphaccerr.address);
+        VERBOSE_RAW("  SPU.PERIPHACCERR\n");
+        VERBOSE_RAW(" Target addr: 0x%08x\n", ctx->periphaccerr.address);
     }
 
     if (ctx->events & SPU_EVENT_FLASHACCERR) {
-        SPMLOG_DBGMSG("  SPU.FLASHACCERR\r\n");
+        VERBOSE_RAW("  SPU.FLASHACCERR\n");
     }
 
 #if MPC_PRESENT
     if (ctx->events & MPC_EVENT_MEMACCERR) {
-        SPMLOG_DBGMSG("  MPC.MEMACCERR\r\n");
-        SPMLOG_DBGMSGVAL("  Target addr:          ", ctx->memaccerr.address);
-        SPMLOG_DBGMSGVAL("  Access information:   ", ctx->memaccerr.info);
-        SPMLOG_DBGMSGVAL("    Owner id:     ", ctx->memaccerr.info & 0xf);
-        SPMLOG_DBGMSGVAL("    Masterport:   ", (ctx->memaccerr.info & 0x1f0) >> 4);
-        SPMLOG_DBGMSGVAL("    Read:         ", (ctx->memaccerr.info >> 12) & 1);
-        SPMLOG_DBGMSGVAL("    Write:        ", (ctx->memaccerr.info >> 13) & 1);
-        SPMLOG_DBGMSGVAL("    Execute:      ", (ctx->memaccerr.info >> 14) & 1);
-        SPMLOG_DBGMSGVAL("    Secure:       ", (ctx->memaccerr.info >> 15) & 1);
-        SPMLOG_DBGMSGVAL("    Error source: ", (ctx->memaccerr.info >> 16) & 1);
+        VERBOSE_RAW("  MPC.MEMACCERR\n");
+        VERBOSE_RAW("  Target addr:          0x%08x\n", ctx->memaccerr.address);
+        VERBOSE_RAW("  Access information:   0x%08x\n", ctx->memaccerr.info);
+        VERBOSE_RAW("    Owner id:     0x%08x\n", ctx->memaccerr.info & 0xf);
+        VERBOSE_RAW("    Masterport:   0x%08x\n", (ctx->memaccerr.info & 0x1f0) >> 4);
+        VERBOSE_RAW("    Read:         0x%08x\n", (ctx->memaccerr.info >> 12) & 1);
+        VERBOSE_RAW("    Write:        0x%08x\n", (ctx->memaccerr.info >> 13) & 1);
+        VERBOSE_RAW("    Execute:      0x%08x\n", (ctx->memaccerr.info >> 14) & 1);
+        VERBOSE_RAW("    Secure:       0x%08x\n", (ctx->memaccerr.info >> 15) & 1);
+        VERBOSE_RAW("    Error source: 0x%08x\n", (ctx->memaccerr.info >> 16) & 1);
     }
 #endif
 }

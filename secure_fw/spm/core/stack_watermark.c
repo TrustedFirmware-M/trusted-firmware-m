@@ -13,7 +13,7 @@
 #include "lists.h"
 #include "load/spm_load_api.h"
 #include "spm.h"
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 
 /* Always output, regardless of log level.
  * If you don't want output, don't build this code

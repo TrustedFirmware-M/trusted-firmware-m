@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -12,7 +12,7 @@
 #include "tfm_plat_otp.h"
 #include "tfm_attest_hal.h"
 #include "psa/crypto.h"
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 
 #include <string.h>
 
@@ -132,10 +132,10 @@ void tfm_plat_provisioning_check_for_dummy_keys(void)
     tfm_plat_otp_read(PLAT_OTP_ID_IAK, sizeof(iak_start), (uint8_t*)&iak_start);
 
     if(iak_start == 0xA4906F6DB254B4A9) {
-        SPMLOG_ERRMSG("[WRN]\033[1;31m ");
-        SPMLOG_ERRMSG("This device was provisioned with dummy keys. ");
-        SPMLOG_ERRMSG("This device is \033[1;1mNOT SECURE");
-        SPMLOG_ERRMSG("\033[0m\r\n");
+        ERROR_RAW("[WRN]\033[1;31m ");
+        ERROR_RAW("This device was provisioned with dummy keys. ");
+        ERROR_RAW("This device is \033[1;1mNOT SECURE");
+        ERROR_RAW("\033[0m\n");
     }
 
     memset(&iak_start, 0, sizeof(iak_start));
@@ -268,18 +268,18 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
         return err;
     }
 
-    SPMLOG_INFMSG("[INF] Beginning TF-M provisioning\r\n");
+    INFO_RAW("[INF] Beginning TF-M provisioning\n");
 
 #ifdef TFM_DUMMY_PROVISIONING
-    SPMLOG_ERRMSG("[WRN]\033[1;31m ");
-    SPMLOG_ERRMSG("TFM_DUMMY_PROVISIONING is not suitable for production! ");
-    SPMLOG_ERRMSG("This device is \033[1;1mNOT SECURE");
-    SPMLOG_ERRMSG("\033[0m\r\n");
+    ERROR_RAW("[WRN]\033[1;31m ");
+    ERROR_RAW("TFM_DUMMY_PROVISIONING is not suitable for production! ");
+    ERROR_RAW("This device is \033[1;1mNOT SECURE");
+    ERROR_RAW("\033[0m\n");
 #endif /* TFM_DUMMY_PROVISIONING */
 
     if (lcs == PLAT_OTP_LCS_ASSEMBLY_AND_TEST) {
         if (assembly_and_test_prov_data.magic != ASSEMBLY_AND_TEST_PROV_DATA_MAGIC) {
-            SPMLOG_ERRMSG("No valid ASSEMBLY_AND_TEST provisioning data found\r\n");
+            ERROR_RAW("No valid ASSEMBLY_AND_TEST provisioning data found\n");
             return TFM_PLAT_ERR_INVALID_INPUT;
         }
 
@@ -305,7 +305,7 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
     }
     if (lcs == PLAT_OTP_LCS_PSA_ROT_PROVISIONING) {
         if (psa_rot_prov_data.magic != PSA_ROT_PROV_DATA_MAGIC) {
-            SPMLOG_ERRMSG("No valid PSA_ROT provisioning data found\r\n");
+            ERROR_RAW("No valid PSA_ROT provisioning data found\n");
             return TFM_PLAT_ERR_INVALID_INPUT;
         }
 

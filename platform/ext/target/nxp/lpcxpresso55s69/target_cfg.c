@@ -24,7 +24,7 @@
 #include "region_defs.h"
 #include "tfm_plat_defs.h"
 #include "utilities.h"
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 
 extern const struct memory_region_limits memory_regions;
 
@@ -211,14 +211,14 @@ int32_t mpc_init_cfg(void)
         AHB_SECURE_CTRL_SEC_CTRL_USB_HS_MEM_RULE_SRAM_SECT_3_RULE(0x0U);                    /* Address space: 0x4010_3000 - 0x4010_3FFF */
 
 #if TARGET_DEBUG_LOG
-    SPMLOG_DBGMSG("=== [AHB MPC NS] =======\r\n");
-    SPMLOG_DBGMSGVAL("NS ROM starts from : ",
+    VERBOSE_RAW("=== [AHB MPC NS] =======\n");
+    VERBOSE_RAW("NS ROM starts from : 0x%08x\n",
                                       memory_regions.non_secure_partition_base);
-    SPMLOG_DBGMSGVAL("NS ROM ends at : ",
+    VERBOSE_RAW("NS ROM ends at : 0x%08x\n",
                                       memory_regions.non_secure_partition_base +
                                      memory_regions.non_secure_partition_limit);
-    SPMLOG_DBGMSGVAL("NS DATA start from : ", NS_DATA_START);
-    SPMLOG_DBGMSGVAL("NS DATA ends at : ", NS_DATA_START + NS_DATA_LIMIT);
+    VERBOSE_RAW("NS DATA start from : 0x%08x\n", NS_DATA_START);
+    VERBOSE_RAW("NS DATA ends at : 0x%08x\n", NS_DATA_START + NS_DATA_LIMIT);
 #endif
 
     /* Add barriers to assure the MPC configuration is done before continue

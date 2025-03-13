@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -13,7 +13,7 @@
 #include "cmsis.h"
 #include "device_definition.h"
 #include "tfm_peripherals_def.h"
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 #include "tfm_pools.h"
 #include "rse_comms_protocol.h"
 #include <string.h>
@@ -55,19 +55,19 @@ static enum tfm_plat_err_t initialize_mhu(void)
 
     err = mhu_init_sender(&MHU1_SE_TO_HOST_DEV);
     if (err != MHU_ERR_NONE) {
-        SPMLOG_ERRMSGVAL("[COMMS] RSE to AP_MONITOR MHU driver init failed: ",
+        ERROR_RAW("[COMMS] RSE to AP_MONITOR MHU driver init failed: 0x%08x\n",
                          err);
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
     err = mhu_init_receiver(&MHU1_HOST_TO_SE_DEV);
     if (err != MHU_ERR_NONE) {
-        SPMLOG_ERRMSGVAL("[COMMS] AP_MONITOR to RSE MHU driver init failed: ",
+        ERROR_RAW("[COMMS] AP_MONITOR to RSE MHU driver init failed: 0x%08x\n",
                          err);
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
-    SPMLOG_DBGMSG("[COMMS] MHU driver initialized successfully.\r\n");
+    VERBOSE_RAW("[COMMS] MHU driver initialized successfully.\n");
     return TFM_PLAT_ERR_SUCCESS;
 }
 
@@ -93,14 +93,14 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(void *mhu_receiver_dev,
     NVIC_ClearPendingIRQ(source);
 
     if (mhu_err != MHU_ERR_NONE) {
-        SPMLOG_DBGMSGVAL("[COMMS] MHU receive failed: ", mhu_err);
+        VERBOSE_RAW("[COMMS] MHU receive failed: 0x%08x\n", mhu_err);
         /* Can't respond, since we don't know anything about the message */
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
-    SPMLOG_DBGMSG("[COMMS] Received message\r\n");
-    SPMLOG_DBGMSGVAL("[COMMS] size=", msg_len);
-    SPMLOG_DBGMSGVAL("[COMMS] seq_num=", msg.header.seq_num);
+    VERBOSE_RAW("[COMMS] Received message\n");
+    VERBOSE_RAW("[COMMS] size=0x%08x\n", msg_len);
+    VERBOSE_RAW("[COMMS] seq_num=0x%08x\n", msg.header.seq_num);
 
     struct client_request_t *req = tfm_pool_alloc(req_pool);
     if (!req) {
@@ -116,7 +116,7 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(void *mhu_receiver_dev,
     err = rse_protocol_deserialize_msg(req, &msg, msg_len);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         /* Deserialisation failed, drop message */
-        SPMLOG_DBGMSGVAL("[COMMS] Deserialize message failed: ", err);
+        VERBOSE_RAW("[COMMS] Deserialize message failed: 0x%08x\n", err);
         goto out_return_err;
     }
 
@@ -164,18 +164,18 @@ enum tfm_plat_err_t tfm_multi_core_hal_reply(struct client_request_t *req)
 
     err = rse_protocol_serialize_reply(req, &reply, &reply_size);
     if (err != TFM_PLAT_ERR_SUCCESS) {
-        SPMLOG_DBGMSGVAL("[COMMS] Serialize reply failed: ", err);
+        VERBOSE_RAW("[COMMS] Serialize reply failed: 0x%08x\n", err);
         goto out_free_req;
     }
 
     mhu_err = mhu_send_data(req->mhu_sender_dev, (uint8_t *)&reply, reply_size);
     if (mhu_err != MHU_ERR_NONE) {
-        SPMLOG_DBGMSGVAL("[COMMS] MHU send failed: ", mhu_err);
+        VERBOSE_RAW("[COMMS] MHU send failed: 0x%08x\n", mhu_err);
         err = TFM_PLAT_ERR_SYSTEM_ERR;
         goto out_free_req;
     }
 
-    SPMLOG_DBGMSG("[COMMS] Sent reply\r\n");
+    VERBOSE_RAW("[COMMS] Sent reply\n");
 
 out_free_req:
     tfm_pool_free(req_pool, req);
@@ -205,7 +205,7 @@ int32_t tfm_hal_client_id_translate(void *owner, int32_t client_id_in)
                (MHU0_CLIENT_ID_BASE & CLIENT_ID_MHU_BASE_MASK) |
                (NS_CLIENT_ID_FLAG_MASK));
     } else {
-        SPMLOG_DBGMSG("[COMMS] client_id translation failed: invalid owner\r\n");
+        VERBOSE_RAW("[COMMS] client_id translation failed: invalid owner\n");
         return 0;
     }
 }

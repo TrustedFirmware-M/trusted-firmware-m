@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -8,19 +8,17 @@
 #define __TFM_PRIV_ASSERT_H__
 
 #include <string.h>
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 
 #ifndef NDEBUG
-#define SPM_ASSERT(cond)                                \
-            do {                                        \
-                if (!(cond)) {                          \
-                    SPMLOG_INFMSG("Assert:");           \
-                    SPMLOG_INFMSG(__func__);            \
-                    SPMLOG_INFMSGVAL(",", __LINE__);    \
-                    while (1) {                         \
-                        ;                               \
-                    }                                   \
-                }                                       \
+#define SPM_ASSERT(cond)                                                \
+            do {                                                        \
+                if (!(cond)) {                                          \
+                    INFO_RAW("Assert: %s, %d\n", __func__, __LINE__);   \
+                    while (1) {                                         \
+                        ;                                               \
+                    }                                                   \
+                }                                                       \
             } while (0)
 #else
 #define SPM_ASSERT(cond)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -7,7 +7,7 @@
 
 #include "rse_comms_atu.h"
 #include "atu_rse_drv.h"
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 #include "device_definition.h"
 #include "platform_base_address.h"
 
@@ -124,9 +124,9 @@ static enum tfm_plat_err_t setup_region_for_host_buf(uint64_t host_addr,
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
-    SPMLOG_DBGMSGVAL("[COMMS ATU] Mapping new region: ", region_idx);
-    SPMLOG_DBGMSGVAL("[COMMS ATU] Region start: ", region_params->phys_addr);
-    SPMLOG_DBGMSGVAL("[COMMS ATU] Region end:   ", region_params->phys_addr + region_params->size);
+    VERBOSE_RAW("[COMMS ATU] Mapping new region: 0x%08x\n", region_idx);
+    VERBOSE_RAW("[COMMS ATU] Region start: 0x%08x\n", region_params->phys_addr);
+    VERBOSE_RAW("[COMMS ATU] Region end:   0x%08x\n", region_params->phys_addr + region_params->size);
 
     return TFM_PLAT_ERR_SUCCESS;
 }
@@ -174,7 +174,7 @@ enum tfm_plat_err_t comms_atu_free_region(uint8_t region)
         if (atu_err) {
             return TFM_PLAT_ERR_SYSTEM_ERR;
         }
-        SPMLOG_DBGMSGVAL("[COMMS ATU] Deallocating region: ", region);
+        VERBOSE_RAW("[COMMS ATU] Deallocating region: 0x%08x\n", region);
     }
 
     return TFM_PLAT_ERR_SUCCESS;
@@ -197,7 +197,7 @@ enum tfm_plat_err_t comms_atu_free_regions(comms_atu_region_set_t regions)
                 if (atu_err) {
                     return TFM_PLAT_ERR_SYSTEM_ERR;
                 }
-                SPMLOG_DBGMSGVAL("[COMMS ATU] Deallocating region: ", region_idx);
+                VERBOSE_RAW("[COMMS ATU] Deallocating region: 0x%08x\n", region_idx);
             }
         }
     }

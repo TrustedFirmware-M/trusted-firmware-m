@@ -99,23 +99,26 @@ target_link_libraries(platform_s
         tfm_fih_headers
         cmsis_stack_override
         cmsis
+        tfm_log_headers
+        tfm_vprintf_headers
         $<$<BOOL:${CONFIG_TFM_BACKTRACE_ON_CORE_PANIC}>:tfm_log_unpriv>
         $<$<BOOL:${CONFIG_TFM_BACKTRACE_ON_CORE_PANIC}>:tfm_log>
         $<$<BOOL:${CONFIG_TFM_BACKTRACE_ON_CORE_PANIC}>:tfm_backtrace>
     PRIVATE
         tfm_config
-        tfm_spm_defs # For tfm_spm_log.h
+        tfm_spm_defs
         $<$<BOOL:${TFM_PARTITION_CRYPTO}>:platform_crypto_keys>
         $<$<BOOL:${PLATFORM_DEFAULT_ATTEST_HAL}>:tfm_sprt>
         $<$<BOOL:${TFM_PARTITION_CRYPTO}>:crypto_service_mbedcrypto>
         $<$<BOOL:${TFM_PARTITION_INITIAL_ATTESTATION}>:tfm_attestation_defs>
         $<$<NOT:$<STREQUAL:${TFM_FIH_PROFILE},OFF>>:tfm_fih>
+        tfm_log
         psa_crypto_library_config
 )
 
 target_compile_definitions(platform_s
     PUBLIC
-        TFM_SPM_LOG_LEVEL=${TFM_SPM_LOG_LEVEL}
+        LOG_LEVEL=${TFM_SPM_LOG_LEVEL}
         $<$<BOOL:${TFM_SPM_LOG_RAW_ENABLED}>:TFM_SPM_LOG_RAW_ENABLED>
         $<$<BOOL:${CONFIG_TFM_BACKTRACE_ON_CORE_PANIC}>:CONFIG_TFM_BACKTRACE_ON_CORE_PANIC>
         $<$<BOOL:${CONFIG_TFM_BACKTRACE_ON_CORE_PANIC}>:LOG_LEVEL=LOG_LEVEL_ERROR>
@@ -133,8 +136,8 @@ target_compile_definitions(platform_s
         $<$<BOOL:${PLATFORM_DEFAULT_OTP}>:PLATFORM_DEFAULT_OTP>
         $<$<BOOL:${PLATFORM_DEFAULT_ROTPK}>:PLATFORM_DEFAULT_ROTPK>
         $<$<BOOL:${PLATFORM_DEFAULT_NV_COUNTERS}>:PLATFORM_DEFAULT_NV_COUNTERS>
-        $<$<AND:$<BOOL:${TFM_LOG_FATAL_ERRORS}>,$<NOT:$<STREQUAL:${TFM_SPM_LOG_LEVEL},"TFM_SPM_LOG_LEVEL_SILENCE">>>:LOG_FATAL_ERRORS>
-        $<$<AND:$<BOOL:${TFM_LOG_NONFATAL_ERRORS}>,$<NOT:$<STREQUAL:${TFM_SPM_LOG_LEVEL},"TFM_SPM_LOG_LEVEL_SILENCE">>>:LOG_NONFATAL_ERRORS>
+        $<$<AND:$<BOOL:${TFM_LOG_FATAL_ERRORS}>,$<NOT:$<STREQUAL:${TFM_SPM_LOG_LEVEL},"LOG_LEVEL_NONE">>>:LOG_FATAL_ERRORS>
+        $<$<AND:$<BOOL:${TFM_LOG_NONFATAL_ERRORS}>,$<NOT:$<STREQUAL:${TFM_SPM_LOG_LEVEL},"LOG_LEVEL_NONE">>>:LOG_NONFATAL_ERRORS>
     PRIVATE
         $<$<BOOL:${SYMMETRIC_INITIAL_ATTESTATION}>:SYMMETRIC_INITIAL_ATTESTATION>
         $<$<BOOL:${TFM_DUMMY_PROVISIONING}>:TFM_DUMMY_PROVISIONING>

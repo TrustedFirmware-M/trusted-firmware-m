@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -156,14 +156,14 @@ static int32_t prepare_to_thread_mode_spm(uint8_t svc_number, uint32_t *ctx, uin
     }
 
     if (svc_idx >= (sizeof(psa_api_svc_func_table)/sizeof(psa_api_svc_func_t))) {
-        SPMLOG_ERRMSGVAL("Invalid PSA API SVC requested: ", svc_number);
+        ERROR_RAW("Invalid PSA API SVC requested: 0x%08x\n", svc_number);
         ctx[0] = (uint32_t)PSA_ERROR_GENERIC_ERROR;
         return exc_return;
     }
 
     svc_func = psa_api_svc_func_table[svc_idx];
     if (!svc_func) {
-        SPMLOG_ERRMSGVAL("Corresponding SVC function is not included for number ", svc_number);
+        ERROR_RAW("Corresponding SVC function is not included for number 0x%08x\n", svc_number);
         ctx[0] = (uint32_t)PSA_ERROR_GENERIC_ERROR;
         return exc_return;
     }
@@ -240,7 +240,7 @@ static uint32_t handle_spm_svc_requests(uint32_t svc_number, uint32_t exc_return
         break;
 #endif
     default:
-        SPMLOG_ERRMSGVAL("Unknown SPM SVC requested: ", svc_number);
+        ERROR_RAW("Unknown SPM SVC requested: 0x%08x\n", svc_number);
         svc_args[0] = (uint32_t)PSA_ERROR_GENERIC_ERROR;
     }
 
@@ -305,7 +305,7 @@ uint32_t spm_svc_handler(uint32_t *msp, uint32_t exc_return, uint32_t *psp)
     }
 #endif
 
-    SPMLOG_ERRMSGVAL("Unknown SVC number requested: ", svc_number);
+    ERROR_RAW("Unknown SVC number requested: 0x%08x\n", svc_number);
     svc_args[0] = (uint32_t)PSA_ERROR_GENERIC_ERROR;
 
     return exc_return;

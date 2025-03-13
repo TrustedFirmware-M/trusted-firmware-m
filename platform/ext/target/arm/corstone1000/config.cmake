@@ -45,8 +45,8 @@ endif()
 set(DEFAULT_MCUBOOT_SECURITY_COUNTERS       OFF          CACHE BOOL      "Whether to use the default security counter configuration defined by TF-M project")
 
 # LOG LEVEL
-set(TFM_SPM_LOG_LEVEL                   TFM_SPM_LOG_LEVEL_INFO          CACHE STRING    "Set default SPM log level as INFO level")
-set(TFM_PARTITION_LOG_LEVEL             LOG_LEVEL_INFO                  CACHE STRING    "Set default Secure Partition log level as INFO level")
+set(TFM_SPM_LOG_LEVEL                   LOG_LEVEL_INFO          CACHE STRING    "Set default SPM log level as INFO level")
+set(TFM_PARTITION_LOG_LEVEL             LOG_LEVEL_INFO          CACHE STRING    "Set default Secure Partition log level as INFO level")
 
 # Partition
 set(TFM_PARTITION_PLATFORM              ON          CACHE BOOL      "Enable Platform partition")

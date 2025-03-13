@@ -15,7 +15,7 @@ config CONFIG_TFM_HALT_ON_CORE_PANIC
     default y
 
 choice SPM_LOG_LEVEL
-    default SPM_LOG_LEVEL_DEBUG
+    default LOG_LEVEL_VERBOSE
 endchoice
 
 choice PARTITION_LOG_LEVEL

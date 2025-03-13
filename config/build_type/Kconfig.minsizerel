@@ -11,7 +11,7 @@ config MCUBOOT_LOG_LEVEL
 endif
 
 choice SPM_LOG_LEVEL
-    default SPM_LOG_LEVEL_SILENCE
+    default LOG_LEVEL_NONE
 endchoice
 
 choice PARTITION_LOG_LEVEL

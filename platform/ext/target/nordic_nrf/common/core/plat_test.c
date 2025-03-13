@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2020 Nordic Semiconductor ASA. All rights reserved.
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@
 
 #if defined(PSA_API_TEST_NS) && !defined(PSA_API_TEST_IPC)
 #include <tfm_platform_api.h>
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 #endif
 
 #ifdef NRF_TIMER10

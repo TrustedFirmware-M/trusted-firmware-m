@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright 2020-2022 NXP. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -14,7 +14,7 @@
 #include "fih.h"
 #include "region_defs.h"
 #include "region.h"
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 
 /* The section names come from the scatter file */
 REGION_DECLARE(Load$$LR$$, LR_NS_PARTITION, $$Base);
@@ -199,7 +199,7 @@ static void fih_cdog_init(void)
     result = CDOG_Init(CDOG, &conf);
     if (result != kStatus_Success)
     {
-        SPMLOG_ERRMSG("[CDOG] Init error.\r\n");
+        ERROR_RAW("[CDOG] Init error.\n");
         FIH_PANIC;
     }
 
@@ -210,33 +210,33 @@ void CDOG_DriverIRQHandler(void)
 {
     NVIC_ClearPendingIRQ(CDOG_IRQn);
 
-    SPMLOG_ERRMSG("[CDOG IRQ] ");
+    ERROR_RAW("[CDOG IRQ] ");
 
     if ((CDOG->FLAGS & CDOG_FLAGS_TO_FLAG_MASK))
     {
-        SPMLOG_ERRMSG("Timeout ");
+        ERROR_RAW("Timeout ");
     }
     if ((CDOG->FLAGS & CDOG_FLAGS_MISCOM_FLAG_MASK))
     {
-        SPMLOG_ERRMSG("Miscompare ");
+        ERROR_RAW("Miscompare ");
     }
     if ((CDOG->FLAGS & CDOG_FLAGS_SEQ_FLAG_MASK))
     {
-        SPMLOG_ERRMSG("Sequence ");
+        ERROR_RAW("Sequence ");
     }
     if ((CDOG->FLAGS & CDOG_FLAGS_CNT_FLAG_MASK))
     {
-        SPMLOG_ERRMSG("Control ");
+        ERROR_RAW("Control ");
     }
     if ((CDOG->FLAGS & CDOG_FLAGS_STATE_FLAG_MASK))
     {
-        SPMLOG_ERRMSG("State ");
+        ERROR_RAW("State ");
     }
     if ((CDOG->FLAGS & CDOG_FLAGS_ADDR_FLAG_MASK))
     {
-        SPMLOG_ERRMSG("Address ");
+        ERROR_RAW("Address ");
     }
-    SPMLOG_ERRMSG("fault occured\r\n");
+    ERROR_RAW("fault occured\n");
 
     FIH_PANIC;
 }

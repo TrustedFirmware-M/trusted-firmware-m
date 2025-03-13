@@ -45,92 +45,57 @@ Level Control
 -------------
 Three log levels for SPM log system are defined:
 
-  - TFM_SPM_LOG_LEVEL_DEBUG
-  - TFM_SPM_LOG_LEVEL_INFO
-  - TFM_SPM_LOG_LEVEL_ERROR
-  - TFM_SPM_LOG_LEVEL_SILENCE
+  - LOG_LEVEL_NONE
+  - LOG_LEVEL_ERROR
+  - LOG_LEVEL_NOTICE
+  - LOG_LEVEL_WARNING
+  - LOG_LEVEL_INFO
+  - LOG_LEVEL_VERBOSE
 
 Then a macro ``TFM_SPM_LOG_LEVEL`` is defined as an indicator, it should
-be equal to one of the four log levels.
+be equal to one of the six log levels.
 
 API Definition
 --------------
-The following three APIs LOG APIs output the given 'msg' with hexadecimal
-formatted 'val' together. These APIs provide constrained ability to output
-numbers inside SPM. The 'msg' can be skipped with giving an empty string like
-"". And these APIs supports constant 'msg' string only, giving a runtime string
-as parameter 'msg' would potentially cause a runtime error.
+The following APIs output the string with optional format specifiers.
+The _RAW forms of the macros, output the string directly, without
+adding a prefix identifying the log level of the print:
 
-  SPMLOG_DBGMSGVAL(msg, val);
+  VERBOSE_RAW(...);
+  VERBOSE(...);
 
-  SPMLOG_INFMSGVAL(msg, val);
+  INFO_RAW(...);
+  INFO(...);
 
-  SPMLOG_ERRMSGVAL(msg, val);
+  WARN(...);
+  WARN_RAW(...);
 
-A C-function needs to work as an underlayer for these APIs as string formatting
-is required. Check 'spm_log_msgval' for details.
+  NOTICE(...);
+  NOTICE_RAW(...);
 
-.. code-block:: c
-
-  /**
-   * brief Output the given message plus one value as hexadecimal. The message
-   *       can be skipped if the 'msg' is 'NULL' or 'len' equals 0. The
-   *       formatted hexadecimal string for 'value' has a '0x' prefix and
-   *       leading zeros are not stripped. This function rely on HAL API
-   *       'tfm_hal_output_spm_log' to output the formatted string.
-   *
-   * \param[in]  msg    A string message
-   * \param[in]  len    The length of the message
-   * \param[in]  value  A value need to be output
-   *
-   * \retval >=0        Number of chars output.
-   * \retval <0         TFM HAL error code.
-   */
-  int32_t  spm_log_msgval(const char *msg, size_t len, uint32_t value)
-
-The following three APIs output a message in string.
-
-  SPMLOG_DBGMSG(msg);
-
-  SPMLOG_INFMSG(msg);
-
-  SPMLOG_ERRMSG(msg);
+  ERROR(...);
+  ERROR_RAW(...);
 
 Here is a table about the effective APIs with different SPM log level.
 
-+------------------+-------------------------+---------------------------+---------------------------+-----------------------------+
-|                  | TFM_SPM_LOG_LEVEL_DEBUG | TFM_SPM_LOG_LEVEL_INFO    | TFM_SPM_LOG_LEVEL_ERROR   | TFM_SPM_LOG_LEVEL_SILENCE   |
-+==================+=========================+===========================+===========================+=============================+
-| SPMLOG_DBGMSGVAL |           Yes           |             No            |             No            |            No               |
-+------------------+-------------------------+---------------------------+---------------------------+-----------------------------+
-| SPMLOG_INFMSGVAL |           Yes           |             Yes           |             No            |            No               |
-+------------------+-------------------------+---------------------------+---------------------------+-----------------------------+
-| SPMLOG_ERRMSGVAL |           Yes           |             Yes           |             Yes           |            No               |
-+------------------+-------------------------+---------------------------+---------------------------+-----------------------------+
-| SPMLOG_DBGMSG    |           Yes           |             No            |             No            |            No               |
-+------------------+-------------------------+---------------------------+---------------------------+-----------------------------+
-| SPMLOG_INFMSG    |           Yes           |             Yes           |             No            |            No               |
-+------------------+-------------------------+---------------------------+---------------------------+-----------------------------+
-| SPMLOG_ERRMSG    |           Yes           |             Yes           |             Yes           |            No               |
-+------------------+-------------------------+---------------------------+---------------------------+-----------------------------+
-
-HAL API
--------
-Define HAL API for SPM log system:
-
-.. code-block:: c
-
-  /* SPM log HAL API */
-  int32_t tfm_hal_output_spm_log(const char *str, uint32_t len);
-
-Take debug message as an example:
-
-.. code-block:: c
-
-  /* For debug message */
-  #define SPMLOG_DBGMSG(msg) tfm_hal_output_spm_log(msg, sizeof(msg))
-  /* For debug message with a value */
-  #define SPMLOG_DBGMSGVAL(msg, val) spm_log_msgval(msg, sizeof(msg), val)
++--------------------+--------+------+-------+------+
+|                    | DEBUG  | INFO | ERROR | NONE |
++====================+========+======+=======+======+
+| VERBOSE_RAW        |  Yes   |  No  |  No   |  No  |
+| VERBOSE            |        |      |       |      |
++--------------------+--------+------+-------+------+
+| INFO_RAW           |  Yes   | Yes  |  No   |  No  |
+| INFO               |        |      |       |      |
++--------------------+--------+------+-------+------+
+| NOTICE_RAW         |  Yes   | Yes  |  No   |  No  |
+| NOTICE             |        |      |       |      |
++--------------------+--------+------+-------+------+
+| WARN_RAW           |  Yes   | Yes  |  No   |  No  |
+| WARN               |        |      |       |      |
++--------------------+--------+------+-------+------+
+| ERROR_RAW          |  Yes   | Yes  |  Yes  |  No  |
+| ERROR              |        |      |       |      |
++--------------------+--------+------+-------+------+
 
 Partition Log System
 ====================

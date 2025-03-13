@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -10,7 +10,7 @@
 #include "uart_stdout.h"
 #include "fwu_agent.h"
 #include "watchdog.h"
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 
 enum tfm_hal_status_t tfm_hal_platform_init(void)
 {
@@ -18,12 +18,12 @@ enum tfm_hal_status_t tfm_hal_platform_init(void)
     stdio_init();
 
     if (corstone1000_watchdog_init()) {
-        SPMLOG_ERRMSG("corstone1000_watchdog_init failed\r\n");
+        ERROR_RAW("corstone1000_watchdog_init failed\n");
         return TFM_HAL_ERROR_GENERIC;
     }
 
     if (fwu_metadata_init()) {
-        SPMLOG_ERRMSG("fwu_metadata_init failed\r\n");
+        ERROR_RAW("fwu_metadata_init failed\n");
         return TFM_HAL_ERROR_GENERIC;
     }
 

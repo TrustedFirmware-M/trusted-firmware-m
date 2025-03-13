@@ -6,7 +6,7 @@
 
 #include <string.h>
 #include "tfm_arch.h"
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 /* "exception_info.h" must be the last include because of the IAR pragma */
 #include "exception_info.h"
 
@@ -85,79 +85,79 @@ uint32_t *get_exception_frame(uint32_t lr, uint32_t msp, uint32_t psp)
 static void dump_exception_info(bool stack_error,
                                 const struct exception_info_t *ctx)
 {
-    SPMLOG_DBGMSG("Here is some context for the exception:\r\n");
-    SPMLOG_DBGMSGVAL("    EXC_RETURN (LR): ", ctx->EXC_RETURN);
-    SPMLOG_DBGMSG("    Exception came from");
+    VERBOSE_RAW("Here is some context for the exception:\n");
+    VERBOSE_RAW("    EXC_RETURN (LR): 0x%08x\n", ctx->EXC_RETURN);
+    VERBOSE_RAW("    Exception came from");
 #ifdef TRUSTZONE_PRESENT
     if (is_return_secure_stack(ctx->EXC_RETURN)) {
-        SPMLOG_DBGMSG(" secure FW in");
+        VERBOSE_RAW(" secure FW in");
     } else {
-        SPMLOG_DBGMSG(" non-secure FW in");
+        VERBOSE_RAW(" non-secure FW in");
     }
 #endif
 
     if (is_return_thread_mode(ctx->EXC_RETURN)) {
-        SPMLOG_DBGMSG(" thread mode.\r\n");
+        VERBOSE_RAW(" thread mode.\n");
     } else {
-        SPMLOG_DBGMSG(" handler mode.\r\n");
+        VERBOSE_RAW(" handler mode.\n");
     }
-    SPMLOG_DBGMSGVAL("    xPSR:    ", ctx->xPSR);
-    SPMLOG_DBGMSGVAL("    MSP:     ", ctx->MSP);
-    SPMLOG_DBGMSGVAL("    PSP:     ", ctx->PSP);
+    VERBOSE_RAW("    xPSR:    0x%08x\n", ctx->xPSR);
+    VERBOSE_RAW("    MSP:     0x%08x\n", ctx->MSP);
+    VERBOSE_RAW("    PSP:     0x%08x\n", ctx->PSP);
 #ifdef TRUSTZONE_PRESENT
-    SPMLOG_DBGMSGVAL("    MSP_NS:  ", __TZ_get_MSP_NS());
-    SPMLOG_DBGMSGVAL("    PSP_NS:  ", __TZ_get_PSP_NS());
+    VERBOSE_RAW("    MSP_NS:  0x%08x\n", __TZ_get_MSP_NS());
+    VERBOSE_RAW("    PSP_NS:  0x%08x\n", __TZ_get_PSP_NS());
 #endif
 
-    SPMLOG_DBGMSGVAL("    Exception frame at: ", (uint32_t)ctx->EXC_FRAME);
+    VERBOSE_RAW("    Exception frame at:   0x%08x\n", (uint32_t)ctx->EXC_FRAME);
     if (stack_error) {
-        SPMLOG_DBGMSG(
+        VERBOSE_RAW(
             "       (Note that the exception frame may be corrupted for this type of error.)\r\n");
     }
-    SPMLOG_DBGMSGVAL("        R0:   ", ctx->EXC_FRAME_COPY[0]);
-    SPMLOG_DBGMSGVAL("        R1:   ", ctx->EXC_FRAME_COPY[1]);
-    SPMLOG_DBGMSGVAL("        R2:   ", ctx->EXC_FRAME_COPY[2]);
-    SPMLOG_DBGMSGVAL("        R3:   ", ctx->EXC_FRAME_COPY[3]);
-    SPMLOG_DBGMSGVAL("        R12:  ", ctx->EXC_FRAME_COPY[4]);
-    SPMLOG_DBGMSGVAL("        LR:   ", ctx->EXC_FRAME_COPY[5]);
-    SPMLOG_DBGMSGVAL("        PC:   ", ctx->EXC_FRAME_COPY[6]);
-    SPMLOG_DBGMSGVAL("        xPSR: ", ctx->EXC_FRAME_COPY[7]);
+    VERBOSE_RAW("        R0:   0x%08x\n", ctx->EXC_FRAME_COPY[0]);
+    VERBOSE_RAW("        R1:   0x%08x\n", ctx->EXC_FRAME_COPY[1]);
+    VERBOSE_RAW("        R2:   0x%08x\n", ctx->EXC_FRAME_COPY[2]);
+    VERBOSE_RAW("        R3:   0x%08x\n", ctx->EXC_FRAME_COPY[3]);
+    VERBOSE_RAW("        R12:  0x%08x\n", ctx->EXC_FRAME_COPY[4]);
+    VERBOSE_RAW("        LR:   0x%08x\n", ctx->EXC_FRAME_COPY[5]);
+    VERBOSE_RAW("        PC:   0x%08x\n", ctx->EXC_FRAME_COPY[6]);
+    VERBOSE_RAW("        xPSR: 0x%08x\n", ctx->EXC_FRAME_COPY[7]);
 
-    SPMLOG_DBGMSG("    Callee saved register state:\r\n");
-    SPMLOG_DBGMSGVAL("        R4:   ", ctx->CALLEE_SAVED_COPY[0]);
-    SPMLOG_DBGMSGVAL("        R5:   ", ctx->CALLEE_SAVED_COPY[1]);
-    SPMLOG_DBGMSGVAL("        R6:   ", ctx->CALLEE_SAVED_COPY[2]);
-    SPMLOG_DBGMSGVAL("        R7:   ", ctx->CALLEE_SAVED_COPY[3]);
-    SPMLOG_DBGMSGVAL("        R8:   ", ctx->CALLEE_SAVED_COPY[4]);
-    SPMLOG_DBGMSGVAL("        R9:   ", ctx->CALLEE_SAVED_COPY[5]);
-    SPMLOG_DBGMSGVAL("        R10:  ", ctx->CALLEE_SAVED_COPY[6]);
-    SPMLOG_DBGMSGVAL("        R11:  ", ctx->CALLEE_SAVED_COPY[7]);
+    VERBOSE_RAW("    Callee saved register state:\n");
+    VERBOSE_RAW("        R4:   0x%08x\n", ctx->CALLEE_SAVED_COPY[0]);
+    VERBOSE_RAW("        R5:   0x%08x\n", ctx->CALLEE_SAVED_COPY[1]);
+    VERBOSE_RAW("        R6:   0x%08x\n", ctx->CALLEE_SAVED_COPY[2]);
+    VERBOSE_RAW("        R7:   0x%08x\n", ctx->CALLEE_SAVED_COPY[3]);
+    VERBOSE_RAW("        R8:   0x%08x\n", ctx->CALLEE_SAVED_COPY[4]);
+    VERBOSE_RAW("        R9:   0x%08x\n", ctx->CALLEE_SAVED_COPY[5]);
+    VERBOSE_RAW("        R10:  0x%08x\n", ctx->CALLEE_SAVED_COPY[6]);
+    VERBOSE_RAW("        R11:  0x%08x\n", ctx->CALLEE_SAVED_COPY[7]);
 
 #ifdef FAULT_STATUS_PRESENT
-    SPMLOG_DBGMSGVAL("    CFSR:  ", ctx->CFSR);
-    SPMLOG_DBGMSGVAL("    BFSR:  ",
+    VERBOSE_RAW("    CFSR:  0x%08x\n", ctx->CFSR);
+    VERBOSE_RAW("    BFSR:  ",
                     (ctx->CFSR & SCB_CFSR_BUSFAULTSR_Msk) >> SCB_CFSR_BUSFAULTSR_Pos);
     if (ctx->BFARVALID) {
-        SPMLOG_DBGMSGVAL("    BFAR: ", ctx->BFAR);
+        VERBOSE_RAW("    BFAR: 0x%08x\n", ctx->BFAR);
     } else {
-        SPMLOG_DBGMSG("    BFAR:  Not Valid\r\n");
+        VERBOSE_RAW("    BFAR:  Not Valid\n");
     }
-    SPMLOG_DBGMSGVAL("    MMFSR: ",
+    VERBOSE_RAW("    MMFSR: ",
                     (ctx->CFSR & SCB_CFSR_MEMFAULTSR_Msk) >> SCB_CFSR_MEMFAULTSR_Pos);
     if (ctx->MMARVALID) {
-        SPMLOG_DBGMSGVAL("    MMFAR: ", ctx->MMFAR);
+        VERBOSE_RAW("    MMFAR: 0x%08x\n", ctx->MMFAR);
     } else {
-        SPMLOG_DBGMSG("    MMFAR: Not Valid\r\n");
+        VERBOSE_RAW("    MMFAR: Not Valid\n");
     }
-    SPMLOG_DBGMSGVAL("    UFSR:  ",
+    VERBOSE_RAW("    UFSR:  0x%08x\n",
                     (ctx->CFSR & SCB_CFSR_USGFAULTSR_Msk) >> SCB_CFSR_USGFAULTSR_Pos);
-    SPMLOG_DBGMSGVAL("    HFSR:  ", ctx->HFSR);
+    VERBOSE_RAW("    HFSR:  0x%08x\n", ctx->HFSR);
 #ifdef TRUSTZONE_PRESENT
-    SPMLOG_DBGMSGVAL("    SFSR:  ", ctx->SFSR);
+    VERBOSE_RAW("    SFSR:  0x%08x\n", ctx->SFSR);
     if (ctx->SFARVALID) {
-        SPMLOG_DBGMSGVAL("    SFAR: ", ctx->SFAR);
+        VERBOSE_RAW("    SFAR: 0x%08x\n", ctx->SFAR);
     } else {
-        SPMLOG_DBGMSG("    SFAR: Not Valid\r\n");
+        VERBOSE_RAW("    SFAR: Not Valid\n");
     }
 #endif
 
@@ -168,36 +168,36 @@ static void dump_error(const struct exception_info_t *ctx)
 {
     bool stack_error = false;
 
-    SPMLOG_ERRMSG("FATAL ERROR: ");
+    ERROR_RAW("FATAL ERROR: ");
     switch (ctx->VECTACTIVE) {
     case EXCEPTION_TYPE_HARDFAULT:
-        SPMLOG_ERRMSG("HardFault\r\n");
+        ERROR_RAW("HardFault\n");
         break;
 #ifdef FAULT_STATUS_PRESENT
     case EXCEPTION_TYPE_MEMMANAGEFAULT:
-        SPMLOG_ERRMSG("MemManage fault\r\n");
+        ERROR_RAW("MemManage fault\n");
         stack_error = true;
         break;
     case EXCEPTION_TYPE_BUSFAULT:
-        SPMLOG_ERRMSG("BusFault\r\n");
+        ERROR_RAW("BusFault\n");
         stack_error = true;
         break;
     case EXCEPTION_TYPE_USAGEFAULT:
-        SPMLOG_ERRMSG("UsageFault\r\n");
+        ERROR_RAW("UsageFault\n");
         stack_error = true;
         break;
 #ifdef TRUSTZONE_PRESENT
     case EXCEPTION_TYPE_SECUREFAULT:
-        SPMLOG_ERRMSG("SecureFault\r\n");
+        ERROR_RAW("SecureFault\n");
         break;
 #endif
 #endif
     /* Platform specific external interrupt secure handler. */
     default:
         if (ctx->VECTACTIVE < 16) {
-            SPMLOG_ERRMSGVAL("Reserved Exception ", ctx->VECTACTIVE);
+            ERROR_RAW("Reserved Exception 0x%08x\n", ctx->VECTACTIVE);
         } else {
-            SPMLOG_ERRMSGVAL("Platform external interrupt (IRQn): ", ctx->VECTACTIVE - 16);
+            ERROR_RAW("Platform external interrupt (IRQn): 0x%08x\n", ctx->VECTACTIVE - 16);
         }
         /* Depends on the platform, assume it may cause stack error */
         stack_error = true;

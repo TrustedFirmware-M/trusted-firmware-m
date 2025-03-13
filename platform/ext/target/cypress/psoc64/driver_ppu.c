@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2019, Cypress Semiconductor Corporation. All rights reserved.
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#include "tfm_spm_log.h"
+#include "tfm_log.h"
 #include "driver_ppu.h"
 #include "pc_config.h"
 #include "ppu_config.h"
@@ -222,7 +222,7 @@ cy_en_prot_status_t PPU_Configure(const PPU_Resources *ppu_dev)
 #endif
 
     default:
-        SPMLOG_ERRMSGVAL("Unexpected peripheral type ", ppu_dev->ppu_type);
+        ERROR_RAW("Unexpected peripheral type 0x%08x\n", ppu_dev->ppu_type);
         return CY_PROT_BAD_PARAM;
     }
 
