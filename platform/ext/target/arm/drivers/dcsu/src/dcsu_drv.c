@@ -3,19 +3,16 @@
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  */
 
-#include "dcsu_drv.h"
-
-#include "dcsu_reg_defs.h"
-#include "dcsu_hal.h"
-#include "fatal_error.h"
-
-#include "dcsu_config.h"
-#include "rse_otp_layout.h"
-
-#include "tfm_log.h"
-
 #include <string.h>
 #include <assert.h>
+#include "dcsu_config.h"
+#include "dcsu_drv.h"
+#include "dcsu_hal.h"
+#include "dcsu_reg_defs.h"
+#include "fatal_error.h"
+#include "rse_chip_output_data.h"
+#include "rse_otp_layout.h"
+#include "tfm_log.h"
 
 #define MAX_RX_SIZE (sizeof(((struct _dcsu_reg_map_t *)0)->diag_rx_data))
 #define MAX_TX_SIZE (sizeof(((struct _dcsu_reg_map_t *)0)->diag_tx_data))
@@ -236,7 +233,20 @@ static void dcsu_clear_pending_tx_interrupt(struct dcsu_dev_t *dev)
 static enum dcsu_error_t rx_generate_soc_unique_id(struct dcsu_dev_t *dev,
                                                    enum dcsu_rx_msg_response_t *msg_resp)
 {
+    (void)dev;
     return dcsu_hal_generate_soc_unique_id(msg_resp);
+}
+
+static enum dcsu_error_t rx_read_cod_data(struct dcsu_dev_t *dev,
+                                          enum dcsu_rx_msg_response_t *msg_resp)
+{
+    struct _dcsu_reg_map_t* p_dcsu = (struct _dcsu_reg_map_t*)dev->cfg->base;
+    /* Word offset within the COD area in OTP */
+    uint32_t cod_offset = DCSU_get_word_offset(p_dcsu);
+    /* Number of words to be read from the COD area */
+    uint32_t read_words = DCSU_get_number_of_words(p_dcsu);
+
+    return dcsu_hal_read_cod_data(cod_offset, read_words * sizeof(uint32_t), msg_resp);
 }
 
 static enum dcsu_error_t rx_compute_zc_soc_ids(struct dcsu_dev_t *dev,
@@ -659,13 +669,13 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_co
         err = rx_cancel_import(dev, &msg_resp);
         break;
     case DCSU_RX_COMMAND_READ_COD_DATA:
-        err = rx_read_partial_field(dev, DCSU_OTP_FIELD_CM_COD, &msg_resp);
+        err = rx_read_cod_data(dev, &msg_resp);
         break;
 #ifdef RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE
     case DCSU_RX_COMMAND_READ_EC_PARAMS:
         err = rx_read_partial_field(dev, DCSU_OTP_FIELD_EC_PARAMS, &msg_resp);
-#endif /* RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE */
         break;
+#endif /* RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE */
     case DCSU_RX_COMMAND_SET_PS_FC:
         err = rx_set_product_specific_feature_ctrl(dev, &msg_resp);
         break;

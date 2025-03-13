@@ -6,14 +6,13 @@
 #include <string.h>
 
 #include "dcsu_hal.h"
-
 #include "device_definition.h"
-#include "rse_soc_uid.h"
-#include "rse_otp_dev.h"
-#include "rse_otp_config.h"
-#include "rse_zero_count.h"
-#include "rse_persistent_data.h"
 #include "lcm_drv.h"
+#include "rse_otp_config.h"
+#include "rse_otp_dev.h"
+#include "rse_persistent_data.h"
+#include "rse_soc_uid.h"
+#include "rse_zero_count.h"
 
 static inline uint32_t round_down(uint32_t num, uint32_t boundary)
 {
@@ -86,7 +85,6 @@ enum dcsu_error_t dcsu_hal_get_field_offset(enum dcsu_otp_field_t field, uint32_
     case DCSU_OTP_FIELD_CM_COD:
         *offset = OTP_OFFSET(P_RSE_OTP_CM->cod);
         break;
-#ifdef RSE_OTP_HAS_DYNAMIC_AREA
 #ifdef RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE
     case DCSU_OTP_FIELD_EC_PARAMS:
         *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->iak_endorsement_certificate_signature);
@@ -96,8 +94,6 @@ enum dcsu_error_t dcsu_hal_get_field_offset(enum dcsu_otp_field_t field, uint32_
     case DCSU_OTP_FIELD_FEATURE_CTRL:
         *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->feature_control);
         break;
-#endif
-#ifdef RSE_SKU_ENABLED
     case DCSU_OTP_FIELD_PS_FC:
         *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->se_dev_control_ps_fc.ps_fc);
         break;
@@ -106,8 +102,7 @@ enum dcsu_error_t dcsu_hal_get_field_offset(enum dcsu_otp_field_t field, uint32_
     case DCSU_OTP_FIELD_SE_DEV_CONTROL:
         *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->se_dev_control_ps_fc.se_dev_control);
         break;
-#endif
-#endif /* RSE_OTP_HAS_DYNAMIC_AREA */
+#endif /* RSE_HAS_SE_DEV_SOFT_LCS */
     default:
         *offset = 0;
         return DCSU_ERROR_RX_MSG_INVALID_OTP_FIELD;
@@ -149,7 +144,6 @@ enum dcsu_error_t dcsu_hal_get_field_size(enum dcsu_otp_field_t field, uint32_t 
     case DCSU_OTP_FIELD_CM_COD:
         *size = sizeof(P_RSE_OTP_CM->cod);
         break;
-#ifdef RSE_OTP_HAS_DYNAMIC_AREA
 #ifdef RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE
     case DCSU_OTP_FIELD_EC_PARAMS:
         *size = sizeof(P_RSE_OTP_DYNAMIC->iak_endorsement_certificate_signature) +
@@ -160,8 +154,6 @@ enum dcsu_error_t dcsu_hal_get_field_size(enum dcsu_otp_field_t field, uint32_t 
     case DCSU_OTP_FIELD_FEATURE_CTRL:
         *size = sizeof(P_RSE_OTP_DYNAMIC->feature_control);
         break;
-#endif /* RSE_SKU_ENABLED */
-#ifdef RSE_SKU_ENABLED
     case DCSU_OTP_FIELD_PS_FC:
         *size = sizeof(P_RSE_OTP_DYNAMIC->se_dev_control_ps_fc.ps_fc);
         break;
@@ -170,8 +162,7 @@ enum dcsu_error_t dcsu_hal_get_field_size(enum dcsu_otp_field_t field, uint32_t 
     case DCSU_OTP_FIELD_SE_DEV_CONTROL:
         *size = sizeof(P_RSE_OTP_DYNAMIC->se_dev_control_ps_fc.se_dev_control);
         break;
-#endif
-#endif /* RSE_OTP_HAS_DYNAMIC_AREA */
+#endif /* RSE_HAS_SE_DEV_SOFT_LCS */
     default:
         *size = 0;
         return DCSU_ERROR_RX_MSG_INVALID_OTP_FIELD;
@@ -193,6 +184,57 @@ enum dcsu_error_t dcsu_hal_generate_soc_unique_id(enum dcsu_rx_msg_response_t *r
     *response = DCSU_RX_MSG_RESP_INVALID_COMMAND;
     return DCSU_ERROR_RX_MSG_INVALID_OTP_FIELD;
 #endif /* RSE_OTP_HAS_SOC_AREA */
+}
+
+enum dcsu_error_t dcsu_hal_read_cod_data(uint32_t cod_offset, uint32_t read_size,
+                                         enum dcsu_rx_msg_response_t *msg_resp)
+{
+#ifdef RSE_ENABLE_CHIP_OUTPUT_DATA
+    const size_t cod_size = sizeof(struct rse_provisioning_reply_t);
+    struct rse_provisioning_reply_t *cod_reply = &(RSE_PERSISTENT_DATA->bl1_data.cod_reply);
+    const uint32_t *base_ptr = &(((uint32_t *)cod_reply)[cod_offset]);
+
+    /* Check that the requested word-offset is not outside of the maximum possible */
+    if (cod_offset >= cod_size / sizeof(uint32_t)) {
+        *msg_resp = DCSU_RX_MSG_RESP_TOO_LARGE_OFFSET_PARAM;
+        return DCSU_ERROR_NONE;
+    }
+
+    /* Check whether the requested read_size does not exceed available data to read */
+    if ((uintptr_t)base_ptr + read_size > (uintptr_t)cod_reply + cod_size) {
+        *msg_resp = DCSU_RX_MSG_RESP_TOO_LARGE_ACCESS_REQUEST;
+        return DCSU_ERROR_NONE;
+    }
+
+    /* Populate from OTP only if the reply in persistent storage is not valid */
+    if (!RSE_PERSISTENT_DATA->bl1_data.cod_reply_is_valid) {
+        plat_err = rse_get_chip_output_data(&(cod_reply->cod.data));
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            /* Couldn't read the COD area from OTP so the command is not valid */
+            *msg_resp = DCSU_RX_MSG_RESP_INVALID_COMMAND;
+            return DCSU_ERROR_NONE;
+        }
+        cod_reply->cod.cod_metadata = 0;
+        cod_reply->header.type = RSE_PROVISIONING_REPLY_TYPE_CHIP_OUTPUT_DATA;
+        cod_reply->header.data_length = sizeof(rse_provisioning_reply_cod_t);
+
+        /* Mark the reply in persistent storage as valid now */
+        RSE_PERSISTENT_DATA->bl1_data.cod_reply_is_valid = true;
+    }
+
+    for (uint32_t idx = 0; idx < read_size / sizeof(uint32_t); idx++) {
+        p_dcsu->diag_tx_data[idx] = base_ptr[idx];
+    }
+
+    /* FixMe: This does not support yet returning SUCCESS_READ_0,
+     *        SUCCESS_READ_1, SUCCESS_READ_2, SUCCESS_READ_3
+     */
+    *msg_resp = DCSU_RX_MSG_RESP_SUCCESS;
+    return DCSU_ERROR_NONE;
+#else
+    *msg_resp = DCSU_RX_MSG_RESP_INVALID_COMMAND;
+    return DCSU_ERROR_RX_MSG_INVALID_OTP_FIELD;
+#endif /* RSE_ENABLE_CHIP_OUTPUT_DATA */
 }
 
 static enum dcsu_error_t __dcsu_hal_read_write_otp(uint32_t otp_field_read_offset, uint32_t *data,
