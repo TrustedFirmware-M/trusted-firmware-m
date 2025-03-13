@@ -219,6 +219,7 @@ if(BL2)
             bl2_crypto
             bl2_hal
             tfm_log
+            tfm_vprintf
             mcuboot_config
             $<$<AND:$<BOOL:${CONFIG_TFM_BOOT_STORE_MEASUREMENTS}>,$<NOT:$<BOOL:${CONFIG_TFM_BOOT_STORE_ENCODED_MEASUREMENTS}>>>:tfm_boot_status>
     )
@@ -321,6 +322,7 @@ if(BL1 AND PLATFORM_DEFAULT_BL1)
         PRIVATE
             tfm_fih
             tfm_log
+            tfm_vprintf
             tfm_fih_headers
             tfm_boot_status
     )
@@ -374,6 +376,7 @@ if(BL1 AND PLATFORM_DEFAULT_BL1)
             tfm_fih
             tfm_fih_headers
             tfm_log
+            tfm_vprintf
             tfm_boot_status
             platform_region_defs
             bl1_1_shared_lib_interface

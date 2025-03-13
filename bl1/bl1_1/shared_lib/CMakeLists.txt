@@ -37,6 +37,7 @@ target_link_libraries(bl1_1_shared_lib
     PUBLIC
         bl1_1_shared_lib_interface
         tfm_log
+        tfm_vprintf
     PRIVATE
         platform_bl1_1
 )

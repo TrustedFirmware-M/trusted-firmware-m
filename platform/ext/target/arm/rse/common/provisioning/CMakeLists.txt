@@ -31,6 +31,7 @@ target_sources(platform_bl1_1
 target_link_libraries(platform_bl1_1
     PUBLIC
         tfm_log
+        tfm_vprintf
 )
 
 target_include_directories(platform_bl1_1_interface

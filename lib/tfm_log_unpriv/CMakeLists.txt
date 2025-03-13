@@ -23,5 +23,4 @@ target_include_directories(tfm_log_unpriv_headers
 target_link_libraries(tfm_log_unpriv
     INTERFACE
         tfm_log_unpriv_headers
-        tfm_vprintf
 )
