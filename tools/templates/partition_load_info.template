@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2025, Arm Limited. All rights reserved.
  * Copyright (c) 2021-2023 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -307,4 +307,18 @@ __root
 #endif /* __ICCARM__ */
 static struct service_t {{manifest.name|lower}}_service_runtime_item[{{(manifest.name|upper + "_NSERVS")}}]
     __attribute__((used, section(".bss.serv_runtime_priority_{{numbered_priority}}")));
+{% endif %}
+
+{% if manifest.ns_agent is sameas true %}
+    {% set _ = manifest_ns_agent_client_id_validate(manifest.name, manifest.client_id_base, manifest.client_id_limit) %}
+
+    {% if counter.irq_counter > 0 %}
+        {% for irq in manifest.irqs %}
+            {% if manifest.psa_framework_version == 1.0 %}
+                {% set _ = manifest_irq_client_id_validate(manifest.name, irq.signal, irq.client_id_base, irq.client_id_limit) %}
+            {% else %}
+                {% set _ = manifest_irq_client_id_validate(manifest.name, irq.name, irq.client_id_base, irq.client_id_limit) %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
 {% endif %}

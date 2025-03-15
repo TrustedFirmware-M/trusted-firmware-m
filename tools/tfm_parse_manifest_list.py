@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2018-2024, Arm Limited. All rights reserved.
+# Copyright (c) 2018-2025, Arm Limited. All rights reserved.
 # Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
@@ -14,6 +14,7 @@ import sys
 import argparse
 import logging
 from jinja2 import Environment, BaseLoader, select_autoescape, TemplateNotFound
+from manifest_helpers import manifest_client_id_validate
 
 try:
     import yaml
@@ -764,6 +765,14 @@ def parse_args():
 
     return args
 
+def register_helpers():
+    """
+    Register helper functions to enable templates to call those helpers.
+    """
+
+    ENV.globals["manifest_ns_agent_client_id_validate"] = manifest_client_id_validate.ns_agent_client_id_validate
+    ENV.globals["manifest_irq_client_id_validate"] = manifest_client_id_validate.irq_client_id_validate
+
 ENV = Environment(
         loader = TemplateLoader(),
         autoescape = select_autoescape(['html', 'xml']),
@@ -787,6 +796,8 @@ def main():
                         , level=logging.WARNING if args.quiet else logging.INFO)
 
     OUT_DIR = os.path.abspath(args.outdir)
+
+    register_helpers()
 
     manifest_lists = [os.path.abspath(x) for x in args.manifest_lists]
     gen_file_lists = [os.path.abspath(x) for x in args.gen_file_args]
