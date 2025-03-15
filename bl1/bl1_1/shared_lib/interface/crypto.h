@@ -214,6 +214,34 @@ fih_int bl1_ecc_derive_key(enum tfm_bl1_ecdsa_curve_t curve, enum tfm_bl1_key_id
                            const uint8_t *label, size_t label_length,
                            const uint8_t *context, size_t context_length,
                            uint32_t *output_key, size_t output_size);
+
+/**
+ * @brief Verifies that the provided signature is a valid signature of the input
+ *        hash using ECDSA and the selected curve
+ *
+ * @param[in] curve             Desired curve over which to verify, of type \ref tfm_bl1_ecdsa_curve_t
+ * @param[in] public_key_x      The buffer to read the public key x coord from.
+ * @param[in] public_key_x_len  The size of the public key x coord buffer.
+ * @param[in] public_key_y      The buffer to read the public key y coord from.
+ * @param[in] public_key_y_len  The size of the public key y coord buffer.
+ * @param[in] hash              The buffer to read the hash from.
+ * @param[in] hash_len          The size of the hash buffer.
+ * @param[in] sig_r             The buffer to read the signature r param from.
+ * @param[in] sig_r_len         The size of the signature r param buffer.
+ * @param[in] sig_s             The buffer to read the signature s param from.
+ * @param[in] sig_s_len         The size of the signature s param buffer.
+ *
+ * @return FIH_SUCCESS on success, non-zero on error
+ */
+fih_int bl1_internal_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t bl1_curve,
+                                const uint32_t *public_key_x,
+                                size_t public_key_x_len,
+                                const uint32_t *public_key_y,
+                                size_t public_key_y_len,
+                                const uint32_t *hash, size_t hash_len,
+                                const uint32_t *sig_r, size_t sig_r_len,
+                                const uint32_t *sig_s, size_t sig_s_len);
+
 /**
  * @brief Verifies that the provided signature is a valid signature of the input
  *        hash using ECDSA and the selected curve

@@ -501,6 +501,27 @@ fih_int bl1_ecc_derive_key(
     FIH_RET(fih_rc);
 }
 
+fih_int bl1_internal_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t bl1_curve,
+                                const uint32_t *public_key_x,
+                                size_t public_key_x_len,
+                                const uint32_t *public_key_y,
+                                size_t public_key_y_len,
+                                const uint32_t *hash, size_t hash_len,
+                                const uint32_t *sig_r, size_t sig_r_len,
+                                const uint32_t *sig_s, size_t sig_s_len)
+{
+    cc3xx_err_t cc_err = CC3XX_ERR_SUCCESS;
+
+    cc_err = cc3xx_lowlevel_ecdsa_verify(bl1_curve_to_cc3xx_curve(bl1_curve),
+                                            public_key_x, public_key_x_len,
+                                            public_key_y, public_key_y_len,
+                                            hash, hash_len,
+                                            sig_r, sig_r_len,
+                                            sig_s, sig_s_len);
+
+    FIH_RET(fih_int_encode_zero_equality(cc_err));
+}
+
 fih_int bl1_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t curve,
                          uint8_t *key, size_t key_size,
                          const uint8_t *hash,
@@ -509,12 +530,13 @@ fih_int bl1_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t curve,
                          size_t signature_size)
 {
     cc3xx_err_t cc_err;
-    const cc3xx_ec_curve_id_t cc_curve = bl1_curve_to_cc3xx_curve(curve);
-    uint32_t point_size = cc3xx_lowlevel_ec_get_modulus_size_from_curve(cc_curve);
+    uint32_t point_size = cc3xx_lowlevel_ec_get_modulus_size_from_curve(
+                                            bl1_curve_to_cc3xx_curve(curve));
     uint32_t pubkey_x[point_size / sizeof(uint32_t)];
     uint32_t pubkey_y[point_size / sizeof(uint32_t)];
     uint32_t sig_r[point_size / sizeof(uint32_t)];
     uint32_t sig_s[point_size / sizeof(uint32_t)];
+    fih_int fih_rc;
 
     /* We extract at least 2 * point_size from the key buffer, right aligned */
     if (key_size < point_size * 2) {
@@ -533,19 +555,11 @@ fih_int bl1_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t curve,
     memcpy(sig_r, signature, point_size);
     memcpy(sig_s, signature + point_size, point_size);
 
-    cc_err = cc3xx_lowlevel_ecdsa_verify(cc_curve,
-                                         pubkey_x,
-                                         sizeof(pubkey_x),
-                                         pubkey_y,
-                                         sizeof(pubkey_y),
-                                         (uint32_t *)hash,
-                                         hash_length,
-                                         sig_r,
-                                         sizeof(sig_r),
-                                         sig_s,
-                                         sizeof(sig_s));
+    FIH_CALL(bl1_internal_ecdsa_verify, fih_rc, curve, pubkey_x, sizeof(pubkey_x),
+                pubkey_y, sizeof(pubkey_y), (uint32_t *)hash, hash_length,
+                sig_r, sizeof(sig_r), sig_s, sizeof(sig_s));
 
-    FIH_RET(fih_int_encode_zero_equality(cc_err));
+    FIH_RET(fih_rc);
 }
 
 fih_int bl1_aes_set_lengths( size_t total_ad_len,
