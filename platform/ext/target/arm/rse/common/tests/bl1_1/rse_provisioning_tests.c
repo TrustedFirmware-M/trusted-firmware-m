@@ -55,8 +55,8 @@
  * have the definitions we need to manually define them here.
  */
 bool blob_needs_code_data_decryption(const struct rse_provisioning_message_blob_t *blob);
-
 bool blob_needs_secret_decryption(const struct rse_provisioning_message_blob_t *blob);
+cc3xx_ec_curve_id_t bl1_curve_to_cc3xx_curve(enum tfm_bl1_ecdsa_curve_t bl1_curve);
 
 enum tfm_plat_err_t
 validate_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob, size_t msg_size,
@@ -371,13 +371,13 @@ static enum tfm_plat_err_t ecdsa_sign_test_image(struct rse_provisioning_message
         return err;
     }
 
-    point_size = cc3xx_lowlevel_ec_get_modulus_size_from_curve(RSE_PROVISIONING_CURVE);
+    point_size = cc3xx_lowlevel_ec_get_modulus_size_from_curve(bl1_curve_to_cc3xx_curve(RSE_PROVISIONING_CURVE));
     blob->signature_size = point_size * 2;
 
-    cc_err = cc3xx_lowlevel_ecdsa_sign(RSE_PROVISIONING_CURVE, private_key, private_key_size, hash,
-                                       hash_size, (uint32_t *)blob->signature, point_size, &r_size,
-                                       (uint32_t *)(blob->signature + point_size), point_size,
-                                       &s_size);
+    cc_err = cc3xx_lowlevel_ecdsa_sign(bl1_curve_to_cc3xx_curve(RSE_PROVISIONING_CURVE), private_key,
+                                       private_key_size, hash, hash_size, (uint32_t *)blob->signature,
+                                       point_size, &r_size, (uint32_t *)(blob->signature + point_size),
+                                       point_size, &s_size);
     if (cc_err != CC3XX_ERR_SUCCESS) {
         return (enum tfm_plat_err_t)cc_err;
     }
@@ -392,13 +392,14 @@ static enum tfm_plat_err_t ecdsa_generate_public_private_key_pair(
 {
     cc3xx_err_t cc_err;
 
-    cc_err = cc3xx_lowlevel_ecdsa_genkey(RSE_PROVISIONING_CURVE, private_key, private_key_len,
-                                         private_key_size);
+    cc_err = cc3xx_lowlevel_ecdsa_genkey(bl1_curve_to_cc3xx_curve(RSE_PROVISIONING_CURVE),
+                                         private_key, private_key_len, private_key_size);
     if (cc_err != CC3XX_ERR_SUCCESS) {
         return (enum tfm_plat_err_t)cc_err;
     }
 
-    cc_err = cc3xx_lowlevel_ecdsa_getpub(RSE_PROVISIONING_CURVE, private_key, private_key_len,
+    cc_err = cc3xx_lowlevel_ecdsa_getpub(bl1_curve_to_cc3xx_curve(RSE_PROVISIONING_CURVE),
+                                         private_key, private_key_len,
                                          public_key_x, public_key_x_len, public_key_x_size,
                                          public_key_y, public_key_y_len, public_key_y_size);
     if (cc_err != CC3XX_ERR_SUCCESS) {
@@ -1151,8 +1152,8 @@ ecdsa_key_write_otp(const struct rse_provisioning_ecdsa_gen_key_data_t *data, ui
 
     plat_err = get_asn1_from_raw_ec((const uint8_t *)data->public_key_x, data->public_key_x_len,
                                     (const uint8_t *)data->public_key_y, data->public_key_y_len,
-                                    RSE_PROVISIONING_CURVE, asn1_key, sizeof(asn1_key),
-                                    &asn1_key_len);
+                                    RSE_PROVISIONING_CURVE, asn1_key,
+                                    sizeof(asn1_key), &asn1_key_len);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }

@@ -68,17 +68,17 @@ static enum tfm_plat_err_t get_key_hash_from_otp(enum tfm_otp_element_id_t id,
 
 TEST_STATIC
 enum tfm_plat_err_t get_asn1_from_raw_ec(const uint8_t *x, size_t x_size, const uint8_t *y,
-                                         size_t y_size, cc3xx_ec_curve_id_t curve_id,
+                                         size_t y_size, enum tfm_bl1_ecdsa_curve_t curve_id,
                                          uint8_t *asn1_key, size_t asn1_key_size, size_t *len)
 {
     enum rse_asn1_ecdsa_public_key_curve asn1_curve;
     struct rse_asn1_pk_s asn1_pk;
 
     switch (curve_id) {
-    case CC3XX_EC_CURVE_SECP_256_R1:
+    case TFM_BL1_CURVE_P256:
         asn1_curve = RSE_ASN1_ECDSA_PUBLIC_KEY_CURVE_SECP256R1;
         break;
-    case CC3XX_EC_CURVE_SECP_384_R1:
+    case TFM_BL1_CURVE_P384:
         asn1_curve = RSE_ASN1_ECDSA_PUBLIC_KEY_CURVE_SECP384R1;
         break;
     default:
@@ -136,6 +136,27 @@ calc_key_hash_from_blob(const struct rse_provisioning_message_blob_t *blob, uint
     return TFM_PLAT_ERR_SUCCESS;
 }
 
+/**
+ * @brief Convert from BL1 curve to CC3XX curve (driver_specific)
+ *
+ * @param[in] bl1_curve BL1 curve to translate to a CC3XX curve
+ *
+ * @return cc3xx_ec_curve_id_t Converted curve as interpreted by CC3XX driver
+ */
+TEST_STATIC
+cc3xx_ec_curve_id_t bl1_curve_to_cc3xx_curve(enum tfm_bl1_ecdsa_curve_t bl1_curve)
+{
+    switch(bl1_curve) {
+    case TFM_BL1_CURVE_P256:
+        return CC3XX_EC_CURVE_SECP_256_R1;
+    case TFM_BL1_CURVE_P384:
+        return CC3XX_EC_CURVE_SECP_384_R1;
+    default:
+        return _CURVE_ID_MAX;
+    };
+}
+
+
 static enum tfm_plat_err_t get_check_hash_cm_rotpk(const struct rse_provisioning_message_blob_t *blob,
                                                    uint32_t **public_key_x,
                                                    size_t *public_key_x_size,
@@ -158,7 +179,8 @@ static enum tfm_plat_err_t get_check_hash_cm_rotpk(const struct rse_provisioning
         return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_CM_ROTPK;
     }
 
-    point_size = cc3xx_lowlevel_ec_get_modulus_size_from_curve(RSE_PROVISIONING_CURVE);
+    point_size = cc3xx_lowlevel_ec_get_modulus_size_from_curve(
+                            bl1_curve_to_cc3xx_curve(RSE_PROVISIONING_CURVE));
 
     err = get_key_hash_from_otp(id, key_hash_from_otp, &hash_alg);
     if (err != TFM_PLAT_ERR_SUCCESS) {

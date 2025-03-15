@@ -11,7 +11,6 @@
 
 #include "rse_provisioning_message.h"
 #include "rse_provisioning_config.h"
-#include "cc3xx_drv.h"
 #include "device_definition.h"
 #include "tfm_log.h"
 #include "region_defs.h"
@@ -455,8 +454,8 @@ static fih_int ecdsa_validate_and_unpack_blob(const struct rse_provisioning_mess
                                                           setup_aes_key_func_t setup_aes_key,
                                                           get_rotpk_func_t get_rotpk)
 {
+    fih_int fih_rc;
     enum tfm_plat_err_t err;
-    cc3xx_err_t cc_err;
     uint32_t blob_hash[RSE_PROVISIONING_HASH_SIZE / sizeof(uint32_t)];
     uint32_t *public_key_x;
     uint32_t *public_key_y;
@@ -489,13 +488,13 @@ static fih_int ecdsa_validate_and_unpack_blob(const struct rse_provisioning_mess
         FIH_RET(fih_int_encode(err));
     }
 
-    cc_err = cc3xx_lowlevel_ecdsa_verify(RSE_PROVISIONING_CURVE,
-                                         public_key_x, public_key_x_size,
-                                         public_key_y, public_key_y_size,
-                                         blob_hash, hash_size,
-                                         (uint32_t *)blob->signature, sig_point_len,
-                                         (uint32_t *)(blob->signature + sig_point_len), sig_point_len);
-    FIH_RET(fih_int_encode(cc_err));
+    FIH_CALL(bl1_internal_ecdsa_verify, fih_rc, RSE_PROVISIONING_CURVE,
+             public_key_x, public_key_x_size,
+             public_key_y, public_key_y_size,
+             blob_hash, hash_size,
+             (uint32_t *)blob->signature, sig_point_len,
+             (uint32_t *)(blob->signature + sig_point_len), sig_point_len);
+    FIH_RET(fih_rc);
 }
 #endif /* RSE_PROVISIONING_ENABLE_ECDSA_SIGNATURES */
 
