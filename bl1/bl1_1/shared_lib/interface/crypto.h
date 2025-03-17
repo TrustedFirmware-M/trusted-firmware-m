@@ -65,6 +65,39 @@ enum tfm_bl1_hash_alg_t {
 };
 
 /**
+ * @brief Describes the allowed aes direction in BL1
+ *
+ * @enum tfm_bl1_aes_direction_t
+ *
+ */
+enum tfm_bl1_aes_direction_t {
+    TFM_BL1_AES_DIRECTION_ENCRYPT,
+    TFM_BL1_AES_DIRECTION_DECRYPT,
+};
+
+/**
+ * @brief Describes the allowed aes modes in BL1
+ *
+ * @enum tfm_bl1_aes_mode_t
+ *
+ */
+enum tfm_bl1_aes_mode_t {
+    TFM_BL1_AES_MODE_CTR,
+    TFM_BL1_AES_MODE_CCM,
+    TFM_BL1_AES_MODE_CMAC,
+};
+
+/**
+ * @brief Describes the allowed aes key size in BL1
+ *
+ * @enum tfm_bl1_aes_key_size_t
+ *
+ */
+enum tfm_bl1_aes_key_size_t {
+    TFM_BL1_AES_KEY_SIZE_256 = 256,
+};
+
+/**
  * @brief Computes a hash of data as a single integrated operation
  *
  * @param[in]  alg         Algorithm of type \ref tfm_bl1_hash_alg_t
@@ -201,6 +234,80 @@ fih_int bl1_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t curve,
                          size_t hash_length,
                          const uint8_t *signature,
                          size_t signature_size);
+
+
+/**
+ * @brief Set the length of the data that will be input and the length of the
+ *        tag produced or verified by AEAD/MAC modes.
+ *
+ * @param[in] total_ad_len  How many bytes of data will be authenticated
+ * @param[in] plaintext_len How many bytes of data will be encrypted
+ * @param[in] tag_len       The length of the tag
+ *
+ * @return FIH_SUCCESS on success, non-zero on error
+ */
+fih_int bl1_aes_set_lengths(size_t total_ad_len,
+                            size_t plaintext_len,
+                            size_t tag_len);
+
+/**
+ * @brief  Finish an AES operation. Calling this will encrypt/decrypt the
+ *         final data.
+ *
+ * @param[in,out]  tag      The buffer to write the tag into or read and
+ *                          compare the tag from, depending on direction.
+ *                          The tag size will be 16 if not explicitly set,
+ *                          and the buffer must be sized appropriately. Can
+ *                          be NULL if using a non-AEAD/MAC mode.
+ *
+ * @param[out]     tag_len  The size of the output that has been written.
+ *
+ * @return FIH_SUCCESS on success, non-zero on error
+ */
+fih_int bl1_aes_finish(uint8_t *tag, size_t tag_len);
+
+/**
+ * @brief  Input data to be authenticated, but not encrypted or decrypted into
+ *         an AEAD/MAC operation.
+ *
+ * @param[in] ad        A pointer to the data to be input.
+ * @param[in] ad_len    The size of the data to be input.
+ *
+ * @return FIH_SUCCESS on success, non-zero on error
+ */
+fih_int bl1_aes_update_authed_data(uint8_t *ad, size_t ad_len);
+
+/**
+ * @brief Input data to be encrypted/decrypted into an AES operation.
+
+ * @param[in] input       A pointer to the data to be input
+ * @param[in] input_len   The size of the data to be input
+ * @param[in] output      A pointer to the data to be output
+ * @param[in] output_size The size of the data to be output
+ * @param[in] output_len  The length of the output
+ */
+fih_int bl1_aes_update(const uint8_t *input, size_t input_len,
+                    uint8_t *output, size_t output_size,
+                    size_t *output_len);
+
+/**
+ * @brief  Initialize an AES operation.
+ *
+ * @param[in]  direction Whether the operation should encrypt or decrypt.
+ * @param[in]  mode      Which AES mode should be used.
+ * @param[in]  key_id    Which user/hardware key should be used.
+ * @param[in]  key       This buffer contains the key material.
+ * @param[in]  key_size  The size of the key being used.
+ * @param[in]  iv        The initial IV/CTR value for the mode. For modes
+ *                       without an IV/CTR, this may be NULL.
+ * @param[in]  iv_len    The size of the IV input.
+ *
+ * @return FIH_SUCCESS on success, non-zero on error
+ */
+fih_int bl1_aes_init(enum tfm_bl1_aes_direction_t direction,
+    enum tfm_bl1_aes_mode_t mode, enum tfm_bl1_key_id_t key_id,
+    const uint32_t *key, enum tfm_bl1_aes_key_size_t key_size,
+    const uint32_t *iv, size_t iv_len);
 
 #ifdef __cplusplus
 }

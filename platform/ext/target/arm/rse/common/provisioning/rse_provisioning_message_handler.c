@@ -6,6 +6,7 @@
  */
 
 #include "platform_error_codes.h"
+
 #include "fatal_error.h"
 #include "rse_provisioning_message_handler.h"
 #include "rse_provisioning_message.h"

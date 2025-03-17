@@ -34,6 +34,9 @@
 #define TEST_STATIC_INLINE static inline
 #endif
 
+#define AES_IV_LEN 16
+#define AES_TAG_MAX_LEN 16
+
 static bool rse_debug_is_enabled(void)
 {
     enum lcm_error_t lcm_err;
@@ -164,6 +167,8 @@ static enum tfm_plat_err_t copy_auth_code_data(const struct rse_provisioning_mes
                                                void *code_output, size_t code_output_size,
                                                void *data_output, size_t data_output_size)
 {
+    fih_int fih_rc;
+
     if (blob->code_size > code_output_size) {
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_CODE_SIZE);
         return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_CODE_SIZE;
@@ -175,10 +180,16 @@ static enum tfm_plat_err_t copy_auth_code_data(const struct rse_provisioning_mes
     }
 
     memcpy(code_output, blob->code_and_data_and_secret_values, blob->code_size);
-    cc3xx_lowlevel_aes_update_authed_data(code_output, blob->code_size);
+    FIH_CALL(bl1_aes_update_authed_data, fih_rc, code_output, blob->code_size);
+    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
+    }
 
     memcpy(data_output, blob->code_and_data_and_secret_values + blob->code_size, blob->data_size);
-    cc3xx_lowlevel_aes_update_authed_data(data_output, blob->data_size);
+    FIH_CALL(bl1_aes_update_authed_data, fih_rc, data_output, blob->data_size);
+    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
+    }
 
     return TFM_PLAT_ERR_SUCCESS;
 }
@@ -187,21 +198,20 @@ static enum tfm_plat_err_t decrypt_code_data(const struct rse_provisioning_messa
                                              void *code_output, size_t code_output_size,
                                              void *data_output, size_t data_output_size)
 {
-    enum cc3xx_error cc_err;
+    fih_int fih_rc;
 
     /* This catches if the buffer would overflow */
-    cc3xx_lowlevel_aes_set_output_buffer(code_output, code_output_size);
-    cc_err = cc3xx_lowlevel_aes_update(blob->code_and_data_and_secret_values,
-                                       blob->code_size);
-    if (cc_err != CC3XX_ERR_SUCCESS) {
-        return (enum tfm_plat_err_t)cc_err;
+    FIH_CALL(bl1_aes_update, fih_rc, blob->code_and_data_and_secret_values,
+                blob->code_size, code_output, code_output_size, NULL);
+    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
     }
 
-    cc3xx_lowlevel_aes_set_output_buffer(data_output, data_output_size);
-    cc_err = cc3xx_lowlevel_aes_update(blob->code_and_data_and_secret_values + blob->code_size,
-                                       blob->data_size);
-    if (cc_err != CC3XX_ERR_SUCCESS) {
-        return (enum tfm_plat_err_t)cc_err;
+    FIH_CALL(bl1_aes_update, fih_rc, blob->code_and_data_and_secret_values +
+                blob->code_size, blob->data_size, data_output, data_output_size,
+                NULL);
+    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
     }
 
     return TFM_PLAT_ERR_SUCCESS;
@@ -210,6 +220,8 @@ static enum tfm_plat_err_t decrypt_code_data(const struct rse_provisioning_messa
 static enum tfm_plat_err_t copy_auth_secret_values(const struct rse_provisioning_message_blob_t *blob,
                                                    void *values_output, size_t values_output_size)
 {
+    fih_int fih_rc;
+
     if (blob->secret_values_size > values_output_size) {
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_VALUES_SIZE);
         return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_VALUES_SIZE;
@@ -217,7 +229,10 @@ static enum tfm_plat_err_t copy_auth_secret_values(const struct rse_provisioning
 
     memcpy(values_output, blob->code_and_data_and_secret_values + blob->code_size + blob->data_size,
            blob->secret_values_size);
-    cc3xx_lowlevel_aes_update_authed_data(values_output, blob->secret_values_size);
+    FIH_CALL(bl1_aes_update_authed_data, fih_rc, values_output, blob->secret_values_size);
+    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
+    }
 
     return TFM_PLAT_ERR_SUCCESS;
 }
@@ -225,20 +240,19 @@ static enum tfm_plat_err_t copy_auth_secret_values(const struct rse_provisioning
 static enum tfm_plat_err_t decrypt_secret_values(const struct rse_provisioning_message_blob_t *blob,
                                                    void *values_output, size_t values_output_size)
 {
-    enum cc3xx_error cc_err;
+    fih_int fih_rc;
 
-    cc3xx_lowlevel_aes_set_output_buffer(values_output, values_output_size);
-    cc_err = cc3xx_lowlevel_aes_update(blob->code_and_data_and_secret_values
-                                       + blob->code_size + blob->data_size,
-                                       blob->secret_values_size);
-    if (cc_err != CC3XX_ERR_SUCCESS) {
-        return (enum tfm_plat_err_t)cc_err;
+    FIH_CALL(bl1_aes_update, fih_rc, blob->code_and_data_and_secret_values +
+                blob->code_size + blob->data_size, blob->secret_values_size,
+                values_output, values_output_size, NULL);
+    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
     }
 
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-static enum tfm_plat_err_t aes_generic_blob_operation(cc3xx_aes_mode_t mode,
+static enum tfm_plat_err_t aes_generic_blob_operation(enum tfm_bl1_aes_mode_t mode,
                                                       const struct rse_provisioning_message_blob_t *blob,
                                                       uint8_t *iv, size_t iv_len,
                                                       void *code_output, size_t code_output_size,
@@ -246,14 +260,14 @@ static enum tfm_plat_err_t aes_generic_blob_operation(cc3xx_aes_mode_t mode,
                                                       void *values_output, size_t values_output_size,
                                                       setup_aes_key_func_t setup_aes_key)
 {
+    fih_int fih_rc;
     enum tfm_plat_err_t err;
-    enum cc3xx_error cc_err;
     size_t actual_blob_size = sizeof(*blob) + blob->code_size + blob->data_size + blob->secret_values_size;
     size_t data_size_to_decrypt = 0;
     size_t data_size_to_auth = 0;
     uint32_t authed_header_offset = offsetof(struct rse_provisioning_message_blob_t, metadata);
     size_t authed_header_size = offsetof(struct rse_provisioning_message_blob_t, code_and_data_and_secret_values) - authed_header_offset;
-    cc3xx_aes_key_id_t kmu_slot;
+    enum kmu_hardware_keyslot_t kmu_slot;
 
     if (blob_needs_code_data_decryption(blob)) {
         data_size_to_decrypt += blob->code_size;
@@ -270,15 +284,13 @@ static enum tfm_plat_err_t aes_generic_blob_operation(cc3xx_aes_mode_t mode,
         return err;
     }
 
-    if ((mode == CC3XX_AES_MODE_CCM) || (data_size_to_decrypt != 0)) {
-        cc_err = cc3xx_lowlevel_aes_init(CC3XX_AES_DIRECTION_DECRYPT, mode,
-                                         kmu_slot, NULL,
-                                         CC3XX_AES_KEYSIZE_256,
-                                         (uint32_t*)iv,
-                                         iv_len);
-        if (cc_err != CC3XX_ERR_SUCCESS) {
-            ERROR("CC3XX setup failed\n");
-            return (enum tfm_plat_err_t)cc_err;
+    if ((mode == TFM_BL1_AES_MODE_CCM) || (data_size_to_decrypt != 0)) {
+        FIH_CALL(bl1_aes_init, fih_rc, TFM_BL1_AES_DIRECTION_DECRYPT, mode,
+                    kmu_slot, NULL, TFM_BL1_AES_KEY_SIZE_256, (uint32_t*)iv,
+                    iv_len);
+        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+            ERROR("AES setup failed\n");
+            return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
         }
     }
 
@@ -290,11 +302,17 @@ static enum tfm_plat_err_t aes_generic_blob_operation(cc3xx_aes_mode_t mode,
     data_size_to_auth = actual_blob_size - data_size_to_decrypt
                         - authed_header_offset;
 
-    cc3xx_lowlevel_aes_set_tag_len(AES_TAG_MAX_LEN);
-    cc3xx_lowlevel_aes_set_data_len(data_size_to_decrypt, data_size_to_auth);
+    FIH_CALL(bl1_aes_set_lengths, fih_rc, data_size_to_auth,
+                data_size_to_decrypt, AES_TAG_MAX_LEN);
+    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
+    }
 
-    cc3xx_lowlevel_aes_update_authed_data(((uint8_t *)blob) + authed_header_offset,
+    FIH_CALL(bl1_aes_update_authed_data, fih_rc, ((uint8_t *)blob) + authed_header_offset,
                                           authed_header_size);
+    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
+    }
 
     /* If the values are decrypted by the blob but the code is decrypted here,
      * then the ordering would have changed so that we don't have an
@@ -327,11 +345,11 @@ static enum tfm_plat_err_t aes_generic_blob_operation(cc3xx_aes_mode_t mode,
         return err;
     }
 
-    if ((mode == CC3XX_AES_MODE_CCM) || (data_size_to_decrypt != 0)) {
-        cc_err = cc3xx_lowlevel_aes_finish((uint32_t *)blob->signature, NULL);
-        if (cc_err != CC3XX_ERR_SUCCESS) {
+    if ((mode == TFM_BL1_AES_MODE_CCM) || (data_size_to_decrypt != 0)) {
+        FIH_CALL(bl1_aes_finish, fih_rc, (uint32_t *)blob->signature, NULL);
+        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
             ERROR("bundle decryption failed\n");
-            return (enum tfm_plat_err_t)cc_err;
+            return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
         }
     }
 
@@ -351,7 +369,7 @@ static fih_int aes_validate_and_unpack_blob(const struct rse_provisioning_messag
 
     memcpy(iv, (uint8_t*)blob->iv, sizeof(blob->iv));
 
-    err = aes_generic_blob_operation(CC3XX_AES_MODE_CCM, blob,
+    err = aes_generic_blob_operation(TFM_BL1_AES_MODE_CCM, blob,
                                      iv, 8,
                                      code_output, code_output_size,
                                      data_output, data_output_size,
@@ -375,7 +393,7 @@ static fih_int aes_decrypt_and_unpack_blob(const struct rse_provisioning_message
 
     memcpy(iv, (uint8_t*)blob->iv, sizeof(blob->iv));
 
-    err = aes_generic_blob_operation(CC3XX_AES_MODE_CTR, blob, iv, AES_IV_LEN,
+    err = aes_generic_blob_operation(TFM_BL1_AES_MODE_CTR, blob, iv, AES_IV_LEN,
                                      code_output, code_output_size,
                                      data_output, data_output_size,
                                      values_output, values_output_size,

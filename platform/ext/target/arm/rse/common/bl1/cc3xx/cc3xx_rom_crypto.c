@@ -547,3 +547,97 @@ fih_int bl1_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t curve,
 
     FIH_RET(fih_int_encode_zero_equality(cc_err));
 }
+
+fih_int bl1_aes_set_lengths( size_t total_ad_len,
+                             size_t plaintext_len,
+                             size_t tag_len )
+{
+    int ret_err = TFM_PLAT_ERR_SUCCESS;
+
+    cc3xx_lowlevel_aes_set_tag_len(tag_len);
+    cc3xx_lowlevel_aes_set_data_len(plaintext_len, total_ad_len);
+
+    FIH_RET(fih_int_encode_zero_equality(ret_err));
+}
+
+fih_int bl1_aes_finish(uint8_t *tag, size_t tag_len)
+{
+    enum cc3xx_error cc_err = CC3XX_ERR_SUCCESS;
+
+    cc_err = cc3xx_lowlevel_aes_finish(tag, tag_len);
+
+    FIH_RET(fih_int_encode_zero_equality(cc_err));
+}
+
+fih_int bl1_aes_update_authed_data(uint8_t *ad, size_t ad_len)
+{
+    int ret_err = TFM_PLAT_ERR_SUCCESS;
+
+    cc3xx_lowlevel_aes_update_authed_data(ad, ad_len);
+
+    FIH_RET(fih_int_encode_zero_equality(ret_err));
+}
+
+
+fih_int bl1_aes_update(const uint8_t *input, size_t input_len,
+                    uint8_t *output, size_t output_size,
+                    size_t *output_len)
+{
+    enum cc3xx_error cc_err = CC3XX_ERR_SUCCESS;
+
+    cc3xx_lowlevel_aes_set_output_buffer(output, output_size);
+
+    cc_err = cc3xx_lowlevel_aes_update(input, input_len);
+
+    FIH_RET(fih_int_encode_zero_equality(cc_err));
+}
+
+fih_int bl1_aes_init(enum tfm_bl1_aes_direction_t direction,
+    enum tfm_bl1_aes_mode_t mode, enum tfm_bl1_key_id_t key_id,
+    const uint32_t *key, enum tfm_bl1_aes_key_size_t key_size,
+    const uint32_t *iv, size_t iv_len)
+{
+    enum cc3xx_error cc_err = CC3XX_ERR_SUCCESS;
+    cc3xx_aes_direction_t cc_direction;
+    cc3xx_aes_mode_t cc_mode;
+    cc3xx_aes_keysize_t cc_key_size;
+
+
+    switch(direction) {
+    case TFM_BL1_AES_DIRECTION_ENCRYPT:
+        cc_direction = CC3XX_AES_DIRECTION_ENCRYPT;
+        break;
+    case TFM_BL1_AES_DIRECTION_DECRYPT:
+        cc_direction = CC3XX_AES_DIRECTION_DECRYPT;
+        break;
+    default:
+        FIH_RET(FIH_FAILURE);
+    }
+
+    switch(key_size) {
+    case TFM_BL1_AES_KEY_SIZE_256:
+        cc_key_size = CC3XX_AES_KEYSIZE_256;
+        break;
+    default:
+        FIH_RET(FIH_FAILURE);
+    }
+
+    switch(mode) {
+    case TFM_BL1_AES_MODE_CCM:
+        cc_mode = CC3XX_AES_MODE_CCM;
+        break;
+    case TFM_BL1_AES_MODE_CMAC:
+        cc_mode = CC3XX_AES_MODE_CMAC;
+        break;
+    case TFM_BL1_AES_MODE_CTR:
+        cc_mode = CC3XX_AES_MODE_CTR;
+        break;
+    default:
+        FIH_RET(FIH_FAILURE);
+    }
+
+    cc_err = cc3xx_lowlevel_aes_init(cc_direction, cc_mode,
+            (enum kmu_hardware_keyslot_t)key_id, key, cc_key_size, iv, iv_len);
+
+    FIH_RET(fih_int_encode_zero_equality(cc_err));
+}
