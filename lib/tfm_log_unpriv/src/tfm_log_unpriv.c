@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "tfm_log_unpriv.h"
 #include "tfm_hal_sp_logdev.h"
@@ -27,20 +28,22 @@ static void output_buf(const char *buf, uint32_t buf_len)
 static void output_string_to_buf(void *priv, const char *str, uint32_t len)
 {
     struct tfm_log_unpriv_data *data = priv;
-    uint32_t i;
 
-    if (len > LOG_UNPRIV_BUFFER_SIZE) {
-        /* Not enough space for str */
-        return;
-    } else if ((data->buf_pos + len) > LOG_UNPRIV_BUFFER_SIZE) {
+    if ((data->buf_pos + len) > LOG_UNPRIV_BUFFER_SIZE) {
         /* Flush current buffer and re-use */
         output_buf(data->buf, data->buf_pos);
         data->buf_pos = 0;
+
+        /* Handle strings larger than buffer with multiple flushes */
+        for (; len > LOG_UNPRIV_BUFFER_SIZE;
+             len -= LOG_UNPRIV_BUFFER_SIZE, str += LOG_UNPRIV_BUFFER_SIZE) {
+            memcpy(data->buf, str, LOG_UNPRIV_BUFFER_SIZE);
+            output_buf(data->buf, LOG_UNPRIV_BUFFER_SIZE);
+        }
     }
 
-    for (i = 0; i < len; i++) {
-        data->buf[data->buf_pos++] = *str++;
-    }
+    memcpy(data->buf + data->buf_pos, str, len);
+    data->buf_pos += len;
 }
 
 void tfm_log_unpriv(const char *fmt, ...)
