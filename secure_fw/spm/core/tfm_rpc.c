@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2023 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
@@ -7,11 +7,12 @@
  *
  */
 
+#include <assert.h>
+
 #include "config_impl.h"
 #include "ffm/mailbox_agent_api.h"
 #include "ffm/psa_api.h"
 #include "tfm_rpc.h"
-#include "private/assert.h"
 #include "tfm_psa_call_pack.h"
 
 uint32_t tfm_rpc_psa_framework_version(void)
@@ -28,8 +29,8 @@ psa_status_t tfm_rpc_psa_call(psa_handle_t handle, uint32_t control,
                               const struct client_params_t *params,
                               const void *client_data_stateless)
 {
-    SPM_ASSERT(params != NULL);
-    SPM_ASSERT(client_data_stateless != NULL);
+    assert(params != NULL);
+    assert(client_data_stateless != NULL);
 
     return agent_psa_call(handle, control, params, client_data_stateless);
 }
@@ -42,7 +43,7 @@ psa_status_t tfm_rpc_psa_connect(uint32_t sid,
                                  int32_t ns_client_id,
                                  const void *client_data)
 {
-    SPM_ASSERT(client_data != NULL);
+    assert(client_data != NULL);
 
     return agent_psa_connect(sid, version, ns_client_id, client_data);
 }

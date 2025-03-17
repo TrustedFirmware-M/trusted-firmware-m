@@ -49,7 +49,7 @@ void copy_zero_tables(void) {
 }
 
 void hard_assertion_failure(void) {
-    SPM_ASSERT(0);
+    assert(0);
 }
 
 static void runtime_run_initializers_from(uintptr_t *from) {

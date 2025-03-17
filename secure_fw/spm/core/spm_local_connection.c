@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -94,7 +94,7 @@ void spm_free_connection(struct connection_t *p_connection)
 {
     /* In debug builds, overwrite the status to catch use-after-free bugs */
 #ifndef NDEBUG
-    SPM_ASSERT(p_connection != NULL);
+    assert(p_connection != NULL);
 
     p_connection->status = TFM_HANDLE_STATUS_MAX;
 #else

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2022-2023 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -9,6 +9,7 @@
  */
 
 #include <stdint.h>
+#include <assert.h>
 #include "compiler_ext_defs.h"
 #include "current.h"
 #include "runtime_defs.h"
@@ -23,7 +24,6 @@
 #include "psa/service.h"
 #include "spm.h"
 #include "memory_symbols.h"
-#include "private/assert.h"
 
 /* SFN Partition state */
 #define SFN_PARTITION_STATE_NOT_INITED        0
@@ -155,7 +155,7 @@ uint32_t backend_system_run(void)
     const struct partition_load_info_t *pldi;
     struct partition_t *partition = GET_CURRENT_COMPONENT();
 
-    SPM_ASSERT(partition != NULL);
+    assert(partition != NULL);
 
     pldi = partition->p_ldinf;
 

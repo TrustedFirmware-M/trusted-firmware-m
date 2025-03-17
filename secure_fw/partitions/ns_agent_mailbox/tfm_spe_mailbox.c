@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2021-2024 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <assert.h>
 
 #include "cmsis_compiler.h"
 
@@ -18,7 +19,6 @@
 #include "internal_status_code.h"
 #include "psa/error.h"
 #include "utilities.h"
-#include "private/assert.h"
 #include "tfm_arch.h"
 #include "thread.h"
 #include "tfm_psa_call_pack.h"
@@ -268,7 +268,7 @@ static int32_t tfm_mailbox_dispatch(const struct mailbox_msg_t *msg_ptr,
     bool sync = true;
 #endif
 
-    SPM_ASSERT(params != NULL);
+    assert(params != NULL);
 
     switch (msg_ptr->call_type) {
     case MAILBOX_PSA_FRAMEWORK_VERSION:
@@ -363,7 +363,7 @@ int32_t tfm_mailbox_handle_msg(void)
     int32_t status;
     int32_t msg_dispatched = 0;
 
-    SPM_ASSERT(ns_status != NULL);
+    assert(ns_status != NULL);
 
     critical_section = tfm_mailbox_hal_enter_critical();
 
@@ -438,7 +438,7 @@ int32_t tfm_mailbox_reply_msg(mailbox_msg_handle_t handle, int32_t reply)
     uint32_t critical_section;
     struct mailbox_status_t *ns_status = spe_mailbox_queue.ns_status;
 
-    SPM_ASSERT(ns_status != NULL);
+    assert(ns_status != NULL);
 
     /*
      * If handle == MAILBOX_MSG_NULL_HANDLE, reply to the mailbox message

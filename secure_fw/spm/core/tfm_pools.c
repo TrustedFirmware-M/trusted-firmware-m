@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -8,13 +8,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "thread.h"
 #include "psa/client.h"
 #include "psa/service.h"
 #include "internal_status_code.h"
 #include "cmsis_compiler.h"
 #include "utilities.h"
-#include "private/assert.h"
 #include "lists.h"
 #include "tfm_pools.h"
 
@@ -81,7 +81,7 @@ void tfm_pool_free(struct tfm_pool_instance_t *pool, void *ptr)
     struct tfm_pool_chunk_t *pchunk;
 
     /* In debug builds, trap invalid frees. */
-    SPM_ASSERT(is_valid_chunk_data_in_pool(pool, ptr));
+    assert(is_valid_chunk_data_in_pool(pool, ptr));
 
     pchunk = TO_CONTAINER(ptr, struct tfm_pool_chunk_t, data);
 

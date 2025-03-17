@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2024 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -8,11 +8,12 @@
  *
  */
 
+#include <assert.h>
+
 #include "internal_status_code.h"
 #include "spm.h"
 #include "tfm_pools.h"
 #include "load/service_defs.h"
-#include "private/assert.h"
 
 #if !(defined CONFIG_TFM_CONN_HANDLE_MAX_NUM) || (CONFIG_TFM_CONN_HANDLE_MAX_NUM == 0)
 #error "CONFIG_TFM_CONN_HANDLE_MAX_NUM must be defined and not zero."
@@ -132,7 +133,7 @@ psa_status_t spm_validate_connection(const struct connection_t *p_connection)
 
 void spm_free_connection(struct connection_t *p_connection)
 {
-    SPM_ASSERT(p_connection != NULL);
+    assert(p_connection != NULL);
 
     /* Return handle buffer to pool */
     tfm_pool_free(connection_pool, p_connection);

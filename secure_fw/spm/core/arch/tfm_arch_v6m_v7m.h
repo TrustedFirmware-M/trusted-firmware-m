@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -9,9 +9,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <assert.h>
 #include "cmsis_compiler.h"
 #include "utilities.h"
-#include "private/assert.h"
 
 #if !TFM_MULTI_CORE_TOPOLOGY
 #error "Armv6-M/Armv7-M can only support multi-core TF-M now."
@@ -145,7 +145,7 @@ __STATIC_INLINE void tfm_arch_set_msplim(uint32_t msplim)
  */
 __STATIC_INLINE uintptr_t arch_seal_thread_stack(uintptr_t stk)
 {
-    SPM_ASSERT((stk & 0x7) == 0);
+    assert((stk & 0x7) == 0);
     return stk;
 }
 

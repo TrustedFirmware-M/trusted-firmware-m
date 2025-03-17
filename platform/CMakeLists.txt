@@ -61,7 +61,6 @@ target_include_directories(platform_common_interface
 target_include_directories(platform_s
     PUBLIC
         $<$<BOOL:${CRYPTO_HW_ACCELERATOR}>:${CMAKE_CURRENT_SOURCE_DIR}/ext/accelerator/interface>
-        ../secure_fw/spm/include/private
 )
 
 target_sources(platform_s

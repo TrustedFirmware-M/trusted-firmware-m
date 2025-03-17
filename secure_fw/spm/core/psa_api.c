@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -206,7 +206,7 @@ static void update_caller_outvec_len(struct connection_t *handle)
             continue;
         }
 
-        SPM_ASSERT(handle->caller_outvec[i].base == handle->outvec_base[i]);
+        assert(handle->caller_outvec[i].base == handle->outvec_base[i]);
 
         handle->caller_outvec[i].len = handle->outvec_written[i];
     }

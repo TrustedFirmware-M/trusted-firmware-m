@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -9,11 +9,11 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include "cmsis_compiler.h"
 #include "tfm_core_trustzone.h"
 #include "utilities.h"
-#include "private/assert.h"
 
 #define EXC_RETURN_RES1                         (0x1FFFFUL << 7)
 
@@ -145,7 +145,7 @@ __STATIC_INLINE void tfm_arch_set_msplim(uint32_t msplim)
  */
 __STATIC_INLINE uintptr_t arch_seal_thread_stack(uintptr_t stk)
 {
-    SPM_ASSERT((stk & 0x7) == 0);
+    assert((stk & 0x7) == 0);
     stk -= TFM_STACK_SEALED_SIZE;
 
     *((uint32_t *)stk)       = TFM_STACK_SEAL_VALUE;
@@ -164,7 +164,7 @@ __STATIC_INLINE uintptr_t arch_seal_thread_stack(uintptr_t stk)
  */
 __STATIC_INLINE void tfm_arch_check_msp_sealing(void)
 {
-    SPM_ASSERT(*(uint64_t *)(&__STACK_SEAL) == __TZ_STACK_SEAL_VALUE);
+    assert(*(uint64_t *)(&__STACK_SEAL) == __TZ_STACK_SEAL_VALUE);
 }
 
 /*

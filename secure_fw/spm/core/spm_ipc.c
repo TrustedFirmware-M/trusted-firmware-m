@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2021-2024 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -11,6 +11,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <assert.h>
 #include "async.h"
 #include "bitops.h"
 #include "config_impl.h"
@@ -40,7 +41,6 @@
 #include "load/asset_defs.h"
 #include "load/spm_load_api.h"
 #include "tfm_nspm.h"
-#include "private/assert.h"
 
 /* Partition and service runtime data list head/runtime data table */
 static struct service_head_t services_listhead;
@@ -151,7 +151,7 @@ struct partition_t *tfm_spm_get_partition_by_id(int32_t partition_id)
 int32_t tfm_spm_check_client_version(const struct service_t *service,
                                      uint32_t version)
 {
-    SPM_ASSERT(service);
+    assert(service);
 
     switch (SERVICE_GET_VERSION_POLICY(service->p_ldinf->flags)) {
     case SERVICE_VERSION_POLICY_RELAXED:
@@ -178,7 +178,7 @@ int32_t tfm_spm_check_authorization(uint32_t sid,
     const uint32_t *dep;
     int32_t i;
 
-    SPM_ASSERT(service);
+    assert(service);
 
     if (ns_caller) {
         if (!SERVICE_IS_NS_ACCESSIBLE(service->p_ldinf->flags)) {
@@ -215,7 +215,7 @@ psa_status_t spm_get_idle_connection(struct connection_t **p_connection,
     int32_t psa_ret;
     bool ns_caller;
 
-    SPM_ASSERT(p_connection != NULL);
+    assert(p_connection != NULL);
 
     /* It is a PROGRAMMER ERROR if the handle is a null handle. */
     if (handle == PSA_NULL_HANDLE) {
@@ -331,8 +331,8 @@ void spm_init_idle_connection(struct connection_t *p_connection,
                               const struct service_t *service,
                               int32_t client_id)
 {
-    SPM_ASSERT(p_connection);
-    SPM_ASSERT(service);
+    assert(p_connection);
+    assert(service);
 
     /* Clear message buffer before using it */
     spm_memset(&p_connection->msg, 0, sizeof(psa_msg_t));

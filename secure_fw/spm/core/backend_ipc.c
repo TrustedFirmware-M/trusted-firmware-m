@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2021-2024 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -9,6 +9,7 @@
  */
 
 #include <stdint.h>
+#include <assert.h>
 #include "aapcs_local.h"
 #include "async.h"
 #include "config_spm.h"
@@ -26,7 +27,6 @@
 #include "tfm_rpc.h"
 #include "ffm/backend.h"
 #include "utilities.h"
-#include "private/assert.h"
 #include "memory_symbols.h"
 #include "load/partition_defs.h"
 #include "load/service_defs.h"
@@ -103,7 +103,7 @@ static uint32_t query_state(const struct thread_t *p_thrd, uint32_t *p_retval)
             p_pt->signals_asserted &= ~ASYNC_MSG_REPLY;
 
 #ifndef NDEBUG
-            SPM_ASSERT(p_pt->p_replied->status < TFM_HANDLE_STATUS_MAX);
+            assert(p_pt->p_replied->status < TFM_HANDLE_STATUS_MAX);
 #endif
 
             /*
@@ -260,7 +260,7 @@ static thrd_fn_t partition_init(struct partition_t *p_pt,
     thrd_fn_t thrd_entry;
 
     (void)param;
-    SPM_ASSERT(p_pt);
+    assert(p_pt);
 
 #if CONFIG_TFM_DOORBELL_API == 1
     p_pt->signals_allowed |= PSA_DOORBELL;
@@ -293,8 +293,8 @@ static thrd_fn_t ns_agent_tz_init(struct partition_t *p_pt,
     thrd_fn_t thrd_entry;
 
     (void)service_setting;
-    SPM_ASSERT(p_pt);
-    SPM_ASSERT(param);
+    assert(p_pt);
+    assert(param);
 
     tz_ns_agent_register_client_id_range(p_pt->p_ldinf->client_id_base,
                                          p_pt->p_ldinf->client_id_limit);
@@ -356,7 +356,7 @@ uint32_t backend_system_run(void)
     const struct partition_t *p_cur_pt;
     fih_int fih_rc = FIH_FAILURE;
 
-    SPM_ASSERT(SPM_THREAD_CONTEXT);
+    assert(SPM_THREAD_CONTEXT);
 
 #ifndef CONFIG_TFM_USE_TRUSTZONE
     /*
@@ -537,7 +537,7 @@ uint64_t ipc_schedule(uint32_t exc_return)
          * Non-Secure code was executing, and a scheduling is necessary because
          * a secure partition become runnable.
          */
-        SPM_ASSERT(!basepri_set_by_ipc_schedule);
+        assert(!basepri_set_by_ipc_schedule);
         basepri_set_by_ipc_schedule = true;
         __set_BASEPRI(SECURE_THREAD_EXECUTION_PRIORITY);
     }
@@ -594,7 +594,7 @@ uint64_t ipc_schedule(uint32_t exc_return)
              * enter and exit). In this case basepri_set_by_ipc_schedule is set,
              * so it can be used in the condition.
              */
-            SPM_ASSERT(__get_BASEPRI() == SECURE_THREAD_EXECUTION_PRIORITY);
+            assert(__get_BASEPRI() == SECURE_THREAD_EXECUTION_PRIORITY);
             if (basepri_set_by_ipc_schedule) {
                 basepri_set_by_ipc_schedule = false;
                 __set_BASEPRI(0);

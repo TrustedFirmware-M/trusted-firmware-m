@@ -32,7 +32,7 @@
 #ifndef NRFX_GLUE_H__
 #define NRFX_GLUE_H__
 
-/* Include the spm utilities for the SPM_ASSERT symbol */
+/* Include the spm utilities for the assert symbol */
 #include <assert.h>
 
 #include <soc/nrfx_coredep.h>
