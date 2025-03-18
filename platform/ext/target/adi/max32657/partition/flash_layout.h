@@ -67,8 +67,8 @@
 #endif
 
 /* Size of a Secure and of a Non-secure image */
-#define FLASH_S_PARTITION_SIZE          (0x50000) /* S partition: 320 KB */
-#define FLASH_NS_PARTITION_SIZE         (0x90000) /* NS partition: 576 KB */
+#define FLASH_S_PARTITION_SIZE          ADI_FLASH_S_PARTITION_SIZE
+#define FLASH_NS_PARTITION_SIZE         ADI_FLASH_NS_PARTITION_SIZE
 
 #if (FLASH_S_PARTITION_SIZE > FLASH_NS_PARTITION_SIZE)
 #define FLASH_MAX_PARTITION_SIZE FLASH_S_PARTITION_SIZE
@@ -90,7 +90,7 @@
  * swapping.
  */
 #define FLASH_AREA_BL2_OFFSET      (0)
-#define FLASH_AREA_BL2_SIZE        KB(64)
+#define FLASH_AREA_BL2_SIZE        ADI_FLASH_AREA_BL2_SIZE
 
 #if !defined(MCUBOOT_IMAGE_NUMBER) || (MCUBOOT_IMAGE_NUMBER == 1)
 /* Secure + Non-secure image primary slot */

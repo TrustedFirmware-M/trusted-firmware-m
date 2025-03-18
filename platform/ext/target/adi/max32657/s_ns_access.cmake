@@ -42,6 +42,11 @@ set(ADI_NS_SRAM_2           ON         CACHE BOOL "Size: 64KB")
 set(ADI_NS_SRAM_3           ON         CACHE BOOL "Size: 64KB")
 set(ADI_NS_SRAM_4           ON         CACHE BOOL "Size: 64KB")
 
+# Flash: BL2, TFM and Zephyr are contiguous sections.
+set(ADI_FLASH_AREA_BL2_SIZE        "0x10000"  CACHE STRING "Default: 64KB")
+set(ADI_FLASH_S_PARTITION_SIZE     "0x50000"  CACHE STRING "Default: 320KB")
+set(ADI_FLASH_NS_PARTITION_SIZE    "0x90000"  CACHE STRING "Default: 576KB")
+
 #
 # Allow user set S-NS resources ownership by overlay file
 #
@@ -57,4 +62,9 @@ target_compile_definitions(platform_region_defs
         $<$<BOOL:${ADI_NS_SRAM_2}>:ADI_NS_SRAM_2>
         $<$<BOOL:${ADI_NS_SRAM_3}>:ADI_NS_SRAM_3>
         $<$<BOOL:${ADI_NS_SRAM_4}>:ADI_NS_SRAM_4>
+
+        # Flash
+        ADI_FLASH_AREA_BL2_SIZE=${ADI_FLASH_AREA_BL2_SIZE}
+        ADI_FLASH_S_PARTITION_SIZE=${ADI_FLASH_S_PARTITION_SIZE}
+        ADI_FLASH_NS_PARTITION_SIZE=${ADI_FLASH_NS_PARTITION_SIZE}
 )
