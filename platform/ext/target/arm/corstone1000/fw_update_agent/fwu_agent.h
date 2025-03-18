@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -9,8 +9,8 @@
 #define FWU_AGENT_H
 
 #ifdef ENABLE_FWU_AGENT_DEBUG_LOGS
-    #include <stdio.h>
-    #define FWU_LOG_MSG(f_, ...) printf((f_), ##__VA_ARGS__)
+    #include "tfm_log.h"
+    #define FWU_LOG_MSG(f_, ...) tfm_log(LOG_MARKER_RAW f_, ##__VA_ARGS__)
 #else
     #define FWU_LOG_MSG(f_, ...)
 #endif
