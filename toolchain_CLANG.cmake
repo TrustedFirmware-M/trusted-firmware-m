@@ -83,6 +83,7 @@ add_compile_options(
      -fshort-enums
      -fshort-wchar
      -funsigned-char
+     -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=
      -std=c99
 )
 

@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -189,6 +189,7 @@ add_compile_options(
     -fno-builtin
     -fshort-enums
     -funsigned-char
+    -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=
     -mthumb
     $<$<COMPILE_LANGUAGE:C>:-std=c99>
     $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>
