@@ -46,16 +46,22 @@ static void output_string_to_buf(void *priv, const char *str, uint32_t len)
     data->buf_pos += len;
 }
 
-void tfm_log_unpriv(const char *fmt, ...)
+void tfm_vprintf_unpriv(const char *fmt, va_list args)
 {
-    va_list args;
     struct tfm_log_unpriv_data data;
 
     data.buf_pos = 0;
 
-    va_start(args, fmt);
     tfm_vprintf(output_string_to_buf, &data, fmt, args);
-    va_end(args);
 
     output_buf(data.buf, data.buf_pos);
+}
+
+void tfm_log_unpriv(const char *fmt, ...)
+{
+    va_list args;
+
+    va_start(args, fmt);
+    tfm_vprintf_unpriv(fmt, args);
+    va_end(args);
 }
