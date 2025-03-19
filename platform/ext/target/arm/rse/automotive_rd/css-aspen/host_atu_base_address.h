@@ -35,6 +35,8 @@ enum rse_atu_ids {
 
     /* ATU region ID for AP secure flash */
     RSE_ATU_AP_FLASH_ID,
+    /* ATU region ID for MHU shared DRAM between AP and RSE */
+    RSE_ATU_AP_RSE_MAILBOX_ATU_ID,
     /* ATU region ID for programming SI ATU */
     RSE_ATU_SI_ATU_ID,
     /* ATU region ID for programming AP ATU */
@@ -209,6 +211,20 @@ enum rse_atu_ids {
 #define HOST_AP_ATU_PHYS_BASE      0x20000D0080000ULL
 #define HOST_AP_ATU_GPV_SIZE       ALIGN_UP(0x10000, RSE_ATU_PAGE_SIZE)
 #define HOST_AP_ATU_ID             RSE_ATU_AP_ATU_ID
+
+/*
+ * ATU region for AP<->RSE MHU outband message buffer
+ * HOST_AP_RSE_MAILBOX_BASE_S: Logical address at which the RSE should access
+ *                             the AP<->RSE outband msg buffer.
+ *
+ * HOST_AP_RSE_MAILBOX_PHYS_BASE: Physical address of outband msg buffer
+ *                                located in the AP Shared RAM region.
+ *
+ * HOST_AP_RSE_MAILBOX_ATU_SIZE: Size of outband msg buffer.
+ */
+#define HOST_AP_RSE_MAILBOX_BASE_S     (HOST_AP_ATU_BASE_S + HOST_AP_ATU_GPV_SIZE)
+#define HOST_AP_RSE_MAILBOX_PHYS_BASE  UINT64_C(0xFFFFC000)
+#define HOST_AP_RSE_MAILBOX_ATU_SIZE   ALIGN_UP(0x4000, RSE_ATU_PAGE_SIZE)
 
 /* ATU region mapping to access Protected Storage */
 #define HOST_ACCESS_PS_BASE_S      (HOST_ACCESS_BASE_NS + RSE_FLASH_IMG_SIZE)
