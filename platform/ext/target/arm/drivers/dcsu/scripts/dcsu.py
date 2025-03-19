@@ -70,11 +70,6 @@ def pre_parse_backend(backends : [str], parser : argparse.ArgumentParser, prefix
 def tx_command_send(backend, ctx, command : dcsu_tx_command, data : bytes = None, size = None, byteorder='big', checksum=True):
     command_word = command.value
 
-    # Clear the register before sending message
-    backend.write_register(ctx, "DIAG_RX_COMMAND", 0)
-
-    print(hex(backend.read_register(ctx, "DIAG_RX_COMMAND")))
-
     if (data):
         data_words = [int.from_bytes(b, byteorder=byteorder) for b in _chunk_bytes(data, 4)]
 
@@ -95,10 +90,6 @@ def tx_command_send(backend, ctx, command : dcsu_tx_command, data : bytes = None
     logger.info("Sending command {}".format(command.name))
     backend.write_register(ctx, "DIAG_RX_COMMAND", command_word)
 
-    logger.info("Waiting for previous response to clear")
-    while (response := backend.read_register(ctx, "DIAG_RX_COMMAND") >> 24) != 0:
-        time.sleep(0.1)
-
     logger.info("Waiting for response")
     while (response := backend.read_register(ctx, "DIAG_RX_COMMAND") >> 24) == 0:
         time.sleep(0.1)
@@ -106,9 +97,6 @@ def tx_command_send(backend, ctx, command : dcsu_tx_command, data : bytes = None
     response = dcsu_tx_message_error(response)
 
     logger.info("Received response {}".format(response))
-
-    # Clear the register after receiving response
-    backend.write_register(ctx, "DIAG_RX_COMMAND", 0)
 
     return response
 

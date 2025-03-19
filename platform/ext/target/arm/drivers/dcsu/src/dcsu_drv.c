@@ -63,7 +63,6 @@ void dcsu_wait_for_any_rx_command(struct dcsu_dev_t *dev)
         __asm volatile("wfi");
 #endif
     }
-    p_dcsu->diag_cmd_irq_clear = 0b1 << 0;
 }
 
 enum dcsu_error_t dcsu_wait_for_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_command command)
@@ -196,7 +195,6 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
     }
 
     cmd = get_rx_command(dev);
-    rx_clear_return(dev);
 
     INFO("DCSU command %x\r\n", cmd);
 
@@ -221,10 +219,15 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
     /* Send response unless 0. If zero assume that response will be handled externally */
     INFO("Resp: %x\r\n", msg_resp);
     if (msg_resp != 0) {
+        /*
+        * Clear interrupt here as after sending response tooling will be able to
+        * send more commands.
+        */
+        dcsu_clear_pending_rx_interupt(dev);
+
         rx_return_send(dev, msg_resp);
     }
 
-    dcsu_clear_pending_rx_interupt(dev);
     return err;
 }
 
