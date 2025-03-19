@@ -80,7 +80,7 @@ target_compile_definitions(tfm_s
 )
 
 target_add_scatter_file(tfm_s
-    $<$<C_COMPILER_ID:GNU>:${PLATFORM_DIR}/ext/common/gcc/tfm_common_s.ld>
+    $<$<C_COMPILER_ID:GNU>:${CMAKE_BINARY_DIR}/generated/platform/ext/common/gcc/tfm_common_s.ld>
 )
 
 target_sources(tfm_s
