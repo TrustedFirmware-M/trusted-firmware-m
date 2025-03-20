@@ -10,28 +10,8 @@ set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 ################################################################################
 
-# Fetch hal_adi repository
-fetch_remote_library(
-    LIB_NAME                hal_adi
-    LIB_SOURCE_PATH_VAR     HAL_ADI_PATH
-    FETCH_CONTENT_ARGS
-        GIT_REPOSITORY      https://github.com/analogdevicesinc/hal_adi
-        GIT_TAG             ${HAL_ADI_VERSION}
-        GIT_PROGRESS        TRUE
-)
-
-set(TARGET_LC "max32657")
-string(TOUPPER ${TARGET_LC} TARGET_UC)
-
-set(HAL_ADI_LIBRARY_DIR     ${HAL_ADI_PATH}/MAX/Libraries)
-
-set(HAL_ADI_CMSIS_DIR       ${HAL_ADI_LIBRARY_DIR}/CMSIS/Device/Maxim/${TARGET_UC})
-set(HAL_ADI_CMSIS_INC_DIR   ${HAL_ADI_CMSIS_DIR}/Include)
-set(HAL_ADI_CMSIS_SRC_DIR   ${HAL_ADI_CMSIS_DIR}/Source)
-
-set(HAL_ADI_PERIPH_DIR      ${HAL_ADI_LIBRARY_DIR}/PeriphDrivers)
-set(HAL_ADI_PERIPH_INC_DIR  ${HAL_ADI_PERIPH_DIR}/Include/${TARGET_UC})
-set(HAL_ADI_PERIPH_SRC_DIR  ${HAL_ADI_PERIPH_DIR}/Source)
+# Add hal_adi in build system
+include(hal_adi.cmake)
 
 ########################## Platform region defs ################################
 target_include_directories(platform_region_defs
@@ -59,8 +39,6 @@ if(BL2)
     target_include_directories(platform_bl2
         PUBLIC
             partition
-            ${HAL_ADI_PERIPH_INC_DIR}
-            ${HAL_ADI_CMSIS_INC_DIR}
         PRIVATE
             .
             ${PLATFORM_DIR}/..
@@ -76,33 +54,11 @@ if(BL2)
             cmsis_drivers/Driver_Flash.c
             cmsis_drivers/Driver_USART.c
             $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_OTP}>>:${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/otp_max32657.c>
-
-            ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_common.c
-            ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_me30.c
-            ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_revb.c
-            ${HAL_ADI_PERIPH_SRC_DIR}/SYS/sys_me30.c
-            ${HAL_ADI_PERIPH_SRC_DIR}/SYS/mxc_delay.c
-            ${HAL_ADI_PERIPH_SRC_DIR}/FLC/flc_me30.c
-            ${HAL_ADI_PERIPH_SRC_DIR}/FLC/flc_common.c
-            ${HAL_ADI_PERIPH_SRC_DIR}/FLC/flc_reva.c
-            ${HAL_ADI_PERIPH_SRC_DIR}/GPIO/gpio_me30.c
-            ${HAL_ADI_PERIPH_SRC_DIR}/GPIO/gpio_reva.c
-            ${HAL_ADI_PERIPH_SRC_DIR}/GPIO/gpio_common.c
-            ${HAL_ADI_PERIPH_SRC_DIR}/SYS/pins_me30.c
-            ${HAL_ADI_PERIPH_SRC_DIR}/ICC/icc_me30.c
-            ${HAL_ADI_PERIPH_SRC_DIR}/ICC/icc_reva.c
     )
 
     target_compile_definitions(platform_bl2
         PUBLIC
-            TARGET=${TARGET_UC}
-            TARGET_REV=0x4131
             CMSIS_device_header="${TARGET_LC}.h"
-            CONFIG_TRUSTED_EXECUTION_SECURE
-            IS_SECURE_ENVIRONMENT
-
-            __MXC_FLASH_MEM_BASE=0x11000000
-            __MXC_FLASH_MEM_SIZE=0x00100000
     )
 
     #
@@ -151,14 +107,7 @@ target_sources(tfm_spm
 
 target_compile_definitions(platform_s
     PUBLIC
-        TARGET=${TARGET_UC}
-        TARGET_REV=0x4131
         CMSIS_device_header="${TARGET_LC}.h"
-        CONFIG_TRUSTED_EXECUTION_SECURE
-        IS_SECURE_ENVIRONMENT
-
-        __MXC_FLASH_MEM_BASE=0x11000000
-        __MXC_FLASH_MEM_SIZE=0x00100000
 
         $<$<BOOL:${TFM_S_REG_TEST}>:TFM_S_REG_TEST>
         $<$<BOOL:${TFM_NS_REG_TEST}>:TFM_NS_REG_TEST>
@@ -178,23 +127,6 @@ target_sources(platform_s
         cmsis_drivers/Driver_MPC.c
         device/src/mpc_sie200_drv.c
         $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_OTP}>>:${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/otp_max32657.c>
-        ${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/device/src/system_${TARGET_LC}.c
-
-        ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_common.c
-        ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_me30.c
-        ${HAL_ADI_PERIPH_SRC_DIR}/UART/uart_revb.c
-        ${HAL_ADI_PERIPH_SRC_DIR}/SYS/sys_me30.c
-        ${HAL_ADI_PERIPH_SRC_DIR}/SYS/mxc_delay.c
-        ${HAL_ADI_PERIPH_SRC_DIR}/FLC/flc_me30.c
-        ${HAL_ADI_PERIPH_SRC_DIR}/FLC/flc_common.c
-        ${HAL_ADI_PERIPH_SRC_DIR}/FLC/flc_reva.c
-        ${HAL_ADI_PERIPH_SRC_DIR}/GPIO/gpio_me30.c
-        ${HAL_ADI_PERIPH_SRC_DIR}/GPIO/gpio_reva.c
-        ${HAL_ADI_PERIPH_SRC_DIR}/GPIO/gpio_common.c
-        ${HAL_ADI_PERIPH_SRC_DIR}/SYS/pins_me30.c
-        ${HAL_ADI_PERIPH_SRC_DIR}/TZ/spc_me30.c
-        ${HAL_ADI_PERIPH_SRC_DIR}/ICC/icc_me30.c
-        ${HAL_ADI_PERIPH_SRC_DIR}/ICC/icc_reva.c
 
         $<$<BOOL:TFM_PARTITION_PLATFORM>:${CMAKE_CURRENT_SOURCE_DIR}/services/src/tfm_platform_system.c>
         $<$<BOOL:TFM_PARTITION_PLATFORM>:${CMAKE_CURRENT_SOURCE_DIR}/services/src/tfm_platform_hal_ioctl.c>
@@ -207,8 +139,6 @@ target_include_directories(platform_s
         partition
         device/inc
         services/include
-        ${HAL_ADI_PERIPH_INC_DIR}
-        ${HAL_ADI_CMSIS_INC_DIR}
         ${PLATFORM_DIR}/..
 )
 
