@@ -8,7 +8,7 @@
 cmake_policy(SET CMP0076 NEW)
 set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
-set(target nrf54l15)
+set(target nrf54l)
 add_subdirectory(../core nrf_common)
 
 #========================= Platform Secure ====================================#
@@ -16,12 +16,13 @@ add_subdirectory(../core nrf_common)
 target_include_directories(platform_s
     PUBLIC
         .
+	../nrf54l
 )
 
 target_sources(platform_s
     PRIVATE
         ${HAL_NORDIC_PATH}/nrfx/mdk/system_nrf54l.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/nrf54l15_init.c
+        ../nrf54l/nrf54l_init.c
 )
 
 target_compile_definitions(platform_s
@@ -33,12 +34,12 @@ target_compile_definitions(platform_s
 
 target_sources(tfm_spm
     PRIVATE
-        $<$<OR:$<BOOL:${CONFIG_TFM_FLIH_API}>,$<BOOL:${CONFIG_TFM_SLIH_API}>>:${CMAKE_CURRENT_SOURCE_DIR}/tfm_interrupts.c>
+        $<$<OR:$<BOOL:${CONFIG_TFM_FLIH_API}>,$<BOOL:${CONFIG_TFM_SLIH_API}>>:${CMAKE_CURRENT_SOURCE_DIR}/../nrf54l/tfm_interrupts.c>
 )
 
 #========================= Files for building NS side platform ================#
 
-install(FILES       nrfx_config_nrf54l15_application.h
+install(FILES       ../nrf54l/nrfx_config_nrf54l.h
                     ns/CMakeLists.txt
                     config.cmake
                     cpuarch.cmake

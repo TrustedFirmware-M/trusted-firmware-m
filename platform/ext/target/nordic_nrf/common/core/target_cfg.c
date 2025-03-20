@@ -69,7 +69,7 @@
 #define PIN_XL2 1
 #endif
 
-#ifdef NRF54L15_XXAA
+#ifdef NRF54L_SERIES
 /* On nRF54L15 XL1 and XL2 are(P1.00) and XL2(P1.01) */
 #define PIN_XL1 32
 #define PIN_XL2 33
@@ -816,7 +816,7 @@ enum tfm_plat_err_t init_debug(void)
 #error "Debug access controlled by NRF_APPROTECT and NRF_SECURE_APPROTECT."
 #endif
 
-#if defined(NRF_APPROTECT) && !defined(NRF54L15_XXAA)
+#if defined(NRF_APPROTECT) && !defined(NRF54L_SERIES)
     /* For nRF53 and nRF91x1 already active. For nRF9160, active in the next boot.*/
     if (nrfx_nvmc_word_writable_check((uint32_t)&NRF_UICR_S->APPROTECT,
                                     UICR_APPROTECT_PALL_Protected)) {
@@ -825,7 +825,7 @@ enum tfm_plat_err_t init_debug(void)
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 #endif
-#if defined(NRF_SECURE_APPROTECT) && !defined(NRF54L15_XXAA)
+#if defined(NRF_SECURE_APPROTECT) && !defined(NRF54L_SERIES)
     /* For nRF53 and nRF91x1 already active. For nRF9160, active in the next boot. */
     if (nrfx_nvmc_word_writable_check((uint32_t)&NRF_UICR_S->SECUREAPPROTECT,
                                     UICR_SECUREAPPROTECT_PALL_Protected)) {
@@ -836,7 +836,7 @@ enum tfm_plat_err_t init_debug(void)
     }
 #endif
 
-#elif defined(NRF91_SERIES) || defined(NRF54L15_XXAA)
+#elif defined(NRF91_SERIES) || defined(NRF54L_SERIES)
 
 #if !defined(DAUTH_CHIP_DEFAULT)
 #error "Debug access on this platform can only be configured by programming the corresponding registers in UICR."
@@ -942,7 +942,7 @@ void sau_and_idau_cfg(void)
 	 * (53/91) and new (54++) platforms. New platforms have a proper SAU
 	 * and IDAU, whereas old platforms do not.
 	 */
-#ifdef NRF54L15_XXAA
+#ifdef NRF54L_SERIES
 	/*
 	 * This SAU configuration aligns with ARM's RSS implementation of
 	 * sau_and_idau_cfg when possible.
@@ -1247,7 +1247,7 @@ static void dppi_channel_configuration(void)
 enum tfm_plat_err_t spu_periph_init_cfg(void)
 {
     /* Peripheral configuration */
-#ifdef NRF54L15_XXAA
+#ifdef NRF54L_SERIES
 	/* Configure features to be non-secure */
 
 	/*
@@ -1318,7 +1318,7 @@ enum tfm_plat_err_t spu_periph_init_cfg(void)
 	 * have the same security configuration.
 	 */
 	spu_peripheral_config_secure(NRF_REGULATORS_S_BASE, SPU_LOCK_CONF_LOCKED);
-#else /* NRF54L15_XXAA */
+#else /* NRF54L_SERIES */
 static const uint32_t target_peripherals[] = {
     /* The following peripherals share ID:
      * - FPU (FPU cannot be configured in NRF91 series, it's always NS)
@@ -1450,7 +1450,7 @@ static const uint32_t target_peripherals[] = {
         spu_peripheral_config_non_secure(target_peripherals[i], SPU_LOCK_CONF_UNLOCKED);
     }
 
-#endif /* NRF54L15_XXAA */
+#endif /* NRF54L_SERIES */
 
     /* DPPI channel configuration */
 	dppi_channel_configuration();
@@ -1511,7 +1511,7 @@ static const uint32_t target_peripherals[] = {
     nrf_gpio_pin_control_select(PIN_XL1, NRF_GPIO_PIN_SEL_PERIPHERAL);
     nrf_gpio_pin_control_select(PIN_XL2, NRF_GPIO_PIN_SEL_PERIPHERAL);
 #endif /* NRF53_SERIES */
-#ifdef NRF54L15_XXAA
+#ifdef NRF54L_SERIES
     /* NRF54L has a different define */
     nrf_gpio_pin_control_select(PIN_XL1, NRF_GPIO_PIN_SEL_GPIO);
     nrf_gpio_pin_control_select(PIN_XL2, NRF_GPIO_PIN_SEL_GPIO);
@@ -1567,7 +1567,7 @@ static const uint32_t target_peripherals[] = {
 	}
 #endif /* RRAMC_PRESENT */
 
-#ifdef NRF54L15_XXAA
+#ifdef NRF54L_SERIES
 	/* SOC configuration from Zephyr's soc.c. */
 	int soc_err = nordicsemi_nrf54l_init();
 	if (soc_err) {

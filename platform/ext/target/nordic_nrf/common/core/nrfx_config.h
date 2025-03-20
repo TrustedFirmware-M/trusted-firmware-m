@@ -100,8 +100,8 @@
     #include <nrfx_config_nrf5340_application.h>
 #elif defined(NRF91_SERIES)
     #include <nrfx_config_nrf91.h>
-#elif defined(NRF54L15_XXAA)
-    #include <nrfx_config_nrf54l15_application.h>
+#elif defined(NRF54L_SERIES)
+    #include <nrfx_config_nrf54l.h>
 #else
     #error "Unknown device."
 #endif

@@ -16,6 +16,7 @@ set(CONFIG_TFM_FP_ARCH "fpv5-sp-d16")
 
 add_compile_definitions(
   NRF54L15_XXAA
+  NRF54L_SERIES
   NRF_APPLICATION
   # SKIP configuring the SAU from the MDK as it does not fit TF-M's needs
   NRF_SKIP_SAU_CONFIGURATION

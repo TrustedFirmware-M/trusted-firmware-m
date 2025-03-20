@@ -6,9 +6,5 @@
 #
 #-------------------------------------------------------------------------------
 
-include(${PLATFORM_PATH}/common/core/config.cmake)
+include(${PLATFORM_PATH}/common/nrf54l/config.cmake)
 
-set(SECURE_UART30                       ON         CACHE BOOL      "Enable secure UART" FORCE)
-set(BL2                                 OFF        CACHE BOOL      "Whether to build BL2" FORCE)
-set(NRF_NS_SECONDARY                    OFF        CACHE BOOL      "Enable non-secure secondary partition" FORCE)
-set(NRF_SECURE_UART_INSTANCE            30         CACHE STRING    "The UART instance number to use for secure UART" FORCE)
