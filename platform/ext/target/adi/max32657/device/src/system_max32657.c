@@ -46,6 +46,11 @@ __weak int _kill(void)
     return E_NOT_SUPPORTED;
 }
 
+__weak int PeripheralInit(void)
+{
+    return E_NO_ERROR;
+}
+
 __weak void SystemCoreClockUpdate(void)
 {
     uint32_t base_freq, div, clk_src;
@@ -124,6 +129,11 @@ void SystemInit(void)
     MXC_SYS_Clock_Select(MXC_SYS_CLOCK_IPO);
     MXC_SYS_SetClockDiv(MXC_SYS_CLOCK_DIV_1);
     SystemCoreClockUpdate();
+
+#if CONFIG_TRUSTED_EXECUTION_SECURE
+    /* Init peripherals */
+    PeripheralInit();
+#endif
 
     /*
      * FPCA bit of CONTROL register can be enabled while

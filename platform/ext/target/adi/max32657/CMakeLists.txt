@@ -89,6 +89,13 @@ target_sources(tfm_s
         ${PLATFORM_DIR}/ext/target/adi/${TARGET_LC}/device/src/system_${TARGET_LC}.c
 )
 
+if(EXISTS "${CMAKE_BINARY_DIR}/../../adi_soc_peripheral_init.c")
+    target_sources(tfm_s
+        PRIVATE
+            ${CMAKE_BINARY_DIR}/../../adi_soc_peripheral_init.c
+    )
+endif()
+
 target_compile_definitions(tfm_s
     PUBLIC
         TARGET=${TARGET_UC}
