@@ -15,6 +15,7 @@ enum tfm_plat_err_t provisioning_comms_receive(const struct rse_provisioning_mes
                                                size_t msg_len, size_t *msg_size)
 {
     enum dcsu_error_t err;
+    bool got_complete = false;
 
     if (msg_len < sizeof(*msg)) {
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_COMMS_MSG_BUFFER_TOO_SMALL);
@@ -26,8 +27,12 @@ enum tfm_plat_err_t provisioning_comms_receive(const struct rse_provisioning_mes
         return (enum tfm_plat_err_t)err;
     }
 
-    while (dcsu_wait_for_rx_command(&DCSU_DEV_S, DCSU_RX_COMMAND_COMPLETE_IMPORT_DATA)
-           != DCSU_ERROR_NONE) {
+    while (!got_complete) {
+        if (dcsu_wait_for_rx_command(&DCSU_DEV_S, DCSU_RX_COMMAND_COMPLETE_IMPORT_DATA) ==
+            DCSU_ERROR_NONE) {
+                got_complete = true;
+        }
+
         err = dcsu_handle_rx_command(&DCSU_DEV_S);
         if (err != DCSU_ERROR_NONE) {
             return (enum tfm_plat_err_t)err;
