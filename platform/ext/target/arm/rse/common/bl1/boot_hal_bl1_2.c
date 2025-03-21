@@ -45,6 +45,7 @@
 #endif
 #include "bl1_2_debug.h"
 
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
 static struct mpu_armv8m_dev_t dev_mpu_s = { MPU_BASE };
 
@@ -55,6 +56,28 @@ static uint32_t image_offsets[2];
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 
 #ifdef RSE_USE_ROM_LIB_FROM_SRAM
+/* Instruction Patch Table */
+static const struct {
+    uint32_t addr;
+    uint16_t instruction;
+} instr_patches[] = {
+    /* Add patches to a specific instruction in the ROM
+     * here in the form:
+     * { addr (in ROM) of instruction, replacement instruction code}
+     */
+};
+
+/* GOT Patch Table */
+static const struct {
+    uint32_t got_addr;
+    uint32_t replacement;
+} got_patches[] = {
+    /* Add patches to the GOT here in the form:
+     * {Address of GOT (must be within GOT),
+     *        replacement address (points to code in BL1_2)}
+     */
+};
+
 extern uint32_t __got_start__;
 extern uint32_t __got_end__;
 extern uint32_t __bl1_1_text_size;
@@ -134,6 +157,28 @@ static void copy_rom_library_into_sram(void)
         *addr = got_entry;
     }
 }
+
+static void do_rom_patching(void)
+{
+    int idx;
+
+    /* Patch addresses in GOT with the address of the patched functions */
+    for (idx = 0; idx < ARRAY_SIZE(got_patches); idx++) {
+        *(volatile uint32_t *)(got_patches[idx].got_addr) = got_patches[idx].replacement;
+    }
+
+    /* Instruction based patching --> patch faulty instructions directly instead
+     * of replacing whole function with a patched function
+     */
+    for (idx = 0; idx < ARRAY_SIZE(instr_patches); idx++) {
+        /* The addr in the instr patch table will contain the ROM address
+         * of the faulty patch. Convert that address to the SRAM version as
+         * bl1_1_shared_lib is now shifted to SRAM where it will be patched
+         */
+        *(volatile uint16_t *)(instr_patches[idx].addr - ROM_BASE_S + VM1_BASE_S) =
+            instr_patches[idx].instruction;
+    }
+}
 #endif /* RSE_USE_ROM_LIB_FROM_SRAM */
 
 static enum tfm_plat_err_t image_load_validate_failure(void)
@@ -164,6 +209,8 @@ int32_t boot_platform_init(void)
 #endif /* RSE_SUPPORT_ROM_LIB_RELOCATION */
 #ifdef RSE_USE_ROM_LIB_FROM_SRAM
     copy_rom_library_into_sram();
+    /* Patch faulty instruction and functions */
+    do_rom_patching();
 #endif /* RSE_USE_ROM_LIB_FROM_SRAM */
 
     /* Initialize stack limit register */
