@@ -127,7 +127,7 @@ typedef struct {
     volatile int32_t msk;
 } fih_int;
 
-#define FIH_INT_INIT(x)       {(x), (x) ^ _FIH_MASK_VALUE}
+#define FIH_INT_INIT(x)       (fih_int){(x), (x) ^ _FIH_MASK_VALUE}
 #else /* FIH_ENABLE_DOUBLE_VARS */
 #define FIH_POSITIVE_VALUE    0x0
 #define FIH_NEGATIVE_VALUE    0xAAAA5555
@@ -254,7 +254,7 @@ int32_t fih_int_decode(fih_int x)
 __attribute__((always_inline)) inline
 fih_int fih_int_encode(int32_t x)
 {
-    fih_int ret = {x, x ^ _FIH_MASK_VALUE};
+    fih_int ret = (fih_int){x, x ^ _FIH_MASK_VALUE};
     return ret;
 }
 
@@ -311,12 +311,12 @@ fih_int fih_int_encode(int32_t x)
  * value that is not FIH_SUCCESS
  */
 __attribute__((always_inline)) inline
-fih_int fih_int_encode_zero_equality(int32_t x)
+fih_int fih_int_encode_zero_equality(volatile int32_t x)
 {
-    if (x) {
-        return FIH_FAILURE;
-    } else {
+    if (x == 0 && fih_delay() && x == 0) {
         return FIH_SUCCESS;
+    } else {
+        return FIH_INT_INIT(x);
     }
 }
 
@@ -468,7 +468,7 @@ void fih_cfi_decrement(void);
 #else /* TFM_FIH_PROFILE_ON */
 typedef int32_t fih_int;
 
-#define FIH_INT_INIT(x)       (x)
+#define FIH_INT_INIT(x)       (fih_int)(x)
 
 #define FIH_SUCCESS           0
 #define FIH_FAILURE           -1
@@ -477,9 +477,9 @@ typedef int32_t fih_int;
 
 #define fih_int_decode(x)     (x)
 
-#define fih_int_encode(x)     (x)
+#define fih_int_encode(x)     (fih_int)(x)
 
-#define fih_int_encode_zero_equality(x) (x)
+#define fih_int_encode_zero_equality(x) (fih_int)(x)
 
 #define fih_eq(x, y)          ((x) == (y))
 
@@ -495,7 +495,7 @@ typedef int32_t fih_int;
 
 #define FIH_RET(ret) \
     do { \
-        return ret; \
+        return (fih_int)ret; \
     } while (0)
 
 #define FIH_RET_TYPE(type)    type
