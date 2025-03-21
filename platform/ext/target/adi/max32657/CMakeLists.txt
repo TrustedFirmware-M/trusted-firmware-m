@@ -178,8 +178,6 @@ install(FILES       ${TARGET_PLATFORM_PATH}/partition/region_defs.h
                     ${TARGET_PLATFORM_PATH}/RTE_Device.h
                     ${TARGET_PLATFORM_PATH}/cmsis.h
                     ${PLATFORM_DIR}/ext/common/test_interrupt.h
-                    ${PLATFORM_DIR}/ext/driver/Driver_USART.h
-                    ${PLATFORM_DIR}/ext/driver/Driver_Common.h
                     ${PLATFORM_DIR}/include/tfm_plat_defs.h
                     ${CMAKE_SOURCE_DIR}/lib/fih/inc/fih.h
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/include)
