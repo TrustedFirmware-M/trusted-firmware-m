@@ -9,9 +9,10 @@ Contribution Guidelines
     Code review <code_review_guide>
     Maintainers and Owners <maintainers>
     issue_tracking
-    coding_guide
+    Coding guide <coding_guide>
     Documentation <doc_guidelines>
     Design proposal <tfm_design_proposal_guideline>
+    MISRA-C <standards/misra>
 
 --------------
 
