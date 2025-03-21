@@ -67,7 +67,7 @@ def pre_parse_backend(backends : [str], parser : argparse.ArgumentParser, prefix
     parsed, _ = pre_arg_parser.parse_known_args()
     return parsed.backend
 
-def tx_command_send(backend, ctx, command : dcsu_tx_command, data : bytes = None, size = None, byteorder='big', checksum=True):
+def tx_command_send(backend, ctx, command : dcsu_tx_command, data : bytes = None, size = None, byteorder='little', checksum=True):
     command_word = command.value
 
     if (data):
@@ -333,7 +333,7 @@ if __name__ == "__main__":
 
     for c in ["DCSU_TX_COMMAND_IMPORT_DATA_NO_CHECKSUM",
               "DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM"]:
-        parsers[c].add_argument("--byte-order", help="Byte order of data", default="big")
+        parsers[c].add_argument("--byte-order", help="Byte order of data", default="little")
 
     backend_name = pre_parse_backend(backends, parser)
     try:
