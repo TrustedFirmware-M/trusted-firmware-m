@@ -180,7 +180,7 @@ static enum dcsu_error_t rx_cancel_import(struct dcsu_dev_t *dev,
                                           enum dcsu_rx_msg_response_t *msg_resp)
 {
     dev->import_checksum_failed = false;
-    return dcsu_hal_cancel_import_data(&msg_resp);
+    return dcsu_hal_cancel_import_data(msg_resp);
 }
 
 enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
