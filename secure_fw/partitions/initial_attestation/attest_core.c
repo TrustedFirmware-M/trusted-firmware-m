@@ -23,6 +23,10 @@
 #include "tfm_crypto_defs.h"
 #include "tfm_sp_log.h"
 
+#if ATTEST_TOKEN_PROFILE_ARM_CCA
+#include "tfm_strnlen.h"
+#endif
+
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(*(array)))
 
 /*!
