@@ -24,7 +24,7 @@ endif()
 # At the time of writing there is no systematic way to identify which
 # NVM technology is used by the SoC from the Kconfig, so we just
 # hardcode this information here instead.
-if((NRF_SOC_VARIANT STREQUAL nrf54l15) OR (TFM_PLATFORM STREQUAL "nordic_nrf/nrf54l15dk_nrf54l15_cpuapp") OR (PSA_API_TEST_TARGET STREQUAL nrf54l15))
+if((NRF_SOC_VARIANT MATCHES "^nrf54l1[05]$") OR (TFM_PLATFORM MATCHES "nordic\_nrf\/nrf54l15dk\_nrf54l1[05]\_cpuapp") OR (PSA_API_TEST_TARGET MATCHES "^nrf54l1[05]$"))
   # Maybe we only need to check one of these options but these
   # variables keep changing so we check both to be future proof
   set(HAS_RRAMC 1)
