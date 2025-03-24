@@ -26,3 +26,15 @@ target_link_libraries(tfm_test_suite_extra_bl1_1
         bl1_cc3xx_tests
         bl1_1_shared_lib_interface
 )
+
+if (TEST_DCSU_DRV)
+    add_subdirectory(
+        ${CMAKE_SOURCE_DIR}/platform/ext/target/arm/drivers/dcsu/tests
+        ${CMAKE_CURRENT_BINARY_DIR}/dcsu/tests
+    )
+
+    target_link_libraries(tfm_test_suite_extra_bl1_1
+        PRIVATE
+            bl1_dcsu_drv_tests
+    )
+endif()

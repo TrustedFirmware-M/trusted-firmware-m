@@ -38,3 +38,8 @@ cc3xx_lowlevel_hash_set_state
 cc3xx_lowlevel_hash_uninit
 cc3xx_lowlevel_hash_update
 cc3xx_lowlevel_ec_get_modulus_size_from_curve
+DCSU_DEV_S
+dcsu_init
+dcsu_signal_ready
+dcsu_wait_for_any_rx_command
+dcsu_handle_rx_command

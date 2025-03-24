@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -11,6 +11,10 @@
 #include "cc3xx_tests.h"
 #include "rse_provisioning_tests.h"
 #include "test_state_transitions.h"
+
+#ifdef TEST_DCSU_DRV
+#include "test_dcsu_drv.h"
+#endif /* TEST_DCSU_DRV */
 
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
@@ -275,6 +279,10 @@ static struct test_t bl1_1_extra_tests[100];
 void register_testsuite_extra_bl1_1(struct test_suite_t *p_test_suite)
 {
     set_testsuite("RSE Tests", bl1_1_extra_tests, 0, p_test_suite);
+
+#ifdef TEST_DCSU_DRV
+    add_dcsu_drv_tests_to_testsuite(p_test_suite, ARRAY_SIZE(bl1_1_extra_tests));
+#endif /* TEST_DCSU_DRV */
 
     add_conditional_tests_to_testsuite(provisioning_tests, ARRAY_SIZE(provisioning_tests),
                                        p_test_suite, ARRAY_SIZE(bl1_1_extra_tests));
