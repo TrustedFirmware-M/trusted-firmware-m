@@ -43,19 +43,34 @@
 #endif
 #include "bl1_2_debug.h"
 
+/* FixMe: Move CASSERT() into a generic support header */
+/* Two-level macro so __LINE__ expands before token-pasting */
+#define __CONCAT_(a, b) a##b
+#define _CONCAT(a, b)  __CONCAT(a, b)
+
+/* Fails to compile when (expr) is false (i.e., "assert") */
+#define CASSERT(expr) \
+    typedef char _CONCAT(static_assertion_, __LINE__)[(expr) ? 1 : -1]
+
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
 #if (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2)
 #define LOGGING_ENABLED
 #endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2) */
 
-static struct mpu_armv8m_dev_t dev_mpu_s = { MPU_BASE };
-
 /* Needed to store the offset of primary and secondary slot of the BL2 firmware */
 static uint32_t image_offsets[2];
 
 /* Flash device name must be specified by target */
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
+
+/* List the MPU regions to be configured */
+enum {
+#if !(defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART))
+    ATU_WINDOW_REGION_CFG_NR = 0, /*!< Required for ATU config, not always present */
+#endif
+    ROM_REGION_CFG_NR             /*!< Always configured last as it's required to disable ROM exec */
+};
 
 #ifdef RSE_USE_ROM_LIB_FROM_SRAM
 /* Instruction Patch Table */
@@ -104,11 +119,12 @@ uint32_t bl1_image_get_flash_offset(uint32_t image_id)
 #if !(defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART))
 static int32_t init_mpu_region_for_atu(void)
 {
+    static struct mpu_armv8m_dev_t dev_mpu_s = { MPU_BASE };
     int32_t rc;
 
     /* Set entire RSE ATU window to device memory to prevent caching */
     const struct mpu_armv8m_region_cfg_t atu_window_region_config = {
-        .region_nr = 0,
+        .region_nr = ATU_WINDOW_REGION_CFG_NR,
         .region_base = HOST_ACCESS_BASE_NS,
         .region_limit = HOST_ACCESS_LIMIT_S,
         .region_attridx = MPU_ARMV8M_MAIR_ATTR_DEVICE_IDX,
@@ -374,10 +390,14 @@ int32_t boot_platform_post_init(void)
     return 0;
 }
 
-static int disable_rom_execution(void)
+/* Directly program the MPU registers without calling the driver
+ * as that won't be runnable from ROM once we disable the ROM
+ * execution
+ */
+static void disable_rom_execution(void)
 {
-    const struct mpu_armv8m_region_cfg_t rom_region_config = {
-        .region_nr = 1,
+    const struct mpu_armv8m_region_cfg_t rom_region_cfg = {
+        .region_nr = ROM_REGION_CFG_NR,
         .region_base = ROM_BASE_S,
         .region_limit = ROM_BASE_S + ROM_SIZE - 1,
         .region_attridx = MPU_ARMV8M_MAIR_ATTR_CODE_IDX,
@@ -389,7 +409,37 @@ static int disable_rom_execution(void)
 #endif
     };
 
-    return mpu_armv8m_region_enable(&dev_mpu_s, &rom_region_config);
+    /* Validate both base and limit are aligned to 32-byte boundaries,
+     * i.e. base[4:0] = 0b00000 and limit[4:1] = 0b11111
+     */
+    CASSERT((rom_region_cfg.region_base  & ~MPU_RBAR_BASE_Msk)  == 0);
+    CASSERT((rom_region_cfg.region_limit & ~MPU_RLAR_LIMIT_Msk) == 0x1F);
+
+    /* Region enable */
+    MPU->CTRL = 0x0UL;
+
+    MPU->RNR = rom_region_cfg.region_nr & MPU_RNR_REGION_Msk;
+    MPU->RBAR = (rom_region_cfg.region_base & MPU_RBAR_BASE_Msk) |
+        ((rom_region_cfg.attr_sh << MPU_RBAR_SH_Pos) & MPU_RBAR_SH_Msk) |
+        ((rom_region_cfg.attr_access << MPU_RBAR_AP_Pos) & MPU_RBAR_AP_Msk) |
+        ((rom_region_cfg.attr_exec << MPU_RBAR_XN_Pos) & MPU_RBAR_XN_Msk);
+    MPU->RLAR = (rom_region_cfg.region_limit & MPU_RLAR_LIMIT_Msk) |
+        ((rom_region_cfg.region_attridx << MPU_RLAR_AttrIndx_Pos) & MPU_RLAR_AttrIndx_Msk) |
+#ifdef TFM_PXN_ENABLE
+        ((rom_region_cfg.attr_pxn << MPU_RLAR_PXN_Pos) & MPU_RLAR_PXN_Msk) |
+#endif
+        MPU_RLAR_EN_Msk;
+
+    /* Enable with PRIVILEGED_DEFAULT_ENABLE, HARDFAULT_NMI_ENABLE*/
+
+    MPU->MAIR0 = (MPU_ARMV8M_MAIR_ATTR_DEVICE_VAL << MPU_MAIR0_Attr0_Pos) |
+                 (MPU_ARMV8M_MAIR_ATTR_CODE_VAL << MPU_MAIR0_Attr1_Pos) |
+                 (MPU_ARMV8M_MAIR_ATTR_DATA_VAL << MPU_MAIR0_Attr2_Pos);
+    MPU->MAIR1 = 0x0;
+    MPU->CTRL = MPU_CTRL_PRIVDEFENA_Msk | MPU_CTRL_HFNMIENA_Msk | MPU_CTRL_ENABLE_Msk;
+
+    __DSB();
+    __ISB();
 }
 
 void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
@@ -429,10 +479,7 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
 
     kmu_random_delay(&KMU_DEV_S, KMU_DELAY_LIMIT_32_CYCLES);
 
-    result = disable_rom_execution();
-    if (result != 0) {
-        while (1);
-    }
+    disable_rom_execution();
 
     vt_cpy = vt;
 #if defined(__ARM_ARCH_8M_MAIN__) || defined(__ARM_ARCH_8M_BASE__) \
