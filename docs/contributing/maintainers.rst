@@ -21,11 +21,15 @@ Chris Brand
     :email: `Chris.Brand@cypress.com <chris.brand@cypress.com>`__
     :github: `UEWBot <https://github.com/UEWBot>`__
 
+David Hu
+    :email: `David.Hu2@arm.com <David.Hu2@arm.com>`__
+    :github: `davidhuziji <https://github.com/davidhuziji>`__
+
 Code owners
 ===========
 
-Bootloader and FWU
-~~~~~~~~~~~~~~~~~~
+Bootloader
+~~~~~~~~~~
 
 Tamas Ban
     :email: `Tamas.Ban@arm.com <Tamas.Ban@arm.com>`__
@@ -34,6 +38,13 @@ Tamas Ban
 David Vincze
     :email: `David.Vincze@arm.com <David.Vincze@arm.com>`__
     :github: `davidvincze <https://github.com/davidvincze>`__
+
+Firmware Update (FWU)
+~~~~~~~~~~~~~~~~~~~~~
+
+Maulik Patel
+    :email: `Maulik.Patel@arm.com <Maulik.Patel@arm.com>`__
+    :github: `maulik-arm <https://github.com/maulik-arm>`__
 
 BL1 immutable bootloader
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,9 +56,9 @@ Raef Coles
 Secure Storage
 ~~~~~~~~~~~~~~
 
-Jamie Fox
-    :email: `jamie.fox@arm.com <jamie.fox@arm.com>`__
-    :github: `jf549 <https://github.com/jf549>`__
+Matthew Dalzell
+    :email: `Matthew.Dalzell@arm.com <Matthew.Dalzell@arm.com>`__
+    :github: `mdalzellarm <https://github.com/mdalzellarm>`__
 
 Crypto
 ~~~~~~
@@ -55,6 +66,10 @@ Crypto
 Antonio de Angelis
     :email: `Antonio.deAngelis@arm.com <Antonio.deAngelis@arm.com>`__
     :github: `adeaarm <https://github.com/adeaarm>`__
+
+David Vincze
+    :email: `David.Vincze@arm.com <David.Vincze@arm.com>`__
+    :github: `davidvincze <https://github.com/davidvincze>`__
 
 Framework (SPM, etc.)
 ~~~~~~~~~~~~~~~~~~~~~
@@ -69,6 +84,13 @@ Attestation
 Maulik Patel
     :email: `Maulik.Patel@arm.com <Maulik.Patel@arm.com>`__
     :github: `maulik-arm <https://github.com/maulik-arm>`__
+
+Platform Partition
+~~~~~~~~~~~~~~~~~~
+
+Nicola Mazzucato
+    :email: `Nicola.Mazzucato@arm.com <Nicola.Mazzucato@arm.com>`__
+    :github: `nicola-mazzucato-arm <https://github.com/nicola-mazzucato-arm>`__
 
 Build System
 ~~~~~~~~~~~~
@@ -87,6 +109,13 @@ Tests
 Matthew Dalzell
     :email: `Matthew.Dalzell@arm.com <Matthew.Dalzell@arm.com>`__
     :github: `mdalzellarm <https://github.com/mdalzellarm>`__
+
+SCMI Partition (TF-M-Extras)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Nicola Mazzucato
+    :email: `Nicola.Mazzucato@arm.com <Nicola.Mazzucato@arm.com>`__
+    :github: `nicola-mazzucato-arm <https://github.com/nicola-mazzucato-arm>`__
 
 Arm Platforms
 ~~~~~~~~~~~~~
@@ -112,9 +141,13 @@ Emekcan Aras
 RSE
 ^^^
 
-Jamie Fox
-    :email: `jamie.fox@arm.com <jamie.fox@arm.com>`__
-    :github: `jf549 <https://github.com/jf549>`__
+Raef Coles
+    :email: `Raef.Coles@arm.com <Raef.Coles@arm.com>`__
+    :github: `RcColes <https://github.com/RcColes>`__
+
+Antonio de Angelis
+    :email: `Antonio.deAngelis@arm.com <Antonio.deAngelis@arm.com>`__
+    :github: `adeaarm <https://github.com/adeaarm>`__
 
 Arm Automotive RD
 """""""""""""""""
@@ -166,14 +199,12 @@ Georgios Vasilakis
     :email: `georgios.vasilakis@nordicsemi.no <georgios.vasilakis@nordicsemi.no>`__
     :github: `Vge0rge <https://github.com/Vge0rge>`__
 
-
 Nuvoton Platform
 ~~~~~~~~~~~~~~~~
 
 WS Chang
     :email: `MS20 WSChang0@nuvoton.com <wschang0@nuvoton.com>`__
     :github: `wschang0 <https://github.com/wschang0>`__
-
 
 ArmChina Platform
 ~~~~~~~~~~~~~~~~~
@@ -193,4 +224,6 @@ William Vinnicombe
 
 .. _Project Maintenance Process: https://trusted-firmware-docs.readthedocs.io/en/latest/generic_processes/project_maintenance_process.html
 
-*Copyright (c) 2017-2025, Arm Limited. All rights reserved.*
+*SPDX-License-Identifier: BSD-3-Clause*
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
