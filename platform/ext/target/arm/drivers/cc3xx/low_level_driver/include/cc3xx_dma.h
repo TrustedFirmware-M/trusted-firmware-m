@@ -38,6 +38,7 @@ typedef struct {
     size_t region_size;    /*!< The size of the region that will be remapped */
     uintptr_t remap_base;  /*!< The base of the region that mapped to */
     size_t remap_cpusel_offset; /*!< How much the remap will be incremented per cpu */
+    bool valid;            /*!< Validity of the region */
 } cc3xx_dma_remap_region_t;
 
 #endif /* CC3XX_CONFIG_DMA_REMAP_ENABLE */
