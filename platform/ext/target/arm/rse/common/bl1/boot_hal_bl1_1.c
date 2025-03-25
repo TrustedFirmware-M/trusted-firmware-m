@@ -33,6 +33,8 @@
 #include "tfm_log.h"
 #include "bl1_1_debug.h"
 
+#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
+
 /* Flash device name must be specified by target */
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 
@@ -118,7 +120,7 @@ int32_t boot_platform_init(void)
         {DTCM_BASE_NS, DTCM_SIZE, DTCM_CPU0_BASE_NS, 0x01000000},
     };
 
-    for (idx = 0; idx < (sizeof(remap_regions) / sizeof(remap_regions[0])); idx++) {
+    for (idx = 0; idx < ARRAY_SIZE(remap_regions); idx++) {
         cc3xx_lowlevel_dma_remap_region_init(idx, &remap_regions[idx]);
     }
 
