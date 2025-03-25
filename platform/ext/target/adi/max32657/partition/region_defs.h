@@ -99,7 +99,7 @@
                              MAX32657_S_SRAM3_SIZE + \
                              MAX32657_S_SRAM4_SIZE )
 
-#define S_RAM_CODE_SIZE    KB(1)  /* ramfuncs section size*/
+#define S_RAM_CODE_SIZE    ADI_S_RAM_CODE_SIZE  /* ramfuncs section size*/
 
 #define S_DATA_START    (S_RAM_ALIAS(MAX32657_S_DATA_OFFSET))
 #define S_DATA_SIZE     (S_TOTAL_DATA_SIZE - S_RAM_CODE_SIZE)

@@ -144,11 +144,11 @@
 
 /* Protected Storage (PS) Service definitions */
 #define FLASH_PS_AREA_OFFSET            (FLASH_AREA_SCRATCH_OFFSET + FLASH_AREA_SCRATCH_SIZE)
-#define FLASH_PS_AREA_SIZE              KB(0)   /* 0 KB */
+#define FLASH_PS_AREA_SIZE              ADI_FLASH_PS_AREA_SIZE
 
 /* Internal Trusted Storage (ITS) Service definitions */
 #define FLASH_ITS_AREA_OFFSET           (FLASH_PS_AREA_OFFSET + FLASH_PS_AREA_SIZE)
-#define FLASH_ITS_AREA_SIZE             KB(16)
+#define FLASH_ITS_AREA_SIZE             ADI_FLASH_ITS_AREA_SIZE
 
 /* Placing OTP backup area in Flash because of limited availability of Secure Flash Info area */
 #define FLASH_OTP_NV_COUNTERS_AREA_OFFSET  (FLASH_ITS_AREA_OFFSET + FLASH_ITS_AREA_SIZE)
