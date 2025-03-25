@@ -111,9 +111,9 @@
 /* #define CC3XX_CONFIG_TRNG_DMA */
 
 /* Whether RNG uses HMAC_DRBG when RNG_DRBG is selected */
-#define CC3XX_CONFIG_RNG_DRBG_HMAC
+/* #define CC3XX_CONFIG_RNG_DRBG_HMAC */
 /* Whether RNG uses CTR_DRBG when RNG_DRBG is selected */
-/* #define CC3XX_CONFIG_RNG_DRBG_CTR */
+#define CC3XX_CONFIG_RNG_DRBG_CTR
 /* Whether RNG uses HASH_DRBG when RNG_DRBG is selected */
 /* #define CC3XX_CONFIG_RNG_DRBG_HASH */
 
