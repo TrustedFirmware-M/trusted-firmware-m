@@ -508,8 +508,7 @@ target_link_libraries(platform_bl1_1
 )
 
 if(RSE_SUPPORT_ROM_LIB_RELOCATION)
-    target_compile_options(platform_bl1_1
-        PUBLIC
+    set(ROM_LIB_RELOCATION_COMPILE_FLAGS
             # Enable position independent code
             -fpic
             # Tell the compiler that it can't assume the offset between the data
@@ -523,6 +522,26 @@ if(RSE_SUPPORT_ROM_LIB_RELOCATION)
             # address of the GOT, and that it doesn't need to try to set r9
             # itself (we do it in the initial setup).
             -msingle-pic-base
+    )
+
+    target_compile_options(platform_bl1_1
+        PUBLIC
+            ${ROM_LIB_RELOCATION_COMPILE_FLAGS}
+    )
+
+    target_compile_options(bl1_1_crypto_mbedcrypto
+        PRIVATE
+            ${ROM_LIB_RELOCATION_COMPILE_FLAGS}
+    )
+
+    target_compile_options(bl1_1_crypto_mbedtls
+        PRIVATE
+            ${ROM_LIB_RELOCATION_COMPILE_FLAGS}
+    )
+
+    target_compile_options(bl1_1_crypto_mbedx509
+        PRIVATE
+            ${ROM_LIB_RELOCATION_COMPILE_FLAGS}
     )
 endif()
 
