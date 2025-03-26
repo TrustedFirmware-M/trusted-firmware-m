@@ -613,7 +613,6 @@ uint64_t ipc_schedule(uint32_t exc_return)
     }
     p_partition_metadata = (uintptr_t)(p_part_next->p_metadata);
 
-#ifdef TFM_FIH_PROFILE_ON
     /*
      * ctx_ctrl is set from struct thread_t's p_context_ctrl, and p_part_curr
      * and p_part_next are calculated from the thread pointer.
@@ -638,7 +637,6 @@ uint64_t ipc_schedule(uint32_t exc_return)
     if ((uintptr_t)GET_CTX_OWNER(ctx_ctrls.u32_regs.r1)->p_metadata != p_partition_metadata) {
         tfm_core_panic();
     }
-#endif
 
     CRITICAL_SECTION_LEAVE(cs);
 
