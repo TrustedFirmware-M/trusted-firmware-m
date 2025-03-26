@@ -114,6 +114,7 @@ add_compile_options(
     -Wall
     -Wno-format
     -Wno-unused-but-set-variable
+    -Wnull-dereference
     -c
     -fdata-sections
     -ffunction-sections
