@@ -88,7 +88,7 @@
  * default.
  */
 //#define PSA_WANT_ECC_SECP_K1_224                1
-//#define PSA_WANT_ECC_SECP_K1_256                1
+#define PSA_WANT_ECC_SECP_K1_256                1
 //#define PSA_WANT_ECC_SECP_R1_192                1
 //#define PSA_WANT_ECC_SECP_R1_224                1
 #define PSA_WANT_ECC_SECP_R1_256                1
