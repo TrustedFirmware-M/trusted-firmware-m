@@ -141,10 +141,6 @@ Ruchika Gupta
 STM Platforms
 ~~~~~~~~~~~~~
 
-Michel JAOUEN
-    :email: `Michel.Jaouen@st.com <michel.jaouen@st.com>`__
-    :github: `jamike <https://github.com/jamike>`__
-
 Ahmad EL JOUAID
     :email: `ahmad.eljouaid@st.com <ahmad.eljouaid@st.com>`__
     :github: `ahmadstm <https://github.com/ahmadstm>`__

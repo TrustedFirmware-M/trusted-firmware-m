@@ -44,10 +44,55 @@
 #error "BL2 configuration is not supported"
 #endif /* BL2 */
 
+/* Sector size of the flash hardware; same as FLASH0_SECTOR_SIZE */
+#define FLASH_AREA_IMAGE_SECTOR_SIZE    (0x2000)      /* 8 kB */
+/* Same as FLASH0_SIZE */
+#define FLASH_B_SIZE                    (0x100000)   /* 1 MBytes*/
+#define FLASH_TOTAL_SIZE                (FLASH_B_SIZE + FLASH_B_SIZE) /* 2 MBytes */
+
+/* Flash layout info for BL2 bootloader */
+#define FLASH_BASE_ADDRESS              (0x0c000000) /* same as FLASH0_BASE */
+
+#define FLASH_HASH_REF_AREA_OFFSET      (0x0000)
+#define FLASH_HASH_REF_AREA_SIZE        (FLASH_AREA_IMAGE_SECTOR_SIZE)
+
+/* area for HUK and anti roll back counter */
+#define FLASH_BL2_NVCNT_AREA_OFFSET     (FLASH_HASH_REF_AREA_OFFSET + FLASH_HASH_REF_AREA_SIZE)
+#define FLASH_BL2_NVCNT_AREA_SIZE       (FLASH_AREA_IMAGE_SECTOR_SIZE)
+
+/* scratch area */
+#define FLASH_AREA_SCRATCH_OFFSET       (FLASH_BL2_NVCNT_AREA_OFFSET + FLASH_BL2_NVCNT_AREA_SIZE)
+#define FLASH_AREA_SCRATCH_SIZE         (0x0000) /* Not used in MCUBOOT_OVERWRITE_ONLY mode */
+/* control scratch area */
+#if (FLASH_AREA_SCRATCH_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0
+#error "FLASH_AREA_SCRATCH_OFFSET not aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
+#endif /* (FLASH_AREA_SCRATCH_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0*/
+
+/* personal area */
+#define FLASH_AREA_PERSO_OFFSET         (FLASH_BL2_NVCNT_AREA_OFFSET + FLASH_BL2_NVCNT_AREA_SIZE + \
+                                         FLASH_AREA_SCRATCH_SIZE)
+#define FLASH_AREA_PERSO_SIZE           (0x2000)
+/* control personal area */
+#if (FLASH_AREA_PERSO_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0
+#error "FLASH_AREA_PERSO_OFFSET not aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
+#endif /* FLASH_AREA_PERSO_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0 */
+
+/* area for BL2 code protected by hdp */
+#define FLASH_AREA_BL2_OFFSET           (FLASH_AREA_PERSO_OFFSET+FLASH_AREA_PERSO_SIZE)
+#define FLASH_AREA_BL2_SIZE             (0x10000)
+
+/* HDP area end at this address */
+#define FLASH_BL2_HDP_END               (FLASH_AREA_BL2_OFFSET+FLASH_AREA_BL2_SIZE-1)
+/* area for BL2 code not protected by hdp */
+#define FLASH_AREA_BL2_NOHDP_OFFSET     (FLASH_AREA_BL2_OFFSET+FLASH_AREA_BL2_SIZE)
+#define FLASH_AREA_BL2_NOHDP_SIZE       (FLASH_AREA_IMAGE_SECTOR_SIZE)
+/* control area for BL2 code protected by hdp */
+#if (FLASH_AREA_BL2_NOHDP_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0
+#error "HDP area must be aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
+#endif /* (FLASH_AREA_BL2_NOHDP_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0 */
 
 /*TFM_PARTITION_FIRMWARE_UPDATE*/
 /* Sector size of the flash hardware; same as FLASH0_SECTOR_SIZE */
-#define FLASH_AREA_IMAGE_SECTOR_SIZE    (0x2000)      /* 8 kB */
 #define FWU_COMPONENT_NUMBER 2
 
 /* Secure image primary slot */
@@ -78,8 +123,6 @@
 #define FLASH_AREA_3_SIZE          (FLASH_NS_PARTITION_SIZE)
 /* Scratch area */
 #define FLASH_AREA_SCRATCH_ID      (FLASH_AREA_3_ID + 1)
-#define FLASH_AREA_SCRATCH_OFFSET  (FLASH_AREA_3_OFFSET + FLASH_AREA_3_SIZE)
-#define FLASH_AREA_SCRATCH_SIZE    (FLASH_MAX_PARTITION_SIZE)
 /* The maximum number of status entries supported by the bootloader. */
 #define MCUBOOT_STATUS_MAX_ENTRIES (FLASH_MAX_PARTITION_SIZE / \
                                     FLASH_AREA_SCRATCH_SIZE)
@@ -104,16 +147,7 @@
 /* The size of S partition */
 #define FLASH_S_PARTITION_SIZE          (0x60000) /* 384 KB for S partition */
 /* The size of NS partition */
-#define FLASH_NS_PARTITION_SIZE         (0x80000) /* 512 KB for NS partition */
-
-/* Sector size of the flash hardware; same as FLASH0_SECTOR_SIZE */
-#define FLASH_AREA_IMAGE_SECTOR_SIZE    (0x2000)      /* 8 kB */
-/* Same as FLASH0_SIZE */
-#define FLASH_B_SIZE                    (0x100000)   /* 1 MBytes*/
-#define FLASH_TOTAL_SIZE                (FLASH_B_SIZE + FLASH_B_SIZE) /* 2 MBytes */
-
-/* Flash layout info for BL2 bootloader */
-#define FLASH_BASE_ADDRESS              (0x0c000000) /* same as FLASH0_BASE */
+#define FLASH_NS_PARTITION_SIZE         (0x60000) /* 512 KB for NS partition */
 
 /* Non Volatile Counters definitions */
 #define FLASH_NV_COUNTERS_AREA_OFFSET           (0x0000)
@@ -126,9 +160,8 @@
 
 /* OTP / Non Volatile Counters definitions */
 #define FLASH_OTP_NV_COUNTERS_SECTOR_SIZE   (FLASH_AREA_IMAGE_SECTOR_SIZE)
-#define FLASH_OTP_NV_COUNTERS_AREA_OFFSET   (FLASH_NV_COUNTERS_AREA_OFFSET + \
-                                             FLASH_NV_COUNTER_AREA_SIZE)
-
+#define FLASH_OTP_NV_COUNTERS_AREA_OFFSET   (FLASH_AREA_BL2_NOHDP_OFFSET + \
+                                                 FLASH_AREA_BL2_NOHDP_SIZE)
 #define FLASH_OTP_NV_COUNTERS_AREA_SIZE   (FLASH_OTP_NV_COUNTERS_SECTOR_SIZE + \
                                            FLASH_OTP_NV_COUNTERS_SECTOR_SIZE)
 
