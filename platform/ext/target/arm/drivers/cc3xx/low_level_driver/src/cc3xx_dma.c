@@ -25,19 +25,19 @@
 struct cc3xx_dma_state_t dma_state;
 
 #ifdef CC3XX_CONFIG_DMA_REMAP_ENABLE
-static cc3xx_dma_remap_region_t remap_regions[CC3XX_CONFIG_DMA_REMAP_REGION_AM] = {0};
+static cc3xx_dma_remap_region_t g_remap_regions[CC3XX_CONFIG_DMA_REMAP_REGION_AM] = {0};
 
 void cc3xx_lowlevel_dma_remap_region_init(uint32_t remap_region_idx,
-                                        cc3xx_dma_remap_region_t *region)
+                                        const cc3xx_dma_remap_region_t *region)
 {
-    memcpy(&remap_regions[remap_region_idx], region, sizeof(*region));
-    remap_regions[remap_region_idx].valid = true;
+    memcpy(&g_remap_regions[remap_region_idx], region, sizeof(*region));
+    g_remap_regions[remap_region_idx].valid = true;
 }
 
 void cc3xx_lowlevel_dma_remap_region_clear(uint32_t remap_region_idx)
 {
-    memset(&remap_regions[remap_region_idx], 0, sizeof(cc3xx_dma_remap_region_t));
-    remap_regions[remap_region_idx].valid = false;
+    memset(&g_remap_regions[remap_region_idx], 0, sizeof(cc3xx_dma_remap_region_t));
+    g_remap_regions[remap_region_idx].valid = false;
 }
 
 void cc3xx_lowlevel_dma_tcm_cpusel(uint32_t cpuid)
@@ -51,14 +51,14 @@ static uintptr_t remap_addr(uintptr_t addr)
     cc3xx_dma_remap_region_t *region;
 
     for (idx = 0; idx < CC3XX_CONFIG_DMA_REMAP_REGION_AM; idx++) {
-        region = &remap_regions[idx];
+        region = &g_remap_regions[idx];
 
         if (!region->valid) {
             continue;
         }
 
-        if (addr >= region->region_base
-            && addr < region->region_base + region->region_size) {
+        if ((addr >= region->region_base)
+            && (addr < region->region_base + region->region_size)) {
             return (addr - region->region_base) + region->remap_base
                     + (region->remap_cpusel_offset * dma_state.remap_cpusel);
         }

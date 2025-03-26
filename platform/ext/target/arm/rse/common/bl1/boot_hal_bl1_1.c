@@ -111,7 +111,7 @@ int32_t boot_platform_init(void)
 #endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2) */
 
 #ifdef CRYPTO_HW_ACCELERATOR
-    cc3xx_dma_remap_region_t remap_regions[] = {
+    const cc3xx_dma_remap_region_t remap_regions[] = {
         {ITCM_BASE_S, ITCM_SIZE, ITCM_CPU0_BASE_S, 0x01000000},
         {ITCM_BASE_NS, ITCM_SIZE, ITCM_CPU0_BASE_NS, 0x01000000},
         {DTCM_BASE_S, DTCM_SIZE, DTCM_CPU0_BASE_S, 0x01000000},

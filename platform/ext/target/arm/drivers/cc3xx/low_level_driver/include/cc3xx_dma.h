@@ -67,7 +67,7 @@ extern "C" {
  *                               cc3xx_err_t on error.
  */
 void cc3xx_lowlevel_dma_remap_region_init(uint32_t remap_region_idx,
-                                          cc3xx_dma_remap_region_t *region);
+                                          const cc3xx_dma_remap_region_t *region);
 /**
  * @brief                        Clear and disable a remap region.
  *
