@@ -113,6 +113,8 @@ SECTIONS
         KEEP(*(.eh_frame*))
     } > FLASH
 
+    __bl1_1_text_size = SIZEOF(.text);
+
     .ARM.extab :
     {
         *(.ARM.extab* .gnu.linkonce.armextab.*)

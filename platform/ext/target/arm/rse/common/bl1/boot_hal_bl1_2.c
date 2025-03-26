@@ -57,6 +57,7 @@ extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 #ifdef RSE_USE_ROM_LIB_FROM_SRAM
 extern uint32_t __got_start__;
 extern uint32_t __got_end__;
+extern uint32_t __bl1_1_text_size;
 #endif /* RSE_USE_ROM_LIB_FROM_SRAM */
 
 REGION_DECLARE(Image$$, ARM_LIB_STACK, $$ZI$$Base);
@@ -110,9 +111,14 @@ static void setup_got_register(void)
 static void copy_rom_library_into_sram(void)
 {
     uint32_t got_entry;
+    const size_t code_size = (size_t)&__bl1_1_text_size;
+
+    if (code_size > VM1_SIZE) {
+        FIH_PANIC;
+    }
 
     /* Copy the ROM into VM1 */
-    memcpy((uint8_t *)VM1_BASE_S, (uint8_t *)ROM_BASE_S, BL1_1_CODE_SIZE);
+    memcpy((uint8_t *)VM1_BASE_S, (uint8_t *)ROM_BASE_S, code_size);
 
     /* Patch the GOT so that any address which pointed into ROM now points into
      * VM1.

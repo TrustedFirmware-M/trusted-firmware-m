@@ -80,6 +80,7 @@ cc3xx_lowlevel_ecdsa_verify
 cc3xx_lowlevel_ecdh
 __got_start__
 __got_end__
+__bl1_1_text_size
 __ubsan_*
 log_error
 log_error_permissions_check
