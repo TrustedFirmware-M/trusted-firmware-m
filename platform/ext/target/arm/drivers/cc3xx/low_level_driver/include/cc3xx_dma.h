@@ -61,10 +61,7 @@ extern "C" {
 
  * @param[in]  remap_region_idx  Which remap region should be configured and
  *                               enabled.
- * @param[in]  remap_region_idx  The configuration for the remap region.
- *
- * @return                       CC3XX_ERR_SUCCESS on success, another
- *                               cc3xx_err_t on error.
+ * @param[in]  region            The configuration for the remap region.
  */
 void cc3xx_lowlevel_dma_remap_region_init(uint32_t remap_region_idx,
                                           const cc3xx_dma_remap_region_t *region);
