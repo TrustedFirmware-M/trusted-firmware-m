@@ -19,15 +19,9 @@
 
 void cc3xx_secure_erase_buffer(uint32_t *buf, size_t word_count)
 {
-    size_t idx;
-    uint32_t random_val;
-
     /* Overwrites the input buffer with random values */
-    cc3xx_lowlevel_rng_get_random((uint8_t *)&random_val, sizeof(random_val),
+    cc3xx_lowlevel_rng_get_random((uint8_t *)buf, word_count * sizeof(uint32_t),
                                   CC3XX_RNG_FAST);
-    for (idx = 0; idx < word_count; idx++) {
-        buf[idx] = random_val;
-    }
 }
 
 /* The CC3XX driver uses word-aligned copies through this function when required.
