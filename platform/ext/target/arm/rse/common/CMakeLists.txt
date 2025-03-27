@@ -522,6 +522,9 @@ if(RSE_SUPPORT_ROM_LIB_RELOCATION)
             # address of the GOT, and that it doesn't need to try to set r9
             # itself (we do it in the initial setup).
             -msingle-pic-base
+            # Force function calls through the GOT instead of short-range
+            # BL instructions
+            -mlong-calls
     )
 
     target_compile_options(platform_bl1_1
