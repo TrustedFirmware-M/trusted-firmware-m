@@ -242,11 +242,11 @@
 
 /* BL1 data is in DTCM */
 #define BL1_1_DATA_START  (BOOT_TFM_SHARED_DATA_BASE + BOOT_TFM_SHARED_DATA_SIZE)
-#define BL1_1_DATA_SIZE   ((DTCM_SIZE - BOOT_TFM_SHARED_DATA_SIZE) / 2)
+#define BL1_1_DATA_SIZE   (0x4800) /* 18 KiB */
 #define BL1_1_DATA_LIMIT  (BL1_1_DATA_START + BL1_1_DATA_SIZE - 1)
 
 #define BL1_2_DATA_START  (BL1_1_DATA_START + BL1_1_DATA_SIZE)
-#define BL1_2_DATA_SIZE   ((DTCM_SIZE - BOOT_TFM_SHARED_DATA_SIZE) / 2)
+#define BL1_2_DATA_SIZE   (DTCM_SIZE - BOOT_TFM_SHARED_DATA_SIZE - BL1_1_DATA_SIZE)
 #define BL1_2_DATA_LIMIT  (BL1_2_DATA_START + BL1_2_DATA_SIZE - 1)
 
 /* XIP data goes after the BL2 image */
@@ -264,7 +264,11 @@
 /* We use various calculations which give some sections space remaining
  * after removing the size of other sections. Verify that all
  * of those calculations are valid here */
-#if BL2_CODE_SIZE < 0 || \
+#if BL1_1_CODE_SIZE < 0 || \
+    BL1_1_DATA_SIZE < 0 || \
+    BL1_2_CODE_SIZE < 0 || \
+    BL1_2_DATA_SIZE < 0 || \
+    BL2_CODE_SIZE < 0 || \
     BL2_DATA_SIZE < 0 || \
     S_CODE_SIZE < 0 || \
     S_DATA_SIZE < 0 || \
