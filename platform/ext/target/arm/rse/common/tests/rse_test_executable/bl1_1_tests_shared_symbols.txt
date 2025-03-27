@@ -10,6 +10,8 @@ lcm_get_lcs
 lcm_set_lcs
 lcm_get_tp_mode
 lcm_set_tp_mode
+lcm_otp_read
+lcm_get_otp_size
 tfm_hal_system_reset
 tfm_plat_otp_secure_provisioning_start
 tfm_plat_provisioning_is_required
@@ -35,3 +37,4 @@ cc3xx_lowlevel_hash_init
 cc3xx_lowlevel_hash_set_state
 cc3xx_lowlevel_hash_uninit
 cc3xx_lowlevel_hash_update
+cc3xx_lowlevel_ec_get_modulus_size_from_curve
