@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -7,14 +7,16 @@
 
 add_library(rse_bl1_tests_platform INTERFACE)
 
-target_compile_options(rse_bl1_tests_platform
-    INTERFACE
-        # Prevent BL1_2 from using r9
-        -ffixed-r9
-        # Inlining causes gcc to generate reads and writes to r9. This is
-        # probably a bug, but work around it by not inlining functions.
-        -fno-inline
-)
+if (RSE_SUPPORT_ROM_LIB_RELOCATION)
+    target_compile_options(rse_bl1_tests_platform
+        INTERFACE
+            # Prevent BL1_2 from using r9
+            -ffixed-r9
+            # Inlining causes gcc to generate reads and writes to r9. This is
+            # probably a bug, but work around it by not inlining functions.
+            -fno-inline
+    )
+endif()
 
 ################################################################################
 
