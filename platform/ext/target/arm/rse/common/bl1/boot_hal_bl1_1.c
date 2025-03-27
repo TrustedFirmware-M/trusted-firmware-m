@@ -118,13 +118,13 @@ int32_t boot_platform_init(void)
         {DTCM_BASE_NS, DTCM_SIZE, DTCM_CPU0_BASE_NS, 0x01000000},
     };
 
+    for (idx = 0; idx < (sizeof(remap_regions) / sizeof(remap_regions[0])); idx++) {
+        cc3xx_lowlevel_dma_remap_region_init(idx, &remap_regions[idx]);
+    }
+
     cc_err = cc3xx_lowlevel_init();
     if (cc_err != CC3XX_ERR_SUCCESS) {
         return cc_err;
-    }
-
-    for (idx = 0; idx < (sizeof(remap_regions) / sizeof(remap_regions[0])); idx++) {
-        cc3xx_lowlevel_dma_remap_region_init(idx, &remap_regions[idx]);
     }
 
     plat_err = rse_setup_cc3xx_pka_sram_encryption_key();
