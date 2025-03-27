@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -47,5 +47,4 @@ target_compile_definitions(${CC3XX_TEST_TARGET_NAME}
 target_link_libraries(${CC3XX_TEST_TARGET_NAME}
     INTERFACE
         ${CC3XX_TARGET_NAME}
-        ${CC3XX_PLATFORM_INTERFACE}
 )

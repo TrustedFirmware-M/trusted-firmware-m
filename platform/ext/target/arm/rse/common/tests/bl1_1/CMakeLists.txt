@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -24,4 +24,5 @@ target_include_directories(tfm_test_suite_extra_bl1_1
 target_link_libraries(tfm_test_suite_extra_bl1_1
     PRIVATE
         bl1_cc3xx_tests
+        bl1_1_shared_lib_interface
 )
