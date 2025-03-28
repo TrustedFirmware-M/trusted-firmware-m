@@ -44,5 +44,4 @@ target_compile_definitions(tfm_psa_rot_partition_fwu
     PRIVATE
         MCUBOOT_${MCUBOOT_UPGRADE_STRATEGY}
         $<$<BOOL:${MCUBOOT_DIRECT_XIP_REVERT}>:MCUBOOT_DIRECT_XIP_REVERT>
-        LOG_LEVEL=${BL2_LOG_LEVEL}
 )
