@@ -21,18 +21,15 @@
 static bool read_saved_debug_state(void)
 {
     uint32_t reg_value;
-    struct rse_sysctrl_t *sysctrl = (struct rse_sysctrl_t *)RSE_SYSCTRL_BASE_S;
 
-    reg_value = sysctrl->reset_syndrome;
+    reg_value = tfm_hal_get_reset_syndrome();
 
     return (reg_value & (1 << SWSYN_DEBUG_STATE_IN_BOOT_BIT_POS));
 }
 
 static void clear_debug_state(void)
 {
-    struct rse_sysctrl_t *sysctrl = (struct rse_sysctrl_t *)RSE_SYSCTRL_BASE_S;
-
-    sysctrl->reset_syndrome &= ~(1 << SWSYN_DEBUG_STATE_IN_BOOT_BIT_POS);
+    tfm_hal_clear_reset_syndrome_bit(SWSYN_DEBUG_STATE_IN_BOOT_BIT_POS);
 }
 
 static int get_permissions_mask_from_shared_sram_area(uint8_t *permissions_mask,

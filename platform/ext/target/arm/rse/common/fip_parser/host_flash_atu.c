@@ -292,9 +292,7 @@ static int
 
 static bool plat_check_if_prev_boot_failed(void)
 {
-    struct rse_sysctrl_t *rse_sysctrl = (struct rse_sysctrl_t *)RSE_SYSCTRL_BASE_S;
-
-    return (rse_sysctrl->reset_syndrome & (1u << SWSYN_FAILED_BOOT_BIT_POS));
+    return (tfm_hal_get_reset_syndrome() & (1u << SWSYN_FAILED_BOOT_BIT_POS));
 }
 #endif /* RSE_GPT_SUPPORT */
 

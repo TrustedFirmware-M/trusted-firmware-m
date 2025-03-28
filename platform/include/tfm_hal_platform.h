@@ -29,6 +29,20 @@
 FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_platform_init(void);
 
 /**
+ * \brief Get system reset syndrome
+ *
+ * \return Returns the reset syndrome value
+ */
+uint32_t tfm_hal_get_reset_syndrome(void);
+
+/**
+ * \brief Clear a particular system reset syndrome bit
+ *
+ * \param[in] bit_pos       Bit position to clear
+ */
+void tfm_hal_clear_reset_syndrome_bit(uint8_t bit_pos);
+
+/**
  * \brief System reset
  */
 __NO_RETURN void tfm_hal_system_reset(void);
