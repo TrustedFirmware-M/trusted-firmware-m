@@ -51,10 +51,11 @@ static fih_int tfm_core_init(void)
     }
 
     /*
-     * Print the TF-M version now that the platform has initialized
-     * the logging backend.
+     * Print the TF-M version and timestamp now that the platform
+     * has initialized the logging backend.
      */
     INFO_RAW("\033[1;34mBooting TF-M "VERSION_FULLSTR"\033[0m\n");
+    INFO_RAW("\033[1;34mBuilt "BUILD_TIMESTAMP" UTC\033[0m\n");
 
     plat_err = tfm_plat_otp_init();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {

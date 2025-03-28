@@ -26,7 +26,10 @@ add_library(tfm_arch INTERFACE)
 
 add_dependencies(tfm_spm manifest_tool)
 
-# Generate TF-M version
+# Get current time as a timestamp
+string(TIMESTAMP BUILD_TIMESTAMP "%a %d %b %Y %H:%M:%S" UTC)
+
+# Generate TF-M version and timestamp strings
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/tfm_version.h.in
                ${CMAKE_BINARY_DIR}/generated/secure_fw/spm/include/tfm_version.h)
 

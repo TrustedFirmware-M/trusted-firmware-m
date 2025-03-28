@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -19,5 +19,10 @@
 
 #define VERSION_STR        VERCON(TFM_VERSION)
 #define VERSION_FULLSTR    VERCON(TFM_VERSION_FULL)
+
+/*
+ * Define for the build timestamp string
+ */
+#cmakedefine BUILD_TIMESTAMP "@BUILD_TIMESTAMP@"
 
 #endif /* __TFM_VERSION_H__ */
