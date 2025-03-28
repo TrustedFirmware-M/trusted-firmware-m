@@ -53,12 +53,12 @@ void tfm_core_panic(void)
      * those error codes back to the calling task or to use its own
      * functionality for terminating an execution context.
      */
-    tfm_hal_system_reset();
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 
 #ifdef TFM_FIH_PROFILE_ON
     (void)fih_delay();
 
-    tfm_hal_system_reset();
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 #endif
 
 #endif /* CONFIG_TFM_HALT_ON_CORE_PANIC */

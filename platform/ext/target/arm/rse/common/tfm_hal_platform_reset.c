@@ -9,24 +9,20 @@
 
 uint32_t tfm_hal_get_reset_syndrome(void)
 {
-    struct rse_sysctrl_t *sysctrl = (struct rse_sysctrl_t *)RSE_SYSCTRL_BASE_S;
-
-    return sysctrl->reset_syndrome;
+    return ((struct rse_sysctrl_t *)RSE_SYSCTRL_BASE_S)->reset_syndrome;
 }
 
 void tfm_hal_clear_reset_syndrome_bit(uint8_t bit_pos)
 {
-    struct rse_sysctrl_t *sysctrl = (struct rse_sysctrl_t *)RSE_SYSCTRL_BASE_S;
-
-    sysctrl->reset_syndrome &= ~(1 << bit_pos);
+    ((struct rse_sysctrl_t *)RSE_SYSCTRL_BASE_S)->reset_syndrome &= ~(1 << bit_pos);
 }
 
-__NO_RETURN void tfm_hal_system_reset(void)
+__NO_RETURN void tfm_hal_system_reset(uint32_t sw_reset_syn_value)
 {
-    struct rse_sysctrl_t *rse_sysctrl = (void *)RSE_SYSCTRL_BASE_S;
+    struct rse_sysctrl_t *rse_sysctrl = (struct rse_sysctrl_t *)RSE_SYSCTRL_BASE_S;
 
     __DSB();
-    rse_sysctrl->swreset = 0x1u << 5;
+    rse_sysctrl->swreset = (0x1u << 5) | (sw_reset_syn_value & SYSCTRL_SWRESET_SWSYN_MASK);
     __DSB();
 
     while(1) {

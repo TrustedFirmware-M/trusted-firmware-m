@@ -79,7 +79,7 @@ void C_NMI_Handler(void)
     ERROR_MSG("Platform Exception: NMI fault!!!");
 
     /* Trigger warm-reset */
-    tfm_hal_system_reset();
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 }
 
 __attribute__((naked)) void NMI_Handler(void)

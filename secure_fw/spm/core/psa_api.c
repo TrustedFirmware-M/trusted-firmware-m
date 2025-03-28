@@ -388,7 +388,7 @@ psa_status_t tfm_spm_partition_psa_panic(void)
      * PSA FF recommends that the SPM causes the system to restart when a secure
      * partition panics.
      */
-    tfm_hal_system_reset();
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 #endif
 
     /* Suppress Pe111 (statement is unreachable) for IAR as return here is in

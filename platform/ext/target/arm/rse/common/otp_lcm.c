@@ -1003,8 +1003,8 @@ enum tfm_plat_err_t tfm_plat_otp_secure_provisioning_start(void)
 
 enum tfm_plat_err_t tfm_plat_otp_secure_provisioning_finish(void)
 {
-    tfm_hal_system_reset();
-
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
+    __builtin_unreachable();
     /* We'll never get here */
     return TFM_PLAT_ERR_SUCCESS;
 }

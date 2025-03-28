@@ -87,7 +87,7 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
         return err;
     }
 
-    tfm_hal_system_reset();
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 
     return TFM_PLAT_ERR_SUCCESS;
 }

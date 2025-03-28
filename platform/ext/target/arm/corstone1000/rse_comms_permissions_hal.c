@@ -52,7 +52,7 @@ static void counter_check(void) {
 #ifdef CONFIG_TFM_HALT_ON_CORE_PANIC
         tfm_hal_system_halt();
 #else
-        tfm_hal_system_reset();
+        tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 #endif /* CONFIG_TFM_HALT_ON_CORE_PANIC */
     }
 
@@ -60,7 +60,7 @@ static void counter_check(void) {
 #ifdef CONFIG_TFM_HALT_ON_CORE_PANIC
         tfm_hal_system_halt();
 #else
-        tfm_hal_system_reset();
+        tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 #endif /* CONFIG_TFM_HALT_ON_CORE_PANIC */
     }
 

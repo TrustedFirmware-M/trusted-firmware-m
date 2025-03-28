@@ -586,7 +586,7 @@ enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_b
             }
             message_handling_status_report_continue(PROVISIONING_REPORT_STEP_SET_TP_MODE_PCI);
 #ifdef RSE_PROVISIONING_ISSUE_SELF_RESET
-            tfm_hal_system_reset();
+            tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 #endif
         }
 
@@ -600,7 +600,7 @@ enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_b
             }
             message_handling_status_report_continue(PROVISIONING_REPORT_STEP_SET_TP_MODE_TCI);
 #ifdef RSE_PROVISIONING_ISSUE_SELF_RESET
-            tfm_hal_system_reset();
+            tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 #endif
         }
 #endif

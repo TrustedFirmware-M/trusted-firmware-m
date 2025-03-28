@@ -134,7 +134,7 @@ static enum tfm_plat_err_t set_tp_mode(void)
     }
 
     INFO("TP mode set complete, system will now reset.\n");
-    tfm_hal_system_reset();
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 
     /* Should not reach this point */
     return TFM_PLAT_ERR_SYSTEM_ERR;

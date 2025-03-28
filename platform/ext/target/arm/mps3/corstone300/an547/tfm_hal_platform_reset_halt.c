@@ -4,13 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
-
+#include <assert.h>
 #include "tfm_hal_device_header.h"
 #include "common_target_cfg.h"
 #include "tfm_hal_platform.h"
 
-void tfm_hal_system_reset(void)
+void tfm_hal_system_reset(uint32_t sw_reset_syn_value)
 {
+    assert(sw_reset_syn_value == TFM_PLAT_SWSYN_DEFAULT);
     __disable_irq();
     mpc_revert_non_secure_to_secure_cfg();
 

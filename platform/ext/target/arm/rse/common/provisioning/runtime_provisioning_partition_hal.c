@@ -87,7 +87,8 @@ static enum tfm_plat_err_t handle_plain_data_message(struct rse_provisioning_mes
 static enum tfm_plat_err_t handle_blob_message(void)
 {
     /* Reset and let BL1_1 provision the blob */
-    tfm_hal_system_reset();
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
+    __builtin_unreachable();
     return TFM_PLAT_ERR_SUCCESS;
 }
 #endif

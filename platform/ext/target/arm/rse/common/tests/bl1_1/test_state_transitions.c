@@ -31,7 +31,7 @@ void rse_test_virgin_to_tci_or_pci(struct test_result_t *ret)
         return;
     }
 
-    tfm_hal_system_reset();
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 
     ret->val = TEST_PASSED;
     return;
@@ -131,7 +131,7 @@ void rse_test_cm_to_dm(struct test_result_t *ret)
         return;
     }
 
-    tfm_hal_system_reset();
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 
     ret->val = TEST_PASSED;
     return;
@@ -164,7 +164,7 @@ void rse_test_dm_to_se(struct test_result_t *ret)
         return;
     }
 
-    tfm_hal_system_reset();
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 
     ret->val = TEST_PASSED;
     return;
@@ -183,7 +183,7 @@ void rse_test_se_to_rma(struct test_result_t *ret)
         return;
     }
 
-    tfm_hal_system_reset();
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 
     ret->val = TEST_PASSED;
     return;

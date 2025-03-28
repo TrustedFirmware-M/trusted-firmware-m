@@ -741,7 +741,7 @@ static enum tfm_plat_err_t otp_write_lcs(size_t in_len, const uint8_t *in)
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
-    tfm_hal_system_reset();
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 
     return TFM_PLAT_ERR_SUCCESS;
 }

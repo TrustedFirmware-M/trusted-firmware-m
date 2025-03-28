@@ -18,7 +18,7 @@ int32_t scmi_hal_sys_power_state(uint32_t agent_id, uint32_t flags,
     case SCMI_SYS_POWER_STATE_COLD_RESET:
     case SCMI_SYS_POWER_STATE_WARM_RESET:
         /* Trigger a system reset */
-        tfm_hal_system_reset();
+        tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
         /* Should not get here */
         return SCMI_STATUS_HARDWARE_ERROR;
 

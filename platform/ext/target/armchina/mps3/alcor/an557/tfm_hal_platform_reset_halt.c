@@ -9,7 +9,7 @@
 #include "common_target_cfg.h"
 #include "tfm_hal_platform.h"
 
-__NO_RETURN void tfm_hal_system_reset(void)
+__NO_RETURN void tfm_hal_system_reset(uint32_t sw_reset_syn_value)
 {
     __disable_irq();
     mpc_revert_non_secure_to_secure_cfg();
