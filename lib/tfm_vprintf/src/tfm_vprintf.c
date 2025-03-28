@@ -171,6 +171,7 @@ static void tfm_vprintf_internal(tfm_log_output_str output_func,
                        left_aligned, 10, false);
             break;
         case 'd':
+        case 'i':
             output_val(output_func, priv, va_arg(args, uint32_t), num_padding, zero_padding,
                        left_aligned, 10, true);
             break;
