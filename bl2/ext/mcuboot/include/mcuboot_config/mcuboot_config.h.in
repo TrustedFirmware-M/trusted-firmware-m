@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2018 Open Source Foundries Limited
- * Copyright (c) 2019-2024 Arm Limited
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
 /*
@@ -80,7 +80,6 @@ extern "C" {
  * Logging
  */
 #define MCUBOOT_HAVE_LOGGING    1
-#define MCUBOOT_LOG_LEVEL       @LOG_LEVEL_ID@
 
 #endif /* !__BOOTSIM__ */
 

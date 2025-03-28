@@ -1,6 +1,8 @@
 /*
  * Copyright (c) 2012-2014 Wind River Systems, Inc.
- * Copyright (c) 2017-2024 Arm Limited.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +92,7 @@ static void do_boot(struct boot_rsp *rsp)
                                          rsp->br_hdr->ih_hdr_size);
     }
 
-#if (MCUBOOT_LOG_LEVEL > MCUBOOT_LOG_LEVEL_OFF) || defined(TEST_BL2)
+#if (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL2)
     stdio_uninit();
 #endif
 
@@ -120,7 +122,7 @@ int main(void)
      */
     mbedtls_memory_buffer_alloc_init(mbedtls_mem_buf, BL2_MBEDTLS_MEM_BUF_LEN);
 
-#if (MCUBOOT_LOG_LEVEL > MCUBOOT_LOG_LEVEL_OFF) || defined(TEST_BL2)
+#if (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL2)
     stdio_init();
 #if defined(TEST_BL2)
     for (int i = 0; i < 0xFFFFF; i++) {
@@ -130,7 +132,7 @@ int main(void)
     }
     (void)stdio_output_string("\r\n", 2);
 #endif /* defined(TEST_BL2) */
-#endif /* (MCUBOOT_LOG_LEVEL > MCUBOOT_LOG_LEVEL_OFF) || defined(TEST_BL2) */
+#endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL2) */
 
     /* Perform platform specific initialization */
     err = boot_platform_init();

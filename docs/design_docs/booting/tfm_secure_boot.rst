@@ -400,20 +400,20 @@ MCUBoot related compile time switches can be set by cmake variables.
       function for the required key to be selected. The key handling is entirely
       the responsibility of the underlying crypto library and the details of the
       key handling mechanism are abstracted away from the boot code.
-- MCUBOOT_LOG_LEVEL:
-    Can be used to configure the level of logging in MCUBoot. The possible
+- TFM_BL2_LOG_LEVEL:
+    Can be used to configure the level of logging in BL2/MCUBoot. The possible
     values are the following:
 
-    - **OFF**
-    - **ERROR**
-    - **WARNING**
-    - **INFO**
-    - **DEBUG**
+    - **LOG_LEVEL_NONE**
+    - **LOG_LEVEL_ERROR**
+    - **LOG_LEVEL_WARNING**
+    - **LOG_LEVEL_INFO**
+    - **LOG_LEVEL_VERBOSE**
 
     The logging in MCUBoot can be disabled and thus the code size can be reduced
-    by setting it to ``OFF``. Its value depends on the build type. If the build
-    type is ``Debug`` then default value is ``INFO``. In case of different kinds
-    of ``Release`` builds the default value is ``OFF``. The default value can
+    by setting it to ``LOG_LEVEL_NONE``. Its value depends on the build type. If the build
+    type is ``Debug`` then default value is ``LOG_LEVEL_INFO``. In case of different kinds
+    of ``Release`` builds the default value is ``LOG_LEVEL_NONE``. The default value can
     be overridden through the command line or in the CMake GUI regardless of the
     build type.
 - MCUBOOT_ENC_IMAGES (default: False):
@@ -833,4 +833,6 @@ bootutil_misc.c to control the image status.
     image. As a result, the firmware update service is not supported in
     direct-xip mode and ram-load mode.
 
-*Copyright (c) 2018-2024, Arm Limited. All rights reserved.*
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
+
+*SPDX-License-Identifier: BSD-3-Clause*

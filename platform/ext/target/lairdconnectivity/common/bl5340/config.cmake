@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2020, Nordic Semiconductor ASA.
-# Copyright (c) 2020-2022, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2021, Laird Connectivity.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -17,4 +17,4 @@ if(NOT BL2)
 endif()
 set(NRF_NS_STORAGE                      OFF                  CACHE BOOL      "Enable non-secure storage partition")
 set(NRF_NS_SECONDARY                    OFF                  CACHE BOOL      "Enable non-secure secondary partition")
-set(MCUBOOT_LOG_LEVEL                   "OFF"                CACHE STRING    "Level of logging to use for MCUboot [OFF, ERROR, WARNING, INFO, DEBUG]" FORCE)
+set(TFM_BL2_LOG_LEVEL                   LOG_LEVEL_NONE       CACHE STRING    "Level of logging to use for MCUboot [OFF, ERROR, WARNING, INFO, VERBOSE]" FORCE)

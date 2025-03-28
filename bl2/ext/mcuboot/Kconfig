@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -244,27 +244,35 @@ config MCUBOOT_PSA_CRYPTO_CONFIG_FILEPATH
     string "Mbed TLS PSA Crypto config file to use with MCUboot"
     default "$(TFM_SOURCE_DIR)/bl2/ext/mcuboot/config/mcuboot_crypto_config.h"
 
-choice MCUBOOT_LOG_LEVEL_CHOICE
-    prompt "MCUBoot Log Level"
-    default MCUBOOT_LOG_LEVEL_INFO
+choice BL2_LOG_LEVEL
+    prompt "TFM BL2 Log Level"
+    default LOG_LEVEL_INFO
 
-    config MCUBOOT_LOG_LEVEL_DEBUG
-        bool "Debug"
-    config MCUBOOT_LOG_LEVEL_INFO
+    config LOG_LEVEL_VERBOSE
+        bool "Verbose"
+
+    config LOG_LEVEL_INFO
         bool "Info"
-    config MCUBOOT_LOG_LEVEL_WARNING
+
+    config LOG_LEVEL_WARNING
         bool "Warning"
-    config MCUBOOT_LOG_LEVEL_ERROR
+
+    config LOG_LEVEL_NOTICE
+        bool "Notice"
+
+    config LOG_LEVEL_ERROR
         bool "Error"
-    config MCUBOOT_LOG_LEVEL_OFF
-        bool "Off"
+
+    config LOG_LEVEL_NONE
+        bool "None"
 endchoice
 
-config MCUBOOT_LOG_LEVEL
-    string
-    default "DEBUG" if MCUBOOT_LOG_LEVEL_DEBUG
-    default "INFO" if MCUBOOT_LOG_LEVEL_INFO
-    default "WARNING" if MCUBOOT_LOG_LEVEL_WARNING
-    default "ERROR" if MCUBOOT_LOG_LEVEL_ERROR
-    default "OFF" if MCUBOOT_LOG_LEVEL_OFF
+config TFM_BL2_LOG_LEVEL
+    int
+    default 50 if LOG_LEVEL_VERBOSE
+    default 40 if LOG_LEVEL_INFO
+    default 30 if LOG_LEVEL_WARN
+    default 20 if LOG_LEVEL_NOTICE
+    default 10 if LOG_LEVEL_ERROR
+    default 0 if LOG_LEVEL_NONE
 endif

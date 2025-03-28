@@ -72,8 +72,6 @@ target_link_libraries(bl2
         bootutil
 )
 
-set(LOG_LEVEL_ID ${BL2_LOG_LEVEL})
-
 if (MCUBOOT_ALIGN_VAL GREATER 8)
 set (MCUBOOT_BOOT_MAX_ALIGN ${MCUBOOT_ALIGN_VAL})
 else()

@@ -12,8 +12,8 @@ config BL1_2_BUILD_TYPE
     default "minsizerel"
 
 if BL2
-config MCUBOOT_LOG_LEVEL
-    default "OFF"
+config BL2_LOG_LEVEL
+    default LOG_LEVEL_NONE
 endif
 
 choice SPM_LOG_LEVEL
