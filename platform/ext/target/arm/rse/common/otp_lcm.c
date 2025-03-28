@@ -846,7 +846,7 @@ static enum tfm_plat_err_t check_krtl_counter(void) {
 #endif /* RSE_OTP_HAS_KRTL_USAGE_COUNTER */
 
 static enum tfm_plat_err_t check_device_status(void) {
-    if (P_RSE_OTP_HEADER->device_status >> 16 != 0) {
+    if (P_RSE_OTP_HEADER->device_status >> 17 != 0) {
         FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_INVALID_DEVICE_STATUS);
         return TFM_PLAT_ERR_OTP_INIT_INVALID_DEVICE_STATUS;
     }
