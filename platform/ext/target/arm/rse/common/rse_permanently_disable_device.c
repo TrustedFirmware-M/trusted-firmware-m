@@ -29,6 +29,7 @@ enum tfm_plat_err_t rse_permanently_disable_device(
         return err;
     }
 
+    /* device_status[31:17] contains the error */
     device_status |= (fatal_error & 0x7FFF) << 17;
 
     return tfm_plat_otp_write(PLAT_OTP_ID_DEVICE_STATUS, sizeof(device_status),
