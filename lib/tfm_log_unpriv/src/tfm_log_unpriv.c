@@ -17,12 +17,18 @@
 
 struct tfm_log_unpriv_data {
     uint8_t buf_pos;
+    size_t total_output_chars;
     char buf[LOG_UNPRIV_BUFFER_SIZE];
 };
 
-static void output_buf(const char *buf, uint32_t buf_len)
+static void output_buf(struct tfm_log_unpriv_data *data, uint32_t buf_len)
 {
-    tfm_hal_output_sp_log(buf, buf_len);
+    int32_t ret;
+
+    ret = tfm_hal_output_sp_log(data->buf, buf_len);
+    if (ret > 0) {
+        data->total_output_chars += ret;
+    }
 }
 
 static void output_string_to_buf(void *priv, const char *str, uint32_t len)
@@ -31,14 +37,14 @@ static void output_string_to_buf(void *priv, const char *str, uint32_t len)
 
     if ((data->buf_pos + len) > LOG_UNPRIV_BUFFER_SIZE) {
         /* Flush current buffer and re-use */
-        output_buf(data->buf, data->buf_pos);
+        output_buf(data, data->buf_pos);
         data->buf_pos = 0;
 
         /* Handle strings larger than buffer with multiple flushes */
         for (; len > LOG_UNPRIV_BUFFER_SIZE;
              len -= LOG_UNPRIV_BUFFER_SIZE, str += LOG_UNPRIV_BUFFER_SIZE) {
             memcpy(data->buf, str, LOG_UNPRIV_BUFFER_SIZE);
-            output_buf(data->buf, LOG_UNPRIV_BUFFER_SIZE);
+            output_buf(data, LOG_UNPRIV_BUFFER_SIZE);
         }
     }
 
@@ -46,15 +52,18 @@ static void output_string_to_buf(void *priv, const char *str, uint32_t len)
     data->buf_pos += len;
 }
 
-void tfm_vprintf_unpriv(const char *fmt, va_list args)
+int tfm_vprintf_unpriv(const char *fmt, va_list args)
 {
     struct tfm_log_unpriv_data data;
 
     data.buf_pos = 0;
+    data.total_output_chars = 0;
 
     tfm_vprintf(output_string_to_buf, &data, fmt, args);
 
-    output_buf(data.buf, data.buf_pos);
+    output_buf(&data, data.buf_pos);
+
+    return data.total_output_chars;
 }
 
 void tfm_log_unpriv(const char *fmt, ...)

@@ -10,5 +10,5 @@
 
 int vprintf(const char *fmt, va_list args)
 {
-    tfm_vprintf_unpriv(fmt, args);
+    return tfm_vprintf_unpriv(fmt, args);
 }

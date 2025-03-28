@@ -10,6 +10,6 @@
 
 #include <stdarg.h>
 
-void tfm_vprintf_unpriv(const char *fmt, va_list args);
+int tfm_vprintf_unpriv(const char *fmt, va_list args);
 
 #endif /* __TFM_VPRINTF_UNPRIV_H__ */
