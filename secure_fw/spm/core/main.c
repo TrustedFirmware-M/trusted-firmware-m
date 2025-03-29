@@ -54,8 +54,8 @@ static fih_int tfm_core_init(void)
      * Print the TF-M version and timestamp now that the platform
      * has initialized the logging backend.
      */
-    INFO_RAW("\033[1;34mBooting TF-M "VERSION_FULLSTR"\033[0m\n");
-    INFO_RAW("\033[1;34mBuilt "BUILD_TIMESTAMP" UTC\033[0m\n");
+    NOTICE("Booting TF-M \033[1;34m"VERSION_FULLSTR"\033[0m\n");
+    NOTICE("Built \033[1;34m"BUILD_TIMESTAMP" UTC\033[0m\n");
 
     plat_err = tfm_plat_otp_init();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
@@ -75,16 +75,14 @@ static fih_int tfm_core_init(void)
     /* Configures architecture */
     tfm_arch_config_extensions();
 
-    INFO_RAW("\033[1;34m[Sec Thread] Secure image initializing!\033[0m\n");
-
-    VERBOSE_RAW("TF-M isolation level is: 0x%08x\n", TFM_ISOLATION_LEVEL);
+    VERBOSE("Isolation level is: %u\n", TFM_ISOLATION_LEVEL);
 
 #if (CONFIG_TFM_FLOAT_ABI == 2)
-    INFO_RAW("TF-M Float ABI: Hard\n");
+    INFO("Float ABI: Hard, Lazy stacking ");
 #ifdef CONFIG_TFM_LAZY_STACKING
-    INFO_RAW("Lazy stacking enabled\n");
+    INFO_RAW("enabled\n");
 #else
-    INFO_RAW("Lazy stacking disabled\n");
+    INFO_RAW("disabled\n");
 #endif
 #endif
 
