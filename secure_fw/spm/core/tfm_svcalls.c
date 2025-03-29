@@ -37,8 +37,6 @@ extern int32_t platform_svc_handlers(uint8_t svc_number,
 
 #if TFM_ISOLATION_LEVEL > 1
 
-extern uintptr_t spm_boundary;
-
 /*
  * TODO: To be updated after secure context management is going to implemented.
  * The variables are used to save PSP, PSPLimit and the EXC_RETURN payload because
@@ -87,7 +85,7 @@ static uint32_t thread_mode_spm_return(uint32_t result)
     const struct partition_t *p_part_next = GET_CURRENT_COMPONENT();
     struct tfm_state_context_t *p_tctx = (struct tfm_state_context_t *)saved_psp;
 
-    FIH_CALL(tfm_hal_boundary_need_switch, fih_bool, spm_boundary, p_part_next->boundary);
+    FIH_CALL(tfm_hal_boundary_need_switch, fih_bool, get_spm_boundary(), p_part_next->boundary);
     if (fih_not_eq(fih_bool, fih_int_encode(false))) {
         FIH_CALL(tfm_hal_activate_boundary, fih_rc,
                  p_part_next->p_ldinf, p_part_next->boundary);
@@ -171,9 +169,9 @@ static int32_t prepare_to_thread_mode_spm(uint8_t svc_number, uint32_t *ctx, uin
     saved_exc_return = exc_return;
 
     p_curr_sp = GET_CURRENT_COMPONENT();
-    FIH_CALL(tfm_hal_boundary_need_switch, fih_bool, p_curr_sp->boundary, spm_boundary);
+    FIH_CALL(tfm_hal_boundary_need_switch, fih_bool, p_curr_sp->boundary, get_spm_boundary());
     if (fih_not_eq(fih_bool, fih_int_encode(false))) {
-        FIH_CALL(tfm_hal_activate_boundary, fih_rc, NULL, spm_boundary);
+        FIH_CALL(tfm_hal_activate_boundary, fih_rc, NULL, get_spm_boundary());
         if (fih_not_eq(fih_rc, fih_int_encode(TFM_HAL_SUCCESS))) {
             tfm_core_panic();
         }

@@ -24,8 +24,6 @@
 #include "ffm/backend.h"
 #include "internal_status_code.h"
 
-extern uintptr_t spm_boundary;
-
 #if TFM_ISOLATION_LEVEL != 1
 extern void tfm_flih_func_return(psa_flih_result_t result);
 
@@ -197,7 +195,7 @@ void spm_handle_interrupt(struct partition_t *p_pt,
         (void)fih_bool;
 #else
         FIH_CALL(tfm_hal_boundary_need_switch, fih_bool,
-                 spm_boundary, p_pt->boundary);
+                 get_spm_boundary(), p_pt->boundary);
         if (fih_eq(fih_bool, fih_int_encode(false))) {
             flih_result = p_ildi->flih_func();
         } else {

@@ -23,7 +23,7 @@
 #include "prof_intf_s.h"
 #endif
 
-uintptr_t spm_boundary = (uintptr_t)NULL;
+static uintptr_t g_spm_boundary;
 
 static fih_int tfm_core_init(void)
 {
@@ -34,7 +34,7 @@ static fih_int tfm_core_init(void)
      * Access to any peripheral should be performed after programming
      * the necessary security components such as PPC/SAU.
      */
-    FIH_CALL(tfm_hal_set_up_static_boundaries, fih_rc, &spm_boundary);
+    FIH_CALL(tfm_hal_set_up_static_boundaries, fih_rc, &g_spm_boundary);
     if (fih_not_eq(fih_rc, fih_int_encode(TFM_HAL_SUCCESS))) {
         FIH_RET(fih_int_encode(SPM_ERROR_GENERIC));
     }
@@ -89,6 +89,11 @@ static fih_int tfm_core_init(void)
     tfm_core_validate_boot_data();
 
     FIH_RET(fih_int_encode(SPM_SUCCESS));
+}
+
+uintptr_t get_spm_boundary(void)
+{
+    return g_spm_boundary;
 }
 
 int main(void)

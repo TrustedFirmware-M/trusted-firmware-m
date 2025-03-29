@@ -42,10 +42,6 @@
 /* Declare the global component list */
 struct partition_head_t partition_listhead;
 
-#if TFM_ISOLATION_LEVEL > 1
-extern uintptr_t spm_boundary;
-#endif
-
 #ifdef CONFIG_TFM_USE_TRUSTZONE
 /* Instance for SPM_THREAD_CONTEXT */
 struct context_ctrl_t *p_spm_thread_context;
@@ -169,7 +165,7 @@ static void prv_process_metadata(struct partition_t *p_pt)
 #if TFM_ISOLATION_LEVEL == 1
     p_rt_meta->psa_fns = &psa_api_thread_fn_call;
 #else
-    FIH_CALL(tfm_hal_boundary_need_switch, fih_rc, spm_boundary, p_pt->boundary);
+    FIH_CALL(tfm_hal_boundary_need_switch, fih_rc, get_spm_boundary(), p_pt->boundary);
     if (fih_not_eq(fih_rc, fih_int_encode(false))) {
         p_rt_meta->psa_fns = &psa_api_svc;
     } else {

@@ -8,6 +8,7 @@
 #define __TFM_UTILS_H__
 
 #include <string.h>
+#include <stdint.h>
 #include "tfm_log.h"
 
 /*
@@ -15,6 +16,11 @@
  * Note: this function is used to handle PROGRAMMER ERROR.
  */
 void tfm_core_panic(void);
+
+/*
+ * Accessor function to get the value of the spm_boundary
+ */
+uintptr_t get_spm_boundary(void);
 
 /* Get container structure start address from member */
 #define TO_CONTAINER(ptr, type, member) \
