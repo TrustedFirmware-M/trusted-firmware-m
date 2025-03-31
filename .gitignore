@@ -24,3 +24,6 @@ localrepos.cmake
 
 # Python venv
 venv
+.venv
+
+trusted_firmware_m.egg-info/

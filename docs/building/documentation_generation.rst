@@ -9,6 +9,8 @@ Two documents are available for generation:
 
 The documentation build is independent from building the binary artifacts.
 
+.. _build-environment-setup:
+
 ******************************
 Tools and building environment
 ******************************
@@ -19,7 +21,7 @@ These tools are used to generate TF-M documentation:
     - Graphviz dot v2.38.0 or later
     - PlantUML v1.2018.11 or later
     - Java runtime environment v1.8 or later (for running PlantUML)
-    - Sphinx and other python modules, listed in ``docs/requirements.txt``
+   -  Optionally, `uv <https://docs.astral.sh/uv/getting-started/installation/#standalone-installer>`
 
 Additionally, for PDFs format:
 
@@ -49,10 +51,18 @@ To prepare your building environment execute the following steps:
             # For PDF generation
             sudo apt-get install -y doxygen-latex librsvg2-bin
 
-            # Install the required Python modules
-            pip3 install --upgrade pip
-            cd <TF-M base folder>
-            pip3 install -r docs/requirements.txt
+            # Setup python venv for the project
+            python3 -m venv .venv
+
+            # NOTE: If your system python install version is <3.10 you can use `uv <https://docs.astral.sh/uv/getting-started/installation/#standalone-installer>` to setup your .venv
+            uv venv --python 3.12
+
+            source .venv/bin/activate
+            pip install ".[docs]"
+
+
+            # NOTE: If you've used `uv` to setup your `.venv`, prepend the `pip` commands with `uv`
+            uv pip install ".[docs]"
 
         Set the environment variables:
 
@@ -82,15 +92,30 @@ To prepare your building environment execute the following steps:
             set PATH=$PATH;<ARM_DS_PATH>\sw\java\bin
 
             # Install the required Python modules
-            pip3 install --upgrade pip
-            cd trusted-firmware-m
-            pip3 install -r docs\requirements.txt
+
+            # Setup python venv for the project
+            python3 -m venv .venv
+
+            # NOTE: If your system python install version is <3.10 you can use `uv <https://docs.astral.sh/uv/getting-started/installation/#standalone-installer>` to setup your .venv
+            uv venv --python 3.12
+
+            source .venv/bin/activate
+            pip install ".[docs]"
+            # If uv is installed
+            uv pip install ".[docs]"
+
+            # NOTE: If you've used `uv` to setup your `.venv`, prepend the `pip` commands with `uv`
+            uv pip sync pylock.toml
 
 ***************************
 Build TF-M Reference Manual
 ***************************
 
 The Reference Manual will be generated in the ``build_docs/reference_manual``.
+
+.. Note::
+   Please make sure to follow :ref:`Tools and building environment <build-environment-setup>`
+   before proceeding
 
 .. tabs::
 
@@ -99,6 +124,7 @@ The Reference Manual will be generated in the ``build_docs/reference_manual``.
         .. code-block:: bash
 
             cd <TF-M base folder>
+            source .venv/bin/activate
             cmake -S docs -B build_docs
             cmake --build build_docs -- tfm_docs_refman_html tfm_docs_refman_pdf
 
@@ -107,6 +133,10 @@ The Reference Manual will be generated in the ``build_docs/reference_manual``.
         .. code-block:: bash
 
             cd <TF-M base folder>
+            source .venv/bin/activate
+            pip install ".[docs]"
+            # If uv is installed
+            uv pip install ".[docs]"
             cmake -S docs -B build_docs -G"Unix Makefiles"
             cmake --build build_docs -- tfm_docs_refman_html tfm_docs_refman_pdf
 
@@ -123,6 +153,7 @@ The User Manual will be available under the directory ``build_docs/user_guide``.
         .. code-block:: bash
 
             cd <TF-M base folder>
+            source .venv/bin/activate
             cmake -S docs -B build_docs
             cmake --build build_docs -- tfm_docs_userguide_html tfm_docs_userguide_pdf
 
@@ -131,6 +162,7 @@ The User Manual will be available under the directory ``build_docs/user_guide``.
         .. code-block:: bash
 
             cd <TF-M base folder>
+            source .venv/bin/activate
             cmake -S docs -B build_docs -G"Unix Makefiles"
             cmake --build build_docs -- tfm_docs_userguide_html tfm_docs_userguide_pdf
 
@@ -150,6 +182,7 @@ The direct build will build both user_guide and reference_manual.
 
             # Build the documentation from build_docs directory
             cd <TF-M base folder>
+            source .venv/bin/activate
             mkdir build_docs
             cp docs/conf.py build_docs/conf.py
             cd build_docs

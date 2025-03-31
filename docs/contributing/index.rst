@@ -13,6 +13,7 @@ Contribution Guidelines
     Documentation <doc_guidelines>
     Design proposal <tfm_design_proposal_guideline>
     MISRA-C <standards/misra>
+    Python scripts and modules <python_scripting>
 
 --------------
 

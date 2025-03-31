@@ -119,14 +119,24 @@ dependencies.
 
             git clone https://git.trustedfirmware.org/TF-M/trusted-firmware-m.git
 
-        2. TF-M's ``tools/requirements.txt`` file declares additional Python
-           dependencies. Install them with ``pip3``:
+        2. TF-M recommends installing dependencies in a venv
 
         .. code-block:: bash
 
-            pip3 install --upgrade pip
-            cd trusted-firmware-m
-            pip3 install -r tools/requirements.txt
+            # Setup python venv for the project
+            python3 -m venv .venv
+
+            # NOTE: If your system python install version is <3.10 you can use `uv <https://docs.astral.sh/uv/getting-started/installation/#standalone-installer>` to setup your .venv
+            uv venv --python 3.12
+
+            source .venv/bin/activate
+            # `-e` installs modules and scripts in editable/development mode
+            pip install -e .
+
+            # NOTE: If you've used `uv` to setup your `.venv`, prepend the `pip` commands with `uv`
+            # `-e` installs modules and scripts in editable/development mode
+            uv pip install -e .
+
 
     .. group-tab:: Windows
 
@@ -136,13 +146,23 @@ dependencies.
 
             git clone https://git.trustedfirmware.org/TF-M/trusted-firmware-m.git
 
-        2. TF-M's ``tools/requirements.txt`` file declares additional Python
-           dependencies. Install them with ``pip3``:
+        2. TF-M recommends installing dependencies in a venv
 
         .. code-block:: bash
 
-            cd trusted-firmware-m
-            pip3 install -r tools\requirements.txt
+            # Setup python venv for the project
+            python3 -m venv .venv
+
+            # NOTE: If your system python install version is <3.10 you can use `uv <https://docs.astral.sh/uv/getting-started/installation/#standalone-installer>` to setup your .venv
+            uv venv --python 3.12
+
+            source .venv/bin/activate
+            # `-e` installs modules and scripts in editable/development mode
+            pip install -e .
+
+            # NOTE: If you've used `uv` to setup your `.venv`, prepend the `pip` commands with `uv`
+            # `-e` installs modules and scripts in editable/development mode
+            uv pip install -e .
 
 ###################
 Install a toolchain
@@ -434,8 +454,8 @@ To build the TF-M firmware the following tools are needed:
    - CMake version 3.21 or later
    - Git
    - gmake, aka GNU Make
-   - Python v3.x
-   - a set of python modules listed in ``tools/requirements.txt``
+   - Python >=v3.11
+   - [Optionally] `uv <https://docs.astral.sh/uv/getting-started/installation/#standalone-installer>`
 
 ****************
 Dependency chain
