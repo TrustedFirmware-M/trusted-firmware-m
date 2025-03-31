@@ -13,6 +13,7 @@
 #include "cc3xx_test_pka.h"
 #include "cc3xx_test_ecc.h"
 #include "cc3xx_test_ecdsa.h"
+#include "cc3xx_test_dpa.h"
 
 void add_cc3xx_tests_to_testsuite(struct test_suite_t *p_ts, uint32_t ts_size)
 {
@@ -36,5 +37,8 @@ void add_cc3xx_tests_to_testsuite(struct test_suite_t *p_ts, uint32_t ts_size)
 #endif
 #if defined(TEST_CC3XX) && defined(TEST_CC3XX_DRBG)
     add_cc3xx_drbg_tests_to_testsuite(p_ts, ts_size);
+#endif
+#if defined(TEST_CC3XX) && defined(TEST_CC3XX_DPA)
+    add_cc3xx_dpa_tests_to_testsuite(p_ts, ts_size);
 #endif
 }
