@@ -8,7 +8,7 @@ Introduction
 
 This document introduces a generic threat model of Trusted Firmware-M (TF-M).
 This generic threat model provides an overall analysis of TF-M implementation
-and identifies general threats and mitigation.
+and identifies general threats and mitigations.
 
 There is also a dedicated document for physical attack mitigations which can be found
 :doc:`here </design_docs/tfm_physical_attack_mitigation>`.
@@ -54,18 +54,18 @@ According to TOE and assets, Trust Boundaries can be determined. The Data Flow
 Diagram (DFD) across Trust Boundaries is then defined to help identify the
 threats.
 
-Those threats should be prioritized based on a specific group of principals and
-metrics. The principals and metrics should also be specified.
+Those threats should be prioritized based on a specific group of principles and
+metrics. The principles and metrics should also be specified.
 
 ********************
 Target of Evaluation
 ********************
 
 A typical TF-M system diagram from a high-level overview is shown below. TF-M is
-running in the Secure Processing Environment (SPE) and NS software is running in
-Non-Secure Processing Environment (NSPE). For more details, please refer to
-Platform Security Architecture Firmware Framework for M (FF-M) [FF-M]_ and
-FF-M 1.1 Extensions [FF-M-1.1-Extensions]_.
+running in the Secure Processing Environment (SPE) and Non-Secure (NS) software
+is running in Non-Secure Processing Environment (NSPE). For more details, please
+refer to Platform Security Architecture Firmware Framework for M (FF-M) [FF-M]_
+and FF-M 1.1 Extensions [FF-M-1.1-Extensions]_.
 
 .. figure:: TF-M-block-diagram.png
 
@@ -134,7 +134,7 @@ More details of data flows are listed below.
   |           |                                                                |
   |           | - On Armv8-M platforms with TrustZone, TF-M will hand over the |
   |           |   control to Non-secure state.                                 |
-  |           | - On dual-cpu platforms, Secure core starts NS core booting.   |
+  |           | - On multi-core platforms, Secure core starts NS core booting. |
   +-----------+----------------------------------------------------------------+
   | ``DF2``   | NSPE requests TF-M RoT services.                               |
   |           |                                                                |
@@ -145,14 +145,14 @@ More details of data flows are listed below.
   |           | a Non-secure Callable region to trigger a transition from      |
   |           | Non-secure state to Secure state.                              |
   |           |                                                                |
-  |           | On dual-cpu platforms, non-secure core sends PSA Client calls  |
+  |           | On multi-core platforms, non-secure core sends PSA Client calls|
   |           | to secure core via mailbox.                                    |
   +-----------+----------------------------------------------------------------+
   | ``DF3``   | Secure Partitions fetch input data from NS and write back      |
   |           | output data to NS.                                             |
   |           |                                                                |
   |           | As required in [FF-M]_, Secure Partitions should not directly  |
-  |           | access NSPE memory. Instead, RoT services relies on TF-M SPM   |
+  |           | access NSPE memory. Instead, RoT services rely   on TF-M SPM   |
   |           | to access NSPE memory.                                         |
   +-----------+----------------------------------------------------------------+
   | ``DF4``   | TF-M returns RoT service results to NSPE after NS request to   |
@@ -161,7 +161,7 @@ More details of data flows are listed below.
   |           | In Armv8-M TrustZone scenarios, it also triggers a transition  |
   |           | from Secure state back to Non-secure state.                    |
   |           |                                                                |
-  |           | On dual-cpu platforms, secure core returns the result to       |
+  |           | On multi-core platforms, secure core returns the result to     |
   |           | non-secure core via mailbox.                                   |
   +-----------+----------------------------------------------------------------+
   | ``DF5``   | Non-secure interrupts preempt SPE execution in Armv8-M         |
@@ -349,9 +349,9 @@ This section identifies threats on ``DF1`` defined in `Data Flow Diagram`_.
   |               | implementation of the isolation HAL for Armv8-M platforms  |
   |               | with TrustZone.                                            |
   |               |                                                            |
-  |               | On dual-cpu platform, platform specific initialization     |
+  |               | On multi-core platform, platform specific initialization   |
   |               | must halt NS core until isolation is completed, as defined |
-  |               | in [DUAL-CPU-BOOT]_.                                       |
+  |               | in [DUAL-CPU-BOOT]_ (same applies for [HYBRID_PLATFORMS]_).|
   |               |                                                            |
   |               | TF-M executes isolation configuration at an early stage of |
   |               | secure initialization before starting NS execution.        |
@@ -421,9 +421,10 @@ This section identifies threats on ``DF1`` defined in `Data Flow Diagram`_.
   |               | **Transferred**: Platform-specific code in the SPE must    |
   |               | not store SPE information in Non-secure memory.            |
   |               |                                                            |
-  |               | On dual-cpu platforms, shared registers are implementation |
-  |               | defined, such as Inter-Processor Communication registers.  |
-  |               | Dual-cpu platforms must not store any data which may       |
+  |               | On multi-core platforms, shared registers are              |
+  |               | implementation defined, such as Inter-Processor            |
+  |               | Communication registers.                                   |
+  |               | Multi-core platforms must not store any data which may     |
   |               | disclose secure information in the shared registers.       |
   +---------------+------------------------------------------------------------+
   | CVSS Score    | 4.3 (Medium)                                               |
@@ -706,13 +707,13 @@ This section identifies threats on ``DF2`` defined in `Data Flow Diagram`_.
   |               | containing invalid NS memory addresses and reports it as   |
   |               | as a security error.                                       |
   |               |                                                            |
-  |               | On dual-core platforms, TF-M implements a default memory   |
+  |               | On multi-core platforms, TF-M implements a default memory  |
   |               | access check. If a NS memory area is not found in any      |
   |               | memory region configured for isolation, it will be marked  |
   |               | as invalid and therefore SPM will reject the corresponding |
   |               | NS request. It will be reported as a security error.       |
   |               |                                                            |
-  |               | **Transferred**: Dual-core platforms may implement         |
+  |               | **Transferred**: multi-core platforms may implement        |
   |               | platform specific memory check to replace the default one. |
   |               | It relies on platform specific implementation to capture   |
   |               | invalid memory address.                                    |
@@ -884,7 +885,7 @@ failure error code to NS application.
 In Armv8-M TrustZone scenarios, TF-M writes the return code value in the general
 purpose register and returns to Non-secure state.
 
-On dual-cpu platforms, TF-M writes the return code to NS mailbox message queue
+On multi-core platforms, TF-M writes the return code to NS mailbox message queue
 via mailbox.
 
 .. table:: TFM-GENERIC-RETURN-CODE-I-1
@@ -953,10 +954,10 @@ This section identifies threats on ``DF5`` defined in `Data Flow Diagram`_.
   |               | to Armv8-M Architecture Reference Manual [Arm-ARM]_ for    |
   |               | details.                                                   |
   |               |                                                            |
-  |               | **Transferred**: On dual-cpu platforms, shared registers   |
+  |               | **Transferred**: On multi-core platforms, shared registers |
   |               | are implementation defined, such as Inter-Processor        |
-  |               | Communication registers. Dual-cpu platforms must not store |
-  |               | any data which may disclose secure information in the      |
+  |               | Communication registers. Multi-core platforms must not     |
+  |               | store any data which may disclose secure information in the|
   |               | shared registers.                                          |
   +---------------+------------------------------------------------------------+
   | CVSS Score    | 4.3 (Medium)                                               |
@@ -1163,6 +1164,12 @@ Version control
   +---------+--------------------------------------------------+---------------+
   | v1.4    | Clarify mitigation strategies of threats         | TF-M v2.1.1   |
   +---------+--------------------------------------------------+---------------+
+  | v1.5    | Updated terminology to replace 'dual-cpu' with   | TF-M v2.2.1   |
+  |         | 'multi-core' for broader applicability to hybrid |               |
+  |         | and multi-core platforms.                        |               |
+  |         | Also fixed typos.                                |               |
+  +---------+--------------------------------------------------+---------------+
+
 
 **********
 References
@@ -1196,6 +1203,11 @@ References
 
 .. [VLLDM-Vulnerability] `VLLDM instruction Security Vulnerability <https://developer.arm.com/support/arm-security-updates/vlldm-instruction-security-vulnerability>`_
 
---------------------
+.. [HYBRID_PLATFORMS] :doc:`Scheduling for a Hybrid Platform Solution </design_docs/dual-cpu/hybrid_platform_solution>`
 
-*Copyright (c) 2020-2024 Arm Limited. All Rights Reserved.*
+
+--------------
+
+*SPDX-License-Identifier: BSD-3-Clause*
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
