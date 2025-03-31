@@ -44,10 +44,4 @@
 #define LOG_MARKER_VERBOSE  "\x32"  /* 50 */
 #define LOG_MARKER_RAW      "\x3c"  /* 60 */
 
-/* Function called to output a string to the terminal */
-typedef void (*tfm_log_output_str)(void *priv, const char *str, uint32_t len);
-
-/* Function to generate formatted string and pass to output_func */
-void tfm_vprintf(tfm_log_output_str output_func, void *priv, const char *fmt, va_list args);
-
 #endif /* __TF_M_VPRINTF_H__ */

@@ -14,6 +14,7 @@
 #include <stddef.h>
 
 #include "tfm_vprintf.h"
+#include "tfm_vprintf_priv.h"
 
 #define LOG_RAW_VALUE UINT8_C(60)
 

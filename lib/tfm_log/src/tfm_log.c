@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "tfm_vprintf_priv.h"
 #include "tfm_log.h"
 #include "uart_stdout.h"
 
