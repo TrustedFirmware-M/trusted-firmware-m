@@ -526,9 +526,11 @@ struct bootutil_key bootutil_keys[1] = {
 const int bootutil_key_cnt = 1;
 
 int boot_retrieve_public_key_hash(uint8_t image_index,
+                                  uint8_t key_index,
                                   uint8_t *public_key_hash,
                                   size_t *key_hash_size)
 {
+    (void) key_index;
     return tfm_plat_get_rotpk_hash(image_index,
                                    public_key_hash,
                                    (uint32_t *)key_hash_size);

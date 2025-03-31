@@ -5,11 +5,14 @@
  *
  */
 
+#include <assert.h>
 #include <stdint.h>
 #include "tfm_plat_otp.h"
 
 #include <bootutil/sign_key.h>
 #include "rse_rotpk_mapping.h"
+#include "rse_rotpk_policy.h"
+#include "tfm_plat_crypto_keys.h"
 
 #ifdef MCUBOOT_HW_KEY
 static enum tfm_plat_err_t get_rotpk_hash(enum tfm_otp_element_id_t id,
@@ -41,7 +44,15 @@ struct bootutil_key bootutil_keys[1] = {
         .len = &pub_key_len,
     },
 };
+#ifdef MCUBOOT_IMAGE_MULTI_SIG_SUPPORT
+#define MAX_KEYS_PER_IMAGE MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE
+
+const int bootutil_key_cnt = MCUBOOT_IMAGE_NUMBER * MAX_KEYS_PER_IMAGE;
+#else
 const int bootutil_key_cnt = 1;
+#endif /* MCUBOOT_IMAGE_MULTI_SIG_SUPPORT */
+
+#ifndef MCUBOOT_IMAGE_MULTI_SIG_SUPPORT
 
 static enum tfm_plat_err_t get_otp_id(uint32_t image_index,
                                       enum tfm_otp_element_id_t *otp_id)
@@ -64,9 +75,11 @@ static enum tfm_plat_err_t get_otp_id(uint32_t image_index,
 }
 
 int boot_retrieve_public_key_hash(uint8_t image_index,
+                                  uint8_t key_index,
                                   uint8_t *public_key_hash,
                                   size_t *key_hash_size)
 {
+    (void)key_index;
     enum tfm_otp_element_id_t otp_id;
     enum tfm_plat_err_t err;
 
@@ -77,6 +90,101 @@ int boot_retrieve_public_key_hash(uint8_t image_index,
 
     return get_rotpk_hash(otp_id, public_key_hash, key_hash_size);
 }
+
+#else
+static enum tfm_bl2_key_policy_t rse_policy_to_bl2_policy(enum rse_rotpk_policy policy)
+{
+    switch(policy) {
+    case RSE_ROTPK_POLICY_SIG_OPTIONAL:
+        return TFM_BL2_KEY_MIGHT_SIGN;
+    case RSE_ROTPK_POLICY_SIG_REQUIRED:
+        return TFM_BL2_KEY_MUST_SIGN;
+    default:
+        assert(0 && "Invalid RSE ROTPK policy");
+        return (enum tfm_bl2_key_policy_t)policy;
+    }
+}
+
+/* Since for MCUBOOT_HW_KEY, key has is attached to the image, so inorder to
+ * to identify the key policy after the signature is verified in mcuboot,
+ * policy associated with the  key is stored statically while the hash is matched
+ */
+static enum tfm_bl2_key_policy_t key_policy;
+
+int bl2_otp_get_key_policy(enum tfm_otp_element_id_t otp_id,
+                           enum tfm_bl2_key_policy_t *key_policy)
+{
+    enum tfm_plat_err_t err;
+    enum rse_rotpk_policy rse_policy;
+
+    err = rse_rotpk_get_policy(otp_id, &rse_policy);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return -1;
+    }
+
+    *key_policy = rse_policy_to_bl2_policy(rse_policy);
+
+    return 0;
+}
+
+int boot_retrieve_public_key_hash(uint8_t image_index,
+                                  uint8_t key_index,
+                                  uint8_t *public_key_hash,
+                                  size_t *key_hash_size)
+{
+    int rc;
+    enum tfm_otp_element_id_t otp_id;
+
+    switch (key_index) {
+    case 0:
+        /* Check CM key */
+        otp_id = rse_cm_get_bl2_rotpk(image_index);
+        break;
+    case 1:
+        /* Check DM key */
+        otp_id = rse_dm_get_bl2_rotpk(image_index);
+        break;
+    default:
+        /* Invalid key_index: only two keys are supported */
+        return -1;
+    }
+
+    if (otp_id != PLAT_OTP_ID_INVALID) {
+        rc = get_rotpk_hash(otp_id, public_key_hash, key_hash_size);
+        if (rc != TFM_PLAT_ERR_SUCCESS) {
+            return -1;
+        }
+
+        /* Get the key policy */
+        rc = bl2_otp_get_key_policy(otp_id, &key_policy);
+        if (rc != 0) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+int boot_plat_check_key_policy(bool valid_sig, psa_key_id_t key,
+                               bool *key_might_sign, bool *key_must_sign,
+                               uint8_t *key_must_sign_count)
+{
+    (void)key;
+#ifndef MCUBOOT_ROTPK_SIGN_POLICY
+    /* By default key policy is a MUST SIGN */
+    key_policy = TFM_BL2_KEY_MUST_SIGN;
+#endif /* !MCUBOOT_ROTPK_SIGN_POLICY */
+
+    if (key_policy == TFM_BL2_KEY_MIGHT_SIGN) {
+        *key_might_sign |= valid_sig;
+    } else {
+        *key_must_sign_count += 1;
+        *key_might_sign |= valid_sig;
+        *key_must_sign  &= valid_sig;
+    }
+    return 0;
+}
+#endif /* !MCUBOOT_IMAGE_MULTI_SIG_SUPPORT */
 
 #else
 
