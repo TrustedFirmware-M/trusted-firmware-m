@@ -106,6 +106,8 @@ if(GCC_VERSION VERSION_GREATER_EQUAL "8.0.0")
     endif()
 endif()
 
+file(REAL_PATH "${CMAKE_SOURCE_DIR}/../" TOP_LEVEL_PROJECT_DIR)
+
 add_compile_options(
     -specs=nano.specs
     -specs=nosys.specs
@@ -119,6 +121,9 @@ add_compile_options(
     -fno-builtin
     -fshort-enums
     -funsigned-char
+    # Strip /workspace/
+    -fmacro-prefix-map=${TOP_LEVEL_PROJECT_DIR}/=
+    # Strip /workspace/trusted-firmware-m
     -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=
     -mthumb
     $<$<COMPILE_LANGUAGE:C>:-std=c99>

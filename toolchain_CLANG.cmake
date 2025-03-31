@@ -71,6 +71,8 @@ set(BL1_LINKER_CP_OPTION -mfloat-abi=soft -lcrt0 -ldummyhost)
 set(BL2_COMPILER_CP_FLAG -mfloat-abi=soft)
 set(BL2_LINKER_CP_OPTION -mfloat-abi=soft -lcrt0 -ldummyhost)
 
+file(REAL_PATH "${CMAKE_SOURCE_DIR}/../" TOP_LEVEL_PROJECT_DIR)
+
 add_compile_options(
      -Wno-ignored-optimization-argument
      -Wno-unused-command-line-argument
@@ -83,6 +85,9 @@ add_compile_options(
      -fshort-enums
      -fshort-wchar
      -funsigned-char
+     # Strip /workspace/
+     -fmacro-prefix-map=${TOP_LEVEL_PROJECT_DIR}/=
+     # Strip /workspace/trusted-firmware-m
      -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=
      -std=c99
 )
