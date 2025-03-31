@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -23,6 +23,6 @@ void tfm_log(const char *fmt, ...)
     va_list args;
 
     va_start(args, fmt);
-    tfm_vprintf(output_log, NULL, fmt, args);
+    tfm_vprintf(output_log, NULL, fmt, args, true);
     va_end(args);
 }

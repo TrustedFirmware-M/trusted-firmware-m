@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 /**
  * \typedef tfm_log_output_str
@@ -35,10 +36,12 @@ typedef void (*tfm_log_output_str)(void *priv, const char *str, uint32_t len);
   *
   * \param[in] output_func  Pointer to the output function that handles the formatted string.
   * \param[in] priv         Pointer to user-defined context, passed to the output function.
-  * \param[in] fmt          Format string specifying how to format the output. This is expected
-  *                         to begin with a MARKER character.
+  * \param[in] fmt          Format string specifying how to format the output.
   * \param[in] args         Variable argument list to match the format string.
+  * \param[in] with_marker  Whether or not the fmt string starts with a MARKER character.
+  *                         This is expected to be used for standard logging use cases.
   */
-void tfm_vprintf(tfm_log_output_str output_func, void *priv, const char *fmt, va_list args);
+void tfm_vprintf(tfm_log_output_str output_func, void *priv, const char *fmt, va_list args,
+                 bool with_marker);
 
 #endif /* __TF_M_VPRINTF_PRIV_H__ */

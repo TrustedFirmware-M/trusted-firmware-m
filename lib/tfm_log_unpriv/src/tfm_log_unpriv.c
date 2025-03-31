@@ -53,18 +53,23 @@ static void output_string_to_buf(void *priv, const char *str, uint32_t len)
     data->buf_pos += len;
 }
 
-int tfm_vprintf_unpriv(const char *fmt, va_list args)
+static int vprintf_output_buffer(const char *fmt, va_list args, bool with_marker)
 {
     struct tfm_log_unpriv_data data;
 
     data.buf_pos = 0;
     data.total_output_chars = 0;
 
-    tfm_vprintf(output_string_to_buf, &data, fmt, args);
+    tfm_vprintf(output_string_to_buf, &data, fmt, args, with_marker);
 
     output_buf(&data, data.buf_pos);
 
     return data.total_output_chars;
+}
+
+int tfm_vprintf_unpriv(const char *fmt, va_list args)
+{
+    return vprintf_output_buffer(fmt, args, false);
 }
 
 void tfm_log_unpriv(const char *fmt, ...)
@@ -72,6 +77,6 @@ void tfm_log_unpriv(const char *fmt, ...)
     va_list args;
 
     va_start(args, fmt);
-    tfm_vprintf_unpriv(fmt, args);
+    vprintf_output_buffer(fmt, args, true);
     va_end(args);
 }

@@ -214,18 +214,19 @@ static void tfm_vprintf_internal(tfm_log_output_str output_func,
     }
 }
 
-void tfm_vprintf(tfm_log_output_str output_func, void *priv, const char *fmt, va_list args)
+void tfm_vprintf(tfm_log_output_str output_func, void *priv, const char *fmt, va_list args,
+                 bool with_marker)
 {
     uint8_t log_marker;
     const char spacer = ' ';
 
-    /* We expect the LOG_MARKER_* macro as the first character */
-    log_marker = fmt[0];
-    fmt++;
-
-    if (log_marker != LOG_RAW_VALUE) {
-        output_str_not_formatted(output_func, priv, get_log_prefix(log_marker));
-        output_char(output_func, priv, spacer);
+    if (with_marker) {
+        log_marker = fmt[0];
+        fmt++;
+        if (log_marker != LOG_RAW_VALUE) {
+            output_str_not_formatted(output_func, priv, get_log_prefix(log_marker));
+            output_char(output_func, priv, spacer);
+        }
     }
 
     tfm_vprintf_internal(output_func, priv, fmt, args);
