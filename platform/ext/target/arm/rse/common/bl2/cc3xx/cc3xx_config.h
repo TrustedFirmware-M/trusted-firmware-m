@@ -199,6 +199,9 @@
 /* Whether DPA mitigations are enabled. Has a code-size and performance cost */
 #define CC3XX_CONFIG_DPA_MITIGATIONS_ENABLE
 
+/* This is the externally provided implementation for hardened word copy */
+#define CC3XX_CONFIG_STDLIB_EXTERNAL_DPA_HARDENED_WORD_COPY
+
 /* Whether DFA mitigations are enabled. Has a code-size and performance cost */
 #define CC3XX_CONFIG_DFA_MITIGATIONS_ENABLE
 

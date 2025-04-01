@@ -242,6 +242,7 @@ target_sources(platform_s
         $<$<BOOL:${PLATFORM_PSA_ADAC_SECURE_DEBUG}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_debug_after_reset.c>
         ./rse_permanently_disable_device.c
         ./rse_zero_count.c
+        ./dpa_hardened_word_copy.c
 )
 
 target_sources(tfm_sprt
@@ -347,6 +348,7 @@ target_sources(platform_bl2
         ./rse_permanently_disable_device.c
         ./rse_zero_count.c
         ./cc3xx/cc3xx_aes_external_key_loader.c
+        ./dpa_hardened_word_copy.c
 )
 
 target_include_directories(platform_bl2
