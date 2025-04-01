@@ -31,6 +31,8 @@ set(RSE_TP_MODE                         TCI        CACHE STRING "Whether system 
 set(TFM_NS_NV_COUNTER_AMOUNT            3          CACHE STRING   "How many NS NV counters are enabled")
 set(TFM_ISOLATION_LEVEL                 2          CACHE STRING   "Isolation level")
 
+set(TFM_DEBUG_OPTIMISATION              ON         CACHE BOOL      "Add basic -Og optimisation when CMAKE_BUILD_TYPE is Debug. Note that non Debug builds specify their own optimisation")
+
 ################# Partitions ###################################################
 
 set(TFM_PARTITION_CRYPTO                ON         CACHE BOOL     "Enable Crypto partition")
