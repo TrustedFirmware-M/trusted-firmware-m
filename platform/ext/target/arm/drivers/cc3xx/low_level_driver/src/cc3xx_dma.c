@@ -75,6 +75,38 @@ static uintptr_t remap_addr(uintptr_t addr) {
 
 #endif /* CC3XX_CONFIG_DMA_REMAP_ENABLE */
 
+#ifdef CC3XX_CONFIG_DMA_BURST_RESTRICTED_ENABLE
+static cc3xx_dma_burst_restricted_region_t
+            g_burst_restricted_regions[CC3XX_CONFIG_DMA_BURST_RESTRICTED_REGION_AM] = {0};
+
+void cc3xx_lowlevel_dma_burst_restricted_region_init(uint32_t region_idx,
+    const cc3xx_dma_burst_restricted_region_t *region)
+{
+    memcpy(&g_burst_restricted_regions[region_idx], region, sizeof(*region));
+    g_burst_restricted_regions[region_idx].valid = true;
+}
+
+static bool is_addr_burst_restricted(uintptr_t addr) {
+    uint32_t idx;
+    cc3xx_dma_burst_restricted_region_t *region;
+
+    for (idx = 0; idx < CC3XX_CONFIG_DMA_BURST_RESTRICTED_REGION_AM; idx++) {
+        region = &g_burst_restricted_regions[idx];
+
+        if (!region->valid) {
+            continue;
+        }
+
+        if ((addr >= region->region_base)
+            && (addr < region->region_base + region->region_size)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+#endif /* CC3XX_CONFIG_DMA_BURST_RESTRICTED_ENABLE */
+
 static void wait_for_dma_complete(void) {
 #if defined(CC3XX_CONFIG_HW_VERSION_CC310)
     if (dma_state.block_buf_needs_output) {
@@ -130,8 +162,18 @@ static void process_data(const void* buf, size_t length)
     remapped_buf = remap_addr((uintptr_t)buf);
 
     if (dma_state.block_buf_needs_output) {
+        uintptr_t output_addr = dma_state.output_addr;
+#ifdef CC3XX_CONFIG_DMA_BURST_RESTRICTED_ENABLE
+        /* Force single transactions for restricted addresses */
+        if (is_addr_burst_restricted(output_addr)) {
+            P_CC3XX->ahb.ahbm_singles = 0x1UL;
+        } else {
+            P_CC3XX->ahb.ahbm_singles = 0x0UL;
+        }
+#endif /* CC3XX_CONFIG_DMA_BURST_RESTRICTED_ENABLE */
+
         /* Set the data target */
-        P_CC3XX->dout.dst_lli_word0 = dma_state.output_addr;
+        P_CC3XX->dout.dst_lli_word0 = output_addr;
         /* And the length */
         P_CC3XX->dout.dst_lli_word1 = length;
 
@@ -143,7 +185,7 @@ static void process_data(const void* buf, size_t length)
          * set up an MPU covering the input and output regions so they can be
          * marked as SHAREABLE (which is not currently implemented).
          */
-        SCB_CleanInvalidateDCache_by_Addr((volatile void *)dma_state.output_addr, length);
+        SCB_CleanInvalidateDCache_by_Addr((volatile void *)output_addr, length);
 #endif /* CC3XX_CONFIG_DMA_CACHE_FLUSH_ENABLE */
 
         dma_state.output_addr += length;

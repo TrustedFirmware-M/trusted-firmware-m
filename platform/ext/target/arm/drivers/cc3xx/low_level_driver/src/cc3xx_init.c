@@ -150,6 +150,9 @@ cc3xx_err_t cc3xx_lowlevel_init(void)
     P_CC3XX->ahb.ahbm_hprot = 0b11U;
     P_CC3XX->ahb.ahbm_hnonsec = 0b00U;
 
+    /* Set AHB transactions to Burst INCR4 by default */
+    P_CC3XX->ahb.ahbm_singles = 0x0UL;
+
     /* Reset engine to PASSTHROUGH / None */
     cc3xx_engine_in_use = CC3XX_ENGINE_NONE;
     P_CC3XX->cc_ctl.crypto_ctl = CC3XX_ENGINE_NONE;

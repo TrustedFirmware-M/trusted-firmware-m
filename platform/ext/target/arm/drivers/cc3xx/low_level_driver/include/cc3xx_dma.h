@@ -41,6 +41,12 @@ typedef struct {
     bool valid;            /*!< Validity of the region */
 } cc3xx_dma_remap_region_t;
 
+typedef struct {
+    uintptr_t region_base; /*!< The base of the region that will be restricted */
+    size_t region_size;    /*!< The size of the region that will be restricted */
+    bool valid;            /*!< Validity of the region */
+} cc3xx_dma_burst_restricted_region_t;
+
 #endif /* CC3XX_CONFIG_DMA_REMAP_ENABLE */
 
 #ifdef __cplusplus
@@ -89,6 +95,22 @@ void cc3xx_lowlevel_dma_remap_region_clear(uint32_t remap_region_idx);
 void cc3xx_lowlevel_dma_tcm_cpusel(uint32_t cpuid);
 
 #endif /* CC3XX_CONFIG_DMA_REMAP_ENABLE */
+
+#ifdef CC3XX_CONFIG_DMA_BURST_RESTRICTED_ENABLE
+/**
+ * @brief                        Configure and enable a burst restricted region.
+ *                               Any DMA input/output address that is within a
+ *                               burst restricted region will be issued as single
+ *                               AHB transaction instead of a burst incr4
+ *                               transaction.
+ *
+ * @param[in]  region_idx        Which region should be burst restricted
+ * @param[in]  region            The range of the region.
+ */
+void cc3xx_lowlevel_dma_burst_restricted_region_init(uint32_t region_idx,
+    const cc3xx_dma_burst_restricted_region_t *region);
+
+#endif /* CC3XX_CONFIG_DMA_BURST_RESTRICTED_ENABLE */
 
 /**
  * @brief             Use the cc3xx DMA to copy data directly without performing
