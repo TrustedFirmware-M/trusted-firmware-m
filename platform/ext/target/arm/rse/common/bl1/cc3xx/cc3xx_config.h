@@ -63,6 +63,9 @@
 /* Whether DMA remapping is enabled */
 #define CC3XX_CONFIG_DMA_REMAP_ENABLE
 
+/* Whether DMA Check for Burst Restricted addresses is enabled */
+#define CC3XX_CONFIG_DMA_BURST_RESTRICTED_ENABLE
+
 /* Whether DMA supports working on cached memories */
 #define CC3XX_CONFIG_DMA_CACHE_FLUSH_ENABLE
 
@@ -75,6 +78,11 @@
 #ifndef CC3XX_CONFIG_DMA_REMAP_REGION_AM
 #define CC3XX_CONFIG_DMA_REMAP_REGION_AM 4
 #endif /* CC3XX_CONFIG_DMA_REMAP_REGION_AM */
+
+/* How many DMA Burst remap regions are available */
+#ifndef CC3XX_CONFIG_DMA_BURST_RESTRICTED_REGION_AM
+#define CC3XX_CONFIG_DMA_BURST_RESTRICTED_REGION_AM 1
+#endif /* CC3XX_CONFIG_DMA_BURST_RESTRICTED_REGION_AM */
 
 /* Whether RNG is enabled */
 #define CC3XX_CONFIG_RNG_ENABLE

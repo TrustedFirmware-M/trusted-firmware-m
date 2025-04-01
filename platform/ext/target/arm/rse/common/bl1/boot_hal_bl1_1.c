@@ -120,8 +120,17 @@ int32_t boot_platform_init(void)
         {DTCM_BASE_NS, DTCM_SIZE, DTCM_CPU0_BASE_NS, 0x01000000},
     };
 
+    const cc3xx_dma_burst_restricted_region_t burst_restricted_regions[] = {
+        {KMU_BASE_S + 0x130, 0x400}, /* KMU Key Slot Registers */
+    };
+
     for (idx = 0; idx < ARRAY_SIZE(remap_regions); idx++) {
         cc3xx_lowlevel_dma_remap_region_init(idx, &remap_regions[idx]);
+    }
+
+    for (idx = 0; idx < ARRAY_SIZE(burst_restricted_regions); idx++) {
+        cc3xx_lowlevel_dma_burst_restricted_region_init(idx,
+            &burst_restricted_regions[idx]);
     }
 
     cc_err = cc3xx_lowlevel_init();
