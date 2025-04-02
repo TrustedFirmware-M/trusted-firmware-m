@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -238,13 +238,8 @@ static enum tfm_plat_err_t sds_region_map(uint8_t *atu_region)
 
 static enum tfm_plat_err_t sds_region_unmap(uint8_t atu_region)
 {
-    enum tfm_plat_err_t err;
-
     /* TODO: might replace the comms_atu_* calls with native ATU driver calls */
-    err = comms_atu_free_region(atu_region);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
-    }
+    return comms_atu_free_region(atu_region);
 }
 
 static void sds_region_init(void)
