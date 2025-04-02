@@ -52,18 +52,15 @@
  *      |----------------------------------------|
  *
  *      |---------------------------------------------------------
- * VM0  | BL2_CODE --->                                          |
+ * VM0  | BL2_CODE                                               |
  *      |---------------------------------------------------------
  *      |---------------------------------------------------------
- * VM1  | BL2_CODE  <--- | XIP tables  | BL2_DATA| OTP_EMULATION |
+ * VM1  |  XIP tables  | BL2_DATA              | OTP_EMULATION   |
  *      |---------------------------------------------------------
  *
  * If the size of VM0 and VM1 are larger than 64KiB, the size of BL2 code can be
  * increased to fill the extra space. Note that BL2 code is aligned to the start
- * of S_DATA, so under non-XIP mode it will not start at the beginning of VM0. If
- * BL2_CODE is increased to be larger than VM0, it spills on VM1 and accordingly
- * XIP tables and BL2_DATA get shifted to the right and BL2_DATA reduces to fit
- * the remaining space in VM1.
+ * of S_DATA, so under non-XIP mode it will not start at the beginning of VM0.
  *
  * RSE memory layout is as follows during Runtime with XIP mode enabled
  *      |----------------------------------------|
