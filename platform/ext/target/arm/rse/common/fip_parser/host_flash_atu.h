@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023, Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2025, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -17,6 +17,27 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * \brief Initializes an ATU slot to the given address range.
+ *
+ * \param[in] physical_address    Physical address of the ATU slot.
+ * \param[in] size                Unaligned slot size.
+ * \param[in] boundary            Boundary for alignment checks.
+ * \param[in] atu_slot            Slot number to use.
+ * \param[in] logical_address     Logical address of the AATU slot.
+ *
+ * \param[out] alignment_offset   Address offset after alignment.
+ * \param[out] atu_slot_size      Slot size after alignment.
+ *
+ * \return 0 on success, non-zero on failure.
+ */
+enum tfm_plat_err_t setup_aligned_atu_slot(uint64_t physical_address,
+                                           uint32_t size,
+                                           uint32_t boundary, uint32_t atu_slot,
+                                           uint32_t logical_address,
+                                           uint32_t *alignment_offset,
+                                           size_t   *atu_slot_size);
 
 /**
  * \brief                  Gets the offsets of the FIPs in host flash. If GPT is
@@ -85,6 +106,26 @@ int host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
  * \return                            0 on success, non-zero on failure.
  */
 int host_flash_atu_init_regions_for_image(uuid_t image_uuid, uint32_t offsets[2]);
+
+/**
+ * \brief                             Setup the input and output slots for a
+ *                                    given type_uuid. Returns the offsets from
+ *                                    the expected logical address that the
+ *                                    image has been mapped to (to account for
+ *                                    images not being aligned to the ATU page
+ *                                    size).
+ *
+ * \param[in] type_uuid               The type UUID of the image that should
+ *                                    have its input and output slots set up.
+ *
+ * \param[out] offsets                The offsets that the primary and secondary
+ *                                    images for that particular UUID have been
+ *                                    mapped at (offset from their expected
+ *                                    logical addresses).
+ *
+ * \return                            0 on success, non-zero on failure.
+ */
+int host_flash_atu_init_regions_for_image_by_type_uuid(uuid_t type_uuid, uint32_t offsets[2]);
 
 /**
  * \brief                             Teardown all image input and output slots.

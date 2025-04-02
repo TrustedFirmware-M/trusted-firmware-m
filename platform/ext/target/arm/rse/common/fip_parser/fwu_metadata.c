@@ -25,15 +25,51 @@
 #define BANK_INVALID    0xffu  /* One or more images corrupted or partially written */
 #define BANK_VALID      0xfeu  /* Valid images, but some are in unaccepted state */
 #define BANK_ACCEPTED   0xfcu  /* All images valid and accepted */
+
+#ifndef METADATA_SIZE
 #define METADATA_SIZE   FLASH_LBA_SIZE
+#endif
+
 #define PRIVATE_METADATA_SIZE   FLASH_LBA_SIZE
 
 #define METADATA_REGION_SIZE            0x2000
 #define PRIVATE_METADATA_REGION_SIZE    0x2000
 
+#define FW_STORE_DESC_SIZE              0x8
+#define IMAGE_ENTRY_SIZE                0x20
+#define IMAGE_PROPERTIES_SIZE           0x18
+#ifndef METADATA_NR_OF_BANKS
+#define METADATA_NR_OF_BANKS            2
+#endif
+#ifndef METADATA_NR_OF_IMAGES
+#define METADATA_NR_OF_IMAGES           2
+#endif
+#define IMAGE_ENTRIES_SIZE              (IMAGE_ENTRY_SIZE + (METADATA_NR_OF_BANKS * IMAGE_PROPERTIES_SIZE))
+
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 
 /* DEN0118 Metadata version 2 */
+struct image_properties_t {
+    uuid_t img_uuid;    /* UUID of the image in bank */
+    uint32_t accepted;  /* Acceptance status */
+    uint32_t reserved;
+} __PACKED;
+
+struct image_entry_t {
+    uuid_t img_type_uuid; /* UUID identifying the image type */
+    uuid_t location_uuid; /* UUID of the storage volume where the image is located */
+    struct image_properties_t img_bank_info[METADATA_NR_OF_BANKS];
+} __PACKED;
+
+struct metadata_fw_store_desc_t {
+   uint8_t num_banks;             /* Number of firmware banks */
+   uint8_t reserved;              /* Reserved */
+   uint16_t num_images;           /* Number of entries in the img_entry array */
+   uint16_t img_entry_size;       /* Size in bytes of the fwu_image_entry */
+   uint16_t bank_info_entry_size; /* Size of image bank info structure in bytes */
+   struct image_entry_t img_entry[METADATA_NR_OF_IMAGES]; /* Image entries */
+} __PACKED;
+
 struct metadata_header_t {
     uint32_t crc_32;        /* Metadata crc value */
     uint32_t version;       /* Metadata version, must be 2 for this type */
@@ -91,14 +127,35 @@ static int read_entire_region_from_host_flash(uint64_t offset,
 
     /* Read entire metadata */
     rc = FLASH_DEV_NAME.ReadData(log_addr - FLASH_BASE_ADDRESS, (void *)data_buf,
-                                 FLASH_LBA_SIZE / data_width);
-    if (rc != (FLASH_LBA_SIZE / data_width)) {
+                                 METADATA_SIZE / data_width);
+    if (rc != (METADATA_SIZE / data_width)) {
         return -1;
     }
 
     atu_err = atu_uninitialize_region(&ATU_DEV_S,
                                       RSE_ATU_REGION_TEMP_SLOT);
     if (atu_err != ATU_ERR_NONE) {
+        return -1;
+    }
+
+    return 0;
+}
+
+static int read_from_host_flash(uint64_t offset,
+                                uint32_t block_size,
+                                uint8_t *data_buf)
+{
+    int rc;
+    uint32_t log_addr = HOST_FLASH0_TEMP_BASE_S;
+
+    ARM_FLASH_CAPABILITIES DriverCapabilities =
+        FLASH_DEV_NAME.GetCapabilities();
+    uint8_t data_width = data_width_byte[DriverCapabilities.data_width];
+
+    /* Read entire metadata */
+    rc = FLASH_DEV_NAME.ReadData(log_addr - FLASH_BASE_ADDRESS + offset, (void *)data_buf,
+                                 block_size / data_width);
+    if (rc != (block_size / data_width)) {
         return -1;
     }
 
@@ -265,4 +322,69 @@ int parse_fwu_metadata(uint64_t md_offset,
     }
 
     return 0;
+}
+
+int get_active_image_uuid_by_type_uuid(uint64_t md_offset,
+                                       uuid_t type_uuid,
+                                       uuid_t *image_uuid) {
+    static uint8_t metadata[METADATA_SIZE];
+    struct metadata_header_t metadata_header;
+    struct metadata_fw_store_desc_t fw_store_desc;
+
+    uint32_t log_addr = HOST_FLASH0_TEMP_BASE_S;
+    uint64_t physical_address = HOST_FLASH0_BASE + md_offset;
+    int rc = 0;
+    int idx = 0;
+
+    if (image_uuid == NULL) {
+        return -1;
+    }
+
+    rc = read_fwu_metadadata(&metadata_header,
+                             metadata,
+                             md_offset);
+    if (rc != 0) {
+        return -1;
+    }
+    /* WORKAROUND: Init ATU region over metadata, removed from read_from_host_flash
+                   until aligned access is implemented */
+    rc = atu_initialize_region(&ATU_DEV_S,
+                               RSE_ATU_REGION_TEMP_SLOT,
+                               log_addr,
+                               physical_address,
+                               METADATA_REGION_SIZE);
+    if (rc != 0) {
+        return -1;
+    }
+
+
+    /* Read fw_store_desc */
+    rc = read_from_host_flash(metadata_header.descriptor_offset,
+                              sizeof(fw_store_desc),
+                              (uint8_t *)&fw_store_desc);
+    if (rc != 0) {
+        return -1;
+    }
+
+    rc = -1;
+    /* Parse entries */
+    for (idx = 0; idx < fw_store_desc.num_images; idx++) {
+        /* Check type uuid */
+        if(memcmp(&type_uuid, &fw_store_desc.img_entry[idx].img_type_uuid, sizeof(uuid_t)) == 0) {
+            memcpy(image_uuid,
+                   &fw_store_desc.img_entry[idx].img_bank_info[metadata_header.active_index].img_uuid,
+                   sizeof(uuid_t));
+            rc = 0;
+            break;
+        }
+    }
+
+    /* WORKAROUND: Init ATU region over metadata, removed from read_from_host_flash
+                   until aligned access is implemented */
+    if (atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_REGION_TEMP_SLOT) !=
+        ATU_ERR_NONE) {
+        return -1;
+    }
+
+    return rc;
 }

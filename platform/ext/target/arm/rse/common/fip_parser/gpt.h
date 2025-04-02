@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2023, ARM Limited and Contributors. All rights reserved.
+ * Copyright (c) 2016-2025, ARM Limited and Contributors. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -94,8 +94,63 @@ enum tfm_plat_err_t gpt_get_header(uint32_t table_base, size_t atu_slot_size,
  *                              successfully, another value on error.
  */
 enum tfm_plat_err_t gpt_get_list_entry_by_name(uint32_t list_base, uint32_t list_num_entries,
-                               size_t list_entry_size, uint8_t *name,
+                               size_t list_entry_size, const char *name,
                                size_t name_size, size_t atu_slot_size,
                                gpt_entry_t *entry);
+
+/**
+ * \brief                       Read a GPT list entry from flash into a struct.
+ *                              Which list entry should be read is determined
+ *                              by matching the image uuid of the partition.
+ *
+ * \param[in]  list_base        The RSE address mapped to the GPT entry list base
+ *                              in host flash.
+ * \param[in]  list_num_entries The number of entries in the GPT entry list, as
+ *                              read from the header.
+ * \param[in]  list_entry_size  The size of entries in the GPT entry list, as
+ *                              read from the header.
+ * \param[in]  image_uuid       The unique uuid of the image used during
+ *                              parsing
+ * \param[in]  atu_slot_size    The size of the ATU region that was mapped for
+ *                              access to this FIP. This is used to prevent
+ *                              reads outside the mapped region.
+ * \param[out] entry            Pointer to a gpt_entry_t struct that will be
+ *                              filled with the list entry data.
+ * \return                      TFM_PLAT_ERR_SUCCESS if operation completed
+ *                              successfully, another value on error.
+ */
+enum tfm_plat_err_t gpt_get_list_entry_by_image_uuid(uint32_t list_base,
+                                                     uint32_t list_num_entries,
+                                                     size_t list_entry_size,
+                                                     uuid_t image_uuid,
+                                                     size_t atu_slot_size,
+                                                     gpt_entry_t *entry);
+
+/**
+ * \brief                       Read GPT list entries from flash into a struct.
+ *                              Which list entry should be read is determined
+ *                              by matching the type uuid of the partition.
+ *
+ * \param[in]  list_base        The RSE address mapped to the GPT entry list base
+ *                              in host flash.
+ * \param[in]  list_num_entries The number of entries in the GPT entry list, as
+ *                              read from the header.
+ * \param[in]  list_entry_size  The size of entries in the GPT entry list, as
+ *                              read from the header.
+ * \param[in]  type_uuid        The type uuid of the image used during parsing
+ * \param[in]  atu_slot_size    The size of the ATU region that was mapped for
+ *                              access to this FIP. This is used to prevent
+ *                              reads outside the mapped region.
+ * \param[out] entries          gpt_entry_t struct that will be filled with the
+ *                              list entry data.
+ * \return                      TFM_PLAT_ERR_SUCCESS if operation completed
+ *                              successfully, another value on error.
+ */
+enum tfm_plat_err_t gpt_get_list_entry_by_type_uuid(uint32_t list_base,
+                                                    uint32_t list_num_entries,
+                                                    size_t list_entry_size,
+                                                    uuid_t type_uuid,
+                                                    size_t atu_slot_size,
+                                                    gpt_entry_t entries[2]);
 
 #endif /* GPT_H */
