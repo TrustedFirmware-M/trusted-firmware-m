@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -50,7 +50,7 @@ static inline uint32_t get_cycle_count(void)
     return DWT->CYCCNT;
 }
 
-static inline uint32_t reset_cycle_count(void)
+static inline void reset_cycle_count(void)
 {
     DWT->CYCCNT = 0;
 }

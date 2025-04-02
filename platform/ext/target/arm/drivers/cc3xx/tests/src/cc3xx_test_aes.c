@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -1349,6 +1349,8 @@ uint8_t *cc3xx_test_aes_get_key(cc3xx_aes_keysize_t key_size,
         case CC3XX_AES_KEYSIZE_256:
             return data->keys.aes_256;
     }
+
+    return NULL;
 }
 
 struct aes_test_mode_data_t *cc3xx_test_aes_get_mode_data(cc3xx_aes_mode_t mode,
@@ -1368,6 +1370,8 @@ struct aes_test_mode_data_t *cc3xx_test_aes_get_mode_data(cc3xx_aes_mode_t mode,
         case CC3XX_AES_MODE_CCM:
             return &data->modes.ccm;
     }
+
+    return NULL;
 }
 
 struct aes_test_ciphertext_t *cc3xx_test_aes_get_ciphertext(
@@ -1382,6 +1386,8 @@ struct aes_test_ciphertext_t *cc3xx_test_aes_get_ciphertext(
         case CC3XX_AES_KEYSIZE_256:
             return &mode_data->aes_256;
     }
+
+    return NULL;
 }
 
 static int run_all_aes_tests(struct aes_test_data_t *data, cc3xx_aes_keysize_t key_size,

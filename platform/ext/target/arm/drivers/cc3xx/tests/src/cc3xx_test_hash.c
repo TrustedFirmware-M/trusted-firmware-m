@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -102,6 +102,8 @@ uint8_t *output_from_alg_and_data(cc3xx_hash_alg_t alg,
         case CC3XX_HASH_ALG_SHA1:
             return data->output.sha1;
     }
+
+    return NULL;
 }
 
 size_t hash_size_from_alg(cc3xx_hash_alg_t alg)
@@ -114,6 +116,8 @@ size_t hash_size_from_alg(cc3xx_hash_alg_t alg)
         case CC3XX_HASH_ALG_SHA1:
             return SHA1_OUTPUT_SIZE;
     }
+
+    return NULL;
 }
 
 #define CREATE_HASH_TESTSUITE(alg) \
