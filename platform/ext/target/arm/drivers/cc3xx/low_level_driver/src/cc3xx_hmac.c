@@ -11,6 +11,9 @@
 #include "cc3xx_hmac.h"
 #include "cc3xx_stdlib.h"
 
+#define IPAD_PATTERN (0x36363636UL)
+#define OPAD_PATTERN (0x5c5c5c5cUL)
+
 cc3xx_err_t cc3xx_lowlevel_hmac_compute(
     size_t tag_len,
     const uint8_t *key,
@@ -22,20 +25,15 @@ cc3xx_err_t cc3xx_lowlevel_hmac_compute(
     size_t tag_size,
     size_t *tag_length)
 {
-    const uint8_t ipad = 0x36;
     cc3xx_err_t err;
-    size_t idx;
-    /* In case the key is higher than B, it must be hashed first */
-    uint32_t hash_key_output[CC3XX_HASH_LENGTH(alg) / sizeof(uint32_t)];
-    const uint8_t *p_key = key;
-    size_t key_length = key_size;
-    const uint8_t ixopad = 0x6a; /* 0x36 ^ 0x5c == ipad ^ opad */
-    uint8_t block[CC3XX_HMAC_BLOCK_SIZE];
+    /* Local scratch buffers to hold intermediate values */
+    uint32_t block[CC3XX_HMAC_BLOCK_SIZE / sizeof(uint32_t)] = {0};
+    uint32_t h_out[CC3XX_HASH_LENGTH(alg) / sizeof(uint32_t)];
 
-    memset(block, ipad, sizeof(block));
     *tag_length = 0;
 
     assert(tag_size >= tag_len);
+    assert(tag_len <= CC3XX_HASH_LENGTH(alg));
 
     if (key_size > CC3XX_HMAC_BLOCK_SIZE) {
         err = cc3xx_lowlevel_hash_init(alg);
@@ -48,15 +46,11 @@ cc3xx_err_t cc3xx_lowlevel_hmac_compute(
         if (err != CC3XX_ERR_SUCCESS) {
             goto out;
         }
-        p_key = (const uint8_t *)hash_key_output;
-        key_length = CC3XX_HASH_LENGTH(alg);
 
-        cc3xx_lowlevel_hash_finish(hash_key_output, sizeof(hash_key_output));
-    }
-
-    /* K ^ ipad */
-    for (idx = 0; idx < key_length; idx++) {
-        block[idx] ^= p_key[idx];
+        cc3xx_lowlevel_hash_finish(block, CC3XX_HASH_LENGTH(alg));
+    } else if (key_size) {
+        assert((key_size & 0b11) == 0);
+        cc3xx_dpa_hardened_word_copy(block, (uint32_t *)key, key_size / sizeof(uint32_t));
     }
 
     /* H(K ^ ipad) */
@@ -65,13 +59,15 @@ cc3xx_err_t cc3xx_lowlevel_hmac_compute(
         goto out;
     }
 
+    cc3xx_lowlevel_hash_set_xor_input(IPAD_PATTERN);
     err = cc3xx_lowlevel_hash_update((uint8_t *)block, CC3XX_HMAC_BLOCK_SIZE);
     if (err != CC3XX_ERR_SUCCESS) {
         goto out;
     }
 
-    /* H(K ^ ipad | data)*/
+    /* H(K ^ ipad | data) */
     if (data_length > 0) {
+        cc3xx_lowlevel_hash_reset_xor_input();
         err = cc3xx_lowlevel_hash_update(data, data_length);
         if (err != CC3XX_ERR_SUCCESS) {
             goto out;
@@ -79,38 +75,41 @@ cc3xx_err_t cc3xx_lowlevel_hmac_compute(
     }
 
     /* Produce H(K ^ ipad | data) */
-    cc3xx_lowlevel_hash_finish(hash_key_output, sizeof(hash_key_output));
+    cc3xx_lowlevel_hash_finish(h_out, CC3XX_HASH_LENGTH(alg));
 
-    /* K ^ opad */
-    for (idx = 0; idx < CC3XX_HMAC_BLOCK_SIZE; idx++) {
-        block[idx] ^= ixopad;
-    }
-
-    /* H( K ^ opad | H(K ^ ipad | data)) */
+    /* H( K ^ opad | H(K ^ ipad | data) ) */
     err = cc3xx_lowlevel_hash_init(alg);
     if (err != CC3XX_ERR_SUCCESS) {
         return err;
     }
 
+    cc3xx_lowlevel_hash_set_xor_input(OPAD_PATTERN);
     err = cc3xx_lowlevel_hash_update((uint8_t *)block, CC3XX_HMAC_BLOCK_SIZE);
     if (err != CC3XX_ERR_SUCCESS) {
         goto out;
     }
 
-    err = cc3xx_lowlevel_hash_update((uint8_t *)hash_key_output, sizeof(hash_key_output));
+    cc3xx_lowlevel_hash_reset_xor_input();
+    err = cc3xx_lowlevel_hash_update((uint8_t *)h_out, CC3XX_HASH_LENGTH(alg));
     if (err != CC3XX_ERR_SUCCESS) {
         goto out;
     }
 
-    cc3xx_lowlevel_hash_finish(hash_key_output, sizeof(hash_key_output));
+    /* Produce H( K ^ opad | H(K ^ ipad | data) ) */
+    cc3xx_lowlevel_hash_finish(h_out, CC3XX_HASH_LENGTH(alg));
 
 out:
     if (err == CC3XX_ERR_SUCCESS) {
-        memcpy(tag, hash_key_output, tag_len);
+        cc3xx_dpa_hardened_word_copy(tag, h_out, tag_len / sizeof(uint32_t));
+        if (tag_len % sizeof(uint32_t)) {
+            memcpy(&(((uint32_t *)tag)[tag_len / sizeof(uint32_t)]),
+                &h_out[tag_len / sizeof(uint32_t)], tag_len % sizeof(uint32_t));
+        }
         *tag_length = tag_len;
     }
     cc3xx_lowlevel_hash_uninit();
-    cc3xx_secure_erase_buffer((uint32_t *)block, sizeof(block) / sizeof(uint32_t));
+    cc3xx_secure_erase_buffer(block, CC3XX_HMAC_BLOCK_SIZE / sizeof(uint32_t));
+    cc3xx_secure_erase_buffer(h_out, CC3XX_HASH_LENGTH(alg) / sizeof(uint32_t));
     return err;
 }
 
@@ -120,13 +119,9 @@ cc3xx_err_t cc3xx_lowlevel_hmac_set_key(
     size_t key_size,
     cc3xx_hash_alg_t alg)
 {
-    const uint8_t ipad = 0x36;
     cc3xx_err_t err;
-    size_t idx;
-    /* In case the key is higher than B, it must be hashed first */
-    uint32_t hash_key_output[CC3XX_HMAC_BLOCK_SIZE / sizeof(uint32_t)];
-    const uint8_t *p_key = key;
-    size_t key_length = key_size;
+
+    memset(state->key, 0, sizeof(state->key));
 
     if (key_size > CC3XX_HMAC_BLOCK_SIZE) {
         err = cc3xx_lowlevel_hash_init(alg);
@@ -139,19 +134,11 @@ cc3xx_err_t cc3xx_lowlevel_hmac_set_key(
         if (err != CC3XX_ERR_SUCCESS) {
             goto out;
         }
-        p_key = (const uint8_t *)hash_key_output;
-        key_length = CC3XX_HASH_LENGTH(alg);
 
-        cc3xx_lowlevel_hash_finish(hash_key_output, sizeof(hash_key_output));
-    }
-
-    /* K ^ ipad */
-    for (idx = 0; idx < key_length; idx++) {
-        state->key[idx] = p_key[idx] ^ ipad;
-    }
-
-    if (key_length < CC3XX_HMAC_BLOCK_SIZE) {
-        memset(&state->key[key_length], ipad, CC3XX_HMAC_BLOCK_SIZE - key_length);
+        cc3xx_lowlevel_hash_finish(state->key, CC3XX_HASH_LENGTH(alg));
+    } else if (key_size) {
+        assert((key_size & 0b11) == 0);
+        cc3xx_dpa_hardened_word_copy(state->key, (uint32_t *)key, key_size / sizeof(uint32_t));
     }
 
     /* H(K ^ ipad) */
@@ -160,7 +147,9 @@ cc3xx_err_t cc3xx_lowlevel_hmac_set_key(
         goto out;
     }
 
-    err = cc3xx_lowlevel_hash_update(state->key, CC3XX_HMAC_BLOCK_SIZE);
+    cc3xx_lowlevel_hash_set_xor_input(IPAD_PATTERN);
+    err = cc3xx_lowlevel_hash_update((uint8_t *)state->key, sizeof(state->key));
+    cc3xx_lowlevel_hash_reset_xor_input();
 
 out:
     if (err == CC3XX_ERR_SUCCESS) {
@@ -176,7 +165,7 @@ void cc3xx_lowlevel_hmac_set_tag_length(
     struct cc3xx_hmac_state_t *state,
     size_t tag_len)
 {
-    state->tag_len = tag_len;
+    state->tag_len = (uint8_t)tag_len;
 }
 
 cc3xx_err_t cc3xx_lowlevel_hmac_update(
@@ -204,22 +193,15 @@ cc3xx_err_t cc3xx_lowlevel_hmac_finish(
     size_t tag_size,
     size_t *tag_len)
 {
-    uint32_t scratch[CC3XX_HASH_LENGTH(state->alg) / sizeof(uint32_t)];
-    const uint8_t ixopad = 0x36 ^ 0x5c; /* ipad ^ opad */
+    uint32_t h_out[CC3XX_HASH_LENGTH(state->alg) / sizeof(uint32_t)];
     cc3xx_err_t err;
-    size_t idx;
 
     assert(tag_size >= state->tag_len);
 
     cc3xx_lowlevel_hash_set_state(&state->hash);
 
     /* Produce H(K ^ ipad | data) */
-    cc3xx_lowlevel_hash_finish(scratch, sizeof(scratch));
-
-    /* K ^ opad */
-    for (idx = 0; idx < CC3XX_HMAC_BLOCK_SIZE; idx++) {
-        state->key[idx] ^= ixopad;
-    }
+    cc3xx_lowlevel_hash_finish(h_out, sizeof(h_out));
 
     /* H( K ^ opad | H(K ^ ipad | data)) */
     err = cc3xx_lowlevel_hash_init(state->alg);
@@ -227,17 +209,19 @@ cc3xx_err_t cc3xx_lowlevel_hmac_finish(
         goto out;
     }
 
-    err = cc3xx_lowlevel_hash_update(state->key, CC3XX_HMAC_BLOCK_SIZE);
+    cc3xx_lowlevel_hash_set_xor_input(OPAD_PATTERN);
+    err = cc3xx_lowlevel_hash_update((uint8_t *)state->key, sizeof(state->key));
     if (err != CC3XX_ERR_SUCCESS) {
         goto out;
     }
 
-    err = cc3xx_lowlevel_hash_update((const uint8_t *)scratch, sizeof(scratch));
+    cc3xx_lowlevel_hash_reset_xor_input();
+    err = cc3xx_lowlevel_hash_update((const uint8_t *)h_out, sizeof(h_out));
     if (err != CC3XX_ERR_SUCCESS) {
         goto out;
     }
 
-    cc3xx_lowlevel_hash_finish(scratch, sizeof(scratch));
+    cc3xx_lowlevel_hash_finish(h_out, sizeof(h_out));
 
     if (tag_len != NULL) {
         *tag_len = state->tag_len;
@@ -245,8 +229,13 @@ cc3xx_err_t cc3xx_lowlevel_hmac_finish(
 
 out:
     if (err == CC3XX_ERR_SUCCESS) {
-        memcpy(tag, scratch, state->tag_len);
+        cc3xx_dpa_hardened_word_copy(tag, h_out, state->tag_len / sizeof(uint32_t));
+        if (state->tag_len % sizeof(uint32_t)) {
+            memcpy(&(((uint32_t *)tag)[state->tag_len / sizeof(uint32_t)]),
+                &h_out[state->tag_len / sizeof(uint32_t)], state->tag_len % sizeof(uint32_t));
+        }
         cc3xx_lowlevel_hash_get_state(&state->hash);
+        cc3xx_secure_erase_buffer(h_out, CC3XX_HASH_LENGTH(state->alg) / sizeof(uint32_t));
     }
     cc3xx_lowlevel_hash_uninit();
     return err;

@@ -27,11 +27,11 @@ extern "C" {
  *
  */
 struct cc3xx_hmac_state_t {
-    uint8_t key[CC3XX_HMAC_BLOCK_SIZE];
-    struct cc3xx_hash_state_t hash; /* Allows to restart low-level hash */
-    cc3xx_hash_alg_t alg; /* Based on the hashing algorithm, sizes change */
-    size_t tag_len; /* Expected tag len, depending on the truncated length algorithm */
-} __attribute__((aligned(4)));
+    uint32_t key[CC3XX_HMAC_BLOCK_SIZE / sizeof(uint32_t)]; /*!< Buffer containing the key bytes */
+    struct cc3xx_hash_state_t hash;     /*!< Allows to restart low-level hash */
+    cc3xx_hash_alg_t alg;               /*!< Based on the hashing algorithm, sizes change */
+    uint8_t tag_len;                    /*!< Expected tag len, depends on alg */
+};
 
 /**
  * @brief Sets the key for the HMAC operation on the state
