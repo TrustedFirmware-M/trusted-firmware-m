@@ -140,11 +140,12 @@ def _handle_rotpk_hash_alg(args: argparse.Namespace,
         logger.warning("{} set but {} is not".format(f, rotpk))
         return
 
-    policy_word_field = _get_policy_field(provisioning_config, field_owner, _get_rotpk_area_index(f))
+    area_index = _get_rotpk_area_index(f)
+    policy_word_field = _get_policy_field(provisioning_config, field_owner, area_index)
     policy_word = policy_word_field.get_value()
     rotpk_index = _get_rotpk_index(f)
 
-    getattr(provisioning_config, "{}_rotpk_hash_algs".format(field_owner))[rotpk_index] = v.name
+    getattr(provisioning_config, "{}_rotpk_hash_algs".format(field_owner))[(area_index, rotpk_index)] = v.name
 
     v = v.get_value()
     policy_word |= v << (12 + rotpk_index)
@@ -209,9 +210,11 @@ def _handle_rotpk(args: argparse.Namespace,
 
     rotpk_index = _get_rotpk_index(f)
     if hasattr(otp_config.defines, "RSE_OTP_{}_ROTPK_IS_HASH_NOT_KEY".format(field_owner.upper())):
-        assert rotpk_index in getattr(provisioning_config, "{}_rotpk_hash_algs".format(field_owner)).keys(), "--{}:{}.rotpk_hash_alg_{} required but not set".format(field_owner, field_owner, rotpk_index)
+        area_index = _get_rotpk_area_index(f)
+        assert (area_index, rotpk_index) in getattr(provisioning_config, "{}_rotpk_hash_algs".format(field_owner)).keys(), "--{}:{}.rotpk_hash_alg_{} required but not set".format(field_owner, field_owner, rotpk_index)
 
-        hash_alg = getattr(provisioning_config, "{}_rotpk_hash_algs".format(field_owner))[rotpk_index]
+        hash_alg = getattr(provisioning_config,
+                           "{}_rotpk_hash_algs".format(field_owner))[area_index, rotpk_index]
         hash_alg = convert_hash_define(hash_alg, "RSE_ROTPK_HASH_ALG_")
         digest = hashes.Hash(hash_alg())
         digest.update(v)
