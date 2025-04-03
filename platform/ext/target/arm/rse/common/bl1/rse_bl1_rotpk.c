@@ -22,37 +22,6 @@ extern uint8_t tfm_bl1_key_test_1_buf[];
 extern uint8_t tfm_bl1_key_test_2_buf[];
 #endif /* TEST_BL1_1 */
 
-static enum tfm_plat_err_t read_bl1_rotpk(uint8_t *key_buf, size_t key_buf_len,
-                                          size_t *key_size, bool is_cm)
-{
-    enum tfm_plat_err_t err;
-    enum tfm_otp_element_id_t otp_id;
-    enum rse_rotpk_hash_alg alg;
-
-    if (is_cm) {
-        otp_id = rse_cm_get_bl1_rotpk();
-    } else {
-        otp_id = rse_dm_get_bl1_rotpk();
-    }
-
-    if (key_size != NULL) {
-#ifdef TFM_BL1_2_EMBED_ROTPK_IN_IMAGE
-        err = rse_rotpk_get_hash_alg(otp_id, &alg);
-        if (err != TFM_PLAT_ERR_SUCCESS) {
-            return err;
-        }
-        *key_size = RSE_ROTPK_SIZE_FROM_ALG(alg);
-#else
-        err = tfm_plat_otp_get_size(otp_id, key_size);
-        if (err != TFM_PLAT_ERR_SUCCESS) {
-            return err;
-        }
-#endif
-    }
-
-    return tfm_plat_otp_read(otp_id, key_buf_len, key_buf);
-}
-
 static enum tfm_otp_element_id_t bl1_key_id_to_otp_id(enum tfm_bl1_key_id_t key_id)
 {
     switch (key_id) {
