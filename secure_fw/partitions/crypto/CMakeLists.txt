@@ -66,6 +66,7 @@ target_sources(tfm_psa_rot_partition_crypto
     PRIVATE
         ${CMAKE_BINARY_DIR}/generated/secure_fw/partitions/crypto/auto_generated/intermedia_tfm_crypto.c
 )
+
 target_sources(tfm_partitions
     INTERFACE
         ${CMAKE_BINARY_DIR}/generated/secure_fw/partitions/crypto/auto_generated/load_info_tfm_crypto.c
@@ -78,6 +79,7 @@ target_include_directories(tfm_psa_rot_partition_crypto
         ${CMAKE_BINARY_DIR}/generated/secure_fw/partitions/crypto
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../interface/include>
 )
+
 target_include_directories(tfm_partitions
     INTERFACE
         ${CMAKE_BINARY_DIR}/generated/secure_fw/partitions/crypto
@@ -89,8 +91,9 @@ target_link_libraries(tfm_psa_rot_partition_crypto
         platform_s
         crypto_service_mbedcrypto
         tfm_config
-        tfm_log_unpriv_headers
+        tfm_log_headers
 )
+
 target_compile_definitions(tfm_psa_rot_partition_crypto
     PRIVATE
         $<$<STREQUAL:${CRYPTO_HW_ACCELERATOR_TYPE},cc312>:CRYPTO_HW_ACCELERATOR_CC312>

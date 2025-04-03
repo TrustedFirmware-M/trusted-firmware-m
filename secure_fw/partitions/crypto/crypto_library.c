@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "tfm_log_unpriv.h"
+#include "tfm_log.h"
 
 #include "config_tfm.h"
 #include "psa/crypto.h"
@@ -94,7 +94,7 @@ psa_status_t tfm_crypto_core_library_init(void)
 
     mbedtls_platform_set_printf(null_printf);
 
-    VERBOSE_UNPRIV("[Crypto] Internal heap size is %d bytes\n", sizeof(mbedtls_mem_buf));
+    VERBOSE("[Crypto] Internal heap size is %d bytes\n", sizeof(mbedtls_mem_buf));
 
     return PSA_SUCCESS;
 }
