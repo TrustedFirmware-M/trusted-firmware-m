@@ -11,13 +11,13 @@ import logging
 logger = logging.getLogger("TF-M.{}".format(__name__))
 
 from elftools.elf.elffile import ELFFile
-from file_loader import load_bytes_from_file
+from tfm_tools.file_loader import load_bytes_from_file
 
-from c_struct import C_enum
+from tfm_tools.c_struct import C_enum
 
 from os.path import isfile
 
-from crypto_conversion_utils import convert_curve_define, convert_hash_define
+from tfm_tools.crypto_conversion_utils import convert_curve_define, convert_hash_define
 
 prefix_sep = ":"
 

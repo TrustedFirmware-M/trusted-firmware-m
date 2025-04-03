@@ -7,13 +7,12 @@ import re
 import logging
 logger = logging.getLogger("TF-M.{}".format(__name__))
 
-from arg_utils import parse_args_automatically
+from tfm_tools import arg_utils
 
 sys.path.append(os.path.join(sys.path[0], 'modules'))
 
-from otp_config import OTP_config
-import otp_config as oc
-import arg_utils
+import rse.otp_config as oc
+from rse.otp_config import OTP_config
 
 def add_arguments(parser : argparse.ArgumentParser,
                   prefix : str = "",
@@ -63,7 +62,7 @@ script_description = """
 This script takes as input an OTP config file, and outputs an OTP layout table
 in CSV format which can be used to generate documentation.
 """
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(allow_abbrev=False)
 
     parser = argparse.ArgumentParser(allow_abbrev=False,
@@ -80,3 +79,6 @@ if __name__ == "__main__":
     layout_specification = create_layout_specification(**config)
 
     args.specification_output_file.writelines(layout_specification)
+
+if __name__ == "__main__":
+    exit(main())

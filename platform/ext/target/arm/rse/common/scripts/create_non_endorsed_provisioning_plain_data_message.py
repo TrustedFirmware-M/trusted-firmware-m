@@ -12,15 +12,13 @@ import os
 import logging
 logger = logging.getLogger("TF-M.{}".format(__name__))
 
-sys.path.append(os.path.join(sys.path[0], 'modules'))
-
-from provisioning_config import Provisioning_config
-import provisioning_config as pc
-from provisioning_message_config import Provisioning_message_config
-import provisioning_message_config as pmc
-from otp_config import OTP_config
-import otp_config as oc
-import arg_utils
+from rse.provisioning_config import Provisioning_config
+import rse.provisioning_config as pc
+from rse.provisioning_message_config import Provisioning_message_config
+import rse.provisioning_message_config as pmc
+from rse.otp_config import OTP_config
+import rse.otp_config as oc
+from tfm_tools import arg_utils
 
 
 def add_arguments(parser: argparse.ArgumentParser,
@@ -50,9 +48,7 @@ This script takes as arguments various config files and input
 arguments corresponding to the fields of the non-endorsed DM provisioning
 values structure. It uses these to produce a plain data message
 """
-if __name__ == "__main__":
-    from provisioning_message_config import create_plain_data_message
-
+def main():
     parser = argparse.ArgumentParser(allow_abbrev=False,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      description=script_description)
@@ -73,3 +69,7 @@ if __name__ == "__main__":
                                             plain_data_type=kwargs['provisioning_message_config'].RSE_PROVISIONING_PLAIN_DATA_TYPE_NON_ENDORSED_DM_ROTPKS,
                                             data=kwargs['provisioning_config'].non_endorsed_dm_layout.to_bytes())
         f.write(message)
+
+
+if __name__ == "__main__":
+    exit(main())

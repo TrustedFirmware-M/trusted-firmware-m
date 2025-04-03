@@ -14,14 +14,14 @@ logger = logging.getLogger("TF-M.{}".format(__name__))
 
 sys.path.append(os.path.join(sys.path[0], 'modules'))
 
-from provisioning_config import Provisioning_config
-import provisioning_config as pc
-from provisioning_message_config import Provisioning_message_config
-import provisioning_message_config as pmc
-from otp_config import OTP_config
-import otp_config as oc
+from rse.provisioning_config import Provisioning_config
+import rse.provisioning_config as pc
+from rse.provisioning_message_config import Provisioning_message_config
+import rse.provisioning_message_config as pmc
+from rse.otp_config import OTP_config
+import rse.otp_config as oc
 
-import arg_utils
+from tfm_tools import arg_utils
 
 
 def add_arguments(parser: argparse.ArgumentParser,
@@ -53,9 +53,7 @@ This script takes as various config files and produces a signed plain data
 provisioning bundle which is a blob whose purpose is to receive late DM provisioning
 data such as DM ROTPKs
 """
-if __name__ == "__main__":
-    from provisioning_message_config import create_blob_message
-
+def main():
     parser = argparse.ArgumentParser(allow_abbrev=False,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      description=script_description)
@@ -78,3 +76,7 @@ if __name__ == "__main__":
     with open(args.bundle_output_file, "wb") as f:
         message = create_blob_message(blob_type=blob_type, **kwargs)
         f.write(message)
+
+
+if __name__ == "__main__":
+    exit(main())

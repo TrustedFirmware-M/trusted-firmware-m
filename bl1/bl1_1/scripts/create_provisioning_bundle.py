@@ -8,17 +8,7 @@
 import argparse
 import struct
 import secrets
-
-def struct_pack(objects, pad_to=0):
-    defstring = "<"
-    for obj in objects:
-        defstring += str(len(obj)) + "s"
-
-    size = struct.calcsize(defstring)
-    if size < pad_to:
-        defstring += str(pad_to - size) + "x"
-
-    return (bytes(struct.pack(defstring, *objects)))
+from tfm_tools.struct_pack import struct_pack
 
 parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument("--bl2_encryption_key_input_file", help="the key that BL2 was encrypted with", required=True)

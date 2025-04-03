@@ -11,8 +11,8 @@ import encrypt_data
 
 import logging
 logger = logging.getLogger("TF-M.{}".format(__name__))
-from arg_utils import *
-from crypto_conversion_utils import convert_curve_define, convert_hash_define
+from tfm_tools.arg_utils import *
+from tfm_tools.crypto_conversion_utils import convert_curve_define, convert_hash_define
 
 import sys
 import os

@@ -7,27 +7,22 @@
 #-------------------------------------------------------------------------------
 
 import argparse
-import sys
-import os
-
-import arg_utils
+from tfm_tools import arg_utils
 
 import logging
 logger = logging.getLogger("TF-M.{}".format(__name__))
 
-sys.path.append(os.path.join(sys.path[0], 'modules'))
+import rse.otp_config as oc
+from rse.otp_config import OTP_config
 
-import otp_config as oc
-from otp_config import OTP_config
+import rse.provisioning_message_config as pmc
+from rse.provisioning_message_config import Provisioning_message_config
 
-import provisioning_message_config as pmc
-from provisioning_message_config import Provisioning_message_config
+import rse.provisioning_config as pc
+from rse.provisioning_config import Provisioning_config
 
-import provisioning_config as pc
-from provisioning_config import Provisioning_config
-
-import routing_tables as rt
-from routing_tables import Routing_tables
+import rse.routing_tables as rt
+from rse.routing_tables import Routing_tables
 
 
 def add_arguments(parser : argparse.ArgumentParser,
@@ -61,16 +56,13 @@ def parse_args(args : argparse.Namespace,
 
     return out
 
-
 script_description = """
 This script takes as various config files, and produces from them and input
 arguments corresponding to the fields of the DM provisioning bundle, and
 produces a signed DM provisioning bundle which can be input into the RSE for
 provisioning DM data
 """
-if __name__ == "__main__":
-    from provisioning_message_config import create_blob_message
-
+def main():
     parser = argparse.ArgumentParser(allow_abbrev=False,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      description=script_description)
@@ -98,8 +90,13 @@ if __name__ == "__main__":
     blob_type = kwargs['provisioning_message_config'].RSE_PROVISIONING_BLOB_TYPE_SINGLE_LCS_PROVISIONING
 
     with open(args.bundle_output_file, "wb") as f:
-        message = create_blob_message(blob_type=blob_type, **kwargs,
-                                      data = (kwargs['elf_data'] or bytes(0)) +
-                                      kwargs['provisioning_config'].non_secret_dm_layout.to_bytes(),
-                                      secret_values = kwargs['provisioning_config'].secret_dm_layout.to_bytes())
+
+        message = pmc.create_blob_message(blob_type=blob_type, **kwargs,
+                                          data = (kwargs['elf_data'] or bytes(0)) +
+                                          kwargs['provisioning_config'].non_secret_dm_layout.to_bytes(),
+                                          secret_values = kwargs['provisioning_config'].secret_dm_layout.to_bytes())
         f.write(message)
+
+
+if __name__ == "__main__":
+    exit(main())

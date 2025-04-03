@@ -6,13 +6,13 @@
 #
 #-------------------------------------------------------------------------------
 
-import c_struct
-import c_macro
-import c_include
+from tfm_tools.c_struct import C_struct
+from tfm_tools.c_macro import C_macro
+from tfm_tools import c_include
+from tfm_tools import arg_utils
 import pickle
 import sys
 import argparse
-import arg_utils
 
 import logging
 logger = logging.getLogger("TF-M.{}".format(__name__))
@@ -62,7 +62,7 @@ class OTP_config:
     def from_h_file(h_file_path, includes, defines):
         region_names = ['header', 'cm', 'bl1_2', 'dm', 'dynamic', 'soc']
 
-        make_region = lambda x: c_struct.C_struct.from_h_file(h_file_path,
+        make_region = lambda x: C_struct.from_h_file(h_file_path,
                                                               "rse_otp_{}_area_t".format(x),
                                                               includes, defines)
         regions = [make_region(x) for x in region_names]
@@ -70,7 +70,7 @@ class OTP_config:
         for r,n in zip(regions, region_names):
             r.name = n
 
-        config = c_macro.C_macro.from_h_file(h_file_path, includes, defines)
+        config = C_macro.from_h_file(h_file_path, includes, defines)
 
         return OTP_config(*regions, config)
 
@@ -155,7 +155,6 @@ configuration options.
 """
 if __name__ == "__main__":
     import argparse
-    import c_include
 
     parser = argparse.ArgumentParser(allow_abbrev=False,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,

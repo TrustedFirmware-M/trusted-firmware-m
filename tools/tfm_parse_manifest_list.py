@@ -930,4 +930,4 @@ def main():
     gen_summary_files(context, gen_file_lists)
 
 if __name__ == '__main__':
-    main()
+    exit(main())

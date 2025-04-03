@@ -18,6 +18,9 @@ logger = logging.getLogger("TF-M.{}".format(__name__))
 
 from rich import inspect
 
+import argparse
+import tfm_tools.c_include
+
 pad = 4
 
 format_chars = {
@@ -662,11 +665,7 @@ def _c_from_h_file(h_file, name, includes, defines, f, kind):
 
     return f.from_cl_cursor(t, name)
 
-
-if __name__ == '__main__':
-    import argparse
-    import c_include
-
+def main():
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument("--h_file", help="header file to parse", required=True)
     parser.add_argument("--struct_name", help="struct name to evaluate", required=True)
@@ -682,3 +681,6 @@ if __name__ == '__main__':
 
     s = C_struct.from_h_file(args.h_file, args.struct_name, includes, defines)
     print(s)
+
+if __name__ == '__main__':
+    exit(main())

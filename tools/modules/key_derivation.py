@@ -5,7 +5,7 @@
 #
 # -----------------------------------------------------------------------------
 
-from arg_utils import *
+from tfm_tools.arg_utils import *
 from cryptography.hazmat.primitives import cmac
 from cryptography.hazmat.primitives.ciphers import algorithms
 

@@ -7,24 +7,15 @@
 #-------------------------------------------------------------------------------
 
 import argparse
-import sys
-import os
 
-import arg_utils
+from tfm_tools import arg_utils
+from rse.provisioning_message_config import create_blob_message
+
+import rse.provisioning_message_config as pmc
+from rse.provisioning_message_config import Provisioning_message_config
 
 import logging
 logger = logging.getLogger("TF-M.{}".format(__name__))
-
-sys.path.append(os.path.join(sys.path[0], 'modules'))
-
-import otp_config as oc
-from otp_config import OTP_config
-
-import provisioning_message_config as pmc
-from provisioning_message_config import Provisioning_message_config
-
-import provisioning_config as pc
-from provisioning_config import Provisioning_config
 
 
 def add_arguments(parser : argparse.ArgumentParser,
@@ -55,9 +46,7 @@ arguments corresponding to the fields of the DM provisioning bundle, and
 produces a signed DM provisioning bundle which can be input into the RSE for
 provisioning DM data
 """
-if __name__ == "__main__":
-    from provisioning_message_config import create_blob_message
-
+def main():
     parser = argparse.ArgumentParser(allow_abbrev=False,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      description=script_description)
@@ -78,3 +67,7 @@ if __name__ == "__main__":
     with open(args.bundle_output_file, "wb") as f:
         message = create_blob_message(blob_type=blob_type, **kwargs)
         f.write(message)
+
+
+if __name__ == "__main__":
+    exit(main())

@@ -11,7 +11,7 @@ import ast
 import os
 import operator as op
 import string
-from c_include import get_includes, get_defines
+from tfm_tools.c_include import get_includes, get_defines
 
 def _int(x):
     if isinstance(x, str):
@@ -330,7 +330,7 @@ class C_macro():
             self.parse_text(f.read())
         pass
 
-if __name__ == '__main__':
+def main():
     import argparse
 
     parser = argparse.ArgumentParser(allow_abbrev=False)
@@ -343,4 +343,7 @@ if __name__ == '__main__':
     includes = get_includes(args.compile_commands_file, args.c_file_to_mirror_includes_from)
     defines = get_defines(args.compile_commands_file, args.c_file_to_mirror_includes_from)
     s = C_macro.from_h_file(args.h_file, includes, defines)
-    print(s._definitions[args.macro_name])
+    print(s._definitions)
+
+if __name__ == '__main__':
+    exit(main())

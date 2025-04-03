@@ -15,24 +15,12 @@ import struct
 import secrets
 import os
 import sys
+from tfm_tools.struct_pack import struct_pack
 
-sys.path.append(os.path.join(sys.path[0], 'modules'))
-
-from key_derivation import derive_symmetric_key
+from tfm_tools.key_derivation import derive_symmetric_key
 
 sic_page_size = 1024
 sic_line_size = 16
-
-def struct_pack(objects, pad_to=0):
-    defstring = "<"
-    for obj in objects:
-        defstring += str(len(obj)) + "s"
-
-    size = struct.calcsize(defstring)
-    if size < pad_to:
-        defstring += str(pad_to - size) + "x"
-
-    return (bytes(struct.pack(defstring, *objects)))
 
 def chunk_bytes(x, n):
     return [x[i:i+n] for i in range(0, len(x), n)]

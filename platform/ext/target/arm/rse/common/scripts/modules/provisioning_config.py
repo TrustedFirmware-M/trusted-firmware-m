@@ -6,16 +6,15 @@
 #
 #-------------------------------------------------------------------------------
 
-import c_struct
-import c_macro
-import c_include
+
+from tfm_tools.c_struct import C_array, C_enum, C_struct
+from tfm_tools.c_macro import C_macro
+from tfm_tools import c_include
+from tfm_tools import arg_utils
 import pickle
-import sys
-from c_struct import C_array, C_enum
-import arg_utils
 import argparse
-from otp_config import OTP_config
-from routing_tables import Routing_tables
+from rse.otp_config import OTP_config
+from rse.routing_tables import Routing_tables
 from cryptography.hazmat.primitives import hashes
 
 import logging
@@ -23,7 +22,7 @@ logger = logging.getLogger("TF-M.{}".format(__name__))
 
 from cryptography.hazmat.primitives.serialization import load_der_public_key, Encoding, PublicFormat
 
-from crypto_conversion_utils import convert_hash_define
+from tfm_tools.crypto_conversion_utils import convert_hash_define
 
 all_regions = ['non_endorsed_dm', 'non_secret_cm', 'secret_cm', 'non_secret_dm', 'secret_dm']
 
@@ -333,17 +332,17 @@ class Provisioning_config:
 
     @staticmethod
     def from_h_file(h_file_path, policy_h_file_path, includes, defines):
-        make_region = lambda x: c_struct.C_struct.from_h_file(h_file_path,
+        make_region = lambda x: C_struct.from_h_file(h_file_path,
                                                               "rse_{}_provisioning_values_t".format(x),
                                                               includes, defines)
         regions = [make_region(x) for x in all_regions]
-        config = c_macro.C_macro.from_h_file(h_file_path, includes, defines)
+        config = C_macro.from_h_file(h_file_path, includes, defines)
 
-        rotpk_types = c_struct.C_enum.from_h_file(policy_h_file_path, "rse_rotpk_type", includes, defines)
-        rotpk_policies = c_struct.C_enum.from_h_file(policy_h_file_path, "rse_rotpk_policy", includes, defines)
-        rotpk_hash_algs = c_struct.C_enum.from_h_file(policy_h_file_path, "rse_rotpk_hash_alg", includes, defines)
+        rotpk_types = C_enum.from_h_file(policy_h_file_path, "rse_rotpk_type", includes, defines)
+        rotpk_policies = C_enum.from_h_file(policy_h_file_path, "rse_rotpk_policy", includes, defines)
+        rotpk_hash_algs = C_enum.from_h_file(policy_h_file_path, "rse_rotpk_hash_alg", includes, defines)
 
-        create_enum = lambda x:c_struct.C_enum.from_h_file(policy_h_file_path, x, includes, defines)
+        create_enum = lambda x:C_enum.from_h_file(policy_h_file_path, x, includes, defines)
         enum_names = [
             'rse_rotpk_type',
             'rse_rotpk_policy',
@@ -411,8 +410,6 @@ provisioning bundles, or to allow other scripts to access the provisioning
 configuration options.
 """
 if __name__ == "__main__":
-    import argparse
-    import c_include
 
     parser = argparse.ArgumentParser(allow_abbrev=False,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,

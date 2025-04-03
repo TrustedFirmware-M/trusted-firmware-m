@@ -7,7 +7,7 @@
 
 import argparse
 from cryptography.hazmat.primitives import cmac
-
+from tfm_tools.struct_pack import struct_pack
 from provisioning_common_utils import *
 
 def derive_encryption_key(input_key, provisioning_lcs, tp_mode, reprovisioning_bits,

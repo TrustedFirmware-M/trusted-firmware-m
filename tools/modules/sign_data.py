@@ -15,10 +15,11 @@ import pyhsslms
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM
 import secrets
 
+from tfm_tools.arg_utils import *
+
 import argparse
 import logging
 logger = logging.getLogger("TF-M.{}".format(__name__))
-from arg_utils import *
 
 def _asn1_sig_to_raw(sig : bytes , curve : ec.EllipticCurve) -> bytes:
     point_size = curve.key_size // 8
@@ -144,9 +145,7 @@ def parse_args(args : argparse.Namespace,
 script_description = """
 Sign some data.
 """
-if __name__ == "__main__":
-    import argparse
-
+def main():
     parser = argparse.ArgumentParser(allow_abbrev=False,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      description=script_description)
@@ -163,3 +162,6 @@ if __name__ == "__main__":
     config |= parse_args_automatically(args, ["data"])
 
     print(sign_data(**config).hex())
+
+if __name__ == "__main__":
+    exit(main())

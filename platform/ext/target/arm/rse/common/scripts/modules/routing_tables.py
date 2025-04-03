@@ -6,10 +6,7 @@
 #
 #-------------------------------------------------------------------------------
 
-import arg_utils
-import c_struct
-import c_macro
-import c_include
+from tfm_tools import arg_utils, c_struct, c_macro, c_include
 import argparse
 import pickle
 import re
@@ -134,8 +131,7 @@ definition and uses the TGF file definition to populate this structure with the
 defined routing tables. This structure is then output to a pickle file where it
 can be used by other scripts (such as the OTP config generation script)
 """
-
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(allow_abbrev=False,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      description=script_description)
@@ -163,3 +159,7 @@ if __name__ == "__main__":
         routing_tables.set_rse_routing_table_bytes(rse_id, send_table_bytes, receive_table_bytes)
 
     routing_tables.to_config_file(args.routing_tables_output_file)
+
+
+if __name__ == "__main__":
+    main()

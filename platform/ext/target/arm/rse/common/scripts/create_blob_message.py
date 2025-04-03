@@ -9,20 +9,15 @@
 import logging
 logger = logging.getLogger("TF-M.{}".format(__name__))
 
-import os
-import sys
-sys.path.append(os.path.join(sys.path[0], 'modules'))
-
-import provisioning_message_config as pmc
-from provisioning_message_config import Provisioning_message_config
+import rse.provisioning_message_config as pmc
+from rse.provisioning_message_config import Provisioning_message_config
+from tfm_tools import arg_utils
 import argparse
-import arg_utils
 
 script_description = """
 Create a blob message
 """
-if __name__ == "__main__":
-
+def main():
     parser = argparse.ArgumentParser(allow_abbrev=False,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      description=script_description)
@@ -40,3 +35,6 @@ if __name__ == "__main__":
 
     out = pmc.create_blob_message(**kwargs)
     args.output_file.write(out)
+
+if __name__ == "__main__":
+    exit(main())

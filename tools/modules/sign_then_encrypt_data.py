@@ -11,9 +11,9 @@ import argparse
 import logging
 logger = logging.getLogger("TF-M.{}".format(__name__))
 
-import arg_utils
-import sign_data
-import encrypt_data
+from tfm_tools import arg_utils
+from tfm_tools import sign_data
+from tfm_tools import encrypt_data
 
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM
 import secrets
@@ -79,9 +79,7 @@ def sign_then_encrypt_data(data : bytes,
         iv, ciphertext = encrypt_data.encrypt_data(data=data, **kwargs)
         return iv, ciphertext, sign_data.sign_data(data=aad + data, **kwargs)
 
-script_description = """
-"""
-if __name__ == "__main__":
+def main():
     import argparse
 
     parser = argparse.ArgumentParser(allow_abbrev=False,
@@ -92,3 +90,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     logging.getLogger("TF-M").setLevel(args.log_level)
     logger.addHandler(logging.StreamHandler())
+
+script_description = """
+"""
+if __name__ == "__main__":
+    exit(main())

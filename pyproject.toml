@@ -40,11 +40,35 @@ docs = [
   "setuptools==78.1.0"
 ]
 
-[tool.setuptools]
-package-dir = {"" = "tools/modules"}
+[project.scripts]
+c_include = "tfm_tools.c_include:main"
+c_macro = "tfm_tools.c_macro:main"
+sign_then_encrypt_data = "tfm_tools.sign_then_encrypt_data:main"
+sign_data = "tfm_tools.sign_data:main"
+encrypt_data = "tfm_tools.encrypt_data:main"
+c_struct = "tfm_tools.c_struct:main"
 
-[tool.setuptools.packages.find]
-where = ["tools/modules"]
+rse_create_blob_message = "rse_scripts.create_blob_message:main"
+rse_create_cm_provisioning_bundle = "rse_scripts.create_cm_provisioning_bundle:main"
+rse_create_combined_provisioning_bundle = "rse_scripts.create_combined_provisioning_bundle:main"
+rse_create_dm_chained_provisioning_bundle = "rse_scripts.create_dm_chained_provisioning_bundle:main"
+rse_create_dm_provisioning_bundle = "rse_scripts.create_dm_provisioning_bundle:main"
+rse_create_otp_layout_specification = "rse_scripts.create_otp_layout_specification:main"
+rse_create_plain_data_message = "rse_scripts.create_plain_data_message:main"
+rse_derive_provisioning_key = "rse_scripts.derive_provisioning_key:main"
+rse_derive_provisioning_master_key = "rse_scripts.derive_provisioning_master_key:main"
+rse_create_non_endorsed_provisioning_plain_data_message = "rse_scripts.create_non_endorsed_provisioning_plain_data_message:main"
+rse_create_plain_data_handler_provisioning_bundle = "rse_scripts.create_plain_data_handler_provisioning_bundle:main"
+rse_create_routing_tables_source_file = "rse_scripts.create_routing_tables_source_file:main"
+
+[tool.setuptools]
+packages = ["tfm_tools", "bl2", "rse", "rse_scripts"]
+
+[tool.setuptools.package-dir]
+tfm_tools = "tools/modules"
+bl2 = "bl2/ext/mcuboot/scripts"
+rse = "platform/ext/target/arm/rse/common/scripts/modules"
+rse_scripts = "platform/ext/target/arm/rse/common/scripts"
 
 [build-system]
 requires = ["setuptools"]

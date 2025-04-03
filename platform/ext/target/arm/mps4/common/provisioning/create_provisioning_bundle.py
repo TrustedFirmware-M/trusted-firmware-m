@@ -9,20 +9,7 @@ import argparse
 import struct
 import secrets
 from elftools.elf.elffile import ELFFile
-
-def struct_pack(objects, pad_to=0):
-    defstring = "<"
-    for obj in objects:
-        defstring += str(len(obj)) + "s"
-
-    size = struct.calcsize(defstring)
-    if size < pad_to:
-        defstring += str(pad_to - size) + "x"
-    elif size > pad_to and pad_to != 0:
-        print("Error padding struct of size {} to {}".format(size, pad_to))
-        exit(1);
-
-    return (bytes(struct.pack(defstring, *objects)))
+from tfm_tools.struct_pack import struct_pack
 
 parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument("--provisioning_bundle_axf", help="the input provisioning bundle elf/axf", required=True)

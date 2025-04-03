@@ -10,15 +10,13 @@ import argparse
 import sys
 import os
 
-import arg_utils
+from tfm_tools import arg_utils
 
 import logging
 logger = logging.getLogger("TF-M.{}".format(__name__))
 
-sys.path.append(os.path.join(sys.path[0], 'modules'))
-
-import routing_tables as rt
-from routing_tables import Routing_tables
+import rse.routing_tables as rt
+from rse.routing_tables import Routing_tables
 
 C_SOURCE = """/*
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
@@ -54,8 +52,7 @@ script_description = """
 This script takes in the routing tables configuration and uses it to
 generate a C source file with the system wide routing tables definition
 """
-
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(allow_abbrev=False,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      description=script_description)
@@ -73,3 +70,7 @@ if __name__ == "__main__":
 
     with open(args.c_source_output_file, "w") as f:
         f.write(C_SOURCE.format(kwargs['routing_tables'].get_routing_tables_source()))
+
+
+if __name__ == "__main__":
+    system.exit(main())
