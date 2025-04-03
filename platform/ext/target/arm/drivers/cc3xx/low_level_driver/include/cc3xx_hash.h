@@ -26,20 +26,21 @@ typedef enum {
 
 /**
  * @brief Macro that returns the length of the hash associated to the
- *        algorithm value passed as input
+ *        algorithm value passed as input, as a uint8_t value
  */
-#define CC3XX_HASH_LENGTH(alg)                              \
-    (                                                       \
-        alg == CC3XX_HASH_ALG_SHA1 ? SHA1_OUTPUT_SIZE :     \
-        alg == CC3XX_HASH_ALG_SHA224 ? SHA224_OUTPUT_SIZE : \
-        alg == CC3XX_HASH_ALG_SHA256 ? SHA256_OUTPUT_SIZE : \
-        0                                                   \
+#define CC3XX_HASH_LENGTH(alg)                                         \
+    (                                                                  \
+        (alg == CC3XX_HASH_ALG_SHA1) ? (uint8_t)SHA1_OUTPUT_SIZE :     \
+        (alg == CC3XX_HASH_ALG_SHA224) ? (uint8_t)SHA224_OUTPUT_SIZE : \
+        (alg == CC3XX_HASH_ALG_SHA256) ? (uint8_t)SHA256_OUTPUT_SIZE : \
+        (uint8_t)0                                                     \
     )
 
 struct cc3xx_hash_state_t {
     cc3xx_hash_alg_t alg;
     uint64_t curr_len;
     uint32_t hash_h[8];
+    uint32_t xor_input;
     struct cc3xx_dma_state_t dma_state;
 };
 
@@ -67,6 +68,28 @@ cc3xx_err_t cc3xx_lowlevel_hash_init(cc3xx_hash_alg_t alg);
  *                               cc3xx_err_t on error.
  */
 cc3xx_err_t cc3xx_lowlevel_hash_update(const uint8_t *buf, size_t length);
+
+/**
+ * @brief                        Set a 4-byte value to use for XORing with actual
+ *                               data to be hashed. This must be called after
+ *                               \a cc3xx_lowlevel_hash_init and before any
+ *                               call to \a cc3xx_lowlevel_hash_update is made
+ *
+ * @note                         This is useful to implement HMAC where the key to be
+ *                               hashed is first XORed with ipad or opad, and the rest
+ *                               of the data passed to the hash function is not xored
+ *
+ * @param[in] xor_input          Value to be XORed with the input. Streaming XORing
+ *                               happens in case the size of the data to be hashed is
+ *                               greater than 4 bytes
+ */
+void cc3xx_lowlevel_hash_set_xor_input(const uint32_t xor_input);
+
+/**
+ * @brief                        Resets the XOR input mask set through a previous call
+ *                               to \a cc3xx_lowlevel_hash_set_xor_input
+ */
+void cc3xx_lowlevel_hash_reset_xor_input(void);
 
 /**
  * @brief                        Get the current state of the hash operation.

@@ -124,6 +124,19 @@ cc3xx_err_t cc3xx_lowlevel_hash_init(cc3xx_hash_alg_t alg)
     return CC3XX_ERR_SUCCESS;
 }
 
+void cc3xx_lowlevel_hash_set_xor_input(const uint32_t xor_input)
+{
+    /* Flush any pending data before changing the xor_input mask */
+    cc3xx_lowlevel_dma_flush_buffer(false);
+
+    P_CC3XX->hash.hash_xor_din = xor_input;
+}
+
+void cc3xx_lowlevel_hash_reset_xor_input(void)
+{
+    cc3xx_lowlevel_hash_set_xor_input(0x0UL);
+}
+
 void cc3xx_lowlevel_hash_uninit(void)
 {
     static const uint32_t zero_buf[9] = {0};
@@ -134,6 +147,9 @@ void cc3xx_lowlevel_hash_uninit(void)
     /* Reset padding registers as required by the hardware */
     P_CC3XX->hash.hash_pad_cfg = 0x0U;
     P_CC3XX->hash.auto_hw_padding = 0x0U;
+
+    /* Reset XOR DIN input register */
+    P_CC3XX->hash.hash_xor_din = 0x0U;
 
     /* Reset engine */
     cc3xx_lowlevel_set_engine(CC3XX_ENGINE_NONE);
@@ -151,7 +167,8 @@ void cc3xx_lowlevel_hash_get_state(struct cc3xx_hash_state_t *state)
 {
     state->curr_len = P_CC3XX->hash.hash_cur_len[0];
     state->curr_len |= (uint64_t)P_CC3XX->hash.hash_cur_len[1] << 32;
-    state->alg = P_CC3XX->hash.hash_control & 0b1111 ;
+    state->alg = P_CC3XX->hash.hash_control & 0b1111;
+    state->xor_input = P_CC3XX->hash.hash_xor_din;
 
     get_hash_h(state->hash_h, sizeof(state->hash_h));
     memcpy(&state->dma_state, &dma_state, sizeof(state->dma_state));
@@ -165,6 +182,8 @@ void cc3xx_lowlevel_hash_set_state(const struct cc3xx_hash_state_t *state)
 
     P_CC3XX->hash.hash_cur_len[0] = (uint32_t)state->curr_len;
     P_CC3XX->hash.hash_cur_len[1] = (uint32_t)(state->curr_len >> 32);
+
+    P_CC3XX->hash.hash_xor_din = state->xor_input;
 
     set_hash_h(state->hash_h, hash_h_len);
     memcpy(&dma_state, &state->dma_state, sizeof(dma_state));
