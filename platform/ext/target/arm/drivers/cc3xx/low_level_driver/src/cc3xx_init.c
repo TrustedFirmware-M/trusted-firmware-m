@@ -91,6 +91,7 @@ static cc3xx_err_t setup_dfa_countermeasures(void)
      * to be switched off.
      */
     {
+    (void)lock_dfa_enabled;
 #endif /* CC3XX_CONFIG_AES_TUNNELLING_ENABLE */
         P_CC3XX->ao.host_ao_lock_bits &= ~(0b1U << 7); /* Unset HOST_FORCE_DFA_ENABLE */
     }
