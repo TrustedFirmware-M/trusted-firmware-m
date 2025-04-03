@@ -193,7 +193,6 @@ int32_t boot_platform_post_init(void)
 {
     int32_t rc;
     enum tfm_plat_err_t plat_err;
-    enum kmu_error_t kmu_err;
 
     uint32_t vhuk_seed[8 * RSE_AMOUNT];
     size_t vhuk_seed_len;
