@@ -90,7 +90,6 @@ target_link_libraries(tfm_psa_rot_partition_crypto
         crypto_service_mbedcrypto
         tfm_config
         tfm_log_unpriv_headers
-        tfm_vprintf_headers
 )
 target_compile_definitions(tfm_psa_rot_partition_crypto
     PRIVATE

@@ -20,6 +20,11 @@ target_include_directories(tfm_log_headers
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/inc>
 )
 
+target_link_libraries(tfm_log_headers
+    INTERFACE
+        tfm_vprintf_headers
+)
+
 target_link_libraries(tfm_log
     INTERFACE
         tfm_log_headers

@@ -99,7 +99,6 @@ target_link_libraries(platform_s
         cmsis_stack_override
         cmsis
         tfm_log_headers
-        tfm_vprintf_headers
         $<$<BOOL:${CONFIG_TFM_BACKTRACE_ON_CORE_PANIC}>:tfm_log_unpriv>
         $<$<BOOL:${CONFIG_TFM_BACKTRACE_ON_CORE_PANIC}>:tfm_log>
         $<$<BOOL:${CONFIG_TFM_BACKTRACE_ON_CORE_PANIC}>:tfm_backtrace>
@@ -216,7 +215,6 @@ if(BL2)
             cmsis_stack_override
             cmsis
             tfm_log_headers
-            tfm_vprintf_headers
         PRIVATE
             bl2_crypto
             bl2_hal

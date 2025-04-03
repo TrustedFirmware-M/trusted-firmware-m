@@ -20,7 +20,6 @@ target_link_libraries(bl1_1_shared_lib_interface
     INTERFACE
         psa_interface
         tfm_fih_headers
-        tfm_vprintf_headers
         tfm_log_headers
         bl1_1_crypto_mbedcrypto
 )

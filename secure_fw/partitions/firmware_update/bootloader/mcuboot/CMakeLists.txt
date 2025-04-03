@@ -32,7 +32,6 @@ target_link_libraries(tfm_fwu_mcuboot_util
     INTERFACE
         platform_region_defs
         tfm_log_headers
-        tfm_vprintf_headers
 )
 
 target_link_libraries(tfm_psa_rot_partition_fwu
