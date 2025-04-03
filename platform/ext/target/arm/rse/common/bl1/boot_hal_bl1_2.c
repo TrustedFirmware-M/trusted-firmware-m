@@ -248,10 +248,12 @@ int32_t boot_platform_post_init(void)
         return plat_err;
     }
 
+#ifdef RSE_LOAD_NS_IMAGE
     plat_err = rse_setup_runtime_non_secure_image_encryption_key();
     if (plat_err) {
         return plat_err;
     }
+#endif /* RSE_LOAD_NS_IMAGE */
 
     return 0;
 }
