@@ -13,7 +13,7 @@
 #include "tfm_crypto_api.h"
 #include "tfm_crypto_key.h"
 #include "tfm_crypto_defs.h"
-#include "tfm_log_unpriv.h"
+#include "tfm_log.h"
 #include "crypto_check_config.h"
 #include "tfm_plat_crypto_keys.h"
 
@@ -250,7 +250,7 @@ static psa_status_t tfm_crypto_api_dispatcher(psa_invec in_vec[],
     case TFM_CRYPTO_GROUP_ID_RANDOM:
         return tfm_crypto_random_interface(in_vec, out_vec);
     default:
-        ERROR_UNPRIV("[Crypto] Unsupported request!\n");
+        ERROR("[Crypto] Unsupported request!\n");
         return PSA_ERROR_NOT_SUPPORTED;
     }
 }
@@ -331,23 +331,23 @@ static psa_status_t tfm_crypto_engine_init(void)
     char *library_info = NULL;
 
 #if CRYPTO_NV_SEED
-    INFO_UNPRIV("[Crypto] Provision entropy seed...\n");
+    INFO("[Crypto] Provision entropy seed...\n");
     if (tfm_plat_crypto_provision_entropy_seed() != TFM_CRYPTO_NV_SEED_SUCCESS) {
         return PSA_ERROR_GENERIC_ERROR;
     }
-    INFO_UNPRIV("[Crypto] Provision entropy seed... \033[0;32mcomplete\033[0m.\n");
+    INFO("[Crypto] Provision entropy seed... \033[0;32mcomplete\033[0m.\n");
 #endif /* CRYPTO_NV_SEED */
 
     /* Initialise the underlying Cryptographic library that provides the
      * PSA Crypto core layer
      */
     library_info = tfm_crypto_library_get_info();
-    VERBOSE_UNPRIV("[Crypto] Init \033[0;32m%s\033[0m...\n", library_info);
+    VERBOSE("[Crypto] Init \033[0;32m%s\033[0m...\n", library_info);
     status = tfm_crypto_core_library_init();
     if (status != PSA_SUCCESS) {
         return status;
     }
-    VERBOSE_UNPRIV("[Crypto] Init \033[0;32m%s\033[0m... \033[0;32mcomplete\033[0m.\n", library_info);
+    VERBOSE("[Crypto] Init \033[0;32m%s\033[0m... \033[0;32mcomplete\033[0m.\n", library_info);
 
     /* Initialise the crypto accelerator if one is enabled. If the driver API is
      * the one defined by the PSA Unified Driver interface, the initialisation is
@@ -355,11 +355,11 @@ static psa_status_t tfm_crypto_engine_init(void)
      * initialised
      */
 #if defined(CRYPTO_HW_ACCELERATOR) && defined(LEGACY_DRIVER_API_ENABLED)
-    INFO_UNPRIV("[Crypto] Init HW accelerator...\n");
+    INFO("[Crypto] Init HW accelerator...\n");
     if (crypto_hw_accelerator_init() != 0) {
         return PSA_ERROR_HARDWARE_FAILURE;
     }
-    INFO_UNPRIV("[Crypto] Init HW accelerator... \033[0;32mcomplete\033[0m.\n");
+    INFO("[Crypto] Init HW accelerator... \033[0;32mcomplete\033[0m.\n");
 #endif /* CRYPTO_HW_ACCELERATOR */
 
     /* Perform the initialisation of the PSA subsystem available through the chosen
