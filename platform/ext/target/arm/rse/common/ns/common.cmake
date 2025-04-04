@@ -71,10 +71,11 @@ if (RSE_XIP)
 
     add_custom_target(${NS_TARGET_NAME}_sic_tables
         ALL
-        SOURCES bin/${NS_TARGET_NAME}_sic_tables.bin
+        SOURCES ${CMAKE_CURRENT_BINARY_DIR}/${NS_TARGET_NAME}_sic_tables.bin
     )
 
-    add_custom_command(OUTPUT bin/${NS_TARGET_NAME}_sic_tables.bin
+    add_custom_command(OUTPUT ${NS_TARGET_NAME}_sic_tables.bin
+        OUTPUT ${NS_TARGET_NAME}_encrypted.bin
         DEPENDS $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${NS_TARGET_NAME}.bin
         DEPENDS ${NS_TARGET_NAME}_bin
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../image_signing/scripts/create_xip_tables.py
@@ -109,10 +110,7 @@ if (RSE_XIP)
             platform_region_defs
     )
 
-    add_custom_target(${NS_TARGET_NAME}_sic_tables_signed_bin
-        SOURCES bin/${NS_TARGET_NAME}_sic_tables_signed.bin
-    )
-    add_custom_command(OUTPUT bin/${NS_TARGET_NAME}_sic_tables_signed.bin
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${NS_TARGET_NAME}_sic_tables_signed.bin
         DEPENDS ${NS_TARGET_NAME}_sic_tables
         DEPENDS ${NS_TARGET_NAME}_bin signing_layout_ns
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../image_signing/scripts
@@ -144,6 +142,6 @@ if (RSE_XIP)
 
     add_custom_target(signed_images
         ALL
-        DEPENDS bin/${NS_TARGET_NAME}_sic_tables_signed.bin
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${NS_TARGET_NAME}_sic_tables_signed.bin
     )
 endif()

@@ -683,10 +683,11 @@ if (RSE_XIP)
     )
 
     add_custom_target(tfm_s_sic_tables
-        SOURCES bin/tfm_s_sic_tables.bin
+        SOURCES tfm_s_sic_tables.bin
     )
 
-    add_custom_command(OUTPUT bin/tfm_s_sic_tables.bin
+    add_custom_command(OUTPUT tfm_s_sic_tables.bin
+        OUTPUT tfm_s_encrypted.bin
         DEPENDS tfm_s_bin
         DEPENDS ${CMAKE_BINARY_DIR}/bin/bl1_2_padded_hash.bin
         COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_SOURCE_DIR}/tools/modules
@@ -724,10 +725,7 @@ if (RSE_XIP)
             platform_bl2
     )
 
-    add_custom_target(tfm_s_sic_tables_signed_bin
-        SOURCES bin/tfm_s_sic_tables_signed.bin
-    )
-    add_custom_command(OUTPUT bin/tfm_s_sic_tables_signed.bin
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/tfm_s_sic_tables_signed.bin
         DEPENDS tfm_s_sic_tables
         DEPENDS tfm_s_bin signing_layout_s
         WORKING_DIRECTORY ${MCUBOOT_PATH}/scripts
@@ -755,7 +753,7 @@ if (RSE_XIP)
 
     add_custom_target(signed_images
         ALL
-        DEPENDS bin/tfm_s_sic_tables_signed.bin
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/tfm_s_sic_tables_signed.bin
     )
 
     set(IMAGE_TYPE "NS_IMAGE")
@@ -788,7 +786,7 @@ if (RSE_XIP)
     install(FILES ${MCUBOOT_KEY_NS}
             RENAME image_ns_signing_private_key.pem
             DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/keys/)
-    install(FILES $<TARGET_FILE_DIR:bl2>/image_ns_signing_public_key.pem
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/image_ns_signing_public_key.pem
             DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/keys)
 
     if (MCUBOOT_ENC_IMAGES)
