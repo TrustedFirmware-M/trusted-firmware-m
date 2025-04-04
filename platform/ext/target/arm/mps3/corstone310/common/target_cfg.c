@@ -1,17 +1,6 @@
 /*
- * Copyright (c) 2019-2025, Arm Limited. All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  */
 
 #include "tfm_hal_device_header.h"
@@ -338,152 +327,125 @@ enum tfm_plat_err_t init_debug(void)
 /*------------------- SAU/IDAU configuration functions -----------------------*/
 void sau_and_idau_cfg(void)
 {
-/*        +---------------+  +-----------------------+ +------------+
-          |   IDAU view   |  |      SAU view         | | IDAU + SAU |
-0x00000000+=======+=======+  +=======+=======+=======+ +============+
-          | ITCM  |       |  | ITCM  |   NS  | RNR 0 | |     NS     |
-0x00008000+-------+       |  +-------+-------+-------+ +------------+
-          |          NS   |  |           S           | |     S      |
-0x01000000+-------+       |  +-------+               | |            |
-          | SRAM  |       |  | SRAM  |               | |            |
-          +-------+       |  +-------+               | |            |
-          | BL2   |       |  | BL2   |               | |            |
-          +-------+       |  +-------+-------+-------+ +------------+
-          |       |       |  |       |   NS  | RNR 1 | |     NS     |
-0x01200000+-------+       |  +-------+-------+-------+ +------------+
-          |               |  |                       | |            |
-0x10000000+-------+-------+  +-------+               | |            |
-          | ITCM  |       |  | ITCM  |               | |            |
-0x10008000+-------+       |  +-------+               | |            |
-          |               |  |                       | |            |
-0x11000000+-------+   S   |  +-------+    S          | |     S      |
-          | SRAM  |       |  | SRAM  |               | |            |
-          +-------+       |  +-------+               | |            |
-          | BL2   |       |  | BL2   |               | |            |
-          +-------+       |  +-------+               | |            |
-          |       |       |  |       |               | |            |
-0x11200000+-------+       |  +-------+               | |            |
-          |               |  |                       | |            |
-0x20000000+-------+-------+  +-------+-------+-------+ +------------+
-          | DTCM  |       |  | DTCM  |   NS  | RNR 2 | |     NS     |
-0x20008000+-------+       |  +-------+-------+-------+ +------------+
-          |               |  |                       | |            |
-0x21000000+--------+      |  +--------+  S           | |     S      |
-          | ISRAM0 |      |  | ISRAM0 |              | |            |
-0x21020000+--------+      |  +--------+------+-------+ +------------+
-          | ISRAM0 |      |  | ISRAM0 |  NS  |       | |     NS     |
-0x21200000+--------+      |  +--------+------+ RNR 3 + +------------+
-          | ISRAM1 |      |  | ISRAM1 |  NS  |       | |     NS     |
-0x21400000+--------+      |  +--------+------+-------+ +------------+
-          |               |  |                       | |            |
-0x28000000+-------+       |  +-------+               | |            |
-          | QSPI  |       |  | QSPI  |               | |            |
-          +-------+  NS   |  +-------+    S          | |     S      |
-          | s-    |       |  | s-    |               | |            |
-          | part  |       |  | part  |               | |            |
-          | ion   |       |  | ion   |               | |            |
-          +-------+       |  +-------+               | |            |
-          | ven-  |       |  | ven-  |               | |            |
-          | eer   |       |  | eer   |               | |            |
-          +-------+       |  +-------+-------+-------+ +------------+
-          | ns-   |       |  | ns-   |       |       | |            |
-          | part  |       |  | part  |   NS  | RNR 4 | |     NS     |
-          | ion   |       |  | ion   |       |       | |            |
-0x28800000+-------+       |  +-------+-------+-------+ +------------+
-          |               |  |                       | |            |
-0x30000000+-------+-------+  +-------+               | |            |
-          | DTCM  |       |  | DTCM  |               | |            |
-0x30008000+-------+       |  +-------+               | |            |
-          |          NSC  |  |                       | |            |
-0x31000000+-------+       |  +-------+   S           | |     S      |
-          | ISRAM |       |  | ISRAM |               | |            |
-0x31400000+-------+       |  +-------+               | |            |
-          |               |  |                       | |            |
-0x38000000+-------+       |  +-------+               | |            |
-          | QSPI  |       |  | QSPI  |               | |            |
-          +-------+       |  +-------+               | |            |
-          | s-    |       |  | s-    |               | |            |
-          | part  |       |  | part  |               | |            |
-          | ion   |       |  | ion   |               | |            |
-          +-------+       |  +-------+-------+-------+ +------------+
-          | ven-  |       |  | ven-  |  NSC  | RNR 5 | |     NSC    |
-          | eer   |       |  | eer   |       |       | |            |
-          +-------+       |  +-------+-------+-------+ +------------+
-          | ns-   |       |  | ns-   |               | |            |
-          | part  |       |  | part  |               | |            |
-          | ion   |       |  | ion   |    S          | |     S      |
-0x38800000+-------+       |  +-------+               | |            |
-          |               |  |                       | |            |
-0x40000000+--------+------+  +--------+------+-------+ +------------+
-          | Periph |  NS  |  | Periph |  NS  | RNR 6 | |     NS     |
-0x50000000+--------+------+  +--------+------+-------+ +------------+
-          | Periph |   S  |  | Periph |  S           | |     S      |
-0x60000000+--------+------+  +--------+------+-------+ +------------+
-          | DDR4 0 |  NS  |  | DDR4 0 |      |       | |     NS     |
-0x70000000+--------+------+  +--------+      |       | +------------+
-          | DDR4 1 |   S  |  | DDR4 1 |      |       | |     S      |
-0x80000000+--------+------+  +--------+      |       | +------------+
-          | DDR4 2 |  NS  |  | DDR4 2 |      |       | |     NS     |
-0x90000000+--------+------+  +--------+      |       | +------------+
-          | DDR4 3 |   S  |  | DDR4 3 |      |       | |     S      |
-0xA0000000+--------+------+  +--------+  NS  | RNR 7 | +------------+
-          | DDR4 4 |  NS  |  | DDR4 4 |      |       | |     NS     |
-0xB0000000+--------+------+  +--------+      |       | +------------+
-          | DDR4 5 |   S  |  | DDR4 5 |      |       | |     S      |
-0xC0000000+--------+------+  +--------+      |       | +------------+
-          | DDR4 6 |  NS  |  | DDR4 6 |      |       | |     NS     |
-0xD0000000+--------+------+  +--------+      |       | +------------+
-          | DDR4 7 |   S  |  | DDR4 7 |      |       | |     S      |
-0xE0000000+--------+------+  +--------+------+-------+ +------------*/
+/*
+    X: RAZ/WI or Bus error, depending on configuration.
+
+          +---------------+  +-----------------------+  +------------+  +-------------+  +---------------+
+          |   IDAU view   |  |       SAU view        |  | IDAU + SAU |  | TGU/MPC/PPC |  |   Resulting   |
+0x00000000+=======+=======+  +=======+=======+=======+  +============+  +=============+  +===============+
+          | ITCM  |       |  | ITCM  |       |       |  |            |  |   (TGU) NS  |  |       NS      |
+0x00008000+-------+       |  +-------+       |       |  |            |  +-------------+  +---------------+
+          |               |  |               |       |  |            |  |             |  |               |
+0x01000000+-------+       |  +-------+       |       |  |            |  |             |  |               |
+          | SRAM  |       |  | SRAM  |       |       |  |            |  |      S      |  |       X       |
+          +-------+  NS   |  +-------+       |       |  |     NS     |  |             |  |               |
+          | BL2   |       |  | BL2   |       |       |  |            |  |             |  |               |
+          +-------+       |  +-------+       |       |  |            |  +-------------+  +---------------+
+          |       |       |  |       |       |       |  |            |  |   (MPC) NS  |  |       NS      |
+0x01200000+-------+       |  +-------+       |       |  |            |  +-------------+  +---------------+
+          |               |  |               |       |  |            |  |             |  |       X       |
+0x10000000+-------+-------+  +-------+       |       |  +------------+  |             |  +---------------+
+          | ITCM  |       |  | ITCM  |       |       |  |            |  |             |  |               |
+0x10008000+-------+       |  +-------+       |       |  |            |  |             |  |               |
+          |               |  |               |       |  |            |  |             |  |               |
+0x11000000+-------+       |  +-------+       |       |  |            |  |             |  |               |
+          | SRAM  |       |  | SRAM  |       |       |  |            |  |             |  |               |
+          +-------+   S   |  +-------+       |       |  |     S      |  |      S      |  |       S       |
+          | BL2   |       |  | BL2   |       |       |  |            |  |             |  |               |
+          +-------+       |  +-------+       |       |  |            |  |             |  |               |
+          |       |       |  |       |       |       |  |            |  |             |  |               |
+0x11200000+-------+       |  +-------+       |       |  |            |  |             |  |               |
+          |               |  |               |       |  |            |  |             |  |               |
+0x20000000+-------+-------+  +-------+  NS   | RNR 1 |  +------------+  +-------------+  +---------------+
+          | DTCM  |       |  | DTCM  |       |       |  |            |  |   (TGU) NS  |  |       NS      |
+0x20008000+-------+       |  +-------+       |       |  |            |  +-------------+  +---------------+
+          |               |  |               |       |  |            |  |             |  |               |
+0x21000000+--------+      |  +--------+      |       |  |            |  |      S      |  |       X       |
+          | ISRAM0 |      |  | ISRAM0 |      |       |  |            |  |             |  |               |
+0x21020000+--------+      |  +--------+      |       |  |            |  +-------------+  +---------------+
+          | ISRAM0 |      |  | ISRAM0 |      |       |  |            |  |             |  |               |
+0x21200000+--------+      |  +--------+      |       |  |            |  |   (MPC) NS  |  |       NS      |
+          | ISRAM1 |      |  | ISRAM1 |      |       |  |            |  |             |  |               |
+0x21400000+--------+      |  +--------+      |       |  |            |  +-------------+  +---------------+
+          |               |  |               |       |  |            |  |             |  |               |
+0x28000000+-------+       |  +-------+       |       |  |            |  |             |  |               |
+          | QSPI  |       |  | QSPI  |       |       |  |            |  |             |  |               |
+          +-------+  NS   |  +-------+       |       |  |     NS     |  |      S      |  |       X       |
+          | s-    |       |  | s-    |       |       |  |            |  |             |  |               |
+          | part  |       |  | part  |       |       |  |            |  |             |  |               |
+          | ion   |       |  | ion   |       |       |  |            |  |             |  |               |
+          +-------+       |  +-------+       |       |  |            |  |             |  |               |
+          | ven-  |       |  | ven-  |       |       |  |            |  |             |  |               |
+          | eer   |       |  | eer   |       |       |  |            |  |             |  |               |
+          +-------+       |  +-------+-      |       |  |            |  +-------------+  +---------------+
+          | ns-   |       |  | ns-   |       |       |  |            |  |             |  |               |
+          | part  |       |  | part  |       |       |  |            |  |   (MPC) NS  |  |       NS      |
+          | ion   |       |  | ion   |       |       |  |            |  |             |  |               |
+0x28800000+-------+       |  +-------+-------+-------+  +------------+  +-------------+  +---------------+
+          |               |  |                       |  |            |  |             |  |               |
+0x30000000+-------+-------+  +-------+               |  |            |  |             |  |               |
+          | DTCM  |       |  | DTCM  |               |  |            |  |             |  |               |
+0x30008000+-------+       |  +-------+               |  |            |  |             |  |               |
+          |               |  |                       |  |            |  |             |  |               |
+0x31000000+-------+       |  +-------+               |  |            |  |             |  |               |
+          | ISRAM |       |  | ISRAM |               |  |            |  |             |  |               |
+0x31400000+-------+       |  +-------+       S       |  |     S      |  |      S      |  |       S       |
+          |               |  |                       |  |            |  |             |  |               |
+0x38000000+-------+       |  +-------+               |  |            |  |             |  |               |
+          | QSPI  |       |  | QSPI  |               |  |            |  |             |  |               |
+          +-------+  NSC  |  +-------+               |  |            |  |             |  |               |
+          | s-    |       |  | s-    |               |  |            |  |             |  |               |
+          | part  |       |  | part  |               |  |            |  |             |  |               |
+          | ion   |       |  | ion   |               |  |            |  |             |  |               |
+          +-------+       |  +-------+-------+-------+  +------------+  |             |  +---------------+
+          | ven-  |       |  | ven-  |  NSC  | RNR 2 |  |     NSC    |  |             |  |      NSC      |
+          | eer   |       |  | eer   |       |       |  |            |  |             |  |               |
+          +-------+       |  +-------+-------+-------+  +------------+  |             |  +---------------+
+          | ns-   |       |  | ns-   |               |  |            |  |             |  |               |
+          | part  |       |  | part  |               |  |            |  |             |  |               |
+          | ion   |       |  | ion   |    S          |  |     S      |  |             |  |       S       |
+0x38800000+-------+       |  +-------+               |  |            |  |             |  |               |
+          |               |  |                       |  |            |  |             |  |               |
+0x40000000+--------+------+  +--------+------+-------+  +------------+  +-------------+  +---------------+
+          | Periph |  NS  |  | Periph |      |       |  |     NS     |  |   (PPC) NS  |  |       NS      |
+0x50000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
+          | Periph |   S  |  | Periph |      |       |  |     S      |  |      S      |  |       S       |
+0x60000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
+          | DDR4 0 |  NS  |  | DDR4 0 |      |       |  |     NS     |  |   (MPC) NS  |  |       NS      |
+0x70000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
+          | DDR4 1 |   S  |  | DDR4 1 |      |       |  |     S      |  |      S      |  |       S       |
+0x80000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
+          | DDR4 2 |  NS  |  | DDR4 2 |      |       |  |     NS     |  |   (MPC) NS  |  |       NS      |
+0x90000000+--------+------+  +--------+  NS  | RNR 3 |  +------------+  +-------------+  +---------------+
+          | DDR4 3 |   S  |  | DDR4 3 |      |       |  |     S      |  |      S      |  |       S       |
+0xA0000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
+          | DDR4 4 |  NS  |  | DDR4 4 |      |       |  |     NS     |  |   (MPC) NS  |  |       NS      |
+0xB0000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
+          | DDR4 5 |   S  |  | DDR4 5 |      |       |  |     S      |  |      S      |  |       S       |
+0xC0000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
+          | DDR4 6 |  NS  |  | DDR4 6 |      |       |  |     NS     |  |   (MPC) NS  |  |       NS      |
+0xD0000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
+          | DDR4 7 |   S  |  | DDR4 7 |      |       |  |     S      |  |      S      |  |       S       |
+0xE0000000+--------+------+  +--------+------+-------+  +------------+  +-------------+  +---------------*/
     struct corstone310_sacfg_t *sacfg = (struct corstone310_sacfg_t*)CORSTONE310_SACFG_BASE_S;
     /* Ensure all memory accesses are completed */
     __DMB();
     /* Allows IDAU to define the RAM region as a NSC */
     sacfg->nsccfg |= RAMNSC;
     /* Configures SAU regions to be non-secure */
-    /* Configure ITCM */
+    /* Configure ITCM, SRAM, DTCM, ISRAM, and QSPI */
     SAU->RNR = 0;
     SAU->RBAR = (ITCM_BASE_NS & SAU_RBAR_BADDR_Msk);
-    SAU->RLAR = ((ITCM_BASE_NS + ITCM_SIZE - 1) & SAU_RBAR_BADDR_Msk)
-                | SAU_RLAR_ENABLE_Msk;
-
-#ifndef PSA_API_TEST_IPC
-    /* Configure SRAM */
-    SAU->RNR = 1;
-    SAU->RBAR = ((SRAM_BASE_NS + BL2_CODE_SIZE) & SAU_RBAR_BADDR_Msk);
-    SAU->RLAR = ((SRAM_BASE_NS + SRAM_SIZE - 1) & SAU_RBAR_BADDR_Msk)
-                | SAU_RLAR_ENABLE_Msk;
-#endif
-
-    /* Configure DTCM */
-    SAU->RNR = 2;
-    SAU->RBAR = (DTCM0_BASE_NS & SAU_RBAR_BADDR_Msk);
-    SAU->RLAR = ((DTCM0_BASE_NS + (DTCM_BLK_SIZE * DTCM_BLK_NUM) - 1)
-                 & SAU_RBAR_BADDR_Msk) | SAU_RLAR_ENABLE_Msk;
-    /* Configure ISRAM0 first sections secure, ISRAM0: remain sections, ISRAM1: non-secure */
-    SAU->RNR = 3;
-    SAU->RBAR = (NS_DATA_START & SAU_RBAR_BADDR_Msk);
-    SAU->RLAR = ((ISRAM1_BASE_NS + ISRAM1_SIZE - 1)
-                 & SAU_RBAR_BADDR_Msk) | SAU_RLAR_ENABLE_Msk;
-    /* Configure QSPI */
-    SAU->RNR = 4;
-    SAU->RBAR = (memory_regions.non_secure_partition_base
-                 & SAU_RBAR_BADDR_Msk);
     SAU->RLAR = (memory_regions.non_secure_partition_limit
                   & SAU_RLAR_LADDR_Msk) | SAU_RLAR_ENABLE_Msk;
     /* Configures veneers region to be non-secure callable */
-    SAU->RNR  = 5;
+    SAU->RNR  = 1;
     SAU->RBAR = (memory_regions.veneer_base & SAU_RBAR_BADDR_Msk);
     SAU->RLAR = (memory_regions.veneer_limit & SAU_RLAR_LADDR_Msk)
                  | SAU_RLAR_ENABLE_Msk | SAU_RLAR_NSC_Msk;
-    /* Configure the peripherals space */
-    SAU->RNR  = 6;
+    /* Configure peripherals and DDR4 */
+    SAU->RNR  = 2;
     SAU->RBAR = (PERIPHERALS_BASE_NS_START & SAU_RBAR_BADDR_Msk);
-    SAU->RLAR = (PERIPHERALS_BASE_NS_END & SAU_RLAR_LADDR_Msk)
-                  | SAU_RLAR_ENABLE_Msk;
-    /* Configure DDR4 with the last available region */
-    SAU->RNR  = 7;
-    SAU->RBAR = (DDR4_BLK0_BASE_NS & SAU_RBAR_BADDR_Msk);
     SAU->RLAR = ((DDR4_BLK0_BASE_NS + ((uint32_t)DDR4_BLK_NUM * DDR4_BLK_SIZE) - 1)
                  & SAU_RLAR_LADDR_Msk) | SAU_RLAR_ENABLE_Msk;
     /* Enables SAU */
@@ -533,7 +495,7 @@ enum tfm_plat_err_t mpc_init_cfg(void)
         ERROR_MSG("Failed to Initialize MPC for SRAM!");
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
-    ret = Driver_SRAM_MPC.ConfigRegion(MPC_SRAM_RANGE_BASE_NS,
+    ret = Driver_SRAM_MPC.ConfigRegion((MPC_SRAM_RANGE_BASE_NS + BL2_CODE_SIZE),
                                        MPC_SRAM_RANGE_LIMIT_NS,
                                        ARM_MPC_ATTR_NONSECURE);
     if (ret != ARM_DRIVER_OK) {
