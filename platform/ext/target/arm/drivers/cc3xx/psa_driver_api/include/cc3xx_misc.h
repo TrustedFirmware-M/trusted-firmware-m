@@ -34,7 +34,13 @@ extern "C" {
 
 #if defined(CC3XX_CONFIG_ASSERT_ENABLE)
 
-#define CC3XX_ASSERT(x) assert(x)
+#define CC3XX_ASSERT(x) \
+    do {                                         \
+        assert(x);                               \
+        if (!(x)) {                              \
+            return PSA_ERROR_INVALID_ARGUMENT;   \
+        }                                        \
+    } while(0)                                   \
 
 #elif defined(CC3XX_CONFIG_ASSERT_CHECK)
 
