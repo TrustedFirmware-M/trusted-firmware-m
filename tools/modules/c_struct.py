@@ -69,6 +69,10 @@ def _c_struct_or_union_get_value_str(self, struct_or_union):
     for f in self._fields:
         if f.to_bytes() != bytes(f.get_size()):
             fields_string += _pad_lines(".{} = {},".format(f.name, f.get_value_str()), pad)
+            fields_string += "\n"
+    fields_string = fields_string[:-1]
+    if not fields_string:
+        return "{}"
     string += fields_string
     string += "\n}"
     return string
@@ -339,11 +343,17 @@ class C_array:
         if self.to_bytes() != bytes(self.get_size()):
             string += "{\n"
             m_string = ""
-            for m in self._members:
-                m_string += m.get_value_str() + ", "
+            for idx,m in enumerate(self._members):
+                tmp = m.get_value_str() + ", "
+                m_string += tmp
+                if m_string[-3:] == "}, " or idx % 8 == 7:
+                    m_string = m_string[:-1] + "\n"
+            m_string = m_string[:-1]
             string += _pad_lines(m_string, pad)
             string += "\n}"
-        return string
+            return string
+        else:
+            return "{}"
 
     def __str__(self):
         string = "{} {}".format(self.c_type, self.name)
@@ -417,7 +427,8 @@ class C_variable:
         return self._size
 
     def get_value_str(self):
-        return hex(self.value) if self.value else hex(0)
+        value = self.value or 0
+        return f"0x{value:02x}"
 
     def __str__(self):
         string = "{} {}".format(self.c_type, self.name)
