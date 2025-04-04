@@ -5,7 +5,7 @@ import os
 import re
 
 import logging
-logger = logging.getLogger("TF-M")
+logger = logging.getLogger("TF-M.{}".format(__name__))
 
 from arg_utils import parse_args_automatically
 

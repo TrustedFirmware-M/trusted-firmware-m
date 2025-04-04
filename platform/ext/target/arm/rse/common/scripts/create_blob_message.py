@@ -7,7 +7,7 @@
 #-------------------------------------------------------------------------------
 
 import logging
-logger = logging.getLogger("TF-M")
+logger = logging.getLogger("TF-M.{}".format(__name__))
 
 import os
 import sys

@@ -9,6 +9,9 @@
 import os
 import json
 
+import logging
+logger = logging.getLogger("TF-M.{}".format(__name__))
+
 def get_compile_command(compile_commands_file, c_file):
     with open(compile_commands_file, "rt") as f:
         compile_commands = json.load(f)
@@ -32,7 +35,8 @@ if __name__ == '__main__':
     parser.add_argument("--c_file", help="name of the c file to take", required=True)
     parser.add_argument("--log_level", help="log level", required=False, default="ERROR", choices=logging._levelToName.values())
     args = parser.parse_args()
-    logger.setLevel(args.log_level)
+    logging.getLogger("TF-M").setLevel(args.log_level)
+    logger.addHandler(logging.StreamHandler())
 
     print(get_compile_command(args.compile_commands_file, args.c_file))
     print(get_includes(args.compile_commands_file, args.c_file))

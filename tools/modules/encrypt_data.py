@@ -12,7 +12,7 @@ import key_derivation
 
 import argparse
 import logging
-logger = logging.getLogger("TF-M")
+logger = logging.getLogger("TF-M.{}".format(__name__))
 from arg_utils import *
 import secrets
 
@@ -96,7 +96,9 @@ if __name__ == "__main__":
     add_arguments(parser, required=True)
 
     args = parser.parse_args()
-    logger.setLevel(args.log_level)
+    logging.getLogger("TF-M").setLevel(args.log_level)
+    logger.addHandler(logging.StreamHandler())
+
     config = parse_args(args)
     config |= parse_args_automatically(args, ["data"])
 

@@ -20,7 +20,7 @@ import sign_then_encrypt_data
 import argparse
 
 import logging
-logger = logging.getLogger("TF-M")
+logger = logging.getLogger("TF-M.{}".format(__name__))
 
 def add_arguments(parser : argparse.ArgumentParser,
                   prefix : str = "",
@@ -428,7 +428,8 @@ if __name__ == "__main__":
     parser.add_argument("--log_level", help="log level", required=False, default="ERROR", choices=logging._levelToName.values())
 
     args = parser.parse_args()
-    logger.setLevel(args.log_level)
+    logging.getLogger("TF-M").setLevel(args.log_level)
+    logger.addHandler(logging.StreamHandler())
 
     includes = c_include.get_includes(args.compile_commands_file, "otp_lcm.c")
     defines = c_include.get_defines(args.compile_commands_file, "otp_lcm.c")

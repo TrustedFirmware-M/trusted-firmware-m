@@ -13,7 +13,7 @@ import os
 import arg_utils
 
 import logging
-logger = logging.getLogger("TF-M")
+logger = logging.getLogger("TF-M.{}".format(__name__))
 
 sys.path.append(os.path.join(sys.path[0], 'modules'))
 
@@ -69,6 +69,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     logger.setLevel(args.log_level)
+    logger.addHandler(logging.StreamHandler())
 
     kwargs = parse_args(args)
 

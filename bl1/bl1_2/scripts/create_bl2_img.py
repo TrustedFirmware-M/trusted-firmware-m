@@ -10,7 +10,7 @@ import sign_data
 import encrypt_data
 
 import logging
-logger = logging.getLogger("TF-M")
+logger = logging.getLogger("TF-M.{}".format(__name__))
 from arg_utils import *
 from crypto_conversion_utils import convert_curve_define, convert_hash_define
 
@@ -176,7 +176,8 @@ if __name__ == "__main__":
     parser.add_argument("--log_level", help="log level", required=False, default="ERROR", choices=logging._levelToName.values())
 
     args = parser.parse_args()
-    logger.setLevel(args.log_level)
+    logging.getLogger("TF-M").setLevel(args.log_level)
+    logger.addHandler(logging.StreamHandler())
 
     config = parse_args(args, "")
 

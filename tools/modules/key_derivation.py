@@ -15,7 +15,7 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 import struct
 import argparse
 import logging
-logger = logging.getLogger("TF-M")
+logger = logging.getLogger("TF-M.{}".format(__name__))
 
 
 def symmetric_kdf_sp800_108_cmac(input_key: bytes,

@@ -18,14 +18,11 @@ from otp_config import OTP_config
 from cryptography.hazmat.primitives import hashes
 
 import logging
-logger = logging.getLogger("TF-M")
+logger = logging.getLogger("TF-M.{}".format(__name__))
 
 from cryptography.hazmat.primitives.serialization import load_der_public_key, Encoding, PublicFormat
 
 from crypto_conversion_utils import convert_hash_define
-
-import logging
-logger = logging.getLogger("TF-M")
 
 all_regions = ['cm', 'dm']
 
@@ -381,8 +378,10 @@ if __name__ == "__main__":
     parser.add_argument("--provisioning_config_output_file", help="file to output provisioning config to", required=True)
     parser.add_argument("--log_level", help="log level", required=False, default="ERROR", choices=logging._levelToName.values())
 
+    from rich import inspect
     args = parser.parse_args()
-    logger.setLevel(args.log_level)
+    logging.getLogger("TF-M").setLevel(args.log_level)
+    logger.addHandler(logging.StreamHandler())
 
     includes = c_include.get_includes(args.compile_commands_file, "otp_lcm.c")
     defines = c_include.get_defines(args.compile_commands_file, "otp_lcm.c")

@@ -13,7 +13,7 @@ from secrets import token_bytes
 import sign_then_encrypt_data
 
 import logging
-logger = logging.getLogger("TF-M")
+logger = logging.getLogger("TF-M.{}".format(__name__))
 
 from provisioning_message_config import Provisioning_message_config
 
