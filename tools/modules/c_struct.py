@@ -417,7 +417,7 @@ class C_variable:
         return self._size
 
     def get_value_str(self):
-        return hex(self.value)
+        return hex(self.value) if self.value else hex(0)
 
     def __str__(self):
         string = "{} {}".format(self.c_type, self.name)
