@@ -15,6 +15,8 @@
 
 #include "cc3xx_test_utils.h"
 
+#include "cc3xx_hmac.h"
+
 static struct hash_test_data_t hash_test_block_xored_input = {
     "hash_test_data_t block-sized input, xored with 0xDEADBEEF",
     {
@@ -138,6 +140,53 @@ size_t hash_size_from_alg(cc3xx_hash_alg_t alg)
     return 0;
 }
 
+void hmac_test_sha_256(struct test_result_t *ret)
+{
+    const uint8_t msg[] = {
+        0x54, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73, 0x20,
+        0x6d, 0x79, 0x20, 0x74, 0x65, 0x73, 0x74, 0x20,
+        0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x2c,
+        0x20, 0x70, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x20,
+        0x67, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65,
+        0x20, 0x61, 0x20, 0x68, 0x6d, 0x61, 0x63, 0x20,
+        0x66, 0x6f, 0x72, 0x20, 0x74, 0x68, 0x69, 0x73,
+        0x2e,
+    };
+    const uint8_t key[] = {
+        0x54, 0x48, 0x49, 0x53, 0x20, 0x49, 0x53, 0x20,
+        0x4d, 0x59, 0x20, 0x4b, 0x45, 0x59, 0x31, 0x00,
+    };
+    const uint8_t ref[] = {
+        0x94, 0x37, 0xbe, 0xb5, 0x7f, 0x7c, 0x5c, 0xb0,
+        0x0a, 0x92, 0x4d, 0xd3, 0xba, 0x7e, 0xb1, 0x1a,
+        0xdb, 0xa2, 0x25, 0xb2, 0x82, 0x8e, 0xdf, 0xbb,
+        0x61, 0xbf, 0x91, 0x1d, 0x28, 0x23, 0x4a, 0x04,
+    };
+    uint32_t hmac[sizeof(ref) / sizeof(uint32_t)];
+    size_t hmac_len;
+
+    cc3xx_err_t err;
+
+    err = cc3xx_lowlevel_hmac_compute(
+              32, key, sizeof(key), CC3XX_HASH_ALG_SHA256,
+              msg, sizeof(msg),
+              hmac, sizeof(hmac), &hmac_len);
+
+    TEST_ASSERT(err == CC3XX_ERR_SUCCESS, "HMAC single step computation failed");
+    TEST_ASSERT(hmac_len == 32, "HMAC length different than 32");
+    TEST_ASSERT(!memcmp(hmac, ref, hmac_len), "Produced HMAC mismatch with reference");
+
+    ret->val = TEST_PASSED;
+}
+
+static struct test_t hmac_tests_sha_256[] = {
+    {
+        &hmac_test_sha_256,
+        "CC3XX_HMAC_TEST_SHA_256_00",
+        "CC3XX HMAC Test SHA-256 short key",
+    },
+};
+
 #define CREATE_HASH_TESTSUITE(alg) \
 static void hash_ ## alg  ## _lowlevel_tests_run(struct test_result_t *ret) \
 { \
@@ -188,6 +237,7 @@ void add_cc3xx_hash_tests_to_testsuite(struct test_suite_t *p_ts, uint32_t ts_si
 {
 #ifdef CC3XX_CONFIG_HASH_SHA256_ENABLE
     cc3xx_add_tests_to_testsuite(&hash_CC3XX_HASH_ALG_SHA256_tests, 1, p_ts, ts_size);
+    cc3xx_add_tests_to_testsuite(&hmac_tests_sha_256, ARRAY_SIZE(hmac_tests_sha_256), p_ts, ts_size);
 #endif /* CC3XX_CONFIG_HASH_SHA256_ENABLE */
 
 #ifdef CC3XX_CONFIG_HASH_SHA224_ENABLE
