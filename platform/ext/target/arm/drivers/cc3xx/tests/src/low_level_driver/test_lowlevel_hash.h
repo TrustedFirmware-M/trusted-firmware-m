@@ -14,11 +14,16 @@
 extern "C" {
 #endif
 
+int hash_test_lowlevel_xored_oneshot(struct hash_test_data_t *data,
+                                     cc3xx_hash_alg_t alg);
+
 int hash_test_lowlevel_oneshot(struct hash_test_data_t *data,
                                cc3xx_hash_alg_t alg);
+
 int hash_test_lowlevel_multipart(struct hash_test_data_t *data,
                                  cc3xx_hash_alg_t alg,
                                  size_t chunk_size);
+
 int hash_test_lowlevel_reinit(struct hash_test_data_t *data,
                               cc3xx_hash_alg_t alg);
 

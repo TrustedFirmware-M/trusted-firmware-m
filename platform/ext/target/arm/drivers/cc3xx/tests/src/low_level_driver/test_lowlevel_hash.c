@@ -38,6 +38,33 @@ cleanup:
     return rc;
 }
 
+int hash_test_lowlevel_xored_oneshot(struct hash_test_data_t *data,
+                                     cc3xx_hash_alg_t alg)
+{
+    uint32_t output[SHA256_OUTPUT_SIZE / sizeof(uint32_t)];
+    cc3xx_err_t err;
+    int rc;
+
+    err = cc3xx_lowlevel_hash_init(alg);
+    cc3xx_test_assert(err == CC3XX_ERR_SUCCESS);
+
+    cc3xx_lowlevel_hash_set_xor_input(0xDEADBEEF);
+
+    err = cc3xx_lowlevel_hash_update(data->input, data->input_size);
+    cc3xx_test_assert(err == CC3XX_ERR_SUCCESS);
+
+    cc3xx_lowlevel_hash_finish(output, hash_size_from_alg(alg));
+
+    cc3xx_test_assert(memcmp(output, output_from_alg_and_data(alg, data),
+                      hash_size_from_alg(alg)) == 0);
+
+    rc = 0;
+cleanup:
+    cc3xx_lowlevel_hash_uninit();
+
+    return rc;
+}
+
 int hash_test_lowlevel_multipart(struct hash_test_data_t *data,
                                  cc3xx_hash_alg_t alg,
                                  size_t chunk_size)

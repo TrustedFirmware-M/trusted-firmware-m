@@ -15,6 +15,24 @@
 
 #include "cc3xx_test_utils.h"
 
+static struct hash_test_data_t hash_test_block_xored_input = {
+    "hash_test_data_t block-sized input, xored with 0xDEADBEEF",
+    {
+        {0xf3, 0x67, 0x86, 0xff, 0xb5, 0x50, 0x08, 0xab, 0x23, 0xcd, 0x3b, 0xdc,
+            0x94, 0xde, 0x3d, 0x1e, 0xf3, 0xd2, 0xf5, 0x20, 0xa1, 0x17, 0x5e,
+            0x8c, 0xc1, 0x3f, 0x46, 0x0, 0x48, 0x85, 0x39, 0x2d},
+        {0xc5, 0x80, 0xa3, 0x9f, 0x4b, 0x4d, 0x89, 0xd2, 0x78, 0xf3, 0xbf, 0xe7,
+            0xdc, 0xb3, 0xfb, 0xc9, 0x8e, 0xba, 0x5e, 0xa7, 0x8c, 0x7e, 0x89,
+            0xde, 0xa2, 0x8d, 0x2a, 0x74},
+        {0xb0, 0x37, 0x68, 0x4d, 0x37, 0x3f, 0x1e, 0x06, 0x13, 0xaf, 0x85, 0x4a,
+            0x82, 0x7, 0xf3, 0x1, 0xea, 0x4c, 0x9a, 0xe9},
+    },
+    32,
+    {0xcd, 0x3b, 0xba, 0x91, 0x9f, 0x4e, 0xb5, 0x2, 0x93, 0x38, 0x2f, 0x50,
+        0x1e, 0x44, 0x24, 0xa7, 0x66, 0x58, 0xdb, 0x92, 0xf6, 0x28, 0xa1, 0xc4,
+        0x95, 0xef, 0x62, 0x21, 0x7a, 0x83, 0x5c, 0xeb}
+};
+
 static struct hash_test_data_t hash_test_block = {
     "hash_test_data_t block-sized input",
     {
@@ -95,12 +113,12 @@ uint8_t *output_from_alg_and_data(cc3xx_hash_alg_t alg,
                                   struct hash_test_data_t *data)
 {
     switch (alg) {
-        case CC3XX_HASH_ALG_SHA256:
-            return data->output.sha256;
-        case CC3XX_HASH_ALG_SHA224:
-            return data->output.sha224;
-        case CC3XX_HASH_ALG_SHA1:
-            return data->output.sha1;
+    case CC3XX_HASH_ALG_SHA256:
+        return data->output.sha256;
+    case CC3XX_HASH_ALG_SHA224:
+        return data->output.sha224;
+    case CC3XX_HASH_ALG_SHA1:
+        return data->output.sha1;
     }
 
     return NULL;
@@ -109,20 +127,22 @@ uint8_t *output_from_alg_and_data(cc3xx_hash_alg_t alg,
 size_t hash_size_from_alg(cc3xx_hash_alg_t alg)
 {
     switch (alg) {
-        case CC3XX_HASH_ALG_SHA256:
-            return SHA256_OUTPUT_SIZE;
-        case CC3XX_HASH_ALG_SHA224:
-            return SHA224_OUTPUT_SIZE;
-        case CC3XX_HASH_ALG_SHA1:
-            return SHA1_OUTPUT_SIZE;
+    case CC3XX_HASH_ALG_SHA256:
+        return SHA256_OUTPUT_SIZE;
+    case CC3XX_HASH_ALG_SHA224:
+        return SHA224_OUTPUT_SIZE;
+    case CC3XX_HASH_ALG_SHA1:
+        return SHA1_OUTPUT_SIZE;
     }
 
-    return NULL;
+    return 0;
 }
 
 #define CREATE_HASH_TESTSUITE(alg) \
 static void hash_ ## alg  ## _lowlevel_tests_run(struct test_result_t *ret) \
 { \
+    TEST_ASSERT(hash_test_lowlevel_xored_oneshot(&hash_test_block_xored_input, alg) == 0, \
+                "hash test block with XORed input should pass"); \
     TEST_ASSERT(hash_test_lowlevel_oneshot(&hash_test_block, alg) == 0, \
                 "hash_test_block should pass"); \
     TEST_ASSERT(hash_test_lowlevel_oneshot(&hash_test_short, alg) == 0, \
@@ -154,9 +174,15 @@ static struct test_t hash_ ## alg ## _tests = { \
     "CC3XX Hash tests (" # alg ")" \
 };
 
+#ifdef CC3XX_CONFIG_HASH_SHA256_ENABLE
 CREATE_HASH_TESTSUITE(CC3XX_HASH_ALG_SHA256);
+#endif /* CC3XX_CONFIG_HASH_SHA256_ENABLE */
+#ifdef CC3XX_CONFIG_HASH_SHA224_ENABLE
 CREATE_HASH_TESTSUITE(CC3XX_HASH_ALG_SHA224);
+#endif /* CC3XX_CONFIG_HASH_SHA224_ENABLE */
+#ifdef CC3XX_CONFIG_HASH_SHA1_ENABLE
 CREATE_HASH_TESTSUITE(CC3XX_HASH_ALG_SHA1);
+#endif /* CC3XX_CONFIG_HASH_SHA1_ENABLE */
 
 void add_cc3xx_hash_tests_to_testsuite(struct test_suite_t *p_ts, uint32_t ts_size)
 {
@@ -170,5 +196,5 @@ void add_cc3xx_hash_tests_to_testsuite(struct test_suite_t *p_ts, uint32_t ts_si
 
 #ifdef CC3XX_CONFIG_HASH_SHA1_ENABLE
     cc3xx_add_tests_to_testsuite(&hash_CC3XX_HASH_ALG_SHA1_tests, 1, p_ts, ts_size);
-#endif /* CC3XX_CONFIG_HASH_SHA256_ENABLE */
+#endif /* CC3XX_CONFIG_HASH_SHA1_ENABLE */
 }
