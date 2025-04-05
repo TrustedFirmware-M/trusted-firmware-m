@@ -12,6 +12,35 @@
 
 #include <string.h>
 
+int hash_test_lowlevel_mixed_xoring(struct hash_test_data_t *data,
+                                    cc3xx_hash_alg_t alg)
+{
+    uint32_t output[SHA256_OUTPUT_SIZE / sizeof(uint32_t)];
+    cc3xx_err_t err;
+    int rc;
+
+    err = cc3xx_lowlevel_hash_init(alg);
+    cc3xx_test_assert(err == CC3XX_ERR_SUCCESS);
+
+    cc3xx_lowlevel_hash_set_xor_input(0x36363636);
+    err = cc3xx_lowlevel_hash_update(data->input, 64);
+    cc3xx_test_assert(err == CC3XX_ERR_SUCCESS);
+
+    cc3xx_lowlevel_hash_reset_xor_input();
+    err = cc3xx_lowlevel_hash_update(&data->input[64], data->input_size - 64);
+    cc3xx_test_assert(err == CC3XX_ERR_SUCCESS);
+
+    cc3xx_lowlevel_hash_finish(output, hash_size_from_alg(alg));
+
+    cc3xx_test_assert(memcmp(output, output_from_alg_and_data(alg, data),
+                      hash_size_from_alg(alg)) == 0);
+
+    rc = 0;
+cleanup:
+    cc3xx_lowlevel_hash_uninit();
+
+    return rc;
+}
 
 int hash_test_lowlevel_oneshot(struct hash_test_data_t *data,
                                cc3xx_hash_alg_t alg)

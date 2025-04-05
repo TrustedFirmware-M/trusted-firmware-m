@@ -14,6 +14,9 @@
 extern "C" {
 #endif
 
+int hash_test_lowlevel_mixed_xoring(struct hash_test_data_t *data,
+                                    cc3xx_hash_alg_t alg);
+
 int hash_test_lowlevel_xored_oneshot(struct hash_test_data_t *data,
                                      cc3xx_hash_alg_t alg);
 
