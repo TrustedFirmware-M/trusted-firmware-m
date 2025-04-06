@@ -74,7 +74,7 @@ static ARM_USART_CAPABILITIES ARM_USART_GetCapabilities(void)
 
 typedef struct {
     struct uart_pl011_dev_t* dev;      /* UART device structure */
-    uint32_t tx_nbr_bytes;             /* Number of bytes transfered */
+    uint32_t tx_nbr_bytes;             /* Number of bytes transferred */
     uint32_t rx_nbr_bytes;             /* Number of bytes received */
     ARM_USART_SignalEvent_t cb_event;  /* Callback function for events */
 } UARTx_Resources;
@@ -143,7 +143,7 @@ static int32_t ARM_USARTx_Send(UARTx_Resources* uart_dev, const void *data,
         uart_dev->cb_event(ARM_USART_EVENT_SEND_COMPLETE);
     }
 
-    /* Waits until character is transmited */
+    /* Waits until character is transmitted */
     while (!uart_pl011_is_writable(uart_dev->dev)){};
 
     return ARM_DRIVER_OK;

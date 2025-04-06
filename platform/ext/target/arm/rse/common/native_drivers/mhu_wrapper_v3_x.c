@@ -59,7 +59,7 @@ enum mhu_error_t signal_and_wait_for_clear(
         }
     } while ((read_val & value) == value);
 
-    /* Use the last channel to nofity that a transfer is ready */
+    /* Use the last channel to notify that a transfer is ready */
     err = mhu_v3_x_doorbell_write(dev, num_channels - 1, value);
     if (err != MHU_V_3_X_ERR_NONE) {
         return err;

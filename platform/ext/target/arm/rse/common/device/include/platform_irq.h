@@ -39,7 +39,7 @@ typedef enum _IRQn_Type {
     /* Reserved                        = 6:8,     Reserved */
     MPC_IRQn                           = 9,    /* MPC Combined (Secure) Interrupt */
     PPC_IRQn                           = 10,   /* PPC Combined (Secure) Interrupt */
-    MSC_IRQn                           = 11,   /* MSC Combined (Secure) Interrput */
+    MSC_IRQn                           = 11,   /* MSC Combined (Secure) Interrupt */
     BRIDGE_ERROR_IRQn                  = 12,   /* Bridge Error Combined (Secure) Interrupt */
     /* Reserved                        = 13,      Reserved */
     PPU_Combined_IRQn                  = 14,   /* PPU Combined (Secure) Interrupt */

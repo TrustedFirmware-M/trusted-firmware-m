@@ -142,7 +142,7 @@ if (RSE_BL1_TEST_BINARY)
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/tests/rse_test_executable rse_test_executable)
 endif()
 
-# Set which PLATFORM depedency must be used by the CC3XX driver
+# Set which PLATFORM dependency must be used by the CC3XX driver
 set(CC3XX_PLATFORM_INTERFACE platform_bl1_1)
 set(CC3XX_TARGET_PREFIX bl1_)
 # BL1 code size is dimensioned for production hence we can't afford

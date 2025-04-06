@@ -202,7 +202,7 @@ extern const VECTOR_TABLE_Type __VECTOR_TABLE[];
 /*
  * This can't be inlined, since the stack push to get space for the local
  * variables is done at the start of the function, and the function which calls
- * this includes an explict stack set which removes the space allocated for
+ * this includes an explicit stack set which removes the space allocated for
  * locals.
  */
 static void __attribute__ ((noinline)) setup_tram_encryption(void) {
@@ -289,7 +289,7 @@ void Reset_Handler(void)
     __asm volatile("ldr    r9, =__etext \n");
 #endif /* RSE_SUPPORT_ROM_LIB_RELOCATION */
 
-    /* Enable cacheing, particularly to avoid ECC errors in VM0/1 */
+    /* Enable caching, particularly to avoid ECC errors in VM0/1 */
     SCB_EnableICache();
     SCB_EnableDCache();
 

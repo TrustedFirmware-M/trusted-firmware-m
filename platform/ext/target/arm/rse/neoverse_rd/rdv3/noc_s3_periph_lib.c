@@ -215,7 +215,7 @@ static int32_t program_periph_apu(void)
 #endif
 
     /*
-     * Populates all APU entry into a table array to confgiure and enable
+     * Populates all APU entry into a table array to configure and enable
      * desired APUs
      */
     const struct noc_s3_apu_cfgs apu_table[] = {

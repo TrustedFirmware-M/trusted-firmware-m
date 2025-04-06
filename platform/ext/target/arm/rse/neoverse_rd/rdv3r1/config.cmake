@@ -5,10 +5,10 @@
 #
 #-------------------------------------------------------------------------------
 
-# Note: Cached varaibles always take the first value set, while normal
+# Note: Cached variables always take the first value set, while normal
 # variables always take the last.
 
-set(PLAT_NEOVERSE_HOST_VERSION_VERSION  4        CACHE STRING  "Version of Neoverse-RD host mapping to use - coresponds to nrdX directories.")
+set(PLAT_NEOVERSE_HOST_VERSION_VERSION  4        CACHE STRING  "Version of Neoverse-RD host mapping to use - corresponds to nrdX directories.")
 if (TFM_PLATFORM_VARIANT STREQUAL "0")
     set(RSE_AMOUNT                      2        CACHE STRING  "Amount of RSEs in the system")
     set(PLAT_LCP_COUNT                  7        CACHE STRING  "Number of LCPs to load")

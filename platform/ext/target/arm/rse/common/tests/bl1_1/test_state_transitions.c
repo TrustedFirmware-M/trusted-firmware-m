@@ -124,7 +124,7 @@ void rse_test_cm_to_dm(struct test_result_t *ret)
     uint32_t new_lcs;
 
     /* When making the state transition from CM->DM, we
-     * write the zero counts of the verious areas. There
+     * write the zero counts of the various areas. There
      * does not actually need to be anything in the areas
      * themselves, but we must configure the OTP header
      * so that the code can figure out where the areas

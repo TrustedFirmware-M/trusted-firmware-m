@@ -5,7 +5,7 @@
 #
 #-------------------------------------------------------------------------------
 
-# Note: Cached varaibles always take the first value set, while normal
+# Note: Cached variables always take the first value set, while normal
 # variables always take the last.
 
 set(CONFIG_TFM_SPM_BACKEND              IPC      CACHE STRING  "The SPM backend")

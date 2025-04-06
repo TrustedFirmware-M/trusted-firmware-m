@@ -238,7 +238,7 @@ def parse_args(args : argparse.Namespace,
 
         for h in arg_parse_handlers.keys():
             if h in f:
-                logger.info("Running hander {} on field {}".format(arg_parse_handlers[h], f))
+                logger.info("Running handler {} on field {}".format(arg_parse_handlers[h], f))
                 v = arg_parse_handlers[h](f, v, field_owner=field_owner,
                                           otp_config = otp_config, **out)
                 break

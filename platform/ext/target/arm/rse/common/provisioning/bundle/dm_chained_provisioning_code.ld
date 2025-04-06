@@ -18,7 +18,7 @@
 ; */
 
 /* Linker script to configure memory regions. */
-/* This file will be run trough the pre-processor. */
+/* This file will be run through the pre-processor. */
 
 #include "region_defs.h"
 
@@ -35,7 +35,7 @@ SECTIONS
 {
     CODE :
     {
-        /* In the case of the chained provisioing flow, shift the chainloader blob to the
+        /* In the case of the chained provisioning flow, shift the chainloader blob to the
          * end of the ITCM and place a jump instruction to this at the start
          */
         *_provisioning_code.o(DO_JUMP)

@@ -19,7 +19,7 @@
 #define LCM_KEY_ERR_RESET_VALUE 0x3Fu
 /* Test or production mode reset value */
 #define LCM_TP_MODE_RESET_VALUE 0x2222AA55u
-/* Fatal errror FSM state reset value */
+/* Fatal error FSM state reset value */
 #define LCM_FATAL_ERR_RESET_VALUE 0x0u
 /* RMA flag lock enable reset value */
 #define LCM_DM_RMA_LOCK_RESET_VALUE 0x0u
@@ -246,7 +246,7 @@ void test_lcm_set_tp_mode(uint32_t lcs_value, enum lcm_tp_mode_t curr_tp_mode,
     enum lcm_error_t lcm_err;
     uint32_t offset;
 
-    /* Preapre */
+    /* Prepare */
     regmap.lcs_value = lcs_value;
     regmap.tp_mode = curr_tp_mode;
 

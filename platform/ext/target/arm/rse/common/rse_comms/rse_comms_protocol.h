@@ -102,7 +102,7 @@ enum tfm_plat_err_t rse_protocol_serialize_reply(struct client_request_t *req,
  *        deserialization phase.
  *
  * \param[in]  req               The client_request_t to serialize data from. If
- *                               the error occured in allocation this pointer
+ *                               the error occurred in allocation this pointer
  *                               may be NULL. This may not contain message
  *                               header information if the message
  *                               deserialize failed.

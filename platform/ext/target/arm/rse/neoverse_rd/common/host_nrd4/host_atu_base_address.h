@@ -46,7 +46,7 @@ enum rse_atu_ids {
 #define RSE_ATU_PAGE_SIZE       0x2000U /* 8KB */
 
 /*
- * In flash the image is layed out like so:
+ * In flash the image is laid out like so:
  *
  * ┌────────┬──────┬─────────┐
  * │ HEADER │ CODE │ TRAILER │

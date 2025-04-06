@@ -1228,7 +1228,7 @@ static void provisioning_test_invalid_public_key_in_blob(struct test_result_t *r
     plat_err = provision_blob(test_blob);
 
     TEST_ASSERT(plat_err == TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_HASH_VALUE,
-                "Provsioning should have failed due to invalid hash value");
+                "Provisioning should have failed due to invalid hash value");
 
     TEST_TEARDOWN(test_teardown(RSE_KMU_SLOT_PROVISIONING_KEY, test_blob));
     TEST_TEARDOWN(kmu_set_slot_invalid(&KMU_DEV_S, RSE_KMU_SLOT_MASTER_KEY));

@@ -46,7 +46,7 @@ enum sic_error_t {
 };
 
 /**
- * \brief Arm SIC Authentication AXI manager Priviliged/Unpriviliged config types
+ * \brief Arm SIC Authentication AXI manager Privileged/Unprivileged config types
  */
 enum sic_axim_priv_t {
     SIC_AXIM_PRIV_FORWARD = 0b00,
@@ -405,14 +405,14 @@ enum sic_error_t sic_decrypt_mitigations_get(struct sic_dev_t *dev,
 
 /**
  * \brief                    Set the seed from which the SIC decryption engine
- *                           DRBG will be instanciated. This must be provided
+ *                           DRBG will be instantiated. This must be provided
  *                           from a hardware TRNG.
  *
  * \param[in]  dev           The SIC device.
  *
  * \param[in]  seed          The seed value.
  *
- * \param[in]  seed_len      The seed length. In total, the seed must recieve
+ * \param[in]  seed_len      The seed length. In total, the seed must receive
  *                           SIC_DECRYPT_RBG_SEED_LEN bytes of seed input.
  *
  * \return                   SIC_ERROR_NONE on success, otherwise a different

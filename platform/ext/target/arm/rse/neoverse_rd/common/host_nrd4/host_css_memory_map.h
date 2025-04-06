@@ -179,47 +179,47 @@
 /* AP refclk cntbase1 register end address */
 #define HOST_AP_NS_REFCLK_CNTBASE1_PHYS_LIMIT       0x01A83FFFFULL
 
-/* Non-secure AP<->SCP MHUv3 Send and recieve registers base address */
+/* Non-secure AP<->SCP MHUv3 Send and receive registers base address */
 #define HOST_AP_NS_SCP_MHUV3_PHYS_BASE              0x01A900000ULL
-/* Non-secure AP<->SCP MHUv3 Send and recieve registers end address */
+/* Non-secure AP<->SCP MHUv3 Send and receive registers end address */
 #define HOST_AP_NS_SCP_MHUV3_PHYS_LIMIT             0x01A91FFFFULL
-/* Secure AP<->SCP MHUv3 Send and recieve registers base address */
+/* Secure AP<->SCP MHUv3 Send and receive registers base address */
 #define HOST_AP_S_SCP_MHUV3_PHYS_BASE               0x01A920000ULL
-/* Secure AP<->SCP MHUv3 Send and recieve registers end address */
+/* Secure AP<->SCP MHUv3 Send and receive registers end address */
 #define HOST_AP_S_SCP_MHUV3_PHYS_LIMIT              0x01A93FFFFULL
-/* Root AP<->SCP MHUv3 Send and recieve registers base address */
+/* Root AP<->SCP MHUv3 Send and receive registers base address */
 #define HOST_AP_RT_SCP_MHUV3_PHYS_BASE              0x01A940000ULL
-/* Root AP<->SCP MHUv3 Send and recieve registers end address */
+/* Root AP<->SCP MHUv3 Send and receive registers end address */
 #define HOST_AP_RT_SCP_MHUV3_PHYS_LIMIT             0x01A95FFFFULL
 
-/* Non-secure AP<->MCP MHUv3 Send and recieve registers base address */
+/* Non-secure AP<->MCP MHUv3 Send and receive registers base address */
 #define HOST_AP_NS_MCP_MHUV3_SEND_BASE              0x01AA00000ULL
-/* Non-secure AP<->MCP MHUv3 Send and recieve registers end address */
+/* Non-secure AP<->MCP MHUv3 Send and receive registers end address */
 #define HOST_AP_NS_MCP_MHUV3_SEND_LIMIT             0x01AA1FFFFULL
-/* Secure AP<->MCP MHUv3 Send and recieve registers base address */
+/* Secure AP<->MCP MHUv3 Send and receive registers base address */
 #define HOST_AP_S_MCP_MHUV3_PHYS_BASE               0x01AA20000ULL
-/* Secure AP<->MCP MHUv3 Send and recieve registers end address */
+/* Secure AP<->MCP MHUv3 Send and receive registers end address */
 #define HOST_AP_S_MCP_MHUV3_PHYS_LIMIT              0x01AA3FFFFULL
-/* Root AP<->MCP MHUv3 Send and recieve registers base address */
+/* Root AP<->MCP MHUv3 Send and receive registers base address */
 #define HOST_AP_RT_MCP_MHUV3_PHYS_BASE              0x01AA40000ULL
-/* Root AP<->MCP MHUv3 Send and recieve registers end address */
+/* Root AP<->MCP MHUv3 Send and receive registers end address */
 #define HOST_AP_RT_MCP_MHUV3_PHYS_LIMIT             0x01AA5FFFFULL
 
-/* Non-secure AP<->RSE MHUv3 Send and recieve registers base address */
+/* Non-secure AP<->RSE MHUv3 Send and receive registers base address */
 #define HOST_AP_NS_RSE_MHUV3_PHYS_BASE              0x01AB00000ULL
-/* Non-secure AP<->RSE MHUv3 Send and recieve registers end address */
+/* Non-secure AP<->RSE MHUv3 Send and receive registers end address */
 #define HOST_AP_NS_RSE_MHUV3_PHYS_LIMIT             0x01AB1FFFFULL
-/* Secure AP<->RSE MHUv3 Send and recieve registers base address */
+/* Secure AP<->RSE MHUv3 Send and receive registers base address */
 #define HOST_AP_S_RSE_MHUV3_PHYS_BASE               0x01AB20000ULL
-/* Secure AP<->RSE MHUv3 Send and recieve registers end address */
+/* Secure AP<->RSE MHUv3 Send and receive registers end address */
 #define HOST_AP_S_RSE_MHUV3_PHYS_LIMIT              0x01AB3FFFFULL
-/* Root AP<->RSE MHUv3 Send and recieve registers base address */
+/* Root AP<->RSE MHUv3 Send and receive registers base address */
 #define HOST_AP_RT_RSE_MHUV3_PHYS_BASE              0x01AB40000ULL
-/* Root AP<->RSE MHUv3 Send and recieve registers end address */
+/* Root AP<->RSE MHUv3 Send and receive registers end address */
 #define HOST_AP_RT_RSE_MHUV3_PHYS_LIMIT             0x01AB5FFFFULL
-/* Realm AP<->RSE MHUv3 Send and recieve registers base address */
+/* Realm AP<->RSE MHUv3 Send and receive registers base address */
 #define HOST_AP_RL_RSE_MHUV3_PHYS_BASE              0x01AB60000ULL
-/* Realm AP<->RSE MHUv3 Send and recieve registers end address */
+/* Realm AP<->RSE MHUv3 Send and receive registers end address */
 #define HOST_AP_RL_RSE_MHUV3_PHYS_LIMIT             0x01AB7FFFFULL
 
 /* SCP<->SCP MHU Send registers base address */

@@ -35,7 +35,7 @@ LR_DATA PROVISIONING_BUNDLE_DATA_START {
 ASSERT (ImageLength(LR_DATA) == 0, "LR_DATA must be empty")
 
 LR_CODE PROVISIONING_BUNDLE_CODE_START {
-     /* In the case of the chained provisioing flow, shift the chainloader blob to the
+     /* In the case of the chained provisioning flow, shift the chainloader blob to the
       * end of the ITCM and place a jump instruction to this at the start
       */
     CODE PROVISIONING_BUNDLE_CODE_START MAIN_BUNDLE_CODE_SIZE {

@@ -34,7 +34,7 @@
  * Platform specific apu region initialization macro wrapper with APU ID
  * Filtering. This macro returns 'struct noc_s3_apu_reg_cfg_info' definition
  * by providing the base and end address of APU region and the associated
- * access permission for all four enitities.
+ * access permission for all four entities.
  */
 #define INIT_APU_REGION_WITH_ALL_ID_FILTER(base, end, mcp_perm, scp_perm, \
                                            rse_perm, dap_perm)            \

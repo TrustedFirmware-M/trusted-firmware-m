@@ -94,7 +94,7 @@ static void read_and_write_address(enum sam_event_id_t event_id)
          */
         *vm_ptr = *vm_ptr;
 
-        /* If this is an ECC error, likely the address has cacheing enabled
+        /* If this is an ECC error, likely the address has caching enabled
          * (except in the unlikely case that it is also SHAREABLE due to being
          * accessed by CC3XX or similar). The cache must be flushed here to make
          * sure the write makes it back to the SRAM.
@@ -123,7 +123,7 @@ static const sam_event_handler_t rse_handlers[RSE_SAM_EVENT_COUNT] = {
     [RSE_SAM_EVENT_VM1_SINGLE_ECC_ERROR]    = read_and_write_address,
 
     /* Partial writes to the SRAM are not expected - they should be handled by
-     * the cacheing and therefore are treated as programmer errors. Because of
+     * the caching and therefore are treated as programmer errors. Because of
      * this, the partial write event halts the system so that the programmer
      * error can be corrected.
      */

@@ -5,7 +5,7 @@
 #
 #-------------------------------------------------------------------------------
 
-# Note: Cached varaibles always take the first value set, while normal
+# Note: Cached variables always take the first value set, while normal
 # variables always take the last.
 
 set(TFM_BL1_MEMORY_MAPPED_FLASH         OFF      CACHE BOOL    "Whether BL1 can directly access flash content")

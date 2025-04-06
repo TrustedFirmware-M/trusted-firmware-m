@@ -140,7 +140,7 @@ static enum tfm_plat_err_t tfm_plat_get_bl2_rotpk(void *ctx,
     }
 
     /* Metadata is not provisioned, so we just determine that on the
-     * assumption that it matches the build time confguration
+     * assumption that it matches the build time configuration
      */
 #if defined(MCUBOOT_SIGN_EC256)
     /* OTP data is an ECPoint, uncompressed */

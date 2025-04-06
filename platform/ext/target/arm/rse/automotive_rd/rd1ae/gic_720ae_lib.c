@@ -14,7 +14,7 @@
 /* RD1AE has view-0/1/2/3 for Safety Island */
 #define GIC_MV_MAX_VIEW_NUM     4
 /*
- * RD1AE GIC View-0 has a contigous region for all
+ * RD1AE GIC View-0 has a contiguous region for all
  * Safety Island GIC re-distributors:
  * SI CL0: 1 re-distributors for 1 PE
  * SI CL1: 2 re-distributors for 2 PE

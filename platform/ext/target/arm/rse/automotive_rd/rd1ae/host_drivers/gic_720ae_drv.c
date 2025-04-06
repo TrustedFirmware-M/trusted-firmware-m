@@ -38,7 +38,7 @@ static int assign_pe_to_view(struct gic_mv_dev_t *dev,
     uint32_t rdist_id;
 
     if (view >= dev->view_num) {
-        BOOT_LOG_ERR("GIC: Error assigning PE to invaild View:%d", view);
+        BOOT_LOG_ERR("GIC: Error assigning PE to invalid View:%d", view);
         return -1;
     }
 
@@ -66,7 +66,7 @@ static int assign_spi_to_view(struct gic_mv_dev_t *dev,
     uint32_t nreg, nbit;
 
     if (view >= dev->view_num) {
-        BOOT_LOG_ERR("GIC: Error assigning SPI to invaild View:%d", view);
+        BOOT_LOG_ERR("GIC: Error assigning SPI to invalid View:%d", view);
         return -1;
     }
 
