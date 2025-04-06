@@ -157,7 +157,7 @@ if (TFM_PARTITION_CRYPTO)
                 platform_s
         )
 
-        # Platform depedency needed to access platform specific dx_reg_base_host.h
+        # Platform dependency needed to access platform specific dx_reg_base_host.h
         set(CC312_PLATFORM_DEPENDENCY platform_s)
 
         set(SAVED_BUILD_TYPE ${CMAKE_BUILD_TYPE})

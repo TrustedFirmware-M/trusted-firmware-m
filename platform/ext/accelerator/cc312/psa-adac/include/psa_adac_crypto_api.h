@@ -124,7 +124,7 @@ psa_status_t psa_adac_hash_verify_multiple(psa_algorithm_t alg,
  * \param hash_alg          The hash algorithm to compute.
  * \param[in] inputs        Buffer containing the message to hash.
  * \param input_sizes       Size of the \p input buffer in bytes.
- * \param input_count       Number of inouts.
+ * \param input_count       Number of inputs.
  * \param sig_alg           Singature algorithm.
  * \param sig               Singature.
  * \param sig_size          Singature size.
@@ -144,7 +144,7 @@ psa_status_t psa_adac_verify_signature(uint8_t key_type, uint8_t *key,
  * \param alg               The hash algorithm to compute.
  * \param[in] input         Buffer containing the message to hash.
  * \param input_size        Size of the \p input buffer in bytes.
- * \param input_count       Number of inouts.
+ * \param input_count       Number of inputs.
  * \param key               The key.
  * \param key_size          Key size.
  * \param mac

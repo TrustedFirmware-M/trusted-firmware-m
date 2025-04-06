@@ -11,7 +11,7 @@ cmake_policy(SET CMP0079 NEW)
 cmake_policy(SET CMP0076 NEW)
 
 if(NOT DEFINED PLATFORM_DIR)
-    set(PLATFORM_DIR ../../.. CACHE PATH "Path to plaform dir")
+    set(PLATFORM_DIR ../../.. CACHE PATH "Path to platform dir")
 endif()
 
 if(BL2)
