@@ -282,9 +282,44 @@ static enum tfm_plat_err_t load_area_info(enum lcm_lcs_t lcs)
     }
 #endif /* RSE_OTP_HAS_SOC_AREA */
 
-    /* In CM mode, we don't have these provisioned */
-    if (lcs == LCM_LCS_CM) {
+    /* In CM we don't have these provisioned, and in RMA don't
+     * care about checking them. But, in case of RMA, cache the
+     * info variables before returning, so that the structures
+     * can be access correctly after this point in LCS_RMA
+     */
+    switch(lcs) {
+    case LCM_LCS_RMA:
+    {
+        bool has_invalid_pointers = false;
+#ifdef RSE_OTP_HAS_CM_AREA
+        cm_area_info = P_RSE_OTP_HEADER->cm_area_info;
+        has_invalid_pointers =
+            !P_RSE_OTP_CM_IS_VALID ? true : has_invalid_pointers;
+#endif
+#ifdef RSE_OTP_HAS_BL1_2
+        bl1_2_area_info = P_RSE_OTP_HEADER->bl1_2_area_info;
+        has_invalid_pointers =
+            !P_RSE_OTP_BL1_2_IS_VALID ? true : has_invalid_pointers;
+#endif
+#ifdef RSE_OTP_HAS_DM_AREA
+        dm_area_info = P_RSE_OTP_HEADER->dm_area_info;
+        has_invalid_pointers =
+            !P_RSE_OTP_DM_IS_VALID ? true : has_invalid_pointers;
+#endif
+#ifdef RSE_OTP_HAS_DYNAMIC_AREA
+        dynamic_area_info = P_RSE_OTP_HEADER->dynamic_area_info;
+        has_invalid_pointers =
+            !P_RSE_OTP_DYNAMIC_IS_VALID ? true : has_invalid_pointers;
+#endif
+        if (has_invalid_pointers) {
+            return TFM_PLAT_ERR_OTP_INIT_RMA_AREA_SETUP_FAILED;
+        }
+    }
+        /* Allowing fallthrough */
+    case LCM_LCS_CM:
         return TFM_PLAT_ERR_SUCCESS;
+    default:
+        /* Continue checking of area info */
     }
 
 #ifdef RSE_OTP_HAS_CM_AREA
