@@ -55,7 +55,6 @@ set(TFM_PARTITION_CRYPTO                ON          CACHE BOOL      "Enable Cryp
 set(TFM_PARTITION_INITIAL_ATTESTATION   ON          CACHE BOOL      "Enable Initial Attestation partition")
 set(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE ON       CACHE BOOL      "Enable Internal Trusted Storage partition")
 
-
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug OR ${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
   set(ENABLE_FWU_AGENT_DEBUG_LOGS     TRUE          CACHE BOOL      "Enable Firmware update agent debug logs.")
   set(PLAT_LOG_LEVEL                    4           CACHE STRING    "Set platform log level.")
@@ -63,6 +62,8 @@ else()
   set(ENABLE_FWU_AGENT_DEBUG_LOGS     FALSE         CACHE BOOL      "Enable Firmware update agent debug logs.")
   set(PLAT_LOG_LEVEL                    0           CACHE STRING    "Set platform log level.")
 endif()
+
+set(TFM_DEBUG_OPTIMISATION              ON         CACHE BOOL      "Add basic -Og optimisation when CMAKE_BUILD_TYPE is Debug. Note that non Debug builds specify their own optimisation")
 
 # Platform-specific configurations
 set(CONFIG_TFM_USE_TRUSTZONE            OFF)
