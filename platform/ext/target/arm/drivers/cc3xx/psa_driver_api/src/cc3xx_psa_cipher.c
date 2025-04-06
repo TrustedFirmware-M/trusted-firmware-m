@@ -376,9 +376,13 @@ psa_status_t cc3xx_cipher_update(
 
 #if defined(CC3XX_CONFIG_ENABLE_STREAM_CIPHER)
         /* If stream cipher behaviour is enabled, process with any available keystream */
-        cc3xx_internal_cipher_stream_pre_update(
+        status = cc3xx_internal_cipher_stream_pre_update(
             &(operation->stream), input, input_length,
                 output, output_size, output_length);
+
+        if (status != PSA_SUCCESS) {
+            goto out_chacha20;
+        }
 
         input += *output_length;
         input_length -= *output_length;

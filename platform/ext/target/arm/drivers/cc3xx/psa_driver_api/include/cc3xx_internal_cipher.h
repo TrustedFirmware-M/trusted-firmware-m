@@ -83,8 +83,10 @@ psa_status_t cc3xx_internal_cipher_setup_complete(
  * @param[out]     output        Buffer containing the output
  * @param[in]      output_size   Size in bytes of the \ref output buffer
  * @param[out]     output_length Size of the output produced by the pre_update step
+ *
+ * @return psa_status_t
  */
-void cc3xx_internal_cipher_stream_pre_update(
+psa_status_t cc3xx_internal_cipher_stream_pre_update(
         struct cc3xx_internal_cipher_stream_t *stream,
         const uint8_t *input, size_t input_length,
         uint8_t *output, size_t output_size, size_t *output_length);

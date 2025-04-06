@@ -477,7 +477,7 @@ psa_status_t cc3xx_internal_cipher_setup_complete(
     } /* operation->cipher_is_initialized */
 }
 
-void cc3xx_internal_cipher_stream_pre_update(
+psa_status_t cc3xx_internal_cipher_stream_pre_update(
         struct cc3xx_internal_cipher_stream_t *stream,
         const uint8_t *input, size_t input_length,
         uint8_t *output, size_t output_size, size_t *output_length)
@@ -508,6 +508,8 @@ void cc3xx_internal_cipher_stream_pre_update(
         stream->idx += size_to_pre_process;
         *output_length = size_to_pre_process;
     }
+
+    return PSA_SUCCESS;
 }
 
 psa_status_t cc3xx_internal_cipher_stream_post_update(
