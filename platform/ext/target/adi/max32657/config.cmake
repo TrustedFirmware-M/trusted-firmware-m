@@ -11,6 +11,7 @@ set(TFM_BL2_SIGNING_KEY_PATH            ""          CACHE FILEPATH  "")
 
 set(BL2                                 ON         CACHE BOOL     "Whether to build BL2")
 set(CONFIG_TFM_USE_TRUSTZONE            ON)
+set(TFM_PARTITION_PROTECTED_STORAGE     ON           CACHE BOOL      "Enable Protected Stroage partition")
 set(TFM_PARTITION_PLATFORM              OFF          CACHE BOOL      "Enable Platform partition")
 set(TFM_PARTITION_CRYPTO                ON          CACHE BOOL      "Enable Crypto partition")
 set(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE ON       CACHE BOOL      "Enable Internal Trusted Storage partition")
