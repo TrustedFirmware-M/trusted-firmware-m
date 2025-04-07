@@ -39,3 +39,8 @@ if (CONFIG_TFM_PROFILE_SMALL)
     # to ensure that initial attestation testcases in regression build passes
     add_compile_definitions(CRYPTO_ENGINE_BUF_SIZE=0x500)
 endif()
+
+if(TFM_PARTITION_PROTECTED_STORAGE)
+    # Enable single part functions in crypto library needed for PS Encryption
+    set(CRYPTO_SINGLE_PART_FUNCS_DISABLED OFF CACHE BOOL "Disable single part functions in crypto library") 
+endif()
