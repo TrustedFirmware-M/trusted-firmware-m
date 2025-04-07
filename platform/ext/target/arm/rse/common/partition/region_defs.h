@@ -166,9 +166,6 @@
 #endif /* RSE_XIP */
 #define S_DATA_LIMIT    (S_DATA_START + S_DATA_SIZE - 1)
 
-/* Size of vector table: 111 interrupt handlers + 4 bytes MSP initial value */
-#define S_CODE_VECTOR_TABLE_SIZE    (0x1C0)
-
 /* Non-secure regions */
 /* Non-Secure Code executes from VM1, or XIP from flash via the SIC */
 #ifdef RSE_XIP
