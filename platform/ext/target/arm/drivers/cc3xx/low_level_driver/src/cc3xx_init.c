@@ -135,6 +135,17 @@ cc3xx_err_t cc3xx_lowlevel_init(void)
     /* Configure entire system to little endian */
     P_CC3XX->host_rgf.host_rgf_endian = 0x0U;
 
+    /* Set the AHB to issue secure, privileged data access transactions */
+    P_CC3XX->ahb.ahbm_hprot = 0b11U;
+    P_CC3XX->ahb.ahbm_hnonsec = 0b00U;
+
+    /* Set AHB transactions to Burst INCR4 by default */
+    P_CC3XX->ahb.ahbm_singles = 0x0UL;
+
+    /* Reset engine to PASSTHROUGH / None */
+    cc3xx_engine_in_use = CC3XX_ENGINE_NONE;
+    P_CC3XX->cc_ctl.crypto_ctl = CC3XX_ENGINE_NONE;
+
     err = setup_dfa_countermeasures();
     if (err != CC3XX_ERR_SUCCESS) {
         return err;
@@ -146,17 +157,6 @@ cc3xx_err_t cc3xx_lowlevel_init(void)
         return err;
     }
 #endif /* CC3XX_CONFIG_DPA_MITIGATIONS_ENABLE */
-
-    /* Set the AHB to issue secure, privileged data access transactions */
-    P_CC3XX->ahb.ahbm_hprot = 0b11U;
-    P_CC3XX->ahb.ahbm_hnonsec = 0b00U;
-
-    /* Set AHB transactions to Burst INCR4 by default */
-    P_CC3XX->ahb.ahbm_singles = 0x0UL;
-
-    /* Reset engine to PASSTHROUGH / None */
-    cc3xx_engine_in_use = CC3XX_ENGINE_NONE;
-    P_CC3XX->cc_ctl.crypto_ctl = CC3XX_ENGINE_NONE;
 
     return CC3XX_ERR_SUCCESS;
 }
