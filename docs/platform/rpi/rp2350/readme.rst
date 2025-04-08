@@ -31,7 +31,7 @@ and specify the platform name by setting ``-DTFM_PLATFORM=rpi/rp2350``.
    This platform port relies on the
    `Raspberry Pi Pico SDK <https://github.com/raspberrypi/pico-sdk>`__.
    Make sure it is either cloned locally or available to download during build.
-   SDK version used for testing: ``SDK 2.0.0 release``.
+   SDK version used for testing: ``SDK 2.1.1 release``.
 
 .. note::
 

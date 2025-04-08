@@ -11,22 +11,24 @@ index 9044817..8fc4458 100644
      return *(volatile typeof(sem->permits) *) &sem->permits;
  #else
      static_assert(sizeof(sem->permits) == 2, "");
-diff --git a/src/rp2_common/pico_bootrom/CMakeLists.txt b/src/rp2_common/pico_bootrom/CMakeLists.txt
-index 0648098..93a52ea 100644
---- a/src/rp2_common/pico_bootrom/CMakeLists.txt
-+++ b/src/rp2_common/pico_bootrom/CMakeLists.txt
-@@ -8,5 +8,5 @@ target_sources(pico_bootrom INTERFACE
-         ${CMAKE_CURRENT_LIST_DIR}/bootrom_lock.c
-         )
+diff --git a/src/rp2_common/hardware_flash/flash.c b/src/rp2_common/hardware_flash/flash.c
+index adae078..8a0f857 100644
+--- a/src/rp2_common/hardware_flash/flash.c
++++ b/src/rp2_common/hardware_flash/flash.c
+@@ -299,7 +299,7 @@ static void flash_devinfo_update_field(uint16_t wdata, uint16_t mask) {
+     // Boot RAM does not support exclusives, but does support RWTYPE SET/CLR/XOR (with byte
+     // strobes). Can't use hw_write_masked because it performs a 32-bit write.
+     io_rw_16 *devinfo = flash_devinfo_ptr();
+-    *hw_xor_alias(devinfo) = (*devinfo ^ wdata) & mask;
++    *(io_rw_32 *)hw_xor_alias_untyped(devinfo) = (*devinfo ^ wdata) & mask;
+ }
  
--target_link_libraries(pico_bootrom_headers INTERFACE boot_picoboot_headers)
-+target_link_libraries(pico_bootrom_headers INTERFACE boot_picoboot_headers boot_picobin_headers)
- pico_mirrored_target_link_libraries(pico_bootrom INTERFACE pico_base hardware_boot_lock)
+ // This is a RAM function because may be called during flash programming to enable save/restore of
 diff --git a/src/rp2_common/pico_multicore/multicore.c b/src/rp2_common/pico_multicore/multicore.c
-index 58c2ee2..6ec689f 100644
+index f8f5660..725e313 100644
 --- a/src/rp2_common/pico_multicore/multicore.c
 +++ b/src/rp2_common/pico_multicore/multicore.c
-@@ -100,8 +100,8 @@ int core1_wrapper(int (*entry)(void), void *stack_base) {
+@@ -101,8 +101,8 @@ int core1_wrapper(int (*entry)(void), void *stack_base) {
  void multicore_reset_core1(void) {
      // Use atomic aliases just in case core 1 is also manipulating some PSM state
      io_rw_32 *power_off = (io_rw_32 *) (PSM_BASE + PSM_FRCE_OFF_OFFSET);
