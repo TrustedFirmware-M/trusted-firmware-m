@@ -1032,6 +1032,34 @@ if (RSE_COMMS_NUMBER_NODES GREATER 1)
     endif()
 endif()
 
+add_custom_target(error_codes_mapping
+    ALL
+    SOURCES ${CMAKE_CURRENT_BINARY_DIR}/config/error_codes_mapping.csv
+)
+
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/config/error_codes_mapping.csv
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/error_codes_config.py
+    DEPENDS ${RSE_SUBPLATFORM_PAL_CONFIG_DIR}/rse_otp_config.h
+    COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_SOURCE_DIR}/tools/modules
+        ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/error_codes_config.py
+            --error_code_output_file=${CMAKE_CURRENT_BINARY_DIR}/config/error_codes_mapping.csv
+            --compile_commands_file=${CMAKE_BINARY_DIR}/compile_commands.json
+            --c_compiler=${CMAKE_C_COMPILER}
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../rse/common/platform_error_codes.h:tfm_plat_err_t
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../drivers/kmu/kmu_drv.h:kmu_error_t
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../drivers/lcm/lcm_drv.h:lcm_error_t
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../rse/common/native_drivers/mhu_v2_x.h:mhu_v2_x_error_t
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../rse/common/native_drivers/mhu_v3_x.h:mhu_v3_x_error_t
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../rse/common/native_drivers/mhu.h:mhu_error_t
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../rse/common/native_drivers/atu_rse_drv.h:atu_error_t
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../rse/common/native_drivers/integrity_checker_drv.h:integrity_checker_error_t
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../drivers/dcsu/include/dcsu_drv.h:dcsu_error_t
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../drivers/cc3xx/common/cc3xx_error.h:cc3xx_error
+)
+
+install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/config/error_codes_mapping.csv
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/config)
+
 #========================= Files for building NS side platform ================#
 
 if (TFM_LOAD_NS_IMAGE)
