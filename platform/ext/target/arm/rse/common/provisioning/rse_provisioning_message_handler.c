@@ -542,7 +542,8 @@ blob_handling_status_report_continue(enum provisioning_message_report_step_t ste
         .error_code = 0,
     };
 
-    return provisioning_comms_send_response((uint32_t *)&status_report, sizeof(status_report));
+    return provisioning_comms_send_status_blocking((uint32_t *)&status_report,
+                                                   sizeof(status_report));
 }
 
 enum tfm_plat_err_t blob_handling_status_report_error(enum provisioning_message_report_step_t step,
@@ -554,7 +555,8 @@ enum tfm_plat_err_t blob_handling_status_report_error(enum provisioning_message_
         .error_code = error,
     };
 
-    return provisioning_comms_send_response((uint32_t *)&status_report, sizeof(status_report));
+    return provisioning_comms_send_status_blocking((uint32_t *)&status_report,
+                                                   sizeof(status_report));
 }
 
 enum tfm_plat_err_t blob_provisioning_finished(void)
@@ -565,7 +567,8 @@ enum tfm_plat_err_t blob_provisioning_finished(void)
         .error_code = 0,
     };
 
-    return provisioning_comms_send_response((uint32_t *)&status_report, sizeof(status_report));
+    return provisioning_comms_send_status_blocking((uint32_t *)&status_report,
+                                                   sizeof(status_report));
 }
 
 enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_blob_t *blob,

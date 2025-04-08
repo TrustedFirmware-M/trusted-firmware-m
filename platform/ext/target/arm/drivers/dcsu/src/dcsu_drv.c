@@ -109,7 +109,17 @@ enum dcsu_error_t dcsu_poll_for_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_
     return DCSU_ERROR_NONE;
 }
 
-void dcsu_wait_for_tx_response(struct dcsu_dev_t *dev)
+enum dcsu_error_t dcsu_poll_for_tx_response(struct dcsu_dev_t *dev)
+{
+    struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
+
+    if (p_dcsu->diag_cmd_irq_status & (0b1 << 1)) {
+        return DCSU_ERROR_NONE;
+    }
+    return DCSU_ERROR_POLL_NO_COMMAND_PENDING;
+}
+
+static void dcsu_wait_for_tx_response(struct dcsu_dev_t *dev)
 {
     struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
 
@@ -118,6 +128,12 @@ void dcsu_wait_for_tx_response(struct dcsu_dev_t *dev)
         __asm volatile("wfi");
 #endif
     }
+}
+
+static void dcsu_clear_pending_tx_interrupt(struct dcsu_dev_t *dev)
+{
+    struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
+
     p_dcsu->diag_cmd_irq_clear = 0b1 << 1;
 }
 
@@ -245,11 +261,26 @@ enum dcsu_error_t dcsu_respond_to_rx_command(struct dcsu_dev_t *dev,
     return rx_return_send(dev, response);
 }
 
-static enum dcsu_error_t tx_command_send(struct dcsu_dev_t *dev, enum dcsu_tx_command tx_command,
-                                         uint32_t data_word_size, uint32_t checksum)
+enum dcsu_error_t dcsu_handle_tx_response(struct dcsu_dev_t *dev)
 {
     struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
     enum dcsu_tx_msg_response_t msg_resp;
+
+    msg_resp = (p_dcsu->diag_tx_command >> 24) & 0xFF;
+
+    dcsu_clear_pending_tx_interrupt(dev);
+
+    p_dcsu->diag_tx_command = 0;
+
+    INFO("Rec: %x\r\n", msg_resp);
+
+    return tx_msg_err_to_dcsu_err(msg_resp);
+}
+
+static enum dcsu_error_t tx_command_send(struct dcsu_dev_t *dev, enum dcsu_tx_command tx_command,
+                                         uint32_t data_word_size, uint32_t checksum, bool block)
+{
+    struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
     uint32_t tx_command_word = 0;
 
     INFO("Sending %x\r\n", tx_command);
@@ -260,16 +291,14 @@ static enum dcsu_error_t tx_command_send(struct dcsu_dev_t *dev, enum dcsu_tx_co
 
     p_dcsu->diag_tx_command = tx_command_word;
 
-    /* Now wait for the response */
-    dcsu_wait_for_tx_response(dev);
+    if (block) {
+        /* Now wait for the response */
+        dcsu_wait_for_tx_response(dev);
 
-    msg_resp = (p_dcsu->diag_tx_command >> 24) & 0xFF;
-
-    p_dcsu->diag_tx_command = 0;
-
-    INFO("Rec: %x\r\n", msg_resp);
-
-    return tx_msg_err_to_dcsu_err(msg_resp);
+        return dcsu_handle_tx_response(dev);
+    } else {
+        return DCSU_ERROR_NONE;
+    }
 }
 
 static enum dcsu_error_t tx_export_send(struct dcsu_dev_t *dev, const uint8_t *data,
@@ -291,7 +320,7 @@ static enum dcsu_error_t tx_export_send(struct dcsu_dev_t *dev, const uint8_t *d
         p_dcsu->diag_tx_data[idx] = send_buf[idx];
     }
 
-    return tx_command_send(dev, DCSU_TX_COMMAND_EXPORT_DATA_NO_CHECKSUM, send_num_words, 0);
+    return tx_command_send(dev, DCSU_TX_COMMAND_EXPORT_DATA_NO_CHECKSUM, send_num_words, 0, true);
 }
 
 enum dcsu_error_t dcsu_send_data(struct dcsu_dev_t *dev, const uint8_t *data, size_t data_size)
@@ -317,7 +346,7 @@ enum dcsu_error_t dcsu_send_data(struct dcsu_dev_t *dev, const uint8_t *data, si
         sent_data_size += current_send_size;
     }
 
-    return tx_command_send(dev, DCSU_TX_COMMAND_COMPLETE_EXPORT_DATA, 0, 0);
+    return tx_command_send(dev, DCSU_TX_COMMAND_COMPLETE_EXPORT_DATA, 0, 0, true);
 }
 
 enum dcsu_error_t dcsu_write_sw_status(struct dcsu_dev_t *dev, uint32_t status,
@@ -335,9 +364,19 @@ enum dcsu_error_t dcsu_write_sw_status(struct dcsu_dev_t *dev, uint32_t status,
     return DCSU_ERROR_NONE;
 }
 
+static enum dcsu_error_t __dcsu_import_ready(struct dcsu_dev_t *dev, bool block)
+{
+    return tx_command_send(dev, DCSU_TX_COMMAND_READY_FOR_IMPORT, 0, 0, block);
+}
+
 enum dcsu_error_t dcsu_import_ready(struct dcsu_dev_t *dev)
 {
-    return tx_command_send(dev, DCSU_TX_COMMAND_READY_FOR_IMPORT, 0, 0);
+    return __dcsu_import_ready(dev, true);
+}
+
+enum dcsu_error_t dcsu_import_ready_non_blocking(struct dcsu_dev_t *dev)
+{
+    return __dcsu_import_ready(dev, false);
 }
 
 enum dcsu_error_t dcsu_report_status(struct dcsu_dev_t *dev, uint32_t *status, uint32_t size)
@@ -357,7 +396,7 @@ enum dcsu_error_t dcsu_report_status(struct dcsu_dev_t *dev, uint32_t *status, u
 
     checksum = dcsu_hal_checksum_data((uint32_t *)p_dcsu->diag_tx_data, send_num_words);
 
-    return tx_command_send(dev, DCSU_TX_COMMAND_REPORT_STATUS, send_num_words, checksum);
+    return tx_command_send(dev, DCSU_TX_COMMAND_REPORT_STATUS, send_num_words, checksum, true);
 }
 
 enum dcsu_error_t dcsu_init(struct dcsu_dev_t *dev, uint8_t *rx_buf, size_t rx_buf_len,

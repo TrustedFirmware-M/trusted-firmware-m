@@ -90,7 +90,6 @@ void do_jump(void)
 
 __attribute__((section("DO_PROVISION"))) enum tfm_plat_err_t do_provision(void) {
     enum tfm_plat_err_t err;
-    size_t msg_len;
     const struct rse_provisioning_message_t *provisioning_message =
     (const struct rse_provisioning_message_t *)PROVISIONING_MESSAGE_START;
 
@@ -108,9 +107,12 @@ __attribute__((section("DO_PROVISION"))) enum tfm_plat_err_t do_provision(void) 
 
     INFO("Provisioning next blob\n");
 
-    err = provisioning_comms_receive(provisioning_message,
-                                     RSE_PROVISIONING_MESSAGE_MAX_SIZE,
-                                     &msg_len);
+    err = provisioning_comms_init(provisioning_message, RSE_PROVISIONING_MESSAGE_MAX_SIZE);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    err = provisioning_comms_receive_commands_blocking();
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }

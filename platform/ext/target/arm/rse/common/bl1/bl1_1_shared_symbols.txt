@@ -95,8 +95,9 @@ putchar
 tfm_vprintf
 tfm_log
 default_blob_handler
-provisioning_comms_receive
 provisioning_rotpk_get
+provisioning_comms_init
+provisioning_comms_receive_commands_blocking
 handle_provisioning_message
 rse_provisioning_setup_aes_key
 rse_permanently_disable_device

@@ -185,6 +185,17 @@ enum dcsu_error_t dcsu_poll_for_any_rx_command(struct dcsu_dev_t *dev);
 enum dcsu_error_t dcsu_poll_for_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_command command);
 
 /**
+ * \brief This function checks if a response has been received from a
+ *        previous TX message
+ *
+ * \param[in]  dev        The DCSU device structure.
+ *
+ * \return  DCSU_ERROR_NONE if the command is pending, else an
+ *          error code as specified in \ref dcsu_error_t.
+ */
+enum dcsu_error_t dcsu_poll_for_tx_response(struct dcsu_dev_t *dev);
+
+/**
  * \brief This function handles any pending DCSU commands. This is intended to
  *        be called by an interrupt handler.
  *
@@ -194,6 +205,17 @@ enum dcsu_error_t dcsu_poll_for_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_
  *          error code as specified in \ref dcsu_error_t.
  */
 enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev);
+
+/**
+ * \brief This function handles any pending DCSU reponse from a previous TX message.
+          This is intended to be called by an interrupt handler.
+ *
+ * \param[in]  dev        The DCSU device structure.
+ *
+ * \return  DCSU_ERROR_NONE if the operation has succeeded, else an
+ *          error code as specified in \ref dcsu_error_t.
+ */
+enum dcsu_error_t dcsu_handle_tx_response(struct dcsu_dev_t *dev);
 
 /**
  * \brief This function sends a response to a specific pending DCSU command.
@@ -220,6 +242,18 @@ enum dcsu_error_t dcsu_respond_to_rx_command(struct dcsu_dev_t *dev,
  *          error code as specified in \ref dcsu_error_t.
  */
 enum dcsu_error_t dcsu_import_ready(struct dcsu_dev_t *dev);
+
+/**
+ * \brief This function sends the Import Ready command to signal to external
+ * tooling that RSE is ready to receive commands. It does not block to
+ * wait for acknowledgement
+ *
+ * \param[in]  dev        The DCSU device structure.
+ *
+ * \return  DCSU_ERROR_NONE if the operation has succeeded, else an
+ *          error code as specified in \ref dcsu_error_t.
+ */
+enum dcsu_error_t dcsu_import_ready_non_blocking(struct dcsu_dev_t *dev);
 
 /**
  * \brief This function sends the report status command with a status update.
