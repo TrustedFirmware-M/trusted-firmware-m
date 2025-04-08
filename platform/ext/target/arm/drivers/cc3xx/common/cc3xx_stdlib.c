@@ -17,6 +17,10 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#ifdef CC3XX_CONFIG_STDLIB_EXTERNAL_DPA_HARDENED_WORD_COPY
+#include "dpa_hardened_word_copy.h"
+#endif
+
 void cc3xx_secure_erase_buffer(uint32_t *buf, size_t word_count)
 {
     /* Overwrites the input buffer with random values */
