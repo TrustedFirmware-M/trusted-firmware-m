@@ -121,7 +121,7 @@ endif()
 
 add_executable(bl2
     src/flash_map.c
-    $<$<C_COMPILER_ID:Clang>:src/crt_exit.c>
+    src/crt_exit.c
     $<$<BOOL:${DEFAULT_MCUBOOT_SECURITY_COUNTERS}>:src/security_cnt.c>
     $<$<BOOL:${DEFAULT_MCUBOOT_FLASH_MAP}>:src/default_flash_map.c>
     $<$<BOOL:${MCUBOOT_DATA_SHARING}>:src/shared_data.c>

@@ -25,7 +25,7 @@ target_sources(tfm_sprt
         crt_memmove.c
         crt_strnlen.c
         $<$<C_COMPILER_ID:Clang>:crt_start.c>
-        $<$<C_COMPILER_ID:Clang>:crt_exit.c>
+        crt_exit.c
         $<$<C_COMPILER_ID:Clang>:crt_strlen.c>
         crt_vprintf.c
         service_api.c
