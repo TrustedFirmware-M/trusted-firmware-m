@@ -19,12 +19,12 @@
 /**
  * \brief Fills the AEAD additional data used for the encryption/decryption
  *
- * \details The additional data are not encrypted their integrity is checked.
+ * \details The additional data is not encrypted but its integrity is checked.
  *          For the ITS encryption we use the file id, the file flags and the
  *          data size of the file as additional data.
  *
- * \param[out]  add       Additional data
- * \param[in]   add_size  Additional data size in bytes
+ * \param[out]  aad       Additional authenticated data
+ * \param[in]   aad_size  Additional authenticated data size in bytes
  * \param[in]   fid       Identifier of the file
  * \param[in]   fid_size  Identifier of the file size in bytes
  * \param[in]   flags     Flags of the file
@@ -32,12 +32,12 @@
  *
  * \retval PSA_SUCCESS                On success
  * \retval PSA_ERROR_INVALID_ARGUMENT When the additional data buffer does not
- *                                    have the correct size of the add/fid
+ *                                    have the correct size or the aad/fid
  *                                    buffers are NULL
  *
  */
-static psa_status_t tfm_its_fill_enc_add(uint8_t *add,
-                                         const size_t add_size,
+static psa_status_t tfm_its_fill_enc_add(uint8_t *aad,
+                                         const size_t aad_size,
                                          const uint8_t *fid,
                                          const size_t fid_size,
                                          const uint32_t flags,
@@ -48,22 +48,21 @@ static psa_status_t tfm_its_fill_enc_add(uint8_t *add,
      * gets the file info from ITS (see its_flash_fs_file_get_info).
      * We use the same flags for conformity.
      */
-    uint32_t user_flags = flags & ITS_FLASH_FS_USER_FLAGS_MASK;
+    const uint32_t user_flags = flags & ITS_FLASH_FS_USER_FLAGS_MASK;
 
     /* The additional data consist of the file id, the flags and the
      * data size of the file.
      */
-    size_t add_expected_size = ITS_FILE_ID_SIZE +
-                               sizeof(user_flags) +
-                               sizeof(data_size);
+    const size_t aad_expected_size =
+      ITS_FILE_ID_SIZE + sizeof(user_flags) + sizeof(data_size);
 
-    if (add_size != add_expected_size || add == NULL || fid == NULL) {
+    if ((aad_size != aad_expected_size) || (aad == NULL) || (fid == NULL)) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    memcpy(add, fid, fid_size);
-    memcpy(add + fid_size, &user_flags, sizeof(user_flags));
-    memcpy(add + fid_size + sizeof(user_flags),
+    memcpy(aad, fid, fid_size);
+    memcpy(aad + fid_size, &user_flags, sizeof(user_flags));
+    memcpy(aad + fid_size + sizeof(user_flags),
                &data_size,
                sizeof(data_size));
 
@@ -162,4 +161,3 @@ psa_status_t tfm_its_crypt_file(struct its_flash_fs_file_info_t *finfo,
 
     return PSA_SUCCESS;
 }
-

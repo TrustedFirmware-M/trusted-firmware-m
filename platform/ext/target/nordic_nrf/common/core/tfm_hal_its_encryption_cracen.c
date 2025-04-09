@@ -103,7 +103,7 @@ static bool ctx_is_valid(struct tfm_hal_its_auth_crypt_ctx *ctx)
     }
 
     ret = (ctx->deriv_label == NULL && ctx->deriv_label_size != 0) ||
-          (ctx->aad == NULL && ctx->add_size != 0) ||
+          (ctx->aad == NULL && ctx->aad_size != 0) ||
           (ctx->nonce == NULL && ctx->nonce_size != 0);
 
     return !ret;
@@ -166,7 +166,7 @@ psa_status_t tfm_hal_its_get_aead(struct tfm_hal_its_auth_crypt_ctx *ctx,
         return status;
     }
 
-    status = cracen_aead_update_ad(&operation, ctx->aad, ctx->add_size);
+    status = cracen_aead_update_ad(&operation, ctx->aad, ctx->aad_size);
     if (status != PSA_SUCCESS) {
         return status;
     }
