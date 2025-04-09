@@ -31,6 +31,7 @@ class dcsu_rx_command(Enum):
     DCSU_RX_COMMAND_REPORT_STATUS = 0x2
     DCSU_RX_COMMAND_EXPORT_DATA_WITH_CHECKSUM = 0x3
     DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM = 0x4
+    DCSU_RX_COMMAND_COMPLETE_EXPORT_DATA = 0x5
 
 class dcsu_tx_message_error(Enum):
     DCSU_TX_MSG_RESP_NO_RESP = 0x0
@@ -106,6 +107,13 @@ def rx_wait_for_command(backend, ctx, command : dcsu_rx_command):
         time.sleep(0.1)
 
     assert (command.value == recieved_command), "Unexpected command {} received".format(dcsu_rx_command(recieved_command))
+
+def rx_wait_for_any_command(backend, ctx) -> dcsu_rx_command:
+    logger.info("Waiting for any command")
+    while (recieved_command := backend.read_register(ctx, "DIAG_TX_COMMAND") & 0xFF) == 0:
+        time.sleep(0.1)
+
+    return dcsu_rx_command(recieved_command)
 
 def rx_command_receive(backend, ctx, command : dcsu_rx_command) -> bytes:
     rx_wait_for_command(backend, ctx, command)
@@ -239,16 +247,24 @@ def dcsu_rx_command_import_ready(backend, ctx, args: argparse.Namespace):
     return 0
 
 def dcsu_rx_command_export_data(backend, ctx, args: argparse.Namespace):
-    rx_wait_for_command(backend, ctx, dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM)
+    got_complete = False
+    bytes_received = bytearray(200)
+    max_len = 0
 
-    bytes_to_read = backend.read_register(ctx, "DIAG_TX_LARGE_PARAM")
-    bytes_received = bytes(0)
+    while not got_complete:
+        if (recieved_command := rx_wait_for_any_command(backend, ctx)) == \
+            dcsu_rx_command.DCSU_RX_COMMAND_COMPLETE_EXPORT_DATA:
+            got_complete = True
 
-    while len(bytes_received) < bytes_to_read:
-         bytes_received += rx_command_receive(backend,
-                                              ctx,
-                                              dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM)
-    return bytes_received
+        if recieved_command == dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM:
+            offset = backend.read_register(ctx, "DIAG_TX_LARGE_PARAM")
+
+        data = rx_command_receive(backend, ctx, recieved_command)
+        if data is not None:
+            max_len = offset + len(data)
+            bytes_received[offset:max_len] = data
+
+    return bytes(bytes_received[:max_len])
 
 
 def dcsu_command(backend, ctx, command, args: argparse.Namespace):

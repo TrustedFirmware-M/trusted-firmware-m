@@ -302,9 +302,10 @@ enum dcsu_error_t dcsu_send_data(struct dcsu_dev_t *dev, const uint8_t *data, si
     size_t sent_data_size;
     enum dcsu_error_t err;
 
-    p_dcsu->diag_tx_large_param = data_size;
-
     for (sent_data_size = 0; sent_data_size < data_size;) {
+        /* Data offset in receive buffer */
+        p_dcsu->diag_tx_large_param = sent_data_size;
+
         current_send_size = (sent_data_size + max_send_size < data_size) ?
                                 max_send_size :
                                 (data_size - sent_data_size);
@@ -316,7 +317,7 @@ enum dcsu_error_t dcsu_send_data(struct dcsu_dev_t *dev, const uint8_t *data, si
         sent_data_size += current_send_size;
     }
 
-    return DCSU_ERROR_NONE;
+    return tx_command_send(dev, DCSU_TX_COMMAND_COMPLETE_EXPORT_DATA, 0, 0);
 }
 
 enum dcsu_error_t dcsu_write_sw_status(struct dcsu_dev_t *dev, uint32_t status,
