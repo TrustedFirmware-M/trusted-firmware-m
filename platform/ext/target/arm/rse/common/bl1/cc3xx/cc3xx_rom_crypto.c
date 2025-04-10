@@ -509,7 +509,8 @@ fih_int bl1_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t curve,
     uint32_t sig_r[point_size / sizeof(uint32_t)];
     uint32_t sig_s[point_size / sizeof(uint32_t)];
 
-    if (key_size < point_size / 2) {
+    /* We extract at least 2 * point_size from the key buffer, right aligned */
+    if (key_size < point_size * 2) {
         FATAL_ERR(TFM_PLAT_ERR_BL1_ECDSA_VERIFY_INVALID_KEY_LEN);
         FIH_RET(fih_int_encode_zero_equality(TFM_PLAT_ERR_BL1_ECDSA_VERIFY_INVALID_KEY_LEN));
     }
@@ -518,6 +519,7 @@ fih_int bl1_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t curve,
     memcpy(pubkey_y, key + key_size - 1 * point_size, point_size);
 
     if (signature_size < point_size * 2) {
+        FATAL_ERR(TFM_PLAT_ERR_BL1_ECDSA_VERIFY_INVALID_SIG_LEN);
         FIH_RET(fih_int_encode_zero_equality(TFM_PLAT_ERR_BL1_ECDSA_VERIFY_INVALID_SIG_LEN));
     }
 
