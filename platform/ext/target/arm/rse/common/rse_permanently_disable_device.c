@@ -11,27 +11,32 @@
 
 #include <assert.h>
 
-/* FixMe: This function might fail to write the device status. Callers
- *        currently ignore this option and assume the disabling always
- *        worked
+/* If the function fails to permanently disable the device it will just spin and
+ * avoid returning so that callers do not have to handle the exceptional behaviour
  */
 enum tfm_plat_err_t rse_permanently_disable_device(
                     enum rse_permanently_disable_device_error_code fatal_error)
 {
-    uint32_t device_status;
+    uint32_t device_status, read_back_status;
     enum tfm_plat_err_t err;
 
     assert(fatal_error != 0);
 
-    err = tfm_plat_otp_read(PLAT_OTP_ID_DEVICE_STATUS, sizeof(device_status),
+    do {
+        err = tfm_plat_otp_read(PLAT_OTP_ID_DEVICE_STATUS, sizeof(device_status),
                             (uint8_t *)&device_status);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
-    }
+    } while (err != TFM_PLAT_ERR_SUCCESS);
 
     /* device_status[31:17] contains the error */
     device_status |= (fatal_error & 0x7FFF) << 17;
 
-    return tfm_plat_otp_write(PLAT_OTP_ID_DEVICE_STATUS, sizeof(device_status),
-                              (uint8_t *)&device_status);
+    do {
+        err = tfm_plat_otp_write(PLAT_OTP_ID_DEVICE_STATUS, sizeof(device_status), (uint8_t *)&device_status);
+        if (err != TFM_PLAT_ERR_SUCCESS) {
+            continue;
+        }
+        err = tfm_plat_otp_read(PLAT_OTP_ID_DEVICE_STATUS, sizeof(read_back_status), (uint8_t *)&read_back_status);
+    } while ((err != TFM_PLAT_ERR_SUCCESS) || (read_back_status != device_status));
+
+    return err;
 }
