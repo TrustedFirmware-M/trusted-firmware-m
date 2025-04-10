@@ -90,6 +90,10 @@ sic_boot_setup_auth_and_decrypt(uintptr_t sictbl,
         return SIC_BOOT_INVALID_REGION;
     }
 
+    if (!(img_addr + img_size > img_addr) || !(base_addr + SIC_MAPPABLE_SIZE > base_addr)) {
+        return SIC_BOOT_INVALID_REGION;
+    }
+
     /* The image must be mapped to the SIC region */
     if ((img_addr < base_addr) ||
         ((img_addr + img_size) > (base_addr + SIC_MAPPABLE_SIZE))) {
