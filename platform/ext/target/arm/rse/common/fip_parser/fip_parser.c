@@ -5,26 +5,28 @@
  *
  */
 
+#include <string.h>
+#include <assert.h>
+
 #include "fip_parser.h"
 #include "tfm_plat_defs.h"
-
 #include "flash_layout.h"
 #include "Driver_Flash.h"
-
-#include <string.h>
 
 enum tfm_plat_err_t fip_get_entry_by_uuid(const ARM_DRIVER_FLASH *flash_dev,
                                           uint32_t fip_offset, uint32_t atu_slot_size,
                                           uuid_t uuid, uint64_t *offset, size_t *size)
 {
     ARM_FLASH_CAPABILITIES DriverCapabilities = flash_dev->GetCapabilities();
+    assert(DriverCapabilities.data_width <= 2);
     /* Valid entries for data item width */
-    uint32_t data_width_byte[] = {
+    const uint32_t data_width_byte[] = {
         sizeof(uint8_t),
         sizeof(uint16_t),
         sizeof(uint32_t),
     };
-    size_t data_width = data_width_byte[DriverCapabilities.data_width];
+    const size_t data_width =
+        data_width_byte[DriverCapabilities.data_width <= 2 ? DriverCapabilities.data_width : 0];
     int rc;
     uint32_t idx = 0;
     fip_toc_header_t toc_header;
