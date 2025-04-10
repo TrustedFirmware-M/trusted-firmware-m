@@ -120,16 +120,18 @@ static void copy_rom_library_into_sram(void)
     /* Copy the ROM into VM1 */
     memcpy((uint8_t *)VM1_BASE_S, (uint8_t *)ROM_BASE_S, code_size);
 
-    /* Patch the GOT so that any address which pointed into ROM now points into
-     * VM1.
+    /* Patch the GOT so that any address which pointed into ROM
+     * now points into VM1.
      */
-    for (uint32_t * addr = &__got_start__; addr < &__got_end__; addr++) {
+    for (uint32_t *addr = &__got_start__; addr < &__got_end__; addr++) {
         got_entry = *addr;
 
         if (got_entry >= ROM_BASE_S && got_entry < ROM_BASE_S + ROM_SIZE) {
             got_entry -= ROM_BASE_S;
             got_entry += VM1_BASE_S;
         }
+
+        *addr = got_entry;
     }
 }
 #endif /* RSE_USE_ROM_LIB_FROM_SRAM */
