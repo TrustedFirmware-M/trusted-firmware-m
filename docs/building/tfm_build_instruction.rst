@@ -62,7 +62,7 @@ you can alter that behaviour using :ref:`Dependency management`.
 
 .. Note::
 
- - For building with Armclang compiler version 6.10.0+, please follow the note
+ - For building with Armclang compiler, please follow the note
    in :doc:`TF-M getting started </getting_started/tfm_getting_started>`.
  - For building with the IAR toolchain, please see the notes in
    :doc:`IAR software requirements <tfm_build_instruction_iar>`

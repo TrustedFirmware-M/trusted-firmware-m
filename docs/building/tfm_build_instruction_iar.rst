@@ -9,7 +9,7 @@ Follow the instructions in
 Notes for building with IARARM
 ------------------------------
 
-    IAR Embedded Workbench for ARM (EWARM) versions 8.42 or later are required.
+    IAR Embedded Workbench for ARM (EWARM) versions v9.30.1 or later are required.
 
     Currently the MUSCA_B1 and MUSCA_S1 targets are not supported with IARARM,
     due to lack of testing.

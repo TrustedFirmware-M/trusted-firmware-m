@@ -152,7 +152,7 @@ To compile TF-M code, at least one of the supported compiler toolchains have to
 be available in the build environment. The currently supported compiler
 versions are:
 
-    - Arm Compiler v6.13 ~ v6.14, v6.18+
+    - Arm Compiler minimum version v6.21
 
       .. tabs::
 
@@ -180,15 +180,7 @@ versions are:
 
               - Configure proper tool variant and license.
 
-      .. note::
-
-          Arm compiler v6.15 ~ v6.17 may cause MemManage fault.
-          This defect has been fixed since Arm compiler v6.18.
-          See [SDCOMP-59788] in Armclang v6.18 `release note`__ for details.
-
-          .. __: https://developer.arm.com/documentation/107814/6-18
-
-    - GNU Arm compiler v7.3.1+
+    - GNU Arm compiler version minimum 10.3.2021.10
 
       .. tabs::
 
@@ -210,13 +202,7 @@ versions are:
 
                     set PATH=<GNU_ARM_PATH>\bin;%PATH%
 
-      .. note::
-
-          GNU Arm compiler version *10-2020-q4-major* has an issue in CMSE
-          support. The bug is reported in `here <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=99157>`__.
-          Select other GNU Arm compiler versions instead.
-
-    - IAR Arm compiler v8.42.x, v8.50.x
+    - IAR Arm compiler v9.30.1
 
       .. tabs::
 
@@ -504,6 +490,6 @@ Here are some next steps for exploring TF-M:
 
 --------------
 
-*Copyright (c) 2017-2024, Arm Limited. All rights reserved.*
-*Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon company)
-or an affiliate of Cypress Semiconductor Corporation. All rights reserved.*
+*SPDX-License-Identifier: BSD-3-Clause*
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
