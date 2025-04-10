@@ -104,6 +104,8 @@ static enum tfm_plat_err_t duplicate_into_next_slot(enum rse_kmu_slot_id_t slot,
     size_t kmu_slot_size;
     enum tfm_plat_err_t plat_err;
 
+    /* kmu_get_key_buffer_ptr validates whether slot and slot + 1 are valid slots */
+
     kmu_err = kmu_get_key_buffer_ptr(&KMU_DEV_S, slot,
                                      &p_kmu_slot_buf, &kmu_slot_size);
     if (kmu_err != KMU_ERROR_NONE) {
