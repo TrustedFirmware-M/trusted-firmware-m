@@ -5,7 +5,7 @@
  *
  */
 
-
+#include <assert.h>
 #include "trng.h"
 #include "cc3xx_rng_external_trng.h"
 
@@ -19,18 +19,23 @@ static inline uint32_t otp_trng_get_random_uint32_t(void)
     return *rng_ptr;
 }
 
-cc3xx_err_t trng_init(void) {
+cc3xx_err_t trng_init(void)
+{
     return CC3XX_ERR_SUCCESS;
 }
 
-cc3xx_err_t trng_get_random(uint32_t *buf, size_t word_count) {
-    for (size_t idx; idx < word_count; idx++) {
+cc3xx_err_t trng_get_random(uint32_t *buf, size_t word_count)
+{
+    assert(buf != NULL);
+
+    for (size_t idx = 0; idx < word_count; idx++) {
         buf[idx] = otp_trng_get_random_uint32_t();
     }
 
     return CC3XX_ERR_SUCCESS;
 }
 
-cc3xx_err_t trng_finish(void) {
+cc3xx_err_t trng_finish(void)
+{
     return CC3XX_ERR_SUCCESS;
 }
