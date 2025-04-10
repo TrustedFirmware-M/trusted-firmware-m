@@ -77,9 +77,10 @@ static void read_and_write_address(enum sam_event_id_t event_id)
                                              (enum rse_sam_event_id_t)event_id);
 
     /* Make sure the address we load/store is 8 byte aligned in order to
-     * read/write the correct 64 bit memory doubleword.
+     * read/write the correct 64 bit memory doubleword, by aligning it down
+     * to the nearest 8-byte boundary, i.e. clear the last three bits of the address
      */
-    vm_ptr = (volatile uint64_t *)((uintptr_t)vm_ptr & (sizeof(uint64_t) - 1));
+    vm_ptr = (volatile uint64_t *)((uintptr_t)vm_ptr & ~(sizeof(uint64_t) - 1));
 
     /* The ECC is based on a 64-bit word, so we need to read and write back a 64
      * bit word in order to not trigger a partial write. This is usually done by
