@@ -104,6 +104,7 @@ static enum noc_s3_err noc_s3_print_psam_config(
     struct noc_s3_sorted_region_list list = {
             .sorted_regions = sorted_buffer,
             .sorted_region_count = 0,
+            .sorted_region_max = NOC_S3_MAX_NH_REGIONS;
         };
     uint32_t r_idx, region;
     uint64_t base, end, prev_end, tgt_id;

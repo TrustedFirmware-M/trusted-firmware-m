@@ -43,6 +43,8 @@ struct noc_s3_sorted_region_list {
     struct noc_s3_sorted_region_data *sorted_regions;
     /* Number of regions in the sorted list */
     uint32_t sorted_region_count;
+    /* Maximum possible number of sorted regions the list can accept */
+    const uint32_t sorted_region_max;
 };
 
 /**

@@ -17,6 +17,10 @@ enum noc_s3_err noc_s3_sorted_add_entry(
     uint32_t r_idx;
     uint64_t temp_address;
 
+    if (list->sorted_region_count == list->sorted_region_max) {
+        return NOC_S3_NOT_PERMITTED;
+    }
+
     for (r_idx = list->sorted_region_count; r_idx > 0; --r_idx) {
         temp_address = list->sorted_regions[r_idx - 1].address;
 
