@@ -372,9 +372,8 @@ static enum tfm_plat_err_t rse_handshake_client(uint32_t rse_id, uint32_t *vhuk_
     }
 
     plat_err = exchange_vhuk_seeds_client(rse_id, vhuk_seeds_buf);
-    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
-        return plat_err;
-    }
+
+    return plat_err;
 }
 
 static enum tfm_plat_err_t calculate_session_key_server()
