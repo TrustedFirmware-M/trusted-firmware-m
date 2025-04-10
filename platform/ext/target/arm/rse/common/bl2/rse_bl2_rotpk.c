@@ -117,7 +117,6 @@ static enum tfm_plat_err_t tfm_plat_get_bl2_rotpk(void *ctx,
         (tfm_plat_builtin_key_descriptor_t *)ctx;
     uint32_t image_idx = descriptor->key_id - 1;
     enum tfm_otp_element_id_t otp_id;
-    enum tfm_plat_err_t err;
 
     err = get_otp_id(image_idx, &otp_id);
     if (err != TFM_PLAT_ERR_SUCCESS) {
