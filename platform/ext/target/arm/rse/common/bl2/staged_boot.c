@@ -165,6 +165,10 @@ int32_t run_staged_boot(void)
 
     for (i = 0; i < FIP_COUNT; i++) {
         fap_src = &fip_flash_map[i];
+        if (fip_logical_addr[i] < HOST_ACCESS_BASE_S) {
+            BOOT_LOG_ERR("Invalid fip_logical_addr[%d] = %x", i, fip_logical_addr[i]);
+            return -1;
+        }
         fap_src->fa_off = fip_logical_addr[i] - HOST_ACCESS_BASE_S;
 
         rc = flash_area_read(fap_src,
