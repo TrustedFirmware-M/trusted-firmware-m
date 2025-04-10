@@ -5,6 +5,7 @@
  *
  */
 
+#include "rse_provisioning_message.h"
 #include "tfm_plat_provisioning.h"
 
 #include "region_defs.h"
@@ -29,6 +30,15 @@ static inline bool blob_is_combined(const struct rse_provisioning_message_blob_t
     return (((blob->purpose >> RSE_PROVISIONING_BLOB_PURPOSE_TYPE_OFFSET)
              & RSE_PROVISIONING_BLOB_PURPOSE_TYPE_MASK)
             == RSE_PROVISIONING_BLOB_TYPE_COMBINED_LCS_PROVISIONING);
+}
+
+static inline bool found_valid_message_type(const struct rse_provisioning_message_t *message)
+{
+    const enum rse_provisioning_message_type_t msg_type = message->header.type;
+
+    return (msg_type == RSE_PROVISIONING_MESSAGE_TYPE_BLOB) ||
+           (msg_type == RSE_PROVISIONING_MESSAGE_TYPE_CERTIFICATE) ||
+           (msg_type == RSE_PROVISIONING_MESSAGE_TYPE_PLAIN_DATA);
 }
 
 static enum tfm_plat_err_t aes_setup_key(const struct rse_provisioning_message_blob_t *blob,
@@ -141,7 +151,7 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
     }
 #endif /* RSE_BOOT_IN_DM_LCS */
 
-    if (provisioning_message->header.data_length == 0) {
+    if (!found_valid_message_type(provisioning_message)) {
         err = provisioning_comms_receive(provisioning_message,
                                          RSE_PROVISIONING_MESSAGE_MAX_SIZE,
                                          &msg_len);
