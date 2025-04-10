@@ -139,6 +139,8 @@ set(RSE_PROVISIONING_DM_ENCRYPT_SECRET_VALUES  ON         CACHE BOOL "Whether DM
 set(RSE_PROVISIONING_CM_DEBUG_CLOSED           OFF        CACHE BOOL "Whether debug is open by default in CM LCS")
 set(RSE_PROVISIONING_REQUIRE_AUTHENTICATION_FOR_TCI OFF   CACHE BOOL "Whether TCI mode requires authentication to set")
 
+set(RSE_BOOT_IN_DM_LCS                         OFF        CACHE BOOL "Whether to boot as far as possible in DM state")
+
 set(RSE_CM_BLOB_VERSION                     0          CACHE STRING "Version of CM blob")
 set(RSE_DM_BLOB_VERSION                     0          CACHE STRING "Version of DM blob")
 

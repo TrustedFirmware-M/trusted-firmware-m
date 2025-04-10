@@ -68,7 +68,6 @@ else:
 
 digest = hashes.Hash(hashes.SHA256())
 digest.update(int("0x111155AA", 16).to_bytes(4, 'little'))
-digest.update(int("0x00000003", 16).to_bytes(4, 'little')) #LCS
 digest.update(int("0x00000000", 16).to_bytes(4, 'little')) #reprovisioning bits
 digest.update(bl1_2_hash)
 data_hash = digest.finalize()

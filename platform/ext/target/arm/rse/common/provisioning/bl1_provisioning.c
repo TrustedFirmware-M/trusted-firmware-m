@@ -111,6 +111,10 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
     size_t msg_len;
     const struct rse_provisioning_message_t *provisioning_message =
     (const struct rse_provisioning_message_t *)PROVISIONING_MESSAGE_START;
+#ifdef RSE_BOOT_IN_DM_LCS
+    enum lcm_error_t lcm_err;
+    enum lcm_lcs_t lcs;
+#endif
 
     struct provisioning_message_handler_config config = {
         .blob_handler = &default_blob_handler,
@@ -123,6 +127,19 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
 #endif
         .blob_is_chainloaded = false,
     };
+
+#ifdef RSE_BOOT_IN_DM_LCS
+    /* TODO: Check if a blob has been stashed which
+     * we should handle before checking LCS */
+    lcm_err = lcm_get_lcs(&LCM_DEV_S, &lcs);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+    if (lcs == LCM_LCS_DM) {
+        return TFM_PLAT_ERR_SUCCESS;
+    }
+#endif /* RSE_BOOT_IN_DM_LCS */
 
     if (provisioning_message->header.data_length == 0) {
         err = provisioning_comms_receive(provisioning_message,

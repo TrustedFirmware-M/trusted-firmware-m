@@ -554,8 +554,8 @@ enum tfm_plat_err_t rse_setup_runtime_secure_image_encryption_key(void)
     enum kmu_error_t kmu_err;
     const uint8_t label[] = "RUNTIME_SECURE_ENCRYPTION_KEY";
     const boot_state_include_mask boot_state_config =
-        RSE_BOOT_STATE_INCLUDE_LCS | RSE_BOOT_STATE_INCLUDE_TP_MODE |
-        RSE_BOOT_STATE_INCLUDE_BL1_2_HASH | RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
+        RSE_BOOT_STATE_INCLUDE_TP_MODE | RSE_BOOT_STATE_INCLUDE_BL1_2_HASH |
+        RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
 
     plat_err = setup_key_from_derivation(KMU_HW_SLOT_KCE_CM, NULL,
                                          label, sizeof(label), NULL, 0,
@@ -583,8 +583,8 @@ enum tfm_plat_err_t rse_setup_runtime_non_secure_image_encryption_key(void)
     enum kmu_error_t kmu_err;
     const uint8_t label[] = "RUNTIME_NON_SECURE_ENCRYPTION_KEY";
     const boot_state_include_mask boot_state_config =
-        RSE_BOOT_STATE_INCLUDE_LCS | RSE_BOOT_STATE_INCLUDE_TP_MODE |
-        RSE_BOOT_STATE_INCLUDE_BL1_2_HASH | RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
+        RSE_BOOT_STATE_INCLUDE_TP_MODE | RSE_BOOT_STATE_INCLUDE_BL1_2_HASH |
+        RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
 
     plat_err = setup_key_from_derivation(KMU_HW_SLOT_KCE_DM, NULL,
                                          label, sizeof(label), NULL, 0,
