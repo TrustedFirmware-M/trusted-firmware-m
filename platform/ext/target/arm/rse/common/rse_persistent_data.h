@@ -15,6 +15,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 /* Data in this struct is expected to persist over multiple RSE cold resets */
 struct rse_persistent_data {
@@ -22,6 +23,9 @@ struct rse_persistent_data {
     struct rse_bl1_persistent_data {
         /* Used to verify that the data has been initialized as expected */
         uint32_t initialized_magic;
+        /* Provisioning blob buffer pointer */
+        uint32_t *provisioning_blob_buf;
+        size_t provisioning_blob_buf_size;
     } bl1_data;
     /* Additional data not used by the ROM can be added after this point */
 };
