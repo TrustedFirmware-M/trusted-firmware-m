@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -61,6 +62,16 @@ TFM_CRYPTO_API(psa_status_t, psa_crypto_init)(void)
      * so application level initialisation is empty
      */
     return PSA_SUCCESS;
+}
+
+TFM_CRYPTO_API(int, psa_can_do_hash)(psa_algorithm_t hash_alg)
+{
+    (void)hash_alg;
+    /* There isn't any hashing algorithm that would not be ready
+     * to be used after TF-M has booted up, hence this function
+     * just returns success all the time
+     */
+    return (int)true;
 }
 
 TFM_CRYPTO_API(psa_status_t, psa_open_key)(psa_key_id_t id,
