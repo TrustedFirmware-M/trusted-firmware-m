@@ -34,9 +34,24 @@ extern "C" {
 #define __PACKED_UNION union __attribute__((packed, aligned(1)))
 #endif /* __PACKED_UNION */
 
+#ifndef __PACKED_ENUM
+#define __PACKED_ENUM enum __attribute__((packed))
+#endif /* __PACKED_ENUM */
+
 #ifndef __ALIGNED
 #define __ALIGNED(x) __attribute__((aligned(x)))
 #endif /* __ALIGNED */
+
+__PACKED_ENUM cc3xx_interrupts_t {
+    SRAM_TO_DIN_INT = 1U << 4,
+    DOUT_TO_SRAM_INT = 1U << 5,
+    MEM_TO_DIN_INT = 1U << 6,
+    DOUT_TO_MEM_INT = 1U << 7,
+    AHB_ERR_INT = 1U << 8,
+    PKA_EXP_INT = 1U << 9,
+    RNG_INT = 1U << 10,
+    SYM_DMA_COMPLETED = 1U << 11
+};
 
 __PACKED_STRUCT __ALIGNED(4) _cc3xx_reg_map_t {
     /* PKA block */

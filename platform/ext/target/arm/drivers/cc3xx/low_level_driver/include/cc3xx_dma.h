@@ -16,7 +16,16 @@
 #include <string.h>
 #include <stdbool.h>
 
+#ifndef __PACKED_ENUM
+#define __PACKED_ENUM enum __attribute__((packed))
+#endif /* __PACKED_ENUM */
+
 #define CC3XX_DMA_BLOCK_BUF_MAX_SIZE 64
+
+__PACKED_ENUM cc3xx_dma_input_src {
+    CC3XX_DMA_INPUT_SRC_CPU_MEM = 0, /* Default state */
+    CC3XX_DMA_INPUT_SRC_RNG_SRAM,
+};
 
 struct cc3xx_dma_state_t {
     uint8_t block_buf[CC3XX_DMA_BLOCK_BUF_MAX_SIZE];
@@ -27,6 +36,7 @@ struct cc3xx_dma_state_t {
     size_t output_size;
     uint32_t remap_cpusel;
     size_t current_bytes_output;
+    enum cc3xx_dma_input_src input_src;
 };
 
 extern struct cc3xx_dma_state_t dma_state;
@@ -122,6 +132,19 @@ void cc3xx_lowlevel_dma_burst_restricted_region_init(uint32_t region_idx,
  * @param[in]  length The size of the data.
  */
 void cc3xx_lowlevel_dma_copy_data(void* dest, const void* src, size_t length);
+
+/**
+ * @brief             Use the cc3xx DMA to copy data directly without performing
+ *                    cryptographic operations on it. This function copies data
+ *                    from RNG SRAM (within CryptoCell) to CPU memory
+ *
+ * @param[out] dest             The pointer to copy data to.
+ * @param[in]  rng_sram_offset  The offset in bytes from RNG SRAM.
+ * @param[in]  length           The size of the data.
+ */
+void cc3xx_lowlevel_dma_copy_data_from_rng_sram(void* dest,
+                                                const size_t rng_sram_offset,
+                                                size_t length);
 
 /**
  * @brief             Set the DMA input location. This triggers DMA input to be
