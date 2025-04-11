@@ -41,23 +41,24 @@ Supported Features
 - Build System - Separate Secure and Non-Secure builds
 - PSA Crypto layer for mcuboot/BL2
 - Support LLVM Embedded Toolchain for Arm
+- MISRA testing/documentation
+- Switch to using upstream t_cose
+- Remote Test Infrastructure
 
 ******
-CQ1'25
+CQ2'25
 ******
 - Supporting multiple clients (Hybrid Platforms) i.e. TF-M supporting multiple on
   core and off core clients on heterogeneous (e.g. Cortex-A + Cortex-M platforms)
 - TF-M v2.2.0 release
 - Update to Mbed TLS3.6.3
-- Switch to using upstream t_cose
 
 ******
 Future
 ******
-- MISRA testing/documentation
-- Remote Test Infrastructure
-- TF-M v2.3.0
 - Integrate TF-PSACrypto
+- TF-M v2.3.0
+- Image encryption via. PSA Crypto in mcuboot
 - Implement support for multiple clients (Hybrid Platforms) contd.
 - Build System Enhancements - Simplify build scripts
 - TF-M Performance - Further Benchmarking and Optimization
