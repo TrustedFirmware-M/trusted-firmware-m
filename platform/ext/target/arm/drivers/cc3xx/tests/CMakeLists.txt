@@ -23,6 +23,7 @@ target_sources(${CC3XX_TEST_TARGET_NAME}
         ./src/cc3xx_test_ecdsa.c
         ./src/cc3xx_test_drbg.c
         ./src/cc3xx_test_dpa.c
+        ./src/cc3xx_test_rng.c
         ./src/cc3xx_test_utils.c
 )
 
@@ -44,6 +45,7 @@ target_compile_definitions(${CC3XX_TEST_TARGET_NAME}
         $<$<BOOL:${TEST_CC3XX_ECDSA}>:TEST_CC3XX_ECDSA>
         $<$<BOOL:${TEST_CC3XX_DRBG}>:TEST_CC3XX_DRBG>
         $<$<BOOL:${TEST_CC3XX_DPA}>:TEST_CC3XX_DPA>
+        $<$<BOOL:${TEST_CC3XX_RNG}>:TEST_CC3XX_RNG>
 )
 
 target_link_libraries(${CC3XX_TEST_TARGET_NAME}
