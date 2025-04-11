@@ -19,9 +19,14 @@ target_sources(platform_bl2
         ./bl2_stub_provisioning.c
 )
 
+target_sources(platform_bl1_2
+    PRIVATE
+        ./bl1_2_provisioning.c
+)
+
 target_sources(platform_bl1_1
     PRIVATE
-        ./bl1_provisioning.c
+        ./bl1_1_provisioning.c
         $<$<BOOL:${RSE_HAS_DCSU}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_provisioning_comms_dcsu.c>
         $<$<NOT:$<BOOL:${RSE_HAS_DCSU}>>:${CMAKE_CURRENT_SOURCE_DIR}/rse_provisioning_comms_stub.c>
         ./rse_provisioning_message_handler.c

@@ -31,6 +31,7 @@
 #include "plat_def_fip_uuid.h"
 #endif
 #include "tfm_plat_nv_counters.h"
+#include "tfm_plat_provisioning.h"
 #include "rse_kmu_keys.h"
 #include "mpu_armv8m_drv.h"
 #include "tfm_hal_device_header.h"
@@ -136,6 +137,15 @@ static void copy_rom_library_into_sram(void)
 }
 #endif /* RSE_USE_ROM_LIB_FROM_SRAM */
 
+static enum tfm_plat_err_t image_load_validate_failure(void)
+{
+    if (!tfm_plat_provisioning_is_required()) {
+        return TFM_PLAT_ERR_BL1_2_PROVISIONING_NOT_REQUIRED;
+    }
+
+    return tfm_plat_provisioning_perform();
+}
+
 /* bootloader platform-specific hw initialization */
 int32_t boot_platform_init(void)
 {
@@ -184,6 +194,10 @@ int32_t boot_platform_init(void)
 #ifdef RSE_USE_HOST_FLASH
     result = host_flash_atu_init_regions_for_image(UUID_RSE_FIRMWARE_BL2, image_offsets);
     if (result != 0) {
+        int32_t recovery_result = boot_initiate_recovery_mode(0);
+        if (recovery_result != TFM_PLAT_ERR_BL1_2_PROVISIONING_NOT_REQUIRED) {
+            return recovery_result;
+        }
         return result;
     }
 #endif
@@ -376,4 +390,9 @@ int boot_platform_post_load(uint32_t image_id)
     }
 
     return 0;
+}
+
+int boot_initiate_recovery_mode(uint32_t image_id)
+{
+    return image_load_validate_failure();
 }

@@ -95,9 +95,9 @@ tfm_vprintf
 tfm_log
 default_blob_handler
 provisioning_comms_receive
+provisioning_rotpk_get
 handle_provisioning_message
-rse_setup_master_key
-rse_setup_provisioning_key
+rse_provisioning_setup_aes_key
 rse_permanently_disable_device
 fih_delay_platform
 FIH_FAILURE
@@ -118,3 +118,4 @@ __heap_end
 __msp_stack_size__
 __stack
 __stack_seal
+tfm_hal_system_reset
