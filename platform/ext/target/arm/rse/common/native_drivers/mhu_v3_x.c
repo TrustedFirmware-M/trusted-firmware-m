@@ -227,7 +227,7 @@ union _mhu_v3_x_frame_t {
  *       enabled.
  */
 static void _mhu_v3_x_doorbell_interrupt_enable(
-     const struct mhu_v3_x_dev_t *dev, uint32_t channel)
+    const struct mhu_v3_x_dev_t *dev, uint8_t channel)
 {
     union _mhu_v3_x_frame_t *p_mhu;
 
@@ -274,7 +274,7 @@ static void _mhu_v3_x_doorbell_interrupt_enable(
  *       disabled.
  */
 static void _mhu_v3_x_doorbell_interrupt_disable(
-     const struct mhu_v3_x_dev_t *dev, uint32_t channel)
+    const struct mhu_v3_x_dev_t *dev, uint8_t channel)
 {
     union _mhu_v3_x_frame_t *p_mhu;
 
@@ -318,7 +318,7 @@ static void _mhu_v3_x_doorbell_interrupt_disable(
  * \return Nothing
  */
 static void _mhu_v3_x_doorbell_interrupt_clear(
-     const struct mhu_v3_x_dev_t *dev, uint32_t channel)
+    const struct mhu_v3_x_dev_t *dev, uint8_t channel)
 {
     union _mhu_v3_x_frame_t *p_mhu;
     struct _mhu_v3_x_pbx_pdbcw_reg_t *pdbcw_reg;
@@ -388,8 +388,8 @@ enum mhu_v3_x_error_t mhu_v3_x_driver_init(struct mhu_v3_x_dev_t *dev)
 }
 
 enum mhu_v3_x_error_t mhu_v3_x_get_num_channel_implemented(
-     const struct mhu_v3_x_dev_t *dev,
-     enum mhu_v3_x_channel_type_t ch_type, uint8_t *num_ch)
+    const struct mhu_v3_x_dev_t *dev,
+    enum mhu_v3_x_channel_type_t ch_type, uint8_t *num_ch)
 {
     union _mhu_v3_x_frame_t *p_mhu;
 
@@ -415,7 +415,7 @@ enum mhu_v3_x_error_t mhu_v3_x_get_num_channel_implemented(
 }
 
 enum mhu_v3_x_error_t mhu_v3_x_doorbell_clear(struct mhu_v3_x_dev_t *dev,
-     uint32_t channel, uint32_t mask)
+    uint8_t channel, uint32_t mask)
 {
     union _mhu_v3_x_frame_t *p_mhu;
     struct _mhu_v3_x_mbx_mdbcw_reg_t *mdbcw_reg;
@@ -449,7 +449,7 @@ enum mhu_v3_x_error_t mhu_v3_x_doorbell_clear(struct mhu_v3_x_dev_t *dev,
 }
 
 enum mhu_v3_x_error_t mhu_v3_x_doorbell_write(struct mhu_v3_x_dev_t *dev,
-     uint32_t channel, uint32_t value)
+    uint8_t channel, uint32_t value)
 {
     union _mhu_v3_x_frame_t *p_mhu;
     struct _mhu_v3_x_pbx_pdbcw_reg_t *pdbcw_reg;
@@ -484,7 +484,7 @@ enum mhu_v3_x_error_t mhu_v3_x_doorbell_write(struct mhu_v3_x_dev_t *dev,
 }
 
 enum mhu_v3_x_error_t mhu_v3_x_doorbell_read(struct mhu_v3_x_dev_t *dev,
-     uint32_t channel, uint32_t *value)
+    uint8_t channel, uint32_t *value)
 {
     union _mhu_v3_x_frame_t *p_mhu;
     enum mhu_v3_x_error_t status;
@@ -523,7 +523,7 @@ enum mhu_v3_x_error_t mhu_v3_x_doorbell_read(struct mhu_v3_x_dev_t *dev,
 }
 
 enum mhu_v3_x_error_t mhu_v3_x_doorbell_mask_set(
-     struct mhu_v3_x_dev_t *dev, uint32_t channel, uint32_t mask)
+    struct mhu_v3_x_dev_t *dev, uint8_t channel, uint32_t mask)
 {
     union _mhu_v3_x_frame_t *p_mhu;
     struct _mhu_v3_x_mbx_mdbcw_reg_t *mdbcw_reg;
@@ -558,7 +558,7 @@ enum mhu_v3_x_error_t mhu_v3_x_doorbell_mask_set(
 }
 
 enum mhu_v3_x_error_t mhu_v3_x_doorbell_mask_clear(
-     struct mhu_v3_x_dev_t *dev, uint32_t channel, uint32_t mask)
+    struct mhu_v3_x_dev_t *dev, uint8_t channel, uint32_t mask)
 {
     union _mhu_v3_x_frame_t *p_mhu;
     struct _mhu_v3_x_mbx_mdbcw_reg_t *mdbcw_reg;
@@ -593,7 +593,7 @@ enum mhu_v3_x_error_t mhu_v3_x_doorbell_mask_clear(
 }
 
 enum mhu_v3_x_error_t mhu_v3_x_doorbell_mask_get(
-     struct mhu_v3_x_dev_t *dev, uint32_t channel, uint32_t *mask_status)
+    struct mhu_v3_x_dev_t *dev, uint8_t channel, uint32_t *mask_status)
 {
     union _mhu_v3_x_frame_t *p_mhu;
     struct _mhu_v3_x_mbx_mdbcw_reg_t *mdbcw_reg;
@@ -628,8 +628,8 @@ enum mhu_v3_x_error_t mhu_v3_x_doorbell_mask_get(
 }
 
 enum mhu_v3_x_error_t mhu_v3_x_channel_interrupt_enable(
-     struct mhu_v3_x_dev_t *dev, uint32_t channel,
-     enum mhu_v3_x_channel_type_t ch_type)
+    struct mhu_v3_x_dev_t *dev, uint8_t channel,
+    enum mhu_v3_x_channel_type_t ch_type)
 {
     enum mhu_v3_x_error_t status;
 
@@ -657,8 +657,8 @@ enum mhu_v3_x_error_t mhu_v3_x_channel_interrupt_enable(
 }
 
 enum mhu_v3_x_error_t mhu_v3_x_channel_interrupt_disable(
-     struct mhu_v3_x_dev_t *dev, uint32_t channel,
-     enum mhu_v3_x_channel_type_t ch_type)
+    struct mhu_v3_x_dev_t *dev, uint8_t channel,
+    enum mhu_v3_x_channel_type_t ch_type)
 {
     enum mhu_v3_x_error_t status;
 
@@ -686,8 +686,8 @@ enum mhu_v3_x_error_t mhu_v3_x_channel_interrupt_disable(
 }
 
 enum mhu_v3_x_error_t mhu_v3_x_channel_interrupt_clear(
-     struct mhu_v3_x_dev_t *dev, uint32_t channel,
-     enum mhu_v3_x_channel_type_t ch_type)
+    struct mhu_v3_x_dev_t *dev, uint8_t channel,
+    enum mhu_v3_x_channel_type_t ch_type)
 {
     enum mhu_v3_x_error_t status;
 

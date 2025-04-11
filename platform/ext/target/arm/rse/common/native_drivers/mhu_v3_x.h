@@ -164,7 +164,7 @@ enum mhu_v3_x_error_t mhu_v3_x_get_num_channel_implemented(
  * \return Returns error code as specified in \ref mhu_v3_x_error_t
  */
 enum mhu_v3_x_error_t mhu_v3_x_doorbell_clear(struct mhu_v3_x_dev_t *dev,
-     uint32_t channel, uint32_t mask);
+     uint8_t channel, uint32_t mask);
 
 /**
  * \brief Write value to a doorbell channel
@@ -176,7 +176,7 @@ enum mhu_v3_x_error_t mhu_v3_x_doorbell_clear(struct mhu_v3_x_dev_t *dev,
  * \return Returns error code as specified in \ref mhu_v3_x_error_t
  */
 enum mhu_v3_x_error_t mhu_v3_x_doorbell_write(struct mhu_v3_x_dev_t *dev,
-     uint32_t channel, uint32_t value);
+     uint8_t channel, uint32_t value);
 
 /**
  * \brief Read value from a doorbell channel
@@ -188,7 +188,7 @@ enum mhu_v3_x_error_t mhu_v3_x_doorbell_write(struct mhu_v3_x_dev_t *dev,
  * \return Returns error code as specified in \ref mhu_v3_x_error_t
  */
 enum mhu_v3_x_error_t mhu_v3_x_doorbell_read(struct mhu_v3_x_dev_t *dev,
-     uint32_t channel, uint32_t *value);
+     uint8_t channel, uint32_t *value);
 
 /**
  * \brief Set bits in a doorbell channel mask
@@ -200,7 +200,7 @@ enum mhu_v3_x_error_t mhu_v3_x_doorbell_read(struct mhu_v3_x_dev_t *dev,
  * \return Returns error code as specified in \ref mhu_v3_x_error_t
  */
 enum mhu_v3_x_error_t mhu_v3_x_doorbell_mask_set(
-     struct mhu_v3_x_dev_t *dev, uint32_t channel, uint32_t mask);
+     struct mhu_v3_x_dev_t *dev, uint8_t channel, uint32_t mask);
 
 /**
  * \brief Clear bits in a doorbell channel mask
@@ -212,7 +212,7 @@ enum mhu_v3_x_error_t mhu_v3_x_doorbell_mask_set(
  * \return Returns error code as specified in \ref mhu_v3_x_error_t
  */
 enum mhu_v3_x_error_t mhu_v3_x_doorbell_mask_clear(
-     struct mhu_v3_x_dev_t *dev, uint32_t channel, uint32_t mask);
+     struct mhu_v3_x_dev_t *dev, uint8_t channel, uint32_t mask);
 
 /**
  * \brief Get the mask of a doorbell channel
@@ -224,7 +224,7 @@ enum mhu_v3_x_error_t mhu_v3_x_doorbell_mask_clear(
  * \return Returns error code as specified in \ref mhu_v3_x_error_t
  */
 enum mhu_v3_x_error_t mhu_v3_x_doorbell_mask_get(
-     struct mhu_v3_x_dev_t *dev, uint32_t channel, uint32_t *mask_status);
+     struct mhu_v3_x_dev_t *dev, uint8_t channel, uint32_t *mask_status);
 
 /**
  * \brief Enable the channel interrupt
@@ -236,7 +236,7 @@ enum mhu_v3_x_error_t mhu_v3_x_doorbell_mask_get(
  * \return Returns error code as specified in \ref mhu_v3_x_error_t
  */
 enum mhu_v3_x_error_t mhu_v3_x_channel_interrupt_enable(
-     struct mhu_v3_x_dev_t *dev, uint32_t channel,
+     struct mhu_v3_x_dev_t *dev, uint8_t channel,
      enum mhu_v3_x_channel_type_t ch_type);
 
 /**
@@ -249,7 +249,7 @@ enum mhu_v3_x_error_t mhu_v3_x_channel_interrupt_enable(
  * \return Returns error code as specified in \ref mhu_v3_x_error_t
  */
 enum mhu_v3_x_error_t mhu_v3_x_channel_interrupt_disable(
-     struct mhu_v3_x_dev_t *dev, uint32_t channel,
+     struct mhu_v3_x_dev_t *dev, uint8_t channel,
      enum mhu_v3_x_channel_type_t ch_type);
 
 /**
@@ -262,7 +262,7 @@ enum mhu_v3_x_error_t mhu_v3_x_channel_interrupt_disable(
  * \return Returns error code as specified in \ref mhu_v3_x_error_t
  */
 enum mhu_v3_x_error_t mhu_v3_x_channel_interrupt_clear(
-     struct mhu_v3_x_dev_t *dev, uint32_t channel,
+     struct mhu_v3_x_dev_t *dev, uint8_t channel,
      enum mhu_v3_x_channel_type_t ch_type);
 
 #ifdef __cplusplus
