@@ -42,7 +42,7 @@ int32_t tfm_multi_core_hal_client_id_translate(void *owner,
                                                int32_t *client_id_out)
 {
     size_t i;
-    int32_t base, limit;
+    int32_t base = 0, limit = 0;
     int32_t min_client_id, client_id = 0;
     const size_t nr_ranges = ARRAY_SIZE(ns_mailbox_client_id_range_owner);
 
