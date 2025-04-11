@@ -35,6 +35,7 @@ target_compile_definitions(platform_region_defs
         $<$<BOOL:${RSE_USE_HOST_FLASH}>:RSE_USE_HOST_FLASH>
         $<$<BOOL:${RSE_GPT_SUPPORT}>:RSE_GPT_SUPPORT>
         $<$<BOOL:${RSE_HAS_EXPANSION_PERIPHERALS}>:RSE_HAS_EXPANSION_PERIPHERALS>
+        $<$<BOOL:${RSE_HAS_DCSU}>:RSE_HAS_DCSU>
         $<$<BOOL:${PLATFORM_HAS_PS_NV_OTP_COUNTERS}>:PLATFORM_HAS_PS_NV_OTP_COUNTERS>
         $<$<BOOL:${PLATFORM_ERROR_CODES}>:PLATFORM_ERROR_CODES>
         $<$<BOOL:${RSE_ENABLE_BRINGUP_HELPERS}>:RSE_ENABLE_BRINGUP_HELPERS>
@@ -239,7 +240,10 @@ target_sources(platform_s
         $<$<BOOL:${PLATFORM_PSA_ADAC_SECURE_DEBUG}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_debug_after_reset.c>
         ./rse_permanently_disable_device.c
         ./rse_zero_count.c
+        ./rse_persistent_data.c
         ./dpa_hardened_word_copy.c
+        $<$<BOOL:${RSE_HAS_DCSU}>:${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/src/dcsu_drv.c>
+        $<$<BOOL:${RSE_HAS_DCSU}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>
 )
 
 target_sources(tfm_sprt
@@ -279,6 +283,17 @@ if (TFM_PARTITION_SCMI_COMMS)
         INTERFACE
             scmi/scmi_hal.c
             ${PLATFORM_DIR}/ext/common/scmi_hal_common.c
+    )
+endif()
+
+#=============== Runtime provisioning hardware abstraction layer ==============#
+
+if (TFM_PARTITION_RUNTIME_PROVISIONING)
+    add_library(runtime_provisioning_hal INTERFACE)
+
+    target_sources(runtime_provisioning_hal
+        INTERFACE
+            provisioning/runtime_provisioning_partition_hal.c
     )
 endif()
 
@@ -505,7 +520,6 @@ target_compile_definitions(platform_bl1_1_interface
         $<$<BOOL:${TFM_PARTITION_DPE}>:RSE_BOOT_KEYS_DPE>
         KMU_CONFIG_EXTERNAL_SECURE_WORD_COPY
         $<$<BOOL:${RSE_ENCRYPTED_OTP_KEYS}>:RSE_ENCRYPTED_OTP_KEYS>
-        $<$<BOOL:${RSE_HAS_DCSU}>:RSE_HAS_DCSU>
 )
 
 target_link_libraries(platform_bl1_1

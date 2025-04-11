@@ -140,6 +140,9 @@ set(RSE_PROVISIONING_CM_DEBUG_CLOSED           OFF        CACHE BOOL "Whether de
 set(RSE_PROVISIONING_REQUIRE_AUTHENTICATION_FOR_TCI OFF   CACHE BOOL "Whether TCI mode requires authentication to set")
 
 set(RSE_BOOT_IN_DM_LCS                         OFF        CACHE BOOL "Whether to boot as far as possible in DM state")
+if (RSE_BOOT_IN_DM_LCS)
+    set(TFM_PARTITION_RUNTIME_PROVISIONING     ON         CACHE BOOL "Whether to enable runtime secure provisioning partition")
+endif()
 
 set(RSE_CM_BLOB_VERSION                     0          CACHE STRING "Version of CM blob")
 set(RSE_DM_BLOB_VERSION                     0          CACHE STRING "Version of DM blob")
@@ -234,9 +237,9 @@ set(MCUBOOT_NS_IMAGE_FLASH_AREA_NUM     3          CACHE STRING   "ID of the fla
 
 set(TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH ${CMAKE_CURRENT_LIST_DIR}/mbedtls_extra_config.h CACHE PATH "Config to append to standard Mbed Crypto config, used by platforms to configure feature support")
 
-set(TFM_EXTRAS_REPO_EXTRA_PARTITIONS    "measured_boot;delegated_attestation;dice_protection_environment;scmi;adac" CACHE STRING "List of extra secure partition directory name(s)")
+set(TFM_EXTRAS_REPO_EXTRA_PARTITIONS    "measured_boot;delegated_attestation;dice_protection_environment;scmi;adac;runtime_provisioning" CACHE STRING "List of extra secure partition directory name(s)")
 # Below TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST path is relative to tf-m-extras repo
-set(TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST "partitions/measured_boot/measured_boot_manifest_list.yaml;partitions/delegated_attestation/delegated_attestation_manifest_list.yaml;partitions/dice_protection_environment/dpe_manifest_list.yaml;partitions/adac/adac_manifest_list.yaml;" CACHE STRING "List of extra secure partition manifests")
+set(TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST "partitions/measured_boot/measured_boot_manifest_list.yaml;partitions/delegated_attestation/delegated_attestation_manifest_list.yaml;partitions/dice_protection_environment/dpe_manifest_list.yaml;partitions/adac/adac_manifest_list.yaml;partitions/runtime_provisioning/runtime_provisioning_manifest_list.yaml" CACHE STRING "List of extra secure partition manifests")
 
 set(TFM_PLAT_SPECIFIC_MULTI_CORE_COMM   ON         CACHE BOOL     "Whether to use a platform specific inter-core communication instead of mailbox in dual-cpu topology")
 

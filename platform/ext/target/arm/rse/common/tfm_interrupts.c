@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -9,7 +9,9 @@
  */
 
 #include "config_tfm.h"
+#include "config_tfm_target.h"
 #include "internal_status_code.h"
+#include "tfm_hal_defs.h"
 #include "tfm_hal_device_header.h"
 #include "device_definition.h"
 #include "spm.h"
@@ -231,3 +233,26 @@ enum tfm_hal_status_t tfm_dma0_combined_s_irq_init(void *p_pt,
 
     return TFM_HAL_SUCCESS;
 }
+
+#ifdef TFM_PARTITION_RUNTIME_PROVISIONING
+static struct irq_t runtime_provisioning_message_irq = {0};
+
+void RUNTIME_PROVISIONING_MESSAGE_IRQ_HANDLER(void)
+{
+    spm_handle_interrupt(runtime_provisioning_message_irq.p_pt,
+                         runtime_provisioning_message_irq.p_ildi);
+}
+
+enum tfm_hal_status_t runtime_provisioning_message_irq_init(void *p_pt,
+                                                            const struct irq_load_info_t *p_ildi)
+{
+    runtime_provisioning_message_irq.p_ildi = p_ildi;
+    runtime_provisioning_message_irq.p_pt = p_pt;
+
+    NVIC_SetPriority(RUNTIME_PROVISIONING_MESSAGE_IRQ, DEFAULT_IRQ_PRIORITY);
+    NVIC_ClearTargetState(RUNTIME_PROVISIONING_MESSAGE_IRQ);
+    NVIC_DisableIRQ(RUNTIME_PROVISIONING_MESSAGE_IRQ);
+
+    return TFM_HAL_SUCCESS;
+}
+#endif /* TFM_PARTITION_RUNTIME_PROVISIONING */

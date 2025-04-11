@@ -12,6 +12,8 @@ add_subdirectory(bundle)
 target_sources(platform_s
     PRIVATE
         ./runtime_stub_provisioning.c
+        $<$<BOOL:${RSE_HAS_DCSU}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_provisioning_comms_dcsu.c>
+        $<$<NOT:$<BOOL:${RSE_HAS_DCSU}>>:${CMAKE_CURRENT_SOURCE_DIR}/rse_provisioning_comms_stub.c>
 )
 
 target_sources(platform_bl2

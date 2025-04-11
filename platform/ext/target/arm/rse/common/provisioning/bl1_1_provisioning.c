@@ -5,6 +5,7 @@
  *
  */
 
+#include "platform_error_codes.h"
 #include "rse_provisioning_message.h"
 #include "tfm_plat_provisioning.h"
 
