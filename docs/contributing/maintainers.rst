@@ -29,7 +29,7 @@ Code owners
 ===========
 
 Bootloader
-~~~~~~~~~~
+----------
 
 Tamas Ban
     :email: `Tamas.Ban@arm.com <Tamas.Ban@arm.com>`__
@@ -40,28 +40,28 @@ David Vincze
     :github: `davidvincze <https://github.com/davidvincze>`__
 
 Firmware Update (FWU)
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 Maulik Patel
     :email: `Maulik.Patel@arm.com <Maulik.Patel@arm.com>`__
     :github: `maulik-arm <https://github.com/maulik-arm>`__
 
 BL1 immutable bootloader
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
 Raef Coles
     :email: `Raef.Coles@arm.com <Raef.Coles@arm.com>`__
     :github: `RcColes <https://github.com/RcColes>`__
 
 Secure Storage
-~~~~~~~~~~~~~~
+--------------
 
 Matthew Dalzell
     :email: `Matthew.Dalzell@arm.com <Matthew.Dalzell@arm.com>`__
     :github: `mdalzellarm <https://github.com/mdalzellarm>`__
 
 Crypto
-~~~~~~
+------
 
 Antonio de Angelis
     :email: `Antonio.deAngelis@arm.com <Antonio.deAngelis@arm.com>`__
@@ -72,28 +72,28 @@ David Vincze
     :github: `davidvincze <https://github.com/davidvincze>`__
 
 Framework (SPM, etc.)
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 Nicola Mazzucato
     :email: `Nicola.Mazzucato@arm.com <Nicola.Mazzucato@arm.com>`__
     :github: `nicola-mazzucato-arm <https://github.com/nicola-mazzucato-arm>`__
 
 Attestation
-~~~~~~~~~~~
+-----------
 
 Maulik Patel
     :email: `Maulik.Patel@arm.com <Maulik.Patel@arm.com>`__
     :github: `maulik-arm <https://github.com/maulik-arm>`__
 
 Platform Partition
-~~~~~~~~~~~~~~~~~~
+------------------
 
 Nicola Mazzucato
     :email: `Nicola.Mazzucato@arm.com <Nicola.Mazzucato@arm.com>`__
     :github: `nicola-mazzucato-arm <https://github.com/nicola-mazzucato-arm>`__
 
 Build System
-~~~~~~~~~~~~
+------------
 
 Raef Coles
     :email: `Raef.Coles@arm.com <Raef.Coles@arm.com>`__
@@ -104,21 +104,24 @@ Anton Komlev
     :github: `Anton-TF <https://github.com/Anton-TF>`__
 
 Tests
-~~~~~
+-----
 
 Matthew Dalzell
     :email: `Matthew.Dalzell@arm.com <Matthew.Dalzell@arm.com>`__
     :github: `mdalzellarm <https://github.com/mdalzellarm>`__
 
 SCMI Partition (TF-M-Extras)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
 
 Nicola Mazzucato
     :email: `Nicola.Mazzucato@arm.com <Nicola.Mazzucato@arm.com>`__
     :github: `nicola-mazzucato-arm <https://github.com/nicola-mazzucato-arm>`__
 
-Arm Platforms
-~~~~~~~~~~~~~
+Platform Owners
+===============
+
+Arm
+---
 
 MPS2, MPS3, MPS4, Musca(B1,S1)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -150,7 +153,7 @@ Antonio de Angelis
     :github: `adeaarm <https://github.com/adeaarm>`__
 
 Arm Automotive RD
-"""""""""""""""""
+^^^^^^^^^^^^^^^^^
 
 Diego Sueiro
     :email: `diego.sueiro@arm.com <diego.sueiro@arm.com>`__
@@ -164,63 +167,63 @@ Ziad Elhanafy
    :email: `ziad.elhanafy@arm.com <ziad.elhanafy@arm.com>`__
    :github: `ZiadElhanafy <https://github.com/ZiadElhanafy>`__
 
-NXP Platforms
-~~~~~~~~~~~~~
+NXP
+---
 
 Ruchika Gupta
     :email: `ruchika.gupta_1@nxp.com <ruchika.gupta_1@nxp.com>`__
     :github: `ruchi393 <https://github.com/ruchi393>`__
 
-STM Platforms
-~~~~~~~~~~~~~
+STM
+---
 
 Ahmad EL JOUAID
     :email: `ahmad.eljouaid@st.com <ahmad.eljouaid@st.com>`__
     :github: `ahmadstm <https://github.com/ahmadstm>`__
 
-Infineon/Cypress Platforms
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Infineon/Cypress
+----------------
 
 Chris Brand
     :email: `Chris Brand@cypress.com <chris.brand@cypress.com>`__
     :github: `UEWBot <https://github.com/UEWBot>`__
 
-Laird Connectivity Platforms
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Laird Connectivity
+------------------
 
 Greg Leach
     :email: `Greg.Leach@lairdconnect.com <greg.leach@lairdconnect.com>`__
     :github: `greg-leach <https://github.com/greg-leach>`__
 
-Nordic Semiconductor Platforms
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Nordic Semiconductor
+--------------------
 
 Georgios Vasilakis
     :email: `georgios.vasilakis@nordicsemi.no <georgios.vasilakis@nordicsemi.no>`__
     :github: `Vge0rge <https://github.com/Vge0rge>`__
 
-Nuvoton Platform
-~~~~~~~~~~~~~~~~
+Nuvoton
+-------
 
 WS Chang
     :email: `MS20 WSChang0@nuvoton.com <wschang0@nuvoton.com>`__
     :github: `wschang0 <https://github.com/wschang0>`__
 
-ArmChina Platform
-~~~~~~~~~~~~~~~~~
+ArmChina
+--------
 
 Jidong Mei
     :email: `Jidong.Mei@armchina.com <Jidong.Mei@armchina.com>`__
     :github: `JidongMei <https://github.com/JidongMei>`__
 
-Raspberry Pi Platform
-~~~~~~~~~~~~~~~~~~~~~
+Raspberry Pi
+------------
 
 William Vinnicombe
     :email: `William.Vinnicombe@raspberrypi.com <william.vinnicombe@raspberrypi.com>`__
     :github: `Raspberry Pi <https://github.com/raspberrypi>`__
 
-=============
+-------------
 
 .. _Project Maintenance Process: https://trusted-firmware-docs.readthedocs.io/en/latest/generic_processes/project_maintenance_process.html
 
