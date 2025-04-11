@@ -55,6 +55,15 @@ static inline void reset_cycle_count(void)
     DWT->CYCCNT = 0;
 }
 
+static inline uint32_t cycles_to_ms(uint32_t cycles)
+{
+    uint64_t elapsed_time_ms;
+
+    elapsed_time_ms = ((uint64_t) cycles * 1e3) / SystemCoreClock;
+
+    return elapsed_time_ms;
+}
+
 #ifdef __cplusplus
 }
 #endif
