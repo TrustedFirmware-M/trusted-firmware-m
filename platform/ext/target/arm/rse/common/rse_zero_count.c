@@ -35,6 +35,10 @@ static uint32_t calc_uint32_zero_count(uint32_t val)
 static enum tfm_plat_err_t software_zero_count_compute(uint8_t *buf, size_t buf_len,
                                                        uint32_t *zero_count)
 {
+    if ((zero_count == NULL) || ((buf_len > 0) && (buf == NULL))) {
+        return TFM_PLAT_ERR_ZERO_COUNT_INVALID_ARGUMENT;
+    }
+
     *zero_count = 0;
 
 #ifdef RSE_ZERO_COUNT_STRICT_ALIGNMENT

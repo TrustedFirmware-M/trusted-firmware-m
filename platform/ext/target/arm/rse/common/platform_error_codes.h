@@ -147,6 +147,7 @@ enum tfm_plat_err_t {
     TFM_PLAT_ERR_POST_LOAD_IMG_BY_BL2_FAIL,
     /* RSE zero count error codes */
     TFM_PLAT_ERR_ZERO_COUNT_MISMATCH,
+    TFM_PLAT_ERR_ZERO_COUNT_INVALID_ARGUMENT,
     /* Generic errors */
     TFM_PLAT_ERR_SYSTEM_ERR,
     TFM_PLAT_ERR_MAX_VALUE,
