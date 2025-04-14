@@ -194,30 +194,39 @@ if (PLATFORM_DEFAULT_IMAGE_SIGNING)
     add_custom_target(tfm_s_signed_bin
         SOURCES tfm_s_signed.bin
     )
+
+    set(wrapper_args
+        -v ${MCUBOOT_IMAGE_VERSION_S}
+        --layout $<TARGET_OBJECTS:signing_layout_s>
+        -k ${MCUBOOT_KEY_S}
+        --public-key-format $<IF:$<BOOL:${MCUBOOT_HW_KEY}>,full,hash>
+        --align ${MCUBOOT_ALIGN_VAL}
+        --pad
+        --pad-header
+        -H ${BL2_HEADER_SIZE}
+        -s ${MCUBOOT_SECURITY_COUNTER_S}
+        -L ${MCUBOOT_ENC_KEY_LEN}
+        -d \"\(1,${MCUBOOT_NS_IMAGE_MIN_VER}\)\"
+        $<$<STREQUAL:${MCUBOOT_UPGRADE_STRATEGY},OVERWRITE_ONLY>:--overwrite-only>
+        $<$<BOOL:${MCUBOOT_CONFIRM_IMAGE}>:--confirm>
+        $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:-E${MCUBOOT_KEY_ENC}>
+        $<$<BOOL:${MCUBOOT_MEASURED_BOOT}>:--measured-boot-record>
+        $<TARGET_FILE_DIR:tfm_s>/tfm_s.bin
+        ${CMAKE_CURRENT_BINARY_DIR}/tfm_s_signed.bin
+    )
+
+    if(MCUBOOT_BUILTIN_KEY)
+        set(TFM_S_KEY_ID 0)
+        set(wrapper_args ${wrapper_args} --psa-key-ids ${TFM_S_KEY_ID})
+    endif()
+
     add_custom_command(OUTPUT tfm_s_signed.bin
         DEPENDS tfm_s_bin signing_layout_s
         DEPENDS $<IF:$<BOOL:${MCUBOOT_GENERATE_SIGNING_KEYPAIR}>,generated_private_key,>
         WORKING_DIRECTORY ${MCUBOOT_PATH}/scripts
 
         #Sign secure binary image with provided secret key
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/wrapper/wrapper.py
-            -v ${MCUBOOT_IMAGE_VERSION_S}
-            --layout $<TARGET_OBJECTS:signing_layout_s>
-            -k ${MCUBOOT_KEY_S}
-            --public-key-format $<IF:$<BOOL:${MCUBOOT_HW_KEY}>,full,hash>
-            --align ${MCUBOOT_ALIGN_VAL}
-            --pad
-            --pad-header
-            -H ${BL2_HEADER_SIZE}
-            -s ${MCUBOOT_SECURITY_COUNTER_S}
-            -L ${MCUBOOT_ENC_KEY_LEN}
-            -d \"\(1,${MCUBOOT_NS_IMAGE_MIN_VER}\)\"
-            $<$<STREQUAL:${MCUBOOT_UPGRADE_STRATEGY},OVERWRITE_ONLY>:--overwrite-only>
-            $<$<BOOL:${MCUBOOT_CONFIRM_IMAGE}>:--confirm>
-            $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:-E${MCUBOOT_KEY_ENC}>
-            $<$<BOOL:${MCUBOOT_MEASURED_BOOT}>:--measured-boot-record>
-            $<TARGET_FILE_DIR:tfm_s>/tfm_s.bin
-            ${CMAKE_CURRENT_BINARY_DIR}/tfm_s_signed.bin
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/wrapper/wrapper.py ${wrapper_args}
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/tfm_s_signed.bin $<TARGET_FILE_DIR:bl2>
     )
 

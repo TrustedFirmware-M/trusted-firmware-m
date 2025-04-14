@@ -1,11 +1,11 @@
 #! /usr/bin/env python3
 #
-# -----------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited. All rights reserved.
+#-------------------------------------------------------------------------------
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
-# -----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 import re
 import os
@@ -86,6 +86,8 @@ os.environ['LANG'] = 'C.UTF-8'
 @click.option('--public-key-format', type=click.Choice(['hash', 'full']),
               default='hash', help='In what format to add the public key to '
               'the image manifest: full key or hash of the key.')
+@click.option('--psa-key-ids', multiple=True, type=int, required=False,
+              help='List of integer key IDs for each signature.')
 @click.option('-k', '--key', metavar='filename')
 @click.command(help='''Create a signed or unsigned image\n
                INFILE and OUTFILE are parsed as Intel HEX if the params have
@@ -93,7 +95,7 @@ os.environ['LANG'] = 'C.UTF-8'
 def wrap(key, align, version, header_size, pad_header, layout, pad, confirm,
          max_sectors, overwrite_only, endian, encrypt, infile, outfile,
          dependencies, hex_addr, erased_val, save_enctlv, public_key_format,
-         security_counter, encrypt_keylen, measured_boot_record):
+         security_counter, encrypt_keylen, measured_boot_record, psa_key_ids):
 
     slot_size = macro_parser.evaluate_macro(layout, sign_bin_size_re, 0, 1)
     load_addr = macro_parser.evaluate_macro(layout, load_addr_re, 0, 1)
@@ -128,6 +130,7 @@ def wrap(key, align, version, header_size, pad_header, layout, pad, confirm,
                               max_align=max_align)
 
     img.load(infile)
+    img.set_key_ids(psa_key_ids)
     key = imgtool.main.load_key(key) if key else None
     enckey = imgtool.main.load_key(encrypt) if encrypt else None
     if enckey and key:

@@ -163,6 +163,31 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
 
     if (MCUBOOT_IMAGE_NUMBER GREATER 1)
 
+        set(wrapper_args
+            --version ${MCUBOOT_IMAGE_VERSION_NS}
+            --layout ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/layout_files/signing_layout_ns.o
+            --key ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/keys/image_ns_signing_private_key.pem
+            --public-key-format $<IF:$<BOOL:${MCUBOOT_HW_KEY}>,full,hash>
+            --align ${MCUBOOT_ALIGN_VAL}
+            --pad
+            --pad-header
+            -H ${BL2_HEADER_SIZE}
+            -s ${MCUBOOT_SECURITY_COUNTER_NS}
+            -L ${MCUBOOT_ENC_KEY_LEN}
+            -d \"\(0, ${MCUBOOT_S_IMAGE_MIN_VER}\)\"
+            $<$<STREQUAL:${MCUBOOT_UPGRADE_STRATEGY},OVERWRITE_ONLY>:--overwrite-only>
+            $<$<BOOL:${MCUBOOT_CONFIRM_IMAGE}>:--confirm>
+            $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:-E${CMAKE_CURRENT_SOURCE_DIR}/image_signing/keys/image_enc_key.pem>
+            $<$<BOOL:${MCUBOOT_MEASURED_BOOT}>:--measured-boot-record>
+            $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${NS_TARGET_NAME}.bin
+            ${CMAKE_BINARY_DIR}/bin/${NS_TARGET_NAME}_signed.bin
+        )
+
+        if(MCUBOOT_BUILTIN_KEY)
+            set(TFM_NS_KEY_ID 1)
+            set(wrapper_args ${wrapper_args} --psa-key-ids ${TFM_NS_KEY_ID})
+        endif()
+
         add_custom_target(${NS_TARGET_NAME}_signed_bin
             SOURCES ${CMAKE_BINARY_DIR}/bin/${NS_TARGET_NAME}_signed.bin
         )
@@ -172,24 +197,7 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts
 
             #Sign non-secure binary image with provided secret key
-            COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts/wrapper/wrapper.py
-                --version ${MCUBOOT_IMAGE_VERSION_NS}
-                --layout ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/layout_files/signing_layout_ns.o
-                --key ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/keys/image_ns_signing_private_key.pem
-                --public-key-format $<IF:$<BOOL:${MCUBOOT_HW_KEY}>,full,hash>
-                --align ${MCUBOOT_ALIGN_VAL}
-                --pad
-                --pad-header
-                -H ${BL2_HEADER_SIZE}
-                -s ${MCUBOOT_SECURITY_COUNTER_NS}
-                -L ${MCUBOOT_ENC_KEY_LEN}
-                -d \"\(0, ${MCUBOOT_S_IMAGE_MIN_VER}\)\"
-                $<$<STREQUAL:${MCUBOOT_UPGRADE_STRATEGY},OVERWRITE_ONLY>:--overwrite-only>
-                $<$<BOOL:${MCUBOOT_CONFIRM_IMAGE}>:--confirm>
-                $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:-E${CMAKE_CURRENT_SOURCE_DIR}/image_signing/keys/image_enc_key.pem>
-                $<$<BOOL:${MCUBOOT_MEASURED_BOOT}>:--measured-boot-record>
-                $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${NS_TARGET_NAME}.bin
-                ${CMAKE_BINARY_DIR}/bin/${NS_TARGET_NAME}_signed.bin
+            COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts/wrapper/wrapper.py ${wrapper_args}
         )
 
         # Create concatenated binary image from the two independently signed
