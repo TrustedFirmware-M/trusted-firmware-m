@@ -108,13 +108,11 @@ __attribute__((section("DO_PROVISION"))) enum tfm_plat_err_t do_provision(void) 
 
     INFO("Provisioning next blob\n");
 
-    if (provisioning_message->header.data_length == 0) {
-        err = provisioning_comms_receive(provisioning_message,
-                                         RSE_PROVISIONING_MESSAGE_MAX_SIZE,
-                                         &msg_len);
-        if (err != TFM_PLAT_ERR_SUCCESS) {
-            return err;
-        }
+    err = provisioning_comms_receive(provisioning_message,
+                                     RSE_PROVISIONING_MESSAGE_MAX_SIZE,
+                                     &msg_len);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
     }
 
     /* FixMe: Check if the current way of handling blobs can result in running
