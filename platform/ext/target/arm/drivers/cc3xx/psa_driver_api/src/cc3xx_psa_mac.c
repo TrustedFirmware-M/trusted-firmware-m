@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, The TrustedFirmware-M Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -385,7 +385,8 @@ psa_status_t cc3xx_mac_verify_finish(cc3xx_mac_operation_t *operation,
 
 #if defined(PSA_WANT_ALG_CMAC) || defined(PSA_WANT_ALG_HMAC)
     uint32_t actual_mac[SHA256_OUTPUT_SIZE / sizeof(uint32_t)]; /* needs to take into account both hash and mac */
-    uint8_t idx, diff;
+    uint32_t diff;
+    uint8_t idx;
     size_t produced_mac_length = 0;
 
     if (mac_length > sizeof(actual_mac)) {
