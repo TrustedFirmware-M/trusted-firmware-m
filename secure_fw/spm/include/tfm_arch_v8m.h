@@ -71,10 +71,10 @@ __STATIC_INLINE bool is_return_secure_stack(uint32_t lr)
  *        Additional state context, also known as callee registers,
  *        are already on the stack.
  *        DCRS bit is only present from V8M and above.
- *        If DCRS is 1 then Stack contains:
+ *        If DCRS is 0 then Stack contains:
  *        r0, r1, r2, r3, r12, r14 (lr), the return address and xPSR
  *
- *        If DCRS is 0 then the stack contains the following too before
+ *        If DCRS is 1 then the stack contains the following too before
  *        the caller-saved registers:
  *        Integrity signature, res, r4, r5, r6, r7, r8, r9, r10, r11
  *
