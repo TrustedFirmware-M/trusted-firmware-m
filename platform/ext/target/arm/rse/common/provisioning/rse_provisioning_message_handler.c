@@ -5,6 +5,7 @@
  *
  */
 
+#include <assert.h>
 
 #include "rse_provisioning_message_handler.h"
 
