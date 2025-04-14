@@ -36,6 +36,8 @@ kmu_export_key
 lcm_otp_write
 lcm_get_lcs
 lcm_get_tp_mode
+lcm_dcu_get_locked
+lcm_dcu_set_locked
 pq_crypto_verify
 pq_crypto_get_pub_key_hash
 rse_check_zero_bit_count

@@ -592,9 +592,10 @@ target_sources(platform_bl1_2
         ./bl1/boot_hal_bl1_2.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m/mpu_armv8m_drv.c
         ./bl1/bl1_2_debug.c
-        ${PLATFORM_DIR}/ext/target/arm/drivers/lcm/lcm_drv.c
         ./sam_interrupts.c
 )
+
+add_dependencies(platform_bl1_2 bl1_1_shared_symbols)
 
 if (RSE_AMOUNT GREATER 1)
     target_sources(platform_bl1_2 PRIVATE ./otp_lcm.c)
