@@ -488,6 +488,7 @@ void cc3xx_lowlevel_pka_read_reg_swap_endian(cc3xx_pka_reg_id_t reg_id, uint32_t
  * representable in n + 64 bits. It is assumed, but not certain, that this holds
  * because of how the reduction in hardware is being calculated.
  */
+#ifdef CC3XX_CONFIG_PKA_CALC_NP_ENABLE
 static inline void calc_Np(void)
 {
     cc3xx_pka_reg_id_t reg_temp_0 = cc3xx_lowlevel_pka_allocate_reg();
@@ -526,6 +527,7 @@ static inline void calc_Np(void)
     cc3xx_lowlevel_pka_free_reg(reg_temp_1);
     cc3xx_lowlevel_pka_free_reg(reg_temp_0);
 }
+#endif /* CC3XX_CONFIG_PKA_CALC_NP_ENABLE */
 
 void cc3xx_lowlevel_pka_set_modulus(cc3xx_pka_reg_id_t modulus, bool calculate_tag,
                                     cc3xx_pka_reg_id_t barrett_tag)
