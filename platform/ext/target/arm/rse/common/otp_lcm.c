@@ -5,6 +5,8 @@
  *
  */
 
+#include <assert.h>
+
 #include "lcm_drv.h"
 #include "rse_otp_dev.h"
 #include "tfm_plat_otp.h"
