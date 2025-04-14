@@ -21,7 +21,7 @@ void TFM_FPU_S_TEST_Handler(void);
 
 #ifdef TEST_NS_FPU
 /*
- * Change FP caller and callee registers. For interrupt triggerred by secure
+ * Change FP caller and callee registers. For interrupt triggered by secure
  * thread, all FP registers should be checked whether cleared.
  */
 void TFM_FPU_NS_TEST_Handler(void);

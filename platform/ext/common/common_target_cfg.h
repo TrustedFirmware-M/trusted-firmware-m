@@ -67,7 +67,7 @@ enum tfm_plat_err_t mpc_init_cfg(void);
 enum tfm_plat_err_t ppc_init_cfg(void);
 
 /**
- * \brief Restict peripheral access to secure access only
+ * \brief Restrict peripheral access to secure access only
  *
  * \note The function does not configure privilege
  */

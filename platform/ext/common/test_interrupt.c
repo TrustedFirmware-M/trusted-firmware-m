@@ -93,10 +93,7 @@ __attribute__((used)) static uint32_t is_non_zero(uint32_t *p, uint32_t n)
 __attribute__((naked)) void TFM_FPU_NS_TEST_Handler(void)
 {
     __asm volatile(
-        /*
-        * If LR.BIT[6] equals 1, the interrupt is triggerred by secure thread.
-        */
-        "ands      r0, lr, #0x40           \n"
+        "ands      r0, lr, #0x40           \n" /* If LR.BIT[6] == 1, irq is triggered by S thread */
         "cmp       r0, #0x40               \n"
         "bne       change_regs             \n"
         "push      {r7, lr}                \n"

@@ -138,7 +138,7 @@ static const tfm_plat_builtin_key_policy_t g_builtin_keys_policy[] = {
 };
 
 /**
- * @brief Table describing the builtin-in keys (plaform keys) available in the platform. Note
+ * @brief Table describing the builtin-in keys (platform keys) available in the platform. Note
  *        that to bind the keys to the tfm_builtin_key_loader driver, the lifetime must be
  *        explicitly set to the one associated to the driver, i.e. TFM_BUILTIN_KEY_LOADER_LIFETIME
  */

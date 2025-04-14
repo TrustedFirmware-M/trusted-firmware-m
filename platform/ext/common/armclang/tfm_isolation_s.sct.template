@@ -24,7 +24,7 @@
  *  ER : A typical execution region.
  *  PT : An empty execution region used as position-tag/address-alignment.
  *
- * No applying customzied prefixes on linker/system reserved/intentional
+ * No applying customized prefixes on linker/system reserved/intentional
  * names, such as 'ARM_LIB_STACK'.
  */
 
