@@ -293,6 +293,11 @@ void Reset_Handler(void)
     SCB_EnableICache();
     SCB_EnableDCache();
 
+    /* Disable No-Write Allocate mode for the DCache to avoid DCache being
+     * bypassed when streaming mode is detected, e.g. during memset()
+     */
+    ICB->ACTLR |= ICB_ACTLR_DISNWAMODE_Msk;
+
 #ifdef RSE_ENABLE_TRAM
     /* Set MSP to be in VM0 to start with */
     __set_MSP(CM_PROVISIONING_BUNDLE_START);
