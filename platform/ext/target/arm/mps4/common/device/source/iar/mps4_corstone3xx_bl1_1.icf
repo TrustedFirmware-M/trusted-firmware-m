@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -30,14 +30,20 @@ define block STACKSEAL with size = 0x8 { };
 define block ARM_LIB_STACK   with alignment = 32, size = BL1_1_MSP_STACK_SIZE { };
 #endif /* #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */
 
+define block HEAP                   with alignment = 8, size = BL1_1_HEAP_SIZE { };
 define block ARM_LIB_HEAP           with alignment = 8, size = BL1_1_HEAP_SIZE { };
 define block SRAM_WATERMARK         with size = 0 { };
+
+define overlay HEAP_OVL             {block HEAP};
+define overlay HEAP_OVL             {block ARM_LIB_HEAP};
+
 keep {block TFM_SHARED_DATA,
       block ARM_LIB_STACK,
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
       block STACKSEAL,
 #endif /* #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */
       block ARM_LIB_HEAP,
+      block HEAP,
       block SRAM_WATERMARK,
 };
 
@@ -54,7 +60,7 @@ define block BL1_1_ER_DATA with fixed order, maximum size = BL1_1_DATA_SIZE  {
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
         block STACKSEAL,
 #endif /* #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */
-        block ARM_LIB_HEAP,
+        overlay HEAP_OVL,
         block SRAM_WATERMARK,
 };
 place at address BL1_1_DATA_START {block BL1_1_ER_DATA};

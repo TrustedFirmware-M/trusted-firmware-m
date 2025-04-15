@@ -5,7 +5,7 @@ Threat Models
 .. toctree::
     :maxdepth: 1
 
-    Threat model <generic_threat_model.rst>
+    TF-M Threat model <generic_threat_model.rst>
 
 --------------
 

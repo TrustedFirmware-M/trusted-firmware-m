@@ -119,7 +119,7 @@ in the figure below. Other modules inside SPE stay in the same TOE as TF-M does.
 Valid data flows across the Trust Boundary are also shown in the figure below.
 This threat model only focuses on the data flows related to TF-M.
 
-.. figure:: overall-DFD.png
+.. figure:: overall-DFD2.png
 
 More details of data flows are listed below.
 
@@ -1161,7 +1161,7 @@ Version control
   +---------+--------------------------------------------------+---------------+
   | v1.3    | Update for validity of dual-cpu model Armv8-M    | TF-M v2.1.0   |
   +---------+--------------------------------------------------+---------------+
-  | v1.4    | Clarify mitigation strategies of threats         | TF-M v2.2.0   |
+  | v1.4    | Clarify mitigation strategies of threats         | TF-M v2.1.1   |
   +---------+--------------------------------------------------+---------------+
 
 **********
