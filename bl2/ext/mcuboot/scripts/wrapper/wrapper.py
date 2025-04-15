@@ -88,7 +88,7 @@ os.environ['LANG'] = 'C.UTF-8'
               'the image manifest: full key or hash of the key.')
 @click.option('--psa-key-ids', multiple=True, type=int, required=False,
               help='List of integer key IDs for each signature.')
-@click.option('-k', '--key', metavar='filename')
+@click.option('-k', '--key', multiple=True, metavar='filename')
 @click.command(help='''Create a signed or unsigned image\n
                INFILE and OUTFILE are parsed as Intel HEX if the params have
                .hex extension, otherwise binary format is used''')
@@ -130,8 +130,15 @@ def wrap(key, align, version, header_size, pad_header, layout, pad, confirm,
                               max_align=max_align)
 
     img.load(infile)
-    img.set_key_ids(psa_key_ids)
-    key = imgtool.main.load_key(key) if key else None
+    print (f"PSA key ids values: {psa_key_ids}")
+    if psa_key_ids is not None:
+        img.set_key_ids(psa_key_ids)
+
+    if key:
+        keys = [imgtool.main.load_key(k) for k in key]
+    else:
+        keys = None
+
     enckey = imgtool.main.load_key(encrypt) if encrypt else None
     if enckey and key:
         if (isinstance(key, imgtool.keys.RSA) and
@@ -139,7 +146,7 @@ def wrap(key, align, version, header_size, pad_header, layout, pad, confirm,
             # FIXME
             raise click.UsageError("Signing and encryption must use the same "
                                    "type of key")
-    img.create(key, public_key_format, enckey, dependencies, record_sw_type,
+    img.create(keys, public_key_format, enckey, dependencies, record_sw_type,
                None, encrypt_keylen=int(encrypt_keylen))
     img.save(outfile, hex_addr)
 

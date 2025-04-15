@@ -184,7 +184,6 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
         )
 
         if(MCUBOOT_BUILTIN_KEY)
-            set(TFM_NS_KEY_ID 1)
             set(wrapper_args ${wrapper_args} --psa-key-ids ${TFM_NS_KEY_ID})
         endif()
 
@@ -234,6 +233,29 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
                 --output ${CMAKE_BINARY_DIR}/bin/tfm_s_ns.bin
         )
 
+        set(wrapper_args
+            --version    ${MCUBOOT_IMAGE_VERSION_S}
+            --layout     ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/layout_files/signing_layout_s_ns.o
+            --key        ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/keys/image_s_signing_private_key.pem
+            --public-key-format  $<IF:$<BOOL:${MCUBOOT_HW_KEY}>,full,hash>
+            --align      ${MCUBOOT_ALIGN_VAL}
+            --pad
+            --pad-header
+            -H           ${BL2_HEADER_SIZE}
+            -s           ${MCUBOOT_SECURITY_COUNTER_S}
+            -L           ${MCUBOOT_ENC_KEY_LEN}
+            $<$<STREQUAL:${MCUBOOT_UPGRADE_STRATEGY},OVERWRITE_ONLY>:--overwrite-only>
+            $<$<BOOL:${MCUBOOT_CONFIRM_IMAGE}>:--confirm>
+            $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:-E${CMAKE_CURRENT_SOURCE_DIR}/image_signing/keys/image_enc_key.pem>
+            $<$<BOOL:${MCUBOOT_MEASURED_BOOT}>:--measured-boot-record>
+            ${CMAKE_BINARY_DIR}/bin/tfm_s_ns.bin
+            ${CMAKE_BINARY_DIR}/tfm_s_ns_signed.bin
+        )
+
+        if(MCUBOOT_BUILTIN_KEY)
+            set(wrapper_args ${wrapper_args} --psa-key-ids ${TFM_S_KEY_ID})
+        endif()
+
         add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/tfm_s_ns_signed.bin
             DEPENDS tfm_s_ns_bin ${CMAKE_BINARY_DIR}/bin/tfm_s_ns.bin
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/layout_files/signing_layout_s_ns.o
@@ -242,22 +264,7 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             # sign the combined tfm_s_ns.bin file
             COMMAND ${Python3_EXECUTABLE}
                 ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts/wrapper/wrapper.py
-                --version ${MCUBOOT_IMAGE_VERSION_S}
-                --layout ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/layout_files/signing_layout_s_ns.o
-                --key ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/keys/image_s_signing_private_key.pem
-                --public-key-format $<IF:$<BOOL:${MCUBOOT_HW_KEY}>,full,hash>
-                --align ${MCUBOOT_ALIGN_VAL}
-                --pad
-                --pad-header
-                -H ${BL2_HEADER_SIZE}
-                -s ${MCUBOOT_SECURITY_COUNTER_S}
-                -L ${MCUBOOT_ENC_KEY_LEN}
-                $<$<STREQUAL:${MCUBOOT_UPGRADE_STRATEGY},OVERWRITE_ONLY>:--overwrite-only>
-                $<$<BOOL:${MCUBOOT_CONFIRM_IMAGE}>:--confirm>
-                $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:-E${CMAKE_CURRENT_SOURCE_DIR}/image_signing/keys/image_enc_key.pem>
-                $<$<BOOL:${MCUBOOT_MEASURED_BOOT}>:--measured-boot-record>
-                ${CMAKE_BINARY_DIR}/bin/tfm_s_ns.bin
-                ${CMAKE_BINARY_DIR}/tfm_s_ns_signed.bin
+                ${wrapper_args}
         )
     endif()
 endif()

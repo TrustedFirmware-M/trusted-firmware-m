@@ -24,6 +24,7 @@
  * Modifications are Copyright (c) 2019-2024 Arm Limited.
  */
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <bootutil/sign_key.h>
@@ -533,14 +534,17 @@ int boot_retrieve_public_key_hash(uint8_t image_index,
                                    (uint32_t *)key_hash_size);
 }
 #elif defined(MCUBOOT_BUILTIN_KEY)
+/* Maximum number of keys per image */
+#define MAX_KEYS_PER_IMAGE MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE
+
 /**
  * @note When using builtin keys the signature verification happens based on key IDs.
  *       During verification MCUboot feeds the image index as a key ID and it is the
  *       underlying crypto library's responsibility to do a mapping (if required)
  *       between the image indexes and the builtin key IDs. Therefore it only allows
- *       as many IDs as there are images.
+ *       as many IDs as there are images times number of keys per image.
  */
-const int bootutil_key_cnt = MCUBOOT_IMAGE_NUMBER;
+const int bootutil_key_cnt = (MCUBOOT_IMAGE_NUMBER * MAX_KEYS_PER_IMAGE);
 
 /**
  * @brief Loader function to retrieve the Root of Trust Public Key
@@ -570,10 +574,11 @@ static enum tfm_plat_err_t tfm_plat_get_bl2_rotpk(const void *ctx,
 {
     enum tfm_plat_err_t err;
     const tfm_plat_builtin_key_descriptor_t *descriptor = (const tfm_plat_builtin_key_descriptor_t *)ctx;
-    /* ToDo: sort out the mapping between Key IDs and image indexes at runtime */
-    uint32_t image_idx = descriptor->key_id - 1;
 
-    err = tfm_plat_otp_read(PLAT_OTP_ID_BL2_ROTPK_0 + image_idx, buf_len, buf);
+    assert(descriptor->key_id >= 0);
+
+    uint32_t otp_id = PLAT_OTP_ID_BL2_ROTPK_0 + descriptor->key_id;
+    err = tfm_plat_otp_read(otp_id, buf_len, buf);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
@@ -583,7 +588,7 @@ static enum tfm_plat_err_t tfm_plat_get_bl2_rotpk(const void *ctx,
      * encoding of the key (RSA) or alignment requirements of the stored key
      * material, which in OTP must be 4-bytes aligned
      */
-    err = tfm_plat_otp_get_size(PLAT_OTP_ID_BL2_ROTPK_0 + image_idx, key_len);
+    err = tfm_plat_otp_get_size(otp_id, key_len);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
@@ -625,35 +630,67 @@ static enum tfm_plat_err_t tfm_plat_get_bl2_rotpk(const void *ctx,
     return TFM_PLAT_ERR_SUCCESS;
 }
 
+typedef struct {
+    uint32_t key_id[MAX_KEYS_PER_IMAGE];  /*!< Key id of built in keys */
+}image_key_id_mapping_t;
+
+/* Platform specific image to key id (otp id offset) map */
+static const image_key_id_mapping_t tfm_image_key_map[] = {
+    {
+        /* Image 0: Only one key is provided and required */
+        .key_id = { TFM_S_KEY_ID },
+    },
+    {
+        /* Image 1: Only one key is provided and required */
+        .key_id = { TFM_NS_KEY_ID },
+    },
+#if (MCUBOOT_IMAGE_NUMBER > 2)
+    {
+        /* Image 2: Only one key is provided and required */
+        .key_id = { TFM_S_KEY_ID_3 },
+    },
+#endif /* MCUBOOT_IMAGE_NUMBER > 2 */
+#if (MCUBOOT_IMAGE_NUMBER > 3)
+    {
+        /* Image 3: Only one key is provided and required */
+        .key_id = { TFM_S_KEY_ID_4 },
+    },
+#endif /* MCUBOOT_IMAGE_NUMBER > 3 */
+};
+
+static int get_key_id(uint8_t img_idx, uint8_t key_idx)
+{
+    assert(img_idx < MCUBOOT_IMAGE_NUMBER);
+    assert(key_idx < MAX_KEYS_PER_IMAGE);
+    return tfm_image_key_map[img_idx].key_id[key_idx];
+}
+
 /* The policy table is built dynamically at runtime to allow for an arbitrary
  * number of MCUBOOT_IMAGE_NUMBER entries, without hardcoding at build time
  */
 size_t tfm_plat_builtin_key_get_policy_table_ptr(const tfm_plat_builtin_key_policy_t *policy_ptr[])
 {
-#if defined(MCUBOOT_BUILTIN_KEY)
-    static tfm_plat_builtin_key_policy_t policy_table[MCUBOOT_IMAGE_NUMBER];
+    static tfm_plat_builtin_key_policy_t policy_table[MCUBOOT_IMAGE_NUMBER][MAX_KEYS_PER_IMAGE];
     static bool policy_table_is_initalized = false;
 
     if (!policy_table_is_initalized) {
-        for (uint32_t idx = 0; idx < MCUBOOT_IMAGE_NUMBER; idx++) {
-            tfm_plat_builtin_key_policy_t policy = {
-                .key_id = idx + 1, /* ToDo: Relationship between key_id and image_idx is simply hardcoded */
-                .per_user_policy = 0,
-                .usage = PSA_KEY_USAGE_VERIFY_HASH,
-            };
+        for (uint32_t i = 0; i < MCUBOOT_IMAGE_NUMBER; i++) {
+            for (uint32_t j = 0; j < MAX_KEYS_PER_IMAGE; j++) {
+                tfm_plat_builtin_key_policy_t policy = {
+                    .per_user_policy = 0,
+                    .usage = PSA_KEY_USAGE_VERIFY_HASH,
+                };
 
-            policy_table[idx] = policy;
+                policy.key_id = get_key_id(i,j);
+                policy_table[i][j] = policy;
+            }
         }
-
         policy_table_is_initalized = true;
     }
 
-    *policy_ptr = &policy_table[0];
-    return MCUBOOT_IMAGE_NUMBER;
-#else
-    *policy_ptr = NULL;
-    return 0;
-#endif
+    *policy_ptr = &policy_table[0][0];
+    return MCUBOOT_IMAGE_NUMBER * MAX_KEYS_PER_IMAGE;
+
 }
 
 /* The descriptor table is built dynamically at runtime to allow for an arbitrary
@@ -661,31 +698,51 @@ size_t tfm_plat_builtin_key_get_policy_table_ptr(const tfm_plat_builtin_key_poli
  */
 size_t tfm_plat_builtin_key_get_desc_table_ptr(const tfm_plat_builtin_key_descriptor_t *desc_ptr[])
 {
-#if defined(MCUBOOT_BUILTIN_KEY)
-    static tfm_plat_builtin_key_descriptor_t descriptor_table[MCUBOOT_IMAGE_NUMBER];
+    static tfm_plat_builtin_key_descriptor_t descriptor_table[MCUBOOT_IMAGE_NUMBER][MAX_KEYS_PER_IMAGE];
     static bool descriptor_table_is_initalized = false;
 
     if (!descriptor_table_is_initalized) {
-        for (uint32_t idx = 0; idx < MCUBOOT_IMAGE_NUMBER; idx++) {
-            tfm_plat_builtin_key_descriptor_t descriptor = {
-                .key_id = idx + 1, /* ToDo: Relationship between key_id and image_idx is simply hardcoded */
-                .slot_number = 0, /* Unused */
-                .lifetime = PSA_KEY_LIFETIME_PERSISTENT,
-                .loader_key_func = tfm_plat_get_bl2_rotpk,
-                .loader_key_ctx = &descriptor_table[idx],
-            };
-
-            descriptor_table[idx] = descriptor;
+        for (uint32_t i = 0; i < MCUBOOT_IMAGE_NUMBER; i++) {
+            for (uint32_t j = 0; j < MAX_KEYS_PER_IMAGE; j++) {
+                tfm_plat_builtin_key_descriptor_t descriptor = {
+                    .slot_number = 0, /* Unused */
+                    .lifetime = PSA_KEY_LIFETIME_PERSISTENT,
+                    .loader_key_func = tfm_plat_get_bl2_rotpk,
+                    .loader_key_ctx = &descriptor_table[i][j],
+                };
+                descriptor.key_id = get_key_id(i,j);
+                descriptor_table[i][j] = descriptor;
+            }
         }
 
         descriptor_table_is_initalized = true;
     }
 
-    *desc_ptr = &descriptor_table[0];
-    return MCUBOOT_IMAGE_NUMBER;
-#else
+    *desc_ptr = &descriptor_table[0][0];
+    return MCUBOOT_IMAGE_NUMBER * MAX_KEYS_PER_IMAGE;
+}
+
+int boot_verify_key_id_for_image(uint8_t image_index, int32_t key_id)
+{
+    for (int i = 0; i < MAX_KEYS_PER_IMAGE; i++) {
+        if (key_id == get_key_id(image_index, i)) {
+            return 0;
+        }
+    }
+    /* If the key id is not found in the image key id mapping, return -1 */
+    return -1;
+}
+
+#else /* MCUBOOT_BUILTIN_KEY */
+size_t tfm_plat_builtin_key_get_policy_table_ptr(const tfm_plat_builtin_key_policy_t *policy_ptr[])
+{
+    *policy_ptr = NULL;
+    return 0;
+}
+
+size_t tfm_plat_builtin_key_get_desc_table_ptr(const tfm_plat_builtin_key_descriptor_t *desc_ptr[])
+{
     *desc_ptr = NULL;
     return 0;
-#endif
 }
-#endif /* MCUBOOT_USE_PSA_CRYPTO */
+#endif /* MCUBOOT_BUILTIN_KEY */

@@ -77,6 +77,9 @@ target_sources(bl2
 target_compile_definitions(bl2
     PRIVATE
         MCUBOOT_SIGNATURE_TYPE=${MCUBOOT_SIGNATURE_TYPE}
+        $<$<BOOL:${MCUBOOT_BUILTIN_KEY}>:TFM_S_KEY_ID=${TFM_S_KEY_ID}>
+        $<$<BOOL:${MCUBOOT_BUILTIN_KEY}>:TFM_NS_KEY_ID=${TFM_NS_KEY_ID}>
+        MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE=${MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE}
 )
 
 target_link_libraries(bl2
@@ -216,7 +219,6 @@ if (PLATFORM_DEFAULT_IMAGE_SIGNING)
     )
 
     if(MCUBOOT_BUILTIN_KEY)
-        set(TFM_S_KEY_ID 0)
         set(wrapper_args ${wrapper_args} --psa-key-ids ${TFM_S_KEY_ID})
     endif()
 

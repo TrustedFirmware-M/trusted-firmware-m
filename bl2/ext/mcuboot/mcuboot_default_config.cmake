@@ -55,6 +55,9 @@ set(MCUBOOT_SIGNATURE_TYPE              "RSA-3072"       CACHE STRING    "Algori
 set(MCUBOOT_GENERATE_SIGNING_KEYPAIR    OFF              CACHE BOOL      "Generate new keypair for signing and use that instead of MCUBOOT_KEY_S and MCUBOOT_KEY_NS")
 set(MCUBOOT_KEY_S                       "${CMAKE_SOURCE_DIR}/bl2/ext/mcuboot/root-${MCUBOOT_SIGNATURE_TYPE}.pem" CACHE FILEPATH "Path to key with which to sign secure binary")
 set(MCUBOOT_KEY_NS                      "${CMAKE_SOURCE_DIR}/bl2/ext/mcuboot/root-${MCUBOOT_SIGNATURE_TYPE}_1.pem" CACHE FILEPATH "Path to key with which to sign non-secure binary")
+set(TFM_S_KEY_ID                        0                CACHE STRING    "Key ID of the key used to sign the secure image")
+set(TFM_NS_KEY_ID                       1                CACHE STRING    "Key ID of the key used to sign the non-secure image")
+set(MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE    1                CACHE STRING    "Maximum number of RoTPK keys per image to be used in BL2")
 
 if (MCUBOOT_SIGNATURE_TYPE STREQUAL EC-P384)
     set(MCUBOOT_ROTPK_HASH_ALG          SHA384           CACHE STRING "Algoritm to use to hash mcuboot ROTPKs")
