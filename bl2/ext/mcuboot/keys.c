@@ -634,6 +634,32 @@ typedef struct {
     uint32_t key_id[MAX_KEYS_PER_IMAGE];  /*!< Key id of built in keys */
 }image_key_id_mapping_t;
 
+#ifdef MCUBOOT_IMAGE_MULTI_SIG_SUPPORT
+/* Platform specific image to key id (otp id offset) map */
+static const image_key_id_mapping_t tfm_image_key_map[] = {
+    {
+        /* Image 0: Two keys provided; both keys are required */
+        .key_id = { TFM_S_KEY_ID, TFM_NS_KEY_ID},
+    },
+    {
+        /* Image 1: Only one key is provided and required, the second slot is unused */
+        .key_id = { TFM_NS_KEY_ID, PSA_KEY_ID_NULL },
+    },
+#if (MCUBOOT_IMAGE_NUMBER > 2)
+    {
+        /* Image 2: Only one key is provided and required, the second slot is unused */
+        .key_id = { TFM_S_KEY_ID, PSA_KEY_ID_NULL },
+    },
+#endif /* MCUBOOT_IMAGE_NUMBER > 2 */
+#if (MCUBOOT_IMAGE_NUMBER > 3)
+    {
+        /* Image 3: Only one key is provided and required, the second slot is unused */
+        .key_id = { TFM_S_KEY_ID, PSA_KEY_ID_NULL },
+    },
+#endif /* MCUBOOT_IMAGE_NUMBER > 3 */
+};
+
+#else
 /* Platform specific image to key id (otp id offset) map */
 static const image_key_id_mapping_t tfm_image_key_map[] = {
     {
@@ -647,16 +673,17 @@ static const image_key_id_mapping_t tfm_image_key_map[] = {
 #if (MCUBOOT_IMAGE_NUMBER > 2)
     {
         /* Image 2: Only one key is provided and required */
-        .key_id = { TFM_S_KEY_ID_3 },
+        .key_id = { TFM_S_KEY_ID },
     },
 #endif /* MCUBOOT_IMAGE_NUMBER > 2 */
 #if (MCUBOOT_IMAGE_NUMBER > 3)
     {
         /* Image 3: Only one key is provided and required */
-        .key_id = { TFM_S_KEY_ID_4 },
+        .key_id = { TFM_S_KEY_ID },
     },
 #endif /* MCUBOOT_IMAGE_NUMBER > 3 */
 };
+#endif /* MCUBOOT_IMAGE_MULTI_SIG_SUPPORT */
 
 static int get_key_id(uint8_t img_idx, uint8_t key_idx)
 {

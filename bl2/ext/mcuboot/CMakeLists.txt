@@ -80,6 +80,7 @@ target_compile_definitions(bl2
         $<$<BOOL:${MCUBOOT_BUILTIN_KEY}>:TFM_S_KEY_ID=${TFM_S_KEY_ID}>
         $<$<BOOL:${MCUBOOT_BUILTIN_KEY}>:TFM_NS_KEY_ID=${TFM_NS_KEY_ID}>
         MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE=${MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE}
+        $<$<BOOL:${MCUBOOT_IMAGE_MULTI_SIG_SUPPORT}>:MCUBOOT_IMAGE_MULTI_SIG_SUPPORT>
 )
 
 target_link_libraries(bl2
@@ -220,6 +221,13 @@ if (PLATFORM_DEFAULT_IMAGE_SIGNING)
 
     if(MCUBOOT_BUILTIN_KEY)
         set(wrapper_args ${wrapper_args} --psa-key-ids ${TFM_S_KEY_ID})
+        if(MCUBOOT_IMAGE_MULTI_SIG_SUPPORT AND PLATFORM_DEFAULT_ROTPK)
+            set(wrapper_args ${wrapper_args} --psa-key-ids ${TFM_NS_KEY_ID})
+        endif()
+    endif()
+
+    if(MCUBOOT_IMAGE_MULTI_SIG_SUPPORT)
+        set(wrapper_args ${wrapper_args} -k ${MCUBOOT_KEY_NS})
     endif()
 
     add_custom_command(OUTPUT tfm_s_signed.bin
