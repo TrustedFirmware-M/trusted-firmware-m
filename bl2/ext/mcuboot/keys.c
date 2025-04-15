@@ -534,6 +534,14 @@ int boot_retrieve_public_key_hash(uint8_t image_index,
                                    (uint32_t *)key_hash_size);
 }
 #elif defined(MCUBOOT_BUILTIN_KEY)
+
+#ifdef MCUBOOT_ROTPK_SIGN_POLICY
+enum tfm_plat_err_t tfm_plat_get_bl2_rotpk_policies(uint8_t *buf, size_t buf_len)
+{
+    return tfm_plat_otp_read(PLAT_OTP_ID_BL2_ROTPK_POLICIES, buf_len, buf);
+}
+#endif /* MCUBOOT_ROTPK_SIGN_POLICY */
+
 /* Maximum number of keys per image */
 #define MAX_KEYS_PER_IMAGE MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE
 

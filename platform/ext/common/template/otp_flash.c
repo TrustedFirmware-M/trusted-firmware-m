@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -83,6 +83,11 @@ enum tfm_plat_err_t tfm_plat_otp_read(enum tfm_otp_element_id_t id,
         return write_to_output(id, offsetof(struct flash_otp_nv_counters_region_t, bl2_rotpk_2), out_len, out);
     case PLAT_OTP_ID_BL2_ROTPK_3:
        return write_to_output(id, offsetof(struct flash_otp_nv_counters_region_t, bl2_rotpk_3), out_len, out);
+
+#ifdef MCUBOOT_ROTPK_SIGN_POLICY
+    case PLAT_OTP_ID_BL2_ROTPK_POLICIES:
+        return write_to_output(id, offsetof(struct flash_otp_nv_counters_region_t, bl2_rotpk_policies), out_len, out);
+#endif /* MCUBOOT_ROTPK_SIGN_POLICY */
 
     case PLAT_OTP_ID_NV_COUNTER_BL2_0:
         return write_to_output(id, offsetof(struct flash_otp_nv_counters_region_t, bl2_nv_counter_0), out_len, out);
@@ -207,6 +212,11 @@ enum tfm_plat_err_t tfm_plat_otp_write(enum tfm_otp_element_id_t id,
     case PLAT_OTP_ID_BL2_ROTPK_3:
         return read_from_input(id, offsetof(struct flash_otp_nv_counters_region_t, bl2_rotpk_3), in_len, in);
 
+#ifdef MCUBOOT_ROTPK_SIGN_POLICY
+    case PLAT_OTP_ID_BL2_ROTPK_POLICIES:
+        return read_from_input(id, offsetof(struct flash_otp_nv_counters_region_t, bl2_rotpk_policies), in_len, in);
+#endif /* MCUBOOT_ROTPK_SIGN_POLICY */
+
     case PLAT_OTP_ID_NV_COUNTER_BL2_0:
         return read_from_input(id, offsetof(struct flash_otp_nv_counters_region_t, bl2_nv_counter_0), in_len, in);
     case PLAT_OTP_ID_NV_COUNTER_BL2_1:
@@ -311,6 +321,12 @@ enum tfm_plat_err_t tfm_plat_otp_get_size(enum tfm_otp_element_id_t id,
     case PLAT_OTP_ID_BL2_ROTPK_3:
         *size = sizeof(((struct flash_otp_nv_counters_region_t*)0)->bl2_rotpk_3);
         break;
+
+#ifdef MCUBOOT_ROTPK_SIGN_POLICY
+    case PLAT_OTP_ID_BL2_ROTPK_POLICIES:
+        *size = sizeof(((struct flash_otp_nv_counters_region_t*)0)->bl2_rotpk_policies);
+        break;
+#endif /* MCUBOOT_ROTPK_SIGN_POLICY */
 
     case PLAT_OTP_ID_NV_COUNTER_BL2_0:
         *size = sizeof(((struct flash_otp_nv_counters_region_t*)0)->bl2_nv_counter_0);

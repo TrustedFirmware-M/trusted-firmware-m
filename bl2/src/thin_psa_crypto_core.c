@@ -21,7 +21,6 @@
 #include "psa_crypto_driver_wrappers_no_static.h"
 #if defined(MCUBOOT_BUILTIN_KEY)
 #include "tfm_plat_crypto_keys.h"
-#include "tfm_plat_otp.h"
 #endif /* MCUBOOT_BUILTIN_KEY */
 #ifdef PSA_WANT_ALG_LMS
 #include "mbedtls/lms.h"
@@ -168,6 +167,77 @@ static bool is_key_builtin(psa_key_id_t key_id)
 
     return true;
 }
+
+#if defined(MCUBOOT_BUILTIN_KEY)
+#ifdef MCUBOOT_ROTPK_SIGN_POLICY
+/**
+ * @brief Retrieve the signing policy for a given key ID.
+ *
+ * @details This function fetches the signing policy associated with the
+ *          specified key ID and populates the provided policy structure.
+ *
+ * @param[in]  key_id The identifier of the key whose signing policy is to
+ *                     be retrieved.
+ * @param[out] policy  Pointer to a structure where the signing policy
+ *                     information will be stored.
+ *
+ * @return PSA_SUCCESS             If the policy was successfully retrieved.
+ * @return PSA_ERROR_DOES_NOT_EXIST If the key ID does not exist.
+ * @return PSA_ERROR_INVALID_ARGUMENT If the input arguments are invalid.
+ */
+static psa_status_t get_key_sign_policy(psa_key_id_t key_id,
+                                        enum tfm_bl2_key_policy_t *policy)
+{
+    uint32_t policies;
+    enum tfm_plat_err_t err;
+
+    err = tfm_plat_get_bl2_rotpk_policies((uint8_t *)&policies, sizeof(policies));
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return PSA_ERROR_GENERIC_ERROR;
+    }
+
+    /* Check if the key id bit from the policies is set */
+    if (policies & (1 << key_id)) {
+        *policy = TFM_BL2_KEY_MUST_SIGN;
+    } else {
+        *policy = TFM_BL2_KEY_MIGHT_SIGN;
+    }
+
+    return PSA_SUCCESS;
+}
+#else
+static inline psa_status_t get_key_sign_policy(psa_key_id_t key,
+                                               enum tfm_bl2_key_policy_t *policy)
+{
+    (void)key; /* Unused parameter */
+    /* By default key policy is a MUST SIGN */
+    *policy = TFM_BL2_KEY_MUST_SIGN;
+
+    return PSA_SUCCESS;
+}
+#endif /* MCUBOOT_ROTPK_SIGN_POLICY */
+
+int boot_plat_check_key_policy(bool valid_sig, psa_key_id_t key,
+                               bool *key_might_sign, bool *key_must_sign,
+                               uint8_t *key_must_sign_count)
+{
+    enum tfm_bl2_key_policy_t policy;
+
+    if (get_key_sign_policy(key, &policy) != PSA_SUCCESS) {
+        return -1;
+    }
+
+    if (policy == TFM_BL2_KEY_MIGHT_SIGN) {
+        *key_might_sign |= valid_sig;
+    } else {
+        *key_must_sign_count += 1;
+        *key_might_sign |= valid_sig;
+        *key_must_sign  &= valid_sig;
+    }
+
+    return 0;
+}
+#endif /* MCUBOOT_BUILTIN_KEY */
 
 /**
  * @brief Check in constant time if the \a a buffer matches the \a b

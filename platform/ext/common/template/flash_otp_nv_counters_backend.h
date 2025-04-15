@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -71,6 +71,7 @@ __PACKED_STRUCT flash_otp_nv_counters_region_t {
 
         uint8_t bl2_rotpk_2[BL2_ROTPK_SIZE];
         uint8_t bl2_rotpk_3[BL2_ROTPK_SIZE];
+        uint32_t bl2_rotpk_policies;
 #endif /* BL2 */
 
 #ifdef BL1

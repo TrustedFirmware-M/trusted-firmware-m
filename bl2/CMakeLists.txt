@@ -94,6 +94,11 @@ list(APPEND BL2_CRYPTO_SRC
 
 add_library(bl2_crypto STATIC ${BL2_CRYPTO_SRC})
 
+target_compile_definitions(bl2_crypto
+    PRIVATE
+        $<$<BOOL:${MCUBOOT_ROTPK_SIGN_POLICY}>:MCUBOOT_ROTPK_SIGN_POLICY>
+)
+
 target_include_directories(bl2_crypto
     PUBLIC
         ${MBEDCRYPTO_PATH}/library

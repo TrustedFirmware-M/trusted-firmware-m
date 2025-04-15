@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -8,6 +8,7 @@
 #ifndef __TFM_PLAT_CRYPTO_KEYS_H__
 #define __TFM_PLAT_CRYPTO_KEYS_H__
 
+#include <stdbool.h>
 #include <stdint.h>
 #include "psa/crypto.h"
 #include "tfm_plat_defs.h"
@@ -94,6 +95,50 @@ typedef struct {
  * \return size_t The number of builtin keys available in the platform with associated policies
  */
 size_t tfm_plat_builtin_key_get_policy_table_ptr(const tfm_plat_builtin_key_policy_t *desc_ptr[]);
+
+/**
+ * @brief Policy associated to the given key
+ *
+ * @enum tfm_bl2_key_policy_t
+ */
+enum tfm_bl2_key_policy_t {
+    TFM_BL2_KEY_MIGHT_SIGN = 0b00,
+    TFM_BL2_KEY_MUST_SIGN  = 0b01,
+};
+
+/**
+ * \brief Reads the BL2 Root-of-Trust Public Key (ROTPK) policies from OTP.
+ *
+ * \param[out] buf      Pointer to the buffer where the policy blob will be stored.
+ * \param[in]  buf_len  Size of the \p buf buffer in bytes.
+ *
+ * \retval TFM_PLAT_ERR_SUCCESS       The policies were read successfully.
+ * \retval tfm_plat_err_t (other)     An error code indicating why the read failed.
+ */
+enum tfm_plat_err_t tfm_plat_get_bl2_rotpk_policies(uint8_t *buf, size_t buf_len);
+
+/**
+ * @brief Check the key policy for a given key ID based on signature validity.
+ *
+ * @details This function evaluates the policy associated with the specified
+ *          key ID and determines whether the key might or must be used for
+ *          signing operations. It also tracks the count of keys that must
+ *          sign if applicable.
+ *
+ * @param[in]  valid_sig           Boolean indicating if the signature is valid.
+ * @param[in]  key                 The identifier of the key to check the policy for.
+ * @param[out] key_might_sign      Pointer to a boolean that will be set to true
+ *                                 if the key might be used for signing.
+ * @param[out] key_must_sign       Pointer to a boolean that will be set to true
+ *                                 if the key must be used for signing.
+ * @param[out] key_must_sign_count Pointer to a counter that will be incremented
+ *                                 if the key must sign.
+ *
+ * @return 0 on success, or an error code indicating the failure reason.
+ */
+int boot_plat_check_key_policy(bool valid_sig, psa_key_id_t key,
+                               bool *key_might_sign, bool *key_must_sign,
+                               uint8_t *key_must_sign_count);
 
 #ifdef __cplusplus
 }

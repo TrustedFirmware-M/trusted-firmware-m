@@ -53,6 +53,15 @@ enum tfm_plat_err_t __attribute__((section("DO_PROVISION"))) do_provision(void) 
     }
 #endif /* MCUBOOT_IMAGE_NUMBER > 3 */
 
+#ifdef MCUBOOT_ROTPK_SIGN_POLICY
+    err = tfm_plat_otp_write(PLAT_OTP_ID_BL2_ROTPK_POLICIES,
+                             sizeof(data.psa_rot_prov_data.bl2_rotpk_policies),
+                             (uint8_t*)&data.psa_rot_prov_data.bl2_rotpk_policies);
+    if (err != TFM_PLAT_ERR_SUCCESS && err != TFM_PLAT_ERR_UNSUPPORTED) {
+        return err;
+    }
+#endif /* MCUBOOT_ROTPK_SIGN_POLICY */
+
 #ifdef PLATFORM_PSA_ADAC_SECURE_DEBUG
     err = tfm_plat_otp_write(PLAT_OTP_ID_SECURE_DEBUG_PK,
                              sizeof(data.bl2_assembly_and_test_prov_data.secure_debug_pk),

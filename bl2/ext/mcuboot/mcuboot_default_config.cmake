@@ -60,6 +60,7 @@ set(TFM_NS_KEY_ID                       1                CACHE STRING    "Key ID
 set(MCUBOOT_IMAGE_MULTI_SIG_SUPPORT     OFF              CACHE BOOL      "Enable multiple signature support for images")
 if(MCUBOOT_IMAGE_MULTI_SIG_SUPPORT)
     set(MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE     2           CACHE STRING    "Maximum number of RoTPK keys per image to be used in BL2")
+    set(MCUBOOT_ROTPK_SIGN_POLICY            ON          CACHE BOOL      "Enable ROTPK signing policy")
 else()
     set(MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE     1           CACHE STRING    "Maximum number of RoTPK keys per image to be used in BL2")
 endif()
