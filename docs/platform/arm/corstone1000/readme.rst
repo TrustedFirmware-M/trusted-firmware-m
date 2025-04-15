@@ -174,7 +174,7 @@ FPGA
    :doc:`Test Configuration </configuration/test_configuration>`.
 
 
-*Copyright (c) 2021-2024, Arm Limited. All rights reserved.*
+*Copyright (c) 2021-2025, Arm Limited. All rights reserved.*
 
 .. _Arm Ecosystem FVPs: https://developer.arm.com/tools-and-software/open-source-software/arm-platforms-software/arm-ecosystem-fvps
-.. _Arm Corstone-1000 User Guide: https://corstone1000.docs.arm.com/en/corstone1000-2022.11.23/user-guide.html
+.. _Arm Corstone-1000 User Guide: https://corstone1000.docs.arm.com/en/latest/user-guide.html
