@@ -2,7 +2,7 @@ STM32WBA65_DK
 ^^^^^^^^^^^^^^^
 
 Discovery kit for IoT node with STM32WBA series
-https://www.st.com/en/microcontrollers-microprocessors/stm32wba52cg.html
+https://www.st.com/en/evaluation-tools/stm32wba65i-dk1.html
 
 Configuration and Build
 """""""""""""""""""""""

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
+ * Copyright (c) 2018-2025, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -12,11 +12,11 @@
 /* "exception_info.h" must be the last include because of the IAR pragma */
 #include "exception_info.h"
 
-/* Import MPC driver */
-extern ARM_DRIVER_MPC Driver_SRAM1_MPC;
-
 void C_MPC_Handler(void)
 {
+    /* Import MPC driver */
+    extern ARM_DRIVER_MPC Driver_SRAM1_MPC;
+
     /* Clear MPC interrupt flag and pending MPC IRQ */
     Driver_SRAM1_MPC.ClearInterrupt();
     NVIC_ClearPendingIRQ(MPC_IRQn);

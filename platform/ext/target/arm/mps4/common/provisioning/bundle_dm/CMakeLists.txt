@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023-2024, Arm Limited. All rights reserved.
+# Copyright (c) 2023-2025, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -48,6 +48,17 @@ target_link_options(dm_provisioning_bundle
 target_link_options(dm_provisioning_bundle
     PRIVATE
        $<$<NOT:$<C_COMPILER_ID:Clang>>:--entry=do_provision>
+)
+
+target_compile_options(dm_provisioning_bundle
+    PUBLIC
+        ${BL1_COMPILER_CP_FLAG}
+        ${COMPILER_CMSE_FLAG}
+)
+
+target_link_options(dm_provisioning_bundle
+    PUBLIC
+        ${BL1_LINKER_CP_OPTION}
 )
 
 target_sources(dm_provisioning_bundle

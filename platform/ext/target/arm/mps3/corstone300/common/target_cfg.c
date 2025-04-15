@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024, Arm Limited. All rights reserved.
+ * Copyright (c) 2019-2025, Arm Limited. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -803,7 +803,7 @@ enum tfm_plat_err_t ppc_init_cfg(void)
     err |= Driver_PPC_SSE300_PERIPH_EXP3.Initialize();
 
     /* initialize and config NPU */
-    err |= !ethosu_dev_init(&ETHOS_S, ETHOS_S.reg, ETHOS_S.secure, ETHOS_S.privileged);
+    err |= !ethosu_dev_init(&ETHOS_S, (void*) ETHOS_S.reg, ETHOS_S.secure, ETHOS_S.privileged);
 
     /*
      * Configure the response to a security violation as a

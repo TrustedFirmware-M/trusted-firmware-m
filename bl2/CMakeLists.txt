@@ -110,7 +110,8 @@ target_link_libraries(bl2_crypto
 )
 
 string(TOLOWER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_LOWER)
-if (${BUILD_TYPE_LOWER} STREQUAL "debug")
+# IAR only allows 1 optimization option for the compilation unit
+if (${BUILD_TYPE_LOWER} STREQUAL "debug" AND NOT ${CMAKE_C_COMPILER_ID} STREQUAL "IAR")
     set_source_files_properties(${BL2_CRYPTO_SRC}
         PROPERTIES COMPILE_FLAGS -Os
     )

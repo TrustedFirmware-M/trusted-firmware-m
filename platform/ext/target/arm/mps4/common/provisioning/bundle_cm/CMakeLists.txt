@@ -42,6 +42,17 @@ target_link_options(cm_provisioning_bundle
         $<$<C_COMPILER_ID:Clang>:-Wl,-Map=${CMAKE_BINARY_DIR}/bin/cm_provisioning_bundle.map>
 )
 
+target_compile_options(cm_provisioning_bundle
+    PUBLIC
+        ${BL1_COMPILER_CP_FLAG}
+        ${COMPILER_CMSE_FLAG}
+)
+
+target_link_options(cm_provisioning_bundle
+    PUBLIC
+        ${BL1_LINKER_CP_OPTION}
+)
+
 target_link_options(cm_provisioning_bundle
     PRIVATE
         $<$<NOT:$<C_COMPILER_ID:Clang>>:--entry=do_provision>

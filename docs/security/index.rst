@@ -5,7 +5,7 @@ Security
 .. toctree::
     :maxdepth: 1
 
-    Threat Model <threat_models/index>
+    Threat Models <threat_models/index>
     Security Advisories <security_advisories/index>
 
 Security Disclosures

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# Copyright (c) 2019-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -20,7 +20,7 @@ from subprocess import check_output
 # -- Project information -----------------------------------------------------
 
 project = 'Trusted Firmware-M'
-copyright = '2017-2024, ARM CE-OSS'
+copyright = '2017-2025, ARM CE-OSS'
 author = 'ARM CE-OSS'
 title = 'User Guide'
 

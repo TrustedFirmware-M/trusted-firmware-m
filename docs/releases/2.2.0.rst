@@ -1,0 +1,191 @@
+*************
+Version 2.2.0
+*************
+
+New major features
+==================
+
+  - LLVM build support (MPS2/3/4, RSE)
+
+  - Mbed TLS upgrade to v3.6.3.
+
+  - Compliant with PSA Architecture Compliance Kit tests v1.6
+
+  - Initial support for on-core and off-core clients on Hybrid platforms (A-profile + M-profile or
+    multiple M-profile) using HYBRID_PLAT_SCHED_TYPE=NSPE (a.k.a. solution 2) as described in [1]_.
+    The functionality is still under active testing and development.
+
+
+Other relevant changes
+======================
+
+  - BL1 changes to: key config, crypto api, image layout, BL2 hash removal, fixes for encodings,
+    ECC keys derivation support, all crypto functions are FIH enabled, shared symbols list updates.
+  - BL2 changes to: dynamic arbitrary numbers of ROTPKs, shared regions indirection, config options
+  - Tools: Option to generate signing requests, key_derivation module
+  - COSE: Switch to upstream t_cose repo
+  - NS agent mailbox: Support multiple mailbox sources in RPC callback
+  - Logs: Clean-up macros
+  - CC3XX: sanity checks, enhancements for PKA & ECDSA, alignments, tests, DRBG additions
+  - Threat Model: Add mitigation strategies
+  - MISRA-C: Document status of reported violations
+
+
+New security advisories
+=======================
+
+None.
+
+
+New platforms support
+=====================
+
+  - Initial support for building nRF54L15
+  - Initial support for building stm32wba65i-dk
+
+
+Deprecated platforms
+====================
+
+TC2: arm/rse/tc/tc2
+
+
+Tested platforms
+================
+
+The following platforms are successfully tested in this release.
+
+- **Arm**
+
+  - AN519
+  - AN521
+  - AN555
+  - Corstone-300
+  - Corstone-310
+  - Corstone-315
+  - Corstone-320
+  - Corstone-1000
+  - Musca-B1
+  - Musca-S1
+
+- **ArmChina**
+
+  - Alcor (AN557)
+
+- **STM**
+
+  - NUCLEO-L552ZE-Q
+  - STM32H573idk
+
+- **NXP**
+
+  - LPCXpresso55S69
+
+- **Nordic**
+
+  - nrf5340dk_nrf5340_cpuapp
+  - nrf9160dk_nrf9160
+  - nrf9161dk_nrf9161
+
+Reference memory footprint
+==========================
+
+All measurements below are made for *AN521* platform, built `TF-Mv2.2.0-RC2
+<https://git.trustedfirmware.org/TF-M/trusted-firmware-m.git/tag/?h=TF-Mv2.2.0-RC2>`_
+on Windows 10 using Armclang v6.18 and build type MinSizeRel.
+
+All modules are measured in bytes. Some minor modules are not shown in the table below.
+
+.. note::
+
+  Profile `Medium-ARoT-less` built with disabled Firmware Update service to align with other
+  TF-M Profiles.
+
++----------------------+--------------+--------------+--------------+--------------+--------------+
+| Module               |      Base    |     Small    |   ARoT-less  |    Medium    |    Large     |
++                      +-------+------+-------+------+-------+------+-------+------+-------+------+
+| Module               | Base  | RAM  | Small | RAM  | ARoT  | RAM  | Med.  | RAM  | Large | RAM  |
++======================+=======+======+=======+======+=======+======+=======+======+=======+======+
+|Generated             |    112|  3184|    208|  3184|    224|  3184|    272|  3184|    272|  3184|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|Objects               |    972|  1056|   1280|  5188|   1379|  5872|   1513|  1468|   1587|  1468|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|c_w.l                 |    190|     0|    506|     0|    548|     0|    506|     0|    746|     0|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|platform_s.a          |   5312|   281|   5644|   281|   6044|   281|   6426|   281|   6556|   281|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|spm.a                 |   3678|   173|   4716|   173|   4054|   173|   6652|  1409|   6854|  1414|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|sprt.a                |    274|     0|   1488|     0|   1402|     0|   2530|     4|   2530|     4|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|mbedcrypto.a          |      0|     0|  24464|  2108|  28292|  2108|  28392|  2108|  77692|  1992|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|PROT_attestation.a    |      0|     0|   1610|   557|   1579|  1153|   1583|  3201|   1699|  3201|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|PROT_crypto.a         |      0|     0|   3596|  2046|   4042| 16002|   4092| 22146|   4600| 28226|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|PROT_its.a            |      0|     0|   4830|    80|   4864|   112|   5064|  1988|   5072|  2468|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|PROT_platform.a       |      0|     0|      0|     0|    532|     0|    522|  1280|    522|  1280|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|AROT_ps.a             |      0|     0|      0|     0|      0|     0|   3312|  4344|   3312|  4344|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|Padding               |     26|    38|     95|    43|    126|    43|    117|    59|    169|    50|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|platform_crypto_keys.a|      0|     0|    258|     0|    276|     0|    276|     0|    276|     0|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|qcbor.a               |      0|     0|    854|     0|   1070|     0|   1070|     0|   1070|     0|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|crypto_service_p256m.a|      0|     0|      0|     0|   3612|     0|   3602|     0|      0|     0|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|t_cose_s.a            |      0|     0|   1007|     0|   2164|     0|   2159|     0|   2159|     0|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|Total inc. Padding    |  10564|  4732|  50556| 13660|  60208| 28928|  68088| 41472| 115116| 47912|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+
+Known issues
+============
+
+Some open issues are not fixed in this release.
+
+.. list-table::
+  :header-rows: 1
+
+  * - Descriptions
+    - Issue links
+  * - SPM does not automatically unmap mm-iovecs. It will be recovered in a future release.
+    - https://github.com/TrustedFirmware-M/trusted-firmware-m/issues/20
+
+
+Issues fixed since v2.1.1
+-------------------------
+
+The following issues have been fixed since the v2.1.1 release.
+
+.. list-table::
+  :header-rows: 1
+
+  * - Descriptions
+    - Issue links
+  * - KConfig build has been fixed
+    - <None>
+  * - Services do not unmap IOVECS
+    - https://github.com/TrustedFirmware-M/trusted-firmware-m/issues/19
+  * - SPM does not return PSA_ERROR on refused psa_connect
+    - https://github.com/TrustedFirmware-M/trusted-firmware-m/issues/21
+  * - Fix wrapper to properly mark NSPE images as such
+    - https://github.com/TrustedFirmware-M/trusted-firmware-m/issues/24
+  * - Protected Storage content can be lost
+    - https://github.com/TrustedFirmware-M/trusted-firmware-m/issues/26
+
+
+Reference
+=========
+
+.. [1] `Trusted Firmware-M and Hybrid platforms, TF-M tech forum 14-09-2023 <https://www.trustedfirmware.org/docs/tech_forum_20230914_non_seucure_clients.pdf>`_
+
+--------------
+
+ *SPDX-License-Identifier: BSD-3-Clause*
+
+ *SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
