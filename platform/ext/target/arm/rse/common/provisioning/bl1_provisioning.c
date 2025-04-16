@@ -95,7 +95,8 @@ int tfm_plat_provisioning_is_required(void)
 
     err = lcm_get_lcs(&LCM_DEV_S, &lcs);
     if (err != LCM_ERROR_NONE) {
-        return err;
+        assert(false);
+        return false;
     }
 
     provisioning_required = (lcs == LCM_LCS_CM || lcs == LCM_LCS_DM);
