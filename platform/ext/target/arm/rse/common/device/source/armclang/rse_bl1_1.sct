@@ -33,10 +33,10 @@ LR_CODE BL1_1_CODE_START {
     }
 
     /* MSP */
-    ARM_LIB_STACK +0 ALIGN 32 EMPTY BL1_1_MSP_STACK_SIZE {
+    ARM_LIB_STACK +0 ALIGN 32 EMPTY BL1_MSP_STACK_SIZE {
     }
 
-    ARM_LIB_HEAP +0 ALIGN 8 EMPTY BL1_1_HEAP_SIZE {
+    ARM_LIB_HEAP +0 ALIGN 8 EMPTY BL1_HEAP_SIZE {
     }
 
     /* This empty, zero long execution region is here to mark the limit address

@@ -82,20 +82,9 @@ SECTIONS
     __bss_start = ADDR(.bss);
     __bss_size = SIZEOF(.bss);
 
-    .msp_stack (NOLOAD) : ALIGN(32)
-    {
-        . += BL1_2_MSP_STACK_SIZE;
-    } > RAM
-    __stack_seal = ADDR(.msp_stack) + SIZEOF(.msp_stack) - 0x8;
-    Image$$ARM_LIB_STACK$$ZI$$Base = ADDR(.msp_stack);
-    Image$$ARM_LIB_STACK$$ZI$$Limit = __stack_seal;
-
-    .heap (NOLOAD) : ALIGN(8)
-    {
-        . += BL1_2_HEAP_SIZE;
-    } > RAM
-    __heap_start = ADDR(.heap);
-    __heap_end = ADDR(.heap) + SIZEOF(.heap);
+    /* No stack or heap defined as BL1_2 uses the same stack and
+     * heap as BL1_1
+     */
 
     Image$$BL1_2_ER_DATA_LIMIT$$Base = .;
 

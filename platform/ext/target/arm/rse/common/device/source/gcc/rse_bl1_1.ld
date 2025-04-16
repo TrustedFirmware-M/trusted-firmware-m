@@ -29,8 +29,8 @@ MEMORY
     RAM    (rwx) : ORIGIN = BL1_1_DATA_START, LENGTH = BL1_1_DATA_SIZE
 }
 
-__heap_size__  = BL1_1_HEAP_SIZE;
-__msp_stack_size__ = BL1_1_MSP_STACK_SIZE;
+__heap_size__  = BL1_HEAP_SIZE;
+__msp_stack_size__ = BL1_MSP_STACK_SIZE;
 
 ENTRY(Reset_Handler)
 

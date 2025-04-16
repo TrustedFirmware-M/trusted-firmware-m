@@ -28,9 +28,6 @@ MEMORY
     RAM   (rwx) : ORIGIN = BL1_2_DATA_START, LENGTH = BL1_2_DATA_SIZE
 }
 
-__heap_size__  = BL1_2_HEAP_SIZE;
-__msp_stack_size__ = BL1_2_MSP_STACK_SIZE;
-
 ENTRY(Reset_Handler)
 
 SECTIONS
@@ -161,26 +158,10 @@ SECTIONS
 
     bss_size = __bss_end__ - __bss_start__;
 
-    .msp_stack : ALIGN(32)
-    {
-        . += __msp_stack_size__;
-    } > RAM
-    Image$$ARM_LIB_STACK$$ZI$$Base = ADDR(.msp_stack);
-    Image$$ARM_LIB_STACK$$ZI$$Limit = ADDR(.msp_stack) + SIZEOF(.msp_stack);
+    /* No stack or heap defined as BL1_2 uses the same stack and
+     * heap as BL1_1
+     */
 
-    .heap : ALIGN(8)
-    {
-        . = ALIGN(8);
-        __end__ = .;
-        PROVIDE(end = .);
-        __HeapBase = .;
-        . += __heap_size__;
-        __HeapLimit = .;
-        __heap_limit = .; /* Add for _sbrk */
-    } > RAM
-    Image$$ARM_LIB_HEAP$$ZI$$Limit = ADDR(.heap) + SIZEOF(.heap);
-
-    PROVIDE(__stack = Image$$ARM_LIB_STACK$$ZI$$Limit);
     Image$$BL1_2_ER_DATA_LIMIT$$Base = .;
 
     Image$$BL1_1_ER_DATA_START$$Base = BL1_1_DATA_START;

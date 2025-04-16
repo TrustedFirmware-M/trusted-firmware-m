@@ -105,3 +105,16 @@ FIH_SUCCESS
 blob_provisioning_finished
 blob_handling_status_report_continue
 blob_handling_status_report_error
+Image*ARM_LIB_STACK*
+Image*ARM_LIB_HEAP*
+__end__
+end
+__HeapBase
+__HeapLimit
+__heap_limit
+__heap_size__
+__heap_start
+__heap_end
+__msp_stack_size__
+__stack
+__stack_seal

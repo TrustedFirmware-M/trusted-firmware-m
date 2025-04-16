@@ -179,6 +179,7 @@ SECTIONS
     } > RAM
     Image$$ARM_LIB_HEAP$$ZI$$Limit = ADDR(.heap) + SIZEOF(.heap);
 
-    PROVIDE(__stack = Image$$ARM_LIB_STACK$$ZI$$Limit);
+    /* No PROVIDE as want to override shared symbol from BL1_1 */
+    __stack = Image$$ARM_LIB_STACK$$ZI$$Limit;
     Image$$RSE_TESTS_ER_DATA_LIMIT$$Base = .;
 }

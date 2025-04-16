@@ -84,7 +84,7 @@ SECTIONS
 
     .msp_stack (NOLOAD) : ALIGN(32)
     {
-        . += BL1_1_MSP_STACK_SIZE;
+        . += BL1_MSP_STACK_SIZE;
     } > RAM
     __stack_seal = ADDR(.msp_stack) + SIZEOF(.msp_stack) - 0x8;
     Image$$ARM_LIB_STACK$$ZI$$Base = ADDR(.msp_stack);
@@ -92,7 +92,7 @@ SECTIONS
 
     .heap (NOLOAD) : ALIGN(8)
     {
-        . += BL1_1_HEAP_SIZE;
+        . += BL1_HEAP_SIZE;
     } > RAM
     __heap_start = ADDR(.heap);
     __heap_end = ADDR(.heap) + SIZEOF(.heap);
