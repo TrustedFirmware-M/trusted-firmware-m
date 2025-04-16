@@ -135,14 +135,14 @@ static void dump_exception_info(bool stack_error,
 
 #ifdef FAULT_STATUS_PRESENT
     VERBOSE_RAW("    CFSR:  0x%08x\n", ctx->CFSR);
-    VERBOSE_RAW("    BFSR:  ",
+    VERBOSE_RAW("    BFSR:  0x%02x",
                     (ctx->CFSR & SCB_CFSR_BUSFAULTSR_Msk) >> SCB_CFSR_BUSFAULTSR_Pos);
     if (ctx->BFARVALID) {
         VERBOSE_RAW("    BFAR: 0x%08x\n", ctx->BFAR);
     } else {
         VERBOSE_RAW("    BFAR:  Not Valid\n");
     }
-    VERBOSE_RAW("    MMFSR: ",
+    VERBOSE_RAW("    MMFSR: 0x%02x",
                     (ctx->CFSR & SCB_CFSR_MEMFAULTSR_Msk) >> SCB_CFSR_MEMFAULTSR_Pos);
     if (ctx->MMARVALID) {
         VERBOSE_RAW("    MMFAR: 0x%08x\n", ctx->MMFAR);
