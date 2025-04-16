@@ -28,13 +28,13 @@
 #include "bl1_2_config.h"
 
 /* RSE memory layout is as follows during BL1
- *      |----------------------------------------|
- * DTCM | BOOT_SHARED | BL1_1_DATA | BL1_2_DATA  |
- *      |----------------------------------------|
+ *      |----------------------------------------------------|
+ * DTCM | BLOB_DATA | BOOT_SHARED | BL1_1_DATA | BL1_2_DATA  |
+ *      |----------------------------------------------------|
  *
- *      |----------------------------------------|
- * ITCM | BL1_2_CODE  |                          |
- *      |----------------------------------------|
+ *      |----------------------------------------------------|
+ * ITCM | BLOB_CODE | BL1_2_CODE  |                          |
+ *      |----------------------------------------------------|
  *
  *      |---------------------------------------------------------
  * VM0  |                                                        |
@@ -222,7 +222,7 @@
 #define PROVISIONING_DATA_LIMIT (PROVISIONING_DATA_START + PROVISIONING_DATA_SIZE - 1)
 
 /* BL1_2 is in the ITCM */
-#define BL1_2_CODE_START  (ITCM_BASE_S)
+#define BL1_2_CODE_START  (PROVISIONING_BUNDLE_CODE_START + PROVISIONING_BUNDLE_CODE_SIZE)
 #define BL1_2_CODE_SIZE   (0x2000) /* 8 KiB */
 #define BL1_2_CODE_LIMIT  (BL1_2_CODE_START + BL1_2_CODE_SIZE - 1)
 
@@ -238,7 +238,7 @@
 #define BL1_1_DATA_LIMIT  (BL1_1_DATA_START + BL1_1_DATA_SIZE - 1)
 
 #define BL1_2_DATA_START  (BL1_1_DATA_START + BL1_1_DATA_SIZE)
-#define BL1_2_DATA_SIZE   (DTCM_SIZE - BOOT_TFM_SHARED_DATA_SIZE - BL1_1_DATA_SIZE)
+#define BL1_2_DATA_SIZE   (0x800) /* 2 KiB */
 #define BL1_2_DATA_LIMIT  (BL1_2_DATA_START + BL1_2_DATA_SIZE - 1)
 
 /* XIP data goes after the BL2 image */
@@ -281,8 +281,9 @@
 #error XIP disabled runtime partitions do not fit in SRAM
 #endif
 
-/* Store boot data at the start of the DTCM. */
-#define BOOT_TFM_SHARED_DATA_BASE DTCM_BASE_S
+/* TODO: Shared data can be placed in the SRAM. Move it there
+ * so that there is more space for the provisioning blob values */
+#define BOOT_TFM_SHARED_DATA_BASE (PROVISIONING_BUNDLE_VALUES_START + PROVISIONING_BUNDLE_VALUES_SIZE)
 #define BOOT_TFM_SHARED_DATA_SIZE (0x600)
 #define BOOT_TFM_SHARED_DATA_LIMIT (BOOT_TFM_SHARED_DATA_BASE + \
                                     BOOT_TFM_SHARED_DATA_SIZE - 1)
@@ -297,9 +298,9 @@
 #endif
 
 #define PROVISIONING_BUNDLE_CODE_START   (ITCM_BASE_S)
-#define PROVISIONING_BUNDLE_CODE_SIZE    (ITCM_SIZE)
-#define PROVISIONING_BUNDLE_VALUES_START (BL1_2_DATA_START)
-#define PROVISIONING_BUNDLE_VALUES_SIZE  (BL1_2_DATA_SIZE)
+#define PROVISIONING_BUNDLE_CODE_SIZE    (ITCM_SIZE - BL1_2_CODE_SIZE)
+#define PROVISIONING_BUNDLE_VALUES_START (DTCM_BASE_S)
+#define PROVISIONING_BUNDLE_VALUES_SIZE  (DTCM_SIZE - BOOT_TFM_SHARED_DATA_SIZE - BL1_1_DATA_SIZE - BL1_2_DATA_SIZE)
 #define PROVISIONING_BUNDLE_DATA_START   (VM1_BASE_S)
 #define PROVISIONING_BUNDLE_DATA_SIZE    (VM1_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
 
