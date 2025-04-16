@@ -74,6 +74,12 @@
 /* Whether RNG is enabled */
 #define CC3XX_CONFIG_RNG_ENABLE
 
+/* Collect TRNG error statistics */
+/* #define CC3XX_CONFIG_TRNG_COLLECT_STATISTCS */
+
+/* Generate entropy to RNG SRAM, and copy it to destination via DMA */
+/* #define CC3XX_CONFIG_TRNG_DMA */
+
 /* Whether RNG uses HMAC_DRBG when RNG_DRBG is selected */
 #define CC3XX_CONFIG_RNG_DRBG_HMAC
 /* Whether RNG uses CTR_DRBG when RNG_DRBG is selected */
