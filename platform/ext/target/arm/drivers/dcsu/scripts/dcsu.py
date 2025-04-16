@@ -316,10 +316,19 @@ ready for importing data.
     "DCSU_RX_COMMAND_REPORT_STATUS": """
 The DCSU_RX_COMMAND_REPORT_STATUS command waits for a status report from DCSU.
 """,
+    "DCSU_RX_COMMAND_EXPORT_DATA_WITH_CHECKSUM": """
+The DCSU_RX_COMMAND_EXPORT_DATA_WITH_CHECKSUM command waits for data to be exported from the
+DCSU with a checksum. This command may trigger multiple commands in order to copy more data than
+the DCSU TX buffer size.
+""",
     "DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM": """
 The DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM command waits for data to be exported from the
-DCSU. This command may trigger multiple commands in order to copy more data than
+DCSU without a checksum. This command may trigger multiple commands in order to copy more data than
 the DCSU TX buffer size.
+""",
+    "DCSU_RX_COMMAND_COMPLETE_EXPORT_DATA": """
+The DCSU_RX_COMMAND_COMPLETE_EXPORT_DATA command indicates to the DCSU that the export has
+completed and that the data can be returned from the script.
 """,
 }
 if __name__ == "__main__":
