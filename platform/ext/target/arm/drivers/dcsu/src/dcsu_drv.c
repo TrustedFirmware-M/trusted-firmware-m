@@ -142,7 +142,7 @@ static enum dcsu_error_t rx_import_data(struct dcsu_dev_t *dev, bool use_checksu
         *msg_resp = DCSU_RX_MSG_RESP_TOO_LARGE_OFFSET_PARAM;
         return DCSU_ERROR_NONE;
     }
-    if (write_offset >= buf_len - write_size) {
+    if (write_offset > buf_len - write_size) {
         *msg_resp = DCSU_RX_MSG_RESP_TOO_LARGE_ACCESS_REQUEST;
         return DCSU_ERROR_NONE;
     }
