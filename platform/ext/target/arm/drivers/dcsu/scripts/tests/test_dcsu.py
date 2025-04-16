@@ -63,7 +63,7 @@ def test_data_without_checksum_too_large(backend, ctx, args):
     # Buffer passed in test_dcsu_drv.c is 1024 bytes
     setup_args(args, get_random_bytes(1026), None, 0x0)
     status = dcsu_command(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_IMPORT_DATA_NO_CHECKSUM, args)
-    return status == dcsu_tx_message_error.DCSU_TX_MSG_RESP_TOO_LARGE_ACCESS_REQUEST
+    return status == dcsu_tx_message_error.DCSU_TX_MSG_RESP_TOO_LARGE_OFFSET_PARAM
 
 def test_file_with_checksum(backend, ctx, args):
     random_bytes = get_random_bytes(28)
@@ -86,6 +86,7 @@ class invalid_dcsu_rx_command(Enum):
 
 def test_invalid_command(backend, ctx, args):
     dummy_data = bytes([0xEF])
+    backend.write_register(ctx, "DIAG_RX_LARGE_PARAM", 0x0)
     status = tx_command_send(backend, ctx, invalid_dcsu_rx_command.DCSU_RX_INVALID_COMMAND,
                              dummy_data, len(dummy_data), 'little', False)
     return status == dcsu_tx_message_error.DCSU_TX_MSG_RESP_INVALID_COMMAND
@@ -97,10 +98,16 @@ class dcsu_rx_command_override_checksum(Enum):
 
 def test_invalid_checksum(backend, ctx, args):
     data = get_random_bytes(16)
+    backend.write_register(ctx, "DIAG_RX_LARGE_PARAM", 0x0)
     status = tx_command_send(backend, ctx,
                              dcsu_rx_command_override_checksum.DCSU_RX_COMMAND_OVERRIDE_CHECKSUM,
                              data, len(data), 'little', True)
-    return status == dcsu_tx_message_error.DCSU_TX_MSG_RESP_BAD_INTEGRITY_VALUE
+    if status != dcsu_tx_message_error.DCSU_TX_MSG_RESP_BAD_INTEGRITY_VALUE:
+        return False
+
+    # Send cancellation to reset checksum condition
+    status = tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM)
+    return status == dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS
 
 def test_specific_data_with_checksum(backend, ctx, args):
     setup_args(args, TEST_DATA_BYTES, None, 0x0)
@@ -108,12 +115,17 @@ def test_specific_data_with_checksum(backend, ctx, args):
     return status == dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS
 
 def test_specific_file_with_checksum(backend, ctx, args):
-    with tempfile.NamedTemporaryFile() as tmp_file:
+    with tempfile.NamedTemporaryFile(mode='wb', delete=False) as tmp_file:
         tmp_file.write(TEST_DATA_BYTES)
-        setup_args(args, None, tmp_file.name, 0x0)
+        tmp_file_name = tmp_file.name
 
-        status = dcsu_command(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM, args)
-        return status == dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS
+    setup_args(args, None, tmp_file.name, 0x0)
+
+    status = dcsu_command(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM, args)
+    failed = (status == dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS)
+
+    os.remove(tmp_file_name)
+    return failed
 
 def test_send_completion(backend, ctx, args):
     status = tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_COMPLETE_IMPORT_DATA)
