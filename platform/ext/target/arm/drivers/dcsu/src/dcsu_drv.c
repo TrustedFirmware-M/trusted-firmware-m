@@ -363,36 +363,28 @@ enum dcsu_error_t dcsu_report_status(struct dcsu_dev_t *dev, uint32_t *status, u
 enum dcsu_error_t dcsu_init(struct dcsu_dev_t *dev, uint8_t *rx_buf, size_t rx_buf_len,
                             dcsu_commit_write_handler_t handler)
 {
-#ifdef DCSU_CONFIG_WFI_ENABLE
     struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
-#endif
 
     dev->rx_buf = rx_buf;
     dev->rx_buf_len = rx_buf_len;
     dev->handler = handler;
     dev->import_checksum_failed = false;
 
-#ifdef DCSU_CONFIG_WFI_ENABLE
     p_dcsu->diag_cmd_irq_en = 0b11;
-#endif
 
     return DCSU_ERROR_NONE;
 }
 
 enum dcsu_error_t dcsu_finish(struct dcsu_dev_t *dev)
 {
-#ifdef DCSU_CONFIG_WFI_ENABLE
     struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
-#endif
 
     dev->rx_buf = NULL;
     dev->rx_buf_len = 0;
     dev->rx_buf_offset = 0;
     dev->handler = NULL;
 
-#ifdef DCSU_CONFIG_WFI_ENABLE
     p_dcsu->diag_cmd_irq_en = 0x0;
-#endif
 
     return DCSU_ERROR_NONE;
 }
