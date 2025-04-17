@@ -105,7 +105,8 @@ static size_t popcount32(uint32_t x)
 static cc3xx_err_t count_zero_bits(uint8_t *buf, size_t buf_len, uint32_t *zero_count)
 {
 #ifndef CC3XX_CONFIG_RNG_EXTERNAL_ZERO_COUNT
-    assert(buf & 0x3 && !(buf_len % sizeof(uint32_t)));
+    assert((((uintptr_t) buf & 0x3) == 0) && ((buf_len & 0x3) == 0));
+
     for (size_t i = 0; i < buf_len / sizeof(uint32_t); i++) {
         *zero_count += BYTES_TO_BITS(sizeof(uint32_t)) - popcount32(((uint32_t *)buf)[i]);
     }
@@ -619,7 +620,8 @@ cc3xx_err_t cc3xx_lowlevel_rng_get_random(uint8_t* buf, size_t length,
     random_fn_t random_fn;
 
     size_t copy_size;
-    const bool request_is_word_aligned = ((uintptr_t)buf & 0x3) == 0 && (length & 0x3) == 0;
+    const bool request_is_word_aligned = (((uintptr_t) buf & 0x3) == 0) &&
+                                         ((length & 0x3) == 0);
     cc3xx_err_t err;
 
     switch (quality) {
