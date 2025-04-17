@@ -120,7 +120,6 @@ def rx_command_receive(backend, ctx, command : dcsu_rx_command) -> bytes:
 
     if command in [dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM,
                            dcsu_rx_command.DCSU_RX_COMMAND_REPORT_STATUS]:
-        print("reading data")
         data = bytes(0)
         data_word_size = (backend.read_register(ctx, "DIAG_TX_COMMAND") >> 8) & 0b11
 
@@ -193,11 +192,11 @@ def dcsu_rx_command_report_status(backend, ctx, args: argparse.Namespace):
     match(status):
         case provisioning_message_status.PROVISIONING_STATUS_SUCCESS_CONTINUE:
             report = int.from_bytes(data[4:8], 'little')
-            logger.info(f"Status Report {report}...")
+            logger.info(f"Status Report {hex(report)}...")
             return 0
         case provisioning_message_status.PROVISIONING_STATUS_SUCCESS_COMPLETE:
             report = int.from_bytes(data[4:8], 'little')
-            logger.info(f"Final Status Report {report}")
+            logger.info(f"Final Status Report {hex(report)}")
             return 0
         case provisioning_message_status.PROVISIONING_STATUS_ERROR:
             report = int.from_bytes(data[4:8], 'little')
@@ -222,10 +221,10 @@ def dcsu_tx_command_complete_import(backend, ctx, args: argparse.Namespace):
         match(status):
             case provisioning_message_status.PROVISIONING_STATUS_SUCCESS_CONTINUE:
                 report = int.from_bytes(data[4:8], 'little')
-                logger.info(f"Status Report {report}...")
+                logger.info(f"Status Report {hex(report)}...")
             case provisioning_message_status.PROVISIONING_STATUS_SUCCESS_COMPLETE:
                 report = int.from_bytes(data[4:8], 'little')
-                logger.info(f"Final Status Report {report}")
+                logger.info(f"Final Status Report {hex(report)}")
                 return res
             case provisioning_message_status.PROVISIONING_STATUS_ERROR:
                 report = int.from_bytes(data[4:8], 'little')
