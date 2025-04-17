@@ -145,14 +145,8 @@ endif()
 # Set which PLATFORM dependency must be used by the CC3XX driver
 set(CC3XX_PLATFORM_INTERFACE platform_bl1_1)
 set(CC3XX_TARGET_PREFIX bl1_)
-# BL1 code size is dimensioned for production hence we can't afford
-# the variability required by building with different build type:
-# Force the usage of RelWithDebInfo for the crypto driver regardless
-# of the specified build option
-set(SAVED_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+
 add_subdirectory(${PLATFORM_DIR}/ext/target/arm/drivers/cc3xx cc3xx)
-set(CMAKE_BUILD_TYPE ${SAVED_BUILD_TYPE})
 
 target_include_directories(platform_s
     PUBLIC
