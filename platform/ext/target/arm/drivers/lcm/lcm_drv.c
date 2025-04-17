@@ -649,6 +649,11 @@ enum lcm_error_t lcm_set_lcs(struct lcm_dev_t *dev, enum lcm_lcs_t lcs,
         return LCM_ERROR_SET_LCS_INVALID_TP_MODE;
     }
 
+    /* Transition to RMA doesn't require Secure Provisioning mode enabled */
+    if (lcs == LCM_LCS_RMA) {
+        return any_to_rma(dev);
+    }
+
     err = lcm_get_sp_enabled(dev, &sp_enable);
     if (err != LCM_ERROR_NONE) {
         return err;
@@ -693,9 +698,6 @@ enum lcm_error_t lcm_set_lcs(struct lcm_dev_t *dev, enum lcm_lcs_t lcs,
         }
 
         return dm_to_se(dev);
-
-    case LCM_LCS_RMA:
-        return any_to_rma(dev);
 
     case LCM_LCS_INVALID:
         FATAL_ERR(LCM_ERROR_SET_LCS_INVALID_LCS);
