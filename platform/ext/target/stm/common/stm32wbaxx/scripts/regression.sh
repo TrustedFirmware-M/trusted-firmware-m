@@ -24,10 +24,10 @@ secbootadd0=0x180188
 connect="-c port=SWD "$sn_option" mode=UR AP=1"
 connect_no_reset="-c port=SWD "$sn_option" mode=HotPlug AP=1"
 rdp_0="-ob RDP=0xAA TZEN=1"
-remove_bank1_protect="-ob SECWM1_PSTRT=0x7f SECWM1_PEND=0"
-remove_bank2_protect="-ob SECWM2_PSTRT=0x7f SECWM2_PEND=0"
+remove_bank1_protect="-ob SECWM1_PSTRT=0x7f SECWM1_PEND=0x0"
+remove_bank2_protect="-ob SECWM2_PSTRT=0x7f SECWM2_PEND=0x0"
 erase_all="-e all"
-default_ob1="-ob SRAM2_RST=1 SECBOOTADD0="0x180488" DBANK=1 SWAP_BANK=0 SECWM1_PSTRT=12 SECWM1_PEND=0x42 SECWM2_PSTRT=0x0 SECWM2_PEND=0x7f"
+default_ob1="-ob SRAM2_RST=1 SECBOOTADD0="0x180488" DBANK=1 SWAP_BANK=0 SECWM1_PSTRT=0x0 SECWM1_PEND=0x41 SECWM2_PSTRT=0x0 SECWM2_PEND=0x7f"
 
 echo "Regression to RDP 0, enable tz"
 $stm32programmercli $connect $rdp_0
