@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,11 +50,6 @@
 
 /* How much space in OTP can be used for the SAM configuration */
 #define OTP_SAM_CONFIGURATION_SIZE 0x60
-
-/* The maximum size for code in the provisioning bundle */
-#define PROVISIONING_BUNDLE_CODE_SIZE   (0xB000)
-/* The maximum size for secret values in the provisioning bundle */
-#define PROVISIONING_BUNDLE_VALUES_SIZE (0x3D00)
 
 /* RSE flash layout */
 /*

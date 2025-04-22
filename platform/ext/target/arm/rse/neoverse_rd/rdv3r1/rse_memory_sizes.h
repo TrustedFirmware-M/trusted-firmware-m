@@ -36,9 +36,4 @@
 /* How much space in ROM is used for the DMA Initial Command Sequence */
 #define ROM_DMA_ICS_SIZE   0x1000 /* 4 KiB */
 
-/* The maximum size for code in the provisioning bundle */
-#define PROVISIONING_BUNDLE_CODE_SIZE   (0xB000)
-/* The maximum size for secret values in the provisioning bundle */
-#define PROVISIONING_BUNDLE_VALUES_SIZE (0x3D00)
-
 #endif /* __RSE_MEMORY_SIZES_H__ */
