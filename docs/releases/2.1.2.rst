@@ -1,0 +1,45 @@
+*************
+Version 2.1.2
+*************
+
+New features
+============
+
+ - Mbed TLS upgrade to v3.6.3.
+
+New platforms supported
+=======================
+
+ - :doc:`MAX32657 </platform/adi/max32657/README>`
+
+Hotfixes
+========
+
+ - Protected Storage content can be lost if the storage is "full", psa_ps_set
+   is attempted and device is reset (twice).
+ - Fix wrapper to properly mark NSPE images as such
+ - SPM: Remove specific section for psa_interface_thread_fn_call
+ - SPM: interrupts: Add missing checks on fih_rc return value
+ - SPM: Services do not unmap IOVECS
+ - SPM: SPM does not return PSA_ERROR on refused psa_connect
+ - SPM: Fixes for invalid connection retention after psa_close
+ - SPM: Fixes for reverse-handle
+
+Known issues
+============
+
+Some open issues are not fixed in this release.
+
+.. list-table::
+  :header-rows: 1
+
+  * - Descriptions
+    - Issue links
+  * - SPM does not automatically unmap mm-iovecs.
+    - https://github.com/TrustedFirmware-M/trusted-firmware-m/issues/20
+
+--------------
+
+ *SPDX-License-Identifier: BSD-3-Clause*
+
+ *SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
