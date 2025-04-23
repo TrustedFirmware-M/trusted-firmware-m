@@ -124,7 +124,7 @@ enum tfm_plat_err_t do_cm_provision(void) {
                              values->kp_cm);
 #else
     err = provision_derived_key(KMU_HW_SLOT_KRTL, NULL,
-                                (uint8_t *)"KCE_CM", sizeof("KCE_CM"), NULL, 0,
+                                (uint8_t *)"KP_CM", sizeof("KP_CM"), NULL, 0,
                                 PLAT_OTP_ID_CM_PROVISIONING_KEY, 32);
 #endif
     if (err != TFM_PLAT_ERR_SUCCESS) {
