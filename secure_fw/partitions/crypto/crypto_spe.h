@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -26,6 +26,8 @@
         PSA_FUNCTION_NAME(psa_crypto_init)
 #define psa_can_do_hash \
         PSA_FUNCTION_NAME(psa_can_do_hash)
+#define psa_can_do_cipher \
+        PSA_FUNCTION_NAME(psa_can_do_cipher)
 #define psa_key_derivation_get_capacity \
         PSA_FUNCTION_NAME(psa_key_derivation_get_capacity)
 #define psa_key_derivation_set_capacity \

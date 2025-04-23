@@ -74,6 +74,17 @@ TFM_CRYPTO_API(int, psa_can_do_hash)(psa_algorithm_t hash_alg)
     return (int)true;
 }
 
+TFM_CRYPTO_API(int, psa_can_do_cipher)(psa_key_type_t key_type, psa_algorithm_t cipher_alg)
+{
+    (void)cipher_alg;
+    (void)key_type;
+    /* There isn't any cipher algorithm that would not be ready
+     * to be used after TF-M has booted up, hence this function
+     * just returns success all the time
+     */
+    return (int)true;
+}
+
 TFM_CRYPTO_API(psa_status_t, psa_open_key)(psa_key_id_t id,
                                            psa_key_id_t *key)
 {
