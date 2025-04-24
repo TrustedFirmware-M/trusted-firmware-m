@@ -1,17 +1,19 @@
-commit 77752f353691fcf0c372db013d70f621e48ba8df
-Author: Bohdan Hunko <Bohdan.Hunko@infineon.com>
-Date:   Fri Nov 8 19:27:13 2024 +0200
+From 94c15124792d198fdf7abbcdc46f061435334522 Mon Sep 17 00:00:00 2001
+From: David Vincze <david.vincze@arm.com>
+Date: Thu, 24 Apr 2025 15:44:22 +0000
+Subject: [PATCH 2/2] Add missing type casts to fix compile warnings
 
-    [PATCH] Add missing type casts to fix compile warnings
-    
-    Fixes following warning for IAR compiler:
-        qcbor_decode.c,3129  Error[Pe188]:
-              enumerated type mixed with another type
-    
-    Signed-off-by: Bohdan Hunko <Bohdan.Hunko@infineon.com>
+Fixes following warning for IAR compiler:
+    qcbor_decode.c,3129  Error[Pe188]:
+          enumerated type mixed with another type
+
+Signed-off-by: Bohdan Hunko <Bohdan.Hunko@infineon.com>
+---
+ src/qcbor_decode.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/src/qcbor_decode.c b/src/qcbor_decode.c
-index 70aa41d..ef4ce75 100644
+index 70aa41d8..ef4ce759 100644
 --- a/src/qcbor_decode.c
 +++ b/src/qcbor_decode.c
 @@ -2624,7 +2624,7 @@ QCBORError QCBORDecode_PartialFinish(QCBORDecodeContext *pMe, size_t *puConsumed
@@ -41,3 +43,6 @@ index 70aa41d..ef4ce75 100644
     }
  
     QCBORError uError;
+-- 
+2.34.1
+

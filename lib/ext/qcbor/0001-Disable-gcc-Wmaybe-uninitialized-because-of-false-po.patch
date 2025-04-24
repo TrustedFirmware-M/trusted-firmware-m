@@ -1,8 +1,8 @@
-From 1b199ce317d02c46770269631fea644cefb63978 Mon Sep 17 00:00:00 2001
+From 3be62821d5ea885ac9274fe8d9b1e4c64b0de754 Mon Sep 17 00:00:00 2001
 From: Laurence Lundblade <laurencelundblade@users.noreply.github.com>
 Date: Sun, 12 Feb 2023 13:21:44 -0800
-Subject: [PATCH] Disable gcc -Wmaybe-uninitialized because of false positives
- (#179)
+Subject: [PATCH 1/2] Disable gcc -Wmaybe-uninitialized because of false
+ positives (#179)
 
 For some versions of gcc (but not all) -Wall enables -Wmaybe-uninitialized.
 
@@ -16,8 +16,6 @@ Note that just slamming initialization on to the variables to prevent the warnin
 have to read and understand the code to initialize correctly. That or confirm there is no
 uninitialized variables. Both have been done in this case.
 
-
-
 * Disable -Wmaybe-uninitialized because of false positives
 
 * Improved explanatory text
@@ -30,7 +28,7 @@ Co-authored-by: Laurence Lundblade <lgl@securitytheory.com>
  1 file changed, 53 insertions(+), 5 deletions(-)
 
 diff --git a/src/qcbor_decode.c b/src/qcbor_decode.c
-index 8a547ee..57aab97 100644
+index 8a547eef..70aa41d8 100644
 --- a/src/qcbor_decode.c
 +++ b/src/qcbor_decode.c
 @@ -1,6 +1,6 @@
@@ -136,5 +134,5 @@ index 8a547ee..57aab97 100644
        case QCBOR_TYPE_POSBIGNUM:
           if(uConvertTypes & QCBOR_CONVERT_TYPE_BIG_NUM) {
 -- 
-2.25.1
+2.34.1
 
