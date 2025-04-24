@@ -42,7 +42,7 @@ lcm_dcu_set_locked
 pq_crypto_verify
 pq_crypto_get_pub_key_hash
 rse_check_zero_bit_count
-rse_setup_cpak_seed
+rse_setup_iak_seed
 rse_setup_dak_seed
 rse_setup_rot_cdi
 rse_setup_session_key

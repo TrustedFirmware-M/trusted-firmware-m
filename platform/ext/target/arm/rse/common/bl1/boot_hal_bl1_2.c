@@ -239,7 +239,7 @@ int32_t boot_platform_post_init(void)
         return plat_err;
     }
 
-    plat_err = rse_setup_cpak_seed();
+    plat_err = rse_setup_iak_seed();
     if (plat_err) {
         return plat_err;
     }

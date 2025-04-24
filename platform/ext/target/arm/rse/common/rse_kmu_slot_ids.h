@@ -17,7 +17,7 @@ extern "C" {
 enum rse_kmu_slot_id_t {
     RSE_KMU_SLOT_TRAM_KEY = KMU_USER_SLOT_MIN,
     RSE_KMU_SLOT_VHUK,
-    RSE_KMU_SLOT_CPAK_SEED,
+    RSE_KMU_SLOT_IAK_SEED,
 #ifdef RSE_BOOT_KEYS_CCA
     RSE_KMU_SLOT_DAK_SEED,
 #endif

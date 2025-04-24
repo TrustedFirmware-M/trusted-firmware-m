@@ -47,7 +47,7 @@ void test_setup_key_from_derivation_get_boot_state_fails(void)
     /* Prepare */
     key_id = KMU_HW_SLOT_HUK;
     key_buf = NULL;
-    slot = RSE_KMU_SLOT_CPAK_SEED;
+    slot = RSE_KMU_SLOT_IAK_SEED;
     setup_aes_aead_key = true;
     boot_state_config =
         RSE_BOOT_STATE_INCLUDE_TP_MODE | RSE_BOOT_STATE_INCLUDE_LCS;
@@ -81,7 +81,7 @@ void test_setup_key_from_derivation_get_key_buffer_ptr_fails(void)
     /* Prepare */
     key_id = KMU_HW_SLOT_HUK;
     key_buf = NULL;
-    slot = RSE_KMU_SLOT_CPAK_SEED;
+    slot = RSE_KMU_SLOT_IAK_SEED;
     setup_aes_aead_key = true;
     boot_state_config =
         RSE_BOOT_STATE_INCLUDE_TP_MODE | RSE_BOOT_STATE_INCLUDE_LCS;
@@ -117,7 +117,7 @@ void test_setup_key_from_derivation_cc3xx_kdf_cmac_fails(void)
     /* Prepare */
     key_id = KMU_HW_SLOT_HUK;
     key_buf = NULL;
-    slot = RSE_KMU_SLOT_CPAK_SEED;
+    slot = RSE_KMU_SLOT_IAK_SEED;
     setup_aes_aead_key = true;
     boot_state_config =
         RSE_BOOT_STATE_INCLUDE_TP_MODE | RSE_BOOT_STATE_INCLUDE_LCS;
@@ -156,7 +156,7 @@ void test_setup_key_from_derivation_duplicate_into_next_slot_fails(void)
     /* Prepare */
     key_id = KMU_HW_SLOT_HUK;
     key_buf = NULL;
-    slot = RSE_KMU_SLOT_CPAK_SEED;
+    slot = RSE_KMU_SLOT_IAK_SEED;
     setup_aes_aead_key = true;
     boot_state_config =
         RSE_BOOT_STATE_INCLUDE_TP_MODE | RSE_BOOT_STATE_INCLUDE_LCS;
@@ -193,7 +193,7 @@ void test_setup_key_from_derivation_set_key_export_config_fails(void)
     /* Prepare */
     key_id = KMU_HW_SLOT_HUK;
     key_buf = NULL;
-    slot = RSE_KMU_SLOT_CPAK_SEED;
+    slot = RSE_KMU_SLOT_IAK_SEED;
     setup_aes_aead_key = true;
     boot_state_config =
         RSE_BOOT_STATE_INCLUDE_TP_MODE | RSE_BOOT_STATE_INCLUDE_LCS;
@@ -235,7 +235,7 @@ void test_setup_key_from_derivation_set_key_export_config_locked_fails(void)
     /* Prepare */
     key_id = KMU_HW_SLOT_HUK;
     key_buf = NULL;
-    slot = RSE_KMU_SLOT_CPAK_SEED;
+    slot = RSE_KMU_SLOT_IAK_SEED;
     setup_aes_aead_key = true;
     boot_state_config =
         RSE_BOOT_STATE_INCLUDE_TP_MODE | RSE_BOOT_STATE_INCLUDE_LCS;
@@ -279,7 +279,7 @@ void test_setup_key_from_derivation_ok(void)
     /* Prepare */
     key_id = KMU_HW_SLOT_HUK;
     key_buf = NULL;
-    slot = RSE_KMU_SLOT_CPAK_SEED;
+    slot = RSE_KMU_SLOT_IAK_SEED;
     setup_aes_aead_key = true;
     boot_state_config =
         RSE_BOOT_STATE_INCLUDE_TP_MODE | RSE_BOOT_STATE_INCLUDE_LCS;
@@ -558,14 +558,14 @@ void test_setup_key_from_rng_ok(void)
     TEST_ASSERT_EQUAL(plat_err, KMU_ERROR_NONE);
 }
 
-void test_rse_setup_cpak_seed_ok(void)
+void test_rse_setup_iak_seed_ok(void)
 {
     enum tfm_plat_err_t plat_err;
 
     /* Prepare */
     rse_get_boot_state_IgnoreAndReturn(TFM_PLAT_ERR_SUCCESS);
 
-    kmu_get_key_buffer_ptr_ExpectAndReturn(&KMU_DEV_S, RSE_KMU_SLOT_CPAK_SEED,
+    kmu_get_key_buffer_ptr_ExpectAndReturn(&KMU_DEV_S, RSE_KMU_SLOT_IAK_SEED,
                                            NULL, NULL, KMU_ERROR_NONE);
     kmu_get_key_buffer_ptr_IgnoreArg_key_slot();
     kmu_get_key_buffer_ptr_IgnoreArg_slot_size();
@@ -575,7 +575,7 @@ void test_rse_setup_cpak_seed_ok(void)
     kmu_set_key_export_config_locked_IgnoreAndReturn(KMU_ERROR_NONE);
 
     /* Act */
-    plat_err = rse_setup_cpak_seed();
+    plat_err = rse_setup_iak_seed();
 
     /* Assert */
     TEST_ASSERT_EQUAL(plat_err, TFM_PLAT_ERR_SUCCESS);

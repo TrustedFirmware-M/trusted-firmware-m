@@ -296,11 +296,9 @@ enum tfm_plat_err_t setup_key_from_rng(enum rse_kmu_slot_id_t slot,
     return plat_err;
 }
 
-/* FixMe: This needs renaming to rse_setup_iak_seed() as CPAK is CCA specific */
-enum tfm_plat_err_t rse_setup_cpak_seed(void)
+enum tfm_plat_err_t rse_setup_iak_seed(void)
 {
-    /* FixMe: CPAK comes from CCA, the label needs updating to be aligned with spec */
-    const uint8_t iak_seed_label[] = "BL1_CPAK_SEED_DERIVATION";
+    const uint8_t iak_seed_label[] = "BL1_IAK_SEED_DERIVATION";
 
     /* FixMe: updated spec removes the context and simplifies the procedure */
 #if defined(RSE_BOOT_KEYS_CCA ) || defined(RSE_BOOT_KEYS_DPE)
@@ -327,7 +325,7 @@ enum tfm_plat_err_t rse_setup_cpak_seed(void)
      */
     return setup_key_from_derivation(KMU_HW_SLOT_HUK, NULL, iak_seed_label,
                                      sizeof(iak_seed_label), NULL, 0,
-                                     RSE_KMU_SLOT_CPAK_SEED, /* FixMe: The slot needs rename to IAK_SEED */
+                                     RSE_KMU_SLOT_IAK_SEED,
                                      &aes_key0_export_config, NULL, false,
                                      boot_state_config);
 }

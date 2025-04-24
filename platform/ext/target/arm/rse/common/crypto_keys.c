@@ -68,7 +68,7 @@ static enum tfm_plat_err_t tfm_plat_get_iak(const void *ctx,
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
-    kmu_err = kmu_get_key(&KMU_DEV_S, RSE_KMU_SLOT_CPAK_SEED, buf, 32);
+    kmu_err = kmu_get_key(&KMU_DEV_S, RSE_KMU_SLOT_IAK_SEED, buf, 32);
     if (kmu_err != KMU_ERROR_NONE) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
