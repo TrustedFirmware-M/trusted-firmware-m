@@ -219,8 +219,7 @@ psa_status_t tfm_builtin_key_loader_init(void)
             desc_table[key].loader_key_ctx, &buf[0], TFM_BUILTIN_MAX_KEY_LEN, &key_len, &key_bits, &algorithm, &type);
 
         if (plat_err != TFM_PLAT_ERR_SUCCESS) {
-            err = PSA_ERROR_HARDWARE_FAILURE;
-            goto wrap_up;
+            continue;
         }
 
         /* Build the attributes with the metadata retrieved from the platform and desc table */
@@ -239,7 +238,6 @@ psa_status_t tfm_builtin_key_loader_init(void)
     /* At this point the discovered keys have been loaded successfully into the driver */
     err = PSA_SUCCESS;
 
-wrap_up:
     return err;
 }
 
