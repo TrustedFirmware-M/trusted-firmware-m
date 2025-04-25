@@ -16,8 +16,8 @@
 extern "C" {
 #endif
 
-enum tfm_plat_err_t rse_revoke_cm_rotpks();
-enum tfm_plat_err_t rse_revoke_dm_rotpks();
+enum tfm_plat_err_t rse_revoke_cm_rotpks(void);
+enum tfm_plat_err_t rse_revoke_dm_rotpks(void);
 
 enum tfm_plat_err_t rse_update_cm_rotpks(uint32_t policies, uint8_t *rotpks, size_t rotpks_len);
 enum tfm_plat_err_t rse_update_dm_rotpks(uint32_t policies, uint8_t *rotpks, size_t rotpks_len);

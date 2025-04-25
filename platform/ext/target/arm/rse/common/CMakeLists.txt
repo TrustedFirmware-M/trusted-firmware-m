@@ -225,6 +225,7 @@ target_sources(platform_s
         nv_counters.c
         $<$<BOOL:${RSE_SUBPLATFORM_PAL_DEFAULT_ROTPK}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_rotpk_mapping.c>
         $<$<BOOL:${RSE_SUBPLATFORM_PAL_DEFAULT_NV_COUNTERS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_nv_counter_mapping.c>
+        ./rse_rotpk_revocation.c
         $<$<BOOL:${TFM_PARTITION_INITIAL_ATTESTATION}>:${CMAKE_CURRENT_SOURCE_DIR}/attest_hal.c>
         tfm_hal_platform_reset.c
         $<$<BOOL:${PLATFORM_SVC_HANDLERS}>:${CMAKE_CURRENT_SOURCE_DIR}/platform_svc_handler.c>
