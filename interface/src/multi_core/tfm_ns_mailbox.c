@@ -26,6 +26,7 @@ static inline void set_queue_slot_empty(uint8_t idx)
     }
 }
 
+#ifdef TFM_MULTI_CORE_NS_OS
 static inline void set_queue_slot_woken(uint8_t idx)
 {
     if (idx < NUM_MAILBOX_QUEUE_SLOT) {
@@ -41,6 +42,7 @@ static inline bool is_queue_slot_woken(uint8_t idx)
 
     return false;
 }
+#endif /* TFM_MULTI_CORE_NS_OS */
 
 static inline void clear_queue_slot_woken(uint8_t idx)
 {
