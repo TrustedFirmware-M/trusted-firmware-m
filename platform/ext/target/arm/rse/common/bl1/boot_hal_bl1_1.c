@@ -35,6 +35,8 @@
 
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
+#define CMSDK_SECRESPCFG_BUS_ERR_MASK   (1UL)
+
 /* Flash device name must be specified by target */
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 
@@ -81,6 +83,14 @@ int32_t boot_platform_init(void)
     /* Enable system reset for the RSE */
     struct rse_sysctrl_t *rse_sysctrl = (void *)RSE_SYSCTRL_BASE_S;
     rse_sysctrl->reset_mask |= (1U << 8U);
+
+    /**
+     * @brief: Configure the response to a security violation as a
+     *         bus error instead of RAZ/WI
+     *
+     */
+    struct rse_sacfg_t *sacfg = (struct rse_sacfg_t *)RSE_SACFG_BASE_S;
+    sacfg->secrespcfg |= CMSDK_SECRESPCFG_BUS_ERR_MASK;
 
     plat_err = tfm_plat_otp_init();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
