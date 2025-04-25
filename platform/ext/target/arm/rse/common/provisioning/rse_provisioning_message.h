@@ -118,6 +118,13 @@ enum rse_provisioning_blob_personalization_config_t {
     RSE_PROVISIONING_BLOB_TYPE_PERSONALIZED  = 0b01,
 };
 
+enum rse_provisioning_plain_data_type_t {
+    RSE_PROVISIONING_PLAIN_DATA_TYPE_UNSPECIFIED                               = 0x00,
+    RSE_PROVISIONING_PLAIN_DATA_TYPE_NON_ENDORSED_DM_ROTPKS                    = 0x01,
+    RSE_PROVISIONING_PLAIN_DATA_TYPE_ENDORSEMENT_CERTIFICATE_PACKAGE           = 0x02,
+    RSE_PROVISIONING_PLAIN_DATA_TYPE_REQUEST_TO_EXPORT_ENDORSEMENT_CERTIFICATE = 0x03,
+};
+
 struct __attribute__((__packed__)) rse_provisioning_message_blob_t {
     uint32_t signature_size;
     uint8_t signature[96]; /*!< In the case of ECDSA signature, this is held as a raw format

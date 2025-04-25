@@ -52,6 +52,11 @@ struct __attribute__((__packed__)) rse_combined_provisioning_values_t {
 };
 #endif
 
+struct __attribute__((__packed__)) rse_non_endorsed_dm_provisioning_values_t {
+    uint32_t non_endorsed_dm_rotpk_policies;
+    uint8_t rotpk[RSE_OTP_DM_ROTPK_AMOUNT][RSE_OTP_DM_ROTPK_SIZE];
+};
+
 #ifdef __cplusplus
 }
 #endif
