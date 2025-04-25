@@ -114,17 +114,48 @@ enum tfm_plat_err_t rse_update_dm_rotpks(uint32_t policies, uint8_t *rotpks, siz
 {
     enum tfm_plat_err_t err;
     enum lcm_error_t lcm_err;
+    uint32_t new_idx;
+    uint32_t zero_count;
 
     if (rotpks_len != RSE_OTP_DM_ROTPK_AMOUNT * RSE_OTP_DM_ROTPK_SIZE) {
         return TFM_PLAT_ERR_DM_ROTPK_UPDATE_INVALID_SIZE;
     }
 
     /* If they're not already revoked, revoke them */
-    if (P_RSE_OTP_DM_ROTPK->zero_count != 0) {
-        return rse_revoke_cm_rotpks();
+    if (IS_RSE_OTP_AREA_VALID(DM_ROTPK) && (P_RSE_OTP_DM_ROTPK->zero_count != 0)) {
+        err = rse_revoke_dm_rotpks_get_idx(&new_idx);
+        if (err != TFM_PLAT_ERR_SUCCESS) {
+            return err;
+        }
     } else {
-        /* FixMe: Define how to behave when zero_count == 0 */
+        new_idx = 0;
     }
 
-    return TFM_PLAT_ERR_SUCCESS;
+    /* We expect the current DM ROTPK area not to be valid as that indicates that no ROTPKs
+     * in this area have yet been written. If they have, we cannot overwrite them */
+     if (IS_RSE_OTP_AREA_VALID(DM_ROTPK)) {
+        return TFM_PLAT_ERR_DM_ROTPK_UPDATE_INVALID_AREA;
+    }
+
+    lcm_err = lcm_otp_write(&LCM_DEV_S, OTP_OFFSET(P_RSE_OTP_DM->rotpk_areas[new_idx].rotpk),
+                            rotpks_len, rotpks);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+    err = rse_count_zero_bits(
+        (uint8_t *)((uint8_t *)&P_RSE_OTP_DM->rotpk_areas[new_idx].zero_count + sizeof(uint32_t)),
+        sizeof(struct rse_otp_dm_rotpk_area_t) - sizeof(uint32_t), &zero_count);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    lcm_err = lcm_otp_write(&LCM_DEV_S, OTP_OFFSET(P_RSE_OTP_DM->rotpk_areas[new_idx].zero_count),
+                            sizeof(zero_count), (uint8_t *)&zero_count);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+    /* Now reinit the OTP so that it picks up new keys */
+    return tfm_plat_otp_init();
 }
