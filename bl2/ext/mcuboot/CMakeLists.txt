@@ -7,6 +7,16 @@
 
 cmake_minimum_required(VERSION 3.21)
 
+fetch_remote_library(
+    LIB_NAME                mcuboot
+    LIB_SOURCE_PATH_VAR     MCUBOOT_PATH
+    FETCH_CONTENT_ARGS
+        GIT_REPOSITORY      https://github.com/mcu-tools/mcuboot.git
+        GIT_TAG             ${MCUBOOT_VERSION}
+        GIT_PROGRESS        TRUE
+        GIT_SUBMODULES      "${MCUBOOT_SUBMODULES}"
+)
+
 add_library(mcuboot_config INTERFACE)
 
 set(MCUBOOT_KEY_ENC "${MCUBOOT_PATH}/enc-rsa2048-pub.pem" CACHE FILEPATH "Path to key with which to encrypt binary")

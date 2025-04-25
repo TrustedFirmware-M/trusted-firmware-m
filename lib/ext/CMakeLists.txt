@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -7,12 +7,9 @@
 set(FETCHCONTENT_BASE_DIR ${CMAKE_BINARY_DIR}/lib/ext CACHE STRING "" FORCE)
 
 add_subdirectory(qcbor)
-add_subdirectory(t_cose)
 add_subdirectory(mbedcrypto)
+add_subdirectory(t_cose)
 add_subdirectory(cmsis)
-if(BL2)
-    add_subdirectory(mcuboot)
-endif()
 if (${PLATFORM_PSA_ADAC_SECURE_DEBUG})
     add_subdirectory(psa-adac)
 endif()

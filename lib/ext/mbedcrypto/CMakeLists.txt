@@ -1,7 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited. All rights reserved.
-# Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon company)
-# or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors#
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -17,5 +15,10 @@ fetch_remote_library(
         GIT_TAG             ${MBEDCRYPTO_VERSION}
         GIT_SHALLOW         TRUE
         GIT_PROGRESS        TRUE
-        GIT_SUBMODULES      "framework"
+# The FetchContent_MakeAvailable() function automatically adds the fetched library
+# directory to the build using add_subdirectory(). However, the TF-M does not need
+# whole MbedCrypto remote library so it defines its own custom targets.
+# We set the SOURCE_SUBDIR variable to a non-existent directory as a workaround.
+# Related details: https://gitlab.kitware.com/cmake/cmake/-/issues/26220
+        SOURCE_SUBDIR       non-exist-dir
 )

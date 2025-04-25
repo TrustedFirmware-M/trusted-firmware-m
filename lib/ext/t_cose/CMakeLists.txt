@@ -1,15 +1,11 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.21)
-
-
-include(FetchContent)
-set(FETCHCONTENT_QUIET FALSE)
 
 # Default configuration of T_COSE repository
 set(T_COSE_PATH     "DOWNLOAD"      CACHE PATH      "Path to t_cose (or DOWNLOAD to fetch automatically")
@@ -25,9 +21,16 @@ fetch_remote_library(
         GIT_TAG             ${T_COSE_VERSION}
         GIT_SHALLOW         TRUE
         GIT_PROGRESS        TRUE
+# The FetchContent_MakeAvailable() function automatically adds the fetched library
+# directory to the build using add_subdirectory(). However, the TF-M t_cose module
+# defines its own custom target instead of using the default one provided by the
+# remote library.
+# We set the SOURCE_SUBDIR variable to a non-existent directory as a workaround.
+# Related issue: https://gitlab.kitware.com/cmake/cmake/-/issues/26220
+        SOURCE_SUBDIR       non-exist-dir
 )
 
-include(${CMAKE_CURRENT_LIST_DIR}/tfm_t_cose.cmake)
+include(tfm_t_cose.cmake)
 
 ############################ t_cose secure #####################################
 

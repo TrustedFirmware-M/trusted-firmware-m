@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -31,8 +31,6 @@ fetch_remote_library(
         GIT_SHALLOW         TRUE
         GIT_PROGRESS        TRUE
 )
-
-add_subdirectory(${QCBOR_PATH} ${CMAKE_CURRENT_BINARY_DIR}/QCBOR)
 
 set_target_properties(qcbor PROPERTIES EXCLUDE_FROM_ALL TRUE)
 

@@ -5,10 +5,7 @@
 #
 #-------------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.15)
-
-include(FetchContent)
-set(FETCHCONTENT_QUIET FALSE)
+cmake_minimum_required(VERSION 3.21)
 
 # Default configuration of CMSIS repository
 set(CMSIS_PATH     "DOWNLOAD"       CACHE PATH      "Path to cmsis (or DOWNLOAD to fetch automatically")
