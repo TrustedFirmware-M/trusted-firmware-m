@@ -116,7 +116,8 @@ enum tfm_plat_err_t do_dm_provision(void) {
         return (enum tfm_plat_err_t)lcm_err;
     }
 
-    blob_handling_status_report_continue(PROVISIONING_REPORT_STEP_MANDATORY_EARLY_DM_PROVISIONING);
+    message_handling_status_report_continue(
+        PROVISIONING_REPORT_STEP_MANDATORY_EARLY_DM_PROVISIONING);
 
     INFO("Transitioning to SE LCS\n");
     new_lcs = PLAT_OTP_LCS_SECURED;
@@ -127,7 +128,7 @@ enum tfm_plat_err_t do_dm_provision(void) {
         return err;
     }
 
-    blob_provisioning_finished();
+    message_provisioning_finished(PROVISIONING_REPORT_STEP_RUN_BLOB);
 
     return err;
 }

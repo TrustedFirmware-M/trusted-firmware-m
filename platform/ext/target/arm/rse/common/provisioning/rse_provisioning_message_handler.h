@@ -8,19 +8,15 @@
 #ifndef __RSE_PROVISIONING_MESSAGE_HANDLER_H__
 #define __RSE_PROVISIONING_MESSAGE_HANDLER_H__
 
-#include "rse_provisioning_message.h"
-#include "tfm_plat_defs.h"
-#include "rse_kmu_slot_ids.h"
-
+#include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
+
+#include "rse_provisioning_message.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef enum tfm_plat_err_t (*setup_aes_key_func_t)(const struct rse_provisioning_message_blob_t *, uint32_t *);
-typedef enum tfm_plat_err_t (*get_rotpk_func_t)(const struct rse_provisioning_message_blob_t *,
-                             uint32_t **, size_t *, uint32_t **, size_t *);
 
 enum provisioning_message_status_t {
     PROVISIONING_STATUS_SUCCESS_CONTINUE = 0x1,
@@ -50,15 +46,6 @@ struct provisioning_message_status_report_t {
     uint32_t reserved;
 };
 
-struct default_blob_handler_ctx_t {
-    setup_aes_key_func_t setup_aes_key;
-    get_rotpk_func_t get_rotpk;
-    bool blob_is_chainloaded;
-};
-
-enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_blob_t *blob,
-                                         size_t msg_size, const void *ctx);
-
 struct provisioning_message_handler_config {
     enum tfm_plat_err_t (*blob_handler)(const struct rse_provisioning_message_blob_t *, size_t, const void *);
     enum tfm_plat_err_t (*cert_handler)(const struct rse_provisioning_message_cert_t *, size_t, const void *);
@@ -69,12 +56,12 @@ enum tfm_plat_err_t handle_provisioning_message(const struct rse_provisioning_me
                                                 struct provisioning_message_handler_config *config, void *ctx);
 
 enum tfm_plat_err_t
-blob_handling_status_report_continue(enum provisioning_message_report_step_t step);
+message_handling_status_report_continue(enum provisioning_message_report_step_t step);
 
-enum tfm_plat_err_t blob_handling_status_report_error(enum provisioning_message_report_step_t step,
-                                                      uint32_t error);
+enum tfm_plat_err_t
+message_handling_status_report_error(enum provisioning_message_report_step_t step, uint32_t error);
 
-enum tfm_plat_err_t blob_provisioning_finished(void);
+enum tfm_plat_err_t message_provisioning_finished(enum provisioning_message_report_step_t step);
 
 static inline bool
 rse_provisioning_message_is_valid(const struct rse_provisioning_message_t *message)

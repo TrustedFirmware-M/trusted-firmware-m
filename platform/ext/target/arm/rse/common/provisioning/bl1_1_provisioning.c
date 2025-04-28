@@ -12,6 +12,7 @@
 #include "region_defs.h"
 #include "rse_provisioning_message_handler.h"
 #include "rse_provisioning_message_status.h"
+#include "rse_provisioning_blob_handler.h"
 #include "device_definition.h"
 #include "tfm_log.h"
 #include "tfm_hal_platform.h"
@@ -122,7 +123,7 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
     if (err != TFM_PLAT_ERR_SUCCESS) {
         memset((void *)provisioning_message, 0, provisioning_message_size);
         rse_set_provisioning_staging_status(PROVISIONING_STAGING_STATUS_NO_MESSAGE);
-        blob_handling_status_report_error(PROVISIONING_REPORT_STEP_RUN_BLOB, err);
+        message_handling_status_report_error(PROVISIONING_REPORT_STEP_RUN_BLOB, err);
         return err;
     }
 

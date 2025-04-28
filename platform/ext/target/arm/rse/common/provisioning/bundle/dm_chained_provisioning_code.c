@@ -12,6 +12,7 @@
 #include "tfm_plat_defs.h"
 #include "rse_provisioning_message.h"
 #include "rse_provisioning_message_handler.h"
+#include "rse_provisioning_blob_handler.h"
 #include "rse_provisioning_rotpk.h"
 #include "rse_provisioning_tci_key.h"
 #include "rse_provisioning_message_status.h"
@@ -121,7 +122,7 @@ __attribute__((section("DO_PROVISION"))) enum tfm_plat_err_t do_provision(void) 
     if (err != TFM_PLAT_ERR_SUCCESS) {
         memset((void *)provisioning_message, 0, RSE_PROVISIONING_MESSAGE_MAX_SIZE);
         rse_set_provisioning_staging_status(PROVISIONING_STAGING_STATUS_NO_MESSAGE);
-        blob_handling_status_report_error(PROVISIONING_REPORT_STEP_RUN_BLOB, err);
+        message_handling_status_report_error(PROVISIONING_REPORT_STEP_RUN_BLOB, err);
         return err;
     }
 

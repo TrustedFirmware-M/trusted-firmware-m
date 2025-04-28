@@ -16,6 +16,7 @@
 #include "region_defs.h"
 #include "rse_provisioning_message.h"
 #include "rse_provisioning_message_handler.h"
+#include "rse_provisioning_blob_handler.h"
 #include "rse_provisioning_rotpk.h"
 #include "rse_rotpk_policy.h"
 #include "rse_otp_layout.h"

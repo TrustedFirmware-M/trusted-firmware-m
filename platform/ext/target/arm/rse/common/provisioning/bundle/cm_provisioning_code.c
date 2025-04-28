@@ -198,10 +198,10 @@ enum tfm_plat_err_t do_cm_provision(void) {
     lcm_err = lcm_otp_write(&LCM_DEV_S, values->bl1_2_area_info.offset,
                             sizeof(values->bl1_2), (uint8_t *)(&values->bl1_2));
     if (lcm_err != LCM_ERROR_NONE) {
-        blob_handling_status_report_error(PROVISIONING_REPORT_STEP_BL1_2_PROVISIONING, lcm_err);
+        message_handling_status_report_error(PROVISIONING_REPORT_STEP_BL1_2_PROVISIONING, lcm_err);
         return (enum tfm_plat_err_t)lcm_err;
     }
-    blob_handling_status_report_continue(PROVISIONING_REPORT_STEP_BL1_2_PROVISIONING);
+    message_handling_status_report_continue(PROVISIONING_REPORT_STEP_BL1_2_PROVISIONING);
 
     INFO("Writing CM provisioning values\n");
     lcm_err = lcm_otp_write(&LCM_DEV_S, values->cm_area_info.offset,
@@ -238,7 +238,7 @@ enum tfm_plat_err_t do_cm_provision(void) {
         return err;
     }
 
-    blob_handling_status_report_continue(PROVISIONING_REPORT_STEP_CM_PROVISIONING);
+    message_handling_status_report_continue(PROVISIONING_REPORT_STEP_CM_PROVISIONING);
 
     INFO("Transitioning to DM LCS\n");
     new_lcs = PLAT_OTP_LCS_PSA_ROT_PROVISIONING;
@@ -249,7 +249,7 @@ enum tfm_plat_err_t do_cm_provision(void) {
     }
 
 #ifndef RSE_COMBINED_PROVISIONING_BUNDLES
-    blob_provisioning_finished();
+    message_provisioning_finished(PROVISIONING_REPORT_STEP_RUN_BLOB);
 #endif
 
     return err;

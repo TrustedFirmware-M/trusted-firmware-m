@@ -105,9 +105,9 @@ rse_permanently_disable_device
 fih_delay_platform
 FIH_FAILURE
 FIH_SUCCESS
-blob_provisioning_finished
-blob_handling_status_report_continue
-blob_handling_status_report_error
+message_provisioning_finished
+message_handling_status_report_continue
+message_handling_status_report_error
 Image*ARM_LIB_STACK*
 Image*ARM_LIB_HEAP*
 __end__
