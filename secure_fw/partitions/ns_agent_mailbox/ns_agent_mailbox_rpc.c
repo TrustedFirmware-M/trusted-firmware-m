@@ -9,6 +9,7 @@
 #include "config_impl.h"
 #include "ns_agent_mailbox_rpc.h"
 #include "spm.h"
+#include "tfm_log_unpriv.h"
 #include "tfm_rpc.h"
 
 static void default_handle_req(void)
@@ -124,8 +125,15 @@ void tfm_rpc_client_call_handler(psa_signal_t signal)
 void tfm_rpc_client_call_reply(void)
 {
     psa_msg_t msg;
+    struct connection_t *handle;
     psa_status_t status = psa_get(ASYNC_MSG_REPLY, &msg);
-    struct connection_t *handle = (struct connection_t *)msg.rhandle;
+
+    if (status != PSA_SUCCESS) {
+        ERROR_UNPRIV("psa_get(ASYNC_MSG_REPLY) call returned %d\n", status);
+        return;
+    }
+
+    handle = (struct connection_t *)msg.rhandle;
 
     rpc_ops.reply(handle->client_data, status);
 

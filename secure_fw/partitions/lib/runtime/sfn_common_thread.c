@@ -24,6 +24,7 @@ void common_sfn_thread(void *param)
     struct runtime_metadata_t *meta;
     service_fn_t *p_sfn_table;
     sfn_init_fn_t sfn_init;
+    psa_status_t status;
 
     meta = PART_METADATA();
     sfn_init = (sfn_init_fn_t)meta->entry;
@@ -47,7 +48,10 @@ void common_sfn_thread(void *param)
                     psa_panic();
                 }
 
-                psa_get(sig, &msg);
+                status = psa_get(sig, &msg);
+                if (status != PSA_SUCCESS) {
+                    psa_panic();
+                }
                 psa_reply(msg.handle, ((service_fn_t)p_sfn_table[i])(&msg));
                 sig_asserted &= ~sig;
             }
