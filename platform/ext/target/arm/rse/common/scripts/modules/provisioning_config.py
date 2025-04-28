@@ -24,10 +24,13 @@ from cryptography.hazmat.primitives.serialization import load_der_public_key, En
 
 from crypto_conversion_utils import convert_hash_define
 
-all_regions = ['cm', 'dm']
+all_regions = ['non_endorsed_dm', 'cm', 'dm']
 
 def _get_rotpk_area_index(f : str):
-    _, f = f.rsplit("rotpk_areas_", 1)
+    try:
+        _, f = f.rsplit("rotpk_areas_", 1)
+    except ValueError:
+        return None
     if "." in f:
         f, _ = f.split(".", 1)
     if "_" in f:
@@ -41,6 +44,14 @@ def _get_rotpk_index(f : str):
     if "_" in f:
         _, f = f.rsplit("_", 1)
     return int(f)
+
+def _get_rotpk_str(field_owner : str, f : str):
+    area_index = _get_rotpk_area_index(f)
+    rotpk_index = _get_rotpk_index(f)
+    if area_index is not None:
+        return "{}.rotpk_areas_{}.rotpk_{}".format(field_owner, area_index, rotpk_index)
+    else:
+        return "rotpk_{}".format(rotpk_index)
 
 def _handle_rotpk_add(config,
                       parser : argparse.ArgumentParser,
@@ -121,7 +132,12 @@ def add_arguments(parser : argparse.ArgumentParser,
     return provisioning_config
 
 def _get_policy_field(provisioning_config, field_owner, area_index):
-    return getattr(provisioning_config, "{}_layout".format(field_owner)).get_field("{}.rotpk_areas_{}.{}_rotpk_policies".format(field_owner, area_index, field_owner))
+    if area_index is not None:
+        rotpk_policy_str = "{}.rotpk_areas_{}.{}_rotpk_policies".format(field_owner, area_index, field_owner)
+    else:
+        rotpk_policy_str = "{}_rotpk_policies".format(field_owner, field_owner)
+
+    return getattr(provisioning_config, "{}_layout".format(field_owner)).get_field(rotpk_policy_str)
 
 def _handle_rotpk_hash_alg(args: argparse.Namespace,
                            f : str,
@@ -130,8 +146,7 @@ def _handle_rotpk_hash_alg(args: argparse.Namespace,
                            provisioning_config,
                            **kwargs
                            ):
-    rotpk = "{}.rotpk_areas_{}.rotpk_{}".format(field_owner, _get_rotpk_area_index(f),
-                                                _get_rotpk_index(f))
+    rotpk = _get_rotpk_str(field_owner, f)
     rotpk = arg_utils.join_prefix(rotpk, field_owner)
     if rotpk not in vars(args) or not getattr(args, rotpk):
         logger.warning("{} set but {} is not".format(f, rotpk))
@@ -156,8 +171,7 @@ def _handle_rotpk_policy(args: argparse.Namespace,
                          provisioning_config,
                          **kwargs
                          ):
-    rotpk = "{}.rotpk_areas_{}.rotpk_{}".format(field_owner, _get_rotpk_area_index(f),
-                                                _get_rotpk_index(f))
+    rotpk = _get_rotpk_str(field_owner, f)
     rotpk = arg_utils.join_prefix(rotpk, field_owner)
     if rotpk not in vars(args) or not getattr(args, rotpk):
         logger.warning("{} set but {} is not".format(f, rotpk))
@@ -178,8 +192,7 @@ def _handle_rotpk_type(args: argparse.Namespace,
                        provisioning_config,
                        **kwargs
                        ):
-    rotpk = "{}.rotpk_areas_{}.rotpk_{}".format(field_owner, _get_rotpk_area_index(f),
-                                                _get_rotpk_index(f))
+    rotpk = _get_rotpk_str(field_owner, f)
     rotpk = arg_utils.join_prefix(rotpk, field_owner)
     if rotpk not in vars(args) or not getattr(args, rotpk):
         logger.warning("{} set but {} is not".format(f, rotpk))
@@ -206,7 +219,8 @@ def _handle_rotpk(args: argparse.Namespace,
     assert(v)
 
     rotpk_index = _get_rotpk_index(f)
-    if hasattr(otp_config.defines, "RSE_OTP_{}_ROTPK_IS_HASH_NOT_KEY".format(field_owner.upper())):
+    is_hash_not_key = hasattr(otp_config.defines, "RSE_OTP_{}_ROTPK_IS_HASH_NOT_KEY".format(field_owner.upper() if field_owner != "non_endorsed_dm" else "DM"))
+    if is_hash_not_key:
         area_index = _get_rotpk_area_index(f)
         assert (area_index, rotpk_index) in getattr(provisioning_config, "{}_rotpk_hash_algs".format(field_owner)).keys(), "--{}:{}.rotpk_hash_alg_{} required but not set".format(field_owner, field_owner, rotpk_index)
 
@@ -286,7 +300,8 @@ def parse_args(args : argparse.Namespace,
     return out;
 
 class Provisioning_config:
-    def __init__(self, cm, dm, defines, enums):
+    def __init__(self, non_endorsed_dm, cm, dm, defines, enums):
+        self.non_endorsed_dm_layout = non_endorsed_dm
         self.cm_layout = cm
         self.dm_layout = dm
         self.defines = defines
@@ -296,8 +311,10 @@ class Provisioning_config:
         self.enums = enums
         for e in self.enums:
             self.__dict__ |= self.enums[e].dict
+        self.non_endorsed_dm_rotpk_hash_algs = {}
         self.cm_rotpk_hash_algs = {}
         self.dm_rotpk_hash_algs = {}
+        self.non_endorsed_dm_rotpk_types = {}
         self.cm_rotpk_types = {}
         self.dm_rotpk_types = {}
 
