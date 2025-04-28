@@ -13,6 +13,8 @@ target_sources(platform_s
     PRIVATE
         ./runtime_stub_provisioning.c
         $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_provisioning_comms_dcsu.c>
+        ./rse_provisioning_message_handler.c
+        ./rse_provisioning_plain_data_handler.c
 )
 
 target_sources(platform_bl2

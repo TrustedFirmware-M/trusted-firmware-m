@@ -141,8 +141,9 @@ set(RSE_PROVISIONING_DM_ENCRYPT_SECRET_VALUES  ON         CACHE BOOL "Whether DM
 set(RSE_PROVISIONING_CM_DEBUG_CLOSED           OFF        CACHE BOOL "Whether debug is open by default in CM LCS")
 set(RSE_PROVISIONING_REQUIRE_AUTHENTICATION_FOR_TCI OFF   CACHE BOOL "Whether TCI mode requires authentication to set")
 
+set(RSE_NON_ENDORSED_DM_PROVISIONING           OFF        CACHE BOOL "Whether to allow non endorsed DM provisioning" )
 set(RSE_BOOT_IN_DM_LCS                         OFF        CACHE BOOL "Whether to boot as far as possible in DM state")
-if (RSE_BOOT_IN_DM_LCS)
+if (RSE_BOOT_IN_DM_LCS OR RSE_NON_ENDORSED_DM_PROVISIONING)
     set(TFM_PARTITION_RUNTIME_PROVISIONING     ON         CACHE BOOL "Whether to enable runtime secure provisioning partition")
 endif()
 

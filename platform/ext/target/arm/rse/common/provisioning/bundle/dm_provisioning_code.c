@@ -105,6 +105,7 @@ enum tfm_plat_err_t do_dm_provision(void) {
     dm_area_info = values->dm_area_info;
 #endif /* OTP_CONFIG_DM_SETS_DM_AND_DYNAMIC_AREA_SIZE */
 
+#ifndef RSE_NON_ENDORSED_DM_PROVISIONING
     if (sizeof(values->dm) != dm_area_info.size) {
         return TFM_PLAT_ERR_DM_PROVISIONING_INVALID_DM_AREA_SIZE;
     }
@@ -115,6 +116,7 @@ enum tfm_plat_err_t do_dm_provision(void) {
     if (lcm_err != LCM_ERROR_NONE) {
         return (enum tfm_plat_err_t)lcm_err;
     }
+#endif /* RSE_NON_ENDORSED_DM_PROVISIONING */
 
     message_handling_status_report_continue(
         PROVISIONING_REPORT_STEP_MANDATORY_EARLY_DM_PROVISIONING);

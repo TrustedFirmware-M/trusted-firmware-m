@@ -8,6 +8,7 @@
 #include "platform_error_codes.h"
 #include "runtime_provisioning_hal.h"
 #include "rse_provisioning_message_handler.h"
+#include "rse_provisioning_plain_data_handler.h"
 #include "rse_provisioning_comms.h"
 #include "rse_provisioning_rotpk.h"
 #include "rse_provisioning_message.h"
@@ -27,14 +28,22 @@ enum runtime_provisioning_error_t runtime_provisioning_hal_init(void)
     enum tfm_plat_err_t err;
     enum lcm_error_t lcm_err;
     enum lcm_lcs_t lcs;
+    bool valid_state = false;
 
     lcm_err = lcm_get_lcs(&LCM_DEV_S, &lcs);
     if (lcm_err != LCM_ERROR_NONE) {
         return RUNTIME_PROVISIONING_GENERIC_ERROR;
     }
 
-    /* TODO: Support other boot states for runtime provisioning */
-    if (lcs != LCM_LCS_DM) {
+#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
+    valid_state = valid_state || (lcs == LCM_LCS_SE);
+#endif
+
+#ifdef RSE_BOOT_IN_DM_LCS
+    valid_state = valid_state || (lcs == LCM_LCS_DM);
+#endif
+
+    if (!valid_state) {
         return RUNTIME_PROVISIONING_INVALID_STATE;
     }
 
@@ -55,6 +64,51 @@ enum runtime_provisioning_error_t runtime_provisioning_hal_init(void)
     return RUNTIME_PROVISIONING_SUCCESS;
 }
 
+#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
+static enum tfm_plat_err_t handle_plain_data_message(struct rse_provisioning_message_t *message)
+{
+    enum tfm_plat_err_t err;
+    struct provisioning_message_handler_config config = {
+        .plain_data_handler = default_plain_data_handler,
+    };
+
+    err = handle_provisioning_message(message, sizeof(blob_buffer), &config, NULL);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        rse_set_provisioning_staging_status(PROVISIONING_STAGING_STATUS_NO_MESSAGE);
+        message_handling_status_report_error(PROVISIONING_REPORT_STEP_PARSE_PLAIN_DATA, err);
+    }
+
+    return err;
+}
+#endif
+
+#ifdef RSE_BOOT_IN_DM_LCS
+static enum tfm_plat_err_t handle_blob_message(void)
+{
+    /* Reset and let BL1_1 provision the blob */
+    tfm_hal_system_reset();
+    return TFM_PLAT_ERR_SUCCESS;
+}
+#endif
+
+static enum tfm_plat_err_t handle_full_message(void)
+{
+    struct rse_provisioning_message_t *message = (struct rse_provisioning_message_t *)blob_buffer;
+
+    switch (message->header.type) {
+#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
+    case RSE_PROVISIONING_MESSAGE_TYPE_PLAIN_DATA:
+        return handle_plain_data_message(message);
+#endif
+#ifdef RSE_BOOT_IN_DM_LCS
+    case RSE_PROVISIONING_MESSAGE_TYPE_BLOB:
+        return handle_blob_message();
+#endif
+    default:
+        return TFM_PLAT_ERR_PROVISIONING_MESSAGE_INVALID_TYPE;
+    }
+}
+
 enum runtime_provisioning_error_t runtime_provisioning_hal_process_message(void)
 {
     enum tfm_plat_err_t err;
@@ -67,8 +121,10 @@ enum runtime_provisioning_error_t runtime_provisioning_hal_process_message(void)
 
     if (received_full_message) {
         rse_set_provisioning_staging_status(PROVISIONING_STAGING_STATUS_RUNTIME_MESSAGE);
-        /* Reset and let BL1 provision the blob */
-        tfm_hal_system_reset();
+        err = handle_full_message();
+        if (err != TFM_PLAT_ERR_SUCCESS) {
+            return RUNTIME_PROVISIONING_GENERIC_ERROR;
+        }
     }
 
     return RUNTIME_PROVISIONING_SUCCESS;

@@ -170,6 +170,9 @@ if (TFM_DUMMY_PROVISIONING)
             --cm:otp_dma_ics=${CMAKE_BINARY_DIR}/bin/otp_dma_ics.bin
             $<$<BOOL:${TFM_BL1_2_IMAGE_ENCRYPTION}>:--cm:kce_cm=${TFM_BL2_ENCRYPTION_KEY_PATH}>
 
+            # Set config flags to 1 << 0x4
+            $<$<BOOL:${RSE_NON_ENDORSED_DM_PROVISIONING}>:--cm:cm.config_flags=16>
+
             --cm:cm.rotpk_areas_0.rotpk_0=${TFM_BL1_2_CM_SIGNING_KEY_PATH}
             --cm:cm.rotpk_areas_0.rotpk_policy_0 RSE_ROTPK_POLICY_SIG_REQUIRED
             --cm:cm.rotpk_areas_0.rotpk_type_0 RSE_ROTPK_TYPE_${TFM_BL1_2_CM_SIGNING_ALG}
