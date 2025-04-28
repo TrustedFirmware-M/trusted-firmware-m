@@ -297,6 +297,9 @@ def parse_args(args : argparse.Namespace,
             continue
 
         try:
+            if not hasattr(v, '__len__'):
+                logger.debug("Not setting length for {}:{} as it has no length".format(field_owner, f))
+                continue
             getattr(out["provisioning_config"], "{}_layout".format(field_owner)).get_field(f + "_size").set_value(len(v))
         except KeyError:
             logger.debug("Not setting length for {}:{} as no key matches {}_len".format(field_owner, f, f))
