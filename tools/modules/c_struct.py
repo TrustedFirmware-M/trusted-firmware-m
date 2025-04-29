@@ -466,7 +466,7 @@ class C_union:
         assert(len(new_binaries) < 2)
 
         if new_binaries:
-            self._actual_value = list(new_binaries)[0]
+            self._actual_value = new_binaries[0] + self._actual_value[len(new_binaries[0]):]
 
         for f in self._fields:
             f.set_value_from_bytes(self._actual_value[:f._size])
