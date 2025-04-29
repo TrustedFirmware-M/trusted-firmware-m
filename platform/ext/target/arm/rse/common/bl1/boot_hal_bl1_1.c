@@ -42,6 +42,7 @@ extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 
 REGION_DECLARE(Image$$, ARM_LIB_STACK, $$ZI$$Base);
 
+#if (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2)
 static enum tfm_plat_err_t init_atu_regions(void)
 {
 #ifdef RSE_USE_HOST_UART
@@ -59,6 +60,7 @@ static enum tfm_plat_err_t init_atu_regions(void)
 
     return TFM_PLAT_ERR_SUCCESS;
 }
+#endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2) */
 
 /* bootloader platform-specific hw initialization */
 int32_t boot_platform_init(void)

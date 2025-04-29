@@ -702,6 +702,10 @@ enum lcm_error_t lcm_set_lcs(struct lcm_dev_t *dev, enum lcm_lcs_t lcs,
     case LCM_LCS_INVALID:
         FATAL_ERR(LCM_ERROR_SET_LCS_INVALID_LCS);
         return LCM_ERROR_SET_LCS_INVALID_LCS;
+
+    case LCM_LCS_RMA:
+        /* Should never get here */
+        break;
     }
 
     /* Should never get here */

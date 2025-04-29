@@ -500,13 +500,13 @@ int host_flash_atu_init_regions_for_image(uuid_t image_uuid, uint32_t offsets[2]
     return 0;
 }
 
+#ifdef RSE_GPT_SUPPORT
 static int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
                                                                  gpt_header_t header,
                                                                  bool *image_found,
                                                                  uint64_t *image_offset,
                                                                  uint32_t *image_size)
 {
-#ifdef RSE_GPT_SUPPORT
     uint64_t physical_address;
     uint32_t rc;
     size_t page_size = get_page_size(&ATU_DEV_S);
@@ -551,10 +551,6 @@ static int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uu
     }
 
     return 0;
-#else
-    return -1;
-#endif /* RSE_GPT_SUPPORT */
-
 }
 
 static int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
@@ -563,7 +559,6 @@ static int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid
                                                                 uint64_t *image_offset,
                                                                 size_t *image_size)
 {
-#ifdef RSE_GPT_SUPPORT
     uint64_t physical_address;
     uint32_t rc;
     size_t page_size = get_page_size(&ATU_DEV_S);
@@ -615,10 +610,8 @@ static int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid
     }
 
     return 0;
-#else
-    return -1;
-#endif /* RSE_GPT_SUPPORT */
 }
+#endif /* RSE_GPT_SUPPORT */
 
 int host_flash_atu_get_image_offsets_by_type_uuid(uuid_t type_uuid, uint64_t *image_offset, uint32_t *image_size)
 {
@@ -708,7 +701,6 @@ static int setup_image_input_slots_by_type_uuid(uuid_t type_uuid, uint32_t offse
 {
     int rc;
     size_t temp_size[2];
-    bool image_found = false;
     uint64_t gpt_offset = 0;
     uint32_t image_size = 0;
     size_t page_size = get_page_size(&ATU_DEV_S);
