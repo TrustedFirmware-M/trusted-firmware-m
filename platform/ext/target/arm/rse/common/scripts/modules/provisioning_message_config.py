@@ -159,6 +159,7 @@ class Provisioning_message_config:
             'rse_provisioning_blob_signature_config_t',
             'rse_provisioning_blob_personalization_config_t',
             'rse_provisioning_blob_sequencing_config_t',
+            'rse_provisioning_plain_data_type_t'
         ]
 
         enums = {x : create_enum(x) for x in enum_names}
@@ -399,14 +400,17 @@ def create_blob_message(provisioning_message_config : Provisioning_message_confi
     return message.to_bytes()[:-message.blob.code_and_data_and_secret_values.get_size()] + aad[header_len:] + ciphertext
 
 def create_plain_data_message(provisioning_message_config : Provisioning_message_config,
+                              plain_data_type : C_enum,
                               data : bytes, **kwargs
                               ):
     message = provisioning_message_config.message
     defines = provisioning_message_config.defines
 
-    message.header.type.set_value(provisioning_message_config.RSE_PROVISIONING_MESSAGE_TYPE_BLOB.get_value())
+    message.header.type.set_value(provisioning_message_config.RSE_PROVISIONING_MESSAGE_TYPE_PLAIN_DATA.get_value())
     data_length = message.plain.get_size() - message.plain.data.get_size() + len(data)
     message.header.data_length.set_value(data_length)
+
+    message.plain.plain_metadata.set_value(plain_data_type.get_value())
 
     return message.to_bytes()[:message.header.get_size() + data_length - len(data)] + data
 
