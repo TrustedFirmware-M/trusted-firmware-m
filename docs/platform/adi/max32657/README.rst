@@ -9,8 +9,6 @@ The MAX32657 microcontroller (MCU) is an advanced system-on-chip (SoC)
 featuring an Arm® Cortex®-M33 core with single-precision floating point unit (FPU)
 with digital signal processing (DSP) instructions, large flash and SRAM memories,
 and the latest generation Bluetooth® 5.4 Low Energy (LE) radio.
-This device unites processing horsepower with the connectivity required for
-continuous glucose monitoring (CGM), wearables, and other medical applications.
 The nano-power modes increase battery life substantially.
 
 MAX32657 1MB flash and 256KB RAM split to define section for MCUBoot,
