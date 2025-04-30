@@ -45,16 +45,20 @@ void ns_agent_mailbox_entry(void)
 
     while (1) {
         signals = psa_wait(PSA_WAIT_ANY, PSA_BLOCK);
-        if (mailbox_signal_is_active(signals)) {
+        while (mailbox_signal_is_active(signals)) {
             active_signal = mailbox_signal_get_active(signals);
             psa_eoi(active_signal);
             tfm_rpc_client_call_handler(active_signal);
+            signals &= ~active_signal;
+        }
 #if CONFIG_TFM_SPM_BACKEND_IPC == 1
-        } else if (signals & ASYNC_MSG_REPLY) {
+        if (signals & ASYNC_MSG_REPLY) {
             tfm_rpc_client_call_reply();
+            signals &= ~ASYNC_MSG_REPLY;
+        }
 #endif
 #if (CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE != TFM_HYBRID_PLAT_SCHED_OFF)
-        } else if (signals & NS_AGENT_MBOX_PROCESS_NEW_MSG_SIGNAL) {
+        if (signals & NS_AGENT_MBOX_PROCESS_NEW_MSG_SIGNAL) {
             psa_status_t status;
             psa_msg_t msg;
             uint32_t nr_msg;
@@ -78,8 +82,11 @@ void ns_agent_mailbox_entry(void)
             }
 
             psa_reply(msg.handle, status);
+            signals &= ~NS_AGENT_MBOX_PROCESS_NEW_MSG_SIGNAL;
+        }
 #endif
-        } else {
+        if (signals != 0) {
+            /* Wrong signal asserted */
             psa_panic();
         }
     }
