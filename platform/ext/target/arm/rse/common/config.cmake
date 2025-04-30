@@ -142,6 +142,11 @@ set(RSE_PROVISIONING_CM_DEBUG_CLOSED           OFF        CACHE BOOL "Whether de
 set(RSE_PROVISIONING_REQUIRE_AUTHENTICATION_FOR_TCI OFF   CACHE BOOL "Whether TCI mode requires authentication to set")
 
 set(RSE_NON_ENDORSED_DM_PROVISIONING           OFF        CACHE BOOL "Whether to allow non endorsed DM provisioning" )
+if (RSE_NON_ENDORSED_DM_PROVISIONING)
+    # Non endorsed provisioning requires ECDSA signatures
+    set(RSE_SYMMETRIC_PROVISIONING             OFF         CACHE BOOL "Whether provisioning should be symmetric or asymmetric")
+endif()
+
 set(RSE_BOOT_IN_DM_LCS                         OFF        CACHE BOOL "Whether to boot as far as possible in DM state")
 if (RSE_BOOT_IN_DM_LCS OR RSE_NON_ENDORSED_DM_PROVISIONING)
     set(TFM_PARTITION_RUNTIME_PROVISIONING     ON         CACHE BOOL "Whether to enable runtime secure provisioning partition")
@@ -193,7 +198,7 @@ else()
     set(RSE_PROVISIONING_CM_SIGNATURE_CONFIG        ROTPK_IN_ROM     CACHE STRING "Signature configuration to use to validate CM blob signature [KRTL_DERIVATE, ROTPK_IN_ROM]")
     set(RSE_PROVISIONING_DM_SIGNATURE_CONFIG        ROTPK_IN_ROM     CACHE STRING "Signature configuration to use to validate DM blob signature [KRTL_DERIVATE, ROTPK_IN_ROM, ROTPK_NOT_IN_ROM]")
 
-    if (${RSE_PROVISIONING_DM_SIGNATURE_CONFIG} STREQUAL ROTPK_NOT_IN_ROM)
+    if (${RSE_PROVISIONING_DM_SIGNATURE_CONFIG} STREQUAL ROTPK_NOT_IN_ROM OR RSE_NON_ENDORSED_DM_PROVISIONING)
         # For asymmetric provisioning with ROTPK_NOT_IN_ROM, specify the index of the CM ROTPK to use.
         # This will be used to write the RSE_CM_PROVISIONING_SIGNING_KEY to the CM ROTPK in the OTP
         set(RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX           2       CACHE STRING "In the case of using the CM_ROTPK, the index of the key to use")

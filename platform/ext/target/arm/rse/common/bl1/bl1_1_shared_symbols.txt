@@ -125,3 +125,7 @@ tfm_hal_system_reset
 tfm_plat_get_shared_measurement_data_base
 tfm_plat_get_shared_measurement_data_size
 rse_provisioning_get_message
+dm_rotpk_area_info
+tfm_plat_otp_init
+tfm_plat_increment_nv_counter
+rse_count_zero_bits

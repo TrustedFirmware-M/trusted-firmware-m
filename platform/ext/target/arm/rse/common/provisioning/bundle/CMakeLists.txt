@@ -136,6 +136,18 @@ target_sources(combined_provisioning_code
         ./dm_provisioning_code.c
 )
 
+if (RSE_NON_ENDORSED_DM_PROVISIONING)
+    create_provisioning_code_target(plain_data_handler)
+    add_default_provisioning_code_link_options(plain_data_handler)
+
+    target_sources(plain_data_handler_provisioning_code
+        PRIVATE
+            ./plain_data_handler_provisioning_code.c
+            ./../rse_provisioning_plain_data_handler.c
+            ./../../rse_rotpk_revocation.c
+    )
+endif()
+
 if (RSE_DM_CHAINED_PROVISIONING)
     create_provisioning_code_target(dm_chained)
 
@@ -185,7 +197,7 @@ if (TFM_DUMMY_PROVISIONING)
             --valid_lcs=RSE_PROVISIONING_BLOB_VALID_IN_CM_LCS
     )
 
-    if (${RSE_PROVISIONING_DM_SIGNATURE_CONFIG} STREQUAL "ROTPK_NOT_IN_ROM")
+    if (${RSE_PROVISIONING_DM_SIGNATURE_CONFIG} STREQUAL "ROTPK_NOT_IN_ROM" OR RSE_NON_ENDORSED_DM_PROVISIONING)
         set(CM_BUNDLE_SCRIPT_ARGS
                 ${CM_BUNDLE_SCRIPT_ARGS}
                 --cm:cm.rotpk_areas_0.rotpk_${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX}=${RSE_CM_PROVISIONING_SIGNING_KEY}
@@ -410,4 +422,43 @@ if (TFM_DUMMY_PROVISIONING)
             ${CM_BUNDLE_SCRIPT_ARGS}
             ${DM_BUNDLE_SCRIPT_ARGS}
     )
+
+    if (RSE_NON_ENDORSED_DM_PROVISIONING)
+        add_custom_target(plain_data_handler_provisioning_message
+            ALL
+            SOURCES ${CMAKE_BINARY_DIR}/bin/provisioning/plain_data_handler_provisioning_message.bin
+        )
+
+        add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/provisioning/plain_data_handler_provisioning_message.bin
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/create_plain_data_handler_provisioning_bundle.py
+            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/config/message_config.pickle
+            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/bin/plain_data_handler_provisioning_code.axf
+            DEPENDS plain_data_handler_provisioning_code
+            COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_SOURCE_DIR}/tools/modules
+                ${Python3_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/create_plain_data_handler_provisioning_bundle.py
+                --provisioning_message_config=${CMAKE_CURRENT_BINARY_DIR}/config/message_config.pickle
+                --provisioning_code_elf=${CMAKE_CURRENT_BINARY_DIR}/bin/plain_data_handler_provisioning_code.axf
+                --bundle_output_file ${CMAKE_BINARY_DIR}/bin/provisioning/plain_data_handler_provisioning_message.bin
+
+                --tp_mode=RSE_PROVISIONING_BLOB_REQUIRES_TP_MODE_${RSE_TP_MODE}
+                --version=${RSE_CM_BLOB_VERSION}
+
+                --signature_config=RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM
+
+                --sign_key=${RSE_CM_PROVISIONING_SIGNING_KEY}
+                --sign_alg=${RSE_PROVISIONING_SIGN_ALG}
+                --sign_hash_alg=${RSE_PROVISIONING_HASH_ALG}
+                --sign_key_cm_rotpk=${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX}
+                --encrypt_key=${CMAKE_BINARY_DIR}/bin/keys/kprov_dm.bin
+                --encrypt_alg=${RSE_PROVISIONING_ENCRYPTION_ALG}
+
+                # No secret encryption
+                --encrypt_secret_values=RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_BY_BLOB
+
+                --sp_mode RSE_PROVISIONING_BLOB_REQUIRES_SP_MODE_DISABLED
+
+                --valid_lcs=RSE_PROVISIONING_BLOB_VALID_IN_SE_LCS
+        )
+    endif()
 endif()

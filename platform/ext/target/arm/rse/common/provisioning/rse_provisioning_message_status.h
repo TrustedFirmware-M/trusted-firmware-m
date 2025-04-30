@@ -41,6 +41,9 @@ extern "C" {
  *
  * @var PROVISIONING_STAGING_STATUS_DM_CHAINED
  * Indicates a message staged by a DM chained provisioning blob.
+ *
+ * @var PROVISIONING_STAGING_STATUS_PLAIN_DATA_MESSAGE
+ * Indicates a message staged by a plain data provisioning blob.
  */
 enum provisioning_staging_status {
     PROVISIONING_STAGING_STATUS_NO_MESSAGE,
@@ -48,6 +51,7 @@ enum provisioning_staging_status {
     PROVISIONING_STAGING_STATUS_BL1_2_MESSAGE,
     PROVISIONING_STAGING_STATUS_RUNTIME_MESSAGE,
     PROVISIONING_STAGING_STATUS_DM_CHAINED,
+    PROVISIONING_STAGING_STATUS_PLAIN_DATA_MESSAGE,
     PROVISIONING_STAGING_STATUS_MAX,
 };
 

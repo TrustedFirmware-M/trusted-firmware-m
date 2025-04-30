@@ -43,13 +43,39 @@ enum tfm_plat_err_t tfm_plat_provisioning_is_required(bool *provisioning_require
         return err;
     }
 
-#ifndef RSE_BOOT_IN_DM_LCS
     *provisioning_required = false;
-#else
-    *provisioning_required = (lcs == LCM_LCS_DM);
-#endif /* RSE_BOOT_IN_DM_LCS */
+
+#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
+    *provisioning_required = *provisioning_required || (lcs == LCM_LCS_SE);
+#endif
+
+#ifdef RSE_BOOT_IN_DM_LCS
+    *provisioning_required = *provisioning_required || (lcs == LCM_LCS_DM);
+#endif
 
     return TFM_PLAT_ERR_SUCCESS;
+}
+
+static enum tfm_plat_err_t setup_aes_key(const struct rse_provisioning_message_blob_t *blob,
+                                         uint32_t *key_id)
+{
+#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
+    enum lcm_error_t lcm_err;
+    enum lcm_lcs_t lcs;
+
+    lcm_err = lcm_get_lcs(&LCM_DEV_S, &lcs);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+    if (lcs == LCM_LCS_SE) {
+        /* Blob not encrypted so key not required */
+        *key_id = 0;
+        return TFM_PLAT_ERR_SUCCESS;
+    }
+#endif /* RSE_NON_ENDORSED_DM_PROVISIONING */
+
+    return rse_provisioning_setup_aes_key(blob, key_id);
 }
 
 enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
@@ -64,7 +90,7 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
     };
 
     struct default_blob_handler_ctx_t ctx = {
-        .setup_aes_key = rse_provisioning_setup_aes_key,
+        .setup_aes_key = setup_aes_key,
 #ifdef RSE_PROVISIONING_ENABLE_ECDSA_SIGNATURES
         .get_rotpk = provisioning_rotpk_get,
 #endif
