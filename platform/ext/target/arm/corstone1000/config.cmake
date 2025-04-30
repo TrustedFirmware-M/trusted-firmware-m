@@ -68,7 +68,6 @@ set(TFM_DEBUG_OPTIMISATION              ON         CACHE BOOL      "Add basic -O
 # Platform-specific configurations
 set(CONFIG_TFM_USE_TRUSTZONE            OFF)
 set(TFM_MULTI_CORE_TOPOLOGY             ON)
-set(PS_NUM_ASSETS                       "40"        CACHE STRING    "The maximum number of assets to be stored in the Protected Storage area")
 
 set(MCUBOOT_USE_PSA_CRYPTO            ON               CACHE BOOL      "Enable the cryptographic abstraction layer to use PSA Crypto APIs")
 set(MCUBOOT_SIGNATURE_TYPE            "EC-P256"        CACHE STRING    "Algorithm to use for signature validation [RSA-2048, RSA-3072, EC-P256, EC-P384]")
