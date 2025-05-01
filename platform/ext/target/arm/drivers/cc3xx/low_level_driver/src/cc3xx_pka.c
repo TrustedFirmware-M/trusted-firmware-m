@@ -1387,3 +1387,10 @@ void cc3xx_lowlevel_pka_reduce(cc3xx_pka_reg_id_t r0)
      */
     cc3xx_lowlevel_pka_and(r0, CC3XX_PKA_REG_N_MASK, r0);
 }
+
+#ifdef CC3XX_CONFIG_PKA_SRAM_ENCRYPTION_SUPPORTED
+void cc3xx_lowlevel_pka_sram_encryption_enable(void)
+{
+    P_CC3XX->pka.pka_ram_enc = 0x1U;
+}
+#endif /* CC3XX_CONFIG_PKA_SRAM_ENCRYPTION_SUPPORTED */
