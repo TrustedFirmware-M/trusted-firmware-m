@@ -169,13 +169,15 @@ int32_t boot_platform_init(void)
     if (plat_err) {
         return plat_err;
     }
-#endif /* CRYPTO_HW_ACCELERATOR */
 
     /* Load the PKA encryption key, now that it is set up */
     kmu_err = kmu_export_key(&KMU_DEV_S, RSE_KMU_SLOT_CC3XX_PKA_SRAM_ENCRYPTION_KEY);
     if (kmu_err != KMU_ERROR_NONE) {
         return kmu_err;
     }
+
+    cc3xx_lowlevel_pka_sram_encryption_enable();
+#endif /* CRYPTO_HW_ACCELERATOR */
 
     err = b1_1_platform_debug_init();
     if (err != 0) {

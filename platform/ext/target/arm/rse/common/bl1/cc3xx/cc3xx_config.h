@@ -146,7 +146,7 @@
 #endif /* !CC_RNG_RING_OSCILLATOR_ID */
 
 /* Whether PKA SRAM encryption is supported */
-/* #define CC3XX_CONFIG_PKA_SRAM_ENCRYPTION_SUPPORTED */
+#define CC3XX_CONFIG_PKA_SRAM_ENCRYPTION_SUPPORTED
 
 /* How many virtual registers can be allocated in the PKA engine */
 #ifndef CC3XX_CONFIG_PKA_MAX_VIRT_REG_AMOUNT
