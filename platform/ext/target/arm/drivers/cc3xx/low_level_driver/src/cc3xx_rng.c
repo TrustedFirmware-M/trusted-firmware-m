@@ -365,6 +365,14 @@ static cc3xx_err_t trng_finish(void)
     return CC3XX_ERR_SUCCESS;
 }
 
+static inline void trng_double_subsampling_rate(void)
+{
+    uint64_t product = (uint64_t)g_trng_config.rosc.subsampling_rate * 2ULL;
+
+    g_trng_config.rosc.subsampling_rate =
+        (product > UINT32_MAX) ? UINT32_MAX : (uint32_t)product;
+}
+
 static cc3xx_err_t trng_get_random(uint32_t *buf, size_t word_count)
 {
     uint32_t attempt_count = 0;
@@ -380,11 +388,22 @@ static cc3xx_err_t trng_get_random(uint32_t *buf, size_t word_count)
         if (P_CC3XX->rng.rng_isr & 0xEU) {
             /* At least one test has failed, the buffer contents aren't random */
 
+            /* Disable random source before resetting the bit counter */
+            P_CC3XX->rng.rnd_source_enable = 0x0U;
+
             /* Reset EHR registers */
             P_CC3XX->rng.rst_bits_counter = 0x1U;
 
-            /* Clear the interrupt bits to restart generator */
+            /* Clear the interrupt bits */
             P_CC3XX->rng.rng_icr = 0x3FU;
+
+            /* Double the sample count */
+            trng_double_subsampling_rate();
+
+            /* Restart TRNG */
+            trng_init(g_trng_config.rosc.id,
+                      g_trng_config.rosc.subsampling_rate,
+                      g_trng_config.debug_control);
 
             attempt_count++;
         }
@@ -578,6 +597,11 @@ cc3xx_err_t cc3xx_lowlevel_rng_get_entropy(uint32_t *entropy, size_t entropy_len
     size_t num_words = 0;
 
     assert((entropy_len % sizeof(P_CC3XX->rng.ehr_data)) == 0);
+
+    if (!g_trng_config.rosc.subsampling_rate) {
+        FATAL_ERR(CC3XX_ERR_RNG_INVALID_TRNG_CONFIG);
+        return CC3XX_ERR_RNG_INVALID_TRNG_CONFIG;
+    }
 
     trng_init(g_trng_config.rosc.id, g_trng_config.rosc.subsampling_rate, g_trng_config.debug_control);
 
