@@ -3486,8 +3486,8 @@ int cc3xx_test_sign_verify(cc3xx_ecdsa_validate_test_data_t *data)
                            sig_r, sizeof(sig_r), &sig_r_size,
                            sig_s, sizeof(sig_s), &sig_s_size);
     uint32_t cyccnt_end = get_cycle_count();
-    printf("%s (%s) sign: %d cycles\r\n", curve_name, hash_name,
-                                          cyccnt_end - cyccnt_start);
+    TEST_LOG("%s (%s) sign: %d cycles\r\n", curve_name, hash_name,
+                                            cyccnt_end - cyccnt_start);
 
     cc3xx_test_assert(err == CC3XX_ERR_SUCCESS);
 
@@ -3500,7 +3500,7 @@ int cc3xx_test_sign_verify(cc3xx_ecdsa_validate_test_data_t *data)
                              sig_r, sig_r_size,
                              sig_s, sig_s_size);
     uint32_t cyccnt_end_2 = get_cycle_count();
-    printf("%s (%s%s) verify: %d cycles\r\n", curve_name, hash_name,
+    TEST_LOG("%s (%s%s) verify: %d cycles\r\n", curve_name, hash_name,
 #ifdef CC3XX_CONFIG_EC_SHAMIR_TRICK_ENABLE
                                               ", shamir",
 #else
@@ -3580,8 +3580,8 @@ int cc3xx_test_sign_timing(cc3xx_ecdsa_validate_test_data_t *data)
                                sig_r, sizeof(sig_r), &sig_r_size,
                                sig_s, sizeof(sig_s), &sig_s_size);
         uint32_t cyccnt_end = get_cycle_count();
-        printf("%s (%s) sign: %d cycles\r\n", curve_name, hash_name,
-                                              cyccnt_end - cyccnt_start);
+        TEST_LOG("%s (%s) sign: %d cycles\r\n", curve_name, hash_name,
+                                                cyccnt_end - cyccnt_start);
 
         cc3xx_test_assert(err == CC3XX_ERR_SUCCESS);
     }
@@ -3668,11 +3668,11 @@ int cc3xx_test_ecdsa_getpub(void)
             swap_endianess((uint8_t *)priv_key, priv_size_in_bytes);
 
             /* Print the private key being tested */
-            printf("%s, priv: 0x", curve_name);
+            TEST_LOG("%s, priv: 0x", curve_name);
             for (int k = 0; k < priv_size_in_bytes; k++) {
-                printf("%02x", ((uint8_t *)priv_key)[k]);
+                TEST_LOG("%02x", ((uint8_t *)priv_key)[k]);
             }
-            printf("\r\n");
+            TEST_LOG("\r\n");
 
             /* Exercise the API */
             cc3xx_err_t err = cc3xx_lowlevel_ecdsa_getpub(
@@ -3682,7 +3682,7 @@ int cc3xx_test_ecdsa_getpub(void)
             case 0:
             case 3:
                 if (err != CC3XX_ERR_ECDSA_INVALID_KEY) {
-                    printf("%s case %d expected ECDSA_INVALID_KEY, returned %s\r\n",
+                    TEST_LOG("%s case %d expected ECDSA_INVALID_KEY, returned %s\r\n",
                                 curve_name, j, err < _ERROR_MAX ? get_err_name(err) : NULL);
                     observed_mismatches++;
                 }
@@ -3690,7 +3690,7 @@ int cc3xx_test_ecdsa_getpub(void)
             case 1:
             case 2:
                 if (err != CC3XX_ERR_SUCCESS) {
-                    printf("%s case %d expected SUCCESS, returned %s\r\n",
+                    TEST_LOG("%s case %d expected SUCCESS, returned %s\r\n",
                                 curve_name, j, err < _ERROR_MAX ? get_err_name(err) : NULL);
                     observed_mismatches++;
                 };
@@ -3698,20 +3698,20 @@ int cc3xx_test_ecdsa_getpub(void)
             }
 
             if (err == CC3XX_ERR_SUCCESS) {
-                printf("%s pub.x: 0x", curve_name);
+                TEST_LOG("%s pub.x: 0x", curve_name);
                 for (int k = 0; k < pub_x_len; k++) {
-                    printf("%02x", ((uint8_t *)pub_x)[k]);
+                    TEST_LOG("%02x", ((uint8_t *)pub_x)[k]);
                 }
-                printf("\r\n");
+                TEST_LOG("\r\n");
 
-                printf("%s pub.y: 0x", curve_name);
+                TEST_LOG("%s pub.y: 0x", curve_name);
                 for (int k = 0; k < pub_y_len; k++) {
-                    printf("%02x", ((uint8_t *)pub_y)[k]);
+                    TEST_LOG("%02x", ((uint8_t *)pub_y)[k]);
                 }
-                printf("\r\n");
+                TEST_LOG("\r\n");
             }
         }
-        printf("%s getpub test done\r\n", curve_name);
+        TEST_LOG("%s getpub test done\r\n", curve_name);
     }
 
     cc3xx_test_assert(observed_mismatches == 0);
