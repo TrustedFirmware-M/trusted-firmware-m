@@ -57,7 +57,7 @@ void cc3xx_lowlevel_pka_init(uint32_t size);
 cc3xx_pka_reg_id_t cc3xx_lowlevel_pka_allocate_reg(void);
 
 /**
- * @brief Unamp all mapped physical registers at once
+ * @brief Unmap all mapped physical registers at once
  *
  */
 void cc3xx_lowlevel_pka_unmap_physical_registers(void);
