@@ -159,43 +159,42 @@ endif()
 set(RSE_SYMMETRIC_PROVISIONING              ON         CACHE BOOL "Whether provisioning should be symmetric or asymmetric")
 
 if (RSE_SYMMETRIC_PROVISIONING)
-    set(RSE_PROVISIONING_SIGN_ALG           AES_CCM    CACHE STRING "Algorithm used to validate blobs")
-    set(RSE_PROVISIONING_ENABLE_AES_SIGNATURES ON      CACHE BOOL "Allow AES signatures")
-    set(RSE_PROVISIONING_CM_SIGNATURE_CONFIG   KRTL_DERIVATIVE     CACHE STRING "Signature configuration to use to validate CM blob signature")
-    set(RSE_PROVISIONING_DM_SIGNATURE_CONFIG   KRTL_DERIVATIVE     CACHE STRING "Signature configuration to use to validate DM blob signature")
+    # Sign and encrypt using AES
+    set(RSE_PROVISIONING_SIGN_ALG                   AES_CCM    CACHE STRING "Algorithm used to validate blobs")
+    set(RSE_PROVISIONING_ENABLE_AES_SIGNATURES      ON      CACHE BOOL "Allow AES signatures")
+    set(RSE_PROVISIONING_ENABLE_ECDSA_SIGNATURES    OFF    CACHE BOOL "Allow ECDSA signatures")
+
+    set(RSE_PROVISIONING_CM_SIGNATURE_CONFIG        KRTL_DERIVATIVE     CACHE STRING "Signature configuration to use to validate CM blob signature [KRTL_DERIVATE, ROTPK_IN_ROM]")
+    set(RSE_PROVISIONING_DM_SIGNATURE_CONFIG        KRTL_DERIVATIVE     CACHE STRING "Signature configuration to use to validate DM blob signature [KRTL_DERIVATE, ROTPK_IN_ROM, ROTPK_NOT_IN_ROM]")
 else()
-    set(RSE_PROVISIONING_SIGN_ALG           ECDSA      CACHE STRING "Algorithm used to validate blobs")
-    set(RSE_PROVISIONING_ENCRYPTION_ALG     AES_CTR    CACHE STRING "Algorithm used to validate blobs")
-    set(RSE_PROVISIONING_ENABLE_ECDSA_SIGNATURES ON    CACHE BOOL "Allow ECDSA signatures")
-    set(RSE_DM_CHAINED_PROVISIONING              OFF   CACHE BOOL "Whether to use DM bundle chained provisioning flow")
-    set(RSE_PROVISIONING_CM_SIGNATURE_CONFIG   ROTPK_IN_ROM     CACHE STRING "Signature configuration to use to validate CM blob signature")
-    set(RSE_PROVISIONING_DM_SIGNATURE_CONFIG   ROTPK_IN_ROM     CACHE STRING "Signature configuration to use to validate DM blob signature")
-    if (${RSE_PROVISIONING_DM_SIGNATURE_CONFIG} STREQUAL "ROTPK_NOT_IN_ROM")
-        set(RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX   2       CACHE STRING "In the case of using the CM_ROTPK, the index of the key to use")
-    endif()
-endif()
+    set(RSE_PROVISIONING_SIGN_ALG                   ECDSA      CACHE STRING "Algorithm used to validate blobs")
+    set(RSE_PROVISIONING_ENCRYPTION_ALG             AES_CTR    CACHE STRING "Algorithm used to encrypt blobs")
+    set(RSE_PROVISIONING_ENABLE_AES_SIGNATURES      OFF      CACHE BOOL "Allow AES signatures")
+    set(RSE_PROVISIONING_ENABLE_ECDSA_SIGNATURES    ON    CACHE BOOL "Allow ECDSA signatures")
 
-if (RSE_PROVISIONING_SIGN_ALG STREQUAL ECDSA)
-    set(RSE_PROVISIONING_CURVE              P256       CACHE STRING "Curve used to validate blobs")
+    set(RSE_PROVISIONING_CURVE                      P256       CACHE STRING "Curve used to validate blobs [P256, P384]")
+    # Use same number of bits for SHA and curve
+    string(REGEX MATCH "P([0-9]+)" _match "${RSE_PROVISIONING_CURVE}")
+    set(RSE_PROVISIONING_HASH_ALG                   SHA${CMAKE_MATCH_1}     CACHE STRING "Hash algorithm used to validate blobs [SHA256, SHA384]")
 
-    if (RSE_PROVISIONING_CURVE STREQUAL P384)
-        set(RSE_PROVISIONING_HASH_ALG           SHA384     CACHE STRING "Hash algorithm used to validate blobs")
-    else()
-        set(RSE_PROVISIONING_HASH_ALG           SHA256     CACHE STRING "Hash algorithm used to validate blobs")
-    endif()
-
-    # Use same ROTPK hash algorithm as provisioning hash algorithm by default
-    if (${RSE_PROVISIONING_DM_SIGNATURE_CONFIG} STREQUAL "ROTPK_NOT_IN_ROM")
-        set(RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_HASH_ALG  ${RSE_PROVISIONING_HASH_ALG}    CACHE STRING "Algorithm to use for DM provisioning ROTPK comparison")
-    endif()
-
+    # Specify the key to use for signing
     if (RSE_TP_MODE STREQUAL TCI OR TFM_DUMMY_PROVISIONING)
-        set(RSE_CM_PROVISIONING_SIGNING_KEY "${CMAKE_SOURCE_DIR}/bl2/ext/mcuboot/root-EC-${RSE_PROVISIONING_CURVE}.pem" CACHE FILEPATH "Path to provisioning root key")
+        set(RSE_CM_PROVISIONING_SIGNING_KEY         "${CMAKE_SOURCE_DIR}/bl2/ext/mcuboot/root-EC-${RSE_PROVISIONING_CURVE}.pem" CACHE FILEPATH "Path to provisioning root key")
+    endif()
+
+    set(RSE_DM_CHAINED_PROVISIONING                 OFF   CACHE BOOL "Whether to use DM bundle chained provisioning flow")
+
+    set(RSE_PROVISIONING_CM_SIGNATURE_CONFIG        ROTPK_IN_ROM     CACHE STRING "Signature configuration to use to validate CM blob signature [KRTL_DERIVATE, ROTPK_IN_ROM]")
+    set(RSE_PROVISIONING_DM_SIGNATURE_CONFIG        ROTPK_IN_ROM     CACHE STRING "Signature configuration to use to validate DM blob signature [KRTL_DERIVATE, ROTPK_IN_ROM, ROTPK_NOT_IN_ROM]")
+
+    if (${RSE_PROVISIONING_DM_SIGNATURE_CONFIG} STREQUAL ROTPK_NOT_IN_ROM)
+        # For asymmetric provisioning with ROTPK_NOT_IN_ROM, specify the index of the CM ROTPK to use.
+        # This will be used to write the RSE_CM_PROVISIONING_SIGNING_KEY to the CM ROTPK in the OTP
+        set(RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX           2       CACHE STRING "In the case of using the CM_ROTPK, the index of the key to use")
+        # Use same ROTPK hash algorithm as provisioning hash algorithm by default
+        set(RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_HASH_ALG      ${RSE_PROVISIONING_HASH_ALG}    CACHE STRING "Algorithm to use for DM provisioning ROTPK comparison")
     endif()
 endif()
-
-set(RSE_PROVISIONING_ENABLE_AES_SIGNATURES     OFF     CACHE BOOL "Allow AES signatures")
-set(RSE_PROVISIONING_ENABLE_ECDSA_SIGNATURES   OFF     CACHE BOOL "Allow ECDSA signatures")
 
 ################# Generic TFM platform (Do not change) #########################
 
