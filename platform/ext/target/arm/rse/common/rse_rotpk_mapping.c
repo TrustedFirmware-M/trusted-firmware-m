@@ -48,13 +48,13 @@ static enum get_policy_and_rotpk_err_t get_policy_word_and_rotpk_index(
 
     if ((otp_id >= PLAT_OTP_ID_CM_ROTPK) && (otp_id < PLAT_OTP_ID_CM_ROTPK_MAX)) {
         rotpk_base = PLAT_OTP_ID_CM_ROTPK;
-        if (P_RSE_OTP_CM_ROTPK == NULL) {
+        if (!IS_RSE_OTP_AREA_VALID(CM_ROTPK)) {
             return INVALID_AREA_POINTER;
         }
         *policy_word = P_RSE_OTP_CM_ROTPK->cm_rotpk_policies;
     } else if ((otp_id >= PLAT_OTP_ID_DM_ROTPK) && (otp_id < PLAT_OTP_ID_DM_ROTPK_MAX)) {
         rotpk_base = PLAT_OTP_ID_DM_ROTPK;
-        if (P_RSE_OTP_DM_ROTPK == NULL) {
+        if (!IS_RSE_OTP_AREA_VALID(DM_ROTPK)) {
             return INVALID_AREA_POINTER;
         }
         *policy_word = P_RSE_OTP_DM_ROTPK->dm_rotpk_policies;

@@ -385,7 +385,7 @@ static enum tfm_plat_err_t setup_rotpk_info(enum lcm_lcs_t lcs) {
     }
 #endif
 
-    assert(P_RSE_OTP_DYNAMIC != NULL);
+    assert(IS_RSE_OTP_AREA_VALID(DYNAMIC));
 
 #ifdef RSE_OTP_HAS_CM_AREA
 #if RSE_OTP_CM_ROTPK_MAX_REVOCATIONS > 0
