@@ -91,6 +91,12 @@ const uintptr_t partition_named_mmio_list[] = {
 #if TFM_PERIPHERAL_UARTE30_SECURE
     (uintptr_t)TFM_PERIPHERAL_UARTE30,
 #endif
+#if TFM_PERIPHERAL_GPIOTE20_SECURE
+    (uintptr_t)TFM_PERIPHERAL_GPIOTE20,
+#endif
+#if TFM_PERIPHERAL_GPIOTE30_SECURE
+    (uintptr_t)TFM_PERIPHERAL_GPIOTE30,
+#endif
 };
 
 #ifdef __cplusplus

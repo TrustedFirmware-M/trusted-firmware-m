@@ -711,6 +711,20 @@ struct platform_data_t tfm_peripheral_vmc = {
 };
 #endif
 
+#if TFM_PERIPHERAL_GPIOTE20_SECURE
+struct platform_data_t tfm_peripheral_gpiote20 = {
+    NRF_GPIOTE20_S_BASE,
+    NRF_GPIOTE20_S_BASE + (sizeof(NRF_GPIOTE_Type) - 1),
+};
+#endif
+
+#if TFM_PERIPHERAL_GPIOTE30_SECURE
+struct platform_data_t tfm_peripheral_gpiote30 = {
+    NRF_GPIOTE30_S_BASE,
+    NRF_GPIOTE30_S_BASE + (sizeof(NRF_GPIOTE_Type) - 1),
+};
+#endif
+
 #ifdef PSA_API_TEST_IPC
 struct platform_data_t
     tfm_peripheral_FF_TEST_SERVER_PARTITION_MMIO = {
@@ -1309,6 +1323,51 @@ enum tfm_plat_err_t spu_periph_init_cfg(void)
 	};
 	for(int i = 0; i < 4; i++) {
 		spu_peripheral_config_secure(base_addresses[i], SPU_LOCK_CONF_LOCKED);
+	}
+
+
+	/* GPIOTE channel configuration */
+	uint32_t secure_gpiote_channels[] = {
+#if TFM_PERIPHERAL_GPIOTE20_SECURE_CHANNELS_MASK
+	TFM_PERIPHERAL_GPIOTE20_SECURE_CHANNELS_MASK,
+#endif
+#if TFM_PERIPHERAL_GPIOTE30_SECURE_CHANNELS_MASK
+	TFM_PERIPHERAL_GPIOTE30_SECURE_CHANNELS_MASK,
+#endif
+		0 /* Not used, its here to avoid compilation failures */
+	};
+
+	uint32_t gpiote_instances[] = {
+#if TFM_PERIPHERAL_GPIOTE20_SECURE_CHANNELS_MASK
+	NRF_GPIOTE20_S_BASE,
+#endif
+#if TFM_PERIPHERAL_GPIOTE30_SECURE_CHANNELS_MASK
+	NRF_GPIOTE30_S_BASE,
+#endif
+		0 /* Not used, its here to avoid compilation failures */
+	};
+
+	/* Configure the SPU GPIOTE registers. Each GPIOTE can fire 2 interrupts for
+	 * each available channel. If a channel is configured as secure both of the
+	 * interrupts will only available in secure mode so a single configuration
+	 * should suffice.
+	 */
+	for(int i = 0; i < ARRAY_SIZE(gpiote_instances) - 1; i++) {
+
+		NRF_SPU_Type * spu_instance = spu_instance_from_peripheral_addr(gpiote_instances[i]);
+		for (int channel = 0; channel < NRF_SPU_FEATURE_GPIOTE_CHANNEL_COUNT; channel++) {
+			if(secure_gpiote_channels[i] & (1 << channel)){
+				nrf_spu_feature_secattr_set(spu_instance, NRF_SPU_FEATURE_GPIOTE_CHANNEL, 0,
+								channel,
+								true);
+				nrf_spu_feature_lock_enable(spu_instance, NRF_SPU_FEATURE_GPIOTE_CHANNEL, 0, channel);
+
+				nrf_spu_feature_secattr_set(spu_instance, NRF_SPU_FEATURE_GPIOTE_INTERRUPT, 0,
+								channel,
+								true);
+				nrf_spu_feature_lock_enable(spu_instance, NRF_SPU_FEATURE_GPIOTE_INTERRUPT, 0, channel);
+			}
+		}
 	}
 
 	/* Configure NRF_REGULATORS, and NRF_OSCILLATORS to be secure as NRF_REGULATORS.POFCON is needed

@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
-
 #ifndef TFM_PERIPHERALS_CONFIG_H__
 #define TFM_PERIPHERALS_CONFIG_H__
 
@@ -20,6 +19,12 @@ extern "C" {
 
 /* The target_cfg.c requires this to be set */
 #define TFM_PERIPHERAL_GPIO0_PIN_MASK_SECURE 0
+
+#if defined(NRF54L_SERIES)
+    #include <tfm_peripherals_config_nrf54l.h>
+#else
+    #error "Unknown device."
+#endif
 
 #ifdef __cplusplus
 }
