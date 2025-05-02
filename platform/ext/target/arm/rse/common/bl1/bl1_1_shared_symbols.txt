@@ -61,6 +61,7 @@ tfm_plat_otp_read
 tfm_plat_otp_write
 tfm_plat_read_nv_counter
 tfm_plat_set_nv_counter
+cm_area_info
 mhu_init_sender
 mhu_init_receiver
 mhu_send_data
