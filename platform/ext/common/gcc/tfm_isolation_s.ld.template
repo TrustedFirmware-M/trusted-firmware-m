@@ -269,7 +269,7 @@ SECTIONS
         /* Capture all remaining code (except RAM code) in the privileged TF-M
          * code region.
          */
-        EXCLUDE_FILE (*libflash_drivers*:) *(SORT_BY_ALIGNMENT(.text*))
+        *(SORT_BY_ALIGNMENT(EXCLUDE_FILE(*libflash_drivers*) .text*))
     } > FLASH
 
     /* Position tag: End of PSA RoT code (privileged) */
@@ -283,7 +283,7 @@ SECTIONS
     /* Collect all RO-data into a single unprivileged region */
     .ER_RO_DATA . :
     {
-        EXCLUDE_FILE (*libflash_drivers*:) *(SORT_BY_ALIGNMENT(.rodata*))
+        *(SORT_BY_ALIGNMENT(EXCLUDE_FILE(*libflash_drivers*) .rodata*))
     } > FLASH
 
     /**** Section for holding partition RO load data */
