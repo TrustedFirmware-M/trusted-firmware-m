@@ -11,11 +11,11 @@
 #include "device_definition.h"
 #include "gpt.h"
 #include "fip_parser.h"
-#include "plat_def_fip_uuid.h"
 #include "host_base_address.h"
 #include "platform_base_address.h"
 #include "tfm_plat_defs.h"
 #ifdef RSE_GPT_SUPPORT
+#include "plat_def_fip_uuid.h"
 #include "fwu_metadata.h"
 #include "platform_regs.h"
 #endif /* RSE_GPT_SUPPORT */
@@ -420,60 +420,35 @@ int host_flash_atu_setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2
     return 0;
 }
 
-int host_flash_atu_setup_image_output_slots(uuid_t image_uuid)
+int host_flash_atu_setup_image_output_slots(uint64_t image_load_phy_addr,
+                                            uint32_t image_load_logical_addr,
+                                            uint32_t image_max_size,
+                                            uint64_t header_phy_addr)
 {
-    uuid_t case_uuid;
     enum atu_error_t atu_err;
 
-    case_uuid = UUID_RSE_FIRMWARE_SCP_BL1;
-    if (memcmp(&image_uuid, &case_uuid, sizeof(uuid_t)) == 0) {
-        /* Initialize SCP ATU header region */
-        atu_err = atu_initialize_region(&ATU_DEV_S,
-                                        RSE_ATU_REGION_OUTPUT_HEADER_SLOT,
-                                        HOST_BOOT_IMAGE1_LOAD_BASE_S,
-                                        SCP_BOOT_SRAM_BASE + SCP_BOOT_SRAM_SIZE
-                                        - HOST_IMAGE_HEADER_SIZE,
-                                        HOST_IMAGE_HEADER_SIZE);
-        if (atu_err != ATU_ERR_NONE) {
-            return atu_err;
-        }
-
-        /* Initialize SCP ATU output region */
-        atu_err = atu_initialize_region(&ATU_DEV_S,
-                                        RSE_ATU_REGION_OUTPUT_IMAGE_SLOT,
-                                        HOST_BOOT_IMAGE1_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE,
-                                        SCP_BOOT_SRAM_BASE,
-                                        SCP_BOOT_SRAM_SIZE - HOST_IMAGE_HEADER_SIZE);
-        if (atu_err != ATU_ERR_NONE) {
-            return atu_err;
-        }
-
-        return 0;
+    if (image_max_size < HOST_IMAGE_HEADER_SIZE) {
+        return -1;
     }
 
-    case_uuid = UUID_RSE_FIRMWARE_AP_BL1;
-    if (memcmp(&image_uuid, &case_uuid, sizeof(uuid_t)) == 0) {
-        /* Initialize AP ATU header region */
-        atu_err = atu_initialize_region(&ATU_DEV_S,
-                                        RSE_ATU_REGION_OUTPUT_HEADER_SLOT,
-                                        HOST_BOOT_IMAGE0_LOAD_BASE_S,
-                                        AP_BOOT_SRAM_BASE + AP_BOOT_SRAM_SIZE
-                                        - HOST_IMAGE_HEADER_SIZE,
-                                        HOST_IMAGE_HEADER_SIZE);
-        if (atu_err != ATU_ERR_NONE) {
-            return atu_err;
-        }
-        /* Initialize AP ATU region */
-        atu_err = atu_initialize_region(&ATU_DEV_S,
-                                        RSE_ATU_REGION_OUTPUT_IMAGE_SLOT,
-                                        HOST_BOOT_IMAGE0_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE,
-                                        AP_BOOT_SRAM_BASE,
-                                        AP_BOOT_SRAM_SIZE - HOST_IMAGE_HEADER_SIZE);
-        if (atu_err != ATU_ERR_NONE) {
-            return atu_err;
-        }
+    /* Initialize ATU header region */
+    atu_err = atu_initialize_region(&ATU_DEV_S,
+                                    RSE_ATU_REGION_OUTPUT_HEADER_SLOT,
+                                    image_load_logical_addr,
+                                    header_phy_addr,
+                                    HOST_IMAGE_HEADER_SIZE);
+    if (atu_err != ATU_ERR_NONE) {
+        return atu_err;
+    }
 
-        return 0;
+    /* Initialize ATU output region */
+    atu_err = atu_initialize_region(&ATU_DEV_S,
+                                    RSE_ATU_REGION_OUTPUT_IMAGE_SLOT,
+                                    image_load_logical_addr + HOST_IMAGE_HEADER_SIZE,
+                                    image_load_phy_addr,
+                                    image_max_size - HOST_IMAGE_HEADER_SIZE);
+    if (atu_err != ATU_ERR_NONE) {
+        return atu_err;
     }
 
     return 0;

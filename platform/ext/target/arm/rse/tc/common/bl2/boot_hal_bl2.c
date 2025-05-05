@@ -158,6 +158,10 @@ static struct flash_area *flash_map_slot_from_flash_area_id(uint32_t area_id)
 int boot_platform_pre_load(uint32_t image_id)
 {
     uuid_t uuid;
+    uint64_t image_load_phy_addr = 0;
+    uint32_t image_load_logical_addr = 0;
+    uint32_t image_max_size = 0;
+    uint64_t header_phy_addr = 0;
     uint32_t offsets[2];
     struct flash_area *flash_area_primary =
         flash_map_slot_from_flash_area_id(FLASH_AREA_IMAGE_PRIMARY(image_id));
@@ -174,11 +178,29 @@ int boot_platform_pre_load(uint32_t image_id)
     switch(image_id) {
     case RSE_BL2_IMAGE_SCP:
         uuid = UUID_RSE_FIRMWARE_SCP_BL1;
-        host_flash_atu_setup_image_output_slots(uuid);
+
+        image_load_phy_addr = SCP_BOOT_SRAM_BASE;
+        image_max_size = SCP_BOOT_SRAM_SIZE;
+        header_phy_addr = SCP_BOOT_SRAM_BASE + SCP_BOOT_SRAM_SIZE
+                                        - HOST_IMAGE_HEADER_SIZE;
+        image_load_logical_addr = HOST_BOOT_IMAGE1_LOAD_BASE_S;
+        host_flash_atu_setup_image_output_slots(image_load_phy_addr,
+                                                image_load_logical_addr,
+                                                image_max_size,
+                                                header_phy_addr);
         break;
     case RSE_BL2_IMAGE_AP:
         uuid = UUID_RSE_FIRMWARE_AP_BL1;
-        host_flash_atu_setup_image_output_slots(uuid);
+
+        image_load_phy_addr = AP_BOOT_SRAM_BASE;
+        image_max_size = AP_BOOT_SRAM_SIZE;
+        header_phy_addr = AP_BOOT_SRAM_BASE + AP_BOOT_SRAM_SIZE
+                                        - HOST_IMAGE_HEADER_SIZE;
+        image_load_logical_addr = HOST_BOOT_IMAGE0_LOAD_BASE_S;
+        host_flash_atu_setup_image_output_slots(image_load_phy_addr,
+                                                image_load_logical_addr,
+                                                image_max_size,
+                                                header_phy_addr);
         break;
     case RSE_BL2_IMAGE_NS:
         /*

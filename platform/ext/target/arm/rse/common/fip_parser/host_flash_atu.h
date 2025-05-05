@@ -128,16 +128,34 @@ int host_flash_atu_setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2
 int host_flash_atu_setup_image_input_slots_by_type_uuid(uuid_t type_uuid, uint32_t offsets[2]);
 
 /**
- * \brief                             Setup the ATU output slots for a given
- *                                    image and its bootloader header.
+ * \brief                                  Setup the ATU output slots for a
+ *                                         given image and its bootloader header.
  *
- * \param[in] image_uuid              The UUID of the image that should be have
- *                                    its output slot set up.
+ * \param[in]  image_load_phy_addr         Physical address where the image
+ *                                         should be written. This address
+ *                                         should be aligned to the ATU page
+ *                                         size.
  *
- * \return                            0 on success, non-zero on failure.
+ * \param[in]  image_load_logical_addr     Logical address in RSE memory used
+ *                                         to access the image data. The
+ *                                         header and image will both be
+ *                                         mapped into this address. This
+ *                                         address should be aligned to the
+ *                                         ATU page size.
+ *
+ * \param[in]  image_max_size              Maximum size of the image to be
+ *                                         written, including the bootloader
+ *                                         header size.
+ *
+ * \param[in]  header_phy_addr             Physical address where the image
+ *                                         header should be written.
+ *
+ * \return     0 on success, non-zero on failure.
  */
-int host_flash_atu_setup_image_output_slots(uuid_t image_uuid);
-
+int host_flash_atu_setup_image_output_slots(uint64_t image_load_phy_addr,
+                                            uint32_t image_load_logical_addr,
+                                            uint32_t image_max_size,
+                                            uint64_t header_phy_addr);
 
 /**
  * \brief                             Teardown all image input and output slots.
