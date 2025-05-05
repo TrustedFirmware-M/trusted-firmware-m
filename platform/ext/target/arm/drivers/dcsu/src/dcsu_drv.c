@@ -265,18 +265,43 @@ static enum dcsu_error_t rx_read_partial_field(struct dcsu_dev_t *dev,
 }
 
 static enum dcsu_error_t rx_write_field(struct dcsu_dev_t *dev, enum dcsu_otp_field_t otp_field,
-                                        bool offset_param, enum dcsu_rx_msg_response_t *msg_resp)
+                                        enum dcsu_otp_field_t zc_otp_field, bool offset_param,
+                                        enum dcsu_rx_msg_response_t *msg_resp)
 {
     enum dcsu_error_t msg_err;
     struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
     uint32_t write_num_words = DCSU_get_number_of_words(p_dcsu);
     uint32_t field_offset;
 
-    msg_err = dcsu_hal_get_field_offset(otp_field, &field_offset);
+    uint32_t zc_field_offset;
+    uint32_t zc_value;
+
+    msg_err = dcsu_hal_get_field_offset(zc_otp_field, &zc_field_offset);
     if (msg_err != DCSU_ERROR_NONE) {
         /* Couldn't find field so write failed */
         *msg_resp = DCSU_RX_MSG_RESP_OTP_WRITE_FAILED;
         return DCSU_ERROR_NONE;
+    }
+
+    dcsu_hal_read_otp(zc_otp_field, zc_field_offset,
+                      &zc_value, sizeof(zc_value),
+                      msg_resp);
+    /* Could not read zero count assume OTP is failing */
+    if (*msg_resp != DCSU_RX_MSG_RESP_SUCCESS) {
+        *msg_resp = DCSU_RX_MSG_RESP_OTP_WRITE_FAILED;
+        return DCSU_ERROR_NONE;
+    }
+    /* Zero count already written so can't write field. */
+    if (zc_value != 0) {
+        *msg_resp = DCSU_RX_MSG_RESP_OTP_WRITE_FAILED;
+        return DCSU_ERROR_NONE;
+    }
+
+    msg_err = dcsu_hal_get_field_offset(otp_field, &field_offset);
+    if (msg_err != DCSU_ERROR_NONE) {
+        /* Couldn't find field so write failed */
+        *msg_resp = DCSU_RX_MSG_RESP_OTP_WRITE_FAILED;
+        return DCSU_ERROR_RX_MSG_OTP_WRITE_FAILED;
     }
     if (offset_param) {
         field_offset += DCSU_get_word_offset(p_dcsu);
@@ -369,10 +394,12 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
         err = rx_generate_soc_unique_id(dev, &msg_resp);
         break;
     case DCSU_RX_COMMAND_WRITE_SOC_FAMILY_ID:
-        err = rx_write_field(dev, DCSU_OTP_FIELD_FAMILY_ID, false, &msg_resp);
+        err = rx_write_field(dev, DCSU_OTP_FIELD_FAMILY_ID, false,
+                             DCSU_OTP_FIELD_SOC_ID_ZC, &msg_resp);
         break;
     case DCSU_RX_COMMAND_WRITE_SOC_IEEE_ECID:
-        err = rx_write_field(dev, DCSU_OTP_FIELD_IEEE_ECID, false, &msg_resp);
+        err = rx_write_field(dev, DCSU_OTP_FIELD_IEEE_ECID, false,
+                             DCSU_OTP_FIELD_SOC_ID_ZC, &msg_resp);
         break;
     case DCSU_RX_COMMAND_COMPUTE_ZC_SOC_IDS:
         err = rx_compute_zc_soc_ids(dev, &msg_resp);
@@ -384,7 +411,8 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
         err = rx_read_field(dev, DCSU_OTP_FIELD_IEEE_ECID, &msg_resp);
         break;
     case DCSU_RX_COMMAND_WRITE_SOC_CONFIG_DATA:
-        err = rx_write_field(dev, DCSU_OTP_FIELD_SOC_CFG_DATA, true, &msg_resp);
+        err = rx_write_field(dev, DCSU_OTP_FIELD_SOC_CFG_DATA, true,
+                             DCSU_OTP_FIELD_SOC_CFG_DATA_ZC, &msg_resp);
         break;
     case DCSU_RX_COMMAND_COMPUTE_ZC_SOC_CFG:
         err = rx_compute_zc_soc_cfg(dev, &msg_resp);
