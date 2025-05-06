@@ -161,13 +161,15 @@
 #define HOST_FLASH0_TEMP_BASE_S          (HOST_ACCESS_BASE_S + 2 * HOST_IMAGE_MAX_SIZE) /* Temporary address for mapping host flash areas */
 #define HOST_FLASH0_IMAGE0_BASE_S        (HOST_ACCESS_BASE_S + 3 * HOST_IMAGE_MAX_SIZE) /* Host flash image 0 input secure address */
 #define HOST_FLASH0_IMAGE1_BASE_S        (HOST_ACCESS_BASE_S + 4 * HOST_IMAGE_MAX_SIZE) /* Host flash image 1 input secure address */
-/* ATU regions open in BL2 */
-#define HOST_BOOT_IMAGE0_LOAD_BASE_S     (HOST_ACCESS_BASE_S + 0 * HOST_IMAGE_MAX_SIZE) /* Host boot image 0 output secure address */
-#define HOST_BOOT_IMAGE1_LOAD_BASE_S     (HOST_ACCESS_BASE_S + 1 * HOST_IMAGE_MAX_SIZE) /* Host boot image 1 output secure address */
-#define HOST_FLASH0_TEMP0_BASE_S         (HOST_ACCESS_BASE_S + 2 * HOST_IMAGE_MAX_SIZE) /* Temporary secure address for mapping host flash areas */
+/*
+ * ATU regions open in BL2
+ * The output regions are defined by the subplatforms to make it possible to load
+ * different images if needed.
+ * The input region defines are left here because they are common.
+ */
 #define HOST_FLASH0_IMAGE0_BASE_S        (HOST_ACCESS_BASE_S + 3 * HOST_IMAGE_MAX_SIZE) /* Host flash image 0 input secure address */
 #define HOST_FLASH0_IMAGE1_BASE_S        (HOST_ACCESS_BASE_S + 4 * HOST_IMAGE_MAX_SIZE) /* Host flash image 1 input secure address */
-#define HOST_FLASH_FIP_BASE_S            (HOST_ACCESS_BASE_S + 5 * HOST_IMAGE_MAX_SIZE) /* Host flash FIP input secure address */
+
 /* ATU regions open at runtime */
 #define FWU_HOST_IMAGE_BASE_S            (HOST_ACCESS_BASE_S + 0 * HOST_IMAGE_MAX_SIZE) /* Region to allow writing new RSE FW images */
 #define HOST_COMMS_MAPPABLE_BASE_S       (HOST_ACCESS_BASE_S + 1 * HOST_IMAGE_MAX_SIZE) /* Region into which to map host comms pointers */

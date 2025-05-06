@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2025 Arm Limited. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,5 +38,9 @@
 #define HOST_FLASH0_PS_OFFSET 0x2000000 /* Host flash offset 32 MiB */
 #define HOST_FLASH0_PS_BASE (HOST_FLASH0_BASE + HOST_FLASH0_PS_OFFSET)
 #define HOST_FLASH0_PS_SIZE (0x10000)   /* 64 KB */
+
+/* ATU regions open in BL2 */
+#define HOST_BOOT_IMAGE0_LOAD_BASE_S     (HOST_ACCESS_BASE_S + 0 * HOST_IMAGE_MAX_SIZE) /* Host boot image 0 output secure address */
+#define HOST_BOOT_IMAGE1_LOAD_BASE_S     (HOST_ACCESS_BASE_S + 1 * HOST_IMAGE_MAX_SIZE) /* Host boot image 1 output secure address */
 
 #endif  /* __HOST_BASE_ADDRESS_H__ */

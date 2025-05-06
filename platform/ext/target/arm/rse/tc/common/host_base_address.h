@@ -68,4 +68,9 @@
 /* System control regs are 4KB */
 #define SCP_SYSTEM_CONTROL_REGS_SIZE (ALIGN_UP(0x1000, RSE_ATU_PAGE_SIZE))
 
+/* ATU regions open in BL2 */
+#define HOST_BOOT_IMAGE0_LOAD_BASE_S     (HOST_ACCESS_BASE_S + 0 * HOST_IMAGE_MAX_SIZE) /* Host boot image 0 output secure address */
+#define HOST_BOOT_IMAGE1_LOAD_BASE_S     (HOST_ACCESS_BASE_S + 1 * HOST_IMAGE_MAX_SIZE) /* Host boot image 1 output secure address */
+#define HOST_FLASH_FIP_BASE_S            (HOST_ACCESS_BASE_S + 5 * HOST_IMAGE_MAX_SIZE) /* Host flash FIP input secure address */
+
 #endif  /* __HOST_BASE_ADDRESS_H__ */
