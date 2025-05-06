@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023, Arm Limited. All rights reserved.
+ * Copyright (c) 2019-2025, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -120,11 +120,17 @@ int boot_platform_pre_load(uint32_t image_id)
     switch(image_id) {
     case RSE_BL2_IMAGE_SCP:
         uuid = UUID_RSE_FIRMWARE_SCP_BL1;
+        host_flash_atu_setup_image_output_slots(uuid);
         break;
     case RSE_BL2_IMAGE_AP:
         uuid = UUID_RSE_FIRMWARE_AP_BL1;
+        host_flash_atu_setup_image_output_slots(uuid);
         break;
     case RSE_BL2_IMAGE_NS:
+        /*
+         * The IMAGE_NS's output slot can be accessed without ATU so the
+         * host_flash_atu_setup_image_output_slots doesn't have to be called.
+         */
 #ifndef RSE_XIP
         uuid = UUID_RSE_FIRMWARE_NS;
 #else
@@ -132,6 +138,10 @@ int boot_platform_pre_load(uint32_t image_id)
 #endif /* RSE_XIP */
         break;
     case RSE_BL2_IMAGE_S:
+        /*
+         * The IMAGE_S's output slot can be accessed without ATU so the
+         * host_flash_atu_setup_image_output_slots doesn't have to be called.
+         */
 #ifndef RSE_XIP
         uuid = UUID_RSE_FIRMWARE_S;
 #else
@@ -142,7 +152,7 @@ int boot_platform_pre_load(uint32_t image_id)
         return 1;
     }
 
-    rc = host_flash_atu_init_regions_for_image(uuid, offsets);
+    rc = host_flash_atu_setup_image_input_slots(uuid, offsets);
     if (rc) {
         return rc;
     }

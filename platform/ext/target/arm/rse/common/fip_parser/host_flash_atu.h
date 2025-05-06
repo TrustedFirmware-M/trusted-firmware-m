@@ -67,7 +67,7 @@ int host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t fip_offsets[2]);
  * \param[in] logical_address         The address in RSE memory to which the ATU
  *                                    should map the image.
  *
- * \param[in] image_uuid              The UUID of the image that should be have
+ * \param[in] image_uuid              The UUID of the image that should have
  *                                    its slot set up. This is used when parsing
  *                                    the FIP for the offset.
  *
@@ -89,14 +89,14 @@ int host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
                                                     size_t *atu_slot_size);
 
 /**
- * \brief                             Setup the input and output slots for a
- *                                    given image. returns the offsets from the
+ * \brief                             Setup the input slots for a given image.
+ *                                    Returns the offsets from the
  *                                    expected logical address that the image
  *                                    has been mapped to (to account for images
  *                                    not being aligned to the ATU page size).
  *
- * \param[in] image_uuid              The UUID of the image that should be have
- *                                    its input and output slots set up.
+ * \param[in] image_uuid              The UUID of the image that should have
+ *                                    its input slot set up.
  *
  * \param[out] offsets                The offsets that the primary and secondary
  *                                    images for that particular UUID have been
@@ -105,10 +105,10 @@ int host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
  *
  * \return                            0 on success, non-zero on failure.
  */
-int host_flash_atu_init_regions_for_image(uuid_t image_uuid, uint32_t offsets[2]);
+int host_flash_atu_setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2]);
 
 /**
- * \brief                             Setup the input and output slots for a
+ * \brief                             Setup the input slots for a
  *                                    given type_uuid. Returns the offsets from
  *                                    the expected logical address that the
  *                                    image has been mapped to (to account for
@@ -116,7 +116,7 @@ int host_flash_atu_init_regions_for_image(uuid_t image_uuid, uint32_t offsets[2]
  *                                    size).
  *
  * \param[in] type_uuid               The type UUID of the image that should
- *                                    have its input and output slots set up.
+ *                                    have its input slots set up.
  *
  * \param[out] offsets                The offsets that the primary and secondary
  *                                    images for that particular UUID have been
@@ -125,7 +125,19 @@ int host_flash_atu_init_regions_for_image(uuid_t image_uuid, uint32_t offsets[2]
  *
  * \return                            0 on success, non-zero on failure.
  */
-int host_flash_atu_init_regions_for_image_by_type_uuid(uuid_t type_uuid, uint32_t offsets[2]);
+int host_flash_atu_setup_image_input_slots_by_type_uuid(uuid_t type_uuid, uint32_t offsets[2]);
+
+/**
+ * \brief                             Setup the ATU output slots for a given
+ *                                    image and its bootloader header.
+ *
+ * \param[in] image_uuid              The UUID of the image that should be have
+ *                                    its output slot set up.
+ *
+ * \return                            0 on success, non-zero on failure.
+ */
+int host_flash_atu_setup_image_output_slots(uuid_t image_uuid);
+
 
 /**
  * \brief                             Teardown all image input and output slots.

@@ -192,7 +192,7 @@ int32_t boot_platform_init(void)
     }
 
 #ifdef RSE_USE_HOST_FLASH
-    result = host_flash_atu_init_regions_for_image(UUID_RSE_FIRMWARE_BL2, image_offsets);
+    result = host_flash_atu_setup_image_input_slots(UUID_RSE_FIRMWARE_BL2, image_offsets);
     if (result != 0) {
         int32_t recovery_result = boot_initiate_recovery_mode(0);
         if (recovery_result != TFM_PLAT_ERR_BL1_2_PROVISIONING_NOT_REQUIRED) {

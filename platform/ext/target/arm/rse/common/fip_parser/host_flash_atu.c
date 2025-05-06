@@ -362,7 +362,7 @@ int host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t fip_offsets[2])
     return 0;
 }
 
-static int setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2])
+int host_flash_atu_setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2])
 {
     int rc;
     bool fip_found[2];
@@ -420,7 +420,7 @@ static int setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2])
     return 0;
 }
 
-static int setup_image_output_slots(uuid_t image_uuid)
+int host_flash_atu_setup_image_output_slots(uuid_t image_uuid)
 {
     uuid_t case_uuid;
     enum atu_error_t atu_err;
@@ -474,27 +474,6 @@ static int setup_image_output_slots(uuid_t image_uuid)
         }
 
         return 0;
-    }
-
-    return 0;
-}
-
-int host_flash_atu_init_regions_for_image(uuid_t image_uuid, uint32_t offsets[2])
-{
-    int rc;
-
-    if (offsets == NULL) {
-        return -1;
-    }
-
-    rc = setup_image_input_slots(image_uuid, offsets);
-    if (rc) {
-        return rc;
-    }
-
-    rc = setup_image_output_slots(image_uuid);
-    if (rc) {
-        return rc;
     }
 
     return 0;
@@ -697,7 +676,7 @@ int host_flash_atu_get_image_offsets_by_type_uuid(uuid_t type_uuid, uint64_t *im
 #endif /* RSE_GPT_SUPPORT */
 }
 
-static int setup_image_input_slots_by_type_uuid(uuid_t type_uuid, uint32_t offsets[2])
+int host_flash_atu_setup_image_input_slots_by_type_uuid(uuid_t type_uuid, uint32_t offsets[2])
 {
     int rc;
     size_t temp_size[2];
@@ -730,27 +709,6 @@ static int setup_image_input_slots_by_type_uuid(uuid_t type_uuid, uint32_t offse
 
     if (!image_mapped[0] && !image_mapped[1]) {
         return TFM_PLAT_ERR_HOST_FLASH_SETUP_IMAGE_SLOT_NO_FIP_MAPPED;
-    }
-
-    return 0;
-}
-
-int host_flash_atu_init_regions_for_image_by_type_uuid(uuid_t type_uuid, uint32_t offsets[2])
-{
-    int rc;
-
-    if (offsets == NULL) {
-        return -1;
-    }
-
-    rc = setup_image_input_slots_by_type_uuid(type_uuid, offsets);
-    if (rc) {
-        return rc;
-    }
-
-    rc = setup_image_output_slots(type_uuid);
-    if (rc) {
-        return rc;
     }
 
     return 0;

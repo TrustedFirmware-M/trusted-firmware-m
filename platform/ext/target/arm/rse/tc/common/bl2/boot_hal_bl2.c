@@ -174,11 +174,17 @@ int boot_platform_pre_load(uint32_t image_id)
     switch(image_id) {
     case RSE_BL2_IMAGE_SCP:
         uuid = UUID_RSE_FIRMWARE_SCP_BL1;
+        host_flash_atu_setup_image_output_slots(uuid);
         break;
     case RSE_BL2_IMAGE_AP:
         uuid = UUID_RSE_FIRMWARE_AP_BL1;
+        host_flash_atu_setup_image_output_slots(uuid);
         break;
     case RSE_BL2_IMAGE_NS:
+        /*
+         * The IMAGE_NS's output slot can be accessed without ATU so the
+         * host_flash_atu_setup_image_output_slots doesn't have to be called.
+         */
 #ifndef RSE_XIP
         uuid = UUID_RSE_FIRMWARE_NS;
 #else
@@ -186,6 +192,10 @@ int boot_platform_pre_load(uint32_t image_id)
 #endif /* RSE_XIP */
         break;
     case RSE_BL2_IMAGE_S:
+        /*
+         * The IMAGE_S's output slot can be accessed without ATU so the
+         * host_flash_atu_setup_image_output_slots doesn't have to be called.
+         */
 #ifndef RSE_XIP
         uuid = UUID_RSE_FIRMWARE_S;
 #else
@@ -196,7 +206,7 @@ int boot_platform_pre_load(uint32_t image_id)
         return TFM_PLAT_ERR_PRE_LOAD_IMG_BY_BL2_FAIL;
     }
 
-    rc = host_flash_atu_init_regions_for_image(uuid, offsets);
+    rc = host_flash_atu_setup_image_input_slots(uuid, offsets);
     if (rc) {
         return TFM_PLAT_ERR_PRE_LOAD_IMG_BY_BL2_FAIL;
     }
