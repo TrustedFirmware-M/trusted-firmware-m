@@ -55,6 +55,7 @@ target_compile_definitions(platform_region_defs
         $<$<BOOL:${RSE_OTP_TRNG}>:RSE_OTP_TRNG>
         $<$<BOOL:${RSE_ENABLE_TRAM}>:RSE_ENABLE_TRAM>
         $<$<BOOL:${PLAT_MHU_VERSION}>:PLAT_MHU_VERSION=${PLAT_MHU_VERSION}>
+        RSE_LOAD_NS_IMAGE
         TFM_UNIQUE_ERROR_CODES=1
 )
 

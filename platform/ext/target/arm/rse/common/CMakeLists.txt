@@ -953,98 +953,100 @@ endif()
 
 #========================= Files for building NS side platform ================#
 
-install(FILES       device/source/device_definition.c
-                    $<$<BOOL:${RSE_DEFAULT_CLOCK_CONFIG}>:${CMAKE_CURRENT_SOURCE_DIR}/device/source/rse_clocks.c>
-                    device/source/startup_rse.c
-                    device/source/system_core_init.c
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/device/source
-)
+if (RSE_LOAD_NS_IMAGE)
+    install(FILES       device/source/device_definition.c
+                        $<$<BOOL:${RSE_DEFAULT_CLOCK_CONFIG}>:${CMAKE_CURRENT_SOURCE_DIR}/device/source/rse_clocks.c>
+                        device/source/startup_rse.c
+                        device/source/system_core_init.c
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/device/source
+    )
 
-install(FILES       ${PLATFORM_DIR}/ext/common/uart_stdout.c
-                    $<$<BOOL:${RSE_DEBUG_UART}>:${PLATFORM_DIR}/ext/target/arm/drivers/usart/cmsdk/uart_cmsdk_drv.c>
-                    $<$<BOOL:${RSE_DEBUG_UART}>:${CMAKE_CURRENT_SOURCE_DIR}/cmsis_drivers/Driver_USART_cmsdk.c>
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}
-)
+    install(FILES       ${PLATFORM_DIR}/ext/common/uart_stdout.c
+                        $<$<BOOL:${RSE_DEBUG_UART}>:${PLATFORM_DIR}/ext/target/arm/drivers/usart/cmsdk/uart_cmsdk_drv.c>
+                        $<$<BOOL:${RSE_DEBUG_UART}>:${CMAKE_CURRENT_SOURCE_DIR}/cmsis_drivers/Driver_USART_cmsdk.c>
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}
+    )
 
-install(DIRECTORY native_drivers
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}
-)
+    install(DIRECTORY native_drivers
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}
+    )
 
-install(FILES       ${PLATFORM_DIR}/ext/target/arm/drivers/counter/armv8m/syscounter_armv8-m_cntrl_drv.c
-                    ${PLATFORM_DIR}/ext/target/arm/drivers/counter/armv8m/syscounter_armv8-m_cntrl_drv.h
-                    ${PLATFORM_DIR}/ext/target/arm/drivers/mpc_sie/mpc_sie_drv.c
-                    ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m/mpu_armv8m_drv.c
-                    ${PLATFORM_DIR}/ext/target/arm/drivers/timer/armv8m/systimer_armv8-m_drv.c
-                    ${PLATFORM_DIR}/ext/target/arm/drivers/gpio/pl061/gpio_pl061_drv.c
-                    ${PLATFORM_DIR}/ext/target/arm/drivers/mpc_sie/mpc_sie_drv.h
-                    ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m/mpu_armv8m_drv.h
-                    ${PLATFORM_DIR}/ext/target/arm/drivers/timer/armv8m/systimer_armv8-m_drv.h
-                    ${PLATFORM_DIR}/ext/target/arm/drivers/gpio/pl061/gpio_pl061_drv.h
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/native_drivers
-)
+    install(FILES       ${PLATFORM_DIR}/ext/target/arm/drivers/counter/armv8m/syscounter_armv8-m_cntrl_drv.c
+                        ${PLATFORM_DIR}/ext/target/arm/drivers/counter/armv8m/syscounter_armv8-m_cntrl_drv.h
+                        ${PLATFORM_DIR}/ext/target/arm/drivers/mpc_sie/mpc_sie_drv.c
+                        ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m/mpu_armv8m_drv.c
+                        ${PLATFORM_DIR}/ext/target/arm/drivers/timer/armv8m/systimer_armv8-m_drv.c
+                        ${PLATFORM_DIR}/ext/target/arm/drivers/gpio/pl061/gpio_pl061_drv.c
+                        ${PLATFORM_DIR}/ext/target/arm/drivers/mpc_sie/mpc_sie_drv.h
+                        ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m/mpu_armv8m_drv.h
+                        ${PLATFORM_DIR}/ext/target/arm/drivers/timer/armv8m/systimer_armv8-m_drv.h
+                        ${PLATFORM_DIR}/ext/target/arm/drivers/gpio/pl061/gpio_pl061_drv.h
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/native_drivers
+    )
 
-install(FILES       device/config/device_cfg_ns.h
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/device/config
-        RENAME      device_cfg.h)
+    install(FILES       device/config/device_cfg_ns.h
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/device/config
+            RENAME      device_cfg.h)
 
-install(DIRECTORY   device/include
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/device
-)
+    install(DIRECTORY   device/include
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/device
+    )
 
-install(DIRECTORY   cmsis_drivers
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}
-)
+    install(DIRECTORY   cmsis_drivers
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}
+    )
 
-install(DIRECTORY   partition
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}
-)
+    install(DIRECTORY   partition
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}
+    )
 
-install(DIRECTORY   ${RSE_SUBPLATFORM_PAL_CONFIG_DIR}/
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/subplatform_pal_config
-)
+    install(DIRECTORY   ${RSE_SUBPLATFORM_PAL_CONFIG_DIR}/
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/subplatform_pal_config
+    )
 
-install(DIRECTORY   ${BL1_1_CONFIG_DIR}/
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/bl1_1_config
-)
+    install(DIRECTORY   ${BL1_1_CONFIG_DIR}/
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/bl1_1_config
+    )
 
-install(DIRECTORY   ${BL1_2_CONFIG_DIR}/
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/bl1_2_config
-)
+    install(DIRECTORY   ${BL1_2_CONFIG_DIR}/
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/bl1_2_config
+    )
 
-install(FILES       rse_otp_check_config.h
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/subplatform_pal_config/
-)
+    install(FILES       rse_otp_check_config.h
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/subplatform_pal_config/
+    )
 
-install(FILES       rse_rotpk_auto_generated_mappings.h
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/subplatform_pal_config/
-)
+    install(FILES       rse_rotpk_auto_generated_mappings.h
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/subplatform_pal_config/
+    )
 
-install(FILES       target_cfg.h
-                    tfm_peripherals_def.h
-                    error_codes_mapping.h
-                    platform_error_codes.h
-                    ${PLATFORM_DIR}/include/tfm_plat_defs.h
-                    ${PLATFORM_DIR}/ext/common/uart_stdout.h
-                    $<$<BOOL:${TFM_PARTITION_DPE}>:${CMAKE_CURRENT_SOURCE_DIR}/platform_locality.h>
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/include)
+    install(FILES       target_cfg.h
+                        tfm_peripherals_def.h
+                        error_codes_mapping.h
+                        platform_error_codes.h
+                        ${PLATFORM_DIR}/include/tfm_plat_defs.h
+                        ${PLATFORM_DIR}/ext/common/uart_stdout.h
+                        $<$<BOOL:${TFM_PARTITION_DPE}>:${CMAKE_CURRENT_SOURCE_DIR}/platform_locality.h>
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/include)
 
-install(DIRECTORY   ns/
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR})
+    install(DIRECTORY   ns/
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR})
 
-install(FILES       cpuarch.cmake
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/config/common)
+    install(FILES       cpuarch.cmake
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/config/common)
 
-install(FILES       tests/tfm_tests_config.cmake
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/tests/common)
+    install(FILES       tests/tfm_tests_config.cmake
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/tests/common)
 
-install(FILES       check_config.cmake
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR})
+    install(FILES       check_config.cmake
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR})
 
-# Install linker scripts
-install(FILES       ${PLATFORM_DIR}/ext/common/gcc/tfm_common_ns.ld
-                    ${PLATFORM_DIR}/ext/common/armclang/tfm_common_ns.sct
-                    ${PLATFORM_DIR}/ext/common/iar/tfm_common_ns.icf
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/linker_scripts)
+    # Install linker scripts
+    install(FILES       ${PLATFORM_DIR}/ext/common/gcc/tfm_common_ns.ld
+                        ${PLATFORM_DIR}/ext/common/armclang/tfm_common_ns.sct
+                        ${PLATFORM_DIR}/ext/common/iar/tfm_common_ns.icf
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/linker_scripts)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ns/config.cmake.in
-               ${INSTALL_PLATFORM_NS_DIR}/config.cmake @ONLY)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ns/config.cmake.in
+                   ${INSTALL_PLATFORM_NS_DIR}/config.cmake @ONLY)
+endif()
