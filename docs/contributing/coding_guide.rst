@@ -62,11 +62,11 @@ List of rules
 - Use enumeration for error codes to keep the code readable.
 - Use descriptive variable and functions names.
 - Put the correct license header at the beginning of the file.
-- Keep the files (.h/.c) self-contained, i.e. put include dependencies in the
+- Keep the files (``.h``/``.c``) self-contained, i.e. put include dependencies in the
   file.
-- Put appropriate header define guard in .h files: ``__HEADER_NAME__``.
+- Put appropriate header define guard in ``.h`` files: ``__HEADER_NAME__``.
   Any divergence from this rules should be clearly documented.
-- In a .c file, #include it's own header file first.
+- In a ``.c`` file, #include its own header file first.
 - Document all the public functions in the header file only.
 - Document all the private functions in the source file only.
 - Add "extern C " definition for C++ support in the header files.

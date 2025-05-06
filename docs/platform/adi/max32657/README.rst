@@ -69,7 +69,7 @@ To create pub & private key pair for MAX32657 run:
 After secure boot has been enabled BL2 image must be signed with user certificate
 otherwise Secure Boot ROM will not validate BL2 image and will not execute it.
 The sign process will be done automatically if BL1 be ON ``-DBL1=ON``
-The sign key can be sepecified over command line option -DTFM_BL2_SIGNING_KEY_PATH=<MY_KEY_FILE>
+The sign key can be specified over command line option -DTFM_BL2_SIGNING_KEY_PATH=<MY_KEY_FILE>
 or by setting the flag in <TF-M base folder>/platform/ext/target/adi/max32657/config.cmake
 Development purpose test certificate is here:
 <CMAKE_BINARY_DIR>/lib/ext/tesa-toolkit-src/devices/max32657/keys/bl1_dummy.pem
