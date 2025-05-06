@@ -21,7 +21,7 @@ uint32_t __WEAK bl1_image_get_flash_offset(uint32_t image_id)
     switch (image_id) {
     case 0:
         return FLASH_AREA_0_OFFSET;
-#if defined(MCUBOOT_IMAGE_NUMBER) && (MCUBOOT_IMAGE_NUMBER == 2)
+#if defined(MCUBOOT_IMAGE_NUMBER) && (MCUBOOT_IMAGE_NUMBER >= 2)
     case 1:
         return FLASH_AREA_1_OFFSET;
 #endif
