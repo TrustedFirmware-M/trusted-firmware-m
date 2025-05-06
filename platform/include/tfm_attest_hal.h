@@ -72,7 +72,7 @@ enum tfm_security_lifecycle_t tfm_attest_hal_get_security_lifecycle(void);
  * It can be a text string that can be used to locate the service or can be a
  * URL specifying the address of the service.
  *
- * \param[in/out] size  As an input value it indicates the size of the caller
+ * \param[in,out] size  As an input value it indicates the size of the caller
  *                      allocated buffer (in bytes) to store the verification
  *                      service indicator. At return its value is updated with
  *                      the exact size of the verification service URL.
@@ -92,7 +92,7 @@ tfm_attest_hal_get_verification_service(uint32_t *size, uint8_t *buf);
  *  being a full description of the claims, their usage, verification and
  *  token signing.
  *
- * \param[in/out] size  As an input value it indicates the size of the caller
+ * \param[in,out] size  As an input value it indicates the size of the caller
  *                      allocated buffer (in bytes) to store the profile
  *                      definition. At return its value is updated with the
  *                      exact size of the profile definition.
@@ -110,7 +110,7 @@ tfm_attest_hal_get_profile_definition(uint32_t *size, uint8_t *buf);
  * resource like fuses or on-chip flash that stores CCA platform immutable
  * boot parameters.
  *
- * \param[in/out] size  As an input value it indicates the size of the caller
+ * \param[in,out] size  As an input value it indicates the size of the caller
  *                      allocated buffer (in bytes) to store the platform
  *                      config. At return its value is updated with the
  *                      exact size of the platform configuration data.

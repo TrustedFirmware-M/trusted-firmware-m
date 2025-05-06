@@ -16,17 +16,17 @@
 
 static enum tfm_security_lifecycle_t map_otp_lcs_to_tfm_slc(enum plat_otp_lcs_t lcs) {
     switch (lcs) {
-        case PLAT_OTP_LCS_ASSEMBLY_AND_TEST:
-            return TFM_SLC_ASSEMBLY_AND_TEST;
-        case PLAT_OTP_LCS_PSA_ROT_PROVISIONING:
-            return TFM_SLC_PSA_ROT_PROVISIONING;
-        case PLAT_OTP_LCS_SECURED:
-            return TFM_SLC_SECURED;
-        case PLAT_OTP_LCS_DECOMMISSIONED:
-            return TFM_SLC_DECOMMISSIONED;
-        case PLAT_OTP_LCS_UNKNOWN:
-        default:
-            return TFM_SLC_UNKNOWN;
+    case PLAT_OTP_LCS_ASSEMBLY_AND_TEST:
+        return TFM_SLC_ASSEMBLY_AND_TEST;
+    case PLAT_OTP_LCS_PSA_ROT_PROVISIONING:
+        return TFM_SLC_PSA_ROT_PROVISIONING;
+    case PLAT_OTP_LCS_SECURED:
+        return TFM_SLC_SECURED;
+    case PLAT_OTP_LCS_DECOMMISSIONED:
+        return TFM_SLC_DECOMMISSIONED;
+    case PLAT_OTP_LCS_UNKNOWN:
+    default:
+        return TFM_SLC_UNKNOWN;
     }
 }
 
