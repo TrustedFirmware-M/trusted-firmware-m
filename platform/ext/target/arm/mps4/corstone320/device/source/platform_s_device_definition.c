@@ -1,17 +1,7 @@
 /*
- * Copyright (c) 2019-2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
- * Licensed under the Apache License Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing software
- * distributed under the License is distributed on an "AS IS" BASIS
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -262,38 +252,6 @@ struct systimer_armv8_m_dev_t SYSTIMER0_ARMV8_M_DEV_S
 };
 
 /* ARM MPC SIE 300 driver structures */
-/* Ranges controlled by this SRAM_MPC */
-static const struct mpc_sie_memory_range_t MPC_SRAM_RANGE_S = {
-    .base         = MPC_SRAM_RANGE_BASE_S,
-    .limit        = MPC_SRAM_RANGE_LIMIT_S,
-    .range_offset = 0,
-    .attr         = MPC_SIE_SEC_ATTR_SECURE
-};
-
-static const struct mpc_sie_memory_range_t MPC_SRAM_RANGE_NS = {
-    .base         = MPC_SRAM_RANGE_BASE_NS,
-    .limit        = MPC_SRAM_RANGE_LIMIT_NS,
-    .range_offset = 0,
-    .attr         = MPC_SIE_SEC_ATTR_NONSECURE
-};
-
-#define MPC_SRAM_RANGE_LIST_LEN  2u
-static const struct mpc_sie_memory_range_t*
-    MPC_SRAM_RANGE_LIST[MPC_SRAM_RANGE_LIST_LEN] = {
-        &MPC_SRAM_RANGE_S,
-        &MPC_SRAM_RANGE_NS
-    };
-
-static struct mpc_sie_dev_cfg_t MPC_SRAM_DEV_CFG_S = {
-    .base = MPC_SRAM_BASE_S,
-    .range_list = MPC_SRAM_RANGE_LIST,
-    .nbr_of_ranges = MPC_SRAM_RANGE_LIST_LEN};
-static struct mpc_sie_dev_data_t MPC_SRAM_DEV_DATA_S = {
-    .is_initialized = false};
-struct mpc_sie_dev_t MPC_SRAM_DEV_S = {
-    &(MPC_SRAM_DEV_CFG_S),
-    &(MPC_SRAM_DEV_DATA_S)};
-
 /* Ranges controlled by this QSPI_MPC */
 static const struct mpc_sie_memory_range_t MPC_QSPI_RANGE_S = {
     .base         = MPC_QSPI_RANGE_BASE_S,
@@ -389,6 +347,70 @@ static struct mpc_sie_dev_data_t MPC_ISRAM1_DEV_DATA_S = {
 struct mpc_sie_dev_t MPC_ISRAM1_DEV_S = {
     &(MPC_ISRAM1_DEV_CFG_S),
     &(MPC_ISRAM1_DEV_DATA_S)};
+
+/* Ranges controlled by this ISRAM2_MPC */
+static const struct mpc_sie_memory_range_t MPC_ISRAM2_RANGE_S = {
+    .base         = MPC_ISRAM2_RANGE_BASE_S,
+    .limit        = MPC_ISRAM2_RANGE_LIMIT_S,
+    .range_offset = 0,
+    .attr         = MPC_SIE_SEC_ATTR_SECURE
+};
+
+static const struct mpc_sie_memory_range_t MPC_ISRAM2_RANGE_NS = {
+    .base         = MPC_ISRAM2_RANGE_BASE_NS,
+    .limit        = MPC_ISRAM2_RANGE_LIMIT_NS,
+    .range_offset = 0,
+    .attr         = MPC_SIE_SEC_ATTR_NONSECURE
+};
+
+#define MPC_ISRAM2_RANGE_LIST_LEN  2u
+static const struct mpc_sie_memory_range_t*
+    MPC_ISRAM2_RANGE_LIST[MPC_ISRAM2_RANGE_LIST_LEN] = {
+        &MPC_ISRAM2_RANGE_S,
+        &MPC_ISRAM2_RANGE_NS
+    };
+
+static struct mpc_sie_dev_cfg_t MPC_ISRAM2_DEV_CFG_S = {
+    .base = MPC_ISRAM2_BASE_S,
+    .range_list = MPC_ISRAM2_RANGE_LIST,
+    .nbr_of_ranges = MPC_ISRAM2_RANGE_LIST_LEN};
+static struct mpc_sie_dev_data_t MPC_ISRAM2_DEV_DATA_S = {
+    .is_initialized = false};
+struct mpc_sie_dev_t MPC_ISRAM2_DEV_S = {
+    &(MPC_ISRAM2_DEV_CFG_S),
+    &(MPC_ISRAM2_DEV_DATA_S)};
+
+/* Ranges controlled by this ISRAM3_MPC */
+static const struct mpc_sie_memory_range_t MPC_ISRAM3_RANGE_S = {
+    .base         = MPC_ISRAM3_RANGE_BASE_S,
+    .limit        = MPC_ISRAM3_RANGE_LIMIT_S,
+    .range_offset = 0,
+    .attr         = MPC_SIE_SEC_ATTR_SECURE
+};
+
+static const struct mpc_sie_memory_range_t MPC_ISRAM3_RANGE_NS = {
+    .base         = MPC_ISRAM3_RANGE_BASE_NS,
+    .limit        = MPC_ISRAM3_RANGE_LIMIT_NS,
+    .range_offset = 0,
+    .attr         = MPC_SIE_SEC_ATTR_NONSECURE
+};
+
+#define MPC_ISRAM3_RANGE_LIST_LEN  2u
+static const struct mpc_sie_memory_range_t*
+    MPC_ISRAM3_RANGE_LIST[MPC_ISRAM3_RANGE_LIST_LEN] = {
+        &MPC_ISRAM3_RANGE_S,
+        &MPC_ISRAM3_RANGE_NS
+    };
+
+static struct mpc_sie_dev_cfg_t MPC_ISRAM3_DEV_CFG_S = {
+    .base = MPC_ISRAM3_BASE_S,
+    .range_list = MPC_ISRAM3_RANGE_LIST,
+    .nbr_of_ranges = MPC_ISRAM3_RANGE_LIST_LEN};
+static struct mpc_sie_dev_data_t MPC_ISRAM3_DEV_DATA_S = {
+    .is_initialized = false};
+struct mpc_sie_dev_t MPC_ISRAM3_DEV_S = {
+    &(MPC_ISRAM3_DEV_CFG_S),
+    &(MPC_ISRAM3_DEV_DATA_S)};
 
 /* DMA350 driver structures */
 static const struct dma350_dev_cfg_t DMA350_DMA0_DEV_CFG_S = {

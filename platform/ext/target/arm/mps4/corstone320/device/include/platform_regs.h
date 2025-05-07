@@ -246,68 +246,90 @@ struct mps4_corstone3xx_nsacfg_t {
 /* End MAIN PPC0 peripherals definition */
 
 /* MAIN PPCEXP0 peripherals definition */
-#define GPIO0_MAIN_PPCEXP0_POS_MASK             (1UL << 0)
-#define GPIO1_MAIN_PPCEXP0_POS_MASK             (1UL << 1)
-#define GPIO2_MAIN_PPCEXP0_POS_MASK             (1UL << 2)
-#define GPIO3_MAIN_PPCEXP0_POS_MASK             (1UL << 3)
-#define HDLCD_MAIN_PPCEXP0_POS_MASK             (1UL << 7)
-#define USB_AND_ETHERNET_MAIN_PPCEXP0_POS_MASK  (1UL << 8)
+#define GPIO0_MAIN_PPCEXP0_POS_MASK                                     (1UL << 0)
+#define GPIO1_MAIN_PPCEXP0_POS_MASK                                     (1UL << 1)
+#define NPU_TIMING_ADAPTER_MAIN_PPCEXP0_POS_MASK                        (1UL << 2)
+#define SHIM_REGISTERS_MAIN_PPCEXP0_POS_MASK                            (1UL << 3)
+#define AUXILIARY_REGISTERS_MAIN_PPCEXP0_POS_MASK                       (1UL << 4)
+#define LCM_INTERFACE_MAIN_PPCEXP0_POS_MASK                             (1UL << 5)
+#define QSPI_MPC_MAIN_PPCEXP0_POS_MASK                                  (1UL << 11)
+#define VM_MPCS_MAIN_PPCEXP0_POS_MASK                                   (1UL << 12)
+#define DDR4_MPC_MAIN_PPCEXP0_POS_MASK                                  (1UL << 13)
+#define QSPI_WR_CTRL_MAIN_PPCEXP0_POS_MASK                              (1UL << 14)
+#define QSPI_XIP_CTRL_MAIN_PPCEXP0_POS_MASK                             (1UL << 15)
 /* End MAIN PPCEXP0 peripherals definition */
 
 /* MAIN PPCEXP1 peripherals definition */
-
+#define FPGA_SBCon_AUDIO_I2C_MAIN_PPCEXP1_POS_MASK                      (1UL << 0)
+#define PPCEXP2_PERIPHERALS_MAIN_PPCEXP1_POS_MASK                       (1UL << 1)
+#define FPGA_CMSDK_I2C_DDR4_SODIMM_SPD_EEPROM_MAIN_PPCEXP1_POS_MASK     (1UL << 2)
+#define AUDIO_TX_FORMATTER_MAIN_PPCEXP1_POS_MASK                        (1UL << 3)
+#define AUDIO_TX_CTRL_MAIN_PPCEXP1_POS_MASK                             (1UL << 4)
+#define AUDIO_RX_FORMATTER_MAIN_PPCEXP1_POS_MASK                        (1UL << 5)
+#define AUDIO_RX_CTRL_MAIN_PPCEXP1_POS_MASK                             (1UL << 6)
+#define FPGA_SCC_MAIN_PPCEXP1_POS_MASK                                  (1UL << 7)
+#define FPGA_I2S_MAIN_PPCEXP1_POS_MASK                                  (1UL << 8)
+#define CMSDK_UART_3_SHIELD_0_MAIN_PPCEXP1_POS_MASK                     (1UL << 9)
+#define CMSDK_UART_4_SHIELD_1_MAIN_PPCEXP1_POS_MASK                     (1UL << 10)
+#define FPGA_SBCon_I2C_HDMI_MAIN_PPCEXP1_POS_MASK                       (1UL << 11)
+#define HDLCD_MAIN_PPCEXP1_POS_MASK                                     (1UL << 12)
+#define CSI_MAIN_PPCEXP1_POS_MASK                                       (1UL << 13)
+#define CSI_VIDEO_FRAME_BUFFER_MAIN_PPCEXP1_POS_MASK                    (1UL << 14)
+#define FPGA_CMSDK_I2C_CSI_MAIN_PPCEXP1_POS_MASK                        (1UL << 15)
 /* End MAIN PPCEXP1 peripherals definition */
 
 /* MAIN PPCEXP2 peripherals definition */
+#define FPGA_PL022_SPI_SHIELD_ADC_MAIN_PPCEXP2_POS_MASK                 (1UL << 0)
+#define FPGA_PL022_SPI_SHIELD_0_MAIN_PPCEXP2_POS_MASK                   (1UL << 1)
+#define FPGA_PL022_SPI_SHIELD_1_MAIN_PPCEXP2_POS_MASK                   (1UL << 2)
+#define FPGA_SBCon_SHIELD_0_I2C_MAIN_PPCEXP2_POS_MASK                   (1UL << 3)
+#define FPGA_SBCon_SHIELD_1_I2C_MAIN_PPCEXP2_POS_MASK                   (1UL << 4)
+#define CMSDK_FPGA_UART_0_MAIN_PPCEXP2_POS_MASK                         (1UL << 5)
+#define CMSDK_FPGA_UART_1_MAIN_PPCEXP2_POS_MASK                         (1UL << 6)
+#define CMSDK_FPGA_UART_2_MAIN_PPCEXP2_POS_MASK                         (1UL << 7)
+#define CMSDK_FPGA_UART_3_MAIN_PPCEXP2_POS_MASK                         (1UL << 8)
+#define FPGA_IO_MAIN_PPCEXP2_POS_MASK                                   (1UL << 9)
+#define HDMI_AUDIO_TX_FRAME_BUFFER_MAIN_PPCEXP2_POS_MASK                (1UL << 10)
 /* End MAIN PPCEXP2 peripherals definition */
 
 /* MAIN PPCEXP3 peripherals definition */
 /* End MAIN PPCEXP3 peripherals definition */
 
 /* PERIPH PPC0 peripherals definition */
-#define SYSTEM_TIMER0_PERIPH_PPC0_POS_MASK         (1UL << 0)
-#define SYSTEM_TIMER1_PERIPH_PPC0_POS_MASK         (1UL << 1)
-#define SYSTEM_TIMER2_PERIPH_PPC0_POS_MASK         (1UL << 2)
-#define SYSTEM_TIMER3_PERIPH_PPC0_POS_MASK         (1UL << 5)
-#define WATCHDOG_PERIPH_PPC0_POS_MASK              (1UL << 6)
+#define SYSTEM_TIMER0_PERIPH_PPC0_POS_MASK                              (1UL << 0)
+#define SYSTEM_TIMER1_PERIPH_PPC0_POS_MASK                              (1UL << 1)
+#define SYSTEM_TIMER2_PERIPH_PPC0_POS_MASK                              (1UL << 2)
+#define NPU_PERIPH_PPC0_POS_MASK                                        (1UL << 4)
+#define SYSTEM_TIMER3_PERIPH_PPC0_POS_MASK                              (1UL << 5)
+#define WATCHDOG_PERIPH_PPC0_POS_MASK                                   (1UL << 6)
+#define SYSDSS_PERIPH_PPC0_POS_MASK                                     (1UL << 7)
+#define SDC600_PERIPH_PPC0_POS_MASK                                     (1UL << 8)
+/* The NPU bit is only present in the security register. */
 /* There are separate secure and non-secure watchdog peripherals, so this bit
  * can only be used in the unprivileged access registers. */
+/* The SYSDSS and SDC-600 bits are present only when those interfaces exist.
+ * SDC-600 is not present in the non-secure unprivileged access register. */
 /* End PERIPH PPC0 peripherals definition */
 
 /* PERIPH PPC1 peripherals definition */
-#define SLOWCLK_TIMER_PERIPH_PPC1_POS_MASK         (1UL << 0)
+#define SLOWCLK_TIMER_PERIPH_PPC1_POS_MASK                              (1UL << 0)
+#define KMU_PERIPH_PPC1_POS_MASK                                        (1UL << 1)
+#define SAM_PERIPH_PPC1_POS_MASK                                        (1UL << 2)
+#define LCM_PERIPH_PPC1_POS_MASK                                        (1UL << 3)
+/* The KMU, SAM, and LCM bits are only present in the secure unprivileged
+ * access register. */
 /* End PERIPH PPC1 peripherals definition */
 
 /* PERIPH PPCEXP0 peripherals definition */
-#define TIMING_ADAPTERS_PERIPH_PPCEXP0_POS_MASK     (1UL << 5)
 /* End PERIPH PPCEXP0 peripherals definition */
 
 /* PERIPH PPCEXP1 peripherals definition */
-#define FPGA_I2C_TOUCH_PERIPH_PPCEXP1_POS_MASK     (1UL << 0)
-#define FPGA_I2C_AUDIO_PERIPH_PPCEXP1_POS_MASK     (1UL << 1)
-#define FPGA_SPI_ADC_PERIPH_PPCEXP1_POS_MASK       (1UL << 2)
-#define FPGA_SPI_SHIELD0_PERIPH_PPCEXP1_POS_MASK   (1UL << 3)
-#define FPGA_SPI_SHIELD1_PERIPH_PPCEXP1_POS_MASK   (1UL << 4)
-#define SBCon_I2C_SHIELD0_PERIPH_PPCEXP1_POS_MASK  (1UL << 5)
-#define SBCon_I2C_SHIELD1_PERIPH_PPCEXP1_POS_MASK  (1UL << 6)
-#define FPGA_SBCon_I2C_PERIPH_PPCEXP1_POS_MASK     (1UL << 8)
 /* End PERIPH PPCEXP1 peripherals definition */
 
 /* PERIPH PPCEXP2 peripherals definition */
-#define FPGA_SCC_PERIPH_PPCEXP2_POS_MASK           (1UL << 0)
-#define FPGA_I2S_PERIPH_PPCEXP2_POS_MASK           (1UL << 1)
-#define FPGA_IO_PERIPH_PPCEXP2_POS_MASK            (1UL << 2)
-#define UART0_PERIPH_PPCEXP2_POS_MASK              (1UL << 3)
-#define UART1_PERIPH_PPCEXP2_POS_MASK              (1UL << 4)
-#define UART2_PERIPH_PPCEXP2_POS_MASK              (1UL << 5)
-#define UART3_PERIPH_PPCEXP2_POS_MASK              (1UL << 6)
-#define UART4_PERIPH_PPCEXP2_POS_MASK              (1UL << 7)
-#define UART5_PERIPH_PPCEXP2_POS_MASK              (1UL << 8)
-#define RTC_PERIPH_PPCEXP2_POS_MASK                (1UL << 11)
-
-#define VSI_PERIPH_PPCEXP2_POS_MASK                (1UL << 12)
-#define VIO_PERIPH_PPCEXP2_POS_MASK                (1UL << 13)
-#define VSOCKET_PERIPH_PPCEXP2_POS_MASK            (1UL << 14)
+#define VSI_PERIPH_PPCEXP2_POS_MASK                                     (1UL << 12)
+#define VIO_PERIPH_PPCEXP2_POS_MASK                                     (1UL << 13)
+#define VSOCKET_PERIPH_PPCEXP2_POS_MASK                                 (1UL << 14)
 /* End PERIPH PPCEXP2 peripherals definition */
 
 /* PERIPH PPCEXP3 peripherals definition */

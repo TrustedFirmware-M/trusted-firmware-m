@@ -16,13 +16,16 @@
 /* Non-secure memory map addresses */
 #define ITCM_BASE_NS                     0x00000000 /* Instruction TCM Non-Secure base address */
 #define SRAM_BASE_NS                     0x01000000 /* CODE SRAM Non-Secure base address */
+#define DMA_ITCM_BASE_NS                 0x0A000000 /* CPU0 ITCM  CPU0 NS-AHB Instruction TCM Access */
 #define DTCM0_BASE_NS                    0x20000000 /* Data TCM block 0 Non-Secure base address */
 #define DTCM1_BASE_NS                    0x20002000 /* Data TCM block 1 Non-Secure base address */
 #define DTCM2_BASE_NS                    0x20004000 /* Data TCM block 2 Non-Secure base address */
 #define DTCM3_BASE_NS                    0x20006000 /* Data TCM block 3 Non-Secure base address */
 #define ISRAM0_BASE_NS                   0x21000000 /* Internal SRAM Area Non-Secure base address */
 #define ISRAM1_BASE_NS                   0x21200000 /* Internal SRAM Area Non-Secure base address */
-#define QSPI_SRAM_BASE_NS                0x28000000 /* QSPI SRAM Non-Secure base address */
+#define ISRAM2_BASE_NS                   0x21400000 /* Internal SRAM Area Non-Secure base address */
+#define ISRAM3_BASE_NS                   0x21600000 /* Internal SRAM Area Non-Secure base address */
+#define QSPI_FLASH_BASE_NS               0x28000000 /* QSPI SRAM Non-Secure base address */
 /* Non-Secure Subsystem peripheral region */
 #define DMA_350_BASE_NS                  0x40002000 /* DMA350 register block Non-Secure base address */
 
@@ -31,23 +34,13 @@
 #define CPU0_IDENTITY_BASE_NS            0x4001F000 /* CPU 0 Identity Block Non-Secure base address */
 #define MPS4_CORSTONE3XX_NSACFG_BASE_NS  0x40080000 /* Corstone-3xx Non-Secure Access Configuration Register Block Non-Secure base address */
 /* Non-Secure MSTEXPPILL Peripheral region */
-#define GPIO0_CMSDK_BASE_NS              0x40100000 /* GPIO 0 Non-Secure base address */
-#define GPIO1_CMSDK_BASE_NS              0x40101000 /* GPIO 1 Non-Secure base address */
-#define GPIO2_CMSDK_BASE_NS              0x40102000 /* GPIO 2 Non-Secure base address */
-#define GPIO3_CMSDK_BASE_NS              0x40103000 /* GPIO 3 Non-Secure base address */
-#define AHB_USER_0_BASE_NS               0x40104000 /* AHB USER 0 Non-Secure base address */
-#define AHB_USER_1_BASE_NS               0x40105000 /* AHB USER 1 Non-Secure base address */
-#define AHB_USER_2_BASE_NS               0x40106000 /* AHB USER 2 Non-Secure base address */
-#define AHB_USER_3_BASE_NS               0x40107000 /* AHB USER 3 Non-Secure base address */
-#define HDLCD_BASE_NS                    0x40310000 /* HDLCD Non-Secure base address */
-#define ETHERNET_BASE_NS                 0x40400000 /* Ethernet Non-Secure base address */
-#define USB_BASE_NS                      0x40500000 /* USB Non-Secure base address */
-#define USER_APB0_BASE_NS                0x40700000 /* User APB 0 Non-Secure base address */
-#define USER_APB1_BASE_NS                0x40701000 /* User APB 1 Non-Secure base address */
-#define USER_APB2_BASE_NS                0x40702000 /* User APB 2 Non-Secure base address */
-#define USER_APB3_BASE_NS                0x40703000 /* User APB 3 Non-Secure base address */
-#define QSPI_CONFIG_BASE_NS              0x40800000 /* QSPI Config Non-Secure base address */
-#define QSPI_WRITE_BASE_NS               0x40801000 /* QSPI Write Non-Secure base address */
+#define GPIO0_CMSDK_BASE_NS              0x41100000 /* GPIO 0 Non-Secure base address */
+#define GPIO1_CMSDK_BASE_NS              0x41101000 /* GPIO 1 Non-Secure base address */
+#define AHB_USER_0_BASE_NS               0x41102000 /* AHB USER 0 Non-Secure base address */
+#define AHB_USER_1_BASE_NS               0x41103000 /* AHB USER 1 Non-Secure base address */
+#define AHB_USER_2_BASE_NS               0x41104000 /* AHB USER 2 Non-Secure base address */
+#define QSPI_CONFIG_BASE_NS              0x41800000 /* QSPI Config Non-Secure base address */
+#define QSPI_WRITE_BASE_NS               0x41801000 /* QSPI Write Non-Secure base address */
 /* Non-Secure Subsystem peripheral region */
 #define SYSTIMER0_ARMV8_M_BASE_NS        0x48000000 /* System Timer 0 Non-Secure base address */
 #define SYSTIMER1_ARMV8_M_BASE_NS        0x48001000 /* System Timer 1 Non-Secure base address */
@@ -57,29 +50,35 @@
 #define SLOWCLK_TIMER_CMSDK_BASE_NS      0x4802F000 /* CMSDK based SLOWCLK Timer Non-Secure base address */
 #define SYSWDOG_ARMV8_M_CNTRL_BASE_NS    0x48040000 /* Non-Secure Watchdog Timer control frame Non-Secure base address */
 #define SYSWDOG_ARMV8_M_REFRESH_BASE_NS  0x48041000 /* Non-Secure Watchdog Timer refresh frame Non-Secure base address */
-#define SYSCNTR_READ_BASE_NS             0x48101000 /* System Counter Read Secure base address */
+#define SYSCNTR_READ_BASE_NS             0x48101000 /* System Counter Read Non-Secure base address */
+#define ISP_BASE_NS                      0x48200000 /* ISP SOC base address */
+#define ISP_VIRTUAL_CAMERA_BASE_NS       0x48300000 /* ISP Virtual Camera base address */
 /* Non-Secure MSTEXPPIHL Peripheral region */
-#define FPGA_SBCon_I2C_TOUCH_BASE_NS     0x48100000 /* FPGA - SBCon I2C (Touch) Non-Secure base address */
-#define FPGA_SBCon_I2C_AUDIO_BASE_NS     0x48101000 /* FPGA - SBCon I2C (Audio Conf) Non-Secure base address */
-#define FPGA_SPI_ADC_BASE_NS             0x48102000 /* FPGA - PL022 (SPI ADC) Non-Secure base address */
-#define FPGA_SPI_SHIELD0_BASE_NS         0x48103000 /* FPGA - PL022 (SPI Shield0) Non-Secure base address */
-#define FPGA_SPI_SHIELD1_BASE_NS         0x48104000 /* FPGA - PL022 (SPI Shield1) Non-Secure base address */
-#define SBCon_I2C_SHIELD0_BASE_NS        0x48105000 /* SBCon (I2C - Shield0) Non-Secure base address */
-#define SBCon_I2C_SHIELD1_BASE_NS        0x48106000 /* SBCon (I2C – Shield1) Non-Secure base address */
-#define USER_APB_BASE_NS                 0x48107000 /* USER APB Non-Secure base address */
-#define FPGA_DDR4_EEPROM_BASE_NS         0x48108000 /* FPGA - SBCon I2C (DDR4 EEPROM) Non-Secure base address */
-#define FPGA_SCC_BASE_NS                 0x48200000 /* FPGA - SCC registers Non-Secure base address */
-#define FPGA_I2S_BASE_NS                 0x48201000 /* FPGA - I2S (Audio) Non-Secure base address */
-#define FPGA_IO_BASE_NS                  0x48202000 /* FPGA - IO (System Ctrl + I/O) Non-Secure base address */
-#define UART0_BASE_NS                    0x48203000 /* UART 0 Non-Secure base address */
-#define UART1_BASE_NS                    0x48204000 /* UART 1 Non-Secure base address */
-#define UART2_BASE_NS                    0x48205000 /* UART 2 Non-Secure base address */
-#define UART3_BASE_NS                    0x48206000 /* UART 3 Non-Secure base address */
-#define UART4_BASE_NS                    0x48207000 /* UART 4 Non-Secure base address */
-#define UART5_BASE_NS                    0x48208000 /* UART 5 Non-Secure base address */
-#define RTC_BASE_NS                      0x4820B000 /* RTC Non-Secure base address */
-#define ISP_BASE_NS                      0x48300000 /* ISP SOC base address */
-#define ISP_VIRTUAL_CAMERA_BASE_NS       0x48400000 /* ISP Virtual Camera base address */
+#define FPGA_SBCon_I2C_AUDIO_BASE_NS     0x49201000 /* FPGA - SBCon I2C (Audio Conf) Non-Secure base address */
+#define FPGA_SPI_ADC_BASE_NS             0x49202000 /* FPGA - PL022 (SPI ADC) Non-Secure base address */
+#define FPGA_SPI_SHIELD0_BASE_NS         0x49203000 /* FPGA - PL022 (SPI Shield0) Non-Secure base address */
+#define FPGA_SPI_SHIELD1_BASE_NS         0x49204000 /* FPGA - PL022 (SPI Shield1) Non-Secure base address */
+#define SBCon_I2C_SHIELD0_BASE_NS        0x49205000 /* SBCon (I2C - Shield0) Non-Secure base address */
+#define SBCon_I2C_SHIELD1_BASE_NS        0x49206000 /* SBCon (I2C – Shield1) Non-Secure base address */
+#define FPGA_DDR4_EEPROM_BASE_NS         0x49208000 /* FPGA - SBCon I2C (DDR4 EEPROM) Non-Secure base address */
+#define AUDIO_TX_FRAME_BUFFER_NS         0x49209000 /* Audio TX Frame Buffer Control and Configuration Non-Secure base address */
+#define AUDIO_I2S_TRANSMITTER_NS         0x4920A000 /* Audio I2S Transmitter Configuration Non-Secure base address */
+#define AUDIO_RX_FRAME_BUFFER_NS         0x4920B000 /* Audio RX Frame Buffer Control and Configuration Non-Secure base address */
+#define AUDIO_I2S_RECEIVER_NS            0x4920C000 /* Audio I2S Reciever Configuration Non-Secure base address */
+#define FPGA_SCC_BASE_NS                 0x49300000 /* FPGA - SCC registers Non-Secure base address */
+#define FPGA_I2S_BASE_NS                 0x49301000 /* FPGA - I2S (Audio) Non-Secure base address */
+#define FPGA_IO_BASE_NS                  0x49302000 /* FPGA - IO (System Ctrl + I/O) Non-Secure base address */
+#define UART0_BASE_NS                    0x49303000 /* UART 0 Non-Secure base address */
+#define UART1_BASE_NS                    0x49304000 /* UART 1 Non-Secure base address */
+#define UART2_BASE_NS                    0x49305000 /* UART 2 Non-Secure base address */
+#define UART3_BASE_NS                    0x49306000 /* UART 3 Non-Secure base address */
+#define UART4_BASE_NS                    0x49307000 /* UART 4 Non-Secure base address */
+#define UART5_BASE_NS                    0x49308000 /* UART 5 Non-Secure base address */
+#define SBCon_I2C_HDMI_BASE_NS           0x49309000 /* SBCon HDMI I2C Configuration Controller Non-Secure base address */
+#define HDMI_HDLCD_BASE_NS               0x4930A000 /* HDMI HDLCD Non-Secure base address */
+#define SBCon_I2C_CSI_BASE_NS            0x4930B000 /* SBCon CSI Configuration Controller Non-Secure base address */
+#define CSI_RECEIVER_BASE_NS             0x4930C000 /* CSI Receiver Configuration Controller (AXI-Lite) Non-Secure base address */
+#define MIPI_D_PHY_BASE_NS               0x4930D000 /* MIPI D PHY Configuration Controller Non-Secure base address */
 
 #define VSOCKET_BASE_NS                  0x4FEE0000 /*!< VSOCKET Non-Secure base address */
 #define VIO_BASE_NS                      0x4FEF0000 /*!< VIO Non-Secure base address */
@@ -100,6 +99,7 @@
 /* Secure memory map addresses */
 #define ITCM_BASE_S                      0x10000000 /* Instruction TCM Secure base address */
 #define BOOT_ROM_BASE_S                  0x11000000 /* Boot ROM Secure base address */
+#define DMA_ITCM_BASE_S                  0x1A000000 /* CPU0 ITCM  CPU0 S-AHB Instruction TCM Access */
 #define SRAM_BASE_S                      0x12000000 /* CODE SRAM Secure base address */
 #define DTCM0_BASE_S                     0x30000000 /* Data TCM block 0 Secure base address */
 #define DTCM1_BASE_S                     0x30002000 /* Data TCM block 1 Secure base address */
@@ -107,7 +107,9 @@
 #define DTCM3_BASE_S                     0x30006000 /* Data TCM block 3 Secure base address */
 #define ISRAM0_BASE_S                    0x31000000 /* Internal SRAM Area Secure base address */
 #define ISRAM1_BASE_S                    0x31200000 /* Internal SRAM Area Secure base address */
-#define QSPI_SRAM_BASE_S                 0x38000000 /* QSPI SRAM Secure base address */
+#define ISRAM2_BASE_S                    0x31400000 /* Internal SRAM Area Secure base address */
+#define ISRAM3_BASE_S                    0x31600000 /* Internal SRAM Area Secure base address */
+#define QSPI_FLASH_BASE_S                0x38000000 /* QSPI SRAM Secure base address */
 /* Secure Subsystem peripheral region */
 #define DMA_350_BASE_S                   0x50002000 /* DMA350 register block Secure base address */
 #define NPU0_APB_BASE_S                  0x50004000 /* NPU0 APB Secure base address */
@@ -117,37 +119,28 @@
 #define MPS4_CORSTONE3XX_SACFG_BASE_S    0x50080000 /* Corstone-3xx Secure Access Configuration Register Secure base address */
 #define MPC_ISRAM0_BASE_S                0x50083000 /* Internal SRAM0 Memory Protection Controller Secure base address */
 #define MPC_ISRAM1_BASE_S                0x50084000 /* Internal SRAM1 Memory Protection Controller Secure base address */
-#define CC3XX_BASE_S                     0x50094000 /* CryptoCell CC3XX Secure base address */
+#define MPC_ISRAM2_BASE_S                0x50085000 /* Internal SRAM2 Memory Protection Controller Secure base address */
+#define MPC_ISRAM3_BASE_S                0x50086000 /* Internal SRAM3 Memory Protection Controller Secure base address */
 #define KMU_BASE_S                       0x5009E000 /* KMU Secure base address */
 #define LCM_BASE_S                       0x500A0000 /* LCM Secure base address */
 
 /* Secure MSTEXPPILL Peripheral region */
-#define GPIO0_CMSDK_BASE_S               0x50100000 /* GPIO 0 Secure base address */
-#define GPIO1_CMSDK_BASE_S               0x50101000 /* GPIO 1 Secure base address */
-#define GPIO2_CMSDK_BASE_S               0x50102000 /* GPIO 2 Secure base address */
-#define GPIO3_CMSDK_BASE_S               0x50103000 /* GPIO 3 Secure base address */
-#define AHB_USER_0_BASE_S                0x50104000 /* AHB USER 0 Secure base address */
-#define AHB_USER_1_BASE_S                0x50105000 /* AHB USER 1 Secure base address */
-#define AHB_USER_2_BASE_S                0x50106000 /* AHB USER 2 Secure base address */
-#define AHB_USER_3_BASE_S                0x50107000 /* AHB USER 3 Secure base address */
-#define HDLCD_BASE_S                     0x50310000 /* HDLCD Secure base address */
-#define ETHERNET_BASE_S                  0x50400000 /* Ethernet Secure base address */
-#define USB_BASE_S                       0x50500000 /* USB Secure base address */
-#define USER_APB0_BASE_S                 0x50700000 /* User APB 0 Secure base address */
-#define USER_APB1_BASE_S                 0x50701000 /* User APB 1 Secure base address */
-#define USER_APB2_BASE_S                 0x50702000 /* User APB 2 Secure base address */
-#define USER_APB3_BASE_S                 0x50703000 /* User APB 3 Secure base address */
-#define QSPI_CONFIG_BASE_S               0x50800000 /* QSPI Config Secure base address */
-#define QSPI_WRITE_BASE_S                0x50801000 /* QSPI Write Secure base address */
-#define MPC_SRAM_BASE_S                  0x57000000 /* SRAM Memory Protection Controller Secure base address */
+#define GPIO0_CMSDK_BASE_S               0x51100000 /* GPIO 0 Secure base address */
+#define GPIO1_CMSDK_BASE_S               0x51101000 /* GPIO 1 Secure base address */
+#define AHB_USER_0_BASE_S                0x51102000 /* AHB USER 0 Secure base address */
+#define AHB_USER_1_BASE_S                0x51103000 /* AHB USER 1 Secure base address */
+#define AHB_USER_2_BASE_S                0x51104000 /* AHB USER 2 Secure base address */
+#define QSPI_CONFIG_BASE_S               0x51800000 /* QSPI Config Secure base address */
+#define QSPI_WRITE_BASE_S                0x51801000 /* QSPI Write Secure base address */
+
 #define MPC_QSPI_BASE_S                  0x57001000 /* QSPI Memory Protection Controller Secure base address */
 #define MPC_DDR4_BASE_S                  0x57002000 /* DDR4 Memory Protection Controller Secure base address */
 
 /* Secure Subsystem peripheral region */
 #define SYSTIMER0_ARMV8_M_BASE_S         0x58000000 /* System Timer 0 Secure base address */
 #define SYSTIMER1_ARMV8_M_BASE_S         0x58001000 /* System Timer 1 Secure base address */
-#define SYSTIMER2_ARMV8_M_BASE_S         0x58002000 /* System Timer 0 Secure base address */
-#define SYSTIMER3_ARMV8_M_BASE_S         0x58003000 /* System Timer 1 Secure base address */
+#define SYSTIMER2_ARMV8_M_BASE_S         0x58002000 /* System Timer 2 Secure base address */
+#define SYSTIMER3_ARMV8_M_BASE_S         0x58003000 /* System Timer 3 Secure base address */
 #define MPS4_CORSTONE3XX_SYSINFO_BASE_S  0x58020000 /* Corstone-3xx System info Block Secure base address */
 #define MPS4_CORSTONE3XX_SYSCTRL_BASE_S  0x58021000 /* Corstone-3xx System control Block Secure base address */
 #define MPS4_CORSTONE3XX_SYSPPU_BASE_S   0x58022000 /* Corstone-3xx System Power Policy Unit Secure base address */
@@ -160,28 +153,36 @@
 #define SYSWDOG_ARMV8_M_CNTRL_BASE_S     0x58040000 /* Secure Watchdog Timer control frame Secure base address */
 #define SYSWDOG_ARMV8_M_REFRESH_BASE_S   0x58041000 /* Secure Watchdog Timer refresh frame Secure base address */
 #define SAM_BASE_S                       0x58042000 /* SAM Secure base address */
+
 #define SYSCNTR_CNTRL_BASE_S             0x58100000 /* System Counter Control Secure base address */
 #define SYSCNTR_READ_BASE_S              0x58101000 /* System Counter Read Secure base address */
+#define ISP_BASE_S                       0x58200000 /* ISP SOC base address */
 /* Secure MSTEXPPIHL Peripheral region */
-#define FPGA_SBCon_I2C_TOUCH_BASE_S      0x58100000 /* FPGA - SBCon I2C (Touch) Secure base address */
-#define FPGA_SBCon_I2C_AUDIO_BASE_S      0x58101000 /* FPGA - SBCon I2C (Audio Conf) Secure base address */
-#define FPGA_SPI_ADC_BASE_S              0x58102000 /* FPGA - PL022 (SPI ADC) Secure base address */
-#define FPGA_SPI_SHIELD0_BASE_S          0x58103000 /* FPGA - PL022 (SPI Shield0) Secure base address */
-#define FPGA_SPI_SHIELD1_BASE_S          0x58104000 /* FPGA - PL022 (SPI Shield1) Secure base address */
-#define SBCon_I2C_SHIELD0_BASE_S         0x58105000 /* SBCon (I2C - Shield0) Secure base address */
-#define SBCon_I2C_SHIELD1_BASE_S         0x58106000 /* SBCon (I2C – Shield1) Secure base address */
-#define USER_APB_BASE_S                  0x58107000 /* USER APB Secure base address */
-#define FPGA_DDR4_EEPROM_BASE_S          0x58108000 /* FPGA - SBCon I2C (DDR4 EEPROM) Secure base address */
-#define FPGA_SCC_BASE_S                  0x58200000 /* FPGA - SCC registers Secure base address */
-#define FPGA_I2S_BASE_S                  0x58201000 /* FPGA - I2S (Audio) Secure base address */
-#define FPGA_IO_BASE_S                   0x58202000 /* FPGA - IO (System Ctrl + I/O) Secure base address */
-#define UART0_BASE_S                     0x58203000 /* UART 0 Secure base address */
-#define UART1_BASE_S                     0x58204000 /* UART 1 Secure base address */
-#define UART2_BASE_S                     0x58205000 /* UART 2 Secure base address */
-#define UART3_BASE_S                     0x58206000 /* UART 3 Secure base address */
-#define UART4_BASE_S                     0x58207000 /* UART 4 Secure base address */
-#define UART5_BASE_S                     0x58208000 /* UART 5 Secure base address */
-#define RTC_BASE_S                       0x5820B000 /* RTC Secure base address */
+#define FPGA_SBCon_I2C_AUDIO_BASE_S      0x59201000 /* FPGA - SBCon I2C (Audio Conf) Secure base address */
+#define FPGA_SPI_ADC_BASE_S              0x59202000 /* FPGA - PL022 (SPI ADC) Secure base address */
+#define FPGA_SPI_SHIELD0_BASE_S          0x59203000 /* FPGA - PL022 (SPI Shield0) Secure base address */
+#define FPGA_SPI_SHIELD1_BASE_S          0x59204000 /* FPGA - PL022 (SPI Shield1) Secure base address */
+#define SBCon_I2C_SHIELD0_BASE_S         0x59205000 /* SBCon (I2C - Shield0) Secure base address */
+#define SBCon_I2C_SHIELD1_BASE_S         0x59206000 /* SBCon (I2C – Shield1) Secure base address */
+#define FPGA_DDR4_EEPROM_BASE_S          0x59208000 /* FPGA - SBCon I2C (DDR4 EEPROM) Secure base address */
+#define AUDIO_TX_FRAME_BUFFER_S          0x59209000 /* Audio TX Frame Buffer Control and Configuration Secure base address */
+#define AUDIO_I2S_TRANSMITTER_S          0x5920A000 /* Audio I2S Transmitter Configuration Secure base address */
+#define AUDIO_RX_FRAME_BUFFER_S          0x5920B000 /* Audio RX Frame Buffer Control and Configuration Secure base address */
+#define AUDIO_I2S_RECEIVER_S             0x5920C000 /* Audio I2S Reciever Configuration Secure base address */
+#define FPGA_SCC_BASE_S                  0x59300000 /* FPGA - SCC registers Secure base address */
+#define FPGA_I2S_BASE_S                  0x59301000 /* FPGA - I2S (Audio) Secure base address */
+#define FPGA_IO_BASE_S                   0x59302000 /* FPGA - IO (System Ctrl + I/O) Secure base address */
+#define UART0_BASE_S                     0x59303000 /* UART 0 Secure base address */
+#define UART1_BASE_S                     0x59304000 /* UART 1 Secure base address */
+#define UART2_BASE_S                     0x59305000 /* UART 2 Secure base address */
+#define UART3_BASE_S                     0x59306000 /* UART 3 Secure base address */
+#define UART4_BASE_S                     0x59307000 /* UART 4 Secure base address */
+#define UART5_BASE_S                     0x59308000 /* UART 5 Secure base address */
+#define SBCon_I2C_HDMI_BASE_S            0x59309000 /* SBCon HDMI I2C Configuration Controller Secure base address */
+#define HDMI_HDLCD_BASE_S                0x5930A000 /* HDMI HDLCD Secure base address */
+#define SBCon_I2C_CSI_BASE_S             0x5930B000 /* SBCon CSI Configuration Controller Secure base address */
+#define CSI_RECEIVER_BASE_S              0x5930C000 /* CSI Receiver Configuration Controller (AXI-Lite) Secure base address */
+#define MIPI_D_PHY_BASE_S                0x5930D000 /* MIPI D PHY Configuration Controller Secure base address */
 
 #define VSOCKET_BASE_S                   0x5FEE0000 /*!< VSOCKET Secure base address */
 #define VIO_BASE_S                       0x5FEF0000 /*!< VIO Secure base address */
@@ -217,35 +218,28 @@
 #define DTCM_BLK_SIZE   (0x00002000) /* 8 kB */
 #define DTCM_BLK_NUM    (0x4)        /* Number of DTCM blocks */
 #define DTCM_SIZE       (DTCM_BLK_SIZE*DTCM_BLK_NUM)
-#define BOOT_ROM_SIZE   (0x20000)    /* 128 kB */
+#define BOOT_ROM_SIZE   (0x00020000) /* 128 kB */
 #define SRAM_SIZE       (0x00200000) /* 2 MB */
 #define ISRAM0_SIZE     (0x00200000) /* 2 MB */
 #define ISRAM1_SIZE     (0x00200000) /* 2 MB */
-#define QSPI_SRAM_SIZE  (0x00800000) /* 8 MB */
+#define ISRAM2_SIZE     (0x00200000) /* 2 MB */
+#define ISRAM3_SIZE     (0x00200000) /* 2 MB */
+#define QSPI_FLASH_SIZE (0x08000000) /* 128 MB */
 #define DDR4_BLK_SIZE   (0x10000000) /* 256 MB */
 #define DDR4_BLK_NUM    (0x8)        /* Number of DDR4 blocks */
 #define OTP_TOTAL_SIZE  (0x4000)
 
 /* All VMs use the same MPC block size as defined by VMMPCBLKSIZE. */
-#define SRAM_MPC_BLK_SIZE    (0x4000)     /* 16 kB */
 #define QSPI_MPC_BLK_SIZE    (0x40000)    /* 256 kB */
 #define DDR4_MPC_BLK_SIZE    (0x100000)   /* 1 MB */
 
 /* Defines for Driver MPC's */
-/* SRAM -- 2 MB */
-#define MPC_SRAM_RANGE_BASE_NS   (SRAM_BASE_NS)
-#define MPC_SRAM_RANGE_LIMIT_NS  (SRAM_BASE_NS + SRAM_SIZE-1)
-#define MPC_SRAM_RANGE_OFFSET_NS (0x0)
-#define MPC_SRAM_RANGE_BASE_S    (SRAM_BASE_S)
-#define MPC_SRAM_RANGE_LIMIT_S   (SRAM_BASE_S + SRAM_SIZE-1)
-#define MPC_SRAM_RANGE_OFFSET_S  (0x0)
-
-/* QSPI -- 8 MB */
-#define MPC_QSPI_RANGE_BASE_NS   (QSPI_SRAM_BASE_NS)
-#define MPC_QSPI_RANGE_LIMIT_NS  (QSPI_SRAM_BASE_NS + QSPI_SRAM_SIZE-1)
+/* QSPI -- 128 MB */
+#define MPC_QSPI_RANGE_BASE_NS   (QSPI_FLASH_BASE_NS)
+#define MPC_QSPI_RANGE_LIMIT_NS  (QSPI_FLASH_BASE_NS + QSPI_FLASH_SIZE-1)
 #define MPC_QSPI_RANGE_OFFSET_NS (0x0)
-#define MPC_QSPI_RANGE_BASE_S    (QSPI_SRAM_BASE_S)
-#define MPC_QSPI_RANGE_LIMIT_S   (QSPI_SRAM_BASE_S + QSPI_SRAM_SIZE-1)
+#define MPC_QSPI_RANGE_BASE_S    (QSPI_FLASH_BASE_S)
+#define MPC_QSPI_RANGE_LIMIT_S   (QSPI_FLASH_BASE_S + QSPI_FLASH_SIZE-1)
 #define MPC_QSPI_RANGE_OFFSET_S  (0x0)
 
 /* ISRAM0 -- 2 MB*/
@@ -263,6 +257,22 @@
 #define MPC_ISRAM1_RANGE_BASE_S    (ISRAM1_BASE_S)
 #define MPC_ISRAM1_RANGE_LIMIT_S   (ISRAM1_BASE_S + ISRAM1_SIZE-1)
 #define MPC_ISRAM1_RANGE_OFFSET_S  (0x0)
+
+/* ISRAM2 -- 2 MB*/
+#define MPC_ISRAM2_RANGE_BASE_NS   (ISRAM2_BASE_NS)
+#define MPC_ISRAM2_RANGE_LIMIT_NS  (ISRAM2_BASE_NS + ISRAM2_SIZE-1)
+#define MPC_ISRAM2_RANGE_OFFSET_NS (0x0)
+#define MPC_ISRAM2_RANGE_BASE_S    (ISRAM2_BASE_S)
+#define MPC_ISRAM2_RANGE_LIMIT_S   (ISRAM2_BASE_S + ISRAM2_SIZE-1)
+#define MPC_ISRAM2_RANGE_OFFSET_S  (0x0)
+
+/* ISRAM3 -- 2 MB*/
+#define MPC_ISRAM3_RANGE_BASE_NS   (ISRAM3_BASE_NS)
+#define MPC_ISRAM3_RANGE_LIMIT_NS  (ISRAM3_BASE_NS + ISRAM3_SIZE-1)
+#define MPC_ISRAM3_RANGE_OFFSET_NS (0x0)
+#define MPC_ISRAM3_RANGE_BASE_S    (ISRAM3_BASE_S)
+#define MPC_ISRAM3_RANGE_LIMIT_S   (ISRAM3_BASE_S + ISRAM3_SIZE-1)
+#define MPC_ISRAM3_RANGE_OFFSET_S  (0x0)
 
 /* DDR4 -- 2GB (8 * 256 MB) */
 #define MPC_DDR4_BLK0_RANGE_BASE_NS   (DDR4_BLK0_BASE_NS)

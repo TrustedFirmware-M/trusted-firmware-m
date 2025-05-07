@@ -70,7 +70,8 @@ DEFAULT_IRQ_HANDLER(CPU0_CTI_1_Handler)
 DEFAULT_IRQ_HANDLER(SAM_Critical_Severity_Fault_Handler)
 DEFAULT_IRQ_HANDLER(SAM_Severity_Fault_Handler)
 
-DEFAULT_IRQ_HANDLER(System_Timestamp_Counter_Handler)
+DEFAULT_IRQ_HANDLER(System_Counter_Handler)
+DEFAULT_IRQ_HANDLER(ISP_Handler)
 DEFAULT_IRQ_HANDLER(UARTRX0_Handler)
 DEFAULT_IRQ_HANDLER(UARTTX0_Handler)
 DEFAULT_IRQ_HANDLER(UARTRX1_Handler)
@@ -87,20 +88,55 @@ DEFAULT_IRQ_HANDLER(UART2_Combined_Handler)
 DEFAULT_IRQ_HANDLER(UART3_Combined_Handler)
 DEFAULT_IRQ_HANDLER(UART4_Combined_Handler)
 DEFAULT_IRQ_HANDLER(UARTOVF_Handler)
-DEFAULT_IRQ_HANDLER(ETHERNET_Handler)
-DEFAULT_IRQ_HANDLER(I2S_Handler)
-DEFAULT_IRQ_HANDLER(DMA_Channel_0_Handler)
-DEFAULT_IRQ_HANDLER(DMA_Channel_1_Handler)
+DEFAULT_IRQ_HANDLER(SPI_SHIELD_ADC_Handler)
+DEFAULT_IRQ_HANDLER(SPI_SHIELD_0_Handler)
+DEFAULT_IRQ_HANDLER(SPI_SHIELD_1_Handler)
+DEFAULT_IRQ_HANDLER(RX_FORMATTER_Handler)
+DEFAULT_IRQ_HANDLER(RX_Handler)
+DEFAULT_IRQ_HANDLER(TX_FORMATTER_Handler)
+DEFAULT_IRQ_HANDLER(TX_Handler)
+DEFAULT_IRQ_HANDLER(HDMI_AUD_TX_Handler)
+DEFAULT_IRQ_HANDLER(HDMI_AUD_TX_FMT_Handler)
 DEFAULT_IRQ_HANDLER(NPU0_Handler)
 DEFAULT_IRQ_HANDLER(GPIO0_Combined_Handler)
 DEFAULT_IRQ_HANDLER(GPIO1_Combined_Handler)
-DEFAULT_IRQ_HANDLER(GPIO2_Combined_Handler)
-DEFAULT_IRQ_HANDLER(GPIO3_Combined_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_0_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_1_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_2_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_3_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_4_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_5_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_6_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_7_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_8_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_9_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_10_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_11_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_12_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_13_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_14_Handler)
+DEFAULT_IRQ_HANDLER(GPIO0_15_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_0_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_1_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_2_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_3_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_4_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_5_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_6_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_7_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_8_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_9_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_10_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_11_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_12_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_13_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_14_Handler)
+DEFAULT_IRQ_HANDLER(GPIO1_15_Handler)
 DEFAULT_IRQ_HANDLER(UARTRX5_Handler)
 DEFAULT_IRQ_HANDLER(UARTTX5_Handler)
-DEFAULT_IRQ_HANDLER(RTC_Handler)
-DEFAULT_IRQ_HANDLER(ISP_C55_Handler)
+DEFAULT_IRQ_HANDLER(UART5_Combined_Handler)
 DEFAULT_IRQ_HANDLER(HDLCD_Handler)
+DEFAULT_IRQ_HANDLER(CSIRXSS_CSI_Handler)
 DEFAULT_IRQ_HANDLER(ARM_VSI0_Handler)
 DEFAULT_IRQ_HANDLER(ARM_VSI1_Handler)
 DEFAULT_IRQ_HANDLER(ARM_VSI2_Handler)
@@ -172,8 +208,8 @@ extern const VECTOR_TABLE_Type __VECTOR_TABLE[];
   SAM_Severity_Fault_Handler,          /*  31: SAM Severity Fault Handler */
 
   /* External interrupts */
-  0,                                 /*  32: Reserved */
-  UARTRX0_Handler,                   /*  33: UART 0 RX Handler */
+  System_Counter_Handler,            /*  32: System Counter */
+  ISP_Handler,                       /*  33: Image Signal Processor */
   UARTTX0_Handler,                   /*  34: UART 0 TX Handler */
   UARTRX1_Handler,                   /*  35: UART 1 RX Handler */
   UARTTX1_Handler,                   /*  36: UART 1 TX Handler */
@@ -189,62 +225,62 @@ extern const VECTOR_TABLE_Type __VECTOR_TABLE[];
   UART3_Combined_Handler,            /*  46: UART 3 Combined Handler */
   UART4_Combined_Handler,            /*  47: UART 4 Combined Handler */
   UARTOVF_Handler,                   /*  48: UART 0, 1, 2, 3, 4 & 5 Overflow Handler */
-  ETHERNET_Handler,                  /*  49: Ethernet Handler */
-  I2S_Handler,                       /*  50: Audio I2S Handler */
+  UARTRX0_Handler,                   /*  49: UART 0 RX Handler */
+  0,                                 /*  50: Reserved */
   0,                                 /*  51: Reserved */
   0,                                 /*  52: Reserved */
-  0,                                 /*  53: Reserved */
-  0,                                 /*  54: Reserved */
-  0,                                 /*  55: Reserved */
+  SPI_SHIELD_ADC_Handler,            /*  53: Shield ADC Handler */
+  SPI_SHIELD_0_Handler,              /*  54: Shield 0 SPI Handler */
+  SPI_SHIELD_1_Handler,              /*  55: Shield 1 SPI Handler */
   0,                                 /*  56: Reserved */
-  DMA_Channel_0_Handler,             /*  57: DMA (DMA350) Channel 0 Handler */
-  DMA_Channel_1_Handler,             /*  58: DMA (DMA350) Channel 1 Handler */
+  0,                                 /*  57: Reserved */
+  0,                                 /*  58: Reserved */
   0,                                 /*  59: Reserved */
   0,                                 /*  60: Reserved */
   0,                                 /*  61: Reserved */
   0,                                 /*  62: Reserved */
-  0,                                 /*  63: Reserved */
-  0,                                 /*  64: Reserved */
-  0,                                 /*  65: Reserved */
-  0,                                 /*  66: Reserved */
-  0,                                 /*  67: Reserved */
-  0,                                 /*  68: Reserved */
+  RX_FORMATTER_Handler,              /*  63: Audio Formatter Receiver Handler */
+  RX_Handler,                        /*  64: Audio Receiver Handler */
+  TX_FORMATTER_Handler,              /*  65: Audio Formatter Transmitter Handler */
+  TX_Handler,                        /*  66: Audio Transmitter Handler */
+  HDMI_AUD_TX_Handler,               /*  67: HDMI Audio Transmitter Handler */
+  HDMI_AUD_TX_FMT_Handler,           /*  68: HDMI Audio Formatter Transmitter Handler */
   GPIO0_Combined_Handler,            /*  69: GPIO 0 Combined Handler */
   GPIO1_Combined_Handler,            /*  70: GPIO 1 Combined Handler */
-  GPIO2_Combined_Handler,            /*  71: GPIO 2 Combined Handler */
-  GPIO3_Combined_Handler,            /*  72: GPIO 3 Combined Handler */
-  0,                                 /*  73: Reserved */
-  0,                                 /*  74: Reserved */
-  0,                                 /*  75: Reserved */
-  0,                                 /*  76: Reserved */
-  0,                                 /*  77: Reserved */
-  0,                                 /*  78: Reserved */
-  0,                                 /*  79: Reserved */
-  0,                                 /*  80: Reserved */
-  0,                                 /*  81: Reserved */
-  0,                                 /*  82: Reserved */
-  0,                                 /*  83: Reserved */
-  0,                                 /*  84: Reserved */
-  0,                                 /*  85: Reserved */
-  0,                                 /*  86: Reserved */
-  0,                                 /*  87: Reserved */
-  0,                                 /*  88: Reserved */
-  0,                                 /*  89: Reserved */
-  0,                                 /*  90: Reserved */
-  0,                                 /*  91: Reserved */
-  0,                                 /*  92: Reserved */
-  0,                                 /*  93: Reserved */
-  0,                                 /*  94: Reserved */
-  0,                                 /*  95: Reserved */
-  0,                                 /*  96: Reserved */
-  0,                                 /*  97: Reserved */
-  0,                                 /*  98: Reserved */
-  0,                                 /*  99: Reserved */
-  0,                                 /*  100: Reserved */
-  0,                                 /*  101: Reserved */
-  0,                                 /*  102: Reserved */
-  0,                                 /*  103: Reserved */
-  0,                                 /*  104: Reserved */
+  0,                                 /*  71: Reserved */
+  0,                                 /*  72: Reserved */
+  GPIO0_0_Handler,                   /*  73: GPIO 0 line 0 Individual Interrupt */
+  GPIO0_1_Handler,                   /*  74: GPIO 0 line 1 Individual Interrupt */
+  GPIO0_2_Handler,                   /*  75: GPIO 0 line 2 Individual Interrupt */
+  GPIO0_3_Handler,                   /*  76: GPIO 0 line 3 Individual Interrupt */
+  GPIO0_4_Handler,                   /*  77: GPIO 0 line 4 Individual Interrupt */
+  GPIO0_5_Handler,                   /*  78: GPIO 0 line 5 Individual Interrupt */
+  GPIO0_6_Handler,                   /*  79: GPIO 0 line 6 Individual Interrupt */
+  GPIO0_7_Handler,                   /*  80: GPIO 0 line 7 Individual Interrupt */
+  GPIO0_8_Handler,                   /*  81: GPIO 0 line 8 Individual Interrupt */
+  GPIO0_9_Handler,                   /*  82: GPIO 0 line 9 Individual Interrupt */
+  GPIO0_10_Handler,                  /*  83: GPIO 0 line 10 Individual Interrupt*/
+  GPIO0_11_Handler,                  /*  84: GPIO 0 line 11 Individual Interrupt*/
+  GPIO0_12_Handler,                  /*  85: GPIO 0 line 12 Individual Interrupt*/
+  GPIO0_13_Handler,                  /*  86: GPIO 0 line 13 Individual Interrupt*/
+  GPIO0_14_Handler,                  /*  87: GPIO 0 line 14 Individual Interrupt*/
+  GPIO0_15_Handler,                  /*  88: GPIO 0 line 15 Individual Interrupt*/
+  GPIO1_0_Handler,                   /*  89: GPIO 1 line 0 Individual Interrupt */
+  GPIO1_1_Handler,                   /*  90: GPIO 1 line 1 Individual Interrupt */
+  GPIO1_2_Handler,                   /*  91: GPIO 1 line 2 Individual Interrupt */
+  GPIO1_3_Handler,                   /*  92: GPIO 1 line 3 Individual Interrupt */
+  GPIO1_4_Handler,                   /*  93: GPIO 1 line 4 Individual Interrupt */
+  GPIO1_5_Handler,                   /*  94: GPIO 1 line 5 Individual Interrupt */
+  GPIO1_6_Handler,                   /*  95: GPIO 1 line 6 Individual Interrupt */
+  GPIO1_7_Handler,                   /*  96: GPIO 1 line 7 Individual Interrupt */
+  GPIO1_8_Handler,                   /*  97: GPIO 1 line 8 Individual Interrupt */
+  GPIO1_9_Handler,                   /*  98: GPIO 1 line 9 Individual Interrupt */
+  GPIO1_10_Handler,                  /*  99: GPIO 1 line 10 Individual Interrupt*/
+  GPIO1_11_Handler,                  /*  100: GPIO 1 line 11 Individual Interrupt */
+  GPIO1_12_Handler,                  /*  101: GPIO 1 line 12 Individual Interrupt */
+  GPIO1_13_Handler,                  /*  102: GPIO 1 line 13 Individual Interrupt */
+  GPIO1_14_Handler,                  /*  103: GPIO 1 line 14 Individual Interrupt */
+  GPIO1_15_Handler,                  /*  104: GPIO 1 line 15 Individual Interrupt */
   0,                                 /*  105: Reserved */
   0,                                 /*  106: Reserved */
   0,                                 /*  107: Reserved */
@@ -267,13 +303,13 @@ extern const VECTOR_TABLE_Type __VECTOR_TABLE[];
   0,                                 /*  124: Reserved */
   UARTRX5_Handler,                   /*  125: UART 5 RX Interrupt */
   UARTTX5_Handler,                   /*  126: UART 5 TX Interrupt */
-  0,                                 /*  127: Reserved */
-  RTC_Handler,                       /*  128: UART 5 combined Interrupt */
+  UART5_Combined_Handler,            /*  127: UART 5 Combined Interrupt */
+  HDLCD_Handler,                     /*  128: HDLCD Handler */
   0,                                 /*  129: Reserved */
-  0,                                 /*  130: Reserved */
+  CSIRXSS_CSI_Handler,               /*  130: CSI Receiver Interrupt */
   0,                                 /*  131: Reserved */
-  ISP_C55_Handler,                   /*  132: ISP C55 Handler */
-  HDLCD_Handler,                     /*  133: HDLCD Handler */
+  0,                                 /*  132: Reserved */
+  0,                                 /*  133: Reserved */
   0,                                 /*  134: Reserved */
   0,                                 /*  135: Reserved */
   0,                                 /*  136: Reserved */

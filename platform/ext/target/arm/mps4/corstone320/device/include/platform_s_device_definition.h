@@ -1,17 +1,7 @@
 /*
- * Copyright (c) 2019-2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
- * Licensed under the Apache License Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing software
- * distributed under the License is distributed on an "AS IS" BASIS
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -62,10 +52,11 @@ extern struct systimer_armv8_m_dev_t SYSTIMER0_ARMV8_M_DEV_S;
 
 /* ARM MPC SIE 300 driver structures */
 #include "mpc_sie_drv.h"
-extern struct mpc_sie_dev_t MPC_SRAM_DEV_S;
 extern struct mpc_sie_dev_t MPC_QSPI_DEV_S;
 extern struct mpc_sie_dev_t MPC_ISRAM0_DEV_S;
 extern struct mpc_sie_dev_t MPC_ISRAM1_DEV_S;
+extern struct mpc_sie_dev_t MPC_ISRAM2_DEV_S;
+extern struct mpc_sie_dev_t MPC_ISRAM3_DEV_S;
 extern struct mpc_sie_dev_t MPC_DDR4_DEV_S;
 
 /* DMA350 driver structures */

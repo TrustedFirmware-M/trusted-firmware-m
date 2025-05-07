@@ -85,7 +85,7 @@ FVP is available to download `here <https://developer.arm.com/Tools%20and%20Soft
 
 .. note::
 
-   The TF-M port is aligned with version 11.27 of the Corstone-320 FVP.
+   The TF-M port is aligned with version 11.32 of the Corstone-320 FVP.
 
 #. Install the FVP
 #. Copy ``bl1_1.bin``, ``cm_provisioning_bundle.bin``, ``dm_provisioning_bundle.bin``,

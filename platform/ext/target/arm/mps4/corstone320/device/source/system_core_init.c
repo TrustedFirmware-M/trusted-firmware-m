@@ -14,9 +14,9 @@
 /*----------------------------------------------------------------------------
   Define clocks
  *----------------------------------------------------------------------------*/
- #define  XTAL             (25000000UL)
+ #define  XTAL             (50000000UL)
  #define  SYSTEM_CLOCK     (XTAL)
- #define  PERIPHERAL_CLOCK (25000000UL)
+ #define  PERIPHERAL_CLOCK (50000000UL)
 
 /*----------------------------------------------------------------------------
   Exception / Interrupt Vector table

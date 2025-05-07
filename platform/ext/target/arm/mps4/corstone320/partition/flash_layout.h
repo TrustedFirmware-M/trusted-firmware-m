@@ -67,7 +67,7 @@
 /* Sector size of the flash hardware; same as FLASH0_SECTOR_SIZE */
 #define FLASH_AREA_IMAGE_SECTOR_SIZE    (0x10000)         /* 64 kB */
 /* Same as FLASH0_SIZE */
-#define FLASH_TOTAL_SIZE                (QSPI_SRAM_SIZE)  /* 2 MB */
+#define FLASH_TOTAL_SIZE                (QSPI_FLASH_SIZE)  /* 128 MB */
 
 #if ((FLASH_S_PARTITION_SIZE % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0)
 #error "Secure image size should be a multiple of flash sector size!"
@@ -87,7 +87,7 @@
 
 /* Flash layout info for BL2 bootloader */
 /* Same as FLASH0_BASE_S */
-#define FLASH_BASE_ADDRESS              (QSPI_SRAM_BASE_S)
+#define FLASH_BASE_ADDRESS              (QSPI_FLASH_BASE_S)
 /* Flash layout info for BL1 bootloader */
 /* Same as FLASH1_BASE_S */
 #define FLASH_BL1_BASE_ADDRESS          (SRAM_BASE_S)
@@ -179,7 +179,7 @@
 
 /* mpc_init_cfg function in target_cfg.c expects that all the images can fit
  * in SRAM area. */
-#if ( FLASH_OTP_NV_COUNTERS_AREA_OFFSET + FLASH_OTP_NV_COUNTERS_AREA_SIZE > QSPI_SRAM_SIZE)
+#if ( FLASH_OTP_NV_COUNTERS_AREA_OFFSET + FLASH_OTP_NV_COUNTERS_AREA_SIZE > QSPI_FLASH_SIZE)
 #error "Out of QSPI SRAM memory!"
 #endif
 

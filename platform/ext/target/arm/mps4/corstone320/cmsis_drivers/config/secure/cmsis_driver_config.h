@@ -1,17 +1,7 @@
 /*
- * Copyright (c) 2019-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef __CMSIS_DRIVER_CONFIG_H__
@@ -25,7 +15,8 @@
 
 #define MPC_ISRAM0_DEV      MPC_ISRAM0_DEV_S
 #define MPC_ISRAM1_DEV      MPC_ISRAM1_DEV_S
-#define MPC_SRAM_DEV        MPC_SRAM_DEV_S
+#define MPC_ISRAM2_DEV      MPC_ISRAM2_DEV_S
+#define MPC_ISRAM3_DEV      MPC_ISRAM3_DEV_S
 #define MPC_QSPI_DEV        MPC_QSPI_DEV_S
 #define MPC_DDR4_DEV        MPC_DDR4_DEV_S
 

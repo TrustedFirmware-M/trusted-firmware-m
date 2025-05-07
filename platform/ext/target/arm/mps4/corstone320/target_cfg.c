@@ -43,7 +43,8 @@ extern ARM_DRIVER_MPC Driver_ITCM_TGU_ARMV8_M;
 extern ARM_DRIVER_MPC Driver_DTCM_TGU_ARMV8_M;
 extern ARM_DRIVER_MPC Driver_ISRAM0_MPC;
 extern ARM_DRIVER_MPC Driver_ISRAM1_MPC;
-extern ARM_DRIVER_MPC Driver_SRAM_MPC;
+extern ARM_DRIVER_MPC Driver_ISRAM2_MPC;
+extern ARM_DRIVER_MPC Driver_ISRAM3_MPC;
 extern ARM_DRIVER_MPC Driver_QSPI_MPC;
 extern ARM_DRIVER_MPC Driver_DDR4_MPC;
 
@@ -129,8 +130,8 @@ struct platform_data_t
     tfm_peripheral_FF_TEST_UART_REGION = {
         UART2_BASE_S,
         UART2_BASE_S + 0xFFF,
-        PPC_SP_PERIPH_EXP2,
-        UART2_PERIPH_PPCEXP2_POS_MASK
+        PPC_SP_MAIN_EXP2,
+        CMSDK_FPGA_UART_2_MAIN_PPCEXP2_POS_MASK
 };
 
 struct platform_data_t
@@ -244,9 +245,15 @@ enum tfm_plat_err_t nvic_interrupt_enable(void)
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
-    ret = Driver_SRAM_MPC.EnableInterrupt();
+    ret = Driver_ISRAM2_MPC.EnableInterrupt();
     if (ret != ARM_DRIVER_OK) {
-        ERROR_MSG("Failed to Enable MPC interrupt for SRAM!");
+        ERROR_MSG("Failed to Enable MPC interrupt for ISRAM2!");
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
+
+    ret = Driver_ISRAM3_MPC.EnableInterrupt();
+    if (ret != ARM_DRIVER_OK) {
+        ERROR_MSG("Failed to Enable MPC interrupt for ISRAM3!");
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
@@ -333,106 +340,114 @@ void sau_and_idau_cfg(void)
           +---------------+  +-----------------------+  +------------+  +-------------+  +---------------+
           |   IDAU view   |  |      SAU view         |  | IDAU + SAU |  | TGU/MPC/PPC |  |   Resulting   |
 0x00000000+=======+=======+  +=======+=======+=======+  +============+  +=============+  +===============+
-          | ITCM  |       |  | ITCM  |       |       |  |            |  |   (TGU) NS  |  |       NS      |
-0x00008000+-------+       |  +-------+       |       |  |            |  +-------------+  +  -------------+
+          | ITCM  |  NS   |  | ITCM  |  NS   | RNR 0 |  |     NS     |  |   (TGU) NS  |  |       NS      |
+0x00008000+-------+       |  +-------+       |       |  |            |  +-------------+  +---------------+
           |               |  |               |       |  |            |  |      S      |  |       X       |
 0x01000000+-------+  NS   |  +-------+       |       |  |     NS     |  +-------------+  +---------------+
-          | SRAM  |       |  | SRAM  |       |       |  |            |  |  (MPC) NS   |  |       NS      |
+          | SRAM  |  NS   |  | SRAM  |  NS   | RNR 0 |  |     NS     |  |      -      |  |       NS      |
 0x01200000+-------+       |  +-------+       |       |  |            |  +-------------+  +---------------+
           |               |  |               |       |  |            |  |             |  |       X       |
-0x10000000+-------+-------+  +-------+       |       |  +------------+  |             |  +---------------+
+0x0A000000+-------+-------+  +-------+-------+-------+  +------------+  +-------------+  +---------------+
+          | CPU0  |  NS   |  | CPU0  |  NS   | RNR 0 |  |     NS     |  |   (TGU) NS  |  |       NS      |
           | ITCM  |       |  | ITCM  |       |       |  |            |  |             |  |               |
+0x0A008000+-------+       |  +-------+       |       |  |            |  +-------------+  +---------------+
+          |               |  |               |       |  |            |  |             |  |       X       |
+0x10000000+-------+-------+  +-------+       |       |  +------------+  |             |  +---------------+
+          | ITCM  |   S   |  | ITCM  |  NS   | RNR 0 |  |     S      |  |      S      |  |       S       |
 0x10008000+-------+       |  +-------+       |       |  |            |  |             |  |               |
           |               |  |               |       |  |            |  |             |  |               |
-0x11000000+---------+     |  +---------+     |       |  |            |  |             |  |               |
-          | BOOTROM |     |  | BOOTROM |     |       |  |            |  |             |  |               |
-          +---------+     |  +---------+     |       |  |            |  |             |  |               |
-          | BL1_1 |       |  | BL1_1 |       |       |  |            |  |             |  |               |
-          +-------+       |  +-------+       |       |  |            |  |             |  |               |
-          |       |       |  |       |       |       |  |            |  |             |  |               |
-0x11020000+-------+       |  +-------+       |       |  |            |  |             |  |               |
-          |          S    |  |               |       |  |     S      |  |      S      |  |       S       |
+0x11000000+-------+       |  +-------+       |       |  |            |  |             |  |               |
+          | ROM   |   S   |  |  ROM  |  NS   | RNR 0 |  |     S      |  |      S      |  |       S       |
+0x11010000+-------+       |  +-------+       |       |  |            |  |             |  |               |
+          |               |  |               |       |  |            |  |             |  |               |
 0x12000000+-------+       +  +-------+       |       |  |            |  |             |  |               |
-          | SRAM  |       |  | SRAM  |       |       |  |            |  |             |  |               |
-          +-----------+   |  +-----------+   |       |  |            |  |             |  |               |
-          | CM Bundle |   |  | CM Bundle |   |       |  |            |  |             |  |               |
-          +-----------+   |  +-----------+   |       |  |            |  |             |  |               |
-          | DM Bundle |   |  | DM Bundle |   |       |  |            |  |             |  |               |
-          +-----------+   |  +-----------+   |       |  |            |  |             |  |               |
-          | BL2 |         |  | BL2 |         |       |  |            |  |             |  |               |
-          +-----+         |  +-----+         |       |  |            |  |             |  |               |
+          | SRAM  |   S   |  | SRAM  |  NS   | RNR 0 |  |     S      |  |      S      |  |       S       |
+0x12200000+-------+       |  +-------+       |       |  |            |  |             |  |               |
+          |               |  |               |       |  |            |  |             |  |               |
+0x1A000000+-------+-------+  +-------+-------+-------+  +------------+  +-------------+  +---------------+
+          | CPU   |   S   |  | CPU0  |  NS   | RNR 0 |  |     S      |  |      S      |  |       S       |
+          | ITCM  |       |  | ITCM  |       |       |  |            |  |             |  |               |
+0x1A008000+-------+       |  +-------+       |       |  |            |  +-------------+  +---------------+
           |               |  |               |       |  |            |  |             |  |               |
 0x20000000+-------+-------+  +-------+  NS   | RNR 0 |  +------------+  +-------------+  +---------------+
-          | DTCM  |       |  | DTCM  |       |       |  |            |  |   (TGU) NS  |  |       NS      |
+          | DTCM  |  NS   |  | DTCM  |  NS   | RNR 0 |  |     NS     |  |   (TGU) NS  |  |       NS      |
 0x20008000+-------+       |  +-------+       |       |  |            |  +-------------+  +---------------+
           |               |  |               |       |  |            |  |             |  |               |
 0x21000000+--------+      |  +--------+      |       |  |            |  |      S      |  |       X       |
-          | ISRAM0 |      |  | ISRAM0 |      |       |  |            |  |             |  |               |
+          | ISRAM0 |  NS  |  | ISRAM0 |  NS  | RNR 0 |  |     NS     |  |      S      |  |       X       |
 0x21020000+--------+      |  +--------+      |       |  |            |  +-------------+  +---------------+
-          | ISRAM0 |      |  | ISRAM0 |      |       |  |            |  |             |  |               |
-0x21200000+--------+      |  +--------+      |       |  |            |  |   (MPC) NS  |  |       NS      |
-          | ISRAM1 |      |  | ISRAM1 |      |       |  |            |  |             |  |               |
-0x21400000+--------+      |  +--------+      |       |  |            |  +-------------+  +---------------+
+          | ISRAM0 |  NS  |  | ISRAM0 |  NS  | RNR 0 |  |     NS     |  |   (MPC) NS  |  |       NS      |
+0x21200000+--------+      |  +--------+      |       |  |            |  |             |  |               |
+          | ISRAM1 |  NS  |  | ISRAM1 |  NS  | RNR 0 |  |     NS     |  |   (MPC) NS  |  |       NS      |
+0x21400000+--------+      |  +--------+      |       |  |            |  |             |  |               |
+          | ISRAM2 |  NS  |  | ISRAM2 |  NS  | RNR 0 |  |     NS     |  |   (MPC) NS  |  |       NS      |
+0x21600000+--------+      |  +--------+      |       |  |            |  |             |  |               |
+          | ISRAM3 |  NS  |  | ISRAM3 |  NS  | RNR 0 |  |     NS     |  |   (MPC) NS  |  |       NS      |
+0x21800000+--------+      |  +--------+      |       |  |            |  +-------------+  +---------------+
           |               |  |               |       |  |            |  |             |  |               |
 0x28000000+-------+       |  +-------+       |       |  |            |  |             |  |               |
           | QSPI  |       |  | QSPI  |       |       |  |            |  |             |  |               |
           +-------+  NS   |  +-------+       |       |  |     NS     |  |      S      |  |       X       |
-          | s-    |       |  | s-    |       |       |  |            |  |             |  |               |
+          | s-    |  NS   |  | s-    |  NS   | RNR 0 |  |     NS     |  |      S      |  |       X       |
           | part  |       |  | part  |       |       |  |            |  |             |  |               |
           | ion   |       |  | ion   |       |       |  |            |  |             |  |               |
-          +-------+       |  +-------+       |       |  |            |  |             |  |               |
-          | ven-  |       |  | ven-  |       |       |  |            |  |             |  |               |
-          | eer   |       |  | eer   |       |       |  |            |  |             |  |               |
           +-------+       |  +-------+       |       |  |            |  +-------------+  +---------------+
-          | ns-   |       |  | ns-   |       |       |  |            |  |             |  |               |
-          | part  |       |  | part  |       |       |  |            |  |   (MPC) NS  |  |       NS      |
+          | ns-   |  NS   |  | ns-   |  NS   | RNR 0 |  |     NS     |  |   (MPC) NS  |  |       NS      |
+          | part  |       |  | part  |       |       |  |            |  |             |  |               |
           | ion   |       |  | ion   |       |       |  |            |  |             |  |               |
-0x28800000+-------+       |  +-------+-------+-------+  +------------+  +-------------+  +---------------+
-          |               |  |                       |  |            |  |             |  |               |
-0x30000000+-------+-------+  +-------+               |  |            |  |             |  |               |
-          | DTCM  |       |  | DTCM  |               |  |            |  |             |  |               |
+          +-------+       |  +-------+-------+-------+  +------------+  +-------------+  +---------------+
+          | other |  NS   |  | other |   S   |       |  |     S      |  |      S      |  |       S       |
+0x30000000+-------+-------+  +-------+               |  +------------+  +-------------+  +---------------+
+          | DTCM  |  NSC  |  | DTCM  |   S   |       |  |     S      |  |      S      |  |       S       |
 0x30008000+-------+       |  +-------+               |  |            |  |             |  |               |
-          |               |  |                       |  |            |  |             |  |               |
-0x31500000+-------+       |  +-------+               |  |            |  |             |  |               |
-          | ISRAM |       |  | ISRAM |               |  |            |  |             |  |               |
-0x31400000+-------+  NSC  |  +-------+   S           |  |     S      |  |      S      |  |       S       |
+          |               |  |               |       |  |            |  |             |  |               |
+0x31000000+--------+      |  +--------+   S          |  |     S      |  |      S      |  |       S       |
+          | ISRAM0 |  NSC |  | ISRAM0 |   S  |       |  |     S      |  |      S      |  |       S       |
+0x31200000+--------+      |  +--------+              |  |            |  |             |  |               |
+          | ISRAM1 |  NSC |  | ISRAM1 |   S  |       |  |     S      |  |      S      |  |       S       |
+0x31400000+--------+      |  +--------+              |  |            |  |             |  |               |
+          | ISRAM2 |  NSC |  | ISRAM2 |   S  |       |  |     S      |  |      S      |  |       S       |
+0x31600000+--------+      |  +--------+              |  |            |  |             |  |               |
+          | ISRAM3 |  NSC |  | ISRAM3 |   S  |       |  |     S      |  |      S      |  |       S       |
+0x31800000+--------+      |  +--------+              |  |            |  |             |  |               |
           |               |  |                       |  |            |  |             |  |               |
 0x38000000+-------+       |  +-------+               |  |            |  |             |  |               |
           | QSPI  |       |  | QSPI  |               |  |            |  |             |  |               |
           +-------+       |  +-------+               |  |            |  |             |  |               |
-          | s-    |       |  | s-    |               |  |            |  |             |  |               |
+          | s-    |  NSC  |  | s-    |   S   |       |  |     S      |  |      S      |  |       S       |
           | part  |       |  | part  |               |  |            |  |             |  |               |
           | ion   |       |  | ion   |               |  |            |  |             |  |               |
           +-------+       |  +-------+-------+-------+  +------------+  |             |  +---------------+
-          | ven-  |       |  | ven-  |  NSC  | RNR 1 |  |    NSC     |  |             |  |      NSC      |
+          | ven-  |  NSC  |  | ven-  |  NSC  | RNR 1 |  |    NSC     |  |      S      |  |      NSC      |
           | eer   |       |  | eer   |       |       |  |            |  |             |  |               |
           +-------+       |  +-------+-------+-------+  +------------+  |             |  +---------------+
-          | ns-   |       |  | ns-   |               |  |            |  |             |  |               |
+          | ns-   |  NSC  |  | ns-   |   S   |       |  |     S      |  |      S      |  |       S       |
           | part  |       |  | part  |               |  |            |  |             |  |               |
           | ion   |       |  | ion   |       S       |  |     S      |  |             |  |       S       |
-0x38800000+-------+       |  +-------+               |  |            |  |             |  |               |
-          |               |  |                       |  |            |  |             |  |               |
+          +-------+       |  +-------+               |  |            |  +-------------+  +---------------+
+          | other |  NSC  |  | other |   S   |       |  |     S      |  |      S      |  |       S       |
 0x40000000+--------+------+  +--------+------+-------+  +------------+  +-------------+  +---------------+
-          | Periph |  NS  |  | Periph |      |       |  |     NS     |  |   (PPC) NS  |  |       NS      |
+          | Periph |  NS  |  | Periph |  NS  | RNR 2 |  |     NS     |  |   (PPC) NS  |  |       NS      |
 0x50000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
-          | Periph |   S  |  | Periph |      |       |  |     S      |  |      S      |  |       S       |
+          | Periph |   S  |  | Periph |  NS  | RNR 2 |  |     S      |  |      S      |  |       S       |
 0x60000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
-          | DDR4 0 |  NS  |  | DDR4 0 |      |       |  |     NS     |  |   (MPC) NS  |  |       NS      |
+          | DDR4 0 |  NS  |  | DDR4 0 |  NS  | RNR 2 |  |     NS     |  |   (MPC) NS  |  |       NS      |
 0x70000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
-          | DDR4 1 |   S  |  | DDR4 1 |      |       |  |     S      |  |      S      |  |       S       |
+          | DDR4 1 |   S  |  | DDR4 1 |  NS  | RNR 2 |  |     S      |  |      S      |  |       S       |
 0x80000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
-          | DDR4 2 |  NS  |  | DDR4 2 |      |       |  |     NS     |  |   (MPC) NS  |  |       NS      |
+          | DDR4 2 |  NS  |  | DDR4 2 |  NS  | RNR 2 |  |     NS     |  |   (MPC) NS  |  |       NS      |
 0x90000000+--------+------+  +--------+  NS  | RNR 2 |  +------------+  +-------------+  +---------------+
-          | DDR4 3 |   S  |  | DDR4 3 |      |       |  |     S      |  |      S      |  |       S       |
+          | DDR4 3 |   S  |  | DDR4 3 |  NS  | RNR 2 |  |     S      |  |      S      |  |       S       |
 0xA0000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
-          | DDR4 4 |  NS  |  | DDR4 4 |      |       |  |     NS     |  |   (MPC) NS  |  |       NS      |
+          | DDR4 4 |  NS  |  | DDR4 4 |  NS  | RNR 2 |  |     NS     |  |   (MPC) NS  |  |       NS      |
 0xB0000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
-          | DDR4 5 |   S  |  | DDR4 5 |      |       |  |     S      |  |      S      |  |       S       |
+          | DDR4 5 |   S  |  | DDR4 5 |  NS  | RNR 2 |  |     S      |  |      S      |  |       S       |
 0xC0000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
-          | DDR4 6 |  NS  |  | DDR4 6 |      |       |  |     NS     |  |   (MPC) NS  |  |       NS      |
+          | DDR4 6 |  NS  |  | DDR4 6 |  NS  | RNR 2 |  |     NS     |  |   (MPC) NS  |  |       NS      |
 0xD0000000+--------+------+  +--------+      |       |  +------------+  +-------------+  +---------------+
-          | DDR4 7 |   S  |  | DDR4 7 |      |       |  |     S      |  |      S      |  |       S       |
-0xE0000000+--------+------+  +--------+------+-------+  +------------+  +-------------+  +---------------*/
+          | DDR4 7 |   S  |  | DDR4 7 |  NS  | RNR 2 |  |     S      |  |      S      |  |       S       |
+0xE0000000+--------+------+  +--------+------+-------+  +------------+  +-------------+  +---------------+
+*/
     struct mps4_corstone3xx_sacfg_t *sacfg = (struct mps4_corstone3xx_sacfg_t*)MPS4_CORSTONE3XX_SACFG_BASE_S;
     /* Ensure all memory accesses are completed */
     __DMB();
@@ -496,19 +511,6 @@ enum tfm_plat_err_t mpc_init_cfg(void)
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
-    ret = Driver_SRAM_MPC.Initialize();
-    if (ret != ARM_DRIVER_OK) {
-        ERROR_MSG("Failed to Initialize MPC for SRAM!");
-        return TFM_PLAT_ERR_SYSTEM_ERR;
-    }
-    ret = Driver_SRAM_MPC.ConfigRegion(MPC_SRAM_RANGE_BASE_NS,
-                                       MPC_SRAM_RANGE_LIMIT_NS,
-                                       ARM_MPC_ATTR_NONSECURE);
-    if (ret != ARM_DRIVER_OK) {
-        ERROR_MSG("Failed to Configure MPC for SRAM!");
-        return TFM_PLAT_ERR_SYSTEM_ERR;
-    }
-
     ret = Driver_ISRAM0_MPC.Initialize();
     if (ret != ARM_DRIVER_OK) {
         ERROR_MSG("Failed to Initialize MPC for ISRAM0!");
@@ -533,6 +535,32 @@ enum tfm_plat_err_t mpc_init_cfg(void)
                                          ARM_MPC_ATTR_NONSECURE);
     if (ret != ARM_DRIVER_OK) {
         ERROR_MSG("Failed to Configure MPC for ISRAM1!");
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
+
+    ret = Driver_ISRAM2_MPC.Initialize();
+    if (ret != ARM_DRIVER_OK) {
+        ERROR_MSG("Failed to Initialize MPC for ISRAM2!");
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
+    ret = Driver_ISRAM2_MPC.ConfigRegion(MPC_ISRAM2_RANGE_BASE_NS,
+                                         MPC_ISRAM2_RANGE_LIMIT_NS,
+                                         ARM_MPC_ATTR_NONSECURE);
+    if (ret != ARM_DRIVER_OK) {
+        ERROR_MSG("Failed to Configure MPC for ISRAM2!");
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
+
+    ret = Driver_ISRAM3_MPC.Initialize();
+    if (ret != ARM_DRIVER_OK) {
+        ERROR_MSG("Failed to Initialize MPC for ISRAM3!");
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
+    ret = Driver_ISRAM3_MPC.ConfigRegion(MPC_ISRAM3_RANGE_BASE_NS,
+                                         MPC_ISRAM3_RANGE_LIMIT_NS,
+                                         ARM_MPC_ATTR_NONSECURE);
+    if (ret != ARM_DRIVER_OK) {
+        ERROR_MSG("Failed to Configure MPC for ISRAM3!");
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
@@ -590,9 +618,10 @@ enum tfm_plat_err_t mpc_init_cfg(void)
     /* Lock down the MPCs and TGUs */
     Driver_ITCM_TGU_ARMV8_M.LockDown();
     Driver_DTCM_TGU_ARMV8_M.LockDown();
-    Driver_SRAM_MPC.LockDown();
     Driver_ISRAM0_MPC.LockDown();
     Driver_ISRAM1_MPC.LockDown();
+    Driver_ISRAM2_MPC.LockDown();
+    Driver_ISRAM3_MPC.LockDown();
     Driver_QSPI_MPC.LockDown();
     Driver_DDR4_MPC.LockDown();
 
@@ -615,12 +644,16 @@ void mpc_revert_non_secure_to_secure_cfg(void)
                             (DTCM0_BASE_S + (DTCM_BLK_SIZE * DTCM_BLK_NUM) - 1),
                             ARM_MPC_ATTR_SECURE);
 
-    Driver_SRAM_MPC.ConfigRegion(MPC_SRAM_RANGE_BASE_S,
-                                 MPC_SRAM_RANGE_LIMIT_S,
-                                 ARM_MPC_ATTR_SECURE);
-
     Driver_ISRAM1_MPC.ConfigRegion(MPC_ISRAM1_RANGE_BASE_S,
                                    MPC_ISRAM1_RANGE_LIMIT_S,
+                                   ARM_MPC_ATTR_SECURE);
+
+    Driver_ISRAM2_MPC.ConfigRegion(MPC_ISRAM2_RANGE_BASE_S,
+                                   MPC_ISRAM2_RANGE_LIMIT_S,
+                                   ARM_MPC_ATTR_SECURE);
+
+    Driver_ISRAM3_MPC.ConfigRegion(MPC_ISRAM3_RANGE_BASE_S,
+                                   MPC_ISRAM3_RANGE_LIMIT_S,
                                    ARM_MPC_ATTR_SECURE);
 
     Driver_QSPI_MPC.ConfigRegion(MPC_QSPI_RANGE_BASE_S,
@@ -637,7 +670,11 @@ void mpc_revert_non_secure_to_secure_cfg(void)
 void mpc_clear_irq(void)
 {
     Driver_ISRAM0_MPC.ClearInterrupt();
-    Driver_SRAM_MPC.ClearInterrupt();
+    Driver_ISRAM1_MPC.ClearInterrupt();
+    Driver_ISRAM2_MPC.ClearInterrupt();
+    Driver_ISRAM3_MPC.ClearInterrupt();
+    Driver_QSPI_MPC.ClearInterrupt();
+    Driver_DDR4_MPC.ClearInterrupt();
 }
 
 /*------------------- PPC configuration functions -------------------------*/
@@ -646,27 +683,6 @@ enum tfm_plat_err_t ppc_init_cfg(void)
     struct mps4_corstone3xx_sacfg_t *sacfg =
                                 (struct mps4_corstone3xx_sacfg_t*)MPS4_CORSTONE3XX_SACFG_BASE_S;
     int32_t err = ARM_DRIVER_OK;
-
-    /* Grant non-secure access to peripherals on MAIN EXP0 */
-    err |= Driver_MAIN_EXP0_PPC_CORSTONE320.Initialize();
-    err |= Driver_MAIN_EXP0_PPC_CORSTONE320.ConfigSecurity(
-                                        GPIO0_MAIN_PPCEXP0_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
-    err |= Driver_MAIN_EXP0_PPC_CORSTONE320.ConfigSecurity(
-                                        GPIO1_MAIN_PPCEXP0_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
-    err |= Driver_MAIN_EXP0_PPC_CORSTONE320.ConfigSecurity(
-                                        GPIO2_MAIN_PPCEXP0_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
-    err |= Driver_MAIN_EXP0_PPC_CORSTONE320.ConfigSecurity(
-                                        GPIO3_MAIN_PPCEXP0_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
-    err |= Driver_MAIN_EXP0_PPC_CORSTONE320.ConfigSecurity(
-                                        HDLCD_MAIN_PPCEXP0_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
-    err |= Driver_MAIN_EXP0_PPC_CORSTONE320.ConfigSecurity(
-                                        USB_AND_ETHERNET_MAIN_PPCEXP0_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
 
     /* Grant non-secure access to peripherals on PERIPH0 */
     err |= Driver_PERIPH0_PPC_CORSTONE320.Initialize();
@@ -682,9 +698,6 @@ enum tfm_plat_err_t ppc_init_cfg(void)
     err |= Driver_PERIPH0_PPC_CORSTONE320.ConfigSecurity(
                                         SYSTEM_TIMER3_PERIPH_PPC0_POS_MASK,
                                         ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
-    err |= Driver_PERIPH0_PPC_CORSTONE320.ConfigSecurity(
-                                        WATCHDOG_PERIPH_PPC0_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
 
     /* Grant non-secure access to peripherals on PERIPH1 */
     err |= Driver_PERIPH1_PPC_CORSTONE320.Initialize();
@@ -692,36 +705,110 @@ enum tfm_plat_err_t ppc_init_cfg(void)
                                         SLOWCLK_TIMER_PERIPH_PPC1_POS_MASK,
                                         ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
 
-    /* Grant non-secure access to peripherals on PERIPH EXP2 */
+    /* Grant non-secure access to peripherals on MAIN EXP0 */
+    err |= Driver_MAIN_EXP0_PPC_CORSTONE320.Initialize();
+    err |= Driver_MAIN_EXP0_PPC_CORSTONE320.ConfigSecurity(
+                                        GPIO0_MAIN_PPCEXP0_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP0_PPC_CORSTONE320.ConfigSecurity(
+                                        GPIO1_MAIN_PPCEXP0_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP0_PPC_CORSTONE320.ConfigSecurity(
+                                        QSPI_WR_CTRL_MAIN_PPCEXP0_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP0_PPC_CORSTONE320.ConfigSecurity(
+                                        QSPI_XIP_CTRL_MAIN_PPCEXP0_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+
+    /* Grant non-secure access to peripherals on MAIN EXP1 */
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.Initialize();
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        FPGA_SBCon_AUDIO_I2C_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        PPCEXP2_PERIPHERALS_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        FPGA_CMSDK_I2C_DDR4_SODIMM_SPD_EEPROM_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        AUDIO_TX_FORMATTER_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        AUDIO_TX_CTRL_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        AUDIO_RX_FORMATTER_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        AUDIO_RX_CTRL_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        FPGA_SCC_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        FPGA_I2S_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        CMSDK_UART_3_SHIELD_0_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        CMSDK_UART_4_SHIELD_1_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        FPGA_SBCon_I2C_HDMI_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        HDLCD_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        CSI_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        CSI_VIDEO_FRAME_BUFFER_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.ConfigSecurity(
+                                        FPGA_CMSDK_I2C_CSI_MAIN_PPCEXP1_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+
+    /* Grant non-secure access to peripherals on MAIN EXP2 */
+    err |= Driver_MAIN_EXP2_PPC_CORSTONE320.Initialize();
+    err |= Driver_MAIN_EXP2_PPC_CORSTONE320.ConfigSecurity(
+                                        FPGA_PL022_SPI_SHIELD_ADC_MAIN_PPCEXP2_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP2_PPC_CORSTONE320.ConfigSecurity(
+                                        FPGA_PL022_SPI_SHIELD_0_MAIN_PPCEXP2_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP2_PPC_CORSTONE320.ConfigSecurity(
+                                        FPGA_PL022_SPI_SHIELD_1_MAIN_PPCEXP2_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP2_PPC_CORSTONE320.ConfigSecurity(
+                                        FPGA_SBCon_SHIELD_0_I2C_MAIN_PPCEXP2_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP2_PPC_CORSTONE320.ConfigSecurity(
+                                        FPGA_SBCon_SHIELD_1_I2C_MAIN_PPCEXP2_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP2_PPC_CORSTONE320.ConfigSecurity(
+                                        CMSDK_FPGA_UART_0_MAIN_PPCEXP2_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP2_PPC_CORSTONE320.ConfigSecurity(
+                                        CMSDK_FPGA_UART_1_MAIN_PPCEXP2_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP2_PPC_CORSTONE320.ConfigSecurity(
+                                        CMSDK_FPGA_UART_2_MAIN_PPCEXP2_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP2_PPC_CORSTONE320.ConfigSecurity(
+                                        CMSDK_FPGA_UART_3_MAIN_PPCEXP2_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP2_PPC_CORSTONE320.ConfigSecurity(
+                                        FPGA_IO_MAIN_PPCEXP2_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+    err |= Driver_MAIN_EXP2_PPC_CORSTONE320.ConfigSecurity(
+                                        HDMI_AUDIO_TX_FRAME_BUFFER_MAIN_PPCEXP2_POS_MASK,
+                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
+
+    /* Grant non-secure access to FVP peripherals on PERIPH EXP2 */
     err |= Driver_PERIPH_EXP2_PPC_CORSTONE320.Initialize();
-
-    err |= Driver_PERIPH_EXP2_PPC_CORSTONE320.ConfigSecurity(
-                                        FPGA_I2S_PERIPH_PPCEXP2_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
-    err |= Driver_PERIPH_EXP2_PPC_CORSTONE320.ConfigSecurity(
-                                        FPGA_IO_PERIPH_PPCEXP2_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
-    err |= Driver_PERIPH_EXP2_PPC_CORSTONE320.ConfigSecurity(
-                                        UART0_PERIPH_PPCEXP2_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
-    err |= Driver_PERIPH_EXP2_PPC_CORSTONE320.ConfigSecurity(
-                                        UART1_PERIPH_PPCEXP2_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
-#ifndef PSA_FF_TEST_SECURE_UART2
-    err |= Driver_PERIPH_EXP2_PPC_CORSTONE320.ConfigSecurity(
-                                        UART2_PERIPH_PPCEXP2_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
-#endif
-    err |= Driver_PERIPH_EXP2_PPC_CORSTONE320.ConfigSecurity(
-                                        UART3_PERIPH_PPCEXP2_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
-    err |= Driver_PERIPH_EXP2_PPC_CORSTONE320.ConfigSecurity(
-                                        UART4_PERIPH_PPCEXP2_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
-    err |= Driver_PERIPH_EXP2_PPC_CORSTONE320.ConfigSecurity(
-                                        UART5_PERIPH_PPCEXP2_POS_MASK,
-                                        ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
-
     err |= Driver_PERIPH_EXP2_PPC_CORSTONE320.ConfigSecurity(
                                         VSI_PERIPH_PPCEXP2_POS_MASK,
                                         ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
@@ -733,15 +820,13 @@ enum tfm_plat_err_t ppc_init_cfg(void)
                                         ARM_PPC_CORSTONE320_NONSECURE_CONFIG);
 
     /* Grant un-privileged access for UART0 in NS domain */
-    err |= Driver_PERIPH_EXP2_PPC_CORSTONE320.ConfigPrivilege(
-                                        UART0_PERIPH_PPCEXP2_POS_MASK,
+    err |= Driver_MAIN_EXP2_PPC_CORSTONE320.ConfigPrivilege(
+                                        CMSDK_FPGA_UART_0_MAIN_PPCEXP2_POS_MASK,
                                         ARM_PPC_CORSTONE320_NONSECURE_CONFIG,
                                         ARM_PPC_CORSTONE320_PRIV_AND_NONPRIV_CONFIG);
 
     /* Initialize not used PPC drivers */
     err |= Driver_MAIN0_PPC_CORSTONE320.Initialize();
-    err |= Driver_MAIN_EXP1_PPC_CORSTONE320.Initialize();
-    err |= Driver_MAIN_EXP2_PPC_CORSTONE320.Initialize();
     err |= Driver_MAIN_EXP3_PPC_CORSTONE320.Initialize();
     err |= Driver_PERIPH_EXP0_PPC_CORSTONE320.Initialize();
     err |= Driver_PERIPH_EXP1_PPC_CORSTONE320.Initialize();
