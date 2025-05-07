@@ -8,8 +8,12 @@
 #include "fih.h"
 
 #ifdef FIH_ENABLE_DELAY
+#ifndef RSE_ENABLE_FIH_SW_DELAY
 #include "kmu_drv.h"
 #include "device_definition.h"
+#else
+#include "bl1_random.h"
+#endif
 #endif /* FIH_ENABLE_DELAY */
 
 #ifdef TFM_FIH_PROFILE_ON
@@ -82,22 +86,36 @@ void fih_panic_loop(void)
     /* An infinite loop to suppress compiler warnings
      * about the return of a noreturn function
      */
-    while(1) {
-    };
+    while(1) {}
 }
 #endif /* FIH_ENABLE_GLOBAL_FAIL */
 
 #if defined(FIH_ENABLE_DELAY) && defined(FIH_ENABLE_DELAY_PLATFORM)
 void fih_delay_init(void)
 {
-    /* Nothing to init, random delays through HW KMU */
+    /* Nothing to init */
     return;
 }
 
 int fih_delay_platform(void)
 {
+#ifndef RSE_ENABLE_FIH_SW_DELAY
     kmu_random_delay(&KMU_DEV_S, KMU_DELAY_LIMIT_32_CYCLES);
-    /* No SW based delay */
+#else
+    uint64_t random;
+    volatile uint32_t counter = 0;
+
+    if (bl1_random_generate_fast((uint8_t *)&random, sizeof(random))) {
+        FIH_PANIC;
+    }
+
+    /* Delays between 0 and 31 cycles to mimic the
+     * same delays allowed by the KMU configured above
+     */
+    while (counter < ((uint32_t)random) & 0x1F) {
+        counter++;
+    }
+#endif /* RSE_ENABLE_FIH_SW_DELAY */
     return 1;
 }
 #endif /* FIH_ENABLE_DELAY && FIH_ENABLE_DELAY_PLATFORM */

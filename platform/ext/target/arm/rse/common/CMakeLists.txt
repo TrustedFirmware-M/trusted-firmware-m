@@ -498,6 +498,7 @@ target_sources(platform_bl1_1
 target_compile_definitions(platform_bl1_1
     PRIVATE
         $<$<BOOL:${PLATFORM_PSA_ADAC_SECURE_DEBUG}>:PLATFORM_PSA_ADAC_SECURE_DEBUG>
+        $<$<BOOL:${RSE_ENABLE_FIH_SW_DELAY}>:RSE_ENABLE_FIH_SW_DELAY>
 )
 
 target_include_directories(platform_bl1_1_interface
