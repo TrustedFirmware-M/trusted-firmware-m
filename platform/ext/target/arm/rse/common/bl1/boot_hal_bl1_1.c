@@ -8,6 +8,7 @@
 #include "boot_hal.h"
 #include "region.h"
 #include "device_definition.h"
+#include "tfm_plat_shared_measurement_data.h"
 #include "Driver_Flash.h"
 #include "flash_layout.h"
 #include "host_base_address.h"
@@ -185,7 +186,8 @@ int32_t boot_platform_init(void)
     }
 
     /* Clear boot data area */
-    memset((void*)SHARED_BOOT_MEASUREMENT_BASE, 0, SHARED_BOOT_MEASUREMENT_SIZE);
+    memset((void *)tfm_plat_get_shared_measurement_data_base(), 0,
+           tfm_plat_get_shared_measurement_data_size());
 
     return 0;
 }

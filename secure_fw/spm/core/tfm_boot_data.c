@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2025, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -18,6 +18,7 @@
 #include "spm.h"
 #include "load/partition_defs.h"
 #include "tfm_hal_isolation.h"
+#include "tfm_plat_shared_measurement_data.h"
 
 /*!
  * \def BOOT_DATA_VALID
@@ -115,22 +116,23 @@ static int32_t tfm_core_check_boot_data_access_policy(uint8_t major_type)
     return rc;
 }
 
-/* Compile time check to verify that shared data region is not overlapping with
- * non-secure data area.
- */
-#if (((BOOT_TFM_SHARED_DATA_BASE  >= NS_DATA_START) && \
-      (BOOT_TFM_SHARED_DATA_BASE  <= NS_DATA_LIMIT)) || \
-     ((BOOT_TFM_SHARED_DATA_LIMIT >= NS_DATA_START) && \
-      (BOOT_TFM_SHARED_DATA_LIMIT <= NS_DATA_LIMIT)))
-#error "Shared data area and non-secure data area is overlapping"
-#endif
-
 void tfm_core_validate_boot_data(void)
 {
 #ifdef BOOT_DATA_AVAILABLE
     struct tfm_boot_data *boot_data;
+    const uintptr_t data_base = tfm_plat_get_shared_measurement_data_base();
+    const uintptr_t data_limit = data_base + tfm_plat_get_shared_measurement_data_size() - 1;
 
-    boot_data = (struct tfm_boot_data *)SHARED_BOOT_MEASUREMENT_BASE;
+    const bool overlapping_with_ns =
+        ((data_base >= NS_DATA_START) && (data_base <= NS_DATA_LIMIT)) ||
+        ((data_limit >= NS_DATA_START) && (data_limit <= NS_DATA_LIMIT));
+    if (overlapping_with_ns) {
+        assert(false);
+        /* Not setting BOOT_DATA_VALID */
+        return;
+    }
+
+    boot_data = (struct tfm_boot_data *)data_base;
 
     if (boot_data->header.tlv_magic == SHARED_DATA_TLV_INFO_MAGIC) {
         is_boot_data_valid = BOOT_DATA_VALID;
@@ -154,6 +156,7 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
 #endif /* BOOT_DATA_AVAILABLE */
     const struct partition_t *curr_partition = GET_CURRENT_COMPONENT();
     fih_int fih_rc = FIH_FAILURE;
+    const uintptr_t data_base = tfm_plat_get_shared_measurement_data_base();
 
     FIH_CALL(tfm_hal_memory_check, fih_rc,
              curr_partition->boundary, (uintptr_t)buf_start,
@@ -176,9 +179,9 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
 
 #ifdef BOOT_DATA_AVAILABLE
     /* Get the boundaries of TLV section */
-    boot_data = (struct tfm_boot_data *)SHARED_BOOT_MEASUREMENT_BASE;
-    tlv_end = SHARED_BOOT_MEASUREMENT_BASE + boot_data->header.tlv_tot_len;
-    offset  = SHARED_BOOT_MEASUREMENT_BASE + SHARED_DATA_HEADER_SIZE;
+    boot_data = (struct tfm_boot_data *)data_base;
+    tlv_end = data_base + boot_data->header.tlv_tot_len;
+    offset = data_base + SHARED_DATA_HEADER_SIZE;
 #endif /* BOOT_DATA_AVAILABLE */
 
     /* Add header to output buffer as well */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -20,6 +20,7 @@
 #include "host_base_address.h"
 #include "host_system.h"
 #include "interrupts_bl2.h"
+#include "bl2_image_id.h"
 #include "mhu_v3_x.h"
 #include "platform_base_address.h"
 #include "platform_regs.h"
@@ -56,24 +57,26 @@ static int boot_add_data_to_shared_area(uint8_t major_type,
     struct shared_data_tlv_entry tlv_entry = {0};
     struct tfm_boot_data *boot_data;
     uintptr_t tlv_end, offset;
+    const uintptr_t data_base = tfm_plat_get_shared_measurement_data_base();
+    const size_t data_size = tfm_plat_get_shared_measurement_data_size();
 
     if (data == NULL) {
         return -1;
     }
 
-    boot_data = (struct tfm_boot_data *)SHARED_BOOT_MEASUREMENT_BASE;
+    boot_data = (struct tfm_boot_data *)data_base;
 
     /* Check whether the shared area needs to be initialized. */
     if ((boot_data->header.tlv_magic != SHARED_DATA_TLV_INFO_MAGIC) ||
-                (boot_data->header.tlv_tot_len > SHARED_BOOT_MEASUREMENT_SIZE)) {
-        memset((void *)SHARED_BOOT_MEASUREMENT_BASE, 0, SHARED_BOOT_MEASUREMENT_SIZE);
+        (boot_data->header.tlv_tot_len > data_size)) {
+        memset((void *)data_base, 0, data_size);
         boot_data->header.tlv_magic   = SHARED_DATA_TLV_INFO_MAGIC;
         boot_data->header.tlv_tot_len = SHARED_DATA_HEADER_SIZE;
     }
 
     /* Get the boundaries of TLV section. */
-    tlv_end = SHARED_BOOT_MEASUREMENT_BASE + boot_data->header.tlv_tot_len;
-    offset  = SHARED_BOOT_MEASUREMENT_BASE + SHARED_DATA_HEADER_SIZE;
+    tlv_end = data_base + boot_data->header.tlv_tot_len;
+    offset = data_base + SHARED_DATA_HEADER_SIZE;
 
     /*
      * Check whether TLV entry is already added. Iterates over the TLV section
@@ -99,8 +102,7 @@ static int boot_add_data_to_shared_area(uint8_t major_type,
     if (SHARED_DATA_ENTRY_SIZE(size) >
                 (UINT16_MAX - boot_data->header.tlv_tot_len)) {
         return -1;
-    } else if ((SHARED_DATA_ENTRY_SIZE(size) + boot_data->header.tlv_tot_len) >
-                SHARED_BOOT_MEASUREMENT_SIZE) {
+    } else if ((SHARED_DATA_ENTRY_SIZE(size) + boot_data->header.tlv_tot_len) > data_size) {
         return -1;
     }
 

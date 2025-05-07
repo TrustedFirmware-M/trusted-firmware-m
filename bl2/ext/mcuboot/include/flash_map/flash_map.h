@@ -49,7 +49,7 @@ extern "C" {
  * and match the target offset specified in download script.
  */
 #include <inttypes.h>
-#include "region_defs.h"
+#include "tfm_plat_shared_measurement_data.h"
 #include "Driver_Flash.h"
 
 /*
@@ -64,12 +64,8 @@ extern "C" {
 /*
  * Shared data area between bootloader and runtime firmware.
  */
-#if (defined(SHARED_BOOT_MEASUREMENT_BASE) && defined(SHARED_BOOT_MEASUREMENT_SIZE))
-#define MCUBOOT_SHARED_DATA_BASE    SHARED_BOOT_MEASUREMENT_BASE
-#define MCUBOOT_SHARED_DATA_SIZE    SHARED_BOOT_MEASUREMENT_SIZE
-#else
-#error "SHARED_BOOT_MEASUREMENT_* must be defined by target."
-#endif
+#define MCUBOOT_SHARED_DATA_BASE (tfm_plat_get_shared_measurement_data_base())
+#define MCUBOOT_SHARED_DATA_SIZE (tfm_plat_get_shared_measurement_data_size())
 
 /**
  * @brief Structure describing an area on a flash device.
