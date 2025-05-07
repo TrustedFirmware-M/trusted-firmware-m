@@ -159,8 +159,8 @@ psa_status_t tfm_spm_partition_psa_get(psa_signal_t signal, psa_msg_t *msg)
 
     if (signal == ASYNC_MSG_REPLY) {
         handle = spm_get_async_replied_handle(partition);
-        ret = handle->replied_value;
         msg->rhandle = handle;
+        ret = PSA_SUCCESS;
     } else {
         /*
          * Get message by signal from partition. It is a fatal error if getting

@@ -126,8 +126,9 @@ void tfm_rpc_client_call_reply(void)
 {
     psa_msg_t msg;
     struct connection_t *handle;
-    psa_status_t status = psa_get(ASYNC_MSG_REPLY, &msg);
+    psa_status_t status;
 
+    status = psa_get(ASYNC_MSG_REPLY, &msg);
     if (status != PSA_SUCCESS) {
         ERROR_UNPRIV("psa_get(ASYNC_MSG_REPLY) call returned %d\n", status);
         return;
@@ -135,7 +136,7 @@ void tfm_rpc_client_call_reply(void)
 
     handle = (struct connection_t *)msg.rhandle;
 
-    rpc_ops.reply(handle->client_data, status);
+    rpc_ops.reply(handle->client_data, handle->replied_value);
 
     if (handle->status == TFM_HANDLE_STATUS_TO_FREE) {
         spm_free_connection(handle);
