@@ -1,5 +1,5 @@
 ;/*
-; * Copyright (c) 2009-2024 Arm Limited
+; * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 ; * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon company)
 ; * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 ; *
@@ -355,10 +355,12 @@ SECTIONS
      * msp_stack is extended until the beginning of RAM, when shared_date
      * was read out by partitions
      */
+#ifdef BOOT_TFM_SHARED_DATA_SIZE
     .tfm_bl2_shared_data ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT) :
     {
         . += BOOT_TFM_SHARED_DATA_SIZE;
     } > RAM
+#endif
 
     .msp_stack ALIGN(TFM_LINKER_MSP_STACK_ALIGNMENT) :
     {
@@ -480,10 +482,12 @@ SECTIONS
      * msp_stack is extended until the beginning of RAM, when shared_date
      * was read out by partitions
      */
+#ifdef BOOT_TFM_SHARED_DATA_SIZE
     .tfm_bl2_shared_data ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT) :
     {
         . += BOOT_TFM_SHARED_DATA_SIZE;
     } > RAM AT> RAM
+#endif
 
     .msp_stack ALIGN(TFM_LINKER_MSP_STACK_ALIGNMENT) :
     {

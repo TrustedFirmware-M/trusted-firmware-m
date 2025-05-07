@@ -339,11 +339,13 @@ SECTIONS
     } > RAM
 #endif
 
+#ifdef BOOT_TFM_SHARED_DATA_SIZE
     /* Shared area between BL2 and runtime to exchange data */
     .tfm_bl2_shared_data ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT) (NOLOAD) :
     {
         . += BOOT_TFM_SHARED_DATA_SIZE;
     } > RAM
+#endif
 #endif /* !S_DATA_PRIV_START */
 
     /* Position tag: Start of Application RoT data (unprivileged) */
@@ -425,11 +427,13 @@ SECTIONS
      * Move BL2 shared area to the beginning of privileged data area on
      * Armv6-M/v7-M platforms.
      */
+#ifdef BOOT_TFM_SHARED_DATA_SIZE
     /* Shared area between BL2 and runtime to exchange data */
     .tfm_bl2_shared_data ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT) :
     {
         . += BOOT_TFM_SHARED_DATA_SIZE;
     } > RAM
+#endif
 #endif /* S_DATA_PRIV_START */
 
     /* Position tag: Start of PSA RoT data (privileged) */

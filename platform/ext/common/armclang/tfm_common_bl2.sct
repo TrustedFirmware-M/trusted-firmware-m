@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,10 @@ LR_CODE BL2_CODE_START {
     }
 #endif
 
+#ifdef BOOT_TFM_SHARED_DATA_SIZE
     TFM_SHARED_DATA BOOT_TFM_SHARED_DATA_BASE ALIGN 32 EMPTY BOOT_TFM_SHARED_DATA_SIZE {
     }
+#endif
 
 /* If the layout is designed so that the shared data is at the start of the bl2
  * data section, place the data directly afterwards. Else, place it where the

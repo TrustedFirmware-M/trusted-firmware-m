@@ -1,5 +1,5 @@
 ;/*
-; * Copyright (c) 2022-2024 Arm Limited. All rights reserved.
+; * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 ; *
 ; * Licensed under the Apache License, Version 2.0 (the "License");
 ; * you may not use this file except in compliance with the License.
@@ -135,12 +135,14 @@ SECTIONS
     ASSERT(SHARED_SYMBOL_AREA_SIZE % 4 == 0, "SHARED_SYMBOL_AREA_SIZE must be divisible by 4")
 #endif
 
+#ifdef BOOT_TFM_SHARED_DATA_SIZE
     .tfm_bl2_shared_data : ALIGN(32)
     {
         . += BOOT_TFM_SHARED_DATA_SIZE;
     } > RAM
     Image$$SHARED_DATA$$RW$$Base = ADDR(.tfm_bl2_shared_data);
     Image$$SHARED_DATA$$RW$$Limit = ADDR(.tfm_bl2_shared_data) + SIZEOF(.tfm_bl2_shared_data);
+#endif
 
     .data : ALIGN(4)
     {

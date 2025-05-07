@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
@@ -202,9 +202,11 @@ LR_CODE S_CODE_START S_CODE_SIZE {
     }
 #endif
 
+#ifdef BOOT_TFM_SHARED_DATA_SIZE
     /* Shared area between BL2 and runtime to exchange data */
     TFM_SHARED_DATA +0 ALIGN TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT EMPTY BOOT_TFM_SHARED_DATA_SIZE {
     }
+#endif
 
     /* MSP */
     ARM_LIB_STACK +0 ALIGN TFM_LINKER_MSP_STACK_ALIGNMENT EMPTY S_MSP_STACK_SIZE - 0x8 {
@@ -277,9 +279,11 @@ LR_CODE S_CODE_START S_CODE_SIZE {
      * Move BL2 shared area and MSP stack to the beginning of privileged data
      * area on Armv6-M/v7-M platforms.
      */
+#ifdef BOOT_TFM_SHARED_DATA_SIZE
     /* Shared area between BL2 and runtime to exchange data */
     TFM_SHARED_DATA +0 ALIGN TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT EMPTY BOOT_TFM_SHARED_DATA_SIZE {
     }
+#endif
 
     /* MSP */
     ARM_LIB_STACK +0 ALIGN TFM_LINKER_MSP_STACK_ALIGNMENT EMPTY S_MSP_STACK_SIZE {
