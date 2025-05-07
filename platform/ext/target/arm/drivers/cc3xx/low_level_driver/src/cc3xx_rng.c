@@ -373,6 +373,24 @@ static inline void trng_double_subsampling_rate(void)
         (product > UINT32_MAX) ? UINT32_MAX : (uint32_t)product;
 }
 
+static void trng_bump_rosc_id_and_subsampling_rate(void)
+{
+    if (g_trng_config.rosc.id == CC3XX_RNG_ROSC_ID_3 &&
+        g_trng_config.rosc.subsampling_rate == UINT32_MAX) {
+        /* Cannot bump further */
+        return;
+    }
+
+    if (g_trng_config.rosc.id < CC3XX_RNG_ROSC_ID_3) {
+        /* For each subsampling rate, bump the rosc id */
+        g_trng_config.rosc.id++;
+    } else {
+        /* Double the subsampling rate when rosc id is at its max*/
+        g_trng_config.rosc.id = CC3XX_RNG_ROSC_ID_0;
+        trng_double_subsampling_rate();
+    }
+}
+
 static cc3xx_err_t trng_get_random(uint32_t *buf, size_t word_count)
 {
     uint32_t attempt_count = 0;
@@ -397,8 +415,8 @@ static cc3xx_err_t trng_get_random(uint32_t *buf, size_t word_count)
             /* Clear the interrupt bits */
             P_CC3XX->rng.rng_icr = 0x3FU;
 
-            /* Double the sample count */
-            trng_double_subsampling_rate();
+            /* Bump the rosc id and subsampling rate */
+            trng_bump_rosc_id_and_subsampling_rate();
 
             /* Restart TRNG */
             trng_init(g_trng_config.rosc.id,

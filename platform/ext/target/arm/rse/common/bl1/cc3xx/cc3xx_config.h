@@ -115,11 +115,22 @@
 #define CC3XX_CONFIG_RNG_EXTERNAL_TRNG
 #endif /* RSE_OTP_TRNG */
 
-/* The number of times the TRNG will be re-read when it fails a statical test
- * before an error is returned.
+/**
+ * @brief The number of times the TRNG will be re-read after failing a statistical test
+ *        before an error is returned.
+ *
+ *        The value is chosen to cover all combinations of ROSC IDs and subsampling rates.
+ *        The driver doubles the subsampling rate for each ROSC ID, so the number of
+ *        attempts is calculated as:
+ *
+ *            attempts = ceil(log2(ceil(UINT32_MAX / CC3XX_CONFIG_RNG_SUBSAMPLING_RATE))) * 4
+ *
+ *        Here:
+ *        - "4" is the number of available ring oscillators (ROSCs).
+ *        - Both the division and the log2 operation are ceiled to ensure full coverage.
  */
 #ifndef CC3XX_CONFIG_RNG_MAX_ATTEMPTS
-#define CC3XX_CONFIG_RNG_MAX_ATTEMPTS 16
+#define CC3XX_CONFIG_RNG_MAX_ATTEMPTS 100
 #endif /* CC3XX_CONFIG_RNG_MAX_ATTEMPTS */
 
 /* This is the number of cycles between consecutive samples of the oscillator

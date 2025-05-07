@@ -45,10 +45,10 @@ enum cc3xx_rng_quality_t {
  *
  */
 __PACKED_ENUM cc3xx_rng_rosc_id_t {
-    CC3XX_RNG_ROSC_ID_0 = 0, /*!< ROSC ID 0 */
-    CC3XX_RNG_ROSC_ID_1,     /*!< ROSC ID 1 */
-    CC3XX_RNG_ROSC_ID_2,     /*!< ROSC ID 2 */
-    CC3XX_RNG_ROSC_ID_3,     /*!< ROSC ID 3 */
+    CC3XX_RNG_ROSC_ID_0 = 0,     /*!< ROSC ID 0 */
+    CC3XX_RNG_ROSC_ID_1 = 1,     /*!< ROSC ID 1 */
+    CC3XX_RNG_ROSC_ID_2 = 2,     /*!< ROSC ID 2 */
+    CC3XX_RNG_ROSC_ID_3 = 3,     /*!< ROSC ID 3 */
 };
 
 /**
