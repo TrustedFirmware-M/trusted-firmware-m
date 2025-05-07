@@ -1,5 +1,5 @@
 ;/*
-; * Copyright (c) 2021-2024 Arm Limited. All rights reserved.
+; * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 ; *
 ; * Licensed under the Apache License, Version 2.0 (the "License");
 ; * you may not use this file except in compliance with the License.
@@ -56,11 +56,6 @@ SECTIONS
     __exidx_end = .;
 
     __etext = ALIGN(4);
-
-    .tfm_bl2_shared_data (NOLOAD) : ALIGN(32)
-    {
-        . += BOOT_TFM_SHARED_DATA_SIZE;
-    } > RAM
 
     . = BL1_2_DATA_START;
     Image$$BL1_2_ER_DATA_START$$Base = .;

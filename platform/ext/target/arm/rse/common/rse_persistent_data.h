@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "region_defs.h"
 
 /* Data in this struct is expected to persist over multiple RSE cold resets */
 struct rse_persistent_data {
@@ -27,7 +28,11 @@ struct rse_persistent_data {
         uint32_t *provisioning_blob_buf;
         size_t provisioning_blob_buf_size;
     } bl1_data;
-    /* Additional data not used by the ROM can be added after this point */
+    /* Data shared between bootloaders and runtime */
+    struct rse_persistent_shared_data {
+        uint32_t shared_boot_measurement[SHARED_BOOT_MEASUREMENT_SIZE / sizeof(uint32_t)];
+        uint32_t runtime_to_boot_data[RUNTIME_SERVICE_TO_BOOT_SHARED_REGION_SIZE / sizeof(uint32_t)];
+    } shared_data;
 };
 
 void rse_setup_persistent_data(void);

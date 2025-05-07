@@ -1,5 +1,5 @@
 ;/*
-; * Copyright (c) 2021-2024 Arm Limited. All rights reserved.
+; * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 ; *
 ; * Licensed under the Apache License, Version 2.0 (the "License");
 ; * you may not use this file except in compliance with the License.
@@ -120,13 +120,6 @@ SECTIONS
         *(.ARM.exidx* .gnu.linkonce.armexidx.*)
     } > FLASH
     __exidx_end = .;
-
-    .tfm_bl2_shared_data : ALIGN(32)
-    {
-        . += BOOT_TFM_SHARED_DATA_SIZE;
-    } > RAM
-    Image$$SHARED_DATA$$RW$$Base = ADDR(.tfm_bl2_shared_data);
-    Image$$SHARED_DATA$$RW$$Limit = ADDR(.tfm_bl2_shared_data) + SIZEOF(.tfm_bl2_shared_data);
 
     PROVIDE(__etext = LOADADDR(.data));
 

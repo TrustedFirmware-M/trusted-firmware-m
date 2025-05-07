@@ -244,6 +244,7 @@ target_sources(platform_s
         ./dpa_hardened_word_copy.c
         $<$<BOOL:${RSE_HAS_DCSU}>:${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/src/dcsu_drv.c>
         $<$<BOOL:${RSE_HAS_DCSU}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>
+        ./platform_shared_measurement_data.c
 )
 
 target_sources(tfm_sprt
@@ -361,6 +362,8 @@ target_sources(platform_bl2
         ./rse_zero_count.c
         ./cc3xx/cc3xx_aes_external_key_loader.c
         ./dpa_hardened_word_copy.c
+        ./rse_persistent_data.c
+        ./platform_shared_measurement_data.c
 )
 
 target_include_directories(platform_bl2
@@ -477,6 +480,7 @@ target_sources(platform_bl1_1
         ./rse_persistent_data.c
         $<$<BOOL:${RSE_HAS_DCSU}>:${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/src/dcsu_drv.c>
         $<$<BOOL:${RSE_HAS_DCSU}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>
+        ./platform_shared_measurement_data.c
 )
 
 target_compile_definitions(platform_bl1_1

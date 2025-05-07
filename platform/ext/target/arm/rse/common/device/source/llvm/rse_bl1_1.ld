@@ -1,5 +1,5 @@
 ;/*
-; * Copyright (c) 2021-2024 Arm Limited. All rights reserved.
+; * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 ; *
 ; * Licensed under the Apache License, Version 2.0 (the "License");
 ; * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@
 MEMORY
 {
     FLASH  (rx)  : ORIGIN = BL1_1_CODE_START, LENGTH = BL1_1_CODE_SIZE
-    SHARED (rwx) : ORIGIN = BOOT_TFM_SHARED_DATA_BASE, LENGTH = BOOT_TFM_SHARED_DATA_SIZE
     RAM    (rwx) : ORIGIN = BL1_1_DATA_START, LENGTH = BL1_1_DATA_SIZE
 }
 
@@ -57,11 +56,6 @@ SECTIONS
     __exidx_end = .;
 
     __etext = ALIGN(4);
-
-    .tfm_bl2_shared_data (NOLOAD) : ALIGN(32)
-    {
-        . += BOOT_TFM_SHARED_DATA_SIZE;
-    } > SHARED
 
     . = BL1_1_DATA_START;
     .data : AT (__etext)

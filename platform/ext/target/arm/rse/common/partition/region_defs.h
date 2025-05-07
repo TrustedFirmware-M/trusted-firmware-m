@@ -29,7 +29,7 @@
 
 /* RSE memory layout is as follows during BL1
  *      |----------------------------------------------------|
- * DTCM | BLOB_DATA | BOOT_SHARED | BL1_1_DATA | BL1_2_DATA  |
+ * DTCM | BLOB_DATA | BL1_1_DATA | BL1_2_DATA  |
  *      |----------------------------------------------------|
  *
  *      |----------------------------------------------------|
@@ -48,7 +48,7 @@
  *
  * RSE memory layout is as follows during BL2
  *      |----------------------------------------|
- * DTCM | BOOT_SHARED |                          |
+ * DTCM |                                        |
  *      |----------------------------------------|
  *
  *      |---------------------------------------------------------
@@ -64,7 +64,7 @@
  *
  * RSE memory layout is as follows during Runtime with XIP mode enabled
  *      |----------------------------------------|
- * DTCM | BOOT_SHARED |                          |
+ * DTCM |                                        |
  *      |----------------------------------------|
  *
  *      |---------------------------------------------------------
@@ -78,7 +78,7 @@
  * that each SRAM must be at least 512KiB in this mode (64KiB data and 384KiB
  * code, for each of secure and non-secure).
  *      |----------------------------------------|
- * DTCM | BOOT_SHARED |                          |
+ * DTCM |                                        |
  *      |----------------------------------------|
  *
  *      |----------------------------------------------------------------------|
@@ -103,7 +103,7 @@
 #define NS_STACK_SIZE           (0x0001000)
 
 /* Store persistent data at the end of VM1 as will not be cleared on reset */
-#define PERSISTENT_DATA_SIZE (0x400)
+#define PERSISTENT_DATA_SIZE (0x800)
 #define PERSISTENT_DATA_BASE \
     ((VM1_BASE_S + VM1_SIZE) - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
 #define PERSISTENT_DATA_LIMIT ((PERSISTENT_DATA_BASE + PERSISTENT_DATA_SIZE) - 1)
@@ -241,7 +241,7 @@
 #define BL2_CODE_LIMIT    (BL2_CODE_START + BL2_CODE_SIZE - 1)
 
 /* BL1 data is in DTCM */
-#define BL1_1_DATA_START  (BOOT_TFM_SHARED_DATA_BASE + BOOT_TFM_SHARED_DATA_SIZE)
+#define BL1_1_DATA_START  (PROVISIONING_BUNDLE_VALUES_START + PROVISIONING_BUNDLE_VALUES_SIZE)
 #define BL1_1_DATA_SIZE   (0x4800) /* 18 KiB */
 #define BL1_1_DATA_LIMIT  (BL1_1_DATA_START + BL1_1_DATA_SIZE - 1)
 
@@ -293,26 +293,13 @@
 #error XIP disabled runtime partitions do not fit in SRAM
 #endif
 
-/* TODO: Shared data can be placed in the SRAM. Move it there
- * so that there is more space for the provisioning blob values */
-#define BOOT_TFM_SHARED_DATA_BASE (PROVISIONING_BUNDLE_VALUES_START + PROVISIONING_BUNDLE_VALUES_SIZE)
-#define BOOT_TFM_SHARED_DATA_SIZE (0x600)
-#define BOOT_TFM_SHARED_DATA_LIMIT (BOOT_TFM_SHARED_DATA_BASE + \
-                                    BOOT_TFM_SHARED_DATA_SIZE - 1)
-#define SHARED_BOOT_MEASUREMENT_BASE BOOT_TFM_SHARED_DATA_BASE
-#define SHARED_BOOT_MEASUREMENT_SIZE 0x5C0
-
-#define RUNTIME_SERVICE_TO_BOOT_SHARED_REGION_BASE (SHARED_BOOT_MEASUREMENT_BASE + \
-                                                    SHARED_BOOT_MEASUREMENT_SIZE)
-#define RUNTIME_SERVICE_TO_BOOT_SHARED_REGION_SIZE 0x40
-#if SHARED_BOOT_MEASUREMENT_SIZE + RUNTIME_SERVICE_TO_BOOT_SHARED_REGION_SIZE > BOOT_TFM_SHARED_DATA_SIZE
-#error Shared data regions size is too large to fit in BOOT_TFM_SHARED_DATA_SIZE
-#endif
+#define SHARED_BOOT_MEASUREMENT_SIZE (0x5C0)
+#define RUNTIME_SERVICE_TO_BOOT_SHARED_REGION_SIZE (0x40)
 
 #define PROVISIONING_BUNDLE_CODE_START   (ITCM_BASE_S)
 #define PROVISIONING_BUNDLE_CODE_SIZE    (ITCM_SIZE - BL1_2_CODE_SIZE)
 #define PROVISIONING_BUNDLE_VALUES_START (DTCM_BASE_S)
-#define PROVISIONING_BUNDLE_VALUES_SIZE  (DTCM_SIZE - BOOT_TFM_SHARED_DATA_SIZE - BL1_1_DATA_SIZE - BL1_2_DATA_SIZE)
+#define PROVISIONING_BUNDLE_VALUES_SIZE  (DTCM_SIZE - BL1_1_DATA_SIZE - BL1_2_DATA_SIZE)
 #define PROVISIONING_BUNDLE_DATA_START   (VM1_BASE_S)
 #define PROVISIONING_BUNDLE_DATA_SIZE    (VM1_SIZE - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
 
@@ -331,10 +318,5 @@
 
 #define RSE_TESTS_HEAP_SIZE      0x1000
 #define RSE_TESTS_MSP_STACK_SIZE 0x1800
-
-#ifdef PLATFORM_PSA_ADAC_SECURE_DEBUG
-#define ADAC_SERVICE_TO_BOOT_SHARED_REGION_BASE  RUNTIME_SERVICE_TO_BOOT_SHARED_REGION_BASE
-#define ADAC_SERVICE_TO_BOOT_SHARED_REGION_SIZE  RUNTIME_SERVICE_TO_BOOT_SHARED_REGION_SIZE
-#endif /* PLATFORM_PSA_ADAC_SECURE_DEBUG */
 
 #endif /* __REGION_DEFS_H__ */

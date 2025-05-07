@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,6 @@ LR_CODE BL1_2_CODE_START {
     ER_CODE BL1_2_CODE_START BL1_2_CODE_SIZE {
         *.o (RESET +First)
         * (+RO)
-    }
-
-    TFM_SHARED_DATA BOOT_TFM_SHARED_DATA_BASE ALIGN 32 EMPTY BOOT_TFM_SHARED_DATA_SIZE {
     }
 
     BL1_2_ER_DATA_START BL1_2_DATA_START EMPTY 0x0 {

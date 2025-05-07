@@ -122,3 +122,5 @@ __msp_stack_size__
 __stack
 __stack_seal
 tfm_hal_system_reset
+tfm_plat_get_shared_measurement_data_base
+tfm_plat_get_shared_measurement_data_size
