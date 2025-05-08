@@ -81,6 +81,7 @@ extern "C" {
 #define MUSCA_S1_MHU0_S_BASE             (0x50003000UL)                              /*!< (Secure MHU0              ) Base Address */
 #define MUSCA_S1_MHU1_S_BASE             (0x50004000UL)                              /*!< (Secure MHU1              ) Base Address */
 #define MUSCA_S1_CPU_ELEMENT_S_BASE      (0x50010000UL)                              /*!< (Secure CPU Peripherals   ) Base Address */
+#define MUSCA_S1_CPU_IDENTITY_S_BASE     (0x5001F000UL)                              /*!< (Secure CPU Identity      ) Base address */
 #define MUSCA_S1_SYSTEM_INFO_S_BASE      (0x50020000UL)                              /*!< (Secure System Info       ) Base Address */
 #define MUSCA_S1_SYSTEM_CTRL_S_BASE      (0x50021000UL)                              /*!< (Secure System Control    ) Base Address */
 #define MUSCA_S1_CMSDK_S32KTIMER_S_BASE  (0x5002F000UL)                              /*!< (Secure CMSDK S32K Timer  ) Base Address */
