@@ -144,7 +144,7 @@ static void wait_for_dma_complete(void)
 
 static void process_data(const void* buf, size_t length)
 {
-    uintptr_t remapped_buf;
+    uintptr_t remapped_buf = (uintptr_t)NULL;
 
     /* Enable the DMA clock */
     P_CC3XX->misc.dma_clk_enable = 0x1U;
