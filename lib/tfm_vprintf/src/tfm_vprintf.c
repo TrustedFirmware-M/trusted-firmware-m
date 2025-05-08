@@ -59,6 +59,11 @@ static void output_str(tfm_log_output_str output_func, void *priv, const char *s
 {
     const char *str_ptr = str;
 
+    if (str_ptr == NULL) {
+        assert(false);
+        return;
+    }
+
     if (calculate_length) {
         len = 0;
         while (*str_ptr++ != '\0') {
