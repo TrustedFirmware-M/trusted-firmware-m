@@ -606,102 +606,83 @@ static enum tfm_plat_err_t otp_read_lcs(size_t out_len, uint8_t *out)
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
+static enum tfm_plat_err_t calc_write_zero_count(uintptr_t buf, size_t buf_len,
+                                                 uintptr_t otp_zero_count_ptr)
 {
     enum tfm_plat_err_t err;
     enum lcm_error_t lcm_err;
     uint32_t zero_count;
+
+    err = rse_count_zero_bits((uint8_t *)buf, buf_len, &zero_count);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    lcm_err = lcm_otp_write(&LCM_DEV_S, otp_zero_count_ptr - OTP_BASE_S, sizeof(zero_count),
+                            (uint8_t *)&zero_count);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
+static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
+{
+    enum tfm_plat_err_t err;
     enum lcm_lcs_t dm_dynamic_area_lcs;
 
     if (new_lcs == LCM_LCS_DM) {
 #if defined(RSE_OTP_HAS_CM_AREA)
-        err = rse_count_zero_bits(
-                    (uint8_t *)&P_RSE_OTP_HEADER->cm_area_info.raw_data,
-                    sizeof(P_RSE_OTP_HEADER->cm_area_info.raw_data),
-                    &zero_count);
+        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_HEADER->cm_area_info.raw_data,
+                                    sizeof(P_RSE_OTP_HEADER->cm_area_info.raw_data),
+                                    (uintptr_t)&P_RSE_OTP_HEADER->cm_area_info_zero_count);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
-        }
-
-        lcm_err = lcm_otp_write(&LCM_DEV_S,
-                                offsetof(struct rse_otp_header_area_t, cm_area_info_zero_count),
-                                sizeof(zero_count), (uint8_t *)&zero_count);
-        if (lcm_err != LCM_ERROR_NONE) {
-            return (enum tfm_plat_err_t)lcm_err;
         }
 
         cm_area_info.raw_data = P_RSE_OTP_HEADER->cm_area_info.raw_data;
-        err = rse_count_zero_bits((uint8_t *)((uint8_t *)&P_RSE_OTP_CM->zero_count + sizeof(uint32_t)),
-                                  cm_area_info.size - sizeof(uint32_t) - sizeof(P_RSE_OTP_CM->rotpk_areas),
-                                  &zero_count);
+        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_CM->zero_count + sizeof(uint32_t),
+                                    cm_area_info.size - sizeof(uint32_t) -
+                                        sizeof(P_RSE_OTP_CM->rotpk_areas),
+                                    (uintptr_t)&P_RSE_OTP_CM->zero_count);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
-        }
-        lcm_err = lcm_otp_write(&LCM_DEV_S,
-                                cm_area_info.offset + offsetof(struct rse_otp_cm_area_t, zero_count),
-                                sizeof(zero_count), (uint8_t *)&zero_count);
-        if (lcm_err != LCM_ERROR_NONE) {
-            return (enum tfm_plat_err_t)lcm_err;
         }
 
         cm_rotpk_area_info.offset = cm_area_info.offset + offsetof(struct rse_otp_cm_area_t, rotpk_areas);
         cm_rotpk_area_info.size = sizeof(struct rse_otp_cm_rotpk_area_t);
-
-        err = rse_count_zero_bits((uint8_t *)((uint8_t *)&P_RSE_OTP_CM_ROTPK->zero_count + sizeof(uint32_t)),
-                                  cm_rotpk_area_info.size - sizeof(uint32_t),
-                                  &zero_count);
+        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_CM_ROTPK->zero_count + sizeof(uint32_t),
+                                    cm_rotpk_area_info.size - sizeof(uint32_t),
+                                    (uintptr_t)&P_RSE_OTP_CM_ROTPK->zero_count);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
-        }
-        lcm_err = lcm_otp_write(&LCM_DEV_S,
-                                cm_rotpk_area_info.offset + offsetof(struct rse_otp_cm_rotpk_area_t, zero_count),
-                                sizeof(zero_count), (uint8_t *)&zero_count);
-        if (lcm_err != LCM_ERROR_NONE) {
-            return (enum tfm_plat_err_t)lcm_err;
         }
 #endif /* RSE_OTP_HAS_CM_AREA */
 
 #if defined(RSE_OTP_HAS_BL1_2)
-        err = rse_count_zero_bits((uint8_t *)&P_RSE_OTP_HEADER->bl1_2_area_info.raw_data,
-                                  sizeof(P_RSE_OTP_HEADER->bl1_2_area_info.raw_data), &zero_count);
+        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_HEADER->bl1_2_area_info.raw_data,
+                                    sizeof(P_RSE_OTP_HEADER->bl1_2_area_info.raw_data),
+                                    (uintptr_t)&P_RSE_OTP_HEADER->bl1_2_area_info_zero_count);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
-        }
-
-        lcm_err = lcm_otp_write(&LCM_DEV_S,
-                                offsetof(struct rse_otp_header_area_t, bl1_2_area_info_zero_count),
-                                sizeof(zero_count), (uint8_t *)&zero_count);
-        if (lcm_err != LCM_ERROR_NONE) {
-            return (enum tfm_plat_err_t)lcm_err;
         }
 
         bl1_2_area_info.raw_data = P_RSE_OTP_HEADER->bl1_2_area_info.raw_data;
-        err = rse_count_zero_bits((uint8_t *)((uint8_t *)&P_RSE_OTP_BL1_2->zero_count + sizeof(uint32_t)),
-                                  bl1_2_area_info.size - sizeof(uint32_t),
-                                  &zero_count);
+        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_BL1_2->zero_count + sizeof(uint32_t),
+                                    bl1_2_area_info.size - sizeof(uint32_t),
+                                    (uintptr_t)&P_RSE_OTP_BL1_2->zero_count);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
-        }
-        lcm_err = lcm_otp_write(&LCM_DEV_S,
-                                bl1_2_area_info.offset + offsetof(struct rse_otp_bl1_2_area_t, zero_count),
-                                sizeof(zero_count), (uint8_t *)&zero_count);
-        if (lcm_err != LCM_ERROR_NONE) {
-            return (enum tfm_plat_err_t)lcm_err;
         }
 #endif /* RSE_OTP_HAS_BL1_2 */
 
 #if defined(RSE_OTP_HAS_SOC_AREA)
-        err = rse_count_zero_bits((uint8_t *)&P_RSE_OTP_HEADER->soc_area_info.raw_data,
-                                  sizeof(P_RSE_OTP_HEADER->soc_area_info.raw_data), &zero_count);
+        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_HEADER->soc_area_info.raw_data,
+                                    sizeof(P_RSE_OTP_HEADER->soc_area_info.raw_data),
+                                    (uintptr_t)&P_RSE_OTP_HEADER->soc_area_info_zero_count);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
-        }
-
-        lcm_err = lcm_otp_write(&LCM_DEV_S,
-                                offsetof(struct rse_otp_header_area_t, soc_area_info_zero_count),
-                                sizeof(zero_count), (uint8_t *)&zero_count);
-        if (lcm_err != LCM_ERROR_NONE) {
-            return (enum tfm_plat_err_t)lcm_err;
         }
 #endif /* RSE_OTP_HAS_SOC_AREA */
     }
@@ -718,32 +699,20 @@ static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
 
     if (new_lcs == dm_dynamic_area_lcs) {
 #if defined(RSE_OTP_HAS_DM_AREA)
-        err = rse_count_zero_bits((uint8_t *)&P_RSE_OTP_HEADER->dm_area_info.raw_data,
-                                  sizeof(P_RSE_OTP_HEADER->dm_area_info.raw_data), &zero_count);
+        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_HEADER->dm_area_info.raw_data,
+                                    sizeof(P_RSE_OTP_HEADER->dm_area_info.raw_data),
+                                    (uintptr_t)&P_RSE_OTP_HEADER->dm_area_info_zero_count);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
-        }
-
-        lcm_err = lcm_otp_write(&LCM_DEV_S,
-                                offsetof(struct rse_otp_header_area_t, dm_area_info_zero_count),
-                                sizeof(zero_count), (uint8_t *)&zero_count);
-        if (lcm_err != LCM_ERROR_NONE) {
-            return (enum tfm_plat_err_t)lcm_err;
         }
 #endif /* RSE_OTP_HAS_DM_AREA */
 
 #if defined(RSE_OTP_HAS_DYNAMIC_AREA)
-        err = rse_count_zero_bits((uint8_t *)&P_RSE_OTP_HEADER->dynamic_area_info.raw_data,
-                                  sizeof(P_RSE_OTP_HEADER->dynamic_area_info.raw_data), &zero_count);
+        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_HEADER->dynamic_area_info.raw_data,
+                                    sizeof(P_RSE_OTP_HEADER->dynamic_area_info.raw_data),
+                                    (uintptr_t)&P_RSE_OTP_HEADER->dynamic_area_info_zero_count);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
-        }
-
-        lcm_err = lcm_otp_write(&LCM_DEV_S,
-                                offsetof(struct rse_otp_header_area_t, dynamic_area_info_zero_count),
-                                sizeof(zero_count), (uint8_t *)&zero_count);
-        if (lcm_err != LCM_ERROR_NONE) {
-            return (enum tfm_plat_err_t)lcm_err;
         }
 
         dynamic_area_info.raw_data = P_RSE_OTP_HEADER->dynamic_area_info.raw_data;
@@ -754,39 +723,28 @@ static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
     if (new_lcs == LCM_LCS_SE) {
 #if defined(RSE_OTP_HAS_DM_AREA)
         dm_area_info.raw_data = P_RSE_OTP_HEADER->dm_area_info.raw_data;
-        err = rse_count_zero_bits((uint8_t *)((uint8_t *)&P_RSE_OTP_DM->zero_count + sizeof(uint32_t)),
-                                  dm_area_info.size - sizeof(uint32_t) - sizeof(P_RSE_OTP_DM->rotpk_areas),
-                                  &zero_count);
+        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_DM->zero_count + sizeof(uint32_t),
+                                    dm_area_info.size - sizeof(uint32_t) -
+                                        sizeof(P_RSE_OTP_DM->rotpk_areas),
+                                    (uintptr_t)&P_RSE_OTP_DM->zero_count);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
-        }
-        lcm_err = lcm_otp_write(&LCM_DEV_S,
-                                dm_area_info.offset + offsetof(struct rse_otp_dm_area_t, zero_count),
-                                sizeof(zero_count), (uint8_t *)&zero_count);
-        if (lcm_err != LCM_ERROR_NONE) {
-            return (enum tfm_plat_err_t)lcm_err;
         }
 
         dm_rotpk_area_info.offset = dm_area_info.offset + offsetof(struct rse_otp_dm_area_t, rotpk_areas);
         dm_rotpk_area_info.size = sizeof(struct rse_otp_dm_rotpk_area_t);
-
-        err = rse_count_zero_bits((uint8_t *)((uint8_t *)&P_RSE_OTP_DM_ROTPK->zero_count + sizeof(uint32_t)),
-                                  dm_rotpk_area_info.size - sizeof(uint32_t),
-                                  &zero_count);
+        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_DM_ROTPK->zero_count + sizeof(uint32_t),
+                                    dm_rotpk_area_info.size - sizeof(uint32_t),
+                                    (uintptr_t)&P_RSE_OTP_DM_ROTPK->zero_count);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
-        }
-        lcm_err = lcm_otp_write(&LCM_DEV_S,
-                                dm_rotpk_area_info.offset + offsetof(struct rse_otp_dm_rotpk_area_t, zero_count),
-                                sizeof(zero_count), (uint8_t *)&zero_count);
-        if (lcm_err != LCM_ERROR_NONE) {
-            return (enum tfm_plat_err_t)lcm_err;
         }
 #endif /* RSE_OTP_HAS_DM_AREA */
     }
 
     return TFM_PLAT_ERR_SUCCESS;
 }
+
 static enum tfm_plat_err_t otp_write_lcs(size_t in_len, const uint8_t *in)
 {
     enum tfm_plat_err_t err;
