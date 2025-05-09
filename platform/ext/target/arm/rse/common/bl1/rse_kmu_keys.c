@@ -9,11 +9,10 @@
 
 #include <stdint.h>
 #include <string.h>
-
+#include "bl1_random.h"
 #include "device_definition.h"
 #include "dpa_hardened_word_copy.h"
 #include "cc3xx_drv.h"
-#include "trng.h"
 #include "fatal_error.h"
 
 static const struct kmu_key_export_config_t aes_key0_export_config = {
@@ -279,7 +278,7 @@ enum tfm_plat_err_t setup_key_from_rng(enum rse_kmu_slot_id_t slot,
         return TFM_PLAT_ERR_KEY_DERIVATION_RNG_SLOT_TOO_SMALL;
     }
 
-    bl1_trng_generate_random((uint8_t *)p_kmu_slot_buf, key_size);
+    bl1_random_generate_secure((uint8_t *)p_kmu_slot_buf, key_size);
 
     /* Due to limitations in CryptoCell, any key that needs to be used for
      * AES-CCM needs to be duplicated into a second slot.

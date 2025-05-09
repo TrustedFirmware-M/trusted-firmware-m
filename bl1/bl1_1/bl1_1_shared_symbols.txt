@@ -22,7 +22,7 @@ bl1_hash_compute
 bl1_hash_finish
 bl1_hash_init
 bl1_hash_update
-bl1_trng_generate_random
+bl1_random_generate_secure
 computed_bl1_2_hash
 pq_crypto_verify
 stdio_init

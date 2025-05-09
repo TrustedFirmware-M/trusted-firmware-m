@@ -24,8 +24,8 @@ extern "C" {
  *
  */
 enum cc3xx_rng_quality_t {
-    CC3XX_RNG_FAST, /*!< Generates random numbers using an LFSR based algo */
-    CC3XX_RNG_DRBG, /*!< Generates random numbers using the configured DRBG algo */
+    CC3XX_RNG_LFSR, /*!< Generation uses an LFSR, which is fast */
+    CC3XX_RNG_DRBG, /*!< Generation uses the configured DRBG, cryptographically secure */
 };
 
 /**

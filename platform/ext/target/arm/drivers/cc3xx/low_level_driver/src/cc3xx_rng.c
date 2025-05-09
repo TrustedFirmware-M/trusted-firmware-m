@@ -436,7 +436,7 @@ cc3xx_err_t cc3xx_lowlevel_rng_get_random(uint8_t *buf, size_t length,
     }
 
     switch (quality) {
-    case CC3XX_RNG_FAST:
+    case CC3XX_RNG_LFSR:
     {
         const bool request_is_word_aligned = (((uintptr_t) buf & (sizeof(uint32_t) - 1)) == 0);
 

@@ -7,7 +7,7 @@
 
 #include "tfm_plat_otp.h"
 #include "provisioning_bundle.h"
-#include "trng.h"
+#include "bl1_random.h"
 
 /* This is a stub to make the linker happy */
 void __Vectors(){}
@@ -56,8 +56,8 @@ enum tfm_plat_err_t __attribute__((section("DO_PROVISION"))) do_provision(void) 
         return err;
     }
 
-    int_err = bl1_trng_generate_random(generated_key_buf,
-                                       sizeof(generated_key_buf));
+    int_err = bl1_random_generate_secure(generated_key_buf,
+                                         sizeof(generated_key_buf));
     if (int_err != 0) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
@@ -68,8 +68,8 @@ enum tfm_plat_err_t __attribute__((section("DO_PROVISION"))) do_provision(void) 
         return err;
     }
 
-    int_err = bl1_trng_generate_random(generated_key_buf,
-                                       sizeof(generated_key_buf));
+    int_err = bl1_random_generate_secure(generated_key_buf,
+                                         sizeof(generated_key_buf));
     if (int_err != 0) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }

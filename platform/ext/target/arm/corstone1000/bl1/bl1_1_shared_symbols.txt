@@ -9,7 +9,7 @@ bl1_hash_compute
 bl1_hash_finish
 bl1_hash_init
 bl1_hash_update
-bl1_trng_generate_random
+bl1_random_generate_secure
 bl_fih_memeql
 cc3xx_lowlevel_uninit
 computed_bl1_2_hash

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
-
+#include <string.h>
 #include "boot_hal.h"
 #include "region.h"
 #include "platform_s_device_definition.h"
@@ -14,10 +14,8 @@
 #include "platform_base_address.h"
 #include "uart_stdout.h"
 #include "tfm_plat_otp.h"
-#include "trng.h"
 #include "kmu_drv.h"
 #include "platform_regs.h"
-#include <string.h>
 #include "cmsis_compiler.h"
 #include "tfm_plat_nv_counters.h"
 #include "mpu_armv8m_drv.h"

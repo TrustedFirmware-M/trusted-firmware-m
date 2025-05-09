@@ -5,8 +5,9 @@
  *
  */
 
- #define MBEDTLS_ALLOW_PRIVATE_ACCESS
-
+#define MBEDTLS_ALLOW_PRIVATE_ACCESS
+#include <string.h>
+#include "bl1_random.h"
 #include "boot_hal.h"
 #include "region.h"
 #include "platform_s_device_definition.h"
@@ -19,9 +20,7 @@
 #include "arm_watchdog_drv.h"
 #include "kmu_drv.h"
 #include "platform_regs.h"
-#include <string.h>
 #include "sam_reg_map.h"
-#include "trng.h"
 #include "tfm_log.h"
 
 #include "mbedtls/hmac_drbg.h"
@@ -38,7 +37,7 @@ static int load_sam_config(void);
 
 static mbedtls_hmac_drbg_context hmac_drbg_ctx;
 
-int32_t bl1_trng_generate_random_init(void)
+static int32_t __bl1_random_generate_secure_init(void)
 {
     int error;
     size_t hash_bytes_used = 0;
@@ -61,7 +60,7 @@ int32_t bl1_trng_generate_random_init(void)
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-int32_t bl1_trng_generate_random(uint8_t *output, size_t out_len)
+int32_t bl1_random_generate_secure(uint8_t *output, size_t out_len)
 {
     int ret = 1;
     size_t md_len = mbedtls_md_get_size(hmac_drbg_ctx.md_ctx.md_info);
@@ -145,13 +144,13 @@ int32_t boot_platform_init(void)
         return 1;
     }
 
-    /* Init the random generator */
-    result = bl1_trng_generate_random_init();
+    /* Init the random generator using an internal specific helper function */
+    result = __bl1_random_generate_secure_init();
     if (result != TFM_PLAT_ERR_SUCCESS) {
         return result;
     }
 
-    result = bl1_trng_generate_random(prbg_seed, sizeof(prbg_seed));
+    result = bl1_random_generate_secure(prbg_seed, sizeof(prbg_seed));
     if (result != TFM_PLAT_ERR_SUCCESS) {
         return result;
     }

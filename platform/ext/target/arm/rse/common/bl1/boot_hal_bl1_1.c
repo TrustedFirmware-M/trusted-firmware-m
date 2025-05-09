@@ -5,6 +5,8 @@
  *
  */
 
+#include <string.h>
+#include "bl1_random.h"
 #include "boot_hal.h"
 #include "region.h"
 #include "device_definition.h"
@@ -24,12 +26,10 @@
 #include "fih.h"
 #include "cc3xx_drv.h"
 #endif /* CRYPTO_HW_ACCELERATOR */
-#include <string.h>
 #include "cmsis_compiler.h"
 #ifdef RSE_ENABLE_BRINGUP_HELPERS
 #include "rse_bringup_helpers.h"
 #endif /* RSE_ENABLE_BRINGUP_HELPERS */
-#include "trng.h"
 #include "rse_sam_config.h"
 #include "tfm_log.h"
 #include "bl1_1_debug.h"
@@ -201,7 +201,7 @@ int32_t boot_platform_init(void)
 #endif /* CRYPTO_HW_ACCELERATOR */
 
     /* Init KMU */
-    err = bl1_trng_generate_random(prbg_seed, sizeof(prbg_seed));
+    err = bl1_random_generate_secure(prbg_seed, sizeof(prbg_seed));
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }

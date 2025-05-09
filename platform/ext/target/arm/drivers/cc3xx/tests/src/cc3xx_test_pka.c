@@ -866,8 +866,8 @@ void pka_test_virtual_registers(struct test_result_t *ret)
     }
 
     for (idx = 0; idx < 128; idx++) {
-        cc3xx_lowlevel_rng_get_random_uint(sizeof(r), &rand_0, CC3XX_RNG_FAST);
-        cc3xx_lowlevel_rng_get_random_uint(sizeof(r), &rand_1, CC3XX_RNG_FAST);
+        cc3xx_lowlevel_rng_get_random_uint(sizeof(r), &rand_0, CC3XX_RNG_LFSR);
+        cc3xx_lowlevel_rng_get_random_uint(sizeof(r), &rand_1, CC3XX_RNG_LFSR);
 
         cc3xx_lowlevel_pka_add(r[rand_0], r[rand_1], res);
         cc3xx_lowlevel_pka_read_reg(res, &readback, sizeof(readback));

@@ -20,13 +20,12 @@
  * This file is derivative of CMSIS V5.9.0 startup_ARMCM55.c
  * Git SHA: 2b7495b8535bdcb306dac29b9ded4cfb679d7e5c
  */
-
+#include "bl1_random.h"
 #include "tfm_hal_device_header.h"
 #include "device_definition.h"
 #include "region_defs.h"
 #include "rse_kmu_slot_ids.h"
 #include "rse_persistent_data.h"
-#include "trng.h"
 #if defined(RSE_ENABLE_TRAM)
 #include "tram_drv.h"
 #include "uart_stdout.h"
@@ -233,11 +232,11 @@ static void __attribute__ ((noinline)) setup_tram_encryption(void) {
         .cfg = &(kmu_dev_cfg_s)
     };
     struct tram_dev_cfg_t tram_dev_cfg_s = {
-    .base = TRAM_BASE_S
+        .base = TRAM_BASE_S
     };
     struct tram_dev_t tram_dev_s = {&tram_dev_cfg_s};
     struct lcm_dev_cfg_t lcm_dev_cfg_s = {
-    .base = LCM_BASE_S
+        .base = LCM_BASE_S
     };
     struct lcm_dev_t lcm_dev_s = {&lcm_dev_cfg_s};
 
@@ -249,7 +248,7 @@ static void __attribute__ ((noinline)) setup_tram_encryption(void) {
     lcm_get_sp_enabled(&lcm_dev_s, &sp_enabled);
     lcm_get_lcs(&lcm_dev_s, &lcs);
 
-    bl1_trng_generate_random(prbg_seed, sizeof(prbg_seed));
+    bl1_random_generate_secure(prbg_seed, sizeof(prbg_seed));
     kmu_init(&kmu_dev_s, prbg_seed);
 
     /* Clear PRBG seed from the stack */
@@ -262,7 +261,7 @@ static void __attribute__ ((noinline)) setup_tram_encryption(void) {
      * we need to generate a new TRAM key.
      */
     if (sp_enabled == LCM_TRUE && (lcs == LCM_LCS_CM || lcs == LCM_LCS_DM)) {
-        bl1_trng_generate_random(tram_key, sizeof(tram_key));
+        bl1_random_generate_secure(tram_key, sizeof(tram_key));
 
         kmu_set_key(&kmu_dev_s, RSE_KMU_SLOT_TRAM_KEY, tram_key, sizeof(tram_key));
 
@@ -272,7 +271,7 @@ static void __attribute__ ((noinline)) setup_tram_encryption(void) {
         }
 
         /* generate a random word to initialise the DTCM */
-        bl1_trng_generate_random((uint8_t *)&random_word, sizeof(random_word));
+        bl1_random_generate_fast((uint8_t *)&random_word, sizeof(random_word));
     }
 
     kmu_set_key_export_config(&kmu_dev_s, RSE_KMU_SLOT_TRAM_KEY, &tram_key_export_config);

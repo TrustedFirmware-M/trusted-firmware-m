@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
-
+#include <string.h>
 #include "boot_hal.h"
 #include "region.h"
 #include "device_definition.h"
@@ -15,7 +15,6 @@
 #include "platform_base_address.h"
 #include "uart_stdout.h"
 #include "tfm_plat_otp.h"
-#include "trng.h"
 #include "kmu_drv.h"
 #include "platform_regs.h"
 #include "tfm_log.h"
@@ -23,7 +22,6 @@
 #include "fih.h"
 #include "cc3xx_drv.h"
 #endif /* CRYPTO_HW_ACCELERATOR */
-#include <string.h>
 #include "cmsis_compiler.h"
 #ifdef RSE_USE_HOST_FLASH
 #include "fip_parser.h"

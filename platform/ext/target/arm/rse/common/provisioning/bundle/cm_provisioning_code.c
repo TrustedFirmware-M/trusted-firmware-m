@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
-
+#include "bl1_random.h"
 #include "tfm_plat_otp.h"
 #include "rse_provisioning_values.h"
 #include "device_definition.h"
@@ -81,7 +81,7 @@ static enum tfm_plat_err_t provision_derived_key(enum kmu_hardware_keyslot_t inp
     err = TFM_PLAT_ERR_SUCCESS;
 
 out:
-    (void)cc3xx_lowlevel_rng_get_random((uint8_t *)key_buf, key_size, CC3XX_RNG_FAST);
+    bl1_random_generate_fast((uint8_t *)key_buf, key_size);
 
     return err;
 }
@@ -96,7 +96,6 @@ enum tfm_plat_err_t do_cm_provision(void) {
     uint32_t new_lcs;
     uint32_t generated_key_buf[32 / sizeof(uint32_t)];
     enum lcm_error_t lcm_err;
-    cc3xx_err_t cc_err;
     uint32_t zero_count;
 
     if (P_RSE_OTP_HEADER->device_status != 0) {
@@ -219,11 +218,10 @@ enum tfm_plat_err_t do_cm_provision(void) {
         return (enum tfm_plat_err_t)lcm_err;
     }
 
-    cc_err = cc3xx_lowlevel_rng_get_random((uint8_t *)generated_key_buf,
-                                      sizeof(generated_key_buf),
-                                      CC3XX_RNG_DRBG);
-    if (cc_err != CC3XX_ERR_SUCCESS) {
-        return (enum tfm_plat_err_t)cc_err;
+    err = bl1_random_generate_secure((uint8_t *)generated_key_buf,
+                                        sizeof(generated_key_buf));
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
     }
 
     INFO("Provisioning HUK\n");

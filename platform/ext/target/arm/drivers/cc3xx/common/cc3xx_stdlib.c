@@ -24,8 +24,8 @@
 void cc3xx_secure_erase_buffer(uint32_t *buf, size_t word_count)
 {
     /* Overwrites the input buffer with random values */
-    cc3xx_lowlevel_rng_get_random((uint8_t *)buf, word_count * sizeof(uint32_t),
-                                  CC3XX_RNG_FAST);
+    cc3xx_lowlevel_rng_get_random(
+        (uint8_t *)buf, word_count * sizeof(uint32_t),  CC3XX_RNG_LFSR);
 }
 
 /* The CC3XX driver uses word-aligned copies through this function when required.
@@ -45,8 +45,8 @@ void cc3xx_dpa_hardened_word_copy(volatile uint32_t *dst,
     /* We don't support more than 256 word permutations per copy, i.e. 2048 bit copy */
     assert(word_count <= UINT8_MAX);
 
-    cc3xx_lowlevel_rng_get_random_permutation(permutation_buf, word_count,
-                                              CC3XX_RNG_FAST);
+    cc3xx_lowlevel_rng_get_random_permutation(
+        permutation_buf, word_count, CC3XX_RNG_LFSR);
 
     for(idx = 0; idx < word_count; idx++) {
         dst[permutation_buf[idx]] = src[permutation_buf[idx]];
