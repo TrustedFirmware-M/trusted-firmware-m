@@ -14,7 +14,7 @@
 
 #include <string.h>
 
-static bool rse_soc_uid_is_generated(void)
+bool rse_soc_uid_is_generated(void)
 {
     uint32_t all_zero_uid[sizeof(P_RSE_OTP_SOC->soc_id_area.unique_id) / sizeof(uint32_t)] = {0};
 
@@ -34,11 +34,11 @@ enum tfm_plat_err_t rse_generate_soc_uid(void)
     enum lcm_error_t lcm_err;
 
     if (rse_soc_uid_is_generated()) {
-        return TFM_PLAT_ERR_SUCCESS;
+        return TFM_PLAT_ERR_SOC_UID_ALREADY_GENERATED;
     }
 
     cc_err = cc3xx_lowlevel_rng_get_random(soc_uid, sizeof(soc_uid),
-                                           CC3XX_RNG_CRYPTOGRAPHICALLY_SECURE);
+                                           CC3XX_RNG_DRBG);
     if (cc_err != CC3XX_ERR_SUCCESS) {
         return (enum tfm_plat_err_t)cc_err;
     }
@@ -77,6 +77,6 @@ enum tfm_plat_err_t rse_lock_soc_uid(void)
     } else {
         return rse_check_zero_bit_count((uint8_t *)&P_RSE_OTP_SOC->soc_id_area.unique_id,
                                         sizeof(P_RSE_OTP_SOC->soc_id_area.unique_id),
-                                        (uint32_t *)&P_RSE_OTP_SOC->soc_id_area.zero_count_unique_id);
+                                        P_RSE_OTP_SOC->soc_id_area.zero_count_unique_id);
     }
 }

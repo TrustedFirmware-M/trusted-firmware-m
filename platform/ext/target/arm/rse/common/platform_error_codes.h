@@ -94,6 +94,7 @@ enum tfm_plat_err_t {
     /* RSE provisioning comms error codes */
     TFM_PLAT_ERR_PROVISIONING_COMMS_UNSUPPORTED,
     /* RSE SOC UID error codes */
+    TFM_PLAT_ERR_SOC_UID_ALREADY_GENERATED,
     TFM_PLAT_ERR_SOC_UID_NOT_GENERATED,
     /* RSE key derivation error codes */
     TFM_PLAT_ERR_KEY_DERIVATION_BOOT_STATE_BUFFER_TOO_SMALL,
