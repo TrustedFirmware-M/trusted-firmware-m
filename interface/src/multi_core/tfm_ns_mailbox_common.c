@@ -10,6 +10,9 @@
 #ifdef TFM_MULTI_CORE_TEST
 #include "tfm_ns_mailbox_test.h"
 #endif
+#ifdef TFM_HYBRID_PLATFORM_API_BROKER
+#include "psa/api_broker.h"
+#endif
 
 int32_t tfm_ns_mailbox_init(struct ns_mailbox_queue_t *queue)
 {
@@ -48,6 +51,15 @@ int32_t tfm_ns_mailbox_init(struct ns_mailbox_queue_t *queue)
 
 #ifdef TFM_MULTI_CORE_TEST
     tfm_ns_mailbox_tx_stats_init(queue);
+#endif
+
+#ifdef TFM_HYBRID_PLATFORM_API_BROKER
+    ret = tfm_hybrid_plat_api_broker_set_exec_target(TFM_HYBRID_PLATFORM_API_BROKER_REMOTE_NSPE);
+    if (ret != 0) {
+        ret = MAILBOX_INIT_ERROR;
+    } else {
+        ret = MAILBOX_SUCCESS;
+    }
 #endif
 
     return ret;

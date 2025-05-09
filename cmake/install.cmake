@@ -25,7 +25,9 @@ if (BL1 AND PLATFORM_DEFAULT_BL1)
             DESTINATION ${INSTALL_PLATFORM_NS_DIR}/bl1_2_config)
 endif()
 
-install(FILES       ${INTERFACE_INC_DIR}/psa/client.h
+install(FILES       ${INTERFACE_INC_DIR}/psa/api_broker.h
+                    ${INTERFACE_INC_DIR}/psa/client.h
+                    ${INTERFACE_INC_DIR}/hybrid_platform/api_broker_defs.h
                     ${INTERFACE_INC_DIR}/psa/error.h
         DESTINATION ${INSTALL_INTERFACE_INC_DIR}/psa)
 
@@ -157,6 +159,11 @@ install(DIRECTORY   ${INTERFACE_INC_DIR}/os_wrapper
 
 if (CONFIG_TFM_USE_TRUSTZONE)
     install(DIRECTORY   ${INTERFACE_SRC_DIR}/os_wrapper
+            DESTINATION ${INSTALL_INTERFACE_SRC_DIR})
+endif()
+
+if (TFM_HYBRID_PLATFORM_API_BROKER)
+    install(DIRECTORY   ${INTERFACE_SRC_DIR}/hybrid_platform
             DESTINATION ${INSTALL_INTERFACE_SRC_DIR})
 endif()
 

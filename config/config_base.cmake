@@ -105,6 +105,7 @@ set(CONFIG_TFM_BRANCH_PROTECTION_FEAT   BRANCH_PROTECTION_DISABLED   CACHE STRIN
 
 set(NUM_MAILBOX_QUEUE_SLOT              1           CACHE BOOL      "Number of mailbox queue slots")
 set(TFM_PLAT_SPECIFIC_MULTI_CORE_COMM   OFF         CACHE BOOL      "Whether to use a platform specific inter-core communication instead of mailbox in dual-cpu topology")
+set(TFM_HYBRID_PLATFORM_API_BROKER      OFF         CACHE BOOL      "Use a API broker for API calls for Hybrid Platforms")
 
 set(DEBUG_AUTHENTICATION                CHIP_DEFAULT CACHE STRING   "Debug authentication setting. [CHIP_DEFAULT, NONE, NS_ONLY, FULL")
 set(SECURE_UART1                        OFF         CACHE BOOL      "Enable secure UART1")

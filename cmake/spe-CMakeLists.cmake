@@ -65,6 +65,27 @@ if (CONFIG_TFM_USE_TRUSTZONE)
     )
 endif()
 
+if (TFM_HYBRID_PLATFORM_API_BROKER)
+    add_library(tfm_api_broker STATIC)
+    target_sources(tfm_api_broker
+        PUBLIC
+            ${INTERFACE_SRC_DIR}/hybrid_platform/api_broker.c
+    )
+
+    target_compile_definitions(tfm_api_broker
+        PUBLIC
+            TFM_HYBRID_PLATFORM_API_BROKER
+    )
+
+    target_include_directories(tfm_api_broker
+        PUBLIC
+            ${INTERFACE_INC_DIR}
+    )
+
+    target_link_libraries(tfm_api_ns_tz PUBLIC tfm_api_broker)
+
+endif()
+
 if (TFM_PARTITION_NS_AGENT_MAILBOX)
     add_library(tfm_api_ns_mailbox STATIC)
 
@@ -72,6 +93,8 @@ if (TFM_PARTITION_NS_AGENT_MAILBOX)
         PUBLIC
             ${INTERFACE_SRC_DIR}/multi_core/tfm_multi_core_ns_api.c
             ${INTERFACE_SRC_DIR}/multi_core/tfm_multi_core_psa_ns_api.c
+            ${INTERFACE_SRC_DIR}/multi_core/tfm_ns_mailbox.c
+            ${INTERFACE_SRC_DIR}/multi_core/platform_ns_mailbox.c
     )
 
     target_include_directories(tfm_api_ns_mailbox
@@ -79,6 +102,11 @@ if (TFM_PARTITION_NS_AGENT_MAILBOX)
             ${INTERFACE_INC_DIR}
             ${INTERFACE_INC_DIR}/multi_core
             ${PLATFORM_DIR}/ext/cmsis/Include
+    )
+
+    target_compile_definitions(tfm_api_ns_mailbox
+        PUBLIC
+            $<$<BOOL:${TFM_HYBRID_PLATFORM_API_BROKER}>:TFM_HYBRID_PLATFORM_API_BROKER>
     )
 endif()
 

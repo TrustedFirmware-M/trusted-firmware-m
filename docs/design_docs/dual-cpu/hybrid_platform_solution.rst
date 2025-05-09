@@ -254,6 +254,86 @@ messages:
   }
 
 
+Hybrid Platform and common binary image
+=======================================
+
+For homogeneous hybrid platform topology, the same binary image is likely to be
+deployed across cores. In that case, both mailbox and TrustZone agents will be
+in use. Therefore, the API for PSA calls would be, from each client's
+perspective, virtually the same.
+In that event, the APIs provided by both agents need to be available
+simultaneously, and thus, a component that coordinates the redirection is
+required.
+
+To achieve this, a ``TFM_HYBRID_PLATFORM_API_BROKER`` is supplied. This
+component simply redirects the standard PSA calls from the client to the correct
+interface.
+The redirection choice is made at initialization time, where the local or remote
+NSPE sets the respective interface API.
+
+For such hybrid platforms, the common build flags configuration would be
+as follow:
+
+
++---------------------------------------+---------------------+
+| Config Option                         | Set to              |
++=======================================+=====================+
+| CONFIG_TFM_USE_TRUSTZONE              | ON                  |
++---------------------------------------+---------------------+
+| TFM_HYBRID_PLATFORM_API_BROKER        | ON                  |
++---------------------------------------+---------------------+
+| TFM_MULTI_CORE_TOPOLOGY               | ON                  |
++---------------------------------------+---------------------+
+| TFM_MULTI_CORE_NS_OS                  | user's requirements |
++---------------------------------------+---------------------+
+| TFM_MULTI_CORE_NS_OS_MAILBOX_THREAD   | user's requirements |
++---------------------------------------+---------------------+
+| TFM_MULTI_CORE_TEST                   | user's requirements |
++---------------------------------------+---------------------+
+
+
+The NSPE is expected to have a mechanism to detect its execution target, that is
+being remote or local. This is *IMPLEMENTATION DEFINED*.
+
+Such mechanism should drive the main application to initialize either the
+interfaces, where the API broker is configured for the correct execution
+environment.
+
+See an example below.
+
+
+.. code-block:: c
+
+  #define EXEC_TARGET_LOCAL  true
+  #define EXEC_TARGET_REMOTE false
+  bool plat_is_this_client_local(void)
+  {
+      /*
+       * Some implementation-defined mechanism to detect the execution target.
+       * For example, a RO memory location could hold such information.
+       */
+
+      return <EXEC_TARGET_LOCAL | EXEC_TARGET_REMOTE>;
+  }
+
+Then, the main implementation simply calls the mechanism logic function and
+calls either the interface for TrustZone or Mailbox.
+Subsequently, the interface sets the execution environment within the API
+broker.
+
+.. code-block:: c
+
+  /*
+   * The corresponding init function sets the execution environment via the API
+   * broker.
+   */
+  if (plat_is_this_client_remote()) {
+      tfm_ns_multi_core_boot();
+  } else {
+      tfm_ns_interface_init();
+  }
+
+
 Limitations
 ===========
 

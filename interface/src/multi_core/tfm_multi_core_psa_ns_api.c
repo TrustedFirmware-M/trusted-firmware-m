@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2023 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "psa/api_broker.h"
 #include "psa/client.h"
 #include "psa/error.h"
 #include "tfm_ns_mailbox.h"
@@ -36,9 +37,15 @@
  */
 #define PSA_INTER_CORE_COMM_ERR         (INT32_MIN + 0xFF)
 
-/**** API functions ****/
+/*
+ **** API functions for Multi Core Interface ***
+ *
+ * Thir names are resolved in the api_broker header file.
+ *
+ * The client always calls the APIs with the standard names.
+ */
 
-uint32_t psa_framework_version(void)
+uint32_t PSA_FRAMEWORK_VERSION_MULTICORE(void)
 {
     struct psa_client_params_t params;
     uint32_t version;
@@ -54,7 +61,7 @@ uint32_t psa_framework_version(void)
     return version;
 }
 
-uint32_t psa_version(uint32_t sid)
+uint32_t PSA_VERSION_MULTICORE(uint32_t sid)
 {
     struct psa_client_params_t params;
     uint32_t version;
@@ -72,7 +79,7 @@ uint32_t psa_version(uint32_t sid)
     return version;
 }
 
-psa_handle_t psa_connect(uint32_t sid, uint32_t version)
+psa_handle_t PSA_CONNECT_MULTICORE(uint32_t sid, uint32_t version)
 {
     struct psa_client_params_t params;
     psa_handle_t psa_handle;
@@ -91,7 +98,7 @@ psa_handle_t psa_connect(uint32_t sid, uint32_t version)
     return psa_handle;
 }
 
-psa_status_t psa_call(psa_handle_t handle, int32_t type,
+psa_status_t PSA_CALL_MULTICORE(psa_handle_t handle, int32_t type,
                       const psa_invec *in_vec, size_t in_len,
                       psa_outvec *out_vec, size_t out_len)
 {
@@ -116,7 +123,7 @@ psa_status_t psa_call(psa_handle_t handle, int32_t type,
     return status;
 }
 
-void psa_close(psa_handle_t handle)
+void PSA_CLOSE_MULTICORE(psa_handle_t handle)
 {
     struct psa_client_params_t params;
     int32_t reply;

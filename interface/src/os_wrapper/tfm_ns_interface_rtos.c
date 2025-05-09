@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2023 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
@@ -17,6 +17,10 @@
 #include "os_wrapper/mutex.h"
 
 #include "tfm_ns_interface.h"
+
+#ifdef TFM_HYBRID_PLATFORM_API_BROKER
+#include "psa/api_broker.h"
+#endif
 
 /**
  * \brief the ns_lock ID
@@ -45,11 +49,19 @@ int32_t tfm_ns_interface_dispatch(veneer_fn fn,
 uint32_t tfm_ns_interface_init(void)
 {
     void *handle;
+    int32_t ret;
 
     handle = os_wrapper_mutex_create();
     if (!handle) {
         return OS_WRAPPER_ERROR;
     }
+
+#ifdef TFM_HYBRID_PLATFORM_API_BROKER
+    ret = tfm_hybrid_plat_api_broker_set_exec_target(TFM_HYBRID_PLATFORM_API_BROKER_LOCAL_NSPE);
+    if (ret != 0) {
+        return OS_WRAPPER_ERROR;
+    }
+#endif
 
     ns_lock_handle = handle;
     return OS_WRAPPER_SUCCESS;

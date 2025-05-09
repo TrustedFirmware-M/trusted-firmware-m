@@ -60,6 +60,8 @@ set(TFM_ISOLATION_LEVEL                    @TFM_ISOLATION_LEVEL@            CACH
 set(PLATFORM_DEFAULT_CRYPTO_KEYS           @PLATFORM_DEFAULT_CRYPTO_KEYS@   CACHE BOOL   "Use the default crypto keys")
 set(PLATFORM_DEFAULT_UART_STDOUT           @PLATFORM_DEFAULT_UART_STDOUT@   CACHE BOOL   "Use default uart stdout implementation.")
 
+set(TFM_HYBRID_PLATFORM_API_BROKER         @TFM_HYBRID_PLATFORM_API_BROKER@ CACHE BOOL   "Enable API broker for Hybrid Platforms")
+
 # Other common options
 
 # Coprocessor settings
