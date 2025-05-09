@@ -26,6 +26,10 @@
 #include "tfm_its_defs.h"
 #endif /* TFM_PARTITION_INTERNAL_TRUSTED_STORAGE */
 
+#ifdef TFM_PARTITION_MEASURED_BOOT
+#include "measured_boot_defs.h"
+#endif /* TFM_PARTITION_MEASURED_BOOT */
+
 #define INVALID_REGION_COUNTER_MAX  128
 #define INVALID_SERVICE_COUNTER_MAX 64
 
@@ -141,6 +145,16 @@ enum tfm_plat_err_t comms_permissions_service_check(psa_handle_t handle, const p
             goto out_err;
         }
 #endif /* TFM_PARTITION_INTERNAL_TRUSTED_STORAGE */
+#ifdef TFM_PARTITION_MEASURED_BOOT
+    case TFM_MEASURED_BOOT_HANDLE:
+        switch (type) {
+        case TFM_MEASURED_BOOT_EXTEND:
+        case TFM_MEASURED_BOOT_READ:
+            return TFM_PLAT_ERR_SUCCESS;
+        default:
+            goto out_err;
+        }
+#endif /* TFM_PARTITION_MEASURED_BOOT */
     default:
         goto out_err;
     }

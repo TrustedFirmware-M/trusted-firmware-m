@@ -7,6 +7,7 @@
 #include "atu_rse_lib.h"
 #include "bl2_image_id.h"
 #include "boot_hal.h"
+#include "tfm_plat_boot_measurement.h"
 #include "bootutil/bootutil_log.h"
 #include "crypto_hw.h"
 #include "device_definition.h"
@@ -17,6 +18,7 @@
 #include "host_base_address.h"
 #include "platform_base_address.h"
 #include "platform_regs.h"
+#include "tfm_boot_status.h"
 #include "tfm_plat_defs.h"
 
 #include <string.h>
@@ -52,6 +54,116 @@ static int32_t fill_secure_flash_map_with_data(void)
 
     return 0;
 }
+
+#ifdef TFM_MEASURED_BOOT_API
+
+static int boot_add_data_to_shared_area(uint8_t        major_type,
+                                        uint16_t       minor_type,
+                                        size_t         size,
+                                        const uint8_t *data)
+{
+    struct shared_data_tlv_entry tlv_entry = {0};
+    struct tfm_boot_data *boot_data;
+    uintptr_t tlv_end, offset;
+    const uintptr_t data_base = tfm_plat_get_shared_measurement_data_base();
+    const size_t data_size = tfm_plat_get_shared_measurement_data_size();
+
+    if (data == NULL) {
+        return -1;
+    }
+
+    boot_data = (struct tfm_boot_data *)data_base;
+
+    /* Check whether the shared area needs to be initialized. */
+    if ((boot_data->header.tlv_magic != SHARED_DATA_TLV_INFO_MAGIC) ||
+        (boot_data->header.tlv_tot_len > data_size)) {
+        memset((void *)data_base, 0, data_size);
+        boot_data->header.tlv_magic   = SHARED_DATA_TLV_INFO_MAGIC;
+        boot_data->header.tlv_tot_len = data_size;
+    }
+
+    /* Get the boundaries of TLV section. */
+    tlv_end = data_base + boot_data->header.tlv_tot_len;
+    offset = data_base + data_size;
+
+    /* Check whether TLV entry is already added. Iterates over the TLV section
+     * looks for the same entry if found then returns with error.
+     */
+    while (offset < tlv_end) {
+        /* Create local copy to avoid unaligned access */
+        memcpy(&tlv_entry, (const void *)offset, SHARED_DATA_ENTRY_HEADER_SIZE);
+        if (GET_MAJOR(tlv_entry.tlv_type) == major_type &&
+            GET_MINOR(tlv_entry.tlv_type) == minor_type) {
+            return -1;
+        }
+
+        offset += SHARED_DATA_ENTRY_SIZE(tlv_entry.tlv_len);
+    }
+
+    /* Add TLV entry. */
+    tlv_entry.tlv_type = SET_TLV_TYPE(major_type, minor_type);
+    tlv_entry.tlv_len  = size;
+
+    /* Check integer overflow and overflow of shared data area. */
+    if (SHARED_DATA_ENTRY_SIZE(size) >
+        (UINT16_MAX - boot_data->header.tlv_tot_len)) {
+        return -1;
+    } else if ((SHARED_DATA_ENTRY_SIZE(size) + boot_data->header.tlv_tot_len) > data_size) {
+        return -1;
+    }
+
+    offset = tlv_end;
+    memcpy((void *)offset, &tlv_entry, SHARED_DATA_ENTRY_HEADER_SIZE);
+
+    offset += SHARED_DATA_ENTRY_HEADER_SIZE;
+    memcpy((void *)offset, data, size);
+
+    boot_data->header.tlv_tot_len += SHARED_DATA_ENTRY_SIZE(size);
+
+    return 0;
+}
+
+/*
+ * Store a boot measurement in shared memory.
+ *
+ * On CSS-Aspen we use separate slots for each measurement hash and do not
+ * support live firmware upgrades. Hence, we lock each slot after a measurement
+ * has been stored once.
+ */
+int boot_store_measurement(uint8_t index,
+                           const uint8_t *measurement,
+                           size_t measurement_size,
+                           const struct boot_measurement_metadata *metadata,
+                           bool lock_measurement)
+{
+    uint16_t minor_type;
+    int rc;
+    /* Ignore input request */
+    (void)lock_measurement;
+
+    if (index >= BOOT_MEASUREMENT_SLOT_MAX) {
+        return -1;
+    }
+
+    minor_type = SET_MBS_MINOR(index, SW_MEASURE_METADATA);
+    rc = boot_add_data_to_shared_area(TLV_MAJOR_MBS,
+                                      minor_type,
+                                      sizeof(struct boot_measurement_metadata),
+                                      (const uint8_t *)metadata);
+    if (rc) {
+        return rc;
+    }
+
+    minor_type = SET_MBS_MINOR(index, SW_MEASURE_VALUE_NON_EXTENDABLE);
+    rc = boot_add_data_to_shared_area(TLV_MAJOR_MBS,
+                                      minor_type,
+                                      measurement_size,
+                                      measurement);
+
+    return rc;
+}
+
+#endif /* TFM_MEASURED_BOOT_API */
 
 /*
  * ============================ INIT FUNCTIONS =================================
