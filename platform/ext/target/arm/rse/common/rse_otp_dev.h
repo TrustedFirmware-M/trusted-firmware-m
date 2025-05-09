@@ -48,7 +48,7 @@ extern const struct rse_otp_area_info_t soc_area_info;
  *
  * \return true if both offset and size are non-zero; false otherwise.
  */
-static inline bool __area_ptr_is_valid(struct rse_otp_area_info_t *area_info)
+static inline bool __area_ptr_is_valid(const struct rse_otp_area_info_t *area_info)
 {
     return area_info->offset != 0 && area_info->size != 0;
 }
@@ -66,7 +66,7 @@ static inline bool __area_ptr_is_valid(struct rse_otp_area_info_t *area_info)
  *
  * \return A pointer to the corresponding memory area if valid; otherwise, NULL.
  */
-static inline volatile const void *__get_area_info_ptr(struct rse_otp_area_info_t *area_info)
+static inline volatile const void *__get_area_info_ptr(const struct rse_otp_area_info_t *area_info)
 {
     if (!__area_ptr_is_valid(area_info)) {
         assert(0);
