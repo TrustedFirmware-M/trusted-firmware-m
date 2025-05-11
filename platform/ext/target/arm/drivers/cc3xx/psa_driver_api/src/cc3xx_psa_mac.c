@@ -127,7 +127,7 @@ static psa_status_t cmac_setup(struct cc3xx_aes_state_t *state,
 static psa_status_t cmac_update(struct cc3xx_aes_state_t *state,
                                 const uint8_t *input, size_t ilen)
 {
-    if (input == NULL && ilen == 0) {
+    if (ilen == 0) {
         /* Nothing to do, just return success */
         return PSA_SUCCESS;
     }
