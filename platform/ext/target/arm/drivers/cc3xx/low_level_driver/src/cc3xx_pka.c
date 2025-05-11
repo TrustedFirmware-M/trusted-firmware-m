@@ -643,7 +643,6 @@ static uint32_t CC3XX_ATTRIBUTE_INLINE opcode_construct(enum cc3xx_pka_operation
      * such as the sign of the result can still be used.
      */
     if (!discard_result) {
-        assert(res >= 0);
         assert(res < pka_reg_am_max);
         assert(virt_reg_in_use[res]);
         /* Make sure we have a physical register mapped for the virtual register */
