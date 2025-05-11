@@ -49,9 +49,10 @@ static psa_status_t cmac_compute(size_t tag_len,
 
     key_size = (key_buffer_size == 16) ? CC3XX_AES_KEYSIZE_128 :
                (key_buffer_size == 24) ? CC3XX_AES_KEYSIZE_192 :
-               (key_buffer_size == 32) ? CC3XX_AES_KEYSIZE_256 : -1;
+               (key_buffer_size == 32) ? CC3XX_AES_KEYSIZE_256 :
+                                         CC3XX_AES_KEYSIZE_INVALID;
 
-    if (key_size == -1 || mac_size < 16) {
+    if (key_size == CC3XX_AES_KEYSIZE_INVALID || mac_size < 16) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
@@ -96,9 +97,10 @@ static psa_status_t cmac_setup(struct cc3xx_aes_state_t *state,
 
     key_size = (key_buffer_size == 16) ? CC3XX_AES_KEYSIZE_128 :
                (key_buffer_size == 24) ? CC3XX_AES_KEYSIZE_192 :
-               (key_buffer_size == 32) ? CC3XX_AES_KEYSIZE_256 : -1;
+               (key_buffer_size == 32) ? CC3XX_AES_KEYSIZE_256 :
+                                         CC3XX_AES_KEYSIZE_INVALID;
 
-    if (key_size == -1) {
+    if (key_size == CC3XX_AES_KEYSIZE_INVALID) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 

@@ -51,7 +51,7 @@ typedef enum {
     CC3XX_AES_KEYSIZE_192  = 0b01U,
     CC3XX_AES_KEYSIZE_256  = 0b10U,
 
-    _CC3XX_AES_KEYSIZE_PAD = UINT32_MAX
+    CC3XX_AES_KEYSIZE_INVALID = UINT32_MAX
 } cc3xx_aes_keysize_t;
 
 typedef enum {
