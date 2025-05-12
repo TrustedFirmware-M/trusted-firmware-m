@@ -115,7 +115,7 @@ def tx_command_send(backend, ctx, command : dcsu_tx_command, data : bytes = None
 
     return response
 
-def tx_command_read_data(backend, ctx, size, byteorder='big'):
+def tx_command_read_data(backend, ctx, size, byteorder='little'):
 
     data_words = []
 
@@ -191,7 +191,7 @@ def dcsu_tx_command_read_family_id(backend, ctx, args: argparse.Namespace):
     res = tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_READ_SOC_FAMILY_ID, size=1, byteorder=args.byte_order)
     time.sleep(0.1)
     if res == dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS:
-        data = tx_command_read_data(backend, ctx, 1)
+        data = tx_command_read_data(backend, ctx, 1, byteorder=args.byte_order)
         return res, data
     return res, None
 
@@ -199,7 +199,7 @@ def dcsu_tx_command_read_ieee_ecid(backend, ctx, args: argparse.Namespace):
     res = tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_READ_SOC_IEEE_ECID, size=4, byteorder=args.byte_order)
     time.sleep(0.1)
     if res == dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS:
-        data = tx_command_read_data(backend, ctx, 4)
+        data = tx_command_read_data(backend, ctx, 4, byteorder=args.byte_order)
         return res, data
     return res, None
 
@@ -223,7 +223,7 @@ def dcsu_tx_command_read_soc_cfg_data(backend, ctx, args: argparse.Namespace):
     res = tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_READ_SOC_CONFIG_DATA, size=size, byteorder=args.byte_order)
     time.sleep(0.1)
     if res == dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS:
-        data = tx_command_read_data(backend, ctx, size)
+        data = tx_command_read_data(backend, ctx, size, byteorder=args.byte_order)
         return res, data
     return res, None
 
