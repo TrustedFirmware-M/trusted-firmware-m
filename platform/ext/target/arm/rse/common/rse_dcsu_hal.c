@@ -10,7 +10,7 @@
 #include "rse_soc_uid.h"
 #include "rse_otp_dev.h"
 
-static enum dcsu_rx_msg_response_t rse_dcsu_hal_resp_mapping(uint32_t err)
+static inline enum dcsu_rx_msg_response_t rse_dcsu_hal_resp_mapping(uint32_t err)
 {
     switch (err) {
     case TFM_PLAT_ERR_SUCCESS:
@@ -24,7 +24,7 @@ static enum dcsu_rx_msg_response_t rse_dcsu_hal_resp_mapping(uint32_t err)
     case LCM_ERROR_OTP_WRITE_INVALID_ALIGNMENT:
         return DCSU_RX_MSG_RESP_TOO_LARGE_OFFSET_PARAM;
     default:
-        return DCSU_ERROR_RX_MSG_GENERIC_ERROR;
+        return DCSU_RX_MSG_RESP_GENERIC_ERROR;
     }
 }
 
