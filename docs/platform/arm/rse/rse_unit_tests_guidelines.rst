@@ -216,19 +216,22 @@ in ``platform/ext/target/arm/rse/common/provisioning/bl1_provisioning.c``
        *gretreg |= val & 0b1111;
    }
 
-   int tfm_plat_provisioning_is_required(void)
+   enum tfm_plat_err_t tfm_plat_provisioning_is_required(bool *provisioning_required)
    {
        enum lcm_error_t err;
        enum lcm_lcs_t lcs;
-       bool provisioning_required;
+
+       if (provisioning_required == NULL) {
+           return TFM_PLAT_ERR_INVALID_INPUT;
+       }
 
        err = lcm_get_lcs(&LCM_DEV_S, &lcs);
        if (err != LCM_ERROR_NONE) {
            return err;
        }
 
-       provisioning_required = (lcs == LCM_LCS_CM || lcs == LCM_LCS_DM);
-       if (!provisioning_required) {
+       *provisioning_required = (lcs == LCM_LCS_CM || lcs == LCM_LCS_DM);
+       if (!*provisioning_required) {
            if (lcs == LCM_LCS_RMA) {
                gpio_set(RSE_GPIO_STATE_RMA_IDLE);
            } else if (lcs == LCM_LCS_SE) {
@@ -236,7 +239,7 @@ in ``platform/ext/target/arm/rse/common/provisioning/bl1_provisioning.c``
            }
        }
 
-       return provisioning_required;
+       return TFM_PLAT_ERR_SUCCESS;
    }
 
 To have a good unit test, we need to cover all possible paths that can lead to
@@ -335,7 +338,9 @@ guidelines outlined below:
 
 --------------
 
-*Copyright (c) 2024, Arm Limited. All rights reserved.*
+*SPDX-License-Identifier: BSD-3-Clause*
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
 
 .. _Unity: https://github.com/ThrowTheSwitch/Unity
 .. _CMock: https://github.com/ThrowTheSwitch/CMock

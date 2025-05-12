@@ -29,6 +29,7 @@ static fih_int tfm_core_init(void)
 {
     enum tfm_plat_err_t plat_err = TFM_PLAT_ERR_SYSTEM_ERR;
     fih_int fih_rc = FIH_FAILURE;
+    bool provisioning_required;
 
     /*
      * Access to any peripheral should be performed after programming
@@ -63,7 +64,12 @@ static fih_int tfm_core_init(void)
     }
 
     /* Perform provisioning. */
-    if (tfm_plat_provisioning_is_required()) {
+    plat_err = tfm_plat_provisioning_is_required(&provisioning_required);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        FIH_RET(fih_int_encode(SPM_ERROR_GENERIC));
+    }
+
+    if (provisioning_required) {
         plat_err = tfm_plat_provisioning_perform();
         if (plat_err != TFM_PLAT_ERR_SUCCESS) {
             FIH_RET(fih_int_encode(SPM_ERROR_GENERIC));

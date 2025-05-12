@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -171,6 +171,9 @@ int32_t boot_platform_post_init(void)
 {
     int32_t result;
     enum tfm_plat_err_t plat_err;
+#ifdef PLATFORM_PSA_ADAC_SECURE_DEBUG
+    bool provisioning_required;
+#endif
 
 #ifdef CRYPTO_HW_ACCELERATOR
     result = crypto_hw_accelerator_init();
@@ -186,7 +189,13 @@ int32_t boot_platform_post_init(void)
     }
 
 #ifdef PLATFORM_PSA_ADAC_SECURE_DEBUG
-    if (!tfm_plat_provisioning_is_required()) {
+    plat_err = tfm_plat_provisioning_is_required(&provisioning_required);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        BOOT_LOG_ERR("Platform provisioning required check failed");
+        FIH_PANIC;
+    }
+
+    if (!provisioning_required) {
 
         plat_err = tfm_plat_otp_read(PLAT_OTP_ID_SECURE_DEBUG_PK, 32, secure_debug_rotpk);
         if (plat_err != TFM_PLAT_ERR_SUCCESS) {

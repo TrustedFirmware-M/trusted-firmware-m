@@ -46,18 +46,24 @@ void tfm_plat_provisioning_check_for_dummy_keys(void)
     memset(&guk_start, 0, sizeof(guk_start));
 }
 
-int tfm_plat_provisioning_is_required(void)
+enum tfm_plat_err_t tfm_plat_provisioning_is_required(bool *provisioning_required)
 {
     enum tfm_plat_err_t err;
     enum plat_otp_lcs_t lcs;
+
+    if (provisioning_required == NULL) {
+        return TFM_PLAT_ERR_INVALID_INPUT;
+    }
 
     err = tfm_plat_otp_read(PLAT_OTP_ID_LCS, sizeof(lcs), (uint8_t *)&lcs);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
 
-    return lcs == PLAT_OTP_LCS_ASSEMBLY_AND_TEST
-        || lcs == PLAT_OTP_LCS_PSA_ROT_PROVISIONING;
+    *provisioning_required = (lcs == PLAT_OTP_LCS_ASSEMBLY_AND_TEST)
+                          || (lcs == PLAT_OTP_LCS_PSA_ROT_PROVISIONING);
+
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 enum tfm_plat_err_t provision_assembly_and_test(void)

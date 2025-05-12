@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -8,6 +8,7 @@
 #ifndef __TFM_PLAT_PROVISIONING_H__
 #define __TFM_PLAT_PROVISIONING_H__
 
+#include <stdbool.h>
 #include "tfm_plat_defs.h"
 
 #ifdef __cplusplus
@@ -27,10 +28,11 @@ void tfm_plat_provisioning_check_for_dummy_keys(void);
 /**
  * \brief           Check if a provisioning operation is required.
  *
- * \retval 1        A provisioning operation is required.
- * \retval 0        A provisioning operation is not required.
+ * \param[out] provisioning_required Whether or not provisioning is required.
+ *
+ * \return          TFM_PLAT_ERR_SUCCESS on success, non-zero on error.
  */
-int tfm_plat_provisioning_is_required(void);
+enum tfm_plat_err_t tfm_plat_provisioning_is_required(bool *provisioning_required);
 
 /**
  * \brief           Performs a provisioning operation.

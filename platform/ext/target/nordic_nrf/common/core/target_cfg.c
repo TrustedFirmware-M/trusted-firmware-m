@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2018-2020 Arm Limited. All rights reserved.
  * Copyright (c) 2020 Nordic Semiconductor ASA.
  * Copyright (c) 2021 Laird Connectivity.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1083,10 +1083,18 @@ enum tfm_plat_err_t spu_init_cfg(void)
 #endif /* NRF_NS_STORAGE_PARTITION_START */
 
 #ifdef REGION_PCD_SRAM_ADDRESS
+    enum tfm_plat_err_t err;
+    bool provisioning_required;
     /* Netcore needs PCD memory area to be non-secure. */
     perm = 0;
     perm |= NRF_SPU_MEM_PERM_READ;
-    if (tfm_plat_provisioning_is_required()) {
+
+    err = tfm_plat_provisioning_is_required(&provisioning_required);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    if (provisioning_required) {
         perm |= NRF_SPU_MEM_PERM_WRITE;
     }
 

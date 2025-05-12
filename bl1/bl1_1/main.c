@@ -91,6 +91,8 @@ int main(void)
 {
     fih_int fih_rc = FIH_FAILURE;
     fih_int recovery_succeeded = FIH_FAILURE;
+    enum tfm_plat_err_t plat_err;
+    bool provisioning_required;
 
     fih_rc = fih_int_encode_zero_equality(boot_platform_init());
     if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
@@ -103,7 +105,13 @@ int main(void)
     run_bl1_1_testsuite();
 #endif /* defined(TEST_BL1_1) && defined(PLATFORM_DEFAULT_BL1_TEST_EXECUTION) */
 
-    if (tfm_plat_provisioning_is_required()) {
+    plat_err = tfm_plat_provisioning_is_required(&provisioning_required);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        ERROR("BL1 provision necessity check failed\n");
+        boot_platform_error_state(fih_int_decode(fih_rc));
+    }
+
+    if (provisioning_required) {
         fih_rc = fih_int_encode_zero_equality(tfm_plat_provisioning_perform());
         if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
             ERROR("BL1 provisioning failed\n");

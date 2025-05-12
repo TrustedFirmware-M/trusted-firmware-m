@@ -43,21 +43,23 @@ void tfm_plat_provisioning_check_for_dummy_keys(void)
     /* FixMe: Check for dummy key must be implemented */
 }
 
-int tfm_plat_provisioning_is_required(void)
+enum tfm_plat_err_t tfm_plat_provisioning_is_required(bool *provisioning_required)
 {
     enum lcm_error_t err;
     enum lcm_lcs_t lcs;
-    bool provisioning_required;
+
+    if (provisioning_required == NULL) {
+        return TFM_PLAT_ERR_INVALID_INPUT;
+    }
 
     err = lcm_get_lcs(&LCM_DEV_S, &lcs);
     if (err != LCM_ERROR_NONE) {
-        assert(false);
-        return false;
+        return err;
     }
 
-    provisioning_required = (lcs == LCM_LCS_CM || lcs == LCM_LCS_DM);
+    *provisioning_required = (lcs == LCM_LCS_CM || lcs == LCM_LCS_DM);
 
-    return provisioning_required;
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 enum tfm_plat_err_t tfm_plat_provisioning_perform(void)

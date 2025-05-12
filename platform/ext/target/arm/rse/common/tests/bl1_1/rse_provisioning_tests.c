@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -766,33 +766,40 @@ void rse_bl1_provisioning_test_0004(struct test_result_t *ret)
 
 void rse_bl1_provisioning_test_0005(struct test_result_t *ret)
 {
-    bool provisioning_is_required;
+    bool provisioning_is_required_expected;
     enum lcm_lcs_t lcs;
+    bool provisioning_required;
+    enum tfm_plat_err_t err;
 
     TEST_SETUP(lcm_get_lcs(&LCM_DEV_S, &lcs));
 
     switch(lcs) {
         case LCM_LCS_CM:
-            provisioning_is_required = true;
+            provisioning_is_required_expected = true;
             break;
         case LCM_LCS_DM:
-            provisioning_is_required = true;
+            provisioning_is_required_expected = true;
             break;
         case LCM_LCS_SE:
-            provisioning_is_required = false;
+            provisioning_is_required_expected = false;
             break;
         case LCM_LCS_RMA:
-            provisioning_is_required = false;
+            provisioning_is_required_expected = false;
             break;
         case LCM_LCS_INVALID:
-            provisioning_is_required = false;
+            provisioning_is_required_expected = false;
             break;
         default:
             TEST_FAIL("Invalid LCS");
             return;
     }
 
-    TEST_ASSERT(tfm_plat_provisioning_is_required() == provisioning_is_required,
+    err = tfm_plat_provisioning_is_required(&provisioning_required);
+
+    TEST_ASSERT(err == TFM_PLAT_ERR_SUCCESS,
+                "Failed to request if provisioning is required");
+
+    TEST_ASSERT(provisioning_required == provisioning_is_required_expected,
                 "Provisioning requirements check failed");
 
     ret->val = TEST_PASSED;

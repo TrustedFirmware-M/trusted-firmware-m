@@ -139,7 +139,15 @@ static void copy_rom_library_into_sram(void)
 
 static enum tfm_plat_err_t image_load_validate_failure(void)
 {
-    if (!tfm_plat_provisioning_is_required()) {
+    enum tfm_plat_err_t err;
+    bool provisioning_required;
+
+    err = tfm_plat_provisioning_is_required(&provisioning_required);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    if (!provisioning_required) {
         return TFM_PLAT_ERR_BL1_2_PROVISIONING_NOT_REQUIRED;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -36,18 +36,24 @@ void tfm_plat_provisioning_check_for_dummy_keys(void)
 
 }
 
-int tfm_plat_provisioning_is_required(void)
+enum tfm_plat_err_t tfm_plat_provisioning_is_required(bool *provisioning_required)
 {
     enum tfm_plat_err_t err;
     enum plat_otp_lcs_t lcs;
+
+    if (provisioning_required == NULL) {
+        return TFM_PLAT_ERR_INVALID_INPUT;
+    }
 
     err = tfm_plat_otp_read(PLAT_OTP_ID_LCS, sizeof(lcs), (uint8_t*)&lcs);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
 
-    return lcs == PLAT_OTP_LCS_ASSEMBLY_AND_TEST
-        || lcs == PLAT_OTP_LCS_PSA_ROT_PROVISIONING;
+    *provisioning_required = (lcs == PLAT_OTP_LCS_ASSEMBLY_AND_TEST)
+                          || (lcs == PLAT_OTP_LCS_PSA_ROT_PROVISIONING);
+
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 enum tfm_plat_err_t tfm_plat_provisioning_perform(void)

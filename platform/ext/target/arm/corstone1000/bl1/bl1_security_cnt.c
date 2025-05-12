@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -50,12 +50,19 @@ int32_t boot_nv_security_counter_update(uint32_t image_id,
 {
     enum tfm_plat_err_t err;
     enum fwu_agent_error_t fwu_err;
+    enum tfm_plat_err_t plat_err;
+    bool provisioning_required;
 
     if (image_id != 0) {
         return -1;
     }
 
-    if (tfm_plat_provisioning_is_required()) {
+    plat_err = tfm_plat_provisioning_is_required(&provisioning_required);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return -1;
+    }
+
+    if (provisioning_required) {
 
         err = tfm_plat_set_nv_counter(PLAT_NV_COUNTER_BL1_0, img_security_cnt);
         if (err != TFM_PLAT_ERR_SUCCESS) {

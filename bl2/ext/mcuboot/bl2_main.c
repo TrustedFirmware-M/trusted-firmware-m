@@ -116,6 +116,7 @@ int main(void)
     fih_ret recovery_succeeded = FIH_FAILURE;
     enum tfm_plat_err_t plat_err;
     int32_t image_id;
+    bool provisioning_required;
 
     /* Initialise the mbedtls static memory allocator so that mbedtls allocates
      * memory from the provided static buffer instead of from the heap.
@@ -149,7 +150,13 @@ int main(void)
         boot_platform_error_state(plat_err);
     }
 
-    if (tfm_plat_provisioning_is_required()) {
+    plat_err = tfm_plat_provisioning_is_required(&provisioning_required);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        BOOT_LOG_ERR("Provisioning required check failed");
+        boot_platform_error_state(plat_err);
+    }
+
+    if (provisioning_required) {
         plat_err = tfm_plat_provisioning_perform();
         if (plat_err != TFM_PLAT_ERR_SUCCESS) {
             BOOT_LOG_ERR("Provisioning failed");
