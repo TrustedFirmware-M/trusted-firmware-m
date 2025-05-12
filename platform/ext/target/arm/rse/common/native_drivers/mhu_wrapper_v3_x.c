@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
 
 #define MHU_NOTIFY_VALUE    (1234u)
 
@@ -278,17 +279,13 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev, const uint8_t *send_buffer,
 {
     enum mhu_error_t mhu_err;
     enum mhu_v3_x_error_t mhu_v3_err;
+    struct mhu_v3_x_dev_t *dev = (struct mhu_v3_x_dev_t *)mhu_sender_dev;;
     uint8_t num_channels;
-    uint8_t chan;
+    uint8_t chan = 0;
     uint32_t *buffer;
-    struct mhu_v3_x_dev_t *dev;
 
-    dev = (struct mhu_v3_x_dev_t *)mhu_sender_dev;
-    chan = 0;
-
-    if (dev == NULL || dev->base == 0) {
-        return MHU_ERR_SEND_DATA_INVALID_ARG;
-    }
+    assert(dev != NULL);
+    assert(dev->base != (uintptr_t)NULL);
 
     if (size == 0) {
         return MHU_ERR_NONE;
@@ -369,20 +366,18 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
 {
     enum mhu_error_t mhu_err;
     enum mhu_v3_x_error_t mhu_v3_err;
+    struct mhu_v3_x_dev_t *dev = (struct mhu_v3_x_dev_t *)mhu_receiver_dev;
     uint32_t msg_len;
     uint8_t num_channels;
-    uint8_t chan;
+    uint8_t chan = 0;
     uint32_t *buffer;
-    struct mhu_v3_x_dev_t *dev;
 
-    dev = (struct mhu_v3_x_dev_t *)mhu_receiver_dev;
-    chan = 0;
+    assert(dev != NULL);
+    assert(dev->base != (uintptr_t)NULL);
 
-    if (dev == NULL || dev->base == 0 || size == NULL) {
+    if (size == NULL) {
         return MHU_ERR_RECEIVE_DATA_INVALID_ARG;
-    }
-
-    if (*size == 0) {
+    } else if (*size == 0) {
         return MHU_ERR_NONE;
     }
 

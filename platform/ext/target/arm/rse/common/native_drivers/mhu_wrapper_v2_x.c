@@ -18,6 +18,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <assert.h>
 
 #include "mhu_v2_x.h"
 
@@ -211,15 +212,14 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev,
 {
     enum mhu_v2_x_error_t err;
     enum mhu_error_t mhu_err;
-    struct mhu_v2_x_dev_t *dev = mhu_sender_dev;
+    struct mhu_v3_x_dev_t *dev = (struct mhu_v3_x_dev_t *)mhu_sender_dev;
     uint32_t num_channels = mhu_v2_x_get_num_channel_implemented(dev);
     uint32_t chan = 0;
     uint32_t i;
     uint32_t *p;
 
-    if (dev == NULL) {
-        return MHU_ERR_SEND_DATA_INVALID_ARG;
-    }
+    assert(dev != NULL);
+    assert(dev->base != (uintptr_t)NULL);
 
     if (size == 0) {
         return MHU_ERR_NONE;
@@ -304,11 +304,12 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
     uint32_t i;
     uint32_t *p;
 
-    if (dev == NULL || size == NULL) {
-        return MHU_ERR_RECEIVE_DATA_INVALID_ARG;
-    }
+    assert(dev != NULL);
+    assert(dev->base != (uintptr_t)NULL);
 
-    if (*size == 0) {
+    if (size == NULL) {
+        return MHU_ERR_RECEIVE_DATA_INVALID_ARG;
+    } else if (*size == 0) {
         return MHU_ERR_NONE;
     }
 
