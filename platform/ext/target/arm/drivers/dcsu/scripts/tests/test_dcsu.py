@@ -8,12 +8,14 @@
 import sys
 import os
 import tempfile
+import math
 
 parent_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
 sys.path.append(parent_dir)
 
 from dcsu import *
 
+WORD_SIZE = 4
 TEST_DATA_BYTES = b"\xAB\xCD\xEF\x10\x01\x23\x45\x67" * 128
 
 def get_random_bytes(num_bytes):
@@ -88,7 +90,7 @@ def test_invalid_command(backend, ctx, args):
     dummy_data = bytes([0xEF])
     backend.write_register(ctx, "DIAG_RX_LARGE_PARAM", 0x0)
     status = tx_command_send(backend, ctx, invalid_dcsu_rx_command.DCSU_RX_INVALID_COMMAND,
-                             dummy_data, len(dummy_data), 'little', False)
+                             dummy_data, math.ceil(len(dummy_data) / WORD_SIZE), 'little', False)
     return status == dcsu_tx_message_error.DCSU_TX_MSG_RESP_INVALID_COMMAND
 
 class dcsu_rx_command_override_checksum(Enum):
@@ -101,7 +103,7 @@ def test_invalid_checksum(backend, ctx, args):
     backend.write_register(ctx, "DIAG_RX_LARGE_PARAM", 0x0)
     status = tx_command_send(backend, ctx,
                              dcsu_rx_command_override_checksum.DCSU_RX_COMMAND_OVERRIDE_CHECKSUM,
-                             data, len(data), 'little', True)
+                             data, math.ceil(len(data) / WORD_SIZE), 'little', True)
     if status != dcsu_tx_message_error.DCSU_TX_MSG_RESP_BAD_INTEGRITY_VALUE:
         return False
 
