@@ -894,7 +894,7 @@ enum tfm_plat_err_t tfm_plat_otp_read(enum tfm_otp_element_id_t id,
         return TFM_PLAT_ERR_OTP_READ_INVALID_INPUT;
     }
 
-    if (id > PLAT_OTP_ID_MAX) {
+    if (id >= PLAT_OTP_ID_MAX) {
         FATAL_ERR(TFM_PLAT_ERR_OTP_READ_INVALID_ID);
         return TFM_PLAT_ERR_OTP_READ_INVALID_ID;
     }
@@ -928,7 +928,7 @@ enum tfm_plat_err_t tfm_plat_otp_write(enum tfm_otp_element_id_t id,
         return TFM_PLAT_ERR_OTP_WRITE_INVALID_INPUT;
     }
 
-    if (id > PLAT_OTP_ID_MAX) {
+    if (id >= PLAT_OTP_ID_MAX) {
         FATAL_ERR(TFM_PLAT_ERR_OTP_WRITE_INVALID_ID);
         return TFM_PLAT_ERR_OTP_WRITE_INVALID_ID;
     }
@@ -958,7 +958,7 @@ enum tfm_plat_err_t tfm_plat_otp_get_size(enum tfm_otp_element_id_t id,
                                           size_t *size)
 {
 
-    if (id > PLAT_OTP_ID_MAX) {
+    if (id >= PLAT_OTP_ID_MAX) {
         FATAL_ERR(TFM_PLAT_ERR_PLAT_OTP_GET_SIZE_INVALID_ID);
         return TFM_PLAT_ERR_PLAT_OTP_GET_SIZE_INVALID_ID;
     }
