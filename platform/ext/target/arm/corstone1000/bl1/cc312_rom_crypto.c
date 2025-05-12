@@ -364,8 +364,15 @@ fih_int bl1_aes_256_ctr_decrypt(enum tfm_bl1_key_id_t key_id,
     }
 
     cc3xx_lowlevel_aes_set_output_buffer(plaintext, ciphertext_length);
-    cc3xx_lowlevel_aes_update(ciphertext, ciphertext_length);
-    cc3xx_lowlevel_aes_finish(NULL, NULL);
+
+    err = cc3xx_lowlevel_aes_update(ciphertext, ciphertext_length);
+    fih_rc = fih_int_encode_zero_equality(err);
+    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        FIH_RET(fih_rc);
+    }
+
+    /* Safely ignore the returned value, this API does not return an error for CTR mode */
+    (void) cc3xx_lowlevel_aes_finish(NULL, NULL);
 
     FIH_RET(FIH_SUCCESS);
 }
@@ -402,8 +409,14 @@ static int32_t aes_256_ecb_encrypt(enum tfm_bl1_key_id_t key_id,
     }
 
     cc3xx_lowlevel_aes_set_output_buffer(ciphertext, ciphertext_length);
-    cc3xx_lowlevel_aes_update(plaintext, ciphertext_length);
-    cc3xx_lowlevel_aes_finish(NULL, NULL);
+
+    err = cc3xx_lowlevel_aes_update(plaintext, ciphertext_length);
+    if (err != CC3XX_ERR_SUCCESS) {
+        return -1;
+    }
+
+    /* Safely ignore the returned value, this API does not return an error for ECB mode */
+    (void) cc3xx_lowlevel_aes_finish(NULL, NULL);
 }
 
 /* This is a counter-mode KDF complying with NIST SP800-108 where the PRF is a

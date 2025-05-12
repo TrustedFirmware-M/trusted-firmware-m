@@ -430,8 +430,15 @@ fih_int bl1_aes_256_ctr_decrypt(enum tfm_bl1_key_id_t key_id,
     }
 
     cc3xx_lowlevel_aes_set_output_buffer(plaintext, ciphertext_length);
-    cc3xx_lowlevel_aes_update(ciphertext, ciphertext_length);
-    cc3xx_lowlevel_aes_finish(NULL, NULL);
+
+    cc_err = cc3xx_lowlevel_aes_update(ciphertext, ciphertext_length);
+    if (cc_err != CC3XX_ERR_SUCCESS) {
+        fih_rc = fih_int_encode_zero_equality(cc_err);
+        FIH_RET(fih_rc);
+    }
+
+    /* Safely ignore the returned value, this API does not return an error for CTR mode */
+    (void) cc3xx_lowlevel_aes_finish(NULL, NULL);
 
     FIH_RET(FIH_SUCCESS);
 }
