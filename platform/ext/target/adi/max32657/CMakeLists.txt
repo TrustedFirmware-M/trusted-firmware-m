@@ -215,7 +215,7 @@ install(DIRECTORY   ${TARGET_PLATFORM_PATH}/tests
 
 # Copy the S-NS peripheral & memory configuration
 install(FILES       ${TARGET_PLATFORM_PATH}/s_ns_access.cmake
-        DESTINATION ${CMAKE_BINARY_DIR}/../)
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR})
 
 # Export configuration flags
 target_compile_definitions(tfm_spm

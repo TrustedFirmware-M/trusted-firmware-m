@@ -86,4 +86,4 @@ target_include_directories(platform_region_defs
 )
 
 # Get S - NS peripheral and memory access
-include(${CMAKE_BINARY_DIR}/../s_ns_access.cmake)
+include(s_ns_access.cmake)
