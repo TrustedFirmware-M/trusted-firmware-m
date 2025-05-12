@@ -18,15 +18,10 @@ target_add_scatter_file(tfm_s
 )
 
 # Specify the location of platform specific build dependencies.
-target_sources(tfm_s
-    PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/device/source/startup_mps4_corstone3xx.c
-)
 
 if(BL2)
     target_sources(bl2
         PRIVATE
-            ${CMAKE_CURRENT_LIST_DIR}/device/source/startup_mps4_corstone3xx.c
             ${TF_PSA_CRYPTO_PATH}/utilities/constant_time.c
             ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/cipher.c
             ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/cipher_wrap.c
@@ -96,10 +91,8 @@ target_sources(platform_s
         ${CMAKE_CURRENT_LIST_DIR}/attest_hal.c
         ${CMAKE_CURRENT_LIST_DIR}/otp_lcm.c
         ${CMAKE_CURRENT_LIST_DIR}/nv_counters.c
-        ${CMAKE_CURRENT_LIST_DIR}/cmsis_drivers/Driver_MPC.c
         ${CMAKE_CURRENT_LIST_DIR}/cmsis_drivers/Driver_TGU.c
         ${CMAKE_CURRENT_LIST_DIR}/cmsis_drivers/Driver_USART.c
-        ${CMAKE_CURRENT_LIST_DIR}/device/source/system_core_init.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/tgu/tgu_armv8_m_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/kmu/kmu_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/lcm/lcm_drv.c
@@ -185,7 +178,6 @@ if(BL2)
             ${PLATFORM_DIR}/ext/target/arm/drivers/lcm/lcm_drv.c
             ${PLATFORM_DIR}/ext/target/arm/drivers/kmu/kmu_drv.c
             ${CMAKE_CURRENT_LIST_DIR}/cmsis_drivers/Driver_USART.c
-            ${CMAKE_CURRENT_LIST_DIR}/device/source/system_core_init.c
             ${PLATFORM_DIR}/ext/common/tfm_hal_reset_halt.c
             ${PLATFORM_DIR}/ext/target/arm/drivers/flash/emulated/emulated_flash_drv.c
             ${PLATFORM_DIR}/ext/target/arm/drivers/usart/cmsdk/uart_cmsdk_drv.c
@@ -277,7 +269,6 @@ target_include_directories(flash_drivers
 
 target_sources(flash_drivers
     INTERFACE
-        ${CMAKE_CURRENT_LIST_DIR}/cmsis_drivers/Driver_Flash.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/emulated/emulated_flash_drv.c
 )
 
@@ -313,7 +304,6 @@ target_sources(platform_bl1_1
         ${CMAKE_CURRENT_LIST_DIR}/nv_counters.c
         ${CMAKE_CURRENT_LIST_DIR}/otp_lcm.c
         ${CMAKE_CURRENT_LIST_DIR}/cmsis_drivers/Driver_USART.c
-        ${CMAKE_CURRENT_LIST_DIR}/device/source/system_core_init.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/kmu/kmu_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/lcm/lcm_drv.c
         ${PLATFORM_DIR}/ext/common/tfm_hal_reset_halt.c
@@ -331,7 +321,6 @@ target_compile_options(platform_bl1_1
 target_sources(bl1_1
     PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/bl1/boot_hal_bl1_1.c
-        ${CMAKE_CURRENT_LIST_DIR}/device/source/startup_mps4_corstone3xx.c
 )
 
 target_link_libraries(platform_bl1_1
@@ -409,7 +398,6 @@ target_compile_options(platform_bl1_2
 target_sources(bl1_2
     PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/bl1/boot_hal_bl1_2.c
-        ${CMAKE_CURRENT_LIST_DIR}/device/source/startup_mps4_corstone3xx.c
 )
 
 target_compile_definitions(platform_bl1_2
@@ -449,10 +437,6 @@ target_compile_definitions(tfm_config
         PROVISIONING_DATA_PADDED_SIZE=${PROVISIONING_DATA_PADDED_SIZE}
 )
 
-install(FILES       ${CMAKE_CURRENT_LIST_DIR}/ns/cpuarch_ns.cmake
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}
-        RENAME      cpuarch.cmake)
-
 install(FILES       ${CMAKE_CURRENT_LIST_DIR}/cmsis_drivers/Driver_USART.c
                     ${CMAKE_CURRENT_LIST_DIR}/cmsis_drivers/config/non_secure/cmsis_driver_config.h
                     ${CMAKE_CURRENT_LIST_DIR}/cmsis_drivers/config/non_secure/RTE_Device.h
@@ -465,7 +449,6 @@ install(FILES       ${PLATFORM_DIR}/ext/common/common_target_cfg.h
 
 install(DIRECTORY   ${CMAKE_CURRENT_LIST_DIR}/device
                     ${CMAKE_CURRENT_LIST_DIR}/cmsis_drivers
-                    ${CMAKE_CURRENT_LIST_DIR}/partition
         DESTINATION ${INSTALL_PLATFORM_NS_DIR})
 
 install(DIRECTORY   ${PLATFORM_DIR}/ext/target/arm/drivers
@@ -485,9 +468,6 @@ install(FILES       ${CMAKE_CURRENT_LIST_DIR}/tfm_builtin_key_ids.h
         DESTINATION ${INSTALL_INTERFACE_INC_DIR})
 
 install(DIRECTORY   ${CMAKE_CURRENT_LIST_DIR}/tests
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR})
-
-install(DIRECTORY   ${CMAKE_CURRENT_LIST_DIR}/ns/
         DESTINATION ${INSTALL_PLATFORM_NS_DIR})
 
 if(DEFAULT_NS_SCATTER)

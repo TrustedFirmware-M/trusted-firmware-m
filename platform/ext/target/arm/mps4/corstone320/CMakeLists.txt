@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -18,6 +18,13 @@ target_include_directories(device_definition
         ${CMAKE_SOURCE_DIR}
 )
 
+#========================= Platform common defs ===============================#
+
+target_sources(tfm_s
+    PRIVATE
+        device/source/startup_mps4_corstone320.c
+)
+
 #========================= Platform Secure ====================================#
 
 target_include_directories(platform_s
@@ -31,6 +38,8 @@ target_include_directories(platform_s
 target_sources(platform_s
     PRIVATE
         cmsis_drivers/Driver_PPC.c
+        cmsis_drivers/Driver_MPC.c
+        device/source/system_core_init.c
         device/source/platform_s_device_definition.c
         native_drivers/ppc_corstone320_drv.c
         ${ETHOS_DRIVER_PATH}/src/ethosu_device_u85.c
@@ -45,10 +54,16 @@ target_compile_definitions(platform_s
 #========================= Platform BL2 =======================================#
 
 if(BL2)
-target_sources(platform_bl2
+    target_sources(bl2
         PRIVATE
-            device/source/platform_s_device_definition.c
+            device/source/startup_mps4_corstone320.c
     )
+
+    target_sources(platform_bl2
+            PRIVATE
+                device/source/system_core_init.c
+                device/source/platform_s_device_definition.c
+        )
 
     target_include_directories(platform_bl2
         PUBLIC
@@ -73,18 +88,33 @@ target_sources(tfm_spm
 target_include_directories(platform_region_defs
     INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}
+        partition
 )
 
 #========================= Flash driver library ===============================#
 target_include_directories(flash_drivers
     INTERFACE
         cmsis_drivers/config/secure
+        partition
+)
+
+target_sources(flash_drivers
+    INTERFACE
+        cmsis_drivers/Driver_Flash.c
 )
 
 #========================= Platform BL1_1 =======================================#
 
+# If this is not added to the bl1_1 it will not correctly override the weak
+# functions and will instead be discarded as they are not in use.
+target_sources(bl1_1
+    PUBLIC
+        device/source/startup_mps4_corstone320.c
+)
+
 target_sources(platform_bl1_1
     PRIVATE
+        device/source/system_core_init.c
         device/source/platform_s_device_definition.c
 )
 
@@ -95,6 +125,13 @@ target_include_directories(platform_bl1_1
 
 #========================= Platform BL1_2 =====================================#
 
+# If this is not added to the bl1_2 it will not correctly override the weak
+# functions and will instead be discarded as they are not in use.
+target_sources(bl1_2
+    PRIVATE
+        device/source/startup_mps4_corstone320.c
+)
+
 target_include_directories(platform_bl1_2
     PRIVATE
         cmsis_drivers/config/secure
@@ -104,7 +141,13 @@ target_include_directories(platform_bl1_2
 install(DIRECTORY   device
                     native_drivers
                     cmsis_drivers
+                    partition
+                    ns/
         DESTINATION ${INSTALL_PLATFORM_NS_DIR})
 
 install(FILES       config.cmake
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/include)
+
+install(FILES       ns/cpuarch_ns.cmake
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR}
+        RENAME      cpuarch.cmake)

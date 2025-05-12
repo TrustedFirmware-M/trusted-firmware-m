@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -27,7 +27,7 @@ target_include_directories(platform_region_defs
 
 target_sources(platform_ns
     PRIVATE
-        device/source/startup_mps4_corstone3xx.c
+        device/source/startup_mps4_corstone320.c
         device/source/system_core_init.c
 )
 

@@ -1,0 +1,95 @@
+/*
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * This file is derivative of CMSIS V5.9.0 system_ARMCM85.c
+ * Git SHA: 2b7495b8535bdcb306dac29b9ded4cfb679d7e5c
+ */
+
+#include "tfm_hal_device_header.h"
+
+/*----------------------------------------------------------------------------
+  Define clocks
+ *----------------------------------------------------------------------------*/
+ #define  XTAL             (25000000UL)
+ #define  SYSTEM_CLOCK     (XTAL)
+ #define  PERIPHERAL_CLOCK (25000000UL)
+
+/*----------------------------------------------------------------------------
+  Exception / Interrupt Vector table
+ *----------------------------------------------------------------------------*/
+extern const VECTOR_TABLE_Type __VECTOR_TABLE[496];
+
+/*----------------------------------------------------------------------------
+  System Core Clock Variable
+ *----------------------------------------------------------------------------*/
+uint32_t SystemCoreClock = SYSTEM_CLOCK;
+uint32_t PeripheralClock = PERIPHERAL_CLOCK;
+
+/*----------------------------------------------------------------------------
+  System Core Clock update function
+ *----------------------------------------------------------------------------*/
+void SystemCoreClockUpdate (void)
+{
+    SystemCoreClock = SYSTEM_CLOCK;
+    PeripheralClock = PERIPHERAL_CLOCK;
+}
+
+/*----------------------------------------------------------------------------
+  System initialization function
+ *----------------------------------------------------------------------------*/
+void SystemInit (void)
+{
+#if defined (__VTOR_PRESENT) && (__VTOR_PRESENT == 1U)
+    SCB->VTOR = (uint32_t)(&__VECTOR_TABLE[0]);
+#endif
+
+    /* Set CPDLPSTATE.RLPSTATE to 0
+       Set CPDLPSTATE.ELPSTATE to 0, to stop the processor from trying to switch the EPU into retention state.
+       Set CPDLPSTATE.CLPSTATE to 0, so PDCORE will not enter low-power state. */
+    PWRMODCTL->CPDLPSTATE &= ~(PWRMODCTL_CPDLPSTATE_RLPSTATE_Msk |
+                               PWRMODCTL_CPDLPSTATE_ELPSTATE_Msk |
+                               PWRMODCTL_CPDLPSTATE_CLPSTATE_Msk  );
+
+#if (defined (__FPU_USED) && (__FPU_USED == 1U)) || \
+    (defined (__ARM_FEATURE_MVE) && (__ARM_FEATURE_MVE > 0U))
+    SCB->CPACR |= ((3U << 10U*2U) |           /* enable CP10 Full Access */
+                   (3U << 11U*2U)  );         /* enable CP11 Full Access */
+
+    /* Favor best FP/MVE performance by default, avoid EPU switch-ON delays */
+    /* PDEPU ON, Clock OFF */
+    PWRMODCTL->CPDLPSTATE |= 0x1 << PWRMODCTL_CPDLPSTATE_ELPSTATE_Pos;
+#endif
+
+#ifdef UNALIGNED_SUPPORT_DISABLE
+    SCB->CCR |= SCB_CCR_UNALIGN_TRP_Msk;
+#endif
+
+    /* Enable Loop and branch info cache */
+    SCB->CCR |= SCB_CCR_LOB_Msk;
+
+    /* Enable Branch Prediction */
+    SCB->CCR |= SCB_CCR_BP_Msk;
+
+    __DSB();
+    __ISB();
+
+    /* Disable cache, because of BL2->Secure change.
+       If cache is enabled, then code decompression can fail or cause uncertain
+       behaviour after switching to main.
+       If cache  needed to be Enabled before decompression, make sure to Clean
+       and Invalidate it at the begining of main(..)!
+
+       If so, use:
+       SCB_InvalidateICache();      // I cache cannot be cleaned
+       SCB_CleanInvalidateDCache();
+    */
+    SCB_DisableICache();
+    SCB_DisableDCache();
+
+    SystemCoreClock = SYSTEM_CLOCK;
+    PeripheralClock = PERIPHERAL_CLOCK;
+}
