@@ -148,7 +148,7 @@ static fih_int sha256_update(const uint8_t *data,
         FIH_RET(fih_rc);
     }
 
-    return FIH_SUCCESS;
+    FIH_RET(FIH_SUCCESS);
 }
 
 static fih_int sha256_finish(uint8_t *hash,

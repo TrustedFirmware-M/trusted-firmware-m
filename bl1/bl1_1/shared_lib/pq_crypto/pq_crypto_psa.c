@@ -26,8 +26,11 @@ psa_status_t psa_hash_setup(
     (void)alg;
 
     FIH_CALL(bl1_hash_init, fih_rc, TFM_BL1_HASH_ALG_SHA256);
+    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        return fih_int_decode(fih_rc);
+    }
 
-    return fih_int_decode(fih_rc);
+    return PSA_SUCCESS;
 }
 
 psa_status_t psa_hash_update(
@@ -39,8 +42,11 @@ psa_status_t psa_hash_update(
     (void)operation;
 
     FIH_CALL(bl1_hash_update, fih_rc, (unsigned char *)input, input_length);
+    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        return fih_int_decode(fih_rc);
+    }
 
-    return fih_int_decode(fih_rc);
+    return PSA_SUCCESS;
 }
 
 psa_status_t psa_hash_finish(
@@ -54,8 +60,11 @@ psa_status_t psa_hash_finish(
     (void)hash_size;
 
     FIH_CALL(bl1_hash_finish, fih_rc, hash, hash_size, hash_length);
+    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        return fih_int_decode(fih_rc);
+    }
 
-    return fih_int_decode(fih_rc);
+    return PSA_SUCCESS;
 }
 
 psa_status_t psa_hash_abort(
