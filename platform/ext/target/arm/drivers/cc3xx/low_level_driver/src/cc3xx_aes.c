@@ -815,7 +815,13 @@ void cc3xx_lowlevel_aes_update_authed_data(const uint8_t* in, size_t in_len)
     configure_engine_for_authed_data(&write_output);
 
     aes_state.authed_length += in_len;
-    cc3xx_lowlevel_dma_buffered_input_data(in, in_len, write_output);
+
+    /**
+     * @brief:  write_output is always false, so the return value cannot be
+     *          CC3XX_ERR_DMA_OUTPUT_BUFFER_TOO_SMALL.
+     *
+     */
+    (void) cc3xx_lowlevel_dma_buffered_input_data(in, in_len, write_output);
 }
 
 static void configure_engine_for_crypted_data(bool *write_output)
