@@ -35,14 +35,6 @@ static enum dcsu_error_t tx_msg_err_to_dcsu_err(enum dcsu_tx_msg_response_t msg_
     return msg_err == DCSU_TX_MSG_RESP_SUCCESS ? DCSU_ERROR_NONE : DCSU_ERROR_TX_MSG_RESP_BASE + msg_err;
 }
 
-static enum dcsu_error_t rx_clear_return(struct dcsu_dev_t *dev)
-{
-    struct _dcsu_reg_map_t* p_dcsu = (struct _dcsu_reg_map_t*)dev->cfg->base;
-
-    p_dcsu->diag_rx_command &= ~(0xFF << 24);
-    return DCSU_ERROR_NONE;
-}
-
 static enum dcsu_error_t rx_return_send(struct dcsu_dev_t *dev, enum dcsu_rx_msg_response_t msg_rsp)
 {
     struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
@@ -140,7 +132,6 @@ static void dcsu_clear_pending_tx_interrupt(struct dcsu_dev_t *dev)
 static enum dcsu_error_t rx_import_data(struct dcsu_dev_t *dev, bool use_checksum,
                                         enum dcsu_rx_msg_response_t *msg_resp)
 {
-    enum dcsu_error_t msg_err;
     struct _dcsu_reg_map_t* p_dcsu = (struct _dcsu_reg_map_t*)dev->cfg->base;
     uint32_t write_num_words = DCSU_get_number_of_words(p_dcsu);
     uint32_t write_offset = DCSU_get_word_offset(p_dcsu);
