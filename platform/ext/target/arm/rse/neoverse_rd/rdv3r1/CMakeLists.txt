@@ -39,7 +39,7 @@ target_include_directories(platform_region_defs
 target_sources(platform_s
     PRIVATE
         host_system.c
-        rse_comms/rse_comms_permissions_hal.c
+        $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_comms/rse_comms_permissions_hal.c>
 )
 
 #========================= Platform BL2 =======================================#
