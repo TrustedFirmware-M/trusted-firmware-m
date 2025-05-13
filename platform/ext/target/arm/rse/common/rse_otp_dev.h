@@ -10,6 +10,7 @@
 
 #include "device_definition.h"
 #include "rse_otp_layout.h"
+#include <assert.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -19,6 +19,7 @@
 #include "rse_provisioning_rotpk.h"
 #include "rse_persistent_data.h"
 
+#include <assert.h>
 #include <string.h>
 
 static inline bool found_valid_message_type(const struct rse_provisioning_message_t *message)

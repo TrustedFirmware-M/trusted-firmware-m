@@ -18,6 +18,7 @@
 #include "rse_provisioning_aes_key.h"
 #include "rse_provisioning_rotpk.h"
 
+#include <assert.h>
 #include <string.h>
 
 void tfm_plat_provisioning_check_for_dummy_keys(void)

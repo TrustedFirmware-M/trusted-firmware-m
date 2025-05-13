@@ -5,6 +5,7 @@
 
 #include "rse_persistent_data.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <string.h>
 #include "region_defs.h"
