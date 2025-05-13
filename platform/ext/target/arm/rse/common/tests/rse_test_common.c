@@ -27,7 +27,6 @@ void add_conditional_tests_to_testsuite(struct conditional_test_t *tests, uint32
     enum lcm_lcs_t lcs;
     enum lcm_error_t lcm_err;
     struct conditional_test_t *test;
-    bool invalid_sp_state = false;
 
     lcm_err = lcm_get_tp_mode(&LCM_DEV_S, &tp_mode);
     if (lcm_err != LCM_ERROR_NONE) {
@@ -47,15 +46,15 @@ void add_conditional_tests_to_testsuite(struct conditional_test_t *tests, uint32
     /* FixMe: SP should only be enabled when in CM/DM mode, but due
      * to an FVP limitation, it can be enabled when in SP mode
      * as well. Prevent tests running in this state */
-    if ((sp_enabled == LCM_TRUE) && (lcs != LCM_LCS_CM) && (lcs != LCM_LCS_DM)) {
-        invalid_sp_state = true;
+    if ((lcs != LCM_LCS_CM) && (lcs != LCM_LCS_DM)) {
+        sp_enabled = LCM_FALSE;
     }
 
     for (uint32_t idx = 0; idx < test_am; idx++) {
         test = &tests[idx];
 
         if ((test->any_tp_mode || (tp_mode == test->tp_mode))
-         && (test->any_sp_state || ((sp_enabled == test->sp_enabled) && !invalid_sp_state))
+         && (test->any_sp_state || (sp_enabled == test->sp_enabled))
          && (test->any_lcs || (lcs == test->lcs))) {
             add_tests_to_testsuite(&(test->test), 1, p_ts, ts_size);
         }
