@@ -43,6 +43,8 @@ static enum dcsu_error_t process_commands_until_complete(void)
             return err;
         }
     }
+
+    return DCSU_ERROR_NONE;
 }
 
 static void test_teardown(void)
