@@ -57,11 +57,11 @@ struct cc3xx_drbg_state_t {
  * @param[in] id                  The ID of the DRBG to instantiate, of type \ref cc3xx_drbg_id_t
  * @param[out] state              A pointer to a state structure
  * @param[in] entropy             Buffer containing the entropy for the instantiation
- * @param[in] entropy_len         Size in bytes of the entropy buffer \param entropy
+ * @param[in] entropy_len         Size in bytes of the entropy buffer \p entropy
  * @param[in] nonce               Buffer containing the nonce
- * @param[in] nonce_len           Size in bytes of the nonce buffer \param nonce
+ * @param[in] nonce_len           Size in bytes of the nonce buffer \p nonce
  * @param[in] personalization     Buffer containing the personalization string
- * @param[in] personalization_len Size in bytes of the personalization buffer \param personalization
+ * @param[in] personalization_len Size in bytes of the personalization buffer \p personalization
  * @return cc3xx_err_t
  */
 cc3xx_err_t cc3xx_lowlevel_drbg_init(
@@ -91,9 +91,9 @@ cc3xx_err_t cc3xx_lowlevel_drbg_generate(
  *
  * @param[in,out] state            A pointer to a state structure
  * @param[in] entropy              Entropy to be used for reseeding
- * @param[in] entropy_len          Size in bytes of the entropy pointed by \param entropy
+ * @param[in] entropy_len          Size in bytes of the entropy pointed by \p entropy
  * @param[in] additional_input     Optional pointer containing additional input for reseeding
- * @param[in] additional_input_len Size in bytes of the buffer pointed by \param additional_input
+ * @param[in] additional_input_len Size in bytes of the buffer pointed by \p additional_input
  * @return cc3xx_err_t
  */
 cc3xx_err_t cc3xx_lowlevel_drbg_reseed(

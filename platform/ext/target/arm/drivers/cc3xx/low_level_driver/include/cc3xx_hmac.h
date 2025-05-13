@@ -38,7 +38,7 @@ struct cc3xx_hmac_state_t {
  *
  * @param[out] state    A pointer to a state structure
  * @param[in]  key      Buffer containing the key
- * @param[in]  key_size Size in bytes of the buffer \param key
+ * @param[in]  key_size Size in bytes of the buffer \p key
  * @param[in]  alg      Underlying hashing algorithm
  * @return cc3xx_err_t
  */
@@ -65,7 +65,7 @@ void cc3xx_lowlevel_hmac_set_tag_length(
  *
  * @param[in,out] state       A pointer to a state structure
  * @param[in]     data        Buffer containing the data to use for the update
- * @param[in]     data_length Size in bytes of the buffer \param data
+ * @param[in]     data_length Size in bytes of the buffer \p data
  * @return cc3xx_err_t
  */
 cc3xx_err_t cc3xx_lowlevel_hmac_update(
@@ -78,7 +78,7 @@ cc3xx_err_t cc3xx_lowlevel_hmac_update(
  *
  * @param[in,out] state    A pointer to a state structure
  * @param[out]    tag      Output buffer
- * @param[in]     tag_size Size in bytes of the buffer \param tag
+ * @param[in]     tag_size Size in bytes of the buffer \p tag
  * @param[out]    tag_len  Length of the generated tag
  * @return cc3xx_err_t
  */

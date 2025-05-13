@@ -73,8 +73,8 @@ psa_status_t cc3xx_verify_message(const psa_key_attributes_t *attributes,
  * @param[in]  key              Key material buffer
  * @param[in]  key_length       Size in bytes of the key
  * @param[in]  alg              Algorithm to use
- * @param[in]  hash             Hash to sign buffer
- * @param[in]  hash_length      Size in bytes of the data to sign
+ * @param[in]  input            Hash to sign buffer
+ * @param[in]  input_length     Size in bytes of the data to sign
  * @param[out] signature        Buffer to hold the signature data
  * @param[in]  signature_size   Size in bytes of the signature buffer
  * @param[out] signature_length Size in bytes of the signature

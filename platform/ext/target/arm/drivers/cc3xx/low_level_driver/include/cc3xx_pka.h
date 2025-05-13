@@ -66,14 +66,14 @@ void cc3xx_lowlevel_pka_unmap_physical_registers(void);
  * @brief                        Free a PKA register, returning it to the pool
  *                               so it can be reallocated.
  *
- * @param[in]  id                The register ID to be freed.
+ * @param[in]  reg_id            The register ID to be freed.
  */
 void cc3xx_lowlevel_pka_free_reg(cc3xx_pka_reg_id_t reg_id);
 
 /**
  * @brief                        Write data into a PKA register.
  *
- * @param[in]  id                The register ID to write data into.
+ * @param[in]  reg_id            The register ID to write data into.
  * @param[in]  data              The data to be written to the register.
  * @param[in]  len               The size in bytes of the data. Must be a
  *                               multiple of sizeof(uint32_t). Should be less
@@ -84,13 +84,14 @@ void cc3xx_lowlevel_pka_write_reg(cc3xx_pka_reg_id_t reg_id, const uint32_t *dat
  * @brief                        Write data into a PKA register, performing an
  *                               endianness swap on each word.
  *
- * @param[in]  id                The register ID to write data into.
+ * @param[in]  reg_id            The register ID to write data into.
  * @param[in]  data              The data to be written to the register.
  * @param[in]  len               The size in bytes of the data. Must be a
  *                               multiple of sizeof(uint32_t). Should be less
  *                               than or equal to the operation size.
  */
-void cc3xx_lowlevel_pka_write_reg_swap_endian(cc3xx_pka_reg_id_t reg_id, const uint32_t *data, size_t len);
+void cc3xx_lowlevel_pka_write_reg_swap_endian(cc3xx_pka_reg_id_t reg_id, const uint32_t *data,
+                                              size_t len);
 
 /**
  * @brief                        Read data from a PKA register.
@@ -323,7 +324,8 @@ void cc3xx_lowlevel_pka_neg(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t res);
  *
  * @note                        r0 and r1 must be less than the modulus N.
  */
-void cc3xx_lowlevel_pka_mod_add(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1, cc3xx_pka_reg_id_t res);
+void cc3xx_lowlevel_pka_mod_add(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1,
+                                cc3xx_pka_reg_id_t res);
 /**
  * @brief                       Add the values in a register with a signed
  *                              immediate, and perform modular reduction.
@@ -355,7 +357,8 @@ void cc3xx_lowlevel_pka_mod_add_si(cc3xx_pka_reg_id_t r0, int32_t imm, cc3xx_pka
  *
  * @note                        r0 and r1 must be less than the modulus N.
  */
-void cc3xx_lowlevel_pka_mod_sub(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1, cc3xx_pka_reg_id_t res);
+void cc3xx_lowlevel_pka_mod_sub(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1,
+                                cc3xx_pka_reg_id_t res);
 /**
  * @brief                       Subtract a signed immediate from the value in a
  *                              register, performing modular reduction.
@@ -562,7 +565,8 @@ bool cc3xx_lowlevel_pka_less_than(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1);
  *                              immediate. retval = r0 < imm.
  *
  * @param[in]  r0               The register ID of the first operand.
- * @param[in]  r1               The register ID of the second operand.
+ * @param[in]  imm              The signed immediate, which must be in the range
+ *                              -16 to 15 inclusive.
  *
  * @return                      true if r0 is less than imm, false otherwise.
  */
@@ -583,11 +587,12 @@ bool cc3xx_lowlevel_pka_greater_than(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r
  *                              immediate. retval = r0 > imm.
  *
  * @param[in]  r0               The register ID of the first operand.
- * @param[in]  r1               The register ID of the second operand.
+ * @param[in]  imm              The signed immediate, which must be in the range
+ *                              -16 to 15 inclusive.
  *
  * @return                      true if r0 is greater than imm, false otherwise.
  */
-bool cc3xx_lowlevel_pka_greater_than_si( cc3xx_pka_reg_id_t r0, int32_t imm);
+bool cc3xx_lowlevel_pka_greater_than_si(cc3xx_pka_reg_id_t r0, int32_t imm);
 
 /**
  * @brief                       Shift a register to the right, and fill any new
@@ -601,7 +606,8 @@ bool cc3xx_lowlevel_pka_greater_than_si( cc3xx_pka_reg_id_t r0, int32_t imm);
  * @note                        It is acceptable to have some or all of the
  *                              register IDs be identical.
  */
-void cc3xx_lowlevel_pka_shift_right_fill_0_ui( cc3xx_pka_reg_id_t r0, uint32_t shift, cc3xx_pka_reg_id_t res);
+void cc3xx_lowlevel_pka_shift_right_fill_0_ui(cc3xx_pka_reg_id_t r0, uint32_t shift,
+                                              cc3xx_pka_reg_id_t res);
 /**
  * @brief                       Shift a register to the right, and fill any new
  *                              bits with ones. res = r0 >> shift.
@@ -614,7 +620,8 @@ void cc3xx_lowlevel_pka_shift_right_fill_0_ui( cc3xx_pka_reg_id_t r0, uint32_t s
  * @note                        It is acceptable to have some or all of the
  *                              register IDs be identical.
  */
-void cc3xx_lowlevel_pka_shift_right_fill_1_ui( cc3xx_pka_reg_id_t r0, uint32_t shift, cc3xx_pka_reg_id_t res);
+void cc3xx_lowlevel_pka_shift_right_fill_1_ui(cc3xx_pka_reg_id_t r0, uint32_t shift,
+                                              cc3xx_pka_reg_id_t res);
 
 /**
  * @brief                       Shift a register to the left, and fill any new
@@ -628,7 +635,8 @@ void cc3xx_lowlevel_pka_shift_right_fill_1_ui( cc3xx_pka_reg_id_t r0, uint32_t s
  * @note                        It is acceptable to have some or all of the
  *                              register IDs be identical.
  */
-void cc3xx_lowlevel_pka_shift_left_fill_0_ui( cc3xx_pka_reg_id_t r0, uint32_t shift, cc3xx_pka_reg_id_t res);
+void cc3xx_lowlevel_pka_shift_left_fill_0_ui(cc3xx_pka_reg_id_t r0, uint32_t shift,
+                                             cc3xx_pka_reg_id_t res);
 /**
  * @brief                       Shift a register to the left, and fill any new
  *                              bits with ones. res = r0 << shift.
@@ -641,7 +649,8 @@ void cc3xx_lowlevel_pka_shift_left_fill_0_ui( cc3xx_pka_reg_id_t r0, uint32_t sh
  * @note                        It is acceptable to have some or all of the
  *                              register IDs be identical.
  */
-void cc3xx_lowlevel_pka_shift_left_fill_1_ui( cc3xx_pka_reg_id_t r0, uint32_t shift, cc3xx_pka_reg_id_t res);
+void cc3xx_lowlevel_pka_shift_left_fill_1_ui(cc3xx_pka_reg_id_t r0, uint32_t shift,
+                                             cc3xx_pka_reg_id_t res);
 
 /**
  * @brief                       Set the output register low half of the result
@@ -655,7 +664,8 @@ void cc3xx_lowlevel_pka_shift_left_fill_1_ui( cc3xx_pka_reg_id_t r0, uint32_t sh
  * @note                        It is acceptable to have some or all of the
  *                              register IDs be identical.
  */
-void cc3xx_lowlevel_pka_mul_low_half(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1, cc3xx_pka_reg_id_t res);
+void cc3xx_lowlevel_pka_mul_low_half(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1,
+                                     cc3xx_pka_reg_id_t res);
 /**
  * @brief                       Set the output register high half of the result
  *                              of the multiplication of the two input
@@ -668,7 +678,8 @@ void cc3xx_lowlevel_pka_mul_low_half(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r
  * @note                        It is acceptable to have some or all of the
  *                              register IDs be identical.
  */
-void cc3xx_lowlevel_pka_mul_high_half(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1, cc3xx_pka_reg_id_t res);
+void cc3xx_lowlevel_pka_mul_high_half(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1,
+                                      cc3xx_pka_reg_id_t res);
 
 /**
  * @brief                       Set the quotient and remainder registers by
@@ -685,8 +696,8 @@ void cc3xx_lowlevel_pka_mul_high_half(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t 
  *                              register IDs be identical. This function may
  *                              perform transparent copying to achieve this.
  */
-void cc3xx_lowlevel_pka_div(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1, cc3xx_pka_reg_id_t quotient,
-                   cc3xx_pka_reg_id_t remainder);
+void cc3xx_lowlevel_pka_div(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1,
+                            cc3xx_pka_reg_id_t quotient, cc3xx_pka_reg_id_t remainder);
 
 /**
  * @brief                       Perform multiplication of the input registers,
@@ -700,7 +711,8 @@ void cc3xx_lowlevel_pka_div(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1, cc3xx_
  * @note                        It is acceptable to have some or all of the
  *                              register IDs be identical.
  */
-void cc3xx_lowlevel_pka_mod_mul(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1, cc3xx_pka_reg_id_t res);
+void cc3xx_lowlevel_pka_mod_mul(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1,
+                                cc3xx_pka_reg_id_t res);
 
 /**
  * @brief                       Perform multiplication of the input register and
@@ -728,7 +740,8 @@ void cc3xx_lowlevel_pka_mod_mul_si(cc3xx_pka_reg_id_t r0, int32_t imm, cc3xx_pka
  * @note                        It is acceptable to have some or all of the
  *                              register IDs be identical.
  */
-void cc3xx_lowlevel_pka_mod_exp(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1, cc3xx_pka_reg_id_t res);
+void cc3xx_lowlevel_pka_mod_exp(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1,
+                                cc3xx_pka_reg_id_t res);
 /**
  * @brief                       Perform exponentiation by a signed immediate and
  *                              then modular reduction. res = (r0 ^ imm) mod N.
@@ -770,7 +783,7 @@ void cc3xx_lowlevel_pka_mod_inv_prime_modulus(cc3xx_pka_reg_id_t r0, cc3xx_pka_r
 /**
  * @brief                       Perform modular reduction. res = r0 mod N.
  *
- * @param[in/out]  r0           The register ID of the first operand.
+ * @param[in,out]  r0           The register ID of the first operand.
  *
  * @note                        It is acceptable to have some or all of the
  *                              register IDs be identical.
