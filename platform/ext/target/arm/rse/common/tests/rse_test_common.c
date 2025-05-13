@@ -43,13 +43,6 @@ void add_conditional_tests_to_testsuite(struct conditional_test_t *tests, uint32
         return;
     }
 
-    /* FixMe: SP should only be enabled when in CM/DM mode, but due
-     * to an FVP limitation, it can be enabled when in SP mode
-     * as well. Prevent tests running in this state */
-    if ((lcs != LCM_LCS_CM) && (lcs != LCM_LCS_DM)) {
-        sp_enabled = LCM_FALSE;
-    }
-
     for (uint32_t idx = 0; idx < test_am; idx++) {
         test = &tests[idx];
 
