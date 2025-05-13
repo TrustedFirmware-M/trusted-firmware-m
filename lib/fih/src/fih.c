@@ -68,8 +68,7 @@ void fih_cfi_decrement(void)
  * compiler removing due to non-standard calling procedure. Multiple loop jumps
  * used to make unlooping difficult.
  */
-__attribute__((used))
-__attribute__((noinline))
+__attribute__((used, noinline, noreturn))
 void fih_panic_loop(void)
 {
     FIH_LABEL("FAILURE_LOOP");

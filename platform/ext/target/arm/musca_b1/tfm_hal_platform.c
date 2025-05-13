@@ -66,7 +66,7 @@ enum tfm_hal_status_t tfm_hal_platform_init(void)
     return TFM_HAL_SUCCESS;
 }
 
-void tfm_hal_system_reset(void)
+__NO_RETURN void tfm_hal_system_reset(void)
 {
     __disable_irq();
     mpc_revert_non_secure_to_secure_cfg();
@@ -83,7 +83,7 @@ void tfm_hal_system_reset(void)
     NVIC_SystemReset();
 }
 
-void tfm_hal_system_halt(void)
+__NO_RETURN void tfm_hal_system_halt(void)
 {
     /*
      * Disable IRQs to stop all threads, not just the thread that

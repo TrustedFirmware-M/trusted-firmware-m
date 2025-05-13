@@ -24,6 +24,7 @@ target_link_libraries(tfm_fih
     PUBLIC
         tfm_fih_headers
         platform_common_interface
+        cmsis
 )
 
 target_compile_definitions(tfm_fih_headers

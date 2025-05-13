@@ -15,6 +15,7 @@
 
 #include "fih.h"
 #include "tfm_hal_defs.h"
+#include "cmsis_compiler.h"
 
 /**
  * \brief This function performs the platform-specific initialization.
@@ -30,12 +31,12 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_platform_init(void);
 /**
  * \brief System reset
  */
-void tfm_hal_system_reset(void);
+__NO_RETURN void tfm_hal_system_reset(void);
 
 /**
  * \brief System halt
  */
-void tfm_hal_system_halt(void);
+__NO_RETURN void tfm_hal_system_halt(void);
 
 /**
  * \brief Set up the RNG for use with random delays.

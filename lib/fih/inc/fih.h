@@ -149,7 +149,7 @@ extern fih_int FIH_FAILURE;
  * This failure handler shall be used as FIH specific error handling to capture
  * FI attacks. Error handling in SPM and SP should be enhanced respectively.
  */
-__attribute__((noinline)) __attribute__((used)) void fih_panic_loop(void);
+__attribute__((used, noinline, noreturn)) void fih_panic_loop(void);
 #define FIH_PANIC fih_panic_loop()
 #else /* FIH_ENABLE_GLOBAL_FAIL */
 #define FIH_PANIC  \
