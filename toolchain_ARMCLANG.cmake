@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
@@ -384,14 +384,14 @@ macro(target_share_symbols target)
         list(APPEND KEEP_SYMBOL_LIST ${SYMBOLS})
     endforeach()
 
+    find_package(Python3)
 
-    # strip all the symbols except those provided as arguments. Long inline
-    # python scripts aren't ideal, but this is both portable and possibly easier
-    # to maintain than trying to filter files at build time in cmake.
+    # strip all the symbols except those provided as arguments
     add_custom_target(${target}_shared_symbols
         VERBATIM
-        COMMAND python3
-            -c "from sys import argv; import re; f = open(argv[1], 'rt'); p = [x.replace('*', '.*') for x in argv[2:]]; l = [x for x in f.readlines() if re.search(r'(?=('+'$|'.join(p + ['SYMDEFS']) + r'))', x)]; f.close(); f = open(argv[1], 'wt'); f.writelines(l); f.close();"
+        COMMAND fromelf --text -s $<TARGET_FILE:${target}> --output $<TARGET_FILE_DIR:${target}>/${target}${CODE_SHARING_OUTPUT_FILE_SUFFIX}
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/tfm_gen_armclang_shared_symbols.py
+            $<TARGET_FILE_DIR:${target}>/${target}${CODE_SHARING_OUTPUT_FILE_SUFFIX}
             $<TARGET_FILE_DIR:${target}>/${target}${CODE_SHARING_OUTPUT_FILE_SUFFIX}
             ${KEEP_SYMBOL_LIST}
     )
@@ -414,12 +414,6 @@ macro(target_share_symbols target)
             # "Symbol referenced by --undefined or --undefined_and_export
             # switch could not be resolved by a static library."
             --diag_warning 6474
-    )
-
-    # Ask armclang to produce a symdefs file
-    target_link_options(${target}
-        PRIVATE
-            --symdefs=$<TARGET_FILE_DIR:${target}>/${target}${CODE_SHARING_OUTPUT_FILE_SUFFIX}
     )
 endmacro()
 
