@@ -219,7 +219,9 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev,
 
     if (dev == NULL) {
         return MHU_ERR_SEND_DATA_INVALID_ARG;
-    } else if (size == 0) {
+    }
+
+    if (size == 0) {
         return MHU_ERR_NONE;
     }
 
@@ -302,8 +304,12 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
     uint32_t i;
     uint32_t *p;
 
-    if (dev == NULL) {
+    if (dev == NULL || size == NULL) {
         return MHU_ERR_RECEIVE_DATA_INVALID_ARG;
+    }
+
+    if (*size == 0) {
+        return MHU_ERR_NONE;
     }
 
     mhu_err = validate_buffer_params((uintptr_t)receive_buffer, *size);

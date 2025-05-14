@@ -283,15 +283,15 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev, const uint8_t *send_buffer,
     uint32_t *buffer;
     struct mhu_v3_x_dev_t *dev;
 
-    if (size == 0) {
-        return MHU_ERR_NONE;
-    }
-
     dev = (struct mhu_v3_x_dev_t *)mhu_sender_dev;
     chan = 0;
 
     if (dev == NULL || dev->base == 0) {
         return MHU_ERR_SEND_DATA_INVALID_ARG;
+    }
+
+    if (size == 0) {
+        return MHU_ERR_NONE;
     }
 
     mhu_err = validate_buffer_params((uintptr_t)send_buffer, size);
@@ -378,8 +378,12 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
     dev = (struct mhu_v3_x_dev_t *)mhu_receiver_dev;
     chan = 0;
 
-    if (dev == NULL || dev->base == 0) {
+    if (dev == NULL || dev->base == 0 || size == NULL) {
         return MHU_ERR_RECEIVE_DATA_INVALID_ARG;
+    }
+
+    if (*size == 0) {
+        return MHU_ERR_NONE;
     }
 
     mhu_err = validate_buffer_params((uintptr_t)receive_buffer, *size);
