@@ -152,10 +152,17 @@ enum mhu_error_t clear_and_wait_for_signal (
     return err;
 }
 
+/**
+ * @brief For simplicity, require:
+ *          - the buffer address to be 4-byte aligned.
+ *          - the buffer size to be a multiple of 4.
+ *
+ */
 static enum mhu_error_t validate_buffer_params(uintptr_t buf_addr,
                                                size_t buf_size)
 {
-    if ((buf_addr == 0) || (!IS_ALIGNED(buf_addr, 4))) {
+    if ((buf_addr == 0) || (!IS_ALIGNED(buf_addr, 4)) ||
+        (!IS_ALIGNED(buf_size, 4))) {
         return MHU_ERR_VALIDATE_BUFFER_PARAMS_INVALID_ARG;
     }
 
