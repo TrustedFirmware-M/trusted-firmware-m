@@ -23,6 +23,15 @@
 
 #define MHU_NOTIFY_VALUE    (1234u)
 
+#ifndef ALIGN_UP
+#define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
+#endif
+
+/*
+ * MHUv2 Wrapper utility macros
+ */
+#define IS_ALIGNED(val, align) (val == ALIGN_UP(val, align))
+
 enum mhu_error_t
 signal_and_wait_for_clear(void *mhu_sender_dev, uint32_t value)
 {
@@ -113,6 +122,23 @@ clear_and_wait_for_signal(struct mhu_v2_x_dev_t *dev)
     return err;
 }
 
+/**
+ * @brief For simplicity, require:
+ *          - the buffer address to be 4-byte aligned.
+ *          - the buffer size to be a multiple of 4.
+ *
+ */
+static enum mhu_error_t validate_buffer_params(uintptr_t buf_addr,
+                                               size_t buf_size)
+{
+    if ((buf_addr == 0) || (!IS_ALIGNED(buf_addr, 4)) ||
+        (!IS_ALIGNED(buf_size, 4))) {
+        return MHU_ERR_VALIDATE_BUFFER_PARAMS_INVALID_ARG;
+    }
+
+    return MHU_ERR_NONE;
+}
+
 enum mhu_error_t mhu_init_sender(void *mhu_sender_dev)
 {
     enum mhu_v2_x_error_t err;
@@ -191,15 +217,15 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev,
     uint32_t i;
     uint32_t *p;
 
-    if (dev == NULL || send_buffer == NULL) {
+    if (dev == NULL) {
         return MHU_ERR_SEND_DATA_INVALID_ARG;
     } else if (size == 0) {
         return MHU_ERR_NONE;
     }
 
-    /* For simplicity, require the send_buffer to be 4-byte aligned. */
-    if ((uintptr_t)send_buffer & 0x3u) {
-        return MHU_ERR_SEND_DATA_INVALID_ARG;
+    mhu_err = validate_buffer_params((uintptr_t)send_buffer, size);
+    if (mhu_err != MHU_ERR_NONE) {
+        return mhu_err;
     }
 
     err = mhu_v2_x_initiate_transfer(dev);
@@ -267,6 +293,7 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
                                   uint8_t *receive_buffer,
                                   size_t *size)
 {
+    enum mhu_error_t mhu_err;
     enum mhu_v2_x_error_t err;
     struct mhu_v2_x_dev_t *dev = mhu_receiver_dev;
     uint32_t num_channels = mhu_v2_x_get_num_channel_implemented(dev);
@@ -275,16 +302,13 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
     uint32_t i;
     uint32_t *p;
 
-    if (dev == NULL || receive_buffer == NULL) {
+    if (dev == NULL) {
         return MHU_ERR_RECEIVE_DATA_INVALID_ARG;
     }
 
-    /* For simplicity, require:
-     * - the receive_buffer to be 4-byte aligned,
-     * - the buffer size to be a multiple of 4.
-     */
-    if (((uintptr_t)receive_buffer & 0x3u) || (*size & 0x3u)) {
-        return MHU_ERR_RECEIVE_DATA_INVALID_ARG;
+    mhu_err = validate_buffer_params((uintptr_t)receive_buffer, *size);
+    if (mhu_err != MHU_ERR_NONE) {
+        return mhu_err;
     }
 
     /* The first word is the length of the actual message. */
