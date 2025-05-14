@@ -1,0 +1,97 @@
+From 2fecd18e13dec48f55cc094d10de4233261e4d7f Mon Sep 17 00:00:00 2001
+From: Maulik Patel <maulik.patel@arm.com>
+Date: Fri, 16 May 2025 06:56:56 +0100
+Subject: [PATCH 4/4] imgtool: Rename key-ids to psa-key-ids
+
+Since the key id concept in the PSA specific, rename the variables
+accordingly.
+
+Signed-off-by: Maulik Patel <maulik.patel@arm.com>
+Change-Id: I8a8a5ceba5554211f185cc4045a6081b6d407507
+---
+ scripts/imgtool/image.py | 12 ++++++------
+ scripts/imgtool/main.py  |  8 ++++++--
+ 2 files changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/scripts/imgtool/image.py b/scripts/imgtool/image.py
+index b2f7cff6..b6f885fb 100644
+--- a/scripts/imgtool/image.py
++++ b/scripts/imgtool/image.py
+@@ -275,7 +275,7 @@ class Image:
+ 
+         self.image_hash = None
+         self.image_size = None
+-        self.signature = None
++        self.signatures = None
+         self.version = version or versmod.decode_version("0")
+         self.header_size = header_size
+         self.pad_header = pad_header
+@@ -297,7 +297,7 @@ class Image:
+         self.enctlv_len = 0
+         self.max_align = max(DEFAULT_MAX_ALIGN, align) if max_align is None else int(max_align)
+         self.non_bootable = non_bootable
+-        self.key_ids = None
++        self.psa_key_ids = None
+ 
+         if self.max_align == DEFAULT_MAX_ALIGN:
+             self.boot_magic = bytes([
+@@ -663,9 +663,9 @@ class Image:
+             self.signatures = []
+             for i, key in enumerate(keys):
+                 # If key IDs are provided, and we have enough for this key, add it first.
+-                if self.key_ids is not None and len(self.key_ids) > i:
++                if self.psa_key_ids is not None and len(self.psa_key_ids) > i:
+                     # Convert key id (an integer) to 4-byte big-endian bytes.
+-                    kid_bytes = self.key_ids[i].to_bytes(4, 'big')
++                    kid_bytes = self.psa_key_ids[i].to_bytes(4, 'big')
+                     tlv.add('KEYID', kid_bytes)  # Using the TLV tag that corresponds to key IDs.
+ 
+                 if public_key_format == 'hash':
+@@ -937,9 +937,9 @@ class Image:
+             return VerifyResult.INVALID_SIGNATURE, None, None, None
+ 
+ 
+-    def set_key_ids(self, key_ids):
++    def set_key_ids(self, psa_key_ids):
+         """Set list of key IDs (integers) to be inserted before each signature."""
+-        self.key_ids = key_ids
++        self.psa_key_ids = psa_key_ids
+ 
+     def _add_key_id_tlv_to_unprotected(self, tlv, key_id: int):
+         """Add a key ID TLV into the *unprotected* TLV area."""
+diff --git a/scripts/imgtool/main.py b/scripts/imgtool/main.py
+index 3362c9c3..49798bb8 100755
+--- a/scripts/imgtool/main.py
++++ b/scripts/imgtool/main.py
+@@ -446,7 +446,7 @@ class BasedIntParamType(click.ParamType):
+               help='send to OUTFILE the payload or payload''s digest instead '
+               'of complied image. These data can be used for external image '
+               'signing')
+-@click.option('--key-ids', multiple=True, type=int, required=False,
++@click.option('--psa-key-ids', multiple=True, type=int, required=False,
+               help='List of integer key IDs for each signature.')
+ @click.command(help='''Create a signed or unsigned image\n
+                INFILE and OUTFILE are parsed as Intel HEX if the params have
+@@ -457,7 +457,7 @@ def sign(key, public_key_format, align, version, pad_sig, header_size,
+          dependencies, load_addr, hex_addr, erased_val, save_enctlv,
+          security_counter, boot_record, custom_tlv, rom_fixed, max_align,
+          clear, fix_sig, fix_sig_pubkey, sig_out, user_sha, is_pure,
+-         vector_to_sign, non_bootable, key_ids):
++         vector_to_sign, non_bootable, psa_key_ids):
+ 
+     if confirm:
+         # Confirmed but non-padded images don't make much sense, because
+@@ -473,6 +473,10 @@ def sign(key, public_key_format, align, version, pad_sig, header_size,
+                       non_bootable=non_bootable)
+     compression_tlvs = {}
+     img.load(infile)
++    # If the user passed any key IDs, apply them here:
++    if psa_key_ids:
++        click.echo(f"Signing with PSA key IDs: {psa_key_ids}")
++        img.set_key_ids(list(psa_key_ids))
+     if key:
+         loaded_keys = [load_key(k) for k in key]
+     else:
+-- 
+2.34.1
+

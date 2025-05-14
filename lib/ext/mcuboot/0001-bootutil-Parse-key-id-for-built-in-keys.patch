@@ -1,0 +1,218 @@
+From db2499cea8ad437dc00295b16772d4d45a0cdef3 Mon Sep 17 00:00:00 2001
+From: Maulik Patel <maulik.patel@arm.com>
+Date: Wed, 14 May 2025 10:28:07 +0100
+Subject: [PATCH 1/4] bootutil: Parse key id for built in keys
+
+When MCUBOOT_BUILTIN_KEY is enabled, the key id TLV entry is added
+to the image. Parse this entry while validating the image to identify
+the key used to sign the image.
+
+This enables future support for scenarios such as multiple built-in keys
+or multi-signature.
+
+Signed-off-by: Maulik Patel <maulik.patel@arm.com>
+Change-Id: Ibe26bc2b09e63350f4214719606a5aa4bc1be93c
+---
+ boot/bootutil/include/bootutil/crypto/ecdsa.h |  5 ---
+ boot/bootutil/include/bootutil/image.h        |  1 +
+ boot/bootutil/include/bootutil/sign_key.h     | 11 +++++
+ boot/bootutil/src/image_validate.c            | 40 ++++++++++++++-----
+ scripts/imgtool/image.py                      | 24 ++++++++++-
+ 5 files changed, 64 insertions(+), 17 deletions(-)
+
+diff --git a/boot/bootutil/include/bootutil/crypto/ecdsa.h b/boot/bootutil/include/bootutil/crypto/ecdsa.h
+index 3b054107..e0cf493c 100644
+--- a/boot/bootutil/include/bootutil/crypto/ecdsa.h
++++ b/boot/bootutil/include/bootutil/crypto/ecdsa.h
+@@ -392,11 +392,6 @@ static inline void bootutil_ecdsa_init(bootutil_ecdsa_context *ctx)
+     ctx->required_algorithm = 0;
+ 
+ #else /* !MCUBOOT_BUILTIN_KEY */
+-    /* The incoming key ID is equal to the image index. The key ID value must be
+-     * shifted (by one in this case) because zero is reserved (PSA_KEY_ID_NULL)
+-     * and considered invalid.
+-     */
+-    ctx->key_id++; /* Make sure it is not equal to 0. */
+ #if defined(MCUBOOT_SIGN_EC256)
+     ctx->curve_byte_count = 32;
+     ctx->required_algorithm = PSA_ALG_SHA_256;
+diff --git a/boot/bootutil/include/bootutil/image.h b/boot/bootutil/include/bootutil/image.h
+index 15de3e01..cd3a8bf5 100644
+--- a/boot/bootutil/include/bootutil/image.h
++++ b/boot/bootutil/include/bootutil/image.h
+@@ -100,6 +100,7 @@ struct flash_area;
+  */
+ #define IMAGE_TLV_KEYHASH           0x01   /* hash of the public key */
+ #define IMAGE_TLV_PUBKEY            0x02   /* public key */
++#define IMAGE_TLV_KEYID             0x03   /* Key ID */
+ #define IMAGE_TLV_SHA256            0x10   /* SHA256 of image hdr and body */
+ #define IMAGE_TLV_SHA384            0x11   /* SHA384 of image hdr and body */
+ #define IMAGE_TLV_SHA512            0x12   /* SHA512 of image hdr and body */
+diff --git a/boot/bootutil/include/bootutil/sign_key.h b/boot/bootutil/include/bootutil/sign_key.h
+index a5e81d35..58bfaf5b 100644
+--- a/boot/bootutil/include/bootutil/sign_key.h
++++ b/boot/bootutil/include/bootutil/sign_key.h
+@@ -39,6 +39,17 @@ struct bootutil_key {
+ };
+ 
+ extern const struct bootutil_key bootutil_keys[];
++#ifdef MCUBOOT_BUILTIN_KEY
++/**
++ * Verify that the specified key ID is valid for authenticating the given image.
++ *
++ * @param[in]  image_index   Index of the image to be verified.
++ * @param[in]  key_id        Identifier of the key to be verified against the image.
++ *
++ * @return                   0 if the key ID is valid for the image; nonzero on failure.
++ */
++int boot_verify_key_id_for_image(uint8_t image_index, uint32_t key_id);
++#endif /* MCUBOOT_BUILTIN_KEY */
+ #else
+ struct bootutil_key {
+     uint8_t *key;
+diff --git a/boot/bootutil/src/image_validate.c b/boot/bootutil/src/image_validate.c
+index 521251a4..33dc945a 100644
+--- a/boot/bootutil/src/image_validate.c
++++ b/boot/bootutil/src/image_validate.c
+@@ -273,12 +273,12 @@ bootutil_img_hash(struct boot_loader_state *state,
+ 
+ #if !defined(MCUBOOT_HW_KEY)
+ static int
+-bootutil_find_key(uint8_t *keyhash, uint8_t keyhash_len)
++bootutil_find_key(uint8_t image_index, uint8_t *keyhash, uint8_t keyhash_len)
+ {
+     bootutil_sha_context sha_ctx;
+     int i;
+     const struct bootutil_key *key;
+-    uint8_t hash[IMAGE_HASH_SIZE];
++    (void)image_index;
+ 
+     if (keyhash_len > IMAGE_HASH_SIZE) {
+         return -1;
+@@ -334,6 +334,32 @@ bootutil_find_key(uint8_t image_index, uint8_t *key, uint16_t key_len)
+     return -1;
+ }
+ #endif /* !MCUBOOT_HW_KEY */
++
++#else
++/* For MCUBOOT_BUILTIN_KEY, key id is passed */
++#define EXPECTED_KEY_TLV     IMAGE_TLV_KEYID
++#define KEY_BUF_SIZE         sizeof(int32_t)
++
++static int bootutil_find_key(uint8_t image_index, uint8_t *key_id_buf, uint8_t key_id_buf_len)
++{
++    int rc;
++    FIH_DECLARE(fih_rc, FIH_FAILURE);
++
++    /* Key id is passed */
++    assert(key_id_buf_len == sizeof(int32_t));
++    int32_t key_id = (((int32_t)key_id_buf[0] << 24) |
++                      ((int32_t)key_id_buf[1] << 16) |
++                      ((int32_t)key_id_buf[2] << 8)  |
++                      ((int32_t)key_id_buf[3]));
++
++    /* Check if key id is associated with the image */
++    FIH_CALL(boot_verify_key_id_for_image, fih_rc, image_index, key_id);
++    if (FIH_EQ(fih_rc, FIH_SUCCESS)) {
++        return key_id;
++    }
++
++    return -1;
++}
+ #endif /* !MCUBOOT_BUILTIN_KEY */
+ #endif /* EXPECTED_SIG_TLV */
+ 
+@@ -449,6 +475,7 @@ static int bootutil_check_for_pure(const struct image_header *hdr,
+ static const uint16_t allowed_unprot_tlvs[] = {
+      IMAGE_TLV_KEYHASH,
+      IMAGE_TLV_PUBKEY,
++     IMAGE_TLV_KEYID,
+      IMAGE_TLV_SHA256,
+      IMAGE_TLV_SHA384,
+      IMAGE_TLV_SHA512,
+@@ -492,14 +519,7 @@ bootutil_img_validate(struct boot_loader_state *state,
+     uint32_t img_sz;
+ #ifdef EXPECTED_SIG_TLV
+     FIH_DECLARE(valid_signature, FIH_FAILURE);
+-#ifndef MCUBOOT_BUILTIN_KEY
+     int key_id = -1;
+-#else
+-    /* Pass a key ID equal to the image index, the underlying crypto library
+-     * is responsible for mapping the image index to a builtin key ID.
+-     */
+-    int key_id = image_index;
+-#endif /* !MCUBOOT_BUILTIN_KEY */
+ #ifdef MCUBOOT_HW_KEY
+     uint8_t key_buf[KEY_BUF_SIZE];
+ #endif
+@@ -637,7 +657,7 @@ bootutil_img_validate(struct boot_loader_state *state,
+             if (rc) {
+                 goto out;
+             }
+-            key_id = bootutil_find_key(buf, len);
++            key_id = bootutil_find_key(image_index, buf, len);
+ #else
+             rc = LOAD_IMAGE_DATA(hdr, fap, off, key_buf, len);
+             if (rc) {
+diff --git a/scripts/imgtool/image.py b/scripts/imgtool/image.py
+index 566a47e0..747e19cf 100644
+--- a/scripts/imgtool/image.py
++++ b/scripts/imgtool/image.py
+@@ -76,6 +76,7 @@ IMAGE_F = {
+ TLV_VALUES = {
+         'KEYHASH': 0x01,
+         'PUBKEY': 0x02,
++        'KEYID': 0x03,
+         'SHA256': 0x10,
+         'SHA384': 0x11,
+         'SHA512': 0x12,
+@@ -135,13 +136,19 @@ class TLV():
+         """
+         e = STRUCT_ENDIAN_DICT[self.endian]
+         if isinstance(kind, int):
+-            if not TLV_VENDOR_RES_MIN <= kind <= TLV_VENDOR_RES_MAX:
++            if kind in TLV_VALUES.values():
++                buf = struct.pack(e + 'BBH', kind, 0, len(payload))
++            elif TLV_VENDOR_RES_MIN <= kind <= TLV_VENDOR_RES_MAX:
++                # Custom vendor-reserved tag
++                buf = struct.pack(e + 'HH', kind, len(payload))
++            else:
+                 msg = "Invalid custom TLV type value '0x{:04x}', allowed " \
+                       "value should be between 0x{:04x} and 0x{:04x}".format(
+                         kind, TLV_VENDOR_RES_MIN, TLV_VENDOR_RES_MAX)
+                 raise click.UsageError(msg)
+-            buf = struct.pack(e + 'HH', kind, len(payload))
+         else:
++            if kind not in TLV_VALUES:
++                raise click.UsageError(f"Unknown TLV type string: {kind}")
+             buf = struct.pack(e + 'BBH', TLV_VALUES[kind], 0, len(payload))
+         self.buf += buf
+         self.buf += payload
+@@ -632,6 +639,9 @@ class Image:
+             print(os.path.basename(__file__) + ': export digest')
+             return
+ 
++        if self.key_ids is not None:
++            self._add_key_id_tlv_to_unprotected(tlv, self.key_ids[0])
++
+         if key is not None or fixed_sig is not None:
+             if public_key_format == 'hash':
+                 tlv.add('KEYHASH', pubbytes)
+@@ -883,3 +893,13 @@ class Image:
+                     pass
+             tlv_off += TLV_SIZE + tlv_len
+         return VerifyResult.INVALID_SIGNATURE, None, None, None
++
++    def set_key_ids(self, key_ids):
++        """Set list of key IDs (integers) to be inserted before each signature."""
++        self.key_ids = key_ids
++
++    def _add_key_id_tlv_to_unprotected(self, tlv, key_id: int):
++        """Add a key ID TLV into the *unprotected* TLV area."""
++        tag = TLV_VALUES['KEYID']
++        value = key_id.to_bytes(4, self.endian)
++        tlv.add(tag, value)
+\ No newline at end of file
+-- 
+2.34.1
+

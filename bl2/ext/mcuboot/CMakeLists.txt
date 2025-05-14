@@ -10,6 +10,8 @@ cmake_minimum_required(VERSION 3.21)
 fetch_remote_library(
     LIB_NAME                mcuboot
     LIB_SOURCE_PATH_VAR     MCUBOOT_PATH
+    LIB_PATCH_DIR           ${CMAKE_SOURCE_DIR}/lib/ext/mcuboot
+    LIB_FORCE_PATCH         ${MCUBOOT_FORCE_PATCH}
     FETCH_CONTENT_ARGS
         GIT_REPOSITORY      https://github.com/mcu-tools/mcuboot.git
         GIT_TAG             ${MCUBOOT_VERSION}
