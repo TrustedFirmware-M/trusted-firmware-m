@@ -42,7 +42,7 @@ static inline enum dcsu_rx_msg_response_t rse_dcsu_hal_resp_mapping(uint32_t err
 
 enum dcsu_error_t dcsu_hal_get_field_offset(enum dcsu_otp_field_t field, uint32_t *offset)
 {
-    if (!offset) {
+    if (offset == NULL) {
         return DCSU_ERROR_INVALID_POINTER;
     }
 
@@ -79,7 +79,7 @@ enum dcsu_error_t dcsu_hal_get_field_offset(enum dcsu_otp_field_t field, uint32_
 
 enum dcsu_error_t dcsu_hal_get_field_size(enum dcsu_otp_field_t field, uint32_t *size)
 {
-    if (!size) {
+    if (size == NULL) {
         return DCSU_ERROR_INVALID_POINTER;
     }
 
@@ -117,7 +117,7 @@ enum dcsu_error_t dcsu_hal_get_field_size(enum dcsu_otp_field_t field, uint32_t 
 
 enum dcsu_error_t dcsu_hal_generate_soc_unique_id(enum dcsu_rx_msg_response_t *response)
 {
-    if (!response) {
+    if (response == NULL) {
         return DCSU_ERROR_INVALID_POINTER;
     }
 
@@ -135,7 +135,7 @@ enum dcsu_error_t dcsu_hal_write_otp(enum dcsu_otp_field_t otp_field,
                                      uint32_t otp_field_write_offset, uint32_t *data,
                                      size_t data_size, enum dcsu_rx_msg_response_t *response)
 {
-    if (!data || !response) {
+    if ((data == NULL) || (response == NULL)) {
         return DCSU_ERROR_INVALID_POINTER;
     }
 
@@ -197,7 +197,7 @@ enum dcsu_error_t dcsu_hal_read_otp(enum dcsu_otp_field_t otp_field, uint32_t ot
                                     uint32_t *data, size_t data_size,
                                     enum dcsu_rx_msg_response_t *response)
 {
-    if (!data || !response) {
+    if ((data == NULL) || (response == NULL)) {
         return DCSU_ERROR_INVALID_POINTER;
     }
 
@@ -250,7 +250,7 @@ enum dcsu_error_t dcsu_hal_write_zero_count(enum dcsu_otp_field_t otp_field,
                                             uint32_t otp_field_zero_count_start_offset,
                                             size_t data_size, enum dcsu_rx_msg_response_t *response)
 {
-    if (!response) {
+    if (response == NULL) {
         return DCSU_ERROR_INVALID_POINTER;
     }
 
@@ -345,6 +345,10 @@ uint32_t dcsu_hal_checksum_data(uint32_t *data, uint32_t word_count)
     uint32_t word;
     uint8_t *bytes = (uint8_t *)&word;
 
+    if (data == NULL) {
+        return DCSU_ERROR_INVALID_POINTER;
+    }
+
     for (idx = 0; idx < word_count; idx++) {
         word = data[idx];
         sum += bytes[0] + bytes[1] + bytes[2] + bytes[3];
@@ -357,6 +361,10 @@ uint32_t dcsu_hal_checksum_data(uint32_t *data, uint32_t word_count)
 
 enum dcsu_error_t dcsu_hal_complete_import_data(enum dcsu_rx_msg_response_t *response)
 {
+    if (response == NULL) {
+        return DCSU_ERROR_INVALID_POINTER;
+    }
+
     /* Use no response to delay response to after import verification */
     *response = DCSU_RX_MSG_RESP_SUCCESS;
     return DCSU_ERROR_NONE;
@@ -364,6 +372,10 @@ enum dcsu_error_t dcsu_hal_complete_import_data(enum dcsu_rx_msg_response_t *res
 
 enum dcsu_error_t dcsu_hal_cancel_import_data(enum dcsu_rx_msg_response_t *response)
 {
+    if (response == NULL) {
+        return DCSU_ERROR_INVALID_POINTER;
+    }
+
     *response = DCSU_RX_MSG_RESP_SUCCESS;
     return 0;
 }
