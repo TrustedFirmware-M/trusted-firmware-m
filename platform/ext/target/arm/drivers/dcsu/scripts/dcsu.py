@@ -493,7 +493,7 @@ if __name__ == "__main__":
               "DCSU_TX_COMMAND_READ_SOC_FAMILY_ID",
               "DCSU_TX_COMMAND_READ_SOC_IEEE_ECID",
               "DCSU_TX_COMMAND_READ_SOC_CONFIG_DATA"]:
-        parsers[c].add_argument("--byte-order", help="Byte order of data", default="big")
+        parsers[c].add_argument("--byte-order", help="Byte order of data", default="little")
 
     backend_name = pre_parse_backend(backends, parser)
     try:
