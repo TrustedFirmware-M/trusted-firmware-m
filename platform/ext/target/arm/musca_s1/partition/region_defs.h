@@ -98,8 +98,11 @@
 #define S_CODE_LIMIT    (S_CODE_START + S_CODE_SIZE - 1)
 
 #define S_DATA_START    (S_RAM_ALIAS(0x0))
-#define S_DATA_SIZE     (TOTAL_RAM_SIZE / 2)
+#define S_DATA_SIZE     (TOTAL_RAM_SIZE / 2 - S_RAM_CODE_SIZE)
 #define S_DATA_LIMIT    (S_DATA_START + S_DATA_SIZE - 1)
+
+#define S_RAM_CODE_SIZE     (0x4000) /* > 16 KB (SRAM MPC block size)*/
+#define S_RAM_CODE_START    (S_DATA_START + S_DATA_SIZE)
 
 /* CMSE Veneers region */
 #define CMSE_VENEER_REGION_START (S_CODE_START + S_CODE_VECTOR_TABLE_SIZE)
