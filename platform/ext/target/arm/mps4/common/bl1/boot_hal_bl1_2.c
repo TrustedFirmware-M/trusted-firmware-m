@@ -77,21 +77,6 @@ int32_t boot_platform_post_init(void)
     return 0;
 }
 
-static int invalidate_hardware_keys(void)
-{
-    enum kmu_error_t kmu_err;
-    uint32_t slot;
-
-    for (slot = 0; slot < KMU_USER_SLOT_MIN; slot++) {
-        kmu_err = kmu_set_slot_invalid(&KMU_DEV_S, slot);
-        if (kmu_err != KMU_ERROR_NONE) {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
 static int disable_rom_execution(void)
 {
     int rc;
@@ -128,7 +113,7 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
     static struct boot_arm_vector_table *vt_cpy;
     int32_t result;
 
-    result = invalidate_hardware_keys();
+    result = kmu_invalidate_hardware_keys(&KMU_DEV_S);
     if (result) {
         while(1){}
     }
@@ -178,7 +163,7 @@ int boot_platform_post_load(uint32_t image_id)
 {
     int rc;
 
-    rc = invalidate_hardware_keys();
+    rc = kmu_invalidate_hardware_keys(&KMU_DEV_S);
     if (rc) {
         return rc;
     }

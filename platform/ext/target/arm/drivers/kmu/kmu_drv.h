@@ -301,6 +301,8 @@ enum kmu_error_t kmu_export_key(struct kmu_dev_t *dev, uint32_t slot);
 enum kmu_error_t kmu_random_delay(struct kmu_dev_t *dev,
                                   enum kmu_delay_limit_t limit);
 
+enum kmu_error_t kmu_invalidate_hardware_keys(struct kmu_dev_t *dev);
+
 #ifdef __cplusplus
 }
 #endif

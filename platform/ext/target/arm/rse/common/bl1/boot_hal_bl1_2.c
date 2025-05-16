@@ -375,21 +375,6 @@ int32_t boot_platform_post_init(void)
 }
 
 
-static int invalidate_hardware_keys(void)
-{
-    enum kmu_error_t kmu_err;
-    uint32_t slot;
-
-    for (slot = 0; slot < KMU_USER_SLOT_MIN; slot++) {
-        kmu_err = kmu_set_slot_invalid(&KMU_DEV_S, slot);
-        if (kmu_err != KMU_ERROR_NONE) {
-            return kmu_err;
-        }
-    }
-
-    return 0;
-}
-
 static int disable_rom_execution(void)
 {
     struct mpu_armv8m_region_cfg_t rom_region_config = {
@@ -479,7 +464,7 @@ int boot_platform_post_load(uint32_t image_id)
 {
     int rc;
 
-    rc = invalidate_hardware_keys();
+    rc = kmu_invalidate_hardware_keys(&KMU_DEV_S);
     if (rc != 0) {
         return rc;
     }
