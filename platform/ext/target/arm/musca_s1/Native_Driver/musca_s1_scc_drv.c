@@ -18,6 +18,8 @@
 /* Use __ISB(), __DSB() */
 #include "tfm_hal_device_header.h"
 
+#define __RAM_FUNC  __attribute__((section(".ramfunc")))
+
 /** Setter bit manipulation macro */
 #define SET_BIT(WORD, BIT_INDEX) ((WORD) |= (1u << (BIT_INDEX)))
 /** Clearing bit manipulation macro */
@@ -398,6 +400,18 @@ void musca_s1_scc_mram_fast_read_enable(struct musca_s1_scc_dev_t* dev)
     __ISB();
 }
 
+/**
+ * @note Disabling the MRAM controller’s fast-read mode
+ *       shuts off its internal prefetch buffer, so any
+ *       subsequent instruction fetch from eMRAM on CPU1
+ *       may stall or return invalid bits (triggering a
+ *       UsageFault). CPU0 does not have this issue for
+ *       unclear reasons.
+ *       To support both cores reliably, place this function
+ *       in SRAM (e.g. as a ramfunc) rather than in eMRAM.
+ *
+ */
+__RAM_FUNC
 void musca_s1_scc_mram_fast_read_disable(struct musca_s1_scc_dev_t* dev)
 {
     struct musca_s1_scc_reg_map_t* scc_regs =
