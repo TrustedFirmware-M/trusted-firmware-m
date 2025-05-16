@@ -66,13 +66,25 @@ target_include_directories(bl2
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
-target_sources(bl2
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/bl2_main.c
-        $<$<BOOL:${PLATFORM_DEFAULT_ROTPK}>:${CMAKE_CURRENT_SOURCE_DIR}/keys.c>
-        ${CMAKE_CURRENT_SOURCE_DIR}/flash_map_extended.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/flash_map_legacy.c
+set(BL2_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/bl2_main.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/flash_map_extended.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/flash_map_legacy.c
+    $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:${CMAKE_CURRENT_SOURCE_DIR}/keys_enc.c>
+
 )
+
+if(PLATFORM_DEFAULT_ROTPK)
+    if(MCUBOOT_BUILTIN_KEY)
+        list(APPEND BL2_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/keys_builtin.c)
+    elseif(MCUBOOT_HW_KEY)
+        list(APPEND BL2_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/keys_hw.c)
+    else()
+        list(APPEND BL2_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/keys.c)
+    endif()
+endif()
+
+target_sources(bl2 PRIVATE ${BL2_SOURCES})
 
 target_compile_definitions(bl2
     PRIVATE
