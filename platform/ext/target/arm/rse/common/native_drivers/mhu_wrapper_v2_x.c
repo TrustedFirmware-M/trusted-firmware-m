@@ -212,7 +212,7 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev,
 {
     enum mhu_v2_x_error_t err;
     enum mhu_error_t mhu_err;
-    struct mhu_v3_x_dev_t *dev = (struct mhu_v3_x_dev_t *)mhu_sender_dev;
+    struct mhu_v2_x_dev_t *dev = (struct mhu_v2_x_dev_t *)mhu_sender_dev;
     uint32_t num_channels = mhu_v2_x_get_num_channel_implemented(dev);
     uint32_t chan = 0;
     uint32_t i;
