@@ -60,8 +60,9 @@ static int32_t error_trans(enum mpc_sie200_error_t err)
     /* default:  The default is not defined intentionally to force the
      *           compiler to check that all the enumeration values are
      *           covered in the switch.
-	 */
+     */
     }
+    return ARM_DRIVER_ERROR;
 }
 
 #if (RTE_ISRAM0_MPC)

@@ -100,8 +100,11 @@ static int32_t ARM_USARTx_PowerControl(UARTx_Resources* uart_dev,
         return ARM_DRIVER_OK;
     /* default:  The default is not defined intentionally to force the
      *           compiler to check that all the enumeration values are
-     *           covered in the switch.*/
+     *           covered in the switch.
+     */
     }
+
+    return ARM_DRIVER_ERROR;
 }
 
 static int32_t ARM_USARTx_Send(UARTx_Resources* uart_dev, const void *data,
