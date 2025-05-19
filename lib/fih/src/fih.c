@@ -81,6 +81,12 @@ void fih_panic_loop(void)
     __asm volatile ("b fih_panic_loop");
     __asm volatile ("b fih_panic_loop");
     __asm volatile ("b fih_panic_loop");
+
+    /* An infinite loop to suppress compiler warnings
+     * about the return of a noreturn function
+     */
+    while(1) {
+    };
 }
 #endif /* FIH_ENABLE_GLOBAL_FAIL */
 
