@@ -8,6 +8,7 @@
 
 #include "rse_provisioning_tests.h"
 
+#include <assert.h>
 #include <string.h>
 
 #include "test_framework_helpers.h"

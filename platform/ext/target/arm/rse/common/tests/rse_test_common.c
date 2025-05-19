@@ -8,6 +8,7 @@
 
 #include "rse_test_common.h"
 
+#include <assert.h>
 #include <string.h>
 
 void add_tests_to_testsuite(struct test_t *test_list, uint32_t test_am,
