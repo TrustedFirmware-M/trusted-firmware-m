@@ -41,6 +41,11 @@ set(MBEDCRYPTO_FORCE_PATCH              OFF         CACHE BOOL      "Always appl
 set(MBEDCRYPTO_VERSION                  "mbedtls-3.6.5" CACHE STRING "The version of Mbed Crypto to use")
 set(MBEDCRYPTO_GIT_REMOTE               "https://github.com/Mbed-TLS/mbedtls.git" CACHE STRING "The URL (or path) to retrieve MbedTLS from.")
 
+set(TF_PSA_CRYPTO_PATH                  "DOWNLOAD"  CACHE PATH      "Path to TF-PSA-Crypto (or DOWNLOAD to fetch automatically")
+set(TF_PSA_CRYPTO_VERSION               "v1.0.0"    CACHE STRING    "The version of TF-PSA-Crypto to use")
+set(TF_PSA_CRYPTO_FORCE_PATCH           OFF         CACHE BOOL      "Always apply TF-PSA-Crypto patches")
+set(TF_PSA_CRYPTO_GIT_REMOTE            "https://github.com/Mbed-TLS/TF-PSA-Crypto" CACHE STRING "The URL (or path) to retrieve TF-PSA-Crypto from.")
+
 set(MCUBOOT_PATH                        "DOWNLOAD"  CACHE PATH      "Path to MCUboot (or DOWNLOAD to fetch automatically")
 set(MCUBOOT_FORCE_PATCH                 OFF         CACHE BOOL      "Always apply MCUboot patches")
 set(MCUBOOT_VERSION                     "tfm-2.3.0" CACHE STRING    "The version of MCUboot to use")
