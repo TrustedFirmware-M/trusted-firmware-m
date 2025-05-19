@@ -46,11 +46,10 @@
 #include "bl1_2_debug.h"
 
 
-//TODO: This debug state needs be a context parameter for IAK derivation
-uint32_t debug_state = 0;
-struct mpu_armv8m_dev_t dev_mpu_s = { MPU_BASE };
+static struct mpu_armv8m_dev_t dev_mpu_s = { MPU_BASE };
 
-uint32_t image_offsets[2];
+/* Needed to store the offset of primary and secondary slot of the BL2 firmware */
+static uint32_t image_offsets[2];
 
 /* Flash device name must be specified by target */
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
