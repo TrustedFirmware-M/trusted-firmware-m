@@ -213,11 +213,6 @@ attest_add_security_lifecycle_claim(struct attest_token_encode_ctx *token_ctx)
     /* Use callback function to get it from runtime SW */
     security_lifecycle = tfm_attest_hal_get_security_lifecycle();
 
-    /* Sanity check */
-    if (security_lifecycle > TFM_SLC_MAX_VALUE) {
-        return PSA_ATTEST_ERR_GENERAL;
-    }
-
     attest_token_encode_add_integer(token_ctx,
                                     IAT_SECURITY_LIFECYCLE,
                                     (int64_t)security_lifecycle);
