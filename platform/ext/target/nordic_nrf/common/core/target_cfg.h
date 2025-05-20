@@ -35,6 +35,9 @@
 #include "tfm_plat_defs.h"
 #include "region_defs.h"
 
+#define NRF_UARTE_INSTANCE(id)	   NRF_UARTE##id
+#define NRF_UARTE_INSTANCE_GET(id) NRF_UARTE_INSTANCE(id)
+
 #ifndef NRF_SECURE_UART_INSTANCE
 #define TFM_DRIVER_STDIO    Driver_USART1
 #elif NRF_SECURE_UART_INSTANCE == 0

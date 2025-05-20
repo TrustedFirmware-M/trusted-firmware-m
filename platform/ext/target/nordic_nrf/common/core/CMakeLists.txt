@@ -206,6 +206,9 @@ target_sources(tfm_spm
         tfm_hal_platform_common.c
         faults.c
         target_cfg.c
+        $<$<BOOL:${HAS_RRAMC}>:${CMAKE_CURRENT_SOURCE_DIR}/target_cfg_54l.c>
+        $<$<BOOL:${HAS_NVMC}>:${CMAKE_CURRENT_SOURCE_DIR}/target_cfg_53_91.c>
+        secure_peripherals_defs.c
 )
 
 target_sources(tfm_s
