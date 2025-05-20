@@ -12,6 +12,7 @@
  * Driver interface specification
  *
  */
+#include <string.h>
 
 #include "cc3xx_psa_entropy.h"
 #include "cc3xx_rng.h"
