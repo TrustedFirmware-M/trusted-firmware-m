@@ -999,8 +999,7 @@ static cc3xx_err_t tag_cmp_or_copy(uint32_t *tag, uint32_t *calculated_tag)
     bool are_different = 0;
 
     if (aes_state.direction == CC3XX_AES_DIRECTION_DECRYPT) {
-        cc3xx_lowlevel_rng_get_random_permutation(
-            permutation_buf, tag_word_size, CC3XX_RNG_LFSR);
+        cc3xx_lowlevel_rng_get_random_permutation(permutation_buf, tag_word_size);
 
         for (idx = 0; idx < tag_word_size; idx++) {
             are_different |= tag[permutation_buf[idx]] ^ calculated_tag[permutation_buf[idx]];

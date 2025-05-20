@@ -565,8 +565,7 @@ static void fisher_yates_shuffle(uint8_t *permutation_buf, size_t len,
 }
 #endif /* CC3XX_CONFIG_DPA_MITIGATIONS_ENABLE */
 
-void cc3xx_lowlevel_rng_get_random_permutation(uint8_t *permutation_buf, size_t len,
-                                               enum cc3xx_rng_quality_t quality)
+void cc3xx_lowlevel_rng_get_random_permutation(uint8_t *permutation_buf, size_t len)
 {
     uint32_t idx;
 
@@ -576,9 +575,7 @@ void cc3xx_lowlevel_rng_get_random_permutation(uint8_t *permutation_buf, size_t 
     }
 
 #ifdef CC3XX_CONFIG_DPA_MITIGATIONS_ENABLE
-    fisher_yates_shuffle(permutation_buf, len, quality);
-#else
-    (void)quality;
+    fisher_yates_shuffle(permutation_buf, len, CC3XX_RNG_LFSR);
 #endif
 }
 #endif /* CC3XX_CONFIG_RNG_ENABLE */

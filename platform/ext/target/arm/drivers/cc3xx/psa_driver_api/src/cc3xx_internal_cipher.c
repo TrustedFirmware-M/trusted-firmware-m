@@ -505,8 +505,7 @@ psa_status_t cc3xx_internal_cipher_stream_pre_update(
     if (size_to_pre_process) {
         uint8_t permutation_buf[size_to_pre_process]; /* This is a VLA */
 
-        cc3xx_lowlevel_rng_get_random_permutation(
-            permutation_buf, size_to_pre_process, CC3XX_RNG_LFSR);
+        cc3xx_lowlevel_rng_get_random_permutation(permutation_buf, size_to_pre_process);
 
         for (idx = 0; idx < size_to_pre_process; idx++) {
             output[permutation_buf[idx]] =
@@ -548,8 +547,7 @@ psa_status_t cc3xx_internal_cipher_stream_post_update(
             return PSA_ERROR_HARDWARE_FAILURE;
         }
 
-        cc3xx_lowlevel_rng_get_random_permutation(
-            permutation_buf, input_length - processed_length, CC3XX_RNG_LFSR);
+        cc3xx_lowlevel_rng_get_random_permutation(permutation_buf, input_length - processed_length);
 
         for (idx = 0; idx < input_length - processed_length; idx++) {
             output[processed_length + permutation_buf[idx]] =

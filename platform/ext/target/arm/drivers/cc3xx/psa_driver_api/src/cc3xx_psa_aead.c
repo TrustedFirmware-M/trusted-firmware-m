@@ -898,8 +898,7 @@ psa_status_t cc3xx_aead_verify(
         cc3xx_lowlevel_poly1305_finish(local_tag);
 
         /* Generate a random permutation */
-        cc3xx_lowlevel_rng_get_random_permutation(
-	    permutation_buf, tag_word_size, CC3XX_RNG_LFSR);
+        cc3xx_lowlevel_rng_get_random_permutation(permutation_buf, tag_word_size);
 
         /* Check tag in "constant-time" */
         for (diff = 0, idx = 0; idx < tag_word_size; idx++) {
