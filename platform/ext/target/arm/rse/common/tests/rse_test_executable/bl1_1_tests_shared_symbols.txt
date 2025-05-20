@@ -43,3 +43,8 @@ dcsu_init
 dcsu_signal_ready
 dcsu_wait_for_any_rx_command
 dcsu_handle_rx_command
+setup_provisioning_aes_key
+dcsu_wait_for_rx_command
+dcsu_handle_tx_response
+dcsu_import_ready
+soc_area_info
