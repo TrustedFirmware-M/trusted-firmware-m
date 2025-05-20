@@ -15,6 +15,7 @@
 #include "device_definition.h"
 #include "rse_otp_dev.h"
 #include "rse_zero_count.h"
+#include "rse_soc_uid.h"
 
 #define TEST_ASSERT(cond, msg) \
     if (!(cond)) {             \
@@ -260,6 +261,14 @@ void add_dcsu_drv_tests_to_testsuite(struct test_suite_t *p_ts, uint32_t ts_size
     const size_t num_tests = ARRAY_SIZE(dcsu_drv_tests);
 
     assert(p_ts->list_size + num_tests <= ts_size);
+
+    /* The DCSU driver tests write to various regions in the OTP and therefore they cannot be
+     * run more than once (as they will fail to write to the OTP a second time). Check if the
+     * SoC UID has already been generated (is non-zero) and do not add the tests to the suite
+     * if so */
+    if (rse_soc_uid_is_generated()) {
+        return;
+    }
 
     memcpy(&(p_ts->test_list[p_ts->list_size]), dcsu_drv_tests, num_tests * sizeof(struct test_t));
     p_ts->list_size += num_tests;
