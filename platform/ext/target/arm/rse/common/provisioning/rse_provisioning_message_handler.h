@@ -76,6 +76,16 @@ enum tfm_plat_err_t blob_handling_status_report_error(enum provisioning_message_
 
 enum tfm_plat_err_t blob_provisioning_finished(void);
 
+static inline bool
+rse_provisioning_message_is_valid(const struct rse_provisioning_message_t *message)
+{
+    const enum rse_provisioning_message_type_t msg_type = message->header.type;
+
+    return (msg_type == RSE_PROVISIONING_MESSAGE_TYPE_BLOB) ||
+           (msg_type == RSE_PROVISIONING_MESSAGE_TYPE_CERTIFICATE) ||
+           (msg_type == RSE_PROVISIONING_MESSAGE_TYPE_PLAIN_DATA);
+}
+
 #ifdef __cplusplus
 }
 #endif

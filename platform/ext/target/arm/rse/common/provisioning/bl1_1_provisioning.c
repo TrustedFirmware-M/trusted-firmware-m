@@ -18,18 +18,10 @@
 #include "rse_provisioning_aes_key.h"
 #include "rse_provisioning_rotpk.h"
 #include "rse_persistent_data.h"
+#include "rse_provisioning_get_message.h"
 
 #include <assert.h>
 #include <string.h>
-
-static inline bool found_valid_message_type(const struct rse_provisioning_message_t *message)
-{
-    const enum rse_provisioning_message_type_t msg_type = message->header.type;
-
-    return (msg_type == RSE_PROVISIONING_MESSAGE_TYPE_BLOB) ||
-           (msg_type == RSE_PROVISIONING_MESSAGE_TYPE_CERTIFICATE) ||
-           (msg_type == RSE_PROVISIONING_MESSAGE_TYPE_PLAIN_DATA);
-}
 
 static inline bool blob_is_in_sram(const struct rse_provisioning_message_t *message, size_t size)
 {
@@ -105,20 +97,16 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
             return TFM_PLAT_ERR_PROVISIONING_MESSAGE_INVALID_LOCATION;
         }
 
-        if (found_valid_message_type(persistent_data_message)) {
+        if (rse_provisioning_message_is_valid(persistent_data_message)) {
             found_persistent_data_message = true;
         }
     }
 
     /*
-     * There are three options for where we can load the provisioning blob from:
-     *  1. If a blob is present in the SRAM persistent data because it has been
-     *     stashed there by runtime provisioning comms handling. This could be
-     *     for DM LCS provisioning and therefore we check this before the LCS
-     *     state
-     *  2. A blob pre-loaded into the SRAM standard staging area
-     *  3. A blob passed over the provisioning comms, which will be stashed
-     *     in the standard staging area
+     * If a blob is present in the SRAM persistent data because it has been
+     * stashed there by runtime provisioning comms handling. This could be
+     * for DM LCS provisioning and therefore we check this before the LCS
+     * state
      */
     if (found_persistent_data_message) {
         provisioning_message = persistent_data_message;
@@ -127,13 +115,8 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
     } else if (lcs == LCM_LCS_DM) {
         return TFM_PLAT_ERR_SUCCESS;
 #endif
-    } else if (!found_valid_message_type(provisioning_message)) {
-        err = provisioning_comms_init(provisioning_message, provisioning_message_size);
-        if (err != TFM_PLAT_ERR_SUCCESS) {
-            return err;
-        }
-
-        err = provisioning_comms_receive_commands_blocking();
+    } else {
+        err = rse_provisioning_get_message(provisioning_message, provisioning_message_size);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
         }

@@ -124,3 +124,4 @@ __stack_seal
 tfm_hal_system_reset
 tfm_plat_get_shared_measurement_data_base
 tfm_plat_get_shared_measurement_data_size
+rse_provisioning_get_message

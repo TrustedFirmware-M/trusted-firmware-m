@@ -19,6 +19,7 @@
 #include "device_definition.h"
 #include "tfm_log.h"
 #include "rse_kmu_keys.h"
+#include "rse_provisioning_get_message.h"
 
 #ifndef TFM_DUMMY_PROVISIONING
 extern const uint8_t pci_rotpk_x[];
@@ -107,12 +108,7 @@ __attribute__((section("DO_PROVISION"))) enum tfm_plat_err_t do_provision(void) 
 
     INFO("Provisioning next blob\n");
 
-    err = provisioning_comms_init(provisioning_message, RSE_PROVISIONING_MESSAGE_MAX_SIZE);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
-    }
-
-    err = provisioning_comms_receive_commands_blocking();
+    err = rse_provisioning_get_message(provisioning_message, RSE_PROVISIONING_MESSAGE_MAX_SIZE);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }

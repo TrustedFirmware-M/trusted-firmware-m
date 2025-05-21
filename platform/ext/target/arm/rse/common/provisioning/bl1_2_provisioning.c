@@ -17,6 +17,7 @@
 #include "tfm_hal_platform.h"
 #include "rse_provisioning_aes_key.h"
 #include "rse_provisioning_rotpk.h"
+#include "rse_provisioning_get_message.h"
 
 #include <assert.h>
 #include <string.h>
@@ -68,12 +69,7 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
         .blob_is_chainloaded = false,
     };
 
-    err = provisioning_comms_init(provisioning_message, RSE_PROVISIONING_MESSAGE_MAX_SIZE);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
-    }
-
-    err = provisioning_comms_receive_commands_blocking();
+    err = rse_provisioning_get_message(provisioning_message, RSE_PROVISIONING_MESSAGE_MAX_SIZE);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
