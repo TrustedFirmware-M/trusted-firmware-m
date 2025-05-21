@@ -29,6 +29,8 @@ struct rse_persistent_data {
         /* Provisioning blob buffer pointer */
         uint32_t *provisioning_blob_buf;
         size_t provisioning_blob_buf_size;
+        /* Used to keep track of the provisioning message which is staged */
+        uint8_t provisioning_staging_status;
     } bl1_data;
     /* Data shared between bootloaders and runtime */
     struct rse_persistent_shared_data {

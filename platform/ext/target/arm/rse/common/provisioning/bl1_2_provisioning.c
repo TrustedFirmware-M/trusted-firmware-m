@@ -11,13 +11,14 @@
 
 #include "region_defs.h"
 #include "rse_provisioning_message_handler.h"
-#include "rse_provisioning_comms.h"
+#include "rse_provisioning_message_status.h"
 #include "device_definition.h"
 #include "tfm_log.h"
 #include "tfm_hal_platform.h"
 #include "rse_provisioning_aes_key.h"
 #include "rse_provisioning_rotpk.h"
 #include "rse_provisioning_get_message.h"
+#include "rse_persistent_data.h"
 
 #include <assert.h>
 #include <string.h>
@@ -69,20 +70,18 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
         .blob_is_chainloaded = false,
     };
 
-    err = rse_provisioning_get_message(provisioning_message, RSE_PROVISIONING_MESSAGE_MAX_SIZE);
+    err = rse_provisioning_get_message(provisioning_message, RSE_PROVISIONING_MESSAGE_MAX_SIZE,
+                                       PROVISIONING_STAGING_STATUS_BL1_2_MESSAGE);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
 
-    /* FixMe: Check if the current way of handling blobs can result in running
-     *        a malformed blob in case a reset happens in the middle of an
-     *        operation which has already written the blob header
-     */
     err = handle_provisioning_message(provisioning_message,
                                       RSE_PROVISIONING_MESSAGE_MAX_SIZE,
                                       &config, (void *)&ctx);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         memset((void *)provisioning_message, 0, RSE_PROVISIONING_MESSAGE_MAX_SIZE);
+        rse_set_provisioning_staging_status(PROVISIONING_STAGING_STATUS_NO_MESSAGE);
         blob_handling_status_report_error(PROVISIONING_REPORT_STEP_RUN_BLOB, err);
         return err;
     }

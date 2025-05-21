@@ -11,6 +11,7 @@
 #include "rse_provisioning_comms.h"
 #include "rse_provisioning_rotpk.h"
 #include "rse_provisioning_message.h"
+#include "rse_provisioning_message_status.h"
 #include "rse_persistent_data.h"
 #include "tfm_hal_platform.h"
 #include "region_defs.h"
@@ -65,6 +66,7 @@ enum runtime_provisioning_error_t runtime_provisioning_hal_process_message(void)
     }
 
     if (received_full_message) {
+        rse_set_provisioning_staging_status(PROVISIONING_STAGING_STATUS_RUNTIME_MESSAGE);
         /* Reset and let BL1 provision the blob */
         tfm_hal_system_reset();
     }

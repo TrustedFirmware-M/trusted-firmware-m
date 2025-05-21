@@ -21,6 +21,8 @@
 #include "tfm_plat_otp.h"
 #include "rse_otp_dev.h"
 #include "rse_provisioning_comms.h"
+#include "rse_persistent_data.h"
+#include "rse_provisioning_message_status.h"
 
 #include <string.h>
 
@@ -569,6 +571,8 @@ enum tfm_plat_err_t blob_handling_status_report_error(enum provisioning_message_
 
 enum tfm_plat_err_t blob_provisioning_finished(void)
 {
+    rse_set_provisioning_staging_status(PROVISIONING_STAGING_STATUS_NO_MESSAGE);
+
 #ifdef RSE_ENABLE_DCSU_PROVISIONING_COMMS
     struct provisioning_message_status_report_t status_report = {
         .type = PROVISIONING_STATUS_SUCCESS_COMPLETE,

@@ -12,6 +12,7 @@
 
 #include "rse_provisioning_message.h"
 #include "platform_error_codes.h"
+#include "rse_provisioning_message_status.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,12 +29,16 @@ extern "C" {
  *                                  rse_provisioning_message_t.
  * \param[in]     message_buf_size  Size of the buffer in bytes. Must be at least
  *                                  the size of the expected message.
+ * \param[in]     expected_status   The expected provisioning_staging_status for the
+ *                                  current component.
+ *
  *
  * \return  Returns a tfm_plat_err_t indicating success or failure.
  */
 enum tfm_plat_err_t
 rse_provisioning_get_message(const struct rse_provisioning_message_t *message_buf,
-                             size_t message_buf_size);
+                             size_t message_buf_size,
+                             enum provisioning_staging_status expected_status);
 
 #ifdef __cplusplus
 }

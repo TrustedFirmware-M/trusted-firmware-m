@@ -14,12 +14,13 @@
 #include "rse_provisioning_message_handler.h"
 #include "rse_provisioning_rotpk.h"
 #include "rse_provisioning_tci_key.h"
-#include "rse_provisioning_comms.h"
+#include "rse_provisioning_message_status.h"
 #include "cc3xx_drv.h"
 #include "device_definition.h"
 #include "tfm_log.h"
 #include "rse_kmu_keys.h"
 #include "rse_provisioning_get_message.h"
+#include "rse_persistent_data.h"
 
 #ifndef TFM_DUMMY_PROVISIONING
 extern const uint8_t pci_rotpk_x[];
@@ -108,20 +109,18 @@ __attribute__((section("DO_PROVISION"))) enum tfm_plat_err_t do_provision(void) 
 
     INFO("Provisioning next blob\n");
 
-    err = rse_provisioning_get_message(provisioning_message, RSE_PROVISIONING_MESSAGE_MAX_SIZE);
+    err = rse_provisioning_get_message(provisioning_message, RSE_PROVISIONING_MESSAGE_MAX_SIZE,
+                                       PROVISIONING_STAGING_STATUS_DM_CHAINED);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
 
-    /* FixMe: Check if the current way of handling blobs can result in running
-     *        a malformed blob in case a reset happens in the middle of an
-     *        operation which has already written the blob header
-     */
     err = handle_provisioning_message(provisioning_message,
                                       RSE_PROVISIONING_MESSAGE_MAX_SIZE,
                                       &config, (void *)&ctx);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         memset((void *)provisioning_message, 0, RSE_PROVISIONING_MESSAGE_MAX_SIZE);
+        rse_set_provisioning_staging_status(PROVISIONING_STAGING_STATUS_NO_MESSAGE);
         blob_handling_status_report_error(PROVISIONING_REPORT_STEP_RUN_BLOB, err);
         return err;
     }

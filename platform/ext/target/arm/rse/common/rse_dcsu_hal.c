@@ -10,6 +10,7 @@
 #include "rse_soc_uid.h"
 #include "rse_otp_dev.h"
 #include "rse_zero_count.h"
+#include "rse_persistent_data.h"
 
 static inline bool is_otp_clean(uint32_t start_offset, uint32_t size)
 {
