@@ -24,7 +24,6 @@ static uint32_t blob_buffer[0x800 / sizeof(uint32_t)];
 enum runtime_provisioning_error_t runtime_provisioning_hal_init(void)
 {
     enum tfm_plat_err_t err;
-    struct rse_persistent_data *persistent_data;
     enum lcm_error_t lcm_err;
     enum lcm_lcs_t lcs;
 
@@ -38,9 +37,8 @@ enum runtime_provisioning_error_t runtime_provisioning_hal_init(void)
         return RUNTIME_PROVISIONING_INVALID_STATE;
     }
 
-    rse_get_persistent_data(&persistent_data);
-    persistent_data->bl1_data.provisioning_blob_buf = blob_buffer;
-    persistent_data->bl1_data.provisioning_blob_buf_size = sizeof(blob_buffer);
+    RSE_PERSISTENT_DATA->bl1_data.provisioning_blob_buf = blob_buffer;
+    RSE_PERSISTENT_DATA->bl1_data.provisioning_blob_buf_size = sizeof(blob_buffer);
 
     err = provisioning_comms_init((struct rse_provisioning_message_t *)blob_buffer,
                                   sizeof(blob_buffer));

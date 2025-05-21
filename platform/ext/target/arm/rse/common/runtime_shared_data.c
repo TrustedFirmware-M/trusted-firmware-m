@@ -20,11 +20,9 @@ int runtime_add_data_to_shared_area(uint8_t        major_type,
     struct tfm_runtime_data *runtime_data;
     uintptr_t tlv_end, offset, base_addr;
     size_t region_size;
-    struct rse_persistent_data *persistent_data;
 
-    rse_get_persistent_data(&persistent_data);
-    base_addr = (uintptr_t)persistent_data->shared_data.runtime_to_boot_data;
-    region_size = sizeof(persistent_data->shared_data.runtime_to_boot_data);
+    base_addr = (uintptr_t)RSE_PERSISTENT_DATA->shared_data.runtime_to_boot_data;
+    region_size = sizeof(RSE_PERSISTENT_DATA->shared_data.runtime_to_boot_data);
 
     if (data == NULL) {
         return -1;
@@ -93,14 +91,12 @@ int get_runtime_shared_data(uint8_t  major_type,
     uint32_t calc_crc;
     struct tfm_runtime_data *runtime_data;
     struct runtime_shared_data_tlv_entry tlv_entry;
-    struct rse_persistent_data *persistent_data;
 
     if (data == NULL) {
         return -1;
     }
 
-    rse_get_persistent_data(&persistent_data);
-    runtime_data = (struct tfm_runtime_data *)persistent_data->shared_data.runtime_to_boot_data;
+    runtime_data = (struct tfm_runtime_data *)RSE_PERSISTENT_DATA->shared_data.runtime_to_boot_data;
 
     /* The ADAC runtime service writes the permission mask bits into the memory
      * which is shared between TF-M ADAC runtime service and BL1_1

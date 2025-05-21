@@ -67,7 +67,6 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
 {
     INFO("Beginning RSE provisioning\n");
     enum tfm_plat_err_t err;
-    struct rse_persistent_data *persistent_data;
     const struct rse_provisioning_message_t *provisioning_message =
         (const struct rse_provisioning_message_t *)PROVISIONING_MESSAGE_START;
     const struct rse_provisioning_message_t *persistent_data_message;
@@ -98,10 +97,9 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
     }
 #endif /* RSE_BOOT_IN_DM_LCS */
 
-    rse_get_persistent_data(&persistent_data);
-    persistent_data_message =
-        (const struct rse_provisioning_message_t *)persistent_data->bl1_data.provisioning_blob_buf;
-    persistent_data_message_size = &persistent_data->bl1_data.provisioning_blob_buf_size;
+    persistent_data_message = (const struct rse_provisioning_message_t *)
+                                  RSE_PERSISTENT_DATA->bl1_data.provisioning_blob_buf;
+    persistent_data_message_size = &RSE_PERSISTENT_DATA->bl1_data.provisioning_blob_buf_size;
     if ((persistent_data_message != NULL)) {
         if (!blob_is_in_sram(persistent_data_message, *persistent_data_message_size)) {
             return TFM_PLAT_ERR_PROVISIONING_MESSAGE_INVALID_LOCATION;

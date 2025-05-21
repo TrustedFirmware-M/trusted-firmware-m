@@ -18,6 +18,8 @@
 #include <stddef.h>
 #include "region_defs.h"
 
+#define RSE_PERSISTENT_DATA ((struct rse_persistent_data *)PERSISTENT_DATA_BASE)
+
 /* Data in this struct is expected to persist over multiple RSE cold resets */
 struct rse_persistent_data {
     /* Data in this part of the struct is used by ROM */
@@ -36,7 +38,5 @@ struct rse_persistent_data {
 };
 
 void rse_setup_persistent_data(void);
-
-void rse_get_persistent_data(struct rse_persistent_data **persistent_data);
 
 #endif /* __RSE_PERSISTENT_DATA_H__ */

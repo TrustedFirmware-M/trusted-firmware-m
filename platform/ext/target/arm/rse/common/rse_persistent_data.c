@@ -33,23 +33,14 @@ static void initialize_rse_persistent_data(struct rse_persistent_data *persisten
 
 void rse_setup_persistent_data(void)
 {
-    struct rse_persistent_data *rse_persistent_data;
-
     assert(sizeof(struct rse_persistent_data) <= PERSISTENT_DATA_SIZE);
-    assert(PERSISTENT_DATA_BASE % __alignof__(struct rse_persistent_data) == 0);
-
-    rse_get_persistent_data(&rse_persistent_data);
+    assert((uintptr_t)RSE_PERSISTENT_DATA % __alignof__(struct rse_persistent_data) == 0);
 
     /*
      * If initialization magic is wrong then assume the persistent data is not
      * initialized or corrupted so initialize the persistent data to 0.
      */
-    if (!is_persistent_data_initialized(rse_persistent_data)) {
-        initialize_rse_persistent_data(rse_persistent_data);
+    if (!is_persistent_data_initialized(RSE_PERSISTENT_DATA)) {
+        initialize_rse_persistent_data(RSE_PERSISTENT_DATA);
     }
-}
-
-void rse_get_persistent_data(struct rse_persistent_data **persistent_data)
-{
-    *persistent_data = (struct rse_persistent_data *)PERSISTENT_DATA_BASE;
 }
