@@ -17,11 +17,8 @@ enum tfm_plat_err_t
 rse_provisioning_get_message(const struct rse_provisioning_message_t *message_buf,
                              size_t message_buf_size)
 {
+#ifdef RSE_ENABLE_DCSU_PROVISIONING_COMMS
     enum tfm_plat_err_t err;
-
-    if (rse_provisioning_message_is_valid(message_buf)) {
-        return TFM_PLAT_ERR_SUCCESS;
-    }
 
     err = provisioning_comms_init(message_buf, message_buf_size);
     if (err != TFM_PLAT_ERR_SUCCESS) {
@@ -32,6 +29,11 @@ rse_provisioning_get_message(const struct rse_provisioning_message_t *message_bu
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
+#else
+    if (!rse_provisioning_message_is_valid(message_buf)) {
+        return TFM_PLAT_ERR_PROVISIONING_MESSAGE_NOT_FOUND;
+    }
+#endif /* RSE_ENABLE_DCSU_PROVISIONING_COMMS */
 
     return TFM_PLAT_ERR_SUCCESS;
 }

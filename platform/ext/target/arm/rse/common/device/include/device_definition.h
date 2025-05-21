@@ -219,7 +219,7 @@ extern struct lcm_dev_t LCM_DEV_S;
 extern struct integrity_checker_dev_t INTEGRITY_CHECKER_DEV_S;
 #endif
 
-#ifdef RSE_HAS_DCSU
+#ifdef DCSU_S
 #include "dcsu_drv.h"
 extern struct dcsu_dev_t DCSU_DEV_S;
 #endif

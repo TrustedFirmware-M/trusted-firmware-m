@@ -35,7 +35,7 @@ target_compile_definitions(platform_region_defs
         $<$<BOOL:${RSE_USE_HOST_FLASH}>:RSE_USE_HOST_FLASH>
         $<$<BOOL:${RSE_GPT_SUPPORT}>:RSE_GPT_SUPPORT>
         $<$<BOOL:${RSE_HAS_EXPANSION_PERIPHERALS}>:RSE_HAS_EXPANSION_PERIPHERALS>
-        $<$<BOOL:${RSE_HAS_DCSU}>:RSE_HAS_DCSU>
+        $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:RSE_ENABLE_DCSU_PROVISIONING_COMMS>
         $<$<BOOL:${PLATFORM_HAS_PS_NV_OTP_COUNTERS}>:PLATFORM_HAS_PS_NV_OTP_COUNTERS>
         $<$<BOOL:${PLATFORM_ERROR_CODES}>:PLATFORM_ERROR_CODES>
         $<$<BOOL:${RSE_ENABLE_BRINGUP_HELPERS}>:RSE_ENABLE_BRINGUP_HELPERS>
@@ -243,8 +243,8 @@ target_sources(platform_s
         ./rse_zero_count.c
         ./rse_persistent_data.c
         ./dpa_hardened_word_copy.c
-        $<$<BOOL:${RSE_HAS_DCSU}>:${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/src/dcsu_drv.c>
-        $<$<BOOL:${RSE_HAS_DCSU}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>
+        $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/src/dcsu_drv.c>
+        $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>
         ./platform_shared_measurement_data.c
 )
 
@@ -479,8 +479,8 @@ target_sources(platform_bl1_1
         ./rse_permanently_disable_device.c
         ./rse_zero_count.c
         ./rse_persistent_data.c
-        $<$<BOOL:${RSE_HAS_DCSU}>:${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/src/dcsu_drv.c>
-        $<$<BOOL:${RSE_HAS_DCSU}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>
+        $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/src/dcsu_drv.c>
+        $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>
         ./platform_shared_measurement_data.c
         ./rse_soc_uid.c
 )

@@ -105,9 +105,9 @@
 #define LCM_S
 
 /* Arm DCSU */
-#ifdef RSE_HAS_DCSU
+#ifdef RSE_ENABLE_DCSU_PROVISIONING_COMMS
 #define DCSU_S
-#endif /* RSE_HAS_DCSU */
+#endif /* RSE_ENABLE_DCSU_PROVISIONING_COMMS */
 
 /* DMA350 defines */
 #define DMA350_DMA0_S

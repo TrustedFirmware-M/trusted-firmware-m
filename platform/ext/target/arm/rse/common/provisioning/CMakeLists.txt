@@ -12,8 +12,7 @@ add_subdirectory(bundle)
 target_sources(platform_s
     PRIVATE
         ./runtime_stub_provisioning.c
-        $<$<BOOL:${RSE_HAS_DCSU}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_provisioning_comms_dcsu.c>
-        $<$<NOT:$<BOOL:${RSE_HAS_DCSU}>>:${CMAKE_CURRENT_SOURCE_DIR}/rse_provisioning_comms_stub.c>
+        $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_provisioning_comms_dcsu.c>
 )
 
 target_sources(platform_bl2
@@ -29,8 +28,7 @@ target_sources(platform_bl1_2
 target_sources(platform_bl1_1
     PRIVATE
         ./bl1_1_provisioning.c
-        $<$<BOOL:${RSE_HAS_DCSU}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_provisioning_comms_dcsu.c>
-        $<$<NOT:$<BOOL:${RSE_HAS_DCSU}>>:${CMAKE_CURRENT_SOURCE_DIR}/rse_provisioning_comms_stub.c>
+        $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_provisioning_comms_dcsu.c>
         ./rse_provisioning_message_handler.c
         ./rse_provisioning_rotpk.c
         ./rse_provisioning_tci_key.c
