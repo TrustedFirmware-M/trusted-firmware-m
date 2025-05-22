@@ -451,6 +451,8 @@ void gtzc_init_cfg(void)
 {
   uint32_t gtzc_periph_att;
 
+  (void)gtzc_periph_att;
+
   if (uFlowStage == FLOW_STAGE_CFG)
   {
     /* Check VTOR Is locked */
