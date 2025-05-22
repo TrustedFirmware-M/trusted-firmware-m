@@ -18,22 +18,8 @@
 #define __REGION_DEFS_H__
 #include "flash_layout.h"
 
-#ifdef TFM_PARTITION_FIRMWARE_UPDATE
 #define S_IMAGE_PRIMARY_PARTITION_OFFSET   (FLASH_AREA_0_OFFSET)
 #define S_IMAGE_SECONDARY_PARTITION_OFFSET (FLASH_AREA_2_OFFSET)
-#endif
-
-#define BL2_HEAP_SIZE           0x0000000
-#define BL2_MSP_STACK_SIZE      0x0002000
-
-#define LOADER_NS_MSP_STACK_SIZE 0x0000400
-#define LOADER_NS_HEAP_SIZE      0x0000200
-#define LOADER_NS_PSP_STACK_SIZE 0x0000400
-
-#define LOADER_S_MSP_STACK_SIZE 0x0000400
-#define LOADER_S_HEAP_SIZE      0x0000200
-#define LOADER_S_PSP_STACK_SIZE 0x0000400
-
 
 #define S_HEAP_SIZE             0x00000C0
 #define S_MSP_STACK_SIZE_INIT   0x0000400
@@ -95,7 +81,6 @@
 
 #define BL2_DATA_HEADER_SIZE                (0x20)  /*!< Data image header size */
 
-#define S_IMAGE_PRIMARY_PARTITION_OFFSET  FLASH_AREA_0_OFFSET
 #define NS_IMAGE_PRIMARY_PARTITION_OFFSET FLASH_AREA_1_OFFSET
 
 
@@ -168,117 +153,11 @@
 #define OTP_AREA_SIZE                   (TFM_OTP_NV_COUNTERS_AREA_SIZE)
 #endif //TFM_OTP_DEFAULT_PROVIONNING//
 
-#ifdef BL2
-/* Personalized region */
-#define PERSO_START                         (S_ROM_ALIAS(FLASH_AREA_PERSO_OFFSET))
-#define PERSO_SIZE                          (FLASH_AREA_PERSO_SIZE)
-#define PERSO_LIMIT                         (PERSO_START + PERSO_SIZE - 1)
-
-/* Bootloader region protected by hdp */
-#define BL2_CODE_START                      (S_ROM_ALIAS(FLASH_AREA_BL2_OFFSET))
-#define BL2_CODE_SIZE                       (FLASH_AREA_BL2_SIZE)
-#define BL2_CODE_LIMIT                      (BL2_CODE_START + BL2_CODE_SIZE - 1)
-
-/* Bootloader region not protected by hdp */
-#define BL2_NOHDP_CODE_START                (S_ROM_ALIAS(FLASH_AREA_BL2_NOHDP_OFFSET))
-#define BL2_NOHDP_CODE_SIZE                 (FLASH_AREA_BL2_NOHDP_SIZE)
-#define BL2_NOHDP_CODE_LIMIT                (BL2_NOHDP_CODE_START + BL2_NOHDP_CODE_SIZE - 1)
-
-/* Bootloader boot address */
-#define BL2_BOOT_VTOR_ADDR                  (BL2_CODE_START)
-
-/*  keep 256 bytes unused to place while(1) for non secure to enable */
-/*  regression from local tool with non secure attachment
- *  This avoid blocking board in case of hardening error */
-#define BL2_DATA_START                      (S_RAM_ALIAS(_SRAM1_SIZE_MAX))
-#define BL2_DATA_SIZE                       (BOOT_TFM_SHARED_DATA_BASE - BL2_DATA_START)
-#define BL2_DATA_LIMIT                      (BL2_DATA_START + BL2_DATA_SIZE - 1)
-
-/* Define BL2 MPU SRAM protection to remove execution capability */
-/* Area is covering the complete SRAM memory space non secure alias and secure alias */
-#define BL2_SRAM_AREA_BASE                  (_SRAM1_BASE_NS)
-#define BL2_SRAM_AREA_END                   (_SRAM4_BASE_S +  _SRAM4_SIZE_MAX -1)
-
-/* Define Area provision by BL2 */
-#define BL2_OTP_AREA_BASE                   S_ROM_ALIAS(TFM_OTP_NV_COUNTERS_AREA_ADDR)
-#define BL2_OTP_AREA_SIZE                   (TFM_OTP_NV_COUNTERS_AREA_SIZE)
-/* Define Area for Initializing NVM counter */
-/* backup sector is initialised */
-#define BL2_NVM_AREA_BASE                   S_ROM_ALIAS(TFM_NV_COUNTERS_AREA_ADDR+FLASH_AREA_IMAGE_SECTOR_SIZE)
-#define BL2_NVM_AREA_SIZE                   (FLASH_AREA_IMAGE_SECTOR_SIZE)
-/* Define Area for initializing BL2_NVCNT   */
-/* backup sector is initialised */
-#define BL2_NVMCNT_AREA_BASE                S_ROM_ALIAS(FLASH_BL2_NVCNT_AREA_OFFSET+FLASH_AREA_IMAGE_SECTOR_SIZE)
-#define BL2_NVMCNT_AREA_SIZE                (FLASH_AREA_IMAGE_SECTOR_SIZE)
-#endif /* BL2 */
-
-#define LOADER_NS_CODE_SIZE                 (0x6000) /* 24 Kbytes  */
-
-#if defined(MCUBOOT_PRIMARY_ONLY)
-/*  Secure Loader Image */
-#define FLASH_AREA_LOADER_BANK_OFFSET       (FLASH_B_SIZE-LOADER_IMAGE_S_CODE_SIZE-LOADER_NS_CODE_SIZE)
-#define FLASH_AREA_LOADER_OFFSET            (FLASH_TOTAL_SIZE-LOADER_IMAGE_S_CODE_SIZE-LOADER_NS_CODE_SIZE)
-/* Control  Secure Loader Image */
-#if (FLASH_AREA_LOADER_OFFSET  % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0
-#error "FLASH_AREA_LOADER_OFFSET  not aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
-#endif /* (FLASH_AREA_LOADER_OFFSET  % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0  */
-
-/* Non-Secure Loader Image */
-#define LOADER_NS_CODE_START                (LOADER_NS_ROM_ALIAS(FLASH_AREA_LOADER_OFFSET + LOADER_IMAGE_S_CODE_SIZE))
-/* Control Non-Secure Loader Image */
-#if (LOADER_NS_CODE_START  % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0
-#error "LOADER_NS_CODE_START  not aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
-#endif /*  (LOADER_NS_CODE_START  % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0 */
-
-/* define used for checking possible overlap */
-#define LOADER_CODE_SIZE                    (LOADER_NS_CODE_SIZE+LOADER_IMAGE_S_CODE_SIZE)
-#else
-/*  Loader Image  */
-#define FLASH_AREA_LOADER_BANK_OFFSET       (FLASH_B_SIZE-LOADER_NS_CODE_SIZE)
-#define FLASH_AREA_LOADER_OFFSET            (FLASH_TOTAL_SIZE-LOADER_NS_CODE_SIZE)
-/* Control  Loader Image   */
-#if (FLASH_AREA_LOADER_OFFSET  % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0
-#error "FLASH_AREA_LOADER_OFFSET  not aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
-#endif /* (FLASH_AREA_LOADER_OFFSET  % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0 */
-
-#define LOADER_NS_CODE_START                (LOADER_NS_ROM_ALIAS(FLASH_AREA_LOADER_OFFSET))
-/* define used for checking possible overlap */
-#define LOADER_CODE_SIZE                    (LOADER_NS_CODE_SIZE)
-#endif /* MCUBOOT_PRIMARY_ONLY */
-
-#define LOADER_IMAGE_S_CODE_SIZE            (0x4000) /* 16 Kbytes */
-#define LOADER_CMSE_VENEER_REGION_SIZE      (0x100)
-#define LOADER_S_CODE_START                 (LOADER_S_ROM_ALIAS(FLASH_AREA_LOADER_OFFSET))
-#define LOADER_S_CODE_SIZE                  (LOADER_IMAGE_S_CODE_SIZE - LOADER_CMSE_VENEER_REGION_SIZE)
-#define LOADER_S_CODE_LIMIT                 (LOADER_S_CODE_START + LOADER_S_CODE_SIZE -1)
-#define LOADER_S_DATA_START                 (S_RAM_ALIAS(_SRAM1_SIZE_MAX))
-#define LOADER_S_DATA_SIZE                  (_SRAM2_SIZE_MAX)
-#define LOADER_S_DATA_LIMIT                 (LOADER_S_DATA_START + LOADER_S_DATA_SIZE - 1)
-#define LOADER_CMSE_VENEER_REGION_START     (LOADER_S_CODE_LIMIT + 1)
-#define LOADER_CMSE_VENEER_REGION_LIMIT     (LOADER_S_ROM_ALIAS(FLASH_AREA_LOADER_OFFSET+LOADER_IMAGE_S_CODE_SIZE - 1))
-
-#define LOADER_NS_CODE_LIMIT                (LOADER_NS_CODE_START+LOADER_NS_CODE_SIZE - 1)
-#define LOADER_NS_DATA_START                (NS_RAM_ALIAS(0x0))
-#define LOADER_NS_DATA_SIZE                 (_SRAM1_SIZE_MAX)
-#define LOADER_NS_DATA_LIMIT                (LOADER_NS_DATA_START + LOADER_NS_DATA_SIZE - 1)
-
-#ifdef MCUBOOT_PRIMARY_ONLY
-#define LOADER_MAX_CODE_SIZE                 (FLASH_TOTAL_SIZE - FLASH_AREA_1_OFFSET - FLASH_AREA_1_SIZE)
-#else
-#define LOADER_MAX_CODE_SIZE                 (FLASH_TOTAL_SIZE - FLASH_AREA_3_OFFSET - FLASH_AREA_3_SIZE)
-#endif /*  MCUBOOT_PRIMARY_ONLY */
-
-#if LOADER_CODE_SIZE > LOADER_MAX_CODE_SIZE
-#error "Loader mapping overlapping slot %LOADER_CODE_SIZE %LOADER_MAX_CODE_SIZE"
-#endif /* LOADER_CODE_SIZE > LOADER_MAX_CODE_SIZE */
-
 /* TFM non volatile data (NVCNT/PS/ITS) region */
 #define TFM_NV_DATA_START                   (S_ROM_ALIAS(FLASH_OTP_NV_COUNTERS_AREA_OFFSET))
 #define TFM_NV_DATA_SIZE                    (FLASH_OTP_NV_COUNTERS_AREA_SIZE + FLASH_NV_COUNTER_AREA_SIZE \
                                              + FLASH_PS_AREA_SIZE + FLASH_ITS_AREA_SIZE)
 #define TFM_NV_DATA_LIMIT                   (TFM_NV_DATA_START + TFM_NV_DATA_SIZE - 1)
-/* Additional Check to detect flash download slot overlap or overflow */
-#define FLASH_AREA_END_OFFSET_MAX (FLASH_TOTAL_SIZE)
 
 #if (MCUBOOT_S_DATA_IMAGE_NUMBER == 1)
 /* S DATA image layout */
@@ -290,10 +169,5 @@
 #define NS_DATA_IMAGE_DATA1_OFFSET          (BL2_DATA_HEADER_SIZE)
 #define NS_DATA_IMAGE_DATA1_SIZE            (32U)
 #endif /* (MCUBOOT_NS_DATA_IMAGE_NUMBER == 1) */
-
-#if FLASH_AREA_END_OFFSET > FLASH_AREA_END_OFFSET_MAX
-#error "Flash memory overflow"
-#endif /* FLASH_AREA_END_OFFSET > FLASH_AREA_END_OFFSET_MAX */
-
 
 #endif /* __REGION_DEFS_H__ */
