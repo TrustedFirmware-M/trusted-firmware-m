@@ -40,5 +40,4 @@ set(TFM_FWU_BOOTLOADER_LIB                 "mcuboot"   CACHE STRING    "Bootload
 set(TFM_CONFIG_FWU_MAX_WRITE_SIZE          1024        CACHE STRING    "The maximum permitted size for block in psa_fwu_write, in bytes.")
 set(TFM_CONFIG_FWU_MAX_MANIFEST_SIZE       0           CACHE STRING    "The maximum permitted size for manifest in psa_fwu_start(), in bytes.")
 set(FWU_DEVICE_CONFIG_FILE                 ""          CACHE STRING    "The device configuration file for Firmware Update partition")
-set(DMCUBOOT_UPGRADE_STRATEGY              SWAP_USING_MOVE)
 set(MCUBOOT_DATA_SHARING                  ON           CACHE BOOL      "Add sharing of application specific data using the same shared data area as for the measured boot")
