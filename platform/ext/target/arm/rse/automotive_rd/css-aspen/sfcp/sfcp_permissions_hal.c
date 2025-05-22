@@ -30,6 +30,10 @@
 #include "measured_boot_defs.h"
 #endif /* TFM_PARTITION_MEASURED_BOOT */
 
+#ifdef TFM_PARTITION_INITIAL_ATTESTATION
+#include "tfm_attest_defs.h"
+#endif /* TFM_PARTITION_INITIAL_ATTESTATION */
+
 #define INVALID_REGION_COUNTER_MAX  128
 #define INVALID_SERVICE_COUNTER_MAX 64
 
@@ -154,6 +158,16 @@ enum tfm_plat_err_t comms_permissions_service_check(psa_handle_t handle, const p
             goto out_err;
         }
 #endif /* TFM_PARTITION_MEASURED_BOOT */
+#ifdef TFM_PARTITION_INITIAL_ATTESTATION
+    case TFM_ATTESTATION_SERVICE_HANDLE:
+        switch (type) {
+        case TFM_ATTEST_GET_TOKEN:
+        case TFM_ATTEST_GET_TOKEN_SIZE:
+            return TFM_PLAT_ERR_SUCCESS;
+        default:
+            goto out_err;
+        }
+#endif /* TFM_PARTITION_INITIAL_ATTESTATION */
     default:
         goto out_err;
     }

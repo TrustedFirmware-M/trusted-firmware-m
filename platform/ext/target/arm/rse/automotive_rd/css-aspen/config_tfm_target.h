@@ -13,6 +13,9 @@
 
 #include "config_tfm_target_rse_common.h"
 
+/* Set the initial attestation token profile */
+#define ATTEST_TOKEN_PROFILE_PSA_IOT_1           1
+
 /* Use stored NV seed to provide entropy */
 #define CRYPTO_NV_SEED                          0
 

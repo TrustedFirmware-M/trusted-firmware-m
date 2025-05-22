@@ -6,6 +6,7 @@
 # Note: Cached varaibles always take the first value set, while normal
 # variables always take the last.
 
+set(ATTEST_KEY_BITS                     256      CACHE STRING  "The size of the initial attestation key in bits")
 set(CONFIG_TFM_BOOT_STORE_MEASUREMENTS  ON       CACHE BOOL    "Store measurement values from all the boot stages")
 set(CONFIG_TFM_SPM_BACKEND              IPC      CACHE STRING  "The SPM backend")
 set(MCUBOOT_IMAGE_NUMBER                4        CACHE STRING  "Number of images supported by MCUBoot")
@@ -21,7 +22,7 @@ set(RSE_SUBPLATFORM_BOOT_MEASUREMENTS   ON       CACHE BOOL    "Use RSE subplatf
 set(RSE_USE_HOST_FLASH                  OFF      CACHE BOOL    "Enable RSE using the host flash.")
 set(RSE_USE_HOST_UART                   ON       CACHE BOOL    "Whether RSE should use the UART from the host system (opposed to dedicated UART private to RSE)")
 set(RSE_USE_LOCAL_UART                  OFF      CACHE BOOL    "Whether RSE should use the local UART dedicated to RSE")
-set(TFM_ATTESTATION_SCHEME              OFF      CACHE STRING  "Attestation scheme to use [OFF, PSA, CCA, DPE]")
+set(TFM_ATTESTATION_SCHEME              "PSA"    CACHE STRING  "Attestation scheme to use [OFF, PSA, CCA, DPE]")
 set(TFM_BL1_MEMORY_MAPPED_FLASH         OFF      CACHE BOOL    "Whether BL1 can directly access flash content")
 set(TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST "partitions/measured_boot/measured_boot_manifest_list.yaml" CACHE STRING "List of extra secure partition manifests")
 set(TFM_EXTRAS_REPO_EXTRA_PARTITIONS    "measured_boot"    CACHE STRING "List of extra secure partition directory name(s)")
@@ -29,6 +30,7 @@ set(TFM_LOAD_NS_IMAGE                   OFF      CACHE BOOL    "Whether to load 
 set(TFM_MANIFEST_LIST                   "${CMAKE_CURRENT_LIST_DIR}/manifest/tfm_manifest_list.yaml" CACHE PATH "Platform specific Secure Partition manifests file")
 set(TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH "" CACHE PATH    "Config to append to standard Mbed Crypto config, used by platforms to configure feature support")
 set(TFM_MBEDCRYPTO_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH  ""    CACHE PATH      "Config to append to standard PSA Crypto setting for Mbed Crypto, used by platforms to configure cryptographic feature support.")
+set(TFM_PARTITION_INITIAL_ATTESTATION   ON       CACHE BOOL    "Enable Initial Attestation partition")
 set(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE ON    CACHE BOOL    "Enable Internal Trusted Storage partition")
 set(TFM_PARTITION_MEASURED_BOOT         ON       CACHE BOOL    "Enable Measured Boot partition")
 set(TFM_PARTITION_PROTECTED_STORAGE     ON       CACHE BOOL    "Enable Protected Storage partition")
