@@ -20,14 +20,15 @@ fi
 PATH="/C/Program Files/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/":$PATH
 stm32programmercli="STM32_Programmer_CLI"
 # remove write protection
-secbootadd0=0x180188
+secbootadd0=
+sec_pend_offset=
 connect="-c port=SWD "$sn_option" mode=UR AP=1"
 connect_no_reset="-c port=SWD "$sn_option" mode=HotPlug AP=1"
 rdp_0="-ob RDP=0xAA TZEN=1"
 remove_bank1_protect="-ob SECWM1_PSTRT=0x7f SECWM1_PEND=0x0"
 remove_bank2_protect="-ob SECWM2_PSTRT=0x7f SECWM2_PEND=0x0"
 erase_all="-e all"
-default_ob1="-ob SRAM2_RST=1 SECBOOTADD0="0x180488" DBANK=1 SWAP_BANK=0 SECWM1_PSTRT=0x0 SECWM1_PEND=0x41 SECWM2_PSTRT=0x0 SECWM2_PEND=0x7f"
+default_ob1="-ob SRAM2_RST=1 SECBOOTADD0="$secbootadd0" DBANK=1 SWAP_BANK=0 SECWM1_PSTRT=0x0 SECWM1_PEND="$sec_pend_offset" SECWM2_PSTRT=0x7f SECWM2_PEND=0x0"
 
 echo "Regression to RDP 0, enable tz"
 $stm32programmercli $connect $rdp_0
@@ -37,6 +38,6 @@ echo "Remove bank2 protection and erase all"
 $stm32programmercli $connect_no_reset $remove_bank2_protect $erase_all
 echo "-----------erasing-----------"
 $stm32programmercli $connect $erase_all
-echo "Set default OB 1 (dual bank, swap bank, sram2 reset, secure entry point, bank 1 full secure)"
+echo "Set default OB 1 (dual bank, swap bank, sram2 reset, secure entry point, bank 1 full non-secure)"
 $stm32programmercli $connect_no_reset $default_ob1
 echo "regression script done, press key"

@@ -30,6 +30,7 @@ set(TFM_MULTI_CORE_TOPOLOGY                OFF          CACHE BOOL      "Platfor
 set(PLATFORM_HAS_FIRMWARE_UPDATE_SUPPORT   ON           CACHE BOOL      "Wheter the platform has firmware update support")
 set(TFM_OTP_DEFAULT_PROVIONNING            ON           CACHE BOOL      "OTP AREA provisionning by TFM")
 set(DEFAULT_SHARED_DATA                    ON           CACHE BOOL       "SHARED_DATA provisionning by TFM")
+set(STM32_FLASH_LAYOUT_BEGIN_OFFSET        0            CACHE STRING    "Byte offset gap from flash begin TF-M resources are located")
 ################################## LOG LEVEL #############################################################
 set(TFM_SPM_LOG_LEVEL                      LOG_LEVEL_VERBOSE         CACHE STRING    "Set default SPM log level as INFO level")
 set(TFM_PARTITION_LOG_LEVEL                LOG_LEVEL_VERBOSE         CACHE STRING    "Set default Secure Partition log level as INFO level")

@@ -51,7 +51,9 @@ if [ $ret != 0 ]; then
   fi
 fi
 
-command=$cmd" "$stm_tool" flash --layout "$preprocess_bl2_file" -b stm32wba6xx -m  RE_STM32WBA6 -s 0 "$regressionsh
+flash_sector_size=8192
+
+command=$cmd" "$stm_tool" flash --layout "$preprocess_bl2_file" -b secbootadd0 -m  RE_BOOT_ADDRESS  -d 0x80  -s 0 "$regressionsh
 $command  >> $projectdir"/output.txt"
 ret=$?
 if [ $ret != 0 ]; then
@@ -60,7 +62,7 @@ echo $command
 exit 1
 fi
 
-command=$cmd" "$stm_tool" flash --layout "$preprocess_bl2_file" -b secbootadd0 -m  RE_BOOT_ADDRESS  -d 0x80  -s 0 "$regressionsh
+command=$cmd" "$stm_tool" flash --layout "$preprocess_bl2_file" -b sec_pend_offset -m  RE_IMAGE_FLASH_SECURE_LAST_OFFSET  -d $flash_sector_size  -s 0 "$regressionsh
 $command  >> $projectdir"/output.txt"
 ret=$?
 if [ $ret != 0 ]; then

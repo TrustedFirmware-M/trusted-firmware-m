@@ -17,19 +17,31 @@
 #ifndef __FLASH_LAYOUT_H__
 #define __FLASH_LAYOUT_H__
 
-/* Flash layout with BL2:
+/* Flash layout with TF-M BL2:
  *
  * Not supported
  *
- * Flash layout for stm32wba65i-dk without BL2 :
+ * Default flash offsets for stm32wba65i-dk:
  *
- *  0x000_0000 OTP / NV counters area (8 KB)
- *  0x000_4000 Protected Storage Area (16 KB)
- *  0x000_8000 Internal Trusted Storage Area (16 KB)
- *  0x000_c400 Secure     image  (384 KB)
- *  0x006_c400 Non-secure image primary (512 KB)
+ * 0x000_0000 OTP / NV counters area (16 KB)
+ * 0x000_4000 Protected Storage Area (16 KB)
+ * 0x000_8000 Internal Trusted Storage Area (16 KB)
+ * 0x000_C000 Secure primary image (256 KB)
+ * 0x004_C000 Non-secure primary image (512 KB)
+ * 0x00C_C000 Secure secondary image (256 KB)
+ * 0x010_C000 Non-secure secondary image (512 KB)
+ * 0x018_C000 Non-secure private storage (up to 464 KB)
+ *
+ * Build directive FLASH_LAYOUT_BEGIN_OFFSET may define an offset
+ * applied to the values above. This offset is used when an external
+ * boot loader is embedded an occupies the begnining of the flash.
+ *
+ * Note:
+ * Secure primary image, Non-secure primary image,
+ * Secure secondary image and non-secure secondary image
+ * each include a 1kByte header and a 1kByte trialer
+ * before/after the firmware image content.
  */
-
 
 /* This header file is included from linker scatter file as well, where only a
  * limited C constructs are allowed. Therefore it is not possible to include
@@ -44,6 +56,13 @@
 #error "BL2 configuration is not supported"
 #endif /* BL2 */
 
+#ifndef BL2_HEADER_SIZE
+#define BL2_HEADER_SIZE                     (0x400) /*!< Appli image header size */
+#endif
+#ifndef BL2_TRAILER_SIZE
+#define BL2_TRAILER_SIZE                    (0x400)
+#endif
+
 /* Sector size of the flash hardware; same as FLASH0_SECTOR_SIZE */
 #define FLASH_AREA_IMAGE_SECTOR_SIZE    (0x2000)      /* 8 kB */
 /* Same as FLASH0_SIZE */
@@ -53,43 +72,14 @@
 /* Flash layout info for BL2 bootloader */
 #define FLASH_BASE_ADDRESS              (0x0c000000) /* same as FLASH0_BASE */
 
-#define FLASH_HASH_REF_AREA_OFFSET      (0x0000)
-#define FLASH_HASH_REF_AREA_SIZE        (FLASH_AREA_IMAGE_SECTOR_SIZE)
-
-/* area for HUK and anti roll back counter */
-#define FLASH_BL2_NVCNT_AREA_OFFSET     (FLASH_HASH_REF_AREA_OFFSET + FLASH_HASH_REF_AREA_SIZE)
-#define FLASH_BL2_NVCNT_AREA_SIZE       (FLASH_AREA_IMAGE_SECTOR_SIZE)
-
-/* scratch area */
-#define FLASH_AREA_SCRATCH_OFFSET       (FLASH_BL2_NVCNT_AREA_OFFSET + FLASH_BL2_NVCNT_AREA_SIZE)
-#define FLASH_AREA_SCRATCH_SIZE         (0x0000) /* Not used in MCUBOOT_OVERWRITE_ONLY mode */
-/* control scratch area */
-#if (FLASH_AREA_SCRATCH_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0
-#error "FLASH_AREA_SCRATCH_OFFSET not aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
-#endif /* (FLASH_AREA_SCRATCH_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0*/
-
-/* personal area */
-#define FLASH_AREA_PERSO_OFFSET         (FLASH_BL2_NVCNT_AREA_OFFSET + FLASH_BL2_NVCNT_AREA_SIZE + \
-                                         FLASH_AREA_SCRATCH_SIZE)
-#define FLASH_AREA_PERSO_SIZE           (0x2000)
-/* control personal area */
-#if (FLASH_AREA_PERSO_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0
-#error "FLASH_AREA_PERSO_OFFSET not aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
-#endif /* FLASH_AREA_PERSO_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0 */
-
-/* area for BL2 code protected by hdp */
-#define FLASH_AREA_BL2_OFFSET           (FLASH_AREA_PERSO_OFFSET+FLASH_AREA_PERSO_SIZE)
-#define FLASH_AREA_BL2_SIZE             (0x10000)
-
-/* HDP area end at this address */
-#define FLASH_BL2_HDP_END               (FLASH_AREA_BL2_OFFSET+FLASH_AREA_BL2_SIZE-1)
-/* area for BL2 code not protected by hdp */
-#define FLASH_AREA_BL2_NOHDP_OFFSET     (FLASH_AREA_BL2_OFFSET+FLASH_AREA_BL2_SIZE)
-#define FLASH_AREA_BL2_NOHDP_SIZE       (FLASH_AREA_IMAGE_SECTOR_SIZE)
-/* control area for BL2 code protected by hdp */
-#if (FLASH_AREA_BL2_NOHDP_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0
-#error "HDP area must be aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
-#endif /* (FLASH_AREA_BL2_NOHDP_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0 */
+#ifdef STM32_FLASH_LAYOUT_BEGIN_OFFSET
+#define FLASH_BEGIN_OFFSET              (STM32_FLASH_LAYOUT_BEGIN_OFFSET)
+#if (FLASH_BEGIN_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0
+#error "STM32_FLASH_LAYOUT_BEGIN_OFFSET not aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
+#endif /* (FLASH_BEGIN_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0*/
+#else
+#define FLASH_BEGIN_OFFSET              0
+#endif
 
 /*TFM_PARTITION_FIRMWARE_UPDATE*/
 /* Sector size of the flash hardware; same as FLASH0_SECTOR_SIZE */
@@ -115,7 +105,7 @@
 
 /* Secure image secondary slot */
 #define FLASH_AREA_2_ID            (FLASH_AREA_1_ID + 1)
-#define FLASH_AREA_2_OFFSET        (FLASH_NV_COUNTERS_AREA_OFFSET + FLASH_B_SIZE)
+#define FLASH_AREA_2_OFFSET        (FLASH_AREA_1_OFFSET + FLASH_AREA_1_SIZE)
 #define FLASH_AREA_2_SIZE          (FLASH_S_PARTITION_SIZE)
 /* Non-secure image secondary slot */
 #define FLASH_AREA_3_ID            (FLASH_AREA_2_ID + 1)
@@ -145,9 +135,9 @@
 /*TFM_PARTITION_FIRMWARE_UPDATE*/
 
 /* The size of S partition */
-#define FLASH_S_PARTITION_SIZE          (0x60000) /* 384 KB for S partition */
+#define FLASH_S_PARTITION_SIZE          (0x40000) /* 256 KB for S partition */
 /* The size of NS partition */
-#define FLASH_NS_PARTITION_SIZE         (0x60000) /* 512 KB for NS partition */
+#define FLASH_NS_PARTITION_SIZE         (0x80000) /* 512 KB for NS partition */
 
 /* Non Volatile Counters definitions */
 #define FLASH_NV_COUNTERS_AREA_OFFSET           (0x0000)
@@ -160,8 +150,7 @@
 
 /* OTP / Non Volatile Counters definitions */
 #define FLASH_OTP_NV_COUNTERS_SECTOR_SIZE   (FLASH_AREA_IMAGE_SECTOR_SIZE)
-#define FLASH_OTP_NV_COUNTERS_AREA_OFFSET   (FLASH_AREA_BL2_NOHDP_OFFSET + \
-                                                 FLASH_AREA_BL2_NOHDP_SIZE)
+#define FLASH_OTP_NV_COUNTERS_AREA_OFFSET   (FLASH_BEGIN_OFFSET)
 #define FLASH_OTP_NV_COUNTERS_AREA_SIZE   (FLASH_OTP_NV_COUNTERS_SECTOR_SIZE + \
                                            FLASH_OTP_NV_COUNTERS_SECTOR_SIZE)
 
@@ -185,23 +174,6 @@
 
 #define FLASH_AREA_BEGIN_OFFSET         (FLASH_ITS_AREA_OFFSET + FLASH_ITS_AREA_SIZE)
 
-/* Secure app image primary slot */
-#define FLASH_AREA_0_OFFSET             (FLASH_AREA_BEGIN_OFFSET)
-#define FLASH_AREA_0_SIZE               (FLASH_S_PARTITION_SIZE)
-/* Control Secure app image primary slot */
-#if (FLASH_AREA_0_OFFSET  % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0
-#error "FLASH_AREA_0_OFFSET  not aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
-#endif /*  (FLASH_AREA_0_OFFSET  % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0 */
-
-/* Non-secure app image primary slot */
-#define FLASH_AREA_1_OFFSET             (FLASH_AREA_0_OFFSET + FLASH_AREA_0_SIZE)
-#define FLASH_AREA_1_SIZE               (FLASH_NS_PARTITION_SIZE)
-/* Control Non-secure app image primary slot */
-#if (FLASH_AREA_1_OFFSET  % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0
-#error "FLASH_AREA_1_OFFSET  not aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
-#endif /* (FLASH_AREA_1_OFFSET  % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0  */
-
-
 /* flash areas end offset */
 #define FLASH_AREA_END_OFFSET           (FLASH_AREA_BEGIN_OFFSET + FLASH_AREA_0_SIZE + FLASH_AREA_1_SIZE)
 
@@ -217,13 +189,6 @@
 #else
 #define FLASH_MAX_PARTITION_SIZE FLASH_NS_PARTITION_SIZE
 #endif
-
-
-#define SECURE_IMAGE_OFFSET             (0x0)
-#define SECURE_IMAGE_MAX_SIZE           FLASH_S_PARTITION_SIZE
-
-#define NON_SECURE_IMAGE_OFFSET         (SECURE_IMAGE_OFFSET + SECURE_IMAGE_MAX_SIZE)
-#define NON_SECURE_IMAGE_MAX_SIZE       FLASH_NS_PARTITION_SIZE
 
 /* Flash device name used by BL2 and NV Counter
  * Name is defined in flash driver file: low_level_flash.c
@@ -283,19 +248,6 @@
 #define TFM_OTP_NV_COUNTERS_SECTOR_SIZE  FLASH_OTP_NV_COUNTERS_SECTOR_SIZE
 #define TFM_OTP_NV_COUNTERS_BACKUP_AREA_ADDR (TFM_OTP_NV_COUNTERS_AREA_ADDR + \
                                               TFM_OTP_NV_COUNTERS_AREA_SIZE)
-/* NV Counters definitions */
-#define TFM_NV_COUNTERS_AREA_ADDR        FLASH_NV_COUNTERS_AREA_OFFSET
-#define TFM_NV_COUNTERS_AREA_SIZE        (0x20)/* 32 Bytes */
-#define TFM_NV_COUNTERS_SECTOR_ADDR      FLASH_NV_COUNTERS_AREA_OFFSET
-#define TFM_NV_COUNTERS_SECTOR_SIZE      FLASH_AREA_IMAGE_SECTOR_SIZE
-
-/* BL2 NV Counters definitions  */
-#define BL2_NV_COUNTERS_AREA_ADDR        FLASH_BL2_NVCNT_AREA_OFFSET
-#define BL2_NV_COUNTERS_AREA_SIZE        FLASH_BL2_NVCNT_AREA_SIZE
-
-/* FIXME: not valid today */
-#define BL2_S_RAM_ALIAS_BASE             (0x30000000)
-#define BL2_NS_RAM_ALIAS_BASE            (0x20000000)
 
 /*  This area in SRAM 2 is updated BL2 and can be lock to avoid any changes */
 #define BOOT_TFM_SHARED_DATA_SIZE        (0x400)
