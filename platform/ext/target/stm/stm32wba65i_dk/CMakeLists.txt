@@ -75,3 +75,29 @@ install(DIRECTORY   ${PLATFORM_DIR}/ext/common
 # Install test configs
 install(DIRECTORY   ${TARGET_PLATFORM_PATH}/tests
         DESTINATION ${INSTALL_PLATFORM_NS_DIR})
+
+# Extract firmware and OTP binary image files
+get_target_property(tfm_s_bin_dir tfm_s RUNTIME_OUTPUT_DIRECTORY)
+
+set(tfm_s_split_out
+    ${tfm_s_bin_dir}/tfm_s_fmw.bin
+    ${tfm_s_bin_dir}/tfm_s_otp.bin
+)
+
+add_custom_target(tfm_s_fmw ALL SOURCES ${tfm_s_split_out})
+
+if(CMAKE_C_COMPILER STREQUAL "iccarm")
+add_custom_command(
+  OUTPUT ${tfm_s_split_out}
+  DEPENDS tfm_s_binaries
+  COMMAND ielftool --silent --exclude=.BL2_OTP --bin $<TARGET_FILE:tfm_s> ${tfm_s_bin_dir}/tfm_s_fmw.bin
+  COMMAND ielftool --silent --only=.BL2_OTP --bin $<TARGET_FILE:tfm_s> ${tfm_s_bin_dir}/tfm_s_otp.bin
+)
+else()
+add_custom_command(
+  OUTPUT ${tfm_s_split_out}
+  DEPENDS tfm_s_binaries
+  COMMAND ${CMAKE_OBJCOPY} --remove-section .BL2_OTP -O binary $<TARGET_FILE:tfm_s> ${tfm_s_bin_dir}/tfm_s_fmw.bin
+  COMMAND ${CMAKE_OBJCOPY} --only-section .BL2_OTP -O binary $<TARGET_FILE:tfm_s> ${tfm_s_bin_dir}/tfm_s_otp.bin
+)
+endif()
