@@ -142,6 +142,7 @@ static enum tfm_hal_status_t mpu_init(void)
     /* configuration stage */
     if (uFlowStage == FLOW_STAGE_CFG)
     {
+        mpu_armv8m_disable(&dev_mpu_s);
         mpu_armv8m_clean(&dev_mpu_s);
 
         /* configure secure MPU regions */
