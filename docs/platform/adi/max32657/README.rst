@@ -117,7 +117,7 @@ Prepare the tf-m-tests repository inside the TF-M base folder.
             -DTEST_S=OFF                \
             -DTEST_NS=ON               \
             -DTFM_NS_REG_TEST=ON        \
-            -DMCUBOOT_LOG_LEVEL="INFO"  \
+            -DTFM_BL2_LOG_LEVEL=LOG_LEVEL_INFO  \
             -DTFM_ISOLATION_LEVEL=1
     cmake --build build_spe -- install
 
@@ -139,6 +139,7 @@ Generate Intel hex files from the output binary (bin) files as follows:
 
 .. code-block:: console
 
+    srec_cat build_spe/bin/tfm_s_signed.bin -binary --offset 0x01010000 -o build_spe/bin/tfm_s_signed.hex -intel
     srec_cat build_test/bin/tfm_ns_signed.bin -binary --offset 0x01060000 -o build_test/bin/tfm_ns_signed.hex -intel
 
 
@@ -146,7 +147,13 @@ Merge hex files as follows:
 
 .. code-block:: console
 
-    srec_cat.exe build_spe/bin/bl2.hex -Intel build_spe/bin/tfm_s_signed.hex -Intel build_test/bin/tfm_ns_signed.hex -Intel -o tfm_merged.hex -Intel
+    srec_cat build_spe/bin/bl2.hex -Intel build_spe/bin/tfm_s_signed.hex -Intel build_test/bin/tfm_ns_signed.hex -Intel -o tfm_merged.hex -Intel
+
+Alternatively, you can merge hex files with `mergehex.py <https://github.com/zephyrproject-rtos/zephyr/blob/main/scripts/build/mergehex.py>`_
+
+.. code-block:: console
+
+    python /PATH/TO/mergehex.py -o tfm_merged.hex build_spe/bin/bl2.hex build_spe/bin/tfm_s_signed.hex build_test/bin/tfm_ns_signed.hex
 
 .. note::
 
