@@ -8,6 +8,13 @@
 cmake_policy(SET CMP0076 NEW)
 set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
+###### CMake-generic extensions ################################################
+function(add_subdirectory_ifdef feature_toggle source_dir)
+  if(${${feature_toggle}})
+    add_subdirectory(${source_dir} ${ARGN})
+  endif()
+endfunction()
+
 ################################################################################
 # Fetch hal_adi repository
 set(FETCHCONTENT_QUIET TRUE)
