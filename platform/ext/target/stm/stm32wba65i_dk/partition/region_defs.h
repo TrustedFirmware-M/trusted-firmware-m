@@ -158,6 +158,8 @@
 #define TFM_NV_DATA_SIZE                    (FLASH_OTP_NV_COUNTERS_AREA_SIZE + FLASH_NV_COUNTER_AREA_SIZE \
                                              + FLASH_PS_AREA_SIZE + FLASH_ITS_AREA_SIZE)
 #define TFM_NV_DATA_LIMIT                   (TFM_NV_DATA_START + TFM_NV_DATA_SIZE - 1)
+/* Additional Check to detect flash download slot overlap or overflow */
+#define FLASH_AREA_END_OFFSET_MAX (FLASH_TOTAL_SIZE)
 
 #if (MCUBOOT_S_DATA_IMAGE_NUMBER == 1)
 /* S DATA image layout */
@@ -169,5 +171,9 @@
 #define NS_DATA_IMAGE_DATA1_OFFSET          (BL2_DATA_HEADER_SIZE)
 #define NS_DATA_IMAGE_DATA1_SIZE            (32U)
 #endif /* (MCUBOOT_NS_DATA_IMAGE_NUMBER == 1) */
+
+#if FLASH_AREA_END_OFFSET > FLASH_AREA_END_OFFSET_MAX
+#error "Flash memory overflow"
+#endif /* FLASH_AREA_END_OFFSET > FLASH_AREA_END_OFFSET_MAX */
 
 #endif /* __REGION_DEFS_H__ */
