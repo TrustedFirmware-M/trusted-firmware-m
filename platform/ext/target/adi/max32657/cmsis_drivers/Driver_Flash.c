@@ -23,6 +23,7 @@
 #include "RTE_Device.h"
 #include "mxc_errors.h"
 #include "flc.h"
+#include "icc.h"
 
 #ifndef ARG_UNUSED
 #define ARG_UNUSED(arg)  ((void)arg)
@@ -160,11 +161,12 @@ static int32_t ARM_Flash_ProgramData(uint32_t offset, const void *data, uint32_t
 	}
 
     uint32_t addr = FLASH0_DEV->memory_base + offset;
-
-    if(MXC_FLC_Write(addr, cnt, (uint32_t *)data) != E_NO_ERROR) {
+    MXC_ICC_Disable();
+    int result = MXC_FLC_Write(addr, cnt, (uint32_t *)data);
+    MXC_ICC_Enable();
+    if (result != E_NO_ERROR) {
         return ARM_DRIVER_ERROR_PARAMETER;
     }
-
     return cnt;
 }
 
@@ -181,8 +183,10 @@ static int32_t ARM_Flash_EraseSector(uint32_t offset)
     }
 
     uint32_t addr = FLASH0_DEV->memory_base + offset;
-
-    if (MXC_FLC_PageErase(addr) != E_NO_ERROR) {
+    MXC_ICC_Disable();
+    int result = MXC_FLC_PageErase(addr);
+    MXC_ICC_Enable();
+    if (result != E_NO_ERROR) {
         return ARM_DRIVER_ERROR_PARAMETER;
     }
 
@@ -192,7 +196,10 @@ static int32_t ARM_Flash_EraseSector(uint32_t offset)
 static int32_t ARM_Flash_EraseChip(void)
 {
     if (DriverCapabilities.erase_chip == 1) {
-        if(MXC_FLC_MassErase() != E_NO_ERROR) {
+        MXC_ICC_Disable();
+        int result = MXC_FLC_MassErase();
+        MXC_ICC_Enable();
+        if (result != E_NO_ERROR) {
             return ARM_DRIVER_ERROR_PARAMETER;
         }
     } else {
