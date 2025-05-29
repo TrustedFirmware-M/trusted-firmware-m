@@ -160,7 +160,7 @@ if (TEST_BL1_1)
     endif()
 endif()
 
-set(RSE_SYMMETRIC_PROVISIONING              ON         CACHE BOOL "Whether provisioning should be symmetric or asymmetric")
+set(RSE_SYMMETRIC_PROVISIONING                     OFF    CACHE BOOL "Whether provisioning should be symmetric or asymmetric")
 
 if (RSE_SYMMETRIC_PROVISIONING)
     # Sign and encrypt using AES
