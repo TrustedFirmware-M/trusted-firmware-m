@@ -37,8 +37,19 @@
  */
 #define ITS_NUM_ASSETS 20
 
+/* The maximum asset size to be stored in the Protected Storage */
+#define PS_MAX_ASSET_SIZE 3456
+
 /* The maximum number of assets to be stored in the Protected Storage area. */
 #define PS_NUM_ASSETS 20
+
+/* This is needed to be able to process the EFI variables during PS writes. */
+#undef CRYPTO_ENGINE_BUF_SIZE
+#define CRYPTO_ENGINE_BUF_SIZE                 0x5000
+
+/* This is also has to be increased to fit the EFI variables into the iovecs. */
+#undef CRYPTO_IOVEC_BUFFER_SIZE
+#define CRYPTO_IOVEC_BUFFER_SIZE               7128
 
 /* Default RSE SYSCLK/CPU0CLK value in Hz */
 #define SYSCLK         100000000UL /* 100 MHz */
