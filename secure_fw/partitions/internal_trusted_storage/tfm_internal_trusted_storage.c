@@ -499,6 +499,8 @@ psa_status_t tfm_its_set(int32_t client_id,
     return status;
 }
 
+#if (!defined(ITS_ENCRYPTION) || !defined(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE)) || \
+    (defined(ITS_ENCRYPTION) && defined(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE) && defined(TFM_PARTITION_PROTECTED_STORAGE))
 static psa_status_t tfm_its_get_plain(int32_t client_id,
                          size_t data_offset,
                          size_t data_size,
@@ -555,6 +557,7 @@ static psa_status_t tfm_its_get_plain(int32_t client_id,
 
     return PSA_SUCCESS;
 }
+#endif
 
 psa_status_t tfm_its_get(int32_t client_id,
                          psa_storage_uid_t uid,
@@ -617,7 +620,7 @@ psa_status_t tfm_its_get(int32_t client_id,
     {
         return tfm_its_get_plain(client_id, data_offset, data_size, p_data_length);
     }
-#endif /* ITS_ENCRYPTION  && TFM_PARTITION_INTERNAL_TRUSTED_STORAGE */
+#endif /* ITS_ENCRYPTION && TFM_PARTITION_INTERNAL_TRUSTED_STORAGE */
 }
 
 psa_status_t tfm_its_get_info(int32_t client_id, psa_storage_uid_t uid,
