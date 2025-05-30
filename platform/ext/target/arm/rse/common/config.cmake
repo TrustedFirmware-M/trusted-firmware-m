@@ -134,9 +134,7 @@ elseif (RSE_TP_MODE STREQUAL PCI AND TFM_DUMMY_PROVISIONING)
 endif()
 
 set(RSE_PROVISIONING_CM_ENCRYPT_CODE_DATA      OFF        CACHE BOOL "Whether CM Provisioning blobs build should have encrypted code and data")
-set(RSE_PROVISIONING_CM_ENCRYPT_SECRET_VALUES  ON         CACHE BOOL "Whether CM Provisioning  build should have encrypted secret values")
 set(RSE_PROVISIONING_DM_ENCRYPT_CODE_DATA      OFF        CACHE BOOL "Whether DM Provisioning blobs build should have encrypted code and data")
-set(RSE_PROVISIONING_DM_ENCRYPT_SECRET_VALUES  ON         CACHE BOOL "Whether DM Provisioning  build should have encrypted secret values")
 
 set(RSE_PROVISIONING_CM_DEBUG_CLOSED           OFF        CACHE BOOL "Whether debug is open by default in CM LCS")
 set(RSE_PROVISIONING_REQUIRE_AUTHENTICATION_FOR_TCI OFF   CACHE BOOL "Whether TCI mode requires authentication to set")
