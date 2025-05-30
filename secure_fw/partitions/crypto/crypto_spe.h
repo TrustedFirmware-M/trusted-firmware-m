@@ -1,5 +1,6 @@
 /*
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+ * Copyright (C) 2025 Analog Devices, Inc.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -166,5 +167,8 @@
         PSA_FUNCTION_NAME(psa_asymmetric_decrypt)
 #define psa_generate_key \
         PSA_FUNCTION_NAME(psa_generate_key)
-
+#define psa_key_derivation_verify_key \
+        PSA_FUNCTION_NAME(psa_key_derivation_verify_key)
+#define psa_key_derivation_verify_bytes \
+        PSA_FUNCTION_NAME(psa_key_derivation_verify_bytes)
 #endif /* CRYPTO_SPE_H */
