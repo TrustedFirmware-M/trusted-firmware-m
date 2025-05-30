@@ -21,9 +21,9 @@ extern "C" {
 
 /**
  * @brief Size in bytes of the generated entropy per each generation from the TRNG
- *        It is equal to the sizeof(P_CC3XX->rng.ehr_data)
+ *
  */
-#define CC3XX_RNG_ENTROPY_SIZE (sizeof(P_CC3XX->rng.ehr_data))
+#define CC3XX_TRNG_SAMPLE_SIZE (sizeof(P_CC3XX->rng.ehr_data))
 
 #ifndef __PACKED_ENUM
 #define __PACKED_ENUM enum __attribute__((packed))
@@ -94,17 +94,18 @@ cc3xx_err_t cc3xx_lowlevel_trng_validate_config(void);
 void cc3xx_lowlevel_trng_set_hw_test_bypass(bool bypass_autocorr, bool bypass_crngt, bool bypass_vnc);
 
 /**
- * @brief                       Reads the entropy out of the TRNG
+ * @brief                       Reads the sample out of the TRNG
  *
  * @param[out] buf              Output buffer, word aligned, into which the entropy is read
  * @param[in]  word_count       Size in words of the \p buf output buffer, must be equal to
- *                              the number of words of P_CC3XX->rng.ehr_data
+ *                              the number of words of P_CC3XX->rng.ehr_data, i.e. CC3XX_TRNG_SAMPLE_SIZE
+ *                              when expressed in bytes
  *
  * @return cc3xx_err_t          CC3XX_ERR_SUCCESS on success, CC3XX_ERR_RNG_TOO_MANY_ATTEMPTS in
  *                              case errors have been detected on each generation. The maximum
  *                              number of generations is controlled by CC3XX_CONFIG_RNG_MAX_ATTEMPTS
  */
-cc3xx_err_t cc3xx_lowlevel_trng_get_entropy(uint32_t *buf, size_t word_count);
+cc3xx_err_t cc3xx_lowlevel_trng_get_sample(uint32_t *buf, size_t word_count);
 
 /**
  * @brief                       Initialises the TRNG before a call to \a cc3xx_lowlevel_trng_get_entropy

@@ -38,6 +38,7 @@ target_sources(${CC3XX_TARGET_NAME}
         src/cc3xx_ecdh.c
         src/cc3xx_dcu.c
         src/cc3xx_trng.c
+        src/cc3xx_entropy.c
         ../common/cc3xx_stdlib.c
 )
 

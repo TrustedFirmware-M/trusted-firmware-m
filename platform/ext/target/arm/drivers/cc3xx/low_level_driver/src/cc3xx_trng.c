@@ -140,15 +140,15 @@ cc3xx_err_t cc3xx_lowlevel_trng_finish(void)
     return CC3XX_ERR_SUCCESS;
 }
 
-cc3xx_err_t cc3xx_lowlevel_trng_get_entropy(uint32_t *buf, size_t word_count)
+cc3xx_err_t cc3xx_lowlevel_trng_get_sample(uint32_t *buf, size_t word_count)
 {
     uint32_t attempt_count = 0;
     uint32_t idx;
 
     assert(word_count == sizeof(P_CC3XX->rng.ehr_data) / sizeof(uint32_t));
 
-    /* Wait until the RNG has finished. Any status other than 0x1 indicates
-     * that either the RNG hasn't finished or a statistical test has been
+    /* Wait until the TRNG has finished. Any status other than 0x1 indicates
+     * that either the TRNG hasn't finished or a statistical test has been
      * failed.
      */
     do {

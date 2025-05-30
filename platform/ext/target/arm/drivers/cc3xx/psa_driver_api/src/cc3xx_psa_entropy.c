@@ -15,7 +15,7 @@
 #include <string.h>
 
 #include "cc3xx_psa_entropy.h"
-#include "cc3xx_rng.h"
+#include "cc3xx_entropy.h"
 #include "cc3xx_misc.h"
 
 /** @defgroup psa_entropy PSA driver entry points for entropy collection
@@ -31,7 +31,7 @@ psa_status_t cc3xx_get_entropy(uint32_t flags, size_t *estimate_bits,
 {
     cc3xx_err_t err;
     /* Integer multiple of entropy size*/
-    const size_t int_mult = (output_size / CC3XX_RNG_ENTROPY_SIZE) * CC3XX_RNG_ENTROPY_SIZE;
+    const size_t int_mult = (output_size / CC3XX_ENTROPY_SIZE) * CC3XX_ENTROPY_SIZE;
 
     CC3XX_ASSERT(output != NULL);
     CC3XX_ASSERT(output_size != 0);
@@ -40,16 +40,16 @@ psa_status_t cc3xx_get_entropy(uint32_t flags, size_t *estimate_bits,
         *estimate_bits = 0;
     }
 
-    /* Get a multiple of CC3XX_RNG_ENTROPY_SIZE bytes of entropy */
-    err = cc3xx_lowlevel_rng_get_entropy((uint32_t *)output, int_mult);
+    /* Get a multiple of CC3XX_ENTROPY_SIZE bytes of entropy */
+    err = cc3xx_lowlevel_entropy_get((uint32_t *)output, int_mult);
 
     if (err != CC3XX_ERR_SUCCESS) {
         return cc3xx_to_psa_err(err);
     }
 
-    if ((output_size % CC3XX_RNG_ENTROPY_SIZE) != 0) {
-        uint32_t last[CC3XX_RNG_ENTROPY_SIZE / sizeof(uint32_t)];
-        err = cc3xx_lowlevel_rng_get_entropy(last, sizeof(last));
+    if ((output_size % CC3XX_ENTROPY_SIZE) != 0) {
+        uint32_t last[CC3XX_ENTROPY_SIZE / sizeof(uint32_t)];
+        err = cc3xx_lowlevel_entropy_get(last, sizeof(last));
         if (err != CC3XX_ERR_SUCCESS) {
             return cc3xx_to_psa_err(err);
         }
