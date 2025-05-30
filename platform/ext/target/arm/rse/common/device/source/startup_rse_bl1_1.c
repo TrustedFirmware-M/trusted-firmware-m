@@ -256,6 +256,9 @@ static void __attribute__ ((noinline)) setup_tram_encryption(void) {
         bl1_trng_generate_random(tram_key, sizeof(tram_key));
 
         kmu_set_key(&kmu_dev_s, RSE_KMU_SLOT_TRAM_KEY, tram_key, sizeof(tram_key));
+
+        /* Also generate a random word to initialise the DTCM */
+        bl1_trng_generate_random((uint8_t *)&random_word, sizeof(random_word));
     }
 
     kmu_set_key_export_config(&kmu_dev_s, RSE_KMU_SLOT_TRAM_KEY, &tram_key_export_config);
@@ -266,8 +269,6 @@ static void __attribute__ ((noinline)) setup_tram_encryption(void) {
     tram_enable_encryption(&tram_dev_s);
 
     if (sp_enabled == LCM_TRUE && (lcs == LCM_LCS_CM || lcs == LCM_LCS_DM)) {
-        bl1_trng_generate_random((uint8_t *)&random_word, sizeof(random_word));
-
         for (idx = 0; idx < DTCM_SIZE / sizeof(uint32_t); idx++) {
             ((uint32_t *)DTCM_BASE_S)[idx] = random_word;
         }
