@@ -338,6 +338,7 @@ static enum tfm_plat_err_t aes_generic_blob_operation(cc3xx_aes_mode_t mode,
     return TFM_PLAT_ERR_SUCCESS;
 }
 
+#ifdef RSE_PROVISIONING_ENABLE_AES_SIGNATURES
 static enum tfm_plat_err_t aes_validate_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob,
                                                         void *code_output, size_t code_output_size,
                                                         void *data_output, size_t data_output_size,
@@ -355,6 +356,7 @@ static enum tfm_plat_err_t aes_validate_and_unpack_blob(const struct rse_provisi
                                       values_output, values_output_size,
                                       setup_aes_key);
 }
+#endif /* RSE_PROVISIONING_ENABLE_AES_SIGNATURES */
 
 #ifdef RSE_PROVISIONING_ENABLE_ECDSA_SIGNATURES
 static enum tfm_plat_err_t aes_decrypt_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob,
