@@ -24,7 +24,7 @@ from cryptography.hazmat.primitives.serialization import load_der_public_key, En
 
 from crypto_conversion_utils import convert_hash_define
 
-all_regions = ['non_endorsed_dm', 'cm', 'dm']
+all_regions = ['non_endorsed_dm', 'non_secret_cm', 'secret_cm', 'non_secret_dm', 'secret_dm']
 
 def _get_rotpk_area_index(f : str):
     try:
@@ -45,11 +45,15 @@ def _get_rotpk_index(f : str):
         _, f = f.rsplit("_", 1)
     return int(f)
 
+def _get_field_owner_lcs(field_owner : str):
+    return field_owner[-2:]
+
 def _get_rotpk_str(field_owner : str, f : str):
     area_index = _get_rotpk_area_index(f)
     rotpk_index = _get_rotpk_index(f)
     if area_index is not None:
-        return "{}.rotpk_areas_{}.rotpk_{}".format(field_owner, area_index, rotpk_index)
+        return "{}.rotpk_areas_{}.rotpk_{}".format(_get_field_owner_lcs(field_owner),
+                                                   area_index, rotpk_index)
     else:
         return "rotpk_{}".format(rotpk_index)
 
@@ -132,8 +136,9 @@ def add_arguments(parser : argparse.ArgumentParser,
     return provisioning_config
 
 def _get_policy_field(provisioning_config, field_owner, area_index):
+    lcs = _get_field_owner_lcs(field_owner)
     if area_index is not None:
-        rotpk_policy_str = "{}.rotpk_areas_{}.{}_rotpk_policies".format(field_owner, area_index, field_owner)
+        rotpk_policy_str = "{}.rotpk_areas_{}.{}_rotpk_policies".format(lcs, area_index, lcs)
     else:
         rotpk_policy_str = "{}_rotpk_policies".format(field_owner, field_owner)
 
@@ -219,7 +224,7 @@ def _handle_rotpk(args: argparse.Namespace,
     assert(v)
 
     rotpk_index = _get_rotpk_index(f)
-    is_hash_not_key = hasattr(otp_config.defines, "RSE_OTP_{}_ROTPK_IS_HASH_NOT_KEY".format(field_owner.upper() if field_owner != "non_endorsed_dm" else "DM"))
+    is_hash_not_key = hasattr(otp_config.defines, "RSE_OTP_{}_ROTPK_IS_HASH_NOT_KEY".format(_get_field_owner_lcs(field_owner).upper()))
     if is_hash_not_key:
         area_index = _get_rotpk_area_index(f)
         assert (area_index, rotpk_index) in getattr(provisioning_config, "{}_rotpk_hash_algs".format(field_owner)).keys(), "--{}:{}.rotpk_hash_alg_{} required but not set".format(field_owner, field_owner, rotpk_index)
@@ -300,10 +305,13 @@ def parse_args(args : argparse.Namespace,
     return out;
 
 class Provisioning_config:
-    def __init__(self, non_endorsed_dm, cm, dm, defines, enums):
+    def __init__(self, non_endorsed_dm, non_secret_cm, secret_cm,
+                 non_secret_dm, secret_dm, defines, enums):
         self.non_endorsed_dm_layout = non_endorsed_dm
-        self.cm_layout = cm
-        self.dm_layout = dm
+        self.non_secret_cm_layout = non_secret_cm
+        self.secret_cm_layout = secret_cm
+        self.non_secret_dm_layout = non_secret_dm
+        self.secret_dm_layout = secret_dm
         self.defines = defines
         self.defines._definitions = {k:v for k,v in self.defines._definitions.items() if not callable(v)}
         self.defines.__dict__ = {k:v for k,v in self.defines.__dict__.items() if not callable(v)}
@@ -312,11 +320,15 @@ class Provisioning_config:
         for e in self.enums:
             self.__dict__ |= self.enums[e].dict
         self.non_endorsed_dm_rotpk_hash_algs = {}
-        self.cm_rotpk_hash_algs = {}
-        self.dm_rotpk_hash_algs = {}
+        self.non_secret_cm_rotpk_hash_algs = {}
+        self.secret_cm_rotpk_hash_algs = {}
+        self.non_secret_dm_rotpk_hash_algs = {}
+        self.secret_dm_rotpk_hash_algs = {}
         self.non_endorsed_dm_rotpk_types = {}
-        self.cm_rotpk_types = {}
-        self.dm_rotpk_types = {}
+        self.non_secret_cm_rotpk_types = {}
+        self.secret_cm_rotpk_types = {}
+        self.non_secret_dm_rotpk_types = {}
+        self.secret_dm_rotpk_types = {}
 
     @staticmethod
     def from_h_file(h_file_path, policy_h_file_path, includes, defines):
@@ -350,6 +362,16 @@ class Provisioning_config:
         with open(file_path, "wb") as f:
             pickle.dump(self, f)
 
+    def __get_layout_field_and_set(self,
+                                   is_cm : bool,
+                                   field_path : str,
+                                   value : bytes):
+        lcs = "cm" if is_cm else "dm"
+        try:
+            getattr(getattr(self, "secret_{}_layout".format(lcs)), field_path).set_value_from_bytes(value)
+        except AttributeError:
+            getattr(getattr(self, "non_secret_{}_layout".format(lcs)), field_path).set_value_from_bytes(value)
+
     def set_area_infos_from_otp_config(self,
                                        otp_config : OTP_config,
                                        **kwargs : dict,
@@ -357,22 +379,22 @@ class Provisioning_config:
         dm_sets_dm_and_dynamic_area_size = hasattr(otp_config.defines, "DM_SETS_DM_AND_DYNAMIC_AREA_SIZE")
 
         if otp_config.header.cm_area_info.offset.get_value() != 0:
-            self.cm_layout.cm_area_info.set_value_from_bytes(otp_config.header.cm_area_info.to_bytes())
+            self.__get_layout_field_and_set(True, "cm_area_info", otp_config.header.cm_area_info.to_bytes())
 
         if otp_config.header.bl1_2_area_info.offset.get_value() != 0:
-            self.cm_layout.bl1_2_area_info.set_value_from_bytes(otp_config.header.bl1_2_area_info.to_bytes())
+            self.__get_layout_field_and_set(True, "bl1_2_area_info", otp_config.header.bl1_2_area_info.to_bytes())
 
         if otp_config.header.dm_area_info.offset.get_value() != 0:
             if not dm_sets_dm_and_dynamic_area_size:
-                self.cm_layout.dm_area_info.set_value_from_bytes(otp_config.header.dm_area_info.to_bytes())
+                self.__get_layout_field_and_set(True, "dm_area_info", otp_config.header.dm_area_info.to_bytes())
             if dm_sets_dm_and_dynamic_area_size:
-                self.dm_layout.dm_area_info.set_value_from_bytes(otp_config.header.dm_area_info.to_bytes())
+                self.__get_layout_field_and_set(False, "dm_area_info", otp_config.header.dm_area_info.to_bytes())
 
         if otp_config.header.dynamic_area_info.offset.get_value() != 0:
             if not dm_sets_dm_and_dynamic_area_size:
-                self.cm_layout.dynamic_area_info.set_value_from_bytes(otp_config.header.dynamic_area_info.to_bytes())
+                self.__get_layout_field_and_set(True, "dynamic_area_info", otp_config.header.dynamic_area_info.to_bytes())
             if dm_sets_dm_and_dynamic_area_size:
-                self.dm_layout.dynamic_area_info.set_value_from_bytes(otp_config.header.dynamic_area_info.to_bytes())
+                self.__get_layout_field_and_set(False, "dynamic_area_info", otp_config.header.dynamic_area_info.to_bytes())
 
 script_description = """
 This script takes an instance of rse_provisioning_layout.h, rse_rotpk_policy.h,

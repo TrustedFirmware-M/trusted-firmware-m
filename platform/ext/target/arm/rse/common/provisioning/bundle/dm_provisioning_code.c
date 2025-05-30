@@ -13,17 +13,25 @@
 #include "tfm_log.h"
 #include "rse_provisioning_message_handler.h"
 
+/* Non secret provisioning values are placed directly after the
+ * blob code DATA section */
+extern uint32_t Image$$DATA$$Limit[];
 
 #ifndef RSE_COMBINED_PROVISIONING_BUNDLES
-static const struct rse_dm_provisioning_values_t *values =
-    (const struct rse_dm_provisioning_values_t *)PROVISIONING_BUNDLE_VALUES_START;
+static const struct rse_non_secret_dm_provisioning_values_t *values =
+    (const struct rse_non_secret_dm_provisioning_values_t *)Image$$DATA$$Limit;
+
+static const struct rse_secret_dm_provisioning_values_t *secret_values =
+    (const struct rse_secret_dm_provisioning_values_t *)PROVISIONING_BUNDLE_VALUES_START;;
 
 /* This is a stub to make the linker happy */
 void __Vectors(){}
 #else
+static const struct rse_non_secret_dm_provisioning_values_t *values =
+    &((const struct rse_non_secret_combined_provisioning_values_t *)Image$$DATA$$Limit)->dm;
 
-static const struct rse_dm_provisioning_values_t *values =
-    &((const struct rse_combined_provisioning_values_t *)PROVISIONING_BUNDLE_VALUES_START)->dm;
+static const struct rse_secret_dm_provisioning_values_t *secret_values =
+    &((const struct rse_secret_combined_provisioning_values_t *)PROVISIONING_BUNDLE_VALUES_START)->dm;
 #endif
 
 #ifndef RSE_COMBINED_PROVISIONING_BUNDLES
@@ -37,8 +45,8 @@ enum tfm_plat_err_t do_dm_provision(void) {
 
     INFO("Provisioning KP_DM\n");
     err = tfm_plat_otp_write(PLAT_OTP_ID_DM_PROVISIONING_KEY,
-                             sizeof(values->kp_dm),
-                             values->kp_dm);
+                             sizeof(secret_values->kp_dm),
+                             secret_values->kp_dm);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
@@ -46,8 +54,8 @@ enum tfm_plat_err_t do_dm_provision(void) {
 
     INFO("Provisioning KCE_DM\n");
     err = tfm_plat_otp_write(PLAT_OTP_ID_DM_CODE_ENCRYPTION_KEY,
-                             sizeof(values->kce_dm),
-                             values->kce_dm);
+                             sizeof(secret_values->kce_dm),
+                             secret_values->kce_dm);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }

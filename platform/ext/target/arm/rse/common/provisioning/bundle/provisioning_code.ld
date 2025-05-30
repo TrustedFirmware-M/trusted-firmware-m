@@ -36,18 +36,17 @@ SECTIONS
     CODE :
     {
         *_provisioning_code.o(DO_PROVISION)
-        *(EXCLUDE_FILE (*_provisioning_data.o) .rodata*)
+        *(.rodata*)
         *(.text*)
     } > CODE
 
     DATA :
     {
         *(COMMON .data* .bss*)
+        /* Non secret provisioning values placed directly after data
+         * so ensure 4 byte aligned */
+        . = ALIGN(4);
     } > DATA
 
-    VALUES :
-    {
-        *_provisioning_data.o(.rodata.data)
-    } > VALUES
-
+    Image$$DATA$$Limit = ADDR(DATA) + SIZEOF(DATA);
 }

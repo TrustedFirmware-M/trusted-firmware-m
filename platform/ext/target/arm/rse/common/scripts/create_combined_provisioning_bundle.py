@@ -75,14 +75,19 @@ if __name__ == "__main__":
     kwargs['otp_config'].set_dm_offsets_automatically()
     kwargs['provisioning_config'].set_area_infos_from_otp_config(**kwargs)
 
-    logger.debug(kwargs['provisioning_config'].cm_layout)
-    logger.debug(kwargs['provisioning_config'].dm_layout)
+    logger.debug(kwargs['provisioning_config'].non_secret_cm_layout)
+    logger.debug(kwargs['provisioning_config'].secret_cm_layout)
+    logger.debug(kwargs['provisioning_config'].non_secret_dm_layout)
+    logger.debug(kwargs['provisioning_config'].secret_dm_layout)
 
     blob_type = kwargs['provisioning_message_config'].RSE_PROVISIONING_BLOB_TYPE_COMBINED_LCS_PROVISIONING
 
     with open(args.bundle_output_file, "wb") as f:
         message = create_blob_message(blob_type=blob_type, **kwargs,
+                                      data = (kwargs['elf_data'] or bytes(0))+
+                                      kwargs['provisioning_config'].non_secret_cm_layout.to_bytes() +
+                                      kwargs['provisioning_config'].non_secret_dm_layout.to_bytes(),
                                       secret_values =
-                                      kwargs['provisioning_config'].cm_layout.to_bytes()
-                                      + kwargs['provisioning_config'].dm_layout.to_bytes())
+                                      kwargs['provisioning_config'].secret_cm_layout.to_bytes()
+                                      + kwargs['provisioning_config'].secret_dm_layout.to_bytes())
         f.write(message)

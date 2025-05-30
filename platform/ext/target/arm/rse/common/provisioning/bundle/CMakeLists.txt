@@ -176,47 +176,47 @@ if (TFM_DUMMY_PROVISIONING)
     STRING(REGEX REPLACE "EC" "ECDSA" MCUBOOT_ROTPK_TYPE ${MCUBOOT_ROTPK_TYPE})
 
     set(CM_BUNDLE_SCRIPT_ARGS
-            --cm:bl1_2.bl1_2=${CMAKE_BINARY_DIR}/bin/bl1_2_padded.bin
-            --cm:bl1_2.bl1_2_hash=${CMAKE_BINARY_DIR}/bin/bl1_2_padded_hash.bin
-            --cm:guk=${TFM_GUK_PATH}
-            --cm:otp_dma_ics=${CMAKE_BINARY_DIR}/bin/otp_dma_ics.bin
-            $<$<BOOL:${TFM_BL1_2_IMAGE_ENCRYPTION}>:--cm:kce_cm=${TFM_BL2_ENCRYPTION_KEY_PATH}>
+            --non_secret_cm:bl1_2.bl1_2=${CMAKE_BINARY_DIR}/bin/bl1_2_padded.bin
+            --non_secret_cm:bl1_2.bl1_2_hash=${CMAKE_BINARY_DIR}/bin/bl1_2_padded_hash.bin
+            --secret_cm:guk=${TFM_GUK_PATH}
+            --non_secret_cm:otp_dma_ics=${CMAKE_BINARY_DIR}/bin/otp_dma_ics.bin
+            $<$<BOOL:${TFM_BL1_2_IMAGE_ENCRYPTION}>:--secret_cm:kce_cm=${TFM_BL2_ENCRYPTION_KEY_PATH}>
 
             # Set config flags to 1 << 0x4
-            $<$<BOOL:${RSE_NON_ENDORSED_DM_PROVISIONING}>:--cm:cm.config_flags=16>
+            $<$<BOOL:${RSE_NON_ENDORSED_DM_PROVISIONING}>:--non_secret_cm:cm.config_flags=16>
 
-            --cm:cm.rotpk_areas_0.rotpk_0=${TFM_BL1_2_CM_SIGNING_KEY_PATH}
-            --cm:cm.rotpk_areas_0.rotpk_policy_0 RSE_ROTPK_POLICY_SIG_REQUIRED
-            --cm:cm.rotpk_areas_0.rotpk_type_0 RSE_ROTPK_TYPE_${TFM_BL1_2_CM_SIGNING_ALG}
-            --cm:cm.rotpk_areas_0.rotpk_hash_alg_0 RSE_ROTPK_HASH_ALG_${TFM_BL1_2_ROTPK_HASH_ALG}
+            --non_secret_cm:cm.rotpk_areas_0.rotpk_0=${TFM_BL1_2_CM_SIGNING_KEY_PATH}
+            --non_secret_cm:cm.rotpk_areas_0.rotpk_policy_0 RSE_ROTPK_POLICY_SIG_REQUIRED
+            --non_secret_cm:cm.rotpk_areas_0.rotpk_type_0 RSE_ROTPK_TYPE_${TFM_BL1_2_CM_SIGNING_ALG}
+            --non_secret_cm:cm.rotpk_areas_0.rotpk_hash_alg_0 RSE_ROTPK_HASH_ALG_${TFM_BL1_2_ROTPK_HASH_ALG}
 
-            --cm:cm.rotpk_areas_0.rotpk_1=${MCUBOOT_KEY_S}
-            --cm:cm.rotpk_areas_0.rotpk_policy_1 RSE_ROTPK_POLICY_SIG_REQUIRED
-            --cm:cm.rotpk_areas_0.rotpk_type_1 RSE_ROTPK_TYPE_${MCUBOOT_ROTPK_TYPE}
-            --cm:cm.rotpk_areas_0.rotpk_hash_alg_1 RSE_ROTPK_HASH_ALG_${MCUBOOT_ROTPK_HASH_ALG}
+            --non_secret_cm:cm.rotpk_areas_0.rotpk_1=${MCUBOOT_KEY_S}
+            --non_secret_cm:cm.rotpk_areas_0.rotpk_policy_1 RSE_ROTPK_POLICY_SIG_REQUIRED
+            --non_secret_cm:cm.rotpk_areas_0.rotpk_type_1 RSE_ROTPK_TYPE_${MCUBOOT_ROTPK_TYPE}
+            --non_secret_cm:cm.rotpk_areas_0.rotpk_hash_alg_1 RSE_ROTPK_HASH_ALG_${MCUBOOT_ROTPK_HASH_ALG}
             --valid_lcs=RSE_PROVISIONING_BLOB_VALID_IN_CM_LCS
     )
 
     if (${RSE_PROVISIONING_DM_SIGNATURE_CONFIG} STREQUAL "ROTPK_NOT_IN_ROM" OR RSE_NON_ENDORSED_DM_PROVISIONING)
         set(CM_BUNDLE_SCRIPT_ARGS
                 ${CM_BUNDLE_SCRIPT_ARGS}
-                --cm:cm.rotpk_areas_0.rotpk_${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX}=${RSE_CM_PROVISIONING_SIGNING_KEY}
-                --cm:cm.rotpk_areas_0.rotpk_policy_${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX} RSE_ROTPK_POLICY_SIG_REQUIRED
-                --cm:cm.rotpk_areas_0.rotpk_type_${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX} RSE_ROTPK_TYPE_${RSE_PROVISIONING_SIGN_ALG}
-                --cm:cm.rotpk_areas_0.rotpk_hash_alg_${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX} RSE_ROTPK_HASH_ALG_${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_HASH_ALG}
+                --non_secret_cm:cm.rotpk_areas_0.rotpk_${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX}=${RSE_CM_PROVISIONING_SIGNING_KEY}
+                --non_secret_cm:cm.rotpk_areas_0.rotpk_policy_${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX} RSE_ROTPK_POLICY_SIG_REQUIRED
+                --non_secret_cm:cm.rotpk_areas_0.rotpk_type_${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX} RSE_ROTPK_TYPE_${RSE_PROVISIONING_SIGN_ALG}
+                --non_secret_cm:cm.rotpk_areas_0.rotpk_hash_alg_${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX} RSE_ROTPK_HASH_ALG_${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_HASH_ALG}
         )
     endif()
 
     set(DM_BUNDLE_SCRIPT_ARGS
-            $<$<EQUAL:${TFM_BL1_2_SIGNER_AMOUNT},2>:--dm:dm.rotpk_areas_0.rotpk_0=${TFM_BL1_2_DM_SIGNING_KEY_PATH}>
-            $<$<EQUAL:${TFM_BL1_2_SIGNER_AMOUNT},2>:--dm:dm.rotpk_areas_0.rotpk_policy_0=RSE_ROTPK_POLICY_SIG_OPTIONAL>
-            $<$<EQUAL:${TFM_BL1_2_SIGNER_AMOUNT},2>:--dm:dm.rotpk_areas_0.rotpk_type_0=RSE_ROTPK_TYPE_${TFM_BL1_2_DM_SIGNING_ALG}>
-            $<$<EQUAL:${TFM_BL1_2_SIGNER_AMOUNT},2>:--dm:dm.rotpk_areas_0.rotpk_hash_alg_0=RSE_ROTPK_HASH_ALG_${TFM_BL1_2_ROTPK_HASH_ALG}>
+            $<$<EQUAL:${TFM_BL1_2_SIGNER_AMOUNT},2>:--non_secret_dm:dm.rotpk_areas_0.rotpk_0=${TFM_BL1_2_DM_SIGNING_KEY_PATH}>
+            $<$<EQUAL:${TFM_BL1_2_SIGNER_AMOUNT},2>:--non_secret_dm:dm.rotpk_areas_0.rotpk_policy_0=RSE_ROTPK_POLICY_SIG_OPTIONAL>
+            $<$<EQUAL:${TFM_BL1_2_SIGNER_AMOUNT},2>:--non_secret_dm:dm.rotpk_areas_0.rotpk_type_0=RSE_ROTPK_TYPE_${TFM_BL1_2_DM_SIGNING_ALG}>
+            $<$<EQUAL:${TFM_BL1_2_SIGNER_AMOUNT},2>:--non_secret_dm:dm.rotpk_areas_0.rotpk_hash_alg_0=RSE_ROTPK_HASH_ALG_${TFM_BL1_2_ROTPK_HASH_ALG}>
 
-            --dm:dm.rotpk_areas_0.rotpk_1=${MCUBOOT_KEY_NS}
-            --dm:dm.rotpk_areas_0.rotpk_policy_1 RSE_ROTPK_POLICY_SIG_REQUIRED
-            --dm:dm.rotpk_areas_0.rotpk_type_1 RSE_ROTPK_TYPE_${MCUBOOT_ROTPK_TYPE}
-            --dm:dm.rotpk_areas_0.rotpk_hash_alg_1 RSE_ROTPK_HASH_ALG_${MCUBOOT_ROTPK_HASH_ALG}
+            --non_secret_dm:dm.rotpk_areas_0.rotpk_1=${MCUBOOT_KEY_NS}
+            --non_secret_dm:dm.rotpk_areas_0.rotpk_policy_1 RSE_ROTPK_POLICY_SIG_REQUIRED
+            --non_secret_dm:dm.rotpk_areas_0.rotpk_type_1 RSE_ROTPK_TYPE_${MCUBOOT_ROTPK_TYPE}
+            --non_secret_dm:dm.rotpk_areas_0.rotpk_hash_alg_1 RSE_ROTPK_HASH_ALG_${MCUBOOT_ROTPK_HASH_ALG}
             --valid_lcs=RSE_PROVISIONING_BLOB_VALID_IN_DM_LCS
     )
 

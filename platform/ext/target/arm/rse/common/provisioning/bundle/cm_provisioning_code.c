@@ -16,16 +16,25 @@
 #include "rse_permanently_disable_device.h"
 #include "rse_provisioning_message_handler.h"
 
+/* Non secret provisioning values are placed directly after the
+ * blob code DATA section */
+extern uint32_t Image$$DATA$$Limit[];
+
 #ifndef RSE_COMBINED_PROVISIONING_BUNDLES
-static const struct rse_cm_provisioning_values_t *values =
-    (const struct rse_cm_provisioning_values_t *)PROVISIONING_BUNDLE_VALUES_START;
+static const struct rse_non_secret_cm_provisioning_values_t *values =
+    (const struct rse_non_secret_cm_provisioning_values_t *)Image$$DATA$$Limit;
+
+static const struct rse_secret_cm_provisioning_values_t *secret_values =
+    (const struct rse_secret_cm_provisioning_values_t *)PROVISIONING_BUNDLE_VALUES_START;
 
 /* This is a stub to make the linker happy */
 void __Vectors(){}
 #else
+static const struct rse_non_secret_cm_provisioning_values_t *values =
+    &((const struct rse_non_secret_combined_provisioning_values_t *)Image$$DATA$$Limit)->cm;
 
-static const struct rse_cm_provisioning_values_t *values =
-    &((const struct rse_combined_provisioning_values_t *)PROVISIONING_BUNDLE_VALUES_START)->cm;
+static const struct rse_secret_cm_provisioning_values_t *secret_values =
+    &((const struct rse_secret_combined_provisioning_values_t *)PROVISIONING_BUNDLE_VALUES_START)->cm;
 #endif
 
 #if !defined(RSE_CM_PROVISION_GUK) || !defined(RSE_CM_PROVISION_KP_CM) || !defined(RSE_CM_PROVISION_KCE_CM)
@@ -106,8 +115,8 @@ enum tfm_plat_err_t do_cm_provision(void) {
     INFO("Provisioning GUK\n");
 #ifdef RSE_CM_PROVISION_GUK
     err = tfm_plat_otp_write(PLAT_OTP_ID_GUK,
-                             sizeof(values->guk),
-                             values->guk);
+                             sizeof(secret_values->guk),
+                             secret_values->guk);
 #else
     err = provision_derived_key(KMU_HW_SLOT_KRTL, NULL,
                                 (uint8_t *)"GUK", sizeof("GUK"), NULL, 0,
@@ -120,8 +129,8 @@ enum tfm_plat_err_t do_cm_provision(void) {
     INFO("Provisioning KP_CM\n");
 #ifdef RSE_CM_PROVISION_KP_CM
     err = tfm_plat_otp_write(PLAT_OTP_ID_CM_PROVISIONING_KEY,
-                             sizeof(values->kp_cm),
-                             values->kp_cm);
+                             sizeof(secret_values->kp_cm),
+                             secret_values->kp_cm);
 #else
     err = provision_derived_key(KMU_HW_SLOT_KRTL, NULL,
                                 (uint8_t *)"KP_CM", sizeof("KP_CM"), NULL, 0,
@@ -227,8 +236,8 @@ enum tfm_plat_err_t do_cm_provision(void) {
 #ifdef RSE_CM_PROVISION_KCE_CM
     INFO("Provisioning KCE_CM\n");
     err = tfm_plat_otp_write(PLAT_OTP_ID_CM_CODE_ENCRYPTION_KEY,
-                             sizeof(values->kce_cm),
-                             values->kce_cm);
+                             sizeof(secret_values->kce_cm),
+                             secret_values->kce_cm);
 #else
     err = provision_derived_key(0, generated_key_buf,
                                 (uint8_t *)"KCE_CM", sizeof("KCE_CM"), NULL, 0,

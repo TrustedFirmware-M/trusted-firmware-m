@@ -32,7 +32,7 @@ def add_arguments(parser : argparse.ArgumentParser,
                   required : bool = True,
                   ) -> None:
     oc.add_arguments(parser, prefix, required)
-    pc.add_arguments(parser, prefix, required, regions=["cm"])
+    pc.add_arguments(parser, prefix, required, regions=["non_secret_cm", "secret_cm"])
     pmc.add_arguments(parser, prefix, required,
                       message_type="RSE_PROVISIONING_MESSAGE_TYPE_BLOB")
 
@@ -43,7 +43,7 @@ def parse_args(args : argparse.Namespace,
                prefix : str = "",
                ) -> dict:
     out = {}
-    out |= dict(zip(["code", "data"], arg_utils.get_arg(args, "provisioning_code_elf", prefix)))
+    out |= dict(zip(["code", "elf_data"], arg_utils.get_arg(args, "provisioning_code_elf", prefix)))
 
     out |= oc.parse_args(args, prefix=prefix)
     out |= pc.parse_args(args, prefix=prefix, otp_config = out["otp_config"])
@@ -79,11 +79,14 @@ if __name__ == "__main__":
     kwargs['otp_config'].set_cm_offsets_automatically()
     kwargs['provisioning_config'].set_area_infos_from_otp_config(**kwargs)
 
-    logging.debug(kwargs['provisioning_config'].cm_layout)
+    logging.debug(kwargs['provisioning_config'].non_secret_cm_layout)
+    logging.debug(kwargs['provisioning_config'].secret_cm_layout)
 
     blob_type = kwargs['provisioning_message_config'].RSE_PROVISIONING_BLOB_TYPE_SINGLE_LCS_PROVISIONING
 
     with open(args.bundle_output_file, "wb") as f:
         message = create_blob_message(blob_type=blob_type, **kwargs,
-                                      secret_values = kwargs['provisioning_config'].cm_layout.to_bytes())
+                                      data = (kwargs['elf_data'] or bytes(0)) +
+                                      kwargs['provisioning_config'].non_secret_cm_layout.to_bytes(),
+                                      secret_values = kwargs['provisioning_config'].secret_cm_layout.to_bytes())
         f.write(message)

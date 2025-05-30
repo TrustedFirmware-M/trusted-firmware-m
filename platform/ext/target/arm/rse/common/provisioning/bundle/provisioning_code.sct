@@ -16,21 +16,19 @@
 
 #include "region_defs.h"
 
-LR_VALUES PROVISIONING_BUNDLE_VALUES_START {
-    VALUES PROVISIONING_BUNDLE_VALUES_START PROVISIONING_BUNDLE_VALUES_SIZE {
-        *_provisioning_data.o (+RO)
-    }
-}
-
 LR_DATA PROVISIONING_BUNDLE_DATA_START {
     DATA PROVISIONING_BUNDLE_DATA_START PROVISIONING_BUNDLE_DATA_SIZE {
-        * (+RW +ZI +RO-DATA)
+        * (+RW +ZI)
+        /* Non secret provisioning values placed directly after data
+         * so ensure 4 byte aligned */
+        EMPTY 0, ALIGN 4;
     }
 }
 
 LR_CODE PROVISIONING_BUNDLE_CODE_START {
     CODE PROVISIONING_BUNDLE_CODE_START PROVISIONING_BUNDLE_CODE_SIZE {
         * (DO_PROVISION +First)
+        * (+RO-DATA)
         * (+RO-CODE)
     }
 }
