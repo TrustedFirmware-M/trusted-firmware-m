@@ -961,6 +961,10 @@ if (RSE_LOAD_NS_IMAGE)
             DESTINATION ${INSTALL_PLATFORM_NS_DIR}/device/source
     )
 
+    install(FILES       $<$<BOOL:${TFM_PARTITION_NS_AGENT_MAILBOX}>:${CMAKE_CURRENT_SOURCE_DIR}/platform_ns_mailbox.c>
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/../interface/src/multi_core
+    )
+
     install(FILES       ${PLATFORM_DIR}/ext/common/uart_stdout.c
                         $<$<BOOL:${RSE_DEBUG_UART}>:${PLATFORM_DIR}/ext/target/arm/drivers/usart/cmsdk/uart_cmsdk_drv.c>
                         $<$<BOOL:${RSE_DEBUG_UART}>:${CMAKE_CURRENT_SOURCE_DIR}/cmsis_drivers/Driver_USART_cmsdk.c>
