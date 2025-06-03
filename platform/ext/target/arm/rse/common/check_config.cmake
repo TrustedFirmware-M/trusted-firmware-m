@@ -34,6 +34,9 @@ tfm_invalid_config((RSE_DM_CHAINED_PROVISIONING OR TFM_PARTITION_RUNTIME_PROVISI
                     OR RSE_NON_ENDORSED_DM_PROVISIONING)
                     AND NOT RSE_ENABLE_DCSU_PROVISIONING_COMMS)
 
+# Provisioning features which require asymmetric signature verification
+tfm_invalid_config((RSE_NON_ENDORSED_DM_PROVISIONING OR RSE_DM_CHAINED_PROVISIONING)
+                    AND RSE_SYMMETRIC_PROVISIONING)
 ########################## Attestation #########################################
 
 get_property(TFM_ATTESTATION_SCHEME_LIST CACHE TFM_ATTESTATION_SCHEME PROPERTY STRINGS)
