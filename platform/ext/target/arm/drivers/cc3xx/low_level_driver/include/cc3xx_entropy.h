@@ -19,25 +19,11 @@
 extern "C" {
 #endif
 
-#define CC3XX_ENTROPY_SIZE (CC3XX_TRNG_SAMPLE_SIZE)
-
 /**
- * @brief                       SP800-90B section 4.4 recommends two continuous health tests
- *                              to be performed at startup and during normal operation of the
- *                              noise source to verify the quality ot the entropy bits produced,
- *                              namely the Repetition Count Test (4.4.1) and Adaptive Proportion
- *                              Test (4.4.2)
- *
- * @param[in] enable            Set to \a true to put the RNG entropy source in SP800-90B compatible
- *                              mode, i.e. enable continuous health tests as recommended by SP800-90B
- *
- * @return cc3xx_err_t          CC3XX_ERR_SUCCESS on success, or
- *                              CC3XX_ERR_NOT_IMPLEMENTED in case the firmware is built
- *                              without support for the continuous health tests, i.e.
- *                              \a CC3XX_CONFIG_RNG_CONTINUOUS_HEALTH_TESTS_ENABLE is not
- *                              set in the CC3XX configuration \a cc3xx_config.h
+ * @brief Size of the sample produced by the underlying source of randomness in a
+ *        single reading
  */
-cc3xx_err_t cc3xx_lowlevel_entropy_sp800_90b_mode(bool enable);
+#define CC3XX_ENTROPY_SIZE (CC3XX_TRNG_SAMPLE_SIZE)
 
 /**
  * @brief                        Requires an amount of entropy from the TRNG

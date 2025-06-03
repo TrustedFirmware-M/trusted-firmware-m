@@ -68,14 +68,13 @@ int32_t count_zero_bits_external(uint8_t *, size_t, uint32_t *);
  */
 #define SP800_90B_REPETITION_COUNT_CUTOFF_RATE (81UL)
 
-/* Static context of the TRNG continuous health tests */
+/* Static context of the entropy source continuous health tests */
 static struct health_tests_ctx_t {
     size_t total_bits_count;        /*!< Number of total bits observed for the Adaptive Proportion Test window */
     size_t number_of_0s;            /*!< Number of zeros observed in the Adaptive Proportion Test window */
     size_t number_of_contiguous_0s; /*!< Number of contiguous zeros observed in the Repetition Count Test */
     size_t number_of_contiguous_1s; /*!< Number of contiguous ones observed in the Repetition Count Test */
-    bool   continuous;              /*!< Continous Health tests enabled, i.e. both Adaptive Proportion and Repetition Count */
-    bool   startup;                 /*!< Indicates whether a full startup test is performed on next call to get_entropy */
+    bool   startup_done;            /*!< Indicates whether a full collection on startup has been done already */
 } g_entropy_tests = {0};
 
 /* See https://en.wikipedia.org/wiki/Hamming_weight */
@@ -201,19 +200,6 @@ static cc3xx_err_t startup_test(size_t entropy_byte_size)
     return err;
 }
 
-cc3xx_err_t cc3xx_lowlevel_entropy_sp800_90b_mode(bool enable)
-{
-    if (enable) {
-        g_entropy_tests = (struct health_tests_ctx_t){.startup = true};
-    } else {
-        g_entropy_tests = (struct health_tests_ctx_t){0};
-    }
-
-    cc3xx_lowlevel_trng_sp800_90b_mode(enable);
-
-    return CC3XX_ERR_SUCCESS;
-}
-
 cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len)
 {
     cc3xx_err_t err;
@@ -228,12 +214,15 @@ cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len)
 
     cc3xx_lowlevel_trng_init();
 
-    if (g_entropy_tests.startup) {
+    if (!g_entropy_tests.startup_done) {
+        /* Perform any required configuration on the TRNG first */
+        cc3xx_lowlevel_trng_sp800_90b_mode(true);
+        /* Perform the extensive collection on startup */
         err = startup_test(CC3XX_TRNG_SAMPLE_SIZE);
         if (err != CC3XX_ERR_SUCCESS) {
             goto cleanup;
         }
-        g_entropy_tests.startup = false;
+        g_entropy_tests.startup_done = true;
     }
 
     for (size_t i = 0; i < entropy_len / CC3XX_TRNG_SAMPLE_SIZE; i++) {
@@ -243,12 +232,10 @@ cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len)
             goto cleanup;
         }
 
-        if (g_entropy_tests.continuous) {
-            err = continuous_health_test(
-                        &entropy[num_words], CC3XX_TRNG_SAMPLE_SIZE, &g_entropy_tests);
-            if (err != CC3XX_ERR_SUCCESS) {
-                goto cleanup;
-            }
+        /* The entropy source is always in SP 800-90B mode, i.e. continuosly testing itself */
+        err = continuous_health_test(&entropy[num_words], CC3XX_TRNG_SAMPLE_SIZE, &g_entropy_tests);
+        if (err != CC3XX_ERR_SUCCESS) {
+            goto cleanup;
         }
 
         num_words += CC3XX_TRNG_SAMPLE_SIZE / sizeof(uint32_t);
