@@ -57,7 +57,7 @@ __PACKED_ENUM cc3xx_rng_rosc_id_t {
 void cc3xx_lowlevel_trng_sp800_90b_mode(bool enable);
 
 /**
- * @brief                       Sets the configuration (ROSC_ID, subsampling rate) for
+ * @brief                       Sets the global configuration (ROSC_ID, subsampling rate) for
  *                              the usage of the TRNG by the other APIs used by this
  *                              module. If this is not called, default parameters
  *                              defined at build time will be used, i.e.
@@ -75,7 +75,7 @@ void cc3xx_lowlevel_trng_sp800_90b_mode(bool enable);
 cc3xx_err_t cc3xx_lowlevel_trng_set_config(enum cc3xx_rng_rosc_id_t rosc_id, uint32_t subsampling_rate);
 
 /**
- * @brief                       Validates the configuration of the TRNG
+ * @brief                       Validates the global configuration of the TRNG
  *
  * @return cc3xx_err_t          CC3XX_ERR_SUCCESS on success, or CC3XX_ERR_RNG_INVALID_TRNG_CONFIG if
  *                              an invalid configuration is detected
@@ -84,7 +84,7 @@ cc3xx_err_t cc3xx_lowlevel_trng_validate_config(void);
 
 /**
  * @brief                       Sets the TRNG_DEBUG_CONTROL register to bypass mode for the
- *                              respective HW tests
+ *                              respective HW tests, in the global configuration (state) structure
  *
  * @param[in] bypass_autocorr   Set to \a true to bypass the AUTOCORR test
  * @param[in] bypass_crngt      Set to \a true to bypass the CRNGT test
@@ -94,12 +94,38 @@ cc3xx_err_t cc3xx_lowlevel_trng_validate_config(void);
 void cc3xx_lowlevel_trng_set_hw_test_bypass(bool bypass_autocorr, bool bypass_crngt, bool bypass_vnc);
 
 /**
- * @brief                       Reads the sample out of the TRNG
+ * @brief                       Reads the sample out of the TRNG, without accessing the global config state
  *
- * @param[out] buf              Output buffer, word aligned, into which the entropy is read
+ * @param[out] buf              Output buffer, word aligned, into which the sample is read
  * @param[in]  word_count       Size in words of the \p buf output buffer, must be equal to
  *                              the number of words of P_CC3XX->rng.ehr_data, i.e. CC3XX_TRNG_SAMPLE_SIZE
  *                              when expressed in bytes
+ *
+ * @note                        If the ROSC ID or the subsampling rate get bumped during a reading, the new
+ *                              values won't be saved in the global config. This function does not access
+ *                              any global config or state so it is safe to use when globals are not set up.
+ *                              HW tests are not bypassed when this function is used
+ *
+ * @note                        This is a one-shot function, unlike the \a cc3xx_lowlevel_trng_get_sample
+ *                              which requires separate calls to \a cc3xx_lowlevel_trng_init first, and
+ *                              \a cc3xx_lowlevel_trng_finish afterwards
+ *
+ * @return cc3xx_err_t          CC3XX_ERR_SUCCESS on success, CC3XX_ERR_RNG_TOO_MANY_ATTEMPTS in
+ *                              case errors have been detected on each generation. The maximum
+ *                              number of generations is controlled by CC3XX_CONFIG_RNG_MAX_ATTEMPTS
+ */
+cc3xx_err_t cc3xx_lowlevel_trng_get_sample_stateless(uint32_t *buf, size_t word_count);
+
+/**
+ * @brief                       Reads the sample out of the TRNG
+ *
+ * @param[out] buf              Output buffer, word aligned, into which the sample is read
+ * @param[in]  word_count       Size in words of the \p buf output buffer, must be equal to
+ *                              the number of words of P_CC3XX->rng.ehr_data, i.e. CC3XX_TRNG_SAMPLE_SIZE
+ *                              when expressed in bytes
+ *
+ * @note                        This function might alter the global config (state) hence it requires global
+ *                              variables to be available
  *
  * @return cc3xx_err_t          CC3XX_ERR_SUCCESS on success, CC3XX_ERR_RNG_TOO_MANY_ATTEMPTS in
  *                              case errors have been detected on each generation. The maximum
@@ -108,7 +134,7 @@ void cc3xx_lowlevel_trng_set_hw_test_bypass(bool bypass_autocorr, bool bypass_cr
 cc3xx_err_t cc3xx_lowlevel_trng_get_sample(uint32_t *buf, size_t word_count);
 
 /**
- * @brief                       Initialises the TRNG before a call to \a cc3xx_lowlevel_trng_get_entropy
+ * @brief                       Initialises the TRNG before a call to \a cc3xx_lowlevel_trng_get_sample
  *
  * @return cc3xx_err_t          CC3XX_ERR_SUCCESS
  */

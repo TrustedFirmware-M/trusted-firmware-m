@@ -100,47 +100,42 @@ static void trng_finish(void)
     P_CC3XX->rng.rng_clk_enable = 0x0U;
 }
 
-static inline void trng_double_subsampling_rate(void)
+static inline uint32_t trng_double_subsampling_rate(uint32_t subsampling_rate)
 {
-    uint64_t product = (uint64_t)g_trng_config.rosc.subsampling_rate * 2ULL;
+    const uint64_t product = ((uint64_t)subsampling_rate) * 2ULL;
 
-    g_trng_config.rosc.subsampling_rate =
-        (product > UINT32_MAX) ? UINT32_MAX : (uint32_t)product;
+    return (product > UINT32_MAX) ? UINT32_MAX : (uint32_t)product;
 }
 
-static void trng_bump_rosc_id_and_subsampling_rate(void)
+static void trng_bump_rosc_id_and_subsampling_rate(bool stateless)
 {
-    if (g_trng_config.rosc.id == CC3XX_RNG_ROSC_ID_3 &&
-        g_trng_config.rosc.subsampling_rate == UINT32_MAX) {
+    uint32_t rosc_id = P_CC3XX->rng.trng_config & 0b11;
+    uint32_t rosc_subsampling_rate = P_CC3XX->rng.sample_cnt1;
+
+    if ((rosc_id == CC3XX_RNG_ROSC_ID_3) && (rosc_subsampling_rate == UINT32_MAX)) {
         /* Cannot bump further */
         return;
     }
 
-    if (g_trng_config.rosc.id < CC3XX_RNG_ROSC_ID_3) {
+    if (rosc_id < CC3XX_RNG_ROSC_ID_3) {
         /* For each subsampling rate, bump the rosc id */
-        g_trng_config.rosc.id++;
+        rosc_id++;
     } else {
         /* Double the subsampling rate when rosc id is at its max*/
-        g_trng_config.rosc.id = CC3XX_RNG_ROSC_ID_0;
-        trng_double_subsampling_rate();
+        rosc_id = CC3XX_RNG_ROSC_ID_0;
+        rosc_subsampling_rate = trng_double_subsampling_rate(rosc_subsampling_rate);
+    }
+
+    P_CC3XX->rng.trng_config = rosc_id | (0x1U << 2);
+    P_CC3XX->rng.sample_cnt1 = rosc_subsampling_rate;
+
+    if (!stateless) {
+        g_trng_config.rosc.id = rosc_id;
+        g_trng_config.rosc.subsampling_rate = rosc_subsampling_rate;
     }
 }
 
-cc3xx_err_t cc3xx_lowlevel_trng_init(void)
-{
-    trng_init(g_trng_config.rosc.id, g_trng_config.rosc.subsampling_rate, g_trng_config.debug_control);
-
-    return CC3XX_ERR_SUCCESS;
-}
-
-cc3xx_err_t cc3xx_lowlevel_trng_finish(void)
-{
-    trng_finish();
-
-    return CC3XX_ERR_SUCCESS;
-}
-
-cc3xx_err_t cc3xx_lowlevel_trng_get_sample(uint32_t *buf, size_t word_count)
+static cc3xx_err_t trng_get_sample(uint32_t *buf, size_t word_count, bool stateless)
 {
     uint32_t attempt_count = 0;
     uint32_t idx;
@@ -165,18 +160,21 @@ cc3xx_err_t cc3xx_lowlevel_trng_get_sample(uint32_t *buf, size_t word_count)
             P_CC3XX->rng.rng_icr = 0x3FU;
 
             /* Bump the rosc id and subsampling rate */
-            trng_bump_rosc_id_and_subsampling_rate();
+            trng_bump_rosc_id_and_subsampling_rate(stateless);
 
             /* Restart TRNG */
-            cc3xx_lowlevel_trng_init();
+            trng_init(
+                P_CC3XX->rng.trng_config & 0b11,
+                P_CC3XX->rng.sample_cnt1,
+                P_CC3XX->rng.trng_debug_control);
 
             attempt_count++;
         }
-    } while ((! (P_CC3XX->rng.rng_isr & 0x1U))
-             && attempt_count < CC3XX_CONFIG_RNG_MAX_ATTEMPTS);
+    } while ((!(P_CC3XX->rng.rng_isr & 0x1U))
+             && (attempt_count < CC3XX_CONFIG_RNG_MAX_ATTEMPTS));
 
     if (attempt_count == CC3XX_CONFIG_RNG_MAX_ATTEMPTS) {
-        cc3xx_lowlevel_trng_finish();
+        trng_finish();
         FATAL_ERR(CC3XX_ERR_RNG_TOO_MANY_ATTEMPTS);
         return CC3XX_ERR_RNG_TOO_MANY_ATTEMPTS;
     }
@@ -195,6 +193,51 @@ cc3xx_err_t cc3xx_lowlevel_trng_get_sample(uint32_t *buf, size_t word_count)
     }
 
     return CC3XX_ERR_SUCCESS;
+}
+
+/*!
+ * \defgroup cc3xx_trng Set of functions implementing the API to access the TRNG
+ *                      for reading random bits
+ *
+ */
+/*!@{*/
+cc3xx_err_t cc3xx_lowlevel_trng_init(void)
+{
+    trng_init(g_trng_config.rosc.id, g_trng_config.rosc.subsampling_rate, g_trng_config.debug_control);
+
+    return CC3XX_ERR_SUCCESS;
+}
+
+cc3xx_err_t cc3xx_lowlevel_trng_finish(void)
+{
+    trng_finish();
+
+    return CC3XX_ERR_SUCCESS;
+}
+
+cc3xx_err_t cc3xx_lowlevel_trng_get_sample_stateless(uint32_t *buf, size_t word_count)
+{
+    cc3xx_err_t err;
+    const bool stateless = true;
+
+    /* In stateless mode do not set any TRNG test bypass */
+    trng_init(CC3XX_CONFIG_RNG_RING_OSCILLATOR_ID, CC3XX_CONFIG_RNG_SUBSAMPLING_RATE, 0x0);
+    err = trng_get_sample(buf, word_count, stateless);
+    if (err != CC3XX_ERR_SUCCESS) {
+        return err;
+    }
+    trng_finish();
+
+    return err;
+}
+
+cc3xx_err_t cc3xx_lowlevel_trng_get_sample(uint32_t *buf, size_t word_count)
+{
+    const bool stateless = false;
+    /* Unless called from the _stateless APIs, the get_sample will update
+     * the global config of the TRNG, i.e. to retain state for future calls
+     */
+    return trng_get_sample(buf, word_count, stateless);
 }
 
 cc3xx_err_t cc3xx_lowlevel_trng_set_config(
@@ -253,4 +296,5 @@ void cc3xx_lowlevel_trng_set_hw_test_bypass(
 
     g_trng_config.debug_control = hw_entropy_tests_control;
 }
+/*!@}*/
 #endif /* !CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
