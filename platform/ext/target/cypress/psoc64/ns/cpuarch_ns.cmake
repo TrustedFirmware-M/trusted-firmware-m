@@ -12,4 +12,4 @@
 
 # Set architecture and CPU. Cypress PSoC64 runs the NS code on its Cortex-M4
 set(TFM_SYSTEM_PROCESSOR cortex-m4)
-set(TFM_SYSTEM_ARCHITECTURE armv7-m)
+set(TFM_SYSTEM_ARCHITECTURE armv7e-m)

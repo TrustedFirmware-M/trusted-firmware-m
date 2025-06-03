@@ -7,21 +7,16 @@
 
 set(CMAKE_SYSTEM_NAME Generic)
 
-find_program(CMAKE_C_COMPILER ${CROSS_COMPILE}-gcc)
-find_program(CMAKE_CXX_COMPILER ${CROSS_COMPILE}-g++)
-
-if(CMAKE_C_COMPILER STREQUAL "CMAKE_C_COMPILER-NOTFOUND")
-    message(FATAL_ERROR "Could not find compiler: '${CROSS_COMPILE}-gcc'")
-endif()
-
-if(CMAKE_CXX_COMPILER STREQUAL "CMAKE_CXX_COMPILER-NOTFOUND")
-    message(FATAL_ERROR "Could not find compiler: '${CROSS_COMPILE}-g++'")
-endif()
+set(CMAKE_C_COMPILER ${CROSS_COMPILE}-gcc)
+set(CMAKE_C_COMPILER_FORCED TRUE)
+set(CMAKE_C_STANDARD 99)
 
 set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER})
 
-set(LINKER_VENEER_OUTPUT_FLAG -Wl,--cmse-implib,--out-implib=)
-set(COMPILER_CMSE_FLAG -mcmse)
+# C++ support is not quaranted. This settings is to compile with RPi Pico SDK.
+set(CMAKE_CXX_COMPILER ${CROSS_COMPILE}-g++)
+set(CMAKE_CXX_COMPILER_FORCED TRUE)
+set(CMAKE_CXX_STANDARD 11)
 
 # This variable name is a bit of a misnomer. The file it is set to is included
 # at a particular step in the compiler initialisation. It is used here to
@@ -29,88 +24,32 @@ set(COMPILER_CMSE_FLAG -mcmse)
 # with the Ninja generator.
 set(CMAKE_USER_MAKE_RULES_OVERRIDE ${CMAKE_CURRENT_LIST_DIR}/cmake/set_extensions.cmake)
 
-# CMAKE_C_COMPILER_VERSION is not guaranteed to be defined.
-EXECUTE_PROCESS( COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION )
+# CMAKE_C_COMPILER_VERSION is not initialised at this moment so do it manually
+EXECUTE_PROCESS(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE CMAKE_C_COMPILER_VERSION)
 
-# ===================== SEt toolchain CPU and Arch =============================
-
-if (DEFINED TFM_SYSTEM_PROCESSOR)
-    if(TFM_SYSTEM_PROCESSOR MATCHES "cortex-m85" AND GCC_VERSION VERSION_LESS "13.0.0")
-        # GNUARM until version 13 does not support the -mcpu=cortex-m85 flag
-        message(WARNING "Cortex-m85 is only supported from GCC13. "
-                        "Falling back to -march usage for earlier versions.")
-    else()
-        set(CMAKE_SYSTEM_PROCESSOR ${TFM_SYSTEM_PROCESSOR})
-
-        if (DEFINED TFM_SYSTEM_DSP)
-            if (NOT TFM_SYSTEM_DSP)
-                string(APPEND CMAKE_SYSTEM_PROCESSOR "+nodsp")
-            endif()
-        endif()
-        # GCC specifies that '+nofp' is available on following M-profile cpus: 'cortex-m4',
-        # 'cortex-m7', 'cortex-m33', 'cortex-m35p', 'cortex-m55' and 'cortex-m85'.
-        # Build fails if other M-profile cpu, such as 'cortex-m23', is added with '+nofp'.
-        # Explicitly list those cpu to align with GCC description.
-        if(GCC_VERSION VERSION_GREATER_EQUAL "8.0.0")
-            if(NOT CONFIG_TFM_ENABLE_FP AND
-                (TFM_SYSTEM_PROCESSOR STREQUAL "cortex-m4"
-                OR TFM_SYSTEM_PROCESSOR STREQUAL "cortex-m7"
-                OR TFM_SYSTEM_PROCESSOR STREQUAL "cortex-m33"
-                OR TFM_SYSTEM_PROCESSOR STREQUAL "cortex-m35p"
-                OR TFM_SYSTEM_PROCESSOR STREQUAL "cortex-m55"
-                OR TFM_SYSTEM_PROCESSOR STREQUAL "cortex-m85"))
-                    string(APPEND CMAKE_SYSTEM_PROCESSOR "+nofp")
-            endif()
-        endif()
-
-        if(TFM_SYSTEM_ARCHITECTURE STREQUAL "armv8.1-m.main")
-            if(NOT CONFIG_TFM_ENABLE_MVE)
-                string(APPEND CMAKE_SYSTEM_PROCESSOR "+nomve")
-            endif()
-            if(NOT CONFIG_TFM_ENABLE_MVE_FP)
-                string(APPEND CMAKE_SYSTEM_PROCESSOR "+nomve.fp")
-            endif()
-        endif()
-    endif()
-
+if (${CMAKE_C_COMPILER_VERSION} VERSION_LESS 10.3.1)
+    message(FATAL_ERROR "Please use GNU Arm toolchain version 10.3.1 or later")
 endif()
 
-# CMAKE_SYSTEM_ARCH variable is not a built-in CMAKE variable. It is used to
-# set the compile and link flags when TFM_SYSTEM_PROCESSOR is not specified.
-# The variable name is choosen to align with the ARMCLANG toolchain file.
-set(CMAKE_SYSTEM_ARCH         ${TFM_SYSTEM_ARCHITECTURE})
+function(min_toolchain_version mcpu gnu-version)
+    if (${TFM_SYSTEM_PROCESSOR} MATCHES ${mcpu} AND
+        ${CMAKE_C_COMPILER_VERSION} VERSION_LESS ${gnu-version})
+        message(FATAL_ERROR "-mcpu=${mcpu} is supported in GNU Arm version ${gnu-version} and later.\n"
+                "Please upgrade your toolchain to a supported version from: "
+                "https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads")
+    endif()
+endfunction()
 
-if(TFM_SYSTEM_ARCHITECTURE STREQUAL "armv8.1-m.main")
-    if(CONFIG_TFM_ENABLE_MVE)
-        string(APPEND CMAKE_SYSTEM_ARCH "+mve")
-    endif()
-    if(CONFIG_TFM_ENABLE_MVE_FP)
-        string(APPEND CMAKE_SYSTEM_ARCH "+mve.fp")
-    endif()
-endif()
+# the lowest supported GCC version for a specific cpu
+min_toolchain_version("cortex-m85" "13.0.0")
+min_toolchain_version("cortex-m52" "14.2.0")
 
-if (DEFINED TFM_SYSTEM_DSP)
-    # +nodsp modifier is only supported from GCC version 8.
-    if(GCC_VERSION VERSION_GREATER_EQUAL "8.0.0")
-        # armv8.1-m.main arch does not have +nodsp option
-        if ((NOT TFM_SYSTEM_ARCHITECTURE STREQUAL "armv8.1-m.main") AND
-            NOT TFM_SYSTEM_DSP)
-            string(APPEND CMAKE_SYSTEM_ARCH "+nodsp")
-        endif()
-    endif()
-endif()
-
-if(GCC_VERSION VERSION_GREATER_EQUAL "8.0.0")
-    if(CONFIG_TFM_ENABLE_FP)
-        string(APPEND CMAKE_SYSTEM_ARCH "+fp")
-    endif()
-endif()
+include(mcpu_features)
 
 file(REAL_PATH "${CMAKE_SOURCE_DIR}/../" TOP_LEVEL_PROJECT_DIR)
 
 add_compile_options(
-    -specs=nano.specs
-    -specs=nosys.specs
+    -mfix-cmse-cve-2021-35465
     -Wall
     -Wno-format
     -Wno-unused-but-set-variable
@@ -126,17 +65,13 @@ add_compile_options(
     # Strip /workspace/trusted-firmware-m
     -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=
     -mthumb
-    $<$<COMPILE_LANGUAGE:C>:-std=c99>
-    $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>
     $<$<OR:$<BOOL:${TFM_DEBUG_SYMBOLS}>,$<BOOL:${TFM_CODE_COVERAGE}>>:-g>
-    $<$<AND:$<COMPILE_LANGUAGE:C,CXX>,$<BOOL:${TFM_DEBUG_OPTIMISATION}>,$<CONFIG:Debug>>:-Og>
-    $<$<AND:$<COMPILE_LANGUAGE:C,CXX>,$<BOOL:${CONFIG_TFM_WARNINGS_ARE_ERRORS}>>:-Werror>
+    $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${TFM_DEBUG_OPTIMISATION}>,$<CONFIG:Debug>>:-Og>
+    $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${CONFIG_TFM_WARNINGS_ARE_ERRORS}>>:-Werror>
 )
 
-#
 # Pointer Authentication Code and Branch Target Identification (PACBTI) Options
 # Not currently supported for GNUARM.
-#
 if(NOT ${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_DISABLED)
     message(FATAL_ERROR "BRANCH_PROTECTION NOT supported for GNU-ARM")
 endif()
@@ -144,13 +79,11 @@ endif()
 # Workaround to add diagnostics color while using Ninja generator.
 # For reference: https://github.com/ninja-build/ninja/issues/174
 if (CMAKE_GENERATOR STREQUAL "Ninja")
-    add_compile_options(
-        -fdiagnostics-color=always
-    )
+    add_compile_options(-fdiagnostics-color=always)
 endif()
 
 add_link_options(
-    --entry=Reset_Handler
+    -mcpu=${TFM_SYSTEM_PROCESSOR}
     -specs=nano.specs
     -specs=nosys.specs
     LINKER:-check-sections
@@ -159,18 +92,10 @@ add_link_options(
     LINKER:--no-wchar-size-warning
 )
 
+set(LINKER_VENEER_OUTPUT_FLAG -Wl,--cmse-implib,--out-implib=)
+
 if(NOT CONFIG_TFM_MEMORY_USAGE_QUIET)
     add_link_options(LINKER:--print-memory-usage)
-endif()
-
-if (GCC_VERSION VERSION_LESS 7.3.1)
-    message(FATAL_ERROR "Please use newer GNU Arm compiler version starting from 7.3.1.")
-endif()
-
-if (GCC_VERSION VERSION_EQUAL 10.2.1)
-    message(FATAL_ERROR "GNU Arm compiler version 10-2020-q4-major has an issue in CMSE support."
-                        " Select other GNU Arm compiler versions instead."
-                        " See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=99157 for the issue detail.")
 endif()
 
 # GNU Arm compiler version greater equal than *11.3.Rel1*
@@ -181,28 +106,10 @@ endif()
 # READONLY linker script attribute is not supported in older
 # GNU Arm compilers. For these version the preprocessor will
 # remove the READONLY string from the linker scripts.
-if (GCC_VERSION VERSION_GREATER_EQUAL 11.3.1)
+if (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 11.3.1)
     set(CONFIG_GNU_SYSCALL_STUB_ENABLED TRUE)
     set(CONFIG_GNU_LINKER_READONLY_ATTRIBUTE TRUE)
 endif()
-
-if (CMAKE_SYSTEM_PROCESSOR)
-    set(CMAKE_C_FLAGS_INIT "-mcpu=${CMAKE_SYSTEM_PROCESSOR}")
-    set(CMAKE_CXX_FLAGS_INIT "-mcpu=${CMAKE_SYSTEM_PROCESSOR}")
-    set(CMAKE_ASM_FLAGS_INIT "-mcpu=${CMAKE_SYSTEM_PROCESSOR}")
-    set(CMAKE_C_LINK_FLAGS "-mcpu=${CMAKE_SYSTEM_PROCESSOR}")
-    set(CMAKE_ASM_LINK_FLAGS "-mcpu=${CMAKE_SYSTEM_PROCESSOR}")
-else()
-    set(CMAKE_C_FLAGS_INIT "-march=${CMAKE_SYSTEM_ARCH}")
-    set(CMAKE_CXX_FLAGS_INIT "-march=${CMAKE_SYSTEM_ARCH}")
-    set(CMAKE_ASM_FLAGS_INIT "-march=${CMAKE_SYSTEM_ARCH}")
-    set(CMAKE_C_LINK_FLAGS "-march=${CMAKE_SYSTEM_ARCH}")
-    set(CMAKE_ASM_LINK_FLAGS "-march=${CMAKE_SYSTEM_ARCH}")
-endif()
-
-set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS_INIT})
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_INIT})
-set(CMAKE_ASM_FLAGS ${CMAKE_ASM_FLAGS_INIT})
 
 set(BL2_COMPILER_CP_FLAG -mfloat-abi=soft)
 set(BL2_LINKER_CP_OPTION -mfloat-abi=soft)
@@ -221,9 +128,6 @@ else()
     set(COMPILER_CP_FLAG -mfloat-abi=soft)
     set(LINKER_CP_OPTION -mfloat-abi=soft)
 endif()
-
-# For GNU Arm Embedded Toolchain doesn't emit __ARM_ARCH_8_1M_MAIN__, adding this macro manually.
-add_compile_definitions($<$<STREQUAL:${TFM_SYSTEM_ARCHITECTURE},armv8.1-m.main>:__ARM_ARCH_8_1M_MAIN__=1>)
 
 macro(target_add_scatter_file target)
     target_link_options(${target}
@@ -274,44 +178,14 @@ macro(target_add_scatter_file target)
     )
 endmacro()
 
+# Macro for converting the output *.axf file to finary files: bin, elf, hex
 macro(add_convert_to_bin_target target)
     get_target_property(bin_dir ${target} RUNTIME_OUTPUT_DIRECTORY)
-
     add_custom_target(${target}_bin
-        SOURCES ${bin_dir}/${target}.bin
-    )
-    add_custom_command(OUTPUT ${bin_dir}/${target}.bin
-        DEPENDS ${target}
-        COMMAND ${CMAKE_OBJCOPY}
-            -O binary $<TARGET_FILE:${target}>
-            ${bin_dir}/${target}.bin
-    )
-
-    add_custom_target(${target}_elf
-        SOURCES ${bin_dir}/${target}.elf
-    )
-    add_custom_command(OUTPUT ${bin_dir}/${target}.elf
-        DEPENDS ${target}
-        COMMAND ${CMAKE_OBJCOPY}
-            -O elf32-littlearm $<TARGET_FILE:${target}>
-            ${bin_dir}/${target}.elf
-    )
-
-    add_custom_target(${target}_hex
-        SOURCES ${bin_dir}/${target}.hex
-    )
-    add_custom_command(OUTPUT ${bin_dir}/${target}.hex
-        DEPENDS ${target}
-        COMMAND ${CMAKE_OBJCOPY}
-            -O ihex $<TARGET_FILE:${target}>
-            ${bin_dir}/${target}.hex
-    )
-
-    add_custom_target(${target}_binaries
-        ALL
-        DEPENDS ${target}_bin
-        DEPENDS ${target}_elf
-        DEPENDS ${target}_hex
+        ALL DEPENDS ${target}
+        COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${target}> ${bin_dir}/${target}.bin
+        COMMAND ${CMAKE_OBJCOPY} -O elf32-littlearm $<TARGET_FILE:${target}> ${bin_dir}/${target}.elf
+        COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:${target}> ${bin_dir}/${target}.hex
     )
 endmacro()
 

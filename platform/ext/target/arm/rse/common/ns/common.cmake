@@ -76,7 +76,6 @@ if (RSE_XIP)
 
     add_custom_command(OUTPUT ${NS_TARGET_NAME}_sic_tables.bin
         OUTPUT ${NS_TARGET_NAME}_encrypted.bin
-        DEPENDS $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${NS_TARGET_NAME}.bin
         DEPENDS ${NS_TARGET_NAME}_bin
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../image_signing/scripts/create_xip_tables.py
             --input_image $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${NS_TARGET_NAME}.bin

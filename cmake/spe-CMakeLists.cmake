@@ -168,7 +168,6 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
         )
         add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/${NS_TARGET_NAME}_signed.bin
             DEPENDS ${NS_TARGET_NAME}_bin
-            DEPENDS $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${NS_TARGET_NAME}.bin
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/layout_files/signing_layout_ns.o
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts
 
@@ -215,7 +214,7 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
         )
         add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/bin/tfm_s_ns.bin
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/bin/tfm_s.bin
-            DEPENDS ${NS_TARGET_NAME}_bin $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${NS_TARGET_NAME}.bin
+            DEPENDS ${NS_TARGET_NAME}_bin
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/layout_files/signing_layout_s_ns.o
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts
 

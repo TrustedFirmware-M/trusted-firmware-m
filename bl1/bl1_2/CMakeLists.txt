@@ -112,7 +112,6 @@ add_custom_command(OUTPUT bl2_signed.bin
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_bl2_img.py
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/config/bl2_image_config.pickle
     DEPENDS bl2_bin
-    DEPENDS ${CMAKE_BINARY_DIR}/bin/bl2.bin
     COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_SOURCE_DIR}/tools/modules
             ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_bl2_img.py
                     --bl2_image_config ${CMAKE_CURRENT_BINARY_DIR}/config/bl2_image_config.pickle

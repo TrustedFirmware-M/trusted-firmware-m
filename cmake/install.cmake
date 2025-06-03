@@ -1,7 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2024, Arm Limited. All rights reserved.
-# Copyright (c) 2022-2023 Cypress Semiconductor Corporation (an Infineon company)
-# or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -307,5 +305,7 @@ configure_file(${CMAKE_SOURCE_DIR}/config/spe_config.cmake.in
                ${INSTALL_CMAKE_DIR}/spe_config.cmake @ONLY)
 
 # Toolchain utils
-install(FILES       cmake/set_extensions.cmake
+install(FILES
+        cmake/set_extensions.cmake
+        cmake/mcpu_features.cmake
         DESTINATION ${INSTALL_CMAKE_DIR})

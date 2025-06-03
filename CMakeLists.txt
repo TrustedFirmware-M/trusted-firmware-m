@@ -1,7 +1,5 @@
 #-------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
-# Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon company)
-# or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -36,9 +34,6 @@ include(config/post_config.cmake)
 ############################### Compiler configuration #########################
 
 include(${TFM_TOOLCHAIN_FILE})
-
-set(CMAKE_C_COMPILER_FORCED true)
-set(CMAKE_CXX_COMPILER_FORCED true)
 
 project("Trusted Firmware M" VERSION ${TFM_VERSION} LANGUAGES C CXX ASM)
 
@@ -77,4 +72,4 @@ include(${CMAKE_SOURCE_DIR}/config/check_config.cmake)
 
 ################################################################################
 
-include(cmake/install.cmake)
+include(install)
