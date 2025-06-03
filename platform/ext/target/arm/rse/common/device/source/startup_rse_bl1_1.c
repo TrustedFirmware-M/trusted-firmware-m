@@ -28,6 +28,7 @@
 #include "rse_persistent_data.h"
 #include "trng.h"
 #if defined(RSE_ENABLE_TRAM)
+#include "tram_drv.h"
 #include "uart_stdout.h"
 #endif
 #include "sam_interrupts.h"
@@ -211,7 +212,7 @@ static void __attribute__ ((noinline)) setup_tram_encryption(void) {
     enum lcm_lcs_t lcs;
     uint32_t random_word;
     uint32_t idx;
-    uint8_t tram_key[32];
+    uint8_t tram_key[TRAM_KEY_SIZE];
     uint8_t prbg_seed[KMU_PRBG_SEED_LEN];
 
     const struct kmu_key_export_config_t tram_key_export_config = {
@@ -242,11 +243,19 @@ static void __attribute__ ((noinline)) setup_tram_encryption(void) {
 
     stdio_is_initialized_reset();
 
+    /* generate a random word  to clear secret values */
+    bl1_trng_generate_random((uint8_t *)&random_word, sizeof(random_word));
+
     lcm_get_sp_enabled(&lcm_dev_s, &sp_enabled);
     lcm_get_lcs(&lcm_dev_s, &lcs);
 
     bl1_trng_generate_random(prbg_seed, sizeof(prbg_seed));
     kmu_init(&kmu_dev_s, prbg_seed);
+
+    /* Clear PRBG seed from the stack */
+    for (idx = 0; idx < KMU_PRBG_SEED_LEN / sizeof(uint32_t); idx++) {
+        ((uint32_t *)prbg_seed)[idx] = random_word;
+    }
 
     /* The secure provisioning reset resets the KMU which wipes the keyslots,
      * but it's still a warm reset so the DMA ICS doesn't run. Because of this,
@@ -257,7 +266,12 @@ static void __attribute__ ((noinline)) setup_tram_encryption(void) {
 
         kmu_set_key(&kmu_dev_s, RSE_KMU_SLOT_TRAM_KEY, tram_key, sizeof(tram_key));
 
-        /* Also generate a random word to initialise the DTCM */
+        /* Clear TRAM key from the stack */
+        for (idx = 0; idx < TRAM_KEY_SIZE / sizeof(uint32_t); idx++) {
+           ((uint32_t *)tram_key)[idx] = random_word;
+        }
+
+        /* generate a random word to initialise the DTCM */
         bl1_trng_generate_random((uint8_t *)&random_word, sizeof(random_word));
     }
 
@@ -272,6 +286,9 @@ static void __attribute__ ((noinline)) setup_tram_encryption(void) {
         for (idx = 0; idx < DTCM_SIZE / sizeof(uint32_t); idx++) {
             ((uint32_t *)DTCM_BASE_S)[idx] = random_word;
         }
+
+        /* Clear it from the stack */
+        random_word = 0;
     }
 
     stdio_is_initialized_reset();

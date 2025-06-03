@@ -29,6 +29,8 @@
 extern "C" {
 #endif
 
+#define TRAM_KEY_SIZE       32
+
 /**
  * \brief ARM TRAM device configuration structure
  */
