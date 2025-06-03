@@ -7,13 +7,13 @@ DAPLink Firmware
 ****************
 The code on Musca-B1 is running from embedded flash. Make sure that the DAPLink
 FW for eFlash is downloaded to the board. You can find on the
-`Arm Community page <https://community.arm.com/oss-platforms/w/docs/552/musca-b1-firmware-update-qspi-eflash-boot-recovery>`__
+`Arm Developer page <https://developer.arm.com/documentation/110409/0100/Musca-B1-firmware-update-and-boot-recovery>`__
 A short description of how to update the DAPLink FW can be found there as well.
 
 .. Note::
     Warm reset of eFlash is not supported on Musca_B1. TF-M may not boot after
     a warm reset. Further information on the hardware limitation can be
-    found on `Arm Community page <https://community.arm.com/oss-platforms/w/docs/566/musca-b1-warm-reset-of-eflash>`__.
+    found on `Arm Developer page <https://developer.arm.com/documentation/110409/0100/Musca-B1-warm-reset-of-eFlash>`__.
 
 ********************
 Platform pin service
@@ -27,4 +27,4 @@ generic service request delivery mechanism.
 
 --------------
 
-*Copyright (c) 2017-2022, Arm Limited. All rights reserved.*
+*Copyright (c) 2017-2025, Arm Limited. All rights reserved.*
