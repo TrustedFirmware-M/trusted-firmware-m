@@ -5,4 +5,4 @@
 #
 #-------------------------------------------------------------------------------
 
-set(PSA_API_TEST_TARGET stm32h573i_dk)
+set(PSA_API_TEST_TARGET stm32l562e_dk)
