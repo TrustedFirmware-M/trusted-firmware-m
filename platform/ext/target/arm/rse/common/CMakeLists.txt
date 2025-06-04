@@ -915,6 +915,28 @@ if (RSE_AMOUNT GREATER 1)
                 --topology_graph_file=${MULTI_RSE_TOPOLOGY_FILE}
                 --routing_tables_output_file=${CMAKE_CURRENT_BINARY_DIR}/config/routing_tables.pickle
     )
+
+    if (NOT RSE_OTP_HAS_ROUTING_TABLES)
+        add_custom_target(routing_tables_definition_source_file
+            SOURCES ${CMAKE_CURRENT_BINARY_DIR}/rse_system_routing_tables_definition.c
+        )
+
+        add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/rse_system_routing_tables_definition.c
+            DEPENDS  ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_routing_tables_source_file.py
+            DEPENDS  ${CMAKE_CURRENT_BINARY_DIR}/config/routing_tables.pickle
+            COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_SOURCE_DIR}/tools/modules
+                ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_routing_tables_source_file.py
+                    --routing_tables=${CMAKE_CURRENT_BINARY_DIR}/config/routing_tables.pickle
+                    --c_source_output_file ${CMAKE_CURRENT_BINARY_DIR}/rse_system_routing_tables_definition.c
+        )
+
+        add_dependencies(platform_bl1_1 routing_tables_definition_source_file)
+
+        target_sources(platform_bl1_1
+            PRIVATE
+                ${CMAKE_CURRENT_BINARY_DIR}/rse_system_routing_tables_definition.c
+        )
+    endif()
 endif()
 
 #========================= Files for building NS side platform ================#
