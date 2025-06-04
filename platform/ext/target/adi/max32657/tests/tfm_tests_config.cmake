@@ -6,7 +6,5 @@
 #-------------------------------------------------------------------------------
 
 set(TEST_NS_SLIH_IRQ		OFF   CACHE BOOL    "Whether to build NS regression Second-Level Interrupt Handling tests")
-set(TEST_NS_PS              OFF   CACHE BOOL    "Whether to build NS PS tests")
-set(TEST_NS_PLATFORM        OFF  )
 set(TEST_NS_IPC             OFF  )
 set(TEST_NS_FLIH_IRQ        OFF  )
