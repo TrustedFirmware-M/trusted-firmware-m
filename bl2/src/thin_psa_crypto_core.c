@@ -190,14 +190,20 @@ static psa_status_t get_key_sign_policy(psa_key_id_t key_id,
 {
     uint32_t policies;
     enum tfm_plat_err_t err;
+    uint32_t policy_mask;
 
     err = tfm_plat_get_bl2_rotpk_policies((uint8_t *)&policies, sizeof(policies));
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return PSA_ERROR_GENERIC_ERROR;
     }
 
-    /* Check if the key id bit from the policies is set */
-    if (policies & (1 << key_id)) {
+    /* Get the policy mask for the corresponding key id */
+    policy_mask = get_policy_bit_mask(key_id);
+    if (policy_mask == 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (policies & policy_mask) {
         *policy = TFM_BL2_KEY_MUST_SIGN;
     } else {
         *policy = TFM_BL2_KEY_MIGHT_SIGN;

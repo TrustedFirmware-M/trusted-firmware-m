@@ -29,6 +29,7 @@
 #include <stdbool.h>
 #include <bootutil/sign_key.h>
 #include "mcuboot_config/mcuboot_config.h"
+#include "crypto_keys/tfm_builtin_key_ids.h"
 #include "tfm_plat_rotpk.h"
 #include "tfm_plat_crypto_keys.h"
 #include "tfm_plat_otp.h"
@@ -45,38 +46,41 @@ enum tfm_plat_err_t tfm_plat_get_bl2_rotpk_policies(uint8_t *buf, size_t buf_len
 
 /**
  * @note When using builtin keys the signature verification happens based on key IDs.
- *       During verification MCUboot feeds the image index as a key ID and it is the
- *       underlying crypto library's responsibility to do a mapping (if required)
- *       between the image indexes and the builtin key IDs. Therefore it only allows
- *       as many IDs as there are images times number of keys per image.
+ *       During verification MCUboot checksthe key id to the below count. Hence
+ *       check the key id is not greater than max built in key id value.
  */
-const int bootutil_key_cnt = (MCUBOOT_IMAGE_NUMBER * MAX_KEYS_PER_IMAGE);
+const int bootutil_key_cnt = TFM_BUILTIN_KEY_ID_MAX;
 
 typedef struct {
-    int key_id[MAX_KEYS_PER_IMAGE];  /*!< Key id of built in keys */
+    uint32_t key_id[MAX_KEYS_PER_IMAGE]; /*!< Key id of built in keys */
+    int otp_id[MAX_KEYS_PER_IMAGE];      /*!< OTP id corresponding to key id */
 }image_key_id_mapping_t;
 
 #ifdef MCUBOOT_IMAGE_MULTI_SIG_SUPPORT
-/* Platform specific image to key id (otp id offset) map */
+/* Platform specific image to key id & otp id map */
 static const image_key_id_mapping_t tfm_image_key_map[] = {
     {
         /* Image 0: Two keys provided; both keys are required (bit mask: binary 00000011) */
-        .key_id = { TFM_S_KEY_ID, TFM_S_KEY_ID_2},
+        .key_id = { TFM_S_KEY_ID, TFM_NS_KEY_ID},
+        .otp_id = { PLAT_OTP_ID_BL2_ROTPK_0, PLAT_OTP_ID_BL2_ROTPK_1 }
     },
     {
         /* Image 1: Only one key is provided and required, the second slot is unused */
         .key_id = { TFM_NS_KEY_ID, PSA_KEY_ID_NULL },
+        .otp_id = { PLAT_OTP_ID_BL2_ROTPK_1, -1 }
     },
 #if (MCUBOOT_IMAGE_NUMBER > 2)
     {
         /* Image 2: Only one key is provided and required, the second slot is unused */
-        .key_id = { TFM_S_KEY_ID_3, PSA_KEY_ID_NULL },
+        .key_id = { TFM_S_KEY_ID, PSA_KEY_ID_NULL },
+        .otp_id = { PLAT_OTP_ID_BL2_ROTPK_0, -1 }
     },
 #endif /* MCUBOOT_IMAGE_NUMBER > 2 */
 #if (MCUBOOT_IMAGE_NUMBER > 3)
     {
         /* Image 3: Only one key is provided and required, the second slot is unused */
-        .key_id = { TFM_S_KEY_ID_4, PSA_KEY_ID_NULL },
+        .key_id = { TFM_S_KEY_ID, PSA_KEY_ID_NULL },
+        .otp_id = { PLAT_OTP_ID_BL2_ROTPK_0, -1 }
     },
 #endif /* MCUBOOT_IMAGE_NUMBER > 3 */
 };
@@ -87,25 +91,60 @@ static const image_key_id_mapping_t tfm_image_key_map[] = {
     {
         /* Image 0: Only one key is provided and required */
         .key_id = { TFM_S_KEY_ID },
+        .otp_id = { PLAT_OTP_ID_BL2_ROTPK_0 }
     },
     {
         /* Image 1: Only one key is provided and required */
         .key_id = { TFM_NS_KEY_ID },
+        .otp_id = { PLAT_OTP_ID_BL2_ROTPK_1 }
     },
 #if (MCUBOOT_IMAGE_NUMBER > 2)
     {
         /* Image 2: Only one key is provided and required */
-        .key_id = { TFM_S_KEY_ID_3 },
+        .key_id = { TFM_S_KEY_ID },
+        .otp_id = { PLAT_OTP_ID_BL2_ROTPK_0 }
     },
 #endif /* MCUBOOT_IMAGE_NUMBER > 2 */
 #if (MCUBOOT_IMAGE_NUMBER > 3)
     {
         /* Image 3: Only one key is provided and required */
-        .key_id = { TFM_S_KEY_ID_4 },
+        .key_id = { TFM_S_KEY_ID },
+        .otp_id = { PLAT_OTP_ID_BL2_ROTPK_0 }
     },
 #endif /* MCUBOOT_IMAGE_NUMBER > 3 */
 };
 #endif /* MCUBOOT_IMAGE_MULTI_SIG_SUPPORT */
+
+static int get_otp_id(psa_key_id_t key_id)
+{
+    /* Lookup in tfm_image_key_map to get OTP ID with matching key id */
+    for (int i = 0; i < MCUBOOT_IMAGE_NUMBER; i++) {
+        for (int j = 0; j < MAX_KEYS_PER_IMAGE; j++) {
+            if (tfm_image_key_map[i].key_id[j] == key_id) {
+                return tfm_image_key_map[i].otp_id[j];
+            }
+        }
+    }
+
+    return -1; /* Not found */
+}
+
+uint32_t get_policy_bit_mask(uint32_t key_id)
+{
+    int img_idx, key_idx, bit;
+
+    for (img_idx = 0; img_idx < MCUBOOT_IMAGE_NUMBER; img_idx++) {
+        for (key_idx = 0; key_idx < MAX_KEYS_PER_IMAGE; key_idx++) {
+            if (tfm_image_key_map[img_idx].key_id[key_idx] == key_id) {
+                bit = img_idx * MAX_KEYS_PER_IMAGE + key_idx;
+                assert(bit < 32); /* ensure we don't overflow */
+                return (1u << bit);
+            }
+        }
+    }
+
+    return 0; /* not found */
+}
 
 /**
  * @brief Loader function to retrieve the Root of Trust Public Key
@@ -136,9 +175,14 @@ static enum tfm_plat_err_t tfm_plat_get_bl2_rotpk(const void *ctx,
     enum tfm_plat_err_t err;
     const tfm_plat_builtin_key_descriptor_t *descriptor = (const tfm_plat_builtin_key_descriptor_t *)ctx;
 
-    assert(descriptor->key_id >= 0);
+    assert(descriptor->key_id > 0);
 
-    uint32_t otp_id = PLAT_OTP_ID_BL2_ROTPK_0 + descriptor->key_id;
+    int otp_id = get_otp_id(descriptor->key_id);
+
+    if (otp_id < 0) {
+        return TFM_PLAT_ERR_INVALID_INPUT; /* OTP ID not found */
+    }
+
     err = tfm_plat_otp_read(otp_id, buf_len, buf);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
@@ -191,7 +235,7 @@ static enum tfm_plat_err_t tfm_plat_get_bl2_rotpk(const void *ctx,
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-static int get_key_id(uint8_t img_idx, uint8_t key_idx)
+static uint32_t get_key_id(uint8_t img_idx, uint8_t key_idx)
 {
     assert(img_idx < MCUBOOT_IMAGE_NUMBER);
     assert(key_idx < MAX_KEYS_PER_IMAGE);
@@ -255,7 +299,7 @@ size_t tfm_plat_builtin_key_get_desc_table_ptr(const tfm_plat_builtin_key_descri
     return MCUBOOT_IMAGE_NUMBER * MAX_KEYS_PER_IMAGE;
 }
 
-int boot_verify_key_id_for_image(uint8_t image_index, int32_t key_id)
+int boot_verify_key_id_for_image(uint8_t image_index, uint32_t key_id)
 {
     for (int i = 0; i < MAX_KEYS_PER_IMAGE; i++) {
         if (key_id == get_key_id(image_index, i)) {

@@ -118,6 +118,28 @@ enum tfm_bl2_key_policy_t {
 enum tfm_plat_err_t tfm_plat_get_bl2_rotpk_policies(uint8_t *buf, size_t buf_len);
 
 /**
+ * @brief Look up the policy bit mask associated with a particular key ID.
+ *
+ *        This function scans the platform-specific `tfm_image_key_map` array
+ *        to find which image index and key slot correspond to the given key_id.
+ *        It then calculates the bit position as:
+ *        bit = (image_index * MAX_KEYS_PER_IMAGE) + key_index
+ *        and returns a 32-bit mask with that single bit set.
+ *        If `key_id` is not found in the map, the function returns 0.
+ *
+ * @param[in] key_id   The PSA key identifier to look up in `tfm_image_key_map`.
+ *
+ * @return
+ *      A `uint32_t` mask with exactly one bit set if `key_id` was found:
+ *      - Bit position = (image_index * MAX_KEYS_PER_IMAGE) + key_index
+ *      Returns 0 if:
+ *      - `key_id` is not present in `tfm_image_key_map`, or
+ *      - the computed bit index would overflow a 32-bit word (should not occur
+ *       if `MCUBOOT_IMAGE_NUMBER * MAX_KEYS_PER_IMAGE <= 32`).
+ */
+uint32_t get_policy_bit_mask(uint32_t key_id);
+
+/**
  * @brief Check the key policy for a given key ID based on signature validity.
  *
  * @details This function evaluates the policy associated with the specified
