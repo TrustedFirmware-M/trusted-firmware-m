@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
 #include "cc3xx_rng.h"
 #include "cmsis.h"
 #include "dpa_hardened_word_copy.h"
+#include "rse_routing_tables.h"
 
 #include <string.h>
 

@@ -896,6 +896,27 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/config/otp_layout.csv
 install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/config/otp_layout.csv
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/config)
 
+############################## Routing tables ##################################
+
+if (RSE_AMOUNT GREATER 1)
+    add_custom_target(routing_tables_pickle
+        ALL
+        SOURCES ${CMAKE_CURRENT_BINARY_DIR}/config/routing_tables.pickle
+    )
+
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/config/routing_tables.pickle
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rse_routing_tables.h
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/modules/routing_tables.py
+        DEPENDS ${MULTI_RSE_TOPOLOGY_FILE}
+        COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_SOURCE_DIR}/tools/modules
+            ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/modules/routing_tables.py
+                --rse_routing_tables_h_file=${CMAKE_CURRENT_SOURCE_DIR}/rse_routing_tables.h
+                --compile_commands_file=${CMAKE_BINARY_DIR}/compile_commands.json
+                --topology_graph_file=${MULTI_RSE_TOPOLOGY_FILE}
+                --routing_tables_output_file=${CMAKE_CURRENT_BINARY_DIR}/config/routing_tables.pickle
+    )
+endif()
+
 #========================= Files for building NS side platform ================#
 
 install(FILES       device/source/device_definition.c
