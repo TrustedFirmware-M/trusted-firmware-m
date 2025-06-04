@@ -45,7 +45,7 @@ set(MCUBOOT_PATH                        "DOWNLOAD"  CACHE PATH      "Path to MCU
 set(MCUBOOT_VERSION                     "v2.2.0-rc1" CACHE STRING   "The version of MCUboot to use")
 
 set(TFM_EXTRAS_REPO_PATH                "DOWNLOAD"  CACHE PATH      "Path to tf-m-extras repo (or DOWNLOAD to fetch automatically")
-set(TFM_EXTRAS_REPO_VERSION             "8679c4c"   CACHE STRING    "The version of tf-m-extras to use")
+set(TFM_EXTRAS_REPO_VERSION             "8add4af"   CACHE STRING    "The version of tf-m-extras to use")
 
 set(PLATFORM_PSA_ADAC_SECURE_DEBUG      FALSE       CACHE BOOL      "Whether to use psa-adac secure debug.")
 set(PLATFORM_PSA_ADAC_SOURCE_PATH       "DOWNLOAD"  CACHE PATH      "Path to source dir of psa-adac.")
