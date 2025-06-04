@@ -12,6 +12,12 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+#ifndef CC3XX_CONFIG_FILE
+#include "cc3xx_config.h"
+#else
+#include CC3XX_CONFIG_FILE
+#endif
+
 #include "cc3xx_dev.h"
 #include "cc3xx_error.h"
 
@@ -23,11 +29,59 @@ extern "C" {
  * @brief Size in bytes of the generated entropy per each generation from the TRNG
  *
  */
-#define CC3XX_TRNG_SAMPLE_SIZE (sizeof(P_CC3XX->rng.ehr_data))
+#define CC3XX_TRNG_SAMPLE_SIZE      (sizeof(P_CC3XX->rng.ehr_data))
+#define CC3XX_TRNG_WORDS_PER_SAMPLE (CC3XX_TRNG_SAMPLE_SIZE / sizeof(uint32_t))
+
+#ifdef CC3XX_CONFIG_TRNG_DMA
+#define CC3XX_RNG_SRAM_SIZE         (2048) /* 2KiB */
+#define CC3XX_RNG_SRAM_SIZE_WORDS   (CC3XX_RNG_SRAM_SIZE / sizeof(uint32_t))
+
+/* Align the SRAM to sample size for simplicity */
+#define CC3XX_TRNG_SRAM_MAX_SAMPLES (CC3XX_RNG_SRAM_SIZE / CC3XX_TRNG_SAMPLE_SIZE)
+#define CC3XX_TRNG_SRAM_MAX_WORDS   (CC3XX_TRNG_SRAM_MAX_SAMPLES * CC3XX_TRNG_WORDS_PER_SAMPLE)
+#endif /* CC3XX_CONFIG_TRNG_DMA */
 
 #ifndef __PACKED_ENUM
 #define __PACKED_ENUM enum __attribute__((packed))
 #endif
+
+/**
+ * @brief: Indicates that the autocorrelation test failed four times in a row.
+ *         When AUTOCORR_ERR is set, TRNG ceases to function until next reset.
+ *
+ */
+__PACKED_ENUM cc3xx_trng_autocorr_test_state {
+    CC3XX_TRNG_AUTOCORR_TEST_ACTIVE,
+    CC3XX_TRNG_AUTOCORR_TEST_BYPASS
+};
+
+/**
+ * @brief: Indicates CRNGT in the TRNG test failed. Failure occurs when two
+ *         consecutive blocks of 16 collected bits are equal.
+ *
+ */
+__PACKED_ENUM cc3xx_trng_crngt_test_state {
+    CC3XX_TRNG_CRNGT_TEST_ACTIVE,
+    CC3XX_TRNG_CRNGT_TEST_BYPASS
+};
+
+/**
+ * @brief: Indicates von Neumann balancer error. Error in von Neumann balancer
+ *         occurs if all 32 of the consecutive collected bits are identical.
+ *
+ */
+__PACKED_ENUM cc3xx_trng_vnc_test_state {
+    CC3XX_TRNG_VNC_TEST_ACTIVE,
+    CC3XX_TRNG_VNC_TEST_BYPASS
+};
+
+#ifdef CC3XX_CONFIG_TRNG_COLLECT_STATISTCS
+struct cc3xx_trng_stats {
+    size_t autocorr_err_stats;
+    size_t crngt_err_stats;
+    size_t vnc_err_stats;
+};
+#endif /* CC3XX_CONFIG_TRNG_COLLECT_STATISTCS */
 
 /**
  * @brief The type describes the IDs of the available ring oscillators (ROSCs) from
@@ -42,6 +96,22 @@ __PACKED_ENUM cc3xx_rng_rosc_id_t {
     CC3XX_RNG_ROSC_ID_2 = 2,     /*!< ROSC ID 2 */
     CC3XX_RNG_ROSC_ID_3 = 3,     /*!< ROSC ID 3 */
 };
+
+#ifdef CC3XX_CONFIG_TRNG_COLLECT_STATISTCS
+/**
+ * @brief                       Gets the TRNG error counters
+ *
+ * @param[in] stats             statistics structure to be populated with current error counters.
+ *
+ */
+void cc3xx_lowlevel_trng_get_stats(struct cc3xx_trng_stats *stats);
+
+/**
+ * @brief                       Clears the TRNG error counters.
+ *
+ */
+void cc3xx_lowlevel_trng_clear_stats(void);
+#endif /* CC3XX_CONFIG_TRNG_COLLECT_STATISTCS */
 
 /**
  * @brief                       SP800-90B section 4.4 recommends two continuous health tests
@@ -86,12 +156,15 @@ cc3xx_err_t cc3xx_lowlevel_trng_validate_config(void);
  * @brief                       Sets the TRNG_DEBUG_CONTROL register to bypass mode for the
  *                              respective HW tests, in the global configuration (state) structure
  *
- * @param[in] bypass_autocorr   Set to \a true to bypass the AUTOCORR test
- * @param[in] bypass_crngt      Set to \a true to bypass the CRNGT test
- * @param[in] bypass_vnc        Set to \a true to bypass the Von Neumann balancer test
+ * @param[in] autocorr_state    Set to \a CC3XX_TRNG_AUTOCORR_TEST_BYPASS to bypass the AUTOCORR test
+ * @param[in] crngt_state       Set to \a CC3XX_TRNG_CRNGT_TEST_BYPASS to bypass the CRNGT test
+ * @param[in] vnc_state         Set to \a CC3XX_TRNG_VNC_TEST_BYPASS to bypass the VNC test
  *
  */
-void cc3xx_lowlevel_trng_set_hw_test_bypass(bool bypass_autocorr, bool bypass_crngt, bool bypass_vnc);
+void cc3xx_lowlevel_trng_set_hw_test_bypass(
+    enum cc3xx_trng_autocorr_test_state autocorr_state,
+    enum cc3xx_trng_crngt_test_state crngt_state,
+    enum cc3xx_trng_vnc_test_state vnc_state);
 
 /**
  * @brief                       Reads the sample out of the TRNG, without accessing the global config state
