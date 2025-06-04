@@ -143,6 +143,7 @@ if (TFM_PARTITION_NS_AGENT_MAILBOX)
                         ${INTERFACE_SRC_DIR}/multi_core/tfm_multi_core_ns_api.c
                         ${INTERFACE_SRC_DIR}/multi_core/tfm_multi_core_psa_ns_api.c
                         ${INTERFACE_SRC_DIR}/multi_core/tfm_ns_mailbox_thread.c
+                        ${INTERFACE_SRC_DIR}/multi_core/tfm_ns_mailbox_common.c
             DESTINATION ${INSTALL_INTERFACE_SRC_DIR}/multi_core)
 endif()
 

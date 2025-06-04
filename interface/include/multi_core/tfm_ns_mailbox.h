@@ -400,6 +400,11 @@ static inline mailbox_queue_status_t clear_queue_slot_all_replied(
     return status;
 }
 
+/**
+ * \brief Set the NS mailbox queue in the respective mailbox implementation.
+ */
+void mailbox_set_queue_ptr(struct ns_mailbox_queue_t *queue);
+
 #ifdef __cplusplus
 }
 #endif

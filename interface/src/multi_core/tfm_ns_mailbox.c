@@ -322,40 +322,9 @@ static int32_t mailbox_wait_reply(uint8_t idx)
     return MAILBOX_SUCCESS;
 }
 
-int32_t tfm_ns_mailbox_init(struct ns_mailbox_queue_t *queue)
+void mailbox_set_queue_ptr(struct ns_mailbox_queue_t *queue)
 {
-    int32_t ret;
-
-    if (!queue) {
-        return MAILBOX_INVAL_PARAMS;
+    if (queue != NULL) {
+        mailbox_queue_ptr = queue;
     }
-
-    /*
-     * Further verification of mailbox queue address may be required according
-     * to non-secure memory assignment.
-     */
-
-    memset(queue, 0, sizeof(*queue));
-
-    /* Initialize empty bitmask */
-    queue->empty_slots =
-            (mailbox_queue_status_t)((1UL << (NUM_MAILBOX_QUEUE_SLOT - 1)) - 1);
-    queue->empty_slots +=
-            (mailbox_queue_status_t)(1UL << (NUM_MAILBOX_QUEUE_SLOT - 1));
-
-    mailbox_queue_ptr = queue;
-
-    /* Platform specific initialization. */
-    ret = tfm_ns_mailbox_hal_init(queue);
-    if (ret != MAILBOX_SUCCESS) {
-        return ret;
-    }
-
-    ret = tfm_ns_mailbox_os_lock_init();
-
-#ifdef TFM_MULTI_CORE_TEST
-    tfm_ns_mailbox_tx_stats_init(queue);
-#endif
-
-    return ret;
 }
