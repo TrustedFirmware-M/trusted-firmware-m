@@ -100,7 +100,10 @@ void mbedtls_gcm_init( mbedtls_gcm_context *ctx )
     GCM_VALIDATE( ctx != NULL );
 
 #if defined(GENERATOR_HW_CRYPTO_DPA_SUPPORTED) && defined(HW_CRYPTO_DPA_GCM)
-   /* Enable SAES clock */
+#ifdef STM32U5
+    /* Enable SAES clock */
+    __HAL_RCC_SHSI_ENABLE();
+#endif
     __HAL_RCC_SAES_CLK_ENABLE();
 #endif
     memset( ctx, 0, sizeof( mbedtls_gcm_context ) );
@@ -257,6 +260,7 @@ int mbedtls_gcm_setkey( mbedtls_gcm_context *ctx,
     }
 #if defined(GENERATOR_HW_CRYPTO_DPA_SUPPORTED) && defined(HW_CRYPTO_DPA_GCM)
     /* Enable SAES clock */
+    __HAL_RCC_SHSI_ENABLE();
     __HAL_RCC_SAES_CLK_ENABLE();
 #else
     __HAL_RCC_AES_CLK_ENABLE();

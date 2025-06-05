@@ -138,7 +138,10 @@ static int aes_set_key(mbedtls_aes_context *ctx,
     }
 
 #if defined(GENERATOR_HW_CRYPTO_DPA_SUPPORTED) && defined(HW_CRYPTO_DPA_AES)
+#ifdef STM32U5
     /* Enable SAES clock */
+    __HAL_RCC_SHSI_ENABLE();
+#endif
     __HAL_RCC_SAES_CLK_ENABLE();
 #else
     /* Enable AES clock */
