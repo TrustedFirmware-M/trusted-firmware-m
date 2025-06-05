@@ -29,6 +29,8 @@ from provisioning_message_config import Provisioning_message_config
 import provisioning_config as pc
 from provisioning_config import Provisioning_config
 
+from routing_tables import Routing_tables
+
 
 def add_arguments(parser : argparse.ArgumentParser,
                   prefix : str = "",
@@ -74,6 +76,9 @@ if __name__ == "__main__":
     kwargs['otp_config'].set_cm_offsets_automatically()
     kwargs['otp_config'].set_dm_offsets_automatically()
     kwargs['provisioning_config'].set_area_infos_from_otp_config(**kwargs)
+    if 'routing_tables_idx' in kwargs:
+        assert 'routing_tables' in kwargs
+        kwargs['provisioning_config'].set_routing_tables(kwargs['routing_tables_idx'],kwargs['routing_tables'])
 
     logger.debug(kwargs['provisioning_config'].non_secret_cm_layout)
     logger.debug(kwargs['provisioning_config'].secret_cm_layout)

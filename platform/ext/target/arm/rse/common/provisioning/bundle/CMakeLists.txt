@@ -309,6 +309,11 @@ if (TFM_DUMMY_PROVISIONING)
         ${TFM_BL2_ENCRYPTION_KEY_PATH}
     )
 
+    set(DM_BUNDLE_SCRIPT_DEPS
+        $<$<BOOL:${RSE_OTP_HAS_ROUTING_TABLES}>:routing_tables_pickle>
+        $<$<BOOL:${RSE_OTP_HAS_ROUTING_TABLES}>:${CMAKE_CURRENT_BINARY_DIR}/../../config/routing_tables.pickle>
+    )
+
     set(DM_BUNDLE_SCRIPT_ARGS
         $<$<EQUAL:${TFM_BL1_2_SIGNER_AMOUNT},2>:--non_secret_dm:dm.rotpk_areas_0.rotpk_0=${TFM_BL1_2_DM_SIGNING_KEY_PATH}>
         $<$<EQUAL:${TFM_BL1_2_SIGNER_AMOUNT},2>:--non_secret_dm:dm.rotpk_areas_0.rotpk_policy_0=RSE_ROTPK_POLICY_SIG_OPTIONAL>
@@ -319,6 +324,8 @@ if (TFM_DUMMY_PROVISIONING)
         --non_secret_dm:dm.rotpk_areas_0.rotpk_policy_1 RSE_ROTPK_POLICY_SIG_REQUIRED
         --non_secret_dm:dm.rotpk_areas_0.rotpk_type_1 RSE_ROTPK_TYPE_${MCUBOOT_ROTPK_TYPE}
         --non_secret_dm:dm.rotpk_areas_0.rotpk_hash_alg_1 RSE_ROTPK_HASH_ALG_${MCUBOOT_ROTPK_HASH_ALG}
+
+        $<$<BOOL:${RSE_OTP_HAS_ROUTING_TABLES}>:--routing_tables=${CMAKE_CURRENT_BINARY_DIR}/../../config/routing_tables.pickle>
     )
 
     if (RSE_DM_CHAINED_PROVISIONING)
@@ -331,41 +338,83 @@ if (TFM_DUMMY_PROVISIONING)
         endif()
     endif()
 
-    generate_provisioning_bundle(
-        cm_provisioning # bundle type
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/create_cm_provisioning_bundle.py # script
-        cm_provisioning_code # cmake executable target
-        "${RSE_CM_BLOB_VERSION}" # blob version
-        "CM" # valid LCS states
-        "${RSE_SYMMETRIC_PROVISIONING}" # symmetric provisioning enabled
-        "${RSE_PROVISIONING_CM_SIGNATURE_CONFIG}" # signature config
-        "${RSE_CM_PROVISIONING_SIGNING_KEY}" # signature key (if asymmetric)
-        ${CMAKE_BINARY_DIR}/bin/keys/kprov_cm.bin # encryption key
-        "" # PK not in ROM configuration (not for CM)
-        "" # CM ROTPK index if PK not in ROM == CM_ROTPK (not for CM)
-        "${RSE_PROVISIONING_CM_ENCRYPT_CODE_DATA}" # encrypt code and data
-        ON # encrypt secret values
-        "${CM_BUNDLE_SCRIPT_ARGS}" # OTP values args
-        "${CM_BUNDLE_SCRIPT_DEPS}" # script specific CMake dependencies
-    )
+    if (NOT RSE_OTP_HAS_RSE_ID AND NOT RSE_OTP_HAS_ROUTING_TABLES)
+        set(RSE_REQUIRES_UNIQUE_BUNDLES OFF)
+        set(RSE_AMOUNT_LOOP_RANGE 0)
+    else()
+        set(RSE_REQUIRES_UNIQUE_BUNDLES ON)
+        math(EXPR RSE_AMOUNT_LOOP_RANGE "${RSE_AMOUNT} - 1")
+    endif()
 
-    generate_provisioning_bundle(
-        dm_provisioning # bundle type
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/create_dm_provisioning_bundle.py # script
-        dm_provisioning_code # cmake executable target
-        "${RSE_DM_BLOB_VERSION}" # blob version
-        "DM" # valid LCS states
-        "${RSE_SYMMETRIC_PROVISIONING}" # symmetric provisioning enabled
-        "${MAIN_DM_BUNDLE_SIGNATURE_CONFIG}" # signature config
-        "${RSE_CM_PROVISIONING_SIGNING_KEY}" # signature key (if asymmetric)
-        ${CMAKE_BINARY_DIR}/bin/keys/kprov_dm.bin # encryption key
-        "${MAIN_DM_BUNDLE_NOT_IN_ROM_SIGNATURE_CONFIG}" # PK not in ROM configuration
-        "${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX}" # CM ROTPK index if PK not in ROM == CM_ROTPK
-        "${RSE_PROVISIONING_DM_ENCRYPT_CODE_DATA}" # encrypt code and data
-        ON # encrypt secret values
-        "${DM_BUNDLE_SCRIPT_ARGS}" # OTP values args
-        "" # No additional dependencies
+    foreach(RSE_ID RANGE ${RSE_AMOUNT_LOOP_RANGE})
+        if (RSE_REQUIRES_UNIQUE_BUNDLES)
+            set(BUNDLE_SUFFIX "_${RSE_ID}")
+        else()
+            set(BUNDLE_SUFFIX "")
+        endif()
+        set(CM_BUNDLE_SCRIPT_ARGS_TEMP
+            ${CM_BUNDLE_SCRIPT_ARGS}
+            $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:--non_secret_cm:cm.rse_id=${RSE_ID}>
+        )
+        set(DM_BUNDLE_SCRIPT_ARGS_TEMP
+            ${DM_BUNDLE_SCRIPT_ARGS}
+            $<$<BOOL:${RSE_OTP_HAS_ROUTING_TABLES}>:--routing_tables_idx=${RSE_ID}>
+        )
+
+        generate_provisioning_bundle(
+            "cm_provisioning${BUNDLE_SUFFIX}" # bundle type
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/create_cm_provisioning_bundle.py # script
+            cm_provisioning_code # cmake executable target
+            "${RSE_CM_BLOB_VERSION}" # blob version
+            "CM" # valid LCS states
+            "${RSE_SYMMETRIC_PROVISIONING}" # symmetric provisioning enabled
+            "${RSE_PROVISIONING_CM_SIGNATURE_CONFIG}" # signature config
+            "${RSE_CM_PROVISIONING_SIGNING_KEY}" # signature key (if asymmetric)
+            ${CMAKE_BINARY_DIR}/bin/keys/kprov_cm.bin # encryption key
+            "" # PK not in ROM configuration (not for CM)
+            "" # CM ROTPK index if PK not in ROM == CM_ROTPK (not for CM)
+            "${RSE_PROVISIONING_CM_ENCRYPT_CODE_DATA}" # encrypt code and data
+            ON # encrypt secret values
+            "${CM_BUNDLE_SCRIPT_ARGS_TEMP}" # OTP values args
+            "${CM_BUNDLE_SCRIPT_DEPS}" # script specific CMake dependencies
+        )
+
+        generate_provisioning_bundle(
+            "dm_provisioning${BUNDLE_SUFFIX}" # bundle type
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/create_dm_provisioning_bundle.py # script
+            dm_provisioning_code # cmake executable target
+            "${RSE_DM_BLOB_VERSION}" # blob version
+            "DM" # valid LCS states
+            "${RSE_SYMMETRIC_PROVISIONING}" # symmetric provisioning enabled
+            "${MAIN_DM_BUNDLE_SIGNATURE_CONFIG}" # signature config
+            "${RSE_CM_PROVISIONING_SIGNING_KEY}" # signature key (if asymmetric)
+            ${CMAKE_BINARY_DIR}/bin/keys/kprov_dm.bin # encryption key
+            "${MAIN_DM_BUNDLE_NOT_IN_ROM_SIGNATURE_CONFIG}" # PK not in ROM configuration
+            "${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX}" # CM ROTPK index if PK not in ROM == CM_ROTPK
+            "${RSE_PROVISIONING_DM_ENCRYPT_CODE_DATA}" # encrypt code and data
+            ON # encrypt secret values
+            "${DM_BUNDLE_SCRIPT_ARGS_TEMP}" # OTP values args
+            "" # No additional dependencies
+        )
+
+        generate_provisioning_bundle(
+            "combined_provisioning${BUNDLE_SUFFIX}" # bundle type
+            ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/create_combined_provisioning_bundle.py # script
+            combined_provisioning_code # cmake executable target
+            "${RSE_CM_BLOB_VERSION}" # blob version
+            "CM;DM" # valid LCS states
+            "${RSE_SYMMETRIC_PROVISIONING}" # symmetric provisioning enabled
+            "${RSE_PROVISIONING_DM_SIGNATURE_CONFIG}" # signature config
+            "${RSE_CM_PROVISIONING_SIGNING_KEY}" # signature key (if asymmetric)
+            ${CMAKE_BINARY_DIR}/bin/keys/kprov_cm.bin # encryption key
+            "CM_ROTPK" # PK not in ROM configuration
+            "${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX}" # CM ROTPK index if PK not in ROM == CM_ROTPK
+            "${RSE_PROVISIONING_CM_ENCRYPT_CODE_DATA}" # encrypt code and data
+            ON # encrypt secret values
+            "${CM_BUNDLE_SCRIPT_ARGS_TEMP};${DM_BUNDLE_SCRIPT_ARGS_TEMP}" # OTP values args
+            "${CM_BUNDLE_SCRIPT_DEPS}" # script specific CMake dependencies
     )
+    endforeach()
 
     if (RSE_DM_CHAINED_PROVISIONING)
         generate_provisioning_bundle(
@@ -386,24 +435,6 @@ if (TFM_DUMMY_PROVISIONING)
             "" # No additional dependencies
         )
     endif()
-
-    generate_provisioning_bundle(
-        combined_provisioning # bundle type
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/create_combined_provisioning_bundle.py # script
-        combined_provisioning_code # cmake executable target
-        "${RSE_CM_BLOB_VERSION}" # blob version
-        "CM;DM" # valid LCS states
-        "${RSE_SYMMETRIC_PROVISIONING}" # symmetric provisioning enabled
-        "${RSE_PROVISIONING_DM_SIGNATURE_CONFIG}" # signature config
-        "${RSE_CM_PROVISIONING_SIGNING_KEY}" # signature key (if asymmetric)
-        ${CMAKE_BINARY_DIR}/bin/keys/kprov_cm.bin # encryption key
-        "CM_ROTPK" # PK not in ROM configuration
-        "${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX}" # CM ROTPK index if PK not in ROM == CM_ROTPK
-        "${RSE_PROVISIONING_CM_ENCRYPT_CODE_DATA}" # encrypt code and data
-        ON # encrypt secret values
-        "${CM_BUNDLE_SCRIPT_ARGS};${DM_BUNDLE_SCRIPT_ARGS}" # OTP values args
-        "${CM_BUNDLE_SCRIPT_DEPS}" # script specific CMake dependencies
-    )
 
     if (RSE_NON_ENDORSED_DM_PROVISIONING)
         generate_provisioning_bundle(

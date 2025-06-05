@@ -26,18 +26,25 @@ from provisioning_message_config import Provisioning_message_config
 import provisioning_config as pc
 from provisioning_config import Provisioning_config
 
+import routing_tables as rt
+from routing_tables import Routing_tables
+
 
 def add_arguments(parser : argparse.ArgumentParser,
                   prefix : str = "",
                   required : bool = True,
                   ) -> None:
     oc.add_arguments(parser, prefix, required)
+    rt.add_arguments(parser, prefix, required=False)
     pc.add_arguments(parser, prefix, required, regions=["non_secret_dm", "secret_dm"])
     pmc.add_arguments(parser, prefix, required,
                       message_type="RSE_PROVISIONING_MESSAGE_TYPE_BLOB")
 
     arg_utils.add_prefixed_argument(parser, "provisioning_code_elf", prefix, help="provisioning code image elf file",
                                             type=arg_utils.arg_type_elf_section(["CODE", "DATA"]), required=True)
+    arg_utils.add_prefixed_argument(parser, "routing_tables_idx", prefix,
+                                    help="The index within the system wide routing table to add to the provisioning bundle",
+                                    type=int, required=False)
 
 def parse_args(args : argparse.Namespace,
                prefix : str = "",
@@ -45,8 +52,10 @@ def parse_args(args : argparse.Namespace,
                ) -> dict:
     out = {}
     out |= dict(zip(["code", "elf_data"], arg_utils.get_arg(args, "provisioning_code_elf", prefix)))
+    out |= arg_utils.parse_args_automatically(args, ["routing_tables_idx"], prefix)
 
     out |= oc.parse_args(args, prefix=prefix)
+    out |= rt.parse_args(args, prefix=prefix)
     out |= pc.parse_args(args, prefix=prefix, otp_config = out["otp_config"])
     out |= pmc.parse_args(args, prefix=prefix)
 
@@ -79,6 +88,9 @@ if __name__ == "__main__":
 
     kwargs['otp_config'].set_dm_offsets_automatically()
     kwargs['provisioning_config'].set_area_infos_from_otp_config(**kwargs)
+    if 'routing_tables_idx' in kwargs:
+        assert 'routing_tables' in kwargs
+        kwargs['provisioning_config'].set_routing_tables(kwargs['routing_tables_idx'],kwargs['routing_tables'])
 
     logger.debug(kwargs['provisioning_config'].non_secret_dm_layout)
     logger.debug(kwargs['provisioning_config'].secret_dm_layout)

@@ -12,6 +12,7 @@
 
 #include "rse_otp_config.h"
 #include "lcm_otp_layout.h"
+#include "rse_routing_tables.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,8 +125,7 @@ __PACKED_STRUCT rse_otp_dm_area_t {
     uint32_t config_flags;
 
 #ifdef RSE_OTP_HAS_ROUTING_TABLES
-    uint32_t rse_to_rse_sender_routing_table[RSE_ROUTING_TABLES_SIZE];
-    uint32_t rse_to_rse_receiver_routing_table[RSE_ROUTING_TABLES_SIZE];
+    struct rse_single_node_routing_tables_t routing_tables;
 #endif
 
 #ifdef RSE_OTP_DM_SUBPLATFORM_ITEMS

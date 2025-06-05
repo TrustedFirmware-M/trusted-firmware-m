@@ -15,6 +15,7 @@ from c_struct import C_array, C_enum
 import arg_utils
 import argparse
 from otp_config import OTP_config
+from routing_tables import Routing_tables
 from cryptography.hazmat.primitives import hashes
 
 import logging
@@ -395,6 +396,11 @@ class Provisioning_config:
                 self.__get_layout_field_and_set(True, "dynamic_area_info", otp_config.header.dynamic_area_info.to_bytes())
             if dm_sets_dm_and_dynamic_area_size:
                 self.__get_layout_field_and_set(False, "dynamic_area_info", otp_config.header.dynamic_area_info.to_bytes())
+
+    def set_routing_tables(self,
+                           idx : int,
+                           routing_tables : Routing_tables):
+        self.non_secret_dm_layout.dm.routing_tables.set_value_from_bytes(routing_tables.get_rse_routing_table_bytes(idx))
 
 script_description = """
 This script takes an instance of rse_provisioning_layout.h, rse_rotpk_policy.h,
