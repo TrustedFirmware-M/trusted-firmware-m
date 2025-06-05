@@ -625,7 +625,7 @@ Reference
 
 .. [1] `PSA Certified Level 3 Lightweight Protection Profile <https://www.psacertified.org/app/uploads/2020/11/JSADEN009-PSA_Certified_Level_3_LW_PP-1.0-ALP02.pdf>`_
 
-.. [2] `MCUboot project <https://github.com/mcu-tools/mcuboot/blob/master/boot/bootutil/include/bootutil/fault_injection_hardening.h>`_
+.. [2] `MCUboot project - fault injection hardening <https://github.com/mcu-tools/mcuboot/blob/master/boot/bootutil/include/bootutil/fault_injection_hardening.h>`_
 
 .. [3] `MCUboot fault injection mitigation <https://www.trustedfirmware.org/docs/TF-M_fault_injection_mitigation.pdf>`_
 

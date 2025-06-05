@@ -239,7 +239,7 @@ The following table lists the commonly used repos. For others, you can refer to 
 +----------------+---------------------+-----------------------------------------------------+
 | Dependency     | Cmake variable      | Git repo URL                                        |
 +================+=====================+=====================================================+
-| Mbed Crypto    | MBEDCRYPTO_PATH     | https://github.com/ARMmbed/mbedtls                  |
+| Mbed Crypto    | MBEDCRYPTO_PATH     | https://github.com/Mbed-TLS/mbedtls                 |
 +----------------+---------------------+-----------------------------------------------------+
 | MCUboot        | MCUBOOT_PATH        | https://github.com/mcu-tools/mcuboot                |
 +----------------+---------------------+-----------------------------------------------------+

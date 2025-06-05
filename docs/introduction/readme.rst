@@ -61,13 +61,13 @@ TF-M is comprised of multiple repositories that supplement each other in making 
 
     * - **Repository**
       - **Description**
-    * - `trusted-firmware-m <https://git.trustedfirmware.org/TF-M/trusted-firmware-m.git/tree/>`_
+    * - `trusted-firmware-m <https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m.git/+/refs/heads/main>`_
       - Software implementation of TF-M with documentation and essential tools
-    * - `tf-m-tests <https://git.trustedfirmware.org/TF-M/tf-m-tests.git/tree/>`_
+    * - `tf-m-tests <https://git.trustedfirmware.org/plugins/gitiles/TF-M/tf-m-tests.git/+/refs/heads/main>`_
       - Tests that focus on the functionalities of TF-M components
-    * - `tf-m-tools <https://git.trustedfirmware.org/TF-M/tf-m-tools.git/tree/>`_
+    * - `tf-m-tools <https://git.trustedfirmware.org/plugins/gitiles/TF-M/tf-m-tools.git/+/refs/heads/main>`_
       - Non essential tools used for testing and verification of TF-M
-    * - `tf-m-extras <https://git.trustedfirmware.org/TF-M/tf-m-extras.git/tree/>`_
+    * - `tf-m-extras <https://git.trustedfirmware.org/plugins/gitiles/TF-M/tf-m-extras.git/+/refs/heads/main>`_
       - Extension of the main repository to host examples, demonstrations, third-party modules etc
 
 #######
@@ -75,7 +75,7 @@ License
 #######
 The software is provided under a BSD-3-Clause :doc:`License </contributing/lic>`.
 Contributions to this project are accepted under the same license with developer
-sign-off as described in the :doc:`Contributing Guidelines </contributing/contributing_process>`.
+sign-off as described in the :doc:`Contributing Process </contributing/contributing_process>`.
 
 This project contains code from other projects as listed below. The code from
 external projects is limited to ``bl2``, ``lib`` and ``platform``
@@ -94,7 +94,7 @@ folders. The original license text is included in those source files.
    - ``mcuboot``    - `Apache 2.0 license MCUBoot
      <https://github.com/mcu-tools/mcuboot/blob/main/LICENSE>`_
    - ``qcbor``      - `Modified BSD-3-Clause license
-     <https://github.com/laurencelundblade/QCBOR#copyright-and-license>`_
+     <https://github.com/laurencelundblade/QCBOR/blob/master/LICENSE>`_
    - ``tf-m-extras`` - Set of additional components. Please check individually in
      `tf-m-extras repository <https://git.trustedfirmware.org/TF-M/tf-m-extras.git/tree/>`_
 

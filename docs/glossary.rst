@@ -129,14 +129,14 @@ Glossary of terms and abbreviations
 | `Firmware Framework for M (FF-M)`_
 
 .. _Firmware Framework for M (FF-M):
-   https://www.arm.com/architecture/security-features/platform-security
+   https://developer.arm.com/documentation/aes0039/b/?lang=en
 
 .. _PSA term: `Firmware Framework for M (FF-M)`_
 
 | `Trusted Base System Architecture for M`_
 
 .. _Trusted Base System Architecture for M:
-   https://www.arm.com/architecture/security-features/platform-security
+   https://developer.arm.com/documentation/107610/0000/Overview/Compliance/Trusted-Base-System-Architecture-for-Armv8-M
 
 --------------
 

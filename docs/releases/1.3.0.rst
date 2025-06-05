@@ -46,7 +46,7 @@ New platforms supported
   - Cortex-M55 based system:
 
     - `FPGA image loaded on MPS3 board (AN547).
-      <https://developer.arm.com/products/system-design/development-boards/cortex-m-prototyping-systems/mps3>`_
+      <https://developer.arm.com/downloads/view/AN547?sortBy=availableBy&revision=r3p0-00rel0-1>`_
 
   - Secure Enclave system:
 
@@ -144,7 +144,7 @@ TF-M.
       | However, CryptoCell-312 doesn't support MD5 and uses other algorithms
       | instead. Therefore, Mbed TLS implementation may fail when input
       | algorithm doesn't match other parameters.
-    - https://github.com/ARMmbed/mbedtls/issues/3990
+    - https://github.com/Mbed-TLS/mbedtls/issues/3990
 
   * - | Regression tests fail with GNU Arm Embedded toolchain version
       | 10-2020-q4-major.

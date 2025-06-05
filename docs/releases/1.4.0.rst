@@ -34,7 +34,7 @@ New platforms supported
   - Cortex-M33 based system:
 
     - `BL5340 DVK.
-      <https://www.lairdconnect.com/wireless-modules/bluetooth-modules/bluetooth-5-modules/bl5340-series-multi-core-bluetooth-52-802154-nfc-modules>`_
+      <https://www.ezurio.com/wireless-modules/bluetooth-modules/bluetooth-5-modules/bl5340-series-multi-core-bluetooth-52-802154-nfc-modules>`_
 
 Deprecated platforms
 ====================

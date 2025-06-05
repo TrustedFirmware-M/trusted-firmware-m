@@ -5,12 +5,12 @@ Advisory TFMV-3
 | Title           | ``abort()`` function may not take effect in TF-M Crypto    |
 |                 | multi-part MAC/hashing/cipher operations.                  |
 +=================+============================================================+
-| CVE ID          | CVE-2021-32032                                             |
+| CVE ID          | `CVE-2021-32032`_                                          |
 +-----------------+------------------------------------------------------------+
 | Public          | May 10, 2021                                               |
 | Disclosure Date |                                                            |
 +-----------------+------------------------------------------------------------+
-| Versions        | Affected all versions up to and including TF-M v1.3.0      |
+| Versions        | Affected all versions up to and including TF-M `v1.3.0`_   |
 | Affected        |                                                            |
 +-----------------+------------------------------------------------------------+
 | Configurations  | All                                                        |
@@ -19,7 +19,7 @@ Advisory TFMV-3
 |                 | eventually making TF-M Crypto service unavailable and      |
 |                 | impacting other services relied on it.                     |
 +-----------------+------------------------------------------------------------+
-| Fix Version     | commit `7e2e52`_                                           |
+| Fix Version     | commit `7e2e523a1c4e9ac7b9cc4fd551831f7639ed5ff9`_         |
 +-----------------+------------------------------------------------------------+
 | Credit          | | Chongqing Lei, Southeast University                      |
 |                 | | Zhen Ling, Associate Professor, Southeast University     |
@@ -202,7 +202,9 @@ following TF-M Crypto functions:
    Crypto API specification to call ``abort()`` when an error occurs during
    multi-part crypto operations.
 
-.. _7e2e52: https://git.trustedfirmware.org/TF-M/trusted-firmware-m.git/commit/?id=7e2e523a1c4e9ac7b9cc4fd551831f7639ed5ff9
+.. _7e2e523a1c4e9ac7b9cc4fd551831f7639ed5ff9: https://git.trustedfirmware.org/TF-M/trusted-firmware-m.git/commit/?id=7e2e523a1c4e9ac7b9cc4fd551831f7639ed5ff9
+.. _CVE-2021-32032: https://www.cve.org/CVERecord?id=CVE-2021-32032
+.. _v1.3.0: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m/+/refs/tags/TF-Mv1.3.0
 
 ---------------------
 

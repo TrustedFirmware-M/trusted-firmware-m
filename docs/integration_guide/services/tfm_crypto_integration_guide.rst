@@ -179,9 +179,9 @@ References
 ----------
 
 .. [1] PSA Crypto APIs: \ https://armmbed.github.io/mbed-crypto/html/
-.. [2] PSA cryptoprocessor driver interface: \ https://github.com/Mbed-TLS/mbedtls/blob/development/docs/proposed/psa-driver-interface.md
+.. [2] PSA cryptoprocessor driver interface: \ https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/docs/proposed/psa-driver-interface.md
 .. [3] Mbed TLS library: \ https://www.trustedfirmware.org/projects/mbed-tls/
-.. [4] Interface for platform keys: \ https://github.com/ARM-software/psa-crypto-api/issues/550
+.. [4] Interface for platform keys:  `https://github.com/ARM-software/psa-crypto-api/issues/550` (private)
 
 
 --------------

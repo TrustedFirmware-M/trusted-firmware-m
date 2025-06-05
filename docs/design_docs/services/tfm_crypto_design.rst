@@ -355,7 +355,7 @@ References
 .. [1] PSA Certified Crypto API specifications: \ https://arm-software.github.io/psa-api/crypto/
 .. [2] Using PSA - Getting started in Mbed TLS: \ https://mbed-tls.readthedocs.io/en/latest/getting_started/psa/
 .. [3] ``Mbed TLS`` repository which holds the reference implementation as a `C` software library: \ https://github.com/Mbed-TLS
-.. [4] PSA Unified Driver Interface for Cryptoprocessors: \ https://github.com/Mbed-TLS/mbedtls/blob/development/docs/proposed/psa-driver-interface.md
+.. [4] PSA Unified Driver Interface for Cryptoprocessors: \ https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/docs/proposed/psa-driver-interface.md
 .. [5] TF-M Builtin Key Loader driver, normally described as :ref:`tfm_builtin_key_loader <tfm-builtin-keys-label>`
 
 --------------

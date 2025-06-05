@@ -136,7 +136,7 @@ Issues closed since v1.6.0
 Reference
 =========
 
-.. [1] `Firmware Framework for M (FF-M) <https://www.arm.com/architecture/security-features/platform-security>`_
+.. [1] `Firmware Framework for M (FF-M) <https://developer.arm.com/documentation/den0063/latest>`_
 .. [2] `Arm Firmware Framework for M 1.1 Extensions <https://developer.arm.com/documentation/aes0039/latest>`_
 .. [3] `SESIP Profile for PSA Certified ARoT-less Level 2 <https://www.psacertified.org/app/uploads/2022/10/JSADEN019-PSA_Certified_Level_2_PP_SESIP_ARoT-less_REL-01.pdf>`_
 .. [4] `PSA Arch framework test results <https://developer.trustedfirmware.org/w/tf_m/release/psa_arch_crypto_test_failure_analysis_in_tf-m_v1.7_release>`_

@@ -4,7 +4,6 @@ Protected Storage service key management
 
 :Author: Jamie Fox
 :Organization: Arm Limited
-:Contact: Jamie Fox <jamie.fox@arm.com>
 
 Background
 ==========
@@ -115,13 +114,11 @@ is made (and analogously for decryption):
 
 References
 ==========
-.. [TBSA-M] Arm Platform Security Architecture Trusted Base System Architecture
-   for Armv6-M, Armv7-M and Armv8-M, version 1.0
-.. [HKDF] Hugo Krawczyk. 2010. Cryptographic extraction and key derivation: the
-   HKDF scheme. In Proceedings of the 30th annual conference on Advances in
-   cryptology (CRYPTO'10)
-.. [RFC5869] IETF RFC 5869: HMAC-based Extract-and-Expand Key Derivation
-   Function (HKDF)
+.. [TBSA-M] `Arm Platform Security Architecture Trusted Base System Architecture for Armv6-M, Armv7-M and Armv8-M, version 1.0  <https://developer.arm.com/-/media/Arm%20Developer%20Community/PDF/PSA/DEN0083_PSA_TBSA-M_1.0-bet2.pdf?revision=5f9de99f-a7b5-4851-b041-f698521bf6bf>`_
+
+.. [HKDF] `Hugo Krawczyk. 2010. Cryptographic extraction and key derivation: the HKDF scheme. In Proceedings of the 30th annual conference on Advances in cryptology (CRYPTO'10) <https://eprint.iacr.org/2010/264.pdf>`_
+
+.. [RFC5869] `IETF RFC 5869: HMAC-based Extract-and-Expand Key Derivation Function (HKDF) <https://datatracker.ietf.org/doc/html/rfc5869>`_
 
 --------------
 

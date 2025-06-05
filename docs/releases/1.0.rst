@@ -48,17 +48,18 @@ Current release has been tested on:
 
     - Cortex M33 based SSE-200 system:
 
-        - `FPGA image loaded on MPS2 board.
-          <https://developer.arm.com/products/system-design/development-boards/cortex-m-prototyping-systems/mps2>`__
-        - `Fast model FVP_MPS2_AEMv8M.
-          <https://developer.arm.com/products/system-design/fixed-virtual-platforms>`__
+        - `FPGA image loaded on MPS2 board (AN521).
+          <https://developer.arm.com/Tools%20and%20Software/MPS2%20Plus%20FPGA%20Prototyping%20Board>`__
+        - `Fast model FVP_MPS2_AEMv8M (AN521).
+          <https://developer.arm.com/documentation/107925/1129/Fast-Models-trace-components/ARM-AEMv8M?lang=en>`__
         - `Musca-A test chip board.
-          <https://developer.arm.com/products/system-design/development-boards/iot-test-chips-and-boards/musca-a-test-chip-board>`__
+          <https://developer.arm.com/documentation/101107/0000/?lang=en>`__
         - `Musca-B1 test chip board.
-          <https://developer.arm.com/products/system-design/development-boards/iot-test-chips-and-boards/musca-b-test-chip-board>`__
-        - `Musca-S1 test chip board.`
-        - `FPGA image loaded on MPS3 board.
-          <https://developer.arm.com/tools-and-software/development-boards/fpga-prototyping-boards/mps3>`__
+          <https://developer.arm.com/documentation/110409/0100/?lang=en>`__
+        - `Musca-S1 test chip board.
+          <https://developer.arm.com/documentation/110387/0100/?lang=en>`__
+        - `FPGA image loaded on MPS3 board (AN524).
+          <https://developer.arm.com/documentation/107789/0100/?lang=en>`__
         - `Arm DesignStart FPGA on AWS Cloud.
           <https://developer.arm.com/docs/101965/0102/arm-designstart-fpga-on-cloud-arm-ds-getting-started>`__
 
@@ -83,8 +84,8 @@ Platform Limitations
   This is because AN524 uses QSPI Flash for runtime memory as the RAM is small.
   The slow speed of QSPI device causes the tests to run slowly.
 
-- Warm reset of eFlash is not permitted on Musca-B1 due to HW bug
-  https://community.arm.com/developer/tools-software/oss-platforms/w/docs/426/musca-b1-warm-reset-of-eflash
+- Warm reset of eFlash is not permitted on Musca-B1 due to HW bug :
+  https://developer.arm.com/documentation/110409/0100/Musca-B1-warm-reset-of-eFlash
   As TF-M is executed in place from eFlash on Musca-B1, there is good chance
   that a warm reset of the board will have unexpected (even non-deterministic)
   effects on code execution. Hence the PSA Arch FF tests, which rely of warm

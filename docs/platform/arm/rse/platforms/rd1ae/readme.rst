@@ -96,4 +96,4 @@ For more information on **RD-1 AE**, refer to
 *Copyright (c) 2024, Arm Limited. All rights reserved.*
 
 .. _Arm Automotive Solutions Documentation: https://kronos-ref-stack.docs.arm.com/
-.. _Arm Automotive Solutions User Guide: https://kronos-ref-stack.docs.arm.com/en/latest/user_guide/reproduce.html
+.. _Arm Automotive Solutions User Guide: https://arm-auto-solutions.docs.arm.com/en/v1.1.1/user_guide/index.html

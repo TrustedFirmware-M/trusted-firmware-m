@@ -8,7 +8,7 @@ HW crypto key integration in TF-M secure boot
 Abstract
 --------
 
-`PSA Trusted Boot and Firmware Update <https://pages.arm.com/psa-resources-tbfu.html>`__
+`PSA Trusted Boot and Firmware Update <https://developer.arm.com/-/media/Arm%20Developer%20Community/PDF/PSA/DEN0072-PSA_TBFU_1.1-BETA0.pdf?revision=3ce2513a-ae0f-4b43-96a0-851ed67a640b>`__
 specification requires the support of at least one immutable root of trust
 public key (ROTPK) for firmware verification. This can be stored using a locked
 on-chip flash memory, a secure-element or on-chip OTP memory. It also beneficial

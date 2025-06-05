@@ -4,7 +4,6 @@ Internal Trusted Storage (ITS) Service
 
 :Author: Jamie Fox
 :Organization: Arm Limited
-:Contact: Jamie Fox <jamie.fox@arm.com>
 
 .. toctree::
     :maxdepth: 1

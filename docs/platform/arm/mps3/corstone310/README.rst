@@ -91,7 +91,7 @@ Build instructions with platform name: arm/mps3/corstone310/fvp
 
 To run the example code on Corstone SSE-310 with Ethos-U55/U65 Example Subsystem for MPS3 (AN555)
 -------------------------------------------------------------------------------------------------
-FPGA image is available to download `here <https://developer.arm.com/tools-and-software/development-boards/fpga-prototyping-boards/download-fpga-images>`__
+FPGA image is available to download `here <https://developer.arm.com/downloads/view/AN555?sortBy=availableBy&revision=r3p0-00rel0-1>`__
 
 If the link above is not working just go to `Arm PDH <https://developer.arm.com/downloads>`__ and search for AN555.
 
@@ -164,7 +164,7 @@ The MPS3 board tested is HBI0309C.
 
 To run the example code on Corstone-310 Ethos-U55/U65 Ecosystem FVP
 -------------------------------------------------------------------
-FVP is available to download `here <https://developer.arm.com/tools-and-software/open-source-software/arm-platforms-software/arm-ecosystem-fvps>`__
+FVP is available to download `here <https://developer.arm.com/Tools%20and%20Software/Fixed%20Virtual%20Platforms/IoT%20FVPs>`__
 
 #. Install the FVP
 #. Copy ``bl2.axf`` and ``tfm_s_ns_signed.bin`` files from

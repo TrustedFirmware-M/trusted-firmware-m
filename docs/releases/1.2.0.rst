@@ -37,11 +37,11 @@ New platforms supported
 - Cortex-M33 based system:
 
   - `Nordic nRF9160 DK (nordic_nrf/nrf9160dk_nrf9160).
-    <https://www.nordicsemi.com/Software-and-tools/Development-Kits/nRF9160-DK>`_
+    <https://www.nordicsemi.com/Products/Development-hardware/nrf9160-dk>`_
   - `Nordic nRF5340 PDK (nordic_nrf/nrf5340pdk_nrf5340_cpuapp).
-    <https://www.nordicsemi.com/Software-and-tools/Development-Kits/nRF5340-PDK>`_
+    <https://www.nordicsemi.com/Products/Development-hardware/nrf5340-pdk>`_
   - `Nordic nRF5340 DK (nordic_nrf/nrf5340dk_nrf5340_cpuapp).
-    <https://www.nordicsemi.com/Software-and-tools/Development-Kits/nRF5340-PDK>`_
+    <https://www.nordicsemi.com/Products/Development-hardware/nrf5340-dk>`_
 
 - Cortex-M23 based system:
 
@@ -51,7 +51,7 @@ New platforms supported
 - Cortex-M55 based system:
 
   - `Corstone-300 Ethos-U55 FVP (Cortex-M55 plus Ethos-U55 SSE-300 MPS3).
-    <https://developer.arm.com/tools-and-software/open-source-software/arm-platforms-software/arm-ecosystem-fvps>`_
+    <https://developer.arm.com/Processors/Corstone-300#Tools-and-Software>`_
 
 Tested platforms
 ================

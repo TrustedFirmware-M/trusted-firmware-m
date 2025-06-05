@@ -168,13 +168,13 @@ FPGA
 
    .. _Enabled tests:
 
-   Some of the regression tests have to be disabled as adding all of them would
-   exceed the available RAM size. So there is a need to select few tests but
-   not all. Other test configurations can be found in the
+   Enabled Tests: Some of the regression tests have to be disabled as adding all
+   of them would exceed the available RAM size. So there is a need to select few
+   tests but not all. Other test configurations can be found in the
    :doc:`Test Configuration </configuration/test_configuration>`.
 
 
 *Copyright (c) 2021-2025, Arm Limited. All rights reserved.*
 
-.. _Arm Ecosystem FVPs: https://developer.arm.com/tools-and-software/open-source-software/arm-platforms-software/arm-ecosystem-fvps
+.. _Arm Ecosystem FVPs: https://developer.arm.com/documentation/100966/1128/Arm--Corstone-1000-FVP?lang=en
 .. _Arm Corstone-1000 User Guide: https://corstone1000.docs.arm.com/en/latest/user-guide.html

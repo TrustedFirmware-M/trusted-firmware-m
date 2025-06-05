@@ -4,7 +4,6 @@ TF-M Inter-Process Communication
 
 :Authors: Ken Liu, Mingyang Sun
 :Organization: Arm Limited
-:Contact: ken.liu@arm.com, mingyang.sun@arm.com
 
 ***********
 Terminology

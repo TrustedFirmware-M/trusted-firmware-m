@@ -5,13 +5,13 @@ Advisory TFMV-6
 | Title           | Partial tag comparison when using Chacha20-Poly1305 on the |
 |                 | PSA driver API interface in CryptoCell enabled platforms   |
 +=================+============================================================+
-| CVE ID          | CVE-2023-40271                                             |
+| CVE ID          | `CVE-2023-40271`_                                          |
 +-----------------+------------------------------------------------------------+
 | Public          | 04/09/2023                                                 |
 | Disclosure Date |                                                            |
 +-----------------+------------------------------------------------------------+
-| Versions        | TF-M v1.6.0, TF-M v1.6.1, TF-M v1.7.0, TF-M v1.8.0         |
-| Affected        |                                                            |
+| Versions        | TF-M `v1.6.0`_, TF-M `v1.6.1`_, TF-M `v1.7.0`_,            |
+| Affected        | TF-M `v1.8.0`_                                             |
 +-----------------+------------------------------------------------------------+
 | Configurations  | CC312 enabled platforms, where the legacy driver API is    |
 |                 | disabled (``CC312_LEGACY_DRIVER_API_ENABLED=OFF``) and the |
@@ -24,7 +24,7 @@ Advisory TFMV-6
 |                 | as authentic by comparing only the first 4 bytes of the    |
 |                 | authentication tag instead of the full length of 16 bytes  |
 +-----------------+------------------------------------------------------------+
-| Fix Version     | 2e82124af, TF-M v1.8.1                                     |
+| Fix Version     | `2e82124af29b58abcc98608196a63b3c5daf603b`_, TF-M `v1.8.1`_|
 +-----------------+------------------------------------------------------------+
 | Credit          | Nordic Semiconductor                                       |
 +-----------------+------------------------------------------------------------+
@@ -140,8 +140,16 @@ References
 ----------
 
 .. [1] Chacha20 and Poly1305 for IETF Protocols: \ https://datatracker.ietf.org/doc/html/rfc7539
-.. [2] PSA Cryptographic API v1.1: \ https://armmbed.github.io/mbed-crypto/html/
-.. [3] PSA Unified Driver interface: \ https://github.com/Mbed-TLS/mbedtls/blob/development/docs/proposed/psa-driver-interface.md
+.. [2] PSA Cryptographic API v1.1: \ https://arm-software.github.io/psa-api/crypto/1.1/index.html
+.. [3] PSA Unified Driver interface: \ https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/docs/proposed/psa-driver-interface.md
+.. _CVE-2023-40271: https://www.cve.org/CVERecord?id=CVE-2023-40271
+.. _v1.6.0: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m/+/refs/tags/TF-Mv1.6.0
+.. _v1.6.1: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m/+/refs/tags/TF-Mv1.6.1
+.. _v1.7.0: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m/+/refs/tags/TF-Mv1.7.0
+.. _v1.8.0: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m/+/refs/tags/TF-Mv1.8.0
+.. _2e82124af29b58abcc98608196a63b3c5daf603b: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m/+/2e82124af29b58abcc98608196a63b3c5daf603b
+.. _v1.8.1: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m/+/refs/tags/TF-Mv1.8.1
+
 
 ---------------------
 

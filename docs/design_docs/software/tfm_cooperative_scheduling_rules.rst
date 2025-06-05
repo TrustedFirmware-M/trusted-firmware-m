@@ -4,7 +4,6 @@ Cooperative Scheduling Rules
 
 :Author: Ashutosh Singh
 :Organization: Arm Limited
-:Contact: Ashutosh Singh <ashutosh.singh@arm.com>
 
 TF-M Scheduler - Rules
 ======================

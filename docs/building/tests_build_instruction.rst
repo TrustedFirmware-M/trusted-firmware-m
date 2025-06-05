@@ -98,7 +98,7 @@ For example, to enable the PSA API tests for the Crypto service:
 Reference
 *********
 
-.. [1] `tf-m-tests <https://git.trustedfirmware.org/TF-M/tf-m-tests.git/about/>`__
+.. [1] `tf-m-tests <https://git.trustedfirmware.org/plugins/gitiles/TF-M/tf-m-tests/>`__
 
 .. [2] `PSA Certified APIs Architecture Test Suite <https://github.com/ARM-software/psa-arch-tests/blob/v23.06_API1.5_ADAC_EAC/api-tests/dev_apis/README.md>`__
 

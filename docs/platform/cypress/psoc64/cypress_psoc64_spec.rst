@@ -8,7 +8,7 @@ Prerequisites
 
 PSoC64 must first be provisioned with SecureBoot firmware and a provisioning packet
 containing policy and secure keys. Please refer to the guide at
-https://www.cypress.com/documentation/software-and-drivers/psoc-64-secure-mcu-secure-boot-sdk-user-guide
+https://www.infineon.com/dgdl/Infineon-PSoC_64_Secure_MCU_Secure_Boot_SDK_User_Guide-Software-v07_00-EN.pdf?fileId=8ac78c8c7d0d8da4017d0f8c361a7666
 Use the following policy file for provisioning and signing:
 policy_multi_CM0_CM4_tfm.json
 
@@ -32,7 +32,7 @@ For more details please refer to
 
 Install OpenOCD with PSoC6 support. Download the latest revision 4.1.0
 or newer from:
-https://github.com/cypresssemiconductorco/openocd/releases
+https://github.com/openocd-org/openocd/releases
 
 Lastly, the PSoC64 board KitProg firmware needs to be 2.00.744 or greater.
 Please use Cypress Modus Toolbox or CyProgrammer to update it if needed.
@@ -194,7 +194,7 @@ DO NOT USE THESE KEYS IN ANY ACTUAL DEPLOYMENT!
 
 Note: provisioned board in SECURE state is required, otherwise refer to
 Cypress documentation for details on the provisioning process.
-https://www.cypress.com/documentation/software-and-drivers/psoc-64-secure-mcu-secure-boot-sdk-user-guide
+https://www.infineon.com/dgdl/Infineon-PSoC_64_Secure_MCU_Secure_Boot_SDK_User_Guide-Software-v07_00-EN.pdf?fileId=8ac78c8c7d0d8da4017d0f8c361a7666
 
 If the board was previously provisioned with signing keys and policy, copy
 secure signing keys used in the board provisioning process to

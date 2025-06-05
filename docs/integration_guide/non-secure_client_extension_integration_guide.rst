@@ -206,7 +206,7 @@ This is the software module diagram of a typical RTOS/NSCE integration example.
 
 - Built-in Secure Context Manager: An RTOS may have an existing built-in secure
   context manager with a group of secure context management APIs defined. Let's
-  take RTX which uses `Armv8-M TrustZone APIs <https://www.keil.com/pack/doc/CMSIS/Core/html/group__context__trustzone__functions.html>`_
+  take RTX which uses `Armv8-M TrustZone APIs <http://arm-software.github.io/CMSIS_6/latest/Core/using_TrustZone_pg.html>`_
   as the example.
 
 .. Note::

@@ -436,7 +436,7 @@ References
 
 .. [1] `Arm PSA Firmware Framework for M 1.0 (FF-M 1.0) <https://developer.arm.com/documentation/den0063/latest/>`_
 .. [2] `Arm Firmware Framework for M 1.1 Extension (FF-M 1.1) <https://developer.arm.com/documentation/aes0039/latest/>`_
-.. [3] `Arm Trusted Base System Architecture for M (TBSA-M) <https://www.arm.com/en/architecture/security-features/platform-security>`_
+.. [3] `Arm Trusted Base System Architecture for M (TBSA-M) <https://developer.arm.com/-/media/Arm%20Developer%20Community/PDF/PSA/DEN0083_PSA_TBSA-M_1.0-bet2.pdf?revision=5f9de99f-a7b5-4851-b041-f698521bf6bf>`_
 
 --------------
 

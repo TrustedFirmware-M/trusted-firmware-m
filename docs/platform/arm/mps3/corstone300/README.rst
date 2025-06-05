@@ -97,7 +97,7 @@ Build instructions with platform name: arm/mps3/corstone300/fvp
 
 To run the example code on Corstone SSE-300 with Ethos-U55/U65 Example Subsystem for MPS3 (AN547)
 -------------------------------------------------------------------------------------------------
-FPGA image is available to download `here <https://developer.arm.com/tools-and-software/development-boards/fpga-prototyping-boards/download-fpga-images>`__
+FPGA image is available to download `here <https://developer.arm.com/downloads/view/AN547?entitled=true&term=an547&sortBy=availableBy>`__
 
 If the link above is not working just go to `Arm PDH <https://developer.arm.com/downloads>`__ and search for AN547.
 
@@ -163,7 +163,7 @@ The MPS3 board tested is HBI0309C.
 
 To run the example code on Corstone SSE-300 with Ethos-U55/U65 Example Subsystem for MPS3 (AN552)
 -------------------------------------------------------------------------------------------------
-FPGA image is available to download `here <https://developer.arm.com/tools-and-software/development-boards/fpga-prototyping-boards/download-fpga-images>`__
+FPGA image is available to download `here <https://developer.arm.com/downloads/view/AN552?sortBy=availableBy&revision=r4p0-00rel0-1>`__
 
 If the link above is not working just go to `Arm PDH <https://developer.arm.com/downloads>`__ and search for AN552.
 

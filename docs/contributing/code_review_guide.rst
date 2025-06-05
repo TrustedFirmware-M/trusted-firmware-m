@@ -5,7 +5,8 @@ The purpose of this document is to clarify design items to be reviewed during
 the code review process.
 
 Please contact :doc:`maintainers </contributing/maintainers>` or write an e-mail
-thread on the `TF-M mailing list <mailto:tf-m@lists.trustedfirmware.org>`_ for
+thread on the TF-M mailing list
+`tf-m@lists.trustedfirmware.org <mailto:tf-m@lists.trustedfirmware.org>`_ for
 any questions.
 
 **********************

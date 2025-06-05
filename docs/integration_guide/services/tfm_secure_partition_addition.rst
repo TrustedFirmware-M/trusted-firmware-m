@@ -345,7 +345,7 @@ configuration for this Secure Partition.
 
 Here is a reference example for `CMakeLists.txt`_
 
-.. _CMakeLists.txt: https://git.trustedfirmware.org/TF-M/tf-m-extras.git/tree/examples/example_partition/CMakeLists.txt
+.. _CMakeLists.txt: https://git.trustedfirmware.org/plugins/gitiles/TF-M/tf-m-extras/+/refs/heads/main/examples/example_partition/CMakeLists.txt
 
 The CMake file should include the following contents
 
@@ -639,12 +639,12 @@ Test suites and test partitions
 
 A regression test suite can be added to verify whether the new secure partition
 works as expected. Refer to
-`Adding TF-M Regression Test Suite <https://git.trustedfirmware.org/TF-M/tf-m-tests.git/tree/docs/tfm_test_suites_addition.rst>`_
+`Adding TF-M Regression Test Suite <https://trustedfirmware-m.readthedocs.io/projects/tf-m-tests/en/latest/tfm_test_suites_addition.html#adding-a-new-test-suite>`_
 for the details of adding a regression test suite.
 
 Some regression tests require a dedicated RoT service. The implementations of
 the RoT service for test are similar to secure partition addition. Refer to
-`Adding partitions for regression tests <https://git.trustedfirmware.org/TF-M/tf-m-tests.git/tree/docs/tfm_test_partitions_addition.rst>`_
+`Adding partitions for regression tests <https://trustedfirmware-m.readthedocs.io/projects/tf-m-tests/en/latest/tfm_test_partitions_addition.html>`_
 to get more information.
 
 Out-of-tree Secure Partition build

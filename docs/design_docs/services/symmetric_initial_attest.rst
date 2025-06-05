@@ -325,7 +325,7 @@ Reference
 
 .. [3] :doc:`Initial Attestation Service Integration Guide </integration_guide/services/tfm_attestation_integration_guide>`
 
-.. [4] `t_cose library <https://github.com/laurencelundblade/t_cose/blob/v2.0-alpha-2/inc/t_cose/t_cose_mac_compute.h>`_
+.. [4] `MAC compute in t_cose library <https://github.com/laurencelundblade/t_cose/blob/v2.0-alpha-2/inc/t_cose/t_cose_mac_compute.h>`_
 
 .. [5] `HMAC: Keyed-Hashing for Message Authentication <https://tools.ietf.org/html/rfc2104>`_
 

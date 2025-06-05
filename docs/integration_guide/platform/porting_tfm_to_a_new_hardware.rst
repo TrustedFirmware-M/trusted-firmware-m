@@ -29,8 +29,8 @@ CMSIS Drivers
 
 The TF-M stack requires at least two CMSIS HAL implementations:
 
-    - `USART <https://www.keil.com/pack/doc/CMSIS/Driver/html/group__usart__interface__gr.html>`_
-    - `FLASH <https://www.keil.com/pack/doc/CMSIS/Driver/html/group__flash__interface__gr.html>`_
+    - `USART <https://arm-software.github.io/CMSIS_6/latest/Driver/group__usart__interface__gr.html>`_
+    - `FLASH <https://arm-software.github.io/CMSIS_6/latest/Driver/group__flash__interface__gr.html>`_
 
 ************
 Porting flow
@@ -491,7 +491,7 @@ CMSIS_Driver/Driver_Flash.c:
     drivers in the CMSIS functions or to use the CMSIS functions as a shim to
     your native drivers.
 
-    Refer to the CMSIS `FLASH <https://www.keil.com/pack/doc/CMSIS/Driver/html/group__flash__interface__gr.html>`_
+    Refer to the CMSIS `FLASH <https://arm-software.github.io/CMSIS_6/latest/Driver/group__flash__interface__gr.html>`_
     documentation.
 
 CMSIS_Driver/Driver_USART.c:
@@ -504,7 +504,7 @@ CMSIS_Driver/Driver_USART.c:
     drivers in the CMSIS functions or to use the CMSIS functions as a shim to
     your native drivers.
 
-    Refer to the CMSIS `USART <https://www.keil.com/pack/doc/CMSIS/Driver/html/group__usart__interface__gr.html>`_
+    Refer to the CMSIS `USART <https://arm-software.github.io/CMSIS_6/latest/Driver/group__usart__interface__gr.html>`_
     documentation.
 
 target_cfg.[ch]:
@@ -614,9 +614,9 @@ ns/cpuarch_ns.cmake
 
     This file contains the hardware information for the NSPE CPU.
     It should be installed to ``<Artifact folder>/platform`` for NSPE build,
-    ranamed to ``cpuarch.cmake``.
+    ranamed to ``ns/cpuarch_ns.cmake``.
 
-    [cpuarch.cmake_]
+    [`ns/cpuarch_ns.cmake`_]
 
 .. _Functions:
 
@@ -901,8 +901,6 @@ check_config.cmake
         PUBLIC
             $<$<BOOL:${PLATFORM_DEFAULT_CRYPTO_KEYS}>:PLATFORM_DEFAULT_CRYPTO_KEYS>
     )
-
-.. _cpuarch.cmake:
 
 *Copyright (c) 2021-2024, Arm Limited. All rights reserved.*
 

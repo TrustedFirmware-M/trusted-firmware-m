@@ -556,10 +556,10 @@ upgrade is described in :doc:`secure boot </design_docs/booting/tfm_secure_boot>
 --------------
 
 .. _Arm Development Studio: https://developer.arm.com/tools-and-software/embedded/arm-development-studio
-.. _Arm Development Studio Documentation: https://developer.arm.com/tools-and-software/embedded/arm-development-studio/learn/docs
-.. _Fixed Virtual Platforms: https://developer.arm.com/tools-and-software/simulation-models/fixed-virtual-platforms
+.. _Arm Development Studio Documentation: https://developer.arm.com/documentation/101469/2024-1/?lang=en
+.. _Fixed Virtual Platforms: https://developer.arm.com/documentation/100966/1128/MPS2-Platform-FVPs/FVP-MPS2-AEMv8M?lang=en
 .. _Fixed Virtual Platforms Documentation: https://developer.arm.com/documentation/100966/latest
 .. _Keil MDK: http://www2.keil.com/mdk5
-.. _Keil MDK Documentation: https://www2.keil.com/mdk5/docs
+.. _Keil MDK Documentation: https://developer.arm.com/documentation/KGS1/latest
 
 *Copyright (c) 2017-2024, Arm Limited. All rights reserved.*

@@ -94,7 +94,7 @@ Reference
 =========
 
 
-.. [1] `PSA Unified Driver spec <https://github.com/Mbed-TLS/mbedtls/blob/development/docs/proposed/psa-driver-interface.md>`_
+.. [1] `PSA Unified Driver spec <https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/docs/proposed/psa-driver-interface.md>`_
 
 .. [2] `Arm Compiler 6.18 release note: <https://developer.arm.com/documentation/107814/latest/>`_
 

@@ -297,9 +297,9 @@ References
 
 .. [3] `YAML <https://yaml.org/>`__
 
-.. [4] `TF-M manifest list <https://git.trustedfirmware.org/TF-M/trusted-firmware-m.git/tree/tools/tfm_manifest_list.yaml>`__
+.. [4] `TF-M manifest list <https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m.git/+/HEAD/tools/tfm_manifest_list.yaml>`__
 
-.. [5] `TF-M generated file list <https://git.trustedfirmware.org/TF-M/trusted-firmware-m.git/tree/tools/tfm_generated_file_list.yaml>`__
+.. [5] `TF-M generated file list <https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m.git/+/HEAD/tools/tfm_generated_file_list.yaml>`__
 
 .. [6] `Jinja2 <https://jinja.palletsprojects.com/en/3.1.x/>`__
 

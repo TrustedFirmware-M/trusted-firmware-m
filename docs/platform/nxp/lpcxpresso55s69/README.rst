@@ -58,7 +58,7 @@ To build the S and NS regression tests without BL2, run the following commands:
 ***************************
 
 PyOCD is an open source Python package for programming and debugging Arm Cortex-M microcontrollers using multiple supported types of USB debug probes.
-See: `PyOCD <https://pypi.org/project/pyocd/>`
+See: `PyOCD <https://pypi.org/project/pyocd/>`_
 
 If you built TF-M with the BL2 secondary bootloader, use the following commands:
 

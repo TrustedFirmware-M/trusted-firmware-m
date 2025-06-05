@@ -4,7 +4,6 @@ Stateless Root of Trust Services Reference
 
 :Author: Mingyang Sun
 :Organization: Arm Limited
-:Contact: mingyang.sun@arm.com
 
 
 ************

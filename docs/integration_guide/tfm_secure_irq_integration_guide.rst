@@ -396,9 +396,9 @@ References
 
 .. [2] `FF-M v1.1 Extension <https://developer.arm.com/documentation/aes0039/latest/>`__
 
-.. [3] https://git.trustedfirmware.org/TF-M/tf-m-tests.git/tree/tests_reg/test/secure_fw/suites/spm/irq/service/tfm_flih_test_service
+.. [3] https://git.trustedfirmware.org/plugins/gitiles/TF-M/tf-m-tests.git/+/HEAD/tests_reg/test/secure_fw/suites/spm/irq/service/tfm_flih_test_service/
 
-.. [4] https://git.trustedfirmware.org/TF-M/tf-m-tests.git/tree/tests_reg/test/secure_fw/suites/spm/irq/service/tfm_slih_test_service
+.. [4] https://git.trustedfirmware.org/plugins/gitiles/TF-M/tf-m-tests.git/+/HEAD/tests_reg/test/secure_fw/suites/spm/irq/service/tfm_slih_test_service/
 
 --------------
 

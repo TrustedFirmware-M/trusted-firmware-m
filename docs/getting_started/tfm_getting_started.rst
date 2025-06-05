@@ -34,7 +34,7 @@ To build & run TF-M:
 To port TF-M to a another system or OS, follow the
 :doc:`OS Integration Guide </integration_guide/index>`
 
-:doc:`Contributing Guidelines </contributing/contributing_process>` contains guidance on how to
+:doc:`Contributing Process </contributing/contributing_process>` contains guidance on how to
 contribute to this project.
 
 #########################
@@ -208,7 +208,7 @@ versions are:
 
           .. group-tab:: Linux
 
-              - Download IAR build tools from `here <https://www.iar.com/products/architectures/arm/iar-embedded-workbench-for-arm>`__.
+              - Download IAR build tools from `here <https://www.iar.com/embedded-development-tools/iar-build-tools>`__.
               - Add IAR Arm compiler into environment:
 
                 .. code-block:: bash
@@ -217,7 +217,7 @@ versions are:
 
           .. group-tab:: Windows
 
-              - Download IAR build tools from `here <https://www.iar.com/products/architectures/arm/iar-embedded-workbench-for-arm>`__.
+              - Download IAR build tools from `here <https://www.iar.com/embedded-development-tools/iar-build-tools>`__.
               - Add IAR Arm compiler into environment:
 
                 .. code-block:: bash
@@ -331,7 +331,7 @@ Arm Development Studio.
 
         1. install Arm Development Studio to get the fast-model.
 
-           Download Arm Development Studio from `here <https://developer.arm.com/tools-and-software/embedded/arm-development-studio>`__.
+           Download Arm Development Studio from `here <https://developer.arm.com/Tools%20and%20Software/Arm%20Development%20Studio#Downloads>`__.
 
         2. Add ``bl2.axf`` and ``tfm_s_ns_signed.bin`` to symbol files in Debug
            Configuration menu.
@@ -373,7 +373,7 @@ Arm Development Studio.
 
         1. install Arm Development Studio to get the fast-model.
 
-           Download Arm Development Studio from `here <https://developer.arm.com/tools-and-software/embedded/arm-development-studio>`__.
+           Download Arm Development Studio from `here <https://developer.arm.com/Tools%20and%20Software/Arm%20Development%20Studio#Downloads>`__.
 
         2. Add ``bl2.axf`` and ``tfm_s_ns_signed.bin`` to symbol files in Debug
            Configuration menu.

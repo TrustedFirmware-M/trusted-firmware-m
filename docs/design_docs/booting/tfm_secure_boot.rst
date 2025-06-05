@@ -42,7 +42,7 @@ CMake. The version downloaded can be controlled by the ``MCUBOOT_VERSION``
 CMake variable. If you wish to use a locally downloaded copy, the CMake variable
 ``MCUBOOT_PATH`` can be set to its location. This document contains information
 about how MCUboot has been integrated to TF-M. For further information about
-MCUboot design please refer to the `MCUBoot homepage <https://www.mcuboot.com/>`__.
+MCUboot design please refer to the `MCUBoot homepage <https://www.trustedfirmware.org/projects/mcuboot/index.html>`__.
 
 Bootloader is started when CPU is released from reset. It runs in secure mode.
 It authenticates the firmware image by hash (SHA-256) and digital signature

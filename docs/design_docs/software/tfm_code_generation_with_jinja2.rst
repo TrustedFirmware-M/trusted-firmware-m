@@ -34,7 +34,7 @@ The proposal is to eliminate the template parser and substituter scripts, and
 call the Jinja2 template engine library from
 ``tools/tfm_parse_manifest_list.py`` to do the substitution.
 
-More information on jinja2: http://jinja.pocoo.org/
+More information on jinja2: https://jinja.palletsprojects.com/en/stable/
 
 Changes needed:
 ===============

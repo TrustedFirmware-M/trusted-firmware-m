@@ -74,7 +74,7 @@ Build instructions with platform name: arm/mps4/corstone320
 
 To run the example code on Corstone-320 Ethos-U85 Ecosystem FVP
 ---------------------------------------------------------------
-FVP is available to download `here <https://developer.arm.com/tools-and-software/open-source-software/arm-platforms-software/arm-ecosystem-fvps>`__
+FVP is available to download `here <https://developer.arm.com/Tools%20and%20Software/Fixed%20Virtual%20Platforms/IoT%20FVPs>`__
 
 #. Install the FVP
 #. Copy ``bl1_1.bin``, ``cm_provisioning_bundle.bin``, ``dm_provisioning_bundle.bin``,

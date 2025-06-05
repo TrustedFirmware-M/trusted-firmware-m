@@ -62,8 +62,8 @@ The Documentation Build system provides an interface with the platform directory
 allowing maintainers to bundle platform specific documentation. Platforms are
 grouped by vendor. **This behaviour needs to be explicitly enabled for each
 vendor's space** by providing the `<vendor>/index.rst` (responsible for generating the
-:doc:`Platform Index File </platform/index>`) and adding a table of
-contents entry for the corresponding vendor's space.
+Platform Index File, as seen linked in :doc:`TF-M Platforms </platform/index>`)
+contents entry for the corresponding vendor's space in :doc:`TF-M Platforms </platform/index>`.
 The format and structure of this entry is not strictly defined, and allows
 flexible control of vendor's and platform's documentation space.
 Follow the :ref:`platform_documentation` document for more details.
@@ -301,7 +301,7 @@ References
 .. _Python Documentation Guidelines: https://devguide.python.org/documentation/style-guide/
 .. _Pygments Lexers: https://pygments.org/docs/api/#lexers
 .. _Intersphinx: https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html
-.. _conf.py: https://git.trustedfirmware.org/TF-M/trusted-firmware-m.git/tree/docs/conf.py
+.. _conf.py: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m.git/+/HEAD/docs/conf.py
 
 --------------
 

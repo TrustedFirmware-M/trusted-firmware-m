@@ -45,7 +45,7 @@ New platforms supported
 
   - :doc:`Corstone-1000 </platform/arm/corstone1000/readme>`
 
-  - :doc:`Corstone-Polaris </platform/arm/mps3/corstone310/README>`
+  - :doc:`Corstone-310 (formerly Polaris) </platform/arm/mps3/corstone310/README>`
 
   - :doc:`B-U585I-IOT02A </platform/stm/b_u585i_iot02a/readme>`
 
