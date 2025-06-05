@@ -65,6 +65,8 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_platform_init(void)
 #ifdef TFM_OTP_DEFAULT_PROVIONNING
     /*  Place here to force linker to keep provision and init const */
     __IO uint32_t otp = OTP_KEEP;
+
+    (void)otp;
 #endif /*TFM_OTP_DEFAULT_PROVIONNING*/
 
 #ifdef DEFAULT_SHARED_DATA
