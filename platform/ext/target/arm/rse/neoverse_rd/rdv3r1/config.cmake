@@ -19,6 +19,7 @@ else()
     set(MULTI_RSE_TOPOLOGY_FILE         ${CMAKE_CURRENT_LIST_DIR}/bl1/rdv3r1cfg1.tgf CACHE STRING "Topology file for RSE to RSE BL1 communication")
 endif()
 set(PLAT_SHARED_LCP                     TRUE     CACHE BOOL    "Whether shared LCP is enabled where LCP cores are mapped to AP cores in 1:N mapping opposed to 1:1")
+set(RSE_OTP_HAS_ROUTING_TABLES          ON       CACHE BOOL    "Whether the RSE OTP contains the RSE communications routing tables")
 
 # Once all cache options are set, set common options as fallback
 include(${CMAKE_CURRENT_LIST_DIR}/../common/config.cmake)
