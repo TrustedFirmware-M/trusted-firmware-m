@@ -727,6 +727,53 @@ static void ccm_calc_iv(bool from_auth)
     b0_block[15] = 0x1;
     set_ctr((uint32_t *) b0_block);
 }
+
+#ifndef CC3XX_CONFIG_AES_TUNNELLING_ENABLE
+void c3xx_lowlevel_aes_ccm_init_ctr(uint8_t *ctr, const uint8_t *nonce, size_t nonce_size)
+{
+    /* The formatting of the counter block is [Flags None [i]8q].
+     * q is the byte length of the binary representation of the byte length of the payload,
+     * note that q assumes the range 2 << q << 8.
+     * the bit formatting of Flags is [0 0 0 0 0 [q-1]3]
+     */
+
+    /* Compute q */
+    const uint32_t q = AES_BLOCK_SIZE - 1 - nonce_size;
+
+    /* Write [q - 1]3 to its field in Flags */
+    ctr[0] = (q - 1) & 0b111;
+
+    /* Copy the nonce */
+    memcpy(ctr + 1, nonce, nonce_size);
+
+    /* Initialise the counter value for encryption to 1 */
+    ctr[AES_BLOCK_SIZE - 1] = 0x1;
+}
+
+void c3xx_lowlevel_aes_ccm_incr_ctr(uint8_t *ctr, const size_t incr_val)
+{
+    /* The formatting of the counter block is [Flags None [i]8q].
+     * q is the byte length of the binary representation of the byte length of the payload,
+     * note that q assumes the range 2 << q << 8.
+     * the bit formatting of Flags is [0 0 0 0 0 [q-1]3]
+     */
+
+    /* Extract "q" from Flags */
+    const size_t q = (ctr[0] & 0b111) + 1;
+
+    /* Use q to find the counter value offset */
+    const size_t ctr_pos = AES_BLOCK_SIZE - q;
+
+    /* Counter size can be up to 8 bytes, positioned at the end of the buffer */
+    uint64_t ctr_val = *((uint64_t *)(ctr + AES_BLOCK_SIZE - sizeof(uint64_t)));
+
+    /* The counter is encoded in big-endian format */
+    ctr_val = bswap_64(bswap_64(ctr_val) + incr_val);
+
+    /* counter write-back using the correct offset */
+    memcpy(ctr + ctr_pos, ((uint8_t *)&ctr_val) + sizeof(uint64_t) - q, q);
+}
+#endif /* !CC3XX_CONFIG_AES_TUNNELLING_ENABLE */
 #endif /* CC3XX_CONFIG_AES_CCM_ENABLE */
 
 static void configure_engine_for_authed_data(bool *write_output)

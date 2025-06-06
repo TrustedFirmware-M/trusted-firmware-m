@@ -257,6 +257,37 @@ cc3xx_err_t cc3xx_lowlevel_aes_finish(uint32_t *tag, size_t *size);
  */
 void cc3xx_lowlevel_aes_uninit(void);
 
+#if !defined(CC3XX_CONFIG_AES_TUNNELLING_ENABLE) && defined(CC3XX_CONFIG_AES_CCM_ENABLE)
+/**
+ * @brief                         Initialize an AES-CCM counter block from the nonce.
+ *                                This function sets up the AES-CCM initial counter
+ *                                block (CTR) based on the provided nonce.
+ *
+ * @param[in,out] ctr             Pointer to the 16-byte counter block to initialize.
+ * @param[in]     nonce           Pointer to the nonce to use for counter initialization.
+ * @param[in]     nonce_size      Size of the nonce in bytes.
+ *
+ */
+void c3xx_lowlevel_aes_ccm_init_ctr(uint8_t *ctr, const uint8_t *nonce, size_t nonce_size);
+
+/**
+ * @brief                         Increment the AES-CCM counter block by a specified
+                                  amount. The counter field is stored in the least
+                                  significant bytes of the block, in big-endian format.
+ *
+ * @param[in,out] ctr             Pointer to the 16-byte counter block.
+ * @param[in]     incr_val        The amount to increment the counter by.
+ *
+ * @note                          The counter field is up to 8 bytes wide, located at the
+ *                                end of the block. The increment is applied in big-endian
+ *                                byte order and written back to the correct offset.
+ */
+void c3xx_lowlevel_aes_ccm_incr_ctr(uint8_t *ctr, const size_t incr_val);
+
+
+#endif /* !CC3XX_CONFIG_AES_TUNNELLING_ENABLE && CC3XX_CONFIG_AES_CCM_ENABLE */
+
+
 #ifdef __cplusplus
 }
 #endif
