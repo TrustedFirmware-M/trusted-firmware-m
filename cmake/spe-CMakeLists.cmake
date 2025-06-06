@@ -20,6 +20,7 @@ target_link_libraries(tfm_config INTERFACE psa_interface)
 # exported by TF-M build.
 set(INTERFACE_SRC_DIR    ${CMAKE_CURRENT_LIST_DIR}/interface/src)
 set(INTERFACE_INC_DIR    ${CMAKE_CURRENT_LIST_DIR}/interface/include)
+set(PLATFORM_DIR         ${CMAKE_CURRENT_LIST_DIR}/platform)
 if (DEFINED NS_TARGET_NAME)
     message(STATUS "Using NS_TARGET_NAME: ${NS_TARGET_NAME}")
 else()
@@ -46,31 +47,38 @@ target_include_directories(tfm_api_ns
 )
 
 if (CONFIG_TFM_USE_TRUSTZONE)
-    add_library(tfm_api_ns_tz INTERFACE)
+    add_library(tfm_api_ns_tz STATIC)
 
     target_sources(tfm_api_ns_tz
-        INTERFACE
+        PUBLIC
             ${INTERFACE_SRC_DIR}/tfm_tz_psa_ns_api.c
     )
 
+    target_include_directories(tfm_api_ns_tz
+        PUBLIC
+            ${INTERFACE_INC_DIR}
+    )
+
     target_link_libraries(tfm_api_ns_tz
-        INTERFACE
+        PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/interface/lib/s_veneers.o
     )
 endif()
 
 if (TFM_PARTITION_NS_AGENT_MAILBOX)
-    add_library(tfm_api_ns_mailbox INTERFACE)
+    add_library(tfm_api_ns_mailbox STATIC)
 
     target_sources(tfm_api_ns_mailbox
-        INTERFACE
+        PUBLIC
             ${INTERFACE_SRC_DIR}/multi_core/tfm_multi_core_ns_api.c
             ${INTERFACE_SRC_DIR}/multi_core/tfm_multi_core_psa_ns_api.c
     )
 
     target_include_directories(tfm_api_ns_mailbox
-        INTERFACE
+        PUBLIC
+            ${INTERFACE_INC_DIR}
             ${INTERFACE_INC_DIR}/multi_core
+            ${PLATFORM_DIR}/ext/cmsis/Include
     )
 endif()
 
