@@ -98,6 +98,56 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/config/bl2_image_config.pi
         --bl2_image_config_output_file=${CMAKE_CURRENT_BINARY_DIR}/config/bl2_image_config.pickle
 )
 
+foreach(manufacturer "cm" "dm")
+    string(TOUPPER "${manufacturer}" MANUFACTURER)
+    if(TFM_GENERATE_BL1_2_${MANUFACTURER}_SIGNING_KEY)
+        set(GENERATED_BL1_2_SIGNING_KEY_TARGET bl1_generated_${manufacturer}_signing_key)
+        set(SIGNING_ALG ${TFM_BL1_2_${MANUFACTURER}_SIGNING_ALG})
+
+        if ("${SIGNING_ALG}" STREQUAL "LMS")
+            add_custom_target(${GENERATED_BL1_2_SIGNING_KEY_TARGET}
+                SOURCES
+                    bl1_generated_rotpk_${manufacturer}.pub
+                    bl1_generated_rotpk_${manufacturer}.prv
+            )
+
+            add_custom_command(
+                OUTPUT
+                    bl1_generated_rotpk_${manufacturer}.pub
+                    bl1_generated_rotpk_${manufacturer}.prv
+                COMMAND hsslms
+                    genkey bl1_generated_rotpk_${manufacturer}
+                    --levels 1 --lms 10 --lmots 8 --alg sha256 --trunc 32
+                COMMAND ${CMAKE_COMMAND} -E echo "Generating bl1_2 lms key command"
+                COMMAND ${CMAKE_COMMAND} -E copy
+                    bl1_generated_rotpk_${manufacturer}.pub
+                    bl1_generated_rotpk_${manufacturer}.prv
+                    $<TARGET_FILE_DIR:bl1_2>
+            )
+
+            set(TFM_BL1_2_${MANUFACTURER}_SIGNING_KEY_PATH "$<TARGET_FILE_DIR:bl1_2>/bl1_generated_rotpk_${manufacturer}.pub" CACHE FILEPATH "" FORCE)
+        else()
+            add_custom_target(${GENERATED_BL1_2_SIGNING_KEY_TARGET}
+                SOURCES
+                    generated-EC-${TFM_BL1_2_ECDSA_CURVE}_${manufacturer}.pem
+            )
+
+            add_custom_command(
+                OUTPUT generated-EC-${TFM_BL1_2_ECDSA_CURVE}_${manufacturer}.pem
+                COMMAND ${CMAKE_COMMAND} -E echo "Generating bl1_2 ecdsa key command"
+                COMMAND ${Python3_EXECUTABLE} ${MCUBOOT_PATH}/scripts/imgtool.py
+                    keygen
+                    -k generated-EC-${TFM_BL1_2_ECDSA_CURVE}_${manufacturer}.pem
+                    -t ecdsa-$<LOWER_CASE:${TFM_BL1_2_ECDSA_CURVE}>
+                COMMAND ${CMAKE_COMMAND} -E copy
+                    generated-EC-${TFM_BL1_2_ECDSA_CURVE}_${manufacturer}.pem
+                    $<TARGET_FILE_DIR:bl1_2>
+            )
+
+            set(TFM_BL1_2_${MANUFACTURER}_SIGNING_KEY_PATH "$<TARGET_FILE_DIR:bl1_2>/generated-EC-${TFM_BL1_2_ECDSA_CURVE}_${manufacturer}.pem" CACHE FILEPATH "" FORCE)
+        endif()
+    endif()
+endforeach()
 
 get_target_property(bin_dir bl2 RUNTIME_OUTPUT_DIRECTORY)
 
@@ -111,6 +161,8 @@ add_custom_command(OUTPUT bl2_signed.bin
     OUTPUT ${bin_dir}/bl2_signed.bin
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_bl2_img.py
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/config/bl2_image_config.pickle
+    DEPENDS $<$<BOOL:${TFM_GENERATE_BL1_2_CM_SIGNING_KEY}>:bl1_generated_cm_signing_key>
+    DEPENDS $<$<AND:$<EQUAL:${TFM_BL1_2_SIGNER_AMOUNT},2>,$<BOOL:${TFM_GENERATE_BL1_2_DM_SIGNING_KEY}>>:bl1_generated_dm_signing_key>
     DEPENDS bl2_bin
     COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_SOURCE_DIR}/tools/modules
             ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_bl2_img.py

@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
-# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2021-2022 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -22,6 +22,9 @@ tfm_invalid_config(TFM_ISOLATION_LEVEL EQUAL 3 AND CONFIG_TFM_STACK_WATERMARKS)
 ########################## BL1 #################################################
 
 tfm_invalid_config(TFM_BL1_2_IN_OTP AND TFM_BL1_2_IN_FLASH)
+
+tfm_invalid_config(TFM_DUMMY_PROVISIONING AND TFM_GENERATE_BL1_2_CM_SIGNING_KEY)
+tfm_invalid_config(TFM_DUMMY_PROVISIONING AND TFM_GENERATE_BL1_2_DM_SIGNING_KEY)
 
 ########################## BL2 #################################################
 

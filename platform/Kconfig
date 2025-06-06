@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2022-2023, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -16,7 +16,7 @@ config SECURE_UART1
 config TFM_DUMMY_PROVISIONING
     bool "Provision with dummy values"
     default y
-    depends on !MCUBOOT_GENERATE_SIGNING_KEYPAIR
+    depends on !MCUBOOT_GENERATE_SIGNING_KEYPAIR && !TFM_GENERATE_BL1_2_CM_SIGNING_KEY && !TFM_GENERATE_BL1_2_DM_SIGNING_KEY
     select PLATFORM_DEFAULT_OTP_WRITEABLE if PLATFORM_DEFAULT_OTP
     help
       NOT to be used in production

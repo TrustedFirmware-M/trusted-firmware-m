@@ -12,9 +12,12 @@ set(TFM_BL2_ENCRYPTION_KEY_PATH         ${CMAKE_SOURCE_DIR}/bl1/bl1_2/bl2_dummy_
 set(TFM_GUK_PATH                        ${CMAKE_SOURCE_DIR}/bl1/bl1_1/dummy_guk.bin                CACHE FILEPATH "Path to binary GUK key file to provision")
 set(TFM_BL2_IMAGE_FLASH_AREA_NUM        0                                                          CACHE STRING   "Which flash area BL2 is stored in")
 
+set(TFM_GENERATE_BL1_2_CM_SIGNING_KEY OFF CACHE BOOL "Generate bl2 signing CM key")
+set(TFM_GENERATE_BL1_2_DM_SIGNING_KEY OFF CACHE BOOL "Generate bl2 signing DM key")
+
 set(TFM_BL1_2_CM_SIGNING_ALG           "LMS"       CACHE STRING "Algorithm to use for BL2 signing")
 if (TFM_BL1_2_CM_SIGNING_ALG STREQUAL "LMS")
-    set(TFM_BL1_2_CM_SIGNING_KEY_PATH ${CMAKE_SOURCE_DIR}/bl1/bl1_2/bl1_dummy_rotpk.pub CACHE FILEPATH "Path to binary BL2 signing private key")
+    set(TFM_BL1_2_CM_SIGNING_KEY_PATH "${CMAKE_SOURCE_DIR}/bl1/bl1_2/bl1_dummy_rotpk.pub" CACHE FILEPATH "Path to binary BL2 signing private key")
 else()
     set(TFM_BL1_2_ECDSA_CURVE          "P256" CACHE STRING "Curve to use for BL1_2 ECDSA validation")
     set(TFM_BL1_2_CM_SIGNING_KEY_PATH   "${CMAKE_SOURCE_DIR}/bl2/ext/mcuboot/root-EC-${TFM_BL1_2_ECDSA_CURVE}.pem" CACHE FILEPATH "Path to binary BL2 signing private key")
@@ -22,7 +25,7 @@ endif()
 
 set(TFM_BL1_2_DM_SIGNING_ALG           "LMS"       CACHE STRING "Algorithm to use for BL2 signing")
 if (TFM_BL1_2_DM_SIGNING_ALG STREQUAL "LMS")
-    set(TFM_BL1_2_DM_SIGNING_KEY_PATH ${CMAKE_SOURCE_DIR}/bl1/bl1_2/bl1_dummy_rotpk_1.pub CACHE FILEPATH "Path to binary BL2 signing private key")
+    set(TFM_BL1_2_DM_SIGNING_KEY_PATH "${CMAKE_SOURCE_DIR}/bl1/bl1_2/bl1_dummy_rotpk_1.pub" CACHE FILEPATH "Path to binary BL2 signing private key")
 else()
     set(TFM_BL1_2_ECDSA_CURVE          "P256" CACHE STRING "Curve to use for BL1_2 ECDSA validation")
     set(TFM_BL1_2_DM_SIGNING_KEY_PATH   "${CMAKE_SOURCE_DIR}/bl2/ext/mcuboot/root-EC-${TFM_BL1_2_ECDSA_CURVE}_1.pem" CACHE FILEPATH "Path to binary BL2 signing private key")

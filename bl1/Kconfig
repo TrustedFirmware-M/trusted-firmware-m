@@ -27,6 +27,14 @@ config TFM_BL2_IMAGE_FLASH_AREA_NUM
     int "Which flash area BL2 is stored in"
     default 0
 
+config TFM_GENERATE_BL1_2_CM_SIGNING_KEY
+    bool "Generate new keypair or use TFM_BL2_CM_SIGNING_KEY_PATH for signing"
+    default n
+
+config TFM_GENERATE_BL1_2_DM_SIGNING_KEY
+    bool "Generate new keypair or use TFM_BL2_DM_SIGNING_KEY_PATH for signing"
+    default n
+
 config TFM_BL2_CM_SIGNING_KEY_PATH
     string
     default "$(TFM_SOURCE_DIR)/bl1/bl1_2/bl1_dummy_rotpk"
