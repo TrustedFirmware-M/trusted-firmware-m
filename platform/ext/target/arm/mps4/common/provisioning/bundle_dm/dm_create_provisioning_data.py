@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 #
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -49,7 +49,7 @@ def get_key_hash_c_array(key_file, mcuboot_hw_key):
 
 @click.argument('outfile')
 @click.option('--template_path', metavar='filename', required=True)
-@click.option('--bl1_rotpk_0', metavar='key', required=True)
+@click.option('--bl1_rotpk_0_path', metavar='filename', required=True)
 @click.option('--bl2_encryption_key_path', metavar='filename', required=True)
 @click.option('--bl2_mcuboot_hw_key', metavar='string', required=True)
 @click.option('--bl2_rot_priv_key_0', metavar='filename', required=True)
@@ -71,7 +71,7 @@ def get_key_hash_c_array(key_file, mcuboot_hw_key):
                "template_path" and outputs it to "outfile"''')
 def generate_provisioning_data_c(outfile,
                                  template_path,
-                                 bl1_rotpk_0,
+                                 bl1_rotpk_0_path,
                                  bl2_encryption_key_path,
                                  bl2_mcuboot_hw_key,
                                  bl2_rot_priv_key_0,
@@ -89,8 +89,9 @@ def generate_provisioning_data_c(outfile,
     environment = Environment(loader=FileSystemLoader(template_path))
     template = environment.get_template("dm_provisioning_data_template.jinja2")
 
-    if bool(bl1_rotpk_0) is False:
-        bl1_rotpk_0 = hex_to_c_array(os.urandom(56))
+    with open(bl1_rotpk_0_path, "rb") as F:
+        # Remove the first 4 bytes since it's HSS info
+        bl1_rotpk_0 = hex_to_c_array(F.read()[4:])
 
     with open(bl2_encryption_key_path, "rb") as F:
         bl2_encryption_key = hex_to_c_array(F.read())

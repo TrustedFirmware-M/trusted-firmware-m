@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023-2025, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -15,10 +15,14 @@ else()
     include("${DM_PROVISIONING_KEYS_CONFIG}" OPTIONAL RESULT_VARIABLE DM_PROVISIONING_KEYS_CONFIG_PATH)
     if(NOT DM_PROVISIONING_KEYS_CONFIG_PATH)
         message(WARNING "The DM_PROVISIONING_KEYS_CONFIG is not set. If the keys are not passed via the command line then \
-                        random numbers will be used for keys and seeds or default values will be used (for attestation). \
+                        random/dummy numbers will be used for keys and seeds or default values will be used (for attestation). \
                         To create and use a DM_PROVISIONING_KEYS_CONFIG file, \
                         see the example in: \
                         tf-m/platform/ext/target/arm/mps4/common/provisioning/bundle_dm/dm_provisioning_config.cmake")
+    endif()
+    # mps4 only supports LMS, so only the relevant dummy key is checked
+    if(TFM_BL1_2_CM_SIGNING_KEY_PATH STREQUAL "${CMAKE_SOURCE_DIR}/bl1/bl1_2/bl1_dummy_rotpk.pub")
+        message(WARNING "TFM_DUMMY_PROVISIONING is OFF but TFM_BL1_2_CM_SIGNING_KEY_PATH is set to the dummy signing key.")
     endif()
     if(TFM_BL2_ENCRYPTION_KEY_PATH STREQUAL ${CMAKE_SOURCE_DIR}/bl1/bl1_2/bl2_dummy_encryption_key.bin)
         message(WARNING "TFM_DUMMY_PROVISIONING is OFF but TFM_BL2_ENCRYPTION_KEY_PATH is set to the dummy encryption key.")
@@ -97,13 +101,14 @@ add_custom_target(dm_provisioning_data
 add_custom_command(OUTPUT dm_provisioning_data.c
     DEPENDS $<IF:$<BOOL:${MCUBOOT_GENERATE_SIGNING_KEYPAIR}>,generated_private_key,${MCUBOOT_KEY_S}>
     DEPENDS $<IF:$<BOOL:${MCUBOOT_GENERATE_SIGNING_KEYPAIR}>,generated_private_key,${MCUBOOT_KEY_NS}>
+    DEPENDS $<IF:$<BOOL:${TFM_GENERATE_BL1_2_CM_SIGNING_KEY}>,bl1_generated_cm_signing_key,${TFM_BL1_2_CM_SIGNING_KEY_PATH}>
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/dm_provisioning_data_template.jinja2
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/dm_create_provisioning_data.py
     WORKING_DIRECTORY ${MCUBOOT_PATH}/scripts
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/dm_create_provisioning_data.py
         ${CMAKE_CURRENT_BINARY_DIR}/dm_provisioning_data.c
         --template_path=${CMAKE_CURRENT_SOURCE_DIR}
-        --bl1_rotpk_0=${BL1_ROTPK_0}
+        --bl1_rotpk_0_path=${TFM_BL1_2_CM_SIGNING_KEY_PATH} # this key is used when only a single key signs bl2
         --bl2_encryption_key_path=${TFM_BL2_ENCRYPTION_KEY_PATH}
         --bl2_mcuboot_hw_key=${MCUBOOT_HW_KEY}
         --bl2_rot_priv_key_0=${MCUBOOT_KEY_S}
