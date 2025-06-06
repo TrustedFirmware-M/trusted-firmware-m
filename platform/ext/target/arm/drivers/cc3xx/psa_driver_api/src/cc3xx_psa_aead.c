@@ -393,6 +393,102 @@ psa_status_t cc3xx_aead_update_ad(
     return PSA_ERROR_CORRUPTION_DETECTED;
 }
 
+#if !defined(CC3XX_CONFIG_AES_TUNNELLING_ENABLE) && defined(PSA_WANT_ALG_CCM)
+/**
+ * @brief Encrypt or decrypt a message fragment in an active AEAD AES-CCM operation.
+ *        This is only required when CryptoCell is operating in non-tunnelling
+ *        mode, in which case AES-CCM only computes the CBC-MAC tag, and thus a
+ *        separate AES-CTR call is required
+ *
+ * @param[in]  operation                Active AEAD operation.
+ * @param[in]  input                    Buffer containing the message fragment.
+ * @param[in]  input_length             Size of the input buffer in bytes.
+ * @param[out] output                   Buffer where the output is to be written.
+ * @param[in]  output_size              Size of the output buffer in bytes.
+ * @param[out] output_length            The number of bytes that make up the output.
+ * @param[in]  block_buf_size_in_use    Current AES DMA buffer usage in bytes.
+ *
+ * @return psa_status_t
+ */
+static psa_status_t cc3xx_aead_ccm_ctr_update(
+        cc3xx_aead_operation_t *operation,
+        const uint8_t *input,
+        size_t input_length,
+        uint8_t *output,
+        size_t output_size,
+        size_t *output_length,
+        size_t block_buf_size_in_use)
+{
+        psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+        cc3xx_err_t err;
+        struct cc3xx_aes_state_t *state = &operation->aes;
+        size_t processed_bytes = 0;
+        size_t counter_incr_val = (block_buf_size_in_use + input_length) / AES_BLOCK_SIZE;
+
+        err = cc3xx_lowlevel_aes_init(CC3XX_AES_DIRECTION_ENCRYPT,
+                                      CC3XX_AES_MODE_CTR, CC3XX_AES_KEY_ID_USER_KEY,
+                                      (uint32_t *)state->key_buf, state->key_size,
+                                      (uint32_t *)state->ctr, AES_IV_LEN);
+        if (err != CC3XX_ERR_SUCCESS) {
+            return cc3xx_to_psa_err(err);
+        }
+
+        if (block_buf_size_in_use > 0) {
+            size_t partial_len = ((block_buf_size_in_use + input_length) < AES_BLOCK_SIZE) ?
+                                    input_length : AES_BLOCK_SIZE - block_buf_size_in_use;
+            uint8_t scratch_block[AES_BLOCK_SIZE] = {0};
+            size_t current_output_size = cc3xx_lowlevel_aes_get_current_output_size();
+
+            cc3xx_lowlevel_aes_set_output_buffer(scratch_block, AES_BLOCK_SIZE);
+
+            err = cc3xx_lowlevel_aes_update(scratch_block, block_buf_size_in_use);
+            if (err != CC3XX_ERR_SUCCESS) {
+                return cc3xx_to_psa_err(err);
+            }
+
+            err = cc3xx_lowlevel_aes_update(input, partial_len);
+            if (err != CC3XX_ERR_SUCCESS) {
+                return cc3xx_to_psa_err(err);
+            }
+
+            cc3xx_lowlevel_dma_flush_buffer(false);
+
+            /* Write-back the partially-encrypted data */
+            memcpy(output, scratch_block + block_buf_size_in_use, partial_len);
+
+            processed_bytes = cc3xx_lowlevel_aes_get_current_output_size() -
+                                (current_output_size + block_buf_size_in_use);
+        }
+
+        if ((input_length - processed_bytes) > 0) {
+            const uint8_t *remaining_input = input + processed_bytes;
+            const size_t remaining_input_length = input_length - processed_bytes;
+            uint8_t *remaining_output = output + processed_bytes;
+            const size_t remaining_output_size = output_size - processed_bytes;
+            size_t current_output_size = cc3xx_lowlevel_aes_get_current_output_size();
+
+            cc3xx_lowlevel_aes_set_output_buffer(remaining_output, remaining_output_size);
+
+            err = cc3xx_lowlevel_aes_update(remaining_input, remaining_input_length);
+            if (err != CC3XX_ERR_SUCCESS) {
+                return cc3xx_to_psa_err(err);
+            }
+
+            cc3xx_lowlevel_dma_flush_buffer(false);
+
+            processed_bytes += cc3xx_lowlevel_aes_get_current_output_size() - current_output_size;
+        }
+
+        *output_length += processed_bytes;
+
+        if (counter_incr_val > 0) {
+            c3xx_lowlevel_aes_ccm_incr_ctr(state->ctr, counter_incr_val);
+        }
+
+        return PSA_SUCCESS;
+}
+#endif /* !CC3XX_CONFIG_AES_TUNNELLING_ENABLE && PSA_WANT_ALG_CCM */
+
 psa_status_t cc3xx_aead_update(
         cc3xx_aead_operation_t *operation,
         const uint8_t *input,
@@ -404,11 +500,45 @@ psa_status_t cc3xx_aead_update(
     cc3xx_err_t err;
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t last_output_num_bytes = 0, current_output_size = 0;
+#if !defined(CC3XX_CONFIG_AES_TUNNELLING_ENABLE) && defined(PSA_WANT_ALG_CCM)
+    bool ctr_required;
+    size_t ctr_block_buf_size_in_use = 0;
+#endif /* !CC3XX_CONFIG_AES_TUNNELLING_ENABLE && PSA_WANT_ALG_CCM */
 
     CC3XX_ASSERT(operation != NULL);
     CC3XX_ASSERT(input != NULL);
     CC3XX_ASSERT(output != NULL);
     CC3XX_ASSERT(output_length != NULL);
+
+    /* Initialize this length to a safe value that might be overridden */
+    *output_length = 0;
+
+#if !defined(CC3XX_CONFIG_AES_TUNNELLING_ENABLE) && defined(PSA_WANT_ALG_CCM)
+    ctr_required = ((operation->key_type == PSA_KEY_TYPE_AES) &&
+                    (operation->aes.mode == CC3XX_AES_MODE_CCM) &&
+                    (input_length > 0 ) && (output_size > 0)) ? true : false;
+
+    if (ctr_required) {
+        ctr_block_buf_size_in_use = (operation->aes.crypted_length > 0) ?
+                                    operation->aes.dma_state.block_buf_size_in_use : 0;
+
+        if (operation->aes.direction == CC3XX_AES_DIRECTION_DECRYPT) {
+            status = cc3xx_aead_ccm_ctr_update(operation,
+                                               input,
+                                               input_length,
+                                               output,
+                                               output_size,
+                                               output_length,
+                                               ctr_block_buf_size_in_use);
+            if (status != PSA_SUCCESS) {
+                return status;
+            }
+
+            /* CBC-MAC computes the tag on plaintext data */
+            input = output;
+        }
+    }
+#endif /* !CC3XX_CONFIG_AES_TUNNELLING_ENABLE && PSA_WANT_ALG_CCM */
 
     /* This either restores the state or completes the init */
     status = cc3xx_internal_cipher_setup_complete(operation);
@@ -505,21 +635,34 @@ out_chacha20:
 
         err = cc3xx_lowlevel_aes_update(input, input_length);
         if (err != CC3XX_ERR_SUCCESS) {
-            status = cc3xx_to_psa_err(err);
-            goto out_aes;
+            cc3xx_lowlevel_aes_uninit();
+            return cc3xx_to_psa_err(err);
         }
         current_output_size = cc3xx_lowlevel_aes_get_current_output_size();
 
-        *output_length = current_output_size - last_output_num_bytes;
+        *output_length += current_output_size - last_output_num_bytes;
 
         operation->last_output_num_bytes = current_output_size;
 
         cc3xx_lowlevel_aes_get_state(&operation->aes);
 
-        status = PSA_SUCCESS;
-out_aes:
         cc3xx_lowlevel_aes_uninit();
-        return status;
+
+#if !defined(CC3XX_CONFIG_AES_TUNNELLING_ENABLE) && defined(PSA_WANT_ALG_CCM)
+        if ((ctr_required) && (operation->aes.direction == CC3XX_AES_DIRECTION_ENCRYPT)) {
+            status = cc3xx_aead_ccm_ctr_update(operation,
+                                                input,
+                                                input_length,
+                                                output,
+                                                output_size,
+                                                output_length,
+                                                ctr_block_buf_size_in_use);
+            if (status != PSA_SUCCESS) {
+                return status;
+            }
+        }
+#endif /* !CC3XX_CONFIG_AES_TUNNELLING_ENABLE && PSA_WANT_ALG_CCM */
+        return PSA_SUCCESS;
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
     default:

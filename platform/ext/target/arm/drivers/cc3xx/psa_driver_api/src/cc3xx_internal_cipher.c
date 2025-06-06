@@ -364,6 +364,14 @@ psa_status_t cc3xx_internal_cipher_setup_set_iv(
         }
 
         operation->iv_length = iv_length;
+
+#if !defined(CC3XX_CONFIG_AES_TUNNELLING_ENABLE) && defined(PSA_WANT_ALG_CCM)
+        if ((operation->key_type == PSA_KEY_TYPE_AES) &&
+            (operation->aes.mode == CC3XX_AES_MODE_CCM)) {
+            c3xx_lowlevel_aes_ccm_init_ctr((uint8_t *)operation->aes.ctr, iv, iv_length);
+        }
+#endif /* !CC3XX_CONFIG_AES_TUNNELLING_ENABLE && PSA_WANT_ALG_CCM */
+
         return PSA_SUCCESS;
 #endif /* PSA_WANT_KEY_TYPE_AES */
 
