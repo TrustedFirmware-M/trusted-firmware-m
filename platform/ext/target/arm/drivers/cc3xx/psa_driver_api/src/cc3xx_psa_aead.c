@@ -14,6 +14,7 @@
  */
 
 #include "cc3xx_psa_aead.h"
+#include "cc3xx_psa_cipher.h"
 #include "cc3xx_crypto_primitives_private.h"
 #include "cc3xx_misc.h"
 #include "cc3xx_stdlib.h"
@@ -167,6 +168,12 @@ static psa_status_t aead_crypt(
     {
         cc3xx_aes_keysize_t key_size;
         cc3xx_aes_mode_t mode;
+#if !defined(CC3XX_CONFIG_AES_TUNNELLING_ENABLE) && defined(PSA_WANT_ALG_CCM)
+        uint8_t ctr[AES_IV_LEN] = {0};
+        bool ctr_required = ((default_alg == PSA_ALG_CCM) && (data_minus_tag > 0) &&
+                             (output_size > 0)) ? true : false;
+#endif /* !CC3XX_CONFIG_AES_TUNNELLING_ENABLE && PSA_WANT_ALG_CCM */
+
 
         switch (key_buffer_size) {
         case 16:
@@ -196,6 +203,31 @@ static psa_status_t aead_crypt(
         default:
             return PSA_ERROR_INVALID_ARGUMENT;
         }
+
+#if !defined(CC3XX_CONFIG_AES_TUNNELLING_ENABLE) && defined(PSA_WANT_ALG_CCM)
+        if (ctr_required) {
+            c3xx_lowlevel_aes_ccm_init_ctr(ctr, nonce, nonce_length);
+
+            /* As AES CBC-MAC computes the tag on plaintext data,
+             * AES CTR decryption should come beforehand
+             */
+            if (dir == PSA_CRYPTO_DRIVER_DECRYPT) {
+                status = cc3xx_cipher_encrypt(attributes,
+                                            key_buffer, key_buffer_size,
+                                            PSA_ALG_CTR,
+                                            ctr, sizeof(ctr),
+                                            input, data_minus_tag,
+                                            output, output_size,
+                                            output_length);
+                if (status != PSA_SUCCESS) {
+                    return status;
+                }
+
+                /* CBC-MAC computes the tag on the decrypted data */
+                input = output;
+            }
+        }
+#endif /* !CC3XX_CONFIG_AES_TUNNELLING_ENABLE && PSA_WANT_ALG_CCM */
 
         err = cc3xx_lowlevel_aes_init((dir == PSA_CRYPTO_DRIVER_ENCRYPT) ?
                 CC3XX_AES_DIRECTION_ENCRYPT : CC3XX_AES_DIRECTION_DECRYPT,
@@ -234,6 +266,21 @@ static psa_status_t aead_crypt(
             status = cc3xx_to_psa_err(err);
             goto out;
         }
+
+#if !defined(CC3XX_CONFIG_AES_TUNNELLING_ENABLE) && defined(PSA_WANT_ALG_CCM)
+        if (ctr_required && (dir == PSA_CRYPTO_DRIVER_ENCRYPT)) {
+            status = cc3xx_cipher_encrypt(attributes,
+                                        key_buffer, key_buffer_size,
+                                        PSA_ALG_CTR,
+                                        ctr, sizeof(ctr),
+                                        input, data_minus_tag,
+                                        output, output_size,
+                                        output_length);
+            if (status != PSA_SUCCESS) {
+                return status;
+            }
+        }
+#endif /* !CC3XX_CONFIG_AES_TUNNELLING_ENABLE && PSA_WANT_ALG_CCM */
     }
     break;
 #endif /* PSA_WANT_KEY_TYPE_AES */
@@ -246,7 +293,7 @@ static psa_status_t aead_crypt(
     }
 
     /* Bytes produced on finish will take into account all bytes up to finish, minus the tag */
-    *output_length = bytes_produced_on_finish;
+    *output_length += bytes_produced_on_finish;
 
     if (dir == PSA_CRYPTO_DRIVER_ENCRYPT) {
         /* Put the tag in the correct place in output */
