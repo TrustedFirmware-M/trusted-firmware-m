@@ -38,7 +38,7 @@ install(FILES       ${TARGET_PLATFORM_PATH}/mailbox/platform_ns_mailbox.c
                     ${TARGET_PLATFORM_PATH}/mailbox/platform_multicore.c
                     ${TARGET_PLATFORM_PATH}/mailbox/ns_ipc_config.h
                     ${TARGET_PLATFORM_PATH}/mailbox/platform_multicore.h
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/mailbox)
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/../interface/src/multi_core)
 
 install(FILES       ${TARGET_PLATFORM_PATH}/Device/Source/system_psoc6_cm4.c
                     ${TARGET_PLATFORM_PATH}/Device/Source/psoc6_system_init_cm4.c

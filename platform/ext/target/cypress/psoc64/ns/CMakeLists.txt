@@ -36,7 +36,7 @@ target_sources(platform_ns
 
 target_sources(platform_ns
     PRIVATE
-        ./mailbox/platform_ns_mailbox.c
+        ./../interface/src/multi_core/platform_ns_mailbox.c
         ./Device/Source/system_psoc6_cm4.c
         ./Device/Source/psoc6_system_init_cm4.c
         ./Native_Driver/generated_source/cycfg.c
@@ -47,7 +47,7 @@ target_sources(platform_ns
         ./Native_Driver/generated_source/cycfg_routing.c
         ./Native_Driver/generated_source/cycfg_system.c
         ./Native_Driver/generated_source/cycfg_qspi_memslot.c
-        ./mailbox/platform_multicore.c
+        ./../interface/src/multi_core/platform_multicore.c
         ./CMSIS_Driver/Driver_USART.c
         ./Device/Source/device_definition.c
         $<$<BOOL:${TFM_PARTITION_PLATFORM}>:${CMAKE_CURRENT_SOURCE_DIR}/plat_test.c>
@@ -87,3 +87,7 @@ target_include_directories(platform_region_defs
     INTERFACE
         partition
 )
+
+if (TFM_PARTITION_NS_AGENT_MAILBOX)
+    target_link_libraries(tfm_api_ns_mailbox PUBLIC platform_ns)
+endif()
