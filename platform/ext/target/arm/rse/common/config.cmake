@@ -21,6 +21,8 @@ set(RSE_SUBPLATFORM_PAL_DEFAULT_NV_COUNTERS ON             CACHE BOOL      "Use 
 set(RSE_SUBPLATFORM_PAL_DEFAULT_ROTPK       ON             CACHE BOOL      "Use default subplatform PAL rotpk mapping")
 set(RSE_SUBPLATFORM_PAL_CONFIG_DIR "${CMAKE_CURRENT_LIST_DIR}/subplatform_pal_default_config" CACHE PATH "path where subplatform PAL config headers can be found")
 
+set(RSE_ENABLE_TRAM                     OFF        CACHE BOOL "Whether TRAM encryption is enabled")
+
 set(RSE_ENCRYPTED_OTP_KEYS              OFF        CACHE BOOL "Whether keys in OTP are encrypted")
 set(RSE_BIT_PROGRAMMABLE_OTP            ON         CACHE BOOL "Whether RSE OTP words can be programmed bit by bit, or whole words must be programmed at once")
 
