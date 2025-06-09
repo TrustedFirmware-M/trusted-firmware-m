@@ -166,6 +166,9 @@ enum tfm_plat_err_t {
     /* RSE zero count error codes */
     TFM_PLAT_ERR_ZERO_COUNT_MISMATCH,
     TFM_PLAT_ERR_ZERO_COUNT_INVALID_ARGUMENT,
+    /* Routing tables errors */
+    TFM_PLAT_ERR_SEND_ROUTING_TABLES_INVALID_SIZE,
+    TFM_PLAT_ERR_RECEIVE_ROUTING_TABLES_INVALID_SIZE,
     /* Generic errors */
     TFM_PLAT_ERR_SYSTEM_ERR,
     TFM_PLAT_ERR_MAX_VALUE,

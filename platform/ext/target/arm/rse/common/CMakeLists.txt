@@ -900,6 +900,11 @@ install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/config/otp_layout.csv
 ############################## Routing tables ##################################
 
 if (RSE_AMOUNT GREATER 1)
+    target_sources(platform_bl1_1
+        PRIVATE
+            ./rse_get_routing_tables.c
+    )
+
     add_custom_target(routing_tables_pickle
         ALL
         SOURCES ${CMAKE_CURRENT_BINARY_DIR}/config/routing_tables.pickle

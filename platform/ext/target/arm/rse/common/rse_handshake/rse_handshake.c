@@ -27,6 +27,7 @@
 #include "cmsis.h"
 #include "dpa_hardened_word_copy.h"
 #include "rse_routing_tables.h"
+#include "rse_get_routing_tables.h"
 
 #include <string.h>
 
@@ -36,8 +37,8 @@
 #define VHUK_SEED_SIZE           32
 #define VHUK_SEED_WORD_SIZE      8
 
-uint32_t sending_mhu[RSE_AMOUNT];
-uint32_t receiving_mhu[RSE_AMOUNT];
+uint8_t sending_mhu[RSE_AMOUNT];
+uint8_t receiving_mhu[RSE_AMOUNT];
 
 enum rse_handshake_msg_type {
     RSE_HANDSHAKE_SESSION_KEY_MSG,
@@ -511,27 +512,20 @@ static enum tfm_plat_err_t rse_handshake_server(uint32_t *vhuk_seeds_buf)
 
 enum tfm_plat_err_t rse_handshake(uint32_t *vhuk_seeds_buf)
 {
-#ifndef RSE_OTP_HAS_ROUTING_TABLES
-    /* The handshake can't be supported without routing tables in OTP */
-    return TFM_PLAT_ERR_UNSUPPORTED;
-#else
     uint32_t rse_id;
     enum tfm_plat_err_t plat_err;
 
-    plat_err = tfm_plat_otp_read(PLAT_OTP_ID_RSE_TO_RSE_SENDER_ROUTING_TABLE,
-                                 sizeof(sending_mhu), (uint8_t *)sending_mhu);
+    plat_err = tfm_plat_otp_read(PLAT_OTP_ID_RSE_ID, sizeof(rse_id), (uint8_t *)&rse_id);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
 
-    plat_err = tfm_plat_otp_read(PLAT_OTP_ID_RSE_TO_RSE_RECEIVER_ROUTING_TABLE,
-                                 sizeof(receiving_mhu), (uint8_t *)receiving_mhu);
+    plat_err = rse_get_sender_routing_tables(sending_mhu, sizeof(sending_mhu), rse_id);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
 
-    plat_err = tfm_plat_otp_read(PLAT_OTP_ID_RSE_ID, sizeof(rse_id),
-                                 (uint8_t*)&rse_id);
+    plat_err = rse_get_receiver_routing_tables(receiving_mhu, sizeof(receiving_mhu), rse_id);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
@@ -545,5 +539,4 @@ enum tfm_plat_err_t rse_handshake(uint32_t *vhuk_seeds_buf)
     } else {
         return rse_handshake_client(rse_id, vhuk_seeds_buf);
     }
-#endif /* RSE_OTP_HAS_ROUTING_TABLES */
 }
