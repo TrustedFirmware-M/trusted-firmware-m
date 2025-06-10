@@ -21,6 +21,7 @@
 #include "utilities.h"
 #include "region.h"
 #include "array.h"
+#include <nrfx.h>
 
 #if TFM_PERIPHERAL_DCNF_SECURE
 struct platform_data_t tfm_peripheral_dcnf = {
