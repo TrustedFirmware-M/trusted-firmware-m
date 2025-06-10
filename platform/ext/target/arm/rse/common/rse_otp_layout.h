@@ -88,10 +88,6 @@ __PACKED_STRUCT rse_otp_cm_area_t {
 #ifdef RSE_OTP_HAS_RSE_ID
     uint32_t rse_id;
 #endif
-#ifdef RSE_OTP_HAS_ROUTING_TABLES
-    uint32_t rse_to_rse_sender_routing_table[RSE_ROUTING_TABLES_SIZE];
-    uint32_t rse_to_rse_receiver_routing_table[RSE_ROUTING_TABLES_SIZE];
-#endif
 
 #ifdef RSE_OTP_CM_SUBPLATFORM_ITEMS
     struct rse_otp_subplatform_cm_area_t subplatform;
@@ -126,6 +122,11 @@ __PACKED_STRUCT rse_otp_dm_area_t {
     uint32_t zero_count;
     uint32_t provisioning_blob_version;
     uint32_t config_flags;
+
+#ifdef RSE_OTP_HAS_ROUTING_TABLES
+    uint32_t rse_to_rse_sender_routing_table[RSE_ROUTING_TABLES_SIZE];
+    uint32_t rse_to_rse_receiver_routing_table[RSE_ROUTING_TABLES_SIZE];
+#endif
 
 #ifdef RSE_OTP_DM_SUBPLATFORM_ITEMS
     struct rse_otp_subplatform_dm_area_t subplatform;

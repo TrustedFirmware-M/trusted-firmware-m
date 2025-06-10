@@ -132,8 +132,8 @@ struct otp_mapping_t{
     [PLAT_OTP_ID_RSE_ID] = USER_AREA_MAPPING(cm, rse_id),
 #endif
 #ifdef RSE_OTP_HAS_ROUTING_TABLES
-    [PLAT_OTP_ID_RSE_TO_RSE_SENDER_ROUTING_TABLE] = USER_AREA_MAPPING(cm, rse_to_rse_sender_routing_table),
-    [PLAT_OTP_ID_RSE_TO_RSE_RECEIVER_ROUTING_TABLE] = USER_AREA_MAPPING(cm, rse_to_rse_receiver_routing_table),
+    [PLAT_OTP_ID_RSE_TO_RSE_SENDER_ROUTING_TABLE] = USER_AREA_MAPPING(dm, rse_to_rse_sender_routing_table),
+    [PLAT_OTP_ID_RSE_TO_RSE_RECEIVER_ROUTING_TABLE] = USER_AREA_MAPPING(dm, rse_to_rse_receiver_routing_table),
 #endif
 };
 
