@@ -109,10 +109,11 @@ Prepare the tf-m-tests repository inside the TF-M base folder.
 
     cd <TF-M base folder>/tf-m-test/tests_reg
 
-    cmake -S <TF-M base folder> -B build_spe \
+    cmake -S spe -B build_spe \
             -G"Unix Makefiles"               \
             -DTFM_PLATFORM=adi/max32657      \
-            -DTFM_TOOLCHAIN_FILE=[tf-m path]/toolchain_GNUARM.cmake \
+            -DCONFIG_TFM_SOURCE_PATH=<TF-M base folder>/trusted-firmware-m \
+            -DTFM_TOOLCHAIN_FILE=<TF-M base folder>/trusted-firmware-m/toolchain_GNUARM.cmake \
             -DTEST_S=OFF                \
             -DTEST_NS=ON               \
             -DTFM_NS_REG_TEST=ON        \
@@ -122,7 +123,7 @@ Prepare the tf-m-tests repository inside the TF-M base folder.
 
     cmake -S . -B build_test    \
             -G"Unix Makefiles"  \
-            -DCONFIG_SPE_PATH=[tf-m-tests path]/tests_reg/build_spe/api_ns \
+            -DCONFIG_SPE_PATH=<TF-M base folder>/tf-m-tests/tests_reg/build_spe/api_ns \
             -DTFM_TOOLCHAIN_FILE=cmake/toolchain_ns_GNUARM.cmake \
             -DTFM_NS_REG_TEST=ON
     cmake --build build_test
