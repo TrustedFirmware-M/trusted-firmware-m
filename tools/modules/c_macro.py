@@ -114,6 +114,20 @@ def _get_next_line(text):
             yield_line = yield_line[:-1] + lines[I]
         yield yield_line
 
+class Conditional_block_state():
+    """Represents the state of a conditional block (#if/elif/else)"""
+    def __init__(self, condition):
+        self._in_true_branch = condition
+        self._had_true_branch = condition
+
+    def update_else(self, condition):
+        """Update the state when processing an #elif or #else"""
+        self._in_true_branch = not self._had_true_branch and condition
+        self._had_true_branch = self._had_true_branch or self._in_true_branch
+
+    def is_in_true_branch(self):
+        return self._in_true_branch
+
 class C_macro():
     def __init__(self):
         self._definitions = {}
@@ -199,13 +213,13 @@ class C_macro():
         self._sync___dict__()
 
     def _parse_ifdef(self, x):
-        self._ifdefs.append([x, x in self._definitions.keys()])
+        self._ifdefs.append([x, Conditional_block_state(x in self._definitions.keys())])
 
     def _parse_ifndef(self, x):
-        self._ifdefs.append([x, x not in self._definitions.keys()])
+        self._ifdefs.append([x, Conditional_block_state(x not in self._definitions.keys())])
 
     def _parse_else(self, x):
-        self._ifdefs[-1][1] = not self._ifdefs[-1][1]
+        self._ifdefs[-1][1].update_else(True)
 
     def _parse_endif(self, x):
         self._ifdefs = self._ifdefs[:-1]
@@ -231,11 +245,11 @@ class C_macro():
 
     def _parse_if(self, x):
         condition, value = self._eval_if(x)
-        self._ifdefs.append([condition, value])
+        self._ifdefs.append([condition, Conditional_block_state(value)])
 
     def _parse_elif(self, x):
         condition, value = self._eval_if(x)
-        self._ifdefs[-1][1] = value
+        self._ifdefs[-1][1].update_else(value)
 
     def _parse_error(self, x):
         print(x)
@@ -263,7 +277,7 @@ class C_macro():
         x = x.strip()
         for t,f in tokens.items():
             if t in x:
-                if t not in conditional_tokens.keys() and [i for i in self._ifdefs if not i[1]]:
+                if t not in conditional_tokens.keys() and [i for i in self._ifdefs if not i[1].is_in_true_branch()]:
                     return
 
                 f(x.replace(t, "").strip())
