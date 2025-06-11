@@ -24,15 +24,22 @@
 extern void tfm_plat_test_secure_timer_irq_handler(void);
 #endif
 
+#ifdef TFM_LOAD_NS_IMAGE
 /* The section names come from the scatter file */
 REGION_DECLARE(Load$$LR$$, LR_NS_PARTITION, $$Base);
+#endif
+
+#ifdef CONFIG_TFM_USE_TRUSTZONE
 REGION_DECLARE(Image$$, ER_VENEER, $$Base);
 REGION_DECLARE(Image$$, VENEER_ALIGN, $$Limit);
+#endif
+
 #ifdef BL2
 REGION_DECLARE(Load$$LR$$, LR_SECONDARY_PARTITION, $$Base);
 #endif /* BL2 */
 
 const struct memory_region_limits memory_regions = {
+#ifdef TFM_LOAD_NS_IMAGE
     .non_secure_code_start =
         (uint32_t)&REGION_NAME(Load$$LR$$, LR_NS_PARTITION, $$Base) +
         BL2_HEADER_SIZE,
@@ -43,12 +50,15 @@ const struct memory_region_limits memory_regions = {
     .non_secure_partition_limit =
         (uint32_t)&REGION_NAME(Load$$LR$$, LR_NS_PARTITION, $$Base) +
         NS_PARTITION_SIZE - 1,
+#endif
 
+#ifdef CONFIG_TFM_USE_TRUSTZONE
     .veneer_base =
         (uint32_t)&REGION_NAME(Image$$, ER_VENEER, $$Base),
 
     .veneer_limit =
         (uint32_t)&REGION_NAME(Image$$, VENEER_ALIGN, $$Limit) - 1,
+#endif
 
 #ifdef BL2
     .secondary_partition_base =
@@ -91,16 +101,28 @@ enum tfm_hal_status_t tfm_hal_platform_init(void)
 
 uint32_t tfm_hal_get_ns_VTOR(void)
 {
+#ifndef TFM_LOAD_NS_IMAGE
+    /* If an NS image hasn't been set up, then just return 0 */
+    return 0;
+#endif
     return memory_regions.non_secure_code_start;
 }
 
 uint32_t tfm_hal_get_ns_MSP(void)
 {
+#ifndef TFM_LOAD_NS_IMAGE
+    /* If an NS image hasn't been set up, then just return 0 */
+    return 0;
+#endif
     return *((uint32_t *)memory_regions.non_secure_code_start);
 }
 
 uint32_t tfm_hal_get_ns_entry_point(void)
 {
+#ifndef TFM_LOAD_NS_IMAGE
+    /* If an NS image hasn't been set up, then just return 0 */
+    return 0;
+#endif
     return *((uint32_t *)(memory_regions.non_secure_code_start + 4));
 }
 

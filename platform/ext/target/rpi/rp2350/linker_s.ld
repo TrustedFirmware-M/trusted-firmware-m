@@ -523,7 +523,9 @@ SECTIONS
 #endif
 #endif
 
+#if defined(TFM_LOAD_NS_IMAGE)
     Load$$LR$$LR_NS_PARTITION$$Base = NS_PARTITION_START;
+#endif
 
 #ifdef BL2
     Load$$LR$$LR_SECONDARY_PARTITION$$Base = SECONDARY_PARTITION_START;

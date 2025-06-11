@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021-2022, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2021-2023 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
@@ -7,8 +7,8 @@
 #
 #-------------------------------------------------------------------------------
 
-if (NOT CONFIG_TFM_FLIH_API AND NOT CONFIG_TFM_SLIH_API AND
-    NOT TFM_MULTI_CORE_TOPOLOGY)
+if (TFM_LOAD_NS_IMAGE AND NOT CONFIG_TFM_FLIH_API AND NOT CONFIG_TFM_SLIH_API AND
+NOT TFM_MULTI_CORE_TOPOLOGY)
     return()
 endif()
 

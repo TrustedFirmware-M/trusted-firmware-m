@@ -96,7 +96,13 @@
                         (NS_IMAGE_PRIMARY_PARTITION_OFFSET + BL2_HEADER_SIZE)
 /* Non-Secure Code stored in Code SRAM memory */
 #define NS_CODE_START   ((XIP_BASE) + (NS_IMAGE_PRIMARY_AREA_OFFSET))
+
+#if defined(TFM_LOAD_NS_IMAGE)
 #define NS_CODE_SIZE    (IMAGE_NS_CODE_SIZE)
+#else
+#define NS_CODE_SIZE    (0x0)
+#endif
+
 #define NS_CODE_LIMIT   (NS_CODE_START + NS_CODE_SIZE - 1)
 
 /* Entry point of Core1 */
@@ -106,13 +112,24 @@
 
 /* Non-Secure Data stored in ISRAM0+ISRAM1 */
 #define NS_DATA_START   (SRAM4_BASE)
+
+#if defined(TFM_LOAD_NS_IMAGE)
 #define NS_DATA_SIZE    (NS_DATA_OVERALL_SIZE)
+#else
+#define NS_DATA_SIZE    (0)
+#endif
+
 #define NS_DATA_LIMIT   (NS_DATA_START + NS_DATA_SIZE - 1)
 
 /* NS partition information is used for SAU configuration */
 #define NS_PARTITION_START \
             ((XIP_BASE) + (NS_IMAGE_PRIMARY_PARTITION_OFFSET))
+
+#if defined(TFM_LOAD_NS_IMAGE)
 #define NS_PARTITION_SIZE (FLASH_NS_PARTITION_SIZE)
+#else
+#define NS_PARTITION_SIZE (0x0)
+#endif
 
 /* Secondary partition for new images in case of firmware upgrade */
 #define SECONDARY_PARTITION_START \

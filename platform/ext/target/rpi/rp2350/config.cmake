@@ -25,7 +25,6 @@ else()
     set(TFM_NS_CUSTOM_API                 OFF)
 endif()
 
-set(CONFIG_TFM_USE_TRUSTZONE          ON)
 set(MCUBOOT_USE_PSA_CRYPTO            ON               CACHE BOOL      "Enable the cryptographic abstraction layer to use PSA Crypto APIs")
 set(MCUBOOT_SIGNATURE_TYPE            "EC-P256"        CACHE STRING    "Algorithm to use for signature validation [RSA-2048, RSA-3072, EC-P256, EC-P384]")
 set(MCUBOOT_HW_KEY                    OFF              CACHE BOOL      "Whether to embed the entire public key in the image metadata instead of the hash only")
@@ -45,6 +44,13 @@ set(PLATFORM_DEFAULT_NV_SEED            OFF          CACHE BOOL      "Use defaul
 set(PLATFORM_DEFAULT_OTP                OFF          CACHE BOOL      "Use trusted on-chip flash to implement OTP memory")
 set(PLATFORM_DEFAULT_NV_COUNTERS        OFF          CACHE BOOL      "Use default nv counter implementation.")
 set(PLATFORM_DEFAULT_ATTEST_HAL         OFF          CACHE BOOL      "Use default attest hal implementation.")
+set(TFM_LOAD_NS_IMAGE                   ON           CACHE BOOL      "Whether to load an NS image")
+
+if (TFM_LOAD_NS_IMAGE)
+    set(CONFIG_TFM_USE_TRUSTZONE          ON)
+else()
+    set(CONFIG_TFM_USE_TRUSTZONE         OFF)
+endif()
 
 set(PLATFORM_DEFAULT_CRYPTO_KEYS        OFF          CACHE BOOL      "Use default crypto keys implementation.")
 

@@ -64,6 +64,7 @@ target_compile_definitions(platform_region_defs
     INTERFACE
         # u modifier in scatter file is not valid
         NO_U_MODIFIER=1
+        $<$<BOOL:${TFM_LOAD_NS_IMAGE}>:TFM_LOAD_NS_IMAGE>
 )
 #========================= Platform region defs ===============================#
 

@@ -14,8 +14,8 @@
 #define NUMBER_OF_ELEMENTS_OF(x) sizeof(x)/sizeof(*x)
 #define MAPPED_TZ_NS_AGENT_DEFAULT_CLIENT_ID -0x3c000000
 #define TFM_NS_PARTITION_ID                  MAPPED_TZ_NS_AGENT_DEFAULT_CLIENT_ID
-#define MAPPED_RSE_MBOX_NS_AGENT_DEFAULT_CLIENT_ID -0x04000000
-#define TFM_NS_MAILBOX_PARTITION_ID          MAPPED_RSE_MBOX_NS_AGENT_DEFAULT_CLIENT_ID
+#define MAPPED_RPI_MBOX_NS_AGENT_DEFAULT_CLIENT_ID -0x04000000
+#define TFM_NS_MAILBOX_PARTITION_ID          MAPPED_RPI_MBOX_NS_AGENT_DEFAULT_CLIENT_ID
 
 static enum tfm_plat_err_t tfm_plat_get_huk(const void *ctx, uint8_t *buf, size_t buf_len,
                                             size_t *key_len,

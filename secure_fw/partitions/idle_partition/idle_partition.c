@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2024 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -21,8 +21,10 @@ void tfm_idle_thread(void)
          * It does not expect any signals.
          */
         if (psa_wait(PSA_WAIT_ANY, PSA_POLL) == 0) {
+#if defined(CONFIG_TFM_FLIH_API) || defined(CONFIG_TFM_SLIH_API) || defined(TFM_MULTI_CORE_TOPOLOGY)
             __DSB();
             __WFI();
+#endif
         }
     }
 
@@ -40,8 +42,10 @@ void tfm_idle_thread(void)
          * It does not expect any signals.
          */
         if (psa_wait(PSA_WAIT_ANY, PSA_POLL) == 0) {
+#if defined(CONFIG_TFM_FLIH_API) || defined(CONFIG_TFM_SLIH_API) || defined(TFM_MULTI_CORE_TOPOLOGY)
             __DSB();
             __WFI();
+#endif
         }
     }
 #if defined(__ICCARM__)
