@@ -131,3 +131,4 @@ tfm_plat_increment_nv_counter
 rse_count_zero_bits
 rse_get_sender_routing_tables
 rse_get_receiver_routing_tables
+rse_get_rse_id

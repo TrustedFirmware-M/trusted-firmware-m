@@ -13,6 +13,7 @@
 #include "host_system.h"
 #include "tfm_hal_device_header.h"
 #include "tfm_plat_otp.h"
+#include "rse_get_rse_id.h"
 #ifdef RD_SYSCTRL_NOC_S3
 #include "noc_s3_lib.h"
 
@@ -285,9 +286,7 @@ static int read_chip_id(uint32_t *chip_id)
     int err;
     uint32_t otp_chip_id;
 
-    err = tfm_plat_otp_read(PLAT_OTP_ID_RSE_ID,
-                            sizeof(otp_chip_id),
-                            (uint8_t*)&otp_chip_id);
+    err = rse_get_rse_id(&otp_chip_id);
     if (err != 0)
         return err;
 

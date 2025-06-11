@@ -249,6 +249,7 @@ target_sources(platform_s
         $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/src/dcsu_drv.c>
         $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>
         ./platform_shared_measurement_data.c
+        $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_get_rse_id_from_otp.c>
 )
 
 target_sources(tfm_sprt
@@ -368,6 +369,7 @@ target_sources(platform_bl2
         ./dpa_hardened_word_copy.c
         ./rse_persistent_data.c
         ./platform_shared_measurement_data.c
+        $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_get_rse_id_from_otp.c>
 )
 
 target_include_directories(platform_bl2
@@ -487,6 +489,7 @@ target_sources(platform_bl1_1
         ./platform_shared_measurement_data.c
         ./rse_soc_uid.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m/mpu_armv8m_drv.c
+        $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_get_rse_id_from_otp.c>
 )
 
 target_compile_definitions(platform_bl1_1

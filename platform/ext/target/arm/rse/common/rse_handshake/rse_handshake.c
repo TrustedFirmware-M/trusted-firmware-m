@@ -28,6 +28,7 @@
 #include "dpa_hardened_word_copy.h"
 #include "rse_routing_tables.h"
 #include "rse_get_routing_tables.h"
+#include "rse_get_rse_id.h"
 
 #include <string.h>
 
@@ -87,15 +88,16 @@ static enum tfm_plat_err_t header_init(struct rse_handshake_msg *msg,
 {
     enum tfm_plat_err_t plat_err;
     cc3xx_err_t cc_err;
+    uint32_t rse_id;
 
     msg->header.type = type;
 
-    plat_err = tfm_plat_otp_read(PLAT_OTP_ID_RSE_ID,
-                                 sizeof(msg->header.rse_id),
-                                 (uint8_t*)&msg->header.rse_id);
+    plat_err = rse_get_rse_id(&rse_id);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
+
+    msg->header.rse_id = rse_id;
 
     cc_err = cc3xx_lowlevel_rng_get_random((uint8_t *)&msg->header.ccm_iv,
                                            sizeof(msg->header.ccm_iv),
@@ -515,7 +517,7 @@ enum tfm_plat_err_t rse_handshake(uint32_t *vhuk_seeds_buf)
     uint32_t rse_id;
     enum tfm_plat_err_t plat_err;
 
-    plat_err = tfm_plat_otp_read(PLAT_OTP_ID_RSE_ID, sizeof(rse_id), (uint8_t *)&rse_id);
+    plat_err = rse_get_rse_id(&rse_id);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
