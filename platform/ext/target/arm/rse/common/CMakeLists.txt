@@ -485,6 +485,7 @@ target_sources(platform_bl1_1
         $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>
         ./platform_shared_measurement_data.c
         ./rse_soc_uid.c
+        ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m/mpu_armv8m_drv.c
 )
 
 target_compile_definitions(platform_bl1_1
@@ -505,6 +506,7 @@ target_include_directories(platform_bl1_1_interface
         ${PLATFORM_DIR}/ext/target/arm/drivers/ppc
         ${PLATFORM_DIR}/ext/target/arm/drivers/sam
         ${PLATFORM_DIR}/ext/target/arm/drivers/timer/armv8m
+        ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m
         ${PLATFORM_DIR}/ext/target/arm/drivers/usart/cmsdk
         ${PLATFORM_DIR}/ext/target/arm/drivers/usart/common
         ${PLATFORM_DIR}/ext/target/arm/drivers/dma/dma350
@@ -619,7 +621,6 @@ add_dependencies(platform_bl1_2 bl1_1_shared_symbols)
 target_include_directories(platform_bl1_2
     PRIVATE
         .
-        ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m
         ${PLATFORM_DIR}/ext/target/arm/drivers/dma/dma350
         ${PLATFORM_DIR}/ext/target/arm/drivers/kmu
         ${PLATFORM_DIR}/ext/target/arm/drivers/lcm

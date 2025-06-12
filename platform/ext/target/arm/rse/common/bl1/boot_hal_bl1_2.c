@@ -47,6 +47,10 @@
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
+#if (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2)
+#define LOGGING_ENABLED
+#endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2) */
+
 static struct mpu_armv8m_dev_t dev_mpu_s = { MPU_BASE };
 
 /* Needed to store the offset of primary and secondary slot of the BL2 firmware */
@@ -99,23 +103,33 @@ uint32_t bl1_image_get_flash_offset(uint32_t image_id)
 }
 #endif
 
-static int32_t init_atu_regions(void)
+#if !(defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART))
+static int32_t init_mpu_region_for_atu(void)
 {
-#ifdef RSE_USE_HOST_UART
-    enum atu_error_t atu_err;
+    int32_t rc;
 
-    /* Initialize UART region */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                get_supported_region_count(&ATU_DEV_S) - 1,
-                                HOST_UART0_BASE_NS, HOST_UART_BASE,
-                                HOST_UART_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return atu_err;
+    /* Set entire RSE ATU window to device memory to prevent caching */
+    struct mpu_armv8m_region_cfg_t atu_window_region_config = {
+        0,
+        HOST_ACCESS_BASE_NS,
+        HOST_ACCESS_LIMIT_S,
+        MPU_ARMV8M_MAIR_ATTR_DEVICE_IDX,
+        MPU_ARMV8M_XN_EXEC_NEVER,
+        MPU_ARMV8M_AP_RW_PRIV_UNPRIV,
+        MPU_ARMV8M_SH_NONE,
+#ifdef TFM_PXN_ENABLE
+        MPU_ARMV8M_PRIV_EXEC_NEVER,
+#endif
+    };
+
+    rc = mpu_armv8m_region_enable(&dev_mpu_s, &atu_window_region_config);
+    if (rc != 0) {
+        return rc;
     }
-#endif /* RSE_USE_HOST_UART */
 
-    return 0;
+    return mpu_armv8m_enable(&dev_mpu_s, PRIVILEGED_DEFAULT_ENABLE, HARDFAULT_NMI_ENABLE);
 }
+#endif /* !(defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART)) */
 
 #ifdef RSE_SUPPORT_ROM_LIB_RELOCATION
 static void setup_got_register(void)
@@ -231,14 +245,23 @@ int32_t boot_platform_init(void)
         return plat_err;
     }
 
-    result = init_atu_regions();
+#if !(defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART))
+    /**
+     * If logging is disabled, or the RSE is not using a UART
+     * from the system memory map, then BL1_1 will not have initialised
+     * the MPU for the ATU window. We therefore need to initialise the
+     * MPU here and configure the whole ATU window to be device
+     * memory to avoid CPU caching
+     */
+    result = init_mpu_region_for_atu();
     if (result != 0) {
         return result;
     }
+#endif /* !(defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART)) */
 
-#if (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2)
+#ifdef LOGGING_ENABLED
     stdio_init();
-#endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2) */
+#endif /* LOGGING_ENABLED */
 
     result = FLASH_DEV_NAME.Initialize(NULL);
     if (result != ARM_DRIVER_OK) {
@@ -344,9 +367,8 @@ static int invalidate_hardware_keys(void)
 
 static int disable_rom_execution(void)
 {
-    int rc;
     struct mpu_armv8m_region_cfg_t rom_region_config = {
-        0,
+        1,
         ROM_BASE_S,
         ROM_BASE_S + ROM_SIZE - 1,
         MPU_ARMV8M_MAIR_ATTR_CODE_IDX,
@@ -358,13 +380,7 @@ static int disable_rom_execution(void)
 #endif
     };
 
-    rc = mpu_armv8m_region_enable(&dev_mpu_s, &rom_region_config);
-    if (rc != 0) {
-        return rc;
-    }
-
-    return mpu_armv8m_enable(&dev_mpu_s, PRIVILEGED_DEFAULT_ENABLE,
-                             HARDFAULT_NMI_ENABLE);
+    return mpu_armv8m_region_enable(&dev_mpu_s, &rom_region_config);
 }
 
 void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
@@ -398,9 +414,9 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
         while (1){}
     }
 
-#if (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2)
+#ifdef LOGGING_ENABLED
     stdio_uninit();
-#endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2) */
+#endif /* LOGGING_ENABLED */
 
     kmu_random_delay(&KMU_DEV_S, KMU_DELAY_LIMIT_32_CYCLES);
 

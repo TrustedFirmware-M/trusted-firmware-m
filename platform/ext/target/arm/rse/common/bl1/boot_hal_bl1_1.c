@@ -33,8 +33,13 @@
 #include "rse_sam_config.h"
 #include "tfm_log.h"
 #include "bl1_1_debug.h"
+#include "mpu_armv8m_drv.h"
 
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
+
+#if (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2)
+#define LOGGING_ENABLED
+#endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2) */
 
 #define CMSDK_SECRESPCFG_BUS_ERR_MASK   (1UL)
 
@@ -43,10 +48,37 @@ extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 
 REGION_DECLARE(Image$$, ARM_LIB_STACK, $$ZI$$Base);
 
-#if (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2)
-static enum tfm_plat_err_t init_atu_regions(void)
+#if defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART)
+static struct mpu_armv8m_dev_t dev_mpu_s = { MPU_BASE };
+
+static int32_t init_mpu_region_for_atu(void)
 {
-#ifdef RSE_USE_HOST_UART
+    int32_t rc;
+
+    /* Set entire RSE ATU window to device memory to prevent caching */
+    struct mpu_armv8m_region_cfg_t atu_window_region_config = {
+        0,
+        HOST_ACCESS_BASE_NS,
+        HOST_ACCESS_LIMIT_S,
+        MPU_ARMV8M_MAIR_ATTR_DEVICE_IDX,
+        MPU_ARMV8M_XN_EXEC_NEVER,
+        MPU_ARMV8M_AP_RW_PRIV_UNPRIV,
+        MPU_ARMV8M_SH_NONE,
+#ifdef TFM_PXN_ENABLE
+        MPU_ARMV8M_PRIV_EXEC_NEVER,
+#endif
+    };
+
+    rc = mpu_armv8m_region_enable(&dev_mpu_s, &atu_window_region_config);
+    if (rc != 0) {
+        return rc;
+    }
+
+    return mpu_armv8m_enable(&dev_mpu_s, PRIVILEGED_DEFAULT_ENABLE, HARDFAULT_NMI_ENABLE);
+}
+
+static enum tfm_plat_err_t init_atu_region_for_uart(void)
+{
     enum atu_error_t atu_err;
 
     /* Initialize UART region */
@@ -55,13 +87,12 @@ static enum tfm_plat_err_t init_atu_regions(void)
                                     HOST_UART0_BASE_NS, HOST_UART_BASE,
                                     HOST_UART_SIZE);
     if (atu_err != ATU_ERR_NONE) {
-        return atu_err;
+        return (enum tfm_plat_err_t)atu_err;
     }
-#endif /* RSE_USE_HOST_UART */
 
     return TFM_PLAT_ERR_SUCCESS;
 }
-#endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2) */
+#endif /* defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART) */
 
 /* bootloader platform-specific hw initialization */
 int32_t boot_platform_init(void)
@@ -116,14 +147,29 @@ int32_t boot_platform_init(void)
         return err;
     }
 
-#if (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2)
-    plat_err = init_atu_regions();
+#if defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART)
+    /**
+     * If we are using the ATU to map the host UART into the RSE memory
+     * map then we also need to configure the MPU to ensure that the
+     * address space we access from the RSE is marked as device memory
+     * to avoid CPU caching. In this case, we also configure the entire
+     * window to be device memory so that it does not need to be reconfigured
+     * by later components
+     */
+    err = init_mpu_region_for_atu();
+    if (err != 0) {
+        return err;
+    }
+
+    plat_err = init_atu_region_for_uart();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
+#endif /* defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART) */
 
+#ifdef LOGGING_ENABLED
     stdio_init();
-#endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2) */
+#endif /* LOGGING_ENABLED */
 
 #ifdef CRYPTO_HW_ACCELERATOR
     const cc3xx_dma_remap_region_t remap_regions[] = {
@@ -214,9 +260,9 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
      */
     static struct boot_arm_vector_table *vt_cpy;
 
-#if (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2)
+#ifdef LOGGING_ENABLED
     stdio_uninit();
-#endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2) */
+#endif /* LOGGING_ENABLED */
 
     kmu_random_delay(&KMU_DEV_S, KMU_DELAY_LIMIT_32_CYCLES);
 
