@@ -84,7 +84,8 @@ enum tfm_plat_err_t gpt_get_header(uint32_t table_base, size_t atu_slot_size,
  *                              should be read into the struct. Unlike the GPT
  *                              list entry spec, this must be an ascii-encoded
  *                              string.
- * \param[in]  name_size        The size of the name string.
+ * \param[in]  name_size        The size in bytes of the name string (ANSI), with
+ *                              the NULL terminator
  * \param[in]  atu_slot_size    The size of the ATU region that was mapped for
  *                              access to this FIP. This is used to prevent
  *                              reads outside the mapped region.

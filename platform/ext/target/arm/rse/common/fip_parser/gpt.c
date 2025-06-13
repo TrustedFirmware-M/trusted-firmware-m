@@ -12,23 +12,30 @@
 
 #include <string.h>
 
+#define ARRAY_SIZE(x) sizeof(x)/sizeof(x[0])
+
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 
 /* GPT has UTF-16LE strings, but we don't want to support them. FIP partitions
  * are always labelled using ANSI characters, so this function compares the
  * digits of the UTF-16LE string to an ANSI string.
  */
-static enum tfm_plat_err_t gpt_strncmp(uint16_t *gpt_str, size_t gpt_maxlen,
-                                       uint8_t *str, size_t str_len)
+static enum tfm_plat_err_t gpt_strncmp(const gpt_entry_t *entry,
+                                       const uint8_t *str, size_t str_len)
 {
     size_t idx;
-
+    /* The name field in the header must contain a NULL terminated string */
+    const gpt_maxlen = ARRAY_SIZE(entry->name) - 1;
+    /* The str_len passed has the same semantic of the output of strnlen() or
+     * strlen(), i.e. without the NULL terminator
+     */
     if (str_len > gpt_maxlen) {
         return TFM_PLAT_ERR_GPT_STRNCMP_INVALID_INPUT;
     }
 
-    for (idx = 0; idx < str_len; idx++) {
-        if (str[idx] != gpt_str[idx]) {
+    /* Checks that also both are NULL terminated strings */
+    for (idx = 0; idx <= str_len; idx++) {
+      if ((uint16_t)str[idx] != entry->name[idx]) {
             return TFM_PLAT_ERR_GPT_STRNCMP_COMPARISON_FAILED;
         }
     }
@@ -41,12 +48,12 @@ enum tfm_plat_err_t gpt_get_header(uint32_t table_base, size_t atu_slot_size,
 {
     ARM_FLASH_CAPABILITIES DriverCapabilities = FLASH_DEV_NAME.GetCapabilities();
     /* Valid entries for data item width */
-    uint32_t data_width_byte[] = {
+    const size_t data_width_byte[] = {
         sizeof(uint8_t),
         sizeof(uint16_t),
         sizeof(uint32_t),
     };
-    size_t data_width = data_width_byte[DriverCapabilities.data_width];
+    const size_t data_width = data_width_byte[DriverCapabilities.data_width];
     int rc;
 
     if (atu_slot_size < sizeof(gpt_header_t)) {
@@ -73,12 +80,12 @@ enum tfm_plat_err_t gpt_get_list_entry_by_name(uint32_t list_base, uint32_t list
 {
     ARM_FLASH_CAPABILITIES DriverCapabilities = FLASH_DEV_NAME.GetCapabilities();
     /* Valid entries for data item width */
-    uint32_t data_width_byte[] = {
+    const size_t data_width_byte[] = {
         sizeof(uint8_t),
         sizeof(uint16_t),
         sizeof(uint32_t),
     };
-    size_t data_width = data_width_byte[DriverCapabilities.data_width];
+    const size_t data_width = data_width_byte[DriverCapabilities.data_width];
     int rc;
     uint64_t idx;
 
@@ -105,9 +112,11 @@ enum tfm_plat_err_t gpt_get_list_entry_by_name(uint32_t list_base, uint32_t list
             return TFM_PLAT_ERR_GPT_ENTRY_INVALID_READ;
         }
 
-        if (gpt_strncmp(entry->name,
-                        list_entry_size - offsetof(gpt_entry_t, name),
-                        name, name_size) == TFM_PLAT_ERR_SUCCESS) {
+        /* name_size is the size in bytes of the array associated to the string,
+         * while the function below does a comparison of NULL terminated strings,
+         * hence the string length below must not take into account the NULL terminator
+         */
+        if (gpt_strncmp(entry, name, name_size - 1) == TFM_PLAT_ERR_SUCCESS) {
             return TFM_PLAT_ERR_SUCCESS;
         }
     }
@@ -124,12 +133,12 @@ enum tfm_plat_err_t gpt_get_list_entry_by_image_uuid(uint32_t list_base,
 {
     ARM_FLASH_CAPABILITIES DriverCapabilities = FLASH_DEV_NAME.GetCapabilities();
     /* Valid entries for data item width */
-    uint32_t data_width_byte[] = {
+    const size_t data_width_byte[] = {
         sizeof(uint8_t),
         sizeof(uint16_t),
         sizeof(uint32_t),
     };
-    size_t data_width = data_width_byte[DriverCapabilities.data_width];
+    const size_t data_width = data_width_byte[DriverCapabilities.data_width];
     int rc;
     uint64_t idx;
 
@@ -174,12 +183,12 @@ enum tfm_plat_err_t gpt_get_list_entry_by_type_uuid(uint32_t list_base,
     enum tfm_plat_err_t err = TFM_PLAT_ERR_GPT_ENTRY_NOT_FOUND;
     ARM_FLASH_CAPABILITIES DriverCapabilities = FLASH_DEV_NAME.GetCapabilities();
     /* Valid entries for data item width */
-    uint32_t data_width_byte[] = {
+    const size_t data_width_byte[] = {
         sizeof(uint8_t),
         sizeof(uint16_t),
         sizeof(uint32_t),
     };
-    size_t data_width = data_width_byte[DriverCapabilities.data_width];
+    const size_t data_width = data_width_byte[DriverCapabilities.data_width];
     int rc;
     uint8_t entry_cnt = 0;
     uint64_t idx;
