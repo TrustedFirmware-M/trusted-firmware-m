@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2021-2024 STMicroelectronics. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -94,12 +94,6 @@ target_sources(platform_s
         ${CMAKE_CURRENT_SOURCE_DIR}/hal/Src/stm32wbaxx_hal_icache.c
         ${STM_COMMON_DIR}/hal/Native_Driver/low_level_rng.c
 )
-
-# To compile FWU support and test, should add mcuboot_config.h file in mcuboot_config folder
-file(MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/../build-spe/bl2/ext/mcuboot/mcuboot_config)
-configure_file(   ${CMAKE_CURRENT_SOURCE_DIR}/boards/mcuboot_config.h
-                  ${CMAKE_INSTALL_PREFIX}/../build-spe/bl2/ext/mcuboot/mcuboot_config
-                  @ONLY)
 
 target_compile_options(platform_s
     PUBLIC

@@ -37,6 +37,10 @@ include(${TFM_TOOLCHAIN_FILE})
 
 project("Trusted Firmware M" VERSION ${TFM_VERSION} LANGUAGES C CXX ASM)
 
+if(BL2)
+    add_subdirectory(bl2)
+endif()
+
 add_subdirectory(lib/backtrace)
 add_subdirectory(lib/ext)
 add_subdirectory(lib/fih)
@@ -45,11 +49,7 @@ add_subdirectory(lib/tfm_log_unpriv)
 add_subdirectory(lib/tfm_vprintf)
 add_subdirectory(tools)
 add_subdirectory(secure_fw)
-
 add_subdirectory(interface)
-if(BL2)
-    add_subdirectory(bl2)
-endif()
 
 if(BL1 AND PLATFORM_DEFAULT_BL1)
     add_subdirectory(bl1/bl1_2)
