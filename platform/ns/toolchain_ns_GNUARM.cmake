@@ -82,7 +82,6 @@ add_compile_options(
     -Wno-unused-but-set-variable
     -Wnull-dereference
     -Wno-error=incompatible-pointer-types
-    -c
     -fdata-sections
     -ffunction-sections
     -fno-builtin
@@ -99,7 +98,7 @@ add_compile_options(
 )
 
 add_link_options(
-    -mcpu=${TFM_SYSTEM_PROCESSOR}
+    -mcpu=${TFM_SYSTEM_PROCESSOR_FEATURED}
     -specs=nano.specs
     -specs=nosys.specs
     LINKER:-check-sections

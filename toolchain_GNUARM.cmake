@@ -49,13 +49,11 @@ include(mcpu_features)
 file(REAL_PATH "${CMAKE_SOURCE_DIR}/../" TOP_LEVEL_PROJECT_DIR)
 
 add_compile_options(
-    -mfix-cmse-cve-2021-35465
     -Wall
     -Wno-format
     -Wno-unused-but-set-variable
     -Wnull-dereference
     -Wno-error=incompatible-pointer-types
-    -c
     -fdata-sections
     -ffunction-sections
     -fno-builtin
@@ -77,14 +75,8 @@ if(NOT ${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_DISABLED)
     message(FATAL_ERROR "BRANCH_PROTECTION NOT supported for GNU-ARM")
 endif()
 
-# Workaround to add diagnostics color while using Ninja generator.
-# For reference: https://github.com/ninja-build/ninja/issues/174
-if (CMAKE_GENERATOR STREQUAL "Ninja")
-    add_compile_options(-fdiagnostics-color=always)
-endif()
-
 add_link_options(
-    -mcpu=${TFM_SYSTEM_PROCESSOR}
+    -mcpu=${TFM_SYSTEM_PROCESSOR_FEATURED}
     -specs=nano.specs
     -specs=nosys.specs
     LINKER:-check-sections
@@ -130,17 +122,13 @@ else()
     set(LINKER_CP_OPTION -mfloat-abi=soft)
 endif()
 
+# Macro for adding scatter files. Supports multiple files
 macro(target_add_scatter_file target)
-    target_link_options(${target}
-        PRIVATE
-        -T $<TARGET_OBJECTS:${target}_scatter>
-    )
+    target_link_options(${target} PRIVATE -T $<TARGET_OBJECTS:${target}_scatter>)
 
     add_library(${target}_scatter OBJECT)
     foreach(scatter_file ${ARGN})
-        target_sources(${target}_scatter
-            PRIVATE
-                ${scatter_file}
+        target_sources(${target}_scatter PRIVATE ${scatter_file}
         )
         # Cmake cannot use generator expressions in the
         # set_source_file_properties command, so instead we just parse the regex
@@ -154,9 +142,7 @@ macro(target_add_scatter_file target)
         )
     endforeach()
 
-    add_dependencies(${target}
-        ${target}_scatter
-    )
+    add_dependencies(${target} ${target}_scatter)
 
     set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS $<TARGET_OBJECTS:${target}_scatter>)
 
@@ -166,12 +152,7 @@ macro(target_add_scatter_file target)
         tfm_config
     )
 
-    target_compile_options(${target}_scatter
-        PRIVATE
-            -E
-            -P
-            -xc
-    )
+    target_compile_options(${target}_scatter PRIVATE -E -P -xc)
 
     target_compile_definitions(${target}_scatter
         PRIVATE
@@ -190,6 +171,7 @@ macro(add_convert_to_bin_target target)
     )
 endmacro()
 
+# Set of macrots for sharing code between BL2 and RunTime, targeted for sharing MbedTLS library
 macro(target_share_symbols target)
     get_target_property(TARGET_TYPE ${target} TYPE)
     if (NOT TARGET_TYPE STREQUAL "EXECUTABLE")
@@ -244,7 +226,7 @@ macro(target_link_shared_code target)
         # ${symbol_provider}_shared_symbols - a custom target is always considered out-of-date
         # To only link when necessary, depend on ${symbol_provider} instead
         set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS $<TARGET_OBJECTS:${symbol_provider}>)
-        target_link_options(${target} PRIVATE LINKER:-R$<TARGET_FILE_DIR:${symbol_provider}>/${symbol_provider}${CODE_SHARING_INPUT_FILE_SUFFIX})
+        target_link_options(${target} PRIVATE LINKER:--just-symbols $<TARGET_FILE_DIR:${symbol_provider}>/${symbol_provider}${CODE_SHARING_INPUT_FILE_SUFFIX})
     endforeach()
 endmacro()
 

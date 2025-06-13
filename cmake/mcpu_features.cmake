@@ -9,7 +9,7 @@
 set(CMSE_SUPPORTED_MCUS "cortex-m23" "cortex-m33" "cortex-m35p" "cortex-m55" "cortex-m52" "cortex-m85")
 list(FIND CMSE_SUPPORTED_MCUS ${TFM_SYSTEM_PROCESSOR} ITEM_INDEX)
 if(NOT ITEM_INDEX EQUAL -1)
-    set(COMPILER_CMSE_FLAG "-mcmse")
+    set(COMPILER_CMSE_FLAG -mcmse -mfix-cmse-cve-2021-35465)
 endif()
 
 # ===================== Set toolchain CPU and Arch =============================
