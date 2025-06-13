@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -3623,7 +3623,7 @@ static void ecdsa_getpub_tests(struct test_result_t *ret)
     for (size_t i = 0; i < ARRAY_SIZE(curve_id); i++) {
 
         if (curve_id_to_name(curve_id[i], &curve_name)) {
-            return 1;
+            return;
         }
 
         const cc3xx_ec_curve_data_t *curve_data = cc3xx_lowlevel_ec_get_curve_data(curve_id[i]);

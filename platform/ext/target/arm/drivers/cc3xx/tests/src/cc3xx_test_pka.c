@@ -1,9 +1,11 @@
 /*
- * Copyright (c) 2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
+
+#include <string.h>
 
 #include "cc3xx_test_pka.h"
 #ifndef CC3XX_CONFIG_FILE
@@ -13,6 +15,7 @@
 #endif
 #include "cc3xx_test_assert.h"
 #include "cc3xx_dev.h"
+#include "cc3xx_rng.h"
 
 #include "cc3xx_test_utils.h"
 
@@ -863,8 +866,8 @@ void pka_test_virtual_registers(struct test_result_t *ret)
     }
 
     for (idx = 0; idx < 128; idx++) {
-        cc3xx_lowlevel_rng_get_random_uint(sizeof(r), &rand_0);
-        cc3xx_lowlevel_rng_get_random_uint(sizeof(r), &rand_1);
+        cc3xx_lowlevel_rng_get_random_uint(sizeof(r), &rand_0, CC3XX_RNG_FAST);
+        cc3xx_lowlevel_rng_get_random_uint(sizeof(r), &rand_1, CC3XX_RNG_FAST);
 
         cc3xx_lowlevel_pka_add(r[rand_0], r[rand_1], res);
         cc3xx_lowlevel_pka_read_reg(res, &readback, sizeof(readback));

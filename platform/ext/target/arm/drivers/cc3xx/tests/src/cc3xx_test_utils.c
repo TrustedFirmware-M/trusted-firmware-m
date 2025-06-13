@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -8,6 +8,7 @@
 
 #include "cc3xx_test_utils.h"
 
+#include <string.h>
 #include <assert.h>
 
 void cc3xx_add_tests_to_testsuite(struct test_t *test_list, uint32_t test_am,

@@ -1,9 +1,11 @@
 /*
- * Copyright (c) 2025, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
+
+#include <string.h>
 
 #include "cc3xx_test_dpa.h"
 #ifndef CC3XX_CONFIG_FILE

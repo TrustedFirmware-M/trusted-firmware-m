@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
+#include <string.h>
 
 #include "cc3xx_test_ecc.h"
 #include "cc3xx_ec.h"
