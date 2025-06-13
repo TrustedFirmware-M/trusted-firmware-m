@@ -90,6 +90,7 @@ target_sources(platform_s
         ${CMAKE_CURRENT_SOURCE_DIR}/hal/Src/stm32u5xx_hal_cryp_ex.c
         ${CMAKE_CURRENT_SOURCE_DIR}/hal/Src/stm32u5xx_hal_i2c.c
         ${CMAKE_CURRENT_SOURCE_DIR}/hal/Src/stm32u5xx_hal_i2c_ex.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/hal/Src/stm32u5xx_hal_icache.c
         ${STM_COMMON_DIR}/hal/Native_Driver/low_level_rng.c
         ${STM_COMMON_DIR}/hal/Native_Driver/nv_counters.c
 )

@@ -261,6 +261,15 @@ HAL_StatusTypeDef HAL_ICACHE_Disable(void)
 }
 
 /**
+  * @brief  Check whether the Instruction Cache is enabled or not.
+  * @retval Status (0: disabled, 1: enabled)
+  */
+uint32_t HAL_ICACHE_IsEnabled(void)
+{
+  return ((READ_BIT(ICACHE->CR, ICACHE_CR_EN) != 0U) ? 1UL : 0UL);
+}
+
+/**
   * @brief  Invalidate the Instruction Cache.
   * @note   This function waits for the end of cache invalidation procedure
   *         and clears the associated BSYENDF flag.

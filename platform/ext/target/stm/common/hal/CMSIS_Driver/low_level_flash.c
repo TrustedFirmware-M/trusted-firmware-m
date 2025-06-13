@@ -22,10 +22,19 @@
 #include "stm32hal.h"
 #include <stdio.h>
 #include "board.h"
+#include "boot_hal_cfg.h"
 
 #ifndef ARG_UNUSED
 #define ARG_UNUSED(arg)  ((void)arg)
 #endif /* ARG_UNUSED */
+
+/* Private typedef -----------------------------------------------------------*/
+/* Private constants ---------------------------------------------------------*/
+/** @addtogroup ICACHE_Private_Constants ICACHE Private Constants
+  * @{
+  */
+#define ICACHE_INVALIDATE_TIMEOUT_VALUE        1U   /* 1ms */
+#define ICACHE_DISABLE_TIMEOUT_VALUE           1U   /* 1ms */
 
 /* config for flash driver */
 /*
@@ -414,6 +423,81 @@ static int32_t Flash_ReadData(uint32_t addr, void *data, uint32_t cnt)
   }
 }
 
+#ifdef TFM_ICACHE_ENABLE
+#define HAL_ICACHE_MODULE_ENABLED
+static int stm32_icache_disable(void)
+{
+  int status = 0;
+  uint32_t tickstart;
+
+  /* Clear BSYENDF flag first and then disable the instruction cache
+   * that starts a cache invalidation procedure
+   */
+  CLEAR_BIT(ICACHE->FCR, ICACHE_FCR_CBSYENDF);
+
+  HAL_ICACHE_Disable();
+
+  /* Get tick */
+  tickstart = HAL_GetTick();
+
+  /* Wait for instruction cache to get disabled */
+  while (HAL_ICACHE_IsEnabled()) {
+    if ((HAL_GetTick() - tickstart) >
+            ICACHE_DISABLE_TIMEOUT_VALUE) {
+      /* New check to avoid false timeout detection in case
+       * of preemption.
+       */
+      if (HAL_ICACHE_IsEnabled()) {
+        status = ARM_DRIVER_ERROR_TIMEOUT;
+        break;
+      }
+    }
+  }
+
+  return status;
+}
+
+static void stm32_icache_enable(void)
+{
+  HAL_ICACHE_Enable();
+}
+
+static int icache_wait_for_invalidate_complete(void)
+{
+  int status = ARM_DRIVER_ERROR;
+  uint32_t tickstart;
+
+  /* Check if ongoing invalidation operation */
+  if (__HAL_ICACHE_GET_FLAG(ICACHE_FLAG_BUSY)) {
+    /* Get tick */
+    tickstart = HAL_GetTick();
+
+    /* Wait for end of cache invalidation */
+    while (!__HAL_ICACHE_GET_FLAG(ICACHE_FLAG_BUSYEND)) {
+      if ((HAL_GetTick() - tickstart) >
+          ICACHE_INVALIDATE_TIMEOUT_VALUE) {
+        break;
+      }
+    }
+  }
+
+  /* Clear any pending flags */
+  if (__HAL_ICACHE_GET_FLAG(ICACHE_FLAG_BUSYEND)) {
+    __HAL_ICACHE_CLEAR_FLAG(ICACHE_FLAG_BUSYEND);
+    status = 0;
+  } else {
+    status = ARM_DRIVER_ERROR_TIMEOUT;
+  }
+
+  if (__HAL_ICACHE_GET_FLAG(ICACHE_FLAG_ERROR)) {
+    __HAL_ICACHE_CLEAR_FLAG(ICACHE_FLAG_ERROR);
+    status = ARM_DRIVER_ERROR;
+  }
+
+  return status;
+}
+#endif // TFM_ICACHE_ENABLE
+
 static int32_t Flash_ProgramData(uint32_t addr,
                                  const void *data, uint32_t cnt)
 {
@@ -476,6 +560,15 @@ static int32_t Flash_ProgramData(uint32_t addr,
     return ARM_DRIVER_ERROR_PARAMETER;
   }
 
+#ifdef TFM_ICACHE_ENABLE
+  /* Disable icache, this will start the invalidation procedure.
+    * All changes(erase/write) to flash memory should happen when
+    * i-cache is disabled. A write to flash performed without
+    * disabling i-cache will set ERRF error flag in SR register.
+    */
+  stm32_icache_disable();
+#endif /* TFM_ICACHE_ENABLE */
+
   HAL_FLASH_Unlock();
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_BUSY;
   do
@@ -505,6 +598,16 @@ static int32_t Flash_ProgramData(uint32_t addr,
 
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_IDLE;
   HAL_FLASH_Lock();
+
+#ifdef TFM_ICACHE_ENABLE
+  icache_wait_for_invalidate_complete();
+
+  /* I-cache should be enabled only after the
+    * invalidation is complete.
+    */
+  stm32_icache_enable();
+#endif /* TFM_ICACHE_ENABLE */
+
   /* compare data written */
 #ifdef CHECK_WRITE
   if ((err == HAL_OK) && memcmp(dest, data, cnt))
@@ -587,12 +690,32 @@ static int32_t Flash_EraseSector(uint32_t addr)
 #else
     EraseInit.Page = page_number(&ARM_FLASH0_DEV, addr);
 #endif
+
+#ifdef TFM_ICACHE_ENABLE
+  /* Disable icache, this will start the invalidation procedure.
+    * All changes(erase/write) to flash memory should happen when
+    * i-cache is disabled. A write to flash performed without
+    * disabling i-cache will set ERRF error flag in SR register.
+    */
+  stm32_icache_disable();
+#endif /* TFM_ICACHE_ENABLE */
+
   ARM_FLASH0_STATUS.error = DRIVER_STATUS_NO_ERROR;
   HAL_FLASH_Unlock();
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_BUSY;
   err = HAL_FLASHEx_Erase(&EraseInit, &pageError);
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_IDLE;
   HAL_FLASH_Lock();
+
+#ifdef TFM_ICACHE_ENABLE
+  icache_wait_for_invalidate_complete();
+
+  /* I-cache should be enabled only after the
+    * invalidation is complete.
+    */
+  stm32_icache_enable();
+#endif /* TFM_ICACHE_ENABLE */
+
 #ifdef DEBUG_FLASH_ACCESS
   if (err != HAL_OK)
   {

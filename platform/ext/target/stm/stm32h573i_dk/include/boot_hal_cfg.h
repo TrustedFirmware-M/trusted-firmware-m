@@ -39,7 +39,7 @@
 
 #define TFM_DEV_MODE
 /* ICache */
-/*#define TFM_ICACHE_ENABLE*/ /*!< Instruction cache enable */
+#define TFM_ICACHE_ENABLE /*!< Instruction cache enable */
 
 /* Static protections */
 #define TFM_WRP_PROTECT_ENABLE  /*!< Write Protection  */
