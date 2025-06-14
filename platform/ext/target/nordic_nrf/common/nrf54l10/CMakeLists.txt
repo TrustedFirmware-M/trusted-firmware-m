@@ -19,6 +19,13 @@ target_include_directories(platform_s
 	../nrf54l
 )
 
+if(NOT NRF_DIR)
+target_include_directories(platform_s
+    PUBLIC
+        memory_service_ranges
+)
+endif()
+
 target_sources(platform_s
     PRIVATE
         ${HAL_NORDIC_PATH}/nrfx/mdk/system_nrf54l.c
