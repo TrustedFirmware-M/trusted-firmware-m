@@ -1,6 +1,4 @@
 0 C0
 1 C1
 
-0 1 Send 0 Receive 0
-
-1 0 Send 0 Receive 0
+0 1 Node 0 Link 0 Node 1 Link 0

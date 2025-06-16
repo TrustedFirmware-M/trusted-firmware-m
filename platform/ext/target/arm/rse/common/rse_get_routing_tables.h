@@ -16,34 +16,20 @@ extern "C" {
 #endif
 
 /**
- * \brief Retrieves the sender routing tables associated with a given RSE.
+ * \brief Retrieves the routing tables associated with a given RSE.
  *
- * This function populates the provided buffer with the sender routing table entries for the specified
+ * This function populates the provided buffer with the routing table entries for the specified
  * RSE identifier. The number of entries returned is limited by the size of the buffer.
  *
  * \param[out] routing_tables_buf  Pointer to a buffer where the routing table entries will be stored.
+                                   This must be a multiple of words in size.
  * \param[in]  buf_size            Size of the buffer in bytes.
- * \param[in]  rse_id              Identifier for the RSE whose sender routing tables are to be retrieved.
+ * \param[in]  rse_id              Identifier for the RSE whose routing tables are to be retrieved.
  *
  * \return  Returns a tfm_plat_err_t indicating success or failure.
  */
-enum tfm_plat_err_t rse_get_sender_routing_tables(uint8_t *routing_tables_buf, size_t buf_size,
-                                                  uint32_t rse_id);
-
-/**
- * \brief Retrieves the receiver routing tables associated with a given RSE.
- *
- * This function populates the provided buffer with the receiver routing table entries for the specified
- * RSE identifier. The number of entries returned is limited by the size of the buffer.
- *
- * \param[out] routing_tables_buf  Pointer to a buffer where the routing table entries will be stored.
- * \param[in]  buf_size            Size of the buffer in bytes.
- * \param[in]  rse_id              Identifier for the RSE whose receiver routing tables are to be retrieved.
- *
- * \return  Returns a tfm_plat_err_t indicating success or failure.
- */
-enum tfm_plat_err_t rse_get_receiver_routing_tables(uint8_t *routing_tables_buf, size_t buf_size,
-                                                    uint32_t rse_id);
+enum tfm_plat_err_t rse_get_routing_tables(uint8_t *routing_tables_buf, size_t buf_size,
+                                           uint32_t rse_id);
 
 #ifdef __cplusplus
 }
