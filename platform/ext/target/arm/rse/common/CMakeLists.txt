@@ -46,6 +46,7 @@ target_compile_definitions(platform_region_defs
         $<$<BOOL:${RSE_USE_ROM_LIB_FROM_SRAM}>:RSE_USE_ROM_LIB_FROM_SRAM>
         $<$<BOOL:${RSE_SUPPORT_ROM_LIB_RELOCATION}>:RSE_SUPPORT_ROM_LIB_RELOCATION>
         RSE_AMOUNT=${RSE_AMOUNT}
+        RSE_COMMS_NUMBER_NODES=${RSE_COMMS_NUMBER_NODES}
         $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:RSE_OTP_HAS_RSE_ID>
         $<$<BOOL:${RSE_OTP_HAS_ROUTING_TABLES}>:RSE_OTP_HAS_ROUTING_TABLES>
         $<$<BOOL:${TFM_PARTITION_DELEGATED_ATTESTATION}>:RSE_BOOT_KEYS_CCA>
@@ -918,7 +919,7 @@ install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/config/otp_layout.csv
 
 ############################## Routing tables ##################################
 
-if (RSE_AMOUNT GREATER 1)
+if (RSE_COMMS_NUMBER_NODES GREATER 1)
     target_sources(platform_bl1_1
         PRIVATE
             ./rse_get_routing_tables.c

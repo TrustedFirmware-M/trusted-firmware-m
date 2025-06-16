@@ -29,6 +29,7 @@ set(RSE_BIT_PROGRAMMABLE_OTP            ON         CACHE BOOL "Whether RSE OTP w
 set(PLAT_MHU_VERSION                    2          CACHE STRING  "Supported MHU version by platform")
 
 set(RSE_AMOUNT                          1          CACHE STRING  "Amount of RSEes in the system")
+set(RSE_COMMS_NUMBER_NODES              ${RSE_AMOUNT}      CACHE STRING "Amount of nodes in the RSE comms system, by default equal to number of RSEs")
 
 set(RSE_TP_MODE                         TCI        CACHE STRING "Whether system is in Test or Production mode")
 

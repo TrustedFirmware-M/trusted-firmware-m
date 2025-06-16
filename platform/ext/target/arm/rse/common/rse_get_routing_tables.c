@@ -14,7 +14,7 @@
 #include "rse_get_routing_tables.h"
 #include "tfm_plat_otp.h"
 
-#define ROUTING_TABLES_SIZE (NUM_NODES * sizeof(uint8_t))
+#define ROUTING_TABLES_SIZE (RSE_COMMS_NUMBER_NODES * sizeof(uint8_t))
 
 #ifndef RSE_OTP_HAS_ROUTING_TABLES
 extern struct rse_whole_system_routing_tables_t rse_system_routing_tables;
