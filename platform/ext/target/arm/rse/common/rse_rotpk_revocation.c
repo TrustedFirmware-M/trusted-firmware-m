@@ -87,6 +87,13 @@ enum tfm_plat_err_t rse_update_cm_rotpks(uint32_t policies, uint8_t *rotpks, siz
         return TFM_PLAT_ERR_CM_ROTPK_UPDATE_INVALID_AREA;
     }
 
+    lcm_err = lcm_otp_write(&LCM_DEV_S,
+                            OTP_OFFSET(P_RSE_OTP_CM->rotpk_areas[new_idx].cm_rotpk_policies),
+                            sizeof(policies), (uint8_t *)&policies);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
     lcm_err = lcm_otp_write(&LCM_DEV_S, OTP_OFFSET(P_RSE_OTP_CM->rotpk_areas[new_idx].rotpk),
                             rotpks_len, rotpks);
     if (lcm_err != LCM_ERROR_NONE) {
@@ -135,6 +142,13 @@ enum tfm_plat_err_t rse_update_dm_rotpks(uint32_t policies, uint8_t *rotpks, siz
      * in this area have yet been written. If they have, we cannot overwrite them */
      if (IS_RSE_OTP_AREA_VALID(DM_ROTPK)) {
         return TFM_PLAT_ERR_DM_ROTPK_UPDATE_INVALID_AREA;
+    }
+
+    lcm_err = lcm_otp_write(&LCM_DEV_S,
+                            OTP_OFFSET(P_RSE_OTP_DM->rotpk_areas[new_idx].dm_rotpk_policies),
+                            sizeof(policies), (uint8_t *)&policies);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
     }
 
     lcm_err = lcm_otp_write(&LCM_DEV_S, OTP_OFFSET(P_RSE_OTP_DM->rotpk_areas[new_idx].rotpk),
