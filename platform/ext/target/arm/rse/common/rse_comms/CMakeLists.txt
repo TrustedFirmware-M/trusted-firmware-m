@@ -19,6 +19,7 @@ target_sources(platform_s
         rse_comms_protocol_embed.c
         rse_comms_protocol_pointer_access.c
         rse_comms_atu.c
+        rse_comms_link_hal.c
 )
 
 target_compile_definitions(platform_s

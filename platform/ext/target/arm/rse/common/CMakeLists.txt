@@ -925,6 +925,11 @@ if (RSE_COMMS_NUMBER_NODES GREATER 1)
             ./rse_get_routing_tables.c
     )
 
+    target_sources(platform_s
+        PRIVATE
+            ./rse_get_routing_tables.c
+    )
+
     add_custom_target(routing_tables_pickle
         ALL
         SOURCES ${CMAKE_CURRENT_BINARY_DIR}/config/routing_tables.pickle
@@ -959,6 +964,11 @@ if (RSE_COMMS_NUMBER_NODES GREATER 1)
         add_dependencies(platform_bl1_1 routing_tables_definition_source_file)
 
         target_sources(platform_bl1_1
+            PRIVATE
+                ${CMAKE_CURRENT_BINARY_DIR}/rse_system_routing_tables_definition.c
+        )
+
+        target_sources(platform_s
             PRIVATE
                 ${CMAKE_CURRENT_BINARY_DIR}/rse_system_routing_tables_definition.c
         )
