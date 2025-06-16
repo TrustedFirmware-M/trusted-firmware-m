@@ -319,7 +319,7 @@ void Reset_Handler(void)
 
 #ifdef RSE_ENABLE_TRAM
     /* Set MSP to be in VM0 to start with */
-    __set_MSP(CM_PROVISIONING_BUNDLE_START);
+    __set_MSP(PROVISIONING_MESSAGE_START);
     __set_MSPLIM(VM0_BASE_S);
 
     setup_tram_encryption();
