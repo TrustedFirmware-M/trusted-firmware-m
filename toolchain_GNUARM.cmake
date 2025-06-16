@@ -54,6 +54,7 @@ add_compile_options(
     -Wno-format
     -Wno-unused-but-set-variable
     -Wnull-dereference
+    -Wno-error=incompatible-pointer-types
     -c
     -fdata-sections
     -ffunction-sections
