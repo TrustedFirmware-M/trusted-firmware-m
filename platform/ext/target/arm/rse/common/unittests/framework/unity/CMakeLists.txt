@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -22,12 +22,8 @@ fetch_remote_library(
         GIT_PROGRESS            FALSE
 )
 
-add_library(unity STATIC ${UNITY_PATH}/src/unity.c)
-
 target_compile_definitions(unity PUBLIC
     UNITY_USE_COMMAND_LINE_ARGS
     UNITY_SUPPORT_TEST_CASES
     UNITY_INCLUDE_PRINT_FORMATTED
 )
-
-target_include_directories(unity PUBLIC ${UNITY_PATH}/src)
