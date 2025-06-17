@@ -56,6 +56,9 @@
 #define RSE_OTP_CONFIG_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_HASH_ALG_SIZE (0)
 #endif /* RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_HASH_ALG */
 
+#define RSE_OTP_ROTPK_MAX_SIZE \
+    (RSE_OTP_CONFIG_MAX_SIZE_OF_THREE(RSE_OTP_CM_ROTPK_SIZE, RSE_OTP_DM_ROTPK_SIZE, 0))
+
 #define RSE_OTP_CM_ROTPK_SIZE                                                                     \
     (RSE_OTP_CONFIG_MAX_SIZE_OF_THREE(                                                            \
         RSE_OTP_CONFIG_TFM_BL1_2_ROTPK_HASH_ALG_SIZE, RSE_OTP_CONFIG_MCUBOOT_ROTPK_HASH_ALG_SIZE, \

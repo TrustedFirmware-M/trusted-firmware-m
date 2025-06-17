@@ -9,12 +9,13 @@
 #define __PLATFORM_BUILTIN_KEY_LOADER_IDS_H__
 
 #include "rse_rotpk_config.h"
+#include "rse_otp_config.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define TFM_BUILTIN_MAX_KEY_LEN 96
+#define TFM_BUILTIN_MAX_KEY_LEN RSE_OTP_ROTPK_MAX_SIZE
 
 enum psa_drv_slot_number_t {
     TFM_BUILTIN_KEY_SLOT_HUK = 0,
