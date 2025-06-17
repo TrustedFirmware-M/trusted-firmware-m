@@ -21,7 +21,7 @@ LR_DATA PROVISIONING_BUNDLE_DATA_START {
         * (+RW +ZI)
         /* Non secret provisioning values placed directly after data
          * so ensure 4 byte aligned */
-        EMPTY 0, ALIGN 4;
+        ALIGN 4
     }
 }
 
