@@ -31,6 +31,7 @@
 #include "rse_get_rse_id.h"
 
 #include <string.h>
+#include <assert.h>
 
 #define RSE_SERVER_ID            0
 #define SESSION_KEY_IV_SIZE      32
@@ -38,13 +39,7 @@
 #define VHUK_SEED_SIZE           32
 #define VHUK_SEED_WORD_SIZE      8
 
-#define RSE_HANDSHAKE_ROUND_UP(x, bound) ((((x) + bound - 1) / bound) * bound)
-
-/*
- * Routing tables can be stored in OTP and therefore buffer we read them
- * into must be 4-byte aligned
- */
-static uint8_t mhu_device_idxs[RSE_HANDSHAKE_ROUND_UP(RSE_AMOUNT, sizeof(uint32_t))];
+static const uint8_t *mhu_device_idxs;
 
 enum rse_handshake_msg_type {
     RSE_HANDSHAKE_SESSION_KEY_MSG,
@@ -518,16 +513,20 @@ enum tfm_plat_err_t rse_handshake(uint32_t *vhuk_seeds_buf)
 {
     uint32_t rse_id;
     enum tfm_plat_err_t plat_err;
+    size_t routing_tables_size;
 
     plat_err = rse_get_rse_id(&rse_id);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
 
-    plat_err = rse_get_routing_tables(mhu_device_idxs, sizeof(mhu_device_idxs), rse_id);
+    plat_err = rse_get_routing_tables(&mhu_device_idxs, &routing_tables_size, rse_id);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
+
+    /* Routing tables must cover all possible RSEs */
+    assert(routing_tables_size >= RSE_AMOUNT);
 
     if (rse_id == RSE_SERVER_ID) {
 #if RSE_SERVER_ID != 0

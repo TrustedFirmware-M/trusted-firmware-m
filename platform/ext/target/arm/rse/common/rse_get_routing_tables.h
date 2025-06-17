@@ -18,18 +18,17 @@ extern "C" {
 /**
  * \brief Retrieves the routing tables associated with a given RSE.
  *
- * This function populates the provided buffer with the routing table entries for the specified
- * RSE identifier. The number of entries returned is limited by the size of the buffer.
+ * This function returns a pointer to the routing tables for the specified
+ * RSE identifier.
  *
- * \param[out] routing_tables_buf  Pointer to a buffer where the routing table entries will be stored.
-                                   This must be a multiple of words in size.
- * \param[in]  buf_size            Size of the buffer in bytes.
+ * \param[out] routing_tables  Pointer to a pointer to receive the routing tables
+ * \param[in]  routing_tables_size Size of the routing tables
  * \param[in]  rse_id              Identifier for the RSE whose routing tables are to be retrieved.
  *
  * \return  Returns a tfm_plat_err_t indicating success or failure.
  */
-enum tfm_plat_err_t rse_get_routing_tables(uint8_t *routing_tables_buf, size_t buf_size,
-                                           uint32_t rse_id);
+enum tfm_plat_err_t rse_get_routing_tables(const uint8_t **routing_tables,
+                                           size_t *routing_tables_size, uint32_t rse_id);
 
 #ifdef __cplusplus
 }
