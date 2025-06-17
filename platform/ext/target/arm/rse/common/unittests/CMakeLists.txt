@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -40,6 +40,7 @@ function(generate_test UNIT_NAME UNIT_PATH)
         # Generate runner for the test
         add_custom_command(
             OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/unittests/${UNIT_NAME}/test_runner.c
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/unittests/${UNIT_NAME}
             COMMAND ${Ruby_EXECUTABLE}
                 ${UNITY_PATH}/auto/generate_test_runner.rb
                 ${CMAKE_CURRENT_LIST_DIR}/framework/unity/cfg.yml
