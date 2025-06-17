@@ -488,10 +488,12 @@ static psa_status_t cc3xx_aead_ccm_ctr_update(
         struct cc3xx_aes_state_t *state = &operation->aes;
         size_t processed_bytes = 0;
         size_t counter_incr_val = (block_buf_size_in_use + input_length) / AES_BLOCK_SIZE;
+        uint32_t *key_buf = (state->key_id == CC3XX_AES_KEY_ID_USER_KEY) ?
+                            (uint32_t *)state->key_buf : NULL;
 
         err = cc3xx_lowlevel_aes_init(CC3XX_AES_DIRECTION_ENCRYPT,
-                                      CC3XX_AES_MODE_CTR, CC3XX_AES_KEY_ID_USER_KEY,
-                                      (uint32_t *)state->key_buf, state->key_size,
+                                      CC3XX_AES_MODE_CTR, state->key_id,
+                                      key_buf, state->key_size,
                                       (uint32_t *)state->ctr, AES_IV_LEN);
         if (err != CC3XX_ERR_SUCCESS) {
             return cc3xx_to_psa_err(err);

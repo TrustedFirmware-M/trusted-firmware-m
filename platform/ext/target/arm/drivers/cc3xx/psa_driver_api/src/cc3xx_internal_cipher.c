@@ -58,6 +58,18 @@ static psa_status_t cc3xx_internal_aes_setup(
     const psa_algorithm_t default_alg = PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg);
     cc3xx_aes_keysize_t key_size;
     cc3xx_aes_mode_t mode;
+    cc3xx_aes_key_id_t key_id = CC3XX_AES_KEY_ID_USER_KEY;
+
+#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
+    if (CC3XX_IS_OPAQUE_KEY(attributes)) {
+        size_t opaque_key_id = (size_t)key_buffer;
+        key_id = (cc3xx_aes_key_id_t)cc3xx_get_builtin_key(opaque_key_id);
+
+        if (CC3XX_IS_OPAQUE_KEY_INVALID(key_id)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
 
     switch (key_buffer_size) {
     case 16:
@@ -119,9 +131,14 @@ static psa_status_t cc3xx_internal_aes_setup(
     state->direction = (dir == PSA_CRYPTO_DRIVER_ENCRYPT) ?
                 CC3XX_AES_DIRECTION_ENCRYPT : CC3XX_AES_DIRECTION_DECRYPT;
     state->key_size = key_size;
+    state->key_id = key_id;
 
-    cc3xx_dpa_hardened_word_copy(state->key_buf, (uint32_t *)key_buffer,
-                                 key_buffer_size / sizeof(uint32_t));
+    if (key_id == CC3XX_AES_KEY_ID_USER_KEY) {
+        cc3xx_dpa_hardened_word_copy(state->key_buf, (uint32_t *)key_buffer,
+                                     key_buffer_size / sizeof(uint32_t));
+    } else {
+        state->key_id = key_id;
+    }
     return PSA_SUCCESS;
 }
 #endif /* PSA_WANT_KEY_TYPE_AES */
@@ -443,9 +460,13 @@ psa_status_t cc3xx_internal_cipher_setup_complete(
 #endif /* PSA_WANT_KEY_TYPE_CHACHA20 */
 #if defined(PSA_WANT_KEY_TYPE_AES)
         case PSA_KEY_TYPE_AES:
+        {
+            uint32_t *key_buf = (operation->aes.key_id == CC3XX_AES_KEY_ID_USER_KEY) ?
+                                operation->aes.key_buf : NULL;
+
             err = cc3xx_lowlevel_aes_init(operation->aes.direction,
-                                          operation->aes.mode, CC3XX_AES_KEY_ID_USER_KEY,
-                                          operation->aes.key_buf, operation->aes.key_size,
+                                          operation->aes.mode, operation->aes.key_id,
+                                          key_buf, operation->aes.key_size,
                                           operation->aes.iv, operation->iv_length);
             if (err != CC3XX_ERR_SUCCESS) {
                 return cc3xx_to_psa_err(err);
@@ -463,6 +484,7 @@ psa_status_t cc3xx_internal_cipher_setup_complete(
             }
 #endif /* PSA_WANT_ALG_CCM */
             break;
+        }
 #endif /* PSA_WANT_KEY_TYPE_AES */
         default:
             (void)err;
