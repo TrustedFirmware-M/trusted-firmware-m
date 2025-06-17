@@ -8,7 +8,7 @@
 set(FETCHCONTENT_QUIET FALSE)
 
 set(UNITY_PATH      "DOWNLOAD"  CACHE PATH      "Path to Unity (or DOWNLOAD to fetch automatically)")
-set(UNITY_TAG       "v2.6.0"   CACHE STRING     "Unity version to use")
+set(UNITY_TAG       "v2.6.1"   CACHE STRING     "Unity version to use")
 
 fetch_remote_library(
     LIB_NAME                    unity
