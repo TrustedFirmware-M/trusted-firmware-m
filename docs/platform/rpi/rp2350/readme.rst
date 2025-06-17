@@ -33,6 +33,17 @@ and specify the platform name by setting ``-DTFM_PLATFORM=rpi/rp2350``.
    Make sure it is either cloned locally or available to download during build.
    SDK version used for testing: ``SDK 2.1.1 release``.
 
+   To use a different version of the SDK than the one your version of TF-M uses
+   by default, you can pass ``-DPICO_SDK_PATH=/path/to/pico-sdk`` to CMake.
+   You may also need to patch this SDK to work with the TF-M build system.
+   If required, the patch is available in the
+   ``platform/ext/target/rpi/rp2350/pico-sdk.patch`` file from a TF-M version
+   that uses the SDK version you want to use, and it can be applied with
+   ``git apply <TF-M source dir>/platform/ext/target/rpi/rp2350/pico-sdk.patch``.
+
+   For example, to use SDK version 2.1.1, you can take the ``pico-sdk.patch``
+   file from TF-M version 2.1.2 and apply it to the SDK version 2.1.1.
+
 .. note::
 
    Building the default platform configuration requires the board to be
