@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -119,7 +119,7 @@ void test_rse_get_boot_state_hash_update_fails(boot_state_include_mask mask)
     tfm_plat_otp_read_IgnoreAndReturn(TFM_PLAT_ERR_SUCCESS);
 
     if (mask & RSE_BOOT_STATE_INCLUDE_TP_MODE) {
-        lcm_get_tp_mode_Expect(&LCM_DEV_S, NULL);
+        lcm_get_tp_mode_ExpectAndReturn(&LCM_DEV_S, NULL, TFM_PLAT_ERR_OTP_WRITE_INVALID_INPUT);
         lcm_get_tp_mode_IgnoreArg_mode();
     }
 
