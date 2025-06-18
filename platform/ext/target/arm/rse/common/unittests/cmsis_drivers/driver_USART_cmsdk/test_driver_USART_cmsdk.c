@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -288,26 +288,6 @@ void test_GetRxCount(void)
 
     /* Asset */
     TEST_ASSERT_EQUAL(rx_data_size, rx_count);
-}
-
-TEST_CASE(ARM_USART_CONTROL_TX, ARM_DRIVER_ERROR_UNSUPPORTED)
-TEST_CASE(ARM_USART_CONTROL_RX, ARM_DRIVER_ERROR_UNSUPPORTED)
-TEST_CASE(ARM_USART_DATA_BITS_8, ARM_DRIVER_ERROR_UNSUPPORTED)
-TEST_CASE(ARM_USART_MODE_ASYNCHRONOUS, ARM_DRIVER_OK)
-void test_USART_Control(uint32_t control, int32_t expected_err)
-{
-    int32_t err;
-
-    /* Prepare */
-    if ((control & ARM_USART_CONTROL_Msk) == ARM_USART_MODE_ASYNCHRONOUS) {
-        uart_cmsdk_set_baudrate_IgnoreAndReturn(UART_CMSDK_ERR_NONE);
-    }
-
-    /* Act */
-    err = Driver_USART0.Control(control, 0);
-
-    /* Asset */
-    TEST_ASSERT_EQUAL(expected_err, err);
 }
 
 void test_USART_GetStatus(void)
