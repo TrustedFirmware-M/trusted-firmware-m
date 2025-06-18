@@ -55,6 +55,11 @@ set(TFM_PARTITION_CRYPTO                ON          CACHE BOOL      "Enable Cryp
 set(TFM_PARTITION_INITIAL_ATTESTATION   ON          CACHE BOOL      "Enable Initial Attestation partition")
 set(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE ON       CACHE BOOL      "Enable Internal Trusted Storage partition")
 
+set(TFM_PARTITION_FIRMWARE_UPDATE         ON         CACHE BOOL      "Enable firmware update partition")
+set(PLATFORM_HAS_FIRMWARE_UPDATE_SUPPORT  ON         CACHE BOOL      "Whether the platform has firmware update support")
+set(MCUBOOT_DATA_SHARING                  ON         CACHE BOOL      "Enable Data Sharing")
+set(TFM_FWU_BOOTLOADER_LIB                "${CMAKE_CURRENT_LIST_DIR}/bootloader/mcuboot"   CACHE STRING    "Bootloader configuration file for Firmware Update partition")
+
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug OR ${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
   set(ENABLE_FWU_AGENT_DEBUG_LOGS     TRUE          CACHE BOOL      "Enable Firmware update agent debug logs.")
   set(PLAT_LOG_LEVEL                    4           CACHE STRING    "Set platform log level.")
