@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -27,6 +27,7 @@ set(UNIT_TEST_SUITE ${CMAKE_CURRENT_LIST_DIR}/test_rse_kmu_keys.c)
 #-------------------------------------------------------------------------------
 # Include dirs
 #-------------------------------------------------------------------------------
+list(APPEND UNIT_TEST_INCLUDE_DIRS ${RSE_COMMON_SOURCE_DIR}/subplatform_pal_default_config)
 list(APPEND UNIT_TEST_INCLUDE_DIRS ${RSE_COMMON_SOURCE_DIR}/unittests/include)
 list(APPEND UNIT_TEST_INCLUDE_DIRS ${RSE_COMMON_SOURCE_DIR}/partition)
 list(APPEND UNIT_TEST_INCLUDE_DIRS ${RSE_COMMON_SOURCE_DIR}/bl1/cc3xx)
@@ -48,6 +49,14 @@ list(APPEND UNIT_TEST_COMPILE_DEFS RSE_BOOT_KEYS_DPE)
 list(APPEND UNIT_TEST_COMPILE_DEFS RSE_XIP)
 list(APPEND UNIT_TEST_COMPILE_DEFS KMU_S)
 list(APPEND UNIT_TEST_COMPILE_DEFS LCM_S)
+
+list(APPEND UNIT_TEST_COMPILE_DEFS MCUBOOT_HW_KEY)
+list(APPEND UNIT_TEST_COMPILE_DEFS TFM_BL1_2_EMBED_ROTPK_IN_IMAGE)
+list(APPEND UNIT_TEST_COMPILE_DEFS MCUBOOT_IMAGE_NUMBER=2)
+list(APPEND UNIT_TEST_COMPILE_DEFS PLAT_OTP_ID_KEY_SECURE_ENCRYPTION=1)
+list(APPEND UNIT_TEST_COMPILE_DEFS PLAT_OTP_ID_KEY_NON_SECURE_ENCRYPTION=2)
+list(APPEND UNIT_TEST_COMPILE_DEFS RSE_KMU_SLOT_DM_PROVISIONING_KEY=3)
+list(APPEND UNIT_TEST_COMPILE_DEFS RSE_KMU_SLOT_CM_PROVISIONING_KEY=4)
 
 #-------------------------------------------------------------------------------
 # Link libs for UUT

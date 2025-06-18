@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "platform_error_codes.h"
 
 #ifdef __cplusplus
 extern "C" {

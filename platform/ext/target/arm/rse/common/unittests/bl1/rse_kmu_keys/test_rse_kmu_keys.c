@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -59,7 +59,7 @@ void test_setup_key_from_derivation_get_boot_state_fails(void)
 
     /* Act */
     plat_err = setup_key_from_derivation(
-        key_id, key_buf, label, sizeof(label), slot, &key0_export_config,
+        key_id, key_buf, label, sizeof(label), NULL, 0, slot, &key0_export_config,
         &key1_export_config, setup_aes_aead_key, boot_state_config);
 
     /* Assert */
@@ -95,7 +95,7 @@ void test_setup_key_from_derivation_get_key_buffer_ptr_fails(void)
 
     /* Act */
     plat_err = setup_key_from_derivation(
-        key_id, key_buf, label, sizeof(label), slot, &key0_export_config,
+        key_id, key_buf, label, sizeof(label), NULL, 0, slot, &key0_export_config,
         &key1_export_config, setup_aes_aead_key, boot_state_config);
 
     /* Assert */
@@ -134,7 +134,7 @@ void test_setup_key_from_derivation_cc3xx_kdf_cmac_fails(void)
 
     /* Act */
     plat_err = setup_key_from_derivation(
-        key_id, key_buf, label, sizeof(label), slot, &key0_export_config,
+        key_id, key_buf, label, sizeof(label), NULL, 0, slot, &key0_export_config,
         &key1_export_config, setup_aes_aead_key, boot_state_config);
 
     /* Assert */
@@ -171,7 +171,7 @@ void test_setup_key_from_derivation_duplicate_into_next_slot_fails(void)
 
     /* Act */
     plat_err = setup_key_from_derivation(
-        key_id, key_buf, label, sizeof(label), slot, &key0_export_config,
+        key_id, key_buf, label, sizeof(label), NULL, 0, slot, &key0_export_config,
         &key1_export_config, setup_aes_aead_key, boot_state_config);
 
     /* Assert */
@@ -213,7 +213,7 @@ void test_setup_key_from_derivation_set_key_export_config_fails(void)
 
     /* Act */
     plat_err = setup_key_from_derivation(
-        key_id, key_buf, label, sizeof(label), slot, &key0_export_config,
+        key_id, key_buf, label, sizeof(label), NULL, 0, slot, &key0_export_config,
         &key1_export_config, setup_aes_aead_key, boot_state_config);
 
     /* Assert */
@@ -257,7 +257,7 @@ void test_setup_key_from_derivation_set_key_export_config_locked_fails(void)
 
     /* Act */
     plat_err = setup_key_from_derivation(
-        key_id, key_buf, label, sizeof(label), slot, &key0_export_config,
+        key_id, key_buf, label, sizeof(label), NULL, 0, slot, &key0_export_config,
         &key1_export_config, setup_aes_aead_key, boot_state_config);
 
     /* Assert */
@@ -293,7 +293,7 @@ void test_setup_key_from_derivation_ok(void)
 
     /* Act */
     plat_err = setup_key_from_derivation(
-        key_id, key_buf, label, sizeof(label), slot, &key0_export_config,
+        key_id, key_buf, label, sizeof(label), NULL, 0, slot, &key0_export_config,
         &key1_export_config, setup_aes_aead_key, boot_state_config);
 
     /* Assert */
@@ -841,276 +841,6 @@ void test_rse_setup_session_key_ok(void)
 
     /* Act */
     plat_err = rse_setup_session_key(ivs, ivs_len);
-
-    /* Assert */
-    TEST_ASSERT_EQUAL(plat_err, KMU_ERROR_NONE);
-}
-
-void test_rse_setup_cm_provisioning_key_sp_not_enabled(void)
-{
-    enum tfm_plat_err_t plat_err;
-    enum lcm_tp_mode_t tp_mode;
-    enum lcm_bool_t sp_enabled;
-
-    /* Prepare */
-    tp_mode = LCM_TP_MODE_PCI;
-    sp_enabled = LCM_FALSE;
-
-    lcm_get_tp_mode_Expect(&LCM_DEV_S, NULL);
-    lcm_get_tp_mode_IgnoreArg_mode();
-    lcm_get_tp_mode_ReturnMemThruPtr_mode((enum lcm_tp_mode_t *)&tp_mode,
-                                          sizeof(enum lcm_tp_mode_t));
-
-    lcm_get_sp_enabled_Expect(&LCM_DEV_S, NULL);
-    lcm_get_sp_enabled_IgnoreArg_enabled();
-    lcm_get_sp_enabled_ReturnMemThruPtr_enabled((enum lcm_bool_t *)&sp_enabled,
-                                                sizeof(enum lcm_bool_t));
-
-    /* Act */
-    plat_err = rse_setup_cm_provisioning_key();
-
-    /* Assert */
-    TEST_ASSERT_EQUAL(plat_err, TFM_PLAT_ERR_SYSTEM_ERR);
-}
-
-void test_rse_setup_cm_provisioning_key_invalid_tp_mode(void)
-{
-    enum tfm_plat_err_t plat_err;
-    enum lcm_tp_mode_t tp_mode;
-    enum lcm_bool_t sp_enabled;
-
-    /* Prepare */
-    tp_mode = LCM_TP_MODE_INVALID;
-    sp_enabled = LCM_TRUE;
-
-    lcm_get_tp_mode_Expect(&LCM_DEV_S, NULL);
-    lcm_get_tp_mode_IgnoreArg_mode();
-    lcm_get_tp_mode_ReturnMemThruPtr_mode((enum lcm_tp_mode_t *)&tp_mode,
-                                          sizeof(enum lcm_tp_mode_t));
-
-    lcm_get_sp_enabled_Expect(&LCM_DEV_S, NULL);
-    lcm_get_sp_enabled_IgnoreArg_enabled();
-    lcm_get_sp_enabled_ReturnMemThruPtr_enabled((enum lcm_bool_t *)&sp_enabled,
-                                                sizeof(enum lcm_bool_t));
-
-    /* Act */
-    plat_err = rse_setup_cm_provisioning_key();
-
-    /* Assert */
-    TEST_ASSERT_EQUAL(plat_err, TFM_PLAT_ERR_KEY_DERIVATION_INVALID_TP_MODE);
-}
-
-void test_rse_setup_cm_provisioning_key_setup_key_from_derivation_fails(void)
-{
-    enum tfm_plat_err_t plat_err;
-    enum lcm_tp_mode_t tp_mode;
-    enum lcm_bool_t sp_enabled;
-
-    /* Prepare */
-    tp_mode = LCM_TP_MODE_PCI;
-    sp_enabled = LCM_TRUE;
-
-    lcm_get_tp_mode_Expect(&LCM_DEV_S, NULL);
-    lcm_get_tp_mode_IgnoreArg_mode();
-    lcm_get_tp_mode_ReturnMemThruPtr_mode((enum lcm_tp_mode_t *)&tp_mode,
-                                          sizeof(enum lcm_tp_mode_t));
-
-    lcm_get_sp_enabled_Expect(&LCM_DEV_S, NULL);
-    lcm_get_sp_enabled_IgnoreArg_enabled();
-    lcm_get_sp_enabled_ReturnMemThruPtr_enabled((enum lcm_bool_t *)&sp_enabled,
-                                                sizeof(enum lcm_bool_t));
-
-    rse_get_boot_state_IgnoreAndReturn(TFM_PLAT_ERR_UNSUPPORTED);
-
-    /* Act */
-    plat_err = rse_setup_cm_provisioning_key();
-
-    /* Assert */
-    TEST_ASSERT_EQUAL(plat_err, TFM_PLAT_ERR_UNSUPPORTED);
-}
-
-void test_rse_setup_cm_provisioning_key_kmu_set_key_0_locked_fails(void)
-{
-    enum tfm_plat_err_t plat_err;
-    enum lcm_tp_mode_t tp_mode;
-    enum lcm_bool_t sp_enabled;
-
-    /* Prepare */
-    tp_mode = LCM_TP_MODE_PCI;
-    sp_enabled = LCM_TRUE;
-
-    lcm_get_tp_mode_Expect(&LCM_DEV_S, NULL);
-    lcm_get_tp_mode_IgnoreArg_mode();
-    lcm_get_tp_mode_ReturnMemThruPtr_mode((enum lcm_tp_mode_t *)&tp_mode,
-                                          sizeof(enum lcm_tp_mode_t));
-
-    lcm_get_sp_enabled_Expect(&LCM_DEV_S, NULL);
-    lcm_get_sp_enabled_IgnoreArg_enabled();
-    lcm_get_sp_enabled_ReturnMemThruPtr_enabled((enum lcm_bool_t *)&sp_enabled,
-                                                sizeof(enum lcm_bool_t));
-
-    rse_get_boot_state_IgnoreAndReturn(TFM_PLAT_ERR_SUCCESS);
-    kmu_get_key_buffer_ptr_IgnoreAndReturn(KMU_ERROR_NONE);
-    cc3xx_lowlevel_kdf_cmac_IgnoreAndReturn(TFM_PLAT_ERR_SUCCESS);
-    kmu_set_key_export_config_IgnoreAndReturn(KMU_ERROR_NONE);
-    kmu_set_key_export_config_locked_IgnoreAndReturn(KMU_ERROR_NONE);
-    dpa_hardened_word_copy_Ignore();
-
-    kmu_set_key_locked_ExpectAndReturn(
-        &KMU_DEV_S, RSE_KMU_SLOT_CM_PROVISIONING_KEY, KMU_ERROR_INVALID_SLOT);
-
-    /* Act */
-    plat_err = rse_setup_cm_provisioning_key();
-
-    /* Assert */
-    TEST_ASSERT_EQUAL(plat_err, KMU_ERROR_INVALID_SLOT);
-}
-
-void test_rse_setup_cm_provisioning_key_kmu_set_key_1_locked_fails(void)
-{
-    enum tfm_plat_err_t plat_err;
-    enum lcm_tp_mode_t tp_mode;
-    enum lcm_bool_t sp_enabled;
-
-    /* Prepare */
-    tp_mode = LCM_TP_MODE_PCI;
-    sp_enabled = LCM_TRUE;
-
-    lcm_get_tp_mode_Expect(&LCM_DEV_S, NULL);
-    lcm_get_tp_mode_IgnoreArg_mode();
-    lcm_get_tp_mode_ReturnMemThruPtr_mode((enum lcm_tp_mode_t *)&tp_mode,
-                                          sizeof(enum lcm_tp_mode_t));
-
-    lcm_get_sp_enabled_Expect(&LCM_DEV_S, NULL);
-    lcm_get_sp_enabled_IgnoreArg_enabled();
-    lcm_get_sp_enabled_ReturnMemThruPtr_enabled((enum lcm_bool_t *)&sp_enabled,
-                                                sizeof(enum lcm_bool_t));
-
-    rse_get_boot_state_IgnoreAndReturn(TFM_PLAT_ERR_SUCCESS);
-    kmu_get_key_buffer_ptr_IgnoreAndReturn(KMU_ERROR_NONE);
-    cc3xx_lowlevel_kdf_cmac_IgnoreAndReturn(TFM_PLAT_ERR_SUCCESS);
-    kmu_set_key_export_config_IgnoreAndReturn(KMU_ERROR_NONE);
-    kmu_set_key_export_config_locked_IgnoreAndReturn(KMU_ERROR_NONE);
-    dpa_hardened_word_copy_Ignore();
-
-    kmu_set_key_locked_ExpectAndReturn(
-        &KMU_DEV_S, RSE_KMU_SLOT_CM_PROVISIONING_KEY, KMU_ERROR_NONE);
-    kmu_set_key_locked_ExpectAndReturn(&KMU_DEV_S,
-                                       RSE_KMU_SLOT_CM_PROVISIONING_KEY + 1,
-                                       KMU_ERROR_INVALID_SLOT);
-
-    /* Act */
-    plat_err = rse_setup_cm_provisioning_key();
-
-    /* Assert */
-    TEST_ASSERT_EQUAL(plat_err, KMU_ERROR_INVALID_SLOT);
-}
-
-TEST_CASE(LCM_TP_MODE_PCI)
-TEST_CASE(LCM_TP_MODE_TCI)
-void test_rse_setup_cm_provisioning_key_ok(enum lcm_tp_mode_t tp_mode)
-{
-    enum tfm_plat_err_t plat_err;
-    enum lcm_bool_t sp_enabled;
-    enum rse_kmu_slot_id_t slot;
-
-    /* Prepare */
-    slot = RSE_KMU_SLOT_CM_PROVISIONING_KEY;
-    sp_enabled = LCM_TRUE;
-
-    lcm_get_tp_mode_Expect(&LCM_DEV_S, NULL);
-    lcm_get_tp_mode_IgnoreArg_mode();
-    lcm_get_tp_mode_ReturnMemThruPtr_mode((enum lcm_tp_mode_t *)&tp_mode,
-                                          sizeof(enum lcm_tp_mode_t));
-
-    lcm_get_sp_enabled_Expect(&LCM_DEV_S, NULL);
-    lcm_get_sp_enabled_IgnoreArg_enabled();
-    lcm_get_sp_enabled_ReturnMemThruPtr_enabled((enum lcm_bool_t *)&sp_enabled,
-                                                sizeof(enum lcm_bool_t));
-
-    rse_get_boot_state_IgnoreAndReturn(TFM_PLAT_ERR_SUCCESS);
-
-    kmu_get_key_buffer_ptr_ExpectAndReturn(&KMU_DEV_S, slot, NULL, NULL,
-                                           KMU_ERROR_NONE);
-    kmu_get_key_buffer_ptr_IgnoreArg_key_slot();
-    kmu_get_key_buffer_ptr_IgnoreArg_slot_size();
-
-    cc3xx_lowlevel_kdf_cmac_IgnoreAndReturn(TFM_PLAT_ERR_SUCCESS);
-
-    kmu_get_key_buffer_ptr_ExpectAndReturn(&KMU_DEV_S, slot, NULL, NULL,
-                                           KMU_ERROR_NONE);
-    kmu_get_key_buffer_ptr_IgnoreArg_key_slot();
-    kmu_get_key_buffer_ptr_IgnoreArg_slot_size();
-
-    kmu_get_key_buffer_ptr_ExpectAndReturn(&KMU_DEV_S, slot + 1, NULL, NULL,
-                                           KMU_ERROR_NONE);
-    kmu_get_key_buffer_ptr_IgnoreArg_key_slot();
-    kmu_get_key_buffer_ptr_IgnoreArg_slot_size();
-
-    dpa_hardened_word_copy_Ignore();
-    kmu_set_key_export_config_IgnoreAndReturn(KMU_ERROR_NONE);
-    kmu_set_key_export_config_locked_IgnoreAndReturn(KMU_ERROR_NONE);
-
-    kmu_set_key_locked_ExpectAndReturn(&KMU_DEV_S, slot, KMU_ERROR_NONE);
-    kmu_set_key_locked_ExpectAndReturn(&KMU_DEV_S, slot + 1, KMU_ERROR_NONE);
-
-    /* Act */
-    plat_err = rse_setup_cm_provisioning_key();
-
-    /* Assert */
-    TEST_ASSERT_EQUAL(plat_err, KMU_ERROR_NONE);
-}
-
-void test_rse_setup_dm_provisioning_key_ok(void)
-{
-    enum tfm_plat_err_t plat_err;
-    enum lcm_tp_mode_t tp_mode;
-    enum lcm_bool_t sp_enabled;
-    enum rse_kmu_slot_id_t slot;
-
-    /* Prepare */
-    tp_mode = LCM_TP_MODE_PCI;
-    sp_enabled = LCM_TRUE;
-    slot = RSE_KMU_SLOT_DM_PROVISIONING_KEY;
-
-    lcm_get_tp_mode_Expect(&LCM_DEV_S, NULL);
-    lcm_get_tp_mode_IgnoreArg_mode();
-    lcm_get_tp_mode_ReturnMemThruPtr_mode((enum lcm_tp_mode_t *)&tp_mode,
-                                          sizeof(enum lcm_tp_mode_t));
-
-    lcm_get_sp_enabled_Expect(&LCM_DEV_S, NULL);
-    lcm_get_sp_enabled_IgnoreArg_enabled();
-    lcm_get_sp_enabled_ReturnMemThruPtr_enabled((enum lcm_bool_t *)&sp_enabled,
-                                                sizeof(enum lcm_bool_t));
-
-    rse_get_boot_state_IgnoreAndReturn(TFM_PLAT_ERR_SUCCESS);
-
-    kmu_get_key_buffer_ptr_ExpectAndReturn(&KMU_DEV_S, slot, NULL, NULL,
-                                           KMU_ERROR_NONE);
-    kmu_get_key_buffer_ptr_IgnoreArg_key_slot();
-    kmu_get_key_buffer_ptr_IgnoreArg_slot_size();
-
-    cc3xx_lowlevel_kdf_cmac_IgnoreAndReturn(TFM_PLAT_ERR_SUCCESS);
-
-    kmu_get_key_buffer_ptr_ExpectAndReturn(&KMU_DEV_S, slot, NULL, NULL,
-                                           KMU_ERROR_NONE);
-    kmu_get_key_buffer_ptr_IgnoreArg_key_slot();
-    kmu_get_key_buffer_ptr_IgnoreArg_slot_size();
-
-    kmu_get_key_buffer_ptr_ExpectAndReturn(&KMU_DEV_S, slot + 1, NULL, NULL,
-                                           KMU_ERROR_NONE);
-    kmu_get_key_buffer_ptr_IgnoreArg_key_slot();
-    kmu_get_key_buffer_ptr_IgnoreArg_slot_size();
-
-    dpa_hardened_word_copy_Ignore();
-    kmu_set_key_export_config_IgnoreAndReturn(KMU_ERROR_NONE);
-    kmu_set_key_export_config_locked_IgnoreAndReturn(KMU_ERROR_NONE);
-
-    kmu_set_key_locked_ExpectAndReturn(&KMU_DEV_S, slot, KMU_ERROR_NONE);
-    kmu_set_key_locked_ExpectAndReturn(&KMU_DEV_S, slot + 1, KMU_ERROR_NONE);
-
-    /* Act */
-    plat_err = rse_setup_dm_provisioning_key();
 
     /* Assert */
     TEST_ASSERT_EQUAL(plat_err, KMU_ERROR_NONE);
