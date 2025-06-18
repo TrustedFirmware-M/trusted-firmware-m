@@ -37,12 +37,14 @@ include(${TFM_TOOLCHAIN_FILE})
 
 project("Trusted Firmware M" VERSION ${TFM_VERSION} LANGUAGES C CXX ASM)
 
+add_subdirectory(lib/ext)
+
 if(BL2)
     add_subdirectory(bl2)
 endif()
 
 add_subdirectory(lib/backtrace)
-add_subdirectory(lib/ext)
+
 add_subdirectory(lib/fih)
 add_subdirectory(lib/tfm_log)
 add_subdirectory(lib/tfm_log_unpriv)
