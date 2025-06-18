@@ -64,6 +64,7 @@ const struct partition_tfm_sp_idle_load_info_t
 #else
         .nassets                    = 0,
 #endif
+        .load_order                 = LOAD_ORDER_BY_PRIORITY(PARTITION_PRI_LOWEST),
     },
     .stack_addr                     = (uintptr_t)idle_sp_stack,
     .heap_addr                      = 0,

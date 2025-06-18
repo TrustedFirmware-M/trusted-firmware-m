@@ -135,6 +135,7 @@ const struct partition_{{manifest.name|lower}}_load_info_t {{manifest.name|lower
         .client_id_base             = {{manifest.client_id_base}},
         .client_id_limit            = {{manifest.client_id_limit}},
 {% endif %}
+        .load_order                 = {{load_order}},
     },
 {% if config_impl['CONFIG_TFM_SPM_BACKEND_IPC'] == '1' or manifest.model == "IPC" %}
     .stack_addr                     = (uintptr_t){{manifest.name|lower}}_stack,

@@ -34,6 +34,7 @@
  *
  * Field                Desc                        Value
  * Priority, bits[7:0]:  Partition Priority          Lowest, low, normal, high, highest
+ *                       set in manifest.
  * A/P, bit[8]:          ARoT or PRoT domain         1: PRoT              0: ARoT
  * I/S, bit[9]:          IPC or SFN typed partition  1: IPC               0: SFN
  * MB,  bit[10]:         NS Agent Mailbox or not     1: NS Agent mailbox  0: Not
@@ -53,7 +54,6 @@
 #define PARTITION_NS_AGENT_MB                   (1UL << 10)
 #define PARTITION_NS_AGENT_TZ                   (1UL << 11)
 
-#define PARTITION_PRIORITY(flag)                ((flag) & PARTITION_PRI_MASK)
 #define TO_THREAD_PRIORITY(x)                   (x)
 
 #define ENTRY_TO_POSITION(x)                    (uintptr_t)(x)
@@ -84,6 +84,14 @@
 /* Partition flag end */
 
 /*
+ * Calculate partition loading order according to its priority only.
+ * Dependencies are excluded from the calculation.
+ * This macro shall only be called by Secure Partition statically defined
+ * without manifest file, such as idle partition and TrustZone NS Agent.
+ */
+#define LOAD_ORDER_BY_PRIORITY(priority)        (((uint16_t)(priority)) << 8)
+
+/*
  * Common partition structure type, the extendable data is right after it.
  * Extendable data has different size for each partition, and must be 4-byte
  * aligned. It includes: stack and heap position, dependencies, services and
@@ -92,7 +100,9 @@
 struct partition_load_info_t {
     uint32_t        psa_ff_ver;         /* Encode the version with magic    */
     int32_t         pid;                /* Partition ID                     */
-    uint32_t        flags;              /* ARoT/PRoT, SFN/IPC, priority     */
+    uint32_t        flags;              /* ARoT/PRoT, SFN/IPC, priority set
+                                         * in Secure Partition manifest.
+                                         */
     uintptr_t       entry;              /* Entry point                      */
     size_t          stack_size;         /* Stack size                       */
     size_t          heap_size;          /* Heap size                        */
@@ -102,6 +112,18 @@ struct partition_load_info_t {
     uint32_t        nirqs;              /* Number of IRQ owned by Partition */
     int32_t         client_id_base;     /* The min translated client ID     */
     int32_t         client_id_limit;    /* The max translated client ID     */
+    uint16_t        load_order;         /* loading order of this partition
+                                         * The value is calculated based on the
+                                         * priority set in partition manifest
+                                         * and its dependencies.
+                                         * A partition with a smaller loading
+                                         * order value is loaded earlier.
+                                         * - A partition with a higher manifest
+                                         *   priority is loaded earlier than
+                                         *   those with lower priorities.
+                                         * - A partition is loaded later than
+                                         *   its dependencies.
+                                         */
 } __attribute__((aligned(4)));
 
 #endif /* __PARTITION_DEFS_H__ */

@@ -75,6 +75,7 @@ const struct partition_tfm_sp_ns_agent_tz_load_info_t
 #else
         .nassets                    = 0,
 #endif
+        .load_order                 = LOAD_ORDER_BY_PRIORITY(PARTITION_PRI_LOWEST - 1),
     },
     .stack_addr                     = (uintptr_t)ns_agent_tz_stack,
     .heap_addr                      = 0,

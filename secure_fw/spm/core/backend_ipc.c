@@ -336,8 +336,11 @@ void backend_init_comp_assuredly(struct partition_t *p_pt, uint32_t service_sett
 
     watermark_stack(p_pt);
 
-    THRD_INIT(&p_pt->thrd, &p_pt->ctx_ctrl,
-              TO_THREAD_PRIORITY(PARTITION_PRIORITY(p_pldi->flags)));
+    /*
+     * Use Secure Partition loading order as the initial priority of scheduling
+     * in IPC backend.
+     */
+    THRD_INIT(&p_pt->thrd, &p_pt->ctx_ctrl, p_pldi->load_order);
 
     thrd_entry = (comp_init_fns[index])(p_pt, service_setting, &param);
 

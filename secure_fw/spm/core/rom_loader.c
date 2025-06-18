@@ -60,6 +60,37 @@ static struct service_t *tfm_allocate_service_assuredly(uint32_t service_count)
     return p_serv_allocated;
 }
 
+/*
+ * Insert a partition into load list.
+ * The load list is sorted according to partitions' loading order values.
+ * In SFN backend, a partition with a smaller loading order value is loaded and
+ * initialized earlier.
+ */
+static void insert_a_partition_load_list(struct partition_head_t *head,
+                                         struct partition_t *partition)
+{
+    struct partition_t *p_part, *p_part_prev;
+
+    if (UNI_LIST_IS_EMPTY(head, next)) {
+        UNI_LIST_INSERT_AFTER(head, partition, next);
+        return;
+    }
+
+    p_part_prev = NULL;
+    UNI_LIST_FOREACH(p_part, head, next) {
+        if (p_part->p_ldinf->load_order > partition->p_ldinf->load_order) {
+            if (p_part_prev == NULL) {
+                UNI_LIST_INSERT_AFTER(head, partition, next);
+            } else {
+                UNI_LIST_INSERT_AFTER(p_part_prev, partition, next);
+            }
+            return;
+        }
+        p_part_prev = p_part;
+    }
+    UNI_LIST_INSERT_AFTER(p_part_prev, partition, next);
+}
+
 struct partition_t *load_a_partition_assuredly(struct partition_head_t *head)
 {
     const struct partition_load_info_t *p_ptldinf;
@@ -130,7 +161,7 @@ struct partition_t *load_a_partition_assuredly(struct partition_head_t *head)
 
     ldinf_sa += LOAD_INFSZ_BYTES(p_ptldinf);
 
-    UNI_LIST_INSERT_AFTER(head, partition, next);
+    insert_a_partition_load_list(head, partition);
 
     return partition;
 }

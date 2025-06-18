@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributor
  * Copyright (c) 2023 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -43,7 +43,7 @@ typedef void (*thrd_fn_t)(void *);
 
 /* Thread context */
 struct thread_t {
-    uint8_t                priority;          /* Priority                          */
+    uint16_t               priority;          /* Priority                          */
     uint8_t                state;             /* State                             */
     uint16_t               flags;             /* Flags and align, DO NOT REMOVE!   */
     struct context_ctrl_t *p_context_ctrl;    /* Context control (sp, splimit, lr) */
@@ -69,7 +69,7 @@ extern struct thread_t *p_curr_thrd;
  *  priority       -    Initial priority
  */
 #define THRD_INIT(p_thrd, p_ctx_ctrl, prio) do {                         \
-                        (p_thrd)->priority       = (uint8_t)(prio);      \
+                        (p_thrd)->priority       = (uint16_t)(prio);      \
                         (p_thrd)->state          = THRD_STATE_CREATING;  \
                         (p_thrd)->flags          = 0;                    \
                         (p_thrd)->p_context_ctrl = p_ctx_ctrl;           \
@@ -80,13 +80,13 @@ extern struct thread_t *p_curr_thrd;
  *
  * Parameters :
  *  p_thrd         -     Pointer of thread_t struct
- *  priority       -     Priority value (0~255)
+ *  priority       -     Priority value
  *
  * Note :
  *  The new priority may not take effect immediately.
  */
 #define THRD_SET_PRIORITY(p_thrd, priority) \
-                                        p_thrd->priority = (uint8_t)(priority)
+                                        p_thrd->priority = (uint16_t)(priority)
 
 /*
  * Update current thread's bound context pointer.

@@ -238,6 +238,103 @@ def validate_dependency_chain(partition,
         validate_dependency_chain(dependency, dependency_table, dependency_chain)
     dependency_table[partition]['validated'] = True
 
+def calc_partition_dependency_score(idx, score_list, partitions):
+
+    """
+    Calculate the dependency score of the current Secure Partition.
+    A Secure Partition dependency score is 1 if it has no dependencies,
+    otherwise is the sum of all the dependency scores of its dependencies.
+
+    Parameters
+    ----------
+    idx:
+        The index of the current Secure Partition in partitions
+    score_list:
+        The list to collect dependency scores
+    partitions:
+        The list of Secure Partitions
+
+    Return
+    ------
+    score:
+        The dependency score of the current Secure Partition
+    """
+
+    load_part = score_list[idx]
+    partition = partitions[idx]
+
+    if load_part['calc_done'] == True:
+        return load_part['score']
+
+    manifest = partition['manifest']
+    dependencies = manifest['dependencies'].copy() \
+                   if 'dependencies' in manifest else []
+    dependencies += manifest['weak_dependencies'].copy() \
+                    if 'weak_dependencies' in manifest else []
+
+    score = 1
+    dep_idx_list = []
+    for dependency in dependencies:
+        # Find out the partition which contains the dependency service
+        dep_idx = next((i for i, partition in enumerate(partitions) \
+                        if 'services' in partition['manifest'] and  \
+                        any(svc['name'] == dependency for svc in partition['manifest']['services'])), \
+                        -1)
+        if dep_idx == -1:
+            continue
+
+        dep_idx_list.append(dep_idx)
+
+    # Remove duplicated indexes of dependencies
+    # Each dependency Secure Partition is only calculated once.
+    dep_idx_list = list(set(dep_idx_list))
+    for dep_idx in dep_idx_list:
+        score += calc_partition_dependency_score(dep_idx, score_list, partitions)
+
+    load_part['score'] = score
+    load_part['calc_done'] = True
+
+    return score
+
+def calc_partitions_load_order(partitions):
+    """
+    Set Secure Partition loading order according to their dependencies and
+    priority set in manifest.
+    Loading order value = (manifest priority << 8) | (dependency score & 0xFF)
+    Secure Partitions with smaller loading order value are loaded earlier in
+    SPM initialization.
+
+    This calculation must be called after circular dependency is checked.
+    Otherwise, the calculation will be stuck in an infinite loop due to circular
+    dependency.
+
+    Parameters
+    ----------
+    partitions:
+        A list of Secure Partition
+    """
+
+    priority_map = {
+        'LOWEST'              : (0xFF << 8),
+        'LOW'                 : (0x7F << 8),
+        'NORMAL'              : (0x1F << 8),
+        'HIGH'                : (0xF << 8),
+        'HIGHEST'             : (0x0 << 8),
+    }
+
+    score_list = [{'score':0, 'calc_done':False} for _ in partitions]
+
+    logging.debug('\r\nCalculating Secure Partition loading order...')
+    logging.debug("------------------- Loading order --------------------")
+
+    for i, partition in enumerate(partitions):
+        partition['load_order'] = (calc_partition_dependency_score(i, score_list, partitions) & 0xFF) + \
+                                  priority_map[partition['manifest']['priority']]
+        logging.debug('  {:40s}  0x{:04x}'.format(partition['attr']['description'],
+                                                  partition['load_order']))
+
+    logging.debug("------------------------------------------------------\r\n")
+
 def manifest_attribute_check(manifest, manifest_item):
     """
     Check whether there is any invalid attribute in manifests.
@@ -496,6 +593,12 @@ def process_partition_manifests(manifest_lists, configs):
 
     check_circular_dependency(partition_list, service_partition_map)
 
+    # Calculate the loading order of each partition
+    # This calculation must be called after circular dependency is checked.
+    # Otherwise, the calculation will be stuck in an infinite loop due to
+    # circular dependency.
+    calc_partitions_load_order(partition_list)
+
     # Automatically assign PIDs for partitions without 'pid' attribute
     pid = max(pid_list, default = TFM_PID_BASE - 1)
     for idx in no_pid_manifest_idx:
@@ -560,6 +663,7 @@ def gen_per_partition_files(context):
         partition_context['attr'] = one_partition['attr']
         partition_context['manifest_out_basename'] = one_partition['manifest_out_basename']
         partition_context['numbered_priority'] = one_partition['numbered_priority']
+        partition_context['load_order'] = one_partition['load_order']
 
         logging.info ('Generating {} in {}'.format(one_partition['attr']['description'],
                                             one_partition['output_dir']))
