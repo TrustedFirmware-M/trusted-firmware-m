@@ -756,3 +756,156 @@ psa_status_t psa_driver_wrapper_export_public_key(
 
     return PSA_SUCCESS;
 }
+
+/* Set the key for a multipart authenticated decryption operation. */
+psa_status_t psa_aead_decrypt_setup(psa_aead_operation_t *operation,
+                                    psa_key_id_t key_id,
+                                    psa_algorithm_t alg)
+{
+#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    const uint8_t *key_buffer;
+    const size_t key_buffer_size;
+
+    psa_status_t status = cc3xx_opaque_keys_attr_init(&attributes, key_id, alg,
+                                                          &key_buffer, &key_buffer_size);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    return psa_driver_wrapper_aead_decrypt_setup(operation,
+                                                &attributes,
+                                                key_buffer,
+                                                key_buffer_size,
+                                                alg);
+#else
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
+}
+
+/* Set the nonce for an authenticated encryption or decryption operation */
+psa_status_t psa_aead_set_nonce(
+   psa_aead_operation_t *operation,
+   const uint8_t *nonce,
+   size_t nonce_length)
+{
+    assert(operation != 0);
+    assert(operation->id != 0);
+    assert(nonce != NULL);
+    assert(nonce_length != 0);
+
+    return psa_driver_wrapper_aead_set_nonce(operation,
+                                             nonce,
+                                             nonce_length);
+}
+
+/* Declare the lengths of the message and additional data for AEAD */
+psa_status_t psa_aead_set_lengths(
+   psa_aead_operation_t *operation,
+   size_t ad_length,
+   size_t plaintext_length)
+{
+    assert(operation != 0);
+    assert(operation->id != 0);
+
+    return psa_driver_wrapper_aead_set_lengths(operation,
+                                               ad_length,
+                                               plaintext_length);
+}
+
+/* Pass additional data to an active AEAD operation */
+psa_status_t psa_aead_update_ad(
+   psa_aead_operation_t *operation,
+   const uint8_t *input,
+   size_t input_length)
+{
+    assert(operation != 0);
+    assert(operation->id != 0);
+    assert((!input_length) ^ (input != NULL));
+
+    return psa_driver_wrapper_aead_update_ad(operation,
+                                             input,
+                                             input_length);
+}
+
+/* Encrypt or decrypt a message fragment in an active AEAD operation */
+psa_status_t psa_aead_update(
+   psa_aead_operation_t *operation,
+   const uint8_t *input,
+   size_t input_length,
+   uint8_t *output,
+   size_t output_size,
+   size_t *output_length )
+{
+    assert(operation != 0);
+    assert(operation->id != 0);
+    assert((!input_length) ^ (input != NULL));
+    assert((!output_size) ^ (output != NULL));
+
+    return psa_driver_wrapper_aead_update(operation,
+                                          input,
+                                          input_length,
+                                          output,
+                                          output_size,
+                                          output_length);
+}
+
+/* Finish encrypting a message in an AEAD operation */
+psa_status_t psa_aead_finish(
+   psa_aead_operation_t *operation,
+   uint8_t *ciphertext,
+   size_t ciphertext_size,
+   size_t *ciphertext_length,
+   uint8_t *tag,
+   size_t tag_size,
+   size_t *tag_length)
+{
+    assert(operation != 0);
+    assert(operation->id != 0);
+    assert(ciphertext_length != NULL);
+    assert((!ciphertext_size) ^ (ciphertext != NULL));
+    assert(tag != NULL);
+    assert(tag_length != NULL);
+
+    return psa_driver_wrapper_aead_finish(operation,
+                                          ciphertext,
+                                          ciphertext_size,
+                                          ciphertext_length,
+                                          tag,
+                                          tag_size,
+                                          tag_length);
+}
+
+/* Finish authenticating and decrypting a message in an AEAD operation */
+psa_status_t psa_aead_verify(
+   psa_aead_operation_t *operation,
+   uint8_t *plaintext,
+   size_t plaintext_size,
+   size_t *plaintext_length,
+   const uint8_t *tag,
+   size_t tag_length)
+{
+    assert(operation != 0);
+    assert(operation->id != 0);
+    assert(plaintext_length != NULL);
+    assert((!plaintext_size) ^ (plaintext != NULL));
+    assert(tag != NULL);
+    assert(tag_length != 0);
+
+    return psa_driver_wrapper_aead_verify(operation,
+                                          plaintext,
+                                          plaintext_size,
+                                          plaintext_length,
+                                          tag,
+                                          tag_length);
+}
+
+psa_status_t psa_aead_abort(
+   psa_aead_operation_t *operation)
+{
+    assert(operation != 0);
+    assert(operation->id != 0);
+
+    return psa_driver_wrapper_aead_abort(operation);
+}
+/*!@}*/
