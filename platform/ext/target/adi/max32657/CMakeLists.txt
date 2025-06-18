@@ -195,6 +195,11 @@ install(FILES       ${TARGET_PLATFORM_PATH}/device/src/startup_${TARGET_LC}.c
 install(FILES       ${HAL_ADI_CMSIS_INC_DIR}/max32657.h
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/device/inc)
 
+install(FILES       ${PLATFORM_DIR}/ext/target/${TFM_PLATFORM}/accelerator/include/adi_psa_random.h
+                    ${PLATFORM_DIR}/ext/target/${TFM_PLATFORM}/accelerator/include/crypto_accelerator_config.h
+                    ${PLATFORM_DIR}/ext/target/${TFM_PLATFORM}/accelerator/include/mbedtls_accelerator_config.h
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/accelerator/include)
+
 install(FILES       ${PLATFORM_DIR}/ext/common/gcc/tfm_common_ns.ld
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/linker_scripts)
 

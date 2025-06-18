@@ -77,6 +77,7 @@ target_include_directories(platform_ns
         ext/cmsis/Include/m-profile
         device/inc
         ext/common
+        accelerator/include
 )
 
 # Include region_defs.h and flash_layout.h
