@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2020-2023 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
@@ -95,6 +95,18 @@ extern struct platform_data_t tfm_peripheral_dma0_ch0;
         ARM_MPU_RLAR_PXN(DTCM_BASE_S + DTCM_SIZE - 1, \
                          ARM_MPU_PRIVILEGE_EXECUTE_NEVER, \
                          0), \
+    }, \
+    /* Mark ATU RSE mapping region as device memory to prevent */ \
+    /* the CPU caching accesses to system memory map */ \
+    { \
+        ARM_MPU_RBAR(HOST_ACCESS_BASE_NS, \
+                     ARM_MPU_SH_NON, \
+                     ARM_MPU_READ_WRITE, \
+                     ARM_MPU_UNPRIVILEGED, \
+                     ARM_MPU_EXECUTE_NEVER), \
+        ARM_MPU_RLAR_PXN(HOST_ACCESS_LIMIT_S, \
+                         ARM_MPU_PRIVILEGE_EXECUTE_NEVER, \
+                         2 /* Device memory attribute */), \
     },
 
 #ifdef __cplusplus
