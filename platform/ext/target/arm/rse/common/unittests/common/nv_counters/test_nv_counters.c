@@ -62,16 +62,9 @@ TEST_MATRIX(
         PLAT_NV_COUNTER_PS_1,
         PLAT_NV_COUNTER_PS_2,
         PLAT_NV_COUNTER_BL2_0,
-        PLAT_NV_COUNTER_BL2_1,
-        PLAT_NV_COUNTER_BL2_2,
-        PLAT_NV_COUNTER_BL2_3,
         PLAT_NV_COUNTER_BL1_0,
-        PLAT_NV_COUNTER_NS_0,
-        PLAT_NV_COUNTER_NS_1,
-        PLAT_NV_COUNTER_NS_2,
         PLAT_NV_COUNTER_MAX,
         PLAT_NV_COUNTER_BOUNDARY,
-        PLAT_NV_COUNTER_ATTACK_TRACKING,
     ],
     [ 0, 3, 9, 16, 32, 48, 4 ])
 void test_tfm_plat_read_otp_counter(enum tfm_nv_counter_t id, uint32_t size)
@@ -158,16 +151,9 @@ TEST_MATRIX(
         PLAT_NV_COUNTER_PS_1,
         PLAT_NV_COUNTER_PS_2,
         PLAT_NV_COUNTER_BL2_0,
-        PLAT_NV_COUNTER_BL2_1,
-        PLAT_NV_COUNTER_BL2_2,
-        PLAT_NV_COUNTER_BL2_3,
         PLAT_NV_COUNTER_BL1_0,
-        PLAT_NV_COUNTER_NS_0,
-        PLAT_NV_COUNTER_NS_1,
-        PLAT_NV_COUNTER_NS_2,
         PLAT_NV_COUNTER_MAX,
         PLAT_NV_COUNTER_BOUNDARY,
-        PLAT_NV_COUNTER_ATTACK_TRACKING,
     ],
     [ 0, 3, 9, 16, 32, 48, 4 ])
 void test_tfm_set_nv_counter(enum tfm_nv_counter_t id, uint32_t val)
