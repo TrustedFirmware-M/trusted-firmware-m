@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdbool.h>
+#include "cmsis_compiler.h"
 
 /* This module includes the driver_wrappers which assumes that private access to the
  * fields of implementation structures is enabled through the following defined macro
@@ -289,7 +290,7 @@ psa_status_t psa_crypto_init(void)
     return status;
 }
 
-psa_status_t psa_hash_abort(psa_hash_operation_t *operation)
+__WEAK psa_status_t psa_hash_abort(psa_hash_operation_t *operation)
 {
     /* Aborting a non-active operation is allowed */
     if (operation->id == 0) {
@@ -303,7 +304,7 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation)
     return status;
 }
 
-psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
+__WEAK psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
                             psa_algorithm_t alg)
 {
     psa_status_t status;
@@ -324,7 +325,7 @@ psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
     return status;
 }
 
-psa_status_t psa_hash_update(psa_hash_operation_t *operation,
+__WEAK psa_status_t psa_hash_update(psa_hash_operation_t *operation,
                              const uint8_t *input,
                              size_t input_length)
 {
@@ -346,7 +347,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
     return status;
 }
 
-psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
+__WEAK psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
                              uint8_t *hash,
                              size_t hash_size,
                              size_t *hash_length)
@@ -361,7 +362,7 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
     return status;
 }
 
-psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
+__WEAK psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
                              const uint8_t *hash,
                              size_t hash_length)
 {
@@ -511,6 +512,8 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
      */
     assert(data[0] == 0x04);
     const size_t bits = PSA_BYTES_TO_BITS((data_length - 1)/2);
+#else
+    const size_t bits = PSA_BYTES_TO_BITS(data_length);
 #endif
 
     g_key_slot.buf = (uint8_t *)data;
@@ -664,7 +667,7 @@ psa_status_t mbedtls_to_psa_error(int ret)
     }
 }
 
-psa_status_t psa_generate_random(uint8_t *output,
+__WEAK psa_status_t psa_generate_random(uint8_t *output,
                                  size_t output_size)
 {
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
