@@ -129,6 +129,24 @@ static int32_t init_mpu_region_for_atu(void)
 
     return mpu_armv8m_enable(&dev_mpu_s, PRIVILEGED_DEFAULT_ENABLE, HARDFAULT_NMI_ENABLE);
 }
+
+#if defined(RSE_USE_HOST_UART)
+static enum tfm_plat_err_t init_atu_region_for_uart(void)
+{
+    enum atu_error_t atu_err;
+
+    /* Initialize UART region */
+    atu_err = atu_initialize_region(&ATU_DEV_S,
+                                    get_supported_region_count(&ATU_DEV_S) - 1,
+                                    HOST_UART0_BASE_NS, HOST_UART_BASE,
+                                    HOST_UART_SIZE);
+    if (atu_err != ATU_ERR_NONE) {
+        return (enum tfm_plat_err_t)atu_err;
+    }
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
+#endif /* defined(RSE_USE_HOST_UART) */
 #endif /* !(defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART)) */
 
 #ifdef RSE_SUPPORT_ROM_LIB_RELOCATION
@@ -257,6 +275,18 @@ int32_t boot_platform_init(void)
     if (result != 0) {
         return result;
     }
+
+#if defined(RSE_USE_HOST_UART)
+    /**
+     * Add the ATU region for the UART even though logging is disabled
+     * in BL1_2 as later components might enable logging and try and use
+     * it
+     */
+    plat_err = init_atu_region_for_uart();
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
+    }
+#endif /* defined(RSE_USE_HOST_UART) */
 #endif /* !(defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART)) */
 
 #ifdef LOGGING_ENABLED
