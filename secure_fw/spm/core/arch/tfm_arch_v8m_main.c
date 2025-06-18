@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
+ * Copyright (c) 2018-2025, Arm Limited. All rights reserved.
  * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -20,7 +20,6 @@
 #include "tfm_hal_device_header.h"
 #include "tfm_svcalls.h"
 #include "utilities.h"
-#include "core_ext.h"
 #include "ffm/backend.h"
 
 #if !defined(__ARM_ARCH_8M_MAIN__) && !defined(__ARM_ARCH_8_1M_MAIN__)
@@ -353,7 +352,7 @@ void tfm_arch_config_extensions(void)
 #else
     SCnSCB->CPPWR |=
 #endif
-        SCnSCB_CPPWR_SUS11_Msk | SCnSCB_CPPWR_SUS10_Msk;
+        ICB_CPPWR_SUS11_Msk | ICB_CPPWR_SUS10_Msk;
 
 #endif /* CONFIG_TFM_FLOAT_ABI >= 1 */
 
