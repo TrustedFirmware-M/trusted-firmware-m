@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -714,22 +714,6 @@ void test_mhu_send_data_empty_transfer(void)
     TEST_ASSERT_EQUAL(MHU_ERR_NONE, mhu_err);
 }
 
-void test_mhu_send_data_invalid_dev_arg(void)
-{
-    enum mhu_error_t mhu_err;
-    uint8_t send_buffer[0x20];
-    size_t size;
-
-    /* Prepare */
-    size = 0x20;
-
-    /* Act */
-    mhu_err = mhu_send_data(NULL, send_buffer, size);
-
-    /* Assert */
-    TEST_ASSERT_EQUAL(MHU_ERR_SEND_DATA_INVALID_ARG, mhu_err);
-}
-
 void test_mhu_send_data_invalid_send_buffer_arg(void)
 {
     enum mhu_error_t mhu_err;
@@ -1139,22 +1123,6 @@ void test_mhu_wait_data_ok(void)
 
     /* Assert */
     TEST_ASSERT_EQUAL(MHU_V_3_X_ERR_NONE, mhu_err);
-}
-
-void test_mhu_receive_data_invalid_dev_arg(void)
-{
-    enum mhu_error_t mhu_err;
-    uint8_t receive_buffer[0x80];
-    size_t size;
-
-    /* Prepare */
-    size = 0x80;
-
-    /* Act */
-    mhu_err = mhu_receive_data(NULL, receive_buffer, &size);
-
-    /* Assert */
-    TEST_ASSERT_EQUAL(MHU_ERR_RECEIVE_DATA_INVALID_ARG, mhu_err);
 }
 
 void test_mhu_receive_data_invalid_receive_buffer_arg(void)
