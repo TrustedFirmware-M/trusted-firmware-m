@@ -68,6 +68,14 @@ int32_t count_zero_bits_external(uint8_t *, size_t, uint32_t *);
  */
 #define SP800_90B_REPETITION_COUNT_CUTOFF_RATE (81UL)
 
+/* Static context of the TRNG config used by the entropy module itself */
+static struct cc3xx_trng_ctx_t g_trng_ctx = {0};
+
+void *cc3xx_lowlevel_entropy_get_noise_source_ctx(void)
+{
+    return (void *)&g_trng_ctx;
+}
+
 /* Static context of the entropy source continuous health tests */
 static struct health_tests_ctx_t {
     size_t total_bits_count;        /*!< Number of total bits observed for the Adaptive Proportion Test window */
@@ -191,7 +199,7 @@ static cc3xx_err_t startup_test(size_t entropy_byte_size)
 
     /* Collects 528 sample bytes on startup for testing */
     for (size_t i = 0; i < 22; i++) {
-        err = cc3xx_lowlevel_trng_get_sample(random_bits, entropy_byte_size / sizeof(uint32_t));
+        err = cc3xx_lowlevel_trng_get_sample(&g_trng_ctx, random_bits, entropy_byte_size / sizeof(uint32_t));
         if (err != CC3XX_ERR_SUCCESS) {
             break;
         }
@@ -207,16 +215,18 @@ cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len)
 
     assert((entropy_len % CC3XX_TRNG_SAMPLE_SIZE) == 0);
 
-    err = cc3xx_lowlevel_trng_validate_config();
+    if (!CC3XX_IS_TRNG_CONTEXT_VALID(&g_trng_ctx)) {
+        cc3xx_lowlevel_trng_context_init(&g_trng_ctx);
+    }
+
+    err = cc3xx_lowlevel_trng_init(&g_trng_ctx);
     if (err != CC3XX_ERR_SUCCESS) {
         return err;
     }
 
-    cc3xx_lowlevel_trng_init();
-
     if (!g_entropy_tests.startup_done) {
         /* Perform any required configuration on the TRNG first */
-        cc3xx_lowlevel_trng_sp800_90b_mode(true);
+        cc3xx_lowlevel_trng_sp800_90b_mode(&g_trng_ctx);
         /* Perform the extensive collection on startup */
         err = startup_test(CC3XX_TRNG_SAMPLE_SIZE);
         if (err != CC3XX_ERR_SUCCESS) {
@@ -227,7 +237,7 @@ cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len)
 
     for (size_t i = 0; i < entropy_len / CC3XX_TRNG_SAMPLE_SIZE; i++) {
 
-        err = cc3xx_lowlevel_trng_get_sample(&entropy[num_words], CC3XX_TRNG_SAMPLE_SIZE / sizeof(uint32_t));
+        err = cc3xx_lowlevel_trng_get_sample(&g_trng_ctx, &entropy[num_words], CC3XX_TRNG_SAMPLE_SIZE / sizeof(uint32_t));
         if (err != CC3XX_ERR_SUCCESS) {
             goto cleanup;
         }

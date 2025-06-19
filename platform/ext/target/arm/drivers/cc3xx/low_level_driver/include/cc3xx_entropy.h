@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /**
- * @brief Size of the sample produced by the underlying source of randomness in a
+ * @brief Size of the sample produced by the underlying noise source in a
  *        single reading
  */
 #define CC3XX_ENTROPY_SIZE (CC3XX_TRNG_SAMPLE_SIZE)
@@ -36,6 +36,12 @@ extern "C" {
  *                               cc3xx_err_t on error.
  */
 cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len);
+
+/**
+ * @brief Returns a generic pointer to the context of the underlying noise source
+ *
+ */
+void *cc3xx_lowlevel_entropy_get_noise_source_ctx(void);
 
 #ifdef __cplusplus
 }

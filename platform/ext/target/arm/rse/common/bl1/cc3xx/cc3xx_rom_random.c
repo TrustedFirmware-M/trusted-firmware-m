@@ -20,19 +20,29 @@ int32_t bl1_random_generate_fast(uint8_t *output, size_t output_size)
     return cc3xx_lowlevel_rng_get_random(output, output_size, CC3XX_RNG_LFSR);
 }
 
-int32_t bl1_random_generate_noise_stateless(uint8_t *output, size_t output_size)
+int32_t bl1_random_generate_noise(uint8_t *output, size_t output_size)
 {
     uint32_t buf[CC3XX_TRNG_SAMPLE_SIZE / sizeof(uint32_t)];
     cc3xx_err_t err;
-    size_t counter = 0;
 
-    for (counter = 0; counter < output_size; counter++) {
+    struct cc3xx_trng_ctx_t ctx = {0};
+    cc3xx_lowlevel_trng_context_init(&ctx);
+
+    err = cc3xx_lowlevel_trng_init(&ctx);
+    if (err != CC3XX_ERR_SUCCESS) {
+        return (int32_t)err;
+    }
+
+    for (size_t counter = 0; counter < output_size; counter++) {
         if ((counter % CC3XX_TRNG_SAMPLE_SIZE) == 0) {
             do {
-                err = cc3xx_lowlevel_trng_get_sample_stateless(buf, sizeof(buf) / sizeof(uint32_t));
+                err = cc3xx_lowlevel_trng_get_sample(&ctx, buf, sizeof(buf) / sizeof(uint32_t));
             } while (err != CC3XX_ERR_SUCCESS);
         }
         output[counter] = ((uint8_t *)buf)[counter];
     }
+
+    cc3xx_lowlevel_trng_finish();
+
     return 0;
 }

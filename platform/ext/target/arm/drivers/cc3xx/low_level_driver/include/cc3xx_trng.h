@@ -48,7 +48,6 @@ extern "C" {
 /**
  * @brief: Indicates that the autocorrelation test failed four times in a row.
  *         When AUTOCORR_ERR is set, TRNG ceases to function until next reset.
- *
  */
 __PACKED_ENUM cc3xx_trng_autocorr_test_state {
     CC3XX_TRNG_AUTOCORR_TEST_ACTIVE,
@@ -58,7 +57,6 @@ __PACKED_ENUM cc3xx_trng_autocorr_test_state {
 /**
  * @brief: Indicates CRNGT in the TRNG test failed. Failure occurs when two
  *         consecutive blocks of 16 collected bits are equal.
- *
  */
 __PACKED_ENUM cc3xx_trng_crngt_test_state {
     CC3XX_TRNG_CRNGT_TEST_ACTIVE,
@@ -68,27 +66,15 @@ __PACKED_ENUM cc3xx_trng_crngt_test_state {
 /**
  * @brief: Indicates von Neumann balancer error. Error in von Neumann balancer
  *         occurs if all 32 of the consecutive collected bits are identical.
- *
  */
 __PACKED_ENUM cc3xx_trng_vnc_test_state {
     CC3XX_TRNG_VNC_TEST_ACTIVE,
     CC3XX_TRNG_VNC_TEST_BYPASS
 };
 
-#ifdef CC3XX_CONFIG_TRNG_COLLECT_STATISTCS
-struct cc3xx_trng_stats {
-    size_t autocorr_err_stats;
-    size_t crngt_err_stats;
-    size_t vnc_err_stats;
-};
-#endif /* CC3XX_CONFIG_TRNG_COLLECT_STATISTCS */
-
 /**
  * @brief The type describes the IDs of the available ring oscillators (ROSCs) from
  *        which entropy can be generated.
- *
- * @note  If an external TRNG is used then these defines do not apply
- *
  */
 __PACKED_ENUM cc3xx_rng_rosc_id_t {
     CC3XX_RNG_ROSC_ID_0 = 0,     /*!< ROSC ID 0 */
@@ -97,7 +83,40 @@ __PACKED_ENUM cc3xx_rng_rosc_id_t {
     CC3XX_RNG_ROSC_ID_3 = 3,     /*!< ROSC ID 3 */
 };
 
+/**
+ * @brief The ROSC config holds the parameters for a ring oscillator (ROSC) from
+ *        which entropy is collected by consecutive sampling. It holds the ID of
+ *        the ROSC from which to sample and the interval in number of cycles for
+ *        consecutive samples
+ */
+struct rosc_config_t {
+    uint32_t subsampling_rate;   /*!< Number of rng_clk cycles between consecutive
+                                      ROSC samples */
+    enum cc3xx_rng_rosc_id_t id; /*!< Selected ring oscillator (ROSC) */
+};
+
+/**
+ * @brief Context associated to a TRNG mode of operation. Default values are set at
+ *        context initialisation time through \a cc3xx_lowlevel_trng_init_context,
+ *        but can be overridden by calling \a cc3xx_lowlevel_trng_set_context
+ */
+struct cc3xx_trng_ctx_t {
+    bool is_config_valid;        /*!< Indicates whether the contents are a valid config */
+    uint32_t debug_control;      /*!< The TRNG_DEBUG_CONTROL register configuration */
+    struct rosc_config_t rosc;   /*!< The Ring OSCillator configuration */
+};
+
 #ifdef CC3XX_CONFIG_TRNG_COLLECT_STATISTCS
+/**
+ * @brief Structure keeping track of the error statistics observed since last clearing
+ *
+ */
+struct cc3xx_trng_stats {
+    size_t autocorr_err_stats; /*!< AUTOCORR test failures */
+    size_t crngt_err_stats;    /*!< CRNGT test failures */
+    size_t vnc_err_stats;      /*!< VNC test failures */
+};
+
 /**
  * @brief                       Gets the TRNG error counters
  *
@@ -113,85 +132,93 @@ void cc3xx_lowlevel_trng_get_stats(struct cc3xx_trng_stats *stats);
 void cc3xx_lowlevel_trng_clear_stats(void);
 #endif /* CC3XX_CONFIG_TRNG_COLLECT_STATISTCS */
 
+static inline bool is_context_valid(struct cc3xx_trng_ctx_t *ctx) {
+    return ctx && ctx->is_config_valid;
+}
+/**
+ * @brief Macro that checks if the \ref cc3xx_trng_ctx_t context has valid contents
+ *
+ */
+#define CC3XX_IS_TRNG_CONTEXT_VALID(ctx) is_context_valid(ctx)
+
+/**
+ * @brief                       Initialises the provided context to valid values. It must be
+ *                              called before calling any other API
+ *
+ * @param[out] ctx              Pointer to the context of the TRNG to set in SP800-90B mode
+ *
+ */
+void cc3xx_lowlevel_trng_context_init(struct cc3xx_trng_ctx_t *ctx);
+
 /**
  * @brief                       SP800-90B section 4.4 recommends two continuous health tests
  *                              to be performed at startup and during normal operation of the
  *                              noise source to verify the quality ot the entropy bits produced,
  *                              namely the Repetition Count Test (4.4.1) and Adaptive Proportion
- *                              Test (4.4.2)
+ *                              Test (4.4.2). This API enables that mode of operation
  *
- * @param[in] enable            Set to \a true to put the TRNG in SP800-90B compatible mode, i.e.
- *                              disables the AUTOCORR tests and VNC balancer tests performed by
+ * @note                        It configures the context to disable the AUTOCORR tests and VNC
+ *                              balancer tests performed by the hardware
+ *
+ * @param[in, out] ctx          Pointer to the context of the TRNG to set in SP800-90B mode
+ * @param[in]      enable       Set to \a true to put the the context in SP800-90B compatible mode,
+ *                              i.e. disables the AUTOCORR tests and VNC balancer tests performed by
  *                              the hardware
  */
-void cc3xx_lowlevel_trng_sp800_90b_mode(bool enable);
+void cc3xx_lowlevel_trng_sp800_90b_mode(struct cc3xx_trng_ctx_t *ctx);
 
 /**
- * @brief                       Sets the global configuration (ROSC_ID, subsampling rate) for
+ * @brief                       Sets the TRNG configuration on the provided context for
  *                              the usage of the TRNG by the other APIs used by this
  *                              module. If this is not called, default parameters
- *                              defined at build time will be used, i.e.
- *                              (CC3XX_CONFIG_RNG_RING_OSCILLATOR_ID,
- *                              CC3XX_CONFIG_RNG_SUBSAMPLING_RATE)
+ *                              defined at initialisation time will be used, i.e.
+ *                              \a CC3XX_CONFIG_RNG_RING_OSCILLATOR_ID and
+ *                              \a CC3XX_CONFIG_RNG_SUBSAMPLING_RATE
  *
- * @param[in] rosc_id           ROSC ID to be used, a number between 0 and 3
- * @param[in] subsampling_rate  Specifies the number of rng_clk cycles between collection
+ * @param[out] ctx              Pointer to the context on which to set the configuration
+ * @param[in]  rosc_id          ROSC ID to be used, a number between 0 and 3
+ * @param[in]  subsampling_rate Specifies the number of rng_clk cycles between collection
  *                              of consecutive samples of the selected ring oscillator
  *
  * @return cc3xx_err_t          CC3XX_ERR_SUCCESS on success, or
  *                              CC3XX_ERR_RNG_INVALID_TRNG_CONFIG if invalid parameters
  *                              are passed
  */
-cc3xx_err_t cc3xx_lowlevel_trng_set_config(enum cc3xx_rng_rosc_id_t rosc_id, uint32_t subsampling_rate);
-
-/**
- * @brief                       Validates the global configuration of the TRNG
- *
- * @return cc3xx_err_t          CC3XX_ERR_SUCCESS on success, or CC3XX_ERR_RNG_INVALID_TRNG_CONFIG if
- *                              an invalid configuration is detected
- */
-cc3xx_err_t cc3xx_lowlevel_trng_validate_config(void);
+cc3xx_err_t cc3xx_lowlevel_trng_set_config(
+    struct cc3xx_trng_ctx_t *ctx,
+    enum cc3xx_rng_rosc_id_t rosc_id,
+    uint32_t subsampling_rate);
 
 /**
  * @brief                       Sets the TRNG_DEBUG_CONTROL register to bypass mode for the
  *                              respective HW tests, in the global configuration (state) structure
  *
- * @param[in] autocorr_state    Set to \a CC3XX_TRNG_AUTOCORR_TEST_BYPASS to bypass the AUTOCORR test
- * @param[in] crngt_state       Set to \a CC3XX_TRNG_CRNGT_TEST_BYPASS to bypass the CRNGT test
- * @param[in] vnc_state         Set to \a CC3XX_TRNG_VNC_TEST_BYPASS to bypass the VNC test
+ * @param[out] ctx              Pointer to the context on which to set the hardware bypasses
+ * @param[in]  autocorr_state   Set to \a CC3XX_TRNG_AUTOCORR_TEST_BYPASS to bypass the AUTOCORR test
+ * @param[in]  crngt_state      Set to \a CC3XX_TRNG_CRNGT_TEST_BYPASS to bypass the CRNGT test
+ * @param[in]  vnc_state        Set to \a CC3XX_TRNG_VNC_TEST_BYPASS to bypass the VNC test
  *
  */
 void cc3xx_lowlevel_trng_set_hw_test_bypass(
+    struct cc3xx_trng_ctx_t *ctx,
     enum cc3xx_trng_autocorr_test_state autocorr_state,
     enum cc3xx_trng_crngt_test_state crngt_state,
     enum cc3xx_trng_vnc_test_state vnc_state);
 
 /**
- * @brief                       Reads the sample out of the TRNG, without accessing the global config state
+ * @brief                       Initialises the TRNG before a call to \a cc3xx_lowlevel_trng_get_sample. It requires
+ *                              a pointer to a context to be passed in
  *
- * @param[out] buf              Output buffer, word aligned, into which the sample is read
- * @param[in]  word_count       Size in words of the \p buf output buffer, must be equal to
- *                              the number of words of P_CC3XX->rng.ehr_data, i.e. CC3XX_TRNG_SAMPLE_SIZE
- *                              when expressed in bytes
+ * @param[in, out] ctx          Pointer to the context to use for the initialisation
  *
- * @note                        If the ROSC ID or the subsampling rate get bumped during a reading, the new
- *                              values won't be saved in the global config. This function does not access
- *                              any global config or state so it is safe to use when globals are not set up.
- *                              HW tests are not bypassed when this function is used
- *
- * @note                        This is a one-shot function, unlike the \a cc3xx_lowlevel_trng_get_sample
- *                              which requires separate calls to \a cc3xx_lowlevel_trng_init first, and
- *                              \a cc3xx_lowlevel_trng_finish afterwards
- *
- * @return cc3xx_err_t          CC3XX_ERR_SUCCESS on success, CC3XX_ERR_RNG_TOO_MANY_ATTEMPTS in
- *                              case errors have been detected on each generation. The maximum
- *                              number of generations is controlled by CC3XX_CONFIG_RNG_MAX_ATTEMPTS
+ * @return cc3xx_err_t          CC3XX_ERR_SUCCESS
  */
-cc3xx_err_t cc3xx_lowlevel_trng_get_sample_stateless(uint32_t *buf, size_t word_count);
+cc3xx_err_t cc3xx_lowlevel_trng_init(struct cc3xx_trng_ctx_t *ctx);
 
 /**
  * @brief                       Reads the sample out of the TRNG
  *
+ * @param[in, out] ctx          Pointer to the context to use for the reading
  * @param[out] buf              Output buffer, word aligned, into which the sample is read
  * @param[in]  word_count       Size in words of the \p buf output buffer, must be equal to
  *                              the number of words of P_CC3XX->rng.ehr_data, i.e. CC3XX_TRNG_SAMPLE_SIZE
@@ -204,14 +231,7 @@ cc3xx_err_t cc3xx_lowlevel_trng_get_sample_stateless(uint32_t *buf, size_t word_
  *                              case errors have been detected on each generation. The maximum
  *                              number of generations is controlled by CC3XX_CONFIG_RNG_MAX_ATTEMPTS
  */
-cc3xx_err_t cc3xx_lowlevel_trng_get_sample(uint32_t *buf, size_t word_count);
-
-/**
- * @brief                       Initialises the TRNG before a call to \a cc3xx_lowlevel_trng_get_sample
- *
- * @return cc3xx_err_t          CC3XX_ERR_SUCCESS
- */
-cc3xx_err_t cc3xx_lowlevel_trng_init(void);
+cc3xx_err_t cc3xx_lowlevel_trng_get_sample(struct cc3xx_trng_ctx_t *ctx, uint32_t *buf, size_t word_count);
 
 /**
  * @brief                       De-initialises the TRNG by disabling the random source and the clock

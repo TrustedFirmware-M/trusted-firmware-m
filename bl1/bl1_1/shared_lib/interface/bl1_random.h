@@ -56,7 +56,7 @@ int32_t bl1_random_generate_fast(uint8_t *output, size_t output_size);
  *
  * @return int32_t 0 on success
  */
-int32_t bl1_random_generate_noise_stateless(uint8_t *output, size_t output_size);
+int32_t bl1_random_generate_noise(uint8_t *output, size_t output_size);
 
 #ifdef __cplusplus
 }

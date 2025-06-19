@@ -51,32 +51,6 @@ __PACKED_ENUM {
 #define TRNG_DONE_MASK                  (1U << EHR_VALID_INT)
 #endif /* CC3XX_CONFIG_TRNG_DMA */
 
-/**
- * @brief The ROSC config holds the parameters for a ring oscillator (ROSC) from
- *        which entropy is collected by consecutive sampling. It holds the ID of
- *        the ROSC from which to sample and the interval in number of cycles for
- *        consecutive samples
- */
-struct rosc_config_t {
-    uint32_t subsampling_rate;   /*!< Number of rng_clk cycles between consecutive
-                                      ROSC samples */
-    enum cc3xx_rng_rosc_id_t id; /*!< Selected ring oscillator (ROSC) */
-};
-
-/**
- * @brief Object describing a TRNG configuration. Default values are set at
- *        build time, but can be overridden by calling \a cc3xx_lowlevel_rng_set_config
- *        for the ROSC config, and \a cc3xx_lowlevel_rng_set_debug_control to set
- *        the \a TRNG_DEBUG_CONTROL.
- */
-static struct {
-    struct rosc_config_t rosc;   /*!< The Ring OSCillator configuration    */
-    uint32_t debug_control;      /*!< The TRNG_DEBUG_CONTROL configuration */
-} g_trng_config = {
-    .rosc.subsampling_rate = CC3XX_CONFIG_RNG_SUBSAMPLING_RATE,
-    .rosc.id = CC3XX_CONFIG_RNG_RING_OSCILLATOR_ID,
-    .debug_control = 0x0UL};
-
 #ifdef CC3XX_CONFIG_TRNG_COLLECT_STATISTCS
 /**
  * @brief When \a CC3XX_CONFIG_TRNG_COLLECT_STATISTICS is set,
@@ -158,12 +132,12 @@ static void trng_finish(void)
 }
 
 #ifdef CC3XX_CONFIG_TRNG_DMA
-static void trng_init_dma(size_t sample_count)
+static void trng_init_dma(struct cc3xx_trng_ctx_t *ctx, size_t sample_count)
 {
-         /* Fill the RNG SRAM with entropy */
+    /* Fill the RNG SRAM with entropy */
     P_CC3XX->rng.rng_dma_samples_num = sample_count;
     P_CC3XX->rng.rng_dma_sram_addr = 0x0U;
-    P_CC3XX->rng.rng_dma_src_mask = 0x1U << g_trng_config.rosc.id;
+    P_CC3XX->rng.rng_dma_src_mask = 0x1U << ctx->rosc.id;
     P_CC3XX->rng.rng_dma_enable = 0x1U;
 }
 
@@ -190,7 +164,7 @@ static inline uint32_t trng_double_subsampling_rate(uint32_t subsampling_rate)
     return (product > UINT32_MAX) ? UINT32_MAX : (uint32_t)product;
 }
 
-static void trng_bump_rosc_id_and_subsampling_rate(bool stateless)
+static void trng_bump_rosc_id_and_subsampling_rate(struct cc3xx_trng_ctx_t *ctx)
 {
     uint32_t rosc_id = P_CC3XX->rng.trng_config & 0b11;
     uint32_t rosc_subsampling_rate = P_CC3XX->rng.sample_cnt1;
@@ -212,13 +186,12 @@ static void trng_bump_rosc_id_and_subsampling_rate(bool stateless)
     P_CC3XX->rng.trng_config = rosc_id | (0x1U << 2);
     P_CC3XX->rng.sample_cnt1 = rosc_subsampling_rate;
 
-    if (!stateless) {
-        g_trng_config.rosc.id = rosc_id;
-        g_trng_config.rosc.subsampling_rate = rosc_subsampling_rate;
-    }
+    /* Update the context */
+    ctx->rosc.id = rosc_id;
+    ctx->rosc.subsampling_rate = rosc_subsampling_rate;
 }
 
-static bool trng_error_handler(bool stateless)
+static bool trng_error_handler(struct cc3xx_trng_ctx_t *ctx)
 {
     uint32_t trng_errors = trng_get_errors();
 #ifdef CC3XX_CONFIG_TRNG_DMA
@@ -251,22 +224,22 @@ static bool trng_error_handler(bool stateless)
     P_CC3XX->rng.rng_icr = 0xFFFFFFFF;
 
     /* Bump the rosc id and subsampling rate */
-    trng_bump_rosc_id_and_subsampling_rate(stateless);
+    trng_bump_rosc_id_and_subsampling_rate(ctx);
 
     /* Restart TRNG */
     trng_init(
-        P_CC3XX->rng.trng_config & 0b11,
+        P_CC3XX->rng.trng_config & 0b11, /* Extract the ROSC_ID from the register */
         P_CC3XX->rng.sample_cnt1,
         P_CC3XX->rng.trng_debug_control);
 
 #ifdef CC3XX_CONFIG_TRNG_DMA
-    trng_init_dma(dma_samples_num);
+    trng_init_dma(ctx, dma_samples_num);
 #endif
 
     return true;
 }
 
-static cc3xx_err_t trng_wait_for_sample(bool stateless)
+static cc3xx_err_t trng_wait_for_sample(struct cc3xx_trng_ctx_t *ctx)
 {
     uint32_t attempt_count = 0;
 
@@ -275,7 +248,7 @@ static cc3xx_err_t trng_wait_for_sample(bool stateless)
      * failed.
      */
     do {
-        if (trng_error_handler(stateless)) {
+        if (trng_error_handler(ctx)) {
             attempt_count++;
         }
     } while (!is_trng_done() && attempt_count < CC3XX_CONFIG_RNG_MAX_ATTEMPTS);
@@ -297,16 +270,9 @@ static cc3xx_err_t trng_wait_for_sample(bool stateless)
     return CC3XX_ERR_SUCCESS;
 }
 
-static cc3xx_err_t trng_get_sample(uint32_t *entropy, size_t word_count, bool stateless)
+static cc3xx_err_t trng_get_sample(struct cc3xx_trng_ctx_t *ctx, uint32_t *entropy, size_t word_count)
 {
     cc3xx_err_t err;
-
-    if (!stateless) {
-        if (!g_trng_config.rosc.subsampling_rate) {
-            FATAL_ERR(CC3XX_ERR_RNG_INVALID_TRNG_CONFIG);
-            return CC3XX_ERR_RNG_INVALID_TRNG_CONFIG;
-        }
-    }
 
 #ifdef CC3XX_CONFIG_TRNG_DMA
     size_t dma_samples_num = ROUND_UP(word_count, CC3XX_TRNG_WORDS_PER_SAMPLE) /
@@ -314,12 +280,12 @@ static cc3xx_err_t trng_get_sample(uint32_t *entropy, size_t word_count, bool st
 
     assert(word_count <= CC3XX_TRNG_SRAM_MAX_WORDS);
 
-    trng_init_dma(dma_samples_num);
+    trng_init_dma(ctx, dma_samples_num);
 #else
     assert(word_count == CC3XX_TRNG_WORDS_PER_SAMPLE);
 #endif /* CC3XX_CONFIG_TRNG_DMA */
 
-    err = trng_wait_for_sample(stateless);
+    err = trng_wait_for_sample(ctx);
     if (err != CC3XX_ERR_SUCCESS) {
         return err;
     }
@@ -333,13 +299,30 @@ static cc3xx_err_t trng_get_sample(uint32_t *entropy, size_t word_count, bool st
 /*!
  * \defgroup cc3xx_trng Set of functions implementing the API to access the TRNG
  *                      for reading random bits
- *
  */
 /*!@{*/
-cc3xx_err_t cc3xx_lowlevel_trng_init(void)
+void cc3xx_lowlevel_trng_context_init(struct cc3xx_trng_ctx_t *ctx)
 {
 #ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
-    trng_init(g_trng_config.rosc.id, g_trng_config.rosc.subsampling_rate, g_trng_config.debug_control);
+    assert(ctx != NULL);
+
+    *ctx = (struct cc3xx_trng_ctx_t){
+        .is_config_valid = true,
+        .rosc.id = CC3XX_CONFIG_RNG_RING_OSCILLATOR_ID,
+        .rosc.subsampling_rate = CC3XX_CONFIG_RNG_SUBSAMPLING_RATE,
+        .debug_control = 0x0UL
+    };
+#endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
+}
+
+cc3xx_err_t cc3xx_lowlevel_trng_init(struct cc3xx_trng_ctx_t *ctx)
+{
+#ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
+    assert(ctx != NULL);
+    if (!(ctx->is_config_valid)) {
+        return CC3XX_ERR_RNG_INVALID_TRNG_CONFIG;
+    }
+    trng_init(ctx->rosc.id, ctx->rosc.subsampling_rate, ctx->debug_control);
 #else
     trng_init();
 #endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
@@ -353,44 +336,24 @@ cc3xx_err_t cc3xx_lowlevel_trng_finish(void)
     return CC3XX_ERR_SUCCESS;
 }
 
-cc3xx_err_t cc3xx_lowlevel_trng_get_sample_stateless(uint32_t *buf, size_t word_count)
-{
-    cc3xx_err_t err;
-#ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
-    const bool stateless = true;
-
-    /* In stateless mode do not set any TRNG test bypass */
-    trng_init(CC3XX_CONFIG_RNG_RING_OSCILLATOR_ID, CC3XX_CONFIG_RNG_SUBSAMPLING_RATE, 0x0);
-    err = trng_get_sample(buf, word_count, stateless);
-#else
-    trng_init();
-    err = trng_get_random(buf, word_count);
-#endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
-    if (err != CC3XX_ERR_SUCCESS) {
-        return err;
-    }
-    trng_finish();
-    return err;
-}
-
-cc3xx_err_t cc3xx_lowlevel_trng_get_sample(uint32_t *buf, size_t word_count)
+cc3xx_err_t cc3xx_lowlevel_trng_get_sample(struct cc3xx_trng_ctx_t *ctx, uint32_t *buf, size_t word_count)
 {
 #ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
-    const bool stateless = false;
-    /* Unless called from the _stateless APIs, the get_sample will update
-     * the global config of the TRNG, i.e. to retain state for future calls
-     */
-    return trng_get_sample(buf, word_count, stateless);
+    assert(ctx != NULL);
+    return trng_get_sample(ctx, buf, word_count);
 #else
     return trng_get_random(buf, word_count);
 #endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 }
 
 cc3xx_err_t cc3xx_lowlevel_trng_set_config(
+    struct cc3xx_trng_ctx_t *ctx,
     enum cc3xx_rng_rosc_id_t rosc_id,
     uint32_t subsampling_rate)
 {
 #ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
+    assert(ctx != NULL);
+
     if (!((rosc_id >= CC3XX_RNG_ROSC_ID_0) && (rosc_id <= CC3XX_RNG_ROSC_ID_3))) {
         FATAL_ERR(CC3XX_ERR_RNG_INVALID_TRNG_CONFIG);
         return CC3XX_ERR_RNG_INVALID_TRNG_CONFIG;
@@ -401,8 +364,8 @@ cc3xx_err_t cc3xx_lowlevel_trng_set_config(
         return CC3XX_ERR_RNG_INVALID_TRNG_CONFIG;
     }
 
-    g_trng_config.rosc.id = rosc_id;
-    g_trng_config.rosc.subsampling_rate = subsampling_rate;
+    ctx->rosc.id = rosc_id;
+    ctx->rosc.subsampling_rate = subsampling_rate;
 
     return CC3XX_ERR_SUCCESS;
 #else
@@ -410,40 +373,22 @@ cc3xx_err_t cc3xx_lowlevel_trng_set_config(
 #endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 }
 
-cc3xx_err_t cc3xx_lowlevel_trng_validate_config(void)
+void cc3xx_lowlevel_trng_sp800_90b_mode(struct cc3xx_trng_ctx_t *ctx)
 {
 #ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
-    if (!g_trng_config.rosc.subsampling_rate) {
-        FATAL_ERR(CC3XX_ERR_RNG_INVALID_TRNG_CONFIG);
-        return CC3XX_ERR_RNG_INVALID_TRNG_CONFIG;
-    }
-
-    if (!((g_trng_config.rosc.id >= CC3XX_RNG_ROSC_ID_0) &&
-                    (g_trng_config.rosc.id <= CC3XX_RNG_ROSC_ID_3))) {
-        FATAL_ERR(CC3XX_ERR_RNG_INVALID_TRNG_CONFIG);
-        return CC3XX_ERR_RNG_INVALID_TRNG_CONFIG;
-    }
-
-    return CC3XX_ERR_SUCCESS;
-#else
-    return CC3XX_ERR_NOT_IMPLEMENTED;
-#endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
-}
-
-void cc3xx_lowlevel_trng_sp800_90b_mode(bool enable)
-{
-#ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
-    if (enable) {
-        cc3xx_lowlevel_trng_set_hw_test_bypass(true, false, true);
-    }
+    cc3xx_lowlevel_trng_set_hw_test_bypass(ctx,
+        CC3XX_TRNG_AUTOCORR_TEST_BYPASS, CC3XX_TRNG_CRNGT_TEST_ACTIVE, CC3XX_TRNG_VNC_TEST_BYPASS);
 #endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 }
 
 void cc3xx_lowlevel_trng_set_hw_test_bypass(
+    struct cc3xx_trng_ctx_t *ctx,
     enum cc3xx_trng_autocorr_test_state autocorr_state,
     enum cc3xx_trng_crngt_test_state crngt_state,
     enum cc3xx_trng_vnc_test_state vnc_state)
 {
+    assert(ctx != NULL);
+
 #ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
     uint32_t hw_entropy_tests_control = 0x0UL;
 
@@ -454,7 +399,7 @@ void cc3xx_lowlevel_trng_set_hw_test_bypass(
     hw_entropy_tests_control |=
         (vnc_state == CC3XX_TRNG_VNC_TEST_BYPASS) ? (1UL << 1) : 0x0UL;
 
-    g_trng_config.debug_control = hw_entropy_tests_control;
+    ctx->debug_control = hw_entropy_tests_control;
 #endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 }
 
