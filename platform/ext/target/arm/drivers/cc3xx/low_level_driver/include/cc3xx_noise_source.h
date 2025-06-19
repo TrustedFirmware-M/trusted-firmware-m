@@ -5,8 +5,8 @@
  *
  */
 
-#ifndef __CC3XX_TRNG_H__
-#define __CC3XX_TRNG_H__
+#ifndef __CC3XX_NOISE_SOURCE_H__
+#define __CC3XX_NOISE_SOURCE_H__
 
 #include <stdint.h>
 #include <stddef.h>
@@ -31,15 +31,6 @@ extern "C" {
  */
 #define CC3XX_TRNG_SAMPLE_SIZE      (sizeof(P_CC3XX->rng.ehr_data))
 #define CC3XX_TRNG_WORDS_PER_SAMPLE (CC3XX_TRNG_SAMPLE_SIZE / sizeof(uint32_t))
-
-#ifdef CC3XX_CONFIG_TRNG_DMA
-#define CC3XX_RNG_SRAM_SIZE         (2048) /* 2KiB */
-#define CC3XX_RNG_SRAM_SIZE_WORDS   (CC3XX_RNG_SRAM_SIZE / sizeof(uint32_t))
-
-/* Align the SRAM to sample size for simplicity */
-#define CC3XX_TRNG_SRAM_MAX_SAMPLES (CC3XX_RNG_SRAM_SIZE / CC3XX_TRNG_SAMPLE_SIZE)
-#define CC3XX_TRNG_SRAM_MAX_WORDS   (CC3XX_TRNG_SRAM_MAX_SAMPLES * CC3XX_TRNG_WORDS_PER_SAMPLE)
-#endif /* CC3XX_CONFIG_TRNG_DMA */
 
 #ifndef __PACKED_ENUM
 #define __PACKED_ENUM enum __attribute__((packed))
@@ -76,7 +67,7 @@ __PACKED_ENUM cc3xx_trng_vnc_test_state {
  * @brief The type describes the IDs of the available ring oscillators (ROSCs) from
  *        which entropy can be generated.
  */
-__PACKED_ENUM cc3xx_rng_rosc_id_t {
+__PACKED_ENUM cc3xx_noise_source_rosc_id_t {
     CC3XX_RNG_ROSC_ID_0 = 0,     /*!< ROSC ID 0 */
     CC3XX_RNG_ROSC_ID_1 = 1,     /*!< ROSC ID 1 */
     CC3XX_RNG_ROSC_ID_2 = 2,     /*!< ROSC ID 2 */
@@ -90,20 +81,23 @@ __PACKED_ENUM cc3xx_rng_rosc_id_t {
  *        consecutive samples
  */
 struct rosc_config_t {
-    uint32_t subsampling_rate;   /*!< Number of rng_clk cycles between consecutive
-                                      ROSC samples */
-    enum cc3xx_rng_rosc_id_t id; /*!< Selected ring oscillator (ROSC) */
+    uint32_t subsampling_rate;  /*!< Number of rng_clk cycles between ROSC samples */
+    enum cc3xx_noise_source_rosc_id_t id; /*!< Selected ring oscillator (ROSC) */
 };
 
 /**
  * @brief Context associated to a TRNG mode of operation. Default values are set at
- *        context initialisation time through \a cc3xx_lowlevel_trng_init_context,
- *        but can be overridden by calling \a cc3xx_lowlevel_trng_set_context
+ *        context initialisation time through \a cc3xx_lowlevel_noise_source_context_init,
+ *        but can be overridden by calling \a cc3xx_lowlevel_noise_source_set_config and
+ *        \a cc3xx_lowlevel_noise_source_set_hw_test_bypass
  */
-struct cc3xx_trng_ctx_t {
-    bool is_config_valid;        /*!< Indicates whether the contents are a valid config */
-    uint32_t debug_control;      /*!< The TRNG_DEBUG_CONTROL register configuration */
-    struct rosc_config_t rosc;   /*!< The Ring OSCillator configuration */
+struct cc3xx_noise_source_ctx_t {
+    bool is_config_valid;                     /*!< Indicates whether the contents are a valid config */
+    uint32_t debug_control;                   /*!< The TRNG_DEBUG_CONTROL register configuration */
+    struct {
+        uint32_t subsampling_rate;            /*!< Number of rng_clk cycles between ROSC samples */
+        enum cc3xx_noise_source_rosc_id_t id; /*!< Selected ring oscillator (ROSC) */
+    } rosc;                                   /*!< The Ring OSCillator configuration */
 };
 
 #ifdef CC3XX_CONFIG_TRNG_COLLECT_STATISTCS
@@ -111,7 +105,7 @@ struct cc3xx_trng_ctx_t {
  * @brief Structure keeping track of the error statistics observed since last clearing
  *
  */
-struct cc3xx_trng_stats {
+struct cc3xx_noise_source_stats_t {
     size_t autocorr_err_stats; /*!< AUTOCORR test failures */
     size_t crngt_err_stats;    /*!< CRNGT test failures */
     size_t vnc_err_stats;      /*!< VNC test failures */
@@ -123,32 +117,38 @@ struct cc3xx_trng_stats {
  * @param[in] stats             statistics structure to be populated with current error counters.
  *
  */
-void cc3xx_lowlevel_trng_get_stats(struct cc3xx_trng_stats *stats);
+void cc3xx_lowlevel_noise_source_get_stats(struct cc3xx_noise_source_stats_t *stats);
 
 /**
  * @brief                       Clears the TRNG error counters.
  *
  */
-void cc3xx_lowlevel_trng_clear_stats(void);
+void cc3xx_lowlevel_noise_source_clear_stats(void);
 #endif /* CC3XX_CONFIG_TRNG_COLLECT_STATISTCS */
 
-static inline bool is_context_valid(struct cc3xx_trng_ctx_t *ctx) {
+static inline bool is_context_valid(struct cc3xx_noise_source_ctx_t *ctx) {
     return ctx && ctx->is_config_valid;
 }
 /**
- * @brief Macro that checks if the \ref cc3xx_trng_ctx_t context has valid contents
+ * @brief Macro that checks if the \ref cc3xx_noise_source_ctx_t context has valid contents
  *
  */
-#define CC3XX_IS_TRNG_CONTEXT_VALID(ctx) is_context_valid(ctx)
+#define CC3XX_IS_NOISE_SOURCE_CONTEXT_VALID(ctx) is_context_valid(ctx)
 
 /**
- * @brief                       Initialises the provided context to valid values. It must be
- *                              called before calling any other API
+ * @brief Macro to initialise a \ref cc3xx_noise_source_ctx_t with safe *invalid* values on
+ *        allocation, i.e. struct cc3xx_noise_source_ctx_t foo = CC3XX_NOISE_SOURCE_CONTEXT_INIT;
+ */
+#define CC3XX_NOISE_SOURCE_CONTEXT_INIT ((struct cc3xx_noise_source_ctx_t){0});
+
+/**
+ * @brief                       Initialises the provided context to *default build valid* values.
+ *                              It must be called before calling any other API
  *
  * @param[out] ctx              Pointer to the context of the TRNG to set in SP800-90B mode
  *
  */
-void cc3xx_lowlevel_trng_context_init(struct cc3xx_trng_ctx_t *ctx);
+void cc3xx_lowlevel_noise_source_context_init(struct cc3xx_noise_source_ctx_t *ctx);
 
 /**
  * @brief                       SP800-90B section 4.4 recommends two continuous health tests
@@ -165,7 +165,7 @@ void cc3xx_lowlevel_trng_context_init(struct cc3xx_trng_ctx_t *ctx);
  *                              i.e. disables the AUTOCORR tests and VNC balancer tests performed by
  *                              the hardware
  */
-void cc3xx_lowlevel_trng_sp800_90b_mode(struct cc3xx_trng_ctx_t *ctx);
+void cc3xx_lowlevel_noise_source_sp800_90b_mode(struct cc3xx_noise_source_ctx_t *ctx);
 
 /**
  * @brief                       Sets the TRNG configuration on the provided context for
@@ -184,9 +184,9 @@ void cc3xx_lowlevel_trng_sp800_90b_mode(struct cc3xx_trng_ctx_t *ctx);
  *                              CC3XX_ERR_RNG_INVALID_TRNG_CONFIG if invalid parameters
  *                              are passed
  */
-cc3xx_err_t cc3xx_lowlevel_trng_set_config(
-    struct cc3xx_trng_ctx_t *ctx,
-    enum cc3xx_rng_rosc_id_t rosc_id,
+cc3xx_err_t cc3xx_lowlevel_noise_source_set_config(
+    struct cc3xx_noise_source_ctx_t *ctx,
+    enum cc3xx_noise_source_rosc_id_t rosc_id,
     uint32_t subsampling_rate);
 
 /**
@@ -199,21 +199,21 @@ cc3xx_err_t cc3xx_lowlevel_trng_set_config(
  * @param[in]  vnc_state        Set to \a CC3XX_TRNG_VNC_TEST_BYPASS to bypass the VNC test
  *
  */
-void cc3xx_lowlevel_trng_set_hw_test_bypass(
-    struct cc3xx_trng_ctx_t *ctx,
+void cc3xx_lowlevel_noise_source_set_hw_test_bypass(
+    struct cc3xx_noise_source_ctx_t *ctx,
     enum cc3xx_trng_autocorr_test_state autocorr_state,
     enum cc3xx_trng_crngt_test_state crngt_state,
     enum cc3xx_trng_vnc_test_state vnc_state);
 
 /**
- * @brief                       Initialises the TRNG before a call to \a cc3xx_lowlevel_trng_get_sample. It requires
- *                              a pointer to a context to be passed in
+ * @brief                       Initialises the TRNG before a call to \a cc3xx_lowlevel_noise_source_get_sample.
+ *                              It requires a pointer to a context to be passed in
  *
  * @param[in, out] ctx          Pointer to the context to use for the initialisation
  *
  * @return cc3xx_err_t          CC3XX_ERR_SUCCESS
  */
-cc3xx_err_t cc3xx_lowlevel_trng_init(struct cc3xx_trng_ctx_t *ctx);
+cc3xx_err_t cc3xx_lowlevel_noise_source_init(struct cc3xx_noise_source_ctx_t *ctx);
 
 /**
  * @brief                       Reads the sample out of the TRNG
@@ -231,17 +231,17 @@ cc3xx_err_t cc3xx_lowlevel_trng_init(struct cc3xx_trng_ctx_t *ctx);
  *                              case errors have been detected on each generation. The maximum
  *                              number of generations is controlled by CC3XX_CONFIG_RNG_MAX_ATTEMPTS
  */
-cc3xx_err_t cc3xx_lowlevel_trng_get_sample(struct cc3xx_trng_ctx_t *ctx, uint32_t *buf, size_t word_count);
+cc3xx_err_t cc3xx_lowlevel_noise_source_get_sample(struct cc3xx_noise_source_ctx_t *ctx, uint32_t *buf, size_t word_count);
 
 /**
  * @brief                       De-initialises the TRNG by disabling the random source and the clock
  *
  * @return cc3xx_err_t          CC3XX_ERR_SUCCESS
  */
-cc3xx_err_t cc3xx_lowlevel_trng_finish(void);
+cc3xx_err_t cc3xx_lowlevel_noise_source_finish(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __CC3XX_TRNG_H__ */
+#endif /* __CC3XX_NOISE_SOURCE_H__ */

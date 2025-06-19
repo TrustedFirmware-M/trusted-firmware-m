@@ -16,7 +16,7 @@
 #ifdef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
 #include "cc3xx_rng_external_trng.h"
 #else
-#include "cc3xx_trng.h"
+#include "cc3xx_noise_source.h"
 #endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 
 #include <assert.h>
@@ -69,7 +69,7 @@ int32_t count_zero_bits_external(uint8_t *, size_t, uint32_t *);
 #define SP800_90B_REPETITION_COUNT_CUTOFF_RATE (81UL)
 
 /* Static context of the TRNG config used by the entropy module itself */
-static struct cc3xx_trng_ctx_t g_trng_ctx = {0};
+static struct cc3xx_noise_source_ctx_t g_trng_ctx = CC3XX_NOISE_SOURCE_CONTEXT_INIT;
 
 void *cc3xx_lowlevel_entropy_get_noise_source_ctx(void)
 {
@@ -186,7 +186,7 @@ static cc3xx_err_t continuous_health_test(const uint32_t *buf, size_t buf_size, 
 
 /**
  * @brief To be performed on the first call to get_entropy(),
- *        after the cc3xx_lowlevel_trng_init() is completed
+ *        after the \ref cc3xx_lowlevel_noise_source_init is completed
  *
  * @return cc3xx_err_t
  */
@@ -199,7 +199,8 @@ static cc3xx_err_t startup_test(size_t entropy_byte_size)
 
     /* Collects 528 sample bytes on startup for testing */
     for (size_t i = 0; i < 22; i++) {
-        err = cc3xx_lowlevel_trng_get_sample(&g_trng_ctx, random_bits, entropy_byte_size / sizeof(uint32_t));
+        err = cc3xx_lowlevel_noise_source_get_sample(
+            &g_trng_ctx, random_bits, entropy_byte_size / sizeof(uint32_t));
         if (err != CC3XX_ERR_SUCCESS) {
             break;
         }
@@ -215,18 +216,18 @@ cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len)
 
     assert((entropy_len % CC3XX_TRNG_SAMPLE_SIZE) == 0);
 
-    if (!CC3XX_IS_TRNG_CONTEXT_VALID(&g_trng_ctx)) {
-        cc3xx_lowlevel_trng_context_init(&g_trng_ctx);
+    if (!CC3XX_IS_NOISE_SOURCE_CONTEXT_VALID(&g_trng_ctx)) {
+        cc3xx_lowlevel_noise_source_context_init(&g_trng_ctx);
     }
 
-    err = cc3xx_lowlevel_trng_init(&g_trng_ctx);
+    err = cc3xx_lowlevel_noise_source_init(&g_trng_ctx);
     if (err != CC3XX_ERR_SUCCESS) {
         return err;
     }
 
     if (!g_entropy_tests.startup_done) {
         /* Perform any required configuration on the TRNG first */
-        cc3xx_lowlevel_trng_sp800_90b_mode(&g_trng_ctx);
+        cc3xx_lowlevel_noise_source_sp800_90b_mode(&g_trng_ctx);
         /* Perform the extensive collection on startup */
         err = startup_test(CC3XX_TRNG_SAMPLE_SIZE);
         if (err != CC3XX_ERR_SUCCESS) {
@@ -237,7 +238,8 @@ cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len)
 
     for (size_t i = 0; i < entropy_len / CC3XX_TRNG_SAMPLE_SIZE; i++) {
 
-        err = cc3xx_lowlevel_trng_get_sample(&g_trng_ctx, &entropy[num_words], CC3XX_TRNG_SAMPLE_SIZE / sizeof(uint32_t));
+        err = cc3xx_lowlevel_noise_source_get_sample(
+            &g_trng_ctx, &entropy[num_words], CC3XX_TRNG_SAMPLE_SIZE / sizeof(uint32_t));
         if (err != CC3XX_ERR_SUCCESS) {
             goto cleanup;
         }
@@ -252,7 +254,7 @@ cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len)
     }
 
 cleanup:
-    cc3xx_lowlevel_trng_finish();
+    cc3xx_lowlevel_noise_source_finish();
 
     return err;
 }

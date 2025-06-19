@@ -11,7 +11,7 @@
 #include CC3XX_CONFIG_FILE
 #endif
 
-#include "cc3xx_trng.h"
+#include "cc3xx_noise_source.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -28,6 +28,15 @@
 #ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
 
 #define ROUND_UP(x, bound) ((((x) + bound - 1) / bound) * bound)
+
+#ifdef CC3XX_CONFIG_TRNG_DMA
+#define CC3XX_TRNG_SRAM_SIZE         (2048) /* 2KiB */
+#define CC3XX_TRNG_SRAM_SIZE_WORDS   (CC3XX_TRNG_SRAM_SIZE / sizeof(uint32_t))
+
+/* Align the SRAM to sample size for simplicity */
+#define CC3XX_TRNG_SRAM_MAX_SAMPLES (CC3XX_TRNG_SRAM_SIZE / CC3XX_TRNG_SAMPLE_SIZE)
+#define CC3XX_TRNG_SRAM_MAX_WORDS   (CC3XX_TRNG_SRAM_MAX_SAMPLES * CC3XX_TRNG_WORDS_PER_SAMPLE)
+#endif /* CC3XX_CONFIG_TRNG_DMA */
 
 __PACKED_ENUM {
     EHR_VALID_INT = 0,
@@ -57,11 +66,7 @@ __PACKED_ENUM {
  *        the object tracks the statistics collected at each
  *        reading of the TRNG samples
  */
-static struct {
-    size_t autocorr_err_stats;   /*!< AUTOCORR error counter */
-    size_t crngt_err_stats;      /*!< CRNGT error counter */
-    size_t vnc_err_stats;        /*!< VNC error counter */
-} g_trng_stats = {0};
+static struct cc3xx_noise_source_stats_t g_trng_stats = {0};
 #endif /* CC3XX_CONFIG_TRNG_COLLECT_STATISTCS */
 
 static inline bool is_trng_done(void)
@@ -75,7 +80,7 @@ static inline uint32_t trng_get_errors(void)
 }
 
 static void trng_init(
-    enum cc3xx_rng_rosc_id_t rosc_id,
+    enum cc3xx_noise_source_rosc_id_t rosc_id,
     uint32_t rosc_subsampling_rate,
     uint32_t trng_debug_control)
 {
@@ -132,7 +137,7 @@ static void trng_finish(void)
 }
 
 #ifdef CC3XX_CONFIG_TRNG_DMA
-static void trng_init_dma(struct cc3xx_trng_ctx_t *ctx, size_t sample_count)
+static void trng_init_dma(struct cc3xx_noise_source_ctx_t *ctx, size_t sample_count)
 {
     /* Fill the RNG SRAM with entropy */
     P_CC3XX->rng.rng_dma_samples_num = sample_count;
@@ -164,7 +169,7 @@ static inline uint32_t trng_double_subsampling_rate(uint32_t subsampling_rate)
     return (product > UINT32_MAX) ? UINT32_MAX : (uint32_t)product;
 }
 
-static void trng_bump_rosc_id_and_subsampling_rate(struct cc3xx_trng_ctx_t *ctx)
+static void trng_bump_rosc_id_and_subsampling_rate(struct cc3xx_noise_source_ctx_t *ctx)
 {
     uint32_t rosc_id = P_CC3XX->rng.trng_config & 0b11;
     uint32_t rosc_subsampling_rate = P_CC3XX->rng.sample_cnt1;
@@ -191,7 +196,7 @@ static void trng_bump_rosc_id_and_subsampling_rate(struct cc3xx_trng_ctx_t *ctx)
     ctx->rosc.subsampling_rate = rosc_subsampling_rate;
 }
 
-static bool trng_error_handler(struct cc3xx_trng_ctx_t *ctx)
+static bool trng_error_handler(struct cc3xx_noise_source_ctx_t *ctx)
 {
     uint32_t trng_errors = trng_get_errors();
 #ifdef CC3XX_CONFIG_TRNG_DMA
@@ -239,7 +244,7 @@ static bool trng_error_handler(struct cc3xx_trng_ctx_t *ctx)
     return true;
 }
 
-static cc3xx_err_t trng_wait_for_sample(struct cc3xx_trng_ctx_t *ctx)
+static cc3xx_err_t trng_wait_for_sample(struct cc3xx_noise_source_ctx_t *ctx)
 {
     uint32_t attempt_count = 0;
 
@@ -270,7 +275,7 @@ static cc3xx_err_t trng_wait_for_sample(struct cc3xx_trng_ctx_t *ctx)
     return CC3XX_ERR_SUCCESS;
 }
 
-static cc3xx_err_t trng_get_sample(struct cc3xx_trng_ctx_t *ctx, uint32_t *entropy, size_t word_count)
+static cc3xx_err_t trng_get_sample(struct cc3xx_noise_source_ctx_t *ctx, uint32_t *entropy, size_t word_count)
 {
     cc3xx_err_t err;
 
@@ -297,16 +302,16 @@ static cc3xx_err_t trng_get_sample(struct cc3xx_trng_ctx_t *ctx, uint32_t *entro
 #endif /* !CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 
 /*!
- * \defgroup cc3xx_trng Set of functions implementing the API to access the TRNG
- *                      for reading random bits
+ * \defgroup cc3xx_noise_source Set of functions implementing the API to access the TRNG
+ *                              based noise source, for reading random bits
  */
 /*!@{*/
-void cc3xx_lowlevel_trng_context_init(struct cc3xx_trng_ctx_t *ctx)
+void cc3xx_lowlevel_noise_source_context_init(struct cc3xx_noise_source_ctx_t *ctx)
 {
 #ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
     assert(ctx != NULL);
 
-    *ctx = (struct cc3xx_trng_ctx_t){
+    *ctx = (struct cc3xx_noise_source_ctx_t){
         .is_config_valid = true,
         .rosc.id = CC3XX_CONFIG_RNG_RING_OSCILLATOR_ID,
         .rosc.subsampling_rate = CC3XX_CONFIG_RNG_SUBSAMPLING_RATE,
@@ -315,7 +320,7 @@ void cc3xx_lowlevel_trng_context_init(struct cc3xx_trng_ctx_t *ctx)
 #endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 }
 
-cc3xx_err_t cc3xx_lowlevel_trng_init(struct cc3xx_trng_ctx_t *ctx)
+cc3xx_err_t cc3xx_lowlevel_noise_source_init(struct cc3xx_noise_source_ctx_t *ctx)
 {
 #ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
     assert(ctx != NULL);
@@ -329,14 +334,17 @@ cc3xx_err_t cc3xx_lowlevel_trng_init(struct cc3xx_trng_ctx_t *ctx)
     return CC3XX_ERR_SUCCESS;
 }
 
-cc3xx_err_t cc3xx_lowlevel_trng_finish(void)
+cc3xx_err_t cc3xx_lowlevel_noise_source_finish(void)
 {
     trng_finish();
 
     return CC3XX_ERR_SUCCESS;
 }
 
-cc3xx_err_t cc3xx_lowlevel_trng_get_sample(struct cc3xx_trng_ctx_t *ctx, uint32_t *buf, size_t word_count)
+cc3xx_err_t cc3xx_lowlevel_noise_source_get_sample(
+    struct cc3xx_noise_source_ctx_t *ctx,
+    uint32_t *buf,
+    size_t word_count)
 {
 #ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
     assert(ctx != NULL);
@@ -346,9 +354,9 @@ cc3xx_err_t cc3xx_lowlevel_trng_get_sample(struct cc3xx_trng_ctx_t *ctx, uint32_
 #endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 }
 
-cc3xx_err_t cc3xx_lowlevel_trng_set_config(
-    struct cc3xx_trng_ctx_t *ctx,
-    enum cc3xx_rng_rosc_id_t rosc_id,
+cc3xx_err_t cc3xx_lowlevel_noise_source_set_config(
+    struct cc3xx_noise_source_ctx_t *ctx,
+    enum cc3xx_noise_source_rosc_id_t rosc_id,
     uint32_t subsampling_rate)
 {
 #ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
@@ -373,16 +381,16 @@ cc3xx_err_t cc3xx_lowlevel_trng_set_config(
 #endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 }
 
-void cc3xx_lowlevel_trng_sp800_90b_mode(struct cc3xx_trng_ctx_t *ctx)
+void cc3xx_lowlevel_noise_source_sp800_90b_mode(struct cc3xx_noise_source_ctx_t *ctx)
 {
 #ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
-    cc3xx_lowlevel_trng_set_hw_test_bypass(ctx,
+    cc3xx_lowlevel_noise_source_set_hw_test_bypass(ctx,
         CC3XX_TRNG_AUTOCORR_TEST_BYPASS, CC3XX_TRNG_CRNGT_TEST_ACTIVE, CC3XX_TRNG_VNC_TEST_BYPASS);
 #endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 }
 
-void cc3xx_lowlevel_trng_set_hw_test_bypass(
-    struct cc3xx_trng_ctx_t *ctx,
+void cc3xx_lowlevel_noise_source_set_hw_test_bypass(
+    struct cc3xx_noise_source_ctx_t *ctx,
     enum cc3xx_trng_autocorr_test_state autocorr_state,
     enum cc3xx_trng_crngt_test_state crngt_state,
     enum cc3xx_trng_vnc_test_state vnc_state)
@@ -404,18 +412,14 @@ void cc3xx_lowlevel_trng_set_hw_test_bypass(
 }
 
 #ifdef CC3XX_CONFIG_TRNG_COLLECT_STATISTCS
-void cc3xx_lowlevel_trng_get_stats(struct cc3xx_trng_stats *stats)
+void cc3xx_lowlevel_noise_source_get_stats(struct cc3xx_noise_source_stats_t *stats)
 {
-    stats->autocorr_err_stats = g_trng_stats.autocorr_err_stats;
-    stats->crngt_err_stats = g_trng_stats.crngt_err_stats;
-    stats->vnc_err_stats = g_trng_stats.vnc_err_stats;
+    *stats = g_trng_stats;
 }
 
-void cc3xx_lowlevel_trng_clear_stats(void)
+void cc3xx_lowlevel_noise_source_clear_stats(void)
 {
-    g_trng_stats.autocorr_err_stats = 0;
-    g_trng_stats.crngt_err_stats = 0;
-    g_trng_stats.vnc_err_stats = 0;
+    g_trng_stats = (struct cc3xx_noise_source_stats_t){0};
 }
 #endif /* CC3XX_CONFIG_TRNG_COLLECT_STATISTCS */
 /*!@}*/

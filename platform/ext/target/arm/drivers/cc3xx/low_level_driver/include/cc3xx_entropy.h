@@ -9,7 +9,7 @@
 #define CC3XX_ENTROPY_H
 
 #include "cc3xx_error.h"
-#include "cc3xx_trng.h"
+#include "cc3xx_noise_source.h"
 
 #include <stdint.h>
 #include <stddef.h>

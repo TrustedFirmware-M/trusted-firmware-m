@@ -6,7 +6,7 @@
  */
 
 #include "cc3xx_test_rng.h"
-#include "cc3xx_trng.h"
+#include "cc3xx_noise_source.h"
 #include "cc3xx_rng.h"
 #include "cc3xx_dev.h"
 #ifndef CC3XX_CONFIG_FILE
@@ -40,7 +40,7 @@ __PACKED_ENUM stress_test_id {
 struct stress_test_cfg {
     enum stress_test_id id;
     uint32_t subsampling_rate;
-    enum cc3xx_rng_rosc_id_t rosc_id;
+    enum cc3xx_noise_source_rosc_id_t rosc_id;
     size_t pool_size;
     size_t n_iterations;
 } stress_tests;
@@ -140,34 +140,15 @@ static size_t rng_sram_memcmp(size_t sram_offset,
     return 0;
 }
 
-/**
- * @note:   It is preferable to call this in case sp800_90b_mode
- *          was previously enabled.
- *
- */
-static inline bool trng_set_default_config(void)
-{
-    cc3xx_err_t err;
-
-    cc3xx_lowlevel_trng_set_hw_test_bypass(CC3XX_TRNG_AUTOCORR_TEST_ACTIVE,
-                                           CC3XX_TRNG_CRNGT_TEST_ACTIVE,
-                                           CC3XX_TRNG_VNC_TEST_ACTIVE);
-
-    err = cc3xx_lowlevel_trng_set_config(CC3XX_CONFIG_RNG_RING_OSCILLATOR_ID,
-                                         CC3XX_CONFIG_RNG_SUBSAMPLING_RATE);
-    if (err != CC3XX_ERR_SUCCESS) {
-        return false;
-    }
-
-    return true;
-}
+/* Static context of the TRNG config used by the test code itself */
+static struct cc3xx_noise_source_ctx_t g_trng_ctx = CC3XX_NOISE_SOURCE_CONTEXT_INIT;
 
 void trng_single_shot_entropy(struct test_result_t *ret)
 {
     uint32_t entropy[CC3XX_TRNG_WORDS_PER_SAMPLE];
     cc3xx_err_t err;
 
-    trng_set_default_config();
+    cc3xx_lowlevel_noise_source_context_init(&g_trng_ctx);
 
 #ifdef CC3XX_CONFIG_TRNG_DMA
     clear_rng_sram(CC3XX_TRNG_WORDS_PER_SAMPLE);
@@ -175,12 +156,12 @@ void trng_single_shot_entropy(struct test_result_t *ret)
 
     memset(entropy, 0, sizeof(entropy));
 
-    cc3xx_lowlevel_trng_init();
+    cc3xx_lowlevel_noise_source_init(&g_trng_ctx);
 
-    err = cc3xx_lowlevel_trng_get_sample(entropy, CC3XX_TRNG_WORDS_PER_SAMPLE);
+    err = cc3xx_lowlevel_noise_source_get_sample(&g_trng_ctx, entropy, CC3XX_TRNG_WORDS_PER_SAMPLE);
     TEST_ASSERT(err == CC3XX_ERR_SUCCESS, "Failed to get entropy");
 
-    cc3xx_lowlevel_trng_finish();
+    cc3xx_lowlevel_noise_source_finish();
 
     TEST_ASSERT(is_valid_entropy(entropy, CC3XX_TRNG_WORDS_PER_SAMPLE),
                     "Invalid entropy");
@@ -200,18 +181,18 @@ void trng_multi_shot_entropy(struct test_result_t *ret)
     uint32_t entropy[CC3XX_TRNG_WORDS_PER_SAMPLE];
     cc3xx_err_t err;
 
-    trng_set_default_config();
+    cc3xx_lowlevel_noise_source_context_init(&g_trng_ctx);
 
 #ifdef CC3XX_CONFIG_TRNG_DMA
     clear_rng_sram(CC3XX_RNG_SRAM_SIZE);
 #endif
 
-    cc3xx_lowlevel_trng_init();
+    cc3xx_lowlevel_noise_source_init(&g_trng_ctx);
 
     for (size_t idx = 0; idx < TESTS_N_INTERATIONS; idx++) {
         memset(entropy, 0, sizeof(entropy));
 
-        err = cc3xx_lowlevel_trng_get_sample(entropy, CC3XX_TRNG_WORDS_PER_SAMPLE);
+        err = cc3xx_lowlevel_noise_source_get_sample(&g_trng_ctx, entropy, CC3XX_TRNG_WORDS_PER_SAMPLE);
         TEST_ASSERT(err == CC3XX_ERR_SUCCESS, "Failed to get entropy");
 
         TEST_ASSERT(is_valid_entropy(entropy, CC3XX_TRNG_WORDS_PER_SAMPLE),
@@ -225,7 +206,7 @@ void trng_multi_shot_entropy(struct test_result_t *ret)
 #endif
     }
 
-    cc3xx_lowlevel_trng_finish();
+    cc3xx_lowlevel_noise_source_finish();
 
     ret->val = TEST_PASSED;
 }
@@ -257,17 +238,17 @@ static void trng_cycle_counter_by_pool_size(struct test_result_t *ret, size_t po
         cyccnt_start = get_cycle_count();
 
         /* Generate entropy */
-        cc3xx_lowlevel_trng_init();
+        cc3xx_lowlevel_noise_source_init(&g_trng_ctx);
 
         /* Collect entropy */
 #ifdef CC3XX_CONFIG_TRNG_DMA
-        err = cc3xx_lowlevel_trng_get_sample(entropy, pool_size);
+        err = cc3xx_lowlevel_noise_source_get_sample(&g_trng_ctx, entropy, pool_size);
         TEST_ASSERT(err == CC3XX_ERR_SUCCESS, "Failed to get entropy");
 #else
         for (size_t j = 0; j < pool_size / CC3XX_TRNG_WORDS_PER_SAMPLE; j++) {
             size_t offset = j * CC3XX_TRNG_WORDS_PER_SAMPLE;
 
-            err = cc3xx_lowlevel_trng_get_sample(entropy + offset,
+            err = cc3xx_lowlevel_noise_source_get_sample(&g_trng_ctx, entropy + offset,
                                                  CC3XX_TRNG_WORDS_PER_SAMPLE);
             TEST_ASSERT(err == CC3XX_ERR_SUCCESS, "Failed to get entropy");
         }
@@ -276,7 +257,7 @@ static void trng_cycle_counter_by_pool_size(struct test_result_t *ret, size_t po
         cyccnt_end = get_cycle_count();
 
         /* Turn off TRNG */
-        cc3xx_lowlevel_trng_finish();
+        cc3xx_lowlevel_noise_source_finish();
 
         TEST_ASSERT(is_valid_entropy(entropy, pool_size), "Invalid entropy");
 
@@ -300,7 +281,7 @@ void trng_cycle_counter(struct test_result_t *ret)
 {
     const size_t pool_sizes[] = {6, 12, 18, CYCLE_COUNTER_TEST_MAX_POOL_SIZE};
 
-    trng_set_default_config();
+    cc3xx_lowlevel_noise_source_context_init(&g_trng_ctx);
 
     for (size_t idx = 0; idx < ARRAY_SIZE(pool_sizes); idx++) {
         trng_cycle_counter_by_pool_size(ret, pool_sizes[idx]);
@@ -364,7 +345,7 @@ void drbg_cycle_counter(struct test_result_t *ret)
     const size_t pool_sizes[] = {6, 12, 18, CYCLE_COUNTER_TEST_MAX_POOL_SIZE};
 
     /* DRBG uses entropy to initialise its state */
-    trng_set_default_config();
+    cc3xx_lowlevel_noise_source_context_init(&g_trng_ctx);
 
     for (size_t idx = 0; idx < ARRAY_SIZE(pool_sizes); idx++) {
         drbg_cycle_counter_by_pool_size(ret, pool_sizes[idx]);
@@ -382,16 +363,17 @@ static void trng_errors_stress_test(struct test_result_t *ret,
                                     const struct stress_test_cfg *test_cfg)
 {
     uint32_t entropy[STRESS_TESTS_MAX_POOL_SIZE];
-    struct cc3xx_trng_stats stats;
+    struct cc3xx_noise_source_stats_t stats;
     size_t trng_get_rnd_fails = 0;
     size_t trng_test_stats;
     cc3xx_err_t err;
 
-    err = cc3xx_lowlevel_trng_set_config(test_cfg->rosc_id,
-                                         test_cfg->subsampling_rate);
+    err = cc3xx_lowlevel_noise_source_set_config(&g_trng_ctx,
+                                                 test_cfg->rosc_id,
+                                                 test_cfg->subsampling_rate);
     TEST_ASSERT(err == CC3XX_ERR_SUCCESS, "Failed to set TRNG configuration");
 
-    cc3xx_lowlevel_trng_clear_stats();
+    cc3xx_lowlevel_noise_source_clear_stats();
 
     for (size_t idx = 0; idx < test_cfg->n_iterations; idx++) {
         memset(entropy, 0, sizeof(entropy));
@@ -399,16 +381,15 @@ static void trng_errors_stress_test(struct test_result_t *ret,
 #ifdef CC3XX_CONFIG_TRNG_DMA
         clear_rng_sram(test_cfg->pool_size);
 #endif
+        cc3xx_lowlevel_noise_source_init(&g_trng_ctx);
 
-        /* Use RNG API for simplicity */
-        err = cc3xx_lowlevel_rng_get_entropy(entropy,
-                                             test_cfg->pool_size * sizeof(uint32_t));
+        err = cc3xx_lowlevel_noise_source_get_sample(&g_trng_ctx, entropy, test_cfg->pool_size);
         if (err != CC3XX_ERR_SUCCESS) {
             trng_get_rnd_fails++;
             continue;
         }
 
-        cc3xx_lowlevel_trng_finish();
+        cc3xx_lowlevel_noise_source_finish();
 
         TEST_ASSERT(is_valid_entropy(entropy, test_cfg->pool_size),
                         "Invalid entropy");
@@ -417,7 +398,7 @@ static void trng_errors_stress_test(struct test_result_t *ret,
     TEST_ASSERT(trng_get_rnd_fails != test_cfg->n_iterations,
                     "TRNG too fast or pool too large");
 
-    cc3xx_lowlevel_trng_get_stats(&stats);
+    cc3xx_lowlevel_noise_source_get_stats(&stats);
 
     trng_test_stats = (test_cfg->id == STRESS_TEST_AUTOCORR_ID) ? stats.autocorr_err_stats :
                       (test_cfg->id == STRESS_TEST_CRNGT_ID) ? stats.crngt_err_stats :
@@ -433,34 +414,37 @@ static void trng_errors_stress_test(struct test_result_t *ret,
     TEST_ASSERT(!!trng_test_stats, "No fails");
 
     /* Restore the default configuration */
-    trng_set_default_config();
+    cc3xx_lowlevel_noise_source_context_init(&g_trng_ctx);
 
     ret->val = TEST_PASSED;
 }
 
 void trng_errors_stress_test_autocorr(struct test_result_t *ret)
 {
-    cc3xx_lowlevel_trng_set_hw_test_bypass(CC3XX_TRNG_AUTOCORR_TEST_ACTIVE,
-                                           CC3XX_TRNG_CRNGT_TEST_BYPASS,
-                                           CC3XX_TRNG_VNC_TEST_BYPASS);
+    cc3xx_lowlevel_noise_source_set_hw_test_bypass(&g_trng_ctx,
+                                                   CC3XX_TRNG_AUTOCORR_TEST_ACTIVE,
+                                                   CC3XX_TRNG_CRNGT_TEST_BYPASS,
+                                                   CC3XX_TRNG_VNC_TEST_BYPASS);
 
     trng_errors_stress_test(ret, &autocorr_test_cfg);
 }
 
 void trng_errors_stress_test_crngt(struct test_result_t *ret)
 {
-    cc3xx_lowlevel_trng_set_hw_test_bypass(CC3XX_TRNG_AUTOCORR_TEST_BYPASS,
-                                           CC3XX_TRNG_CRNGT_TEST_ACTIVE,
-                                           CC3XX_TRNG_VNC_TEST_BYPASS);
+    cc3xx_lowlevel_noise_source_set_hw_test_bypass(&g_trng_ctx,
+                                                   CC3XX_TRNG_AUTOCORR_TEST_BYPASS,
+                                                   CC3XX_TRNG_CRNGT_TEST_ACTIVE,
+                                                   CC3XX_TRNG_VNC_TEST_BYPASS);
 
     trng_errors_stress_test(ret, &crngt_test_cfg);
 }
 
 void trng_errors_stress_test_vnc(struct test_result_t *ret)
 {
-    cc3xx_lowlevel_trng_set_hw_test_bypass(CC3XX_TRNG_AUTOCORR_TEST_BYPASS,
-                                           CC3XX_TRNG_CRNGT_TEST_BYPASS,
-                                           CC3XX_TRNG_VNC_TEST_ACTIVE);
+    cc3xx_lowlevel_noise_source_set_hw_test_bypass(&g_trng_ctx,
+                                                   CC3XX_TRNG_AUTOCORR_TEST_BYPASS,
+                                                   CC3XX_TRNG_CRNGT_TEST_BYPASS,
+                                                   CC3XX_TRNG_VNC_TEST_ACTIVE);
 
     trng_errors_stress_test(ret, &vnc_test_cfg);
 }
