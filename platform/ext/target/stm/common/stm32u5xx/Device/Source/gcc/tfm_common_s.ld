@@ -59,10 +59,7 @@ SECTIONS
      */
     .TFM_SP_LOAD_LIST : ALIGN(4)
     {
-       KEEP(*(.part_load_priority_00))
-       KEEP(*(.part_load_priority_01))
-       KEEP(*(.part_load_priority_02))
-       KEEP(*(.part_load_priority_03))
+       KEEP(*(.part_load))
     } > FLASH
     Image$$TFM_SP_LOAD_LIST$$RO$$Base = ADDR(.TFM_SP_LOAD_LIST);
     Image$$TFM_SP_LOAD_LIST$$RO$$Limit = ADDR(.TFM_SP_LOAD_LIST) + SIZEOF(.TFM_SP_LOAD_LIST);
@@ -380,19 +377,13 @@ SECTIONS
 
         /* The runtime partition placed order is same as load partition */
         __partition_runtime_start__ = .;
-        KEEP(*(.bss.part_runtime_priority_00))
-        KEEP(*(.bss.part_runtime_priority_01))
-        KEEP(*(.bss.part_runtime_priority_02))
-        KEEP(*(.bss.part_runtime_priority_03))
+        KEEP(*(.bss.part_runtime))
         __partition_runtime_end__ = .;
         . = ALIGN(4);
 
         /* The runtime service placed order is same as load partition */
         __service_runtime_start__ = .;
-        KEEP(*(.bss.serv_runtime_priority_00))
-        KEEP(*(.bss.serv_runtime_priority_01))
-        KEEP(*(.bss.serv_runtime_priority_02))
-        KEEP(*(.bss.serv_runtime_priority_03))
+        KEEP(*(.bss.serv_runtime))
         __service_runtime_end__ = .;
         *(.bss*)
         *(COMMON)

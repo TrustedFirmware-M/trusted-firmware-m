@@ -51,11 +51,11 @@ struct partition_tfm_sp_ns_agent_tz_load_info_t {
 /* Partition load, deps, service load data. Put to a dedicated section. */
 #if defined(__ICCARM__)
 /* Section priority: lowest */
-#pragma location = ".part_load_priority_00"
+#pragma location = ".part_load"
 __root
 #endif
 const struct partition_tfm_sp_ns_agent_tz_load_info_t
-    tfm_sp_ns_agent_tz_load __attribute__((used, section(".part_load_priority_00"))) = {
+    tfm_sp_ns_agent_tz_load __attribute__((used, section(".part_load"))) = {
     .load_info = {
         .psa_ff_ver                 = 0x0100 | PARTITION_INFO_MAGIC,
         .pid                        = TFM_SP_TZ_AGENT,
@@ -93,9 +93,9 @@ const struct partition_tfm_sp_ns_agent_tz_load_info_t
 };
 #if defined(__ICCARM__)
 /* Section priority: lowest */
-#pragma location = ".bss.part_runtime_priority_00"
+#pragma location = ".bss.part_runtime"
 __root
 #endif
 /* Placeholder for partition runtime space. Do not reference it. */
 static struct partition_t tfm_sp_ns_agent_tz_partition_runtime_item
-    __attribute__((used, section(".bss.part_runtime_priority_00")));
+    __attribute__((used, section(".bss.part_runtime")));

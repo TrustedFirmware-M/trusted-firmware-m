@@ -51,10 +51,7 @@ define block TFM_UNPRIV_CODE_END with alignment = 32, size = 0 { };
      * The first loaded partition will be inited at last in SFN model.
      */
 define block TFM_SP_LOAD_LIST with alignment = 4 {
-    ro section .part_load_priority_00 object load_info_*.o,
-    ro section .part_load_priority_01 object load_info_*.o,
-    ro section .part_load_priority_02 object load_info_*.o,
-    ro section .part_load_priority_03 object load_info_*.o,
+    ro section .part_load object load_info_*.o
 };
 
     /**** PSA RoT RO part (CODE + RODATA) start here */
@@ -127,18 +124,12 @@ define block ER_TFM_DATA          with alignment = 8 {readwrite};
 
 /* The runtime partition placed order is same as load partition */
 define block ER_PART_RT_POOL      with alignment = 4 {
-    zi section .bss.part_runtime_priority_00,
-    zi section .bss.part_runtime_priority_01,
-    zi section .bss.part_runtime_priority_02,
-    zi section .bss.part_runtime_priority_03,
+    zi section .bss.part_runtime
 };
 
 /* The runtime service placed order is same as load partition */
 define block ER_SERV_RT_POOL      with alignment = 4 {
-    zi section .bss.serv_runtime_priority_00,
-    zi section .bss.serv_runtime_priority_01,
-    zi section .bss.serv_runtime_priority_02,
-    zi section .bss.serv_runtime_priority_03,
+    zi section .bss.serv_runtime
 };
 
 keep {block ER_PART_RT_POOL, block ER_SERV_RT_POOL};

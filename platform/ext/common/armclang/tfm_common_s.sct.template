@@ -75,10 +75,7 @@ LR_CODE S_CODE_START S_CODE_SIZE {
      * The first loaded partition will be inited at last in SFN model.
      */
     TFM_SP_LOAD_LIST +0 ALIGN 4 {
-        *(.part_load_priority_00)
-        *(.part_load_priority_01)
-        *(.part_load_priority_02)
-        *(.part_load_priority_03)
+        *(.part_load)
     }
 
     /**** PSA RoT RO part (CODE + RODATA) start here */
@@ -297,18 +294,12 @@ LR_CODE S_CODE_START S_CODE_SIZE {
 
     /**** The runtime partition placed order is same as load partition */
     ER_PART_RT_POOL +0 ALIGN 4 {
-        *(.bss.part_runtime_priority_00)
-        *(.bss.part_runtime_priority_01)
-        *(.bss.part_runtime_priority_02)
-        *(.bss.part_runtime_priority_03)
+        *(.bss.part_runtime)
     }
 
     /**** The runtime service placed order is same as load partition */
     ER_SERV_RT_POOL +0 ALIGN 4 {
-        *(.bss.serv_runtime_priority_00)
-        *(.bss.serv_runtime_priority_01)
-        *(.bss.serv_runtime_priority_02)
-        *(.bss.serv_runtime_priority_03)
+        *(.bss.serv_runtime)
     }
 
     /**** PSA RoT DATA start here */
