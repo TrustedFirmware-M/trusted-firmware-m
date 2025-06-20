@@ -10,6 +10,7 @@ import re
 import ast
 import os
 import operator as op
+import string
 from c_include import get_includes, get_defines
 
 def _int(x):
@@ -91,12 +92,19 @@ def __eval_maths(expr):
         return _bool_to_int(f(*[_int(__eval_maths(x)) for x in r.groups()]))
     return _int(expr)
 
+def _remove_comments(text):
+    # Remove comments from the line
+    text = re.sub(r"/\*.*?\*/", "", text)
+    text = text.split("//")[0].strip()
+    return text
+
 def _get_next_line(text):
     lines = text.split("\n")
     is_multiline_comment = False
     for I in range(len(lines)):
         yield_line = lines[I]
-        yield_line = re.sub(r"/\*.*?\*/", "", yield_line)
+
+        yield_line = _remove_comments(yield_line)
 
         if is_multiline_comment:
             if "*/" not in yield_line:
@@ -107,12 +115,26 @@ def _get_next_line(text):
         else:
             if "/*" in yield_line and "*/" not in yield_line:
                 is_multiline_comment = True
-                yield_line = yield_line[:yield_line.find("/*")]
+
+                # Multi-line macros comments will be handled after
+                if(yield_line[-1] != "\\"):
+                    yield_line = yield_line[:yield_line.find("/*")]
 
         while (len(yield_line) > 0 and yield_line[-1] == "\\"):
             I += 1
             yield_line = yield_line[:-1] + lines[I]
+
+        yield_line = _remove_comments(yield_line)
+
         yield yield_line
+
+def _replace_whole_word(text, target, replacement):
+    words = text.split()
+    new_words = [
+        word.replace(target, replacement) if word.strip(string.punctuation) == target else word
+        for word in words
+    ]
+    return ' '.join(new_words)
 
 class Conditional_block_state():
     """Represents the state of a conditional block (#if/elif/else)"""
@@ -160,7 +182,7 @@ class C_macro():
                 continue
 
             if isinstance(v, str):
-                text = text.replace(d, v)
+                text = _replace_whole_word(text, d, v)
             else:
                 if d in text:
                     s, me = text.split(d, 1)
