@@ -38,8 +38,12 @@
 #define VHUK_SEED_SIZE           32
 #define VHUK_SEED_WORD_SIZE      8
 
-uint8_t sending_mhu[RSE_AMOUNT];
-uint8_t receiving_mhu[RSE_AMOUNT];
+#define RSE_HANDSHAKE_ROUND_UP(x, bound) ((((x) + bound - 1) / bound) * bound)
+
+/* Routing tables can be stored in OTP and therefore buffer we read them
+ * into must be 4-byte aligned */
+static uint8_t sending_mhu[RSE_HANDSHAKE_ROUND_UP(RSE_AMOUNT, sizeof(uint32_t))];
+static uint8_t receiving_mhu[RSE_HANDSHAKE_ROUND_UP(RSE_AMOUNT, sizeof(uint32_t))];
 
 enum rse_handshake_msg_type {
     RSE_HANDSHAKE_SESSION_KEY_MSG,
