@@ -47,6 +47,8 @@ __PACKED_ENUM {
     RNG_DMA_DONE_INT
 };
 
+#define TRNG_ROSC_ID_MASK ((1UL << 2) - 1)
+
 #define TRNG_ERROR_MASK (1 << VN_ERR_INT | 1 << CRNGT_ERR_INT | \
                          1 << AUTOCORR_ERR_INT)
 
@@ -171,7 +173,7 @@ static inline uint32_t trng_double_subsampling_rate(uint32_t subsampling_rate)
 
 static void trng_bump_rosc_id_and_subsampling_rate(struct cc3xx_noise_source_ctx_t *ctx)
 {
-    uint32_t rosc_id = P_CC3XX->rng.trng_config & 0b11;
+    uint32_t rosc_id = P_CC3XX->rng.trng_config & TRNG_ROSC_ID_MASK;
     uint32_t rosc_subsampling_rate = P_CC3XX->rng.sample_cnt1;
 
     if ((rosc_id == CC3XX_RNG_ROSC_ID_3) && (rosc_subsampling_rate == UINT32_MAX)) {
@@ -233,7 +235,7 @@ static bool trng_error_handler(struct cc3xx_noise_source_ctx_t *ctx)
 
     /* Restart TRNG */
     trng_init(
-        P_CC3XX->rng.trng_config & 0b11, /* Extract the ROSC_ID from the register */
+        P_CC3XX->rng.trng_config & TRNG_ROSC_ID_MASK, /* Extract the ROSC_ID from the register */
         P_CC3XX->rng.sample_cnt1,
         P_CC3XX->rng.trng_debug_control);
 

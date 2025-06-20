@@ -28,17 +28,16 @@ enum cc3xx_rng_quality_t {
 };
 
 /**
- * @brief                        Get random bytes from the CC3XX TRNG.
+ * @brief                        Generate random bytes.
  *
  * @note                         This function may take a variable amount of
  *                               time to execute. This function may take a
- *                               considerable amount of time to execute if the
- *                               current TRNG entropy pool is depleted and more
- *                               entropy needs generating.
+ *                               considerable amount of time based on the test status
+ *                               of the entropy source.
  *
  * @param[out] buf               Buffer to fill with random bytes.
  * @param[in] length             Size of the buffer.
- * @param[in] quality            The TRNG quality used to generate random data.
+ * @param[in] quality            The \a cc3xx_rng_quality_t used to generate random data.
  *
  * @return                       CC3XX_ERR_SUCCESS on success, another
  *                               cc3xx_err_t on error.
@@ -47,16 +46,15 @@ cc3xx_err_t cc3xx_lowlevel_rng_get_random(uint8_t* buf, size_t length,
                                           enum cc3xx_rng_quality_t quality);
 
 /**
- * @brief                        Get a random unsigned integer from the CC3XX
- *                               TRNG. The value is uniformly distributed
- *                               between 0 and bound - 1.
+ * @brief                        Generate a random uint32_t.
+ *                               The value is uniformly distributed between 0 and bound - 1.
  *
  * @note                         This function may take a variable amount of
  *                               time to execute.
  *
  * @param[in]  bound             A value N such that 0 <= output < N
  * @param[out] uint              A pointer to the uint32_t to output into.
- * @param[in]  quality           The TRNG quality used to generate random data.
+ * @param[in]  quality           The \a cc3xx_rng_quality_t used to generate random data.
  *
  * @return                       CC3XX_ERR_SUCCESS on success, another
  *                               cc3xx_err_t on error.

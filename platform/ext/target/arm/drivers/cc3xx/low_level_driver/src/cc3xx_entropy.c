@@ -71,11 +71,6 @@ int32_t count_zero_bits_external(uint8_t *, size_t, uint32_t *);
 /* Static context of the TRNG config used by the entropy module itself */
 static struct cc3xx_noise_source_ctx_t g_trng_ctx = CC3XX_NOISE_SOURCE_CONTEXT_INIT;
 
-void *cc3xx_lowlevel_entropy_get_noise_source_ctx(void)
-{
-    return (void *)&g_trng_ctx;
-}
-
 /* Static context of the entropy source continuous health tests */
 static struct health_tests_ctx_t {
     size_t total_bits_count;        /*!< Number of total bits observed for the Adaptive Proportion Test window */
@@ -209,6 +204,11 @@ static cc3xx_err_t startup_test(size_t entropy_byte_size)
     return err;
 }
 
+/*!
+ * \defgroup cc3xx_entropy Set of functions implementing the API to access a
+ *                         SP800-90B compliant entropy source
+ */
+/*!@{*/
 cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len)
 {
     cc3xx_err_t err;
@@ -237,7 +237,7 @@ cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len)
     }
 
     for (size_t i = 0; i < entropy_len / CC3XX_TRNG_SAMPLE_SIZE; i++) {
-
+        /* Get a full reading from the noise source and put it at the right offset */
         err = cc3xx_lowlevel_noise_source_get_sample(
             &g_trng_ctx, &entropy[num_words], CC3XX_TRNG_SAMPLE_SIZE / sizeof(uint32_t));
         if (err != CC3XX_ERR_SUCCESS) {
@@ -258,3 +258,9 @@ cleanup:
 
     return err;
 }
+
+void *cc3xx_lowlevel_entropy_get_noise_source_ctx(void)
+{
+    return (void *)&g_trng_ctx;
+}
+/*!@}*/
