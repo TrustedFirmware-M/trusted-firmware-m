@@ -252,6 +252,11 @@ psa_status_t fwu_bootloader_install_image(const psa_fwu_component_t *candidates,
                 break;
             }
 
+            /* Check against payload length overflow */
+            if (len > sizeof(dep)) {
+                return PSA_ERROR_INVALID_ARGUMENT;
+            }
+
             /* A dependency requirement is found. Set check_pass to false. */
             check_pass = false;
             if (flash_area_read(fap, off, &dep, len) != 0) {
