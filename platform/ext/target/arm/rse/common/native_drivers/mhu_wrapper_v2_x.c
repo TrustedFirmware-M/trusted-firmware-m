@@ -127,13 +127,14 @@ clear_and_wait_for_signal(struct mhu_v2_x_dev_t *dev)
  * @brief For simplicity, require:
  *          - the buffer address to be 4-byte aligned.
  *          - the buffer size to be a multiple of 4.
- *
  */
 static enum mhu_error_t validate_buffer_params(uintptr_t buf_addr,
                                                size_t buf_size)
 {
-    if ((buf_addr == 0) || (!IS_ALIGNED(buf_addr, 4)) ||
-        (!IS_ALIGNED(buf_size, 4))) {
+    if ((buf_addr == 0) ||
+        (!IS_ALIGNED(buf_addr, 4)) ||
+        (!IS_ALIGNED(buf_size, 4)) ||
+        (buf_size == 0)) {
         return MHU_ERR_VALIDATE_BUFFER_PARAMS_INVALID_ARG;
     }
 
@@ -221,10 +222,6 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev,
     assert(dev != NULL);
     assert(dev->base != (uintptr_t)NULL);
 
-    if (size == 0) {
-        return MHU_ERR_NONE;
-    }
-
     mhu_err = validate_buffer_params((uintptr_t)send_buffer, size);
     if (mhu_err != MHU_ERR_NONE) {
         return mhu_err;
@@ -309,8 +306,6 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
 
     if (size == NULL) {
         return MHU_ERR_RECEIVE_DATA_INVALID_ARG;
-    } else if (*size == 0) {
-        return MHU_ERR_NONE;
     }
 
     mhu_err = validate_buffer_params((uintptr_t)receive_buffer, *size);
