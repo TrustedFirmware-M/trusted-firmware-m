@@ -13,7 +13,8 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "atu_rse_drv.h"
+#include "atu_config.h"
+#include "atu_rse_lib.h"
 #include "bootutil/bootutil_log.h"
 #include "device_definition.h"
 #include "flash_map/flash_map.h"
@@ -44,89 +45,6 @@ static uint32_t fip_logical_addr[FIP_COUNT] = {
 #endif /* FIP_COUNT > 1 */
 };
 
-static int init_staging_area_atu(void)
-{
-    enum atu_error_t atu_err;
-
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    STAGING_AREA_FIP_A_ATU_SLOT,
-                                    STAGING_AREA_FIP_A_BASE_S,
-                                    STAGING_AREA_FIP_A_BASE_S_PHYSICAL,
-                                    HOST_FIP_MAX_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-#if FIP_COUNT > 1
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    STAGING_AREA_FIP_B_ATU_SLOT,
-                                    STAGING_AREA_FIP_B_BASE_S,
-                                    STAGING_AREA_FIP_B_BASE_S_PHYSICAL,
-                                    HOST_FIP_MAX_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-#endif /* FIP_COUNT > 1 */
-
-    return 0;
-}
-
-static int init_host_flash_atu(void)
-{
-    enum atu_error_t atu_err;
-
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    HOST_FLASH_FIP_A_ATU_SLOT,
-                                    HOST_FLASH_FIP_A_BASE_S,
-                                    HOST_FLASH_FIP_A_BASE_S_PHYSICAL,
-                                    HOST_FIP_MAX_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-#if FIP_COUNT > 1
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    HOST_FLASH_FIP_B_ATU_SLOT,
-                                    HOST_FLASH_FIP_B_BASE_S,
-                                    HOST_FLASH_FIP_B_BASE_S_PHYSICAL,
-                                    HOST_FIP_MAX_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-#endif /* FIP_COUNT > 1 */
-
-    return 0;
-}
-
-static int deinit_all_mapped_atu(void) {
-    enum atu_error_t atu_err;
-
-
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, STAGING_AREA_FIP_A_ATU_SLOT);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, HOST_FLASH_FIP_A_ATU_SLOT);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-#if FIP_COUNT > 1
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, STAGING_AREA_FIP_B_ATU_SLOT);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, HOST_FLASH_FIP_B_ATU_SLOT);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-#endif /* FIP_COUNT > 1 */
-
-    return 0;
-}
-
 static struct flash_area fip_flash_map[FIP_COUNT] = {
     {
         .fa_id = 1, /* FIP A */
@@ -151,18 +69,6 @@ int32_t run_staged_boot(void)
     int i, rc;
     struct flash_area *fap_src;
 
-    rc = init_host_flash_atu();
-    if (rc != 0) {
-        BOOT_LOG_ERR("Failed to map FIP area in flash");
-        return -1;
-    }
-
-    rc = init_staging_area_atu();
-    if (rc != 0) {
-        BOOT_LOG_ERR("Failed to map staging area");
-        return -1;
-    }
-
     for (i = 0; i < FIP_COUNT; i++) {
         fap_src = &fip_flash_map[i];
         if (fip_logical_addr[i] < HOST_ACCESS_BASE_S) {
@@ -180,11 +86,6 @@ int32_t run_staged_boot(void)
         }
 
         BOOT_LOG_INF("FIP: %d relocated to address 0x%x", i, fip_reloc_addr[i]);
-    }
-
-    rc = deinit_all_mapped_atu();
-    if (rc != 0) {
-        return -1;
     }
 
     return 0;

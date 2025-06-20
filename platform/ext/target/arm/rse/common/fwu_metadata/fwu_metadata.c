@@ -10,7 +10,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "atu_rse_drv.h"
+#include "atu_config.h"
+#include "atu_rse_lib.h"
 #include "cmsis_compiler.h"
 #include "device_definition.h"
 #include "Driver_Flash.h"
@@ -19,8 +20,6 @@
 #include "host_base_address.h"
 #include "platform_base_address.h"
 #include "soft_crc.h"
-
-#define RSE_ATU_REGION_TEMP_SLOT  2
 
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 
@@ -45,11 +44,10 @@ static int read_from_host_flash(uint64_t offset,
         return -1;
     }
 
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_REGION_TEMP_SLOT,
-                                    log_addr,
-                                    physical_address,
-                                    METADATA_REGION_SIZE);
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S, physical_address,
+                                           log_addr,
+                                           METADATA_REGION_SIZE,
+                                           0);
     if (atu_err != ATU_ERR_NONE) {
         return -1;
     }
@@ -60,8 +58,7 @@ static int read_from_host_flash(uint64_t offset,
         return -1;
     }
 
-    atu_err = atu_uninitialize_region(&ATU_DEV_S,
-                                      RSE_ATU_REGION_TEMP_SLOT);
+    atu_err = atu_rse_free_addr(&ATU_DEV_S, log_addr);
     if (atu_err != ATU_ERR_NONE) {
         return -1;
     }
@@ -108,11 +105,10 @@ int write_fwu_metadata(uint64_t offset,
         return -1;
     }
 
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_REGION_TEMP_SLOT,
-                                    log_addr,
-                                    physical_address,
-                                    METADATA_REGION_SIZE);
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S, physical_address,
+                                           log_addr,
+                                           METADATA_REGION_SIZE,
+                                           0);
     if (atu_err != ATU_ERR_NONE) {
         return -1;
     }
@@ -129,8 +125,7 @@ int write_fwu_metadata(uint64_t offset,
         return -1;
     }
 
-    atu_err = atu_uninitialize_region(&ATU_DEV_S,
-                                      RSE_ATU_REGION_TEMP_SLOT);
+    atu_err = atu_rse_free_addr(&ATU_DEV_S, log_addr);
     if (atu_err != ATU_ERR_NONE) {
         return -1;
     }

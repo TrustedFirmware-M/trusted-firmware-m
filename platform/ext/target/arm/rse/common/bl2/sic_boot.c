@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -18,9 +18,6 @@
 #endif /* RSE_USE_HOST_FLASH */
 
 #include <string.h>
-
-#define RSE_ATU_S_IMAGE_XIP_REGION  0
-#define RSE_ATU_NS_IMAGE_XIP_REGION 1
 
 #define RSE_SIC_S_IMAGE_DECRYPT_REGION  0
 #define RSE_SIC_NS_IMAGE_DECRYPT_REGION 1
@@ -157,7 +154,6 @@ enum sic_boot_err_t sic_boot_post_load(uint32_t image_id, uint32_t image_load_of
     uint64_t fip_offsets[2];
     bool fip_found[2];
     uint64_t fip_offset;
-    uint32_t atu_region;
     uuid_t image_uuid;
     uint32_t *image_offset;
     int rc;
@@ -190,7 +186,6 @@ enum sic_boot_err_t sic_boot_post_load(uint32_t image_id, uint32_t image_load_of
         }
 
         decrypt_key_slot = RSE_KMU_SLOT_NON_SECURE_SIC_ENCRYPTION_KEY;
-        atu_region = RSE_ATU_NS_IMAGE_XIP_REGION;
         decrypt_region = RSE_SIC_NS_IMAGE_DECRYPT_REGION;
         xip_region_base_addr = RSE_RUNTIME_NS_XIP_BASE_NS;
         max_region_size = NS_CODE_SIZE;
@@ -212,7 +207,6 @@ enum sic_boot_err_t sic_boot_post_load(uint32_t image_id, uint32_t image_load_of
         }
 
         decrypt_key_slot = RSE_KMU_SLOT_SECURE_SIC_ENCRYPTION_KEY;
-        atu_region = RSE_ATU_S_IMAGE_XIP_REGION;
         decrypt_region = RSE_SIC_S_IMAGE_DECRYPT_REGION;
         xip_region_base_addr = RSE_RUNTIME_S_XIP_BASE_S;
         max_region_size = S_CODE_SIZE;
@@ -229,7 +223,6 @@ enum sic_boot_err_t sic_boot_post_load(uint32_t image_id, uint32_t image_load_of
     }
 
     rc = host_flash_atu_setup_image_input_slots_from_fip(fip_offset,
-                                                         atu_region,
                                                          xip_region_base_addr,
                                                          image_uuid,
                                                          image_offset,

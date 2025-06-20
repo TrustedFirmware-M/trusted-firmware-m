@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "atu_rse_lib.h"
 #include "tfm_boot_measurement.h"
 #include "bootutil/bootutil.h"
 #include "bootutil/bootutil_log.h"
@@ -391,7 +392,6 @@ static int initialize_rse_scp_mhu(void)
 /* Function called before SCP firmware is loaded. */
 static int boot_platform_pre_load_scp(void)
 {
-    enum atu_error_t atu_err;
     int mhu_err;
 
     BOOT_LOG_INF("BL2: SCP pre load start");
@@ -401,33 +401,6 @@ static int boot_platform_pre_load_scp(void)
      */
     if (host_system_prepare_mscp_access() != 0) {
         BOOT_LOG_ERR("BL2: Could not setup access to MSCP systems.");
-        return -1;
-    }
-
-    /* Configure ATUs for loading to areas not directly addressable by RSE. */
-
-    /*
-     * Configure RSE ATU to access header region for SCP. The header part of
-     * the image is loaded at the end of the ITCM to allow the code part of the
-     * image to be placed at the start of the ITCM. For this, setup a separate
-     * ATU region for the image header.
-     */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_IMG_HDR_LOAD_ID,
-                                    HOST_SCP_HDR_ATU_WINDOW_BASE_S,
-                                    HOST_SCP_HDR_PHYS_BASE,
-                                    RSE_IMG_HDR_ATU_WINDOW_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    /* Configure RSE ATU to access SCP ITCM region */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_IMG_CODE_LOAD_ID,
-                                    HOST_SCP_IMG_CODE_BASE_S,
-                                    HOST_SCP_PHYS_BASE,
-                                    HOST_SCP_ATU_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
         return -1;
     }
 
@@ -445,7 +418,6 @@ static int boot_platform_pre_load_scp(void)
 /* Function called after SCP firmware is loaded. */
 static int boot_platform_post_load_scp(void)
 {
-    enum atu_error_t atu_err;
     struct rse_integ_t *integ_layer =
             (struct rse_integ_t *)RSE_INTEG_LAYER_BASE_S;
     enum mscp_error_t mscp_err;
@@ -461,38 +433,9 @@ static int boot_platform_post_load_scp(void)
     /* Enable SCP's ATU Access Permission (ATU AP) */
     integ_layer->atu_ap |= RSE_INTEG_ATU_AP_SCP_ATU;
 
-    /* Configure RSE ATU to access SCP INIT_CTRL region */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    HOST_SCP_INIT_CTRL_ATU_ID,
-                                    HOST_SCP_INIT_CTRL_BASE_S,
-                                    HOST_SCP_INIT_CTRL_PHYS_BASE,
-                                    HOST_SCP_INIT_CTRL_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
     mscp_err = mscp_driver_release_cpu(&HOST_SCP_DEV);
     if (mscp_err != MSCP_ERR_NONE) {
         BOOT_LOG_ERR("BL2: SCP release failed");
-        return -1;
-    }
-    BOOT_LOG_INF("BL2: SCP is released out of reset");
-
-    /* Close RSE ATU region configured to access SCP INIT_CTRL region */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, HOST_SCP_INIT_CTRL_ATU_ID);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    /* Close RSE ATU region configured to access RSE header region for SCP */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_HDR_LOAD_ID);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    /* Close RSE ATU region configured to access SCP ITCM region */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_CODE_LOAD_ID);
-    if (atu_err != ATU_ERR_NONE) {
         return -1;
     }
 
@@ -508,38 +451,8 @@ static int boot_platform_post_load_scp(void)
 /* Function called before MCP firmware is loaded. */
 static int boot_platform_pre_load_mcp(void)
 {
-    enum atu_error_t atu_err;
     struct rse_integ_t *integ_layer =
             (struct rse_integ_t *)RSE_INTEG_LAYER_BASE_S;
-
-    BOOT_LOG_INF("BL2: MCP pre load start");
-
-    /* Configure ATUs for loading to areas not directly addressable by RSE. */
-
-    /*
-     * Configure RSE ATU to access header region for MCP. The header part of
-     * the image is loaded at the end of the ITCM to allow the code part of the
-     * image to be placed at the start of the ITCM. For this, setup a separate
-     * ATU region for the image header.
-     */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_IMG_HDR_LOAD_ID,
-                                    HOST_MCP_HDR_ATU_WINDOW_BASE_S,
-                                    HOST_MCP_HDR_PHYS_BASE,
-                                    RSE_IMG_HDR_ATU_WINDOW_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    /* Configure RSE ATU to access MCP ITCM region */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_IMG_CODE_LOAD_ID,
-                                    HOST_MCP_IMG_CODE_BASE_S,
-                                    HOST_MCP_PHYS_BASE,
-                                    HOST_MCP_ATU_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
 
     BOOT_LOG_INF("BL2: MCP pre load complete");
 
@@ -552,7 +465,6 @@ static int boot_platform_pre_load_mcp(void)
 /* Function called after MCP firmware is loaded. */
 static int boot_platform_post_load_mcp(void)
 {
-    enum atu_error_t atu_err;
     enum mscp_error_t mscp_err;
 
     BOOT_LOG_INF("BL2: MCP post load start");
@@ -563,38 +475,9 @@ static int boot_platform_post_load_mcp(void)
      */
     memset((void*)HOST_MCP_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
 
-    /* Configure RSE ATU to access MCP INIT_CTRL region */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    HOST_MCP_INIT_CTRL_ATU_ID,
-                                    HOST_MCP_INIT_CTRL_BASE_S,
-                                    HOST_MCP_INIT_CTRL_PHYS_BASE,
-                                    HOST_MCP_INIT_CTRL_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
     mscp_err = mscp_driver_release_cpu(&HOST_MCP_DEV);
     if (mscp_err != MSCP_ERR_NONE) {
         BOOT_LOG_ERR("BL2: MCP release failed");
-        return -1;
-    }
-    BOOT_LOG_INF("BL2: MCP is released out of reset");
-
-    /* Close RSE ATU region configured to access MCP INIT_CTRL region */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, HOST_MCP_INIT_CTRL_ATU_ID);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    /* Close RSE ATU region configured to access RSE header region for MCP */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_HDR_LOAD_ID);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    /* Close RSE ATU region configured to access MCP ITCM region */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_CODE_LOAD_ID);
-    if (atu_err != ATU_ERR_NONE) {
         return -1;
     }
 
@@ -635,12 +518,11 @@ static int boot_platform_pre_load_lcp(void)
      * image to be placed at the start of the ITCM. For this, setup a separate
      * ATU region for the image header.
      */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_IMG_HDR_LOAD_ID,
-                                    HOST_LCP_HDR_ATU_WINDOW_BASE_S,
-                                    (host_system_info->chip_ap_phys_base +
-                                        HOST_LCP_0_HDR_PHYS_BASE),
-                                    RSE_IMG_HDR_ATU_WINDOW_SIZE);
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S,
+                                           host_system_info->chip_ap_phys_base + HOST_LCP_0_HDR_PHYS_BASE,
+                                           HOST_LCP_HDR_ATU_WINDOW_BASE_S,
+                                           RSE_IMG_HDR_ATU_WINDOW_SIZE,
+                                           ATU_ENCODE_ATTRIBUTES_SECURE_PAS);
     if (atu_err != ATU_ERR_NONE) {
         BOOT_LOG_ERR("BL2: ATU could not init LCP header load region");
         return -1;
@@ -649,12 +531,12 @@ static int boot_platform_pre_load_lcp(void)
     /*
      * Configure RSE ATU region to access the Cluster utility space.
      */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_IMG_CODE_LOAD_ID,
-                                    HOST_LCP_IMG_CODE_BASE_S,
-                                    (host_system_info->chip_ap_phys_base +
-                                        HOST_LCP_N_CODE_PHYS_BASE(0)),
-                                    HOST_LCP_ATU_SIZE);
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S,
+                                           host_system_info->chip_ap_phys_base +
+                                           HOST_LCP_N_CODE_PHYS_BASE(0),
+                                           HOST_LCP_IMG_CODE_BASE_S,
+                                           HOST_LCP_ATU_SIZE,
+                                           ATU_ENCODE_ATTRIBUTES_SECURE_PAS);
     if (atu_err != ATU_ERR_NONE) {
         BOOT_LOG_ERR("BL2: ATU could not init LCP code load region");
         return -1;
@@ -683,7 +565,7 @@ static int boot_platform_post_load_lcp(void)
     memset((void*)HOST_LCP_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
 
     /* Close RSE ATU region configured to access LCP ITCM region */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_CODE_LOAD_ID);
+    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_LCP_IMG_CODE_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
         BOOT_LOG_ERR("BL2: ATU could not uninit LCP code load region");
         return -1;
@@ -702,12 +584,12 @@ static int boot_platform_post_load_lcp(void)
          * Configure RSE ATU region to access the Cluster utility space and map
          * to the i-th LCP's ITCM
          */
-        atu_err = atu_initialize_region(&ATU_DEV_S,
-                                        RSE_ATU_IMG_CODE_LOAD_ID,
-                                        HOST_LCP_IMG_CODE_BASE_S,
-                                        (host_system_info->chip_ap_phys_base +
-                                            HOST_LCP_N_CODE_PHYS_BASE(lcp_idx)),
-                                        HOST_LCP_ATU_SIZE);
+        atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S,
+                                               host_system_info->chip_ap_phys_base +
+                                               HOST_LCP_N_CODE_PHYS_BASE(lcp_idx),
+                                               HOST_LCP_IMG_CODE_BASE_S,
+                                               HOST_LCP_ATU_SIZE,
+                                               ATU_ENCODE_ATTRIBUTES_SECURE_PAS);
         if (atu_err != ATU_ERR_NONE) {
             BOOT_LOG_ERR("BL2: ATU could not init LCP code load region");
             return -1;
@@ -740,7 +622,7 @@ static int boot_platform_post_load_lcp(void)
         memset((void*)HOST_LCP_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
 
         /* Close RSE ATU region configured to access LCP ITCM region */
-        atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_CODE_LOAD_ID);
+        atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_LCP_IMG_CODE_BASE_S);
         if (atu_err != ATU_ERR_NONE) {
             BOOT_LOG_ERR("BL2: ATU could not uninit LCP code load region");
             return -1;
@@ -761,7 +643,7 @@ static int boot_platform_post_load_lcp(void)
     }
 
     /* Close RSE ATU region configured to access RSE header region for LCP */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_HDR_LOAD_ID);
+    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_LCP_IMG_CODE_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
         BOOT_LOG_ERR("BL2: ATU could not uninit LCP header load region");
         return -1;
@@ -779,59 +661,6 @@ static int boot_platform_post_load_lcp(void)
 /* Function called before AP BL1 firmware is loaded. */
 static int boot_platform_pre_load_ap_bl1(void)
 {
-    enum atu_error_t atu_err;
-    enum atu_roba_t roba_value;
-
-    BOOT_LOG_INF("BL2: AP BL1 pre load start");
-
-    /* Configure RSE ATU to access RSE header region for AP BL1 */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_IMG_HDR_LOAD_ID,
-                                    HOST_AP_BL1_HDR_ATU_WINDOW_BASE_S,
-                                    HOST_AP_BL1_HDR_PHYS_BASE,
-                                    RSE_IMG_HDR_ATU_WINDOW_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    roba_value = ATU_ROBA_SET_1;
-    atu_err = set_axnsc(&ATU_DEV_S, roba_value, RSE_ATU_IMG_HDR_LOAD_ID);
-    if (atu_err != ATU_ERR_NONE) {
-        BOOT_LOG_INF("BL2: Unable to modify AxNSE");
-        return -1;
-    }
-
-    roba_value = ATU_ROBA_SET_0;
-    atu_err = set_axprot1(&ATU_DEV_S, roba_value, RSE_ATU_IMG_HDR_LOAD_ID);
-    if (atu_err != ATU_ERR_NONE) {
-        BOOT_LOG_INF("BL2: Unable to modify AxPROT1");
-        return -1;
-    }
-
-    /* Configure RSE ATU to access AP BL1 Shared SRAM region */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_IMG_CODE_LOAD_ID,
-                                    HOST_AP_BL1_IMG_CODE_BASE_S,
-                                    HOST_AP_BL1_PHYS_BASE,
-                                    HOST_AP_BL1_ATU_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    roba_value = ATU_ROBA_SET_1;
-    atu_err = set_axnsc(&ATU_DEV_S, roba_value, RSE_ATU_IMG_CODE_LOAD_ID);
-    if (atu_err != ATU_ERR_NONE) {
-        BOOT_LOG_INF("BL2: Unable to modify AxNSE");
-        return -1;
-    }
-
-    roba_value = ATU_ROBA_SET_0;
-    atu_err = set_axprot1(&ATU_DEV_S, roba_value, RSE_ATU_IMG_CODE_LOAD_ID);
-    if (atu_err != ATU_ERR_NONE) {
-        BOOT_LOG_INF("BL2: Unable to modify AxPROT1");
-        return -1;
-    }
-
     BOOT_LOG_INF("BL2: AP BL1 pre load complete");
 
     return 0;
@@ -840,8 +669,6 @@ static int boot_platform_pre_load_ap_bl1(void)
 /* Function called after AP BL1 firmware is loaded. */
 static int boot_platform_post_load_ap_bl1(void)
 {
-    enum atu_error_t atu_err;
-
     BOOT_LOG_INF("BL2: AP BL1 post load start");
 
     /*
@@ -857,18 +684,6 @@ static int boot_platform_post_load_ap_bl1(void)
      * header part in the Shared SRAM before releasing AP BL1 out of reset.
      */
     memset((void*)HOST_AP_BL1_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
-
-    /* Close RSE ATU region configured to access RSE header region for AP BL1 */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_HDR_LOAD_ID);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    /* Close RSE ATU region configured to access AP BL1 Shared SRAM region */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_CODE_LOAD_ID);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
 
     BOOT_LOG_INF("BL2: AP BL1 post load complete");
 

@@ -18,27 +18,6 @@
 
 #define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
 
-#define RSE_ATU_BASE_ID 0
-
-enum rse_atu_ids {
-    /*
-     * ATU regions for loading firmware in BL2. Reused per firmware. Not used
-     * outside BL2.
-     */
-
-    /* ID to use for region loading the header of an image */
-    RSE_ATU_IMG_HDR_LOAD_ID = RSE_ATU_BASE_ID,
-    /* ID to use for region loading the rest of an image */
-    RSE_ATU_IMG_CODE_LOAD_ID,
-    /* ID to use for region initializing firmware */
-    RSE_ATU_FW_INIT_ID,
-
-    /* ATU region ID for programming NoC S3 */
-    RSE_ATU_NOC_S3_ID,
-    /* ATU region ID for SYSCTRL SMMU */
-    RSE_ATU_SYSCTRL_SMMU_ID,
-};
-
 /*
  * ATU controller enforces a minimum size and all regions are restricted to
  * align with it
@@ -163,8 +142,6 @@ enum rse_atu_ids {
 #define HOST_SCP_INIT_CTRL_BASE_S    RSE_MSCP_INIT_CTRL_ATU_BASE
 /* SCP INIT CTRL region ATU size */
 #define HOST_SCP_INIT_CTRL_SIZE      RSE_MSCP_INIT_CTRL_SIZE
-/* SCP INIT CTRL region ATU id */
-#define HOST_SCP_INIT_CTRL_ATU_ID    RSE_ATU_FW_INIT_ID
 
 /* ****************************************************************************
  *                                   MCP                                      *
@@ -193,8 +170,6 @@ enum rse_atu_ids {
 #define HOST_MCP_INIT_CTRL_BASE_S    RSE_MSCP_INIT_CTRL_ATU_BASE
 /* MCP INIT CTRL region ATU size */
 #define HOST_MCP_INIT_CTRL_SIZE      RSE_MSCP_INIT_CTRL_SIZE
-/* MCP INIT CTRL region ATU id */
-#define HOST_MCP_INIT_CTRL_ATU_ID    RSE_ATU_FW_INIT_ID
 
 /* ****************************************************************************
  *                                   LCP                                      *
@@ -233,7 +208,6 @@ enum rse_atu_ids {
 #define HOST_LCP_N_EXT_CTRL_PHYS_BASE(n)    (HOST_LCP_N_PHYS_BASE(n) + \
                                              HOST_LCP_EXTENDED_CONTROL_BASE)
 #define HOST_LCP_N_EXT_CTRL_SIZE            RSE_MSCP_INIT_CTRL_SIZE
-#define HOST_LCP_N_EXT_CTRL_ATU_ID          RSE_ATU_FW_INIT_ID
 
 /* ****************************************************************************
  *                                   AP BL1                                   *
@@ -267,11 +241,63 @@ enum rse_atu_ids {
 #define HOST_NOC_S3_BASE      (HOST_AP_BL1_IMG_CODE_BASE_S +                   \
                                HOST_AP_BL1_ATU_SIZE)
 #define HOST_NOC_S3_SIZE      ALIGN_UP(0x1000000U, RSE_ATU_PAGE_SIZE)
-#define HOST_NOC_S3_ATU_ID    RSE_ATU_NOC_S3_ID
 
 /* ATU region mapping to access SYSCTRL SMMU */
 #define HOST_SYSCTRL_SMMU_BASE      (HOST_NOC_S3_BASE + HOST_NOC_S3_SIZE)
 #define HOST_SYSCTRL_SMMU_SIZE      0x100000U
-#define HOST_SYSCTRL_SMMU_ATU_ID    RSE_ATU_SYSCTRL_SMMU_ID
+
+#define PLAT_DEP_STATIC_CFG \
+    { \
+        .log_addr = HOST_SCP_HDR_ATU_WINDOW_BASE_S, \
+        .phys_addr = HOST_SCP_HDR_PHYS_BASE, \
+        .size = RSE_IMG_HDR_ATU_WINDOW_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS, \
+    }, \
+    { \
+        .log_addr = HOST_SCP_IMG_CODE_BASE_S, \
+        .phys_addr = HOST_SCP_PHYS_BASE, \
+        .size = HOST_SCP_ATU_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS, \
+    }, \
+    { \
+        .log_addr = HOST_SCP_INIT_CTRL_BASE_S, \
+        .phys_addr = HOST_SCP_INIT_CTRL_PHYS_BASE, \
+        .size = HOST_SCP_INIT_CTRL_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS, \
+    }, \
+    { \
+        .log_addr = HOST_MCP_HDR_ATU_WINDOW_BASE_S, \
+        .phys_addr = HOST_MCP_HDR_PHYS_BASE, \
+        .size = RSE_IMG_HDR_ATU_WINDOW_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS, \
+    }, \
+    { \
+        .log_addr = HOST_MCP_IMG_CODE_BASE_S, \
+        .phys_addr = HOST_MCP_PHYS_BASE, \
+        .size = HOST_MCP_ATU_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS, \
+    }, \
+    { \
+        .log_addr = HOST_MCP_INIT_CTRL_BASE_S, \
+        .phys_addr = HOST_MCP_INIT_CTRL_PHYS_BASE, \
+        .size = HOST_MCP_INIT_CTRL_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS, \
+    }, \
+    { \
+        .log_addr = HOST_AP_BL1_HDR_ATU_WINDOW_BASE_S, \
+        .phys_addr = HOST_AP_BL1_HDR_PHYS_BASE, \
+        .size = RSE_IMG_HDR_ATU_WINDOW_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS | \
+                        ATU_ROBA_SET_1 << ATU_ATUROBA_AXNSE_OFF | \
+                        ATU_ROBA_SET_0 << ATU_ATUROBA_AXPROT1_OFF, \
+    }, \
+    { \
+        .log_addr = HOST_AP_BL1_IMG_CODE_BASE_S, \
+        .phys_addr = HOST_AP_BL1_PHYS_BASE, \
+        .size = HOST_AP_BL1_ATU_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS | \
+                        ATU_ROBA_SET_1 << ATU_ATUROBA_AXNSE_OFF | \
+                        ATU_ROBA_SET_0 << ATU_ATUROBA_AXPROT1_OFF, \
+    }
 
 #endif  /* __HOST_ATU_BASE_ADDRESS_H__ */

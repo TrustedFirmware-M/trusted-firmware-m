@@ -214,6 +214,8 @@ target_sources(platform_s
         ${PLATFORM_DIR}/ext/target/arm/drivers/dma/dma350/dma350_lib.c
         $<$<BOOL:${RSE_USE_SDS_LIB}>:${CMAKE_CURRENT_SOURCE_DIR}/libraries/sds.c>
         native_drivers/atu_rse_drv.c
+        native_drivers/atu_rse_lib.c
+        device/source/atu_config.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/dma/dma350/dma350_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/dma/dma350/dma350_ch_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/kmu/kmu_drv.c
@@ -352,6 +354,8 @@ target_sources(platform_bl2
         $<$<OR:$<BOOL:${PLATFORM_HOST_HAS_MCP}>,$<BOOL:${PLATFORM_HOST_HAS_SCP}>>:${CMAKE_CURRENT_SOURCE_DIR}/host_drivers/mscp_drv/mscp_drv.c>
         $<$<BOOL:${PLATFORM_HAS_BOOT_DMA}>:${PLATFORM_DIR}/ext/target/arm/drivers/dma/dma350/dma350_lib.c>
         native_drivers/atu_rse_drv.c
+        native_drivers/atu_rse_lib.c
+        device/source/atu_config_bl2.c
         $<$<BOOL:${PLATFORM_HAS_BOOT_DMA}>:${PLATFORM_DIR}/ext/target/arm/drivers/dma/dma350/dma350_ch_drv.c>
         $<$<BOOL:${PLATFORM_HAS_BOOT_DMA}>:${PLATFORM_DIR}/ext/target/arm/drivers/dma/dma350/dma350_drv.c>
         ${PLATFORM_DIR}/ext/target/arm/drivers/kmu/kmu_drv.c
@@ -464,6 +468,8 @@ target_sources(platform_bl1_1
         $<$<BOOL:${RSE_DEFAULT_CLOCK_CONFIG}>:${CMAKE_CURRENT_SOURCE_DIR}/device/source/rse_clocks.c>
         ./device/source/system_core_init.c
         ./native_drivers/atu_rse_drv.c
+        ./native_drivers/atu_rse_lib.c
+        ./device/source/atu_config.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/kmu/kmu_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/lcm/lcm_drv.c
         $<$<EQUAL:${PLAT_MHU_VERSION},2>:${CMAKE_CURRENT_SOURCE_DIR}/native_drivers/mhu_v2_x.c>
@@ -641,6 +647,9 @@ target_sources(platform_bl1_2
         ./bl1/boot_hal_bl1_2.c
         ./bl1/bl1_2_debug.c
         ./sam_interrupts.c
+        ./native_drivers/atu_rse_drv.c
+        ./native_drivers/atu_rse_lib.c
+        ./device/source/atu_config.c
 )
 
 add_dependencies(platform_bl1_2 bl1_1_shared_symbols)
@@ -654,6 +663,7 @@ target_include_directories(platform_bl1_2
         ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/include
         ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/default_config
         ./tests/rse_test_executable
+        ./native_drivers
 )
 
 target_compile_definitions(platform_bl1_2
@@ -1024,6 +1034,7 @@ endif()
 
 if (TFM_LOAD_NS_IMAGE)
     install(FILES       device/source/device_definition.c
+                        device/source/atu_config.c
                         $<$<BOOL:${RSE_DEFAULT_CLOCK_CONFIG}>:${CMAKE_CURRENT_SOURCE_DIR}/device/source/rse_clocks.c>
                         device/source/startup_rse.c
                         device/source/system_core_init.c

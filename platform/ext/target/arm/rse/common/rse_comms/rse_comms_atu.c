@@ -6,16 +6,18 @@
  */
 
 #include "rse_comms_atu.h"
-#include "atu_rse_drv.h"
+#include "atu_config.h"
+#include "atu_rse_lib.h"
 #include "tfm_log.h"
 #include "device_definition.h"
 #include "platform_base_address.h"
 
-struct comms_atu_region_params_t {
+struct comms_atu_region_params_t
+{
     uint32_t log_addr;
     uint64_t phys_addr;
     uint32_t size;
-    uint8_t region;
+    uint32_t out_bus_attr;
     uint32_t ref_count;
 };
 
@@ -104,11 +106,6 @@ static enum tfm_plat_err_t setup_region_for_host_buf(uint64_t host_addr,
     }
 
     region_params = &atu_regions[region_idx];
-    region_params->region = region_idx + RSE_COMMS_ATU_REGION_MIN;
-
-    region_params->log_addr = HOST_COMMS_MAPPABLE_BASE_S
-                              + (RSE_COMMS_ATU_REGION_SIZE * region_idx);
-
     region_params->phys_addr = round_down(host_addr, RSE_COMMS_ATU_PAGE_SIZE);
     region_params->size = RSE_COMMS_ATU_REGION_SIZE;
 
@@ -116,11 +113,12 @@ static enum tfm_plat_err_t setup_region_for_host_buf(uint64_t host_addr,
         return TFM_PLAT_ERR_INVALID_INPUT;
     }
 
-    atu_err = atu_initialize_region(&ATU_DEV_S, region_params->region,
-                                    region_params->log_addr,
-                                    region_params->phys_addr,
-                                    region_params->size);
-    if (atu_err) {
+    region_params->out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS;
+    atu_err = atu_rse_map_addr_automatically(&ATU_DEV_S, region_params->phys_addr,
+                                             region_params->size, region_params->out_bus_attr,
+                                             &region_params->log_addr, &region_params->size);
+
+    if (atu_err != ATU_ERR_NONE) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
@@ -170,7 +168,7 @@ enum tfm_plat_err_t comms_atu_free_region(uint8_t region)
     region_params = &atu_regions[region];
 
     if (atu_regions[region].ref_count == 0) {
-        atu_err = atu_uninitialize_region(&ATU_DEV_S, region_params->region);
+        atu_err = atu_rse_free_addr(&ATU_DEV_S, region_params->log_addr);
         if (atu_err) {
             return TFM_PLAT_ERR_SYSTEM_ERR;
         }
@@ -192,8 +190,7 @@ enum tfm_plat_err_t comms_atu_free_regions(comms_atu_region_set_t regions)
             region_params = &atu_regions[region_idx];
 
             if (atu_regions[region_idx].ref_count == 0) {
-                atu_err = atu_uninitialize_region(&ATU_DEV_S,
-                                                  region_params->region);
+                atu_err = atu_rse_free_addr(&ATU_DEV_S, region_params->log_addr);
                 if (atu_err) {
                     return TFM_PLAT_ERR_SYSTEM_ERR;
                 }

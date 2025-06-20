@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 /* Base address and size of shared memory with SCP for SCMI transport */
-#define SCP_SHARED_MEMORY_BASE HOST_SCP_COMMS_BASE_S
+#define SCP_SHARED_MEMORY_BASE HOST_FLASH0_TEMP_BASE_S
 #define SCP_SHARED_MEMORY_SIZE 128U
 
 #ifdef __cplusplus

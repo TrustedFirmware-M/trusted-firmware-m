@@ -44,12 +44,6 @@ extern "C" {
 #define STAGING_AREA_FIP_B_BASE_S_PHYSICAL  (HOST_STAGING_MEM_BASE + HOST_FIP_MAX_SIZE)
 #endif /* !RSE_GPT_SUPPORT */
 
-/* ATU Slot Configuration */
-#define STAGING_AREA_FIP_A_ATU_SLOT          1u
-#define STAGING_AREA_FIP_B_ATU_SLOT          2u
-#define HOST_FLASH_FIP_A_ATU_SLOT            3u
-#define HOST_FLASH_FIP_B_ATU_SLOT            4u
-
 #ifdef __cplusplus
 }
 #endif

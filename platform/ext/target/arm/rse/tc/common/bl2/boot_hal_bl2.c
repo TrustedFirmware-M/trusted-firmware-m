@@ -28,6 +28,8 @@
 #include "bl2_image_id.h"
 #include "Driver_Flash.h"
 #include "host_flash_atu.h"
+#include "atu_config.h"
+#include "atu_rse_lib.h"
 #include "sic_boot.h"
 #include "plat_def_fip_uuid.h"
 #include "flash_map/flash_map.h"
@@ -50,22 +52,21 @@ extern const int flash_map_entry_num;
 static int clear_ap_sds_region(void)
 {
     enum atu_error_t err;
+    uint32_t log_addr;
+    uint32_t size;
 
-    err = atu_initialize_region(&ATU_DEV_S,
-                                TEMPORARY_ATU_MAPPING_REGION_ID,
-                                TEMPORARY_ATU_MAPPING_BASE,
-                                PLAT_RSE_AP_SDS_ATU_MAPPING_BASE,
-                                PLAT_RSE_AP_SDS_ATU_MAPPING_SIZE);
+    err = atu_rse_map_addr_automatically(&ATU_DEV_S, PLAT_RSE_AP_SDS_ATU_MAPPING_BASE,
+                                         PLAT_RSE_AP_SDS_ATU_MAPPING_SIZE,
+                                         ATU_ENCODE_ATTRIBUTES_SECURE_PAS, &log_addr, &size);
     if (err != ATU_ERR_NONE) {
         return err;
     }
 
-    memset((void *)(TEMPORARY_ATU_MAPPING_BASE +
+    memset((void *)(log_addr +
             (PLAT_RSE_AP_SDS_BASE - PLAT_RSE_AP_SDS_ATU_MAPPING_BASE)),
             0, PLAT_RSE_AP_SDS_SIZE);
 
-    err = atu_uninitialize_region(&ATU_DEV_S,
-                                TEMPORARY_ATU_MAPPING_REGION_ID);
+    err = atu_rse_free_addr(&ATU_DEV_S, log_addr);
     if (err != ATU_ERR_NONE) {
         return err;
     }
@@ -81,6 +82,7 @@ int32_t boot_platform_post_init(void)
     enum tfm_plat_err_t plat_err;
 #endif /* PLATFORM_HAS_BOOT_DMA */
     int32_t result;
+    enum atu_error_t atu_err;
 
     result = rse_sam_init(RSE_SAM_INIT_SETUP_FULL);
     if (result != 0) {
@@ -125,6 +127,12 @@ int32_t boot_platform_post_init(void)
         return result;
     }
 #endif /* RSE_XIP */
+
+    atu_err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static, atu_stat_count);
+    if (atu_err != ATU_ERR_NONE) {
+        BOOT_LOG_ERR("Failed to initialize ATU");
+        return 1;
+    }
 
 #ifdef RSE_USE_SDS_LIB
     result = clear_ap_sds_region();
@@ -242,26 +250,24 @@ int boot_platform_pre_load(uint32_t image_id)
 static int tc_scp_release_reset(void)
 {
     struct rse_sysctrl_t *sysctrl;
-
     int err;
+    uint32_t log_addr;
+    uint32_t size;
 
-    err = atu_initialize_region(&ATU_DEV_S,
-                                TEMPORARY_ATU_MAPPING_REGION_ID,
-                                TEMPORARY_ATU_MAPPING_BASE,
-                                SCP_SYSTEM_CONTROL_REGS_PHYS_BASE,
-                                SCP_SYSTEM_CONTROL_REGS_SIZE);
+    err = atu_rse_map_addr_automatically(&ATU_DEV_S, SCP_SYSTEM_CONTROL_REGS_PHYS_BASE,
+                                         SCP_SYSTEM_CONTROL_REGS_SIZE,
+                                         ATU_ENCODE_ATTRIBUTES_SECURE_PAS, &log_addr, &size);
     if (err != ATU_ERR_NONE) {
         return err;
     }
 
     /* SCP SSE-310 System Control Block same as RSE System Control
      * Registers */
-    sysctrl = (struct rse_sysctrl_t *)(TEMPORARY_ATU_MAPPING_BASE +
+    sysctrl = (struct rse_sysctrl_t *)(log_addr +
         SCP_SYSTEM_CONTROL_BLOCK_OFFSET);
     sysctrl->cpuwait = 0;
 
-    err = atu_uninitialize_region(&ATU_DEV_S,
-                                TEMPORARY_ATU_MAPPING_REGION_ID);
+    err = atu_rse_free_addr(&ATU_DEV_S, log_addr);
     if (err != ATU_ERR_NONE) {
         return err;
     }
@@ -296,6 +302,16 @@ int boot_platform_post_load(uint32_t image_id)
         }
         BOOT_LOG_INF("Got SCP BL1 started event");
 
+        err = atu_rse_free_addr(&ATU_DEV_S, HOST_BOOT_IMAGE1_LOAD_BASE_S);
+        if (err != ATU_ERR_NONE) {
+            return err;
+        }
+
+        err = atu_rse_free_addr(&ATU_DEV_S, HOST_BOOT_IMAGE1_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
+        if (err != ATU_ERR_NONE) {
+            return err;
+        }
+
     } else if (image_id == RSE_BL2_IMAGE_AP) {
         memset((void *)HOST_BOOT_IMAGE0_LOAD_BASE_S, 0, HOST_IMAGE_HEADER_SIZE);
         BOOT_LOG_INF("Telling SCP to start AP cores");
@@ -304,13 +320,23 @@ int boot_platform_post_load(uint32_t image_id)
             return TFM_PLAT_ERR_POST_LOAD_IMG_BY_BL2_FAIL;
         }
         BOOT_LOG_INF("Sent the signal to SCP");
+
+        err = atu_rse_free_addr(&ATU_DEV_S, HOST_BOOT_IMAGE0_LOAD_BASE_S);
+        if (err != ATU_ERR_NONE) {
+            return err;
+        }
+
+        err = atu_rse_free_addr(&ATU_DEV_S, HOST_BOOT_IMAGE0_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
+        if (err != ATU_ERR_NONE) {
+            return err;
+        }
     }
 #else
     BOOT_LOG_INF("Skipping SCP signaling as TC_NO_RELEASE_RESET is defined");
 #endif /* TC_NO_RELEASE_RESET */
 
 
-    err = host_flash_atu_uninit_regions();
+    err = host_flash_atu_free_input_image_regions();
     if (err) {
         return TFM_PLAT_ERR_POST_LOAD_IMG_BY_BL2_FAIL;
     }

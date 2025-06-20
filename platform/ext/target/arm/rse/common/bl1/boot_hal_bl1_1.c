@@ -43,6 +43,10 @@
 #define LOGGING_ENABLED
 #endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2) */
 
+#if defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART)
+#include "atu_config.h"
+#endif
+
 #define CMSDK_SECRESPCFG_BUS_ERR_MASK   (1UL)
 
 /* Flash device name must be specified by target */
@@ -77,22 +81,6 @@ static int32_t init_mpu_region_for_atu(void)
     }
 
     return mpu_armv8m_enable(&dev_mpu_s, PRIVILEGED_DEFAULT_ENABLE, HARDFAULT_NMI_ENABLE);
-}
-
-static enum tfm_plat_err_t init_atu_region_for_uart(void)
-{
-    enum atu_error_t atu_err;
-
-    /* Initialize UART region */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    get_supported_region_count(&ATU_DEV_S) - 1,
-                                    HOST_UART0_BASE_NS, HOST_UART_BASE,
-                                    HOST_UART_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return (enum tfm_plat_err_t)atu_err;
-    }
-
-    return TFM_PLAT_ERR_SUCCESS;
 }
 #endif /* defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART) */
 
@@ -180,9 +168,10 @@ int32_t boot_platform_init(void)
         return err;
     }
 
-    plat_err = init_atu_region_for_uart();
-    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
-        return plat_err;
+    /* Initialize ATU driver */
+    err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static, atu_stat_count);
+    if (err != ATU_ERR_NONE) {
+            return err;
     }
 #endif /* defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART) */
 

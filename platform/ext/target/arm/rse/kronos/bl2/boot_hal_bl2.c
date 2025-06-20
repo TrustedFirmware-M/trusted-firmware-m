@@ -211,15 +211,35 @@ int boot_platform_post_load(uint32_t image_id)
         }
         BOOT_LOG_INF("Got SCP BL1 started event");
 
+        err = atu_rse_free_addr(&ATU_DEV_S, HOST_BOOT_IMAGE1_LOAD_BASE_S);
+        if (err != ATU_ERR_NONE) {
+            return err;
+        }
+
+        err = atu_rse_free_addr(&ATU_DEV_S, HOST_BOOT_IMAGE1_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
+        if (err != ATU_ERR_NONE) {
+            return err;
+        }
+
     } else if (image_id == RSE_BL2_IMAGE_AP) {
         memset((void *)HOST_BOOT_IMAGE0_LOAD_BASE_S, 0, HOST_IMAGE_HEADER_SIZE);
         BOOT_LOG_INF("Telling SCP to start AP cores");
         mhu_v2_x_initiate_transfer(&MHU_RSE_TO_SCP_DEV);
         /* Slot 0 is used in the SCP protocol */
         mhu_v2_x_channel_send(&MHU_RSE_TO_SCP_DEV, 0, 1);
+
+        err = atu_rse_free_addr(&ATU_DEV_S, HOST_BOOT_IMAGE0_LOAD_BASE_S);
+        if (err != ATU_ERR_NONE) {
+            return err;
+        }
+
+        err = atu_rse_free_addr(&ATU_DEV_S, HOST_BOOT_IMAGE0_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
+        if (err != ATU_ERR_NONE) {
+            return err;
+        }
     }
 
-    err = host_flash_atu_uninit_regions();
+    err = host_flash_atu_free_input_image_regions();
     if (err) {
         return err;
     }

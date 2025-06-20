@@ -44,15 +44,6 @@
                                                     RSE_ATU_PAGE_SIZE)) -     \
                                           PLAT_RSE_AP_SDS_ATU_MAPPING_BASE)
 
-/* Temporary ATU mapping location. Placed directly after the last address
- * currently used for logical mapping in the RSE */
-#define TEMPORARY_ATU_MAPPING_BASE (HOST_ACCESS_BASE_S + 5 * HOST_IMAGE_MAX_SIZE)
-
-/* There is currently no single location where the ATU regions
- * are defined, so choose an arbitrary region which isn't
- * currently being used elsewhere in RSE */
-#define TEMPORARY_ATU_MAPPING_REGION_ID (10)
-
 #define RSE_ATU_AP_BASE             (0x00000000000000UL)
 #define HOST_STAGING_MEM_BASE       (RSE_ATU_AP_BASE + 0x80000000UL)
 

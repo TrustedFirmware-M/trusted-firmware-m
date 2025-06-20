@@ -11,7 +11,9 @@ set(RSE_COMMON_SOURCE_DIR ${PLATFORM_DIR}/ext/target/arm/rse/common)
 #-------------------------------------------------------------------------------
 # Unit under test
 #-------------------------------------------------------------------------------
+list(APPEND UNIT_UNDER_TEST ${RSE_COMMON_SOURCE_DIR}/device/source/atu_config.c)
 list(APPEND UNIT_UNDER_TEST ${RSE_COMMON_SOURCE_DIR}/native_drivers/atu_rse_drv.c)
+list(APPEND UNIT_UNDER_TEST ${RSE_COMMON_SOURCE_DIR}/native_drivers/atu_rse_lib.c)
 
 #-------------------------------------------------------------------------------
 # Test suite

@@ -13,22 +13,18 @@
 #include "device_definition.h"
 #include "rse_clocks.h"
 #include "rse_sam_config.h"
-#ifdef TFM_PARTITION_PROTECTED_STORAGE
-#include "host_base_address.h"
-#endif /* TFM_PARTITION_PROTECTED_STORAGE */
+#include "atu_config.h"
 
 #ifdef TFM_PARTITION_PROTECTED_STORAGE
-#define RSE_ATU_REGION_PS_SLOT  16
+#define RSE_ATU_REGION_PS_SLOT  1
 #endif /* TFM_PARTITION_PROTECTED_STORAGE */
 
 extern const struct memory_region_limits memory_regions;
 
 enum tfm_hal_status_t tfm_hal_platform_init(void)
 {
-    enum tfm_plat_err_t plat_err = TFM_PLAT_ERR_SYSTEM_ERR;
-#ifdef TFM_PARTITION_PROTECTED_STORAGE
     enum atu_error_t err;
-#endif /* TFM_PARTITION_PROTECTED_STORAGE */
+    enum tfm_plat_err_t plat_err = TFM_PLAT_ERR_SYSTEM_ERR;
 
     if (rse_clock_config() != 0) {
         return TFM_HAL_ERROR_GENERIC;
@@ -48,6 +44,11 @@ enum tfm_hal_status_t tfm_hal_platform_init(void)
     plat_err = init_debug();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return TFM_HAL_ERROR_GENERIC;
+    }
+
+    err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static, atu_stat_count);
+    if (err != ATU_ERR_NONE) {
+        return err;
     }
 
     __enable_irq();
@@ -72,18 +73,6 @@ enum tfm_hal_status_t tfm_hal_platform_init(void)
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return TFM_HAL_ERROR_GENERIC;
     }
-
-#ifdef TFM_PARTITION_PROTECTED_STORAGE
-    /* Initialize PS region */
-    err = atu_initialize_region(&ATU_DEV_S,
-                                RSE_ATU_REGION_PS_SLOT,
-                                HOST_ACCESS_PS_BASE_S,
-                                HOST_FLASH0_PS_BASE,
-                                HOST_FLASH0_PS_SIZE);
-    if (err != ATU_ERR_NONE) {
-        return TFM_HAL_ERROR_GENERIC;
-    }
-#endif /* TFM_PARTITION_PROTECTED_STORAGE */
 
     return TFM_HAL_SUCCESS;
 }

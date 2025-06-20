@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,29 +26,6 @@
 #include "platform_base_address.h"
 
 #define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
-
-#define RSE_ATU_BASE_ID 0
-
-enum rse_atu_ids {
-    /*
-     * ATU regions for loading firmware in BL2. Reused per firmware. Not used
-     * outside BL2.
-     */
-
-    /* ID to use for region loading the header of an image */
-    RSE_ATU_IMG_HDR_LOAD_ID = RSE_ATU_BASE_ID,
-    /* ID to use for region loading the rest of an image */
-    RSE_ATU_IMG_CODE_LOAD_ID,
-    /* ID to use for region initializing firmware */
-    RSE_ATU_FW_INIT_ID,
-
-    /* ATU region ID for programming NoC S3 */
-    RSE_ATU_NOC_S3_ID,
-    /* ATU region ID for programming GIC-720AE */
-    RSE_ATU_GIC_ID,
-    /* ATU region ID for AP secure flash */
-    RSE_ATU_AP_FLASH_ID,
-};
 
 /*
  * ATU controller enforces a minimum size and all regions are restricted to
@@ -263,23 +240,17 @@ enum rse_atu_ids {
 #define HOST_SCP_INIT_CTRL_PHYS_BASE 0x1000050050000ULL
 /* SCP sysctrl region ATU size */
 #define HOST_SCP_INIT_CTRL_SIZE      ALIGN_UP(0x1000U, RSE_ATU_PAGE_SIZE)
-/* SCP sysctrl region ATU id */
-#define HOST_SCP_INIT_CTRL_ATU_ID    RSE_ATU_FW_INIT_ID
 
 /* ATU region mapping to access System Control NoC S3 and Peripheral NoC S3 */
 #define HOST_NOC_S3_BASE      (HOST_SCP_INIT_CTRL_BASE_S +                \
                                  HOST_SCP_INIT_CTRL_SIZE)
 #define HOST_NOC_S3_SIZE      ALIGN_UP(0x1000000U, RSE_ATU_PAGE_SIZE)
-#define HOST_NOC_S3_ATU_ID    RSE_ATU_NOC_S3_ID
 
 /* ATU region mapping to access AP secure flash */
 #define HOST_AP_FLASH_BASE      (HOST_NOC_S3_BASE + HOST_NOC_S3_SIZE)
 #define HOST_AP_FLASH_SIZE      ALIGN_UP(AP_BOOT_FLASH_SIZE, RSE_ATU_PAGE_SIZE)
 #define HOST_AP_FLASH_PHY_BASE  HOST_AP_MEM_EXP_1_PHYS_BASE
-#define HOST_AP_FLASH_ATU_ID    RSE_ATU_AP_FLASH_ID
 
-/* Safety Island GIC view 0 region logical address start */
-#define HOST_SI_GIC_VIEW_0_BASE_S       (HOST_ACCESS_BASE_S + 0x8000000U)
 /* Safety Island GIC View 0 region physical address start */
 #define HOST_SI_GIC_VIEW_0_PHYS_BASE    0x8000030000000ULL
 /* Safety Island GIC region ATU size */

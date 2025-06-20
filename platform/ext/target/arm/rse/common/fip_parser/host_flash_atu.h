@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -25,7 +25,6 @@ extern "C" {
  * \param[in] physical_address    Physical address of the ATU slot.
  * \param[in] size                Unaligned slot size.
  * \param[in] boundary            Boundary for alignment checks.
- * \param[in] atu_slot            Slot number to use.
  * \param[in] logical_address     Logical address of the AATU slot.
  *
  * \param[out] alignment_offset   Address offset after alignment.
@@ -35,7 +34,7 @@ extern "C" {
  */
 enum tfm_plat_err_t setup_aligned_atu_slot(uint64_t physical_address,
                                            uint32_t size,
-                                           uint32_t boundary, uint32_t atu_slot,
+                                           uint32_t boundary,
                                            uint32_t logical_address,
                                            uint32_t *alignment_offset,
                                            size_t   *atu_slot_size);
@@ -108,9 +107,6 @@ int host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t fip_offsets[2]);
  * \param[in] fip_offset              The host flash offset of the FIP that
  *                                    should be parsed to find the image offset.
  *
- * \param[in] slot                    The ATU slot that should be setup as the
- *                                    image input slot.
- *
  * \param[in] logical_address         The address in RSE memory to which the ATU
  *                                    should map the image.
  *
@@ -129,7 +125,6 @@ int host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t fip_offsets[2]);
  * \return                            0 on success, non-zero on failure.
  */
 int host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
-                                                    uint32_t slot,
                                                     uintptr_t logical_address,
                                                     uuid_t image_uuid,
                                                     uint32_t *logical_address_offset,
@@ -205,13 +200,13 @@ int host_flash_atu_setup_image_output_slots(uint64_t image_load_phy_addr,
                                             uint64_t header_phy_addr);
 
 /**
- * \brief                             Teardown all image input and output slots.
+ * \brief                             Teardown all image input slots.
  *                                    Should be called between mapping different
  *                                    images.
  *
  * \return                            0 on success, non-zero on failure.
  */
-int host_flash_atu_uninit_regions(void);
+int host_flash_atu_free_input_image_regions(void);
 
 #ifdef __cplusplus
 }

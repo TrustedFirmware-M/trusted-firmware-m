@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024, Arm Limited. All rights reserved.
+* SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 *
 * SPDX-License-Identifier: BSD-3-Clause
 *
@@ -34,26 +34,12 @@ static struct host_system_t host_system_data = {0};
 static int noc_s3_pre_init(uint64_t noc_s3_phys_address)
 {
     enum atu_error_t atu_err;
-    enum atu_roba_t roba_value;
 
-    atu_err = atu_initialize_region(
-                &ATU_DEV_S,
-                HOST_NOC_S3_ATU_ID,
-                HOST_NOC_S3_BASE,
-                noc_s3_phys_address,
-                HOST_NOC_S3_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    roba_value = ATU_ROBA_SET_1;
-    atu_err = set_axnsc(&ATU_DEV_S, roba_value, HOST_NOC_S3_ATU_ID);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    roba_value = ATU_ROBA_SET_0;
-    atu_err = set_axprot1(&ATU_DEV_S, roba_value, HOST_NOC_S3_ATU_ID);
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S, noc_s3_phys_address, HOST_NOC_S3_BASE,
+                                           HOST_NOC_S3_SIZE,
+                                           ATU_ENCODE_ATTRIBUTES_SECURE_PAS |
+                                           ATU_ROBA_SET_1 << ATU_ATUROBA_AXNSE_OFF |
+                                           ATU_ROBA_SET_0 << ATU_ATUROBA_AXPROT1_OFF);
     if (atu_err != ATU_ERR_NONE) {
         return -1;
     }
@@ -66,7 +52,7 @@ static int noc_s3_post_init(void)
 {
     enum atu_error_t atu_err;
 
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, HOST_NOC_S3_ATU_ID);
+    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_NOC_S3_BASE);
     if (atu_err != ATU_ERR_NONE) {
         return -1;
     }
@@ -233,28 +219,17 @@ static int32_t noc_s3_periph_init_ap_bl1_post_load(void)
  */
 static int32_t sysctrl_smmu_init(void)
 {
-    enum atu_roba_t roba_value;
     enum atu_error_t atu_err;
     enum smmu_error_t smmu_err;
 
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    HOST_SYSCTRL_SMMU_ATU_ID,
-                                    HOST_SYSCTRL_SMMU_BASE,
-                                    (host_system_data.info.chip_ap_phys_base +
-                                        HOST_SYSCTRL_SMMU_PHYS_BASE),
-                                    HOST_SYSCTRL_SMMU_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    roba_value = ATU_ROBA_SET_1;
-    atu_err = set_axnsc(&ATU_DEV_S, roba_value, HOST_SYSCTRL_SMMU_ATU_ID);
-    if (atu_err != ATU_ERR_NONE) {
-        return -1;
-    }
-
-    roba_value = ATU_ROBA_SET_0;
-    atu_err = set_axprot1(&ATU_DEV_S, roba_value, HOST_SYSCTRL_SMMU_ATU_ID);
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S,
+                                           host_system_data.info.chip_ap_phys_base +
+                                           HOST_SYSCTRL_SMMU_PHYS_BASE,
+                                           HOST_SYSCTRL_SMMU_BASE,
+                                           HOST_SYSCTRL_SMMU_SIZE,
+                                           ATU_ENCODE_ATTRIBUTES_SECURE_PAS |
+                                           ATU_ROBA_SET_1 << ATU_ATUROBA_AXNSE_OFF |
+                                           ATU_ROBA_SET_0 << ATU_ATUROBA_AXPROT1_OFF );
     if (atu_err != ATU_ERR_NONE) {
         return -1;
     }
@@ -271,7 +246,7 @@ static int32_t sysctrl_smmu_init(void)
         return -1;
     }
 
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, HOST_SYSCTRL_SMMU_ATU_ID);
+    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_SYSCTRL_SMMU_BASE);
     if (atu_err != ATU_ERR_NONE) {
         return -1;
     }

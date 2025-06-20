@@ -30,4 +30,58 @@
 #include "platform_base_address.h"
 #include "size_defs.h"
 
+#define PLAT_DEP_STATIC_CFG \
+    { \
+        .log_addr = HOST_SCP_HDR_ATU_WINDOW_BASE_S, \
+        .phys_addr = HOST_SCP_HDR_PHYS_BASE, \
+        .size = RSE_IMG_HDR_ATU_WINDOW_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS, \
+    }, \
+    { \
+        .log_addr = HOST_SCP_IMG_CODE_BASE_S, \
+        .phys_addr = HOST_SCP_PHYS_BASE, \
+        .size = HOST_SCP_ATU_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS, \
+    }, \
+    { \
+        .log_addr = HOST_SCP_INIT_CTRL_BASE_S, \
+        .phys_addr = HOST_SCP_INIT_CTRL_PHYS_BASE, \
+        .size = HOST_SCP_INIT_CTRL_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS, \
+    }, \
+    { \
+        .log_addr = HOST_MCP_HDR_ATU_WINDOW_BASE_S, \
+        .phys_addr = HOST_MCP_HDR_PHYS_BASE, \
+        .size = RSE_IMG_HDR_ATU_WINDOW_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS, \
+    }, \
+    { \
+        .log_addr = HOST_MCP_IMG_CODE_BASE_S, \
+        .phys_addr = HOST_MCP_PHYS_BASE, \
+        .size = HOST_MCP_ATU_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS, \
+    }, \
+    { \
+        .log_addr = HOST_MCP_INIT_CTRL_BASE_S, \
+        .phys_addr = HOST_MCP_INIT_CTRL_PHYS_BASE, \
+        .size = HOST_MCP_INIT_CTRL_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS, \
+    }, \
+    { \
+        .log_addr = HOST_AP_BL1_HDR_ATU_WINDOW_BASE_S, \
+        .phys_addr = HOST_AP_BL1_HDR_PHYS_BASE, \
+        .size = RSE_IMG_HDR_ATU_WINDOW_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS | \
+                        ATU_ROBA_SET_1 << ATU_ATUROBA_AXNSE_OFF | \
+                        ATU_ROBA_SET_0 << ATU_ATUROBA_AXPROT1_OFF, \
+    }, \
+    { \
+        .log_addr = HOST_AP_BL1_IMG_CODE_BASE_S, \
+        .phys_addr = HOST_AP_BL1_PHYS_BASE, \
+        .size = HOST_AP_BL1_ATU_SIZE, \
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS | \
+                        ATU_ROBA_SET_1 << ATU_ATUROBA_AXNSE_OFF | \
+                        ATU_ROBA_SET_0 << ATU_ATUROBA_AXPROT1_OFF, \
+    }
+
 #endif  /* __HOST_BASE_ADDRESS_H__ */
