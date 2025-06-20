@@ -322,7 +322,6 @@ void tfm_arch_config_extensions(void)
 #endif /* defined(CONFIG_TFM_ENABLE_CP10CP11) */
 
 #if (CONFIG_TFM_FLOAT_ABI >= 1)
-
 #ifdef CONFIG_TFM_LAZY_STACKING
     /* Enable lazy stacking. */
     FPU->FPCCR |= FPU_FPCCR_LSPEN_Msk;
@@ -348,12 +347,10 @@ void tfm_arch_config_extensions(void)
 
     /* Prevent non-secure from modifying FPU’s power setting. */
 #if defined(__ARM_ARCH_8_1M_MAIN__) && (__ARM_ARCH_8_1M_MAIN__ == 1)
-    ICB->CPPWR |=
+    ICB->CPPWR |= ICB_CPPWR_SUS11_Msk | ICB_CPPWR_SUS10_Msk;
 #else
-    SCnSCB->CPPWR |=
+    SCnSCB->CPPWR |= SCnSCB_CPPWR_SUS11_Msk | SCnSCB_CPPWR_SUS10_Msk;
 #endif
-        ICB_CPPWR_SUS11_Msk | ICB_CPPWR_SUS10_Msk;
-
 #endif /* CONFIG_TFM_FLOAT_ABI >= 1 */
 
 #if defined(__ARM_ARCH_8_1M_MAIN__) && (__ARM_ARCH_8_1M_MAIN__ == 1)
