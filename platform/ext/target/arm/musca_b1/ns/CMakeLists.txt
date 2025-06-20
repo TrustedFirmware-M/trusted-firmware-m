@@ -11,6 +11,11 @@
 
 add_library(platform_ns)
 
+target_compile_definitions(platform_ns
+    PRIVATE
+        DOMAIN_NS=1
+)
+
 target_sources(platform_ns
     PRIVATE
         Device/Source/startup_musca.c

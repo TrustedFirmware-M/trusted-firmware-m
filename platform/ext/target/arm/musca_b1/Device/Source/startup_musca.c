@@ -22,6 +22,9 @@
  */
 
 #include "tfm_hal_device_header.h"
+#include "platform_regs.h"
+
+#define CPU_IDENTITY_CPU0_ID   0
 
 /*----------------------------------------------------------------------------
   External References
@@ -250,6 +253,20 @@ extern const VECTOR_TABLE_Type __VECTOR_TABLE[];
  *----------------------------------------------------------------------------*/
 void Reset_Handler(void)
 {
+#ifndef DOMAIN_NS
+    uint32_t cpu_identity = *(volatile uint32_t*) MUSCA_B1_CPU_IDENTITY_S_BASE;
+    struct sysctrl_t *sysctrl = (struct sysctrl_t *) CMSDK_SYSCTRL_BASE_S;
+
+    /* Release CPUs from reset */
+    sysctrl->cpuwait = 0;
+
+    if (cpu_identity == CPU_IDENTITY_CPU0_ID) {
+        while (1) {
+            __WFI();
+        }
+    }
+#endif /* !DOMAIN_NS */
+
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
     __disable_irq();
 #endif

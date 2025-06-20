@@ -80,6 +80,7 @@ extern "C" {
 #define MUSCA_B1_OTP_S_BASE              (0x1E000000UL)           /*!< (Secure OTP                        ) Base Address */
 #define MUSCA_B1_SRAM_S_BASE             (0x30000000UL)           /*!< (Secure Internal SRAM              ) Base Address */
 #define MUSCA_B1_BASE_ELEMENT_S_BASE     (0x50000000UL)           /*!< (Secure Base Peripherals           ) Base Address */
+#define MUSCA_B1_CPU_IDENTITY_S_BASE     (0x5001F000UL)           /*!< (Secure CPU Identity               ) Base address */
 #define MUSCA_B1_CMSDK_TIMER0_S_BASE     (0x50000000UL)           /*!< (Secure CMSDK Timer0               ) Base Address */
 #define MUSCA_B1_CMSDK_TIMER1_S_BASE     (0x50001000UL)           /*!< (Secure CMSDK Timer1               ) Base Address */
 #define MUSCA_B1_CMSDK_DUALTIMER_S_BASE  (0x50002000UL)           /*!< (Secure CMSDK Dual Timer           ) Base Address */
