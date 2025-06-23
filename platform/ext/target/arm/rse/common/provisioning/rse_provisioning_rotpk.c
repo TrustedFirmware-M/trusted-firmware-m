@@ -275,13 +275,20 @@ enum tfm_plat_err_t provisioning_rotpk_get(const struct rse_provisioning_message
 {
     enum lcm_error_t lcm_err;
     enum lcm_lcs_t lcs;
+    bool valid_lcs;
 
     lcm_err = lcm_get_lcs(&LCM_DEV_S, &lcs);
     if (lcm_err != LCM_ERROR_NONE) {
         return (enum tfm_plat_err_t)lcm_err;
     }
 
-    if ((lcs == LCM_LCS_DM) && use_cm_rotpk(blob)) {
+    valid_lcs = (lcs == LCM_LCS_DM);
+
+#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
+    valid_lcs = valid_lcs || (lcs == LCM_LCS_SE);
+#endif
+
+    if (valid_lcs && use_cm_rotpk(blob)) {
         return get_check_hash_cm_rotpk(blob,
                                        public_key_x,
                                        public_key_x_size,
