@@ -308,9 +308,9 @@ static cc3xx_err_t trng_get_sample(struct cc3xx_noise_source_ctx_t *ctx, uint32_
  *                              based noise source, for reading random bits
  */
 /*!@{*/
+#ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
 void cc3xx_lowlevel_noise_source_context_init(struct cc3xx_noise_source_ctx_t *ctx)
 {
-#ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
     assert(ctx != NULL);
 
     *ctx = (struct cc3xx_noise_source_ctx_t){
@@ -319,22 +319,32 @@ void cc3xx_lowlevel_noise_source_context_init(struct cc3xx_noise_source_ctx_t *c
         .rosc.subsampling_rate = CC3XX_CONFIG_RNG_SUBSAMPLING_RATE,
         .debug_control = 0x0UL
     };
-#endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 }
+#else
+void cc3xx_lowlevel_noise_source_context_init(void *ctx)
+{
+    (void)ctx;
+}
+#endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 
+#ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
 cc3xx_err_t cc3xx_lowlevel_noise_source_init(struct cc3xx_noise_source_ctx_t *ctx)
 {
-#ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
     assert(ctx != NULL);
     if (!(ctx->is_config_valid)) {
         return CC3XX_ERR_RNG_INVALID_TRNG_CONFIG;
     }
     trng_init(ctx->rosc.id, ctx->rosc.subsampling_rate, ctx->debug_control);
-#else
-    trng_init();
-#endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
     return CC3XX_ERR_SUCCESS;
 }
+#else
+cc3xx_err_t cc3xx_lowlevel_noise_source_init(void *ctx)
+{
+    (void)ctx;
+    trng_init();
+    return CC3XX_ERR_SUCCESS;
+}
+#endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 
 cc3xx_err_t cc3xx_lowlevel_noise_source_finish(void)
 {
@@ -383,14 +393,22 @@ cc3xx_err_t cc3xx_lowlevel_noise_source_set_config(
 #endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 }
 
+#ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
 void cc3xx_lowlevel_noise_source_sp800_90b_mode(struct cc3xx_noise_source_ctx_t *ctx)
 {
-#ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
     cc3xx_lowlevel_noise_source_set_hw_test_bypass(ctx,
         CC3XX_TRNG_AUTOCORR_TEST_BYPASS, CC3XX_TRNG_CRNGT_TEST_ACTIVE, CC3XX_TRNG_VNC_TEST_BYPASS);
-#endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 }
+#else
+void cc3xx_lowlevel_noise_source_sp800_90b_mode(void *ctx)
+{
+    /* The external noise source must allow SP800-90B, perform any step required to enable it */
+    (void)ctx;
+    return;
+}
+#endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 
+#ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
 void cc3xx_lowlevel_noise_source_set_hw_test_bypass(
     struct cc3xx_noise_source_ctx_t *ctx,
     enum cc3xx_trng_autocorr_test_state autocorr_state,
@@ -399,7 +417,6 @@ void cc3xx_lowlevel_noise_source_set_hw_test_bypass(
 {
     assert(ctx != NULL);
 
-#ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
     uint32_t hw_entropy_tests_control = 0x0UL;
 
     hw_entropy_tests_control |=
@@ -410,8 +427,14 @@ void cc3xx_lowlevel_noise_source_set_hw_test_bypass(
         (vnc_state == CC3XX_TRNG_VNC_TEST_BYPASS) ? (1UL << 1) : 0x0UL;
 
     ctx->debug_control = hw_entropy_tests_control;
-#endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 }
+#else
+void cc3xx_lowlevel_noise_source_set_hw_test_bypass(void *ctx)
+{
+    /* If an external noise source has the option to separately configure the HW, plug it here */
+    (void)ctx;
+}
+#endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 
 #ifdef CC3XX_CONFIG_TRNG_COLLECT_STATISTCS
 void cc3xx_lowlevel_noise_source_get_stats(struct cc3xx_noise_source_stats_t *stats)
