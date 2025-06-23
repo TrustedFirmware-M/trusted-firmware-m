@@ -1,0 +1,31 @@
+From 63f59397116d6c03cf1e985b896575875106c67a Mon Sep 17 00:00:00 2001
+From: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
+Date: Wed, 16 Jul 2025 13:18:34 +0100
+Subject: [PATCH] Add TF-M CC3XX Opaque Key entry points
+
+TF-M requires a mechanism to leverage the use of HW-managed keys, the
+concept is called "Opaque Keys". Basically, the key ID as well as the key
+buffer are interpreted differently by the crypto accelerator driver.
+
+Signed-off-by: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
+---
+ library/psa_crypto_driver_wrappers.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/library/psa_crypto_driver_wrappers.h b/library/psa_crypto_driver_wrappers.h
+index 5c581ff7..ca81ac41 100644
+--- a/library/psa_crypto_driver_wrappers.h
++++ b/library/psa_crypto_driver_wrappers.h
+@@ -2180,6 +2180,9 @@ static inline psa_status_t psa_driver_wrapper_aead_decrypt_setup(
+     switch( location )
+     {
+         case PSA_KEY_LOCATION_LOCAL_STORAGE:
++#if defined(CC3XX_CRYPTO_OPAQUE_KEYS)
++        case CC3XX_OPAQUE_KEY_LOCATION:
++#endif
+ #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
+         case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:
+ #endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
+--
+2.43.0
+
