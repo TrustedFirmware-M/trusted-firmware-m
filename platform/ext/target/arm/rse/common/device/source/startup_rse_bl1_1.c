@@ -235,12 +235,12 @@ static void __attribute__ ((noinline)) setup_tram_encryption(void) {
     stdio_is_initialized_reset();
 
     /* generate a random word to clear secret values */
-    bl1_trng_generate_random((uint8_t *)&random_word, sizeof(random_word));
+    while (bl1_random_generate_noise((uint8_t *)&random_word, sizeof(random_word)));
 
     lcm_get_sp_enabled(&lcm_dev_s, &sp_enabled);
     lcm_get_lcs(&lcm_dev_s, &lcs);
 
-    bl1_random_generate_noise(prbg_seed, sizeof(prbg_seed));
+    while (bl1_random_generate_noise(prbg_seed, sizeof(prbg_seed)));
     kmu_init(&kmu_dev_s, prbg_seed);
 
     /* Clear PRBG seed from the stack */
@@ -253,7 +253,7 @@ static void __attribute__ ((noinline)) setup_tram_encryption(void) {
      * we need to generate a new TRAM key.
      */
     if (sp_enabled == LCM_TRUE && (lcs == LCM_LCS_CM || lcs == LCM_LCS_DM)) {
-        bl1_random_generate_noise(tram_key, sizeof(tram_key));
+        while (bl1_random_generate_noise(tram_key, sizeof(tram_key)));
 
         kmu_set_key(&kmu_dev_s, RSE_KMU_SLOT_TRAM_KEY, tram_key, sizeof(tram_key));
 
@@ -263,7 +263,7 @@ static void __attribute__ ((noinline)) setup_tram_encryption(void) {
         }
 
         /* generate a random word to initialise the DTCM */
-        bl1_random_generate_noise((uint8_t *)&random_word, sizeof(random_word));
+        while (bl1_random_generate_noise((uint8_t *)&random_word, sizeof(random_word)));
     }
 
     kmu_set_key_export_config(&kmu_dev_s, RSE_KMU_SLOT_TRAM_KEY, &tram_key_export_config);

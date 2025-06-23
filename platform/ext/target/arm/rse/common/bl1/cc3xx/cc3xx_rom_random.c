@@ -35,10 +35,11 @@ int32_t bl1_random_generate_noise(uint8_t *output, size_t output_size)
 
     for (size_t counter = 0; counter < output_size; counter++) {
         if ((counter % CC3XX_TRNG_SAMPLE_SIZE) == 0) {
-            do {
-                err = cc3xx_lowlevel_noise_source_get_sample(
+            err = cc3xx_lowlevel_noise_source_get_sample(
                     &ctx, buf, sizeof(buf) / sizeof(uint32_t));
-            } while (err != CC3XX_ERR_SUCCESS);
+            if (err != CC3XX_ERR_SUCCESS) {
+                return 1;
+            }
         }
         output[counter] = ((uint8_t *)buf)[counter];
     }
