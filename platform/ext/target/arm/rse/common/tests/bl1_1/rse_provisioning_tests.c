@@ -27,6 +27,7 @@
 #include "crypto.h"
 #include "cc3xx_drv.h"
 #include "lcm_drv.h"
+#include "psa/crypto.h"
 
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
@@ -695,7 +696,7 @@ void rse_bl1_provisioning_test_0003(struct test_result_t *ret)
             PROVISIONING_BUNDLE_DATA_SIZE, (void *)PROVISIONING_BUNDLE_VALUES_START,
             PROVISIONING_BUNDLE_VALUES_SIZE, setup_invalid_aes_key, NULL);
 
-        TEST_ASSERT(plat_err == (enum tfm_plat_err_t)CC3XX_ERR_KEY_IMPORT_FAILED,
+        TEST_ASSERT(plat_err == (enum tfm_plat_err_t)PSA_ERROR_NOT_PERMITTED,
                     "Key loading succeeded when it should have failed\r\n");
 
         TEST_TEARDOWN(test_teardown(invalid_kmu_keys[idx], NULL));

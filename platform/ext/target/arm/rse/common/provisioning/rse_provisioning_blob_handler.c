@@ -22,6 +22,7 @@
 #include "rse_provisioning_comms.h"
 #include "rse_provisioning_message_handler.h"
 #include "rse_provisioning_blob_handler.h"
+#include "psa/crypto.h"
 
 #include <string.h>
 
@@ -162,96 +163,102 @@ blob_needs_secret_decryption(const struct rse_provisioning_message_blob_t *blob)
     return decryption_config == RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_AES;
 }
 
-static enum tfm_plat_err_t copy_auth_code_data(const struct rse_provisioning_message_blob_t *blob,
-                                               void *code_output, size_t code_output_size,
-                                               void *data_output, size_t data_output_size)
+fih_int copy_auth_code_data(psa_aead_operation_t *operation,
+                            psa_algorithm_t alg,
+                            const struct rse_provisioning_message_blob_t *blob,
+                            void *code_output, size_t code_output_size,
+                            void *data_output, size_t data_output_size)
 {
     fih_int fih_rc;
-
-    if (blob->code_size > code_output_size) {
-        FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_CODE_SIZE);
-        return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_CODE_SIZE;
-    }
-
-    if (blob->data_size > data_output_size) {
-        FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_DATA_SIZE);
-        return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_DATA_SIZE;
-    }
 
     memcpy(code_output, blob->code_and_data_and_secret_values, blob->code_size);
-    FIH_CALL(bl1_aes_update_authed_data, fih_rc, code_output, blob->code_size);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
-    }
-
     memcpy(data_output, blob->code_and_data_and_secret_values + blob->code_size, blob->data_size);
-    FIH_CALL(bl1_aes_update_authed_data, fih_rc, data_output, blob->data_size);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
+
+    if (alg == PSA_ALG_CCM) {
+        FIH_CALL(bl1_psa_aead_update_ad, fih_rc, operation, code_output, blob->code_size);
+        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+            return fih_rc;
+        }
+
+        FIH_CALL(bl1_psa_aead_update_ad, fih_rc, operation, data_output, blob->data_size);
+        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+            return fih_rc;
+        }
     }
 
-    return TFM_PLAT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }
 
-static enum tfm_plat_err_t decrypt_code_data(const struct rse_provisioning_message_blob_t *blob,
-                                             void *code_output, size_t code_output_size,
-                                             void *data_output, size_t data_output_size)
+fih_int decrypt_code_data(psa_aead_operation_t *operation,
+                          const struct rse_provisioning_message_blob_t *blob,
+                          void *code_output, size_t code_output_size,
+                          void *data_output, size_t data_output_size)
 {
     fih_int fih_rc;
+    size_t output_length = 0;
 
-    /* This catches if the buffer would overflow */
-    FIH_CALL(bl1_aes_update, fih_rc, blob->code_and_data_and_secret_values,
-                blob->code_size, code_output, code_output_size, NULL);
+    FIH_CALL(bl1_psa_aead_update, fih_rc, operation, blob->code_and_data_and_secret_values,
+                                  blob->code_size, code_output, code_output_size,
+                                  &output_length);
     if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
+        return fih_rc;
+    } else if (output_length != blob->code_size) {
+        return fih_int_encode_zero_equality(PSA_ERROR_BUFFER_TOO_SMALL);
     }
 
-    FIH_CALL(bl1_aes_update, fih_rc, blob->code_and_data_and_secret_values +
-                blob->code_size, blob->data_size, data_output, data_output_size,
-                NULL);
+    FIH_CALL(bl1_psa_aead_update, fih_rc, operation, blob->code_and_data_and_secret_values +
+                                  blob->code_size, blob->data_size, data_output, data_output_size,
+                                  &output_length);
     if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
+        return fih_rc;
+    } else if (output_length != blob->data_size) {
+        return fih_int_encode_zero_equality(PSA_ERROR_BUFFER_TOO_SMALL);
     }
 
-    return TFM_PLAT_ERR_SUCCESS;
+    return FIH_SUCCESS;
 }
 
-static enum tfm_plat_err_t copy_auth_secret_values(const struct rse_provisioning_message_blob_t *blob,
-                                                   void *values_output, size_t values_output_size)
+fih_int copy_auth_secret_values(psa_aead_operation_t *operation,
+                                psa_algorithm_t alg,
+                                const struct rse_provisioning_message_blob_t *blob,
+                                void *values_output, size_t values_output_size)
 {
     fih_int fih_rc;
-
-    if (blob->secret_values_size > values_output_size) {
-        FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_VALUES_SIZE);
-        return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_VALUES_SIZE;
-    }
 
     memcpy(values_output, blob->code_and_data_and_secret_values + blob->code_size + blob->data_size,
            blob->secret_values_size);
-    FIH_CALL(bl1_aes_update_authed_data, fih_rc, values_output, blob->secret_values_size);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
+
+    if (alg == PSA_ALG_CCM) {
+        FIH_CALL(bl1_psa_aead_update_ad, fih_rc, operation, values_output,
+                                         blob->secret_values_size);
+        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+            return fih_rc;
+        }
     }
 
-    return TFM_PLAT_ERR_SUCCESS;
+    return FIH_SUCCESS;
 }
 
-static enum tfm_plat_err_t decrypt_secret_values(const struct rse_provisioning_message_blob_t *blob,
-                                                   void *values_output, size_t values_output_size)
+fih_int decrypt_secret_values(psa_aead_operation_t *operation,
+                              const struct rse_provisioning_message_blob_t *blob,
+                              void *values_output, size_t values_output_size)
 {
     fih_int fih_rc;
+    size_t output_length = 0;
 
-    FIH_CALL(bl1_aes_update, fih_rc, blob->code_and_data_and_secret_values +
-                blob->code_size + blob->data_size, blob->secret_values_size,
-                values_output, values_output_size, NULL);
+    FIH_CALL(bl1_psa_aead_update, fih_rc, operation, blob->code_and_data_and_secret_values +
+                                  blob->code_size + blob->data_size, blob->secret_values_size,
+                                  values_output, values_output_size, &output_length);
     if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
+        return fih_rc;
+    } else if (output_length != blob->secret_values_size) {
+        return fih_int_encode_zero_equality(PSA_ERROR_BUFFER_TOO_SMALL);
     }
 
-    return TFM_PLAT_ERR_SUCCESS;
+    return FIH_SUCCESS;
 }
 
-static enum tfm_plat_err_t aes_generic_blob_operation(enum tfm_bl1_aes_mode_t mode,
+static enum tfm_plat_err_t aes_generic_blob_operation(psa_algorithm_t alg,
                                                       const struct rse_provisioning_message_blob_t *blob,
                                                       uint8_t *iv, size_t iv_len,
                                                       void *code_output, size_t code_output_size,
@@ -267,6 +274,27 @@ static enum tfm_plat_err_t aes_generic_blob_operation(enum tfm_bl1_aes_mode_t mo
     uint32_t authed_header_offset = offsetof(struct rse_provisioning_message_blob_t, metadata);
     size_t authed_header_size = offsetof(struct rse_provisioning_message_blob_t, code_and_data_and_secret_values) - authed_header_offset;
     enum kmu_hardware_keyslot_t kmu_slot;
+    psa_aead_operation_t operation = psa_aead_operation_init();
+
+    if (blob->signature_size < AES_TAG_MAX_LEN) {
+        FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_TAG_LEN);
+        return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_TAG_LEN;
+    }
+
+    if (blob->code_size > code_output_size) {
+        FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_CODE_SIZE);
+        return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_CODE_SIZE;
+    }
+
+    if (blob->data_size > data_output_size) {
+        FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_DATA_SIZE);
+        return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_DATA_SIZE;
+    }
+
+    if (blob->secret_values_size > values_output_size) {
+        FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_VALUES_SIZE);
+        return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_VALUES_SIZE;
+    }
 
     if (blob_needs_code_data_decryption(blob)) {
         data_size_to_decrypt += blob->code_size;
@@ -275,42 +303,6 @@ static enum tfm_plat_err_t aes_generic_blob_operation(enum tfm_bl1_aes_mode_t mo
 
     if (blob_needs_secret_decryption(blob)) {
         data_size_to_decrypt += blob->secret_values_size;
-    }
-
-    err = setup_aes_key(blob, (uint32_t *)&kmu_slot);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        ERROR("Provisioning key setup failed\n");
-        return err;
-    }
-
-    if ((mode == TFM_BL1_AES_MODE_CCM) || (data_size_to_decrypt != 0)) {
-        FIH_CALL(bl1_aes_init, fih_rc, TFM_BL1_AES_DIRECTION_DECRYPT, mode,
-                    kmu_slot, NULL, TFM_BL1_AES_KEY_SIZE_256, (uint32_t*)iv,
-                    iv_len);
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-            ERROR("AES setup failed\n");
-            return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
-        }
-    }
-
-    if (blob->signature_size < AES_TAG_MAX_LEN) {
-        FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_TAG_LEN);
-        return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_TAG_LEN;
-    }
-
-    data_size_to_auth = actual_blob_size - data_size_to_decrypt
-                        - authed_header_offset;
-
-    FIH_CALL(bl1_aes_set_lengths, fih_rc, data_size_to_auth,
-                data_size_to_decrypt, AES_TAG_MAX_LEN);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
-    }
-
-    FIH_CALL(bl1_aes_update_authed_data, fih_rc, ((uint8_t *)blob) + authed_header_offset,
-                                          authed_header_size);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
     }
 
     /* If the values are decrypted by the blob but the code is decrypted here,
@@ -322,37 +314,117 @@ static enum tfm_plat_err_t aes_generic_blob_operation(enum tfm_bl1_aes_mode_t mo
         return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_DECRYPTION_CONFIG;
     }
 
-    if (blob_needs_code_data_decryption(blob)) {
-        err = decrypt_code_data(blob,
-                                code_output, code_output_size,
-                                data_output, data_output_size);
-    } else {
-        err = copy_auth_code_data(blob,
-                                  code_output, code_output_size,
-                                  data_output, data_output_size);
+    data_size_to_auth = actual_blob_size - data_size_to_decrypt - authed_header_offset;
+
+    if ((alg == PSA_ALG_CCM) || (data_size_to_decrypt != 0)) {
+        psa_key_id_t psa_key_id;
+
+        err = setup_aes_key(blob, (uint32_t *)&kmu_slot);
+        if (err != TFM_PLAT_ERR_SUCCESS) {
+            ERROR("Provisioning key setup failed\r\n");
+            return err;
+        }
+
+        psa_key_id = cc3xx_get_opaque_key(kmu_slot);
+        if (CC3XX_IS_OPAQUE_KEY_INVALID(psa_key_id)) {
+            ERROR("Invalid key\r\n");
+            fih_rc = fih_int_encode_zero_equality(PSA_ERROR_INVALID_ARGUMENT);
+            goto psa_abort;
+        }
+
+        FIH_CALL(bl1_psa_aead_decrypt_setup, fih_rc, &operation, psa_key_id, alg);
+        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+            ERROR("AEAD setup failed\r\n");
+            goto psa_abort;
+        }
+
+        FIH_CALL(bl1_psa_aead_set_lengths, fih_rc, &operation, data_size_to_auth,
+                                           data_size_to_decrypt);
+        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+            ERROR("PSA AEAD set lengths failed\r\n");
+            goto psa_abort;
+        }
+
+        FIH_CALL(bl1_psa_aead_set_nonce, fih_rc, &operation, iv, iv_len);
+        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+            ERROR("PSA AEAD set nonce failed\r\n");
+            goto psa_abort;
+        }
+
+        FIH_CALL(bl1_psa_aead_update_ad, fih_rc, &operation,
+                                         ((uint8_t *)blob) + authed_header_offset,
+                                         authed_header_size);
+        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+            ERROR("PSA AEAD error updating authed header\r\n");
+            goto psa_abort;
+        }
     }
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
+
+    if (blob_needs_code_data_decryption(blob)) {
+        fih_rc = decrypt_code_data(&operation,
+                                   blob,
+                                   code_output, code_output_size,
+                                   data_output, data_output_size);
+    } else {
+        fih_rc = copy_auth_code_data(&operation, alg,
+                                     blob,
+                                     code_output, code_output_size,
+                                     data_output, data_output_size);
+    }
+    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        ERROR("Error decrypting or authenticating code / data\r\n");
+        goto psa_abort;
     }
 
     if (blob_needs_secret_decryption(blob)) {
-        err = decrypt_secret_values(blob, values_output, values_output_size);
+        fih_rc = decrypt_secret_values(&operation,
+                                       blob,
+                                       values_output, values_output_size);
     } else {
-        err = copy_auth_secret_values(blob, values_output, values_output_size);
+        fih_rc = copy_auth_secret_values(&operation, alg,
+                                         blob,
+                                         values_output, values_output_size);
     }
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
+    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        ERROR("Error decrypting or authenticating code / data\r\n");
+        goto psa_abort;
     }
 
-    if ((mode == TFM_BL1_AES_MODE_CCM) || (data_size_to_decrypt != 0)) {
-        FIH_CALL(bl1_aes_finish, fih_rc, (uint32_t *)blob->signature, NULL);
+    if (alg == PSA_ALG_CCM) {
+        size_t dummy = 0;
+
+        FIH_CALL(bl1_psa_aead_verify, fih_rc, &operation,
+                                      NULL,
+                                      NULL,
+                                      &dummy,
+                                      (uint8_t*)blob->signature,
+                                      AES_TAG_MAX_LEN);
         if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-            ERROR("bundle decryption failed\n");
-            return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
+            ERROR("Tag verification failed!\r\n");
+            goto psa_abort;
+        }
+    } else if (data_size_to_decrypt != 0) {
+        size_t dummy = 0;
+
+        FIH_CALL(psa_aead_finish, fih_rc, &operation,
+                                  NULL,
+                                  dummy,
+                                  &dummy,
+                                  (uint8_t*)&dummy,
+                                  dummy,
+                                  &dummy);
+        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+            ERROR("Bundle decryption failed!\r\n");
+            goto psa_abort;
         }
     }
 
     return TFM_PLAT_ERR_SUCCESS;
+
+psa_abort:
+    ERROR("Aborting %s due to %d error\r\n", __func__, fih_int_decode(fih_rc));
+    psa_aead_abort(&operation);
+    return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
 }
 
 #ifdef RSE_PROVISIONING_ENABLE_AES_SIGNATURES
@@ -368,7 +440,7 @@ static fih_int aes_validate_and_unpack_blob(const struct rse_provisioning_messag
 
     memcpy(iv, (uint8_t*)blob->iv, sizeof(blob->iv));
 
-    err = aes_generic_blob_operation(TFM_BL1_AES_MODE_CCM, blob,
+    err = aes_generic_blob_operation(PSA_ALG_CCM, blob,
                                      iv, 8,
                                      code_output, code_output_size,
                                      data_output, data_output_size,
@@ -392,7 +464,7 @@ static fih_int aes_decrypt_and_unpack_blob(const struct rse_provisioning_message
 
     memcpy(iv, (uint8_t*)blob->iv, sizeof(blob->iv));
 
-    err = aes_generic_blob_operation(TFM_BL1_AES_MODE_CTR, blob, iv, AES_IV_LEN,
+    err = aes_generic_blob_operation(PSA_ALG_CTR, blob, iv, AES_IV_LEN,
                                      code_output, code_output_size,
                                      data_output, data_output_size,
                                      values_output, values_output_size,

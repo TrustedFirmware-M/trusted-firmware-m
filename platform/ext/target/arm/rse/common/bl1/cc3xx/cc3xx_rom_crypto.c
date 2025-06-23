@@ -561,94 +561,109 @@ fih_int bl1_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t curve,
     FIH_RET(fih_rc);
 }
 
-fih_int bl1_aes_set_lengths( size_t total_ad_len,
-                             size_t plaintext_len,
-                             size_t tag_len )
+fih_int bl1_psa_aead_set_lengths(psa_aead_operation_t *operation,
+                                 size_t total_ad_len,
+                                 size_t plaintext_len)
 {
-    int ret_err = TFM_PLAT_ERR_SUCCESS;
+    psa_status_t status;
 
-    cc3xx_lowlevel_aes_set_tag_len(tag_len);
-    cc3xx_lowlevel_aes_set_data_len(plaintext_len, total_ad_len);
+    status = psa_aead_set_lengths(operation,
+                                  total_ad_len,
+                                  plaintext_len);
 
-    FIH_RET(fih_int_encode_zero_equality(ret_err));
+    FIH_RET(fih_int_encode_zero_equality(status));
 }
 
-fih_int bl1_aes_finish(uint8_t *tag, size_t *tag_len)
+fih_int bl1_psa_aead_set_nonce(psa_aead_operation_t *operation,
+                               const uint8_t *nonce,
+                               size_t nonce_length)
 {
-    const cc3xx_err_t cc_err = cc3xx_lowlevel_aes_finish(tag, tag_len);
+    psa_status_t status;
 
-    FIH_RET(fih_int_encode_zero_equality(cc_err));
+    status = psa_aead_set_nonce(operation,
+                                nonce,
+                                nonce_length);
+
+    FIH_RET(fih_int_encode_zero_equality(status));
 }
 
-fih_int bl1_aes_update_authed_data(uint8_t *ad, size_t ad_len)
+fih_int bl1_psa_aead_finish(psa_aead_operation_t *operation,
+                            uint8_t *ciphertext,
+                            size_t ciphertext_size,
+                            size_t *ciphertext_length,
+                            uint8_t *tag,
+                            size_t tag_size,
+                            size_t *tag_length)
 {
-    int ret_err = TFM_PLAT_ERR_SUCCESS;
+    psa_status_t status;
 
-    cc3xx_lowlevel_aes_update_authed_data(ad, ad_len);
+    status = psa_aead_finish(operation,
+                                 ciphertext,
+                                 ciphertext_size,
+                                 ciphertext_length,
+                                 tag,
+                                 tag_size,
+                                 tag_length);
 
-    FIH_RET(fih_int_encode_zero_equality(ret_err));
+    FIH_RET(fih_int_encode_zero_equality(status));
 }
 
-
-fih_int bl1_aes_update(const uint8_t *input, size_t input_len,
-                    uint8_t *output, size_t output_size,
-                    size_t *output_len)
+fih_int bl1_psa_aead_verify(psa_aead_operation_t *operation,
+                            uint8_t *plaintext,
+                            size_t plaintext_size,
+                            size_t *plaintext_length,
+                            const uint8_t *tag,
+                            size_t tag_length)
 {
-    cc3xx_err_t cc_err = CC3XX_ERR_SUCCESS;
+    psa_status_t status;
 
-    cc3xx_lowlevel_aes_set_output_buffer(output, output_size);
+    status = psa_aead_verify(operation,
+                             plaintext,
+                             plaintext_size,
+                             plaintext_length,
+                             tag,
+                             tag_length);
 
-    cc_err = cc3xx_lowlevel_aes_update(input, input_len);
-
-    FIH_RET(fih_int_encode_zero_equality(cc_err));
+    FIH_RET(fih_int_encode_zero_equality(status));
 }
 
-fih_int bl1_aes_init(enum tfm_bl1_aes_direction_t direction,
-    enum tfm_bl1_aes_mode_t mode, enum tfm_bl1_key_id_t key_id,
-    const uint32_t *key, enum tfm_bl1_aes_key_size_t key_size,
-    const uint32_t *iv, size_t iv_len)
+fih_int bl1_psa_aead_update_ad(psa_aead_operation_t *operation,
+                               uint8_t *ad,
+                               size_t ad_len)
 {
-    cc3xx_err_t cc_err = CC3XX_ERR_SUCCESS;
-    cc3xx_aes_direction_t cc_direction;
-    cc3xx_aes_mode_t cc_mode;
-    cc3xx_aes_keysize_t cc_key_size;
+    psa_status_t status;
 
+    status = psa_aead_update_ad(operation,
+                                ad,
+                                ad_len);
 
-    switch(direction) {
-    case TFM_BL1_AES_DIRECTION_ENCRYPT:
-        cc_direction = CC3XX_AES_DIRECTION_ENCRYPT;
-        break;
-    case TFM_BL1_AES_DIRECTION_DECRYPT:
-        cc_direction = CC3XX_AES_DIRECTION_DECRYPT;
-        break;
-    default:
-        FIH_RET(FIH_FAILURE);
-    }
+    FIH_RET(fih_int_encode_zero_equality(status));
+}
 
-    switch(key_size) {
-    case TFM_BL1_AES_KEY_SIZE_256:
-        cc_key_size = CC3XX_AES_KEYSIZE_256;
-        break;
-    default:
-        FIH_RET(FIH_FAILURE);
-    }
+fih_int bl1_psa_aead_update(psa_aead_operation_t *operation,
+                            const uint8_t *input, size_t input_len,
+                            uint8_t *output, size_t output_size,
+                            size_t *output_len)
+{
+    psa_status_t status;
 
-    switch(mode) {
-    case TFM_BL1_AES_MODE_CCM:
-        cc_mode = CC3XX_AES_MODE_CCM;
-        break;
-    case TFM_BL1_AES_MODE_CMAC:
-        cc_mode = CC3XX_AES_MODE_CMAC;
-        break;
-    case TFM_BL1_AES_MODE_CTR:
-        cc_mode = CC3XX_AES_MODE_CTR;
-        break;
-    default:
-        FIH_RET(FIH_FAILURE);
-    }
+    status = psa_aead_update(operation,
+                             input,
+                             input_len,
+                             output,
+                             output_size,
+                             output_len);
 
-    cc_err = cc3xx_lowlevel_aes_init(cc_direction, cc_mode,
-            (enum kmu_hardware_keyslot_t)key_id, key, cc_key_size, iv, iv_len);
+    FIH_RET(fih_int_encode_zero_equality(status));
+}
 
-    FIH_RET(fih_int_encode_zero_equality(cc_err));
+fih_int bl1_psa_aead_decrypt_setup(psa_aead_operation_t *operation,
+                                   psa_key_id_t key_id,
+                                   psa_algorithm_t alg)
+{
+    psa_status_t status;
+
+    status = psa_aead_decrypt_setup(operation, key_id, alg);
+
+    FIH_RET(fih_int_encode_zero_equality(status));
 }

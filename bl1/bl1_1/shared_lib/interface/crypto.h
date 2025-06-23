@@ -268,74 +268,117 @@ fih_int bl1_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t curve,
  * @brief Set the length of the data that will be input and the length of the
  *        tag produced or verified by AEAD/MAC modes.
  *
- * @param[in] total_ad_len  How many bytes of data will be authenticated
- * @param[in] plaintext_len How many bytes of data will be encrypted
- * @param[in] tag_len       The length of the tag
+ * @param[in,out] operation    Active AEAD operation.
+ * @param[in] total_ad_len     How many bytes of data will be authenticated
+ * @param[in] plaintext_len    How many bytes of data will be encrypted
  *
  * @return FIH_SUCCESS on success, non-zero on error
  */
-fih_int bl1_aes_set_lengths(size_t total_ad_len,
-                            size_t plaintext_len,
-                            size_t tag_len);
+fih_int bl1_psa_aead_set_lengths(psa_aead_operation_t *operation,
+                                 size_t total_ad_len,
+                                 size_t plaintext_len);
 
 /**
- * @brief  Finish an AES operation. Calling this will encrypt/decrypt the
- *         final data.
+ * @brief Set the nonce for an authenticated encryption or decryption operation.
  *
- * @param[in,out]  tag      The buffer to write the tag into or read and
- *                          compare the tag from, depending on direction.
- *                          The tag size will be 16 if not explicitly set,
- *                          and the buffer must be sized appropriately. Can
- *                          be NULL if using a non-AEAD/MAC mode.
- *
- * @param[out]     tag_len  The size of the output that has been written.
+ * @param[in,out] operation    Active AEAD operation.
+ * @param[in] nonce            Buffer where the nonce is stored
+ * @param[in] nonce_length     Size of the \p nonce buffer in bytes
  *
  * @return FIH_SUCCESS on success, non-zero on error
  */
-fih_int bl1_aes_finish(uint8_t *tag, size_t *tag_len);
+fih_int bl1_psa_aead_set_nonce(psa_aead_operation_t *operation,
+                               const uint8_t *nonce,
+                               size_t nonce_length);
+/**
+ * @brief  Finish an AEAD operation.
+ *
+ * @param[in,out] operation      Active AEAD operation.
+ * @param[out] ciphertext        Buffer where the last part of the ciphertext
+ *                               is to be written.
+ * @param[in] ciphertext_size    Size of the \p ciphertext buffer in bytes.
+ * @param[out] ciphertext_length On success, the number of bytes of
+ *                               returned ciphertext.
+ * @param[out] tag               Buffer where the authentication tag is to be written.
+ * @param[in] tag_size           Size of the \p tag buffer in bytes.
+ * @param[out] tag_length        On success, the number of bytes
+ *                               that make up the returned tag.
+ *
+ * @return FIH_SUCCESS on success, non-zero on error
+ */
+fih_int bl1_psa_aead_finish(psa_aead_operation_t *operation,
+                            uint8_t *ciphertext,
+                            size_t ciphertext_size,
+                            size_t *ciphertext_length,
+                            uint8_t *tag,
+                            size_t tag_size,
+                            size_t *tag_length);
+
+/**
+ * @brief   Finish authenticating and decrypting a message in an AEAD operation.
+ *
+ * @param[in,out] operation     Active AEAD operation.
+ * @param[out] plaintext        Buffer where the last part of the plaintext
+ *                              is to be written. This is the remaining data
+ *                              from previous calls to psa_aead_update()
+ *                              that could not be processed until the end
+ *                              of the input.
+ * @param[in] plaintext_size    Size of the \p plaintext buffer in bytes.
+ * @param[out] plaintext_length On success, the number of bytes of
+ *                              returned plaintext.
+ * @param[in] tag               Buffer containing the authentication tag.
+ * @param tag_length            Size of the \p tag buffer in bytes.
+ *
+ * @return FIH_SUCCESS on success, non-zero on error
+ */
+fih_int bl1_psa_aead_verify(psa_aead_operation_t *operation,
+                            uint8_t *plaintext,
+                            size_t plaintext_size,
+                            size_t *plaintext_length,
+                            const uint8_t *tag,
+                            size_t tag_length);
 
 /**
  * @brief  Input data to be authenticated, but not encrypted or decrypted into
- *         an AEAD/MAC operation.
+ *         an AEAD operation.
  *
- * @param[in] ad        A pointer to the data to be input.
- * @param[in] ad_len    The size of the data to be input.
- *
- * @return FIH_SUCCESS on success, non-zero on error
- */
-fih_int bl1_aes_update_authed_data(uint8_t *ad, size_t ad_len);
-
-/**
- * @brief Input data to be encrypted/decrypted into an AES operation.
-
- * @param[in] input       A pointer to the data to be input
- * @param[in] input_len   The size of the data to be input
- * @param[in] output      A pointer to the data to be output
- * @param[in] output_size The size of the data to be output
- * @param[in] output_len  The length of the output
- */
-fih_int bl1_aes_update(const uint8_t *input, size_t input_len,
-                    uint8_t *output, size_t output_size,
-                    size_t *output_len);
-
-/**
- * @brief  Initialize an AES operation.
- *
- * @param[in]  direction Whether the operation should encrypt or decrypt.
- * @param[in]  mode      Which AES mode should be used.
- * @param[in]  key_id    Which user/hardware key should be used.
- * @param[in]  key       This buffer contains the key material.
- * @param[in]  key_size  The size of the key being used.
- * @param[in]  iv        The initial IV/CTR value for the mode. For modes
- *                       without an IV/CTR, this may be NULL.
- * @param[in]  iv_len    The size of the IV input.
+ * @param[in,out] operation     Active AEAD operation.
+ * @param[in] ad                A pointer to the data to be input.
+ * @param[in] ad_len            The size of the data to be input.
  *
  * @return FIH_SUCCESS on success, non-zero on error
  */
-fih_int bl1_aes_init(enum tfm_bl1_aes_direction_t direction,
-    enum tfm_bl1_aes_mode_t mode, enum tfm_bl1_key_id_t key_id,
-    const uint32_t *key, enum tfm_bl1_aes_key_size_t key_size,
-    const uint32_t *iv, size_t iv_len);
+fih_int bl1_psa_aead_update_ad(psa_aead_operation_t *operation,
+                               uint8_t *ad,
+                               size_t ad_len);
+
+/**
+ * @brief Input data to be encrypted/decrypted into an AEAD operation.
+ *
+ * @param[in,out] operation     Active AEAD operation.
+ * @param[in] input             A pointer to the data to be input
+ * @param[in] input_len         The size of the data to be input
+ * @param[in] output            A pointer to the data to be output
+ * @param[in] output_size       The size of the data to be output
+ * @param[out] output_len       The length of the output
+ */
+fih_int bl1_psa_aead_update(psa_aead_operation_t *operation,
+                            const uint8_t *input, size_t input_len,
+                            uint8_t *output, size_t output_size,
+                            size_t *output_len);
+
+/**
+ * @brief  Initialize an AEAD operation.
+ *
+ * @param[in,out] operation     AEAD operation handle.
+ * @param[in] key_id            PSA key ID.
+ * @param[in] alg               The AEAD algorithm to compute
+ *
+ * @return FIH_SUCCESS on success, non-zero on error
+ */
+fih_int bl1_psa_aead_decrypt_setup(psa_aead_operation_t *operation,
+                                   psa_key_id_t key_id,
+                                   psa_algorithm_t alg);
 
 #ifdef __cplusplus
 }
