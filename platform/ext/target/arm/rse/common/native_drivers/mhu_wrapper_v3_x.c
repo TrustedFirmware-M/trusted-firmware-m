@@ -156,14 +156,12 @@ enum mhu_error_t clear_and_wait_for_signal (
 /**
  * @brief For simplicity, require:
  *          - the buffer address to be 4-byte aligned.
- *          - the buffer size to be a multiple of 4.
  */
 static enum mhu_error_t validate_buffer_params(uintptr_t buf_addr,
                                                size_t buf_size)
 {
     if ((buf_addr == 0) ||
         (!IS_ALIGNED(buf_addr, 4)) ||
-        (!IS_ALIGNED(buf_size, 4)) ||
         (buf_size == 0)) {
         return MHU_ERR_VALIDATE_BUFFER_PARAMS_INVALID_ARG;
     }
@@ -284,6 +282,8 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev, const uint8_t *send_buffer,
     uint8_t num_channels;
     uint8_t chan = 0;
     uint32_t *buffer;
+    uint32_t t_buffer;
+    size_t bytes_left;
 
     assert(dev != NULL);
     assert(dev->base != (uintptr_t)NULL);
@@ -307,11 +307,23 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev, const uint8_t *send_buffer,
     chan++;
 
     buffer = (uint32_t *)send_buffer;
-    for (size_t i = 0; i < size; i += 4) {
-        mhu_v3_err = mhu_v3_x_doorbell_write(dev, chan, *buffer++);
+    bytes_left = size;
+    while (bytes_left > 0) {
+        if (bytes_left >= 4) {
+            t_buffer = *buffer++;
+            bytes_left -= 4;
+        } else {
+            /* a few bytes still to send, pad the remaining bytes */
+            t_buffer = 0;
+            memcpy(&t_buffer, (uint32_t *)buffer, bytes_left);
+
+            bytes_left = 0;
+        }
+        mhu_v3_err = mhu_v3_x_doorbell_write(dev, chan, t_buffer);
         if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {
             return mhu_v3_err;
         }
+
         if (++chan == (num_channels - 1)) {
             /* Using the last channel for notifications */
             mhu_err = signal_and_wait_for_clear(dev, MHU_NOTIFY_VALUE);
@@ -368,6 +380,8 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
     uint8_t num_channels;
     uint8_t chan = 0;
     uint32_t *buffer;
+    uint32_t t_buffer;
+    size_t bytes_left;
 
     assert(dev != NULL);
     assert(dev->base != (uintptr_t)NULL);
@@ -401,14 +415,25 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
     }
 
     buffer = (uint32_t *)receive_buffer;
-    for (size_t i = 0; i < msg_len; i += 4) {
-        mhu_v3_err = mhu_v3_x_doorbell_read(dev, chan, buffer++);
+    bytes_left = msg_len;
+    while (bytes_left > 0) {
+        if (bytes_left >= 4) {
+            mhu_v3_err = mhu_v3_x_doorbell_read(dev, chan, buffer++);
+            bytes_left -= 4;
+        } else {
+            /* a few bytes still to receive, pad the remaining bytes */
+            t_buffer = 0;
+            mhu_v3_err = mhu_v3_x_doorbell_read(dev, chan, &t_buffer);
+
+            memcpy((uint32_t *)buffer, &t_buffer, bytes_left);
+            bytes_left = 0;
+        }
         if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {
             return mhu_v3_err;
         }
 
         /* Only wait for next transfer if there is still missing data. */
-        if (++chan == (num_channels - 1) && (msg_len - i) > 4) {
+        if ((++chan == (num_channels - 1)) && (bytes_left > 0)) {
             /* Busy wait for next transfer */
             mhu_err = clear_and_wait_for_signal(dev, MHU_NOTIFY_VALUE);
             if (mhu_err != MHU_ERR_NONE) {
