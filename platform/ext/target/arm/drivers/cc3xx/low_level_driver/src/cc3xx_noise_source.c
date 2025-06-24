@@ -171,36 +171,29 @@ static inline uint32_t trng_double_subsampling_rate(uint32_t subsampling_rate)
     return (product > UINT32_MAX) ? UINT32_MAX : (uint32_t)product;
 }
 
-static void trng_bump_rosc_id_and_subsampling_rate(struct cc3xx_noise_source_ctx_t *ctx)
+static bool trng_bump_rosc_id_and_subsampling_rate(uint32_t *rosc_id, uint32_t *rosc_subsampling_rate)
 {
-    uint32_t rosc_id = P_CC3XX->rng.trng_config & TRNG_ROSC_ID_MASK;
-    uint32_t rosc_subsampling_rate = P_CC3XX->rng.sample_cnt1;
-
-    if ((rosc_id == CC3XX_RNG_ROSC_ID_3) && (rosc_subsampling_rate == UINT32_MAX)) {
+    if ((*rosc_id == CC3XX_RNG_ROSC_ID_3) && (*rosc_subsampling_rate == UINT32_MAX)) {
         /* Cannot bump further */
-        return;
+        return false;
     }
 
-    if (rosc_id < CC3XX_RNG_ROSC_ID_3) {
+    if (*rosc_id < CC3XX_RNG_ROSC_ID_3) {
         /* For each subsampling rate, bump the rosc id */
-        rosc_id++;
+        (*rosc_id)++;
     } else {
         /* Double the subsampling rate when rosc id is at its max*/
-        rosc_id = CC3XX_RNG_ROSC_ID_0;
-        rosc_subsampling_rate = trng_double_subsampling_rate(rosc_subsampling_rate);
+        *rosc_id = CC3XX_RNG_ROSC_ID_0;
+        *rosc_subsampling_rate = trng_double_subsampling_rate(*rosc_subsampling_rate);
     }
 
-    P_CC3XX->rng.trng_config = rosc_id | (0x1U << 2);
-    P_CC3XX->rng.sample_cnt1 = rosc_subsampling_rate;
-
-    /* Update the context */
-    ctx->rosc.id = rosc_id;
-    ctx->rosc.subsampling_rate = rosc_subsampling_rate;
+    return true;
 }
 
 static bool trng_error_handler(struct cc3xx_noise_source_ctx_t *ctx)
 {
     uint32_t trng_errors = trng_get_errors();
+    uint32_t rosc_id, rosc_subsampling_rate;
 #ifdef CC3XX_CONFIG_TRNG_DMA
     size_t dma_samples_num;
 #endif
@@ -221,6 +214,10 @@ static bool trng_error_handler(struct cc3xx_noise_source_ctx_t *ctx)
     dma_samples_num = P_CC3XX->rng.rng_dma_samples_num;
 #endif
 
+    /* Get the ROSC-related config parameters from the TRNG */
+    rosc_id = P_CC3XX->rng.trng_config & TRNG_ROSC_ID_MASK;
+    rosc_subsampling_rate = P_CC3XX->rng.sample_cnt1;
+
     /* Disable random source before resetting the bit counter */
     P_CC3XX->rng.rnd_source_enable = 0x0U;
 
@@ -230,8 +227,15 @@ static bool trng_error_handler(struct cc3xx_noise_source_ctx_t *ctx)
     /* Clear the interrupt bits */
     P_CC3XX->rng.rng_icr = 0xFFFFFFFF;
 
-    /* Bump the rosc id and subsampling rate */
-    trng_bump_rosc_id_and_subsampling_rate(ctx);
+    /* Bump the rosc id and subsampling rate, if there is room for it */
+    if (trng_bump_rosc_id_and_subsampling_rate(&rosc_id, &rosc_subsampling_rate)) {
+        /* Update the TRNG parameters */
+        P_CC3XX->rng.trng_config = rosc_id | (0x1U << 2);
+        P_CC3XX->rng.sample_cnt1 = rosc_subsampling_rate;
+        /* Update the context as well */
+        ctx->rosc.id = rosc_id;
+        ctx->rosc.subsampling_rate = rosc_subsampling_rate;
+    }
 
     /* Restart TRNG */
     trng_init(
@@ -321,7 +325,7 @@ void cc3xx_lowlevel_noise_source_context_init(struct cc3xx_noise_source_ctx_t *c
     };
 }
 #else
-void cc3xx_lowlevel_noise_source_context_init(void *ctx)
+void cc3xx_lowlevel_noise_source_context_init(struct cc3xx_noise_source_ctx_t *ctx)
 {
     (void)ctx;
 }
@@ -338,7 +342,7 @@ cc3xx_err_t cc3xx_lowlevel_noise_source_init(struct cc3xx_noise_source_ctx_t *ct
     return CC3XX_ERR_SUCCESS;
 }
 #else
-cc3xx_err_t cc3xx_lowlevel_noise_source_init(void *ctx)
+cc3xx_err_t cc3xx_lowlevel_noise_source_init(struct cc3xx_noise_source_ctx_t *ctx)
 {
     (void)ctx;
     trng_init();
@@ -400,7 +404,7 @@ void cc3xx_lowlevel_noise_source_sp800_90b_mode(struct cc3xx_noise_source_ctx_t 
         CC3XX_TRNG_AUTOCORR_TEST_BYPASS, CC3XX_TRNG_CRNGT_TEST_ACTIVE, CC3XX_TRNG_VNC_TEST_BYPASS);
 }
 #else
-void cc3xx_lowlevel_noise_source_sp800_90b_mode(void *ctx)
+void cc3xx_lowlevel_noise_source_sp800_90b_mode(struct cc3xx_noise_source_ctx_t *ctx)
 {
     /* The external noise source must allow SP800-90B, perform any step required to enable it */
     (void)ctx;
@@ -429,10 +433,24 @@ void cc3xx_lowlevel_noise_source_set_hw_test_bypass(
     ctx->debug_control = hw_entropy_tests_control;
 }
 #else
-void cc3xx_lowlevel_noise_source_set_hw_test_bypass(void *ctx)
+void cc3xx_lowlevel_noise_source_set_hw_test_bypass(struct cc3xx_noise_source_ctx_t *ctx)
 {
     /* If an external noise source has the option to separately configure the HW, plug it here */
     (void)ctx;
+}
+#endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
+
+#ifndef CC3XX_CONFIG_RNG_EXTERNAL_TRNG
+bool cc3xx_lowlevel_noise_source_bump_parameters(struct cc3xx_noise_source_ctx_t *ctx)
+{
+    return trng_bump_rosc_id_and_subsampling_rate((uint32_t *)&ctx->rosc.id, &ctx->rosc.subsampling_rate);
+}
+#else
+bool cc3xx_lowlevel_noise_source_bump_parameters(struct cc3xx_noise_source_ctx_t *ctx)
+{
+    /* If an external noise source has the option to bump config parameters, plug it here */
+    (void)ctx;
+    return false;
 }
 #endif /* CC3XX_CONFIG_RNG_EXTERNAL_TRNG */
 

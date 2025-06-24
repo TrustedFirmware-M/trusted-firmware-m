@@ -213,6 +213,7 @@ cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len)
 {
     cc3xx_err_t err;
     size_t num_words = 0;
+    bool retry = false;
 
     assert((entropy_len % CC3XX_TRNG_SAMPLE_SIZE) == 0);
 
@@ -220,41 +221,47 @@ cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len)
         cc3xx_lowlevel_noise_source_context_init(&g_trng_ctx);
     }
 
-    err = cc3xx_lowlevel_noise_source_init(&g_trng_ctx);
-    if (err != CC3XX_ERR_SUCCESS) {
-        return err;
-    }
-
-    if (!g_entropy_tests.startup_done) {
-        /* Perform any required configuration on the TRNG first */
-        cc3xx_lowlevel_noise_source_sp800_90b_mode(&g_trng_ctx);
-        /* Perform the extensive collection on startup */
-        err = startup_test(CC3XX_TRNG_SAMPLE_SIZE);
+    do {
+        /* Initialise the Noise Source */
+        err = cc3xx_lowlevel_noise_source_init(&g_trng_ctx);
         if (err != CC3XX_ERR_SUCCESS) {
-            goto cleanup;
-        }
-        g_entropy_tests.startup_done = true;
-    }
-
-    for (size_t i = 0; i < entropy_len / CC3XX_TRNG_SAMPLE_SIZE; i++) {
-        /* Get a full reading from the noise source and put it at the right offset */
-        err = cc3xx_lowlevel_noise_source_get_sample(
-            &g_trng_ctx, &entropy[num_words], CC3XX_TRNG_SAMPLE_SIZE / sizeof(uint32_t));
-        if (err != CC3XX_ERR_SUCCESS) {
-            goto cleanup;
+            return err;
         }
 
-        /* The entropy source is always in SP 800-90B mode, i.e. continuosly testing itself */
-        err = continuous_health_test(&entropy[num_words], CC3XX_TRNG_SAMPLE_SIZE, &g_entropy_tests);
-        if (err != CC3XX_ERR_SUCCESS) {
-            goto cleanup;
+        if (!g_entropy_tests.startup_done) {
+            /* Perform any required configuration on the Noise Source first */
+            cc3xx_lowlevel_noise_source_sp800_90b_mode(&g_trng_ctx);
+            /* Perform the extensive collection on startup */
+            err = startup_test(CC3XX_TRNG_SAMPLE_SIZE);
+            if (err != CC3XX_ERR_SUCCESS) {
+                goto cleanup;
+            }
+            g_entropy_tests.startup_done = true;
         }
 
-        num_words += CC3XX_TRNG_SAMPLE_SIZE / sizeof(uint32_t);
-    }
+        for (size_t i = 0; i < entropy_len / CC3XX_TRNG_SAMPLE_SIZE; i++) {
+            /* Get a full reading from the noise source and put it at the right offset */
+            err = cc3xx_lowlevel_noise_source_get_sample(
+                    &g_trng_ctx, &entropy[num_words], CC3XX_TRNG_SAMPLE_SIZE / sizeof(uint32_t));
+            if (err != CC3XX_ERR_SUCCESS) {
+                goto cleanup;
+            }
+
+            /* The entropy source is always in SP 800-90B mode, i.e. continuosly testing itself */
+            err = continuous_health_test(&entropy[num_words], CC3XX_TRNG_SAMPLE_SIZE, &g_entropy_tests);
+            if (err != CC3XX_ERR_SUCCESS) {
+                goto cleanup;
+            }
+
+            num_words += CC3XX_TRNG_SAMPLE_SIZE / sizeof(uint32_t);
+        }
 
 cleanup:
-    cc3xx_lowlevel_noise_source_finish();
+        cc3xx_lowlevel_noise_source_finish();
+        if (err != CC3XX_ERR_SUCCESS) {
+            retry = cc3xx_lowlevel_noise_source_bump_parameters(&g_trng_ctx);
+        }
+    } while ((err != CC3XX_ERR_SUCCESS) && retry);
 
     return err;
 }

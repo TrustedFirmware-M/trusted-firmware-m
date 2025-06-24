@@ -240,6 +240,16 @@ cc3xx_err_t cc3xx_lowlevel_noise_source_get_sample(struct cc3xx_noise_source_ctx
  */
 cc3xx_err_t cc3xx_lowlevel_noise_source_finish(void);
 
+/**
+ * @brief                       Bumps the configuration parameters of the noise source, if it allows that
+ *
+ * @param[in, out] ctx          Pointer to the context to use for possible bumping up of the parameters
+ *
+ * @return true                 A config parameters change has happened
+ * @return false                A config parameters change has not happened or it was not possible
+ */
+bool cc3xx_lowlevel_noise_source_bump_parameters(struct cc3xx_noise_source_ctx_t *ctx);
+
 #ifdef __cplusplus
 }
 #endif
