@@ -1,0 +1,53 @@
+From 8da0f131bbb020872ccdb8274416dc028d21e1de Mon Sep 17 00:00:00 2001
+From: David Vincze <david.vincze@arm.com>
+Date: Mon, 20 Oct 2025 15:40:49 +0000
+Subject: [PATCH 12/13] Exclude context definitions for PSA Crypto client
+
+Signed-off-by: David Vincze <david.vincze@arm.com>
+---
+ include/psa/crypto_struct.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/include/psa/crypto_struct.h b/include/psa/crypto_struct.h
+index 0cc32e7f8..1eab37501 100644
+--- a/include/psa/crypto_struct.h
++++ b/include/psa/crypto_struct.h
+@@ -56,9 +56,11 @@ extern "C" {
+ 
+ #include "tf-psa-crypto/build_info.h"
+ 
++#if defined(MBEDTLS_PSA_CRYPTO_C)
+ /* Include the context definition for the compiled-in drivers for the primitive
+  * algorithms. */
+ #include "psa/crypto_driver_contexts_primitives.h"
++#endif
+ 
+ struct psa_hash_operation_s {
+ #if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+@@ -117,9 +119,11 @@ static inline struct psa_cipher_operation_s psa_cipher_operation_init(void)
+     return v;
+ }
+ 
++#if defined(MBEDTLS_PSA_CRYPTO_C)
+ /* Include the context definition for the compiled-in drivers for the composite
+  * algorithms. */
+ #include "psa/crypto_driver_contexts_composites.h"
++#endif
+ 
+ struct psa_mac_operation_s {
+ #if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+@@ -188,9 +192,11 @@ static inline struct psa_aead_operation_s psa_aead_operation_init(void)
+     return v;
+ }
+ 
++#if defined(MBEDTLS_PSA_CRYPTO_C)
+ /* Include the context definition for the compiled-in drivers for the key
+  * derivation algorithms. */
+ #include "psa/crypto_driver_contexts_key_derivation.h"
++#endif
+ 
+ struct psa_key_derivation_s {
+ #if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+-- 
+2.34.1
+

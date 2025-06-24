@@ -1,0 +1,38 @@
+From d16a85111c4661ff3dad76086cd38dfb7fb1c2c3 Mon Sep 17 00:00:00 2001
+From: David Vincze <david.vincze@arm.com>
+Date: Wed, 5 Nov 2025 16:01:24 +0000
+Subject: [PATCH 13/13] Re-add psa_can_do_cipher() to public interface
+
+Its prototype was removed from the public interface by 327c9c0.
+TF-M keeps using this function - add again to avoid build errors.
+
+Signed-off-by: David Vincze <david.vincze@arm.com>
+---
+ include/psa/crypto_compat.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/include/psa/crypto_compat.h b/include/psa/crypto_compat.h
+index 881516b8d..084e8931a 100644
+--- a/include/psa/crypto_compat.h
++++ b/include/psa/crypto_compat.h
+@@ -36,6 +36,17 @@ extern "C" {
+  */
+ int psa_can_do_hash(psa_algorithm_t hash_alg);
+ 
++/* This function is not a TF-PSA-Crypto API and may be removed without notice.
++ *
++ * Tell if the given cipher is supported by PSA.
++ *
++ * \param key_type    The key type.
++ * \param cipher_alg  The cipher algorithm.
++ *
++ * \return 1 if the PSA can handle \p cipher_alg, 0 otherwise.
++ */
++int psa_can_do_cipher(psa_key_type_t key_type, psa_algorithm_t cipher_alg);
++
+ /* This defition is required to provide compatibility with the PSA arch
+  * tests. Without it building the tests will fail. To remove it we would
+  * need to change the tests to remove all references to this symbol.
+-- 
+2.34.1
+

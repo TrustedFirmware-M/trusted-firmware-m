@@ -1,0 +1,171 @@
+From 76dd933c69e40f22e1eda556ddc99664ed438ff6 Mon Sep 17 00:00:00 2001
+From: David Vincze <david.vincze@arm.com>
+Date: Wed, 17 Dec 2025 20:13:30 +0000
+Subject: [PATCH 10/13] Define base attributes and structure for SP800-108 CMAC
+
+This adds support for CMAC-based, counter mode key-derivation function,
+using the construction recommended by NIST Special Publication 800-108r1
+[0].
+
+[0]: https://csrc.nist.gov/pubs/sp/800/108/r1/upd1/final
+
+Signed-off-by: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
+---
+ .../private/config_adjust_legacy_from_psa.h   |  4 ++
+ .../psa/crypto_adjust_config_dependencies.h   |  3 +-
+ include/psa/crypto_builtin_key_derivation.h   | 70 +++++++++++++++++++
+ .../crypto_driver_contexts_key_derivation.h   |  3 +
+ include/psa/crypto_values.h                   | 10 +++
+ 5 files changed, 89 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/builtin/include/mbedtls/private/config_adjust_legacy_from_psa.h b/drivers/builtin/include/mbedtls/private/config_adjust_legacy_from_psa.h
+index 5e1aae79c..dc2db928c 100644
+--- a/drivers/builtin/include/mbedtls/private/config_adjust_legacy_from_psa.h
++++ b/drivers/builtin/include/mbedtls/private/config_adjust_legacy_from_psa.h
+@@ -839,4 +839,8 @@
+ #endif /* !MBEDTLS_PSA_ACCEL_ALG_CHACHA20_POLY1305 */
+ #endif /* PSA_WANT_ALG_CHACHA20_POLY1305 */
+ 
++#if defined(PSA_WANT_ALG_SP800_108_COUNTER_CMAC)
++#define MBEDTLS_PSA_BUILTIN_ALG_SP800_108_COUNTER_CMAC  1
++#endif /* PSA_WANT_ALG_SP800_108_COUNTER_CMAC */
++
+ #endif /* MBEDTLS_CONFIG_ADJUST_LEGACY_FROM_PSA_H */
+diff --git a/include/psa/crypto_adjust_config_dependencies.h b/include/psa/crypto_adjust_config_dependencies.h
+index 8ed7c4de3..8fb92573f 100644
+--- a/include/psa/crypto_adjust_config_dependencies.h
++++ b/include/psa/crypto_adjust_config_dependencies.h
+@@ -43,7 +43,8 @@
+ #endif
+ 
+ #if (defined(PSA_WANT_ALG_PBKDF2_AES_CMAC_PRF_128) && \
+-    !defined(MBEDTLS_PSA_ACCEL_ALG_PBKDF2_AES_CMAC_PRF_128))
++    !defined(MBEDTLS_PSA_ACCEL_ALG_PBKDF2_AES_CMAC_PRF_128)) || \
++     defined(PSA_WANT_ALG_SP800_108_COUNTER_CMAC)
+ #define PSA_WANT_KEY_TYPE_AES 1
+ #define PSA_WANT_ALG_CMAC 1
+ #endif
+diff --git a/include/psa/crypto_builtin_key_derivation.h b/include/psa/crypto_builtin_key_derivation.h
+index 1115b5079..88c5e5dd4 100644
+--- a/include/psa/crypto_builtin_key_derivation.h
++++ b/include/psa/crypto_builtin_key_derivation.h
+@@ -117,4 +117,74 @@ typedef struct {
+ } psa_pbkdf2_key_derivation_t;
+ #endif /* PSA_HAVE_SOFT_PBKDF2 */
+ 
++#if defined(MBEDTLS_PSA_BUILTIN_ALG_SP800_108_COUNTER_CMAC)
++#include <stdbool.h>
++
++#define SP800_108_INTERATION_COUNTER_SIZE   4
++
++#ifndef SP800_108_LABEL_MAX_SIZE
++#define SP800_108_LABEL_MAX_SIZE            48
++#endif
++
++#define SP800_108_NULL_BYTE_SIZE            1
++
++#ifndef SP800_108_CONTEXT_MAX_SIZE
++#define SP800_108_CONTEXT_MAX_SIZE          48
++#endif
++
++#define SP800_108_ENCODED_LENGTH_SIZE       4
++#define SP800_108_K0_SIZE                   PSA_AEAD_TAG_MAX_SIZE
++
++#define SP800_108_TOTAL_INPUT_MAX_SIZE \
++    (SP800_108_INTERATION_COUNTER_SIZE + \
++     SP800_108_LABEL_MAX_SIZE + \
++     SP800_108_NULL_BYTE_SIZE + \
++     SP800_108_CONTEXT_MAX_SIZE + \
++     SP800_108_ENCODED_LENGTH_SIZE + \
++     SP800_108_K0_SIZE)
++
++#define SP800_108_INPUT_INTERATION_COUNTER_OFFSET(ctx) (0)
++
++#define SP800_108_INPUT_LABEL_OFFSET(ctx) \
++    (SP800_108_INTERATION_COUNTER_SIZE)
++
++#define SP800_108_INPUT_CONTEXT_OFFSET(ctx) \
++    (SP800_108_INPUT_LABEL_OFFSET(x) + \
++     ctx->label_length + \
++     SP800_108_NULL_BYTE_SIZE)
++
++#define SP800_108_INPUT_ENCODED_LENGTH_OFFSET(ctx) \
++    (SP800_108_INPUT_CONTEXT_OFFSET(ctx) + \
++     ctx->context_length)
++
++#define SP800_108_INPUT_K0_OFFSET(ctx) \
++    (SP800_108_INPUT_ENCODED_LENGTH_OFFSET(ctx) + \
++     SP800_108_ENCODED_LENGTH_SIZE)
++
++#define SP800_108_INPUT_LENGTH(ctx) \
++    (SP800_108_INPUT_K0_OFFSET(ctx) + \
++     SP800_108_K0_SIZE)
++
++typedef struct
++{
++    uint8_t inputs[SP800_108_TOTAL_INPUT_MAX_SIZE];
++
++    /* The key must be a block-cipher that is compatible with the CMAC algorithm */
++    psa_key_id_t MBEDTLS_PRIVATE(key);
++    bool MBEDTLS_PRIVATE(key_provided);
++
++    /* Label, unless omitted, must be passed after the key */
++    bool MBEDTLS_PRIVATE(label_provided);
++    size_t MBEDTLS_PRIVATE(label_length);
++
++    /* Context, unless omitted, must be passed after the label */
++    bool MBEDTLS_PRIVATE(context_provided);
++    size_t MBEDTLS_PRIVATE(context_length);
++
++    /* Derivation state */
++    size_t MBEDTLS_PRIVATE(L_bits); /* total output length in bits */
++    size_t MBEDTLS_PRIVATE(counter); /* 1-based */
++} psa_sp800_108_cmac_key_derivation_t;
++#endif /* MBEDTLS_PSA_BUILTIN_ALG_SP800_108_COUNTER_CMAC */
++
+ #endif /* PSA_CRYPTO_BUILTIN_KEY_DERIVATION_H */
+diff --git a/include/psa/crypto_driver_contexts_key_derivation.h b/include/psa/crypto_driver_contexts_key_derivation.h
+index f43d850a9..fca52225e 100644
+--- a/include/psa/crypto_driver_contexts_key_derivation.h
++++ b/include/psa/crypto_driver_contexts_key_derivation.h
+@@ -48,6 +48,9 @@ typedef union {
+ #if defined(PSA_HAVE_SOFT_PBKDF2)
+     psa_pbkdf2_key_derivation_t MBEDTLS_PRIVATE(pbkdf2);
+ #endif
++#if defined(MBEDTLS_PSA_BUILTIN_ALG_SP800_108_COUNTER_CMAC)
++    psa_sp800_108_cmac_key_derivation_t MBEDTLS_PRIVATE(sp800_108_cmac);
++#endif
+ } psa_driver_key_derivation_context_t;
+ 
+ #endif /* PSA_CRYPTO_DRIVER_CONTEXTS_KEY_DERIVATION_H */
+diff --git a/include/psa/crypto_values.h b/include/psa/crypto_values.h
+index 33c35e5fa..63c19bd44 100644
+--- a/include/psa/crypto_values.h
++++ b/include/psa/crypto_values.h
+@@ -1779,6 +1779,8 @@
+      ((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH :      \
+      0)
+ 
++#define PSA_ALG_SP800_108_COUNTER_CMAC          ((psa_algorithm_t) 0x08000800)
++
+ #define PSA_ALG_HKDF_BASE                       ((psa_algorithm_t) 0x08000100)
+ /** Macro to build an HKDF algorithm.
+  *
+@@ -2742,6 +2744,14 @@ static inline int mbedtls_svc_key_id_is_null(mbedtls_svc_key_id_t key)
+  */
+ #define PSA_KEY_DERIVATION_INPUT_COST       ((psa_key_derivation_step_t) 0x0205)
+ 
++/** A Context for key derivation.
++ *
++ * This should be a direct input.
++ * It can also be a key of type #PSA_KEY_TYPE_RAW_DATA.
++ */
++#define PSA_KEY_DERIVATION_INPUT_CONTEXT    ((psa_key_derivation_step_t) 0x0206)
++
++
+ /**@}*/
+ 
+ /** \defgroup helper_macros Helper macros
+-- 
+2.34.1
+

@@ -1,0 +1,30 @@
+From ab84f4747bb942f5f2fbc9cf601f50fd184648af Mon Sep 17 00:00:00 2001
+From: Antonio de Angelis <Antonio.deAngelis@arm.com>
+Date: Wed, 9 Oct 2024 13:36:42 +0100
+Subject: [PATCH 07/13] P256M: Add option to force not use of asm
+
+Add an option to let the compiler generate the assembly
+code for u32_muladd64(), especially for MinSizeRel and
+Release builds.
+
+Signed-off-by: Antonio de Angelis <antonio.deangelis@arm.com>
+---
+ drivers/p256-m/p256-m/p256-m.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/p256-m/p256-m/p256-m.c b/drivers/p256-m/p256-m/p256-m.c
+index 42c35b5bf..558a8bc95 100644
+--- a/drivers/p256-m/p256-m/p256-m.c
++++ b/drivers/p256-m/p256-m/p256-m.c
+@@ -197,7 +197,7 @@ static uint64_t u32_muladd64(uint32_t x, uint32_t y, uint32_t z, uint32_t t);
+  * v7-M architectures. __ARM_ARCH_PROFILE is not defined for v6 and earlier.
+  * Thumb and 32-bit assembly is supported; aarch64 is not supported.
+  */
+-#if defined(__GNUC__) &&\
++#if !defined(MULADD64_IGNORE_ASM) && defined(__GNUC__) &&\
+     defined(__ARM_ARCH) && __ARM_ARCH >= 6 && defined(__ARM_ARCH_PROFILE) && \
+     ( __ARM_ARCH_PROFILE == 77 || __ARM_ARCH_PROFILE == 65 ) /* 'M' or 'A' */ && \
+     !defined(__aarch64__)
+-- 
+2.34.1
+
