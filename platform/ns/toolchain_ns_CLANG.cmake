@@ -14,6 +14,7 @@ set(CMAKE_C_COMPILER_FORCED TRUE)
 set(CMAKE_C_STANDARD 99)
 
 set(CMAKE_ASM_COMPILER clang)
+set(CMAKE_ASM_COMPILER_FORCED TRUE)
 
 set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_COMPILER_FORCED TRUE)
@@ -31,10 +32,12 @@ set(CMAKE_ASM_COMPILER_TARGET ${CROSS_COMPILE})
 # with the Ninja generator.
 set(CMAKE_USER_MAKE_RULES_OVERRIDE ${CMAKE_CURRENT_LIST_DIR}/set_extensions.cmake)
 
-# CMAKE_C_COMPILER_VERSION is not guaranteed to be defined.
-EXECUTE_PROCESS( COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE CMAKE_C_COMPILER_VERSION)
+# CMAKE_C_COMPILER_VERSION is not initialised at this moment so do it manually
+EXECUTE_PROCESS( COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE CMAKE_C_COMPILER_VERSION )
 if (CMAKE_C_COMPILER_VERSION VERSION_LESS 18.1.3)
-    message(FATAL_ERROR "Please use newer LLVM compiler version starting from 18.1.3")
+    message(FATAL_ERROR "Please use newer ATfE toolchain version starting from 18.1.3")
+elseif(CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 21.0.0)
+    message(FATAL_ERROR "ATfE compiler versions 21.0.0 and above are no supported yet")
 endif()
 
 # ===================== Set toolchain CPU and Arch =============================
@@ -61,10 +64,27 @@ add_compile_options(
     -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=
 )
 
+#
 # Pointer Authentication Code and Branch Target Identification (PACBTI) Options
-# Not currently supported for LLVM.
+#
 if(NOT ${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_DISABLED)
-    message(FATAL_ERROR "BRANCH_PROTECTION NOT supported for LLVM")
+    if (TFM_SYSTEM_ARCHITECTURE STREQUAL "armv8.1-m.main")
+        if (${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_NONE)
+            set(BRANCH_PROTECTION_OPTIONS "none")
+        elseif(${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_STANDARD)
+            set(BRANCH_PROTECTION_OPTIONS "standard")
+        elseif(${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_PACRET)
+            set(BRANCH_PROTECTION_OPTIONS "pac-ret")
+        elseif(${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_PACRET_LEAF)
+            set(BRANCH_PROTECTION_OPTIONS "pac-ret+leaf")
+        elseif(${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_BTI)
+            set(BRANCH_PROTECTION_OPTIONS "bti")
+        endif()
+        add_compile_options(-mbranch-protection=${BRANCH_PROTECTION_OPTIONS})
+        message(NOTICE "BRANCH_PROTECTION enabled with: ${BRANCH_PROTECTION_OPTIONS}")
+    else()
+        message(FATAL_ERROR "Your architecture does not support BRANCH_PROTECTION")
+    endif()
 endif()
 
 add_link_options(
@@ -73,17 +93,22 @@ add_link_options(
     LINKER:-fatal-warnings
     LINKER:--gc-sections
     LINKER:--print-memory-usage
-    LINKER:-lcrt0 -ldummyhost
+    LINKER:-ldummyhost
     LINKER:--Map=bin/tfm_ns.map
 )
 
 if (CONFIG_TFM_FLOAT_ABI)
     add_compile_options(-mfloat-abi=${CONFIG_TFM_FLOAT_ABI})
-    add_link_options(-mfloat-abi=${CONFIG_TFM_FLOAT_ABI})
 endif()
+
 if (CONFIG_TFM_ENABLE_FP OR CONFIG_TFM_ENABLE_MVE_FP)
     add_compile_options(-mfpu=${CONFIG_TFM_FP_ARCH})
-    add_link_options(-mfpu=${CONFIG_TFM_FP_ARCH})
+else()
+    add_compile_options(-mfpu=none)
+endif()
+
+if (CMAKE_C_COMPILER_VERSION VERSION_LESS 20.0.0)
+    add_link_options(LINKER:-lcrt0)
 endif()
 
 # Specify the scatter file used to link `target`.

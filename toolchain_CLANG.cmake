@@ -14,6 +14,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_COMPILER_TARGET ${CROSS_COMPILE})
 
 set(CMAKE_ASM_COMPILER clang)
+set(CMAKE_ASM_COMPILER_FORCED TRUE)
 set(CMAKE_ASM_COMPILER_TARGET ${CROSS_COMPILE})
 
 # C++ support is not quaranted. This settings is to compile with RPi Pico SDK.
@@ -30,10 +31,14 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE ${CMAKE_CURRENT_LIST_DIR}/cmake/set_extension
 # CMAKE_C_COMPILER_VERSION is not initialised at this moment so do it manually
 EXECUTE_PROCESS( COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE CMAKE_C_COMPILER_VERSION )
 if (CMAKE_C_COMPILER_VERSION VERSION_LESS 18.1.3)
-    message(FATAL_ERROR "Please use newer LLVM compiler version starting from 18.1.3")
+    message(FATAL_ERROR "Please use newer ATfE toolchain version starting from 18.1.3")
+elseif(CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 21.0.0)
+    message(FATAL_ERROR "ATfE compiler versions 21.0.0 and above are no supported yet")
 endif()
 
 include(mcpu_features)
+
+# Compiler and linker optoins common to all modules
 
 file(REAL_PATH "${CMAKE_SOURCE_DIR}/../" TOP_LEVEL_PROJECT_DIR)
 
@@ -49,21 +54,16 @@ add_compile_options(
     -fshort-enums
     -fshort-wchar
     -funsigned-char
+    -fno-exceptions
+    -fno-rtti
     # Strip /workspace/
     -fmacro-prefix-map=${TOP_LEVEL_PROJECT_DIR}/=
     # Strip /workspace/trusted-firmware-m
     -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=
 )
 
-# Pointer Authentication Code and Branch Target Identification (PACBTI) Options
-# Not currently supported for LLVM.
-if(NOT ${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_DISABLED)
-    message(FATAL_ERROR "BRANCH_PROTECTION NOT supported for LLVM")
-endif()
-
 add_link_options(
     -mcpu=${TFM_SYSTEM_PROCESSOR_FEATURED}
-    -lclang_rt.builtins   # needed for  __aeabi_memclr4(), __aeabi_memclr8(), __aeabi_memcpy4()
     LINKER:-check-sections
     LINKER:-fatal-warnings
     LINKER:--gc-sections
@@ -75,22 +75,52 @@ if(NOT CONFIG_TFM_MEMORY_USAGE_QUIET)
     add_link_options(LINKER:--print-memory-usage)
 endif()
 
-set(BL2_COMPILER_CP_FLAG -mfloat-abi=soft)
-set(BL2_LINKER_CP_OPTION -mfloat-abi=soft -lcrt0 -ldummyhost)
+# A module (BL1, BL2, CP) specific addional compiler and linker optoins
 
-set(BL1_COMPILER_CP_FLAG -mfloat-abi=soft)
-set(BL1_LINKER_CP_OPTION -mfloat-abi=soft -lcrt0 -ldummyhost)
+set(BL1_COMPILER_CP_FLAG -mfloat-abi=soft -mfpu=none)
+set(BL2_COMPILER_CP_FLAG -mfloat-abi=soft -mfpu=none)
 
 if (CONFIG_TFM_FLOAT_ABI STREQUAL "hard")
-    set(COMPILER_CP_FLAG -mfloat-abi=${CONFIG_TFM_FLOAT_ABI})
-    set(LINKER_CP_OPTION -mfloat-abi=${CONFIG_TFM_FLOAT_ABI})
+    set(COMPILER_CP_FLAG -mfloat-abi=hard)
     if (CONFIG_TFM_ENABLE_FP OR CONFIG_TFM_ENABLE_MVE_FP)
         set(COMPILER_CP_FLAG -mfloat-abi=hard -mfpu=${CONFIG_TFM_FP_ARCH})
-        set(LINKER_CP_OPTION -mfloat-abi=hard -mfpu=${CONFIG_TFM_FP_ARCH})
+    else()
+        set(COMPILER_CP_FLAG -mfloat-abi=soft -mfpu=none)
     endif()
-else()
-    set(COMPILER_CP_FLAG -mfloat-abi=soft)
-    set(LINKER_CP_OPTION -mfloat-abi=soft)
+endif()
+
+set(LINKER_CP_OPTION -lclang_rt.builtins -nostdlib)
+
+if (CMAKE_C_COMPILER_VERSION VERSION_LESS 20.0.0)
+   set(BL1_LINKER_CP_OPTION -lcrt0 -ldummyhost)
+   set(BL2_LINKER_CP_OPTION -lcrt0 -ldummyhost)
+endif()
+
+if(CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0.0)
+   list(APPEND COMPILER_CP_FLAG -nostartfiles)
+endif()
+
+#
+# Pointer Authentication Code and Branch Target Identification (PACBTI) Options
+#
+if(NOT ${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_DISABLED)
+    if (TFM_SYSTEM_ARCHITECTURE STREQUAL "armv8.1-m.main")
+        if (${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_NONE)
+            set(BRANCH_PROTECTION_OPTIONS "none")
+        elseif(${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_STANDARD)
+            set(BRANCH_PROTECTION_OPTIONS "standard")
+        elseif(${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_PACRET)
+            set(BRANCH_PROTECTION_OPTIONS "pac-ret")
+        elseif(${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_PACRET_LEAF)
+            set(BRANCH_PROTECTION_OPTIONS "pac-ret+leaf")
+        elseif(${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_BTI)
+            set(BRANCH_PROTECTION_OPTIONS "bti")
+        endif()
+        add_compile_options(-mbranch-protection=${BRANCH_PROTECTION_OPTIONS})
+        message(NOTICE "BRANCH_PROTECTION enabled with: ${BRANCH_PROTECTION_OPTIONS}")
+    else()
+        message(FATAL_ERROR "Your architecture does not support BRANCH_PROTECTION")
+    endif()
 endif()
 
 # Macro for adding scatter files. Supports multiple files
