@@ -33,6 +33,11 @@ extern "C" {
 #define MCUBOOT_USE_FLASH_AREA_GET_SECTORS
 #define MCUBOOT_TARGET_CONFIG "flash_layout.h"
 
+#cmakedefine MCUBOOT_IMAGE_MULTI_SIG_SUPPORT
+
+/*— How many RoTPK keys per image —*/
+#define MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE  @MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE@
+
 #cmakedefine MCUBOOT_HW_ROLLBACK_PROT
 #cmakedefine MCUBOOT_MEASURED_BOOT
 #cmakedefine MCUBOOT_DATA_SHARING
