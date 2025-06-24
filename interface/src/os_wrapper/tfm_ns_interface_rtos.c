@@ -49,7 +49,9 @@ int32_t tfm_ns_interface_dispatch(veneer_fn fn,
 uint32_t tfm_ns_interface_init(void)
 {
     void *handle;
+#ifdef TFM_HYBRID_PLATFORM_API_BROKER
     int32_t ret;
+#endif
 
     handle = os_wrapper_mutex_create();
     if (!handle) {
