@@ -326,9 +326,7 @@ shown below.
    +--------------------------------------------+-----------------------------------------------------------------------------------------------------+-------------------------------------+
    | ``TFM_PARTITION_CRYPTO``                   | ``ON``                                                                                              | Enable Crypto service               |
    +--------------------------------------------+-----------------------------------------------------------------------------------------------------+-------------------------------------+
-   | ``TFM_MBEDCRYPTO_CONFIG_PATH``             | ``${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/tfm_mbedcrypto_config_profile_small.h``  | Mbed Crypto config file path        |
-   +--------------------------------------------+-----------------------------------------------------------------------------------------------------+-------------------------------------+
-   | ``TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH``  | ``${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/crypto_config_profile_small.h``          | Mbed Crypto PSA config file path    |
+   | ``TFM_TF_PSA_CRYPTO_CONFIG_PATH``          | ``${CMAKE_SOURCE_DIR}/lib/ext/tf-psa-crypto/tfpsacrypto_config/crypto_config_profile_small.h``      | TF-PSA-Crypto config file path      |
    +--------------------------------------------+-----------------------------------------------------------------------------------------------------+-------------------------------------+
    | ``CRYPTO_ASYM_SIGN_MODULE_ENABLED``        | ``OFF``                                                                                             | Enable asymmetric signature         |
    +--------------------------------------------+-----------------------------------------------------------------------------------------------------+-------------------------------------+

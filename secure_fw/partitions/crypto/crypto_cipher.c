@@ -52,10 +52,6 @@ int tfm_crypto_can_do_cipher(psa_key_type_t key_type, psa_algorithm_t alg)
     case PSA_KEY_TYPE_CAMELLIA:
         break;
 #endif
-#if defined(PSA_WANT_KEY_TYPE_DES)
-    case PSA_KEY_TYPE_DES:
-        break;
-#endif
 #if defined(PSA_WANT_KEY_TYPE_CHACHA20)
     case PSA_KEY_TYPE_CHACHA20:
         break;

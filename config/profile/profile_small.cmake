@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -29,5 +29,5 @@ set(MCUBOOT_IMAGE_NUMBER                   1     CACHE STRING    "Whether to com
 
 ################################## Dependencies ################################
 
-set(TFM_MBEDCRYPTO_CONFIG_PATH             "${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/tfm_mbedcrypto_config_profile_small.h" CACHE PATH "Config to use for Mbed Crypto")
-set(TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH  "${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/crypto_config_profile_small.h" CACHE PATH "Config to use psa crypto setting for Mbed Crypto.")
+set(TFM_TF_PSA_CRYPTO_CONFIG_PATH          "${CMAKE_SOURCE_DIR}/lib/ext/tf-psa-crypto/tfpsacrypto_config/crypto_config_profile_small.h"
+                                                 CACHE PATH "Config to use for TF-PSA-Crypto")

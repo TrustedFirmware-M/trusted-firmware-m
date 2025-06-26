@@ -326,12 +326,8 @@ install(FILES
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/include)
 
 # Install config files and remap psa_crypto_config definitions to point to them
-install(FILES       ${TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH}
-        RENAME      mbedcrypto_psa_crypto_config.h
-        DESTINATION ${INSTALL_INTERFACE_INC_DIR}/mbedtls)
-
-install(FILES       ${TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH}
-        RENAME      mbedcrypto_config_client.h
+install(FILES       ${TFM_TF_PSA_CRYPTO_CONFIG_PATH}
+        RENAME      tf_psa_crypto_config.h
         DESTINATION ${INSTALL_INTERFACE_INC_DIR}/mbedtls)
 
 # Install Crypto configuration for non-secure interface
@@ -343,8 +339,8 @@ endif()
 
 target_compile_definitions(psa_crypto_config
         INTERFACE
-        $<INSTALL_INTERFACE:MBEDTLS_PSA_CRYPTO_CONFIG_FILE="$<INSTALL_PREFIX>/${INSTALL_INTERFACE_INC_DIR}/mbedtls/mbedcrypto_psa_crypto_config.h">
-        $<INSTALL_INTERFACE:MBEDTLS_CONFIG_FILE="$<INSTALL_PREFIX>/${INSTALL_INTERFACE_INC_DIR}/mbedtls/mbedcrypto_config_client.h">
+        $<INSTALL_INTERFACE:TFM_PSA_CRYPTO_CLIENT_ONLY>
+        $<INSTALL_INTERFACE:TF_PSA_CRYPTO_CONFIG_FILE="$<INSTALL_PREFIX>/${INSTALL_INTERFACE_INC_DIR}/mbedtls/tf_psa_crypto_config.h">
         $<INSTALL_INTERFACE:$<$<BOOL:${MBEDTLS_PSA_CRYPTO_PLATFORM_FILE}>:MBEDTLS_PSA_CRYPTO_PLATFORM_FILE="$<INSTALL_PREFIX>/${INSTALL_INTERFACE_INC_DIR}/mbedtls/tfm_mbedtls_psa_crypto_platform.h">>)
 
 # Install config files and remap tfm_config definitions to point to them

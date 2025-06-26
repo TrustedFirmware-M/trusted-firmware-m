@@ -1,4 +1,5 @@
 #-------------------------------------------------------------------------------
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Portions Copyright (C) 2024-2025 Analog Devices, Inc.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -166,13 +167,11 @@ endif()
 if(ITS_ENCRYPTION)
 
     set(SECURE_FW_PARTITION_CRYPTO_DIR  ${PLATFORM_DIR}/../secure_fw/partitions/crypto)
-    set(TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH ${TFM_MBEDCRYPTO_CONFIG_PATH})
 
     target_compile_definitions(tfm_psa_rot_partition_its
         PRIVATE
             ITS_ENCRYPTION
-            MBEDTLS_CONFIG_FILE="${TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH}"
-            MBEDTLS_PSA_CRYPTO_CONFIG_FILE="${TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH}"
+            TF_PSA_CRYPTO_CONFIG_FILE="${TFM_TF_PSA_CRYPTO_CONFIG_PATH}"
     )
 
     target_include_directories(tfm_psa_rot_partition_its

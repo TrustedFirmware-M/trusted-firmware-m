@@ -173,29 +173,25 @@ component on the service side which is able to identify the client through an
 ID, it is recommended to also define ``MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER``
 option in order to provide separation in the key space.
 
-Usage of Mbed TLS configuration headers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Usage of TF-PSA-Crypto configuration header
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Mbed TLS uses two different configuration headers, specified through the setting
-of the ``MBEDTLS_CONFIG_FILE``, i.e. Mbed TLS config, and the setting of
-``MBEDTLS_PSA_CRYPTO_CONFIG_FILE``, i.e. the PSA configuration. In order to be
-able to perform header inclusion for ``psa/crypto.h``, the configuration files
-must be visible to the compilation unit through the include hierarchy. If none of
-the macros are defined, the fall back strategy is to include the default config
-files available in the Mbed TLS repo, i.e. ``include/mbedtls/mbedtls_config.h``
-and ``include/psa/crypto_config.h``, which contain a set of default values for
-the macros.
+Crypto uses a configuration header, specified through the setting of the
+``TF_PSA_CRYPTO_CONFIG_FILE``, i.e. PSA Crypto configuration.  In order to be
+able to perform header inclusion for ``psa/crypto.h``, the configuration file
+must be visible to the compilation unit through the include hierarchy. If the
+macro is not defined, the fall back strategy is to include the default config
+file available in the TF-PSA-Crypto repo, i.e. ``include/psa/crypto_config.h``,
+which contains a set of default values for the macros.
 
 Usage of the default header config when using the TF-M Crypto service is highly
 discouraged, mainly because both on the client side and on the service side a
 set of options must always be defined (or undefined), as described in the
 previous section. TF-M provides example _profiles_ which show the options and
-how they should be used on both client and service side of the integration. Note
-that to avoid falling back to the default PSA configuration, the Mbed TLS config
-file must always define the symbol ``MBEDTLS_PSA_CRYPTO_CONFIG``. The symbol to
-enable the Mbed TLS config ``MBEDTLS_CONFIG_FILE`` instead must be available to
-the unit being compiled which is including ``psa/crypto.h``, i.e. passed by the
-build system config stage.
+how they should be used on both client and service side of the integration. The
+symbol to enable the Crypto config ``TF_PSA_CRYPTO_CONFIG_FILE`` instead must
+be available to the unit being compiled which is including ``psa/crypto.h``,
+i.e. passed by the build system config stage.
 
 Hardware acceleration
 ~~~~~~~~~~~~~~~~~~~~~
@@ -337,16 +333,12 @@ exported in the Kconfig menus.
    | `CRYPTO_*_MODULE_ENABLED`          | CMake build               | When enabled, the corresponding shim layer module and relative | Defined (Profile default)                                                |
    |                                    | configuration parameters  | APIs are available in the service                              |                                                                          |
    +------------------------------------+---------------------------+----------------------------------------------------------------+--------------------------------------------------------------------------+
-   | `MBEDTLS_CONFIG_FILE`              | Configuration header      | The Mbed TLS library can be configured to support different    | ``lib/ext/mbedcrypto/mbedcrypto_config/tfm_mbedcrypto_config_default.h`` |
-   |                                    |                           | algorithms through the usage of a configuration header file    | (Profile default)                                                        |
-   |                                    |                           | at build time. This allows for tailoring FLASH/RAM requirements|                                                                          |
-   |                                    |                           | for different platforms and use cases.                         |                                                                          |
-   +------------------------------------+---------------------------+----------------------------------------------------------------+--------------------------------------------------------------------------+
-   | `MBEDTLS_PSA_CRYPTO_CONFIG_FILE`   | Configuration header      | This header file specifies which cryptographic mechanisms are  |  ``lib/ext/mbedcrypto/mbedcrypto_config/crypto_config_default.h``        |
-   |                                    |                           | available through the PSA API when `MBEDTLS_PSA_CRYPTO_CONFIG` |  (Profile default)                                                       |
-   |                                    |                           | is enabled, and is not used when `MBEDTLS_PSA_CRYPTO_CONFIG` is|                                                                          |
-   |                                    |                           | disabled. Configuring TF-M always involves having the define   |                                                                          |
-   |                                    |                           | enabled.                                                       |                                                                          |
+   | `TF_PSA_CRYPTO_CONFIG_FILE`        | Configuration header      | The TF-PSA-Crypto library can be configured to support         | ``lib/ext/tf-psa-crypto/tfpsacrypto_config/crypto_config_default.h``     |
+   |                                    |                           | different algorithms through the usage of a configuration      | (Profile default)                                                        |
+   |                                    |                           | header file at build time. This specifies which cryptographic  |                                                                          |
+   |                                    |                           | mechanisms are available through the PSA API and also allows   |                                                                          |
+   |                                    |                           | for tailoring FLASH/RAMrequirements for different platforms    |                                                                          |
+   |                                    |                           | and use cases.                                                 |                                                                          |
    +------------------------------------+---------------------------+----------------------------------------------------------------+--------------------------------------------------------------------------+
 
 References
@@ -360,4 +352,6 @@ References
 
 --------------
 
-*Copyright (c) 2019-2024, Arm Limited. All rights reserved.*
+*SPDX-License-Identifier: BSD-3-Clause*
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*

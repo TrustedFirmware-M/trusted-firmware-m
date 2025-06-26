@@ -14,10 +14,12 @@ set(is_v8.xm    "$<OR:${is_v8.1m},${is_v8.0m}>")
 ############################### PSA CRYPTO CONFIG ##############################
 # Make sure these are available even if the TFM_PARTITION_CRYPTO is not defined
 
+# Interface library target for client-only builds of PSA Crypto
 add_library(psa_crypto_config INTERFACE)
 target_compile_definitions(psa_crypto_config
     INTERFACE
-        $<BUILD_INTERFACE:TF_PSA_CRYPTO_CONFIG_FILE="${TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH}">
+        $<BUILD_INTERFACE:TFM_PSA_CRYPTO_CLIENT_ONLY>
+        $<BUILD_INTERFACE:TF_PSA_CRYPTO_CONFIG_FILE="${TFM_TF_PSA_CRYPTO_CONFIG_PATH}">
         $<BUILD_INTERFACE:$<$<BOOL:${MBEDTLS_PSA_CRYPTO_PLATFORM_FILE}>:MBEDTLS_PSA_CRYPTO_PLATFORM_FILE="${MBEDTLS_PSA_CRYPTO_PLATFORM_FILE}">>
 )
 # The following is required for tfm_plat_crypto_nv_seed.h

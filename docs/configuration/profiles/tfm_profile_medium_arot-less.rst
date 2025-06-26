@@ -63,7 +63,7 @@ Firmware framework
 ==================
 
 PSA Certified ARoT-less [1]_ is only applicable to devices that don’t support Application RoT (ARoT)
-services. 
+services.
 The platform only consists of PSA RoT domain(s) in SPE making it unnecessary to implement the
 isolation between ARoT and PSA RoT.
 Therefore, this profile selects isolation level 1 to simplify implementation and optimize memory
@@ -131,9 +131,7 @@ The default configurations in ``config/profile/profile_medium_arotless`` are sho
    | ``CRYPTO_ASYM_ENCRYPT_MODULE_ENABLED``     | ``OFF``                                                                                             | Enable Crypto asymmetric            |
    |                                            |                                                                                                     | encryption operations               |
    +--------------------------------------------+-----------------------------------------------------------------------------------------------------+-------------------------------------+
-   | ``TFM_MBEDCRYPTO_CONFIG_PATH``             | ``${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/tfm_mbedcrypto_config_profile_medium.h`` | Reuse Profile Medium configuration  |
-   +--------------------------------------------+-----------------------------------------------------------------------------------------------------+-------------------------------------+
-   | ``TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH``  | ``${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/crypto_config_profile_medium.h``         | Reuse Profile Medium configuration  |
+   | ``TFM_TF_PSA_CRYPTO_CONFIG_PATH``          | ``${CMAKE_SOURCE_DIR}/lib/ext/tf-psa-crypto/tfpsacrypto_config/crypto_config_profile_medium.h``     | TF-PSA-Crypto config file path      |
    +--------------------------------------------+-----------------------------------------------------------------------------------------------------+-------------------------------------+
    | ``TFM_PARTITION_INITIAL_ATTESTATION``      | ``ON``                                                                                              | Enable Initial Attestation service  |
    +--------------------------------------------+-----------------------------------------------------------------------------------------------------+-------------------------------------+
@@ -241,4 +239,6 @@ Reference
 
 --------------
 
-*Copyright (c) 2020-2023, Arm Limited. All rights reserved.*
+*SPDX-License-Identifier: BSD-3-Clause*
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*

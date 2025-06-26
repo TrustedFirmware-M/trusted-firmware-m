@@ -214,9 +214,7 @@ shown below.
    +--------------------------------------------+------------------------------------+----------------------------------------------------------------------------------------------------+
    | ``TFM_PARTITION_CRYPTO``                   | Enable Crypto service              | ``ON``                                                                                             |
    +--------------------------------------------+------------------------------------+----------------------------------------------------------------------------------------------------+
-   | ``TFM_MBEDCRYPTO_CONFIG_PATH``             | MbedTLS config file path           | ``${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/tfm_mbedcrypto_config_profile_large.h`` |
-   +--------------------------------------------+------------------------------------+----------------------------------------------------------------------------------------------------+
-   | ``TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH``  | MbedTLS PSA config file path       | ``${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/crypto_config_profile_large.h``         |
+   | ``TFM_TF_PSA_CRYPTO_CONFIG_PATH``          | TF-PSA-Crypto config file path     | ``${CMAKE_SOURCE_DIR}/lib/ext/tf-psa-crypto/tfpsacrypto_config/crypto_config_profile_large.h``     |
    +--------------------------------------------+------------------------------------+----------------------------------------------------------------------------------------------------+
    | ``TFM_PARTITION_INITIAL_ATTESTATION``      | Enable Initial Attestation service | ``ON``                                                                                             |
    +--------------------------------------------+------------------------------------+----------------------------------------------------------------------------------------------------+

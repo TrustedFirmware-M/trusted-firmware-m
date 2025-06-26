@@ -41,23 +41,17 @@ config TF_PSA_CRYPTO_BUILD_TYPE
     string "TF-PSA-Crypto build type"
     default "$(CMAKE_BUILD_TYPE)"
 
-config TFM_MBEDCRYPTO_CONFIG_PATH
-    string "Mbedtls config path"
-    default "$(TFM_SOURCE_DIR)/lib/ext/mbedcrypto/mbedcrypto_config/tfm_mbedcrypto_config_default.h"
+config TFM_TF_PSA_CRYPTO_CONFIG_PATH
+    string "TF-PSA-Crypto config path"
+    default "$(TFM_SOURCE_DIR)/lib/ext/tf-psa-crypto/tfpsacrypto_config/crypto_config_default.h"
     help
-      Config to use for Mbed Crypto. For increased flexibility when
+      Config to use for TF-PSA-Crypto. For increased flexibility when
       pointing to a file, set the type of this setting to 'STRING' by
       passing the :<type> portion when specifying the setting value in
       the command line. E.g.
-      '-DTFM_MBEDCRYPTO_CONFIG_PATH:STRING=some_file_which_is_generated.h'
+      '-DTFM_TF_PSA_CRYPTO_CONFIG_PATH:STRING=some_file_which_is_generated.h'
       This can be useful if the config file is generated and placed
-      inside a directory already added to the include path of mbedtls.
-
-config TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH
-    string "Mbedtls psa crypto config path"
-    default "$(TFM_SOURCE_DIR)/lib/ext/mbedcrypto/mbedcrypto_config/crypto_config_default.h"
-    help
-      Config to use psa crypto setting for Mbed Crypto
+      inside a directory already added to the include path of TF-PSA-Crypto.
 
 config TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH
     string "Mbedtls platform crypto config path"

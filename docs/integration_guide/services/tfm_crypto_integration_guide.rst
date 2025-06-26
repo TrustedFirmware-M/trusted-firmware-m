@@ -126,23 +126,21 @@ driver interface spec. At the moment, the only supported library is mbed
 TLS [3]_.
 
 The configuration of the backend library is supplied using the
-``TFM_MBEDCRYPTO_CONFIG_PATH`` and ``TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH``
-config option that point to configuration headers following the legacy Mbed TLS
-configuration scheme or the new PSA based configuration scheme.
+``TFM_TF_PSA_CRYPTO_CONFIG_PATH`` config option that points to a configuration
+header following the configuration scheme of TF-PSA-Crypto.
 
 Platforms can specify an extra config file by setting the
 ``TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH`` variable (which is a wrapper
-around the ``MBEDTLS_USER_CONFIG_FILE`` option).  This is preferred for platform
-configuration over ``TFM_MBEDCRYPTO_CONFIG_PATH`` and
-``TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH`` as it does not interfere with
-config changes due to TFM Profile.
+around the ``MBEDTLS_USER_CONFIG_FILE`` option). This is preferred for
+platform configuration over ``TFM_TF_PSA_CRYPTO_CONFIG_PATH`` as it does not
+interfere with config changes due to TFM Profile.
 
 .. Note::
 
     The default entropy source configured for Mbed TLS is
     ``MBEDTLS_ENTROPY_NV_SEED`` with a unique seed. For production devices, an
     alternative hardware entropy source can be specified using the config option
-    ``MBEDTLS_ENTROPY_HARDWARE_ALT``
+    ``MBEDTLS_PSA_DRIVER_GET_ENTROPY``
 
 .. Note::
     Starting from Mbed TLS 3.3.0, the Python package ``jsonschema`` must be

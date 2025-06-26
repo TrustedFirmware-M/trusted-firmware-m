@@ -182,16 +182,14 @@ set(TFM_TZ_REENTRANCY_CHECK             OFF         CACHE BOOL      "Enable chec
 ############################ Mbedcrypto configurations #########################
 
 set(TF_PSA_CRYPTO_BUILD_TYPE            "${CMAKE_BUILD_TYPE}" CACHE STRING "Build type of TF-PSA-Crypto library")
-set(TFM_MBEDCRYPTO_CONFIG_PATH
-  "${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/tfm_mbedcrypto_config_default.h" CACHE PATH
-  "Config to use for Mbed Crypto. For increased flexibility when pointing to a file, set the type \
-of this setting to 'STRING' by passing the :<type> portion when specifying the setting value in \
-the command line. E.g. '-DTFM_MBEDCRYPTO_CONFIG_PATH:STRING=some_file_which_is_generated.h' \
-This can be useful if the config file is generated and placed inside a directory already added \
-to the include path of Mbed TLS.")
-set(TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH                     "${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/tfm_mbedcrypto_config_client.h" CACHE PATH "Bare minimum config required on the client side.")
-set(TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH                 "${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/crypto_config_default.h" CACHE PATH "Config to use PSA Crypto setting for Mbed Crypto.")
-set(TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH             ""    CACHE PATH      "Config to append to standard Mbed Crypto config, used by platforms to configure feature support.")
+set(TFM_TF_PSA_CRYPTO_CONFIG_PATH
+    "${CMAKE_SOURCE_DIR}/lib/ext/tf-psa-crypto/tfpsacrypto_config/crypto_config_default.h" CACHE PATH
+    "Config to use for TF-PSA-Crypto. For increased flexibility when pointing to a file, set the type \
+    of this setting to 'STRING' by passing the :<type> portion when specifying the setting value in \
+    the command line. E.g. '-DTFM_TF_PSA_CRYPTO_CONFIG_PATH:STRING=some_file_which_is_generated.h' \
+    This can be useful if the config file is generated and placed inside a directory already added \
+    to the include path of TF-PSA-Crypto.")
+set(TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH ""    CACHE PATH      "Config to append to standard Mbed Crypto config, used by platforms to configure feature support")
 set(TFM_MBEDCRYPTO_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH  ""    CACHE PATH      "Config to append to standard PSA Crypto setting for Mbed Crypto, used by platforms to configure cryptographic feature support.")
 set(MBEDTLS_PSA_CRYPTO_PLATFORM_FILE                      ""    CACHE PATH      "Platform specific MbedTLS PSA Crypto definitions file.")
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -20,16 +20,12 @@
      !defined(PSA_WANT_KEY_TYPE_PEPPER) && \
      !defined(PSA_WANT_KEY_TYPE_AES) && \
      !defined(PSA_WANT_KEY_TYPE_ARIA) && \
-     !defined(PSA_WANT_KEY_TYPE_DES) && \
      !defined(PSA_WANT_KEY_TYPE_CAMELLIA) && \
      !defined(PSA_WANT_KEY_TYPE_SM4) && \
      !defined(PSA_WANT_KEY_TYPE_ARC4) && \
      !defined(PSA_WANT_KEY_TYPE_CHACHA20) && \
-     !defined(PSA_WANT_KEY_TYPE_ECC_KEY_PAIR) && \
      !defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY) && \
-     !defined(PSA_WANT_KEY_TYPE_RSA_KEY_PAIR) && \
      !defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY) && \
-     !defined(PSA_WANT_KEY_TYPE_DH_KEY_PAIR) && \
      !defined(PSA_WANT_KEY_TYPE_DH_PUBLIC_KEY))
 #error "CRYPTO_KEY_MODULE enabled, but not all prerequisites (missing key types)!"
 #endif
