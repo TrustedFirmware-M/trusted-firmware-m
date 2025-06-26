@@ -28,6 +28,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <bootutil/sign_key.h>
+#include "fih.h"
 #include "mcuboot_config/mcuboot_config.h"
 #include "crypto_keys/tfm_builtin_key_ids.h"
 #include "tfm_plat_rotpk.h"
@@ -299,14 +300,13 @@ size_t tfm_plat_builtin_key_get_desc_table_ptr(const tfm_plat_builtin_key_descri
     return MCUBOOT_IMAGE_NUMBER * MAX_KEYS_PER_IMAGE;
 }
 
-int boot_verify_key_id_for_image(uint8_t image_index, uint32_t key_id)
+FIH_RET_TYPE(int) boot_verify_key_id_for_image(uint8_t image_index, uint32_t key_id)
 {
     for (int i = 0; i < MAX_KEYS_PER_IMAGE; i++) {
         if (key_id == get_key_id(image_index, i)) {
-            return 0;
+            FIH_RET(FIH_SUCCESS);
         }
     }
-    /* If the key id is not found in the image key id mapping, return -1 */
-    return -1;
+    /* If the key id is not found in the image key id mapping, return failure */
+    FIH_RET(FIH_FAILURE);
 }
-
