@@ -31,6 +31,7 @@ typedef struct gpt_entry {
     uint64_t        last_lba;
     uint64_t        attr;
     uint16_t        name[EFI_NAMELEN_MAX];
+    uint8_t         reserved[]; /*!< If list_entry_size in gpt_header_t > 128, this is reserved as 0 */
 } gpt_entry_t;
 
 typedef struct gpt_header {
@@ -44,12 +45,9 @@ typedef struct gpt_header {
     uint64_t        first_lba;
     uint64_t        last_lba;
     struct efi_guid disk_uuid;
-    /* starting LBA of array of partition entries */
-    uint64_t        list_lba;
-    /* number of partition entries in array */
-    uint32_t        list_num;
-    /* size of a single partition entry (usually 128) */
-    uint32_t        list_entry_size;
+    uint64_t        list_lba;        /*!< starting LBA of array of partition entries */
+    uint32_t        list_num;        /*!< number of partition entries in array */
+    uint32_t        list_entry_size; /*!< size of a single partition entry (usually 128) */
     uint32_t        list_crc;
 } gpt_header_t;
 
