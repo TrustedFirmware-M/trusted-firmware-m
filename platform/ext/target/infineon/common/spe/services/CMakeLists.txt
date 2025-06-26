@@ -62,14 +62,14 @@ if (TFM_PARTITION_CRYPTO)
 
     # Our mbedcrypto patch adds #include "tfm_builtin_key_loader.h" to psa_crypto_driver_wrappers.h file.
     # In turn, psa_crypto.c file from mbedcrypto includes psa_crypto_driver_wrappers.h file,
-    # so we need to link platform_crypto_keys to crypto_service_mbedcrypto_config
-    target_link_libraries(crypto_service_mbedcrypto_config
+    # so we need to link platform_crypto_keys to crypto_service_tfpsacrypto_config
+    target_link_libraries(crypto_service_tfpsacrypto_config
         INTERFACE
             platform_crypto_keys
     )
 
     if (IFX_CRYPTO_SE_RT)
-        target_sources(crypto_service_mbedcrypto
+        target_sources(crypto_service_tfpsacrypto
             PRIVATE
                 crypto/crypto_rnd_se_rt.c
         )
@@ -131,7 +131,7 @@ if (TFM_PARTITION_CRYPTO)
                 psa_interface
         )
 
-        target_link_libraries(crypto_service_mbedcrypto
+        target_link_libraries(crypto_service_tfpsacrypto
             PUBLIC
                 ${IFX_SE_RT_SERVICES_UTILS_S_TARGET}
         )

@@ -15,7 +15,7 @@ if (TFM_PLATFORM_NXP_HAL_FILE_PATH STREQUAL "LOCAL")
 else()
     set(NXP_HAL_FILE_PATH ${TFM_PLATFORM_NXP_HAL_FILE_PATH})
 endif()
-    
+
 Message("HAL_NXP path to be used: ${NXP_HAL_FILE_PATH}")
 set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
@@ -124,7 +124,7 @@ target_sources(platform_s
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/lpflexcomm/lpuart/fsl_lpuart.c
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/ctimer/fsl_ctimer.c
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/gpio/fsl_gpio.c
-        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/mcx_spc/fsl_spc.c    
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/mcx_spc/fsl_spc.c
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/uart/fsl_adapter_lpuart.c
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/assert/fsl_assert.c
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/debug_console_lite/fsl_debug_console.c
@@ -314,14 +314,14 @@ if (TFM_PARTITION_CRYPTO)
             "$<TARGET_PROPERTY:McuxPsaCryptoDriverElsPkc,INTERFACE_INCLUDE_DIRECTORIES>"
     )
 
-    target_include_directories(crypto_service_mbedcrypto
+    target_include_directories(crypto_service_tfpsacrypto
         PUBLIC
-            # crypto_service_mbedcrypto does not link against PsaCryptoDriverElsPkc directly, but we need to include it's
+            # crypto_service_tfpsacrypto does not link against PsaCryptoDriverElsPkc directly, but we need to include it's
             # header files to have the function declarations, typedefs and defines available.
             # Those directories are declared in the included library cmake file and can be used here:
             "$<TARGET_PROPERTY:McuxPsaCryptoDriverElsPkc,INTERFACE_INCLUDE_DIRECTORIES>"
     )
-    target_compile_definitions(crypto_service_mbedcrypto
+    target_compile_definitions(crypto_service_tfpsacrypto
         PUBLIC
             $<$<BOOL:${MCUX_PSA_CRYPTO_DRIVER_ELS_PKC}>:PSA_CRYPTO_DRIVER_ELS_PKC>
     )

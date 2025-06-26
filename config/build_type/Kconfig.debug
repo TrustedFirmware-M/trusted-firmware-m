@@ -5,7 +5,7 @@
 #
 #-------------------------------------------------------------------------------
 
-config MBEDCRYPTO_BUILD_TYPE
+config TF_PSA_CRYPTO_BUILD_TYPE
     default "relwithdebinfo"
 
 config BL1_2_BUILD_TYPE

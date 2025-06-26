@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2018-2022, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2021-2024 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
@@ -78,8 +78,8 @@
       "linker_pattern": {
         "library_list": [
            "*tfm_*partition_crypto.*",
-           "*mbedcrypto.*",
-           "*mbedtls*acceleration.*",
+           "*tfpsacrypto.*",
+           "*tfpsacrypto*acceleration.*",
          ]
       }
     },

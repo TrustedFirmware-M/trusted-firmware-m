@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2021 STMicroelectronics. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -59,18 +59,18 @@ include(${PLATFORM_DIR}/ext/target/${TFM_PLATFORM}/accelerator/CMakeLists.txt)
 if (TFM_PARTITION_CRYPTO)
     set(STM_LIB_TARGET crypto_service_crypto_hw)
 
-    target_link_libraries(crypto_service_mbedcrypto
+    target_link_libraries(crypto_service_tfpsacrypto
         PUBLIC
             crypto_service_crypto_hw
     )
 
-    target_compile_definitions(crypto_service_mbedcrypto
+    target_compile_definitions(crypto_service_tfpsacrypto
         PUBLIC
             CRYPTO_HW_ACCELERATOR
             LEGACY_DRIVER_API_ENABLED
     )
 
-    target_compile_options(crypto_service_mbedcrypto
+    target_compile_options(crypto_service_tfpsacrypto
         PRIVATE
             $<$<C_COMPILER_ID:GNU>:-Wno-unused-parameter>
             $<$<C_COMPILER_ID:ARMClang>:-Wno-unused-parameter>

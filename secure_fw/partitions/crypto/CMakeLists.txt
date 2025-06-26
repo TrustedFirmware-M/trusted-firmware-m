@@ -17,8 +17,7 @@ set(is_v8.xm    "$<OR:${is_v8.1m},${is_v8.0m}>")
 add_library(psa_crypto_config INTERFACE)
 target_compile_definitions(psa_crypto_config
     INTERFACE
-        $<BUILD_INTERFACE:MBEDTLS_PSA_CRYPTO_CONFIG_FILE="${TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH}">
-        $<BUILD_INTERFACE:MBEDTLS_CONFIG_FILE="${TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH}">
+        $<BUILD_INTERFACE:TF_PSA_CRYPTO_CONFIG_FILE="${TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH}">
         $<BUILD_INTERFACE:$<$<BOOL:${MBEDTLS_PSA_CRYPTO_PLATFORM_FILE}>:MBEDTLS_PSA_CRYPTO_PLATFORM_FILE="${MBEDTLS_PSA_CRYPTO_PLATFORM_FILE}">>
 )
 # The following is required for tfm_plat_crypto_nv_seed.h
@@ -30,8 +29,16 @@ target_include_directories(psa_crypto_config
 add_library(psa_crypto_library_config INTERFACE)
 target_compile_definitions(psa_crypto_library_config
     INTERFACE
-        MBEDTLS_PSA_CRYPTO_CONFIG_FILE="${TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH}"
-        MBEDTLS_CONFIG_FILE="${TFM_MBEDCRYPTO_CONFIG_PATH}"
+        TF_PSA_CRYPTO_CONFIG_FILE="${TFM_TF_PSA_CRYPTO_CONFIG_PATH}"
+)
+
+target_include_directories(psa_crypto_library_config
+    INTERFACE
+        # The following is required for mbedtls_entropy_nv_seed_config.h
+        ${CMAKE_SOURCE_DIR}/platform/include
+        # Workaround: needed for private headers in drivers/builtin/include/mbedtls/private
+        # which are included by some of the TF-PSA-Crypto interface headers.
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/include
 )
 
 if (NOT TFM_PARTITION_CRYPTO)
@@ -90,7 +97,7 @@ target_include_directories(tfm_partitions
 target_link_libraries(tfm_psa_rot_partition_crypto
     PRIVATE
         platform_s
-        crypto_service_mbedcrypto
+        crypto_service_tfpsacrypto
         tfm_config
         tfm_log_headers
 )
@@ -112,10 +119,10 @@ target_compile_definitions(tfm_config
         TFM_PARTITION_CRYPTO
 )
 
-############################### MBEDCRYPTO #####################################
-add_library(crypto_service_mbedcrypto_config INTERFACE)
+############################### TF-PSA-Crypto ##################################
+add_library(crypto_service_tfpsacrypto_config INTERFACE)
 
-target_compile_definitions(crypto_service_mbedcrypto_config
+target_compile_definitions(crypto_service_tfpsacrypto_config
     INTERFACE
         $<$<BOOL:${TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH}>:MBEDTLS_USER_CONFIG_FILE="${TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH}">
         $<$<BOOL:${TFM_MBEDCRYPTO_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH}>:MBEDTLS_PSA_CRYPTO_USER_CONFIG_FILE="${TFM_MBEDCRYPTO_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH}">
@@ -124,7 +131,7 @@ target_compile_definitions(crypto_service_mbedcrypto_config
         $<$<BOOL:${CRYPTO_TFM_BUILTIN_KEYS_DRIVER}>:PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER>
 )
 
-target_link_libraries(crypto_service_mbedcrypto_config
+target_link_libraries(crypto_service_tfpsacrypto_config
     INTERFACE
         tfm_config
         psa_crypto_library_config
@@ -132,61 +139,32 @@ target_link_libraries(crypto_service_mbedcrypto_config
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0048 NEW)
+set(TF_PSA_CRYPTO_AS_SUBPROJECT ON)
 set(ENABLE_TESTING OFF)
 set(ENABLE_PROGRAMS OFF)
-set(MBEDTLS_FATAL_WARNINGS OFF)
-set(ENABLE_DOCS OFF)
-set(INSTALL_MBEDTLS_HEADERS OFF)
-set(LIB_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/mbedcrypto/install)
+set(TF_PSA_CRYPTO_FATAL_WARNINGS OFF)
+set(INSTALL_TF_PSA_CRYPTO_HEADERS OFF)
+set(LIB_INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/tfpsacrypto/install)
 set(GEN_FILES OFF)
 
-# Set the prefix to be used by mbedTLS targets
-set(MBEDTLS_TARGET_PREFIX crypto_service_)
-
-# Check if the p256m driver is enabled in the config file, as that will require a
-# dedicated target to be linked in. Note that 0 means SUCCESS here, 1 means FAILURE
-set(MBEDTLS_P256M_NOT_FOUND 1)
-if(TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH)
-    execute_process(COMMAND
-        ${Python3_EXECUTABLE}
-        ${MBEDCRYPTO_PATH}/scripts/config.py -f "${TFM_MBEDCRYPTO_CONFIG_PATH}" get MBEDTLS_PSA_P256M_DRIVER_ENABLED
-        RESULT_VARIABLE MBEDTLS_P256M_NOT_FOUND)
-    if (${MBEDTLS_P256M_NOT_FOUND} EQUAL 1)
-        execute_process(COMMAND
-            ${Python3_EXECUTABLE}
-            ${MBEDCRYPTO_PATH}/scripts/config.py -f "${TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH}" get MBEDTLS_PSA_P256M_DRIVER_ENABLED
-            RESULT_VARIABLE MBEDTLS_P256M_NOT_FOUND)
-    endif()
-
-else()
-    execute_process(COMMAND
-        ${Python3_EXECUTABLE}
-        ${MBEDCRYPTO_PATH}/scripts/config.py -f "${TFM_MBEDCRYPTO_CONFIG_PATH}" get MBEDTLS_PSA_P256M_DRIVER_ENABLED
-        RESULT_VARIABLE MBEDTLS_P256M_NOT_FOUND)
-endif()
-
-if (${MBEDTLS_P256M_NOT_FOUND} EQUAL 0)
-    message(STATUS "[Crypto service] Using P256M software driver in PSA Crypto backend")
-    set(MBEDTLS_P256M_ENABLED true)
-else()
-    set(MBEDTLS_P256M_ENABLED false)
-endif()
+# Set the prefix to be used by TF-PSA-Crypto targets
+set(TF_PSA_CRYPTO_TARGET_PREFIX crypto_service_)
 
 # If the project is configured with CMAKE_BUILD_TYPE="Debug", the value of
-# MBEDCRYPTO_BUILD_TYPE will be set "RelWithDebInfo" to optimize the space
-# of the Debug build. If the goal is to debug Mbed TLS code itself, the
-# MBEDCRYPTO_BUILD_TYPE must be set manually here
+# TF_PSA_CRYPTO_BUILD_TYPE will be set "RelWithDebInfo" to optimize the space
+# of the Debug build. If the goal is to debug TF-PSA-Crypto code itself, the
+# TF_PSA_CRYPTO_BUILD_TYPE must be set manually here
 set(SAVED_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-set(CMAKE_BUILD_TYPE ${MBEDCRYPTO_BUILD_TYPE})
-add_subdirectory(${MBEDCRYPTO_PATH} ${CMAKE_CURRENT_BINARY_DIR}/mbedcrypto EXCLUDE_FROM_ALL)
+set(CMAKE_BUILD_TYPE ${TF_PSA_CRYPTO_BUILD_TYPE})
+add_subdirectory(${TF_PSA_CRYPTO_PATH} ${CMAKE_CURRENT_BINARY_DIR}/tfpsacrypto EXCLUDE_FROM_ALL)
 set(CMAKE_BUILD_TYPE ${SAVED_BUILD_TYPE})
 
-if(NOT TARGET ${MBEDTLS_TARGET_PREFIX}mbedcrypto)
-    message(FATAL_ERROR "[Crypto service] Target ${MBEDTLS_TARGET_PREFIX}mbedcrypto does not exist. Have the patches in ${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto been applied to the mbedcrypto repo at ${MBEDCRYPTO_PATH} ?
-    Hint: The command might be `cd ${MBEDCRYPTO_PATH} && git apply ${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/*.patch`")
+if(NOT TARGET ${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto)
+    message(FATAL_ERROR "[Crypto service] Target ${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto does not exist. Have the patches in ${CMAKE_SOURCE_DIR}/lib/ext/tf-psa-crypto been applied to the TF-PSA-Crypto repo at ${TF_PSA_CRYPTO_PATH} ?
+    Hint: The command might be `cd ${TF_PSA_CRYPTO_PATH} && git apply ${CMAKE_SOURCE_DIR}/lib/ext/tf-psa-crypto/*.patch`")
 endif()
 
-target_include_directories(${MBEDTLS_TARGET_PREFIX}mbedcrypto
+target_include_directories(${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/psa_driver_api
@@ -194,15 +172,15 @@ target_include_directories(${MBEDTLS_TARGET_PREFIX}mbedcrypto
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../interface/include>
 )
 
-# Fix platform_s and crypto_service_mbedcrypto libraries cyclic linking
-set_target_properties(${MBEDTLS_TARGET_PREFIX}mbedcrypto PROPERTIES LINK_INTERFACE_MULTIPLICITY 3)
+# Fix platform_s and crypto_service_tfpsacrypto libraries cyclic linking
+set_target_properties(${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto PROPERTIES LINK_INTERFACE_MULTIPLICITY 3)
 
-target_sources(${MBEDTLS_TARGET_PREFIX}mbedcrypto
+target_sources(${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto
     PRIVATE
         $<$<NOT:$<BOOL:${CRYPTO_HW_ACCELERATOR}>>:${CMAKE_CURRENT_SOURCE_DIR}/tfm_mbedcrypto_alt.c>
 )
 
-target_compile_options(${MBEDTLS_TARGET_PREFIX}mbedcrypto
+target_compile_options(${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto
     PRIVATE
         $<$<C_COMPILER_ID:GNU>:-Wno-unused-const-variable>
         $<$<C_COMPILER_ID:GNU>:-Wno-unused-parameter>
@@ -211,39 +189,33 @@ target_compile_options(${MBEDTLS_TARGET_PREFIX}mbedcrypto
         $<$<C_COMPILER_ID:Clang>:-Wno-unused-parameter>
 )
 
-if(MBEDTLS_P256M_ENABLED)
-    # FixMe: The p256m CmakeLists.txt in version 3.5.0 has an issue with target
-    # names and for this reason we need to force those defines at this stage
-    target_compile_definitions(${MBEDTLS_TARGET_PREFIX}p256m
-        PRIVATE
-            MBEDTLS_PSA_P256M_DRIVER_ENABLED
-            MBEDTLS_PSA_CRYPTO_SPM
-            # Code is branchless but UMLAL might take a variable amount of cycles
-            # depedening on inputs if ${is_v8.1m} is false. We don't aim to protect
-            # against side channel so this is a acknowledged behaviour
-            MUL64_IS_CONSTANT_TIME
-            MULADD64_IGNORE_ASM
-    )
-
-    # The crypto_spe.h to be passed to p256m is here
-    target_include_directories(${MBEDTLS_TARGET_PREFIX}p256m
-        PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-
-    # FPU flags for p256m
-    target_compile_options(${MBEDTLS_TARGET_PREFIX}p256m
-        PRIVATE
-            ${COMPILER_CP_FLAG}
-    )
-endif()
-
-target_link_libraries(${MBEDTLS_TARGET_PREFIX}mbedcrypto
+target_link_libraries(${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto
     PRIVATE
         platform_s
-        $<$<BOOL:${MBEDTLS_P256M_ENABLED}>:${MBEDTLS_TARGET_PREFIX}p256m>
     PUBLIC
-        crypto_service_mbedcrypto_config
+        crypto_service_tfpsacrypto_config
     INTERFACE
         platform_common_interface
+    )
+
+############################### TF-PSA-Crypto internal drivers #################
+
+target_compile_definitions(${TF_PSA_CRYPTO_TARGET_PREFIX}p256m
+    PRIVATE
+        # Code is branchless but UMLAL might take a variable amount of cycles
+        # depedening on inputs if ${is_v8.1m} is false. We don't aim to protect
+        # against side channel so this is a acknowledged behaviour
+        MUL64_IS_CONSTANT_TIME
+        MULADD64_IGNORE_ASM
 )
+
+# FPU flags for p256m
+target_compile_options(${TF_PSA_CRYPTO_TARGET_PREFIX}p256m
+    PRIVATE
+        ${COMPILER_CP_FLAG}
+)
+
+# Passing TF-PSA-Crypto configuration and required include paths to the driver targets
+target_link_libraries(${TF_PSA_CRYPTO_TARGET_PREFIX}builtin PRIVATE crypto_service_tfpsacrypto_config)
+target_link_libraries(${TF_PSA_CRYPTO_TARGET_PREFIX}p256m   PRIVATE crypto_service_tfpsacrypto_config)
+target_link_libraries(${TF_PSA_CRYPTO_TARGET_PREFIX}everest PRIVATE crypto_service_tfpsacrypto_config)

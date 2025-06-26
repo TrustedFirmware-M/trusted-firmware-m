@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2023, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2021 STMicroelectronics. All rights reserved.
 # Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
@@ -22,7 +22,7 @@ set(MCUBOOT_DATA_SHARING                   ON          CACHE BOOL      "Enable D
 set(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE ON          CACHE BOOL      "Enable Internal Trusted Storage partition")
 set(TFM_PARTITION_CRYPTO                   ON          CACHE BOOL      "Enable Crypto partition")
 set(CRYPTO_HW_ACCELERATOR                  ON          CACHE BOOL      "Whether to enable the crypto hardware accelerator on supported platforms")
-set(MBEDCRYPTO_BUILD_TYPE                  minsizerel  CACHE STRING    "Build type of Mbed Crypto library")
+set(TF_PSA_CRYPTO_BUILD_TYPE               minsizerel  CACHE STRING    "Build type of TF-PSA-Crypto library")
 set(TFM_DUMMY_PROVISIONING                 OFF         CACHE BOOL      "Provision with dummy values. NOT to be used in production")
 set(PLATFORM_DEFAULT_OTP_WRITEABLE         OFF         CACHE BOOL      "Use on chip flash with write support")
 set(PLATFORM_DEFAULT_NV_COUNTERS           OFF         CACHE BOOL      "Use default nv counter implementation.")

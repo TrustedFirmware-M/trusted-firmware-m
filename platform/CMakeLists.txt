@@ -112,7 +112,7 @@ target_link_libraries(platform_s
         tfm_config
         $<$<BOOL:${TFM_PARTITION_CRYPTO}>:platform_crypto_keys>
         $<$<BOOL:${PLATFORM_DEFAULT_ATTEST_HAL}>:tfm_sprt>
-        $<$<BOOL:${TFM_PARTITION_CRYPTO}>:crypto_service_mbedcrypto>
+        $<$<BOOL:${TFM_PARTITION_CRYPTO}>:crypto_service_tfpsacrypto>
         $<$<BOOL:${TFM_PARTITION_INITIAL_ATTESTATION}>:tfm_attestation_defs>
         tfm_fih
         tfm_log
@@ -166,7 +166,7 @@ if(TFM_PARTITION_CRYPTO)
 
     target_link_libraries(platform_crypto_keys
         PRIVATE
-            crypto_service_mbedcrypto
+            crypto_service_tfpsacrypto
             tfm_psa_rot_partition_crypto
             platform_region_defs
             tfm_config

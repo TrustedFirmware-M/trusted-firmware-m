@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2023, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2021 STMicroelectronics. All rights reserved.
 # Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
@@ -15,7 +15,7 @@ set(BL2_TRAILER_SIZE                    0x2000      CACHE STRING    "Trailer siz
 
 ################################## Dependencies ################################
 set(CRYPTO_HW_ACCELERATOR               ON          CACHE BOOL      "Whether to enable the crypto hardware accelerator on supported platforms")
-set(MBEDCRYPTO_BUILD_TYPE               minsizerel  CACHE STRING "Build type of Mbed Crypto library")
+set(TF_PSA_CRYPTO_BUILD_TYPE            minsizerel  CACHE STRING "Build type of TF-PSA-Crypto library")
 
 # Platform-specific configurations
 set(CONFIG_TFM_USE_TRUSTZONE            ON)

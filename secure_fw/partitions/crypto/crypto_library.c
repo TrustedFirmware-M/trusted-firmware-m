@@ -18,7 +18,7 @@
 
 /**
  * \brief This include is required to get the underlying platform function
- *        to allow the builtin keys support in mbed TLS to map slots to key
+ *        to allow the builtin keys support in TF-PSA-Crypto to map slots to key
  *        IDs.
  */
 #include "tfm_plat_crypto_keys.h"
@@ -37,20 +37,20 @@
 #include "mbedtls/platform.h"
 
 /**
- * \brief This Mbed TLS include is needed to retrieve version information for
- *        display
+ * \brief This TF-PSA-Crypto include is needed to retrieve version information
+ *        for display
  */
-#include "mbedtls/version.h"
+#include "tf-psa-crypto/version.h"
 
 #ifndef MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER
-#error "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER must be selected in Mbed TLS config file"
+#error "MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER must be selected in TF-PSA-Crypto config file"
 #endif
 
 /**
- * \brief Static buffer containing the string describing the mbed TLS version. mbed TLS
- *        guarantees that the string will never be greater than 18 bytes
+ * \brief Static buffer containing the string describing the TF-PSA-Crypto version. TF-PSA-Crypto
+ *        guarantees that the string will never be greater than 20 bytes
  */
-static char mbedtls_version_full[18];
+static char tfpsacrypto_version_full[20];
 
 /**
  * \brief Static buffer to be used by Mbed Crypto for memory allocations
@@ -70,7 +70,7 @@ static int null_printf(const char *fmt, ...)
  * \defgroup tfm_crypto_library Set of functions implementing the abstractions of the underlying cryptographic
  *                              library that implements the PSA Crypto APIs to provide the PSA Crypto core
  *                              functionality to the TF-M Crypto service. Currently it supports only an
- *                              mbed TLS based abstraction.
+ *                              TF-PSA-Crypto based abstraction.
  */
 /*!@{*/
 tfm_crypto_library_key_id_t tfm_crypto_library_key_id_init(int32_t owner, psa_key_id_t key_id)
@@ -80,8 +80,8 @@ tfm_crypto_library_key_id_t tfm_crypto_library_key_id_init(int32_t owner, psa_ke
 
 char *tfm_crypto_library_get_info(void)
 {
-    memcpy(mbedtls_version_full, MBEDTLS_VERSION_STRING_FULL, sizeof(MBEDTLS_VERSION_STRING_FULL));
-    return mbedtls_version_full;
+    memcpy(tfpsacrypto_version_full, TF_PSA_CRYPTO_VERSION_STRING_FULL, sizeof(TF_PSA_CRYPTO_VERSION_STRING_FULL));
+    return tfpsacrypto_version_full;
 }
 
 psa_status_t tfm_crypto_core_library_init(void)
@@ -105,9 +105,9 @@ void tfm_crypto_library_get_library_key_id_set_owner(int32_t owner, psa_key_attr
 }
 
 /**
- * \brief This function is required by mbed TLS to enable support for
+ * \brief This function is required by TF-PSA-Crypto to enable support for
  *        platform builtin keys in the PSA Crypto core layer implemented
- *        by mbed TLS. This function is not standardized by the API hence
+ *        by TF-PSA-Crypto. This function is not standardized by the API hence
  *        this layer directly provides the symbol required by the library
  *
  * \note It maps builtin key IDs to cryptographic drivers and slots. The

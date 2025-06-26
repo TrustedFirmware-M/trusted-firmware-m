@@ -9,19 +9,18 @@
 /**
  * \file crypto_spe.h
  *
- * \brief When Mbed Crypto is built with the MBEDTLS_PSA_CRYPTO_SPM option
- *        enabled, this header is included by all .c files in Mbed Crypto that
+ * \brief When TF-PSA-Crypto is built with the MBEDTLS_PSA_CRYPTO_SPM option
+ *        enabled, this header is included by all .c files in TF-PSA-Crypto that
  *        use PSA Crypto function names. This avoids duplication of symbols
- *        between TF-M and Mbed Crypto.
+ *        between TF-M and TF-PSA-Crypto.
  *
  * \note  This file should be included before including any PSA Crypto headers
- *        from Mbed Crypto.
+ *        from TF-PSA-Crypto.
  */
 
 #ifndef CRYPTO_SPE_H
 #define CRYPTO_SPE_H
-
-#define PSA_FUNCTION_NAME(x) mbedcrypto__ ## x
+#define PSA_FUNCTION_NAME(x) tfpsacrypto__ ## x
 
 #define psa_crypto_init \
         PSA_FUNCTION_NAME(psa_crypto_init)

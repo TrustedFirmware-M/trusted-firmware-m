@@ -31,7 +31,7 @@ if(TFM_PARTITION_CRYPTO)
 
     target_link_libraries(crypto_service_crypto_hw
         PRIVATE
-            crypto_service_mbedcrypto
+            crypto_service_tfpsacrypto
             platform_s
     )
 endif()

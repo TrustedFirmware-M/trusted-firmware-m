@@ -46,7 +46,7 @@ if (BL2)
 
     set(CC3XX_TARGET_PREFIX bl2_)
     set(SAVED_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-    set(CMAKE_BUILD_TYPE ${MBEDCRYPTO_BUILD_TYPE})
+    set(CMAKE_BUILD_TYPE ${TF_PSA_CRYPTO_BUILD_TYPE})
     add_subdirectory(${PLATFORM_DIR}/ext/target/arm/drivers/cc3xx ${CMAKE_CURRENT_BINARY_DIR}/${CC3XX_TARGET_PREFIX}cc3xx)
     set(CMAKE_BUILD_TYPE ${SAVED_BUILD_TYPE})
 
@@ -117,7 +117,7 @@ if (TFM_PARTITION_CRYPTO)
 
         target_link_libraries(crypto_service_crypto_hw
             PRIVATE
-                crypto_service_mbedcrypto
+                crypto_service_tfpsacrypto
         )
     endif()
 
@@ -139,7 +139,7 @@ if (TFM_PARTITION_CRYPTO)
             PUBLIC
                 ${CC312_LIB_PREFIX}cc312
             PRIVATE
-                crypto_service_mbedcrypto
+                crypto_service_tfpsacrypto
                 platform_s
         )
 
@@ -147,7 +147,7 @@ if (TFM_PARTITION_CRYPTO)
         set(CC312_PLATFORM_DEPENDENCY platform_s)
 
         set(SAVED_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-        set(CMAKE_BUILD_TYPE ${MBEDCRYPTO_BUILD_TYPE})
+        set(CMAKE_BUILD_TYPE ${TF_PSA_CRYPTO_BUILD_TYPE})
         add_subdirectory(${CC312_PATH} ${CMAKE_CURRENT_BINARY_DIR}/${CC312_LIB_PREFIX}cc312)
         set(CMAKE_BUILD_TYPE ${SAVED_BUILD_TYPE})
 
@@ -184,17 +184,17 @@ if (TFM_PARTITION_CRYPTO)
     # in reality it just means that they'll share headers and compile defs.
     target_link_libraries(${CC312_DRIVER_API_TARGET}
         PRIVATE
-            crypto_service_mbedcrypto
+            crypto_service_tfpsacrypto
         PUBLIC
             platform_s
     )
-    target_link_libraries(crypto_service_mbedcrypto
+    target_link_libraries(crypto_service_tfpsacrypto
         PUBLIC
             ${CC312_DRIVER_API_TARGET}
             crypto_service_crypto_hw
     )
 
-    target_compile_definitions(crypto_service_mbedcrypto
+    target_compile_definitions(crypto_service_tfpsacrypto
         PUBLIC
             CRYPTO_HW_ACCELERATOR
             MBEDTLS_ECDH_LEGACY_CONTEXT
@@ -208,7 +208,7 @@ if (TFM_PARTITION_CRYPTO)
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     )
 
-    target_compile_options(crypto_service_mbedcrypto
+    target_compile_options(crypto_service_tfpsacrypto
         PRIVATE
             $<$<C_COMPILER_ID:GNU>:-Wno-unused-parameter>
             $<$<C_COMPILER_ID:ARMClang>:-Wno-unused-parameter>

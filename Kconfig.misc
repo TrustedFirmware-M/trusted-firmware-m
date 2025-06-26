@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -33,12 +33,12 @@ config NS_EVALUATION_APP_PATH
     default ""
 endmenu
 
-################################# Mbedcrypto ###################################
+################################# TF-PSA-Crypto ################################
 
-menu "Mbedcrypto profile"
+menu "TF-PSA-Crypto profile"
 
-config MBEDCRYPTO_BUILD_TYPE
-    string "Mbedcrypto build type"
+config TF_PSA_CRYPTO_BUILD_TYPE
+    string "TF-PSA-Crypto build type"
     default "$(CMAKE_BUILD_TYPE)"
 
 config TFM_MBEDCRYPTO_CONFIG_PATH

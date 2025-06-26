@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2021 STMicroelectronics. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -33,7 +33,7 @@ if(TFM_PARTITION_CRYPTO)
             ${CMAKE_BINARY_DIR}/generated
             ${CMAKE_SOURCE_DIR}/interface/include
     )
-    target_include_directories(crypto_service_mbedcrypto
+    target_include_directories(crypto_service_tfpsacrypto
         PUBLIC
             ${PLATFORM_DIR}/ext/target/${TFM_PLATFORM}/accelerator/
             ${PLATFORM_DIR}/ext/target/stm/common/hal/accelerator/
@@ -58,12 +58,12 @@ if(TFM_PARTITION_CRYPTO)
 
     target_link_libraries(crypto_service_crypto_hw
         PRIVATE
-            crypto_service_mbedcrypto
+            crypto_service_tfpsacrypto
             platform_s
             cmsis
     )
 
-    target_link_libraries(crypto_service_mbedcrypto
+    target_link_libraries(crypto_service_tfpsacrypto
         PUBLIC
             cmsis
     )

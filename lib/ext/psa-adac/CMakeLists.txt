@@ -6,7 +6,7 @@
 #-------------------------------------------------------------------------------
 
 set(PSA_ADAC_TARGET "trusted-firmware-m")
-set(PSA_ADAC_MBEDTLS_INCLUDE "${MBEDCRYPTO_PATH}/include")
+set(PSA_ADAC_MBEDTLS_INCLUDE "${TF_PSA_CRYPTO_PATH}/include")
 set(PSA_ADAC_TOOLCHAIN    FALSE    CACHE BOOL "Whether to use psa-adac toolchain." FORCE)
 
 fetch_remote_library(

@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2021-2024 Cypress Semiconductor Corporation (an Infineon
 # company) or an affiliate of Cypress Semiconductor Corporation. All rights
 # reserved.
@@ -147,7 +147,7 @@ if (TFM_CODE_SHARING)
     # version of this function to attach the custom_command to the tfm_s target.
     # It's also picky about stripping the symbols, so we just make them weak
     # instead.
-    target_weaken_symbols_from_dependency(tfm_s crypto_service_mbedcrypto
+    target_weaken_symbols_from_dependency(tfm_s crypto_service_tfpsacrypto
         mbedtls_asn1*
         mbedtls_mpi*
         mbedtls_platform*

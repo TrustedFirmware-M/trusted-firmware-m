@@ -181,7 +181,7 @@ set(TFM_TZ_REENTRANCY_CHECK             OFF         CACHE BOOL      "Enable chec
 
 ############################ Mbedcrypto configurations #########################
 
-set(MBEDCRYPTO_BUILD_TYPE               "${CMAKE_BUILD_TYPE}" CACHE STRING "Build type of Mbed Crypto library")
+set(TF_PSA_CRYPTO_BUILD_TYPE            "${CMAKE_BUILD_TYPE}" CACHE STRING "Build type of TF-PSA-Crypto library")
 set(TFM_MBEDCRYPTO_CONFIG_PATH
   "${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/tfm_mbedcrypto_config_default.h" CACHE PATH
   "Config to use for Mbed Crypto. For increased flexibility when pointing to a file, set the type \

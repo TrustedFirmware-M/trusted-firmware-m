@@ -14,7 +14,7 @@ set(TFM_PARTITION_CRYPTO                   ON           CACHE BOOL      "Enable 
 set(TFM_PARTITION_PROTECTED_STORAGE        ON           CACHE BOOL        "Enable Protected Storage partition")
 set(TFM_PARTITION_INITIAL_ATTESTATION      ON           CACHE BOOL      "Disable Initial Attestation partition")
 set(CRYPTO_HW_ACCELERATOR                  ON           CACHE BOOL      "Whether to enable the crypto hardware accelerator on supported platforms")
-set(MBEDCRYPTO_BUILD_TYPE                  minsizerel   CACHE STRING    "Build type of Mbed Crypto library")
+set(TF_PSA_CRYPTO_BUILD_TYPE               minsizerel   CACHE STRING    "Build type of TF-PSA-Crypto library")
 set(TFM_DUMMY_PROVISIONING                 ON           CACHE BOOL      "Provision with dummy values. NOT to be used in production")
 set(PLATFORM_DEFAULT_OTP_WRITEABLE         ON           CACHE BOOL      "Use on chip flash with write support")
 set(PLATFORM_DEFAULT_NV_COUNTERS           ON           CACHE BOOL      "Use default nv counter implementation.")

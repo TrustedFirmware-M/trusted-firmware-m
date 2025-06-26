@@ -5,7 +5,7 @@
 #
 #-------------------------------------------------------------------------------
 
-set(MBEDCRYPTO_BUILD_TYPE               relwithdebinfo CACHE STRING "Build type of Mbed Crypto library")
+set(TF_PSA_CRYPTO_BUILD_TYPE            relwithdebinfo CACHE STRING "Build type of TF-PSA-Crypto library")
 set(BL1_2_BUILD_TYPE                    relwithdebinfo CACHE STRING "Build type of BL1_2")
 set(TFM_SPM_LOG_LEVEL                   LOG_LEVEL_VERBOSE CACHE STRING "Set debug SPM log level as Debug level")
 set(TFM_PARTITION_LOG_LEVEL             LOG_LEVEL_VERBOSE CACHE STRING "Set debug SP log level as Debug level")
