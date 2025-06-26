@@ -1,8 +1,10 @@
-/*
- *  Context structure declaration of the Mbed TLS software-based PSA drivers
- *  called through the PSA Crypto driver dispatch layer.
- *  This file contains the context structures of key derivation algorithms
- *  which need to rely on other algorithms.
+/**
+ * \file crypto_builtin_key_derivation.h
+ *
+ * \brief Context structure declaration of the Mbed TLS software-based PSA
+ * drivers called through the PSA Crypto driver dispatch layer. This file
+ * contains the context structures of key derivation algorithms which need to
+ * rely on other algorithms.
  *
  * \note This file may not be included directly. Applications must
  * include psa/crypto.h.
@@ -116,6 +118,8 @@ typedef struct {
 #endif /* PSA_HAVE_SOFT_PBKDF2 */
 
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_SP800_108_COUNTER_CMAC)
+#include <stdbool.h>
+
 #define SP800_108_INTERATION_COUNTER_SIZE   4
 
 #ifndef SP800_108_LABEL_MAX_SIZE

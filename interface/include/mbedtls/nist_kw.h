@@ -24,11 +24,9 @@
 #define MBEDTLS_NIST_KW_H
 #include "mbedtls/private_access.h"
 
-#include "mbedtls/build_info.h"
-
+#include "tf-psa-crypto/build_info.h"
 #include "psa/crypto_types.h"
 #include "psa/crypto_values.h"
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,16 +37,8 @@ typedef enum {
     MBEDTLS_KW_MODE_KWP = 1
 } mbedtls_nist_kw_mode_t;
 
-#if !defined(MBEDTLS_NIST_KW_ALT)
-// Regular implementation
-//
-
-#else  /* MBEDTLS_NIST_key wrapping_ALT */
-#include "nist_kw_alt.h"
-#endif /* MBEDTLS_NIST_KW_ALT */
-
 /**
- * \brief           This function encrypts a buffer using key wrapping.
+ * \brief                    This function encrypts a buffer using key wrapping.
  *
  * \param key                The key wrapping PSA key ID to use for encryption. The key should have the following attributes:
  *                               - type: #PSA_KEY_TYPE_AES
@@ -77,7 +67,7 @@ psa_status_t mbedtls_nist_kw_wrap(mbedtls_svc_key_id_t key,
                                   unsigned char *output, size_t output_size, size_t *output_length);
 
 /**
- * \brief           This function decrypts a buffer using key wrapping.
+ * \brief                    This function decrypts a buffer using key wrapping.
  *
  * \param key                The key wrapping PSA key ID to use for encryption. The key should have the following attributes:
  *                               - type: #PSA_KEY_TYPE_AES
@@ -107,6 +97,7 @@ psa_status_t mbedtls_nist_kw_unwrap(mbedtls_svc_key_id_t key,
                                     const unsigned char *input, size_t input_length,
                                     unsigned char *output, size_t output_size,
                                     size_t *output_length);
+
 
 #ifdef __cplusplus
 }

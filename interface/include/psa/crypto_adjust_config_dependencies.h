@@ -18,7 +18,7 @@
 #ifndef PSA_CRYPTO_ADJUST_CONFIG_DEPENDENCIES_H
 #define PSA_CRYPTO_ADJUST_CONFIG_DEPENDENCIES_H
 
-#if !defined(MBEDTLS_CONFIG_FILES_READ)
+#if !defined(TF_PSA_CRYPTO_CONFIG_FILES_READ)
 #error "Do not include psa/crypto_adjust_*.h manually! This can lead to problems, " \
     "up to and including runtime errors such as buffer overflows. " \
     "If you're trying to fix a complaint from check_config.h, just remove " \
@@ -49,8 +49,7 @@
 #define PSA_WANT_ALG_CMAC 1
 #endif
 
-#if (defined(MBEDTLS_NIST_KW_C) && \
-    !defined(PSA_WANT_ALG_ECB_NO_PADDING))
+#if defined(MBEDTLS_NIST_KW_C)
 #define PSA_WANT_ALG_ECB_NO_PADDING 1
 #endif
 

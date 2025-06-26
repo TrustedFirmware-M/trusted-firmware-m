@@ -1707,12 +1707,12 @@ TFM_CRYPTO_API(psa_status_t, psa_key_derivation_input_integer)(
 
 TFM_CRYPTO_API(psa_status_t, psa_key_derivation_verify_bytes)(
                                       psa_key_derivation_operation_t *operation,
-                                      const uint8_t *expected_output,
-                                      size_t output_length)
+                                      const uint8_t *expected,
+                                      size_t expected_length)
 {
     (void)operation;
-    (void)expected_output;
-    (void)output_length;
+    (void)expected;
+    (void)expected_length;
     /* To be implemented when the PSA backend supports it */
     return PSA_ERROR_NOT_SUPPORTED;
 }
