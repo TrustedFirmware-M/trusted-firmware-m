@@ -78,6 +78,11 @@ struct rse_otp_cm_rotpk_area_t {
     uint8_t rotpk[RSE_OTP_CM_ROTPK_AMOUNT][RSE_OTP_CM_ROTPK_SIZE];
 };
 
+__PACKED_STRUCT rse_otp_cod_cm_area_t {
+    uint8_t cod_cmac[RSE_OTP_COD_CMAC_SIZE];
+    uint8_t rak_pub[RSE_OTP_COD_RAK_PUB_SIZE];
+};
+
 __PACKED_STRUCT rse_otp_cm_area_t {
     uint32_t zero_count;
     uint32_t provisioning_blob_version;
@@ -94,7 +99,7 @@ __PACKED_STRUCT rse_otp_cm_area_t {
     struct rse_otp_subplatform_cm_area_t subplatform;
 #endif
 
-    uint8_t cod[RSE_OTP_COD_SIZE];
+    struct rse_otp_cod_cm_area_t cod;
 
     uint8_t reserved[RSE_OTP_CM_RESERVED_SIZE];
     struct rse_otp_cm_rotpk_area_t rotpk_areas[RSE_OTP_CM_ROTPK_MAX_REVOCATIONS + 1];
