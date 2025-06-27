@@ -26,7 +26,8 @@ extern "C" {
 #define CC3XX_ENTROPY_SIZE (CC3XX_TRNG_SAMPLE_SIZE)
 
 /**
- * @brief                        Requires an amount of entropy from the TRNG
+ * @brief                        Requires an amount of entropy from the SP800-90B
+ *                               entropy source.
  *
  * @param[out] entropy           Buffer containing the requested entropy
  * @param[in]  entropy_len       Size in bytes of the \p entropy buffer. Must be an
@@ -35,7 +36,7 @@ extern "C" {
  * @return                       CC3XX_ERR_SUCCESS on success, another
  *                               cc3xx_err_t on error.
  */
-cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len);
+cc3xx_err_t cc3xx_lowlevel_get_entropy(uint32_t *entropy, size_t entropy_len);
 
 /**
  * @brief Returns a generic pointer to the context of the underlying noise source

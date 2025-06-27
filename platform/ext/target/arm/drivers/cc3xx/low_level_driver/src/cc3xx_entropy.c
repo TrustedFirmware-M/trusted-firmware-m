@@ -209,7 +209,7 @@ static cc3xx_err_t startup_test(size_t entropy_byte_size)
  *                         SP800-90B compliant entropy source
  */
 /*!@{*/
-cc3xx_err_t cc3xx_lowlevel_entropy_get(uint32_t *entropy, size_t entropy_len)
+cc3xx_err_t cc3xx_lowlevel_get_entropy(uint32_t *entropy, size_t entropy_len)
 {
     cc3xx_err_t err;
     size_t num_words = 0;

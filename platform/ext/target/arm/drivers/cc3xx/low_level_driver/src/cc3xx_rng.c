@@ -93,11 +93,8 @@ static xorshift_plus_128_state_t g_lfsr = {.seed_done = false};
 static inline void lfsr_seed(xorshift_plus_128_state_t *lfsr)
 {
     if (!lfsr->seed_done) {
-        cc3xx_err_t err;
-        do {
-            err = cc3xx_lowlevel_entropy_get(lfsr->entropy, sizeof(lfsr->entropy));
-        } while (err != CC3XX_ERR_SUCCESS);
-
+        while (cc3xx_lowlevel_get_entropy(
+                    lfsr->entropy, sizeof(lfsr->entropy)) != CC3XX_ERR_SUCCESS);
         lfsr->seed_done = true;
     }
 }
@@ -129,10 +126,9 @@ static cc3xx_err_t drbg_get_random(uint8_t *buf, size_t length)
 
     if (!g_drbg.seed_done) {
 
-        /* Get 24 bytes of entropy */
-        do {
-            err = cc3xx_lowlevel_entropy_get(entropy, sizeof(entropy));
-        } while (err != CC3XX_ERR_SUCCESS);
+        /* Get CC3XX_ENTROPY_SIZE bytes of entropy */
+        while (cc3xx_lowlevel_get_entropy(
+                    entropy, sizeof(entropy)) != CC3XX_ERR_SUCCESS);
 
         /* Call the seeding API of the desired drbg */
         err = g_drbg.init(&g_drbg.state,
@@ -150,10 +146,9 @@ static cc3xx_err_t drbg_get_random(uint8_t *buf, size_t length)
     /* Add re-seeding capabilities */
     if (g_drbg.state.reseed_counter == UINT32_MAX) {
 
-        /* Get 24 bytes of entropy */
-        do {
-            err = cc3xx_lowlevel_entropy_get(entropy, sizeof(entropy));
-        } while (err != CC3XX_ERR_SUCCESS);
+        /* Get CC3XX_ENTROPY_SIZE bytes of entropy */
+        while (cc3xx_lowlevel_get_entropy(
+                    entropy, sizeof(entropy)) != CC3XX_ERR_SUCCESS);
 
         err = g_drbg.reseed(&g_drbg.state,
                     (const uint8_t *)entropy, sizeof(entropy), NULL, 0);

@@ -41,7 +41,7 @@ psa_status_t cc3xx_get_entropy(uint32_t flags, size_t *estimate_bits,
     }
 
     /* Get a multiple of CC3XX_ENTROPY_SIZE bytes of entropy */
-    err = cc3xx_lowlevel_entropy_get((uint32_t *)output, int_mult);
+    err = cc3xx_lowlevel_get_entropy((uint32_t *)output, int_mult);
 
     if (err != CC3XX_ERR_SUCCESS) {
         return cc3xx_to_psa_err(err);
@@ -49,7 +49,7 @@ psa_status_t cc3xx_get_entropy(uint32_t flags, size_t *estimate_bits,
 
     if ((output_size % CC3XX_ENTROPY_SIZE) != 0) {
         uint32_t last[CC3XX_ENTROPY_SIZE / sizeof(uint32_t)];
-        err = cc3xx_lowlevel_entropy_get(last, sizeof(last));
+        err = cc3xx_lowlevel_get_entropy(last, sizeof(last));
         if (err != CC3XX_ERR_SUCCESS) {
             return cc3xx_to_psa_err(err);
         }
