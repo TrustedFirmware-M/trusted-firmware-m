@@ -76,7 +76,7 @@ enum dcsu_error_t dcsu_hal_get_field_offset(enum dcsu_otp_field_t field, uint32_
         break;
 #ifdef RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE
     case DCSU_OTP_FIELD_EC_PARAMS:
-        *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->iak_endorsement_certificate);
+        *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->iak_endorsement_certificate_signature);
         break;
 #endif /* RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE */
     default:
@@ -122,8 +122,8 @@ enum dcsu_error_t dcsu_hal_get_field_size(enum dcsu_otp_field_t field, uint32_t 
         break;
 #ifdef RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE
     case DCSU_OTP_FIELD_EC_PARAMS:
-        *size = sizeof(P_RSE_OTP_DYNAMIC->iak_endorsement_certificate) +
-                sizeof(P_RSE_OTP_DYNAMIC->iak_endorsement_parameters);
+        *size = sizeof(P_RSE_OTP_DYNAMIC->iak_endorsement_certificate_signature) +
+                sizeof(P_RSE_OTP_DYNAMIC->iak_endorsement_certificate_parameters);
         break;
 #endif /* RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE */
     default:

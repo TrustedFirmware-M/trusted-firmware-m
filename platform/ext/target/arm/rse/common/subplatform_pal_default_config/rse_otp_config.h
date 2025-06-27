@@ -97,9 +97,9 @@
 
 #define RSE_OTP_MAX_REPROVISIONINGS 8
 #define RSE_OTP_RESERVED_COUNTER_BYTES 0
-/* #define RSE_OTP_HAS_IAK_ENDORSEMENT_CERTIFICATE */
-/* #define RSE_OTP_ENDORSEMENT_CERTIFICATE_SIZE 0x60 */
-/* #define RSE_OTP_ENDORSEMENT_CERTIFICATE_METADATA_SIZE 0x30 */
+/* #define RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE */
+#define RSE_OTP_ENDORSEMENT_CERTIFICATE_SIGNATURE_SIZE 0x60
+#define RSE_OTP_ENDORSEMENT_CERTIFICATE_PARAMETERS_SIZE 0x60
 
 /* 4 banks of NV counters are provided. Each bank must be a fixed size, so there
  * can be up to 4 different sizes of NV counters in the unlocked area, but with

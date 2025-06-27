@@ -157,8 +157,8 @@ __PACKED_STRUCT rse_otp_dynamic_area_t {
     uint8_t security_version_counters_bank_3[RSE_OTP_NV_COUNTERS_BANK_3_AMOUNT][COUNTER_BYTES(RSE_OTP_NV_COUNTERS_BANK_3_MAX_VALUE)];
 
 #ifdef RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE
-    uint8_t iak_endorsement_certificate[RSE_OTP_ENDORSEMENT_CERTIFICATE_SIZE];
-    uint8_t iak_endorsement_parameters[RSE_OTP_ENDORSEMENT_CERTIFICATE_METADATA_SIZE];
+    uint8_t iak_endorsement_certificate_signature[RSE_OTP_ENDORSEMENT_CERTIFICATE_SIGNATURE_SIZE];
+    uint8_t iak_endorsement_certificate_parameters[RSE_OTP_ENDORSEMENT_CERTIFICATE_PARAMETERS_SIZE];
 #endif
 
 #ifdef RSE_OTP_DYNAMIC_SUBPLATFORM_ITEMS
