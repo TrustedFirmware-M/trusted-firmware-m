@@ -245,11 +245,18 @@ create_provisioning_code_target(combined
     "RSE_COMBINED_PROVISIONING_BUNDLES" # additional macros
 )
 
-if (RSE_NON_ENDORSED_DM_PROVISIONING)
+if (RSE_NON_ENDORSED_DM_PROVISIONING OR RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
+    set(PLAIN_DATA_HANDLER_SOURCES
+            ./plain_data_handler_provisioning_code.c
+            ./../rse_provisioning_plain_data_handler.c
+            ./../../rse_rotpk_revocation.c
+            ./../../rse_iak_endorsement_cert.c
+        )
+
     create_provisioning_code_target(plain_data_handler
         provisioning_code # cmake target
         do_provision # entrypoint
-        "./plain_data_handler_provisioning_code.c;./../rse_provisioning_plain_data_handler.c;./../../rse_rotpk_revocation.c" # sources
+        "${PLAIN_DATA_HANDLER_SOURCES}" # sources
         "" # additional macros
     )
 endif()
@@ -291,7 +298,8 @@ if (TFM_DUMMY_PROVISIONING)
         --non_secret_cm:cm.rotpk_areas_0.rotpk_hash_alg_1 RSE_ROTPK_HASH_ALG_${MCUBOOT_ROTPK_HASH_ALG}
     )
 
-    if (${RSE_PROVISIONING_DM_SIGNATURE_CONFIG} STREQUAL "ROTPK_NOT_IN_ROM" OR RSE_NON_ENDORSED_DM_PROVISIONING)
+    if (${RSE_PROVISIONING_DM_SIGNATURE_CONFIG} STREQUAL "ROTPK_NOT_IN_ROM"
+        OR RSE_NON_ENDORSED_DM_PROVISIONING OR RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
         set(CM_BUNDLE_SCRIPT_ARGS
             ${CM_BUNDLE_SCRIPT_ARGS}
             --non_secret_cm:cm.rotpk_areas_0.rotpk_${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX}=${RSE_CM_PROVISIONING_SIGNING_KEY}
@@ -436,13 +444,21 @@ if (TFM_DUMMY_PROVISIONING)
         )
     endif()
 
-    if (RSE_NON_ENDORSED_DM_PROVISIONING)
+    if (RSE_NON_ENDORSED_DM_PROVISIONING OR RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
+        set(VALID_LCS_STATES)
+        if (RSE_NON_ENDORSED_DM_PROVISIONING)
+            list(APPEND VALID_LCS_STATES SE)
+        endif()
+        if (RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
+            list(APPEND VALID_LCS_STATES DM)
+        endif()
+
         generate_provisioning_bundle(
             plain_data_handler_provisioning # bundle type
             ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/create_plain_data_handler_provisioning_bundle.py # script
             plain_data_handler_provisioning_code # cmake executable target
             "${RSE_CM_BLOB_VERSION}" # blob version
-            "SE" # valid LCS states
+            "${VALID_LCS_STATES}" # valid LCS states
             OFF # symmetric provisioning enabled
             "ROTPK_NOT_IN_ROM" # signature config
             "${RSE_CM_PROVISIONING_SIGNING_KEY}" # signature key (if asymmetric)

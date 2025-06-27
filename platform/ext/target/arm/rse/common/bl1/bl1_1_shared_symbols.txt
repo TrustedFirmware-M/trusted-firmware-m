@@ -21,6 +21,8 @@ cc3xx_lowlevel_uninit
 cc3xx_lowlevel_kdf_cmac
 computed_bl1_2_hash
 dm_area_info
+soc_area_info
+dynamic_area_info
 dpa_hardened_word_copy
 get_supported_region_count
 host_flash_atu_setup_image_input_slots
@@ -35,6 +37,7 @@ kmu_set_key_export_config
 kmu_set_key_export_config_locked
 kmu_export_key
 lcm_otp_write
+lcm_otp_read
 lcm_get_lcs
 lcm_get_tp_mode
 lcm_dcu_get_locked

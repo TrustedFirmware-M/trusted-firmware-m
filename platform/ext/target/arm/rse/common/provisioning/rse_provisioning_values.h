@@ -67,6 +67,11 @@ struct __attribute__((__packed__)) rse_non_endorsed_dm_provisioning_values_t {
     uint8_t rotpk[RSE_OTP_DM_ROTPK_AMOUNT][RSE_OTP_DM_ROTPK_SIZE];
 };
 
+struct __attribute__((packed)) rse_endorsement_certificate_provisioning_values_t {
+    uint8_t endorsement_certificate_signature[RSE_OTP_ENDORSEMENT_CERTIFICATE_SIGNATURE_SIZE];
+    uint8_t endorsement_certificate_parameters[RSE_OTP_ENDORSEMENT_CERTIFICATE_PARAMETERS_SIZE];
+};
+
 #ifdef __cplusplus
 }
 #endif

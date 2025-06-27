@@ -68,11 +68,12 @@ enum runtime_provisioning_error_t runtime_provisioning_hal_init(void)
 static enum tfm_plat_err_t handle_plain_data_message(struct rse_provisioning_message_t *message)
 {
     enum tfm_plat_err_t err;
+    struct default_plain_data_handler_ctx_s ctx;
     struct provisioning_message_handler_config config = {
         .plain_data_handler = default_plain_data_handler,
     };
 
-    err = handle_provisioning_message(message, sizeof(blob_buffer), &config, NULL);
+    err = handle_provisioning_message(message, sizeof(blob_buffer), &config, &ctx);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         rse_set_provisioning_staging_status(PROVISIONING_STAGING_STATUS_NO_MESSAGE);
         message_handling_status_report_error(PROVISIONING_REPORT_STEP_PARSE_PLAIN_DATA, err);
