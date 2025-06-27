@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, The TrustedFirmware-M Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -62,6 +62,16 @@
 
 /* Whether DMA remapping is enabled */
 #define CC3XX_CONFIG_DMA_REMAP_ENABLE
+
+/* Only has an effect if CC3XX_CONFIG_DMA_REMAP_ENABLE is defined.
+ * Defines DMA remapping regions.
+ * See cc3xx_lowlevel_init for further details.
+ */
+#define CC3XX_DMA_REMAP_REGIONS \
+    {ITCM_BASE_S, ITCM_SIZE, ITCM_CPU0_BASE_S, 0x01000000}, \
+    {ITCM_BASE_NS, ITCM_SIZE, ITCM_CPU0_BASE_NS, 0x01000000}, \
+    {DTCM_BASE_S, DTCM_SIZE, DTCM_CPU0_BASE_S, 0x01000000}, \
+    {DTCM_BASE_NS, DTCM_SIZE, DTCM_CPU0_BASE_NS, 0x01000000}
 
 /* Whether DMA supports working on cached memories */
 #define CC3XX_CONFIG_DMA_CACHE_FLUSH_ENABLE

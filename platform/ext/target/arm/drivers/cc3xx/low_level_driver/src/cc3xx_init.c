@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, The TrustedFirmware-M Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -11,6 +11,10 @@
 #include "cc3xx_engine_state.h"
 #include <assert.h>
 #include "cc3xx_rng.h"
+#include "cc3xx_drv.h"
+
+#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
+
 
 static void check_features(void)
 {
@@ -126,6 +130,29 @@ static cc3xx_err_t setup_dpa_countermeasures(void)
 
 cc3xx_err_t cc3xx_lowlevel_init(void)
 {
+#if defined(CC3XX_CONFIG_DMA_REMAP_ENABLE) && \
+    defined(CC3XX_DMA_REMAP_REGIONS)
+    const cc3xx_dma_remap_region_t remap_regions[] = {
+        CC3XX_DMA_REMAP_REGIONS,
+    };
+
+    for (uint32_t idx = 0; idx < ARRAY_SIZE(remap_regions); idx++) {
+        cc3xx_lowlevel_dma_remap_region_init(idx, &remap_regions[idx]);
+    }
+#endif
+
+#if defined(CC3XX_CONFIG_DMA_BURST_RESTRICTED_ENABLE) && \
+    defined(CC3XX_DMA_BURST_RESTRICTED_REGIONS)
+     const cc3xx_dma_burst_restricted_region_t burst_restricted_regions[] = {
+        CC3XX_DMA_BURST_RESTRICTED_REGIONS,
+    };
+
+    for (uint32_t idx = 0; idx < ARRAY_SIZE(burst_restricted_regions); idx++) {
+        cc3xx_lowlevel_dma_burst_restricted_region_init(idx,
+            &burst_restricted_regions[idx]);
+    }
+#endif
+
     cc3xx_err_t err;
 
     /* If on a debug build, check that the CC3XX has all the features that have

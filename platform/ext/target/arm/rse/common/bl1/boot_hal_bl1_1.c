@@ -175,26 +175,6 @@ int32_t boot_platform_init(void)
 #endif /* LOGGING_ENABLED */
 
 #ifdef CRYPTO_HW_ACCELERATOR
-    const cc3xx_dma_remap_region_t remap_regions[] = {
-        {ITCM_BASE_S, ITCM_SIZE, ITCM_CPU0_BASE_S, 0x01000000},
-        {ITCM_BASE_NS, ITCM_SIZE, ITCM_CPU0_BASE_NS, 0x01000000},
-        {DTCM_BASE_S, DTCM_SIZE, DTCM_CPU0_BASE_S, 0x01000000},
-        {DTCM_BASE_NS, DTCM_SIZE, DTCM_CPU0_BASE_NS, 0x01000000},
-    };
-
-    const cc3xx_dma_burst_restricted_region_t burst_restricted_regions[] = {
-        {KMU_BASE_S + 0x130, 0x400}, /* KMU Key Slot Registers */
-    };
-
-    for (idx = 0; idx < ARRAY_SIZE(remap_regions); idx++) {
-        cc3xx_lowlevel_dma_remap_region_init(idx, &remap_regions[idx]);
-    }
-
-    for (idx = 0; idx < ARRAY_SIZE(burst_restricted_regions); idx++) {
-        cc3xx_lowlevel_dma_burst_restricted_region_init(idx,
-            &burst_restricted_regions[idx]);
-    }
-
     cc_err = cc3xx_lowlevel_init();
     if (cc_err != CC3XX_ERR_SUCCESS) {
         return cc_err;
