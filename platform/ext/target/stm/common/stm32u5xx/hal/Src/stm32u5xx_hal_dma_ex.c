@@ -26,7 +26,7 @@
   **********************************************************************************************************************
   @verbatim
   ======================================================================================================================
-                                 ############### How to use this driver ###############
+                                 ##### How to use this driver #####
   ======================================================================================================================
     [..]
       Alternatively to the normal programming mode, a DMA channel can be programmed by a list of transfers, known as
@@ -538,9 +538,15 @@ static void DMA_List_BuildNode(DMA_NodeConfTypeDef const *const pNodeConfig,
                                DMA_NodeTypeDef *const pNode);
 static void DMA_List_GetNodeConfig(DMA_NodeConfTypeDef *const pNodeConfig,
                                    DMA_NodeTypeDef const *const pNode);
+#if defined ( __GNUC__ ) && !defined (__CC_ARM)
+static __attribute__((noinline)) uint32_t DMA_List_CheckNodesBaseAddresses(DMA_NodeTypeDef const *const pNode1,  \
+                                                                           DMA_NodeTypeDef const *const pNode2,  \
+                                                                           DMA_NodeTypeDef const *const pNode3);
+#else
 static uint32_t DMA_List_CheckNodesBaseAddresses(DMA_NodeTypeDef const *const pNode1,
                                                  DMA_NodeTypeDef const *const pNode2,
                                                  DMA_NodeTypeDef const *const pNode3);
+#endif /* __GNUC__ && !__CC_ARM */
 static uint32_t DMA_List_CheckNodesTypes(DMA_NodeTypeDef const *const pNode1,
                                          DMA_NodeTypeDef const *const pNode2,
                                          DMA_NodeTypeDef const *const pNode3);
@@ -582,7 +588,7 @@ static void DMA_List_CleanQueue(DMA_QListTypeDef *const pQList);
   *
 @verbatim
   ======================================================================================================================
-                 ############### Linked-List Initialization and De-Initialization Functions ###############
+                 ##### Linked-List Initialization and De-Initialization Functions #####
   ======================================================================================================================
     [..]
       This section provides functions allowing to initialize and de-initialize the DMA channel in linked-list mode.
@@ -677,7 +683,6 @@ HAL_StatusTypeDef HAL_DMAEx_List_DeInit(DMA_HandleTypeDef *const hdma)
   /* Get DMA instance */
   DMA_TypeDef *p_dma_instance;
 
-
   /* Get tick number */
   uint32_t tickstart = HAL_GetTick();
 
@@ -693,7 +698,6 @@ HAL_StatusTypeDef HAL_DMAEx_List_DeInit(DMA_HandleTypeDef *const hdma)
 
   /* Get DMA instance */
   p_dma_instance = GET_DMA_INSTANCE(hdma);
-
 
   /* Disable the selected DMA Channel */
   __HAL_DMA_DISABLE(hdma);
@@ -739,7 +743,7 @@ HAL_StatusTypeDef HAL_DMAEx_List_DeInit(DMA_HandleTypeDef *const hdma)
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
   /* Clear secure attribute */
   CLEAR_BIT(p_dma_instance->SECCFGR, (1UL << (GET_DMA_CHANNEL(hdma) & 0x1FU)));
-#endif /* defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */
+#endif /* (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */
 
   /* Clear all flags */
   __HAL_DMA_CLEAR_FLAG(hdma, (DMA_FLAG_TC | DMA_FLAG_HT | DMA_FLAG_DTE | DMA_FLAG_ULE | DMA_FLAG_USE | DMA_FLAG_SUSP |
@@ -791,7 +795,7 @@ HAL_StatusTypeDef HAL_DMAEx_List_DeInit(DMA_HandleTypeDef *const hdma)
   *
 @verbatim
   ======================================================================================================================
-                         ############### Linked-List IO Operation Functions ###############
+                         ##### Linked-List IO Operation Functions #####
   ======================================================================================================================
     [..]
       This section provides functions allowing to :
@@ -957,7 +961,7 @@ HAL_StatusTypeDef HAL_DMAEx_List_Start_IT(DMA_HandleTypeDef *const hdma)
   *
 @verbatim
   ======================================================================================================================
-                         ############### Linked-List Management Functions ###############
+                         ##### Linked-List Management Functions #####
   ======================================================================================================================
     [..]
       This section provides functions allowing to :
@@ -1094,17 +1098,13 @@ HAL_StatusTypeDef HAL_DMAEx_List_BuildNode(DMA_NodeConfTypeDef const *const pNod
     assert_param(IS_DMA_BURST_ADDR_OFFSET(pNodeConfig->RepeatBlockConfig.DestAddrOffset));
     assert_param(IS_DMA_BLOCK_ADDR_OFFSET(pNodeConfig->RepeatBlockConfig.BlkSrcAddrOffset));
     assert_param(IS_DMA_BLOCK_ADDR_OFFSET(pNodeConfig->RepeatBlockConfig.BlkDestAddrOffset));
-    assert_param(IS_DMA_BURST_ADDR_OFFSET(pNodeConfig->RepeatBlockConfig.SrcAddrOffset));
-    assert_param(IS_DMA_BURST_ADDR_OFFSET(pNodeConfig->RepeatBlockConfig.DestAddrOffset));
-    assert_param(IS_DMA_BLOCK_ADDR_OFFSET(pNodeConfig->RepeatBlockConfig.BlkSrcAddrOffset));
-    assert_param(IS_DMA_BLOCK_ADDR_OFFSET(pNodeConfig->RepeatBlockConfig.BlkDestAddrOffset));
   }
 
   /* Check DMA channel security and privilege attributes parameters */
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
   assert_param(IS_DMA_ATTRIBUTES(pNodeConfig->SrcSecure));
   assert_param(IS_DMA_ATTRIBUTES(pNodeConfig->DestSecure));
-#endif /* defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */
+#endif /* (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */
 
   /* Build the DMA channel node */
   DMA_List_BuildNode(pNodeConfig, pNode);
@@ -3224,7 +3224,7 @@ HAL_StatusTypeDef HAL_DMAEx_List_UnLinkQ(DMA_HandleTypeDef *const hdma)
   *
 @verbatim
   ======================================================================================================================
-             ############### Data handling, repeated block and trigger configuration functions ###############
+             ##### Data handling, repeated block and trigger configuration functions #####
   ======================================================================================================================
     [..]
       This section provides functions allowing to :
@@ -3451,7 +3451,7 @@ HAL_StatusTypeDef HAL_DMAEx_ConfigRepeatBlock(DMA_HandleTypeDef *const hdma,
   *
 @verbatim
   ======================================================================================================================
-                         ############### Suspend and resume operation functions ###############
+                         ##### Suspend and resume operation functions #####
   ======================================================================================================================
     [..]
       This section provides functions allowing to :
@@ -3614,7 +3614,7 @@ HAL_StatusTypeDef HAL_DMAEx_Resume(DMA_HandleTypeDef *const hdma)
   *
 @verbatim
   ======================================================================================================================
-                               ############### Fifo status function ###############
+                               ##### Fifo status function #####
   ======================================================================================================================
     [..]
       This section provides function allowing to get DMA channel FIFO level.
@@ -3736,7 +3736,7 @@ static void DMA_List_BuildNode(DMA_NodeConfTypeDef const *const pNodeConfig,
   {
     pNode->LinkRegisters[NODE_CTR1_DEFAULT_OFFSET] |= DMA_CTR1_DSEC;
   }
-#endif /* defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */
+#endif /* (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */
 
   /* Add parameters related to DMA configuration */
   if ((pNodeConfig->NodeType & DMA_CHANNEL_TYPE_GPDMA) == DMA_CHANNEL_TYPE_GPDMA)
@@ -3906,7 +3906,6 @@ static void DMA_List_BuildNode(DMA_NodeConfTypeDef const *const pNodeConfig,
     /********************************************************************************* CBR2 register value is updated */
   }
 
-
   /* Update node information value ************************************************************************************/
   /* Set node information */
   pNode->NodeInfo = pNodeConfig->NodeType;
@@ -3971,7 +3970,7 @@ static void DMA_List_GetNodeConfig(DMA_NodeConfTypeDef *const pNodeConfig,
   {
     pNodeConfig->DestSecure = DMA_CHANNEL_DEST_NSEC;
   }
-#endif /* defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */
+#endif /* (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */
   /*********************************************************************************** CTR1 fields values are updated */
 
 
@@ -4090,9 +4089,15 @@ static void DMA_List_GetNodeConfig(DMA_NodeConfTypeDef *const pNodeConfig,
   * @param  pNode3 : Pointer to a DMA_NodeTypeDef structure that contains linked-list node 3 registers configurations.
   * @retval Return 0 when nodes addresses are compatible, 1 otherwise.
   */
+#if defined ( __GNUC__ ) && !defined (__CC_ARM)
+static __attribute__((noinline)) uint32_t DMA_List_CheckNodesBaseAddresses(DMA_NodeTypeDef const *const pNode1,  \
+                                                                           DMA_NodeTypeDef const *const pNode2,  \
+                                                                           DMA_NodeTypeDef const *const pNode3)
+#else
 static uint32_t DMA_List_CheckNodesBaseAddresses(DMA_NodeTypeDef const *const pNode1,
                                                  DMA_NodeTypeDef const *const pNode2,
                                                  DMA_NodeTypeDef const *const pNode3)
+#endif /* __GNUC__ && !__CC_ARM */
 {
   uint32_t temp = (((uint32_t)pNode1 | (uint32_t)pNode2 | (uint32_t)pNode3) & DMA_CLBAR_LBA);
   uint32_t ref  = 0U;
@@ -4461,7 +4466,7 @@ static void DMA_List_ConvertNodeToStatic(uint32_t ContextNodeAddr,
   uint32_t contextnode_reg_counter = 0U;
   uint32_t cllr_idx;
   uint32_t cllr_mask;
-  DMA_NodeTypeDef *context_node = (DMA_NodeTypeDef *)ContextNodeAddr;
+  const DMA_NodeTypeDef *context_node = (DMA_NodeTypeDef *)ContextNodeAddr;
   DMA_NodeTypeDef *current_node = (DMA_NodeTypeDef *)CurrentNodeAddr;
   uint32_t update_link[NODE_MAXIMUM_SIZE] = {DMA_CLLR_UT1, DMA_CLLR_UT2, DMA_CLLR_UB1, DMA_CLLR_USA,
                                              DMA_CLLR_UDA, DMA_CLLR_UT3, DMA_CLLR_UB2, DMA_CLLR_ULL

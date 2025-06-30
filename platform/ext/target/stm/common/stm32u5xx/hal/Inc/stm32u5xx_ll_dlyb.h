@@ -33,6 +33,7 @@ extern "C" {
   */
 
 #if defined(HAL_SD_MODULE_ENABLED) || defined(HAL_OSPI_MODULE_ENABLED) || defined(HAL_XSPI_MODULE_ENABLED)
+#if defined (DLYB_SDMMC1) || defined (DLYB_SDMMC2) || defined (DLYB_OCTOSPI1) || defined (DLYB_OCTOSPI2)
 
 /* Exported types ------------------------------------------------------------*/
 /** @defgroup DLYB_LL DLYB
@@ -113,8 +114,8 @@ __STATIC_INLINE void LL_DLYB_Disable(DLYB_TypeDef *DLYBx)
   * @{
   */
 
-void LL_DLYB_SetDelay(DLYB_TypeDef *DLYBx, LL_DLYB_CfgTypeDef  *pdlyb_cfg);
-void LL_DLYB_GetDelay(DLYB_TypeDef *DLYBx, LL_DLYB_CfgTypeDef *pdlyb_cfg);
+void LL_DLYB_SetDelay(DLYB_TypeDef *DLYBx, const LL_DLYB_CfgTypeDef  *pdlyb_cfg);
+void LL_DLYB_GetDelay(const DLYB_TypeDef *DLYBx, LL_DLYB_CfgTypeDef *pdlyb_cfg);
 uint32_t LL_DLYB_GetClockPeriod(DLYB_TypeDef *DLYBx, LL_DLYB_CfgTypeDef *pdlyb_cfg);
 
 /**
@@ -129,6 +130,7 @@ uint32_t LL_DLYB_GetClockPeriod(DLYB_TypeDef *DLYBx, LL_DLYB_CfgTypeDef *pdlyb_c
   * @}
   */
 
+#endif /* DLYB_SDMMC1 || DLYB_SDMMC2 || DLYB_OCTOSPI1 || DLYB_OCTOSPI2 */
 #endif /* HAL_SD_MODULE_ENABLED || HAL_OSPI_MODULE_ENABLED || HAL_XSPI_MODULE_ENABLED */
 
 /**

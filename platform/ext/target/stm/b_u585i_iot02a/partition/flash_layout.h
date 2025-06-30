@@ -83,7 +83,7 @@
 
 /* area for BL2 code protected by hdp */
 #define FLASH_AREA_BL2_OFFSET           (FLASH_AREA_PERSO_OFFSET+FLASH_AREA_PERSO_SIZE )
-#define FLASH_AREA_BL2_SIZE             (0x20000)
+#define FLASH_AREA_BL2_SIZE             (0x22000)
 /* HDP area end at this address */
 #define FLASH_BL2_HDP_END               (FLASH_AREA_BL2_OFFSET+FLASH_AREA_BL2_SIZE-1)
 /* area for BL2 code not protected by hdp */

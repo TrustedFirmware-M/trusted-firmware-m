@@ -53,12 +53,12 @@
   * @{
   */
 /**
-  * @brief STM32U5xx HAL Driver version number 1.3.0
+  * @brief STM32U5xx HAL Driver version number 1.6.2
    */
-#define __STM32U5xx_HAL_VERSION_MAIN   (0x01U) /*!< [31:24] main version */
-#define __STM32U5xx_HAL_VERSION_SUB1   (0x03U) /*!< [23:16] sub1 version */
-#define __STM32U5xx_HAL_VERSION_SUB2   (0x00U) /*!< [15:8]  sub2 version */
-#define __STM32U5xx_HAL_VERSION_RC     (0x00U) /*!< [7:0]  release candidate */
+#define __STM32U5xx_HAL_VERSION_MAIN   (0x01UL) /*!< [31:24] main version */
+#define __STM32U5xx_HAL_VERSION_SUB1   (0x06UL) /*!< [23:16] sub1 version */
+#define __STM32U5xx_HAL_VERSION_SUB2   (0x02UL) /*!< [15:8]  sub2 version */
+#define __STM32U5xx_HAL_VERSION_RC     (0x00UL) /*!< [7:0]  release candidate */
 #define __STM32U5xx_HAL_VERSION         ((__STM32U5xx_HAL_VERSION_MAIN << 24U)\
                                          |(__STM32U5xx_HAL_VERSION_SUB1 << 16U)\
                                          |(__STM32U5xx_HAL_VERSION_SUB2 << 8U )\
@@ -89,7 +89,7 @@ HAL_TickFreqTypeDef uwTickFreq = HAL_TICK_FREQ_DEFAULT;  /* 1KHz */
   * @{
   */
 
-/** @defgroup HAL_Exported_Functions_Group1 Initialization and de-initialization Functions
+/** @defgroup HAL_Exported_Functions_Group1 HAL Initialization and de-initialization Functions
   *  @brief    Initialization and de-initialization functions
   *
 @verbatim
@@ -130,8 +130,8 @@ HAL_TickFreqTypeDef uwTickFreq = HAL_TICK_FREQ_DEFAULT;  /* 1KHz */
   * @note   HAL_Init() function is called at the beginning of program after reset and before
   *         the clock configuration.
   *
-  * @note   In the default implementation the System Timer (Systick) is used as source of time base.
-  *         The Systick configuration is based on MSI clock, as MSI is the clock
+  * @note   In the default implementation the System Timer (SysTick) is used as source of time base.
+  *         The SysTick configuration is based on MSI clock, as MSI is the clock
   *         used after a system Reset and the NVIC configuration is set to Priority group 4.
   *         Once done, time base tick starts incrementing: the tick variable counter is incremented
   *         each 1ms in the SysTick_Handler() interrupt handler.
@@ -150,6 +150,9 @@ HAL_StatusTypeDef HAL_Init(void)
 
   /* Update the SystemCoreClock global variable */
   SystemCoreClock = HAL_RCC_GetSysClockFreq() >> AHBPrescTable[(RCC->CFGR2 & RCC_CFGR2_HPRE) >> RCC_CFGR2_HPRE_Pos];
+
+  /* Select HCLK as SysTick clock source */
+  HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
   /* Use systick as time base source and configure 1ms tick (default clock after Reset is HSI) */
   if (HAL_InitTick(TICK_INT_PRIORITY) != HAL_OK)
@@ -234,28 +237,56 @@ __weak void HAL_MspDeInit(void)
   */
 __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 {
+  uint32_t ticknumber = 0U;
+  uint32_t systicksel;
+
   /* Check uwTickFreq for MisraC 2012 (even if uwTickFreq is a enum type that don't take the value zero)*/
   if ((uint32_t)uwTickFreq == 0UL)
   {
     return HAL_ERROR;
   }
 
+  /* Check Clock source to calculate the tickNumber */
+  if (READ_BIT(SysTick->CTRL, SysTick_CTRL_CLKSOURCE_Msk) == SysTick_CTRL_CLKSOURCE_Msk)
+  {
+    /* HCLK selected as SysTick clock source */
+    ticknumber = SystemCoreClock / (1000UL / (uint32_t)uwTickFreq);
+  }
+  else
+  {
+    systicksel = HAL_SYSTICK_GetCLKSourceConfig();
+    switch (systicksel)
+    {
+      /* HCLK_DIV8 selected as SysTick clock source */
+      case SYSTICK_CLKSOURCE_HCLK_DIV8:
+        /* Calculate tick value */
+        ticknumber = (SystemCoreClock / (8000UL / (uint32_t)uwTickFreq));
+        break;
+      /* LSI selected as SysTick clock source */
+      case SYSTICK_CLKSOURCE_LSI:
+        /* Calculate tick value */
+        ticknumber = (LSI_VALUE / (1000UL / (uint32_t)uwTickFreq));
+        break;
+      /* LSE selected as SysTick clock source */
+      case SYSTICK_CLKSOURCE_LSE:
+        /* Calculate tick value */
+        ticknumber = (LSE_VALUE / (1000UL / (uint32_t)uwTickFreq));
+        break;
+      default:
+        /* Nothing to do */
+        break;
+    }
+  }
+
   /* Configure the SysTick to have interrupt in 1ms time basis*/
-  if (HAL_SYSTICK_Config(SystemCoreClock / (1000UL / (uint32_t)uwTickFreq)) > 0U)
+  if (HAL_SYSTICK_Config(ticknumber) > 0U)
   {
     return HAL_ERROR;
   }
 
   /* Configure the SysTick IRQ priority */
-  if (TickPriority < (1UL << __NVIC_PRIO_BITS))
-  {
-    HAL_NVIC_SetPriority(SysTick_IRQn, TickPriority, 0U);
-    uwTickPrio = TickPriority;
-  }
-  else
-  {
-    return HAL_ERROR;
-  }
+  HAL_NVIC_SetPriority(SysTick_IRQn, TickPriority, 0U);
+  uwTickPrio = TickPriority;
 
   /* Return function status */
   return HAL_OK;
@@ -265,7 +296,7 @@ __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   * @}
   */
 
-/** @defgroup HAL_Group2 HAL Control functions
+/** @defgroup HAL_Exported_Functions_Group2 HAL Control functions
   *  @brief    HAL Control functions
   *
 @verbatim
@@ -292,7 +323,7 @@ __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   * @brief This function is called to increment a global variable "uwTick"
   *        used as application time base.
   * @note In the default implementation, this variable is incremented each 1ms
-  *       in Systick ISR.
+  *       in SysTick ISR.
   * @note This function is declared as __weak to be overwritten in case of other
   *      implementations in user file.
   * @retval None
@@ -329,16 +360,25 @@ uint32_t HAL_GetTickPrio(void)
 HAL_StatusTypeDef HAL_SetTickFreq(HAL_TickFreqTypeDef Freq)
 {
   HAL_StatusTypeDef status  = HAL_OK;
+  HAL_TickFreqTypeDef prevTickFreq;
+
   assert_param(IS_TICKFREQ(Freq));
 
   if (uwTickFreq != Freq)
   {
+
+    /* Back up uwTickFreq frequency */
+    prevTickFreq = uwTickFreq;
+
+    /* Update uwTickFreq global variable used by HAL_InitTick() */
+    uwTickFreq = Freq;
+
     /* Apply the new tick Freq  */
     status = HAL_InitTick(uwTickPrio);
-
-    if (status == HAL_OK)
+    if (status != HAL_OK)
     {
-      uwTickFreq = Freq;
+      /* Restore previous tick frequency */
+      uwTickFreq = prevTickFreq;
     }
   }
 
@@ -634,7 +674,7 @@ void HAL_SYSCFG_DisableVREFBUF(void)
   *
   * @retval None
   */
-void HAL_SYSCFG_EnableIOAnalogSwitchBooster(void)
+void HAL_SYSCFG_EnableIOAnalogBooster(void)
 {
   SET_BIT(SYSCFG->CFGR1, SYSCFG_CFGR1_BOOSTEN);
 }
@@ -644,10 +684,64 @@ void HAL_SYSCFG_EnableIOAnalogSwitchBooster(void)
   *
   * @retval None
   */
-void HAL_SYSCFG_DisableIOAnalogSwitchBooster(void)
+void HAL_SYSCFG_DisableIOAnalogBooster(void)
 {
   CLEAR_BIT(SYSCFG->CFGR1, SYSCFG_CFGR1_BOOSTEN);
 }
+
+/**
+  * @brief  Enable the I/O analog switch voltage selection
+  *
+  * @retval None
+  */
+void HAL_SYSCFG_EnableIOAnalogVoltageSelection(void)
+{
+  SET_BIT(SYSCFG->CFGR1, SYSCFG_CFGR1_ANASWVDD);
+}
+
+/**
+  * @brief  Disable the I/O analog switch voltage selection
+  *
+  * @retval None
+  */
+void HAL_SYSCFG_DisableIOAnalogVoltageSelection(void)
+{
+  CLEAR_BIT(SYSCFG->CFGR1, SYSCFG_CFGR1_ANASWVDD);
+}
+
+#if defined(SYSCFG_CFGR1_ENDCAP)
+/**
+  * @brief  Set decoupling capacitance on HSPI supply.
+  * @rmtoll SYSCFG_CFGR1   ENDCAP   HAL_SYSCFG_SetHSPIDecouplingCapacitance
+  * @param  Capacitance This parameter can be one of the following values:
+  *         @arg @ref SYSCFG_HSPI_CAPACITANCE_OFF
+  *         @arg @ref SYSCFG_HSPI_CAPACITANCE_1_DIV_3
+  *         @arg @ref SYSCFG_HSPI_CAPACITANCE_2_DIV_3
+  *         @arg @ref SYSCFG_HSPI_CAPACITANCE_FULL
+  * @retval None
+  */
+void HAL_SYSCFG_SetHSPIDecouplingCapacitance(uint32_t Capacitance)
+{
+  /* Check the parameters */
+  assert_param(IS_SYSCFG_DECOUPLING_CAPACITANCE(Capacitance));
+
+  MODIFY_REG(SYSCFG->CFGR1, SYSCFG_CFGR1_ENDCAP, Capacitance);
+}
+
+/**
+  * @brief  Get decoupling capacitance on HSPI supply.
+  * @rmtoll SYSCFG_CFGR1   ENDCAP   HAL_SYSCFG_GetHSPIDecouplingCapacitance
+  * @retval Returned value can be one of the following values:
+  *         @arg @ref SYSCFG_HSPI_CAPACITANCE_OFF
+  *         @arg @ref SYSCFG_HSPI_CAPACITANCE_1_DIV_3
+  *         @arg @ref SYSCFG_HSPI_CAPACITANCE_2_DIV_3
+  *         @arg @ref SYSCFG_HSPI_CAPACITANCE_FULL
+  */
+uint32_t HAL_SYSCFG_GetHSPIDecouplingCapacitance(void)
+{
+  return (uint32_t)(READ_BIT(SYSCFG->CFGR1, SYSCFG_CFGR1_ENDCAP));
+}
+#endif /* SYSCFG_CFGR1_ENDCAP */
 
 #if defined(SYSCFG_CFGR1_SRAMCACHED)
 /**
@@ -706,6 +800,7 @@ void HAL_SYSCFG_EnableVddHSPICompensationCell(void)
   SET_BIT(SYSCFG->CCCSR, SYSCFG_CCCSR_EN3);
 }
 #endif /* SYSCFG_CCCSR_EN3 */
+
 /**
   * @brief  Disable the Compensation Cell of GPIO supplied by VDD
   * @rmtoll CCCSR   EN1    HAL_SYSCFG_DisableVddCompensationCell
@@ -815,8 +910,6 @@ HAL_StatusTypeDef HAL_SYSCFG_GetLock(uint32_t *pItem)
   */
 
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
-
-
 /** @defgroup HAL_Exported_Functions_Group6 HAL SYSCFG attributes management functions
   *  @brief SYSCFG attributes management functions.
   *
@@ -907,7 +1000,6 @@ HAL_StatusTypeDef HAL_SYSCFG_GetConfigAttributes(uint32_t Item, uint32_t *pAttri
             This parameter can be one of @ref SYSCFG_OTG_PHY_Enable
   * @retval None
   */
-
 void HAL_SYSCFG_EnableOTGPHY(uint32_t OTGPHYConfig)
 {
   /* Check the parameter */

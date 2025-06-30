@@ -108,6 +108,9 @@ typedef struct
   PKA_TypeDef                   *Instance;              /*!< Register base address */
   __IO HAL_PKA_StateTypeDef     State;                  /*!< PKA state */
   __IO uint32_t                 ErrorCode;              /*!< PKA Error code */
+  __IO uint32_t                 primeordersize;         /*!< Elliptic curve prime order length */
+  __IO uint32_t                 opsize;                 /*!< Modular exponentiation operand length */
+  __IO uint32_t                 modulussize;            /*!< Elliptic curve modulus length */
 #if (USE_HAL_PKA_REGISTER_CALLBACKS == 1)
   void (* OperationCpltCallback)(struct __PKA_HandleTypeDef *hpka); /*!< PKA End of operation callback */
   void (* ErrorCallback)(struct __PKA_HandleTypeDef *hpka);         /*!< PKA Error callback            */
@@ -147,6 +150,21 @@ typedef struct
   const uint8_t *scalarMul;            /*!< Pointer to scalar multiplier k   (Array of scalarMulSize elements) */
   const uint8_t *primeOrder;           /*!< pointer to order of the curve */
 } PKA_ECCMulInTypeDef;
+
+typedef struct
+{
+  uint32_t primeOrderSize;             /*!< Number of element in primeOrder array */
+  uint32_t scalarMulSize;              /*!< Number of element in scalarMul array */
+  uint32_t modulusSize;                /*!< Number of element in modulus, coefA, pointX and pointY arrays */
+  uint32_t coefSign;                   /*!< Curve coefficient a sign */
+  const uint8_t *coefA;                /*!< Pointer to curve coefficient |a| (Array of modulusSize elements) */
+  const uint8_t *coefB;                /*!< pointer to curve coefficient b */
+  const uint8_t *modulus;              /*!< Pointer to curve modulus value p (Array of modulusSize elements) */
+  const uint8_t *pointX;               /*!< Pointer to point P coordinate xP (Array of modulusSize elements) */
+  const uint8_t *pointY;               /*!< Pointer to point P coordinate yP (Array of modulusSize elements) */
+  const uint8_t *scalarMul;            /*!< Pointer to scalar multiplier k   (Array of scalarMulSize elements) */
+  const uint8_t *primeOrder;           /*!< pointer to order of the curve */
+} PKA_ECCMulExInTypeDef;
 
 typedef struct
 {
@@ -573,6 +591,8 @@ uint32_t HAL_PKA_PointCheck_IsOnCurve(PKA_HandleTypeDef const *const hpka);
 
 HAL_StatusTypeDef HAL_PKA_ECCMul(PKA_HandleTypeDef *hpka, PKA_ECCMulInTypeDef *in, uint32_t Timeout);
 HAL_StatusTypeDef HAL_PKA_ECCMul_IT(PKA_HandleTypeDef *hpka, PKA_ECCMulInTypeDef *in);
+HAL_StatusTypeDef HAL_PKA_ECCMulEx(PKA_HandleTypeDef *hpka, PKA_ECCMulExInTypeDef *in, uint32_t Timeout);
+HAL_StatusTypeDef HAL_PKA_ECCMulEx_IT(PKA_HandleTypeDef *hpka, PKA_ECCMulExInTypeDef *in);
 void HAL_PKA_ECCMul_GetResult(PKA_HandleTypeDef *hpka, PKA_ECCMulOutTypeDef *out);
 
 HAL_StatusTypeDef HAL_PKA_Add(PKA_HandleTypeDef *hpka, PKA_AddInTypeDef *in, uint32_t Timeout);

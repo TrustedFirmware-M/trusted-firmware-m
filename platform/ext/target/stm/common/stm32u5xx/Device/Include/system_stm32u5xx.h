@@ -45,6 +45,7 @@ extern "C" {
 */
 typedef void(*VECTOR_TABLE_Type)(void);
 
+
 /** @addtogroup STM32U5xx_System_Exported_Variables
   * @{
   */

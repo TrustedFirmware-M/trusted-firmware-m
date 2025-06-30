@@ -29,8 +29,10 @@
   ==============================================================================
   [..]
     (+) Enable the RTC domain access.
-    (+) Configure the RTC Prescaler (Asynchronous and Synchronous) and RTC hour
-        format using the HAL_RTC_Init() function.
+    (+) Configure the RTC prescalers (asynchronous and synchronous), the RTC mode
+        (binary, BCD or mix) and the RTC hour format using the HAL_RTC_Init() function.
+    (+) In order to reconfigure the RTC peripheral, it is necessary to use HAL_RTC_DeInit()
+        first, then use HAL_RTC_Init() again.
 
   *** RTC Wakeup configuration ***
   ================================
@@ -88,10 +90,6 @@
          with interrupt mode using HAL_RTCEx_SetTamper_IT() function.
      (+) The default configuration of the Tamper erases the backup registers. To avoid
          erase, enable the NoErase field on the RTC_TAMPCR register.
-     (+) With new RTC tamper configuration, you have to call HAL_RTC_Init() in order to
-         perform TAMP base address offset calculation.
-     (+) If you do not intend to have tamper using RTC clock, you can bypass its initialization
-         by setting ClockEnable inti field to RTC_CLOCK_DISABLE.
      (+) Enable Internal tamper using HAL_RTCEx_SetInternalTamper. IT mode can be chosen using
          setting Interrupt field.
 
@@ -657,7 +655,6 @@ HAL_StatusTypeDef HAL_RTCEx_SetWakeUpTimer_IT(RTC_HandleTypeDef *hrtc, uint32_t 
   */
 HAL_StatusTypeDef HAL_RTCEx_DeactivateWakeUpTimer(RTC_HandleTypeDef *hrtc)
 {
-  uint32_t tickstart;
 
   /* Process Locked */
   __HAL_LOCK(hrtc);
@@ -669,32 +666,6 @@ HAL_StatusTypeDef HAL_RTCEx_DeactivateWakeUpTimer(RTC_HandleTypeDef *hrtc)
   /* Disable the Wakeup Timer */
   /* In case of interrupt mode is used, the interrupt source must disabled */
   CLEAR_BIT(RTC->CR, (RTC_CR_WUTE | RTC_CR_WUTIE));
-
-  tickstart = HAL_GetTick();
-
-  /* Wait till RTC WUTWF flag is set and if Time out is reached exit */
-  while (READ_BIT(RTC->ICSR, RTC_ICSR_WUTWF) == 0U)
-  {
-    if ((HAL_GetTick() - tickstart) > RTC_TIMEOUT_VALUE)
-    {
-      /* New check to avoid false timeout detection in case of preemption */
-      if (READ_BIT(RTC->ICSR, RTC_ICSR_WUTWF) == 0U)
-      {
-
-        /* Change RTC state */
-        hrtc->State = HAL_RTC_STATE_TIMEOUT;
-
-        /* Process Unlocked */
-        __HAL_UNLOCK(hrtc);
-
-        return HAL_TIMEOUT;
-      }
-      else
-      {
-        break;
-      }
-    }
-  }
 
   /* Enable the write protection for RTC registers */
   __HAL_RTC_WRITEPROTECTION_ENABLE(hrtc);
@@ -901,7 +872,7 @@ HAL_StatusTypeDef HAL_RTCEx_SetSmoothCalib(RTC_HandleTypeDef *hrtc, uint32_t Smo
     }
   }
   /* Disable the write protection for RTC registers */
-  __HAL_RTC_WRITEPROTECTION_DISABLE(hrtc);  
+  __HAL_RTC_WRITEPROTECTION_DISABLE(hrtc);
 
   /* Configure the Smooth calibration settings */
   MODIFY_REG(RTC->CALR, (RTC_CALR_CALP | RTC_CALR_CALW8 | RTC_CALR_CALW16 | RTC_CALR_CALM),
@@ -1012,7 +983,7 @@ HAL_StatusTypeDef HAL_RTCEx_SetSynchroShift(RTC_HandleTypeDef *hrtc, uint32_t Sh
 
   /* Disable the write protection for RTC registers */
   __HAL_RTC_WRITEPROTECTION_DISABLE(hrtc);
-  
+
   /* Check if the reference clock detection is disabled */
   if (READ_BIT(RTC->CR, RTC_CR_REFCKON) == 0U)
   {
@@ -1619,7 +1590,7 @@ HAL_StatusTypeDef HAL_RTCEx_SetTamper_IT(RTC_HandleTypeDef *hrtc, RTC_TamperType
   tmpreg &= ~((sTamper->Tamper << TAMP_CR2_TAMP1TRG_Pos) | (sTamper->Tamper << TAMP_CR2_TAMP1MSK_Pos) | \
               (sTamper->Tamper << TAMP_CR2_TAMP1NOERASE_Pos));
 
-  if (sTamper->Trigger != RTC_TAMPERTRIGGER_RISINGEDGE)
+  if ((sTamper->Trigger == RTC_TAMPERTRIGGER_HIGHLEVEL) || (sTamper->Trigger == RTC_TAMPERTRIGGER_FALLINGEDGE))
   {
     tmpreg |= (sTamper->Tamper << TAMP_CR2_TAMP1TRG_Pos);
   }
@@ -1784,7 +1755,6 @@ HAL_StatusTypeDef HAL_RTCEx_SetActiveTampers(RTC_HandleTypeDef *hrtc, RTC_Active
     }
   }
 
-  WRITE_REG(TAMP->IER, IER);
   WRITE_REG(TAMP->IER, IER);
   WRITE_REG(TAMP->ATCR1, ATCR1);
   WRITE_REG(TAMP->ATCR2, ATCR2);

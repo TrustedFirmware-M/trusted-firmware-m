@@ -1149,7 +1149,8 @@ HAL_StatusTypeDef HAL_OSPI_Transmit(OSPI_HandleTypeDef *hospi, uint8_t *pData, u
         *((__IO uint8_t *)data_reg) = *hospi->pBuffPtr;
         hospi->pBuffPtr++;
         hospi->XferCount--;
-      } while (hospi->XferCount > 0U);
+      }
+      while (hospi->XferCount > 0U);
 
       if (status == HAL_OK)
       {
@@ -1242,7 +1243,8 @@ HAL_StatusTypeDef HAL_OSPI_Receive(OSPI_HandleTypeDef *hospi, uint8_t *pData, ui
         *hospi->pBuffPtr = *((__IO uint8_t *)data_reg);
         hospi->pBuffPtr++;
         hospi->XferCount--;
-      } while (hospi->XferCount > 0U);
+      }
+      while (hospi->XferCount > 0U);
 
       if (status == HAL_OK)
       {
@@ -2709,8 +2711,9 @@ HAL_StatusTypeDef HAL_OSPIM_Config(OSPI_HandleTypeDef *hospi, OSPIM_CfgTypeDef *
     }
 
     /********************* Deactivation of other instance *********************/
-    if ((cfg->ClkPort == IOM_cfg[other_instance].ClkPort) || (cfg->DQSPort == IOM_cfg[other_instance].DQSPort)     ||
-        (cfg->NCSPort == IOM_cfg[other_instance].NCSPort) || (cfg->IOLowPort == IOM_cfg[other_instance].IOLowPort) ||
+    if ((cfg->ClkPort == IOM_cfg[other_instance].ClkPort) || (cfg->NCSPort == IOM_cfg[other_instance].NCSPort) ||
+        ((cfg->DQSPort == IOM_cfg[other_instance].DQSPort) && (cfg->DQSPort != 0U)) ||
+        (cfg->IOLowPort == IOM_cfg[other_instance].IOLowPort) ||
         (cfg->IOHighPort == IOM_cfg[other_instance].IOHighPort))
     {
       if ((cfg->ClkPort   == IOM_cfg[other_instance].ClkPort)   &&

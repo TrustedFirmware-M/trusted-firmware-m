@@ -924,7 +924,7 @@ HAL_StatusTypeDef      HAL_OSPI_DLYB_GetClockPeriod(OSPI_HandleTypeDef *hospi, H
 
 #define IS_OSPI_DEVICE_SIZE(SIZE)          (((SIZE) >= 1U) && ((SIZE) <= 32U))
 
-#define IS_OSPI_CS_HIGH_TIME(TIME)         (((TIME) >= 1U) && ((TIME) <= 8U))
+#define IS_OSPI_CS_HIGH_TIME(TIME)         (((TIME) >= 1U) && ((TIME) <= 64U))
 
 #define IS_OSPI_FREE_RUN_CLK(CLK)          (((CLK) == HAL_OSPI_FREERUNCLK_DISABLE) || \
                                             ((CLK) == HAL_OSPI_FREERUNCLK_ENABLE))
