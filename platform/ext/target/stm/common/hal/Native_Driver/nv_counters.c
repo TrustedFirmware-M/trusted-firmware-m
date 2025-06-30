@@ -105,7 +105,7 @@ enum tfm_plat_err_t tfm_plat_init_nv_counter(void)
     ret = DEVICE_NV_COUNTERS_FLASH_NAME.ReadData(VALID_ADDRESS,
                                              &nv_counters,
                                              sizeof(struct nv_counters_t) / data_width);
-    if (ret != (sizeof(struct nv_counters_t) / data_width)) {
+    if (ret != (int32_t)(sizeof(struct nv_counters_t) / data_width)) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
@@ -117,7 +117,7 @@ enum tfm_plat_err_t tfm_plat_init_nv_counter(void)
     ret = DEVICE_NV_COUNTERS_FLASH_NAME.ReadData(BACKUP_ADDRESS,
                                              &nv_counters,
                                              sizeof(struct nv_counters_t) / data_width);
-    if (ret != (sizeof(struct nv_counters_t) / data_width)) {
+    if (ret != (int32_t)(sizeof(struct nv_counters_t) / data_width)) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
@@ -132,7 +132,7 @@ enum tfm_plat_err_t tfm_plat_init_nv_counter(void)
         ret = DEVICE_NV_COUNTERS_FLASH_NAME.ProgramData(VALID_ADDRESS,
                                                     &nv_counters,
                                                     sizeof(struct nv_counters_t) / data_width);
-        if (ret != (sizeof(struct nv_counters_t) / data_width)) {
+        if (ret != (int32_t)(sizeof(struct nv_counters_t) / data_width)) {
             return TFM_PLAT_ERR_SYSTEM_ERR;
         }
 
@@ -153,7 +153,7 @@ enum tfm_plat_err_t tfm_plat_init_nv_counter(void)
     ret = DEVICE_NV_COUNTERS_FLASH_NAME.ProgramData(VALID_ADDRESS,
                                                 &nv_counters,
                                                 sizeof(struct nv_counters_t)  / data_width);
-    if (ret != (sizeof(struct nv_counters_t) / data_width)) {
+    if (ret != (int32_t)(sizeof(struct nv_counters_t) / data_width)) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
@@ -185,7 +185,7 @@ enum tfm_plat_err_t tfm_plat_read_nv_counter(enum tfm_nv_counter_t counter_id,
     data_width = data_width_byte[DriverCapabilities.data_width];
 
     ret = DEVICE_NV_COUNTERS_FLASH_NAME.ReadData(flash_addr, val, NV_COUNTER_SIZE / data_width);
-    if (ret != (NV_COUNTER_SIZE / data_width)) {
+    if (ret != (int32_t)(NV_COUNTER_SIZE / data_width)) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
@@ -205,16 +205,16 @@ enum tfm_plat_err_t tfm_plat_set_nv_counter(enum tfm_nv_counter_t counter_id,
         sizeof(uint16_t),
         sizeof(uint32_t),
     };
-    
+
     DriverCapabilities = DEVICE_NV_COUNTERS_FLASH_NAME.GetCapabilities();
     /* Since struct nv_counter is aligned on 32 bits , a single read /write is possible */
     data_width = data_width_byte[DriverCapabilities.data_width];
-    
+
     /* Read the whole sector so we can write it back to flash later */
     ret = DEVICE_NV_COUNTERS_FLASH_NAME.ReadData(VALID_ADDRESS,
                                              &nv_counters,
                                              sizeof(struct nv_counters_t) / data_width);
-    if (ret != (sizeof(struct nv_counters_t) / data_width)) {
+    if (ret != (int32_t)(sizeof(struct nv_counters_t) / data_width)) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
@@ -238,7 +238,7 @@ enum tfm_plat_err_t tfm_plat_set_nv_counter(enum tfm_nv_counter_t counter_id,
         ret = DEVICE_NV_COUNTERS_FLASH_NAME.ProgramData(BACKUP_ADDRESS,
                                                     &nv_counters,
                                                     sizeof(struct nv_counters_t) / data_width);
-        if (ret != (sizeof(struct nv_counters_t) / data_width)) {
+        if (ret != (int32_t)(sizeof(struct nv_counters_t) / data_width)) {
             return TFM_PLAT_ERR_SYSTEM_ERR;
         }
 
@@ -252,7 +252,7 @@ enum tfm_plat_err_t tfm_plat_set_nv_counter(enum tfm_nv_counter_t counter_id,
         ret = DEVICE_NV_COUNTERS_FLASH_NAME.ProgramData(VALID_ADDRESS,
                                                     &nv_counters,
                                                     sizeof(struct nv_counters_t) / data_width);
-        if (ret != (sizeof(struct nv_counters_t) / data_width)) {
+        if (ret != (int32_t)(sizeof(struct nv_counters_t) / data_width)) {
             return TFM_PLAT_ERR_SYSTEM_ERR;
         }
     }
