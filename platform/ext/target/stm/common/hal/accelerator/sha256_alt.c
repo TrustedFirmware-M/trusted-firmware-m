@@ -222,7 +222,7 @@ int mbedtls_sha256_update(mbedtls_sha256_context *ctx, const unsigned char *inpu
     return 0;
 }
 
-int mbedtls_sha256_finish(mbedtls_sha256_context *ctx, unsigned char output[32])
+int mbedtls_sha256_finish(mbedtls_sha256_context *ctx, unsigned char *output)
 {
     SHA256_VALIDATE_RET( ctx != NULL );
     SHA256_VALIDATE_RET( (unsigned char *)output != NULL );
