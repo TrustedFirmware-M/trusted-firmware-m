@@ -19,7 +19,9 @@
 
 #include <string.h>
 
+#if defined(OTP_WRITEABLE)
 static enum tfm_plat_err_t create_or_restore_layout(void);
+#endif
 
 #if OTP_NV_COUNTERS_RAM_EMULATION
 
@@ -119,7 +121,9 @@ static enum tfm_plat_err_t make_backup(void);
 #endif
 /* End of compilation time checks to be sure the defines are well defined */
 
+#if defined(OTP_WRITEABLE)
 static uint8_t block[OTP_NV_COUNTERS_WRITE_BLOCK_SIZE];
+#endif
 
 /* Import the CMSIS flash device driver */
 extern ARM_DRIVER_FLASH OTP_NV_COUNTERS_FLASH_DEV;
@@ -169,7 +173,6 @@ enum tfm_plat_err_t init_otp_nv_counters_flash(void)
     enum tfm_plat_err_t err = TFM_PLAT_ERR_SUCCESS;
     uint32_t init_value;
     uint32_t swap_count;
-    uint32_t backup_swap_count;
 
     if ((TFM_OTP_NV_COUNTERS_AREA_SIZE) < sizeof(struct flash_otp_nv_counters_region_t)) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
@@ -200,6 +203,8 @@ enum tfm_plat_err_t init_otp_nv_counters_flash(void)
     }
     else
     {
+        uint32_t backup_swap_count;
+
         err = read_otp_nv_counters_flash(offsetof(struct flash_otp_nv_counters_region_t, swap_count)
                 + TFM_OTP_NV_COUNTERS_AREA_SIZE,
                 &backup_swap_count, sizeof(backup_swap_count));
@@ -307,7 +312,7 @@ static enum tfm_plat_err_t copy_data_into_block(uint32_t data_offset,
                                                 const uint8_t *data,
                                                 uint32_t block_offset,
                                                 size_t block_size,
-                                                uint8_t *block)
+                                                uint8_t *block_ptr)
 {
     uint32_t copy_start_offset;
     uint32_t copy_end_offset;
@@ -327,7 +332,7 @@ static enum tfm_plat_err_t copy_data_into_block(uint32_t data_offset,
             copy_end_offset = data_offset + data_size;
         }
 
-        memcpy(block + (copy_start_offset - block_offset),
+        memcpy(block_ptr + (copy_start_offset - block_offset),
                data + (copy_start_offset - data_offset),
                copy_end_offset - copy_start_offset);
     }
