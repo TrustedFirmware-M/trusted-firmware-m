@@ -233,22 +233,22 @@ SECTIONS
         /* Copy interrupt vectors from flash to RAM */
         LONG (__vectors_start__)                            /* From */
         LONG (__ram_vectors_start__)                        /* To   */
-        LONG ((__vectors_end__ - __vectors_start__) / 4)    /* Size */
+        LONG ((__vectors_end__ - __vectors_start__) / 4)    /* Size, aligment checked after the section */
 #endif
         LONG (LOADADDR(.TFM_DATA))
         LONG (ADDR(.TFM_DATA))
-        LONG (SIZEOF(.TFM_DATA) / 4)
+        LONG (SIZEOF(.TFM_DATA) / 4)    /* Aligment checked after the section */
 
 {% for partition in partitions %}
         LONG (LOADADDR(.ER_{{partition.manifest.name}}_DATA))
         LONG (ADDR(.ER_{{partition.manifest.name}}_DATA))
-        LONG (SIZEOF(.ER_{{partition.manifest.name}}_DATA) / 4)
+        LONG (SIZEOF(.ER_{{partition.manifest.name}}_DATA) / 4)    /* Aligment checked after the section */
 {% endfor %}
 
 #ifdef S_RAM_CODE_START
         LONG (LOADADDR(.ER_CODE_SRAM))
         LONG (ADDR(.ER_CODE_SRAM))
-        LONG (SIZEOF(.ER_CODE_SRAM) / 4)
+        LONG (SIZEOF(.ER_CODE_SRAM) / 4)    /* Aligment checked after the section */
 #endif
         __copy_table_end__ = .;
 
@@ -257,12 +257,12 @@ SECTIONS
         __zero_table_start__ = .;
 {% for partition in partitions %}
         LONG (ADDR(.ER_{{partition.manifest.name}}_BSS))
-        LONG (SIZEOF(.ER_{{partition.manifest.name}}_BSS) / 4)
+        LONG (SIZEOF(.ER_{{partition.manifest.name}}_BSS) / 4)    /* Aligment checked after the section */
 {% endfor %}
 
 #ifdef CONFIG_TFM_PARTITION_META
         LONG (ADDR(.TFM_SP_META_PTR))
-        LONG (SIZEOF(.TFM_SP_META_PTR) / 4)
+        LONG (SIZEOF(.TFM_SP_META_PTR) / 4)    /* Aligment checked after the section */
 #endif
         __zero_table_end__ = .;
 
@@ -271,6 +271,21 @@ SECTIONS
          */
         *(SORT_BY_ALIGNMENT(EXCLUDE_FILE(*libflash_drivers*) .text*))
     } > FLASH
+
+#ifdef RAM_VECTORS_SUPPORT
+    CHECK_ALIGNMENT_4(__vectors_end__ - __vectors_start__)
+#endif
+    CHECK_ALIGNMENT_4(SIZEOF(.TFM_DATA))
+#ifdef S_RAM_CODE_START
+    CHECK_ALIGNMENT_4(SIZEOF(.ER_CODE_SRAM))
+#endif
+#ifdef CONFIG_TFM_PARTITION_META
+    CHECK_ALIGNMENT_4(SIZEOF(.TFM_SP_META_PTR))
+#endif
+{% for partition in partitions %}
+    CHECK_ALIGNMENT_4(SIZEOF(.ER_{{partition.manifest.name}}_DATA))
+    CHECK_ALIGNMENT_4(SIZEOF(.ER_{{partition.manifest.name}}_BSS))
+{% endfor %}
 
     /* Position tag: End of PSA RoT code (privileged) */
     . = ALIGN(TFM_LINKER_PT_PSA_ROT_CODE_ALIGNMENT);
@@ -428,6 +443,7 @@ SECTIONS
     {% endif %}
         *({{partition.manifest.name}}_APP-ROT_ATTR_ZI)
         . += (. - start_of_{{partition.manifest.name}}_bss) ? 0 : 4;
+        . = ALIGN(4);
     } > RAM
 
     /* Position tag: End of Application RoT partition's private data */
@@ -535,6 +551,7 @@ SECTIONS
     {% endif %}
         *({{partition.manifest.name}}_PSA-ROT_ATTR_ZI)
         . += (. - start_of_{{partition.manifest.name}}_bss) ? 0 : 4;
+        . = ALIGN(4);
     } > RAM
 
     /* Position tag: End of PSA RoT partition's private data */

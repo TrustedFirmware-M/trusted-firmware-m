@@ -19,6 +19,8 @@
 #define ROUND_UP_TO_MULTIPLE(number, multiple) \
     ((((number) + (multiple) - 1) / (multiple)) * (multiple))
 
+#define CHECK_ALIGNMENT_4(size) ASSERT((size) % 4 == 0, #size)
+
 /* Default alignment for linker file sections is set to 32 because ARM TrustZone
  * protection units (SAU and MPU) require regions to be 32 bytes aligned. */
 #ifndef TFM_LINKER_DEFAULT_ALIGNMENT

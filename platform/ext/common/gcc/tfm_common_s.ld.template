@@ -241,24 +241,25 @@ SECTIONS
         /* Copy interrupt vectors from flash to RAM */
         LONG (__vectors_start__)                            /* From */
         LONG (__ram_vectors_start__)                        /* To   */
-        LONG ((__vectors_end__ - __vectors_start__) / 4)    /* Size */
+        LONG ((__vectors_end__ - __vectors_start__) / 4)    /* Size, aligment checked after the section */
 #endif
         LONG (LOADADDR(.TFM_DATA))
         LONG (ADDR(.TFM_DATA))
-        LONG (SIZEOF(.TFM_DATA) / 4)
+        LONG (SIZEOF(.TFM_DATA) / 4)    /* Aligment checked after the section */
 
         LONG (LOADADDR(.TFM_PSA_ROT_LINKER_DATA))
         LONG (ADDR(.TFM_PSA_ROT_LINKER_DATA))
-        LONG (SIZEOF(.TFM_PSA_ROT_LINKER_DATA) / 4)
+        LONG (SIZEOF(.TFM_PSA_ROT_LINKER_DATA) / 4)    /* Aligment checked after the section */
 
         LONG (LOADADDR(.TFM_APP_ROT_LINKER_DATA))
         LONG (ADDR(.TFM_APP_ROT_LINKER_DATA))
-        LONG (SIZEOF(.TFM_APP_ROT_LINKER_DATA) / 4)
+        LONG (SIZEOF(.TFM_APP_ROT_LINKER_DATA) / 4)    /* Aligment checked after the section */
+        CHECK_ALIGNMENT_4(SIZEOF(.TFM_APP_ROT_LINKER_DATA))
 
 #if defined (S_RAM_CODE_START)
         LONG (LOADADDR(.ER_CODE_SRAM))
         LONG (ADDR(.ER_CODE_SRAM))
-        LONG (SIZEOF(.ER_CODE_SRAM) / 4)
+        LONG (SIZEOF(.ER_CODE_SRAM) / 4)    /* Aligment checked after the section */
 #endif
         __copy_table_end__ = .;
 
@@ -266,13 +267,16 @@ SECTIONS
         . = ALIGN(4);
         __zero_table_start__ = .;
         LONG (ADDR(.TFM_PSA_ROT_LINKER_BSS))
-        LONG (SIZEOF(.TFM_PSA_ROT_LINKER_BSS) / 4)
+        LONG (SIZEOF(.TFM_PSA_ROT_LINKER_BSS) / 4)    /* Aligment checked after the section */
+        CHECK_ALIGNMENT_4(SIZEOF(.TFM_PSA_ROT_LINKER_BSS))
 
         LONG (ADDR(.TFM_APP_ROT_LINKER_BSS))
-        LONG (SIZEOF(.TFM_APP_ROT_LINKER_BSS) / 4)
+        LONG (SIZEOF(.TFM_APP_ROT_LINKER_BSS) / 4)    /* Aligment checked after the section */
+        CHECK_ALIGNMENT_4(SIZEOF(.TFM_APP_ROT_LINKER_BSS))
 #if defined(CONFIG_TFM_PARTITION_META)
         LONG (ADDR(.TFM_SP_META_PTR))
-        LONG (SIZEOF(.TFM_SP_META_PTR) / 4)
+        LONG (SIZEOF(.TFM_SP_META_PTR) / 4)    /* Aligment checked after the section */
+        CHECK_ALIGNMENT_4(SIZEOF(.TFM_SP_META_PTR))
 #endif
         __zero_table_end__ = .;
 
@@ -283,6 +287,21 @@ SECTIONS
         *libplatform_s*:*(.rodata*)
         *libtfm_spm*:*(.rodata*)
     } > FLASH
+
+#ifdef RAM_VECTORS_SUPPORT
+    CHECK_ALIGNMENT_4(__vectors_end__ - __vectors_start__)
+#endif
+    CHECK_ALIGNMENT_4(SIZEOF(.TFM_DATA))
+    CHECK_ALIGNMENT_4(SIZEOF(.TFM_PSA_ROT_LINKER_DATA))
+    CHECK_ALIGNMENT_4(SIZEOF(.TFM_APP_ROT_LINKER_DATA))
+#if defined (S_RAM_CODE_START)
+    CHECK_ALIGNMENT_4(SIZEOF(.ER_CODE_SRAM))
+#endif
+    CHECK_ALIGNMENT_4(SIZEOF(.TFM_PSA_ROT_LINKER_BSS))
+    CHECK_ALIGNMENT_4(SIZEOF(.TFM_APP_ROT_LINKER_BSS))
+#if defined(CONFIG_TFM_PARTITION_META)
+    CHECK_ALIGNMENT_4(SIZEOF(.TFM_SP_META_PTR))
+#endif
 
     .TFM_UNPRIV_CODE ALIGN(TFM_LINKER_UNPRIV_CODE_ALIGNMENT) :
     {

@@ -22,6 +22,11 @@
 
 #include "region_defs.h"
 
+/* Include file with definitions for section alignments.
+ * Note: it should be included after region_defs.h to let platform define
+ * default values if needed. */
+#include "tfm_s_linker_alignments.h"
+
 MEMORY
 {
     FLASH (rx)  : ORIGIN = BL2_CODE_START, LENGTH = BL2_CODE_SIZE
@@ -70,18 +75,18 @@ SECTIONS
 #ifdef CODE_SHARING
         LONG (LOADADDR(.tfm_shared_symbols))
         LONG (ADDR(.tfm_shared_symbols))
-        LONG (SIZEOF(.tfm_shared_symbols) / 4)
+        LONG (SIZEOF(.tfm_shared_symbols) / 4)    /* Aligment checked after the section */
 #endif
         LONG (LOADADDR(.data))
         LONG (ADDR(.data))
-        LONG (SIZEOF(.data) / 4)
+        LONG (SIZEOF(.data) / 4)    /* Aligment checked after the section */
         __copy_table_end__ = .;
 
         /* .zero.table */
         . = ALIGN(4);
         __zero_table_start__ = .;
         LONG (ADDR(.bss))
-        LONG (SIZEOF(.bss) / 4)
+        LONG (SIZEOF(.bss) / 4)    /* Aligment checked after the section */
         __zero_table_end__ = .;
 
         KEEP(*(.init))
@@ -105,6 +110,12 @@ SECTIONS
 
         KEEP(*(.eh_frame*))
     } > FLASH
+
+#ifdef CODE_SHARING
+    CHECK_ALIGNMENT_4(SIZEOF(.tfm_shared_symbols))
+#endif
+    CHECK_ALIGNMENT_4(SIZEOF(.data))
+    CHECK_ALIGNMENT_4(SIZEOF(.bss))
 
     .ARM.extab :
     {
