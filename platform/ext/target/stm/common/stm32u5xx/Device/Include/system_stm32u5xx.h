@@ -6,13 +6,13 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2021 STMicroelectronics.
+  * Copyright (c) 2021 - 2025 STMicroelectronics.
   * All rights reserved.
   *
-  * This software component is licensed by ST under Apache License, Version 2.0,
+  * This software component is licensed by ST under BSD 3-Clause license,
   * the "License"; You may not use this file except in compliance with the
   * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/Apache-2.0
+  *                        opensource.org/licenses/BSD-3-Clause
   *
   ******************************************************************************
   */
@@ -35,10 +35,15 @@ extern "C" {
 /** @addtogroup STM32U5xx_System_Includes
   * @{
   */
-
+  
 /**
   * @}
   */
+
+  /**
+  \brief Exception / Interrupt Handler Function Prototype
+*/
+typedef void(*VECTOR_TABLE_Type)(void);
 
 /** @addtogroup STM32U5xx_System_Exported_Variables
   * @{
@@ -65,11 +70,6 @@ extern const uint32_t MSIRangeTable[16];    /*!< MSI ranges table values     */
 /** @addtogroup STM32U5xx_System_Exported_Functions
   * @{
   */
-
-/**
-  \brief Exception / Interrupt Handler Function Prototype
-*/
-typedef void(*VECTOR_TABLE_Type)(void);
 
 /**
   * @brief Setup the microcontroller system.

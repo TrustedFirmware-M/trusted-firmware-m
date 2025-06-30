@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2021 STMicroelectronics.
+  * Copyright (c) 2021 - 2025 STMicroelectronics.
   * All rights reserved.
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -71,7 +71,9 @@ typedef enum
     (__DMA_HANDLE__).Parent = (__HANDLE__);                                       \
   } while(0)
 
-#define UNUSED(x) ((void)(x))
+#if !defined(UNUSED)
+#define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
+#endif /* UNUSED */
 
 /** @brief Reset the Handle's State field.
   * @param __HANDLE__: specifies the Peripheral Handle.

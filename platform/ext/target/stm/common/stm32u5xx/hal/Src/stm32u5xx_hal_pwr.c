@@ -12,7 +12,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2021 STMicroelectronics.
+  * Copyright (c) 2021 - 2025 STMicroelectronics.
   * All rights reserved.
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -644,11 +644,6 @@ void HAL_PWR_EnterSTANDBYMode(void)
   /* Set SLEEPDEEP bit of Cortex System Control Register */
   SET_BIT(SCB->SCR, ((uint32_t)SCB_SCR_SLEEPDEEP_Msk));
 
-  /* This option is used to ensure that store operations are completed */
-#if defined ( __CC_ARM)
-  __force_stores();
-#endif /*( __CC_ARM)*/
-
   /* Wait For Interrupt Request */
   __WFI();
 }
@@ -870,6 +865,9 @@ void HAL_PWR_ConfigAttributes(uint32_t Item, uint32_t Attributes)
     }
   }
 #else
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(Item);
+
   /* NSecure item management (TZEN = 0) */
   if ((Attributes & PWR_ITEM_ATTR_NSEC_PRIV_MASK) == PWR_ITEM_ATTR_NSEC_PRIV_MASK)
   {

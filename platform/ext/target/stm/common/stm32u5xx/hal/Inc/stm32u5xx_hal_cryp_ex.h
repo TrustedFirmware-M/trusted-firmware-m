@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2021 STMicroelectronics.
+  * Copyright (c) 2021 - 2025 STMicroelectronics.
   * All rights reserved.
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -40,12 +40,66 @@ extern "C" {
   */
 
 /* Exported types ------------------------------------------------------------*/
+/** @defgroup CRYPEx_Exported_Types CRYPEx Exported Types
+  * @{
+  */
+
+/**
+  * @}
+  */
 /* Exported constants --------------------------------------------------------*/
+/** @defgroup CRYPEx_Exported_Constants CRYPEx Constants
+  * @{
+  */
+
+/**
+  * @}
+  */
 /* Private types -------------------------------------------------------------*/
+/** @defgroup CRYPEx_Private_Types CRYPEx Private Types
+  * @{
+  */
+
+/**
+  * @}
+  */
+
 /* Private variables ---------------------------------------------------------*/
+/** @defgroup CRYPEx_Private_Variables CRYPEx Private Variables
+  * @{
+  */
+
+/**
+  * @}
+  */
+
 /* Private constants ---------------------------------------------------------*/
+/** @defgroup CRYPEx_Private_Constants CRYPEx Private Constants
+  * @{
+  */
+
+/**
+  * @}
+  */
+
 /* Private macros ------------------------------------------------------------*/
+/** @defgroup CRYPEx_Private_Macros CRYPEx Private Macros
+  * @{
+  */
+
+/**
+  * @}
+  */
+
 /* Private functions ---------------------------------------------------------*/
+/** @defgroup CRYPEx_Private_Functions CRYPEx Private Functions
+  * @{
+  */
+
+/**
+  * @}
+  */
+
 /* Exported functions --------------------------------------------------------*/
 /** @defgroup CRYPEx_Exported_Functions CRYPEx Exported Functions
   * @{
@@ -54,8 +108,10 @@ extern "C" {
 /** @addtogroup CRYPEx_Exported_Functions_Group1 Extended AES processing functions
   * @{
   */
-HAL_StatusTypeDef HAL_CRYPEx_AESGCM_GenerateAuthTAG(CRYP_HandleTypeDef *hcryp, uint32_t *pAuthTag, uint32_t Timeout);
-HAL_StatusTypeDef HAL_CRYPEx_AESCCM_GenerateAuthTAG(CRYP_HandleTypeDef *hcryp, uint32_t *pAuthTag, uint32_t Timeout);
+HAL_StatusTypeDef HAL_CRYPEx_AESGCM_GenerateAuthTAG(CRYP_HandleTypeDef *hcryp, const uint32_t *pAuthTag,
+                                                    uint32_t Timeout);
+HAL_StatusTypeDef HAL_CRYPEx_AESCCM_GenerateAuthTAG(CRYP_HandleTypeDef *hcryp, const uint32_t *pAuthTag,
+                                                    uint32_t Timeout);
 /**
   * @}
   */
@@ -69,7 +125,7 @@ HAL_StatusTypeDef HAL_CRYPEx_WrapKey(CRYP_HandleTypeDef *hcryp, uint32_t *pInput
   * @}
   */
 
-/** @addtogroup CRYPEx_Exported_Functions_Group3 Encrypt/Decrypt Shared key functions
+/** @addtogroup CRYPEx_Exported_Functions_Group3 Encrypt and Decrypt Shared key functions
   * @{
   */
 HAL_StatusTypeDef HAL_CRYPEx_EncryptSharedKey(CRYP_HandleTypeDef *hcryp, uint32_t *pKey, uint32_t *pOutput, uint32_t ID,

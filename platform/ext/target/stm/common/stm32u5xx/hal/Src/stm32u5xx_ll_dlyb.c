@@ -11,14 +11,15 @@
   *
   ******************************************************************************
   * @attention
-  * 
-  * Copyright (c) 2021 STMicroelectronics.
+  *
+  * Copyright (c) 2021 - 2025 STMicroelectronics.
   * All rights reserved.
   *
   * This software component is licensed by ST under BSD 3-Clause license,
   * the "License"; You may not use this file except in compliance with the
   * License. You may obtain a copy of the License at:
   *                        opensource.org/licenses/BSD-3-Clause
+  *
   ******************************************************************************
   @verbatim
   ==============================================================================
@@ -55,12 +56,12 @@
   * @{
   */
 
-/** @defgroup DLYB DLYB
+/** @defgroup DLYB_LL DLYB
   * @brief DLYB LL module driver.
   * @{
   */
 
-#if defined(HAL_SD_MODULE_ENABLED) || defined(HAL_QSPI_MODULE_ENABLED)|| defined(HAL_OSPI_MODULE_ENABLED)
+#if defined(HAL_SD_MODULE_ENABLED) || defined(HAL_OSPI_MODULE_ENABLED) || defined(HAL_XSPI_MODULE_ENABLED)
 
 /**
   @cond 0
@@ -230,7 +231,7 @@ uint32_t LL_DLYB_GetClockPeriod(DLYB_TypeDef *DLYBx, LL_DLYB_CfgTypeDef *pdlyb_c
 /**
   * @}
   */
-#endif /* HAL_SD_MODULE_ENABLED || HAL_QSPI_MODULE_ENABLED || HAL_OSPI_MODULE_ENABLED */
+#endif /* HAL_SD_MODULE_ENABLED || HAL_OSPI_MODULE_ENABLED || HAL_XSPI_MODULE_ENABLED */
 
 /**
   * @}
