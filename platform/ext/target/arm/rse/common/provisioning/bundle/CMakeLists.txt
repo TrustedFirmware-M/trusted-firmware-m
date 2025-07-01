@@ -250,7 +250,7 @@ if (RSE_NON_ENDORSED_DM_PROVISIONING OR RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING
             ./plain_data_handler_provisioning_code.c
             ./../rse_provisioning_plain_data_handler.c
             ./../../rse_rotpk_revocation.c
-            ./../../rse_iak_endorsement_cert.c
+            ./../../rse_asn1_encoding.c
         )
 
     create_provisioning_code_target(plain_data_handler

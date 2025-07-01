@@ -34,6 +34,7 @@ target_sources(platform_bl1_1
         ./rse_provisioning_message_handler.c
         ./rse_provisioning_blob_handler.c
         ./rse_provisioning_rotpk.c
+        ./../rse_asn1_encoding.c
         ./rse_provisioning_tci_key.c
         ./rse_provisioning_aes_key.c
         ./rse_provisioning_get_message.c

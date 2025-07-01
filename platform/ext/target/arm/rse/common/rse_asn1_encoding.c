@@ -9,7 +9,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "rse_iak_endorsement_cert.h"
+#include "rse_asn1_encoding.h"
 #include "crypto.h"
 #include "cc3xx_drv.h"
 
@@ -64,6 +64,10 @@
 
 /* SHA_384 definitions */
 #define SHA_384_HASH_SIZE                   (48)
+
+/* ECDSA-256 definitions */
+#define ECDSA_256_PUBLIC_KEY_X_SIZE         (32)
+#define ECDSA_256_PUBLIC_KEY_Y_SIZE         (32)
 
 /* IAK certificate definitions - can be safely tweaked if required */
 #define ISSUER_ORGANISATION_NAME                        "Arm"
@@ -277,6 +281,12 @@ struct subject_ecdsa384_public_key_info_alg_s {
     struct oid_5_bytes_s parameters;
 };
 
+struct subject_ecdsa256_public_key_info_alg_s {
+    struct tl_small_s tag_length;
+    struct oid_7_bytes_s algorithm;
+    struct oid_8_bytes_s parameters;
+};
+
 struct subject_ecdsa384_public_key_info_s {
     struct tl_small_s tag_length;
     struct subject_ecdsa384_public_key_info_alg_s key_info;
@@ -284,6 +294,15 @@ struct subject_ecdsa384_public_key_info_s {
     uint8_t bit_string_unused_bits;
     /* 0x04 | X | Y */
     uint8_t key[1 + ECDSA_384_PUBLIC_KEY_X_SIZE + ECDSA_384_PUBLIC_KEY_Y_SIZE];
+};
+
+struct subject_ecdsa256_public_key_info_s {
+    struct tl_small_s tag_length;
+    struct subject_ecdsa256_public_key_info_alg_s key_info;
+    struct tl_small_s key_tag_length;
+    uint8_t bit_string_unused_bits;
+    /* 0x04 | X | Y */
+    uint8_t key[1 + ECDSA_256_PUBLIC_KEY_X_SIZE + ECDSA_256_PUBLIC_KEY_Y_SIZE];
 };
 
 struct extension_data_bool_s {
@@ -594,28 +613,28 @@ static struct x509_v3_cert_s iak_endorsement_certificate = {
 
 static enum tfm_plat_err_t
 verify_params_sizes(struct x509_v3_cert_s *cert,
-                    struct rse_iak_endorsement_cert_provisioned_params_s *provisioned_params,
-                    struct rse_iak_endorsement_cert_dynamic_params_s *dynamic_params)
+                    struct rse_asn1_iak_endorsement_cert_provisioned_params_s *provisioned_params,
+                    struct rse_asn1_iak_endorsement_cert_dynamic_params_s *dynamic_params)
 {
     /* ECDSA-384 signature must by 96 bytes */
     if (provisioned_params->signature_size !=
         (ECDSA_384_SIGNATURE_R_PART_SIZE + ECDSA_384_SIGNATURE_S_PART_SIZE)) {
-        return TFM_PLAT_ERR_IAK_ENDORSEMENT_SIGNATURE_INVALID_SIZE;
+        return TFM_PLAT_ERR_ASN1_IAK_ENDORSEMENT_SIGNATURE_INVALID_SIZE;
     }
 
     if (provisioned_params->endorsement_cert_ski_size !=
         sizeof(cert->tbs_certificate.extensions.authority_key.authority_key_bytes)) {
-        return TFM_PLAT_ERR_IAK_ENDORSEMENT_SKI_INVALID_SIZE;
+        return TFM_PLAT_ERR_ASN1_IAK_ENDORSEMENT_SKI_INVALID_SIZE;
     }
 
     /*  0x01 | SOC_INFO_REG | SoC UID */
     if ((1 + sizeof(dynamic_params->soc_info_reg_val) + dynamic_params->soc_uid_size) !=
         sizeof(cert->tbs_certificate.serial_number.data)) {
-        return TFM_PLAT_ERR_IAK_ENDORSEMENT_SERIAL_NUMBER_INVALID_SIZE;
+        return TFM_PLAT_ERR_ASN1_IAK_ENDORSEMENT_SERIAL_NUMBER_INVALID_SIZE;
     }
 
     if (dynamic_params->rak_pub_size != (sizeof(cert->tbs_certificate.key_info.key) - 1)) {
-        return TFM_PLAT_ERR_IAK_ENDORSEMENT_KEY_INVALID_SIZE;
+        return TFM_PLAT_ERR_ASN1_IAK_ENDORSEMENT_KEY_INVALID_SIZE;
     }
 
     return TFM_PLAT_ERR_SUCCESS;
@@ -671,9 +690,9 @@ static size_t write_signature(uint8_t *out_buf, uint8_t *r_part, uint8_t *s_part
     return out_buf_ptr - out_buf;
 }
 
-enum tfm_plat_err_t rse_iak_endorsement_cert_generate(
-    struct rse_iak_endorsement_cert_provisioned_params_s *provisioned_params,
-    struct rse_iak_endorsement_cert_dynamic_params_s *dynamic_params)
+enum tfm_plat_err_t rse_asn1_iak_endorsement_cert_generate(
+    struct rse_asn1_iak_endorsement_cert_provisioned_params_s *provisioned_params,
+    struct rse_asn1_iak_endorsement_cert_dynamic_params_s *dynamic_params)
 {
     enum tfm_plat_err_t plat_err;
     struct x509_v3_cert_s *cert = &iak_endorsement_certificate;
@@ -753,8 +772,7 @@ static void get_signature_ptrs(uint8_t *signature, uint8_t **r_part, uint8_t **s
     *s_part = s_part_int_size + 1 + (*s_part_int_size - ECDSA_384_SIGNATURE_S_PART_SIZE);
 }
 
-enum tfm_plat_err_t
-rse_iak_endorsement_cert_verify(struct rse_iak_endorsement_cert_signing_pk_s *signing_pk)
+enum tfm_plat_err_t rse_asn1_iak_endorsement_cert_verify(struct rse_asn1_pk_s *signing_pk)
 {
     int32_t bl1_err;
     uint32_t cert_hash[SHA_384_HASH_SIZE / sizeof(uint32_t)];
@@ -789,7 +807,7 @@ rse_iak_endorsement_cert_verify(struct rse_iak_endorsement_cert_signing_pk_s *si
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-enum tfm_plat_err_t rse_iak_endorsement_cert_get(const uint8_t **cert, size_t *cert_size)
+enum tfm_plat_err_t rse_asn1_iak_endorsement_cert_get(const uint8_t **cert, size_t *cert_size)
 {
     struct x509_v3_cert_s *cert_ptr = &iak_endorsement_certificate;
 
@@ -799,4 +817,111 @@ enum tfm_plat_err_t rse_iak_endorsement_cert_get(const uint8_t **cert, size_t *c
                   (cert_ptr->sequence_certificate_tag.len_low));
 
     return TFM_PLAT_ERR_SUCCESS;
+}
+
+static void copy_key_to_buf(uint8_t *buf, struct rse_asn1_pk_s *public_key)
+{
+    memcpy(buf, public_key->public_key_x, public_key->public_key_x_size);
+    memcpy(buf + public_key->public_key_x_size, public_key->public_key_y,
+           public_key->public_key_y_size);
+}
+
+static enum tfm_plat_err_t encode_ecdsa256_public_key(uint8_t *buf, size_t buf_size,
+                                                      struct rse_asn1_pk_s *public_key,
+                                                      size_t *out_len)
+{
+    struct subject_ecdsa256_public_key_info_s *pk_info =
+        (struct subject_ecdsa256_public_key_info_s *)buf;
+
+    if (buf_size < sizeof(*pk_info)) {
+        return TFM_PLAT_ERR_ASN1_PUBLIC_KEY_BUFFER_INVALID_SIZE;
+    }
+
+    if ((public_key->public_key_x_size != ECDSA_256_PUBLIC_KEY_X_SIZE) ||
+        (public_key->public_key_y_size != ECDSA_256_PUBLIC_KEY_Y_SIZE)) {
+        return TFM_PLAT_ERR_ASN1_PUBLIC_KEY_INVALID_KEY_SIZE;
+    }
+
+    /* Do not use compound literal for whole struct as there is
+     * no need to initalise the key field to 0 */
+    pk_info->tag_length = (struct tl_small_s)TL_SMALL_INITIALISER(
+        ASN1_SEQUENCE, struct subject_ecdsa256_public_key_info_s, tag_length);
+    pk_info->key_info = (struct subject_ecdsa256_public_key_info_alg_s) {
+                TL_SMALL_DEFINE(ASN1_SEQUENCE, struct subject_ecdsa256_public_key_info_alg_s, tag_length),
+                .algorithm = {
+                    TL_SMALL_DEFINE(ASN1_OBJECT_IDENTIFIER, struct oid_7_bytes_s, tag_length),
+                    .data = OID_ID_EC_PUBLIC_KEY,
+                },
+                .parameters = {
+                    TL_SMALL_DEFINE(ASN1_OBJECT_IDENTIFIER, struct oid_8_bytes_s, tag_length),
+                    .data = OID_SECP256R1,
+                }
+            };
+    pk_info->key_tag_length = (struct tl_small_s)TL_SMALL_INITIALISER(
+        ASN1_BIT_STRING, struct subject_ecdsa256_public_key_info_s, key_tag_length);
+    pk_info->bit_string_unused_bits = 0x00;
+
+    pk_info->key[0] = 0x04;
+    copy_key_to_buf(pk_info->key + 1, public_key);
+
+    *out_len = sizeof(*pk_info);
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
+static enum tfm_plat_err_t encode_ecdsa384_public_key(uint8_t *buf, size_t buf_size,
+                                                      struct rse_asn1_pk_s *public_key,
+                                                      size_t *out_len)
+{
+    struct subject_ecdsa384_public_key_info_s *pk_info =
+        (struct subject_ecdsa384_public_key_info_s *)buf;
+
+    if (buf_size < sizeof(*pk_info)) {
+        return TFM_PLAT_ERR_ASN1_PUBLIC_KEY_BUFFER_INVALID_SIZE;
+    }
+
+    if ((public_key->public_key_x_size != ECDSA_384_PUBLIC_KEY_X_SIZE) ||
+        (public_key->public_key_y_size != ECDSA_384_PUBLIC_KEY_Y_SIZE)) {
+        return TFM_PLAT_ERR_ASN1_PUBLIC_KEY_INVALID_KEY_SIZE;
+    }
+
+    /* Do not use compound literal for whole struct as there is
+     * no need to initalise the key field to 0 */
+    pk_info->tag_length = (struct tl_small_s)TL_SMALL_INITIALISER(
+        ASN1_SEQUENCE, struct subject_ecdsa384_public_key_info_s, tag_length);
+    pk_info->key_info = (struct subject_ecdsa384_public_key_info_alg_s) {
+                TL_SMALL_DEFINE(ASN1_SEQUENCE, struct subject_ecdsa384_public_key_info_alg_s, tag_length),
+                .algorithm = {
+                    TL_SMALL_DEFINE(ASN1_OBJECT_IDENTIFIER, struct oid_7_bytes_s, tag_length),
+                    .data = OID_ID_EC_PUBLIC_KEY,
+                },
+                .parameters = {
+                    TL_SMALL_DEFINE(ASN1_OBJECT_IDENTIFIER, struct oid_5_bytes_s, tag_length),
+                    .data = OID_SECP384R1,
+                }
+            };
+    pk_info->key_tag_length = (struct tl_small_s)TL_SMALL_INITIALISER(
+        ASN1_BIT_STRING, struct subject_ecdsa384_public_key_info_s, key_tag_length);
+    pk_info->bit_string_unused_bits = 0x00;
+
+    pk_info->key[0] = 0x04;
+    copy_key_to_buf(pk_info->key + 1, public_key);
+
+    *out_len = sizeof(*pk_info);
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
+enum tfm_plat_err_t rse_asn1_ecdsa_public_key_get(uint8_t *buf, size_t buf_size,
+                                                  enum rse_asn1_ecdsa_public_key_curve curve,
+                                                  struct rse_asn1_pk_s *public_key, size_t *out_len)
+{
+    switch (curve) {
+    case RSE_ASN1_ECDSA_PUBLIC_KEY_CURVE_SECP256R1:
+        return encode_ecdsa256_public_key(buf, buf_size, public_key, out_len);
+    case RSE_ASN1_ECDSA_PUBLIC_KEY_CURVE_SECP384R1:
+        return encode_ecdsa384_public_key(buf, buf_size, public_key, out_len);
+    default:
+        return TFM_PLAT_ERR_ASN1_PUBLIC_KEY_INVALID_CURVE;
+    }
 }

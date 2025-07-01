@@ -66,7 +66,7 @@ validate_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob, siz
 
 enum tfm_plat_err_t get_asn1_from_raw_ec(const uint8_t *x, size_t x_size, const uint8_t *y,
                                          size_t y_size, cc3xx_ec_curve_id_t curve_id,
-                                         uint8_t *asn1_key, size_t *len);
+                                         uint8_t *asn1_key, size_t asn1_key_size, size_t *len);
 
 struct rse_provisioning_message_blob_with_data_t {
     struct rse_provisioning_message_blob_t blob;
@@ -1167,7 +1167,8 @@ ecdsa_key_write_otp(const struct rse_provisioning_ecdsa_gen_key_data_t *data, ui
 
     plat_err = get_asn1_from_raw_ec((const uint8_t *)data->public_key_x, data->public_key_x_len,
                                     (const uint8_t *)data->public_key_y, data->public_key_y_len,
-                                    RSE_PROVISIONING_CURVE, asn1_key, &asn1_key_len);
+                                    RSE_PROVISIONING_CURVE, asn1_key, sizeof(asn1_key),
+                                    &asn1_key_len);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }

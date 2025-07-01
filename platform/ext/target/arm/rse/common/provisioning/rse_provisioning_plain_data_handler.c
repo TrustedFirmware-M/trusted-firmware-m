@@ -11,7 +11,7 @@
 #include "rse_provisioning_plain_data_handler.h"
 #include "rse_provisioning_values.h"
 #include "rse_rotpk_revocation.h"
-#include "rse_iak_endorsement_cert.h"
+#include "rse_asn1_encoding.h"
 #include "rse_get_soc_info_reg.h"
 #include "lcm_drv.h"
 #include "device_definition.h"
@@ -64,9 +64,9 @@ handle_endorsement_certificate(const struct rse_provisioning_message_plain_t *pl
     enum lcm_error_t lcm_err;
     struct rse_endorsement_certificate_provisioning_values_t *endorsement_cert_vals;
     /* Static to avoid large stack usage */
-    static struct rse_iak_endorsement_cert_provisioned_params_s provisioned_params;
-    static struct rse_iak_endorsement_cert_dynamic_params_s dynamic_params;
-    static struct rse_iak_endorsement_cert_signing_pk_s signing_params;
+    static struct rse_asn1_iak_endorsement_cert_provisioned_params_s provisioned_params;
+    static struct rse_asn1_iak_endorsement_cert_dynamic_params_s dynamic_params;
+    static struct rse_asn1_pk_s signing_params;
     static uint32_t soc_uid[sizeof(P_RSE_OTP_SOC->soc_id_area.unique_id) / sizeof(uint32_t)];
     static uint32_t rak_pub[sizeof(P_RSE_OTP_CM->cod.rak_pub) / sizeof(uint32_t)];
 
@@ -109,7 +109,7 @@ handle_endorsement_certificate(const struct rse_provisioning_message_plain_t *pl
     dynamic_params.rak_pub = (uint8_t *)rak_pub;
     dynamic_params.rak_pub_size = sizeof(rak_pub);
 
-    plat_err = rse_iak_endorsement_cert_generate(&provisioned_params, &dynamic_params);
+    plat_err = rse_asn1_iak_endorsement_cert_generate(&provisioned_params, &dynamic_params);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
@@ -121,7 +121,7 @@ handle_endorsement_certificate(const struct rse_provisioning_message_plain_t *pl
     signing_params.public_key_y = ctx->signing_pk.y;
     signing_params.public_key_y_size = ctx->signing_pk.y_size;
 
-    plat_err = rse_iak_endorsement_cert_verify(&signing_params);
+    plat_err = rse_asn1_iak_endorsement_cert_verify(&signing_params);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }

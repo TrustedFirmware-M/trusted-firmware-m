@@ -5,8 +5,8 @@
  *
  */
 
-#ifndef __RSE_IAK_ENDORSEMENT_CERT_H__
-#define __RSE_IAK_ENDORSEMENT_CERT_H__
+#ifndef __RSE_ASN1_ENCODING_H__
+#define __RSE_ASN1_ENCODING_H__
 
 #include <stdint.h>
 #include "platform_error_codes.h"
@@ -22,10 +22,10 @@ extern "C" {
 #define ENDORSEMENT_CERT_SKI_LENGTH (20)
 
 /**
- * \struct rse_iak_endorsement_cert_dynamic_params_s
+ * \struct rse_asn1_iak_endorsement_cert_dynamic_params_s
  * \brief Dynamic platform-specific parameters used during certificate generation.
  */
-struct rse_iak_endorsement_cert_dynamic_params_s {
+struct rse_asn1_iak_endorsement_cert_dynamic_params_s {
     /**
      * \brief Value read from the SOC_INFO_REG register.
      */
@@ -53,10 +53,10 @@ struct rse_iak_endorsement_cert_dynamic_params_s {
 };
 
 /**
- * \struct rse_iak_endorsement_cert_provisioned_params_s
+ * \struct rse_asn1_iak_endorsement_cert_provisioned_params_s
  * \brief Provisioned parameters required to generate the endorsement certificate.
  */
-struct rse_iak_endorsement_cert_provisioned_params_s {
+struct rse_asn1_iak_endorsement_cert_provisioned_params_s {
     /**
      * \brief Pointer to buffer containing the endorsement certificate's Subject Key Identifier (SKI).
      */
@@ -79,10 +79,10 @@ struct rse_iak_endorsement_cert_provisioned_params_s {
 };
 
 /**
- * \struct rse_iak_endorsement_cert_signing_pk_s
+ * \struct rse_asn1_pk_s
  * \brief Structure representing the signing public key used to verify the certificate.
  */
-struct rse_iak_endorsement_cert_signing_pk_s {
+struct rse_asn1_pk_s {
     /**
      * \brief Pointer to the X-coordinate of the public key.
      */
@@ -112,9 +112,9 @@ struct rse_iak_endorsement_cert_signing_pk_s {
  *
  * \return  Returns a tfm_plat_err_t indicating success or failure.
  */
-enum tfm_plat_err_t rse_iak_endorsement_cert_generate(
-    struct rse_iak_endorsement_cert_provisioned_params_s *provisioned_params,
-    struct rse_iak_endorsement_cert_dynamic_params_s *dynamic_params);
+enum tfm_plat_err_t rse_asn1_iak_endorsement_cert_generate(
+    struct rse_asn1_iak_endorsement_cert_provisioned_params_s *provisioned_params,
+    struct rse_asn1_iak_endorsement_cert_dynamic_params_s *dynamic_params);
 
 /**
  * \brief Verifies the endorsement certificate using a given signing public key.
@@ -123,8 +123,7 @@ enum tfm_plat_err_t rse_iak_endorsement_cert_generate(
  *
  * \return  Returns a tfm_plat_err_t indicating success or failure.
  */
-enum tfm_plat_err_t
-rse_iak_endorsement_cert_verify(struct rse_iak_endorsement_cert_signing_pk_s *signing_pk);
+enum tfm_plat_err_t rse_asn1_iak_endorsement_cert_verify(struct rse_asn1_pk_s *signing_pk);
 
 /**
  * \brief Retrieves the generated endorsement certificate and its size.
@@ -134,10 +133,41 @@ rse_iak_endorsement_cert_verify(struct rse_iak_endorsement_cert_signing_pk_s *si
  *
  * \return  Returns a tfm_plat_err_t indicating success or failure.
  */
-enum tfm_plat_err_t rse_iak_endorsement_cert_get(const uint8_t **cert, size_t *cert_size);
+enum tfm_plat_err_t rse_asn1_iak_endorsement_cert_get(const uint8_t **cert, size_t *cert_size);
+
+/**
+ * \enum rse_asn1_ecdsa_public_key_curve
+ * \brief Curve the public key corresponds to
+ */
+enum rse_asn1_ecdsa_public_key_curve {
+    /** SECP256R1 curve (a.k.a. prime256v1) */
+    RSE_ASN1_ECDSA_PUBLIC_KEY_CURVE_SECP256R1,
+    /** SECP384R1 curve */
+    RSE_ASN1_ECDSA_PUBLIC_KEY_CURVE_SECP384R1,
+};
+
+/**
+ * \brief Generates an ASN.1 DER-encoded ECDSA SubjectPublicKeyInfo structure.
+ *
+ * This function encodes the given ECDSA public key into a DER-encoded
+ * ASN.1 SubjectPublicKeyInfo structure, writing the result to the provided
+ * output buffer. The encoding depends on the specified elliptic curve.
+ *
+ * \param[out] buf        Pointer to the output buffer where DER-encoded data will be written.
+ * \param[in]  buf_size   Size of the output buffer in bytes.
+ * \param[in]  curve      Curve identifier used to encode the public key parameters.
+ * \param[in]  public_key Pointer to the structure containing the raw public key data.
+ * \param[out] out_len    Pointer to a variable that will receive the number of bytes written.
+ *
+ * \return  Returns a tfm_plat_err_t indicating success or failure.
+ */
+enum tfm_plat_err_t rse_asn1_ecdsa_public_key_get(uint8_t *buf, size_t buf_size,
+                                                  enum rse_asn1_ecdsa_public_key_curve curve,
+                                                  struct rse_asn1_pk_s *public_key,
+                                                  size_t *out_len);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __RSE_IAK_ENDORSEMENT_CERT_H__ */
+#endif /* __RSE_ASN1_ENCODING_H__ */

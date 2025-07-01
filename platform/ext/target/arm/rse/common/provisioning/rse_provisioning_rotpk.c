@@ -15,6 +15,7 @@
 #include "cc3xx_drv.h"
 #include "rse_rotpk_policy.h"
 #include "rse_rotpk_mapping.h"
+#include "rse_asn1_encoding.h"
 
 #ifdef RSE_PROVISIONING_ENABLE_ECDSA_SIGNATURES
 
@@ -65,78 +66,33 @@ static enum tfm_plat_err_t get_key_hash_from_otp(enum tfm_otp_element_id_t id,
     return err;
 }
 
-/* X.509 RFC 5280 object identifier definitions */
-#define OID_ID_EC_PUBLIC_KEY "\x2A\x86\x48\xCE\x3D\x02\x01"  /* 1.2.840.10045.2.1 */
-#define OID_SECP256R1        "\x2A\x86\x48\xCE\x3D\x03\x01\x07"  /* 1.2.840.10045.3.1.7 (P-256) */
-#define OID_SECP384R1        "\x2B\x81\x04\x00\x22"  /* 1.3.132.0.34 (P-384) */
-
 TEST_STATIC
 enum tfm_plat_err_t get_asn1_from_raw_ec(const uint8_t *x, size_t x_size, const uint8_t *y,
                                          size_t y_size, cc3xx_ec_curve_id_t curve_id,
-                                         uint8_t *asn1_key, size_t *len)
+                                         uint8_t *asn1_key, size_t asn1_key_size, size_t *len)
 {
-    uint8_t *key_ptr = asn1_key;
-    const uint8_t *oid_curve;
-    size_t oid_curve_len;
-    uint8_t *p_len, *p_bitlen, *p_alglen;
-    const size_t oid_pub_len = sizeof(OID_ID_EC_PUBLIC_KEY) - 1;
+    enum rse_asn1_ecdsa_public_key_curve asn1_curve;
+    struct rse_asn1_pk_s asn1_pk;
 
     switch (curve_id) {
     case CC3XX_EC_CURVE_SECP_256_R1:
-        oid_curve = (const uint8_t *)OID_SECP256R1;
-        oid_curve_len = sizeof(OID_SECP256R1) - 1;
+        asn1_curve = RSE_ASN1_ECDSA_PUBLIC_KEY_CURVE_SECP256R1;
         break;
     case CC3XX_EC_CURVE_SECP_384_R1:
-        oid_curve = (const uint8_t *)OID_SECP384R1;
-        oid_curve_len = sizeof(OID_SECP384R1) - 1;
+        asn1_curve = RSE_ASN1_ECDSA_PUBLIC_KEY_CURVE_SECP384R1;
         break;
     default:
         return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_CURVE;
     }
 
-    /* Start SEQUENCE (SubjectPublicKeyInfo) */
-    *key_ptr++ = 0x30;
-    p_len = key_ptr;
-    key_ptr++;
+    asn1_pk = (struct rse_asn1_pk_s) {
+        .public_key_x = (uint32_t *)x,
+        .public_key_x_size = x_size,
+        .public_key_y = (uint32_t *)y,
+        .public_key_y_size = y_size,
+    };
 
-    /* AlgorithmIdentifier SEQUENCE */
-    *key_ptr++ = 0x30;
-    p_alglen = key_ptr;
-    key_ptr++;
-
-    /* OID for id-ecPublicKey */
-    *key_ptr++ = 0x06;
-    *key_ptr++ = oid_pub_len;
-    memcpy(key_ptr, OID_ID_EC_PUBLIC_KEY, oid_pub_len);
-    key_ptr += oid_pub_len;
-
-    /* OID for curve (P-256 or P-384) */
-    *key_ptr++ = 0x06;
-    *key_ptr++ = oid_curve_len;
-    memcpy(key_ptr, oid_curve, oid_curve_len);
-    key_ptr += oid_curve_len;
-
-    *p_alglen = key_ptr - (p_alglen + 1);
-
-    /* BIT STRING for public key */
-    *key_ptr++ = 0x03;
-    p_bitlen = key_ptr;
-    key_ptr++;
-    *key_ptr++ = 0x00;
-
-    /* Uncompressed public key (0x04 || X || Y) */
-    *key_ptr++ = 0x04;
-    memcpy(key_ptr, x, x_size);
-    key_ptr += x_size;
-    memcpy(key_ptr, y, y_size);
-    key_ptr += y_size;
-
-    *p_bitlen = key_ptr - (p_bitlen + 1);
-    *p_len = key_ptr - (p_len + 1);
-
-    *len = key_ptr - asn1_key;
-
-    return TFM_PLAT_ERR_SUCCESS;
+    return rse_asn1_ecdsa_public_key_get(asn1_key, asn1_key_size, asn1_curve, &asn1_pk, len);
 }
 
 static enum tfm_plat_err_t
@@ -153,12 +109,8 @@ calc_key_hash_from_blob(const struct rse_provisioning_message_blob_t *blob, uint
     /* Currently keys stored in CM ROTPK are in the form of hashed DER encoded,
      * ASN.1 format keys. Therefore we need to convert the key we have found
      * in the blob to this format, before hashing it */
-    err = get_asn1_from_raw_ec(blob->public_key,
-                               point_size,
-                               blob->public_key + point_size,
-                               point_size,
-                               RSE_PROVISIONING_CURVE,
-                               asn1_key,
+    err = get_asn1_from_raw_ec(blob->public_key, point_size, blob->public_key + point_size,
+                               point_size, RSE_PROVISIONING_CURVE, asn1_key, sizeof(asn1_key),
                                &len);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
