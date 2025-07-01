@@ -619,5 +619,11 @@ enum tfm_plat_err_t rse_setup_cc3xx_pka_sram_encryption_key(void)
         return (enum tfm_plat_err_t)kmu_err;
     }
 
+    /* Load the PKA encryption key, now that it is set up */
+    kmu_err = kmu_export_key(&KMU_DEV_S, RSE_KMU_SLOT_CC3XX_PKA_SRAM_ENCRYPTION_KEY);
+    if (kmu_err != KMU_ERROR_NONE) {
+        return kmu_err;
+    }
+
     return TFM_PLAT_ERR_SUCCESS;
 }
