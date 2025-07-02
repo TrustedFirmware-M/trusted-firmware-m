@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -19,11 +19,6 @@
 #include "cc_pal_mutex.h"
 #include "cc_util_pm.h"
 
-/************* Auxiliary API's *************/
-/* All Musca-S1 platform-dependent defines (DX_PLAT_MUSCA_S1) are due to the
- * fact that the S1 board's OTP is just an ordinary register which is volatile.
- * The MRAM is used instead, and this is what the changes reflect.
- */
 int mbedtls_mng_otpWordRead(uint32_t otpAddress, uint32_t *pOtpWord)
 {
     uint32_t regVal=0;
@@ -40,11 +35,7 @@ int mbedtls_mng_otpWordRead(uint32_t otpAddress, uint32_t *pOtpWord)
     }
 
     /* read OTP word */
-#ifdef DX_PLAT_MUSCA_S1
-    CC_READ_MRAM_WORD(otpAddress*sizeof(uint32_t), regVal);
-#else
     CC_READ_OTP_WORD(otpAddress*sizeof(uint32_t), regVal);
-#endif
     *pOtpWord = regVal;
 
     return CC_OK;
@@ -52,28 +43,6 @@ int mbedtls_mng_otpWordRead(uint32_t otpAddress, uint32_t *pOtpWord)
 
 int mbedtls_mng_lcsGet(uint32_t *pLcs)
 {
-#ifdef DX_PLAT_MUSCA_S1
-    uint32_t manufacturer_flag;
-    uint32_t oem_flag;
-
-    /* Read the MRAM (OTP) contents the CC312 uses to determine the lcs (for
-     * more information see Arm CryptoCell-312 Software Integrators Manual
-     * (r1p3), pgs. 3-36 - 3-38)
-     */
-    CC_READ_MRAM_WORD(CC_OTP_MANUFACTURE_FLAG_OFFSET * sizeof(uint32_t),
-                      manufacturer_flag);
-
-    CC_READ_MRAM_WORD(CC_OTP_OEM_FLAG_OFFSET * sizeof(uint32_t), oem_flag);
-
-    if((manufacturer_flag == 0) && (oem_flag == 0))
-        *pLcs = CC_MNG_LCS_CM;
-    else if((manufacturer_flag != 0) && (oem_flag & 0xFF) == 0)
-        *pLcs = CC_MNG_LCS_DM;
-    else if((manufacturer_flag != 0) && (oem_flag & 0xFF) != 0)
-        *pLcs = CC_MNG_LCS_SEC_ENABLED;
-
-    return CC_OK;
-#else
     uint32_t regVal = 0;
 
     /* check input variables */
@@ -92,7 +61,6 @@ int mbedtls_mng_lcsGet(uint32_t *pLcs)
     /* return the LCS value */
     *pLcs = regVal;
     return CC_OK;
-#endif /* DX_PLAT_MUSCA_S1 */
 }
 
 int mbedtls_mng_swVersionGet(mbedtls_mng_pubKeyType_t keyIndex, uint32_t *swVersion)

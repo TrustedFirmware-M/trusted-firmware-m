@@ -11,7 +11,6 @@ TF-M Platforms
     Arm <arm/index>
     ArmChina <armchina/index>
     Cypress <cypress/index>
-    Laird Connectivity <lairdconnectivity/index>
     Nordic <nordic_nrf/index>
     Nuvoton <nuvoton/index>
     NXP <nxp/index>

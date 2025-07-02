@@ -93,7 +93,7 @@ if (TFM_PARTITION_CRYPTO)
 
     # FixMe: Secure tests enabled and Debug builds with FP support set to hardware
     #        need to fallback to the legacy driver as the new PSA driver overflows
-    #        the available flash memory on Musca-S1 and Musca-B1
+    #        the available flash memory on Musca-B1
     if ((NOT ${CC312_LEGACY_DRIVER_API_ENABLED}) AND
         TEST_S AND (${CMAKE_BUILD_TYPE} STREQUAL "Debug") AND (${CONFIG_TFM_FLOAT_ABI} STREQUAL "hard"))
         set(CC312_LEGACY_DRIVER_API_ENABLED ON)

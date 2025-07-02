@@ -38,11 +38,6 @@ you enable FP support on your platforms.
     nor by non-secure images.
 
 .. Note::
-    FPU test issue has not been fixed yet on Musca-S1 [7]_. When running FPU
-    tests on Musca-S1, secure thread fails to trigger secure interrupt. FPU test
-    is disabled by default on Musca-S1 until the issue is fixed.
-
-.. Note::
     ``GNU Arm Embedded Toolchain 10.3-2021.10`` may have issue that reports
     ``'-mcpu=cortex-m55' conflicts with '-march=armv8.1-m.main'`` warning [8]_.
     This issue has been fixed in the later version.
@@ -146,8 +141,6 @@ Reference
 .. [5] `Arm® Platform Security Architecture Firmware Framework 1.0 <https://developer.arm.com/documentation/den0063/latest/>`_
 
 .. [6] :doc:`Secure Interrupt Integration Guide </integration_guide/tfm_secure_irq_integration_guide>`
-
-.. [7] `Musca-S1 Test Chip Board <https://developer.arm.com/documentation/101835/0000/?lang=en>`_
 
 .. [8] `GCC Issue on '-mcpu=cortex-m55' conflicts with '-march=armv8.1-m.main' Warning <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=97327>`_
 

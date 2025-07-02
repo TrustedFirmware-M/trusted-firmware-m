@@ -27,8 +27,6 @@ Supported Platforms
           <https://developer.arm.com/documentation/107925/1129/Fast-Models-trace-components/ARM-AEMv8M?lang=en>`_
         - `Musca-B1 test chip board.
           <https://developer.arm.com/Tools%20and%20Software/Musca-B1%20Test%20Chip%20Board>`_
-        - `Musca-S1 test chip board.
-          <https://developer.arm.com/Tools%20and%20Software/Musca-S1%20Test%20Chip%20Board>`_
         - `FPGA image loaded on MPS3 board (AN524).
           <https://developer.arm.com/documentation/107789/0100/?lang=en>`_
         - `LPC55S69.
@@ -45,8 +43,6 @@ Supported Platforms
           <https://www.nordicsemi.com/Software-and-tools/Development-Kits/nRF9160-DK>`_
         - `nRF5340 DK (nordic_nrf/nrf5340dk_nrf5340_cpuapp).
           <https://www.nordicsemi.com/Software-and-tools/Development-Kits/nRF5340-DK>`_
-        - `BL5340 DVK (lairdconnectivity/bl5340_dvk_cpuapp).
-          <https://www.ezurio.com/wireless-modules/bluetooth-modules/bluetooth-5-modules/bl5340-series-multi-core-bluetooth-52-802154-nfc-modules>`_
         - `MAX32657 (adi/max32657).
           <https://docs.zephyrproject.org/latest/boards/adi/max32657evkit/doc/index.html>`_
 

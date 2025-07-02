@@ -123,8 +123,8 @@ Platform Owners
 Arm
 ---
 
-MPS2, MPS3, MPS4, Musca(B1,S1)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MPS2, MPS3, MPS4, Musca-B1
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 David Hazi
     :email: `David.Hazi@arm.com <david.hazi@arm.com>`__
@@ -187,13 +187,6 @@ Infineon/Cypress
 Chris Brand
     :email: `Chris Brand@cypress.com <chris.brand@cypress.com>`__
     :github: `UEWBot <https://github.com/UEWBot>`__
-
-Laird Connectivity
-------------------
-
-Greg Leach
-    :email: `Greg.Leach@lairdconnect.com <greg.leach@lairdconnect.com>`__
-    :github: `greg-leach <https://github.com/greg-leach>`__
 
 Nordic Semiconductor
 --------------------

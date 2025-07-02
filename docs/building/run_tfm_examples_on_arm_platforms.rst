@@ -235,7 +235,7 @@ Example application with BL2 bootloader
 =======================================
 
 #. Create a unified hex file comprising of both ``bl2.bin`` and
-   ``tfm_s_ns_signed.bin`` for Musca-B1 or Musca-S1 platforms::
+   ``tfm_s_ns_signed.bin`` for Musca-B1 platforms::
 
      srec_cat bin/bl2.bin -Binary -offset 0xA000000 bin/tfm_s_ns_signed.bin -Binary -offset 0xA020000 -o tfm.hex -Intel
 
