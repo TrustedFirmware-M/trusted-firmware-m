@@ -254,7 +254,6 @@ SECTIONS
         LONG (LOADADDR(.TFM_APP_ROT_LINKER_DATA))
         LONG (ADDR(.TFM_APP_ROT_LINKER_DATA))
         LONG (SIZEOF(.TFM_APP_ROT_LINKER_DATA) / 4)    /* Aligment checked after the section */
-        CHECK_ALIGNMENT_4(SIZEOF(.TFM_APP_ROT_LINKER_DATA))
 
 #if defined (S_RAM_CODE_START)
         LONG (LOADADDR(.ER_CODE_SRAM))
@@ -268,15 +267,12 @@ SECTIONS
         __zero_table_start__ = .;
         LONG (ADDR(.TFM_PSA_ROT_LINKER_BSS))
         LONG (SIZEOF(.TFM_PSA_ROT_LINKER_BSS) / 4)    /* Aligment checked after the section */
-        CHECK_ALIGNMENT_4(SIZEOF(.TFM_PSA_ROT_LINKER_BSS))
 
         LONG (ADDR(.TFM_APP_ROT_LINKER_BSS))
         LONG (SIZEOF(.TFM_APP_ROT_LINKER_BSS) / 4)    /* Aligment checked after the section */
-        CHECK_ALIGNMENT_4(SIZEOF(.TFM_APP_ROT_LINKER_BSS))
 #if defined(CONFIG_TFM_PARTITION_META)
         LONG (ADDR(.TFM_SP_META_PTR))
         LONG (SIZEOF(.TFM_SP_META_PTR) / 4)    /* Aligment checked after the section */
-        CHECK_ALIGNMENT_4(SIZEOF(.TFM_SP_META_PTR))
 #endif
         __zero_table_end__ = .;
 
