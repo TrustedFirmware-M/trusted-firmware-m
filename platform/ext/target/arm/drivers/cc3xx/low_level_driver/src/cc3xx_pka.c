@@ -334,8 +334,7 @@ static void pka_write_reg(cc3xx_pka_reg_id_t reg_id, const uint32_t *data,
     assert(virt_reg_in_use[reg_id]);
     assert(len <= pka_state.reg_size);
 
-    /* clear the register, so we don't have to explicitly write the upper words
-     */
+    /* clear the register */
     cc3xx_lowlevel_pka_clear(reg_id);
 
     /* Make sure we have a physical register mapped for the virtual register */
@@ -985,11 +984,32 @@ void cc3xx_lowlevel_pka_clear_bit(cc3xx_pka_reg_id_t r0, uint32_t idx, cc3xx_pka
                                            false, r0, true, ~(1 << idx), false, res);
 }
 
+/* When PKA SRAM parity is enabled. CC3XX_PKA_OPCODE_AND_TST0_CLR0 opcode should not be used
+ * to clear a PKA SRAM region, associated with the input register. Such opcode performs
+ * a read-modify-write sequence which may trigger a parity error if the SRAM region
+ * was never written to before.
+ */
 void cc3xx_lowlevel_pka_clear(cc3xx_pka_reg_id_t r0)
 {
-    P_CC3XX->pka.opcode = opcode_construct(CC3XX_PKA_OPCODE_AND_TST0_CLR0,
-                                           PKA_OP_SIZE_REGISTER,
-                                           false, r0, true, 0, false, r0);
+    /* The TRM says that this register is a byte-size, but it is in fact a
+     * bit-size.
+     */
+    size_t reg_size = P_CC3XX->pka.pka_l[PKA_OP_SIZE_REGISTER] / 8;
+
+    ensure_virt_reg_is_mapped(r0);
+
+    /* Wait for any outstanding operations to finish before performing reads or
+     * writes on the PKA SRAM
+     */
+    while(!P_CC3XX->pka.pka_done) {}
+    P_CC3XX->pka.pka_sram_addr =
+        P_CC3XX->pka.memory_map[virt_reg_phys_reg[r0]];
+    while(!P_CC3XX->pka.pka_done) {}
+
+    for (size_t idx = 0; idx < reg_size / sizeof(uint32_t); idx++) {
+        P_CC3XX->pka.pka_sram_wdata = 0x0;
+        while(!P_CC3XX->pka.pka_done) {}
+    }
 }
 
 void cc3xx_lowlevel_pka_or(cc3xx_pka_reg_id_t r0, cc3xx_pka_reg_id_t r1, cc3xx_pka_reg_id_t res)
