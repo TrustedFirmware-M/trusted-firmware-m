@@ -33,7 +33,9 @@ static void dump_entries(int num) {
 
     VERBOSE("Partition table with %d entries:", num);
     for (i = 0; i < num; i++) {
-        len = snprintf(name, EFI_NAMELEN, "%s", list.list[i].name);
+        strncpy(name, list.list[i].name, EFI_NAMELEN - 1);
+        name[EFI_NAMELEN - 1] = '\0';
+        len = strlen(name);
         for (j = 0; j < EFI_NAMELEN - len - 1; j++) {
             name[len + j] = ' ';
         }

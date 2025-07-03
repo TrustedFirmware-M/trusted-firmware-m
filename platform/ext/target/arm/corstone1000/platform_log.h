@@ -29,8 +29,8 @@
 /* System can override PRINTF with other rich format function*/
 #ifndef PRINTF
 #if PLAT_LOG_LEVEL > PLAT_LOG_LEVEL_OFF
-#include <stdio.h>
-#define PRINTF printf
+#include "tfm_log.h"
+#define PRINTF(f_, ...) tfm_log(LOG_MARKER_RAW f_, ##__VA_ARGS__)
 #endif
 #endif
 
