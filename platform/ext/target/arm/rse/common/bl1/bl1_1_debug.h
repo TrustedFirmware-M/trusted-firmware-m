@@ -9,6 +9,7 @@
 #define __BL1_1_DEBUG_H__
 
 #include <stdint.h>
+#include "tfm_plat_defs.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,7 +21,7 @@ extern "C" {
  *
  * \return                    0 on success, non-zero on error.
  */
-int32_t b1_1_platform_debug_init(void);
+enum tfm_plat_err_t b1_1_platform_debug_init(void);
 
 #ifdef __cplusplus
 }

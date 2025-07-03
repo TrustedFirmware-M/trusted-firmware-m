@@ -115,6 +115,14 @@ int32_t boot_platform_init(void)
 
     __set_MSPLIM(msp_stack_bottom);
 
+    wait_for_vm_erase_to_finish_and_enable_cache();
+    rse_setup_persistent_data();
+    /* Enable debug if required */
+    err = b1_1_platform_debug_init();
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
     /* Enable system reset for the RSE */
     struct rse_sysctrl_t *rse_sysctrl = (void *)RSE_SYSCTRL_BASE_S;
     rse_sysctrl->reset_mask |= (1U << 8U);
@@ -207,18 +215,9 @@ int32_t boot_platform_init(void)
     }
 #endif /* CRYPTO_HW_ACCELERATOR */
 
-    err = b1_1_platform_debug_init();
-    if (err != 0) {
-        return err;
-    }
-
     /* Clear boot data area */
     memset((void *)tfm_plat_get_shared_measurement_data_base(), 0,
            tfm_plat_get_shared_measurement_data_size());
-
-    wait_for_vm_erase_to_finish_and_enable_cache();
-
-    rse_setup_persistent_data();
 
     return 0;
 }

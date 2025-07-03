@@ -20,7 +20,6 @@
  * This file is derivative of CMSIS V5.9.0 startup_ARMCM55.c
  * Git SHA: 2b7495b8535bdcb306dac29b9ded4cfb679d7e5c
  */
-#include "platform_base_address.h"
 #include "sam_interrupts.h"
 #include "tfm_hal_device_header.h"
 #include "region_defs.h"

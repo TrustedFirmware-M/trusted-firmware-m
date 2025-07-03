@@ -126,6 +126,13 @@ struct rse_persistent_data {
         size_t provisioning_blob_buf_size;
         /* Used to keep track of the provisioning message which is staged */
         uint8_t provisioning_staging_status;
+        /*
+         * Vector that to store debug vector for ROM to open for certified
+         * debug open
+         */
+        uint32_t certified_debug_vector[4];
+        /* Whether the KMU HW keys are initialized or not */
+        bool is_hw_key_invalidated;
     } bl1_data;
 
     /* Data shared between bootloaders and runtime */
