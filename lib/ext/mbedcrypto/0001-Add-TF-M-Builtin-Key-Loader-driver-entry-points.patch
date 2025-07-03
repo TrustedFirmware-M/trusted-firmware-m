@@ -1,4 +1,4 @@
-From be4c9dfe3429d7f8420b896614cd15bd04d85868 Mon Sep 17 00:00:00 2001
+From f28c8b2707a7ea81163f20ebdde5fd52064d7876 Mon Sep 17 00:00:00 2001
 From: Antonio de Angelis <Antonio.deAngelis@arm.com>
 Date: Thu, 21 Mar 2024 11:44:56 +0000
 Subject: [PATCH 1/7] Add TF-M Builtin Key Loader driver entry points
@@ -18,7 +18,7 @@ Co-authored-by: Antonio de Angelis <antonio.deangelis@arm.com>
  3 files changed, 143 insertions(+), 9 deletions(-)
 
 diff --git a/library/psa_crypto.c b/library/psa_crypto.c
-index 3ec92cc06..5c05acac4 100644
+index 9c28609d7..2797900c1 100644
 --- a/library/psa_crypto.c
 +++ b/library/psa_crypto.c
 @@ -73,6 +73,10 @@
