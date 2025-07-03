@@ -93,6 +93,7 @@ set(TFM_LOG_FATAL_ERRORS                OFF         CACHE BOOL      "Log fatal e
 set(TFM_LOG_NONFATAL_ERRORS             OFF         CACHE BOOL      "Log non-fatal errors when they occur to aid debugging")
 set(TFM_HALT_ON_FATAL_ERRORS            OFF         CACHE BOOL      "On fatal errors in the secure firmware, halt immediately to allow debugging")
 set(TFM_LOG_ERR_FILE_AND_LINE           OFF         CACHE BOOL      "Log file name and line numbers of fatal and non-fatal errors")
+set(TFM_LOAD_NS_IMAGE                   ON          CACHE BOOL      "Whether to load an NS image")
 
 set(CONFIG_TFM_HALT_ON_CORE_PANIC       OFF         CACHE BOOL       "On fatal errors in the secure firmware, halt instead of rebooting.")
 set(CONFIG_TFM_BACKTRACE_ON_CORE_PANIC  OFF         CACHE BOOL       "On fatal errors in secure firmware, log backtrace and then halt")

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -90,7 +90,7 @@ enum tfm_hal_status_t tfm_hal_platform_init(void)
 
 uint32_t tfm_hal_get_ns_VTOR(void)
 {
-#ifndef RSE_LOAD_NS_IMAGE
+#ifndef TFM_LOAD_NS_IMAGE
     /* If an NS image hasn't been set up, then just return 0 */
     return 0;
 #endif
@@ -100,7 +100,7 @@ uint32_t tfm_hal_get_ns_VTOR(void)
 
 uint32_t tfm_hal_get_ns_MSP(void)
 {
-#ifndef RSE_LOAD_NS_IMAGE
+#ifndef TFM_LOAD_NS_IMAGE
     /* If an NS image hasn't been set up, then just return 0 */
     return 0;
 #endif
@@ -110,7 +110,7 @@ uint32_t tfm_hal_get_ns_MSP(void)
 
 uint32_t tfm_hal_get_ns_entry_point(void)
 {
-#ifndef RSE_LOAD_NS_IMAGE
+#ifndef TFM_LOAD_NS_IMAGE
     /* If an NS image hasn't been set up, then just return 0 */
     return 0;
 #endif

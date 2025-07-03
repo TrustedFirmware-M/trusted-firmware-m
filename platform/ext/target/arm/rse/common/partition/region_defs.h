@@ -179,13 +179,13 @@
 #define NS_CODE_START   (NS_DATA_START + NS_DATA_SIZE + BL2_HEADER_SIZE)
 #endif /* RSE_XIP */
 
-#if defined(RSE_LOAD_NS_IMAGE) && defined(RSE_XIP)
+#if defined(TFM_LOAD_NS_IMAGE) && defined(RSE_XIP)
 #define NS_CODE_SIZE    (FLASH_NS_PARTITION_SIZE)
-#elif defined(RSE_LOAD_NS_IMAGE) && !defined(RSE_XIP)
+#elif defined(TFM_LOAD_NS_IMAGE) && !defined(RSE_XIP)
 #define NS_CODE_SIZE    (IMAGE_NS_CODE_SIZE)
 #else
 #define NS_CODE_SIZE    (0x0)
-#endif /* defined(RSE_LOAD_NS_IMAGE) && defined(RSE_XIP) */
+#endif /* defined(TFM_LOAD_NS_IMAGE) && defined(RSE_XIP) */
 #define NS_CODE_LIMIT   (NS_CODE_START + NS_CODE_SIZE - 1)
 
 /* Non-Secure Data stored after secure data, or in VM1 if not in XIP mode. */
@@ -195,7 +195,7 @@
 #define NS_DATA_START   (VM1_BASE_NS)
 #endif
 
-#if defined(RSE_LOAD_NS_IMAGE) && !defined(RSE_XIP)
+#if defined(TFM_LOAD_NS_IMAGE) && !defined(RSE_XIP)
 /* In the case of non-XIP configs, the NS data section size is controlled by the
  * size of the NS image (with the NS image plus data section taking up the whole
  * of VM1) so platforms should instead alter the size of the NS image.
@@ -203,7 +203,7 @@
 #undef  NS_DATA_SIZE
 #define NS_DATA_SIZE \
     (VM1_SIZE - FLASH_NS_PARTITION_SIZE - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
-#endif /* defined(RSE_LOAD_NS_IMAGE) && !defined(RSE_XIP) */
+#endif /* defined(TFM_LOAD_NS_IMAGE) && !defined(RSE_XIP) */
 #define NS_DATA_LIMIT   (NS_DATA_START + NS_DATA_SIZE - 1)
 
 /* NS partition information is used for MPC and SAU configuration */
@@ -213,11 +213,11 @@
 #define NS_PARTITION_START (NS_DATA_START + NS_DATA_SIZE)
 #endif /* RSE_XIP */
 
-#ifdef RSE_LOAD_NS_IMAGE
+#ifdef TFM_LOAD_NS_IMAGE
 #define NS_PARTITION_SIZE (FLASH_NS_PARTITION_SIZE)
 #else
 #define NS_PARTITION_SIZE (0x0)
-#endif /* RSE_LOAD_NS_IMAGE */
+#endif /* TFM_LOAD_NS_IMAGE */
 
 #define SECONDARY_PARTITION_START (FWU_HOST_IMAGE_BASE_S)
 #define SECONDARY_PARTITION_SIZE (HOST_IMAGE_MAX_SIZE)

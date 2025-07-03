@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2023 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -32,7 +32,7 @@
 /* Throw out bus error when an access causes security violation */
 #define CMSDK_SECRESPCFG_BUS_ERR_MASK   (1UL)
 
-#ifdef RSE_LOAD_NS_IMAGE
+#ifdef TFM_LOAD_NS_IMAGE
 /* The section names come from the scatter file */
 REGION_DECLARE(Load$$LR$$, LR_NS_PARTITION, $$Base);
 #endif
@@ -42,7 +42,7 @@ REGION_DECLARE(Image$$, VENEER_ALIGN, $$Limit);
 #endif
 
 const struct memory_region_limits memory_regions = {
-#ifdef RSE_LOAD_NS_IMAGE
+#ifdef TFM_LOAD_NS_IMAGE
 #ifdef RSE_XIP
     .non_secure_code_start = RSE_RUNTIME_NS_XIP_BASE_NS,
 
@@ -62,7 +62,7 @@ const struct memory_region_limits memory_regions = {
         (uint32_t)&REGION_NAME(Load$$LR$$, LR_NS_PARTITION, $$Base) +
         NS_PARTITION_SIZE - 1,
 #endif /* RSE_XIP */
-#endif /* RSE_LOAD_NS_IMAGE */
+#endif /* TFM_LOAD_NS_IMAGE */
 
 #ifdef CONFIG_TFM_USE_TRUSTZONE
     .veneer_base = (uint32_t)&REGION_NAME(Image$$, ER_VENEER, $$Base),
@@ -111,11 +111,11 @@ extern ARM_DRIVER_MPC Driver_VM0_MPC;
 extern ARM_DRIVER_MPC Driver_VM1_MPC;
 extern ARM_DRIVER_MPC Driver_SIC_MPC;
 
-#ifdef RSE_LOAD_NS_IMAGE
+#ifdef TFM_LOAD_NS_IMAGE
 /* Define Peripherals NS address range for the platform */
 #define PERIPHERALS_BASE_NS_START      (0x40000000)
 #define PERIPHERALS_BASE_NS_END        (0x4FFFFFFF)
-#endif /* RSE_LOAD_NS_IMAGE */
+#endif /* TFM_LOAD_NS_IMAGE */
 
 /* Enable system reset request for CPU 0 */
 #define ENABLE_CPU0_SYSTEM_RESET_REQUEST (1U << 8U)
@@ -303,7 +303,7 @@ void sau_and_idau_cfg(void)
     /* Enables SAU */
     TZ_SAU_Enable();
 
-#ifdef RSE_LOAD_NS_IMAGE
+#ifdef TFM_LOAD_NS_IMAGE
     /* Configures SAU regions to be non-secure */
     SAU->RNR  = 0;
     SAU->RBAR = (memory_regions.non_secure_partition_base
@@ -343,7 +343,7 @@ void sau_and_idau_cfg(void)
 #else
     sacfg->nsccfg |= RAMNSC;
 #endif
-#endif /* RSE_LOAD_NS_IMAGE */
+#endif /* TFM_LOAD_NS_IMAGE */
 
     /* Configure MSC to enable secure accesses for the DMA */
     sacfg->nsmscexp = 0x0;
@@ -383,7 +383,7 @@ enum tfm_plat_err_t mpc_init_cfg(void)
     }
 #endif /* RSE_XIP */
 
-#ifdef RSE_LOAD_NS_IMAGE
+#ifdef TFM_LOAD_NS_IMAGE
     /* Configuring primary non-secure partition.
      * It is ensured in flash_layout.h that these memory regions are located in
      * VM1 SRAM device. */
@@ -407,7 +407,7 @@ enum tfm_plat_err_t mpc_init_cfg(void)
     if (ret != ARM_DRIVER_OK) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
-#endif /* RSE_LOAD_NS_IMAGE */
+#endif /* TFM_LOAD_NS_IMAGE */
 
     /* Lock down the MPC configuration */
     ret = Driver_VM0_MPC.LockDown();

@@ -124,7 +124,7 @@ set(MCUBOOT_BUILTIN_KEY               OFF              CACHE BOOL      "Use buil
 set(CONFIG_BOOT_RAM_LOAD              ON               CACHE BOOL      "Whether to enable RAM load support")
 
 set(RSE_USE_HOST_FLASH                  ON         CACHE BOOL     "Enable RSE using the host flash.")
-set(RSE_LOAD_NS_IMAGE                   ON         CACHE BOOL     "Whether to load an RSE NSPE image")
+set(TFM_LOAD_NS_IMAGE                   ON         CACHE BOOL     "Whether to load an RSE NSPE image")
 set(RSE_BL2_ENABLE_IMAGE_STAGING        OFF        CACHE BOOL     "Whether to enable staging of the images to be loaded by BL2")
 set(MCUBOOT_IMAGE_MULTI_SIG_SUPPORT     OFF        CACHE BOOL     "Whether to enable multi-signature support in MCUBoot")
 
@@ -256,7 +256,7 @@ set(TFM_PXN_ENABLE                      ON         CACHE BOOL     "Use Privilege
 set(TFM_MANIFEST_LIST                   "${CMAKE_CURRENT_LIST_DIR}/manifest/tfm_manifest_list.yaml" CACHE PATH "Platform specific Secure Partition manifests file")
 
 # Platform-specific configurations
-if (RSE_LOAD_NS_IMAGE)
+if (TFM_LOAD_NS_IMAGE)
     set(CONFIG_TFM_USE_TRUSTZONE            ON)
 else()
     set(CONFIG_TFM_USE_TRUSTZONE            OFF)

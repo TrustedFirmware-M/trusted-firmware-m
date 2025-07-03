@@ -40,7 +40,7 @@ target_compile_definitions(platform_region_defs
         $<$<BOOL:${PLATFORM_ERROR_CODES}>:PLATFORM_ERROR_CODES>
         $<$<BOOL:${RSE_ENABLE_BRINGUP_HELPERS}>:RSE_ENABLE_BRINGUP_HELPERS>
         $<$<BOOL:${RSE_OTP_TRNG}>:RSE_OTP_TRNG>
-        $<$<BOOL:${RSE_LOAD_NS_IMAGE}>:RSE_LOAD_NS_IMAGE>
+        $<$<BOOL:${TFM_LOAD_NS_IMAGE}>:TFM_LOAD_NS_IMAGE>
         $<$<BOOL:${RSE_BIT_PROGRAMMABLE_OTP}>:RSE_BIT_PROGRAMMABLE_OTP>
         $<$<BOOL:${RSE_USE_OTP_EMULATION_IN_SRAM}>:RSE_USE_OTP_EMULATION_IN_SRAM>
         $<$<BOOL:${RSE_USE_ROM_LIB_FROM_SRAM}>:RSE_USE_ROM_LIB_FROM_SRAM>
@@ -955,7 +955,7 @@ endif()
 
 #========================= Files for building NS side platform ================#
 
-if (RSE_LOAD_NS_IMAGE)
+if (TFM_LOAD_NS_IMAGE)
     install(FILES       device/source/device_definition.c
                         $<$<BOOL:${RSE_DEFAULT_CLOCK_CONFIG}>:${CMAKE_CURRENT_SOURCE_DIR}/device/source/rse_clocks.c>
                         device/source/startup_rse.c

@@ -320,11 +320,11 @@ int boot_platform_post_load(uint32_t image_id)
 
 bool boot_platform_should_load_image(uint32_t image_id)
 {
-#ifndef RSE_LOAD_NS_IMAGE
+#ifndef TFM_LOAD_NS_IMAGE
     if (image_id == RSE_BL2_IMAGE_NS) {
         return false;
     }
-#endif /* RSE_LOAD_NS_IMAGE */
+#endif /* TFM_LOAD_NS_IMAGE */
 
     return true;
 }

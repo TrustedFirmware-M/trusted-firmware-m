@@ -885,9 +885,9 @@ static int boot_platform_post_load_ap_bl1(void)
  */
 static int (*boot_platform_pre_load_vector[RSE_FIRMWARE_COUNT]) (void) = {
     [RSE_FIRMWARE_SECURE_ID]        = boot_platform_pre_load_secure,
-#ifdef RSE_LOAD_NS_IMAGE
+#ifdef TFM_LOAD_NS_IMAGE
     [RSE_FIRMWARE_NON_SECURE_ID]    = boot_platform_pre_load_non_secure,
-#endif /* RSE_LOAD_NS_IMAGE */
+#endif /* TFM_LOAD_NS_IMAGE */
 #ifndef TFM_S_REG_TEST
     [RSE_FIRMWARE_SCP_ID]           = boot_platform_pre_load_scp,
     [RSE_FIRMWARE_MCP_ID]           = boot_platform_pre_load_mcp,
@@ -902,9 +902,9 @@ static int (*boot_platform_pre_load_vector[RSE_FIRMWARE_COUNT]) (void) = {
  */
 static int (*boot_platform_post_load_vector[RSE_FIRMWARE_COUNT]) (void) = {
     [RSE_FIRMWARE_SECURE_ID]        = boot_platform_post_load_secure,
-#ifdef RSE_LOAD_NS_IMAGE
+#ifdef TFM_LOAD_NS_IMAGE
     [RSE_FIRMWARE_NON_SECURE_ID]    = boot_platform_post_load_non_secure,
-#endif /* RSE_LOAD_NS_IMAGE */
+#endif /* TFM_LOAD_NS_IMAGE */
 #ifndef TFM_S_REG_TEST
     [RSE_FIRMWARE_SCP_ID]           = boot_platform_post_load_scp,
     [RSE_FIRMWARE_MCP_ID]           = boot_platform_post_load_mcp,
@@ -940,11 +940,11 @@ int boot_platform_post_load(uint32_t image_id)
 
 bool boot_platform_should_load_image(uint32_t image_id)
 {
-#ifndef RSE_LOAD_NS_IMAGE
+#ifndef TFM_LOAD_NS_IMAGE
     if (image_id == RSE_FIRMWARE_NON_SECURE_ID) {
         return false;
     }
-#endif /* RSE_LOAD_NS_IMAGE */
+#endif /* TFM_LOAD_NS_IMAGE */
 
     if ((image_id == RSE_FIRMWARE_AP_BL1_ID) &&
                 (host_system_info->chip_id > 0)) {

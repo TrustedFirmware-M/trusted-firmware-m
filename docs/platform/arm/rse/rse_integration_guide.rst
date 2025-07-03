@@ -107,7 +107,7 @@ Boot configuration
   example, if BL2 is loading RSE SPE, RSE NSPE, AP BL1 and SCP BL1 then set to
   ``4``. Defaults to ``4``.
 
-- ``RSE_LOAD_NS_IMAGE``: Set to ``ON`` to load an RSE NSPE image, or ``OFF`` to
+- ``TFM_LOAD_NS_IMAGE``: Set to ``ON`` to load an RSE NSPE image, or ``OFF`` to
   run SPE runtime firmware only on RSE. Defaults to ``ON``.
 
 - ``RSE_XIP``: Set to ``ON`` to execute the RSE SPE and RSE NSPE (if applicable)
