@@ -41,7 +41,7 @@ SECTIONS
         *_provisioning_code.o(DO_JUMP)
         . = MAIN_BUNDLE_CODE_SIZE;
         *_provisioning_code.o(DO_PROVISION)
-        *(EXCLUDE_FILE (*_provisioning_data.o) .rodata*)
+        *(.rodata*)
         *(.text*)
     } > CODE
 
@@ -49,16 +49,10 @@ SECTIONS
      * overwritten when we chainload the next blob */
     DATA :
     {
-        *(COMMON .data* .bss*)
+        *(.data*)
+        *(.bss*)
+        *(COMMON)
     } > DATA
 
     ASSERT(SIZEOF(DATA) == 0, "DATA section must be empty")
-
-    VALUES :
-    {
-        *_provisioning_data.o(.rodata.data)
-    } > VALUES
-
-    ASSERT(SIZEOF(VALUES) == 0, "VALUES section must be empty")
-
 }

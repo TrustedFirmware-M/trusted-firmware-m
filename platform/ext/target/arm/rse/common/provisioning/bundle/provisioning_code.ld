@@ -42,7 +42,9 @@ SECTIONS
 
     DATA :
     {
-        *(COMMON .data* .bss*)
+        *(.data*)
+        *(.bss*)
+        *(COMMON)
         /* Non secret provisioning values placed directly after data
          * so ensure 4 byte aligned */
         . = ALIGN(4);
