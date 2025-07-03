@@ -21,6 +21,9 @@ static void initialize_rse_persistent_data(struct rse_persistent_data *persisten
 {
     memset(persistent_data, 0, sizeof(struct rse_persistent_data));
     rse_gretreg_set_flag(RSE_GRETREG_BIT_OFFSET_PERSISTENT_DATA_VALID);
+
+    set_persistent_data_flag(LAST_BOOT_DEBUG_CODE_BLOCK_CERT_DEBUG,
+        RSE_PERSISTENT_DATA_FLAGS_LAST_BOOT_DEBUG_CODE);
 }
 
 void rse_setup_persistent_data(void)
@@ -36,3 +39,4 @@ void rse_setup_persistent_data(void)
         initialize_rse_persistent_data(RSE_PERSISTENT_DATA);
     }
 }
+
