@@ -11,6 +11,7 @@
 #include "flash_map_backend/flash_map_backend.h"
 #include "bootutil_priv.h"
 #include "bootutil/bootutil_log.h"
+#include "bootutil/fault_injection_hardening.h"
 #include "Driver_Flash.h"
 #ifdef PLATFORM_HAS_BOOT_DMA
 #include "boot_dma.h"
@@ -113,7 +114,8 @@ void flash_area_close(const struct flash_area *area)
 int flash_area_read(const struct flash_area *area, uint32_t off, void *dst,
                     uint32_t len)
 {
-    uint32_t remaining_len, read_length;
+    volatile uint32_t remaining_len;
+    uint32_t read_length;
     uint32_t aligned_off;
     uint32_t item_number;
 #ifdef PLATFORM_HAS_BOOT_DMA
@@ -186,10 +188,17 @@ int flash_area_read(const struct flash_area *area, uint32_t off, void *dst,
     }
 
     /* The `cnt` parameter in CMSIS ARM_FLASH_ReadData indicates number of data
-     * items to read.
+     * items to read. The size of a data item is equal to the data_width value.
+     *
+     * When using the FIH library with at least the medium profile the below
+     * division operation is repeated and the results are checked for consistency
+     * (remaining_len is declared volatile to avoid compiler optimization).
+     * This helps to prevent a FI assisted overflow of the 'dst' buffer.
      */
-    item_number = remaining_len / data_width;
+    FIH_SET(item_number, (remaining_len / data_width));
+
     if (item_number) {
+        /* There is at least one data item (of size data_width) to read. */
         ret = DRV_FLASH_AREA(area)->ReadData(area->fa_off + off + i,
                                             (uint8_t *)dst + i,
                                             item_number);
@@ -203,6 +212,7 @@ int flash_area_read(const struct flash_area *area, uint32_t off, void *dst,
         }
     }
 
+    /* The number of remaining bytes is less than data_width (of the driver) */
     ret = DRV_FLASH_AREA(area)->ReadData(
                         area->fa_off + off + i + (item_number * data_width),
                         temp_buffer,
