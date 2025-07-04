@@ -36,11 +36,6 @@ set(TFM_TESTS_REVISION_CHECKS           ON          CACHE BOOL      "Whether to 
 set(PROJECT_CONFIG_HEADER_FILE          ""          CACHE FILEPATH  "User defined header file for TF-M config")
 
 # External libraries source and version
-set(MBEDCRYPTO_PATH                     "DOWNLOAD"  CACHE PATH      "Path to Mbed Crypto (or DOWNLOAD to fetch automatically")
-set(MBEDCRYPTO_FORCE_PATCH              OFF         CACHE BOOL      "Always apply MBed Crypto patches")
-set(MBEDCRYPTO_VERSION                  "mbedtls-3.6.5" CACHE STRING "The version of Mbed Crypto to use")
-set(MBEDCRYPTO_GIT_REMOTE               "https://github.com/Mbed-TLS/mbedtls.git" CACHE STRING "The URL (or path) to retrieve MbedTLS from.")
-
 set(TF_PSA_CRYPTO_PATH                  "DOWNLOAD"  CACHE PATH      "Path to TF-PSA-Crypto (or DOWNLOAD to fetch automatically")
 set(TF_PSA_CRYPTO_VERSION               "v1.0.0"    CACHE STRING    "The version of TF-PSA-Crypto to use")
 set(TF_PSA_CRYPTO_FORCE_PATCH           OFF         CACHE BOOL      "Always apply TF-PSA-Crypto patches")

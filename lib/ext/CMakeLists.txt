@@ -7,7 +7,6 @@
 set(FETCHCONTENT_BASE_DIR ${CMAKE_BINARY_DIR}/lib/ext CACHE STRING "" FORCE)
 
 add_subdirectory(qcbor)
-add_subdirectory(mbedcrypto)
 add_subdirectory(tf-psa-crypto)
 add_subdirectory(t_cose)
 add_subdirectory(cmsis)
