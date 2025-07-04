@@ -145,6 +145,36 @@ LR_CODE S_CODE_START S_CODE_SIZE {
 {% endfor %}
     }
 
+#ifdef S_RUNTIME_ITCM_START
+    saved_location_counter = .;
+    . = S_RUNTIME_ITCM_START
+
+    /* Position tag: Start of SPM code (privileged) */
+    PT_SPM_CODE_START +0 ALIGN TFM_LINKER_SPM_CODE_ALIGNMENT EMPTY 0x0 {
+    }
+
+    .ER_SPM_CODE +0 {
+        *tfm_spm*(+RO)
+    }
+
+    /* Position tag: End of SPM code (privileged) */
+    PT_SPM_CODE_END +0 ALIGN TFM_LINKER_SPM_CODE_ALIGNMENT EMPTY 0x0 {
+    }
+
+    /* This empty, zero long execution region is here to mark the limit address
+     * of the last execution region that is allocated in ITCM.
+     */
+    ITCM_WATERMARK +0 EMPTY 0x0 {
+    }
+
+    /* Make sure that the sections allocated in the DTCM does not exceed the
+     * size of the DTCM available.
+     */
+    ScatterAssert(ImageLimit(ITCM_WATERMARK) <= S_RUNTIME_ITCM_START + S_RUNTIME_ITCM_SIZE)
+
+    . = saved_location_counter;
+#endif
+
     /* Capture all remaining code (except RAM code) in the privileged TF-M
      * code region.
      */
