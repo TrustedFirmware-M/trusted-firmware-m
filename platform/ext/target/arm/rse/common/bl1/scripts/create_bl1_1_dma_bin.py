@@ -50,16 +50,7 @@ def parse_store(command, key, reference_string):
     return command_storage_locations[reference_string]
 
 def parse_exec(command, key, reference_string):
-    command_location = command_execution_locations[reference_string]
-    # Need to set bit 0 if the link should be executed
-    if key != 'SRCADDR' and key != 'DESADDR':
-        try:
-            if command['execute_link']:
-                command_location += 1
-        except KeyError:
-            # Default to performing the link
-            command_location += 1
-    return command_location
+    return command_execution_locations[reference_string]
 
 def parse_size(command, key, reference_string):
     size = sizes[reference_string]
@@ -213,6 +204,13 @@ for program in data['program']:
                 val = (int(command[key]))
             except ValueError:
                 val = (int(parse(command, key, command[key])))
+            if(key == 'LINKADDR'):
+                try:
+                    if command['execute_link']:
+                        val += 1
+                except KeyError:
+                    # Default to performing the link
+                    val += 1
             if key in data['common']['cmd_header_bit_offsets']:
                 header_bit_offset = data['common']['cmd_header_bit_offsets'][key]
                 header_word |= 1<<header_bit_offset

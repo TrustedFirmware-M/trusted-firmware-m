@@ -11,5 +11,5 @@
 CTRL: 0x10000602
 DESADDR: 'dma_channel_1_base_address + reg_offset_dma_channel_linkaddr'
 XSIZE: 0x00010000
-FILLVAL: "program1_cmd0_exec_addr"
+FILLVAL: "program1_cmd0_exec_addr + 1"
 LINKADDR: "program0_cmd2_exec_addr"
