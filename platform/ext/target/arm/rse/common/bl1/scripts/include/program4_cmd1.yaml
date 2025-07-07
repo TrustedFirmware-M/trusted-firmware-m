@@ -10,7 +10,9 @@
 CTRL: 0x10000202
 SRCADDR: "otp_base_address"
 DESADDR: "vm0_base_address"
-XSIZE: "otp_size"
+XSIZE:
+  SRC: "otp_size / 4"
+  DES: "otp_size / 4"
 SRCTRANSCFG: 0x00000000
 DESTRANSCFG: 0x000F0044
 XADDRINC: 0x00010001

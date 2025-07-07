@@ -53,15 +53,7 @@ def parse_exec(command, key, reference_string):
     return command_execution_locations[reference_string]
 
 def parse_size(command, key, reference_string):
-    size = sizes[reference_string]
-    if key == 'XSIZE':
-        size = size // 4
-        size &= 0xFFFF
-        size |= size << 16
-    elif key != 'SRCADDR' and key != 'DESADDR':
-        # Convert size to words
-        size = size // 4
-    return size
+    return sizes[reference_string]
 
 def parse_base_address(command, key, reference_string):
     return location_base_addresses[reference_string]

@@ -18,5 +18,5 @@ XADDRINC: 0x00010001
 GPOVAL0: 0x00000003
 LINKADDR: "program4_cmd3_exec_addr"
 ICDA: 'vm0_base_address + 0x8' # The program to be measured starts after the integrity value word
-ICDL: 'otp_size / 2 - 0x1' # This is measured in 8-byte IC words, so divide the size (which is in 4-byte words) by 2
+ICDL: 'otp_size / 8 - 0x1' # This is measured in 8-byte IC words, so divide the size (which is in bytes) by 8
 ICEVA: 'vm0_base_address' # The first (8-byte) word in VM0 is the integrity value
