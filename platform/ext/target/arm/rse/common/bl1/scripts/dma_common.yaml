@@ -5,6 +5,7 @@
 
 #This file contains:
 # - DMA command header word bit map
+# - Register offsets within register frame
 
 cmd_header_bit_offsets:
     REGCLEAR: 0
@@ -40,3 +41,63 @@ cmd_header_bit_offsets:
     LINKADDR: 30
     LINKADDRHI: 31
 
+reg_offset:
+    dma_channel:
+        cmd: 0x0
+        ctrl: 0xC
+        srcaddr: 0x10
+        srcaddrhi: 0x14
+        desaddr: 0x18
+        desaddrhi: 0x1C
+        xsize: 0x20
+        xsizehi: 0x24
+        srctranscfg: 0x28
+        destranscfg: 0x2C
+        xaddrinc: 0x30
+        yaddrstride: 0x34
+        fillval: 0x38
+        ysize: 0x03C
+        tmpltcfg: 0x40
+        srctmplt: 0x44
+        destmplt: 0x48
+        srctrigincfg: 0x4C
+        destrigincfg: 0x50
+        trigoutcfg: 0x54
+        gpoen0: 0x58
+        gpoval0: 0x60
+        streamintcfg: 0x68
+        linkattr: 0x70
+        autocfg: 0x74
+        linkaddr: 0x78
+        linkaddrhi: 0x7C
+    system_control:
+        reset_syndrome: 0x100
+        initsvtor0: 0x110
+        cpuwait: 0x120
+        dma_boot_en: 0x254
+        lcm_dcu_force_disable: 0x25C
+    sam:
+        sammem0: 0x14
+    integrity_checker:
+        icda: 0x18
+        icdl: 0x1C
+        iceva: 0x20
+        icc: 0x4
+    dcsu:
+        soc_unique_id0: 0x0
+        soc_unique_id1: 0x4
+        soc_unique_id2: 0x8
+        soc_family_id0: 0xC
+        soc_serial_number0: 0x10
+        soc_serial_number1: 0x14
+        die_id: 0x18
+        reset_syndrome: 0x30
+        boot_info: 0xF4
+        device_status: 0xF0
+    kmu:
+        slot7: 0x210
+    tram:
+        trkeylb0: 0x08
+        trc: 0x4
+    ilcu:
+        trig_mux_ctrl: 0x4

@@ -75,6 +75,16 @@ def parse_size(command, key, reference_string):
 def parse_base_address(command, key, reference_string):
     return location_base_addresses[reference_string]
 
+def parse_register_offset(reference_string):
+    reg_offset = data['common']['reg_offset']
+
+    for reg_frame in reg_offset:
+        if (reg_frame + '_') in reference_string:
+            reg = reference_string.replace(reg_frame + '_',"")
+            return reg_offset[reg_frame][reg]
+
+    assert False, f"PARSE REGISTER OFFSET: Invalid register block name: {reference_string}"
+
 def parse(command, key, reference_string):
     if "-" in reference_string:
         split = reference_string.split(" - ", maxsplit=1)
@@ -100,6 +110,8 @@ def parse(command, key, reference_string):
         value = parse_size(command, key, reference_string.replace("_size", ""))
     elif "_base_address" in reference_string:
         value = parse_base_address(command, key, reference_string.replace("_base_address", ""))
+    elif "reg_offset_" in reference_string:
+        value = parse_register_offset(reference_string.replace("reg_offset_", ""))
     else:
         value = int(reference_string, 0)
 
