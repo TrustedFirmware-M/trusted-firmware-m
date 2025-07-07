@@ -4,6 +4,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
+
+common: !include dma_common.yaml
+
 locations:
     rom:
         base_address: 0x1101F000

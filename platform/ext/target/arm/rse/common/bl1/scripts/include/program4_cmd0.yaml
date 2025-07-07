@@ -9,39 +9,6 @@
 # from executing by writing Channel1 CH_CMD register. Trigger 3 is fired if the
 # Lifecycle is SE, CM PCI/TCI or DM, but at this point we must be in SE.
 
-Header:
-  - REGCLEAR: 0
-  - Reserved: 0
-  - INTREN: 0
-  - CTRL: 1
-  - SRCADDR: 0
-  - SRCADDRHI: 0
-  - DESADDR: 1
-  - DESADDRHI: 0
-  - XSIZE: 1
-  - XSIZEHI: 0
-  - SRCTRANSCFG: 0
-  - DESTRANSCFG: 0
-  - XADDRINC: 0
-  - YADDRSTRIDE: 0
-  - FILLVAL: 1
-  - YSIZE: 0
-  - TMPLTCFG: 0
-  - SRCTMPLT: 0
-  - DESTMPLT: 0
-  - SRCTRIGINCFG: 1
-  - DESTRIGINCFG: 0
-  - TRIGOUTCFG: 0
-  - GPOEN0: 0
-  - Reserved: 0
-  - GPOVAL0: 1
-  - Reserved: 0
-  - STREAMINTCFG: 0
-  - Reserved: 0
-  - LINKATTR: 0
-  - AUTOCFG: 0
-  - LINKADDR: 1
-  - LINKADDRHI: 0
 CTRL: 0x12000602
 DESADDR: 'dma350_base_address + 0x1100'
 XSIZE: 0x00010000

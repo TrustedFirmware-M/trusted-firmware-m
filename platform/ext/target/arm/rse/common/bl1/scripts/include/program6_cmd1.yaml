@@ -7,39 +7,6 @@
 
 # This command reads 8 words from VM0 into KMU key slot 8
 
-Header:
-  - REGCLEAR: 0
-  - Reserved: 0
-  - INTREN: 0
-  - CTRL: 1
-  - SRCADDR: 1
-  - SRCADDRHI: 0
-  - DESADDR: 1
-  - DESADDRHI: 0
-  - XSIZE: 1
-  - XSIZEHI: 0
-  - SRCTRANSCFG: 1
-  - DESTRANSCFG: 1
-  - XADDRINC: 1
-  - YADDRSTRIDE: 0
-  - FILLVAL: 0
-  - YSIZE: 0
-  - TMPLTCFG: 0
-  - SRCTMPLT: 0
-  - DESTMPLT: 0
-  - SRCTRIGINCFG: 0
-  - DESTRIGINCFG: 0
-  - TRIGOUTCFG: 0
-  - GPOEN0: 0
-  - Reserved: 0
-  - GPOVAL0: 1
-  - Reserved: 0
-  - STREAMINTCFG: 0
-  - Reserved: 0
-  - LINKATTR: 0
-  - AUTOCFG: 0
-  - LINKADDR: 1
-  - LINKADDRHI: 0
 CTRL: 0x10000202
 SRCADDR: 'vm0_base_address'
 DESADDR: 'kmu_base_address + 0x210'

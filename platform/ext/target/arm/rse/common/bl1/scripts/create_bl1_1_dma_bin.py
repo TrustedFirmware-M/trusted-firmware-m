@@ -121,7 +121,7 @@ command_storage_locations = {}
 command_execution_locations = {}
 sizes = {}
 
-reserved_keys=['command_name', 'execute_link']
+reserved_keys=['command_name', 'execute_link','regclear']
 
 # Setup locations
 for location in data['locations']:
@@ -148,7 +148,20 @@ for program in data['program']:
     commands = program['commands']
     sizes[program['name']] = 0
     for command in commands:
-        command_size = sum([1 for key in command if key not in reserved_keys]) * 4
+
+        cmd_has_header_word = False
+        cmd_non_header_word_count = 0
+
+        for key in command:
+            if key in data['common']['cmd_header_bit_offsets']:
+                #if there are DMA config registers specified in the yaml file then treat this command
+                #file as a DMA descriptor with a leading header word.
+                cmd_has_header_word = True
+            if key not in reserved_keys:
+                cmd_non_header_word_count +=1
+
+        command_size = (cmd_non_header_word_count + cmd_has_header_word)*4
+
         sizes[command['command_name']] = command_size
         sizes[program['name']] += command_size
         command_storage_locations[command['command_name']] = location_next_addresses[program['storage_location']]
@@ -175,16 +188,43 @@ for program in data['program']:
 for program in data['program']:
     commands = program['commands']
     for command in commands:
-        command["Header"] = calculate_header_word(command["Header"])
+
+        header_word = 0
         command_array = []
+        #raw data to be stored at end of command
+        command_data = []
+
         for key in command:
             if key in reserved_keys:
                 continue
             try:
-                command_array.append(int(command[key]))
+                val = (int(command[key]))
             except ValueError:
-                command_array.append(int(parse(command, key, command[key])))
-        location_word_arrays[program['storage_location']] += command_array
+                val = (int(parse(command, key, command[key])))
+            if key in data['common']['cmd_header_bit_offsets']:
+                header_bit_offset = data['common']['cmd_header_bit_offsets'][key]
+                header_word |= 1<<header_bit_offset
+                command_array.append((val, header_bit_offset))
+            else:
+                command_data.append(val)
+
+        if(command_array):
+
+            try:
+                #REGLCEAR is the LSB of the header word
+                if command['regclear'] == 1:
+                    header_word |= 1
+            except KeyError:
+                #By default if regclear is not specifed, then do not set this bit
+                pass
+
+            command_array.append((header_word,0))
+
+            #Sort DMA descriptor config registers in correct order according to HEADER bitmap
+            command_array = [x[0] for x in sorted(command_array, key=lambda x: x[1])]
+
+        location_word_arrays[program['storage_location']] += command_array + command_data
+
 
 for location in output_locations:
     try:

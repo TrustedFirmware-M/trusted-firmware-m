@@ -8,39 +8,6 @@
 # Wait for trigger 5 (the integrity checker success trigger) and if it succeeds,
 # then run the first command in the recently-loaded OTP ICS (program 5)
 
-Header:
-  - REGCLEAR: 0
-  - Reserved: 0
-  - INTREN: 0
-  - CTRL: 1
-  - SRCADDR: 0
-  - SRCADDRHI: 0
-  - DESADDR: 0
-  - DESADDRHI: 0
-  - XSIZE: 0
-  - XSIZEHI: 0
-  - SRCTRANSCFG: 0
-  - DESTRANSCFG: 0
-  - XADDRINC: 0
-  - YADDRSTRIDE: 0
-  - FILLVAL: 0
-  - YSIZE: 0
-  - TMPLTCFG: 0
-  - SRCTMPLT: 0
-  - DESTMPLT: 0
-  - SRCTRIGINCFG: 1
-  - DESTRIGINCFG: 0
-  - TRIGOUTCFG: 0
-  - GPOEN0: 0
-  - Reserved: 0
-  - GPOVAL0: 1
-  - Reserved: 0
-  - STREAMINTCFG: 0
-  - Reserved: 0
-  - LINKATTR: 0
-  - AUTOCFG: 0
-  - LINKADDR: 1
-  - LINKADDRHI: 0
 CTRL: 0x12000000
 SRCTRIGINCFG: 0x00000205
 GPOVAL0: 0x00000004

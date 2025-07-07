@@ -1,0 +1,42 @@
+#-------------------------------------------------------------------------------
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+#-------------------------------------------------------------------------------
+
+#This file contains:
+# - DMA command header word bit map
+
+cmd_header_bit_offsets:
+    REGCLEAR: 0
+    Reserved: 1
+    INTREN: 2
+    CTRL: 3
+    SRCADDR: 4
+    SRCADDRHI: 5
+    DESADDR: 6
+    DESADDRHI: 7
+    XSIZE: 8
+    XSIZEHI: 9
+    SRCTRANSCFG: 10
+    DESTRANSCFG: 11
+    XADDRINC: 12
+    YADDRSTRIDE: 13
+    FILLVAL: 14
+    YSIZE: 15
+    TMPLTCFG: 16
+    SRCTMPLT: 17
+    DESTMPLT: 18
+    SRCTRIGINCFG: 19
+    DESTRIGINCFG: 20
+    TRIGOUTCFG: 21
+    GPOEN0: 22
+    Reserved: 23
+    GPOVAL0: 24
+    Reserved: 25
+    STREAMINTCFG: 26
+    Reserved: 27
+    LINKATTR: 28
+    AUTOCFG: 29
+    LINKADDR: 30
+    LINKADDRHI: 31
+

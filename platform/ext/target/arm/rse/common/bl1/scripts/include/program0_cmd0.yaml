@@ -7,39 +7,6 @@
 
 # This command sets DMA boot enable to 0.
 
-Header:
-  - REGCLEAR: 0
-  - Reserved: 0
-  - INTREN: 0
-  - CTRL: 1
-  - SRCADDR: 0
-  - SRCADDRHI: 0
-  - DESADDR: 1
-  - DESADDRHI: 0
-  - XSIZE: 1
-  - XSIZEHI: 0
-  - SRCTRANSCFG: 0
-  - DESTRANSCFG: 1
-  - XADDRINC: 0
-  - YADDRSTRIDE: 0
-  - FILLVAL: 1
-  - YSIZE: 0
-  - TMPLTCFG: 0
-  - SRCTMPLT: 0
-  - DESTMPLT: 0
-  - SRCTRIGINCFG: 0
-  - DESTRIGINCFG: 0
-  - TRIGOUTCFG: 0
-  - GPOEN0: 1
-  - Reserved: 0
-  - GPOVAL0: 1
-  - Reserved: 0
-  - STREAMINTCFG: 0
-  - Reserved: 0
-  - LINKATTR: 1
-  - AUTOCFG: 0
-  - LINKADDR: 1
-  - LINKADDRHI: 0
 CTRL: 0x10000602
 DESADDR: 'rse_system_control_registers_base_address + 0x254'
 XSIZE: 0x00010000
