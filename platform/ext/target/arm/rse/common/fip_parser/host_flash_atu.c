@@ -328,10 +328,10 @@ int host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t fip_offsets[2])
     found_metadata_offset = (metadata_found[0]) ?
                              metadata_offsets[0] : metadata_offsets[1];
 
-    rc = parse_fwu_metadata(found_metadata_offset,
-                            private_metadata_offsets[0],
-                            increment_failed_boot,
-                            &bootable_fip_index);
+
+    rc = get_active_index(found_metadata_offset,
+                          &bootable_fip_index,
+                          NULL);
     if (rc) {
         return rc;
     }
@@ -619,10 +619,9 @@ int host_flash_atu_get_image_offsets_by_type_uuid(uuid_t type_uuid, uint64_t *im
     found_metadata_offset = (metadata_found[0]) ?
                              metadata_offsets[0] : metadata_offsets[1];
 
-    rc = parse_fwu_metadata(found_metadata_offset,
-                            private_metadata_offsets[0],
-                            increment_failed_boot,
-                            &bootable_img_index);
+    rc = get_active_index(found_metadata_offset,
+                          &bootable_img_index,
+                          NULL);
     if (rc) {
         return rc;
     }
