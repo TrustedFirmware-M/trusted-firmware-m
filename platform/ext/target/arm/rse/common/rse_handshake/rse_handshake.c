@@ -39,8 +39,6 @@
 #define VHUK_SEED_SIZE           32
 #define VHUK_SEED_WORD_SIZE      8
 
-static const uint8_t *mhu_device_idxs;
-
 enum rse_handshake_msg_type {
     RSE_HANDSHAKE_SESSION_KEY_MSG,
     RSE_HANDSHAKE_SESSION_KEY_REPLY,
@@ -82,6 +80,17 @@ struct __attribute__((__packed__)) rse_handshake_msg {
     } body;
     struct rse_handshake_trailer trailer;
 };
+
+static const uint8_t *mhu_device_idxs;
+
+static inline uint8_t get_rse_mhu_device_idx(uint8_t rse_id)
+{
+    /*
+     * Link ID starts from 1 but we need to index the MHU device table starting
+     * from 0
+     */
+    return mhu_device_idxs[rse_id] - 1;
+}
 
 static enum tfm_plat_err_t header_init(struct rse_handshake_msg *msg,
                                        enum rse_handshake_msg_type type)
@@ -291,16 +300,17 @@ static enum tfm_plat_err_t calculate_session_key_client(uint32_t rse_id)
         return plat_err;
     }
 
-    plat_err = rse_handshake_msg_send(&MHU_RSE_TO_RSE_SENDER_DEVS[mhu_device_idxs[RSE_SERVER_ID]],
-                                      &msg, RSE_HANDSHAKE_DONT_ENCRYPT_MESSAGE);
+    plat_err =
+        rse_handshake_msg_send(&MHU_RSE_TO_RSE_SENDER_DEVS[get_rse_mhu_device_idx(RSE_SERVER_ID)],
+                               &msg, RSE_HANDSHAKE_DONT_ENCRYPT_MESSAGE);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
 
     /* Receive back the session key IVs */
-    plat_err =
-        rse_handshake_msg_receive(&MHU_RSE_TO_RSE_RECEIVER_DEVS[mhu_device_idxs[RSE_SERVER_ID]],
-                                  &msg, RSE_HANDSHAKE_DONT_ENCRYPT_MESSAGE);
+    plat_err = rse_handshake_msg_receive(
+        &MHU_RSE_TO_RSE_RECEIVER_DEVS[get_rse_mhu_device_idx(RSE_SERVER_ID)], &msg,
+        RSE_HANDSHAKE_DONT_ENCRYPT_MESSAGE);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
@@ -335,16 +345,17 @@ static enum tfm_plat_err_t exchange_vhuk_seeds_client(uint32_t rse_id, uint32_t 
         return plat_err;
     }
 
-    plat_err = rse_handshake_msg_send(&MHU_RSE_TO_RSE_SENDER_DEVS[mhu_device_idxs[RSE_SERVER_ID]],
-                                      &msg, RSE_HANDSHAKE_ENCRYPT_MESSAGE);
+    plat_err =
+        rse_handshake_msg_send(&MHU_RSE_TO_RSE_SENDER_DEVS[get_rse_mhu_device_idx(RSE_SERVER_ID)],
+                               &msg, RSE_HANDSHAKE_ENCRYPT_MESSAGE);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
 
     /* Receive back the VHUK contributions */
-    plat_err =
-        rse_handshake_msg_receive(&MHU_RSE_TO_RSE_RECEIVER_DEVS[mhu_device_idxs[RSE_SERVER_ID]],
-                                  &msg, RSE_HANDSHAKE_ENCRYPT_MESSAGE);
+    plat_err = rse_handshake_msg_receive(
+        &MHU_RSE_TO_RSE_RECEIVER_DEVS[get_rse_mhu_device_idx(RSE_SERVER_ID)], &msg,
+        RSE_HANDSHAKE_ENCRYPT_MESSAGE);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
@@ -400,8 +411,9 @@ static enum tfm_plat_err_t calculate_session_key_server()
         }
 
         memset(&msg, 0, sizeof(msg));
-        plat_err = rse_handshake_msg_receive(&MHU_RSE_TO_RSE_RECEIVER_DEVS[mhu_device_idxs[idx]],
-                                             &msg, RSE_HANDSHAKE_DONT_ENCRYPT_MESSAGE);
+        plat_err =
+            rse_handshake_msg_receive(&MHU_RSE_TO_RSE_RECEIVER_DEVS[get_rse_mhu_device_idx(idx)],
+                                      &msg, RSE_HANDSHAKE_DONT_ENCRYPT_MESSAGE);
         if (plat_err != TFM_PLAT_ERR_SUCCESS) {
             return plat_err;
         }
@@ -428,8 +440,8 @@ static enum tfm_plat_err_t calculate_session_key_server()
             continue;
         }
 
-        plat_err = rse_handshake_msg_send(&MHU_RSE_TO_RSE_SENDER_DEVS[mhu_device_idxs[idx]], &msg,
-                                          RSE_HANDSHAKE_DONT_ENCRYPT_MESSAGE);
+        plat_err = rse_handshake_msg_send(&MHU_RSE_TO_RSE_SENDER_DEVS[get_rse_mhu_device_idx(idx)],
+                                          &msg, RSE_HANDSHAKE_DONT_ENCRYPT_MESSAGE);
         if (plat_err != TFM_PLAT_ERR_SUCCESS) {
             return plat_err;
         }
@@ -454,8 +466,9 @@ static enum tfm_plat_err_t exchange_vhuk_seeds_server(uint32_t *vhuk_seeds_buf)
         }
 
         memset(&msg, 0, sizeof(msg));
-        plat_err = rse_handshake_msg_receive(&MHU_RSE_TO_RSE_RECEIVER_DEVS[mhu_device_idxs[idx]],
-                                             &msg, RSE_HANDSHAKE_ENCRYPT_MESSAGE);
+        plat_err =
+            rse_handshake_msg_receive(&MHU_RSE_TO_RSE_RECEIVER_DEVS[get_rse_mhu_device_idx(idx)],
+                                      &msg, RSE_HANDSHAKE_ENCRYPT_MESSAGE);
         if (plat_err != TFM_PLAT_ERR_SUCCESS) {
             return plat_err;
         }
@@ -482,8 +495,8 @@ static enum tfm_plat_err_t exchange_vhuk_seeds_server(uint32_t *vhuk_seeds_buf)
             continue;
         }
 
-        plat_err = rse_handshake_msg_send(&MHU_RSE_TO_RSE_SENDER_DEVS[mhu_device_idxs[idx]], &msg,
-                                          RSE_HANDSHAKE_ENCRYPT_MESSAGE);
+        plat_err = rse_handshake_msg_send(&MHU_RSE_TO_RSE_SENDER_DEVS[get_rse_mhu_device_idx(idx)],
+                                          &msg, RSE_HANDSHAKE_ENCRYPT_MESSAGE);
         if (plat_err != TFM_PLAT_ERR_SUCCESS) {
             return plat_err;
         }

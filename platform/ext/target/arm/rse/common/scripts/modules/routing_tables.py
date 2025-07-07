@@ -57,6 +57,7 @@ def load_graph(filename):
         if line_match is not None:
             edge[0], edge[1], node[0], link[0], node[1], link[1] = map(int, line_match.groups())
             assert (edge[0] == node[0]) and (edge[1] == node[1])
+            assert (link[0] != 0) and (link[1] != 0)
             graph.add_edge(edge[0], edge[1], link=link[0])
             graph.add_edge(edge[1], edge[0], link=link[1])
         elif node_match is not None:
