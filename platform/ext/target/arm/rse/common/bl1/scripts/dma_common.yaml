@@ -6,6 +6,7 @@
 #This file contains:
 # - DMA command header word bit map
 # - Register offsets within register frame
+# - DMA Channel config register bitfield masks and offsets
 
 cmd_header_bit_offsets:
     REGCLEAR: 0
@@ -101,3 +102,101 @@ reg_offset:
         trc: 0x4
     ilcu:
         trig_mux_ctrl: 0x4
+
+ch_reg_field_desc:
+    CTRL:
+        USEGPO:
+            MASK: 0x1
+            OFFSET: 28
+        USEDESTRIGIN:
+            MASK: 0x1
+            OFFSET: 26
+        USESRCTRIGIN:
+            MASK: 0x1
+            OFFSET: 25
+        DONETYPE:
+            MASK: 0x3
+            OFFSET: 21
+        XTYPE:
+            MASK: 0x3
+            OFFSET: 0x9
+            DECODE:
+                disable: 0x0
+                continue: 0x1
+                wrap: 0x2
+                fill: 0x3
+        TRANSIZE:
+            MASK: 0x3
+            OFFSET: 0x0
+            DECODE:
+                byte: 0x0
+                halfword: 0x1
+                word: 0x2
+                doubleword: 0x3
+    XSIZE:
+        SRC:
+            MASK: 0xFFFF
+            OFFSET: 0
+        DES:
+            MASK: 0xFFFF
+            OFFSET: 16
+    SRCTRANSCFG:
+        MAXBURSTLEN:
+            MASK: 0xF
+            OFFSET: 16
+        NONSECUREATTR:
+            MASK: 1
+            OFFSET: 10
+        SRCMEMATTR:
+            MASK: 0x3FF
+            OFFSET: 0
+            DECODE:
+                device: 0x0
+                normal_non_cacheable_non_shareable: 0x44
+    DESTRANSCFG:
+        MAXBURSTLEN:
+            MASK: 0xF
+            OFFSET: 16
+        NONSECUREATTR:
+            MASK: 1
+            OFFSET: 10
+        DESMEMATTR:
+            MASK: 0x3FF
+            OFFSET: 0
+            DECODE:
+                device: 0x0
+                normal_non_cacheable_non_shareable: 0x44
+    LINKATTR:
+        LINKMEMATTR:
+            MASK: 0x3FF
+            OFFSET: 0
+            DECODE:
+                device: 0x0
+                normal_non_cacheable_non_shareable: 0x44
+    SRCTRIGINCFG:
+        SRCTRIGINTYPE:
+            MASK: 0x3
+            OFFSET: 8
+            DECODE:
+                sw: 0
+                hw: 2
+        SRCTRIGINSEL:
+            MASK: 0xFF
+            OFFSET: 0
+    DESTRIGINCFG:
+        DESTRIGINTYPE:
+            MASK: 0x3
+            OFFSET: 8
+            DECODE:
+                sw: 0
+                hw: 2
+        DESTRIGINSEL:
+            MASK: 0xFF
+            OFFSET: 0
+    XADDRINC:
+        SRC:
+            MASK: 0xFFFF
+            OFFSET: 0
+        DES:
+            MASK: 0xFFFF
+            OFFSET: 16

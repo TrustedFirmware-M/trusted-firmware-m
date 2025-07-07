@@ -76,6 +76,24 @@ def parse_register_offset(reference_string):
 
     assert False, f"PARSE REGISTER OFFSET: Invalid register block name: {reference_string}"
 
+def parse_reg_fields(command, key, reg):
+    out_val = 0
+    reg_desc = data['common']['ch_reg_field_desc'][key]
+
+    for name,field_string in reg.items():
+        assert (name in reg_desc), ("Invalid " + name + "register bitfield name")
+        try:
+            field_val = int(field_string)
+        except ValueError:
+            if('DECODE' in reg_desc[name]) and (field_string in reg_desc[name]['DECODE']):
+                field_val = reg_desc[name]['DECODE'][field_string]
+            else:
+                field_val = parse(command, key, field_string)
+
+        out_val |= (field_val&reg_desc[name]['MASK'])<<reg_desc[name]['OFFSET']
+
+    return out_val
+
 def parse(command, key, reference_string):
     if "-" in reference_string:
         split = reference_string.split(" - ", maxsplit=1)
@@ -204,6 +222,8 @@ for program in data['program']:
                 val = (int(command[key]))
             except ValueError:
                 val = (int(parse(command, key, command[key])))
+            except TypeError:
+                val = int(int(parse_reg_fields(key, command[key])))
             if(key == 'LINKADDR'):
                 try:
                     if command['execute_link']:
