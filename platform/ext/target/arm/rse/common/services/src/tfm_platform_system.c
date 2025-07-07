@@ -15,6 +15,7 @@ void tfm_platform_hal_system_reset(void)
     tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 }
 
+#if !(RSE_SUBPLATFORM_PAL_DEFAULT_IOCTL)
 enum tfm_platform_err_t tfm_platform_hal_ioctl(tfm_platform_ioctl_req_t request,
                                                psa_invec  *in_vec,
                                                psa_outvec *out_vec)
@@ -26,3 +27,4 @@ enum tfm_platform_err_t tfm_platform_hal_ioctl(tfm_platform_ioctl_req_t request,
     /* Not needed for this platform */
     return TFM_PLATFORM_ERR_NOT_SUPPORTED;
 }
+#endif /* !(RSE_SUBPLATFORM_PAL_DEFAULT_IOCTL) */

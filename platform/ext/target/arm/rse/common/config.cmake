@@ -38,6 +38,8 @@ set(TFM_ISOLATION_LEVEL                 2          CACHE STRING   "Isolation lev
 
 set(TFM_DEBUG_OPTIMISATION              ON         CACHE BOOL      "Add basic -Og optimisation when CMAKE_BUILD_TYPE is Debug. Note that non Debug builds specify their own optimisation")
 
+set(RSE_SUBPLATFORM_PAL_DEFAULT_IOCTL   OFF        CACHE BOOL      "Enable subplatform specific IOCTL service implementation")
+
 ################# Partitions ###################################################
 
 set(TFM_PARTITION_CRYPTO                ON         CACHE BOOL     "Enable Crypto partition")

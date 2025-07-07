@@ -272,6 +272,7 @@ target_compile_definitions(platform_s
         CMSIS_device_header="rse.h"
         $<$<BOOL:${PLATFORM_SVC_HANDLERS}>:PLATFORM_SVC_HANDLERS>
         $<$<BOOL:${RSE_USE_SDS_LIB}>:RSE_USE_SDS_LIB>
+        RSE_SUBPLATFORM_PAL_DEFAULT_IOCTL=${RSE_SUBPLATFORM_PAL_DEFAULT_IOCTL}
 )
 
 target_compile_options(platform_s
