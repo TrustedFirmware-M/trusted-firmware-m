@@ -46,16 +46,16 @@ def calculate_header_word(header):
     return final_val
 
 
-def parse_store(command, key, reference_string):
+def parse_store(reference_string):
     return command_storage_locations[reference_string]
 
-def parse_exec(command, key, reference_string):
+def parse_exec(reference_string):
     return command_execution_locations[reference_string]
 
-def parse_size(command, key, reference_string):
+def parse_size(reference_string):
     return sizes[reference_string]
 
-def parse_base_address(command, key, reference_string):
+def parse_base_address(reference_string):
     return location_base_addresses[reference_string]
 
 def parse_register_offset(reference_string):
@@ -68,7 +68,7 @@ def parse_register_offset(reference_string):
 
     assert False, f"PARSE REGISTER OFFSET: Invalid register block name: {reference_string}"
 
-def parse_reg_fields(command, key, reg):
+def parse_reg_fields(key, reg):
     out_val = 0
     reg_desc = data['common']['ch_reg_field_desc'][key]
 
@@ -80,37 +80,37 @@ def parse_reg_fields(command, key, reg):
             if('DECODE' in reg_desc[name]) and (field_string in reg_desc[name]['DECODE']):
                 field_val = reg_desc[name]['DECODE'][field_string]
             else:
-                field_val = parse(command, key, field_string)
+                field_val = parse(field_string)
 
         out_val |= (field_val&reg_desc[name]['MASK'])<<reg_desc[name]['OFFSET']
 
     return out_val
 
-def parse(command, key, reference_string):
+def parse(reference_string):
     if "-" in reference_string:
         split = reference_string.split(" - ", maxsplit=1)
-        return parse(command, key, split[0].lstrip()) - parse(command, key, split[1])
+        return parse(split[0].lstrip()) - parse(split[1])
 
     if "+" in reference_string:
         split = reference_string.split(" + ", maxsplit=1)
-        return parse(command, key, split[0].lstrip()) + parse(command, key, split[1])
+        return parse(split[0].lstrip()) + parse(split[1])
 
     if "/" in reference_string:
         split = reference_string.split(" / ", maxsplit=1)
-        return parse(command, key, split[0].lstrip()) // parse(command, key, split[1])
+        return parse(split[0].lstrip()) // parse(split[1])
 
     if "*" in reference_string:
         split = reference_string.split(" * ", maxsplit=1)
-        return parse(command, key, split[0].lstrip()) * parse(command, key, split[1])
+        return parse(split[0].lstrip()) * parse( split[1])
 
     if "_store_addr" in reference_string:
-        value = parse_store(command, key, reference_string.replace("_store_addr", ""))
+        value = parse_store(reference_string.replace("_store_addr", ""))
     elif "_exec_addr" in reference_string:
-        value = parse_exec(command, key, reference_string.replace("_exec_addr", ""))
+        value = parse_exec(reference_string.replace("_exec_addr", ""))
     elif "_size" in reference_string:
-        value = parse_size(command, key, reference_string.replace("_size", ""))
+        value = parse_size(reference_string.replace("_size", ""))
     elif "_base_address" in reference_string:
-        value = parse_base_address(command, key, reference_string.replace("_base_address", ""))
+        value = parse_base_address(reference_string.replace("_base_address", ""))
     elif "reg_offset_" in reference_string:
         value = parse_register_offset(reference_string.replace("reg_offset_", ""))
     else:
@@ -218,7 +218,7 @@ for program in data['program']:
             try:
                 val = (int(command[key]))
             except ValueError:
-                val = (int(parse(command, key, command[key])))
+                val = (int(parse(command[key])))
             except TypeError:
                 val = int(int(parse_reg_fields(key, command[key])))
             if(key == 'LINKADDR'):
