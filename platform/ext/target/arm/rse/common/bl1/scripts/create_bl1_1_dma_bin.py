@@ -198,6 +198,11 @@ for program in data['program']:
         sizes[program['name']],
         ))
 
+#enable references to triggers
+if 'triggers' in data:
+    data['common']['ch_reg_field_desc']['SRCTRIGINCFG']['SRCTRIGINSEL']['DECODE']=data['triggers']
+    data['common']['ch_reg_field_desc']['DESTRIGINCFG']['DESTRIGINSEL']['DECODE']=data['triggers']
+
 for program in data['program']:
     commands = program['commands']
     for command in commands:

@@ -48,6 +48,14 @@ locations:
     kmu:
         base_address: 0x5009E000
 
+triggers:
+     diagnostic_mode: 0
+     mission_mode: 1
+     mission_provisioning: 2
+     secure_enable: 3
+     sam_integrity_checker: 4
+     integrity_checker: 5
+
 program:
   - storage_location: "rom"
     execution_location: "rom"
