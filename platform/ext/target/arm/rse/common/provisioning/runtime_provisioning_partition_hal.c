@@ -19,9 +19,9 @@
 #include "lcm_drv.h"
 #include "device_definition.h"
 
-/* 2KiB buffer to store provisioned blob, will be passed to
+/* 3KiB buffer to store provisioned blob, will be passed to
  * BL1_1 via persistent data */
-static uint32_t blob_buffer[0x800 / sizeof(uint32_t)];
+static uint32_t blob_buffer[(3 * 1024) / sizeof(uint32_t)];
 
 enum runtime_provisioning_error_t runtime_provisioning_hal_init(void)
 {
@@ -35,7 +35,7 @@ enum runtime_provisioning_error_t runtime_provisioning_hal_init(void)
         return RUNTIME_PROVISIONING_GENERIC_ERROR;
     }
 
-#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
+#if defined(RSE_NON_ENDORSED_DM_PROVISIONING) || defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
     valid_state = valid_state || (lcs == LCM_LCS_SE);
 #endif
 
@@ -83,7 +83,7 @@ static enum tfm_plat_err_t handle_plain_data_message(struct rse_provisioning_mes
 }
 #endif
 
-#ifdef RSE_BOOT_IN_DM_LCS
+#if defined(RSE_BOOT_IN_DM_LCS) || defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
 static enum tfm_plat_err_t handle_blob_message(void)
 {
     /* Reset and let BL1_1 provision the blob */
@@ -101,7 +101,7 @@ static enum tfm_plat_err_t handle_full_message(void)
     case RSE_PROVISIONING_MESSAGE_TYPE_PLAIN_DATA:
         return handle_plain_data_message(message);
 #endif
-#ifdef RSE_BOOT_IN_DM_LCS
+#if defined(RSE_BOOT_IN_DM_LCS) || defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
     case RSE_PROVISIONING_MESSAGE_TYPE_BLOB:
         return handle_blob_message();
 #endif

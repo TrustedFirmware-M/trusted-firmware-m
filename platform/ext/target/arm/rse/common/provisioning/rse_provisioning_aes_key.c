@@ -34,6 +34,14 @@ rse_provisioning_setup_aes_key(const struct rse_provisioning_message_blob_t *blo
         return (enum tfm_plat_err_t)lcm_err;
     }
 
+#if defined(RSE_NON_ENDORSED_DM_PROVISIONING) || defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
+    if (lcs == LCM_LCS_SE) {
+        /* Blob not encrypted so key not required */
+        *key_id = 0;
+        return TFM_PLAT_ERR_SUCCESS;
+    }
+#endif
+
     if (lcs != LCM_LCS_CM && lcs != LCM_LCS_DM) {
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_DERIVATION_INVALID_LCS);
         return TFM_PLAT_ERR_PROVISIONING_DERIVATION_INVALID_LCS;

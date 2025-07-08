@@ -236,7 +236,7 @@ enum tfm_plat_err_t provisioning_rotpk_get(const struct rse_provisioning_message
 
     valid_lcs = (lcs == LCM_LCS_DM);
 
-#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
+#if defined(RSE_NON_ENDORSED_DM_PROVISIONING) || defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
     valid_lcs = valid_lcs || (lcs == LCM_LCS_SE);
 #endif
 
