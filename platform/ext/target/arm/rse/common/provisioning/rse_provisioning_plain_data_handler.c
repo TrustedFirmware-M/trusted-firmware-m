@@ -151,27 +151,30 @@ enum tfm_plat_err_t
 default_plain_data_handler(const struct rse_provisioning_message_plain_t *plain_data,
                            size_t msg_size, const void *ctx)
 {
-    size_t data_size;
+#if defined(RSE_NON_ENDORSED_DM_PROVISIONING) || defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
     struct default_plain_data_handler_ctx_s *plain_data_ctx =
         (struct default_plain_data_handler_ctx_s *)ctx;
+#endif /* RSE_NON_ENDORSED_DM_PROVISIONING || RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING */
 
     if (msg_size < sizeof(*plain_data)) {
         return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_NO_TYPE;
     }
 
-    data_size = msg_size - sizeof(*plain_data);
-
     switch (plain_data->plain_metadata) {
 #ifdef RSE_NON_ENDORSED_DM_PROVISIONING
     case RSE_PROVISIONING_PLAIN_DATA_TYPE_NON_ENDORSED_DM_ROTPKS:
-        return handle_non_endorsed_dm_rotpks(plain_data, data_size,
-                                             &plain_data_ctx->non_endorsed_provisioning_ctx);
-#endif
+        return handle_non_endorsed_dm_rotpks(
+            plain_data,
+            msg_size - sizeof(*plain_data),
+            &plain_data_ctx->non_endorsed_provisioning_ctx);
+#endif /* RSE_NON_ENDORSED_DM_PROVISIONING */
 #ifdef RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING
     case RSE_PROVISIONING_PLAIN_DATA_TYPE_ENDORSEMENT_CERTIFICATE_PACKAGE:
         return handle_endorsement_certificate(
-            plain_data, data_size, &plain_data_ctx->endorsement_certificate_provisioning_ctx);
-#endif
+            plain_data,
+            msg_size - sizeof(*plain_data),
+            &plain_data_ctx->endorsement_certificate_provisioning_ctx);
+#endif /* RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING */
     default:
         return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_TYPE_INVALID;
     }
