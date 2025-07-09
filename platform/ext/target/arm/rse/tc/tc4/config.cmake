@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2022-2025, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -15,6 +15,9 @@ set(RSE_USE_LOCAL_UART             ON    CACHE BOOL   "Whether RSE should setup 
 set(TFM_ATTESTATION_SCHEME         "DPE" CACHE STRING "Attestation scheme to use [OFF, PSA, CCA, DPE]")
 
 set(RSE_SUPPORT_ROM_LIB_RELOCATION ON    CACHE BOOL   "Whether shared ROM code supports being copied to SRAM and then executed")
+
+set(RSE_COMMS_NUMBER_NODES         4     CACHE STRING "Amount of nodes in the RSE comms system, by default equal to number of RSEs")
+set(MULTI_RSE_TOPOLOGY_FILE     ${CMAKE_CURRENT_LIST_DIR}/../common/rse_comms/tc.tgf CACHE STRING "Topology file for RSE communications")
 
 # Once all options are set, set common options as fallback
 

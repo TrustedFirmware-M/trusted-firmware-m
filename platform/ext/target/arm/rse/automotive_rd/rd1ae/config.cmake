@@ -27,5 +27,8 @@ set(TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH "" CACHE PATH    "Config to append
 set(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE ON    CACHE BOOL    "Enable Internal Trusted Storage partition")
 set(TFM_PARTITION_PROTECTED_STORAGE     ON       CACHE BOOL    "Enable Protected Storage partition")
 
+set(RSE_COMMS_NUMBER_NODES              4        CACHE STRING "Amount of nodes in the RSE comms system, by default equal to number of RSEs")
+set(MULTI_RSE_TOPOLOGY_FILE             ${CMAKE_CURRENT_LIST_DIR}/rse_comms/rd1ae.tgf CACHE STRING "Topology file for RSE to RSE BL1 communication")
+
 # Once all cache options are set, set common options as fallback
 include(${CMAKE_CURRENT_LIST_DIR}/../../common/config.cmake)
