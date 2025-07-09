@@ -95,7 +95,7 @@ static void output_str_not_formatted(tfm_log_output_str output_func, void *priv,
 
 static void output_val(tfm_log_output_str output_func, void *priv, uint32_t val,
                        uint16_t num_padding, bool zero_padding, bool left_aligned, uint8_t base,
-                       bool signed_specifier)
+                       bool signed_specifier, bool hex_caps)
 {
     uint8_t digit;
     /* uint32_t has maximum value of 4,294,967,295. Require enough space in buffer
@@ -106,6 +106,7 @@ static void output_val(tfm_log_output_str output_func, void *priv, uint32_t val,
     char *buf_ptr = buf_end;
     const char pad_char = zero_padding ? '0' : ' ';
     const char negative_char = '-';
+    const char start_hex_char = hex_caps ? 'A' : 'a';
     bool negative = false;
 
     if (signed_specifier && ((int32_t)val < 0)) {
@@ -119,7 +120,7 @@ static void output_val(tfm_log_output_str output_func, void *priv, uint32_t val,
         if (digit < 10) {
             *buf_ptr-- = '0' + digit;
         } else {
-            *buf_ptr-- = 'a' + digit - 10;
+            *buf_ptr-- = start_hex_char + digit - 10;
         }
 
         val /= base;
@@ -173,16 +174,20 @@ static void tfm_vprintf_internal(tfm_log_output_str output_func,
             continue;
         case 'u':
             output_val(output_func, priv, va_arg(args, uint32_t), num_padding, zero_padding,
-                       left_aligned, 10, false);
+                       left_aligned, 10, false, false);
             break;
         case 'd':
         case 'i':
             output_val(output_func, priv, va_arg(args, uint32_t), num_padding, zero_padding,
-                       left_aligned, 10, true);
+                       left_aligned, 10, true, false);
             break;
         case 'x':
             output_val(output_func, priv, va_arg(args, uint32_t), num_padding, zero_padding,
-                       left_aligned, 16, false);
+                       left_aligned, 16, false, false);
+            break;
+        case 'X':
+            output_val(output_func, priv, va_arg(args, uint32_t), num_padding, zero_padding,
+                       left_aligned, 16, false, true);
             break;
         case 's':
             output_str(output_func, priv, va_arg(args, char *), 0, num_padding, left_aligned, ' ',
