@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2018-2025, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
@@ -135,6 +135,9 @@ def manifest_validation(manifest, pid):
 
     if 'ns_agent' not in manifest:
         manifest['ns_agent'] = False
+
+    if 'place_in_dtcm' not in manifest:
+        manifest['place_in_dtcm'] = False
 
     # Every PSA Partition must have at least either a secure service or an IRQ
     if (pid == None or pid >= TFM_PID_BASE) \

@@ -31,6 +31,15 @@
  * default values if needed. */
 #include "tfm_s_linker_alignments.h"
 
+{# Check whether DTCM needs to be included. #}
+{# We loop through here because break and continue are only available via the Loop Controls extension #}
+{% set outer_namespace = namespace(use_dtcm=false) %}
+{% for partition in partitions %}
+    {% if partition.manifest.place_in_dtcm %}
+        {% set outer_namespace.use_dtcm = true %}
+    {% endif %}
+{% endfor %}
+
 MEMORY
 {
     FLASH    (rx)  : ORIGIN = S_CODE_START, LENGTH = S_CODE_SIZE
@@ -38,6 +47,9 @@ MEMORY
 #ifdef S_RAM_CODE_START
     CODE_RAM (rwx) : ORIGIN = S_RAM_CODE_START, LENGTH = S_RAM_CODE_SIZE
 #endif
+{% if outer_namespace.use_dtcm %}
+    DTCM     (rw)  : ORIGIN = S_RUNTIME_DTCM_START, LENGTH = S_RUNTIME_DTCM_SIZE
+{% endif %}
 }
 
 #ifndef TFM_LINKER_VENEERS_START
@@ -484,6 +496,7 @@ SECTIONS
 #endif
 
 {% for partition in partitions %}
+    {% if not partition.manifest.place_in_dtcm %}
     {% if partition.manifest.type == 'PSA-ROT' %}
 
     .ER_{{partition.manifest.name}}_DATA : ALIGN(TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT)
@@ -529,7 +542,67 @@ SECTIONS
     Image$$PT_{{partition.manifest.name}}_PRIVATE_DATA_END$$Base = .;
 
     {% endif %}
+    {% endif %}
 {% endfor %}
+
+{% if outer_namespace.use_dtcm %}
+    saved_location_counter = .;
+    . = ORIGIN(DTCM);
+{% endif %}
+
+{% for partition in partitions %}
+    {% if partition.manifest.place_in_dtcm %}
+    {% if partition.manifest.type == 'PSA-ROT' %}
+
+    .ER_{{partition.manifest.name}}_DATA : ALIGN(TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT)
+    {
+        /* Position tag: Start of PSA RoT partition's private data */
+        Image$$PT_{{partition.manifest.name}}_PRIVATE_DATA_START$$Base = .;
+    {% if partition.attr.linker_pattern.library_list %}
+        {% for pattern in partition.attr.linker_pattern.library_list %}
+        {{pattern}}:*(SORT_BY_ALIGNMENT(.data*))
+        {% endfor %}
+    {% endif %}
+    {% if partition.attr.linker_pattern.object_list %}
+        {% for pattern in partition.attr.linker_pattern.object_list %}
+        {{pattern}}(SORT_BY_ALIGNMENT(.data*))
+        {% endfor %}
+    {% endif %}
+        *({{partition.manifest.name}}_PSA-ROT_ATTR_RW)
+        . = ALIGN(4);
+    } > DTCM AT > FLASH
+
+    .ER_{{partition.manifest.name}}_BSS ALIGN(8) (NOLOAD) :
+    {
+        start_of_{{partition.manifest.name}}_bss = .;
+    {% if partition.attr.linker_pattern.library_list %}
+        {% for pattern in partition.attr.linker_pattern.library_list %}
+        {{pattern}}:*(SORT_BY_ALIGNMENT(.bss*))
+        {{pattern}}:*(COMMON)
+        {% endfor %}
+    {% endif %}
+    {% if partition.attr.linker_pattern.object_list %}
+        {% for pattern in partition.attr.linker_pattern.object_list %}
+        {{pattern}}(SORT_BY_ALIGNMENT(.bss*))
+        {{pattern}}(COMMON)
+        {% endfor %}
+    {% endif %}
+        *({{partition.manifest.name}}_PSA-ROT_ATTR_ZI)
+        . += (. - start_of_{{partition.manifest.name}}_bss) ? 0 : 4;
+        . = ALIGN(4);
+    } > DTCM
+
+    /* Position tag: End of PSA RoT partition's private data */
+    . = ALIGN(TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT);
+    Image$$PT_{{partition.manifest.name}}_PRIVATE_DATA_END$$Base = .;
+
+    {% endif %}
+    {% endif %}
+{% endfor %}
+
+{% if outer_namespace.use_dtcm %}
+    . = saved_location_counter;
+{% endif %}
 
     .TFM_DATA ALIGN(8) :
     {

@@ -313,6 +313,7 @@ LR_CODE S_CODE_START S_CODE_SIZE {
 #endif
 
 {% for partition in partitions %}
+    {% if not partition.manifest.place_in_dtcm %}
     {% if partition.manifest.type == 'PSA-ROT' %}
 
     /* Position tag: Start of PSA RoT partition's private data */
@@ -339,7 +340,68 @@ LR_CODE S_CODE_START S_CODE_SIZE {
     }
 
     {% endif %}
+    {% endif %}
 {% endfor %}
+
+{# Check whether DTCM needs to be included. #}
+{% set outer_namespace = namespace(use_dtcm=false) %}
+{% for partition in partitions %}
+  {% if partition.manifest.place_in_dtcm %}
+    {% set outer_namespace.use_dtcm = true %}
+  {% endif %}
+{% endfor %}
+
+{% if outer_namespace.use_dtcm %}
+    saved_location_counter = .;
+    . = S_RUNTIME_DTCM_START;
+{% endif %}
+
+{% for partition in partitions %}
+  {% if partition.manifest.place_in_dtcm %}
+  {% if partition.manifest.type == 'PSA-ROT' %}
+
+    /* Position tag: Start of PSA RoT partition's private data */
+    PT_{{partition.manifest.name}}_PRIVATE_DATA_START +0 ALIGN TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT EMPTY 0x0 {
+    }
+
+    ER_{{partition.manifest.name}}_RWZI +0 {
+    {% if partition.attr.linker_pattern.library_list %}
+        {% for pattern in partition.attr.linker_pattern.library_list %}
+        {{pattern}}(+RW +ZI)
+        {% endfor %}
+    {% endif %}
+    {% if partition.attr.linker_pattern.object_list %}
+        {% for pattern in partition.attr.linker_pattern.object_list %}
+        {{pattern}}(+RW +ZI)
+        {% endfor %}
+    {% endif %}
+        *({{partition.manifest.name}}_PSA-ROT_ATTR_RW)
+        *({{partition.manifest.name}}_PSA-ROT_ATTR_ZI)
+    }
+
+    /* Position tag: End of PSA RoT partition's private data */
+    PT_{{partition.manifest.name}}_PRIVATE_DATA_END +0 ALIGN TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT EMPTY 0x0 {
+    }
+
+  {% endif %}
+  {% endif %}
+{% endfor %}
+
+{% if outer_namespace.use_dtcm %}
+    /* This empty, zero long execution region is here to mark the limit address
+     * of the last execution region that is allocated in DTCM.
+     */
+    DTCM_WATERMARK +0 EMPTY 0x0 {
+    }
+
+    /* Make sure that the sections allocated in the DTCM does not exceed the
+     * size of the DTCM available.
+     */
+    ScatterAssert(ImageLimit(DTCM_WATERMARK) <= S_RUNTIME_DTCM_START + S_RUNTIME_DTCM_SIZE)
+
+    . = saved_location_counter;
+{% endif %}
+
 
     ER_TFM_DATA +0 {
         *(+RW +ZI)
