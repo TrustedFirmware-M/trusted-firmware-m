@@ -47,7 +47,7 @@ target_link_options(provisioning_bundle
 
 target_link_options(provisioning_bundle
     PRIVATE
-        --entry=do_provision
+        $<$<C_COMPILER_ID:ARMClang,IAR>:LINKER:--entry=do_provision>
 )
 
 target_sources(provisioning_bundle

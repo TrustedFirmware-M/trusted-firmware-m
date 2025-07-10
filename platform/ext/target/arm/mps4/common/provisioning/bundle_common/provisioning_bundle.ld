@@ -32,7 +32,7 @@ MEMORY
 /* Library configurations */
 GROUP(libgcc.a libc.a libm.a libnosys.a)
 
-ENTRY(do_provisioning)
+ENTRY(do_provision)
 
 SECTIONS
 {

@@ -55,7 +55,7 @@ target_link_options(cm_provisioning_bundle
 
 target_link_options(cm_provisioning_bundle
     PRIVATE
-        $<$<NOT:$<C_COMPILER_ID:Clang>>:--entry=do_provision>
+        $<$<C_COMPILER_ID:ARMClang,IAR>:LINKER:--entry=do_provision>
 )
 
 target_sources(cm_provisioning_bundle
