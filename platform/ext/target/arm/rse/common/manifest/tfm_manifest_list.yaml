@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2018-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2021-2024 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
@@ -53,7 +53,8 @@
            "*mbedcrypto.*",
            "*mbedtls*acceleration.*",
          ]
-      }
+      },
+      "non_ffm_attributes": ['place_in_dtcm']
     },
     {
       "description": "TFM Platform Partition",

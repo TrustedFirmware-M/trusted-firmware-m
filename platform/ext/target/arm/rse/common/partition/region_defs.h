@@ -64,7 +64,7 @@
  *
  * RSE memory layout is as follows during Runtime with XIP mode enabled
  *      |----------------------------------------|
- * DTCM |                                        |
+ * DTCM | CRYPTO_DATA                |           |
  *      |----------------------------------------|
  *
  *      |---------------------------------------------------------
@@ -78,7 +78,7 @@
  * that each SRAM must be at least 512KiB in this mode (64KiB data and 384KiB
  * code, for each of secure and non-secure).
  *      |----------------------------------------|
- * DTCM |                                        |
+ * DTCM | CRYPTO_DATA                |           |
  *      |----------------------------------------|
  *
  *      |----------------------------------------------------------------------|
@@ -276,6 +276,12 @@
     (VM0_SIZE + VM1_SIZE - BL2_XIP_TABLES_SIZE - FLASH_BL2_PARTITION_SIZE - PERSISTENT_DATA_SIZE - \
      RSE_OTP_EMULATION_SRAM_SIZE)
 #define BL2_DATA_LIMIT    (BL2_DATA_START + BL2_DATA_SIZE - 1)
+
+/* Runtime addresses for DTCM and ITCM. */
+#define S_RUNTIME_DTCM_START (DTCM_BASE_S)
+#define S_RUNTIME_DTCM_SIZE  (DTCM_SIZE)
+#define S_RUNTIME_ITCM_START (ITCM_BASE_S)
+#define S_RUNTIME_ITCM_SIZE  (ITCM_SIZE)
 
 /* We use various calculations which give some sections space remaining
  * after removing the size of other sections. Verify that all
