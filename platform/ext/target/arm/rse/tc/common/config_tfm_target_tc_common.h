@@ -3,8 +3,10 @@
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  */
 
-#ifndef __CONFIG_TFM_TARGET_COMMON_H__
-#define __CONFIG_TFM_TARGET_COMMON_H__
+#ifndef __CONFIG_TFM_TARGET_TC_COMMON_H__
+#define __CONFIG_TFM_TARGET_TC_COMMON_H__
+
+#include "config_tfm_target_rse_common.h"
 
 /* Use stored NV seed to provide entropy */
 #define CRYPTO_NV_SEED                         0
@@ -37,4 +39,4 @@
 /* Maximum RSE Comms payload size using Embed protocol */
 #define RSE_COMMS_PAYLOAD_MAX_SIZE (0x40 + 0x800)
 
-#endif /* __CONFIG_TFM_TARGET_COMMON_H__ */
+#endif /* __CONFIG_TFM_TARGET_TC_COMMON_H__ */

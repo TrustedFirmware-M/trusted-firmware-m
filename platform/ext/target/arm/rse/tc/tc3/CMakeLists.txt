@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2022-2025, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -136,7 +136,7 @@ install(DIRECTORY   device
 install(FILES       ${TC_COMMON_SOURCE_DIR}/rse_memory_sizes.h
                     ${TC_COMMON_SOURCE_DIR}/flash_layout.h
                     ${TC_COMMON_SOURCE_DIR}/host_base_address.h
-                    ${TC_COMMON_SOURCE_DIR}/config_tfm_target_common.h
+                    ${TC_COMMON_SOURCE_DIR}/config_tfm_target_tc_common.h
                     rse_platform_defs.h
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/partition)
 

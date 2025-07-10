@@ -1057,6 +1057,9 @@ if (TFM_LOAD_NS_IMAGE)
     install(FILES       check_config.cmake
             DESTINATION ${INSTALL_PLATFORM_NS_DIR})
 
+    install(FILES       config_tfm_target_rse_common.h
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/partition)
+
     # Install linker scripts
     install(FILES       ${PLATFORM_DIR}/ext/common/gcc/tfm_common_ns.ld
                         ${PLATFORM_DIR}/ext/common/armclang/tfm_common_ns.sct
