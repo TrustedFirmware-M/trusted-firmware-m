@@ -790,14 +790,6 @@ void cc3xx_lowlevel_pka_mod_inv_prime_modulus(cc3xx_pka_reg_id_t r0, cc3xx_pka_r
  */
 void cc3xx_lowlevel_pka_reduce(cc3xx_pka_reg_id_t r0);
 
-/**
- * @brief Enable PKA SRAM encryption
- *
- */
-#ifdef CC3XX_CONFIG_PKA_SRAM_ENCRYPTION_SUPPORTED
-void cc3xx_lowlevel_pka_sram_encryption_enable(void);
-#endif
-
 #ifdef __cplusplus
 }
 #endif

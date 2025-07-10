@@ -216,8 +216,6 @@ int32_t boot_platform_init(void)
     if (plat_err) {
         return plat_err;
     }
-
-    cc3xx_lowlevel_pka_sram_encryption_enable();
 #endif /* CRYPTO_HW_ACCELERATOR */
 
     err = b1_1_platform_debug_init();
