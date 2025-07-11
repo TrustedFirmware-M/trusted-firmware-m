@@ -13,3 +13,5 @@ networkx ~= 3.1
 pyelftools
 rich
 libclang
+pandas==2.3.1
+numpy==2.2.6

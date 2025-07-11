@@ -8,6 +8,7 @@ import yaml
 import logging, logging.handlers
 import os
 import argparse
+import pandas as pd
 
 from yaml.loader import SafeLoader
 
@@ -119,6 +120,46 @@ def parse(reference_string):
     logging.debug('resolving reference {} as {}'.format(reference_string, hex(value)))
     return value
 
+def create_csv():
+    for location in output_locations:
+        rows = []
+        address = location_base_addresses[location]
+        idx = 0
+
+        for program in data['program']:
+            if program['storage_location'] == location:
+
+                rows.append([f"# Program: {program['name']}"])
+                rows.append([f"# Channel: {program.get('channel', 'N/A')}"])
+                rows.append([f"# Description: {program.get('description', 'N/A')}"])
+                rows.append([f"# Size: {sizes[program['name']]}"])
+                rows.append([])
+
+                for command in program['commands']:
+                    rows.append([f"# Command: {command['command_name']}"])
+                    rows.append(['Address', 'Register Name', 'Value'])  # Column headers
+                    for i in range(int(int(sizes[command['command_name']]) / 4)):
+                        rows.append([
+                            f"{address:#010x}",
+                            location_named_word_arrays[location][idx][0],
+                            f"{location_named_word_arrays[location][idx][1]:#010x}"
+                        ])
+                        address += 4
+                        idx += 1
+                    rows.append([])
+
+                rows.append(['#' + '-' * 30])
+                rows.append([])
+
+
+        df = pd.DataFrame(rows)
+        location_name = location
+        if location == 'otp_dma_microcode':
+            location_name = 'otp'
+        # Save as CSV
+        csv_filename = f"{location_name}_dma_ics.csv"
+        df.to_csv(os.path.join(args.output_dir,csv_filename), index=False, header=False)
+
 # load top level input config file
 with open(args.input_file, 'r') as f:
    data = yaml.load(f, Loader)
@@ -128,6 +169,7 @@ program_count = len(data["program"])
 location_base_addresses={}
 location_next_addresses={}
 location_word_arrays={}
+location_named_word_arrays={}
 output_locations={}
 
 command_storage_locations = {}
@@ -139,6 +181,7 @@ reserved_keys=['command_name', 'execute_link','regclear']
 # Setup locations
 for location in data['locations']:
     location_word_arrays[location] = []
+    location_named_word_arrays[location] = []
     location_base_addresses[location] = data['locations'][location]['base_address']
     try:
         reserved_size = data['locations'][location]['reserved']
@@ -209,8 +252,10 @@ for program in data['program']:
 
         header_word = 0
         command_array = []
+        command_named_array = []
         #raw data to be stored at end of command
         command_data = []
+        command_named_data = []
 
         for key in command:
             if key in reserved_keys:
@@ -232,8 +277,10 @@ for program in data['program']:
                 header_bit_offset = data['common']['cmd_header_bit_offsets'][key]
                 header_word |= 1<<header_bit_offset
                 command_array.append((val, header_bit_offset))
+                command_named_array.append((key,val,header_bit_offset))
             else:
                 command_data.append(val)
+                command_named_data.append((key,val))
 
         if(command_array):
 
@@ -246,11 +293,14 @@ for program in data['program']:
                 pass
 
             command_array.append((header_word,0))
+            command_named_array.append(('HEADER',header_word,0))
 
             #Sort DMA descriptor config registers in correct order according to HEADER bitmap
             command_array = [x[0] for x in sorted(command_array, key=lambda x: x[1])]
+            command_named_array = [(x[0],x[1]) for x in sorted(command_named_array, key=lambda x: x[2])]
 
         location_word_arrays[program['storage_location']] += command_array + command_data
+        location_named_word_arrays[program['storage_location']] += command_named_array + command_named_data
 
 
 for location in output_locations:
@@ -271,3 +321,5 @@ for location in output_locations:
             for word in location_word_arrays[location]:
                 bin_file.write(word.to_bytes(4, byteorder='little'))
                 hex_file.write(word.to_bytes(4, byteorder='big').hex() + '\n')
+
+create_csv()

@@ -854,10 +854,14 @@ add_custom_command(
     OUTPUT otp_dma_ics.bin
     OUTPUT rom_dma_ics.hex
     OUTPUT otp_dma_ics.hex
+    OUTPUT rom_dma_ics.csv
+    OUTPUT otp_dma_ics.csv
     OUTPUT ${bin_dir}/rom_dma_ics.bin
     OUTPUT ${bin_dir}/otp_dma_ics.bin
     OUTPUT ${bin_dir}/rom_dma_ics.hex
     OUTPUT ${bin_dir}/otp_dma_ics.hex
+    OUTPUT ${bin_dir}/rom_dma_ics.csv
+    OUTPUT ${bin_dir}/otp_dma_ics.csv
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/bl1/scripts/create_bl1_1_dma_bin.py
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/bl1/scripts/create_bl1_1_dma_bin.py
                     --input_file ${RSE_DMA_ICS_CONFIG_PATH}
@@ -866,6 +870,8 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/otp_dma_ics.bin $<TARGET_FILE_DIR:bl1_1>
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/rom_dma_ics.hex $<TARGET_FILE_DIR:bl1_1>
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/otp_dma_ics.hex $<TARGET_FILE_DIR:bl1_1>
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/rom_dma_ics.csv $<TARGET_FILE_DIR:bl1_1>
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/otp_dma_ics.csv $<TARGET_FILE_DIR:bl1_1>
 )
 
 ############################## OTP Layout ######################################
