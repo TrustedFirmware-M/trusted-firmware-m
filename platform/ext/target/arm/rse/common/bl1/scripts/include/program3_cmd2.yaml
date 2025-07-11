@@ -13,7 +13,8 @@ CTRL:
     USEGPO: 1
 DESADDR: 'rse_system_control_registers_base_address + reg_offset_system_control_initsvtor0'
 XSIZE: 0x00010000
-DESTRANSCFG: 0x00000000
+DESTRANSCFG:
+    DESMEMATTR: 'device'
 FILLVAL: 0x22000001
 GPOVAL0: 0x00000004
 LINKADDR: "program6_cmd0_exec_addr"

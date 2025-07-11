@@ -13,7 +13,8 @@ CTRL:
     USEGPO: 1
 DESADDR: 'tram_base_address + reg_offset_tram_trc'
 XSIZE: 0x00010000
-DESTRANSCFG: 0x00000000
+DESTRANSCFG:
+    DESMEMATTR: 'device'
 FILLVAL: 0x00000001
 GPOVAL0: 0x0000001E
 LINKADDR: "program6_cmd5_exec_addr"

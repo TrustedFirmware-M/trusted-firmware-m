@@ -14,8 +14,11 @@ CTRL:
 SRCADDR: 'trng_base_address'
 DESADDR: 'vm0_base_address'
 XSIZE: 0x00080008
-SRCTRANSCFG: 0x00000000
-DESTRANSCFG: 0x000F0044
+SRCTRANSCFG:
+    SRCMEMATTR: 'device'
+DESTRANSCFG:
+    DESMEMATTR: 'normal_non_cacheable_non_shareable'
+    MAXBURSTLEN: 0xF
 XADDRINC: 0x00010000
 GPOVAL0: 0x0000001E
 LINKADDR: "program6_cmd1_exec_addr"

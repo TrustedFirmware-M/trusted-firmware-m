@@ -15,8 +15,10 @@ CTRL:
 SRCADDR: "program5_cmd0_exec_addr + program5_cmd0_size - 0x60"
 DESADDR: "sam_base_address + reg_offset_sam_sammem0"
 XSIZE: 0x00180018
-SRCTRANSCFG: 0x00000000
-DESTRANSCFG: 0x00000000
+SRCTRANSCFG:
+    SRCMEMATTR: 'device'
+DESTRANSCFG:
+    DESMEMATTR: 'device'
 XADDRINC: 0x00010001
 GPOVAL0: 0x00000005
 LINKADDR: "program5_cmd1_exec_addr"

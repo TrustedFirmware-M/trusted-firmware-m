@@ -16,8 +16,11 @@ DESADDR: "vm0_base_address"
 XSIZE:
   SRC: "otp_size / 4"
   DES: "otp_size / 4"
-SRCTRANSCFG: 0x00000000
-DESTRANSCFG: 0x000F0044
+SRCTRANSCFG:
+    SRCMEMATTR: 'device'
+DESTRANSCFG:
+    DESMEMATTR: 'normal_non_cacheable_non_shareable'
+    MAXBURSTLEN: 0xF
 XADDRINC: 0x00010001
 GPOVAL0: 0x00000003
 LINKADDR: "program4_cmd2_exec_addr"

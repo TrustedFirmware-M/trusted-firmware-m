@@ -14,7 +14,8 @@ CTRL:
     USEGPO: 1
 DESADDR: 'rse_system_control_registers_base_address + reg_offset_system_control_lcm_dcu_force_disable'
 XSIZE: 0x00010000
-DESTRANSCFG: 0x00000000
+DESTRANSCFG:
+    DESMEMATTR: 'device'
 FILLVAL: 0xAAAAAAAA
 GPOVAL0: 0x0000001F
 LINKADDR: "program6_cmd8_exec_addr"

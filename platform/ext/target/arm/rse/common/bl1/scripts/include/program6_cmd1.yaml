@@ -14,8 +14,11 @@ CTRL:
 SRCADDR: 'vm0_base_address'
 DESADDR: 'kmu_base_address + reg_offset_kmu_slot7'
 XSIZE: 0x00080008
-SRCTRANSCFG: 0x000F0044
-DESTRANSCFG: 0x00000000
+SRCTRANSCFG:
+    SRCMEMATTR: 'normal_non_cacheable_non_shareable'
+    MAXBURSTLEN: 0xF
+DESTRANSCFG:
+    DESMEMATTR: 'device'
 XADDRINC: 0x00010001
 GPOVAL0: 0x0000001E
 LINKADDR: "program6_cmd2_exec_addr"
