@@ -704,20 +704,24 @@ enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_b
         return (enum tfm_plat_err_t)lcm_err;
     }
 
-    if (is_sp_mode_required_for_blob(blob) && (sp_mode_enabled == LCM_FALSE)) {
-        err = tfm_plat_otp_secure_provisioning_start();
-        if (err != TFM_PLAT_ERR_SUCCESS) {
-            return err;
-        }
+    if (FIH_COND_CHECK(is_sp_mode_required_for_blob(blob))) {
+        if (FIH_COND_CHECK_SAFE_SKIP(sp_mode_enabled == LCM_FALSE)) {
+            err = tfm_plat_otp_secure_provisioning_start();
+            if (err != TFM_PLAT_ERR_SUCCESS) {
+                return err;
+            }
 
-        /* This function returning (and not resetting) is an error */
-        FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_START_FAILED);
-        return TFM_PLAT_ERR_PROVISIONING_START_FAILED;
-    } else if (rse_debug_is_enabled()){
-        err = rse_disable_debug_and_reset();
-        if (err != TFM_PLAT_ERR_SUCCESS) {
-            return err;
+            /* This function returning (and not resetting) is an error */
+            FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_DEBUG_DISABLE_FAILED);
+            return TFM_PLAT_ERR_PROVISIONING_DEBUG_DISABLE_FAILED;
         }
+    } else if (FIH_COND_CHECK_SAFE_ENTER(sp_mode_enabled == LCM_TRUE)) {
+        /*
+         * Initiate system reset to disable secure provisioning state.
+         * SP state may be left over from a previous blob in which case it
+         * could be dangerous to run in secure provisioning state.
+         */
+        tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 
         /* This function returning (and not resetting) is an error */
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_DEBUG_DISABLE_FAILED);
