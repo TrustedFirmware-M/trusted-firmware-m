@@ -15,7 +15,15 @@ RSE fulfils the requirements of the HES Host. In `DICE
 attestation schemes, RSE provides a DICE Protection Environment (DPE)
 implementation.
 
-RSE initially boots from immutable code :doc:`(BL1_1) </design_docs/booting/bl1>`
+On a RSE cold reset, the DMA-350 within the RSE subsystem is the first to boot
+whilst the RSE CPU is held in wait state. The DMA-350 is configured by HW to
+automatically fetch the first DMA descriptor of the 'Intial Command Sequence'
+(ICS) :doc:`(DMA ICS) </platform/arm/rse/dma_ics_readme>`, from a fixed offset
+in ROM. The ICS is a sequence of linked DMA descriptors that handle security
+critical memory transfers. The final command of the ICS is to release the RSE
+CPU out of reset.
+
+RSE CPU initially boots from immutable code :doc:`(BL1_1) </design_docs/booting/bl1>`
 in its internal ROM, before jumping to BL1_2, which is provisioned and
 hash-locked in RSE OTP. The updatable MCUBoot BL2 boot stage is loaded from host
 system flash into RSE SRAM, where it is authenticated using the LMS stateful

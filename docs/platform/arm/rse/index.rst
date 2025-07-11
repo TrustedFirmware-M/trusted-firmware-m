@@ -8,6 +8,7 @@ Previously known as Runtime Security Subsystem (RSS).
     :maxdepth: 1
 
     RSE introduction <readme.rst>
+    DMA Initial Command Sequence (ICS) introduction <dma_ics_readme.rst>
     RSE integration guide <rse_integration_guide.rst>
     RSE communication design <rse_comms.rst>
     RSE hardware key management <rse_key_management.rst>

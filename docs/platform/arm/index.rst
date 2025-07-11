@@ -12,7 +12,7 @@ Arm platforms
     Corstone-315 FVP <mps4/corstone315/README.rst>
     Corstone-320 FVP <mps4/corstone320/README.rst>
     Musca-B1 <musca_b1/readme.rst>
-    Runtime Security Engine <rse/index>
+    Runtime Security Engine (RSE) <rse/index>
 
 --------------
 
