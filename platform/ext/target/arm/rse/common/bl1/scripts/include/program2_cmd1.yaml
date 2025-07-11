@@ -9,7 +9,7 @@
 # channel 1 will inherit the trigger wait.
 
 CTRL: 0x10000602
-DESADDR: 'dma350_base_address + 0x110C'
+DESADDR: 'dma_channel_1_base_address + reg_offset_dma_channel_ctrl'
 XSIZE: 0x00010000
 FILLVAL: 0x00000000
 GPOVAL0: 0x00000002

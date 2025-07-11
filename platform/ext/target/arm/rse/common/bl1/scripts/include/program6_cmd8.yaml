@@ -5,8 +5,10 @@
 #
 #-------------------------------------------------------------------------------
 
+#Release CPUWAIT
+
 CTRL: 0x10000602
-DESADDR: 0x58021120
+DESADDR: 'rse_system_control_registers_base_address + reg_offset_system_control_cpuwait'
 XSIZE: 0x00010000
 FILLVAL: 0x0000000E
 GPOVAL0: 0x0000001F

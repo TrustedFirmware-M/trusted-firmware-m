@@ -10,7 +10,7 @@
 
 CTRL: 0x10000202
 SRCADDR: "program5_cmd0_exec_addr + program5_cmd0_size - 0x60"
-DESADDR: "sam_base_address + 0x14"
+DESADDR: "sam_base_address + reg_offset_sam_sammem0"
 XSIZE: 0x00180018
 SRCTRANSCFG: 0x00000000
 DESTRANSCFG: 0x00000000

@@ -9,7 +9,7 @@
 
 CTRL: 0x10000202
 SRCADDR: 'vm0_base_address'
-DESADDR: 'tram_base_address + 0x8'
+DESADDR: 'tram_base_address + reg_offset_tram_trkeylb0'
 XSIZE: 0x00080008
 XADDRINC: 0x00010001
 GPOVAL0: 0x0000001E

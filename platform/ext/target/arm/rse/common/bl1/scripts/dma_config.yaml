@@ -27,6 +27,14 @@ locations:
         base_address: 0x5009F000
     dma350:
         base_address: 0x50002000
+    dma_channel_0:
+        base_address: 0x50003000
+    dma_channel_1:
+        base_address: 0x50003100
+    dma_channel_2:
+        base_address: 0x50003200
+    dma_channel_3:
+        base_address: 0x50003300
     dtcm:
         base_address: 0x34000000
     lcm:

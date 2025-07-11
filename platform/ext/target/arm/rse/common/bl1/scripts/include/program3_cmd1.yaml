@@ -10,7 +10,7 @@
 # Lifecycle is CM TCI/PCI or DM
 
 CTRL: 0x12000602
-DESADDR: 'dma350_base_address + 0x1000'
+DESADDR: 'dma_channel_0_base_address + reg_offset_dma_channel_cmd'
 XSIZE: 0x00010000
 DESTRANSCFG: 0x00000000
 FILLVAL: 0x00000008
