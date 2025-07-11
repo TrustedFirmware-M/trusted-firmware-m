@@ -13,7 +13,9 @@ CTRL:
     USEGPO: 1
 SRCADDR: 'vm0_base_address'
 DESADDR: 'dtcm_base_address'
-XSIZE: 0x10001000
+XSIZE:
+    SRC: 0x1000
+    DES: 0x1000
 SRCTRANSCFG:
     SRCMEMATTR: 'normal_non_cacheable_non_shareable'
     MAXBURSTLEN: 0xF

@@ -14,7 +14,9 @@ CTRL:
     XTYPE: 'continue'
 SRCADDR: 'trng_base_address'
 DESADDR: 'vm0_base_address'
-XSIZE: 0x00080008
+XSIZE:
+    SRC: 8
+    DES: 8
 SRCTRANSCFG:
     SRCMEMATTR: 'device'
 DESTRANSCFG:

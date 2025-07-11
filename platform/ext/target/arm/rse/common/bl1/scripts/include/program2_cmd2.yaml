@@ -14,7 +14,8 @@ CTRL:
     TRANSIZE: 'word'
     USEGPO: 1
 DESADDR: 'dma_channel_1_base_address + reg_offset_dma_channel_linkaddr'
-XSIZE: 0x00010000
+XSIZE:
+    DES: 1
 FILLVAL: "program3_cmd0_exec_addr + 1"
 GPOVAL0: 0x00000002
 LINKADDR: "program2_cmd3_exec_addr"

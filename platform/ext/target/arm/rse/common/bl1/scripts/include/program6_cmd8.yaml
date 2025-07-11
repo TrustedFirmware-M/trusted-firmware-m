@@ -12,7 +12,8 @@ CTRL:
     TRANSIZE: 'word'
     USEGPO: 1
 DESADDR: 'rse_system_control_registers_base_address + reg_offset_system_control_cpuwait'
-XSIZE: 0x00010000
+XSIZE:
+    DES: 1
 FILLVAL: 0x0000000E
 GPOVAL0: 0x0000001F
 LINKADDR: 0x00000000
