@@ -12,5 +12,6 @@ CTRL:
     USEGPO: 1
 GPOEN0: 0x0000001F
 GPOVAL0: 0x00000001
-LINKATTR: 0x00000044
+LINKATTR:
+  LINKMEMATTR: 'normal_non_cacheable_non_shareable'
 LINKADDR: "program1_cmd1_exec_addr"
