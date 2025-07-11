@@ -18,6 +18,8 @@ DESADDR: 'dma_channel_1_base_address + reg_offset_dma_channel_cmd'
 XSIZE:
     DES: 1
 FILLVAL: 0x00000008
-SRCTRIGINCFG: 0x00000201
+SRCTRIGINCFG:
+  SRCTRIGINTYPE: 'hw'
+  SRCTRIGINSEL: 'mission_mode'
 GPOVAL0: 0x00000002
 LINKADDR: "program2_cmd1_exec_addr"
