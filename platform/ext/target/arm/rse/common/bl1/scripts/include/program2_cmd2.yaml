@@ -9,7 +9,10 @@
 # LINKADDR register.
 
 
-CTRL: 0x10000602
+CTRL:
+    XTYPE: 'fill'
+    TRANSIZE: 'word'
+    USEGPO: 1
 DESADDR: 'dma_channel_1_base_address + reg_offset_dma_channel_linkaddr'
 XSIZE: 0x00010000
 FILLVAL: "program3_cmd0_exec_addr + 1"

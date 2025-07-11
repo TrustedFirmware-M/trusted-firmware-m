@@ -8,7 +8,10 @@
 # Disable the wait for trigger on channel 1, since otherwise later programs in
 # channel 1 will inherit the trigger wait.
 
-CTRL: 0x10000602
+CTRL:
+    XTYPE: 'fill'
+    TRANSIZE: 'word'
+    USEGPO: 1
 DESADDR: 'dma_channel_1_base_address + reg_offset_dma_channel_ctrl'
 XSIZE: 0x00010000
 FILLVAL: 0x00000000

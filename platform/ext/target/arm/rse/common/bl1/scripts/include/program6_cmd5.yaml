@@ -7,7 +7,10 @@
 
 # This command writes a random doubleword to the entirety of the DTCM.
 
-CTRL: 0x10000203
+CTRL:
+    XTYPE: 'continue'
+    TRANSIZE: 'doubleword'
+    USEGPO: 1
 SRCADDR: 'vm0_base_address'
 DESADDR: 'dtcm_base_address'
 XSIZE: 0x10001000

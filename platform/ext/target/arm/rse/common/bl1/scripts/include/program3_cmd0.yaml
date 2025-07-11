@@ -8,6 +8,7 @@
 # This command sets GPO value to 0x3. This is done to show that this channel
 # started executing (before the next command which waits for a trigger).
 
-CTRL: 0x10000000
+CTRL:
+    USEGPO: 1
 GPOVAL0: 0x00000003
 LINKADDR: "program3_cmd1_exec_addr"

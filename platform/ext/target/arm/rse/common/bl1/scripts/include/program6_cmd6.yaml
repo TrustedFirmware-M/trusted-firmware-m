@@ -8,7 +8,10 @@
 # This command reads 8 words from the OTP TRNG to VM0, overwriting the TRAM
 # conditioning values
 
-CTRL: 0x10000202
+CTRL:
+    USEGPO: 1
+    TRANSIZE: 'word'
+    XTYPE: 'continue'
 SRCADDR: 'trng_base_address'
 DESADDR: 'vm0_base_address'
 XSIZE: 0x00080008

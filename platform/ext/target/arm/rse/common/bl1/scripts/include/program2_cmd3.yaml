@@ -8,7 +8,10 @@
 # This command writes 0x1 into the DMA350 Channel1 CH_CMD register, this causes
 # it to start running.
 
-CTRL: 0x10000602
+CTRL:
+    XTYPE: 'fill'
+    TRANSIZE: 'word'
+    USEGPO: 1
 DESADDR: 'dma_channel_1_base_address + reg_offset_dma_channel_cmd'
 XSIZE: 0x00010000
 FILLVAL: 0x00000001

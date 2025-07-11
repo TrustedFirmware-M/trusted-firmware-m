@@ -7,7 +7,10 @@
 
 # This command reads 8 words from VM0 into the TRAM key registers
 
-CTRL: 0x10000202
+CTRL:
+    USEGPO: 1
+    TRANSIZE: 'word'
+    XTYPE: 'continue'
 SRCADDR: 'vm0_base_address'
 DESADDR: 'tram_base_address + reg_offset_tram_trkeylb0'
 XSIZE: 0x00080008

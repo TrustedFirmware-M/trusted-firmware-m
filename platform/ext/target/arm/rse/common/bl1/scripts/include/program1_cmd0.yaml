@@ -8,7 +8,8 @@
 # This command sets GPO value to 0x1. This is done to show that this channel
 # started executing (before the next command which waits for a trigger).
 
-CTRL: 0x10000000
+CTRL:
+    USEGPO: 1
 GPOEN0: 0x0000001F
 GPOVAL0: 0x00000001
 LINKATTR: 0x00000044

@@ -8,7 +8,10 @@
 # Copy 1 word from the end of this command into the ICC register of the
 # integrity checker. This triggers the checker.
 
-CTRL: 0x10000202
+CTRL:
+    USEGPO: 1
+    TRANSIZE: 'word'
+    XTYPE: 'continue'
 SRCADDR: 'program4_cmd3_store_addr + program4_cmd3_size - 0x4'
 DESADDR: 'integrity_checker_base_address + reg_offset_integrity_checker_icc'
 XSIZE: 0x00010001

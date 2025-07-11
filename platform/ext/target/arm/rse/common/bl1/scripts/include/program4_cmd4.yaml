@@ -8,7 +8,9 @@
 # Wait for trigger 5 (the integrity checker success trigger) and if it succeeds,
 # then run the first command in the recently-loaded OTP ICS (program 5)
 
-CTRL: 0x12000000
+CTRL:
+    USEGPO: 1
+    USESRCTRIGIN: 1
 SRCTRIGINCFG: 0x00000205
 GPOVAL0: 0x00000004
 LINKADDR: 'program5_cmd0_exec_addr'

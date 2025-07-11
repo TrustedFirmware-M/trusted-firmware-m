@@ -9,7 +9,11 @@
 # from executing by writing Channel0 CH_CMD register. Trigger 2 is fired if the
 # Lifecycle is CM TCI/PCI or DM
 
-CTRL: 0x12000602
+CTRL:
+    XTYPE: 'fill'
+    TRANSIZE: 'word'
+    USEGPO: 1
+    USESRCTRIGIN: 1
 DESADDR: 'dma_channel_0_base_address + reg_offset_dma_channel_cmd'
 XSIZE: 0x00010000
 DESTRANSCFG: 0x00000000

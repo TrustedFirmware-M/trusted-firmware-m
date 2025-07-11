@@ -7,7 +7,10 @@
 
 # This command copies the entire OTP DMA ICS section into VM0.
 
-CTRL: 0x10000202
+CTRL:
+    USEGPO: 1
+    TRANSIZE: 'word'
+    XTYPE: 'continue'
 SRCADDR: "otp_base_address"
 DESADDR: "vm0_base_address"
 XSIZE:

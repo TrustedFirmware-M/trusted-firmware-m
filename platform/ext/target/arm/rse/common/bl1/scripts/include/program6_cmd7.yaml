@@ -8,7 +8,10 @@
 # This command disables the DCU force disable overrides by writing 0x02AAAAAA to
 # the LCM_DCU_FORCE_DISABLE_REGISTER
 
-CTRL: 0x10000602
+CTRL:
+    XTYPE: 'fill'
+    TRANSIZE: 'word'
+    USEGPO: 1
 DESADDR: 'rse_system_control_registers_base_address + reg_offset_system_control_lcm_dcu_force_disable'
 XSIZE: 0x00010000
 DESTRANSCFG: 0x00000000
