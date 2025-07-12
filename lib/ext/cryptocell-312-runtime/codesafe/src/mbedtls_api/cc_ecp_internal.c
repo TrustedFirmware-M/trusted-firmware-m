@@ -72,6 +72,7 @@
 #define mbedtls_free       free
 #endif
 
+#if defined(ECP_MONTGOMERY)
 static int ecc_conv_scalar_to_mpi( uint8_t * scalar, size_t scalarSize, mbedtls_mpi * X)
 {
     CCError_t status;
@@ -139,7 +140,6 @@ static int ecc_conv_mpi_to_scalar( const mbedtls_mpi * X, uint8_t *scalar, size_
     return 0;
 }
 
-#if defined(ECP_MONTGOMERY)
 static int ecp_mont_mul( mbedtls_ecp_point *R,
              const mbedtls_mpi *m, const mbedtls_ecp_point *P )
 {
