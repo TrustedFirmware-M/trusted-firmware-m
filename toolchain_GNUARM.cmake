@@ -54,6 +54,7 @@ file(REAL_PATH "${CMAKE_SOURCE_DIR}/../" TOP_LEVEL_PROJECT_DIR)
 add_compile_options(
     -Wall
     -Wno-format
+    -Warray-parameter
     -Wno-unused-but-set-variable
     -Wnull-dereference
     -Wno-error=incompatible-pointer-types
