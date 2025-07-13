@@ -117,6 +117,7 @@ endif()
 set(RSE_DMA_ICS_CONFIG_PATH             ${CMAKE_CURRENT_LIST_DIR}/bl1/scripts/dma_config.yaml CACHE FILEPATH "Path to DMA ICS config")
 set(RSE_ENABLE_ROM_SELF_TESTS           OFF        CACHE BOOL "Whether the ROM will run the self tests early during boot")
 set(RSE_ENABLE_ECDSA_SELF_TEST          ON         CACHE BOOL "Whether the ECDSA self test is enabled when RSE_ENABLE_ROM_SELF_TESTS is set")
+set(RSE_ENABLE_KDF_CMAC_SELF_TEST       ON         CACHE BOOL "Whether the AES-CMAC KDF self test is enabled when RSE_ENABLE_ROM_SELF_TESTS is set")
 ######################### BL2 ##################################################
 
 set(MCUBOOT_IMAGE_NUMBER              4          CACHE STRING   "Number of images supported by MCUBoot")

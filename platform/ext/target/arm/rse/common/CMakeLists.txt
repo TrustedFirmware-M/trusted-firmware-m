@@ -509,6 +509,7 @@ target_compile_definitions(platform_bl1_1
         $<$<BOOL:${RSE_ENABLE_FIH_SW_DELAY}>:RSE_ENABLE_FIH_SW_DELAY>
         $<$<BOOL:${RSE_ENABLE_ROM_SELF_TESTS}>:RSE_ENABLE_ROM_SELF_TESTS>
         $<$<BOOL:${RSE_ENABLE_ECDSA_SELF_TEST}>:RSE_ENABLE_ECDSA_SELF_TEST>
+        $<$<BOOL:${RSE_ENABLE_KDF_CMAC_SELF_TEST}>:RSE_ENABLE_KDF_CMAC_SELF_TEST>
 )
 
 target_include_directories(platform_bl1_1_interface

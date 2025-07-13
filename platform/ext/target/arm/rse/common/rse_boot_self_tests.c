@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 
 #ifdef RSE_ENABLE_ECDSA_SELF_TEST
 /* The self-tests verify ECDSA using the P-384 curve */
@@ -71,6 +72,58 @@ static bool rse_boot_do_cc3xx_ecdsa_self_test(void)
 }
 #endif /* RSE_ENABLE_ECDSA_SELF_TEST */
 
+#ifdef RSE_ENABLE_KDF_CMAC_SELF_TEST
+#define AES_CMAC_SELF_TEST_LABEL_SIZE   (16)
+#define AES_CMAC_SELF_TEST_CONTEXT_SIZE (16)
+#define AES_CMAC_SELF_TEST_KEY_SIZE     (32)
+
+__attribute__((aligned(4)))
+static const struct {
+    uint8_t label[AES_CMAC_SELF_TEST_LABEL_SIZE];
+    uint8_t context[AES_CMAC_SELF_TEST_CONTEXT_SIZE];
+    uint8_t key[AES_CMAC_SELF_TEST_KEY_SIZE];
+    uint8_t expected_derived_key[AES_CMAC_SELF_TEST_KEY_SIZE];
+} g_aes_cmac_self_test_data = {
+    {
+        0x43, 0x72, 0x79, 0x70, 0x74, 0x6f, 0x43, 0x65, 0x6c, 0x6c, 0x41, 0x45,
+        0x53, 0x6c, 0x62, 0x6c,
+    },
+    {
+        0x43, 0x72, 0x79, 0x70, 0x74, 0x6f, 0x43, 0x65, 0x6c, 0x6c, 0x41, 0x45,
+        0x53, 0x43, 0x74, 0x78,
+    },
+    {
+        0x43, 0x72, 0x79, 0x70, 0x74, 0x6f, 0x43, 0x65, 0x6c, 0x6c, 0x41, 0x45,
+        0x53, 0x43, 0x4d, 0x41, 0x43, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x4b, 0x65,
+        0x79, 0x4d, 0x61, 0x74, 0x72, 0x69, 0x61, 0x6c,
+    },
+    {
+        0x3e, 0xa2, 0x9c, 0x21, 0xed, 0x06, 0x74, 0x3a, 0x81, 0x3c, 0x7e, 0x23,
+        0x76, 0x60, 0xc0, 0x8f, 0x42, 0xc6, 0x93, 0x5f, 0x64, 0xd7, 0xf0, 0x3e,
+        0xde, 0x41, 0xf4, 0x19, 0xb0, 0x12, 0x38, 0xe3,
+    },
+};
+
+static bool rse_boot_do_cc3xx_kdf_cmac_self_test(void)
+{
+    int cmp_result = 0;
+    uint32_t derived_key[AES_CMAC_SELF_TEST_KEY_SIZE / sizeof(uint32_t)];
+
+    const cc3xx_err_t cc_err =
+        cc3xx_lowlevel_kdf_cmac(CC3XX_AES_KEY_ID_USER_KEY,
+            (const uint32_t *)g_aes_cmac_self_test_data.key, CC3XX_AES_KEYSIZE_256,
+            g_aes_cmac_self_test_data.label, AES_CMAC_SELF_TEST_LABEL_SIZE,
+            g_aes_cmac_self_test_data.context, AES_CMAC_SELF_TEST_CONTEXT_SIZE,
+            (uint32_t *)derived_key, sizeof(derived_key));
+
+    if (cc_err == CC3XX_ERR_SUCCESS) {
+        cmp_result = memcmp(g_aes_cmac_self_test_data.expected_derived_key, derived_key, sizeof(derived_key));
+    }
+
+    return ((cc_err != CC3XX_ERR_SUCCESS) || (cmp_result != 0));
+}
+#endif /* RSE_ENABLE_KDF_CMAC_SELF_TEST */
+
 rse_boot_self_test_ret_t rse_boot_do_boot_self_tests(void)
 {
     rse_boot_self_test_ret_t self_tests = RSE_BOOT_SELF_TESTS_PASS_VALUE;
@@ -79,6 +132,10 @@ rse_boot_self_test_ret_t rse_boot_do_boot_self_tests(void)
     self_tests |= rse_boot_self_tests_set_test(
         RSE_BOOT_SELF_TESTS_RET_ECDSA, rse_boot_do_cc3xx_ecdsa_self_test());
 #endif
+#ifdef RSE_ENABLE_KDF_CMAC_SELF_TEST
+    self_tests |= rse_boot_self_tests_set_test(
+        RSE_BOOT_SELF_TESTS_RET_KDF_CMAC, rse_boot_do_cc3xx_kdf_cmac_self_test());
+#endif
 
     if (RSE_BOOT_SELF_TESTS_CHECK_OK(self_tests)) {
         INFO("Boot self-tests... PASSED\r\n");
@@ -86,6 +143,9 @@ rse_boot_self_test_ret_t rse_boot_do_boot_self_tests(void)
         ERROR("Boot self-tests... FAILED\r\n");
         if (rse_boot_self_tests_test_failed(RSE_BOOT_SELF_TESTS_RET_ECDSA, self_tests)) {
             ERROR("ECDSA self-tests... FAILED\r\n");
+        }
+        if (rse_boot_self_tests_test_failed(RSE_BOOT_SELF_TESTS_RET_KDF_CMAC, self_tests)) {
+            ERROR("AES-CMAC KDF self-tests... FAILED\r\n");
         }
     }
 

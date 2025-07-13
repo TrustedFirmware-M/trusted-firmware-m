@@ -26,6 +26,7 @@ typedef uint32_t rse_boot_self_test_ret_t;
 
 typedef enum {
     RSE_BOOT_SELF_TESTS_RET_ECDSA = 0,
+    RSE_BOOT_SELF_TESTS_RET_KDF_CMAC,
 } rse_boot_self_test_t;
 
 /**
