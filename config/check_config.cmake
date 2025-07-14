@@ -118,6 +118,19 @@ tfm_invalid_config(TFM_SANITIZE AND NOT TFM_SANITIZE IN_LIST TFM_SANITIZER_ALLOW
 
 include(config/cp_check.cmake)
 
+###################### Compiler bugs ###########################################
+
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    execute_process(
+        COMMAND arm-none-eabi-gcc --version
+        OUTPUT_VARIABLE _COMPILER_VERSION
+    )
+
+    string(REGEX MATCH "arm-none-eabi-gcc[^\n]*" GCC_VERSION_DETAILED ${_COMPILER_VERSION})
+
+    tfm_invalid_config(GCC_VERSION_DETAILED STREQUAL "arm-none-eabi-gcc (15:13.2.rel1-2) 13.2.1 20231009")
+endif()
+
 ###################### Platform-specific checks ################################
 
 include(${TARGET_PLATFORM_PATH}/check_config.cmake OPTIONAL)
