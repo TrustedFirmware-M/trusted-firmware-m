@@ -211,23 +211,6 @@ static void do_rom_patching(void)
 }
 #endif /* RSE_USE_ROM_LIB_FROM_SRAM */
 
-static enum tfm_plat_err_t image_load_validate_failure(void)
-{
-    enum tfm_plat_err_t err;
-    bool provisioning_required;
-
-    err = tfm_plat_provisioning_is_required(&provisioning_required);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
-    }
-
-    if (!provisioning_required) {
-        return TFM_PLAT_ERR_BL1_2_PROVISIONING_NOT_REQUIRED;
-    }
-
-    return tfm_plat_provisioning_perform();
-}
-
 /* bootloader platform-specific hw initialization */
 int32_t boot_platform_init(void)
 {
@@ -317,7 +300,21 @@ int32_t boot_platform_post_init(void)
 
     uint32_t vhuk_seed[8 * RSE_AMOUNT];
     size_t vhuk_seed_len;
+    bool provisioning_required;
 
+    /* Perform provisioning if necessary, this function only returns true if we want to perform provisioning
+     * irrespective of whether the flash is attached or not */
+    plat_err = tfm_plat_provisioning_is_required(&provisioning_required);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
+    }
+
+    if (provisioning_required) {
+        plat_err = tfm_plat_provisioning_perform();
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return plat_err;
+        }
+    }
 
     rc = b1_2_platform_debug_init();
     if (rc != 0) {
@@ -492,5 +489,7 @@ int boot_platform_post_load(uint32_t image_id)
 
 int boot_initiate_recovery_mode(uint32_t image_id)
 {
-    return image_load_validate_failure();
+    /* Unconditionally perform provisioning. This function
+     * will check if provisioning is actually allowed/required */
+    return tfm_plat_provisioning_perform();
 }

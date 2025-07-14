@@ -24,19 +24,6 @@
 #include <assert.h>
 #include <string.h>
 
-static inline bool blob_is_in_sram(const struct rse_provisioning_message_t *message, size_t size)
-{
-    uintptr_t message_ptr = (uintptr_t)message;
-
-    return (message_ptr <= (UINTPTR_MAX - size)) && (message_ptr >= VM0_BASE_S) &&
-           ((message_ptr + size) <= (VM0_BASE_S + VM0_SIZE + VM1_SIZE));
-}
-
-static inline bool runtime_provisioning_message_available(void)
-{
-    return rse_get_provisioning_staging_status() == PROVISIONING_STAGING_STATUS_RUNTIME_MESSAGE;
-}
-
 void tfm_plat_provisioning_check_for_dummy_keys(void)
 {
     /* FixMe: Check for dummy key must be implemented */
@@ -58,16 +45,8 @@ enum tfm_plat_err_t tfm_plat_provisioning_is_required(bool *provisioning_require
 
     *provisioning_required = (lcs == LCM_LCS_CM);
 
-#ifdef RSE_BOOT_IN_DM_LCS
-    *provisioning_required = *provisioning_required ||
-                             ((lcs == LCM_LCS_DM) && runtime_provisioning_message_available());
-#else
+#ifndef RSE_BOOT_IN_DM_LCS
     *provisioning_required = *provisioning_required || (lcs == LCM_LCS_DM);
-#endif
-
-#ifdef RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING
-    *provisioning_required = *provisioning_required ||
-                             ((lcs == LCM_LCS_SE) && runtime_provisioning_message_available());
 #endif
 
     return TFM_PLAT_ERR_SUCCESS;
@@ -79,7 +58,7 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
     enum tfm_plat_err_t err;
     const struct rse_provisioning_message_t *provisioning_message =
         (const struct rse_provisioning_message_t *)PROVISIONING_MESSAGE_START;
-    size_t provisioning_message_size = RSE_PROVISIONING_MESSAGE_MAX_SIZE;
+    const size_t provisioning_message_size = RSE_PROVISIONING_MESSAGE_MAX_SIZE;
 
     struct provisioning_message_handler_config config = {
         .blob_handler = &default_blob_handler,
@@ -93,30 +72,10 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
         .blob_is_chainloaded = false,
     };
 
-    /*
-     * If a blob is present in the SRAM persistent data because it has been
-     * stashed there by runtime provisioning comms handling and therefore it
-     * should be handled first
-     */
-    if (runtime_provisioning_message_available()) {
-        const struct rse_provisioning_message_t *message =
-            (const struct rse_provisioning_message_t *)
-                RSE_PERSISTENT_DATA->bl1_data.provisioning_blob_buf;
-        size_t size = RSE_PERSISTENT_DATA->bl1_data.provisioning_blob_buf_size;
-
-        /* Blob must be in SRAM */
-        if (!blob_is_in_sram(message, size)) {
-            return TFM_PLAT_ERR_PROVISIONING_MESSAGE_INVALID_LOCATION;
-        }
-
-        provisioning_message = message;
-        provisioning_message_size = size;
-    } else {
-        err = rse_provisioning_get_message(provisioning_message, provisioning_message_size,
-                                           PROVISIONING_STAGING_STATUS_BL1_1_MESSAGE);
-        if (err != TFM_PLAT_ERR_SUCCESS) {
-            return err;
-        }
+    err = rse_provisioning_get_message(provisioning_message, provisioning_message_size,
+                                       PROVISIONING_STAGING_STATUS_BL1_1_MESSAGE);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
     }
 
     err = handle_provisioning_message(provisioning_message, provisioning_message_size, &config,
