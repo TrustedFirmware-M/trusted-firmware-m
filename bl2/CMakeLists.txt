@@ -57,6 +57,19 @@ endif()
 
 ############################### BL2_CRYPTO #####################################
 
+# Adds a static library target named 'bl2_fallback_rng' which includes the source file
+# 'src/psa_stub_rng.c'. This source file contains only the __weak stub implementation,
+# serving as a fallback for random number generation in case no other RNG is provided.
+if(NOT CRYPTO_HW_ACCELERATOR)
+    add_library(bl2_fallback_rng STATIC
+        src/psa_stub_rng.c
+    )
+    target_link_libraries(bl2_fallback_rng
+        PUBLIC
+            bl2_crypto_config
+    )
+endif()
+
 set(is_384_bit_curve "$<STREQUAL:${SIG_LEN},384>")
 set(is_256_bit_curve "$<STREQUAL:${SIG_LEN},256>")
 set(build_sha_384    "$<AND:${is_ec_signature},${is_384_bit_curve}>")
@@ -155,6 +168,7 @@ target_link_libraries(bl2
         $<$<BOOL:${TEST_BL2}>:mcuboot_tests>
     PUBLIC
         bl2_crypto
+        $<$<NOT:$<BOOL:${CRYPTO_HW_ACCELERATOR}>>:bl2_fallback_rng>
 )
 
 target_compile_options(bl2
