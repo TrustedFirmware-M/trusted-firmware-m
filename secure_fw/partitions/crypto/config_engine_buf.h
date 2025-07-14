@@ -8,19 +8,22 @@
 #ifndef __CONFIG_ENGINE_BUF_H__
 #define __CONFIG_ENGINE_BUF_H__
 
+/* This file is only needed in case of the old, legacy driver */
+#ifndef CC3XX_RUNTIME_ENABLED
 /*
  * CRYPTO_ENGINE_BUF_SIZE is decided by multiple components configs.
  * CRYPTO_ENGINE_BUF_SIZE can be overridden below by other component configs.
- * It must be guaranteed that this header file is included at last before CRYPTO_ENGINE_BUF_SIZE
- * is referred in crypto_library.c.
+ * It must be guaranteed that this header file is included at last before
+ * CRYPTO_ENGINE_BUF_SIZE is referred in crypto_library.c.
  * Otherwise, crypto_library.c may include an incorrect definition value.
  */
 
-/* The CC312 needs at least 0x4000 of heap size to work properly */
+/* The legacy CC312 driver needs at least 0x4000 of heap size to work properly */
 #if defined(CRYPTO_HW_ACCELERATOR_CC312) && (CRYPTO_ENGINE_BUF_SIZE < 0x4000)
 #pragma message("CRYPTO_ENGINE_BUF_SIZE is redefined to 0x4000.")
 #undef  CRYPTO_ENGINE_BUF_SIZE
 #define CRYPTO_ENGINE_BUF_SIZE                 0x4000
 #endif
+#endif /* CC3XX_RUNTIME_ENABLED */
 
 #endif /* __CONFIG_ENGINE_BUF_H__ */
