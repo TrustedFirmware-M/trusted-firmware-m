@@ -343,4 +343,4 @@ if __name__ == '__main__':
     includes = get_includes(args.compile_commands_file, args.c_file_to_mirror_includes_from)
     defines = get_defines(args.compile_commands_file, args.c_file_to_mirror_includes_from)
     s = C_macro.from_h_file(args.h_file, includes, defines)
-    print(s._definitions)
+    print(s._definitions[args.macro_name])
