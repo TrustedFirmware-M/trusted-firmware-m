@@ -21,13 +21,13 @@ __PACKED_STRUCT rse_embed_msg_t {
     psa_handle_t handle;
     uint32_t ctrl_param; /* type, in_len, out_len */
     uint16_t io_size[PSA_MAX_IOVEC];
-    uint8_t payload[RSE_COMMS_PAYLOAD_MAX_SIZE];
+    uint8_t payload[RSE_COMMS_PSA_EMBED_PAYLOAD_MAX_SIZE];
 };
 
 __PACKED_STRUCT rse_embed_reply_t {
     int32_t return_val;
     uint16_t out_size[PSA_MAX_IOVEC];
-    uint8_t payload[RSE_COMMS_PAYLOAD_MAX_SIZE];
+    uint8_t payload[RSE_COMMS_PSA_EMBED_PAYLOAD_MAX_SIZE];
 };
 
 enum tfm_plat_err_t rse_protocol_embed_deserialize_msg(

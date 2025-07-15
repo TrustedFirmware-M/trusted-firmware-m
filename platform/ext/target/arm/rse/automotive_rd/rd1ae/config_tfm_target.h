@@ -52,7 +52,7 @@
 #define SYSCLKCFG_VAL  0
 
 /* Maximum RSE Comms payload size using Embed protocol */
-#define RSE_COMMS_PAYLOAD_MAX_SIZE (0x3FE0)
+#define RSE_COMMS_PSA_EMBED_PAYLOAD_MAX_SIZE (0x3FE0)
 
 /* SCMI Comms SCP doorbell IRQ number and handler */
 #define SCP_DOORBELL_IRQ         CMU_MHU4_Receiver_IRQn

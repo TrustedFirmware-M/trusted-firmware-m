@@ -18,8 +18,6 @@ enum tfm_plat_err_t rse_protocol_deserialize_msg(
     }
 
     req->protocol_ver = msg->header.protocol_ver;
-    req->seq_num = msg->header.seq_num;
-    req->client_id = msg->header.client_id;
 
     switch (msg->header.protocol_ver) {
 #ifdef RSE_COMMS_PROTOCOL_EMBED_ENABLED
@@ -45,8 +43,6 @@ enum tfm_plat_err_t rse_protocol_serialize_reply(struct client_request_t *req,
     memset(reply, 0, sizeof(struct serialized_psa_reply_t));
 
     reply->header.protocol_ver = req->protocol_ver;
-    reply->header.seq_num = req->seq_num;
-    reply->header.client_id = req->client_id;
 
     switch (reply->header.protocol_ver) {
 #ifdef RSE_COMMS_PROTOCOL_EMBED_ENABLED

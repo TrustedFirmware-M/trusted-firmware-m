@@ -26,6 +26,7 @@ extern "C" {
  */
 struct client_request_t {
     void *mhu_sender_dev; /* Pointer to MHU sender device to reply on */
+    uint8_t remote_id;
     uint8_t protocol_ver;
     uint8_t seq_num;
     uint16_t client_id;
@@ -37,7 +38,7 @@ struct client_request_t {
     psa_outvec out_vec[PSA_MAX_IOVEC];
     int32_t return_val;
     uint64_t out_vec_host_addr[PSA_MAX_IOVEC];
-    uint8_t param_copy_buf[RSE_COMMS_PAYLOAD_MAX_SIZE];
+    uint8_t param_copy_buf[RSE_COMMS_PSA_EMBED_PAYLOAD_MAX_SIZE];
     comms_atu_region_set_t atu_regions;
 };
 

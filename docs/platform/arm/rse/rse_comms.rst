@@ -67,7 +67,7 @@ MHU. It has the following format::
         psa_handle_t handle;
         uint32_t ctrl_param;
         uint16_t io_size[PSA_MAX_IOVEC];
-        uint8_t payload[RSE_COMMS_PAYLOAD_MAX_SIZE];
+        uint8_t payload[RSE_COMMS_PSA_EMBED_PAYLOAD_MAX_SIZE];
     };
 
 The ``handle`` is the psa_call handle parameter and the ``ctrl_param`` packs the
@@ -79,7 +79,7 @@ iovecs, in order, with the invec sizes before the outvec sizes.
 The ``payload`` array then contains the invec data packed contiguously in order.
 The length of this parameter is variable, equal to the sum of the invec lengths
 in io_size. The caller does not need to pad the payload to the maximum size. The
-maximum payload size for this protocol, ``RSE_COMMS_PAYLOAD_MAX_SIZE``, is a
+maximum payload size for this protocol, ``RSE_COMMS_PSA_EMBED_PAYLOAD_MAX_SIZE``, is a
 build-time option.
 
 Replies in the embed protocol take the form::
@@ -87,7 +87,7 @@ Replies in the embed protocol take the form::
     __PACKED_STRUCT rse_embed_reply_t {
         int32_t return_val;
         uint16_t out_size[PSA_MAX_IOVEC];
-        uint8_t payload[RSE_COMMS_PAYLOAD_MAX_SIZE];
+        uint8_t payload[RSE_COMMS_PSA_EMBED_PAYLOAD_MAX_SIZE];
     };
 
 The ``return_val`` is the return value of the psa_call() invocation, the

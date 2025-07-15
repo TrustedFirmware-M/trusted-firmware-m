@@ -37,8 +37,8 @@ enum rse_comms_protocol_version_t {
 
 __PACKED_STRUCT serialized_rse_comms_header_t {
     uint8_t protocol_ver;
-    uint8_t seq_num;
-    uint16_t client_id;
+    /* Pad out to 4 bytes to ensure alignment */
+    uint8_t __reserved[3];
 };
 
 /* MHU message passed from NSPE to SPE to deliver a PSA client call */
