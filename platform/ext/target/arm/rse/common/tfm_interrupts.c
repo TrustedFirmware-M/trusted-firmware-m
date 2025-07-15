@@ -22,7 +22,7 @@
 #include "load/interrupt_defs.h"
 #include "platform_irq.h"
 #ifdef TFM_MULTI_CORE_TOPOLOGY
-#include "rse_comms_hal.h"
+#include "rse_comms_runtime_hal.h"
 #endif
 
 static struct irq_t timer0_irq = {0};

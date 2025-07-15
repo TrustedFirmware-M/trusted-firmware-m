@@ -13,7 +13,7 @@
 #include <stdint.h>
 
 #include "internal_status_code.h"
-#include "rse_comms_hal.h"
+#include "rse_comms_runtime_hal.h"
 #include "rse_comms_queue.h"
 #include "tfm_rpc.h"
 #include "tfm_multi_core.h"

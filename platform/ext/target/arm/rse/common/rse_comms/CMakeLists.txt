@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2022, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -13,7 +13,7 @@ target_include_directories(platform_s
 target_sources(platform_s
     PRIVATE
         rse_comms.c
-        rse_comms_hal.c
+        rse_comms_runtime_hal.c
         rse_comms_queue.c
         rse_comms_protocol.c
         rse_comms_protocol_embed.c

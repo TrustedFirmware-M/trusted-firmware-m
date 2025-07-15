@@ -5,7 +5,7 @@
  *
  */
 
-#include "rse_comms_hal.h"
+#include "rse_comms_runtime_hal.h"
 
 #include "rse_comms.h"
 #include "rse_comms_queue.h"

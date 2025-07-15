@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
-#ifndef __RSE_COMMS_HAL_H__
-#define __RSE_COMMS_HAL_H__
+#ifndef __RSE_COMMS_RUNTIME_HAL_H__
+#define __RSE_COMMS_RUNTIME_HAL_H__
 
 #include "rse_comms.h"
 #include "tfm_plat_defs.h"
@@ -53,4 +53,4 @@ enum tfm_plat_err_t tfm_multi_core_hal_reply(struct client_request_t *req);
 }
 #endif
 
-#endif /* __RSE_COMMS_HAL_H__ */
+#endif /* __RSE_COMMS_RUNTIME_HAL_H__ */
