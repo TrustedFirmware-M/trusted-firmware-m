@@ -111,7 +111,7 @@ void SystemInit(void)
      *
      *  Note: ARMv8-M without the Main Extension disables unaligned access by default.
      */
-#if defined(UNALIGNED_SUPPORT_DISABLE) || defined(__ARM_FEATURE_UNALIGNED)
+#if defined(UNALIGNED_SUPPORT_DISABLE)
     SCB->CCR |= SCB_CCR_UNALIGN_TRP_Msk;
 #endif
 
