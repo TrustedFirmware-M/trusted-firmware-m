@@ -145,6 +145,7 @@ target_sources(platform_s
         rse_comms_permissions_hal.c
         mem_check_v6m_v7m_hal.c
         ${PLATFORM_DIR}/ext/common/mem_check_v6m_v7m.c
+	 platform.c
 )
 
 if (PLATFORM_IS_FVP)
@@ -200,12 +201,6 @@ target_sources(platform_bl1_1
         ./bootloader/mcuboot/tfm_mcuboot_fwu.c
         ./bootloader/mcuboot/uefi_fmp.c
         ./soft_crc/soft_crc.c
-        ./partition/partition.c
-        ./partition/gpt.c
-        ./platform.c
-        ./io/io_block.c
-        ./io/io_flash.c
-        ./io/io_storage.c
         $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_OTP}>>:${PLATFORM_DIR}/ext/accelerator/cc312/otp_cc312.c>
         $<$<NOT:$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>>:${CMAKE_CURRENT_SOURCE_DIR}/bl1/cc312_rom_crypto.c>
         $<$<NOT:$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>>:${CMAKE_CURRENT_SOURCE_DIR}/bl1/cc312_rom_random.c>
@@ -219,6 +214,12 @@ target_compile_definitions(platform_bl1_1
         $<$<BOOL:${CRYPTO_HW_ACCELERATOR_OTP_PROVISIONING}>:CRYPTO_HW_ACCELERATOR_OTP_PROVISIONING>
         MBEDTLS_CONFIG_FILE="${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/tfm_mbedcrypto_config_default.h"
         MBEDTLS_PSA_CRYPTO_CONFIG_FILE="${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/crypto_config_default.h"
+
+        # This definition is only added to the bl1_main target. There are
+        # files that are shared between the BL1 and TFM_S targets. This flag
+        # can be used if the BL1 target needs different implementation than
+        # the TFM_S target.
+        BL1_BUILD
 )
 
 target_include_directories(platform_bl1_1_interface
@@ -230,8 +231,6 @@ target_include_directories(platform_bl1_1_interface
         ./CMSIS_Driver/Config
         ./bootloader
         ./soft_crc
-        ./partition
-        ./io
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/cfi
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/common
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/strata

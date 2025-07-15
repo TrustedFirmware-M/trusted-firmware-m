@@ -11,7 +11,6 @@
 #include "psa/error.h"
 #include "../fip_parser/external/uuid.h"
 
-#define ENABLE_FWU_AGENT_DEBUG_LOGS
 #ifdef ENABLE_FWU_AGENT_DEBUG_LOGS
     #include "tfm_log.h"
     #define FWU_LOG_MSG(f_, ...) tfm_log(LOG_MARKER_RAW f_, ##__VA_ARGS__)
