@@ -56,6 +56,10 @@ set(PLATFORM_DEFAULT_CRYPTO_KEYS        OFF          CACHE BOOL      "Use defaul
 
 set(PS_NS_NV_COUNTER_IN_ITS             ON           CACHE BOOL      "Use ITS for PS and NS NV counters.")
 
+set(TFM_PARTITION_MEASURED_BOOT         OFF           CACHE BOOL  "Enable Measured Boot partition")
+
+set(MEASURED_BOOT_HASH_ALG              SHA256     CACHE STRING "Hash algorithm used by Measured boot services")
+
 if (PS_NS_NV_COUNTER_IN_ITS)
     # Config to append to standard TFM_SP_PLATFORM, to add dependency on ITS partition
     set(TFM_RP2350_MANIFEST_LIST ${CMAKE_CURRENT_LIST_DIR}/manifest/tfm_manifest_list.yaml)
@@ -63,3 +67,7 @@ else()
     set(TFM_RP2350_MANIFEST_LIST ${CMAKE_SOURCE_DIR}/tools/tfm_manifest_list.yaml)
 endif()
 set(TFM_MANIFEST_LIST                   ${TFM_RP2350_MANIFEST_LIST} CACHE PATH "Platform specific Secure Partition manifests file" FORCE)
+
+set(TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST "partitions/measured_boot/measured_boot_manifest_list.yaml" CACHE STRING "List of extra secure partition manifests")
+
+set(TFM_EXTRAS_REPO_EXTRA_PARTITIONS    "measured_boot" CACHE STRING "List of extra secure partition directory name(s)")

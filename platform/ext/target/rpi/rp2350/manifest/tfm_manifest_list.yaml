@@ -95,7 +95,7 @@
     },
     {
       "description": "TFM Initial Attestation Partition",
-      "manifest": "secure_fw/partitions/initial_attestation/tfm_initial_attestation.yaml",
+      "manifest": "platform/ext/target/rpi/rp2350/manifest/tfm_initial_attestation.yaml",
       "output_path": "secure_fw/partitions/initial_attestation",
       "conditional": "TFM_PARTITION_INITIAL_ATTESTATION",
       "version_major": 0,
