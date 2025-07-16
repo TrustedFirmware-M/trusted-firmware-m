@@ -142,6 +142,10 @@ psa_status_t cc3xx_hash_finish(cc3xx_hash_operation_t *operation,
         return PSA_ERROR_CORRUPTION_DETECTED;
     }
 
+    if (hash_size < *hash_length) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+
     cc3xx_lowlevel_hash_finish((uint32_t *)hash, hash_size);
 
     return PSA_SUCCESS;
