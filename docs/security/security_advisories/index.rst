@@ -14,6 +14,7 @@ Security Advisories
     cc3xx_partial_tag_compare_on_chacha20_poly1305
     debug_log_vulnerability
     user_pointers_mailbox_vectors_vulnerability
+    fwu_tlv_payload_out_of_bounds_vulnerability
 
 +------------+-----------------------------------------------------------------+
 | ID         | Title                                                           |
@@ -40,6 +41,8 @@ Security Advisories
 |  |TFMV-8|  | Unchecked user-supplied pointer via mailbox messages may cause  |
 |            | write of arbitrary address                                      |
 +------------+-----------------------------------------------------------------+
+|  |TFMV-9|  | FWU does not check the length of the TLV's payload              |
++------------+-----------------------------------------------------------------+
 
 .. |TFMV-1| replace:: :doc:`TFMV-1 <stack_seal_vulnerability>`
 .. |TFMV-2| replace:: :doc:`TFMV-2 <svc_caller_sp_fetching_vulnerability>`
@@ -49,7 +52,10 @@ Security Advisories
 .. |TFMV-6| replace:: :doc:`TFMV-6 <cc3xx_partial_tag_compare_on_chacha20_poly1305>`
 .. |TFMV-7| replace:: :doc:`TFMV-7 <debug_log_vulnerability>`
 .. |TFMV-8| replace:: :doc:`TFMV-8 <user_pointers_mailbox_vectors_vulnerability>`
+.. |TFMV-9| replace:: :doc:`TFMV-9 <fwu_tlv_payload_out_of_bounds_vulnerability>`
 
 --------------
 
-*Copyright (c) 2020-2024, Arm Limited. All rights reserved.*
+*SPDX-License-Identifier: BSD-3-Clause*
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
