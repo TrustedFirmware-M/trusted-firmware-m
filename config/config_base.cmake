@@ -50,7 +50,7 @@ set(TFM_EXTRAS_REPO_VERSION             "363bf42"   CACHE STRING    "The version
 
 set(PLATFORM_PSA_ADAC_SECURE_DEBUG      FALSE       CACHE BOOL      "Whether to use psa-adac secure debug.")
 set(PLATFORM_PSA_ADAC_SOURCE_PATH       "DOWNLOAD"  CACHE PATH      "Path to source dir of psa-adac.")
-set(PLATFORM_PSA_ADAC_VERSION           "819a254"   CACHE STRING    "The version of psa-adac to use.")
+set(PLATFORM_PSA_ADAC_VERSION           "8118fd2"   CACHE STRING    "The version of psa-adac to use.")
 set(PLATFORM_RAM_FS                     OFF         CACHE BOOL      "Enables the use of RAM instead of the persistent storage device to store the FS in Secure Storage services")
 
 set(PLATFORM_IS_FVP                     FALSE       CACHE BOOL      "Whether to enable FVP or FPGA build of the platform.")
