@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2023 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -18,6 +18,7 @@ FIH_RET_TYPE(enum mpu_armv8m_error_t) mpu_armv8m_enable(
 {
     /*No error checking*/
 
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
     MPU_Type *mpu = (MPU_Type *)dev->base;
 
     mpu->MAIR0 = (MPU_ARMV8M_MAIR_ATTR_DEVICE_VAL << MPU_MAIR0_Attr0_Pos) |
@@ -36,7 +37,7 @@ FIH_RET_TYPE(enum mpu_armv8m_error_t) mpu_armv8m_enable(
     __DSB();
     __ISB();
 
-    FIH_RET(fih_int_encode(MPU_ARMV8M_OK));
+    FIH_RET(FIH_SET(fih_rc, MPU_ARMV8M_OK));
 }
 
 enum mpu_armv8m_error_t mpu_armv8m_disable(struct mpu_armv8m_dev_t *dev)
@@ -58,12 +59,13 @@ FIH_RET_TYPE(enum mpu_armv8m_error_t) mpu_armv8m_region_enable(
     uint32_t ctrl_before;
     uint32_t base_cfg;
     uint32_t limit_cfg;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     if ((region_cfg->region_base & ~MPU_RBAR_BASE_Msk) != 0) {
-        FIH_RET(fih_int_encode(MPU_ARMV8M_ERROR));
+        FIH_RET(FIH_SET(fih_rc, MPU_ARMV8M_ERROR));
     }
     if ((region_cfg->region_limit & ~MPU_RLAR_LIMIT_Msk) != 0x1F) {
-        FIH_RET(fih_int_encode(MPU_ARMV8M_ERROR));
+        FIH_RET(FIH_SET(fih_rc, MPU_ARMV8M_ERROR));
     }
 
     ctrl_before = mpu->CTRL;
@@ -104,7 +106,7 @@ FIH_RET_TYPE(enum mpu_armv8m_error_t) mpu_armv8m_region_enable(
     __DSB();
     __ISB();
 
-    FIH_RET(fih_int_encode(MPU_ARMV8M_OK));
+    FIH_RET(FIH_SET(fih_rc, MPU_ARMV8M_OK));
 }
 
 FIH_RET_TYPE(enum mpu_armv8m_error_t) mpu_armv8m_region_disable(
@@ -114,6 +116,7 @@ FIH_RET_TYPE(enum mpu_armv8m_error_t) mpu_armv8m_region_disable(
 
     MPU_Type *mpu = (MPU_Type *)dev->base;
     uint32_t ctrl_before;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     ctrl_before = mpu->CTRL;
     mpu->CTRL = 0;
@@ -126,18 +129,18 @@ FIH_RET_TYPE(enum mpu_armv8m_error_t) mpu_armv8m_region_disable(
     /*Restore main MPU control*/
     mpu->CTRL = ctrl_before;
 
-    FIH_RET(fih_int_encode(MPU_ARMV8M_OK));
+    FIH_RET(FIH_SET(fih_rc, MPU_ARMV8M_OK));
 }
 
 enum mpu_armv8m_error_t mpu_armv8m_clean(struct mpu_armv8m_dev_t *dev)
 {
     MPU_Type *mpu = (MPU_Type *)dev->base;
     uint32_t i = (mpu->TYPE & MPU_TYPE_DREGION_Msk) >> MPU_TYPE_DREGION_Pos;
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     while (i > 0) {
         FIH_CALL(mpu_armv8m_region_disable, fih_rc, dev, i - 1);
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
             return MPU_ARMV8M_ERROR;
         }
         i--;

@@ -99,7 +99,7 @@ static enum tfm_plat_err_t
 calc_key_hash_from_blob(const struct rse_provisioning_message_blob_t *blob, uint8_t *key_hash,
                         enum rse_rotpk_hash_alg alg, size_t point_size)
 {
-    fih_int fih_rc;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);;
     enum tfm_plat_err_t err;
     /* Max size is 120 bytes */
     uint8_t asn1_key[120];
@@ -129,11 +129,11 @@ calc_key_hash_from_blob(const struct rse_provisioning_message_blob_t *blob, uint
 
     FIH_CALL(bl1_hash_compute, fih_rc, bl1_hash_alg, asn1_key, len, key_hash, RSE_ROTPK_MAX_SIZE,
              &len);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         return (enum tfm_plat_err_t)fih_rc;
     }
 
-    return TFM_PLAT_ERR_SUCCESS;
+    FIH_RET(TFM_PLAT_ERR_SUCCESS);
 }
 
 /**

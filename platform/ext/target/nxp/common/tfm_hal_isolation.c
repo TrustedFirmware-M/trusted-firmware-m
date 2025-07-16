@@ -126,7 +126,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
 
     /* Set up static isolation boundaries inside SPE */
 #ifdef CONFIG_TFM_ENABLE_MEMORY_PROTECT
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
     struct mpu_armv8m_dev_t dev_mpu_s = { MPU_BASE };
 
     mpu_armv8m_clean(&dev_mpu_s);
@@ -146,7 +146,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
         isolation_regions[i].region_nr = i;
         /* Enable regions */
         FIH_CALL(mpu_armv8m_region_enable, fih_rc, &dev_mpu_s, &isolation_regions[i]);
-        if (fih_not_eq(fih_rc, fih_int_encode(MPU_ARMV8M_OK))) {
+        if (FIH_NOT_EQ(fih_rc, (MPU_ARMV8M_OK))) {
             FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
         }
     }
@@ -164,7 +164,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
     region_cfg.attr_sh = MPU_ARMV8M_SH_NONE;
     region_cfg.attr_exec = MPU_ARMV8M_XN_EXEC_OK;
     FIH_CALL(mpu_armv8m_region_enable, fih_rc, &dev_mpu_s, &region_cfg);
-    if (fih_not_eq(fih_rc, fih_int_encode(MPU_ARMV8M_OK))) {
+    if (FIH_NOT_EQ(fih_rc, (MPU_ARMV8M_OK))) {
         FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
     }
     n_configured_regions++;
@@ -186,7 +186,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
     region_cfg.attr_sh = MPU_ARMV8M_SH_NONE;
     region_cfg.attr_exec = MPU_ARMV8M_XN_EXEC_OK;
     FIH_CALL(mpu_armv8m_region_enable, fih_rc, &dev_mpu_s, &region_cfg);
-    if (fih_not_eq(fih_rc, fih_int_encode(MPU_ARMV8M_OK))) {
+    if (FIH_NOT_EQ(fih_rc, (MPU_ARMV8M_OK))) {
         FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
     }
     n_configured_regions++;
@@ -208,7 +208,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
     region_cfg.attr_sh = MPU_ARMV8M_SH_NONE;
     region_cfg.attr_exec = MPU_ARMV8M_XN_EXEC_OK;
     FIH_CALL(mpu_armv8m_region_enable, fih_rc, &dev_mpu_s, &region_cfg);
-    if (fih_not_eq(fih_rc, fih_int_encode(MPU_ARMV8M_OK))) {
+    if (FIH_NOT_EQ(fih_rc, (MPU_ARMV8M_OK))) {
         FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
     }
     n_configured_regions++;
@@ -230,7 +230,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
     region_cfg.attr_sh = MPU_ARMV8M_SH_NONE;
     region_cfg.attr_exec = MPU_ARMV8M_XN_EXEC_NEVER;
     FIH_CALL(mpu_armv8m_region_enable, fih_rc, &dev_mpu_s, &region_cfg);
-    if (fih_not_eq(fih_rc, fih_int_encode(MPU_ARMV8M_OK))) {
+    if (FIH_NOT_EQ(fih_rc, (MPU_ARMV8M_OK))) {
         FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
     }
     n_configured_regions++;
@@ -250,7 +250,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
     region_cfg.attr_sh = MPU_ARMV8M_SH_NONE;
     region_cfg.attr_exec = MPU_ARMV8M_XN_EXEC_NEVER;
     FIH_CALL(mpu_armv8m_region_enable, fih_rc, &dev_mpu_s, &region_cfg);
-    if (fih_not_eq(fih_rc, fih_int_encode(MPU_ARMV8M_OK))) {
+    if (FIH_NOT_EQ(fih_rc, (MPU_ARMV8M_OK))) {
         FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
     }
     n_configured_regions++;
@@ -273,7 +273,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
     region_cfg.attr_sh = MPU_ARMV8M_SH_NONE;
     region_cfg.attr_exec = MPU_ARMV8M_XN_EXEC_NEVER;
     FIH_CALL(mpu_armv8m_region_enable, fih_rc, &dev_mpu_s, &region_cfg);
-    if (fih_not_eq(fih_rc, fih_int_encode(MPU_ARMV8M_OK))) {
+    if (FIH_NOT_EQ(fih_rc, (MPU_ARMV8M_OK))) {
         FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
     }
     n_configured_regions++;
@@ -283,7 +283,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
     /* Enable MPU */
     FIH_CALL(mpu_armv8m_enable, fih_rc, &dev_mpu_s,
              PRIVILEGED_DEFAULT_ENABLE, HARDFAULT_NMI_ENABLE);
-    if (fih_not_eq(fih_rc, fih_int_encode(MPU_ARMV8M_OK))) {
+    if (FIH_NOT_EQ(fih_rc, (MPU_ARMV8M_OK))) {
         FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
     }
 #endif
@@ -341,7 +341,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_bind_boundary(
     struct platform_data_t *plat_data_ptr;
 #if TFM_ISOLATION_LEVEL == 2
     struct mpu_armv8m_region_cfg_t localcfg;
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 #endif
 
     if (!p_ldinf || !p_boundary) {
@@ -396,7 +396,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_bind_boundary(
             localcfg.region_nr = n_configured_regions++;
 
             FIH_CALL(mpu_armv8m_region_enable, fih_rc, &dev_mpu_s, &localcfg);
-            if (fih_not_eq(fih_rc, fih_int_encode(MPU_ARMV8M_OK))) {
+            if (FIH_NOT_EQ(fih_rc, (MPU_ARMV8M_OK))) {
                 FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
             }
         }
@@ -440,7 +440,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_activate_boundary(
     bool privileged = !!(local_handle & HANDLE_ATTR_PRIV_MASK);
 #if TFM_ISOLATION_LEVEL == 3
     bool is_spm = !!(local_handle & HANDLE_ATTR_SPM_MASK);
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
     struct mpu_armv8m_region_cfg_t localcfg;
     uint32_t i, mmio_index;
     struct platform_data_t *plat_data_ptr;
@@ -487,7 +487,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_activate_boundary(
             FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
         }
         FIH_CALL(mpu_armv8m_region_enable, fih_rc, &dev_mpu_s, &localcfg);
-        if (fih_not_eq(fih_rc, fih_int_encode(MPU_ARMV8M_OK))) {
+        if (FIH_NOT_EQ(fih_rc, (MPU_ARMV8M_OK))) {
             FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
         }
     }
@@ -511,7 +511,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_activate_boundary(
         localcfg.region_limit = plat_data_ptr->periph_limit;
 
         FIH_CALL(mpu_armv8m_region_enable, fih_rc, &dev_mpu_s, &localcfg);
-        if (fih_not_eq(fih_rc, fih_int_encode(MPU_ARMV8M_OK))) {
+        if (FIH_NOT_EQ(fih_rc, (MPU_ARMV8M_OK))) {
             FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
         }
 
@@ -522,7 +522,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_activate_boundary(
     /* Disable unused regions */
     while (i < MPU_REGION_NUM) {
         FIH_CALL(mpu_armv8m_region_disable, fih_rc, &dev_mpu_s, i++);
-        if (fih_not_eq(fih_rc, fih_int_encode(MPU_ARMV8M_OK))) {
+        if (FIH_NOT_EQ(fih_rc, (MPU_ARMV8M_OK))) {
             FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
         }
     }

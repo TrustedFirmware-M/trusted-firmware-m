@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -157,13 +157,13 @@ const struct mpu_armv8m_region_cfg_t region_cfg[] = {
 #endif /* TFM_ISOLATION_LEVEL == 3 */
 #endif /* CONFIG_TFM_ENABLE_MEMORY_PROTECT */
 
-enum tfm_hal_status_t tfm_hal_set_up_static_boundaries(
+FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
                                             uintptr_t *p_spm_boundary)
 {
     /* Set up isolation boundaries between SPE and NSPE */
     sau_and_idau_cfg();
     if (mpc_init_cfg() != ARM_DRIVER_OK) {
-        return TFM_HAL_ERROR_GENERIC;
+        FIH_RET(TFM_HAL_ERROR_GENERIC);
     }
     ppc_init_cfg();
 
@@ -181,7 +181,7 @@ enum tfm_hal_status_t tfm_hal_set_up_static_boundaries(
      * data asset.
      */
     if (ARRAY_SIZE(isolation_regions) >= MPU_REGION_NUM) {
-        return TFM_HAL_ERROR_GENERIC;
+        FIH_RET(TFM_HAL_ERROR_GENERIC);
     }
     for (i = 0; i < ARRAY_SIZE(isolation_regions); i++) {
         memcpy(&localcfg, &isolation_regions[i], sizeof(localcfg));
@@ -189,13 +189,13 @@ enum tfm_hal_status_t tfm_hal_set_up_static_boundaries(
         localcfg.region_nr = i;
         /* Enable regions */
         if (mpu_armv8m_region_enable(&dev_mpu_s, &localcfg) != MPU_ARMV8M_OK) {
-            return TFM_HAL_ERROR_GENERIC;
+            FIH_RET(TFM_HAL_ERROR_GENERIC);
         }
     }
     n_configured_regions = i;
 #else /* TFM_ISOLATION_LEVEL == 3 */
     if (ARRAY_SIZE(region_cfg) > MPU_REGION_NUM) {
-        return TFM_HAL_ERROR_GENERIC;
+        FIH_RET(TFM_HAL_ERROR_GENERIC);
     }
     for (i = 0; i < ARRAY_SIZE(region_cfg); i++) {
         memcpy(&localcfg, &region_cfg[i], sizeof(localcfg));
@@ -203,7 +203,7 @@ enum tfm_hal_status_t tfm_hal_set_up_static_boundaries(
         if (mpu_armv8m_region_enable(&dev_mpu_s,
             (struct mpu_armv8m_region_cfg_t *)&localcfg)
             != MPU_ARMV8M_OK) {
-            return TFM_HAL_ERROR_GENERIC;
+            FIH_RET(TFM_HAL_ERROR_GENERIC);
         }
     }
     n_configured_regions = i;
@@ -213,13 +213,13 @@ enum tfm_hal_status_t tfm_hal_set_up_static_boundaries(
     if (mpu_armv8m_enable(&dev_mpu_s,
                           PRIVILEGED_DEFAULT_ENABLE,
                           HARDFAULT_NMI_ENABLE) != MPU_ARMV8M_OK) {
-        return TFM_HAL_ERROR_GENERIC;
+        FIH_RET(TFM_HAL_ERROR_GENERIC);
     }
 #endif /* CONFIG_TFM_ENABLE_MEMORY_PROTECT */
 
     *p_spm_boundary = (uintptr_t)PROT_BOUNDARY_VAL;
 
-    return TFM_HAL_SUCCESS;
+    FIH_RET(TFM_HAL_SUCCESS);
 }
 
 /*
@@ -257,7 +257,7 @@ enum tfm_hal_status_t tfm_hal_set_up_static_boundaries(
  * 1. The maximum number of allowed MMIO regions is 5.
  * 2. Highest 8 bits are for index. It supports 256 unique handles at most.
  */
-enum tfm_hal_status_t tfm_hal_bind_boundary(
+FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_bind_boundary(
                                     const struct partition_load_info_t *p_ldinf,
                                     uintptr_t *p_boundary)
 {
@@ -272,7 +272,7 @@ enum tfm_hal_status_t tfm_hal_bind_boundary(
 #endif
 
     if (!p_ldinf || !p_boundary) {
-        return TFM_HAL_ERROR_GENERIC;
+        FIH_RET(TFM_HAL_ERROR_GENERIC);
     }
 
 #if TFM_ISOLATION_LEVEL == 1
@@ -302,7 +302,7 @@ enum tfm_hal_status_t tfm_hal_bind_boundary(
 
         if (j == ARRAY_SIZE(partition_named_mmio_list)) {
             /* The MMIO asset is not in the allowed list of platform. */
-            return TFM_HAL_ERROR_GENERIC;
+            FIH_RET(TFM_HAL_ERROR_GENERIC);
         }
         /* Assume PPC & MPC settings are required even under level 1 */
         plat_data_ptr = REFERENCE_TO_PTR(p_asset[i].dev.dev_ref,
@@ -335,7 +335,7 @@ enum tfm_hal_status_t tfm_hal_bind_boundary(
 
             if (mpu_armv8m_region_enable(&dev_mpu_s, &localcfg)
                 != MPU_ARMV8M_OK) {
-                return TFM_HAL_ERROR_GENERIC;
+                FIH_RET(TFM_HAL_ERROR_GENERIC);
             }
         }
 #elif TFM_ISOLATION_LEVEL == 3
@@ -355,7 +355,7 @@ enum tfm_hal_status_t tfm_hal_bind_boundary(
      * must have exceeded the limit of 5.
      */
     if (partition_attrs & HANDLE_INDEX_MASK) {
-        return TFM_HAL_ERROR_GENERIC;
+        FIH_RET(TFM_HAL_ERROR_GENERIC);
     }
     HANDLE_ENCODE_INDEX(partition_attrs, idx_boundary_handle);
 #endif
@@ -366,10 +366,10 @@ enum tfm_hal_status_t tfm_hal_bind_boundary(
                         HANDLE_ATTR_NS_MASK;
     *p_boundary = (uintptr_t)partition_attrs;
 
-    return TFM_HAL_SUCCESS;
+    FIH_RET(TFM_HAL_SUCCESS);
 }
 
-enum tfm_hal_status_t tfm_hal_activate_boundary(
+FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_activate_boundary(
                              const struct partition_load_info_t *p_ldinf,
                              uintptr_t boundary)
 {
@@ -391,16 +391,16 @@ enum tfm_hal_status_t tfm_hal_activate_boundary(
 
 #if TFM_ISOLATION_LEVEL == 3
     if (is_spm) {
-        FIH_RET(fih_int_encode(TFM_HAL_SUCCESS));
+        FIH_RET(TFM_HAL_SUCCESS);
     }
 
     if (!p_ldinf) {
-        return TFM_HAL_ERROR_GENERIC;
+        FIH_RET(TFM_HAL_ERROR_GENERIC);
     }
 
     /* Update regions, for unprivileged partitions only */
     if (privileged) {
-        return TFM_HAL_SUCCESS;
+        FIH_RET(TFM_HAL_SUCCESS);
     }
 
     /* Setup runtime memory first */
@@ -421,7 +421,7 @@ enum tfm_hal_status_t tfm_hal_activate_boundary(
         localcfg.region_limit = rt_mem[i].mem.limit;
 
         if (mpu_armv8m_region_enable(&dev_mpu_s, &localcfg) != MPU_ARMV8M_OK) {
-            return TFM_HAL_ERROR_GENERIC;
+            FIH_RET(TFM_HAL_ERROR_GENERIC);
         }
     }
 
@@ -444,7 +444,7 @@ enum tfm_hal_status_t tfm_hal_activate_boundary(
         localcfg.region_limit = plat_data_ptr->periph_limit;
 
         if (mpu_armv8m_region_enable(&dev_mpu_s, &localcfg) != MPU_ARMV8M_OK) {
-            return TFM_HAL_ERROR_GENERIC;
+            FIH_RET(TFM_HAL_ERROR_GENERIC);
         }
 
         local_handle >>= HANDLE_PER_ATTR_BITS;
@@ -454,25 +454,25 @@ enum tfm_hal_status_t tfm_hal_activate_boundary(
     /* Disable unused regions */
     while (i < MPU_REGION_NUM) {
         if (mpu_armv8m_region_disable(&dev_mpu_s, i++)!= MPU_ARMV8M_OK) {
-            return TFM_HAL_ERROR_GENERIC;
+            FIH_RET(TFM_HAL_ERROR_GENERIC);
         }
     }
 #endif
-    return TFM_HAL_SUCCESS;
+    FIH_RET(TFM_HAL_SUCCESS);
 }
 
-enum tfm_hal_status_t tfm_hal_memory_check(uintptr_t boundary, uintptr_t base,
+FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_memory_check(uintptr_t boundary, uintptr_t base,
                                            size_t size, uint32_t access_type)
 {
     int flags = 0;
 
     /* If size is zero, this indicates an empty buffer and base is ignored */
     if (size == 0) {
-        return TFM_HAL_SUCCESS;
+        FIH_RET(TFM_HAL_SUCCESS);
     }
 
     if (!base) {
-        return TFM_HAL_ERROR_INVALID_INPUT;
+        FIH_RET(TFM_HAL_ERROR_INVALID_INPUT);
     }
 
     if ((access_type & TFM_HAL_ACCESS_READWRITE) == TFM_HAL_ACCESS_READWRITE) {
@@ -480,7 +480,7 @@ enum tfm_hal_status_t tfm_hal_memory_check(uintptr_t boundary, uintptr_t base,
     } else if (access_type & TFM_HAL_ACCESS_READABLE) {
         flags |= CMSE_MPU_READ;
     } else {
-        return TFM_HAL_ERROR_INVALID_INPUT;
+        FIH_RET(TFM_HAL_ERROR_INVALID_INPUT);
     }
 
     if (!((uint32_t)boundary & HANDLE_ATTR_PRIV_MASK)) {
@@ -499,22 +499,29 @@ enum tfm_hal_status_t tfm_hal_memory_check(uintptr_t boundary, uintptr_t base,
     }
 
     if (cmse_check_address_range((void *)base, size, flags) != NULL) {
-        return TFM_HAL_SUCCESS;
+        FIH_RET(TFM_HAL_SUCCESS);
     } else {
-        return TFM_HAL_ERROR_MEM_FAULT;
+        FIH_RET(TFM_HAL_ERROR_MEM_FAULT);
     }
 }
 
-bool tfm_hal_boundary_need_switch(uintptr_t boundary_from,
+FIH_RET_TYPE(bool) tfm_hal_boundary_need_switch(uintptr_t boundary_from,
                                   uintptr_t boundary_to)
 {
     if (boundary_from == boundary_to) {
-        return false;
+        FIH_RET(false);
     }
 
     if (((uint32_t)boundary_from & HANDLE_ATTR_PRIV_MASK) &&
         ((uint32_t)boundary_to & HANDLE_ATTR_PRIV_MASK)) {
-        return false;
+        FIH_RET(false);
     }
-    return true;
+    FIH_RET(true);
 }
+
+#ifdef TFM_FIH_PROFILE_ON
+fih_ret tfm_hal_verify_static_boundaries(void)
+{
+    FIH_RET(TFM_HAL_SUCCESS);
+}
+#endif

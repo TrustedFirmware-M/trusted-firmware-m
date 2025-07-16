@@ -36,7 +36,7 @@ static enum tfm_otp_element_id_t bl1_key_id_to_otp_id(enum tfm_bl1_key_id_t key_
     }
 }
 
-fih_int bl1_otp_read_key(enum tfm_bl1_key_id_t key_id, uint8_t *key_buf,
+fih_ret bl1_otp_read_key(enum tfm_bl1_key_id_t key_id, uint8_t *key_buf,
                          size_t key_buf_len, size_t *key_size)
 {
     enum tfm_plat_err_t err;
@@ -45,13 +45,13 @@ fih_int bl1_otp_read_key(enum tfm_bl1_key_id_t key_id, uint8_t *key_buf,
     if (key_size != NULL) {
         err = tfm_plat_otp_get_size(otp_id, key_size);
         if (err != TFM_PLAT_ERR_SUCCESS) {
-            FIH_RET(fih_int_encode_zero_equality(err));
+            FIH_RET(fih_ret_encode_zero_equality(err));
         }
     }
 
     err = tfm_plat_otp_read(otp_id, key_buf_len, key_buf);
 
-    FIH_RET(fih_int_encode_zero_equality(err));
+    FIH_RET(fih_ret_encode_zero_equality(err));
 }
 
 static enum tfm_bl1_key_type_t rse_type_to_bl1_type(enum rse_rotpk_type type)
@@ -66,7 +66,7 @@ static enum tfm_bl1_key_type_t rse_type_to_bl1_type(enum rse_rotpk_type type)
     }
 }
 
-fih_int bl1_otp_get_key_type(enum tfm_bl1_key_id_t key_id,
+fih_ret bl1_otp_get_key_type(enum tfm_bl1_key_id_t key_id,
                              enum tfm_bl1_key_type_t *key_type)
 {
     enum tfm_plat_err_t err;
@@ -75,7 +75,7 @@ fih_int bl1_otp_get_key_type(enum tfm_bl1_key_id_t key_id,
 
     err = rse_rotpk_get_type(otp_id, &rse_type);
     if (err != TFM_PLAT_ERR_SUCCESS) {
-        FIH_RET(fih_int_encode_zero_equality(err));
+        FIH_RET(fih_ret_encode_zero_equality(err));
     }
 
     *key_type = rse_type_to_bl1_type(rse_type);
@@ -95,7 +95,7 @@ static enum tfm_bl1_key_policy_t rse_policy_to_bl1_policy(enum rse_rotpk_policy 
     }
 }
 
-fih_int bl1_otp_get_key_policy(enum tfm_bl1_key_id_t key_id,
+fih_ret bl1_otp_get_key_policy(enum tfm_bl1_key_id_t key_id,
                              enum tfm_bl1_key_policy_t *key_policy)
 {
     enum tfm_plat_err_t err;
@@ -104,7 +104,7 @@ fih_int bl1_otp_get_key_policy(enum tfm_bl1_key_id_t key_id,
 
     err = rse_rotpk_get_policy(otp_id, &rse_policy);
     if (err != TFM_PLAT_ERR_SUCCESS) {
-        FIH_RET(fih_int_encode_zero_equality(err));
+        FIH_RET(fih_ret_encode_zero_equality(err));
     }
 
     *key_policy = rse_policy_to_bl1_policy(rse_policy);
@@ -124,7 +124,7 @@ static enum tfm_bl1_hash_alg_t rse_hash_alg_to_bl1_hash_alg(enum rse_rotpk_hash_
     }
 }
 
-fih_int bl1_otp_get_key_hash_alg(enum tfm_bl1_key_id_t key_id,
+fih_ret bl1_otp_get_key_hash_alg(enum tfm_bl1_key_id_t key_id,
                              enum tfm_bl1_hash_alg_t *key_hash_alg)
 {
     enum tfm_plat_err_t err;
@@ -133,7 +133,7 @@ fih_int bl1_otp_get_key_hash_alg(enum tfm_bl1_key_id_t key_id,
 
     err = rse_rotpk_get_hash_alg(otp_id, &rse_hash_alg);
     if (err != TFM_PLAT_ERR_SUCCESS) {
-        FIH_RET(fih_int_encode_zero_equality(err));
+        FIH_RET(fih_ret_encode_zero_equality(err));
     }
 
     *key_hash_alg = rse_hash_alg_to_bl1_hash_alg(rse_hash_alg);

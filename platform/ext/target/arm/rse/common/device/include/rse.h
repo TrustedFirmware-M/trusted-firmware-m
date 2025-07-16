@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ extern "C" {
 
 #include "platform_irq.h"
 #include "core_cm55.h"                 /* Processor and core peripherals */
-#include "platform_base_address.h"
+#include "../../partition/platform_base_address.h"
 #include "platform_regs.h"
 #include "platform_pins.h"
 #include "system_core_init.h"

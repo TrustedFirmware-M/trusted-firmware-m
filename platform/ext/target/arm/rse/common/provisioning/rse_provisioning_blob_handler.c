@@ -426,7 +426,7 @@ psa_abort:
 }
 
 #ifdef RSE_PROVISIONING_ENABLE_AES_SIGNATURES
-static fih_int aes_validate_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob,
+static fih_ret aes_validate_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob,
                                             void *code_output, size_t code_output_size,
                                             void *data_output, size_t data_output_size,
                                             void *values_output, size_t values_output_size,
@@ -445,12 +445,12 @@ static fih_int aes_validate_and_unpack_blob(const struct rse_provisioning_messag
                                      values_output, values_output_size,
                                      setup_aes_key);
 
-    FIH_RET(fih_int_encode(err));
+    FIH_RET(fih_ret_encode_zero_equality(err));
 }
 #endif /* RSE_PROVISIONING_ENABLE_AES_SIGNATURES */
 
 #ifdef RSE_PROVISIONING_ENABLE_ECDSA_SIGNATURES
-static fih_int aes_decrypt_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob,
+static fih_ret aes_decrypt_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob,
                                            void *code_output, size_t code_output_size,
                                            void *data_output, size_t data_output_size,
                                            void *values_output, size_t values_output_size,
@@ -468,7 +468,7 @@ static fih_int aes_decrypt_and_unpack_blob(const struct rse_provisioning_message
                                      values_output, values_output_size,
                                      setup_aes_key);
 
-    FIH_RET(fih_int_encode(err));
+    FIH_RET(fih_ret_encode_zero_equality(err));
 }
 
 static enum tfm_plat_err_t hash_blob(const struct rse_provisioning_message_blob_t *blob,
@@ -483,49 +483,49 @@ static enum tfm_plat_err_t hash_blob(const struct rse_provisioning_message_blob_
     const size_t authed_header_size =
         offsetof(struct rse_provisioning_message_blob_t, code_and_data_and_secret_values) - authed_header_offset;
 
-    bl1_err = fih_int_decode(bl1_hash_init(RSE_PROVISIONING_HASH_ALG));
-    if (bl1_err != 0) {
+    FIH_CALL(bl1_hash_init, bl1_err, RSE_PROVISIONING_HASH_ALG);
+    if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
         return (enum tfm_plat_err_t)bl1_err;
     }
 
-    bl1_err = bl1_hash_update(((uint8_t *)blob) + authed_header_offset,
+    FIH_CALL(bl1_hash_update, bl1_err, ((uint8_t *)blob) + authed_header_offset,
                                         authed_header_size);
-    if (bl1_err != 0) {
+    if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
         return (enum tfm_plat_err_t)bl1_err;
     }
 
-    bl1_err = bl1_hash_update(code_output, blob->code_size);
-    if (bl1_err != 0) {
+    FIH_CALL(bl1_hash_update, bl1_err, code_output, blob->code_size);
+    if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
         return (enum tfm_plat_err_t)bl1_err;
     }
 
-    bl1_err = bl1_hash_update(data_output, blob->data_size);
-    if (bl1_err != 0) {
+    FIH_CALL(bl1_hash_update, bl1_err, data_output, blob->data_size);
+    if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
         return (enum tfm_plat_err_t)bl1_err;
     }
 
-    bl1_err = bl1_hash_update(values_output, blob->secret_values_size);
-    if (bl1_err != 0) {
+    FIH_CALL(bl1_hash_update, bl1_err, values_output, blob->secret_values_size);
+    if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
         return (enum tfm_plat_err_t)bl1_err;
     }
 
-    bl1_err = bl1_hash_finish(hash, hash_len, hash_size);
-    if (bl1_err != 0) {
+    FIH_CALL(bl1_hash_finish, bl1_err, hash, hash_len, hash_size);
+    if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
         return (enum tfm_plat_err_t)bl1_err;
     }
 
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-static fih_int ecdsa_validate_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob,
+static fih_ret ecdsa_validate_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob,
                                                           void *code_output, size_t code_output_size,
                                                           void *data_output, size_t data_output_size,
                                                           void *values_output, size_t values_output_size,
                                                           setup_aes_key_func_t setup_aes_key,
                                                           get_rotpk_func_t get_rotpk)
 {
-    fih_int fih_rc;
-    enum tfm_plat_err_t err;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+    FIH_RET_TYPE(enum tfm_plat_err_t) err;
     uint32_t blob_hash[RSE_PROVISIONING_HASH_SIZE / sizeof(uint32_t)];
     uint32_t *public_key_x;
     uint32_t *public_key_y;
@@ -535,13 +535,13 @@ static fih_int ecdsa_validate_and_unpack_blob(const struct rse_provisioning_mess
     size_t hash_size;
 
     /* FixMe: Check the usage of AES in the ECDSA signed blob */
-    err = aes_decrypt_and_unpack_blob(blob,
+    FIH_CALL(aes_decrypt_and_unpack_blob, fih_rc, blob,
                                       code_output, code_output_size,
                                       data_output, data_output_size,
                                       values_output, values_output_size,
                                       setup_aes_key);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        FIH_RET(fih_int_encode(err));
+    if (fih_rc != FIH_SUCCESS) {
+        FIH_RET(fih_rc);
     }
 
     err = hash_blob(blob,
@@ -550,12 +550,12 @@ static fih_int ecdsa_validate_and_unpack_blob(const struct rse_provisioning_mess
                     values_output, values_output_size,
                     (uint8_t *)blob_hash, sizeof(blob_hash), &hash_size);
     if (err != TFM_PLAT_ERR_SUCCESS) {
-        FIH_RET(fih_int_encode(err));
+        FIH_RET(fih_ret_encode_zero_equality(err));
     }
 
     err = get_rotpk(blob, &public_key_x, &public_key_x_size, &public_key_y, &public_key_y_size);
     if (err != TFM_PLAT_ERR_SUCCESS) {
-        FIH_RET(fih_int_encode(err));
+        FIH_RET(fih_ret_encode_zero_equality(err));
     }
 
     FIH_CALL(bl1_internal_ecdsa_verify, fih_rc, RSE_PROVISIONING_CURVE,
@@ -568,13 +568,13 @@ static fih_int ecdsa_validate_and_unpack_blob(const struct rse_provisioning_mess
 }
 #endif /* RSE_PROVISIONING_ENABLE_ECDSA_SIGNATURES */
 
-TEST_STATIC fih_int
+TEST_STATIC fih_ret
 validate_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob, size_t msg_size,
                          void *code_output, size_t code_output_size, void *data_output,
                          size_t data_output_size, void *values_output, size_t values_output_size,
                          setup_aes_key_func_t setup_aes_key, get_rotpk_func_t get_rotpk)
 {
-    fih_int fih_rc;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
     enum rse_provisioning_blob_signature_config_t sig_config;
 
     /* Perform the size check stepwise in order to avoid the risk of underflowing
@@ -585,12 +585,12 @@ validate_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob, siz
      || blob->data_size > (msg_size - sizeof(*blob) - blob->code_size)
      || blob->secret_values_size != (msg_size - sizeof(*blob) - blob->code_size - blob->data_size)) {
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_SIZE);
-        FIH_RET(fih_int_encode(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_SIZE));
+        FIH_RET(fih_ret_encode_zero_equality(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_SIZE));
     }
 
     if (blob->code_size == 0) {
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_ZERO_CODE_SIZE);
-        FIH_RET(fih_int_encode(TFM_PLAT_ERR_PROVISIONING_BLOB_ZERO_CODE_SIZE));
+        FIH_RET(fih_ret_encode_zero_equality(TFM_PLAT_ERR_PROVISIONING_BLOB_ZERO_CODE_SIZE));
     }
 
     sig_config = (blob->metadata >> RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_OFFSET)
@@ -617,7 +617,7 @@ validate_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob, siz
 #endif
     default:
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_SIGNATURE_TYPE_NOT_SUPPORTED);
-        FIH_RET(fih_int_encode(TFM_PLAT_ERR_PROVISIONING_SIGNATURE_TYPE_NOT_SUPPORTED));
+        FIH_RET(fih_ret_encode_zero_equality(TFM_PLAT_ERR_PROVISIONING_SIGNATURE_TYPE_NOT_SUPPORTED));
     }
 }
 
@@ -638,7 +638,7 @@ static enum tfm_plat_err_t run_blob(void *code_ptr)
 enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_blob_t *blob,
                                          size_t msg_size, const void *ctx)
 {
-    fih_int fih_rc;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
     enum tfm_plat_err_t err;
     enum lcm_lcs_t lcs;
     enum lcm_tp_mode_t tp_mode;
@@ -777,9 +777,9 @@ enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_b
              (void * )PROVISIONING_BUNDLE_VALUES_START,
              PROVISIONING_BUNDLE_VALUES_SIZE,
              blob_ctx->setup_aes_key, blob_ctx->get_rotpk);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         message_handling_status_report_error(PROVISIONING_REPORT_STEP_VALIDATE_BLOB, err);
-        return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
+        return (enum tfm_plat_err_t)fih_ret_decode_zero_equality(fih_rc);
     }
 
     message_handling_status_report_continue(PROVISIONING_REPORT_STEP_VALIDATE_BLOB);

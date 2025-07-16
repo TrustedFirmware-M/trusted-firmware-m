@@ -75,12 +75,13 @@ static int32_t init_mpu_region_for_atu(void)
 #endif
     };
 
-    rc = mpu_armv8m_region_enable(&dev_mpu_s, &atu_window_region_config);
+    FIH_CALL(mpu_armv8m_region_enable, rc, &dev_mpu_s, &atu_window_region_config);
     if (rc != 0) {
         return rc;
     }
 
-    return mpu_armv8m_enable(&dev_mpu_s, PRIVILEGED_DEFAULT_ENABLE, HARDFAULT_NMI_ENABLE);
+    FIH_CALL(mpu_armv8m_enable, rc, &dev_mpu_s, PRIVILEGED_DEFAULT_ENABLE, HARDFAULT_NMI_ENABLE);
+    return rc;
 }
 #endif /* defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART) */
 

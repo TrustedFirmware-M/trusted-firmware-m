@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -50,9 +50,9 @@ enum tfm_hal_status_t tfm_hal_set_up_static_boundaries(
 }
 
 #ifdef TFM_FIH_PROFILE_ON
-fih_int tfm_hal_verify_static_boundaries(void)
+fih_ret tfm_hal_verify_static_boundaries(void)
 {
-    FIH_RET(fih_int_encode(TFM_HAL_SUCCESS));
+    FIH_RET(TFM_HAL_SUCCESS);
 }
 #endif
 
@@ -137,7 +137,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_activate_boundary(
     ctrl.b.nPRIV = privileged ? 0 : 1;
     __set_CONTROL(ctrl.w);
 
-    FIH_RET(fih_int_encode(TFM_HAL_SUCCESS));
+    FIH_RET((TFM_HAL_SUCCESS));
 }
 
 FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_memory_check(uintptr_t boundary, uintptr_t base,
@@ -147,11 +147,11 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_memory_check(uintptr_t boundary, uin
 
     /* If size is zero, this indicates an empty buffer and base is ignored */
     if (size == 0) {
-        FIH_RET(fih_int_encode(TFM_HAL_SUCCESS));
+        FIH_RET((TFM_HAL_SUCCESS));
     }
 
     if (!base) {
-        FIH_RET(fih_int_encode(TFM_HAL_ERROR_INVALID_INPUT));
+        FIH_RET((TFM_HAL_ERROR_INVALID_INPUT));
     }
 
     if ((access_type & TFM_HAL_ACCESS_READWRITE) == TFM_HAL_ACCESS_READWRITE) {
@@ -159,7 +159,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_memory_check(uintptr_t boundary, uin
     } else if (access_type & TFM_HAL_ACCESS_READABLE) {
         flags |= CMSE_MPU_READ;
     } else {
-        FIH_RET(fih_int_encode(TFM_HAL_ERROR_INVALID_INPUT));
+        FIH_RET((TFM_HAL_ERROR_INVALID_INPUT));
     }
 
     if (!((uint32_t)boundary & HANDLE_ATTR_PRIV_MASK)) {
@@ -178,9 +178,9 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_memory_check(uintptr_t boundary, uin
     }
 
     if (cmse_check_address_range((void *)base, size, flags) != NULL) {
-        FIH_RET(fih_int_encode(TFM_HAL_SUCCESS));
+        FIH_RET((TFM_HAL_SUCCESS));
     } else {
-        FIH_RET(fih_int_encode(TFM_HAL_ERROR_MEM_FAULT));
+        FIH_RET((TFM_HAL_ERROR_MEM_FAULT));
     }
 }
 
@@ -188,14 +188,14 @@ FIH_RET_TYPE(bool) tfm_hal_boundary_need_switch(uintptr_t boundary_from,
                                                 uintptr_t boundary_to)
 {
     if (boundary_from == boundary_to) {
-        FIH_RET(fih_int_encode(false));
+        FIH_RET((false));
     }
 
     if (((uint32_t)boundary_from & HANDLE_ATTR_PRIV_MASK) &&
         ((uint32_t)boundary_to & HANDLE_ATTR_PRIV_MASK)) {
-        FIH_RET(fih_int_encode(false));
+        FIH_RET((false));
     }
-    FIH_RET(fih_int_encode(true));
+    FIH_RET((true));
 }
 
 #else /* TFM_FIH_PROFILE_ON */

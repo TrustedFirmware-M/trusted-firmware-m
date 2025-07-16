@@ -1861,8 +1861,8 @@ RTC_HandleTypeDef RTCHandle;
 static void active_tamper(void)
 {
 #if 0
-    fih_int fih_rc = FIH_FAILURE;
-#endif 
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+#endif
 #if (TFM_TAMPER_ENABLE == ALL_TAMPER)
     RTC_ActiveTampersTypeDef sAllTamper;
     /*  use random generator to feed  */
@@ -2010,7 +2010,7 @@ static void active_tamper(void)
             Error_Handler();
         }
         FIH_CALL(boot_fih_memequal, fih_rc,(void *)&TamperSecureConf, (void *)&TamperSecureConfGet, sizeof(TamperSecureConf));
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
                 Error_Handler();
         }
         FLOW_CONTROL_STEP(uFlowProtectValue, FLOW_STEP_TAMP_SEC_CH, FLOW_CTRL_TAMP_SEC_CH);
@@ -2021,7 +2021,7 @@ static void active_tamper(void)
             Error_Handler();
         }
         FIH_CALL(boot_fih_memequal, fih_rc,(void *)&TamperPrivConf, (void *)&TamperPrivConfGet, sizeof(TamperPrivConf));
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
                 Error_Handler();
         }
         FLOW_CONTROL_STEP(uFlowProtectValue, FLOW_STEP_TAMP_PRIV_CH, FLOW_CTRL_TAMP_PRIV_CH);

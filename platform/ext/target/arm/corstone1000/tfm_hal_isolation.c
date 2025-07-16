@@ -62,7 +62,7 @@ static enum tfm_hal_status_t configure_mpu(uint32_t rnr, uint32_t base,
 
 #endif /* CONFIG_TFM_ENABLE_MEMORY_PROTECT */
 
-enum tfm_hal_status_t tfm_hal_set_up_static_boundaries(
+FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
                                             uintptr_t *p_spm_boundary)
 {
 #ifdef CONFIG_TFM_ENABLE_MEMORY_PROTECT
@@ -88,7 +88,7 @@ enum tfm_hal_status_t tfm_hal_set_up_static_boundaries(
     ret = configure_mpu(rnr++, base, limit,
                             XN_EXEC_OK, AP_RO_PRIV_UNPRIV);
     if (ret != TFM_HAL_SUCCESS) {
-        return ret;
+        FIH_RET(ret);
     }
 
     /* Set the RAM attributes. It is needed because the first region overlaps the whole
@@ -101,7 +101,7 @@ enum tfm_hal_status_t tfm_hal_set_up_static_boundaries(
     ret = configure_mpu(rnr++, base, limit,
                             XN_EXEC_NOT_OK, AP_RW_PRIV_ONLY);
     if (ret != TFM_HAL_SUCCESS) {
-        return ret;
+        FIH_RET(ret);
     }
 
     base = S_DATA_START + RAM_MPU_REGION_BLOCK_1_SIZE;
@@ -109,7 +109,7 @@ enum tfm_hal_status_t tfm_hal_set_up_static_boundaries(
     ret = configure_mpu(rnr++, base, limit,
                             XN_EXEC_NOT_OK, AP_RW_PRIV_ONLY);
     if (ret != TFM_HAL_SUCCESS) {
-        return ret;
+        FIH_RET(ret);
     }
 
     /*
@@ -126,7 +126,7 @@ enum tfm_hal_status_t tfm_hal_set_up_static_boundaries(
         ret = configure_mpu(rnr++, base, base + TFM_LINKER_PT_APP_ROT_DATA_ALIGNMENT,
                                 XN_EXEC_NOT_OK, AP_RW_PRIV_UNPRIV);
         if (ret != TFM_HAL_SUCCESS) {
-            return ret;
+            FIH_RET(ret);
         }
         base += TFM_LINKER_PT_APP_ROT_DATA_ALIGNMENT;
     } while (base < limit);
@@ -137,10 +137,10 @@ enum tfm_hal_status_t tfm_hal_set_up_static_boundaries(
 
     *p_spm_boundary = (uintptr_t)PROT_BOUNDARY_VAL;
 
-    return TFM_HAL_SUCCESS;
+    FIH_RET(TFM_HAL_SUCCESS);
 }
 
-enum tfm_hal_status_t tfm_hal_memory_check(uintptr_t boundary,
+FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_memory_check(uintptr_t boundary,
                                            uintptr_t base,
                                            size_t size,
                                            uint32_t access_type)
@@ -153,7 +153,7 @@ enum tfm_hal_status_t tfm_hal_memory_check(uintptr_t boundary,
     } else if (access_type & TFM_HAL_ACCESS_READABLE) {
         flags |= MEM_CHECK_MPU_READ;
     } else {
-        return TFM_HAL_ERROR_INVALID_INPUT;
+        FIH_RET(TFM_HAL_ERROR_INVALID_INPUT);
     }
 
     if (access_type & TFM_HAL_ACCESS_NS) {
@@ -170,10 +170,10 @@ enum tfm_hal_status_t tfm_hal_memory_check(uintptr_t boundary,
 
     status = tfm_has_access_to_region((const void *)base, size, flags);
     if (status != SPM_SUCCESS) {
-         return TFM_HAL_ERROR_MEM_FAULT;
+         FIH_RET(TFM_HAL_ERROR_MEM_FAULT);
     }
 
-    return TFM_HAL_SUCCESS;
+    FIH_RET(TFM_HAL_SUCCESS);
 }
 
 /*
@@ -213,7 +213,7 @@ enum tfm_hal_status_t tfm_hal_memory_check(uintptr_t boundary,
  *
  */
 
-enum tfm_hal_status_t tfm_hal_bind_boundary(
+FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_bind_boundary(
                                     const struct partition_load_info_t *p_ldinf,
                                     uintptr_t *p_boundary)
 {
@@ -241,10 +241,10 @@ enum tfm_hal_status_t tfm_hal_bind_boundary(
     /* NOTE: Need to add validation of numbered MMIO if platform requires. */
     /* Platform does not have a need for MMIO yet. */
 
-    return TFM_HAL_SUCCESS;
+    FIH_RET(TFM_HAL_SUCCESS);
 }
 
-enum tfm_hal_status_t tfm_hal_activate_boundary(
+FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_activate_boundary(
                              const struct partition_load_info_t *p_ldinf,
                              uintptr_t boundary)
 {
@@ -257,19 +257,26 @@ enum tfm_hal_status_t tfm_hal_activate_boundary(
     ctrl.b.nPRIV = privileged ? 0 : 1;
     __set_CONTROL(ctrl.w);
 
-    return TFM_HAL_SUCCESS;
+    FIH_RET(TFM_HAL_SUCCESS);
 }
 
-bool tfm_hal_boundary_need_switch(uintptr_t boundary_from,
+FIH_RET_TYPE(bool) tfm_hal_boundary_need_switch(uintptr_t boundary_from,
                                   uintptr_t boundary_to)
 {
     if (boundary_from == boundary_to) {
-        return false;
+        FIH_RET(false);
     }
 
     if (((uint32_t)boundary_from & HANDLE_ATTR_PRIV_MASK) &&
         ((uint32_t)boundary_to & HANDLE_ATTR_PRIV_MASK)) {
-        return false;
+        FIH_RET(false);
     }
-    return true;
+    FIH_RET(true);
 }
+
+#ifdef TFM_FIH_PROFILE_ON
+fih_ret tfm_hal_verify_static_boundaries(void)
+{
+    FIH_RET(TFM_HAL_SUCCESS);
+}
+#endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -40,7 +40,7 @@ extern "C" {
  * \return TFM_HAL_SUCCESS - the verification passed.
  *         TFM_HAL_ERROR_GENERIC - the verification failed.
  */
-fih_int tfm_hal_verify_static_boundaries(void);
+fih_ret tfm_hal_verify_static_boundaries(void);
 
 #endif /* TFM_FIH_PROFILE_ON */
 /**

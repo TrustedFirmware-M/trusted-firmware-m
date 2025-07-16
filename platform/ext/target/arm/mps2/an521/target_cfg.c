@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024, Arm Limited
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -241,7 +241,7 @@ FIH_RET_TYPE(enum tfm_plat_err_t) init_debug(void)
      */
 #endif
 
-    FIH_RET(fih_int_encode(TFM_PLAT_ERR_SUCCESS));
+    FIH_RET(TFM_PLAT_ERR_SUCCESS);
 }
 
 /*----------------- NVIC interrupt target state to NS configuration ----------*/
@@ -408,37 +408,37 @@ FIH_RET_TYPE(int32_t) sau_and_idau_cfg(void)
     __DSB();
     __ISB();
 
-    FIH_RET(fih_int_encode(ARM_DRIVER_OK));
+    FIH_RET(ARM_DRIVER_OK);
 }
 
 #ifdef TFM_FIH_PROFILE_ON
-fih_int fih_verify_sau_and_idau_cfg(void)
+fih_ret fih_verify_sau_and_idau_cfg(void)
 {
     struct spctrl_def *spctrl = CMSDK_SPCTRL;
     uint32_t i;
 
     /* Check SAU is enabled */
     if ((SAU->CTRL & (SAU_CTRL_ENABLE_Msk)) != (SAU_CTRL_ENABLE_Msk)) {
-        FIH_RET(fih_int_encode(ARM_DRIVER_ERROR));
+        FIH_RET(ARM_DRIVER_ERROR);
     }
 
     for (i = 0; i < ARRAY_SIZE(sau_cfg); i++) {
         SAU->RNR = i;
         if (SAU->RBAR != (sau_cfg[i].RBAR & SAU_RBAR_BADDR_Msk)) {
-            FIH_RET(fih_int_encode(ARM_DRIVER_ERROR));
+            FIH_RET(ARM_DRIVER_ERROR);
         }
         if (SAU->RLAR != ((sau_cfg[i].RLAR & SAU_RLAR_LADDR_Msk) |
                           (sau_cfg[i].nsc ? SAU_RLAR_NSC_Msk : 0U) |
                           SAU_RLAR_ENABLE_Msk)) {
-            FIH_RET(fih_int_encode(ARM_DRIVER_ERROR));
+            FIH_RET(ARM_DRIVER_ERROR);
         }
     }
 
     if ((spctrl->nsccfg & (NSCCFG_CODENSC)) != (NSCCFG_CODENSC)) {
-        FIH_RET(fih_int_encode(ARM_DRIVER_ERROR));
+        FIH_RET(ARM_DRIVER_ERROR);
     }
 
-    FIH_RET(fih_int_encode(ARM_DRIVER_OK));
+    FIH_RET(ARM_DRIVER_OK);
 }
 #endif /* TFM_FIH_PROFILE_ON */
 
@@ -455,7 +455,7 @@ FIH_RET_TYPE(int32_t) mpc_init_cfg(void)
 
     ret = Driver_SRAM1_MPC.Initialize();
     if (ret != ARM_DRIVER_OK) {
-        FIH_RET(fih_int_encode(ret));
+        FIH_RET(ret);
     }
 
     ret = Driver_SRAM1_MPC.ConfigRegion(
@@ -463,7 +463,7 @@ FIH_RET_TYPE(int32_t) mpc_init_cfg(void)
                                       memory_regions.non_secure_partition_limit,
                                       ARM_MPC_ATTR_NONSECURE);
     if (ret != ARM_DRIVER_OK) {
-        FIH_RET(fih_int_encode(ret));
+        FIH_RET(ret);
     }
 
 #ifdef BL2
@@ -472,13 +472,13 @@ FIH_RET_TYPE(int32_t) mpc_init_cfg(void)
                                   memory_regions.secondary_partition_limit,
                                   ARM_MPC_ATTR_NONSECURE);
     if (ret != ARM_DRIVER_OK) {
-        FIH_RET(fih_int_encode(ret));
+        FIH_RET(ret);
     }
 #endif /* BL2 */
 
     ret = Driver_SRAM2_MPC.Initialize();
     if (ret != ARM_DRIVER_OK) {
-        FIH_RET(fih_int_encode(ret));
+        FIH_RET(ret);
     }
 
     ret = Driver_SRAM2_MPC.ConfigRegion(NS_DATA_START, NS_DATA_LIMIT,
@@ -489,18 +489,18 @@ FIH_RET_TYPE(int32_t) mpc_init_cfg(void)
                                         ARM_MPC_ATTR_NONSECURE);
 #endif
     if (ret != ARM_DRIVER_OK) {
-        FIH_RET(fih_int_encode(ret));
+        FIH_RET(ret);
     }
 
     /* Lock down the MPC configuration */
     ret = Driver_SRAM1_MPC.LockDown();
     if (ret != ARM_DRIVER_OK) {
-        FIH_RET(fih_int_encode(ret));
+        FIH_RET(ret);
     }
 
     ret = Driver_SRAM2_MPC.LockDown();
     if (ret != ARM_DRIVER_OK) {
-        FIH_RET(fih_int_encode(ret));
+        FIH_RET(ret);
     }
 
     /* Add barriers to assure the MPC configuration is done before continue
@@ -509,11 +509,11 @@ FIH_RET_TYPE(int32_t) mpc_init_cfg(void)
     __DSB();
     __ISB();
 
-    FIH_RET(fih_int_encode(ARM_DRIVER_OK));
+    FIH_RET(ARM_DRIVER_OK);
 }
 
 #ifdef TFM_FIH_PROFILE_ON
-fih_int fih_verify_mpc_cfg(void)
+fih_ret fih_verify_mpc_cfg(void)
 {
     ARM_MPC_SEC_ATTR attr;
 
@@ -521,7 +521,7 @@ fih_int fih_verify_mpc_cfg(void)
                                      memory_regions.non_secure_partition_limit,
                                      &attr);
     if (attr != ARM_MPC_ATTR_NONSECURE) {
-        FIH_RET(fih_int_encode(ARM_DRIVER_ERROR));
+        FIH_RET(ARM_DRIVER_ERROR);
     }
 
 #ifdef BL2
@@ -529,13 +529,13 @@ fih_int fih_verify_mpc_cfg(void)
                                      memory_regions.secondary_partition_limit,
                                      &attr);
     if (attr != ARM_MPC_ATTR_NONSECURE) {
-        FIH_RET(fih_int_encode(ARM_DRIVER_ERROR));
+        FIH_RET(ARM_DRIVER_ERROR);
     }
 #endif /* BL2 */
 
     Driver_SRAM2_MPC.GetRegionConfig(NS_DATA_START, NS_DATA_LIMIT, &attr);
     if (attr != ARM_MPC_ATTR_NONSECURE) {
-        FIH_RET(fih_int_encode(ARM_DRIVER_ERROR));
+        FIH_RET(ARM_DRIVER_ERROR);
     }
 
 #if defined(PSA_API_TEST_NS) && !defined(PSA_API_TEST_IPC)
@@ -543,11 +543,11 @@ fih_int fih_verify_mpc_cfg(void)
                                      DEV_APIS_TEST_NVMEM_REGION_LIMIT,
                                      &attr);
     if (attr != ARM_MPC_ATTR_NONSECURE) {
-        FIH_RET(fih_int_encode(ARM_DRIVER_ERROR));
+        FIH_RET(ARM_DRIVER_ERROR);
     }
 #endif /* PSA_API_TEST_NS && !PSA_API_TEST_IPC */
 
-    FIH_RET(fih_int_encode(ARM_DRIVER_OK));
+    FIH_RET(ARM_DRIVER_OK);
 }
 #endif /* TFM_FIH_PROFILE_ON */
 
@@ -624,11 +624,11 @@ FIH_RET_TYPE(int32_t) ppc_init_cfg(void)
      */
     spctrl->secrespcfg |= 1U;
 
-    FIH_RET(fih_int_encode(ARM_DRIVER_OK));
+    FIH_RET(ARM_DRIVER_OK);
 }
 
 #ifdef TFM_FIH_PROFILE_ON
-fih_int fih_verify_ppc_cfg(void)
+fih_ret fih_verify_ppc_cfg(void)
 {
     struct spctrl_def* spctrl = CMSDK_SPCTRL;
     struct nspctrl_def* nspctrl = CMSDK_NSPCTRL;
@@ -639,7 +639,7 @@ fih_int fih_verify_ppc_cfg(void)
     if ((!(spctrl->apbnsppc0 & (1U << CMSDK_TIMER0_APB_PPC_POS))) ||
         (!(spctrl->apbnsppc0 & (1U << CMSDK_TIMER1_APB_PPC_POS))) ||
         (!(spctrl->apbnsppc0 & (1U << CMSDK_DTIMER_APB_PPC_POS)))) {
-        FIH_RET(fih_int_encode(ARM_DRIVER_ERROR));
+        FIH_RET(ARM_DRIVER_ERROR);
     }
 
     /* Check non-secure access for APB peripherals on EXP1 */
@@ -667,28 +667,28 @@ fih_int fih_verify_ppc_cfg(void)
         (!(spctrl->apbnsppcexp1 & (1U << CMSDK_I2C1_APB_PPC_POS))) ||
         (!(spctrl->apbnsppcexp1 & (1U << CMSDK_I2C2_APB_PPC_POS))) ||
         (!(spctrl->apbnsppcexp1 & (1U << CMSDK_I2C3_APB_PPC_POS)))) {
-        FIH_RET(fih_int_encode(ARM_DRIVER_ERROR));
+        FIH_RET(ARM_DRIVER_ERROR);
     }
 
     /* In NS, check un-privileged for UART0 */
     if (!(nspctrl->apbnspppcexp1 & (1U << CMSDK_UART0_APB_PPC_POS))) {
-        FIH_RET(fih_int_encode(ARM_DRIVER_ERROR));
+        FIH_RET(ARM_DRIVER_ERROR);
     }
 
     /* In NS, check un-privileged access for LEDs */
     if ((!(nspctrl->apbnspppcexp2 & (1U << CMSDK_FPGA_SCC_PPC_POS))) ||
         (!(nspctrl->apbnspppcexp2 & (1U << CMSDK_FPGA_IO_PPC_POS)))) {
-        FIH_RET(fih_int_encode(ARM_DRIVER_ERROR));
+        FIH_RET(ARM_DRIVER_ERROR);
     }
 
     /* Check whether the response to a security violation is a
      * bus error instead of RAZ/WI
      */
     if (!(spctrl->secrespcfg & 1U)) {
-        FIH_RET(fih_int_encode(ARM_DRIVER_ERROR));
+        FIH_RET(ARM_DRIVER_ERROR);
     }
 
-    FIH_RET(fih_int_encode(ARM_DRIVER_OK));
+    FIH_RET(ARM_DRIVER_OK);
 }
 #endif /* TFM_FIH_PROFILE_ON */
 
@@ -705,7 +705,7 @@ FIH_RET_TYPE(int32_t) ppc_configure_to_secure(enum ppc_bank_e bank, uint16_t pos
     struct spctrl_def* spctrl = CMSDK_SPCTRL;
     ((uint32_t*)&(spctrl->ahbnsppc0))[bank] &= ~(1U << pos);
 
-    FIH_RET(fih_int_encode(ARM_DRIVER_OK));
+    FIH_RET(ARM_DRIVER_OK);
 }
 
 FIH_RET_TYPE(int32_t) ppc_en_secure_unpriv(enum ppc_bank_e bank, uint16_t pos)
@@ -713,7 +713,7 @@ FIH_RET_TYPE(int32_t) ppc_en_secure_unpriv(enum ppc_bank_e bank, uint16_t pos)
     struct spctrl_def* spctrl = CMSDK_SPCTRL;
     ((uint32_t*)&(spctrl->ahbspppc0))[bank] |= (1U << pos);
 
-    FIH_RET(fih_int_encode(ARM_DRIVER_OK));
+    FIH_RET(ARM_DRIVER_OK);
 }
 
 FIH_RET_TYPE(int32_t) ppc_clr_secure_unpriv(enum ppc_bank_e bank, uint16_t pos)
@@ -721,7 +721,7 @@ FIH_RET_TYPE(int32_t) ppc_clr_secure_unpriv(enum ppc_bank_e bank, uint16_t pos)
     struct spctrl_def* spctrl = CMSDK_SPCTRL;
     ((uint32_t*)&(spctrl->ahbspppc0))[bank] &= ~(1U << pos);
 
-    FIH_RET(fih_int_encode(ARM_DRIVER_OK));
+    FIH_RET(ARM_DRIVER_OK);
 }
 
 void ppc_clear_irq(void)

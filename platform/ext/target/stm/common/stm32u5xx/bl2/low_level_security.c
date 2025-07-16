@@ -8,7 +8,7 @@
   * @attention
   *
   * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
-  * Copyright (c) 2017-2020 Arm Limited
+  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under BSD 3-Clause license,
@@ -1749,7 +1749,7 @@ RTC_HandleTypeDef RTCHandle;
 static void active_tamper(void)
 {
 #if 0
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 #endif
 #if (TFM_TAMPER_ENABLE == ALL_TAMPER)
     RTC_ActiveTampersTypeDef sAllTamper;
@@ -1899,7 +1899,7 @@ static void active_tamper(void)
             Error_Handler();
         }
         FIH_CALL(boot_fih_memequal, fih_rc,(void *)&TamperSecureConf, (void *)&TamperSecureConfGet, sizeof(TamperSecureConf));
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
                 Error_Handler();
         }
 #endif
@@ -1911,7 +1911,7 @@ static void active_tamper(void)
             Error_Handler();
         }
         FIH_CALL(boot_fih_memequal, fih_rc,(void *)&TamperPrivConf, (void *)&TamperPrivConfGet, sizeof(TamperPrivConf));
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
                 Error_Handler();
         }
 #endif
