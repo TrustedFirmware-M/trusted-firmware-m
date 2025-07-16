@@ -192,6 +192,21 @@ enum tfm_hal_status_t tfm_spim00_irq_init(void *p_pt,
 }
 #endif
 
+#if TFM_PERIPHERAL_SPIM21_SECURE
+static struct irq_t spim21_irq = {0};
+
+void SPIM21_IRQHandler(void)
+{
+    spm_handle_interrupt(spim21_irq.p_pt, spim21_irq.p_ildi);
+}
+
+enum tfm_hal_status_t tfm_spim21_irq_init(void *p_pt,
+                                         const struct irq_load_info_t *p_ildi)
+{
+    return irq_init(&spim21_irq, TFM_SPIM21_IRQ, p_pt, p_ildi);
+}
+#endif
+
 #if TFM_PERIPHERAL_SPIM22_SECURE
 static struct irq_t spim22_irq = {0};
 

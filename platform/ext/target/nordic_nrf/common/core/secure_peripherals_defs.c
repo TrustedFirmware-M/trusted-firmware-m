@@ -93,7 +93,7 @@ struct platform_data_t tfm_peripheral_spim20 = {
 };
 #endif
 
-#if TFM_PERIPHERAL_SPIM22_SECURE
+#if TFM_PERIPHERAL_SPIM21_SECURE
 struct platform_data_t tfm_peripheral_spim21 = {
     NRF_SPIM21_S_BASE,
     NRF_SPIM21_S_BASE + (sizeof(NRF_SPIM_Type) - 1),

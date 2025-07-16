@@ -53,9 +53,15 @@
 #define GET_SPU_INSTANCE(periph)                                                                   \
 	((NRF_SPU_Type *)(SPU_ADDRESS_REGION | (periph.periph_start & 0x00FC0000)))
 
+#if defined(NRF54LV10A_ENGA_XXAA)
+/* On nRF54LV10A XL1 and XL2 are(P1.13) and XL2(P1.14) */
+#define PIN_XL1 45
+#define PIN_XL2 46
+#else
 /* On nRF54L15 XL1 and XL2 are(P1.00) and XL2(P1.01) */
 #define PIN_XL1 32
 #define PIN_XL2 33
+#endif /* SOC_NRF54LV10A_ENGA */
 
 /* During TF-M system initialization we invoke a function that comes
  * from Zephyr. This function does not have a header file so we
@@ -411,6 +417,7 @@ static void gpio_configuration(void)
 		}
 	}
 
+
 	/* Configure properly the XL1 and XL2 pins so that the low-frequency crystal
 	 * oscillator (LFXO) can be used.
 	 * This configuration can be done only from secure code, as otherwise those
@@ -480,7 +487,6 @@ enum tfm_plat_err_t nvic_interrupt_target_state_cfg(void)
 	for (uint8_t i = 0; i < sizeof(NVIC->ITNS) / sizeof(NVIC->ITNS[0]); i++) {
 		NVIC->ITNS[i] = 0xFFFFFFFF;
 	}
-
 	/* Make sure that the SPU instance(s) are targeted to S state */
 	for (int i = 0; i < ARRAY_SIZE(spu_instances); i++) {
 		NVIC_ClearTargetState(NRFX_IRQ_NUMBER_GET(spu_instances[i]));
@@ -494,7 +500,6 @@ enum tfm_plat_err_t nvic_interrupt_target_state_cfg(void)
 	NVIC_ClearTargetState(
 		NRFX_IRQ_NUMBER_GET(NRF_UARTE_INSTANCE_GET(NRF_SECURE_UART_INSTANCE)));
 #endif
-
 	return TFM_PLAT_ERR_SUCCESS;
 }
 
