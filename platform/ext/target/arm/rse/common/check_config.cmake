@@ -47,3 +47,7 @@ tfm_invalid_config(NOT TFM_ATTESTATION_SCHEME IN_LIST TFM_ATTESTATION_SCHEME_LIS
 
 # The SCMI comms tests use the same timer interrupt as the IRQ tests
 tfm_invalid_config(TEST_S_SCMI_COMMS AND (TEST_NS_SLIH_IRQ OR TEST_NS_FLIH_IRQ))
+
+# Test TP mode must be either TCI or PCI
+tfm_invalid_config(DEFINED RSE_TESTS_TP_MODE AND NOT (RSE_TESTS_TP_MODE STREQUAL "TCI"
+                                                    OR RSE_TESTS_TP_MODE STREQUAL "PCI"))
