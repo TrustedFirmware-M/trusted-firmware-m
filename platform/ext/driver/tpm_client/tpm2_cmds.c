@@ -223,3 +223,67 @@ int tpm_pcr_extend(struct tpm_chip_data *chip_data, uint32_t index,
 
 	return TPM_SUCCESS;
 }
+
+int tpm_pcr_read(struct tpm_chip_data *chip_data, uint32_t index,
+		uint16_t algorithm, struct tpm_pcr_read_res *pcr_read_response)
+{
+
+	tpm_cmd pcr_read_cmd, pcr_read_res;
+	uint32_t tpm_rc;
+	int ret;
+	uint32_t pcr_bitmask = 0b1 << index;
+
+	if (pcr_read_response == NULL) {
+		return TPM_INVALID_PARAM;
+	}
+
+	memset(&pcr_read_cmd, 0, sizeof(pcr_read_cmd));
+	memset(pcr_read_response, 0, sizeof(*pcr_read_response));
+
+	pcr_read_cmd.header.tag = htobe16(TPM_ST_NO_SESSIONS);
+	pcr_read_cmd.header.cmd_size = htobe32(sizeof(tpm_cmd_hdr));
+	pcr_read_cmd.header.cmd_code = htobe32(TPM_CMD_PCR_READ);
+
+	/* TPML_PCR_SELECTION (count) */
+	ret = tpm_update_buffer(&pcr_read_cmd, 1, sizeof(uint32_t)); /* Read 1 PCR only */
+	if (ret < 0) {
+		return ret;
+	}
+
+	/* TPMS_PCR_SELECTION (Hash algorithm) */
+	ret = tpm_update_buffer(&pcr_read_cmd, algorithm, sizeof(algorithm));
+	if (ret < 0) {
+		return ret;
+	}
+
+	/* TPMS_PCR_SELECTION (PCR_SELECT_MIN) */
+	ret = tpm_update_buffer(&pcr_read_cmd, TPM_PCR_SELECT, sizeof(uint8_t));
+	if (ret < 0) {
+		return ret;
+	}
+
+	/* TPMS_PCR_SELECTION (pcrSelect) */
+	/* NOT stored in big endian */
+	uint32_t command_size = be32toh(pcr_read_cmd.header.cmd_size);
+	int start = command_size - TPM_HEADER_SIZE;
+	pcr_read_cmd.data[start + 0] = (0x0000FF & pcr_bitmask);
+	pcr_read_cmd.data[start + 1] = (0x00FF00 & pcr_bitmask) >> 8;
+	pcr_read_cmd.data[start + 2] = (0xFF0000 & pcr_bitmask) >> 16;
+	pcr_read_cmd.header.cmd_size = htobe32(command_size + TPM_PCR_SELECT);
+
+	ret = tpm_xfer(chip_data, &pcr_read_cmd, &pcr_read_res);
+	if (ret < 0) {
+		return ret;
+	}
+
+	tpm_rc = be32toh(pcr_read_res.header.cmd_code);
+	if (tpm_rc != TPM_RESPONSE_SUCCESS) {
+		ERROR("%s: response code contains error = %x\n", __func__, tpm_rc);
+		return TPM_ERR_RESPONSE;
+	}
+
+	/* Copy PCR read response to the output data struct */
+	memcpy(pcr_read_response, pcr_read_res.data, be32toh(pcr_read_res.header.cmd_size) - TPM_HEADER_SIZE);
+
+	return TPM_SUCCESS;
+}

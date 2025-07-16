@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdint.h>
+#include "cmsis_compiler.h"
 
 #include "tpm_client/tpm2_chip.h"
 
@@ -50,6 +51,7 @@ enum tpm_ret_value {
 #define TPM_ATTRIBUTES_DISABLE		0
 #define TPM_ZERO_HMAC_SIZE		0
 #define TPM_SINGLE_HASH_COUNT		1
+#define TPM_PCR_SELECT			0x3 /* 24 PCRs bit-mask with 3 bytes */
 
 
 #define TPM_CMD_STARTUP			0x0144U
@@ -74,6 +76,7 @@ enum tpm_ret_value {
 
 #define TPM_HEADER_SIZE			10
 #define MAX_SIZE_CMDBUF			256
+#define MAX_DIGEST_SIZE			48 /* SHA384 */
 #define MAX_CMD_DATA			(MAX_SIZE_CMDBUF - TPM_HEADER_SIZE)
 
 /*
@@ -83,18 +86,26 @@ enum tpm_ret_value {
  */
 #define TPM_ALG_SHA256			0x000BU
 
-#pragma pack(1)
 typedef struct tpm_cmd_hdr {
 	uint16_t tag;
 	uint32_t cmd_size;
 	uint32_t cmd_code;
-} tpm_cmd_hdr;
+}__PACKED tpm_cmd_hdr;
 
 typedef struct tpm_cmd {
 	tpm_cmd_hdr header;
 	uint8_t data[MAX_CMD_DATA];
-} tpm_cmd;
-#pragma pack()
+}__PACKED tpm_cmd;
+
+typedef struct tpm_pcr_read_res {
+	uint32_t pcr_update_ctr;
+	uint32_t tpml_pcr_selection_count;
+	uint16_t tpms_pcr_selection_hash;
+	uint32_t tpms_pcr_selection_num_octate_bitmap;
+	uint32_t tpml_digest_count;
+	uint16_t tpml_digest_size;
+	uint8_t digest[MAX_DIGEST_SIZE];
+}__PACKED tpm_pcr_read_res;
 
 int tpm_interface_init(struct tpm_chip_data *chip_data, uint8_t locality);
 
@@ -105,5 +116,8 @@ int tpm_startup(struct tpm_chip_data *chip_data, uint16_t mode);
 int tpm_pcr_extend(struct tpm_chip_data *chip_data, uint32_t index,
 		   uint16_t algorithm, const uint8_t *digest,
 		   uint32_t digest_len);
+
+int tpm_pcr_read(struct tpm_chip_data *chip_data, uint32_t index,
+		uint16_t algorithm, struct tpm_pcr_read_res *pcr_read_response);
 
 #endif /* TPM2_H */
