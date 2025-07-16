@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,25 @@
 
 #include "integrity_checker_drv.h"
 
-#include "tfm_hal_device_header.h"
 #include "fatal_error.h"
 
 #include <stdbool.h>
+
+#ifdef IC_CONFIG_DMA_CACHE_FLUSH_ENABLE
+#include "cmsis.h"
+#endif
+
+#ifndef __IM
+#define __IM volatile const /*! Defines 'read only' structure member permissions */
+#endif /* __IM */
+
+#ifndef __OM
+#define __OM volatile /*! Defines 'write only' structure member permissions */
+#endif /* __OM */
+
+#ifndef __IOM
+#define __IOM volatile /*! Defines 'read / write' structure member permissions */
+#endif /* __IOM */
 
 struct _integrity_checker_reg_map_t {
     __IM  uint32_t icbc;
@@ -156,7 +171,7 @@ enum integrity_checker_error_t integrity_checker_compute_value(struct integrity_
                                                                uint32_t *value, size_t value_size,
                                                                size_t *value_len)
 {
-    volatile uint32_t __ALIGNED(INTEGRITY_CHECKER_REQUIRED_ALIGNMENT)
+    volatile uint32_t __attribute__((aligned(INTEGRITY_CHECKER_REQUIRED_ALIGNMENT)))
         temp_val[INTEGRITY_CHECKER_OUTPUT_SIZE_SHA256 / sizeof(uint32_t)] = {0};
     volatile uint32_t *value_ptr = value;
     struct _integrity_checker_reg_map_t* p_integrity_checker =
@@ -197,6 +212,10 @@ enum integrity_checker_error_t integrity_checker_compute_value(struct integrity_
     /* Set to compute mode */
     iccval |= 1 << 4;
 
+#ifdef IC_CONFIG_DMA_CACHE_FLUSH_ENABLE
+    SCB_CleanInvalidateDCache_by_Addr((void *)data, size);
+#endif
+
     /* Configure input data. Size is in words */
     p_integrity_checker->icda = remap_addr(dev, (uintptr_t)data);
     p_integrity_checker->icdl = size / INTEGRITY_CHECKER_REQUIRED_ALIGNMENT;
@@ -218,6 +237,10 @@ enum integrity_checker_error_t integrity_checker_compute_value(struct integrity_
         return INTEGRITY_CHECKER_ERROR_COMPUTE_VALUE_OPERATION_FAILED;
     }
 
+#ifdef IC_CONFIG_DMA_CACHE_FLUSH_ENABLE
+    SCB_CleanInvalidateDCache_by_Addr(value_ptr, mode_sizes[mode]);
+#endif
+
     if (value_ptr != value) {
         for (int idx = 0; idx < mode_sizes[mode] / sizeof(uint32_t); idx++) {
             value[idx] = value_ptr[idx];
@@ -236,7 +259,7 @@ enum integrity_checker_error_t integrity_checker_check_value(struct integrity_ch
                                                              const uint32_t *data, size_t size,
                                                              const uint32_t *value, size_t value_size)
 {
-    volatile uint32_t __ALIGNED(INTEGRITY_CHECKER_REQUIRED_ALIGNMENT)
+    volatile uint32_t __attribute__((aligned(INTEGRITY_CHECKER_REQUIRED_ALIGNMENT)))
         temp_val[INTEGRITY_CHECKER_OUTPUT_SIZE_SHA256 / sizeof(uint32_t)] = {0};
     const volatile uint32_t *value_ptr = value;
     struct _integrity_checker_reg_map_t* p_integrity_checker =
@@ -277,9 +300,17 @@ enum integrity_checker_error_t integrity_checker_check_value(struct integrity_ch
     /* Set algorithm */
     iccval |= (mode & 0b111) << 1;
 
+#ifdef IC_CONFIG_DMA_CACHE_FLUSH_ENABLE
+    SCB_CleanInvalidateDCache_by_Addr((void *)data, size);
+#endif
+
     /* Configure input data. Size is in words */
     p_integrity_checker->icda = remap_addr(dev, (uintptr_t)data);
     p_integrity_checker->icdl = size / INTEGRITY_CHECKER_REQUIRED_ALIGNMENT;
+
+#ifdef IC_CONFIG_DMA_CACHE_FLUSH_ENABLE
+    SCB_CleanInvalidateDCache_by_Addr(value_ptr, mode_sizes[mode]);
+#endif
 
     /* Set compare address */
     p_integrity_checker->iceva = remap_addr(dev, (uintptr_t)value_ptr);
