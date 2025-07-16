@@ -205,22 +205,27 @@ static enum tfm_plat_err_t set_tp_mode(void)
 
 static enum tfm_plat_err_t setup_correct_key(bool is_cm)
 {
+    static bool master_key_is_setup = false;
     enum tfm_plat_err_t err;
     uint8_t *label;
     uint8_t label_len;
     uint8_t context = 0;
 
-    if (is_cm) {
-        label = (uint8_t *)"KMASTER_CM";
-        label_len = sizeof("KMASTER_CM");
-    } else {
-        label = (uint8_t *)"KMASTER_DM";
-        label_len = sizeof("KMASTER_DM");
-    }
+    if (!master_key_is_setup) {
+        if (is_cm) {
+            label = (uint8_t *)"KMASTER_CM";
+            label_len = sizeof("KMASTER_CM");
+        } else {
+            label = (uint8_t *)"KMASTER_DM";
+            label_len = sizeof("KMASTER_DM");
+        }
 
-    err = rse_setup_master_key(label, label_len, &context, sizeof(context));
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
+        err = rse_setup_master_key(label, label_len, &context, sizeof(context));
+        if (err != TFM_PLAT_ERR_SUCCESS) {
+            return err;
+        }
+
+        master_key_is_setup = true;
     }
 
     if (is_cm) {
@@ -822,12 +827,10 @@ void rse_bl1_provisioning_test_0201(struct test_result_t *ret)
     TEST_ASSERT(setup_correct_key(true) == TFM_PLAT_ERR_SUCCESS,
                 "CM Key derivation should work in secure provisioning mode");
     TEST_TEARDOWN(test_teardown(RSE_KMU_SLOT_PROVISIONING_KEY, NULL));
-    TEST_TEARDOWN(kmu_set_slot_invalid(&KMU_DEV_S, RSE_KMU_SLOT_MASTER_KEY))
 
     TEST_ASSERT(setup_correct_key(false) == TFM_PLAT_ERR_SUCCESS,
                 "DM Key derivation should work in secure provisioning mode");
     TEST_TEARDOWN(test_teardown(RSE_KMU_SLOT_PROVISIONING_KEY, NULL));
-    TEST_TEARDOWN(kmu_set_slot_invalid(&KMU_DEV_S, RSE_KMU_SLOT_MASTER_KEY));
 
     ret->val = TEST_PASSED;
     return;
@@ -1098,7 +1101,6 @@ static void provisioning_test_complete_valid_blob(
                             "\nProvisioning should return with the value the blob returns");
 
                 TEST_TEARDOWN(test_teardown(RSE_KMU_SLOT_PROVISIONING_KEY, test_blob));
-                TEST_TEARDOWN(kmu_set_slot_invalid(&KMU_DEV_S, RSE_KMU_SLOT_MASTER_KEY));
             }
         }
     }
@@ -1241,7 +1243,6 @@ static void provisioning_test_invalid_public_key_in_blob(struct test_result_t *r
                 "Provisioning should have failed due to invalid hash value");
 
     TEST_TEARDOWN(test_teardown(RSE_KMU_SLOT_PROVISIONING_KEY, test_blob));
-    TEST_TEARDOWN(kmu_set_slot_invalid(&KMU_DEV_S, RSE_KMU_SLOT_MASTER_KEY));
 
     ret->val = TEST_PASSED;
     return;
