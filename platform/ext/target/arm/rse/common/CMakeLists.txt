@@ -53,7 +53,6 @@ target_compile_definitions(platform_region_defs
         TFM_UNIQUE_ERROR_CODES=1
         LCM_VERSION=0
         RSE_TP_MODE=LCM_TP_MODE_${RSE_TP_MODE}
-        RSE_TESTS_TP_MODE=LCM_TP_MODE_${RSE_TESTS_TP_MODE}
         LCM_DCU_PARITY
         $<$<BOOL:${PLAT_MHU_VERSION}>:PLAT_MHU_VERSION=${PLAT_MHU_VERSION}>
         $<$<BOOL:${RSE_BL1_TEST_BINARY}>:RSE_BL1_TEST_BINARY>

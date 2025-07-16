@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+ * Copyright (c) 2024-2025, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -18,8 +18,20 @@ void rse_test_virgin_to_tci_or_pci(struct test_result_t *ret)
 {
     enum lcm_tp_mode_t tp_mode;
     enum lcm_error_t lcm_err;
+    cc3xx_err_t cc_err;
+    uint32_t random_word;
 
-    tp_mode = RSE_TESTS_TP_MODE;
+    cc_err = cc3xx_lowlevel_rng_get_random(&random_word, sizeof(random_word), CC3XX_RNG_DRBG);
+    if (cc_err != CC3XX_ERR_SUCCESS) {
+        TEST_FAIL("RNG coin flip failed");
+        return;
+    }
+
+    if (random_word & 0b1) {
+        tp_mode = LCM_TP_MODE_PCI;
+    } else {
+        tp_mode = LCM_TP_MODE_TCI;
+    }
 
     printf_set_color(MAGENTA);
     TEST_LOG("Entering %s mode\r\n", tp_mode == LCM_TP_MODE_PCI ? "PCI" : "TCI");

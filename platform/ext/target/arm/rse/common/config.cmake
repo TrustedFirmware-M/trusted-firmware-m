@@ -154,9 +154,6 @@ set(RSE_DM_BLOB_VERSION                     0          CACHE STRING "Version of 
 
 # Specific BL1_1 provisioning tests configuration
 if (TEST_BL1_1)
-    # This is distinct from RSE_TP_MODE in that RSE_TP_MODE sets the default TP mode for the ROM binary. This leaves the ROM binary the same
-    # and only modifies the TP mode that the RSE enters before running the tests
-    set(RSE_TESTS_TP_MODE                          TCI    CACHE STRING "Whether to use Test or Production mode when running RSE tests")
     set(RSE_PROVISIONING_ENABLE_AES_SIGNATURES     ON     CACHE BOOL "Allow AES signatures")
     set(RSE_PROVISIONING_ENABLE_ECDSA_SIGNATURES   ON     CACHE BOOL "Allow ECDSA signatures")
     set(RSE_PROVISIONING_CURVE                     P384   CACHE STRING "Curve used to validate blobs")
