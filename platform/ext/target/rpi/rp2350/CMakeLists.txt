@@ -183,7 +183,7 @@ target_link_libraries(platform_s
 
 target_sources(platform_s
     INTERFACE
-        $<$<STREQUAL:"${TFM_FIH_PROFILE}","HIGH">:${PLATFORM_DIR}/ext/common/template/tfm_fih_rng.c>
+        $<$<STREQUAL:"${TFM_FIH_PROFILE}","HIGH">:${PLATFORM_DIR}/ext/common/template/tfm_fih_platform.c>
     PRIVATE
         cmsis_drivers/Driver_Flash_RPI.c
         cmsis_drivers/Driver_USART_RPI.c

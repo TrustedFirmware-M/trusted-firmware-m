@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2020, Linaro. All rights reserved.
 # Copyright 2021-2024 NXP. All rights reserved.
 #
@@ -87,7 +87,7 @@ target_include_directories(platform_s
 
 target_sources(platform_s
     INTERFACE
-        $<$<STREQUAL:"${TFM_FIH_PROFILE}","HIGH">:${PLATFORM_DIR}/ext/common/template/tfm_fih_rng.c>
+        $<$<STREQUAL:"${TFM_FIH_PROFILE}","HIGH">:${PLATFORM_DIR}/ext/common/template/tfm_fih_platform.c>
     PRIVATE
         ${NXP_COMMON_DIR}/CMSIS_Driver/Driver_Flash_iap1.c
         ${NXP_COMMON_DIR}/CMSIS_Driver/Driver_USART.c

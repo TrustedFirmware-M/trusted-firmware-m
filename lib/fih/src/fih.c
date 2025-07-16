@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2024 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -12,55 +12,68 @@
 #include "tfm_hal_defs.h"
 #include "tfm_hal_platform.h"
 #ifdef FIH_ENABLE_DELAY
-#include "tfm_fih_rng.h"
+#include "tfm_fih_platform.h"
 #endif
 
-#ifdef TFM_FIH_PROFILE_ON
-fih_int FIH_SUCCESS = FIH_INT_INIT(FIH_POSITIVE_VALUE);
-fih_int FIH_FAILURE = FIH_INT_INIT(FIH_NEGATIVE_VALUE);
-#endif
+#ifdef FIH_ENABLE_DOUBLE_VARS
+
+/* A volatile mask is used to prevent compiler optimization - the mask is xored
+ * with the variable to create the backup and the integrity can be checked with
+ * another xor. The mask value doesn't _really_ matter that much, as long as
+ * it has reasonably high hamming weight.
+ */
+#define _FIH_MASK_VALUE 0xBEEF
+
+/* Variable that could be (but isn't) changed at runtime to force the compiler
+ * not to optimize the double check. Value doesn't matter.
+ */
+volatile int _fih_mask = _FIH_MASK_VALUE;
+#endif /* FIH_ENABLE_DOUBLE_VARS */
+
+#define _FIH_RET_MASK_VALUE 0xA5A5A5A5
+volatile int _fih_ret_mask = _FIH_RET_MASK_VALUE;
+
+fih_ret FIH_SUCCESS = FIH_POSITIVE_VALUE;
+fih_ret FIH_FAILURE = FIH_NEGATIVE_VALUE;
+fih_ret FIH_NO_BOOTABLE_IMAGE = FIH_CONST1;
+fih_ret FIH_BOOT_HOOK_REGULAR = FIH_CONST2;
 
 #ifdef FIH_ENABLE_CFI
-fih_int _fih_cfi_ctr = FIH_INT_INIT(0);
 
-fih_int fih_cfi_get_and_increment(uint8_t cnt)
+#ifdef FIH_ENABLE_DOUBLE_VARS
+fih_int _fih_cfi_ctr = {0, 0 ^ _FIH_MASK_VALUE};
+#else
+fih_int _fih_cfi_ctr = {0};
+#endif /* FIH_ENABLE_DOUBLE_VARS */
+
+/* Increment the CFI counter by one, and return the value before the increment.
+ */
+fih_int fih_cfi_get_and_increment(void)
 {
-    fih_int saved_ctr = _fih_cfi_ctr;
-
-    if (fih_int_decode(_fih_cfi_ctr) < 0) {
-        FIH_PANIC;
-    }
-
-    /* Overflow */
-    if (fih_int_decode(_fih_cfi_ctr) > (fih_int_decode(_fih_cfi_ctr) + cnt)) {
-        FIH_PANIC;
-    }
-
-    _fih_cfi_ctr = fih_int_encode(fih_int_decode(_fih_cfi_ctr) + cnt);
-
-    (void)fih_int_validate(_fih_cfi_ctr);
-    (void)fih_int_validate(saved_ctr);
-
-    return saved_ctr;
+    fih_int saved = _fih_cfi_ctr;
+    _fih_cfi_ctr = fih_int_encode(fih_int_decode(saved) + 1);
+    return saved;
 }
 
+/* Validate that the saved precall value is the same as the value of the global
+ * counter. For this to be the case, a fih_ret must have been called between
+ * these functions being executed. If the values aren't the same then panic.
+ */
 void fih_cfi_validate(fih_int saved)
 {
-    if (fih_not_eq(saved, _fih_cfi_ctr)) {
+    if (fih_int_decode(saved) != fih_int_decode(_fih_cfi_ctr)) {
         FIH_PANIC;
     }
 }
 
+/* Decrement the global CFI counter by one, so that it has the same value as
+ * before the cfi_precall
+ */
 void fih_cfi_decrement(void)
 {
-    if (fih_int_decode(_fih_cfi_ctr) < 1) {
-        FIH_PANIC;
-    }
-
     _fih_cfi_ctr = fih_int_encode(fih_int_decode(_fih_cfi_ctr) - 1);
-
-    (void)fih_int_validate(_fih_cfi_ctr);
 }
+
 #endif /* FIH_ENABLE_CFI */
 
 #ifdef FIH_ENABLE_GLOBAL_FAIL
@@ -85,42 +98,6 @@ void fih_panic_loop(void)
     /* An infinite loop to suppress compiler warnings
      * about the return of a noreturn function
      */
-    while(1) {
-    };
+    while(1) {}
 }
 #endif /* FIH_ENABLE_GLOBAL_FAIL */
-
-#ifdef FIH_ENABLE_DELAY
-void fih_delay_init(void)
-{
-    fih_int ret = FIH_FAILURE;
-
-    ret = tfm_fih_random_init();
-
-#ifdef FIH_ENABLE_DOUBLE_VARS
-    if (ret.val != FIH_SUCCESS.val) {
-        FIH_PANIC;
-    }
-
-    if (ret.msk != FIH_SUCCESS.msk) {
-        FIH_PANIC;
-    }
-#else /* FIH_ENABLE_DOUBLE_VARS */
-    if (ret != FIH_SUCCESS) {
-        FIH_PANIC;
-    }
-#endif /* FIH_ENABLE_DOUBLE_VARS */
-}
-
-uint8_t fih_delay_random(void)
-{
-    uint8_t rand_value = 0xFF;
-
-    /* Repeat random generation to mitigate instruction skip */
-    tfm_fih_random_generate(&rand_value);
-    tfm_fih_random_generate(&rand_value);
-    tfm_fih_random_generate(&rand_value);
-
-    return rand_value;
-}
-#endif /* FIH_ENABLE_DELAY */

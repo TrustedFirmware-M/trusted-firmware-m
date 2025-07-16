@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -8,10 +8,10 @@
 cmake_minimum_required(VERSION 3.21)
 
 add_library(tfm_fih_headers INTERFACE)
-add_library(tfm_fih STATIC)
+add_library(tfm_fih INTERFACE)
 
 target_sources(tfm_fih
-    PRIVATE
+    INTERFACE
         src/fih.c
 )
 
@@ -21,16 +21,10 @@ target_include_directories(tfm_fih_headers
 )
 
 target_link_libraries(tfm_fih
-    PUBLIC
+    INTERFACE
         tfm_fih_headers
         platform_common_interface
         cmsis
-)
-
-target_compile_definitions(tfm_fih_headers
-    INTERFACE
-        TFM_FIH_PROFILE_${TFM_FIH_PROFILE}
-        $<$<NOT:$<STREQUAL:${TFM_FIH_PROFILE},OFF>>:TFM_FIH_PROFILE_ON>
 )
 
 target_compile_options(tfm_fih_headers

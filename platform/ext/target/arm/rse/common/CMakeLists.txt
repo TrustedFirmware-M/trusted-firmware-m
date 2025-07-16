@@ -216,6 +216,7 @@ target_sources(platform_s
         native_drivers/atu_rse_drv.c
         native_drivers/atu_rse_lib.c
         device/source/atu_config.c
+        ${PLATFORM_DIR}/ext/common/template/tfm_fih_platform.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/dma/dma350/dma350_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/dma/dma350/dma350_ch_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/kmu/kmu_drv.c
@@ -490,11 +491,11 @@ target_sources(platform_bl1_1
         ./cc3xx/cc3xx_aes_external_key_loader.c
         $<$<BOOL:${RSE_ENABLE_BRINGUP_HELPERS}>:${CMAKE_CURRENT_SOURCE_DIR}/bringup_helpers/rse_bringup_helpers.c>
         ./bl1/rse_kmu_keys.c
-        $<$<BOOL:${TFM_BL1_FIH_ENABLE}>:${CMAKE_CURRENT_SOURCE_DIR}/bl1/rse_fih.c>
         ./rse_boot_state.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/gpio/pl061/gpio_pl061_drv.c
         ./platform_fatal_error.c
         $<$<NOT:$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>>:${CMAKE_CURRENT_SOURCE_DIR}/bl1/cc3xx/cc3xx_rom_crypto.c>
+        ${CMAKE_CURRENT_SOURCE_DIR}/bl1/bl1_fih_platform.c
         ${CMAKE_CURRENT_SOURCE_DIR}/bl1/cc3xx/cc3xx_rom_random.c
         $<$<BOOL:${RSE_OTP_TRNG}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_trng.c>
         ${PLATFORM_DIR}/ext/target/arm/drivers/sam/sam_drv.c
@@ -642,6 +643,7 @@ target_sources(bl1_1
 
 target_sources(platform_bl1_2
     PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/bl1/bl1_fih_platform.c
         $<$<BOOL:${RSE_DEFAULT_CLOCK_CONFIG}>:${CMAKE_CURRENT_SOURCE_DIR}/device/source/rse_clocks.c>
         device/source/system_core_init.c
         ./bl1/boot_hal_bl1_2.c

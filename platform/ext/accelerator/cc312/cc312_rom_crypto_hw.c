@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -20,9 +20,4 @@ int crypto_hw_accelerator_init(void)
 int crypto_hw_accelerator_finish(void)
 {
     return cc3xx_lowlevel_uninit();
-}
-
-int fih_delay_init(void)
-{
-    return 0;
 }
