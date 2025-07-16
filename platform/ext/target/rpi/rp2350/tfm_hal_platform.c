@@ -19,6 +19,11 @@
 #include "hardware/structs/sio.h"
 #endif
 
+#ifdef TFM_PARTITION_DTPM_CLIENT
+#include "hardware/gpio.h"
+#include "spi/spi.h"
+#endif /*TFM_PARTITION_DTPM_CLIENT*/
+
 #if defined(TFM_PARTITION_SLIH_TEST) || defined(TFM_PARTITION_FLIH_TEST)
 #include "hardware/irq.h"
 extern void tfm_plat_test_secure_timer_irq_handler(void);
@@ -70,6 +75,10 @@ const struct memory_region_limits memory_regions = {
 #endif /* BL2 */
 };
 
+#ifdef TFM_PARTITION_DTPM_CLIENT
+struct spi_plat *spidev;
+#endif /*TFM_PARTITION_DTPM_CLIENT*/
+
 extern __NO_RETURN void MemManage_Handler(void);
 extern __NO_RETURN void BusFault_Handler(void);
 extern __NO_RETURN void UsageFault_Handler(void);
@@ -91,6 +100,20 @@ enum tfm_hal_status_t tfm_hal_platform_init(void)
 #ifdef PSA_API_TEST_IPC
     irq_set_exclusive_handler(FF_TEST_UART_IRQ, FF_TEST_UART_IRQ_Handler);
 #endif
+
+#ifdef TFM_PARTITION_DTPM_CLIENT
+    struct spi_gpio_data spi_data = {
+        .cs_gpio = CS_GPIO,
+        .miso_gpio = MISO_GPIO,
+        .mosi_gpio = MOSI_GPIO,
+        .sclk_gpio = SCLK_GPIO,
+        .reset_gpio = RESET_GPIO,
+        .spi_mode = SPI_MODE,
+        .spi_delay_us = SPI_DELAY_US,
+    };
+
+    spidev = spi_platform_init(&spi_data);
+#endif /*TFM_PARTITION_DTPM_CLIENT*/
 
     /* Reset everything apart from ROSC and XOSC */
     hw_set_bits(&psm_hw->wdsel, PSM_WDSEL_BITS & ~(PSM_WDSEL_ROSC_BITS | PSM_WDSEL_XOSC_BITS));

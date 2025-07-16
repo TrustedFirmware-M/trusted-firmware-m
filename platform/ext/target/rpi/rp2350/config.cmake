@@ -56,7 +56,20 @@ set(PLATFORM_DEFAULT_CRYPTO_KEYS        OFF          CACHE BOOL      "Use defaul
 
 set(PS_NS_NV_COUNTER_IN_ITS             ON           CACHE BOOL      "Use ITS for PS and NS NV counters.")
 
+set(TFM_PARTITION_DTPM_CLIENT           OFF          CACHE BOOL      "Enable dTPM client partition")
+
 set(TFM_PARTITION_MEASURED_BOOT         OFF           CACHE BOOL  "Enable Measured Boot partition")
+
+if (TFM_PARTITION_DTPM_CLIENT)
+    set(TFM_PARTITION_MEASURED_BOOT          ON)
+    set(CS_GPIO       25  CACHE STRING "CS GPIO pin number")
+    set(MISO_GPIO     23  CACHE STRING "MISO GPIO pin number")
+    set(MOSI_GPIO     20  CACHE STRING "MOSI GPIO pin number")
+    set(SCLK_GPIO     22  CACHE STRING "SCLK GPIO pin number")
+    set(RESET_GPIO    5   CACHE STRING "RESET GPIO pin number")
+    set(SPI_MODE      0   CACHE STRING "SPI mode")
+    set(SPI_DELAY_US 1000 CACHE STRING "SPI delay (us)")
+endif()
 
 set(MEASURED_BOOT_HASH_ALG              SHA256     CACHE STRING "Hash algorithm used by Measured boot services")
 
@@ -68,6 +81,6 @@ else()
 endif()
 set(TFM_MANIFEST_LIST                   ${TFM_RP2350_MANIFEST_LIST} CACHE PATH "Platform specific Secure Partition manifests file" FORCE)
 
-set(TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST "partitions/measured_boot/measured_boot_manifest_list.yaml" CACHE STRING "List of extra secure partition manifests")
+set(TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST "partitions/measured_boot/measured_boot_manifest_list.yaml;partitions/dtpm_client/dtpm_client_manifest_list.yaml" CACHE STRING "List of extra secure partition manifests")
 
-set(TFM_EXTRAS_REPO_EXTRA_PARTITIONS    "measured_boot" CACHE STRING "List of extra secure partition directory name(s)")
+set(TFM_EXTRAS_REPO_EXTRA_PARTITIONS    "measured_boot;dtpm_client" CACHE STRING "List of extra secure partition directory name(s)")

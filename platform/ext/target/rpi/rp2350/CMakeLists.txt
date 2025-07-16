@@ -155,6 +155,8 @@ target_include_directories(platform_s
         partition
         device/config
         ${PLATFORM_DIR}/..
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/tpm_client>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/spi>
     INTERFACE
         ${PLATFORM_DIR}/../interface/include
 )
@@ -173,6 +175,8 @@ target_link_libraries(platform_s
         hardware_regs
         hardware_flash
         hardware_uart
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:hardware_spi>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:hardware_gpio>
         cmsis_core
         tfm_sprt
 )
@@ -188,6 +192,11 @@ target_sources(platform_s
 
         rpi_trng.c
 
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${CMAKE_CURRENT_SOURCE_DIR}/dtpm_spi.c>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/tpm_client/tpm2_cmds.c>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/tpm_client/tpm2_chip.c>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/tpm_client/tpm2_fifo.c>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/tpm_client/tpm2_fifo_spi.c>
         $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_ATTEST_HAL}>>:${CMAKE_CURRENT_SOURCE_DIR}/attest_hal.c>
         $<$<OR:$<BOOL:${TFM_S_REG_TEST}>,$<BOOL:${TFM_NS_REG_TEST}>>:${CMAKE_CURRENT_SOURCE_DIR}/plat_test.c>
         $<$<BOOL:${TFM_PARTITION_PLATFORM}>:${CMAKE_CURRENT_SOURCE_DIR}/services/src/tfm_platform_system.c>
@@ -212,6 +221,13 @@ target_compile_definitions(platform_s
         $<$<BOOL:${TEST_S_FPU}>:TEST_S_FPU>
         $<$<BOOL:${ITS_ENCRYPTION}>:ITS_ENCRYPTION>
         $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:TFM_MULTI_CORE_TOPOLOGY>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:CS_GPIO=${CS_GPIO}>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:MISO_GPIO=${MISO_GPIO}>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:MOSI_GPIO=${MOSI_GPIO}>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:SCLK_GPIO=${SCLK_GPIO}>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:RESET_GPIO=${RESET_GPIO}>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:SPI_MODE=${SPI_MODE}>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:SPI_DELAY_US=${SPI_DELAY_US}>
 )
 
 # GNU Arm compiler version greater equal than *11.3.Rel1*
