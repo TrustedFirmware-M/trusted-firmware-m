@@ -5,8 +5,8 @@
  *
  */
 
-#ifndef __RSE_COMMS_H__
-#define __RSE_COMMS_H__
+#ifndef __RSE_COMMS_CLIENT_REQUEST_H__
+#define __RSE_COMMS_CLIENT_REQUEST_H__
 
 #include "psa/client.h"
 #include "cmsis_compiler.h"
@@ -46,4 +46,4 @@ struct client_request_t {
 }
 #endif
 
-#endif /* __RSE_COMMS_H__ */
+#endif /* __RSE_COMMS_CLIENT_REQUEST_H__ */

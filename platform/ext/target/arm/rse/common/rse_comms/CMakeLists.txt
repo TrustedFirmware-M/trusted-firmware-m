@@ -12,7 +12,7 @@ target_include_directories(platform_s
 
 target_sources(platform_s
     PRIVATE
-        rse_comms.c
+        rse_comms_runtime_inter_core_comm.c
         rse_comms_runtime_hal.c
         rse_comms_queue.c
         rse_comms_protocol.c

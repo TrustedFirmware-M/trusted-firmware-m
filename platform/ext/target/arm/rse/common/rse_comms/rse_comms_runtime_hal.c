@@ -7,7 +7,7 @@
 
 #include "rse_comms_runtime_hal.h"
 
-#include "rse_comms.h"
+#include "rse_comms_client_request.h"
 #include "rse_comms_queue.h"
 #include "mhu.h"
 #include "tfm_hal_device_header.h"

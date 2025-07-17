@@ -7,7 +7,7 @@
  *
  */
 
-#include "rse_comms.h"
+#include "rse_comms_client_request.h"
 
 #include <stddef.h>
 #include <stdint.h>

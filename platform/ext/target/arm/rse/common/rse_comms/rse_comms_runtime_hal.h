@@ -8,7 +8,7 @@
 #ifndef __RSE_COMMS_RUNTIME_HAL_H__
 #define __RSE_COMMS_RUNTIME_HAL_H__
 
-#include "rse_comms.h"
+#include "rse_comms_client_request.h"
 #include "tfm_plat_defs.h"
 
 #ifdef __cplusplus

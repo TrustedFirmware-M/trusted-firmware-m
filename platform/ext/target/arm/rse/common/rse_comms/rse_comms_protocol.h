@@ -10,7 +10,7 @@
 
 #include "psa/client.h"
 #include "cmsis_compiler.h"
-#include "rse_comms.h"
+#include "rse_comms_client_request.h"
 #include "tfm_platform_system.h"
 
 #ifdef RSE_COMMS_PROTOCOL_EMBED_ENABLED
