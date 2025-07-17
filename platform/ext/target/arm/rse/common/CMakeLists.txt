@@ -259,6 +259,7 @@ target_sources(platform_s
         $<$<BOOL:${PLATFORM_PSA_ADAC_SECURE_DEBUG}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_debug_after_reset.c>
         ./rse_permanently_disable_device.c
         ./rse_zero_count.c
+        ./rse_zero_count_regions.c
         ./rse_persistent_data.c
         ./dpa_hardened_word_copy.c
         $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/src/dcsu_drv.c>
@@ -385,6 +386,7 @@ target_sources(platform_bl2
         $<$<BOOL:${RSE_BL2_ENABLE_IMAGE_STAGING}>:${CMAKE_CURRENT_SOURCE_DIR}/cmsis_drivers/Driver_Flash_memcpy.c>
         ./rse_permanently_disable_device.c
         ./rse_zero_count.c
+        ./rse_zero_count_regions.c
         ./cc3xx/cc3xx_aes_external_key_loader.c
         ./dpa_hardened_word_copy.c
         ./rse_persistent_data.c
@@ -508,6 +510,7 @@ target_sources(platform_bl1_1
         ./bl1/bl1_1_debug.c
         ./rse_permanently_disable_device.c
         ./rse_zero_count.c
+        ./rse_zero_count_regions.c
         ./rse_persistent_data.c
         $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/src/dcsu_drv.c>
         $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>

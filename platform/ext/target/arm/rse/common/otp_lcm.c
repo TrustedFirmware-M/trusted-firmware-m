@@ -14,6 +14,7 @@
 #include "fatal_error.h"
 #include "rse_permanently_disable_device.h"
 #include "rse_zero_count.h"
+#include "rse_zero_count_regions.h"
 
 #ifdef RSE_ENCRYPTED_OTP_KEYS
 #include "cc3xx_drv.h"
@@ -439,15 +440,16 @@ static enum tfm_plat_err_t setup_rotpk_info(enum lcm_lcs_t lcs) {
         return TFM_PLAT_ERR_OTP_INIT_CM_ROTPK_REPROVISIONING_COUNTER_EXCEEDED;
     }
 
-    cm_rotpk_area_info.offset = cm_area_info.offset + offsetof(struct rse_otp_cm_area_t, rotpk_areas)
-                                + cm_rotpk_area_index * sizeof(struct rse_otp_cm_rotpk_area_t);
+    cm_rotpk_area_info.offset = cm_area_info.offset + cm_area_info.size
+            - sizeof(P_RSE_OTP_CM->rotpk_areas)
+            + sizeof(struct rse_otp_cm_rotpk_area_t) * cm_rotpk_area_index;
     cm_rotpk_area_info.size = sizeof(struct rse_otp_cm_rotpk_area_t);
 
-    err = rse_check_zero_bit_count((uint8_t *)&P_RSE_OTP_CM_ROTPK->zero_count + sizeof(uint32_t),
-                                   cm_rotpk_area_info.size - sizeof(uint32_t),
-                                   P_RSE_OTP_CM_ROTPK->zero_count);
+    err = rse_zc_region_check_zero_count(ZC_OTP_CM_ROTPK_AREA, false);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         cm_rotpk_area_info.raw_data = 0;
+        FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_CM_ROTPK_ZERO_COUNT_ERR);
+        return TFM_PLAT_ERR_OTP_INIT_CM_ROTPK_ZERO_COUNT_ERR;
     } else {
         for (uint32_t idx = 0; idx < RSE_OTP_CM_ROTPK_AMOUNT; idx++) {
             struct otp_mapping_t mapping = ROTPK_AREA_MAPPING(cm, rotpk[idx]);
@@ -458,6 +460,7 @@ static enum tfm_plat_err_t setup_rotpk_info(enum lcm_lcs_t lcs) {
 #endif /* RSE_OTP_HAS_CM_AREA */
 
 #ifdef RSE_OTP_HAS_DM_AREA
+
 #if RSE_OTP_DM_ROTPK_MAX_REVOCATIONS > 0
     err = get_bit_counter_counter_value((uint32_t *)P_RSE_OTP_DYNAMIC->dm_rotpk_revocation,
                                         sizeof(P_RSE_OTP_DYNAMIC->dm_rotpk_revocation),
@@ -467,7 +470,7 @@ static enum tfm_plat_err_t setup_rotpk_info(enum lcm_lcs_t lcs) {
     }
 #else
     dm_rotpk_area_index = 0;
-#endif
+#endif /* RSE_OTP_DM_ROTPK_MAX_REVOCATIONS > 0 */
 
     if (dm_rotpk_area_index >= RSE_OTP_DM_ROTPK_MAX_REVOCATIONS + 1) {
         FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_DM_ROTPK_REPROVISIONING_COUNTER_EXCEEDED);
@@ -475,13 +478,12 @@ static enum tfm_plat_err_t setup_rotpk_info(enum lcm_lcs_t lcs) {
         return TFM_PLAT_ERR_OTP_INIT_DM_ROTPK_REPROVISIONING_COUNTER_EXCEEDED;
     }
 
-    dm_rotpk_area_info.offset = dm_area_info.offset + offsetof(struct rse_otp_dm_area_t, rotpk_areas)
-                                + dm_rotpk_area_index * sizeof(struct rse_otp_dm_rotpk_area_t);
+    dm_rotpk_area_info.offset = dm_area_info.offset + dm_area_info.size
+                - sizeof(P_RSE_OTP_DM->rotpk_areas)
+                + sizeof(struct rse_otp_dm_rotpk_area_t) * dm_rotpk_area_index;
     dm_rotpk_area_info.size = sizeof(struct rse_otp_dm_rotpk_area_t);
 
-    err = rse_check_zero_bit_count(((uint8_t *)&P_RSE_OTP_DM_ROTPK->zero_count) + sizeof(uint32_t),
-                                   dm_rotpk_area_info.size - sizeof(uint32_t),
-                                   P_RSE_OTP_DM_ROTPK->zero_count);
+    err = rse_zc_region_check_zero_count(ZC_OTP_DM_ROTPK_AREA, false);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         dm_rotpk_area_info.raw_data = 0;
     } else {
@@ -531,40 +533,34 @@ static enum tfm_plat_err_t check_areas_for_tampering(enum lcm_lcs_t lcs)
 {
     enum tfm_plat_err_t err;
 
-    if (lcs == LCM_LCS_CM || lcs == LCM_LCS_RMA) {
+    if (lcs == LCM_LCS_RMA || lcs == LCM_LCS_CM) {
         return TFM_PLAT_ERR_SUCCESS;
     }
 
 #ifdef RSE_OTP_HAS_CM_AREA
-    err = rse_check_zero_bit_count((uint8_t *)&P_RSE_OTP_CM->zero_count + sizeof(uint32_t),
-                                   cm_area_info.size - sizeof(uint32_t) - sizeof(P_RSE_OTP_CM->rotpk_areas),
-                                   P_RSE_OTP_CM->zero_count);
+    err = rse_zc_region_check_zero_count(ZC_OTP_CM_AREA, false);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
         FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_CM_ZERO_COUNT_ERR);
-        return err;
+        return TFM_PLAT_ERR_OTP_INIT_CM_ZERO_COUNT_ERR;
     }
 #endif /* RSE_OTP_HAS_CM_AREA */
 
 #ifdef RSE_OTP_HAS_BL1_2
-    err = rse_check_zero_bit_count((uint8_t *)&P_RSE_OTP_BL1_2->zero_count + sizeof(uint32_t),
-                                   bl1_2_area_info.size - sizeof(uint32_t),
-                                   P_RSE_OTP_BL1_2->zero_count);
+    err = rse_zc_region_check_zero_count(ZC_OTP_BL1_2_AREA, false);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
         FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_BL1_2_ZERO_COUNT_ERR);
-        return err;
+        return TFM_PLAT_ERR_OTP_INIT_BL1_2_ZERO_COUNT_ERR;
     }
 #endif /* RSE_OTP_HAS_BL1_2 */
 
 #ifdef RSE_OTP_HAS_SOC_AREA
-    err = rse_check_zero_bit_count((uint8_t *)&P_RSE_OTP_SOC->soc_id_area.unique_id,
-                                   sizeof(P_RSE_OTP_SOC->soc_id_area.unique_id),
-                                   P_RSE_OTP_SOC->soc_id_area.zero_count_unique_id);
+    err = rse_zc_region_check_zero_count(ZC_OTP_SOC_AREA_UID, true);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
         FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_SOC_ZERO_COUNT_ERR);
-        return err;
+        return TFM_PLAT_ERR_OTP_INIT_SOC_ZERO_COUNT_ERR;
     }
 #endif /* RSE_OTP_HAS_SOC_AREA */
 
@@ -574,14 +570,11 @@ static enum tfm_plat_err_t check_areas_for_tampering(enum lcm_lcs_t lcs)
     }
 
 #ifdef RSE_OTP_HAS_DM_AREA
-    err = rse_check_zero_bit_count((uint8_t *)&P_RSE_OTP_DM->zero_count + sizeof(uint32_t),
-                                   dm_area_info.size - sizeof(uint32_t) - sizeof(P_RSE_OTP_DM->rotpk_areas),
-                                   P_RSE_OTP_DM->zero_count);
-    if ((err != TFM_PLAT_ERR_SUCCESS)
-        && (P_RSE_OTP_DM->zero_count != 8 * sizeof(uint32_t))) {
+    err = rse_zc_region_check_zero_count(ZC_OTP_DM_AREA, true);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
         rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
         FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_DM_ZERO_COUNT_ERR);
-        return err;
+        return TFM_PLAT_ERR_OTP_INIT_DM_ZERO_COUNT_ERR;
     }
 #endif /* RSE_OTP_HAS_DM_AREA */
 
@@ -641,81 +634,50 @@ static enum tfm_plat_err_t otp_read_lcs(size_t out_len, uint8_t *out)
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-static enum tfm_plat_err_t calc_write_zero_count(uintptr_t buf, size_t buf_len,
-                                                 uintptr_t otp_zero_count_ptr)
+static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
 {
     enum tfm_plat_err_t err;
     enum lcm_error_t lcm_err;
     uint32_t zero_count;
-
-    err = rse_count_zero_bits((uint8_t *)buf, buf_len, &zero_count);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
-    }
-
-    lcm_err = lcm_otp_write(&LCM_DEV_S, otp_zero_count_ptr - OTP_BASE_S, sizeof(zero_count),
-                            (uint8_t *)&zero_count);
-    if (lcm_err != LCM_ERROR_NONE) {
-        return (enum tfm_plat_err_t)lcm_err;
-    }
-
-    return TFM_PLAT_ERR_SUCCESS;
-}
-
-static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
-{
-    enum tfm_plat_err_t err;
     enum lcm_lcs_t dm_dynamic_area_lcs;
 
     if (new_lcs == LCM_LCS_DM) {
 #if defined(RSE_OTP_HAS_CM_AREA)
-        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_HEADER->cm_area_info.raw_data,
-                                    sizeof(P_RSE_OTP_HEADER->cm_area_info.raw_data),
-                                    (uintptr_t)&P_RSE_OTP_HEADER->cm_area_info_zero_count);
+        err = rse_zc_region_write_zero_count(ZC_OTP_HEADER_CM_AREA);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
         }
 
         cm_area_info.raw_data = P_RSE_OTP_HEADER->cm_area_info.raw_data;
-        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_CM->zero_count + sizeof(uint32_t),
-                                    cm_area_info.size - sizeof(uint32_t) -
-                                        sizeof(P_RSE_OTP_CM->rotpk_areas),
-                                    (uintptr_t)&P_RSE_OTP_CM->zero_count);
+        err = rse_zc_region_write_zero_count(ZC_OTP_CM_AREA);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
         }
-
-        cm_rotpk_area_info.offset = cm_area_info.offset + offsetof(struct rse_otp_cm_area_t, rotpk_areas);
+        cm_rotpk_area_info.offset = cm_area_info.offset + cm_area_info.size
+                - sizeof(P_RSE_OTP_CM->rotpk_areas);
         cm_rotpk_area_info.size = sizeof(struct rse_otp_cm_rotpk_area_t);
-        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_CM_ROTPK->zero_count + sizeof(uint32_t),
-                                    cm_rotpk_area_info.size - sizeof(uint32_t),
-                                    (uintptr_t)&P_RSE_OTP_CM_ROTPK->zero_count);
+
+        err = rse_zc_region_write_zero_count(ZC_OTP_CM_ROTPK_AREA);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
         }
-#endif /* RSE_OTP_HAS_CM_AREA */
+    #endif
 
 #if defined(RSE_OTP_HAS_BL1_2)
-        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_HEADER->bl1_2_area_info.raw_data,
-                                    sizeof(P_RSE_OTP_HEADER->bl1_2_area_info.raw_data),
-                                    (uintptr_t)&P_RSE_OTP_HEADER->bl1_2_area_info_zero_count);
+        err = rse_zc_region_write_zero_count(ZC_OTP_HEADER_BL1_2_AREA);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
         }
 
         bl1_2_area_info.raw_data = P_RSE_OTP_HEADER->bl1_2_area_info.raw_data;
-        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_BL1_2->zero_count + sizeof(uint32_t),
-                                    bl1_2_area_info.size - sizeof(uint32_t),
-                                    (uintptr_t)&P_RSE_OTP_BL1_2->zero_count);
+        err = rse_zc_region_write_zero_count(ZC_OTP_BL1_2_AREA);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
         }
 #endif /* RSE_OTP_HAS_BL1_2 */
 
 #if defined(RSE_OTP_HAS_SOC_AREA)
-        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_HEADER->soc_area_info.raw_data,
-                                    sizeof(P_RSE_OTP_HEADER->soc_area_info.raw_data),
-                                    (uintptr_t)&P_RSE_OTP_HEADER->soc_area_info_zero_count);
+        err = rse_zc_region_write_zero_count(ZC_OTP_HEADER_SOC_AREA);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
         }
@@ -734,18 +696,14 @@ static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
 
     if (new_lcs == dm_dynamic_area_lcs) {
 #if defined(RSE_OTP_HAS_DM_AREA)
-        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_HEADER->dm_area_info.raw_data,
-                                    sizeof(P_RSE_OTP_HEADER->dm_area_info.raw_data),
-                                    (uintptr_t)&P_RSE_OTP_HEADER->dm_area_info_zero_count);
+        err = rse_zc_region_write_zero_count(ZC_OTP_HEADER_DM_AREA);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
         }
 #endif /* RSE_OTP_HAS_DM_AREA */
 
 #if defined(RSE_OTP_HAS_DYNAMIC_AREA)
-        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_HEADER->dynamic_area_info.raw_data,
-                                    sizeof(P_RSE_OTP_HEADER->dynamic_area_info.raw_data),
-                                    (uintptr_t)&P_RSE_OTP_HEADER->dynamic_area_info_zero_count);
+        err = rse_zc_region_write_zero_count(ZC_OTP_HEADER_DYNAMIC_AREA);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
         }
@@ -756,27 +714,26 @@ static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
 
 
     if (new_lcs == LCM_LCS_SE) {
+#ifndef RSE_PROVISIONING_DM_IN_SE
 #if defined(RSE_OTP_HAS_DM_AREA)
         dm_area_info.raw_data = P_RSE_OTP_HEADER->dm_area_info.raw_data;
-        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_DM->zero_count + sizeof(uint32_t),
-                                    dm_area_info.size - sizeof(uint32_t) -
-                                        sizeof(P_RSE_OTP_DM->rotpk_areas),
-                                    (uintptr_t)&P_RSE_OTP_DM->zero_count);
+        err = rse_zc_region_write_zero_count(ZC_OTP_DM_AREA);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
         }
 
 #if !defined(RSE_NON_ENDORSED_DM_PROVISIONING)
-        dm_rotpk_area_info.offset = dm_area_info.offset + offsetof(struct rse_otp_dm_area_t, rotpk_areas);
+        dm_rotpk_area_info.offset = dm_area_info.offset + dm_area_info.size
+                - sizeof(P_RSE_OTP_DM->rotpk_areas);
         dm_rotpk_area_info.size = sizeof(struct rse_otp_dm_rotpk_area_t);
-        err = calc_write_zero_count((uintptr_t)&P_RSE_OTP_DM_ROTPK->zero_count + sizeof(uint32_t),
-                                    dm_rotpk_area_info.size - sizeof(uint32_t),
-                                    (uintptr_t)&P_RSE_OTP_DM_ROTPK->zero_count);
+
+        err = rse_zc_region_write_zero_count(ZC_OTP_DM_ROTPK_AREA);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
         }
 #endif /* RSE_NON_ENDORSED_DM_PROVISIONING */
 #endif /* RSE_OTP_HAS_DM_AREA */
+#endif /* RSE_PROVISIONING_DM_IN_SE */
     }
 
     return TFM_PLAT_ERR_SUCCESS;
