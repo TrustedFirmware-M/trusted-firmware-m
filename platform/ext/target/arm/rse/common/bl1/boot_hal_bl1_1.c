@@ -34,6 +34,7 @@
 #include "tfm_log.h"
 #include "bl1_1_debug.h"
 #include "mpu_armv8m_drv.h"
+#include "rse_persistent_data.h"
 
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
@@ -125,6 +126,8 @@ int32_t boot_platform_init(void)
      */
     struct rse_sacfg_t *sacfg = (struct rse_sacfg_t *)RSE_SACFG_BASE_S;
     sacfg->secrespcfg |= CMSDK_SECRESPCFG_BUS_ERR_MASK;
+
+    rse_setup_persistent_data();
 
     plat_err = tfm_plat_otp_init();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
