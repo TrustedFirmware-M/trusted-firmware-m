@@ -9,7 +9,6 @@
 
 #include "flash_layout.h"
 #include "device_definition.h"
-#include "gpt.h"
 #include "fip_parser.h"
 #include "host_base_address.h"
 #include "platform_base_address.h"
@@ -154,7 +153,7 @@ int host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
 }
 
 #ifdef RSE_GPT_SUPPORT
-static int host_flash_atu_get_gpt_header(gpt_header_t *header)
+int host_flash_atu_get_gpt_header(gpt_header_t *header)
 {
     enum tfm_plat_err_t plat_err;
     enum atu_error_t atu_err;
@@ -453,11 +452,11 @@ int host_flash_atu_setup_image_output_slots(uint64_t image_load_phy_addr,
 }
 
 #ifdef RSE_GPT_SUPPORT
-static int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
-                                                                 gpt_header_t header,
-                                                                 bool *image_found,
-                                                                 uint64_t *image_offset,
-                                                                 uint32_t *image_size)
+int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
+                                                          gpt_header_t header,
+                                                          bool *image_found,
+                                                          uint64_t *image_offset,
+                                                          uint32_t *image_size)
 {
     uint64_t physical_address;
     uint32_t rc;
@@ -505,11 +504,11 @@ static int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uu
     return 0;
 }
 
-static int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
-                                                                gpt_header_t header,
-                                                                bool *image_found,
-                                                                uint64_t *image_offset,
-                                                                size_t *image_size)
+int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
+                                                         gpt_header_t header,
+                                                         bool *image_found,
+                                                         uint64_t *image_offset,
+                                                         size_t *image_size)
 {
     uint64_t physical_address;
     uint32_t rc;

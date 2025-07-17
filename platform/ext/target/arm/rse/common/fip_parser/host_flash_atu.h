@@ -13,6 +13,7 @@
 #include <stdbool.h>
 
 #include "uuid.h"
+#include "gpt.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,6 +39,52 @@ enum tfm_plat_err_t setup_aligned_atu_slot(uint64_t physical_address,
                                            uint32_t logical_address,
                                            uint32_t *alignment_offset,
                                            size_t   *atu_slot_size);
+
+#ifdef RSE_GPT_SUPPORT
+/**
+ * \brief                  Get the GPT header by setting up an ATU slot.
+ *
+ * \param[out] header      The GPT header read from flash.
+ *
+ * \return                 0 on success, non-zero on failure.
+ */
+int host_flash_atu_get_gpt_header(gpt_header_t *header);
+
+/**
+ * \brief Get the partition offset of images of specific type uuid.
+ *
+ * \param[in] type_uuid           Type UUID of the requested images.
+ * \param[in] header              GPT header to search through.
+ *
+ * \param[out] image_found        Flag indicating whether an image is found.
+ * \param[out] image_offset       Offset of found images.
+ * \param[out] image_size         Size of found images.
+ *
+ * \return 0 on success, non-zero on failure.
+ */
+int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
+                                                         gpt_header_t header,
+                                                         bool *image_found,
+                                                         uint64_t *image_offset,
+                                                         size_t *image_size);
+/**
+ * \brief Get the partition offset of images of specific image uuid.
+ *
+ * \param[in] type_uuid           Image UUID of the requested images.
+ * \param[in] header              GPT header to search through.
+ *
+ * \param[out] image_found        Flag indicating whether an image is found.
+ * \param[out] image_offset       Offset of found images.
+ * \param[out] image_size         Size of found images.
+ *
+ * \return 0 on success, non-zero on failure.
+ */
+int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
+                                                          gpt_header_t header,
+                                                          bool *image_found,
+                                                          uint64_t *image_offset,
+                                                          uint32_t *image_size);
+#endif /* RSE_GPT_SUPPORT */
 
 /**
  * \brief                  Gets the offsets of the FIPs in host flash. If GPT is
