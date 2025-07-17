@@ -128,7 +128,7 @@ static psa_status_t attest_calc_instance_id(void)
 enum psa_attest_err_t
 attest_get_instance_id(struct q_useful_buf_c *id_buf)
 {
-    enum psa_attest_err_t err;
+    psa_status_t err;
 
     if (!id_buf) {
         return PSA_ATTEST_ERR_GENERAL;
@@ -136,7 +136,7 @@ attest_get_instance_id(struct q_useful_buf_c *id_buf)
 
     if (instance_id_len == 0U) {
         err = attest_calc_instance_id();
-        if (err != PSA_ATTEST_ERR_SUCCESS) {
+        if (err != PSA_SUCCESS) {
             return PSA_ATTEST_ERR_CLAIM_UNAVAILABLE;
         }
     }
