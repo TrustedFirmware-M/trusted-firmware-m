@@ -22,11 +22,12 @@
 #include <assert.h>
 
 #ifdef LCM_DCU_PARITY
-#define DCU_ENABLED_MASK  0x55555555
-#define DCU_DISABLED_MASK 0xAAAAAAAA
-#else
-#define DCU_ENABLED_MASK  0xFFFFFFFF
-#define DCU_DISABLED_MASK 0x00000000
+#define DCU_PARITY_ENABLED_MASK 0x55555555
+#define DCU_PARITY_DISABLED_MASK 0xAAAAAAAA
+
+#ifndef LCM_DCU_PARITY_WORDS
+#define LCM_DCU_PARITY_WORDS 4
+#endif
 #endif
 
 #ifdef INTEGRITY_CHECKER_S
@@ -93,6 +94,26 @@ struct _lcm_reg_map_t {
         struct lcm_otp_layout_t otp;
     };
 };
+
+static uint32_t get_enabled_mask(uint32_t dcu_word_idx)
+{
+#ifndef LCM_DCU_PARITY
+    (void)dcu_word_idx;
+    return 0xFFFFFFFF;
+#else
+    return dcu_word_idx < LCM_DCU_PARITY_WORDS ? DCU_PARITY_ENABLED_MASK : 0xFFFFFFFF;
+#endif
+}
+
+static uint32_t get_disabled_mask(uint32_t dcu_word_idx)
+{
+#ifndef LCM_DCU_PARITY
+    (void)dcu_word_idx;
+    return 0x00000000;
+#else
+    return dcu_word_idx < LCM_DCU_PARITY_WORDS ? DCU_PARITY_DISABLED_MASK : 0x00000000;
+#endif
+}
 
 static int is_pointer_word_aligned(void *ptr) {
     return !((uintptr_t)ptr & (sizeof(uint32_t) - 1));
@@ -268,13 +289,13 @@ static inline void mask_dcus_for_sp_enable(struct lcm_dev_t *dev)
     for (idx = 0; idx < LCM_DCU_WIDTH_IN_BYTES / sizeof(uint32_t); idx++) {
         mask_val = p_lcm->dcu_sp_disable_mask[idx];
 
-        mask_enabled = mask_val & DCU_ENABLED_MASK;
-        mask_disabled = mask_val & DCU_DISABLED_MASK;
+        mask_enabled = mask_val & get_enabled_mask(idx);
+        mask_disabled = mask_val & get_disabled_mask(idx);
 
         dcu_val = p_lcm->dcu_en[idx];
 
         dcu_val &= mask_enabled;
-        dcu_val |= ((~dcu_val & DCU_ENABLED_MASK) << 1) & mask_disabled;
+        dcu_val |= ((~dcu_val & get_enabled_mask(idx)) << 1) & mask_disabled;
 
         p_lcm->dcu_en[idx] = dcu_val;
     }
