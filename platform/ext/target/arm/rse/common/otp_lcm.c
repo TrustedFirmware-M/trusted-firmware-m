@@ -825,6 +825,80 @@ static enum tfm_plat_err_t check_device_status(void)
     return TFM_PLAT_ERR_SUCCESS;
 }
 
+enum tfm_plat_err_t tfm_plat_otp_mini_init(void)
+{
+    enum tfm_plat_err_t err;
+    enum lcm_error_t lcm_err;
+    enum lcm_lcs_t lcs;
+    uint32_t zero_count;
+
+    lcm_err = lcm_init(&LCM_DEV_S);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+    lcm_err = lcm_get_lcs(&LCM_DEV_S, &lcs);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+    /* Offsets and sizes for each zone are cached to avoid unnecessary OTP wear */
+    err = load_area_info(lcs);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+#ifdef RSE_OTP_HAS_BL1_2
+
+    err = rse_count_zero_bits((uint8_t *)&bl1_2_area_info, sizeof(bl1_2_area_info), &zero_count);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+    if (zero_count != P_RSE_OTP_HEADER->bl1_2_area_info_zero_count) {
+        FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_BL1_2_ZERO_COUNT_ERR);
+        rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
+        return TFM_PLAT_ERR_OTP_INIT_BL1_2_ZERO_COUNT_ERR;
+    }
+
+    err = rse_zc_region_check_zero_count(ZC_OTP_BL1_2_AREA, false);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
+        FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_BL1_2_ZERO_COUNT_ERR);
+        return err;
+    }
+#endif
+
+    setup_nv_counter_info();
+
+    /* In RMA LCS do not check LFT/KRTL/Device status */
+    if (lcs == LCM_LCS_RMA) {
+        return TFM_PLAT_ERR_SUCCESS;
+    }
+
+#ifdef RSE_OTP_HAS_LFT_COUNTER
+    if (lcs != LCM_LCS_CM) {
+        err = check_lft_counter();
+        if (err != TFM_PLAT_ERR_SUCCESS) {
+            return err;
+        }
+    }
+#endif /* RSE_OTP_HAS_LFT_COUNTER */
+
+#ifdef RSE_OTP_HAS_KRTL_USAGE_COUNTER
+    err = check_krtl_counter();
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+#endif /* RSE_OTP_HAS_KRTL_USAGE_COUNTER */
+
+    err = check_device_status();
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
 enum tfm_plat_err_t tfm_plat_otp_init(void)
 {
     enum tfm_plat_err_t err;

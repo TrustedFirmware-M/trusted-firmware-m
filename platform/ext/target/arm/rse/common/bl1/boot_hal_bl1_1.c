@@ -97,6 +97,35 @@ static void wait_for_vm_erase_to_finish_and_enable_cache(void)
     SCB_EnableDCache();
 }
 
+static enum tfm_plat_err_t minimal_otp_init(void)
+{
+    enum lcm_error_t lcm_err;
+    enum lcm_lcs_t lcs;
+    bool full_init = true;
+
+    lcm_err = lcm_get_lcs(&LCM_DEV_S, &lcs);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+#ifdef RSE_BOOT_IN_DM_LCS
+    if (lcs == LCM_LCS_DM) {
+        full_init = false;
+    }
+#endif
+
+    if (lcs == LCM_LCS_SE) {
+        full_init = false;
+    }
+
+    if (!full_init) {
+        return tfm_plat_otp_mini_init();
+    }
+    else {
+        return tfm_plat_otp_init();
+    }
+}
+
 /* bootloader platform-specific hw initialization */
 int32_t boot_platform_init(void)
 {
@@ -165,7 +194,7 @@ int32_t boot_platform_init(void)
     stdio_init();
 #endif /* LOGGING_ENABLED */
 
-    plat_err = tfm_plat_otp_init();
+    plat_err = minimal_otp_init();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }

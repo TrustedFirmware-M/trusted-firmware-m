@@ -235,6 +235,11 @@ int32_t boot_platform_init(void)
 
     __set_MSPLIM(msp_stack_bottom);
 
+    plat_err = tfm_plat_otp_init();
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
+    }
+
     /* Early clock config to speed up boot */
     result = rse_clock_config();
     if (result != 0) {

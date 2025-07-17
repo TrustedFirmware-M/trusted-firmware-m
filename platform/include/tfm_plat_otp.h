@@ -107,6 +107,16 @@ enum plat_otp_lcs_t {
 };
 
 /**
+ * \brief                               Initialises minimal OTP storage to load
+ *                                      BL1-2.
+ *
+ * \return                              TFM_PLAT_ERR_SUCCESS if the
+ *                                      initialization succeeds, otherwise
+ *                                      TFM_PLAT_ERR_SYSTEM_ERR
+ */
+enum tfm_plat_err_t tfm_plat_otp_mini_init(void);
+
+/**
  * \brief                               Initialises OTP storage.
  *
  * \return                              TFM_PLAT_ERR_SUCCESS if the
