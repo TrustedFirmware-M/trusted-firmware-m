@@ -31,6 +31,21 @@
  */
 #include "mbedtls/build_info.h"
 
+#if defined(PSA_WANT_ALG_CCM)
+/**
+ * @brief Verifies that tag_len for AES-CCM complies with what is
+ *        specified in NIST SP800-38C, i.e. {4,6,8,10,12,14,16}
+ *
+ * @param[in] tag_len  Tag lenth to be verified
+ *
+ * @return true        Tag length is compliant with NIST SP800-38C
+ * @return false       Tag length is invalid as per NIST SP800-38C
+ */
+static inline bool is_valid_ccm_tag_length(size_t tag_len) {
+    return ((tag_len >= 4) && (tag_len <= 16) && ((tag_len % 2) == 0));
+}
+#endif /* PSA_WANT_ALG_CCM */
+
 /**
  * @brief Integrated authenticated ciphering with associated data (single-part)
  *
@@ -174,7 +189,6 @@ static psa_status_t aead_crypt(
                              (output_size > 0)) ? true : false;
 #endif /* !CC3XX_CONFIG_AES_TUNNELLING_ENABLE && PSA_WANT_ALG_CCM */
 
-
         switch (key_buffer_size) {
         case 16:
             key_size = CC3XX_AES_KEYSIZE_128;
@@ -197,6 +211,9 @@ static psa_status_t aead_crypt(
 #endif
 #if defined(PSA_WANT_ALG_CCM)
         case PSA_ALG_CCM:
+            if (!is_valid_ccm_tag_length(tag_len)) {
+                return PSA_ERROR_INVALID_ARGUMENT;
+            }
             mode = CC3XX_AES_MODE_CCM;
             break;
 #endif
@@ -553,7 +570,7 @@ psa_status_t cc3xx_aead_update(
 #endif /* !CC3XX_CONFIG_AES_TUNNELLING_ENABLE && PSA_WANT_ALG_CCM */
 
     CC3XX_ASSERT(operation != NULL);
-    CC3XX_ASSERT(input != NULL);
+    CC3XX_ASSERT(!input_length ^ (input != NULL));
     CC3XX_ASSERT(output != NULL);
     CC3XX_ASSERT(output_length != NULL);
 
@@ -750,7 +767,10 @@ psa_status_t cc3xx_aead_finish(
         return PSA_SUCCESS;
     }
 
-    CC3XX_ASSERT(tag_size >= PSA_AEAD_TAG_LENGTH(operation->key_type, operation->key_bits, operation->alg));
+    /* Check if the tag_size is enough to hold the expected tag */
+    if (tag_size < PSA_AEAD_TAG_LENGTH(operation->key_type, operation->key_bits, operation->alg)) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
 
     /* cc3xx_aead_operation_t is just an alias to cc3xx_cipher_operation_t */
     switch (operation->key_type) {
