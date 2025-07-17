@@ -99,7 +99,7 @@
 #define S_HEAP_SIZE             (0x0001000)
 #define S_MSP_STACK_SIZE        (0x0000800)
 
-#define NS_HEAP_SIZE            (0x0001000)
+#define NS_HEAP_SIZE            (0x0000800)
 #define NS_STACK_SIZE           (0x0001000)
 
 /* Store persistent data at the end of VM1 as will not be cleared on reset */
