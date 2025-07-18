@@ -352,6 +352,11 @@ psa_status_t cc3xx_internal_cipher_setup_set_iv(
 #endif /* PSA_WANT_KEY_TYPE_CHACHA20 */
 #if defined(PSA_WANT_KEY_TYPE_AES)
     case PSA_KEY_TYPE_AES:
+        /* At this point we assume that the mode is valid, otherwise we are in a bad state */
+        if (cc3xx_lowlevel_aes_valid_iv_length(operation->aes.mode, iv_length)
+                                                    == CC3XX_ERR_INVALID_IV_LENGTH) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
 
         cc3xx_dpa_hardened_word_copy(operation->aes.iv, (uint32_t *)iv,
                                      iv_length / sizeof(uint32_t));
