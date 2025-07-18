@@ -136,3 +136,10 @@ rse_get_rse_id
 kmu_invalidate_hardware_keys
 mpu_armv8m_region_enable
 mpu_armv8m_enable
+rse_comms_init
+rse_comms_init_msg
+rse_comms_send_msg
+rse_comms_init_reply
+rse_comms_send_reply
+rse_comms_receive_msg
+rse_comms_receive_reply

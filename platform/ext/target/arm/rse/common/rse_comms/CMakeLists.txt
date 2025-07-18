@@ -37,3 +37,22 @@ target_link_libraries(platform_s
         tfm_spm
         tfm_sprt
 )
+
+# Currently only used by RSE handshake
+if (RSE_AMOUNT GREATER 1)
+    target_include_directories(platform_bl1_1
+        PUBLIC
+            .
+    )
+
+    target_sources(platform_bl1_1
+        PRIVATE
+            rse_comms_link_hal.c
+            rse_comms.c
+    )
+
+    target_include_directories(platform_bl1_2
+        PUBLIC
+            .
+    )
+endif()
