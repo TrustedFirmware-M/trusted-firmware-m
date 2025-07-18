@@ -14,6 +14,7 @@
 #include "rse_provisioning_message_handler.h"
 #include "rse_persistent_data.h"
 #include "rse_provisioning_message_status.h"
+#include "fatal_error.h"
 
 enum tfm_plat_err_t
 rse_provisioning_get_message(const struct rse_provisioning_message_t *message_buf,
@@ -38,6 +39,7 @@ rse_provisioning_get_message(const struct rse_provisioning_message_t *message_bu
     }
 #else
     if (!rse_provisioning_message_is_valid(message_buf)) {
+        FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_MESSAGE_NOT_FOUND);
         return TFM_PLAT_ERR_PROVISIONING_MESSAGE_NOT_FOUND;
     }
 #endif /* RSE_ENABLE_DCSU_PROVISIONING_COMMS */
