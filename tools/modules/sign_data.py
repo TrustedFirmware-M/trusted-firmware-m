@@ -77,7 +77,7 @@ def _sign_ecdsa(data : bytes,
         dsr_output_file.write(data_hash)
         sys.exit(0)
 
-    asn1_sig = priv_key.sign(data_hash, ec.ECDSA(utils.Prehashed(hash_alg())))
+    asn1_sig = priv_key.sign(data_hash, ec.ECDSA(utils.Prehashed(hash_alg()),deterministic_signing=True))
 
     return _asn1_sig_to_raw(asn1_sig, priv_key.curve)
 
