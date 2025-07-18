@@ -20,6 +20,7 @@ target_sources(platform_s
         rse_comms_protocol_pointer_access.c
         rse_comms_atu.c
         rse_comms_link_hal.c
+        rse_comms.c
 )
 
 target_compile_definitions(platform_s
