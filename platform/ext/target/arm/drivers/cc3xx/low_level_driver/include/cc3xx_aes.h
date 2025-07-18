@@ -120,6 +120,23 @@ struct cc3xx_aes_state_t {
 };
 
 /**
+ * @brief                        Helper function that validates the length of the
+ *                               IV given the mode in which the AES engine is being
+ *                               configured
+ *
+ * @param[in] mode               Mode in which the AES engine would be configured
+ * @param[in] iv_len             Length of the IV that would be configured on the AES engine
+ * @return cc3xx_err_t           CC3XX_ERR_SUCCESS if the \p iv_len is valid for the
+ *                               \p mode selected for AES
+ *                               CC3XX_ERR_INVALID_IV_LENGTH if the mode is recognised
+ *                               by the implementation but the length is not compatible
+ *                               CC3XX_ERR_NOT_IMPLEMENTED if the mode is not supported
+ */
+cc3xx_err_t cc3xx_lowlevel_aes_valid_iv_length(
+    cc3xx_aes_mode_t mode,
+    size_t iv_len);
+
+/**
  * @brief                        Initialize an AES operation.
 
  * @param[in]  direction         Whether the operation should encrypt or decrypt.

@@ -131,6 +131,8 @@ psa_status_t cc3xx_to_psa_err(enum cc3xx_error err)
         return PSA_ERROR_BUFFER_TOO_SMALL;
     case CC3XX_ERR_INVALID_INPUT_LENGTH:
         return PSA_ERROR_INVALID_ARGUMENT;
+    case CC3XX_ERR_INVALID_IV_LENGTH:
+        return PSA_ERROR_INVALID_ARGUMENT;
     case CC3XX_ERR_GCM_VARIABLE_IV_NOT_IMPLEMENTED:
         return PSA_ERROR_NOT_SUPPORTED;
     case CC3XX_ERR_CHACHA_IV_SIZE_INCORRECT:
