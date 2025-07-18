@@ -28,6 +28,22 @@ static int32_t debug_preconditions_check(bool *valid_debug_conditions)
     return 0;
 }
 
+static int32_t tfm_plat_lock_rse_debug(void)
+{
+    enum lcm_error_t lcm_err;
+    uint32_t dcu_lock_reg_val[LCM_DCU_WIDTH_IN_BYTES / sizeof(uint32_t)];
+
+    lcm_err = lcm_dcu_get_locked(&LCM_DEV_S, (uint8_t *)dcu_lock_reg_val);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return -1;
+    }
+
+    /* 32 Least significant (First word) LCM dcu_en signals are assigned for RSE */
+    dcu_lock_reg_val[0] = PLAT_RSE_DCU_LOCK0_VALUE;
+
+    return lcm_dcu_set_locked(&LCM_DEV_S, (uint8_t*)dcu_lock_reg_val);
+}
+
 static int32_t tfm_plat_lock_non_rse_debug(void)
 {
     enum lcm_error_t lcm_err;
@@ -52,8 +68,12 @@ static int32_t tfm_plat_lock_non_rse_debug(void)
 int32_t b1_2_platform_debug_init(void)
 {
     int32_t rc;
-
     bool valid_debug_conditions;
+
+    rc = tfm_plat_lock_rse_debug();
+    if (rc != 0) {
+        return rc;
+    }
 
     rc = debug_preconditions_check(&valid_debug_conditions);
     if (rc != 0) {
@@ -61,7 +81,6 @@ int32_t b1_2_platform_debug_init(void)
     }
 
     if (valid_debug_conditions) {
-
         /* Apply platform specific locks to rest of SoC (not RSE) */
         rc = tfm_plat_lock_non_rse_debug();
     }

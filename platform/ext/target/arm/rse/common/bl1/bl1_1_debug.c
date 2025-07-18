@@ -54,22 +54,6 @@ static int32_t tfm_plat_apply_debug_permissions(uint8_t *permissions_mask)
 }
 #endif /* PLATFORM_PSA_ADAC_SECURE_DEBUG */
 
-static int32_t tfm_plat_lock_rse_debug(void)
-{
-    enum lcm_error_t lcm_err;
-    uint32_t dcu_lock_reg_val[LCM_DCU_WIDTH_IN_BYTES / sizeof(uint32_t)];
-
-    lcm_err = lcm_dcu_get_locked(&LCM_DEV_S, (uint8_t *)dcu_lock_reg_val);
-    if (lcm_err != LCM_ERROR_NONE) {
-        return -1;
-    }
-
-    /* 32 Least significant (First word) LCM dcu_en signals are assigned for RSE */
-    dcu_lock_reg_val[0] = PLAT_RSE_DCU_LOCK0_VALUE;
-
-    return lcm_dcu_set_locked(&LCM_DEV_S, (uint8_t*)dcu_lock_reg_val);
-}
-
 int32_t b1_1_platform_debug_init(void)
 {
 #ifdef PLATFORM_PSA_ADAC_SECURE_DEBUG
@@ -98,8 +82,6 @@ int32_t b1_1_platform_debug_init(void)
         }
     }
 #endif /* PLATFORM_PSA_ADAC_SECURE_DEBUG */
-
-    /* Lock RSE Debug */
-    return tfm_plat_lock_rse_debug();
+    return 0;
 }
 
