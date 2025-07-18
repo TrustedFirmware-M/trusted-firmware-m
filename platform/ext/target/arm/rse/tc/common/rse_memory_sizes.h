@@ -9,9 +9,15 @@
 #ifdef RSE_XIP
 #define VM0_SIZE                         0x00010000 /* 64 KiB */
 #define VM1_SIZE                         0x00010000 /* 64 KiB */
+
+/* The uppermost RETAINED_RAM_SIZE bytes of VM1 are retained after cold reset */
+#define RETAINED_RAM_SIZE                0x0000B000 /* 44KiB KiB */
 #else
 #define VM0_SIZE                         0x00080000 /* 512 KiB */
 #define VM1_SIZE                         0x00080000 /* 512 KiB */
+
+/* The uppermost RETAINED_RAM_SIZE bytes of VM1 are retained after cold reset */
+#define RETAINED_RAM_SIZE                0x00020000 /* 128 KiB */
 #endif /* RSE_XIP */
 
 #define OTP_DMA_ICS_SIZE   0x400 /* 1 KiB*/

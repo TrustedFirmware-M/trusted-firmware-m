@@ -9,26 +9,18 @@
 #include <stdbool.h>
 #include <string.h>
 #include "region_defs.h"
-
-/*
- * Magic value used to check if the persistent region is initialized.
- *
- * This can also be used to avoid versioning issues. If a change is made to the
- * struct that would break compatibility with older ROMs then the magic value
- * can be changed to make it clear that it is no longer compatible with old
- * ROMs.
- */
-#define RSE_PERSISTENT_DATA_MAGIC 0xDA1ABA5E
+#include "device_definition.h"
+#include "rse_gretreg.h"
 
 static bool is_persistent_data_initialized(struct rse_persistent_data *persistent_data)
 {
-    return persistent_data->bl1_data.initialized_magic == RSE_PERSISTENT_DATA_MAGIC;
+    return rse_gretreg_flag_is_set(RSE_GRETREG_BIT_OFFSET_PERSISTENT_DATA_VALID);
 }
 
 static void initialize_rse_persistent_data(struct rse_persistent_data *persistent_data)
 {
     memset(persistent_data, 0, sizeof(struct rse_persistent_data));
-    persistent_data->bl1_data.initialized_magic = RSE_PERSISTENT_DATA_MAGIC;
+    rse_gretreg_set_flag(RSE_GRETREG_BIT_OFFSET_PERSISTENT_DATA_VALID);
 }
 
 void rse_setup_persistent_data(void)

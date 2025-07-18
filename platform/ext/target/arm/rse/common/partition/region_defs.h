@@ -40,7 +40,7 @@
  * VM0  |                                                        |
  *      |---------------------------------------------------------
  *      |---------------------------------------------------------
- * VM1  |                            | PERS_DATA | OTP_EMULATION |
+ * VM1  |                     | BLOB | PERS_DATA | OTP_EMULATION |
  *      |---------------------------------------------------------
  *
  * If the size of VM0 and VM1 are larger than 64KiB, the size of BL1 code/data
@@ -235,7 +235,7 @@
 #define RSE_TESTS_CODE_START (VM0_BASE_S + OTP_DMA_ICS_SIZE)
 #define RSE_TESTS_CODE_SIZE  (VM1_BASE_S - RSE_TESTS_CODE_START)
 #define RSE_TESTS_DATA_START (VM1_BASE_S)
-#define RSE_TESTS_DATA_SIZE  (VM1_SIZE - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
+#define RSE_TESTS_DATA_SIZE  (VM1_SIZE - RETAINED_RAM_SIZE)
 #endif /* defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM) */
 
 /* Bootloader regions */
@@ -326,7 +326,7 @@
 #define PROVISIONING_BUNDLE_VALUES_START (DTCM_BASE_S)
 #define PROVISIONING_BUNDLE_VALUES_SIZE  (DTCM_SIZE - BL1_1_DATA_SIZE - BL1_2_DATA_SIZE)
 #define PROVISIONING_BUNDLE_DATA_START   (VM1_BASE_S)
-#define PROVISIONING_BUNDLE_DATA_SIZE    (VM1_SIZE - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
+#define PROVISIONING_BUNDLE_DATA_SIZE    (VM1_SIZE - RETAINED_RAM_SIZE)
 
 /* Blob chainloading requires us to limit the size of the blob
  * to allow for loading two blobs simultaneously. It is simpler just
@@ -338,8 +338,14 @@
  * allows for both pre-loading of the provisioning message into the memory in the
  * case where we do not use the comms HAL, and also an unused block of memory
  * where the comms HAL can load the message to when we are */
-#define PROVISIONING_MESSAGE_START (VM0_BASE_S + OTP_DMA_ICS_SIZE)
-#define RSE_PROVISIONING_MESSAGE_MAX_SIZE (VM1_BASE_S - PROVISIONING_MESSAGE_START)
+#define PROVISIONING_MESSAGE_START (VM1_BASE_S + VM1_SIZE - RETAINED_RAM_SIZE)
+#define RSE_PROVISIONING_MESSAGE_MAX_SIZE (RETAINED_RAM_SIZE \
+                                           - PERSISTENT_DATA_SIZE \
+                                           - RSE_OTP_EMULATION_SRAM_SIZE)
+
+#if RSE_PROVISIONING_MESSAGE_MAX_SIZE < 0
+#error RETAINED_RAM_SIZE is too small to contain peristent data and OTP emulation space
+#endif
 
 #define RSE_TESTS_HEAP_SIZE      0x1000
 #define RSE_TESTS_MSP_STACK_SIZE 0x1800

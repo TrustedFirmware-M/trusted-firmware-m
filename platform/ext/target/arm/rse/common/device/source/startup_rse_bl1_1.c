@@ -24,7 +24,7 @@
 #include "sam_interrupts.h"
 #include "tfm_hal_device_header.h"
 #include "region_defs.h"
-#include "rse_persistent_data.h"
+#include "rse_gretreg.h"
 
 #include <stdint.h>
 
@@ -275,24 +275,24 @@ static inline void __attribute__ ((always_inline)) setup_tram_encryption(void)
      * parallel.
      */
     for (register uint32_t idx __asm("r1") = 0; idx < dma_channel_amount; idx++) {
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + 0x100 * idx + 0x038) = tram_erase_value;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + 0x100 * idx + 0x02c) = 0x000F0044;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + 0x100 * idx + 0x018) =
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x038) = tram_erase_value;
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x02c) = 0x000F0044;
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x018) =
             DTCM_CPU0_BASE_S + (DTCM_SIZE / dma_channel_amount * idx);
 
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + 0x100 * idx + 0x030) = 0x00010000;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + 0x100 * idx + 0x020) =
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x030) = 0x00010000;
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x020) =
             (DTCM_SIZE / sizeof(uint64_t) / dma_channel_amount) << 16;
 
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + 0x100 * idx + 0x024) = 0x00000000;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + 0x100 * idx + 0x00c) = 0x1200603;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + 0x100 * idx + 0x008) = 0x00000000;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + 0x100 * idx + 0x000) = 0x00000001;
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x024) = 0x00000000;
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x00c) = 0x1200603;
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x008) = 0x00000000;
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x000) = 0x00000001;
     }
 
     /* Wait for all the DMA channels to finish */
     for (register uint32_t idx __asm("r1") = 0; idx < dma_channel_amount; idx++) {
-        while ((*((volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + 0x100 * idx + 0x000)) & 0x1) != 0) {}
+        while ((*((volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x000)) & 0x1) != 0) {}
     }
 
     /* Shut down the cryptocell TRNG */
@@ -301,10 +301,48 @@ static inline void __attribute__ ((always_inline)) setup_tram_encryption(void)
 };
 #endif /* RSE_ENABLE_TRAM */
 
+#if !(defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM))
+static inline void __attribute__ ((always_inline)) erase_vm0_and_vm1(void)
+{
+    register uint32_t vm_erase_size __asm("r0");
+    register uint32_t dma_channel_amount __asm("r1");
+
+    if ((*(volatile uint32_t *)(RSE_SYSCTRL_BASE_S + 0x10c) >>
+         RSE_GRETREG_BIT_OFFSET_PERSISTENT_DATA_VALID) & 0b1) {
+        vm_erase_size = ((VM0_SIZE + VM1_SIZE) / sizeof(uint64_t));
+    } else {
+        vm_erase_size = ((VM0_SIZE + VM1_SIZE - RETAINED_RAM_SIZE) / sizeof(uint64_t));
+    }
+
+    if (vm_erase_size == 0) {
+        return;
+    }
+
+    dma_channel_amount = (*((volatile uint32_t *)(DMA_350_BASE_S + 0xfb0)) >> 4 & 0xF) + 1;
+
+    /* Start the VM erase in the background */
+    for (register uint32_t idx __asm("r2"); idx < dma_channel_amount; idx++) {
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x038) = 0x00000000;
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x02c) = 0x000F0044;
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x018) =
+            VM0_BASE_S + (vm_erase_size / dma_channel_amount * idx);
+
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x030) = 0x00010000;
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x020) =
+            (vm_erase_size / sizeof(uint64_t) / dma_channel_amount) << 16;
+
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x024) = 0x00000000;
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x00c) = 0x1200603;
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x008) = 0x00000000;
+        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x000) = 0x00000001;
+    }
+}
+#endif
+
 /*----------------------------------------------------------------------------
   Reset Handler called on controller reset
  *----------------------------------------------------------------------------*/
-void Reset_Handler(void)
+void __NO_RETURN Reset_Handler(void)
 {
 #ifdef RSE_SUPPORT_ROM_LIB_RELOCATION
     /*
@@ -314,10 +352,6 @@ void Reset_Handler(void)
     __asm volatile("ldr    r9, =__etext \n");
 #endif /* RSE_SUPPORT_ROM_LIB_RELOCATION */
 
-    /* Enable caching, particularly to avoid ECC errors in VM0/1 */
-    SCB_EnableICache();
-    SCB_EnableDCache();
-
     /* Disable No-Write Allocate mode for the DCache to avoid DCache being
      * bypassed when streaming mode is detected, e.g. during memset()
      */
@@ -326,6 +360,10 @@ void Reset_Handler(void)
 #ifdef RSE_ENABLE_TRAM
     setup_tram_encryption();
 #endif /* RSE_ENABLE_TRAM */
+
+#if !(defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM))
+    erase_vm0_and_vm1();
+#endif
 
     __set_MSPLIM((uint32_t)(&__STACK_LIMIT));
 

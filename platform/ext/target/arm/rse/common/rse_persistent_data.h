@@ -24,8 +24,6 @@
 struct rse_persistent_data {
     /* Data in this part of the struct is used by ROM */
     struct rse_bl1_persistent_data {
-        /* Used to verify that the data has been initialized as expected */
-        uint32_t initialized_magic;
         /* Provisioning blob buffer pointer */
         uint32_t *provisioning_blob_buf;
         size_t provisioning_blob_buf_size;

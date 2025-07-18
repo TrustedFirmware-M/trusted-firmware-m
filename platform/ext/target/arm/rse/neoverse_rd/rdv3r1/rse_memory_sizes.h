@@ -10,6 +10,9 @@
 #define VM0_SIZE           0x80000 /* 512 KiB */
 #define VM1_SIZE           0x80000 /* 512 KiB */
 
+/* The uppermost RETAINED_RAM_SIZE bytes of VM1 are retained after cold reset */
+#define RETAINED_RAM_SIZE                0x00020000 /* 128 KiB */
+
 #define BOOT_FLASH_SIZE    0x800000 /* 8MB */
 
 /*

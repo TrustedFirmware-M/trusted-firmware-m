@@ -95,6 +95,24 @@ static enum tfm_plat_err_t init_atu_region_for_uart(void)
 }
 #endif /* defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART) */
 
+static void wait_for_vm_erase_to_finish_and_enable_cache(void)
+{
+    /* Wait for the DMA to finish erasing VM0 and VM1 */
+    uint32_t dma_channel_amount = (*((volatile uint32_t *)(DMA_350_BASE_S + 0xfb0)) >> 4 & 0xF) + 1;
+
+    /* FIXME remove once the FVP is fixed */
+    dma_channel_amount = 1;
+
+    /* Wait for each channel to finish */
+    for (int idx = 0; idx < dma_channel_amount; idx++) {
+        while ((*((volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x000)) & 0x1) != 0) {}
+    }
+
+    /* Now enable caching */
+    SCB_EnableICache();
+    SCB_EnableDCache();
+}
+
 /* bootloader platform-specific hw initialization */
 int32_t boot_platform_init(void)
 {
@@ -125,8 +143,6 @@ int32_t boot_platform_init(void)
      */
     struct rse_sacfg_t *sacfg = (struct rse_sacfg_t *)RSE_SACFG_BASE_S;
     sacfg->secrespcfg |= CMSDK_SECRESPCFG_BUS_ERR_MASK;
-
-    rse_setup_persistent_data();
 
     plat_err = tfm_plat_otp_init();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
@@ -208,6 +224,10 @@ int32_t boot_platform_init(void)
     /* Clear boot data area */
     memset((void *)tfm_plat_get_shared_measurement_data_base(), 0,
            tfm_plat_get_shared_measurement_data_size());
+
+    wait_for_vm_erase_to_finish_and_enable_cache();
+
+    rse_setup_persistent_data();
 
     return 0;
 }
