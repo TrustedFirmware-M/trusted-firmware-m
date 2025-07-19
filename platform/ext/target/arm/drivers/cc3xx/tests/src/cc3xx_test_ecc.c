@@ -329,27 +329,74 @@ cleanup:
     return rc;
 }
 
-static void ecc_tests_run(struct test_result_t *ret)
+static void ecc_test_validate_points(struct test_result_t *ret)
 {
-    for (int idx = 0;
-         idx < sizeof(cavp_public_key_test_data) / sizeof(cavp_public_key_test_data[0]);
-         idx++) {
+    for (int idx = 0; idx < ARRAY_SIZE(cavp_public_key_test_data); idx++) {
         TEST_ASSERT(cc3xx_test_ecc_validate_point(&cavp_public_key_test_data[idx]) == 0,
                     "CAVP point validation tests should pass");
     }
 
+    ret->val = TEST_PASSED;
+}
+
+static void ecc_test_double_point(struct test_result_t *ret)
+{
+
     TEST_ASSERT(cc3xx_test_ecc_double_point(&double_test_data) == 0, "Point doubling should succeed");
+
+    ret->val = TEST_PASSED;
+}
+
+static void ecc_test_add_point(struct test_result_t *ret)
+{
+
     TEST_ASSERT(cc3xx_test_ecc_add_points(&add_test_data) == 0, "Point addition should succeed");
+
+    ret->val = TEST_PASSED;
+}
+
+static void ecc_test_exp_point_small(struct test_result_t *ret)
+{
+
     TEST_ASSERT(cc3xx_test_ecc_exp_point(&exp_test_data_small) == 0, "point exponentiation should succeed (small example)");
+
+    ret->val = TEST_PASSED;
+}
+
+static void ecc_test_exp_point(struct test_result_t *ret)
+{
+
     TEST_ASSERT(cc3xx_test_ecc_exp_point(&exp_test_data) == 0, "point exponentiation should succeed");
 
     ret->val = TEST_PASSED;
-    return;
 }
-static struct test_t ecc_tests = {
-    &ecc_tests_run,
-    "CC3XX_ECC_TEST",
-    "CC3XX ECC tests",
+
+static struct test_t ecc_tests[] = {
+    {
+        &ecc_test_validate_points,
+        "CC3XX_ECC_TEST_VALIDATE_POINTS",
+        "CC3XX ECC test validate point",
+    },
+    {
+        &ecc_test_double_point,
+        "CC3XX_ECC_TEST_DOUBLE_POINT",
+        "CC3XX ECC test double point",
+    },
+    {
+        &ecc_test_add_point,
+        "CC3XX_ECC_TEST_ADD_POINT",
+        "CC3XX ECC test add point",
+    },
+    {
+        &ecc_test_exp_point_small,
+        "CC3XX_ECC_TEST_EXP_POINT_SMALL",
+        "CC3XX ECC test point exponentiation (small example)",
+    },
+    {
+        &ecc_test_exp_point,
+        "CC3XX_ECC_TEST_EXP_POINT",
+        "CC3XX ECC test point exponentiation",
+    }
 };
 
 void add_cc3xx_ecc_tests_to_testsuite(struct test_suite_t *p_ts, uint32_t ts_size)
@@ -359,6 +406,6 @@ void add_cc3xx_ecc_tests_to_testsuite(struct test_suite_t *p_ts, uint32_t ts_siz
  || defined(CC3XX_CONFIG_ECDSA_VERIFY_ENABLE) \
  || defined(CC3XX_CONFIG_ECDSA_KEYGEN_ENABLE) \
  || defined(CC3XX_CONFIG_ECDH_ENABLE)
-    cc3xx_add_tests_to_testsuite(&ecc_tests, 1, p_ts, ts_size);
+    cc3xx_add_tests_to_testsuite(ecc_tests, ARRAY_SIZE(ecc_tests), p_ts, ts_size);
 #endif
 }
