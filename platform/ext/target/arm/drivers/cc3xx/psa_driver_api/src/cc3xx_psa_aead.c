@@ -625,7 +625,7 @@ psa_status_t cc3xx_aead_update(
             &(operation->stream), input, input_length,
                 output, output_size, output_length);
 
-	if (status != PSA_SUCCESS) {
+        if (status != PSA_SUCCESS) {
             goto out_chacha20;
         }
 
@@ -671,6 +671,9 @@ psa_status_t cc3xx_aead_update(
         operation->last_output_num_bytes = current_output_size;
 #endif /* defined(CC3XX_CONFIG_ENABLE_STREAM_CIPHER) */
 
+        /* Invalidate the output buffer configured on the DMA before returning */
+        cc3xx_lowlevel_chacha20_set_output_buffer(NULL, 0);
+
         cc3xx_lowlevel_chacha20_get_state(&operation->chacha);
 
 #if defined(CC3XX_CONFIG_ENABLE_STREAM_CIPHER)
@@ -707,6 +710,9 @@ out_chacha20:
         *output_length += current_output_size - last_output_num_bytes;
 
         operation->last_output_num_bytes = current_output_size;
+
+        /* Invalidate the output buffer on the DMA before returning */
+        cc3xx_lowlevel_aes_set_output_buffer(NULL, 0);
 
         cc3xx_lowlevel_aes_get_state(&operation->aes);
 
