@@ -358,7 +358,7 @@ psa_status_t cc3xx_cipher_update(
 
     CC3XX_ASSERT(operation != NULL);
     CC3XX_ASSERT(input != NULL);
-    CC3XX_ASSERT(output != NULL);
+    CC3XX_ASSERT(!output_size ^ output != NULL);
     CC3XX_ASSERT(output_length != NULL);
 
     /* Initialize */
@@ -456,7 +456,7 @@ out_chacha20:
             }
 
             if (input_length) {
-            /* Update the cache */
+                /* Update the cache */
                 memcpy(&operation->pkcs7_last_block, &input[input_length - AES_BLOCK_SIZE], AES_BLOCK_SIZE);
                 operation->pkcs7_last_block_size = AES_BLOCK_SIZE;
 
@@ -546,6 +546,13 @@ out_chacha20:
 #endif /* PSA_WANT_KEY_TYPE_CHACHA20 */
 #if defined(PSA_WANT_KEY_TYPE_AES)
     case PSA_KEY_TYPE_AES:
+
+#if defined(PSA_WANT_ALG_CBC_NO_PADDING)
+        if ((operation->alg == PSA_ALG_CBC_NO_PADDING) &&
+            ((operation->aes.crypted_length % AES_BLOCK_SIZE) > 0)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+#endif /*PSA_WANT_ALG_CBC_NO_PADDING */
 
         cc3xx_lowlevel_aes_set_state(&(operation->aes));
 
