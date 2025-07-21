@@ -971,7 +971,7 @@ static void configure_engine_for_crypted_data(bool *write_output)
 
         cc3xx_lowlevel_set_engine(CC3XX_ENGINE_AES);
 #else
-        /* Withut tunnelling, we just perform CBC_MAC */
+        /* Without tunnelling, we just perform CBC_MAC */
         *write_output = false;
         return;
 #endif /* CC3XX_CONFIG_AES_TUNNELLING_ENABLE */
