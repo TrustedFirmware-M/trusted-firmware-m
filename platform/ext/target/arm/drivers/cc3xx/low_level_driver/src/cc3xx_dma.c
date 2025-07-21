@@ -170,6 +170,8 @@ static void process_data(const void *buf, size_t length)
         }
 #endif /* CC3XX_CONFIG_DMA_BURST_RESTRICTED_ENABLE */
 
+        assert(!((output_addr == NULL) && (length != 0)));
+
         /* Set the data target */
         P_CC3XX->dout.dst_lli_word0 = output_addr;
         /* And the length */
@@ -283,7 +285,7 @@ cc3xx_err_t cc3xx_lowlevel_dma_buffered_input_data(const void* buf, size_t lengt
         /* If we need to output the block buffer, and then new data shouldn't be
          * output, then the block buffer needs to be flushed
          */
-        if (dma_state.block_buf_needs_output != write_output) {
+        if (dma_state.block_buf_needs_output && !write_output) {
             cc3xx_lowlevel_dma_flush_buffer(false);
         } else {
             data_to_process_length =
