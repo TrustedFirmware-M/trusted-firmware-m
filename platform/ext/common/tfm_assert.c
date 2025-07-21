@@ -19,6 +19,7 @@ void __assert_func(const char *file, int line, const char *func, const char *rea
     }
 
     FIH_PANIC;
+    __builtin_unreachable();
 }
 #else /* __ARMCC_VERSION */
 void __assert_puts(const char *msg)
@@ -28,5 +29,6 @@ void __assert_puts(const char *msg)
     }
 
     FIH_PANIC;
+    __builtin_unreachable();
 }
 #endif /* __ARMCC_VERSION */
