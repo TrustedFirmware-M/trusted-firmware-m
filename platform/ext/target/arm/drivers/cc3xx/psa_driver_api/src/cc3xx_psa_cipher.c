@@ -194,6 +194,9 @@ out_chacha20:
         switch (alg) {
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
         case PSA_ALG_CBC_NO_PADDING:
+            if ((input_length % AES_BLOCK_SIZE) > 0) {
+                return PSA_ERROR_INVALID_ARGUMENT;
+            }
             mode = CC3XX_AES_MODE_CBC;
             break;
 #endif
