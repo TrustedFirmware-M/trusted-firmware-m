@@ -69,7 +69,8 @@ static uintptr_t remap_addr(uintptr_t addr)
 
 #else
 
-static uintptr_t remap_addr(uintptr_t addr) {
+static uintptr_t remap_addr(uintptr_t addr)
+{
     return addr;
 }
 
@@ -142,10 +143,8 @@ static void wait_for_dma_complete(void)
     P_CC3XX->host_rgf.host_rgf_icr = poll_mask;
 }
 
-static void process_data(const void* buf, size_t length)
+static void process_data(const void *buf, size_t length)
 {
-    uintptr_t remapped_buf = (uintptr_t)NULL;
-
     /* Enable the DMA clock */
     P_CC3XX->misc.dma_clk_enable = 0x1U;
 
@@ -159,11 +158,6 @@ static void process_data(const void* buf, size_t length)
 
     /* Reset the AXI_ERROR and SYM_DMA_COMPLETED interrupts */
     P_CC3XX->host_rgf.host_rgf_icr |= 0xFF0U;
-
-    if (dma_state.input_src == CC3XX_DMA_INPUT_SRC_CPU_MEM) {
-        /* remap the address, particularly for TCMs */
-        remapped_buf = remap_addr((uintptr_t)buf);
-    }
 
     if (dma_state.block_buf_needs_output) {
         uintptr_t output_addr = dma_state.output_addr;
@@ -197,6 +191,8 @@ static void process_data(const void* buf, size_t length)
     }
 
     if (dma_state.input_src == CC3XX_DMA_INPUT_SRC_CPU_MEM) {
+        /* remap the address, particularly for TCMs */
+        const uintptr_t remapped_buf =  remap_addr((uintptr_t)buf);
 #ifdef CC3XX_CONFIG_DMA_CACHE_FLUSH_ENABLE
         /* Flush the input data. Note that this is only enough to avoid cache
          * issues if the CPU is in a busy-wait loop while the access completes.
