@@ -105,20 +105,6 @@ if (TFM_PARTITION_CRYPTO)
             CONFIG_TFM_FLOAT_ABI: ${CONFIG_TFM_FLOAT_ABI}) for the PSA Cryptoprocessor driver interface due to flash memory constraints.")
     endif()
 
-    # FixMe: Secure tests enabled and Debug builds on Musca-B1 need to fallback to
-    #        the legacy driver as the new PSA driver overflows the available flash
-    #        memory of the SSE-200 subsystem
-    if ((NOT ${CC312_LEGACY_DRIVER_API_ENABLED}) AND
-        TEST_S AND (${CMAKE_BUILD_TYPE} STREQUAL "Debug") AND (${TFM_PLATFORM} STREQUAL "arm/musca_b1"))
-        set(CC312_LEGACY_DRIVER_API_ENABLED ON)
-        message(WARNING
-            "The CC-312 legacy driver interface fallback is forced to ${CC312_LEGACY_DRIVER_API_ENABLED}. \
-            The following parameters are not supported at the same time: \
-            (TEST_S: ${TEST_S}, \
-            CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}, \
-            TFM_PLATFORM: ${TFM_PLATFORM}) for the PSA Cryptoprocessor driver interface due to flash memory constraints.")
-    endif()
-
     if (${CC3XX_RUNTIME_ENABLED} AND ${CC312_LEGACY_DRIVER_API_ENABLED})
         message(FATAL_ERROR "CC3xx and the Legacy Crypto driver API can't be enabled at the same time.")
     endif()
