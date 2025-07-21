@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -10,6 +10,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <assert.h>
+#include <string.h>
 
 #include "test_framework.h"
 #include "device_definition.h"
@@ -17,6 +19,23 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* general helpers */
+#define ARRAY_SIZE(_arr) (sizeof(_arr) / sizeof((_arr)[0]))
+
+#define TEST_ASSERT(cond, msg) \
+    if (!(cond)) {             \
+        TEST_FAIL(msg);        \
+        return;                \
+    }
+#define TEST_FMT_ASSERT(cond, fmt, ...) \
+    if (!(cond)) {                      \
+        TEST_LOG(fmt, __VA_ARGS__);     \
+        TEST_FAIL("ASSERT_FAILED");     \
+        return;                         \
+    }
+#define TEST_SETUP(x) TEST_ASSERT((x) == 0, "%s", "Test setup failed")
+#define TEST_TEARDOWN(x) TEST_ASSERT((x) == 0, "%s", "Test teardown failed")
 
 struct conditional_test_t {
     bool any_tp_mode;
@@ -27,9 +46,6 @@ struct conditional_test_t {
     enum lcm_bool_t sp_enabled;
     struct test_t test;
 };
-
-void add_tests_to_testsuite(struct test_t *test_list, uint32_t test_am,
-                            struct test_suite_t *p_ts, uint32_t ts_size);
 
 void add_conditional_tests_to_testsuite(struct conditional_test_t *tests, uint32_t test_am,
                                         struct test_suite_t *p_ts, uint32_t ts_size);

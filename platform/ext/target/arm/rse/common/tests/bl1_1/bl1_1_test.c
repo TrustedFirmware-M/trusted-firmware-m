@@ -16,8 +16,6 @@
 #include "test_dcsu_drv.h"
 #endif /* TEST_DCSU_DRV */
 
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
-
 static struct conditional_test_t provisioning_tests[] = {
     {
         .any_tp_mode = true,
@@ -252,6 +250,7 @@ static struct conditional_test_t state_transitions[] = {
             "Provisioning transition to DM LCS secure provisioning enable mode"
         },
     },
+#ifndef TFM_CODE_COVERAGE
     {
         .any_tp_mode = true,
         .lcs = LCM_LCS_DM,
@@ -272,6 +271,7 @@ static struct conditional_test_t state_transitions[] = {
             "Provisioning transition to RMA LCS"
         },
     },
+#endif /* TFM_CODE_COVERAGE */
 };
 
 static struct test_t bl1_1_extra_tests[100];

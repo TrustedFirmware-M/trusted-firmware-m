@@ -74,6 +74,7 @@ target_compile_definitions(platform_region_defs
         $<$<BOOL:${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_HASH_ALG}>:RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_HASH_ALG=RSE_ROTPK_HASH_ALG_${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_HASH_ALG}>
         $<$<BOOL:${RSE_OTP_HAS_SOC_AREA}>:RSE_OTP_HAS_SOC_AREA>
         IC_CONFIG_DMA_CACHE_FLUSH_ENABLE
+        $<$<BOOL:${TFM_CODE_COVERAGE}>:TFM_CODE_COVERAGE>
 )
 
 #========================= Platform common defs ===============================#
