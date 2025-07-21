@@ -60,7 +60,33 @@ target_include_directories(${CC3XX_TARGET_NAME}
         src
 )
 
+# Set default value only if not already set via -DCC3XX_LOG_TYPE=... on the command line
+if(NOT DEFINED CC3XX_LOG_TYPE)
+    set(CC3XX_LOG_TYPE "TFM" CACHE STRING "Logging type for CC3XX (NONE, STDIO, TFM)")
+else()
+    set(CC3XX_LOG_TYPE "${CC3XX_LOG_TYPE}" CACHE STRING "Logging type for CC3XX (NONE, STDIO, TFM)" FORCE)
+endif()
+
+# Define valid options
+set(CC3XX_VALID_LOG_TYPES NONE STDIO TFM)
+set_property(CACHE CC3XX_LOG_TYPE PROPERTY STRINGS ${CC3XX_VALID_LOG_TYPES})
+
+# Validate value
+list(FIND CC3XX_VALID_LOG_TYPES ${CC3XX_LOG_TYPE} _index)
+if(_index EQUAL -1)
+    message(FATAL_ERROR "Invalid CC3XX_LOG_TYPE: ${CC3XX_LOG_TYPE}. Must be one of: ${CC3XX_VALID_LOG_TYPES}")
+endif()
+
+# Define compile-time macros
+target_compile_definitions(${CC3XX_TARGET_NAME}
+    PUBLIC
+        CC3XX_LOG_${CC3XX_LOG_TYPE}
+)
+
+# Conditional link dependency
 target_link_libraries(${CC3XX_TARGET_NAME}
     PRIVATE
         ${CC3XX_PLATFORM_INTERFACE}
+    PUBLIC
+        $<$<STREQUAL:${CC3XX_LOG_TYPE},TFM>:tfm_log_headers>
 )
