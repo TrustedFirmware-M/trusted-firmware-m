@@ -93,11 +93,14 @@ SECTIONS
     } > FLASH
     __exidx_end = .;
 
+    /* Initialization of the DATA and BSS sections is implemented with 32-bit granularity.
+       Therefore, the start addresses and sizes of these sections must be aligned to 4 bytes */
     .data :
     {
        *(vtable)
        *(.data*)
         KEEP(*(.jcr*))
+        . = ALIGN(4);
     } > RAM AT > FLASH
     __data_start = ADDR(.data);
     __data_source = LOADADDR(.data);

@@ -208,6 +208,8 @@ SECTIONS
         KEEP(*(.fini_array))
         PROVIDE_HIDDEN (__fini_array_end = .);
 
+        /* Initialization of the DATA and BSS sections is implemented with 32-bit granularity.
+           Therefore, the start addresses and sizes of these sections must be aligned to 4 bytes */
         /* .copy.table */
         . = ALIGN(4);
         __copy_table_start__ = .;
@@ -215,7 +217,7 @@ SECTIONS
         /* Copy interrupt vectors from flash to RAM */
         LONG (__vectors_start__)                            /* From */
         LONG (__ram_vectors_start__)                        /* To   */
-        LONG ((__vectors_end__ - __vectors_start__) / 4)    /* Size */
+        LONG ((__vectors_end__ - __vectors_start__) / 4)    /* Size. Must be a multiple of 4 */
 #endif
         LONG (LOADADDR(.TFM_DATA))
         LONG (ADDR(.TFM_DATA))
@@ -255,6 +257,21 @@ SECTIONS
          */
         EXCLUDE_FILE (*libflash_drivers*:) *(SORT_BY_ALIGNMENT(.text*))
     } > FLASH
+
+#ifdef RAM_VECTORS_SUPPORT
+    CHECK_ALIGNMENT_4(__vectors_end__ - __vectors_start__)
+#endif
+    CHECK_ALIGNMENT_4(SIZEOF(.TFM_DATA))
+#ifdef S_RAM_CODE_START
+    CHECK_ALIGNMENT_4(SIZEOF(.ER_CODE_SRAM))
+#endif
+#ifdef CONFIG_TFM_PARTITION_META
+    CHECK_ALIGNMENT_4(SIZEOF(.TFM_SP_META_PTR))
+#endif
+{% for partition in partitions %}
+    CHECK_ALIGNMENT_4(SIZEOF(.ER_{{partition.manifest.name}}_DATA))
+    CHECK_ALIGNMENT_4(SIZEOF(.ER_{{partition.manifest.name}}_BSS))
+{% endfor %}
 
     /* Collect all RO-data into a single unprivileged region */
     .ER_RO_DATA ALIGN(TFM_LINKER_PT_RO_DATA_ALIGNMENT) :
@@ -296,6 +313,9 @@ SECTIONS
         *libflash_drivers*:*(SORT_BY_ALIGNMENT(.text*))
         *libflash_drivers*:*(SORT_BY_ALIGNMENT(.rodata*))
         KEEP(*(.ramfunc))
+#if defined(S_RAM_CODE_EXTRA_SECTION_NAME)
+        KEEP(*(S_RAM_CODE_EXTRA_SECTION_NAME))
+#endif
         . = ALIGN(4); /* This alignment is needed to make the section size 4 bytes aligned */
     } > CODE_RAM AT > FLASH
 
@@ -400,6 +420,7 @@ SECTIONS
     {% endif %}
         *({{partition.manifest.name}}_APP-ROT_ATTR_ZI)
         . += (. - start_of_{{partition.manifest.name}}_bss) ? 0 : 4;
+        . = ALIGN(4);
     } > RAM
 
     /* Position tag: End of Application RoT partition's private data */
@@ -500,6 +521,7 @@ SECTIONS
     {% endif %}
         *({{partition.manifest.name}}_PSA-ROT_ATTR_ZI)
         . += (. - start_of_{{partition.manifest.name}}_bss) ? 0 : 4;
+        . = ALIGN(4);
     } > RAM
 
     /* Position tag: End of PSA RoT partition's private data */

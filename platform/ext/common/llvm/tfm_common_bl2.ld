@@ -22,6 +22,11 @@
 
 #include "region_defs.h"
 
+/* Include file with definitions for section alignments.
+ * Note: it should be included after region_defs.h to let platform define
+ * default values if needed. */
+#include "tfm_s_linker_alignments.h"
+
 MEMORY
 {
     FLASH (rx)  : ORIGIN = BL2_CODE_START, LENGTH = BL2_CODE_SIZE
@@ -71,10 +76,14 @@ SECTIONS
     /*
     * Bootoader will clear region [Image$$ER_DATA$$Base - Image$$ARM_LIB_HEAP$$ZI$$Limit]
     * It's important to keep .tfm_bl2_shared_data out of that region
+    *
+    * Initialization of the DATA and BSS sections is implemented with 32-bit granularity.
+    * Therefore, the start addresses and sizes of these sections must be aligned to 4 bytes minimum
     */
     .data : ALIGN(4)
     {
         *(.data*)
+        . = ALIGN(4);
     } > RAM AT > FLASH
 
     .bss (NOLOAD) : ALIGN(4)
@@ -123,6 +132,9 @@ SECTIONS
     __data_source = LOADADDR(.data);
     __data_size   = SIZEOF(.data);
 #endif /* CODE_SHARING */
+
+    CHECK_ALIGNMENT_4(__data_size)
+    CHECK_ALIGNMENT_4(SIZEOF(.bss))
 
 /*    PROVIDE(__stack = Image$$ARM_LIB_STACK$$ZI$$Limit); */
 }
