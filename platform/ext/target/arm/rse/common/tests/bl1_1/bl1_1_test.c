@@ -11,6 +11,7 @@
 #include "cc3xx_tests.h"
 #include "rse_provisioning_tests.h"
 #include "test_state_transitions.h"
+#include "test_nv_counters.h"
 
 #ifdef TEST_DCSU_DRV
 #include "test_dcsu_drv.h"
@@ -250,7 +251,6 @@ static struct conditional_test_t state_transitions[] = {
             "Provisioning transition to DM LCS secure provisioning enable mode"
         },
     },
-#ifndef TFM_CODE_COVERAGE
     {
         .any_tp_mode = true,
         .lcs = LCM_LCS_DM,
@@ -271,7 +271,6 @@ static struct conditional_test_t state_transitions[] = {
             "Provisioning transition to RMA LCS"
         },
     },
-#endif /* TFM_CODE_COVERAGE */
 };
 
 static struct test_t bl1_1_extra_tests[100];
@@ -279,6 +278,8 @@ static struct test_t bl1_1_extra_tests[100];
 void register_testsuite_extra_bl1_1(struct test_suite_t *p_test_suite)
 {
     set_testsuite("RSE Tests", bl1_1_extra_tests, 0, p_test_suite);
+
+    add_common_nv_counter_tests(p_test_suite, ARRAY_SIZE(bl1_1_extra_tests));
 
 #ifdef TEST_DCSU_DRV
     add_dcsu_drv_tests_to_testsuite(p_test_suite, ARRAY_SIZE(bl1_1_extra_tests));

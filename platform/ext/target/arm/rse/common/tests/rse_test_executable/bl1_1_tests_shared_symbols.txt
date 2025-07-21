@@ -51,3 +51,7 @@ soc_area_info
 rse_soc_uid_is_generated
 blob_needs_secret_decryption
 blob_needs_code_data_decryption
+tfm_plat_init_nv_counter
+tfm_plat_read_nv_counter
+tfm_plat_set_nv_counter
+tfm_plat_increment_nv_counter
