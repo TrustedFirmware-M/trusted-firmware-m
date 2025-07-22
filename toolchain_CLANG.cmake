@@ -94,6 +94,8 @@ set(LINKER_CP_OPTION -lclang_rt.builtins -nostdlib)
 if (CMAKE_C_COMPILER_VERSION VERSION_LESS 20.0.0)
    set(BL1_LINKER_CP_OPTION -lcrt0 -ldummyhost)
    set(BL2_LINKER_CP_OPTION -lcrt0 -ldummyhost)
+else()
+   set(BL1_LINKER_CP_OPTION -ldummyhost)
 endif()
 
 if(CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0.0)
