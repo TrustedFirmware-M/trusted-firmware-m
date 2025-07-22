@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-25, Arm Limited. All rights reserved.
+ * Copyright (c) 2021-2026, Arm Limited. All rights reserved.
  * Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
@@ -8,6 +8,7 @@
  */
 
 #include "extra_s_tests.h"
+#include "s_io_storage_test.h"
 #include "platform_base_address.h"
 #include "firewall.h"
 #include "tfm_log_unpriv.h"
@@ -19,9 +20,7 @@
 
 #define DISABLED_TEST 0
 
-#define ENABLE_EXTRA_SECURE_TEST 0
-
-int test_io_storage_multiple_flash_simultaneous(void);
+#define ENABLE_EXTRA_SECURE_TEST 1
 
 enum host_firewall_host_comp_id_t {
   HOST_FCTRL = (0x00u),
@@ -190,7 +189,7 @@ static struct test_t plat_s_t[] = {
      "Extra Secure test"},
 #if (ENABLE_EXTRA_SECURE_TEST == 1)
     {&s_test_io_storage_multiple_flash_simultaneous, "TFM_S_EXTRA_TEST_1002",
-     "Extra Secure test: io storage access multiple flash simultaneous"},
+     "Extra Secure test: GPT flash I/O across multiple devices"},
 #endif
 };
 
