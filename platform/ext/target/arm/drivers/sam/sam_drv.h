@@ -26,6 +26,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#if TFM_UNIQUE_ERROR_CODES == 1
+#include "error_codes_mapping.h"
+#else
+#define SAM_ERROR_BASE 0x1u
+#endif /* TFM_UNIQUE_ERROR_CODES */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -64,7 +70,7 @@ enum sam_response_t {
  */
 enum sam_error_t {
     SAM_ERROR_NONE = 0,
-    SAM_ERROR_INVALID_ARGUMENT,
+    SAM_ERROR_INVALID_ARGUMENT = SAM_ERROR_BASE,
     SAM_ERROR_GENERIC_ERROR,
 };
 

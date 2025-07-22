@@ -52,4 +52,16 @@
 #define CC3XX_ERROR_BASE 0xb0000000
 #endif
 
+#ifndef SAM_ERROR_BASE
+#define SAM_ERROR_BASE 0xc0000000
+#endif
+
+#ifndef CFI_ERROR_BASE
+#define CFI_ERROR_BASE 0xd0000000
+#endif
+
+#ifndef UART_PL011_ERROR_BASE
+#define UART_PL011_ERROR_BASE 0xe0000000
+#endif
+
 #endif /* __ERROR_CODES_MAPPING_H__ */

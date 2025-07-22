@@ -12,6 +12,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#if TFM_UNIQUE_ERROR_CODES == 1
+#include "error_codes_mapping.h"
+#else
+#define CFI_ERROR_BASE 0x1u
+#endif /* TFM_UNIQUE_ERROR_CODES */
+
 /* First bus cycle */
 #define NOR_CMD_READ_ARRAY		0xFF
 #define NOR_CMD_READ_ID_CODE		0x90
@@ -50,7 +56,7 @@
 
 enum cfi_error_t {
     CFI_ERR_NONE,
-    CFI_ERR_WRONG_ARGUMENT,
+    CFI_ERR_WRONG_ARGUMENT = CFI_ERROR_BASE,
     CFI_ERR_NOT_INITIALIZED,
     CFI_ERR_DEV_BUSY,
     CFI_ERR_GENERAL_IO,
