@@ -43,5 +43,5 @@ endif()
 set(TARGET_PLATFORM_PATH    ${TARGET_PATH}/${TFM_PLATFORM})
 
 if (NOT EXISTS ${TARGET_PLATFORM_PATH}/CMakeLists.txt)
-    Message(FATAL_ERROR "Unsupported TFM_PLATFORM ${TFM_PLATFORM}")
+    Message(FATAL_ERROR "Unknown TFM_PLATFORM : \"${TFM_PLATFORM}\"")
 endif()
