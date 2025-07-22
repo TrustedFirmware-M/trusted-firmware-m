@@ -225,7 +225,7 @@
 /* Whether the Shamir trick will be used to improve performance of point-scalar
  * multiplication on non-secret data. Has a code-size penalty.
  */
-/* #define CC3XX_CONFIG_EC_SHAMIR_TRICK_ENABLE */
+#define CC3XX_CONFIG_EC_SHAMIR_TRICK_ENABLE
 
 /* Whether various ECDSA features are enabled */
 #define CC3XX_CONFIG_ECDSA_SIGN_ENABLE
