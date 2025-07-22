@@ -122,11 +122,12 @@ include(config/cp_check.cmake)
 
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
     execute_process(
-        COMMAND arm-none-eabi-gcc --version
+        COMMAND ${CMAKE_C_COMPILER} --version
         OUTPUT_VARIABLE _COMPILER_VERSION
     )
 
-    string(REGEX MATCH "arm-none-eabi-gcc[^\n]*" GCC_VERSION_DETAILED ${_COMPILER_VERSION})
+    get_filename_component(COMPILER_BASENAME ${CMAKE_C_COMPILER} NAME_WE)
+    string(REGEX MATCH "${COMPILER_BASENAME}[^\n]*" GCC_VERSION_DETAILED ${_COMPILER_VERSION})
 
     tfm_invalid_config(GCC_VERSION_DETAILED STREQUAL "arm-none-eabi-gcc (15:13.2.rel1-2) 13.2.1 20231009")
 endif()
