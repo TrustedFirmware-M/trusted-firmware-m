@@ -6,7 +6,7 @@
  */
 
 #include "cc3xx_init.h"
-
+#include "cc3xx_log.h"
 #include "cc3xx_dev.h"
 #include "cc3xx_engine_state.h"
 #include <assert.h>
@@ -14,7 +14,6 @@
 #include "cc3xx_drv.h"
 
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
-
 
 static void check_features(void)
 {
@@ -185,6 +184,7 @@ cc3xx_err_t cc3xx_lowlevel_init(void)
     }
 #endif /* CC3XX_CONFIG_DPA_MITIGATIONS_ENABLE */
 
+    CC3XX_INFO("[CC3XX] Init OK PIDR0: 0x%x\r\n", P_CC3XX->id.peripheral_id_0);
     return CC3XX_ERR_SUCCESS;
 }
 
