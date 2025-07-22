@@ -2734,6 +2734,7 @@ cc3xx_ecdsa_validate_test_data_t cavp_validate_test_data[] = {
 };
 
 cc3xx_ecdsa_validate_test_data_t python_interop_test_data[] = {
+#ifdef CC3XX_CONFIG_EC_CURVE_SECP_192_R1_ENABLE
     {
         CC3XX_HASH_ALG_SHA1,
         CC3XX_EC_CURVE_SECP_192_R1,
@@ -2779,6 +2780,9 @@ cc3xx_ecdsa_validate_test_data_t python_interop_test_data[] = {
         24,
         true,
     },
+#endif /* CC3XX_CONFIG_EC_CURVE_SECP_192_R1_ENABLE */
+
+#ifdef CC3XX_CONFIG_EC_CURVE_SECP_224_R1_ENABLE
     {
         CC3XX_HASH_ALG_SHA1,
         CC3XX_EC_CURVE_SECP_224_R1,
@@ -2824,6 +2828,9 @@ cc3xx_ecdsa_validate_test_data_t python_interop_test_data[] = {
         28,
         true,
     },
+#endif /* CC3XX_CONFIG_EC_CURVE_SECP_224_R1_ENABLE */
+
+#ifdef CC3XX_CONFIG_EC_CURVE_SECP_256_R1_ENABLE
     {
         CC3XX_HASH_ALG_SHA1,
         CC3XX_EC_CURVE_SECP_256_R1,
@@ -2869,6 +2876,9 @@ cc3xx_ecdsa_validate_test_data_t python_interop_test_data[] = {
         32,
         true,
     },
+#endif /* CC3XX_CONFIG_EC_CURVE_SECP_256_R1_ENABLE */
+
+#ifdef CC3XX_CONFIG_EC_CURVE_SECP_384_R1_ENABLE
     {
         CC3XX_HASH_ALG_SHA1,
         CC3XX_EC_CURVE_SECP_384_R1,
@@ -2914,6 +2924,9 @@ cc3xx_ecdsa_validate_test_data_t python_interop_test_data[] = {
         48,
         true,
     },
+#endif /* CC3XX_CONFIG_EC_CURVE_SECP_384_R1_ENABLE */
+
+#ifdef CC3XX_CONFIG_EC_CURVE_SECP_521_R1_ENABLE
     {
         CC3XX_HASH_ALG_SHA1,
         CC3XX_EC_CURVE_SECP_521_R1,
@@ -2959,6 +2972,9 @@ cc3xx_ecdsa_validate_test_data_t python_interop_test_data[] = {
         68,
         true,
     },
+#endif /* CC3XX_CONFIG_EC_CURVE_SECP_521_R1_ENABLE */
+
+#ifdef CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_192_R1_ENABLE
     {
         CC3XX_HASH_ALG_SHA1,
         CC3XX_EC_CURVE_BRAINPOOLP_192_R1,
@@ -3004,6 +3020,9 @@ cc3xx_ecdsa_validate_test_data_t python_interop_test_data[] = {
         24,
         true,
     },
+#endif /* CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_192_R1_ENABLE */
+
+#ifdef CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_224_R1_ENABLE
     {
         CC3XX_HASH_ALG_SHA1,
         CC3XX_EC_CURVE_BRAINPOOLP_224_R1,
@@ -3049,6 +3068,9 @@ cc3xx_ecdsa_validate_test_data_t python_interop_test_data[] = {
         28,
         true,
     },
+#endif /* CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_224_R1_ENABLE */
+
+#ifdef CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_256_R1_ENABLE
     {
         CC3XX_HASH_ALG_SHA1,
         CC3XX_EC_CURVE_BRAINPOOLP_256_R1,
@@ -3094,6 +3116,9 @@ cc3xx_ecdsa_validate_test_data_t python_interop_test_data[] = {
         32,
         true,
     },
+#endif /* CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_256_R1_ENABLE */
+
+#ifdef CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_320_R1_ENABLE
     {
         CC3XX_HASH_ALG_SHA1,
         CC3XX_EC_CURVE_BRAINPOOLP_320_R1,
@@ -3139,6 +3164,9 @@ cc3xx_ecdsa_validate_test_data_t python_interop_test_data[] = {
         40,
         true,
     },
+#endif /* CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_320_R1_ENABLE */
+
+#ifdef CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_384_R1_ENABLE
     {
         CC3XX_HASH_ALG_SHA1,
         CC3XX_EC_CURVE_BRAINPOOLP_384_R1,
@@ -3184,6 +3212,9 @@ cc3xx_ecdsa_validate_test_data_t python_interop_test_data[] = {
         48,
         true,
     },
+#endif /* CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_384_R1_ENABLE */
+
+#ifdef CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_512_R1_ENABLE
     {
         CC3XX_HASH_ALG_SHA1,
         CC3XX_EC_CURVE_BRAINPOOLP_512_R1,
@@ -3229,6 +3260,9 @@ cc3xx_ecdsa_validate_test_data_t python_interop_test_data[] = {
         64,
         true,
     },
+#endif /* CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_512_R1_ENABLE */
+
+#ifdef CC3XX_CONFIG_EC_CURVE_SECP_256_K1_ENABLE
     {
         CC3XX_HASH_ALG_SHA1,
         CC3XX_EC_CURVE_SECP_256_K1,
@@ -3274,6 +3308,7 @@ cc3xx_ecdsa_validate_test_data_t python_interop_test_data[] = {
         32,
         true,
     },
+#endif /* CC3XX_CONFIG_EC_CURVE_SECP_256_K1_ENABLE */
 };
 
 int cc3xx_test_ecdsa_verify(cc3xx_ecdsa_validate_test_data_t *data)
