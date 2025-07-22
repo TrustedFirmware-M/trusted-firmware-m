@@ -829,6 +829,11 @@ out_chacha20:
 
         cc3xx_lowlevel_aes_set_output_buffer(ciphertext, ciphertext_size);
 
+        if (ciphertext_size < operation->aes.dma_state.block_buf_size_in_use) {
+            status = PSA_ERROR_BUFFER_TOO_SMALL;
+            goto out_aes;
+        }
+
         err = cc3xx_lowlevel_aes_finish(local_tag, &bytes_produced_on_finish);
         if (err != CC3XX_ERR_SUCCESS) {
             status = cc3xx_to_psa_err(err);
@@ -885,6 +890,9 @@ psa_status_t cc3xx_aead_verify(
 
     /* Copy the tag in a 4-byte aligned local buffer */
     memcpy(local_tag, tag, tag_size);
+
+    /* Initialize */
+    *plaintext_length = 0;
 
     /* cc3xx_aead_operation_t is just an alias to cc3xx_cipher_operation_t */
     switch (operation->key_type) {
@@ -959,6 +967,11 @@ out_chacha20:
         cc3xx_lowlevel_aes_set_state(&(operation->aes));
 
         cc3xx_lowlevel_aes_set_output_buffer(plaintext, plaintext_size);
+
+        if (plaintext_size < operation->aes.dma_state.block_buf_size_in_use) {
+            status = PSA_ERROR_BUFFER_TOO_SMALL;
+            goto out_aes;
+        }
 
         err = cc3xx_lowlevel_aes_finish(local_tag, &bytes_produced_on_finish);
         if (err != CC3XX_ERR_SUCCESS) {

@@ -558,6 +558,11 @@ out_chacha20:
 
         cc3xx_lowlevel_aes_set_output_buffer(output, output_size);
 
+        if (output_size < operation->aes.dma_state.block_buf_size_in_use) {
+            status = PSA_ERROR_BUFFER_TOO_SMALL;
+            goto out_aes;
+        }
+
 #if defined(PSA_WANT_ALG_CBC_PKCS7)
         /* When encrypting on finish, we need to encrypt the padding */
         if (operation->alg == PSA_ALG_CBC_PKCS7 &&
