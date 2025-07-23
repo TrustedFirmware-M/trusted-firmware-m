@@ -68,6 +68,16 @@
  * to implementing it through the other PSA multipart APIs
  */
 #define CC3XX_CONFIG_ENABLE_MAC_INTEGRATED_API
+
+/*!
+ * When set, AES-CBC-PKCS7 can decrypt arbitrary lengths during a multipart
+ * update flow. Otherwise, the caller must pass multiples of the AES block
+ * size to the update function. This option increases flexibility but it comes
+ * with a tradeoff on code size and a performance decrease due to the additional
+ * buffering required. It is required to pass PSA ACK test 236, see:
+ * https://github.com/ARM-software/psa-arch-tests/tree/main/api-tests/dev_apis/crypto/test_c036
+ */
+#define CC3XX_CONFIG_CBC_PKCS7_DECRYPT_ARBITRARY_LENGTHS
 #endif /* __DOXYGEN_ONLY__ */
 
 #include "cc3xx_psa_init.h"

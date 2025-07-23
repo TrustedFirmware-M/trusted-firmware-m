@@ -89,6 +89,26 @@ struct cc3xx_mac_operation_s {
     psa_algorithm_t alg; /*!< MAC algorithm used in this context */
 };
 
+#if defined(CC3XX_CONFIG_CBC_PKCS7_DECRYPT_ARBITRARY_LENGTHS)
+/**
+ * @brief The size of the ring buffer used in the. Must be enough
+ *        to hold up to two AES blocks while buffering when used
+ *        in AES-CBC with PKCS#7 padding
+ */
+#define RING_BUF_SIZE (32)
+
+/**
+ * @brief A generic ring buffer structure to be used for PKCS#7 related buffering
+ *
+ */
+typedef struct {
+    uint8_t buffer[RING_BUF_SIZE]; /*!< Ring buffer */
+    size_t write_offset;           /*!< Next write position */
+    size_t read_offset;            /*!< Next read position (for blocks) */
+    size_t count;                  /*!< Number of bytes in buffer */
+} ring_buffer_t;
+#endif /* CC3XX_CONFIG_CBC_PKCS7_DECRYPT_ARBITRARY_LENGTHS */
+
 /*!
  * \struct cc3xx_cipher_operation_s
  *
@@ -107,6 +127,9 @@ struct cc3xx_cipher_operation_s {
 #if defined(PSA_WANT_ALG_CBC_PKCS7)
     uint8_t pkcs7_last_block[AES_BLOCK_SIZE]; /*!< In multipart decryption, PKCS#7 needs to cache the last block */
     size_t pkcs7_last_block_size; /*!< Size of data currently held in ::cc3xx_cipher_operation_s.pkcs7_last_block */
+#if defined(CC3XX_CONFIG_CBC_PKCS7_DECRYPT_ARBITRARY_LENGTHS)
+    ring_buffer_t pkcs7_ring_buf; /*!< Ring buffer to support caching for arbitrary updates during PKCS#7 decryption */
+#endif
 #endif /* PSA_WANT_ALG_CBC_PKCS7 */
 
     psa_algorithm_t alg; /*!< Cipher algorithm used in this context */

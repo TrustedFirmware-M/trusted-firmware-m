@@ -276,6 +276,11 @@ psa_status_t cc3xx_internal_cipher_setup_init(
     if (alg == PSA_ALG_CBC_PKCS7) {
         memset(operation->pkcs7_last_block, 0, sizeof(operation->pkcs7_last_block));
         operation->pkcs7_last_block_size = 0;
+#if defined(CC3XX_CONFIG_CBC_PKCS7_DECRYPT_ARBITRARY_LENGTHS)
+        operation->pkcs7_ring_buf.read_offset = 0;
+        operation->pkcs7_ring_buf.write_offset = 0;
+        operation->pkcs7_ring_buf.count = 0;
+#endif /* CC3XX_CONFIG_CBC_PKCS7_DECRYPT_ARBITRARY_LENGTHS */
     }
 #endif /* PSA_WANT_ALG_CBC_PKCS7 */
 
