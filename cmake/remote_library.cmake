@@ -146,7 +146,7 @@ function(fetch_remote_library)
     # Content fetching
     FetchContent_Declare(${ARG_LIB_NAME}
         ${ARG_FETCH_CONTENT_ARGS}
-        "${GIT_SUBMODULES}"      "${GIT_SUBMODULES_VALUE}"
+        ${GIT_SUBMODULES}     ${GIT_SUBMODULES_VALUE}
         ${PATCH_COMMAND}
     )
     FetchContent_MakeAvailable(${ARG_LIB_NAME})
