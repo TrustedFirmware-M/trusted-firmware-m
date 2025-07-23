@@ -539,7 +539,7 @@ __PACKED_STRUCT __ALIGNED(4) _cc3xx_reg_map_t {
         __IM uint32_t ao_permanent_disable_mask[4];
                     /*!< Offset: 0x1E54 (RO) */
         uint8_t _reserved_0[160];
-                    /*!< Offset: 0x1E58-0x1EFC Reserved */
+                    /*!< Offset: 0x1E64-0x1EFC Reserved */
     } ao;
 
     /* NVM block */
