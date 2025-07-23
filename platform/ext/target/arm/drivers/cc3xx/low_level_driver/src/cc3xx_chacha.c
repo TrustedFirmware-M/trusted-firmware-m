@@ -161,7 +161,7 @@ cc3xx_err_t cc3xx_lowlevel_chacha20_init(
      */
     if (chacha_state.mode == CC3XX_CHACHA_MODE_CHACHA_POLY1305) {
         cc3xx_lowlevel_dma_set_output(poly_key, sizeof(poly_key));
-        cc3xx_lowlevel_dma_buffered_input_data(poly_key, sizeof(poly_key), true);
+        cc3xx_lowlevel_dma_buffered_input_data(poly_key, sizeof(poly_key), true, true);
         cc3xx_lowlevel_dma_flush_buffer(true);
 
         /* This is a preparatory operation so no need to count it in the output size */
@@ -277,7 +277,7 @@ cc3xx_err_t cc3xx_lowlevel_chacha20_update(const uint8_t* in, size_t in_len)
     }
 #endif /* CC3XX_CONFIG_CHACHA_POLY1305_ENABLE */
 
-    err = cc3xx_lowlevel_dma_buffered_input_data(in, in_len, true);
+    err = cc3xx_lowlevel_dma_buffered_input_data(in, in_len, true, true);
     if (err != CC3XX_ERR_SUCCESS) {
         return err;
     }

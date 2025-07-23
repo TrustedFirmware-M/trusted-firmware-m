@@ -230,7 +230,7 @@ void cc3xx_lowlevel_dma_copy_data(void* dest, const void* src, size_t length)
     cc3xx_lowlevel_dma_set_output(dest, length);
 
     /* This starts the copy */
-    cc3xx_lowlevel_dma_buffered_input_data(src, length, true);
+    cc3xx_lowlevel_dma_buffered_input_data(src, length, true, true);
     cc3xx_lowlevel_dma_flush_buffer(false);
 }
 
@@ -261,14 +261,14 @@ void cc3xx_lowlevel_dma_copy_data_from_rng_sram(void* dest,
 }
 
 cc3xx_err_t cc3xx_lowlevel_dma_buffered_input_data(const void* buf, size_t length,
-                                                   bool write_output)
+                                                   bool write_output, bool validate_out)
 {
     size_t block_buf_size_free =
         dma_state.block_buf_size - dma_state.block_buf_size_in_use;
     size_t data_to_process_length = 0;
     size_t dma_input_length = 0;
 
-    if (write_output) {
+    if (write_output && validate_out) {
         if (length > dma_state.output_size) {
             FATAL_ERR(CC3XX_ERR_DMA_OUTPUT_BUFFER_TOO_SMALL);
             return CC3XX_ERR_DMA_OUTPUT_BUFFER_TOO_SMALL;

@@ -160,7 +160,7 @@ void cc3xx_lowlevel_hash_uninit(void)
 
 cc3xx_err_t cc3xx_lowlevel_hash_update(const uint8_t *buf, size_t length)
 {
-    return cc3xx_lowlevel_dma_buffered_input_data(buf, length, false);
+    return cc3xx_lowlevel_dma_buffered_input_data(buf, length, false, false);
 }
 
 void cc3xx_lowlevel_hash_get_state(struct cc3xx_hash_state_t *state)

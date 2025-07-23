@@ -157,15 +157,20 @@ void cc3xx_lowlevel_dma_copy_data_from_rng_sram(void* dest,
  *                    memory map exports different interfaces to the same memory
  *                    location, in case of the CPU and the DMA engine respectively
  *
- * @param[in]  buf          The pointer to copy data from.
- * @param[in]  length       The size of the data.
- * @param[in]  write_output Whether the data should be output from the engine.
+ * @param[in] buf             The pointer to copy data from.
+ * @param[in] length          The size of the data.
+ * @param[in] write_output    Whether the data should be output from the engine.
+ * @param[in] validate_output Whether to validate the size of the output buffer
+ *                            currently configured on the DMA, to be big enough
+ *                            for the input data being fed. This allows for corner
+ *                            cases where the lowlevel APIs are called from PSA
+ *                            Crypto multipart flows.
  *
  * @return            CC3XX_ERR_SUCCESS on success, another cc3xx_err_t on
  *                    error.
  */
 cc3xx_err_t cc3xx_lowlevel_dma_buffered_input_data(const void *buf, size_t length,
-                                                   bool write_output);
+                                                   bool write_output, bool validate_output);
 
 /**
  * @brief             Flush the DMA buffer. Engine setup is not saved with the
