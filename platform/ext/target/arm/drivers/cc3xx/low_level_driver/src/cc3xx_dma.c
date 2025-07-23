@@ -160,20 +160,20 @@ static void process_data(const void *buf, size_t length)
     P_CC3XX->host_rgf.host_rgf_icr |= 0xFF0U;
 
     if (dma_state.block_buf_needs_output) {
-        uintptr_t output_addr = dma_state.output_addr;
+        const uintptr_t remap_output_addr = remap_addr(dma_state.output_addr);
 #ifdef CC3XX_CONFIG_DMA_BURST_RESTRICTED_ENABLE
         /* Force single transactions for restricted addresses */
-        if (is_addr_burst_restricted(output_addr)) {
+        if (is_addr_burst_restricted(remap_output_addr)) {
             P_CC3XX->ahb.ahbm_singles = 0x1UL;
         } else {
             P_CC3XX->ahb.ahbm_singles = 0x0UL;
         }
 #endif /* CC3XX_CONFIG_DMA_BURST_RESTRICTED_ENABLE */
 
-        assert(!((output_addr == NULL) && (length != 0)));
+        assert(!((remap_output_addr == (uintptr_t)NULL) && (length != 0)));
 
         /* Set the data target */
-        P_CC3XX->dout.dst_lli_word0 = output_addr;
+        P_CC3XX->dout.dst_lli_word0 = remap_output_addr;
         /* And the length */
         P_CC3XX->dout.dst_lli_word1 = length;
 
@@ -185,7 +185,7 @@ static void process_data(const void *buf, size_t length)
          * set up an MPU covering the input and output regions so they can be
          * marked as SHAREABLE (which is not currently implemented).
          */
-        SCB_CleanInvalidateDCache_by_Addr((volatile void *)output_addr, length);
+        SCB_CleanInvalidateDCache_by_Addr((volatile void *)remap_output_addr, length);
 #endif /* CC3XX_CONFIG_DMA_CACHE_FLUSH_ENABLE */
 
         dma_state.output_addr += length;
@@ -194,7 +194,7 @@ static void process_data(const void *buf, size_t length)
 
     if (dma_state.input_src == CC3XX_DMA_INPUT_SRC_CPU_MEM) {
         /* remap the address, particularly for TCMs */
-        const uintptr_t remapped_buf =  remap_addr((uintptr_t)buf);
+        const uintptr_t remapped_buf = remap_addr((uintptr_t)buf);
 #ifdef CC3XX_CONFIG_DMA_CACHE_FLUSH_ENABLE
         /* Flush the input data. Note that this is only enough to avoid cache
          * issues if the CPU is in a busy-wait loop while the access completes.
@@ -351,10 +351,9 @@ void cc3xx_lowlevel_dma_set_buffer_size(size_t size) {
     assert(size <= CC3XX_DMA_BLOCK_BUF_MAX_SIZE);
 }
 
-void cc3xx_lowlevel_dma_set_output(void* buf, size_t length)
+void cc3xx_lowlevel_dma_set_output(void *buf, size_t length)
 {
-    /* remap the address, particularly for TCMs */
-    dma_state.output_addr = remap_addr((uintptr_t)buf);
+    dma_state.output_addr = (uintptr_t)buf;
     dma_state.output_size = length;
 }
 

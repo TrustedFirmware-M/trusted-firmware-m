@@ -152,6 +152,11 @@ void cc3xx_lowlevel_dma_copy_data_from_rng_sram(void* dest,
  *                    cc3xx_dma_flush_buffer must be called to ensure all data
  *                    is processed.
  *
+ * @note              The \p buf pointer can be remapped to a different address
+ *                    before being programmed on the DMA engine in case the system
+ *                    memory map exports different interfaces to the same memory
+ *                    location, in case of the CPU and the DMA engine respectively
+ *
  * @param[in]  buf          The pointer to copy data from.
  * @param[in]  length       The size of the data.
  * @param[in]  write_output Whether the data should be output from the engine.
@@ -159,7 +164,7 @@ void cc3xx_lowlevel_dma_copy_data_from_rng_sram(void* dest,
  * @return            CC3XX_ERR_SUCCESS on success, another cc3xx_err_t on
  *                    error.
  */
-cc3xx_err_t cc3xx_lowlevel_dma_buffered_input_data(const void* buf, size_t length,
+cc3xx_err_t cc3xx_lowlevel_dma_buffered_input_data(const void *buf, size_t length,
                                                    bool write_output);
 
 /**
@@ -186,11 +191,16 @@ void cc3xx_lowlevel_dma_set_buffer_size(size_t size);
  * @brief             Set the DMA output location. This controls where the
  *                    DMA will output to after input is started.
  *
+ * @note              The \p buf pointer can be remapped to a different address
+ *                    before being programmed on the DMA engine in case the system
+ *                    memory map exports different interfaces to the same memory
+ *                    location, in case of the CPU and the DMA engine respectively
+ *
  * @param[out] buf    The pointer to output to.
  * @param[in]  length The size of the output location. The DMA will not copy
  *                    more data than this to the pointer.
  */
-void cc3xx_lowlevel_dma_set_output(void* buf, size_t length);
+void cc3xx_lowlevel_dma_set_output(void *buf, size_t length);
 
 /**
  * @brief                       Uninitialize the DMA.
