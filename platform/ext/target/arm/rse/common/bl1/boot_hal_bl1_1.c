@@ -103,7 +103,6 @@ int32_t boot_platform_init(void)
     enum kmu_error_t kmu_err;
     cc3xx_err_t cc_err;
     uint8_t prbg_seed[KMU_PRBG_SEED_LEN];
-    uint32_t idx;
 #ifdef RSE_ENABLE_BRINGUP_HELPERS
     enum lcm_error_t lcm_err;
     enum lcm_tp_mode_t tp_mode;

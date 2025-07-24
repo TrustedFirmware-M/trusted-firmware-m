@@ -213,7 +213,7 @@ enum integrity_checker_error_t integrity_checker_compute_value(struct integrity_
     iccval |= 1 << 4;
 
 #ifdef IC_CONFIG_DMA_CACHE_FLUSH_ENABLE
-    SCB_CleanInvalidateDCache_by_Addr((void *)data, size);
+    SCB_CleanInvalidateDCache_by_Addr((volatile void *)data, size);
 #endif
 
     /* Configure input data. Size is in words */
@@ -238,7 +238,7 @@ enum integrity_checker_error_t integrity_checker_compute_value(struct integrity_
     }
 
 #ifdef IC_CONFIG_DMA_CACHE_FLUSH_ENABLE
-    SCB_CleanInvalidateDCache_by_Addr(value_ptr, mode_sizes[mode]);
+    SCB_CleanInvalidateDCache_by_Addr((volatile void *)value_ptr, mode_sizes[mode]);
 #endif
 
     if (value_ptr != value) {
@@ -301,7 +301,7 @@ enum integrity_checker_error_t integrity_checker_check_value(struct integrity_ch
     iccval |= (mode & 0b111) << 1;
 
 #ifdef IC_CONFIG_DMA_CACHE_FLUSH_ENABLE
-    SCB_CleanInvalidateDCache_by_Addr((void *)data, size);
+    SCB_CleanInvalidateDCache_by_Addr((volatile void *)data, size);
 #endif
 
     /* Configure input data. Size is in words */
@@ -309,7 +309,7 @@ enum integrity_checker_error_t integrity_checker_check_value(struct integrity_ch
     p_integrity_checker->icdl = size / INTEGRITY_CHECKER_REQUIRED_ALIGNMENT;
 
 #ifdef IC_CONFIG_DMA_CACHE_FLUSH_ENABLE
-    SCB_CleanInvalidateDCache_by_Addr(value_ptr, mode_sizes[mode]);
+    SCB_CleanInvalidateDCache_by_Addr((volatile void *)value_ptr, mode_sizes[mode]);
 #endif
 
     /* Set compare address */
