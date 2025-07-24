@@ -55,7 +55,7 @@ static psa_status_t cc3xx_internal_aes_setup(
     psa_algorithm_t alg,
     psa_encrypt_or_decrypt_t dir)
 {
-    psa_algorithm_t default_alg = PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg);
+    const psa_algorithm_t default_alg = PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg);
     cc3xx_aes_keysize_t key_size;
     cc3xx_aes_mode_t mode;
 
@@ -72,6 +72,8 @@ static psa_status_t cc3xx_internal_aes_setup(
     default:
         return PSA_ERROR_INVALID_ARGUMENT;
     }
+
+    memset(state, 0, sizeof(struct cc3xx_aes_state_t));
 
     switch (alg) {
 #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
@@ -145,12 +147,14 @@ static psa_status_t cc3xx_internal_chacha_setup(
     psa_algorithm_t alg,
     psa_encrypt_or_decrypt_t dir)
 {
-    psa_algorithm_t default_alg = PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg);
+    const psa_algorithm_t default_alg = PSA_ALG_AEAD_WITH_DEFAULT_LENGTH_TAG(alg);
     cc3xx_chacha_mode_t mode;
 
     if (key_buffer_size != CC3XX_CHACHA_KEY_SIZE) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
+
+    memset(state, 0, sizeof(struct cc3xx_chacha_state_t));
 
     switch (alg) {
 #if defined(PSA_WANT_ALG_STREAM_CIPHER)
