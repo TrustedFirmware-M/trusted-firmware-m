@@ -35,7 +35,7 @@ uint32_t bl1_image_get_flash_offset(uint32_t image_id);
  * @param out
  * @return fih_int
  */
-fih_int bl1_image_copy_to_sram(uint32_t image_id, uint8_t *out);
+fih_ret bl1_image_copy_to_sram(uint32_t image_id, uint8_t *out);
 
 /**
  * @brief BL1_2 selects the active BL2 image

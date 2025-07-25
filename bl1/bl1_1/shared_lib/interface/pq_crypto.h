@@ -20,7 +20,7 @@ extern "C" {
 /* Verify signature using the LMS stateful-hash post-quantum crypto algorithm as
  * per IETF RFC8554 and NIST SP800-208.
  */
-fih_int pq_crypto_verify(uint8_t *key, size_t key_size,
+fih_ret pq_crypto_verify(uint8_t *key, size_t key_size,
                          const uint8_t *data,
                          size_t data_length,
                          const uint8_t *signature,

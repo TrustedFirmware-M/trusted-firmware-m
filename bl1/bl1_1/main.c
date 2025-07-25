@@ -57,30 +57,30 @@ static void collect_boot_measurement(void)
 #ifndef TEST_BL1_1
 static
 #endif
-fih_int bl1_1_validate_image_at_addr(const uint8_t *image)
+fih_ret bl1_1_validate_image_at_addr(const uint8_t *image)
 {
     enum tfm_plat_err_t plat_err;
     uint8_t stored_bl1_2_hash[TFM_BL1_1_MEASUREMENT_HASH_MAX_SIZE];
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     FIH_CALL(bl1_hash_compute, fih_rc, TFM_BL1_1_MEASUREMENT_HASH_ALG,
                                        image, BL1_2_CODE_SIZE, computed_bl1_2_hash,
                                        sizeof(computed_bl1_2_hash),
                                        &computed_bl1_2_hash_size);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         FIH_RET(fih_rc);
     }
 
     plat_err = tfm_plat_otp_read(PLAT_OTP_ID_BL1_2_IMAGE_HASH, sizeof(stored_bl1_2_hash),
                                  stored_bl1_2_hash);
-    fih_rc = fih_int_encode_zero_equality(plat_err);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    fih_rc = fih_ret_encode_zero_equality(plat_err);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         FIH_RET(fih_rc);
     }
 
     FIH_CALL(bl_fih_memeql, fih_rc, computed_bl1_2_hash,
                                     stored_bl1_2_hash, computed_bl1_2_hash_size);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         FIH_RET(fih_rc);
     }
 
@@ -89,14 +89,14 @@ fih_int bl1_1_validate_image_at_addr(const uint8_t *image)
 
 int main(void)
 {
-    fih_int fih_rc = FIH_FAILURE;
-    fih_int recovery_succeeded = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+    FIH_DECLARE(recovery_succeeded, FIH_FAILURE);
     enum tfm_plat_err_t plat_err;
     bool provisioning_required;
 
-    fih_rc = fih_int_encode_zero_equality(boot_platform_init());
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        boot_platform_error_state(fih_int_decode(fih_rc));
+    fih_rc = fih_ret_encode_zero_equality(boot_platform_init());
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        boot_platform_error_state(fih_rc);
     }
 
     INFO("Starting TF-M BL1_1\n");
@@ -108,51 +108,51 @@ int main(void)
     plat_err = tfm_plat_provisioning_is_required(&provisioning_required);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         ERROR("BL1 provision necessity check failed\n");
-        boot_platform_error_state(fih_int_decode(fih_rc));
+        boot_platform_error_state(fih_rc);
     }
 
     if (provisioning_required) {
-        fih_rc = fih_int_encode_zero_equality(tfm_plat_provisioning_perform());
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        fih_rc = fih_ret_encode_zero_equality(tfm_plat_provisioning_perform());
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
             ERROR("BL1 provisioning failed\n");
-            boot_platform_error_state(fih_int_decode(fih_rc));
+            boot_platform_error_state(fih_rc);
         }
     }
 
     tfm_plat_provisioning_check_for_dummy_keys();
 
-    fih_rc = fih_int_encode_zero_equality(boot_platform_post_init());
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        boot_platform_error_state(fih_int_decode(fih_rc));
+    fih_rc = fih_ret_encode_zero_equality(boot_platform_post_init());
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        boot_platform_error_state(fih_rc);
     }
 
-    fih_rc = fih_int_encode_zero_equality(boot_platform_pre_load(0));
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        boot_platform_error_state(fih_int_decode(fih_rc));
+    fih_rc = fih_ret_encode_zero_equality(boot_platform_pre_load(0));
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        boot_platform_error_state(fih_rc);
     }
 
     do {
         /* Copy BL1_2 from OTP into SRAM*/
         FIH_CALL(bl1_read_bl1_2_image, fih_rc, (uint8_t *)BL1_2_CODE_START);
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-            boot_platform_error_state(fih_int_decode(fih_rc));
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+            boot_platform_error_state(fih_rc);
         }
 
         FIH_CALL(bl1_1_validate_image_at_addr, fih_rc, (uint8_t *)BL1_2_CODE_START);
 
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
             ERROR("BL1_2 image failed to validate\n");
 
-            recovery_succeeded = fih_int_encode_zero_equality(boot_initiate_recovery_mode(0));
-            if (fih_not_eq(recovery_succeeded, FIH_SUCCESS)) {
-                boot_platform_error_state(fih_int_decode(recovery_succeeded));
+            recovery_succeeded = fih_ret_encode_zero_equality(boot_initiate_recovery_mode(0));
+            if (FIH_NOT_EQ(recovery_succeeded, FIH_SUCCESS)) {
+                boot_platform_error_state(recovery_succeeded);
             }
         }
-    } while (fih_not_eq(fih_rc, FIH_SUCCESS));
+    } while (FIH_NOT_EQ(fih_rc, FIH_SUCCESS));
 
-    fih_rc = fih_int_encode_zero_equality(boot_platform_post_load(0));
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        boot_platform_error_state(fih_int_decode(fih_rc));
+    fih_rc = fih_ret_encode_zero_equality(boot_platform_post_load(0));
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        boot_platform_error_state(fih_rc);
     }
 
 #ifdef TFM_MEASURED_BOOT_API

@@ -40,12 +40,12 @@ __asm("  .global __ARM_use_no_argv\n");
 #endif
 
 #ifdef TFM_MEASURED_BOOT_API
-static fih_int submit_boot_measurement(const struct bl1_2_image_t *image,
+static fih_ret submit_boot_measurement(const struct bl1_2_image_t *image,
                                        uint8_t *rotpk_hash, size_t rotpk_hash_size,
                                        uint8_t *measurement_hash, size_t measurement_hash_size,
                                        enum boot_measurement_slot_t slot)
 {
-    fih_int fih_rc;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);;
 
     struct boot_measurement_metadata bl2_metadata = {
         .measurement_type = TFM_BL1_2_MEASUREMENT_HASH_ALG,
@@ -68,7 +68,7 @@ static fih_int submit_boot_measurement(const struct bl1_2_image_t *image,
     memcpy(bl2_metadata.signer_id, rotpk_hash, rotpk_hash_size);
 
     /* Save the boot measurement of the BL2 image. */
-    fih_rc = fih_int_encode_zero_equality(boot_store_measurement(slot,
+    fih_rc = fih_ret_encode_zero_equality(boot_store_measurement(slot,
                                                                  measurement_hash,
                                                                  measurement_hash_size,
                                                                  &bl2_metadata, true));
@@ -76,34 +76,34 @@ static fih_int submit_boot_measurement(const struct bl1_2_image_t *image,
 }
 #endif /* TFM_MEASURED_BOOT_API */
 
-static fih_int is_image_security_counter_valid(struct bl1_2_image_t *img)
+static fih_ret is_image_security_counter_valid(struct bl1_2_image_t *img)
 {
     uint32_t security_counter;
-    fih_int fih_rc;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);;
     enum tfm_plat_err_t plat_err;
 
     plat_err = tfm_plat_read_nv_counter(PLAT_NV_COUNTER_BL1_0,
                                         sizeof(security_counter),
                                         (uint8_t *)&security_counter);
-    fih_rc = fih_int_encode_zero_equality(plat_err);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    fih_rc = fih_ret_encode_zero_equality(plat_err);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         FIH_RET(fih_rc);
     }
 
     /* Encodes 0 to true and 1 to false, so the actual comparison is flipped */
     FIH_RET(
-        fih_int_encode_zero_equality(security_counter
+        fih_ret_encode_zero_equality(security_counter
                                      > img->protected_values.security_counter));
 }
 
-static fih_int validate_image_signature(struct bl1_2_image_t *img,
+static fih_ret validate_image_signature(struct bl1_2_image_t *img,
                                         struct tfm_bl1_image_signature_t *sig,
                                         enum tfm_bl1_key_id_t key_id,
                                         uint8_t *measurement_hash,
                                         size_t measurement_hash_size,
                                         enum boot_measurement_slot_t measurement_slot)
 {
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
     uint8_t rotpk[TFM_BL1_2_ROTPK_MAX_SIZE];
     uint8_t *p_rotpk = rotpk;
     size_t rotpk_size;
@@ -120,7 +120,7 @@ static fih_int validate_image_signature(struct bl1_2_image_t *img,
     assert(TFM_BL1_2_ROTPK_MAX_SIZE >= TFM_BL1_2_ROTPK_HASH_MAX_SIZE);
 
     FIH_CALL(bl1_otp_read_key, fih_rc, key_id, rotpk, sizeof(rotpk), &rotpk_size);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         ERROR("ROTPK not provisioned\n");
         FIH_RET(fih_rc);
     }
@@ -133,7 +133,7 @@ static fih_int validate_image_signature(struct bl1_2_image_t *img,
 
 #if defined(TFM_BL1_ENABLE_SHA256) && defined(TFM_BL1_ENABLE_SHA384)
     FIH_CALL(bl1_otp_get_key_hash_alg, fih_rc, key_id, &key_hash_alg);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         ERROR("Key type lookup failure\n");
         FIH_RET(fih_rc);
     }
@@ -148,13 +148,13 @@ static fih_int validate_image_signature(struct bl1_2_image_t *img,
     FIH_CALL(bl1_hash_compute, fih_rc, key_hash_alg,
                                        sig->rotpk, sig->rotpk_len,
                                        rotpk_hash, sizeof(rotpk_hash), NULL);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         ERROR("Hash function failure\n");
         FIH_RET(fih_rc);
     }
 
     FIH_CALL(bl_fih_memeql, fih_rc, rotpk, rotpk_hash, rotpk_size);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         ERROR("Image ROTPK hash mismatch\n");
         FIH_RET(fih_rc);
     }
@@ -165,7 +165,7 @@ static fih_int validate_image_signature(struct bl1_2_image_t *img,
 
 #if defined(TFM_BL1_2_ENABLE_ECDSA) && defined(TFM_BL1_2_ENABLE_LMS)
     FIH_CALL(bl1_otp_get_key_type, fih_rc, key_id, &key_type);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         ERROR("Key type lookup failure\n");
         FIH_RET(fih_rc);
     }
@@ -208,7 +208,7 @@ static fih_int validate_image_signature(struct bl1_2_image_t *img,
         FIH_RET(FIH_FAILURE);
     }
 
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         ERROR("Signature validation failed\n");
         FIH_RET(FIH_FAILURE);
     }
@@ -228,7 +228,7 @@ static fih_int validate_image_signature(struct bl1_2_image_t *img,
                                               measurement_slot);
 #endif /* TFM_MEASURED_BOOT_API */
 
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         FIH_RET(fih_rc);
     }
 
@@ -236,15 +236,15 @@ static fih_int validate_image_signature(struct bl1_2_image_t *img,
 }
 
 #ifdef TFM_BL1_2_ENABLE_ROTPK_POLICIES
-static fih_int check_key_policy(fih_int validate_rc,
+static fih_ret check_key_policy(fih_int validate_rc,
                                 enum tfm_bl1_key_id_t key_id,
                                 bool *key_might_sign, bool *key_must_sign)
 {
     enum tfm_bl1_key_policy_t policy;
-    fih_int fih_rc;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);;
 
     FIH_CALL(bl1_otp_get_key_policy, fih_rc, TFM_BL1_KEY_ROTPK_0, &policy);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         FIH_RET(fih_rc);
     }
 
@@ -261,9 +261,9 @@ static fih_int check_key_policy(fih_int validate_rc,
 }
 #endif
 
-static fih_int is_image_signature_valid(struct bl1_2_image_t *img)
+static fih_ret is_image_signature_valid(struct bl1_2_image_t *img)
 {
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
     static uint8_t measurement_hash[TFM_BL1_2_MEASUREMENT_HASH_MAX_SIZE];
     static size_t measurement_hash_size;
     uint32_t idx;
@@ -278,7 +278,7 @@ static fih_int is_image_signature_valid(struct bl1_2_image_t *img)
                                        sizeof(img->protected_values),
                                        measurement_hash, sizeof(measurement_hash),
                                        &measurement_hash_size);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         ERROR("Boot measurement failed\n");
         FIH_RET(fih_rc);
     }
@@ -292,13 +292,13 @@ static fih_int is_image_signature_valid(struct bl1_2_image_t *img)
 #ifdef TFM_BL1_2_ENABLE_ROTPK_POLICIES
         fih_rc = check_key_policy(fih_rc, TFM_BL1_KEY_ROTPK_0, &key_might_sign, &key_must_sign);
 #endif
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
             FIH_RET(fih_rc);
         }
     }
 
 #ifdef TFM_BL1_2_ENABLE_ROTPK_POLICIES
-    if (fih_not_eq(key_must_sign, true) || fih_not_eq(key_might_sign, true)) {
+    if (FIH_NOT_EQ(key_must_sign, true) || FIH_NOT_EQ(key_might_sign, true)) {
         FIH_RET(FIH_FAILURE);
     }
 #endif
@@ -309,18 +309,18 @@ static fih_int is_image_signature_valid(struct bl1_2_image_t *img)
 #ifndef TEST_BL1_2
 static
 #endif
-fih_int bl1_2_validate_image_at_addr(struct bl1_2_image_t *image)
+fih_ret bl1_2_validate_image_at_addr(struct bl1_2_image_t *image)
 {
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     FIH_CALL(is_image_signature_valid, fih_rc, image);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         ERROR("BL2 image signature failed to validate\n");
         FIH_RET(fih_rc);
     }
 
     FIH_CALL(is_image_security_counter_valid, fih_rc, image);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         ERROR("BL2 image security_counter failed to validate\n");
         FIH_RET(fih_rc);
     }
@@ -332,12 +332,12 @@ fih_int bl1_2_validate_image_at_addr(struct bl1_2_image_t *image)
 #ifndef TEST_BL1_2
 static
 #endif
-fih_int copy_and_decrypt_image(uint32_t image_id, struct bl1_2_image_t *image)
+fih_ret copy_and_decrypt_image(uint32_t image_id, struct bl1_2_image_t *image)
 {
     struct bl1_2_image_t *image_to_decrypt;
     uint32_t key_buf[32 / sizeof(uint32_t)];
     uint8_t label[] = "BL2_DECRYPTION_KEY";
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
 #ifdef TFM_BL1_MEMORY_MAPPED_FLASH
     /* If we have memory-mapped flash, we can do the decrypt directly from the
@@ -358,7 +358,7 @@ fih_int copy_and_decrypt_image(uint32_t image_id, struct bl1_2_image_t *image)
      * entire block in to SRAM. We'll then do the decrypt in-place.
      */
     FIH_CALL(bl1_image_copy_to_sram, fih_rc, image_id, (uint8_t *)image);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         FIH_RET(fih_rc);
     }
     image_to_decrypt = image;
@@ -377,7 +377,7 @@ fih_int copy_and_decrypt_image(uint32_t image_id, struct bl1_2_image_t *image)
                         (uint8_t *)&image->protected_values.security_counter,
                         sizeof(image->protected_values.security_counter),
                         key_buf, sizeof(key_buf));
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         FIH_RET(fih_rc);
     }
 
@@ -386,7 +386,7 @@ fih_int copy_and_decrypt_image(uint32_t image_id, struct bl1_2_image_t *image)
                                  (uint8_t *)&image_to_decrypt->protected_values.encrypted_data,
                                  sizeof(image->protected_values.encrypted_data),
                                  (uint8_t *)&image->protected_values.encrypted_data);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         FIH_RET(fih_rc);
     }
 
@@ -400,7 +400,7 @@ fih_int copy_and_decrypt_image(uint32_t image_id, struct bl1_2_image_t *image)
 
 #else /* TFM_BL1_2_IMAGE_ENCRYPTION */
 
-fih_int copy_image(uint32_t image_id, struct bl1_2_image_t *image)
+fih_ret copy_image(uint32_t image_id, struct bl1_2_image_t *image)
 {
     struct bl1_2_image_t *image_to_copy;
 
@@ -418,25 +418,24 @@ fih_int copy_image(uint32_t image_id, struct bl1_2_image_t *image)
 
 #endif /* TFM_BL1_2_IMAGE_ENCRYPTION */
 
-static fih_int bl1_2_validate_image(fih_int image_id)
+static fih_ret bl1_2_validate_image(uint32_t image_id)
 {
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
     struct bl1_2_image_t *image =
         (struct bl1_2_image_t *)(BL2_CODE_START -
                                  offsetof(struct bl1_2_image_t, protected_values.encrypted_data.data));
 
 #ifdef TFM_BL1_2_IMAGE_ENCRYPTION
-    FIH_CALL(copy_and_decrypt_image, fih_rc, (uint32_t)fih_int_decode(image_id),
-             image);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    FIH_CALL(copy_and_decrypt_image, fih_rc, image_id, image);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         ERROR("BL2 image failed to decrypt\n");
         FIH_RET(fih_rc);
     }
 
     INFO("BL2 image decrypted successfully\n");
 #else
-    FIH_CALL(copy_image, fih_rc, (uint32_t)fih_int_decode(image_id), image);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    FIH_CALL(copy_image, fih_rc, image_id, image);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         ERROR("BL2 image failed to decrypt\n");
         FIH_RET(fih_rc);
     }
@@ -445,7 +444,7 @@ static fih_int bl1_2_validate_image(fih_int image_id)
 #endif
 
     FIH_CALL(bl1_2_validate_image_at_addr, fih_rc, image);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         ERROR("BL2 image failed to validate\n");
         FIH_RET(fih_rc);
     }
@@ -457,12 +456,12 @@ static fih_int bl1_2_validate_image(fih_int image_id)
 
 int main(void)
 {
-    fih_int fih_rc = FIH_FAILURE;
-    fih_int recovery_succeeded = FIH_FAILURE;
-    fih_int image_id = FIH_INT_INIT(0xFFFF);
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+    FIH_DECLARE(recovery_succeeded, FIH_FAILURE);
+    uint32_t image_id = 0xFFFF;
 
-    fih_rc = fih_int_encode_zero_equality(boot_platform_init());
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    fih_rc = fih_ret_encode_zero_equality(boot_platform_init());
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         boot_platform_error_state(fih_rc);
         FIH_PANIC;
     }
@@ -472,8 +471,8 @@ int main(void)
     run_bl1_2_testsuite();
 #endif /* defined(TEST_BL1_2) && defined(PLATFORM_DEFAULT_BL1_TEST_EXECUTION) */
 
-    fih_rc = fih_int_encode_zero_equality(boot_platform_post_init());
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    fih_rc = fih_ret_encode_zero_equality(boot_platform_post_init());
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         boot_platform_error_state(fih_rc);
         FIH_PANIC;
     }
@@ -481,25 +480,25 @@ int main(void)
     do {
         FIH_CALL(bl1_2_select_image, image_id);
 
-        INFO("Attempting to boot image %d\n", fih_int_decode(image_id));
+        INFO("Attempting to boot image %d\n", image_id);
 
-        fih_rc = fih_int_encode_zero_equality(
-                    boot_platform_pre_load(fih_int_decode(image_id)));
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        fih_rc = fih_ret_encode_zero_equality(
+                    boot_platform_pre_load(image_id));
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
             boot_platform_error_state(fih_rc);
             FIH_PANIC;
         }
 
         FIH_CALL(bl1_2_validate_image, fih_rc, image_id);
 
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
             FIH_CALL(bl1_2_rollback_image, image_id);
 
-            INFO("Attempting to boot image %d\n", fih_int_decode(image_id));
+            INFO("Attempting to boot image %d\n", image_id);
 
-            fih_rc = fih_int_encode_zero_equality(
-                        boot_platform_pre_load(fih_int_decode(image_id)));
-            if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+            fih_rc = fih_ret_encode_zero_equality(
+                        boot_platform_pre_load(image_id));
+            if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
                 boot_platform_error_state(fih_rc);
                 FIH_PANIC;
             }
@@ -507,17 +506,17 @@ int main(void)
             FIH_CALL(bl1_2_validate_image, fih_rc, image_id);
         }
 
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-            recovery_succeeded = fih_int_encode_zero_equality(boot_initiate_recovery_mode(0));
-            if (fih_not_eq(recovery_succeeded, FIH_SUCCESS)) {
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+            recovery_succeeded = fih_ret_encode_zero_equality(boot_initiate_recovery_mode(0));
+            if (FIH_NOT_EQ(recovery_succeeded, FIH_SUCCESS)) {
                 boot_platform_error_state(recovery_succeeded);
                 FIH_PANIC;
             }
         }
-    } while (fih_not_eq(fih_rc, FIH_SUCCESS));
+    } while (FIH_NOT_EQ(fih_rc, FIH_SUCCESS));
 
-    fih_rc = fih_int_encode_zero_equality(boot_platform_post_load(0));
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    fih_rc = fih_ret_encode_zero_equality(boot_platform_post_load(0));
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         boot_platform_error_state(fih_rc);
         FIH_PANIC;
     }

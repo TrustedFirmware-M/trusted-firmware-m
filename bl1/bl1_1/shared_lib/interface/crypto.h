@@ -107,9 +107,9 @@ enum tfm_bl1_aes_key_size_t {
  * @param[in]  hash_length Size in bytes of the \p hash buffer
  * @param[out] hash_size   Size in bytes of the produced hash
  *
- * @return fih_int 0 on success, non-zero on error
+ * @return FIH_SUCCESS on success, non-zero on error
  */
-fih_int bl1_hash_compute(enum tfm_bl1_hash_alg_t alg,
+fih_ret bl1_hash_compute(enum tfm_bl1_hash_alg_t alg,
                          const uint8_t *data,
                          size_t data_length,
                          uint8_t *hash,
@@ -120,9 +120,9 @@ fih_int bl1_hash_compute(enum tfm_bl1_hash_alg_t alg,
  *
  * @param[in] alg  Algorithm of type \ref tfm_bl1_hash_alg_t
  *
- * @return fih_int 0 on success, non-zero on error
+ * @return FIH_SUCCESS on success, non-zero on error
  */
-fih_int bl1_hash_init(enum tfm_bl1_hash_alg_t alg);
+fih_ret bl1_hash_init(enum tfm_bl1_hash_alg_t alg);
 
 /**
  * @brief Updates an ongoing multipart hashing operation with some input data
@@ -130,9 +130,9 @@ fih_int bl1_hash_init(enum tfm_bl1_hash_alg_t alg);
  * @param[in] data        Buffer containing the input bytes
  * @param[in] data_length Size in bytes of the input \p data buffer
  *
- * @return fih_int 0 on success, non-zero on error
+ * @return FIH_SUCCESS on success, non-zero on error
  */
-fih_int bl1_hash_update(const uint8_t *data,
+fih_ret bl1_hash_update(const uint8_t *data,
                         size_t data_length);
 /**
  * @brief Finalises an ongoing multipart hashing operation
@@ -141,9 +141,9 @@ fih_int bl1_hash_update(const uint8_t *data,
  * @param[in]  hash_length Size in bytes of the \p hash buffer
  * @param[out] hash_size   Size in bytes of the produced hash
  *
- * @return fih_int 0 on success, non-zero on error
+ * @return FIH_SUCCESS on success, non-zero on error
  */
-fih_int bl1_hash_finish(uint8_t *hash,
+fih_ret bl1_hash_finish(uint8_t *hash,
                         size_t hash_length,
                         size_t *hash_size);
 /**
@@ -161,7 +161,7 @@ fih_int bl1_hash_finish(uint8_t *hash,
  *
  * @return int32_t 0 on success, non-zero on error
  */
-fih_int bl1_aes_256_ctr_decrypt(enum tfm_bl1_key_id_t key_id,
+fih_ret bl1_aes_256_ctr_decrypt(enum tfm_bl1_key_id_t key_id,
                                 const uint8_t *key_material,
                                 uint8_t *counter,
                                 const uint8_t *ciphertext,
@@ -184,7 +184,7 @@ fih_int bl1_aes_256_ctr_decrypt(enum tfm_bl1_key_id_t key_id,
  *
  * @return FIH_SUCCESS on success, non-zero on error
  */
-fih_int bl1_derive_key(enum tfm_bl1_key_id_t key_id, const uint8_t *label,
+fih_ret bl1_derive_key(enum tfm_bl1_key_id_t key_id, const uint8_t *label,
                        size_t label_length, const uint8_t *context,
                        size_t context_length, uint32_t *output_key,
                        size_t output_length);
@@ -210,7 +210,7 @@ fih_int bl1_derive_key(enum tfm_bl1_key_id_t key_id, const uint8_t *label,
  *
  * @return FIH_SUCCESS on success, non-zero on error
  */
-fih_int bl1_ecc_derive_key(enum tfm_bl1_ecdsa_curve_t curve, enum tfm_bl1_key_id_t key_id,
+fih_ret bl1_ecc_derive_key(enum tfm_bl1_ecdsa_curve_t curve, enum tfm_bl1_key_id_t key_id,
                            const uint8_t *label, size_t label_length,
                            const uint8_t *context, size_t context_length,
                            uint32_t *output_key, size_t output_size);
@@ -256,7 +256,7 @@ fih_int bl1_internal_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t bl1_curve,
  *
  * @return FIH_SUCCESS on success, non-zero on error
  */
-fih_int bl1_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t curve,
+fih_ret bl1_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t curve,
                          uint8_t *key, size_t key_size,
                          const uint8_t *hash,
                          size_t hash_length,

@@ -34,16 +34,16 @@ enum tfm_bl1_nv_counter_id_t {
 };
 
 /* Load the key with the given ID into the key buf */
-fih_int bl1_otp_read_key(enum tfm_bl1_key_id_t key_id, uint8_t *key_buf, size_t key_buf_len, size_t *key_size);
+fih_ret bl1_otp_read_key(enum tfm_bl1_key_id_t key_id, uint8_t *key_buf, size_t key_buf_len, size_t *key_size);
 
 /* Get the type of the key with the given key ID */
-fih_int bl1_otp_get_key_type(enum tfm_bl1_key_id_t key_id, enum tfm_bl1_key_type_t *key_type);
+fih_ret bl1_otp_get_key_type(enum tfm_bl1_key_id_t key_id, enum tfm_bl1_key_type_t *key_type);
 
 /* Get the policy of the key with the given key ID */
-fih_int bl1_otp_get_key_policy(enum tfm_bl1_key_id_t key_id, enum tfm_bl1_key_policy_t *key_policy);
+fih_ret bl1_otp_get_key_policy(enum tfm_bl1_key_id_t key_id, enum tfm_bl1_key_policy_t *key_policy);
 
 /* Get the ROTPK hash alg of the key with the given key ID */
-fih_int bl1_otp_get_key_hash_alg(enum tfm_bl1_key_id_t key_id, enum tfm_bl1_hash_alg_t *key_hash_alg);
+fih_ret bl1_otp_get_key_hash_alg(enum tfm_bl1_key_id_t key_id, enum tfm_bl1_hash_alg_t *key_hash_alg);
 
 
 #ifdef __cplusplus

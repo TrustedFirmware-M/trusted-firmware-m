@@ -31,20 +31,18 @@ uint32_t __WEAK bl1_image_get_flash_offset(uint32_t image_id)
 }
 
 #ifndef TFM_BL1_MEMORY_MAPPED_FLASH
-fih_int bl1_image_copy_to_sram(uint32_t image_id, uint8_t *out)
+fih_ret bl1_image_copy_to_sram(uint32_t image_id, uint8_t *out)
 {
     uint32_t flash_offset;
-    fih_int fih_rc;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     flash_offset = bl1_image_get_flash_offset(image_id);
 
-    fih_rc = fih_int_encode_zero_equality(
-                fih_not_eq(
-                    FIH_INT_INIT(BL2_CODE_SIZE + BL1_2_HEADER_SIZE),
-                    FIH_INT_INIT(FLASH_DEV_NAME_BL1.ReadData(
-                        flash_offset, out, BL2_CODE_SIZE + BL1_2_HEADER_SIZE))
-                )
-             );
+    fih_rc = fih_ret_encode_zero_equality(
+                FIH_NOT_EQ(BL2_CODE_SIZE + BL1_2_HEADER_SIZE,
+                           (FLASH_DEV_NAME_BL1.ReadData(flash_offset,
+                                                        out,
+                                                        BL2_CODE_SIZE + BL1_2_HEADER_SIZE))));
 
     FIH_RET(fih_rc);
 }

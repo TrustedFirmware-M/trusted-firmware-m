@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -33,7 +33,7 @@ extern "C" {
  * \retval FIH_FAILURE     The two given memory regions are not identical, or a
  *                         failure has occurred and they cannot be compared.
  */
-fih_int bl_fih_memeql(const void *ptr1, const void *ptr2, size_t num);
+fih_ret bl_fih_memeql(const void *ptr1, const void *ptr2, size_t num);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-fih_int bl1_read_bl1_2_image(uint8_t *image);
+fih_ret bl1_read_bl1_2_image(uint8_t *image);
 
 #ifdef __cplusplus
 }

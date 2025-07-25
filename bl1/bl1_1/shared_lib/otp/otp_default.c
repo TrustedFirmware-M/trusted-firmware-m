@@ -19,13 +19,13 @@ extern uint8_t tfm_bl1_key_test_1_buf[];
 extern uint8_t tfm_bl1_key_test_2_buf[];
 #endif /* TEST_BL1_1 */
 
-fih_int bl1_otp_read(uint8_t *dst, uint8_t *src, size_t size);
-fih_int bl1_otp_write(uint8_t *dst, uint8_t *src, size_t size);
+fih_ret bl1_otp_read(uint8_t *dst, uint8_t *src, size_t size);
+fih_ret bl1_otp_write(uint8_t *dst, uint8_t *src, size_t size);
 
-fih_int bl1_otp_read_key(enum tfm_bl1_key_id_t key_id, uint8_t *key_buf,
+fih_ret bl1_otp_read_key(enum tfm_bl1_key_id_t key_id, uint8_t *key_buf,
                          size_t key_buf_len, size_t *key_size)
 {
-    fih_int fih_rc;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
     enum tfm_plat_err_t plat_err;
     enum tfm_otp_element_id_t otp_id;
 
@@ -51,7 +51,7 @@ fih_int bl1_otp_read_key(enum tfm_bl1_key_id_t key_id, uint8_t *key_buf,
     }
 
     plat_err = tfm_plat_otp_read(otp_id, key_buf_len, key_buf);
-    fih_rc = fih_int_encode_zero_equality(plat_err);
+    fih_rc = fih_ret_encode_zero_equality(plat_err);
 
     FIH_RET(fih_rc);
 }
