@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,24 +83,28 @@ struct cfi_strataflashj3_dev_t SPI_STRATAFLASHJ3_DEV = {
 /* Message Handling Units (MHU) */
 #ifdef MHU_AP_MONITOR_TO_RSE
 struct mhu_v2_x_dev_t MHU_AP_MONITOR_TO_RSE_DEV = {
+    2,
     MHU0_RECEIVER_BASE_S,
     MHU_V2_X_RECEIVER_FRAME};
 #endif
 
 #ifdef MHU_RSE_TO_AP_MONITOR
 struct mhu_v2_x_dev_t MHU_RSE_TO_AP_MONITOR_DEV = {
+    2,
     MHU0_SENDER_BASE_S,
     MHU_V2_X_SENDER_FRAME};
 #endif
 
 #ifdef MHU_SCP_TO_RSE
 struct mhu_v2_x_dev_t MHU_SCP_TO_RSE_DEV = {
+    2,
     MHU2_RECEIVER_BASE_S,
     MHU_V2_X_RECEIVER_FRAME};
 #endif
 
 #ifdef MHU_RSE_TO_SCP
 struct mhu_v2_x_dev_t MHU_RSE_TO_SCP_DEV = {
+    2,
     MHU2_SENDER_BASE_S,
     MHU_V2_X_SENDER_FRAME};
 #endif

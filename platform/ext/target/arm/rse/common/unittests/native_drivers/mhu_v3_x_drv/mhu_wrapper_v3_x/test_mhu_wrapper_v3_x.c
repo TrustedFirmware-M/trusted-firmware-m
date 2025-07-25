@@ -19,12 +19,14 @@
 
 uint32_t MHU_RECEIVER_DEV_BASE;
 static struct mhu_v3_x_dev_t MHU_RECEIVER_DEV = {
+    .version = 3,
     .base = (uintptr_t)&MHU_RECEIVER_DEV_BASE,
     .frame = MHU_V3_X_MBX_FRAME,
     .subversion = 0};
 
 uint32_t MHU_SENDER_DEV_BASE;
 static struct mhu_v3_x_dev_t MHU_SENDER_DEV = {
+    .version = 3,
     .base = (uintptr_t)&MHU_SENDER_DEV_BASE,
     .frame = MHU_V3_X_PBX_FRAME,
     .subversion = 0};

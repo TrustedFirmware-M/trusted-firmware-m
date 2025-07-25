@@ -42,7 +42,15 @@ enum mhu_error_t signal_and_wait_for_clear(
 
     dev = (struct mhu_v3_x_dev_t *)mhu_sender_dev;
 
-    if (dev == NULL || dev->base == 0) {
+    if (dev == NULL) {
+        return MHU_ERR_SIGNAL_WAIT_CLEAR_INVALID_ARG;
+    }
+
+    if (dev->version != 3) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
+    if (dev->base == 0) {
         return MHU_ERR_SIGNAL_WAIT_CLEAR_INVALID_ARG;
     }
 
@@ -87,7 +95,15 @@ enum mhu_error_t wait_for_signal_and_clear (
 
     dev = (struct mhu_v3_x_dev_t *)mhu_receiver_dev;
 
-    if (dev == NULL || dev->base == 0) {
+    if (dev == NULL) {
+        return MHU_ERR_WAIT_SIGNAL_CLEAR_INVALID_ARG;
+    }
+
+    if (dev->version != 3) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
+    if (dev->base == 0) {
         return MHU_ERR_WAIT_SIGNAL_CLEAR_INVALID_ARG;
     }
 
@@ -124,7 +140,15 @@ enum mhu_error_t clear_and_wait_for_signal (
 
     dev = (struct mhu_v3_x_dev_t *)mhu_receiver_dev;
 
-    if (dev == NULL || dev->base == 0) {
+    if (dev == NULL) {
+        return MHU_ERR_CLEAR_WAIT_SIGNAL_INVALID_ARG;
+    }
+
+    if (dev->version != 3) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
+    if (dev->base == 0) {
         return MHU_ERR_CLEAR_WAIT_SIGNAL_INVALID_ARG;
     }
 
@@ -178,7 +202,15 @@ enum mhu_error_t mhu_init_sender(void *mhu_sender_dev)
 
     dev = (struct mhu_v3_x_dev_t *)mhu_sender_dev;
 
-    if (dev == NULL || dev->base == 0) {
+    if (dev == NULL) {
+        return MHU_ERR_INIT_SENDER_INVALID_ARG;
+    }
+
+    if (dev->version != 3) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
+    if (dev->base == 0) {
         return MHU_ERR_INIT_SENDER_INVALID_ARG;
     }
 
@@ -226,7 +258,15 @@ enum mhu_error_t mhu_init_receiver(void *mhu_receiver_dev)
 
     dev = (struct mhu_v3_x_dev_t *)mhu_receiver_dev;
 
-    if (dev == NULL || dev->base == 0) {
+    if (dev == NULL) {
+        return MHU_ERR_INIT_RECEIVER_INVALID_ARG;
+    }
+
+    if (dev->version != 3) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
+    if (dev->base == 0) {
         return MHU_ERR_INIT_RECEIVER_INVALID_ARG;
     }
 
@@ -286,6 +326,11 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev, const uint8_t *send_buffer,
     size_t bytes_left;
 
     assert(dev != NULL);
+
+    if (dev->version != 3) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
     assert(dev->base != (uintptr_t)NULL);
 
     mhu_err = validate_buffer_params((uintptr_t)send_buffer, size);
@@ -384,6 +429,11 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
     size_t bytes_left;
 
     assert(dev != NULL);
+
+    if (dev->version != 3) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
     assert(dev->base != (uintptr_t)NULL);
 
     if (size == NULL) {

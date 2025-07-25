@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,19 @@ signal_and_wait_for_clear(void *mhu_sender_dev, uint32_t value)
     uint32_t channel_notify;
     uint32_t wait_val;
 
-    if (mhu_sender_dev == NULL) {
+    dev = (struct mhu_v2_x_dev_t *)mhu_sender_dev;
+
+    if (dev == NULL) {
         return MHU_ERR_SIGNAL_WAIT_CLEAR_INVALID_ARG;
     }
 
-    dev = (struct mhu_v2_x_dev_t *)mhu_sender_dev;
+    if (dev->version != 2) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
+    if (dev->base == 0) {
+        return MHU_ERR_SIGNAL_WAIT_CLEAR_INVALID_ARG;
+    }
 
     /* Use the last channel for notifications */
     channel_notify = mhu_v2_x_get_num_channel_implemented(dev) - 1;
@@ -74,11 +82,20 @@ wait_for_signal_and_clear(void *mhu_receiver_dev, uint32_t value)
     uint32_t channel_notify;
     uint32_t wait_val;
 
-    if (mhu_receiver_dev == NULL) {
+    dev = (struct mhu_v2_x_dev_t *)mhu_receiver_dev;
+
+    if (dev == NULL) {
         return MHU_ERR_WAIT_SIGNAL_CLEAR_INVALID_ARG;
     }
 
-    dev = (struct mhu_v2_x_dev_t *)mhu_receiver_dev;
+    if (dev->version != 2) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
+    if (dev->base == 0) {
+        return MHU_ERR_WAIT_SIGNAL_CLEAR_INVALID_ARG;
+    }
+
 
     /* Use the last channel for notifications */
     channel_notify = mhu_v2_x_get_num_channel_implemented(dev) - 1;
@@ -150,6 +167,14 @@ enum mhu_error_t mhu_init_sender(void *mhu_sender_dev)
         return MHU_ERR_INIT_SENDER_INVALID_ARG;
     }
 
+    if (dev->version != 2) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
+    if (dev->base == 0) {
+        return MHU_ERR_INIT_SENDER_INVALID_ARG;
+    }
+
     err = mhu_v2_x_driver_init(dev, MHU_REV_READ_FROM_HW);
     if (err != MHU_V_2_X_ERR_NONE) {
         return err;
@@ -170,6 +195,14 @@ enum mhu_error_t mhu_init_receiver(void *mhu_receiver_dev)
     uint32_t num_channels, i;
 
     if (dev == NULL) {
+        return MHU_ERR_INIT_RECEIVER_INVALID_ARG;
+    }
+
+    if (dev->version != 2) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
+    if (dev->base == 0) {
         return MHU_ERR_INIT_RECEIVER_INVALID_ARG;
     }
 
@@ -220,6 +253,11 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev,
     uint32_t *p;
 
     assert(dev != NULL);
+
+    if (dev->version != 2) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
     assert(dev->base != (uintptr_t)NULL);
 
     mhu_err = validate_buffer_params((uintptr_t)send_buffer, size);
@@ -302,6 +340,11 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
     uint32_t *p;
 
     assert(dev != NULL);
+
+    if (dev->version != 2) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
     assert(dev->base != (uintptr_t)NULL);
 
     if (size == NULL) {

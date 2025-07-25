@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,8 @@ extern "C" {
  */
 enum mhu_error_t {
     MHU_ERR_NONE =  0,
-    MHU_ERR_SIGNAL_WAIT_CLEAR_INVALID_ARG = MHU_ERROR_BASE,
+    MHU_ERR_INVALID_VERSION = MHU_ERROR_BASE,
+    MHU_ERR_SIGNAL_WAIT_CLEAR_INVALID_ARG,
     MHU_ERR_WAIT_SIGNAL_CLEAR_INVALID_ARG,
     MHU_ERR_CLEAR_WAIT_SIGNAL_INVALID_ARG,
     MHU_ERR_VALIDATE_BUFFER_PARAMS_INVALID_ARG,

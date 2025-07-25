@@ -122,6 +122,8 @@ enum mhu_v3_x_frame_t {
  * \brief MHUv3 device structure
  */
 struct mhu_v3_x_dev_t {
+    /* Hardware version: 3, must be the first field in the structure */
+    uint32_t version;
     /* Base address of the MHUv3 frame */
     const uintptr_t base;
     /* Type of the MHUv3 frame */

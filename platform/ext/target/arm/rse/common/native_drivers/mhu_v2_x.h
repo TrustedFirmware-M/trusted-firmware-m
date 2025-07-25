@@ -56,6 +56,8 @@ enum mhu_v2_x_supported_revisions {
 };
 
 struct mhu_v2_x_dev_t {
+    uint32_t version;       /*!< Hardware version: 2, must be the first
+                             * field in the structure */
     const uintptr_t base;
     enum mhu_v2_x_frame_t frame;
     uint32_t subversion;    /*!< Hardware subversion: v2.X */

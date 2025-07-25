@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,12 +66,14 @@ struct cfi_strataflashj3_dev_t SPI_STRATAFLASHJ3_DEV = {
 #ifdef MHU_RSE_TO_RSE_SIDEBAND_RECEIVER_COUNT
 struct mhu_v2_x_dev_t MHU_RSE_TO_RSE_RECEIVER_DEVS[RSE_AMOUNT - 1] = {
     {
+        .version = 2,
         .base = MHU_SIDEBAND_0_RECEIVER_BASE_S,
         .frame = MHU_V2_X_RECEIVER_FRAME,
         .subversion = 0
     },
 #if MHU_RSE_TO_RSE_SIDEBAND_RECEIVER_COUNT > 1
     {
+        .version = 2,
         .base = MHU_SIDEBAND_1_RECEIVER_BASE_S,
         .frame = MHU_V2_X_RECEIVER_FRAME,
         .subversion = 0
@@ -79,6 +81,7 @@ struct mhu_v2_x_dev_t MHU_RSE_TO_RSE_RECEIVER_DEVS[RSE_AMOUNT - 1] = {
 #endif
 #if MHU_RSE_TO_RSE_SIDEBAND_RECEIVER_COUNT > 2
     {
+        .version = 2,
         .base = MHU_SIDEBAND_2_RECEIVER_BASE_S,
         .frame = MHU_V2_X_RECEIVER_FRAME,
         .subversion = 0
@@ -90,12 +93,14 @@ struct mhu_v2_x_dev_t MHU_RSE_TO_RSE_RECEIVER_DEVS[RSE_AMOUNT - 1] = {
 #ifdef MHU_RSE_TO_RSE_SIDEBAND_SENDER_COUNT
 struct mhu_v2_x_dev_t MHU_RSE_TO_RSE_SENDER_DEVS[RSE_AMOUNT - 1] = {
     {
+        .version = 2,
         .base = MHU_SIDEBAND_0_SENDER_BASE_S,
         .frame = MHU_V2_X_SENDER_FRAME,
         .subversion = 0
     },
 #if MHU_RSE_TO_RSE_SIDEBAND_SENDER_COUNT > 1
     {
+        .version = 2,
         .base = MHU_SIDEBAND_1_SENDER_BASE_S,
         .frame = MHU_V2_X_SENDER_FRAME,
         .subversion = 0
@@ -103,6 +108,7 @@ struct mhu_v2_x_dev_t MHU_RSE_TO_RSE_SENDER_DEVS[RSE_AMOUNT - 1] = {
 #endif
 #if MHU_RSE_TO_RSE_SIDEBAND_SENDER_COUNT > 2
     {
+        .version = 2,
         .base = MHU_SIDEBAND_2_SENDER_BASE_S,
         .frame = MHU_V2_X_SENDER_FRAME,
         .subversion = 0

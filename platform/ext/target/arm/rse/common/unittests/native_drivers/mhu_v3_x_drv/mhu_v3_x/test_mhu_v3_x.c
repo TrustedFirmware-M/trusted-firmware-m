@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -293,11 +293,13 @@ union _mhu_v3_x_frame_t {
     struct _mhu_v3_x_mbx mbx_frame;
 };
 
-struct mhu_v3_x_dev_t MHU_PBX_DEV = {.base = (uintptr_t)&mhu_pbx_frame,
+struct mhu_v3_x_dev_t MHU_PBX_DEV = {.version = 3,
+                                     .base = (uintptr_t)&mhu_pbx_frame,
                                      .frame = MHU_V3_X_PBX_FRAME,
                                      .subversion = 0};
 
-struct mhu_v3_x_dev_t MHU_MBX_DEV = {.base = (uintptr_t)&mhu_mbx_frame,
+struct mhu_v3_x_dev_t MHU_MBX_DEV = {.version = 3,
+                                     .base = (uintptr_t)&mhu_mbx_frame,
                                      .frame = MHU_V3_X_MBX_FRAME,
                                      .subversion = 0};
 
