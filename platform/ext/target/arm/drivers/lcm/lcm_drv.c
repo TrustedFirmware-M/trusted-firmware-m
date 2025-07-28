@@ -22,12 +22,14 @@
 #include <assert.h>
 
 #ifdef LCM_DCU_PARITY
-#define DCU_PARITY_ENABLED_MASK 0x55555555
-#define DCU_PARITY_DISABLED_MASK 0xAAAAAAAA
+#define DCU_PARITY_ENABLED_MASK     0x55555555
+#define DCU_PARITY_DISABLED_MASK    0xAAAAAAAA
+#define PAIRS_PER_WORD              (sizeof(uint32_t) * 8) / 2
 
-#ifndef LCM_DCU_PARITY_WORDS
-#define LCM_DCU_PARITY_WORDS 4
-#endif
+#ifndef LCM_DCU_PAIR_COUNT
+/* 4 DCU words, 16 pair each */
+#define LCM_DCU_PAIR_COUNT (PAIRS_PER_WORD*4)
+#endif /* LCM_DCU_PAIR_COUNT */
 #endif
 
 #ifdef INTEGRITY_CHECKER_S
@@ -95,13 +97,36 @@ struct _lcm_reg_map_t {
     };
 };
 
+#ifdef LCM_DCU_PARITY
+static size_t dcu_pairs_per_idx(uint32_t idx)
+{
+    size_t dcu_pairs = 0;
+
+    /* The driver supports only 4 DCU words */
+    assert(idx < 4);
+    assert(LCM_DCU_PAIR_COUNT <= (PAIRS_PER_WORD * 4));
+
+    if (LCM_DCU_PAIR_COUNT > (idx * PAIRS_PER_WORD)) {
+        dcu_pairs = LCM_DCU_PAIR_COUNT - (idx * PAIRS_PER_WORD);
+        dcu_pairs = (dcu_pairs > PAIRS_PER_WORD) ? PAIRS_PER_WORD :
+                                                   dcu_pairs;
+    }
+
+    return dcu_pairs;
+}
+#endif
+
 static uint32_t get_enabled_mask(uint32_t dcu_word_idx)
 {
 #ifndef LCM_DCU_PARITY
     (void)dcu_word_idx;
     return 0xFFFFFFFF;
 #else
-    return dcu_word_idx < LCM_DCU_PARITY_WORDS ? DCU_PARITY_ENABLED_MASK : 0xFFFFFFFF;
+    const size_t dcu_pairs = dcu_pairs_per_idx(dcu_word_idx);
+    const size_t enabled_non_paired_bit_mask = (~0U) << (dcu_pairs * 2);
+
+    return enabled_non_paired_bit_mask |
+                (~enabled_non_paired_bit_mask & DCU_PARITY_ENABLED_MASK);
 #endif
 }
 
@@ -111,7 +136,10 @@ static uint32_t get_disabled_mask(uint32_t dcu_word_idx)
     (void)dcu_word_idx;
     return 0x00000000;
 #else
-    return dcu_word_idx < LCM_DCU_PARITY_WORDS ? DCU_PARITY_DISABLED_MASK : 0x00000000;
+    const size_t dcu_pairs = dcu_pairs_per_idx(dcu_word_idx);
+    const size_t disabled_non_paired_bit_mask = (~0U) << (dcu_pairs * 2);
+
+    return ~disabled_non_paired_bit_mask & DCU_PARITY_DISABLED_MASK;
 #endif
 }
 
