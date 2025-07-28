@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -122,14 +122,7 @@ program:
   - storage_location: "rom"
     execution_location: "rom"
     name: "program6"
-    description: "Release DCU lock, enable and zeroize TRAM, and release CPUWAIT"
+    description: "Release DCU lock and CPUWAIT"
     commands:
       - !include include/program6_cmd0.yaml         # Program 6 - Command 0
       - !include include/program6_cmd1.yaml         # Program 6 - Command 1
-      - !include include/program6_cmd2.yaml         # Program 6 - Command 2
-      - !include include/program6_cmd3.yaml         # Program 6 - Command 3
-      - !include include/program6_cmd4.yaml         # Program 6 - Command 4
-      - !include include/program6_cmd5.yaml         # Program 6 - Command 5
-      - !include include/program6_cmd6.yaml         # Program 6 - Command 6
-      - !include include/program6_cmd7.yaml         # Program 6 - Command 7
-      - !include include/program6_cmd8.yaml         # Program 6 - Command 8
