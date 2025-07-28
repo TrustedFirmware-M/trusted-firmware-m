@@ -55,10 +55,6 @@ static psa_status_t ecdsa_sign(bool is_deterministic, cc3xx_ec_curve_id_t curve_
     cc3xx_err_t err;
     psa_status_t status;
 
-    if (is_deterministic) {
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
-  
     if (!is_input_hash) {
         assert(PSA_ALG_IS_HASH(hash_alg) && hash_alg != PSA_ALG_ANY_HASH);
     }
@@ -87,11 +83,22 @@ static psa_status_t ecdsa_sign(bool is_deterministic, cc3xx_ec_curve_id_t curve_
 
     cc3xx_dpa_hardened_word_copy(key_buf, (uint32_t *)key, key_length / sizeof(uint32_t));
 
-    err = cc3xx_lowlevel_ecdsa_sign(curve_id,
-            key_buf, key_length,
-            hash, hash_size,
-            scratch_r, sizeof(scratch_r), &sig_r_sz,
-            scratch_s, sizeof(scratch_s), &sig_s_sz);
+    if (is_deterministic) {
+
+        err = cc3xx_lowlevel_ecdsa_sign_deterministic(curve_id,
+                key_buf, key_length,
+                hash, hash_size,
+                scratch_r, sizeof(scratch_r), &sig_r_sz,
+                scratch_s, sizeof(scratch_s), &sig_s_sz);
+
+    } else {
+
+        err = cc3xx_lowlevel_ecdsa_sign(curve_id,
+                key_buf, key_length,
+                hash, hash_size,
+                scratch_r, sizeof(scratch_r), &sig_r_sz,
+                scratch_s, sizeof(scratch_s), &sig_s_sz);
+    }
 
     cc3xx_secure_erase_buffer(key_buf, sizeof(key_buf) / sizeof(uint32_t));
 

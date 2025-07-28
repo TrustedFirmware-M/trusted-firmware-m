@@ -5,7 +5,7 @@
  *
  */
 
-
+#include <assert.h>
 #include "cc3xx_ecdsa.h"
 
 #include "cc3xx_ec.h"
@@ -23,6 +23,74 @@
 
 #define BITS_TO_BYTES(bits) (((bits) + 7u) / 8u)
 #define ALIGN_CMAC_OUTPUT(bytes) (((bytes) + 15) & ~15)
+#define BYTES_TO_BITS(bytes) ((bytes)*8u)
+
+#if defined(CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_ENABLE)
+#include "cc3xx_drbg_hmac.h"
+/**
+ * @brief Generate the value of the parameter k following the procedure described in
+ *        RFC 6979 to implement DETERMINISTIC_ECDSA for signing.
+ *
+ * @param[in]  private_key     Buffer containing the private key
+ * @param[in]  private_key_len Size in bytes of the \p private_key buffer
+ * @param[in]  hash_len        Size in bytes of the hash
+ * @param[in]  order_len       Size in bits of the order \a n associated to the curve
+ * @param[in]  reg_hash        Register containing the reduced hash to be less than \a n
+ * @param[in]  reg_n           Register containing the order \a n associated to the curve
+ * @param[in]  reg_k           Register containing the value of the generated \a k
+ *
+ * @return                     An error code specified by \a cc3xx_err_t
+ */
+static cc3xx_err_t gen_deterministic_k(const uint32_t *private_key, size_t private_key_len,
+                                       size_t hash_len, size_t order_len, cc3xx_pka_reg_id_t reg_hash,
+                                       cc3xx_pka_reg_id_t reg_n, cc3xx_pka_reg_id_t reg_k)
+{
+    cc3xx_err_t err;
+    struct cc3xx_drbg_hmac_state_t hmac_drbg_state;
+    bool is_k_greater_than_n = false;
+
+    /* Currently the HMAC_DRBG construct supports only SHA-256 */
+    assert(hash_len == SHA256_OUTPUT_SIZE);
+    assert(BYTES_TO_BITS(hash_len) <= order_len);
+
+    /* We use this both for the reduced hash and for the k output */
+    const size_t scratch_size =
+        BYTES_TO_BITS(hash_len) > order_len ?
+            hash_len : BITS_TO_BYTES(order_len);
+
+    /* A scratch buffer used to read and write back quantities from the PKA SRAM */
+    uint32_t scratch[scratch_size / sizeof(uint32_t)];
+
+    cc3xx_lowlevel_pka_read_reg_swap_endian(reg_hash, scratch, sizeof(scratch));
+
+    err = cc3xx_lowlevel_drbg_hmac_instantiate(
+        &hmac_drbg_state, (const uint8_t *)private_key, private_key_len,
+                                            (const uint8_t *)scratch, sizeof(scratch), NULL, 0);
+    if (err != CC3XX_ERR_SUCCESS) {
+        goto out;
+    }
+
+    do {
+        /* Perform a HMAC_DRBG generation to extract a candidate value for k of size order_len */
+        err = cc3xx_lowlevel_drbg_hmac_generate(
+            &hmac_drbg_state, order_len, (uint8_t *)scratch, NULL, 0);
+        if (err != CC3XX_ERR_SUCCESS) {
+            goto out;
+        }
+
+        /* Write the generated k into the PKA for the comparison */
+        cc3xx_lowlevel_pka_write_reg_swap_endian(reg_k, scratch, BITS_TO_BYTES(order_len));
+
+        is_k_greater_than_n = cc3xx_lowlevel_pka_greater_than(reg_k, reg_n);
+
+    } while (is_k_greater_than_n);
+
+out:
+    (void)cc3xx_lowlevel_drbg_hmac_uninit(&hmac_drbg_state);
+    memset(scratch, 0, sizeof(scratch));
+    return err;
+}
+#endif /* CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_ENABLE */
 
 #if defined(CC3XX_CONFIG_ECDSA_KEYGEN_ENABLE) || defined(CC3XX_CONFIG_ECDSA_SIGN_ENABLE)
 /**
@@ -417,11 +485,11 @@ out:
 #endif /* CC3XX_CONFIG_ECDSA_VERIFY_ENABLE */
 
 #ifdef CC3XX_CONFIG_ECDSA_SIGN_ENABLE
-cc3xx_err_t cc3xx_lowlevel_ecdsa_sign(cc3xx_ec_curve_id_t curve_id,
-                                      const uint32_t *private_key, size_t private_key_len,
-                                      const uint32_t *hash, size_t hash_len,
-                                      uint32_t *sig_r, size_t sig_r_len, size_t *sig_r_size,
-                                      uint32_t *sig_s, size_t sig_s_len, size_t *sig_s_size)
+static cc3xx_err_t ecdsa_sign(bool is_deterministic, cc3xx_ec_curve_id_t curve_id,
+                              const uint32_t *private_key, size_t private_key_len,
+                              const uint32_t *hash, size_t hash_len,
+                              uint32_t *sig_r, size_t sig_r_len, size_t *sig_r_size,
+                              uint32_t *sig_s, size_t sig_s_len, size_t *sig_s_size)
 {
     cc3xx_ec_curve_t curve;
     cc3xx_ec_point_affine temp_point;
@@ -433,11 +501,24 @@ cc3xx_err_t cc3xx_lowlevel_ecdsa_sign(cc3xx_ec_curve_id_t curve_id,
     cc3xx_pka_reg_id_t private_key_reg;
     cc3xx_err_t err;
 
+#if !defined(CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_ENABLE)
+    if (is_deterministic) {
+        return CC3XX_ERR_NOT_IMPLEMENTED;
+    }
+#endif /* CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_ENABLE */
+
     /* This sets up various curve parameters into PKA registers */
     err = cc3xx_lowlevel_ec_init(curve_id, &curve);
     if (err != CC3XX_ERR_SUCCESS) {
         goto out;
     }
+
+    /* We don't allow curves with orders smaller than the hash size. This is not
+     * an issue for the current set of curves, because for example P-521 could be
+     * used only with SHA-512. Using mismatched Hash outputs and orders makes the
+     * overall security strength equal to the minimum of the two
+     */
+    assert(hash_len <= curve.modulus_size);
 
     /* This only checks that the private key fits in the allocated register size on PKA engine.
      * The validation of the private key happens in load_validate_private_key using the PKA
@@ -497,7 +578,20 @@ cc3xx_err_t cc3xx_lowlevel_ecdsa_sign(cc3xx_ec_curve_id_t curve_id,
     cc3xx_lowlevel_pka_reduce(hash_reg);
 
     do {
-        err = cc3xx_lowlevel_pka_set_to_random_within_modulus(k_reg);
+        if (is_deterministic == false) {
+            err = cc3xx_lowlevel_pka_set_to_random_within_modulus(k_reg);
+        } else {
+#if defined(CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_ENABLE)
+            /* Read the reduced hash back from the PKA SRAM to pass into the HMAC_DRBG */
+            uint32_t reduced_hash[curve.modulus_size / sizeof(uint32_t)];
+            cc3xx_lowlevel_pka_read_reg_swap_endian(hash_reg, reduced_hash, sizeof(reduced_hash));
+            /* Generate k by using a deterministically seeded HMAC_DRBG */
+            err = gen_deterministic_k(
+                private_key, private_key_len,
+                hash_len, BYTES_TO_BITS(curve.modulus_size),
+                hash_reg, curve.field_modulus, k_reg);
+#endif /* CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_ENABLE */
+        }
         if (err != CC3XX_ERR_SUCCESS) {
             goto out;
         }
@@ -535,5 +629,31 @@ out:
     cc3xx_lowlevel_ec_uninit();
 
     return err;
+}
+
+cc3xx_err_t cc3xx_lowlevel_ecdsa_sign(
+    cc3xx_ec_curve_id_t curve_id,
+    const uint32_t *private_key, size_t private_key_len,
+    const uint32_t *hash, size_t hash_len,
+    uint32_t *sig_r, size_t sig_r_len, size_t *sig_r_size,
+    uint32_t *sig_s, size_t sig_s_len, size_t *sig_s_size)
+{
+    return ecdsa_sign(false, curve_id, private_key, private_key_len,
+        hash, hash_len,
+        sig_r, sig_r_len, sig_r_size,
+        sig_s, sig_s_len, sig_s_size);
+}
+
+cc3xx_err_t cc3xx_lowlevel_ecdsa_sign_deterministic(
+    cc3xx_ec_curve_id_t curve_id,
+    const uint32_t *private_key, size_t private_key_len,
+    const uint32_t *hash, size_t hash_len,
+    uint32_t *sig_r, size_t sig_r_len, size_t *sig_r_size,
+    uint32_t *sig_s, size_t sig_s_len, size_t *sig_s_size)
+{
+    return ecdsa_sign(true, curve_id, private_key, private_key_len,
+        hash, hash_len,
+        sig_r, sig_r_len, sig_r_size,
+        sig_s, sig_s_len, sig_s_size);
 }
 #endif /* CC3XX_CONFIG_ECDSA_SIGN_ENABLE */

@@ -54,6 +54,11 @@
  */
 #define CC3XX_CONFIG_AES_EXTERNAL_KEY_LOADER
 
+/* Whether the ECDSA module supports computing the value of parameter k following
+ * the deterministic procedure described in RFC 6979, i.e. DETERMINISTIC_ECDSA
+ */
+/* #define CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_ENABLE */
+
 /* Whether CHACHA is enabled */
 #define CC3XX_CONFIG_CHACHA_ENABLE
 
