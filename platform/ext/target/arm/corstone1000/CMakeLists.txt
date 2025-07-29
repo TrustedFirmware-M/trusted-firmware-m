@@ -435,6 +435,37 @@ target_sources(tfm_spm
         $<$<BOOL:${TFM_S_REG_TEST}>:${CMAKE_CURRENT_SOURCE_DIR}/target_cfg.c>
 )
 
+#========================= DSU-120T ============================================#
+if (CORSTONE1000_DSU_120T)
+    target_sources(tfm_psa_rot_partition_ns_agent_mailbox
+        PUBLIC
+            dsu-120t/ppu.c
+    )
+
+    target_compile_definitions(tfm_psa_rot_partition_ns_agent_mailbox
+        PUBLIC
+            CORSTONE1000_DSU_120T
+    )
+
+    target_compile_definitions(platform_bl1_1
+        PUBLIC
+            CORSTONE1000_DSU_120T
+    )
+
+    target_include_directories(tfm_psa_rot_partition_ns_agent_mailbox
+        PUBLIC
+            dsu-120t
+    )
+endif()
+
+#========================= Ethos-U NPU =========================================#
+if (CORSTONE1000_CORTEX_A320)
+    target_compile_definitions(platform_bl1_1
+        PUBLIC
+            CORSTONE1000_CORTEX_A320
+    )
+endif()
+
 #========================= tfm_adac ============================================#
 
 if (${PLATFORM_PSA_ADAC_SECURE_DEBUG} AND NOT ${PSA_ADAC_AS_TFM_RUNTIME_SERVICE})

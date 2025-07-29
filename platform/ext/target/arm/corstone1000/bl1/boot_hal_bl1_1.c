@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -47,6 +47,15 @@ REGION_DECLARE(Image$$, ARM_LIB_HEAP, $$ZI$$Limit)[];
 
 #define HOST_SE_SECURE_FLASH_BASE_FVP       0x60010000
 #define HOST_AXI_QSPI_CTRL_REG_BASE_SE_SECURE_FLASH    0x60010000
+
+#ifdef CORSTONE1000_DSU_120T
+#define HOST_DSU_120T_BASE              0x60910000
+#endif
+
+#ifdef CORSTONE1000_CORTEX_A320
+#define HOST_SECURE_SRAM_SIZE           0x400000
+#define HOST_NONSECURE_SRAM_BASE        (HOST_TRUSTED_RAM_BASE + HOST_SECURE_SRAM_SIZE)
+#endif
 
 #define HOST_DRAM_BASE                  0x80000000
 #define HOST_DRAM_UEFI_CAPSULE          0x80000000
@@ -286,6 +295,25 @@ static void setup_se_firewall(void)
     fc_enable_regions();
 #endif
 
+#ifdef CORSTONE1000_DSU_120T
+#if (PLATFORM_IS_FVP)
+    fc_select_region(7);
+    fc_disable_regions();
+    fc_disable_mpe(RGN_MPE0);
+    fc_prog_rgn(RGN_SIZE_16MB, CORSTONE1000_HOST_DSU_120T_BASE);
+    fc_prog_rgn_upper_addr(HOST_DSU_120T_BASE);
+    fc_enable_addr_trans();
+    fc_init_mpl(RGN_MPE0);
+
+    mpl_rights = (RGN_MPL_SECURE_READ_MASK |
+                  RGN_MPL_SECURE_WRITE_MASK);
+
+    fc_enable_mpl(RGN_MPE0, mpl_rights);
+    fc_prog_mid(RGN_MPE0, SE_MID);
+    fc_enable_mpe(RGN_MPE0);
+    fc_enable_regions();
+#endif
+#endif
     fc_pe_enable();
 }
 
@@ -368,6 +396,26 @@ static void setup_host_firewall(void)
     fc_enable_mpe(RGN_MPE0);
     fc_enable_regions();
     fc_rgn_lock();
+
+#ifdef CORSTONE1000_CORTEX_A320
+    /* CVM - Non Secure RAM */
+    fc_select_region(2);
+    fc_disable_regions();
+    fc_disable_mpe(RGN_MPE0);
+    fc_prog_rgn(RGN_SIZE_4MB, HOST_NONSECURE_SRAM_BASE);
+    fc_init_mpl(RGN_MPE0);
+
+    mpl_rights = (RGN_MPL_ANY_MST_MASK | RGN_MPL_NONSECURE_READ_MASK |
+                                         RGN_MPL_NONSECURE_WRITE_MASK |
+                                         RGN_MPL_NONSECURE_EXECUTE_MASK);
+
+    fc_enable_mpl(RGN_MPE0, mpl_rights);
+    fc_disable_mpl(RGN_MPE0, ~mpl_rights);
+
+    fc_enable_mpe(RGN_MPE0);
+    fc_enable_regions();
+    fc_rgn_lock();
+#endif
 
     fc_pe_enable();
 

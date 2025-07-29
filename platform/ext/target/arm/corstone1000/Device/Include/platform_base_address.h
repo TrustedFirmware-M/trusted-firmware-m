@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2017-2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +80,10 @@
 #define CORSTONE1000_HOST_AXI_QSPI_CTRL_REG_BASE   (0x80050000U) /* AXI QSPI Controller               */
 #define CORSTONE1000_HOST_AXI_QSPI_CTRL_REG_BASE_SE_SECURE_FLASH (0x90010000U) /* AXI QSPI Controller for SE FLash  */
 #define CORSTONE1000_HOST_DRAM_UEFI_CAPSULE        (0xA0000000U) /* 1.5 GB DDR                        */
+
+#ifdef CORSTONE1000_DSU_120T
+#define CORSTONE1000_HOST_DSU_120T_BASE            (0xC0910000U) /* DSU-120T PPU                      */
+#endif
 
 /* Map Component definitions to Corstone definitions */
 #define CC3XX_BASE_S        CORSTONE1000_CRYPTO_ACCELERATOR_BASE

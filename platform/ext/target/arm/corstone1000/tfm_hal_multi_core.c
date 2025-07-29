@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -10,6 +10,10 @@
 #include "platform_base_address.h"
 #include "tfm_hal_multi_core.h"
 #include "fwu_agent.h"
+
+#ifdef CORSTONE1000_DSU_120T
+#include "ppu.h"
+#endif
 
 #define HOST_SYS_RST_CTRL_OFFSET     0x000
 #define HOST_CPU_PE0_CONFIG_OFFSET   0x010
@@ -97,6 +101,28 @@ void tfm_hal_boot_ns_cpu(uintptr_t start_addr)
 #endif
 
     (void) start_addr;
+
+#ifdef CORSTONE1000_DSU_120T
+    /* Power on DSU-120T cluster */
+    PPU_SetOperatingPolicy(CLUSTER_PPU, PPU_OP_MODE_ONE_SLICE_SF_ONLY_ON, false);
+    PPU_SetPowerPolicy(CLUSTER_PPU, PPU_PWR_MODE_ON, false);
+
+    /* Power on Cortex-A320 core0 in DSU-120T Cluster */
+    PPU_SetOperatingPolicy(CORE0_PPU, PPU_OP_MODE_ONE_SLICE_SF_ONLY_ON, false);
+    PPU_SetPowerPolicy(CORE0_PPU, PPU_PWR_MODE_ON, false);
+
+#if CORSTONE1000_FVP_MULTICORE
+    /* Power on all Cortex-A320 cores in DSU-120T Cluster */
+    PPU_SetOperatingPolicy(CORE1_PPU, PPU_OP_MODE_ONE_SLICE_SF_ONLY_ON, false);
+    PPU_SetPowerPolicy(CORE1_PPU, PPU_PWR_MODE_ON, false);
+
+    PPU_SetOperatingPolicy(CORE2_PPU, PPU_OP_MODE_ONE_SLICE_SF_ONLY_ON, false);
+    PPU_SetPowerPolicy(CORE2_PPU, PPU_PWR_MODE_ON, false);
+
+    PPU_SetOperatingPolicy(CORE3_PPU, PPU_OP_MODE_ONE_SLICE_SF_ONLY_ON, false);
+    PPU_SetPowerPolicy(CORE3_PPU, PPU_PWR_MODE_ON, false);
+#endif
+#endif
 
 #ifdef EXTERNAL_SYSTEM_SUPPORT
     /*release EXT SYS out of reset*/
