@@ -58,10 +58,16 @@ set(PS_NS_NV_COUNTER_IN_ITS             ON           CACHE BOOL      "Use ITS fo
 
 set(TFM_PARTITION_DTPM_CLIENT           OFF          CACHE BOOL      "Enable dTPM client partition")
 
-set(TFM_PARTITION_MEASURED_BOOT         OFF           CACHE BOOL  "Enable Measured Boot partition")
+set(TFM_PARTITION_INITIAL_ATTESTATION   ON           CACHE BOOL  "Enable Initial Attestation partition")
+
+set(TFM_PARTITION_MEASURED_BOOT         OFF          CACHE BOOL  "Enable Measured Boot partition")
+
+if (TFM_PARTITION_INITIAL_ATTESTATION)
+    set(TFM_PARTITION_MEASURED_BOOT         ON)
+endif()
 
 if (TFM_PARTITION_DTPM_CLIENT)
-    set(TFM_PARTITION_MEASURED_BOOT          ON)
+    set(TFM_PARTITION_MEASURED_BOOT         ON)
     set(CS_GPIO       25  CACHE STRING "CS GPIO pin number")
     set(MISO_GPIO     23  CACHE STRING "MISO GPIO pin number")
     set(MOSI_GPIO     20  CACHE STRING "MOSI GPIO pin number")
