@@ -3592,6 +3592,143 @@ cleanup:
     return rc;
 }
 
+#define BITS_TO_BYTES(x) (((x) + 7u)/8u)
+
+int cc3xx_test_sign_deterministic(void)
+{
+    int rc;
+    cc3xx_err_t err;
+    /* Directly taken from RFC 6979 for SHA-256 on P-256*/
+    const size_t qlen = 256;
+
+    __attribute__((aligned(4)))
+    const uint8_t hash_buf[] = {
+        0xaf, 0x2b, 0xdb, 0xe1, 0xaa, 0x9b, 0x6e, 0xc1,
+        0xe2, 0xad, 0xe1, 0xd6, 0x94, 0xf4, 0x1f, 0xc7,
+        0x1a, 0x83, 0x1d, 0x02, 0x68, 0xe9, 0x89, 0x15,
+        0x62, 0x11, 0x3d, 0x8a, 0x62, 0xad, 0xd1, 0xbf,
+    };
+
+    __attribute__((aligned(4)))
+    const uint8_t priv_buf[] = {
+        0xc9, 0xaf, 0xa9, 0xd8, 0x45, 0xba, 0x75, 0x16,
+        0x6b, 0x5c, 0x21, 0x57, 0x67, 0xb1, 0xd6, 0x93,
+        0x4e, 0x50, 0xc3, 0xdb, 0x36, 0xe8, 0x9b, 0x12,
+        0x7b, 0x8a, 0x62, 0x2b, 0x12, 0x0f, 0x67, 0x21,
+    };
+
+    __attribute__((aligned(4)))
+    const uint8_t refr_buf[] = {
+        0xef, 0xd4, 0x8b, 0x2a, 0xac, 0xb6, 0xa8, 0xfd,
+        0x11, 0x40, 0xdd, 0x9c, 0xd4, 0x5e, 0x81, 0xd6,
+        0x9d, 0x2c, 0x87, 0x7b, 0x56, 0xaa, 0xf9, 0x91,
+        0xc3, 0x4d, 0x0e, 0xa8, 0x4e, 0xaf, 0x37, 0x16,
+    };
+
+    __attribute__((aligned(4)))
+    uint8_t refs_buf[] = {
+        0xf7, 0xcb, 0x1c, 0x94, 0x2d, 0x65, 0x7c, 0x41,
+        0xd4, 0x36, 0xc7, 0xa1, 0xb6, 0xe2, 0x9f, 0x65,
+        0xf3, 0xe9, 0x00, 0xdb, 0xb9, 0xaf, 0xf4, 0x06,
+        0x4d, 0xc4, 0xab, 0x2f, 0x84, 0x3a, 0xcd, 0xa8,
+    };
+
+    uint32_t sig_r[BITS_TO_BYTES(qlen) / sizeof(uint32_t)];
+    uint32_t sig_s[BITS_TO_BYTES(qlen) / sizeof(uint32_t)];
+
+    size_t sig_r_size, sig_s_size;
+    size_t mismatch_observed = 0;
+
+    /* Directly taken from RFC 6979 for SHA-256 on P-384 */
+    const size_t qlen_p384 = 384;
+
+    uint32_t sig_r_p384[BITS_TO_BYTES(qlen_p384) / sizeof(uint32_t)];
+    uint32_t sig_s_p384[BITS_TO_BYTES(qlen_p384) / sizeof(uint32_t)];
+
+    __attribute__((aligned(4)))
+    const uint8_t priv_buf_p384[] = {
+        0x6B, 0x9D, 0x3D, 0xAD, 0x2E, 0x1B, 0x8C, 0x1C,
+        0x05, 0xB1, 0x98, 0x75, 0xB6, 0x65, 0x9F, 0x4D,
+        0xE2, 0x3C, 0x3B, 0x66, 0x7B, 0xF2, 0x97, 0xBA,
+        0x9A, 0xA4, 0x77, 0x40, 0x78, 0x71, 0x37, 0xD8,
+        0x96, 0xD5, 0x72, 0x4E, 0x4C, 0x70, 0xA8, 0x25,
+        0xF8, 0x72, 0xC9, 0xEA, 0x60, 0xD2, 0xED, 0xF5
+    };
+
+    __attribute__((aligned(4)))
+    const uint8_t refr_buf_p384[] = {
+        0x21, 0xB1, 0x3D, 0x1E, 0x01, 0x3C, 0x7F, 0xA1,
+        0x39, 0x2D, 0x03, 0xC5, 0xF9, 0x9A, 0xF8, 0xB3,
+        0x0C, 0x57, 0x0C, 0x6F, 0x98, 0xD4, 0xEA, 0x8E,
+        0x35, 0x4B, 0x63, 0xA2, 0x1D, 0x3D, 0xAA, 0x33,
+        0xBD, 0xE1, 0xE8, 0x88, 0xE6, 0x33, 0x55, 0xD9,
+        0x2F, 0xA2, 0xB3, 0xC3, 0x6D, 0x8F, 0xB2, 0xCD
+    };
+
+    __attribute__((aligned(4)))
+    const uint8_t refs_buf_p384[] = {
+        0xF3, 0xAA, 0x44, 0x3F, 0xB1, 0x07, 0x74, 0x5B,
+        0xF4, 0xBD, 0x77, 0xCB, 0x38, 0x91, 0x67, 0x46,
+        0x32, 0x06, 0x8A, 0x10, 0xCA, 0x67, 0xE3, 0xD4,
+        0x5D, 0xB2, 0x26, 0x6F, 0xA7, 0xD1, 0xFE, 0xEB,
+        0xEF, 0xDC, 0x63, 0xEC, 0xCD, 0x1A, 0xC4, 0x2E,
+        0xC0, 0xCB, 0x86, 0x68, 0xA4, 0xFA, 0x0A, 0xB0
+    };
+
+    err = cc3xx_lowlevel_ecdsa_sign_deterministic(CC3XX_EC_CURVE_SECP_256_R1,
+                                              (const uint32_t *)priv_buf, sizeof(priv_buf),
+                                              (const uint32_t *)hash_buf, sizeof(hash_buf),
+                                              sig_r, sizeof(sig_r), &sig_r_size,
+                                              sig_s, sizeof(sig_s), &sig_s_size);
+    cc3xx_test_assert(err == CC3XX_ERR_SUCCESS);
+
+    for (size_t i = 0; i < sig_r_size; i++) {
+        if (((uint8_t *)sig_r)[i] != refr_buf[i]) {
+            mismatch_observed++;
+            TEST_LOG("mismatch at r[%d], %02x vs %02x\r\n", i, ((uint8_t *)sig_r)[i], refr_buf[i]);
+        }
+    }
+
+    for (size_t i = 0; i < sig_s_size; i++) {
+        if (((uint8_t *)sig_s)[i] != refs_buf[i]) {
+            mismatch_observed++;
+            TEST_LOG("mismatch at s[%d], %02x vs %02x\r\n", i, ((uint8_t *)sig_r)[i], refr_buf[i]);
+        }
+    }
+
+    cc3xx_test_assert(mismatch_observed == 0);
+    TEST_LOG("DETERMINISTIC_ECDSA(P-256, SHA-256) passed\r\n");
+
+    err = cc3xx_lowlevel_ecdsa_sign_deterministic(CC3XX_EC_CURVE_SECP_384_R1,
+                                              (const uint32_t *)priv_buf_p384, sizeof(priv_buf_p384),
+                                              (const uint32_t *)hash_buf, sizeof(hash_buf),
+                                              sig_r_p384, sizeof(sig_r_p384), &sig_r_size,
+                                              sig_s_p384, sizeof(sig_s_p384), &sig_s_size);
+    cc3xx_test_assert(err == CC3XX_ERR_SUCCESS);
+
+    for (size_t i = 0; i < sig_r_size; i++) {
+        if (((uint8_t *)sig_r_p384)[i] != refr_buf_p384[i]) {
+            mismatch_observed++;
+            TEST_LOG("mismatch at r[%d], %02x vs %02x\r\n", i, ((uint8_t *)sig_r_p384)[i], refr_buf_p384[i]);
+        }
+    }
+
+    for (size_t i = 0; i < sig_s_size; i++) {
+        if (((uint8_t *)sig_s_p384)[i] != refs_buf_p384[i]) {
+            mismatch_observed++;
+            TEST_LOG("mismatch at s[%d], %02x vs %02x\r\n", i, ((uint8_t *)sig_s_p384)[i], refs_buf_p384[i]);
+        }
+    }
+
+    cc3xx_test_assert(mismatch_observed == 0);
+    TEST_LOG("DETERMINISTIC_ECDSA(P-384, SHA-256) passed\r\n");
+
+    rc = 0;
+
+cleanup:
+    return rc;
+}
+
 static void swap_endianess(uint8_t *p, size_t len)
 {
    int val;
@@ -3740,6 +3877,13 @@ static void ecdsa_sign_verify_tests(struct test_result_t *ret)
         /*             ""); */
     }
 }
+
+#if defined(CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_K)
+static void ecdsa_sign_deterministic_tests(struct test_result_t *ret)
+{
+    TEST_ASSERT(cc3xx_test_sign_deterministic() == 0, "Sign deterministically failed");
+}
+#endif /* CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_K */
 #endif /* defined(CC3XX_CONFIG_ECDSA_SIGN_ENABLE) && defined(CC3XX_CONFIG_ECDSA_KEYGEN_ENABLE) */
 
 static struct test_t ecdsa_tests[] = {
@@ -3763,6 +3907,13 @@ static struct test_t ecdsa_tests[] = {
         "CC3XX_ECDSA_SIGN_VERIFY_TEST",
         "CC3XX ECDSA sign verify tests",
     },
+#if defined(CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_K)
+    {
+        &ecdsa_sign_deterministic_tests,
+        "CC3XX_ECDSA_SIGN_DETERMINISTIC_TEST",
+        "CC3XX ECDSA sign deterministically (RFC 6979) tests",
+    }
+#endif /* CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_K */
 #endif /* defined(CC3XX_CONFIG_ECDSA_SIGN_ENABLE) && defined(CC3XX_CONFIG_ECDSA_KEYGEN_ENABLE) */
 };
 
