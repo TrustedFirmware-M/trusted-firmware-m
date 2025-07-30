@@ -66,6 +66,12 @@ if (TFM_PARTITION_INITIAL_ATTESTATION)
     set(TFM_PARTITION_MEASURED_BOOT         ON)
 endif()
 
+if (TFM_PARTITION_MEASURED_BOOT)
+    set(CONFIG_TFM_BOOT_STORE_ENCODED_MEASUREMENTS  OFF     CACHE BOOL  "Enable storing of encoded measurements in boot.")
+    set(MCUBOOT_DATA_SHARING                        ON      CACHE BOOL  "Enable Data Sharing")
+    set(CONFIG_TFM_BOOT_STORE_MEASUREMENTS          ON      CACHE BOOL  "Store measurement values from all the boot stages. Used for initial attestation token.")
+endif()
+
 if (TFM_PARTITION_DTPM_CLIENT)
     set(TFM_PARTITION_MEASURED_BOOT         ON)
     set(CS_GPIO       25  CACHE STRING "CS GPIO pin number")
