@@ -482,6 +482,9 @@ cc3xx_err_t cc3xx_lowlevel_ec_multiply_point_by_scalar(cc3xx_ec_curve_t *curve,
     cc3xx_err_t err = CC3XX_ERR_SUCCESS;
     bool negate_at_end = false;
 
+    cc3xx_lowlevel_pka_clear(temp_point.x);
+    cc3xx_lowlevel_pka_clear(temp_point.y);
+
     negate_at_end = pad_scalar(curve, scalar, padded_scalar);
 
     set_modulus_to_curve_modulus(curve);
