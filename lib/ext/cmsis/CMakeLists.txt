@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.21)
 
 # Default configuration of CMSIS repository
 set(CMSIS_PATH     "DOWNLOAD"       CACHE PATH      "Path to cmsis (or DOWNLOAD to fetch automatically")
-set(CMSIS_TAG      "964440d1"       CACHE STRING    "The version of cmsis to use")
+set(CMSIS_TAG      "v6.2.0"         CACHE STRING    "The version of cmsis to use")
 
 fetch_remote_library(
     LIB_NAME                cmsis
