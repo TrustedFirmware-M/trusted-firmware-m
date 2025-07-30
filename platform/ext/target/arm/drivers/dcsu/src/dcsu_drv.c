@@ -68,7 +68,7 @@ enum dcsu_error_t dcsu_wait_for_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_
     return DCSU_ERROR_NONE;
 }
 
-static void dcsu_clear_pending_rx_interupt(struct dcsu_dev_t *dev)
+static void dcsu_clear_pending_rx_interrupt(struct dcsu_dev_t *dev)
 {
     struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
 
@@ -419,6 +419,7 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
         break;
     case DCSU_RX_COMMAND_READ_SOC_CONFIG_DATA:
         err = rx_read_partial_field(dev, DCSU_OTP_FIELD_SOC_CFG_DATA, &msg_resp);
+        break;
     case DCSU_RX_COMMAND_IMPORT_DATA_NO_CHECKSUM:
         err = rx_import_data(dev, false, &msg_resp);
         break;
@@ -434,8 +435,10 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
     case DCSU_RX_COMMAND_READ_COD_DATA:
         err = rx_read_partial_field(dev, DCSU_OTP_FIELD_CM_COD, &msg_resp);
         break;
+#ifdef RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE
     case DCSU_RX_COMMAND_READ_EC_PARAMS:
         err = rx_read_partial_field(dev, DCSU_OTP_FIELD_EC_PARAMS, &msg_resp);
+#endif /* RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE */
         break;
     default:
         err = DCSU_ERROR_NONE;
@@ -449,7 +452,7 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
         * Clear interrupt here as after sending response tooling will be able to
         * send more commands.
         */
-        dcsu_clear_pending_rx_interupt(dev);
+        dcsu_clear_pending_rx_interrupt(dev);
 
         rx_return_send(dev, msg_resp);
     }
@@ -618,6 +621,10 @@ enum dcsu_error_t dcsu_init(struct dcsu_dev_t *dev, uint8_t *rx_buf, size_t rx_b
     dev->rx_buf_len = rx_buf_len;
     dev->handler = handler;
     dev->import_checksum_failed = false;
+
+    /* Clear interrupts to prevent false interrupts */
+    dcsu_clear_pending_rx_interrupt(dev);
+    dcsu_clear_pending_tx_interrupt(dev);
 
     p_dcsu->diag_cmd_irq_en = 0b11;
 

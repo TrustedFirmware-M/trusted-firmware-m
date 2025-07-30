@@ -128,17 +128,17 @@ def tx_command_read_data(backend, ctx, size, byteorder='little'):
 
 def rx_wait_for_command(backend, ctx, command : dcsu_rx_command):
     logger.info("Waiting for command {}".format(command.name))
-    while (recieved_command := backend.read_register(ctx, "DIAG_TX_COMMAND") & 0xFF) == 0:
+    while (received_command := backend.read_register(ctx, "DIAG_TX_COMMAND") & 0xFF) == 0:
         time.sleep(0.1)
 
-    assert (command.value == recieved_command), "Unexpected command {} received".format(dcsu_rx_command(recieved_command))
+    assert (command.value == received_command), "Unexpected command {} received".format(dcsu_rx_command(received_command))
 
 def rx_wait_for_any_command(backend, ctx) -> dcsu_rx_command:
     logger.info("Waiting for any command")
-    while (recieved_command := backend.read_register(ctx, "DIAG_TX_COMMAND") & 0xFF) == 0:
+    while (received_command := backend.read_register(ctx, "DIAG_TX_COMMAND") & 0xFF) == 0:
         time.sleep(0.1)
 
-    return dcsu_rx_command(recieved_command)
+    return dcsu_rx_command(received_command)
 
 def rx_command_receive(backend, ctx, command : dcsu_rx_command) -> bytes:
     rx_wait_for_command(backend, ctx, command)
@@ -154,9 +154,7 @@ def rx_command_receive(backend, ctx, command : dcsu_rx_command) -> bytes:
         data = None
 
     backend.write_register(ctx, "DIAG_TX_COMMAND", dcsu_rx_message_error.DCSU_RX_MSG_ERROR_SUCCESS.value << 24)
-    while (recieved_command := backend.read_register(ctx, "DIAG_TX_COMMAND") & 0xFF) != 0:
-        time.sleep(0.1)
-    backend.write_register(ctx, "DIAG_TX_COMMAND", 0)
+
     return data
 
 def _get_data_from_args(args:argparse.Namespace) -> bytes:
@@ -354,14 +352,14 @@ def dcsu_rx_command_export_data(backend, ctx, args: argparse.Namespace):
     max_len = 0
 
     while not got_complete:
-        if (recieved_command := rx_wait_for_any_command(backend, ctx)) == \
+        if (received_command := rx_wait_for_any_command(backend, ctx)) == \
             dcsu_rx_command.DCSU_RX_COMMAND_COMPLETE_EXPORT_DATA:
             got_complete = True
 
-        if recieved_command == dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM:
+        if received_command == dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM:
             offset = backend.read_register(ctx, "DIAG_TX_LARGE_PARAM")
 
-        data = rx_command_receive(backend, ctx, recieved_command)
+        data = rx_command_receive(backend, ctx, received_command)
         if data is not None:
             max_len = offset + len(data)
             bytes_received[offset:max_len] = data
