@@ -184,6 +184,16 @@ psa_status_t copy_auth_code_data(psa_aead_operation_t *operation,
         }
     }
 
+    /*
+     * Explicitly clean and flush the DCache after copying the provisioning code.
+     * If copied provides in cachable SRAM (VM's) then this is required to ensure
+     * data coherency and correct instruction fetches from SRAM as M55 use Havard
+     * Architecture with seperate buses and caches for instructions and data
+     * respectively.
+     */
+    SCB_CleanDCache_by_Addr(code_output, blob->code_size);
+    SCB_CleanDCache_by_Addr(data_output, blob->data_size);
+
     return PSA_SUCCESS;
 }
 
@@ -232,6 +242,8 @@ psa_status_t copy_auth_secret_values(psa_aead_operation_t *operation,
             return status;
         }
     }
+
+    SCB_CleanDCache_by_Addr(values_output, blob->secret_values_size);
 
     return PSA_SUCCESS;
 }
@@ -619,9 +631,11 @@ validate_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob, siz
     }
 }
 
-static enum tfm_plat_err_t run_blob(void *code_ptr)
+static enum tfm_plat_err_t run_blob(void *code_ptr, uint32_t code_size)
 {
     enum tfm_plat_err_t err;
+
+    SCB_InvalidateICache_by_Addr(code_ptr, code_size);
 
     INFO("Running blob\n");
 
@@ -786,7 +800,7 @@ enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_b
 
     message_handling_status_report_continue(PROVISIONING_REPORT_STEP_VALIDATE_BLOB);
 
-    err = run_blob((void *)PROVISIONING_BUNDLE_CODE_START);
+    err = run_blob((void *)PROVISIONING_BUNDLE_CODE_START, PROVISIONING_BUNDLE_CODE_SIZE);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
