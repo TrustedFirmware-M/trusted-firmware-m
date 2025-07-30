@@ -258,6 +258,18 @@ class provisioning_message_status(Enum):
     PROVISIONING_STATUS_SUCCESS_COMPLETE = 0x2
     PROVISIONING_STATUS_ERROR = 0x3
 
+class provisioning_message_report(Enum):
+    PROVISIONING_REPORT_NO_MESSAGE = 0x0
+    PROVISIONING_REPORT_SET_TP_MODE_PCI = 0x1
+    PROVISIONING_REPORT_SET_TP_MODE_TCI = 0x2
+    PROVISIONING_REPORT_BLOB_VALIDATED = 0x3
+    PROVISIONING_REPORT_CM_PROVISIONING_DONE = 0x4
+    PROVISIONING_REPORT_BL1_2_PROVISIONING_DONE = 0x5
+    PROVISIONING_REPORT_MANDATORY_CM_PROVISIONING_DONE = 0x6
+    PROVISIONING_REPORT_MANDATORY_EARLY_DM_PROVISIONING_DONE = 0x7
+    PROVISIONING_REPORT_DM_PROVISIONING_DONE = 0x8
+    PROVISIONING_REPORT_OTHER_BLOB_DONE = 0x9
+
 def dcsu_rx_command_report_status(backend, ctx, args: argparse.Namespace):
     responses = []
     data = rx_command_receive(backend, ctx, dcsu_rx_command.DCSU_RX_COMMAND_REPORT_STATUS)
@@ -266,15 +278,15 @@ def dcsu_rx_command_report_status(backend, ctx, args: argparse.Namespace):
 
     match(status):
         case provisioning_message_status.PROVISIONING_STATUS_SUCCESS_CONTINUE:
-            report = int.from_bytes(data[4:8], 'little')
-            logger.info(f"Status Report {hex(report)}...")
+            report = provisioning_message_report(int.from_bytes(data[4:8], 'little'))
+            logger.info(f"Status Report {report}...")
             return 0
         case provisioning_message_status.PROVISIONING_STATUS_SUCCESS_COMPLETE:
-            report = int.from_bytes(data[4:8], 'little')
-            logger.info(f"Final Status Report {hex(report)}")
+            report = provisioning_message_report(int.from_bytes(data[4:8], 'little'))
+            logger.info(f"Final Status Report {report}")
             return 0
         case provisioning_message_status.PROVISIONING_STATUS_ERROR:
-            report = int.from_bytes(data[4:8], 'little')
+            report = provisioning_message_report(int.from_bytes(data[4:8], 'little'))
             err = int.from_bytes(data[8:12], 'little')
             logger.error(f"Error Report {report}: {hex(err)}")
             return err
@@ -295,14 +307,14 @@ def dcsu_tx_command_complete_import(backend, ctx, args: argparse.Namespace):
 
         match(status):
             case provisioning_message_status.PROVISIONING_STATUS_SUCCESS_CONTINUE:
-                report = int.from_bytes(data[4:8], 'little')
-                logger.info(f"Status Report {hex(report)}...")
+                report = provisioning_message_report(int.from_bytes(data[4:8], 'little'))
+                logger.info(f"Status Report {report}...")
             case provisioning_message_status.PROVISIONING_STATUS_SUCCESS_COMPLETE:
-                report = int.from_bytes(data[4:8], 'little')
-                logger.info(f"Final Status Report {hex(report)}")
+                report = provisioning_message_report(int.from_bytes(data[4:8], 'little'))
+                logger.info(f"Final Status Report {report}")
                 return res
             case provisioning_message_status.PROVISIONING_STATUS_ERROR:
-                report = int.from_bytes(data[4:8], 'little')
+                report = provisioning_message_report(int.from_bytes(data[4:8], 'little'))
                 err = int.from_bytes(data[8:12], 'little')
                 logger.error(f"Error Report {report}: {hex(err)}")
                 return err
