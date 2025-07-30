@@ -278,12 +278,12 @@ static int boot_add_data_to_shared_area(uint8_t        major_type,
         (boot_data->header.tlv_tot_len > data_size)) {
         memset((void *)data_base, 0, data_size);
         boot_data->header.tlv_magic   = SHARED_DATA_TLV_INFO_MAGIC;
-        boot_data->header.tlv_tot_len = data_size;
+        boot_data->header.tlv_tot_len = SHARED_DATA_HEADER_SIZE;
     }
 
     /* Get the boundaries of TLV section. */
     tlv_end = data_base + boot_data->header.tlv_tot_len;
-    offset = data_base + data_size;
+    offset = data_base + SHARED_DATA_HEADER_SIZE;
 
     /* Check whether TLV entry is already added. Iterates over the TLV section
      * looks for the same entry if found then returns with error.
