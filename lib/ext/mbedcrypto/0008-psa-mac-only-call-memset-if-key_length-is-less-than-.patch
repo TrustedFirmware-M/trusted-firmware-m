@@ -1,0 +1,49 @@
+From 45bdb6d052a362fb2aa7de318744d8675f323849 Mon Sep 17 00:00:00 2001
+From: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
+Date: Thu, 31 Jul 2025 17:34:32 +0100
+Subject: [PATCH] psa: mac: only call memset if key_length is less than block
+ size
+
+In case key_length is equal to block_size, memset would be called with a
+destination address outside the boundary of ipad and opad, with a null
+size. Since memset implementation is compiler-dependent, it is a good
+practice not to assume that it won't dereference the out-of-bound
+destination address.
+
+Instead, only call memset if key_length is less than block_size.
+
+Signed-off-by: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
+---
+ library/psa_crypto_mac.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/library/psa_crypto_mac.c b/library/psa_crypto_mac.c
+index 4464158f..dd9756a3 100644
+--- a/library/psa_crypto_mac.c
++++ b/library/psa_crypto_mac.c
+@@ -78,14 +78,20 @@ static psa_status_t psa_hmac_setup_internal(
+     for (i = 0; i < key_length; i++) {
+         ipad[i] ^= 0x36;
+     }
+-    memset(ipad + key_length, 0x36, block_size - key_length);
++
++    if (key_length < block_size) {
++        memset( ipad + key_length, 0x36, block_size - key_length );
++    }
+ 
+     /* Copy the key material from ipad to opad, flipping the requisite bits,
+      * and filling the rest of opad with the requisite constant. */
+     for (i = 0; i < key_length; i++) {
+         hmac->opad[i] = ipad[i] ^ 0x36 ^ 0x5C;
+     }
+-    memset(hmac->opad + key_length, 0x5C, block_size - key_length);
++
++    if (key_length < block_size) {
++        memset( hmac->opad + key_length, 0x5C, block_size - key_length );
++    }
+ 
+     status = psa_hash_setup(&hmac->hash_ctx, hash_alg);
+     if (status != PSA_SUCCESS) {
+-- 
+2.43.0
+
