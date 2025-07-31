@@ -12,6 +12,7 @@
 #include "rse_provisioning_tests.h"
 #include "test_state_transitions.h"
 #include "test_nv_counters.h"
+#include "test_otp_lcm.h"
 #include "test_integrity_checker_drv.h"
 
 #ifdef TEST_DCSU_DRV
@@ -281,6 +282,8 @@ void register_testsuite_extra_bl1_1(struct test_suite_t *p_test_suite)
     set_testsuite("RSE Tests", bl1_1_extra_tests, 0, p_test_suite);
 
     add_common_nv_counter_tests(p_test_suite, ARRAY_SIZE(bl1_1_extra_tests));
+    add_common_otp_lcm_tests(p_test_suite, ARRAY_SIZE(bl1_1_extra_tests));
+
     add_natdrv_integrity_checker_tests(p_test_suite, ARRAY_SIZE(bl1_1_extra_tests));
 
 #ifdef TEST_DCSU_DRV

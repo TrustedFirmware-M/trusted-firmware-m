@@ -57,3 +57,9 @@ tfm_plat_init_nv_counter
 tfm_plat_read_nv_counter
 tfm_plat_set_nv_counter
 tfm_plat_increment_nv_counter
+tfm_plat_otp_init
+tfm_plat_otp_read
+tfm_plat_otp_write
+tfm_plat_otp_get_size
+tfm_plat_otp_secure_provisioning_start
+tfm_plat_otp_secure_provisioning_finish
