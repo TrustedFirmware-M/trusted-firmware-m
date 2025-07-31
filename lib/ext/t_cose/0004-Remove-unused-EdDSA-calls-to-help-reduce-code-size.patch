@@ -1,4 +1,4 @@
-From 91cbc7bff52d51030c3163f30bc0e86333554ece Mon Sep 17 00:00:00 2001
+From aeeb21d89e3f3de9004ddc762e4a3f582f443071 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Mon, 25 Nov 2024 14:29:04 +0000
 Subject: [PATCH] Remove unused EdDSA calls to help reduce code size
@@ -11,10 +11,13 @@ Remove EdDSA from sign verifier as it does not need to be covered
 by the tests. Remove it from the code so the build does not depend
 on it.
 
+Update known_good_test to prevent test failure due to omitted EdDSA
+context initialization.
 ---
- src/t_cose_sign1_sign.c   | 13 -------------
- src/t_cose_sign1_verify.c |  8 --------
- 2 files changed, 21 deletions(-)
+ src/t_cose_sign1_sign.c        | 13 -------------
+ src/t_cose_sign1_verify.c      |  8 --------
+ test/t_cose_sign_verify_test.c |  6 ++++--
+ 3 files changed, 4 insertions(+), 23 deletions(-)
 
 diff --git a/src/t_cose_sign1_sign.c b/src/t_cose_sign1_sign.c
 index ea0713e..fdf8efd 100644
@@ -23,7 +26,7 @@ index ea0713e..fdf8efd 100644
 @@ -37,17 +37,10 @@ t_cose_sign1_sign_init(struct t_cose_sign1_sign_ctx *me,
      // TODO: Translate any more options flags?
      t_cose_sign_sign_init(&(me->me2), option_flags | T_COSE_OPT_MESSAGE_TYPE_SIGN1);
-
+ 
 -    if(cose_algorithm_id == T_COSE_ALGORITHM_EDDSA) {
 -        t_cose_signature_sign_eddsa_init(&(me->signer.eddsa));
 -        t_cose_sign_add_signer(&(me->me2),
@@ -36,8 +39,8 @@ index ea0713e..fdf8efd 100644
                        t_cose_signature_sign_from_main(&(me->signer.general)));
 -    }
  }
-
-
+ 
+ 
 @@ -58,15 +51,9 @@ t_cose_sign1_set_signing_key(struct t_cose_sign1_sign_ctx *me,
  {
      me->signing_key = signing_key; /* Used by make test message */
@@ -52,8 +55,8 @@ index ea0713e..fdf8efd 100644
                                                      kid);
 -    }
  }
-
-
+ 
+ 
 diff --git a/src/t_cose_sign1_verify.c b/src/t_cose_sign1_verify.c
 index 0614bb0..a3fc221 100644
 --- a/src/t_cose_sign1_verify.c
@@ -67,8 +70,8 @@ index 0614bb0..a3fc221 100644
 -    t_cose_sign_add_verifier(&(me->me2),
 -                    t_cose_signature_verify_from_eddsa(&(me->eddsa_verifier)));
  }
-
-
+ 
+ 
 @@ -49,10 +45,6 @@ t_cose_sign1_set_verification_key(struct t_cose_sign1_verify_ctx *me,
       * until decoding the input. There is only one key in t_cose_sign1().
       * Also, t_cose_sign1 didn't do any kid matching, so it is NULL here.
@@ -80,5 +83,23 @@ index 0614bb0..a3fc221 100644
      t_cose_signature_verify_main_set_key(&(me->main_verifier),
                                           verification_key,
                                           NULL_Q_USEFUL_BUF_C);
---
+diff --git a/test/t_cose_sign_verify_test.c b/test/t_cose_sign_verify_test.c
+index 489897b..86d7ae2 100644
+--- a/test/t_cose_sign_verify_test.c
++++ b/test/t_cose_sign_verify_test.c
+@@ -860,8 +860,10 @@ static int32_t known_good_test(int cose_algorithm_id, struct q_useful_buf_c sign
+             goto Done;
+         }
+     } else if (auxiliary_buffer_size != 0) {
+-        return_value = -2;
+-        goto Done;
++        /* Do Nothing
++         * The auxiliary_buffer is not initialized as EdDSA support has been
++         * removed from the build - along with the context initialization.
++         */
+     }
+ 
+     t_cose_sign1_verify_init(&verify_ctx, 0);
+-- 
 2.34.1
+
