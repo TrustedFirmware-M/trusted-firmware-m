@@ -32,20 +32,21 @@
  * @brief Wrapper function around the lowlevel ECDSA signing API that takes care
  *        of input/output formatting and hashing if required
  *
- * @param[in]  curve_id      Curve ID as defined by the CC3XX lowlevel driver
- * @param[in]  key           Buffer containing the private key
- * @param[in]  key_length    Size in bytes of the private key
- * @param[in]  input         Buffer containing the input, either a hash or message
- * @param[in]  input_length  Size in bytes of the input
- * @param[out] sig           Buffer containing the generated signature (r,s)
- * @param[in]  sig_length    Size in bytes of the \a sig buffer
- * @param[out] sig_size      Size in bytes of the generated signature in \a sig
- * @param[in]  is_input_hash Boolean indicating if the input is an hash
- * @param[in]  hash_alg      If \a is_input_hash is not true, then hashing will be performed
+ * @param[in]  is_deterministic Whether the signining process follows RFC 6979 for \a k
+ * @param[in]  curve_id         Curve ID as defined by the CC3XX lowlevel driver
+ * @param[in]  key              Buffer containing the private key
+ * @param[in]  key_length       Size in bytes of the private key
+ * @param[in]  input            Buffer containing the input, either a hash or message
+ * @param[in]  input_length     Size in bytes of the input
+ * @param[out] sig              Buffer containing the generated signature (r,s)
+ * @param[in]  sig_length       Size in bytes of the \a sig buffer
+ * @param[out] sig_size         Size in bytes of the generated signature in \a sig
+ * @param[in]  is_input_hash    Boolean indicating if the input is an hash
+ * @param[in]  hash_alg         If \a is_input_hash is not true, then hashing will be performed
  *
  * @return psa_status_t
  */
-static psa_status_t ecdsa_sign(cc3xx_ec_curve_id_t curve_id,
+static psa_status_t ecdsa_sign(bool is_deterministic, cc3xx_ec_curve_id_t curve_id,
                         const uint8_t *key, size_t key_length,
                         const uint8_t *input, size_t input_length,
                         uint8_t *sig, size_t sig_length, size_t *sig_size,
@@ -54,6 +55,10 @@ static psa_status_t ecdsa_sign(cc3xx_ec_curve_id_t curve_id,
     cc3xx_err_t err;
     psa_status_t status;
 
+    if (is_deterministic) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+  
     if (!is_input_hash) {
         assert(PSA_ALG_IS_HASH(hash_alg) && hash_alg != PSA_ALG_ANY_HASH);
     }
@@ -248,14 +253,6 @@ psa_status_t cc3xx_sign_hash(const psa_key_attributes_t *attributes,
             }
         }
 
-        if (PSA_ALG_ECDSA_IS_DETERMINISTIC(alg)) {
-            /* The lowlevel driver does not implement Deterministic ECDSA RFC 6979 because
-             * the algorithm to compute the value of K would not be hardenend against side
-             * channel attacks
-             */
-            return PSA_ERROR_NOT_SUPPORTED;
-        }
-
         /* Translate from PSA curve ID to CC3XX curve ID*/
         const cc3xx_ec_curve_id_t curve_id =
             cc3xx_to_curve_id(PSA_KEY_TYPE_ECC_GET_FAMILY(key_type), key_bits);
@@ -264,7 +261,8 @@ psa_status_t cc3xx_sign_hash(const psa_key_attributes_t *attributes,
             return PSA_ERROR_NOT_SUPPORTED;
         }
 
-        return ecdsa_sign(curve_id, key, key_length,
+        return ecdsa_sign(PSA_ALG_ECDSA_IS_DETERMINISTIC(alg),
+                    curve_id, key, key_length,
                     hash, hash_length,
                     signature, signature_size, signature_length,
                     true, hash_alg);
@@ -372,14 +370,6 @@ psa_status_t cc3xx_sign_message(const psa_key_attributes_t *attributes,
             return PSA_ERROR_INVALID_ARGUMENT;
         }
 
-        if (PSA_ALG_ECDSA_IS_DETERMINISTIC(alg)) {
-            /* The lowlevel driver does not implement Deterministic ECDSA RFC 6979 because
-             * the algorithm to compute the value of K would not be hardenend against side
-             * channel attacks
-             */
-            return PSA_ERROR_NOT_SUPPORTED;
-        }
-
         /* Translate from PSA curve ID to CC3XX curve ID*/
         const cc3xx_ec_curve_id_t curve_id =
             cc3xx_to_curve_id(PSA_KEY_TYPE_ECC_GET_FAMILY(key_type), key_bits);
@@ -388,7 +378,8 @@ psa_status_t cc3xx_sign_message(const psa_key_attributes_t *attributes,
             return PSA_ERROR_NOT_SUPPORTED;
         }
 
-        return ecdsa_sign(curve_id, key, key_length,
+        return ecdsa_sign(PSA_ALG_ECDSA_IS_DETERMINISTIC(alg),
+                    curve_id, key, key_length,
                     input, input_length,
                     signature, signature_size, signature_length,
                     false, hash_alg);
