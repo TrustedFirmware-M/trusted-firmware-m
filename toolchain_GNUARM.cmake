@@ -75,6 +75,12 @@ if(NOT ${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_DISABLED)
     message(FATAL_ERROR "BRANCH_PROTECTION NOT supported for GNU-ARM")
 endif()
 
+# Workaround to add diagnostics color while using Ninja generator.
+# For reference: https://github.com/ninja-build/ninja/issues/174
+if (CMAKE_GENERATOR STREQUAL "Ninja")
+    add_compile_options(-fdiagnostics-color=always)
+endif()
+
 add_link_options(
     -mcpu=${TFM_SYSTEM_PROCESSOR_FEATURED}
     -specs=nano.specs
