@@ -162,13 +162,6 @@ __WEAK int32_t boot_platform_init(void)
 __WEAK int32_t boot_platform_post_init(void)
 {
 #ifdef CRYPTO_HW_ACCELERATOR
-    int32_t result;
-
-    result = crypto_hw_accelerator_init();
-    if (result) {
-        return 1;
-    }
-
     fih_delay_init();
 #endif /* CRYPTO_HW_ACCELERATOR */
 
