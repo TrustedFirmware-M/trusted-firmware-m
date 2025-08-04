@@ -125,7 +125,8 @@ enum tfm_crypto_group_id_t {
     X(TFM_CRYPTO_CIPHER_SET_IV)                    \
     X(TFM_CRYPTO_CIPHER_UPDATE)                    \
     X(TFM_CRYPTO_CIPHER_FINISH)                    \
-    X(TFM_CRYPTO_CIPHER_ABORT)
+    X(TFM_CRYPTO_CIPHER_ABORT)                     \
+    X(TFM_CRYPTO_CAN_DO_CIPHER)
 
 #define AEAD_FUNCS                                 \
     X(TFM_CRYPTO_AEAD_ENCRYPT)                     \

@@ -86,13 +86,23 @@ TFM_CRYPTO_API(int, psa_can_do_hash)(psa_algorithm_t hash_alg)
 
 TFM_CRYPTO_API(int, psa_can_do_cipher)(psa_key_type_t key_type, psa_algorithm_t cipher_alg)
 {
-    (void)cipher_alg;
-    (void)key_type;
-    /* There isn't any cipher algorithm that would not be ready
-     * to be used after TF-M has booted up, hence this function
-     * just returns success all the time
-     */
-    return (int)true;
+    psa_status_t status;
+    int can_do_cipher;
+    const struct tfm_crypto_pack_iovec iov = {
+        .function_id = TFM_CRYPTO_CAN_DO_CIPHER_SID,
+        .alg = cipher_alg,
+    };
+    psa_invec in_vec[] = {
+        {.base = &iov, .len = sizeof(struct tfm_crypto_pack_iovec)},
+        {.base = &key_type, .len = sizeof(psa_key_type_t)},
+    };
+    psa_outvec out_vec[] = {
+        {.base = &can_do_cipher, .len = sizeof(int)},
+    };
+
+    status = API_DISPATCH(in_vec, out_vec);
+
+    return (status != PSA_SUCCESS) ? 0 : can_do_cipher;
 }
 
 TFM_CRYPTO_API(psa_status_t, psa_open_key)(psa_key_id_t id,

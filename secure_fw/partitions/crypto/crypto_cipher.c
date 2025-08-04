@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -24,6 +24,111 @@
 
 /*!@{*/
 #if CRYPTO_CIPHER_MODULE_ENABLED
+/**
+ * \brief Check whether PSA is capable of handling the specified cipher algorithm and the given key
+ * type.
+ *
+ * \note  As service initialization is performed during TF-M boot up, so there is no need
+ *        to check whether psa_crypto_init has already been called.
+ *
+ * \param[in] key_type  The key type.
+ * \param[in] alg       The cipher algorithm.
+ *
+ * \return 1 if the PSA can handle \p alg and the given \p key_type, 0 otherwise.
+ */
+int tfm_crypto_can_do_cipher(psa_key_type_t key_type, psa_algorithm_t alg)
+{
+    /* Check whether desired key type is available. */
+    switch (key_type) {
+#if defined(PSA_WANT_KEY_TYPE_AES)
+    case PSA_KEY_TYPE_AES:
+        break;
+#endif
+#if defined(PSA_WANT_KEY_TYPE_ARIA)
+    case PSA_KEY_TYPE_ARIA:
+        break;
+#endif
+#if defined(PSA_WANT_KEY_TYPE_CAMELLIA)
+    case PSA_KEY_TYPE_CAMELLIA:
+        break;
+#endif
+#if defined(PSA_WANT_KEY_TYPE_DES)
+    case PSA_KEY_TYPE_DES:
+        break;
+#endif
+#if defined(PSA_WANT_KEY_TYPE_CHACHA20)
+    case PSA_KEY_TYPE_CHACHA20:
+        break;
+#endif
+    default:
+        return 0;
+    }
+
+    /* Check whether desired algorithm is available. */
+    if (PSA_ALG_IS_AEAD(alg)) {
+        alg = PSA_ALG_AEAD_WITH_SHORTENED_TAG(alg, 0);
+    }
+
+    switch (alg) {
+#if defined(PSA_WANT_ALG_CTR)
+    case PSA_ALG_CTR:
+        break;
+#endif
+#if defined(PSA_WANT_ALG_CFB)
+    case PSA_ALG_CFB:
+        break;
+#endif
+#if defined(PSA_WANT_ALG_OFB)
+    case PSA_ALG_OFB:
+        break;
+#endif
+#if defined(PSA_WANT_ALG_XTS)
+    case PSA_ALG_XTS:
+        break;
+#endif
+#if defined(PSA_WANT_ALG_ECB_NO_PADDING)
+    case PSA_ALG_ECB_NO_PADDING:
+        break;
+#endif
+#if defined(PSA_WANT_ALG_CBC_NO_PADDING)
+    case PSA_ALG_CBC_NO_PADDING:
+        break;
+#endif
+#if defined(PSA_WANT_ALG_CBC_PKCS7)
+    case PSA_ALG_CBC_PKCS7:
+        break;
+#endif
+#if defined(PSA_WANT_ALG_CMAC)
+    case PSA_ALG_CMAC:
+        break;
+#endif
+#if defined(PSA_WANT_ALG_CCM_STAR_NO_TAG)
+    case PSA_ALG_CCM_STAR_NO_TAG:
+        break;
+#endif
+#if defined(PSA_WANT_ALG_CCM)
+    case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CCM, 0):
+        break;
+#endif
+#if defined(PSA_WANT_ALG_GCM)
+    case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_GCM, 0):
+        break;
+#endif
+#if defined(PSA_WANT_ALG_STREAM_CIPHER)
+    case PSA_ALG_STREAM_CIPHER:
+        break;
+#endif
+#if defined(PSA_WANT_ALG_CHACHA20_POLY1305)
+    case PSA_ALG_AEAD_WITH_SHORTENED_TAG(PSA_ALG_CHACHA20_POLY1305, 0):
+        break;
+#endif
+    default:
+        return 0;
+    }
+
+    return 1;
+}
+
 psa_status_t tfm_crypto_cipher_interface(psa_invec in_vec[],
                                          psa_outvec out_vec[],
                                          struct tfm_crypto_key_id_s *encoded_key)
@@ -33,6 +138,19 @@ psa_status_t tfm_crypto_cipher_interface(psa_invec in_vec[],
     psa_cipher_operation_t *operation = NULL;
     uint32_t *p_handle = NULL;
     enum tfm_crypto_func_sid_t sid = (enum tfm_crypto_func_sid_t)iov->function_id;
+
+    if (sid == TFM_CRYPTO_CAN_DO_CIPHER_SID) {
+        int *p_result = out_vec[0].base;
+        psa_key_type_t *p_key_type = in_vec[1].base;
+
+        if ((out_vec[0].base == NULL) || (out_vec[0].len < sizeof(int)) ||
+            (in_vec[1].base == NULL) || (in_vec[1].len < sizeof(psa_key_type_t))) {
+            return PSA_ERROR_PROGRAMMER_ERROR;
+        }
+
+        *p_result = tfm_crypto_can_do_cipher(*p_key_type, iov->alg);
+        return PSA_SUCCESS;
+    }
 
     tfm_crypto_library_key_id_t library_key = tfm_crypto_library_key_id_init(
                                                   encoded_key->owner, encoded_key->key_id);
