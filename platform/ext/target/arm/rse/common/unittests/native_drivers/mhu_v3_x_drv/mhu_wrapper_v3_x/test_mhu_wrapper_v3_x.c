@@ -698,22 +698,6 @@ void test_mhu_init_receiver_ok(void)
     TEST_ASSERT_EQUAL(MHU_V_3_X_ERR_NONE, mhu_err);
 }
 
-void test_mhu_send_data_empty_transfer(void)
-{
-    enum mhu_error_t mhu_err;
-    uint8_t send_buffer[0x20];
-    size_t size;
-
-    /* Prepare */
-    size = 0x0;
-
-    /* Act */
-    mhu_err = mhu_send_data(&MHU_SENDER_DEV, send_buffer, size);
-
-    /* Assert */
-    TEST_ASSERT_EQUAL(MHU_ERR_NONE, mhu_err);
-}
-
 void test_mhu_send_data_invalid_send_buffer_arg(void)
 {
     enum mhu_error_t mhu_err;

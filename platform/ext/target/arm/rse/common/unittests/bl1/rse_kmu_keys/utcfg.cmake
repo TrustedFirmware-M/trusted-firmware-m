@@ -71,7 +71,7 @@ list(APPEND MOCK_HEADERS ${CC3XX_SOURCE_DIR}/low_level_driver/include/cc3xx_kdf.
 list(APPEND MOCK_HEADERS ${PLATFORM_DIR}/ext/target/arm/drivers/kmu/kmu_drv.h)
 list(APPEND MOCK_HEADERS ${PLATFORM_DIR}/ext/target/arm/drivers/lcm/lcm_drv.h)
 list(APPEND MOCK_HEADERS ${PLATFORM_DIR}/include/tfm_plat_otp.h)
-list(APPEND MOCK_HEADERS ${TFM_ROOT_DIR}/bl1/bl1_1/shared_lib/interface/trng.h)
+list(APPEND MOCK_HEADERS ${TFM_ROOT_DIR}/bl1/bl1_1/shared_lib/interface/bl1_random.h)
 
 #-------------------------------------------------------------------------------
 # Labels for UT (Optional, tests can be grouped by labels)

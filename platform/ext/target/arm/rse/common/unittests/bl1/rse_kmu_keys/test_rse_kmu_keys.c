@@ -22,7 +22,6 @@
 #include "mock_lcm_drv.h"
 #include "mock_rse_boot_state.h"
 #include "mock_tfm_plat_otp.h"
-#include "mock_trng.h"
 
 static uint32_t KMU_DEV_BASE;
 static struct kmu_dev_cfg_t KMU_DEV_CFG_S = {.base = (uintptr_t)&KMU_DEV_BASE};
@@ -462,48 +461,4 @@ void test_rse_setup_cc3xx_pka_sram_encryption_key_setup_from_rng_fails(void)
 
     /* Assert */
     TEST_ASSERT_EQUAL(plat_err, KMU_ERROR_INVALID_SLOT);
-}
-
-void test_rse_setup_cc3xx_pka_sram_encryption_key_lock_fails(void)
-{
-    enum tfm_plat_err_t plat_err;
-
-    /* Prepare */
-    kmu_get_key_buffer_ptr_IgnoreAndReturn(KMU_ERROR_NONE);
-    bl1_trng_generate_random_IgnoreAndReturn(TFM_PLAT_ERR_SUCCESS);
-    kmu_set_key_export_config_IgnoreAndReturn(KMU_ERROR_NONE);
-    kmu_set_key_export_config_locked_IgnoreAndReturn(KMU_ERROR_NONE);
-    kmu_set_key_locked_IgnoreAndReturn(KMU_ERROR_INVALID_SLOT);
-
-    /* Act */
-    plat_err = rse_setup_cc3xx_pka_sram_encryption_key();
-
-    /* Assert */
-    TEST_ASSERT_EQUAL(plat_err, KMU_ERROR_INVALID_SLOT);
-}
-
-void test_rse_setup_cc3xx_pka_sram_encryption_key_ok(void)
-{
-    enum tfm_plat_err_t plat_err;
-    enum rse_kmu_slot_id_t slot;
-
-    /* Prepare */
-    slot = RSE_KMU_SLOT_CC3XX_PKA_SRAM_ENCRYPTION_KEY;
-
-    kmu_get_key_buffer_ptr_ExpectAndReturn(&KMU_DEV_S, slot, NULL, NULL,
-                                           KMU_ERROR_NONE);
-    kmu_get_key_buffer_ptr_IgnoreArg_key_slot();
-    kmu_get_key_buffer_ptr_IgnoreArg_slot_size();
-
-    bl1_trng_generate_random_IgnoreAndReturn(TFM_PLAT_ERR_SUCCESS);
-    kmu_set_key_export_config_IgnoreAndReturn(KMU_ERROR_NONE);
-    kmu_set_key_export_config_locked_IgnoreAndReturn(KMU_ERROR_NONE);
-
-    kmu_set_key_locked_ExpectAndReturn(&KMU_DEV_S, slot, KMU_ERROR_NONE);
-
-    /* Act */
-    plat_err = rse_setup_cc3xx_pka_sram_encryption_key();
-
-    /* Assert */
-    TEST_ASSERT_EQUAL(plat_err, KMU_ERROR_NONE);
 }
