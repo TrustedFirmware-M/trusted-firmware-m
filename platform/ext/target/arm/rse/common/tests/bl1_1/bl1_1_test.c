@@ -18,6 +18,8 @@
 #include "test_rse_zero_count.h"
 #include "test_dpa_hardened_word_copy.h"
 #include "test_bl1_rse_kmu_keys.h"
+#include "test_atu_rse_drv.h"
+#include "test_atu_rse_lib.h"
 
 #ifdef TEST_DCSU_DRV
 #include "test_dcsu_drv.h"
@@ -279,7 +281,7 @@ static struct conditional_test_t state_transitions[] = {
     },
 };
 
-static struct test_t bl1_1_extra_tests[100];
+static struct test_t bl1_1_extra_tests[123];
 
 void register_testsuite_extra_bl1_1(struct test_suite_t *p_test_suite)
 {
@@ -295,6 +297,9 @@ void register_testsuite_extra_bl1_1(struct test_suite_t *p_test_suite)
     add_drivers_kmu_tests(p_test_suite, ARRAY_SIZE(bl1_1_extra_tests));
 
     add_bl1_rse_kmu_keys_tests(p_test_suite, ARRAY_SIZE(bl1_1_extra_tests));
+
+    add_natdrv_atu_rse_drv_tests(p_test_suite, ARRAY_SIZE(bl1_1_extra_tests));
+    add_natdrv_atu_rse_lib_tests(p_test_suite, ARRAY_SIZE(bl1_1_extra_tests));
 
 #ifdef TEST_DCSU_DRV
     add_dcsu_drv_tests_to_testsuite(p_test_suite, ARRAY_SIZE(bl1_1_extra_tests));

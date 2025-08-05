@@ -11,7 +11,12 @@
 #define VM1_SIZE                         0x00010000 /* 64 KiB */
 
 /* The uppermost RETAINED_RAM_SIZE bytes of VM1 are retained after cold reset */
-#define RETAINED_RAM_SIZE                0x0000B000 /* 44KiB KiB */
+#if defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM)
+#define RETAINED_RAM_SIZE                0x00008000 /* 32 KiB */
+#else
+#define RETAINED_RAM_SIZE                0x0000B000 /* 44 KiB */
+#endif
+
 #else
 #define VM0_SIZE                         0x00080000 /* 512 KiB */
 #define VM1_SIZE                         0x00080000 /* 512 KiB */
