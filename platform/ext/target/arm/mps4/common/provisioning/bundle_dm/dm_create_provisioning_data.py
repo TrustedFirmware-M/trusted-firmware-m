@@ -9,8 +9,6 @@
 
 import os
 import sys
-import imgtool.main
-import imgtool
 import click
 from jinja2 import Environment, FileSystemLoader
 from cryptography.hazmat.primitives.hashes import Hash, SHA256
@@ -20,6 +18,8 @@ from cryptography.hazmat.primitives.hashes import Hash, SHA256
 # mcuboot is preferred over system imgtool
 cwd = os.getcwd()
 sys.path = [cwd] + sys.path
+import imgtool.main
+import imgtool
 
 parser_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../'))
 sys.path.append(parser_path)

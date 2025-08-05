@@ -200,7 +200,7 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             PATTERN "scripts/*.py"
             PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
             GROUP_EXECUTE GROUP_READ
-            PATTERN "scripts/wrapper/*.py"
+            PATTERN "scripts/*.py"
             PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                         GROUP_EXECUTE GROUP_READ)
 

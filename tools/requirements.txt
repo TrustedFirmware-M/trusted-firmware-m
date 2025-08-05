@@ -1,8 +1,7 @@
 cbor2
 click
-cryptography>=36.0.1
+cryptography>=40.0.0
 pyasn1
-imgtool>=1.9.0
 Jinja2>=2.10.3
 jsonschema >= 3.2.0
 PyYAML

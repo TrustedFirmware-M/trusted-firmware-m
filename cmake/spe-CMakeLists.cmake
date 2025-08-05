@@ -232,7 +232,7 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts
 
             #Sign non-secure binary image with provided secret key
-            COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts/wrapper/wrapper.py ${wrapper_args}
+            COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts/wrapper.py ${wrapper_args}
         )
 
         # Create concatenated binary image from the two independently signed
@@ -299,7 +299,7 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
 
             # sign the combined tfm_s_ns.bin file
             COMMAND ${Python3_EXECUTABLE}
-                ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts/wrapper/wrapper.py
+                ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts/wrapper.py
                 ${wrapper_args}
         )
     endif()
