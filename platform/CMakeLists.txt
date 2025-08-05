@@ -217,6 +217,7 @@ if(BL2)
             cmsis_stack_override
             cmsis
             tfm_log_headers
+            tfm_helper_lib
         PRIVATE
             bl2_crypto
             bl2_hal
@@ -275,6 +276,7 @@ if(BL1 AND PLATFORM_DEFAULT_BL1)
             platform_common_interface
             cmsis_stack_override
             cmsis
+            tfm_helper_lib
     )
 
     target_compile_definitions(platform_bl1_1_interface
@@ -377,6 +379,7 @@ if(BL1 AND PLATFORM_DEFAULT_BL1)
     target_link_libraries(platform_bl1_2
         PUBLIC
             platform_bl1_1_interface
+            tfm_helper_lib
         PRIVATE
             tfm_fih
             tfm_fih_headers

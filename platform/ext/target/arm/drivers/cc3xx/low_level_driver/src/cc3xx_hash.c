@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, The TrustedFirmware-M Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -11,11 +11,11 @@
 #include "cc3xx_error.h"
 #include "cc3xx_dma.h"
 #include "cc3xx_engine_state.h"
-#include "cc3xx_endian_helpers.h"
 #include "cc3xx_stdlib.h"
 
 #include "fatal_error.h"
 
+#include "endian.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stddef.h>

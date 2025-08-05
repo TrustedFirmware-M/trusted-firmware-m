@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, The TrustedFirmware-M Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -14,8 +14,8 @@
 #include CC3XX_CONFIG_FILE
 #endif
 #include "cc3xx_rng.h"
-#include "cc3xx_endian_helpers.h"
 
+#include "endian.h"
 #include <stdbool.h>
 #include <assert.h>
 #include <stdint.h>
