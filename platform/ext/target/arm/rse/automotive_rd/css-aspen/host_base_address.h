@@ -11,6 +11,7 @@
 #ifndef __HOST_BASE_ADDRESS_H__
 #define __HOST_BASE_ADDRESS_H__
 
+#include "host_atu_base_address.h"
 #include "host_smd_memory_map.h"
 #include "image_size_defs.h"
 #include "platform_base_address.h"
