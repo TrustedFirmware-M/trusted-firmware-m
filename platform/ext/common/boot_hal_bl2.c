@@ -17,7 +17,7 @@
 #ifdef TFM_MEASURED_BOOT_API
 #include "region_defs.h"
 #include "tfm_boot_status.h"
-#include "boot_measurement.h"
+#include "tfm_boot_measurement.h"
 #endif /* TFM_MEASURED_BOOT_API */
 #if defined(MCUBOOT_USE_PSA_CRYPTO)
 #include "psa/crypto.h"

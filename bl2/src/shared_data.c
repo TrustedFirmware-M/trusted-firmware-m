@@ -14,7 +14,7 @@
 
 #ifdef TFM_MEASURED_BOOT_API
 #include "boot_hal.h"
-#include "boot_measurement.h"
+#include "tfm_boot_measurement.h"
 #include "bootutil/crypto/sha.h"
 #include "bootutil_priv.h"
 #include "psa/crypto.h"

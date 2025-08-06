@@ -14,7 +14,7 @@
 #include "t_cose/q_useful_buf.h"
 #ifdef TFM_PARTITION_MEASURED_BOOT
 #include "measured_boot_api.h"
-#include "boot_measurement.h"
+#include "tfm_boot_measurement.h"
 #include "psa/crypto.h"
 #endif /* TFM_PARTITION_MEASURED_BOOT */
 

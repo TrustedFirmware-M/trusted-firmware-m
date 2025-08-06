@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
-#ifndef __BOOT_MEASUREMENT_H__
-#define __BOOT_MEASUREMENT_H__
+#ifndef __TFM_BOOT_MEASUREMENT_H__
+#define __TFM_BOOT_MEASUREMENT_H__
 
+#if defined(PLATFORM_DEFAULT_MEASUREMENT_SLOTS)
 enum boot_measurement_slot_t {
     BOOT_MEASUREMENT_SLOT_BL1_2 = 0,
     BOOT_MEASUREMENT_SLOT_BL2,
@@ -20,5 +21,8 @@ enum boot_measurement_slot_t {
                                                  * memory area.
                                                  */
 };
+#else
+#include "boot_measurement.h"
+#endif /* PLATFORM_DEFAULT_MEASUREMENT_SLOTS */
 
-#endif /* __BOOT_MEASUREMENT_H__ */
+#endif /* __TFM_BOOT_MEASUREMENT_H__ */

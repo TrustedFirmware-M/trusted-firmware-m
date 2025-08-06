@@ -21,7 +21,7 @@
 #ifdef TFM_MEASURED_BOOT_API
 #include "region_defs.h"
 #include "tfm_boot_status.h"
-#include "boot_measurement.h"
+#include "tfm_boot_measurement.h"
 #endif /* TFM_MEASURED_BOOT_API */
 
 #ifndef TFM_BL1_MEMORY_MAPPED_FLASH

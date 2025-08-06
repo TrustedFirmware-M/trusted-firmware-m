@@ -46,7 +46,7 @@ set(MCUBOOT_FORCE_PATCH                 OFF         CACHE BOOL      "Always appl
 set(MCUBOOT_VERSION                     "v2.2.0"    CACHE STRING    "The version of MCUboot to use")
 
 set(TFM_EXTRAS_REPO_PATH                "DOWNLOAD"  CACHE PATH      "Path to tf-m-extras repo (or DOWNLOAD to fetch automatically")
-set(TFM_EXTRAS_REPO_VERSION             "42a01fa"   CACHE STRING    "The version of tf-m-extras to use")
+set(TFM_EXTRAS_REPO_VERSION             "6454d842"  CACHE STRING    "The version of tf-m-extras to use")
 
 set(PLATFORM_PSA_ADAC_SECURE_DEBUG      FALSE       CACHE BOOL      "Whether to use psa-adac secure debug.")
 set(PLATFORM_PSA_ADAC_SOURCE_PATH       "DOWNLOAD"  CACHE PATH      "Path to source dir of psa-adac.")
@@ -130,6 +130,7 @@ set(PLATFORM_DEFAULT_UART_STDOUT        ON          CACHE BOOL      "Use default
 set(PLATFORM_DEFAULT_NV_SEED            ON          CACHE BOOL      "Use default NV seed implementation.")
 set(PLATFORM_DEFAULT_SHARED_MEASUREMENT_DATA ON     CACHE BOOL      "Use default shared measurement data location")
 set(PLATFORM_DEFAULT_OTP                ON          CACHE BOOL      "Use trusted on-chip flash to implement OTP memory")
+set(PLATFORM_DEFAULT_MEASUREMENT_SLOTS  ON          CACHE BOOL     "Use default Measured Boot slots")
 set(PLATFORM_DEFAULT_OTP_WRITEABLE      ON          CACHE BOOL      "Use OTP memory with write support")
 set(PLATFORM_DEFAULT_PROVISIONING       ON          CACHE BOOL      "Use default provisioning implementation")
 set(PLATFORM_DEFAULT_SYSTEM_RESET_HALT  ON          CACHE BOOL      "Use default system reset/halt implementation")

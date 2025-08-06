@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "boot_measurement.h"
+#include "tfm_boot_measurement.h"
 #include "bootutil/bootutil.h"
 #include "bootutil/bootutil_log.h"
 #include "bootutil/fault_injection_hardening.h"

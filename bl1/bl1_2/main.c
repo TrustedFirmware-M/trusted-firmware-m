@@ -23,7 +23,7 @@
 #include "tfm_plat_otp.h"
 
 #ifdef TFM_MEASURED_BOOT_API
-#include "boot_measurement.h"
+#include "tfm_boot_measurement.h"
 #else
 enum boot_measurement_slot_t {
     BOOT_MEASUREMENT_SLOT_BL2,

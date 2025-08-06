@@ -448,6 +448,7 @@ target_compile_definitions(platform_region_defs
         $<$<BOOL:${TFM_BL1_1_MEASUREMENT_HASH_ALG}>:TFM_BL1_ENABLE_${TFM_BL1_1_ROTPK_HASH_ALG}>
         $<$<BOOL:${MCUBOOT_HW_KEY}>:MCUBOOT_HW_KEY>
         $<$<BOOL:${TFM_PXN_ENABLE}>:TFM_PXN_ENABLE>
+        $<$<BOOL:${PLATFORM_DEFAULT_MEASUREMENT_SLOTS}>:PLATFORM_DEFAULT_MEASUREMENT_SLOTS>
 )
 
 target_include_directories(platform_region_defs

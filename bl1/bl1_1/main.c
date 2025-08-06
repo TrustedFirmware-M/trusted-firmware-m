@@ -11,7 +11,7 @@
 #include "tfm_plat_otp.h"
 #include "boot_hal.h"
 #ifdef TFM_MEASURED_BOOT_API
-#include "boot_measurement.h"
+#include "tfm_boot_measurement.h"
 #endif /* TFM_MEASURED_BOOT_API */
 #include "region_defs.h"
 #include "tfm_log.h"

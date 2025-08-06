@@ -221,6 +221,7 @@ set(CC312_LEGACY_DRIVER_API_ENABLED     OFF        CACHE BOOL     "Whether the l
 set(CC3XX_RUNTIME_ENABLED               ON         CACHE BOOL     "Whether the CC3XX driver is used at runtime")
 
 set(PLATFORM_DEFAULT_OTP                OFF        CACHE BOOL     "Use trusted on-chip flash to implement OTP memory")
+set(PLATFORM_DEFAULT_MEASUREMENT_SLOTS  ON         CACHE BOOL     "Use default Measured Boot slots")
 set(PLATFORM_DEFAULT_CRYPTO_KEYS        OFF        CACHE BOOL     "Use default crypto keys implementation.")
 set(PLATFORM_DEFAULT_ROTPK              OFF        CACHE BOOL      "Use default root of trust public key.")
 set(PLATFORM_DEFAULT_PROVISIONING       OFF        CACHE BOOL     "Use default provisioning implementation")
