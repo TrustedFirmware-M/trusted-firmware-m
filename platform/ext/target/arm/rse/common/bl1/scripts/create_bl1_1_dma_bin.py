@@ -318,10 +318,12 @@ for location in output_locations:
         raise Exception
 
     if location == 'otp':
+        #Zero-Pad OTP DMA ICS and prepend zero count at the reserved area used in integrity check
         zero_pad_length = int(sizes[location]/4) - int(reserved_size/4) - len(location_word_arrays[location])
         location_word_arrays[location] = location_word_arrays[location] + [0] * zero_pad_length
         otp_ics_zero_count = zero_count(location_word_arrays[location])
         location_word_arrays[location] = [otp_ics_zero_count, 0] + location_word_arrays[location]
+        location_named_word_arrays[location] = [('zero count', otp_ics_zero_count), ('zero pad',0)] + location_named_word_arrays[location]
 
     with open(os.path.join(args.output_dir, location + "_dma_ics.bin"), mode="wb") as bin_file:
         with open(os.path.join(args.output_dir, location + "_dma_ics.hex"), mode="wt") as hex_file:
