@@ -24,7 +24,7 @@ target_include_directories(tfm_test_suite_extra_bl1_1
 
 target_link_libraries(tfm_test_suite_extra_bl1_1
     PRIVATE
-        bl1_cc3xx_tests
+        $<$<BOOL:${TEST_CC3XX}>:bl1_cc3xx_tests>
         bl1_1_shared_lib_interface
 
         driver_kmu_tests

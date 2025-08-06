@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -18,31 +18,31 @@
 
 void add_cc3xx_tests_to_testsuite(struct test_suite_t *p_ts, uint32_t ts_size)
 {
-#if defined(TEST_CC3XX) && defined(TEST_CC3XX_HASH)
+#ifdef TEST_CC3XX_HASH
     add_cc3xx_hash_tests_to_testsuite(p_ts, ts_size);
 #endif
-#if defined(TEST_CC3XX) && defined(TEST_CC3XX_AES)
+#ifdef TEST_CC3XX_AES
     add_cc3xx_aes_tests_to_testsuite(p_ts, ts_size);
 #endif
-#if defined(TEST_CC3XX) && defined(TEST_CC3XX_CHACHA)
+#ifdef TEST_CC3XX_CHACHA
     add_cc3xx_chacha_tests_to_testsuite(p_ts, ts_size);
 #endif
-#if defined(TEST_CC3XX) && defined(TEST_CC3XX_PKA)
+#ifdef TEST_CC3XX_PKA
     add_cc3xx_pka_tests_to_testsuite(p_ts, ts_size);
 #endif
-#if defined(TEST_CC3XX) && defined(TEST_CC3XX_ECC)
+#ifdef TEST_CC3XX_ECC
     add_cc3xx_ecc_tests_to_testsuite(p_ts, ts_size);
 #endif
-#if defined(TEST_CC3XX) && defined(TEST_CC3XX_ECDSA)
+#ifdef TEST_CC3XX_ECDSA
     add_cc3xx_ecdsa_tests_to_testsuite(p_ts, ts_size);
 #endif
-#if defined(TEST_CC3XX) && defined(TEST_CC3XX_DRBG)
+#ifdef TEST_CC3XX_DRBG
     add_cc3xx_drbg_tests_to_testsuite(p_ts, ts_size);
 #endif
-#if defined(TEST_CC3XX) && defined(TEST_CC3XX_DPA)
+#ifdef TEST_CC3XX_DPA
     add_cc3xx_dpa_tests_to_testsuite(p_ts, ts_size);
 #endif
-#if defined(TEST_CC3XX) && defined(TEST_CC3XX_RNG)
+#ifdef TEST_CC3XX_RNG
     add_cc3xx_rng_tests_to_testsuite(p_ts, ts_size);
 #endif
 }

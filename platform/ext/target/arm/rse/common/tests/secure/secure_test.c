@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -11,7 +11,9 @@
 
 #include "rse_test_common.h"
 
+#ifdef TEST_CC3XX
 #include "cc3xx_tests.h"
+#endif
 
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
@@ -21,5 +23,7 @@ void register_testsuite_extra_s_interface(struct test_suite_t *p_test_suite)
 {
     set_testsuite("RSE Tests", secure_extra_tests, 0, p_test_suite);
 
+#ifdef TEST_CC3XX
     add_cc3xx_tests_to_testsuite(p_test_suite, ARRAY_SIZE(secure_extra_tests));
+#endif
 }
