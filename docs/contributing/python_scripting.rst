@@ -50,7 +50,7 @@ and its package name is ``foo``:
       import foo.<MODULE_NAME> as <MODULE_SHORT_NAME>
 
 Adding Platform-Specific Scripts
--------------------------------
+--------------------------------
 
 - Every script should define a ``main()`` entry point.
 - Add the script’s entry point to ``pyproject.toml``. The script executable name must be prefixed
@@ -68,6 +68,7 @@ For example, for a script ``bar`` in package ``foo``:
 - Install scripts in a virtual environment:
 
   .. code-block:: bash
+
       # Subsequent edits made to scripts after install **WONT** be reflected immediately and will need to be installed again
       source .venv/bin/activate
       pip install .
@@ -75,6 +76,7 @@ For example, for a script ``bar`` in package ``foo``:
   Or, for editable installation:
 
   .. code-block:: bash
+
       # Edits made to the scripts will be reflected immediately
       source .venv/bin/activate
       pip install -e .

@@ -21,7 +21,7 @@ These tools are used to generate TF-M documentation:
     - Graphviz dot v2.38.0 or later
     - PlantUML v1.2018.11 or later
     - Java runtime environment v1.8 or later (for running PlantUML)
-   -  Optionally, `uv <https://docs.astral.sh/uv/getting-started/installation/#standalone-installer>`
+    - (Optional) `uv <https://docs.astral.sh/uv/getting-started/installation/#standalone-installer>`
 
 Additionally, for PDFs format:
 
