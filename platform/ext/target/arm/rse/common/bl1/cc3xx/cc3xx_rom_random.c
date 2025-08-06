@@ -41,7 +41,7 @@ int32_t bl1_random_generate_noise(uint8_t *output, size_t output_size)
                 return 1;
             }
         }
-        output[counter] = ((uint8_t *)buf)[counter];
+        output[counter] = ((uint8_t *)buf)[counter % CC3XX_TRNG_SAMPLE_SIZE];
     }
 
     cc3xx_lowlevel_noise_source_finish();
