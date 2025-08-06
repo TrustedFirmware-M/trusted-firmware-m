@@ -302,6 +302,12 @@ for program in data['program']:
         location_word_arrays[program['storage_location']] += command_array + command_data
         location_named_word_arrays[program['storage_location']] += command_named_array + command_named_data
 
+def zero_count(word_array):
+    zero_count = 0
+    for x in word_array:
+        for bit_idx in range(32):
+            zero_count += (1-((x>>bit_idx)&1))
+    return zero_count
 
 for location in output_locations:
     try:
@@ -310,6 +316,13 @@ for location in output_locations:
         reserved_size = 0
     if len(location_word_arrays[location]) * 4 + reserved_size > sizes[location]:
         raise Exception
+
+    if location == 'otp':
+        zero_pad_length = int(sizes[location]/4) - int(reserved_size/4) - len(location_word_arrays[location])
+        location_word_arrays[location] = location_word_arrays[location] + [0] * zero_pad_length
+        otp_ics_zero_count = zero_count(location_word_arrays[location])
+        location_word_arrays[location] = [otp_ics_zero_count, 0] + location_word_arrays[location]
+
     with open(os.path.join(args.output_dir, location + "_dma_ics.bin"), mode="wb") as bin_file:
         with open(os.path.join(args.output_dir, location + "_dma_ics.hex"), mode="wt") as hex_file:
             logging.info('Writing output binary for location {} to file {} of size {}'.format(
