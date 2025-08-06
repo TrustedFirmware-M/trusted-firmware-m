@@ -236,6 +236,36 @@ static int boot_platform_post_load_ap_bl2(void)
  * =========================== SI CL0 LOAD FUNCTIONS ===========================
  */
 
+static enum atu_error_t initialize_si_atu(void)
+{
+    enum atu_error_t atu_err;
+
+    /* Configure RSE ATU to access the SI ATU */
+    atu_err = atu_initialize_region(&ATU_DEV_S,
+                                    HOST_SI_ATU_ID,
+                                    HOST_SI_ATU_BASE_S,
+                                    HOST_SI_ATU_PHYS_BASE,
+                                    HOST_SI_ATU_GPV_SIZE);
+    if (atu_err != ATU_ERR_NONE) {
+        return atu_err;
+    }
+
+    /* Initialize the translation regions of the SI ATU */
+    atu_err = initialise_atu_regions(&HOST_SI_ATU_DEV, SI_ATU_REGION_COUNT,
+                                     si_atu_regions, "SI");
+    if (atu_err != ATU_ERR_NONE) {
+        return atu_err;
+    }
+
+    /* Close RSE ATU region configured to access the SI ATU */
+    atu_err = atu_uninitialize_region(&ATU_DEV_S, HOST_SI_ATU_ID);
+    if (atu_err != ATU_ERR_NONE) {
+        return atu_err;
+    }
+
+    return ATU_ERR_NONE;
+}
+
 /* Function called before SI CL0 firmware is loaded. */
 static int boot_platform_pre_load_si_cl0(void)
 {
@@ -281,6 +311,12 @@ static int boot_platform_post_load_si_cl0(void)
      * header part in the Shared SRAM before releasing SI CL0 out of reset.
      */
     memset(HOST_SI_CL0_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
+
+    /* Configure the SI ATU before starting the SI CL0 */
+    atu_err = initialize_si_atu();
+    if (atu_err != ATU_ERR_NONE) {
+        return 1;
+    }
 
     /* Configure RSE ATU to access SI CL0 Cluster Utility Bus */
     atu_err = atu_initialize_region(&ATU_DEV_S,
