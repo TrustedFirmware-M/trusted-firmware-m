@@ -83,6 +83,7 @@ target_include_directories(platform_bl2
 target_compile_definitions(platform_bl2
     PRIVATE
         $<$<BOOL:${PLATFORM_HOST_HAS_SI_CL0}>:PLATFORM_HOST_HAS_SI_CL0>
+        $<$<BOOL:${PLATFORM_RSE_HAS_ATU_OWNERSHIP}>:PLATFORM_RSE_HAS_ATU_OWNERSHIP>
 )
 
 #========================= Platform Secure ====================================#

@@ -74,6 +74,63 @@ int32_t boot_platform_post_init(void)
     return 0;
 }
 
+static enum atu_error_t initialise_atu_regions(struct atu_dev_t *dev,
+                                               uint8_t region_count,
+                                               const struct atu_map *regions,
+                                               const char *name)
+{
+    enum atu_error_t atu_err;
+
+    for (uint8_t idx = 0; idx < region_count; idx++) {
+        const struct atu_map *reg = &regions[idx];
+        enum atu_roba_t axnse, axprot1;
+
+        atu_err = atu_initialize_region(dev, idx, reg->log_addr, reg->phy_addr,
+                                        reg->size);
+        if (atu_err != ATU_ERR_NONE) {
+            BOOT_LOG_ERR("BL2: ERROR! %s ATU region %u init status: %d", name,
+                         idx, (int)atu_err);
+            return atu_err;
+        }
+
+        /* No support for "long long" prints, work around with more arguments */
+        BOOT_LOG_INF("BL2: %s ATU region %u: [0x%lx - 0x%lx]->[0x%lx_%08lx - 0x%lx_%08lx]",
+                     name, idx,
+                     (unsigned long)reg->log_addr,
+                     (unsigned long)(reg->log_addr + reg->size - 1),
+                     (unsigned long)(reg->phy_addr >> 32),
+                     (unsigned long)reg->phy_addr,
+                     (unsigned long)((reg->phy_addr + reg->size - 1) >> 32),
+                     (unsigned long)(reg->phy_addr + reg->size - 1));
+
+        if (reg->access_type == ATU_ACCESS_SECURE) {
+            axnse = ATU_ROBA_SET_0;
+            axprot1 = ATU_ROBA_SET_0;
+        } else if (reg->access_type == ATU_ACCESS_NON_SECURE) {
+            axnse = ATU_ROBA_SET_0;
+            axprot1 = ATU_ROBA_SET_1;
+        } else {
+            continue;
+        }
+
+        atu_err = set_axnsc(dev, axnse, idx);
+        if (atu_err != ATU_ERR_NONE) {
+            BOOT_LOG_ERR("BL2: Unable to modify AxNSE for %s ATU region %u\n",
+                         name, idx);
+            return atu_err;
+        }
+
+        atu_err = set_axprot1(dev, axprot1, idx);
+        if (atu_err != ATU_ERR_NONE) {
+            BOOT_LOG_ERR("BL2: Unable to modify AxPROT1 for %s ATU region %u\n",
+                         name, idx);
+            return atu_err;
+        }
+    }
+
+    return ATU_ERR_NONE;
+}
+
 /*
  * ========================= SECURE LOAD FUNCTIONS =============================
  */

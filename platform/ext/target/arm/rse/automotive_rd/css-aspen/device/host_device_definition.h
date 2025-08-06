@@ -23,6 +23,27 @@ extern const struct ppu_dev_t HOST_SI_CL0_CLUS_PPU_DEV;
 extern const struct ppu_dev_t HOST_SI_CL0_CORE0_PPU_DEV;
 #endif /* PLATFORM_HOST_HAS_SI_CL0 */
 
+#ifdef PLATFORM_RSE_HAS_ATU_OWNERSHIP
+#include "atu_rse_drv.h"
+enum ATU_ACCESS_TYPE {
+    ATU_ACCESS_DEFAULT,
+    ATU_ACCESS_SECURE,
+    ATU_ACCESS_NON_SECURE,
+};
+
+/* Structure used to describe an ATU region */
+struct atu_map {
+    /* Logical start address */
+    uint32_t log_addr;
+    /* Physical start address */
+    uint64_t phy_addr;
+    /* Size of the ATU region */
+    uint32_t size;
+    /* Access Type */
+    enum ATU_ACCESS_TYPE access_type;
+};
+#endif /* PLATFORM_RSE_HAS_ATU_OWNERSHIP */
+
 #ifdef __cplusplus
 }
 #endif
