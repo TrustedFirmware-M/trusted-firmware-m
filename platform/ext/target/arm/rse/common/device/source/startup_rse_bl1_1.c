@@ -202,7 +202,7 @@ static uint32_t tram_key[8];
 
 static inline void __attribute__ ((always_inline)) setup_tram_encryption(void)
 {
-    register uint32_t tram_key_erase_value;
+    register uint32_t tram_key_erase_value __asm("r0");
 
     /* Set up cryptocell TRNG */
     *(volatile uint32_t *)(CC3XX_BASE_S + 0x1c4) = 0x00000001;
@@ -222,7 +222,7 @@ static inline void __attribute__ ((always_inline)) setup_tram_encryption(void)
 
     /* Randomly initialize the TRAM key words */
     tram_key_prefill_value = *((volatile uint32_t *)(CC3XX_BASE_S + 0x114));
-    for (register uint32_t idx = 0; idx < 8; idx++) {
+    for (register uint32_t idx __asm("r1") = 0; idx < 8; idx++) {
         tram_key[idx] = tram_key_prefill_value;
     }
 
@@ -243,7 +243,7 @@ static inline void __attribute__ ((always_inline)) setup_tram_encryption(void)
     tram_key[7] = *((volatile uint32_t *)(CC3XX_BASE_S + 0x120));
 
     /* Write the TRAM keyslot */
-    for (register uint32_t idx = 0; idx < 8; idx ++) {
+    for (register uint32_t idx __asm("r1") = 0; idx < 8; idx ++) {
         *(volatile uint32_t *)(KMU_BASE_S + 0x210 + idx * sizeof(uint32_t)) = tram_key[idx];
     }
 
@@ -252,12 +252,12 @@ static inline void __attribute__ ((always_inline)) setup_tram_encryption(void)
     *(volatile uint32_t *)(KMU_BASE_S + 0x04c) = 0x00d60100;
 
     /* Set the TRAM key */
-    for (register uint32_t idx = 0; idx < 8; idx ++) {
+    for (register uint32_t idx __asm("r1") = 0; idx < 8; idx ++) {
         *(volatile uint32_t *)(TRAM_BASE_S + 0x008 + idx * sizeof(uint32_t)) = tram_key[idx];
     }
 
     /* Erase the TRAM key */
-    for (register uint32_t idx = 0; idx < 8; idx++) {
+    for (register uint32_t idx __asm("r1") = 0; idx < 8; idx++) {
         tram_key[idx] = tram_key_erase_value;
     }
 
@@ -268,12 +268,13 @@ static inline void __attribute__ ((always_inline)) setup_tram_encryption(void)
     tram_erase_value = *((volatile uint32_t *)(CC3XX_BASE_S + 0x124));
 
     /* Work out how many DMA channels exist */
-    register uint32_t dma_channel_amount = (*((volatile uint32_t *)(DMA_350_BASE_S + 0xfb0)) >> 4 & 0xF) + 1;
+    register uint32_t dma_channel_amount __asm("r2") =
+        (*((volatile uint32_t *)(DMA_350_BASE_S + 0xfb0)) >> 4 & 0xF) + 1;
 
     /* Configure all DMA channels to wipe the DTCM with the random value in
      * parallel.
      */
-    for (register uint32_t idx = 0; idx < dma_channel_amount; idx++) {
+    for (register uint32_t idx __asm("r1") = 0; idx < dma_channel_amount; idx++) {
         *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + 0x100 * idx + 0x038) = tram_erase_value;
         *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + 0x100 * idx + 0x02c) = 0x000F0044;
         *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + 0x100 * idx + 0x018) =
@@ -290,7 +291,7 @@ static inline void __attribute__ ((always_inline)) setup_tram_encryption(void)
     }
 
     /* Wait for all the DMA channels to finish */
-    for (register uint32_t idx = 0; idx < dma_channel_amount; idx++) {
+    for (register uint32_t idx __asm("r1") = 0; idx < dma_channel_amount; idx++) {
         while ((*((volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + 0x100 * idx + 0x000)) & 0x1) != 0) {}
     }
 
