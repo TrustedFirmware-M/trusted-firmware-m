@@ -48,6 +48,11 @@ set(MCUBOOT_VERSION                     "v2.2.0"    CACHE STRING    "The version
 set(TFM_EXTRAS_REPO_PATH                "DOWNLOAD"  CACHE PATH      "Path to tf-m-extras repo (or DOWNLOAD to fetch automatically")
 set(TFM_EXTRAS_REPO_VERSION             "6454d842"  CACHE STRING    "The version of tf-m-extras to use")
 
+
+set(LIB_EVENTLOG_PATH                   "DOWNLOAD"  CACHE PATH      "Path to LibEventLog repo (or DOWNLOAD to fetch automatically")
+set(LIB_EVENTLOG_VERSION                "28c4ce1b"  CACHE STRING    "The version of LibEventLog to use")
+set(EVENT_LOG_BUFFER_SIZE               "0x100"     CACHE STRING    "Size of event log buffer size")
+
 set(PLATFORM_PSA_ADAC_SECURE_DEBUG      FALSE       CACHE BOOL      "Whether to use psa-adac secure debug.")
 set(PLATFORM_PSA_ADAC_SOURCE_PATH       "DOWNLOAD"  CACHE PATH      "Path to source dir of psa-adac.")
 set(PLATFORM_PSA_ADAC_VERSION           "8118fd2"   CACHE STRING    "The version of psa-adac to use.")

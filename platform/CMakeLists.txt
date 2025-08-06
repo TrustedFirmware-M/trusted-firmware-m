@@ -104,6 +104,7 @@ target_link_libraries(platform_s
         $<$<BOOL:${CONFIG_TFM_BACKTRACE_ON_CORE_PANIC}>:tfm_log_unpriv>
         $<$<BOOL:${CONFIG_TFM_BACKTRACE_ON_CORE_PANIC}>:tfm_log>
         $<$<BOOL:${CONFIG_TFM_BACKTRACE_ON_CORE_PANIC}>:tfm_backtrace>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:eventlog>
     PRIVATE
         tfm_config
         tfm_spm_defs

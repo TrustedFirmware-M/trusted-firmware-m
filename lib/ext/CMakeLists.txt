@@ -18,3 +18,7 @@ if(DEFINED ETHOSU_ARCH)
 endif()
 
 add_subdirectory(tf-m-extras)
+
+if (${TFM_PARTITION_DTPM_CLIENT})
+    add_subdirectory(eventlog)
+endif()
