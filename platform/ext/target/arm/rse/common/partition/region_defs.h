@@ -22,9 +22,9 @@
 #include "flash_layout.h"
 #include "platform_base_address.h"
 #include "rse_memory_sizes.h"
-#if defined(RSE_BL1_TEST_BINARY) && !defined(RSE_TEST_BINARY_IN_ROM)
+#if defined(RSE_BL1_TEST_BINARY) && !defined(RSE_TEST_BINARY_IN_SRAM)
 #include "rse_test_binary_location.h"
-#endif /* defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_ROM) */
+#endif /* defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM) */
 #include "bl1_2_config.h"
 
 /* RSE memory layout is as follows during BL1
@@ -223,12 +223,12 @@
 #define SECONDARY_PARTITION_SIZE (HOST_IMAGE_MAX_SIZE)
 
 /* RSE test binary is XIP from ROM */
-#if defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_ROM)
+#if defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM)
 #define RSE_TESTS_CODE_START (VM0_BASE_S + OTP_DMA_ICS_SIZE)
 #define RSE_TESTS_CODE_SIZE  (VM1_BASE_S - RSE_TESTS_CODE_START)
 #define RSE_TESTS_DATA_START (VM1_BASE_S)
 #define RSE_TESTS_DATA_SIZE  (VM1_SIZE - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
-#endif /* defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_ROM) */
+#endif /* defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM) */
 
 /* Bootloader regions */
 /* BL1_1 is XIP from ROM */

@@ -278,7 +278,7 @@ endif()
 
 if (TEST_BL1_1 OR TEST_BL1_2)
     set(RSE_BL1_TEST_BINARY                 ON         CACHE BOOL "Create and run a separate BL1 test binary")
-    set(RSE_TEST_BINARY_IN_ROM              ON         CACHE BOOL "Whether the RSE BL1 test binary is stored in ROM")
+    set(RSE_TEST_BINARY_IN_SRAM             ON         CACHE BOOL "Whether the RSE BL1 test binary is stored in SRAM")
 endif()
 
 if (RSE_BL1_TEST_BINARY)
