@@ -193,6 +193,7 @@ target_sources(platform_s
         rpi_trng.c
 
         $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${CMAKE_CURRENT_SOURCE_DIR}/dtpm_spi.c>
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${CMAKE_CURRENT_SOURCE_DIR}/mboot_to_pcr.c>
         $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/tpm_client/tpm2_cmds.c>
         $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/tpm_client/tpm2_chip.c>
         $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/tpm_client/tpm2_fifo.c>
