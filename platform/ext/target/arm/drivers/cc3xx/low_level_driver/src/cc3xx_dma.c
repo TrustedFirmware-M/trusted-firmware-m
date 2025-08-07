@@ -170,8 +170,6 @@ static void process_data(const void *buf, size_t length)
         }
 #endif /* CC3XX_CONFIG_DMA_BURST_RESTRICTED_ENABLE */
 
-        assert(!((remap_output_addr == (uintptr_t)NULL) && (length != 0)));
-
         /* Set the data target */
         P_CC3XX->dout.dst_lli_word0 = remap_output_addr;
         /* And the length */
