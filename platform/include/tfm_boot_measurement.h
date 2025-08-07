@@ -22,7 +22,7 @@ enum boot_measurement_slot_t {
                                                  */
 };
 #else
-#include "boot_measurement.h"
+#include "tfm_plat_boot_measurement.h"
 #endif /* PLATFORM_DEFAULT_MEASUREMENT_SLOTS */
 
 #endif /* __TFM_BOOT_MEASUREMENT_H__ */
