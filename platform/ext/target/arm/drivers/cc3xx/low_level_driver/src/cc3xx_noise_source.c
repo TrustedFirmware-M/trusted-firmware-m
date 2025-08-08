@@ -182,7 +182,7 @@ static bool trng_bump_rosc_id_and_subsampling_rate(uint32_t *rosc_id, uint32_t *
         /* For each subsampling rate, bump the rosc id */
         (*rosc_id)++;
     } else {
-        /* Double the subsampling rate when rosc id is at its max*/
+        /* Double the subsampling rate when rosc id is at its max */
         *rosc_id = CC3XX_RNG_ROSC_ID_0;
         *rosc_subsampling_rate = trng_double_subsampling_rate(*rosc_subsampling_rate);
     }
@@ -336,6 +336,7 @@ cc3xx_err_t cc3xx_lowlevel_noise_source_init(struct cc3xx_noise_source_ctx_t *ct
 {
     assert(ctx != NULL);
     if (!(ctx->is_config_valid)) {
+        FATAL_ERR(CC3XX_ERR_RNG_INVALID_TRNG_CONFIG);
         return CC3XX_ERR_RNG_INVALID_TRNG_CONFIG;
     }
     trng_init(ctx->rosc.id, ctx->rosc.subsampling_rate, ctx->debug_control);
