@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023, Arm Limited. All rights reserved.
+# Copyright (c) 2023-2025, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -48,4 +48,4 @@ SAMEC7: 0x00000000
 SAMECTIV: 0x00000000
 SAMWDCIV: 0x00000000
 SAMRL: 0x00000000
-SAMICV: 0x000001BB
+SAMICV: 0x000001CE
