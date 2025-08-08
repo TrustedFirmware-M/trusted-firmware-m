@@ -18,7 +18,7 @@ locations:
     otp:
         # This has to be manually calculated, and must be updated if the OTP
         # layout changes
-        base_address: 0x500A4C00
+        base_address: 0x500A1170
         size: 0x108
         reserved: 0x8
     integrity_checker:
