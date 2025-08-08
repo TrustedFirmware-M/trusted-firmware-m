@@ -63,3 +63,17 @@ tfm_plat_otp_write
 tfm_plat_otp_get_size
 tfm_plat_otp_secure_provisioning_start
 tfm_plat_otp_secure_provisioning_finish
+kmu_init
+kmu_get_key_export_config
+kmu_set_key_export_config
+kmu_set_key_locked
+kmu_get_key_locked
+kmu_set_key_export_config_locked
+kmu_get_key_export_config_locked
+kmu_set_slot_invalid
+kmu_get_slot_invalid
+kmu_set_key
+kmu_get_key
+kmu_get_key_buffer_ptr
+kmu_export_key
+kmu_random_delay
