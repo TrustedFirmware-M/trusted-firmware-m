@@ -63,9 +63,20 @@ install(DIRECTORY   ${STM_COMMON_DIR}/hal/accelerator/
         FILES_MATCHING PATTERN "*.h")
 
 install(FILES
-    ${STM32WBA65I_DK_DIR}/partition/flash_layout.h
     ${STM32WBA65I_DK_DIR}/partition/region_defs.h
     DESTINATION ${INSTALL_PLATFORM_NS_DIR}/partition
+)
+
+# Install a flash_layout.h header file that consider STM32_FLASH_LAYOUT_BEGIN_OFFSET
+# TF-M was built with.
+install(FILES
+    ${STM32WBA65I_DK_DIR}/partition/flash_layout.h
+    DESTINATION ${INSTALL_PLATFORM_NS_DIR}/partition/gen_layout
+)
+
+file(WRITE ${INSTALL_PLATFORM_NS_DIR}/partition/flash_layout.h
+  "#define STM32_FLASH_LAYOUT_BEGIN_OFFSET ${STM32_FLASH_LAYOUT_BEGIN_OFFSET}\n"
+  "#include \"gen_layout/flash_layout.h\"\n"
 )
 
 install(DIRECTORY   ${PLATFORM_DIR}/ext/common
