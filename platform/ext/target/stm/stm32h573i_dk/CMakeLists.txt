@@ -31,6 +31,9 @@ if(BL2)
     target_sources(bl2
         PRIVATE
             ${STM_COMMON_DIR}/stm32h5xx/Device/Source/startup_stm32h5xx_bl2.c
+            ${STM_COMMON_DIR}/hal/provision/otp_provision.c
+            ${STM_COMMON_DIR}/hal/provision/nvm_init.c
+            ${STM_COMMON_DIR}/hal/provision/nvmcnt_init.c
     )
 endif()
 
