@@ -303,7 +303,7 @@ target_compile_options(bl1_1
 
 target_sources(platform_bl1_1
     PRIVATE
-        ${MBEDCRYPTO_PATH}/library/hmac_drbg.c
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/hmac_drbg.c
         ${CMAKE_CURRENT_LIST_DIR}/nv_counters.c
         ${CMAKE_CURRENT_LIST_DIR}/otp_lcm.c
         ${CMAKE_CURRENT_LIST_DIR}/cmsis_drivers/Driver_USART.c
@@ -348,18 +348,17 @@ target_sources(bl1_1_psa_crypto
 
         # MbedTLS cryptography
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${CMAKE_CURRENT_LIST_DIR}/bl1/crypto_mbedcrypto.c>
-        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/platform.c>
-        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/memory_buffer_alloc.c>
-        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/md.c>
-        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/md5.c>
-        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/aes.c>
-        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/sha256.c>
-        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/hkdf.c>
-        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/constant_time.c>
-        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/psa_crypto_mac.c>
-        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/cipher.c>
-        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/cipher_wrap.c>
-        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/psa_crypto_cipher.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/platform.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/memory_buffer_alloc.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/md.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/md5.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/aes.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/sha256.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/constant_time.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/psa_crypto_mac.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/cipher.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/cipher_wrap.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/psa_crypto_cipher.c>
 )
 
 if (NOT ${CONFIG_TFM_INCLUDE_STDLIBC})

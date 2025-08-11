@@ -68,15 +68,17 @@ target_include_directories(bl1_1_psa_crypto_interface
         ./crypto
         ${CMAKE_SOURCE_DIR}/interface/include
         ${CMAKE_SOURCE_DIR}/interface/include/psa
-        ${MBEDCRYPTO_PATH}/library
+        ${TF_PSA_CRYPTO_PATH}/core
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/include
 )
 
 target_compile_definitions(bl1_1_psa_crypto_interface
     INTERFACE
-        # This is the base Mbed TLS configuration file for all platforms,
-        # platforms may extend or override it by setting MBEDTLS_USER_CONFIG_FILE
+        # This is the base TF-PSA-Crypto configuration file for all platforms,
+        # platforms may extend or override it by setting TF_PSA_CRYPTO_USER_CONFIG_FILE
         # to the platform-specific configuration file.
-        MBEDTLS_CONFIG_FILE="mbedcrypto_base_config.h"
+        TF_PSA_CRYPTO_CONFIG_FILE="${CMAKE_CURRENT_SOURCE_DIR}/crypto/tf_psa_crypto_base_config.h"
 
         # Workaround for https://github.com/ARMmbed/mbedtls/issues/1077
         $<$<OR:$<STREQUAL:${CMAKE_SYSTEM_ARCHITECTURE},armv8-m.base>,$<STREQUAL:${CMAKE_SYSTEM_ARCHITECTURE},armv6-m>>:MULADDC_CANNOT_USE_R7>
@@ -85,26 +87,22 @@ target_compile_definitions(bl1_1_psa_crypto_interface
 target_sources(bl1_1_psa_crypto
     PRIVATE
         ${CMAKE_SOURCE_DIR}/lib/ext/thin-psa-crypto-core/thin_psa_crypto_core.c
-        ${MBEDCRYPTO_PATH}/library/platform_util.c
-        ${MBEDCRYPTO_PATH}/library/psa_util.c
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/platform_util.c
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/psa_util.c
 
         # CryptoCell does not support sha384 and sha512
-        ${MBEDCRYPTO_PATH}/library/psa_crypto_hash.c
-        ${MBEDCRYPTO_PATH}/library/sha512.c
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/psa_crypto_hash.c
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/sha512.c
 
         # LMS-specific
         $<$<BOOL:${TFM_BL1_2_ENABLE_LMS}>:${CMAKE_CURRENT_SOURCE_DIR}/pq_crypto/pq_crypto_psa.c>
-        $<$<BOOL:${TFM_BL1_2_ENABLE_LMS}>:${MBEDCRYPTO_PATH}/library/lmots.c>
-        $<$<BOOL:${TFM_BL1_2_ENABLE_LMS}>:${MBEDCRYPTO_PATH}/library/lms.c>
+        $<$<BOOL:${TFM_BL1_2_ENABLE_LMS}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/lmots.c>
+        $<$<BOOL:${TFM_BL1_2_ENABLE_LMS}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/lms.c>
 )
 
 target_link_libraries(bl1_1_psa_crypto
     PUBLIC
         bl1_1_shared_lib_interface
-)
-
-target_sources(bl1_1_psa_crypto
-    PRIVATE
 )
 
 target_compile_options(bl1_1_psa_crypto

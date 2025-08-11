@@ -263,12 +263,12 @@ target_compile_definitions(bl1_1_psa_crypto_interface
 
 target_sources(bl1_1_psa_crypto
     PRIVATE
-        ${MBEDCRYPTO_PATH}/library/sha256.c
-        ${MBEDCRYPTO_PATH}/library/aes.c
-        ${MBEDCRYPTO_PATH}/library/constant_time.c
-        ${MBEDCRYPTO_PATH}/library/cipher.c
-        ${MBEDCRYPTO_PATH}/library/cipher_wrap.c
-        ${MBEDCRYPTO_PATH}/library/psa_crypto_cipher.c
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/sha256.c
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/aes.c
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/constant_time.c
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/cipher.c
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/cipher_wrap.c
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/psa_crypto_cipher.c
 )
 
 target_sources(platform_bl1_2
