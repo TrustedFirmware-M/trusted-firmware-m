@@ -231,6 +231,7 @@ int tpm_pcr_read(struct tpm_chip_data *chip_data, uint32_t index,
 	tpm_cmd pcr_read_cmd, pcr_read_res;
 	uint32_t tpm_rc;
 	int ret;
+	size_t data_size;
 	uint32_t pcr_bitmask = 0b1 << index;
 
 	if (pcr_read_response == NULL) {
@@ -282,8 +283,13 @@ int tpm_pcr_read(struct tpm_chip_data *chip_data, uint32_t index,
 		return TPM_ERR_RESPONSE;
 	}
 
+	data_size = be32toh(pcr_read_res.header.cmd_size) - TPM_HEADER_SIZE;
+	if (data_size > sizeof(struct tpm_pcr_read_res)) {
+		return TPM_ERR_RESPONSE;
+	}
+
 	/* Copy PCR read response to the output data struct */
-	memcpy(pcr_read_response, pcr_read_res.data, be32toh(pcr_read_res.header.cmd_size) - TPM_HEADER_SIZE);
+	memcpy(pcr_read_response, pcr_read_res.data, data_size);
 
 	return TPM_SUCCESS;
 }
