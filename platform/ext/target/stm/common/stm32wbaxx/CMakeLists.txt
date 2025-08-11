@@ -62,7 +62,6 @@ target_sources(platform_s
         ${CMAKE_CURRENT_SOURCE_DIR}/secure/low_level_device.c
         ${STM_COMMON_DIR}/hal/CMSIS_Driver/low_level_flash.c
         ${STM_COMMON_DIR}/hal/CMSIS_Driver/low_level_com.c
-        ${STM_COMMON_DIR}/hal/provision/otp_provision.c
         ${CMAKE_CURRENT_SOURCE_DIR}/hal/Src/stm32wbaxx_hal.c
         ${CMAKE_CURRENT_SOURCE_DIR}/hal/Src/stm32wbaxx_hal_flash.c
         ${CMAKE_CURRENT_SOURCE_DIR}/hal/Src/stm32wbaxx_hal_flash_ex.c

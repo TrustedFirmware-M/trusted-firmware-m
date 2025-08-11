@@ -23,6 +23,11 @@ target_sources(tfm_s
         ${STM_COMMON_DIR}/stm32wbaxx/Device/Source/startup_stm32wbaxx_s.c
 )
 
+target_sources(platform_s
+    PRIVATE
+        ${STM_COMMON_DIR}/hal/provision/otp_provision.c
+)
+
 if(NS)
 target_sources(${NS_TARGET_NAME}
         PRIVATE
