@@ -72,6 +72,9 @@ if(BL2)
             ${STM_COMMON_DIR}/stm32u5xx/bl2/low_level_ospi_device.c
             ${STM_COMMON_DIR}/hal/CMSIS_Driver/low_level_ospi_flash.c
             ${STM_COMMON_DIR}/hal/Components/mx25lm51245g/mx25lm51245g.c
+            ${STM_COMMON_DIR}/hal/provision/otp_provision.c
+            ${STM_COMMON_DIR}/hal/provision/nvm_init.c
+            ${STM_COMMON_DIR}/hal/provision/nvmcnt_init.c
             ${B_U585I_IOT02A_DIR}/src/b_u585i_iot02a_ospi.c
     )
 endif()
