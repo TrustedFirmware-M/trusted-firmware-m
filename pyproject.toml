@@ -24,6 +24,8 @@ dependencies = [
     "pyelftools (>=0.32,<0.33)",
     "rich (>=13.9.4,<14.0.0)",
     "libclang (>=18.1.1,<19.0.0)",
+    "pandas==2.3.1",
+    "numpy==2.2.6"
 ]
 
 [project.optional-dependencies]
