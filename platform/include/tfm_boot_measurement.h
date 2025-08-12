@@ -14,6 +14,10 @@ extern "C" {
 
 #include "stdint.h"
 
+#if EVENT_LOG_LIB
+#include "event_log.h"
+#endif
+
 #if defined(PLATFORM_DEFAULT_MEASUREMENT_SLOTS)
 enum boot_measurement_slot_t {
     BOOT_MEASUREMENT_SLOT_BL1_2 = 0,
@@ -28,6 +32,7 @@ enum boot_measurement_slot_t {
                                                   */
     __BOOT_MEASUREMENT_MAX_VAL = UINT32_MAX
 };
+
 #else
 #include "tfm_plat_boot_measurement.h"
 #endif /* PLATFORM_DEFAULT_MEASUREMENT_SLOTS */
@@ -59,6 +64,24 @@ int init_pcr_index_for_boot_measurement(void);
  *                                      slot, or -1 if uninitialized.
  */
 int8_t get_pcr_index_for_boot_measurement(uint8_t slot);
+
+
+#if EVENT_LOG_LIB
+/**
+ * \brief                               Retrieves event log metadata associated with
+ *                                      a given boot measurement slot.
+ *
+ * \param[in]  slot                     Boot measurement slot identifier. Must be
+ *                                      less than BOOT_MEASUREMENT_SLOT_MAX.
+ *
+ * \param[out] event_log_metadata       Event log metadata associated with given slot.
+ *                                      NULL if slot out of range.
+ *
+ * \return                              0 on success. -1 if slot out of range.
+ *
+ */
+int get_event_log_metadata_for_measurement_slot(uint8_t slot, event_log_metadata_t *event_log_metadata);
+#endif
 
 #ifdef __cplusplus
 }
