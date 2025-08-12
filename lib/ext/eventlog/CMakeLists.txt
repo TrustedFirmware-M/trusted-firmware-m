@@ -26,14 +26,23 @@ if(NOT EXISTS "${LIB_EVENTLOG_PATH}/src/event_log.c")
     message(FATAL_ERROR "event_log.c not found in ${LIB_EVENTLOG_PATH}/src")
 endif()
 
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/debug.h
+    ${LIB_EVENTLOG_PATH}/include/private/debug.h
+    COPYONLY
+)
 
 add_library(eventlog STATIC EXCLUDE_FROM_ALL
     ${LIB_EVENTLOG_PATH}/src/event_log.c
+    ${LIB_EVENTLOG_PATH}/src/event_print.c
+    ${LIB_EVENTLOG_PATH}/src/digest.c
 )
 
 target_include_directories(eventlog
     PUBLIC
     ${LIB_EVENTLOG_PATH}/include
+    PRIVATE
+    ${LIB_EVENTLOG_PATH}/include/private
 )
 
 if(EVENTLOG_HASH_ALGORITHM STREQUAL "SHA512")
@@ -56,4 +65,14 @@ target_compile_definitions(eventlog
     PUBLIC
         EVENT_LOG_LIB=1
         EVENT_LOG_BUFFER_SIZE=${EVENT_LOG_BUFFER_SIZE}
+    PRIVATE
+       DEBUG_BACKEND_HEADER="log_backend_tfm.h"
 )
+
+add_compile_definitions(LOG_LEVEL=${TFM_SPM_LOG_LEVEL})
+
+if(LOG_LEVEL STREQUAL "LOG_LEVEL_VERBOSE")
+    add_compile_definitions(EVLOG_LOG_LEVEL=EVLOG_LEVEL_VERBOSE)
+else()
+    add_compile_definitions(EVLOG_LOG_LEVEL=EVLOG_LEVEL_NONE)
+endif()
