@@ -8,7 +8,7 @@
 import argparse
 import struct
 from elftools.elf.elffile import ELFFile
-from struct_pack import struct_pack
+from tfm_tools.struct_pack import struct_pack
 
 
 parser = argparse.ArgumentParser(allow_abbrev=False)
