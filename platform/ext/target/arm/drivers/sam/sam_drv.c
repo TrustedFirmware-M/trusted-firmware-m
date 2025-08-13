@@ -79,7 +79,20 @@ static inline struct sam_reg_map_t *get_sam_dev_base(
 
 enum sam_error_t sam_init(const struct sam_dev_t *dev)
 {
-    /* Nothing to do, the configuration is written by the OTP DMA ICS */
+    struct sam_reg_map_t *regs = get_sam_dev_base(dev);
+    uint32_t zero_count = 0;
+
+    /*
+     * FixMe: Remove when FVP models the DMA ICS which will
+     * then initialise this register
+     */
+    /* Calculate ZC over integrity checker protected area */
+    for (volatile uint32_t *ptr = (volatile uint32_t *)&regs->samem;
+         ptr < (volatile uint32_t *)&regs->samicv; ptr++) {
+        zero_count += count_zero_bits(*ptr);
+    }
+
+    regs->samicv = zero_count;
 
     return SAM_ERROR_NONE;
 }
