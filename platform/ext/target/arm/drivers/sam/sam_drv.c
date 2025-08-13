@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,6 +120,20 @@ enum sam_error_t sam_disable_event(const struct sam_dev_t *dev,
     return SAM_ERROR_NONE;
 }
 
+static void update_samicv(struct sam_reg_map_t *regs, uint32_t new_reg_val, uint32_t old_reg_val)
+{
+    uint32_t zc_new, zc_old;
+
+    zc_new = count_zero_bits(new_reg_val);
+    zc_old = count_zero_bits(old_reg_val);
+
+    if (zc_new > zc_old) {
+        regs->samicv += zc_new - zc_old;
+    } else {
+        regs->samicv -= zc_old - zc_new;
+    }
+}
+
 enum sam_error_t sam_set_event_response(const struct sam_dev_t *dev,
                                         enum sam_event_id_t event_id,
                                         enum sam_response_t response)
@@ -145,7 +159,7 @@ enum sam_error_t sam_set_event_response(const struct sam_dev_t *dev,
     regs->samrrls[SAMRRLS_IDX(event_id)] = new_reg_val;
 
     /* Update integrity check value with the difference in zero count */
-    regs->samicv += count_zero_bits(new_reg_val) - count_zero_bits(old_reg_val);
+    update_samicv(regs,  new_reg_val,  old_reg_val);
 
     return SAM_ERROR_NONE;
 }
@@ -155,7 +169,7 @@ void sam_set_watchdog_counter_initial_value(const struct sam_dev_t *dev,
                                             enum sam_response_t responses)
 {
     struct sam_reg_map_t *regs = get_sam_dev_base(dev);
-    uint32_t prev_zero_count = count_zero_bits(regs->samwdciv);
+    uint32_t old_reg_val = regs->samwdciv;
 
     uint32_t wdciv_val = (count_value & SAMWDCIV_INIT_VALUE_WDT_MASK) |
                          ((((uint32_t)responses >> 2UL) & 0x3FUL) << 26UL);
@@ -163,7 +177,7 @@ void sam_set_watchdog_counter_initial_value(const struct sam_dev_t *dev,
     regs->samwdciv = wdciv_val;
 
     /* Update integrity check value with the difference in zero count */
-    regs->samicv += count_zero_bits(wdciv_val) - prev_zero_count;
+    update_samicv(regs, wdciv_val, old_reg_val);
 }
 
 enum sam_error_t sam_register_event_handler(struct sam_dev_t *dev,
