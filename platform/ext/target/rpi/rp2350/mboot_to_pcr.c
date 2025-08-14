@@ -34,5 +34,9 @@ int init_pcr_index_for_boot_measurement(void)
 
 int8_t get_pcr_index_for_boot_measurement(uint8_t slot)
 {
+    if (slot >= BOOT_MEASUREMENT_SLOT_MAX) {
+        return -1;
+    }
+
     return pcr_index_for_boot_measurement[slot];
 }
