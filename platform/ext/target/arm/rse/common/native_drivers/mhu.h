@@ -17,6 +17,7 @@
 #ifndef __MHU_H__
 #define __MHU_H__
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <limits.h>
@@ -90,6 +91,19 @@ enum mhu_error_t mhu_init_receiver(void *mhu_receiver_dev);
 enum mhu_error_t mhu_send_data(void *mhu_sender_dev,
                                const uint8_t *send_buffer,
                                size_t size);
+/**
+ * \brief Checks whether data is available from MHU.
+ *
+ * \param[in]  mhu_receiver_dev  Pointer to the receiver MHU.
+ * \param[out] is_available      Pointer to a bool that will be set to true if
+ *                               data is available to be read, false otherwise.
+ *
+ * \return Returns mhu_error_t error code.
+ *
+ * \note This function can be used for polling when the MHU receiver interrupt
+ *       is not used, prior to calling mhu_receive_data().
+ */
+enum mhu_error_t mhu_data_is_available(void *mhu_receiver_dev, bool *is_available);
 
 /**
  * \brief Wait for data from MHU.

@@ -308,22 +308,37 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev,
     return err;
 }
 
-enum mhu_error_t mhu_wait_data(void *mhu_receiver_dev)
+enum mhu_error_t mhu_data_is_available(void *mhu_receiver_dev, bool *is_available)
 {
     enum mhu_v2_x_error_t err;
     struct mhu_v2_x_dev_t *dev = mhu_receiver_dev;
-    uint32_t num_channels = mhu_v2_x_get_num_channel_implemented(dev);
+    const uint32_t num_channels = mhu_v2_x_get_num_channel_implemented(dev);
     uint32_t val;
 
-    do {
-        /* Using the last channel for notifications */
-        err = mhu_v2_x_channel_receive(dev, num_channels - 1, &val);
-        if (err != MHU_V_2_X_ERR_NONE) {
-            break;
-        }
-    } while (val != MHU_NOTIFY_VALUE);
+    /* Using the last channel for notifications */
+    err = mhu_v2_x_channel_receive(dev, num_channels - 1, &val);
+    if (err != MHU_V_2_X_ERR_NONE) {
+        return err;
+    }
 
-    return err;
+    *is_available = (val == MHU_NOTIFY_VALUE);
+
+    return MHU_ERR_NONE;
+}
+
+enum mhu_error_t mhu_wait_data(void *mhu_receiver_dev)
+{
+    enum mhu_error_t mhu_err;
+    bool is_available;
+
+    do {
+        mhu_err = mhu_data_is_available(mhu_receiver_dev, &is_available);
+        if (mhu_err != MHU_ERR_NONE) {
+            return mhu_err;
+        }
+    } while (!is_available);
+
+    return MHU_ERR_NONE;
 }
 
 enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,

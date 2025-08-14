@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Arm Limited
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -390,7 +390,7 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev, const uint8_t *send_buffer,
     return MHU_ERR_NONE;
 }
 
-enum mhu_error_t mhu_wait_data(void *mhu_receiver_dev)
+enum mhu_error_t mhu_data_is_available(void *mhu_receiver_dev, bool *is_available)
 {
     struct mhu_v3_x_dev_t *dev = mhu_receiver_dev;
     enum mhu_v3_x_error_t mhu_v3_err;
@@ -404,16 +404,30 @@ enum mhu_error_t mhu_wait_data(void *mhu_receiver_dev)
     }
 
     /* Wait for transmitter side to send data */
-    do {
-        mhu_v3_err = mhu_v3_x_doorbell_read(dev, num_channels - 1, &read_val);
-        if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {
-            return mhu_v3_err;
-        }
-    } while (read_val != MHU_NOTIFY_VALUE);
+    mhu_v3_err = mhu_v3_x_doorbell_read(dev, num_channels - 1, &read_val);
+    if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {
+        return mhu_v3_err;
+    }
 
-    return mhu_v3_err;
+    *is_available = (read_val == MHU_NOTIFY_VALUE);
+
+    return MHU_ERR_NONE;
 }
 
+enum mhu_error_t mhu_wait_data(void *mhu_receiver_dev)
+{
+    enum mhu_error_t mhu_err;
+    bool is_available;
+
+    do {
+        mhu_err = mhu_data_is_available(mhu_receiver_dev, &is_available);
+        if (mhu_err != MHU_ERR_NONE) {
+            return mhu_err;
+        }
+    } while (!is_available);
+
+    return MHU_ERR_NONE;
+}
 
 enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
                                   uint8_t *receive_buffer, size_t *size)
