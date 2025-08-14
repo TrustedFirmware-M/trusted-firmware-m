@@ -2958,6 +2958,132 @@ psa_status_t psa_verify_message(mbedtls_svc_key_id_t key,
                                 size_t signature_length);
 
 /**
+ * \function psa_unwrap_key
+ *
+ * \brief Unwrap and import a key using a specified wrapping key.
+ *
+ * The key is unwrapped and extracted from the `data` buffer. Its location,
+ * policy, and type are taken from `attributes`. The wrapped key determines the
+ * size. `psa_get_key_bits(attributes)` must either match the size or be `0`.
+ * Zero-sized keys must be rejected by the implementation.
+ *
+ * \note The function first decrypts \c data using \c alg and `wrapping_key`, then
+ *       processes the result and `attributes` as if calling `psa_import_key()`.
+ *
+ * \note The key material remains within the cryptoprocessor, providing an extra
+ *       layer of protection.
+ *
+ * \note The API does not support asymmetric private key objects outside of a
+ *       key pair. If the public key is missing, it will be reconstructed from
+ *       the private key.
+ *
+ * \note Implementation recommendation: support unwrapping keys created via
+ *       `psa_wrap_key()` using the same algorithm and compatible attributes.
+ *       Reject clearly malformed or truncated data.
+ * 
+ * \param attributes            The attributes for the new key.
+ *                              The following attributes are required for all
+ *                              keys:
+ *                                - The key type determines how the decrypted
+ *                                  `data` buffer is interpreted.
+ *                              The following attributes must be set for keys
+ *                              used in cryptographic operations:
+ *                                - The key permitted-algorithm policy, see
+ *                                  \ref permitted-algorithms.
+ *                                - The key usage flags, see \ref key-usage-flags.
+ *                              The following attributes must be set for keys
+ *                              that do not use the default volatile lifetime:
+ *                                - The key lifetime, see \ref key-lifetimes.
+ *                                - The key identifier is required for a key
+ *                                  with a persistent lifetime, see
+ *                                  \ref key-identifiers.
+ *                              The following attributes are optional:
+ *                                - If the key size is nonzero, it must be equal
+ *                                  to the key size determined from `data`.
+ *
+ *                              \note This is an input parameter: it is not
+ *                              updated with the final key attributes.
+ *                              The final attributes of the new key can be
+ *                              queried by calling `psa_get_key_attributes()` with
+ *                              the key's identifier.
+ *
+ * \param wrapping_key          Identifier of the key to use for the unwrapping
+ *                              operation. It must permit the usage
+ *                              `PSA_KEY_USAGE_UNWRAP`.
+ *
+ * \param alg                   The key-wrapping algorithm: a value of type
+ *                              `psa_algorithm_t` such that
+ *                              `PSA_ALG_IS_KEY_WRAP(alg)` is true.
+ *
+ * \param[in] data                  Buffer containing the wrapped key data.
+ *                              The content of this buffer is unwrapped using
+ *                              the algorithm `alg`, and then interpreted
+ *                              according to the type declared in `attributes`.
+ *
+ * \param data_length           Size of the `data` buffer in bytes.
+ *
+ * \param key                   On success, an identifier for the newly created
+ *                              key. `PSA_KEY_ID_NULL` on failure.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success. If the key is persistent, the key material and metadata have
+ *         been saved to persistent storage.
+ *
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         Attempt to create a persistent key, but a persistent key with the
+ *         same identifier already exists.
+ *
+ * \retval #PSA_ERROR_INVALID_SIGNATURE
+ *         The wrapped key data could not be authenticated.
+ *
+ * \retval #PSA_ERROR_INVALID_HANDLE
+ *         `wrapping_key` is not a valid key identifier.
+ *
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The following conditions can result in this error:
+ *           - `alg` is not supported or is not a key-wrapping algorithm.
+ *           - `wrapping_key` is not supported for use with `alg`.
+ *           - The key attributes are not supported, either generally or in the
+ *             specified storage location.
+ *
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The following conditions can result in this error:
+ *           - `alg` is not a key-wrapping algorithm.
+ *           - `wrapping_key` is not compatible with `alg`.
+ *           - The key type is invalid.
+ *           - The key size is nonzero and is incompatible with the data.
+ *           - The key lifetime is invalid.
+ *           - The key identifier is invalid for the key lifetime.
+ *           - Invalid key usage flags.
+ *           - Invalid permitted algorithm.
+ *           - Invalid key attributes overall.
+ *           - Invalid key format or data layout.
+ *
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The following conditions can result in this error:
+ *           - `wrapping_key` lacks the `PSA_KEY_USAGE_UNWRAP` flag or does not
+ *             permit the requested algorithm.
+ *           - Creating a key with the specified attributes is not allowed by
+ *             implementation policy.
+ *
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
+ * \retval #PSA_ERROR_STORAGE_FAILURE
+ * \retval #PSA_ERROR_DATA_CORRUPT
+ * \retval #PSA_ERROR_DATA_INVALID
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The library requires initializing by a call to `psa_crypto_init()`.
+ */
+psa_status_t psa_unwrap_key(const psa_key_attributes_t * attributes,
+                            psa_key_id_t wrapping_key,
+                            psa_algorithm_t alg,
+                            const uint8_t * data,
+                            size_t data_length,
+                            psa_key_id_t * key);
+
+/**
  * \brief Sign a hash or short message with a private key.
  *
  * Note that to perform a hash-and-sign signature algorithm, you must
