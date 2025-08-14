@@ -11,6 +11,12 @@
 #include "fatal_error.h"
 #include "rse_otp_dev.h"
 
+#define TEST_STATIC static
+#ifdef TEST_BL1_1
+#undef TEST_STATIC
+#define TEST_STATIC
+#endif
+
 static uint32_t calc_value_zero_count(uint32_t val, size_t size)
 {
     uint32_t zero_bits = 0;
@@ -32,8 +38,9 @@ static uint32_t calc_uint32_zero_count(uint32_t val)
     return calc_value_zero_count(val, sizeof(uint32_t));
 }
 
-static enum tfm_plat_err_t software_zero_count_compute(uint8_t *buf, size_t buf_len,
-                                                       uint32_t *zero_count)
+TEST_STATIC
+enum tfm_plat_err_t software_zero_count_compute(uint8_t *buf, size_t buf_len,
+                                                uint32_t *zero_count)
 {
     if ((zero_count == NULL) || ((buf_len > 0) && (buf == NULL))) {
         return TFM_PLAT_ERR_ZERO_COUNT_INVALID_ARGUMENT;
@@ -64,8 +71,9 @@ static enum tfm_plat_err_t software_zero_count_compute(uint8_t *buf, size_t buf_
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-static enum tfm_plat_err_t software_zero_count_check(uint8_t *buf, size_t buf_len,
-                                                       uint32_t expected_zero_count)
+TEST_STATIC
+enum tfm_plat_err_t software_zero_count_check(uint8_t *buf, size_t buf_len,
+                                              uint32_t expected_zero_count)
 {
     uint32_t zero_count;
     enum tfm_plat_err_t err;

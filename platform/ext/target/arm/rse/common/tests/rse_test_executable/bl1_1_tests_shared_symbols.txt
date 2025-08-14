@@ -77,3 +77,5 @@ kmu_get_key
 kmu_get_key_buffer_ptr
 kmu_export_key
 kmu_random_delay
+software_zero_count_compute
+software_zero_count_check
