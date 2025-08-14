@@ -1,0 +1,458 @@
+From 66015224714508d296754729f8f8226999a33581 Mon Sep 17 00:00:00 2001
+From: Waleed Elmelegy <waleed.elmelegy@arm.com>
+Date: Wed, 2 Jul 2025 15:31:35 +0000
+Subject: [PATCH 1/2] Add support for AES-KW encrypted images in MCUboot
+
+This includes:
+ * Adding a PSA layer for AES-CTR.
+ * Adding a PSA layer for AES-KW.
+ * Adding support for AES-KW in imgtool.
+
+Signed-off-by: Waleed Elmelegy <waleed.elmelegy@arm.com>
+Change-Id: Idd417cf0de3b591d798b07a41070e5b363d15663
+---
+ .../include/bootutil/crypto/aes_ctr.h         | 145 +++++++++++++++---
+ .../bootutil/include/bootutil/crypto/aes_kw.h | 114 +++++++++++++-
+ scripts/imgtool/image.py                      |   8 +-
+ scripts/imgtool/keys/__init__.py              |  14 ++
+ scripts/imgtool/keys/aeskw.py                 |  13 ++
+ 5 files changed, 268 insertions(+), 26 deletions(-)
+ create mode 100644 scripts/imgtool/keys/aeskw.py
+
+diff --git a/boot/bootutil/include/bootutil/crypto/aes_ctr.h b/boot/bootutil/include/bootutil/crypto/aes_ctr.h
+index e5416dca..bf9314ec 100644
+--- a/boot/bootutil/include/bootutil/crypto/aes_ctr.h
++++ b/boot/bootutil/include/bootutil/crypto/aes_ctr.h
+@@ -2,9 +2,10 @@
+  * This module provides a thin abstraction over some of the crypto
+  * primitives to make it easier to swap out the used crypto library.
+  *
+- * At this point, there are two choices: MCUBOOT_USE_MBED_TLS, or
+- * MCUBOOT_USE_TINYCRYPT.  It is a compile error there is not exactly
+- * one of these defined.
++ * At this point, the choices are: MCUBOOT_USE_MBED_TLS, MCUBOOT_USE_TINYCRYPT
++ * or MCUBOOT_USE_PSA_CRYPTO. Since MCUBOOT_USE_PSA_CRYPTO does not yet
++ * support all the same abstraction as MCUBOOT_USE_MBED_TLS, the support for
++ * PSA Crypto is built on top of mbed TLS, i.e. they must be both defined
+  */
+ 
+ #ifndef __BOOTUTIL_CRYPTO_AES_CTR_H_
+@@ -14,14 +15,24 @@
+ 
+ #include "mcuboot_config/mcuboot_config.h"
+ 
+-#if (defined(MCUBOOT_USE_MBED_TLS) + \
+-     defined(MCUBOOT_USE_TINYCRYPT) + defined(MCUBOOT_USE_PSA_CRYPTO)) != 1
++#if defined(MCUBOOT_USE_PSA_CRYPTO) || defined(MCUBOOT_USE_MBED_TLS)
++#define MCUBOOT_USE_PSA_OR_MBED_TLS
++#endif /* MCUBOOT_USE_PSA_CRYPTO || MCUBOOT_USE_MBED_TLS */
++
++#if (defined(MCUBOOT_USE_PSA_OR_MBED_TLS) + \
++     defined(MCUBOOT_USE_TINYCRYPT) ) != 1
+     #error "One crypto backend must be defined: either MBED_TLS or TINYCRYPT or PSA"
+ #endif
+ 
++
+ #include "bootutil/enc_key_public.h"
+ 
+-#if defined(MCUBOOT_USE_MBED_TLS)
++#if defined(MCUBOOT_USE_PSA_CRYPTO)
++    #include <psa/crypto.h>
++    #include "bootutil/enc_key_public.h"
++    #define BOOTUTIL_CRYPTO_AES_CTR_KEY_SIZE BOOT_ENC_KEY_SIZE
++    #define BOOTUTIL_CRYPTO_AES_CTR_BLOCK_SIZE (16)
++#elif defined(MCUBOOT_USE_MBED_TLS)
+     #include <mbedtls/aes.h>
+     #define BOOT_ENC_BLOCK_SIZE (16)
+ #endif /* MCUBOOT_USE_MBED_TLS */
+@@ -37,12 +48,10 @@
+     #define BOOT_ENC_BLOCK_SIZE TC_AES_BLOCK_SIZE
+ #endif /* MCUBOOT_USE_TINYCRYPT */
+ 
+-#if defined(MCUBOOT_USE_PSA_CRYPTO)
+-    #include <psa/crypto.h>
+-    #define BOOT_ENC_BLOCK_SIZE (16)
+-#endif
+ 
+ #include <stdint.h>
++#include "bootutil/bootutil_log.h"
++
+ 
+ #ifdef __cplusplus
+ extern "C" {
+@@ -50,31 +59,123 @@ extern "C" {
+ 
+ #if defined(MCUBOOT_USE_PSA_CRYPTO)
+ typedef struct {
+-	/* Fixme: This should not be, here, psa_key_id should be passed */
+-	uint8_t key[BOOT_ENC_KEY_SIZE];
++    psa_cipher_operation_t op;
++    psa_key_id_t key_id;
++    uint8_t key[BOOTUTIL_CRYPTO_AES_CTR_KEY_SIZE];
+ } bootutil_aes_ctr_context;
+ 
+-void bootutil_aes_ctr_init(bootutil_aes_ctr_context *ctx);
++static inline void bootutil_aes_ctr_init(bootutil_aes_ctr_context *ctx)
++{
++    ctx->op = psa_cipher_operation_init();
++    ctx->key_id = PSA_KEY_ID_NULL;
++    memset(ctx->key, 0, sizeof(ctx->key));
++}
+ 
+ static inline void bootutil_aes_ctr_drop(bootutil_aes_ctr_context *ctx)
+ {
+-    memset(ctx, 0, sizeof(ctx));
++    (void)psa_cipher_abort(&(ctx->op));
++    memset(ctx->key, 0, sizeof(ctx->key));
++    (void)psa_destroy_key(ctx->key_id);
++    ctx->key_id = PSA_KEY_ID_NULL;
+ }
+ 
+ static inline int bootutil_aes_ctr_set_key(bootutil_aes_ctr_context *ctx, const uint8_t *k)
+ {
+-    memcpy(ctx->key, k, sizeof(ctx->key));
+-
++    memcpy(ctx->key, k, BOOTUTIL_CRYPTO_AES_CTR_KEY_SIZE);
+     return 0;
+ }
+ 
+-int bootutil_aes_ctr_encrypt(bootutil_aes_ctr_context *ctx, uint8_t *counter,
+-                             const uint8_t *m, uint32_t mlen, size_t blk_off, uint8_t *c);
+-int bootutil_aes_ctr_decrypt(bootutil_aes_ctr_context *ctx, uint8_t *counter,
+-                             const uint8_t *c, uint32_t clen, size_t blk_off, uint8_t *m);
+-#endif
++static int import_key_for_ctr(bootutil_aes_ctr_context *ctx)
++{
++    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
++    psa_key_attributes_t key_attributes = psa_key_attributes_init();
++    psa_key_usage_t usage = (PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT);
++
++    /* Setup the key policy */
++    psa_set_key_usage_flags(&key_attributes, usage);
++    psa_set_key_algorithm(&key_attributes, PSA_ALG_CTR);
++    psa_set_key_type(&key_attributes, PSA_KEY_TYPE_AES);
++
++    /* Import a key */
++    status = psa_import_key(&key_attributes, ctx->key, BOOTUTIL_CRYPTO_AES_CTR_KEY_SIZE,
++                            &(ctx->key_id));
++    return (int)status;
++}
++
++static int set_iv_for_ctr(bootutil_aes_ctr_context *ctx, uint8_t *counter)
++{
++    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
++    ctx->op = psa_cipher_operation_init();
++
++    /* Setup the object always as encryption for CTR*/
++    status = psa_cipher_encrypt_setup(&(ctx->op), ctx->key_id, PSA_ALG_CTR);
++    if (status != PSA_SUCCESS) {
++        return (int)status;
++    }
++
++    status = psa_cipher_set_iv(&(ctx->op), counter, BOOTUTIL_CRYPTO_AES_CTR_BLOCK_SIZE);
++    return (int)status;
++}
++
++static inline int bootutil_aes_ctr_encrypt(bootutil_aes_ctr_context *ctx, uint8_t *counter, const uint8_t *m, uint32_t mlen, size_t blk_off, uint8_t *c)
++{
++    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
++    (void)counter; (void)blk_off; /* These are handled by the API */
++    size_t output_length = 0;
++    size_t clen = mlen;
++
++    status = import_key_for_ctr(ctx);
++    if (status != PSA_SUCCESS) {
++        return status;
++    }
++
++    status = set_iv_for_ctr(ctx, counter);
++    if (status != PSA_SUCCESS) {
++        return status;
++    }
++
++    if (!(mlen % BOOTUTIL_CRYPTO_AES_CTR_BLOCK_SIZE)) {
++        status = psa_cipher_update(&(ctx->op), m, mlen, c, clen, &output_length);
++    } else {
++        /* Partial blocks and overlapping input/outputs might lead to unexpected
++         * failures in mbed TLS, so treat them separately. Details available at
++         * https://github.com/Mbed-TLS/mbedtls/issues/3266
++         */
++        size_t len_aligned = (mlen/BOOTUTIL_CRYPTO_AES_CTR_BLOCK_SIZE)*BOOTUTIL_CRYPTO_AES_CTR_BLOCK_SIZE;
++        status = psa_cipher_update(&(ctx->op), m, len_aligned, c, clen, &output_length);
++        if (status != PSA_SUCCESS) {
++            goto ret_val;
++        }
++        size_t remaining_items = mlen % 16;
++        uint8_t last_output[BOOTUTIL_CRYPTO_AES_CTR_BLOCK_SIZE];
++        size_t last_output_length = 0;
++        status = psa_cipher_update(&(ctx->op), &m[len_aligned], remaining_items,
++                                   last_output, sizeof(last_output), &last_output_length);
++        if (status != PSA_SUCCESS) {
++            goto ret_val;
++        }
++        memcpy(&c[len_aligned], last_output, remaining_items);
++        output_length += last_output_length;
++    }
++
++ret_val:
++    /* Note that counter is not updated in this API while it's updated in the
++     * mbed TLS API. This means that the caller can't rely on the value of it
++     * if compatibility with different API implementations wants to be kept
++     */
++    psa_cipher_abort(&(ctx->op));
++    psa_destroy_key(ctx->key_id);
++    ctx->key_id = PSA_KEY_ID_NULL;
++
++    return (int)status;
++}
++
++static inline int bootutil_aes_ctr_decrypt(bootutil_aes_ctr_context *ctx, uint8_t *counter, const uint8_t *c, uint32_t clen, size_t blk_off, uint8_t *m)
++{
++    return bootutil_aes_ctr_encrypt(ctx, counter, c, clen, blk_off, m);
++}
+ 
+-#if defined(MCUBOOT_USE_MBED_TLS)
++#elif defined(MCUBOOT_USE_MBED_TLS)
+ typedef mbedtls_aes_context bootutil_aes_ctr_context;
+ static inline void bootutil_aes_ctr_init(bootutil_aes_ctr_context *ctx)
+ {
+diff --git a/boot/bootutil/include/bootutil/crypto/aes_kw.h b/boot/bootutil/include/bootutil/crypto/aes_kw.h
+index 34045c2d..f3c0252f 100644
+--- a/boot/bootutil/include/bootutil/crypto/aes_kw.h
++++ b/boot/bootutil/include/bootutil/crypto/aes_kw.h
+@@ -12,11 +12,20 @@
+ 
+ #include "mcuboot_config/mcuboot_config.h"
+ 
+-#if (defined(MCUBOOT_USE_MBED_TLS) + \
++#if defined(MCUBOOT_USE_PSA_CRYPTO) || defined(MCUBOOT_USE_MBED_TLS)
++#define MCUBOOT_USE_PSA_OR_MBED_TLS
++#endif /* MCUBOOT_USE_PSA_CRYPTO || MCUBOOT_USE_MBED_TLS */
++
++
++#if (defined(MCUBOOT_USE_PSA_OR_MBED_TLS) + \
+      defined(MCUBOOT_USE_TINYCRYPT)) != 1
+     #error "One crypto backend must be defined: either MBED_TLS or TINYCRYPT"
+ #endif
+ 
++#if defined(MCUBOOT_USE_PSA_CRYPTO)
++#include <psa/crypto.h>
++#endif
++
+ #if defined(MCUBOOT_USE_MBED_TLS)
+     #include <mbedtls/aes.h>
+     #include <mbedtls/nist_kw.h>
+@@ -31,12 +40,113 @@
+ #endif /* MCUBOOT_USE_TINYCRYPT */
+ 
+ #include <stdint.h>
++#include "bootutil/bootutil_log.h"
++
++
+ 
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
+ 
+-#if defined(MCUBOOT_USE_MBED_TLS)
++
++#if defined(MCUBOOT_USE_PSA_CRYPTO)
++
++#define BOOTUTIL_CRYPTO_AES_KW_KEY_SIZE 32
++
++typedef struct {
++    psa_cipher_operation_t op;
++    psa_key_id_t key_id;
++    uint8_t key[BOOTUTIL_CRYPTO_AES_KW_KEY_SIZE];
++    psa_key_attributes_t key_attributes;
++} bootutil_aes_kw_context;
++
++static int import_key_for_kw(bootutil_aes_kw_context *ctx)
++{
++    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
++    psa_key_usage_t usage = (PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT);
++    size_t key_len;
++
++    key_len = PSA_BITS_TO_BYTES(psa_get_key_bits(&ctx->key_attributes));
++    if (key_len == 0) {
++        /* Key has not been set using bootutil_aes_kw_set_unwrap_key(). */
++        return PSA_ERROR_INVALID_ARGUMENT;
++    }
++
++    /* Setup the key policy */
++    psa_set_key_usage_flags(&ctx->key_attributes, usage);
++    psa_set_key_algorithm(&ctx->key_attributes, PSA_ALG_ECB_NO_PADDING);
++    psa_set_key_type(&ctx->key_attributes, PSA_KEY_TYPE_AES);
++    psa_set_key_lifetime(&ctx->key_attributes, PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
++        PSA_KEY_PERSISTENCE_DEFAULT, PSA_KEY_LOCATION_LOCAL_STORAGE));
++
++    /* Import a key */
++    status = psa_import_key(&ctx->key_attributes, ctx->key, key_len, &(ctx->key_id));
++    return (int)status;
++}
++
++
++static inline void bootutil_aes_kw_init(bootutil_aes_kw_context *ctx)
++{
++    ctx->op = psa_cipher_operation_init();
++    ctx->key_id = PSA_KEY_ID_NULL;
++    ctx->key_attributes = psa_key_attributes_init();
++    memset(ctx->key, 0, sizeof(ctx->key));
++    return;
++}
++
++static inline void bootutil_aes_kw_drop(bootutil_aes_kw_context *ctx)
++{
++    memset(ctx->key, 0, sizeof(ctx->key));
++    psa_set_key_bits(&ctx->key_attributes, 0);
++
++    if (ctx->key_id != PSA_KEY_ID_NULL) {
++        (void)psa_destroy_key(ctx->key_id);
++        ctx->key_id = PSA_KEY_ID_NULL;
++    }
++}
++
++static inline int bootutil_aes_kw_set_unwrap_key(bootutil_aes_kw_context *ctx, const uint8_t *k, uint32_t klen)
++{
++    if (klen != 16 && klen != 24 && klen != 32) {
++        return PSA_ERROR_INVALID_ARGUMENT;
++    }
++
++    psa_set_key_bits(&ctx->key_attributes, PSA_BYTES_TO_BITS(klen));
++    memcpy(ctx->key, k, klen);
++    return 0;
++}
++
++static inline int bootutil_aes_kw_unwrap(bootutil_aes_kw_context *ctx, const uint8_t *wrapped_key, uint32_t wrapped_key_len, uint8_t *key, uint32_t key_len)
++{
++    psa_status_t status = PSA_ERROR_INVALID_ARGUMENT;
++    psa_key_id_t output_key_id = PSA_KEY_ID_NULL;
++    size_t output_key_len = 0;
++
++    status = import_key_for_kw(ctx);
++    if (status != PSA_SUCCESS) {
++        return status;
++    }
++
++    status = psa_unwrap_key(&ctx->key_attributes, ctx->key_id, PSA_ALG_ECB_NO_PADDING,
++                             wrapped_key, wrapped_key_len, &output_key_id);
++    if (status != PSA_SUCCESS) {
++        return status;
++    }
++
++    status = psa_export_key(output_key_id, key, key_len, &output_key_len);
++    if (status != PSA_SUCCESS) {
++        return status;
++    }
++
++    /* TFM bl2 PSA keystore implementation  has only 1 slot so we reimport
++       the key because otherwise destroying it later would fail when mcuboot
++       calls bootutil_aes_kw_drop(). */
++    status = import_key_for_kw(ctx);
++
++    return status;
++}
++
++#elif defined(MCUBOOT_USE_MBED_TLS)
+ typedef mbedtls_nist_kw_context bootutil_aes_kw_context;
+ static inline void bootutil_aes_kw_init(bootutil_aes_kw_context *ctx)
+ {
+diff --git a/scripts/imgtool/image.py b/scripts/imgtool/image.py
+index b6f885fb..eb86072a 100644
+--- a/scripts/imgtool/image.py
++++ b/scripts/imgtool/image.py
+@@ -36,7 +36,7 @@ from enum import Enum
+ import click
+ from cryptography.exceptions import InvalidSignature
+ from cryptography.hazmat.backends import default_backend
+-from cryptography.hazmat.primitives import hashes, hmac
++from cryptography.hazmat.primitives import hashes, hmac,keywrap
+ from cryptography.hazmat.primitives.asymmetric import ec, padding
+ from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
+ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+@@ -46,7 +46,7 @@ from intelhex import IntelHex
+ 
+ from . import version as versmod, keys
+ from .boot_record import create_sw_component_data
+-from .keys import rsa, ecdsa, x25519
++from .keys import rsa, ecdsa, x25519, aeskw
+ 
+ from collections import namedtuple
+ 
+@@ -714,6 +714,10 @@ class Image:
+                     tlv.add('ENCEC256', enctlv)
+                 else:
+                     tlv.add('ENCX25519', enctlv)
++            elif isinstance(enckey, aeskw.AESKW):
++                cipherkey = keywrap.aes_key_wrap(enckey.get_key(), plainkey)
++                self.enctlv_len = len(cipherkey)
++                tlv.add('ENCKW', cipherkey)
+ 
+             if not clear:
+                 nonce = bytes([0] * 16)
+diff --git a/scripts/imgtool/keys/__init__.py b/scripts/imgtool/keys/__init__.py
+index ed2fed57..70fdbe8f 100644
+--- a/scripts/imgtool/keys/__init__.py
++++ b/scripts/imgtool/keys/__init__.py
+@@ -35,6 +35,9 @@ from .ecdsa import (ECDSA256P1, ECDSA256P1Public,
+                     ECDSA384P1, ECDSA384P1Public, ECDSAUsageError)
+ from .ed25519 import Ed25519, Ed25519Public, Ed25519UsageError
+ from .x25519 import X25519, X25519Public, X25519UsageError
++from .aeskw import AESKW
++import base64
++
+ 
+ 
+ class PasswordRequired(Exception):
+@@ -49,6 +52,13 @@ def load(path, passwd=None):
+     with open(path, 'rb') as f:
+         raw_pem = f.read()
+     try:
++        s = raw_pem.decode('utf-8')
++        if "AES-KW" in s:
++            parts = s.strip().split(":", 1)
++            if len(parts) != 2:
++                raise ValueError("Invalid AES-KW key format: missing colon separator.")
++            key = base64.b64decode(parts[1])
++            return AESKW(key)
+         pk = serialization.load_pem_private_key(
+                 raw_pem,
+                 password=passwd,
+@@ -61,11 +71,15 @@ def load(path, passwd=None):
+             return None
+         raise e
+     except ValueError:
++        if "AES-KW" in s:
++            raise ValueError(f"Failed to load AES-KW key: {e}")
+         # This seems to happen if the key is a public key, let's try
+         # loading it as a public key.
+         pk = serialization.load_pem_public_key(
+                 raw_pem,
+                 backend=default_backend())
++    except (UnicodeDecodeError, base64.binascii.Error) as e:
++        raise ValueError(f"Failed to load AES-KW key: {e}")
+ 
+     if isinstance(pk, RSAPrivateKey):
+         if pk.key_size not in RSA_KEY_SIZES:
+diff --git a/scripts/imgtool/keys/aeskw.py b/scripts/imgtool/keys/aeskw.py
+new file mode 100644
+index 00000000..e967a995
+--- /dev/null
++++ b/scripts/imgtool/keys/aeskw.py
+@@ -0,0 +1,13 @@
++from .general import KeyClass
++
++class AESKW(KeyClass):
++    def __init__(self, key):
++        if len(key) not in (16, 32):
++            raise ValueError("Invalid AES key length for AES-KW: must be 16 or 32 bytes.")
++        self.key = key
++
++    def get_key(self):
++        return self.key
++
++    def key_size(self):
++        return len(self.key)
+-- 
+2.43.0
+
