@@ -33,6 +33,10 @@
 /* A few Mbed TLS definitions */
 #include "mbedtls/entropy.h"
 #include "mbedtls/ecp.h"
+#include "mbedtls/nist_kw.h"
+#if defined(CC3XX_CRYPTO_OPAQUE_KEYS)
+#include "cc3xx_opaque_keys.h"
+#endif
 
 /**
  * \brief Rounds a value x up to a bound.
@@ -54,7 +58,7 @@
  *        alignment for the underlying OTP memory
  */
 static uint32_t g_pubkey_data[ROUND_UP(PSA_EXPORT_PUBLIC_KEY_MAX_SIZE,  sizeof(uint32_t)) / sizeof(uint32_t)];
-
+static uint8_t g_symkey_data[PSA_CIPHER_MAX_KEY_LENGTH];
 /**
  * @brief A structure describing the contents of a thin key slot, which
  *        holds key material and metadata following a psa_import_key() call
@@ -143,6 +147,27 @@ static psa_status_t get_builtin_key(psa_key_id_t key_id)
 #else
     assert(0);
     return PSA_ERROR_INVALID_ARGUMENT;
+#endif
+}
+
+
+static psa_status_t get_symmetric_builtin_key(psa_key_id_t key,
+                                     psa_algorithm_t alg)
+{
+#if defined(CC3XX_CRYPTO_OPAQUE_KEYS)
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    status = cc3xx_opaque_keys_attr_init(&g_key_slot.attr, key, alg,
+                                         (const uint8_t **) &g_key_slot.buf,
+                                         &g_key_slot.len);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+    g_key_slot.key_id = key;
+    g_key_slot.is_valid = true;
+    return status;
+#else
+    return PSA_ERROR_NOT_SUPPORTED;
 #endif
 }
 
@@ -496,25 +521,30 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
                             size_t data_length,
                             psa_key_id_t *key)
 {
+    size_t bits = 0;
 #if PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY == 1
-    /* This is either a 2048, 3072 or 4096 bit RSA key, hence the TLV must place
-     * the length at index (6,7) with a leading 0x00. The leading 0x00 is due to
-     * the fact that the MSB will always be set for RSA keys where the length is
-     * a multiple of 8 bits.
-     */
-    const size_t bits =
-        PSA_BYTES_TO_BITS((((uint16_t)data[6]) << 8) | (uint16_t)data[7]) - 8;
-
+    if (PSA_KEY_TYPE_IS_RSA(psa_get_key_type(attributes))) {
+        /* This is either a 2048, 3072 or 4096 bit RSA key, hence the TLV must place
+        * the length at index (6,7) with a leading 0x00. The leading 0x00 is due to
+        * the fact that the MSB will always be set for RSA keys where the length is
+        * a multiple of 8 bits.
+        */
+        bits = PSA_BYTES_TO_BITS((((uint16_t)data[6]) << 8) | (uint16_t)data[7]) - 8;
+    }
 #elif PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY == 1
-    /* The public key is expected in uncompressed format, i.e. 0x04 X Y
-     * for 256 or 384 bit lengths, and the driver wrappers expect to receive
-     * it in that format
-     */
-    assert(data[0] == 0x04);
-    const size_t bits = PSA_BYTES_TO_BITS((data_length - 1)/2);
-#else
-    const size_t bits = PSA_BYTES_TO_BITS(data_length);
+    if (PSA_KEY_TYPE_IS_ECC(psa_get_key_type(attributes))) {
+        /* The public key is expected in uncompressed format, i.e. 0x04 X Y
+        * for 256 or 384 bit lengths, and the driver wrappers expect to receive
+        * it in that format
+        */
+        assert(data[0] == 0x04);
+        bits = PSA_BYTES_TO_BITS((data_length - 1)/2);
+   }
 #endif
+
+    if (PSA_KEY_TYPE_IS_UNSTRUCTURED(psa_get_key_type(attributes))) {
+        bits = PSA_BYTES_TO_BITS(data_length);
+    }
 
     g_key_slot.buf = (uint8_t *)data;
     g_key_slot.len = data_length;
@@ -529,6 +559,29 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
 
     g_key_slot.is_valid = true;
 
+    return PSA_SUCCESS;
+}
+
+psa_status_t psa_export_key(psa_key_id_t key,
+                            uint8_t *data_external,
+                            size_t data_size,
+                            size_t *data_length)
+{
+    psa_status_t status;
+    if (is_key_builtin(key)) {
+        status = get_builtin_key(key);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+    } else {
+        assert(g_key_slot.is_valid && (g_key_slot.key_id == key));
+    }
+
+    if (data_size < g_key_slot.len) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    memcpy(data_external, g_key_slot.buf, g_key_slot.len);
     return PSA_SUCCESS;
 }
 
@@ -756,7 +809,254 @@ psa_status_t psa_driver_wrapper_export_public_key(
 
     return PSA_SUCCESS;
 }
+#if defined(MCUBOOT_ENC_IMAGES)
+psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation)
+{
+   if (operation->id == 0) {
+        /* The object has (apparently) been initialized but it is not (yet)
+         * in use. It's ok to call abort on such an object, and there's
+         * nothing to do. */
+        return PSA_SUCCESS;
+    }
 
+    psa_driver_wrapper_cipher_abort(operation);
+
+    operation->id = 0;
+    operation->iv_set = 0;
+    operation->iv_required = 0;
+
+    return PSA_SUCCESS;
+}
+
+static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
+                                     psa_key_id_t key,
+                                     psa_algorithm_t alg,
+                                     mbedtls_operation_t cipher_operation)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    /* A context must be freshly initialized before it can be set up. */
+    if (operation->id != 0) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+    if (!PSA_ALG_IS_CIPHER(alg)) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+    if (is_key_builtin(key)) {
+        status = get_symmetric_builtin_key(key, alg);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+    } else {
+        assert(g_key_slot.is_valid && (g_key_slot.key_id == key));
+    }
+    operation->iv_set = 0;
+    if (alg == PSA_ALG_ECB_NO_PADDING) {
+        operation->iv_required = 0;
+    } else {
+        operation->iv_required = 1;
+    }
+    operation->default_iv_length = PSA_CIPHER_IV_LENGTH(g_key_slot.attr.type, alg);
+    /* Try doing the operation through a driver before using software fallback. */
+    if (cipher_operation == MBEDTLS_ENCRYPT) {
+        status = psa_driver_wrapper_cipher_encrypt_setup(operation,
+                                                         &g_key_slot.attr,
+                                                         g_key_slot.buf,
+                                                         g_key_slot.len,
+                                                         alg);
+    } else {
+        status = psa_driver_wrapper_cipher_decrypt_setup(operation,
+                                                         &g_key_slot.attr,
+                                                         g_key_slot.buf,
+                                                         g_key_slot.len,
+                                                         alg);
+    }
+
+exit:
+    if (status != PSA_SUCCESS) {
+        psa_cipher_abort(operation);
+    }
+
+    return status;
+}
+
+psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
+                               const uint8_t *input_external,
+                               size_t input_length,
+                               uint8_t *output_external,
+                               size_t output_size,
+                               size_t *output_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if (operation->id == 0) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if (operation->iv_required && !operation->iv_set) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    status = psa_driver_wrapper_cipher_update(operation,
+                                              input_external,
+                                              input_length,
+                                              output_external,
+                                              output_size,
+                                              output_length);
+exit:
+    if (status != PSA_SUCCESS) {
+        psa_cipher_abort(operation);
+    }
+
+    return status;
+}
+
+psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
+                                      psa_key_id_t key,
+                                      psa_algorithm_t alg)
+{
+    return psa_cipher_setup(operation, key, alg, MBEDTLS_ENCRYPT);
+}
+
+psa_status_t psa_cipher_decrypt_setup(psa_cipher_operation_t *operation,
+                                      psa_key_id_t key,
+                                      psa_algorithm_t alg)
+{
+    return psa_cipher_setup(operation, key, alg, MBEDTLS_DECRYPT);
+}
+
+psa_status_t psa_cipher_set_iv(psa_cipher_operation_t *operation,
+                               const uint8_t *iv_external,
+                               size_t iv_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+
+    if (operation->id == 0) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if (operation->iv_set || !operation->iv_required) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if (iv_length > PSA_CIPHER_IV_MAX_SIZE) {
+        status = PSA_ERROR_INVALID_ARGUMENT;
+        goto exit;
+    }
+
+    status = psa_driver_wrapper_cipher_set_iv(operation,
+                                              iv_external,
+                                              iv_length);
+
+exit:
+    if (status == PSA_SUCCESS) {
+        operation->iv_set = 1;
+    } else {
+        psa_cipher_abort(operation);
+    }
+
+    return status;
+}
+
+psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
+                               uint8_t *output_external,
+                               size_t output_size,
+                               size_t *output_length)
+{
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+
+    if (operation->id == 0) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    if (operation->iv_required && !operation->iv_set) {
+        status = PSA_ERROR_BAD_STATE;
+        goto exit;
+    }
+
+    status = psa_driver_wrapper_cipher_finish(operation,
+                                              output_external,
+                                              output_size,
+                                              output_length);
+
+exit:
+    if (status == PSA_SUCCESS) {
+        status = psa_cipher_abort(operation);
+    } else {
+        *output_length = 0;
+        (void) psa_cipher_abort(operation);
+    }
+
+    return status;
+}
+
+void psa_reset_key_attributes(psa_key_attributes_t *attributes)
+{
+    memset(attributes, 0, sizeof(*attributes));
+}
+
+psa_status_t psa_wrap_key(psa_key_id_t wrapping_key,
+                          psa_algorithm_t alg,
+                          psa_key_id_t key,
+                          uint8_t *data,
+                          size_t data_size,
+                          size_t *data_length)
+{
+    return PSA_ERROR_NOT_SUPPORTED;
+}
+
+psa_status_t psa_unwrap_key(const psa_key_attributes_t *attributes,
+                            psa_key_id_t wrapping_key,
+                            psa_algorithm_t alg,
+                            const uint8_t *data,
+                            size_t data_length,
+                            psa_key_id_t *key)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    size_t output_length = 0;
+
+    if (is_key_builtin(wrapping_key)) {
+        status = get_symmetric_builtin_key(wrapping_key, alg);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+    } else {
+        assert(g_key_slot.is_valid && (g_key_slot.key_id == wrapping_key));
+    }
+
+    status = mbedtls_nist_kw_unwrap(
+        wrapping_key, MBEDTLS_KW_MODE_KW, data, data_length,
+        g_symkey_data, sizeof(g_symkey_data), &output_length);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
+
+    status = psa_import_key(attributes, g_symkey_data, output_length, key);
+    return status;
+}
+#endif /* MCUBOOT_ENC_IMAGES */
+
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+/* This function is stubbed as no source of randomness is required
+ * by APIs used in the BLx stages. Nevertheless, an hardwware driver
+ * for a TRNG might override this implementation with a valid one
+ * hence mark it as a weak
+ */
+__attribute__((weak))
+psa_status_t mbedtls_psa_external_get_random(
+    mbedtls_psa_external_random_context_t *context,
+    uint8_t *output, size_t output_size, size_t *output_length)
+{
+    return PSA_ERROR_NOT_SUPPORTED;
+}
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 /* Set the key for a multipart authenticated decryption operation. */
 psa_status_t psa_aead_decrypt_setup(psa_aead_operation_t *operation,
                                     psa_key_id_t key_id,
