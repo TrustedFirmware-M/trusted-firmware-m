@@ -30,6 +30,8 @@ target_include_directories(${CC3XX_PSA_TARGET_NAME}
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         include
+        ${CMAKE_SOURCE_DIR}/interface/include/
+
 )
 
 target_link_libraries(${CC3XX_PSA_TARGET_NAME}

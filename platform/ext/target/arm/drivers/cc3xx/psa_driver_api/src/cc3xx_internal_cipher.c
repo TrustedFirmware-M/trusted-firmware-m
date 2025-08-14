@@ -33,6 +33,7 @@
 #include CC3XX_PSA_API_CONFIG_FILE
 #endif
 #include "cc3xx_rng.h"
+#include "cc3xx_opaque_keys.h"
 
 #if defined(PSA_WANT_KEY_TYPE_AES)
 /**

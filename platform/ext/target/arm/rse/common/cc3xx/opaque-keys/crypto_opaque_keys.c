@@ -106,6 +106,8 @@ psa_status_t cc3xx_opaque_keys_attr_init(psa_key_attributes_t *attributes,
                                              const uint8_t **key_buffer,
                                              size_t *key_buffer_size)
 {
+#if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+
     size_t key_size = cc3xx_get_key_buffer_size(key_id);
     psa_key_type_t key_type;
 
@@ -116,6 +118,7 @@ psa_status_t cc3xx_opaque_keys_attr_init(psa_key_attributes_t *attributes,
     switch (alg) {
         case PSA_ALG_CTR:
         case PSA_ALG_CCM:
+        case PSA_ALG_ECB_NO_PADDING:
             key_type = PSA_KEY_TYPE_AES;
             break;
         default:
@@ -128,4 +131,7 @@ psa_status_t cc3xx_opaque_keys_attr_init(psa_key_attributes_t *attributes,
     *key_buffer_size = key_size;
 
     return PSA_SUCCESS;
+#else
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif
 }

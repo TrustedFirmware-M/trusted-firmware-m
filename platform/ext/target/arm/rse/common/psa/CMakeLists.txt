@@ -42,3 +42,20 @@ target_link_libraries(bl1_cc3xx_psa_driver_api
     PUBLIC
         bl1_psa_crypto_config
 )
+
+target_sources(platform_bl2 PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/../cc3xx/opaque-keys/crypto_opaque_keys.c
+)
+
+target_include_directories(platform_bl2 PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}
+    INTERFACE
+        ${MBEDCRYPTO_PATH}/library
+        ${MBEDCRYPTO_PATH}/include/psa
+        ${CMAKE_SOURCE_DIR}/interface/include
+        ${CMAKE_SOURCE_DIR}/interface/include/psa
+)
+
+target_sources(platform_s PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/../cc3xx/opaque-keys/crypto_opaque_keys.c
+)

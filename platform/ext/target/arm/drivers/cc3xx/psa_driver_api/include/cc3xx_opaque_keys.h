@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <limits.h>
-#include "crypto_types.h"
+#include "psa/crypto_types.h"
 
 #ifdef __cplusplus
 extern "C" {
