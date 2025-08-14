@@ -127,6 +127,31 @@ int32_t boot_platform_init(void)
     struct rse_sacfg_t *sacfg = (struct rse_sacfg_t *)RSE_SACFG_BASE_S;
     sacfg->secrespcfg |= CMSDK_SECRESPCFG_BUS_ERR_MASK;
 
+#ifdef LOGGING_ENABLED
+#ifdef RSE_USE_HOST_UART
+    /**
+     * If we are using the ATU to map the host UART into the RSE memory
+     * map then we also need to configure the MPU to ensure that the
+     * address space we access from the RSE is marked as device memory
+     * to avoid CPU caching. In this case, we also configure the entire
+     * window to be device memory so that it does not need to be reconfigured
+     * by later components
+     */
+    err = init_mpu_region_for_atu();
+    if (err != 0) {
+        return err;
+    }
+
+    /* Initialize ATU driver */
+    err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static, atu_stat_count);
+    if (err != ATU_ERR_NONE) {
+            return err;
+    }
+#endif /* RSE_USE_HOST_UART */
+
+    stdio_init();
+#endif /* LOGGING_ENABLED */
+
     plat_err = tfm_plat_otp_init();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
@@ -147,31 +172,6 @@ int32_t boot_platform_init(void)
     if (err != 0) {
         return err;
     }
-
-#if defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART)
-    /**
-     * If we are using the ATU to map the host UART into the RSE memory
-     * map then we also need to configure the MPU to ensure that the
-     * address space we access from the RSE is marked as device memory
-     * to avoid CPU caching. In this case, we also configure the entire
-     * window to be device memory so that it does not need to be reconfigured
-     * by later components
-     */
-    err = init_mpu_region_for_atu();
-    if (err != 0) {
-        return err;
-    }
-
-    /* Initialize ATU driver */
-    err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static, atu_stat_count);
-    if (err != ATU_ERR_NONE) {
-            return err;
-    }
-#endif /* defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART) */
-
-#ifdef LOGGING_ENABLED
-    stdio_init();
-#endif /* LOGGING_ENABLED */
 
 #ifdef CRYPTO_HW_ACCELERATOR
     cc_err = cc3xx_lowlevel_init();
