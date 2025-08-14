@@ -619,11 +619,14 @@ psa_status_t cc3xx_cipher_finish(
     size_t bytes_produced_on_finish;
 
     CC3XX_ASSERT(operation != NULL);
-    CC3XX_ASSERT(!output_size ^ (output != NULL));
     CC3XX_ASSERT(output_length != NULL);
 
     /* Initialize */
     *output_length = 0;
+
+    if (output_size == 0 || output == NULL) {
+        return PSA_SUCCESS;
+    }
 
     if (operation->cipher_is_initialized == false) {
         /* This means it was never updated with any data, so just exit now */
