@@ -103,6 +103,8 @@ list(APPEND BL2_CRYPTO_SRC
     $<$<AND:${is_ec_signature},${build_p256m}>:${MBEDCRYPTO_PATH}/3rdparty/p256-m/p256-m_driver_entrypoints.c>
     $<$<AND:${is_ec_signature},${build_p256m}>:${MBEDCRYPTO_PATH}/3rdparty/p256-m/p256-m/p256-m.c>
     ${MBEDCRYPTO_PATH}/library/aes.c
+    $<$<BOOL:${MCUBOOT_ENCRYPT_KW}>:${MBEDCRYPTO_PATH}/library/nist_kw.c>
+    $<$<BOOL:${MCUBOOT_ENCRYPT_KW}>:${MBEDCRYPTO_PATH}/library/constant_time.c>
 )
 
 add_library(bl2_crypto STATIC ${BL2_CRYPTO_SRC})

@@ -58,6 +58,7 @@ extern "C" {
 
 #cmakedefine MCUBOOT_ENC_IMAGES
 #cmakedefine MCUBOOT_ENCRYPT_RSA
+#cmakedefine MCUBOOT_ENCRYPT_KW
 
 #ifdef MCUBOOT_ENC_IMAGES
 #define MCUBOOT_AES_@MCUBOOT_ENC_KEY_LEN@

@@ -29,7 +29,7 @@
 #define CC3XX_CONFIG_AES_CTR_ENABLE
 
 /* Whether the AES ECB support is enabled */
-/* #define CC3XX_CONFIG_AES_ECB_ENABLE */
+#define CC3XX_CONFIG_AES_ECB_ENABLE
 
 /* Whether the AES CBC support is enabled */
 /* #define CC3XX_CONFIG_AES_CBC_ENABLE */

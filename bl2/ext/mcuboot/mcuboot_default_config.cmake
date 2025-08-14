@@ -39,6 +39,8 @@ set(MCUBOOT_HW_ROLLBACK_PROT            ON          CACHE BOOL      "Enable secu
 set(MCUBOOT_ENC_IMAGES                  OFF         CACHE BOOL      "Enable encrypted image upgrade support")
 set(MCUBOOT_BOOTSTRAP                   OFF         CACHE BOOL      "Support initial state with empty primary slot and images installed from secondary slots")
 set(MCUBOOT_ENCRYPT_RSA                 OFF         CACHE BOOL      "Use RSA for encrypted image upgrade support")
+set(MCUBOOT_ENCRYPT_KW                  OFF          CACHE BOOL      "Use AES-KW for encrypted images")
+set(MCUBOOT_ENCRYPT_AES                 ON          CACHE BOOL      "Enable AES encryption")
 set(MCUBOOT_FIH_PROFILE                 OFF         CACHE STRING    "Fault injection hardening profile [OFF, LOW, MEDIUM, HIGH]")
 set(MCUBOOT_USE_PSA_CRYPTO              OFF         CACHE BOOL      "Enable the cryptographic abstraction layer to use PSA Crypto APIs")
 if(${MCUBOOT_UPGRADE_STRATEGY} STREQUAL DIRECT_XIP)

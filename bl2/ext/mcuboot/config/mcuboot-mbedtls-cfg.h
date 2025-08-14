@@ -118,4 +118,7 @@
 #include MBEDTLS_ACCELERATOR_CONFIG_FILE
 #endif
 
+#define MBEDTLS_NIST_KW_C
+#define MBEDTLS_CIPHER_C
+
 #endif /* __MCUBOOT_MBEDTLS_CFG__ */

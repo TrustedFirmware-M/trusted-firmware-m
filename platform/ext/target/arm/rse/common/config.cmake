@@ -125,6 +125,9 @@ set(RSE_ENABLE_KDF_CMAC_SELF_TEST       ON         CACHE BOOL "Whether the AES-C
 set(MCUBOOT_IMAGE_NUMBER              4          CACHE STRING   "Number of images supported by MCUBoot")
 set(MCUBOOT_USE_PSA_CRYPTO            ON               CACHE BOOL      "Enable the cryptographic abstraction layer to use PSA Crypto APIs")
 set(MCUBOOT_SIGNATURE_TYPE            "EC-P256"        CACHE STRING    "Algorithm to use for signature validation [RSA-2048, RSA-3072, EC-P256, EC-P384]")
+set(MCUBOOT_ENC_IMAGES                OFF              CACHE BOOL      "Enable image encryption")
+set(MCUBOOT_ENCRYPT_KW                OFF              CACHE BOOL      "Enable Key Wrapping encryption")
+set(MCUBOOT_ENCRYPT_AES               ON              CACHE BOOL      "Enable AES encryption")
 
 set(MCUBOOT_HW_KEY                    ON               CACHE BOOL      "Whether to embed the entire public key in the image metadata instead of the hash only")
 set(MCUBOOT_BUILTIN_KEY               OFF              CACHE BOOL      "Use builtin key(s) for validation, no public key data is embedded into the image metadata")
