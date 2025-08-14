@@ -137,6 +137,7 @@ set(RSE_USE_HOST_FLASH                  ON         CACHE BOOL     "Enable RSE us
 set(TFM_LOAD_NS_IMAGE                   ON         CACHE BOOL     "Whether to load an RSE NSPE image")
 set(RSE_BL2_ENABLE_IMAGE_STAGING        OFF        CACHE BOOL     "Whether to enable staging of the images to be loaded by BL2")
 set(MCUBOOT_IMAGE_MULTI_SIG_SUPPORT     OFF        CACHE BOOL     "Whether to enable multi-signature support in MCUBoot")
+set(PLATFORM_DEFAULT_IMAGE_ENCRYPTION        OFF         CACHE BOOL "Whether to use platform-specific code encryption keys")
 
 ######################### Provisioning #########################################
 

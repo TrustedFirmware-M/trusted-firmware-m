@@ -32,8 +32,10 @@
 #include "tfm_plat_rotpk.h"
 #include "tfm_plat_crypto_keys.h"
 #include "tfm_plat_otp.h"
+#include "psa/crypto.h"
 
-unsigned char enc_priv_key[] = {
+#if defined(MCUBOOT_ENCRYPT_RSA)
+unsigned char enc_key[] = {
   0x30, 0x82, 0x04, 0xa4, 0x02, 0x01, 0x00, 0x02, 0x82, 0x01, 0x01, 0x00,
   0xb4, 0x26, 0x14, 0x49, 0x3d, 0x16, 0x13, 0x3a, 0x6d, 0x9c, 0x84, 0xa9,
   0x8b, 0x6a, 0x10, 0x20, 0x61, 0xef, 0x48, 0x04, 0xa4, 0x4b, 0x24, 0xf3,
@@ -135,10 +137,57 @@ unsigned char enc_priv_key[] = {
   0x9b, 0x9c, 0x73, 0xad, 0xfb, 0x7a, 0x00, 0x42, 0x62, 0x9e, 0xa0, 0x95,
   0x55, 0x50, 0x32, 0x87
 };
-static unsigned int enc_priv_key_len = 1192;
+static unsigned int enc_key_len = 1192;
 
 const struct bootutil_key bootutil_enc_key = {
-    .key = enc_priv_key,
-    .len = &enc_priv_key_len,
+    .key = enc_key,
+    .len = &enc_key_len,
 };
 
+#else
+
+const unsigned char enc_key_ns[32] = {
+    0xd0, 0x0d, 0x0c, 0x00, 0xec, 0xd7, 0xf9, 0xec,
+    0x9e, 0xd1, 0xc7, 0x31, 0x60, 0x68, 0xb5, 0xc0,
+    0xbf, 0xcb, 0x03, 0x18, 0x3f, 0xfa, 0xf6, 0xc5,
+    0xac, 0x71, 0x25, 0xa4, 0x66, 0x6a, 0x1e, 0x2f
+};
+
+const unsigned char enc_key_s[32] = {
+    0x57, 0xa5, 0x3d, 0xba, 0xc0, 0x9f, 0x59, 0x93,
+    0x1c, 0x33, 0x64, 0x7e, 0xc1, 0x72, 0x03, 0x0b,
+    0xaa, 0x14, 0x21, 0x50, 0x01, 0x8e, 0x7d, 0x45,
+    0x2c, 0x4a, 0x5e, 0xcb, 0x1a, 0x8d, 0x63, 0xb7
+};
+static unsigned int enc_key_len = 32;
+
+const struct bootutil_key bootutil_enc_key = {
+    .key = enc_key_ns,
+    .len = &enc_key_len,
+};
+
+uint32_t get_enc_key_id_for_image(uint32_t image_id)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_id_t key = 0;
+    psa_key_attributes_t attributes;
+
+    psa_set_key_bits(&attributes, PSA_BYTES_TO_BITS(sizeof(enc_key_ns)));
+    psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
+        PSA_KEY_PERSISTENCE_DEFAULT, PSA_KEY_LOCATION_LOCAL_STORAGE));
+    psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
+    psa_set_key_usage_flags(&attributes, (PSA_KEY_USAGE_ENCRYPT | PSA_KEY_USAGE_DECRYPT));
+    psa_set_key_algorithm(&attributes, PSA_ALG_ECB_NO_PADDING);
+
+    if (image_id == 0) {
+        status = psa_import_key(&attributes, enc_key_s, enc_key_len, &key);
+    } else {
+        status = psa_import_key(&attributes, enc_key_ns, enc_key_len, &key);
+    }
+    if (status != PSA_SUCCESS) {
+            return PSA_KEY_ID_NULL;
+    }
+
+    return key;
+}
+#endif
