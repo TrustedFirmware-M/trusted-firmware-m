@@ -21,7 +21,13 @@ fetch_remote_library(
 
 add_library(mcuboot_config INTERFACE)
 
-set(MCUBOOT_KEY_ENC "${MCUBOOT_PATH}/enc-rsa2048-pub.pem" CACHE FILEPATH "Path to key with which to encrypt binary")
+if (MCUBOOT_ENCRYPT_KW)
+    set(MCUBOOT_KEY_ENC "${MCUBOOT_PATH}/enc-aeskw-128.b64" CACHE FILEPATH "Path to key with which to encrypt Secure firmware")
+    set(MCUBOOT_KEY_ENC_NS "${MCUBOOT_PATH}/enc-aeskw-128_ns.b64" CACHE FILEPATH "Path to key with which to encrypt non secure firmware")
+else()
+    set(MCUBOOT_KEY_ENC "${MCUBOOT_PATH}/enc-rsa2048-pub.pem" CACHE FILEPATH "Path to key with which to encrypt binary")
+    set(MCUBOOT_KEY_ENC_NS "${MCUBOOT_PATH}/enc-rsa2048-pub.pem" CACHE FILEPATH "Path to key with which to encrypt non secure firmware")
+endif()
 
 # Add/process CBOR encoded measured boot data (MCUBOOT_MEASURED_BOOT) only if
 # the store encoded measurements config is enabled. Otherwise, unencoded

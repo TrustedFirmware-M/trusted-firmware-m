@@ -133,7 +133,7 @@ if (RSE_XIP)
             $<$<BOOL:${MCUBOOT_MEASURED_BOOT}>:--measured-boot-record>
             ${CMAKE_BINARY_DIR}/bin/${NS_TARGET_NAME}_sic_tables.bin
             $<$<STREQUAL:${MCUBOOT_UPGRADE_STRATEGY},OVERWRITE_ONLY>:--overwrite-only>
-            $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:-E${MCUBOOT_KEY_ENC}>
+            $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:-E${MCUBOOT_KEY_ENC_NS}>
             $<$<BOOL:${MCUBOOT_MEASURED_BOOT}>:--measured-boot-record>
             ${CMAKE_CURRENT_BINARY_DIR}/${NS_TARGET_NAME}_sic_tables_signed.bin
         COMMAND ${CMAKE_COMMAND} -E copy

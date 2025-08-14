@@ -213,7 +213,7 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             -d \"\(0, ${MCUBOOT_S_IMAGE_MIN_VER}\)\"
             $<$<STREQUAL:${MCUBOOT_UPGRADE_STRATEGY},OVERWRITE_ONLY>:--overwrite-only>
             $<$<BOOL:${MCUBOOT_CONFIRM_IMAGE}>:--confirm>
-            $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:-E${CMAKE_CURRENT_SOURCE_DIR}/image_signing/keys/image_enc_key.pem>
+            $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:-E${MCUBOOT_KEY_ENC_NS}>
             $<$<BOOL:${MCUBOOT_MEASURED_BOOT}>:--measured-boot-record>
             $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${NS_TARGET_NAME}.bin
             ${CMAKE_BINARY_DIR}/bin/${NS_TARGET_NAME}_signed.bin
@@ -282,7 +282,7 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             -L           ${MCUBOOT_ENC_KEY_LEN}
             $<$<STREQUAL:${MCUBOOT_UPGRADE_STRATEGY},OVERWRITE_ONLY>:--overwrite-only>
             $<$<BOOL:${MCUBOOT_CONFIRM_IMAGE}>:--confirm>
-            $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:-E${CMAKE_CURRENT_SOURCE_DIR}/image_signing/keys/image_enc_key.pem>
+            $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:-E${MCUBOOT_KEY_ENC}>
             $<$<BOOL:${MCUBOOT_MEASURED_BOOT}>:--measured-boot-record>
             ${CMAKE_BINARY_DIR}/bin/tfm_s_ns.bin
             ${CMAKE_BINARY_DIR}/tfm_s_ns_signed.bin
