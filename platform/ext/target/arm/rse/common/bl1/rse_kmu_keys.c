@@ -546,7 +546,6 @@ enum tfm_plat_err_t rse_setup_provisioning_key(const uint8_t *label, size_t labe
 
 enum tfm_plat_err_t rse_setup_runtime_secure_image_encryption_key(void)
 {
-#ifdef RSE_XIP
     enum tfm_plat_err_t plat_err;
     enum kmu_error_t kmu_err;
     const uint8_t label[] = "RUNTIME_SECURE_ENCRYPTION_KEY";
@@ -554,10 +553,26 @@ enum tfm_plat_err_t rse_setup_runtime_secure_image_encryption_key(void)
         RSE_BOOT_STATE_INCLUDE_TP_MODE | RSE_BOOT_STATE_INCLUDE_BL1_2_HASH |
         RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
 
+#ifdef RSE_XIP
+    plat_err = setup_key_from_derivation(KMU_HW_SLOT_KCE_CM, NULL,
+                                            label, sizeof(label), NULL, 0,
+                                            RSE_KMU_SLOT_SECURE_SIC_ENCRYPTION_KEY,
+                                            &sic_dr0_export_config, NULL, false,
+                                            boot_state_config);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
+    }
+    kmu_err = kmu_set_key_locked(&KMU_DEV_S, RSE_KMU_SLOT_SECURE_SIC_ENCRYPTION_KEY);
+    if (kmu_err != KMU_ERROR_NONE) {
+        return (enum tfm_plat_err_t) kmu_err;
+    }
+
+#endif
+
     plat_err = setup_key_from_derivation(KMU_HW_SLOT_KCE_CM, NULL,
                                          label, sizeof(label), NULL, 0,
                                          RSE_KMU_SLOT_SECURE_ENCRYPTION_KEY,
-                                         &sic_dr0_export_config, NULL, false,
+                                         &aes_key0_export_config, NULL, false,
                                          boot_state_config);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
@@ -567,15 +582,12 @@ enum tfm_plat_err_t rse_setup_runtime_secure_image_encryption_key(void)
     if (kmu_err != KMU_ERROR_NONE) {
         return (enum tfm_plat_err_t) kmu_err;
     }
-#endif /* RSE_XIP */
 
-    /* TODO FIXME Allow Mcuboot to decrypt using on-device keys */
     return TFM_PLAT_ERR_SUCCESS;
 }
 
 enum tfm_plat_err_t rse_setup_runtime_non_secure_image_encryption_key(void)
 {
-#ifdef RSE_XIP
     enum tfm_plat_err_t plat_err;
     enum kmu_error_t kmu_err;
     const uint8_t label[] = "RUNTIME_NON_SECURE_ENCRYPTION_KEY";
@@ -586,7 +598,7 @@ enum tfm_plat_err_t rse_setup_runtime_non_secure_image_encryption_key(void)
     plat_err = setup_key_from_derivation(KMU_HW_SLOT_KCE_DM, NULL,
                                          label, sizeof(label), NULL, 0,
                                          RSE_KMU_SLOT_NON_SECURE_ENCRYPTION_KEY,
-                                         &sic_dr1_export_config, NULL, false,
+                                         &aes_key0_export_config, NULL, false,
                                          boot_state_config);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
@@ -596,9 +608,24 @@ enum tfm_plat_err_t rse_setup_runtime_non_secure_image_encryption_key(void)
     if (kmu_err != KMU_ERROR_NONE) {
         return (enum tfm_plat_err_t) kmu_err;
     }
-#endif /* RSE_XIP */
 
-    /* TODO FIXME Allow Mcuboot to decrypt using on-device keys */
+#ifdef RSE_XIP
+    plat_err = setup_key_from_derivation(KMU_HW_SLOT_KCE_DM, NULL,
+                                         label, sizeof(label), NULL, 0,
+                                         RSE_KMU_SLOT_NON_SECURE_SIC_ENCRYPTION_KEY,
+                                         &sic_dr1_export_config, NULL, false,
+                                         boot_state_config);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
+    }
+
+    kmu_err = kmu_set_key_locked(&KMU_DEV_S, RSE_KMU_SLOT_NON_SECURE_SIC_ENCRYPTION_KEY);
+    if (kmu_err != KMU_ERROR_NONE) {
+        return (enum tfm_plat_err_t) kmu_err;
+    }
+
+#endif
+
     return TFM_PLAT_ERR_SUCCESS;
 }
 

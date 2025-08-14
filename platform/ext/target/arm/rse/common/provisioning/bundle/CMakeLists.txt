@@ -282,7 +282,7 @@ if (TFM_DUMMY_PROVISIONING)
         --non_secret_cm:bl1_2.bl1_2_hash=${CMAKE_BINARY_DIR}/bin/bl1_2_padded_hash.bin
         --secret_cm:guk=${TFM_GUK_PATH}
         --non_secret_cm:otp_dma_ics=${CMAKE_BINARY_DIR}/bin/otp_dma_ics.bin
-        $<$<BOOL:${TFM_BL1_2_IMAGE_ENCRYPTION}>:--secret_cm:kce_cm=${TFM_BL2_ENCRYPTION_KEY_PATH}>
+        --secret_cm:kce_cm=${TFM_GUK_PATH}
 
         # Set config flags to 1 << 0x4
         $<$<BOOL:${RSE_NON_ENDORSED_DM_PROVISIONING}>:--non_secret_cm:cm.config_flags=16>
@@ -332,7 +332,7 @@ if (TFM_DUMMY_PROVISIONING)
         --non_secret_dm:dm.rotpk_areas_0.rotpk_policy_1 RSE_ROTPK_POLICY_SIG_REQUIRED
         --non_secret_dm:dm.rotpk_areas_0.rotpk_type_1 RSE_ROTPK_TYPE_${MCUBOOT_ROTPK_TYPE}
         --non_secret_dm:dm.rotpk_areas_0.rotpk_hash_alg_1 RSE_ROTPK_HASH_ALG_${MCUBOOT_ROTPK_HASH_ALG}
-
+        --secret_dm:kce_dm=${TFM_GUK_PATH}
         $<$<BOOL:${RSE_OTP_HAS_ROUTING_TABLES}>:--routing_tables=${CMAKE_CURRENT_BINARY_DIR}/../../config/routing_tables.pickle>
     )
 

@@ -819,6 +819,7 @@ if (RSE_XIP)
 
     install(FILES       bl2/create_xip_tables.py
             FILES       bl2/kce_dm_dummy_encryption_key.bin
+            FILES       ${CMAKE_SOURCE_DIR}/bl1/bl1_1/dummy_guk.bin
             DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/scripts)
 
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/tools/modules

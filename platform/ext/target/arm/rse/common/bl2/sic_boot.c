@@ -189,7 +189,7 @@ enum sic_boot_err_t sic_boot_post_load(uint32_t image_id, uint32_t image_load_of
             return SIC_BOOT_INVALID_REGION;
         }
 
-        decrypt_key_slot = RSE_KMU_SLOT_NON_SECURE_ENCRYPTION_KEY;
+        decrypt_key_slot = RSE_KMU_SLOT_NON_SECURE_SIC_ENCRYPTION_KEY;
         atu_region = RSE_ATU_NS_IMAGE_XIP_REGION;
         decrypt_region = RSE_SIC_NS_IMAGE_DECRYPT_REGION;
         xip_region_base_addr = RSE_RUNTIME_NS_XIP_BASE_NS;
@@ -211,7 +211,7 @@ enum sic_boot_err_t sic_boot_post_load(uint32_t image_id, uint32_t image_load_of
             return SIC_BOOT_INVALID_REGION;
         }
 
-        decrypt_key_slot = RSE_KMU_SLOT_SECURE_ENCRYPTION_KEY;
+        decrypt_key_slot = RSE_KMU_SLOT_SECURE_SIC_ENCRYPTION_KEY;
         atu_region = RSE_ATU_S_IMAGE_XIP_REGION;
         decrypt_region = RSE_SIC_S_IMAGE_DECRYPT_REGION;
         xip_region_base_addr = RSE_RUNTIME_S_XIP_BASE_S;
