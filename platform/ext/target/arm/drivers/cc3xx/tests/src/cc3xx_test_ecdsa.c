@@ -3878,12 +3878,12 @@ static void ecdsa_sign_verify_tests(struct test_result_t *ret)
     }
 }
 
-#if defined(CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_K)
+#if defined(CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_ENABLE)
 static void ecdsa_sign_deterministic_tests(struct test_result_t *ret)
 {
     TEST_ASSERT(cc3xx_test_sign_deterministic() == 0, "Sign deterministically failed");
 }
-#endif /* CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_K */
+#endif /* CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_ENABLE */
 #endif /* defined(CC3XX_CONFIG_ECDSA_SIGN_ENABLE) && defined(CC3XX_CONFIG_ECDSA_KEYGEN_ENABLE) */
 
 static struct test_t ecdsa_tests[] = {
@@ -3907,13 +3907,13 @@ static struct test_t ecdsa_tests[] = {
         "CC3XX_ECDSA_SIGN_VERIFY_TEST",
         "CC3XX ECDSA sign verify tests",
     },
-#if defined(CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_K)
+#if defined(CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_ENABLE)
     {
         &ecdsa_sign_deterministic_tests,
         "CC3XX_ECDSA_SIGN_DETERMINISTIC_TEST",
         "CC3XX ECDSA sign deterministically (RFC 6979) tests",
     }
-#endif /* CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_K */
+#endif /* CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_ENABLE */
 #endif /* defined(CC3XX_CONFIG_ECDSA_SIGN_ENABLE) && defined(CC3XX_CONFIG_ECDSA_KEYGEN_ENABLE) */
 };
 
