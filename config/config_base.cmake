@@ -46,8 +46,7 @@ set(MCUBOOT_FORCE_PATCH                 OFF         CACHE BOOL      "Always appl
 set(MCUBOOT_VERSION                     "v2.2.0"    CACHE STRING    "The version of MCUboot to use")
 
 set(TFM_EXTRAS_REPO_PATH                "DOWNLOAD"  CACHE PATH      "Path to tf-m-extras repo (or DOWNLOAD to fetch automatically")
-set(TFM_EXTRAS_REPO_VERSION             "6454d842"  CACHE STRING    "The version of tf-m-extras to use")
-
+set(TFM_EXTRAS_REPO_VERSION             "b8bffe6"   CACHE STRING    "The version of tf-m-extras to use")
 
 set(LIB_EVENTLOG_PATH                   "DOWNLOAD"  CACHE PATH      "Path to LibEventLog repo (or DOWNLOAD to fetch automatically")
 set(LIB_EVENTLOG_VERSION                "28c4ce1b"  CACHE STRING    "The version of LibEventLog to use")
