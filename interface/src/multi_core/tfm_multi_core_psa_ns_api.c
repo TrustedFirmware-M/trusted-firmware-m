@@ -47,7 +47,7 @@
 
 uint32_t PSA_FRAMEWORK_VERSION_MULTICORE(void)
 {
-    struct psa_client_params_t params;
+    struct psa_client_params_t params = {0};
     uint32_t version;
     int32_t ret;
 
