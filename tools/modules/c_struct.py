@@ -12,6 +12,7 @@ from collections import Counter
 import os
 import subprocess
 import platform
+import sys
 
 import logging
 logger = logging.getLogger("TF-M.{}".format(__name__))
@@ -654,11 +655,11 @@ def _c_from_h_file(h_file, name, includes, defines, f, kind):
     if errors:
         for e in errors:
             print(e)
-        exit(1)
+        sys.exit(1)
 
     if len(t) == 0:
         print("Failed to find {} in {}".format(name, h_file))
-        exit(1)
+        sys.exit(1)
 
     assert(len(t) == 1)
     t = t[0]
@@ -683,4 +684,4 @@ def main():
     print(s)
 
 if __name__ == '__main__':
-    exit(main())
+    sys.exit(main())

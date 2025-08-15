@@ -6,6 +6,7 @@
 #
 #-------------------------------------------------------------------------------
 
+import sys
 import argparse
 from tfm_tools.arg_utils import pre_parse_args, arg_type_bytes, arg_type_bytes_output_file
 from tfm_tools.key_derivation import derive_symmetric_key
@@ -38,4 +39,4 @@ def main():
     args.kmaster_file.write(kmaster)
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

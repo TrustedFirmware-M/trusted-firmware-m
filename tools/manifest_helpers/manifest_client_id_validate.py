@@ -7,6 +7,7 @@
 #-------------------------------------------------------------------------------
 
 import logging
+import sys
 
 
 ns_agent_list = []
@@ -17,7 +18,7 @@ def _client_id_validate(name, client_id_str):
         client_id = int(client_id_str, 0)
     except Exception as e:
         logging.error(f"{name}: Failed to convert client ID ({client_id_str}) to int:", e)
-        exit(1)
+        sys.exit(1)
 
     if client_id_str[0] == '-':
         minus_sign = True

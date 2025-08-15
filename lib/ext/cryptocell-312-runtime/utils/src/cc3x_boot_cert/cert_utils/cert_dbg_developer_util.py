@@ -18,13 +18,13 @@
 
 import configparser
 import sys
-import os 
+import os
 
 
 # Definitions for paths
 #######################
 if sys.platform != "win32" :
-    path_div = "//"    
+    path_div = "//"
 else : #platform = win32
     path_div = "\\"
 
@@ -32,7 +32,7 @@ else : #platform = win32
 CURRENT_PATH = sys.path[0]
 # In case the scripts were run from current directory
 CURRENT_PATH_SCRIPTS = path_div + 'common_utils'
-    
+
 # this is the scripts local path, from where the program was called
 print (CURRENT_PATH+CURRENT_PATH_SCRIPTS)
 sys.path.append(CURRENT_PATH+CURRENT_PATH_SCRIPTS)
@@ -64,65 +64,65 @@ def parse_shell_arguments ():
     return config_fname, log_fname
 
 
-def CreateCertUtility(sysArgsList):        
-    try:          
+def CreateCertUtility(sysArgsList):
+    try:
 
         config_fname, log_fname = parse_shell_arguments()
-        
+
         log_file = create_log_file(log_fname)
         print_and_log(log_file, str(datetime.now()) + ": Developer Debug Certificate Utility started (Logging to " + log_fname + ")\n")
-    
+
         data_dict, config = developer_cert_config_file_parser(config_fname, log_file)
         if data_dict == None:
             log_file.close()
-            exit(1) 
-    
-        DLLHandle = LoadDLLGetHandle()        
-        
+            sys.exit(1)
+
+        DLLHandle = LoadDLLGetHandle()
+
         certStrBin = str()
         dataToSign = str()
-                
-        print_and_log(log_file, "**** Generate debug certificate ****\n")        
-    
-    
-        # read the enabler certificate from file to str to get the enabler cert + get its length       
+
+        print_and_log(log_file, "**** Generate debug certificate ****\n")
+
+
+        # read the enabler certificate from file to str to get the enabler cert + get its length
         enablerCertBin = GetDataFromBinFile(log_file, data_dict['enabler_cert_pkg'])
         certStrBin = byte2string(enablerCertBin)
-    
+
         # create certificate header , get bin str and the header str
-        # build header  
+        # build header
         dataToSign = build_certificate_header (DEBUG_DEVELOPER_TOKEN, PrjDefines, LIST_OF_CONF_PARAMS, 0, 0, 0)
-    
+
         # get the developer certificate public key + Np
         developerNPublicKey = GetRSAKeyParams(log_file, data_dict['cert_keypair'], data_dict['cert_keypair_pwd'], DLLHandle)
-        dataToSign = dataToSign + developerNPublicKey.VarsToBinString()        
-    
+        dataToSign = dataToSign + developerNPublicKey.VarsToBinString()
+
         # add mask
         dataToSign = dataToSign + byte2string(struct.pack('<I', data_dict['debug_mask0']))
         dataToSign = dataToSign + byte2string(struct.pack('<I', data_dict['debug_mask1']))
         dataToSign = dataToSign + byte2string(struct.pack('<I', data_dict['debug_mask2']))
         dataToSign = dataToSign + byte2string(struct.pack('<I', data_dict['debug_mask3']))
-    
-        # add soc_id                
+
+        # add soc_id
         socIdBin = GetDataFromBinFile(log_file, data_dict['soc_id'])
         if (len(socIdBin) != SOC_ID_SIZE_IN_BYTES):
             print_and_log(log_file, "Illegal soc ID size")
-            raise 
-        
+            raise
+
         dataToSign = dataToSign + byte2string(socIdBin)
-    
+
         # Sign on certificate
         Signature = GetRSASignature(log_file, dataToSign, data_dict['cert_keypair'], data_dict['cert_keypair_pwd'], DLLHandle)
         certStrBin = certStrBin + dataToSign + Signature.VarsToBinString()
-    
+
         # add signature and write to binary file
         CreateCertBinFile(log_file, certStrBin, data_dict['cert_pkg'])
 
         print_and_log(log_file, "\n**** Certificate file creation has been completed successfully ****")
-      
-        
-    except IOError as Error8: 
-        (errno, strerror) = Error8.args 
+
+
+    except IOError as Error8:
+        (errno, strerror) = Error8.args
         print_and_log(log_file, "I/O error(%s): %s" % (errno, strerror))
         raise
     except NameError:
@@ -136,13 +136,13 @@ def CreateCertUtility(sysArgsList):
 ##################################
 #       Main function
 ##################################
-        
+
 if __name__ == "__main__":
 
     import sys
     if sys.version_info<(3,0,0):
         print("You need python 3.0 or later to run this script")
-        exit(1)
+        sys.exit(1)
 
     if "-cfg_file" in sys.argv:
         PROJ_CONFIG = sys.argv[sys.argv.index("-cfg_file") + 1]
@@ -150,13 +150,13 @@ if __name__ == "__main__":
 
     # Get the project configuration values
     PrjDefines = parseConfFile(PROJ_CONFIG,LIST_OF_CONF_PARAMS)
-    
+
     CreateCertUtility(sys.argv)
 
 
 
 
-    
+
 
 
 

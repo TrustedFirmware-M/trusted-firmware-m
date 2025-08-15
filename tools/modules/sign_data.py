@@ -6,6 +6,8 @@
 #
 #-------------------------------------------------------------------------------
 
+import sys
+
 from cryptography.hazmat.primitives.asymmetric import utils, ec
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, Encoding, PublicFormat
@@ -73,7 +75,7 @@ def _sign_ecdsa(data : bytes,
 
     if dsr_output_file:
         dsr_output_file.write(data_hash)
-        exit(0)
+        sys.exit(0)
 
     asn1_sig = priv_key.sign(data_hash, ec.ECDSA(utils.Prehashed(hash_alg())))
 
@@ -86,7 +88,7 @@ def _sign_lms(data : bytes,
               ) -> bytes:
     if dsr_output_file:
         dsr_output_file.write(data)
-        exit(0)
+        sys.exit(0)
 
     priv_key = pyhsslms.HssLmsPrivateKey(key[:-4])
     logger.info("Signing with LMS key {}".format(key))
@@ -164,4 +166,4 @@ def main():
     print(sign_data(**config).hex())
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

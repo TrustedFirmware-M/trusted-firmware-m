@@ -10,6 +10,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 import argparse
 import secrets
+import sys
 
 from tfm_tools.arg_utils import *
 from tfm_tools import key_derivation
@@ -105,4 +106,4 @@ script_description = """
 Encrypt some data
 """
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

@@ -555,7 +555,7 @@ if __name__ == "__main__":
         if "_RX_" in args.command:
             command = dcsu_rx_command[args.command]
             logger.info(f"res: {hex(dcsu_command(backend, ctx, command, args))}")
-            exit(0)
+            sys.exit(0)
         else:
             command = dcsu_tx_command[args.command]
             match dcsu_command(backend, ctx, command, args):
@@ -563,6 +563,6 @@ if __name__ == "__main__":
                     logger.info(f"res {output}: {data.hex() if data is not None else data}")
                 case output:
                     logger.info(f"res {output}")
-            exit(0 if output == dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS else output.value)
+            sys.exit(0 if output == dcsu_tx_message_error.DCSU_TX_MSG_RESP_SUCCESS else output.value)
     except KeyboardInterrupt:
-        exit(1)
+        sys.exit(1)

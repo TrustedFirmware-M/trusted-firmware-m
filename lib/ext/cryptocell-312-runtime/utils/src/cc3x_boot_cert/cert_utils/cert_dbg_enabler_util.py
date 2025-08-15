@@ -14,18 +14,18 @@
 #                       certifiacte PubKey (pub key + Np)
 #                       debug Mask(4 words)
 #                       debug lock(4 words)
-#                       sha256 of devPubKey 
+#                       sha256 of devPubKey
 #                       certSign
 
 import configparser
 import sys
-import os 
+import os
 
 
 # Definitions for paths
 #######################
 if sys.platform != "win32" :
-    path_div = "//"    
+    path_div = "//"
 else : #platform = win32
     path_div = "\\"
 
@@ -65,67 +65,67 @@ def parse_shell_arguments ():
     return config_fname, log_fname
 
 def CreateCertUtility(sysArgsList):
-    try:          
+    try:
 
         config_fname, log_fname = parse_shell_arguments()
         log_file = create_log_file(log_fname)
         print_and_log(log_file, str(datetime.now()) + ": Enabler Debug Certificate Utility started (Logging to " + log_fname + ")\n")
-    
-        
+
+
         data_dict, config = enabler_cert_config_file_parser(config_fname, log_file)
         if data_dict == None:
             log_file.close()
-            exit(1) 
-            
-        DLLHandle = LoadDLLGetHandle()        
-    
+            sys.exit(1)
+
+        DLLHandle = LoadDLLGetHandle()
+
         certStrBin = str()
         dataToSign = str()
         if data_dict['key_cert_pkg'] != '':
             isKeyExist = 1
         else:
             isKeyExist = 0
-        print_and_log(log_file, "**** Generate debug certificate ****\n")        
-        # if key package exists need to insert it into the enabler certificate 
+        print_and_log(log_file, "**** Generate debug certificate ****\n")
+        # if key package exists need to insert it into the enabler certificate
         if data_dict['key_cert_pkg'] != "":
             keyStr = GetDataFromBinFile(log_file, data_dict['key_cert_pkg'])
             certStrBin = byte2string(keyStr)
-    
+
         # create certificate header , get bin str and the header str
         dataToSign = build_certificate_header (DEBUG_ENABLER_TOKEN, PrjDefines, LIST_OF_CONF_PARAMS, data_dict['rma_mode'], data_dict['hbk_id'], data_dict['lcs'])
-        
+
         # get the enabler certificate public key + Np
         enablerNPublicKey = GetRSAKeyParams(log_file, data_dict['cert_keypair'], data_dict['cert_keypair_pwd'], DLLHandle)
-        dataToSign = dataToSign + enablerNPublicKey.VarsToBinString()        
-    
+        dataToSign = dataToSign + enablerNPublicKey.VarsToBinString()
+
         # add mask
         dataToSign = dataToSign + byte2string(struct.pack('<I', data_dict['debug_mask0']))
         dataToSign = dataToSign + byte2string(struct.pack('<I', data_dict['debug_mask1']))
         dataToSign = dataToSign + byte2string(struct.pack('<I', data_dict['debug_mask2']))
         dataToSign = dataToSign + byte2string(struct.pack('<I', data_dict['debug_mask3']))
-    
+
         # add lock
         dataToSign = dataToSign + byte2string(struct.pack('<I', data_dict['debug_lock0']))
         dataToSign = dataToSign + byte2string(struct.pack('<I', data_dict['debug_lock1']))
         dataToSign = dataToSign + byte2string(struct.pack('<I', data_dict['debug_lock2']))
         dataToSign = dataToSign + byte2string(struct.pack('<I', data_dict['debug_lock3']))
-    
+
         # get developer certificate public key + Np (from public key)
         HashBootKey = GetPubKeyHash(log_file, data_dict['next_cert_pubkey'], DLLHandle);
         dataToSign = dataToSign + HashBootKey.VarsToBinString()
-    
+
         # Sign on certificate
         Signature = GetRSASignature(log_file, dataToSign, data_dict['cert_keypair'], data_dict['cert_keypair_pwd'], DLLHandle)
-    
+
         certStrBin = certStrBin + dataToSign + Signature.VarsToBinString()
-    
+
         # add signature and write to binary file
         CreateCertBinFile(log_file, certStrBin, data_dict['cert_pkg'])
-    
+
         print_and_log(log_file, "\n**** Certificate file creation has been completed successfully ****")
-         
-    except IOError as Error8: 
-        (errno, strerror) = Error8.args 
+
+    except IOError as Error8:
+        (errno, strerror) = Error8.args
         print_and_log(log_file, "I/O error(%s): %s" % (errno, strerror))
         raise
     except NameError:
@@ -139,13 +139,13 @@ def CreateCertUtility(sysArgsList):
 ##################################
 #       Main function
 ##################################
-        
+
 if __name__ == "__main__":
 
     import sys
     if sys.version_info<(3,0,0):
         print("You need python 3.0 or later to run this script")
-        exit(1)
+        sys.exit(1)
 
     if "-cfg_file" in sys.argv:
         PROJ_CONFIG = sys.argv[sys.argv.index("-cfg_file") + 1]
@@ -153,13 +153,13 @@ if __name__ == "__main__":
 
     # Get the project configuration values
     PrjDefines = parseConfFile(PROJ_CONFIG,LIST_OF_CONF_PARAMS)
-    
+
     CreateCertUtility(sys.argv)
 
 
 
 
-    
+
 
 
 

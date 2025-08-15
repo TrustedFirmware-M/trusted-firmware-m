@@ -5,6 +5,7 @@
 #
 #-------------------------------------------------------------------------------
 
+import sys
 import argparse
 import struct
 import secrets
@@ -38,7 +39,7 @@ if code_section is not None:
     code = code_section.data()
 else:
     print("provisioning_bundle's code sections is mandatory")
-    exit(1)
+    sys.exit(1)
 
 if rwdata_section is not None:
     rwdata = rwdata_section.data()
@@ -54,7 +55,7 @@ if values_section is not None:
     values = values_section.data()
 else:
     print("provisioning_bundle's values sections is mandatory")
-    exit(1)
+    sys.exit(1)
 
 with open(args.key_file, "rb") as in_file:
     input_key = in_file.read()

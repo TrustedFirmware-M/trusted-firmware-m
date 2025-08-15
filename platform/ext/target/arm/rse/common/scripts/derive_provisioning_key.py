@@ -6,6 +6,7 @@
 #
 #-------------------------------------------------------------------------------
 
+import sys
 import argparse
 
 from tfm_tools.arg_utils import arg_type_bytes, arg_type_bytes_output_file
@@ -26,4 +27,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

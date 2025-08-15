@@ -8,6 +8,7 @@
 
 import re
 import ast
+import sys
 import os
 import operator as op
 import string
@@ -275,7 +276,7 @@ class C_macro():
 
     def _parse_error(self, x):
         print(x)
-        exit(1)
+        sys.exit(1)
 
     def parse_line(self, x):
         conditional_tokens = {
@@ -346,4 +347,4 @@ def main():
     print(s._definitions)
 
 if __name__ == '__main__':
-    exit(main())
+    sys.exit(main())

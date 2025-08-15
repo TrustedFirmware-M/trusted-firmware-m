@@ -6,6 +6,8 @@
 #
 #-------------------------------------------------------------------------------
 
+import sys
+
 import logging
 logger = logging.getLogger("TF-M.{}".format(__name__))
 
@@ -36,4 +38,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

@@ -6,6 +6,7 @@
 #
 #-------------------------------------------------------------------------------
 
+import sys
 import argparse
 
 from tfm_tools import arg_utils
@@ -70,4 +71,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

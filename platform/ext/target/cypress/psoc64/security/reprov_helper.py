@@ -217,10 +217,10 @@ def main(argv):
                    .format(options.policy_file))
         if answer == 'N' or answer == 'n':
             print("Please specify policy as a parameter: `-p <policy>`")
-            exit(1)
+            sys.exit(1)
     if not os.path.isfile(options.policy_file):
         print("Policy file {} doesn't exit.".format(options.policy_file))
-        exit(1)
+        sys.exit(1)
 
     if not options.device:
         options.device = "cy8ckit-064s0s2-4343w"
@@ -228,7 +228,7 @@ def main(argv):
                         .format(options.device))
         if answer == 'N' or answer == 'n':
             print("Please specify device as a parameter: `-d <device>'")
-            exit(1)
+            sys.exit(1)
 
     # Create cysecuretools object
     global cytools
@@ -240,7 +240,7 @@ def main(argv):
                                 .format(cytools.target_name.upper()))
         if not dev_serial_num.isnumeric():
             print('Error: device serial number not number')
-            exit(1)
+            sys.exit(1)
     else:
         dev_serial_num = options.serial_number
 
@@ -276,7 +276,7 @@ def main(argv):
         answer = input('Reprovision the device. Are you sure? (y/N): ')
         if answer is not 'y' and answer is not 'Y':
             print('Reprovision skipped.')
-            exit(1)
+            sys.exit(1)
 
     if create_signing_keys == True:
         print('Creating new signing keys.')
@@ -285,21 +285,21 @@ def main(argv):
     # invalidate SPE image in Flash so it won't run.
     ret = erase_flash(0x10000000, 0x1000)
     if ret != 0:
-        exit(1)
+        sys.exit(1)
 
     ret = read_device_pub_key()
     if ret != 0:
-        exit(1)
+        sys.exit(1)
 
     ret = generate_device_cert(dev_serial_num)
     if ret != 0:
-        exit(1)
+        sys.exit(1)
 
     create_provisioning_packet()
 
     re_provision_device(options.device, options.policy_file)
 
-    exit(0)
+    sys.exit(0)
 
 
 if __name__ == "__main__":

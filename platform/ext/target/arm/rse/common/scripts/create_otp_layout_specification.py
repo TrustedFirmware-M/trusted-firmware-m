@@ -81,4 +81,4 @@ def main():
     args.specification_output_file.writelines(layout_specification)
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

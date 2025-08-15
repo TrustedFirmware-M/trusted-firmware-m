@@ -8,6 +8,7 @@ import argparse
 import logging
 import os
 import re
+import sys
 
 from kconfiglib import Kconfig, TRI_TO_STR, BOOL, TRISTATE
 
@@ -271,7 +272,7 @@ if __name__ == '__main__':
             logging.info(tfm_kconfig.load_config(conf, replace = False))
 
         if not validate_promptless_sym(tfm_kconfig) or not validate_assigned_sym(tfm_kconfig):
-            exit(1)
+            sys.exit(1)
 
     # Change program execution path to the output folder path because menuconfigs do not support
     # writing .config to arbitrary folders.
@@ -291,7 +292,7 @@ if __name__ == '__main__':
         # This could happend when the user did not "Save" the config file when using menuconfig
         # We should abort here in such case.
         logging.error('No .config is saved!')
-        exit(1)
+        sys.exit(1)
 
     # Generate output files if .config has been changed.
     if os.stat(dot_config).st_mtime != mtime_prv:
