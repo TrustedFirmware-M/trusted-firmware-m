@@ -283,7 +283,8 @@ static enum tfm_plat_err_t load_area_info(enum lcm_lcs_t lcs)
     }
 #endif
 
-    /* In CM mode, we don't have these provisioned */
+    /* In CM mode, we don't have these provisioned
+     */
     if (lcs == LCM_LCS_CM) {
         return TFM_PLAT_ERR_SUCCESS;
     }
@@ -300,7 +301,7 @@ static enum tfm_plat_err_t load_area_info(enum lcm_lcs_t lcs)
         rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
         return TFM_PLAT_ERR_OTP_INIT_CM_ZERO_COUNT_ERR;
     }
-#endif /* RSE_OTP_HAS_CM_AREA */
+#endif
 
 #ifdef RSE_OTP_HAS_BL1_2
     bl1_2_area_info = P_RSE_OTP_HEADER->bl1_2_area_info;
@@ -314,7 +315,7 @@ static enum tfm_plat_err_t load_area_info(enum lcm_lcs_t lcs)
         rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
         return TFM_PLAT_ERR_OTP_INIT_BL1_2_ZERO_COUNT_ERR;
     }
-#endif /* RSE_OTP_HAS_BL1_2 */
+#endif
 
 #ifdef RSE_OTP_HAS_SOC_AREA
     err = rse_count_zero_bits((uint8_t *)&soc_area_info, sizeof(soc_area_info), &zero_count);
@@ -326,7 +327,7 @@ static enum tfm_plat_err_t load_area_info(enum lcm_lcs_t lcs)
         rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
         return TFM_PLAT_ERR_OTP_INIT_SOC_ZERO_COUNT_ERR;
     }
-#endif /* RSE_OTP_HAS_SOC_AREA */
+#endif
 
     /* If the DM is setting the size of the DM area then we don't know the size
      * of this (and the dynamic area) during the DM provisioning LCS, so don't
@@ -350,7 +351,7 @@ static enum tfm_plat_err_t load_area_info(enum lcm_lcs_t lcs)
         rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
         return TFM_PLAT_ERR_OTP_INIT_DM_ZERO_COUNT_ERR;
     }
-#endif /* RSE_OTP_HAS_DM_AREA */
+#endif
 
 #ifdef RSE_OTP_HAS_DYNAMIC_AREA
     dynamic_area_info = P_RSE_OTP_HEADER->dynamic_area_info;
@@ -364,7 +365,7 @@ static enum tfm_plat_err_t load_area_info(enum lcm_lcs_t lcs)
         rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
         return TFM_PLAT_ERR_OTP_INIT_DYNAMIC_ZERO_COUNT_ERR;
     }
-#endif /* RSE_OTP_HAS_DYNAMIC_AREA */
+#endif
 
     return TFM_PLAT_ERR_SUCCESS;
 }
@@ -374,7 +375,7 @@ static enum tfm_plat_err_t setup_rotpk_info(enum lcm_lcs_t lcs) {
     uint32_t cm_rotpk_area_index;
     uint32_t dm_rotpk_area_index;
 
-    if (lcs == LCM_LCS_CM || lcs == LCM_LCS_RMA) {
+    if (lcs == LCM_LCS_CM) {
         return TFM_PLAT_ERR_SUCCESS;
     }
 
@@ -764,12 +765,11 @@ static enum tfm_plat_err_t otp_write_lcs(size_t in_len, const uint8_t *in)
 }
 
 #ifdef RSE_OTP_HAS_LFT_COUNTER
-static enum tfm_plat_err_t check_lft_counter(enum lcm_lcs_t lcs)
-{
+static enum tfm_plat_err_t check_lft_counter(enum lcm_lcs_t lcs) {
     enum tfm_plat_err_t plat_err;
     uint32_t counter_value;
 
-    if (lcs == LCM_LCS_CM || lcs == LCM_LCS_RMA) {
+    if (lcs == LCM_LCS_CM) {
         return TFM_PLAT_ERR_SUCCESS;
     }
 
@@ -793,14 +793,9 @@ static enum tfm_plat_err_t check_lft_counter(enum lcm_lcs_t lcs)
 #endif /* RSE_OTP_HAS_LFT_COUNTER */
 
 #ifdef RSE_OTP_HAS_KRTL_USAGE_COUNTER
-static enum tfm_plat_err_t check_krtl_counter(enum lcm_lcs_t lcs)
-{
+static enum tfm_plat_err_t check_krtl_counter(void) {
     enum tfm_plat_err_t plat_err;
     uint32_t counter_value;
-
-    if (lcs == LCM_LCS_RMA) {
-        return TFM_PLAT_ERR_SUCCESS;
-    }
 
     plat_err = get_bit_counter_counter_value((uint32_t *)P_RSE_OTP_HEADER->krtl_usage_counter,
                                              sizeof(P_RSE_OTP_HEADER->krtl_usage_counter),
@@ -815,12 +810,7 @@ static enum tfm_plat_err_t check_krtl_counter(enum lcm_lcs_t lcs)
 }
 #endif /* RSE_OTP_HAS_KRTL_USAGE_COUNTER */
 
-static enum tfm_plat_err_t check_device_status(enum lcm_lcs_t lcs)
-{
-    if (lcs == LCM_LCS_RMA) {
-        return TFM_PLAT_ERR_SUCCESS;
-    }
-
+static enum tfm_plat_err_t check_device_status(void) {
     /* device_status[31:17] if non-zero describes a bricked device */
     if (P_RSE_OTP_HEADER->device_status >> 17 != 0) {
         FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_INVALID_DEVICE_STATUS);
@@ -872,13 +862,13 @@ enum tfm_plat_err_t tfm_plat_otp_init(void)
 #endif
 
 #ifdef RSE_OTP_HAS_KRTL_USAGE_COUNTER
-    err = check_krtl_counter(lcs);
+    err = check_krtl_counter();
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
 #endif
 
-    err = check_device_status(lcs);
+    err = check_device_status();
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
