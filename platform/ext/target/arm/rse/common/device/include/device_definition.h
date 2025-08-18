@@ -175,14 +175,10 @@ extern struct systimer_armv8_m_dev_t SYSTIMER3_ARMV8_M_DEV_S;
 extern struct systimer_armv8_m_dev_t SYSTIMER3_ARMV8_M_DEV_NS;
 #endif
 
-/* System Watchdogs */
-#ifdef SYSWDOG_ARMV8_M_S
-#include "syswdog_armv8-m_drv.h"
-extern struct syswdog_armv8_m_dev_t SYSWDOG_ARMV8_M_DEV_S;
-#endif
-#ifdef SYSWDOG_ARMV8_M_NS
-#include "syswdog_armv8-m_drv.h"
-extern struct syswdog_armv8_m_dev_t SYSWDOG_ARMV8_M_DEV_NS;
+/* Watchdog driver structure */
+#ifdef SLOWCLK_WATCHDOG_S
+#include "arm_watchdog_drv.h"
+extern struct arm_watchdog_dev_t SLOWCLK_WATCHDOG_DEV_S;
 #endif
 
 /* ARM MPC SIE 300 driver structures */

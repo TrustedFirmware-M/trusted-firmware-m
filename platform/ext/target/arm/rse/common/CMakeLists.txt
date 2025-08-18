@@ -205,6 +205,7 @@ target_include_directories(platform_s
         ${PLATFORM_DIR}/ext/target/arm/drivers/kmu
         ${PLATFORM_DIR}/ext/target/arm/drivers/lcm
         ${PLATFORM_DIR}/ext/target/arm/drivers/gpio/pl061
+        ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog
         ./bringup_helpers
         ./cc3xx
         ./runtime/cc3xx
@@ -279,6 +280,7 @@ target_sources(platform_s
         ./rse_soc_uid.c
         ./platform_shared_measurement_data.c
         $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_get_rse_id_from_otp.c>
+        ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog/arm_watchdog_drv.c
 )
 
 target_sources(tfm_sprt
@@ -416,6 +418,7 @@ target_sources(platform_bl2
         ./rse_persistent_data.c
         ./platform_shared_measurement_data.c
         $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_get_rse_id_from_otp.c>
+        ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog/arm_watchdog_drv.c
 )
 
 target_include_directories(platform_bl2
@@ -448,6 +451,7 @@ target_include_directories(platform_bl2
         ${PLATFORM_DIR}/ext/target/arm/drivers/gpio/pl061
         ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/include
         ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/default_config
+        ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog
         ./bringup_helpers
         ./cc3xx
         bl2/cc3xx
@@ -543,6 +547,7 @@ target_sources(platform_bl1_1
         ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m/mpu_armv8m_drv.c
         $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_get_rse_id_from_otp.c>
         $<$<BOOL:${RSE_ENABLE_ROM_SELF_TESTS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_boot_self_tests.c>
+        ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog/arm_watchdog_drv.c
 )
 
 target_compile_definitions(platform_bl1_1
@@ -578,6 +583,7 @@ target_include_directories(platform_bl1_1_interface
         ${PLATFORM_DIR}/ext/target/arm/drivers/gpio/pl061
         ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/include
         ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/default_config
+        ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog
         ./bringup_helpers
         ./cc3xx
         ./bl1/cc3xx
@@ -1112,6 +1118,7 @@ if (TFM_LOAD_NS_IMAGE)
                         ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m/mpu_armv8m_drv.h
                         ${PLATFORM_DIR}/ext/target/arm/drivers/timer/armv8m/systimer_armv8-m_drv.h
                         ${PLATFORM_DIR}/ext/target/arm/drivers/gpio/pl061/gpio_pl061_drv.h
+                        ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog/arm_watchdog_drv.h
             DESTINATION ${INSTALL_PLATFORM_NS_DIR}/native_drivers
     )
 

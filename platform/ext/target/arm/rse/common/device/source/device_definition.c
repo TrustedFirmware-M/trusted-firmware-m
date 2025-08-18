@@ -412,24 +412,32 @@ struct systimer_armv8_m_dev_t SYSTIMER3_ARMV8_M_DEV_NS = {
 };
 #endif
 
-/* System Watchdogs */
-#ifdef SYSWDOG_ARMV8_M_S
-static const struct syswdog_armv8_m_dev_cfg_t
-SYSWDOG_ARMV8_M_DEV_CFG_S = {
-    .base = SYSWDOG_ARMV8_M_CNTRL_BASE_S
+#ifdef SLOWCLK_WATCHDOG_S
+static const struct arm_watchdog_dev_cfg_t SLOWCLK_WATCHDOG_DEV_CFG_S = {
+    .base = SLOWCLK_WDOG_CMSDK_BASE_S
 };
-struct syswdog_armv8_m_dev_t SYSWDOG_ARMV8_M_DEV_S = {
-    &(SYSWDOG_ARMV8_M_DEV_CFG_S)
+static struct arm_watchdog_dev_data_t SLOWCLK_WATCHDOG_DEV_DATA_S = {
+    .state = 0,
+    .timeout = 0
+};
+struct arm_watchdog_dev_t SLOWCLK_WATCHDOG_DEV_S = {
+    .cfg = &(SLOWCLK_WATCHDOG_DEV_CFG_S),
+    .data = &(SLOWCLK_WATCHDOG_DEV_DATA_S)
 };
 #endif
 
-#ifdef SYSWDOG_ARMV8_M_NS
-static const struct syswdog_armv8_m_dev_cfg_t
-SYSWDOG_ARMV8_M_DEV_CFG_NS = {
-    .base = SYSWDOG_ARMV8_M_CNTRL_BASE_NS
+#ifdef SLOWCLK_WATCHDOG_NS
+static const struct arm_watchdog_dev_cfg_t
+SLOWCLK_WATCHDOG_DEV_CFG_NS = {
+    .base = SLOWCLK_WDOG_CMSDK_BASE_NS
 };
-struct syswdog_armv8_m_dev_t SYSWDOG_ARMV8_M_DEV_NS = {
-    &(SYSWDOG_ARMV8_M_DEV_CFG_NS)
+static struct arm_watchdog_dev_data_t SLOWCLK_WATCHDOG_DEV_DATA_NS = {
+    .state = 0,
+    .timeout = 0
+};
+struct arm_watchdog_dev_t SLOWCLK_WATCHDOG_DEV_NS = {
+    .cfg = &(SLOWCLK_WATCHDOG_DEV_CFG_NS),
+    .data = &(SLOWCLK_WATCHDOG_DEV_DATA_NS)
 };
 #endif
 

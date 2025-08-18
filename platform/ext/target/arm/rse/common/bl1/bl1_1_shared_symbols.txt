@@ -160,3 +160,4 @@ sfcp_send_reply
 sfcp_receive_msg
 sfcp_receive_reply
 sfcp_register_trusted_subnet
+SLOWCLK_WATCHDOG_DEV_S

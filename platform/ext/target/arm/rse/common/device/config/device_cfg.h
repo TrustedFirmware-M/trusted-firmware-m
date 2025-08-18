@@ -115,4 +115,7 @@
 #define DMA350_DMA0_CH2_S
 #define DMA350_DMA0_CH3_S
 
+/* Watchdogs */
+#define SLOWCLK_WATCHDOG_S
+
 #endif  /* __DEVICE_CFG_H__ */
