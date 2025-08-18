@@ -63,6 +63,8 @@ enum rse_comms_error_t {
     RSE_COMMS_ERROR_INVALID_MSG_TYPE,
     RSE_COMMS_ERROR_INVALID_SEQUENCE_NUMBER,
     RSE_COMMS_ERROR_INVALID_PACKET_SIZE,
+    RSE_COMMS_ERROR_HANDLER_TABLE_FULL,
+    RSE_COMMS_ERROR_POP_BUFFER_FAILED,
     RSE_COMMS_ERROR_PROTOCOL_ERROR,
     RSE_COMMS_ERROR_HAL_ERROR_BASE,
     RSE_COMMS_ERROR_HAL_ERROR_MAX = RSE_COMMS_ERROR_HAL_ERROR_BASE + 0x100,
@@ -108,6 +110,31 @@ struct rse_comms_msg_metadata_t {
     uint16_t application_id;        /**< Application ID from the original message (or 0). */
     uint8_t seq_num;                /**< Sequence number from the original message. */
 };
+
+/**
+ * \brief Opaque handle for an entry in the internal message/reply buffer.
+ *
+ * \details
+ * A value of this type is passed to handler callbacks and later used with the
+ * *_pop_* functions to retrieve the corresponding packet from the internal
+ * buffer. The concrete encoding is implementation-defined.
+ */
+typedef uint32_t rse_comms_buffer_handle_t;
+
+/**
+ * \brief Prototype for asynchronous handler functions (message or reply).
+ *
+ * \details
+ * The handler is invoked from the IRQ/deferred context with a buffer handle.
+ * The handler typically enqueues the handle and returns quickly; later, the
+ * consumer calls the appropriate *_pop_* routine to copy data out.
+ *
+ * \param[in] buffer_handle  Handle for the buffered packet to process.
+ *
+ * \return RSE_COMMS_ERROR_SUCCESS if the handle was accepted/queued; an error
+ *         code otherwise.
+ */
+typedef enum rse_comms_error_t (*rse_comms_handler_t)(rse_comms_buffer_handle_t buffer_handle);
 
 /**
  * \brief Initializes the RSE communications layer.
@@ -278,6 +305,134 @@ enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size,
 enum rse_comms_error_t rse_comms_receive_reply(uint8_t *buf, size_t buf_size,
                                                struct rse_comms_reply_metadata_t metadata,
                                                uint8_t **payload, size_t *payload_len);
+
+/**
+ * \brief Look up the registered message handler for an Application ID.
+ *
+ * \param[in]  application_id  Application ID to route messages to (0 for the
+ *                             node-wide/default handler).
+ * \param[out] handler         On success, set to the registered handler.
+ *
+ * \return RSE_COMMS_ERROR_SUCCESS on success;
+ *         RSE_COMMS_ERROR_INVALID_APPLICATION_ID if no handler exists;
+ *         other errors as appropriate.
+ */
+enum rse_comms_error_t rse_comms_get_msg_handler(uint16_t application_id,
+                                                 rse_comms_handler_t *handler);
+
+/**
+ * \brief Register (or replace) the message handler for an Application ID.
+ *
+ * \param[in] application_id  Application ID to associate with \p handler
+ *                            (0 for the node-wide/default handler).
+ * \param[in] handler         Callback to invoke when a message for this
+ *                            Application ID is received.
+ *
+ * \return RSE_COMMS_ERROR_SUCCESS on success; an error code otherwise.
+ */
+enum rse_comms_error_t rse_comms_register_msg_handler(uint16_t application_id,
+                                                      rse_comms_handler_t handler);
+
+/**
+ * \brief Copy a buffered Message out of the internal queue (handler mode).
+ *
+ * \details
+ * On success this function:
+ *  - Performs any required decryption, authentication, and access-control checks
+ *    before exposing data to the caller.
+ *  - Copies the plaintext payload into \p payload (if \p payload_len >= size).
+ *  - Fills \p sender, \p client_id, \p needs_reply, and \p metadata so a reply
+ *    can be constructed later.
+ *  - Removes the Message from the internal buffer.
+ *
+ * On failure, the Message MUST NOT be removed from the buffer.
+ *
+ * \param[in]  buffer_handle  Handle previously delivered to a message handler.
+ * \param[out] sender         Set to the Sender node ID.
+ * \param[out] client_id      Set to the Client ID (0 if ID extension not used).
+ * \param[out] needs_reply    Set true if the Message requests a reply.
+ * \param[out] payload        Destination buffer for the plaintext payload
+ *                            (may be NULL if \p payload_len is 0).
+ * \param[in]  payload_len    Size in bytes of \p payload.
+ * \param[out] payload_size   Set to the number of payload bytes available.
+ * \param[out] metadata       Filled with values needed to initialize a reply.
+ *
+ * \return RSE_COMMS_ERROR_SUCCESS on success;
+ *         RSE_COMMS_ERROR_PAYLOAD_TOO_LARGE if \p payload is too small (Message
+ *         is retained internally);
+ *         RSE_COMMS_ERROR_INVALID_PACKET / *_INVALID_* on validation failure
+ *         (Message is retained);
+ *         other errors as appropriate.
+ */
+enum rse_comms_error_t rse_comms_pop_msg_from_buffer(rse_comms_buffer_handle_t buffer_handle,
+                                                     rse_comms_node_id_t *sender,
+                                                     uint16_t *client_id, bool *needs_reply,
+                                                     uint8_t *payload, size_t payload_len,
+                                                     size_t *payload_size,
+                                                     struct rse_comms_msg_metadata_t *metadata);
+
+/**
+ * \brief Look up the registered reply handler for a client identifier.
+ *
+ * \param[in]  client_id  Client identifier used to route replies (0 when the
+ *                        ID extension is not used).
+ * \param[out] handler    On success, set to the registered handler.
+ *
+ * \return RSE_COMMS_ERROR_SUCCESS on success;
+ *         RSE_COMMS_ERROR_INVALID_CLIENT_ID if no handler exists;
+ *         other errors as appropriate.
+ */
+enum rse_comms_error_t rse_comms_get_reply_handler(uint16_t client_id,
+                                                   rse_comms_handler_t *handler);
+
+/**
+ * \brief Register (or replace) the reply handler for an identifier.
+ *
+ * \details
+ * The identifier selects which replies are delivered to \p handler. In systems
+ * using the ID extension this is typically the \b client_id; otherwise it may be
+ * a single global handler registered with identifier 0.
+ *
+ * \param[in] application_id  Identifier used by the implementation to select
+ *                            the reply handler (commonly the client_id).
+ * \param[in] handler         Callback to invoke when a matching reply arrives.
+ *
+ * \return RSE_COMMS_ERROR_SUCCESS on success; an error code otherwise.
+ */
+enum rse_comms_error_t rse_comms_register_reply_handler(uint16_t application_id,
+                                                        rse_comms_handler_t handler);
+
+/**
+ * \brief Copy a buffered Reply out of the internal queue (handler mode).
+ *
+ * \details
+ * On success this function:
+ *  - Performs any required decryption, authentication, and access-control checks
+ *    before exposing data to the caller.
+ *  - Copies the plaintext payload into \p payload (if \p payload_len >= size).
+ *  - Fills \p metadata so the caller can match the Reply to the original Message.
+ *  - Removes the Reply from the internal buffer.
+ *
+ * On failure, the Reply MUST NOT be removed from the buffer.
+ *
+ * \param[in]  buffer_handle  Handle previously delivered to a reply handler.
+ * \param[out] payload        Destination buffer for the plaintext payload
+ *                            (may be NULL if \p payload_len is 0).
+ * \param[in]  payload_len    Size in bytes of \p payload.
+ * \param[out] payload_size   Set to the number of payload bytes available.
+ * \param[out] metadata       Filled with the reply metadata (ids, message_id, flags).
+ *
+ * \return RSE_COMMS_ERROR_SUCCESS on success;
+ *         RSE_COMMS_ERROR_PAYLOAD_TOO_LARGE if \p payload is too small (Reply
+ *         is retained internally);
+ *         RSE_COMMS_ERROR_INVALID_PACKET / *_INVALID_* on validation failure
+ *         (Reply is retained);
+ *         other errors as appropriate.
+ */
+enum rse_comms_error_t rse_comms_pop_reply_from_buffer(rse_comms_buffer_handle_t buffer_handle,
+                                                       uint8_t *payload, size_t payload_len,
+                                                       size_t *payload_size,
+                                                       struct rse_comms_reply_metadata_t *metadata);
 
 #ifdef __cplusplus
 }
