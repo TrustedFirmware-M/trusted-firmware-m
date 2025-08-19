@@ -31,7 +31,7 @@ static inline bool rse_gretreg_flag_is_set(enum rse_gretreg_bit_offset offset)
     return (((struct rse_sysctrl_t *)RSE_SYSCTRL_BASE_S)->gretreg >> offset) & 0b1;
 }
 
-static inline bool rse_gretreg_set_flag(enum rse_gretreg_bit_offset offset)
+static inline void rse_gretreg_set_flag(enum rse_gretreg_bit_offset offset)
 {
     volatile uint32_t *gretreg = &((struct rse_sysctrl_t *)RSE_SYSCTRL_BASE_S)->gretreg;
     *gretreg = *gretreg | (0b1 << offset);
