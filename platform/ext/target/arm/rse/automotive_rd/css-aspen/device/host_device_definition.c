@@ -34,6 +34,11 @@ struct uart_pl011_dev_t UART0_PL011_DEV_NS = {
 #endif /* RSE_USE_HOST_UART */
 
 #ifdef PLATFORM_HOST_HAS_SI_CL0
+const struct ppu_dev_t HOST_SI_SYSTOP_PPU_DEV = {
+    .ppu_base = HOST_SI_PIK_ATU_WINDOW_BASE_S,
+    .cluster_safety_base = NULL,
+};
+
 const struct ppu_dev_t HOST_SI_CL0_CLUS_PPU_DEV = {
     .ppu_base = HOST_SI_CL0_CUB_ATU_WINDOW_BASE_S + 0x10000,
     .cluster_safety_base = HOST_SI_CL0_CUB_ATU_WINDOW_BASE_S + 0x80000,

@@ -19,6 +19,7 @@ extern struct uart_pl011_dev_t UART0_PL011_DEV_NS;
 
 #ifdef PLATFORM_HOST_HAS_SI_CL0
 #include "ppu_drv.h"
+extern const struct ppu_dev_t HOST_SI_SYSTOP_PPU_DEV;
 extern const struct ppu_dev_t HOST_SI_CL0_CLUS_PPU_DEV;
 extern const struct ppu_dev_t HOST_SI_CL0_CORE0_PPU_DEV;
 #endif /* PLATFORM_HOST_HAS_SI_CL0 */
