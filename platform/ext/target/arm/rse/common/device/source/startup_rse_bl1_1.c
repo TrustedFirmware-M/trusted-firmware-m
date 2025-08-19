@@ -321,7 +321,7 @@ static inline void __attribute__ ((always_inline)) erase_vm0_and_vm1(void)
     dma_channel_amount = (*((volatile uint32_t *)(DMA_350_BASE_S + 0xfb0)) >> 4 & 0xF) + 1;
 
     /* Start the VM erase in the background */
-    for (register uint32_t idx __asm("r2"); idx < dma_channel_amount; idx++) {
+    for (register uint32_t idx __asm("r2") = 0; idx < dma_channel_amount; idx++) {
         *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x038) = 0x00000000;
         *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x02c) = 0x000F0044;
         *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x018) =
