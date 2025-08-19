@@ -74,7 +74,7 @@ def main():
     blob_type = kwargs['provisioning_message_config'].RSE_PROVISIONING_BLOB_TYPE_SINGLE_LCS_PROVISIONING
 
     with open(args.bundle_output_file, "wb") as f:
-        message = create_blob_message(blob_type=blob_type, **kwargs)
+        message = pmc.create_blob_message(blob_type=blob_type, **kwargs)
         f.write(message)
 
 
