@@ -166,7 +166,7 @@ static void copy_rom_library_into_sram(void)
     uint32_t got_entry;
     const size_t code_size = (size_t)&__bl1_1_text_size;
 
-    if (code_size > VM1_SIZE) {
+    if (code_size > (VM1_SIZE - RETAINED_RAM_SIZE)) {
         FIH_PANIC;
     }
 
