@@ -309,9 +309,9 @@ static inline void __attribute__ ((always_inline)) erase_vm0_and_vm1(void)
 
     if ((*(volatile uint32_t *)(RSE_SYSCTRL_BASE_S + 0x10c) >>
          RSE_GRETREG_BIT_OFFSET_PERSISTENT_DATA_VALID) & 0b1) {
-        vm_erase_size = ((VM0_SIZE + VM1_SIZE) / sizeof(uint64_t));
+        vm_erase_size = (VM0_SIZE + VM1_SIZE - RETAINED_RAM_SIZE);
     } else {
-        vm_erase_size = ((VM0_SIZE + VM1_SIZE - RETAINED_RAM_SIZE) / sizeof(uint64_t));
+        vm_erase_size = (VM0_SIZE + VM1_SIZE);
     }
 
     if (vm_erase_size == 0) {
