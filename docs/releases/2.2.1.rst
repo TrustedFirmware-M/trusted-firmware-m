@@ -1,0 +1,29 @@
+*************
+Version 2.2.1
+*************
+
+LTS Support
+===========
+
+  - Build: Add optimisation flag build option
+  - Adjustments to use MCUboot 2.2.0
+  - FWU: check the TLV payload length sanity
+  - Fix zero-initialization of BSS section
+  - platform: stm: fix syntax error for rsa 2048 key otp provisioning
+  - Mbed TLS upgrade to v3.6.4.
+  - secure_fw: partitions: crypto: Add missing psa apis to crypto_spe.h
+  - nrf: Add memory service header in common folder
+  - Crypto: Add psa_can_do_cipher()
+
+New security advisories
+=======================
+
+A new security vulnerability has been fixed in v2.2.1.
+Refer to :doc:`TFMV-9 </security/security_advisories/fwu_tlv_payload_out_of_bounds_vulnerability>` for more details.
+The mitigation is included in this release.
+
+--------------
+
+ *SPDX-License-Identifier: BSD-3-Clause*
+
+ *SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
