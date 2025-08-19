@@ -1,0 +1,31 @@
+*************
+Version 2.1.3
+*************
+
+LTS Support
+===========
+
+ - Cherry-picks for vulnerability and critical bugs fixed in MCUboot v2.2.0
+ - FWU: check the TLV payload length sanity
+ - internal_trusted_storage: allow tfm_its_get_plain to be compiled
+ - platform: adi: max32657: Adding ITS Encryption support for upsteam TF-M
+ - platform: stm: fix syntax error for rsa 2048 key otp provisioning
+ - Upgrade to MbedTLS v3.6.4-LTS, which carries fixes from v3.6.3.
+ - secure_fw: partitions: crypto: Add missing psa apis to crypto_spe.h
+ - mcuboot: Fix SWAP_USING_MOVE FWU method
+ - platform: adi: fix flash driver, enable PS, mbedtls TRNG, s_ns_access.cmake
+ - STM : fix build when BL2 is disable
+ - Crypto: Add psa_can_do_cipher()
+
+New security advisories
+=======================
+
+A new security vulnerability has been fixed in v2.1.3.
+Refer to :doc:`TFMV-9 </security/security_advisories/fwu_tlv_payload_out_of_bounds_vulnerability>` for more details.
+The mitigation is included in this release.
+
+--------------
+
+ *SPDX-License-Identifier: BSD-3-Clause*
+
+ *SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
