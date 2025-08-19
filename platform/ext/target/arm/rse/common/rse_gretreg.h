@@ -18,7 +18,11 @@ extern "C" {
 #endif
 
 enum rse_gretreg_bit_offset {
-    RSE_GRETREG_BIT_OFFSET_PERSISTENT_DATA_VALID = 0,
+    /* Reserved for legacy use releasing SCP, will be reused once tc3 and kronos
+     * are deprecated.
+     */
+    _RSE_GRETREG_BIT_OFFSET_RESERVED = 0,
+    RSE_GRETREG_BIT_OFFSET_PERSISTENT_DATA_VALID = 1,
 #ifdef RSE_SUBPLATFORM_GRETREG_BITS
     _RSE_GRETREG_BITS_MAX = _RSE_GRETREG_BITS_SUBPLATFORM_MAX,
 #else
