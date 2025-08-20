@@ -56,6 +56,10 @@
 #define OID_AUTHORITY_KEY               { 0x55, 0x1D, 0x23 } /* 2.5.29.35 (authorityKeyIdentifier) */
 #define OID_BASIC_CONSTRAINTS           { 0x55, 0x1D, 0x13 } /* 2.5.29.19 (basicConstraints) */
 
+/* Boolean values */
+#define BOOLEAN_TRUE                    (0xFF)
+#define BOOLEAN_FALSE                   (0x00)
+
 /* ECDSA-384 definitions */
 #define ECDSA_384_SIGNATURE_R_PART_SIZE     (48)
 #define ECDSA_384_SIGNATURE_S_PART_SIZE     (48)
@@ -71,7 +75,7 @@
 
 /* IAK certificate definitions - can be safely tweaked if required */
 #define ISSUER_ORGANISATION_NAME                        "Arm"
-#define ISSUER_COMMON_NAME                              "Endorsement CA"
+#define ISSUER_COMMON_NAME                              "Arm Endorsement Sub CA"
 
 #define VALIDITY_VALUE_NOT_BEFORE                       "700101000000Z"
 #define VALIDITY_VALUE_NOT_AFTER                        "99991231235959Z"
@@ -84,7 +88,9 @@
 /* Serial number field is encoded as
  * 0x01 | SOC_INFO_REG (4 bytes) | SoC UID (12 bytes) */
 #define SERIAL_NUMBER_LENGTH                            (17)
-#define SERIAL_NUMBER_HEX_ENCODED_LENGTH                (SERIAL_NUMBER_LENGTH * 2)
+
+/* Hex encoded serial number drops the 0x01 */
+#define SERIAL_NUMBER_HEX_ENCODED_LENGTH                ((SERIAL_NUMBER_LENGTH - 1) * 2)
 
 #define ENDORSEMENT_CERT_SKI_HEX_ENCODED_LENGTH \
     (ENDORSEMENT_CERT_SKI_LENGTH * 2)
@@ -313,6 +319,7 @@ struct extension_data_bool_s {
 struct key_usage_extension_s {
     struct tl_small_s tag_length;
     struct oid_3_bytes_s key_usage;
+    struct extension_data_bool_s critical;
     struct tl_small_s digital_sig_octet_string;
     struct tl_small_s digital_sig_bit_string;
     uint8_t digital_sig_unused_bits;
@@ -570,6 +577,10 @@ static struct x509_v3_cert_s iak_endorsement_certificate = {
                     TL_SMALL_DEFINE(ASN1_OBJECT_IDENTIFIER, struct oid_3_bytes_s, tag_length),
                     .data = OID_KEY_USAGE
                 },
+                .critical = {
+                    TL_SMALL_DEFINE(ASN1_BOOLEAN, struct extension_data_bool_s, tag_length),
+                    .data = BOOLEAN_TRUE
+                },
                 TL_SMALL_DEFINE(ASN1_OCTET_STRING, struct key_usage_extension_s, digital_sig_octet_string),
                 TL_SMALL_DEFINE(ASN1_BIT_STRING, struct key_usage_extension_s, digital_sig_bit_string),
                 .digital_sig_unused_bits = EXTENSION_VALUE_DIGITAL_SIGNATURE_UNUSED_BITS,
@@ -731,7 +742,10 @@ enum tfm_plat_err_t rse_asn1_iak_endorsement_cert_generate(
     *serial_num_ptr++ = (dynamic_params->soc_info_reg_val >> 8) & 0xFF;
     *serial_num_ptr++ = dynamic_params->soc_info_reg_val & 0xFF;
 
-    memcpy(serial_num_ptr, dynamic_params->soc_uid, dynamic_params->soc_uid_size);
+    /* Need to convert whole 12 byte SoC UID to big endian */
+    for (size_t i = 0; i < dynamic_params->soc_uid_size; i++) {
+        *serial_num_ptr++ = dynamic_params->soc_uid[dynamic_params->soc_uid_size - i - 1];
+    }
 
     /* 0x04 | X | Y */
     cert->tbs_certificate.key_info.key[0] = 0x04;
@@ -748,7 +762,8 @@ enum tfm_plat_err_t rse_asn1_iak_endorsement_cert_generate(
         cert->tbs_certificate.subject.hex_encoded_serial_number.hex_encoded_serial_number.data,
         sizeof(
             cert->tbs_certificate.subject.hex_encoded_serial_number.hex_encoded_serial_number.data),
-        cert->tbs_certificate.serial_number.data, sizeof(cert->tbs_certificate.serial_number.data));
+        cert->tbs_certificate.serial_number.data + 1,
+        sizeof(cert->tbs_certificate.serial_number.data) - 1);
 
     /* Write overall sequence */
     cert->sequence_certificate_tag = (struct tl_large_s)TL_LARGE_INITIALISER_SIZE(
