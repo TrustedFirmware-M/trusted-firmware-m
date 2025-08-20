@@ -78,7 +78,10 @@ endif()
 # A module (BL1, BL2, CP) specific addional compiler and linker optoins
 
 set(BL1_COMPILER_CP_FLAG -mfloat-abi=soft -mfpu=none)
+set(BL1_LINKER_CP_OPTION -mfpu=none)
+
 set(BL2_COMPILER_CP_FLAG -mfloat-abi=soft -mfpu=none)
+set(BL2_LINKER_CP_OPTION -mfpu=none)
 
 if (CONFIG_TFM_FLOAT_ABI STREQUAL "hard")
     set(COMPILER_CP_FLAG -mfloat-abi=hard)
@@ -92,10 +95,10 @@ endif()
 set(LINKER_CP_OPTION -lclang_rt.builtins -nostdlib)
 
 if (CMAKE_C_COMPILER_VERSION VERSION_LESS 20.0.0)
-   set(BL1_LINKER_CP_OPTION -lcrt0 -ldummyhost)
-   set(BL2_LINKER_CP_OPTION -lcrt0 -ldummyhost)
+   set(BL1_LINKER_CP_OPTION -lcrt0 -ldummyhost APPEND)
+   set(BL2_LINKER_CP_OPTION -lcrt0 -ldummyhost APPEND)
 else()
-   set(BL1_LINKER_CP_OPTION -ldummyhost)
+   set(BL1_LINKER_CP_OPTION -ldummyhost APPEND)
 endif()
 
 if(CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0.0)
