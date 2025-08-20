@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -28,12 +28,14 @@
 #include "tfm_platform_api.h"
 #endif /* TFM_PARTITION_PLATFORM */
 
-enum tfm_plat_err_t comms_permissions_memory_check(void *owner,
+#define AP_MONITOR_NODE_ID (2)
+
+enum tfm_plat_err_t comms_permissions_memory_check(rse_comms_node_id_t node_id,
                                                    uint64_t host_ptr,
                                                    uint32_t size,
                                                    bool is_write)
 {
-    if ((uintptr_t)owner == (uintptr_t)&MHU_RSE_TO_AP_MONITOR_DEV) {
+    if (node_id == AP_MONITOR_NODE_ID) {
         /* Is fully within the Secure ROM and is a read */
         if (host_ptr >= 0x0 && host_ptr + size < 0x80000 && !is_write) {
             return TFM_PLAT_ERR_SUCCESS;

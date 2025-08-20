@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -64,12 +64,14 @@ static void counter_check(void) {
  * The owner must be an MHU device on the platform. Different shared memory
  * space is used for different MHU device.
  */
-enum tfm_plat_err_t comms_permissions_memory_check(void *owner,
+#define AP_S_NODE_ID (3)
+
+enum tfm_plat_err_t comms_permissions_memory_check(rse_comms_node_id_t node_id,
                                                    uint64_t host_ptr,
                                                    uint32_t size,
                                                    bool is_write)
 {
-    if ((uintptr_t)owner == (uintptr_t)&MHU_RSE_TO_AP_S_DEV) {
+    if (node_id == AP_S_NODE_ID) {
         /* Is fully within the AP Shared SRAM? */
         if (host_ptr >= HOST_AP_SHARED_SRAM_PHYS_BASE &&
             size <= (HOST_AP_SHARED_SRAM_PHYS_LIMIT -

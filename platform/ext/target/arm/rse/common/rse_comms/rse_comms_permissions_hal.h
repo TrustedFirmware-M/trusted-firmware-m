@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -11,6 +11,7 @@
 #include "psa/client.h"
 #include "tfm_plat_defs.h"
 #include "rse_comms_atu_hal.h"
+#include "rse_comms_link_defs.h"
 #include "stdbool.h"
 
 #ifdef __cplusplus
@@ -32,7 +33,7 @@ extern "C" {
  * \retval Other return code     Caller does not have permission, or an error
  *                               occurred.
  */
-enum tfm_plat_err_t comms_permissions_memory_check(void *owner,
+enum tfm_plat_err_t comms_permissions_memory_check(rse_comms_node_id_t node_id,
                                                    uint64_t host_ptr,
                                                    uint32_t size,
                                                    bool is_write);
