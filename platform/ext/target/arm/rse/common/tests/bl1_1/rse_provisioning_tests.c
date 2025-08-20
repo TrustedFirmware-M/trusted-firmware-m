@@ -565,11 +565,9 @@ void rse_bl1_provisioning_test_0001(struct test_result_t *ret)
     for (int encryption_idx = 0; encryption_idx < ARRAY_SIZE(code_data_encrypted);
          encryption_idx++) {
         for (int signature_idx = 0; signature_idx < ARRAY_SIZE(signature_config); signature_idx++) {
-            TEST_LOG(" > signature validation test %s %s: ",
+            TEST_LOG(" > signature validation test %s %s:\r\n",
                      signature_config[signature_idx] ==
-                             RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE ?
-                         "AES" :
-                         "ECDSA",
+                             RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE ? "AES" : "ECDSA",
                      code_data_encrypted[encryption_idx] ? "encrypted" : "not encrypted");
 
             TEST_SETUP(init_test_image_sign_random_key(test_blob, &ecdsa_public_key_data,
@@ -582,9 +580,7 @@ void rse_bl1_provisioning_test_0001(struct test_result_t *ret)
                 PROVISIONING_BUNDLE_DATA_SIZE, (void *)PROVISIONING_BUNDLE_VALUES_START,
                 PROVISIONING_BUNDLE_VALUES_SIZE, setup_provisioning_aes_key, get_global_public_key);
 
-            TEST_LOG("\r");
-
-            TEST_ASSERT(plat_err == TFM_PLAT_ERR_SUCCESS, "\nSignature validation failed");
+            TEST_ASSERT(plat_err == TFM_PLAT_ERR_SUCCESS, "Signature validation failed\r\n");
 
             TEST_TEARDOWN(test_teardown(RSE_KMU_SLOT_PROVISIONING_KEY, test_blob));
         }
@@ -627,11 +623,9 @@ void rse_bl1_provisioning_test_0002(struct test_result_t *ret)
 
             *(uint32_t *)corruption_ptrs[idx] ^= 0xDEADBEEF;
 
-            TEST_LOG(" > %s signature: testing corruption at offset %d (%d of %d): ",
+            TEST_LOG(" > %s signature: testing corruption at offset %d (%d of %d):\r\n",
                      signature_config[signature_idx] ==
-                             RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE ?
-                         "AES" :
-                         "ECDSA",
+                             RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE ? "AES" : "ECDSA",
                      (uintptr_t)corruption_ptrs[idx] - (uintptr_t)&test_blob, idx + 1,
                      ARRAY_SIZE(corruption_ptrs));
 
@@ -641,10 +635,8 @@ void rse_bl1_provisioning_test_0002(struct test_result_t *ret)
                 PROVISIONING_BUNDLE_DATA_SIZE, (void *)PROVISIONING_BUNDLE_VALUES_START,
                 PROVISIONING_BUNDLE_VALUES_SIZE, setup_provisioning_aes_key, get_global_public_key);
 
-            TEST_LOG("\r");
-
             TEST_ASSERT(plat_err != TFM_PLAT_ERR_SUCCESS,
-                        "\nSignature validation succeeded when it should have failed");
+                        "Signature validation succeeded when it should have failed\r\n");
 
             TEST_TEARDOWN(test_teardown(RSE_KMU_SLOT_PROVISIONING_KEY, test_blob));
         }
@@ -693,7 +685,7 @@ void rse_bl1_provisioning_test_0003(struct test_result_t *ret)
         test_blob, NULL, RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE, 32, 32, 32, false, true));
 
     for (int idx = 0; idx < ARRAY_SIZE(invalid_kmu_keys); idx++) {
-        TEST_LOG(" > testing invalid key %d (%d of %d): ", invalid_kmu_keys[idx], idx + 1,
+        TEST_LOG(" > testing invalid key %d (%d of %d):\r\n", invalid_kmu_keys[idx], idx + 1,
                  ARRAY_SIZE(invalid_kmu_keys));
 
         plat_err = validate_and_unpack_blob(
@@ -702,10 +694,8 @@ void rse_bl1_provisioning_test_0003(struct test_result_t *ret)
             PROVISIONING_BUNDLE_DATA_SIZE, (void *)PROVISIONING_BUNDLE_VALUES_START,
             PROVISIONING_BUNDLE_VALUES_SIZE, setup_invalid_aes_key, NULL);
 
-        TEST_LOG("\r");
-
         TEST_ASSERT(plat_err == (enum tfm_plat_err_t)CC3XX_ERR_KEY_IMPORT_FAILED,
-                    "\nKey loading succeeded when it should have failed");
+                    "Key loading succeeded when it should have failed\r\n");
 
         TEST_TEARDOWN(test_teardown(invalid_kmu_keys[idx], NULL));
     }
@@ -750,7 +740,7 @@ void rse_bl1_provisioning_test_0004(struct test_result_t *ret)
                                                32, false, true));
 
     for (int idx = 0; idx < ARRAY_SIZE(invalid_ecdsa_keys); idx++) {
-        TEST_LOG(" > testing invalid key %d (%d of %d): ", invalid_ecdsa_keys[idx], idx + 1,
+        TEST_LOG(" > testing invalid key %d (%d of %d):\r\n", invalid_ecdsa_keys[idx], idx + 1,
                  ARRAY_SIZE(invalid_ecdsa_keys));
 
         plat_err = validate_and_unpack_blob(
@@ -759,10 +749,8 @@ void rse_bl1_provisioning_test_0004(struct test_result_t *ret)
             PROVISIONING_BUNDLE_DATA_SIZE, (void *)PROVISIONING_BUNDLE_VALUES_START,
             PROVISIONING_BUNDLE_VALUES_SIZE, setup_provisioning_aes_key, get_invalid_public_key);
 
-        TEST_LOG("\r");
-
         TEST_ASSERT(plat_err == (enum tfm_plat_err_t)CC3XX_ERR_ECDSA_SIGNATURE_INVALID,
-                    "\nSignature check succeeded when it should have failed");
+                    "Signature check succeeded when it should have failed\r\n");
     }
 
     TEST_TEARDOWN(test_teardown(RSE_KMU_SLOT_PROVISIONING_KEY, test_blob));
@@ -1076,15 +1064,11 @@ static void provisioning_test_complete_valid_blob(
         for (int encryption_idx = 0; encryption_idx < ARRAY_SIZE(code_data_encrypted);
              encryption_idx++) {
             for (int signature_idx = 0; signature_idx < signature_config_size; signature_idx++) {
-                TEST_LOG(" > provisioning blob test %s %s %s payload 0x%x: ",
+                TEST_LOG(" > provisioning blob test %s %s %s payload 0x%x:\r\n",
                          signature_config[signature_idx] ==
-                                 RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE ?
-                             "AES" :
-                             "ECDSA",
+                                 RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE ? "AES" : "ECDSA",
                          signature_config[signature_idx] ==
-                                 RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM ?
-                             "in blob" :
-                             "",
+                                 RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM ? "in blob" : "",
                          code_data_encrypted[encryption_idx] ? "encrypted" : "not encrypted",
                          test_payload_return_values[test_payload_idx]);
 
@@ -1095,10 +1079,8 @@ static void provisioning_test_complete_valid_blob(
 
                 plat_err = provision_blob(test_blob);
 
-                TEST_LOG("\r");
-
                 TEST_ASSERT(plat_err == test_payload_return_values[test_payload_idx],
-                            "\nProvisioning should return with the value the blob returns");
+                            "Provisioning should return with the value the blob returns\r\n");
 
                 TEST_TEARDOWN(test_teardown(RSE_KMU_SLOT_PROVISIONING_KEY, test_blob));
             }
