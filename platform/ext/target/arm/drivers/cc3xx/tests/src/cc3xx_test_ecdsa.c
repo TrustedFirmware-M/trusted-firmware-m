@@ -3311,18 +3311,25 @@ int cc3xx_test_ecdsa_verify(cc3xx_ecdsa_validate_test_data_t *data)
 
     cc3xx_lowlevel_hash_finish(hash, hash_len);
 
+    enable_cycle_counter();
+    reset_cycle_count();
+
+    uint32_t cyccnt_start = get_cycle_count();
     err = cc3xx_lowlevel_ecdsa_verify(data->curve_id,
                              (const uint32_t *)data->Qx, data->Qx_len,
                              (const uint32_t *)data->Qy, data->Qy_len,
                              hash, hash_len,
                              (const uint32_t *)data->R, data->R_len,
                              (const uint32_t *)data->S, data->S_len);
+    uint32_t cyccnt_end = get_cycle_count();
 
     if (err == CC3XX_ERR_EC_CURVE_NOT_SUPPORTED) {
         rc = 0;
         goto cleanup;
     }
     cc3xx_test_assert((err == CC3XX_ERR_SUCCESS) == data->expected);
+
+    TEST_LOG("\t%d cycles\r\n", cyccnt_end - cyccnt_start);
 
     rc = 0;
 cleanup:
