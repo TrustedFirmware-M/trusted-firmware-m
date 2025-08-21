@@ -25,6 +25,7 @@ enum tfm_plat_err_t {
     TFM_PLAT_ERR_INVALID_INPUT = 0xA3C5,
     TFM_PLAT_ERR_UNSUPPORTED = 0xC35A,
     TFM_PLAT_ERR_NOT_PERMITTED = 0xC5A3,
+    TFM_PLAT_ERR_CORRUPTION_DETECTED = 0xCA35,
     /* Following entry is only to ensure the error code of int size */
     TFM_PLAT_ERR_FORCE_INT_SIZE = INT_MAX
 };
