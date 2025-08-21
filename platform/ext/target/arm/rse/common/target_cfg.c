@@ -356,6 +356,46 @@ void sau_and_idau_cfg(void)
     secctrl->cpuseccfg |= CPUSECCFG_LOCKSAU_POS_MASK;
 }
 
+static int32_t init_mpc_region_for_required_vms(uintptr_t base, uintptr_t limit,
+                                                enum _ARM_MPC_SEC_ATTR attr)
+{
+    int32_t ret = ARM_DRIVER_OK;
+    const bool is_ns = (attr == ARM_MPC_ATTR_NONSECURE);
+    const uintptr_t vm1_base = is_ns ? VM1_BASE_NS : VM1_BASE_S;
+
+    /* Force the addresses to be S ones */
+    if (is_ns) {
+        if ((base & 0x10000000) != 0 || (limit & 0x10000000) != 0) {
+            return ARM_DRIVER_ERROR_PARAMETER;
+        }
+    } else {
+        if ((base & 0x10000000) == 0 || (limit & 0x10000000) == 0) {
+            return ARM_DRIVER_ERROR_PARAMETER;
+        }
+    }
+
+    const uintptr_t vm0_start = base < vm1_base ? base : 0;
+    const uintptr_t vm0_end   = limit < vm1_base ? limit : vm1_base - 1;
+    const uintptr_t vm1_start = base < vm1_base ? vm1_base : base;
+    const uintptr_t vm1_end   = limit < vm1_base ? 0 : limit;
+
+    if (vm0_start != 0) {
+        ret = Driver_VM0_MPC.ConfigRegion(vm0_start, vm0_end, attr);
+        if (ret != ARM_DRIVER_OK) {
+            return ret;
+        }
+    }
+
+    if (vm1_end != 0) {
+        ret = Driver_VM1_MPC.ConfigRegion(vm1_start, vm1_end, attr);
+        if (ret != ARM_DRIVER_OK) {
+            return ret;
+        }
+    }
+
+    return ret;
+}
+
 /*------------------- Memory configuration functions -------------------------*/
 enum tfm_plat_err_t mpc_init_cfg(void)
 {
@@ -384,25 +424,19 @@ enum tfm_plat_err_t mpc_init_cfg(void)
 #endif /* RSE_XIP */
 
 #ifdef TFM_LOAD_NS_IMAGE
-    /* Configuring primary non-secure partition.
-     * It is ensured in flash_layout.h that these memory regions are located in
-     * VM1 SRAM device. */
-
-    ret = Driver_VM1_MPC.ConfigRegion(NS_DATA_START,
-                                      NS_DATA_LIMIT,
-                                      ARM_MPC_ATTR_NONSECURE);
-    if (ret != ARM_DRIVER_OK) {
-        return TFM_PLAT_ERR_SYSTEM_ERR;
-    }
+    /* Configuring NS Data. It might be in VM0, VM1 or in spanning both. */
+    ret = init_mpc_region_for_required_vms(NS_DATA_START, NS_DATA_LIMIT,
+                                           ARM_MPC_ATTR_NONSECURE);
 
 #ifdef RSE_XIP
     ret = Driver_SIC_MPC.ConfigRegion(memory_regions.non_secure_partition_base,
                                       memory_regions.non_secure_partition_limit,
                                       ARM_MPC_ATTR_NONSECURE);
 #else
-    ret = Driver_VM1_MPC.ConfigRegion(memory_regions.non_secure_partition_base,
-                                      memory_regions.non_secure_partition_limit,
-                                      ARM_MPC_ATTR_NONSECURE);
+    /* Configuring NS Code. It might be in VM0, VM1 or in spanning both. */
+    ret = init_mpc_region_for_required_vms(memory_regions.non_secure_partition_base,
+                                           memory_regions.non_secure_partition_limit,
+                                           ARM_MPC_ATTR_NONSECURE);
 #endif /* !RSE_XIP */
     if (ret != ARM_DRIVER_OK) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
