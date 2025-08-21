@@ -11,6 +11,8 @@
 #include "rse_comms_link_hal.h"
 #include "rse_comms_defs.h"
 #include "rse_comms_handler_buffer.h"
+#include "rse_comms_protocol_error.h"
+#include "rse_comms_helpers.h"
 
 #ifndef RSE_COMMS_MAX_NUMBER_MESSAGE_HANDLERS
 #define RSE_COMMS_MAX_NUMBER_MESSAGE_HANDLERS (2)
@@ -279,15 +281,8 @@ static enum rse_comms_error_t send_protocol_error(rse_comms_node_id_t sender_id,
     struct rse_comms_packet_t packet;
     enum rse_comms_hal_error_t hal_error;
 
-    packet.header.metadata = SET_ALL_METADATA_FIELDS(RSE_COMMS_PACKET_TYPE_PROTOCOL_ERROR_REPLY,
-                                                     false, client_id != 0,
-                                                     RSE_COMMS_PROTOCOL_VERSION);
-    packet.header.sender_id = sender_id;
-    packet.header.receiver_id = receiver_id;
-    packet.header.seq_num = seq_num;
-
-    packet.error_reply.client_id = client_id;
-    packet.error_reply.protocol_error = error;
+    rse_comms_helpers_generate_protocol_error_packet(&packet, sender_id, receiver_id, link_id,
+                                                     client_id, seq_num, error);
 
     hal_error = rse_comms_hal_send_message(link_id, (const uint8_t *)&packet,
                                            RSE_COMMS_PACKET_SIZE_ERROR_REPLY);
@@ -343,63 +338,6 @@ receive_msg_reply(uint8_t *buf, size_t buf_size, rse_comms_node_id_t remote_id,
     return RSE_COMMS_ERROR_SUCCESS;
 }
 
-static bool packet_requires_forwarding(rse_comms_node_id_t sender, rse_comms_node_id_t receiver,
-                                       enum rse_comms_packet_type_t packet_type,
-                                       rse_comms_node_id_t my_node_id)
-{
-    bool msg_requires_forwarding, reply_requires_forwarding;
-
-    msg_requires_forwarding = ((packet_type == RSE_COMMS_PACKET_TYPE_MSG_NO_REPLY) ||
-                               (packet_type == RSE_COMMS_PACKET_TYPE_MSG_NEEDS_REPLY)) &&
-                              (receiver != my_node_id);
-    reply_requires_forwarding = (packet_type == RSE_COMMS_PACKET_TYPE_REPLY) &&
-                                (sender != my_node_id);
-
-    return msg_requires_forwarding || reply_requires_forwarding;
-}
-
-static enum rse_comms_error_t
-parse_packet(struct rse_comms_packet_t *packet, size_t packet_size, rse_comms_node_id_t *sender,
-             rse_comms_node_id_t *receiver, uint8_t *seq_num, bool *uses_cryptography,
-             bool *uses_id_extension, uint16_t *application_id, uint16_t *client_id,
-             uint8_t **payload, size_t *payload_len, bool *needs_reply,
-             enum rse_comms_packet_type_t *packet_type)
-{
-    if (GET_METADATA_FIELD(PROTOCOL_VERSION, packet->header.metadata) !=
-        RSE_COMMS_PROTOCOL_VERSION) {
-        return RSE_COMMS_ERROR_INVALID_PROTOCOL_VERSION;
-    }
-
-    if (packet_size < sizeof(packet->header)) {
-        return RSE_COMMS_ERROR_INVALID_PACKET_SIZE;
-    }
-
-    *sender = packet->header.sender_id;
-    *receiver = packet->header.receiver_id;
-    *seq_num = packet->header.seq_num;
-
-    *uses_cryptography = GET_METADATA_FIELD(USES_CRYPTOGRAPHY, packet->header.metadata);
-    *packet_type = GET_METADATA_FIELD(PACKET_TYPE, packet->header.metadata);
-    *uses_id_extension = GET_METADATA_FIELD(USES_ID_EXTENSION, packet->header.metadata);
-
-    if (packet_size <
-        RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(*uses_cryptography, *uses_id_extension)) {
-        return RSE_COMMS_ERROR_INVALID_PACKET_SIZE;
-    }
-
-    *needs_reply = *packet_type == RSE_COMMS_PACKET_TYPE_MSG_NEEDS_REPLY;
-
-    *client_id = *uses_id_extension ? GET_RSE_COMMS_CLIENT_ID(packet, *uses_cryptography) : 0;
-    *application_id =
-        *uses_id_extension ? GET_RSE_COMMS_APPLICATION_ID(packet, *uses_cryptography) : 0;
-
-    *payload = (uint8_t *)GET_RSE_COMMS_PAYLOAD_PTR(packet, *uses_cryptography, *uses_id_extension);
-    *payload_len =
-        packet_size - RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(*uses_cryptography, *uses_id_extension);
-
-    return RSE_COMMS_ERROR_SUCCESS;
-}
-
 enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size,
                                              rse_comms_node_id_t sender, bool uses_cryptography,
                                              uint16_t application_id, uint16_t *client_id,
@@ -420,6 +358,7 @@ enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size,
     uint8_t seq_num;
     rse_comms_node_id_t packet_sender;
     rse_comms_node_id_t packet_receiver;
+    rse_comms_node_id_t forwarding_destination;
 
     if (uses_cryptography) {
         /* TODO: Cryptography currently unsupported */
@@ -439,15 +378,18 @@ enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size,
 
     packet = (struct rse_comms_packet_t *)buf;
 
-    comms_error = parse_packet(packet, received_size, &packet_sender, &packet_receiver, &seq_num,
-                               &packet_uses_crypto, &uses_id_extension, &packet_application_id,
-                               client_id, payload, payload_len, &needs_reply, &packet_type);
+    comms_error = rse_comms_helpers_parse_packet(packet, received_size, &packet_sender,
+                                                 &packet_receiver, &seq_num, &packet_uses_crypto,
+                                                 &uses_id_extension, &packet_application_id,
+                                                 client_id, payload, payload_len, &needs_reply,
+                                                 &packet_type);
     if (comms_error != RSE_COMMS_ERROR_SUCCESS) {
         /* Do not know enough about this packet to reply */
         return comms_error;
     }
 
-    if (packet_requires_forwarding(packet_sender, packet_receiver, packet_type, my_node_id)) {
+    if (rse_comms_helpers_packet_requires_forwarding_get_destination(
+            packet_sender, packet_receiver, packet_type, my_node_id, &forwarding_destination)) {
         protocol_error = RSE_COMMS_PROTOCOL_FORWARDING_UNSUPPORTED;
         comms_error = RSE_COMMS_ERROR_NO_MSG_AVAILABLE;
         goto error_reply;
@@ -520,6 +462,7 @@ enum rse_comms_error_t rse_comms_receive_reply(uint8_t *buf, size_t buf_size,
     uint16_t packet_client_id;
     rse_comms_node_id_t packet_sender;
     rse_comms_node_id_t packet_receiver;
+    rse_comms_node_id_t forwarding_destination;
     uint8_t seq_num;
 
     if ((buf == NULL) || (payload == NULL) || (payload_len == NULL)) {
@@ -534,15 +477,18 @@ enum rse_comms_error_t rse_comms_receive_reply(uint8_t *buf, size_t buf_size,
 
     packet = (struct rse_comms_packet_t *)buf;
 
-    comms_error = parse_packet(packet, received_size, &packet_sender, &packet_receiver, &seq_num,
-                               &packet_uses_crypto, &uses_id_extension, &packet_application_id,
-                               &packet_client_id, payload, payload_len, &needs_reply, &packet_type);
+    comms_error = rse_comms_helpers_parse_packet(packet, received_size, &packet_sender,
+                                                 &packet_receiver, &seq_num, &packet_uses_crypto,
+                                                 &uses_id_extension, &packet_application_id,
+                                                 &packet_client_id, payload, payload_len,
+                                                 &needs_reply, &packet_type);
     if (comms_error != RSE_COMMS_ERROR_SUCCESS) {
         /* Do not know enough about this packet to reply */
         return comms_error;
     }
 
-    if (packet_requires_forwarding(packet_sender, packet_receiver, packet_type, my_node_id)) {
+    if (rse_comms_helpers_packet_requires_forwarding_get_destination(
+            packet_sender, packet_receiver, packet_type, my_node_id, &forwarding_destination)) {
         protocol_error = RSE_COMMS_PROTOCOL_FORWARDING_UNSUPPORTED;
         comms_error = RSE_COMMS_ERROR_NO_REPLY_AVAILABLE;
         goto error_reply;
@@ -682,10 +628,11 @@ enum rse_comms_error_t rse_comms_pop_msg_from_buffer(rse_comms_buffer_handle_t b
         return comms_error;
     }
 
-    comms_error = parse_packet(packet, packet_size, sender, &packet_receiver, &seq_num,
-                               &packet_uses_crypto, &packet_uses_id_extension,
-                               &packet_application_id, client_id, &packet_payload,
-                               &packet_payload_size, needs_reply, &packet_type);
+    comms_error = rse_comms_helpers_parse_packet(packet, packet_size, sender, &packet_receiver,
+                                                 &seq_num, &packet_uses_crypto,
+                                                 &packet_uses_id_extension, &packet_application_id,
+                                                 client_id, &packet_payload, &packet_payload_size,
+                                                 needs_reply, &packet_type);
     if (comms_error != RSE_COMMS_ERROR_SUCCESS) {
         /* Do not know enough about this packet to reply */
         return comms_error;
@@ -820,10 +767,11 @@ enum rse_comms_error_t rse_comms_pop_reply_from_buffer(rse_comms_buffer_handle_t
         return comms_error;
     }
 
-    comms_error = parse_packet(packet, packet_size, &packet_sender, &packet_receiver, &seq_num,
-                               &packet_uses_crypto, &packet_uses_id_extension,
-                               &packet_application_id, &packet_client_id, &packet_payload,
-                               &packet_payload_size, &needs_reply, &packet_type);
+    comms_error = rse_comms_helpers_parse_packet(packet, packet_size, &packet_sender,
+                                                 &packet_receiver, &seq_num, &packet_uses_crypto,
+                                                 &packet_uses_id_extension, &packet_application_id,
+                                                 &packet_client_id, &packet_payload,
+                                                 &packet_payload_size, &needs_reply, &packet_type);
     if (comms_error != RSE_COMMS_ERROR_SUCCESS) {
         /* Do not know enough about this packet to reply */
         return comms_error;

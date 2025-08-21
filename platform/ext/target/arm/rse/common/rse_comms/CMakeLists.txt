@@ -21,6 +21,7 @@ target_sources(platform_s
         rse_comms_atu.c
         rse_comms_link_hal.c
         rse_comms.c
+        rse_comms_helpers.c
 )
 
 target_compile_definitions(platform_s
@@ -49,6 +50,7 @@ if (RSE_AMOUNT GREATER 1)
         PRIVATE
             rse_comms_link_hal.c
             rse_comms.c
+            rse_comms_helpers.c
     )
 
     target_include_directories(platform_bl1_2
