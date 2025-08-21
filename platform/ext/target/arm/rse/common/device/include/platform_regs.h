@@ -425,6 +425,10 @@ struct rse_sysctrl_t {
     volatile uint32_t cidr3;             /* 0xFFC (R/ ) Component ID 3 */
 };
 
+/* SWRESETREQ in SWRESET register. Must be set together with SWSYN */
+#define SYSCTRL_SWRESET_SWRESETREQ_POS  (5)
+#define SYSCTRL_SWRESET_SWRESETREQ_MASK (1UL << SYSCTRL_SWRESET_SWRESETREQ_POS)
+
 /* SWSYN field in SWRESET register, SWRESET[31:24] */
 #define SYSCTRL_SWRESET_SWSYN_POS         24
 #define SYSCTRL_SWRESET_SWSYN_MASK        (0xFFUL << SYSCTRL_SWRESET_SWSYN_POS)

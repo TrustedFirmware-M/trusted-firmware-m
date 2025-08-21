@@ -22,7 +22,8 @@ __NO_RETURN void tfm_hal_system_reset(uint32_t sw_reset_syn_value)
     struct rse_sysctrl_t *rse_sysctrl = (struct rse_sysctrl_t *)RSE_SYSCTRL_BASE_S;
 
     __DSB();
-    rse_sysctrl->swreset = (0x1u << 5) | (sw_reset_syn_value & SYSCTRL_SWRESET_SWSYN_MASK);
+    rse_sysctrl->swreset = SYSCTRL_SWRESET_SWRESETREQ_MASK |
+                               (sw_reset_syn_value & SYSCTRL_SWRESET_SWSYN_MASK);
     __DSB();
 
     while(1) {
