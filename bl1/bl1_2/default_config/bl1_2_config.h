@@ -45,8 +45,9 @@
 #define TFM_BL1_2_MEASUREMENT_HASH_MAX_SIZE 48
 #endif
 
+/* This must be at minimum 0x100-byte aligned */
 #ifndef TFM_BL1_2_HEADER_MAX_SIZE
-#define TFM_BL1_2_HEADER_MAX_SIZE 0xC80
+#define TFM_BL1_2_HEADER_MAX_SIZE 0xD00
 #endif
 
 #endif /* __BL1_2_CONFIG_H__ */

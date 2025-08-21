@@ -9,6 +9,10 @@
 # to CMakeLists.txt. It instructs how to build a platform on non-secure side.
 # The structure and sources list are fully platform specific.
 
+if (NOT TFM_LOAD_NS_IMAGE)
+    message(FATAL_ERR "NS image cannot be built with TFM_LOAD_NS_IMAGE=OFF")
+endif()
+
 add_library(platform_ns)
 
 target_sources(platform_ns

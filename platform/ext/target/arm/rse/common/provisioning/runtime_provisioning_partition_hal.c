@@ -21,7 +21,8 @@
 
 /* 3KiB buffer to store provisioned blob, will be passed to
  * BL1_1 via persistent data */
-static uint32_t blob_buffer[(3 * 1024) / sizeof(uint32_t)];
+static uint32_t *blob_buffer = (uint32_t *)RUNTIME_PROVISIONING_MESSAGE_START;
+static size_t blob_buffer_size = RUNTIME_PROVISIONING_MESSAGE_MAX_SIZE;
 
 enum runtime_provisioning_error_t runtime_provisioning_hal_init(void)
 {
@@ -48,10 +49,10 @@ enum runtime_provisioning_error_t runtime_provisioning_hal_init(void)
     }
 
     RSE_PERSISTENT_DATA->bl1_data.provisioning_blob_buf = blob_buffer;
-    RSE_PERSISTENT_DATA->bl1_data.provisioning_blob_buf_size = sizeof(blob_buffer);
+    RSE_PERSISTENT_DATA->bl1_data.provisioning_blob_buf_size = blob_buffer_size;
 
     err = provisioning_comms_init((struct rse_provisioning_message_t *)blob_buffer,
-                                  sizeof(blob_buffer));
+                                  blob_buffer_size);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return RUNTIME_PROVISIONING_GENERIC_ERROR;
     }
@@ -73,7 +74,7 @@ static enum tfm_plat_err_t handle_plain_data_message(struct rse_provisioning_mes
         .plain_data_handler = default_plain_data_handler,
     };
 
-    err = handle_provisioning_message(message, sizeof(blob_buffer), &config, &ctx);
+    err = handle_provisioning_message(message, blob_buffer_size, &config, &ctx);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         rse_set_provisioning_staging_status(PROVISIONING_STAGING_STATUS_NO_MESSAGE);
         message_handling_status_report_error(PROVISIONING_REPORT_STEP_PARSE_PLAIN_DATA, err);

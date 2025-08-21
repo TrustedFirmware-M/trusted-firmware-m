@@ -174,12 +174,6 @@
                                          SECURE_IMAGE_MAX_SIZE)
 #define NON_SECURE_IMAGE_MAX_SIZE       FLASH_NS_PARTITION_SIZE
 
-#define S_IMAGE_LOAD_ADDRESS            (VM0_BASE_S)
-#define NS_IMAGE_LOAD_ADDRESS           (VM1_BASE_S + VM1_SIZE - \
-                                         FLASH_NS_PARTITION_SIZE)
-
-#define FLASH_SIC_TABLE_SIZE 0
-
 /*
  * Flash device name used by BL2
  * Name is defined in flash driver file: Driver_Flash.c
@@ -189,5 +183,7 @@
 
 /* Smallest flash programmable unit in bytes */
 #define TFM_HAL_FLASH_PROGRAM_UNIT      (0x1)
+
+#include "flash_layout_common.h"
 
 #endif /* __FLASH_LAYOUT_H__ */

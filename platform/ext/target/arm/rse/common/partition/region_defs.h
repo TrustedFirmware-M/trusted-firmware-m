@@ -27,138 +27,194 @@
 #endif /* defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM) */
 #include "bl1_2_config.h"
 
-/* RSE memory layout is as follows during BL1
- *      |----------------------------------------------------|
- * DTCM | BLOB_DATA | BL1_1_DATA | BL1_2_DATA  |
- *      |----------------------------------------------------|
+/* RSE memory layout diagram
  *
- *      |----------------------------------------------------|
- * ITCM | BLOB_CODE | BL1_2_CODE  |                          |
- *      |----------------------------------------------------|
+ * This corresponds to the default memory sizing in rse_memory_sizes_common. It
+ * can be overridden by subplatforms.
  *
- *      |---------------------------------------------------------
- * VM0  |                                                        |
- *      |---------------------------------------------------------
- *      |---------------------------------------------------------
- * VM1  |                     | BLOB | PERS_DATA | OTP_EMULATION |
- *      |---------------------------------------------------------
+ * ? indicates an optional memory block
+ * > indicates that if the size of the memory increases, or optional memory
+ *   blocks are disabled, that partition will automatically increase in size.
  *
- * If the size of VM0 and VM1 are larger than 64KiB, the size of BL1 code/data
- * and BL2 code can be increased to fill the extra space.
+ *
+ * RSE memory layout is as follows during BL1_1
+ *      |----------------------------------------------------------------------|
+ * DTCM | 4 Blob Secrets | 28 BL1_1_DATA                                       |
+ *      |----------------------------------------------------------------------|
+ *
+ *      |----------------------------------------------------------------------|
+ * ITCM | 32 Blob code                                                         |
+ *      |----------------------------------------------------------------------|
+ *
+ *      |----------------------------------------------------------------------|
+ * VM0  | 64 BL1_2                                                             |
+ *      |----------------------------------------------------------------------|
+ *      |----------------------------------------------------------------------|
+ * VM1  | 20 Blob data | >26 Blob      | 2 Persistent data | ?16 OTP emulation |
+ *      |----------------------------------------------------------------------|
+ *
+ * If the BL1 test binary is used, it is preloaded into the space where BL1_2 is
+ * will be loaded. The data is places in VM1 where the blob would be loaded.
+ *      |----------------------------------------------------------------------|
+ * VM0  | 1 reserved | 63 Test Code                                            |
+ *      |----------------------------------------------------------------------|
+ *      |----------------------------------------------------------------------|
+ * VM1  | >46 Test Data                | 2 Persistent data | ?16 OTP emulation |
+ *      |----------------------------------------------------------------------|
+ *
+ * RSE memory layout is as follows during BL1_2
+ *      |----------------------------------------------------------------------|
+ * DTCM | 4 Blob Secrets | 28 BL1_2_DATA                                       |
+ *      |----------------------------------------------------------------------|
+ *
+ *      |----------------------------------------------------------------------|
+ * ITCM | 32 Blob code                                                         |
+ *      |----------------------------------------------------------------------|
+ *
+ *      |----------------------------------------------------------------------|
+ * VM0  | 64 BL1_2                                                             |
+ *      |----------------------------------------------------------------------|
+ *      |----------------------------------------------------------------------|
+ * VM1  | 20 Blob data | >26 Blob      | 2 Persistent data | ?16 OTP emulation |
+ *      |----------------------------------------------------------------------|
+ *
+ *  If the blob handler does not run, VM1 is used to load BL2 code
+ *
+ *      |----------------------------------------------------------------------|
+ * VM1  | >46 BL2 code                 | 2 Persistent data | ?16 OTP emulation |
+ *      |----------------------------------------------------------------------|
  *
  * RSE memory layout is as follows during BL2
- *      |----------------------------------------|
- * DTCM |                                        |
- *      |----------------------------------------|
- *
- *      |---------------------------------------------------------
- * VM0  | BL2_CODE                                               |
- *      |---------------------------------------------------------
- *      |---------------------------------------------------------
- * VM1  |  XIP tables  | BL2_DATA  | PERS_DATA | OTP_EMULATION   |
- *      |---------------------------------------------------------
- *
- * If the size of VM0 and VM1 are larger than 64KiB, the size of BL2 code can be
- * increased to fill the extra space. Note that BL2 code is aligned to the start
- * of S_DATA, so under non-XIP mode it will not start at the beginning of VM0.
- *
- * RSE memory layout is as follows during Runtime with XIP mode enabled
- *      |----------------------------------------|
- * DTCM | CRYPTO_DATA                |           |
- *      |----------------------------------------|
- *
- *      |----------------------------------------------------|
- * ITCM | SPM_CODE        |                                  |
- *      |----------------------------------------------------|
- *
- *      |---------------------------------------------------------
- * VM0  | S_DATA                                                 |
- *      |---------------------------------------------------------
- *      |---------------------------------------------------------
- * VM1  | S_DATA         | NS_DATA   | PERS_DATA | OTP_EMULATION |
- *      |---------------------------------------------------------
- *
- * RSE memory layout is as follows during Runtime with XIP mode disabled. Note
- * that each SRAM must be at least 512KiB in this mode (64KiB data and 384KiB
- * code, for each of secure and non-secure).
- *      |----------------------------------------|
- * DTCM | CRYPTO_DATA                |           |
- *      |----------------------------------------|
- *
- *      |----------------------------------------------------|
- * ITCM | SPM_CODE        |                                  |
- *      |----------------------------------------------------|
+ *      |----------------------------------------------------------------------|
+ * DTCM |                                                                      |
+ *      |----------------------------------------------------------------------|
  *
  *      |----------------------------------------------------------------------|
- * VM0  | S_CODE                                           | S_DATA            |
+ * ITCM |                                                                      |
+ *      |----------------------------------------------------------------------|
+ *
+ *      |----------------------------------------------------------------------|
+ * VM0  | ?16 XIP tables | >48 BL2 Data                                        |
  *      |----------------------------------------------------------------------|
  *      |----------------------------------------------------------------------|
- * VM1  |  NS_DATA          | NS_CODE          | PERS_DATA | OTP_EMULATION     |
+ * VM1  | 46 BL2 code                  | 2 Persistent data | ?16 OTP emulation |
  *      |----------------------------------------------------------------------|
+ *
+ * RSE memory layout is as follows during Runtime
+ *      |----------------------------------------------------------------------|
+ * DTCM | 32 Crypto partition data                                             |
+ *      |----------------------------------------------------------------------|
+ *
+ *      |----------------------------------------------------------------------|
+ * ITCM | 32 SPM code                                                          |
+ *      |----------------------------------------------------------------------|
+ *
+ *      |----------------------------------------------------------------------|
+ * VM0  | >64 S data + ?NS data + ?NS code + ?S code                           |
+ *      |----------------------------------------------------------------------|
+ *      |----------------------------------------------------------------------|
+ * VM1  | >46 (continued)    | 14 Blob | 2 Persistent data | ?16 OTP emulation |
+ *      |----------------------------------------------------------------------|
+ *
+ *  The exact split of the combined S data + NS data + NS code + S code section
+ *  is determined by the integration. If NS is disabled then the NS sections can
+ *  be size 0. If RSE_XIP is enabled both code sections will be size 0 (as they
+ *  will be streamed via the SIC). All unused space will be used by S data.
  */
 
-/* Heap and stack shared between BL1_1 and BL1_2 */
-#define BL1_HEAP_SIZE           (0x0001000)
-#define BL1_MSP_STACK_SIZE      (0x0001800)
+#define S_ADDRESS_TO_NS(addr) ((addr) - 0x10000000)
+#define NS_ADDRESS_TO_S(addr) ((addr) + 0x10000000)
 
-#define BL2_HEAP_SIZE           (0x0001000)
-#define BL2_MSP_STACK_SIZE      (0x0002000)
+//==============================================================================
 
-#define S_HEAP_SIZE             (0x0001000)
-#define S_MSP_STACK_SIZE        (0x0000800)
+#define IMAGE_BL1_1_CODE_SIZE (ROM_BL1_1_CODE_SIZE)
 
-#define NS_HEAP_SIZE            (0x0000600)
-#define NS_STACK_SIZE           (0x0001000)
+#define IMAGE_BL1_2_CODE_SIZE (OTP_BL1_2_CODE_SIZE)
 
-/* Store persistent data at the end of VM1 as will not be cleared on reset */
-#define PERSISTENT_DATA_SIZE (0x800)
-#define PERSISTENT_DATA_BASE \
-    ((VM1_BASE_S + VM1_SIZE) - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
-#define PERSISTENT_DATA_LIMIT ((PERSISTENT_DATA_BASE + PERSISTENT_DATA_SIZE) - 1)
-
-/* SRAM allocated to store data when using OTP emulation mode.
- * This must match the size of the OTP
- */
-#ifdef RSE_USE_OTP_EMULATION_IN_SRAM
-#define RSE_OTP_EMULATION_SRAM_SIZE     (0x4000)
-#define RSE_OTP_EMULATION_SRAM_START    ((VM1_BASE_S + VM1_SIZE) - RSE_OTP_EMULATION_SRAM_SIZE)
-
-#if RSE_OTP_EMULATION_SRAM_START % RSE_OTP_EMULATION_SRAM_SIZE != 0
-#error RSE OTP Emulation SRAM must have alignment of its size
-#endif
-
-#else
-#define RSE_OTP_EMULATION_SRAM_SIZE     (0x0)
-#endif /* RSE_USE_OTP_EMULATION_IN_SRAM */
-
-/* This size of buffer is big enough to store an array of all the
- * boot records/measurements which is encoded in CBOR format.
- */
-#define TFM_ATTEST_BOOT_RECORDS_MAX_SIZE    (0x400)
-
-#define S_IMAGE_SECONDARY_PARTITION_OFFSET (FLASH_AREA_4_OFFSET)
-
-/* Boot partition structure if MCUBoot is used:
- * 0x0_0000 Bootloader header
- * 0x0_0400 Image area
- * 0x5_0000 Trailer
- */
-/* IMAGE_CODE_SIZE is the space available for the software binary image.
- * It is less than the FLASH_S_PARTITION_SIZE + FLASH_NS_PARTITION_SIZE
- * because we reserve space for the image header and trailer introduced
- * by the bootloader.
- */
 #define IMAGE_BL2_CODE_SIZE \
             (FLASH_BL2_PARTITION_SIZE - TFM_BL1_2_HEADER_MAX_SIZE)
 
 #define IMAGE_S_CODE_SIZE \
             (FLASH_S_PARTITION_SIZE - BL2_HEADER_SIZE - BL2_TRAILER_SIZE)
 
+#ifdef TFM_LOAD_NS_IMAGE
 #define IMAGE_NS_CODE_SIZE \
             (FLASH_NS_PARTITION_SIZE - BL2_HEADER_SIZE - BL2_TRAILER_SIZE)
+#else
+#define IMAGE_NS_CODE_SIZE 0
+#endif /* TFM_LOAD_NS_IMAGE */
 
-/* Secure regions */
-/* Secure Code executes from VM0, or XIP from flash via the SIC */
+#ifdef RSE_XIP
+#ifdef TFM_LOAD_NS_IMAGE
+#define RSE_SIC_TABLE_AMOUNT 2
+#else
+#define RSE_SIC_TABLE_AMOUNT 1
+#endif /* TFM_LOAD_NS_IMAGE */
+#else
+#define RSE_SIC_TABLE_AMOUNT 0
+#endif /* RSE_XIP */
+
+//==============================================================================
+
+#define RSE_OTP_EMULATION_SRAM_START (VM1_BASE_S + VM1_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
+#define RSE_OTP_EMULATION_SRAM_LIMIT (RSE_OTP_EMULATION_SRAM_START + RSE_OTP_EMULATION_SRAM_SIZE - 1)
+
+#define PERSISTENT_DATA_BASE (RSE_OTP_EMULATION_SRAM_START - PERSISTENT_DATA_SIZE)
+#define PERSISTENT_DATA_LIMIT (PERSISTENT_DATA_BASE + PERSISTENT_DATA_SIZE - 1)
+
+#define PROVISIONING_MESSAGE_START \
+     ((VM1_SIZE - VM_COLD_RESET_RETAINED_SIZE - PROVISIONING_BUNDLE_DATA_SIZE) < 0 ? \
+      VM1_BASE_S + PROVISIONING_BUNDLE_DATA_SIZE : \
+      VM1_BASE_S + VM1_SIZE - VM_COLD_RESET_RETAINED_SIZE)
+#define RSE_PROVISIONING_MESSAGE_MAX_SIZE  (VM1_BASE_S + VM1_SIZE - \
+                                            PROVISIONING_MESSAGE_START \
+                                            - RSE_OTP_EMULATION_SRAM_SIZE \
+                                            - PERSISTENT_DATA_SIZE)
+
+#define RUNTIME_PROVISIONING_MESSAGE_START (VM1_BASE_S + VM1_SIZE - \
+                                            RSE_OTP_EMULATION_SRAM_SIZE - \
+                                            PERSISTENT_DATA_SIZE - \
+                                            RUNTIME_PROVISIONING_MESSAGE_MAX_SIZE)
+
+/* FIXME use entire ITCM once code-sharing is removed */
+#define PROVISIONING_BUNDLE_CODE_START   (ITCM_BASE_S)
+#define PROVISIONING_BUNDLE_CODE_SIZE    (ITCM_SIZE / 2)
+
+#define PROVISIONING_BUNDLE_VALUES_START (DTCM_BASE_S)
+
+#define PROVISIONING_BUNDLE_DATA_START   (VM1_BASE_S)
+
+#define BL1_1_CODE_START  (ROM_BASE_S)
+#define BL1_1_CODE_SIZE   (IMAGE_BL1_1_CODE_SIZE)
+#define BL1_1_CODE_LIMIT  (BL1_1_CODE_START + BL1_1_CODE_SIZE - 1)
+
+#define BL1_1_DATA_START  (DTCM_BASE_S + PROVISIONING_BUNDLE_VALUES_SIZE)
+#define BL1_1_DATA_SIZE   (0x4800) /* 18 KiB FIXME increase once code-sharing is removed */
+#define BL1_1_DATA_LIMIT  (BL1_1_DATA_START + BL1_1_DATA_SIZE - 1)
+
+/* FIXME once code-sharing is removed, BL1_2 should be run from VM0 */
+/* #define BL1_2_CODE_START  (VM0_BASE_S) */
+#define BL1_2_CODE_START  (PROVISIONING_BUNDLE_CODE_START + PROVISIONING_BUNDLE_CODE_SIZE)
+#define BL1_2_CODE_SIZE   (IMAGE_BL1_2_CODE_SIZE)
+#define BL1_2_CODE_LIMIT  (BL1_2_CODE_START + BL1_2_CODE_SIZE - 1)
+
+#define BL1_2_DATA_START  (BL1_1_DATA_START + BL1_1_DATA_SIZE)
+#define BL1_2_DATA_SIZE   (0x800) /* 2 KiB FIXME overlap once code-sharing is removed */
+#define BL1_2_DATA_LIMIT  (BL1_2_DATA_START + BL1_2_DATA_SIZE - 1)
+
+#define BL2_IMAGE_START (VM1_BASE_S)
+#define BL2_CODE_START  (BL2_IMAGE_START + TFM_BL1_2_HEADER_MAX_SIZE)
+#define BL2_CODE_SIZE   (IMAGE_BL2_CODE_SIZE)
+#define BL2_CODE_LIMIT  (BL2_CODE_START + BL2_CODE_SIZE - 1)
+
+#define BL2_XIP_TABLES_START (VM0_BASE_S)
+#define BL2_XIP_TABLES_SIZE  (FLASH_SIC_TABLE_SIZE * RSE_SIC_TABLE_AMOUNT)
+#define BL2_XIP_TABLES_LIMIT (BL2_XIP_TABLES_START + BL2_XIP_TABLES_SIZE - 1)
+
+#define BL2_DATA_START  (VM0_BASE_S + BL2_XIP_TABLES_SIZE)
+#define BL2_DATA_SIZE   (VM0_SIZE - BL2_XIP_TABLES_SIZE)
+#define BL2_DATA_LIMIT  (BL2_DATA_START + BL2_DATA_SIZE - 1)
+
 #ifdef RSE_XIP
 #define S_CODE_START    (RSE_RUNTIME_S_XIP_BASE_S)
 #define S_CODE_SIZE     (FLASH_S_PARTITION_SIZE)
@@ -168,165 +224,48 @@
 #endif /* RSE_XIP */
 #define S_CODE_LIMIT    (S_CODE_START + S_CODE_SIZE - 1)
 
-/* Secure Data stored in VM0. Size defined in flash layout */
+#define S_DATA_START    VM0_BASE_S
 #ifdef RSE_XIP
-#define S_DATA_START    (VM0_BASE_S)
-#define S_DATA_SIZE \
-    (VM0_SIZE + VM1_SIZE - NS_DATA_SIZE - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
+#define S_DATA_SIZE     (VM0_SIZE + VM1_SIZE - NS_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE - \
+                        PERSISTENT_DATA_SIZE - RUNTIME_PROVISIONING_MESSAGE_MAX_SIZE)
 #else
-#define S_DATA_START    (VM0_BASE_S + FLASH_S_PARTITION_SIZE)
-#define S_DATA_SIZE     (VM0_SIZE - FLASH_S_PARTITION_SIZE)
-#endif /* RSE_XIP */
+#define S_DATA_SIZE     (VM0_SIZE + VM1_SIZE - FLASH_S_PARTITION_SIZE - \
+                        FLASH_NS_PARTITION_SIZE - NS_DATA_SIZE - \
+                        RSE_OTP_EMULATION_SRAM_SIZE - PERSISTENT_DATA_SIZE - \
+                        RSE_PROVISIONING_MESSAGE_MAX_SIZE)
+#endif
 #define S_DATA_LIMIT    (S_DATA_START + S_DATA_SIZE - 1)
 
-/* Non-secure regions */
-/* Non-Secure Code executes from VM1, or XIP from flash via the SIC */
-#ifdef RSE_XIP
-#define NS_CODE_START   (RSE_RUNTIME_NS_XIP_BASE_NS)
-#else
-#define NS_CODE_START   (NS_DATA_START + NS_DATA_SIZE + BL2_HEADER_SIZE)
-#endif /* RSE_XIP */
-
-#if defined(TFM_LOAD_NS_IMAGE) && defined(RSE_XIP)
-#define NS_CODE_SIZE    (FLASH_NS_PARTITION_SIZE)
-#elif defined(TFM_LOAD_NS_IMAGE) && !defined(RSE_XIP)
-#define NS_CODE_SIZE    (IMAGE_NS_CODE_SIZE)
-#else
-#define NS_CODE_SIZE    (0x0)
-#endif /* defined(TFM_LOAD_NS_IMAGE) && defined(RSE_XIP) */
-#define NS_CODE_LIMIT   (NS_CODE_START + NS_CODE_SIZE - 1)
-
-/* Non-Secure Data stored after secure data, or in VM1 if not in XIP mode. */
-#ifdef RSE_XIP
-#define NS_DATA_START   (VM0_BASE_NS + S_DATA_SIZE)
-#else
-#define NS_DATA_START   (VM1_BASE_NS)
-#endif
-
-#if defined(TFM_LOAD_NS_IMAGE) && !defined(RSE_XIP)
-/* In the case of non-XIP configs, the NS data section size is controlled by the
- * size of the NS image (with the NS image plus data section taking up the whole
- * of VM1) so platforms should instead alter the size of the NS image.
- */
-#undef  NS_DATA_SIZE
-#define NS_DATA_SIZE \
-    (VM1_SIZE - FLASH_NS_PARTITION_SIZE - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE)
-#endif /* defined(TFM_LOAD_NS_IMAGE) && !defined(RSE_XIP) */
-#define NS_DATA_LIMIT   (NS_DATA_START + NS_DATA_SIZE - 1)
-
-/* NS partition information is used for MPC and SAU configuration */
-#ifdef RSE_XIP
-#define NS_PARTITION_START RSE_RUNTIME_NS_XIP_BASE_NS
-#else
-#define NS_PARTITION_START (NS_DATA_START + NS_DATA_SIZE)
-#endif /* RSE_XIP */
-
-#ifdef TFM_LOAD_NS_IMAGE
-#define NS_PARTITION_SIZE (FLASH_NS_PARTITION_SIZE)
-#else
-#define NS_PARTITION_SIZE (0x0)
-#endif /* TFM_LOAD_NS_IMAGE */
-
-#define SECONDARY_PARTITION_START (FWU_HOST_IMAGE_BASE_S)
-#define SECONDARY_PARTITION_SIZE (HOST_IMAGE_MAX_SIZE)
-
-/* RSE test binary is XIP from ROM */
-#if defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM)
-#define RSE_TESTS_CODE_START (VM0_BASE_S + OTP_DMA_ICS_SIZE)
-#define RSE_TESTS_CODE_SIZE  (VM1_BASE_S - RSE_TESTS_CODE_START)
-#define RSE_TESTS_DATA_START (VM1_BASE_S)
-#define RSE_TESTS_DATA_SIZE  (VM1_SIZE - RETAINED_RAM_SIZE)
-#endif /* defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM) */
-
-/* Bootloader regions */
-/* BL1_1 is XIP from ROM */
-#define BL1_1_CODE_START  (ROM_BASE_S)
-#define BL1_1_CODE_SIZE   (ROM_SIZE - ROM_DMA_ICS_SIZE)
-#define BL1_1_CODE_LIMIT  (BL1_1_CODE_START + BL1_1_CODE_SIZE - 1)
-
-#define PROVISIONING_DATA_START (BL1_1_CODE_START + BL1_1_CODE_SIZE)
-#define PROVISIONING_DATA_SIZE  (0x2400) /* 9 KB */
-#define PROVISIONING_DATA_LIMIT (PROVISIONING_DATA_START + PROVISIONING_DATA_SIZE - 1)
-
-/* BL1_2 is in the ITCM */
-#define BL1_2_CODE_START  (PROVISIONING_BUNDLE_CODE_START + PROVISIONING_BUNDLE_CODE_SIZE)
-#define BL1_2_CODE_SIZE   (0x2000) /* 8 KiB */
-#define BL1_2_CODE_LIMIT  (BL1_2_CODE_START + BL1_2_CODE_SIZE - 1)
-
-/* BL2 is aligned to the start of the combined secure/non-secure data region */
-#define BL2_IMAGE_START   (S_DATA_START)
-#define BL2_CODE_START    (BL2_IMAGE_START + TFM_BL1_2_HEADER_MAX_SIZE)
-#define BL2_CODE_SIZE     (IMAGE_BL2_CODE_SIZE)
-#define BL2_CODE_LIMIT    (BL2_CODE_START + BL2_CODE_SIZE - 1)
-
-/* BL1 data is in DTCM */
-#define BL1_1_DATA_START  (PROVISIONING_BUNDLE_VALUES_START + PROVISIONING_BUNDLE_VALUES_SIZE)
-#define BL1_1_DATA_SIZE   (0x4800) /* 18 KiB */
-#define BL1_1_DATA_LIMIT  (BL1_1_DATA_START + BL1_1_DATA_SIZE - 1)
-
-#define BL1_2_DATA_START  (BL1_1_DATA_START + BL1_1_DATA_SIZE)
-#define BL1_2_DATA_SIZE   (0x800) /* 2 KiB */
-#define BL1_2_DATA_LIMIT  (BL1_2_DATA_START + BL1_2_DATA_SIZE - 1)
-
-/* XIP data goes after the BL2 image */
-#define BL2_XIP_TABLES_START (BL2_IMAGE_START + FLASH_BL2_PARTITION_SIZE)
-#define BL2_XIP_TABLES_SIZE  (FLASH_SIC_TABLE_SIZE * 2)
-#define BL2_XIP_TABLES_LIMIT (BL2_XIP_TABLES_START + BL2_XIP_TABLES_SIZE - 1)
-
-/* BL2 data is after the code. TODO FIXME this should be in DTCM once the CC3XX
- * runtime driver supports DMA remapping.
- */
-#define BL2_DATA_START    (BL2_XIP_TABLES_START + BL2_XIP_TABLES_SIZE)
-#define BL2_DATA_SIZE                                                           \
-    (VM0_SIZE + VM1_SIZE - PERSISTENT_DATA_SIZE - RSE_OTP_EMULATION_SRAM_SIZE - \
-     (BL2_DATA_START - VM0_BASE_S))
-#define BL2_DATA_LIMIT    (BL2_DATA_START + BL2_DATA_SIZE - 1)
-
-/* Runtime addresses for DTCM and ITCM. */
 #define S_RUNTIME_DTCM_START (DTCM_BASE_S)
 #define S_RUNTIME_DTCM_SIZE  (DTCM_SIZE)
 #define S_RUNTIME_ITCM_START (ITCM_BASE_S)
 #define S_RUNTIME_ITCM_SIZE  (ITCM_SIZE)
 
-/* We use various calculations which give some sections space remaining
- * after removing the size of other sections. Verify that all
- * of those calculations are valid here */
-#if BL1_1_CODE_SIZE < 0 || \
-    BL1_1_DATA_SIZE < 0 || \
-    BL1_2_CODE_SIZE < 0 || \
-    BL1_2_DATA_SIZE < 0 || \
-    BL2_CODE_SIZE < 0 || \
-    BL2_DATA_SIZE < 0 || \
-    S_CODE_SIZE < 0 || \
-    S_DATA_SIZE < 0 || \
-    NS_CODE_SIZE < 0 || \
-    NS_DATA_SIZE < 0
-#error Partition size calculations incorrect
-#endif
+#ifdef RSE_XIP
+#define NS_CODE_START   (RSE_RUNTIME_NS_XIP_BASE_NS)
+#define NS_CODE_SIZE    (FLASH_NS_PARTITION_SIZE)
+#else
+#define NS_CODE_START   (S_ADDRESS_TO_NS(NS_IMAGE_LOAD_ADDRESS + BL2_HEADER_SIZE))
+#define NS_CODE_SIZE    (IMAGE_NS_CODE_SIZE)
+#endif /* RSE_XIP */
+#define NS_CODE_LIMIT   (NS_CODE_START + NS_CODE_SIZE - 1)
 
-#if ((BL2_CODE_SIZE + BL2_XIP_TABLES_SIZE + BL2_DATA_SIZE + PERSISTENT_DATA_SIZE + \
-      RSE_OTP_EMULATION_SRAM_SIZE) > (VM0_SIZE + VM1_SIZE))
-#error BL2 partitions do not fit in SRAM
-#endif
+#define NS_DATA_START    (S_ADDRESS_TO_NS(S_DATA_START + S_DATA_SIZE))
+#define NS_DATA_LIMIT    (NS_DATA_START + NS_DATA_SIZE - 1)
 
-#if defined(RSE_XIP) && ((S_DATA_SIZE + NS_DATA_SIZE + PERSISTENT_DATA_SIZE + \
-                          RSE_OTP_EMULATION_SRAM_SIZE) > (VM0_SIZE + VM1_SIZE))
-#error XIP enabled runtime partitions do not fit in SRAM
-#elif !defined(RSE_XIP) &&                                                             \
-    ((S_CODE_SIZE + S_DATA_SIZE + NS_CODE_SIZE + NS_DATA_SIZE + PERSISTENT_DATA_SIZE + \
-      RSE_OTP_EMULATION_SRAM_SIZE) > (VM0_SIZE + VM1_SIZE))
-#error XIP disabled runtime partitions do not fit in SRAM
-#endif
+#define NS_PARTITION_START S_ADDRESS_TO_NS(NS_IMAGE_LOAD_ADDRESS)
+#define NS_PARTITION_SIZE (FLASH_NS_PARTITION_SIZE)
 
-#define SHARED_BOOT_MEASUREMENT_SIZE (0x5C0)
-#define RUNTIME_SERVICE_TO_BOOT_SHARED_REGION_SIZE (0x40)
+/* RSE ROM test binary is preloaded to VM0 */
+#if defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM)
+#define RSE_TESTS_CODE_START (VM0_BASE_S + OTP_DMA_ICS_SIZE)
+#define RSE_TESTS_CODE_SIZE  (VM1_BASE_S - RSE_TESTS_CODE_START)
+#define RSE_TESTS_DATA_START (VM1_BASE_S)
+#define RSE_TESTS_DATA_SIZE  (VM1_SIZE - RSE_OTP_EMULATION_SRAM_SIZE - PERSISTENT_DATA_SIZE)
+#endif /* defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM) */
 
-#define PROVISIONING_BUNDLE_CODE_START   (ITCM_BASE_S)
-#define PROVISIONING_BUNDLE_CODE_SIZE    (ITCM_SIZE - BL1_2_CODE_SIZE)
-#define PROVISIONING_BUNDLE_VALUES_START (DTCM_BASE_S)
-#define PROVISIONING_BUNDLE_VALUES_SIZE  (DTCM_SIZE - BL1_1_DATA_SIZE - BL1_2_DATA_SIZE)
-#define PROVISIONING_BUNDLE_DATA_START   (VM1_BASE_S)
-#define PROVISIONING_BUNDLE_DATA_SIZE    (VM1_SIZE - RETAINED_RAM_SIZE)
+#define SECONDARY_PARTITION_START (FWU_HOST_IMAGE_BASE_S)
+#define SECONDARY_PARTITION_SIZE (HOST_IMAGE_MAX_SIZE)
 
 /* Blob chainloading requires us to limit the size of the blob
  * to allow for loading two blobs simultaneously. It is simpler just
@@ -334,20 +273,44 @@
  * plenty of space */
 #define MAIN_BUNDLE_CODE_SIZE (PROVISIONING_BUNDLE_CODE_SIZE / 2)
 
-/* Fixed address to use to store the current provisioning message in memory. This
- * allows for both pre-loading of the provisioning message into the memory in the
- * case where we do not use the comms HAL, and also an unused block of memory
- * where the comms HAL can load the message to when we are */
-#define PROVISIONING_MESSAGE_START (VM1_BASE_S + VM1_SIZE - RETAINED_RAM_SIZE)
-#define RSE_PROVISIONING_MESSAGE_MAX_SIZE (RETAINED_RAM_SIZE \
-                                           - PERSISTENT_DATA_SIZE \
-                                           - RSE_OTP_EMULATION_SRAM_SIZE)
+//==============================================================================
 
-#if RSE_PROVISIONING_MESSAGE_MAX_SIZE < 0
-#error RETAINED_RAM_SIZE is too small to contain peristent data and OTP emulation space
+#define _VM_RESET_RETAINED_USED RSE_OTP_EMULATION_SRAM_SIZE + \
+                                PERSISTENT_DATA_SIZE + \
+                                RSE_PROVISIONING_MESSAGE_MAX_SIZE
+
+#if _VM_RESET_RETAINED_USED > VM_COLD_RESET_RETAINED_SIZE
+#error "RSE_OTP_EMULATION_SRAM_SIZE + PERSISTENT_DATA_SIZE + RSE_PROVISIONING_MESSAGE_MAX_SIZE > VM_COLD_RESET_RETAINED_SIZE"
 #endif
 
-#define RSE_TESTS_HEAP_SIZE      0x1000
-#define RSE_TESTS_MSP_STACK_SIZE 0x1800
+#if FLASH_BL2_PARTITION_SIZE + RSE_OTP_EMULATION_SRAM_SIZE + PERSISTENT_DATA_SIZE > VM1_SIZE
+#error "FLASH_BL2_PARTITION_SIZE + RSE_OTP_EMULATION_SRAM_SIZE + PERSISTENT_DATA_SIZE + RSE_PROVISIONING_MESSAGE_MAX_SIZE > VM1_SIZE"
+#endif
+
+#if PROVISIONING_BUNDLE_DATA_SIZE + _COLD_RESET_RETAINED_USED > VM1_SIZE
+#error "PROVISIONING_BUNDLE_DATA_SIZE + RSE_OTP_EMULATION_SRAM_SIZE + PERSISTENT_DATA_SIZE + RSE_PROVISIONING_MESSAGE_MAX_SIZE > VM1_SIZE"
+#endif
+
+#if S_IMAGE_LOAD_ADDRESS < BL2_IMAGE_START + IMAGE_BL2_CODE_SIZE && \
+    FLASH_S_PARTITION_SIZE + FLASH_SIC_TABLE_SIZE > BL2_IMAGE_START
+#error "S_IMAGE_LOAD_ADDRESS < BL2_IMAGE_START + BL2_CODE_SIZE. Decrease NS_DATA_SIZE, FLASH_NS_PARTITION_SIZE or FLASH_S_PARTITION_SIZE"
+#endif
+
+#if NS_ADDRESS_TO_S(NS_IMAGE_LOAD_ADDRESS) < BL2_IMAGE_START + IMAGE_BL2_CODE_SIZE && \
+    FLASH_S_PARTITION_SIZE + FLASH_NS_PARTITION_SIZE + FLASH_SIC_TABLE_SIZE > BL2_IMAGE_START
+#error "NS_IMAGE_LOAD_ADDRESS < BL2_IMAGE_START + BL2_CODE_SIZE. Decrease FLASH_NS_PARTITION_SIZE or FLASH_S_PARTITION_SIZE"
+#endif
+
+#if S_DATA_SIZE <= 0
+#error "S_DATA_SIZE <= 0. Decrease NS_DATA_SIZE, FLASH_NS_PARTITION_SIZE or FLASH_S_PARTITION_SIZE"
+#endif
+
+#if RSE_PROVISIONING_MESSAGE_MAX_SIZE < 0
+#error "RSE_PROVISIONING_MESSAGE_MAX_SIZE < 0. Decrease PROVISIONING_BUNDLE_DATA_SIZE"
+#endif
+
+#if RUNTIME_PROVISIONING_MESSAGE_MAX_SIZE > RSE_PROVISIONING_MESSAGE_MAX_SIZE
+#error "RUNTIME_PROVISIONING_MESSAGE_MAX_SIZE < RSE_PROVISIONING_MESSAGE_MAX_SIZE. Decrease RUNTIME_PROVISIONING_MESSAGE_MAX_SIZE"
+#endif
 
 #endif /* __REGION_DEFS_H__ */

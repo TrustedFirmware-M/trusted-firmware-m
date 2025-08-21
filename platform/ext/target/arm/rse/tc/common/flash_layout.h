@@ -32,7 +32,11 @@
 #define TFM_HAL_FLASH_PROGRAM_UNIT      (0x1)
 
 /* Sizes of a images */
-#define FLASH_BL2_PARTITION_SIZE        (0x10000) /* BL2 partition: 64 KiB */
+#ifdef RSE_USE_OTP_EMULATION_IN_SRAM
+#define FLASH_BL2_PARTITION_SIZE        (0x0B800) /* BL2 partition: 46 KiB */
+#else
+#define FLASH_BL2_PARTITION_SIZE        (0x0F800) /* BL2 partition: 62 KiB */
+#endif
 #define FLASH_S_PARTITION_SIZE          (0x60000) /* S   partition: 384 KiB */
 #define FLASH_NS_PARTITION_SIZE         (0x60000) /* NS  partition: 384 KiB */
 #define FLASH_AP_PARTITION_SIZE         (0x80000) /* AP  partition: 512 KiB */
@@ -194,14 +198,6 @@
 #error Partition sizes are too large to load into RSE SRAM
 #endif
 
-/* Image load addresses used by imgtool.py */
-#ifdef RSE_XIP
-#define S_IMAGE_LOAD_ADDRESS            (VM0_BASE_S + FLASH_BL2_PARTITION_SIZE)
-#define NS_IMAGE_LOAD_ADDRESS           (S_IMAGE_LOAD_ADDRESS + \
-                                         FLASH_SIC_TABLE_SIZE)
-#else
-#define S_IMAGE_LOAD_ADDRESS            (VM0_BASE_S)
-#define NS_IMAGE_LOAD_ADDRESS           (VM1_BASE_S + VM1_SIZE - FLASH_NS_PARTITION_SIZE)
-#endif
+#include "flash_layout_common.h"
 
 #endif /* __FLASH_LAYOUT_H__ */

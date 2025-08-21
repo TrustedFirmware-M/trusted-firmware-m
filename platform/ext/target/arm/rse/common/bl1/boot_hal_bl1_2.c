@@ -169,22 +169,22 @@ static void copy_rom_library_into_sram(void)
     uint32_t got_entry;
     const size_t code_size = (size_t)&__bl1_1_text_size;
 
-    if (code_size > (VM1_SIZE - RETAINED_RAM_SIZE)) {
+    if (code_size > (VM0_SIZE)) {
         FIH_PANIC;
     }
 
-    /* Copy the ROM into VM1 */
-    memcpy((uint8_t *)VM1_BASE_S, (uint8_t *)ROM_BASE_S, code_size);
+    /* Copy the ROM into VM0 */
+    memcpy((uint8_t *)VM0_BASE_S, (uint8_t *)ROM_BASE_S, code_size);
 
     /* Patch the GOT so that any address which pointed into ROM
-     * now points into VM1.
+     * now points into VM0.
      */
     for (uint32_t *addr = &__got_start__; addr < &__got_end__; addr++) {
         got_entry = *addr;
 
         if (got_entry >= ROM_BASE_S && got_entry < ROM_BASE_S + ROM_SIZE) {
             got_entry -= ROM_BASE_S;
-            got_entry += VM1_BASE_S;
+            got_entry += VM0_BASE_S;
         }
 
         *addr = got_entry;
@@ -208,7 +208,7 @@ static void do_rom_patching(void)
          * of the faulty patch. Convert that address to the SRAM version as
          * bl1_1_shared_lib is now shifted to SRAM where it will be patched
          */
-        *(volatile uint16_t *)(instr_patches[idx].addr - ROM_BASE_S + VM1_BASE_S) =
+        *(volatile uint16_t *)(instr_patches[idx].addr - ROM_BASE_S + VM0_BASE_S) =
             instr_patches[idx].instruction;
     }
 }

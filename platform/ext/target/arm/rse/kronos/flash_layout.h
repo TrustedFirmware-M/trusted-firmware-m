@@ -84,10 +84,6 @@
 #error A partition is larger than HOST_IMAGE_MAX_SIZE, and so cannot be mapped
 #endif
 
-#ifndef RSE_XIP
-#define FLASH_SIC_TABLE_SIZE 0
-#endif /* !RSE_XIP */
-
 #define FLASH_MAX_PARTITION_SIZE SECURE_IMAGE_MAX_SIZE
 
 /* BL2 primary slot */
@@ -248,5 +244,7 @@
 /* Smallest flash programmable unit in bytes */
 #define TFM_HAL_PS_PROGRAM_UNIT         (1)
 #endif /* TFM_PARTITION_PROTECTED_STORAGE */
+
+#include "flash_layout_common.h"
 
 #endif /* __FLASH_LAYOUT_H__ */

@@ -188,6 +188,10 @@
 #define HOST_ACCESS_SIZE                 0x10000000 /* 256 MB */
 #define SIC_MAPPABLE_SIZE                0x01000000 /* 16 MB */
 
+#define VM_COLD_RESET_RETAINED_SIZE      0x00020000 /* 128 KiB */
+#define VM_COLD_RESET_RETAINED_BASE_S    (VM1_BASE_S + VM1_SIZE - \
+                                         VM_COLD_RESET_RETAINED_SIZE)
+
 /* Defines for Driver MPC's */
 /* VM0 -- 8 MB */
 #define MPC_VM0_RANGE_BASE_NS            (VM0_BASE_NS)

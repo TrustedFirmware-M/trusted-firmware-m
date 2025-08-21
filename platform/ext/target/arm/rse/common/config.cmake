@@ -109,11 +109,7 @@ set(TFM_BL1_2_ENABLE_ROTPK_POLICIES     ON         CACHE STRING    "Whether to a
 if (RSE_USE_ROM_LIB_FROM_SRAM)
     set(CODE_SHARING_OUTPUT_FILE_SUFFIX     "_shared_symbols.axf" CACHE STRING "Suffix to use for code-sharing output files")
     set(CODE_SHARING_INPUT_FILE_SUFFIX      "_shared_symbols_in_sram.axf" CACHE STRING "Suffix to use for code-sharing input files")
-    if (RSE_XIP)
-        set(RSE_ROM_LIB_RELOCATION_OFFSET   +0x20010000           CACHE STRING "Relocation offset to be used to change section address w.r.t. ROM base address")
-    else()
-        set(RSE_ROM_LIB_RELOCATION_OFFSET   +0x20080000           CACHE STRING "Relocation offset to be used to change section address w.r.t. ROM base address")
-    endif()
+    set(RSE_ROM_LIB_RELOCATION_OFFSET   +0x20000000           CACHE STRING "Relocation offset to be used to change section address w.r.t. ROM base address")
 endif()
 
 set(RSE_DMA_ICS_CONFIG_PATH             ${CMAKE_CURRENT_LIST_DIR}/bl1/scripts/dma_config.yaml CACHE FILEPATH "Path to DMA ICS config")
