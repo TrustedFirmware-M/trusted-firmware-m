@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-#define BL2_HEADER_SIZE (offsetof(struct bl1_2_image_t, protected_values.encrypted_data.data))
+#define BL1_2_HEADER_SIZE (offsetof(struct bl1_2_image_t, protected_values.encrypted_data.data))
 
 /**
  *
