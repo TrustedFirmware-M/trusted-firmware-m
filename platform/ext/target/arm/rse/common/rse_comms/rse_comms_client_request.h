@@ -26,10 +26,8 @@ extern "C" {
  * - sum out_vec size
  */
 struct client_request_t {
-    void *mhu_sender_dev; /* Pointer to MHU sender device to reply on */
     uint8_t remote_id;
     uint8_t protocol_ver;
-    uint8_t seq_num;
     uint16_t client_id;
     psa_handle_t handle;
     int32_t type;

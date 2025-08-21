@@ -8,10 +8,12 @@
 #ifndef __RSE_COMMS_HELPERS_H__
 #define __RSE_COMMS_HELPERS_H__
 
+#include <assert.h>
 #include "rse_comms.h"
 #include "rse_comms_defs.h"
 #include "rse_comms_link_defs.h"
 #include "rse_comms_protocol_error.h"
+#include "rse_comms_link_hal.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,6 +36,14 @@ void rse_comms_helpers_generate_protocol_error_packet(struct rse_comms_packet_t 
                                                       rse_comms_link_id_t link_id,
                                                       uint16_t client_id, uint8_t seq_num,
                                                       enum rse_comms_protocol_error_t error);
+
+static inline enum rse_comms_error_t
+rse_hal_error_to_comms_error(enum rse_comms_hal_error_t hal_error)
+{
+    assert(hal_error < (RSE_COMMS_ERROR_HAL_ERROR_MAX - RSE_COMMS_ERROR_HAL_ERROR_BASE));
+
+    return RSE_COMMS_ERROR_HAL_ERROR_BASE + hal_error;
+}
 
 #ifdef __cplusplus
 }

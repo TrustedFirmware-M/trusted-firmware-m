@@ -7,7 +7,6 @@
 
 #include "rse_comms_runtime_hal.h"
 
-#include "rse_comms_queue.h"
 #include "mhu.h"
 #include "tfm_hal_device_header.h"
 #include "device_definition.h"
@@ -17,328 +16,270 @@
 #include "config_tfm.h"
 #include "rse_comms_defs.h"
 #include "rse_comms_link_hal.h"
-#include "rse_comms_client_request.h"
+#include "rse_comms.h"
+#include "rse_comms_protocol_error.h"
+#include "rse_comms_handler_buffer.h"
+#include "rse_comms_helpers.h"
+#include "critical_section.h"
 #include <string.h>
 
-/* Declared statically to avoid using huge amounts of stack space. Maybe revisit
- * if functions not being reentrant becomes a problem.
- */
-static __ALIGNED(4) uint8_t msg_buf[RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(false, true) +
-                                    sizeof(struct serialized_psa_msg_t)];
-static __ALIGNED(4) uint8_t reply_buf[RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(false, true) +
-                                      sizeof(struct serialized_psa_reply_t)];
+/* Allow message size up to the largest possible PSA message size */
+#define RSE_COMMS_HAL_MAX_MSG_SIZE \
+    (RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(true, true) + RSE_COMMS_PAYLOAD_MAX_SIZE)
 
-TFM_POOL_DECLARE(req_pool, sizeof(struct client_request_t),
-                 RSE_COMMS_MAX_CONCURRENT_REQ);
+struct rse_comms_buffer_t {
+    bool in_use;
+    __ALIGNED(4) uint8_t buf[RSE_COMMS_HAL_MAX_MSG_SIZE];
+    size_t msg_size;
+};
 
-static enum tfm_plat_err_t initialize_mhu(void)
+static struct rse_comms_buffer_t rse_comms_buffer[RSE_COMMS_MAX_CONCURRENT_REQ];
+
+/* This must be called in the interrupt context so there will be no
+ concurrent access from the thread */
+static bool get_free_rse_comms_buffer(rse_comms_buffer_handle_t *buf_handle)
 {
-    enum mhu_error_t err;
+    struct critical_section_t cs_assert = CRITICAL_SECTION_STATIC_INIT;
+    bool found_free;
 
-    err = mhu_init_sender(&MHU_RSE_TO_AP_MONITOR_DEV);
-    if (err != MHU_ERR_NONE) {
-        ERROR_UNPRIV_RAW("[COMMS] RSE to AP_MONITOR MHU driver init failed: %i\n",
-            err);
-        return TFM_PLAT_ERR_SYSTEM_ERR;
+    /* Prevent potential concurrent access from higher priority interrupts */
+    CRITICAL_SECTION_ENTER(cs_assert);
+    for (uint8_t i = 0; i < RSE_COMMS_MAX_CONCURRENT_REQ; i++) {
+        if (!rse_comms_buffer[i].in_use) {
+            *buf_handle = i;
+            rse_comms_buffer[i].in_use = true;
+            found_free = true;
+            goto out;
+        }
     }
 
-    err = mhu_init_receiver(&MHU_AP_MONITOR_TO_RSE_DEV);
-    if (err != MHU_ERR_NONE) {
-        ERROR_UNPRIV_RAW("[COMMS] AP_MONITOR to RSE MHU driver init failed: %i\n",
-            err);
-        return TFM_PLAT_ERR_SYSTEM_ERR;
-    }
+    found_free = false;
 
-#ifdef MHU_AP_NS_TO_RSE_DEV
-    err = mhu_init_sender(&MHU_RSE_TO_AP_NS_DEV);
-    if (err != MHU_ERR_NONE) {
-        ERROR_UNPRIV_RAW("[COMMS] RSE to AP_NS MHU driver init failed: %i\n", err);
-        return TFM_PLAT_ERR_SYSTEM_ERR;
-    }
-
-    err = mhu_init_receiver(&MHU_AP_NS_TO_RSE_DEV);
-    if (err != MHU_ERR_NONE) {
-        ERROR_UNPRIV_RAW("[COMMS] AP_NS to RSE MHU driver init failed: %i\n", err);
-        return TFM_PLAT_ERR_SYSTEM_ERR;
-    }
-#endif /* MHU_AP_NS_TO_RSE_DEV */
-
-#ifdef MHU_RSE_TO_AP_S_DEV
-    err = mhu_init_sender(&MHU_RSE_TO_AP_S_DEV);
-    if (err != MHU_ERR_NONE) {
-        ERROR_UNPRIV_RAW("[COMMS] RSE to AP_S MHU driver init failed: %i\n", err);
-        return TFM_PLAT_ERR_SYSTEM_ERR;
-    }
-
-    err = mhu_init_receiver(&MHU_AP_S_TO_RSE_DEV);
-    if (err != MHU_ERR_NONE) {
-        ERROR_UNPRIV_RAW("[COMMS] AP_S to RSE MHU driver init failed: %i\n", err);
-        return TFM_PLAT_ERR_SYSTEM_ERR;
-    }
-#endif /* MHU_RSE_TO_AP_S_DEV */
-
-    VERBOSE_UNPRIV_RAW("[COMMS] MHU driver initialized successfully.\n");
-    return TFM_PLAT_ERR_SUCCESS;
-}
-
-static void populate_reply_header(enum rse_comms_packet_type_t packet_type,
-                                  rse_comms_node_id_t sender, rse_comms_node_id_t receiver,
-                                  uint8_t seq_num)
-{
-    struct rse_comms_packet_t *reply = (struct rse_comms_packet_t *)reply_buf;
-
-    reply->header.metadata =
-        SET_ALL_METADATA_FIELDS(packet_type, false, true, RSE_COMMS_PROTOCOL_VERSION);
-    reply->header.sender_id = sender;
-    reply->header.receiver_id = receiver;
-    reply->header.seq_num = seq_num;
-}
-
-static void return_psa_error(struct client_request_t *req,
-                             struct serialized_rse_comms_header_t *header, void *mhu_sender_dev,
-                             rse_comms_node_id_t sender, rse_comms_node_id_t receiver,
-                             uint8_t seq_num, uint16_t client_id)
-{
-    enum mhu_error_t mhu_err;
-    enum tfm_plat_err_t err;
-    size_t reply_size;
-    struct rse_comms_packet_t *reply = (struct rse_comms_packet_t *)reply_buf;
-    struct serialized_psa_reply_t *psa_reply;
-
-    populate_reply_header(RSE_COMMS_PACKET_TYPE_REPLY, sender, receiver, seq_num);
-    GET_RSE_COMMS_CLIENT_ID(reply, false) = client_id;
-    GET_RSE_COMMS_APPLICATION_ID(reply, false) = 0;
-
-    psa_reply = (struct serialized_psa_reply_t *)GET_RSE_COMMS_PAYLOAD_PTR(reply, false, true);
-
-    /* Attempt to respond with a failure message */
-    err = rse_protocol_serialize_error(req, header, PSA_ERROR_CONNECTION_BUSY, psa_reply,
-                                       &reply_size);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        ERROR_UNPRIV_RAW("[COMMS] Cannot serialize failure message: %i\n", err);
-        return;
-    }
-
-    mhu_err = mhu_send_data(mhu_sender_dev, (uint8_t *)reply,
-                            reply_size + RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(false, true));
-    if (mhu_err != MHU_ERR_NONE) {
-        ERROR_UNPRIV_RAW("[COMMS] Cannot send failure message: %i\n", mhu_err);
-    }
-}
-
-static void return_protocol_error(uint16_t error, void *mhu_sender_dev, rse_comms_node_id_t sender,
-                                  rse_comms_node_id_t receiver, uint8_t seq_num, uint16_t client_id)
-{
-    enum mhu_error_t mhu_err;
-    struct rse_comms_packet_t *reply = (struct rse_comms_packet_t *)reply_buf;
-
-    populate_reply_header(RSE_COMMS_PACKET_TYPE_REPLY, sender, receiver, seq_num);
-
-    GET_RSE_COMMS_ERROR_REPLY_CLIENT_ID(reply) = client_id;
-    GET_RSE_COMMS_ERROR_REPLY_PROTCOL_ERROR(reply) = error;
-
-    mhu_err = mhu_send_data(mhu_sender_dev, (uint8_t *)reply, RSE_COMMS_PACKET_SIZE_ERROR_REPLY);
-    if (mhu_err != MHU_ERR_NONE) {
-        ERROR_UNPRIV_RAW("[COMMS] Cannot send failure message: %i\n", mhu_err);
-    }
-}
-
-enum tfm_plat_err_t tfm_multi_core_hal_receive(void *mhu_receiver_dev,
-                                               void *mhu_sender_dev,
-                                               uint32_t source)
-{
-    enum mhu_error_t mhu_err;
-    enum tfm_plat_err_t err;
-    enum rse_comms_hal_error_t hal_err;
-    size_t msg_len = sizeof(msg_buf);
-    struct serialized_psa_msg_t *psa_msg;
-    rse_comms_node_id_t my_node_id;
-    struct rse_comms_packet_t *msg = (struct rse_comms_packet_t *)msg_buf;
-    size_t message_size;
-
-    memset(msg_buf, 0, sizeof(msg_buf));
-    memset(reply_buf, 0, sizeof(reply_buf));
-
-    /* Receive complete message */
-    mhu_err = mhu_get_receive_msg_len(mhu_receiver_dev, &message_size);
-    if (mhu_err != MHU_ERR_NONE) {
-        /* Can't respond, since we don't know anything about the message */
-        NVIC_ClearPendingIRQ(source);
-        return TFM_PLAT_ERR_SYSTEM_ERR;
-    }
-
-    if (message_size > sizeof(msg_buf)) {
-        /* Message too large, can't respond */
-        NVIC_ClearPendingIRQ(source);
-        return TFM_PLAT_ERR_SYSTEM_ERR;
-    }
-
-    mhu_err = mhu_receive_data(mhu_receiver_dev, (uint8_t *)msg, message_size);
-
-    /* Clear the pending interrupt for this MHU. This prevents the mailbox
-     * interrupt handler from being called without the next request arriving
-     * through the mailbox
-     */
-    NVIC_ClearPendingIRQ(source);
-
-    if (mhu_err != MHU_ERR_NONE) {
-        /* Can't respond, since we don't know anything about the message */
-        return TFM_PLAT_ERR_SYSTEM_ERR;
-    }
-
-    hal_err = rse_comms_hal_get_my_node_id(&my_node_id);
-    if (hal_err != RSE_COMMS_HAL_ERROR_SUCCESS) {
-        err = (enum tfm_plat_err_t)hal_err;
-        goto out_return_protocol_error;
-    }
-
-    if (GET_METADATA_FIELD(PROTOCOL_VERSION, msg->header.metadata) != RSE_COMMS_PROTOCOL_VERSION) {
-        ERROR_UNPRIV_RAW("[COMMS] Invalid protocol version, expected %d\n",
-                         RSE_COMMS_PROTOCOL_VERSION);
-        err = TFM_PLAT_ERR_SYSTEM_ERR;
-        goto out_return_protocol_error;
-    }
-
-    if (msg->header.receiver_id != my_node_id) {
-        err = TFM_PLAT_ERR_SYSTEM_ERR;
-        goto out_return_protocol_error;
-    }
-
-    if (GET_METADATA_FIELD(PACKET_TYPE, msg->header.metadata) !=
-        RSE_COMMS_PACKET_TYPE_MSG_NEEDS_REPLY) {
-        err = TFM_PLAT_ERR_SYSTEM_ERR;
-        goto out_return_protocol_error;
-    }
-
-    if (GET_METADATA_FIELD(USES_CRYPTOGRAPHY, msg->header.metadata)) {
-        err = TFM_PLAT_ERR_SYSTEM_ERR;
-        goto out_return_protocol_error;
-    }
-
-    if (!GET_METADATA_FIELD(USES_ID_EXTENSION, msg->header.metadata)) {
-        err = TFM_PLAT_ERR_SYSTEM_ERR;
-        goto out_return_protocol_error;
-    }
-
-    /*
-     * TODO: Currently only support PSA messages.
-     * We need to implement handler mode based on message application ID
-     */
-    if (GET_RSE_COMMS_APPLICATION_ID(msg, false) != 0) {
-        err = TFM_PLAT_ERR_SYSTEM_ERR;
-        goto out_return_protocol_error;
-    }
-
-    struct client_request_t *req = tfm_pool_alloc(req_pool);
-    if (!req) {
-        /* No free capacity, drop message */
-        err = TFM_PLAT_ERR_SYSTEM_ERR;
-        goto out_return_protocol_error;
-    }
-    memset(req, 0, sizeof(struct client_request_t));
-
-    req->seq_num = msg->header.seq_num;
-    req->client_id = GET_RSE_COMMS_CLIENT_ID(msg, false);
-    /* Record the MHU sender device to be used for the reply */
-    req->mhu_sender_dev = mhu_sender_dev;
-    req->remote_id = msg->header.sender_id;
-
-    psa_msg = (struct serialized_psa_msg_t *)GET_RSE_COMMS_PAYLOAD_PTR(msg, false, true);
-
-    err = rse_protocol_deserialize_msg(
-        req, psa_msg, msg_len - RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(false, true));
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        /* Deserialisation failed, drop message */
-        goto out_return_psa_error;
-    }
-
-    if (queue_enqueue(req) != 0) {
-        /* No queue capacity, drop message */
-        err = TFM_PLAT_ERR_SYSTEM_ERR;
-        goto out_return_psa_error;
-    }
-
-    /* Message successfully received */
-    return TFM_PLAT_ERR_SUCCESS;
-
-out_return_protocol_error:
-    return_protocol_error(err, mhu_sender_dev, msg->header.sender_id, msg->header.receiver_id,
-                          msg->header.seq_num, GET_RSE_COMMS_CLIENT_ID(msg, false));
-    return err;
-out_return_psa_error:
-    /* Attempt to respond with a failure message */
-    return_psa_error(req, &psa_msg->header, mhu_sender_dev, req->remote_id, msg->header.receiver_id,
-                     req->seq_num, req->client_id);
-    tfm_pool_free(req_pool, req);
-    return err;
-}
-
-enum tfm_plat_err_t tfm_multi_core_hal_reply(struct client_request_t *req)
-{
-    enum tfm_plat_err_t err;
-    enum mhu_error_t mhu_err;
-    enum rse_comms_hal_error_t hal_err;
-    rse_comms_node_id_t my_node_id;
-    struct rse_comms_packet_t *reply = (struct rse_comms_packet_t *)reply_buf;
-    struct serialized_psa_reply_t *psa_reply;
-    size_t reply_size;
-
-    /* This function is called by the mailbox partition with Thread priority, so
-     * MHU interrupts must be disabled to prevent concurrent accesses by
-     * tfm_multi_core_hal_receive().
-     */
-    NVIC_DisableIRQ(MAILBOX_IRQ);
-
-    if (!is_valid_chunk_data_in_pool(req_pool, (uint8_t *)req)) {
-        err = TFM_PLAT_ERR_SYSTEM_ERR;
-        goto out;
-    }
-
-    hal_err = rse_comms_hal_get_my_node_id(&my_node_id);
-    if (hal_err != RSE_COMMS_HAL_ERROR_SUCCESS) {
-        err = (enum tfm_plat_err_t)hal_err;
-        goto out_free_req;
-    }
-
-    populate_reply_header(RSE_COMMS_PACKET_TYPE_REPLY, req->remote_id, my_node_id, req->seq_num);
-    GET_RSE_COMMS_CLIENT_ID(reply, false) = req->client_id;
-    GET_RSE_COMMS_APPLICATION_ID(reply, false) = 0;
-
-    psa_reply = (struct serialized_psa_reply_t *)GET_RSE_COMMS_PAYLOAD_PTR(reply, false, true);
-
-    err = rse_protocol_serialize_reply(req, psa_reply, &reply_size);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        VERBOSE_UNPRIV_RAW("[COMMS] Serialize reply failed: %i\n", err);
-        goto out_free_req;
-    }
-
-    mhu_err = mhu_send_data(req->mhu_sender_dev, (uint8_t *)reply,
-                            reply_size + RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(false, true));
-    if (mhu_err != MHU_ERR_NONE) {
-        VERBOSE_UNPRIV_RAW("[COMMS] MHU send failed: %i\n", mhu_err);
-        err = TFM_PLAT_ERR_SYSTEM_ERR;
-        goto out_free_req;
-    }
-
-    VERBOSE_UNPRIV_RAW("[COMMS] Sent reply\n");
-
-out_free_req:
-    tfm_pool_free(req_pool, req);
 out:
-    NVIC_EnableIRQ(MAILBOX_IRQ);
+    CRITICAL_SECTION_LEAVE(cs_assert);
+    return found_free;
+}
+
+enum rse_comms_error_t rse_comms_get_handler_buffer(rse_comms_buffer_handle_t buffer_handle,
+                                                    uint8_t **buf, size_t *msg_size)
+{
+    if ((buffer_handle >= RSE_COMMS_MAX_CONCURRENT_REQ) ||
+        !rse_comms_buffer[buffer_handle].in_use) {
+        return RSE_COMMS_ERROR_INVALID_BUFFER_HANDLE;
+    }
+
+    *buf = rse_comms_buffer[buffer_handle].buf;
+    *msg_size = rse_comms_buffer[buffer_handle].msg_size;
+
+    return RSE_COMMS_ERROR_SUCCESS;
+}
+
+enum rse_comms_error_t rse_comms_pop_handler_buffer(rse_comms_buffer_handle_t buf_handle)
+{
+    if (buf_handle >= RSE_COMMS_MAX_CONCURRENT_REQ) {
+        return RSE_COMMS_ERROR_INVALID_BUFFER_HANDLE;
+    }
+
+    rse_comms_buffer[buf_handle].in_use = false;
+
+    return RSE_COMMS_ERROR_SUCCESS;
+}
+
+static enum rse_comms_error_t send_protocol_error(rse_comms_node_id_t node_id,
+                                                      rse_comms_node_id_t my_node_id,
+                                                      rse_comms_link_id_t link_id,
+                                                      uint16_t client_id, uint8_t seq_num,
+                                                      enum rse_comms_protocol_error_t error)
+{
+    struct rse_comms_packet_t packet;
+    enum rse_comms_hal_error_t hal_error;
+
+    rse_comms_helpers_generate_protocol_error_packet(&packet, node_id, my_node_id, link_id,
+                                                     client_id, seq_num, error);
+
+    hal_error = rse_comms_hal_send_message(link_id, (const uint8_t *)&packet,
+                                            RSE_COMMS_PACKET_SIZE_ERROR_REPLY);
+    if (hal_error != RSE_COMMS_HAL_ERROR_SUCCESS) {
+        return rse_hal_error_to_comms_error(hal_error);
+    }
+
+    return RSE_COMMS_ERROR_SUCCESS;
+}
+
+enum tfm_plat_err_t tfm_multi_core_hal_receive(rse_comms_link_id_t link_id, uint32_t source)
+{
+    enum tfm_plat_err_t err;
+    enum rse_comms_error_t comms_err;
+    enum rse_comms_hal_error_t hal_err;
+    rse_comms_buffer_handle_t buffer_handle;
+    size_t message_size;
+    bool needs_reply;
+    struct rse_comms_packet_t *packet;
+    rse_comms_node_id_t my_node_id;
+    enum rse_comms_protocol_error_t protocol_err;
+    enum rse_comms_packet_type_t packet_type;
+    bool uses_id_extension;
+    bool packet_uses_crypto;
+    uint16_t packet_application_id;
+    uint16_t packet_client_id;
+    rse_comms_node_id_t packet_sender;
+    rse_comms_node_id_t packet_receiver;
+    rse_comms_node_id_t forwarding_destination;
+    uint8_t seq_num;
+    uint8_t *payload;
+    size_t payload_len;
+    rse_comms_handler_t handler;
+
+    hal_err = rse_comms_hal_get_receive_message_size(link_id, &message_size);
+    if (hal_err != RSE_COMMS_HAL_ERROR_SUCCESS) {
+        return (enum tfm_plat_err_t)rse_hal_error_to_comms_error(hal_err);
+    }
+
+    if (message_size > RSE_COMMS_HAL_MAX_MSG_SIZE) {
+        /* Message too large for buffer */
+        protocol_err = RSE_COMMS_PROTOCOL_ERROR_MSG_TOO_LARGE_TO_RECIEVE;
+        err = TFM_PLAT_ERR_SYSTEM_ERR;
+        goto out_error_buffer_allocation;
+    }
+
+    if (!get_free_rse_comms_buffer(&buffer_handle)) {
+        /* Not enough buffer space */
+        protocol_err = RSE_COMMS_PROTOCOL_ERROR_MSG_DELIVERY_TEMPORARY_FAILURE;
+        err = TFM_PLAT_ERR_SYSTEM_ERR;
+        goto out_error_buffer_allocation;
+    }
+
+    hal_err =
+        rse_comms_hal_receive_message(link_id, rse_comms_buffer[buffer_handle].buf, message_size);
+    if (hal_err != RSE_COMMS_HAL_ERROR_SUCCESS) {
+        return (enum tfm_plat_err_t)rse_hal_error_to_comms_error(hal_err);
+    }
+
+    rse_comms_buffer[buffer_handle].msg_size = message_size;
+    packet = (struct rse_comms_packet_t *)rse_comms_buffer[buffer_handle].buf;
+
+    comms_err = rse_comms_helpers_parse_packet(packet, message_size, &packet_sender,
+                                               &packet_receiver, &seq_num, &packet_uses_crypto,
+                                               &uses_id_extension, &packet_application_id,
+                                               &packet_client_id, &payload, &payload_len,
+                                               &needs_reply, &packet_type);
+    if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
+        /* Do not have enough information about this packet to reply */
+        return (enum tfm_plat_err_t)comms_err;
+    }
+
+    hal_err = rse_comms_hal_get_my_node_id(&my_node_id);
+    if (hal_err != RSE_COMMS_HAL_ERROR_SUCCESS) {
+        protocol_err = RSE_COMMS_PROTOCOL_INTERNAL_ERROR;
+        err = (enum tfm_plat_err_t)rse_hal_error_to_comms_error(hal_err);
+        goto out_error_reply;
+    }
+
+    if (rse_comms_helpers_packet_requires_forwarding_get_destination(
+            packet_sender, packet_receiver, packet_type, my_node_id, &forwarding_destination)) {
+        /* Forward this packet where it is meant to go */
+        rse_comms_link_id_t forwarding_link_id = rse_comms_hal_get_route(forwarding_destination);
+        if (forwarding_link_id == 0) {
+            protocol_err = RSE_COMMS_PROTOCOL_ERROR_INVALID_FORWARDING_DESTINATION;
+            err = (enum tfm_plat_err_t)RSE_COMMS_ERROR_INVALID_NODE;
+            goto out_error_reply;
+        }
+
+        hal_err = rse_comms_hal_send_message(forwarding_link_id, (uint8_t *)packet, message_size);
+        if (hal_err != RSE_COMMS_HAL_ERROR_SUCCESS) {
+            protocol_err = RSE_COMMS_PROTOCOL_ERROR_FORWARDING_FAILED;
+            err = (enum tfm_plat_err_t)rse_hal_error_to_comms_error(hal_err);
+            goto out_error_reply;
+        }
+
+        /* Message has been successfully forwarded, nothing else to do */
+        return TFM_PLAT_ERR_SUCCESS;
+    }
+
+    switch (packet_type) {
+    case RSE_COMMS_PACKET_TYPE_MSG_NEEDS_REPLY:
+    case RSE_COMMS_PACKET_TYPE_MSG_NO_REPLY:
+        comms_err = rse_comms_get_msg_handler(packet_application_id, &handler);
+        if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
+            protocol_err = RSE_COMMS_PROTOCOL_ERROR_INVALID_APPLICATION_ID;
+            err = TFM_PLAT_ERR_SYSTEM_ERR;
+            goto out_error_reply;
+        }
+        break;
+    case RSE_COMMS_PACKET_TYPE_REPLY:
+    case RSE_COMMS_PACKET_TYPE_PROTOCOL_ERROR_REPLY:
+        comms_err = rse_comms_get_reply_handler(packet_client_id, &handler);
+        if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
+            protocol_err = RSE_COMMS_PROTOCOL_ERROR_INVALID_CLIENT_ID;
+            err = TFM_PLAT_ERR_SYSTEM_ERR;
+            goto out_error_reply;
+        }
+        break;
+    default:
+        protocol_err = RSE_COMMS_PROTOCOL_ERROR_INVALID_CONTEXT;
+        err = TFM_PLAT_ERR_SYSTEM_ERR;
+        goto out_error_reply;
+    }
+
+    comms_err = handler(buffer_handle);
+    if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
+        protocol_err = RSE_COMMS_PROTOCOL_ERROR_HANDLER_FAILED;
+        err = TFM_PLAT_ERR_SYSTEM_ERR;
+        goto out_error_reply;
+    }
+
+    return TFM_PLAT_ERR_SUCCESS;
+
+out_error_buffer_allocation: {
+    enum rse_comms_error_t parse_buffer_failed_packet_error;
+    struct rse_comms_packet_t buffer_failure_packet;
+    size_t size_to_receive;
+
+    /* Only receive the header or the maximum possible size if the message is smaller */
+    size_to_receive = message_size < RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(true, true) ?
+                          message_size :
+                          RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(true, true);
+
+    /* Message too large for buffer, receive just the header for error reply */
+    hal_err =
+        rse_comms_hal_receive_message(link_id, (uint8_t *)&buffer_failure_packet, size_to_receive);
+    if (hal_err != RSE_COMMS_HAL_ERROR_SUCCESS) {
+        /* Cannot receive the header so have to drop */
+        return (enum tfm_plat_err_t)rse_hal_error_to_comms_error(hal_err);
+    }
+
+    parse_buffer_failed_packet_error = rse_comms_helpers_parse_packet(
+        &buffer_failure_packet, size_to_receive, &packet_sender, &packet_receiver, &seq_num,
+        &packet_uses_crypto, &uses_id_extension, &packet_application_id, &packet_client_id,
+        &payload, &payload_len, &needs_reply, &packet_type);
+    if (parse_buffer_failed_packet_error != RSE_COMMS_ERROR_SUCCESS) {
+        /* Cannot parse this packet so must drop */
+        return (enum tfm_plat_err_t)parse_buffer_failed_packet_error;
+    }
+
+    /* Fallthrough to send error reply */
+}
+
+out_error_reply:
+    if (needs_reply) {
+        enum rse_comms_error_t send_reply_error = send_protocol_error(
+            packet_sender, packet_receiver, link_id, packet_client_id, seq_num, protocol_err);
+        if (send_reply_error != RSE_COMMS_ERROR_SUCCESS) {
+            err = (enum tfm_plat_err_t)send_reply_error;
+        }
+    }
+
     return err;
 }
 
 enum tfm_plat_err_t tfm_multi_core_hal_init(void)
 {
-    int32_t spm_err;
+    enum rse_comms_error_t comms_err;
 
-    spm_err = tfm_pool_init(req_pool, POOL_BUFFER_SIZE(req_pool),
-                            sizeof(struct client_request_t),
-                            RSE_COMMS_MAX_CONCURRENT_REQ);
-    if (spm_err) {
-        return TFM_PLAT_ERR_SYSTEM_ERR;
+    comms_err = rse_comms_init();
+    if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
+        return (enum tfm_plat_err_t)comms_err;
     }
 
-    return initialize_mhu();
+    return TFM_PLAT_ERR_SUCCESS;
 }

@@ -23,6 +23,7 @@
 #include "platform_irq.h"
 #ifdef TFM_MULTI_CORE_TOPOLOGY
 #include "rse_comms_runtime_hal.h"
+#include "rse_comms_platform.h"
 #endif
 
 static struct irq_t timer0_irq = {0};
@@ -51,8 +52,16 @@ static struct irq_t mbox_irq_info[3] = {0};
 /* Platform specific inter-processor communication interrupt handler. */
 void CMU_MHU0_Receiver_Handler(void)
 {
-    (void)tfm_multi_core_hal_receive(&MHU_AP_MONITOR_TO_RSE_DEV,
-                                     &MHU_RSE_TO_AP_MONITOR_DEV,
+    struct rse_comms_platform_device_t device = {
+        &MHU0_RECEIVER_DEV_S,
+#if PLAT_MHU_VERSION == 2
+        RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV2,
+#else
+        RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV3,
+#endif
+    };
+
+    (void)tfm_multi_core_hal_receive(rse_comms_platform_get_receive_link_id(device),
                                      mbox_irq_info[0].p_ildi->source);
 
     /*
@@ -62,12 +71,20 @@ void CMU_MHU0_Receiver_Handler(void)
     spm_handle_interrupt(mbox_irq_info[0].p_pt, mbox_irq_info[0].p_ildi);
 }
 
-#ifdef MHU_AP_NS_TO_RSE_DEV
+#ifdef MHU1_S
 /* Platform specific inter-processor communication interrupt handler. */
 void CMU_MHU1_Receiver_Handler(void)
 {
-    (void)tfm_multi_core_hal_receive(&MHU_AP_NS_TO_RSE_DEV,
-                                     &MHU_RSE_TO_AP_NS_DEV,
+    struct rse_comms_platform_device_t device = {
+        &MHU1_RECEIVER_DEV_S,
+#if PLAT_MHU_VERSION == 2
+        RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV2,
+#else
+        RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV3,
+#endif
+    };
+
+    (void)tfm_multi_core_hal_receive(rse_comms_platform_get_receive_link_id(device),
                                      mbox_irq_info[1].p_ildi->source);
 
     /*
@@ -78,12 +95,20 @@ void CMU_MHU1_Receiver_Handler(void)
 }
 #endif /* MHU_AP_NS_TO_RSE_DEV */
 
-#ifdef MHU_AP_S_TO_RSE_DEV
+#ifdef MHU2_S
 /* Platform specific inter-processor communication interrupt handler. */
 void CMU_MHU2_Receiver_Handler(void)
 {
-    (void)tfm_multi_core_hal_receive(&MHU_AP_S_TO_RSE_DEV,
-                                     &MHU_RSE_TO_AP_S_DEV,
+    struct rse_comms_platform_device_t device = {
+        &MHU2_RECEIVER_DEV_S,
+#if PLAT_MHU_VERSION == 2
+        RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV2,
+#else
+        RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV3,
+#endif
+    };
+
+    (void)tfm_multi_core_hal_receive(rse_comms_platform_get_receive_link_id(device),
                                      mbox_irq_info[2].p_ildi->source);
 
     /*
@@ -109,9 +134,8 @@ enum tfm_hal_status_t mailbox_irq_init(void *p_pt,
     NVIC_ClearTargetState(CMU_MHU0_Receiver_IRQn);
     NVIC_DisableIRQ(CMU_MHU0_Receiver_IRQn);
 
-    if (tfm_multi_core_register_client_id_range(&MHU_RSE_TO_AP_MONITOR_DEV,
-                                                p_ildi->source)
-        != SPM_SUCCESS) {
+    if (tfm_multi_core_register_client_id_range(&MHU0_SENDER_DEV_S, p_ildi->source) !=
+        SPM_SUCCESS) {
         return TFM_HAL_ERROR_INVALID_INPUT;
     }
     return TFM_HAL_SUCCESS;
@@ -133,9 +157,8 @@ enum tfm_hal_status_t mailbox_irq_1_init(void *p_pt,
     NVIC_ClearTargetState(CMU_MHU1_Receiver_IRQn);
     NVIC_DisableIRQ(CMU_MHU1_Receiver_IRQn);
 
-    if (tfm_multi_core_register_client_id_range(&MHU_RSE_TO_AP_NS_DEV,
-                                                p_ildi->source)
-        != SPM_SUCCESS) {
+    if (tfm_multi_core_register_client_id_range(&MHU1_SENDER_DEV_S, p_ildi->source) !=
+        SPM_SUCCESS) {
         return TFM_HAL_ERROR_INVALID_INPUT;
     }
     return TFM_HAL_SUCCESS;
@@ -167,9 +190,8 @@ enum tfm_hal_status_t mailbox_irq_2_init(void *p_pt,
     NVIC_ClearTargetState(CMU_MHU2_Receiver_IRQn);
     NVIC_DisableIRQ(CMU_MHU2_Receiver_IRQn);
 
-    if (tfm_multi_core_register_client_id_range(&MHU_RSE_TO_AP_S_DEV,
-                                                p_ildi->source)
-        != SPM_SUCCESS) {
+    if (tfm_multi_core_register_client_id_range(&MHU2_SENDER_DEV_S, p_ildi->source) !=
+        SPM_SUCCESS) {
         return TFM_HAL_ERROR_INVALID_INPUT;
     }
 

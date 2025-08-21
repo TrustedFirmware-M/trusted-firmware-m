@@ -8,6 +8,7 @@
 #ifndef __RSE_COMMS_RUNTIME_HAL_H__
 #define __RSE_COMMS_RUNTIME_HAL_H__
 
+#include "rse_comms_link_defs.h"
 #include "tfm_plat_defs.h"
 
 #ifdef __cplusplus
@@ -28,27 +29,13 @@ enum tfm_plat_err_t tfm_multi_core_hal_init(void);
  * \brief Receive PSA client call request from NSPE.
  *        Implemented by platform specific inter-processor communication driver.
  *
- * \param[in] mhu_receiver_dev  Pointer to MHU receiver device on which to read
- *                              the message.
- * \param[in] mhu_sender_dev    Pointer to MHU sender device on which to write
- *                              the reply.
+ * \param[in] link_id           The link ID that the message was received on.
  * \param[in] source            The number of the IRQ source for this MHU.
  *
  * \retval TFM_PLAT_ERR_SUCCESS  Operation succeeded.
  * \retval Other return code     Operation failed with an error code.
  */
-enum tfm_plat_err_t tfm_multi_core_hal_receive(void *mhu_receiver_dev,
-                                               void *mhu_sender_dev,
-                                               uint32_t source);
-
-/**
- * \brief Notify NSPE that a PSA client call return result is replied.
- *        Implemented by platform specific inter-processor communication driver.
- *
- * \retval TFM_PLAT_ERR_SUCCESS  The notification is successfully sent out.
- * \retval Other return code     Operation failed with an error code.
- */
-enum tfm_plat_err_t tfm_multi_core_hal_reply(struct client_request_t *req);
+enum tfm_plat_err_t tfm_multi_core_hal_receive(rse_comms_link_id_t link_id, uint32_t source);
 
 #ifdef __cplusplus
 }

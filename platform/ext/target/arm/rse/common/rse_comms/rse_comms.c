@@ -37,14 +37,6 @@ static struct rse_comms_handler_table_entry_t
     rse_comms_reply_handlers[RSE_COMMS_MAX_NUMBER_REPLY_HANDLERS];
 
 static inline enum rse_comms_error_t
-rse_hal_error_to_comms_error(enum rse_comms_hal_error_t hal_error)
-{
-    assert(hal_error < (RSE_COMMS_ERROR_HAL_ERROR_MAX - RSE_COMMS_ERROR_HAL_ERROR_BASE));
-
-    return RSE_COMMS_ERROR_HAL_ERROR_BASE + hal_error;
-}
-
-static inline enum rse_comms_error_t
 rse_protocol_error_to_comms_error(enum rse_comms_protocol_error_t protocol_error)
 {
     switch (protocol_error) {
