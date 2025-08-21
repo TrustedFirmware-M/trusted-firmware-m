@@ -23,7 +23,7 @@
  *
  * The format expected is the same as for printf(). For example:
  * INFO("Info %s.\n", "message")    -> '[INF]: Info message.'
- * WARN("Warning %s.\n", "message") ->'[WAR]: Warning message.'
+ * WARN("Warning %s.\n", "message") ->'[WRN]: Warning message.'
  */
 #define LOG_LEVEL_NONE      UINT8_C(0)
 #define LOG_LEVEL_ERROR     UINT8_C(10)

@@ -26,7 +26,7 @@ static inline const char *get_log_prefix(uint8_t log_level)
     case LOG_LEVEL_NOTICE:
         return "[NOT]";
     case LOG_LEVEL_WARNING:
-        return "[WAR]";
+        return "[WRN]";
     case LOG_LEVEL_INFO:
         return "[INF]";
     case LOG_LEVEL_VERBOSE:
