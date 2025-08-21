@@ -10,7 +10,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+
 #include "config_spm.h"
+#include "cmsis_compiler.h"
 #ifdef TFM_PARTITION_NS_AGENT_MAILBOX
 #include "ffm/mailbox_agent_api.h"
 #endif
@@ -18,7 +20,6 @@
 #include "psa/service.h"
 
 #if PSA_FRAMEWORK_HAS_MM_IOVEC
-
 /*
  * The MM-IOVEC status
  * The max total number of invec and outvec is 8.
@@ -433,7 +434,7 @@ psa_status_t tfm_spm_partition_psa_clear(void);
  *
  * \retval "Should not return"
  */
-psa_status_t tfm_spm_partition_psa_panic(void);
+__NO_RETURN void tfm_spm_partition_psa_panic(void);
 
 /* psa_set_rhandle is only needed by connection-based services */
 #if CONFIG_TFM_CONNECTION_BASED_SERVICE_API == 1

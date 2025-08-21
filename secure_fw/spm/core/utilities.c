@@ -21,7 +21,6 @@
 void tfm_core_panic(void)
 {
     (void)fih_delay();
-
 #ifdef CONFIG_TFM_BACKTRACE_ON_CORE_PANIC
     tfm_dump_backtrace(__func__, tfm_log);
 #endif
@@ -31,19 +30,16 @@ void tfm_core_panic(void)
 #pragma diag_suppress = Pe111
 #endif
 #ifdef CONFIG_TFM_HALT_ON_CORE_PANIC
-
     /*
      * Halt instead of reboot to retain the backtrace that triggered
      * the fault and thereby make it easier to debug.
      */
     tfm_hal_system_halt();
-
 #ifdef TFM_FIH_PROFILE_ON
     (void)fih_delay();
 
     tfm_hal_system_halt();
-#endif
-
+#endif /* TFM_FIH_PROFILE_ON */
 #else /* CONFIG_TFM_HALT_ON_CORE_PANIC */
     /*
      * FixMe: In the first stage, the SPM will restart the entire system when a
@@ -54,15 +50,19 @@ void tfm_core_panic(void)
      * functionality for terminating an execution context.
      */
     tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
-
 #ifdef TFM_FIH_PROFILE_ON
     (void)fih_delay();
 
     tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
-#endif
-
+#endif /* TFM_FIH_PROFILE_ON */
 #endif /* CONFIG_TFM_HALT_ON_CORE_PANIC */
+
 #if defined(__ICCARM__)
 #pragma diag_default = Pe111
+#else
+    __builtin_unreachable();
 #endif
+    while (1) {
+      __NOP();
+    }
 }

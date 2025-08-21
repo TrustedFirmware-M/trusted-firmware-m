@@ -379,26 +379,24 @@ psa_status_t tfm_spm_partition_psa_clear(void)
 }
 #endif /* CONFIG_TFM_DOORBELL_API == 1 */
 
-psa_status_t tfm_spm_partition_psa_panic(void)
+void tfm_spm_partition_psa_panic(void)
 {
 #ifdef CONFIG_TFM_HALT_ON_CORE_PANIC
     tfm_hal_system_halt();
 #else
     /*
-     * PSA FF recommends that the SPM causes the system to restart when a secure
-     * partition panics.
+     * PSA FF recommends that the SPM causes the system
+     * to restart when a secure partition panics
      */
     tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 #endif
 
-    /* Suppress Pe111 (statement is unreachable) for IAR as return here is in
-     * case system reset fails, which should not happen */
-#if defined(__ICCARM__)
-#pragma diag_suppress = Pe111
-#endif
-    /* Execution should not reach here */
-    return PSA_ERROR_GENERIC_ERROR;
 #if defined(__ICCARM__)
 #pragma diag_default = Pe111
+#else
+    __builtin_unreachable();
 #endif
+    while (1) {
+        __NOP();
+    }
 }
