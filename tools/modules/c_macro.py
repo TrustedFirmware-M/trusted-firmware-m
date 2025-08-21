@@ -55,6 +55,9 @@ def _replace_from_dict(s, d):
 def _eval_maths(expr):
     return _int(__eval_maths(expr))
 
+def ternary(cond, if_true, if_false):
+    return if_true if cond else if_false
+
 def __eval_maths(expr):
     def _bool_to_int(b):
         if isinstance(b, bool):
@@ -69,6 +72,7 @@ def __eval_maths(expr):
         return _eval_maths(s + str(_eval_maths(b)) + e)
 
     ops = {
+        ternary:   r"(.*)\?(.*):(.*)",
         op.or_:    r"(.*)\|\|(.*)",
         op.and_:   r"(.*)&&(.*)",
         op.ne:     r"(.*)!=(.*)",
