@@ -400,8 +400,9 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vector)
 #ifdef BL2_DATA
     TFM_BL2_CopySharedData();
 #endif
+#ifdef CRYPTO_HW_ACCELERATOR
     (void)crypto_hw_accelerator_finish();
-
+#endif
 
     RNG_DeInit();
 
@@ -612,10 +613,12 @@ int32_t boot_platform_init(void)
       BOOT_LOG_ERR("Error while initializing RNG Ip");
       Error_Handler();
     }
+#ifdef CRYPTO_HW_ACCELERATOR
     if (crypto_hw_accelerator_init()){
       BOOT_LOG_ERR("Error while initializing HW accelerator Ip");
       Error_Handler();
     }
+#endif
     /* Start HW randomization */
     fih_delay_init();
     /* Apply Run time Protection */
