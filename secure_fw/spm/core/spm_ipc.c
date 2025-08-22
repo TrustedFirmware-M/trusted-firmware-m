@@ -13,7 +13,6 @@
 #include <stdint.h>
 #include <assert.h>
 #include "async.h"
-#include "bitops.h"
 #include "config_impl.h"
 #include "config_spm.h"
 #include "critical_section.h"
