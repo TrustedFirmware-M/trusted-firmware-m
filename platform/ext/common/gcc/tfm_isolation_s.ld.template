@@ -646,6 +646,7 @@ SECTIONS
     {% endif %}
         *({{partition.manifest.name}}_PSA-ROT_ATTR_ZI)
         . += (. - start_of_{{partition.manifest.name}}_bss) ? 0 : 4;
+        . = ALIGN(4);
     } > DTCM
 
     /* Position tag: End of PSA RoT partition's private data */
