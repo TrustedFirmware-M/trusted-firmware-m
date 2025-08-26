@@ -527,15 +527,25 @@ enum kmu_error_t kmu_random_delay(struct kmu_dev_t *dev,
 
 enum kmu_error_t kmu_invalidate_hardware_keys(struct kmu_dev_t *dev)
 {
-    enum kmu_error_t kmu_err;
+    volatile enum kmu_error_t kmu_err;
+    volatile enum kmu_error_t return_kmu_err;
+    uint32_t success_count = 0;
     uint32_t slot;
 
     for (slot = 0; slot < KMU_USER_SLOT_MIN; slot++) {
+        kmu_err = KMU_ERROR_OPERATION_SKIPPED;
         kmu_err = kmu_set_slot_invalid(dev, slot);
-        if (kmu_err != KMU_ERROR_NONE) {
-            return kmu_err;
+        if (kmu_err == KMU_ERROR_NONE) {
+            success_count += 1;
+        } else {
+            return_kmu_err = KMU_ERROR_OPERATION_SKIPPED;
+            return_kmu_err = kmu_err;
         }
     }
 
-    return KMU_ERROR_NONE;
+    if (success_count == KMU_USER_SLOT_MIN) {
+        return KMU_ERROR_NONE;
+    }
+
+    return return_kmu_err;
 }
