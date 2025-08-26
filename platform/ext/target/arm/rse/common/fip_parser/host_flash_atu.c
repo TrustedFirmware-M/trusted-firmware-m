@@ -292,7 +292,7 @@ static int
 
 static bool plat_check_if_prev_boot_failed(void)
 {
-    return (tfm_hal_get_reset_syndrome() & (1u << SWSYN_FAILED_BOOT_BIT_POS));
+    return ((tfm_hal_get_reset_syndrome() & (1u << RSE_SWSYN_FAILED_BOOT_BIT_POS)) != 0);
 }
 #endif /* RSE_GPT_SUPPORT */
 

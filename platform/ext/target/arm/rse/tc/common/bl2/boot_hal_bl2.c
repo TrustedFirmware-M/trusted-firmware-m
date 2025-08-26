@@ -342,7 +342,7 @@ static void boot_platform_register_failed_boot(void)
     /* The SWSYN shall be written along with SWRESETREQ (bit position 5)
      * otherwise it is ignored
      */
-    reg_value = ((1 & 0xff) << SWSYN_FAILED_BOOT_BIT_POS) | (1 << 5);
+    reg_value = ((1 & 0xff) << RSE_SWSYN_FAILED_BOOT_BIT_POS) | (1 << 5);
 
     /* Raise reset request for new attempt */
     __DSB();
