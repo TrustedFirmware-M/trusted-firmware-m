@@ -94,53 +94,114 @@ void cc3xx_lowlevel_ec_weierstrass_negate_point(cc3xx_ec_point_affine *p,
     cc3xx_lowlevel_pka_mod_neg(p->y, res->y);
 }
 
-/* Using dbl-1998-cmo via https://www.hyperelliptic.org/EFD/g1p/auto-shortw-jacobian.html#doubling-dbl-1998-cmo */
+/* Using dbl-2007-bl via
+ * https://www.hyperelliptic.org/EFD/g1p/auto-shortw-jacobian.html#doubling-dbl-2007-bl
+ */
 static void double_point(cc3xx_ec_curve_t *curve, cc3xx_ec_point_projective *p,
                          cc3xx_ec_point_projective *res)
 {
-    cc3xx_pka_reg_id_t tmp_s = cc3xx_lowlevel_pka_allocate_reg();
-    cc3xx_pka_reg_id_t tmp_m = cc3xx_lowlevel_pka_allocate_reg();
-    cc3xx_pka_reg_id_t tmp = cc3xx_lowlevel_pka_allocate_reg();
+    const bool p_is_infinity = cc3xx_lowlevel_ec_projective_point_is_infinity(p);
 
-    /* S = 4 * p->x * p->y^2 */
-    cc3xx_lowlevel_pka_mod_mul(p->y, p->y, tmp_s);
-    cc3xx_lowlevel_pka_mod_mul(tmp_s, p->x, tmp_s);
-    cc3xx_lowlevel_pka_mod_mul_si(tmp_s, 4, tmp_s);
+    if (p_is_infinity) {
+        return cc3xx_lowlevel_ec_projective_point_make_infinity(res);
+    }
 
-    /* M = 3 * p->x^2 + a * p->z^4. Use tmp for a temporary variable. */
-    cc3xx_lowlevel_pka_mod_mul(p->x, p->x, tmp);
-    cc3xx_lowlevel_pka_mod_mul_si(tmp, 3, tmp);
-    cc3xx_lowlevel_pka_mod_mul(p->z, p->z, tmp_m);
-    cc3xx_lowlevel_pka_mod_mul(tmp_m, tmp_m, tmp_m);
-    cc3xx_lowlevel_pka_mod_mul(tmp_m, curve->param_a, tmp_m);
-    cc3xx_lowlevel_pka_mod_add(tmp_m, tmp, tmp_m);
+    cc3xx_pka_reg_id_t t0 = cc3xx_lowlevel_pka_allocate_reg();
+    cc3xx_pka_reg_id_t t1 = cc3xx_lowlevel_pka_allocate_reg();
+    cc3xx_pka_reg_id_t t2 = cc3xx_lowlevel_pka_allocate_reg();
+    cc3xx_pka_reg_id_t t3 = cc3xx_lowlevel_pka_allocate_reg();
 
-    /* T = res->x = M^2 - 2 * S. Use tmp for a temporary variable. */
-    cc3xx_lowlevel_pka_mod_mul(tmp_m, tmp_m, res->x);
-    cc3xx_lowlevel_pka_mod_mul_si(tmp_s, 2, tmp);
-    cc3xx_lowlevel_pka_mod_sub(res->x, tmp, res->x);
+    cc3xx_pka_reg_id_t X1 = p->x;
+    cc3xx_pka_reg_id_t Y1 = p->y;
+    cc3xx_pka_reg_id_t Z1 = p->z;
 
-    /* res->z = 2 * p->y * p->z This is done before res->y in
-     * case p == res, in which case setting res->y clobbers p->y which is needed
-     * in this step
-     */
-    cc3xx_lowlevel_pka_mod_mul(p->y, p->z, res->z);
-    cc3xx_lowlevel_pka_mod_mul_si(res->z, 2, res->z);
+    cc3xx_pka_reg_id_t X3 = res->x;
+    cc3xx_pka_reg_id_t Y3 = res->y;
+    cc3xx_pka_reg_id_t Z3 = res->z;
 
-    /*
-     * res->y = M * (S - res->x) - 8 * p->y^4. Use tmp for a temporary variable.
-     */
-    cc3xx_lowlevel_pka_mod_mul(p->y, p->y, res->y);
-    cc3xx_lowlevel_pka_mod_mul(res->y, res->y, res->y);
-    cc3xx_lowlevel_pka_mod_mul_si(res->y, 8, res->y);
+    /* t0 = Y1*Y1 */
+    cc3xx_lowlevel_pka_mod_mul(Y1, Y1, t0);
 
-    cc3xx_lowlevel_pka_mod_sub(tmp_s, res->x, tmp);
-    cc3xx_lowlevel_pka_mod_mul(tmp_m, tmp, tmp);
-    cc3xx_lowlevel_pka_mod_sub(tmp, res->y, res->y);
+    /* t1 = Z1*Z1 */
+    cc3xx_lowlevel_pka_mod_mul(Z1, Z1, t1);
 
-    cc3xx_lowlevel_pka_free_reg(tmp);
-    cc3xx_lowlevel_pka_free_reg(tmp_m);
-    cc3xx_lowlevel_pka_free_reg(tmp_s);
+    /* t2 = X1*X1 */
+    cc3xx_lowlevel_pka_mod_mul(X1, X1, t2);
+
+    /* t3 = t0*t0 */
+    cc3xx_lowlevel_pka_mod_mul(t0, t0, t3);
+
+    /* Z3 = Y1+Z1 */
+    cc3xx_lowlevel_pka_mod_add(Y1, Z1, Z3);
+
+    /* Z3 = Z3*Z3 */
+    cc3xx_lowlevel_pka_mod_mul(Z3, Z3, Z3);
+
+    /* Z3 = Z3-t0 */
+    cc3xx_lowlevel_pka_mod_sub(Z3, t0, Z3);
+
+    /* Z3 = Z3-t1 */
+    cc3xx_lowlevel_pka_mod_sub(Z3, t1, Z3);
+
+    /* t0 = X1+t0 */
+    cc3xx_lowlevel_pka_mod_add(X1, t0, t0);
+
+    /* t0 = t0*t0 */
+    cc3xx_lowlevel_pka_mod_mul(t0, t0, t0);
+
+    /* t0 = t0-t2 */
+    cc3xx_lowlevel_pka_mod_sub(t0, t2, t0);
+
+    /* t0 = t0-t3 */
+    cc3xx_lowlevel_pka_mod_sub(t0, t3, t0);
+
+    /* t0 = t0+t0 */
+    cc3xx_lowlevel_pka_mod_add(t0, t0, t0);
+
+    /* t1 = t1*t1 */
+    cc3xx_lowlevel_pka_mod_mul(t1, t1, t1);
+
+    /* t1 = a*t1  */
+    cc3xx_lowlevel_pka_mod_mul(curve->param_a, t1, t1);
+
+    /* t1 = t1+t2 */
+    cc3xx_lowlevel_pka_mod_add(t1, t2, t1);
+
+    /* t1 = t1+t2 */
+    cc3xx_lowlevel_pka_mod_add(t1, t2, t1);
+
+    /* t1 = t1+t2 */
+    cc3xx_lowlevel_pka_mod_add(t1, t2, t1);
+
+    /* X3 = t1*t1 */
+    cc3xx_lowlevel_pka_mod_mul(t1, t1, X3);
+
+    /* X3 = X3-t0 */
+    cc3xx_lowlevel_pka_mod_sub(X3, t0, X3);
+
+    /* X3 = X3-t0 */
+    cc3xx_lowlevel_pka_mod_sub(X3, t0, X3);
+
+    /* Y3 = t0-X3 */
+    cc3xx_lowlevel_pka_mod_sub(t0, X3, Y3);
+
+    /* Y3 = t1*Y3 */
+    cc3xx_lowlevel_pka_mod_mul(t1, Y3, Y3);
+
+    /* t2 = 8 */
+    cc3xx_lowlevel_pka_clear(t2);
+    cc3xx_lowlevel_pka_add_si(t2, 8, t2);
+
+    /* t3 = t2*t3 */
+    cc3xx_lowlevel_pka_mod_mul(t2, t3, t3);
+
+    /* Y3 = Y3-t4 */
+    cc3xx_lowlevel_pka_mod_sub(Y3, t3, Y3);
+
+    cc3xx_lowlevel_pka_free_reg(t3);
+    cc3xx_lowlevel_pka_free_reg(t2);
+    cc3xx_lowlevel_pka_free_reg(t1);
+    cc3xx_lowlevel_pka_free_reg(t0);
 }
 
 cc3xx_err_t cc3xx_lowlevel_ec_weierstrass_double_point(cc3xx_ec_curve_t *curve,
@@ -164,8 +225,272 @@ cc3xx_err_t cc3xx_lowlevel_ec_weierstrass_double_point(cc3xx_ec_curve_t *curve,
     return err;
 }
 
-/* Using add-1998-cmo via https://www.hyperelliptic.org/EFD/g1p/auto-shortw-jacobian.html#addition-add-1998-cmo
- * It uses an older algorithm as it can be made more register-efficient.
+#if defined(CC3XX_CONFIG_EC_SHAMIR_TRICK_ENABLE)
+/* using mmadd-2007-bl via
+ * https://www.hyperelliptic.org/EFD/g1p/auto-shortw-jacobian.html#addition-mmadd-2007-bl
+ *
+ * note that input points p and q must be affine points, Zp=Zq=1
+ */
+static void mmadd_points(cc3xx_ec_curve_t *curve, cc3xx_ec_point_projective *p,
+                       cc3xx_ec_point_projective *q, cc3xx_ec_point_projective *res)
+{
+    cc3xx_pka_reg_id_t t0 = cc3xx_lowlevel_pka_allocate_reg();
+
+    if (cc3xx_lowlevel_pka_are_equal(p->x, q->x)) {
+        /* Check if P = Q */
+        if (cc3xx_lowlevel_pka_are_equal(p->y, q->y)) {
+            return double_point(curve, p, res);
+        }
+
+        /* Check if P = -Q */
+        cc3xx_lowlevel_pka_mod_neg(p->y, t0);
+        if (cc3xx_lowlevel_pka_are_equal(t0, q->y)) {
+            cc3xx_lowlevel_pka_free_reg(t0);
+            return cc3xx_lowlevel_ec_projective_point_make_infinity(res);
+        }
+
+        cc3xx_lowlevel_pka_free_reg(t0);
+
+        /**
+         * @note If P and Q have the same "x" affine coordinate, the "y"
+         *       affine coordinates are either equal or opposite of each
+         *       other. Therefore, this point should never be reached.
+         *
+         */
+        assert(false);
+    }
+
+    cc3xx_pka_reg_id_t t1 = cc3xx_lowlevel_pka_allocate_reg();
+    cc3xx_pka_reg_id_t t2 = cc3xx_lowlevel_pka_allocate_reg();
+
+    cc3xx_pka_reg_id_t X1 = p->x;
+    cc3xx_pka_reg_id_t Y1 = p->y;
+
+    cc3xx_pka_reg_id_t X2 = q->x;
+    cc3xx_pka_reg_id_t Y2 = q->y;
+
+    cc3xx_pka_reg_id_t X3 = res->x;
+    cc3xx_pka_reg_id_t Y3 = res->y;
+    cc3xx_pka_reg_id_t Z3 = res->z;
+
+    /* t0 = X2-X1 */
+    cc3xx_lowlevel_pka_mod_sub(X2, X1, t0);
+
+    /* t1 = t0*t0 */
+    cc3xx_lowlevel_pka_mod_mul(t0, t0, t1);
+
+    /* t2 = t1+t1 */
+    cc3xx_lowlevel_pka_mod_add(t1, t1, t2);
+
+    /* t2 = t2+t1 */
+    cc3xx_lowlevel_pka_mod_add(t2, t1, t2);
+
+    /* t2 = t2+t1 */
+    cc3xx_lowlevel_pka_mod_add(t2, t1, t2);
+
+    /* Z3 = t0+t0 */
+    cc3xx_lowlevel_pka_mod_add(t0, t0, Z3);
+
+    /* t0 = t0*t2 */
+    cc3xx_lowlevel_pka_mod_mul(t0, t2, t0);
+
+    /* t1 = X1*t2 */
+    cc3xx_lowlevel_pka_mod_mul(X1, t2, t1);
+
+    /* t2 = Y2-Y1 */
+    cc3xx_lowlevel_pka_mod_sub(Y2, Y1, t2);
+
+    /* t2 = t2+t2 */
+    cc3xx_lowlevel_pka_mod_add(t2, t2, t2);
+
+    /* X3 = t2*t2 */
+    cc3xx_lowlevel_pka_mod_mul(t2, t2, X3);
+
+    /* X3 = X3-t0 */
+    cc3xx_lowlevel_pka_mod_sub(X3, t0, X3);
+
+    /* X3 = X3-t1 */
+    cc3xx_lowlevel_pka_mod_sub(X3, t1, X3);
+
+    /* X3 = X3-t1 */
+    cc3xx_lowlevel_pka_mod_sub(X3, t1, X3);
+
+    /* t0 = Y1*t0 */
+    cc3xx_lowlevel_pka_mod_mul(Y1, t0, t0);
+
+    /* t0 = t0+t0 */
+    cc3xx_lowlevel_pka_mod_add(t0, t0, t0);
+
+    /* Y3 = t1-X3 */
+    cc3xx_lowlevel_pka_mod_sub(t1, X3, Y3);
+
+    /* Y3 = t2*Y3 */
+    cc3xx_lowlevel_pka_mod_mul(t2, Y3, Y3);
+
+    /* Y3 = Y3-t0 */
+    cc3xx_lowlevel_pka_mod_sub(Y3, t0, Y3);
+
+    cc3xx_lowlevel_pka_free_reg(t2);
+    cc3xx_lowlevel_pka_free_reg(t1);
+    cc3xx_lowlevel_pka_free_reg(t0);
+}
+
+/* using madd-2007-bl via
+ * https://www.hyperelliptic.org/EFD/g1p/auto-shortw-jacobian.html#addition-madd-2007-bl
+ *
+ * note that input point Q must be an affine point, Zq=1
+ */
+static void madd_points(cc3xx_ec_curve_t *curve, cc3xx_ec_point_projective *p,
+                       cc3xx_ec_point_projective *q, cc3xx_ec_point_projective *res)
+{
+    const bool p_is_infinity = cc3xx_lowlevel_ec_projective_point_is_infinity(p);
+
+    /* if P == 0, P + Q = Q */
+    if (p_is_infinity) {
+        return cc3xx_lowlevel_ec_copy_projective_point(q, res);
+    }
+
+    cc3xx_pka_reg_id_t t0 = cc3xx_lowlevel_pka_allocate_reg();
+    cc3xx_pka_reg_id_t t1 = cc3xx_lowlevel_pka_allocate_reg();
+    cc3xx_pka_reg_id_t t2 = cc3xx_lowlevel_pka_allocate_reg();
+    cc3xx_pka_reg_id_t t3 = cc3xx_lowlevel_pka_allocate_reg();
+
+    cc3xx_pka_reg_id_t X1 = p->x;
+    cc3xx_pka_reg_id_t Y1 = p->y;
+    cc3xx_pka_reg_id_t Z1 = p->z;
+
+    cc3xx_pka_reg_id_t X2 = q->x;
+    cc3xx_pka_reg_id_t Y2 = q->y;
+
+    cc3xx_pka_reg_id_t X3 = res->x;
+    cc3xx_pka_reg_id_t Y3 = res->y;
+    cc3xx_pka_reg_id_t Z3 = res->z;
+
+    cc3xx_pka_reg_id_t U1 = X1;
+    cc3xx_pka_reg_id_t U2 = t1;
+    cc3xx_pka_reg_id_t S1 = Y1;
+    cc3xx_pka_reg_id_t S2 = t2;
+
+    /* t0 = Z1*Z1 */
+    cc3xx_lowlevel_pka_mod_mul(Z1, Z1, t0);
+
+    /* t1 = X2*t0 */
+    cc3xx_lowlevel_pka_mod_mul(X2, t0, t1);
+
+    /* t2 = Y2*Z1 */
+    cc3xx_lowlevel_pka_mod_mul(Y2, Z1, t2);
+
+    /* Compare U1 to U2 */
+    if (cc3xx_lowlevel_pka_are_equal(U1, U2)) {
+        /* P == Q iff U1 == U2 && S1 == S2 */
+        if (cc3xx_lowlevel_pka_are_equal(S1, S2)) {
+            cc3xx_lowlevel_pka_free_reg(t3);
+            cc3xx_lowlevel_pka_free_reg(t2);
+            cc3xx_lowlevel_pka_free_reg(t1);
+            cc3xx_lowlevel_pka_free_reg(t0);
+
+            /* If P == Q, P + Q = 2P */
+            return double_point(curve, p, res);
+        }
+        /* P == -Q iff U1 == U2 && S1 == -S2*/
+        cc3xx_lowlevel_pka_mod_neg(S2, S2);
+        if (cc3xx_lowlevel_pka_are_equal(S1, S2)) {
+            cc3xx_lowlevel_pka_free_reg(t3);
+            cc3xx_lowlevel_pka_free_reg(t2);
+            cc3xx_lowlevel_pka_free_reg(t1);
+            cc3xx_lowlevel_pka_free_reg(t0);
+
+            /* if P == -Q, P + Q = 0, i.e. the infinity point */
+            return cc3xx_lowlevel_ec_projective_point_make_infinity(res);
+        }
+
+        /**
+         * @note If P and Q have the same "x" affine coordinate, the "y"
+         *       affine coordinates are either equal or opposite of each
+         *       other. Therefore, this point should never be reached.
+         *
+         */
+        assert(false);
+    }
+
+    /* t1 = t1-X1 */
+    cc3xx_lowlevel_pka_mod_sub(t1, X1, t1);
+
+    /* t3 = t1*t1 */
+    cc3xx_lowlevel_pka_mod_mul(t1, t1, t3);
+
+    /* Z3 = Z1+t1 */
+    cc3xx_lowlevel_pka_mod_add(Z1, t1, Z3);
+
+    /* Z3 = Z3*Z3 */
+    cc3xx_lowlevel_pka_mod_mul(Z3, Z3, Z3);
+
+    /* Z3 = Z3-t0 */
+    cc3xx_lowlevel_pka_mod_sub(Z3, t0, Z3);
+
+    /* Z3 = Z3-t3 */
+    cc3xx_lowlevel_pka_mod_sub(Z3, t3, Z3);
+
+    /* t2 = t2*t0 */
+    cc3xx_lowlevel_pka_mod_mul(t2, t0, t2);
+
+    /* t2 = t2-Y1 */
+    cc3xx_lowlevel_pka_mod_sub(t2, Y1, t2);
+
+    /* t2 = t2+t2 */
+    cc3xx_lowlevel_pka_mod_add(t2, t2, t2);
+
+    /* t0 = t3+t3 */
+    cc3xx_lowlevel_pka_mod_add(t3, t3, t0);
+
+    /* t0 = t0+t3 */
+    cc3xx_lowlevel_pka_mod_add(t0, t3, t0);
+
+    /* t0 = t0+t3 */
+    cc3xx_lowlevel_pka_mod_add(t0, t3, t0);
+
+    /* t1 = t1*t0 */
+    cc3xx_lowlevel_pka_mod_mul(t1, t0, t1);
+
+    /* t0 = X1*t0 */
+    cc3xx_lowlevel_pka_mod_mul(X1, t0, t0);
+
+    /* X3 = t2*t2 */
+    cc3xx_lowlevel_pka_mod_mul(t2, t2, X3);
+
+    /* X3 = X3-t1 */
+    cc3xx_lowlevel_pka_mod_sub(X3, t1, X3);
+
+    /* X3 = X3-t0 */
+    cc3xx_lowlevel_pka_mod_sub(X3, t0, X3);
+
+    /* X3 = X3-t0 */
+    cc3xx_lowlevel_pka_mod_sub(X3, t0, X3);
+
+    /* t3 = t0-X3 */
+    cc3xx_lowlevel_pka_mod_sub(t0, X3, t3);
+
+    /* t3 = t2*t3 */
+    cc3xx_lowlevel_pka_mod_mul(t2, t3, t3);
+
+    /* t2 = Y1*t1 */
+    cc3xx_lowlevel_pka_mod_mul(Y1, t1, t2);
+
+    /* t2 = t2+t2 */
+    cc3xx_lowlevel_pka_mod_add(t2, t2, t2);
+
+    /* Y3 = t3-t2 */
+    cc3xx_lowlevel_pka_mod_sub(t3, t2, Y3);
+
+    cc3xx_lowlevel_pka_free_reg(t3);
+    cc3xx_lowlevel_pka_free_reg(t2);
+    cc3xx_lowlevel_pka_free_reg(t1);
+    cc3xx_lowlevel_pka_free_reg(t0);
+}
+#endif /* CC3XX_CONFIG_EC_SHAMIR_TRICK_ENABLE */
+
+/* Using add-2007-bl via
+ * https://www.hyperelliptic.org/EFD/g1p/auto-shortw-jacobian.html#addition-add-2007-bl
  */
 static void add_points(cc3xx_ec_curve_t *curve, cc3xx_ec_point_projective *p,
                        cc3xx_ec_point_projective *q, cc3xx_ec_point_projective *res)
@@ -183,105 +508,164 @@ static void add_points(cc3xx_ec_curve_t *curve, cc3xx_ec_point_projective *p,
         return cc3xx_lowlevel_ec_copy_projective_point(p, res);
     }
 
-    cc3xx_pka_reg_id_t tmp_u1 = cc3xx_lowlevel_pka_allocate_reg();
-    cc3xx_pka_reg_id_t tmp_u2 = cc3xx_lowlevel_pka_allocate_reg();
-    cc3xx_pka_reg_id_t tmp_s1 = cc3xx_lowlevel_pka_allocate_reg();
-    cc3xx_pka_reg_id_t tmp_s2 = cc3xx_lowlevel_pka_allocate_reg();
+    cc3xx_pka_reg_id_t t0 = cc3xx_lowlevel_pka_allocate_reg();
+    cc3xx_pka_reg_id_t t1 = cc3xx_lowlevel_pka_allocate_reg();
+    cc3xx_pka_reg_id_t t2 = cc3xx_lowlevel_pka_allocate_reg();
+    cc3xx_pka_reg_id_t t3 = cc3xx_lowlevel_pka_allocate_reg();
+    cc3xx_pka_reg_id_t t4 = cc3xx_lowlevel_pka_allocate_reg();
+    cc3xx_pka_reg_id_t t5 = cc3xx_lowlevel_pka_allocate_reg();
 
-    /* This is just an alias, to make the maths match the reference */
-    cc3xx_pka_reg_id_t tmp_r;
-    cc3xx_pka_reg_id_t tmp_h;
+    /* Aliases to make the code more readable */
+    cc3xx_pka_reg_id_t X1 = p->x;
+    cc3xx_pka_reg_id_t Y1 = p->y;
+    cc3xx_pka_reg_id_t Z1 = p->z;
 
-    /* U1 = p->x * q->z^2 */
-    cc3xx_lowlevel_pka_mod_mul(q->z, q->z, tmp_u1);
-    cc3xx_lowlevel_pka_mod_mul(p->x, tmp_u1, tmp_u1);
-    /* U2 = q->x * p->z^2 */
-    cc3xx_lowlevel_pka_mod_mul(p->z, p->z, tmp_u2);
-    cc3xx_lowlevel_pka_mod_mul(q->x, tmp_u2, tmp_u2);
+    cc3xx_pka_reg_id_t X2 = q->x;
+    cc3xx_pka_reg_id_t Y2 = q->y;
+    cc3xx_pka_reg_id_t Z2 = q->z;
 
-    /* S1 = p->y * q->z^3 */
-    cc3xx_lowlevel_pka_mod_mul(q->z, q->z, tmp_s1);
-    cc3xx_lowlevel_pka_mod_mul(tmp_s1, q->z, tmp_s1);
-    cc3xx_lowlevel_pka_mod_mul(tmp_s1, p->y, tmp_s1);
-    /* S2 = q->y * p->z^3 */
-    cc3xx_lowlevel_pka_mod_mul(p->z, p->z, tmp_s2);
-    cc3xx_lowlevel_pka_mod_mul(tmp_s2, p->z, tmp_s2);
-    cc3xx_lowlevel_pka_mod_mul(tmp_s2, q->y, tmp_s2);
+    cc3xx_pka_reg_id_t X3 = res->x;
+    cc3xx_pka_reg_id_t Y3 = res->y;
+    cc3xx_pka_reg_id_t Z3 = res->z;
 
-    if (cc3xx_lowlevel_pka_are_equal(tmp_u1, tmp_u2)) {
+    cc3xx_pka_reg_id_t U1 = t2;
+    cc3xx_pka_reg_id_t U2 = t3;
+    cc3xx_pka_reg_id_t S1 = t4;
+    cc3xx_pka_reg_id_t S2 = t5;
+
+    /* t0 = Z1^2  */
+    cc3xx_lowlevel_pka_mod_mul(Z1, Z1, t0);
+
+    /* t1 = Z2^2  */
+    cc3xx_lowlevel_pka_mod_mul(Z2, Z2, t1);
+
+    /* t2 (U1) = X1*t1 */
+    cc3xx_lowlevel_pka_mod_mul(X1, t1, t2);
+
+    /* t3 (U2) = X2*t0 */
+    cc3xx_lowlevel_pka_mod_mul(X2, t0, t3);
+
+    /* t4 = Y1*Z2 */
+    cc3xx_lowlevel_pka_mod_mul(Y1, Z2, t4);
+
+    /* t4 (S1) = t4*t1 */
+    cc3xx_lowlevel_pka_mod_mul(t4, t1, t4);
+
+    /* t5 = Y2*Z1 */
+    cc3xx_lowlevel_pka_mod_mul(Y2, Z1, t5);
+
+    /* t5 (S2) = t5*t0 */
+    cc3xx_lowlevel_pka_mod_mul(t5, t0, t5);
+
+    /* Compare U1 to U2 */
+    if (cc3xx_lowlevel_pka_are_equal(U1, U2)) {
         /* P == Q iff U1 == U2 && S1 == S2 */
-        if (cc3xx_lowlevel_pka_are_equal(tmp_s1, tmp_s2)) {
-
-            cc3xx_lowlevel_pka_free_reg(tmp_s2);
-            cc3xx_lowlevel_pka_free_reg(tmp_s1);
-            cc3xx_lowlevel_pka_free_reg(tmp_u2);
-            cc3xx_lowlevel_pka_free_reg(tmp_u1);
+        if (cc3xx_lowlevel_pka_are_equal(S1, S2)) {
+            cc3xx_lowlevel_pka_free_reg(t5);
+            cc3xx_lowlevel_pka_free_reg(t4);
+            cc3xx_lowlevel_pka_free_reg(t3);
+            cc3xx_lowlevel_pka_free_reg(t2);
+            cc3xx_lowlevel_pka_free_reg(t1);
+            cc3xx_lowlevel_pka_free_reg(t0);
 
             /* If P == Q, P + Q = 2P */
             return double_point(curve, p, res);
         }
         /* P == -Q iff U1 == U2 && S1 == -S2*/
-        cc3xx_lowlevel_pka_mod_neg(tmp_s2, tmp_s2);
-        if (cc3xx_lowlevel_pka_are_equal(tmp_s1, tmp_s2)) {
-
-            cc3xx_lowlevel_pka_free_reg(tmp_s2);
-            cc3xx_lowlevel_pka_free_reg(tmp_s1);
-            cc3xx_lowlevel_pka_free_reg(tmp_u2);
-            cc3xx_lowlevel_pka_free_reg(tmp_u1);
+        cc3xx_lowlevel_pka_mod_neg(S2, S2);
+        if (cc3xx_lowlevel_pka_are_equal(S1, S2)) {
+            cc3xx_lowlevel_pka_free_reg(t5);
+            cc3xx_lowlevel_pka_free_reg(t4);
+            cc3xx_lowlevel_pka_free_reg(t3);
+            cc3xx_lowlevel_pka_free_reg(t2);
+            cc3xx_lowlevel_pka_free_reg(t1);
+            cc3xx_lowlevel_pka_free_reg(t0);
 
             /* if P == -Q, P + Q = 0, i.e. the infinity point */
             return cc3xx_lowlevel_ec_projective_point_make_infinity(res);
         }
+
+        /**
+         * @note If P and Q have the same "x" affine coordinate, the "y"
+         *       affine coordinates are either equal or opposite of each
+         *       other. Therefore, this point should never be reached.
+         *
+         */
+        assert(false);
+
         /* Restore the original value of S2 */
-        cc3xx_lowlevel_pka_mod_neg(tmp_s2, tmp_s2);
+        cc3xx_lowlevel_pka_mod_neg(S2, S2);
     }
 
-    /* tmp_u2 is never used after this point, so we can use it to store the h
-     * intermediate value
-     */
-    tmp_h = tmp_u2;
+    /* t3 = t3-t2 */
+    cc3xx_lowlevel_pka_mod_sub(t3, t2, t3);
 
-    /* H = U2 - U1 */
-    cc3xx_lowlevel_pka_mod_sub(tmp_u2, tmp_u1, tmp_h);
+    /* Z3 = Z1+Z2 */
+    cc3xx_lowlevel_pka_mod_add(Z1, Z2, Z3);
 
-    /* tmp_s2 is never used after this point, so we can use it to store the r
-     * intermediate value
-     */
-    tmp_r = tmp_s2;
+    /* Z3 = Z3^2  */
+    cc3xx_lowlevel_pka_mod_mul(Z3, Z3, Z3);
 
-    /* R = S2 - S1 */
-    cc3xx_lowlevel_pka_mod_sub(tmp_s2, tmp_s1, tmp_r);
+    /* Z3 = Z3-t0 */
+    cc3xx_lowlevel_pka_mod_sub(Z3, t0, Z3);
 
-    /* res->x = R^2 - H^3 - 2 * U1 * H^2. Uses res->y as scratch space */
-    cc3xx_lowlevel_pka_shift_left_fill_0_ui(tmp_u1, 1, res->y);
-    cc3xx_lowlevel_pka_reduce(res->y);
-    cc3xx_lowlevel_pka_mod_mul(res->y, tmp_h, res->y);
-    cc3xx_lowlevel_pka_mod_mul(res->y, tmp_h, res->y);
-    cc3xx_lowlevel_pka_mod_mul(tmp_r, tmp_r, res->x);
-    cc3xx_lowlevel_pka_mod_sub(res->x, res->y, res->x);
-    cc3xx_lowlevel_pka_mod_mul(tmp_h, tmp_h, res->y);
-    cc3xx_lowlevel_pka_mod_mul(res->y, tmp_h, res->y);
-    cc3xx_lowlevel_pka_mod_sub(res->x, res->y, res->x);
+    /* Z3 = Z3-t1 */
+    cc3xx_lowlevel_pka_mod_sub(Z3, t1, Z3);
 
-    /* res->y = R * (U1 * H^2 - res->x) - S1 * H^3. Uses S1 as scratch space */
-    cc3xx_lowlevel_pka_mod_mul(tmp_h, tmp_h, res->y);
-    cc3xx_lowlevel_pka_mod_mul(res->y, tmp_u1, res->y);
-    cc3xx_lowlevel_pka_mod_sub(res->y, res->x, res->y);
-    cc3xx_lowlevel_pka_mod_mul(res->y, tmp_r, res->y);
-    /* res->z already contains H^3 */
-    cc3xx_lowlevel_pka_mod_mul(tmp_s1, tmp_h, tmp_s1);
-    cc3xx_lowlevel_pka_mod_mul(tmp_s1, tmp_h, tmp_s1);
-    cc3xx_lowlevel_pka_mod_mul(tmp_s1, tmp_h, tmp_s1);
-    cc3xx_lowlevel_pka_mod_sub(res->y, tmp_s1, res->y);
+    /* Z3 = Z3*t3 */
+    cc3xx_lowlevel_pka_mod_mul(Z3, t3, Z3);
 
-    /* res->z = p->z * q->z * H */
-    cc3xx_lowlevel_pka_mod_mul(p->z, q->z, res->z);
-    cc3xx_lowlevel_pka_mod_mul(res->z, tmp_h, res->z);
+    /* t1 = t3+t3 */
+    cc3xx_lowlevel_pka_mod_add(t3, t3, t1);
 
-    cc3xx_lowlevel_pka_free_reg(tmp_s2);
-    cc3xx_lowlevel_pka_free_reg(tmp_s1);
-    cc3xx_lowlevel_pka_free_reg(tmp_u2);
-    cc3xx_lowlevel_pka_free_reg(tmp_u1);
+    /* t1 = t1^2  */
+    cc3xx_lowlevel_pka_mod_mul(t1, t1, t1);
+
+    /* t2 = t2*t1 */
+    cc3xx_lowlevel_pka_mod_mul(t2, t1, t2);
+
+    /* t1 = t3*t1 */
+    cc3xx_lowlevel_pka_mod_mul(t3, t1, t1);
+
+    /* t3 = t5-t4 */
+    cc3xx_lowlevel_pka_mod_sub(t5, t4, t3);
+
+    /* t3 = t3+t3 */
+    cc3xx_lowlevel_pka_mod_add(t3, t3, t3);
+
+    /* X3 = t3^2  */
+    cc3xx_lowlevel_pka_mod_mul(t3, t3, X3);
+
+    /* X3 = X3-t1 */
+    cc3xx_lowlevel_pka_mod_sub(X3, t1, X3);
+
+    /* X3 = X3-t2 */
+    cc3xx_lowlevel_pka_mod_sub(X3, t2, X3);
+
+    /* X3 = X3-t2 */
+    cc3xx_lowlevel_pka_mod_sub(X3, t2, X3);
+
+    /* t1 = t1*t4 */
+    cc3xx_lowlevel_pka_mod_mul(t1, t4, t1);
+
+    /* t1 = t1+t1 */
+    cc3xx_lowlevel_pka_mod_add(t1, t1, t1);
+
+    /* Y3 = t2-X3 */
+    cc3xx_lowlevel_pka_mod_sub(t2, X3, Y3);
+
+    /* Y3 = Y3*t3 */
+    cc3xx_lowlevel_pka_mod_mul(Y3, t3, Y3);
+
+    /* Y3 = Y3-t1 */
+    cc3xx_lowlevel_pka_mod_sub(Y3, t1, Y3);
+
+    cc3xx_lowlevel_pka_free_reg(t5);
+    cc3xx_lowlevel_pka_free_reg(t4);
+    cc3xx_lowlevel_pka_free_reg(t3);
+    cc3xx_lowlevel_pka_free_reg(t2);
+    cc3xx_lowlevel_pka_free_reg(t1);
+    cc3xx_lowlevel_pka_free_reg(t0);
 }
 
 cc3xx_err_t cc3xx_lowlevel_ec_weierstrass_add_points(cc3xx_ec_curve_t *curve,
@@ -397,6 +781,8 @@ static cc3xx_err_t multiply_point_by_scalar_side_channel_protected(
     carry = carry_table[table_select];
 
     for (; idx >= 0; idx -= 2) {
+        cc3xx_lowlevel_pka_unmap_physical_registers();
+
         /* Multiple accumulator by 4, performing two doubles */
         double_point(curve, &accumulator, &accumulator);
         double_point(curve, &accumulator, &accumulator);
@@ -502,7 +888,7 @@ static cc3xx_err_t shamir_multiply_points_by_scalars_and_add(
     cc3xx_lowlevel_ec_affine_to_jacobian(curve, p1, &proj_p1);
     cc3xx_lowlevel_ec_affine_to_jacobian(curve, p2, &proj_p2);
 
-    add_points(curve, &proj_p1, &proj_p2, &p1_plus_p2);
+    mmadd_points(curve, &proj_p1, &proj_p2, &p1_plus_p2);
 
     if (bitsize1 > bitsize2) {
         cc3xx_lowlevel_ec_copy_projective_point(&proj_p1, &accumulator);
@@ -526,10 +912,10 @@ static cc3xx_err_t shamir_multiply_points_by_scalars_and_add(
 
         switch (bit_pair) {
         case 1:
-            add_points(curve, &accumulator, &proj_p2, &accumulator);
+            madd_points(curve, &accumulator, &proj_p2, &accumulator);
             break;
         case 2:
-            add_points(curve, &accumulator, &proj_p1, &accumulator);
+            madd_points(curve, &accumulator, &proj_p1, &accumulator);
             break;
         case 3:
             add_points(curve, &accumulator, &p1_plus_p2, &accumulator);
