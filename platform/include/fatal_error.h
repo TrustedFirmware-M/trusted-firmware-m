@@ -11,6 +11,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef PLATFORM_CUSTOM_ERROR_HANDLER
+#include "platform_error_handler.h"
+#else
+
 #ifdef HALT_ON_FATAL_ERROR
 #define ERROR_HALT() while(1) { __asm volatile ("wfi"); }
 #else
@@ -51,5 +55,7 @@ void log_error(char *file, uint32_t line, uint32_t err, void *sp, bool is_fatal)
 #else
 #define NONFATAL_ERR(x)
 #endif /* LOG_NONFATAL_ERRORS */
+
+#endif /* PLATFORM_CUSTOM_ERROR_HANDLER */
 
 #endif /* __FATAL_ERROR_H__ */
