@@ -441,6 +441,7 @@ enum {
 
 /* SWSYN mask for when entering debug */
 #define RSE_SWSYN_ENTER_DEBUG_MASK        (0x1UL << RSE_SWSYN_DEBUG_STATE_IN_BOOT_BIT_POS)
+#define RSE_SWSYN_FAILED_BOOT_MASK        (0x1UL << RSE_SWSYN_FAILED_BOOT_BIT_POS)
 
 #define CLK_CFG1_SYSCLKCFG_POS         0
 #define CLK_CFG1_SYSCLKCFG_MASK        (0xFUL << CLK_CFG1_SYSCLKCFG_POS)
