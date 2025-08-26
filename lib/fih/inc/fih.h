@@ -13,6 +13,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "fatal_error.h"
 
 /*
  * Fault injection mitigation library.
@@ -465,6 +466,41 @@ void fih_cfi_decrement(void);
  */
 #define FIH_RET_TYPE(type)    fih_int
 
+__attribute__((always_inline)) inline
+uint32_t fih_cond_panic() {
+    FIH_PANIC;
+    /* Should never get here but needs a return to call in a condition. */
+    return 0;
+}
+
+/*
+ * Guard a condition against tampering by trying 3 times and entering an error
+ * state if there is any inconsistency.
+ */
+#define FIH_COND_CHECK(cond)                                  \
+    (((cond) &&                                               \
+      (((fih_delay() && (!(!(cond)))) || fih_cond_panic()) && \
+       ((fih_delay() && (cond)) || fih_cond_panic()))         \
+           ) ||                                               \
+      (((fih_delay() && (!(!(cond)))) && fih_cond_panic()) || \
+       ((fih_delay() && (cond)) && fih_cond_panic())))
+
+
+#define FIH_COND_CHECK_SAFE_SKIP(cond) \
+    ((cond) &&                         \
+     fih_delay() &&                    \
+     (!(!(cond))) &&                   \
+     fih_delay() &&                    \
+     (cond))
+
+/*
+ * Guard entering a condition against tampering
+ * This assumes it is dangerous to skip the condition when false, but safe to
+ * enter if true.
+ */
+#define FIH_COND_CHECK_SAFE_ENTER(cond) \
+    !FIH_COND_CHECK_SAFE_SKIP(!(cond))
+
 #else /* TFM_FIH_PROFILE_ON */
 typedef int32_t fih_int;
 
@@ -509,6 +545,12 @@ typedef int32_t fih_int;
 #define FIH_CFI_STEP_ERR_RESET()
 
 #define FIH_LABEL_CRITICAL_POINT()
+
+#define FIH_COND_CHECK(cond) (cond)
+
+#define FIH_COND_CHECK_SAFE_SKIP(cond) (cond)
+
+#define FIH_COND_CHECK_SAFE_ENTER(cond) (cond)
 
 #endif /* TFM_FIH_PROFILE_ON */
 

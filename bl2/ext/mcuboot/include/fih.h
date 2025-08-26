@@ -28,6 +28,13 @@ extern "C" {
 
 #include "bootutil/fault_injection_hardening.h"
 
+#define FIH_COND_CHECK(cond) \
+    ((cond) &&               \
+     fih_delay() &&          \
+     (!(!(cond))) &&         \
+     fih_delay() &&          \
+     (cond))
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
