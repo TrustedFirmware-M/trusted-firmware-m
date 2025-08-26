@@ -2,8 +2,8 @@
 Version 2.2.1
 *************
 
-LTS Support
-===========
+Features and hotfixes
+=====================
 
   - Build: Add optimisation flag build option
   - Adjustments to use MCUboot 2.2.0
