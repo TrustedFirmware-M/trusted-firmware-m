@@ -23,8 +23,8 @@
 #include "sam_interrupts.h"
 #include "tfm_hal_device_header.h"
 #include "region_defs.h"
-#include "rse_gretreg.h"
 #include "startup_bl1_1_helpers.h"
+#include "rse_persistent_data.h"
 
 #include <stdint.h>
 
@@ -237,8 +237,7 @@ static inline void __attribute__ ((always_inline)) erase_vm0_and_vm1(void)
 {
     register uint32_t vm_erase_size __asm("r0");
 
-    if ((*(volatile uint32_t *)(RSE_SYSCTRL_BASE_S + 0x10c) >>
-         RSE_GRETREG_BIT_OFFSET_PERSISTENT_DATA_VALID) & 0b1) {
+    if (RSE_GET_PERSISTENT_DATA_INITIALIZED_FLAG()) {
         vm_erase_size = (VM0_SIZE + VM1_SIZE - VM_COLD_RESET_RETAINED_SIZE);
     } else {
         vm_erase_size = (VM0_SIZE + VM1_SIZE);

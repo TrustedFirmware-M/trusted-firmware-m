@@ -10,20 +10,19 @@
 #include <string.h>
 #include "region_defs.h"
 #include "device_definition.h"
-#include "rse_gretreg.h"
 
 static bool is_persistent_data_initialized(struct rse_persistent_data *persistent_data)
 {
-    return rse_gretreg_flag_is_set(RSE_GRETREG_BIT_OFFSET_PERSISTENT_DATA_VALID);
+    return RSE_GET_PERSISTENT_DATA_INITIALIZED_FLAG();
 }
 
 static void initialize_rse_persistent_data(struct rse_persistent_data *persistent_data)
 {
     memset(persistent_data, 0, sizeof(struct rse_persistent_data));
-    rse_gretreg_set_flag(RSE_GRETREG_BIT_OFFSET_PERSISTENT_DATA_VALID);
 
     RSE_SET_PERSISTENT_DATA_FLAG(RSE_PERSISTENT_DATA_FLAGS_LAST_BOOT_DEBUG_CODE,
                                  LAST_BOOT_DEBUG_CODE_BLOCK_CERT_DEBUG);
+    RSE_SET_PERSISTENT_DATA_INITIALISED_FLAG(1);
 }
 
 void rse_setup_persistent_data(void)
@@ -39,4 +38,3 @@ void rse_setup_persistent_data(void)
         initialize_rse_persistent_data(RSE_PERSISTENT_DATA);
     }
 }
-

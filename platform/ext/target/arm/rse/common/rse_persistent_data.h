@@ -34,6 +34,7 @@
  *  ------+---------------------------------+-------+------------------------------------
  *  20:12 | LAST_BOOT_DEBUG_CODE            |   8   | Captures debug code from last boot
  *  21:20 | IS_SRAM_INITIALIZED             |   1   | Indicates whether SRAM was initialized
+ *   31   | PERSISTENT_DATA_INITIALIZED     |   1   | Indicates whether the persistent data is initialized
  *
  * @note
  * - Flags persist until a Power-On Reset (POR).
@@ -52,6 +53,9 @@ enum LAST_BOOT_DEBUG_CODE {
 
 #define RSE_PERSISTENT_DATA_FLAGS_IS_SRAM_INITIALIZED_BITFIELD_POS 20
 #define RSE_PERSISTENT_DATA_FLAGS_IS_SRAM_INITIALIZED_BITFIELD_WIDTH 1
+
+#define RSE_PERSISTENT_DATA_FLAGS_PERSISTENT_DATA_INITIALIZED_BITFIELD_POS 31
+#define RSE_PERSISTENT_DATA_FLAGS_PERSISTENT_DATA_INITIALIZED_BITFIELD_WIDTH 1
 
 #ifdef RSE_PERSISTENT_DATA_FLAG_REG_ADDR
 #define RSE_PERSISTENT_DATA_FLAG_BASE ((volatile uint32_t *)RSE_PERSISTENT_DATA_FLAG_REG_ADDR)
@@ -121,5 +125,31 @@ static inline void __set_persistent_data_flag(uint32_t bitfield_pos, uint32_t bi
 
 #define RSE_SET_PERSISTENT_DATA_FLAG(_flag, _val) \
     (__set_persistent_data_flag(_flag##_BITFIELD_POS, _flag##_BITFIELD_WIDTH, _val))
+
+/* Persistent data init flag must be in PoR domain. Therefore it is either
+ * in the persistent data flag register if present, or passed between
+ * boots via the RESET_SYNDROME
+ */
+#ifdef RSE_PERSISTENT_DATA_FLAG_REG_ADDR
+#define RSE_GET_PERSISTENT_DATA_INITIALIZED_FLAG()                          \
+    ((*RSE_PERSISTENT_DATA_FLAG_BASE >>                                     \
+      RSE_PERSISTENT_DATA_FLAGS_PERSISTENT_DATA_INITIALIZED_BITFIELD_POS) & \
+     0b1)
+
+#define RSE_SET_PERSISTENT_DATA_INITIALISED_FLAG(_val) \
+    RSE_SET_PERSISTENT_DATA_FLAG(RSE_PERSISTENT_DATA_FLAGS_PERSISTENT_DATA_INITIALIZED, _val)
+
+#else
+#define RSE_GET_PERSISTENT_DATA_INITIALIZED_FLAG()                            \
+    ((((struct rse_sysctrl_t *)RSE_SYSCTRL_BASE_S)->reset_syndrome >>         \
+      (RSE_PERSISTENT_DATA_FLAGS_PERSISTENT_DATA_INITIALIZED_BITFIELD_POS)) & \
+     0b1)
+
+/* Flag is set in tfm_hal_system_reset when we come to reset the system */
+#define RSE_SET_PERSISTENT_DATA_INITIALISED_FLAG(_val) \
+    do {                                               \
+    } while (0)
+
+#endif
 
 #endif /* __RSE_PERSISTENT_DATA_H__ */
