@@ -292,7 +292,7 @@ fih_int bl1_aes_set_lengths(size_t total_ad_len,
  *
  * @return FIH_SUCCESS on success, non-zero on error
  */
-fih_int bl1_aes_finish(uint8_t *tag, size_t tag_len);
+fih_int bl1_aes_finish(uint8_t *tag, size_t *tag_len);
 
 /**
  * @brief  Input data to be authenticated, but not encrypted or decrypted into

@@ -529,9 +529,8 @@ fih_int bl1_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t curve,
                          const uint8_t *signature,
                          size_t signature_size)
 {
-    cc3xx_err_t cc_err;
-    uint32_t point_size = cc3xx_lowlevel_ec_get_modulus_size_from_curve(
-                                            bl1_curve_to_cc3xx_curve(curve));
+    const uint32_t point_size =
+        cc3xx_lowlevel_ec_get_modulus_size_from_curve(bl1_curve_to_cc3xx_curve(curve));
     uint32_t pubkey_x[point_size / sizeof(uint32_t)];
     uint32_t pubkey_y[point_size / sizeof(uint32_t)];
     uint32_t sig_r[point_size / sizeof(uint32_t)];
@@ -574,11 +573,9 @@ fih_int bl1_aes_set_lengths( size_t total_ad_len,
     FIH_RET(fih_int_encode_zero_equality(ret_err));
 }
 
-fih_int bl1_aes_finish(uint8_t *tag, size_t tag_len)
+fih_int bl1_aes_finish(uint8_t *tag, size_t *tag_len)
 {
-    enum cc3xx_error cc_err = CC3XX_ERR_SUCCESS;
-
-    cc_err = cc3xx_lowlevel_aes_finish(tag, tag_len);
+    const cc3xx_err_t cc_err = cc3xx_lowlevel_aes_finish(tag, tag_len);
 
     FIH_RET(fih_int_encode_zero_equality(cc_err));
 }
@@ -597,7 +594,7 @@ fih_int bl1_aes_update(const uint8_t *input, size_t input_len,
                     uint8_t *output, size_t output_size,
                     size_t *output_len)
 {
-    enum cc3xx_error cc_err = CC3XX_ERR_SUCCESS;
+    cc3xx_err_t cc_err = CC3XX_ERR_SUCCESS;
 
     cc3xx_lowlevel_aes_set_output_buffer(output, output_size);
 
@@ -611,7 +608,7 @@ fih_int bl1_aes_init(enum tfm_bl1_aes_direction_t direction,
     const uint32_t *key, enum tfm_bl1_aes_key_size_t key_size,
     const uint32_t *iv, size_t iv_len)
 {
-    enum cc3xx_error cc_err = CC3XX_ERR_SUCCESS;
+    cc3xx_err_t cc_err = CC3XX_ERR_SUCCESS;
     cc3xx_aes_direction_t cc_direction;
     cc3xx_aes_mode_t cc_mode;
     cc3xx_aes_keysize_t cc_key_size;
