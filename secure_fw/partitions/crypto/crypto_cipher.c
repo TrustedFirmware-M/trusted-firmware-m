@@ -141,7 +141,7 @@ psa_status_t tfm_crypto_cipher_interface(psa_invec in_vec[],
 
     if (sid == TFM_CRYPTO_CAN_DO_CIPHER_SID) {
         int *p_result = out_vec[0].base;
-        psa_key_type_t *p_key_type = in_vec[1].base;
+        const psa_key_type_t *p_key_type = in_vec[1].base;
 
         if ((out_vec[0].base == NULL) || (out_vec[0].len < sizeof(int)) ||
             (in_vec[1].base == NULL) || (in_vec[1].len < sizeof(psa_key_type_t))) {
