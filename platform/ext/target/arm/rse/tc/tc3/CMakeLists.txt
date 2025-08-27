@@ -31,7 +31,7 @@ target_sources(platform_s
         $<$<NOT:$<BOOL:${RSE_DEBUG_UART}>>:${PLATFORM_DIR}/ext/target/arm/drivers/usart/pl011/uart_pl011_drv.c>
         $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${TC_COMMON_SOURCE_DIR}/rse_comms/rse_comms_permissions_hal.c>
         $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${TC_COMMON_SOURCE_DIR}/rse_comms/rse_comms_platform.c>
-        $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${TC_COMMON_SOURCE_DIR}/rse_comms/rse_get_rse_id.c.c>
+        $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${TC_COMMON_SOURCE_DIR}/rse_comms/rse_get_rse_id.c>
 )
 
 target_include_directories(platform_s
