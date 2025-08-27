@@ -145,36 +145,6 @@ LR_CODE S_CODE_START S_CODE_SIZE {
 {% endfor %}
     }
 
-#ifdef S_RUNTIME_ITCM_START
-    saved_location_counter = .;
-    . = S_RUNTIME_ITCM_START
-
-    /* Position tag: Start of SPM code (privileged) */
-    PT_SPM_CODE_START +0 ALIGN TFM_LINKER_SPM_CODE_ALIGNMENT EMPTY 0x0 {
-    }
-
-    .ER_SPM_CODE +0 {
-        *tfm_spm*(+RO)
-    }
-
-    /* Position tag: End of SPM code (privileged) */
-    PT_SPM_CODE_END +0 ALIGN TFM_LINKER_SPM_CODE_ALIGNMENT EMPTY 0x0 {
-    }
-
-    /* This empty, zero long execution region is here to mark the limit address
-     * of the last execution region that is allocated in ITCM.
-     */
-    ITCM_WATERMARK +0 EMPTY 0x0 {
-    }
-
-    /* Make sure that the sections allocated in the DTCM does not exceed the
-     * size of the DTCM available.
-     */
-    ScatterAssert(ImageLimit(ITCM_WATERMARK) <= S_RUNTIME_ITCM_START + S_RUNTIME_ITCM_SIZE)
-
-    . = saved_location_counter;
-#endif
-
     /* Capture all remaining code (except RAM code) in the privileged TF-M
      * code region.
      */
@@ -211,6 +181,30 @@ LR_CODE S_CODE_START S_CODE_SIZE {
     /* Position tag: End of code + RO-data */
     PT_RO_END +0 ALIGN TFM_LINKER_PT_RO_ALIGNMENT EMPTY 0x0 {
     }
+
+#ifdef S_RUNTIME_ITCM_START
+    /* Position tag: Start of SPM code (privileged) */
+    PT_SPM_CODE_START S_RUNTIME_ITCM_START ALIGN TFM_LINKER_SPM_CODE_ALIGNMENT EMPTY 0x0 { }
+
+    ER_SPM_CODE +0 {
+        *tfm_spm*(+RO)
+    }
+
+    /* Position tag: End of SPM code (privileged) */
+    PT_SPM_CODE_END +0 ALIGN TFM_LINKER_SPM_CODE_ALIGNMENT EMPTY 0x0 {
+    }
+
+    /* This empty, zero long execution region is here to mark the limit address
+     * of the last execution region that is allocated in ITCM.
+     */
+    ITCM_WATERMARK +0 EMPTY 0x0 {
+    }
+
+    /* Make sure that the sections allocated in the ITCM does not exceed the
+     * size of the ITCM available.
+     */
+    ScatterAssert(ImageLimit(ITCM_WATERMARK) <= S_RUNTIME_ITCM_START + S_RUNTIME_ITCM_SIZE)
+#endif
 
 #ifdef S_RAM_CODE_START
     /* Flash drivers code that gets copied from Flash */
@@ -373,6 +367,41 @@ LR_CODE S_CODE_START S_CODE_SIZE {
     {% endif %}
 {% endfor %}
 
+    ER_TFM_DATA +0 {
+        *(+RW +ZI)
+    }
+
+    /* The runtime partition placed order is same as load partition */
+    ER_PART_RT_POOL +0 ALIGN 4 {
+        *(.bss.part_runtime)
+    }
+
+    /* The runtime service placed order is same as load partition */
+    ER_SERV_RT_POOL +0 ALIGN 4 {
+        *(.bss.serv_runtime)
+    }
+
+    /* Position tag: End of PSA RoT data (privileged) */
+    PT_PSA_ROT_DATA_END +0 ALIGN TFM_LINKER_PT_PSA_ROT_DATA_ALIGNMENT EMPTY 0x0 {
+    }
+
+#ifdef RAM_VECTORS_SUPPORT
+    ER_RAM_VECTORS +0 ALIGN TFM_LINKER_RAM_VECTORS_ALIGNMENT UNINIT {
+        *(RESET_RAM)
+    }
+#endif
+
+    /* This empty, zero long execution region is here to mark the limit address
+     * of the last execution region that is allocated in SRAM.
+     */
+    SRAM_WATERMARK +0 EMPTY 0x0 {
+    }
+
+    /* Make sure that the sections allocated in the SRAM does not exceed the
+     * size of the SRAM available.
+     */
+    ScatterAssert(ImageLimit(SRAM_WATERMARK) <= S_DATA_START + S_DATA_SIZE)
+
 {# Check whether DTCM needs to be included. #}
 {% set outer_namespace = namespace(use_dtcm=false) %}
 {% for partition in partitions %}
@@ -382,8 +411,8 @@ LR_CODE S_CODE_START S_CODE_SIZE {
 {% endfor %}
 
 {% if outer_namespace.use_dtcm %}
-    saved_location_counter = .;
-    . = S_RUNTIME_DTCM_START;
+    /* Position tag: Start of DTCM */
+    PT_DTCM_START S_RUNTIME_DTCM_START ALIGN TFM_LINKER_PT_PSA_ROT_DATA_ALIGNMENT EMPTY 0x0 { }
 {% endif %}
 
 {% for partition in partitions %}
@@ -428,45 +457,7 @@ LR_CODE S_CODE_START S_CODE_SIZE {
      * size of the DTCM available.
      */
     ScatterAssert(ImageLimit(DTCM_WATERMARK) <= S_RUNTIME_DTCM_START + S_RUNTIME_DTCM_SIZE)
-
-    . = saved_location_counter;
 {% endif %}
-
-
-    ER_TFM_DATA +0 {
-        *(+RW +ZI)
-    }
-
-    /* The runtime partition placed order is same as load partition */
-    ER_PART_RT_POOL +0 ALIGN 4 {
-        *(.bss.part_runtime)
-    }
-
-    /* The runtime service placed order is same as load partition */
-    ER_SERV_RT_POOL +0 ALIGN 4 {
-        *(.bss.serv_runtime)
-    }
-
-    /* Position tag: End of PSA RoT data (privileged) */
-    PT_PSA_ROT_DATA_END +0 ALIGN TFM_LINKER_PT_PSA_ROT_DATA_ALIGNMENT EMPTY 0x0 {
-    }
-
-#ifdef RAM_VECTORS_SUPPORT
-    ER_RAM_VECTORS +0 ALIGN TFM_LINKER_RAM_VECTORS_ALIGNMENT UNINIT {
-        *(RESET_RAM)
-    }
-#endif
-
-    /* This empty, zero long execution region is here to mark the limit address
-     * of the last execution region that is allocated in SRAM.
-     */
-    SRAM_WATERMARK +0 EMPTY 0x0 {
-    }
-
-    /* Make sure that the sections allocated in the SRAM does not exceed the
-     * size of the SRAM available.
-     */
-    ScatterAssert(ImageLimit(SRAM_WATERMARK) <= S_DATA_START + S_DATA_SIZE)
 }
 
 LR_NS_PARTITION NS_PARTITION_START {
