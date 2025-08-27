@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
-#ifndef __RSE_COMMS_PROTOCOL_EMBED_H__
-#define __RSE_COMMS_PROTOCOL_EMBED_H__
+#ifndef __RSE_COMMS_PSA_PROTOCOL_EMBED_H__
+#define __RSE_COMMS_PSA_PROTOCOL_EMBED_H__
 
 #include "psa/client.h"
 #include "cmsis_compiler.h"
@@ -55,4 +55,4 @@ enum tfm_plat_err_t rse_protocol_embed_serialize_error(
 }
 #endif
 
-#endif /* __RSE_COMMS_PROTOCOL_EMBED_H__ */
+#endif /* __RSE_COMMS_PSA_PROTOCOL_EMBED_H__ */

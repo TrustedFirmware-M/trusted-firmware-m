@@ -1,18 +1,18 @@
 /*
- * Copyright (c) 2022-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
-#ifndef __RSE_COMMS_CLIENT_REQUEST_H__
-#define __RSE_COMMS_CLIENT_REQUEST_H__
+#ifndef __RSE_COMMS_PSA_CLIENT_REQUEST_H__
+#define __RSE_COMMS_PSA_CLIENT_REQUEST_H__
 
 #include "psa/client.h"
 #include "cmsis_compiler.h"
 #include "config_tfm.h"
 #include "rse_comms_atu.h"
-#include "rse_comms_protocol.h"
+#include "rse_comms_psa_protocol.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,4 +45,4 @@ struct client_request_t {
 }
 #endif
 
-#endif /* __RSE_COMMS_CLIENT_REQUEST_H__ */
+#endif /* __RSE_COMMS_PSA_CLIENT_REQUEST_H__ */

@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
-#include "rse_comms_queue.h"
+#include "rse_comms_psa_queue.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 
-#define QUEUE_SIZE (RSE_COMMS_MAX_CONCURRENT_REQ + 1)
+#define QUEUE_SIZE (RSE_COMMS_PSA_HANDLER_MAX_CONCURRENT_REQ + 1)
 
 struct queue_t {
     void *buf[QUEUE_SIZE];

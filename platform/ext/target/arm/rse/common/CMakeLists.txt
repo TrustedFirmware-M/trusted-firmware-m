@@ -138,6 +138,7 @@ install(FILES       tfm_builtin_key_ids.h
 
 if (TFM_MULTI_CORE_TOPOLOGY)
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/rse_comms rse_comms)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/rse_comms_psa_handler rse_comms_psa_handler)
 endif()
 
 if (RSE_AMOUNT GREATER 1)

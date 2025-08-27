@@ -21,6 +21,7 @@
 #include "rse_comms_handler_buffer.h"
 #include "rse_comms_helpers.h"
 #include "critical_section.h"
+#include "config_tfm.h"
 #include <string.h>
 
 /* Allow message size up to the largest possible PSA message size */

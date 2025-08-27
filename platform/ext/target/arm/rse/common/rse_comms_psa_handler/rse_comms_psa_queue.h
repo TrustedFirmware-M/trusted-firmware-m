@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
-#ifndef __RSE_COMMS_QUEUE_H__
-#define __RSE_COMMS_QUEUE_H__
+#ifndef __RSE_COMMS_PSA_QUEUE_H__
+#define __RSE_COMMS_PSA_QUEUE_H__
 
 #include <stdint.h>
 
@@ -22,4 +22,4 @@ int32_t queue_dequeue(void **entry);
 }
 #endif
 
-#endif /* __RSE_COMMS_QUEUE_H__ */
+#endif /* __RSE_COMMS_PSA_QUEUE_H__ */

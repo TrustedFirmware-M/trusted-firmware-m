@@ -1,23 +1,23 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
-#ifndef __RSE_COMMS_PROTOCOL_H__
-#define __RSE_COMMS_PROTOCOL_H__
+#ifndef __RSE_COMMS_PSA_PROTOCOL_H__
+#define __RSE_COMMS_PSA_PROTOCOL_H__
 
 #include "psa/client.h"
 #include "cmsis_compiler.h"
 #include "tfm_platform_system.h"
 
 #ifdef RSE_COMMS_PROTOCOL_EMBED_ENABLED
-#include "rse_comms_protocol_embed.h"
+#include "rse_comms_psa_protocol_embed.h"
 #endif /* RSE_COMMS_PROTOCOL_EMBED_ENABLED */
 
 #ifdef RSE_COMMS_PROTOCOL_POINTER_ACCESS_ENABLED
-#include "rse_comms_protocol_pointer_access.h"
+#include "rse_comms_psa_protocol_pointer_access.h"
 #endif /* RSE_MHU_PROTOCOL_V0_ENABLED */
 
 #ifdef __cplusplus
@@ -127,4 +127,4 @@ enum tfm_plat_err_t rse_protocol_serialize_error(
 }
 #endif
 
-#endif /* __RSE_COMMS_PROTOCOL_H__ */
+#endif /* __RSE_COMMS_PSA_PROTOCOL_H__ */

@@ -5,8 +5,8 @@
  *
  */
 
-#include "rse_comms_protocol_pointer_access.h"
-#include "rse_comms_client_request.h"
+#include "rse_comms_psa_protocol_pointer_access.h"
+#include "rse_comms_psa_client_request.h"
 
 #include "tfm_psa_call_pack.h"
 #include "rse_comms_permissions_hal.h"

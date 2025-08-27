@@ -7,14 +7,14 @@
  *
  */
 
-#include "rse_comms_client_request.h"
+#include "rse_comms_psa_client_request.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
 #include "internal_status_code.h"
 #include "rse_comms_runtime_hal.h"
-#include "rse_comms_queue.h"
+#include "rse_comms_psa_queue.h"
 #include "tfm_rpc.h"
 #include "tfm_multi_core.h"
 #include "tfm_hal_multi_core.h"
@@ -24,7 +24,7 @@
 #include "tfm_pools.h"
 #include "rse_comms_permissions_hal.h"
 #include "rse_comms.h"
-#include "rse_comms_protocol.h"
+#include "rse_comms_psa_protocol.h"
 #include "rse_comms_link_hal.h"
 #include "rse_comms_platform.h"
 #include "critical_section.h"
@@ -35,7 +35,7 @@ struct rse_comms_pool_entry_t {
     struct rse_comms_msg_metadata_t metadata;
 };
 
-TFM_POOL_DECLARE(comms_pool, sizeof(struct rse_comms_pool_entry_t), RSE_COMMS_MAX_CONCURRENT_REQ);
+TFM_POOL_DECLARE(comms_pool, sizeof(struct rse_comms_pool_entry_t), RSE_COMMS_PSA_HANDLER_MAX_CONCURRENT_REQ);
 
 /* Use for both the message and reply, define to the larger of
  * the two */
