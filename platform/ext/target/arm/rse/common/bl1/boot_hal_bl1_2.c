@@ -107,16 +107,16 @@ static int32_t init_mpu_region_for_atu(void)
     int32_t rc;
 
     /* Set entire RSE ATU window to device memory to prevent caching */
-    struct mpu_armv8m_region_cfg_t atu_window_region_config = {
-        0,
-        HOST_ACCESS_BASE_NS,
-        HOST_ACCESS_LIMIT_S,
-        MPU_ARMV8M_MAIR_ATTR_DEVICE_IDX,
-        MPU_ARMV8M_XN_EXEC_NEVER,
-        MPU_ARMV8M_AP_RW_PRIV_UNPRIV,
-        MPU_ARMV8M_SH_NONE,
+    const struct mpu_armv8m_region_cfg_t atu_window_region_config = {
+        .region_nr = 0,
+        .region_base = HOST_ACCESS_BASE_NS,
+        .region_limit = HOST_ACCESS_LIMIT_S,
+        .region_attridx = MPU_ARMV8M_MAIR_ATTR_DEVICE_IDX,
+        .attr_exec = MPU_ARMV8M_XN_EXEC_NEVER,
+        .attr_access = MPU_ARMV8M_AP_RW_PRIV_UNPRIV,
+        .attr_sh = MPU_ARMV8M_SH_NONE,
 #ifdef TFM_PXN_ENABLE
-        MPU_ARMV8M_PRIV_EXEC_NEVER,
+        .attr_pxn = MPU_ARMV8M_PRIV_EXEC_NEVER,
 #endif
     };
 
@@ -374,19 +374,18 @@ int32_t boot_platform_post_init(void)
     return 0;
 }
 
-
 static int disable_rom_execution(void)
 {
-    struct mpu_armv8m_region_cfg_t rom_region_config = {
-        1,
-        ROM_BASE_S,
-        ROM_BASE_S + ROM_SIZE - 1,
-        MPU_ARMV8M_MAIR_ATTR_CODE_IDX,
-        MPU_ARMV8M_XN_EXEC_NEVER,
-        MPU_ARMV8M_AP_RO_PRIV_ONLY,
-        MPU_ARMV8M_SH_NONE,
+    const struct mpu_armv8m_region_cfg_t rom_region_config = {
+        .region_nr = 1,
+        .region_base = ROM_BASE_S,
+        .region_limit = ROM_BASE_S + ROM_SIZE - 1,
+        .region_attridx = MPU_ARMV8M_MAIR_ATTR_CODE_IDX,
+        .attr_exec = MPU_ARMV8M_XN_EXEC_NEVER,
+        .attr_access = MPU_ARMV8M_AP_RO_PRIV_ONLY,
+        .attr_sh = MPU_ARMV8M_SH_NONE,
 #ifdef TFM_PXN_ENABLE
-        MPU_ARMV8M_PRIV_EXEC_NEVER,
+        .attr_pxn = MPU_ARMV8M_PRIV_EXEC_NEVER,
 #endif
     };
 
