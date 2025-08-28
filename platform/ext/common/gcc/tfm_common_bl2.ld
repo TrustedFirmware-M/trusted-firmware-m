@@ -33,6 +33,14 @@ MEMORY
     RAM   (rwx) : ORIGIN = BL2_DATA_START, LENGTH = BL2_DATA_SIZE
 }
 
+/* For Cortex-M0+ VTOR: 256-byte vector table is at the offset 0x00 of the image.
+ * To keep that table in one block, the image base must be a multiple of 0x100.
+ * For reference: https://developer.arm.com/documentation/ddi0419/latest/
+ */
+#if defined(__ARM_ARCH_6M__)
+CHECK_ALIGNMENT_256(BL2_CODE_START)
+#endif
+
 __heap_size__  = BL2_HEAP_SIZE;
 __msp_stack_size__ = BL2_MSP_STACK_SIZE;
 

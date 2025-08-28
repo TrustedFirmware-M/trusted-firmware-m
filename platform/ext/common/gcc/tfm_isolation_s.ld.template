@@ -62,6 +62,14 @@ MEMORY
 {% endif %}
 }
 
+/* For Cortex-M0+ VTOR: 256-byte vector table is at the offset 0x00 of the image.
+ * To keep that table in one block, the image base must be a multiple of 0x100.
+ * For reference: https://developer.arm.com/documentation/ddi0419/latest/
+ */
+#if defined(__ARM_ARCH_6M__)
+CHECK_ALIGNMENT_256(S_CODE_START)
+#endif
+
 #ifndef TFM_LINKER_VENEERS_START
 #define TFM_LINKER_VENEERS_START ALIGN(TFM_LINKER_VENEERS_ALIGNMENT)
 #endif
