@@ -410,12 +410,18 @@ static cc3xx_err_t multiply_point_by_scalar_side_channel_protected(
         add_points(curve, &accumulator, &point_add_table[table_select], &accumulator);
         carry = carry_table[table_select];
 
-        if (cc3xx_lowlevel_ec_projective_point_is_infinity(&accumulator)) {
-            FATAL_ERR(CC3XX_ERR_EC_POINT_IS_INFINITY);
-            err |= CC3XX_ERR_EC_POINT_IS_INFINITY;
+        if (idx > 0) {
+            if (cc3xx_lowlevel_ec_projective_point_is_infinity(&accumulator)) {
+                FATAL_ERR(CC3XX_ERR_EC_POINT_IS_INFINITY);
+                err |= CC3XX_ERR_EC_POINT_IS_INFINITY;
+            }
+        } else {
+            if (cc3xx_lowlevel_ec_projective_point_is_infinity(&proj_p)) {
+                FATAL_ERR(CC3XX_ERR_EC_POINT_IS_INFINITY);
+                err |= CC3XX_ERR_EC_POINT_IS_INFINITY;
+            }
         }
     }
-
 
     /* Free some of the points that aren't used from now on, to get physical
      * registers back to map the final_carry_accumulator.
@@ -432,9 +438,19 @@ static cc3xx_err_t multiply_point_by_scalar_side_channel_protected(
     add_points(curve, &accumulator, &proj_neg_p, &final_carry_accumulator);
 
     if (carry == -1) {
+        if (cc3xx_lowlevel_ec_projective_point_is_infinity(&final_carry_accumulator)) {
+            FATAL_ERR(CC3XX_ERR_EC_POINT_IS_INFINITY);
+            err |= CC3XX_ERR_EC_POINT_IS_INFINITY;
+        }
+
         err |= cc3xx_lowlevel_ec_jacobian_to_affine(curve, &final_carry_accumulator,
                                                     res);
     } else {
+        if (cc3xx_lowlevel_ec_projective_point_is_infinity(&accumulator)) {
+            FATAL_ERR(CC3XX_ERR_EC_POINT_IS_INFINITY);
+            err |= CC3XX_ERR_EC_POINT_IS_INFINITY;
+        }
+
         err |= cc3xx_lowlevel_ec_jacobian_to_affine(curve, &accumulator, res);
     }
 
