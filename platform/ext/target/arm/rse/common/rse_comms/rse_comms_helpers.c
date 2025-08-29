@@ -9,7 +9,7 @@
 
 enum rse_comms_error_t rse_comms_helpers_parse_packet(
     struct rse_comms_packet_t *packet, size_t packet_size, rse_comms_node_id_t *sender,
-    rse_comms_node_id_t *receiver, uint8_t *seq_num, bool *uses_cryptography,
+    rse_comms_node_id_t *receiver, uint8_t *message_id, bool *uses_cryptography,
     bool *uses_id_extension, uint16_t *application_id, uint16_t *client_id, uint8_t **payload,
     size_t *payload_len, bool *needs_reply, enum rse_comms_packet_type_t *packet_type)
 {
@@ -24,7 +24,7 @@ enum rse_comms_error_t rse_comms_helpers_parse_packet(
 
     *sender = packet->header.sender_id;
     *receiver = packet->header.receiver_id;
-    *seq_num = packet->header.seq_num;
+    *message_id = packet->header.message_id;
 
     *uses_cryptography = GET_METADATA_FIELD(USES_CRYPTOGRAPHY, packet->header.metadata);
     *packet_type = GET_METADATA_FIELD(PACKET_TYPE, packet->header.metadata);
@@ -77,7 +77,7 @@ void rse_comms_helpers_generate_protocol_error_packet(struct rse_comms_packet_t 
                                                       rse_comms_node_id_t sender_id,
                                                       rse_comms_node_id_t receiver_id,
                                                       rse_comms_link_id_t link_id,
-                                                      uint16_t client_id, uint8_t seq_num,
+                                                      uint16_t client_id, uint8_t message_id,
                                                       enum rse_comms_protocol_error_t error)
 {
     packet->header.metadata = SET_ALL_METADATA_FIELDS(RSE_COMMS_PACKET_TYPE_PROTOCOL_ERROR_REPLY,
@@ -85,7 +85,7 @@ void rse_comms_helpers_generate_protocol_error_packet(struct rse_comms_packet_t 
                                                       RSE_COMMS_PROTOCOL_VERSION);
     packet->header.sender_id = sender_id;
     packet->header.receiver_id = receiver_id;
-    packet->header.seq_num = seq_num;
+    packet->header.message_id = message_id;
 
     packet->error_reply.client_id = client_id;
     packet->error_reply.protocol_error = error;

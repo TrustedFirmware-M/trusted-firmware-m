@@ -75,7 +75,7 @@ __PACKED_STRUCT rse_comms_header_t {
     uint8_t metadata;
     uint8_t sender_id;
     uint8_t receiver_id;
-    uint8_t seq_num;
+    uint8_t message_id;
 };
 
 /*

@@ -80,7 +80,7 @@ struct rse_comms_packet_t;
  * \details
  * The sender MUST NOT reuse a sequence number until the reply for the message
  * using that sequence number has been received. If the ID extension is used, the
- * (seq_num, client_id) pair MUST remain unique among in-flight messages.
+ * (message_id, client_id) pair MUST remain unique among in-flight messages.
  * If a timeout-retry mechanism is used, the sender MUST increment sequence numbers
  * between messages and keep metadata for all outstanding messages to handle delayed
  * replies.
@@ -92,7 +92,7 @@ struct rse_comms_reply_metadata_t {
                                          which are never encrypted). */
     uint16_t client_id;             /**< Client ID (0 if ID extension not used). */
     uint16_t application_id;        /**< Application ID (0 if ID extension not used). */
-    uint8_t seq_num;                /**< Sequence number for matching. */
+    uint8_t message_id;             /**< Message ID for matching. */
 };
 
 /**
@@ -109,7 +109,7 @@ struct rse_comms_msg_metadata_t {
     bool uses_cryptography;         /**< Whether the original message used crypto/auth. */
     uint16_t client_id;             /**< Client ID from the original message (or 0). */
     uint16_t application_id;        /**< Application ID from the original message (or 0). */
-    uint8_t seq_num;                /**< Sequence number from the original message. */
+    uint8_t message_id;             /**< Message ID from the original message. */
 };
 
 /**
@@ -206,7 +206,7 @@ enum rse_comms_error_t rse_comms_send_msg(struct rse_comms_packet_t *msg, size_t
  * \param[in]  metadata          Metadata captured when the message was received; the reply will:
  *                               - mirror uses_cryptography (except protocol error replies,
  *                                 which cannot be encrypted), and
- *                               - use the same client_id, application_id, and seq_num.
+ *                               - use the same client_id, application_id, and message_id.
  * \param[out] payload           Pointer within \p buf where the caller writes the plaintext reply payload.
  * \param[out] payload_len       Capacity of the reply payload area (bytes).
  * \param[out] reply             Pointer to the prepared reply packet within \p buf.

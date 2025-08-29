@@ -89,14 +89,14 @@ enum rse_comms_error_t rse_comms_pop_handler_buffer(rse_comms_buffer_handle_t bu
 static enum rse_comms_error_t send_protocol_error(rse_comms_node_id_t node_id,
                                                       rse_comms_node_id_t my_node_id,
                                                       rse_comms_link_id_t link_id,
-                                                      uint16_t client_id, uint8_t seq_num,
+                                                      uint16_t client_id, uint8_t message_id,
                                                       enum rse_comms_protocol_error_t error)
 {
     struct rse_comms_packet_t packet;
     enum rse_comms_hal_error_t hal_error;
 
     rse_comms_helpers_generate_protocol_error_packet(&packet, node_id, my_node_id, link_id,
-                                                     client_id, seq_num, error);
+                                                     client_id, message_id, error);
 
     hal_error = rse_comms_hal_send_message(link_id, (const uint8_t *)&packet,
                                             RSE_COMMS_PACKET_SIZE_ERROR_REPLY);
@@ -126,7 +126,7 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(rse_comms_link_id_t link_id, uint
     rse_comms_node_id_t packet_sender;
     rse_comms_node_id_t packet_receiver;
     rse_comms_node_id_t forwarding_destination;
-    uint8_t seq_num;
+    uint8_t message_id;
     uint8_t *payload;
     size_t payload_len;
     rse_comms_handler_t handler;
@@ -160,7 +160,7 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(rse_comms_link_id_t link_id, uint
     packet = (struct rse_comms_packet_t *)rse_comms_buffer[buffer_handle].buf;
 
     comms_err = rse_comms_helpers_parse_packet(packet, message_size, &packet_sender,
-                                               &packet_receiver, &seq_num, &packet_uses_crypto,
+                                               &packet_receiver, &message_id, &packet_uses_crypto,
                                                &uses_id_extension, &packet_application_id,
                                                &packet_client_id, &payload, &payload_len,
                                                &needs_reply, &packet_type);
@@ -250,7 +250,7 @@ out_error_buffer_allocation: {
     }
 
     parse_buffer_failed_packet_error = rse_comms_helpers_parse_packet(
-        &buffer_failure_packet, size_to_receive, &packet_sender, &packet_receiver, &seq_num,
+        &buffer_failure_packet, size_to_receive, &packet_sender, &packet_receiver, &message_id,
         &packet_uses_crypto, &uses_id_extension, &packet_application_id, &packet_client_id,
         &payload, &payload_len, &needs_reply, &packet_type);
     if (parse_buffer_failed_packet_error != RSE_COMMS_ERROR_SUCCESS) {
@@ -264,7 +264,7 @@ out_error_buffer_allocation: {
 out_error_reply:
     if (needs_reply) {
         enum rse_comms_error_t send_reply_error = send_protocol_error(
-            packet_sender, packet_receiver, link_id, packet_client_id, seq_num, protocol_err);
+            packet_sender, packet_receiver, link_id, packet_client_id, message_id, protocol_err);
         if (send_reply_error != RSE_COMMS_ERROR_SUCCESS) {
             err = (enum tfm_plat_err_t)send_reply_error;
         }

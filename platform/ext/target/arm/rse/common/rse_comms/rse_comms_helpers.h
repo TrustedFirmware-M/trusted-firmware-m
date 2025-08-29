@@ -21,7 +21,7 @@ extern "C" {
 
 enum rse_comms_error_t rse_comms_helpers_parse_packet(
     struct rse_comms_packet_t *packet, size_t packet_size, rse_comms_node_id_t *sender,
-    rse_comms_node_id_t *receiver, uint8_t *seq_num, bool *uses_cryptography,
+    rse_comms_node_id_t *receiver, uint8_t *message_id, bool *uses_cryptography,
     bool *uses_id_extension, uint16_t *application_id, uint16_t *client_id, uint8_t **payload,
     size_t *payload_len, bool *needs_reply, enum rse_comms_packet_type_t *packet_type);
 
@@ -34,7 +34,7 @@ void rse_comms_helpers_generate_protocol_error_packet(struct rse_comms_packet_t 
                                                       rse_comms_node_id_t sender_id,
                                                       rse_comms_node_id_t receiver_id,
                                                       rse_comms_link_id_t link_id,
-                                                      uint16_t client_id, uint8_t seq_num,
+                                                      uint16_t client_id, uint8_t message_id,
                                                       enum rse_comms_protocol_error_t error);
 
 static inline enum rse_comms_error_t

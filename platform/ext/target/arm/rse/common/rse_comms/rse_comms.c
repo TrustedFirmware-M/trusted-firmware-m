@@ -50,25 +50,25 @@ rse_protocol_error_to_comms_error(enum rse_comms_protocol_error_t protocol_error
 static inline void populate_reply_metadata(struct rse_comms_reply_metadata_t *metadata,
                                            rse_comms_node_id_t receiver, bool uses_cryptography,
                                            uint16_t client_id, uint16_t application_id,
-                                           uint8_t seq_num)
+                                           uint8_t message_id)
 {
     metadata->receiver = receiver;
     metadata->uses_cryptography = uses_cryptography;
     metadata->client_id = client_id;
     metadata->application_id = application_id;
-    metadata->seq_num = seq_num;
+    metadata->message_id = message_id;
 }
 
 static inline void populate_msg_metadata(struct rse_comms_msg_metadata_t *metadata,
                                          rse_comms_node_id_t sender, bool uses_cryptography,
                                          uint16_t client_id, uint16_t application_id,
-                                         uint8_t seq_num)
+                                         uint8_t message_id)
 {
     metadata->sender = sender;
     metadata->uses_cryptography = uses_cryptography;
     metadata->client_id = client_id;
     metadata->application_id = application_id;
-    metadata->seq_num = seq_num;
+    metadata->message_id = message_id;
 }
 
 enum rse_comms_error_t rse_comms_init(void)
@@ -83,11 +83,11 @@ enum rse_comms_error_t rse_comms_init(void)
     return RSE_COMMS_ERROR_SUCCESS;
 }
 
-static uint8_t get_new_seq_num(rse_comms_node_id_t node)
+static uint8_t get_new_message_id(rse_comms_node_id_t node)
 {
-    static uint8_t seq_nums_per_node[RSE_COMMS_NUMBER_NODES];
+    static uint8_t message_ids_per_node[RSE_COMMS_NUMBER_NODES];
 
-    return seq_nums_per_node[node]++;
+    return message_ids_per_node[node]++;
 }
 
 enum rse_comms_error_t rse_comms_init_msg(uint8_t *buf, size_t buf_size,
@@ -102,7 +102,7 @@ enum rse_comms_error_t rse_comms_init_msg(uint8_t *buf, size_t buf_size,
     struct rse_comms_packet_t *msg_ptr;
     rse_comms_node_id_t my_node_id;
     enum rse_comms_hal_error_t hal_error;
-    uint8_t seq_num;
+    uint8_t message_id;
 
     if (uses_cryptography) {
         /* TODO: Cryptography currently unsupported */
@@ -130,14 +130,14 @@ enum rse_comms_error_t rse_comms_init_msg(uint8_t *buf, size_t buf_size,
     }
 
     msg_ptr = (struct rse_comms_packet_t *)buf;
-    seq_num = get_new_seq_num(receiver);
+    message_id = get_new_message_id(receiver);
 
     msg_ptr->header.metadata = SET_ALL_METADATA_FIELDS(
         needs_reply ? RSE_COMMS_PACKET_TYPE_MSG_NEEDS_REPLY : RSE_COMMS_PACKET_TYPE_MSG_NO_REPLY,
         uses_cryptography, uses_id_extension, RSE_COMMS_PROTOCOL_VERSION);
     msg_ptr->header.receiver_id = receiver;
     msg_ptr->header.sender_id = my_node_id;
-    msg_ptr->header.seq_num = seq_num;
+    msg_ptr->header.message_id = message_id;
 
     if (uses_id_extension) {
         GET_RSE_COMMS_CLIENT_ID(msg_ptr, uses_cryptography) = client_id;
@@ -152,7 +152,7 @@ enum rse_comms_error_t rse_comms_init_msg(uint8_t *buf, size_t buf_size,
     *msg_size = buf_size;
 
     populate_reply_metadata(metadata, receiver, uses_cryptography, client_id, application_id,
-                            seq_num);
+                            message_id);
 
     return RSE_COMMS_ERROR_SUCCESS;
 }
@@ -240,7 +240,7 @@ enum rse_comms_error_t rse_comms_init_reply(uint8_t *buf, size_t buf_size,
                                                          RSE_COMMS_PROTOCOL_VERSION);
     reply_ptr->header.receiver_id = my_node_id;
     reply_ptr->header.sender_id = metadata.sender;
-    reply_ptr->header.seq_num = metadata.seq_num;
+    reply_ptr->header.message_id = metadata.message_id;
 
     if (uses_id_extension) {
         GET_RSE_COMMS_CLIENT_ID(reply_ptr, uses_cryptography) = metadata.client_id;
@@ -267,14 +267,14 @@ enum rse_comms_error_t rse_comms_send_reply(struct rse_comms_packet_t *reply, si
 static enum rse_comms_error_t send_protocol_error(rse_comms_node_id_t sender_id,
                                                   rse_comms_node_id_t receiver_id,
                                                   rse_comms_link_id_t link_id, uint16_t client_id,
-                                                  uint8_t seq_num,
+                                                  uint8_t message_id,
                                                   enum rse_comms_protocol_error_t error)
 {
     struct rse_comms_packet_t packet;
     enum rse_comms_hal_error_t hal_error;
 
     rse_comms_helpers_generate_protocol_error_packet(&packet, sender_id, receiver_id, link_id,
-                                                     client_id, seq_num, error);
+                                                     client_id, message_id, error);
 
     hal_error = rse_comms_hal_send_message(link_id, (const uint8_t *)&packet,
                                            RSE_COMMS_PACKET_SIZE_ERROR_REPLY);
@@ -357,7 +357,7 @@ enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size,
     size_t received_size;
     bool packet_uses_crypto;
     uint16_t packet_application_id;
-    uint8_t seq_num;
+    uint8_t message_id;
     rse_comms_node_id_t packet_sender;
     rse_comms_node_id_t packet_receiver;
     rse_comms_node_id_t forwarding_destination;
@@ -381,7 +381,7 @@ enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size,
     packet = (struct rse_comms_packet_t *)buf;
 
     comms_error = rse_comms_helpers_parse_packet(packet, received_size, &packet_sender,
-                                                 &packet_receiver, &seq_num, &packet_uses_crypto,
+                                                 &packet_receiver, &message_id, &packet_uses_crypto,
                                                  &uses_id_extension, &packet_application_id,
                                                  client_id, payload, payload_len, &needs_reply,
                                                  &packet_type);
@@ -430,14 +430,15 @@ enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size,
         goto error_reply;
     }
 
-    populate_msg_metadata(metadata, sender, uses_cryptography, *client_id, application_id, seq_num);
+    populate_msg_metadata(metadata, sender, uses_cryptography, *client_id, application_id,
+                          message_id);
 
     return RSE_COMMS_ERROR_SUCCESS;
 
 error_reply:
     if (needs_reply) {
         enum rse_comms_error_t send_reply_error = send_protocol_error(
-            packet_sender, packet_receiver, link_id, *client_id, seq_num, protocol_error);
+            packet_sender, packet_receiver, link_id, *client_id, message_id, protocol_error);
         if (send_reply_error != RSE_COMMS_ERROR_SUCCESS) {
             return send_reply_error;
         }
@@ -465,7 +466,7 @@ enum rse_comms_error_t rse_comms_receive_reply(uint8_t *buf, size_t buf_size,
     rse_comms_node_id_t packet_sender;
     rse_comms_node_id_t packet_receiver;
     rse_comms_node_id_t forwarding_destination;
-    uint8_t seq_num;
+    uint8_t message_id;
 
     if ((buf == NULL) || (payload == NULL) || (payload_len == NULL)) {
         return RSE_COMMS_ERROR_INVALID_POINTER;
@@ -480,7 +481,7 @@ enum rse_comms_error_t rse_comms_receive_reply(uint8_t *buf, size_t buf_size,
     packet = (struct rse_comms_packet_t *)buf;
 
     comms_error = rse_comms_helpers_parse_packet(packet, received_size, &packet_sender,
-                                                 &packet_receiver, &seq_num, &packet_uses_crypto,
+                                                 &packet_receiver, &message_id, &packet_uses_crypto,
                                                  &uses_id_extension, &packet_application_id,
                                                  &packet_client_id, payload, payload_len,
                                                  &needs_reply, &packet_type);
@@ -540,7 +541,7 @@ enum rse_comms_error_t rse_comms_receive_reply(uint8_t *buf, size_t buf_size,
         return RSE_COMMS_ERROR_INVALID_CRYPTO_MODE;
     }
 
-    if (seq_num != metadata.seq_num) {
+    if (message_id != metadata.message_id) {
         return RSE_COMMS_ERROR_INVALID_SEQUENCE_NUMBER;
     }
 
@@ -549,7 +550,7 @@ enum rse_comms_error_t rse_comms_receive_reply(uint8_t *buf, size_t buf_size,
 error_reply:
     if (needs_reply) {
         enum rse_comms_error_t send_reply_error = send_protocol_error(
-            packet_sender, packet_receiver, link_id, packet_client_id, seq_num, protocol_error);
+            packet_sender, packet_receiver, link_id, packet_client_id, message_id, protocol_error);
         if (send_reply_error != RSE_COMMS_ERROR_SUCCESS) {
             return send_reply_error;
         }
@@ -613,7 +614,7 @@ enum rse_comms_error_t rse_comms_pop_msg_from_buffer(rse_comms_buffer_handle_t b
     rse_comms_node_id_t packet_receiver;
     uint8_t *packet_payload;
     size_t packet_payload_size;
-    uint8_t seq_num;
+    uint8_t message_id;
     uint16_t packet_application_id;
 
     if ((sender == NULL) || (client_id == NULL) || (needs_reply == NULL) ||
@@ -631,7 +632,7 @@ enum rse_comms_error_t rse_comms_pop_msg_from_buffer(rse_comms_buffer_handle_t b
     }
 
     comms_error = rse_comms_helpers_parse_packet(packet, packet_size, sender, &packet_receiver,
-                                                 &seq_num, &packet_uses_crypto,
+                                                 &message_id, &packet_uses_crypto,
                                                  &packet_uses_id_extension, &packet_application_id,
                                                  client_id, &packet_payload, &packet_payload_size,
                                                  needs_reply, &packet_type);
@@ -676,7 +677,7 @@ enum rse_comms_error_t rse_comms_pop_msg_from_buffer(rse_comms_buffer_handle_t b
     *payload_size = packet_payload_size;
 
     populate_msg_metadata(metadata, *sender, packet_uses_crypto, *client_id, packet_application_id,
-                          seq_num);
+                          message_id);
 
     comms_error = RSE_COMMS_ERROR_SUCCESS;
     goto pop_message;
@@ -692,7 +693,7 @@ error_reply:
         }
 
         send_reply_error = send_protocol_error(*sender, packet_receiver, link_id, *client_id,
-                                               seq_num, protocol_error);
+                                               message_id, protocol_error);
         if (send_reply_error != RSE_COMMS_ERROR_SUCCESS) {
             return send_reply_error;
         }
@@ -753,7 +754,7 @@ enum rse_comms_error_t rse_comms_pop_reply_from_buffer(rse_comms_buffer_handle_t
     rse_comms_node_id_t packet_sender, packet_receiver;
     uint8_t *packet_payload;
     size_t packet_payload_size;
-    uint8_t seq_num;
+    uint8_t message_id;
     uint16_t packet_application_id, packet_client_id;
 
     if ((payload_size == NULL) || (metadata == NULL)) {
@@ -770,7 +771,7 @@ enum rse_comms_error_t rse_comms_pop_reply_from_buffer(rse_comms_buffer_handle_t
     }
 
     comms_error = rse_comms_helpers_parse_packet(packet, packet_size, &packet_sender,
-                                                 &packet_receiver, &seq_num, &packet_uses_crypto,
+                                                 &packet_receiver, &message_id, &packet_uses_crypto,
                                                  &packet_uses_id_extension, &packet_application_id,
                                                  &packet_client_id, &packet_payload,
                                                  &packet_payload_size, &needs_reply, &packet_type);
@@ -812,7 +813,7 @@ enum rse_comms_error_t rse_comms_pop_reply_from_buffer(rse_comms_buffer_handle_t
     *payload_size = packet_payload_size;
 
     populate_reply_metadata(metadata, packet_receiver, packet_uses_crypto, packet_client_id,
-                            packet_application_id, seq_num);
+                            packet_application_id, message_id);
 
     comms_error = RSE_COMMS_ERROR_SUCCESS;
     goto pop_message;
@@ -828,7 +829,7 @@ error_reply:
         }
 
         send_reply_error = send_protocol_error(packet_sender, packet_receiver, link_id,
-                                               packet_client_id, seq_num, protocol_error);
+                                               packet_client_id, message_id, protocol_error);
         if (send_reply_error != RSE_COMMS_ERROR_SUCCESS) {
             return send_reply_error;
         }
