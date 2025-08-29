@@ -345,6 +345,9 @@ static int boot_platform_post_load_ap_bl2(void)
      */
     memset((void *)HOST_AP_BL2_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
 
+    /* Ensure the write is completed */
+    __DSB();
+
     /* Close RSE ATU to access AP Secure Flash for AP BL2 */
     atu_err = atu_rse_uninitialize_region(&ATU_DEV_S, HOST_AP_FLASH_ATU_ID);
     if (atu_err != ATU_ERR_NONE) {
@@ -511,6 +514,9 @@ static int boot_platform_post_load_si_cl0(void)
      * header part in the Shared SRAM before releasing SI CL0 out of reset.
      */
     memset((void *)HOST_SI_CL0_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
+
+    /* Ensure the write is completed */
+    __DSB();
 
     /* Configure the SI ATU before starting the SI CL0 */
     atu_err = initialize_si_atu();
