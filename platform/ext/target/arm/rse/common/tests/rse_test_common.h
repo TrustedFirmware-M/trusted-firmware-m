@@ -34,8 +34,8 @@ extern "C" {
         TEST_FAIL("ASSERT_FAILED");     \
         return;                         \
     }
-#define TEST_SETUP(x) TEST_ASSERT((x) == 0, "%s", "Test setup failed")
-#define TEST_TEARDOWN(x) TEST_ASSERT((x) == 0, "%s", "Test teardown failed")
+#define TEST_SETUP(x) TEST_ASSERT((x) == 0, "Test setup failed")
+#define TEST_TEARDOWN(x) TEST_ASSERT((x) == 0, "Test teardown failed")
 
 struct conditional_test_t {
     bool any_tp_mode;

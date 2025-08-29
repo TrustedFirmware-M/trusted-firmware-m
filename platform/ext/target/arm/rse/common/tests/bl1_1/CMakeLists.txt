@@ -12,6 +12,7 @@ target_sources(tfm_test_suite_extra_bl1_1
         ./bl1_1_test.c
         ./rse_provisioning_tests.c
         ./test_state_transitions.c
+        ./test_bl1_rse_kmu_keys.c
         ../rse_test_common.c
 )
 
