@@ -134,3 +134,5 @@ rse_count_zero_bits
 rse_get_routing_tables
 rse_get_rse_id
 kmu_invalidate_hardware_keys
+mpu_armv8m_region_enable
+mpu_armv8m_enable
