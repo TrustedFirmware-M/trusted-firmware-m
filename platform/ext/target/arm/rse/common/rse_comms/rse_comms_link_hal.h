@@ -10,6 +10,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 #include "platform_error_codes.h"
 #include "rse_comms_link_defs.h"
 
