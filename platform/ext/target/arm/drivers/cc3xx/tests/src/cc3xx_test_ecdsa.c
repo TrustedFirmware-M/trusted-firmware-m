@@ -3786,10 +3786,21 @@ static void swap_endianess(uint8_t *p, size_t len)
 static void ecdsa_getpub_tests(struct test_result_t *ret)
 {
     const cc3xx_ec_curve_id_t curve_id[] = {
+#ifdef CC3XX_CONFIG_EC_CURVE_SECP_224_R1_ENABLE
         CC3XX_EC_CURVE_SECP_224_R1,
+#endif /* CC3XX_CONFIG_EC_CURVE_SECP_224_R1_ENABLE */
+
+#ifdef CC3XX_CONFIG_EC_CURVE_SECP_256_R1_ENABLE
         CC3XX_EC_CURVE_SECP_256_R1,
+#endif /* CC3XX_CONFIG_EC_CURVE_SECP_256_R1_ENABLE */
+
+#ifdef CC3XX_CONFIG_EC_CURVE_SECP_384_R1_ENABLE
         CC3XX_EC_CURVE_SECP_384_R1,
-        //CC3XX_EC_CURVE_SECP_521_R1
+#endif /* CC3XX_CONFIG_EC_CURVE_SECP_384_R1_ENABLE */
+
+#ifdef CC3XX_CONFIG_EC_CURVE_SECP_521_R1_ENABLE
+        CC3XX_EC_CURVE_SECP_521_R1
+#endif /* CC3XX_CONFIG_EC_CURVE_SECP_521_R1_ENABLE */
     };
 
     uint32_t priv_key[CC3XX_EC_MAX_POINT_SIZE / sizeof(uint32_t)];
