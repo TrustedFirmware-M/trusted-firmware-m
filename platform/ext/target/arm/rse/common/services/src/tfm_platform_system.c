@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -7,11 +7,12 @@
 
 #include "tfm_platform_system.h"
 #include "tfm_hal_device_header.h"
+#include "tfm_hal_platform.h"
 
 void tfm_platform_hal_system_reset(void)
 {
     /* Reset the system */
-    NVIC_SystemReset();
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
 }
 
 enum tfm_platform_err_t tfm_platform_hal_ioctl(tfm_platform_ioctl_req_t request,
