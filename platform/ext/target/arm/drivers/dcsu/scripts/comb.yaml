@@ -1,0 +1,19 @@
+#-------------------------------------------------------------------------------
+# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+#-------------------------------------------------------------------------------
+commands:
+  - name: DCSU_RX_COMMAND_IMPORT_READY:
+    response: 0
+    parameters:
+
+  - name: DCSU_TX_COMMAND_IMPORT_DATA_NO_CHECKSUM:
+    response: DCSU_TX_MSG_RESP_SUCCESS
+    parameters:
+      offset: "0x0"
+      byte_order: "little"
+      data_file: "bin/provisioning/combined_provisioning_0_message.bin"
+
+  - name: DCSU_TX_COMMAND_COMPLETE_IMPORT_DATA:
+    response: DCSU_TX_MSG_RESP_SUCCESS
+    parameters:
