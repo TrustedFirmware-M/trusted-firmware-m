@@ -969,6 +969,8 @@ if (RSE_COMMS_NUMBER_NODES GREATER 1)
                 ${CMAKE_CURRENT_BINARY_DIR}/rse_system_routing_tables_definition.c
         )
 
+        add_dependencies(platform_s routing_tables_definition_source_file)
+
         target_sources(platform_s
             PRIVATE
                 ${CMAKE_CURRENT_BINARY_DIR}/rse_system_routing_tables_definition.c
