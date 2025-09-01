@@ -320,6 +320,7 @@ static enum tfm_plat_err_t load_area_info(enum lcm_lcs_t lcs)
         return TFM_PLAT_ERR_SUCCESS;
     default:
         /* Continue checking of area info */
+        break;
     }
 
 #ifdef RSE_OTP_HAS_CM_AREA
