@@ -418,7 +418,7 @@ fih_int copy_image(uint32_t image_id, struct bl1_2_image_t *image)
 
 #endif /* TFM_BL1_2_IMAGE_ENCRYPTION */
 
-static fih_int bl1_2_validate_image(uint32_t image_id)
+static fih_int bl1_2_validate_image(fih_int image_id)
 {
     fih_int fih_rc = FIH_FAILURE;
     struct bl1_2_image_t *image =
@@ -426,7 +426,8 @@ static fih_int bl1_2_validate_image(uint32_t image_id)
                                  offsetof(struct bl1_2_image_t, protected_values.encrypted_data.data));
 
 #ifdef TFM_BL1_2_IMAGE_ENCRYPTION
-    FIH_CALL(copy_and_decrypt_image, fih_rc, image_id, image);
+    FIH_CALL(copy_and_decrypt_image, fih_rc, (uint32_t)fih_int_decode(image_id),
+             image);
     if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
         ERROR("BL2 image failed to decrypt\n");
         FIH_RET(fih_rc);
@@ -434,7 +435,7 @@ static fih_int bl1_2_validate_image(uint32_t image_id)
 
     INFO("BL2 image decrypted successfully\n");
 #else
-    FIH_CALL(copy_image, fih_rc, image_id, image);
+    FIH_CALL(copy_image, fih_rc, (uint32_t)fih_int_decode(image_id), image);
     if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
         ERROR("BL2 image failed to decrypt\n");
         FIH_RET(fih_rc);
@@ -458,6 +459,7 @@ int main(void)
 {
     fih_int fih_rc = FIH_FAILURE;
     fih_int recovery_succeeded = FIH_FAILURE;
+    fih_int image_id = FIH_INT_INIT(0xFFFF);
 
     fih_rc = fih_int_encode_zero_equality(boot_platform_init());
     if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
@@ -476,19 +478,33 @@ int main(void)
         FIH_PANIC;
     }
 
-    fih_rc = fih_int_encode_zero_equality(boot_platform_pre_load(0));
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        boot_platform_error_state(fih_rc);
-        FIH_PANIC;
-    }
-
     do {
-        INFO("Attempting to boot image 0\n");
-        FIH_CALL(bl1_2_validate_image, fih_rc, 0);
+        FIH_CALL(bl1_2_select_image, image_id);
+
+        INFO("Attempting to boot image %d\n", fih_int_decode(image_id));
+
+        fih_rc = fih_int_encode_zero_equality(
+                    boot_platform_pre_load(fih_int_decode(image_id)));
+        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+            boot_platform_error_state(fih_rc);
+            FIH_PANIC;
+        }
+
+        FIH_CALL(bl1_2_validate_image, fih_rc, image_id);
 
         if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-            INFO("Attempting to boot image 1\n");
-            FIH_CALL(bl1_2_validate_image, fih_rc, 1);
+            FIH_CALL(bl1_2_rollback_image, image_id);
+
+            INFO("Attempting to boot image %d\n", fih_int_decode(image_id));
+
+            fih_rc = fih_int_encode_zero_equality(
+                        boot_platform_pre_load(fih_int_decode(image_id)));
+            if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+                boot_platform_error_state(fih_rc);
+                FIH_PANIC;
+            }
+
+            FIH_CALL(bl1_2_validate_image, fih_rc, image_id);
         }
 
         if (fih_not_eq(fih_rc, FIH_SUCCESS)) {

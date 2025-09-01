@@ -334,3 +334,21 @@ __WEAK int boot_initiate_recovery_mode(uint32_t image_id)
     /* We haven't done anything, therefore recovery has failed */
     return 1;
 }
+
+/*
+ * Platforms can override this weak function and selects the active BL2
+ * image/bank according to platform specific policy.
+ */
+__WEAK fih_int bl1_2_select_image(void)
+{
+    FIH_RET(0);
+}
+
+/*
+ * Platforms can override this weak function and rolls back to previous image
+ * according to platform specific policy.
+ */
+__WEAK fih_int bl1_2_rollback_image(void)
+{
+    FIH_RET(1);
+}
