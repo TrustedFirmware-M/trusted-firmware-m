@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include "platform_error_codes.h"
 #include "rse_comms_link_defs.h"
+#include "rse_comms_trusted_subnet.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,6 +54,18 @@ enum rse_comms_error_t {
     RSE_COMMS_ERROR_BUFFER_TOO_SMALL,
     RSE_COMMS_ERROR_PAYLOAD_TOO_LARGE,
     RSE_COMMS_ERROR_CRYPTOGRAPHY_NOT_SUPPORTED,
+    RSE_COMMS_ERROR_TRUSTED_SUBNET_MUST_BE_MANUALLY_SELECTED,
+    RSE_COMMS_ERROR_PAYLOAD_INVALID_ALIGNMENT,
+    RSE_COMMS_ERROR_ENCRYPTION_FAILED,
+    RSE_COMMS_ERROR_DECRYPTION_FAILED,
+    RSE_COMMS_ERROR_GENERATE_IV_FAILED,
+    RSE_COMMS_ERROR_GENERATE_SESSION_KEY_SEED_FAILED,
+    RSE_COMMS_ERROR_INVALID_TRUSTED_SUBNET_ID,
+    RSE_COMMS_ERROR_TRUSTED_SUBNET_ALREADY_REGISTERED,
+    RSE_COMMS_ERROR_INVALID_TRUSTED_SUBNET_NODE_ID,
+    RSE_COMMS_ERROR_INVALID_TRUSTED_SUBNET_NODE_AMOUNT,
+    RSE_COMMS_ERROR_INVALID_REPLY,
+    RSE_COMMS_ERROR_INVALID_MSG,
     RSE_COMMS_ERROR_INVALID_NODE,
     RSE_COMMS_ERROR_NO_MSG_AVAILABLE,
     RSE_COMMS_ERROR_NO_REPLY_AVAILABLE,
@@ -66,7 +79,11 @@ enum rse_comms_error_t {
     RSE_COMMS_ERROR_INVALID_PACKET_SIZE,
     RSE_COMMS_ERROR_HANDLER_TABLE_FULL,
     RSE_COMMS_ERROR_INVALID_BUFFER_HANDLE,
+    RSE_COMMS_ERROR_INVALID_TRUSTED_SUBNET_STATE,
+    RSE_COMMS_ERROR_INTERNAL_HANDSHAKE_FAILURE,
     RSE_COMMS_ERROR_POP_BUFFER_FAILED,
+    RSE_COMMS_ERROR_MSG_ALREADY_RECEIVED,
+    RSE_COMMS_ERROR_MSG_OUT_OF_ORDER_TEMPORARY_FAILURE,
     RSE_COMMS_ERROR_PROTOCOL_ERROR,
     RSE_COMMS_ERROR_HAL_ERROR_BASE,
     RSE_COMMS_ERROR_HAL_ERROR_MAX = RSE_COMMS_ERROR_HAL_ERROR_BASE + 0x100,
@@ -94,6 +111,7 @@ struct rse_comms_reply_metadata_t {
     uint16_t client_id;             /**< Client ID (0 if ID extension not used). */
     uint16_t application_id;        /**< Application ID (0 if ID extension not used). */
     uint8_t message_id;             /**< Message ID for matching. */
+    uint8_t trusted_subnet_id;      /**< Trusted subnet ID (only if uses_cryptography). */
 };
 
 /**
@@ -111,6 +129,7 @@ struct rse_comms_msg_metadata_t {
     uint16_t client_id;             /**< Client ID from the original message (or 0). */
     uint16_t application_id;        /**< Application ID from the original message (or 0). */
     uint8_t message_id;             /**< Message ID from the original message. */
+    uint8_t trusted_subnet_id;      /**< Trusted subnet ID from the original message. */
 };
 
 /**
@@ -159,8 +178,8 @@ enum rse_comms_error_t rse_comms_init(void);
  * \param[in]  client_id         Client ID on behalf of which the sender is acting (0 means the sender node).
  * \param[in]  needs_reply       If true, the packet type is MSG_NEEDS_REPLY; otherwise MSG_NO_REPLY.
  *                               For MSG_NO_REPLY, the receiver MUST NOT send any reply.
- * \param[in]  uses_cryptography Whether to use the crypto/auth extension for this message.
- *                               (Sender and receiver must be in a Trusted Subnet and agree on mode/key.)
+ * \param[in]  manually_specify_ts_id If true, use the provided trusted_subnet_id; otherwise auto-select.
+ * \param[in]  trusted_subnet_id Trusted subnet ID to use (only if manually_specify_ts_id is true).
  * \param[out] payload           Pointer within \p buf where the caller writes plaintext payload.
  * \param[out] payload_len       Capacity of the payload area (bytes). Caller MUST NOT exceed this.
  * \param[out] msg               Pointer to the prepared packet structure within \p buf.
@@ -175,9 +194,9 @@ enum rse_comms_error_t rse_comms_init(void);
 enum rse_comms_error_t rse_comms_init_msg(uint8_t *buf, size_t buf_size,
                                           rse_comms_node_id_t receiver, uint16_t application_id,
                                           uint16_t client_id, bool needs_reply,
-                                          bool uses_cryptography, uint8_t **payload,
-                                          size_t *payload_len, struct rse_comms_packet_t **msg,
-                                          size_t *msg_size,
+                                          bool manually_specify_ts_id, uint8_t trusted_subnet_id,
+                                          uint8_t **payload, size_t *payload_len,
+                                          struct rse_comms_packet_t **msg, size_t *msg_size,
                                           struct rse_comms_reply_metadata_t *metadata);
 
 /**
@@ -258,7 +277,6 @@ enum rse_comms_error_t rse_comms_send_reply(struct rse_comms_packet_t *reply, si
  * \param[in]  buf_size           Size of \p buf.
  * \param[in]  any_sender         Message can come from any known sender, if set \p sender must be 0
  * \param[in]  sender             Expected sender node ID.
- * \param[in]  uses_cryptography  Expected crypto usage for this path (policy-driven).
  * \param[in]  application_id     Application ID this receiver instance handles (0 for node handler).
  * \param[out] client_id          Client ID extracted from the message (0 if no ID extension).
  * \param[out] payload            Pointer within \p buf to the plaintext payload.
@@ -273,9 +291,9 @@ enum rse_comms_error_t rse_comms_send_reply(struct rse_comms_packet_t *reply, si
  *       when crypto is used.
  */
 enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size, bool any_sender,
-                                             rse_comms_node_id_t sender, bool uses_cryptography,
-                                             uint16_t application_id, uint16_t *client_id,
-                                             uint8_t **payload, size_t *payload_len,
+                                             rse_comms_node_id_t sender, uint16_t application_id,
+                                             uint16_t *client_id, uint8_t **payload,
+                                             size_t *payload_len,
                                              struct rse_comms_msg_metadata_t *metadata);
 
 /**

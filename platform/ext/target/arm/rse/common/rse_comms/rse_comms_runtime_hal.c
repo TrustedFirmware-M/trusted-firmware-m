@@ -19,6 +19,7 @@
 #include "rse_comms.h"
 #include "rse_comms_protocol_error.h"
 #include "rse_comms_handler_buffer.h"
+#include "rse_comms_encryption.h"
 #include "rse_comms_helpers.h"
 
 #ifdef RSE_COMMS_SUPPORT_LEGACY_MSG_PROTOCOL
@@ -150,6 +151,7 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(rse_comms_link_id_t link_id, uint
     uint8_t *payload;
     size_t payload_len;
     rse_comms_handler_t handler;
+    bool is_handshake_req;
 
     hal_err = rse_comms_hal_get_receive_message_size(link_id, &message_size);
     if (hal_err != RSE_COMMS_HAL_ERROR_SUCCESS) {
@@ -225,6 +227,19 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(rse_comms_link_id_t link_id, uint
         }
 
         /* Message has been successfully forwarded, nothing else to do */
+        return TFM_PLAT_ERR_SUCCESS;
+    }
+
+    comms_err = rse_comms_derive_session_key_responder(
+        packet_type == RSE_COMMS_PACKET_TYPE_REPLY ? packet_receiver : packet_sender, message_id,
+        payload, payload_len, &is_handshake_req);
+    if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
+        protocol_err = RSE_COMMS_PROTOCOL_ERROR_HANDSHAKE_FAILED;
+        goto out_error_reply;
+    }
+
+    if (is_handshake_req) {
+        /* Handshake message has been successfully handled, nothing else to do */
         return TFM_PLAT_ERR_SUCCESS;
     }
 

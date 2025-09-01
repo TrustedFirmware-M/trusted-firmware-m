@@ -14,6 +14,7 @@
 #include "rse_comms_protocol_error.h"
 #include "rse_comms_helpers.h"
 #include "rse_comms_legacy_msg.h"
+#include "rse_comms_encryption.h"
 
 #ifndef RSE_COMMS_MAX_NUMBER_MESSAGE_HANDLERS
 #define RSE_COMMS_MAX_NUMBER_MESSAGE_HANDLERS (2)
@@ -51,10 +52,11 @@ rse_protocol_error_to_comms_error(enum rse_comms_protocol_error_t protocol_error
 static inline void populate_reply_metadata(struct rse_comms_reply_metadata_t *metadata,
                                            rse_comms_node_id_t receiver, bool uses_cryptography,
                                            uint16_t client_id, uint16_t application_id,
-                                           uint8_t message_id)
+                                           uint8_t message_id, uint8_t trusted_subnet_id)
 {
     metadata->receiver = receiver;
     metadata->uses_cryptography = uses_cryptography;
+    metadata->trusted_subnet_id = trusted_subnet_id;
     metadata->client_id = client_id;
     metadata->application_id = application_id;
     metadata->message_id = message_id;
@@ -63,10 +65,11 @@ static inline void populate_reply_metadata(struct rse_comms_reply_metadata_t *me
 static inline void populate_msg_metadata(struct rse_comms_msg_metadata_t *metadata,
                                          rse_comms_node_id_t sender, bool uses_cryptography,
                                          uint16_t client_id, uint16_t application_id,
-                                         uint8_t message_id)
+                                         uint8_t message_id, uint8_t trusted_subnet_id)
 {
     metadata->sender = sender;
     metadata->uses_cryptography = uses_cryptography;
+    metadata->trusted_subnet_id = trusted_subnet_id;
     metadata->client_id = client_id;
     metadata->application_id = application_id;
     metadata->message_id = message_id;
@@ -75,10 +78,16 @@ static inline void populate_msg_metadata(struct rse_comms_msg_metadata_t *metada
 enum rse_comms_error_t rse_comms_init(void)
 {
     enum rse_comms_hal_error_t hal_error;
+    enum rse_comms_error_t comms_err;
 
     hal_error = rse_comms_hal_init();
     if (hal_error != RSE_COMMS_HAL_ERROR_SUCCESS) {
         return rse_hal_error_to_comms_error(hal_error);
+    }
+
+    comms_err = rse_comms_trusted_subnet_state_init();
+    if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
+        return comms_err;
     }
 
     return RSE_COMMS_ERROR_SUCCESS;
@@ -94,21 +103,20 @@ static uint8_t get_new_message_id(rse_comms_node_id_t node)
 enum rse_comms_error_t rse_comms_init_msg(uint8_t *buf, size_t buf_size,
                                           rse_comms_node_id_t receiver, uint16_t application_id,
                                           uint16_t client_id, bool needs_reply,
-                                          bool uses_cryptography, uint8_t **payload,
-                                          size_t *payload_len, struct rse_comms_packet_t **msg,
-                                          size_t *msg_size,
+                                          bool manually_specify_ts_id, uint8_t trusted_subnet_id,
+                                          uint8_t **payload, size_t *payload_len,
+                                          struct rse_comms_packet_t **msg, size_t *msg_size,
                                           struct rse_comms_reply_metadata_t *metadata)
 {
+    enum rse_comms_error_t comms_err;
     bool uses_id_extension;
     struct rse_comms_packet_t *msg_ptr;
     rse_comms_node_id_t my_node_id;
     enum rse_comms_hal_error_t hal_error;
     uint8_t message_id;
-
-    if (uses_cryptography) {
-        /* TODO: Cryptography currently unsupported */
-        return RSE_COMMS_ERROR_CRYPTOGRAPHY_NOT_SUPPORTED;
-    }
+    struct rse_comms_trusted_subnet_config_t *trusted_subnet;
+    bool found_trusted_subnet = false;
+    bool uses_cryptography;
 
     if ((buf == NULL) || (payload == NULL) || (payload_len == NULL) || (msg == NULL) ||
         (msg_size == NULL) || (metadata == NULL)) {
@@ -116,6 +124,34 @@ enum rse_comms_error_t rse_comms_init_msg(uint8_t *buf, size_t buf_size,
     }
 
     uses_id_extension = (application_id != 0) || (client_id != 0);
+
+    if (manually_specify_ts_id) {
+        comms_err = rse_comms_get_trusted_subnet_by_id(trusted_subnet_id, &trusted_subnet);
+        if (comms_err == RSE_COMMS_ERROR_SUCCESS) {
+            found_trusted_subnet = true;
+        } else {
+            return comms_err;
+        }
+    } else {
+        if (trusted_subnet_id != 0) {
+            return RSE_COMMS_ERROR_INVALID_TRUSTED_SUBNET_ID;
+        }
+
+        comms_err = rse_comms_get_trusted_subnet_for_node(receiver, &trusted_subnet);
+        if (comms_err == RSE_COMMS_ERROR_SUCCESS) {
+            found_trusted_subnet = true;
+        }
+    }
+
+    if (found_trusted_subnet) {
+        comms_err = rse_comms_trusted_subnet_state_requires_encryption(trusted_subnet->id,
+                                                                       &uses_cryptography);
+        if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
+            return comms_err;
+        }
+    } else {
+        uses_cryptography = false;
+    }
 
     if (buf_size < RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(uses_cryptography, uses_id_extension)) {
         return RSE_COMMS_ERROR_BUFFER_TOO_SMALL;
@@ -145,6 +181,13 @@ enum rse_comms_error_t rse_comms_init_msg(uint8_t *buf, size_t buf_size,
         GET_RSE_COMMS_APPLICATION_ID(msg_ptr, uses_cryptography) = application_id;
     }
 
+    if (uses_cryptography) {
+        struct rse_comms_cryptography_metadata_t *crypto_metadata =
+            &msg_ptr->cryptography_used.cryptography_metadata;
+
+        crypto_metadata->config.trusted_subnet_id = trusted_subnet->id;
+    }
+
     *payload = (uint8_t *)GET_RSE_COMMS_PAYLOAD_PTR(msg_ptr, uses_cryptography, uses_id_extension);
     *payload_len =
         buf_size - RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(uses_cryptography, uses_id_extension);
@@ -153,7 +196,7 @@ enum rse_comms_error_t rse_comms_init_msg(uint8_t *buf, size_t buf_size,
     *msg_size = buf_size;
 
     populate_reply_metadata(metadata, receiver, uses_cryptography, client_id, application_id,
-                            message_id);
+                            message_id, trusted_subnet_id);
 
     return RSE_COMMS_ERROR_SUCCESS;
 }
@@ -161,10 +204,12 @@ enum rse_comms_error_t rse_comms_init_msg(uint8_t *buf, size_t buf_size,
 static enum rse_comms_error_t send_msg_reply(struct rse_comms_packet_t *packet, size_t packet_size,
                                              size_t payload_size, bool is_msg)
 {
+    enum rse_comms_error_t comms_err;
     bool uses_cryptography, uses_id_extension;
     rse_comms_link_id_t link_id;
     enum rse_comms_hal_error_t hal_error;
     size_t packet_transfer_size;
+    rse_comms_node_id_t remote_node;
 
     if (packet == NULL) {
         return RSE_COMMS_ERROR_INVALID_PACKET;
@@ -176,6 +221,7 @@ static enum rse_comms_error_t send_msg_reply(struct rse_comms_packet_t *packet, 
 
     uses_cryptography = GET_METADATA_FIELD(USES_CRYPTOGRAPHY, packet->header.metadata);
     uses_id_extension = GET_METADATA_FIELD(USES_ID_EXTENSION, packet->header.metadata);
+    remote_node = is_msg ? packet->header.receiver_id : packet->header.sender_id;
 
     if (packet_size < RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(uses_cryptography, uses_id_extension)) {
         return RSE_COMMS_ERROR_MESSAGE_TOO_SMALL;
@@ -189,8 +235,27 @@ static enum rse_comms_error_t send_msg_reply(struct rse_comms_packet_t *packet, 
     packet_transfer_size =
         RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(uses_cryptography, uses_id_extension) + payload_size;
 
-    link_id =
-        rse_comms_hal_get_route(is_msg ? packet->header.receiver_id : packet->header.sender_id);
+    if (uses_cryptography) {
+        if (is_msg) {
+            comms_err = rse_comms_encrypt_msg(
+                packet, packet_transfer_size,
+                packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id,
+                remote_node);
+            if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
+                return comms_err;
+            }
+        } else {
+            comms_err = rse_comms_encrypt_reply(
+                packet, packet_transfer_size,
+                packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id,
+                remote_node);
+            if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
+                return comms_err;
+            }
+        }
+    }
+
+    link_id = rse_comms_hal_get_route(remote_node);
     if (link_id == 0) {
         return RSE_COMMS_ERROR_INVALID_NODE;
     }
@@ -232,6 +297,16 @@ static enum rse_comms_error_t send_msg_reply(struct rse_comms_packet_t *packet, 
 enum rse_comms_error_t rse_comms_send_msg(struct rse_comms_packet_t *msg, size_t msg_size,
                                           size_t payload_size)
 {
+    enum rse_comms_error_t comms_err;
+
+    if (GET_METADATA_FIELD(USES_CRYPTOGRAPHY, msg->header.metadata)) {
+        comms_err = rse_comms_derive_session_key_initiator(
+            msg->cryptography_used.cryptography_metadata.config.trusted_subnet_id, true);
+        if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
+            return comms_err;
+        }
+    }
+
     return send_msg_reply(msg, msg_size, payload_size, true);
 }
 
@@ -240,10 +315,12 @@ enum rse_comms_error_t rse_comms_init_reply(uint8_t *buf, size_t buf_size,
                                             uint8_t **payload, size_t *payload_len,
                                             struct rse_comms_packet_t **reply, size_t *reply_size)
 {
+    enum rse_comms_error_t comms_err;
     struct rse_comms_packet_t *reply_ptr;
     bool uses_id_extension, uses_cryptography;
     enum rse_comms_hal_error_t hal_error;
     rse_comms_node_id_t my_node_id;
+    struct rse_comms_trusted_subnet_config_t *trusted_subnet;
 
     if ((buf == NULL) || (payload == NULL) || (payload_len == NULL) || (reply == NULL) ||
         (reply_size == NULL)) {
@@ -255,6 +332,13 @@ enum rse_comms_error_t rse_comms_init_reply(uint8_t *buf, size_t buf_size,
 
     if (buf_size < RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(uses_cryptography, uses_id_extension)) {
         return RSE_COMMS_ERROR_BUFFER_TOO_SMALL;
+    }
+
+    if (uses_cryptography) {
+        comms_err = rse_comms_get_trusted_subnet_by_id(metadata.trusted_subnet_id, &trusted_subnet);
+        if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
+            return comms_err;
+        }
     }
 
     hal_error = rse_comms_hal_get_my_node_id(&my_node_id);
@@ -274,6 +358,13 @@ enum rse_comms_error_t rse_comms_init_reply(uint8_t *buf, size_t buf_size,
     if (uses_id_extension) {
         GET_RSE_COMMS_CLIENT_ID(reply_ptr, uses_cryptography) = metadata.client_id;
         GET_RSE_COMMS_APPLICATION_ID(reply_ptr, uses_cryptography) = metadata.application_id;
+    }
+
+    if (uses_cryptography) {
+        struct rse_comms_cryptography_metadata_t *crypto_metadata =
+            &reply_ptr->cryptography_used.cryptography_metadata;
+
+        crypto_metadata->config.trusted_subnet_id = trusted_subnet->id;
     }
 
     *payload =
@@ -356,15 +447,14 @@ static enum rse_comms_error_t receive_msg_reply_from_node(uint8_t *buf, size_t b
 static enum rse_comms_error_t
 receive_msg_reply(uint8_t *buf, size_t buf_size, bool any_remote_id, rse_comms_node_id_t remote_id,
                   rse_comms_node_id_t *received_remote_id, rse_comms_link_id_t *link_id,
-                  rse_comms_link_id_t *my_node_id, bool uses_cryptography, bool is_msg,
-                  size_t *received_size)
+                  rse_comms_link_id_t *my_node_id, bool is_msg, size_t *received_size)
 {
     enum rse_comms_hal_error_t hal_error;
     enum rse_comms_error_t comms_error;
 
     /* We do not know if the remote will use the ID extension so ensure the
      * buffer is large enough with it enabled */
-    if (buf_size < RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(uses_cryptography, true)) {
+    if (buf_size < RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(true, true)) {
         return RSE_COMMS_ERROR_BUFFER_TOO_SMALL;
     }
 
@@ -408,9 +498,9 @@ receive_msg_reply(uint8_t *buf, size_t buf_size, bool any_remote_id, rse_comms_n
 }
 
 enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size, bool any_sender,
-                                             rse_comms_node_id_t sender, bool uses_cryptography,
-                                             uint16_t application_id, uint16_t *client_id,
-                                             uint8_t **payload, size_t *payload_len,
+                                             rse_comms_node_id_t sender, uint16_t application_id,
+                                             uint16_t *client_id, uint8_t **payload,
+                                             size_t *payload_len,
                                              struct rse_comms_msg_metadata_t *metadata)
 {
     struct rse_comms_packet_t *packet;
@@ -429,11 +519,7 @@ enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size, bool
     rse_comms_node_id_t packet_receiver;
     rse_comms_node_id_t forwarding_destination;
     rse_comms_node_id_t received_sender_id;
-
-    if (uses_cryptography) {
-        /* TODO: Cryptography currently unsupported */
-        return RSE_COMMS_ERROR_CRYPTOGRAPHY_NOT_SUPPORTED;
-    }
+    bool is_handshake_req;
 
     if ((buf == NULL) || (client_id == NULL) || (payload == NULL) || (payload_len == NULL) ||
         (metadata == NULL)) {
@@ -445,7 +531,7 @@ enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size, bool
     }
 
     comms_error = receive_msg_reply(buf, buf_size, any_sender, sender, &received_sender_id,
-                                    &link_id, &my_node_id, uses_cryptography, true, &received_size);
+                                    &link_id, &my_node_id, true, &received_size);
     if (comms_error != RSE_COMMS_ERROR_SUCCESS) {
         return comms_error;
     }
@@ -467,6 +553,19 @@ enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size, bool
         protocol_error = RSE_COMMS_PROTOCOL_FORWARDING_UNSUPPORTED;
         comms_error = RSE_COMMS_ERROR_NO_MSG_AVAILABLE;
         goto error_reply;
+    }
+
+    comms_error = rse_comms_derive_session_key_responder(
+        packet_type == RSE_COMMS_PACKET_TYPE_REPLY ? packet_receiver : packet_sender, message_id,
+        *payload, *payload_len, &is_handshake_req);
+    if (comms_error != RSE_COMMS_ERROR_SUCCESS) {
+        protocol_error = RSE_COMMS_PROTOCOL_ERROR_HANDSHAKE_FAILED;
+        goto error_reply;
+    }
+
+    if (is_handshake_req) {
+        /* Handshake message has been successfully handled, nothing else to do */
+        return RSE_COMMS_ERROR_NO_MSG_AVAILABLE;
     }
 
     if ((packet_type != RSE_COMMS_PACKET_TYPE_MSG_NEEDS_REPLY) &&
@@ -496,14 +595,19 @@ enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size, bool
         goto error_reply;
     }
 
-    if (packet_uses_crypto != uses_cryptography) {
-        protocol_error = RSE_COMMS_PROTOCOL_ERROR_CRYPTO_UNSUPPORTED;
-        comms_error = RSE_COMMS_ERROR_INVALID_CRYPTO_MODE;
-        goto error_reply;
+    if (packet_uses_crypto) {
+        comms_error = rse_comms_decrypt_msg(packet, received_size, received_sender_id);
+        if (comms_error != RSE_COMMS_ERROR_SUCCESS) {
+            protocol_error = RSE_COMMS_PROTOCOL_ERROR_DECRYPTION_FAILED;
+            goto error_reply;
+        }
     }
 
-    populate_msg_metadata(metadata, received_sender_id, uses_cryptography, *client_id,
-                          application_id, message_id);
+    populate_msg_metadata(
+        metadata, received_sender_id, packet_uses_crypto, *client_id, application_id, message_id,
+        packet_uses_crypto ?
+            packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id :
+            0);
 
     return RSE_COMMS_ERROR_SUCCESS;
 
@@ -546,8 +650,7 @@ enum rse_comms_error_t rse_comms_receive_reply(uint8_t *buf, size_t buf_size,
     }
 
     comms_error = receive_msg_reply(buf, buf_size, false, metadata.receiver, &received_receiver_id,
-                                    &link_id, &my_node_id, metadata.uses_cryptography, false,
-                                    &received_size);
+                                    &link_id, &my_node_id, false, &received_size);
     if (comms_error != RSE_COMMS_ERROR_SUCCESS) {
         return comms_error;
     }
@@ -616,6 +719,13 @@ enum rse_comms_error_t rse_comms_receive_reply(uint8_t *buf, size_t buf_size,
 
     if (message_id != metadata.message_id) {
         return RSE_COMMS_ERROR_INVALID_SEQUENCE_NUMBER;
+    }
+
+    if (packet_uses_crypto) {
+        comms_error = rse_comms_decrypt_reply(packet, received_size, received_receiver_id);
+        if (comms_error != RSE_COMMS_ERROR_SUCCESS) {
+            return comms_error;
+        }
     }
 
     return RSE_COMMS_ERROR_SUCCESS;
@@ -734,23 +844,28 @@ enum rse_comms_error_t rse_comms_pop_msg_from_buffer(rse_comms_buffer_handle_t b
         goto error_reply;
     }
 
-    if (packet_uses_crypto) {
-        protocol_error = RSE_COMMS_PROTOCOL_ERROR_CRYPTO_UNSUPPORTED;
-        comms_error = RSE_COMMS_ERROR_INVALID_CRYPTO_MODE;
-        goto error_reply;
-    }
-
     if (packet_payload_size > payload_len) {
         protocol_error = RSE_COMMS_PROTOCOL_ERROR_MSG_TOO_LARGE_TO_RECIEVE;
         comms_error = RSE_COMMS_ERROR_PAYLOAD_TOO_LARGE;
         goto error_reply;
     }
 
+    if (packet_uses_crypto) {
+        comms_error = rse_comms_decrypt_msg(packet, packet_size, *sender);
+        if (comms_error != RSE_COMMS_ERROR_SUCCESS) {
+            protocol_error = RSE_COMMS_PROTOCOL_ERROR_DECRYPTION_FAILED;
+            goto error_reply;
+        }
+    }
+
     memcpy(payload, packet_payload, packet_payload_size);
     *payload_size = packet_payload_size;
 
-    populate_msg_metadata(metadata, *sender, packet_uses_crypto, *client_id, packet_application_id,
-                          message_id);
+    populate_msg_metadata(
+        metadata, *sender, packet_uses_crypto, *client_id, packet_application_id, message_id,
+        packet_uses_crypto ?
+            packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id :
+            0);
 
     comms_error = RSE_COMMS_ERROR_SUCCESS;
     goto pop_message;
@@ -882,11 +997,22 @@ enum rse_comms_error_t rse_comms_pop_reply_from_buffer(rse_comms_buffer_handle_t
         return RSE_COMMS_ERROR_PAYLOAD_TOO_LARGE;
     }
 
+    if (packet_uses_crypto) {
+        comms_error = rse_comms_decrypt_reply(packet, packet_size, packet_receiver);
+        if (comms_error != RSE_COMMS_ERROR_SUCCESS) {
+            return comms_error;
+        }
+    }
+
     memcpy(payload, packet_payload, packet_payload_size);
     *payload_size = packet_payload_size;
 
-    populate_reply_metadata(metadata, packet_receiver, packet_uses_crypto, packet_client_id,
-                            packet_application_id, message_id);
+    populate_reply_metadata(
+        metadata, packet_receiver, packet_uses_crypto, packet_client_id, packet_application_id,
+        message_id,
+        packet_uses_crypto ?
+            packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id :
+            0);
 
     comms_error = RSE_COMMS_ERROR_SUCCESS;
     goto pop_message;

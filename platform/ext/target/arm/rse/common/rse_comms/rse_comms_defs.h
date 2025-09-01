@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "cmsis_compiler.h"
+#include "rse_comms_trusted_subnet.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,17 +22,14 @@ extern "C" {
 /*
  * Crptography
  */
-enum rse_comms_cryptography_aead_mode_t {
-    RSE_COMMS_CRYPTOGRAPHY_AEAD_MODE_AES256_CCM = 0,
-    RSE_COMMS_CRYPTOGRAPHY_AEAD_MODE_AES256_GCM = 1,
-    RSE_COMMS_CRYPTOGRAPHY_AEAD_MODE_SM4_CCM = 2,
-    RSE_COMMS_CRYPTOGRAPHY_AEAD_MODE_SM4_GCM = 3,
-    _RSE_COMMS_CRYPTOGRAPHY_AES256_AEAD_MODE_PAD = UINT32_MAX,
+__PACKED_STRUCT rse_comms_cryptography_config_t {
+    uint16_t seq_num;
+    enum rse_comms_cryptography_mode_t mode;
+    uint8_t trusted_subnet_id;
 };
 
 __PACKED_STRUCT rse_comms_cryptography_metadata_t {
-    enum rse_comms_cryptography_aead_mode_t mode;
-    uint8_t iv[12];
+    struct rse_comms_cryptography_config_t config;
     uint8_t tag[16];
 };
 

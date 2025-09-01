@@ -8,6 +8,7 @@
 #include <assert.h>
 #include "device_definition.h"
 #include "rse_comms_platform.h"
+#include "rse_kmu_slot_ids.h"
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
@@ -67,4 +68,30 @@ rse_comms_platform_get_receive_link_id(struct rse_comms_platform_device_t device
     }
 
     return 0;
+}
+
+static struct rse_comms_trusted_subnet_node_t trusted_subnet_nodes[] = {
+    { .id = 0 },
+    { .id = 1 },
+#if RSE_AMOUNT > 2
+    { .id = 2 },
+#endif
+#if RSE_AMOUNT > 3
+    { .id = 3 },
+#endif
+};
+
+static struct rse_comms_trusted_subnet_config_t trusted_subnet_configs[] = { {
+    .id = 0,
+    .type = RSE_COMMS_TRUSTED_SUBNET_UNTRUSTED_LINKS,
+    .mode = RSE_COMMS_CRYPTOGRAPHY_MODE_AES256_CCM,
+    .node_amount = ARRAY_SIZE(trusted_subnet_nodes),
+    .nodes = trusted_subnet_nodes,
+} };
+
+void rse_comms_platform_get_trusted_subnets(
+    struct rse_comms_trusted_subnet_config_t **trusted_subnets, size_t *num_trusted_subnets)
+{
+    *trusted_subnets = trusted_subnet_configs;
+    *num_trusted_subnets = ARRAY_SIZE(trusted_subnet_configs);
 }

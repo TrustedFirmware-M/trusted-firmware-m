@@ -247,7 +247,7 @@ static enum tfm_plat_err_t calculate_session_key_client(uint32_t rse_id)
     }
 
     comms_err = rse_comms_init_msg(rse_comms_buf, sizeof(rse_comms_buf), RSE_SERVER_ID, 0, 0, true,
-                                   false, (uint8_t **)&rse_handshake_msg, &payload_len, &msg,
+                                   false, 0, (uint8_t **)&rse_handshake_msg, &payload_len, &msg,
                                    &msg_size, &reply_metadata);
     if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
         return (enum tfm_plat_err_t)comms_err;
@@ -311,7 +311,7 @@ static enum tfm_plat_err_t exchange_vhuk_seeds_client(uint32_t rse_id, uint32_t 
     }
 
     comms_err = rse_comms_init_msg(rse_comms_buf, sizeof(rse_comms_buf), RSE_SERVER_ID, 0, 0, true,
-                                   false, (uint8_t **)&rse_handshake_msg, &payload_len, &msg,
+                                   false, 0, (uint8_t **)&rse_handshake_msg, &payload_len, &msg,
                                    &msg_size, &reply_metadata);
     if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
         return (enum tfm_plat_err_t)comms_err;
@@ -457,8 +457,8 @@ static enum tfm_plat_err_t calculate_session_key_server(void)
 
     while (!got_all_msgs_from_clients(got_msg_from_client)) {
         do {
-            comms_err = rse_comms_receive_msg(rse_comms_buf, sizeof(rse_comms_buf), true, 0, false,
-                                              0, &client_id, (uint8_t **)&rse_handshake_msg,
+            comms_err = rse_comms_receive_msg(rse_comms_buf, sizeof(rse_comms_buf), true, 0, 0,
+                                              &client_id, (uint8_t **)&rse_handshake_msg,
                                               &payload_len, &msg_metadata);
         } while (comms_err == RSE_COMMS_ERROR_NO_MSG_AVAILABLE);
         if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
@@ -531,8 +531,8 @@ static enum tfm_plat_err_t exchange_vhuk_seeds_server(uint32_t *vhuk_seeds_buf)
     /* Receive all the other vhuk seeds */
     while (!got_all_msgs_from_clients(got_msg_from_client)) {
         do {
-            comms_err = rse_comms_receive_msg(rse_comms_buf, sizeof(rse_comms_buf), true, 0, false,
-                                              0, &client_id, (uint8_t **)&rse_handshake_msg,
+            comms_err = rse_comms_receive_msg(rse_comms_buf, sizeof(rse_comms_buf), true, 0, 0,
+                                              &client_id, (uint8_t **)&rse_handshake_msg,
                                               &payload_len, &msg_metadata);
         } while (comms_err == RSE_COMMS_ERROR_NO_MSG_AVAILABLE);
         if (comms_err != RSE_COMMS_ERROR_SUCCESS) {

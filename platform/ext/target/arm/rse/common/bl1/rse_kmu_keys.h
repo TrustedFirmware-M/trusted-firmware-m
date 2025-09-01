@@ -96,14 +96,14 @@ enum tfm_plat_err_t rse_setup_vhuk(const uint8_t *vhuk_seeds, size_t vhuk_seeds_
  *                            slots used will be `slot` and `slot + 1`. It is
  *                            invalid for `slot` to be `KMU_USER_SLOT_MAX`
  *
- * \param[in]  ivs            A buffer containing the iv values.
- * \param[in]  ivs_len        The size of the ivs buffer. This must be
- *                            RSE_AMOUNT * 32 in size.
+ * \param[in]  seed           A buffer containing the seed values.
+ * \param[in]  seed_len       The size of the seed buffer. This must be
+ *                            32 in size.
  * \param[in]  slot           The KMU slot to setup and lock the seed into.
  *
  * \return                    TFM_PLAT_ERR_SUCCESS on success, non-zero on error.
  */
-enum tfm_plat_err_t rse_setup_session_key(const uint8_t *ivs, size_t ivs_len);
+enum tfm_plat_err_t rse_setup_session_key(const uint8_t *seed, size_t seed_len);
 
 /**
  * \brief                     Setup the master key, and lock into two KMU slots.

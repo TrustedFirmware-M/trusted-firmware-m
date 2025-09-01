@@ -8,7 +8,9 @@
 #ifndef __RSE_COMMS_GET_MHU_H__
 #define __RSE_COMMS_GET_MHU_H__
 
+#include <stddef.h>
 #include "rse_comms_link_defs.h"
+#include "rse_comms_trusted_subnet.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -83,6 +85,9 @@ rse_comms_platform_get_receive_device(rse_comms_link_id_t link_id);
  */
 rse_comms_link_id_t
 rse_comms_platform_get_receive_link_id(struct rse_comms_platform_device_t device);
+
+void rse_comms_platform_get_trusted_subnets(
+    struct rse_comms_trusted_subnet_config_t **trusted_subnets, size_t *num_trusted_subnets);
 
 #ifdef __cplusplus
 }

@@ -159,3 +159,4 @@ rse_comms_init_reply
 rse_comms_send_reply
 rse_comms_receive_msg
 rse_comms_receive_reply
+rse_comms_register_trusted_subnet

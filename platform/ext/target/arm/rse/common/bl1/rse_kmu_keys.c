@@ -408,20 +408,17 @@ enum tfm_plat_err_t rse_setup_vhuk(const uint8_t *vhuk_seeds, size_t vhuk_seeds_
                                      boot_state_config);
 }
 
-enum tfm_plat_err_t rse_setup_session_key(const uint8_t *ivs, size_t ivs_len)
+enum tfm_plat_err_t rse_setup_session_key(const uint8_t *seed, size_t seed_len)
 {
     enum tfm_plat_err_t plat_err;
     enum kmu_error_t kmu_err;
-    const boot_state_include_mask boot_state_config =
-        RSE_BOOT_STATE_INCLUDE_LCS | RSE_BOOT_STATE_INCLUDE_TP_MODE |
-        RSE_BOOT_STATE_INCLUDE_BL1_2_HASH | RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
+    const boot_state_include_mask boot_state_config = RSE_BOOT_STATE_INCLUDE_NONE;
+    const uint8_t session_key_label[] = "RSE_COMMS_SESSION_KEY_DERIVATION";
 
-
-    plat_err = setup_key_from_derivation(KMU_HW_SLOT_GUK, NULL, ivs, ivs_len, NULL, 0,
-                                   RSE_KMU_SLOT_SESSION_KEY_0,
-                                     &aes_key0_export_config,
-                                     &aes_key1_export_config, true,
-                                   boot_state_config);
+    plat_err = setup_key_from_derivation(KMU_HW_SLOT_GUK, NULL, session_key_label,
+                                         sizeof(session_key_label), seed, seed_len,
+                                         RSE_KMU_SLOT_SESSION_KEY_0, &aes_key0_export_config,
+                                         &aes_key1_export_config, true, boot_state_config);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }

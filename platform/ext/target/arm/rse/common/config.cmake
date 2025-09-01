@@ -268,6 +268,7 @@ set(TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST "partitions/measured_boot/measured_boot_
 set(TFM_PLAT_SPECIFIC_MULTI_CORE_COMM   ON         CACHE BOOL     "Whether to use a platform specific inter-core communication instead of mailbox in dual-cpu topology")
 
 set(RSE_COMMS_SUPPORT_LEGACY_MSG_PROTOCOL ON       CACHE BOOL "Whether to support the legacy message protocol in RSE comms")
+set(RSE_COMMS_ENABLE_ENCRYPTION           ON         CACHE BOOL "Whether to enable encryption in RSE comms")
 
 set(PLATFORM_HAS_ISOLATION_L3_SUPPORT   ON)
 set(TFM_PXN_ENABLE                      ON         CACHE BOOL     "Use Privileged execute never (PXN)")
