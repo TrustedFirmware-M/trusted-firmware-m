@@ -101,12 +101,15 @@ add_link_options(
 
 if (CONFIG_TFM_FLOAT_ABI)
     add_compile_options(-mfloat-abi=${CONFIG_TFM_FLOAT_ABI})
+    add_link_options(-mfloat-abi=${CONFIG_TFM_FLOAT_ABI})
 endif()
 
 if (CONFIG_TFM_ENABLE_FP OR CONFIG_TFM_ENABLE_MVE_FP)
     add_compile_options(-mfpu=${CONFIG_TFM_FP_ARCH})
+    add_link_options(-mfpu=${CONFIG_TFM_FP_ARCH})
 else()
     add_compile_options(-mfpu=none)
+    add_link_options(-mfpu=none)
 endif()
 
 if (CMAKE_C_COMPILER_VERSION VERSION_LESS 20.0.0)
