@@ -249,102 +249,180 @@ static uint32_t ARM_USARTx_GetRxCount(const UARTx_Resources *uart_resources)
     return uart_resources->rx_count;
 }
 
-static int32_t ARM_USARTx_Control(uint32_t control, uint32_t arg,
-                                  UARTx_Resources *uart_resources)
+
+static int32_t ARM_USART_Control_Mode(uint32_t control, uint32_t arg,
+				      UARTx_Resources *uart_resources)
 {
-    if ((control & ARM_USART_CONTROL_Msk) != ARM_USART_MODE_ASYNCHRONOUS) {
-        return ARM_DRIVER_ERROR_UNSUPPORTED;
-    }
+	nrf_uarte_baudrate_t baudrate = uart_resources->baudrate;
+	nrf_uarte_config_t hal_cfg = uart_resources->hal_cfg;
+	switch (arg) {
+	case 1200:
+		baudrate = NRF_UARTE_BAUDRATE_1200;
+		break;
+	case 2400:
+		baudrate = NRF_UARTE_BAUDRATE_2400;
+		break;
+	case 4800:
+		baudrate = NRF_UARTE_BAUDRATE_4800;
+		break;
+	case 9600:
+		baudrate = NRF_UARTE_BAUDRATE_9600;
+		break;
+	case 14400:
+		baudrate = NRF_UARTE_BAUDRATE_14400;
+		break;
+	case 19200:
+		baudrate = NRF_UARTE_BAUDRATE_19200;
+		break;
+	case 28800:
+		baudrate = NRF_UARTE_BAUDRATE_28800;
+		break;
+	case 31250:
+		baudrate = NRF_UARTE_BAUDRATE_31250;
+		break;
+	case 38400:
+		baudrate = NRF_UARTE_BAUDRATE_38400;
+		break;
+	case 56000:
+		baudrate = NRF_UARTE_BAUDRATE_56000;
+		break;
+	case 57600:
+		baudrate = NRF_UARTE_BAUDRATE_57600;
+		break;
+	case 76800:
+		baudrate = NRF_UARTE_BAUDRATE_76800;
+		break;
+	case 115200:
+		baudrate = NRF_UARTE_BAUDRATE_115200;
+		break;
+	case 230400:
+		baudrate = NRF_UARTE_BAUDRATE_230400;
+		break;
+	case 250000:
+		baudrate = NRF_UARTE_BAUDRATE_250000;
+		break;
+	case 460800:
+		baudrate = NRF_UARTE_BAUDRATE_460800;
+		break;
+	case 921600:
+		baudrate = NRF_UARTE_BAUDRATE_921600;
+		break;
+	case 1000000:
+		baudrate = NRF_UARTE_BAUDRATE_1000000;
+		break;
+	default:
+		return ARM_USART_ERROR_BAUDRATE;
+	}
 
-    nrf_uarte_baudrate_t baudrate = uart_resources->baudrate;
-    nrf_uarte_config_t   hal_cfg  = uart_resources->hal_cfg;
-    switch (arg) {
-        case    1200: baudrate = NRF_UARTE_BAUDRATE_1200;    break;
-        case    2400: baudrate = NRF_UARTE_BAUDRATE_2400;    break;
-        case    4800: baudrate = NRF_UARTE_BAUDRATE_4800;    break;
-        case    9600: baudrate = NRF_UARTE_BAUDRATE_9600;    break;
-        case   14400: baudrate = NRF_UARTE_BAUDRATE_14400;   break;
-        case   19200: baudrate = NRF_UARTE_BAUDRATE_19200;   break;
-        case   28800: baudrate = NRF_UARTE_BAUDRATE_28800;   break;
-        case   31250: baudrate = NRF_UARTE_BAUDRATE_31250;   break;
-        case   38400: baudrate = NRF_UARTE_BAUDRATE_38400;   break;
-        case   56000: baudrate = NRF_UARTE_BAUDRATE_56000;   break;
-        case   57600: baudrate = NRF_UARTE_BAUDRATE_57600;   break;
-        case   76800: baudrate = NRF_UARTE_BAUDRATE_76800;   break;
-        case  115200: baudrate = NRF_UARTE_BAUDRATE_115200;  break;
-        case  230400: baudrate = NRF_UARTE_BAUDRATE_230400;  break;
-        case  250000: baudrate = NRF_UARTE_BAUDRATE_250000;  break;
-        case  460800: baudrate = NRF_UARTE_BAUDRATE_460800;  break;
-        case  921600: baudrate = NRF_UARTE_BAUDRATE_921600;  break;
-        case 1000000: baudrate = NRF_UARTE_BAUDRATE_1000000; break;
-        default:
-            return ARM_USART_ERROR_BAUDRATE;
-    }
+	if ((control & ARM_USART_DATA_BITS_Msk) != ARM_USART_DATA_BITS_8) {
+		return ARM_USART_ERROR_DATA_BITS;
+	}
 
-    if ((control & ARM_USART_DATA_BITS_Msk) != ARM_USART_DATA_BITS_8) {
-        return ARM_USART_ERROR_DATA_BITS;
-    }
+	switch (control & ARM_USART_STOP_BITS_Msk) {
+	case ARM_USART_STOP_BITS_1:
+		hal_cfg.stop = NRF_UARTE_STOP_ONE;
+		break;
 
-    switch (control & ARM_USART_STOP_BITS_Msk) {
-        case ARM_USART_STOP_BITS_1:
-            hal_cfg.stop = NRF_UARTE_STOP_ONE;
-            break;
+	case ARM_USART_STOP_BITS_2:
+		hal_cfg.stop = NRF_UARTE_STOP_TWO;
+		break;
 
-        case ARM_USART_STOP_BITS_2:
-            hal_cfg.stop = NRF_UARTE_STOP_TWO;
-            break;
+	default:
+		return ARM_USART_ERROR_STOP_BITS;
+	}
 
-        default:
-            return ARM_USART_ERROR_STOP_BITS;
-    }
-
-    switch (control & ARM_USART_PARITY_Msk) {
-        case ARM_USART_PARITY_NONE:
-            hal_cfg.parity = NRF_UARTE_PARITY_EXCLUDED;
-            break;
+	switch (control & ARM_USART_PARITY_Msk) {
+	case ARM_USART_PARITY_NONE:
+		hal_cfg.parity = NRF_UARTE_PARITY_EXCLUDED;
+		break;
 
 #if defined(UARTE_CONFIG_PARITYTYPE_Msk)
-        case ARM_USART_PARITY_EVEN:
-            hal_cfg.parity = NRF_UARTE_PARITY_INCLUDED;
-            hal_cfg.paritytype = NRF_UARTE_PARITYTYPE_EVEN;
-            break;
+	case ARM_USART_PARITY_EVEN:
+		hal_cfg.parity = NRF_UARTE_PARITY_INCLUDED;
+		hal_cfg.paritytype = NRF_UARTE_PARITYTYPE_EVEN;
+		break;
 
-        case ARM_USART_PARITY_ODD:
-            hal_cfg.parity = NRF_UARTE_PARITY_INCLUDED;
-            hal_cfg.paritytype = NRF_UARTE_PARITYTYPE_ODD;
-            break;
+	case ARM_USART_PARITY_ODD:
+		hal_cfg.parity = NRF_UARTE_PARITY_INCLUDED;
+		hal_cfg.paritytype = NRF_UARTE_PARITYTYPE_ODD;
+		break;
 #else
-        case ARM_USART_PARITY_EVEN:
-            hal_cfg.parity = NRF_UARTE_PARITY_INCLUDED;
-            break;
+	case ARM_USART_PARITY_EVEN:
+		hal_cfg.parity = NRF_UARTE_PARITY_INCLUDED;
+		break;
 #endif
 
-        default:
-            return ARM_USART_ERROR_PARITY;
-    }
+	default:
+		return ARM_USART_ERROR_PARITY;
+	}
 
-    switch (control & ARM_USART_FLOW_CONTROL_Msk) {
-        case ARM_USART_FLOW_CONTROL_NONE:
-            hal_cfg.hwfc = NRF_UARTE_HWFC_DISABLED;
-            break;
+	switch (control & ARM_USART_FLOW_CONTROL_Msk) {
+	case ARM_USART_FLOW_CONTROL_NONE:
+		hal_cfg.hwfc = NRF_UARTE_HWFC_DISABLED;
+		break;
 
-        case ARM_USART_FLOW_CONTROL_RTS_CTS:
-            hal_cfg.hwfc = NRF_UARTE_HWFC_ENABLED;
-            break;
+	case ARM_USART_FLOW_CONTROL_RTS_CTS:
+		hal_cfg.hwfc = NRF_UARTE_HWFC_ENABLED;
+		break;
 
-        default:
-            return ARM_USART_ERROR_FLOW_CONTROL;
-    }
+	default:
+		return ARM_USART_ERROR_FLOW_CONTROL;
+	}
 
-    uart_resources->baudrate = baudrate;
-    uart_resources->hal_cfg  = hal_cfg;
+	uart_resources->baudrate = baudrate;
+	uart_resources->hal_cfg = hal_cfg;
 
-    nrf_uarte_baudrate_set(uart_resources->uarte.p_reg,
-                           uart_resources->baudrate);
-    nrf_uarte_configure(uart_resources->uarte.p_reg,
-                        &uart_resources->hal_cfg);
+	nrf_uarte_baudrate_set(uart_resources->uarte.p_reg, uart_resources->baudrate);
+	nrf_uarte_configure(uart_resources->uarte.p_reg, &uart_resources->hal_cfg);
 
-    return ARM_DRIVER_OK;
+	return ARM_DRIVER_OK;
+}
+
+static void disconnect_tx_rx_pin(uint32_t operation, UARTx_Resources *uart_resources)
+{
+	bool uart_enabled = nrf_uarte_enable_check(uart_resources->uarte.p_reg);
+
+	/* To update the PSEL register the UART needs to be disabled in case it is enabled */
+	if (uart_enabled) {
+		nrf_uarte_disable(uart_resources->uarte.p_reg);
+	}
+
+	switch (operation) {
+	case ARM_USART_CONTROL_RX:
+		nrf_uarte_rx_pin_set(uart_resources->uarte.p_reg, NRF_UARTE_PSEL_DISCONNECTED);
+		break;
+	case ARM_USART_CONTROL_TX:
+		nrf_uarte_tx_pin_set(uart_resources->uarte.p_reg, NRF_UARTE_PSEL_DISCONNECTED);
+		break;
+	default:
+		break;
+	}
+
+	if (uart_enabled) {
+		nrf_uarte_enable(uart_resources->uarte.p_reg);
+	}
+}
+
+static int32_t ARM_USARTx_Control(uint32_t control, uint32_t arg, UARTx_Resources *uart_resources)
+{
+	uint32_t operation = control & ARM_USART_CONTROL_Msk;
+
+	switch (operation) {
+	case ARM_USART_MODE_ASYNCHRONOUS:
+		return ARM_USART_Control_Mode(control, arg, uart_resources);
+	case ARM_USART_CONTROL_RX:
+	case ARM_USART_CONTROL_TX:
+		/* There is not an option to enable/disable the receiver in the NRF devices.
+		 * In case of disabling (arg == 0) what can be done is to release the pin
+		 * which is used by the peripheral.
+		 */
+		if (arg == 0) {
+			disconnect_tx_rx_pin(operation, uart_resources);
+		}
+		return ARM_DRIVER_OK;
+	default:
+		return ARM_DRIVER_ERROR_UNSUPPORTED;
+	}
 }
 
 static ARM_USART_STATUS ARM_USART_GetStatus(void)
