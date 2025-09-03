@@ -47,6 +47,7 @@ extern "C" {
 enum rse_comms_error_t {
     RSE_COMMS_ERROR_SUCCESS = 0,
     RSE_COMMS_ERROR_INVALID_POINTER,
+    RSE_COMMS_ERROR_INVALID_SENDER_ID,
     RSE_COMMS_ERROR_INVALID_PACKET,
     RSE_COMMS_ERROR_MESSAGE_TOO_SMALL,
     RSE_COMMS_ERROR_BUFFER_TOO_SMALL,
@@ -255,6 +256,7 @@ enum rse_comms_error_t rse_comms_send_reply(struct rse_comms_packet_t *reply, si
  *
  * \param[in]  buf                Buffer to receive the packet.
  * \param[in]  buf_size           Size of \p buf.
+ * \param[in]  any_sender         Message can come from any known sender, if set \p sender must be 0
  * \param[in]  sender             Expected sender node ID.
  * \param[in]  uses_cryptography  Expected crypto usage for this path (policy-driven).
  * \param[in]  application_id     Application ID this receiver instance handles (0 for node handler).
@@ -270,7 +272,7 @@ enum rse_comms_error_t rse_comms_send_reply(struct rse_comms_packet_t *reply, si
  * \note Decryption/authentication MUST be performed before returning payload to the caller
  *       when crypto is used.
  */
-enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size,
+enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size, bool any_sender,
                                              rse_comms_node_id_t sender, bool uses_cryptography,
                                              uint16_t application_id, uint16_t *client_id,
                                              uint8_t **payload, size_t *payload_len,

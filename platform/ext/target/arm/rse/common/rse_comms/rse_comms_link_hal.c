@@ -104,7 +104,19 @@ enum rse_comms_hal_error_t rse_comms_hal_is_message_available(rse_comms_link_id_
     case RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV2:
     case RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV3: {
         enum mhu_error_t mhu_err = mhu_data_is_available((void *)device.device, is_available);
-        if (mhu_err != MHU_ERR_NONE) {
+
+        /* In some platforms, there is a mixture of MHU versions, but the current MHU API
+         * only allows support for single version to be compiled in. Different components
+         * use different MHU devices (and only one type) but the routing tables are shared
+         * and therefore we could try and initialise an MHU device with a different version
+         * to what the compiled in driver supports. Allow that to happen here without error,
+         * as we may want to poll all of the devices in the system, and just say that no message
+         * is available
+         */
+        if (mhu_err == MHU_ERR_INVALID_VERSION) {
+            *is_available = false;
+            return RSE_COMMS_HAL_ERROR_SUCCESS;
+        } else if (mhu_err != MHU_ERR_NONE) {
             return RSE_COMMS_HAL_ERROR_DEVICE_IS_AVAILABLE_FAIL;
         }
 

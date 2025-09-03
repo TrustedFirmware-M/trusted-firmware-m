@@ -285,29 +285,14 @@ static enum rse_comms_error_t send_protocol_error(rse_comms_node_id_t sender_id,
     return RSE_COMMS_ERROR_SUCCESS;
 }
 
-static enum rse_comms_error_t
-receive_msg_reply(uint8_t *buf, size_t buf_size, rse_comms_node_id_t remote_id,
-                  rse_comms_link_id_t *link_id, rse_comms_link_id_t *my_node_id,
-                  bool uses_cryptography, bool is_msg, size_t *received_size)
+static enum rse_comms_error_t receive_msg_reply_from_node(uint8_t *buf, size_t buf_size,
+                                                          rse_comms_node_id_t remote_id,
+                                                          rse_comms_link_id_t *link_id, bool is_msg,
+                                                          size_t *received_size)
 {
     enum rse_comms_hal_error_t hal_error;
     bool is_available;
     size_t message_size;
-
-    /* We do not know if the remote will use the ID extension so ensure the
-     * buffer is large enough with it enabled */
-    if (buf_size < RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(uses_cryptography, true)) {
-        return RSE_COMMS_ERROR_BUFFER_TOO_SMALL;
-    }
-
-    hal_error = rse_comms_hal_get_my_node_id(my_node_id);
-    if (hal_error != RSE_COMMS_HAL_ERROR_SUCCESS) {
-        return rse_hal_error_to_comms_error(hal_error);
-    }
-
-    if (remote_id == *my_node_id) {
-        return RSE_COMMS_ERROR_INVALID_NODE;
-    }
 
     *link_id = rse_comms_hal_get_route(remote_id);
     if (*link_id == 0) {
@@ -340,7 +325,61 @@ receive_msg_reply(uint8_t *buf, size_t buf_size, rse_comms_node_id_t remote_id,
     return RSE_COMMS_ERROR_SUCCESS;
 }
 
-enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size,
+static enum rse_comms_error_t
+receive_msg_reply(uint8_t *buf, size_t buf_size, bool any_remote_id, rse_comms_node_id_t remote_id,
+                  rse_comms_node_id_t *received_remote_id, rse_comms_link_id_t *link_id,
+                  rse_comms_link_id_t *my_node_id, bool uses_cryptography, bool is_msg,
+                  size_t *received_size)
+{
+    enum rse_comms_hal_error_t hal_error;
+    enum rse_comms_error_t comms_error;
+
+    /* We do not know if the remote will use the ID extension so ensure the
+     * buffer is large enough with it enabled */
+    if (buf_size < RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(uses_cryptography, true)) {
+        return RSE_COMMS_ERROR_BUFFER_TOO_SMALL;
+    }
+
+    hal_error = rse_comms_hal_get_my_node_id(my_node_id);
+    if (hal_error != RSE_COMMS_HAL_ERROR_SUCCESS) {
+        return rse_hal_error_to_comms_error(hal_error);
+    }
+
+    if (!any_remote_id && (remote_id == *my_node_id)) {
+        return RSE_COMMS_ERROR_INVALID_NODE;
+    }
+
+    if (any_remote_id) {
+        for (rse_comms_node_id_t node = 0; node < RSE_COMMS_NUMBER_NODES; node++) {
+            if (node == *my_node_id) {
+                continue;
+            }
+
+            comms_error =
+                receive_msg_reply_from_node(buf, buf_size, node, link_id, is_msg, received_size);
+            if (comms_error == RSE_COMMS_ERROR_SUCCESS) {
+                *received_remote_id = node;
+                return RSE_COMMS_ERROR_SUCCESS;
+            } else if (comms_error != (is_msg ? RSE_COMMS_ERROR_NO_MSG_AVAILABLE :
+                                                RSE_COMMS_ERROR_NO_REPLY_AVAILABLE)) {
+                return comms_error;
+            }
+        }
+
+        return is_msg ? RSE_COMMS_ERROR_NO_MSG_AVAILABLE : RSE_COMMS_ERROR_NO_REPLY_AVAILABLE;
+    } else {
+        comms_error =
+            receive_msg_reply_from_node(buf, buf_size, remote_id, link_id, is_msg, received_size);
+        if (comms_error != RSE_COMMS_ERROR_SUCCESS) {
+            return comms_error;
+        }
+
+        *received_remote_id = remote_id;
+        return RSE_COMMS_ERROR_SUCCESS;
+    }
+}
+
+enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size, bool any_sender,
                                              rse_comms_node_id_t sender, bool uses_cryptography,
                                              uint16_t application_id, uint16_t *client_id,
                                              uint8_t **payload, size_t *payload_len,
@@ -361,6 +400,7 @@ enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size,
     rse_comms_node_id_t packet_sender;
     rse_comms_node_id_t packet_receiver;
     rse_comms_node_id_t forwarding_destination;
+    rse_comms_node_id_t received_sender_id;
 
     if (uses_cryptography) {
         /* TODO: Cryptography currently unsupported */
@@ -372,8 +412,12 @@ enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size,
         return RSE_COMMS_ERROR_INVALID_POINTER;
     }
 
-    comms_error = receive_msg_reply(buf, buf_size, sender, &link_id, &my_node_id, uses_cryptography,
-                                    true, &received_size);
+    if (any_sender && (sender != 0)) {
+        return RSE_COMMS_ERROR_INVALID_SENDER_ID;
+    }
+
+    comms_error = receive_msg_reply(buf, buf_size, any_sender, sender, &received_sender_id,
+                                    &link_id, &my_node_id, uses_cryptography, true, &received_size);
     if (comms_error != RSE_COMMS_ERROR_SUCCESS) {
         return comms_error;
     }
@@ -404,7 +448,7 @@ enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size,
         goto error_reply;
     }
 
-    if ((packet_sender != sender) || (packet_receiver != my_node_id)) {
+    if ((packet_sender != received_sender_id) || (packet_receiver != my_node_id)) {
         protocol_error = RSE_COMMS_PROTOCOL_ERROR_UNSUPPORTED;
         comms_error = RSE_COMMS_ERROR_INVALID_NODE;
         goto error_reply;
@@ -430,8 +474,8 @@ enum rse_comms_error_t rse_comms_receive_msg(uint8_t *buf, size_t buf_size,
         goto error_reply;
     }
 
-    populate_msg_metadata(metadata, sender, uses_cryptography, *client_id, application_id,
-                          message_id);
+    populate_msg_metadata(metadata, received_sender_id, uses_cryptography, *client_id,
+                          application_id, message_id);
 
     return RSE_COMMS_ERROR_SUCCESS;
 
@@ -466,14 +510,16 @@ enum rse_comms_error_t rse_comms_receive_reply(uint8_t *buf, size_t buf_size,
     rse_comms_node_id_t packet_sender;
     rse_comms_node_id_t packet_receiver;
     rse_comms_node_id_t forwarding_destination;
+    rse_comms_node_id_t received_receiver_id;
     uint8_t message_id;
 
     if ((buf == NULL) || (payload == NULL) || (payload_len == NULL)) {
         return RSE_COMMS_ERROR_INVALID_POINTER;
     }
 
-    comms_error = receive_msg_reply(buf, buf_size, metadata.receiver, &link_id, &my_node_id,
-                                    metadata.uses_cryptography, false, &received_size);
+    comms_error = receive_msg_reply(buf, buf_size, false, metadata.receiver, &received_receiver_id,
+                                    &link_id, &my_node_id, metadata.uses_cryptography, false,
+                                    &received_size);
     if (comms_error != RSE_COMMS_ERROR_SUCCESS) {
         return comms_error;
     }
@@ -507,7 +553,7 @@ enum rse_comms_error_t rse_comms_receive_reply(uint8_t *buf, size_t buf_size,
     /* Message is definitely not something we need to reply
      * to, so we can just return an error to the caller */
 
-    if ((packet_sender != my_node_id) || (packet_receiver != metadata.receiver)) {
+    if ((packet_sender != my_node_id) || (packet_receiver != received_receiver_id)) {
         return RSE_COMMS_ERROR_INVALID_NODE;
     }
 
