@@ -397,6 +397,14 @@ enum mhu_error_t mhu_data_is_available(void *mhu_receiver_dev, bool *is_availabl
     uint8_t num_channels;
     uint32_t read_val;
 
+    assert(dev != NULL);
+
+    if (dev->version != 3) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
+    assert(dev->base != (uintptr_t)NULL);
+
     mhu_v3_err = mhu_v3_x_get_num_channel_implemented(dev, MHU_V3_X_CHANNEL_TYPE_DBCH,
                                                &num_channels);
     if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {

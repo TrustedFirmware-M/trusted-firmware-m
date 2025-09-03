@@ -315,6 +315,14 @@ enum mhu_error_t mhu_data_is_available(void *mhu_receiver_dev, bool *is_availabl
     const uint32_t num_channels = mhu_v2_x_get_num_channel_implemented(dev);
     uint32_t val;
 
+    assert(dev != NULL);
+
+    if (dev->version != 2) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
+    assert(dev->base != (uintptr_t)NULL);
+
     /* Using the last channel for notifications */
     err = mhu_v2_x_channel_receive(dev, num_channels - 1, &val);
     if (err != MHU_V_2_X_ERR_NONE) {
