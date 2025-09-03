@@ -41,8 +41,10 @@ enum ppu_error_t ppu_driver_power_on(const struct ppu_dev_t *dev)
     struct _ppu *ppu = (struct _ppu *)dev->ppu_base;
     struct _cluster_safety *cluster_safety = (struct _cluster_safety *)dev->cluster_safety_base;
 
-    /* Unlock PPU registers write operation. */
-    cluster_safety->cluster_safety_key = CLUSTER_SAFETY_KEY_VALUE;
+    if (cluster_safety) {
+        /* Unlock PPU registers write operation. */
+        cluster_safety->cluster_safety_key = CLUSTER_SAFETY_KEY_VALUE;
+    }
 
     ppu->ppu_pwpr = PPU_PWPR_PWR_POLICY_ON;
     while (ppu->ppu_pwsr != PPU_PWSR_PWR_STATUS_ON) {};
