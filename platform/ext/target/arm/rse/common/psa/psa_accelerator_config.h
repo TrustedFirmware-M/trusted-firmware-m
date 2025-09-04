@@ -12,6 +12,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#include "cc3xx_opaque_keys.h"
+#include "crypto_opaque_key_ids.h"
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

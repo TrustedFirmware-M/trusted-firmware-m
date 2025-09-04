@@ -23,11 +23,13 @@ target_include_directories(bl1_psa_crypto_config
     INTERFACE
         ${MBEDCRYPTO_PATH}/library
         ${MBEDCRYPTO_PATH}/include/psa
+        ${CMAKE_CURRENT_SOURCE_DIR}/../cc3xx/opaque-keys
 )
 
 target_sources(bl1_psa_crypto
     PRIVATE
         ${CMAKE_SOURCE_DIR}/lib/ext/thin-psa-crypto-core/thin_psa_crypto_core.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/../cc3xx/opaque-keys/crypto_opaque_keys.c
 )
 
 target_link_libraries(bl1_psa_crypto
