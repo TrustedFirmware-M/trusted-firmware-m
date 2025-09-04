@@ -154,7 +154,15 @@ endif()
 set(CC3XX_PLATFORM_INTERFACE platform_bl1_1)
 set(CC3XX_TARGET_PREFIX bl1_)
 
+# BL1 code size is dimensioned for production hence we can't afford
+# the variability required by building with different build type:
+# Force the usage of RelWithDebInfo for the PSA crypto driver regardless
+# of the specified build option
+set(SAVED_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 add_subdirectory(${PLATFORM_DIR}/ext/target/arm/drivers/cc3xx cc3xx)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/psa bl1_psa_crypto)
+set(CMAKE_BUILD_TYPE ${SAVED_BUILD_TYPE})
 
 target_include_directories(platform_s
     PUBLIC
@@ -553,6 +561,7 @@ target_compile_definitions(platform_bl1_1_interface
 target_link_libraries(platform_bl1_1
     PRIVATE
         bl1_cc3xx
+        bl1_psa_crypto
         bl1_1_shared_lib_interface
 )
 

@@ -32,6 +32,10 @@ extern "C" {
 #define MBEDTLS_MD_C
 #define MBEDTLS_CIPHER_MODE_CTR
 
+#if defined(CRYPTO_HW_ACCELERATOR) && defined(MBEDTLS_ACCELERATOR_CONFIG_FILE)
+#include MBEDTLS_ACCELERATOR_CONFIG_FILE
+#endif
+
 #ifdef __cplusplus
 }
 #endif
