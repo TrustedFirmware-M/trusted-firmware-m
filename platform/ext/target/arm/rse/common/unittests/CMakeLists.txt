@@ -34,6 +34,10 @@ add_subdirectory(framework/cmock)
 add_subdirectory(framework/unity)
 add_subdirectory(framework/cmsis)
 
+set_target_properties(cmock PROPERTIES COMPILE_OPTIONS "-m32" LINK_FLAGS "-m32")
+set_target_properties(unity PROPERTIES COMPILE_OPTIONS "-m32" LINK_FLAGS "-m32")
+set_target_properties(cmsis PROPERTIES COMPILE_OPTIONS "-m32" LINK_FLAGS "-m32")
+
 function(generate_test UNIT_NAME UNIT_PATH)
         include(${UNIT_PATH}/utcfg.cmake)
 
@@ -55,6 +59,8 @@ function(generate_test UNIT_NAME UNIT_PATH)
             ${CMAKE_CURRENT_BINARY_DIR}/unittests/${UNIT_NAME}/test_runner.c
             ${UNIT_TEST_DEPS}
         )
+
+        set_target_properties(test_${UNIT_NAME} PROPERTIES COMPILE_OPTIONS "-m32" LINK_FLAGS "-m32")
 
         # Enable debug syms & coverage support while compiling
         target_compile_options(test_${UNIT_NAME}
