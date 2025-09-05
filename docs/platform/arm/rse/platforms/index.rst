@@ -6,7 +6,7 @@ RSE platforms
     :maxdepth: 1
     :titlesonly:
 
-    RD-1 AE <rd1ae/readme.rst>
+    Arm Automotive RD <automotive-rd/index.rst>
 
 --------------
 
