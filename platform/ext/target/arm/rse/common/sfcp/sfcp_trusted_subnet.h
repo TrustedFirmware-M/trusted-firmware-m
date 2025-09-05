@@ -19,6 +19,8 @@ extern "C" {
 #define SFCP_INFLIGHT_BITFIELD_SIZE 8
 #endif
 
+#define SFCP_TRUSTED_SUBNET_RE_KEY_SEQ_NUM (UINT16_MAX - 16)
+
 enum sfcp_cryptography_mode_t {
     SFCP_CRYPTOGRAPHY_MODE_AES256_CCM = 0,
     SFCP_CRYPTOGRAPHY_MODE_AES256_GCM = 1,

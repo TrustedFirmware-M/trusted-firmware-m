@@ -195,9 +195,10 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
         return SFCP_ERROR_SUCCESS;
     }
 
-    sfcp_err = sfcp_derive_session_key_responder(
+    sfcp_err = sfcp_encryption_handshake_responder(
+        packet, message_size,
         packet_type == SFCP_PACKET_TYPE_REPLY ? packet_receiver : packet_sender, message_id,
-        payload, payload_len, &is_handshake_req);
+        packet_uses_crypto, payload, payload_len, &is_handshake_req);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         protocol_err = SFCP_PROTOCOL_ERROR_HANDSHAKE_FAILED;
         goto out_error;

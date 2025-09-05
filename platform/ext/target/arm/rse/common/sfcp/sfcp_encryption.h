@@ -36,6 +36,15 @@ enum sfcp_trusted_subnet_state_t {
     SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_SEND_IVS_MSG,
     SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_SEND_IVS_REPLY,
 
+    /* SFCP re-keying state */
+    SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_REQUIRED,
+    SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_INITIATOR_STARTED,
+    SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SENT_CLIENT_REQUEST,
+    SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_CLIENT_REQUEST_SERVER_REPLY,
+    SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_CLIENT_REQUEST,
+    SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SEND_SEND_IVS_MSG,
+    SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_SEND_IVS_MSG,
+
     SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID,
     SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_NOT_REQUIRED
 };
@@ -73,11 +82,14 @@ sfcp_trusted_subnet_check_recv_seq_num(struct sfcp_trusted_subnet_config_t *trus
 enum sfcp_error_t sfcp_trusted_subnet_state_requires_encryption(uint8_t trusted_subnet_id,
                                                                 bool *requires_encryption);
 
-enum sfcp_error_t sfcp_derive_session_key_initiator(uint8_t trusted_subnet_id, bool block);
+enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id, bool block);
 
-enum sfcp_error_t sfcp_derive_session_key_responder(sfcp_node_id_t remote_node, uint8_t message_id,
-                                                    uint8_t *payload, size_t payload_size,
-                                                    bool *is_handshake_msg);
+enum sfcp_error_t sfcp_encryption_handshake_responder(struct sfcp_packet_t *packet,
+                                                      size_t packet_size,
+                                                      sfcp_node_id_t remote_node,
+                                                      uint8_t message_id, bool packet_encrypted,
+                                                      uint8_t *payload, size_t payload_size,
+                                                      bool *is_handshake_msg);
 
 enum sfcp_error_t sfcp_encrypt_msg(struct sfcp_packet_t *msg, size_t packet_size,
                                    uint8_t trusted_subnet_id, sfcp_node_id_t remote_node);

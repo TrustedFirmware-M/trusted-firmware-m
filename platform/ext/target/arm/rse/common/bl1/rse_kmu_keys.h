@@ -99,11 +99,31 @@ enum tfm_plat_err_t rse_setup_vhuk(const uint8_t *vhuk_seeds, size_t vhuk_seeds_
  * \param[in]  seed           A buffer containing the seed values.
  * \param[in]  seed_len       The size of the seed buffer. This must be
  *                            32 in size.
- * \param[in]  slot           The KMU slot to setup and lock the seed into.
+ * \param[out] key_id         The KMU slot the session key was derived into.
  *
  * \return                    TFM_PLAT_ERR_SUCCESS on success, non-zero on error.
  */
-enum tfm_plat_err_t rse_setup_session_key(const uint8_t *seed, size_t seed_len);
+enum tfm_plat_err_t rse_setup_session_key(const uint8_t *seed, size_t seed_len, uint32_t *key_id);
+
+/**
+ * \brief                     rekey the session key, and lock into two KMU
+ *                            slots.
+ *
+ * \note                      Due to a limitation in KMU key export, keys used
+ *                            for AEAD (such as this one) require two slots. The
+ *                            slots used will be `slot` and `slot + 1`. It is
+ *                            invalid for `slot` to be `KMU_USER_SLOT_MAX`
+ *
+ * \param[in]  seed           A buffer containing the seed values.
+ * \param[in]  seed_len       The size of the seed buffer. This must be
+ *                            32 in size.
+ * \param[in]  input_key_id   The KMU slot to derive the next session key from.
+ * \param[out] output_key_id  The KMU slot the new session key was derived into.
+ *
+ * \return                    TFM_PLAT_ERR_SUCCESS on success, non-zero on error.
+ */
+enum tfm_plat_err_t rse_rekey_session_key(const uint8_t *seed, size_t seed_len,
+                                          uint32_t input_key_id, uint32_t *output_key_id);
 
 /**
  * \brief                     Setup the master key, and lock into two KMU slots.

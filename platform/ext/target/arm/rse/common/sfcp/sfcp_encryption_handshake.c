@@ -16,25 +16,39 @@
 #include "fih.h"
 #include "psa/crypto.h"
 
+#define SFCP_SEND_IVS_MSG_SIZE(_num_ivs)                                \
+    (sizeof(struct sfcp_handshake_send_ivs_msg_payload_t) -             \
+     sizeof(((struct sfcp_handshake_send_ivs_msg_payload_t *)0)->ivs) + \
+     ((_num_ivs) * sizeof(((struct sfcp_handshake_send_ivs_msg_payload_t *)0)->ivs[0])))
+
 /* Definitions for transfer to and from other nodes */
 enum sfcp_handshake_msg_type_t {
     /* Session key generation */
     SFCP_HANDSHAKE_PAYLOAD_CLIENT_SESSION_KEY_REQUEST_MSG = 0x1010,
     SFCP_HANDSHAKE_PAYLOAD_SERVER_SESSION_KEY_GET_IV_MSG = 0x1020,
     SFCP_HANDSHAKE_PAYLOAD_SERVER_SESSION_KEY_SEND_IVS_MSG = 0x1030,
+
+    /* Re-keying */
+    SFCP_HANDSHAKE_PAYLOAD_CLIENT_RE_KEY_REQUEST_MSG = 0x2010,
+    SFCP_HANDSHAKE_PAYLOAD_SERVER_RE_KEY_SEND_IVS_MSG = 0x2030,
+
     SFCP_HANDSHAKE_PAYLOAD_TYPE_PAD = UINT16_MAX
 };
 
-__PACKED_STRUCT sfcp_handshake_request_msg_payload_t {
+/* Session key generation */
+__PACKED_STRUCT sfcp_handshake_msg_header_t {
     enum sfcp_handshake_msg_type_t type;
     uint8_t trusted_subnet_id;
+};
+
+__PACKED_STRUCT sfcp_handshake_request_msg_payload_t {
+    struct sfcp_handshake_msg_header_t header;
     /* Pad to 4 byte alignment */
     uint8_t __reserved[1];
 };
 
 __PACKED_STRUCT sfcp_handshake_get_iv_msg_payload_t {
-    enum sfcp_handshake_msg_type_t type;
-    uint8_t trusted_subnet_id;
+    struct sfcp_handshake_msg_header_t header;
     /* Pad to 4 byte alignment */
     uint8_t __reserved[1];
 };
@@ -44,8 +58,7 @@ __PACKED_STRUCT sfcp_handshake_get_iv_reply_payload_t {
 };
 
 __PACKED_STRUCT sfcp_handshake_send_ivs_msg_payload_t {
-    enum sfcp_handshake_msg_type_t type;
-    uint8_t trusted_subnet_id;
+    struct sfcp_handshake_msg_header_t header;
     uint8_t iv_amount;
     uint8_t ivs[SFCP_NUMBER_NODES][32];
 };
@@ -90,19 +103,22 @@ static inline bool server_received_all_replies(struct sfcp_trusted_subnet_config
     return true;
 }
 
-static inline size_t
-get_send_ivs_msg_payload_size(struct sfcp_trusted_subnet_config_t *trusted_subnet)
-{
-    return sizeof(struct sfcp_handshake_send_ivs_msg_payload_t) -
-           sizeof(((struct sfcp_handshake_send_ivs_msg_payload_t *)0)->ivs) +
-           trusted_subnet->node_amount *
-               sizeof(((struct sfcp_handshake_send_ivs_msg_payload_t *)0)->ivs[0]);
-}
-
 static inline bool is_message_id_valid_for_subnet(uint8_t trusted_subnet_id,
                                                   sfcp_node_id_t remote_node, uint8_t message_id)
 {
     return handshake_data[trusted_subnet_id].send_message_id[remote_node] == message_id;
+}
+
+static inline uint32_t save_disable_irq(void)
+{
+    uint32_t primask = __get_PRIMASK();
+    __disable_irq();
+    return primask;
+}
+
+static inline void enable_irq(uint32_t cookie)
+{
+    __set_PRIMASK(cookie);
 }
 
 static enum sfcp_error_t construct_send_handshake_msg(sfcp_node_id_t receiver_node,
@@ -136,7 +152,9 @@ static enum sfcp_error_t construct_send_handshake_msg(sfcp_node_id_t receiver_no
     return sfcp_send_msg(msg, msg_size, payload_size);
 }
 
-static enum sfcp_error_t construct_send_reply(sfcp_node_id_t sender_node, uint8_t message_id,
+static enum sfcp_error_t construct_send_reply(bool encrypt,
+                                              struct sfcp_trusted_subnet_config_t *trusted_subnet,
+                                              sfcp_node_id_t sender_node, uint8_t message_id,
                                               uint8_t *payload, size_t payload_size)
 {
     enum sfcp_error_t sfcp_err;
@@ -145,8 +163,8 @@ static enum sfcp_error_t construct_send_reply(sfcp_node_id_t sender_node, uint8_
     uint8_t *handshake_payload;
     size_t reply_size;
     struct sfcp_msg_metadata_t metadata = { .sender = sender_node,
-                                            .uses_cryptography = false,
-                                            .trusted_subnet_id = 0,
+                                            .uses_cryptography = encrypt,
+                                            .trusted_subnet_id = trusted_subnet->id,
                                             .client_id = 0,
                                             .application_id = 0,
                                             .message_id = message_id };
@@ -169,15 +187,15 @@ static enum sfcp_error_t construct_send_reply(sfcp_node_id_t sender_node, uint8_
 }
 
 static enum sfcp_error_t
-derive_session_key_initiator_server(struct sfcp_trusted_subnet_config_t *trusted_subnet,
-                                    sfcp_node_id_t my_node_id)
+setup_session_key_initiator_server(struct sfcp_trusted_subnet_config_t *trusted_subnet,
+                                   sfcp_node_id_t my_node_id)
 {
     enum sfcp_error_t sfcp_err;
     struct sfcp_reply_metadata_t reply_metadata;
     struct sfcp_handshake_get_iv_msg_payload_t get_iv_msg_payload;
 
-    get_iv_msg_payload.type = SFCP_HANDSHAKE_PAYLOAD_SERVER_SESSION_KEY_GET_IV_MSG;
-    get_iv_msg_payload.trusted_subnet_id = trusted_subnet->id;
+    get_iv_msg_payload.header.type = SFCP_HANDSHAKE_PAYLOAD_SERVER_SESSION_KEY_GET_IV_MSG;
+    get_iv_msg_payload.header.trusted_subnet_id = trusted_subnet->id;
 
     for (uint8_t i = 0; i < trusted_subnet->node_amount; i++) {
         sfcp_node_id_t remote_node_id = trusted_subnet->nodes[i].id;
@@ -201,15 +219,82 @@ derive_session_key_initiator_server(struct sfcp_trusted_subnet_config_t *trusted
 }
 
 static enum sfcp_error_t
-derive_session_key_initiator_client(struct sfcp_trusted_subnet_config_t *trusted_subnet,
-                                    sfcp_node_id_t server_node_id)
+re_key_initiator_server(struct sfcp_trusted_subnet_config_t *trusted_subnet,
+                        sfcp_node_id_t my_node_id)
+{
+    psa_status_t status;
+    enum sfcp_error_t sfcp_err;
+    __ALIGNED(4) uint8_t send_ivs_buf[SFCP_SEND_IVS_MSG_SIZE(1)];
+    struct sfcp_handshake_send_ivs_msg_payload_t *send_ivs_msg =
+        (struct sfcp_handshake_send_ivs_msg_payload_t *)send_ivs_buf;
+
+    /* Generate IV for server */
+    status = psa_generate_random(handshake_data[trusted_subnet->id].node_ivs[my_node_id],
+                                 sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id]));
+    if (status != PSA_SUCCESS) {
+        return SFCP_ERROR_INTERNAL_HANDSHAKE_FAILURE;
+    }
+
+    memcpy(send_ivs_msg->ivs[0], handshake_data[trusted_subnet->id].node_ivs[my_node_id],
+           sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id]));
+
+    send_ivs_msg->header.type = SFCP_HANDSHAKE_PAYLOAD_SERVER_RE_KEY_SEND_IVS_MSG;
+    send_ivs_msg->header.trusted_subnet_id = trusted_subnet->id;
+    send_ivs_msg->iv_amount = 1;
+
+    /* Send a 'send IVs' message to the other nodes with only a single generated IV */
+    for (uint8_t i = 0; i < trusted_subnet->node_amount; i++) {
+        struct sfcp_reply_metadata_t reply_metadata;
+        sfcp_node_id_t node;
+
+        node = trusted_subnet->nodes[i].id;
+
+        if (node == my_node_id) {
+            continue;
+        }
+
+        handshake_data[trusted_subnet->id].received_node_replies[node] = false;
+
+        sfcp_err = construct_send_handshake_msg(node, trusted_subnet->id, (uint8_t *)send_ivs_msg,
+                                                sizeof(send_ivs_buf), &reply_metadata);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+    }
+
+    return sfcp_trusted_subnet_set_state(trusted_subnet->id,
+                                         SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SEND_SEND_IVS_MSG);
+}
+
+static enum sfcp_error_t
+encryption_handshake_initiator_server(struct sfcp_trusted_subnet_config_t *trusted_subnet,
+                                      sfcp_node_id_t my_node_id, bool re_keying)
+{
+    if (!re_keying) {
+        return setup_session_key_initiator_server(trusted_subnet, my_node_id);
+    } else {
+        return re_key_initiator_server(trusted_subnet, my_node_id);
+    }
+}
+
+static enum sfcp_error_t
+encryption_handshake_initiator_client(struct sfcp_trusted_subnet_config_t *trusted_subnet,
+                                      sfcp_node_id_t server_node_id, bool re_keying)
 {
     enum sfcp_error_t sfcp_err;
     struct sfcp_reply_metadata_t reply_metadata;
     struct sfcp_handshake_request_msg_payload_t request_msg_payload;
+    enum sfcp_trusted_subnet_state_t new_state;
 
-    request_msg_payload.type = SFCP_HANDSHAKE_PAYLOAD_CLIENT_SESSION_KEY_REQUEST_MSG;
-    request_msg_payload.trusted_subnet_id = trusted_subnet->id;
+    if (!re_keying) {
+        request_msg_payload.header.type = SFCP_HANDSHAKE_PAYLOAD_CLIENT_SESSION_KEY_REQUEST_MSG;
+        new_state = SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_CLIENT_REQUEST;
+    } else {
+        request_msg_payload.header.type = SFCP_HANDSHAKE_PAYLOAD_CLIENT_RE_KEY_REQUEST_MSG;
+        new_state = SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SENT_CLIENT_REQUEST;
+    }
+
+    request_msg_payload.header.trusted_subnet_id = trusted_subnet->id;
 
     sfcp_err = construct_send_handshake_msg(server_node_id, trusted_subnet->id,
                                             (uint8_t *)&request_msg_payload,
@@ -218,8 +303,7 @@ derive_session_key_initiator_client(struct sfcp_trusted_subnet_config_t *trusted
         return sfcp_err;
     }
 
-    return sfcp_trusted_subnet_set_state(
-        trusted_subnet->id, SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_CLIENT_REQUEST);
+    return sfcp_trusted_subnet_set_state(trusted_subnet->id, new_state);
 }
 
 static enum sfcp_error_t message_poll_server(struct sfcp_trusted_subnet_config_t *trusted_subnet,
@@ -313,6 +397,17 @@ enum sfcp_error_t sfcp_trusted_subnet_state_requires_encryption(uint8_t trusted_
         *requires_encryption = true;
         return SFCP_ERROR_SUCCESS;
 
+    /* Re-keying messages all require encryption */
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_REQUIRED:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_INITIATOR_STARTED:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SENT_CLIENT_REQUEST:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_CLIENT_REQUEST_SERVER_REPLY:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_CLIENT_REQUEST:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SEND_SEND_IVS_MSG:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_SEND_IVS_MSG:
+        *requires_encryption = true;
+        return SFCP_ERROR_SUCCESS;
+
     /* Subnet does not require encryption */
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_NOT_REQUIRED:
         *requires_encryption = false;
@@ -323,7 +418,7 @@ enum sfcp_error_t sfcp_trusted_subnet_state_requires_encryption(uint8_t trusted_
     }
 }
 
-enum sfcp_error_t sfcp_derive_session_key_initiator(uint8_t trusted_subnet_id, bool block)
+enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id, bool block)
 {
     enum sfcp_error_t sfcp_err;
     enum sfcp_hal_error_t hal_err;
@@ -331,6 +426,9 @@ enum sfcp_error_t sfcp_derive_session_key_initiator(uint8_t trusted_subnet_id, b
     sfcp_node_id_t my_node_id;
     sfcp_node_id_t server_node_id;
     enum sfcp_trusted_subnet_state_t state;
+    enum sfcp_trusted_subnet_state_t new_state;
+    bool re_keying;
+    uint32_t disable_irq_cookie;
 
     sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet_id, &state);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
@@ -338,9 +436,35 @@ enum sfcp_error_t sfcp_derive_session_key_initiator(uint8_t trusted_subnet_id, b
     }
 
     switch (state) {
+    /* Key setup already valid */
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID:
         return SFCP_ERROR_SUCCESS;
+
+    /* Handshake in progress, do not initiate again */
+    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_INITIATOR_STARTED:
+    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_CLIENT_REQUEST:
+    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_RECIEVED_SERVER_GET_REQUEST:
+    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_RECIEVED_CLIENT_REQUEST:
+    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_RECEIVED_CLIENT_REQUEST_SERVER_REPLY:
+    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_GET_IV_MSG:
+    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_GET_IV_REPLY:
+    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_SEND_IVS_MSG:
+    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_SEND_IVS_REPLY:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_INITIATOR_STARTED:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SENT_CLIENT_REQUEST:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_CLIENT_REQUEST_SERVER_REPLY:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_CLIENT_REQUEST:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SEND_SEND_IVS_MSG:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_SEND_IVS_MSG:
+        return SFCP_ERROR_SUCCESS;
+
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_REQUIRED:
+        re_keying = false;
+        new_state = SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_INITIATOR_STARTED;
+        break;
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_REQUIRED:
+        re_keying = true;
+        new_state = SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_INITIATOR_STARTED;
         break;
     default:
         return SFCP_ERROR_INVALID_TRUSTED_SUBNET_STATE;
@@ -361,19 +485,18 @@ enum sfcp_error_t sfcp_derive_session_key_initiator(uint8_t trusted_subnet_id, b
         return sfcp_err;
     }
 
-    sfcp_err = sfcp_trusted_subnet_set_state(
-        trusted_subnet->id, SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_INITIATOR_STARTED);
+    sfcp_err = sfcp_trusted_subnet_set_state(trusted_subnet->id, new_state);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         return sfcp_err;
     }
 
     if (server_node_id == my_node_id) {
-        sfcp_err = derive_session_key_initiator_server(trusted_subnet, my_node_id);
+        sfcp_err = encryption_handshake_initiator_server(trusted_subnet, my_node_id, re_keying);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             return sfcp_err;
         }
     } else {
-        sfcp_err = derive_session_key_initiator_client(trusted_subnet, server_node_id);
+        sfcp_err = encryption_handshake_initiator_client(trusted_subnet, server_node_id, re_keying);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             return sfcp_err;
         }
@@ -383,6 +506,11 @@ enum sfcp_error_t sfcp_derive_session_key_initiator(uint8_t trusted_subnet_id, b
         return SFCP_ERROR_SUCCESS;
     }
 
+    /* The following is synchronous and therefore we do not want the interrupt handler
+     * running when we receive a message
+     */
+    disable_irq_cookie = save_disable_irq();
+
     /* Continuously poll for messages and check if the handshake is complete.
      * The receive_msg function will check if messages have been received and then
      * respond if required
@@ -390,7 +518,7 @@ enum sfcp_error_t sfcp_derive_session_key_initiator(uint8_t trusted_subnet_id, b
     while (1) {
         sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet_id, &state);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
-            return sfcp_err;
+            goto out;
         }
 
         if (state == SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID) {
@@ -400,36 +528,51 @@ enum sfcp_error_t sfcp_derive_session_key_initiator(uint8_t trusted_subnet_id, b
         if (server_node_id == my_node_id) {
             sfcp_err = message_poll_server(trusted_subnet, my_node_id);
             if (sfcp_err != SFCP_ERROR_SUCCESS) {
-                return sfcp_err;
+                goto out;
             }
         } else {
             sfcp_err = message_poll_client(server_node_id);
             if (sfcp_err != SFCP_ERROR_SUCCESS) {
-                return sfcp_err;
+                goto out;
             }
         }
     }
 
-    return SFCP_ERROR_SUCCESS;
+out:
+    enable_irq(disable_irq_cookie);
+    return sfcp_err;
 }
 
 static enum sfcp_error_t handle_client_request(struct sfcp_trusted_subnet_config_t *trusted_subnet,
-                                               sfcp_node_id_t my_node_id, uint8_t *payload,
-                                               size_t payload_size, sfcp_node_id_t sender_node,
-                                               uint8_t message_id)
+                                               bool encrypt, sfcp_node_id_t my_node_id,
+                                               const uint8_t *payload, size_t payload_size,
+                                               sfcp_node_id_t sender_node, uint8_t message_id,
+                                               bool re_keying)
 {
     enum sfcp_error_t sfcp_err;
+    enum sfcp_trusted_subnet_state_t new_state;
 
-    sfcp_err = construct_send_reply(sender_node, message_id, NULL, 0);
+    if (!re_keying) {
+        new_state = SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_RECIEVED_CLIENT_REQUEST;
+    } else {
+        new_state = SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_CLIENT_REQUEST;
+    }
+
+    sfcp_err = sfcp_trusted_subnet_set_state(trusted_subnet->id, new_state);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         return sfcp_err;
     }
 
-    return derive_session_key_initiator_server(trusted_subnet, my_node_id);
+    sfcp_err = construct_send_reply(encrypt, trusted_subnet, sender_node, message_id, NULL, 0);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        return sfcp_err;
+    }
+
+    return encryption_handshake_initiator_server(trusted_subnet, my_node_id, re_keying);
 }
 
 static enum sfcp_error_t handle_get_iv_reply(struct sfcp_trusted_subnet_config_t *trusted_subnet,
-                                             sfcp_node_id_t my_node_id, uint8_t *payload,
+                                             sfcp_node_id_t my_node_id, const uint8_t *payload,
                                              size_t payload_size, sfcp_node_id_t sender_node,
                                              uint8_t message_id)
 {
@@ -465,11 +608,11 @@ static enum sfcp_error_t handle_get_iv_reply(struct sfcp_trusted_subnet_config_t
                sizeof(send_ivs_msg.ivs[i]));
     }
 
-    send_ivs_msg.type = SFCP_HANDSHAKE_PAYLOAD_SERVER_SESSION_KEY_SEND_IVS_MSG;
-    send_ivs_msg.trusted_subnet_id = trusted_subnet->id;
+    send_ivs_msg.header.type = SFCP_HANDSHAKE_PAYLOAD_SERVER_SESSION_KEY_SEND_IVS_MSG;
+    send_ivs_msg.header.trusted_subnet_id = trusted_subnet->id;
     send_ivs_msg.iv_amount = trusted_subnet->node_amount;
 
-    send_payload_size = get_send_ivs_msg_payload_size(trusted_subnet);
+    send_payload_size = SFCP_SEND_IVS_MSG_SIZE(trusted_subnet->node_amount);
 
     /* Send generated payload to all other nodes */
     for (uint8_t i = 0; i < trusted_subnet->node_amount; i++) {
@@ -495,15 +638,26 @@ static enum sfcp_error_t handle_get_iv_reply(struct sfcp_trusted_subnet_config_t
         trusted_subnet->id, SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_SEND_IVS_MSG);
 }
 
+static void reset_trusted_subnet_seq_num(struct sfcp_trusted_subnet_config_t *trusted_subnet)
+{
+    for (uint8_t i = 0; i < trusted_subnet->node_amount; i++) {
+        struct sfcp_trusted_subnet_node_t *node_config = &trusted_subnet->nodes[i];
+
+        node_config->send_seq_num = 0;
+        node_config->recv_seq_num = 0;
+    }
+}
+
 static enum sfcp_error_t handle_send_ivs_reply(struct sfcp_trusted_subnet_config_t *trusted_subnet,
-                                               sfcp_node_id_t my_node_id, uint8_t *payload,
+                                               sfcp_node_id_t my_node_id, const uint8_t *payload,
                                                size_t payload_size, sfcp_node_id_t sender_node,
-                                               uint8_t message_id)
+                                               uint8_t message_id, bool re_keying)
 {
     fih_int fih_err;
     enum tfm_plat_err_t plat_err;
     __ALIGNED(4) uint8_t hash[48];
     size_t hash_size;
+    uint32_t output_key;
 
     handshake_data[trusted_subnet->id].received_node_replies[sender_node] = true;
     if (!server_received_all_replies(trusted_subnet, my_node_id)) {
@@ -517,11 +671,21 @@ static enum sfcp_error_t handle_send_ivs_reply(struct sfcp_trusted_subnet_config
         return SFCP_ERROR_INTERNAL_HANDSHAKE_FAILURE;
     }
 
-    for (uint8_t i = 0; i < trusted_subnet->node_amount; i++) {
-        sfcp_node_id_t node = trusted_subnet->nodes[i].id;
+    if (!re_keying) {
+        /* IV for each node in the system */
+        for (uint8_t i = 0; i < trusted_subnet->node_amount; i++) {
+            sfcp_node_id_t node = trusted_subnet->nodes[i].id;
 
-        FIH_CALL(bl1_hash_update, fih_err, handshake_data[trusted_subnet->id].node_ivs[node],
-                                               sizeof(handshake_data[trusted_subnet->id].node_ivs[node]));
+            FIH_CALL(bl1_hash_update, fih_err, handshake_data[trusted_subnet->id].node_ivs[node],
+                     sizeof(handshake_data[trusted_subnet->id].node_ivs[node]));
+            if (FIH_NOT_EQ(fih_err, FIH_SUCCESS)) {
+                return SFCP_ERROR_INTERNAL_HANDSHAKE_FAILURE;
+            }
+        }
+    } else {
+        /* Only a single IV generated by the server */
+        FIH_CALL(bl1_hash_update, fih_err, handshake_data[trusted_subnet->id].node_ivs[my_node_id],
+                 sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id]));
         if (FIH_NOT_EQ(fih_err, FIH_SUCCESS)) {
             return SFCP_ERROR_INTERNAL_HANDSHAKE_FAILURE;
         }
@@ -532,65 +696,41 @@ static enum sfcp_error_t handle_send_ivs_reply(struct sfcp_trusted_subnet_config
         return SFCP_ERROR_INTERNAL_HANDSHAKE_FAILURE;
     }
 
-    plat_err = rse_setup_session_key(hash, hash_size);
-    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
-        return (enum sfcp_error_t)plat_err;
+    if (!re_keying) {
+        plat_err = rse_setup_session_key(hash, hash_size, &output_key);
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return (enum sfcp_error_t)plat_err;
+        }
+    } else {
+        plat_err = rse_rekey_session_key(
+            hash, hash_size, cc3xx_get_builtin_key(trusted_subnet->key_id), &output_key);
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return (enum sfcp_error_t)plat_err;
+        }
+
+        reset_trusted_subnet_seq_num(trusted_subnet);
     }
 
-    trusted_subnet->key_id = cc3xx_get_opaque_key(RSE_KMU_SLOT_SESSION_KEY_0);
+    trusted_subnet->key_id = cc3xx_get_opaque_key(output_key);
     assert(!CC3XX_IS_OPAQUE_KEY_INVALID(trusted_subnet->key_id));
 
     return sfcp_trusted_subnet_set_state(trusted_subnet->id,
                                          SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID);
 }
 
-static enum sfcp_error_t derive_session_key_responder_server(
-    struct sfcp_trusted_subnet_config_t *trusted_subnet, sfcp_node_id_t my_node_id,
-    uint8_t *payload, size_t payload_size, sfcp_node_id_t sender_node, uint8_t message_id)
+static enum sfcp_error_t
+handle_client_request_empty_response(struct sfcp_trusted_subnet_config_t *trusted_subnet,
+                                     sfcp_node_id_t my_node_id, const uint8_t *payload,
+                                     size_t payload_size, sfcp_node_id_t sender_node,
+                                     uint8_t message_id, enum sfcp_trusted_subnet_state_t new_state)
 {
-    enum sfcp_error_t sfcp_err;
-    enum sfcp_trusted_subnet_state_t state;
-
-    sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet->id, &state);
-    if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        return sfcp_err;
-    }
-
-    switch (state) {
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_REQUIRED:
-        sfcp_err = sfcp_trusted_subnet_set_state(
-            trusted_subnet->id,
-            SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_RECIEVED_CLIENT_REQUEST);
-        if (sfcp_err != SFCP_ERROR_SUCCESS) {
-            return sfcp_err;
-        }
-
-        return handle_client_request(trusted_subnet, my_node_id, payload, payload_size, sender_node,
-                                     message_id);
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_GET_IV_MSG:
-        return handle_get_iv_reply(trusted_subnet, my_node_id, payload, payload_size, sender_node,
-                                   message_id);
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_SEND_IVS_MSG:
-        return handle_send_ivs_reply(trusted_subnet, my_node_id, payload, payload_size, sender_node,
-                                     message_id);
-    default:
-        return SFCP_ERROR_INVALID_TRUSTED_SUBNET_STATE;
-    }
-}
-
-static enum sfcp_error_t handle_client_request_empty_response(
-    struct sfcp_trusted_subnet_config_t *trusted_subnet, sfcp_node_id_t my_node_id,
-    uint8_t *payload, size_t payload_size, sfcp_node_id_t sender_node, uint8_t message_id)
-{
-    return sfcp_trusted_subnet_set_state(
-        trusted_subnet->id,
-        SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_RECEIVED_CLIENT_REQUEST_SERVER_REPLY);
+    return sfcp_trusted_subnet_set_state(trusted_subnet->id, new_state);
 }
 
 static enum sfcp_error_t handle_get_iv_msg(struct sfcp_trusted_subnet_config_t *trusted_subnet,
-                                           sfcp_node_id_t my_node_id, uint8_t *payload,
-                                           size_t payload_size, sfcp_node_id_t sender_node,
-                                           uint8_t message_id)
+                                           bool encrypt, sfcp_node_id_t my_node_id,
+                                           const uint8_t *payload, size_t payload_size,
+                                           sfcp_node_id_t sender_node, uint8_t message_id)
 {
     enum sfcp_error_t sfcp_err;
     psa_status_t status;
@@ -605,8 +745,8 @@ static enum sfcp_error_t handle_get_iv_msg(struct sfcp_trusted_subnet_config_t *
     memcpy(get_iv_reply_payload.iv, handshake_data[trusted_subnet->id].node_ivs[my_node_id],
            sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id]));
 
-    sfcp_err = construct_send_reply(sender_node, message_id, (uint8_t *)&get_iv_reply_payload,
-                                    sizeof(get_iv_reply_payload));
+    sfcp_err = construct_send_reply(encrypt, trusted_subnet, sender_node, message_id,
+                                    (uint8_t *)&get_iv_reply_payload, sizeof(get_iv_reply_payload));
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         return sfcp_err;
     }
@@ -616,9 +756,10 @@ static enum sfcp_error_t handle_get_iv_msg(struct sfcp_trusted_subnet_config_t *
 }
 
 static enum sfcp_error_t handle_send_ivs_msg(struct sfcp_trusted_subnet_config_t *trusted_subnet,
-                                             sfcp_node_id_t my_node_id, uint8_t *payload,
-                                             size_t payload_size, sfcp_node_id_t sender_node,
-                                             uint8_t message_id)
+                                             bool encrypt, sfcp_node_id_t my_node_id,
+                                             const uint8_t *payload, size_t payload_size,
+                                             sfcp_node_id_t sender_node, uint8_t message_id,
+                                             bool re_keying)
 {
     enum sfcp_error_t sfcp_err;
     enum tfm_plat_err_t plat_err;
@@ -627,32 +768,48 @@ static enum sfcp_error_t handle_send_ivs_msg(struct sfcp_trusted_subnet_config_t
     size_t hash_size;
     struct sfcp_handshake_send_ivs_msg_payload_t *send_ivs_msg;
     bool valid_iv = false;
+    uint32_t output_key;
 
     send_ivs_msg = (struct sfcp_handshake_send_ivs_msg_payload_t *)payload;
 
-    sfcp_err = construct_send_reply(sender_node, message_id, NULL, 0);
+    sfcp_err = construct_send_reply(encrypt, trusted_subnet, sender_node, message_id, NULL, 0);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         return sfcp_err;
     }
 
-    for (uint8_t i = 0; i < trusted_subnet->node_amount; i++) {
-        sfcp_node_id_t node = trusted_subnet->nodes[i].id;
-
-        if (node != my_node_id) {
-            continue;
+    /* We only need to check that the IV matches what we sent in the initial
+     * session key generation flow. In the case of re-keying, we only receive a single
+     * IV from the server
+     */
+    if (!re_keying) {
+        if (send_ivs_msg->iv_amount != trusted_subnet->node_amount) {
+            return SFCP_ERROR_INVALID_MSG;
         }
 
-        if (memcmp(send_ivs_msg->ivs[i], handshake_data[trusted_subnet->id].node_ivs[my_node_id],
-                   sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id])) != 0) {
-            return SFCP_ERROR_HANDSHAKE_INVALID_RECEIVED_IV;
-        } else {
-            valid_iv = true;
-            break;
-        }
-    }
+        for (uint8_t i = 0; i < trusted_subnet->node_amount; i++) {
+            sfcp_node_id_t node = trusted_subnet->nodes[i].id;
 
-    if (!valid_iv) {
-        return SFCP_ERROR_INVALID_MSG;
+            if (node != my_node_id) {
+                continue;
+            }
+
+            if (memcmp(send_ivs_msg->ivs[i],
+                       handshake_data[trusted_subnet->id].node_ivs[my_node_id],
+                       sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id])) != 0) {
+                return SFCP_ERROR_HANDSHAKE_INVALID_RECEIVED_IV;
+            } else {
+                valid_iv = true;
+                break;
+            }
+        }
+
+        if (!valid_iv) {
+            return SFCP_ERROR_INVALID_MSG;
+        }
+    } else {
+        if (send_ivs_msg->iv_amount != 1) {
+            return SFCP_ERROR_INVALID_MSG;
+        }
     }
 
     FIH_CALL(bl1_hash_compute, fih_err, TFM_BL1_HASH_ALG_SHA384, (uint8_t *)send_ivs_msg->ivs,
@@ -662,77 +819,101 @@ static enum sfcp_error_t handle_send_ivs_msg(struct sfcp_trusted_subnet_config_t
         return SFCP_ERROR_INTERNAL_HANDSHAKE_FAILURE;
     }
 
-    plat_err = rse_setup_session_key(hash, hash_size);
-    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
-        return (enum sfcp_error_t)plat_err;
+    if (!re_keying) {
+        plat_err = rse_setup_session_key(hash, hash_size, &output_key);
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return (enum sfcp_error_t)plat_err;
+        }
+    } else {
+        plat_err = rse_rekey_session_key(
+            hash, hash_size, cc3xx_get_builtin_key(trusted_subnet->key_id), &output_key);
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return (enum sfcp_error_t)plat_err;
+        }
+
+        reset_trusted_subnet_seq_num(trusted_subnet);
     }
 
-    trusted_subnet->key_id = cc3xx_get_opaque_key(RSE_KMU_SLOT_SESSION_KEY_0);
+    trusted_subnet->key_id = cc3xx_get_opaque_key(output_key);
     assert(!CC3XX_IS_OPAQUE_KEY_INVALID(trusted_subnet->key_id));
 
     return sfcp_trusted_subnet_set_state(trusted_subnet->id,
                                          SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID);
 }
 
-static enum sfcp_error_t derive_session_key_responder_client(
-    struct sfcp_trusted_subnet_config_t *trusted_subnet, sfcp_node_id_t my_node_id,
-    uint8_t *payload, size_t payload_size, sfcp_node_id_t sender_node, uint8_t message_id)
+static bool check_receive_message(const uint8_t *payload, size_t payload_size,
+                                  uint8_t trusted_subnet_id, size_t expected_size,
+                                  enum sfcp_handshake_msg_type_t expected_type)
 {
-    enum sfcp_error_t sfcp_err;
-    enum sfcp_trusted_subnet_state_t state;
+    struct sfcp_handshake_msg_header_t *header;
 
-    sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet->id, &state);
-    if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        return sfcp_err;
-    }
-
-    switch (state) {
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_CLIENT_REQUEST:
-        return handle_client_request_empty_response(trusted_subnet, my_node_id, payload,
-                                                    payload_size, sender_node, message_id);
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_REQUIRED:
-        sfcp_err = sfcp_trusted_subnet_set_state(
-            trusted_subnet->id,
-            SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_RECIEVED_SERVER_GET_REQUEST);
-        if (sfcp_err != SFCP_ERROR_SUCCESS) {
-            return sfcp_err;
-        }
-
-        /* Fallthrough */
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_RECEIVED_CLIENT_REQUEST_SERVER_REPLY:
-        return handle_get_iv_msg(trusted_subnet, my_node_id, payload, payload_size, sender_node,
-                                 message_id);
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_GET_IV_REPLY:
-        return handle_send_ivs_msg(trusted_subnet, my_node_id, payload, payload_size, sender_node,
-                                   message_id);
-    default:
-        return SFCP_ERROR_INVALID_TRUSTED_SUBNET_STATE;
-    }
-}
-
-static bool check_get_iv_msg(const uint8_t *payload, size_t payload_size, uint8_t trusted_subnet_id)
-{
-    struct sfcp_handshake_get_iv_msg_payload_t *get_iv_msg;
-
-    if (payload_size != sizeof(*get_iv_msg)) {
+    if (payload_size < expected_size) {
         return false;
     }
 
-    get_iv_msg = (struct sfcp_handshake_get_iv_msg_payload_t *)payload;
+    header = (struct sfcp_handshake_msg_header_t *)payload;
 
-    if ((get_iv_msg->type != SFCP_HANDSHAKE_PAYLOAD_SERVER_SESSION_KEY_GET_IV_MSG) ||
-        (get_iv_msg->trusted_subnet_id != trusted_subnet_id)) {
+    if ((header->type != expected_type) || (header->trusted_subnet_id != trusted_subnet_id)) {
         return false;
     }
 
     return true;
 }
 
-static enum sfcp_error_t
-check_msg_with_trusted_subnet(sfcp_node_id_t remote_node, sfcp_node_id_t my_node_id,
-                              uint8_t message_id, const uint8_t *payload, size_t payload_size,
-                              struct sfcp_trusted_subnet_config_t *trusted_subnet,
-                              bool *valid_for_subnet)
+static bool check_receive_reply(uint8_t trusted_subnet_id, sfcp_node_id_t remote_node,
+                                size_t payload_size, size_t expected_size, uint8_t message_id)
+{
+    if (payload_size != expected_size) {
+        return false;
+    }
+
+    if (!is_message_id_valid_for_subnet(trusted_subnet_id, remote_node, message_id)) {
+        return false;
+    }
+
+    return true;
+}
+
+static bool check_packet_encryption_valid(struct sfcp_packet_t *packet, bool packet_encrypted,
+                                          struct sfcp_trusted_subnet_config_t *trusted_subnet)
+{
+    uint8_t packet_trusted_subnet;
+    uint16_t packet_encryption_seq_num;
+
+    if (!packet_encrypted) {
+        return false;
+    }
+
+    packet_trusted_subnet =
+        packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id;
+    packet_encryption_seq_num = packet->cryptography_used.cryptography_metadata.config.seq_num;
+
+    if (packet_encryption_seq_num < SFCP_TRUSTED_SUBNET_RE_KEY_SEQ_NUM) {
+        return false;
+    }
+
+    if (packet_trusted_subnet != trusted_subnet->id) {
+        return false;
+    }
+
+    return true;
+}
+
+/* We handle all the messages with the IRQs locked, to prevent
+ * interrupts from other nodes when performing handshake
+ */
+#define HANDLE_MESSAGE_IRQS_LOCKED(_func, _ret, ...)      \
+    do {                                                  \
+        uint32_t disable_irq_cookie = save_disable_irq(); \
+        _ret = _func(__VA_ARGS__);                        \
+        enable_irq(disable_irq_cookie);                   \
+    } while (0)
+
+static enum sfcp_error_t msg_process_for_trusted_subnet(
+    struct sfcp_packet_t *packet, size_t packet_size, sfcp_node_id_t remote_node,
+    sfcp_node_id_t my_node_id, uint8_t message_id, bool packet_encrypted, const uint8_t *payload,
+    size_t payload_size, struct sfcp_trusted_subnet_config_t *trusted_subnet,
+    bool *valid_for_subnet)
 {
     enum sfcp_error_t sfcp_err;
     enum sfcp_trusted_subnet_state_t state;
@@ -743,9 +924,79 @@ check_msg_with_trusted_subnet(sfcp_node_id_t remote_node, sfcp_node_id_t my_node
     }
 
     switch (state) {
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID:
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_NOT_REQUIRED:
         goto out_invalid;
+    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_REQUIRED:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SENT_CLIENT_REQUEST: {
+        sfcp_node_id_t server_node;
+
+        if (!check_packet_encryption_valid(packet, packet_encrypted, trusted_subnet)) {
+            goto out_invalid;
+        }
+
+        sfcp_err = sfcp_decrypt_msg(packet, packet_size, remote_node);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+
+        sfcp_err = sfcp_trusted_subnet_get_server(trusted_subnet, &server_node);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+
+        if (server_node == my_node_id) {
+            if (check_receive_message(payload, payload_size, trusted_subnet->id,
+                                      sizeof(struct sfcp_handshake_request_msg_payload_t),
+                                      SFCP_HANDSHAKE_PAYLOAD_CLIENT_RE_KEY_REQUEST_MSG)) {
+                HANDLE_MESSAGE_IRQS_LOCKED(handle_client_request, sfcp_err, trusted_subnet,
+                                           packet_encrypted, my_node_id, payload, payload_size,
+                                           remote_node, message_id, true);
+                if (sfcp_err != SFCP_ERROR_SUCCESS) {
+                    return sfcp_err;
+                }
+
+                break;
+            }
+        } else {
+            if (check_receive_reply(trusted_subnet->id, remote_node, payload_size, 0, message_id)) {
+                if (state != SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SENT_CLIENT_REQUEST) {
+                    /* Recieved an empty reply with re-key sequence number
+                     * but not in the correct state
+                     */
+                    return SFCP_ERROR_HANDSHAKE_INVALID_RE_KEY_MSG;
+                }
+
+                HANDLE_MESSAGE_IRQS_LOCKED(
+                    handle_client_request_empty_response, sfcp_err, trusted_subnet, my_node_id,
+                    payload, payload_size, remote_node, message_id,
+                    SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_CLIENT_REQUEST_SERVER_REPLY);
+                if (sfcp_err != SFCP_ERROR_SUCCESS) {
+                    return sfcp_err;
+                }
+
+                break;
+
+            } else if (check_receive_message(payload, payload_size, trusted_subnet->id,
+                                             SFCP_SEND_IVS_MSG_SIZE(1),
+                                             SFCP_HANDSHAKE_PAYLOAD_SERVER_RE_KEY_SEND_IVS_MSG)) {
+                HANDLE_MESSAGE_IRQS_LOCKED(handle_send_ivs_msg, sfcp_err, trusted_subnet,
+                                           packet_encrypted, my_node_id, payload, payload_size,
+                                           remote_node, message_id, true);
+                if (sfcp_err != SFCP_ERROR_SUCCESS) {
+                    return sfcp_err;
+                }
+
+                break;
+            }
+        }
+
+        /* We received a message with re-key seuquence number but its
+         * contents are not valid
+         */
+        return SFCP_ERROR_HANDSHAKE_INVALID_RE_KEY_MSG;
+    }
+
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_REQUIRED: {
         sfcp_node_id_t server_node;
 
@@ -755,21 +1006,31 @@ check_msg_with_trusted_subnet(sfcp_node_id_t remote_node, sfcp_node_id_t my_node
         }
 
         if (server_node == my_node_id) {
-            struct sfcp_handshake_request_msg_payload_t *request_msg;
-
-            if (payload_size != sizeof(*request_msg)) {
+            if (!check_receive_message(payload, payload_size, trusted_subnet->id,
+                                       sizeof(struct sfcp_handshake_request_msg_payload_t),
+                                       SFCP_HANDSHAKE_PAYLOAD_CLIENT_SESSION_KEY_REQUEST_MSG)) {
                 goto out_invalid;
             }
 
-            request_msg = (struct sfcp_handshake_request_msg_payload_t *)payload;
-
-            if ((request_msg->type != SFCP_HANDSHAKE_PAYLOAD_CLIENT_SESSION_KEY_REQUEST_MSG) ||
-                (request_msg->trusted_subnet_id != trusted_subnet->id)) {
-                goto out_invalid;
+            HANDLE_MESSAGE_IRQS_LOCKED(handle_client_request, sfcp_err, trusted_subnet,
+                                       packet_encrypted, my_node_id, payload, payload_size,
+                                       remote_node, message_id, false);
+            if (sfcp_err != SFCP_ERROR_SUCCESS) {
+                return sfcp_err;
             }
+
         } else {
-            if (!check_get_iv_msg(payload, payload_size, trusted_subnet->id)) {
+            if (!check_receive_message(payload, payload_size, trusted_subnet->id,
+                                       sizeof(struct sfcp_handshake_get_iv_msg_payload_t),
+                                       SFCP_HANDSHAKE_PAYLOAD_SERVER_SESSION_KEY_GET_IV_MSG)) {
                 goto out_invalid;
+            }
+
+            HANDLE_MESSAGE_IRQS_LOCKED(handle_get_iv_msg, sfcp_err, trusted_subnet,
+                                       packet_encrypted, my_node_id, payload, payload_size,
+                                       remote_node, message_id);
+            if (sfcp_err != SFCP_ERROR_SUCCESS) {
+                return sfcp_err;
             }
         }
 
@@ -777,49 +1038,126 @@ check_msg_with_trusted_subnet(sfcp_node_id_t remote_node, sfcp_node_id_t my_node
     }
 
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_RECEIVED_CLIENT_REQUEST_SERVER_REPLY:
-        if (!check_get_iv_msg(payload, payload_size, trusted_subnet->id)) {
+        if (!check_receive_message(payload, payload_size, trusted_subnet->id,
+                                   sizeof(struct sfcp_handshake_get_iv_msg_payload_t),
+                                   SFCP_HANDSHAKE_PAYLOAD_SERVER_SESSION_KEY_GET_IV_MSG)) {
             goto out_invalid;
+        }
+
+        HANDLE_MESSAGE_IRQS_LOCKED(handle_get_iv_msg, sfcp_err, trusted_subnet, packet_encrypted,
+                                   my_node_id, payload, payload_size, remote_node, message_id);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
         }
 
         break;
 
-    /* Expect empty replies */
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_CLIENT_REQUEST_SERVER_REPLY:
+        if (!check_packet_encryption_valid(packet, packet_encrypted, trusted_subnet)) {
+            goto out_invalid;
+        }
+
+        sfcp_err = sfcp_decrypt_msg(packet, packet_size, remote_node);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+
+        if (!check_receive_message(payload, payload_size, trusted_subnet->id,
+                                   SFCP_SEND_IVS_MSG_SIZE(1),
+                                   SFCP_HANDSHAKE_PAYLOAD_SERVER_RE_KEY_SEND_IVS_MSG)) {
+            /* Received a message with re-key sequence number but its contents
+             * are not value */
+            return SFCP_ERROR_HANDSHAKE_INVALID_RE_KEY_MSG;
+        }
+
+        HANDLE_MESSAGE_IRQS_LOCKED(handle_send_ivs_msg, sfcp_err, trusted_subnet, packet_encrypted,
+                                   my_node_id, payload, payload_size, remote_node, message_id,
+                                   true);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+
+        break;
+
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SEND_SEND_IVS_MSG:
+        if (!check_packet_encryption_valid(packet, packet_encrypted, trusted_subnet)) {
+            goto out_invalid;
+        }
+
+        sfcp_err = sfcp_decrypt_reply(packet, packet_size, remote_node);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+
+        if (!check_receive_reply(trusted_subnet->id, remote_node, payload_size, 0, message_id)) {
+            /* Received a message with re-key sequence number but its contents
+             * are not value */
+            return SFCP_ERROR_HANDSHAKE_INVALID_RE_KEY_MSG;
+        }
+
+        HANDLE_MESSAGE_IRQS_LOCKED(handle_send_ivs_reply, sfcp_err, trusted_subnet, my_node_id,
+                                   payload, payload_size, remote_node, message_id, true);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+
+        break;
+
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_SEND_IVS_MSG:
+        if (!check_receive_reply(trusted_subnet->id, remote_node, payload_size, 0, message_id)) {
+            goto out_invalid;
+        }
+
+        HANDLE_MESSAGE_IRQS_LOCKED(handle_send_ivs_reply, sfcp_err, trusted_subnet, my_node_id,
+                                   payload, payload_size, remote_node, message_id, false);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+
+        break;
+
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_CLIENT_REQUEST:
-        if (payload_size != 0) {
+        if (!check_receive_reply(trusted_subnet->id, remote_node, payload_size, 0, message_id)) {
             goto out_invalid;
         }
 
-        if (!is_message_id_valid_for_subnet(trusted_subnet->id, remote_node, message_id)) {
-            goto out_invalid;
-        }
-
-        break;
-
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_GET_IV_REPLY: {
-        struct sfcp_handshake_send_ivs_msg_payload_t *send_ivs_msg;
-
-        if (payload_size != get_send_ivs_msg_payload_size(trusted_subnet)) {
-            goto out_invalid;
-        }
-
-        send_ivs_msg = (struct sfcp_handshake_send_ivs_msg_payload_t *)payload;
-
-        if ((send_ivs_msg->type != SFCP_HANDSHAKE_PAYLOAD_SERVER_SESSION_KEY_SEND_IVS_MSG) ||
-            (send_ivs_msg->trusted_subnet_id != trusted_subnet->id)) {
-            goto out_invalid;
+        HANDLE_MESSAGE_IRQS_LOCKED(
+            handle_client_request_empty_response, sfcp_err, trusted_subnet, my_node_id, payload,
+            payload_size, remote_node, message_id,
+            SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_RECEIVED_CLIENT_REQUEST_SERVER_REPLY);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
         }
 
         break;
-    }
+
+    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_GET_IV_REPLY:
+        if (!check_receive_message(payload, payload_size, trusted_subnet->id,
+                                   SFCP_SEND_IVS_MSG_SIZE(trusted_subnet->node_amount),
+                                   SFCP_HANDSHAKE_PAYLOAD_SERVER_SESSION_KEY_SEND_IVS_MSG)) {
+            goto out_invalid;
+        }
+
+        HANDLE_MESSAGE_IRQS_LOCKED(handle_send_ivs_msg, sfcp_err, trusted_subnet, packet_encrypted,
+                                   my_node_id, payload, payload_size, remote_node, message_id,
+                                   false);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+
+        break;
 
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_GET_IV_MSG:
-        if (payload_size != sizeof(struct sfcp_handshake_get_iv_reply_payload_t)) {
+        if (!check_receive_reply(trusted_subnet->id, remote_node, payload_size,
+                                 sizeof(struct sfcp_handshake_get_iv_reply_payload_t),
+                                 message_id)) {
             goto out_invalid;
         }
 
-        if (!is_message_id_valid_for_subnet(trusted_subnet->id, remote_node, message_id)) {
-            goto out_invalid;
+        HANDLE_MESSAGE_IRQS_LOCKED(handle_get_iv_reply, sfcp_err, trusted_subnet, my_node_id,
+                                   payload, payload_size, remote_node, message_id);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
         }
 
         break;
@@ -836,49 +1174,46 @@ out_invalid:
     return SFCP_ERROR_SUCCESS;
 }
 
-static enum sfcp_error_t
-msg_get_trusted_subnet_id(sfcp_node_id_t remote_node, sfcp_node_id_t my_node_id, uint8_t message_id,
-                          const uint8_t *payload, size_t payload_size,
-                          struct sfcp_trusted_subnet_config_t **trusted_subnet)
+static enum sfcp_error_t msg_process(struct sfcp_packet_t *packet, size_t packet_size,
+                                     sfcp_node_id_t remote_node, sfcp_node_id_t my_node_id,
+                                     uint8_t message_id, bool packet_encrypted,
+                                     const uint8_t *payload, size_t payload_size,
+                                     bool *msg_processed)
 {
     enum sfcp_error_t sfcp_err;
     struct sfcp_trusted_subnet_config_t *configs;
     size_t num_trusted_subnets;
 
-    *trusted_subnet = NULL;
+    *msg_processed = false;
 
     sfcp_platform_get_trusted_subnets(&configs, &num_trusted_subnets);
 
     for (uint8_t i = 0; i < num_trusted_subnets; i++) {
-        bool valid_for_subnet;
-
-        sfcp_err = check_msg_with_trusted_subnet(remote_node, my_node_id, message_id, payload,
-                                                 payload_size, &configs[i], &valid_for_subnet);
+        sfcp_err = msg_process_for_trusted_subnet(packet, packet_size, remote_node, my_node_id,
+                                                  message_id, packet_encrypted, payload,
+                                                  payload_size, &configs[i], msg_processed);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             return sfcp_err;
         }
 
-        if (!valid_for_subnet) {
-            continue;
+        if (*msg_processed) {
+            break;
         }
-
-        /* The message we have is valid for this subnet state */
-        *trusted_subnet = &configs[i];
-        return SFCP_ERROR_SUCCESS;
     }
 
     return SFCP_ERROR_SUCCESS;
 }
 
-enum sfcp_error_t sfcp_derive_session_key_responder(sfcp_node_id_t remote_node, uint8_t message_id,
-                                                    uint8_t *payload, size_t payload_size,
-                                                    bool *is_handshake_msg)
+enum sfcp_error_t sfcp_encryption_handshake_responder(struct sfcp_packet_t *packet,
+                                                      size_t packet_size,
+                                                      sfcp_node_id_t remote_node,
+                                                      uint8_t message_id, bool packet_encrypted,
+                                                      uint8_t *payload, size_t payload_size,
+                                                      bool *is_handshake_msg)
 {
     enum sfcp_hal_error_t hal_err;
     enum sfcp_error_t sfcp_err;
-    struct sfcp_trusted_subnet_config_t *trusted_subnet;
     sfcp_node_id_t my_node_id;
-    sfcp_node_id_t server_node_id;
 
     hal_err = sfcp_hal_get_my_node_id(&my_node_id);
     if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
@@ -886,37 +1221,6 @@ enum sfcp_error_t sfcp_derive_session_key_responder(sfcp_node_id_t remote_node, 
         return sfcp_err;
     }
 
-    sfcp_err = msg_get_trusted_subnet_id(remote_node, my_node_id, message_id, payload, payload_size,
-                                         &trusted_subnet);
-    if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        return sfcp_err;
-    }
-
-    if (trusted_subnet == NULL) {
-        /* Not a valid handshake message */
-        *is_handshake_msg = false;
-        return SFCP_ERROR_SUCCESS;
-    }
-
-    sfcp_err = sfcp_trusted_subnet_get_server(trusted_subnet, &server_node_id);
-    if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        return sfcp_err;
-    }
-
-    if (server_node_id == my_node_id) {
-        sfcp_err = derive_session_key_responder_server(trusted_subnet, my_node_id, payload,
-                                                       payload_size, remote_node, message_id);
-        if (sfcp_err != SFCP_ERROR_SUCCESS) {
-            return sfcp_err;
-        }
-    } else {
-        sfcp_err = derive_session_key_responder_client(trusted_subnet, my_node_id, payload,
-                                                       payload_size, remote_node, message_id);
-        if (sfcp_err != SFCP_ERROR_SUCCESS) {
-            return sfcp_err;
-        }
-    }
-
-    *is_handshake_msg = true;
-    return SFCP_ERROR_SUCCESS;
+    return msg_process(packet, packet_size, remote_node, my_node_id, message_id, packet_encrypted,
+                       payload, payload_size, is_handshake_msg);
 }

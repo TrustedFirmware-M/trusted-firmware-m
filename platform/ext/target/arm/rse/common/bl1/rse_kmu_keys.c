@@ -444,30 +444,70 @@ enum tfm_plat_err_t rse_setup_vhuk(const uint8_t *vhuk_seeds, size_t vhuk_seeds_
                                      boot_state_config);
 }
 
-enum tfm_plat_err_t rse_setup_session_key(const uint8_t *seed, size_t seed_len)
+static enum tfm_plat_err_t rse_setup_session_key_with_input(const uint8_t *seed, size_t seed_len,
+                                                            uint32_t input_key_id,
+                                                            uint32_t output_slot)
 {
     enum tfm_plat_err_t plat_err;
     enum kmu_error_t kmu_err;
     const boot_state_include_mask boot_state_config = RSE_BOOT_STATE_INCLUDE_NONE;
     const uint8_t session_key_label[] = "SFCP_SESSION_KEY_DERIVATION";
 
-    plat_err = setup_key_from_derivation(KMU_HW_SLOT_GUK, NULL, session_key_label,
-                                         sizeof(session_key_label), seed, seed_len,
-                                         RSE_KMU_SLOT_SESSION_KEY_0, &aes_key0_export_config,
-                                         &aes_key1_export_config, true, boot_state_config);
+    plat_err = setup_key_from_derivation(input_key_id, NULL, session_key_label,
+                                         sizeof(session_key_label), seed, seed_len, output_slot,
+                                         &aes_key0_export_config, &aes_key1_export_config, true,
+                                         boot_state_config);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
 
     /* TODO: Should be removed once setup_key properly locks KMU slots */
-    kmu_err = kmu_set_key_locked(&KMU_DEV_S, RSE_KMU_SLOT_SESSION_KEY_0);
+    kmu_err = kmu_set_key_locked(&KMU_DEV_S, output_slot);
     if (kmu_err != KMU_ERROR_NONE) {
         return (enum tfm_plat_err_t) kmu_err;
     }
 
-    kmu_err = kmu_set_key_locked(&KMU_DEV_S,  RSE_KMU_SLOT_SESSION_KEY_0 + 1);
+    kmu_err = kmu_set_key_locked(&KMU_DEV_S, output_slot + 1);
     if (kmu_err != KMU_ERROR_NONE) {
         return (enum tfm_plat_err_t) kmu_err;
+    }
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
+enum tfm_plat_err_t rse_setup_session_key(const uint8_t *seed, size_t seed_len, uint32_t *key_id)
+{
+    *key_id = RSE_KMU_SLOT_SESSION_KEY_MIN;
+
+    return rse_setup_session_key_with_input(seed, seed_len, KMU_HW_SLOT_GUK, *key_id);
+}
+
+enum tfm_plat_err_t rse_rekey_session_key(const uint8_t *seed, size_t seed_len,
+                                          uint32_t input_key_id, uint32_t *output_key_id)
+{
+    enum tfm_plat_err_t plat_err;
+    enum kmu_error_t kmu_err;
+
+    /* Make sure we leave space for additional AEAD key */
+    if ((input_key_id + 2 + 1) > RSE_KMU_SLOT_SESSION_KEY_MAX) {
+        return TFM_PLAT_ERR_KEY_DERIVATION_INVALID_SESSION_KEY_OUTPUT_SLOT;
+    }
+
+    *output_key_id = input_key_id + 2;
+
+    plat_err = rse_setup_session_key_with_input(seed, seed_len, input_key_id, *output_key_id);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
+    }
+
+    kmu_err = kmu_set_slot_invalid(&KMU_DEV_S, input_key_id);
+    if (kmu_err != KMU_ERROR_NONE) {
+        return (enum tfm_plat_err_t)kmu_err;
+    }
+
+    kmu_err = kmu_set_slot_invalid(&KMU_DEV_S, input_key_id + 1);
+    if (kmu_err != KMU_ERROR_NONE) {
+        return (enum tfm_plat_err_t)kmu_err;
     }
 
     return TFM_PLAT_ERR_SUCCESS;

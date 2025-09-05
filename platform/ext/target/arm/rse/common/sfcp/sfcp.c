@@ -291,7 +291,7 @@ enum sfcp_error_t sfcp_send_msg(struct sfcp_packet_t *msg, size_t msg_size, size
     enum sfcp_error_t sfcp_err;
 
     if (GET_METADATA_FIELD(USES_CRYPTOGRAPHY, msg->header.metadata)) {
-        sfcp_err = sfcp_derive_session_key_initiator(
+        sfcp_err = sfcp_encryption_handshake_initiator(
             msg->cryptography_used.cryptography_metadata.config.trusted_subnet_id, true);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             return sfcp_err;
@@ -541,9 +541,10 @@ enum sfcp_error_t sfcp_receive_msg(uint8_t *buf, size_t buf_size, bool any_sende
         goto error_reply;
     }
 
-    sfcp_err = sfcp_derive_session_key_responder(
+    sfcp_err = sfcp_encryption_handshake_responder(
+        packet, received_size,
         packet_type == SFCP_PACKET_TYPE_REPLY ? packet_receiver : packet_sender, message_id,
-        *payload, *payload_len, &is_handshake_req);
+        packet_uses_crypto, *payload, *payload_len, &is_handshake_req);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         protocol_error = SFCP_PROTOCOL_ERROR_HANDSHAKE_FAILED;
         goto error_reply;

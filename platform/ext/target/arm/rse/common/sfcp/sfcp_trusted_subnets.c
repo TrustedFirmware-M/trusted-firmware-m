@@ -159,7 +159,9 @@ enum sfcp_error_t
 sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *trusted_subnet,
                                      sfcp_node_id_t remote_node, uint16_t *seq_num)
 {
+    enum sfcp_error_t sfcp_err;
     struct sfcp_trusted_subnet_node_t *trusted_subnet_node;
+    enum sfcp_trusted_subnet_state_t current_state;
 
     if (trusted_subnet == NULL || seq_num == NULL) {
         return SFCP_ERROR_INVALID_POINTER;
@@ -169,10 +171,19 @@ sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *truste
 
     *seq_num = trusted_subnet_node->send_seq_num++;
 
-    if (trusted_subnet_node->send_seq_num >= (UINT16_MAX - 16)) {
-        /* TODO: Need to perform re-keying but currently not implemented */
-        assert(false);
-        return SFCP_ERROR_INVALID_MSG;
+    sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet->id, &current_state);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        return sfcp_err;
+    }
+
+    if ((trusted_subnet_node->send_seq_num >= SFCP_TRUSTED_SUBNET_RE_KEY_SEQ_NUM) &&
+        (current_state == SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID)) {
+        /* Require re-keying */
+        sfcp_err = sfcp_trusted_subnet_set_state(trusted_subnet->id,
+                                                 SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_REQUIRED);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
     }
 
     return SFCP_ERROR_SUCCESS;

@@ -87,7 +87,7 @@ enum sfcp_error_t sfcp_trusted_subnet_state_requires_encryption(uint8_t trusted_
     return SFCP_ERROR_CRYPTOGRAPHY_NOT_SUPPORTED;
 }
 
-enum sfcp_error_t sfcp_derive_session_key_initiator(uint8_t trusted_subnet_id, bool block)
+enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id, bool block)
 {
     (void)trusted_subnet_id;
     (void)block;
@@ -95,14 +95,18 @@ enum sfcp_error_t sfcp_derive_session_key_initiator(uint8_t trusted_subnet_id, b
     return SFCP_ERROR_CRYPTOGRAPHY_NOT_SUPPORTED;
 }
 
-enum sfcp_error_t sfcp_derive_session_key_responder(sfcp_node_id_t remote_node, uint8_t message_id,
-                                                    uint8_t *payload, size_t payload_size,
-                                                    bool *is_handshake_msg)
+enum sfcp_error_t sfcp_encryption_handshake_responder(struct sfcp_packet_t *packet,
+                                                      size_t packet_size,
+                                                      sfcp_node_id_t remote_node,
+                                                      uint8_t message_id, bool packet_encrypted,
+                                                      uint8_t *payload, size_t payload_size,
+                                                      bool *is_handshake_msg)
 {
     (void)remote_node;
     (void)message_id;
     (void)payload;
     (void)payload_size;
+    (void)packet_encrypted;
 
     *is_handshake_msg = false;
     return SFCP_ERROR_SUCCESS;
