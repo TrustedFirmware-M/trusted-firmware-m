@@ -86,8 +86,23 @@ static void hw_init_nrf_peripherals(void)
 #if defined(NRF_UARTE0)
     nrf_cleanup_uarte(NRF_UARTE0);
 #endif
+#if defined(NRF_UARTE00)
+    nrf_cleanup_uarte(NRF_UARTE00);
+#endif
 #if defined(NRF_UARTE1)
     nrf_cleanup_uarte(NRF_UARTE1);
+#endif
+#if defined(NRF_UARTE20)
+    nrf_cleanup_uarte(NRF_UARTE20);
+#endif
+#if defined(NRF_UARTE21)
+    nrf_cleanup_uarte(NRF_UARTE21);
+#endif
+#if defined(NRF_UARTE22)
+    nrf_cleanup_uarte(NRF_UARTE22);
+#endif
+#if defined(NRF_UARTE30)
+    nrf_cleanup_uarte(NRF_UARTE30);
 #endif
 
     nrf_cleanup_peripheral_interconnect();
