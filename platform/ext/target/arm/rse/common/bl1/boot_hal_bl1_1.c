@@ -36,6 +36,7 @@
 #include "bl1_1_debug.h"
 #include "mpu_armv8m_drv.h"
 #include "rse_persistent_data.h"
+#include "startup_bl1_1_helpers.h"
 
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
@@ -87,16 +88,8 @@ static int32_t init_mpu_region_for_atu(void)
 
 static void wait_for_vm_erase_to_finish_and_enable_cache(void)
 {
-    /* Wait for the DMA to finish erasing VM0 and VM1 */
-    uint32_t dma_channel_amount = (*((volatile uint32_t *)(DMA_350_BASE_S + 0xfb0)) >> 4 & 0xF) + 1;
-
-    /* FIXME remove once the FVP is fixed */
-    dma_channel_amount = 1;
-
     /* Wait for each channel to finish */
-    for (int idx = 0; idx < dma_channel_amount; idx++) {
-        while ((*((volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x000)) & 0x1) != 0) {}
-    }
+    wait_for_dma_operation_complete();
 
     /* Now enable caching */
     SCB_EnableICache();

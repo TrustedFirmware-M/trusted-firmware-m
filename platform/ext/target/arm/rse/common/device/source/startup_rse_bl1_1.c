@@ -25,6 +25,7 @@
 #include "tfm_hal_device_header.h"
 #include "region_defs.h"
 #include "rse_gretreg.h"
+#include "startup_bl1_1_helpers.h"
 
 #include <stdint.h>
 
@@ -195,113 +196,40 @@ extern const VECTOR_TABLE_Type __VECTOR_TABLE[];
 #pragma GCC diagnostic pop
 #endif
 
-static uint32_t tram_key_prefill_value;
-static uint32_t tram_erase_value;
-static uint32_t tram_key[8];
-
 static inline void __attribute__ ((always_inline)) setup_tram_encryption(void)
 {
-    register uint32_t tram_key_erase_value __asm("r0");
+    startup_fill_cc3xx_rng_ehr_buffers();
 
-    /* Set up cryptocell TRNG */
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x1c4) = 0x00000001;
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x140) = 0x00000001;
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x1c4) = 0x00000001;
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x130) = 0x000001f4;
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x12c) = 0x00000000;
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x108) = 0x0000003f;
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x100) = 0x0000001e;
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x10c) = 0x00000004;
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x10c) = 0x00000004;
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x138) = 0x00000000;
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x12c) = 0x00000001;
-    while (*((volatile uint32_t *)(CC3XX_BASE_S + 0x104)) != 0x1){}
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x1bc) = 0x00000001;
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x108) = 0xffffffff;
+    startup_delay(P_CC3XX->rng.ehr_data[0] & 0x1F);
 
-    /* Randomly initialize the TRAM key words */
-    tram_key_prefill_value = *((volatile uint32_t *)(CC3XX_BASE_S + 0x114));
-    for (register uint32_t idx __asm("r1") = 0; idx < 8; idx++) {
-        tram_key[idx] = tram_key_prefill_value;
+    /* Set TRAM keys */
+    TRAM_TRKEY(0) = P_CC3XX->rng.ehr_data[1];
+    TRAM_TRKEY(1) = P_CC3XX->rng.ehr_data[2];
+    TRAM_TRKEY(2) = P_CC3XX->rng.ehr_data[3];
+    TRAM_TRKEY(3) = P_CC3XX->rng.ehr_data[4];
+    TRAM_TRKEY(4) = P_CC3XX->rng.ehr_data[5];
+
+    startup_fill_cc3xx_rng_ehr_buffers();
+
+    TRAM_TRKEY(5) = P_CC3XX->rng.ehr_data[0];
+    TRAM_TRKEY(6) = P_CC3XX->rng.ehr_data[1];
+    TRAM_TRKEY(7) = P_CC3XX->rng.ehr_data[2];
+
+    startup_delay(P_CC3XX->rng.ehr_data[3] & 0x1F);
+
+    /* Enable TRAM */
+    TRAM_TRC |= 0x1;
+
+    /* Redundant checks for TRAM enablement for FIH*/
+    TRAM_TRC |= 0x1;
+    if((!(TRAM_TRC & 0x1)) || (!(TRAM_TRC & 0x1))) {
+        FIH_PANIC;
     }
 
-    /* Generate the random word which is used to erase the tram key */
-    tram_key_erase_value = *((volatile uint32_t *)(CC3XX_BASE_S + 0x118));
+    startup_dma_double_word_memset(DTCM_CPU0_BASE_S, DTCM_SIZE, 0x0);
 
-    /* Generate the TRAM key and shut down the cryptocell trng */
-    tram_key[0] = *((volatile uint32_t *)(CC3XX_BASE_S + 0x11c));
-    tram_key[1] = *((volatile uint32_t *)(CC3XX_BASE_S + 0x120));
-    tram_key[2] = *((volatile uint32_t *)(CC3XX_BASE_S + 0x124));
-    tram_key[3] = *((volatile uint32_t *)(CC3XX_BASE_S + 0x128));
-    while (*((volatile uint32_t *)(CC3XX_BASE_S + 0x104)) != 0x1){}
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x1bc) = 0x00000001;
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x108) = 0xffffffff;
-    tram_key[4] = *((volatile uint32_t *)(CC3XX_BASE_S + 0x114));
-    tram_key[5] = *((volatile uint32_t *)(CC3XX_BASE_S + 0x118));
-    tram_key[6] = *((volatile uint32_t *)(CC3XX_BASE_S + 0x11c));
-    tram_key[7] = *((volatile uint32_t *)(CC3XX_BASE_S + 0x120));
-
-    /* Write the TRAM keyslot */
-    for (register uint32_t idx __asm("r1") = 0; idx < 8; idx ++) {
-        *(volatile uint32_t *)(KMU_BASE_S + 0x210 + idx * sizeof(uint32_t)) = tram_key[idx];
-    }
-
-    /* configure and lock the TRAM keyslot */
-    *(volatile uint32_t *)(KMU_BASE_S + 0x0cc) = (TRAM_BASE_S + 0x008);
-    *(volatile uint32_t *)(KMU_BASE_S + 0x04c) = 0x00d60100;
-
-    /* Set the TRAM key */
-    for (register uint32_t idx __asm("r1") = 0; idx < 8; idx ++) {
-        *(volatile uint32_t *)(TRAM_BASE_S + 0x008 + idx * sizeof(uint32_t)) = tram_key[idx];
-    }
-
-    /* Erase the TRAM key */
-    for (register uint32_t idx __asm("r1") = 0; idx < 8; idx++) {
-        tram_key[idx] = tram_key_erase_value;
-    }
-
-    /* Enable the TRAM */
-    *(volatile uint32_t *)(TRAM_BASE_S + 0x004) = 0x00000001;
-
-    /* Generate the TRAM erase random value */
-    tram_erase_value = *((volatile uint32_t *)(CC3XX_BASE_S + 0x124));
-
-    /* Work out how many DMA channels exist */
-    register uint32_t dma_channel_amount __asm("r2") =
-        (*((volatile uint32_t *)(DMA_350_BASE_S + 0xfb0)) >> 4 & 0xF) + 1;
-
-    /* Configure all DMA channels to wipe the DTCM with the random value in
-     * parallel.
-     */
-    for (register uint32_t idx __asm("r1") = 0; idx < dma_channel_amount; idx++) {
-        /* Clear the DMA channel before use */
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x000) = 0x00000002;
-        while ((*((volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x000)) & 0x2) != 0) {}
-
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x038) = tram_erase_value;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x02c) = 0x000F0044;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x018) =
-            DTCM_CPU0_BASE_S + (DTCM_SIZE / dma_channel_amount * idx);
-
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x030) = 0x00010000;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x020) =
-            (DTCM_SIZE / sizeof(uint64_t) / dma_channel_amount) << 16;
-
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x024) = 0x00000000;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x00c) = 0x1200603;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x008) = 0x00000000;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x000) = 0x00000001;
-    }
-
-    /* Wait for all the DMA channels to finish */
-    for (register uint32_t idx __asm("r1") = 0; idx < dma_channel_amount; idx++) {
-        while ((*((volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x000)) & 0x1) != 0) {}
-    }
-
-    /* Shut down the cryptocell TRNG */
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x12c) = 0x00000000;
-    *(volatile uint32_t *)(CC3XX_BASE_S + 0x1c4) = 0x00000000;
-};
+    wait_for_dma_operation_complete();
+}
 
 #if !(defined(RSE_BL1_TEST_BINARY) && defined(RSE_TEST_BINARY_IN_SRAM))
 static inline void __attribute__ ((always_inline)) erase_vm0_and_vm1(void)
@@ -320,28 +248,7 @@ static inline void __attribute__ ((always_inline)) erase_vm0_and_vm1(void)
         return;
     }
 
-    dma_channel_amount = (*((volatile uint32_t *)(DMA_350_BASE_S + 0xfb0)) >> 4 & 0xF) + 1;
-
-    /* Start the VM erase in the background */
-    for (register uint32_t idx __asm("r2") = 0; idx < dma_channel_amount; idx++) {
-        /* Clear the DMA channel before use */
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x000) = 0x00000002;
-        while ((*((volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x000)) & 0x2) != 0) {}
-
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x038) = 0x00000000;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x02c) = 0x000F0044;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x018) =
-            VM0_BASE_S + (vm_erase_size / dma_channel_amount * idx);
-
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x030) = 0x00010000;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x020) =
-            (vm_erase_size / sizeof(uint64_t) / dma_channel_amount) << 16;
-
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x024) = 0x00000000;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x00c) = 0x1200603;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x008) = 0x00000000;
-        *(volatile uint32_t *)(DMA_350_BASE_S + 0x1000 + (0x100 * idx) + 0x000) = 0x00000001;
-    }
+    startup_dma_double_word_memset(VM0_BASE_S, vm_erase_size , 0x0);
 }
 #endif /* !(RSE_BL1_TEST_BINARY && RSE_TEST_BINARY_IN_SRAM) */
 
