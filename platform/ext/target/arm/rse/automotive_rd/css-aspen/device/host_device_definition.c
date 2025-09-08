@@ -117,6 +117,12 @@ struct atu_map si_atu_regions[SI_ATU_REGION_COUNT] = {
         .size = 0x2000UL,
         .bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS,
     },
+    [SI_ATU_REGION_IDX_SHARED_SRAM_NS] = {
+        .log_addr = 0xE0130000UL,
+        .phy_addr = 0x100000ULL,
+        .size = 0x6000UL,
+        .bus_attr = ATU_ENCODE_ATTRIBUTES_NON_SECURE_PAS,
+    },
 };
 
 static const struct atu_dev_cfg_t HOST_AP_ATU_DEV_CFG = {
