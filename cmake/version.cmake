@@ -8,7 +8,7 @@
 # The 'TFM_VERSION_MANUAL' is used for fallback when Git tags are not available
 set(TFM_VERSION_MANUAL "2.2.1")
 
-execute_process(COMMAND git describe --tags --always
+execute_process(COMMAND git describe --always --candidates=1
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     OUTPUT_VARIABLE TFM_VERSION_FULL
     OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -41,5 +41,5 @@ string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" TFM_VERSION ${TFM_VERSION_FULL})
 
 # Check that manually set version is up to date
 if (NOT TFM_VERSION_MANUAL STREQUAL TFM_VERSION)
-    message(WARNING "TFM_VERSION_MANUAL mismatches to actual TF-M version. Please update TFM_VERSION_MANUAL in cmake/version.cmake")
+    message(WARNING "TFM_VERSION_MANUAL=" ${TFM_VERSION_MANUAL} " mismatches to actual TF-M version=" ${TFM_VERSION} ". Please update TFM_VERSION_MANUAL in cmake/version.cmake")
 endif()
