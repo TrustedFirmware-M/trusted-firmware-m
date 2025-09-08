@@ -397,7 +397,7 @@ uint32_t tfm_spm_init(void)
 {
     struct partition_t *partition;
     uint32_t service_setting;
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     spm_init_connection_space();
 
@@ -424,7 +424,7 @@ uint32_t tfm_spm_init(void)
         /* Bind the partition with platform. */
         FIH_CALL(tfm_hal_bind_boundary, fih_rc, partition->p_ldinf,
                  &partition->boundary);
-        if (fih_not_eq(fih_rc, fih_int_encode(TFM_HAL_SUCCESS))) {
+        if (FIH_NOT_EQ(fih_rc, TFM_HAL_SUCCESS)) {
             tfm_core_panic();
         }
 
@@ -437,7 +437,7 @@ uint32_t tfm_spm_init(void)
      * steps after static initialization of partitions' isolation has been completed.
      */
     FIH_CALL(tfm_hal_post_partition_init_hook, fih_rc);
-    if (fih_not_eq(fih_rc, fih_int_encode(TFM_HAL_SUCCESS))) {
+    if (FIH_NOT_EQ(fih_rc, TFM_HAL_SUCCESS)) {
         tfm_core_panic();
     }
 #endif /* CONFIG_TFM_POST_PARTITION_INIT_HOOK == 1 */

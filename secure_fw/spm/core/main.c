@@ -25,10 +25,10 @@
 
 static uintptr_t g_spm_boundary;
 
-static fih_int tfm_core_init(void)
+static fih_ret tfm_core_init(void)
 {
     enum tfm_plat_err_t plat_err = TFM_PLAT_ERR_SYSTEM_ERR;
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
     bool provisioning_required;
 
     /*
@@ -36,19 +36,19 @@ static fih_int tfm_core_init(void)
      * the necessary security components such as PPC/SAU.
      */
     FIH_CALL(tfm_hal_set_up_static_boundaries, fih_rc, &g_spm_boundary);
-    if (fih_not_eq(fih_rc, fih_int_encode(TFM_HAL_SUCCESS))) {
-        FIH_RET(fih_int_encode(SPM_ERROR_GENERIC));
+    if (FIH_NOT_EQ(fih_rc, TFM_HAL_SUCCESS)) {
+        FIH_RET(SPM_ERROR_GENERIC);
     }
 #ifdef TFM_FIH_PROFILE_ON
     FIH_CALL(tfm_hal_verify_static_boundaries, fih_rc);
-    if (fih_not_eq(fih_rc, fih_int_encode(TFM_HAL_SUCCESS))) {
+    if (FIH_NOT_EQ(fih_rc, TFM_HAL_SUCCESS)) {
         tfm_core_panic();
     }
 #endif
 
     FIH_CALL(tfm_hal_platform_init, fih_rc);
-    if (fih_not_eq(fih_rc, fih_int_encode(TFM_HAL_SUCCESS))) {
-        FIH_RET(fih_int_encode(SPM_ERROR_GENERIC));
+    if (FIH_NOT_EQ(fih_rc, TFM_HAL_SUCCESS)) {
+        FIH_RET(SPM_ERROR_GENERIC);
     }
 
     /*
@@ -60,19 +60,19 @@ static fih_int tfm_core_init(void)
 
     plat_err = tfm_plat_otp_init();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
-        FIH_RET(fih_int_encode(SPM_ERROR_GENERIC));
+        FIH_RET(SPM_ERROR_GENERIC);
     }
 
     /* Perform provisioning. */
     plat_err = tfm_plat_provisioning_is_required(&provisioning_required);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
-        FIH_RET(fih_int_encode(SPM_ERROR_GENERIC));
+        FIH_RET(SPM_ERROR_GENERIC);
     }
 
     if (provisioning_required) {
         plat_err = tfm_plat_provisioning_perform();
         if (plat_err != TFM_PLAT_ERR_SUCCESS) {
-            FIH_RET(fih_int_encode(SPM_ERROR_GENERIC));
+            FIH_RET(SPM_ERROR_GENERIC);
         }
     }
 
@@ -94,7 +94,7 @@ static fih_int tfm_core_init(void)
 
     tfm_core_validate_boot_data();
 
-    FIH_RET(fih_int_encode(SPM_SUCCESS));
+    FIH_RET(SPM_SUCCESS);
 }
 
 uintptr_t get_spm_boundary(void)
@@ -108,7 +108,7 @@ int main(void)
     PROFILING_INIT();
 #endif
 
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     tfm_arch_config_branch_protection();
 
@@ -118,7 +118,7 @@ int main(void)
     fih_delay_init();
 
     FIH_CALL(tfm_core_init, fih_rc);
-    if (fih_not_eq(fih_rc, fih_int_encode(SPM_SUCCESS))) {
+    if (FIH_NOT_EQ(fih_rc, SPM_SUCCESS)) {
         tfm_core_panic();
     }
 
@@ -134,7 +134,7 @@ int main(void)
 #ifdef TFM_FIH_PROFILE_ON
     /* Check secure exception priority */
     FIH_CALL(tfm_arch_verify_secure_exception_priorities, fih_rc);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
          tfm_core_panic();
     }
 #endif

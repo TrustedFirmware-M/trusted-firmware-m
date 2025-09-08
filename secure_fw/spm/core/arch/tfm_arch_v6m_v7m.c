@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -221,22 +221,22 @@ FIH_RET_TYPE(int32_t) tfm_arch_verify_secure_exception_priorities(void)
 {
     /* Set fault priority to the highest */
 #if defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
-    if (fih_not_eq(fih_int_encode(NVIC_GetPriority(MemoryManagement_IRQn)),
-                  fih_int_encode(MemoryManagement_IRQnLVL))) {
+    if (FIH_NOT_EQ(NVIC_GetPriority(MemoryManagement_IRQn),
+                  MemoryManagement_IRQnLVL)) {
         FIH_RET(FIH_FAILURE);
     }
-    if (fih_not_eq(fih_int_encode(NVIC_GetPriority(BusFault_IRQn)),
-                  fih_int_encode(BusFault_IRQnLVL))) {
+    if (FIH_NOT_EQ(NVIC_GetPriority(BusFault_IRQn),
+                  BusFault_IRQnLVL)) {
         FIH_RET(FIH_FAILURE);
     }
 #endif
 
-    if (fih_not_eq(fih_int_encode(NVIC_GetPriority(SVCall_IRQn)),
-                  fih_int_encode(SVCall_IRQnLVL))) {
+    if (FIH_NOT_EQ(NVIC_GetPriority(SVCall_IRQn),
+                  SVCall_IRQnLVL)) {
         FIH_RET(FIH_FAILURE);
     }
-    if (fih_not_eq(fih_int_encode(NVIC_GetPriority(PendSV_IRQn)),
-                  fih_int_encode(PENDSV_PRIO_FOR_SCHED))) {
+    if (FIH_NOT_EQ(NVIC_GetPriority(PendSV_IRQn),
+                  PENDSV_PRIO_FOR_SCHED)) {
         FIH_RET(FIH_FAILURE);
     }
     FIH_RET(FIH_SUCCESS);

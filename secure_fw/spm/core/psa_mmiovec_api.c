@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2022-2023 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -18,7 +18,7 @@ const void *tfm_spm_partition_psa_map_invec(psa_handle_t msg_handle,
 {
     struct connection_t *handle;
     const struct partition_t *partition = NULL;
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     /* It is a fatal error if message handle is invalid */
     handle = spm_msg_handle_to_connection(msg_handle);
@@ -80,7 +80,7 @@ const void *tfm_spm_partition_psa_map_invec(psa_handle_t msg_handle,
     FIH_CALL(tfm_hal_memory_check, fih_rc,
              partition->boundary, (uintptr_t)handle->invec_base[invec_idx],
              handle->msg.in_size[invec_idx], TFM_HAL_ACCESS_READABLE);
-    if (fih_not_eq(fih_rc, fih_int_encode(PSA_SUCCESS))) {
+    if (FIH_NOT_EQ(fih_rc, PSA_SUCCESS)) {
         tfm_core_panic();
     }
 
@@ -148,7 +148,7 @@ void *tfm_spm_partition_psa_map_outvec(psa_handle_t msg_handle,
 {
     struct connection_t *handle;
     const struct partition_t *partition = NULL;
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     /* It is a fatal error if message handle is invalid */
     handle = spm_msg_handle_to_connection(msg_handle);
@@ -209,7 +209,7 @@ void *tfm_spm_partition_psa_map_outvec(psa_handle_t msg_handle,
     FIH_CALL(tfm_hal_memory_check, fih_rc,
              partition->boundary, (uintptr_t)handle->outvec_base[outvec_idx],
              handle->msg.out_size[outvec_idx], TFM_HAL_ACCESS_READWRITE);
-    if (fih_not_eq(fih_rc, fih_int_encode(PSA_SUCCESS))) {
+    if (FIH_NOT_EQ(fih_rc, PSA_SUCCESS)) {
         tfm_core_panic();
     }
     SET_IOVEC_MAPPED(handle, (outvec_idx + OUTVEC_IDX_BASE));

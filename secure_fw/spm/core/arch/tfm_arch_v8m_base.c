@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -281,12 +281,12 @@ FIH_RET_TYPE(int32_t) tfm_arch_verify_secure_exception_priorities(void)
     if ((scb->AIRCR & SCB_AIRCR_PRIS_Msk) !=  SCB_AIRCR_PRIS_Msk) {
         FIH_RET(FIH_FAILURE);
     }
-    if (fih_not_eq(fih_int_encode(NVIC_GetPriority(SVCall_IRQn)),
-                  fih_int_encode(SVCall_IRQnLVL))) {
+    if (FIH_NOT_EQ(NVIC_GetPriority(SVCall_IRQn),
+                  SVCall_IRQnLVL)) {
         FIH_RET(FIH_FAILURE);
     }
-    if (fih_not_eq(fih_int_encode(NVIC_GetPriority(PendSV_IRQn)),
-                  fih_int_encode(PENDSV_PRIO_FOR_SCHED))) {
+    if (FIH_NOT_EQ(NVIC_GetPriority(PendSV_IRQn),
+                  PENDSV_PRIO_FOR_SCHED)) {
         FIH_RET(FIH_FAILURE);
     }
     FIH_RET(FIH_SUCCESS);

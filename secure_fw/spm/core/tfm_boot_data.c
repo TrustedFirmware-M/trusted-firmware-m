@@ -155,12 +155,12 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
     size_t next_tlv_offset = 0;
 #endif /* BOOT_DATA_AVAILABLE */
     const struct partition_t *curr_partition = GET_CURRENT_COMPONENT();
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     FIH_CALL(tfm_hal_memory_check, fih_rc,
              curr_partition->boundary, (uintptr_t)buf_start,
              buf_size, TFM_HAL_ACCESS_READWRITE);
-    if (fih_not_eq(fih_rc, fih_int_encode(PSA_SUCCESS))) {
+    if (FIH_NOT_EQ(fih_rc, PSA_SUCCESS)) {
         args[0] = (uint32_t)PSA_ERROR_INVALID_ARGUMENT;
         return;
     }

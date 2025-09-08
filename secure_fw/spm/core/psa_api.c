@@ -118,7 +118,7 @@ psa_status_t tfm_spm_partition_psa_get(psa_signal_t signal, psa_msg_t *msg)
     psa_status_t ret = PSA_ERROR_GENERIC_ERROR;
     struct connection_t *handle = NULL;
     struct partition_t *partition = NULL;
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     /*
      * Only one message could be retrieved every time for psa_get(). It is a
@@ -137,7 +137,7 @@ psa_status_t tfm_spm_partition_psa_get(psa_signal_t signal, psa_msg_t *msg)
     FIH_CALL(tfm_hal_memory_check, fih_rc,
              partition->boundary, (uintptr_t)msg,
              sizeof(psa_msg_t), TFM_HAL_ACCESS_READWRITE);
-    if (fih_not_eq(fih_rc, fih_int_encode(PSA_SUCCESS))) {
+    if (FIH_NOT_EQ(fih_rc, PSA_SUCCESS)) {
         tfm_core_panic();
     }
 

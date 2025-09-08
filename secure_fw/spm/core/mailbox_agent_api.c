@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2023 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
@@ -25,14 +25,14 @@ psa_status_t tfm_spm_agent_psa_call(psa_handle_t handle,
 {
     struct connection_t *p_connection;
     const struct partition_t *curr_partition = GET_CURRENT_COMPONENT();
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
     psa_status_t status;
 
     FIH_CALL(tfm_hal_memory_check, fih_rc,
              curr_partition->boundary, (uintptr_t)params,
              sizeof(struct client_params_t),
              TFM_HAL_ACCESS_READABLE);
-    if (fih_not_eq(fih_rc, fih_int_encode(PSA_SUCCESS))) {
+    if (FIH_NOT_EQ(fih_rc, PSA_SUCCESS)) {
         return PSA_ERROR_PROGRAMMER_ERROR;
     }
 

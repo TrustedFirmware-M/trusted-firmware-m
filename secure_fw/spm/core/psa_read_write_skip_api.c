@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2022-2023 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -18,7 +18,7 @@ size_t tfm_spm_partition_psa_read(psa_handle_t msg_handle, uint32_t invec_idx,
     size_t bytes, remaining;
     struct connection_t *handle = NULL;
     const struct partition_t *curr_partition = GET_CURRENT_COMPONENT();
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     /* It is a fatal error if message handle is invalid */
     handle = spm_msg_handle_to_connection(msg_handle);
@@ -68,7 +68,7 @@ size_t tfm_spm_partition_psa_read(psa_handle_t msg_handle, uint32_t invec_idx,
     FIH_CALL(tfm_hal_memory_check, fih_rc,
              curr_partition->boundary, (uintptr_t)buffer,
              num_bytes, TFM_HAL_ACCESS_READWRITE);
-    if (fih_not_eq(fih_rc, fih_int_encode(PSA_SUCCESS))) {
+    if (FIH_NOT_EQ(fih_rc, PSA_SUCCESS)) {
         tfm_core_panic();
     }
 
@@ -149,7 +149,7 @@ psa_status_t tfm_spm_partition_psa_write(psa_handle_t msg_handle, uint32_t outve
 {
     struct connection_t *handle = NULL;
     const struct partition_t *curr_partition = GET_CURRENT_COMPONENT();
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     /* It is a fatal error if message handle is invalid */
     handle = spm_msg_handle_to_connection(msg_handle);
@@ -201,7 +201,7 @@ psa_status_t tfm_spm_partition_psa_write(psa_handle_t msg_handle, uint32_t outve
     FIH_CALL(tfm_hal_memory_check, fih_rc,
              curr_partition->boundary, (uintptr_t)buffer,
              num_bytes, TFM_HAL_ACCESS_READABLE);
-    if (fih_not_eq(fih_rc, fih_int_encode(PSA_SUCCESS))) {
+    if (FIH_NOT_EQ(fih_rc, PSA_SUCCESS)) {
         tfm_core_panic();
     }
 

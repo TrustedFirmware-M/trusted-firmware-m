@@ -80,16 +80,16 @@ static const psa_api_svc_func_t psa_api_svc_func_table[] = {
 
 static uint32_t thread_mode_spm_return(uint32_t result)
 {
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
     FIH_RET_TYPE(bool) fih_bool;
     const struct partition_t *p_part_next = GET_CURRENT_COMPONENT();
     struct tfm_state_context_t *p_tctx = (struct tfm_state_context_t *)saved_psp;
 
     FIH_CALL(tfm_hal_boundary_need_switch, fih_bool, get_spm_boundary(), p_part_next->boundary);
-    if (fih_not_eq(fih_bool, fih_int_encode(false))) {
+    if (FIH_NOT_EQ(fih_bool, false)) {
         FIH_CALL(tfm_hal_activate_boundary, fih_rc,
                  p_part_next->p_ldinf, p_part_next->boundary);
-        if (fih_not_eq(fih_rc, fih_int_encode(TFM_HAL_SUCCESS))) {
+        if (FIH_NOT_EQ(fih_rc, TFM_HAL_SUCCESS)) {
             tfm_core_panic();
         }
     }
@@ -142,7 +142,7 @@ static void init_spm_func_context(psa_api_svc_func_t svc_func, uint32_t *ctx)
 
 static int32_t prepare_to_thread_mode_spm(uint8_t svc_number, uint32_t *ctx, uint32_t exc_return)
 {
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
     FIH_RET_TYPE(bool) fih_bool;
     const struct partition_t *p_curr_sp;
     psa_api_svc_func_t svc_func = NULL;
@@ -170,9 +170,9 @@ static int32_t prepare_to_thread_mode_spm(uint8_t svc_number, uint32_t *ctx, uin
 
     p_curr_sp = GET_CURRENT_COMPONENT();
     FIH_CALL(tfm_hal_boundary_need_switch, fih_bool, p_curr_sp->boundary, get_spm_boundary());
-    if (fih_not_eq(fih_bool, fih_int_encode(false))) {
+    if (FIH_NOT_EQ(fih_bool, false)) {
         FIH_CALL(tfm_hal_activate_boundary, fih_rc, NULL, get_spm_boundary());
-        if (fih_not_eq(fih_rc, fih_int_encode(TFM_HAL_SUCCESS))) {
+        if (FIH_NOT_EQ(fih_rc, TFM_HAL_SUCCESS)) {
             tfm_core_panic();
         }
     }
@@ -195,7 +195,7 @@ static uint32_t handle_spm_svc_requests(uint32_t svc_number, uint32_t exc_return
 {
 #if TFM_SP_LOG_RAW_ENABLED
     struct partition_t *curr_partition;
-    fih_int fih_rc = FIH_FAILURE;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
 #endif
 
     switch (svc_number) {
@@ -225,7 +225,7 @@ static uint32_t handle_spm_svc_requests(uint32_t svc_number, uint32_t exc_return
         curr_partition = GET_CURRENT_COMPONENT();
         FIH_CALL(tfm_hal_memory_check, fih_rc, curr_partition->boundary, (uintptr_t)svc_args[0],
                 svc_args[1], TFM_HAL_ACCESS_READABLE);
-        if (fih_eq(fih_rc, fih_int_encode(PSA_SUCCESS))) {
+        if (FIH_EQ(fih_rc, PSA_SUCCESS)) {
             svc_args[0] = tfm_hal_output_spm_log((const char *)svc_args[0], svc_args[1]);
         } else {
             tfm_core_panic();
