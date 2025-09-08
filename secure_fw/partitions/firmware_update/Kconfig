@@ -30,6 +30,10 @@ config FWU_DEVICE_CONFIG_FILE
     string "The device configuration file for Firmware Update partition"
     default ""
 
+config FWU_DEVICE_IMPL_INFO_DEF_FILE
+    string "The platform specific header file defining psa_fwu_impl_info_t structure"
+    default ""
+
 config FWU_SUPPORT_TRIAL_STATE
     bool
     default n

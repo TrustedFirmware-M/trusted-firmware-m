@@ -43,4 +43,5 @@ target_compile_definitions(tfm_psa_rot_partition_fwu
     PRIVATE
         MCUBOOT_${MCUBOOT_UPGRADE_STRATEGY}
         $<$<BOOL:${MCUBOOT_DIRECT_XIP_REVERT}>:MCUBOOT_DIRECT_XIP_REVERT>
+        FWU_MCUBOOT_BOOTLOADER_LIB
 )

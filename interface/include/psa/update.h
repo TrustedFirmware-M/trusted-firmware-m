@@ -20,6 +20,11 @@
 #include "psa/fwu_config.h"
 #endif
 #include "tfm_fwu_defs.h"
+#ifdef FWU_DEVICE_IMPL_INFO_DEF_FILE
+#include FWU_DEVICE_IMPL_INFO_DEF_FILE
+#else
+#include "tfm_fwu_impl_info.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -139,15 +144,6 @@ typedef struct psa_fwu_image_version_t {
  *        during an update.
  */
 #define PSA_FWU_FLAG_ENCRYPTION 0x00000002u
-
-/**
- * @brief The implementation-specific data in the component information
- *        structure.
- */
-typedef struct {
-    /* The digest of second image when store state is CANDIDATE. */
-    uint8_t candidate_digest[TFM_FWU_MAX_DIGEST_SIZE];
- } psa_fwu_impl_info_t;
 
 /**
  * @brief Information about the firmware store for a firmware component.

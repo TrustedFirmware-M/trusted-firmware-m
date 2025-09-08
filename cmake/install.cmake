@@ -127,10 +127,25 @@ endif()
 
 if(TFM_PARTITION_FIRMWARE_UPDATE)
     install(FILES       ${INTERFACE_INC_DIR}/psa/update.h
-                        ${CMAKE_BINARY_DIR}/generated/interface/include/psa/fwu_config.h
             DESTINATION ${INSTALL_INTERFACE_INC_DIR}/psa)
     install(FILES       ${INTERFACE_INC_DIR}/tfm_fwu_defs.h
             DESTINATION ${INSTALL_INTERFACE_INC_DIR})
+    if(FWU_DEVICE_CONFIG_FILE)
+        install(FILES       ${FWU_DEVICE_CONFIG_FILE}
+                RENAME      fwu_config.h
+                DESTINATION ${INSTALL_INTERFACE_INC_DIR}/psa)
+    else()
+        install(FILES       ${CMAKE_BINARY_DIR}/generated/interface/include/psa/fwu_config.h
+                DESTINATION ${INSTALL_INTERFACE_INC_DIR}/psa)
+    endif()
+    if(FWU_DEVICE_IMPL_INFO_DEF_FILE)
+        install(FILES       ${FWU_DEVICE_IMPL_INFO_DEF_FILE}
+                RENAME      tfm_fwu_impl_info.h
+                DESTINATION ${INSTALL_INTERFACE_INC_DIR})
+    else()
+        install(FILES       ${INTERFACE_INC_DIR}/tfm_fwu_impl_info.h
+                DESTINATION ${INSTALL_INTERFACE_INC_DIR})
+    endif()
 endif()
 
 if(PLATFORM_DEFAULT_CRYPTO_KEYS)

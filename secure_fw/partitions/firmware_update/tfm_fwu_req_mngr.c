@@ -258,7 +258,12 @@ static psa_status_t tfm_fwu_query(const psa_msg_t *msg)
     psa_fwu_component_t component = { 0 };
     psa_fwu_component_info_t info;
     psa_status_t result;
-    bool query_impl_info = false, query_state = true;
+#ifdef FWU_MCUBOOT_BOOTLOADER_LIB
+    bool query_impl_info = false;
+#else
+    bool query_impl_info = true;
+#endif
+    bool query_state = true;
 
     /* Check input parameters. */
     if ((msg->in_size[0] != sizeof(component)) ||
@@ -273,13 +278,17 @@ static psa_status_t tfm_fwu_query(const psa_msg_t *msg)
     if (fwu_ctx[component].in_use) {
         info.state = fwu_ctx[component].component_state;
         query_state = false;
-        /* The psa_fwu_impl_info_t contains the digest of second image when
-         * store state is CANDIDATE. Calculate the digest when store state is
-         * CANDIDATE.
+
+#ifdef FWU_MCUBOOT_BOOTLOADER_LIB
+        /*
+         * If psa_fwu_impl_info_t contains the digest of second image,
+         * calculate the digest when store state is CANDIDATE.
          */
         if (fwu_ctx[component].component_state == PSA_FWU_CANDIDATE) {
             query_impl_info = true;
-        } else if ((fwu_ctx[component].component_state == PSA_FWU_REJECTED) ||
+        }
+#endif
+        if ((fwu_ctx[component].component_state == PSA_FWU_REJECTED) ||
                    (fwu_ctx[component].component_state == PSA_FWU_FAILED)) {
             info.error = fwu_ctx[component].error;
         }

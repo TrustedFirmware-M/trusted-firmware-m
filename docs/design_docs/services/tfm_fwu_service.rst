@@ -312,6 +312,11 @@ state will be returned by ``psa_fwu_query()`` after reboot.
 Currently, image download recovery after a reboot is not supported. If a reboot happens in image
 preparation, the downloaded image data will be ignored after the reboot.
 
+The MCUboot based implementation only fills the data structure
+``psa_fwu_impl_info_t`` in ``psa_fwu_query()`` when the component is in
+CANDIDATE state. Otherwise, an empty ``psa_fwu_impl_info_t`` is returned when
+the component is in other states.
+
 ***********************************
 Benefits Analysis on this Partition
 ***********************************
@@ -364,4 +369,4 @@ Reference
 
 --------------
 
-*Copyright (c) 2021-2022, Arm Limited. All rights reserved.*
+*Copyright (c) 2021-2025, Arm Limited. All rights reserved.*

@@ -16,6 +16,7 @@ set(TFM_FWU_BOOTLOADER_LIB                "mcuboot"   CACHE STRING    "Bootloade
 set(TFM_CONFIG_FWU_MAX_WRITE_SIZE         1024        CACHE STRING    "The maximum permitted size for block in psa_fwu_write, in bytes.")
 set(TFM_CONFIG_FWU_MAX_MANIFEST_SIZE      0           CACHE STRING    "The maximum permitted size for manifest in psa_fwu_start(), in bytes.")
 set(FWU_DEVICE_CONFIG_FILE                ""          CACHE STRING    "The device configuration file for Firmware Update partition")
+set(FWU_DEVICE_IMPL_INFO_DEF_FILE         ""          CACHE STRING    "The platform specific header file defining psa_fwu_impl_info_t structure")
 if (DEFINED MCUBOOT_UPGRADE_STRATEGY)
     if(${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "SWAP_USING_SCRATCH" OR ${MCUBOOT_UPGRADE_STRATEGY} STREQUAL "SWAP_USING_MOVE")
         set(FWU_SUPPORT_TRIAL_STATE ON CACHE BOOL "Device support TRIAL component state.")
