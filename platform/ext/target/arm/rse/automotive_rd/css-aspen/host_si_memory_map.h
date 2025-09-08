@@ -37,6 +37,11 @@
 /* SI CL0 SRAM end address */
 #define HOST_SI_CL0_SRAM_PHYS_LIMIT                0x400012FFFFFFFULL
 
+/* SI CL1 SRAM base address */
+#define HOST_SI_CL1_SRAM_PHYS_BASE                 0x4000140000000ULL
+/* SI CL1 SRAM end address */
+#define HOST_SI_CL1_SRAM_PHYS_LIMIT                0x400014FFFFFFFULL
+
 /*
  * Safety Island MHU frames
  */

@@ -180,9 +180,30 @@ enum rse_atu_ids {
                                            HOST_SI_CL0_ATU_SIZE -              \
                                            RSE_IMG_HDR_ATU_WINDOW_SIZE)
 
-/* Last RSE logical address used for loading images */
-#define RSE_IMAGE_LOADING_END             (HOST_SI_CL0_IMG_CODE_BASE_S +       \
+/* SI CL1 */
+
+/* SI CL1 ATU HEADER logical address start */
+#define HOST_SI_CL1_HDR_ATU_WINDOW_BASE_S (HOST_SI_CL0_IMG_CODE_BASE_S +       \
                                            HOST_SI_CL0_ATU_SIZE)
+/* SI CL1 Image address start, offset so end of HEADER at end of ATU HEADER */
+#define HOST_SI_CL1_IMG_HDR_BASE_S        (HOST_SI_CL1_HDR_ATU_WINDOW_BASE_S + \
+                                           RSE_IMG_HDR_ATU_WINDOW_SIZE -       \
+                                           BL2_HEADER_SIZE)
+/* SI CL1 Code region and SCP ATU CODE logical address start */
+#define HOST_SI_CL1_IMG_CODE_BASE_S       (HOST_SI_CL1_HDR_ATU_WINDOW_BASE_S + \
+                                           RSE_IMG_HDR_ATU_WINDOW_SIZE)
+/* SI CL1 Shared SRAM physical address start */
+#define HOST_SI_CL1_PHYS_BASE             HOST_SI_CL1_SRAM_PHYS_BASE
+/* SI CL1 ATU CODE size (aligned size of Zephyr image) */
+#define HOST_SI_CL1_ATU_SIZE              ALIGN_UP(SIZE_DEF_SI_CL1_IMAGE,      \
+                                                   RSE_ATU_PAGE_SIZE)
+/* SI CL1 HEADER physical address start (mapped to end of SI CL1 ITCM) */
+#define HOST_SI_CL1_HDR_PHYS_BASE         (HOST_SI_CL1_PHYS_BASE +             \
+                                           HOST_SI_CL1_ATU_SIZE -              \
+                                           RSE_IMG_HDR_ATU_WINDOW_SIZE)
+/* Last RSE logical address used for loading images */
+#define RSE_IMAGE_LOADING_END             (HOST_SI_CL1_IMG_CODE_BASE_S +       \
+                                           HOST_SI_CL1_ATU_SIZE)
 
 /* SI CL0 Cluster Utility Bus logical address start */
 #define HOST_SI_CL0_CUB_ATU_WINDOW_BASE_S RSE_IMAGE_LOADING_END
