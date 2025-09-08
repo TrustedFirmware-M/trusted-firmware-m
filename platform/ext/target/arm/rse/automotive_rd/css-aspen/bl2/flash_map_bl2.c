@@ -51,6 +51,20 @@ struct flash_area flash_map[] = {
         .fa_size = FLASH_AREA_5_SIZE,
     },
     {
+        .fa_id = FLASH_AREA_6_ID,
+        .fa_device_id = FLASH_DEVICE_ID,
+        .fa_driver = &FLASH_DEV_NAME,
+        .fa_off = FLASH_AREA_6_OFFSET,
+        .fa_size = FLASH_AREA_6_SIZE,
+    },
+    {
+        .fa_id = FLASH_AREA_7_ID,
+        .fa_device_id = FLASH_DEVICE_ID,
+        .fa_driver = &FLASH_DEV_NAME,
+        .fa_off = FLASH_AREA_7_OFFSET,
+        .fa_size = FLASH_AREA_7_SIZE,
+    },
+    {
         .fa_id = AP_FLASH_AREA_0_ID,
         .fa_device_id = FLASH_DEVICE_ID,
         .fa_driver = &AP_FLASH_DEV_NAME,
@@ -95,6 +109,9 @@ int boot_get_image_exec_ram_info(uint32_t image_id,
     } else if (image_id == RSE_FIRMWARE_SI_CL0_ID) {
         *exec_ram_start = HOST_SI_CL0_IMG_HDR_BASE_S;
         *exec_ram_size  = HOST_SI_CL0_ATU_SIZE;
+    } else if (image_id == RSE_FIRMWARE_SI_CL1_ID) {
+        *exec_ram_start = HOST_SI_CL1_IMG_HDR_BASE_S;
+        *exec_ram_size  = HOST_SI_CL1_ATU_SIZE;
     } else {
         rc = -1;
     }

@@ -17,6 +17,7 @@
 
 /* Host Firmware */
 #define SIZE_DEF_AP_BL2_IMAGE       (0x80000) /* 512 KB */
-#define SIZE_DEF_SI_CL0_IMAGE       (0x100000)/* 1024 KB */
+#define SIZE_DEF_SI_CL0_IMAGE       (0x100000) /* 1024 KB */
+#define SIZE_DEF_SI_CL1_IMAGE       (0x100000) /* 1024 KB */
 
 #endif /* __IMAGE_SIZE_DEFS_H__ */

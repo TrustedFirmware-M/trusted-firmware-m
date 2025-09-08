@@ -22,7 +22,8 @@
 /* Host Firmware */
 #define RSE_FIRMWARE_AP_BL2_ID       2
 #define RSE_FIRMWARE_SI_CL0_ID       3
+#define RSE_FIRMWARE_SI_CL1_ID       4
 /* Number of firmware loaded by BL2 */
-#define RSE_FIRMWARE_COUNT           4
+#define RSE_FIRMWARE_COUNT           5
 
 #endif /* __BL2_IMAGE_ID_H__ */
