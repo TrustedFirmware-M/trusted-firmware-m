@@ -133,13 +133,29 @@ def _get_next_line(text):
 
         yield yield_line
 
+def split_expr(expr: str):
+    # First split on whitespace
+    parts = expr.split()
+    tokens = []
+    for part in parts:
+        # For each chunk, split again on math symbols
+        for op in "()*/+-":
+            part = part.replace(op, f" {op} ")
+        tokens.extend(part.split())
+    return tokens
+
 def _replace_whole_word(text, target, replacement):
-    words = text.split()
+    custom_punct = string.punctuation.replace("_", "")
+    words = split_expr(text)
     new_words = [
-        word.replace(target, replacement) if word.strip(string.punctuation) == target else word
+        word.replace(target, replacement) if word.strip(custom_punct) == target else word
         for word in words
     ]
     return ' '.join(new_words)
+
+def contains_identifier(text: str, identifier: str) -> bool:
+        pattern = rf'(?<![A-Za-z0-9_]){re.escape(identifier)}(?![A-Za-z0-9_])'
+        return re.search(pattern, text) is not None
 
 class Conditional_block_state():
     """Represents the state of a conditional block (#if/elif/else)"""
@@ -189,7 +205,7 @@ class C_macro():
             if isinstance(v, str):
                 text = _replace_whole_word(text, d, v)
             else:
-                if d in text:
+                if contains_identifier(text, d):
                     s, me = text.split(d, 1)
                     _, m, e = _split_outer_brackets(me)
                     m = str(v(*[x.rstrip().lstrip() for x in m.split(",")]))
@@ -315,10 +331,10 @@ class C_macro():
 
     def _search_paths(self, h_file):
         for i in self._include_paths:
+            file_path = os.path.join(i, h_file)
             try:
-                dir_files = [f for f in os.listdir(i) if os.path.isfile(os.path.join(i, f))]
-                if h_file in dir_files:
-                    return os.path.join(i, h_file)
+                if os.path.isfile(file_path):
+                    return file_path
             except FileNotFoundError:
                 continue
         return h_file
