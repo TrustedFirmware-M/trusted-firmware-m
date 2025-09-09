@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -172,6 +172,7 @@ macro(target_add_scatter_file target)
     set_source_files_properties(${SCATTER_FILE_PATH}
         PROPERTIES
         LANGUAGE C
+        KEEP_EXTENSION True # Don't use .o extension for the preprocessed file
     )
 
     target_link_options(${target}

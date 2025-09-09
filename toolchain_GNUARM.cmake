@@ -169,8 +169,17 @@ endmacro()
 # Macro for converting the output *.axf file to finary files: bin, elf, hex
 macro(add_convert_to_bin_target target)
     get_target_property(bin_dir ${target} RUNTIME_OUTPUT_DIRECTORY)
+
     add_custom_target(${target}_bin
-        ALL DEPENDS ${target}
+        ALL SOURCES ${bin_dir}/${target}.bin
+        SOURCES ${bin_dir}/${target}.elf
+        SOURCES ${bin_dir}/${target}.hex
+    )
+
+    add_custom_command(OUTPUT ${bin_dir}/${target}.bin
+        OUTPUT ${bin_dir}/${target}.elf
+        OUTPUT ${bin_dir}/${target}.hex
+        DEPENDS ${target}
         COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${target}> ${bin_dir}/${target}.bin
         COMMAND ${CMAKE_OBJCOPY} -O elf32-littlearm $<TARGET_FILE:${target}> ${bin_dir}/${target}.elf
         COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:${target}> ${bin_dir}/${target}.hex

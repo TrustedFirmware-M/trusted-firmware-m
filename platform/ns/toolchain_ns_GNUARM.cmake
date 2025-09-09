@@ -152,7 +152,8 @@ macro(target_add_scatter_file target)
 
     set_source_files_properties(${scatter_file} PROPERTIES
         LANGUAGE C
-        KEEP_EXTENSION True)
+        KEEP_EXTENSION True # Don't use .o extension for the preprocessed file
+    )
 
     target_compile_options(${target}_scatter
         PRIVATE
@@ -165,6 +166,8 @@ macro(target_add_scatter_file target)
         PRIVATE
             $<$<NOT:$<BOOL:${CONFIG_GNU_LINKER_READONLY_ATTRIBUTE}>>:READONLY=>
     )
+
+    set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS $<TARGET_OBJECTS:${target}_scatter>)
 
     target_link_libraries(${target}_scatter
         PRIVATE

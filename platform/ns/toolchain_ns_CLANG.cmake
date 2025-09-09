@@ -1,6 +1,8 @@
 #-------------------------------------------------------------------------------
-# SPDX-License-Identifier: BSD-3-Clause
 # SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
 #-------------------------------------------------------------------------------
 #
 # CMake toolchain file for "Arm Toolchain for Embedded"
@@ -162,6 +164,8 @@ macro(target_add_scatter_file target)
         KEEP_EXTENSION True # Avoid *.o extension for the preprocessed file
     )
 
+    set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS $<TARGET_OBJECTS:${target}_scatter>)
+
     target_link_libraries(${target}_scatter PRIVATE platform_region_defs)
 
     target_compile_options(${target}_scatter PRIVATE -E -xc)
@@ -169,7 +173,6 @@ macro(target_add_scatter_file target)
     target_link_options(${target} PRIVATE -T $<TARGET_OBJECTS:${target}_scatter>)
 
     add_dependencies(${target} ${target}_scatter)
-    set_target_properties(${target} PROPERTIES LINK_DEPENDS $<TARGET_OBJECTS:${target}_scatter>)
 
 endmacro()
 
