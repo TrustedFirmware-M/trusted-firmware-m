@@ -22,7 +22,10 @@ def get_compile_command(compile_commands_file, c_file):
 
 def get_includes(compile_commands_file, c_file):
     compile_command = get_compile_command(compile_commands_file, c_file).split()
-    return [x[2:].strip() for x in compile_command if x.rstrip()[:2] == "-I"]
+    ret = []
+    ret.extend([x[2:].strip() for x in compile_command if x.rstrip()[:2] == "-I"])
+    ret.extend([compile_command[i+1] for i, x in enumerate(compile_command[:-1]) if x == "-isystem"])
+    return ret
 
 def get_defines(compile_commands_file, c_file):
     compile_command = get_compile_command(compile_commands_file, c_file).split()
