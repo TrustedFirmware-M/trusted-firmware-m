@@ -37,6 +37,9 @@ if((NRF_SOC_VARIANT MATCHES "^nrf54l1[05]$") OR
   # variables keep changing so we check both to be future proof
   set(HAS_RRAMC 1)
   set(HAS_CRACEN 1)
+elseif((NRF_SOC_VARIANT MATCHES nrf7120) OR (TFM_PLATFORM MATCHES "nordic\_nrf\/nrf7120pdk\_nrf7120\_cpuapp") OR (PSA_API_TEST_TARGET MATCHES "nrf7120"))
+  set(HAS_MRAMC 1)
+  set(HAS_CRACEN 1)
 else()
   set(HAS_NVMC 1)
   set(HAS_CRACEN 0)
@@ -95,6 +98,10 @@ endif()
 if(HAS_RRAMC)
   list(APPEND nvm_sources
     ${HAL_NORDIC_PATH}/nrfx/drivers/src/nrfx_rramc.c
+  )
+elseif(HAS_MRAMC)
+  list(APPEND nvm_sources
+    ${HAL_NORDIC_PATH}/nrfx/drivers/src/nrfx_mramc.c
   )
 elseif(HAS_NVMC)
   list(APPEND nvm_sources
@@ -216,6 +223,7 @@ target_sources(tfm_spm
         target_cfg.c
         $<$<BOOL:${HAS_RRAMC}>:${CMAKE_CURRENT_SOURCE_DIR}/target_cfg_54l.c>
         $<$<BOOL:${HAS_NVMC}>:${CMAKE_CURRENT_SOURCE_DIR}/target_cfg_53_91.c>
+        $<$<BOOL:${HAS_MRAMC}>:${CMAKE_CURRENT_SOURCE_DIR}/target_cfg_71.c>
         secure_peripherals_defs.c
 )
 

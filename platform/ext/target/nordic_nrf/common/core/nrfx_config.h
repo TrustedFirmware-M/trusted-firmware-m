@@ -42,6 +42,8 @@
 #define NRFX_NVMC_ENABLED 1
 #elif defined(NRF_RRAMC_S)
 #define NRFX_RRAMC_ENABLED 1
+#elif defined(NRF_MRAMC_S)
+#define NRFX_MRAMC_ENABLED 1
 #else
 #error "Unrecognized platform"
 #endif
@@ -102,6 +104,8 @@
     #include <nrfx_config_nrf91.h>
 #elif defined(NRF54L_SERIES)
     #include <nrfx_config_nrf54l.h>
+#elif defined(NRF71_SERIES)
+    #include <nrfx_config_nrf71.h>
 #else
     #error "Unknown device."
 #endif
