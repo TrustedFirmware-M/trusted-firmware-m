@@ -17,8 +17,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define CC3XX_CRYPTO_OPAQUE_KEYS
-
 /**
  * \brief The PSA driver location for builtin keys. Arbitrary within the
  *        ranges documented at

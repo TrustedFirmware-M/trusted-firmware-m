@@ -234,4 +234,7 @@
 /* Whether the present hardware is a CC310 */
 /* #define CC3XX_CONFIG_HW_VERSION_CC310 */
 
+/* Whether Opaque keys are enabled or not */
+#define CC3XX_CRYPTO_OPAQUE_KEYS
+
 #endif /* CC3XX_CONFIG_H */
