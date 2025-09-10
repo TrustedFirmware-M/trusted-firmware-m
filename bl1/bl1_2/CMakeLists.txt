@@ -167,7 +167,7 @@ add_custom_command(OUTPUT bl2_signed.bin
     COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_SOURCE_DIR}/tools/modules
             ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_bl2_img.py
                     --bl2_image_config ${CMAKE_CURRENT_BINARY_DIR}/config/bl2_image_config.pickle
-                    --bl2_bin $<TARGET_FILE_DIR:bl2>/bl2.bin
+                    --bl2_bin ${bin_dir}/bl2.bin
                     --image_output_file bl2_signed.bin
                     --signer_0:sign_alg ${TFM_BL1_2_CM_SIGNING_ALG}
                     --signer_0:sign_key ${TFM_BL1_2_CM_SIGNING_KEY_PATH}
@@ -180,5 +180,5 @@ add_custom_command(OUTPUT bl2_signed.bin
                     $<$<BOOL:${TFM_BL1_2_IMAGE_ENCRYPTION}>:--encrypt_key=${TFM_BL2_ENCRYPTION_KEY_PATH}>
                     $<$<BOOL:${TFM_BL1_2_IMAGE_ENCRYPTION}>:--encrypt_alg=AES_CTR>
                     $<$<BOOL:${TFM_BL1_2_IMAGE_ENCRYPTION}>:--kdf_alg=$<IF:$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>,hkdf,sp800-108_cmac>>
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/bl2_signed.bin $<TARGET_FILE_DIR:bl2>
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/bl2_signed.bin ${bin_dir}
 )

@@ -92,24 +92,27 @@ add_custom_command(OUTPUT bl1_2_padded.bin bl1_2_padded_hash.bin
     OUTPUT ${bin_dir}/bl1_2_padded.bin ${bin_dir}/bl1_2_padded_hash.bin
     DEPENDS bl1_2_bin signing_layout_bl1_2
     COMMAND bl1_1_create_bl1_2_image
-                    --input_file $<TARGET_FILE_DIR:bl1_2>/bl1_2.bin
+                    --input_file ${bin_dir}/bl1_2.bin
                     --img_output_file bl1_2_padded.bin
                     --hash_alg ${TFM_BL1_1_MEASUREMENT_HASH_ALG}
                     --hash_output_file bl1_2_padded_hash.bin
                     --signing_layout_file $<TARGET_OBJECTS:signing_layout_bl1_2>
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/bl1_2_padded.bin $<TARGET_FILE_DIR:bl1_2>
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/bl1_2_padded_hash.bin $<TARGET_FILE_DIR:bl1_2>
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/bl1_2_padded.bin ${bin_dir}
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/bl1_2_padded_hash.bin ${bin_dir}
 )
 
 ################################################################################
 
 if (TFM_BL1_DEFAULT_PROVISIONING)
+    get_target_property(bin_dir bl1_1 RUNTIME_OUTPUT_DIRECTORY)
+
     add_custom_target(bl1_provisioning_bundle
         ALL
         SOURCES bl1_provisioning_bundle.bin
     )
 
     add_custom_command(OUTPUT bl1_provisioning_bundle.bin
+        OUTPUT ${bin_dir}/bl1_provisioning_bundle.bin
         DEPENDS ${TFM_BL2_ENCRYPTION_KEY_PATH}
         DEPENDS ${TFM_GUK_PATH}
         DEPENDS $<TARGET_FILE_DIR:bl1_2>/bl1_2_padded_hash.bin
@@ -122,6 +125,6 @@ if (TFM_BL1_DEFAULT_PROVISIONING)
                         --bl1_2_padded_hash_input_file $<TARGET_FILE_DIR:bl1_2>/bl1_2_padded_hash.bin
                         --bl1_2_input_file $<TARGET_FILE_DIR:bl1_2>/bl1_2_padded.bin
                         --bundle_output_file bl1_provisioning_bundle.bin
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/bl1_provisioning_bundle.bin $<TARGET_FILE_DIR:bl1_1>
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/bl1_provisioning_bundle.bin ${bin_dir}
     )
 endif()
