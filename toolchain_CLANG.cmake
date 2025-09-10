@@ -1,6 +1,8 @@
 #-------------------------------------------------------------------------------
-# SPDX-License-Identifier: BSD-3-Clause
 # SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
 #-------------------------------------------------------------------------------
 #
 # CMake toolchain file for "Arm Toolchain for Embedded"
@@ -21,6 +23,9 @@ set(CMAKE_ASM_COMPILER_TARGET ${CROSS_COMPILE})
 set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_COMPILER_FORCED TRUE)
 set(CMAKE_CXX_STANDARD 11)
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+include(imported_target)
 
 # This variable name is a bit of a misnomer. The file it is set to is included
 # at a particular step in the compiler initialisation. It is used here to
@@ -179,6 +184,8 @@ macro(add_convert_to_bin_target target)
         COMMAND ${CMAKE_OBJCOPY} -O elf32-littlearm $<TARGET_FILE:${target}> ${bin_dir}/${target}.elf
         COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:${target}> ${bin_dir}/${target}.hex
     )
+
+    add_imported_target(${target}_hex ${target}_bin "${bin_dir}/${target}.hex")
 endmacro()
 
 # Set of macrots for sharing code between BL2 and RunTime, targeted for sharing MbedTLS library

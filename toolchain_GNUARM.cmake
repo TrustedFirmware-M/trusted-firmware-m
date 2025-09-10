@@ -18,6 +18,9 @@ set(CMAKE_CXX_COMPILER ${CROSS_COMPILE}-g++)
 set(CMAKE_CXX_COMPILER_FORCED TRUE)
 set(CMAKE_CXX_STANDARD 11)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+include(imported_target)
+
 # This variable name is a bit of a misnomer. The file it is set to is included
 # at a particular step in the compiler initialisation. It is used here to
 # configure the extensions for object files. Despite the name, it also works
@@ -184,6 +187,8 @@ macro(add_convert_to_bin_target target)
         COMMAND ${CMAKE_OBJCOPY} -O elf32-littlearm $<TARGET_FILE:${target}> ${bin_dir}/${target}.elf
         COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:${target}> ${bin_dir}/${target}.hex
     )
+
+    add_imported_target(${target}_hex ${target}_bin "${bin_dir}/${target}.hex")
 endmacro()
 
 # Set of macrots for sharing code between BL2 and RunTime, targeted for sharing MbedTLS library

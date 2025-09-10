@@ -17,6 +17,9 @@ set(CMAKE_ASM_COMPILER armclang)
 set(LINKER_VENEER_OUTPUT_FLAG --import_cmse_lib_out=)
 set(COMPILER_CMSE_FLAG $<$<COMPILE_LANGUAGE:C>:-mcmse>)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+include(imported_target)
+
 # This variable name is a bit of a misnomer. The file it is set to is included
 # at a particular step in the compiler initialisation. It is used here to
 # configure the extensions for object files. Despite the name, it also works
@@ -353,7 +356,7 @@ macro(add_convert_to_bin_target target)
             --output=${bin_dir}/${target}.elf
     )
 
-    add_custom_target(${target}_hex
+    add_custom_target(${target}_hex_build
         SOURCES ${bin_dir}/${target}.hex
     )
     add_custom_command(OUTPUT ${bin_dir}/${target}.hex
@@ -362,6 +365,8 @@ macro(add_convert_to_bin_target target)
             --i32combined $<TARGET_FILE:${target}>
             --output=${bin_dir}/${target}.hex
     )
+
+    add_imported_target(${target}_hex ${target}_hex_build "${bin_dir}/${target}.hex")
 
     add_custom_target(${target}_binaries
         ALL

@@ -331,4 +331,5 @@ configure_file(${CMAKE_SOURCE_DIR}/config/spe_config.cmake.in
 install(FILES
         cmake/set_extensions.cmake
         cmake/mcpu_features.cmake
+        cmake/imported_target.cmake
         DESTINATION ${INSTALL_CMAKE_DIR})
