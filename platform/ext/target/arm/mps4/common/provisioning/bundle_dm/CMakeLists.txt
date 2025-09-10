@@ -32,6 +32,7 @@ endif()
 set_target_properties(dm_provisioning_bundle
     PROPERTIES
         SUFFIX ".axf"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
 target_add_scatter_file(dm_provisioning_bundle
@@ -122,7 +123,10 @@ add_custom_command(OUTPUT dm_provisioning_data.c
         --entropy_seed=${ENTROPY_SEED}
 )
 
+set(bin_dir ${CMAKE_BINARY_DIR}/bin)
+
 add_custom_command(OUTPUT dm_provisioning_bundle.bin
+    OUTPUT ${bin_dir}/dm_provisioning_bundle.bin
     DEPENDS $<TARGET_FILE_DIR:dm_provisioning_bundle>/dm_provisioning_bundle.axf
     DEPENDS $<TARGET_FILE_DIR:bl1_2>/bl1_2_padded_hash.bin
     DEPENDS $<TARGET_FILE_DIR:bl1_2>/bl1_2_padded.bin
@@ -139,5 +143,13 @@ add_custom_command(OUTPUT dm_provisioning_bundle.bin
                     --code_pad_size ${PROVISIONING_CODE_PADDED_SIZE}
                     --data_pad_size ${PROVISIONING_DATA_PADDED_SIZE}
                     --values_pad_size ${PROVISIONING_VALUES_PADDED_SIZE}
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/dm_provisioning_bundle.bin ${CMAKE_BINARY_DIR}/bin/dm_provisioning_bundle.bin
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/dm_provisioning_bundle.bin ${bin_dir}/dm_provisioning_bundle.bin
+)
+
+add_convert_to_offset_hex_target(dm_provisioning_bundle
+        INPUT_FILE          ${bin_dir}/dm_provisioning_bundle.bin
+        OFFSET_MACRO_NAME   DM_PROVISIONING_BUNDLE_START
+        INCLUDE_BL2_HEADER  FALSE
+        MIRROR_FILE         $<TARGET_PROPERTY:dm_provisioning_bundle,LINK_DEPENDS>
+        OUTPUT_FILE         ${bin_dir}/dm_provisioning_bundle.hex
 )

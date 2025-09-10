@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -36,7 +36,7 @@ uint32_t bl1_image_get_flash_offset(uint32_t image_id)
     switch (image_id) {
     case 0:
     case 1:
-        return BL2_ENCRYPTED_IMAGE_START - FLASH_BL1_BASE_ADDRESS;
+        return BL2_IMAGE_LOAD_ADDRESS - FLASH_BL1_BASE_ADDRESS;
     default:
         while(1){}
     }

@@ -59,3 +59,13 @@ set(MCUBOOT_USE_PSA_CRYPTO            ON               CACHE BOOL      "Enable t
 set(MCUBOOT_SIGNATURE_TYPE            "EC-P256"        CACHE STRING    "Algorithm to use for signature validation [RSA-2048, RSA-3072, EC-P256, EC-P384]")
 set(MCUBOOT_HW_KEY                    OFF              CACHE BOOL      "Whether to embed the entire public key in the image metadata instead of the hash only")
 set(MCUBOOT_BUILTIN_KEY               ON               CACHE BOOL      "Use builtin key(s) for validation, no public key data is embedded into the image metadata")
+
+set(TFM_MERGE_HEX_FILES         ON                                              CACHE BOOL   "Create merged hex file in the end of the build")
+set(TFM_S_HEX_FILE_PATH         "${CMAKE_BINARY_DIR}/bin/secure_fw.hex"         CACHE STRING "Merged secure hex file's path")
+set(TFM_S_HEX_MERGE_LIST
+        bl1_1_hex
+        dm_provisioning_bundle_hex
+        cm_provisioning_bundle_hex
+        bl2_signed_hex
+        tfm_s_signed_hex
+    CACHE STRING "Merged secure hex file's target list")
