@@ -65,7 +65,7 @@ def main():
     kwargs = parse_args(args)
 
     with open(args.output_file, "wb") as f:
-        message = create_plain_data_message(**kwargs,
+        message = pmc.create_plain_data_message(**kwargs,
                                             plain_data_type=kwargs['provisioning_message_config'].RSE_PROVISIONING_PLAIN_DATA_TYPE_NON_ENDORSED_DM_ROTPKS,
                                             data=kwargs['provisioning_config'].non_endorsed_dm_layout.to_bytes())
         f.write(message)
