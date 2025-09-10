@@ -8,6 +8,8 @@
 #-------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.21)
 
+include(hex_generator)
+
 add_library(platform_s STATIC)
 add_library(platform_region_defs INTERFACE)
 add_library(platform_common_interface INTERFACE)
@@ -464,3 +466,10 @@ target_link_libraries(platform_region_defs
     INTERFACE
         tfm_config
 )
+
+if(TFM_MERGE_HEX_FILES)
+    merge_hex(merged_secure_hex
+        OUTPUT         ${TFM_S_HEX_FILE_PATH}
+        INPUT_TARGETS  ${TFM_S_HEX_MERGE_LIST}
+    )
+endif()

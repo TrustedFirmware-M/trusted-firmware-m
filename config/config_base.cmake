@@ -219,3 +219,9 @@ set_property(CACHE BL1_1_SANITIZE PROPERTY STRINGS ${SANITIZE_OPTIONS})
 set_property(CACHE BL1_2_SANITIZE PROPERTY STRINGS ${SANITIZE_OPTIONS})
 set_property(CACHE BL2_SANITIZE   PROPERTY STRINGS ${SANITIZE_OPTIONS})
 set_property(CACHE TFM_SANITIZE   PROPERTY STRINGS ${SANITIZE_OPTIONS})
+
+########################## TF-M hex file generation ############################
+
+set(TFM_MERGE_HEX_FILES                    OFF        CACHE BOOL   "Create merged hex file in the end of the build")
+set(TFM_S_HEX_FILE_PATH                    ""         CACHE STRING "Merged secure hex file's path")
+set(TFM_S_HEX_MERGE_LIST                   ""         CACHE STRING "Merged secure hex file's target list")

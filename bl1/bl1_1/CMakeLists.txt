@@ -127,4 +127,12 @@ if (TFM_BL1_DEFAULT_PROVISIONING)
                         --bundle_output_file bl1_provisioning_bundle.bin
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/bl1_provisioning_bundle.bin ${bin_dir}
     )
+
+    add_convert_to_offset_hex_target(bl1_provisioning_bundle
+        INPUT_FILE          ${bin_dir}/bl1_provisioning_bundle.bin
+        OFFSET_MACRO_NAME   PROVISIONING_CODE_START
+        INCLUDE_BL2_HEADER  FALSE
+        MIRROR_FILE         $<TARGET_PROPERTY:bl1_1,LINK_DEPENDS>
+        OUTPUT_FILE         ${bin_dir}/bl1_provisioning_bundle.hex
+    )
 endif()

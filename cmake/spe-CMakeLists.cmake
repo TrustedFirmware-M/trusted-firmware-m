@@ -12,6 +12,9 @@ cmake_minimum_required(VERSION 3.21)
 
 include(spe_config)
 include(spe_export)
+include(hex_generator)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "" FORCE)
 
 set_target_properties(tfm_config psa_interface psa_crypto_config PROPERTIES IMPORTED_GLOBAL True)
 target_link_libraries(tfm_config INTERFACE psa_interface)
@@ -189,12 +192,23 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
         set(S_NS_SIGNED_TARGET_NAME tfm_s_ns_signed)
     endif()
 
+    add_convert_to_offset_hex_target(tfm_s_ns_signed
+        INPUT_FILE          ${CMAKE_BINARY_DIR}/tfm_s_ns_signed.bin
+        OFFSET_MACRO_NAME   S_CODE_START
+        INCLUDE_BL2_HEADER  TRUE
+        MIRROR_FILE         $<TARGET_PROPERTY:${NS_TARGET_NAME},LINK_DEPENDS>
+        OUTPUT_FILE         ${CMAKE_BINARY_DIR}/tfm_s_ns_signed.hex
+    )
+
     add_custom_command(
-        TARGET tfm_s_ns_signed_bin
+        TARGET tfm_s_ns_signed_hex_build
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_BINARY_DIR}/tfm_s_ns_signed.bin
             $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${S_NS_SIGNED_TARGET_NAME}.bin
+        COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_BINARY_DIR}/tfm_s_ns_signed.hex
+            $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${S_NS_SIGNED_TARGET_NAME}.hex
     )
 
     if (MCUBOOT_IMAGE_NUMBER GREATER 1)
@@ -235,6 +249,14 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             COMMAND mcuboot_imagesign_wrapper ${wrapper_args}
         )
 
+        add_convert_to_offset_hex_target(${NS_TARGET_NAME}_signed
+            INPUT_FILE          ${CMAKE_BINARY_DIR}/bin/${NS_TARGET_NAME}_signed.bin
+            OFFSET_MACRO_NAME   NS_CODE_START
+            INCLUDE_BL2_HEADER  TRUE
+            MIRROR_FILE         $<TARGET_PROPERTY:${NS_TARGET_NAME},LINK_DEPENDS>
+            OUTPUT_FILE         ${CMAKE_BINARY_DIR}/bin/${NS_TARGET_NAME}_signed.hex
+        )
+
         # Create concatenated binary image from the two independently signed
         # binary file. This only uses the local assemble script (not from
         # upstream mcuboot) because that script is geared towards zephyr
@@ -250,6 +272,9 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
                 --secure ${CMAKE_CURRENT_SOURCE_DIR}/bin/tfm_s_signed.bin
                 --non_secure ${CMAKE_BINARY_DIR}/bin/${NS_TARGET_NAME}_signed.bin
                 --output ${CMAKE_BINARY_DIR}/tfm_s_ns_signed.bin
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_BINARY_DIR}/tfm_s_ns_signed.bin
+                $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${S_NS_SIGNED_TARGET_NAME}.bin
         )
     else()
         add_custom_target(tfm_s_ns_bin
@@ -299,6 +324,17 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
 
             # sign the combined tfm_s_ns.bin file
             COMMAND mcuboot_imagesign_wrapper ${wrapper_args}
+            COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_BINARY_DIR}/tfm_s_ns_signed.bin
+                $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${S_NS_SIGNED_TARGET_NAME}.bin
         )
     endif()
+endif()
+
+if(TFM_MERGE_HEX_FILES)
+    merge_hex(merged_hex
+        OUTPUT         ${CMAKE_BINARY_DIR}/bin/combined.hex
+        INPUT_TARGETS  ${NS_TARGET_NAME}_signed_hex
+        INPUT_FILES    ${TFM_S_HEX_FILE_PATH}
+    )
 endif()

@@ -332,4 +332,5 @@ install(FILES
         cmake/set_extensions.cmake
         cmake/mcpu_features.cmake
         cmake/imported_target.cmake
+        cmake/hex_generator.cmake
         DESTINATION ${INSTALL_CMAKE_DIR})

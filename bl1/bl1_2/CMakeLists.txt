@@ -182,3 +182,11 @@ add_custom_command(OUTPUT bl2_signed.bin
                     $<$<BOOL:${TFM_BL1_2_IMAGE_ENCRYPTION}>:--kdf_alg=$<IF:$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>,hkdf,sp800-108_cmac>>
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/bl2_signed.bin ${bin_dir}
 )
+
+add_convert_to_offset_hex_target(bl2_signed
+        INPUT_FILE          ${bin_dir}/bl2_signed.bin
+        OFFSET_MACRO_NAME   BL2_IMAGE_LOAD_ADDRESS
+        INCLUDE_BL2_HEADER  FALSE
+        MIRROR_FILE         $<TARGET_PROPERTY:bl2,LINK_DEPENDS>
+        OUTPUT_FILE         ${bin_dir}/bl2_signed.hex
+)

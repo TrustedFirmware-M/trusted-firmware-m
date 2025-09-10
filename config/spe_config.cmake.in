@@ -84,3 +84,6 @@ set(TFM_NS_MANAGE_NSID                     @TFM_NS_MANAGE_NSID@)
 
 set(RECOMMENDED_TFM_TESTS_VERSION          @TFM_TESTS_VERSION@)
 set(CHECK_TFM_TESTS_VERSION                @TFM_TESTS_REVISION_CHECKS@)
+
+set(TFM_MERGE_HEX_FILES                    @TFM_MERGE_HEX_FILES@        CACHE BOOL   "Create merged hex file in the end of the build")
+set(TFM_S_HEX_FILE_PATH                    @TFM_S_HEX_FILE_PATH@        CACHE STRING "Merged secure hex file's path")

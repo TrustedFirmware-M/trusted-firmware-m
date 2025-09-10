@@ -7,6 +7,8 @@
 
 cmake_minimum_required(VERSION 3.21)
 
+include(hex_generator)
+
 fetch_remote_library(
     LIB_NAME                mcuboot
     LIB_SOURCE_PATH_VAR     MCUBOOT_PATH
@@ -293,4 +295,11 @@ if (PLATFORM_DEFAULT_IMAGE_SIGNING)
         DEPENDS tfm_s_signed_bin
     )
 
+    add_convert_to_offset_hex_target(tfm_s_signed
+        INPUT_FILE          ${bin_dir}/tfm_s_signed.bin
+        OFFSET_MACRO_NAME   S_CODE_START
+        INCLUDE_BL2_HEADER  TRUE
+        MIRROR_FILE         $<TARGET_PROPERTY:tfm_s,LINK_DEPENDS>
+        OUTPUT_FILE         ${bin_dir}/tfm_s_signed.hex
+    )
 endif()
