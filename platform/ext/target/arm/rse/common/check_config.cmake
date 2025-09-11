@@ -38,6 +38,10 @@ tfm_invalid_config((RSE_DM_CHAINED_PROVISIONING OR TFM_PARTITION_RUNTIME_PROVISI
 tfm_invalid_config((RSE_NON_ENDORSED_DM_PROVISIONING OR RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING
                     OR RSE_DM_CHAINED_PROVISIONING)
                     AND RSE_SYMMETRIC_PROVISIONING)
+
+# In case of XIP the copy regions are read only and cannot be reused as stack
+tfm_invalid_config(CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS AND RSE_XIP)
+
 ########################## Attestation #########################################
 
 get_property(TFM_ATTESTATION_SCHEME_LIST CACHE TFM_ATTESTATION_SCHEME PROPERTY STRINGS)

@@ -79,6 +79,10 @@ REGION_DECLARE(Image$$, TFM_SP_META_PTR_END, $$ZI$$Limit);
 #endif
 REGION_DECLARE(Image$$, PT_PSA_ROT_DATA_START, $$Base);
 REGION_DECLARE(Image$$, PT_PSA_ROT_DATA_END, $$Base);
+#ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
+REGION_DECLARE(Image$$, PT_OVERLAY_AREA_BEGIN, $$Base);
+REGION_DECLARE(Image$$, PT_OVERLAY_AREA_END, $$Base);
+#endif
 
 #define ARM_MPU_NON_TRANSIENT        ( 1U )
 #define ARM_MPU_TRANSIENT            ( 0U )
@@ -261,6 +265,27 @@ const ARM_MPU_Region_t mpu_region_attributes[] = {
                      1)
         #endif
     },
+#ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
+    /* Overlay region
+     * Non-shareable, Read-Write, Unprivileged, Execute Never,
+     * Privileged Execute Never - if PXN available, Attribute set: 1
+     */
+    {
+        ARM_MPU_RBAR((uint32_t)&REGION_NAME(Image$$, PT_OVERLAY_AREA_BEGIN, $$Base),
+                     ARM_MPU_SH_NON,
+                     ARM_MPU_READ_WRITE,
+                     ARM_MPU_UNPRIVILEGED,
+                     ARM_MPU_EXECUTE_NEVER),
+        #ifdef TFM_PXN_ENABLE
+        ARM_MPU_RLAR_PXN((uint32_t)&REGION_NAME(Image$$, PT_OVERLAY_AREA_END, $$Base) - 1,
+                         ARM_MPU_PRIVILEGE_EXECUTE_NEVER,
+                         1)
+        #else
+        ARM_MPU_RLAR((uint32_t)&REGION_NAME(Image$$, PT_OVERLAY_AREA_END, $$Base) - 1,
+                     1)
+        #endif
+    },
+#endif
     /* Individual platforms may add further static MPU regions by defining
      * PLATFORM_STATIC_MPU_REGIONS in their tfm_peripherals_def.h header.
      */

@@ -334,6 +334,10 @@ void backend_init_comp_assuredly(struct partition_t *p_pt, uint32_t service_sett
                       LOAD_ALLOCED_STACK_ADDR(p_pldi),
                       p_pldi->stack_size);
 
+#ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
+    memset((uint8_t *)p_pt->ctx_ctrl.sp_limit, 0, p_pldi->stack_size);
+#endif
+
     watermark_stack(p_pt);
 
     /*

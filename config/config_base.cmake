@@ -65,6 +65,8 @@ set(CODE_SHARING_INPUT_FILE_SUFFIX      "_shared_symbols.axf" CACHE STRING "Suff
 
 set(CONFIG_TFM_WARNINGS_ARE_ERRORS      OFF         CACHE BOOL      "Whether to treat warnings as errors")
 
+set(CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS   OFF         CACHE BOOL      "Whether to reuse copy area as SP stacks at runtime")
+
 ####################################################################################################
 # These configurations below are also referred by Kconfig configuration system,
 # together with TF-M Header File Config System options.

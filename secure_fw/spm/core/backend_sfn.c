@@ -132,6 +132,10 @@ void backend_init_comp_assuredly(struct partition_t *p_pt,
     p_pt->p_reqs = NULL;
     p_pt->state = SFN_PARTITION_STATE_NOT_INITED;
 
+#ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
+    memset((uint8_t *)LOAD_ALLOCED_STACK_ADDR(p_pldi), 0, p_pldi->stack_size);
+#endif
+
     watermark_stack(p_pt);
 
     /*

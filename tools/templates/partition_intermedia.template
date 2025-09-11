@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -11,5 +11,8 @@
 #include "config_tfm.h"
 
 {% if config_impl['CONFIG_TFM_SPM_BACKEND_IPC'] == '1' or manifest.model == "IPC" %}
+#ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
+__attribute__((section(".tfm_runtime_sp_stacks")))
+#endif
 uint8_t {{manifest.name.lower()}}_stack[{{manifest.stack_size}}] __attribute__((aligned(8)));
 {% endif %}

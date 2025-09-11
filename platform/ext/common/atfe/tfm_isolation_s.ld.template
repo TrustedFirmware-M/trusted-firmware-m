@@ -1,5 +1,5 @@
 ;/*
-;  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+; * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 ; * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon company)
 ; * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 ; *
@@ -190,6 +190,11 @@ SECTIONS
 {% endfor %}
     } > FLASH
 
+#ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
+    /* There is no location counter for the load addresses, so create one */
+    current_load_location = tfm_data_load_end;
+#endif
+
 #ifdef S_RUNTIME_ITCM_START
     /* Position tag: Start of SPM code (privileged) */
     saved_location_counter = .;
@@ -197,16 +202,39 @@ SECTIONS
     . = ALIGN(TFM_LINKER_SPM_CODE_ALIGNMENT);
     Image$$PT_SPM_CODE_START$$Base = .;
 
-    .ER_SPM_CODE . :
+    .ER_SPM_CODE : AT(tfm_data_load_end)
     {
         *tfm_spm*:(SORT_BY_ALIGNMENT(.text*))
         *tfm_spm*:(SORT_BY_ALIGNMENT(.rodata*))
-    } > ITCM AT > FLASH
+    } > ITCM
+
+#ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
+    /*
+     * Calculate the saved space by reusing the copy area, which
+     * will contain the SP stacks. If they don't fit the area is extended.
+     */
+    current_load_location += SIZEOF(.ER_SPM_CODE);
+#endif
 
     /* Position tag: End of SPM code (privileged) */
     . = ALIGN(TFM_LINKER_SPM_CODE_ALIGNMENT);
+    . = saved_location_counter + SIZEOF(.ER_SPM_CODE);
     Image$$PT_SPM_CODE_END$$Base = .;
-    . = saved_location_counter;
+#endif
+
+#ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
+    /* Place an empty area after the copied area to extend it to fit the SP stacks */
+    reusable_area = current_load_location - Image$$PT_OVERLAY_AREA_BEGIN$$Base;
+    saved_location_counter = .;
+    .ER_REUSABLE_AREA_EXTENSION : AT(current_load_location)
+    {
+        /* The area must not be negative! */
+        . += (reusable_area >= SIZEOF(.tfm_runtime_sp_stacks))
+                ? 0
+                : (SIZEOF(.tfm_runtime_sp_stacks) - reusable_area);
+    } > RAM
+    . = saved_location_counter + SIZEOF(.ER_REUSABLE_AREA_EXTENSION);
+    Image$$PT_OVERLAY_AREA_END$$Base = current_load_location + SIZEOF(.ER_REUSABLE_AREA_EXTENSION);
 #endif
 
     .ARM.extab :
@@ -419,6 +447,34 @@ SECTIONS
     Image$$TFM_SP_META_PTR$$ZI$$Limit = ADDR(.TFM_SP_META_PTR) + SIZEOF(.TFM_SP_META_PTR);
     /* This is needed for the uniform configuration of MPU region. */
     Image$$TFM_SP_META_PTR_END$$ZI$$Limit = Image$$TFM_SP_META_PTR$$ZI$$Limit;
+#endif
+
+#ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
+    /*
+     * Record the FLASH load address right before the SP data section, since
+     * this marks the start of the copy area.
+     */
+    .flash_marker1 : { } > RAM AT > FLASH
+
+    /*
+     * Align the overlay load region in FLASH.
+     * We can’t rely on section placement alone, since we need the LMA
+     * to be aligned.
+     * This expression ensures the next section’s load address starts at
+     * a properly aligned boundary in FLASH for the overlay area.
+     */
+    Image$$PT_OVERLAY_AREA_BEGIN$$Base =
+        (LOADADDR(.flash_marker1) + (TFM_LINKER_PT_OVERLAY_ALIGNMENT - 1))
+        & ~(TFM_LINKER_PT_OVERLAY_ALIGNMENT - 1);
+
+    saved_location_counter = .;
+    . = ORIGIN(FLASH);
+    .tfm_runtime_sp_stacks Image$$PT_OVERLAY_AREA_BEGIN$$Base (NOLOAD) : AT(0)
+    {
+        KEEP(*(.tfm_runtime_sp_stacks*))
+    } > FLASH
+
+    . = saved_location_counter;
 #endif
 
 {% for partition in partitions %}
@@ -639,6 +695,7 @@ SECTIONS
         KEEP(*(.jcr*))
         . = ALIGN(4);
     } > RAM AT > FLASH
+    tfm_data_load_end = LOADADDR(.TFM_DATA) + SIZEOF(.TFM_DATA);
 
     .TFM_BSS (NOLOAD) : ALIGN(4)
     {

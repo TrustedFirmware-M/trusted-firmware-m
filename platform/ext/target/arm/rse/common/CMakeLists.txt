@@ -74,6 +74,17 @@ target_compile_definitions(platform_region_defs
         $<$<BOOL:${RSE_OTP_HAS_SOC_AREA}>:RSE_OTP_HAS_SOC_AREA>
         IC_CONFIG_DMA_CACHE_FLUSH_ENABLE
         $<$<BOOL:${TFM_CODE_COVERAGE}>:TFM_CODE_COVERAGE>
+        $<$<BOOL:${CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS}>:CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS>
+)
+
+target_link_options(platform_region_defs
+    INTERFACE
+        # When copy sections (RX) are reused as stacks (RW) at runtime, the linker merges their
+        # attributes. As a result, the PT_LOAD segment of the FLASH region becomes RWX, which
+        # normally triggers a linker warning.
+        # Since this region is intentionally RWX (RX during boot and RW at runtime), the warning
+        # is explicitly suppressed.
+        $<$<AND:$<C_COMPILER_ID:GNU>,$<BOOL:${CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS}>>:-Wl,--no-warn-rwx-segments>
 )
 
 #========================= Platform common defs ===============================#
