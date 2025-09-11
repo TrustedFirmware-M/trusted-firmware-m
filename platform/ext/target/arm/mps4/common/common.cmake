@@ -292,12 +292,6 @@ target_compile_options(bl1_1_scatter
         ${COMPILER_CMSE_FLAG}
 )
 
-target_compile_definitions(bl1_1
-    PRIVATE
-        MBEDTLS_CONFIG_FILE="${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/tfm_mbedcrypto_config_default.h"
-        MBEDTLS_PSA_CRYPTO_CONFIG_FILE="${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/crypto_config_default.h"
-)
-
 target_compile_options(bl1_1
     PUBLIC
         ${COMPILER_CMSE_FLAG}
@@ -359,12 +353,6 @@ target_add_scatter_file(bl1_2
 target_compile_options(bl1_2_scatter
     PUBLIC
         ${COMPILER_CMSE_FLAG}
-)
-
-target_compile_definitions(bl1_2
-    PRIVATE
-        MBEDTLS_CONFIG_FILE="${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/tfm_mbedcrypto_config_default.h"
-        MBEDTLS_PSA_CRYPTO_CONFIG_FILE="${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/crypto_config_default.h"
 )
 
 target_compile_options(bl1_2
