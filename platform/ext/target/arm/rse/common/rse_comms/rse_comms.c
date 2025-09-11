@@ -13,6 +13,7 @@
 #include "rse_comms_handler_buffer.h"
 #include "rse_comms_protocol_error.h"
 #include "rse_comms_helpers.h"
+#include "rse_comms_legacy_msg.h"
 
 #ifndef RSE_COMMS_MAX_NUMBER_MESSAGE_HANDLERS
 #define RSE_COMMS_MAX_NUMBER_MESSAGE_HANDLERS (2)
@@ -163,6 +164,7 @@ static enum rse_comms_error_t send_msg_reply(struct rse_comms_packet_t *packet, 
     bool uses_cryptography, uses_id_extension;
     rse_comms_link_id_t link_id;
     enum rse_comms_hal_error_t hal_error;
+    size_t packet_transfer_size;
 
     if (packet == NULL) {
         return RSE_COMMS_ERROR_INVALID_PACKET;
@@ -184,15 +186,42 @@ static enum rse_comms_error_t send_msg_reply(struct rse_comms_packet_t *packet, 
         return RSE_COMMS_ERROR_PAYLOAD_TOO_LARGE;
     }
 
+    packet_transfer_size =
+        RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(uses_cryptography, uses_id_extension) + payload_size;
+
     link_id =
         rse_comms_hal_get_route(is_msg ? packet->header.receiver_id : packet->header.sender_id);
     if (link_id == 0) {
         return RSE_COMMS_ERROR_INVALID_NODE;
     }
 
-    hal_error = rse_comms_hal_send_message(
-        link_id, (const uint8_t *)packet,
-        RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(uses_cryptography, uses_id_extension) + payload_size);
+#ifdef RSE_COMMS_SUPPORT_LEGACY_MSG_PROTOCOL
+    {
+        enum tfm_plat_err_t plat_err;
+
+        if (is_msg) {
+            plat_err = rse_comms_convert_to_legacy_msg((uint8_t *)packet, packet_transfer_size,
+                                                       rse_comms_legacy_conversion_buffer,
+                                                       sizeof(rse_comms_legacy_conversion_buffer),
+                                                       &packet_transfer_size);
+            if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+                return (enum rse_comms_error_t)plat_err;
+            }
+        } else {
+            plat_err = rse_comms_convert_to_legacy_reply((uint8_t *)packet, packet_transfer_size,
+                                                         rse_comms_legacy_conversion_buffer,
+                                                         sizeof(rse_comms_legacy_conversion_buffer),
+                                                         &packet_transfer_size);
+            if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+                return (enum rse_comms_error_t)plat_err;
+            }
+        }
+
+        packet = (struct rse_comms_packet_t *)rse_comms_legacy_conversion_buffer;
+    }
+#endif
+
+    hal_error = rse_comms_hal_send_message(link_id, (const uint8_t *)packet, packet_transfer_size);
     if (hal_error != RSE_COMMS_HAL_ERROR_SUCCESS) {
         return rse_hal_error_to_comms_error(hal_error);
     }

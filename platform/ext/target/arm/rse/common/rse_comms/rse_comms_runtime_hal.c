@@ -20,6 +20,11 @@
 #include "rse_comms_protocol_error.h"
 #include "rse_comms_handler_buffer.h"
 #include "rse_comms_helpers.h"
+
+#ifdef RSE_COMMS_SUPPORT_LEGACY_MSG_PROTOCOL
+#include "rse_comms_legacy_msg.h"
+#endif
+
 #include "critical_section.h"
 #include "config_tfm.h"
 #include <string.h>
@@ -92,14 +97,29 @@ static enum rse_comms_error_t send_protocol_error(rse_comms_node_id_t node_id,
                                                       uint16_t client_id, uint8_t message_id,
                                                       enum rse_comms_protocol_error_t error)
 {
-    struct rse_comms_packet_t packet;
     enum rse_comms_hal_error_t hal_error;
+    struct rse_comms_packet_t packet;
+    struct rse_comms_packet_t *packet_ptr = &packet;
+    size_t output_msg_size;
 
-    rse_comms_helpers_generate_protocol_error_packet(&packet, node_id, my_node_id, link_id,
+    rse_comms_helpers_generate_protocol_error_packet(packet_ptr, node_id, my_node_id, link_id,
                                                      client_id, message_id, error);
 
-    hal_error = rse_comms_hal_send_message(link_id, (const uint8_t *)&packet,
-                                            RSE_COMMS_PACKET_SIZE_ERROR_REPLY);
+    output_msg_size = RSE_COMMS_PACKET_SIZE_ERROR_REPLY;
+
+#ifdef RSE_COMMS_SUPPORT_LEGACY_MSG_PROTOCOL
+    enum tfm_plat_err_t plat_err = rse_comms_convert_to_legacy_error_reply(
+        (uint8_t *)&packet, RSE_COMMS_PACKET_SIZE_ERROR_REPLY, rse_comms_legacy_conversion_buffer,
+        sizeof(rse_comms_legacy_conversion_buffer), RSE_COMMS_PACKET_SIZE_ERROR_REPLY,
+        &output_msg_size);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return (enum rse_comms_hal_error_t)plat_err;
+    }
+
+    packet_ptr = (struct rse_comms_packet_t *)rse_comms_legacy_conversion_buffer;
+#endif
+
+    hal_error = rse_comms_hal_send_message(link_id, (const uint8_t *)packet_ptr, output_msg_size);
     if (hal_error != RSE_COMMS_HAL_ERROR_SUCCESS) {
         return rse_hal_error_to_comms_error(hal_error);
     }
@@ -156,8 +176,26 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(rse_comms_link_id_t link_id, uint
         return (enum tfm_plat_err_t)rse_hal_error_to_comms_error(hal_err);
     }
 
+    hal_err = rse_comms_hal_get_my_node_id(&my_node_id);
+    if (hal_err != RSE_COMMS_HAL_ERROR_SUCCESS) {
+        return (enum tfm_plat_err_t)rse_hal_error_to_comms_error(hal_err);
+    }
+
     rse_comms_buffer[buffer_handle].msg_size = message_size;
     packet = (struct rse_comms_packet_t *)rse_comms_buffer[buffer_handle].buf;
+
+#ifdef RSE_COMMS_SUPPORT_LEGACY_MSG_PROTOCOL
+    err = rse_comms_convert_from_legacy_msg(
+        rse_comms_buffer[buffer_handle].buf, rse_comms_buffer[buffer_handle].msg_size,
+        rse_comms_legacy_conversion_buffer, sizeof(rse_comms_legacy_conversion_buffer),
+        &rse_comms_buffer[buffer_handle].msg_size, link_id, my_node_id);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    memcpy(rse_comms_buffer[buffer_handle].buf, rse_comms_legacy_conversion_buffer,
+           rse_comms_buffer[buffer_handle].msg_size);
+#endif
 
     comms_err = rse_comms_helpers_parse_packet(packet, message_size, &packet_sender,
                                                &packet_receiver, &message_id, &packet_uses_crypto,
@@ -167,13 +205,6 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(rse_comms_link_id_t link_id, uint
     if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
         /* Do not have enough information about this packet to reply */
         return (enum tfm_plat_err_t)comms_err;
-    }
-
-    hal_err = rse_comms_hal_get_my_node_id(&my_node_id);
-    if (hal_err != RSE_COMMS_HAL_ERROR_SUCCESS) {
-        protocol_err = RSE_COMMS_PROTOCOL_INTERNAL_ERROR;
-        err = (enum tfm_plat_err_t)rse_hal_error_to_comms_error(hal_err);
-        goto out_error_reply;
     }
 
     if (rse_comms_helpers_packet_requires_forwarding_get_destination(
