@@ -31,7 +31,6 @@ def round_up(x, boundary):
 parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument("--input_image", help="the image to create table from", required=True)
 parser.add_argument("--encrypt_key_file", help="Key to derive the encrypt key", required=False)
-parser.add_argument("--bl1_2_hash", help="BL1_2 hash file", required=True)
 parser.add_argument("--label", help="Label to derive the encrypt key", required=True)
 parser.add_argument("--image_version", help="Version of the image", required=True)
 parser.add_argument("--table_output_file", help="table output file", required=True)
@@ -40,9 +39,6 @@ args = parser.parse_args()
 
 with open(args.input_image, "rb") as in_file:
     image = in_file.read()
-
-with open(args.bl1_2_hash, "rb") as in_file:
-    bl1_2_hash = in_file.read()
 
 if args.encrypt_key_file is not None:
     with open(args.encrypt_key_file, "rb") as in_file:
@@ -57,7 +53,6 @@ else:
 digest = hashes.Hash(hashes.SHA256())
 digest.update(int("0x111155AA", 16).to_bytes(4, 'little'))
 digest.update(int("0x00000000", 16).to_bytes(4, 'little')) #reprovisioning bits
-digest.update(bl1_2_hash)
 data_hash = digest.finalize()
 
 derived_encrypt_key = derive_symmetric_key(encrypt_key, bytes(data_hash), args.label, 32)

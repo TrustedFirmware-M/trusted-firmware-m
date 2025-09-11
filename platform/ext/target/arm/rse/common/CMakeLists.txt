@@ -707,6 +707,36 @@ target_sources(tfm_s
 
 ############################### IMAGE SIGNING ##################################
 
+if (MCUBOOT_ENCRYPT_KW)
+    add_custom_command(OUTPUT ${MCUBOOT_KEY_ENC}
+            DEPENDS ${CMAKE_BINARY_DIR}/bin/bl1_2_padded_hash.bin
+
+            COMMAND ${Python3_EXECUTABLE}  ${CMAKE_CURRENT_SOURCE_DIR}/provisioning/bl2_key_derivation.py
+                    --key_file "${CMAKE_SOURCE_DIR}/bl1/bl1_1/dummy_guk.bin"
+                    --key_select "kce:cm"
+                    --tp_mode "${RSE_TP_MODE}"
+                    --output_key_file "enc_key_s.b64"
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/enc_key_s.b64 $<TARGET_FILE_DIR:bl2>
+    )
+
+    add_custom_command(OUTPUT ${MCUBOOT_KEY_ENC_NS}
+            DEPENDS ${CMAKE_BINARY_DIR}/bin/bl1_2_padded_hash.bin
+
+            COMMAND ${Python3_EXECUTABLE}  ${CMAKE_CURRENT_SOURCE_DIR}/provisioning/bl2_key_derivation.py
+                    --key_file "${CMAKE_SOURCE_DIR}/bl1/bl1_1/dummy_guk.bin"
+                    --key_select "kce:dm"
+                    --tp_mode "${RSE_TP_MODE}"
+                    --output_key_file "enc_key_ns.b64"
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/enc_key_ns.b64 $<TARGET_FILE_DIR:bl2>
+    )
+
+    add_custom_target(BL2_encryption_keys ALL
+            SOURCES
+                ${MCUBOOT_KEY_ENC}
+                ${MCUBOOT_KEY_ENC_NS}
+    )
+endif()
+
 if (RSE_XIP)
     add_custom_target(public_key ALL
         SOURCES
@@ -747,7 +777,6 @@ if (RSE_XIP)
         COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_SOURCE_DIR}/tools/modules
         ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/bl2/create_xip_tables.py
             --input_image $<TARGET_FILE_DIR:tfm_s>/tfm_s.bin
-            --bl1_2_hash ${CMAKE_BINARY_DIR}/bin/bl1_2_padded_hash.bin
             --table_output_file tfm_s_sic_tables.bin
             --encrypted_image_output_file tfm_s_encrypted.bin
             --image_version ${MCUBOOT_SECURITY_COUNTER_S}
@@ -782,6 +811,7 @@ if (RSE_XIP)
     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/tfm_s_sic_tables_signed.bin
         DEPENDS tfm_s_sic_tables
         DEPENDS tfm_s_bin signing_layout_s
+        DEPENDS $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:${MCUBOOT_KEY_ENC}>
         WORKING_DIRECTORY ${MCUBOOT_PATH}/scripts
 
         #Sign secure binary image with provided secret key

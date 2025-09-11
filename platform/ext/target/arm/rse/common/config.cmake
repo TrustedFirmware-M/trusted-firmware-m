@@ -139,6 +139,11 @@ set(RSE_BL2_ENABLE_IMAGE_STAGING        OFF        CACHE BOOL     "Whether to en
 set(MCUBOOT_IMAGE_MULTI_SIG_SUPPORT     OFF        CACHE BOOL     "Whether to enable multi-signature support in MCUBoot")
 set(PLATFORM_DEFAULT_IMAGE_ENCRYPTION        OFF         CACHE BOOL "Whether to use platform-specific code encryption keys")
 
+if (MCUBOOT_ENCRYPT_KW)
+    set(MCUBOOT_KEY_ENC "${CMAKE_BINARY_DIR}/bin/enc_key_s.b64" CACHE FILEPATH "Path to key with which to encrypt Secure firmware")
+    set(MCUBOOT_KEY_ENC_NS "${CMAKE_BINARY_DIR}/bin/enc_key_ns.b64" CACHE FILEPATH "Path to key with which to encrypt non secure firmware")
+endif()
+
 ######################### Provisioning #########################################
 
 if (RSE_TP_MODE STREQUAL TCI)

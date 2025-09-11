@@ -81,7 +81,6 @@ if (RSE_XIP)
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../image_signing/scripts/create_xip_tables.py
             --input_image $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${NS_TARGET_NAME}.bin
             --encrypt_key_file ${CMAKE_CURRENT_SOURCE_DIR}/../image_signing/scripts/dummy_guk.bin
-            --bl1_2_hash ${CONFIG_SPE_PATH}/bin/bl1_2_padded_hash.bin
             --table_output_file ${NS_TARGET_NAME}_sic_tables.bin
             --encrypted_image_output_file ${NS_TARGET_NAME}_encrypted.bin
             --image_version ${MCUBOOT_SECURITY_COUNTER_NS}

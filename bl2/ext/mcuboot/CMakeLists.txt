@@ -254,6 +254,7 @@ if (PLATFORM_DEFAULT_IMAGE_SIGNING)
     add_custom_command(OUTPUT tfm_s_signed.bin
         DEPENDS tfm_s_bin signing_layout_s
         DEPENDS $<IF:$<BOOL:${MCUBOOT_GENERATE_SIGNING_KEYPAIR}>,generated_private_key,>
+        DEPENDS $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:${MCUBOOT_KEY_ENC_NS}>
         WORKING_DIRECTORY ${MCUBOOT_PATH}/scripts
 
         #Sign secure binary image with provided secret key

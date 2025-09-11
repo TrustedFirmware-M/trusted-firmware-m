@@ -334,14 +334,14 @@ index 00000000..50848858
 --- /dev/null
 +++ b/enc-aeskw-128.b64
 @@ -0,0 +1 @@
-+AES-KW:cY3wNjK64bXu3FE7aQOSOsa4UgnIHdDvXFb0mwnzCGE=
++AES-KW:V6U9usCfWZMcM2R+wXIDC6oUIVABjn1FLEpeyxqNY7c=
 diff --git a/enc-aeskw-128_ns.b64 b/enc-aeskw-128_ns.b64
 new file mode 100644
 index 00000000..19a1ae0e
 --- /dev/null
 +++ b/enc-aeskw-128_ns.b64
 @@ -0,0 +1 @@
-+AES-KW:Blprm7ZjUZk1QqIQlOPntEmxvCZp5D7pqKy1SWaaqh4=
++AES-KW:0A0MAOzX+eye0ccxYGi1wL/LAxg/+vbFrHElpGZqHi8=
 -- 
 2.43.0
 
