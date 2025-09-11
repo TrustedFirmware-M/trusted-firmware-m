@@ -573,11 +573,16 @@ psa_status_t cc3xx_aead_update(
 
     CC3XX_ASSERT(operation != NULL);
     CC3XX_ASSERT(!input_length ^ (input != NULL));
-    CC3XX_ASSERT(output != NULL);
     CC3XX_ASSERT(output_length != NULL);
 
     /* Initialize this length to a safe value that might be overridden */
     *output_length = 0;
+
+    if (input_length == 0) {
+        return PSA_SUCCESS;
+    } else {
+        CC3XX_ASSERT(output != NULL);
+    }
 
 #if !defined(CC3XX_CONFIG_AES_TUNNELLING_ENABLE) && defined(PSA_WANT_ALG_CCM)
     ctr_required = ((operation->key_type == PSA_KEY_TYPE_AES) &&
