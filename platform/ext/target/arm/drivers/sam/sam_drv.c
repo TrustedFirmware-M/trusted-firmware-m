@@ -39,7 +39,7 @@
 #define SAMRRLS_MASK(event_id) (0xFUL << SAMRRLS_OFF(event_id))
 
 /* Mask for NEC in SAMBC */
-#define SAMBC_NUMBER_EVENT_COUNTERS_MASK (0x03)
+#define SAMBC_NUMBER_EVENT_COUNTERS_MASK (0x07)
 
 /* Position for NEC in SAMBC */
 #define SAMBC_NUMBER_EVENT_COUNTERS_POS 8
@@ -82,6 +82,9 @@ enum sam_error_t sam_init(const struct sam_dev_t *dev)
     struct sam_reg_map_t *regs = get_sam_dev_base(dev);
     uint32_t zero_count = 0;
 
+    const uint32_t samnec =
+        ((regs->sambc >> SAMBC_NUMBER_EVENT_COUNTERS_POS) & SAMBC_NUMBER_EVENT_COUNTERS_MASK);
+
     /*
      * FixMe: Remove when FVP models the DMA ICS which will
      * then initialise this register
@@ -89,6 +92,11 @@ enum sam_error_t sam_init(const struct sam_dev_t *dev)
     /* Calculate ZC over integrity checker protected area */
     for (volatile uint32_t *ptr = (volatile uint32_t *)&regs->samem;
          ptr < (volatile uint32_t *)&regs->samicv; ptr++) {
+        /* Skip unavailable event counters */
+        if ((ptr > (volatile uint32_t *)&regs->samec[samnec]) &&
+            (ptr <= (volatile uint32_t *)&regs->samec[7])) {
+            continue;
+        }
         zero_count += count_zero_bits(*ptr);
     }
 
