@@ -21,6 +21,7 @@
 #include "uart_stdout.h"
 #include "region_defs.h"
 #include "tfm_log.h"
+#include "cc3xx_init.h"
 
 #ifdef CRYPTO_HW_ACCELERATOR
 #include "cc3xx_dev.h"

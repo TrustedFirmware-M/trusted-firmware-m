@@ -71,7 +71,7 @@ static size_t flash_read(int lba, uintptr_t buf, size_t size, size_t flash_id) {
     size_t rem = info->sector_count * info->sector_size - offset;
     size_t cnt = size < rem ? size : rem;
 
-    return flash_driver->ReadData(offset, buf, cnt);
+    return flash_driver->ReadData(offset, (void *)buf, cnt);
 }
 
 static size_t flash_write(int lba, const uintptr_t buf, size_t size,
@@ -86,7 +86,7 @@ static size_t flash_write(int lba, const uintptr_t buf, size_t size,
     size_t cnt = size < rem ? size : rem;
 
     flash_driver->EraseSector(offset);
-    rc = flash_driver->ProgramData(offset, buf, cnt);
+    rc = flash_driver->ProgramData(offset, (const void *)buf, cnt);
     return rc;
 }
 
@@ -143,8 +143,8 @@ static int flash_dev_open(const uintptr_t dev_spec, io_dev_info_t **dev_info) {
     /* Check if Flash ops functions are defined for this flash */
     assert(flashs_ops[index].read && flashs_ops[index].write);
 
-    flash_dev_specs[index] = dev_spec;
-    flash_driver = flash_dev_specs[index]->flash_driver;
+    flash_dev_specs[index] = (io_flash_dev_spec_t *)dev_spec;
+    flash_driver = (const ARM_DRIVER_FLASH *)flash_dev_specs[index]->flash_driver;
 
     block_dev_spec[index].block_size = flash_driver->GetInfo()->sector_size;
     block_dev_spec[index].buffer.offset = flash_dev_specs[index]->buffer;
@@ -153,7 +153,7 @@ static int flash_dev_open(const uintptr_t dev_spec, io_dev_info_t **dev_info) {
 
     flash_driver->Initialize(NULL);
 
-    block_dev_connectors[index].dev_open(&block_dev_spec[index], dev_info);
+    block_dev_connectors[index].dev_open((uintptr_t)&block_dev_spec[index], dev_info);
 
     return 0;
 }

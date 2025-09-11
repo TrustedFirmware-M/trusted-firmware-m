@@ -20,6 +20,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <string.h>
 
 #include "io_defs.h"
 #include "io_driver.h"

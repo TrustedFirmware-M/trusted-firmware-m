@@ -49,6 +49,8 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(void *mhu_receiver_dev,
  */
 enum tfm_plat_err_t tfm_multi_core_hal_reply(struct client_request_t *req);
 
+int32_t tfm_hal_client_id_translate(void *owner, int32_t client_id_in);
+
 #ifdef __cplusplus
 }
 #endif

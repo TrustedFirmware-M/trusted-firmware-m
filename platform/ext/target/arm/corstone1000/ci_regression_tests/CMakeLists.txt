@@ -44,3 +44,5 @@ target_compile_definitions(tfm_test_suite_extra_s
         TEST_FLASH_PAGE_SIZE=${TEST_FLASH_PAGE_SIZE}
         TEST_FLASH_PROGRAM_UNIT=${TEST_FLASH_PROGRAM_UNIT}
 )
+
+target_compile_options(tfm_test_suite_extra_s PRIVATE -Wno-int-conversion)

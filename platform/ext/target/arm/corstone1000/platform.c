@@ -29,10 +29,10 @@ extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 static io_dev_connector_t *flash_dev_con;
 static uint8_t local_block_flash[FLASH_SECTOR_SIZE];
 static io_flash_dev_spec_t flash_dev_spec = {
-    .buffer = local_block_flash,
+    .buffer = (uintptr_t)local_block_flash,
     .bufferlen = FLASH_SECTOR_SIZE,
     .base_addr = FLASH_BASE_ADDRESS,
-    .flash_driver = &FLASH_DEV_NAME,
+    .flash_driver = (uintptr_t)&FLASH_DEV_NAME,
 };
 static io_block_spec_t flash_spec = {
     .offset = FLASH_BASE_ADDRESS,
@@ -41,8 +41,8 @@ static io_block_spec_t flash_spec = {
 
 static platform_image_source_t platform_image_source[] = {
     [PLATFORM_GPT_IMAGE] = {
-        .dev_handle = NULL,
-        .image_spec = &flash_spec,
+        .dev_handle = (uintptr_t)NULL,
+        .image_spec = (uintptr_t)&flash_spec,
     }
 };
 
