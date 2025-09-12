@@ -1,0 +1,294 @@
+From e2bd3ed9919473bdf7037bf6eac877f440f17df5 Mon Sep 17 00:00:00 2001
+From: David Vincze <david.vincze@arm.com>
+Date: Thu, 25 Sep 2025 07:54:23 +0000
+Subject: [PATCH 13/13] Align PSA crypto layer with TF-PSA-Crypto v1.0.0
+
+- Update includes and data types in the PSA crypto adaptor layer
+and example code based on TF-PSA-Crypto release v1.0.0,
+- The key wrap APIs of t_cose are out of scope.
+
+Change-Id: Iaf55762c4aa70b5f79d1d8ebe18b4f48f83174d4
+Signed-off-by: David Vincze <david.vincze@arm.com>
+---
+ crypto_adapters/t_cose_psa_crypto.c | 43 ++++++++++++++---------------
+ examples/init_keys_psa.c            | 17 ++++++------
+ 2 files changed, 29 insertions(+), 31 deletions(-)
+
+diff --git a/crypto_adapters/t_cose_psa_crypto.c b/crypto_adapters/t_cose_psa_crypto.c
+index 11ae17e..51af871 100644
+--- a/crypto_adapters/t_cose_psa_crypto.c
++++ b/crypto_adapters/t_cose_psa_crypto.c
+@@ -37,7 +37,6 @@
+ 
+ #include "t_cose_crypto.h"  /* The interface this implements */
+ #include <psa/crypto.h>     /* PSA Crypto Interface to mbed crypto or such */
+-#include <mbedtls/aes.h> // TODO: Isn't there a PSA API for AES?
+ 
+ #ifndef T_COSE_DISABLE_KEYWRAP
+ #include <mbedtls/nist_kw.h>
+@@ -46,7 +45,7 @@
+ #include "t_cose_util.h"
+ #include "t_cose_psa_crypto.h"
+ 
+-#if MBEDTLS_VERSION_MAJOR < 3
++#if (defined(MBEDTLS_VERSION_MAJOR) && (MBEDTLS_VERSION_MAJOR < 3))
+ #define NO_MBED_KW_API
+ #warning "AES key wrap is unavailable with MbedTLS versions below 3"
+ #warning "Use of COSE algorithms A128KW..A256KW will return an error"
+@@ -387,7 +386,7 @@ t_cose_crypto_verify(int32_t               cose_algorithm_id,
+     psa_algorithm_t       psa_alg_id;
+     psa_status_t          psa_result;
+     enum t_cose_err_t     return_value;
+-    psa_key_handle_t      verification_key_psa;
++    psa_key_id_t          verification_key_psa;
+ 
+     (void)crypto_context; /* This crypto-adapter doesn't use this */
+ 
+@@ -398,7 +397,7 @@ t_cose_crypto_verify(int32_t               cose_algorithm_id,
+         goto Done;
+     }
+ 
+-    verification_key_psa = (psa_key_handle_t)verification_key.key.handle;
++    verification_key_psa = (psa_key_id_t)verification_key.key.handle;
+ 
+     psa_result = psa_verify_hash(verification_key_psa,
+                                  psa_alg_id,
+@@ -428,7 +427,7 @@ t_cose_crypto_sign(int32_t                cose_algorithm_id,
+     enum t_cose_err_t     return_value;
+     psa_status_t          psa_result;
+     psa_algorithm_t       psa_alg_id;
+-    psa_key_handle_t      signing_key_psa;
++    psa_key_id_t          signing_key_psa;
+     size_t                signature_len;
+ 
+     (void)crypto_context; /* This crypto-adapter doesn't use this */
+@@ -439,7 +438,7 @@ t_cose_crypto_sign(int32_t                cose_algorithm_id,
+         goto Done;
+     }
+ 
+-    signing_key_psa = (psa_key_handle_t)signing_key.key.handle;
++    signing_key_psa = (psa_key_id_t)signing_key.key.handle;
+ 
+     /* Determine signature size and validate against buffer size */
+     return_value = t_cose_crypto_sig_size(cose_algorithm_id, signing_key, &signature_len);
+@@ -492,7 +491,7 @@ t_cose_crypto_sign_restart(bool                   started,
+     enum t_cose_err_t     return_value;
+     psa_status_t          psa_result;
+     psa_algorithm_t       psa_alg_id;
+-    psa_key_handle_t      signing_key_psa;
++    psa_key_id_t          signing_key_psa;
+     size_t                signature_len;
+     struct t_cose_psa_crypto_context *psa_crypto_context;
+ 
+@@ -502,7 +501,7 @@ t_cose_crypto_sign_restart(bool                   started,
+         goto Done;
+     }
+ 
+-    signing_key_psa = (psa_key_handle_t)signing_key.key.handle;
++    signing_key_psa = (psa_key_id_t)signing_key.key.handle;
+ 
+     /* It is assumed that this call is checking the signature_buffer
+      * length and won't write off the end of it.
+@@ -556,7 +555,7 @@ enum t_cose_err_t t_cose_crypto_sig_size(int32_t           cose_algorithm_id,
+ {
+     enum t_cose_err_t     return_value;
+     psa_algorithm_t       psa_alg_id;
+-    mbedtls_svc_key_id_t  signing_key_psa;
++    psa_key_id_t          signing_key_psa;
+     psa_key_attributes_t  key_attributes;
+     psa_key_type_t        key_type;
+     size_t                key_len_bits;
+@@ -568,7 +567,7 @@ enum t_cose_err_t t_cose_crypto_sig_size(int32_t           cose_algorithm_id,
+         goto Done;
+     }
+ 
+-    signing_key_psa = (psa_key_handle_t)signing_key.key.handle;
++    signing_key_psa = (psa_key_id_t)signing_key.key.handle;
+     key_attributes = psa_key_attributes_init();
+     status = psa_get_key_attributes(signing_key_psa, &key_attributes);
+     return_value = psa_status_to_t_cose_error_signing(status);
+@@ -932,7 +931,7 @@ t_cose_crypto_generate_ec_key(const int32_t       cose_ec_curve_id,
+                               struct t_cose_key  *key)
+ {
+     psa_key_attributes_t key_attributes;
+-    psa_key_handle_t     key_handle;
++    psa_key_id_t         key_handle;
+     psa_key_type_t       type;
+     size_t               key_bitlen;
+     psa_status_t         status;
+@@ -1224,7 +1223,7 @@ t_cose_crypto_export_symmetric_key(struct t_cose_key      key,
+         return T_COSE_ERR_EMPTY_KEY;
+     }
+ 
+-    status = psa_export_key((mbedtls_svc_key_id_t)key.key.handle,
++    status = psa_export_key((psa_key_id_t)key.key.handle,
+                              key_buffer.ptr,
+                              key_buffer.len,
+                             &key_bytes->len);
+@@ -1259,7 +1258,7 @@ t_cose_crypto_make_symmetric_key_handle(int32_t               cose_algorithm_id,
+                                         struct t_cose_key    *key_handle)
+ {
+     psa_algorithm_t       psa_algorithm;
+-    psa_key_handle_t      psa_key_handle;
++    psa_key_id_t          psa_key_handle;
+     psa_status_t          status;
+     psa_key_attributes_t  attributes;
+     size_t                key_bitlen;
+@@ -1543,7 +1542,7 @@ t_cose_crypto_aead_encrypt(const int32_t          cose_algorithm_id,
+         return T_COSE_SUCCESS;
+     }
+ 
+-    status = psa_aead_encrypt((psa_key_handle_t)key.key.handle,
++    status = psa_aead_encrypt((psa_key_id_t)key.key.handle,
+                               psa_algorithm_id,
+                               nonce.ptr, nonce.len,
+                               aad.ptr, aad.len,
+@@ -1613,7 +1612,7 @@ t_cose_crypto_non_aead_encrypt(const int32_t          cose_algorithm_id,
+     }
+ 
+     /* Encrypt the ciphertext */
+-    status = psa_cipher_encrypt_setup(&operation, (psa_key_handle_t)key.key.handle, psa_algorithm_id);
++    status = psa_cipher_encrypt_setup(&operation, (psa_key_id_t)key.key.handle, psa_algorithm_id);
+     if(status != PSA_SUCCESS) {
+         goto Done;
+     }
+@@ -1676,7 +1675,7 @@ t_cose_crypto_aead_decrypt(const int32_t          cose_algorithm_id,
+     }
+ 
+ 
+-    status = psa_aead_decrypt((psa_key_handle_t)key.key.handle,
++    status = psa_aead_decrypt((psa_key_id_t)key.key.handle,
+                               psa_algorithm_id,
+                               nonce.ptr, nonce.len,
+                               aad.ptr, aad.len,
+@@ -1734,7 +1733,7 @@ t_cose_crypto_non_aead_decrypt(const int32_t          cose_algorithm_id,
+     }
+ 
+     /* Decrypt the ciphertext */
+-    status = psa_cipher_decrypt_setup(&operation, (psa_key_handle_t)key.key.handle, psa_algorithm_id);
++    status = psa_cipher_decrypt_setup(&operation, (psa_key_id_t)key.key.handle, psa_algorithm_id);
+     if(status != PSA_SUCCESS) {
+         goto Done;
+     }
+@@ -1781,7 +1780,7 @@ t_cose_crypto_ecdh(struct t_cose_key      private_key,
+     size_t               pub_key_len;
+ 
+     /* Export public key */
+-    psa_status = psa_export_public_key((mbedtls_svc_key_id_t)public_key.key.handle, /* in: Key handle     */
++    psa_status = psa_export_public_key((psa_key_id_t)public_key.key.handle, /* in: Key handle     */
+                                         public_key_buf.ptr,     /* in: PK buffer      */
+                                         public_key_buf.len,     /* in: PK buffer size */
+                                        &pub_key_len);           /* out: Result length */
+@@ -1791,7 +1790,7 @@ t_cose_crypto_ecdh(struct t_cose_key      private_key,
+ 
+ 
+     psa_status = psa_raw_key_agreement(PSA_ALG_ECDH,
+-                                       (mbedtls_svc_key_id_t)private_key.key.handle,
++                                       (psa_key_id_t)private_key.key.handle,
+                                        public_key_buf.ptr,
+                                        pub_key_len,
+                                        shared_key_buf.ptr,
+@@ -1901,7 +1900,7 @@ t_cose_crypto_import_ec2_pubkey(int32_t               cose_ec_curve_id,
+ 
+     status = psa_import_key(&attributes,
+                             import.ptr, import.len,
+-                            (mbedtls_svc_key_id_t *)(&key_handle->key.handle));
++                            (psa_key_id_t *)(&key_handle->key.handle));
+ 
+     if (status != PSA_SUCCESS) {
+         return T_COSE_ERR_PRIVATE_KEY_IMPORT_FAILED;
+@@ -1931,7 +1930,7 @@ t_cose_crypto_export_ec2_key(struct t_cose_key      key_handle,
+     psa_key_attributes_t  attributes;
+ 
+     /* Export public key */
+-    psa_status = psa_export_public_key((mbedtls_svc_key_id_t)key_handle.key.handle, /* in: Key handle     */
++    psa_status = psa_export_public_key((psa_key_id_t)key_handle.key.handle, /* in: Key handle     */
+                                         export_buf,     /* in: PK buffer      */
+                                         sizeof(export_buf),     /* in: PK buffer size */
+                                        &export_len);           /* out: Result length */
+@@ -1946,7 +1945,7 @@ t_cose_crypto_export_ec2_key(struct t_cose_key      key_handle,
+      */
+ 
+     attributes = psa_key_attributes_init();
+-    psa_status = psa_get_key_attributes((mbedtls_svc_key_id_t)key_handle.key.handle,
++    psa_status = psa_get_key_attributes((psa_key_id_t)key_handle.key.handle,
+                                         &attributes);
+     if(PSA_KEY_TYPE_ECC_GET_FAMILY(psa_get_key_type(&attributes)) != PSA_ECC_FAMILY_SECP_R1) {
+         return T_COSE_ERR_FAIL;
+diff --git a/examples/init_keys_psa.c b/examples/init_keys_psa.c
+index 5c7c928..f5cf62b 100644
+--- a/examples/init_keys_psa.c
++++ b/examples/init_keys_psa.c
+@@ -29,7 +29,7 @@ init_signing_key_from_xx(int32_t               cose_algorithm_id,
+ {
+     psa_key_type_t       key_type;
+     psa_status_t         crypto_result;
+-    psa_key_handle_t     key_handle;
++    psa_key_id_t         key_handle;
+     psa_algorithm_t      key_alg;
+     psa_key_attributes_t key_attributes;
+ 
+@@ -182,7 +182,7 @@ init_fixed_test_signing_key(int32_t            cose_algorithm_id,
+  */
+ void free_fixed_signing_key(struct t_cose_key key_pair)
+ {
+-    psa_destroy_key((psa_key_handle_t)key_pair.key.handle);
++    psa_destroy_key((psa_key_id_t)key_pair.key.handle);
+ }
+ 
+ 
+@@ -238,7 +238,7 @@ init_fixed_test_ec_encryption_key(int32_t            cose_ec_curve_id,
+ 
+     status = psa_import_key(&attributes,
+                             priv_key_bytes.ptr, priv_key_bytes.len,
+-                            (mbedtls_svc_key_id_t *)(&private_key->key.handle));
++                            (psa_key_id_t *)(&private_key->key.handle));
+     psa_reset_key_attributes(&attributes);
+ 
+     if(status == PSA_ERROR_NOT_SUPPORTED) {
+@@ -259,7 +259,7 @@ init_fixed_test_ec_encryption_key(int32_t            cose_ec_curve_id,
+     psa_set_key_bits(&attributes, key_bitlen);
+     status = psa_import_key(&attributes,
+                              pub_key_bytes.ptr, pub_key_bytes.len,
+-                             (mbedtls_svc_key_id_t *)(&public_key->key.handle));
++                             (psa_key_id_t *)(&public_key->key.handle));
+     psa_reset_key_attributes(&attributes);
+ 
+     /*
+@@ -273,16 +273,16 @@ init_fixed_test_ec_encryption_key(int32_t            cose_ec_curve_id,
+     psa_set_key_bits(&attributes, key_bitlen);
+     status = psa_import_key(&attributes,
+                             key_bytes.ptr, key_bytes.len,
+-                            (mbedtls_svc_key_id_t *)(&public_key->key.handle));
++                            (psa_key_id_t *)(&public_key->key.handle));
+     */
+ 
+ 
+     if(status == PSA_ERROR_NOT_SUPPORTED) {
+-        (void)psa_destroy_key((mbedtls_svc_key_id_t)private_key->key.handle);
++        (void)psa_destroy_key((psa_key_id_t)private_key->key.handle);
+         return T_COSE_ERR_UNSUPPORTED_ELLIPTIC_CURVE_ALG;
+     }
+     else if (status != PSA_SUCCESS) {
+-        (void)psa_destroy_key((mbedtls_svc_key_id_t)private_key->key.handle);
++        (void)psa_destroy_key((psa_key_id_t)private_key->key.handle);
+         return T_COSE_ERR_PUBLIC_KEY_IMPORT_FAILED;
+     }
+ 
+@@ -296,7 +296,7 @@ init_fixed_test_ec_encryption_key(int32_t            cose_ec_curve_id,
+ void
+ free_fixed_test_ec_encryption_key(struct t_cose_key key)
+ {
+-    psa_destroy_key((psa_key_handle_t)key.key.handle);
++    psa_destroy_key((psa_key_id_t)key.key.handle);
+ }
+ 
+ 
+@@ -309,4 +309,3 @@ int check_for_key_allocation_leaks(void)
+ {
+     return 0;
+ }
+-
+-- 
+2.34.1
+

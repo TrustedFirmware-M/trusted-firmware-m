@@ -1,7 +1,7 @@
-From 6a18a3181724a44ccfe83734d49a72f6aa27f197 Mon Sep 17 00:00:00 2001
+From 0d5839c8f75ef9cb805bf53c6507486112bdc301 Mon Sep 17 00:00:00 2001
 From: "G. Varga, Gabor" <Gabor.G.Varga@arm.com>
 Date: Tue, 16 Sep 2025 13:57:18 +0200
-Subject: [PATCH 08/12] Refactor t_cose_crypto_is_algorithm_supported in PSA
+Subject: [PATCH 08/13] Refactor t_cose_crypto_is_algorithm_supported in PSA
 
 Replacing static allowlist with runtime checks.
 

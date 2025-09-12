@@ -1,7 +1,7 @@
-From 6adf7d1619dd9bb0939aba8aa0d095d7e7f9532d Mon Sep 17 00:00:00 2001
+From bdb3b908512103f160ceb14c13716f9fa0fdbb1d Mon Sep 17 00:00:00 2001
 From: Tamas Ban <tamas.ban@arm.com>
 Date: Fri, 27 Sep 2024 12:53:58 +0200
-Subject: [PATCH 02/12] Add t_cose_key_decode API
+Subject: [PATCH 02/13] Add t_cose_key_decode API
 
 Copied from this PR:
 https://github.com/laurencelundblade/t_cose/pull/285/commits/fc72e519
@@ -30,7 +30,7 @@ index cdf5557..86e5fed 100644
  t_cose_key_encode(struct t_cose_key      key,
                    struct q_useful_buf    key_buf,
 diff --git a/src/t_cose_key.c b/src/t_cose_key.c
-index 6b134d1..7b48a56 100644
+index 6b134d1..a8692d9 100644
 --- a/src/t_cose_key.c
 +++ b/src/t_cose_key.c
 @@ -13,6 +13,8 @@

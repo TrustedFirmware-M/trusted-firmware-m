@@ -1,7 +1,7 @@
-From 54e9036ea276684160219d87333871a6b370b2fa Mon Sep 17 00:00:00 2001
+From cf24d14794c08646cfe762f284569b39372b908c Mon Sep 17 00:00:00 2001
 From: "G. Varga, Gabor" <Gabor.G.Varga@arm.com>
 Date: Tue, 29 Jul 2025 14:17:06 +0200
-Subject: [PATCH 07/12] Refining signature buffer size
+Subject: [PATCH 07/13] Refining signature buffer size
 
 When using t_cose with the PSA Crypto adaptor layer,
 the output signature buffer passed into t_cose_crypto_sign() originates

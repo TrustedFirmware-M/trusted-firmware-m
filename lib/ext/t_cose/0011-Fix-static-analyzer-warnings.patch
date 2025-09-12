@@ -1,7 +1,7 @@
-From f2cf155671ee56d6a2b9f91e82d3b6188656ccf4 Mon Sep 17 00:00:00 2001
+From 3776793c2bbd2d2ece884f9a6d194e757d8ffc62 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Tue, 21 Oct 2025 16:03:13 +0000
-Subject: [PATCH 11/12] Fix static analyzer warnings
+Subject: [PATCH 11/13] Fix static analyzer warnings
 
 Fix the following static analyzer warnings:
 - Explicitly ignore return values,

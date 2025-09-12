@@ -1,7 +1,7 @@
-From b873c60afa2189ef54b4ed395785600b0b67f6bd Mon Sep 17 00:00:00 2001
+From f50df87a6e5df38a085fafaf7e616bc04feaec0a Mon Sep 17 00:00:00 2001
 From: Tamas Ban <tamas.ban@arm.com>
 Date: Mon, 30 Sep 2024 14:23:03 +0200
-Subject: [PATCH 03/12] Import EC keys with ECDSA(xxx) algo rather than ECDH
+Subject: [PATCH 03/13] Import EC keys with ECDSA(xxx) algo rather than ECDH
 
 To make the DPE certificate verification working
 with t_cose_key_dedode() API.

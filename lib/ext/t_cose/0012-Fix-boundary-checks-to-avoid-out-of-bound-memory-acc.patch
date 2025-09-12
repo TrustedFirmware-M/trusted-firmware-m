@@ -1,7 +1,7 @@
-From d66c3fcf4f77bd1ab97b7aec5cb8d5dda252d514 Mon Sep 17 00:00:00 2001
+From ce0eb0211ca94e947826d22e02f9d6330e89635f Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Mon, 27 Oct 2025 19:24:41 +0000
-Subject: [PATCH 12/12] Fix boundary checks to avoid out-of-bound memory access
+Subject: [PATCH 12/13] Fix boundary checks to avoid out-of-bound memory access
 
 Signed-off-by: David Vincze <david.vincze@arm.com>
 ---

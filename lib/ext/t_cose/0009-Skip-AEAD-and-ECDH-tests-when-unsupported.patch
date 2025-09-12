@@ -1,7 +1,7 @@
-From f736b1cf4868c92b40ec429eedf90f3cc94f4315 Mon Sep 17 00:00:00 2001
+From 73aa467c8c85d4fe53221161b59aad1514f6d9a4 Mon Sep 17 00:00:00 2001
 From: "G. Varga, Gabor" <Gabor.G.Varga@arm.com>
 Date: Mon, 29 Sep 2025 15:22:24 +0200
-Subject: [PATCH 09/12] Skip AEAD and ECDH tests when unsupported
+Subject: [PATCH 09/13] Skip AEAD and ECDH tests when unsupported
 
 Refactor the AEAD and ECDH tests to detect when the crypto backend
 does not support the required algorithms. In that case, treat them as
