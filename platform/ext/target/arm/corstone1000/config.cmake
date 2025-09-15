@@ -83,3 +83,15 @@ set(MCUBOOT_SIGNATURE_TYPE            "EC-P256"        CACHE STRING    "Algorith
 set(MCUBOOT_HW_KEY                    OFF              CACHE BOOL      "Whether to embed the entire public key in the image metadata instead of the hash only")
 set(MCUBOOT_BUILTIN_KEY               ON               CACHE BOOL      "Use builtin key(s) for validation, no public key data is embedded into the image metadata")
 set(CONFIG_BOOT_RAM_LOAD              ON               CACHE BOOL      "Whether to enable RAM load support")
+
+if (PLATFORM_PSA_ADAC_SECURE_DEBUG)
+  # Disable ADAC as TF-M runtime service by default when secure debug is enabled
+  set(PSA_ADAC_AS_TFM_RUNTIME_SERVICE     OFF          CACHE BOOL      "Integrate ADAC as TF-M runtime service")
+endif()
+
+if (PSA_ADAC_AS_TFM_RUNTIME_SERVICE)
+    set(TFM_PARTITION_ADAC                  ON      CACHE BOOL   "Enable Authenticated Debug partition")
+    set(TFM_EXTRAS_REPO_EXTRA_PARTITIONS    "adac"  CACHE STRING "List of extra secure partition directory name(s)")
+    # Below TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST path is relative to tf-m-extras repo
+    set(TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST "partitions/adac/adac_manifest_list.yaml" CACHE STRING "List of extra secure partition manifests")
+endif()

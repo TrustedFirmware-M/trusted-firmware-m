@@ -351,7 +351,7 @@ target_sources(bl2
 
 target_link_libraries(bl2
     PRIVATE
-        $<$<BOOL:${PLATFORM_PSA_ADAC_SECURE_DEBUG}>:trusted-firmware-m-psa-adac>
+        $<$<AND:$<BOOL:${PLATFORM_PSA_ADAC_SECURE_DEBUG}>,$<NOT:$<BOOL:${PSA_ADAC_AS_TFM_RUNTIME_SERVICE}>>>:trusted-firmware-m-psa-adac>
 )
 
 target_compile_definitions(bl2
@@ -424,7 +424,7 @@ target_sources(tfm_spm
 
 #========================= tfm_adac ============================================#
 
-if (${PLATFORM_PSA_ADAC_SECURE_DEBUG})
+if (${PLATFORM_PSA_ADAC_SECURE_DEBUG} AND NOT ${PSA_ADAC_AS_TFM_RUNTIME_SERVICE})
     target_compile_definitions(platform_bl2
         PRIVATE
             PLATFORM_PSA_ADAC_SECURE_DEBUG
@@ -434,7 +434,6 @@ if (${PLATFORM_PSA_ADAC_SECURE_DEBUG})
         PRIVATE
             trusted-firmware-m-psa-adac
     )
-
 endif()
 
 
