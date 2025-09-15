@@ -137,9 +137,8 @@ static psa_status_t cc3xx_internal_aes_setup(
     if (key_id == CC3XX_AES_KEY_ID_USER_KEY) {
         cc3xx_dpa_hardened_word_copy(state->key_buf, (uint32_t *)key_buffer,
                                      key_buffer_size / sizeof(uint32_t));
-    } else {
-        state->key_id = key_id;
     }
+
     return PSA_SUCCESS;
 }
 #endif /* PSA_WANT_KEY_TYPE_AES */
