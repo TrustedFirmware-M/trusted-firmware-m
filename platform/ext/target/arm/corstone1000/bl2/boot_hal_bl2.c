@@ -111,27 +111,6 @@ static bool fill_flash_map_with_fip_data(uint8_t boot_index) {
 #endif /* !TFM_S_REG_TEST */
 
 #ifdef PLATFORM_PSA_ADAC_SECURE_DEBUG
-int psa_adac_to_tfm_apply_permissions(uint8_t permissions_mask[16])
-{
-    (void)permissions_mask;
-
-    int ret;
-    uint32_t dcu_reg_values[4];
-
-    /* Below values provide same access as when platform is in development
-       life cycle state */
-    dcu_reg_values[0] = 0xffffe7fc;
-    dcu_reg_values[1] = 0x800703ff;
-    dcu_reg_values[2] = 0xffffffff;
-    dcu_reg_values[3] = 0xffffffff;
-
-    ret = crypto_hw_apply_debug_permissions((uint8_t*)dcu_reg_values, 16);
-    BOOT_LOG_INF("%s: debug permission apply %s\n\r", __func__,
-            (ret == 0) ? "success" : "fail");
-
-    return ret;
-}
-
 uint8_t secure_debug_rotpk[32];
 #endif /* PLATFORM_PSA_ADAC_SECURE_DEBUG */
 
