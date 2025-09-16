@@ -140,8 +140,9 @@ static void test_drivers_kmu_get_key_export_config_null_check(struct test_result
 static void test_drivers_kmu_get_key_export_config_unsupported_slot(struct test_result_t *ret)
 {
     enum kmu_error_t err = KMU_ERROR_FORCE_UINT_SIZE;
+    struct kmu_key_export_config_t dummy_config;
 
-    err = kmu_get_key_export_config(&KMU_DEV_S, UNSUPPORTED_SLOT, 1);
+    err = kmu_get_key_export_config(&KMU_DEV_S, UNSUPPORTED_SLOT, &dummy_config);
     TEST_FMT_ASSERT(err == KMU_ERROR_INVALID_SLOT,
                     "kmu_get_key_export_config: failed unsupported slot(%d) check\r\n",
                     UNSUPPORTED_SLOT);
@@ -177,8 +178,9 @@ static void test_drivers_kmu_set_key_export_config_null_check(struct test_result
 static void test_drivers_kmu_set_key_export_config_unsupported_slot(struct test_result_t *ret)
 {
     enum kmu_error_t err = KMU_ERROR_FORCE_UINT_SIZE;
+    struct kmu_key_export_config_t dummy_config;
 
-    err = kmu_set_key_export_config(&KMU_DEV_S, UNSUPPORTED_SLOT, 1);
+    err = kmu_set_key_export_config(&KMU_DEV_S, UNSUPPORTED_SLOT, &dummy_config);
     TEST_FMT_ASSERT(err == KMU_ERROR_INVALID_SLOT,
                     "kmu_set_key_export_config: failed unsupported slot(%d) check\r\n",
                     UNSUPPORTED_SLOT);
@@ -189,12 +191,13 @@ static void test_drivers_kmu_set_key_export_config_unsupported_slot(struct test_
 static void test_drivers_kmu_set_key_export_config_locked_slot(struct test_result_t *ret)
 {
     enum kmu_error_t err = KMU_ERROR_FORCE_UINT_SIZE;
+    struct kmu_key_export_config_t dummy_config;
 
     TEST_SETUP(kmu_set_slot_invalid(&KMU_DEV_S, SLOT));
     TEST_SETUP(kmu_set_key_export_config_locked(&KMU_DEV_S, SLOT));
 
     /* try to access locked key */
-    err = kmu_set_key_export_config(&KMU_DEV_S, SLOT, 1);
+    err = kmu_set_key_export_config(&KMU_DEV_S, SLOT, &dummy_config);
     TEST_ASSERT(err == KMU_ERROR_SLOT_LOCKED,
                 "kmu_set_key_export_config: failed locked slot check");
 
