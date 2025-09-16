@@ -86,8 +86,10 @@ enum sam_error_t sam_init(const struct sam_dev_t *dev)
         ((regs->sambc >> SAMBC_NUMBER_EVENT_COUNTERS_POS) & SAMBC_NUMBER_EVENT_COUNTERS_MASK);
 
     /*
-     * FixMe: Remove when FVP models the DMA ICS which will
-     * then initialise this register
+     * The SAM registers are not initialised by the DMA ICS in all states
+     * and therefore we need to correctly set up the value of the SAMICV
+     * here. Failure to do so will result in SAM alarms for ICV failures
+     * when we come to program the SAM registers
      */
     /* Calculate ZC over integrity checker protected area */
     for (volatile uint32_t *ptr = (volatile uint32_t *)&regs->samem;
