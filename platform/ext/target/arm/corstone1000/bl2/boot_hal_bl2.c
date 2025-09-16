@@ -176,7 +176,7 @@ int32_t boot_platform_post_init(void)
 
     if (!provisioning_required) {
 
-        plat_err = tfm_plat_otp_read(PLAT_OTP_ID_SECURE_DEBUG_PK, 32, secure_debug_rotpk);
+        plat_err = tfm_plat_otp_read(SECURE_DEBUG_ROTPK_ID, 32, secure_debug_rotpk);
         if (plat_err != TFM_PLAT_ERR_SUCCESS) {
             return plat_err;
         }

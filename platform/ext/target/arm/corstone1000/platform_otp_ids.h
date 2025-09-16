@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -60,6 +60,8 @@ enum tfm_otp_element_id_t {
 
     PLAT_OTP_ID_MAX = UINT32_MAX,
 };
+
+#define SECURE_DEBUG_ROTPK_ID PLAT_OTP_ID_SECURE_DEBUG_PK
 
 #ifdef __cplusplus
 }
