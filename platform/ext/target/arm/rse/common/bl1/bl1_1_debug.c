@@ -24,12 +24,12 @@ static bool read_saved_debug_state(void)
 
     reg_value = tfm_hal_get_reset_syndrome();
 
-    return (reg_value & (1 << SWSYN_DEBUG_STATE_IN_BOOT_BIT_POS));
+    return (reg_value & RSE_SWSYN_ENTER_DEBUG_MASK);
 }
 
 static void clear_debug_state(void)
 {
-    tfm_hal_clear_reset_syndrome_bit(SWSYN_DEBUG_STATE_IN_BOOT_BIT_POS);
+    tfm_hal_clear_reset_syndrome_bit(RSE_SWSYN_DEBUG_STATE_IN_BOOT_BIT_POS);
 }
 
 static int get_permissions_mask_from_shared_sram_area(uint8_t *permissions_mask,

@@ -95,6 +95,9 @@ enum tfm_otp_element_id_t {
     _PLAT_OTP_ID_PAD = UINT32_MAX,
 };
 
+//TODO: Update to correct ID, may require additional entry in enum above
+#define SECURE_DEBUG_ROTPK_ID PLAT_OTP_ID_CM_ROTPK
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 Arm Limited
+ * Copyright (c) 2019-2025 Arm Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -436,7 +436,7 @@ struct rse_sysctrl_t {
 /* Bit assignments in SWSYN */
 enum {
     RSE_SWSYN_FAILED_BOOT_BIT_POS         = SYSCTRL_SWRESET_SWSYN_POS,
-    RSE_SWSYN_DEBUG_STAGE_IN_BOOT_BIT_POS,
+    RSE_SWSYN_DEBUG_STATE_IN_BOOT_BIT_POS,
 };
 
 /* SWSYN mask for when entering debug */
