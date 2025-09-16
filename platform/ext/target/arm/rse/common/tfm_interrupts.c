@@ -256,3 +256,21 @@ enum tfm_hal_status_t runtime_provisioning_message_irq_init(void *p_pt,
     return TFM_HAL_SUCCESS;
 }
 #endif /* TFM_PARTITION_RUNTIME_PROVISIONING */
+
+#ifdef PLATFORM_PSA_ADAC_SECURE_DEBUG
+static struct irq_t sdc_irq = {0};
+
+void SDC_Handler(void)
+{
+    spm_handle_interrupt(sdc_irq.p_pt, sdc_irq.p_ildi);
+}
+
+enum tfm_hal_status_t adac_request_irq_init(void *p_pt,
+                                            const struct irq_load_info_t *p_ildi)
+{
+    sdc_irq.p_ildi = p_ildi;
+    sdc_irq.p_pt = p_pt;
+
+    return TFM_HAL_SUCCESS;
+}
+#endif /* PLATFORM_PSA_ADAC_SECURE_DEBUG */

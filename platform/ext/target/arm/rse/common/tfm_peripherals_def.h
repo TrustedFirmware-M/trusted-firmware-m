@@ -109,6 +109,8 @@ extern struct platform_data_t tfm_peripheral_dma0_ch0;
                          2 /* Device memory attribute */), \
     },
 
+#define ADAC_REQUEST_IRQ SDC_IRQn
+
 #ifdef __cplusplus
 }
 #endif
