@@ -80,7 +80,7 @@ void CMU_MHU4_Receiver_Handler(void)
 
 int32_t interrupts_bl2_init(void) {
     /* Register interrupt handler for SCP to RSE MHUv3 */
-    NVIC_SetVector(CMU_MHU4_Receiver_IRQn, CMU_MHU4_Receiver_Handler);
+    NVIC_SetVector(CMU_MHU4_Receiver_IRQn, (uintptr_t)CMU_MHU4_Receiver_Handler);
     if (NVIC_GetVector(CMU_MHU4_Receiver_IRQn) != CMU_MHU4_Receiver_Handler) {
         return 1;
     }

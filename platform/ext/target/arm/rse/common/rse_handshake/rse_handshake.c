@@ -29,6 +29,7 @@
 #include "rse_routing_tables.h"
 #include "rse_get_routing_tables.h"
 #include "rse_get_rse_id.h"
+#include "bl1_random.h"
 
 #include <string.h>
 #include <assert.h>

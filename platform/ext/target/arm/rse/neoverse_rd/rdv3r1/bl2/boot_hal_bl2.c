@@ -456,7 +456,7 @@ static int boot_platform_post_load_scp(void)
      * Since the measurement are taken at this point, clear the image header
      * part in the ITCM before releasing SCP out of reset.
      */
-    memset(HOST_SCP_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
+    memset((void*)HOST_SCP_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
 
     /* Enable SCP's ATU Access Permission (ATU AP) */
     integ_layer->atu_ap |= RSE_INTEG_ATU_AP_SCP_ATU;
@@ -561,7 +561,7 @@ static int boot_platform_post_load_mcp(void)
      * Since the measurement are taken at this point, clear the image header
      * part in the ITCM before releasing MCP out of reset.
      */
-    memset(HOST_MCP_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
+    memset((void*)HOST_MCP_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
 
     /* Configure RSE ATU to access MCP INIT_CTRL region */
     atu_err = atu_initialize_region(&ATU_DEV_S,
@@ -680,7 +680,7 @@ static int boot_platform_post_load_lcp(void)
      * Since the measurement are taken at this point, clear the image header
      * part in the ITCM before releasing LCP out of reset.
      */
-    memset(HOST_LCP_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
+    memset((void*)HOST_LCP_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
 
     /* Close RSE ATU region configured to access LCP ITCM region */
     atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_CODE_LOAD_ID);
@@ -737,7 +737,7 @@ static int boot_platform_post_load_lcp(void)
          * Since the measurement are taken at this point, clear the image
          * header part in the ITCM before releasing LCP out of reset.
          */
-        memset(HOST_LCP_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
+        memset((void*)HOST_LCP_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
 
         /* Close RSE ATU region configured to access LCP ITCM region */
         atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_CODE_LOAD_ID);
@@ -856,7 +856,7 @@ static int boot_platform_post_load_ap_bl1(void)
      * Since the measurement are taken at this point, clear the image
      * header part in the Shared SRAM before releasing AP BL1 out of reset.
      */
-    memset(HOST_AP_BL1_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
+    memset((void*)HOST_AP_BL1_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
 
     /* Close RSE ATU region configured to access RSE header region for AP BL1 */
     atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_HDR_LOAD_ID);
