@@ -10,7 +10,6 @@
 
 #include "psa/client.h"
 #include "cmsis_compiler.h"
-#include "rse_comms_client_request.h"
 #include "tfm_platform_system.h"
 
 #ifdef __cplusplus
@@ -28,6 +27,8 @@ __PACKED_STRUCT rse_pointer_access_reply_t {
     int32_t return_val;
     uint32_t out_size[PSA_MAX_IOVEC];
 };
+
+struct client_request_t;
 
 enum tfm_plat_err_t rse_protocol_pointer_access_deserialize_msg(
         struct client_request_t *req, struct rse_pointer_access_msg_t *msg,

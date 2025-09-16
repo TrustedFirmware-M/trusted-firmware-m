@@ -6,6 +6,7 @@
  */
 
 #include "rse_comms_protocol.h"
+#include "rse_comms_client_request.h"
 
 #include <string.h>
 

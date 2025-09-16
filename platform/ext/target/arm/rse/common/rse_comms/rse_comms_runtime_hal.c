@@ -7,7 +7,6 @@
 
 #include "rse_comms_runtime_hal.h"
 
-#include "rse_comms_client_request.h"
 #include "rse_comms_queue.h"
 #include "mhu.h"
 #include "tfm_hal_device_header.h"
@@ -15,9 +14,10 @@
 #include "tfm_peripherals_def.h"
 #include "tfm_log_unpriv.h"
 #include "tfm_pools.h"
-#include "rse_comms_protocol.h"
+#include "config_tfm.h"
 #include "rse_comms_defs.h"
 #include "rse_comms_link_hal.h"
+#include "rse_comms_client_request.h"
 #include <string.h>
 
 /* Declared statically to avoid using huge amounts of stack space. Maybe revisit

@@ -10,7 +10,6 @@
 
 #include "psa/client.h"
 #include "cmsis_compiler.h"
-#include "rse_comms_client_request.h"
 #include "tfm_platform_system.h"
 
 #ifdef RSE_COMMS_PROTOCOL_EMBED_ENABLED
@@ -66,6 +65,8 @@ __PACKED_STRUCT serialized_psa_reply_t {
 #endif /* RSE_COMMS_PROTOCOL_POINTER_ACCESS_ENABLED */
     } reply;
 };
+
+struct client_request_t;
 
 /**
  * \brief Convert a serialized message to a client_request_t.

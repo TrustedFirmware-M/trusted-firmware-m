@@ -8,12 +8,13 @@
 #ifndef __RSE_COMMS_RUNTIME_HAL_H__
 #define __RSE_COMMS_RUNTIME_HAL_H__
 
-#include "rse_comms_client_request.h"
 #include "tfm_plat_defs.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct client_request_t;
 
 /**
  * \brief Platform specific initialization of SPE multi-core.

@@ -34,7 +34,7 @@
 /* Clock configuration value to write to CLK_CFG1.SYSCLKCFG to drive SYSCLKCFG signal */
 #define SYSCLKCFG_VAL  0
 
-/* Maximum RSE Comms payload size using Embed protocol */
-#define RSE_COMMS_PSA_EMBED_PAYLOAD_MAX_SIZE (0x40 + 0x800)
+/* Maximum RSE Comms payload size */
+#define RSE_COMMS_PAYLOAD_MAX_SIZE (0x40 + 0x800)
 
 #endif /* __CONFIG_TFM_TARGET_H__ */

@@ -12,6 +12,7 @@
 #include "cmsis_compiler.h"
 #include "config_tfm.h"
 #include "rse_comms_atu.h"
+#include "rse_comms_protocol.h"
 
 #ifdef __cplusplus
 extern "C" {
