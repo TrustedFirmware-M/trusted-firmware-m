@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, Arm Limited. All rights reserved.
+ * Copyright (c) 2023, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -34,7 +34,7 @@ __PACKED_STRUCT tfm_psa_rot_provisioning_data_t {
     uint8_t implementation_id[32];
     uint8_t cert_ref[32];
     uint8_t verification_service_url[32];
-    uint8_t profile_definition[48];
+    uint8_t profile_definition[32];
 
     uint8_t entropy_seed[64];
 };

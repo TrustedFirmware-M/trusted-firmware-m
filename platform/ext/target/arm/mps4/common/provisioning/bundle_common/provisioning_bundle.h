@@ -65,7 +65,7 @@ struct __attribute__((__packed__)) dm_provisioning_bundle {
 
             uint8_t implementation_id[32];
             uint8_t verification_service_url[32];
-            uint8_t profile_definition[48];
+            uint8_t profile_definition[32];
             uint8_t secure_debug_pk[32];
             uint8_t boot_seed[32];
             uint8_t cert_ref[32];

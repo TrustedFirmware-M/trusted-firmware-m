@@ -40,7 +40,7 @@ enum tfm_security_lifecycle_t {
  *
  * \brief Maximum size of profile definition in bytes
  */
-#define PROFILE_DEFINITION_MAX_SIZE (48u)
+#define PROFILE_DEFINITION_MAX_SIZE (32u)
 
 /**
  * \def PLATFORM_CONFIG_MAX_SIZE

@@ -239,7 +239,7 @@ __PACKED_STRUCT plat_otp_layout_t {
         uint8_t implementation_id[32];
         uint8_t cert_ref[32];
         uint8_t verification_service_url[32];
-        uint8_t profile_definition[48];
+        uint8_t profile_definition[32];
 
         uint8_t bl2_rotpk[MAX_IMAGE_NUM][PROV_ROTPK_DATA_SIZE];
         uint8_t bl2_nv_counter[4][64];

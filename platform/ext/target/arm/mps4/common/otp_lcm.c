@@ -71,7 +71,7 @@ __PACKED_STRUCT plat_user_area_layout_t {
                 uint32_t iak_id[8];
                 uint32_t implementation_id[8];
                 uint32_t verification_service_url[8];
-                uint32_t profile_definition[12];
+                uint32_t profile_definition[8];
 
                 uint32_t secure_debug_pk[8];
 
