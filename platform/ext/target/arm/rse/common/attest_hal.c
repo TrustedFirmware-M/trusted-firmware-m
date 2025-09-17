@@ -64,23 +64,11 @@ tfm_attest_hal_get_verification_service(uint32_t *size, uint8_t *buf)
 enum tfm_plat_err_t
 tfm_attest_hal_get_profile_definition(uint32_t *size, uint8_t *buf)
 {
-#if ATTEST_TOKEN_PROFILE_ARM_CCA
-    const char profile [] = "tag:arm.com,2023:cca_platform#1.0.0";
-#elif ATTEST_TOKEN_PROFILE_PSA_2_0_0
-    const char profile [] = "tag:psacertified.org,2023:psa#tfm";
-#else
-#ifdef TFM_PARTITION_INITIAL_ATTESTATION
-   #error "Attestation token profile is incorrect"
-#endif
-#endif
-
-    if (*size < sizeof(profile) - 1) {
+    if (size == NULL || buf == NULL) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
-    /* Not including the null-terminator. */
-    memcpy(buf, profile, sizeof(profile) - 1);
-    *size = sizeof(profile) - 1;
+    *size = 0;
 
     return TFM_PLAT_ERR_SUCCESS;
 }
