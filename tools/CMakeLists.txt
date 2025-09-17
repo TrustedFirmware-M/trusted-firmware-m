@@ -162,12 +162,6 @@ set(MANIFEST_COMMAND
 parse_field_from_yaml("${GENERATED_FILE_LISTS}" output OUTPUT_FILES)
 list(TRANSFORM OUTPUT_FILES PREPEND ${CMAKE_BINARY_DIR}/generated/)
 
-add_custom_command(
-    OUTPUT ${OUTPUT_FILES}
-    COMMAND ${MANIFEST_COMMAND}
-    DEPENDS ${MANIFEST_LISTS} ${TEMPLATE_FILES} ${GENERATED_FILE_LISTS}
-)
-
 add_custom_target(
     manifest_tool
     DEPENDS ${OUTPUT_FILES}
