@@ -38,9 +38,12 @@ enum tfm_security_lifecycle_t {
 /**
  * \def PROFILE_DEFINITION_MAX_SIZE
  *
- * \brief Maximum size of profile definition in bytes
+ * \brief Maximum size of profile definition in bytes. Note that the OTP
+ *        layout might only store a reduced representation of the actual
+ *        profile string that needs to be translated by interrogating the
+ *        HAL of platform before generating the token
  */
-#define PROFILE_DEFINITION_MAX_SIZE (32u)
+#define PROFILE_DEFINITION_MAX_SIZE (48u)
 
 /**
  * \def PLATFORM_CONFIG_MAX_SIZE
@@ -87,6 +90,16 @@ tfm_attest_hal_get_verification_service(uint32_t *size, uint8_t *buf);
 /**
  * \brief Retrieve the name of the profile definition document for initial
  *        attestation.
+ *
+ * \note  It is allowed for this function to return an empty string, i.e.
+ *        with the value of \p size equal to 0. In this case the Attestation
+ *        service will determine the profile_definition string directly from
+ *        the build options
+ *
+ * \note  The profile_definition in OTP may contain either the full string
+ *        associated with the profile or a reduced representation of it.
+ *        The HAL function must be able to handle both cases and return the
+ *        correct string, translating the reduced representation if necessary.
  *
  *  This document describes the 'profile' of the initial attestation token,
  *  being a full description of the claims, their usage, verification and
