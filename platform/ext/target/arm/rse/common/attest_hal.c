@@ -79,7 +79,7 @@ tfm_attest_hal_get_profile_definition(uint32_t *size, uint8_t *buf)
     }
 
     /* Not including the null-terminator. */
-     memcpy(buf, profile, sizeof(profile) - 1);
+    memcpy(buf, profile, sizeof(profile) - 1);
     *size = sizeof(profile) - 1;
 
     return TFM_PLAT_ERR_SUCCESS;
