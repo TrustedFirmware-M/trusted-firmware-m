@@ -5,16 +5,20 @@
 
 #if defined(__ARMCC_VERSION)
 
-void __rt_exit(void)
+void __rt_exit(int code)
 {
+    (void)code;
+
     while (1)
         ;
 }
 
 #else
 
-void _exit(void)
+__attribute__((noreturn)) void _exit(int code)
 {
+    (void)code;
+
     while (1)
         ;
 }
