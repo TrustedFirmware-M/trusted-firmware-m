@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include "psa/crypto.h"
 
+#ifdef MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
 /* This function is stubbed as no source of randomness is required
  * by APIs used in the BLx stages. Nevertheless, a hardware driver
  * for a TRNG might override this implementation with a valid one,
@@ -30,3 +31,4 @@ psa_status_t mbedtls_psa_external_get_random(
 
     return PSA_ERROR_NOT_SUPPORTED;
 }
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
