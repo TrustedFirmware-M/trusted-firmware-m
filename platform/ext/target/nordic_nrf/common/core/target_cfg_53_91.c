@@ -228,6 +228,17 @@ enum tfm_plat_err_t spu_init_cfg(void)
 				SPU_SECURE_ATTR_NONSECURE, perm, SPU_LOCK_CONF_LOCKED);
 #endif /* REGION_PCD_SRAM_ADDRESS */
 
+#ifdef REGION_RPMSG_NRF53_SRAM_ADDRESS
+	/* Configures rpmsg nrf53 partition to be non-secure */
+	perm = 0;
+	perm |= NRF_SPU_MEM_PERM_READ;
+	perm |= NRF_SPU_MEM_PERM_WRITE;
+
+	spu_regions_sram_config(REGION_RPMSG_NRF53_SRAM_ADDRESS,
+				REGION_RPMSG_NRF53_SRAM_LIMIT,
+				SPU_SECURE_ATTR_NONSECURE, perm, SPU_LOCK_CONF_LOCKED);
+#endif /* REGION_RPMSG_NRF53_SRAM_ADDRESS */
+
 	return TFM_PLAT_ERR_SUCCESS;
 }
 
