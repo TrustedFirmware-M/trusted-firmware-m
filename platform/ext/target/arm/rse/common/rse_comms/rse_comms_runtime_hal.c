@@ -154,12 +154,26 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(void *mhu_receiver_dev,
     struct serialized_psa_msg_t *psa_msg;
     rse_comms_node_id_t my_node_id;
     struct rse_comms_packet_t *msg = (struct rse_comms_packet_t *)msg_buf;
+    size_t message_size;
 
     memset(msg_buf, 0, sizeof(msg_buf));
     memset(reply_buf, 0, sizeof(reply_buf));
 
     /* Receive complete message */
-    mhu_err = mhu_receive_data(mhu_receiver_dev, (uint8_t *)msg, &msg_len);
+    mhu_err = mhu_get_receive_msg_len(mhu_receiver_dev, &message_size);
+    if (mhu_err != MHU_ERR_NONE) {
+        /* Can't respond, since we don't know anything about the message */
+        NVIC_ClearPendingIRQ(source);
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
+
+    if (message_size > sizeof(msg_buf)) {
+        /* Message too large, can't respond */
+        NVIC_ClearPendingIRQ(source);
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
+
+    mhu_err = mhu_receive_data(mhu_receiver_dev, (uint8_t *)msg, message_size);
 
     /* Clear the pending interrupt for this MHU. This prevents the mailbox
      * interrupt handler from being called without the next request arriving

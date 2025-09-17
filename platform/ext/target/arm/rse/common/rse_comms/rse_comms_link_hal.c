@@ -117,9 +117,8 @@ enum rse_comms_hal_error_t rse_comms_hal_is_message_available(rse_comms_link_id_
     return RSE_COMMS_HAL_ERROR_SUCCESS;
 }
 
-enum rse_comms_hal_error_t rse_comms_hal_receive_message(rse_comms_link_id_t link_id,
-                                                         uint8_t *message, size_t buffer_size,
-                                                         size_t *message_size)
+enum rse_comms_hal_error_t rse_comms_hal_get_receive_message_size(rse_comms_link_id_t link_id,
+                                                                  size_t *message_size)
 {
     struct rse_comms_platform_device_t device;
 
@@ -128,16 +127,34 @@ enum rse_comms_hal_error_t rse_comms_hal_receive_message(rse_comms_link_id_t lin
     switch (device.type) {
     case RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV2:
     case RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV3: {
-        /* This MHU driver API is confusing, as the size argument is both an input parameter with the
-         * size of the buffer and an output parameter specifying the size of data received */
-        size_t size = buffer_size;
+        enum mhu_error_t mhu_err = mhu_get_receive_msg_len((void *)device.device, message_size);
+        if (mhu_err != MHU_ERR_NONE) {
+            return RSE_COMMS_HAL_ERROR_DEVICE_GET_MSG_LEN_FAIL;
+        }
 
-        enum mhu_error_t mhu_err = mhu_receive_data((void *)device.device, message, &size);
+        break;
+    }
+    default:
+        return RSE_COMMS_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+
+    return RSE_COMMS_HAL_ERROR_SUCCESS;
+}
+
+enum rse_comms_hal_error_t rse_comms_hal_receive_message(rse_comms_link_id_t link_id,
+                                                         uint8_t *message, size_t message_size)
+{
+    struct rse_comms_platform_device_t device;
+
+    device = rse_comms_platform_get_receive_device(link_id);
+
+    switch (device.type) {
+    case RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV2:
+    case RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV3: {
+        enum mhu_error_t mhu_err = mhu_receive_data((void *)device.device, message, message_size);
         if (mhu_err != MHU_ERR_NONE) {
             return RSE_COMMS_HAL_ERROR_DEVICE_RECEIVE_FAIL;
         }
-
-        *message_size = size;
 
         break;
     }

@@ -25,6 +25,7 @@ enum rse_comms_hal_error_t {
     RSE_COMMS_HAL_ERROR_CANNOT_GET_ROUTING_TABLES,
     RSE_COMMS_HAL_ERROR_DEVICE_SEND_FAIL,
     RSE_COMMS_HAL_ERROR_DEVICE_IS_AVAILABLE_FAIL,
+    RSE_COMMS_HAL_ERROR_DEVICE_GET_MSG_LEN_FAIL,
     RSE_COMMS_HAL_ERROR_DEVICE_RECEIVE_FAIL,
     RSE_COMMS_HAL_ERROR_DEVICE_INIT_FAIL,
     RSE_COMMS_HAL_ERROR_FORCE_UINT32 = UINT32_MAX,
@@ -79,19 +80,34 @@ enum rse_comms_hal_error_t rse_comms_hal_is_message_available(rse_comms_link_id_
                                                               bool *is_available);
 
 /**
+ * \brief Retrieves the size of the next message to be received on the specified communication
+ *        link.
+ *
+ * This function queries the communication link identified by @p link_id to determine the size
+ * of the next available message. The size is returned via the @p message_size pointer.
+ *
+ * \param[in]  link_id       The link identifier to query.
+ * \param[out] message_size  Pointer to a variable where the size of
+                             the message (in bytes) will be stored.
+ *
+ * \return RSE_COMMS_HAL_ERROR_SUCCESS on success, or an appropriate error code.
+ */
+enum rse_comms_hal_error_t rse_comms_hal_get_receive_message_size(rse_comms_link_id_t link_id,
+                                                                  size_t *message_size);
+
+/**
  * \brief Receives a message from the specified communication link.
  *
  * This function receives a message from the given link and stores it in the provided buffer.
  *
  * \param link_id      The link identifier to receive the message from.
  * \param message      Pointer to the buffer where the received message will be stored.
- * \param buffer_size  The maximum size of the buffer.
- * \param[out] message_size Pointer to store the actual size of the received message.
+ * \param message_size The size of the message to receive in bytes.
+ *                     The buffer must be at least this size.
  * \return RSE_COMMS_HAL_ERROR_SUCCESS on success, or an appropriate error code.
  */
 enum rse_comms_hal_error_t rse_comms_hal_receive_message(rse_comms_link_id_t link_id,
-                                                         uint8_t *message, size_t buffer_size,
-                                                         size_t *message_size);
+                                                         uint8_t *message, size_t message_size);
 
 /**
  * \brief Initializes the communication HAL layer.

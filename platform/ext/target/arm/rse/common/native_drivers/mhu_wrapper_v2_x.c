@@ -341,15 +341,35 @@ enum mhu_error_t mhu_wait_data(void *mhu_receiver_dev)
     return MHU_ERR_NONE;
 }
 
-enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
-                                  uint8_t *receive_buffer,
-                                  size_t *size)
+enum mhu_error_t mhu_get_receive_msg_len(void *mhu_receiver_dev, size_t *msg_len)
+{
+    enum mhu_v2_x_error_t err;
+    struct mhu_v2_x_dev_t *dev = (struct mhu_v2_x_dev_t *)mhu_receiver_dev;
+
+    assert(dev != NULL);
+
+    if (dev->version != 2) {
+        return MHU_ERR_INVALID_VERSION;
+    }
+
+    assert(dev->base != (uintptr_t)NULL);
+
+    /* The first word is the length of the actual message. */
+    err = mhu_v2_x_channel_receive(dev, 0, (uint32_t *)msg_len);
+    if (err != MHU_V_2_X_ERR_NONE) {
+        return err;
+    }
+
+    return MHU_ERR_NONE;
+}
+
+enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev, uint8_t *receive_buffer, size_t msg_len)
 {
     enum mhu_error_t mhu_err;
     enum mhu_v2_x_error_t err;
     struct mhu_v2_x_dev_t *dev = mhu_receiver_dev;
     uint32_t num_channels = mhu_v2_x_get_num_channel_implemented(dev);
-    uint32_t chan = 0;
+    uint32_t chan;
     uint32_t message_len;
     uint32_t i;
     uint32_t *p;
@@ -362,28 +382,13 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
 
     assert(dev->base != (uintptr_t)NULL);
 
-    if (size == NULL) {
-        return MHU_ERR_RECEIVE_DATA_INVALID_ARG;
-    }
-
-    mhu_err = validate_buffer_params((uintptr_t)receive_buffer, *size);
+    mhu_err = validate_buffer_params((uintptr_t)receive_buffer, msg_len);
     if (mhu_err != MHU_ERR_NONE) {
         return mhu_err;
     }
 
-    /* The first word is the length of the actual message. */
-    err = mhu_v2_x_channel_receive(dev, chan, &message_len);
-    if (err != MHU_V_2_X_ERR_NONE) {
-        return err;
-    }
-    chan++;
-
-    if (message_len > *size) {
-        /* Message buffer too small */
-        *size = message_len;
-        return MHU_ERR_RECEIVE_DATA_BUFFER_TOO_SMALL;
-    }
-
+    /* Chan 0 is initially used for the message length so start with chan 1 */
+    chan = 1;
     p = (uint32_t *)receive_buffer;
     for (i = 0; i < message_len; i += 4) {
         err = mhu_v2_x_channel_receive(dev, chan, p++);
@@ -409,8 +414,6 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev,
             return err;
         }
     }
-
-    *size = message_len;
 
     return MHU_ERR_NONE;
 }
