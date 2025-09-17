@@ -68,27 +68,18 @@ tfm_attest_hal_get_verification_service(uint32_t *size, uint8_t *buf)
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-enum tfm_plat_err_t
-tfm_attest_hal_get_profile_definition(uint32_t *size, uint8_t *buf)
+// cppcheck-suppress constParameter
+enum tfm_plat_err_t tfm_attest_hal_get_profile_definition(uint32_t *size, uint8_t *buf)
 {
-    enum tfm_plat_err_t err;
-    size_t otp_size;
-    size_t copy_size;
-
-    err = tfm_plat_otp_read(PLAT_OTP_ID_PROFILE_DEFINITION, *size, buf);
-    if(err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
+    /* The templated implementation does not return the profile_definition
+     * from the OTP but it leaves to the Attestation service to determine
+     * it using build options directly in this case
+     */
+    if (size == NULL || buf == NULL) {
+        return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
-    err =  tfm_plat_otp_get_size(PLAT_OTP_ID_PROFILE_DEFINITION, &otp_size);
-    if(err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
-    }
-
-    /* Actually copied data is always the smaller */
-    copy_size = (*size < otp_size) ? *size : otp_size;
-    /* String content */
-    *size = tfm_strnlen((char*)buf, copy_size);
+    *size = 0;
 
     return TFM_PLAT_ERR_SUCCESS;
 }
