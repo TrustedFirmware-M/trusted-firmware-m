@@ -416,7 +416,7 @@ void noc_s3_print_discovery_tree(const struct noc_s3_dev *dev,
 
     err = noc_s3_discovery_init(&root);
     if (err != NOC_S3_SUCCESS) {
-        return err;
+        return;
     }
 
     NOC_S3_DRV_LOG_HEADING("Discovery tree for %s", tree_label);

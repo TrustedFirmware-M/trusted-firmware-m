@@ -82,8 +82,6 @@ enum noc_s3_err noc_s3_fetch_fmu_offset(
  *
  * \param[in]   dev                  NoC S3 struct \ref noc_s3_dev.
  * \param[in]   tree_label           Label string for printing discovery tree.
- *
- * \return Returns error code as specified in enum \ref noc_s3_err.
  */
 void noc_s3_print_discovery_tree(const struct noc_s3_dev *dev,
                                 const char *tree_label);
