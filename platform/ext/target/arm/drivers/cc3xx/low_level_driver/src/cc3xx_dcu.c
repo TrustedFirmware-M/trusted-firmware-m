@@ -39,6 +39,32 @@ static cc3xx_err_t check_dcu_restriction_mask(const uint32_t *val)
 
 /**
  * @brief Check that the requested permissions are in accordance with the
+ *        permanent disable mask. A 1 in the mask means disabled
+ *
+ * @param[in] val Sets of permissions, i.e. host_dcu_en to check as an array of 4 words
+ * @return cc3xx_err_t CC3XX_ERR_SUCCESS or CC3XX_ERR_DCU_MASK_MISMATCH
+ */
+static cc3xx_err_t check_dcu_permanent_disable_mask(const uint32_t *val)
+{
+    size_t idx;
+
+    CC3XX_INFO("permanent_disable_mask: 0x%08x_%08x_%08x_%08x\r\n",
+               P_CC3XX->ao.ao_permanent_disable_mask[0],
+               P_CC3XX->ao.ao_permanent_disable_mask[1],
+               P_CC3XX->ao.ao_permanent_disable_mask[2],
+               P_CC3XX->ao.ao_permanent_disable_mask[3]);
+
+    for (idx = 0; idx < sizeof(P_CC3XX->ao.ao_permanent_disable_mask) / sizeof(uint32_t); idx++) {
+        if (val[idx] & P_CC3XX->ao.ao_permanent_disable_mask[idx]) {
+            return CC3XX_ERR_DCU_MASK_MISMATCH;
+        }
+    }
+
+    return CC3XX_ERR_SUCCESS;
+}
+
+/**
+ * @brief Check that the requested permissions are in accordance with the
  *        current status of the DCU locks
  *
  * @param[in] val Sets of permissions, i.e. host_dcu_en to check as an array of 4 words
@@ -148,7 +174,13 @@ cc3xx_err_t cc3xx_dcu_set_enabled(const uint8_t *permissions_mask, size_t len)
                dcu_en_requested[2],
                dcu_en_requested[3]);
 
-    /* Check the restriction mask for the dcu_en*/
+    /* Check the permanent disable mask for the dcu_en */
+    err = check_dcu_permanent_disable_mask(dcu_en_requested);
+    if (err != CC3XX_ERR_SUCCESS) {
+        return err;
+    }
+
+    /* Check the ICV restriction mask for the dcu_en */
     err = check_dcu_restriction_mask(dcu_en_requested);
     if (err != CC3XX_ERR_SUCCESS) {
         return err;
