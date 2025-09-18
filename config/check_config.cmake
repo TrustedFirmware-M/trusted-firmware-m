@@ -53,6 +53,8 @@ tfm_invalid_config(TFM_DUMMY_PROVISIONING AND MCUBOOT_GENERATE_SIGNING_KEYPAIR)
 
 tfm_invalid_config(MCUBOOT_HW_KEY AND MCUBOOT_BUILTIN_KEY)
 
+tfm_invalid_config(BL2 AND (MCUBOOT_ENC_IMAGES AND NOT (MCUBOOT_UPGRADE_STRATEGY STREQUAL "RAM_LOAD")))
+
 ####################### Code sharing ###########################################
 
 set(TFM_CODE_SHARING_PLATFORM_LISTS arm/mps2/an521 arm/musca_b1) # Without crypto hw acceleration
