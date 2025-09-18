@@ -58,7 +58,9 @@
  *        alignment for the underlying OTP memory
  */
 static uint32_t g_pubkey_data[ROUND_UP(PSA_EXPORT_PUBLIC_KEY_MAX_SIZE,  sizeof(uint32_t)) / sizeof(uint32_t)];
+#if defined(MCUBOOT_ENC_IMAGES)
 static uint8_t g_symkey_data[PSA_CIPHER_MAX_KEY_LENGTH];
+#endif
 /**
  * @brief A structure describing the contents of a thin key slot, which
  *        holds key material and metadata following a psa_import_key() call
@@ -150,7 +152,7 @@ static psa_status_t get_builtin_key(psa_key_id_t key_id)
 #endif
 }
 
-
+#if defined(MCUBOOT_ENC_IMAGES)
 static psa_status_t get_symmetric_builtin_key(psa_key_id_t key,
                                      psa_algorithm_t alg)
 {
@@ -170,6 +172,7 @@ static psa_status_t get_symmetric_builtin_key(psa_key_id_t key,
     return PSA_ERROR_NOT_SUPPORTED;
 #endif
 }
+#endif /* MCUBOOT_ENC_IMAGES */
 
 /**
  * @brief Check if a \a key_id refers to a builtin key_id

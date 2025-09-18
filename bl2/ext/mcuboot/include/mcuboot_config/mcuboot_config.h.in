@@ -56,7 +56,6 @@ extern "C" {
 #define MAX_BOOT_RECORD_SZ  (132u)
 #endif /* MCUBOOT_SIGN_EC384 */
 
-#cmakedefine MCUBOOT_ENC_IMAGES
 #cmakedefine MCUBOOT_ENCRYPT_RSA
 #cmakedefine MCUBOOT_ENCRYPT_KW
 
