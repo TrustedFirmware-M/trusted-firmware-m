@@ -7,6 +7,7 @@
 
 #include "cc3xx_dcu.h"
 #include "cc3xx_dev.h"
+#include "cc3xx_log.h"
 #include <assert.h>
 #include <string.h>
 
@@ -20,6 +21,12 @@
 static cc3xx_err_t check_dcu_restriction_mask(const uint32_t *val)
 {
     size_t idx;
+
+    CC3XX_INFO("icv_dcu_restriction_mask: 0x%08x_%08x_%08x_%08x\r\n",
+               P_CC3XX->ao.ao_icv_dcu_restriction_mask[0],
+               P_CC3XX->ao.ao_icv_dcu_restriction_mask[1],
+               P_CC3XX->ao.ao_icv_dcu_restriction_mask[2],
+               P_CC3XX->ao.ao_icv_dcu_restriction_mask[3]);
 
     for (idx = 0; idx < sizeof(P_CC3XX->ao.ao_icv_dcu_restriction_mask) / sizeof(uint32_t); idx++) {
         if (val[idx] & ~P_CC3XX->ao.ao_icv_dcu_restriction_mask[idx]) {
@@ -41,6 +48,18 @@ static cc3xx_err_t check_dcu_locks(const uint32_t *val)
 {
     size_t idx;
     uint32_t dcu_has_to_change;
+
+    CC3XX_INFO("Current host_dcu_en: 0x%08x_%08x_%08x_%08x\r\n",
+               P_CC3XX->ao.host_dcu_en[0],
+               P_CC3XX->ao.host_dcu_en[1],
+               P_CC3XX->ao.host_dcu_en[2],
+               P_CC3XX->ao.host_dcu_en[3]);
+
+    CC3XX_INFO("host_dcu_lock: 0x%08x_%08x_%08x_%08x\r\n",
+               P_CC3XX->ao.host_dcu_lock[0],
+               P_CC3XX->ao.host_dcu_lock[1],
+               P_CC3XX->ao.host_dcu_lock[2],
+               P_CC3XX->ao.host_dcu_lock[3]);
 
     for (idx = 0; idx < sizeof(P_CC3XX->ao.host_dcu_en) / sizeof(uint32_t); idx++) {
         /* Check if the host_dcu_en has to change */
@@ -123,6 +142,12 @@ cc3xx_err_t cc3xx_dcu_set_enabled(const uint8_t *permissions_mask, size_t len)
         dcu_en_requested[idx] = *((uint32_t *)(permissions_mask + (idx*sizeof(uint32_t))));
     }
 
+    CC3XX_INFO("Requested host_dcu_en: 0x%08x_%08x_%08x_%08x\r\n",
+               dcu_en_requested[0],
+               dcu_en_requested[1],
+               dcu_en_requested[2],
+               dcu_en_requested[3]);
+
     /* Check the restriction mask for the dcu_en*/
     err = check_dcu_restriction_mask(dcu_en_requested);
     if (err != CC3XX_ERR_SUCCESS) {
@@ -138,6 +163,8 @@ cc3xx_err_t cc3xx_dcu_set_enabled(const uint8_t *permissions_mask, size_t len)
     for (idx = 0; idx < sizeof(P_CC3XX->ao.host_dcu_en) / sizeof(uint32_t); idx++) {
         P_CC3XX->ao.host_dcu_en[idx] = dcu_en_requested[idx];
     }
+
+    CC3XX_INFO("Requested host_dcu_en applied successfully\r\n");
 
     return CC3XX_ERR_SUCCESS;
 }
