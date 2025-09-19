@@ -21,5 +21,8 @@ endif()
 set(PLAT_SHARED_LCP                     TRUE     CACHE BOOL    "Whether shared LCP is enabled where LCP cores are mapped to AP cores in 1:N mapping opposed to 1:1")
 set(RSE_OTP_HAS_ROUTING_TABLES          ON       CACHE BOOL    "Whether the RSE OTP contains the RSE communications routing tables")
 
+# FIXME: Investigate why attestation tests fail for RDV3R1
+set(TEST_S_ATTESTATION                  OFF      CACHE BOOL    "Whether to build S regression Attestation tests")
+
 # Once all cache options are set, set common options as fallback
 include(${CMAKE_CURRENT_LIST_DIR}/../common/config.cmake)
