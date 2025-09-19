@@ -378,7 +378,6 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev, uint8_t *receive_buffe
     struct mhu_v2_x_dev_t *dev = mhu_receiver_dev;
     uint32_t num_channels = mhu_v2_x_get_num_channel_implemented(dev);
     uint32_t chan;
-    uint32_t message_len;
     uint32_t i;
     uint32_t *p;
 
@@ -398,14 +397,14 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev, uint8_t *receive_buffe
     /* Chan 0 is initially used for the message length so start with chan 1 */
     chan = 1;
     p = (uint32_t *)receive_buffer;
-    for (i = 0; i < message_len; i += 4) {
+    for (i = 0; i < msg_len; i += 4) {
         err = mhu_v2_x_channel_receive(dev, chan, p++);
         if (err != MHU_V_2_X_ERR_NONE) {
             return err;
         }
 
         /* Only wait for next transfer if there is still missing data. */
-        if (++chan == (num_channels - 1) && (message_len - i) > 4) {
+        if (++chan == (num_channels - 1) && (msg_len - i) > 4) {
             /* Busy wait for next transfer */
             err = clear_and_wait_for_signal(dev);
             if (err != MHU_V_2_X_ERR_NONE) {
