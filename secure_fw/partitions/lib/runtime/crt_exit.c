@@ -11,6 +11,8 @@ void __rt_exit(int code)
     (void)code;
 
     psa_panic();
+
+    __builtin_unreachable();
 }
 
 #else
@@ -20,6 +22,9 @@ __attribute__((noreturn)) void _exit(int code)
     (void)code;
 
     psa_panic();
+
+    while (1)
+        ;
 }
 
 #endif
