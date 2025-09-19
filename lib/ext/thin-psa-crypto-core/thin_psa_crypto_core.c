@@ -1046,20 +1046,6 @@ psa_status_t psa_unwrap_key(const psa_key_attributes_t *attributes,
 }
 #endif /* MCUBOOT_ENC_IMAGES */
 
-#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
-/* This function is stubbed as no source of randomness is required
- * by APIs used in the BLx stages. Nevertheless, an hardwware driver
- * for a TRNG might override this implementation with a valid one
- * hence mark it as a weak
- */
-__attribute__((weak))
-psa_status_t mbedtls_psa_external_get_random(
-    mbedtls_psa_external_random_context_t *context,
-    uint8_t *output, size_t output_size, size_t *output_length)
-{
-    return PSA_ERROR_NOT_SUPPORTED;
-}
-#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 /* Set the key for a multipart authenticated decryption operation. */
 psa_status_t psa_aead_decrypt_setup(psa_aead_operation_t *operation,
                                     psa_key_id_t key_id,
