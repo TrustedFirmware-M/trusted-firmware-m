@@ -29,6 +29,8 @@
 
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(*(array)))
 
+#define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
+
 /*!
  * \brief Static function to map return values between \ref psa_attest_err_t
  *        and \ref psa_status_t
@@ -233,9 +235,21 @@ attest_add_security_lifecycle_claim(struct attest_token_encode_ctx *token_ctx)
 static enum psa_attest_err_t
 attest_add_profile_definition(struct attest_token_encode_ctx *token_ctx)
 {
+#if ATTEST_TOKEN_PROFILE_PSA_IOT_1
+    static const char profile_definition[] = "PSA_IOT_PROFILE_1";
+#elif ATTEST_TOKEN_PROFILE_ARM_CCA
+    static const char profile_definition[] = "tag:arm.com,2023:cca_platform#1.0.0";
+#elif ATTEST_TOKEN_PROFILE_PSA_2_0_0
+    static const char profile_definition[] = "tag:psacertified.org,2023:psa#tfm";
+#else
+#error "Attestation token profile is incorrect"
+#endif
     struct q_useful_buf_c profile;
-    uint8_t buf[PROFILE_DEFINITION_MAX_SIZE];
-    uint32_t size = sizeof(buf);
+    /* Make sure we pass a word aligned buffer as platforms might
+     * access OTP which has alignment requirements
+     */
+    uint32_t buf[ALIGN_UP(PROFILE_DEFINITION_MAX_SIZE + 1, sizeof(uint32_t)) / sizeof(uint32_t)] = {0};
+    uint32_t size = sizeof(buf) - 1;
     enum tfm_plat_err_t err;
 
     err = tfm_attest_hal_get_profile_definition(&size, buf);
@@ -243,8 +257,19 @@ attest_add_profile_definition(struct attest_token_encode_ctx *token_ctx)
         return PSA_ATTEST_ERR_GENERAL;
     }
 
-    profile.ptr = &buf;
+    profile.ptr = buf;
     profile.len = size;
+
+    /* Check for mismatches between the value returned by HAL and Build options */
+    if (size == 0) {
+        INFO_UNPRIV("[Attest] The platform did not return a profile_definition\r\n");
+        profile.ptr = profile_definition;
+        profile.len = sizeof(profile_definition) - 1;
+    } else if (size != (sizeof(profile_definition) - 1) || strncmp(profile_definition, (const char *)buf, size)) {
+        WARN_UNPRIV("[Attest] Mismatched profile_definition from HAL\r\n");
+    }
+
+    INFO_UNPRIV("[Attest] Encoding profile_definition (size: %d): %s\r\n", profile.len, profile.ptr);
     attest_token_encode_add_tstr(token_ctx,
                                  IAT_PROFILE_DEFINITION,
                                  &profile);
