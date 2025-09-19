@@ -54,8 +54,7 @@ static const struct test_otp_info read_test_info[] = {
     {"ID_DM_PROVISIONING_KEY", PLAT_OTP_ID_DM_PROVISIONING_KEY},
 
 #ifdef RSE_OTP_HAS_ROUTING_TABLES
-    {"ID_RSE_TO_RSE_SENDER_ROUTING_TABLE", PLAT_OTP_ID_RSE_TO_RSE_SENDER_ROUTING_TABLE},
-    {"ID_RSE_TO_RSE_RECEIVER_ROUTING_TABLE", PLAT_OTP_ID_RSE_TO_RSE_RECEIVER_ROUTING_TABLE},
+    {"ID_RSE_TO_RSE_ROUTING_TABLE", PLAT_OTP_ID_RSE_TO_RSE_ROUTING_TABLE},
 #endif
 };
 static const uint32_t otp_read_test_info_len = ARRAY_SIZE(read_test_info);
@@ -67,8 +66,7 @@ static const struct test_otp_info write_test_info[] = {
     {"ID_RSE_ID", PLAT_OTP_ID_RSE_ID},
 #endif
 #ifdef RSE_OTP_HAS_ROUTING_TABLES
-    {"ID_RSE_TO_RSE_SENDER_ROUTING_TABLE", PLAT_OTP_ID_RSE_TO_RSE_SENDER_ROUTING_TABLE},
-    {"ID_RSE_TO_RSE_RECEIVER_ROUTING_TABLE", PLAT_OTP_ID_RSE_TO_RSE_RECEIVER_ROUTING_TABLE},
+    {"ID_RSE_TO_RSE_ROUTING_TABLE", PLAT_OTP_ID_RSE_TO_RSE_ROUTING_TABLE},
 #endif
 };
 static const uint32_t otp_write_test_info_len = ARRAY_SIZE(write_test_info);
@@ -112,8 +110,7 @@ static const struct test_otp_info getsize_test_info[] = {
     {"ID_RSE_ID", PLAT_OTP_ID_RSE_ID},
 #endif
 #ifdef RSE_OTP_HAS_ROUTING_TABLES
-    {"ID_RSE_TO_RSE_SENDER_ROUTING_TABLE", PLAT_OTP_ID_RSE_TO_RSE_SENDER_ROUTING_TABLE},
-    {"ID_RSE_TO_RSE_RECEIVER_ROUTING_TABLE", PLAT_OTP_ID_RSE_TO_RSE_RECEIVER_ROUTING_TABLE},
+    {"ID_RSE_TO_RSE_ROUTING_TABLE", PLAT_OTP_ID_RSE_TO_RSE_ROUTING_TABLE},
 #endif
 };
 static const uint32_t otp_getsize_test_info_len = ARRAY_SIZE(getsize_test_info);
