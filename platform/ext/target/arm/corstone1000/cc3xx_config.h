@@ -14,7 +14,7 @@
 #endif /* CC3XX_CONFIG_BASE_ADDRESS */
 
 /* Whether the DCU apply permission function enforces ICV restriction mask */
-#define CC3XX_CONFIG_DCU_ICV_RESTRICTION_MASK_CHECK
+/* #define CC3XX_CONFIG_DCU_ICV_RESTRICTION_MASK_CHECK */
 
 /* Whether uint32_t accesses must be strictly 4-byte aligned */
 /* CC3XX_CONFIG_STRICT_UINT32_T_ALIGNMENT */
