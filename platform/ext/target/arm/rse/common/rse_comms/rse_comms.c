@@ -590,8 +590,7 @@ enum rse_comms_error_t rse_comms_receive_reply(uint8_t *buf, size_t buf_size,
     }
 
     if (packet_type == RSE_COMMS_PACKET_TYPE_PROTOCOL_ERROR_REPLY) {
-        if (!uses_id_extension ||
-            (uses_id_extension && (packet->error_reply.client_id == metadata.client_id))) {
+        if (packet_client_id == metadata.client_id) {
             /* Error message for us */
             return rse_protocol_error_to_comms_error(packet->error_reply.protocol_error);
         } else {

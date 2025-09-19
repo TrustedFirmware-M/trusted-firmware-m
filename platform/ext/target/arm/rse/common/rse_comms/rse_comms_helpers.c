@@ -22,30 +22,60 @@ enum rse_comms_error_t rse_comms_helpers_parse_packet(
         return RSE_COMMS_ERROR_INVALID_PACKET_SIZE;
     }
 
+    /* Parse header */
     *sender = packet->header.sender_id;
     *receiver = packet->header.receiver_id;
     *message_id = packet->header.message_id;
-
-    *uses_cryptography = GET_METADATA_FIELD(USES_CRYPTOGRAPHY, packet->header.metadata);
     *packet_type = GET_METADATA_FIELD(PACKET_TYPE, packet->header.metadata);
+    *uses_cryptography = GET_METADATA_FIELD(USES_CRYPTOGRAPHY, packet->header.metadata);
     *uses_id_extension = GET_METADATA_FIELD(USES_ID_EXTENSION, packet->header.metadata);
 
-    if (packet_size <
-        RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(*uses_cryptography, *uses_id_extension)) {
-        return RSE_COMMS_ERROR_INVALID_PACKET_SIZE;
+    switch (*packet_type) {
+    case RSE_COMMS_PACKET_TYPE_PROTOCOL_ERROR_REPLY:
+        if (packet_size != RSE_COMMS_PACKET_SIZE_ERROR_REPLY) {
+            return RSE_COMMS_ERROR_INVALID_PACKET_SIZE;
+        }
+
+        *client_id = packet->error_reply.client_id;
+        *needs_reply = false;
+        *application_id = 0;
+        *payload = NULL;
+        *payload_len = 0;
+
+        return RSE_COMMS_ERROR_SUCCESS;
+
+    case RSE_COMMS_PACKET_TYPE_MSG_NO_REPLY:
+    case RSE_COMMS_PACKET_TYPE_MSG_NEEDS_REPLY:
+    case RSE_COMMS_PACKET_TYPE_REPLY:
+        if (packet_size <
+            RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(*uses_cryptography, *uses_id_extension)) {
+            return RSE_COMMS_ERROR_INVALID_PACKET_SIZE;
+        }
+
+        *needs_reply = (*packet_type == RSE_COMMS_PACKET_TYPE_MSG_NEEDS_REPLY);
+
+        if (*uses_id_extension) {
+            *client_id = GET_RSE_COMMS_CLIENT_ID(packet, *uses_cryptography);
+            *application_id = GET_RSE_COMMS_APPLICATION_ID(packet, *uses_cryptography);
+        } else {
+            *client_id = 0;
+            *application_id = 0;
+        }
+
+        *payload_len = packet_size - RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(*uses_cryptography,
+                                                                           *uses_id_extension);
+        if (*payload_len > 0) {
+            *payload = (uint8_t *)GET_RSE_COMMS_PAYLOAD_PTR(packet, *uses_cryptography,
+                                                            *uses_id_extension);
+        } else {
+            *payload = NULL;
+        }
+
+        return RSE_COMMS_ERROR_SUCCESS;
+
+    default:
+        return RSE_COMMS_ERROR_INVALID_MSG_TYPE;
     }
-
-    *needs_reply = *packet_type == RSE_COMMS_PACKET_TYPE_MSG_NEEDS_REPLY;
-
-    *client_id = *uses_id_extension ? GET_RSE_COMMS_CLIENT_ID(packet, *uses_cryptography) : 0;
-    *application_id =
-        *uses_id_extension ? GET_RSE_COMMS_APPLICATION_ID(packet, *uses_cryptography) : 0;
-
-    *payload = (uint8_t *)GET_RSE_COMMS_PAYLOAD_PTR(packet, *uses_cryptography, *uses_id_extension);
-    *payload_len =
-        packet_size - RSE_COMMS_PACKET_SIZE_WITHOUT_PAYLOAD(*uses_cryptography, *uses_id_extension);
-
-    return RSE_COMMS_ERROR_SUCCESS;
 }
 
 bool rse_comms_helpers_packet_requires_forwarding_get_destination(
@@ -81,8 +111,7 @@ void rse_comms_helpers_generate_protocol_error_packet(struct rse_comms_packet_t 
                                                       enum rse_comms_protocol_error_t error)
 {
     packet->header.metadata = SET_ALL_METADATA_FIELDS(RSE_COMMS_PACKET_TYPE_PROTOCOL_ERROR_REPLY,
-                                                      false, client_id != 0,
-                                                      RSE_COMMS_PROTOCOL_VERSION);
+                                                      false, false, RSE_COMMS_PROTOCOL_VERSION);
     packet->header.sender_id = sender_id;
     packet->header.receiver_id = receiver_id;
     packet->header.message_id = message_id;
