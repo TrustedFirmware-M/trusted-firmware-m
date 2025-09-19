@@ -15,7 +15,7 @@ from tfm_tools.file_loader import load_bytes_from_file
 
 from tfm_tools.c_struct import C_enum
 
-from os.path import isfile
+from os.path import isfile, dirname, isdir
 
 from tfm_tools.crypto_conversion_utils import convert_curve_define, convert_hash_define
 
@@ -132,8 +132,17 @@ def arg_type_elf(arg : str) -> bytes:
 
         return {"code": code_section.data(), "data": data_section.data() if data_section else None}
 
-def arg_type_filepath(arg : str) -> str:
+def arg_type_input_filepath(arg : str) -> str:
     assert isfile(arg), "File {} does not exist".format(arg)
+    return arg
+
+def arg_type_output_filepath(arg : str) -> str:
+    dir = dirname(arg)
+
+    if not dir:
+        dir = "."
+
+    assert isdir(dir), "Directory {} does not exist to create file ".format(dir, arg)
     return arg
 
 def arg_type_bytes_from_file(arg : str) -> (bytes, bytes):
@@ -150,10 +159,20 @@ def arg_type_bytes(arg : str) -> bytes:
         assert len(arg) % 2 == 0, "Hex values must be a multiple of two characters long"
         return arg_type_hex(arg.replace("0x", ""))
 
+def arg_type_bytes_input_file(arg : str):
+    arg_type_input_filepath(arg)
+    return open(arg, "rb")
+
+def arg_type_text_input_file(arg : str):
+    arg_type_input_filepath(arg)
+    return open(arg, "rt")
+
 def arg_type_bytes_output_file(arg : str):
+    arg_type_output_filepath(arg)
     return open(arg, "wb")
 
 def arg_type_text_output_file(arg : str):
+    arg_type_output_filepath(arg)
     return open(arg, "wt")
 
 def arg_type_hash(arg : str):

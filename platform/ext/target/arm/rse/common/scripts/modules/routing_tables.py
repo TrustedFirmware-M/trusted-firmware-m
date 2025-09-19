@@ -135,9 +135,9 @@ def main():
     parser = argparse.ArgumentParser(allow_abbrev=False,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      description=script_description)
-    parser.add_argument("--rse_routing_tables_h_file", help="path to rse_routing_tables.h", type=arg_utils.arg_type_filepath, required=True)
-    parser.add_argument("--compile_commands_file", help="path to compile_commands.json", type=arg_utils.arg_type_filepath, required=True)
-    parser.add_argument("--topology_graph_file", help="The topology graph file expressing the system", type=arg_utils.arg_type_filepath, required=True)
+    parser.add_argument("--rse_routing_tables_h_file", help="path to rse_routing_tables.h", type=arg_utils.arg_type_input_filepath, required=True)
+    parser.add_argument("--compile_commands_file", help="path to compile_commands.json", type=arg_utils.arg_type_input_filepath, required=True)
+    parser.add_argument("--topology_graph_file", help="The topology graph file expressing the system", type=arg_utils.arg_type_input_filepath, required=True)
     parser.add_argument("--routing_tables_output_file", help="file to output routing tables to", required=True)
     parser.add_argument("--log_level", help="log level", required=False, default="ERROR", choices=logging._levelToName.values())#
 
