@@ -195,12 +195,23 @@ cc3xx_err_t cc3xx_lowlevel_init(void)
     }
 #endif /* CC3XX_CONFIG_LCS_LOG_ENABLE */
 
+    /* Log initialization status with peripheral ID and optional LCS and secure debug reset */
+    CC3XX_INFO("[CC3XX] Init OK PIDR0: 0x%x"
 #ifdef CC3XX_CONFIG_LCS_LOG_ENABLE
-    CC3XX_INFO("[CC3XX] Init OK PIDR0: 0x%x, LCS: %s\r\n",
-                P_CC3XX->id.peripheral_id_0, cc3xx_lowlevel_lcs_get_name(lcs));
-#else
-    CC3XX_INFO("[CC3XX] Init OK PIDR0: 0x%x\r\n", P_CC3XX->id.peripheral_id_0);
- #endif /* CC3XX_CONFIG_LCS_LOG_ENABLE */
+               ", LCS: %s"
+#endif
+#ifdef CC3XX_CONFIG_SECURE_DEBUG_RESET_LOG_ENABLE
+               ", Secure debug reset: %u"
+#endif
+               "\r\n", P_CC3XX->id.peripheral_id_0
+#ifdef CC3XX_CONFIG_LCS_LOG_ENABLE
+               , cc3xx_lowlevel_lcs_get_name(lcs)
+#endif
+#ifdef CC3XX_CONFIG_SECURE_DEBUG_RESET_LOG_ENABLE
+               , P_CC3XX->ao.ao_cc_sec_debug_reset & 0x1
+#endif
+               );
+
     return CC3XX_ERR_SUCCESS;
 }
 

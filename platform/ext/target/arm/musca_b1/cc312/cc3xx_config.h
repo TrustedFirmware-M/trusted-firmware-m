@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, The TrustedFirmware-M Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -232,5 +232,8 @@
 
 /* Whether LCS logging is enabled */
 #define CC3XX_CONFIG_LCS_LOG_ENABLE */
+
+/* Whether secure debug reset register logging is enabled */
+#define CC3XX_CONFIG_SECURE_DEBUG_RESET_LOG_ENABLE
 
 #endif /* CC3XX_CONFIG_H */
