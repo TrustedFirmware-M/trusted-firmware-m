@@ -85,8 +85,8 @@ enum mhu_error_t mhu_init_receiver(void *mhu_receiver_dev);
  * \return Returns mhu_error_t error code.
  *
  * \note For MHUv2, the send_buffer must be 4-byte aligned and its length must
- *       be at least (4 - (size % 4)) bytes bigger than the data size to
- *       prevent buffer over-reading.
+ *       be at least ((size + 3) & ~(size_t)0b11) bytes to prevent buffer
+ *       over-reading.
  */
 enum mhu_error_t mhu_send_data(void *mhu_sender_dev,
                                const uint8_t *send_buffer,
