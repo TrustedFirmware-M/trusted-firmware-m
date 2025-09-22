@@ -203,12 +203,19 @@ cc3xx_err_t cc3xx_lowlevel_init(void)
 #ifdef CC3XX_CONFIG_SECURE_DEBUG_RESET_LOG_ENABLE
                ", Secure debug reset: %u"
 #endif
+#ifdef CC3XX_CONFIG_GPPC_LOG_ENABLE
+               ", TCI: %u, PCI: %u"
+#endif
                "\r\n", P_CC3XX->id.peripheral_id_0
 #ifdef CC3XX_CONFIG_LCS_LOG_ENABLE
                , cc3xx_lowlevel_lcs_get_name(lcs)
 #endif
 #ifdef CC3XX_CONFIG_SECURE_DEBUG_RESET_LOG_ENABLE
                , P_CC3XX->ao.ao_cc_sec_debug_reset & 0x1
+#endif
+#ifdef CC3XX_CONFIG_GPPC_LOG_ENABLE
+               , (P_CC3XX->ao.ao_cc_gppc >> 8) & 0x1
+               , (P_CC3XX->ao.ao_cc_gppc >> 9) & 0x1
 #endif
                );
 

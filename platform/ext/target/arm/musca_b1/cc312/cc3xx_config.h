@@ -236,4 +236,7 @@
 /* Whether secure debug reset register logging is enabled */
 #define CC3XX_CONFIG_SECURE_DEBUG_RESET_LOG_ENABLE
 
+/* Whether General Purpose Persistent Configuration (GPPC) logging is enabled */
+#define CC3XX_CONFIG_GPPC_LOG_ENABLE
+
 #endif /* CC3XX_CONFIG_H */
