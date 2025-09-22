@@ -1203,7 +1203,7 @@ uint8_t bl2_get_boot_bank(void)
         FWU_ASSERT(0);
     }
     boot_index = priv_metadata.boot_index;
-    FWU_LOG_MSG("%s: exit: booting from bank = %u", __func__, boot_index);
+    FWU_LOG_MSG("%s: exit: booting from bank = %u\r\n", __func__, boot_index);
     return boot_index;
 }
 
