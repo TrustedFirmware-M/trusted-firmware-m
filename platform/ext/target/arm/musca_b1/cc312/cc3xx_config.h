@@ -230,4 +230,7 @@
 /* Whether the present hardware is a CC310 */
 /* #define CC3XX_CONFIG_HW_VERSION_CC310 */
 
+/* Whether LCS logging is enabled */
+#define CC3XX_CONFIG_LCS_LOG_ENABLE */
+
 #endif /* CC3XX_CONFIG_H */

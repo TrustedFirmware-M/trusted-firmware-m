@@ -153,6 +153,9 @@ cc3xx_err_t cc3xx_lowlevel_init(void)
 #endif
 
     cc3xx_err_t err;
+#ifdef CC3XX_CONFIG_LCS_LOG_ENABLE
+    cc3xx_lcs_t lcs;
+#endif /* CC3XX_CONFIG_LCS_LOG_ENABLE */
 
     /* If on a debug build, check that the CC3XX has all the features that have
      * been chosen by config */
@@ -184,7 +187,20 @@ cc3xx_err_t cc3xx_lowlevel_init(void)
     }
 #endif /* CC3XX_CONFIG_DPA_MITIGATIONS_ENABLE */
 
+#ifdef CC3XX_CONFIG_LCS_LOG_ENABLE
+    /* Read and log life cycle state */
+    err = cc3xx_lowlevel_lcs_get(&lcs);
+    if (err != CC3XX_ERR_SUCCESS) {
+        return err;
+    }
+#endif /* CC3XX_CONFIG_LCS_LOG_ENABLE */
+
+#ifdef CC3XX_CONFIG_LCS_LOG_ENABLE
+    CC3XX_INFO("[CC3XX] Init OK PIDR0: 0x%x, LCS: %s\r\n",
+                P_CC3XX->id.peripheral_id_0, cc3xx_lowlevel_lcs_get_name(lcs));
+#else
     CC3XX_INFO("[CC3XX] Init OK PIDR0: 0x%x\r\n", P_CC3XX->id.peripheral_id_0);
+ #endif /* CC3XX_CONFIG_LCS_LOG_ENABLE */
     return CC3XX_ERR_SUCCESS;
 }
 

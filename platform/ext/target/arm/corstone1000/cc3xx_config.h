@@ -212,4 +212,7 @@
 #define CC3XX_CONFIG_STDLIB_LFSR_MAX_ATTEMPTS 128
 #endif /* CC3XX_CONFIG_STDLIB_LFSR_MAX_ATTEMPTS */
 
+/* Whether LCS logging is enabled */
+#define CC3XX_CONFIG_LCS_LOG_ENABLE
+
 #endif /* CC3XX_CONFIG_H */
