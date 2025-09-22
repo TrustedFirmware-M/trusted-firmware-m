@@ -9,12 +9,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "atu_rse_lib.h"
 #include "device_definition.h"
 #include "host_base_address.h"
 #include "host_system.h"
+#include "rse_get_rse_id.h"
 #include "tfm_hal_device_header.h"
 #include "tfm_plat_otp.h"
-#include "rse_get_rse_id.h"
 #ifdef RD_SYSCTRL_NOC_S3
 #include "noc_s3_lib.h"
 
