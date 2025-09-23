@@ -820,6 +820,9 @@ cc3xx_err_t cc3xx_lowlevel_pka_set_to_random(cc3xx_pka_reg_id_t r0, size_t bit_l
 
     cc3xx_lowlevel_pka_write_reg(r0, random_buf, sizeof(random_buf));
 
+    /* Clear the generated random words from the stack */
+    memset(random_buf, 0 , sizeof(random_buf));
+
     return CC3XX_ERR_SUCCESS;
 }
 
