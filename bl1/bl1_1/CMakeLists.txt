@@ -91,8 +91,7 @@ add_custom_target(bl1_2_padded_bin
 add_custom_command(OUTPUT bl1_2_padded.bin bl1_2_padded_hash.bin
     OUTPUT ${bin_dir}/bl1_2_padded.bin ${bin_dir}/bl1_2_padded_hash.bin
     DEPENDS bl1_2_bin signing_layout_bl1_2
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_bl1_2_img.py
-    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_bl1_2_img.py
+    COMMAND bl1_1_create_bl1_2_image
                     --input_file $<TARGET_FILE_DIR:bl1_2>/bl1_2.bin
                     --img_output_file bl1_2_padded.bin
                     --hash_alg ${TFM_BL1_1_MEASUREMENT_HASH_ALG}
@@ -116,8 +115,7 @@ if (TFM_BL1_DEFAULT_PROVISIONING)
         DEPENDS $<TARGET_FILE_DIR:bl1_2>/bl1_2_padded_hash.bin
         DEPENDS $<TARGET_FILE_DIR:bl1_2>/bl1_2_padded.bin
         bl1_2_padded_bin bl2_signed_bin
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_provisioning_bundle.py
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/create_provisioning_bundle.py
+        COMMAND bl1_1_create_provisioning_bundle
                         --bl2_encryption_key_input_file ${TFM_BL2_ENCRYPTION_KEY_PATH}
                         --bl2_signing_key_input_file ${TFM_BL1_2_CM_SIGNING_KEY_PATH}
                         --guk_input_file ${TFM_GUK_PATH}
