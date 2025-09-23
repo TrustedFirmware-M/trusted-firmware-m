@@ -118,7 +118,7 @@ if (RSE_XIP)
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../image_signing/scripts
 
         #Sign non-secure binary image with provided secret key
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../image_signing/scripts/wrapper.py
+        COMMAND mcuboot_imagesign_wrapper
             -v ${MCUBOOT_IMAGE_VERSION_NS}
             --layout $<TARGET_OBJECTS:signing_layout_ns>
             --key ${CMAKE_CURRENT_SOURCE_DIR}/../image_signing/keys/image_ns_signing_private_key.pem

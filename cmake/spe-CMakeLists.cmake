@@ -232,11 +232,11 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts
 
             #Sign non-secure binary image with provided secret key
-            COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts/wrapper.py ${wrapper_args}
+            COMMAND mcuboot_imagesign_wrapper ${wrapper_args}
         )
 
         # Create concatenated binary image from the two independently signed
-        # binary file. This only uses the local assemble.py script (not from
+        # binary file. This only uses the local assemble script (not from
         # upstream mcuboot) because that script is geared towards zephyr
         # support
         add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/tfm_s_ns_signed.bin
@@ -245,7 +245,7 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/layout_files/signing_layout_s.o
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts
 
-            COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts/assemble.py
+            COMMAND mcuboot_imagesign_assemble
                 --layout ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/layout_files/signing_layout_s.o
                 --secure ${CMAKE_CURRENT_SOURCE_DIR}/bin/tfm_s_signed.bin
                 --non_secure ${CMAKE_BINARY_DIR}/bin/${NS_TARGET_NAME}_signed.bin
@@ -262,7 +262,7 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts
 
             # concatenate S + NS binaries into tfm_s_ns.bin
-            COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts/assemble.py
+            COMMAND mcuboot_imagesign_assemble
                 --layout ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/layout_files/signing_layout_s_ns.o
                 --secure ${CMAKE_CURRENT_SOURCE_DIR}/bin/tfm_s.bin
                 --non_secure $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${NS_TARGET_NAME}.bin
@@ -298,9 +298,7 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts
 
             # sign the combined tfm_s_ns.bin file
-            COMMAND ${Python3_EXECUTABLE}
-                ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/scripts/wrapper.py
-                ${wrapper_args}
+            COMMAND mcuboot_imagesign_wrapper ${wrapper_args}
         )
     endif()
 endif()
