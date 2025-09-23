@@ -3,6 +3,8 @@
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  */
 
+#include "atu_config.h"
+#include "atu_rse_lib.h"
 #include "bl2_image_id.h"
 #include "boot_hal.h"
 #include "bootutil/bootutil_log.h"
@@ -57,7 +59,13 @@ static int32_t fill_secure_flash_map_with_data(void)
 
 int32_t boot_platform_post_init(void)
 {
+    enum atu_error_t atu_err;
     int32_t result;
+
+    atu_err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_SECURE, atu_regions_static, atu_stat_count);
+    if (atu_err != ATU_ERR_NONE) {
+        return result;
+    }
 
     result = AP_FLASH_DEV_NAME.Initialize(NULL);
     if (result != 0) {
@@ -85,11 +93,17 @@ static enum atu_error_t initialise_atu_regions(struct atu_dev_t *dev,
         const struct atu_map *reg = &regions[idx];
         enum atu_roba_t axnse, axprot1;
 
-        atu_err = atu_initialize_region(dev, idx, reg->log_addr, reg->phy_addr,
-                                        reg->size);
+        atu_err = atu_rse_initialize_region(dev, idx, reg->log_addr, reg->phy_addr, reg->size);
         if (atu_err != ATU_ERR_NONE) {
             BOOT_LOG_ERR("BL2: ERROR! %s ATU region %u init status: %d", name,
                          idx, (int)atu_err);
+            return atu_err;
+        }
+
+        atu_err = atu_rse_set_bus_attributes(dev, idx, reg->bus_attr);
+        if (atu_err != ATU_ERR_NONE) {
+            BOOT_LOG_ERR("BL2: Unable to modify bus attributes for %s ATU region %u\n",
+                         name, idx);
             return atu_err;
         }
 
@@ -102,30 +116,6 @@ static enum atu_error_t initialise_atu_regions(struct atu_dev_t *dev,
                      (unsigned long)reg->phy_addr,
                      (unsigned long)((reg->phy_addr + reg->size - 1) >> 32),
                      (unsigned long)(reg->phy_addr + reg->size - 1));
-
-        if (reg->access_type == ATU_ACCESS_SECURE) {
-            axnse = ATU_ROBA_SET_0;
-            axprot1 = ATU_ROBA_SET_0;
-        } else if (reg->access_type == ATU_ACCESS_NON_SECURE) {
-            axnse = ATU_ROBA_SET_0;
-            axprot1 = ATU_ROBA_SET_1;
-        } else {
-            continue;
-        }
-
-        atu_err = set_axnsc(dev, axnse, idx);
-        if (atu_err != ATU_ERR_NONE) {
-            BOOT_LOG_ERR("BL2: Unable to modify AxNSE for %s ATU region %u\n",
-                         name, idx);
-            return atu_err;
-        }
-
-        atu_err = set_axprot1(dev, axprot1, idx);
-        if (atu_err != ATU_ERR_NONE) {
-            BOOT_LOG_ERR("BL2: Unable to modify AxPROT1 for %s ATU region %u\n",
-                         name, idx);
-            return atu_err;
-        }
     }
 
     return ATU_ERR_NONE;
@@ -157,11 +147,11 @@ static enum atu_error_t initialize_ap_atu(void)
     enum atu_error_t atu_err;
 
     /* Configure RSE ATU to access the AP ATU */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_AP_ATU_ID,
-                                    HOST_AP_ATU_BASE_S,
-                                    HOST_AP_ATU_PHYS_BASE,
-                                    HOST_AP_ATU_GPV_SIZE);
+    atu_err = atu_rse_initialize_region(&ATU_DEV_S,
+                                        RSE_ATU_AP_ATU_ID,
+                                        HOST_AP_ATU_BASE_S,
+                                        HOST_AP_ATU_PHYS_BASE,
+                                        HOST_AP_ATU_GPV_SIZE);
     if (atu_err != ATU_ERR_NONE) {
         return atu_err;
     }
@@ -174,7 +164,7 @@ static enum atu_error_t initialize_ap_atu(void)
     }
 
     /* Close RSE ATU region configured to access the AP ATU */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_AP_ATU_ID);
+    atu_err = atu_rse_uninitialize_region(&ATU_DEV_S, RSE_ATU_AP_ATU_ID);
     if (atu_err != ATU_ERR_NONE) {
         return atu_err;
     }
@@ -190,31 +180,31 @@ static int boot_platform_pre_load_ap_bl2(void)
     BOOT_LOG_INF("BL2: AP BL2 pre load start");
 
     /* Configure RSE ATU to access AP Secure Flash for AP BL2 */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    HOST_AP_FLASH_ATU_ID,
-                                    HOST_AP_FLASH_BASE,
-                                    HOST_AP_FLASH_PHY_BASE,
-                                    HOST_AP_FLASH_SIZE);
+    atu_err = atu_rse_initialize_region(&ATU_DEV_S,
+                                        HOST_AP_FLASH_ATU_ID,
+                                        HOST_AP_FLASH_BASE,
+                                        HOST_AP_FLASH_PHY_BASE,
+                                        HOST_AP_FLASH_SIZE);
     if (atu_err != ATU_ERR_NONE) {
         return 1;
     }
 
     /* Configure RSE ATU to access RSE header region for AP BL2 */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_IMG_HDR_LOAD_ID,
-                                    HOST_AP_BL2_HDR_ATU_WINDOW_BASE_S,
-                                    HOST_AP_BL2_HDR_PHYS_BASE,
-                                    RSE_IMG_HDR_ATU_WINDOW_SIZE);
+    atu_err = atu_rse_initialize_region(&ATU_DEV_S,
+                                        RSE_ATU_IMG_HDR_LOAD_ID,
+                                        HOST_AP_BL2_HDR_ATU_WINDOW_BASE_S,
+                                        HOST_AP_BL2_HDR_PHYS_BASE,
+                                        RSE_IMG_HDR_ATU_WINDOW_SIZE);
     if (atu_err != ATU_ERR_NONE) {
         return 1;
     }
 
     /* Configure RSE ATU to access AP BL2 Shared SRAM region */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_IMG_CODE_LOAD_ID,
-                                    HOST_AP_BL2_IMG_CODE_BASE_S,
-                                    HOST_AP_BL2_PHYS_BASE,
-                                    HOST_AP_BL2_ATU_SIZE);
+    atu_err = atu_rse_initialize_region(&ATU_DEV_S,
+                                        RSE_ATU_IMG_CODE_LOAD_ID,
+                                        HOST_AP_BL2_IMG_CODE_BASE_S,
+                                        HOST_AP_BL2_PHYS_BASE,
+                                        HOST_AP_BL2_ATU_SIZE);
     if (atu_err != ATU_ERR_NONE) {
         return 1;
     }
@@ -243,19 +233,19 @@ static int boot_platform_post_load_ap_bl2(void)
     memset(HOST_AP_BL2_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
 
     /* Close RSE ATU to access AP Secure Flash for AP BL2 */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, HOST_AP_FLASH_ATU_ID);
+    atu_err = atu_rse_uninitialize_region(&ATU_DEV_S, HOST_AP_FLASH_ATU_ID);
     if (atu_err != ATU_ERR_NONE) {
         return 1;
     }
 
     /* Close RSE ATU region configured to access RSE header region for AP BL2 */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_HDR_LOAD_ID);
+    atu_err = atu_rse_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_HDR_LOAD_ID);
     if (atu_err != ATU_ERR_NONE) {
         return 1;
     }
 
     /* Close RSE ATU region configured to access AP BL2 Shared SRAM region */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_CODE_LOAD_ID);
+    atu_err = atu_rse_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_CODE_LOAD_ID);
     if (atu_err != ATU_ERR_NONE) {
         return 1;
     }
@@ -280,11 +270,11 @@ static enum atu_error_t initialize_si_atu(void)
     enum atu_error_t atu_err;
 
     /* Configure RSE ATU to access the SI ATU */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    HOST_SI_ATU_ID,
-                                    HOST_SI_ATU_BASE_S,
-                                    HOST_SI_ATU_PHYS_BASE,
-                                    HOST_SI_ATU_GPV_SIZE);
+    atu_err = atu_rse_initialize_region(&ATU_DEV_S,
+                                        HOST_SI_ATU_ID,
+                                        HOST_SI_ATU_BASE_S,
+                                        HOST_SI_ATU_PHYS_BASE,
+                                        HOST_SI_ATU_GPV_SIZE);
     if (atu_err != ATU_ERR_NONE) {
         return atu_err;
     }
@@ -297,7 +287,7 @@ static enum atu_error_t initialize_si_atu(void)
     }
 
     /* Close RSE ATU region configured to access the SI ATU */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, HOST_SI_ATU_ID);
+    atu_err = atu_rse_uninitialize_region(&ATU_DEV_S, HOST_SI_ATU_ID);
     if (atu_err != ATU_ERR_NONE) {
         return atu_err;
     }
@@ -313,21 +303,21 @@ static int boot_platform_pre_load_si_cl0(void)
     BOOT_LOG_INF("BL2: SI CL0 pre load start");
 
     /* Configure RSE ATU to access RSE header region for SI CL0 */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_IMG_HDR_LOAD_ID,
-                                    HOST_SI_CL0_HDR_ATU_WINDOW_BASE_S,
-                                    HOST_SI_CL0_HDR_PHYS_BASE,
-                                    RSE_IMG_HDR_ATU_WINDOW_SIZE);
+    atu_err = atu_rse_initialize_region(&ATU_DEV_S,
+                                        RSE_ATU_IMG_HDR_LOAD_ID,
+                                        HOST_SI_CL0_HDR_ATU_WINDOW_BASE_S,
+                                        HOST_SI_CL0_HDR_PHYS_BASE,
+                                        RSE_IMG_HDR_ATU_WINDOW_SIZE);
     if (atu_err != ATU_ERR_NONE) {
         return 1;
     }
 
     /* Configure RSE ATU to access SI CL0 Shared SRAM region */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    RSE_ATU_IMG_CODE_LOAD_ID,
-                                    HOST_SI_CL0_IMG_CODE_BASE_S,
-                                    HOST_SI_CL0_PHYS_BASE,
-                                    HOST_SI_CL0_ATU_SIZE);
+    atu_err = atu_rse_initialize_region(&ATU_DEV_S,
+                                        RSE_ATU_IMG_CODE_LOAD_ID,
+                                        HOST_SI_CL0_IMG_CODE_BASE_S,
+                                        HOST_SI_CL0_PHYS_BASE,
+                                        HOST_SI_CL0_ATU_SIZE);
     if (atu_err != ATU_ERR_NONE) {
         return 1;
     }
@@ -358,11 +348,11 @@ static int boot_platform_post_load_si_cl0(void)
     }
 
     /* Configure RSE ATU to access SI CL0 Cluster Utility Bus */
-    atu_err = atu_initialize_region(&ATU_DEV_S,
-                                    HOST_SI_CL0_CUB_ATU_ID,
-                                    HOST_SI_CL0_CUB_ATU_WINDOW_BASE_S,
-                                    HOST_SI_CL0_CUB_BASE,
-                                    HOST_SI_CL0_CUB_SIZE);
+    atu_err = atu_rse_initialize_region(&ATU_DEV_S,
+                                        HOST_SI_CL0_CUB_ATU_ID,
+                                        HOST_SI_CL0_CUB_ATU_WINDOW_BASE_S,
+                                        HOST_SI_CL0_CUB_BASE,
+                                        HOST_SI_CL0_CUB_SIZE);
     if (atu_err != ATU_ERR_NONE) {
         return 1;
     }
@@ -381,19 +371,19 @@ static int boot_platform_post_load_si_cl0(void)
     BOOT_LOG_INF("BL2: SI CL0 is released out of reset");
 
     /* Close RSE ATU region configured to access SI CL0 Cluster Utility Bus */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, HOST_SI_CL0_CUB_ATU_ID);
+    atu_err = atu_rse_uninitialize_region(&ATU_DEV_S, HOST_SI_CL0_CUB_ATU_ID);
     if (atu_err != ATU_ERR_NONE) {
         return 1;
     }
 
     /* Close RSE ATU region configured to access RSE header region for SI CL0 */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_HDR_LOAD_ID);
+    atu_err = atu_rse_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_HDR_LOAD_ID);
     if (atu_err != ATU_ERR_NONE) {
         return 1;
     }
 
     /* Close RSE ATU region configured to access SI CL0 Shared SRAM region */
-    atu_err = atu_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_CODE_LOAD_ID);
+    atu_err = atu_rse_uninitialize_region(&ATU_DEV_S, RSE_ATU_IMG_CODE_LOAD_ID);
     if (atu_err != ATU_ERR_NONE) {
         return 1;
     }

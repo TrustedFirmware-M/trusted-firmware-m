@@ -11,12 +11,14 @@
 #ifndef __HOST_ATU_BASE_ADDRESS_H__
 #define __HOST_ATU_BASE_ADDRESS_H__
 
+#include "atu_config.h"
 #include "image_size_defs.h"
 #include "platform_base_address.h"
 
 #define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
 
-#define RSE_ATU_BASE_ID 0
+/* Use the slots of the dynamic ATU as this platform makes direct calls to the ATU driver instead */
+#define RSE_ATU_BASE_ID ATU_DYN_SLOT_START
 
 enum rse_atu_ids {
     /*

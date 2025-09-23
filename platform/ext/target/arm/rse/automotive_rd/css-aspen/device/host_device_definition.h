@@ -28,12 +28,6 @@ extern const struct ppu_dev_t HOST_SI_CL0_CORE0_PPU_DEV;
 extern struct atu_dev_t HOST_SI_ATU_DEV;
 extern struct atu_dev_t HOST_AP_ATU_DEV;
 
-enum ATU_ACCESS_TYPE {
-    ATU_ACCESS_DEFAULT,
-    ATU_ACCESS_SECURE,
-    ATU_ACCESS_NON_SECURE,
-};
-
 /* Structure used to describe an ATU region */
 struct atu_map {
     /* Logical start address */
@@ -42,8 +36,8 @@ struct atu_map {
     uint64_t phy_addr;
     /* Size of the ATU region */
     uint32_t size;
-    /* Access Type */
-    enum ATU_ACCESS_TYPE access_type;
+    /* Bus attributes */
+    uint32_t bus_attr;
 };
 
 /* Indices for SI ATU regions */

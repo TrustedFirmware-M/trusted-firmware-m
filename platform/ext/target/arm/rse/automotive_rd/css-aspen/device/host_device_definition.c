@@ -57,43 +57,43 @@ struct atu_map si_atu_regions[SI_ATU_REGION_COUNT] = {
         .log_addr = 0x80000000UL,
         .phy_addr = 0x100000000ULL,
         .size = 0x40000000UL,
-        .access_type = ATU_ACCESS_SECURE,
+        .bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS,
     },
     [SI_ATU_REGION_IDX_CLUSTER_UTILITY] = {
         .log_addr = 0xC0000000UL,
         .phy_addr = 0x140000000ULL,
         .size = 0x10000000UL,
-        .access_type = ATU_ACCESS_SECURE,
+        .bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS,
     },
     [SI_ATU_REGION_IDX_SMD_EXPANSION] = {
         .log_addr = 0xD0000000UL,
         .phy_addr = 0x20000D8000000ULL,
         .size = 0x20000UL,
-        .access_type = ATU_ACCESS_SECURE,
+        .bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS,
     },
     [SI_ATU_REGION_IDX_SYSTOP_PIK] = {
         .log_addr = 0xD0020000UL,
         .phy_addr = 0x20000D0200000ULL,
         .size = 0x10000UL,
-        .access_type = ATU_ACCESS_SECURE,
+        .bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS,
     },
     [SI_ATU_REGION_IDX_SYSTEM_ID] = {
         .log_addr = 0xD0030000UL,
         .phy_addr = 0x20000D0400000ULL,
         .size = 0x10000UL,
-        .access_type = ATU_ACCESS_SECURE,
+        .bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS,
     },
     [SI_ATU_REGION_IDX_CSS_COUNTERS_TIMERS] = {
         .log_addr = 0xD0040000UL,
         .phy_addr = 0x20000D0100000ULL,
         .size = 0x30000UL,
-        .access_type = ATU_ACCESS_SECURE,
+        .bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS,
     },
     [SI_ATU_REGION_IDX_SHARED_SRAM] = {
         .log_addr = 0xE0030000UL,
         .phy_addr = 0x0ULL,
         .size = 0x2000UL,
-        .access_type = ATU_ACCESS_SECURE,
+        .bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS,
     },
 };
 
@@ -109,13 +109,13 @@ const struct atu_map ap_atu_regions[AP_ATU_REGION_COUNT] = {
         .log_addr = 0x40000000UL,
         .phy_addr = 0x20000D0100000ULL,
         .size = 0x20000UL,
-        .access_type = ATU_ACCESS_SECURE,
+        .bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS,
     },
     [AP_ATU_REGION_IDX_PC_SI_MHU] = {
         .log_addr = 0x40020000UL,
         .phy_addr = 0x400003B000000ULL,
         .size = 0x600000UL,
-        .access_type = ATU_ACCESS_SECURE,
+        .bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS,
     },
 };
 #endif /* PLATFORM_RSE_HAS_ATU_OWNERSHIP */
