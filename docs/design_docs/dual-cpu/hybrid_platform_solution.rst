@@ -345,3 +345,9 @@ References
 **********
 
 .. [1] :doc:`Dual-CPU <index>`
+
+--------------
+
+*SPDX-License-Identifier: BSD-3-Clause*
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
