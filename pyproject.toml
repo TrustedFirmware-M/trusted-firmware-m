@@ -55,6 +55,7 @@ sign_then_encrypt_data = "tfm_tools.sign_then_encrypt_data:main"
 sign_data = "tfm_tools.sign_data:main"
 encrypt_data = "tfm_tools.encrypt_data:main"
 c_struct = "tfm_tools.c_struct:main"
+tfm_gen_armclang_shared_symbols = "tfm_tools.tfm_gen_armclang_shared_symbols:main"
 
 rse_create_blob_message = "rse_scripts.create_blob_message:main"
 rse_create_cm_provisioning_bundle = "rse_scripts.create_cm_provisioning_bundle:main"

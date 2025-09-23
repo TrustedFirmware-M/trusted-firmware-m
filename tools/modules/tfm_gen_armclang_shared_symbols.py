@@ -37,7 +37,7 @@ def convert_fromelf_to_symdefs(fromelf_lines, symbols_to_keep):
 
     return lines
 
-if __name__ == "__main__":
+def main():
     fromelf_path = sys.argv[1]
     output_path = sys.argv[2]
     symbols_list = sys.argv[3:]
@@ -51,3 +51,6 @@ if __name__ == "__main__":
 
     with open(output_path, "w") as f:
         f.writelines(newlines)
+
+if __name__ == "__main__":
+    main()

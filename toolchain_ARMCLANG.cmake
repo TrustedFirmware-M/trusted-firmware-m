@@ -390,7 +390,7 @@ macro(target_share_symbols target)
     add_custom_target(${target}_shared_symbols
         VERBATIM
         COMMAND fromelf --text -s $<TARGET_FILE:${target}> --output $<TARGET_FILE_DIR:${target}>/${target}${CODE_SHARING_OUTPUT_FILE_SUFFIX}
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/tfm_gen_armclang_shared_symbols.py
+        COMMAND tfm_gen_armclang_shared_symbols
             $<TARGET_FILE_DIR:${target}>/${target}${CODE_SHARING_OUTPUT_FILE_SUFFIX}
             $<TARGET_FILE_DIR:${target}>/${target}${CODE_SHARING_OUTPUT_FILE_SUFFIX}
             ${KEEP_SYMBOL_LIST}
