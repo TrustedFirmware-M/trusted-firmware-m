@@ -8,6 +8,7 @@
 cmake_policy(SET CMP0076 NEW)
 set(TC_COMMON_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../common)
 
+# Add RSE common directory to the build
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../common common)
 
 #========================= Platform region defs ===============================#
@@ -16,6 +17,13 @@ target_include_directories(platform_region_defs
     INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${TC_COMMON_SOURCE_DIR}
+)
+
+#========================= TF-M platform config ===============================#
+# Path for common TC config: config_tfm_target_tc_common.h
+target_include_directories(tfm_config
+    INTERFACE
+        $<BUILD_INTERFACE:${TC_COMMON_SOURCE_DIR}>
 )
 
 #========================= Platform_s =========================================#

@@ -6,9 +6,11 @@
 #-------------------------------------------------------------------------------
 
 cmake_policy(SET CMP0076 NEW)
-set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
+set(CMAKE_CURRENT_SOURCE_DIR    ${CMAKE_CURRENT_LIST_DIR})
+set(NEOVERSE_COMMON_SOURCE_DIR  ${CMAKE_CURRENT_LIST_DIR}/../common)
+set(RSE_COMMON_SOURCE_DIR       ${CMAKE_CURRENT_LIST_DIR}/../../common)
 
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../common common)
+add_subdirectory(${NEOVERSE_COMMON_SOURCE_DIR} common)
 
 # TFM_PLATFORM_VARIANT value for supported RD-V3-R1 platform variants:
 # - '0' for RD-V3-R1 platform
@@ -25,6 +27,15 @@ else()
                                 "'0' for RD-V3-R1\n"
                                 "'1' for RD-V3-R1-Cfg1\n")
 endif()
+
+#========================= TF-M platform config ===============================#
+# Paths for platform_base_address.h included by config_tfm_target.h
+target_include_directories(tfm_config
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${NEOVERSE_COMMON_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${RSE_COMMON_SOURCE_DIR}/partition>
+)
 
 #========================= Platform Region Defs ===============================#
 

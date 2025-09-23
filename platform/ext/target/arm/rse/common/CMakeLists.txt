@@ -151,6 +151,14 @@ target_add_scatter_file(bl1_2
 install(FILES       tfm_builtin_key_ids.h
         DESTINATION ${INSTALL_INTERFACE_INC_DIR})
 
+
+#========================= TF-M platform config ===============================#
+# Path for common RSE config: config_tfm_target_rse_common.h
+target_include_directories(tfm_config
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)
+
 #========================= Platform Secure ====================================#
 
 if (TFM_MULTI_CORE_TOPOLOGY)
