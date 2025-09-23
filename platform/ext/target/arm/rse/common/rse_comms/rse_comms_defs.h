@@ -9,6 +9,7 @@
 #define __RSE_COMMS_DEFS_H__
 
 #include <stdbool.h>
+#include <stddef.h>
 #include "cmsis_compiler.h"
 
 #ifdef __cplusplus
