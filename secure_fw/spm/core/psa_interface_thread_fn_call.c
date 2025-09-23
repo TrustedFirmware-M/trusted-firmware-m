@@ -1,8 +1,6 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
- *
  * SPDX-License-Identifier: BSD-3-Clause
- *
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  */
 
 #include <stdint.h>
@@ -109,7 +107,7 @@ void psa_clear_thread_fn_call(void)
 }
 #endif /* CONFIG_TFM_DOORBELL_API == 1 */
 
-__naked
+__naked __NO_RETURN
 void psa_panic_thread_fn_call(void)
 {
     TFM_THREAD_FN_CALL_ENTRY(tfm_spm_partition_psa_panic);

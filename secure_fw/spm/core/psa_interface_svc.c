@@ -1,8 +1,6 @@
 /*
- * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
- *
  * SPDX-License-Identifier: BSD-3-Clause
- *
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  */
 
 #include <stdint.h>
@@ -90,10 +88,10 @@ __naked void psa_clear_svc(void)
 }
 #endif /* CONFIG_TFM_DOORBELL_API == 1 */
 
-__naked void psa_panic_svc(void)
+__naked __NO_RETURN void psa_panic_svc(void)
 {
     __asm volatile("svc     "M2S(TFM_SVC_PSA_PANIC)"           \n"
-                   "bx      lr                                 \n");
+                   "b       .                                  \n");
 }
 
 __naked uint32_t psa_rot_lifecycle_state_svc(void)

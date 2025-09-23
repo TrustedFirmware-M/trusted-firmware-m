@@ -1,11 +1,9 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2023 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
- *
- * SPDX-License-Identifier: BSD-3-Clause
- *
  */
 
 #ifndef __RUNTIME_DEFS_H__
@@ -38,6 +36,7 @@ struct psa_api_tbl_t {
     void             (*psa_write)(psa_handle_t msg_handle, uint32_t outvec_idx, const void *buffer,
                                   size_t num_bytes);
     void             (*psa_reply)(psa_handle_t msg_handle, psa_status_t retval);
+    __attribute__((__noreturn__))
     void             (*psa_panic)(void);
     uint32_t         (*psa_rot_lifecycle_state)(void);
 #if CONFIG_TFM_CONNECTION_BASED_SERVICE_API == 1

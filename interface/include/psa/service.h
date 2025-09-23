@@ -1,10 +1,8 @@
 /*
- * Copyright (c) 2018-2022, Arm Limited. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2023 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
- *
- * SPDX-License-Identifier: BSD-3-Clause
- *
  */
 
 #ifndef __PSA_SERVICE_H__
@@ -265,6 +263,7 @@ void psa_eoi(psa_signal_t irq_signal);
  * \brief Terminate execution within the calling Secure Partition and will not
  *        return.
  */
+__attribute__((__noreturn__))
 void psa_panic(void);
 
 /**
