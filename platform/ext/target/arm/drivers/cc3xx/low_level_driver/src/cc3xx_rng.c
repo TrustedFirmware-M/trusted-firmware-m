@@ -33,8 +33,9 @@
 
 #include "fatal_error.h"
 
-#ifdef CC3XX_CONFIG_RNG_ENABLE
+#define ROUND_UP(x, bound) ((((x) + bound - 1) / bound) * bound)
 
+#ifdef CC3XX_CONFIG_RNG_ENABLE
 /* Define function pointers to generically access DRBG functionalities */
 #if defined(CC3XX_CONFIG_RNG_DRBG_HMAC)
 typedef struct cc3xx_drbg_hmac_state_t drbg_state_t;
@@ -62,19 +63,23 @@ typedef cc3xx_err_t (*drbg_reseed_fn_t)(
 static struct {
     drbg_state_t state;
     bool seed_done;
+    const size_t entropy_size;
     const drbg_init_fn_t init;
     const drbg_generate_fn_t generate;
     const drbg_reseed_fn_t reseed;
 } g_drbg = {.seed_done =  false,
 #if defined(CC3XX_CONFIG_RNG_DRBG_HMAC)
+    .entropy_size = CC3XX_ENTROPY_SIZE,
     .init = cc3xx_lowlevel_drbg_hmac_instantiate,
     .generate = cc3xx_lowlevel_drbg_hmac_generate,
     .reseed = cc3xx_lowlevel_drbg_hmac_reseed};
 #elif defined(CC3XX_CONFIG_RNG_DRBG_CTR)
+    .entropy_size = CC3XX_DRBG_CTR_SEEDLEN,
     .init = cc3xx_lowlevel_drbg_ctr_init,
     .generate = cc3xx_lowlevel_drbg_ctr_generate,
     .reseed = cc3xx_lowlevel_drbg_ctr_reseed};
 #elif defined(CC3XX_CONFIG_RNG_DRBG_HASH)
+    .entropy_size = CC3XX_ENTROPY_SIZE,
     .init = cc3xx_lowlevel_drbg_hash_init,
     .generate = cc3xx_lowlevel_drbg_hash_generate,
     .reseed = cc3xx_lowlevel_drbg_hash_reseed};
@@ -122,17 +127,17 @@ static uint64_t xorshift_plus_128_lfsr(xorshift_plus_128_state_t *lfsr)
 static cc3xx_err_t drbg_get_random(uint8_t *buf, size_t length)
 {
     cc3xx_err_t err;
-    uint32_t entropy[CC3XX_ENTROPY_SIZE / sizeof(uint32_t)];
+    uint32_t entropy[ROUND_UP(g_drbg.entropy_size, CC3XX_ENTROPY_SIZE) / sizeof(uint32_t)];
 
     if (!g_drbg.seed_done) {
 
-        /* Get CC3XX_ENTROPY_SIZE bytes of entropy */
+        /* Get entropy to initialize DRBG state */
         while (cc3xx_lowlevel_get_entropy(
                     entropy, sizeof(entropy)) != CC3XX_ERR_SUCCESS);
 
         /* Call the seeding API of the desired drbg */
         err = g_drbg.init(&g_drbg.state,
-                    (const uint8_t *)entropy, sizeof(entropy), NULL, 0, NULL, 0);
+                    (const uint8_t *)entropy, g_drbg.entropy_size, NULL, 0, NULL, 0);
         if (err != CC3XX_ERR_SUCCESS) {
             return err;
         }
@@ -146,12 +151,12 @@ static cc3xx_err_t drbg_get_random(uint8_t *buf, size_t length)
     /* Add re-seeding capabilities */
     if (g_drbg.state.reseed_counter == UINT32_MAX) {
 
-        /* Get CC3XX_ENTROPY_SIZE bytes of entropy */
+        /* Get entropy to re-seed DRBG state */
         while (cc3xx_lowlevel_get_entropy(
                     entropy, sizeof(entropy)) != CC3XX_ERR_SUCCESS);
 
         err = g_drbg.reseed(&g_drbg.state,
-                    (const uint8_t *)entropy, sizeof(entropy), NULL, 0);
+                    (const uint8_t *)entropy, g_drbg.entropy_size, NULL, 0);
 
         if (err != CC3XX_ERR_SUCCESS) {
             goto cleanup;
