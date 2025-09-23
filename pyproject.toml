@@ -43,6 +43,9 @@ docs = [
 ]
 
 [project.scripts]
+mcuboot_imagesign_wrapper = "bl2.wrapper:main"
+mcuboot_imagesign_assemble = "bl2.assemble:main"
+
 c_include = "tfm_tools.c_include:main"
 c_macro = "tfm_tools.c_macro:main"
 sign_then_encrypt_data = "tfm_tools.sign_then_encrypt_data:main"
