@@ -1,0 +1,280 @@
+From 043ae643c648cbdbdb26eca6692fb41a8a5c415b Mon Sep 17 00:00:00 2001
+From: "G. Varga, Gabor" <Gabor.G.Varga@arm.com>
+Date: Tue, 16 Sep 2025 13:57:18 +0200
+Subject: [PATCH] Refactor t_cose_crypto_is_algorithm_supported in PSA
+
+Replacing static allowlist with runtime checks.
+
+Previously, the PSA crypto adapter layer used a hard-coded allowlist,
+which could report algorithms as supported even when the crypto backend
+did not enable them. This refactor changes
+t_cose_crypto_is_algorithm_supported to query the PSA crypto backend at
+runtime, ensuring capability checks reflect actual algorithm support.
+
+Signed-off-by: G. Varga, Gabor <Gabor.G.Varga@arm.com>
+Change-Id: I51a11b1018f50a5f874d8fbd4412a8b9ac1a16e6
+---
+ crypto_adapters/t_cose_psa_crypto.c | 224 ++++++++++++++++++++++++----
+ 1 file changed, 194 insertions(+), 30 deletions(-)
+
+diff --git a/crypto_adapters/t_cose_psa_crypto.c b/crypto_adapters/t_cose_psa_crypto.c
+index 018c52b..130f874 100644
+--- a/crypto_adapters/t_cose_psa_crypto.c
++++ b/crypto_adapters/t_cose_psa_crypto.c
+@@ -2,7 +2,7 @@
+  * t_cose_psa_crypto.c
+  *
+  * Copyright 2019-2023, Laurence Lundblade
+- * Copyright (c) 2020-2023, Arm Limited. All rights reserved.
++ * Copyright (c) 2020-2025, Arm Limited. All rights reserved.
+  *
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+@@ -56,6 +56,8 @@
+ /* Avoid compiler warning due to unused argument */
+ #define ARG_UNUSED(arg) (void)(arg)
+ 
++static psa_algorithm_t cose_hash_alg_id_to_psa(int32_t cose_hash_alg_id);
++static psa_algorithm_t cose_hmac_alg_id_to_psa(int32_t cose_hmac_alg_id);
+ 
+ /*
+  * See documentation in t_cose_crypto.h
+@@ -65,36 +67,198 @@
+  */
+ bool t_cose_crypto_is_algorithm_supported(int32_t cose_algorithm_id)
+ {
+-    /* Notably, this list does not include EDDSA, regardless of how
+-     * t_cose is configured, since PSA doesn't support it.
++    /* Notably, EDDSA is not covered by this function, regardless
++     * of how t_cose is configured, since PSA doesn't support it.
+      */
+-    static const int32_t supported_algs[] = {
+-        T_COSE_ALGORITHM_SHA_256,
+-        T_COSE_ALGORITHM_SHA_384,
+-        T_COSE_ALGORITHM_SHA_512,
+-        T_COSE_ALGORITHM_ES256,
+-#ifndef T_COSE_DISABLE_ES384
+-        T_COSE_ALGORITHM_ES384,
+-#endif
+-#ifndef T_COSE_DISABLE_ES512
+-        T_COSE_ALGORITHM_ES512,
+-#endif
+-#ifndef T_COSE_DISABLE_PS256
+-        T_COSE_ALGORITHM_PS256,
+-#endif
+-#ifndef T_COSE_DISABLE_PS384
+-        T_COSE_ALGORITHM_PS384,
+-#endif
+-#ifndef T_COSE_DISABLE_PS512
+-        T_COSE_ALGORITHM_PS512,
+-#endif
+-        T_COSE_ALGORITHM_HMAC256,
+-        T_COSE_ALGORITHM_HMAC384,
+-        T_COSE_ALGORITHM_HMAC512,
+-        T_COSE_ALGORITHM_A128GCM,
+-        T_COSE_ALGORITHM_A192GCM,
+-        T_COSE_ALGORITHM_A256GCM,
+ 
++    if (psa_crypto_init() != PSA_SUCCESS) {
++        return false;
++    }
++
++    switch (cose_algorithm_id) {
++        /* --- Hashes --- */
++        case T_COSE_ALGORITHM_SHA_256:
++        case T_COSE_ALGORITHM_SHA_384:
++        case T_COSE_ALGORITHM_SHA_512:
++        {
++            psa_algorithm_t psa_hash = cose_hash_alg_id_to_psa(cose_algorithm_id);
++            if (psa_hash == UINT16_MAX) {
++                return false;
++            }
++
++            return psa_can_do_hash(psa_hash) == 1;
++        }
++
++        /* --- HMACs --- */
++        case T_COSE_ALGORITHM_HMAC256:
++        case T_COSE_ALGORITHM_HMAC384:
++        case T_COSE_ALGORITHM_HMAC512:
++        {
++            psa_algorithm_t mac_alg = cose_hmac_alg_id_to_psa(cose_algorithm_id);
++            if (mac_alg == PSA_ALG_VENDOR_FLAG) {
++                return false;
++            }
++
++            psa_status_t status;
++            psa_key_id_t key = PSA_KEY_ID_NULL;
++            psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
++            psa_mac_operation_t op = PSA_MAC_OPERATION_INIT;
++            const uint8_t dummy_key[64] = {0};
++
++            size_t key_bytes = PSA_HASH_LENGTH(mac_alg);
++            if (key_bytes == 0 || key_bytes > sizeof(dummy_key)) {
++                return false;
++            }
++
++            psa_set_key_type(&attr, PSA_KEY_TYPE_HMAC);
++            psa_set_key_bits(&attr, key_bytes * 8U);
++            psa_set_key_usage_flags(&attr, PSA_KEY_USAGE_SIGN_MESSAGE);
++            psa_set_key_algorithm(&attr, mac_alg);
++
++            status = psa_import_key(&attr, dummy_key, key_bytes, &key);
++            psa_reset_key_attributes(&attr);
++            if (status != PSA_SUCCESS) {
++                return false;
++            }
++
++            /* No need to pre‑check hash support: psa_mac_sign_setup(...) will fail with */
++            /* PSA_ERROR_NOT_SUPPORTED when either the hash or HMAC path isn’t available */
++            status = psa_mac_sign_setup(&op, key, mac_alg);
++            (void)psa_mac_abort(&op);
++            (void)psa_destroy_key(key);
++            return status == PSA_SUCCESS;
++        }
++
++        /* --- AEAD / GCM --- */
++        case T_COSE_ALGORITHM_A128GCM:
++        case T_COSE_ALGORITHM_A192GCM:
++        case T_COSE_ALGORITHM_A256GCM:
++        {
++            size_t key_bits =
++                (cose_algorithm_id == T_COSE_ALGORITHM_A128GCM) ? 128U :
++                (cose_algorithm_id == T_COSE_ALGORITHM_A192GCM) ? 192U : 256U;
++
++            psa_status_t status;
++            psa_key_id_t key = PSA_KEY_ID_NULL;
++            psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
++            psa_aead_operation_t op = PSA_AEAD_OPERATION_INIT;
++            uint8_t dummy_key[32] = { 0 }; /* enough for up to 256-bit */
++            size_t key_bytes = key_bits / 8U;
++
++            psa_set_key_type(&attr, PSA_KEY_TYPE_AES);
++            psa_set_key_bits(&attr, key_bits);
++            psa_set_key_usage_flags(&attr, PSA_KEY_USAGE_ENCRYPT);
++            psa_set_key_algorithm(&attr, PSA_ALG_GCM);
++
++            status = psa_import_key(&attr, dummy_key, key_bytes, &key);
++            psa_reset_key_attributes(&attr);
++            if (status != PSA_SUCCESS) {
++                return false;
++            }
++
++            status = psa_aead_encrypt_setup(&op, key, PSA_ALG_GCM);
++            (void)psa_aead_abort(&op);
++            (void)psa_destroy_key(key);
++            return status == PSA_SUCCESS;
++        }
++
++        /* --- ECDSA / ESxxx --- */
++        case T_COSE_ALGORITHM_ES256:
++        #ifndef T_COSE_DISABLE_ES384
++        case T_COSE_ALGORITHM_ES384:
++        #endif
++        #ifndef T_COSE_DISABLE_ES512
++        case T_COSE_ALGORITHM_ES512:
++        #endif
++        {
++            size_t bits =
++                (cose_algorithm_id == T_COSE_ALGORITHM_ES256) ? 256U :
++                (cose_algorithm_id == T_COSE_ALGORITHM_ES384) ? 384U : 521U;
++            psa_algorithm_t hash_alg =
++                (cose_algorithm_id == T_COSE_ALGORITHM_ES256) ? PSA_ALG_SHA_256 :
++                (cose_algorithm_id == T_COSE_ALGORITHM_ES384) ? PSA_ALG_SHA_384 : PSA_ALG_SHA_512;
++            psa_algorithm_t sign_alg = PSA_ALG_ECDSA(hash_alg);
++
++            psa_status_t status;
++            psa_key_id_t key = PSA_KEY_ID_NULL;
++            psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
++
++            /* Zero hash input of the right size, 64 bytes covers up to SHA-512 */
++            uint8_t hash[64] = {0};
++
++            psa_set_key_type(&attr, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
++            psa_set_key_bits(&attr, bits);
++            psa_set_key_usage_flags(&attr, PSA_KEY_USAGE_SIGN_HASH);
++            psa_set_key_algorithm(&attr, sign_alg);
++
++            status = psa_generate_key(&attr, &key);
++            psa_reset_key_attributes(&attr);
++            if (status != PSA_SUCCESS) {
++                return false;
++            }
++
++            uint8_t sig[PSA_SIGNATURE_MAX_SIZE];
++            size_t sig_len = 0;
++            status = psa_sign_hash(key, sign_alg, hash, PSA_HASH_LENGTH(hash_alg), sig, sizeof(sig), &sig_len);
++            (void)psa_destroy_key(key);
++            return status == PSA_SUCCESS;
++        }
++
++        /* --- RSASSA-PSS / PSxxx --- */
++        #if !defined(T_COSE_DISABLE_PS256) || \
++            !defined(T_COSE_DISABLE_PS384) || \
++            !defined(T_COSE_DISABLE_PS512)
++
++        #ifndef T_COSE_DISABLE_PS256
++        case T_COSE_ALGORITHM_PS256:
++        #endif
++        #ifndef T_COSE_DISABLE_PS384
++        case T_COSE_ALGORITHM_PS384:
++        #endif
++        #ifndef T_COSE_DISABLE_PS512
++        case T_COSE_ALGORITHM_PS512:
++        #endif
++        {
++            /* Reasonable modulus size for probing without being too heavy */
++            const size_t rsa_bits = 2048U;
++
++            psa_algorithm_t hash_alg =
++                (cose_algorithm_id == T_COSE_ALGORITHM_PS256) ? PSA_ALG_SHA_256 :
++                (cose_algorithm_id == T_COSE_ALGORITHM_PS384) ? PSA_ALG_SHA_384 : PSA_ALG_SHA_512;
++            psa_algorithm_t sign_alg = PSA_ALG_RSA_PSS(hash_alg);
++
++            psa_status_t status;
++            psa_key_id_t key = PSA_KEY_ID_NULL;
++            psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
++
++            /* Zero hash input of the right size; 64 bytes covers up to SHA-512 */
++            uint8_t hash[64] = {0};
++
++            psa_set_key_type(&attr, PSA_KEY_TYPE_RSA_KEY_PAIR);
++            psa_set_key_bits(&attr, rsa_bits);
++            psa_set_key_usage_flags(&attr, PSA_KEY_USAGE_SIGN_HASH);
++            psa_set_key_algorithm(&attr, sign_alg);
++
++            status = psa_generate_key(&attr, &key);
++            psa_reset_key_attributes(&attr);
++            if (status != PSA_SUCCESS) {
++                return false;
++            }
++
++            uint8_t sig[PSA_SIGNATURE_MAX_SIZE];
++            size_t sig_len = 0;
++            status = psa_sign_hash(key, sign_alg, hash, PSA_HASH_LENGTH(hash_alg), sig, sizeof(sig), &sig_len);
++            (void)psa_destroy_key(key);
++            return status == PSA_SUCCESS;
++        }
++        #endif /* any PS enabled */
++
++        default:
++            break;
++    }
++
++    static const int32_t static_fallback_algs[] = {
++        /* AES-KW isn't part of PSA Crypto, rely on build gates. */
+ #if !defined NO_MBED_KW_API & !defined T_COSE_DISABLE_KEYWRAP
+         T_COSE_ALGORITHM_A128KW,
+         T_COSE_ALGORITHM_A192KW,
+@@ -104,7 +268,7 @@ bool t_cose_crypto_is_algorithm_supported(int32_t cose_algorithm_id)
+         T_COSE_ALGORITHM_NONE /* List terminator */
+     };
+ 
+-    return t_cose_check_list(cose_algorithm_id, supported_algs);
++    return t_cose_check_list(cose_algorithm_id, static_fallback_algs);
+ }
+ 
+ 
+-- 
+2.34.1
+
