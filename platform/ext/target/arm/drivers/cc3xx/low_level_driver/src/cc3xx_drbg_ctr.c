@@ -16,11 +16,15 @@
 
 static void long_inc_int(uint32_t *acc, size_t acc_size, bool is_increment)
 {
+    const bool pka_initialized = cc3xx_lowlevel_pka_is_initialized();
     cc3xx_pka_reg_id_t r0;
+
     assert(acc_size == CC3XX_DRBG_CTR_BLOCKLEN);
 
-    /* Accumulation happen only on 128 bit accumulators */
-    cc3xx_lowlevel_pka_init(CC3XX_DRBG_CTR_BLOCKLEN);
+    if (!pka_initialized) {
+        /* Accumulation happen only on 128 bit accumulators */
+        cc3xx_lowlevel_pka_init(CC3XX_DRBG_CTR_BLOCKLEN);
+    }
 
     /* Allocate a register among those not in use, given configured size */
     r0 = cc3xx_lowlevel_pka_allocate_reg();
@@ -38,8 +42,12 @@ static void long_inc_int(uint32_t *acc, size_t acc_size, bool is_increment)
     /* Read back the accumulator register */
     cc3xx_lowlevel_pka_read_reg_swap_endian(r0, acc, CC3XX_DRBG_CTR_BLOCKLEN);
 
-    /* Uninit the engine */
-    cc3xx_lowlevel_pka_uninit();
+    cc3xx_lowlevel_pka_free_reg(r0);
+
+    if (!pka_initialized) {
+        /* Uninit the engine */
+        cc3xx_lowlevel_pka_uninit();
+    }
 }
 
 static inline void long_inc(uint32_t *acc, size_t acc_size)
