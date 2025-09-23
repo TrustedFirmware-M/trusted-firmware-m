@@ -24,6 +24,7 @@ extern "C" {
 typedef uint32_t cc3xx_pka_reg_id_t;
 
 struct cc3xx_pka_state_t {
+    bool initialized;
     uint32_t reg_size;
     uint32_t virt_reg_next_mapped;
 };
@@ -42,6 +43,13 @@ struct cc3xx_pka_state_t {
  *
  */
 void cc3xx_lowlevel_pka_init(uint32_t size);
+
+/**
+ * @brief                       Returns PKA initialization state
+ *
+ * @return                      True if PKA state is initialized, false otherwise
+ */
+bool cc3xx_lowlevel_pka_is_initialized(void);
 
 /**
  * @brief                       Allocates a PKA register.

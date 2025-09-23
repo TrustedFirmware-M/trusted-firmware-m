@@ -259,6 +259,13 @@ void cc3xx_lowlevel_pka_init(uint32_t size)
     pka_state.virt_reg_next_mapped = PKA_VIRT_REG_FIRST_ALLOCATABLE;
 
     pka_init_from_state();
+
+    pka_state.initialized = true;
+}
+
+bool cc3xx_lowlevel_pka_is_initialized(void)
+{
+    return pka_state.initialized;
 }
 
 static void allocate_phys_reg(cc3xx_pka_reg_id_t virt_reg)
@@ -613,6 +620,8 @@ void cc3xx_lowlevel_pka_set_state(const struct cc3xx_pka_state_t *state,
 
 void cc3xx_lowlevel_pka_uninit(void)
 {
+    pka_state.initialized = false;
+
     memset(&pka_state, 0, sizeof(pka_state));
     memset(virt_reg_in_use, 0, sizeof(virt_reg_in_use));
     memset(virt_reg_is_mapped, 0, sizeof(virt_reg_is_mapped));
