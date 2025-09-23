@@ -805,7 +805,9 @@ cc3xx_err_t cc3xx_lowlevel_pka_set_to_random(cc3xx_pka_reg_id_t r0, size_t bit_l
     }
 
     /* Take off any extra bits */
-    random_buf[word_size - 1] = random_buf[word_size - 1] >> (32 - (bit_len % 32));
+    if ((bit_len % 32) > 0) {
+        random_buf[word_size - 1] = random_buf[word_size - 1] >> (32 - (bit_len % 32));
+    }
 
     cc3xx_lowlevel_pka_write_reg(r0, random_buf, sizeof(random_buf));
 
