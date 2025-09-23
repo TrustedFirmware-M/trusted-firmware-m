@@ -321,7 +321,6 @@ static enum rse_comms_error_t receive_msg_reply_from_node(uint8_t *buf, size_t b
 {
     enum rse_comms_hal_error_t hal_error;
     bool is_available;
-    size_t message_size;
 
     *link_id = rse_comms_hal_get_route(remote_id);
     if (*link_id == 0) {
@@ -337,16 +336,16 @@ static enum rse_comms_error_t receive_msg_reply_from_node(uint8_t *buf, size_t b
         return is_msg ? RSE_COMMS_ERROR_NO_MSG_AVAILABLE : RSE_COMMS_ERROR_NO_REPLY_AVAILABLE;
     }
 
-    hal_error = rse_comms_hal_get_receive_message_size(*link_id, &message_size);
+    hal_error = rse_comms_hal_get_receive_message_size(*link_id, received_size);
     if (hal_error != RSE_COMMS_HAL_ERROR_SUCCESS) {
         return rse_hal_error_to_comms_error(hal_error);
     }
 
-    if (message_size > buf_size) {
+    if (*received_size > buf_size) {
         return RSE_COMMS_ERROR_BUFFER_TOO_SMALL;
     }
 
-    hal_error = rse_comms_hal_receive_message(*link_id, buf, message_size);
+    hal_error = rse_comms_hal_receive_message(*link_id, buf, *received_size);
     if (hal_error != RSE_COMMS_HAL_ERROR_SUCCESS) {
         return rse_hal_error_to_comms_error(hal_error);
     }
