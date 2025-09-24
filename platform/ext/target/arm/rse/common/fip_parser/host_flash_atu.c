@@ -454,6 +454,7 @@ int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
     size_t atu_slot_size;
     enum atu_error_t atu_err;
     gpt_entry_t entry;
+    enum atu_error_t atu_err;
 
     if (image_found == NULL || image_offset == NULL || image_size == NULL) {
         return -1;
@@ -485,9 +486,9 @@ int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
         *image_found = false;
     }
 
-    atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_TEMP_BASE_S);
-    if (rc != ATU_ERR_NONE) {
-        return rc;
+    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_FLASH0_TEMP_BASE_S);
+    if (atu_err != ATU_ERR_NONE) {
+        return atu_err;
     }
 
     return 0;
@@ -506,6 +507,7 @@ int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
     size_t atu_slot_size;
     gpt_entry_t entries[2];
     uint8_t idx;
+    enum atu_error_t atu_err;
 
     if (image_found == NULL || image_offset == NULL || image_size == NULL) {
         return -1;
@@ -543,9 +545,9 @@ int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
         }
     }
 
-    rc = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_TEMP_BASE_S);
-    if (rc != ATU_ERR_NONE) {
-        return rc;
+    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_FLASH0_TEMP_BASE_S);
+    if (atu_err != ATU_ERR_NONE) {
+        return atu_err;
     }
 
     return 0;
