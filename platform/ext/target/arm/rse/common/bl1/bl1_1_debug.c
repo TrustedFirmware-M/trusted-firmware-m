@@ -20,11 +20,7 @@
 #ifdef PLATFORM_PSA_ADAC_SECURE_DEBUG
 static bool read_saved_debug_state(void)
 {
-    uint32_t reg_value;
-
-    reg_value = tfm_hal_get_reset_syndrome();
-
-    return (reg_value & RSE_SWSYN_ENTER_DEBUG_MASK);
+    return (tfm_hal_get_reset_syndrome() & RSE_SWSYN_ENTER_DEBUG_MASK);
 }
 
 static void clear_debug_state(void)
