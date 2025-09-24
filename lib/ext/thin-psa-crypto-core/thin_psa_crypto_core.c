@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdbool.h>
+#include "fih.h"
 #include "cmsis_compiler.h"
 
 /* This module includes the driver_wrappers which assumes that private access to the
@@ -42,6 +43,93 @@
  * \brief Rounds a value x up to a bound.
  */
 #define ROUND_UP(x, bound) ((((x) + bound - 1) / bound) * bound)
+
+/**
+ * @brief Declare an internal PSA API function.
+ *
+ * This macro defines the prototype of the internal implementation of a PSA API
+ * function that returns an FIH wrapped status code.
+ *
+ * @param fn    The base name of the PSA API function.
+ * @param types The full argument list enclosed in parentheses, e.g. `(int a, int b)`.
+ *
+ * @note The actual function symbol will be prefixed with `__internal_`.
+ *
+ * Example:
+ * @code
+ * INTERNAL_PSA_API(foo, (int a));
+ * // Expands to:
+ * // static FIH_RET_TYPE(psa_status_t) __internal_foo(int a);
+ * @endcode
+ */
+#define INTERNAL_PSA_API(fn, types) \
+    static FIH_RET_TYPE(psa_status_t) __internal_##fn types
+
+/**
+ * @brief Declare an external PSA API function with FIH protection.
+ *
+ * This macro declares both the public-facing PSA API function and its
+ * associated internal implementation. The public wrapper ensures that calls
+ * to the internal implementation are protected by the FIH calling convention
+ *
+ * The macro performs the following steps:
+ *   1. Forward-declares the internal implementation.
+ *   2. Defines the public wrapper function, which calls the internal
+ *      implementation using @ref FIH_CALL and decodes the return value.
+ *   3. Provides the prototype for the internal implementation, which must
+ *      follow immediately.
+ *
+ * @param fn      The base name of the PSA API function.
+ * @param types   The full argument list enclosed in parentheses, e.g. `(int a, int b)`.
+ * @param ...     Arguments forwarded to the internal function when invoked.
+ *
+ * Example:
+ * @code
+ * EXTERNAL_PSA_API(foo, (int a), a)
+ * {
+ *     // Internal implementation
+ *     return FIH_SUCCESS;
+ * }
+ * // Expands to:
+ * // static FIH_RET_TYPE(psa_status_t) __internal_foo(int a);
+ * //
+ * // psa_status_t foo(int a) {
+ * //     FIH_RET_TYPE(psa_status_t) status;
+ * //     FIH_CALL(__internal_foo, status, a);
+ * //     return (psa_status_t)fih_int_decode(status);
+ * // }
+ * //
+ * // static FIH_RET_TYPE(psa_status_t) __internal_foo(int a) {
+ * //     ...
+ * // }
+ * @endcode
+ */
+#define EXTERNAL_PSA_API(fn, types, ...)                     \
+    /* Forward declaration of the internal implementation */ \
+    INTERNAL_PSA_API(fn, types);                             \
+                                                             \
+    /* Public wrapper with FIH protection */                 \
+    psa_status_t fn types                                    \
+    {                                                        \
+        FIH_RET_TYPE(psa_status_t) status;                   \
+        FIH_CALL(__internal_##fn, status, __VA_ARGS__);      \
+        return (psa_status_t)fih_int_decode(status);         \
+    }                                                        \
+                                                             \
+    /* Definition of the internal implementation follows */  \
+    INTERNAL_PSA_API(fn, types)
+
+/**
+ * @brief Return a PSA-style status value wrapped in FIH encoding.
+ *
+ * This macro encodes a PSA `status` value using
+ * `fih_int_encode_zero_equality()` and returns it via `FIH_RET`.
+ *
+ * @param status The PSA status value to be returned.
+ *
+ */
+#define FIH_RET_STATUS(status) \
+    FIH_RET(fih_int_encode_zero_equality(status))
 
 /**
  * @note The assumption is that key import will happen just
@@ -1047,108 +1135,119 @@ psa_status_t psa_unwrap_key(const psa_key_attributes_t *attributes,
 #endif /* MCUBOOT_ENC_IMAGES */
 
 /* Set the key for a multipart authenticated decryption operation. */
-psa_status_t psa_aead_decrypt_setup(psa_aead_operation_t *operation,
-                                    psa_key_id_t key_id,
-                                    psa_algorithm_t alg)
+EXTERNAL_PSA_API(psa_aead_decrypt_setup,
+        (psa_aead_operation_t *operation, psa_key_id_t key_id, psa_algorithm_t alg),
+        operation, key_id, alg)
 {
 #ifdef CC3XX_CRYPTO_OPAQUE_KEYS
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t *key_buffer;
-    const size_t key_buffer_size;
+    size_t key_buffer_size;
+    psa_status_t status;
 
-    psa_status_t status = cc3xx_opaque_keys_attr_init(&attributes, key_id, alg,
-                                                          &key_buffer, &key_buffer_size);
+    status = cc3xx_opaque_keys_attr_init(&attributes, key_id, alg,
+                                         &key_buffer, &key_buffer_size);
     if (status != PSA_SUCCESS) {
-        return status;
+        FIH_RET_STATUS(status);
     }
 
-    return psa_driver_wrapper_aead_decrypt_setup(operation,
-                                                &attributes,
-                                                key_buffer,
-                                                key_buffer_size,
-                                                alg);
+    status = psa_driver_wrapper_aead_decrypt_setup(operation,
+                                                   &attributes,
+                                                   key_buffer,
+                                                   key_buffer_size,
+                                                   alg);
+
+    FIH_RET_STATUS(status);
 #else
     return PSA_ERROR_NOT_SUPPORTED;
 #endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
 }
 
 /* Set the nonce for an authenticated encryption or decryption operation */
-psa_status_t psa_aead_set_nonce(
-   psa_aead_operation_t *operation,
-   const uint8_t *nonce,
-   size_t nonce_length)
+EXTERNAL_PSA_API(psa_aead_set_nonce,
+        (psa_aead_operation_t *operation, const uint8_t *nonce, size_t nonce_length),
+        operation, nonce, nonce_length)
 {
+    psa_status_t status;
+
     assert(operation != 0);
     assert(operation->id != 0);
     assert(nonce != NULL);
     assert(nonce_length != 0);
 
-    return psa_driver_wrapper_aead_set_nonce(operation,
-                                             nonce,
-                                             nonce_length);
+    status = psa_driver_wrapper_aead_set_nonce(operation,
+                                               nonce,
+                                               nonce_length);
+
+    FIH_RET_STATUS(status);
 }
 
 /* Declare the lengths of the message and additional data for AEAD */
-psa_status_t psa_aead_set_lengths(
-   psa_aead_operation_t *operation,
-   size_t ad_length,
-   size_t plaintext_length)
+EXTERNAL_PSA_API(psa_aead_set_lengths,
+        (psa_aead_operation_t *operation, size_t ad_length, size_t plaintext_length),
+        operation, ad_length, plaintext_length)
 {
+    psa_status_t status;
+
     assert(operation != 0);
     assert(operation->id != 0);
 
-    return psa_driver_wrapper_aead_set_lengths(operation,
-                                               ad_length,
-                                               plaintext_length);
+    status = psa_driver_wrapper_aead_set_lengths(operation,
+                                                 ad_length,
+                                                 plaintext_length);
+
+    FIH_RET_STATUS(status);
 }
 
 /* Pass additional data to an active AEAD operation */
-psa_status_t psa_aead_update_ad(
-   psa_aead_operation_t *operation,
-   const uint8_t *input,
-   size_t input_length)
+EXTERNAL_PSA_API(psa_aead_update_ad,
+        (psa_aead_operation_t *operation, const uint8_t *input, size_t input_length),
+        operation, input, input_length)
 {
+    psa_status_t status;
+
     assert(operation != 0);
     assert(operation->id != 0);
     assert((!input_length) ^ (input != NULL));
 
-    return psa_driver_wrapper_aead_update_ad(operation,
-                                             input,
-                                             input_length);
+    status = psa_driver_wrapper_aead_update_ad(operation,
+                                               input,
+                                               input_length);
+
+    FIH_RET_STATUS(status);
 }
 
 /* Encrypt or decrypt a message fragment in an active AEAD operation */
-psa_status_t psa_aead_update(
-   psa_aead_operation_t *operation,
-   const uint8_t *input,
-   size_t input_length,
-   uint8_t *output,
-   size_t output_size,
-   size_t *output_length )
+EXTERNAL_PSA_API(psa_aead_update,
+        (psa_aead_operation_t *operation, const uint8_t *input, size_t input_length,
+         uint8_t *output, size_t output_size, size_t *output_length),
+        operation, input, input_length, output, output_size, output_length)
 {
+    psa_status_t status;
+
     assert(operation != 0);
     assert(operation->id != 0);
     assert((!input_length) ^ (input != NULL));
     assert((!output_size) ^ (output != NULL));
 
-    return psa_driver_wrapper_aead_update(operation,
-                                          input,
-                                          input_length,
-                                          output,
-                                          output_size,
-                                          output_length);
+    status = psa_driver_wrapper_aead_update(operation,
+                                            input,
+                                            input_length,
+                                            output,
+                                            output_size,
+                                            output_length);
+
+    FIH_RET_STATUS(status);
 }
 
 /* Finish encrypting a message in an AEAD operation */
-psa_status_t psa_aead_finish(
-   psa_aead_operation_t *operation,
-   uint8_t *ciphertext,
-   size_t ciphertext_size,
-   size_t *ciphertext_length,
-   uint8_t *tag,
-   size_t tag_size,
-   size_t *tag_length)
+EXTERNAL_PSA_API(psa_aead_finish,
+        (psa_aead_operation_t *operation, uint8_t *ciphertext, size_t ciphertext_size,
+         size_t *ciphertext_length, uint8_t *tag, size_t tag_size, size_t *tag_length),
+        operation, ciphertext, ciphertext_size, ciphertext_length, tag, tag_size, tag_length)
 {
+    psa_status_t status;
+
     assert(operation != 0);
     assert(operation->id != 0);
     assert(ciphertext_length != NULL);
@@ -1156,24 +1255,25 @@ psa_status_t psa_aead_finish(
     assert(tag != NULL);
     assert(tag_length != NULL);
 
-    return psa_driver_wrapper_aead_finish(operation,
-                                          ciphertext,
-                                          ciphertext_size,
-                                          ciphertext_length,
-                                          tag,
-                                          tag_size,
-                                          tag_length);
+    status = psa_driver_wrapper_aead_finish(operation,
+                                            ciphertext,
+                                            ciphertext_size,
+                                            ciphertext_length,
+                                            tag,
+                                            tag_size,
+                                            tag_length);
+
+    FIH_RET_STATUS(status);
 }
 
 /* Finish authenticating and decrypting a message in an AEAD operation */
-psa_status_t psa_aead_verify(
-   psa_aead_operation_t *operation,
-   uint8_t *plaintext,
-   size_t plaintext_size,
-   size_t *plaintext_length,
-   const uint8_t *tag,
-   size_t tag_length)
+EXTERNAL_PSA_API(psa_aead_verify,
+        (psa_aead_operation_t *operation, uint8_t *plaintext, size_t plaintext_size,
+         size_t *plaintext_length, const uint8_t *tag, size_t tag_length),
+        operation, plaintext, plaintext_size, plaintext_length, tag, tag_length)
 {
+    psa_status_t status;
+
     assert(operation != 0);
     assert(operation->id != 0);
     assert(plaintext_length != NULL);
@@ -1181,20 +1281,27 @@ psa_status_t psa_aead_verify(
     assert(tag != NULL);
     assert(tag_length != 0);
 
-    return psa_driver_wrapper_aead_verify(operation,
-                                          plaintext,
-                                          plaintext_size,
-                                          plaintext_length,
-                                          tag,
-                                          tag_length);
+    status = psa_driver_wrapper_aead_verify(operation,
+                                            plaintext,
+                                            plaintext_size,
+                                            plaintext_length,
+                                            tag,
+                                            tag_length);
+
+    FIH_RET_STATUS(status);
 }
 
-psa_status_t psa_aead_abort(
-   psa_aead_operation_t *operation)
+EXTERNAL_PSA_API(psa_aead_abort,
+        (psa_aead_operation_t *operation),
+        operation)
 {
+    psa_status_t status;
+
     assert(operation != 0);
     assert(operation->id != 0);
 
-    return psa_driver_wrapper_aead_abort(operation);
+    status = psa_driver_wrapper_aead_abort(operation);
+
+    FIH_RET_STATUS(status);
 }
 /*!@}*/

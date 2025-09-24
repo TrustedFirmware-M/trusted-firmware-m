@@ -163,99 +163,98 @@ blob_needs_secret_decryption(const struct rse_provisioning_message_blob_t *blob)
     return decryption_config == RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_AES;
 }
 
-fih_int copy_auth_code_data(psa_aead_operation_t *operation,
-                            psa_algorithm_t alg,
-                            const struct rse_provisioning_message_blob_t *blob,
-                            void *code_output, size_t code_output_size,
-                            void *data_output, size_t data_output_size)
+psa_status_t copy_auth_code_data(psa_aead_operation_t *operation,
+                                 psa_algorithm_t alg,
+                                 const struct rse_provisioning_message_blob_t *blob,
+                                 void *code_output, size_t code_output_size,
+                                 void *data_output, size_t data_output_size)
 {
-    fih_int fih_rc;
+    psa_status_t status;
 
     memcpy(code_output, blob->code_and_data_and_secret_values, blob->code_size);
     memcpy(data_output, blob->code_and_data_and_secret_values + blob->code_size, blob->data_size);
 
     if (alg == PSA_ALG_CCM) {
-        FIH_CALL(bl1_psa_aead_update_ad, fih_rc, operation, code_output, blob->code_size);
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-            return fih_rc;
+        status = psa_aead_update_ad(operation, code_output, blob->code_size);
+        if (status != PSA_SUCCESS) {
+            return status;
         }
 
-        FIH_CALL(bl1_psa_aead_update_ad, fih_rc, operation, data_output, blob->data_size);
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-            return fih_rc;
+        status = psa_aead_update_ad(operation, data_output, blob->data_size);
+        if (status != PSA_SUCCESS) {
+            return status;
         }
     }
 
     return PSA_SUCCESS;
 }
 
-fih_int decrypt_code_data(psa_aead_operation_t *operation,
-                          const struct rse_provisioning_message_blob_t *blob,
-                          void *code_output, size_t code_output_size,
-                          void *data_output, size_t data_output_size)
+psa_status_t decrypt_code_data(psa_aead_operation_t *operation,
+                               const struct rse_provisioning_message_blob_t *blob,
+                               void *code_output, size_t code_output_size,
+                               void *data_output, size_t data_output_size)
 {
-    fih_int fih_rc;
     size_t output_length = 0;
+    psa_status_t status;
 
-    FIH_CALL(bl1_psa_aead_update, fih_rc, operation, blob->code_and_data_and_secret_values,
-                                  blob->code_size, code_output, code_output_size,
-                                  &output_length);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        return fih_rc;
+    status = psa_aead_update(operation, blob->code_and_data_and_secret_values,
+                             blob->code_size, code_output, code_output_size,
+                             &output_length);
+    if (status != PSA_SUCCESS) {
+        return status;
     } else if (output_length != blob->code_size) {
-        return fih_int_encode_zero_equality(PSA_ERROR_BUFFER_TOO_SMALL);
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
-    FIH_CALL(bl1_psa_aead_update, fih_rc, operation, blob->code_and_data_and_secret_values +
-                                  blob->code_size, blob->data_size, data_output, data_output_size,
-                                  &output_length);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        return fih_rc;
+    status = psa_aead_update(operation, blob->code_and_data_and_secret_values +
+                             blob->code_size, blob->data_size, data_output, data_output_size,
+                             &output_length);
+    if (status != PSA_SUCCESS) {
+        return status;
     } else if (output_length != blob->data_size) {
-        return fih_int_encode_zero_equality(PSA_ERROR_BUFFER_TOO_SMALL);
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
-    return FIH_SUCCESS;
+    return PSA_SUCCESS;
 }
 
-fih_int copy_auth_secret_values(psa_aead_operation_t *operation,
-                                psa_algorithm_t alg,
-                                const struct rse_provisioning_message_blob_t *blob,
-                                void *values_output, size_t values_output_size)
+psa_status_t copy_auth_secret_values(psa_aead_operation_t *operation,
+                                     psa_algorithm_t alg,
+                                     const struct rse_provisioning_message_blob_t *blob,
+                                     void *values_output, size_t values_output_size)
 {
-    fih_int fih_rc;
+    psa_status_t status;
 
     memcpy(values_output, blob->code_and_data_and_secret_values + blob->code_size + blob->data_size,
            blob->secret_values_size);
 
     if (alg == PSA_ALG_CCM) {
-        FIH_CALL(bl1_psa_aead_update_ad, fih_rc, operation, values_output,
-                                         blob->secret_values_size);
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-            return fih_rc;
+        status = psa_aead_update_ad(operation, values_output, blob->secret_values_size);
+        if (status != PSA_SUCCESS) {
+            return status;
         }
     }
 
-    return FIH_SUCCESS;
+    return PSA_SUCCESS;
 }
 
-fih_int decrypt_secret_values(psa_aead_operation_t *operation,
-                              const struct rse_provisioning_message_blob_t *blob,
-                              void *values_output, size_t values_output_size)
+psa_status_t decrypt_secret_values(psa_aead_operation_t *operation,
+                                   const struct rse_provisioning_message_blob_t *blob,
+                                   void *values_output, size_t values_output_size)
 {
-    fih_int fih_rc;
+    psa_status_t status;
     size_t output_length = 0;
 
-    FIH_CALL(bl1_psa_aead_update, fih_rc, operation, blob->code_and_data_and_secret_values +
-                                  blob->code_size + blob->data_size, blob->secret_values_size,
-                                  values_output, values_output_size, &output_length);
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
-        return fih_rc;
+    status = psa_aead_update(operation, blob->code_and_data_and_secret_values +
+                             blob->code_size + blob->data_size, blob->secret_values_size,
+                             values_output, values_output_size, &output_length);
+    if (status != PSA_SUCCESS) {
+        return status;
     } else if (output_length != blob->secret_values_size) {
-        return fih_int_encode_zero_equality(PSA_ERROR_BUFFER_TOO_SMALL);
+        return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
-    return FIH_SUCCESS;
+    return PSA_SUCCESS;
 }
 
 static enum tfm_plat_err_t aes_generic_blob_operation(psa_algorithm_t alg,
@@ -266,7 +265,7 @@ static enum tfm_plat_err_t aes_generic_blob_operation(psa_algorithm_t alg,
                                                       void *values_output, size_t values_output_size,
                                                       setup_aes_key_func_t setup_aes_key)
 {
-    fih_int fih_rc;
+    psa_status_t status;
     enum tfm_plat_err_t err;
     size_t actual_blob_size = sizeof(*blob) + blob->code_size + blob->data_size + blob->secret_values_size;
     size_t data_size_to_decrypt = 0;
@@ -328,64 +327,63 @@ static enum tfm_plat_err_t aes_generic_blob_operation(psa_algorithm_t alg,
         psa_key_id = cc3xx_get_opaque_key(kmu_slot);
         if (CC3XX_IS_OPAQUE_KEY_INVALID(psa_key_id)) {
             ERROR("Invalid key\r\n");
-            fih_rc = fih_int_encode_zero_equality(PSA_ERROR_INVALID_ARGUMENT);
+            status = PSA_ERROR_INVALID_ARGUMENT;
             goto psa_abort;
         }
 
-        FIH_CALL(bl1_psa_aead_decrypt_setup, fih_rc, &operation, psa_key_id, alg);
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        status = psa_aead_decrypt_setup(&operation, psa_key_id, alg);
+        if (status != PSA_SUCCESS) {
             ERROR("AEAD setup failed\r\n");
             goto psa_abort;
         }
 
-        FIH_CALL(bl1_psa_aead_set_lengths, fih_rc, &operation, data_size_to_auth,
-                                           data_size_to_decrypt);
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        status = psa_aead_set_lengths(&operation, data_size_to_auth, data_size_to_decrypt);
+        if (status != PSA_SUCCESS) {
             ERROR("PSA AEAD set lengths failed\r\n");
             goto psa_abort;
         }
 
-        FIH_CALL(bl1_psa_aead_set_nonce, fih_rc, &operation, iv, iv_len);
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        status = psa_aead_set_nonce(&operation, iv, iv_len);
+        if (status != PSA_SUCCESS) {
             ERROR("PSA AEAD set nonce failed\r\n");
             goto psa_abort;
         }
 
-        FIH_CALL(bl1_psa_aead_update_ad, fih_rc, &operation,
-                                         ((uint8_t *)blob) + authed_header_offset,
-                                         authed_header_size);
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        status = psa_aead_update_ad(&operation,
+                                    ((uint8_t *)blob) + authed_header_offset,
+                                    authed_header_size);
+        if (status != PSA_SUCCESS) {
             ERROR("PSA AEAD error updating authed header\r\n");
             goto psa_abort;
         }
     }
 
     if (blob_needs_code_data_decryption(blob)) {
-        fih_rc = decrypt_code_data(&operation,
+        status = decrypt_code_data(&operation,
                                    blob,
                                    code_output, code_output_size,
                                    data_output, data_output_size);
     } else {
-        fih_rc = copy_auth_code_data(&operation, alg,
+        status = copy_auth_code_data(&operation, alg,
                                      blob,
                                      code_output, code_output_size,
                                      data_output, data_output_size);
     }
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (status != PSA_SUCCESS) {
         ERROR("Error decrypting or authenticating code / data\r\n");
         goto psa_abort;
     }
 
     if (blob_needs_secret_decryption(blob)) {
-        fih_rc = decrypt_secret_values(&operation,
+        status = decrypt_secret_values(&operation,
                                        blob,
                                        values_output, values_output_size);
     } else {
-        fih_rc = copy_auth_secret_values(&operation, alg,
+        status = copy_auth_secret_values(&operation, alg,
                                          blob,
                                          values_output, values_output_size);
     }
-    if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+    if (status != PSA_SUCCESS) {
         ERROR("Error decrypting or authenticating code / data\r\n");
         goto psa_abort;
     }
@@ -393,27 +391,27 @@ static enum tfm_plat_err_t aes_generic_blob_operation(psa_algorithm_t alg,
     if (alg == PSA_ALG_CCM) {
         size_t dummy = 0;
 
-        FIH_CALL(bl1_psa_aead_verify, fih_rc, &operation,
-                                      NULL,
-                                      NULL,
-                                      &dummy,
-                                      (uint8_t*)blob->signature,
-                                      AES_TAG_MAX_LEN);
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        status = psa_aead_verify(&operation,
+                                 NULL,
+                                 NULL,
+                                 &dummy,
+                                 (uint8_t*)blob->signature,
+                                 AES_TAG_MAX_LEN);
+        if (status != PSA_SUCCESS) {
             ERROR("Tag verification failed!\r\n");
             goto psa_abort;
         }
     } else if (data_size_to_decrypt != 0) {
         size_t dummy = 0;
 
-        FIH_CALL(psa_aead_finish, fih_rc, &operation,
-                                  NULL,
-                                  dummy,
-                                  &dummy,
-                                  (uint8_t*)&dummy,
-                                  dummy,
-                                  &dummy);
-        if (fih_not_eq(fih_rc, FIH_SUCCESS)) {
+        status = psa_aead_finish(&operation,
+                                 NULL,
+                                 dummy,
+                                 &dummy,
+                                 (uint8_t*)&dummy,
+                                 dummy,
+                                 &dummy);
+        if (status != PSA_SUCCESS) {
             ERROR("Bundle decryption failed!\r\n");
             goto psa_abort;
         }
@@ -422,9 +420,9 @@ static enum tfm_plat_err_t aes_generic_blob_operation(psa_algorithm_t alg,
     return TFM_PLAT_ERR_SUCCESS;
 
 psa_abort:
-    ERROR("Aborting %s due to %d error\r\n", __func__, fih_int_decode(fih_rc));
+    ERROR("Aborting %s due to %d error\r\n", __func__, status);
     psa_aead_abort(&operation);
-    return (enum tfm_plat_err_t)fih_int_decode(fih_rc);
+    return (enum tfm_plat_err_t)status;
 }
 
 #ifdef RSE_PROVISIONING_ENABLE_AES_SIGNATURES

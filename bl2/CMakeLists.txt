@@ -117,6 +117,7 @@ target_compile_definitions(bl2_crypto
 target_include_directories(bl2_crypto
     PUBLIC
         ${MBEDCRYPTO_PATH}/library
+        ${CMAKE_SOURCE_DIR}/lib/fih/inc
 )
 
 target_compile_options(bl2_crypto
