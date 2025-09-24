@@ -119,7 +119,7 @@ int boot_platform_pre_load(uint32_t image_id)
         return 1;
     }
 
-    kmu_random_delay(&KMU_DEV_S, KMU_DELAY_LIMIT_32_CYCLES);
+    fih_delay();
 
     switch(image_id) {
     case RSE_BL2_IMAGE_SCP:
@@ -308,7 +308,7 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
     }
 #endif /* FLASH_DEV_NAME_SCRATCH */
 
-    kmu_random_delay(&KMU_DEV_S, KMU_DELAY_LIMIT_32_CYCLES);
+    fih_delay();
 
 #if defined(__ARM_ARCH_8M_MAIN__) || defined(__ARM_ARCH_8M_BASE__) \
  || defined(__ARM_ARCH_8_1M_MAIN__)

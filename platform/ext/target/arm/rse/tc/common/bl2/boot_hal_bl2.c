@@ -177,7 +177,7 @@ int boot_platform_pre_load(uint32_t image_id)
         flash_map_slot_from_flash_area_id(FLASH_AREA_IMAGE_SECONDARY(image_id));
     int rc;
 
-    kmu_random_delay(&KMU_DEV_S, KMU_DELAY_LIMIT_32_CYCLES);
+    fih_delay();
 
     if (flash_area_primary == NULL || flash_area_secondary == NULL) {
         return TFM_PLAT_ERR_PRE_LOAD_IMG_BY_BL2_FAIL;
@@ -433,7 +433,7 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
 
     rse_sam_finish();
 
-    kmu_random_delay(&KMU_DEV_S, KMU_DELAY_LIMIT_32_CYCLES);
+    fih_delay();
 
 #if defined(__ARM_ARCH_8M_MAIN__) || defined(__ARM_ARCH_8M_BASE__) \
  || defined(__ARM_ARCH_8_1M_MAIN__)

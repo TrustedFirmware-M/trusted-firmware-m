@@ -10,6 +10,7 @@
 
 #include "device_definition.h"
 #include "cc3xx_rng.h"
+#include "fih.h"
 
 #define ROUND_UP(x, bound) ((((x) + bound - 1) / bound) * bound)
 
@@ -52,7 +53,7 @@ void dpa_hardened_word_copy(volatile uint32_t *dst,
                                     unaligned_words : CHUNK_WORD_SIZE;
             size_t copy_shift = chunk_idx * CHUNK_WORD_SIZE;
 
-            kmu_random_delay(&KMU_DEV_S, KMU_DELAY_LIMIT_32_CYCLES);
+            fih_delay();
             dpa_hardened_word_copy(dst + copy_shift,
                                     src + copy_shift, copy_size);
             }
@@ -65,7 +66,7 @@ void dpa_hardened_word_copy(volatile uint32_t *dst,
         cc3xx_lowlevel_rng_get_random_permutation(permutation_buf, word_count);
 
         for(idx = 0; idx < word_count; idx++) {
-            kmu_random_delay(&KMU_DEV_S, KMU_DELAY_LIMIT_32_CYCLES);
+            fih_delay();
             dst[permutation_buf[idx]] = src[permutation_buf[idx]];
         }
     }

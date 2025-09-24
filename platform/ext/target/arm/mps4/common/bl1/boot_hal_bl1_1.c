@@ -22,6 +22,7 @@
 #include "platform_regs.h"
 #include "sam_reg_map.h"
 #include "tfm_log.h"
+#include "fih.h"
 
 #include "mbedtls/hmac_drbg.h"
 
@@ -175,7 +176,7 @@ int32_t boot_platform_post_init(void)
 
 int boot_platform_pre_load(uint32_t image_id)
 {
-    kmu_random_delay(&KMU_DEV_S, KMU_DELAY_LIMIT_32_CYCLES);
+    fih_delay();
 
     return 0;
 }
@@ -193,7 +194,7 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
     stdio_uninit();
 #endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2) */
 
-    kmu_random_delay(&KMU_DEV_S, KMU_DELAY_LIMIT_32_CYCLES);
+    fih_delay();
 
     vt_cpy = vt;
 

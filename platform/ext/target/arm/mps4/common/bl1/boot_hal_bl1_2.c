@@ -127,7 +127,7 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
     stdio_uninit();
 #endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2) */
 
-    kmu_random_delay(&KMU_DEV_S, KMU_DELAY_LIMIT_32_CYCLES);
+    fih_delay();
 
     result = disable_rom_execution();
     if (result) {
@@ -154,7 +154,7 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
 
 int boot_platform_pre_load(uint32_t image_id)
 {
-    kmu_random_delay(&KMU_DEV_S, KMU_DELAY_LIMIT_32_CYCLES);
+    fih_delay();
 
     return 0;
 }
