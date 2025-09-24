@@ -147,7 +147,7 @@ int get_active_index(uint64_t md_offset,
     }
 
     /* DEN0118 A3.2.4 Metadata Integrity check for version 2 */
-    calc_crc = crc32((const uint32_t *)(&metadata + sizeof(metadata.crc_32)),
+    calc_crc = crc32((uint8_t *)&metadata + sizeof(metadata.crc_32),
                      metadata.metadata_size - sizeof(metadata.crc_32));
 
     if (metadata.crc_32 != calc_crc) {
