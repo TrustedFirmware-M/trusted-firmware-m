@@ -27,7 +27,7 @@
  * 0x0008_0000 Protected Storage Area (16 KB)
  * 0x0008_4000 Internal Trusted Storage Area (16 KB)
  * 0x0008_8000 OTP / NV counters area (8 KB)
- * 0x0008_A000 Non-secure image primary (1464 KB)
+ * 0x0008_A000 Non-secure image primary (1356 KB)
  * 0x001F_2000 Non-secure storage, used when built with NRF_NS_STORAGE=ON,
  *             otherwise unused (32 KB)
  */
@@ -54,8 +54,8 @@
 #define SRAM_BASE_ADDRESS                   (0x20000000)
 #define TOTAL_RAM_SIZE                      (0x00068000)       /* 416 kB since the last 96kB are reserved for FLPR */
 
-#define FLASH_S_PARTITION_SIZE                (0x60000)       /* S partition: 384 kB*/
-#define FLASH_NS_PARTITION_SIZE               (0x17D000)      /* NS partition: 1524 kB*/
+#define FLASH_S_PARTITION_SIZE                (0x80000)       /* S partition: 512 kB*/
+#define FLASH_NS_PARTITION_SIZE               (0x153000)      /* NS partition: 1356 kB*/
 
 #define S_ROM_ALIAS_BASE   FLASH_BASE_ADDRESS
 #define NS_ROM_ALIAS_BASE  FLASH_BASE_ADDRESS
