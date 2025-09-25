@@ -85,6 +85,7 @@ list(APPEND BL2_CRYPTO_SRC
     $<${build_sha_256}:${MBEDCRYPTO_PATH}/library/sha256.c>
     $<${build_sha_384}:${MBEDCRYPTO_PATH}/library/sha512.c>
     $<$<AND:${is_ec_signature},$<NOT:${build_p256m}>>:${MBEDCRYPTO_PATH}/library/psa_crypto_ecp.c>
+    $<$<AND:${is_ec_signature},$<NOT:${build_p256m}>>:${MBEDCRYPTO_PATH}/library/psa_util.c>
     $<$<AND:${is_ec_signature},$<NOT:${build_p256m}>>:${MBEDCRYPTO_PATH}/library/ecp.c>
     $<$<AND:${is_ec_signature},$<NOT:${build_p256m}>>:${MBEDCRYPTO_PATH}/library/ecp_curves.c>
     $<$<AND:${is_ec_signature},$<NOT:${build_p256m}>>:${MBEDCRYPTO_PATH}/library/ecdsa.c>
@@ -92,6 +93,7 @@ list(APPEND BL2_CRYPTO_SRC
     $<$<AND:${is_ec_signature},$<NOT:${build_p256m}>>:${MBEDCRYPTO_PATH}/library/bignum_core.c>
     $<$<AND:${is_ec_signature},$<NOT:${build_p256m}>>:${MBEDCRYPTO_PATH}/library/constant_time.c>
     $<${is_rsa_signature}:${MBEDCRYPTO_PATH}/library/psa_crypto_rsa.c>
+    $<${is_rsa_signature}:${MBEDCRYPTO_PATH}/library/psa_util.c>
     $<${is_rsa_signature}:${MBEDCRYPTO_PATH}/library/rsa.c>
     $<${is_rsa_signature}:${MBEDCRYPTO_PATH}/library/rsa_alt_helpers.c>
     $<${is_rsa_signature}:${MBEDCRYPTO_PATH}/library/bignum.c>
