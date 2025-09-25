@@ -10,6 +10,7 @@
 #include "rse_debug_after_reset.h"
 #include "runtime_shared_data.h"
 #include "tfm_hal_device_header.h"
+#include "tfm_hal_platform.h"
 
 int rse_debug_after_reset(const uint8_t *permissions_mask,
                           size_t mask_len)

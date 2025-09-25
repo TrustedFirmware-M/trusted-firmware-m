@@ -16,6 +16,7 @@
 #include "region_defs.h"
 #include "runtime_shared_data.h"
 #include "soft_crc.h"
+#include "tfm_hal_platform.h"
 
 #ifdef PLATFORM_PSA_ADAC_SECURE_DEBUG
 static bool read_saved_debug_state(void)
