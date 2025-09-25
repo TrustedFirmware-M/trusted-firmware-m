@@ -22,6 +22,9 @@
 #define NUM_REGIONS 32
 #define PAGE_SIZE 4096
 
-void deinit_all_regions(void);
+/* On platforms using host UART, region 0 is occupied so do not use it for testing! */
+#define MIN_TEST_REGION 1
+
+void deinit_test_regions(void);
 
 #endif /* _TEST_ATU_RSE_COMMON_H_ */

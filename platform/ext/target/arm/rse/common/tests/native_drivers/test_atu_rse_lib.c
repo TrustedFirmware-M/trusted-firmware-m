@@ -15,8 +15,19 @@
 #include "atu_config.h"
 #include "atu_rse_lib.h"
 
+#include "host_base_address.h"
+
 static const struct atu_region_map_t test_atu_regions_static[] =
 {
+#ifdef RSE_USE_HOST_UART
+    /* Non-Secure Uart Slot*/
+    {
+        .phys_addr = HOST_UART_BASE,
+        .log_addr = HOST_UART0_BASE_NS,
+        .size = HOST_UART_SIZE,
+        .out_bus_attr = ATU_ENCODE_ATTRIBUTES_NON_SECURE_PAS,
+    },
+#endif
     /* Dummy slot 0*/
     {
         .phys_addr = ATU_DUMMY_SLOT_PHY_ADDR,
@@ -42,13 +53,22 @@ static const struct atu_region_map_t test_atu_regions_static[] =
 
 const uint8_t test_atu_stat_count = sizeof(test_atu_regions_static)/sizeof(test_atu_regions_static[0]);
 
+/* Clears all the test regions and initializes the default, static regions */
+static void set_default_region_state(void)
+{
+    deinit_test_regions();
+
+    (void)atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, test_atu_regions_static, test_atu_stat_count);
+}
+
 static void test_natdrv_atu_rse_drv_init_null_dev(struct test_result_t *ret)
 {
     enum atu_error_t err = atu_rse_drv_init(NULL, ATU_DOMAIN_ROOT, test_atu_regions_static,
                                             test_atu_stat_count);
+
     TEST_ASSERT(err == ATU_ERR_INIT_REGION_INVALID_ARG, "Expected atu driver initialization null device error");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -60,7 +80,7 @@ static void test_natdrv_atu_rse_drv_init_static_count_overflow(struct test_resul
     err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, test_atu_regions_static, ATU_STATIC_SLOT_COUNT + 1);
     TEST_ASSERT(err == ATU_ERR_STAT_CFG_COUNT, "Not enough slots");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -72,7 +92,7 @@ static void test_natdrv_atu_rse_drv_init_ok(struct test_result_t *ret)
     err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, test_atu_regions_static, test_atu_stat_count);
     TEST_ASSERT(err == ATU_ERR_NONE, "Expected atu driver initialization success");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -88,7 +108,7 @@ static void test_natdrv_atu_rse_drv_deinit_null_dev(struct test_result_t *ret)
     TEST_ASSERT(err == ATU_ERR_UNINIT_REGION_INVALID_ARG,
         "Expected atu driver deinitialization null device error");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -100,7 +120,7 @@ static void test_natdrv_atu_rse_drv_deinit_static_count_overflow(struct test_res
     err = atu_rse_drv_deinit(&ATU_DEV_S, ATU_STATIC_SLOT_COUNT + 1);
     TEST_ASSERT(err == ATU_ERR_STAT_CFG_COUNT, "Not enough slots");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -115,7 +135,7 @@ static void test_natdrv_atu_rse_drv_deinit_ok(struct test_result_t *ret)
     err = atu_rse_drv_deinit(&ATU_DEV_S, test_atu_stat_count);
     TEST_ASSERT(err == ATU_ERR_NONE, "Expected atu driver deinitialization success");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -145,7 +165,7 @@ static void test_natdrv_atu_rse_drv_init_addr_overlap_fail(struct test_result_t 
     TEST_ASSERT(err == ATU_ERR_STAT_CFG_OVRLP,
         "Expected overlapping regions while initializing atu driver");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -167,7 +187,7 @@ static void test_natdrv_atu_map_addr_size_higher_than_range_fail(struct test_res
                                          ATU_DYN_NON_SEC_LOG_ADDR_SIZE, 0, &log_addr, &size);
     TEST_ASSERT(err == ATU_ERR_MEM_SIZE_NOT_AVAILABLE, "Expected mapping address error");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -190,7 +210,7 @@ static void test_natdrv_atu_map_addr_size_lower_than_page_size_ok(struct test_re
                                          &log_addr, &size);
     TEST_ASSERT(err == ATU_ERR_NONE, "Expected successful address mapping");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -207,7 +227,7 @@ static void test_natdrv_atu_map_addr_size_zero_fail(struct test_result_t *ret)
     err = atu_rse_map_addr_automatically(&ATU_DEV_S, ATU_DUMMY_SLOT_PHY_ADDR, 0, 0, &log_addr, &size);
     TEST_ASSERT(err == ATU_ERR_MEM_INVALID_ARG, "Expected error while mapping as a result of wrong size");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -239,7 +259,7 @@ static void test_natdrv_atu_static_size_zero_fail(struct test_result_t *ret)
     err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static_size_zero, 2);
     TEST_ASSERT(err == ATU_ERR_MEM_INVALID_ARG, "Expected error as a result of zero size");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -275,7 +295,7 @@ static void test_natdrv_atu_static_unsorted_log_addr_ok(struct test_result_t *re
     err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static_unsorted_log_addr, 3);
     TEST_ASSERT(err == ATU_ERR_NONE, "Expected successful atu driver initialization");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -297,7 +317,7 @@ static void test_natdrv_atu_static_phys_addr_alignment_fail(struct test_result_t
     err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static_unaligned_phys_addr, 1);
     TEST_ASSERT(err == ATU_ERR_INIT_REGION_INVALID_ADDRESS, "Expected atu alignment error");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -319,7 +339,7 @@ static void test_natdrv_atu_static_log_addr_alignment_fail(struct test_result_t 
     err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static_unaligned_log_addr, 1);
     TEST_ASSERT(err == ATU_ERR_INIT_REGION_INVALID_ADDRESS, "Expected atu alignment error");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -341,7 +361,7 @@ static void test_natdrv_atu_static_size_alignment_fail(struct test_result_t *ret
     err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static_unaligned_size, 1);
     TEST_ASSERT(err == ATU_ERR_INIT_REGION_INVALID_ADDRESS, "Expected atu alignment error");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -361,7 +381,7 @@ static void test_natdrv_atu_dyn_phys_addr_alignment_fail(struct test_result_t *r
                                          ATU_DUMMY_SLOT_SIZE, 0, &log_addr, &size);
     TEST_ASSERT(err == ATU_ERR_INIT_REGION_INVALID_ADDRESS, "Expected atu alignment error");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -379,7 +399,7 @@ static void test_natdrv_atu_dyn_size_alignment_ok(struct test_result_t *ret)
                                          ATU_DUMMY_SLOT_SIZE + 0x1, 0, &log_addr, &size);
     TEST_ASSERT(err == ATU_ERR_NONE, "Expected successful atu address mapping");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -404,7 +424,7 @@ static void test_natdrv_atu_dyn_use_existing_region(struct test_result_t *ret)
                                        ATU_DUMMY_SLOT_SIZE, ATU_SEC_OUT_ATTR);
     TEST_ASSERT(err == ATU_ERR_NONE, "Expected successful atu address mapping");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -438,7 +458,7 @@ static void test_natdrv_atu_dyn_map_and_free_all(struct test_result_t *ret)
         TEST_ASSERT(err == ATU_ERR_NONE, "Expected successful atu freeing");
     }
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -459,7 +479,7 @@ static void test_natdrv_atu_dyn_map_same_region_overflow_size(struct test_result
                                        ATU_DUMMY_SLOT_SIZE * 2, ATU_SEC_OUT_ATTR);
     TEST_ASSERT(err == ATU_MAPPING_TOO_SMALL, "The found region should be too small");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -496,7 +516,7 @@ static void test_natdrv_atu_dyn_use_existing_region_different_phys(struct test_r
                                        3 * ATU_DUMMY_SLOT_SIZE, ATU_SEC_OUT_ATTR);
     TEST_ASSERT(err == ATU_ERR_INVALID_REGION, "Can not access physical region from multiple logical ones");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -532,7 +552,7 @@ static void test_natdrv_atu_dyn_slot_user_counting(struct test_result_t *ret)
                                          ATU_SEC_OUT_ATTR, &log_addr, &size);
     TEST_ASSERT(err == ATU_ERR_NONE, "Expected successful atu address mapping");
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
@@ -576,7 +596,7 @@ static void test_natdrv_atu_domain_test(struct test_result_t *ret)
         }
     }
 
-    deinit_all_regions();
+    set_default_region_state();
 
     ret->val = TEST_PASSED;
 }
