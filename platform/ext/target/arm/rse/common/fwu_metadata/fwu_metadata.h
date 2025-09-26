@@ -79,13 +79,6 @@ struct fwu_metadata_t {
     struct metadata_fw_store_desc_t fw_desc;
 } __PACKED;
 
-/* Valid entries for data item width */
-static const uint32_t data_width_byte[] = {
-    sizeof(uint8_t),
-    sizeof(uint16_t),
-    sizeof(uint32_t),
-};
-
 /**
  * \brief                             Read FWU metadata.
  *
