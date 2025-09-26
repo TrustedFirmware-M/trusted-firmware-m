@@ -113,23 +113,11 @@
     {                                                        \
         FIH_RET_TYPE(psa_status_t) status;                   \
         FIH_CALL(__internal_##fn, status, __VA_ARGS__);      \
-        return (psa_status_t)fih_int_decode(status);         \
+        return (psa_status_t)(status);                       \
     }                                                        \
                                                              \
     /* Definition of the internal implementation follows */  \
     INTERNAL_PSA_API(fn, types)
-
-/**
- * @brief Return a PSA-style status value wrapped in FIH encoding.
- *
- * This macro encodes a PSA `status` value using
- * `fih_int_encode_zero_equality()` and returns it via `FIH_RET`.
- *
- * @param status The PSA status value to be returned.
- *
- */
-#define FIH_RET_STATUS(status) \
-    FIH_RET(fih_int_encode_zero_equality(status))
 
 /**
  * @note The assumption is that key import will happen just
@@ -1148,7 +1136,7 @@ EXTERNAL_PSA_API(psa_aead_encrypt_setup,
     status = cc3xx_opaque_keys_attr_init(&attributes, key_id, alg,
                                          &key_buffer, &key_buffer_size);
     if (status != PSA_SUCCESS) {
-        FIH_RET_STATUS(status);
+        FIH_RET(status);
     }
 
     status = psa_driver_wrapper_aead_encrypt_setup(operation,
@@ -1157,7 +1145,7 @@ EXTERNAL_PSA_API(psa_aead_encrypt_setup,
                                                    key_buffer_size,
                                                    alg);
 
-    FIH_RET_STATUS(status);
+    FIH_RET(status);
 #else
     return PSA_ERROR_NOT_SUPPORTED;
 #endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
@@ -1177,7 +1165,7 @@ EXTERNAL_PSA_API(psa_aead_decrypt_setup,
     status = cc3xx_opaque_keys_attr_init(&attributes, key_id, alg,
                                          &key_buffer, &key_buffer_size);
     if (status != PSA_SUCCESS) {
-        FIH_RET_STATUS(status);
+        FIH_RET(status);
     }
 
     status = psa_driver_wrapper_aead_decrypt_setup(operation,
@@ -1186,7 +1174,7 @@ EXTERNAL_PSA_API(psa_aead_decrypt_setup,
                                                    key_buffer_size,
                                                    alg);
 
-    FIH_RET_STATUS(status);
+    FIH_RET(status);
 #else
     return PSA_ERROR_NOT_SUPPORTED;
 #endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
@@ -1208,7 +1196,7 @@ EXTERNAL_PSA_API(psa_aead_set_nonce,
                                                nonce,
                                                nonce_length);
 
-    FIH_RET_STATUS(status);
+    FIH_RET(status);
 }
 
 /* Declare the lengths of the message and additional data for AEAD */
@@ -1225,7 +1213,7 @@ EXTERNAL_PSA_API(psa_aead_set_lengths,
                                                  ad_length,
                                                  plaintext_length);
 
-    FIH_RET_STATUS(status);
+    FIH_RET(status);
 }
 
 /* Pass additional data to an active AEAD operation */
@@ -1243,7 +1231,7 @@ EXTERNAL_PSA_API(psa_aead_update_ad,
                                                input,
                                                input_length);
 
-    FIH_RET_STATUS(status);
+    FIH_RET(status);
 }
 
 /* Encrypt or decrypt a message fragment in an active AEAD operation */
@@ -1266,7 +1254,7 @@ EXTERNAL_PSA_API(psa_aead_update,
                                             output_size,
                                             output_length);
 
-    FIH_RET_STATUS(status);
+    FIH_RET(status);
 }
 
 /* Finish encrypting a message in an AEAD operation */
@@ -1292,7 +1280,7 @@ EXTERNAL_PSA_API(psa_aead_finish,
                                             tag_size,
                                             tag_length);
 
-    FIH_RET_STATUS(status);
+    FIH_RET(status);
 }
 
 /* Finish authenticating and decrypting a message in an AEAD operation */
@@ -1317,7 +1305,7 @@ EXTERNAL_PSA_API(psa_aead_verify,
                                             tag,
                                             tag_length);
 
-    FIH_RET_STATUS(status);
+    FIH_RET(status);
 }
 
 EXTERNAL_PSA_API(psa_aead_abort,
@@ -1331,6 +1319,6 @@ EXTERNAL_PSA_API(psa_aead_abort,
 
     status = psa_driver_wrapper_aead_abort(operation);
 
-    FIH_RET_STATUS(status);
+    FIH_RET(status);
 }
 /*!@}*/

@@ -117,7 +117,7 @@ target_compile_definitions(bl2_crypto
 target_include_directories(bl2_crypto
     PUBLIC
         ${MBEDCRYPTO_PATH}/library
-        ${CMAKE_SOURCE_DIR}/lib/fih/inc
+        ${CMAKE_CURRENT_SOURCE_DIR}/ext/mcuboot/include
 )
 
 target_compile_options(bl2_crypto
@@ -127,6 +127,7 @@ target_compile_options(bl2_crypto
 
 target_link_libraries(bl2_crypto
     PUBLIC
+        bootutil
         bl2_crypto_config
 )
 
