@@ -8,7 +8,5 @@
 
 include(${PLATFORM_PATH}/common/core/config.cmake)
 
-set(SECURE_UART20                       ON         CACHE BOOL      "Enable secure UART")
 set(BL2                                 OFF        CACHE BOOL      "Whether to build BL2" FORCE)
 set(NRF_NS_SECONDARY                    OFF        CACHE BOOL      "Enable non-secure secondary partition" FORCE)
-set(NRF_SECURE_UART_INSTANCE            20         CACHE STRING    "The UART instance number to use for secure UART")

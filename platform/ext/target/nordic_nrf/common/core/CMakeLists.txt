@@ -151,7 +151,9 @@ if(TFM_SPM_LOG_RAW_ENABLED)
             cmsis_drivers/Driver_USART.c
             ${HAL_NORDIC_PATH}/nrfx/drivers/src/nrfx_uarte.c
     )
+endif()
 
+if(TFM_SPM_LOG_RAW_ENABLED OR SECURE_UART1)
     target_compile_definitions(platform_s
         PUBLIC
             NRF_SECURE_UART_INSTANCE=${NRF_SECURE_UART_INSTANCE}

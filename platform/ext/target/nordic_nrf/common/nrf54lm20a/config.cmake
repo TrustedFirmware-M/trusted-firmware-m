@@ -8,3 +8,5 @@
 
 include(${PLATFORM_PATH}/common/nrf54l/config.cmake)
 
+# Override UART instance for nRF54LM20A - it uses UART30, not UART20
+set(NRF_SECURE_UART_INSTANCE            30         CACHE STRING    "The UART instance number to use for secure UART" FORCE)

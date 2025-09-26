@@ -54,7 +54,7 @@
 #define S_DATA_LIMIT    (S_DATA_START + S_DATA_SIZE - 1)
 
 /* Copied from the CONFIG_TFM_S_CODE_VECTOR_TABLE_SIZE in sdk-nrf */
-#define S_CODE_VECTOR_TABLE_SIZE (0x47C)
+#define S_CODE_VECTOR_TABLE_SIZE (0x4D0)
 
 #if defined(NULL_POINTER_EXCEPTION_DETECTION) && S_CODE_START == 0
 /* If this image is placed at the beginning of flash make sure we
@@ -97,7 +97,12 @@
 #define PSA_TEST_SCRATCH_AREA_SIZE (0x400)
 
 /* Even though BL2 is not supported now this needs to be defined becaused it is used by scatter files */
+#define BOOT_TFM_SHARED_DATA_BASE S_RAM_ALIAS_BASE
 #define BOOT_TFM_SHARED_DATA_SIZE (0x0)
+#define BOOT_TFM_SHARED_DATA_LIMIT (BOOT_TFM_SHARED_DATA_BASE + BOOT_TFM_SHARED_DATA_SIZE - 1)
+#define SHARED_BOOT_MEASUREMENT_BASE BOOT_TFM_SHARED_DATA_BASE
+#define SHARED_BOOT_MEASUREMENT_SIZE BOOT_TFM_SHARED_DATA_SIZE
+#define SHARED_BOOT_MEASUREMENT_LIMIT BOOT_TFM_SHARED_DATA_LIMIT
 
 #ifdef PSA_API_TEST_IPC
 /* Firmware Framework test suites */
