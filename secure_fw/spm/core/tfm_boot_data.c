@@ -156,7 +156,6 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
 #endif /* BOOT_DATA_AVAILABLE */
     const struct partition_t *curr_partition = GET_CURRENT_COMPONENT();
     fih_int fih_rc = FIH_FAILURE;
-    const uintptr_t data_base = tfm_plat_get_shared_measurement_data_base();
 
     FIH_CALL(tfm_hal_memory_check, fih_rc,
              curr_partition->boundary, (uintptr_t)buf_start,
@@ -178,6 +177,7 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
     }
 
 #ifdef BOOT_DATA_AVAILABLE
+    const uintptr_t data_base = tfm_plat_get_shared_measurement_data_base();
     /* Get the boundaries of TLV section */
     boot_data = (struct tfm_boot_data *)data_base;
     tlv_end = data_base + boot_data->header.tlv_tot_len;
