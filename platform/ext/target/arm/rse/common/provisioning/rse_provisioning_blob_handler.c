@@ -393,7 +393,7 @@ static enum tfm_plat_err_t aes_generic_blob_operation(psa_algorithm_t alg,
 
         status = psa_aead_verify(&operation,
                                  NULL,
-                                 NULL,
+                                 dummy,
                                  &dummy,
                                  (uint8_t*)blob->signature,
                                  AES_TAG_MAX_LEN);
