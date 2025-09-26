@@ -190,13 +190,14 @@ def arg_type_bool(arg : str):
 
 def pre_parse_args(parser : argparse.ArgumentParser,
                    name : str,
+                   required : bool = True,
                    **kwargs : dict):
     pre_arg_parser = argparse.ArgumentParser(add_help=False)
 
-    pre_arg_parser.add_argument("--" + name, required=True, **kwargs)
+    pre_arg_parser.add_argument("--" + name, required=required, **kwargs)
 
     if "--" + name not in parser._option_string_actions.keys():
-        parser.add_argument("--" + name, required=True, **kwargs)
+        parser.add_argument("--" + name, required=required, **kwargs)
 
     parsed, _ = pre_arg_parser.parse_known_args()
     return getattr(parsed, name)
