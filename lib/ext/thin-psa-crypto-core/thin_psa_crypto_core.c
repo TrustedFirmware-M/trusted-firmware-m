@@ -1134,6 +1134,35 @@ psa_status_t psa_unwrap_key(const psa_key_attributes_t *attributes,
 }
 #endif /* MCUBOOT_ENC_IMAGES */
 
+/* Set the key for a multipart authenticated encryption operation. */
+EXTERNAL_PSA_API(psa_aead_encrypt_setup,
+        (psa_aead_operation_t *operation, psa_key_id_t key_id, psa_algorithm_t alg),
+        operation, key_id, alg)
+{
+#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    const uint8_t *key_buffer;
+    size_t key_buffer_size;
+    psa_status_t status;
+
+    status = cc3xx_opaque_keys_attr_init(&attributes, key_id, alg,
+                                         &key_buffer, &key_buffer_size);
+    if (status != PSA_SUCCESS) {
+        FIH_RET_STATUS(status);
+    }
+
+    status = psa_driver_wrapper_aead_encrypt_setup(operation,
+                                                   &attributes,
+                                                   key_buffer,
+                                                   key_buffer_size,
+                                                   alg);
+
+    FIH_RET_STATUS(status);
+#else
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
+}
+
 /* Set the key for a multipart authenticated decryption operation. */
 EXTERNAL_PSA_API(psa_aead_decrypt_setup,
         (psa_aead_operation_t *operation, psa_key_id_t key_id, psa_algorithm_t alg),

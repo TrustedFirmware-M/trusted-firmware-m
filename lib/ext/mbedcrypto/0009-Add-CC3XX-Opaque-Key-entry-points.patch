@@ -1,0 +1,63 @@
+From 8088e51563c6aa40317252f021d0be4980ad2902 Mon Sep 17 00:00:00 2001
+From: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
+Date: Wed, 24 Sep 2025 16:46:23 +0100
+Subject: [PATCH] Add CC3XX Opaque Key entry points
+
+TF-M requires a mechanism to leverage the use of HW-managed keys, the
+concept is called "Opaque Keys". Basically, the key ID as well as the key
+buffer are interpreted differently by the crypto accelerator driver.
+
+Signed-off-by: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
+Signed-off-by: Waleed Elmelegy <waleed.elmelegy@arm.com>
+Signed-off-by: Jackson Cooper-Driver <jackson.cooper-driver@arm.com>
+---
+ library/psa_crypto_driver_wrappers.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/library/psa_crypto_driver_wrappers.h b/library/psa_crypto_driver_wrappers.h
+index 5c581ff7..a43df87d 100644
+--- a/library/psa_crypto_driver_wrappers.h
++++ b/library/psa_crypto_driver_wrappers.h
+@@ -18,6 +18,9 @@
+ #include "psa_crypto_mac.h"
+ #include "psa_crypto_pake.h"
+ #include "psa_crypto_rsa.h"
++#if defined(CC3XX_CRYPTO_OPAQUE_KEYS)
++#include "cc3xx_opaque_keys.h"
++#endif
+ 
+ #include "mbedtls/platform.h"
+ #include "mbedtls/constant_time.h"
+@@ -1493,6 +1496,9 @@ static inline psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
+     switch( location )
+     {
+         case PSA_KEY_LOCATION_LOCAL_STORAGE:
++#if defined(CC3XX_CRYPTO_OPAQUE_KEYS)
++        case CC3XX_OPAQUE_KEY_LOCATION:
++#endif
+ #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
+         case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:
+ #endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
+@@ -2120,6 +2126,9 @@ static inline psa_status_t psa_driver_wrapper_aead_encrypt_setup(
+     switch( location )
+     {
+         case PSA_KEY_LOCATION_LOCAL_STORAGE:
++#if defined(CC3XX_CRYPTO_OPAQUE_KEYS)
++        case CC3XX_OPAQUE_KEY_LOCATION:
++#endif
+ #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
+         case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:
+ #endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
+@@ -2180,6 +2189,9 @@ static inline psa_status_t psa_driver_wrapper_aead_decrypt_setup(
+     switch( location )
+     {
+         case PSA_KEY_LOCATION_LOCAL_STORAGE:
++#if defined(CC3XX_CRYPTO_OPAQUE_KEYS)
++        case CC3XX_OPAQUE_KEY_LOCATION:
++#endif
+ #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
+         case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:
+ #endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
+-- 
+2.51.0
+
