@@ -468,6 +468,54 @@ fih_ret bl1_derive_key(enum tfm_bl1_key_id_t key_id, const uint8_t *label,
     FIH_RET(fih_rc);
 }
 
+psa_status_t bl1_psa_derive_key(psa_key_id_t key, const uint8_t *label,
+                                size_t label_length, const uint8_t *context,
+                                size_t context_length, uint8_t *output_key,
+                                size_t output_length)
+{
+    psa_key_derivation_operation_t operation = PSA_KEY_DERIVATION_OPERATION_INIT;
+    psa_status_t status;
+
+    status = psa_key_derivation_setup(&operation, PSA_ALG_SP800_108_COUNTER_CMAC);
+    if (status != PSA_SUCCESS) {
+        goto psa_abort;
+    }
+
+    status = psa_key_derivation_set_capacity(&operation, output_length);
+    if (status != PSA_SUCCESS) {
+        goto psa_abort;
+    }
+
+    /* Feed inputs in the order required by PSA key -> label -> context */
+    status = psa_key_derivation_input_key(&operation,
+                PSA_KEY_DERIVATION_INPUT_SECRET, key);
+    if (status != PSA_SUCCESS) {
+        goto psa_abort;
+    }
+
+    status = psa_key_derivation_input_bytes(&operation,
+                PSA_KEY_DERIVATION_INPUT_LABEL, label, label_length);
+    if (status != PSA_SUCCESS) {
+        goto psa_abort;
+    }
+
+    status = psa_key_derivation_input_bytes(&operation,
+                PSA_KEY_DERIVATION_INPUT_CONTEXT, context, context_length);
+    if (status != PSA_SUCCESS) {
+        goto psa_abort;
+    }
+
+    status = psa_key_derivation_output_bytes(&operation,
+                output_key, output_length);
+    if (status != PSA_SUCCESS) {
+        goto psa_abort;
+    }
+
+psa_abort:
+    (void)psa_key_derivation_abort(&operation);
+    return status;
+}
+
 fih_ret bl1_ecc_derive_key(
     enum tfm_bl1_ecdsa_curve_t curve, enum tfm_bl1_key_id_t key_id,
     const uint8_t *label, size_t label_length,
