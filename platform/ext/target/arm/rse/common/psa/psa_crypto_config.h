@@ -43,6 +43,7 @@
 #define PSA_WANT_KEY_TYPE_AES                   1
 #define PSA_WANT_ALG_CCM                        1
 #define PSA_WANT_ALG_CTR                        1
+#define PSA_WANT_ALG_SP800_108_COUNTER_CMAC     1
 
 #ifdef CRYPTO_HW_ACCELERATOR
 #include MBEDTLS_ACCELERATOR_PSA_CRYPTO_CONFIG_FILE
