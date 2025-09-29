@@ -35,7 +35,7 @@
  * @brief Perform CMAC in integrated way directly calling
  *        the low level driver APIs
  */
-static psa_status_t cmac_compute(size_t tag_len,
+static psa_status_t cmac_compute(const psa_key_attributes_t *attributes,
                                  const uint8_t *key_buffer,
                                  size_t key_buffer_size,
                                  const uint8_t *input, size_t input_length,
@@ -44,6 +44,21 @@ static psa_status_t cmac_compute(size_t tag_len,
 {
     cc3xx_err_t err;
     cc3xx_aes_keysize_t key_size;
+    psa_key_type_t key_type = psa_get_key_type(attributes);
+    size_t key_bits = psa_get_key_bits(attributes);
+    size_t tag_len = PSA_MAC_LENGTH(key_type, key_bits, PSA_ALG_CMAC);
+    cc3xx_aes_key_id_t key_id = CC3XX_AES_KEY_ID_USER_KEY;
+
+#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
+    if (CC3XX_IS_OPAQUE_KEY(attributes)) {
+        size_t opaque_key_id = (size_t)key_buffer;
+        key_id = (cc3xx_aes_key_id_t)cc3xx_get_builtin_key(opaque_key_id);
+
+        if (CC3XX_IS_OPAQUE_KEY_INVALID(key_id)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
 
     *mac_length = 0;
 
@@ -58,8 +73,10 @@ static psa_status_t cmac_compute(size_t tag_len,
 
     err = cc3xx_lowlevel_aes_init(CC3XX_AES_DIRECTION_ENCRYPT,
                                   CC3XX_AES_MODE_CMAC,
-                                  CC3XX_AES_KEY_ID_USER_KEY,
-                                  (const uint32_t *)key_buffer, key_size,
+                                  key_id,
+                                  (key_id == CC3XX_AES_KEY_ID_USER_KEY) ?
+                                    (uint32_t *)key_buffer : NULL,
+                                  key_size,
                                   NULL, 0);
     if (err != CC3XX_ERR_SUCCESS) {
         return cc3xx_to_psa_err(err);
@@ -94,6 +111,18 @@ static psa_status_t cmac_setup(struct cc3xx_aes_state_t *state,
 {
     cc3xx_err_t err;
     cc3xx_aes_keysize_t key_size;
+    cc3xx_aes_key_id_t key_id = CC3XX_AES_KEY_ID_USER_KEY;
+
+#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
+    if (CC3XX_IS_OPAQUE_KEY(attributes)) {
+        size_t opaque_key_id = (size_t)key_buffer;
+        key_id = (cc3xx_aes_key_id_t)cc3xx_get_builtin_key(opaque_key_id);
+
+        if (CC3XX_IS_OPAQUE_KEY_INVALID(key_id)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
 
     key_size = (key_buffer_size == 16) ? CC3XX_AES_KEYSIZE_128 :
                (key_buffer_size == 24) ? CC3XX_AES_KEYSIZE_192 :
@@ -106,8 +135,10 @@ static psa_status_t cmac_setup(struct cc3xx_aes_state_t *state,
 
     err = cc3xx_lowlevel_aes_init(CC3XX_AES_DIRECTION_ENCRYPT,
                                   CC3XX_AES_MODE_CMAC,
-                                  CC3XX_AES_KEY_ID_USER_KEY,
-                                  (const uint32_t *)key_buffer, key_size,
+                                  key_id,
+                                  (key_id == CC3XX_AES_KEY_ID_USER_KEY) ?
+                                    (uint32_t *)key_buffer : NULL,
+                                  key_size,
                                   NULL, 0);
     if (err != CC3XX_ERR_SUCCESS) {
         return cc3xx_to_psa_err(err);
@@ -455,10 +486,7 @@ psa_status_t cc3xx_mac_compute(const psa_key_attributes_t *attributes,
 
 #if defined(PSA_WANT_ALG_CMAC)
     if (PSA_ALG_FULL_LENGTH_MAC(alg) == PSA_ALG_CMAC) {
-        psa_key_type_t key_type = psa_get_key_type(attributes);
-        size_t key_bits = psa_get_key_bits(attributes);
-        size_t tag_len = PSA_MAC_LENGTH(key_type, key_bits, alg);
-        return cmac_compute(tag_len, key_buffer, key_buffer_size,
+        return cmac_compute(attributes, key_buffer, key_buffer_size,
                             input, input_length,
                             mac, mac_size, mac_length);
     } else
