@@ -531,6 +531,57 @@ psa_status_t psa_mac_abort(psa_mac_operation_t *operation)
     return PSA_ERROR_NOT_SUPPORTED;
 }
 
+psa_status_t psa_mac_compute(psa_key_id_t key,
+                             psa_algorithm_t alg,
+                             const uint8_t *input,
+                             size_t input_length,
+                             uint8_t *mac,
+                             size_t mac_size,
+                             size_t *mac_length)
+{
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    uint8_t *key_buffer;
+    size_t key_buffer_size;
+    psa_status_t status = PSA_ERROR_INVALID_HANDLE;
+
+    /* Check if the key is important */
+    if (g_key_slot.is_valid && (g_key_slot.key_id == key)) {
+        status = psa_get_key_attributes(key, &attributes);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+
+        key_buffer = g_key_slot.buf;
+        key_buffer_size = g_key_slot.len;
+    }
+#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
+    else {
+        status = cc3xx_opaque_keys_attr_init(&attributes, key, alg,
+                                             &key_buffer, &key_buffer_size);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+    }
+#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
+
+    /* In case neither a static slot, nor an opaque key is used */
+    if (status == PSA_ERROR_INVALID_HANDLE) {
+        return status;
+    }
+
+    return psa_driver_wrapper_mac_compute(
+                        &attributes,
+                        key_buffer,
+                        key_buffer_size,
+                        alg,
+                        input,
+                        input_length,
+                        mac,
+                        mac_size,
+                        mac_length);
+
+}
+
 psa_status_t psa_key_derivation_setup(psa_key_derivation_operation_t *operation,
                                       psa_algorithm_t alg)
 {
