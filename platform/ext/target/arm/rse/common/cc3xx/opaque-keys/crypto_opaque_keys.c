@@ -118,6 +118,7 @@ psa_status_t cc3xx_opaque_keys_attr_init(psa_key_attributes_t *attributes,
     switch (alg) {
         case PSA_ALG_CTR:
         case PSA_ALG_CCM:
+        case PSA_ALG_CMAC:
         case PSA_ALG_ECB_NO_PADDING:
             key_type = PSA_KEY_TYPE_AES;
             break;
