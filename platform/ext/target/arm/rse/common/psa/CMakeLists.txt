@@ -21,8 +21,9 @@ target_compile_definitions(bl1_psa_crypto_config
 
 target_include_directories(bl1_psa_crypto_config
     INTERFACE
+        ${CMAKE_SOURCE_DIR}/interface/include
+        ${CMAKE_SOURCE_DIR}/interface/include/psa
         ${MBEDCRYPTO_PATH}/library
-        ${MBEDCRYPTO_PATH}/include/psa
         ${CMAKE_CURRENT_SOURCE_DIR}/../cc3xx/opaque-keys
 )
 
@@ -50,10 +51,9 @@ target_sources(platform_bl2 PRIVATE
 target_include_directories(platform_bl2 PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
     INTERFACE
-        ${MBEDCRYPTO_PATH}/library
-        ${MBEDCRYPTO_PATH}/include/psa
         ${CMAKE_SOURCE_DIR}/interface/include
         ${CMAKE_SOURCE_DIR}/interface/include/psa
+        ${MBEDCRYPTO_PATH}/library
 )
 
 target_sources(platform_s PRIVATE
