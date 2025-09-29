@@ -585,37 +585,263 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
 psa_status_t psa_key_derivation_setup(psa_key_derivation_operation_t *operation,
                                       psa_algorithm_t alg)
 {
-    return PSA_ERROR_NOT_SUPPORTED;
+    if (operation == NULL) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    /* Only SP800-108 CMAC is supported */
+    if (alg != PSA_ALG_SP800_108_COUNTER_CMAC) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+#ifndef PSA_WANT_ALG_SP800_108_COUNTER_CMAC
+    else {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+#endif /* PSA_WANT_ALG_SP800_108_COUNTER_CMAC */
+
+    /* Ensure all of the context is zeroized */
+    memset(operation, 0, sizeof(*operation));
+
+    operation->alg = alg;
+
+    return PSA_SUCCESS;
 }
 
-psa_status_t psa_key_derivation_input_key(
+psa_status_t psa_key_derivation_set_capacity(
     psa_key_derivation_operation_t *operation,
-    psa_key_derivation_step_t step,
-    psa_key_id_t key)
+    size_t capacity)
 {
-    return PSA_ERROR_NOT_SUPPORTED;
+    if (operation == NULL) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    /* Only SP800-108 CMAC is supported */
+    if (operation->alg != PSA_ALG_SP800_108_COUNTER_CMAC) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    /*
+     * Based on PSA Crypto API spec:
+     *  Subsequent calls to psa_key_derivation_set_capacity() are not
+     *  permitted for this algorithm.
+     */
+    if (!!operation->capacity) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    /* For simplicity, only support 4-byte aligned capacity */
+    if ((capacity % sizeof(uint32_t)) != 0) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    operation->capacity = capacity;
+
+#ifdef PSA_WANT_ALG_SP800_108_COUNTER_CMAC
+    psa_sp800_108_cmac_key_derivation_t *ctx = &operation->ctx.sp800_108_cmac;
+    ctx->L_bits = capacity * 8;
+#endif /* PSA_WANT_ALG_SP800_108_COUNTER_CMAC */
+
+    return PSA_SUCCESS;
+}
+EXTERNAL_PSA_API(psa_key_derivation_input_key,
+    (psa_key_derivation_operation_t *operation, psa_key_derivation_step_t step, psa_key_id_t key),
+    operation, step, key)
+{
+    if (operation == NULL) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    if (step != PSA_KEY_DERIVATION_INPUT_SECRET) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    /* Only SP800-108 CMAC is supported */
+    if (operation->alg != PSA_ALG_SP800_108_COUNTER_CMAC) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+#ifdef PSA_WANT_ALG_SP800_108_COUNTER_CMAC
+    psa_sp800_108_cmac_key_derivation_t *ctx = &operation->ctx.sp800_108_cmac;
+
+    /* The key must be provided before label and context */
+    if (ctx->label_provided || ctx->context_provided) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    ctx->key_provided = true;
+    ctx->key = key;
+#endif /* PSA_WANT_ALG_SP800_108_COUNTER_CMAC */
+
+
+    return PSA_SUCCESS;
 }
 
-psa_status_t psa_key_derivation_input_bytes(
-    psa_key_derivation_operation_t *operation,
-    psa_key_derivation_step_t step,
-    const uint8_t *data,
-    size_t data_length)
+EXTERNAL_PSA_API(psa_key_derivation_input_bytes,
+    (psa_key_derivation_operation_t *operation, psa_key_derivation_step_t step,
+    const uint8_t *data, size_t data_length),
+    operation, step, data, data_length)
 {
-    return PSA_ERROR_NOT_SUPPORTED;
+    if (operation == NULL) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    /* Only SP800-108 CMAC is supported */
+    if (operation->alg != PSA_ALG_SP800_108_COUNTER_CMAC) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    if (!data_length) {
+        return PSA_SUCCESS;
+    }
+
+#ifdef PSA_WANT_ALG_SP800_108_COUNTER_CMAC
+    psa_sp800_108_cmac_key_derivation_t *ctx = &operation->ctx.sp800_108_cmac;
+    const size_t ctx_input_offset = (step == PSA_KEY_DERIVATION_INPUT_LABEL) ?
+                                        SP800_108_INPUT_LABEL_OFFSET(ctx) :
+                                        SP800_108_INPUT_CONTEXT_OFFSET(ctx);
+    const size_t ctx_input_max_size = (step == PSA_KEY_DERIVATION_INPUT_LABEL) ?
+                                        SP800_108_LABEL_MAX_SIZE :
+                                        SP800_108_CONTEXT_MAX_SIZE;
+    size_t *ctx_input_length = (step == PSA_KEY_DERIVATION_INPUT_LABEL) ?
+                                        &ctx->label_length :
+                                        &ctx->context_length;
+    bool *ctx_input_provided = (step == PSA_KEY_DERIVATION_INPUT_LABEL) ?
+                                        &ctx->label_provided :
+                                        &ctx->context_provided;
+
+    if ((step != PSA_KEY_DERIVATION_INPUT_LABEL) &&
+        (step != PSA_KEY_DERIVATION_INPUT_CONTEXT)) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    /* Inputs must be passed in this order key -> label -> context */
+    if ((!ctx->key_provided) ||
+        ((step == PSA_KEY_DERIVATION_INPUT_CONTEXT) && !ctx->label_provided)) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    if (data_length > ctx_input_max_size) {
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    }
+
+    memcpy(ctx->inputs + ctx_input_offset, data, data_length);
+
+    *ctx_input_length = data_length;
+    *ctx_input_provided = true;
+#endif /* PSA_WANT_ALG_SP800_108_COUNTER_CMAC */
+
+    return PSA_SUCCESS;
 }
 
-psa_status_t psa_key_derivation_output_bytes(
-    psa_key_derivation_operation_t *operation,
-    uint8_t *output,
-    size_t output_length)
+EXTERNAL_PSA_API(psa_key_derivation_output_bytes,
+    (psa_key_derivation_operation_t *operation, uint8_t *output, size_t output_length),
+    operation, output, output_length)
 {
-    return PSA_ERROR_NOT_SUPPORTED;
+    size_t *capacity = &operation->capacity;
+
+    if (operation == NULL) {
+        return PSA_ERROR_BAD_STATE;
+    }
+
+    /* Only SP800-108 CMAC is supported */
+    if (operation->alg != PSA_ALG_SP800_108_COUNTER_CMAC) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    if (output_length > *capacity) {
+        *capacity = 0;
+        return PSA_ERROR_INSUFFICIENT_DATA;
+    }
+
+#ifdef PSA_WANT_ALG_SP800_108_COUNTER_CMAC
+    psa_sp800_108_cmac_key_derivation_t *ctx = &operation->ctx.sp800_108_cmac;
+    uint8_t *k0_input = &ctx->inputs[SP800_108_INTERATION_COUNTER_SIZE];
+    const size_t k0_input_size = ctx->label_length +
+                                 SP800_108_NULL_BYTE_SIZE +
+                                 ctx->context_length +
+                                 SP800_108_ENCODED_LENGTH_SIZE;
+    uint8_t *k0 = &ctx->inputs[SP800_108_INPUT_K0_OFFSET(ctx)];
+    size_t k0_length = 0;
+    const uint8_t l_total_length[] = {
+        (ctx->L_bits >> 24) & 0xFF,
+        (ctx->L_bits >> 16) & 0xFF,
+        (ctx->L_bits >> 8) & 0xFF,
+         ctx->L_bits & 0xFF};
+    const size_t num_blocks = ROUND_UP(output_length, PSA_AEAD_TAG_MAX_SIZE) /
+                                PSA_AEAD_TAG_MAX_SIZE;
+    const size_t unaligned_block_size = output_length % PSA_AEAD_TAG_MAX_SIZE;
+    psa_status_t status;
+
+    /* copy L bits */
+    memcpy(&ctx->inputs[SP800_108_INPUT_ENCODED_LENGTH_OFFSET(ctx)],
+           l_total_length,
+           SP800_108_ENCODED_LENGTH_SIZE);
+
+    /* Compute K0 */
+    status =  psa_mac_compute(ctx->key,
+                              PSA_ALG_CMAC,
+                              k0_input,
+                              k0_input_size,
+                              k0,
+                              SP800_108_K0_SIZE,
+                              &k0_length);
+    if (status != PSA_SUCCESS) {
+        return status;
+    } else if (k0_length != SP800_108_K0_SIZE) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+
+    for (size_t idx = ctx->counter; idx < num_blocks; idx++) {
+        const uint8_t *output_key_offset = ((uint8_t *) output) + (idx * PSA_AEAD_TAG_MAX_SIZE);
+        const size_t tag_size = ((idx == num_blocks - 1) && (unaligned_block_size > 0)) ?
+                                    unaligned_block_size : PSA_AEAD_TAG_MAX_SIZE;
+        size_t tag_length = 0;
+        /* [i]2 is encoded on 4 bytes, i.e. r = 32, in binary. Assumes processor is LE */
+        const size_t i_idx = idx + 1;
+        const uint8_t i_encoded[] = {
+            (i_idx >> 24) & 0xFF,
+            (i_idx >> 16) & 0xFF,
+            (i_idx >> 8) & 0xFF,
+            i_idx & 0xFF};
+
+        /* copy the encoded iteration counter */
+        memcpy(&ctx->inputs[SP800_108_INPUT_INTERATION_COUNTER_OFFSET(ctx)],
+           i_encoded,
+           SP800_108_INTERATION_COUNTER_SIZE);
+
+        /* Compute Ki */
+        status =  psa_mac_compute(ctx->key,
+                                  PSA_ALG_CMAC,
+                                  ctx->inputs,
+                                  SP800_108_INPUT_LENGTH(ctx),
+                                  output_key_offset,
+                                  tag_size,
+                                  &tag_length);
+        if (status != PSA_SUCCESS) {
+            return status;
+        } else if (tag_length != tag_size) {
+            return PSA_ERROR_BUFFER_TOO_SMALL;
+        }
+    }
+
+    ctx->counter = (unaligned_block_size > 0) ?
+                        ctx->counter + num_blocks - 1:
+                        ctx->counter + num_blocks;
+#endif /* PSA_WANT_ALG_SP800_108_COUNTER_CMAC */
+
+    operation->capacity -= output_length;
+
+    return PSA_SUCCESS;
 }
 
 psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *operation)
 {
-    return PSA_ERROR_NOT_SUPPORTED;
+    assert(operation != 0);
+
+    /* Clear operation including its context */
+    memset(operation, 0, sizeof(*operation));
+
+    return PSA_SUCCESS;
 }
 
 /**
