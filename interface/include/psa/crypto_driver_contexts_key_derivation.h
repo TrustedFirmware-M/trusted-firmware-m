@@ -46,6 +46,9 @@ typedef union {
 #if defined(PSA_HAVE_SOFT_PBKDF2)
     psa_pbkdf2_key_derivation_t MBEDTLS_PRIVATE(pbkdf2);
 #endif
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SP800_108_COUNTER_CMAC)
+    psa_sp800_108_cmac_key_derivation_t MBEDTLS_PRIVATE(sp800_108_cmac);
+#endif
 } psa_driver_key_derivation_context_t;
 
 #endif /* PSA_CRYPTO_DRIVER_CONTEXTS_KEY_DERIVATION_H */

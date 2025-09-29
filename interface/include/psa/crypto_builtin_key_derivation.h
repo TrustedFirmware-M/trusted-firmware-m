@@ -115,4 +115,72 @@ typedef struct {
 } psa_pbkdf2_key_derivation_t;
 #endif /* PSA_HAVE_SOFT_PBKDF2 */
 
+#if defined(MBEDTLS_PSA_BUILTIN_ALG_SP800_108_COUNTER_CMAC)
+#define SP800_108_INTERATION_COUNTER_SIZE   4
+
+#ifndef SP800_108_LABEL_MAX_SIZE
+#define SP800_108_LABEL_MAX_SIZE            48
+#endif
+
+#define SP800_108_NULL_BYTE_SIZE            1
+
+#ifndef SP800_108_CONTEXT_MAX_SIZE
+#define SP800_108_CONTEXT_MAX_SIZE          48
+#endif
+
+#define SP800_108_ENCODED_LENGTH_SIZE       4
+#define SP800_108_K0_SIZE                   PSA_AEAD_TAG_MAX_SIZE
+
+#define SP800_108_TOTAL_INPUT_MAX_SIZE \
+    (SP800_108_INTERATION_COUNTER_SIZE + \
+     SP800_108_LABEL_MAX_SIZE + \
+     SP800_108_NULL_BYTE_SIZE + \
+     SP800_108_CONTEXT_MAX_SIZE + \
+     SP800_108_ENCODED_LENGTH_SIZE + \
+     SP800_108_K0_SIZE)
+
+#define SP800_108_INPUT_INTERATION_COUNTER_OFFSET(ctx) (0)
+
+#define SP800_108_INPUT_LABEL_OFFSET(ctx) \
+    (SP800_108_INTERATION_COUNTER_SIZE)
+
+#define SP800_108_INPUT_CONTEXT_OFFSET(ctx) \
+    (SP800_108_INPUT_LABEL_OFFSET(x) + \
+     ctx->label_length + \
+     SP800_108_NULL_BYTE_SIZE)
+
+#define SP800_108_INPUT_ENCODED_LENGTH_OFFSET(ctx) \
+    (SP800_108_INPUT_CONTEXT_OFFSET(ctx) + \
+     ctx->context_length)
+
+#define SP800_108_INPUT_K0_OFFSET(ctx) \
+    (SP800_108_INPUT_ENCODED_LENGTH_OFFSET(ctx) + \
+     SP800_108_ENCODED_LENGTH_SIZE)
+
+#define SP800_108_INPUT_LENGTH(ctx) \
+    (SP800_108_INPUT_K0_OFFSET(ctx) + \
+     SP800_108_K0_SIZE)
+
+typedef struct
+{
+    uint8_t inputs[SP800_108_TOTAL_INPUT_MAX_SIZE];
+
+    /* The key must be a block-cipher that is compatible with the CMAC algorithm */
+    psa_key_id_t MBEDTLS_PRIVATE(key);
+    bool MBEDTLS_PRIVATE(key_provided);
+
+    /* Label, unless omitted, must be passed after the key */
+    bool MBEDTLS_PRIVATE(label_provided);
+    size_t MBEDTLS_PRIVATE(label_length);
+
+    /* Context, unless omitted, must be passed after the label */
+    bool MBEDTLS_PRIVATE(context_provided);
+    size_t MBEDTLS_PRIVATE(context_length);
+
+    /* Derivation state */
+    size_t MBEDTLS_PRIVATE(L_bits); /* total output length in bits */
+    size_t MBEDTLS_PRIVATE(counter); /* 1-based */
+} psa_sp800_108_cmac_key_derivation_t;
+#endif /* MBEDTLS_PSA_BUILTIN_ALG_SP800_108_COUNTER_CMAC */
+
 #endif /* PSA_CRYPTO_BUILTIN_KEY_DERIVATION_H */
