@@ -831,7 +831,8 @@ out_chacha20:
 
         cc3xx_lowlevel_aes_set_output_buffer(ciphertext, ciphertext_size);
 
-        if (ciphertext_size < operation->aes.dma_state.block_buf_size_in_use) {
+        if ((operation->aes.crypted_length > 0) &&
+            (ciphertext_size < operation->aes.dma_state.block_buf_size_in_use)) {
             status = PSA_ERROR_BUFFER_TOO_SMALL;
             goto out_aes;
         }
