@@ -11,8 +11,8 @@ add_library(bl1_1_shared_lib_interface INTERFACE)
 target_include_directories(bl1_1_shared_lib_interface
     INTERFACE
         interface
+        ${CMAKE_SOURCE_DIR}/interface/include
         $<$<BOOL:${TFM_BL1_DEFAULT_OTP}>:${CMAKE_CURRENT_SOURCE_DIR}/otp>
-        $<$<BOOL:${TFM_BL1_2_ENABLE_LMS}>:${MBEDCRYPTO_PATH}/include>
         $<$<BOOL:${TFM_BL1_2_ENABLE_LMS}>:${CMAKE_CURRENT_SOURCE_DIR}/pq_crypto>
 )
 

@@ -188,6 +188,29 @@ fih_ret bl1_derive_key(enum tfm_bl1_key_id_t key_id, const uint8_t *label,
                        size_t label_length, const uint8_t *context,
                        size_t context_length, uint32_t *output_key,
                        size_t output_length);
+
+/**
+ * @brief Derives a key using PSA Crypto APIs, the underlying KDF algorithm depends
+ *        on platform capabilities
+ *
+ * @note  An example is the usage of AES-CMAC as PRF in a KDF in Counter mode as per
+ *        NIST SP800-108r1-upd1
+ *
+ * @param[in]  key_id         PSA key ID of the input key from which to derive material
+ * @param[in]  label          Label to associated to the derivation. NULL terminated string
+ * @param[in]  label_length   Size in bytes of the string comprising of the terminator
+ * @param[in]  context        Context bytes to associate to the derivation
+ * @param[in]  context_length Size in bytes of the \p context parameter
+ * @param[out] output_key     Derived key material
+ * @param[in]  output_length  Size in bytes of the key to be derived
+ *
+ * @return psa_status_t PSA_SUCCES on success, otherwise PSA error code.
+ */
+psa_status_t bl1_psa_derive_key(psa_key_id_t key, const uint8_t *label,
+                                size_t label_length, const uint8_t *context,
+                                size_t context_length, uint8_t *output_key,
+                                size_t output_length);
+
 /**
  * @brief Derives an ECC (private) key for the specified curve. The key derivation
  *        procedure must follow a recommended procedure to generate a uniform number
