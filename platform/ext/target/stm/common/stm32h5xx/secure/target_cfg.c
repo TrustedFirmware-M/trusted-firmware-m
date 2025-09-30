@@ -477,7 +477,17 @@ static void gtzc_internal_flash_priv(uint32_t offset_start, uint32_t offset_end)
 
 void gtzc_init_cfg(void)
 {
+#if (defined (MBEDTLS_SHA256_C) && defined (MBEDTLS_SHA256_ALT)) \
+ || (defined (MBEDTLS_SHA1_C) && defined (MBEDTLS_SHA1_ALT)) \
+ || (defined (MBEDTLS_MD5_C) && defined (MBEDTLS_MD5_ALT)) \
+ || (defined (MBEDTLS_ECP_C) && defined (MBEDTLS_ECP_ALT)) \
+ || (defined (MBEDTLS_ECDSA_C) && (defined (MBEDTLS_ECDSA_SIGN_ALT) || defined (MBEDTLS_ECDSA_VERIFY_ALT))) \
+ || (defined (MBEDTLS_AES_C) && defined (MBEDTLS_AES_ALT)) \
+ || (defined (MBEDTLS_GCM_C) && defined (MBEDTLS_GCM_ALT)) \
+ || (defined (MBEDTLS_CCM_C) && defined (MBEDTLS_CCM_ALT)) \
+ || defined (HW_CRYPTO_DPA_AES) || defined (HW_CRYPTO_DPA_GCM)
   uint32_t gtzc_periph_att;
+#endif
 
   if (uFlowStage == FLOW_STAGE_CFG)
   {
