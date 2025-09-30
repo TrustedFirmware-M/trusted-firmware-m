@@ -421,8 +421,8 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_bind_boundary(
     bool ns_agent;
     uint32_t partition_attrs = 0;
     const struct asset_desc_t *p_asset;
-    struct platform_data_t *plat_data_ptr;
 #if TFM_ISOLATION_LEVEL == 2
+    struct platform_data_t *plat_data_ptr;
     struct mpu_armv8m_region_cfg_t localcfg;
 #endif
 
