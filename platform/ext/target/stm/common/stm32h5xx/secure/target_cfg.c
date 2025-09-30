@@ -487,7 +487,7 @@ void gtzc_init_cfg(void)
     FLOW_CONTROL_STEP(uFlowProtectValue, FLOW_STEP_GTZC_VTOR_LCK, FLOW_CTRL_GTZC_VTOR_LCK);
 
     /* Check PRIS Is enabled */
-    if(SCB->AIRCR & SCB_AIRCR_PRIS_Msk == 0)
+    if((SCB->AIRCR & SCB_AIRCR_PRIS_Msk) == 0)
       Error_Handler();
     FLOW_CONTROL_STEP(uFlowProtectValue, FLOW_STEP_GTZC_PRIS_EN, FLOW_CTRL_GTZC_PRIS_EN);
 
