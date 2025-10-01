@@ -486,7 +486,6 @@ enum tfm_plat_err_t rse_rekey_session_key(const uint8_t *seed, size_t seed_len,
                                           uint32_t input_key_id, uint32_t *output_key_id)
 {
     enum tfm_plat_err_t plat_err;
-    enum kmu_error_t kmu_err;
 
     /* Make sure we leave space for additional AEAD key */
     if ((input_key_id + 2 + 1) > RSE_KMU_SLOT_SESSION_KEY_MAX) {
@@ -500,12 +499,24 @@ enum tfm_plat_err_t rse_rekey_session_key(const uint8_t *seed, size_t seed_len,
         return plat_err;
     }
 
-    kmu_err = kmu_set_slot_invalid(&KMU_DEV_S, input_key_id);
+    plat_err = rse_invalidate_session_key(input_key_id);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
+    }
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
+enum tfm_plat_err_t rse_invalidate_session_key(uint32_t key_id)
+{
+    enum kmu_error_t kmu_err;
+
+    kmu_err = kmu_set_slot_invalid(&KMU_DEV_S, key_id);
     if (kmu_err != KMU_ERROR_NONE) {
         return (enum tfm_plat_err_t)kmu_err;
     }
 
-    kmu_err = kmu_set_slot_invalid(&KMU_DEV_S, input_key_id + 1);
+    kmu_err = kmu_set_slot_invalid(&KMU_DEV_S, key_id + 1);
     if (kmu_err != KMU_ERROR_NONE) {
         return (enum tfm_plat_err_t)kmu_err;
     }

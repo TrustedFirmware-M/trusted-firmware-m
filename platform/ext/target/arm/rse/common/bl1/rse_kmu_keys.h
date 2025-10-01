@@ -126,6 +126,20 @@ enum tfm_plat_err_t rse_rekey_session_key(const uint8_t *seed, size_t seed_len,
                                           uint32_t input_key_id, uint32_t *output_key_id);
 
 /**
+ * \brief                     invalidate the session key
+ *
+ * \note                      Due to a limitation in KMU key export, keys used
+ *                            for AEAD (such as this one) require two slots. The
+ *                            slots used will be `slot` and `slot + 1`. It is
+ *                            invalid for `slot` to be `KMU_USER_SLOT_MAX`
+ *
+ * \param[in] key_id          The KMU slot to invalidate
+ *
+ * \return                    TFM_PLAT_ERR_SUCCESS on success, non-zero on error.
+ */
+enum tfm_plat_err_t rse_invalidate_session_key(uint32_t key_id);
+
+/**
  * \brief                     Setup the master key, and lock into two KMU slots.
  *
  * \note                      Due to a limitation in KMU key export, keys used

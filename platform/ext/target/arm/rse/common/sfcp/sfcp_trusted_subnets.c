@@ -55,6 +55,10 @@ enum sfcp_error_t sfcp_trusted_subnet_state_init(void)
             trusted_subnet_states[configs[i].id] =
                 SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_NOT_REQUIRED;
             break;
+        case SFCP_TRUSTED_SUBNET_INITIALLY_UNTRUSTED_LINKS:
+            /* Require initial session key setup before establishing mutual authentication */
+            trusted_subnet_states[configs[i].id] = SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_REQUIRED;
+            break;
         default:
             /* Do not currently support mutual authentication so initially only perform handshake */
             trusted_subnet_states[configs[i].id] =

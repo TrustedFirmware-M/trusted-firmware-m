@@ -45,6 +45,12 @@ enum sfcp_trusted_subnet_state_t {
     SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SEND_SEND_IVS_MSG,
     SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_SEND_IVS_MSG,
 
+    /* Mutual authentication */
+    SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_REQUIRED,
+    SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_WAITING_FOR_AUTH_MSG,
+    SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_SENT_AUTH_MSG,
+    SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_COMPLETED,
+
     SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID,
     SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_NOT_REQUIRED
 };
@@ -79,8 +85,8 @@ enum sfcp_error_t
 sfcp_trusted_subnet_check_recv_seq_num(struct sfcp_trusted_subnet_config_t *trusted_subnet,
                                        sfcp_node_id_t remote_node, uint16_t seq_num);
 
-enum sfcp_error_t sfcp_trusted_subnet_state_requires_encryption(uint8_t trusted_subnet_id,
-                                                                bool *requires_encryption);
+enum sfcp_error_t sfcp_trusted_subnet_state_requires_handshake_encryption(
+    uint8_t trusted_subnet_id, bool *requires_handshake, bool *requires_encryption);
 
 enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id, bool block);
 

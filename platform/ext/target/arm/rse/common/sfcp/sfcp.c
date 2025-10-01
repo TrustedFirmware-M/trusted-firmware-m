@@ -36,6 +36,13 @@ struct sfcp_handler_table_entry_t {
 static struct sfcp_handler_table_entry_t sfcp_msg_handlers[SFCP_MAX_NUMBER_MESSAGE_HANDLERS];
 static struct sfcp_handler_table_entry_t sfcp_reply_handlers[SFCP_MAX_NUMBER_REPLY_HANDLERS];
 
+struct sfcp_requires_handshake_t {
+    bool requires_handshake;
+    uint8_t trusted_subnet_id;
+};
+
+static struct sfcp_requires_handshake_t sfcp_requires_handshake;
+
 static inline enum sfcp_error_t
 sfcp_protocol_error_to_sfcp_error(enum sfcp_protocol_error_t protocol_error)
 {
@@ -140,10 +147,14 @@ enum sfcp_error_t sfcp_init_msg(uint8_t *buf, size_t buf_size, sfcp_node_id_t re
     }
 
     if (found_trusted_subnet) {
-        sfcp_err =
-            sfcp_trusted_subnet_state_requires_encryption(trusted_subnet->id, &uses_cryptography);
+        sfcp_err = sfcp_trusted_subnet_state_requires_handshake_encryption(
+            trusted_subnet->id, &sfcp_requires_handshake.requires_handshake, &uses_cryptography);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             return sfcp_err;
+        }
+
+        if (sfcp_requires_handshake.requires_handshake) {
+            sfcp_requires_handshake.trusted_subnet_id = trusted_subnet->id;
         }
     } else {
         uses_cryptography = false;
@@ -290,9 +301,9 @@ enum sfcp_error_t sfcp_send_msg(struct sfcp_packet_t *msg, size_t msg_size, size
 {
     enum sfcp_error_t sfcp_err;
 
-    if (GET_METADATA_FIELD(USES_CRYPTOGRAPHY, msg->header.metadata)) {
-        sfcp_err = sfcp_encryption_handshake_initiator(
-            msg->cryptography_used.cryptography_metadata.config.trusted_subnet_id, true);
+    if (sfcp_requires_handshake.requires_handshake) {
+        sfcp_err =
+            sfcp_encryption_handshake_initiator(sfcp_requires_handshake.trusted_subnet_id, true);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             return sfcp_err;
         }

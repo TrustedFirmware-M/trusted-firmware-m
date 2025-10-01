@@ -13,6 +13,7 @@
 #include "sfcp_helpers.h"
 #include "rse_kmu_keys.h"
 #include "bl1_crypto.h"
+#include "device_definition.h"
 #include "fih.h"
 #include "psa/crypto.h"
 
@@ -31,6 +32,9 @@ enum sfcp_handshake_msg_type_t {
     /* Re-keying */
     SFCP_HANDSHAKE_PAYLOAD_CLIENT_RE_KEY_REQUEST_MSG = 0x2010,
     SFCP_HANDSHAKE_PAYLOAD_SERVER_RE_KEY_SEND_IVS_MSG = 0x2030,
+
+    /* Mutual authentication */
+    SFCP_HANDSHAKE_PAYLOAD_CLIENT_AUTH_MSG = 0x3010,
 
     SFCP_HANDSHAKE_PAYLOAD_TYPE_PAD = UINT16_MAX
 };
@@ -61,6 +65,12 @@ __PACKED_STRUCT sfcp_handshake_send_ivs_msg_payload_t {
     struct sfcp_handshake_msg_header_t header;
     uint8_t iv_amount;
     uint8_t ivs[SFCP_NUMBER_NODES][32];
+};
+
+__PACKED_STRUCT sfcp_handshake_auth_msg_payload_t {
+    struct sfcp_handshake_msg_header_t header;
+    /* Pad to 4 byte alignment */
+    uint8_t __reserved[1];
 };
 
 /* Definitions for internal tracking of handshake state */
@@ -362,8 +372,9 @@ static enum sfcp_error_t message_poll_client(sfcp_node_id_t server_node_id)
     return SFCP_ERROR_SUCCESS;
 }
 
-enum sfcp_error_t sfcp_trusted_subnet_state_requires_encryption(uint8_t trusted_subnet_id,
-                                                                bool *requires_encryption)
+enum sfcp_error_t sfcp_trusted_subnet_state_requires_handshake_encryption(uint8_t trusted_subnet_id,
+                                                                          bool *requires_handshake,
+                                                                          bool *requires_encryption)
 {
     enum sfcp_error_t sfcp_err;
     enum sfcp_trusted_subnet_state_t state;
@@ -376,6 +387,7 @@ enum sfcp_error_t sfcp_trusted_subnet_state_requires_encryption(uint8_t trusted_
     switch (state) {
     /* Key setup required but need to encrypt message after handshake performed */
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_REQUIRED:
+        *requires_handshake = true;
         *requires_encryption = true;
         return SFCP_ERROR_SUCCESS;
 
@@ -389,27 +401,50 @@ enum sfcp_error_t sfcp_trusted_subnet_state_requires_encryption(uint8_t trusted_
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_GET_IV_REPLY:
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_SEND_IVS_MSG:
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_SEND_IVS_REPLY:
+        *requires_handshake = false;
         *requires_encryption = false;
         return SFCP_ERROR_SUCCESS;
 
     /* Key setup complete and need to encrypt all messages */
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID:
+        *requires_handshake = false;
+        *requires_encryption = true;
+        return SFCP_ERROR_SUCCESS;
+
+    /* Re-keying required */
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_REQUIRED:
+        *requires_handshake = true;
         *requires_encryption = true;
         return SFCP_ERROR_SUCCESS;
 
     /* Re-keying messages all require encryption */
-    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_REQUIRED:
     case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_INITIATOR_STARTED:
     case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SENT_CLIENT_REQUEST:
     case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_CLIENT_REQUEST_SERVER_REPLY:
     case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_CLIENT_REQUEST:
     case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SEND_SEND_IVS_MSG:
     case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_SEND_IVS_MSG:
+        *requires_handshake = false;
         *requires_encryption = true;
         return SFCP_ERROR_SUCCESS;
 
     /* Subnet does not require encryption */
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_NOT_REQUIRED:
+        *requires_handshake = false;
+        *requires_encryption = false;
+        return SFCP_ERROR_SUCCESS;
+
+    /* Mutual authentication required, message after handshake performed
+     * does not need to be encrypted
+     */
+    case SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_REQUIRED:
+        *requires_handshake = true;
+        *requires_encryption = false;
+        return SFCP_ERROR_SUCCESS;
+
+    /* Mutual authentication completed so do not require encryption */
+    case SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_COMPLETED:
+        *requires_handshake = false;
         *requires_encryption = false;
         return SFCP_ERROR_SUCCESS;
 
@@ -436,28 +471,8 @@ enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id,
     }
 
     switch (state) {
-    /* Key setup already valid */
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID:
-        return SFCP_ERROR_SUCCESS;
-
-    /* Handshake in progress, do not initiate again */
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_INITIATOR_STARTED:
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_CLIENT_REQUEST:
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_RECIEVED_SERVER_GET_REQUEST:
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_RECIEVED_CLIENT_REQUEST:
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_RECEIVED_CLIENT_REQUEST_SERVER_REPLY:
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_GET_IV_MSG:
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_GET_IV_REPLY:
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_SEND_IVS_MSG:
-    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_SENT_SEND_IVS_REPLY:
-    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_INITIATOR_STARTED:
-    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SENT_CLIENT_REQUEST:
-    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_CLIENT_REQUEST_SERVER_REPLY:
-    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_CLIENT_REQUEST:
-    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SEND_SEND_IVS_MSG:
-    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_SEND_IVS_MSG:
-        return SFCP_ERROR_SUCCESS;
-
+    /* Mutual auth requires the same initial setup as session key */
+    case SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_REQUIRED:
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_REQUIRED:
         re_keying = false;
         new_state = SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_INITIATOR_STARTED;
@@ -521,7 +536,8 @@ enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id,
             goto out;
         }
 
-        if (state == SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID) {
+        if ((state == SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID) ||
+            (state == SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_COMPLETED)) {
             break;
         }
 
@@ -648,12 +664,27 @@ static void reset_trusted_subnet_seq_num(struct sfcp_trusted_subnet_config_t *tr
     }
 }
 
+static enum sfcp_error_t
+send_mutual_auth_payload(struct sfcp_trusted_subnet_config_t *trusted_subnet,
+                         sfcp_node_id_t remote_node)
+{
+    struct sfcp_handshake_auth_msg_payload_t auth_msg;
+    struct sfcp_reply_metadata_t reply_metadata;
+
+    auth_msg.header.type = SFCP_HANDSHAKE_PAYLOAD_CLIENT_AUTH_MSG;
+    auth_msg.header.trusted_subnet_id = trusted_subnet->id;
+
+    return construct_send_handshake_msg(remote_node, trusted_subnet->id, (uint8_t *)&auth_msg,
+                                        sizeof(auth_msg), &reply_metadata);
+}
+
 static enum sfcp_error_t handle_send_ivs_reply(struct sfcp_trusted_subnet_config_t *trusted_subnet,
                                                sfcp_node_id_t my_node_id, const uint8_t *payload,
                                                size_t payload_size, sfcp_node_id_t sender_node,
                                                uint8_t message_id, bool re_keying)
 {
     fih_int fih_err;
+    enum sfcp_error_t sfcp_err;
     enum tfm_plat_err_t plat_err;
     __ALIGNED(4) uint8_t hash[48];
     size_t hash_size;
@@ -714,8 +745,39 @@ static enum sfcp_error_t handle_send_ivs_reply(struct sfcp_trusted_subnet_config
     trusted_subnet->key_id = cc3xx_get_opaque_key(output_key);
     assert(!CC3XX_IS_OPAQUE_KEY_INVALID(trusted_subnet->key_id));
 
-    return sfcp_trusted_subnet_set_state(trusted_subnet->id,
-                                         SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID);
+    sfcp_err = sfcp_trusted_subnet_set_state(trusted_subnet->id,
+                                             SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        return sfcp_err;
+    }
+
+    if (trusted_subnet->type == SFCP_TRUSTED_SUBNET_INITIALLY_UNTRUSTED_LINKS) {
+        /* Send mutual authentication request to each node */
+        for (uint8_t i = 0; i < trusted_subnet->node_amount; i++) {
+            sfcp_node_id_t node;
+
+            node = trusted_subnet->nodes[i].id;
+
+            if (node == my_node_id) {
+                continue;
+            }
+
+            handshake_data[trusted_subnet->id].received_node_replies[node] = false;
+
+            sfcp_err = send_mutual_auth_payload(trusted_subnet, node);
+            if (sfcp_err != SFCP_ERROR_SUCCESS) {
+                return sfcp_err;
+            }
+        }
+
+        sfcp_err = sfcp_trusted_subnet_set_state(
+            trusted_subnet->id, SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_SENT_AUTH_MSG);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+    }
+
+    return SFCP_ERROR_SUCCESS;
 }
 
 static enum sfcp_error_t
@@ -837,8 +899,66 @@ static enum sfcp_error_t handle_send_ivs_msg(struct sfcp_trusted_subnet_config_t
     trusted_subnet->key_id = cc3xx_get_opaque_key(output_key);
     assert(!CC3XX_IS_OPAQUE_KEY_INVALID(trusted_subnet->key_id));
 
-    return sfcp_trusted_subnet_set_state(trusted_subnet->id,
-                                         SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID);
+    sfcp_err = sfcp_trusted_subnet_set_state(trusted_subnet->id,
+                                             SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        return sfcp_err;
+    }
+
+    if (trusted_subnet->type == SFCP_TRUSTED_SUBNET_INITIALLY_UNTRUSTED_LINKS) {
+        sfcp_err = sfcp_trusted_subnet_set_state(
+            trusted_subnet->id, SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_WAITING_FOR_AUTH_MSG);
+    }
+
+    return SFCP_ERROR_SUCCESS;
+}
+
+static enum sfcp_error_t
+set_mutual_auth_completed(struct sfcp_trusted_subnet_config_t *trusted_subnet)
+{
+    enum sfcp_error_t sfcp_err;
+    enum tfm_plat_err_t plat_err;
+
+    plat_err = rse_invalidate_session_key(cc3xx_get_builtin_key(trusted_subnet->key_id));
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return (enum sfcp_error_t)plat_err;
+    }
+
+    sfcp_err = sfcp_trusted_subnet_set_state(trusted_subnet->id,
+                                             SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_COMPLETED);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        return sfcp_err;
+    }
+
+    trusted_subnet->type = SFCP_TRUSTED_SUBNET_TRUSTED_LINKS;
+
+    return SFCP_ERROR_SUCCESS;
+}
+
+static enum sfcp_error_t handle_mutual_auth_msg(struct sfcp_trusted_subnet_config_t *trusted_subnet,
+                                                sfcp_node_id_t remote_node, uint8_t message_id)
+{
+    enum sfcp_error_t sfcp_err;
+
+    sfcp_err = construct_send_reply(true, trusted_subnet, remote_node, message_id, NULL, 0);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        return sfcp_err;
+    }
+
+    return set_mutual_auth_completed(trusted_subnet);
+}
+
+static enum sfcp_error_t
+handle_mutual_auth_reply(struct sfcp_trusted_subnet_config_t *trusted_subnet,
+                         sfcp_node_id_t my_node_id, sfcp_node_id_t remote_node)
+{
+    handshake_data[trusted_subnet->id].received_node_replies[remote_node] = true;
+    if (!server_received_all_replies(trusted_subnet, my_node_id)) {
+        /* Still waiting on replies from other nodes */
+        return SFCP_ERROR_SUCCESS;
+    }
+
+    return set_mutual_auth_completed(trusted_subnet);
 }
 
 static bool check_receive_message(const uint8_t *payload, size_t payload_size,
@@ -874,8 +994,25 @@ static bool check_receive_reply(uint8_t trusted_subnet_id, sfcp_node_id_t remote
     return true;
 }
 
-static bool check_packet_encryption_valid(struct sfcp_packet_t *packet, bool packet_encrypted,
+static bool
+check_packet_mutual_auth_encryption_valid(struct sfcp_packet_t *packet, bool packet_encrypted,
                                           struct sfcp_trusted_subnet_config_t *trusted_subnet)
+{
+    if (!packet_encrypted) {
+        return false;
+    }
+
+    if (packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id !=
+        trusted_subnet->id) {
+        return false;
+    }
+
+    return true;
+}
+
+static bool
+check_packet_re_key_encryption_valid(struct sfcp_packet_t *packet, bool packet_encrypted,
+                                     struct sfcp_trusted_subnet_config_t *trusted_subnet)
 {
     uint8_t packet_trusted_subnet;
     uint16_t packet_encryption_seq_num;
@@ -924,6 +1061,7 @@ static enum sfcp_error_t msg_process_for_trusted_subnet(
     }
 
     switch (state) {
+    case SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_COMPLETED:
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_NOT_REQUIRED:
         goto out_invalid;
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID:
@@ -931,7 +1069,7 @@ static enum sfcp_error_t msg_process_for_trusted_subnet(
     case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SENT_CLIENT_REQUEST: {
         sfcp_node_id_t server_node;
 
-        if (!check_packet_encryption_valid(packet, packet_encrypted, trusted_subnet)) {
+        if (!check_packet_re_key_encryption_valid(packet, packet_encrypted, trusted_subnet)) {
             goto out_invalid;
         }
 
@@ -997,6 +1135,8 @@ static enum sfcp_error_t msg_process_for_trusted_subnet(
         return SFCP_ERROR_HANDSHAKE_INVALID_RE_KEY_MSG;
     }
 
+    /* Mutual auth requires the same initial setup as session key */
+    case SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_REQUIRED:
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_REQUIRED: {
         sfcp_node_id_t server_node;
 
@@ -1053,7 +1193,7 @@ static enum sfcp_error_t msg_process_for_trusted_subnet(
         break;
 
     case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_RECEIVED_CLIENT_REQUEST_SERVER_REPLY:
-        if (!check_packet_encryption_valid(packet, packet_encrypted, trusted_subnet)) {
+        if (!check_packet_re_key_encryption_valid(packet, packet_encrypted, trusted_subnet)) {
             goto out_invalid;
         }
 
@@ -1080,7 +1220,7 @@ static enum sfcp_error_t msg_process_for_trusted_subnet(
         break;
 
     case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_SEND_SEND_IVS_MSG:
-        if (!check_packet_encryption_valid(packet, packet_encrypted, trusted_subnet)) {
+        if (!check_packet_re_key_encryption_valid(packet, packet_encrypted, trusted_subnet)) {
             goto out_invalid;
         }
 
@@ -1156,6 +1296,54 @@ static enum sfcp_error_t msg_process_for_trusted_subnet(
 
         HANDLE_MESSAGE_IRQS_LOCKED(handle_get_iv_reply, sfcp_err, trusted_subnet, my_node_id,
                                    payload, payload_size, remote_node, message_id);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+
+        break;
+
+    case SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_WAITING_FOR_AUTH_MSG:
+        if (!check_packet_mutual_auth_encryption_valid(packet, packet_encrypted, trusted_subnet)) {
+            goto out_invalid;
+        }
+
+        sfcp_err = sfcp_decrypt_reply(packet, packet_size, remote_node);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+
+        if (!check_receive_message(payload, payload_size, trusted_subnet->id,
+                                   sizeof(struct sfcp_handshake_auth_msg_payload_t),
+                                   SFCP_HANDSHAKE_PAYLOAD_CLIENT_AUTH_MSG)) {
+            /* Received message for this trusted subnet but not for this state */
+            return SFCP_ERROR_HANDSHAKE_INVALID_MUTUAL_AUTH_MSG;
+        }
+
+        HANDLE_MESSAGE_IRQS_LOCKED(handle_mutual_auth_msg, sfcp_err, trusted_subnet, remote_node,
+                                   message_id);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+
+        break;
+
+    case SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_SENT_AUTH_MSG:
+        if (!check_packet_mutual_auth_encryption_valid(packet, packet_encrypted, trusted_subnet)) {
+            goto out_invalid;
+        }
+
+        sfcp_err = sfcp_decrypt_reply(packet, packet_size, remote_node);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+
+        if (!check_receive_reply(trusted_subnet->id, remote_node, payload_size, 0, message_id)) {
+            /* Received message for this trusted subnet but not for this state */
+            return SFCP_ERROR_HANDSHAKE_INVALID_MUTUAL_AUTH_MSG;
+        }
+
+        HANDLE_MESSAGE_IRQS_LOCKED(handle_mutual_auth_reply, sfcp_err, trusted_subnet, my_node_id,
+                                   remote_node);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             return sfcp_err;
         }
