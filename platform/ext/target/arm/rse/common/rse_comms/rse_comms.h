@@ -8,6 +8,7 @@
 #ifndef __RSE_COMMS_H__
 #define __RSE_COMMS_H__
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include "platform_error_codes.h"
