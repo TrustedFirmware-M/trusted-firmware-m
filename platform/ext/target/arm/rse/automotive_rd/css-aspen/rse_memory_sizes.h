@@ -22,8 +22,6 @@
  */
 #define NS_DATA_SIZE (0x0)
 
-/* The maximum size for code in the provisioning bundle */
-#define PROVISIONING_BUNDLE_CODE_SIZE   (0xB000)
 /* The maximum size for secret values in the provisioning bundle */
 #define PROVISIONING_BUNDLE_VALUES_SIZE (0x3D00)
 

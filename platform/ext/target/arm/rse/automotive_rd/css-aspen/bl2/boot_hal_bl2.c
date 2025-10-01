@@ -230,7 +230,7 @@ static int boot_platform_post_load_ap_bl2(void)
      * Since the measurement are taken at this point, clear the image
      * header part in the Shared SRAM before releasing AP BL2 out of reset.
      */
-    memset(HOST_AP_BL2_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
+    memset((void *)HOST_AP_BL2_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
 
     /* Close RSE ATU to access AP Secure Flash for AP BL2 */
     atu_err = atu_rse_uninitialize_region(&ATU_DEV_S, HOST_AP_FLASH_ATU_ID);
@@ -386,7 +386,7 @@ static int boot_platform_post_load_si_cl0(void)
      * Since the measurement are taken at this point, clear the image
      * header part in the Shared SRAM before releasing SI CL0 out of reset.
      */
-    memset(HOST_SI_CL0_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
+    memset((void *)HOST_SI_CL0_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
 
     /* Configure the SI ATU before starting the SI CL0 */
     atu_err = initialize_si_atu();
