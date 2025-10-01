@@ -11,8 +11,8 @@ set(PLAT_MHU_VERSION            3      CACHE STRING  "Supported MHU version by p
 
 set(TFM_ATTESTATION_SCHEME      "DPE"  CACHE STRING  "Attestation scheme to use [OFF, PSA, CCA, DPE]")
 
-set(RSE_COMMS_NUMBER_NODES      4      CACHE STRING "Amount of nodes in the RSE comms system, by default equal to number of RSEs")
-set(MULTI_RSE_TOPOLOGY_FILE     ${CMAKE_CURRENT_LIST_DIR}/../common/rse_comms/tc.tgf CACHE STRING "Topology file for RSE communications")
+set(SFCP_NUMBER_NODES           4      CACHE STRING "Amount of nodes in the SFCP system, by default equal to number of RSEs")
+set(MULTI_RSE_TOPOLOGY_FILE     ${CMAKE_CURRENT_LIST_DIR}/../common/sfcp/tc.tgf CACHE STRING "Topology file for RSE communications")
 
 # Once all options are set, set common options as fallback
 

@@ -108,9 +108,9 @@ target_sources(platform_s
         cmsis_drivers/Driver_Flash.c
         device/host_device_definition.c
         device/rse_expansion_device_definition.c
-        $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_comms/rse_get_rse_id.c>
-        $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_comms/rse_comms_platform.c>
-        $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_comms/rse_comms_permissions_hal.c>
+        $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp/rse_get_rse_id.c>
+        $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp/sfcp_platform.c>
+        $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp/sfcp_permissions_hal.c>
         rse_expansion_peripherals_def.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/cfi/cfi_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/strata/spi_strataflashj3_flash_lib.c

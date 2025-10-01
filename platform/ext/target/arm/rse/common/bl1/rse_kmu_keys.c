@@ -445,7 +445,7 @@ enum tfm_plat_err_t rse_setup_session_key(const uint8_t *seed, size_t seed_len)
     enum tfm_plat_err_t plat_err;
     enum kmu_error_t kmu_err;
     const boot_state_include_mask boot_state_config = RSE_BOOT_STATE_INCLUDE_NONE;
-    const uint8_t session_key_label[] = "RSE_COMMS_SESSION_KEY_DERIVATION";
+    const uint8_t session_key_label[] = "SFCP_SESSION_KEY_DERIVATION";
 
     plat_err = setup_key_from_derivation(KMU_HW_SLOT_GUK, NULL, session_key_label,
                                          sizeof(session_key_label), seed, seed_len,

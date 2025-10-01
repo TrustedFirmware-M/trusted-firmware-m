@@ -43,8 +43,8 @@
 /* Clock configuration value to write to CLK_CFG1.SYSCLKCFG to drive SYSCLKCFG signal */
 #define SYSCLKCFG_VAL  0
 
-/* Maximum RSE Comms payload size using Embed protocol */
-#define RSE_COMMS_PAYLOAD_MAX_SIZE (0x3FE0)
+/* Maximum SFCP payload size using Embed protocol */
+#define SFCP_PAYLOAD_MAX_SIZE (0x3FE0)
 
 /* Allow NS client ID 0 */
 #define MAILBOX_SUPPORT_NS_CLIENT_ID_ZERO 1

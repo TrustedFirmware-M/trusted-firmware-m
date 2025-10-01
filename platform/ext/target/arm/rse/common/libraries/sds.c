@@ -11,7 +11,7 @@
 #include <assert.h>
 
 #include "host_base_address.h"
-#include "rse_comms_atu.h"
+#include "sfcp_atu.h"
 #include "sds.h"
 #include "tfm_plat_defs.h"
 #include "utilities.h"
@@ -226,8 +226,7 @@ static enum tfm_plat_err_t sds_region_map(uint8_t *atu_region)
     }
 
     /* TODO: might replace the comms_atu_* calls with native ATU driver calls */
-    err = comms_atu_get_rse_ptr_from_host_addr(*atu_region,
-                                                region_config.host_addr,
+    err = comms_atu_get_rse_ptr_from_host_addr(*atu_region, region_config.host_addr,
                                                &region_config.mapped_addr);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;

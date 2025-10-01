@@ -17,9 +17,8 @@
 
 #define ROUTING_TABLES_TOTAL_SIZE \
     (sizeof(((struct rse_single_node_routing_tables_t *)0)->routing_table))
-#define ROUTING_TABLES_USED_SIZE                                                \
-    (sizeof(((struct rse_single_node_routing_tables_t *)0)->routing_table[0]) * \
-     RSE_COMMS_NUMBER_NODES)
+#define ROUTING_TABLES_USED_SIZE \
+    (sizeof(((struct rse_single_node_routing_tables_t *)0)->routing_table[0]) * SFCP_NUMBER_NODES)
 #define ARRAY_SIZE(_arr) (sizeof(_arr) / sizeof((_arr)[0]))
 
 #ifdef RSE_OTP_HAS_ROUTING_TABLES

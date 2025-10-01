@@ -80,13 +80,13 @@ Boot HAL:
 
 Comms HAL:
 
-- ``rse_comms/rse_comms_permissions_hal.c``: Implements access control for RSE
+- ``sfcp/sfcp_permissions_hal.c``: Implements access control for RSE
   runtime service requests received over MHU. The platform should implement the
   ``comms_permissions_service_check()`` function to define which services can be
   accessed by an MHU endpoint. It should implement the
   ``comms_permissions_memory_check()`` function to control which host memory
   areas may be used to pass input and/or output parameters to RSE when using the
-  pointer access RSE comms protocol.
+  pointer access SFCP protocol.
 
 *******************
 Build configuration

@@ -10,7 +10,7 @@ Previously known as Runtime Security Subsystem (RSS).
     RSE introduction <readme.rst>
     DMA Initial Command Sequence (ICS) introduction <dma_ics_readme.rst>
     RSE integration guide <rse_integration_guide.rst>
-    RSE communication design <rse_comms.rst>
+    SFCP communication design <sfcp.rst>
     RSE hardware key management <rse_key_management.rst>
     RSE provisioning <rse_provisioning.rst>
     RSE routing table <rse_routing_table.rst>

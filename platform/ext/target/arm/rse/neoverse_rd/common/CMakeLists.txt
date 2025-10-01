@@ -46,7 +46,7 @@ target_sources(platform_s
         device/host_device_definition.c
         device/rse_expansion_device_definition.c
         rse_expansion_peripherals_def.c
-        $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_comms/rse_comms_platform.c>
+        $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp/sfcp_platform.c>
 )
 
 #========================= Platform BL2 =======================================#
@@ -104,7 +104,7 @@ target_sources(platform_bl1_1
 if (TFM_MULTI_CORE_TOPOLOGY AND (RSE_AMOUNT GREATER 1))
     target_sources(platform_bl1_1
         PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/rse_comms/rse_comms_platform.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/sfcp/sfcp_platform.c
     )
 endif()
 

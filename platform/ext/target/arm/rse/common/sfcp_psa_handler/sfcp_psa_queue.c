@@ -1,0 +1,64 @@
+/*
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ */
+
+#include "sfcp_psa_queue.h"
+
+#include <stdbool.h>
+#include <stddef.h>
+
+#define QUEUE_SIZE (SFCP_PSA_HANDLER_MAX_CONCURRENT_REQ + 1)
+
+struct queue_t {
+    void *buf[QUEUE_SIZE];
+    size_t head;
+    size_t tail;
+};
+
+static struct queue_t queue;
+
+/* Advance head or tail */
+static size_t advance(size_t index)
+{
+    if (++index == QUEUE_SIZE) {
+        index = 0;
+    }
+    return index;
+}
+
+static inline bool is_empty(void)
+{
+    return queue.head == queue.tail;
+}
+
+static inline bool is_full(void)
+{
+    return advance(queue.head) == queue.tail;
+}
+
+int32_t queue_enqueue(void *entry)
+{
+    if (is_full()) {
+        return -1;
+    }
+
+    queue.buf[queue.head] = entry;
+    queue.head = advance(queue.head);
+
+    return 0;
+}
+
+int32_t queue_dequeue(void **entry)
+{
+    if (is_empty()) {
+        return -1;
+    }
+
+    *entry = queue.buf[queue.tail];
+    queue.tail = advance(queue.tail);
+
+    return 0;
+}

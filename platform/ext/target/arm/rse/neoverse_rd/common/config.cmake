@@ -34,8 +34,8 @@ set(TFM_MANIFEST_LIST                   "${CMAKE_CURRENT_LIST_DIR}/manifest/tfm_
 
 set(RSE_OTP_HAS_RSE_ID                  ON       CACHE BOOL    "Use RSE ID")
 
-math(EXPR RSE_COMMS_NUMBER_NODES_EXPR "${RSE_AMOUNT} + 2")
-set(RSE_COMMS_NUMBER_NODES ${RSE_COMMS_NUMBER_NODES_EXPR} CACHE STRING "Amount of nodes in the RSE comms system, by default equal to number of RSEs")
+math(EXPR SFCP_NUMBER_NODES_EXPR "${RSE_AMOUNT} + 2")
+set(SFCP_NUMBER_NODES                   ${SFCP_NUMBER_NODES_EXPR} CACHE STRING "Amount of nodes in the SFCP system, by default equal to number of RSEs")
 
 # Once all cache options are set, set common options as fallback
 include(${CMAKE_CURRENT_LIST_DIR}/../../common/config.cmake)

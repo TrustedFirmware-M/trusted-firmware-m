@@ -22,8 +22,8 @@
 #include "load/interrupt_defs.h"
 #include "platform_irq.h"
 #ifdef TFM_MULTI_CORE_TOPOLOGY
-#include "rse_comms_runtime_hal.h"
-#include "rse_comms_platform.h"
+#include "sfcp_runtime_hal.h"
+#include "sfcp_platform.h"
 #endif
 
 static struct irq_t timer0_irq = {0};
@@ -52,16 +52,16 @@ static struct irq_t mbox_irq_info[3] = {0};
 /* Platform specific inter-processor communication interrupt handler. */
 void CMU_MHU0_Receiver_Handler(void)
 {
-    struct rse_comms_platform_device_t device = {
+    struct sfcp_platform_device_t device = {
         &MHU0_RECEIVER_DEV_S,
 #if PLAT_MHU_VERSION == 2
-        RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV2,
+        SFCP_PLATFORM_DEVICE_TYPE_MHUV2,
 #else
-        RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV3,
+        SFCP_PLATFORM_DEVICE_TYPE_MHUV3,
 #endif
     };
 
-    (void)tfm_multi_core_hal_receive(rse_comms_platform_get_receive_link_id(device),
+    (void)tfm_multi_core_hal_receive(sfcp_platform_get_receive_link_id(device),
                                      mbox_irq_info[0].p_ildi->source);
 
     /*
@@ -75,16 +75,16 @@ void CMU_MHU0_Receiver_Handler(void)
 /* Platform specific inter-processor communication interrupt handler. */
 void CMU_MHU1_Receiver_Handler(void)
 {
-    struct rse_comms_platform_device_t device = {
+    struct sfcp_platform_device_t device = {
         &MHU1_RECEIVER_DEV_S,
 #if PLAT_MHU_VERSION == 2
-        RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV2,
+        SFCP_PLATFORM_DEVICE_TYPE_MHUV2,
 #else
-        RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV3,
+        SFCP_PLATFORM_DEVICE_TYPE_MHUV3,
 #endif
     };
 
-    (void)tfm_multi_core_hal_receive(rse_comms_platform_get_receive_link_id(device),
+    (void)tfm_multi_core_hal_receive(sfcp_platform_get_receive_link_id(device),
                                      mbox_irq_info[1].p_ildi->source);
 
     /*
@@ -99,16 +99,16 @@ void CMU_MHU1_Receiver_Handler(void)
 /* Platform specific inter-processor communication interrupt handler. */
 void CMU_MHU2_Receiver_Handler(void)
 {
-    struct rse_comms_platform_device_t device = {
+    struct sfcp_platform_device_t device = {
         &MHU2_RECEIVER_DEV_S,
 #if PLAT_MHU_VERSION == 2
-        RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV2,
+        SFCP_PLATFORM_DEVICE_TYPE_MHUV2,
 #else
-        RSE_COMMS_PLATFORM_DEVICE_TYPE_MHUV3,
+        SFCP_PLATFORM_DEVICE_TYPE_MHUV3,
 #endif
     };
 
-    (void)tfm_multi_core_hal_receive(rse_comms_platform_get_receive_link_id(device),
+    (void)tfm_multi_core_hal_receive(sfcp_platform_get_receive_link_id(device),
                                      mbox_irq_info[2].p_ildi->source);
 
     /*

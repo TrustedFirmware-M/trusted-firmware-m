@@ -39,7 +39,7 @@ DICE Protection Environment service in the DICE use case. It supports the TF-M
 IPC model with Isolation Level 1 and 2. At runtime, RSE can receive service
 requests from the RSE NSPE via the TF-M TrustZone interface and from other
 processing elements in the system over MHU using the
-:doc:`RSE comms protocol </platform/arm/rse/rse_comms>`.
+:doc:`SFCP protocol </platform/arm/rse/sfcp>`.
 
 Building TF-M
 -------------

@@ -29,7 +29,7 @@ set(RSE_BIT_PROGRAMMABLE_OTP            ON         CACHE BOOL "Whether RSE OTP w
 set(PLAT_MHU_VERSION                    2          CACHE STRING  "Supported MHU version by platform")
 
 set(RSE_AMOUNT                          1          CACHE STRING  "Amount of RSEes in the system")
-set(RSE_COMMS_NUMBER_NODES              ${RSE_AMOUNT}      CACHE STRING "Amount of nodes in the RSE comms system, by default equal to number of RSEs")
+set(SFCP_NUMBER_NODES                   ${RSE_AMOUNT}      CACHE STRING "Amount of nodes in the SFCP system, by default equal to number of RSEs")
 
 set(RSE_TP_MODE                         TCI        CACHE STRING "Whether system is in Test or Production mode")
 
@@ -267,8 +267,8 @@ set(TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST "partitions/measured_boot/measured_boot_
 
 set(TFM_PLAT_SPECIFIC_MULTI_CORE_COMM   ON         CACHE BOOL     "Whether to use a platform specific inter-core communication instead of mailbox in dual-cpu topology")
 
-set(RSE_COMMS_SUPPORT_LEGACY_MSG_PROTOCOL ON       CACHE BOOL "Whether to support the legacy message protocol in RSE comms")
-set(RSE_COMMS_ENABLE_ENCRYPTION           ON         CACHE BOOL "Whether to enable encryption in RSE comms")
+set(SFCP_SUPPORT_LEGACY_MSG_PROTOCOL    ON       CACHE BOOL "Whether to support the legacy message protocol in SFCP")
+set(SFCP_ENABLE_ENCRYPTION              ON         CACHE BOOL "Whether to enable encryption in SFCP")
 
 set(PLATFORM_HAS_ISOLATION_L3_SUPPORT   ON)
 set(TFM_PXN_ENABLE                      ON         CACHE BOOL     "Use Privileged execute never (PXN)")
