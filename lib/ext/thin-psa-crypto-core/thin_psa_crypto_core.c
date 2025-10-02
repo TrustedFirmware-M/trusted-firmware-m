@@ -1013,19 +1013,18 @@ static psa_status_t psa_lms_verify_message(psa_key_attributes_t *attr,
     mbedtls_lms_public_init(&ctx);
 
     rc = mbedtls_lms_import_public_key(&ctx, key, key_length);
-    if (rc) {
+    if (rc != 0) {
         goto out;
     }
 
     rc = mbedtls_lms_verify(&ctx, message, message_length, signature, signature_length);
-    if (rc) {
+    if (rc != 0) {
         goto out;
     }
 
 out:
     mbedtls_lms_public_free(&ctx);
-
-    return PSA_SUCCESS;
+    return mbedtls_to_psa_error(rc);
 }
 #endif /* PSA_WANT_ALG_LMS */
 
