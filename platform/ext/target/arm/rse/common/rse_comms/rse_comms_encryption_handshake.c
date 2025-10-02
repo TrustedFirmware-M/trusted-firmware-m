@@ -606,10 +606,14 @@ handle_get_iv_msg(struct rse_comms_trusted_subnet_config_t *trusted_subnet,
     struct rse_comms_handshake_get_iv_reply_payload_t get_iv_reply_payload;
 
     bl1_random_err =
-        bl1_random_generate_secure(get_iv_reply_payload.iv, sizeof(get_iv_reply_payload));
+        bl1_random_generate_secure(handshake_data[trusted_subnet->id].node_ivs[my_node_id],
+                                   sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id]));
     if (bl1_random_err != 0) {
         return RSE_COMMS_ERROR_INTERNAL_HANDSHAKE_FAILURE;
     }
+
+    memcpy(get_iv_reply_payload.iv, handshake_data[trusted_subnet->id].node_ivs[my_node_id],
+           sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id]));
 
     comms_err = construct_send_reply(sender_node, message_id, (uint8_t *)&get_iv_reply_payload,
                                      sizeof(get_iv_reply_payload));
@@ -638,6 +642,12 @@ handle_send_ivs_msg(struct rse_comms_trusted_subnet_config_t *trusted_subnet,
     comms_err = construct_send_reply(sender_node, message_id, NULL, 0);
     if (comms_err != RSE_COMMS_ERROR_SUCCESS) {
         return comms_err;
+    }
+
+    if (memcmp(send_ivs_msg->ivs[my_node_id],
+               handshake_data[trusted_subnet->id].node_ivs[my_node_id],
+               sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id])) != 0) {
+        return RSE_COMMS_ERROR_HANDSHAKE_INVALID_RECEIVED_IV;
     }
 
     fih_err = bl1_hash_compute(TFM_BL1_HASH_ALG_SHA384, (uint8_t *)send_ivs_msg->ivs,
