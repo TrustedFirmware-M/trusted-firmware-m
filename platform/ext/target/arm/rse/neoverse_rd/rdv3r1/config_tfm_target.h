@@ -8,6 +8,7 @@
 #define __CONFIG_TFM_TARGET_H__
 
 #include "config_tfm_target_rse_common.h"
+#include "platform_base_address.h"
 
 /* Use stored NV seed to provide entropy */
 #define CRYPTO_NV_SEED                         0
@@ -54,5 +55,8 @@
 #define PLATFORM_EXPANSION_INTERRUPT_LIST \
     EXPANSION_INTERRUPT(RUNTIME_PROVISIONING_MESSAGE_IRQ, RUNTIME_PROVISIONING_MESSAGE_IRQ_HANDLER)
 #endif /* defined(TFM_PARTITION_RUNTIME_PROVISIONING) && defined(RSE_ENABLE_DCSU_PROVISIONING_COMMS) */
+
+/* Enable storing persistent data flags in OTPW GP_AON register */
+#define RSE_PERSISTENT_DATA_FLAG_REG_ADDR (OTP_WRAPPER_BASE_S + 0x8)
 
 #endif /* __CONFIG_TFM_TARGET_H__ */
