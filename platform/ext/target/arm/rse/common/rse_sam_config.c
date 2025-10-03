@@ -37,6 +37,7 @@ static uintptr_t get_ecc_address(const struct sam_dev_t *dev,
             }
         }
         break;
+
     case RSE_SAM_EVENT_VM0_SINGLE_ECC_ERROR:
     case RSE_SAM_EVENT_VM1_SINGLE_ECC_ERROR:
     case RSE_SAM_EVENT_VM2_SINGLE_ECC_ERROR:
@@ -44,8 +45,7 @@ static uintptr_t get_ecc_address(const struct sam_dev_t *dev,
         vm_id = event - RSE_SAM_EVENT_VM0_SINGLE_ECC_ERROR;
         offset = sam_get_vm_single_corrected_err_offset(dev, vm_id);
         return offset + vm_base_address[vm_id];
-    case RSE_SAM_EVENT_TRAM_PARITY_ERROR:
-        return sam_get_tram_single_corrected_err_offset(dev) + TRAM_BASE_S;
+
     default:
         break;
     }
@@ -129,7 +129,6 @@ static void handle_partial_write(enum sam_event_id_t event_id)
  * latency overhead of running the SAM event checking code first.
  */
 static const sam_event_handler_t rse_handlers[RSE_SAM_EVENT_COUNT] = {
-    [RSE_SAM_EVENT_TRAM_PARITY_ERROR]       = read_and_write_address,
     [RSE_SAM_EVENT_VM0_SINGLE_ECC_ERROR]    = read_and_write_address,
     [RSE_SAM_EVENT_VM1_SINGLE_ECC_ERROR]    = read_and_write_address,
 
