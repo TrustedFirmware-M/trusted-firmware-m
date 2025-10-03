@@ -90,7 +90,7 @@ add_custom_target(bl1_2_padded_bin
 
 add_custom_command(OUTPUT bl1_2_padded.bin bl1_2_padded_hash.bin
     OUTPUT ${bin_dir}/bl1_2_padded.bin ${bin_dir}/bl1_2_padded_hash.bin
-    DEPENDS bl1_2_bin signing_layout_bl1_2
+    DEPENDS ${bin_dir}/bl1_2.bin bl1_2_bin signing_layout_bl1_2
     COMMAND bl1_1_create_bl1_2_image
                     --input_file ${bin_dir}/bl1_2.bin
                     --img_output_file bl1_2_padded.bin
