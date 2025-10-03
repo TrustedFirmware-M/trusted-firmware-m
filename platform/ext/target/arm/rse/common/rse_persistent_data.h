@@ -18,6 +18,7 @@
 #include <stddef.h>
 #include "cmsis.h"
 #include "region_defs.h"
+#include "platform_base_address.h"
 
 #define RSE_PERSISTENT_DATA ((struct rse_persistent_data *)PERSISTENT_DATA_BASE)
 
@@ -107,6 +108,7 @@ enum LAST_BOOT_DEBUG_CODE {
  * data flags, else use SRAM.
  */
 #if (NUM_OF_PERSISTENT_FLAG_REGS * 32) >= RSE_PERSISTENT_DATA_FLAGS_TOTAL_BIT_WIDTH
+#define RSE_PERSISTENT_DATA_FLAGS_GPAON_BASE (OTP_WRAPPER_BASE_S + 0x8)
 #define RSE_PERSISTENT_DATA_FLAGS_BASE ((uintptr_t)(RSE_PERSISTENT_DATA_FLAGS_GPAON_BASE))
 #else
 #define RSE_PERSISTENT_DATA_FLAGS_BASE ((uintptr_t)(RSE_PERSISTENT_DATA->shared_data.flags_data))
