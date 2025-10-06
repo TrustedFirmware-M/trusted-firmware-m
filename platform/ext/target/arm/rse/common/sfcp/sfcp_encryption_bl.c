@@ -180,6 +180,7 @@ static enum sfcp_error_t encrypt_decrypt_packet(struct sfcp_packet_t *packet, si
     return SFCP_ERROR_SUCCESS;
 
 error_out:
+    (void)psa_aead_abort(&operation);
     return encrypt ? SFCP_ERROR_ENCRYPTION_FAILED : SFCP_ERROR_DECRYPTION_FAILED;
 }
 
