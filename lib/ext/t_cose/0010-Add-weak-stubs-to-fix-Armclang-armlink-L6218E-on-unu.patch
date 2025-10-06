@@ -1,0 +1,98 @@
+From 26f3a079870b5e2f7fdac882ddf436c3e3137ffd Mon Sep 17 00:00:00 2001
+From: "G. Varga, Gabor" <Gabor.G.Varga@arm.com>
+Date: Mon, 6 Oct 2025 16:46:02 +0200
+Subject: [PATCH] Add weak stubs to fix Armclang/armlink L6218E on unused test
+ helpers
+
+When building the TF-M t_cose tests with Armclang, the link failed with:
+  L6218E: Undefined symbol t_cose_test_message_sign1_sign
+  L6218E: Undefined symbol t_cose_crypto_hkdf
+
+This change provides weak, test-local stubs for the undefined functions so
+that armlink can resolve all references up front. Both stubs are declared
+as weak functions so a real implementation overrides them automatically.
+
+Context:
+The definitions of these functions are not present although their
+declarations are visible through headers. The file t_cose_test_messages.c
+contains the definition of t_cose_test_message_sign1_sign, and
+t_cose_test_messages.h contains the declaration of
+t_cose_test_message_sign1_sign. The CMakeLists.txt in tf-m-tests does not
+add t_cose_test_messages.c to tfm_t_cose_test target, thus the function
+is declared but not defined. Furthermore, run_test_sign_and_verify in
+t_cose_test.c contains a call to t_cose_test_message_sign1_sign, however,
+run_test_sign_and_verify is an unused function, thus eventually it gets
+removed by elimination of unused sections.
+
+The scenario is very similar for t_cose_crypto_hkdf as well.
+The function hkdf_test in t_cose_crypto_test.c is unused but it contains
+a call to t_cose_crypto_hkdf which is undefined. See t_cose patch 0005
+(Remove or disable unused functions in PSA Crypto layer).
+
+Background:
+With the GNU toolchain, the combination of `-ffunction-sections` and
+`--gc-sections` enables section garbage collection, which discards entire
+sections for unused functions. Because the referencing code is also
+eliminated, the unresolved symbols effectively disappear, and
+linking succeeds.
+
+Armclang/armlink, however, behaves differently: it reports L6218E
+undefined symbol errors even for symbols referenced from functions that
+are later eliminated as unused. The documentation marks it explicitly
+that this behavior is different from the GNU linker. Consequently, the
+build fails when using Armclang/armlink.
+
+Signed-off-by: G. Varga, Gabor <Gabor.G.Varga@arm.com>
+Change-Id: I2e4cb4b44952398548a0b8ff5ed8b3a600aea891
+---
+ test/t_cose_test.c | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+
+diff --git a/test/t_cose_test.c b/test/t_cose_test.c
+index 84a0e16..4b564da 100644
+--- a/test/t_cose_test.c
++++ b/test/t_cose_test.c
+@@ -25,6 +25,40 @@
+ #define SZ_CONTENT "This is the content."
+ static const struct q_useful_buf_c s_input_payload = {SZ_CONTENT, sizeof(SZ_CONTENT)-1};
+ 
++/* This function is only needed to avoid L6218E (undefined symbol) error when building with Armclang */
++__attribute__((weak))
++enum t_cose_err_t
++t_cose_test_message_sign1_sign(struct t_cose_sign1_sign_ctx  *me,
++                               uint32_t                      test_message_options,
++                               struct q_useful_buf_c         payload,
++                               struct q_useful_buf           out_buf,
++                               struct q_useful_buf_c         *result)
++{
++    (void)me;
++    (void)test_message_options;
++    (void)payload;
++    (void)out_buf;
++    (void)result;
++    return T_COSE_ERR_FAIL;
++}
++
++/* This function is only needed to avoid L6218E (undefined symbol) error when building with Armclang */
++__attribute__((weak))
++enum t_cose_err_t
++t_cose_crypto_hkdf(const int32_t               cose_hash_algorithm_id,
++                   const struct q_useful_buf_c salt,
++                   const struct q_useful_buf_c ikm,
++                   const struct q_useful_buf_c info,
++                   const struct q_useful_buf   okm_buffer)
++{
++    (void)cose_hash_algorithm_id;
++    (void)salt;
++    (void)ikm;
++    (void)info;
++    (void)okm_buffer;
++    return T_COSE_ERR_FAIL;
++}
++
+ /*
+  * Public function, see t_cose_test.h
+  */
+-- 
+2.34.1
+
