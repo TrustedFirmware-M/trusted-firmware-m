@@ -121,8 +121,6 @@ handle_provisioning_message
 rse_provisioning_setup_aes_key
 rse_permanently_disable_device
 fih_delay_platform
-FIH_FAILURE
-FIH_SUCCESS
 message_provisioning_finished
 message_handling_status_report_continue
 message_handling_status_report_error
