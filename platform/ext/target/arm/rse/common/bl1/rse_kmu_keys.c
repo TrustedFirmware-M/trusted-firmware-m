@@ -407,7 +407,6 @@ enum tfm_plat_err_t rse_derive_vhuk_seed(uint32_t *vhuk_seed, size_t vhuk_seed_b
     const uint8_t vhuk_seed_label[]  = "VHUK_SEED_DERIVATION";
     psa_status_t status;
     psa_key_id_t psa_key_id;
-    enum tfm_plat_err_t plat_err;
 
     if (vhuk_seed_buf_len < 32) {
         return 1;

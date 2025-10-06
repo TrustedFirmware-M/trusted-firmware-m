@@ -19,6 +19,7 @@
 #include "platform_error_codes.h"
 #include "platform_regs.h"
 #include "host_device_definition.h"
+#include "tfm_hal_platform.h"
 #include "rse_platform_defs.h"
 
 #ifdef CRYPTO_HW_ACCELERATOR

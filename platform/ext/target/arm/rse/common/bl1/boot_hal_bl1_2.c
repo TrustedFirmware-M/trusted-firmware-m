@@ -127,7 +127,7 @@ static int32_t init_mpu_region_for_atu(void)
     int32_t rc;
 
     /* Set entire RSE ATU window to device memory to prevent caching */
-    const struct mpu_armv8m_region_cfg_t atu_window_region_config = {
+    struct mpu_armv8m_region_cfg_t atu_window_region_config = {
         .region_nr = ATU_WINDOW_REGION_CFG_NR,
         .region_base = HOST_ACCESS_BASE_NS,
         .region_limit = HOST_ACCESS_LIMIT_S,
@@ -219,6 +219,7 @@ int32_t boot_platform_init(void)
 {
     int32_t result;
     enum tfm_plat_err_t plat_err;
+    enum atu_error_t atu_err;
 
 #ifdef RSE_SUPPORT_ROM_LIB_RELOCATION
     setup_got_register();
@@ -261,9 +262,9 @@ int32_t boot_platform_init(void)
     }
 
     /* Initialize ATU driver */
-    plat_err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static, atu_stat_count);
-    if (plat_err != ATU_ERR_NONE) {
-        return plat_err;
+    atu_err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static, atu_stat_count);
+    if (atu_err != ATU_ERR_NONE) {
+        return (enum tfm_plat_err_t)atu_err;
     }
 
 #endif /* !(defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART)) */
