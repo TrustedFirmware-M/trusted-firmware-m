@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -228,58 +228,58 @@ enum sam_error_t sam_handle_event(const struct sam_dev_t *dev,
 void sam_handle_all_events(const struct sam_dev_t *dev);
 
 /**
- * \brief Get the address of the last partial write for a particular VM.
+ * \brief Get the offset in the VM  of the last partial write for a particular VM.
  *
  * \param[in] dev   Pointer to SAM device struct.
  * \param[in] vm_id ID of the VM to get the address for.
  *
- * \return The required address.
+ * \return The offset.
  */
-uintptr_t sam_get_vm_partial_write_addr(const struct sam_dev_t *dev,
-                                        uint32_t vm_id);
+uint32_t sam_get_vm_partial_write_offset(const struct sam_dev_t *dev,
+                                         uint32_t vm_id);
 
 /**
- * \brief Get the address of the last single (corrected) ECC error for a
- *        particular VM.
+ * \brief Get the offset in the VM of the last single (corrected) ECC error for
+ *        a particular VM.
  *
  * \param[in] dev   Pointer to SAM device struct.
  * \param[in] vm_id ID of the VM to get the address for.
  *
- * \return The required address.
+ * \return The offset.
  */
-uintptr_t sam_get_vm_single_corrected_err_addr(const struct sam_dev_t *dev,
-                                               uint32_t vm_id);
+uint32_t sam_get_vm_single_corrected_err_offset(const struct sam_dev_t *dev,
+                                                uint32_t vm_id);
 
 /**
- * \brief Get the address of the last double (uncorrected) ECC error for a
- *        particular VM.
+ * \brief Get the offset in the VM of the last double (uncorrected) ECC error
+ *        for a particular VM.
  *
  * \param[in] dev   Pointer to SAM device struct.
  * \param[in] vm_id ID of the VM to get the address for.
  *
- * \return The required address.
+ * \return The offset.
  */
-uintptr_t sam_get_vm_double_uncorrected_err_addr(const struct sam_dev_t *dev,
-                                                 uint32_t vm_id);
+uint32_t sam_get_vm_double_uncorrected_err_offset(const struct sam_dev_t *dev,
+                                                  uint32_t vm_id);
 
 /**
- * \brief Get the address of the last single (corrected) ECC error for the TRAM
+ * \brief Get the offset of the last single (corrected) ECC error for the TRAM
  *
  * \param[in] dev   Pointer to SAM device struct.
  *
- * \return The required address.
+ * \return The offset.
  */
-uintptr_t sam_get_tram_single_corrected_err_addr(const struct sam_dev_t *dev);
+uint32_t sam_get_tram_single_corrected_err_offset(const struct sam_dev_t *dev);
 
 /**
- * \brief Get the address of the last double (uncorrected) ECC error for the
+ * \brief Get the offset of the last double (uncorrected) ECC error for the
  *        TRAM.
  *
  * \param[in] dev   Pointer to SAM device struct.
  *
- * \return The required address.
+ * \return The offset.
  */
-uintptr_t sam_get_tram_double_uncorrected_err_addr(const struct sam_dev_t *dev);
+uint32_t sam_get_tram_double_uncorrected_err_offset(const struct sam_dev_t *dev);
 
 #ifdef __cplusplus
 }

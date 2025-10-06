@@ -16,15 +16,24 @@
 static uintptr_t get_ecc_address(const struct sam_dev_t *dev,
                                  enum rse_sam_event_id_t event)
 {
+    uint32_t vm_id;
+    uint32_t offset;
+    const uintptr_t vm_base_address[4] = {
+        VM0_BASE_S,
+        VM1_BASE_S,
+        0,
+        0,
+    };
+
     switch (event) {
     case RSE_SAM_EVENT_SRAM_PARTIAL_WRITE:
         /* Since we only have one event for all the 4 VMs, we have to iterate
          * through them.
          */
-        for (uint32_t vm_id = 0; vm_id < 4; vm_id++) {
-            uintptr_t addr = sam_get_vm_partial_write_addr(dev, vm_id);
-            if (addr != 0) {
-                return addr;
+        for (vm_id = 0; vm_id < 4; vm_id++) {
+            offset = sam_get_vm_partial_write_offset(dev, vm_id);
+            if (offset != 0) {
+                return offset + vm_base_address[vm_id];
             }
         }
         break;
@@ -32,10 +41,11 @@ static uintptr_t get_ecc_address(const struct sam_dev_t *dev,
     case RSE_SAM_EVENT_VM1_SINGLE_ECC_ERROR:
     case RSE_SAM_EVENT_VM2_SINGLE_ECC_ERROR:
     case RSE_SAM_EVENT_VM3_SINGLE_ECC_ERROR:
-        return sam_get_vm_single_corrected_err_addr(
-            dev, event - RSE_SAM_EVENT_VM0_SINGLE_ECC_ERROR);
+        vm_id = event - RSE_SAM_EVENT_VM0_SINGLE_ECC_ERROR;
+        offset = sam_get_vm_single_corrected_err_offset(dev, vm_id);
+        return offset + vm_base_address[vm_id];
     case RSE_SAM_EVENT_TRAM_PARITY_ERROR:
-        return sam_get_tram_single_corrected_err_addr(dev);
+        return sam_get_tram_single_corrected_err_offset(dev) + TRAM_BASE_S;
     default:
         break;
     }

@@ -306,55 +306,55 @@ void sam_handle_all_events(const struct sam_dev_t *dev)
     }
 }
 
-uintptr_t sam_get_vm_partial_write_addr(const struct sam_dev_t *dev,
-                                        uint32_t vm_id)
+uint32_t sam_get_vm_partial_write_offset(const struct sam_dev_t *dev,
+                                          uint32_t vm_id)
 {
     struct sam_reg_map_t *regs = get_sam_dev_base(dev);
-    uintptr_t addr = regs->vmpwca[vm_id];
+    uint32_t offset = regs->vmpwca[vm_id];
 
     regs->vmpwca[vm_id] = 0;
 
-    return addr;
+    return offset;
 }
 
-uintptr_t sam_get_vm_single_corrected_err_addr(const struct sam_dev_t *dev,
-                                               uint32_t vm_id)
-{
-    struct sam_reg_map_t *regs = get_sam_dev_base(dev);
-    uintptr_t addr = regs->vmsceeca[vm_id];
-
-    regs->vmsceeca[vm_id] = 0;
-
-    return addr;
-}
-
-uintptr_t sam_get_vm_double_uncorrected_err_addr(const struct sam_dev_t *dev,
+uint32_t sam_get_vm_single_corrected_err_offset(const struct sam_dev_t *dev,
                                                  uint32_t vm_id)
 {
     struct sam_reg_map_t *regs = get_sam_dev_base(dev);
-    uintptr_t addr = regs->vmdueeca[vm_id];
+    uint32_t offset = regs->vmsceeca[vm_id];
+
+    regs->vmsceeca[vm_id] = 0;
+
+    return offset;
+}
+
+uint32_t sam_get_vm_double_uncorrected_err_offset(const struct sam_dev_t *dev,
+                                                   uint32_t vm_id)
+{
+    struct sam_reg_map_t *regs = get_sam_dev_base(dev);
+    uint32_t offset = regs->vmdueeca[vm_id];
 
     regs->vmdueeca[vm_id] = 0;
 
-    return addr;
+    return offset;
 }
 
-uintptr_t sam_get_tram_single_corrected_err_addr(const struct sam_dev_t *dev)
+uint32_t sam_get_tram_single_corrected_err_offset(const struct sam_dev_t *dev)
 {
     struct sam_reg_map_t *regs = get_sam_dev_base(dev);
-    uintptr_t addr = regs->tramsceeca;
+    uint32_t offset = regs->tramsceeca;
 
     regs->tramsceeca = 0;
 
-    return addr;
+    return offset;
 }
 
-uintptr_t sam_get_tram_double_uncorrected_err_addr(const struct sam_dev_t *dev)
+uint32_t sam_get_tram_double_uncorrected_err_offset(const struct sam_dev_t *dev)
 {
     struct sam_reg_map_t *regs = get_sam_dev_base(dev);
-    uintptr_t addr = regs->tramdueeca;
+    uint32_t offset = regs->tramdueeca;
 
     regs->tramdueeca = 0;
 
-    return addr;
+    return offset;
 }
