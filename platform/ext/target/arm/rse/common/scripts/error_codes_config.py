@@ -37,8 +37,13 @@ def create_error_code_csv(config : Error_codes_config):
     return output
 
 def get_compiler_include_dirs(compiler):
+    if 'armclang' in compiler:
+        compiler_args = ["-E", "-v", "-", "--target=arm-arm-none-eabi"]
+    elif 'gcc' in compiler:
+        compiler_args = ["-E", "-x", "c", "-", "-v"]
+
     result = subprocess.run(
-        [compiler, "-E", "-x", "c", "-", "-v"],
+        [compiler, *compiler_args],
         input="",
         capture_output=True,
         text=True
