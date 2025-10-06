@@ -43,10 +43,8 @@
 #endif
 #include "bl1_2_debug.h"
 
-/* FixMe: Move CASSERT() into a generic support header */
-/* Two-level macro so __LINE__ expands before token-pasting */
 #define __CONCAT_(a, b) a##b
-#define _CONCAT(a, b)  __CONCAT(a, b)
+#define _CONCAT(a, b)  __CONCAT_(a, b)
 
 /* Fails to compile when (expr) is false (i.e., "assert") */
 #define CASSERT(expr) \
