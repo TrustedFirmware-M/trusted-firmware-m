@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -25,7 +25,7 @@ static enum tfm_plat_err_t gpt_strncmp(const gpt_entry_t *entry,
 {
     size_t idx;
     /* The name field in the header must contain a NULL terminated string */
-    const gpt_maxlen = ARRAY_SIZE(entry->name) - 1;
+    const size_t gpt_maxlen = ARRAY_SIZE(entry->name) - 1;
     /* The str_len passed has the same semantic of the output of strnlen() or
      * strlen(), i.e. without the NULL terminator
      */
@@ -116,7 +116,7 @@ enum tfm_plat_err_t gpt_get_list_entry_by_name(uint32_t list_base, uint32_t list
          * while the function below does a comparison of NULL terminated strings,
          * hence the string length below must not take into account the NULL terminator
          */
-        if (gpt_strncmp(entry, name, name_size - 1) == TFM_PLAT_ERR_SUCCESS) {
+        if (gpt_strncmp(entry, (const uint8_t *)name, name_size - 1) == TFM_PLAT_ERR_SUCCESS) {
             return TFM_PLAT_ERR_SUCCESS;
         }
     }

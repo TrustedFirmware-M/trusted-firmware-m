@@ -284,11 +284,6 @@ static int
 
     return 0;
 }
-
-static bool plat_check_if_prev_boot_failed(void)
-{
-    return ((tfm_hal_get_reset_syndrome() & (1u << RSE_SWSYN_FAILED_BOOT_BIT_POS)) != 0);
-}
 #endif /* RSE_GPT_SUPPORT */
 
 
@@ -302,7 +297,6 @@ int host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t fip_offsets[2])
     uint64_t private_metadata_offsets[1];
     uint8_t bootable_fip_index;
     uint64_t found_metadata_offset;
-    bool increment_failed_boot = false;
 
     rc = host_flash_atu_get_fip_and_metadata_offsets(fip_found, fip_offsets,
                                                      metadata_found, metadata_offsets,
@@ -451,6 +445,7 @@ int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
     size_t page_size = atu_rse_get_page_size(&ATU_DEV_S);
     uint32_t alignment_offset;
     size_t atu_slot_size;
+    enum atu_error_t atu_err;
     gpt_entry_t entry;
 
     if (image_found == NULL || image_offset == NULL || image_size == NULL) {
@@ -560,7 +555,6 @@ int host_flash_atu_get_image_offsets_by_type_uuid(uuid_t type_uuid, uint64_t *im
     bool private_metadata_found[2];
     uint64_t private_metadata_offsets[2];
     uint8_t bootable_img_index;
-    bool increment_failed_boot = false;
     uint64_t found_metadata_offset;
     size_t temp_size[2];
     uuid_t image_uuid;

@@ -31,6 +31,11 @@ static int read_from_host_flash(uint64_t offset,
     enum atu_error_t atu_err;
     uint32_t log_addr = HOST_FLASH0_TEMP_BASE_S;
     uint64_t physical_address = HOST_FLASH0_BASE + offset;
+    const uint32_t data_width_byte[] = {
+        sizeof(uint8_t),
+        sizeof(uint16_t),
+        sizeof(uint32_t),
+    };
 
     ARM_FLASH_CAPABILITIES DriverCapabilities =
         FLASH_DEV_NAME.GetCapabilities();
@@ -72,7 +77,7 @@ int read_fwu_metadata(uint64_t offset, struct fwu_metadata_t *metadata)
         return -1;
     }
 
-    if (read_from_host_flash(offset, sizeof(*metadata),metadata)){
+    if (read_from_host_flash(offset, sizeof(*metadata), (uint8_t *)metadata)){
         return -1;
     }
 
@@ -93,9 +98,6 @@ int write_fwu_metadata(uint64_t offset,
     }
 
     ARM_FLASH_INFO *DriverInfo = FLASH_DEV_NAME.GetInfo();
-    ARM_FLASH_CAPABILITIES DriverCapabilities =
-        FLASH_DEV_NAME.GetCapabilities();
-    uint8_t data_width = data_width_byte[DriverCapabilities.data_width];
 
     if (DriverInfo->sector_size < (sizeof(*metadata))) {
         return -1;
