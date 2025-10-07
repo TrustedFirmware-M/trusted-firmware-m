@@ -60,15 +60,16 @@ void *tfm_pool_alloc(struct tfm_pool_instance_t *pool)
 {
     struct tfm_pool_chunk_t *node;
 
-    if (!pool) {
-        return NULL;
-    }
+    assert(pool != NULL);
 
     if (UNI_LIST_IS_EMPTY(pool, next)) {
         return NULL;
     }
 
     node = UNI_LIST_NEXT_NODE(pool, next);
+
+    assert(node != NULL);
+
     UNI_LIST_REMOVE_NODE(pool, node, next);
 
     node->magic = POOL_MAGIC_ALLOCATED;
@@ -98,6 +99,10 @@ void tfm_pool_free(struct tfm_pool_instance_t *pool, void *ptr)
 bool is_valid_chunk_data_in_pool(struct tfm_pool_instance_t *pool,
                                  uint8_t *data)
 {
+    if (pool == NULL) {
+        return false;
+    }
+
     const uintptr_t chunks_start = (uintptr_t)(pool->chunks);
     const size_t chunks_offset = (uintptr_t)data - chunks_start;
     struct tfm_pool_chunk_t *pchunk;

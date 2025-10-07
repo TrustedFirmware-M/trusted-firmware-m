@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -70,6 +70,8 @@ static void insert_a_partition_load_list(struct partition_head_t *head,
                                          struct partition_t *partition)
 {
     struct partition_t *p_part, *p_part_prev;
+
+    assert(head != NULL);
 
     if (UNI_LIST_IS_EMPTY(head, next)) {
         UNI_LIST_INSERT_AFTER(head, partition, next);
