@@ -636,6 +636,7 @@ handle_send_ivs_msg(struct rse_comms_trusted_subnet_config_t *trusted_subnet,
     __ALIGNED(4) uint8_t hash[48];
     size_t hash_size;
     struct rse_comms_handshake_send_ivs_msg_payload_t *send_ivs_msg;
+    bool valid_iv = false;
 
     send_ivs_msg = (struct rse_comms_handshake_send_ivs_msg_payload_t *)payload;
 
@@ -644,10 +645,24 @@ handle_send_ivs_msg(struct rse_comms_trusted_subnet_config_t *trusted_subnet,
         return comms_err;
     }
 
-    if (memcmp(send_ivs_msg->ivs[my_node_id],
-               handshake_data[trusted_subnet->id].node_ivs[my_node_id],
-               sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id])) != 0) {
-        return RSE_COMMS_ERROR_HANDSHAKE_INVALID_RECEIVED_IV;
+    for (uint8_t i = 0; i < trusted_subnet->node_amount; i++) {
+        rse_comms_node_id_t node = trusted_subnet->nodes[i].id;
+
+        if (node != my_node_id) {
+            continue;
+        }
+
+        if (memcmp(send_ivs_msg->ivs[i], handshake_data[trusted_subnet->id].node_ivs[my_node_id],
+                   sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id])) != 0) {
+            return RSE_COMMS_ERROR_HANDSHAKE_INVALID_RECEIVED_IV;
+        } else {
+            valid_iv = true;
+            break;
+        }
+    }
+
+    if (!valid_iv) {
+        return RSE_COMMS_ERROR_INVALID_MSG;
     }
 
     fih_err = bl1_hash_compute(TFM_BL1_HASH_ALG_SHA384, (uint8_t *)send_ivs_msg->ivs,
