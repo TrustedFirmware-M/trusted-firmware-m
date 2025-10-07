@@ -1043,7 +1043,7 @@ create_complete_signed_blob(struct rse_provisioning_message_blob_t *blob,
     }
 }
 
-__attribute__((optimize("O0"))) static void provisioning_test_complete_valid_blob(
+static void provisioning_test_complete_valid_blob(
     struct test_result_t *ret, enum lcm_tp_mode_t tp_mode,
     const struct rse_provisioning_ecdsa_gen_key_data_t *key_data,
     enum rse_provisioning_blob_signature_config_t *signature_config, size_t signature_config_size)
