@@ -107,9 +107,11 @@ static fih_ret validate_image_signature(struct bl1_2_image_t *img,
     uint8_t rotpk[TFM_BL1_2_ROTPK_MAX_SIZE];
     uint8_t *p_rotpk = rotpk;
     size_t rotpk_size;
+#if defined(TFM_BL1_2_EMBED_ROTPK_IN_IMAGE) || defined(TFM_MEASURED_BOOT_API)
     uint8_t rotpk_hash[TFM_BL1_2_ROTPK_HASH_MAX_SIZE];
-    enum tfm_bl1_key_type_t key_type;
     enum tfm_bl1_hash_alg_t key_hash_alg;
+#endif /* TFM_BL1_2_EMBED_ROTPK_IN_IMAGE || TFM_MEASURED_BOOT_API */
+    enum tfm_bl1_key_type_t key_type;
 
 
     if (sig->sig_len > sizeof(sig->sig)) {
