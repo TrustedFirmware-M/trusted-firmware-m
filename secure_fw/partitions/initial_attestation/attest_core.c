@@ -21,7 +21,7 @@
 #include "tfm_attest_iat_defs.h"
 #include "t_cose/t_cose_common.h"
 #include "tfm_crypto_defs.h"
-#include "tfm_log_unpriv.h"
+#include "tfm_log.h"
 
 #if ATTEST_TOKEN_PROFILE_ARM_CCA
 #include "tfm_strnlen.h"
@@ -30,6 +30,16 @@
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(*(array)))
 
 #define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
+
+#if ATTEST_TOKEN_PROFILE_PSA_IOT_1
+#define ATTEST_TOKEN_PROFILE_DEFINITION_STRING "PSA_IOT_PROFILE_1"
+#elif ATTEST_TOKEN_PROFILE_ARM_CCA
+#define ATTEST_TOKEN_PROFILE_DEFINITION_STRING "tag:arm.com,2023:cca_platform#1.0.0"
+#elif ATTEST_TOKEN_PROFILE_PSA_2_0_0
+#define ATTEST_TOKEN_PROFILE_DEFINITION_STRING "tag:psacertified.org,2023:psa#tfm"
+#else
+#error "Attestation token profile is incorrect"
+#endif
 
 /*!
  * \brief Static function to map return values between \ref psa_attest_err_t
@@ -134,7 +144,7 @@ attest_add_all_sw_components(struct attest_token_encode_ctx *token_ctx)
                                         (int64_t)NO_SW_COMPONENT_FIXED_VALUE);
 #else
         /* Mandatory to have SW components claim in the token */
-        ERROR_UNPRIV("[Attest] Boot record is not available\n");
+        ERROR("[Attest] Boot record is not available\n");
         return PSA_ATTEST_ERR_CLAIM_UNAVAILABLE;
 #endif
     }
@@ -235,15 +245,7 @@ attest_add_security_lifecycle_claim(struct attest_token_encode_ctx *token_ctx)
 static enum psa_attest_err_t
 attest_add_profile_definition(struct attest_token_encode_ctx *token_ctx)
 {
-#if ATTEST_TOKEN_PROFILE_PSA_IOT_1
-    static const char profile_definition[] = "PSA_IOT_PROFILE_1";
-#elif ATTEST_TOKEN_PROFILE_ARM_CCA
-    static const char profile_definition[] = "tag:arm.com,2023:cca_platform#1.0.0";
-#elif ATTEST_TOKEN_PROFILE_PSA_2_0_0
-    static const char profile_definition[] = "tag:psacertified.org,2023:psa#tfm";
-#else
-#error "Attestation token profile is incorrect"
-#endif
+    static const char profile_definition[] = ATTEST_TOKEN_PROFILE_DEFINITION_STRING;
     struct q_useful_buf_c profile;
     /* Make sure we pass a word aligned buffer as platforms might
      * access OTP which has alignment requirements
@@ -252,7 +254,7 @@ attest_add_profile_definition(struct attest_token_encode_ctx *token_ctx)
     uint32_t size = sizeof(buf) - 1;
     enum tfm_plat_err_t err;
 
-    err = tfm_attest_hal_get_profile_definition(&size, buf);
+    err = tfm_attest_hal_get_profile_definition(&size, (uint8_t *)buf);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return PSA_ATTEST_ERR_GENERAL;
     }
@@ -262,14 +264,14 @@ attest_add_profile_definition(struct attest_token_encode_ctx *token_ctx)
 
     /* Check for mismatches between the value returned by HAL and Build options */
     if (size == 0) {
-        INFO_UNPRIV("[Attest] The platform did not return a profile_definition\r\n");
+        INFO("[Attest] The platform did not return a profile_definition\r\n");
         profile.ptr = profile_definition;
         profile.len = sizeof(profile_definition) - 1;
     } else if (size != (sizeof(profile_definition) - 1) || strncmp(profile_definition, (const char *)buf, size)) {
-        WARN_UNPRIV("[Attest] Mismatched profile_definition from HAL\r\n");
+        WARN("[Attest] Using a mismatched profile_definition received from the HAL\r\n");
     }
 
-    INFO_UNPRIV("[Attest] Encoding profile_definition (size: %d): %s\r\n", profile.len, profile.ptr);
+    INFO("[Attest] Encoding profile_definition (size: %d): %s\r\n", profile.len, profile.ptr);
     attest_token_encode_add_tstr(token_ctx,
                                  IAT_PROFILE_DEFINITION,
                                  &profile);
@@ -560,7 +562,7 @@ static enum psa_attest_err_t attest_get_t_cose_algorithm(
             return PSA_ATTEST_ERR_GENERAL;
         }
     } else {
-        VERBOSE_UNPRIV_RAW("Attestation: Unexpected key_type for TFM_BUILTIN_KEY_ID_IAK. Key storage may be corrupted!\n");
+        VERBOSE_RAW("Attestation: Unexpected key_type for TFM_BUILTIN_KEY_ID_IAK. Key storage may be corrupted!\n");
         return PSA_ATTEST_ERR_GENERAL;
     }
 
