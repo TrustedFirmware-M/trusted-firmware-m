@@ -37,6 +37,18 @@ include(${TFM_TOOLCHAIN_FILE})
 
 project("Trusted Firmware M" VERSION ${TFM_VERSION} LANGUAGES C CXX ASM)
 
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    # Limit path length to avoid problems during build on Windows
+    set(CMAKE_OBJECT_PATH_MAX 240)
+
+    string(LENGTH "${CMAKE_BINARY_DIR}" CMAKE_BINARY_DIR_LEN)
+    if(CMAKE_BINARY_DIR_LEN GREATER 90)
+        message(FATAL_ERROR "CMAKE_BINARY_DIR path length (${CMAKE_BINARY_DIR_LEN}) exceeds 90 characters:\n"
+            "   \"${CMAKE_BINARY_DIR}\"\n"
+            " Please use a shorter build root path!!!")
+    endif()
+endif()
+
 add_subdirectory(lib/ext)
 
 if(BL2)
