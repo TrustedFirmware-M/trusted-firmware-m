@@ -1,4 +1,4 @@
-From 043ae643c648cbdbdb26eca6692fb41a8a5c415b Mon Sep 17 00:00:00 2001
+From fa340732814932a9a56c4e6eeadc419fb23eb24c Mon Sep 17 00:00:00 2001
 From: "G. Varga, Gabor" <Gabor.G.Varga@arm.com>
 Date: Tue, 16 Sep 2025 13:57:18 +0200
 Subject: [PATCH] Refactor t_cose_crypto_is_algorithm_supported in PSA
@@ -18,7 +18,7 @@ Change-Id: I51a11b1018f50a5f874d8fbd4412a8b9ac1a16e6
  1 file changed, 194 insertions(+), 30 deletions(-)
 
 diff --git a/crypto_adapters/t_cose_psa_crypto.c b/crypto_adapters/t_cose_psa_crypto.c
-index 018c52b..130f874 100644
+index 018c52b..4771a47 100644
 --- a/crypto_adapters/t_cose_psa_crypto.c
 +++ b/crypto_adapters/t_cose_psa_crypto.c
 @@ -2,7 +2,7 @@
@@ -187,8 +187,8 @@ index 018c52b..130f874 100644
 +            psa_key_id_t key = PSA_KEY_ID_NULL;
 +            psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
 +
-+            /* Zero hash input of the right size, 64 bytes covers up to SHA-512 */
-+            uint8_t hash[64] = {0};
++            /* Test hash input of the right size, 64 bytes covers up to SHA-512 */
++            uint8_t hash[64] = {0x55};
 +
 +            psa_set_key_type(&attr, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
 +            psa_set_key_bits(&attr, bits);
@@ -235,8 +235,8 @@ index 018c52b..130f874 100644
 +            psa_key_id_t key = PSA_KEY_ID_NULL;
 +            psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
 +
-+            /* Zero hash input of the right size; 64 bytes covers up to SHA-512 */
-+            uint8_t hash[64] = {0};
++            /* Test hash input of the right size; 64 bytes covers up to SHA-512 */
++            uint8_t hash[64] = {0x55};
 +
 +            psa_set_key_type(&attr, PSA_KEY_TYPE_RSA_KEY_PAIR);
 +            psa_set_key_bits(&attr, rsa_bits);
