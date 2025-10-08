@@ -27,6 +27,10 @@ extern "C" {
 #define BL2_ENCRYPTION_KEY_SIZE (32)
 #endif /* BL2_ENCRYPTION_KEY_SIZE */
 
+#ifndef TFM_BL1_2_SIGNER_AMOUNT
+#define TFM_BL1_2_SIGNER_AMOUNT 1
+#endif /* TFM_BL1_2_SIGNER_AMOUNT */
+
 /**
  * @brief Key IDs associated to usable keys by BL1
  *
