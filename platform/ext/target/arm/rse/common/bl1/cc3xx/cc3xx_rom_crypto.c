@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
 
 #include "region_defs.h"
 #include "tfm_plat_defs.h"
@@ -27,101 +28,6 @@
 
 static enum tfm_bl1_hash_alg_t multipart_alg = 0;
 static mbedtls_sha512_context multipart_ctx;
-
-/**
- * @brief Computes a hash of the provided data using SHA-256. It calls into
- *        the cc3xx driver directly
- *
- * @param[in]  data        Input data
- * @param[in]  data_length Size in bytes of \p data
- * @param[out] hash        Output hash
- * @param[in]  hash_len    Size in bytes of the \p hash buffer
- * @param[out] hash_size   Size of the produced hash
- *
- * @return FIH_SUCCESS on success, non-zero otherwise
- */
-static fih_ret sha256_compute(const uint8_t *data,
-                              size_t data_length,
-                              uint8_t *hash, size_t hash_len, size_t *hash_size)
-{
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-
-    if ((data == NULL) || (hash == NULL)) {
-        FATAL_ERR(TFM_PLAT_ERR_ROM_CRYPTO_SHA256_COMPUTE_INVALID_INPUT);
-        FIH_RET(TFM_PLAT_ERR_ROM_CRYPTO_SHA256_COMPUTE_INVALID_INPUT);
-    }
-
-    fih_rc = fih_ret_encode_zero_equality(cc3xx_lowlevel_hash_init(CC3XX_HASH_ALG_SHA256));
-    if(FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
-    }
-
-    fih_rc = fih_ret_encode_zero_equality(cc3xx_lowlevel_hash_update(data, data_length));
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
-    }
-
-    cc3xx_lowlevel_hash_finish((uint32_t *)hash, hash_len);
-
-    if (hash_size != NULL) {
-        *hash_size = 32;
-    }
-
-    FIH_RET(FIH_SUCCESS);
-}
-
-/**
- * @brief Computes a hash of the provided data using SHA-384. It calls into a Mbed TLS
- *        based SW implementation of SHA-512/384 as there is no HW support in CryptoCell
- *
- * @param[in]  data        Input data
- * @param[in]  data_length Size in bytes of \p data
- * @param[out] hash        Output hash
- * @param[in]  hash_len    Size in bytes of the \p hash buffer
- * @param[out] hash_size   Size of the produced hash
- *
- * @return FIH_SUCCESS on success, non-zero otherwise
- */
-static fih_ret sha384_compute(const uint8_t *data,
-                           size_t data_length,
-                           uint8_t *hash, size_t hash_len, size_t *hash_size)
-{
-    int rc = 0;
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-    mbedtls_sha512_context ctx;
-
-    if (hash_len < 48) {
-        FIH_RET(FIH_FAILURE);
-    }
-
-    mbedtls_sha512_init(&ctx);
-
-    rc = mbedtls_sha512_starts(&ctx, 1);
-    fih_rc = fih_ret_encode_zero_equality(rc);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        goto out;
-    }
-
-    rc = mbedtls_sha512_update(&ctx, data, data_length);
-    fih_rc = fih_ret_encode_zero_equality(rc);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        goto out;
-    }
-
-    rc = mbedtls_sha512_finish(&ctx, hash);
-    fih_rc = fih_ret_encode_zero_equality(rc);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        goto out;
-    }
-
-    if (hash_size != NULL) {
-        *hash_size = 48;
-    }
-
-out:
-    mbedtls_sha512_free(&ctx);
-    FIH_RET(fih_rc);
-}
 
 static fih_ret sha256_init(void)
 {
@@ -312,19 +218,19 @@ fih_ret bl1_hash_compute(enum tfm_bl1_hash_alg_t alg,
                          size_t *hash_size)
 {
     FIH_DECLARE(fih_rc, FIH_FAILURE);
+    size_t dummy;
 
-    switch(alg) {
-    case TFM_BL1_HASH_ALG_SHA256:
-        FIH_CALL(sha256_compute, fih_rc, data, data_length, hash, hash_length, hash_size);
-        break;
-    case TFM_BL1_HASH_ALG_SHA384:
-        FIH_CALL(sha384_compute, fih_rc, data, data_length, hash, hash_length, hash_size);
-        break;
-    default:
-        fih_rc = FIH_FAILURE;
+    assert((alg == TFM_BL1_HASH_ALG_SHA256) || (alg == TFM_BL1_HASH_ALG_SHA384));
+
+    fih_rc = fih_ret_encode_zero_equality(psa_hash_compute((psa_algorithm_t)alg,
+                                                            data, data_length,
+                                                            hash, hash_length,
+                                                            hash_size ? hash_size : &dummy));
+    if(FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        FIH_RET(fih_rc);
     }
 
-    FIH_RET(fih_rc);
+    FIH_RET(FIH_SUCCESS);
 }
 
 fih_ret bl1_hash_init(enum tfm_bl1_hash_alg_t alg)
