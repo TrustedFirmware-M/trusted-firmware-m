@@ -1,7 +1,7 @@
-From 1052a755db3b99a52babcfbf4dae711da8e4fd16 Mon Sep 17 00:00:00 2001
+From 4f8501defe10504f7e48f07e014365297633c696 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Wed, 15 Jan 2025 19:31:41 +0000
-Subject: [PATCH] Remove or disable unused functions in PSA Crypto layer
+Subject: [PATCH 05/10] Remove or disable unused functions in PSA Crypto layer
 
 - Remove unused HKDF function from the PSA Crypto adaptor
  layer to prevent build errors due to disabled MbedTLS
@@ -9,10 +9,9 @@ Subject: [PATCH] Remove or disable unused functions in PSA Crypto layer
  supported properly by the PSA Crypto adaptor layer.
 - Disable unused functions to avoid unnecessary build
  dependencies.
-
 ---
  crypto_adapters/t_cose_psa_crypto.c | 53 -----------------------------
- crypto_adapter s/t_cose_psa_crypto.h |  6 ++--
+ crypto_adapters/t_cose_psa_crypto.h |  6 ++--
  2 files changed, 3 insertions(+), 56 deletions(-)
 
 diff --git a/crypto_adapters/t_cose_psa_crypto.c b/crypto_adapters/t_cose_psa_crypto.c
@@ -22,17 +21,17 @@ index 80d1961..2095002 100644
 @@ -43,9 +43,6 @@
  #include <mbedtls/nist_kw.h>
  #endif /* T_COSE_DISABLE_KEYWRAP */
-
+ 
 -#include <mbedtls/hkdf.h>
 -#include <mbedtls/md.h>
 -
  #include "t_cose_util.h"
  #include "t_cose_psa_crypto.h"
-
+ 
 @@ -1600,56 +1597,6 @@ t_cose_crypto_ecdh(struct t_cose_key      private_key,
-
-
-
+ 
+ 
+ 
 -
 -/*
 - * See documentation in t_cose_crypto.h
@@ -91,17 +90,18 @@ index bf4963c..5718f81 100644
 --- a/crypto_adapters/t_cose_psa_crypto.h
 +++ b/crypto_adapters/t_cose_psa_crypto.h
 @@ -14,9 +14,9 @@
-
+ 
  #include <psa/crypto.h>
-
+ 
 -#define PSA_CRYPTO_HAS_RESTARTABLE_SIGNING \
 -    ((MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 4) || \
 -     MBEDTLS_VERSION_MAJOR > 3)
 +/* #define PSA_CRYPTO_HAS_RESTARTABLE_SIGNING \
 + *     ((MBEDTLS_VERSION_MAJOR == 3 && MBEDTLS_VERSION_MINOR >= 4) || \
 + *       MBEDTLS_VERSION_MAJOR > 3) */
-
+ 
  #if PSA_CRYPTO_HAS_RESTARTABLE_SIGNING
  struct t_cose_psa_crypto_context {
---
-2.34.1
+-- 
+2.43.0
+

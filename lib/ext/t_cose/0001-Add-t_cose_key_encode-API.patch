@@ -1,7 +1,7 @@
-From 6f3f47d0370f9714baae195d4f2d7b9a38df29ab Mon Sep 17 00:00:00 2001
+From bd8a50c1fe278b52f054e9f32823491f45071556 Mon Sep 17 00:00:00 2001
 From: Tamas Ban <tamas.ban@arm.com>
 Date: Thu, 19 Sep 2024 11:50:32 +0200
-Subject: [PATCH] Add t_cose_key_encode API
+Subject: [PATCH 01/10] Add t_cose_key_encode API
 
 Modelled based on this PR:
 https://github.com/laurencelundblade/t_cose/pull/285/commits/fc72e519
@@ -101,5 +101,5 @@ index 0ce88f5..6b134d1 100644
 +    return T_COSE_SUCCESS;
 +}
 -- 
-2.34.1
+2.43.0
 

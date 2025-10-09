@@ -1,8 +1,8 @@
-From 26f3a079870b5e2f7fdac882ddf436c3e3137ffd Mon Sep 17 00:00:00 2001
+From 7d24a4c0745dafacc995018744e74a00fd6ff0a5 Mon Sep 17 00:00:00 2001
 From: "G. Varga, Gabor" <Gabor.G.Varga@arm.com>
 Date: Mon, 6 Oct 2025 16:46:02 +0200
-Subject: [PATCH] Add weak stubs to fix Armclang/armlink L6218E on unused test
- helpers
+Subject: [PATCH 10/10] Add weak stubs to fix Armclang/armlink L6218E on unused
+ test helpers
 
 When building the TF-M t_cose tests with Armclang, the link failed with:
   L6218E: Undefined symbol t_cose_test_message_sign1_sign
@@ -94,5 +94,5 @@ index 84a0e16..4b564da 100644
   * Public function, see t_cose_test.h
   */
 -- 
-2.34.1
+2.43.0
 

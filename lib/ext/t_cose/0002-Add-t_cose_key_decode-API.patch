@@ -1,7 +1,7 @@
-From b666db4e745d39473aa93b44772588b191dc56fb Mon Sep 17 00:00:00 2001
+From 7b1c9590805d836ab2b6b9da8c7c55231d3fceb1 Mon Sep 17 00:00:00 2001
 From: Tamas Ban <tamas.ban@arm.com>
 Date: Fri, 27 Sep 2024 12:53:58 +0200
-Subject: [PATCH 2/2] Add t_cose_key_decode API
+Subject: [PATCH 02/10] Add t_cose_key_decode API
 
 Copied from this PR:
 https://github.com/laurencelundblade/t_cose/pull/285/commits/fc72e519
@@ -122,5 +122,5 @@ index 6b134d1..7b48a56 100644
   * Public function. See t_cose_key.h
   */
 -- 
-2.34.1
+2.43.0
 

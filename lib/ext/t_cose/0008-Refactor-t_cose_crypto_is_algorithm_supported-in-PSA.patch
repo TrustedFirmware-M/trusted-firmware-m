@@ -1,7 +1,7 @@
-From fa340732814932a9a56c4e6eeadc419fb23eb24c Mon Sep 17 00:00:00 2001
+From 21426d99337a09310ab6e920966a573b1d2d643f Mon Sep 17 00:00:00 2001
 From: "G. Varga, Gabor" <Gabor.G.Varga@arm.com>
 Date: Tue, 16 Sep 2025 13:57:18 +0200
-Subject: [PATCH] Refactor t_cose_crypto_is_algorithm_supported in PSA
+Subject: [PATCH 08/10] Refactor t_cose_crypto_is_algorithm_supported in PSA
 
 Replacing static allowlist with runtime checks.
 
@@ -18,7 +18,7 @@ Change-Id: I51a11b1018f50a5f874d8fbd4412a8b9ac1a16e6
  1 file changed, 194 insertions(+), 30 deletions(-)
 
 diff --git a/crypto_adapters/t_cose_psa_crypto.c b/crypto_adapters/t_cose_psa_crypto.c
-index 018c52b..4771a47 100644
+index 0d32cba..2d3ba4f 100644
 --- a/crypto_adapters/t_cose_psa_crypto.c
 +++ b/crypto_adapters/t_cose_psa_crypto.c
 @@ -2,7 +2,7 @@
@@ -276,5 +276,5 @@ index 018c52b..4771a47 100644
  
  
 -- 
-2.34.1
+2.43.0
 

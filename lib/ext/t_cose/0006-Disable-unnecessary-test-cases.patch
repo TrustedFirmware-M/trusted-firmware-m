@@ -1,11 +1,10 @@
-From b8508adb8ce298ac2c4c2e6708acdb45f061fbd1 Mon Sep 17 00:00:00 2001
+From 19215288de53b2069a8e2cbdbb26121d423b658a Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Tue, 10 Dec 2024 14:52:50 +0000
-Subject: [PATCH] Disable unnecessary test cases
+Subject: [PATCH 06/10] Disable unnecessary test cases
 
 - HKDF: not implemented properly by the PSA Crypto layer,
 - Encrypt/Decrypt: not needed to be covered (not relevant to TF-M).
-
 ---
  test/run_tests.c | 28 ++++++++++++++++++----------
  1 file changed, 18 insertions(+), 10 deletions(-)
@@ -24,12 +23,12 @@ index 17b3b49..510e981 100644
 + * HKDF is not supported properly by the PSA Crypto adaptor layer
 + */
 +    /* TEST_ENTRY(hkdf_test), */
-
+ 
  #ifndef T_COSE_USE_B_CON_SHA256 /* test crypto doesn't support ECDH */
-
+ 
      TEST_ENTRY(ecdh_test),
      TEST_ENTRY(ec_import_export_test),
-
+ 
 -    TEST_ENTRY(esdh_enc_dec_test),
 -    TEST_ENTRY(decrypt_known_good),
 -
@@ -43,13 +42,13 @@ index 17b3b49..510e981 100644
 +    /* TEST_ENTRY(decrypt_known_good), */
 +    /* TEST_ENTRY(decrypt_known_bad), */
 +    /* TEST_ENTRY(kdf_context_test), */
-
+ 
  #endif /* T_COSE_USE_B_CON_SHA256 */
-
+ 
 @@ -133,9 +138,12 @@ static test_entry s_tests[] = {
  #endif /* T_COSE_DISABLE_HASH_FAIL_TEST */
  #endif /* T_COSE_DISABLE_SHORT_CIRCUIT_SIGN */
-
+ 
 -    TEST_ENTRY(param_test),
 -    TEST_ENTRY(common_params_test),
 -    TEST_ENTRY(base_encrypt_decrypt_test)
@@ -59,8 +58,9 @@ index 17b3b49..510e981 100644
 +    /* TEST_ENTRY(param_test), */
 +    /* TEST_ENTRY(common_params_test), */
 +    /* TEST_ENTRY(base_encrypt_decrypt_test) */
-
+ 
  };
+ 
+-- 
+2.43.0
 
---
-2.34.1
