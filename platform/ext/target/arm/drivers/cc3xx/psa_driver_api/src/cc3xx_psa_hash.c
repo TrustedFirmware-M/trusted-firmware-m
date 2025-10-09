@@ -23,6 +23,67 @@
  */
 #include "mbedtls/build_info.h"
 
+/**
+ * @brief Map a PSA hash algorithm to the corresponding CC3xx hash algorithm and digest size.
+ *
+ * @param[in]  alg         PSA algorithm identifier.
+ * @param[out] hash_alg    Non-NULL pointer that receives the CC3xx hash
+ *                         algorithm selector on success.
+ * @param[out] hash_length Optional pointer that, when non-NULL, receives the
+ *                         digest length in bytes for the selected algorithm.
+ *                         On unsupported algorithms, @c *hash_length is set to 0.
+ *
+ * @retval PSA_SUCCESS             The algorithm was recognized and mapped; outputs set.
+ * @retval PSA_ERROR_NOT_SUPPORTED The algorithm is disabled at build time or has no
+ *                                 CC3xx mapping; @c *hash_length is set to 0 and
+ *                                 @p hash_alg is left unmodified.
+ */
+static psa_status_t psa_to_cc3xx_hash_alg_and_size(psa_algorithm_t alg,
+                                                   cc3xx_hash_alg_t *hash_alg,
+                                                   size_t *hash_length)
+{
+    psa_status_t status = PSA_SUCCESS;
+    size_t cc3xx_length;
+
+    assert(hash_alg != NULL);
+
+    switch (alg) {
+#if defined(PSA_WANT_ALG_SHA_1)
+    case PSA_ALG_SHA_1:
+        *hash_alg = CC3XX_HASH_ALG_SHA1;
+        cc3xx_length = SHA1_OUTPUT_SIZE;
+        break;
+#endif /* PSA_WANT_ALG_SHA_1 */
+#if defined(PSA_WANT_ALG_SHA_224)
+    case PSA_ALG_SHA_224:
+        *hash_alg = CC3XX_HASH_ALG_SHA224;
+        cc3xx_length = SHA224_OUTPUT_SIZE;
+        break;
+#endif /* PSA_WANT_ALG_SHA_224 */
+#if defined(PSA_WANT_ALG_SHA_256)
+    case PSA_ALG_SHA_256:
+        *hash_alg = CC3XX_HASH_ALG_SHA256;
+        cc3xx_length = SHA256_OUTPUT_SIZE;
+        break;
+#endif /* PSA_WANT_ALG_SHA_256 */
+#if defined(PSA_WANT_ALG_SHA_384)
+    case PSA_ALG_SHA_384:
+#endif /* PSA_WANT_ALG_SHA_384 */
+#if defined(PSA_WANT_ALG_SHA_512)
+    case PSA_ALG_SHA_512:
+#endif /* PSA_WANT_ALG_SHA_512 */
+    default:
+        cc3xx_length = 0;
+        status = PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    if (hash_length != NULL) {
+        *hash_length = cc3xx_length;
+    }
+
+    return status;
+}
+
 /** @defgroup psa_hash PSA driver entry points for hashing
  *
  *  Entry points for hashing operations as described by the PSA Cryptoprocessor
@@ -35,32 +96,13 @@ psa_status_t cc3xx_hash_setup(cc3xx_hash_operation_t *operation,
 {
     cc3xx_err_t err;
     cc3xx_hash_alg_t hash_alg;
+    psa_status_t status;
+
     CC3XX_ASSERT(operation != NULL);
 
-    switch (alg) {
-#if defined(PSA_WANT_ALG_SHA_1)
-    case PSA_ALG_SHA_1:
-        hash_alg = CC3XX_HASH_ALG_SHA1;
-        break;
-#endif /* PSA_WANT_ALG_SHA_1 */
-#if defined(PSA_WANT_ALG_SHA_224)
-    case PSA_ALG_SHA_224:
-        hash_alg = CC3XX_HASH_ALG_SHA224;
-        break;
-#endif /* PSA_WANT_ALG_SHA_224 */
-#if defined(PSA_WANT_ALG_SHA_256)
-    case PSA_ALG_SHA_256:
-        hash_alg = CC3XX_HASH_ALG_SHA256;
-        break;
-#endif /* PSA_WANT_ALG_SHA_256 */
-#if defined(PSA_WANT_ALG_SHA_384)
-    case PSA_ALG_SHA_384:
-#endif /* PSA_WANT_ALG_SHA_384 */
-#if defined(PSA_WANT_ALG_SHA_512)
-    case PSA_ALG_SHA_512:
-#endif /* PSA_WANT_ALG_SHA_512 */
-    default:
-        return PSA_ERROR_NOT_SUPPORTED;
+    status = psa_to_cc3xx_hash_alg_and_size(alg, &hash_alg, NULL);
+    if (status != PSA_SUCCESS) {
+        return status;
     }
 
     err = cc3xx_lowlevel_hash_init(hash_alg);
@@ -161,32 +203,33 @@ psa_status_t cc3xx_hash_compute(psa_algorithm_t alg, const uint8_t *input,
                                 size_t input_length, uint8_t *hash,
                                 size_t hash_size, size_t *hash_length)
 {
+    cc3xx_hash_alg_t hash_alg;
+    cc3xx_err_t err;
     psa_status_t status;
-    psa_status_t abort_status;
-    cc3xx_hash_operation_t operation = {0};
 
-    CC3XX_ASSERT(hash_length != NULL);
-
-    status = cc3xx_hash_setup(&operation, alg);
+    status = psa_to_cc3xx_hash_alg_and_size(alg, &hash_alg, hash_length);
     if (status != PSA_SUCCESS) {
         return status;
     }
-    status = cc3xx_hash_update(&operation, input, input_length);
-    if (status != PSA_SUCCESS) {
+
+    err = cc3xx_lowlevel_hash_init(hash_alg);
+    if (err != CC3XX_ERR_SUCCESS) {
         goto out;
     }
-    status = cc3xx_hash_finish(&operation, hash, hash_size, hash_length);
-    if (status != PSA_SUCCESS) {
+
+    err = cc3xx_lowlevel_hash_update(input, input_length);
+    if (err != CC3XX_ERR_SUCCESS) {
         goto out;
     }
+
+    cc3xx_lowlevel_hash_finish((uint32_t *)hash, hash_size);
 
 out:
-    abort_status = cc3xx_hash_abort(&operation);
-    if (status == PSA_SUCCESS) {
-        return abort_status;
-    } else {
+    if (err != CC3XX_ERR_SUCCESS) {
         *hash_length = 0;
-        return status;
+        return cc3xx_to_psa_err(err);
     }
+
+    return PSA_SUCCESS;
 }
 /** @} */ // end of psa_hash
