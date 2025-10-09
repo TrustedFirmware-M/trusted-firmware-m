@@ -316,11 +316,6 @@ target_compile_options(platform_bl1_1
         ${COMPILER_CMSE_FLAG}
 )
 
-target_compile_definitions(platform_bl1_1
-    PUBLIC
-        MBEDTLS_HMAC_DRBG_C
-)
-
 # If this is not added to the bl1_1 it will not correctly override the weak
 # functions and will instead be discarded as they are not in use.
 target_sources(bl1_1
@@ -337,9 +332,32 @@ target_link_libraries(platform_bl1_1
         bl1_1_shared_lib_interface
 )
 
-target_sources(bl1_1_shared_lib
+target_compile_definitions(bl1_1_psa_crypto_interface
+    INTERFACE
+        MBEDTLS_PLATFORM_C
+        MBEDTLS_PLATFORM_MEMORY
+        MBEDTLS_MEMORY_BUFFER_ALLOC_C
+        MBEDTLS_HMAC_DRBG_C
+        MBEDTLS_MD_C
+        MBEDTLS_AES_C
+        MBEDTLS_HKDF_C
+        MBEDTLS_CIPHER_MODE_CTR
+)
+
+target_sources(bl1_1_psa_crypto
     PRIVATE
         $<$<NOT:$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>>:${CMAKE_CURRENT_LIST_DIR}/bl1/cc312_rom_crypto.c>
+
+        # MbedTLS cryptography
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${CMAKE_CURRENT_LIST_DIR}/bl1/crypto_mbedcrypto.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/platform.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/memory_buffer_alloc.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/md.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/md5.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/aes.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/hkdf.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/constant_time.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/psa_crypto_mac.c>
 )
 #========================= Platform BL1_2 =====================================#
 

@@ -570,7 +570,7 @@ target_compile_definitions(platform_bl1_1_interface
 target_link_libraries(platform_bl1_1
     PRIVATE
         bl1_cc3xx
-        bl1_psa_crypto
+        bl1_1_psa_crypto_interface
         bl1_1_shared_lib_interface
 )
 
@@ -596,21 +596,6 @@ if(RSE_SUPPORT_ROM_LIB_RELOCATION)
 
     target_compile_options(platform_bl1_1
         PUBLIC
-            ${ROM_LIB_RELOCATION_COMPILE_FLAGS}
-    )
-
-    target_compile_options(bl1_1_crypto_mbedcrypto
-        PRIVATE
-            ${ROM_LIB_RELOCATION_COMPILE_FLAGS}
-    )
-
-    target_compile_options(bl1_1_crypto_mbedtls
-        PRIVATE
-            ${ROM_LIB_RELOCATION_COMPILE_FLAGS}
-    )
-
-    target_compile_options(bl1_1_crypto_mbedx509
-        PRIVATE
             ${ROM_LIB_RELOCATION_COMPILE_FLAGS}
     )
 endif()

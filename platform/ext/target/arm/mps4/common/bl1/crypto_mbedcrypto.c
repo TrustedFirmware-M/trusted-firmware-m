@@ -447,3 +447,14 @@ out:
 
     FIH_RET(fih_rc);
 }
+
+#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
+psa_status_t mbedtls_psa_external_get_random(
+    mbedtls_psa_external_random_context_t *context,
+    uint8_t *output, size_t output_size, size_t *output_length)
+{
+    (void)context;
+
+    return PSA_ERROR_NOT_SUPPORTED;
+}
+#endif /*MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */

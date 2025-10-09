@@ -11,7 +11,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include "fih.h"
-#include "cmsis_compiler.h"
 
 /* This module includes the driver_wrappers which assumes that private access to the
  * fields of implementation structures is enabled through the following defined macro
@@ -166,12 +165,14 @@ static struct thin_key_slot_s g_key_slot =  {
     .is_valid = false,
 };
 
+#ifdef MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
 /**
  * @brief Context required by the RNG function, mocked because the RNG function
  *        does not provide a valid implementation unless it is overridden by a
  *        TRNG hardware driver integration
  */
 static mbedtls_psa_external_random_context_t *g_ctx = NULL;
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
 /**
  * @brief Retrieves the builtin key associated to the \a key_id
@@ -427,7 +428,7 @@ EXTERNAL_PSA_API(psa_hash_compute,
     FIH_RET(status);
 }
 
-__WEAK psa_status_t psa_hash_abort(psa_hash_operation_t *operation)
+psa_status_t psa_hash_abort(psa_hash_operation_t *operation)
 {
     psa_status_t status;
 
@@ -448,7 +449,7 @@ __WEAK psa_status_t psa_hash_abort(psa_hash_operation_t *operation)
     return PSA_SUCCESS;
 }
 
-__WEAK psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
+psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
                             psa_algorithm_t alg)
 {
     psa_status_t status;
@@ -472,7 +473,7 @@ __WEAK psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
     return PSA_SUCCESS;
 }
 
-__WEAK psa_status_t psa_hash_update(psa_hash_operation_t *operation,
+psa_status_t psa_hash_update(psa_hash_operation_t *operation,
                              const uint8_t *input,
                              size_t input_length)
 {
@@ -499,7 +500,7 @@ __WEAK psa_status_t psa_hash_update(psa_hash_operation_t *operation,
     return PSA_SUCCESS;
 }
 
-__WEAK psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
+psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
                              uint8_t *hash,
                              size_t hash_size,
                              size_t *hash_length)
@@ -522,7 +523,7 @@ __WEAK psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
     return PSA_SUCCESS;
 }
 
-__WEAK psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
+psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
                              const uint8_t *hash,
                              size_t hash_length)
 {
@@ -1135,11 +1136,10 @@ psa_status_t mbedtls_to_psa_error(int ret)
     }
 }
 
-__WEAK psa_status_t psa_generate_random(uint8_t *output,
+psa_status_t psa_generate_random(uint8_t *output,
                                  size_t output_size)
 {
-#if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
-
+#ifdef MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
     size_t output_length = 0;
     psa_status_t status = mbedtls_psa_external_get_random(g_ctx,
                                                           output, output_size,
@@ -1157,9 +1157,10 @@ __WEAK psa_status_t psa_generate_random(uint8_t *output,
     }
     return PSA_SUCCESS;
 
-#endif
+#else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
     FATAL_ERR(PSA_ERROR_NOT_SUPPORTED);
     return PSA_ERROR_NOT_SUPPORTED;
+#endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 
 /* This gets linked by the driver wrapper if no driver is present */
