@@ -398,6 +398,36 @@ psa_status_t psa_crypto_init(void)
     return status;
 }
 
+EXTERNAL_PSA_API(psa_hash_compute,
+        (psa_algorithm_t alg, const uint8_t *input, size_t input_length,
+         uint8_t *hash, size_t hash_size, size_t *hash_length),
+         alg, input, input_length, hash, hash_size, hash_length)
+{
+    psa_status_t status;
+
+    if (!input_length) {
+        FIH_RET(FIH_SUCCESS);
+    }
+
+    assert(input != NULL);
+    assert(hash != NULL);
+    assert(hash_size != 0);
+    assert(hash_length != NULL);
+
+    status = psa_driver_wrapper_hash_compute(alg,
+                                             input,
+                                             input_length,
+                                             hash,
+                                             hash_size,
+                                             hash_length);
+    if (status != PSA_SUCCESS) {
+        FATAL_ERR(status);
+        FIH_RET(status);
+    }
+
+    FIH_RET(FIH_SUCCESS);
+}
+
 __WEAK psa_status_t psa_hash_abort(psa_hash_operation_t *operation)
 {
     psa_status_t status;
