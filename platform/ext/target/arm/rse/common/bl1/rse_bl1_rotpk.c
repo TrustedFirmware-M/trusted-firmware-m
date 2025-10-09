@@ -12,7 +12,7 @@
 #include "tfm_plat_nv_counters.h"
 #include "rse_rotpk_mapping.h"
 #include "fatal_error.h"
-#include "crypto.h"
+#include "bl1_crypto.h"
 
 #include <stdbool.h>
 #include <stdint.h>

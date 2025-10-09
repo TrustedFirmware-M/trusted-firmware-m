@@ -10,7 +10,7 @@
 #include "cmsis_compiler.h"
 #include "tfm_plat_otp.h"
 #include "tfm_attest_hal.h"
-#include "crypto.h"
+#include "bl1_crypto.h"
 #include "region_defs.h"
 #include "tfm_log.h"
 #include "fwu_agent.h"

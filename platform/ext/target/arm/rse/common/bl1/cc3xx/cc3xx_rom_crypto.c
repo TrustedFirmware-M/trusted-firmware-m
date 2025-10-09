@@ -5,7 +5,7 @@
  *
  */
 
-#include "crypto.h"
+#include "bl1_crypto.h"
 
 #include <stdint.h>
 #include <string.h>

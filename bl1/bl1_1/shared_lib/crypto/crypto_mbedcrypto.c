@@ -5,7 +5,7 @@
  *
  */
 
-#include "crypto.h"
+#include "bl1_crypto.h"
 
 #include <string.h>
 #include "mbedtls/sha256.h"

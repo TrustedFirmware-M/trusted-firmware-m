@@ -5,7 +5,7 @@
  *
  */
 
-#include "crypto.h"
+#include "bl1_crypto.h"
 #include "otp.h"
 #include "tfm_plat_provisioning.h"
 #include "tfm_plat_otp.h"

@@ -6,7 +6,7 @@
  */
 
 #include "pq_crypto.h"
-#include "crypto.h"
+#include "bl1_crypto.h"
 #include "mbedtls/lms.h"
 #include "otp.h"
 #include "psa/crypto.h"

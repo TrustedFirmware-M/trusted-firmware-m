@@ -12,7 +12,7 @@
 #include <stddef.h>
 
 #include "fih.h"
-#include "crypto.h"
+#include "bl1_crypto.h"
 
 #ifdef __cplusplus
 extern "C" {

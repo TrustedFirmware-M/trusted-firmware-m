@@ -11,7 +11,7 @@
 #include "device_definition.h"
 #include "rse_provisioning_config.h"
 #include "rse_provisioning_tci_key.h"
-#include "crypto.h"
+#include "bl1_crypto.h"
 #include "cc3xx_drv.h"
 #include "rse_rotpk_policy.h"
 #include "rse_rotpk_mapping.h"

@@ -24,7 +24,7 @@
 #include "cc3xx_aes.h"
 #include "device_definition.h"
 #include "tfm_plat_provisioning.h"
-#include "crypto.h"
+#include "bl1_crypto.h"
 #include "cc3xx_drv.h"
 #include "lcm_drv.h"
 #include "psa/crypto.h"
@@ -1160,8 +1160,8 @@ ecdsa_key_write_otp(const struct rse_provisioning_ecdsa_gen_key_data_t *data, ui
         return plat_err;
     }
 
-    fih_rc = bl1_hash_compute(DM_SIGN_KEY_CM_ROTPK_BL1_HASH_ALG, asn1_key, asn1_key_len, key_hash,
-                              DM_SIGN_KEY_CM_ROTPK_HASH_SIZE, &key_hash_size);
+    FIH_CALL(bl1_hash_compute, fih_rc, DM_SIGN_KEY_CM_ROTPK_BL1_HASH_ALG, asn1_key, asn1_key_len, key_hash,
+                                       DM_SIGN_KEY_CM_ROTPK_HASH_SIZE, &key_hash_size);
     if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         return (enum tfm_plat_err_t)fih_rc;
     }

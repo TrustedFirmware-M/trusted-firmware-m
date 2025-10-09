@@ -13,7 +13,7 @@
 #include "bl1_random.h"
 #include "sfcp_helpers.h"
 #include "rse_kmu_keys.h"
-#include "crypto.h"
+#include "bl1_crypto.h"
 #include "fih.h"
 
 /* Definitions for transfer to and from other nodes */
@@ -513,7 +513,7 @@ static enum sfcp_error_t handle_send_ivs_reply(struct sfcp_trusted_subnet_config
     }
 
     /* Take hash of all IVs from other nodes */
-    fih_err = bl1_hash_init(TFM_BL1_HASH_ALG_SHA384);
+    FIH_CALL(bl1_hash_init, fih_err, TFM_BL1_HASH_ALG_SHA384);
     if (FIH_NOT_EQ(fih_err, FIH_SUCCESS)) {
         return SFCP_ERROR_INTERNAL_HANDSHAKE_FAILURE;
     }
@@ -521,14 +521,14 @@ static enum sfcp_error_t handle_send_ivs_reply(struct sfcp_trusted_subnet_config
     for (uint8_t i = 0; i < trusted_subnet->node_amount; i++) {
         sfcp_node_id_t node = trusted_subnet->nodes[i].id;
 
-        fih_err = bl1_hash_update(handshake_data[trusted_subnet->id].node_ivs[node],
-                                  sizeof(handshake_data[trusted_subnet->id].node_ivs[node]));
+        FIH_CALL(bl1_hash_update, fih_err, handshake_data[trusted_subnet->id].node_ivs[node],
+                                               sizeof(handshake_data[trusted_subnet->id].node_ivs[node]));
         if (FIH_NOT_EQ(fih_err, FIH_SUCCESS)) {
             return SFCP_ERROR_INTERNAL_HANDSHAKE_FAILURE;
         }
     }
 
-    fih_err = bl1_hash_finish(hash, sizeof(hash), &hash_size);
+    FIH_CALL(bl1_hash_finish, fih_err, hash, sizeof(hash), &hash_size);
     if (FIH_NOT_EQ(fih_err, FIH_SUCCESS)) {
         return SFCP_ERROR_INTERNAL_HANDSHAKE_FAILURE;
     }
@@ -657,9 +657,9 @@ static enum sfcp_error_t handle_send_ivs_msg(struct sfcp_trusted_subnet_config_t
         return SFCP_ERROR_INVALID_MSG;
     }
 
-    fih_err = bl1_hash_compute(TFM_BL1_HASH_ALG_SHA384, (uint8_t *)send_ivs_msg->ivs,
-                               send_ivs_msg->iv_amount * sizeof(send_ivs_msg->ivs[0]), hash,
-                               sizeof(hash), &hash_size);
+    FIH_CALL(bl1_hash_compute, fih_err, TFM_BL1_HASH_ALG_SHA384, (uint8_t *)send_ivs_msg->ivs,
+                                        send_ivs_msg->iv_amount * sizeof(send_ivs_msg->ivs[0]), hash,
+                                        sizeof(hash), &hash_size);
     if (FIH_NOT_EQ(fih_err, FIH_SUCCESS)) {
         return SFCP_ERROR_INTERNAL_HANDSHAKE_FAILURE;
     }

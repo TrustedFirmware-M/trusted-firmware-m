@@ -14,7 +14,7 @@
 #include "dpa_hardened_word_copy.h"
 #include "cc3xx_drv.h"
 #include "fatal_error.h"
-#include "crypto.h"
+#include "bl1_crypto.h"
 
 static const struct kmu_key_export_config_t aes_key0_export_config = {
     .export_address = CC3XX_BASE_S + 0x400, /* CC3XX AES_KEY_0 register */

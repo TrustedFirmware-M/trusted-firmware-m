@@ -5,8 +5,8 @@
  *
  */
 
-#ifndef BL1_1_CRYPTO_H
-#define BL1_1_CRYPTO_H
+#ifndef __BL1_CRYPTO_H__
+#define __BL1_CRYPTO_H__
 
 #include <stddef.h>
 #include <stdint.h>
@@ -290,4 +290,4 @@ fih_ret bl1_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t curve,
 }
 #endif
 
-#endif /* BL1_1_CRYPTO_H */
+#endif /* __BL1_CRYPTO_H__ */

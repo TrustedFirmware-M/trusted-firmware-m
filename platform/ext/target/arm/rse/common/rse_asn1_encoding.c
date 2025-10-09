@@ -10,7 +10,7 @@
 #include <assert.h>
 
 #include "rse_asn1_encoding.h"
-#include "crypto.h"
+#include "bl1_crypto.h"
 #include "cc3xx_drv.h"
 
 /* ASN1 definitions */

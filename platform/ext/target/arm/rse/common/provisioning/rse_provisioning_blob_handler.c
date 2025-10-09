@@ -7,19 +7,17 @@
 
 #include <assert.h>
 
-#include "rse_provisioning_message_handler.h"
-
-#include "rse_provisioning_message.h"
-#include "rse_provisioning_config.h"
 #include "device_definition.h"
 #include "tfm_log.h"
 #include "region_defs.h"
 #include "fatal_error.h"
 #include "tfm_hal_platform.h"
-#include "crypto.h"
+#include "bl1_crypto.h"
 #include "tfm_plat_otp.h"
 #include "rse_otp_dev.h"
 #include "rse_provisioning_comms.h"
+#include "rse_provisioning_message.h"
+#include "rse_provisioning_config.h"
 #include "rse_provisioning_message_handler.h"
 #include "rse_provisioning_blob_handler.h"
 #include "psa/crypto.h"

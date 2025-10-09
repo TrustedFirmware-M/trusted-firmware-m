@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include "crypto.h"
+#include "bl1_crypto.h"
 #include "otp.h"
 #include "boot_hal.h"
 #include "psa/crypto.h"

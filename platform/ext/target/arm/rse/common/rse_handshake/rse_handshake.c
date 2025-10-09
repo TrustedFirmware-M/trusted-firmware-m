@@ -21,7 +21,7 @@
 #include "tfm_plat_otp.h"
 #include "rse_kmu_keys.h"
 #include "rse_kmu_slot_ids.h"
-#include "crypto.h"
+#include "bl1_crypto.h"
 #include "cc3xx_aes.h"
 #include "cc3xx_rng.h"
 #include "cmsis.h"
