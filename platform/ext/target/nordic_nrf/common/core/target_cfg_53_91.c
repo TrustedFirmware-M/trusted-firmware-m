@@ -229,6 +229,10 @@ enum tfm_plat_err_t spu_init_cfg(void)
 #endif /* REGION_PCD_SRAM_ADDRESS */
 
 #ifdef REGION_RPMSG_NRF53_SRAM_ADDRESS
+/* Partition manager by default places the rpmsg nrf53 partition in the non-secure region
+ * so skip the configuration in this case.
+ */
+#if REGION_RPMSG_NRF53_SRAM_ADDRESS > NS_DATA_LIMIT || REGION_RPMSG_NRF53_SRAM_LIMIT < NS_DATA_START
 	/* Configures rpmsg nrf53 partition to be non-secure */
 	perm = 0;
 	perm |= NRF_SPU_MEM_PERM_READ;
@@ -237,6 +241,7 @@ enum tfm_plat_err_t spu_init_cfg(void)
 	spu_regions_sram_config(REGION_RPMSG_NRF53_SRAM_ADDRESS,
 				REGION_RPMSG_NRF53_SRAM_LIMIT,
 				SPU_SECURE_ATTR_NONSECURE, perm, SPU_LOCK_CONF_LOCKED);
+#endif /* REGION_RPMSG_NRF53_SRAM_ADDRESS > NS_DATA_START || REGION_RPMSG_NRF53_SRAM_LIMIT < NS_DATA_LIMIT */
 #endif /* REGION_RPMSG_NRF53_SRAM_ADDRESS */
 
 	return TFM_PLAT_ERR_SUCCESS;
