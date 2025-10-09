@@ -332,9 +332,19 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
 endif()
 
 if(TFM_MERGE_HEX_FILES)
+    if(BL2)
+        if(MCUBOOT_IMAGE_NUMBER GREATER 1)
+            set(MERGE_HEX_INPUT_TARGET ${NS_TARGET_NAME}_signed_hex)
+        else()
+            set(MERGE_HEX_INPUT_TARGET tfm_s_ns_signed_hex)
+        endif()
+    else()
+        set(MERGE_HEX_INPUT_TARGET ${NS_TARGET_NAME}_hex)
+    endif()
+
     merge_hex(merged_hex
         OUTPUT         ${CMAKE_BINARY_DIR}/bin/combined.hex
-        INPUT_TARGETS  ${NS_TARGET_NAME}_signed_hex
+        INPUT_TARGETS  ${MERGE_HEX_INPUT_TARGET}
         INPUT_FILES    ${TFM_S_HEX_FILE_PATH}
     )
 endif()

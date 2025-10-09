@@ -273,7 +273,7 @@ macro(add_convert_to_bin_target target)
             --output=${bin_dir}/${target}.elf
     )
 
-    add_custom_target(${target}_hex
+    add_custom_target(${target}_hex_build
         SOURCES ${bin_dir}/${target}.hex
     )
     add_custom_command(OUTPUT ${bin_dir}/${target}.hex
@@ -282,6 +282,8 @@ macro(add_convert_to_bin_target target)
             --i32combined $<TARGET_FILE:${target}>
             --output=${bin_dir}/${target}.hex
     )
+
+    add_imported_target(${target}_hex ${target}_hex_build "${bin_dir}/${target}.hex")
 
     add_custom_target(${target}_binaries
         ALL

@@ -110,3 +110,34 @@ macro(merge_hex target)
     add_custom_target(${target}_build ALL DEPENDS "${MH_OUTPUT}")
     add_imported_target(${target} ${target}_build "${MH_OUTPUT}")
 endmacro()
+
+macro(create_tfm_s_hex_merge_list)
+    set(options)
+    set(oneValueArgs BL2_TARGET TFM_S_TARGET TFM_S_SIGNED_TARGET)
+    set(multiValueArgs INPUT_TARGETS)
+    cmake_parse_arguments(MH "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    if(MCUBOOT_IMAGE_NUMBER GREATER 1 AND NOT MH_TFM_S_TARGET)
+        message(FATAL_ERROR "merge_hex(${target}): missing required TFM_S_TARGET")
+    endif()
+
+    # Build the argument list for the Python script:
+    #  - For targets: use $<TARGET_FILE:tgt> (generator expressions OK in COMMAND)
+    #  - For plain files: use them as-is
+    set(_INPUT_ARGS)
+
+    if(BL2)
+        list(APPEND _INPUT_ARGS ${MH_BL2_TARGET})
+        if(MCUBOOT_IMAGE_NUMBER GREATER 1)
+            list(APPEND _INPUT_ARGS ${MH_TFM_S_SIGNED_TARGET})
+        endif()
+    else()
+        list(APPEND _INPUT_ARGS ${MH_TFM_S_TARGET})
+    endif()
+
+    foreach(_tgt IN LISTS MH_INPUT_TARGETS)
+        list(APPEND _INPUT_ARGS ${_tgt})
+    endforeach()
+
+    set(TFM_S_HEX_MERGE_LIST ${_INPUT_ARGS} CACHE STRING "Merged secure hex file's target list" FORCE)
+endmacro()
