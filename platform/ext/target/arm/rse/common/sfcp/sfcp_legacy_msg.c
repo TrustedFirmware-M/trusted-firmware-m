@@ -46,8 +46,8 @@ __ALIGNED(4)
 uint8_t sfcp_legacy_conversion_buffer[SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(true, true) +
                                       SFCP_PAYLOAD_MAX_SIZE];
 
-static enum tfm_plat_err_t get_node_id_from_link_id(sfcp_link_id_t link_id, sfcp_node_id_t *node_id,
-                                                    sfcp_node_id_t my_node_id)
+static enum sfcp_error_t get_node_id_from_link_id(sfcp_link_id_t link_id, sfcp_node_id_t *node_id,
+                                                  sfcp_node_id_t my_node_id)
 {
     /* Assume point-to-point links for the case of legacy SFCP protocol */
     for (sfcp_node_id_t node = 0; node < SFCP_NUMBER_NODES; node++) {
@@ -57,18 +57,18 @@ static enum tfm_plat_err_t get_node_id_from_link_id(sfcp_link_id_t link_id, sfcp
 
         if (sfcp_hal_get_route(node) == link_id) {
             *node_id = node;
-            return TFM_PLAT_ERR_SUCCESS;
+            return SFCP_ERROR_SUCCESS;
         }
     }
 
-    return TFM_PLAT_ERR_UNSUPPORTED;
+    return SFCP_ERROR_INVALID_NODE;
 }
 
-static enum tfm_plat_err_t convert_from_legacy(uint8_t *msg_buf, size_t input_msg_len,
-                                               uint8_t *output_msg, size_t output_msg_len,
-                                               size_t *output_msg_size, sfcp_node_id_t sender,
-                                               sfcp_node_id_t receiver,
-                                               enum sfcp_packet_type_t packet_type)
+static enum sfcp_error_t convert_from_legacy(uint8_t *msg_buf, size_t input_msg_len,
+                                             uint8_t *output_msg, size_t output_msg_len,
+                                             size_t *output_msg_size, sfcp_node_id_t sender,
+                                             sfcp_node_id_t receiver,
+                                             enum sfcp_packet_type_t packet_type)
 {
     struct legacy_sfcp_header_t *input_msg_header = (struct legacy_sfcp_header_t *)msg_buf;
     struct sfcp_packet_t *output_packet = (struct sfcp_packet_t *)output_msg;
@@ -82,19 +82,19 @@ static enum tfm_plat_err_t convert_from_legacy(uint8_t *msg_buf, size_t input_ms
     uint8_t *input_message_payload;
 
     if (input_msg_len < sizeof(*input_msg_header)) {
-        return TFM_PLAT_ERR_INVALID_INPUT;
+        return SFCP_ERROR_INVALID_PACKET_SIZE;
     }
 
     if (GET_METADATA_FIELD(PROTOCOL_VERSION, ((struct sfcp_packet_t *)msg_buf)->header.metadata) ==
         SFCP_PROTOCOL_VERSION) {
         /* Already correct format */
-        return TFM_PLAT_ERR_SUCCESS;
+        return SFCP_ERROR_SUCCESS;
     }
 
     WARN("[SFCP] Received legacy message format!\n");
 
     if (output_msg_len < required_output_message_size) {
-        return TFM_PLAT_ERR_UNSUPPORTED;
+        return SFCP_ERROR_BUFFER_TOO_SMALL;
     }
 
     output_packet->header.metadata =
@@ -121,20 +121,20 @@ static enum tfm_plat_err_t convert_from_legacy(uint8_t *msg_buf, size_t input_ms
             (uint8_t *)&((struct serialized_psa_reply_t *)packet_payload_ptr)->reply;
         break;
     default:
-        return TFM_PLAT_ERR_INVALID_INPUT;
+        return SFCP_ERROR_INVALID_MSG;
     }
 
     memcpy(output_payload_ptr, input_message_payload, input_payload_size);
 
     *output_msg_size = required_output_message_size;
 
-    return TFM_PLAT_ERR_SUCCESS;
+    return SFCP_ERROR_SUCCESS;
 }
 
-static enum tfm_plat_err_t convert_to_legacy(uint8_t *msg_buf, size_t input_msg_len,
-                                             uint8_t *output_msg, size_t output_msg_len,
-                                             size_t *output_msg_size,
-                                             enum sfcp_packet_type_t packet_type)
+static enum sfcp_error_t convert_to_legacy(uint8_t *msg_buf, size_t input_msg_len,
+                                           uint8_t *output_msg, size_t output_msg_len,
+                                           size_t *output_msg_size,
+                                           enum sfcp_packet_type_t packet_type)
 {
     struct legacy_sfcp_header_t *output_msg_header = (struct legacy_sfcp_header_t *)output_msg;
     uint8_t *packet_payload;
@@ -150,7 +150,7 @@ static enum tfm_plat_err_t convert_to_legacy(uint8_t *msg_buf, size_t input_msg_
     required_output_message_size = sizeof(struct legacy_sfcp_header_t) + input_payload_size;
 
     if (output_msg_len < required_output_message_size) {
-        return TFM_PLAT_ERR_UNSUPPORTED;
+        return SFCP_ERROR_BUFFER_TOO_SMALL;
     }
 
     packet_payload = (uint8_t *)GET_SFCP_PAYLOAD_PTR(input_msg, false, true);
@@ -170,76 +170,76 @@ static enum tfm_plat_err_t convert_to_legacy(uint8_t *msg_buf, size_t input_msg_
         output_msg_payload = (uint8_t *)&((struct legacy_sfcp_reply_t *)output_msg)->reply;
         break;
     default:
-        return TFM_PLAT_ERR_INVALID_INPUT;
+        return SFCP_ERROR_INVALID_MSG;
     }
 
     memcpy(output_msg_payload, input_payload_ptr, input_payload_size);
 
     *output_msg_size = required_output_message_size;
 
-    return TFM_PLAT_ERR_SUCCESS;
+    return SFCP_ERROR_SUCCESS;
 }
 
-enum tfm_plat_err_t sfcp_convert_from_legacy_msg(uint8_t *msg_buf, size_t input_msg_len,
-                                                 uint8_t *output_msg, size_t output_msg_len,
-                                                 size_t *output_msg_size, sfcp_link_id_t link_id,
-                                                 sfcp_node_id_t my_node_id)
+enum sfcp_error_t sfcp_convert_from_legacy_msg(uint8_t *msg_buf, size_t input_msg_len,
+                                               uint8_t *output_msg, size_t output_msg_len,
+                                               size_t *output_msg_size, sfcp_link_id_t link_id,
+                                               sfcp_node_id_t my_node_id)
 {
-    enum tfm_plat_err_t err;
+    enum sfcp_error_t sfcp_err;
     sfcp_node_id_t sender;
 
-    err = get_node_id_from_link_id(link_id, &sender, my_node_id);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
+    sfcp_err = get_node_id_from_link_id(link_id, &sender, my_node_id);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        return sfcp_err;
     }
 
     return convert_from_legacy(msg_buf, input_msg_len, output_msg, output_msg_len, output_msg_size,
                                sender, my_node_id, SFCP_PACKET_TYPE_MSG_NEEDS_REPLY);
 }
 
-enum tfm_plat_err_t sfcp_convert_from_legacy_reply(uint8_t *msg_buf, size_t input_msg_len,
-                                                   uint8_t *output_msg, size_t output_msg_len,
-                                                   size_t *output_msg_size, sfcp_link_id_t link_id,
-                                                   sfcp_node_id_t my_node_id)
+enum sfcp_error_t sfcp_convert_from_legacy_reply(uint8_t *msg_buf, size_t input_msg_len,
+                                                 uint8_t *output_msg, size_t output_msg_len,
+                                                 size_t *output_msg_size, sfcp_link_id_t link_id,
+                                                 sfcp_node_id_t my_node_id)
 {
-    enum tfm_plat_err_t err;
+    enum sfcp_error_t sfcp_err;
     sfcp_node_id_t receiver;
 
-    err = get_node_id_from_link_id(link_id, &receiver, my_node_id);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
+    sfcp_err = get_node_id_from_link_id(link_id, &receiver, my_node_id);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        return sfcp_err;
     }
 
     return convert_from_legacy(msg_buf, input_msg_len, output_msg, output_msg_len, output_msg_size,
                                my_node_id, receiver, SFCP_PACKET_TYPE_REPLY);
 }
 
-enum tfm_plat_err_t sfcp_convert_to_legacy_msg(uint8_t *msg_buf, size_t input_msg_len,
-                                               uint8_t *output_msg, size_t output_msg_len,
-                                               size_t *output_msg_size)
+enum sfcp_error_t sfcp_convert_to_legacy_msg(uint8_t *msg_buf, size_t input_msg_len,
+                                             uint8_t *output_msg, size_t output_msg_len,
+                                             size_t *output_msg_size)
 {
     return convert_to_legacy(msg_buf, input_msg_len, output_msg, output_msg_len, output_msg_size,
                              SFCP_PACKET_TYPE_MSG_NEEDS_REPLY);
 }
 
-enum tfm_plat_err_t sfcp_convert_to_legacy_reply(uint8_t *msg_buf, size_t input_msg_len,
-                                                 uint8_t *output_msg, size_t output_msg_len,
-                                                 size_t *output_msg_size)
+enum sfcp_error_t sfcp_convert_to_legacy_reply(uint8_t *msg_buf, size_t input_msg_len,
+                                               uint8_t *output_msg, size_t output_msg_len,
+                                               size_t *output_msg_size)
 {
     return convert_to_legacy(msg_buf, input_msg_len, output_msg, output_msg_len, output_msg_size,
                              SFCP_PACKET_TYPE_REPLY);
 }
 
-enum tfm_plat_err_t sfcp_convert_to_legacy_error_reply(uint8_t *msg_buf, size_t input_msg_len,
-                                                       uint8_t *output_msg, size_t output_msg_len,
-                                                       size_t msg_buf_len, size_t *output_msg_size)
+enum sfcp_error_t sfcp_convert_to_legacy_error_reply(uint8_t *msg_buf, size_t input_msg_len,
+                                                     uint8_t *output_msg, size_t output_msg_len,
+                                                     size_t msg_buf_len, size_t *output_msg_size)
 {
     struct legacy_sfcp_header_t *output_msg_header = (struct legacy_sfcp_header_t *)output_msg;
     struct sfcp_packet_t *input_msg = (struct sfcp_packet_t *)msg_buf;
     struct legacy_sfcp_reply_t *reply;
 
     if (input_msg_len != SFCP_PACKET_SIZE_ERROR_REPLY) {
-        return TFM_PLAT_ERR_INVALID_INPUT;
+        return SFCP_ERROR_INVALID_PACKET_SIZE;
     }
 
     output_msg_header->protocol_ver = 0;
@@ -251,5 +251,5 @@ enum tfm_plat_err_t sfcp_convert_to_legacy_error_reply(uint8_t *msg_buf, size_t 
 
     *output_msg_size = sizeof(struct legacy_sfcp_header_t) + sizeof(int32_t);
 
-    return TFM_PLAT_ERR_SUCCESS;
+    return SFCP_ERROR_SUCCESS;
 }
