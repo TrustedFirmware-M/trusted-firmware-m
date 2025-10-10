@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2023-2024, Arm Limited. All rights reserved.
-# Copyright 2023-2024 NXP. All rights reserved.
+# Copyright 2023-2025 NXP
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -29,14 +29,14 @@ target_sources(platform_ns
         Native_Driver/components/serial_manager/fsl_component_serial_manager.c
         Native_Driver/components/serial_manager/fsl_component_serial_port_uart.c
         Native_Driver/components/uart/fsl_adapter_usart.c
-        Native_Driver/drivers/fsl_common.c
-        Native_Driver/drivers/fsl_common_arm.c
-        Native_Driver/drivers/fsl_ctimer.c
-        Native_Driver/drivers/fsl_flexcomm.c
-        Native_Driver/drivers/fsl_gpio.c
-        Native_Driver/drivers/fsl_iap.c
-        Native_Driver/drivers/fsl_usart.c
-        Native_Driver/utilities/fsl_assert.c
+        Native_Driver/drivers/common/fsl_common.c
+        Native_Driver/drivers/common/fsl_common_arm.c
+        Native_Driver/drivers/ctimer/fsl_ctimer.c
+        Native_Driver/drivers/flexcomm/fsl_flexcomm.c
+        Native_Driver/drivers/flexcomm/usart/fsl_usart.c
+        Native_Driver/drivers/lpc_gpio/fsl_gpio.c
+        Native_Driver/drivers/iap1/fsl_iap.c
+        Native_Driver/utilities/assert/fsl_assert.c
         Native_Driver/utilities/debug_console/fsl_debug_console.c
         Native_Driver/utilities/str/fsl_str.c
         $<$<BOOL:${TFM_PARTITION_PLATFORM}>:plat_test.c>
@@ -53,11 +53,20 @@ target_include_directories(platform_ns
         Device/Include
         Device/Config
         Native_Driver/drivers
+        Native_Driver/drivers/common
+        Native_Driver/drivers/ctimer
+        Native_Driver/drivers/iap1
+        Native_Driver/drivers/lpc_gpio
+        Native_Driver/drivers/lpc_iocon
+        Native_Driver/drivers/flexcomm
+        Native_Driver/drivers/flexcomm/usart
         Native_Driver/components/lists
         Native_Driver/components/serial_manager
         Native_Driver/components/uart
         Native_Driver/utilities/debug_console
         Native_Driver/utilities/str
+        Native_Driver/utilities/assert
+        Native_Driver/periph
         partition
 )
 

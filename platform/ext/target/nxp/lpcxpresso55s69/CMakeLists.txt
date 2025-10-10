@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2020, Linaro. All rights reserved.
-# Copyright 2021-2024 NXP. All rights reserved.
+# Copyright 2021-2025 NXP
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -12,10 +12,8 @@ cmake_policy(SET CMP0076 NEW)
 set(NXP_COMMON_DIR ${CMAKE_CURRENT_LIST_DIR}/../common)
 
 # Pull drivers from NXP git
-if (TFM_PLATFORM_NXP_HAL_FILE_PATH STREQUAL "DOWNLOAD")
+if (TFM_PLATFORM_NXP_HAL_FILE_PATH STREQUAL "LOCAL")
     set(NXP_HAL_FILE_PATH ${PLATFORM_DIR}/ext/target/nxp)
-    Message("-- Pulling MCUxpresso NXP SDK drivers from "${NXP_SDK_GIT_REP}/${NXP_SDK_GIT_TAG})
-    include(pull_drivers.cmake)
 # Use specified path to NXP hal folder provided by user
 else()
     set(NXP_HAL_FILE_PATH ${TFM_PLATFORM_NXP_HAL_FILE_PATH})
@@ -76,13 +74,22 @@ target_include_directories(platform_s
         ${PLATFORM_DIR}/ext/target/nxp/common/Device/Include
         ${NXP_HAL_FILE_PATH}/lpcxpresso55s69/Native_Driver
         ${NXP_HAL_FILE_PATH}/lpcxpresso55s69/Native_Driver/drivers
+        ${NXP_HAL_FILE_PATH}/lpcxpresso55s69/Native_Driver/periph
         ${NXP_HAL_FILE_PATH}/common/Native_Driver
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/common
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/ctimer
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/iap1
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/lpc_gpio
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/lpc_iocon
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/flexcomm
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/flexcomm/usart
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/lists
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/serial_manager
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/uart
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/debug_console
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/str
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/assert
 )
 
 target_sources(platform_s
@@ -95,7 +102,7 @@ target_sources(platform_s
         project_template/s/board.c
         project_template/s/clock_config.c
         project_template/s/pin_mux.c
-        ${NXP_HAL_FILE_PATH}/lpcxpresso55s69/Native_Driver/system_LPC55S69_cm33_core0.c
+        ${NXP_HAL_FILE_PATH}/lpcxpresso55s69/Native_Driver/system_LPC55S69_cm33_core0.c 
         ${NXP_HAL_FILE_PATH}/lpcxpresso55s69/Native_Driver/drivers/fsl_clock.c
         ${NXP_HAL_FILE_PATH}/lpcxpresso55s69/Native_Driver/drivers/fsl_power.c
         ${NXP_HAL_FILE_PATH}/lpcxpresso55s69/Native_Driver/drivers/fsl_reset.c
@@ -103,14 +110,14 @@ target_sources(platform_s
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/serial_manager/fsl_component_serial_manager.c
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/serial_manager/fsl_component_serial_port_uart.c
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/uart/fsl_adapter_usart.c
-        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/fsl_common.c
-        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/fsl_common_arm.c
-        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/fsl_ctimer.c
-        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/fsl_flexcomm.c
-        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/fsl_gpio.c
-        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/fsl_iap.c
-        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/fsl_usart.c
-        ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/fsl_assert.c
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/common/fsl_common.c
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/common/fsl_common_arm.c
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/ctimer/fsl_ctimer.c
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/flexcomm/fsl_flexcomm.c
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/flexcomm/usart/fsl_usart.c
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/lpc_gpio/fsl_gpio.c
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/iap1/fsl_iap.c
+        ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/assert/fsl_assert.c
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/debug_console/fsl_debug_console.c
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/str/fsl_str.c
         $<$<BOOL:${TFM_PARTITION_PLATFORM}>:${PLATFORM_DIR}/ext/target/nxp/common/plat_test.c>
@@ -149,17 +156,27 @@ if(BL2)
             ${PLATFORM_DIR}/ext/target/nxp/common
             ${PLATFORM_DIR}/ext/target/nxp/common/Device/Include
             ${NXP_HAL_FILE_PATH}/lpcxpresso55s69/Native_Driver
+            ${NXP_HAL_FILE_PATH}/lpcxpresso55s69/Native_Driver/periph
             ${NXP_HAL_FILE_PATH}/lpcxpresso55s69/Native_Driver/drivers
             ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/common
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/ctimer
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/iap1
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/lpc_gpio
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/lpc_iocon
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/flexcomm
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/flexcomm/usart
+
         PRIVATE
             .
             ${PLATFORM_DIR}/ext/target/nxp/common/Device/Config
             ${PLATFORM_DIR}/ext/target/nxp/common/Device/Include
             ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/serial_manager
-            ${NXP_HAL_FILE_PATH}/common/Native_Driver
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/lists
             ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/uart
             ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/debug_console
             ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/str
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/assert
     )
     target_sources(platform_bl2
         PRIVATE
@@ -175,12 +192,13 @@ if(BL2)
             ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/serial_manager/fsl_component_serial_manager.c
             ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/serial_manager/fsl_component_serial_port_uart.c
             ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/uart/fsl_adapter_usart.c
-            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/fsl_common.c
-            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/fsl_common_arm.c
-            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/fsl_flexcomm.c
-            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/fsl_iap.c
-            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/fsl_usart.c
-            ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/fsl_assert.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/common/fsl_common.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/common/fsl_common_arm.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/flexcomm/fsl_flexcomm.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/flexcomm/usart/fsl_usart.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/lpc_gpio/fsl_gpio.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/iap1/fsl_iap.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/assert/fsl_assert.c
             ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/debug_console/fsl_debug_console.c
             ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/str/fsl_str.c
     )

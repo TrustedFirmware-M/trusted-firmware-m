@@ -1,15 +1,13 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2020-2023, Arm Limited. All rights reserved.
-# Copyright (c) 2021-2024 NXP
+# Copyright 2021-2025 NXP
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
 
 ################################## Dependencies ################################
-set(TFM_PLATFORM_NXP_HAL_FILE_PATH      "DOWNLOAD"      CACHE STRING    "Path to the NXP SDK hal (or DOWNLOAD to fetch automatically)")
-set(NXP_SDK_GIT_REP                     "https://raw.githubusercontent.com/nxp-mcuxpresso/mcux-sdk" CACHE STRING    "The repository address of the NXP MCUXpresso SDK")
-set(NXP_SDK_GIT_TAG                     "MCUX_2.15.000" CACHE STRING    "The version of the NXP MCUXpresso SDK")
+set(TFM_PLATFORM_NXP_HAL_FILE_PATH         "LOCAL"          CACHE STRING     "Path to the NXP SDK hal drivers")
 
 ############################ Platform ##########################################
 set(PLATFORM_DEFAULT_ATTEST_HAL         ON              CACHE BOOL      "Use default attest hal implementation.")
