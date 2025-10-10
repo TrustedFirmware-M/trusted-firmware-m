@@ -147,6 +147,7 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(sfcp_link_id_t link_id, uint32_t 
     size_t payload_len;
     sfcp_handler_t handler;
     bool is_handshake_req;
+    bool buffer_allocation_failure = false;
 
     hal_err = sfcp_hal_get_receive_message_size(link_id, &message_size);
     if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
@@ -157,14 +158,16 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(sfcp_link_id_t link_id, uint32_t 
         /* Message too large for buffer */
         protocol_err = SFCP_PROTOCOL_ERROR_MSG_TOO_LARGE_TO_RECIEVE;
         err = TFM_PLAT_ERR_SYSTEM_ERR;
-        goto out_error_buffer_allocation;
+        buffer_allocation_failure = true;
+        goto out_error;
     }
 
     if (!get_free_sfcp_buffer(&buffer_handle)) {
         /* Not enough buffer space */
         protocol_err = SFCP_PROTOCOL_ERROR_MSG_DELIVERY_TEMPORARY_FAILURE;
         err = TFM_PLAT_ERR_SYSTEM_ERR;
-        goto out_error_buffer_allocation;
+        buffer_allocation_failure = true;
+        goto out_error;
     }
 
     hal_err = sfcp_hal_receive_message(link_id, sfcp_buffer[buffer_handle].buf, message_size);
@@ -210,14 +213,14 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(sfcp_link_id_t link_id, uint32_t 
         if (forwarding_link_id == 0) {
             protocol_err = SFCP_PROTOCOL_ERROR_INVALID_FORWARDING_DESTINATION;
             err = (enum tfm_plat_err_t)SFCP_ERROR_INVALID_NODE;
-            goto out_error_reply;
+            goto out_error;
         }
 
         hal_err = sfcp_hal_send_message(forwarding_link_id, (uint8_t *)packet, message_size);
         if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
             protocol_err = SFCP_PROTOCOL_ERROR_FORWARDING_FAILED;
             err = (enum tfm_plat_err_t)sfcp_hal_error_to_sfcp_error(hal_err);
-            goto out_error_reply;
+            goto out_error;
         }
 
         /* Message has been successfully forwarded, nothing else to do */
@@ -229,7 +232,7 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(sfcp_link_id_t link_id, uint32_t 
         payload, payload_len, &is_handshake_req);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         protocol_err = SFCP_PROTOCOL_ERROR_HANDSHAKE_FAILED;
-        goto out_error_reply;
+        goto out_error;
     }
 
     if (is_handshake_req) {
@@ -244,7 +247,7 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(sfcp_link_id_t link_id, uint32_t 
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             protocol_err = SFCP_PROTOCOL_ERROR_INVALID_APPLICATION_ID;
             err = TFM_PLAT_ERR_SYSTEM_ERR;
-            goto out_error_reply;
+            goto out_error;
         }
 
         break;
@@ -254,60 +257,66 @@ enum tfm_plat_err_t tfm_multi_core_hal_receive(sfcp_link_id_t link_id, uint32_t 
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             protocol_err = SFCP_PROTOCOL_ERROR_INVALID_CLIENT_ID;
             err = TFM_PLAT_ERR_SYSTEM_ERR;
-            goto out_error_reply;
+            goto out_error;
         }
 
         break;
     default:
         protocol_err = SFCP_PROTOCOL_ERROR_INVALID_CONTEXT;
         err = TFM_PLAT_ERR_SYSTEM_ERR;
-        goto out_error_reply;
+        goto out_error;
     }
 
     sfcp_err = handler(buffer_handle);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         protocol_err = SFCP_PROTOCOL_ERROR_HANDLER_FAILED;
         err = TFM_PLAT_ERR_SYSTEM_ERR;
-        goto out_error_reply;
+        goto out_error;
     }
 
     return TFM_PLAT_ERR_SUCCESS;
 
-out_error_buffer_allocation: {
-    enum sfcp_error_t sfcp_parse_buffer_failed_packet_error;
-    struct sfcp_packet_t buffer_failure_packet;
-    size_t size_to_receive;
+out_error:
+    if (buffer_allocation_failure) {
+        enum sfcp_error_t sfcp_parse_buffer_failed_packet_error;
+        struct sfcp_packet_t buffer_failure_packet;
+        size_t size_to_receive;
 
-    /* Only receive the header or the maximum possible size if the message is smaller */
-    size_to_receive = message_size < SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(true, true) ?
-                          message_size :
-                          SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(true, true);
+        /* Only receive the header or the maximum possible size if the message is smaller */
+        size_to_receive = message_size < SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(true, true) ?
+                              message_size :
+                              SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(true, true);
 
-    /* Message too large for buffer, receive just the header for error reply */
-    hal_err = sfcp_hal_receive_message(link_id, (uint8_t *)&buffer_failure_packet, size_to_receive);
-    if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
-        /* Cannot receive the header so have to drop */
-        return (enum tfm_plat_err_t)sfcp_hal_error_to_sfcp_error(hal_err);
+        /* Message too large for buffer, receive just the header for error reply */
+        hal_err =
+            sfcp_hal_receive_message(link_id, (uint8_t *)&buffer_failure_packet, size_to_receive);
+        if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
+            /* Cannot receive the header so have to drop */
+            return (enum tfm_plat_err_t)sfcp_hal_error_to_sfcp_error(hal_err);
+        }
+
+        sfcp_parse_buffer_failed_packet_error = sfcp_helpers_parse_packet(
+            &buffer_failure_packet, size_to_receive, &packet_sender, &packet_receiver, &message_id,
+            &packet_uses_crypto, &uses_id_extension, &packet_application_id, &packet_client_id,
+            &payload, &payload_len, &needs_reply, &packet_type);
+        if (sfcp_parse_buffer_failed_packet_error != SFCP_ERROR_SUCCESS) {
+            /* Cannot parse this packet so must drop */
+            return (enum tfm_plat_err_t)sfcp_parse_buffer_failed_packet_error;
+        }
     }
 
-    sfcp_parse_buffer_failed_packet_error = sfcp_helpers_parse_packet(
-        &buffer_failure_packet, size_to_receive, &packet_sender, &packet_receiver, &message_id,
-        &packet_uses_crypto, &uses_id_extension, &packet_application_id, &packet_client_id,
-        &payload, &payload_len, &needs_reply, &packet_type);
-    if (sfcp_parse_buffer_failed_packet_error != SFCP_ERROR_SUCCESS) {
-        /* Cannot parse this packet so must drop */
-        return (enum tfm_plat_err_t)sfcp_parse_buffer_failed_packet_error;
-    }
-
-    /* Fallthrough to send error reply */
-}
-
-out_error_reply:
     if (needs_reply) {
         enum sfcp_error_t send_reply_error = send_protocol_error(
             packet_sender, packet_receiver, link_id, packet_client_id, message_id, protocol_err);
         if (send_reply_error != SFCP_ERROR_SUCCESS) {
             err = (enum tfm_plat_err_t)send_reply_error;
+        }
+    }
+
+    if (!buffer_allocation_failure) {
+        enum sfcp_error_t free_buffer_failure = sfcp_pop_handler_buffer(buffer_handle);
+        if (free_buffer_failure != SFCP_ERROR_SUCCESS) {
+            err = (enum tfm_plat_err_t)free_buffer_failure;
         }
     }
 
