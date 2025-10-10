@@ -108,9 +108,12 @@ static cc3xx_err_t count_zero_bits(uint8_t *buf, size_t buf_len, uint32_t *zero_
 }
 
 /* SP800-90B section 4.4.1 */
-static cc3xx_err_t repetition_count_test(const uint32_t *buf, size_t buf_size, size_t *number_of_contiguous_0s, size_t *number_of_contiguous_1s)
+static cc3xx_err_t repetition_count_test(const uint32_t *buf,
+                                         size_t word_count,
+                                         size_t *number_of_contiguous_0s,
+                                         size_t *number_of_contiguous_1s)
 {
-    for (size_t idx = 0; idx < buf_size; idx++) {
+    for (size_t idx = 0; idx < (word_count * sizeof(uint32_t)); idx++) {
         uint8_t byte = ((uint8_t *)buf)[idx];
         for (size_t bit = 0; bit < 8; bit++) {
             if ((byte >> bit) & 0x01) {
@@ -132,9 +135,14 @@ static cc3xx_err_t repetition_count_test(const uint32_t *buf, size_t buf_size, s
 }
 
 /* SP800-90B section 4.4.2 */
-static cc3xx_err_t adaptive_proportion_test(const uint32_t *buf, size_t buf_size, size_t *total_bits_count, size_t *number_of_0s)
+static cc3xx_err_t adaptive_proportion_test(const uint32_t *buf,
+                                            size_t word_count,
+                                            size_t *total_bits_count,
+                                            size_t *number_of_0s)
 {
-    while (buf_size) {
+    size_t buf_size = word_count * sizeof(uint32_t);
+
+    while (buf_size > 0) {
 
         /* Compute the words that we still have to count until the end of the window */
         const size_t words_left_to_count =
@@ -167,16 +175,19 @@ static cc3xx_err_t adaptive_proportion_test(const uint32_t *buf, size_t buf_size
 }
 
 /* SP800-90B section 4.4 */
-static cc3xx_err_t continuous_health_test(const uint32_t *buf, size_t buf_size, struct health_tests_ctx_t *ctx)
+static cc3xx_err_t continuous_health_test(const uint32_t *buf,
+                                          size_t word_count,
+                                          struct health_tests_ctx_t *ctx)
 {
     cc3xx_err_t err = repetition_count_test(
-        buf, buf_size, &(ctx->number_of_contiguous_0s), &(ctx->number_of_contiguous_1s));
+        buf, word_count, &(ctx->number_of_contiguous_0s), &(ctx->number_of_contiguous_1s));
 
     if (err != CC3XX_ERR_SUCCESS) {
         return err;
     }
 
-    return adaptive_proportion_test(buf, buf_size, &(ctx->total_bits_count), &(ctx->number_of_0s));
+    return adaptive_proportion_test(buf, word_count,
+                                    &(ctx->total_bits_count), &(ctx->number_of_0s));
 }
 
 /**
@@ -200,7 +211,9 @@ static cc3xx_err_t startup_test(size_t entropy_byte_size)
             break;
         }
 
-        err = continuous_health_test(random_bits, entropy_byte_size, &g_entropy_tests);
+        err = continuous_health_test(random_bits,
+                                     entropy_byte_size / sizeof(uint32_t),
+                                     &g_entropy_tests);
         if (err != CC3XX_ERR_SUCCESS) {
             break;
         }
@@ -253,7 +266,9 @@ cc3xx_err_t cc3xx_lowlevel_get_entropy(uint32_t *entropy, size_t entropy_len)
             }
 
             /* The entropy source is always in SP 800-90B mode, i.e. continuosly testing itself */
-            err = continuous_health_test(&entropy[num_words], CC3XX_TRNG_SAMPLE_SIZE, &g_entropy_tests);
+            err = continuous_health_test(&entropy[num_words],
+                                         CC3XX_TRNG_SAMPLE_SIZE / sizeof(uint32_t),
+                                         &g_entropy_tests);
             if (err != CC3XX_ERR_SUCCESS) {
                 goto cleanup;
             }
