@@ -16,6 +16,7 @@ target_include_directories(platform_s
 target_sources(platform_s
     PRIVATE
         sfcp_runtime_hal.c
+        sfcp_interrupt_handler.c
         sfcp_atu.c
         sfcp_link_hal.c
         sfcp.c

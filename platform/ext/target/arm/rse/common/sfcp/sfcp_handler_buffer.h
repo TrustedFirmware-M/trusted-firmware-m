@@ -15,6 +15,25 @@ extern "C" {
 #endif
 
 /**
+ * \brief Reserve a handler buffer capable of holding an incoming packet.
+ *
+ * \details
+ * Allocates internal storage for a message of up to \p message_size bytes,
+ * returning a handle that can later be used to access or release the buffer.
+ * This is typically invoked by the interrupt handler before handing control
+ * over to a protocol-specific handler.
+ *
+ * \param[out] buffer_handle  On success, updated with the allocated buffer handle.
+ * \param[in]  message_size   Size in bytes required to store the incoming packet.
+ *
+ * \return SFCP_ERROR_SUCCESS on success;
+ *         SFCP_ERROR_ALLOCATE_BUFFER_TOO_LARGE if the request exceeds limits;
+ *         SFCP_ERROR_ALLOCATE_BUFFER_FAILED on allocation failure.
+ */
+enum sfcp_error_t sfcp_allocate_handler_buffer(sfcp_buffer_handle_t *buffer_handle,
+                                               size_t message_size);
+
+/**
  * \brief Obtain a pointer/size to a buffered packet (handler mode).
  *
  * \details
