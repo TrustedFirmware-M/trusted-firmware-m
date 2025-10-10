@@ -34,7 +34,9 @@
 extern "C" {
 #endif
 
+#if (defined(FSL_FEATURE_SOC_CTIMER_COUNT) && (FSL_FEATURE_SOC_CTIMER_COUNT > 0U))
 #include "fsl_ctimer.h"
+#endif
 
 #ifdef __cplusplus
 }
