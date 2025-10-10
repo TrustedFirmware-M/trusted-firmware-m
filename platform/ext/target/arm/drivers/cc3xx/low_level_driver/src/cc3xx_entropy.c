@@ -199,6 +199,11 @@ static cc3xx_err_t startup_test(size_t entropy_byte_size)
         if (err != CC3XX_ERR_SUCCESS) {
             break;
         }
+
+        err = continuous_health_test(random_bits, entropy_byte_size, &g_entropy_tests);
+        if (err != CC3XX_ERR_SUCCESS) {
+            break;
+        }
     }
 
     return err;
