@@ -6,7 +6,7 @@ Analog Devices, Inc. Platforms
     :maxdepth: 1
     :titlesonly:
 
-    MAX32657 <max32657/README.rst>
+    MAX32657/MAX32658 <max32657/README.rst>
 
 --------------
 
