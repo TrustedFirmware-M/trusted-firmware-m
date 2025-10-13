@@ -533,7 +533,34 @@ static enum tfm_plat_err_t check_areas_for_tampering(enum lcm_lcs_t lcs)
 {
     enum tfm_plat_err_t err;
 
-    if (lcs == LCM_LCS_RMA || lcs == LCM_LCS_CM) {
+    if (lcs == LCM_LCS_RMA) {
+        return TFM_PLAT_ERR_SUCCESS;
+    }
+
+#ifdef RSE_OTP_HAS_SOC_AREA
+    err = rse_zc_region_check_zero_count(ZC_OTP_SOC_AREA_UID, true);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
+        FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_SOC_ZERO_COUNT_ERR);
+        return TFM_PLAT_ERR_OTP_INIT_SOC_ZERO_COUNT_ERR;
+    }
+
+    err = rse_zc_region_check_zero_count(ZC_OTP_SOC_AREA_IDS, true);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
+        FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_SOC_ZERO_COUNT_ERR);
+        return TFM_PLAT_ERR_OTP_INIT_SOC_ZERO_COUNT_ERR;
+    }
+
+    err = rse_zc_region_check_zero_count(ZC_OTP_SOC_CFG_DATA, true);
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
+        FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_SOC_ZERO_COUNT_ERR);
+        return TFM_PLAT_ERR_OTP_INIT_SOC_ZERO_COUNT_ERR;
+    }
+#endif /* RSE_OTP_HAS_SOC_AREA */
+
+    if (lcs == LCM_LCS_CM) {
         return TFM_PLAT_ERR_SUCCESS;
     }
 
@@ -554,15 +581,6 @@ static enum tfm_plat_err_t check_areas_for_tampering(enum lcm_lcs_t lcs)
         return TFM_PLAT_ERR_OTP_INIT_BL1_2_ZERO_COUNT_ERR;
     }
 #endif /* RSE_OTP_HAS_BL1_2 */
-
-#ifdef RSE_OTP_HAS_SOC_AREA
-    err = rse_zc_region_check_zero_count(ZC_OTP_SOC_AREA_UID, true);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_INTEGRITY_CHECK_FAILURE);
-        FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_SOC_ZERO_COUNT_ERR);
-        return TFM_PLAT_ERR_OTP_INIT_SOC_ZERO_COUNT_ERR;
-    }
-#endif /* RSE_OTP_HAS_SOC_AREA */
 
     /* If we are in DM LCS, don't check the DM area */
     if (lcs == LCM_LCS_DM) {
