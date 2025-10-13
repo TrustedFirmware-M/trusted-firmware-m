@@ -26,6 +26,7 @@
 /* #define TFM_BL1_2_EMBED_ROTPK_IN_IMAGE */
 /* #define TFM_BL1_2_IMAGE_ENCRYPTION */
 /* #define TFM_BL1_2_ENABLE_ROTPK_POLICIES */
+/* #define TFM_BL1_2_IMAGE_BINDING */
 
 /* #define TFM_BL1_2_ENABLE_LMS */
 /* #define TFM_BL1_2_ENABLE_ECDSA */

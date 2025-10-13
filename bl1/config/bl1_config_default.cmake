@@ -40,6 +40,7 @@ else()
 endif()
 
 set(TFM_BL1_MEMORY_MAPPED_FLASH         ON          CACHE BOOL      "Whether BL1 can directly access flash content")
+set(TFM_BL1_2_IMAGE_BINDING             OFF         CACHE BOOL      "Enable BL2 image binding with AES-CMAC")
 
 set(TFM_BL1_LOG_LEVEL                   LOG_LEVEL_INFO CACHE STRING "The level of BL1 logging to uart")
 set(TFM_BL1_DEFAULT_OTP                 ON          CACHE BOOL      "Whether BL1_1 will use default OTP memory")

@@ -51,6 +51,10 @@ config TFM_BL1_MEMORY_MAPPED_FLASH
     bool "BL1 Access flash content"
     default y
 
+config TFM_BL1_2_IMAGE_BINDING
+    bool "Enable BL2 image binding with AES-CMAC"
+    default n
+
 config TFM_BL1_DEFAULT_OTP
     bool
     default y
