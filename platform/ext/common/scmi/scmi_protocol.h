@@ -24,5 +24,15 @@
 #define SCMI_STATUS_HARDWARE_ERROR     INT32_C(-9)
 #define SCMI_STATUS_PROTOCOL_ERROR     INT32_C(-10)
 
+/**
+ * SCMI protocol error types
+ */
+typedef enum {
+    SCMI_PROTOCOL_SUCCESS = 0,
+    SCMI_PROTOCOL_GENERIC_ERROR,
+    SCMI_PROTOCOL_INVALID_ARGUMENT,
+    SCMI_PROTOCOL_HARDWARE_ERROR,
+    SCMI_PROTOCOL_NOT_SUPPORTED,
+} scmi_protocol_err_t;
 
 #endif /* __SCMI_PROTOCOL_H__ */

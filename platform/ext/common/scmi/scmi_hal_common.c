@@ -7,6 +7,7 @@
 #include "scmi_hal.h"
 #include "scmi_protocol.h"
 #include "tfm_hal_platform.h"
+#include "scmi_system_power.h"
 
 int32_t scmi_hal_sys_power_state(uint32_t agent_id, uint32_t flags,
                                  uint32_t system_state)
