@@ -47,6 +47,11 @@
 /* Mask for Initialization value for the Watchdog */
 #define SAMWDCIV_INIT_VALUE_WDT_MASK (0x3FFFFFFUL)
 
+/* Buffer to store the value of the integrity protected SAM registers */
+static uint32_t icv_regs_store[(offsetof(struct sam_reg_map_t, samicv) -
+                                offsetof(struct sam_reg_map_t, samem)) /
+                               4];
+
 static uint32_t count_zero_bits(uint32_t val)
 {
     uint32_t res = 32;
@@ -57,6 +62,63 @@ static uint32_t count_zero_bits(uint32_t val)
     }
 
     return res;
+}
+
+static inline bool is_invalid_event_counter(struct sam_reg_map_t *regs, volatile uint32_t *reg)
+{
+    const uint32_t samnec =
+        ((regs->sambc >> SAMBC_NUMBER_EVENT_COUNTERS_POS) & SAMBC_NUMBER_EVENT_COUNTERS_MASK);
+
+    return (reg > &regs->samec[samnec]) && (reg <= &regs->samec[7]);
+}
+
+static void init_icv_regs_store(struct sam_reg_map_t *regs)
+{
+    /* Initialise the store with the values of each of the actual (not shadow) registers. Note that
+     * we include all of the EC registers
+     */
+    for (uint8_t i = 0; i < ARRAY_LEN(icv_regs_store); i++) {
+        volatile uint32_t *reg = (volatile uint32_t *)((uintptr_t)&regs->samem + (4 * i));
+
+        /* If this is an event counter that we do not have, initialise the value
+         * in the store to 0, it will not be used in the calculation
+         */
+        if (is_invalid_event_counter(regs, reg)) {
+            icv_regs_store[i] = 0;
+        } else {
+            icv_regs_store[i] = *reg;
+        }
+    }
+}
+
+static void write_icv_reg(struct sam_reg_map_t *regs, volatile uint32_t *reg, uint32_t value)
+{
+    uint32_t zero_count = 0;
+    const uint8_t regs_store_idx = ((uintptr_t)reg - (uintptr_t)&regs->samem) / 4;
+
+    /* Update the backing store, the actual register will only be updated
+     * when the ICV is written
+     */
+    icv_regs_store[regs_store_idx] = value;
+
+    /* Write all of the backing store values to the shadow registers and keep
+     * track of the zero count
+     */
+    for (uint8_t i = 0; i < ARRAY_LEN(icv_regs_store); i++) {
+        volatile uint32_t *reg = (volatile uint32_t *)((uintptr_t)&regs->samem + (4 * i));
+
+        /* Event counters that we do not have are not included
+         * in the SAMICV calculation and should not be written
+         */
+        if (is_invalid_event_counter(regs, reg)) {
+            continue;
+        }
+
+        *reg = icv_regs_store[i];
+        zero_count += count_zero_bits(icv_regs_store[i]);
+    }
+
+    regs->samicv = zero_count;
 }
 
 static uint32_t log2(uint32_t val)
@@ -80,29 +142,8 @@ static inline struct sam_reg_map_t *get_sam_dev_base(
 enum sam_error_t sam_init(const struct sam_dev_t *dev)
 {
     struct sam_reg_map_t *regs = get_sam_dev_base(dev);
-    uint32_t zero_count = 0;
 
-    const uint32_t samnec =
-        ((regs->sambc >> SAMBC_NUMBER_EVENT_COUNTERS_POS) & SAMBC_NUMBER_EVENT_COUNTERS_MASK);
-
-    /*
-     * The SAM registers are not initialised by the DMA ICS in all states
-     * and therefore we need to correctly set up the value of the SAMICV
-     * here. Failure to do so will result in SAM alarms for ICV failures
-     * when we come to program the SAM registers
-     */
-    /* Calculate ZC over integrity checker protected area */
-    for (volatile uint32_t *ptr = (volatile uint32_t *)&regs->samem;
-         ptr < (volatile uint32_t *)&regs->samicv; ptr++) {
-        /* Skip unavailable event counters */
-        if ((ptr > (volatile uint32_t *)&regs->samec[samnec]) &&
-            (ptr <= (volatile uint32_t *)&regs->samec[7])) {
-            continue;
-        }
-        zero_count += count_zero_bits(*ptr);
-    }
-
-    regs->samicv = zero_count;
+    init_icv_regs_store(regs);
 
     return SAM_ERROR_NONE;
 }
@@ -117,9 +158,8 @@ enum sam_error_t sam_enable_event(const struct sam_dev_t *dev,
     }
 
     if (!(regs->samim[SAMEx_IDX(event_id)] & SAMEx_MASK(event_id))) {
-        regs->samim[SAMEx_IDX(event_id)] |= SAMEx_MASK(event_id);
-        /* Update integrity check value, one lower zero count */
-        regs->samicv--;
+        write_icv_reg(regs, &regs->samim[SAMEx_IDX(event_id)],
+                      regs->samim[SAMEx_IDX(event_id)] | SAMEx_MASK(event_id));
     }
 
     return SAM_ERROR_NONE;
@@ -135,26 +175,11 @@ enum sam_error_t sam_disable_event(const struct sam_dev_t *dev,
     }
 
     if (regs->samim[SAMEx_IDX(event_id)] & SAMEx_MASK(event_id)) {
-        regs->samim[SAMEx_IDX(event_id)] &= ~SAMEx_MASK(event_id);
-        /* Update integrity check value, one higher zero count */
-        regs->samicv++;
+        write_icv_reg(regs, &regs->samim[SAMEx_IDX(event_id)],
+                      regs->samim[SAMEx_IDX(event_id)] & ~SAMEx_MASK(event_id));
     }
 
     return SAM_ERROR_NONE;
-}
-
-static void update_samicv(struct sam_reg_map_t *regs, uint32_t new_reg_val, uint32_t old_reg_val)
-{
-    uint32_t zc_new, zc_old;
-
-    zc_new = count_zero_bits(new_reg_val);
-    zc_old = count_zero_bits(old_reg_val);
-
-    if (zc_new > zc_old) {
-        regs->samicv += zc_new - zc_old;
-    } else {
-        regs->samicv -= zc_old - zc_new;
-    }
 }
 
 enum sam_error_t sam_set_event_response(const struct sam_dev_t *dev,
@@ -179,10 +204,7 @@ enum sam_error_t sam_set_event_response(const struct sam_dev_t *dev,
     new_reg_val = (old_reg_val & ~SAMRRLS_MASK(event_id)) |
                   ((rrl_val << SAMRRLS_OFF(event_id)) & SAMRRLS_MASK(event_id));
 
-    regs->samrrls[SAMRRLS_IDX(event_id)] = new_reg_val;
-
-    /* Update integrity check value with the difference in zero count */
-    update_samicv(regs,  new_reg_val,  old_reg_val);
+    write_icv_reg(regs, &regs->samrrls[SAMRRLS_IDX(event_id)], new_reg_val);
 
     return SAM_ERROR_NONE;
 }
@@ -192,15 +214,11 @@ void sam_set_watchdog_counter_initial_value(const struct sam_dev_t *dev,
                                             enum sam_response_t responses)
 {
     struct sam_reg_map_t *regs = get_sam_dev_base(dev);
-    uint32_t old_reg_val = regs->samwdciv;
 
     uint32_t wdciv_val = (count_value & SAMWDCIV_INIT_VALUE_WDT_MASK) |
                          ((((uint32_t)responses >> 2UL) & 0x3FUL) << 26UL);
 
-    regs->samwdciv = wdciv_val;
-
-    /* Update integrity check value with the difference in zero count */
-    update_samicv(regs, wdciv_val, old_reg_val);
+    write_icv_reg(regs, &regs->samwdciv, wdciv_val);
 }
 
 enum sam_error_t sam_register_event_handler(struct sam_dev_t *dev,
