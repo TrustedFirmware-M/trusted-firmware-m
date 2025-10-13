@@ -325,7 +325,7 @@ if (TFM_PARTITION_SCMI_COMMS)
     target_sources(scmi_hal
         INTERFACE
             scmi/scmi_hal.c
-            ${PLATFORM_DIR}/ext/common/scmi_hal_common.c
+            ${PLATFORM_DIR}/ext/common/scmi/scmi_hal_common.c
     )
 endif()
 
