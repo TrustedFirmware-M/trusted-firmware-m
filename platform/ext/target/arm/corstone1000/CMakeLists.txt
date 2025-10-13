@@ -204,8 +204,8 @@ target_sources(platform_bl1_1
         ./bootloader/mcuboot/uefi_fmp.c
         ./soft_crc/soft_crc.c
         $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_OTP}>>:${PLATFORM_DIR}/ext/accelerator/cc312/otp_cc312.c>
-        $<$<NOT:$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>>:${CMAKE_CURRENT_SOURCE_DIR}/bl1/cc312_rom_crypto.c>
-        $<$<NOT:$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>>:${CMAKE_CURRENT_SOURCE_DIR}/bl1/cc312_rom_random.c>
+        ${CMAKE_CURRENT_SOURCE_DIR}/bl1/cc312_rom_crypto.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/bl1/cc312_rom_random.c
 )
 
 target_compile_definitions(platform_bl1_1
@@ -248,7 +248,7 @@ target_include_directories(platform_bl1_1_interface
 
 target_link_libraries(platform_bl1_1
     PRIVATE
-        $<$<NOT:$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>>:cc3xx>
+        cc3xx
 )
 
 target_include_directories(platform_bl1_1

@@ -13,7 +13,6 @@ set(PLATFORM_DEFAULT_OTP                OFF        CACHE BOOL     "Use trusted o
 set(PLATFORM_DEFAULT_MEASUREMENT_SLOTS  ON         CACHE BOOL     "Use default Measured Boot slots")
 
 set(TFM_BL1_DEFAULT_PROVISIONING        OFF        CACHE BOOL     "Whether BL1_1 will use default provisioning")
-set(TFM_BL1_SOFTWARE_CRYPTO             OFF        CACHE BOOL     "Whether BL1_1 will use software crypto")
 set(TFM_BL1_MEMORY_MAPPED_FLASH         OFF        CACHE BOOL     "Whether BL1 can directly access flash content")
 set(BL1_1_SHARED_SYMBOLS_PATH           ${CMAKE_CURRENT_LIST_DIR}/bl1/bl1_1_shared_symbols.txt CACHE FILEPATH "Path to list of symbols that BL1_1 will share with BL1_2")
 

@@ -44,7 +44,7 @@ set(TFM_BL1_MEMORY_MAPPED_FLASH         ON          CACHE BOOL      "Whether BL1
 set(TFM_BL1_LOG_LEVEL                   LOG_LEVEL_INFO CACHE STRING "The level of BL1 logging to uart")
 set(TFM_BL1_DEFAULT_OTP                 ON          CACHE BOOL      "Whether BL1_1 will use default OTP memory")
 set(TFM_BL1_DEFAULT_PROVISIONING        ON          CACHE BOOL      "Whether BL1_1 will use default provisioning")
-set(TFM_BL1_SOFTWARE_CRYPTO             ON          CACHE BOOL      "Whether BL1_1 will use software crypto")
+set(TFM_BL1_SOFTWARE_CRYPTO             OFF          CACHE BOOL      "Whether BL1_1 will use software crypto")
 set(TFM_BL1_FIH_ENABLE                  OFF         CACHE BOOL      "Whether BL1 enables FIH config items from bl1_fih_config.h")
 
 if (TFM_BL1_2_CM_SIGNING_ALG STREQUAL "LMS")
