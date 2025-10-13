@@ -422,10 +422,9 @@ EXTERNAL_PSA_API(psa_hash_compute,
                                              hash_length);
     if (status != PSA_SUCCESS) {
         FATAL_ERR(status);
-        FIH_RET(status);
     }
 
-    FIH_RET(FIH_SUCCESS);
+    FIH_RET(status);
 }
 
 __WEAK psa_status_t psa_hash_abort(psa_hash_operation_t *operation)
