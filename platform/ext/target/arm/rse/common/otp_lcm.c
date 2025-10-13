@@ -486,6 +486,7 @@ static enum tfm_plat_err_t setup_rotpk_info(enum lcm_lcs_t lcs) {
     err = rse_zc_region_check_zero_count(ZC_OTP_DM_ROTPK_AREA, false);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         dm_rotpk_area_info.raw_data = 0;
+        NONFATAL_ERR(TFM_PLAT_ERR_OTP_INIT_DM_ROTPK_ZERO_COUNT_ERR);
     } else {
         for (uint32_t idx = 0; idx < RSE_OTP_DM_ROTPK_AMOUNT; idx++) {
             struct otp_mapping_t mapping = ROTPK_AREA_MAPPING(dm, rotpk[idx]);
