@@ -104,3 +104,20 @@ scmi_comms_err_t scmi_hal_doorbell_clear(void)
 
     return SCMI_COMMS_SUCCESS;
 }
+
+scmi_comms_err_t scmi_hal_init_sequence_flags(
+    scmi_init_sequence_flags_t *init_flags)
+{
+    (void)init_flags;
+    return SCMI_COMMS_SUCCESS;
+}
+
+scmi_comms_err_t scmi_hal_init_sequence_hook(bool *hook_done)
+{
+    if (hook_done == NULL) {
+        return SCMI_COMMS_INVALID_ARGUMENT;
+    } else {
+        *hook_done = true;
+        return SCMI_COMMS_SUCCESS;
+    }
+}
