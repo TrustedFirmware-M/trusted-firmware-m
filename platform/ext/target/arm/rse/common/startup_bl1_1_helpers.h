@@ -144,9 +144,7 @@ void startup_dma_double_word_memset(uint32_t des_addr,  uint32_t size, uint32_t 
     register uint32_t dma_channel_amount __asm("r3") =
         (*((volatile uint32_t *)(DMA_350_BASE_S + 0xfb0)) >> 4 & 0xF) + 1;
 
-    /* Configure all DMA channels to wipe the DTCM with the random value in
-     * multiplex.
-     */
+    /* Configure all DMA channels to send requests in parallel to wipe region */
     for (register uint32_t idx __asm("r4") = 0; idx < dma_channel_amount; idx++) {
 
         /* Stop DMA Channel in case already running (ie. from DMA ICS) */

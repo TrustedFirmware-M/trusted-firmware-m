@@ -226,8 +226,10 @@ static inline void __attribute__ ((always_inline)) setup_tram_encryption(void)
         FIH_PANIC;
     }
 
-    startup_dma_double_word_memset(DTCM_CPU0_BASE_S, DTCM_SIZE, 0x0);
+    startup_dma_double_word_memset(DTCM_CPU0_BASE_S, DTCM_SIZE, P_CC3XX->rng.ehr_data[4]);
+    wait_for_dma_operation_complete();
 
+    startup_dma_double_word_memset(ITCM_CPU0_BASE_S, ITCM_SIZE, 0x0);
     wait_for_dma_operation_complete();
 }
 
@@ -235,7 +237,6 @@ static inline void __attribute__ ((always_inline)) setup_tram_encryption(void)
 static inline void __attribute__ ((always_inline)) erase_vm0_and_vm1(void)
 {
     register uint32_t vm_erase_size __asm("r0");
-    register uint32_t dma_channel_amount __asm("r1");
 
     if ((*(volatile uint32_t *)(RSE_SYSCTRL_BASE_S + 0x10c) >>
          RSE_GRETREG_BIT_OFFSET_PERSISTENT_DATA_VALID) & 0b1) {
