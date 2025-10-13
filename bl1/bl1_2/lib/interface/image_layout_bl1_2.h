@@ -49,6 +49,9 @@ __PACKED_STRUCT bl1_2_image_t {
 #ifdef TFM_BL1_2_IMAGE_ENCRYPTION
                 uint8_t ctr_iv[16];
 #endif
+#ifdef TFM_BL1_2_IMAGE_BINDING
+                uint8_t binding_tag[16];
+#endif /* TFM_BL1_2_IMAGE_BINDING */
                 struct tfm_bl1_image_signature_t sigs[TFM_BL1_2_SIGNER_AMOUNT];
             } header;
             __PACKED_STRUCT {
