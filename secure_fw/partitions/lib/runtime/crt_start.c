@@ -8,8 +8,8 @@
 #if defined(__clang_major__) && defined(__GNUC__)
 
 /*
- * We can not use CMSIS support for LLVM toolchain because it's incompatible
- * with it. That's why we manunally implement the startup routine below.
+ * We can not use CMSIS support for ATfE toolchain because it's incompatible
+ * with it. That's why we manually implement the startup routine below.
  */
 
 typedef struct __copy_table {
@@ -48,5 +48,5 @@ void _start(void)
         ;
 }
 #else
-#error This startup file shall be used in LLVM toolchain only.
+#error This startup file shall be used in ATfE toolchain only.
 #endif

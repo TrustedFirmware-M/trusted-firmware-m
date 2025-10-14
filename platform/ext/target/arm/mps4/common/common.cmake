@@ -14,7 +14,7 @@ target_add_scatter_file(tfm_s
     $<$<C_COMPILER_ID:ARMClang>:${CMAKE_BINARY_DIR}/generated/platform/ext/common/armclang/tfm_isolation_s.sct>
     $<$<C_COMPILER_ID:GNU>:${CMAKE_BINARY_DIR}/generated/platform/ext/common/gcc/tfm_isolation_s.ld>
     $<$<C_COMPILER_ID:IAR>:${CMAKE_BINARY_DIR}/generated/platform/ext/common/iar/tfm_isolation_s.icf>
-    $<$<C_COMPILER_ID:Clang>:${CMAKE_BINARY_DIR}/generated/platform/ext/common/llvm/tfm_isolation_s.ld>
+    $<$<C_COMPILER_ID:Clang>:${CMAKE_BINARY_DIR}/generated/platform/ext/common/atfe/tfm_isolation_s.ld>
 )
 
 # Specify the location of platform specific build dependencies.
@@ -33,7 +33,7 @@ if(BL2)
         $<$<C_COMPILER_ID:ARMClang>:${PLATFORM_DIR}/ext/common/armclang/tfm_common_bl2.sct>
         $<$<C_COMPILER_ID:GNU>:${PLATFORM_DIR}/ext/common/gcc/tfm_common_bl2.ld>
         $<$<C_COMPILER_ID:IAR>:${PLATFORM_DIR}/ext/common/iar/tfm_common_bl2.icf>
-	$<$<C_COMPILER_ID:Clang>:${PLATFORM_DIR}/ext/common/llvm/tfm_common_bl2.ld>
+	$<$<C_COMPILER_ID:Clang>:${PLATFORM_DIR}/ext/common/atfe/tfm_common_bl2.ld>
     )
 
     target_compile_options(bl2_scatter
@@ -284,7 +284,7 @@ target_add_scatter_file(bl1_1
     $<$<C_COMPILER_ID:ARMClang>:${CMAKE_CURRENT_LIST_DIR}/device/source/armclang/mps4_corstone3xx_bl1_1.sct>
     $<$<C_COMPILER_ID:GNU>:${CMAKE_CURRENT_LIST_DIR}/device/source/gcc/mps4_corstone3xx_bl1_1.ld>
     $<$<C_COMPILER_ID:IAR>:${CMAKE_CURRENT_LIST_DIR}/device/source/iar/mps4_corstone3xx_bl1_1.icf>
-    $<$<C_COMPILER_ID:Clang>:${CMAKE_CURRENT_LIST_DIR}/device/source/llvm/mps4_corstone3xx_bl1_1.ld>
+    $<$<C_COMPILER_ID:Clang>:${CMAKE_CURRENT_LIST_DIR}/device/source/atfe/mps4_corstone3xx_bl1_1.ld>
 )
 
 target_compile_options(bl1_1_scatter
@@ -360,7 +360,7 @@ target_add_scatter_file(bl1_2
     $<$<C_COMPILER_ID:ARMClang>:${CMAKE_CURRENT_LIST_DIR}/device/source/armclang/mps4_corstone3xx_bl1_2.sct>
     $<$<C_COMPILER_ID:GNU>:${CMAKE_CURRENT_LIST_DIR}/device/source/gcc/mps4_corstone3xx_bl1_2.ld>
     $<$<C_COMPILER_ID:IAR>:${CMAKE_CURRENT_LIST_DIR}/device/source/iar/mps4_corstone3xx_bl1_2.icf>
-    $<$<C_COMPILER_ID:Clang>:${CMAKE_CURRENT_LIST_DIR}/device/source/llvm/mps4_corstone3xx_bl1_2.ld>
+    $<$<C_COMPILER_ID:Clang>:${CMAKE_CURRENT_LIST_DIR}/device/source/atfe/mps4_corstone3xx_bl1_2.ld>
 )
 
 target_compile_options(bl1_2_scatter
@@ -475,6 +475,6 @@ if(DEFAULT_NS_SCATTER)
     install(FILES       ${PLATFORM_DIR}/ext/common/armclang/tfm_common_ns.sct
                         ${PLATFORM_DIR}/ext/common/gcc/tfm_common_ns.ld
                         ${PLATFORM_DIR}/ext/common/iar/tfm_common_ns.icf
-                        ${PLATFORM_DIR}/ext/common/llvm/tfm_common_ns.ldc
+                        ${PLATFORM_DIR}/ext/common/atfe/tfm_common_ns.ldc
             DESTINATION ${INSTALL_PLATFORM_NS_DIR}/linker_scripts)
 endif()

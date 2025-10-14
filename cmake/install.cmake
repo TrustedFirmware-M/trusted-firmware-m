@@ -291,7 +291,7 @@ install(FILES ${CMAKE_SOURCE_DIR}/cmake/spe-CMakeLists.cmake
 install(FILES       ${PLATFORM_DIR}/ns/toolchain_ns_GNUARM.cmake
                     ${PLATFORM_DIR}/ns/toolchain_ns_ARMCLANG.cmake
                     ${PLATFORM_DIR}/ns/toolchain_ns_IARARM.cmake
-                    ${PLATFORM_DIR}/ns/toolchain_ns_CLANG.cmake
+                    ${PLATFORM_DIR}/ns/toolchain_ns_ATFE.cmake
         DESTINATION ${INSTALL_CMAKE_DIR})
 
 install(FILES

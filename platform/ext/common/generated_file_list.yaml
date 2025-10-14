@@ -49,8 +49,8 @@
     },
     {
         "description": "isolation l1-l3 linker script",
-        "template": "platform/ext/common/llvm/tfm_isolation_s.ld.template",
-        "output": "platform/ext/common/llvm/tfm_isolation_s.ld"
+        "template": "platform/ext/common/atfe/tfm_isolation_s.ld.template",
+        "output": "platform/ext/common/atfe/tfm_isolation_s.ld"
     }
   ]
 }

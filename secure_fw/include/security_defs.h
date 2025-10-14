@@ -21,7 +21,7 @@
 /* Attributes for psa api secure gateway functions */
 #if defined(__GNUC__) && !defined(__ARMCC_VERSION)
 /*
- * LLVM offers 'noduplicate' attribute as 'noclone' equivalent in GNUARM
+ * ATfE offers 'noduplicate' attribute as 'noclone' equivalent in GNUARM
  */
 #if defined(__clang__)
 #define noclone noduplicate

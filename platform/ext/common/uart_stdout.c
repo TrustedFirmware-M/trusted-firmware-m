@@ -86,7 +86,7 @@ int fputc(int ch, FILE *f)
     return ch;
 }
 
-/* Redirect sdtio for PicoLib in LLVM toolchain
+/* Redirect sdtio for PicoLib in ATfE toolchain
    as per https://github.com/picolibc/picolibc/blob/main/doc/os.md
    'fputch()' named intentionally different from 'fputc()' from picolib */
 #elif defined(__clang_major__)

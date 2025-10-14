@@ -33,7 +33,7 @@ target_add_scatter_file(tfm_s
     $<$<C_COMPILER_ID:ARMClang>:${CMAKE_BINARY_DIR}/generated/platform/ext/common/armclang/tfm_isolation_s.sct>
     $<$<C_COMPILER_ID:GNU>:${CMAKE_BINARY_DIR}/generated/platform/ext/common/gcc/tfm_isolation_s.ld>
     $<$<C_COMPILER_ID:IAR>:${CMAKE_BINARY_DIR}/generated/platform/ext/common/iar/tfm_isolation_s.icf>
-    $<$<C_COMPILER_ID:Clang>:${CMAKE_BINARY_DIR}/generated/platform/ext/common/llvm/tfm_isolation_s.ld>
+    $<$<C_COMPILER_ID:Clang>:${CMAKE_BINARY_DIR}/generated/platform/ext/common/atfe/tfm_isolation_s.ld>
 )
 
 if(BL2)
@@ -45,7 +45,7 @@ if(BL2)
             $<$<C_COMPILER_ID:ARMClang>:Device/Source/armclang/musca_bl2.sct>
             $<$<C_COMPILER_ID:GNU>:Device/Source/gcc/musca_bl2.ld>
             $<$<C_COMPILER_ID:IAR>:Device/Source/iar/musca_bl2.icf>
-            $<$<C_COMPILER_ID:Clang>:Device/Source/llvm/musca_bl2.ld>
+            $<$<C_COMPILER_ID:Clang>:Device/Source/atfe/musca_bl2.ld>
     )
 endif()
 
@@ -272,7 +272,7 @@ install(FILES       ${TARGET_PLATFORM_PATH}/cpuarch.cmake
 install(FILES       Device/Source/armclang/musca_ns.sct
                     Device/Source/gcc/musca_ns.ld
                     Device/Source/iar/musca_ns.icf
-                    Device/Source/llvm/musca_ns.ldc
+                    Device/Source/atfe/musca_ns.ldc
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/linker_scripts)
 
 # Install test configs
