@@ -406,7 +406,7 @@ EXTERNAL_PSA_API(psa_hash_compute,
     psa_status_t status;
 
     if (!input_length) {
-        FIH_RET(FIH_SUCCESS);
+        FIH_RET(PSA_SUCCESS);
     }
 
     assert(input != NULL);
