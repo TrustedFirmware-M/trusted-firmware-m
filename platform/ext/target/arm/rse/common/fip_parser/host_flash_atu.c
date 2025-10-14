@@ -20,6 +20,7 @@
 #include "fwu_metadata.h"
 #include "platform_regs.h"
 #endif /* RSE_GPT_SUPPORT */
+#include "tfm_log.h"
 
 #ifdef RSE_BL2_ENABLE_IMAGE_STAGING
 #include "staging_config.h"
@@ -397,6 +398,12 @@ int host_flash_atu_setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2
             return rc;
         }
     } else if (!fip_mapped[0] && !fip_mapped[1]) {
+        ERROR("Failed to find image with UUID starting %02X%02X%02X%02X\n",
+              ((uint8_t*)&image_uuid)[0],
+              ((uint8_t*)&image_uuid)[1],
+              ((uint8_t*)&image_uuid)[2],
+              ((uint8_t*)&image_uuid)[3]);
+
         return TFM_PLAT_ERR_HOST_FLASH_SETUP_IMAGE_SLOT_NO_FIP_MAPPED;
     }
 
