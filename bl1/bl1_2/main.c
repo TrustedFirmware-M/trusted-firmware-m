@@ -128,7 +128,9 @@ static fih_ret validate_image_signature(struct bl1_2_image_t *img,
     }
 
 #ifdef TFM_BL1_2_EMBED_ROTPK_IN_IMAGE
-    if (rotpk_size > TFM_BL1_2_ROTPK_HASH_MAX_SIZE) {
+    assert(rotpk_size <= TFM_BL1_2_ROTPK_HASH_MAX_SIZE);
+
+    if (sig->rotpk_len > sizeof(sig->rotpk)) {
         ERROR("Image ROTPK hash size mismatch\n");
         FIH_RET(FIH_FAILURE);
     }
@@ -145,7 +147,7 @@ static fih_ret validate_image_signature(struct bl1_2_image_t *img,
     key_hash_alg = TFM_BL1_HASH_ALG_SHA384;
 #else
     #error No TFM_BL1_2 ROTPK hash algorithms enabled
-#endif
+#endif /* defined(TFM_BL1_ENABLE_SHA256) && defined(TFM_BL1_ENABLE_SHA384) */
 
     FIH_CALL(bl1_hash_compute, fih_rc, key_hash_alg,
                                        sig->rotpk, sig->rotpk_len,
