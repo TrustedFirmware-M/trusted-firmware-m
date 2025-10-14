@@ -244,27 +244,27 @@ versions are:
 
                     set PATH=<IAR_COMPILER_PATH>\bin;%PATH%
 
-    - LLVM Embedded Toolchain for Arm v18.1.3+
+    - Arm Toolchain for Embedded (ATfE) v20.1.0+
 
       .. tabs::
 
           .. group-tab:: Linux
 
-              - Download the LLVM Embedded Toolchain for Arm from `here <https://github.com/ARM-software/LLVM-embedded-toolchain-for-Arm>`__.
-              - Add LLVM Embedded into environment:
+              - Download the Arm Toolchain for Embedded from `here <https://github.com/arm/arm-toolchain/releases>`__.
+              - Add ATfE into environment:
 
                 .. code-block:: bash
 
-                    export PATH=<LLVM_PATH>/bin:$PATH
+                    export PATH=<ATFE_PATH>/bin:$PATH
 
           .. group-tab:: Windows
 
-              - Download the LLVM Embedded Toolchain for Arm from `here <https://github.com/ARM-software/LLVM-embedded-toolchain-for-Arm>`__.
-              - Add LLVM Embedded into environment:
+              - Download the Arm Toolchain for Embedded from `here <https://github.com/arm/arm-toolchain/releases>`__.
+              - Add ATfE into environment:
 
                 .. code-block:: bash
 
-                    set PATH=<LLVM_PATH>\bin;%PATH%
+                    set PATH=<ATFE_PATH>\bin;%PATH%
 
       .. note::
 

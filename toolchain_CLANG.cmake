@@ -35,10 +35,8 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE ${CMAKE_CURRENT_LIST_DIR}/cmake/set_extension
 
 # CMAKE_C_COMPILER_VERSION is not initialised at this moment so do it manually
 EXECUTE_PROCESS( COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE CMAKE_C_COMPILER_VERSION )
-if (CMAKE_C_COMPILER_VERSION VERSION_LESS 18.1.3)
-    message(FATAL_ERROR "Please use newer ATfE toolchain version starting from 18.1.3")
-elseif(CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 21.0.0)
-    message(FATAL_ERROR "ATfE compiler versions 21.0.0 and above are no supported yet")
+if (CMAKE_C_COMPILER_VERSION VERSION_LESS 20.1.0)
+    message(FATAL_ERROR "Please use newer ATfE toolchain version starting from 20.1.0")
 endif()
 
 include(mcpu_features)
@@ -65,6 +63,7 @@ add_compile_options(
     -fmacro-prefix-map=${TOP_LEVEL_PROJECT_DIR}/=
     # Strip /workspace/trusted-firmware-m
     -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=
+    -meabi gnu
 )
 
 add_link_options(
@@ -83,7 +82,7 @@ endif()
 # A module (BL1, BL2, CP) specific addional compiler and linker optoins
 
 set(BL1_COMPILER_CP_FLAG -mfloat-abi=soft -mfpu=none)
-set(BL1_LINKER_CP_OPTION -mfpu=none)
+set(BL1_LINKER_CP_OPTION -mfpu=none -ldummyhost)
 
 set(BL2_COMPILER_CP_FLAG -mfloat-abi=soft -mfpu=none)
 set(BL2_LINKER_CP_OPTION -mfpu=none)
@@ -99,16 +98,7 @@ endif()
 
 set(LINKER_CP_OPTION -lclang_rt.builtins -nostdlib)
 
-if (CMAKE_C_COMPILER_VERSION VERSION_LESS 20.0.0)
-   list(APPEND BL1_LINKER_CP_OPTION -lcrt0 -ldummyhost)
-   list(APPEND BL2_LINKER_CP_OPTION -lcrt0 -ldummyhost)
-else()
-   list(APPEND BL1_LINKER_CP_OPTION -ldummyhost)
-endif()
-
-if(CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0.0)
-   list(APPEND COMPILER_CP_FLAG -nostartfiles)
-endif()
+list(APPEND COMPILER_CP_FLAG -nostartfiles -ldummyhost)
 
 #
 # Pointer Authentication Code and Branch Target Identification (PACBTI) Options

@@ -36,10 +36,8 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE ${CMAKE_CURRENT_LIST_DIR}/set_extensions.cmak
 
 # CMAKE_C_COMPILER_VERSION is not initialised at this moment so do it manually
 EXECUTE_PROCESS( COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE CMAKE_C_COMPILER_VERSION )
-if (CMAKE_C_COMPILER_VERSION VERSION_LESS 18.1.3)
-    message(FATAL_ERROR "Please use newer ATfE toolchain version starting from 18.1.3")
-elseif(CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 21.0.0)
-    message(FATAL_ERROR "ATfE compiler versions 21.0.0 and above are no supported yet")
+if (CMAKE_C_COMPILER_VERSION VERSION_LESS 20.1.0)
+    message(FATAL_ERROR "Please use newer ATfE toolchain version starting from 20.1.0")
 endif()
 
 # ===================== Set toolchain CPU and Arch =============================
@@ -110,10 +108,6 @@ if (CONFIG_TFM_ENABLE_FP OR CONFIG_TFM_ENABLE_MVE_FP)
 else()
     add_compile_options(-mfpu=none)
     add_link_options(-mfpu=none)
-endif()
-
-if (CMAKE_C_COMPILER_VERSION VERSION_LESS 20.0.0)
-    add_link_options(LINKER:-lcrt0)
 endif()
 
 # Specify the scatter file used to link `target`.

@@ -221,7 +221,7 @@ SECTIONS
     } > FLASH
     __exidx_end = .;
 
-    .ER_TFM_CODE ALIGN(4) :
+    .ER_TFM_CODE ALIGN(8) :
     {
         /* preinit data */
         PROVIDE_HIDDEN (__preinit_array_start = .);
