@@ -18,8 +18,16 @@ fetch_remote_library(
         GIT_REPOSITORY      https://github.com/mcu-tools/mcuboot.git
         GIT_TAG             ${MCUBOOT_VERSION}
         GIT_PROGRESS        TRUE
-        GIT_SUBMODULES      "${MCUBOOT_SUBMODULES}"
+        GIT_SHALLOW         TRUE
+        GIT_SUBMODULES      "docs"
 )
+
+# FIXME: There's a bug in CMake which causes the empty value of GIT_SUBMODULES to be handled
+# incorrectly (https://gitlab.kitware.com/cmake/cmake/-/issues/20579,
+# https://gitlab.kitware.com/cmake/cmake/-/issues/25972). As a result Git submodules are still
+# processed in MCUboot. As a temporary workaround specify the "docs" folder (not containing
+# any submodules) - the fix is available from CMake version 3.31.0,
+# related policy: https://cmake.org/cmake/help/latest/policy/CMP0174.html
 
 add_library(mcuboot_config INTERFACE)
 

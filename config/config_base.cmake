@@ -43,7 +43,7 @@ set(MBEDCRYPTO_GIT_REMOTE               "https://github.com/Mbed-TLS/mbedtls.git
 
 set(MCUBOOT_PATH                        "DOWNLOAD"  CACHE PATH      "Path to MCUboot (or DOWNLOAD to fetch automatically")
 set(MCUBOOT_FORCE_PATCH                 OFF         CACHE BOOL      "Always apply MCUboot patches")
-set(MCUBOOT_VERSION                     "v2.2.0"    CACHE STRING    "The version of MCUboot to use")
+set(MCUBOOT_VERSION                     "tfm"       CACHE STRING    "The version of MCUboot to use")
 
 set(TFM_EXTRAS_REPO_PATH                "DOWNLOAD"  CACHE PATH      "Path to tf-m-extras repo (or DOWNLOAD to fetch automatically")
 set(TFM_EXTRAS_REPO_VERSION             "704cc71"   CACHE STRING    "The version of tf-m-extras to use")
