@@ -5,8 +5,6 @@
  *
  */
 
-#include "bl1_crypto.h"
-
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
@@ -18,131 +16,13 @@
 #include "fih.h"
 #include "cc3xx_drv.h"
 #include "kmu_drv.h"
-#include "mbedtls/asn1.h"
 #include "bl1_2_config.h"
 #include "fatal_error.h"
-
-#include "mbedtls/sha512.h"
+#include "bl1_crypto.h"
 
 #define KEY_DERIVATION_MAX_BUF_SIZE 128
 
-static enum tfm_bl1_hash_alg_t multipart_alg = 0;
-static mbedtls_sha512_context multipart_ctx;
-
-static fih_ret sha256_init(void)
-{
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-
-    multipart_alg = TFM_BL1_HASH_ALG_SHA256;
-
-    /* This is only used by TFM_BL1_2 which currently only uses SHA256 */
-    fih_rc = fih_ret_encode_zero_equality(cc3xx_lowlevel_hash_init(CC3XX_HASH_ALG_SHA256));
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
-    }
-
-    FIH_RET(FIH_SUCCESS);
-}
-
-static fih_ret sha256_update(const uint8_t *data,
-                             size_t data_length)
-{
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-
-    fih_rc = fih_ret_encode_zero_equality(cc3xx_lowlevel_hash_update(data, data_length));
-    if(FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
-    }
-
-    FIH_RET(FIH_SUCCESS);
-}
-
-static fih_ret sha256_finish(uint8_t *hash,
-                             size_t hash_length,
-                             size_t *hash_size)
-{
-    cc3xx_lowlevel_hash_finish((uint32_t *)hash, hash_length);
-
-    if (hash_size != NULL) {
-        *hash_size = 32;
-    }
-
-    multipart_alg = 0;
-
-    FIH_RET(FIH_SUCCESS);
-}
-
-static fih_ret sha384_init(void)
-{
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-    int rc;
-
-    multipart_alg = TFM_BL1_HASH_ALG_SHA384;
-
-    mbedtls_sha512_init(&multipart_ctx);
-
-    rc = mbedtls_sha512_starts(&multipart_ctx, 1);
-    fih_rc = fih_ret_encode_zero_equality(rc);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        goto out;
-    }
-
-    FIH_RET(FIH_SUCCESS);
-
-out:
-    mbedtls_sha512_free(&multipart_ctx);
-    multipart_alg = 0;
-    FIH_RET(fih_rc);
-
-}
-
-static fih_ret sha384_update(const uint8_t *data,
-                             size_t data_length)
-{
-    int rc;
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-
-    rc = mbedtls_sha512_update(&multipart_ctx, data, data_length);
-    fih_rc = fih_ret_encode_zero_equality(rc);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        goto out;
-    }
-
-    FIH_RET(FIH_SUCCESS);
-
-out:
-    mbedtls_sha512_free(&multipart_ctx);
-    multipart_alg = 0;
-    FIH_RET(fih_rc);
-}
-
-static fih_ret sha384_finish(uint8_t *hash,
-                             size_t hash_length,
-                             size_t *hash_size)
-{
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-    int rc;
-
-    if (hash_length < 48) {
-        fih_rc = FIH_FAILURE;
-        goto out;
-    }
-
-    rc = mbedtls_sha512_finish(&multipart_ctx, hash);
-    fih_rc = fih_ret_encode_zero_equality(rc);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        goto out;
-    }
-
-    if (hash_size != NULL) {
-        *hash_size = 48;
-    }
-
-out:
-    mbedtls_sha512_free(&multipart_ctx);
-    multipart_alg = 0;
-    FIH_RET(fih_rc);
-}
+psa_hash_operation_t multipart_hash_op;
 
 /**
  * @brief Convert from BL1 key to KMU key (driver specific). For keys
@@ -237,18 +117,15 @@ fih_ret bl1_hash_init(enum tfm_bl1_hash_alg_t alg)
 {
     FIH_DECLARE(fih_rc, FIH_FAILURE);
 
-    switch(alg) {
-    case TFM_BL1_HASH_ALG_SHA256:
-        FIH_CALL(sha256_init, fih_rc);
-        break;
-    case TFM_BL1_HASH_ALG_SHA384:
-        FIH_CALL(sha384_init, fih_rc);
-        break;
-    default:
-        fih_rc = FIH_FAILURE;
+    assert((alg == TFM_BL1_HASH_ALG_SHA256) || (alg == TFM_BL1_HASH_ALG_SHA384));
+
+    fih_rc = fih_ret_encode_zero_equality(psa_hash_setup(&multipart_hash_op,
+                                                         (psa_algorithm_t)alg));
+    if(FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        FIH_RET(fih_rc);
     }
 
-    FIH_RET(fih_rc);
+    FIH_RET(FIH_SUCCESS);
 }
 
 fih_ret bl1_hash_update(const uint8_t *data,
@@ -256,18 +133,13 @@ fih_ret bl1_hash_update(const uint8_t *data,
 {
     FIH_DECLARE(fih_rc, FIH_FAILURE);
 
-    switch(multipart_alg) {
-    case TFM_BL1_HASH_ALG_SHA256:
-        FIH_CALL(sha256_update, fih_rc, data, data_length);
-        break;
-    case TFM_BL1_HASH_ALG_SHA384:
-        FIH_CALL(sha384_update, fih_rc, data, data_length);
-        break;
-    default:
-        fih_rc = FIH_FAILURE;
+    fih_rc = fih_ret_encode_zero_equality(psa_hash_update(&multipart_hash_op,
+                                                          data, data_length));
+    if(FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        FIH_RET(fih_rc);
     }
 
-    FIH_RET(fih_rc);
+    FIH_RET(FIH_SUCCESS);
 }
 
 fih_ret bl1_hash_finish(uint8_t *hash,
@@ -276,18 +148,15 @@ fih_ret bl1_hash_finish(uint8_t *hash,
 {
     FIH_DECLARE(fih_rc, FIH_FAILURE);
 
-    switch(multipart_alg) {
-    case TFM_BL1_HASH_ALG_SHA256:
-        FIH_CALL(sha256_finish, fih_rc, hash, hash_length, hash_size);
-        break;
-    case TFM_BL1_HASH_ALG_SHA384:
-        FIH_CALL(sha384_finish, fih_rc, hash, hash_length, hash_size);
-        break;
-    default:
-        fih_rc = FIH_FAILURE;
+    fih_rc = fih_ret_encode_zero_equality(psa_hash_finish(&multipart_hash_op,
+                                                          hash,
+                                                          hash_length, hash_size));
+    if(FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        FIH_RET(fih_rc);
     }
 
-    FIH_RET(fih_rc);
+    FIH_RET(FIH_SUCCESS);
+
 }
 
 fih_ret bl1_aes_256_ctr_decrypt(enum tfm_bl1_key_id_t key_id,
