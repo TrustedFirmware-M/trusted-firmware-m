@@ -193,10 +193,10 @@ int boot_platform_pre_load(uint32_t image_id)
         header_phy_addr = SCP_BOOT_SRAM_BASE + SCP_BOOT_SRAM_SIZE
                                         - HOST_IMAGE_HEADER_SIZE;
         image_load_logical_addr = HOST_BOOT_IMAGE1_LOAD_BASE_S;
-        host_flash_atu_setup_image_output_slots(image_load_phy_addr,
-                                                image_load_logical_addr,
-                                                image_max_size,
-                                                header_phy_addr);
+        rc = host_flash_atu_setup_image_output_slots(image_load_phy_addr,
+                                                     image_load_logical_addr,
+                                                     image_max_size,
+                                                     header_phy_addr);
         break;
     case RSE_BL2_IMAGE_AP:
         uuid = UUID_RSE_FIRMWARE_AP_BL1;
@@ -206,10 +206,10 @@ int boot_platform_pre_load(uint32_t image_id)
         header_phy_addr = AP_BOOT_SRAM_BASE + AP_BOOT_SRAM_SIZE
                                         - HOST_IMAGE_HEADER_SIZE;
         image_load_logical_addr = HOST_BOOT_IMAGE0_LOAD_BASE_S;
-        host_flash_atu_setup_image_output_slots(image_load_phy_addr,
-                                                image_load_logical_addr,
-                                                image_max_size,
-                                                header_phy_addr);
+        rc = host_flash_atu_setup_image_output_slots(image_load_phy_addr,
+                                                     image_load_logical_addr,
+                                                     image_max_size,
+                                                     header_phy_addr);
         break;
     case RSE_BL2_IMAGE_NS:
         /*
@@ -221,6 +221,7 @@ int boot_platform_pre_load(uint32_t image_id)
 #else
         uuid = UUID_RSE_SIC_TABLES_NS;
 #endif /* RSE_XIP */
+        rc = 0;
         break;
     case RSE_BL2_IMAGE_S:
         /*
@@ -232,9 +233,14 @@ int boot_platform_pre_load(uint32_t image_id)
 #else
         uuid = UUID_RSE_SIC_TABLES_S;
 #endif /* RSE_XIP */
+        rc = 0;
         break;
     default:
         return TFM_PLAT_ERR_PRE_LOAD_IMG_BY_BL2_FAIL;
+    }
+
+    if (rc != 0) {
+        return rc;
     }
 
     rc = host_flash_atu_setup_image_input_slots(uuid, offsets);
