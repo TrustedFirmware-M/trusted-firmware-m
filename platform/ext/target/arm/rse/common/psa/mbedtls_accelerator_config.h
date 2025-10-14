@@ -12,6 +12,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#define MBEDTLS_PSA_ACCEL_ALG_CCM
+#define MBEDTLS_PSA_ACCEL_KEY_TYPE_AES
+#define PSA_WANT_ALG_SHA_256
+#define MBEDTLS_PSA_ACCEL_ALG_SHA_256
+
 /* When using the PSA Unified driver API, this is the only define that has to be added
  * to the ones being available in the non-platform aware config files being used, i.e.
  * just make sure that that the Crypto core and driver wrappers are aware of the driver

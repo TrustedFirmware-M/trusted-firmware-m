@@ -256,6 +256,16 @@ target_include_directories(platform_bl1_1
     ${CMAKE_SOURCE_DIR}/interface/include # for psa/error.h
 )
 
+target_compile_definitions(bl1_1_psa_crypto_interface
+    INTERFACE
+        MBEDTLS_USER_CONFIG_FILE="${CMAKE_CURRENT_LIST_DIR}/bl1/mbedcrypto_config.h"
+)
+
+target_sources(bl1_1_psa_crypto
+    PRIVATE
+        ${MBEDCRYPTO_PATH}/library/sha256.c
+)
+
 target_sources(platform_bl1_2
     PRIVATE
         ./bl1/boot_hal_bl1_2.c

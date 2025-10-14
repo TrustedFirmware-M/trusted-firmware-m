@@ -334,14 +334,7 @@ target_link_libraries(platform_bl1_1
 
 target_compile_definitions(bl1_1_psa_crypto_interface
     INTERFACE
-        MBEDTLS_PLATFORM_C
-        MBEDTLS_PLATFORM_MEMORY
-        MBEDTLS_MEMORY_BUFFER_ALLOC_C
-        MBEDTLS_HMAC_DRBG_C
-        MBEDTLS_MD_C
-        MBEDTLS_AES_C
-        MBEDTLS_HKDF_C
-        MBEDTLS_CIPHER_MODE_CTR
+        MBEDTLS_USER_CONFIG_FILE="${CMAKE_CURRENT_LIST_DIR}/bl1/mbedcrypto_config.h"
 )
 
 target_sources(bl1_1_psa_crypto
@@ -355,6 +348,7 @@ target_sources(bl1_1_psa_crypto
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/md.c>
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/md5.c>
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/aes.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/sha256.c>
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/hkdf.c>
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/constant_time.c>
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/psa_crypto_mac.c>

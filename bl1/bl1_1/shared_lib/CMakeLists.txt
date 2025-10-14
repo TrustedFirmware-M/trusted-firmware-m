@@ -90,7 +90,6 @@ target_sources(bl1_1_psa_crypto
 
         # LMS-specific
         $<$<BOOL:${TFM_BL1_2_ENABLE_LMS}>:${CMAKE_CURRENT_SOURCE_DIR}/pq_crypto/pq_crypto_psa.c>
-        $<$<BOOL:${TFM_BL1_2_ENABLE_LMS}>:${MBEDCRYPTO_PATH}/library/sha256.c>
         $<$<BOOL:${TFM_BL1_2_ENABLE_LMS}>:${MBEDCRYPTO_PATH}/library/lmots.c>
         $<$<BOOL:${TFM_BL1_2_ENABLE_LMS}>:${MBEDCRYPTO_PATH}/library/lms.c>
 )
