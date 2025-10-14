@@ -78,7 +78,6 @@ int init_pcr_index_for_boot_measurement(void);
  */
 int8_t get_pcr_index_for_boot_measurement(uint8_t slot);
 
-
 #if EVENT_LOG_LIB
 /**
  * \brief                               Retrieves event log metadata associated with
@@ -94,7 +93,7 @@ int8_t get_pcr_index_for_boot_measurement(uint8_t slot);
  *
  */
 int get_event_log_metadata_for_measurement_slot(uint8_t slot, event_log_metadata_t *event_log_metadata);
-#endif
+#endif /* EVENT_LOG_LIB */
 
 #ifdef __cplusplus
 }
