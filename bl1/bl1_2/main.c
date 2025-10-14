@@ -239,32 +239,6 @@ static fih_ret validate_image_signature(struct bl1_2_image_t *img,
     FIH_RET(FIH_SUCCESS);
 }
 
-#ifdef TFM_BL1_2_ENABLE_ROTPK_POLICIES
-static fih_ret check_key_policy(fih_int validate_rc,
-                                enum tfm_bl1_key_id_t key_id,
-                                bool *key_might_sign, bool *key_must_sign)
-{
-    enum tfm_bl1_key_policy_t policy;
-    FIH_DECLARE(fih_rc, FIH_FAILURE);;
-
-    FIH_CALL(bl1_otp_get_key_policy, fih_rc, TFM_BL1_KEY_ROTPK_0, &policy);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
-    }
-
-    if (fih_eq(validate_rc, FIH_SUCCESS)) {
-        if (policy == TFM_BL1_KEY_MIGHT_SIGN) {
-            *key_might_sign |= fih_eq(fih_rc, FIH_SUCCESS);
-        } else {
-            *key_might_sign |= fih_eq(fih_rc, FIH_SUCCESS);
-            *key_must_sign  &= fih_eq(fih_rc, FIH_SUCCESS);
-        }
-    }
-
-    FIH_RET(FIH_SUCCESS);
-}
-#endif
-
 static fih_ret is_image_signature_valid(struct bl1_2_image_t *img)
 {
     FIH_DECLARE(fih_rc, FIH_FAILURE);
@@ -272,8 +246,7 @@ static fih_ret is_image_signature_valid(struct bl1_2_image_t *img)
     static size_t measurement_hash_size;
     uint32_t idx;
 #ifdef TFM_BL1_2_ENABLE_ROTPK_POLICIES
-    bool key_must_sign  = true;
-    bool key_might_sign = false;
+    enum tfm_bl1_key_policy_t policy;
 #endif
 
     /* Calculate the image hash for measured boot */
@@ -288,24 +261,28 @@ static fih_ret is_image_signature_valid(struct bl1_2_image_t *img)
     }
 
     for (idx = 0; idx < TFM_BL1_2_SIGNER_AMOUNT; idx++) {
+#ifdef TFM_BL1_2_ENABLE_ROTPK_POLICIES
+        FIH_CALL(bl1_otp_get_key_policy, fih_rc, TFM_BL1_KEY_ROTPK_0 + idx, &policy);
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+            FIH_RET(fih_rc);
+        }
+#endif
+
         FIH_CALL(validate_image_signature, fih_rc, img,
                                                    &img->header.sigs[idx],
                                                    TFM_BL1_KEY_ROTPK_0 + idx,
                                                    measurement_hash, measurement_hash_size,
                                                    BOOT_MEASUREMENT_SLOT_BL2);
+
 #ifdef TFM_BL1_2_ENABLE_ROTPK_POLICIES
-        fih_rc = check_key_policy(fih_rc, TFM_BL1_KEY_ROTPK_0, &key_might_sign, &key_must_sign);
+        if (FIH_EQ(policy, TFM_BL1_KEY_MIGHT_SIGN)) {
+            continue;
+        }
 #endif
         if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
             FIH_RET(fih_rc);
         }
     }
-
-#ifdef TFM_BL1_2_ENABLE_ROTPK_POLICIES
-    if (FIH_NOT_EQ(key_must_sign, true) || FIH_NOT_EQ(key_might_sign, true)) {
-        FIH_RET(FIH_FAILURE);
-    }
-#endif
 
     FIH_RET(FIH_SUCCESS);
 }
