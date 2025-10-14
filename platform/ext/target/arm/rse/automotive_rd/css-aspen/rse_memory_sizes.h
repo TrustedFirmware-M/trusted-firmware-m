@@ -11,6 +11,10 @@
 #ifndef __RSE_MEMORY_SIZES_H__
 #define __RSE_MEMORY_SIZES_H__
 
+/* Memory size is 512KiB total */
+#define VM0_SIZE (256 * 1024) /* 256KiB */
+#define VM1_SIZE (256 * 1024) /* 256KiB */
+
 /* Override memory sizes before loading the common default sizes */
 
 #define BOOT_FLASH_SIZE    0x4000000 /* 64MB */
