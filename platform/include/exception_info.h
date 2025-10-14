@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2021, Nordic Semiconductor ASA. All rights reserved.
- * Copyright (c) 2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #ifndef __EXCEPTION_INFO_H__
 #define __EXCEPTION_INFO_H__
+
+#include "config_tfm.h"
 
 #include <stdint.h>
 
@@ -25,6 +26,30 @@
 #define EXCEPTION_TYPE_BUSFAULT       5
 #define EXCEPTION_TYPE_USAGEFAULT     6
 #define EXCEPTION_TYPE_SECUREFAULT    7
+
+#if PLATFORM_EXCEPTION_INFO == 1
+/**
+ * \brief This function stores and/or dumps the platform-specific exception info.
+ *
+ * This function is called by EXCEPTION_INFO macro after optional store_and_dump_context.
+ */
+void tfm_hal_platform_exception_info(void);
+
+/* Store context for an platform exception, and/or print an error message with the context */
+#define PLATFORM_EXCEPTION_INFO_CALL(exception_type)        \
+        __ASM volatile(                                     \
+            "BL      tfm_hal_platform_exception_info\n"     \
+        )
+
+/* Declaration of required symbols for IAR inline assembler */
+#define PLATFORM_EXCEPTION_INFO_IAR_REQUIRED \
+_Pragma("required = tfm_hal_platform_exception_info")
+
+#else  /* PLATFORM_EXCEPTION_INFO == 1 */
+#define PLATFORM_EXCEPTION_INFO_CALL()
+/* Declaration of required symbols for IAR inline assembler */
+#define PLATFORM_EXCEPTION_INFO_IAR_REQUIRED
+#endif /* PLATFORM_EXCEPTION_INFO == 1 */
 
 /* Store context for an exception, and print an error message with the context.
  *
@@ -88,7 +113,8 @@ void store_and_dump_context(uint32_t MSP_in, uint32_t PSP_in, uint32_t LR_in,
         "MOV    R2, LR\n"                  \
         "BL     store_and_dump_context\n"  \
         "ADD    SP, #32\n"                 \
-    )
+    );                                     \
+    PLATFORM_EXCEPTION_INFO_CALL()
 #elif defined(__ARM_ARCH_8M_MAIN__) || defined(__ARM_ARCH_8_1M_MAIN__) || \
       defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7EM__)
 #define EXCEPTION_INFO()                   \
@@ -100,7 +126,8 @@ void store_and_dump_context(uint32_t MSP_in, uint32_t PSP_in, uint32_t LR_in,
         "MOV    R2, LR\n"                  \
         "BL     store_and_dump_context\n"  \
         "ADD    SP, #32\n"                 \
-    )
+    );                                     \
+    PLATFORM_EXCEPTION_INFO_CALL()
 #else
 /* Unhandled arch, call store_and_dump_context with callee_saved = NULL */
 #define EXCEPTION_INFO()                   \
@@ -110,22 +137,30 @@ void store_and_dump_context(uint32_t MSP_in, uint32_t PSP_in, uint32_t LR_in,
         "MOV    R2, LR\n"                  \
         "MOV    R3, #0\n"                  \
         "BL     store_and_dump_context\n"  \
-    )
+    );                                     \
+    PLATFORM_EXCEPTION_INFO_CALL()
 #endif
 
 /* Declaration of required symbols for IAR inline assembler */
 #if defined(__ICCARM__)
 #define EXCEPTION_INFO_IAR_REQUIRED \
-_Pragma("required = store_and_dump_context")
+_Pragma("required = store_and_dump_context") \
+PLATFORM_EXCEPTION_INFO_IAR_REQUIRED
 #else /*  __ICCARM__ */
 #define EXCEPTION_INFO_IAR_REQUIRED
 #endif /* __ICCARM__ */
 
 #else /* TFM_EXCEPTION_INFO_DUMP */
-#define EXCEPTION_INFO()
+#define EXCEPTION_INFO(); \
+    PLATFORM_EXCEPTION_INFO_CALL()
 
 /* Declaration of required symbols for IAR inline assembler */
+#if defined(__ICCARM__)
+#define EXCEPTION_INFO_IAR_REQUIRED \
+PLATFORM_EXCEPTION_INFO_IAR_REQUIRED
+#else /*  __ICCARM__ */
 #define EXCEPTION_INFO_IAR_REQUIRED
+#endif /* __ICCARM__ */
 #endif /* TFM_EXCEPTION_INFO_DUMP */
 
 #endif /* __EXCEPTION_INFO_H__ */

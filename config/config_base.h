@@ -369,6 +369,11 @@
 #define OTP_NV_COUNTERS_RAM_EMULATION           0
 #endif
 
+/* Does the platform provide platform-specific exception info store/dump? */
+#ifndef PLATFORM_EXCEPTION_INFO
+#define PLATFORM_EXCEPTION_INFO                 0
+#endif
+
 /* Error Codes Configs */
 
 /* Enable unique error codes */

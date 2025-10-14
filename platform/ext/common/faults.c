@@ -1,9 +1,11 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
+#include "config_tfm.h"
+
 #include "tfm_hal_device_header.h"
 #include "utilities.h"
 /* "exception_info.h" must be the last include because of the IAR pragma */
