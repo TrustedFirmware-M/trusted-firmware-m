@@ -25,7 +25,8 @@ dependencies = [
     "rich (>=13.9.4,<14.0.0)",
     "libclang (>=18.1.1,<19.0.0)",
     "pandas==2.3.1",
-    "numpy==2.2.6"
+    "numpy==2.2.6",
+    "python-pkcs11==0.8.1"
 ]
 
 [project.optional-dependencies]
