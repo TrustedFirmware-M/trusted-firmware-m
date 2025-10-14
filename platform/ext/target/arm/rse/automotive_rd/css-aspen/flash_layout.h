@@ -94,7 +94,7 @@
 /* Secondary Bank */
 /* BL2 secondary slot */
 #define FLASH_AREA_1_ID            (FLASH_AREA_0_ID + 1)
-#define FLASH_AREA_1_OFFSET        (FLASH_AREA_4_OFFSET + FLASH_AREA_4_SIZE)
+#define FLASH_AREA_1_OFFSET        (FLASH_AREA_6_OFFSET + FLASH_AREA_6_SIZE)
 #define FLASH_AREA_1_SIZE          (FLASH_BL2_PARTITION_SIZE)
 /* Secure image secondary slot. */
 #define FLASH_AREA_3_ID            (FLASH_AREA_1_ID + 2)
