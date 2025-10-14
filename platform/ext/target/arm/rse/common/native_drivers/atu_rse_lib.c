@@ -141,18 +141,20 @@ static uint8_t get_bank_cnt_max(uint32_t mem_size, uint16_t mem_align, uint8_t m
 /*
  * @brief API to get the Logical address space size based on the security type
  *
+ * @param[in] dev           Pointer to ATU device structure
  * @param[in] sec_type      Security type (secure/non-secure)
  *
  * @return Returns the (Sec/Non-Sec) logical address size
  *
  */
-static inline uint32_t get_log_addr_space_size(enum atu_log_type_t sec_type)
+static inline uint32_t get_log_addr_space_size(const struct atu_dev_t *dev,
+                                               enum atu_log_type_t sec_type)
 {
     if (ATU_LOG_ADDR_TYPE_NON_SECURE == sec_type) {
-        return ATU_DYN_NON_SEC_LOG_ADDR_SIZE;
+        return dev->cfg->dyn_non_sec.size;
     }
     else if (ATU_LOG_ADDR_TYPE_SECURE == sec_type) {
-        return ATU_DYN_SEC_LOG_ADDR_SIZE;
+        return dev->cfg->dyn_sec.size;
     }
     else {
         /* Not reachable */
@@ -163,18 +165,20 @@ static inline uint32_t get_log_addr_space_size(enum atu_log_type_t sec_type)
 /*
  * @brief API to get the Logical address start value based on the security type
  *
+ * @param[in] dev           Pointer to ATU device structure
  * @param[in] sec_type      Security type (secure/non-secure)
  *
  * @return Returns the (Sec/Non-Sec) logical address start
  *
  */
-static inline uint32_t get_log_addr_space_start(enum atu_log_type_t sec_type)
+static inline uint32_t get_log_addr_space_start(const struct atu_dev_t *dev,
+                                                enum atu_log_type_t sec_type)
 {
     if (ATU_LOG_ADDR_TYPE_NON_SECURE == sec_type) {
-        return ATU_DYN_NON_SEC_LOG_ADDR_START;
+        return dev->cfg->dyn_non_sec.start;
     }
     else if (ATU_LOG_ADDR_TYPE_SECURE == sec_type) {
-        return ATU_DYN_SEC_LOG_ADDR_START;
+        return dev->cfg->dyn_sec.start;
     }
     else {
         /* Not reachable */
@@ -272,8 +276,8 @@ static enum atu_error_t atu_mem_alloc_init(struct atu_dev_t *dev)
 
         cur_atu_bank_ctx = &atu_bank_ctx[sec_type];
 
-        cur_atu_bank_ctx->mem_start = get_log_addr_space_start(sec_type);
-        cur_atu_bank_ctx->mem_size = get_log_addr_space_size(sec_type);
+        cur_atu_bank_ctx->mem_start = get_log_addr_space_start(dev, sec_type);
+        cur_atu_bank_ctx->mem_size = get_log_addr_space_size(dev, sec_type);
 
         cur_atu_bank_ctx->mem_chunk_parts = ATU_DYN_SLOT_COUNT;
         cur_atu_bank_ctx->bank_align = atu_rse_get_page_size(dev);

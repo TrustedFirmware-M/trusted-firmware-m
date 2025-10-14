@@ -52,6 +52,14 @@ const struct ppu_dev_t HOST_SI_CL0_CORE0_PPU_DEV = {
 #ifdef PLATFORM_RSE_HAS_ATU_OWNERSHIP
 static const struct atu_dev_cfg_t HOST_SI_ATU_DEV_CFG = {
     .base = HOST_SI_ATU_BASE_S,
+    .dyn_non_sec = {
+        .start = HOST_ACCESS_BASE_NS,
+        .size  = 0x4000000,
+    },
+    .dyn_sec = {
+        .start = HOST_ACCESS_BASE_S,
+        .size  = 0x4000000,
+    },
 };
 struct atu_dev_t HOST_SI_ATU_DEV = {
     .cfg = &HOST_SI_ATU_DEV_CFG,
@@ -104,6 +112,14 @@ struct atu_map si_atu_regions[SI_ATU_REGION_COUNT] = {
 
 static const struct atu_dev_cfg_t HOST_AP_ATU_DEV_CFG = {
     .base = HOST_AP_ATU_BASE_S,
+    .dyn_non_sec = {
+        .start = HOST_ACCESS_BASE_NS,
+        .size  = 0x4000000,
+    },
+    .dyn_sec = {
+        .start = HOST_ACCESS_BASE_S,
+        .size  = 0x4000000,
+    },
 };
 struct atu_dev_t HOST_AP_ATU_DEV = {
     .cfg = &HOST_AP_ATU_DEV_CFG,

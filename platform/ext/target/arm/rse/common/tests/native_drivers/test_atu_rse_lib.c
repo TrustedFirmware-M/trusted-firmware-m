@@ -173,18 +173,20 @@ static void test_natdrv_atu_rse_drv_init_addr_overlap_fail(struct test_result_t 
 static void test_natdrv_atu_map_addr_size_higher_than_range_fail(struct test_result_t *ret)
 {
     enum atu_error_t err;
+    uint32_t req_size;
     uint32_t log_addr;
     uint32_t size;
 
     err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, test_atu_regions_static, test_atu_stat_count);
     TEST_ASSERT(err == ATU_ERR_NONE, "Expected successful atu driver initialization");
 
+    req_size = ATU_DEV_S.cfg->dyn_non_sec.size;
     err = atu_rse_map_addr_automatically(NULL, ATU_DUMMY_SLOT_PHY_ADDR,
-        ATU_DYN_NON_SEC_LOG_ADDR_SIZE, 0, &log_addr, &size);
+        req_size, 0, &log_addr, &size);
     TEST_ASSERT(err == ATU_ERR_MEM_INVALID_ARG, "NULL device error");
 
     err = atu_rse_map_addr_automatically(&ATU_DEV_S, ATU_DUMMY_SLOT_PHY_ADDR,
-                                         ATU_DYN_NON_SEC_LOG_ADDR_SIZE, 0, &log_addr, &size);
+                                         req_size, 0, &log_addr, &size);
     TEST_ASSERT(err == ATU_ERR_MEM_SIZE_NOT_AVAILABLE, "Expected mapping address error");
 
     set_default_region_state();
@@ -575,21 +577,19 @@ static void test_natdrv_atu_domain_test(struct test_result_t *ret)
 
             bool is_secure = ((nse_bit << 1) | prot1_bit) & secure_domains;
 
+            const struct atu_log_aperture_t *aperture = (is_secure ?
+                                                         &ATU_DEV_S.cfg->dyn_sec :
+                                                         &ATU_DEV_S.cfg->dyn_non_sec);
+
             err = atu_rse_map_addr_automatically(&ATU_DEV_S, ATU_DUMMY_SLOT_PHY_ADDR,
                                                  ATU_DUMMY_SLOT_SIZE, out_bus_attr,
                                                  &log_addr, &size);
 
             TEST_ASSERT(err == ATU_ERR_NONE, "Expected successful atu address mapping");
 
-            if (is_secure) {
-                TEST_ASSERT(ATU_DYN_SEC_LOG_ADDR_START <= log_addr &&
-                            log_addr < ATU_DYN_SEC_LOG_ADDR_START + ATU_DYN_SEC_LOG_ADDR_SIZE,
-                            "Expected successful atu address mapping");
-            } else {
-                TEST_ASSERT(ATU_DYN_NON_SEC_LOG_ADDR_START <= log_addr &&
-                            log_addr < ATU_DYN_NON_SEC_LOG_ADDR_START + ATU_DYN_NON_SEC_LOG_ADDR_SIZE,
-                            "Expected successful atu address mapping");
-            }
+            TEST_ASSERT(aperture->start <= log_addr &&
+                        log_addr < aperture->start + aperture->size,
+                        "Expected successful atu address mapping");
 
             err = atu_rse_free_addr(&ATU_DEV_S, log_addr);
             TEST_ASSERT(err == ATU_ERR_NONE, "Expected successful freeing of region");

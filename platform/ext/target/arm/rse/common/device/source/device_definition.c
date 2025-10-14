@@ -30,7 +30,16 @@
 /* Arm ATU driver structures */
 #ifdef ATU_S
 static const struct atu_dev_cfg_t ATU_DEV_CFG_S = {
-    .base = ATU_BASE_S};
+    .base = ATU_BASE_S,
+    .dyn_non_sec = {
+        .start = HOST_ACCESS_BASE_NS,
+        .size  = 0x4000000,
+    },
+    .dyn_sec = {
+        .start = HOST_ACCESS_BASE_S,
+        .size  = 0x4000000,
+    },
+};
 struct atu_dev_t ATU_DEV_S = {&ATU_DEV_CFG_S};
 #endif
 

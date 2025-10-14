@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -210,10 +211,22 @@ enum atu_roba_t {
     (uint8_t)(((atu_base)->atubc & ATU_ATUBC_PS_MASK) >> ATU_ATUBC_PS_OFF))
 
 /**
+ * \brief Arm ATU logical address range (aperture) structure
+ */
+struct atu_log_aperture_t {
+    uintptr_t start;
+    size_t    size;
+};
+
+/**
  * \brief Arm ATU device configuration structure
  */
 struct atu_dev_cfg_t {
-    const uintptr_t base;                         /*!< ATU base address */
+    const uintptr_t                 base;         /*!< ATU base address */
+    const struct atu_log_aperture_t dyn_non_sec;  /*!< Logical address aperture
+                                                     for dynamic NS mappings */
+    const struct atu_log_aperture_t dyn_sec;      /*!< Logical address aperture
+                                                     for dynamic S mappings */
 };
 
 /**
