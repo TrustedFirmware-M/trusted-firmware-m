@@ -78,7 +78,8 @@
  * VM1  | 20 Blob data | >26 Blob      | 2 Persistent data | ?16 OTP emulation |
  *      |----------------------------------------------------------------------|
  *
- *  If the blob handler does not run, VM1 is used to load BL2 code
+ *  BL2 code is placed contiguously after the BL1_2 load area. If VM0_SIZE is
+ *  64KiB, then this will be in VM1.
  *
  *      |----------------------------------------------------------------------|
  * VM1  | >46 BL2 code                 | 2 Persistent data | ?16 OTP emulation |
@@ -94,7 +95,7 @@
  *      |----------------------------------------------------------------------|
  *
  *      |----------------------------------------------------------------------|
- * VM0  | ?16 XIP tables | >48 BL2 Data                                        |
+ * VM0  | ?16 XIP tables | <48 BL2 Data                                        |
  *      |----------------------------------------------------------------------|
  *      |----------------------------------------------------------------------|
  * VM1  | 46 BL2 code                  | 2 Persistent data | ?16 OTP emulation |
@@ -204,7 +205,12 @@
 #define BL1_2_DATA_SIZE   (0x800) /* 2 KiB FIXME overlap once code-sharing is removed */
 #define BL1_2_DATA_LIMIT  (BL1_2_DATA_START + BL1_2_DATA_SIZE - 1)
 
-#define BL2_IMAGE_START (VM1_BASE_S)
+#ifdef RSE_XIP
+#define BL2_IMAGE_START (PERSISTENT_DATA_BASE - FLASH_BL2_PARTITION_SIZE)
+#else
+#define BL2_IMAGE_START (S_DATA_START + S_DATA_SIZE + NS_DATA_SIZE - FLASH_BL2_PARTITION_SIZE)
+#endif
+
 #define BL2_CODE_START  (BL2_IMAGE_START + TFM_BL1_2_HEADER_MAX_SIZE)
 #define BL2_CODE_SIZE   (IMAGE_BL2_CODE_SIZE)
 #define BL2_CODE_LIMIT  (BL2_CODE_START + BL2_CODE_SIZE - 1)
@@ -214,7 +220,7 @@
 #define BL2_XIP_TABLES_LIMIT (BL2_XIP_TABLES_START + BL2_XIP_TABLES_SIZE - 1)
 
 #define BL2_DATA_START  (VM0_BASE_S + BL2_XIP_TABLES_SIZE)
-#define BL2_DATA_SIZE   (VM0_SIZE - BL2_XIP_TABLES_SIZE)
+#define BL2_DATA_SIZE   (BL2_IMAGE_START - BL2_DATA_START)
 #define BL2_DATA_LIMIT  (BL2_DATA_START + BL2_DATA_SIZE - 1)
 
 #ifdef RSE_XIP
@@ -285,22 +291,12 @@
 #error "RSE_OTP_EMULATION_SRAM_SIZE + PERSISTENT_DATA_SIZE + RSE_PROVISIONING_MESSAGE_MAX_SIZE > VM_COLD_RESET_RETAINED_SIZE"
 #endif
 
-#if FLASH_BL2_PARTITION_SIZE + RSE_OTP_EMULATION_SRAM_SIZE + PERSISTENT_DATA_SIZE > VM1_SIZE
-#error "FLASH_BL2_PARTITION_SIZE + RSE_OTP_EMULATION_SRAM_SIZE + PERSISTENT_DATA_SIZE + RSE_PROVISIONING_MESSAGE_MAX_SIZE > VM1_SIZE"
-#endif
-
 #if PROVISIONING_BUNDLE_DATA_SIZE + _COLD_RESET_RETAINED_USED > VM1_SIZE
 #error "PROVISIONING_BUNDLE_DATA_SIZE + RSE_OTP_EMULATION_SRAM_SIZE + PERSISTENT_DATA_SIZE + RSE_PROVISIONING_MESSAGE_MAX_SIZE > VM1_SIZE"
 #endif
 
-#if S_IMAGE_LOAD_ADDRESS < BL2_IMAGE_START + IMAGE_BL2_CODE_SIZE && \
-    FLASH_S_PARTITION_SIZE + FLASH_SIC_TABLE_SIZE > BL2_IMAGE_START
-#error "S_IMAGE_LOAD_ADDRESS < BL2_IMAGE_START + BL2_CODE_SIZE. Decrease NS_DATA_SIZE, FLASH_NS_PARTITION_SIZE or FLASH_S_PARTITION_SIZE"
-#endif
-
-#if NS_ADDRESS_TO_S(NS_IMAGE_LOAD_ADDRESS) < BL2_IMAGE_START + IMAGE_BL2_CODE_SIZE && \
-    FLASH_S_PARTITION_SIZE + FLASH_NS_PARTITION_SIZE + FLASH_SIC_TABLE_SIZE > BL2_IMAGE_START
-#error "NS_IMAGE_LOAD_ADDRESS < BL2_IMAGE_START + BL2_CODE_SIZE. Decrease FLASH_NS_PARTITION_SIZE or FLASH_S_PARTITION_SIZE"
+#if BL2_IMAGE_START < BL1_2_CODE_START + BL1_2_DATA_SIZE
+#error "BL2_IMAGE_START overlaps BL1_2_CODE, increase S_DATA_SIZE or NS_DATA_SIZE"
 #endif
 
 #if S_DATA_SIZE <= 0
