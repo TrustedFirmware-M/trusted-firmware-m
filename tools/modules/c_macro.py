@@ -357,14 +357,18 @@ def main():
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument("--h_file", help="header file to parse", required=True)
     parser.add_argument("--macro_name", help="macro name to evaluate", required=True)
-    parser.add_argument("--compile_commands_file", help="header file to parse", required=True)
-    parser.add_argument("--c_file_to_mirror_includes_from", help="name of the c file to take", required=True)
+    parser.add_argument("--compile_commands_file", help="path to compile_commands.json", required=True)
+    parser.add_argument("--c_file_to_mirror_includes_from", help="path to c file to take compile_commands includes from", required=True)
     args = parser.parse_args()
 
     includes = get_includes(args.compile_commands_file, args.c_file_to_mirror_includes_from)
     defines = get_defines(args.compile_commands_file, args.c_file_to_mirror_includes_from)
     s = C_macro.from_h_file(args.h_file, includes, defines)
-    print(s._definitions)
+    out = s._definitions[args.macro_name]
+    try:
+        print(hex(int(out)))
+    except ValueError:
+        print(out)
 
 if __name__ == '__main__':
     sys.exit(main())
