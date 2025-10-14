@@ -321,6 +321,16 @@ if (TFM_PARTITION_RUNTIME_PROVISIONING)
     )
 endif()
 
+#=============== dTPM client hardware abstraction layer =======================#
+if (TFM_PARTITION_DTPM_CLIENT)
+    add_library(dtpm_client_hal INTERFACE)
+
+    target_sources(dtpm_client_hal
+        INTERFACE
+            dtpm_client_hal.c
+    )
+endif()
+
 #========================= Platform Crypto Keys ===============================#
 
 if (TFM_PARTITION_CRYPTO)
