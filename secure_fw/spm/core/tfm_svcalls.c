@@ -87,6 +87,15 @@ static uint32_t thread_mode_spm_return(uint32_t result)
     struct partition_t *p_part_next = GET_CURRENT_COMPONENT();
     struct tfm_state_context_t *p_tctx = (struct tfm_state_context_t *)saved_psp;
 
+    /*
+     * FPU lazy stacking context preservation uses privilege and relative priorities
+     * recorded during original stacking. Thus it's important to flush FP context
+     * before boundary is changed for a new partition.
+     * Flush is always done (even if tfm_hal_boundary_need_switch returns false) to
+     * avoid issues in complex scheduling scenarios.
+     */
+    ARCH_FLUSH_FP_CONTEXT();
+
     FIH_CALL(tfm_hal_boundary_need_switch, fih_bool, spm_boundary, p_part_next->boundary);
     if (fih_not_eq(fih_bool, fih_int_encode(false))) {
         FIH_CALL(tfm_hal_activate_boundary, fih_rc,
@@ -169,6 +178,15 @@ static int32_t prepare_to_thread_mode_spm(uint8_t svc_number, uint32_t *ctx, uin
     }
 
     saved_exc_return = exc_return;
+
+    /*
+     * FPU lazy stacking context preservation uses privilege and relative priorities
+     * recorded during original stacking. Thus it's important to flush FP context
+     * before boundary is changed for a new partition.
+     * Flush is always done (even if tfm_hal_boundary_need_switch returns false) to
+     * avoid issues in complex scheduling scenarios.
+     */
+    ARCH_FLUSH_FP_CONTEXT();
 
     p_curr_sp = GET_CURRENT_COMPONENT();
     FIH_CALL(tfm_hal_boundary_need_switch, fih_bool, p_curr_sp->boundary, spm_boundary);
