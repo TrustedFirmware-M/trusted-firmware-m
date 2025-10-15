@@ -73,7 +73,11 @@ target_include_directories(bl1_1_psa_crypto_interface
 
 target_compile_definitions(bl1_1_psa_crypto_interface
     INTERFACE
-        MBEDTLS_CONFIG_FILE="mbedcrypto_config.h"
+        # This is the base Mbed TLS configuration file for all platforms,
+        # platforms may extend or override it by setting MBEDTLS_USER_CONFIG_FILE
+        # to the platform-specific configuration file.
+        MBEDTLS_CONFIG_FILE="mbedcrypto_base_config.h"
+
         # Workaround for https://github.com/ARMmbed/mbedtls/issues/1077
         $<$<OR:$<STREQUAL:${CMAKE_SYSTEM_ARCHITECTURE},armv8-m.base>,$<STREQUAL:${CMAKE_SYSTEM_ARCHITECTURE},armv6-m>>:MULADDC_CANNOT_USE_R7>
 )

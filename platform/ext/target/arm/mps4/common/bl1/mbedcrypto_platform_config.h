@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef MPS4_MBEDCRYPTO_CONFIG_H
-#define MPS4_MBEDCRYPTO_CONFIG_H
+#ifndef MBEDCRYPTO_PLATFORM_CONFIG_H
+#define MBEDCRYPTO_PLATFORM_CONFIG_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,4 +27,4 @@ extern "C" {
 }
 #endif /* __cplusplus */
 
-#endif /* MPS4_MBEDCRYPTO_CONFIG_H */
+#endif /* MBEDCRYPTO_PLATFORM_CONFIG_H */
