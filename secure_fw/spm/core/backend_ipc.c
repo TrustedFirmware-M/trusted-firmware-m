@@ -517,6 +517,15 @@ uint64_t ipc_schedule(uint32_t exc_return)
         }
 
         /*
+         * FPU lazy stacking context preservation uses privilege and relative priorities
+         * recorded during original stacking. Thus it's important to flush FP context
+         * before boundary is changed for a new partition.
+         * Flush is always done (even if tfm_hal_boundary_need_switch returns false) to
+         * avoid issues in complex scheduling scenarios.
+         */
+        ARCH_FLUSH_FP_CONTEXT();
+
+        /*
          * If required, let the platform update boundary based on its
          * implementation. Change privilege, MPU or other configurations.
          */
@@ -529,7 +538,6 @@ uint64_t ipc_schedule(uint32_t exc_return)
                 tfm_core_panic();
             }
         }
-        ARCH_FLUSH_FP_CONTEXT();
 
 #if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && defined(CONFIG_TFM_USE_TRUSTZONE)
         if (IS_NS_AGENT_TZ(p_part_next->p_ldinf)) {
