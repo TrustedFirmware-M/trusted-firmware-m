@@ -40,35 +40,44 @@ __asm("  .global __ARM_use_no_argv\n");
 #endif
 
 #ifdef TFM_MEASURED_BOOT_API
-static fih_ret submit_boot_measurement(const struct bl1_2_image_t *image,
-                                       uint8_t *rotpk_hash, size_t rotpk_hash_size,
-                                       uint8_t *measurement_hash, size_t measurement_hash_size,
-                                       enum boot_measurement_slot_t slot)
+static struct boot_measurement_metadata bl2_metadata = {
+    .measurement_type = TFM_BL1_2_MEASUREMENT_HASH_ALG,
+    .sw_type = "BL2",
+};
+
+static fih_ret add_signer_measurement(uint8_t *rotpk_hash, size_t rotpk_hash_size)
 {
-    FIH_DECLARE(fih_rc, FIH_FAILURE);;
-
-    struct boot_measurement_metadata bl2_metadata = {
-        .measurement_type = TFM_BL1_2_MEASUREMENT_HASH_ALG,
-        .signer_id = { 0 },
-        .signer_id_size = measurement_hash_size,
-        .sw_type = "BL2",
-        .sw_version = {
-            image->protected_values.version.major,
-            image->protected_values.version.minor,
-            image->protected_values.version.revision,
-            image->protected_values.version.build_num,
-        },
-    };
-
     if (sizeof(bl2_metadata.signer_id) < rotpk_hash_size) {
         FIH_RET(FIH_FAILURE);
     }
 
+    /* FIXME support multiple signers instead of just the first one */
+    if (bl2_metadata.signer_id_size != 0) {
+        FIH_RET(FIH_SUCCESS);
+    }
+
     /* Use the ROTPK hash as the signer ID */
+    bl2_metadata.signer_id_size = rotpk_hash_size;
     memcpy(bl2_metadata.signer_id, rotpk_hash, rotpk_hash_size);
 
+    FIH_RET(FIH_SUCCESS);
+}
+
+static fih_ret submit_boot_measurement(const struct bl1_2_image_t *image,
+                                       uint8_t *measurement_hash, size_t measurement_hash_size)
+{
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+
+    struct boot_measurement_version image_version = {
+        image->protected_values.version.major,
+        image->protected_values.version.minor,
+        image->protected_values.version.revision,
+        image->protected_values.version.build_num,
+    };
+    bl2_metadata.sw_version = image_version;
+
     /* Save the boot measurement of the BL2 image. */
-    fih_rc = fih_ret_encode_zero_equality(boot_store_measurement(slot,
+    fih_rc = fih_ret_encode_zero_equality(boot_store_measurement(BOOT_MEASUREMENT_SLOT_BL2,
                                                                  measurement_hash,
                                                                  measurement_hash_size,
                                                                  &bl2_metadata, true));
@@ -100,8 +109,7 @@ static fih_ret validate_image_signature(struct bl1_2_image_t *img,
                                         struct tfm_bl1_image_signature_t *sig,
                                         enum tfm_bl1_key_id_t key_id,
                                         uint8_t *measurement_hash,
-                                        size_t measurement_hash_size,
-                                        enum boot_measurement_slot_t measurement_slot)
+                                        size_t measurement_hash_size)
 {
     FIH_DECLARE(fih_rc, FIH_FAILURE);
     uint8_t rotpk[TFM_BL1_2_ROTPK_MAX_SIZE];
@@ -226,15 +234,15 @@ static fih_ret validate_image_signature(struct bl1_2_image_t *img,
                                        p_rotpk, rotpk_size,
                                        rotpk_hash, sizeof(rotpk_hash),
                                        NULL);
-#endif
-    FIH_CALL(submit_boot_measurement, fih_rc, img, rotpk_hash, sizeof(rotpk_hash),
-                                              measurement_hash, measurement_hash_size,
-                                              measurement_slot);
-#endif /* TFM_MEASURED_BOOT_API */
-
     if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         FIH_RET(fih_rc);
     }
+#endif
+    FIH_CALL(add_signer_measurement, fih_rc, rotpk_hash, sizeof(rotpk_hash));
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        FIH_RET(fih_rc);
+    }
+#endif /* TFM_MEASURED_BOOT_API */
 
     FIH_RET(FIH_SUCCESS);
 }
@@ -271,8 +279,7 @@ static fih_ret is_image_signature_valid(struct bl1_2_image_t *img)
         FIH_CALL(validate_image_signature, fih_rc, img,
                                                    &img->header.sigs[idx],
                                                    TFM_BL1_KEY_ROTPK_0 + idx,
-                                                   measurement_hash, measurement_hash_size,
-                                                   BOOT_MEASUREMENT_SLOT_BL2);
+                                                   measurement_hash, measurement_hash_size);
 
 #ifdef TFM_BL1_2_ENABLE_ROTPK_POLICIES
         if (FIH_EQ(policy, TFM_BL1_KEY_MIGHT_SIGN)) {
@@ -283,6 +290,11 @@ static fih_ret is_image_signature_valid(struct bl1_2_image_t *img)
             FIH_RET(fih_rc);
         }
     }
+
+#ifdef TFM_MEASURED_BOOT_API
+    FIH_CALL(submit_boot_measurement, fih_rc, img, measurement_hash,
+                                              measurement_hash_size);
+#endif
 
     FIH_RET(FIH_SUCCESS);
 }
