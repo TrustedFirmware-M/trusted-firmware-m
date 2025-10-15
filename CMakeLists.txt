@@ -31,6 +31,8 @@ endif()
 
 include(config/post_config.cmake)
 
+include(platform/ext/target/${TFM_PLATFORM}/post_config.cmake OPTIONAL)
+
 ############################### Compiler configuration #########################
 
 include(${TFM_TOOLCHAIN_FILE})
