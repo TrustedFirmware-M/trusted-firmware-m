@@ -42,9 +42,6 @@ enum tfm_plat_err_t tfm_plat_get_bl2_rotpk_policies(uint8_t *buf, size_t buf_len
 }
 #endif /* MCUBOOT_ROTPK_SIGN_POLICY */
 
-/* Maximum number of keys per image */
-#define MAX_KEYS_PER_IMAGE MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE
-
 /**
  * @note When using builtin keys the signature verification happens based on key IDs.
  *       During verification MCUboot checksthe key id to the below count. Hence
@@ -130,7 +127,7 @@ static int get_otp_id(psa_key_id_t key_id)
     return -1; /* Not found */
 }
 
-uint32_t get_policy_bit_mask(uint32_t key_id)
+uint32_t tfm_plat_get_policy_bit_mask(uint32_t key_id)
 {
     int img_idx, key_idx, bit;
 
@@ -236,7 +233,7 @@ static enum tfm_plat_err_t tfm_plat_get_bl2_rotpk(const void *ctx,
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-static uint32_t get_key_id(uint8_t img_idx, uint8_t key_idx)
+uint32_t tfm_plat_get_key_id(uint8_t img_idx, uint8_t key_idx)
 {
     assert(img_idx < MCUBOOT_IMAGE_NUMBER);
     assert(key_idx < MAX_KEYS_PER_IMAGE);
@@ -259,7 +256,7 @@ size_t tfm_plat_builtin_key_get_policy_table_ptr(const tfm_plat_builtin_key_poli
                     .usage = PSA_KEY_USAGE_VERIFY_HASH,
                 };
 
-                policy.key_id = get_key_id(i,j);
+                policy.key_id = tfm_plat_get_key_id(i,j);
                 policy_table[i][j] = policy;
             }
         }
@@ -288,7 +285,7 @@ size_t tfm_plat_builtin_key_get_desc_table_ptr(const tfm_plat_builtin_key_descri
                     .loader_key_func = tfm_plat_get_bl2_rotpk,
                     .loader_key_ctx = &descriptor_table[i][j],
                 };
-                descriptor.key_id = get_key_id(i,j);
+                descriptor.key_id = tfm_plat_get_key_id(i,j);
                 descriptor_table[i][j] = descriptor;
             }
         }
@@ -303,7 +300,7 @@ size_t tfm_plat_builtin_key_get_desc_table_ptr(const tfm_plat_builtin_key_descri
 FIH_RET_TYPE(int) boot_verify_key_id_for_image(uint8_t image_index, uint32_t key_id)
 {
     for (int i = 0; i < MAX_KEYS_PER_IMAGE; i++) {
-        if (key_id == get_key_id(image_index, i)) {
+        if (key_id == tfm_plat_get_key_id(image_index, i)) {
             FIH_RET(FIH_SUCCESS);
         }
     }

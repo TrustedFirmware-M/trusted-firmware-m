@@ -137,30 +137,19 @@ enum tfm_plat_err_t tfm_plat_get_bl2_rotpk_policies(uint8_t *buf, size_t buf_len
  *      - the computed bit index would overflow a 32-bit word (should not occur
  *       if `MCUBOOT_IMAGE_NUMBER * MAX_KEYS_PER_IMAGE <= 32`).
  */
-uint32_t get_policy_bit_mask(uint32_t key_id);
+uint32_t tfm_plat_get_policy_bit_mask(uint32_t key_id);
 
 /**
- * @brief Check the key policy for a given key ID based on signature validity.
+ * @brief Retrieves the key identifier for a given image and key index.
  *
- * @details This function evaluates the policy associated with the specified
- *          key ID and determines whether the key might or must be used for
- *          signing operations. It also tracks the count of keys that must
- *          sign if applicable.
+ * This function returns a unique key ID based on the provided image index
+ * and key index.
  *
- * @param[in]  valid_sig           Boolean indicating if the signature is valid.
- * @param[in]  key                 The identifier of the key to check the policy for.
- * @param[out] key_might_sign      Pointer to a boolean that will be set to true
- *                                 if the key might be used for signing.
- * @param[out] key_must_sign       Pointer to a boolean that will be set to true
- *                                 if the key must be used for signing.
- * @param[out] key_must_sign_count Pointer to a counter that will be incremented
- *                                 if the key must sign.
- *
- * @return 0 on success, or an error code indicating the failure reason.
+ * @param img_idx Index of the image
+ * @param key_idx Index of the key associated with the image.
+ * @return uint32_t The key identifier corresponding to the specified indices.
  */
-int boot_plat_check_key_policy(bool valid_sig, psa_key_id_t key,
-                               bool *key_might_sign, bool *key_must_sign,
-                               uint8_t *key_must_sign_count);
+uint32_t tfm_plat_get_key_id(uint8_t img_idx, uint8_t key_idx);
 
 #ifdef __cplusplus
 }

@@ -114,6 +114,7 @@ add_library(bl2_crypto STATIC ${BL2_CRYPTO_SRC})
 target_compile_definitions(bl2_crypto
     PRIVATE
         $<$<BOOL:${MCUBOOT_ROTPK_SIGN_POLICY}>:MCUBOOT_ROTPK_SIGN_POLICY>
+        MAX_KEYS_PER_IMAGE=${MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE}
 )
 
 target_include_directories(bl2_crypto

@@ -213,6 +213,7 @@ if(BL2)
             $<$<BOOL:${BL2_SANITIZE}>:ext/common/tfm_sanitize_handlers.c>
             ./ext/common/tfm_fatal_error.c
             ./ext/common/tfm_assert.c
+            $<$<BOOL:${MCUBOOT_IMAGE_MULTI_SIG_SUPPORT}>:ext/common/bl2_hal_multisig.c>
     )
 
     target_link_libraries(platform_bl2
@@ -250,6 +251,7 @@ if(BL2)
             $<$<AND:$<BOOL:${TFM_LOG_FATAL_ERRORS}>,$<NOT:$<STREQUAL:${TFM_BL2_LOG_LEVEL},"LOG_LEVEL_NONE">>>:LOG_FATAL_ERRORS>
             $<$<AND:$<BOOL:${TFM_LOG_FATAL_ERRORS}>,$<NOT:$<STREQUAL:${TFM_BL2_LOG_LEVEL},"LOG_LEVEL_NONE">>>:LOG_NONFATAL_ERRORS>
             LOG_LEVEL=${TFM_BL2_LOG_LEVEL}
+            MAX_KEYS_PER_IMAGE=${MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE}
     )
 
     target_compile_options(platform_bl2

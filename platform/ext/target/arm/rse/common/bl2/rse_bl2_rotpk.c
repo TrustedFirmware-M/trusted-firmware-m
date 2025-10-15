@@ -13,6 +13,10 @@
 #include "rse_rotpk_mapping.h"
 #include "rse_rotpk_policy.h"
 #include "tfm_plat_crypto_keys.h"
+#ifdef MCUBOOT_IMAGE_MULTI_SIG_SUPPORT
+#include "tfm_log.h"
+#include "fih.h"
+#endif /* MCUBOOT_IMAGE_MULTI_SIG_SUPPORT */
 
 #ifdef MCUBOOT_HW_KEY
 static enum tfm_plat_err_t get_rotpk_hash(enum tfm_otp_element_id_t id,
@@ -45,7 +49,8 @@ struct bootutil_key bootutil_keys[1] = {
     },
 };
 #ifdef MCUBOOT_IMAGE_MULTI_SIG_SUPPORT
-#define MAX_KEYS_PER_IMAGE MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE
+#define CM_KEY_SLOT 0
+#define DM_KEY_SLOT 1
 
 const int bootutil_key_cnt = MCUBOOT_IMAGE_NUMBER * MAX_KEYS_PER_IMAGE;
 #else
@@ -165,24 +170,56 @@ int boot_retrieve_public_key_hash(uint8_t image_index,
     return 0;
 }
 
-int boot_plat_check_key_policy(bool valid_sig, psa_key_id_t key,
-                               bool *key_might_sign, bool *key_must_sign,
-                               uint8_t *key_must_sign_count)
+static inline bool has_slot(const int *verified_keys, uint8_t verified_cnt, int slot)
 {
-    (void)key;
-#ifndef MCUBOOT_ROTPK_SIGN_POLICY
-    /* By default key policy is a MUST SIGN */
-    key_policy = TFM_BL2_KEY_MUST_SIGN;
-#endif /* !MCUBOOT_ROTPK_SIGN_POLICY */
-
-    if (key_policy == TFM_BL2_KEY_MIGHT_SIGN) {
-        *key_might_sign |= valid_sig;
-    } else {
-        *key_must_sign_count += 1;
-        *key_might_sign |= valid_sig;
-        *key_must_sign  &= valid_sig;
+    uint8_t i;
+    for (i = 0; i < verified_cnt; i++) {
+        if (verified_keys[i] == slot) {
+            INFO("Slot %d: Verified\n", slot);
+            return true;
+        }
     }
-    return 0;
+    return false;
+}
+
+fih_ret boot_plat_check_key_policy(uint8_t image_index,
+                                   const int *verified_keys,
+                                   uint8_t verified_cnt)
+{
+    bool cm_must, dm_must;
+    enum tfm_bl2_key_policy_t policy;
+    enum tfm_otp_element_id_t cm_id = rse_cm_get_bl2_rotpk(image_index);
+    enum tfm_otp_element_id_t dm_id = rse_dm_get_bl2_rotpk(image_index);
+
+    if (cm_id != PLAT_OTP_ID_INVALID) {
+        if (bl2_otp_get_key_policy(cm_id, &policy) != 0) {
+            INFO("Image=%u CM policy read FAILED", image_index);
+            FIH_RET(FIH_FAILURE);
+        }
+        cm_must = (policy == TFM_BL2_KEY_MUST_SIGN);
+        INFO("cm_otp_id=0x%08x,\t policy: %s\n", cm_id,
+                 cm_must ? "MUST SIGN" : "MIGHT SIGN");
+    }
+    if (dm_id != PLAT_OTP_ID_INVALID) {
+        if (bl2_otp_get_key_policy(dm_id, &policy) != 0) {
+            INFO("Image=%u DM policy read FAILED", image_index);
+            FIH_RET(FIH_FAILURE);
+        }
+        dm_must = (policy == TFM_BL2_KEY_MUST_SIGN);
+        INFO("dm otp id=0x%08x,\t policy: %s\n", dm_id,
+                 dm_must ? "MUST SIGN" : "MIGHT SIGN");
+    }
+
+    if (cm_must && !has_slot(verified_keys, verified_cnt, CM_KEY_SLOT)) {
+        INFO("Slot 0, Failed to verify\n");
+        FIH_RET(FIH_FAILURE); /* CM missing */
+    }
+    if (dm_must && !has_slot(verified_keys, verified_cnt, DM_KEY_SLOT)) {
+        INFO("Slot 1, Failed to verify\n");
+        FIH_RET(FIH_FAILURE); /* DM missing */
+    }
+
+    FIH_RET(FIH_SUCCESS);
 }
 #endif /* !MCUBOOT_IMAGE_MULTI_SIG_SUPPORT */
 
