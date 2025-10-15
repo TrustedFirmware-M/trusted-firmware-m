@@ -41,9 +41,16 @@ void sfcp_helpers_generate_protocol_error_packet(struct sfcp_packet_t *packet,
 
 static inline enum sfcp_error_t sfcp_hal_error_to_sfcp_error(enum sfcp_hal_error_t hal_error)
 {
-    assert(hal_error < (SFCP_ERROR_HAL_ERROR_MAX - SFCP_ERROR_HAL_ERROR_BASE));
-
-    return SFCP_ERROR_HAL_ERROR_BASE + hal_error;
+    if (hal_error == SFCP_HAL_ERROR_SUCCESS) {
+        return SFCP_ERROR_SUCCESS;
+    } else if (hal_error == SFCP_HAL_ERROR_SEND_MESSAGE_BUS_BUSY) {
+        return SFCP_ERROR_SEND_MSG_BUS_BUSY;
+    } else if (hal_error >= SFCP_HAL_ERROR_MAX) {
+        /* Could have error directly from HAL driver */
+        return (enum sfcp_error_t)hal_error;
+    } else {
+        return SFCP_ERROR_HAL_ERROR_BASE + hal_error;
+    }
 }
 
 #ifdef __cplusplus

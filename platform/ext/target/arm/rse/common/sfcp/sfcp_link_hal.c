@@ -12,7 +12,22 @@
 #include "rse_get_routing_tables.h"
 #include "rse_get_rse_id.h"
 #include "sfcp_platform.h"
-#include "mhu.h"
+
+#define MHU_NOTIFY_VALUE (1234u)
+
+/* Platform MHU version can be set to 0, 2, 3. 0 specifies that
+ * both of the MHU types are present in the platform and 2/3 specify
+ * that a single MHU type is present
+ */
+#if (PLAT_MHU_VERSION == 2) || (PLAT_MHU_VERSION == 0)
+#include "mhu_v2_x.h"
+#define MHU_V2_ENABLED
+#endif
+
+#if (PLAT_MHU_VERSION == 3) || (PLAT_MHU_VERSION == 0)
+#include "mhu_v3_x.h"
+#define MHU_V3_ENABLED
+#endif
 
 static enum sfcp_hal_error_t get_routing_tables_for_rse_id(const uint8_t **routing_tables,
                                                            size_t *routing_tables_size,
@@ -69,23 +84,412 @@ enum sfcp_hal_error_t sfcp_hal_get_my_node_id(sfcp_node_id_t *node_id)
     return SFCP_HAL_ERROR_SUCCESS;
 }
 
+static uint32_t mhu_driver_init(void *mhu_device, enum sfcp_platform_device_type_t type)
+{
+    switch (type) {
+#ifdef MHU_V2_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
+        return mhu_v2_x_driver_init(mhu_device, MHU_REV_READ_FROM_HW);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        return mhu_v3_x_driver_init(mhu_device);
+#endif
+    default:
+        return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+}
+
+static uint32_t mhu_get_num_mhu_channels(void *mhu_device, enum sfcp_platform_device_type_t type)
+{
+    switch (type) {
+#ifdef MHU_V2_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
+        return mhu_v2_x_get_num_channel_implemented(mhu_device);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3: {
+        uint8_t num_ch;
+        enum mhu_v3_x_error_t mhu_v3_err;
+
+        mhu_v3_err =
+            mhu_v3_x_get_num_channel_implemented(mhu_device, MHU_V3_X_CHANNEL_TYPE_DBCH, &num_ch);
+        assert(mhu_v3_err == MHU_V_3_X_ERR_NONE);
+
+        return num_ch;
+    }
+#endif
+    default:
+        return 0;
+    }
+}
+
+static uint32_t mhu_channel_mask_set(void *mhu_device, uint32_t channel, uint32_t mask,
+                                     enum sfcp_platform_device_type_t type)
+{
+    switch (type) {
+#ifdef MHU_V2_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
+        return mhu_v2_x_channel_mask_set(mhu_device, channel, mask);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        return mhu_v3_x_doorbell_mask_set(mhu_device, channel, mask);
+#endif
+    default:
+        return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+}
+
+static uint32_t mhu_channel_mask_clear(void *mhu_device, uint32_t channel, uint32_t mask,
+                                       enum sfcp_platform_device_type_t type)
+{
+    switch (type) {
+#ifdef MHU_V2_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
+        return mhu_v2_x_channel_mask_clear(mhu_device, channel, mask);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        return mhu_v3_x_doorbell_mask_clear(mhu_device, channel, mask);
+#endif
+    default:
+        return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+}
+
+static uint32_t mhu_channel_interrupt_enable(void *mhu_device, uint32_t channel,
+                                             enum sfcp_platform_device_type_t type)
+{
+    switch (type) {
+#ifdef MHU_V2_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
+        /* Only enable global interrupt for MHUv2 */
+        return mhu_v2_x_interrupt_enable(mhu_device, MHU_2_1_INTR_CHCOMB_MASK);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        return mhu_v3_x_channel_interrupt_enable(mhu_device, channel, MHU_V3_X_CHANNEL_TYPE_DBCH);
+#endif
+    default:
+        return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+}
+
+static uint32_t mhu_channel_interrupt_disable(void *mhu_device, uint32_t channel,
+                                              enum sfcp_platform_device_type_t type)
+{
+    switch (type) {
+#ifdef MHU_V2_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
+        /* Only disable global interrupt for MHUv2 */
+        return mhu_v2_x_interrupt_disable(mhu_device, MHU_2_1_INTR_CHCOMB_MASK);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        return mhu_v3_x_channel_interrupt_disable(mhu_device, channel, MHU_V3_X_CHANNEL_TYPE_DBCH);
+#endif
+    default:
+        return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+}
+
+static uint32_t mhu_channel_send(void *mhu_device, uint32_t channel, uint32_t value,
+                                 enum sfcp_platform_device_type_t type)
+{
+    switch (type) {
+#ifdef MHU_V2_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
+        return mhu_v2_x_channel_send(mhu_device, channel, value);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        return mhu_v3_x_doorbell_write(mhu_device, channel, value);
+#endif
+    default:
+        return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+}
+
+static uint32_t mhu_channel_send_device_receive(void *mhu_device, uint32_t channel, uint32_t *value,
+                                                enum sfcp_platform_device_type_t type)
+{
+    switch (type) {
+#ifdef MHU_V2_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
+        return mhu_v2_x_channel_poll(mhu_device, channel, value);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        return mhu_v3_x_doorbell_read(mhu_device, channel, value);
+#endif
+    default:
+        return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+}
+
+static uint32_t mhu_channel_receive_device_receive(void *mhu_device, uint32_t channel,
+                                                   uint32_t *value,
+                                                   enum sfcp_platform_device_type_t type)
+{
+    switch (type) {
+#ifdef MHU_V2_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
+        return mhu_v2_x_channel_receive(mhu_device, channel, value);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        return mhu_v3_x_doorbell_read(mhu_device, channel, value);
+#endif
+    default:
+        return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+}
+
+static uint32_t mhu_channel_clear(void *mhu_device, uint32_t channel,
+                                  enum sfcp_platform_device_type_t type)
+{
+    switch (type) {
+#ifdef MHU_V2_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
+        return mhu_v2_x_channel_clear(mhu_device, channel);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        return mhu_v3_x_doorbell_clear(mhu_device, channel, UINT32_MAX);
+#endif
+    default:
+        return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+}
+
+static uint32_t mhu_initiate_transfer(void *mhu_device, enum sfcp_platform_device_type_t type)
+{
+    switch (type) {
+#ifdef MHU_V2_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
+        return mhu_v2_x_initiate_transfer(mhu_device);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        /* Not required in MHUv3 */
+        return 0;
+#endif
+    default:
+        return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+}
+
+static uint32_t mhu_close_transfer(void *mhu_device, enum sfcp_platform_device_type_t type)
+{
+    switch (type) {
+#ifdef MHU_V2_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
+        return mhu_v2_x_close_transfer(mhu_device);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        /* Not required in MHUv3 */
+        return 0;
+#endif
+    default:
+        return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+}
+
+static enum sfcp_hal_error_t mhu_send_signal_poll_loop(void *mhu_send_device, void *mhu_recv_device,
+                                                       enum sfcp_platform_device_type_t type)
+{
+    const uint32_t send_num_channels = mhu_get_num_mhu_channels(mhu_send_device, type);
+    const uint32_t recv_num_channels = mhu_get_num_mhu_channels(mhu_recv_device, type);
+    uint32_t mhu_err;
+    uint32_t send_signal;
+    uint32_t recv_signal;
+
+    /* Signal using the last channel */
+    mhu_err = mhu_channel_send(mhu_send_device, send_num_channels - 1, MHU_NOTIFY_VALUE, type);
+    if (mhu_err != 0) {
+        return mhu_err;
+    }
+
+    do {
+        mhu_err = mhu_channel_send_device_receive(mhu_send_device, send_num_channels - 1,
+                                                  &send_signal, type);
+        if (mhu_err != 0) {
+            return mhu_err;
+        }
+
+        /* Also check the receive device, if we find that a signal is pending
+         * for us there, both devices are talking to each other at once. Return
+         * an error and let the higher layers decide what to do
+         */
+        mhu_err = mhu_channel_receive_device_receive(mhu_recv_device, recv_num_channels - 1,
+                                                     &recv_signal, type);
+        if (mhu_err != 0) {
+            return mhu_err;
+        }
+
+        if ((recv_signal & MHU_NOTIFY_VALUE) == MHU_NOTIFY_VALUE) {
+            return SFCP_HAL_ERROR_SEND_MESSAGE_BUS_BUSY;
+        }
+    } while ((send_signal & MHU_NOTIFY_VALUE) == MHU_NOTIFY_VALUE);
+
+    return 0;
+}
+
+static uint32_t mhu_recv_signal_poll_loop(void *mhu_recv_device,
+                                          enum sfcp_platform_device_type_t type)
+{
+    const uint32_t recv_num_channels = mhu_get_num_mhu_channels(mhu_recv_device, type);
+    uint32_t mhu_err;
+    uint32_t recv_signal;
+
+    /* ACK current transfer by clearing all channels */
+    for (uint32_t i = 0; i < recv_num_channels; ++i) {
+        mhu_err = mhu_channel_clear(mhu_recv_device, i, type);
+        if (mhu_err != 0) {
+            return mhu_err;
+        }
+    }
+
+    /* Wait for next sender transfer */
+    do {
+        mhu_err = mhu_channel_receive_device_receive(mhu_recv_device, recv_num_channels - 1,
+                                                     &recv_signal, type);
+        if (mhu_err != 0) {
+            return mhu_err;
+        }
+    } while ((recv_signal & MHU_NOTIFY_VALUE) != MHU_NOTIFY_VALUE);
+
+    return 0;
+}
+
+static enum sfcp_hal_error_t mhu_message_is_available(void *mhu_recv_device, bool *is_available,
+                                                      enum sfcp_platform_device_type_t type)
+{
+    const uint32_t num_channels = mhu_get_num_mhu_channels(mhu_recv_device, type);
+    uint32_t mhu_err;
+    uint32_t value;
+
+    mhu_err = mhu_channel_receive_device_receive(mhu_recv_device, num_channels - 1, &value, type);
+    if (mhu_err != 0) {
+        return mhu_err;
+    }
+
+    *is_available = (value == MHU_NOTIFY_VALUE);
+
+    return SFCP_HAL_ERROR_SUCCESS;
+}
+
+static enum sfcp_hal_error_t mhu_check_message_alignment(const uint8_t *message,
+                                                         size_t message_size)
+{
+    if ((message == NULL) || (((uintptr_t)message % sizeof(uint32_t)) != 0)) {
+        return SFCP_HAL_ERROR_INVALID_MESSAGE_ARGUMENT;
+    }
+
+    if ((message_size == 0) || (message_size % sizeof(uint32_t)) != 0) {
+        return SFCP_HAL_ERROR_INVALID_MESSAGE_SIZE;
+    }
+
+    return 0;
+}
+
+static enum sfcp_hal_error_t mhu_send_message(void *mhu_send_device, void *mhu_recv_device,
+                                              const uint8_t *message, size_t message_size,
+                                              enum sfcp_platform_device_type_t type)
+{
+    const uint32_t num_channels = mhu_get_num_mhu_channels(mhu_send_device, type);
+    uint32_t channel;
+    uint32_t mhu_err;
+    bool is_available;
+    const uint32_t *message_ptr;
+    size_t bytes_left;
+
+    mhu_err = mhu_check_message_alignment(message, message_size);
+    if (mhu_err != 0) {
+        return mhu_err;
+    }
+
+    /* Check for incoming message on receiver device and do not allow sending
+     * a message while another is pending
+     */
+    mhu_err = mhu_message_is_available(mhu_recv_device, &is_available, type);
+    if (mhu_err != 0) {
+        return mhu_err;
+    }
+
+    if (is_available) {
+        return SFCP_HAL_ERROR_SEND_MESSAGE_BUS_BUSY;
+    }
+
+    mhu_err = mhu_initiate_transfer(mhu_send_device, type);
+    if (mhu_err != 0) {
+        return mhu_err;
+    }
+
+    /* First send over the size of the actual message */
+    channel = 0;
+    mhu_err = mhu_channel_send(mhu_send_device, channel, message_size, type);
+    if (mhu_err != 0) {
+        return mhu_err;
+    }
+
+    channel++;
+    message_ptr = (const uint32_t *)message;
+    bytes_left = message_size;
+    while (bytes_left > 0) {
+        mhu_err = mhu_channel_send(mhu_send_device, channel, *message_ptr++, type);
+        if (mhu_err != 0) {
+            return mhu_err;
+        }
+
+        bytes_left -= sizeof(uint32_t);
+
+        if (++channel == (num_channels - 1)) {
+            mhu_err = mhu_send_signal_poll_loop(mhu_send_device, mhu_recv_device, type);
+            if (mhu_err != 0) {
+                return mhu_err;
+            }
+
+            channel = 0;
+        }
+    }
+
+    if (channel != 0) {
+        mhu_err = mhu_send_signal_poll_loop(mhu_send_device, mhu_recv_device, type);
+        if (mhu_err != 0) {
+            return mhu_err;
+        }
+    }
+
+    mhu_err = mhu_close_transfer(mhu_send_device, type);
+    if (mhu_err != 0) {
+        return mhu_err;
+    }
+
+    return SFCP_HAL_ERROR_SUCCESS;
+}
+
 enum sfcp_hal_error_t sfcp_hal_send_message(sfcp_link_id_t link_id, const uint8_t *message,
                                             size_t message_size)
 {
-    struct sfcp_platform_device_t device;
+    struct sfcp_platform_device_t send_device, recv_device;
 
-    device = sfcp_platform_get_send_device(link_id);
+    send_device = sfcp_platform_get_send_device(link_id);
+    recv_device = sfcp_platform_get_receive_device(link_id);
 
-    switch (device.type) {
+    switch (send_device.type) {
+#ifdef MHU_V2_ENABLED
     case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
-    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3: {
-        enum mhu_error_t mhu_err = mhu_send_data((void *)device.device, message, message_size);
-        if (mhu_err != MHU_ERR_NONE) {
-            return SFCP_HAL_ERROR_DEVICE_SEND_FAIL;
-        }
-
-        break;
-    }
+        return mhu_send_message((void *)send_device.device, (void *)recv_device.device, message,
+                                message_size, SFCP_PLATFORM_DEVICE_TYPE_MHUV2);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        return mhu_send_message((void *)send_device.device, (void *)recv_device.device, message,
+                                message_size, SFCP_PLATFORM_DEVICE_TYPE_MHUV3);
+#endif
     default:
         return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
     }
@@ -100,29 +504,33 @@ enum sfcp_hal_error_t sfcp_hal_is_message_available(sfcp_link_id_t link_id, bool
     device = sfcp_platform_get_receive_device(link_id);
 
     switch (device.type) {
+#ifdef MHU_V2_ENABLED
     case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
-    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3: {
-        enum mhu_error_t mhu_err = mhu_data_is_available((void *)device.device, is_available);
-
-        /* In some platforms, there is a mixture of MHU versions, but the current MHU API
-         * only allows support for single version to be compiled in. Different components
-         * use different MHU devices (and only one type) but the routing tables are shared
-         * and therefore we could try and initialise an MHU device with a different version
-         * to what the compiled in driver supports. Allow that to happen here without error,
-         * as we may want to poll all of the devices in the system, and just say that no message
-         * is available
-         */
-        if (mhu_err == MHU_ERR_INVALID_VERSION) {
-            *is_available = false;
-            return SFCP_HAL_ERROR_SUCCESS;
-        } else if (mhu_err != MHU_ERR_NONE) {
-            return SFCP_HAL_ERROR_DEVICE_IS_AVAILABLE_FAIL;
-        }
-
-        break;
-    }
+        return mhu_message_is_available((void *)device.device, is_available,
+                                        SFCP_PLATFORM_DEVICE_TYPE_MHUV2);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        return mhu_message_is_available((void *)device.device, is_available,
+                                        SFCP_PLATFORM_DEVICE_TYPE_MHUV3);
+#endif
     default:
         return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+
+    return SFCP_HAL_ERROR_SUCCESS;
+}
+
+static enum sfcp_hal_error_t mhu_get_receive_message_size(void *mhu_recv_device,
+                                                          size_t *message_size,
+                                                          enum sfcp_platform_device_type_t type)
+{
+    uint32_t mhu_err;
+
+    mhu_err =
+        mhu_channel_receive_device_receive(mhu_recv_device, 0, (uint32_t *)message_size, type);
+    if (mhu_err != 0) {
+        return mhu_err;
     }
 
     return SFCP_HAL_ERROR_SUCCESS;
@@ -136,17 +544,68 @@ enum sfcp_hal_error_t sfcp_hal_get_receive_message_size(sfcp_link_id_t link_id,
     device = sfcp_platform_get_receive_device(link_id);
 
     switch (device.type) {
+#ifdef MHU_V2_ENABLED
     case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
-    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3: {
-        enum mhu_error_t mhu_err = mhu_get_receive_msg_len((void *)device.device, message_size);
-        if (mhu_err != MHU_ERR_NONE) {
-            return SFCP_HAL_ERROR_DEVICE_GET_MSG_LEN_FAIL;
-        }
-
-        break;
-    }
+        return mhu_get_receive_message_size((void *)device.device, message_size,
+                                            SFCP_PLATFORM_DEVICE_TYPE_MHUV2);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        return mhu_get_receive_message_size((void *)device.device, message_size,
+                                            SFCP_PLATFORM_DEVICE_TYPE_MHUV3);
+#endif
     default:
         return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+
+    return SFCP_HAL_ERROR_SUCCESS;
+}
+
+static enum sfcp_hal_error_t mhu_receive_message(void *mhu_recv_device, uint8_t *message,
+                                                 size_t message_size,
+                                                 enum sfcp_platform_device_type_t type)
+{
+    const uint32_t num_channels = mhu_get_num_mhu_channels(mhu_recv_device, type);
+    uint32_t mhu_err;
+    uint32_t channel;
+    uint32_t *message_ptr;
+    size_t bytes_left;
+
+    mhu_err = mhu_check_message_alignment(message, message_size);
+    if (mhu_err != 0) {
+        return mhu_err;
+    }
+
+    /* Chan 0 is initially used for the message length so start with chan 1 */
+    channel = 1;
+    message_ptr = (uint32_t *)message;
+    bytes_left = message_size;
+    while (bytes_left > 0) {
+        mhu_err = mhu_channel_receive_device_receive(mhu_recv_device, channel, message_ptr++, type);
+        if (mhu_err != 0) {
+            return mhu_err;
+        }
+
+        bytes_left -= sizeof(uint32_t);
+
+        /* Only wait for next transfer if there is still missing data */
+        if ((++channel == (num_channels - 1)) && (bytes_left > 0)) {
+            /* Busy wait for next transfer */
+            mhu_err = mhu_recv_signal_poll_loop(mhu_recv_device, type);
+            if (mhu_err != 0) {
+                return mhu_err;
+            }
+
+            channel = 0;
+        }
+    }
+
+    /* Clear all channels */
+    for (uint32_t i = 0; i < num_channels; i++) {
+        mhu_err = mhu_channel_clear(mhu_recv_device, i, type);
+        if (mhu_err != 0) {
+            return mhu_err;
+        }
     }
 
     return SFCP_HAL_ERROR_SUCCESS;
@@ -160,17 +619,88 @@ enum sfcp_hal_error_t sfcp_hal_receive_message(sfcp_link_id_t link_id, uint8_t *
     device = sfcp_platform_get_receive_device(link_id);
 
     switch (device.type) {
+#ifdef MHU_V2_ENABLED
     case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
-    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3: {
-        enum mhu_error_t mhu_err = mhu_receive_data((void *)device.device, message, message_size);
-        if (mhu_err != MHU_ERR_NONE) {
-            return SFCP_HAL_ERROR_DEVICE_RECEIVE_FAIL;
-        }
-
-        break;
-    }
+        return mhu_receive_message((void *)device.device, message, message_size,
+                                   SFCP_PLATFORM_DEVICE_TYPE_MHUV2);
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        return mhu_receive_message((void *)device.device, message, message_size,
+                                   SFCP_PLATFORM_DEVICE_TYPE_MHUV3);
+#endif
     default:
         return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
+    }
+
+    return SFCP_HAL_ERROR_SUCCESS;
+}
+
+static enum sfcp_hal_error_t mhu_init_sender(void *mhu_sender_dev,
+                                             enum sfcp_platform_device_type_t type)
+{
+    uint32_t mhu_err;
+    uint32_t num_channels;
+
+    mhu_err = mhu_driver_init(mhu_sender_dev, type);
+    if (mhu_err != 0) {
+        return mhu_err;
+    }
+
+    num_channels = mhu_get_num_mhu_channels(mhu_sender_dev, type);
+    if (num_channels < 2) {
+        return SFCP_HAL_ERROR_DEVICE_UNSUPPORTED;
+    }
+
+    /* Sender interrupts are not used */
+    for (uint32_t channel = 0; channel < num_channels; channel++) {
+        mhu_err = mhu_channel_interrupt_disable(mhu_sender_dev, channel, type);
+        if (mhu_err != 0) {
+            return mhu_err;
+        }
+    }
+
+    return SFCP_HAL_ERROR_SUCCESS;
+}
+
+static enum sfcp_hal_error_t mhu_init_receiver(void *mhu_receiver_dev,
+                                               enum sfcp_platform_device_type_t type)
+{
+    uint32_t mhu_err;
+    uint32_t num_channels;
+
+    /* Initialize MHUv3 */
+    mhu_err = mhu_driver_init(mhu_receiver_dev, type);
+    if (mhu_err != 0) {
+        return mhu_err;
+    }
+
+    num_channels = mhu_get_num_mhu_channels(mhu_receiver_dev, type);
+    if (num_channels < 2) {
+        return SFCP_HAL_ERROR_DEVICE_UNSUPPORTED;
+    }
+
+    /* Mask all channels except the notifying channel */
+    for (uint32_t channel = 0; channel < (num_channels - 1); channel++) {
+        mhu_err = mhu_channel_mask_set(mhu_receiver_dev, channel, UINT32_MAX, type);
+        if (mhu_err != 0) {
+            return mhu_err;
+        }
+    }
+
+    /* Unmask doorbell notification channel interrupt */
+    mhu_err = mhu_channel_mask_clear(mhu_receiver_dev, num_channels - 1, UINT32_MAX, type);
+    if (mhu_err != 0) {
+        return mhu_err;
+    }
+
+    /*
+     * Enable the doorbell channel's contribution to mailbox combined
+     * interrupt.
+     */
+    mhu_err = mhu_channel_interrupt_enable(mhu_receiver_dev, num_channels - 1, type);
+    if (mhu_err != 0) {
+        return mhu_err;
     }
 
     return SFCP_HAL_ERROR_SUCCESS;
@@ -180,29 +710,22 @@ static enum sfcp_hal_error_t init_sender_receiver(struct sfcp_platform_device_t 
                                                   bool is_sender)
 {
     switch (device.type) {
+#ifdef MHU_V2_ENABLED
     case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
-    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3: {
-        enum mhu_error_t mhu_err;
-
         if (is_sender) {
-            mhu_err = mhu_init_sender((void *)device.device);
+            return mhu_init_sender((void *)device.device, SFCP_PLATFORM_DEVICE_TYPE_MHUV2);
         } else {
-            mhu_err = mhu_init_receiver((void *)device.device);
+            return mhu_init_receiver((void *)device.device, SFCP_PLATFORM_DEVICE_TYPE_MHUV2);
         }
-
-        /* In some platforms, there is a mixture of MHU versions, but the current MHU API
-         * only allows support for single version to be compiled in. Different components
-         * use different MHU devices (and only one type) but the routing tables are shared
-         * and therefore we could try and initialise an MHU device with a different version
-         * to what the compiled in driver supports. Allow that to happen here without error,
-         * if we try and actually use the device we will fail with an incorrect version
-         * then */
-        if ((mhu_err != MHU_ERR_NONE) && (mhu_err != MHU_ERR_INVALID_VERSION)) {
-            return SFCP_HAL_ERROR_DEVICE_INIT_FAIL;
+#endif
+#ifdef MHU_V3_ENABLED
+    case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
+        if (is_sender) {
+            return mhu_init_sender((void *)device.device, SFCP_PLATFORM_DEVICE_TYPE_MHUV3);
+        } else {
+            return mhu_init_receiver((void *)device.device, SFCP_PLATFORM_DEVICE_TYPE_MHUV3);
         }
-
-        break;
-    }
+#endif
     default:
         return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
     }
@@ -212,15 +735,15 @@ static enum sfcp_hal_error_t init_sender_receiver(struct sfcp_platform_device_t 
 
 enum sfcp_hal_error_t sfcp_hal_init(void)
 {
-    enum sfcp_hal_error_t sfcp_err;
+    enum sfcp_hal_error_t hal_err;
     uint32_t rse_id;
     const uint8_t *routing_tables;
     size_t routing_tables_size;
     sfcp_link_id_t link_id;
 
-    sfcp_err = get_routing_tables_for_rse_id(&routing_tables, &routing_tables_size, &rse_id);
-    if (sfcp_err != SFCP_HAL_ERROR_SUCCESS) {
-        return sfcp_err;
+    hal_err = get_routing_tables_for_rse_id(&routing_tables, &routing_tables_size, &rse_id);
+    if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
+        return hal_err;
     }
 
     for (sfcp_node_id_t node = 0; node < routing_tables_size; node++) {
@@ -230,14 +753,14 @@ enum sfcp_hal_error_t sfcp_hal_init(void)
 
         link_id = routing_tables[node];
 
-        sfcp_err = init_sender_receiver(sfcp_platform_get_send_device(link_id), true);
-        if (sfcp_err != SFCP_HAL_ERROR_SUCCESS) {
-            return sfcp_err;
+        hal_err = init_sender_receiver(sfcp_platform_get_send_device(link_id), true);
+        if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
+            return hal_err;
         }
 
-        sfcp_err = init_sender_receiver(sfcp_platform_get_receive_device(link_id), false);
-        if (sfcp_err != SFCP_HAL_ERROR_SUCCESS) {
-            return sfcp_err;
+        hal_err = init_sender_receiver(sfcp_platform_get_receive_device(link_id), false);
+        if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
+            return hal_err;
         }
     }
 

@@ -39,8 +39,8 @@ target_sources(platform_s
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/cfi/cfi_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/strata/spi_strataflashj3_flash_lib.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/usart/pl011/uart_pl011_drv.c
+        $<$<EQUAL:${PLAT_MHU_VERSION},0>:${CMAKE_CURRENT_SOURCE_DIR}/../../common/native_drivers/mhu_v2_x.c>
         $<$<EQUAL:${PLAT_MHU_VERSION},0>:${CMAKE_CURRENT_SOURCE_DIR}/../../common/native_drivers/mhu_v3_x.c>
-        $<$<EQUAL:${PLAT_MHU_VERSION},0>:${CMAKE_CURRENT_SOURCE_DIR}/../../common/native_drivers/mhu_wrapper_v3_x.c>
         cmsis_drivers/Driver_Flash.c
         cmsis_drivers/Driver_USART.c
         device/host_device_definition.c
@@ -56,8 +56,8 @@ target_sources(platform_bl2
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/cfi/cfi_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/strata/spi_strataflashj3_flash_lib.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/usart/pl011/uart_pl011_drv.c
+        $<$<EQUAL:${PLAT_MHU_VERSION},0>:${CMAKE_CURRENT_SOURCE_DIR}/../../common/native_drivers/mhu_v2_x.c>
         $<$<EQUAL:${PLAT_MHU_VERSION},0>:${CMAKE_CURRENT_SOURCE_DIR}/../../common/native_drivers/mhu_v3_x.c>
-        $<$<EQUAL:${PLAT_MHU_VERSION},0>:${CMAKE_CURRENT_SOURCE_DIR}/../../common/native_drivers/mhu_wrapper_v3_x.c>
         cmsis_drivers/Driver_Flash.c
         cmsis_drivers/Driver_USART.c
         device/host_device_definition.c
@@ -94,7 +94,7 @@ target_sources(platform_bl1_1
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/strata/spi_strataflashj3_flash_lib.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/usart/pl011/uart_pl011_drv.c
         $<$<EQUAL:${PLAT_MHU_VERSION},0>:${CMAKE_CURRENT_SOURCE_DIR}/../../common/native_drivers/mhu_v2_x.c>
-        $<$<EQUAL:${PLAT_MHU_VERSION},0>:${CMAKE_CURRENT_SOURCE_DIR}/../../common/native_drivers/mhu_wrapper_v2_x.c>
+        $<$<EQUAL:${PLAT_MHU_VERSION},0>:${CMAKE_CURRENT_SOURCE_DIR}/../../common/native_drivers/mhu_v3_x.c>
         cmsis_drivers/Driver_Flash.c
         cmsis_drivers/Driver_USART.c
         device/host_device_definition.c
