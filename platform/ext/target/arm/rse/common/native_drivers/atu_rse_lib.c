@@ -933,13 +933,6 @@ enum atu_error_t atu_rse_drv_deinit(struct atu_dev_t *dev, const uint8_t atu_sta
     memset(atu_bank_ctx, 0, sizeof(atu_bank_ctx));
 #endif /* ATU_DYNAMIC_CFG_ENABLED */
 
-    /*
-     * Clear the ATU base address in the global data structure
-     * for the ATU driver
-     */
-
-    dev = NULL;
-
     return err;
 }
 
