@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include "atu_rse_drv.h"
 #include "atu_rse_region_map.h"
+#include "atu_config.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,12 +31,37 @@ enum atu_log_type_t {
 #define ATU_DOMAIN_ROOT   (1u << 2)
 #define ATU_DOMAIN_REALM  (1u << 3)
 
+#define ATU_DYNAMIC_CFG_ENABLED ((defined ATU_DYN_SLOT_COUNT) && (ATU_DYN_SLOT_COUNT > 0))
+
+#if ATU_DYNAMIC_CFG_ENABLED
+
+/**
+ * \brief ATU logical address space bank context
+ */
+struct atu_bank_ctx_t {
+    uint8_t bank_cnt_max;           /*!< Maximum bank count supported */
+    uint32_t bank_size_max;         /*!< Maximum bank size supported */
+    uint16_t bank_align;            /*!< Bank alignment required based on ATU page size */
+    uint8_t mem_chunk_parts;        /*!< Number of parts in each bank (Dynamic ATU slot count) */
+    uint32_t mem_start;             /*!< Memory start - logical address start */
+    uint32_t mem_size;              /*!< Total Memory size - logical address space size */
+};
+
+#endif /* ATU_DYNAMIC_CFG_ENABLED */
+
 /**
  * \brief ATU library structure, wrapping the ATU device structure with
  *        additional context.
  */
 struct atu_lib_t {
-    struct atu_dev_t *dev; /*!< ATU device */
+    struct atu_dev_t      *dev;                        /*!< ATU device */
+#if ATU_DYNAMIC_CFG_ENABLED
+    struct atu_bank_ctx_t bank[ATU_LOG_ADDR_TYPE_MAX]; /*!< Structure to store the context of
+                                                          memory bank; number of atu memory bank
+                                                          context depends on the Security type
+                                                          (Secure/Non-Secure) */
+    uint8_t               secure_domains;              /*!< Domain policy mask */
+#endif /* ATU_DYNAMIC_CFG_ENABLED */
 };
 
  /*

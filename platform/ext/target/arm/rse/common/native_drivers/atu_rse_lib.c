@@ -12,33 +12,10 @@
 #include "atu_rse_drv_internal.h"
 #include "atu_rse_drv.h"
 #include "atu_rse_lib.h"
-#include "atu_config.h"
 
 #define ATU_STATIC_CFG_ENABLED ((defined ATU_STATIC_SLOT_COUNT) && (ATU_STATIC_SLOT_COUNT > 0))
-#define ATU_DYNAMIC_CFG_ENABLED ((defined ATU_DYN_SLOT_COUNT) && (ATU_DYN_SLOT_COUNT > 0))
 
 #if ATU_DYNAMIC_CFG_ENABLED
-
-/**
- * \brief ATU logical address space bank context
- */
-struct atu_bank_ctx_t {
-    uint8_t bank_cnt_max;           /*!< Maximum bank count supported */
-    uint32_t bank_size_max;         /*!< Maximum bank size supported */
-    uint16_t bank_align;            /*!< Bank alignment required based on ATU page size */
-    uint8_t mem_chunk_parts;        /*!< Number of parts in each bank (Dynamic ATU slot count) */
-    uint32_t mem_start;             /*!< Memory start - logical address start */
-    uint32_t mem_size;              /*!< Total Memory size - logical address space size */
-};
-
-/*
- * Global structure to store the context of memory bank
- * Number of atu memory bank context depends on the Security type (Secure/Non-Secure)
- */
-static struct atu_bank_ctx_t atu_bank_ctx[ATU_LOG_ADDR_TYPE_MAX];
-
-/* Domain policy mask */
-static uint8_t secure_domain_cfg = ATU_DOMAIN_SECURE | ATU_DOMAIN_ROOT;
 
 /*
  * @brief Calculate log2 rounded up
@@ -190,12 +167,14 @@ static inline uint32_t get_log_addr_space_start(const struct atu_dev_t *dev,
  * @brief API to get the Security type based on the Out bus attributes
  *          Based on AxPROT[1] value, security type is extracted
  *
+ * @param[in] atu           Pointer to ATU library structure
  * @param[in] out_bus_attr  Out bus attribute value
  *
  * @return atu_log_type_t - Return Secure or Non-secure type
  *
  */
-static enum atu_log_type_t get_sec_type(uint32_t out_bus_attr)
+static enum atu_log_type_t get_sec_type(struct atu_lib_t *atu,
+                                        uint32_t out_bus_attr)
 {
     uint32_t nse = (out_bus_attr & ATU_ATUROBA_AXNSE_MASK) >> ATU_ATUROBA_AXNSE_OFF;
     uint32_t prot1 = (out_bus_attr & ATU_ATUROBA_AXPROT1_MASK) >> ATU_ATUROBA_AXPROT1_OFF;
@@ -212,7 +191,7 @@ static enum atu_log_type_t get_sec_type(uint32_t out_bus_attr)
      */
     target_domain = (nse << 1) | prot1;
 
-    if (secure_domain_cfg & target_domain) {
+    if (atu->secure_domains & target_domain) {
         return ATU_LOG_ADDR_TYPE_SECURE;
     } else {
         return ATU_LOG_ADDR_TYPE_NON_SECURE;
@@ -270,11 +249,11 @@ static enum atu_error_t atu_mem_alloc_init(struct atu_lib_t *atu)
     enum atu_log_type_t sec_type = ATU_LOG_ADDR_TYPE_MAX;
     enum atu_error_t err = ATU_ERR_UNKNOWN;
 
-    memset(atu_bank_ctx, 0, sizeof(atu_bank_ctx));
+    memset(atu->bank, 0, sizeof(atu->bank));
 
     for (sec_type = ATU_LOG_ADDR_TYPE_NON_SECURE; sec_type < ATU_LOG_ADDR_TYPE_MAX; sec_type++) {
 
-        cur_atu_bank_ctx = &atu_bank_ctx[sec_type];
+        cur_atu_bank_ctx = &atu->bank[sec_type];
 
         cur_atu_bank_ctx->mem_start = get_log_addr_space_start(atu->dev,
                                                                sec_type);
@@ -372,6 +351,7 @@ static enum atu_error_t atu_slot_alloc(struct atu_dev_t *dev, uint8_t *slot_idx)
  *          memory bank available to hold the size requested. If available, returns
  *          the logical address, else Returns error
  *
+ * @param[in] atu               Pointer to ATU library structure
  * @param[in] req_size          Required logical address space
  * @param[in] slot_idx          dynamic slot index
  * @param[in] out_attr          Out bus attributes
@@ -382,7 +362,8 @@ static enum atu_error_t atu_slot_alloc(struct atu_dev_t *dev, uint8_t *slot_idx)
  *                      On failure, appropriate error code is returned.
  *
  */
-static enum atu_error_t atu_mem_alloc_addr(uint32_t req_size, uint8_t slot_idx,
+static enum atu_error_t atu_mem_alloc_addr(struct atu_lib_t *atu,
+                                           uint32_t req_size, uint8_t slot_idx,
                                            uint32_t out_attr, uint32_t *log_addr,
                                            uint32_t *aligned_bank_size)
 {
@@ -410,9 +391,9 @@ static enum atu_error_t atu_mem_alloc_addr(uint32_t req_size, uint8_t slot_idx,
     /*
      * Extract the security type (secure/non-secure) from out bus attributes
      */
-    sec_type = get_sec_type(out_attr);
+    sec_type = get_sec_type(atu, out_attr);
 
-    cur_bank = &atu_bank_ctx[sec_type];
+    cur_bank = &atu->bank[sec_type];
     bank_align_bits = log2_bitwise(cur_bank->bank_align);
 
     if ((req_size == 0) || (req_size > cur_bank->bank_size_max)) {
@@ -666,12 +647,13 @@ static enum atu_error_t get_dyn_cfg_slot_idx(struct atu_dev_t *dev, uint32_t log
     return err;
 }
 
-static enum atu_error_t atu_map_addr(struct atu_dev_t *dev, struct atu_region_map_t *addr_req)
+static enum atu_error_t atu_map_addr(struct atu_lib_t *atu, struct atu_region_map_t *addr_req)
 {
     uint32_t log_addr = 0;
     uint32_t page_aligned_size = 0;
     uint8_t dyn_slot_idx = 0;
     enum atu_error_t err = ATU_ERR_UNKNOWN;
+    struct atu_dev_t *dev = atu->dev;
     struct _atu_reg_map_t *p_atu = (struct _atu_reg_map_t *)dev->cfg->base;
 
     if (addr_req->size == 0) {
@@ -706,8 +688,9 @@ static enum atu_error_t atu_map_addr(struct atu_dev_t *dev, struct atu_region_ma
         return err;
     }
 
-    err = atu_mem_alloc_addr(addr_req->size, dyn_slot_idx, addr_req->out_bus_attr,
-                                 &log_addr, &page_aligned_size);
+    err = atu_mem_alloc_addr(atu, addr_req->size, dyn_slot_idx,
+                             addr_req->out_bus_attr, &log_addr,
+                             &page_aligned_size);
 
     if (ATU_ERR_NONE != err) {
         return err;
@@ -893,9 +876,6 @@ enum atu_error_t atu_rse_drv_init(struct atu_lib_t *atu, struct atu_dev_t *dev,
 {
     enum atu_error_t err = ATU_ERR_NONE;
 
-    /* Store the config for further use */
-    secure_domain_cfg = secure_domains;
-
     if (atu == NULL || dev == NULL) {
         return ATU_ERR_INIT_REGION_INVALID_ARG;
     }
@@ -912,6 +892,8 @@ enum atu_error_t atu_rse_drv_init(struct atu_lib_t *atu, struct atu_dev_t *dev,
 #endif /* ATU_STATIC_CFG_ENABLED */
 
 #if ATU_DYNAMIC_CFG_ENABLED
+    atu->secure_domains = secure_domains;
+
     err = atu_dyn_cfg_init(atu);
 
 #endif /* ATU_DYNAMIC_CFG_ENABLED */
@@ -938,7 +920,7 @@ enum atu_error_t atu_rse_drv_deinit(struct atu_lib_t *atu, const uint8_t atu_sta
 #endif /* ATU_STATIC_CFG_ENABLED */
 
 #if ATU_DYNAMIC_CFG_ENABLED
-    memset(atu_bank_ctx, 0, sizeof(atu_bank_ctx));
+    memset(atu->bank, 0, sizeof(atu->bank));
 #endif /* ATU_DYNAMIC_CFG_ENABLED */
 
     return err;
@@ -961,7 +943,7 @@ enum atu_error_t atu_rse_map_addr_to_log_addr(struct atu_lib_t *atu, uint64_t ph
         return ATU_ERR_MEM_INVALID_ARG;
     }
 
-    return atu_map_addr(atu->dev, &addr_req);
+    return atu_map_addr(atu, &addr_req);
 }
 
 enum atu_error_t atu_rse_map_addr_automatically(struct atu_lib_t *atu, uint64_t phys_addr,
@@ -980,7 +962,7 @@ enum atu_error_t atu_rse_map_addr_automatically(struct atu_lib_t *atu, uint64_t 
         return ATU_ERR_MEM_INVALID_ARG;
     }
 
-    err = atu_map_addr(atu->dev, &addr_req);
+    err = atu_map_addr(atu, &addr_req);
 
     if (err == ATU_ERR_NONE) {
         *log_addr = addr_req.log_addr;
