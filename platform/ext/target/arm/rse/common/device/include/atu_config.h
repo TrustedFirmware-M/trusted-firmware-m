@@ -33,7 +33,7 @@ extern const uint8_t atu_stat_count;
 #define ATU_STATIC_SEC_LOG_ADDR_SIZE        (0x4000000)
 
 #define ATU_NUMBER_OF_SLOTS                 32
-#define ATU_DYN_SLOT_START                  (ATU_STATIC_SLOT_START + ATU_STATIC_SLOT_COUNT + 1)
+#define ATU_DYN_SLOT_START                  (ATU_STATIC_SLOT_START + ATU_STATIC_SLOT_COUNT)
 #define ATU_DYN_SLOT_COUNT                  (ATU_NUMBER_OF_SLOTS - ATU_DYN_SLOT_START)
 #define ATU_DYN_NON_SEC_LOG_ADDR_START      (HOST_ACCESS_BASE_NS)
 #define ATU_DYN_NON_SEC_LOG_ADDR_SIZE       (0x4000000)
