@@ -6,7 +6,6 @@
  */
 
 #include <string.h>
-#include "bl1_random.h"
 #include "boot_hal.h"
 #include "region.h"
 #include "device_definition.h"
@@ -37,6 +36,7 @@
 #include "mpu_armv8m_drv.h"
 #include "rse_persistent_data.h"
 #include "startup_bl1_1_helpers.h"
+#include "psa/crypto.h"
 
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
@@ -108,6 +108,7 @@ int32_t boot_platform_init(void)
     enum lcm_error_t lcm_err;
     enum lcm_tp_mode_t tp_mode;
 #endif /* RSE_ENABLE_BRINGUP_HELPERS */
+    psa_status_t status;
 
     /* Initialize stack limit register */
     uint32_t msp_stack_bottom =
@@ -198,9 +199,9 @@ int32_t boot_platform_init(void)
 #endif /* RSE_ENABLE_ROM_SELF_TESTS */
 
     /* Init KMU */
-    err = bl1_random_generate_secure(prbg_seed, sizeof(prbg_seed));
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
+    status = psa_generate_random(prbg_seed, sizeof(prbg_seed));
+    if (status != PSA_SUCCESS) {
+        return status;
     }
 
     kmu_err = kmu_init(&KMU_DEV_S, prbg_seed);

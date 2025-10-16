@@ -16,6 +16,7 @@
 #include "rse_permanently_disable_device.h"
 #include "rse_provisioning_message_handler.h"
 #include "tfm_plat_nv_counters.h"
+#include "psa/crypto.h"
 
 /* Non secret provisioning values are placed directly after the
  * blob code DATA section */
@@ -112,6 +113,7 @@ enum tfm_plat_err_t do_cm_provision(void) {
     enum lcm_error_t lcm_err;
     uint32_t zero_count;
     uint32_t krtl_usage_counter;
+    psa_status_t status;
 
     if (P_RSE_OTP_HEADER->device_status != 0) {
         rse_permanently_disable_device(RSE_PERMANENT_ERROR_OTP_MODIFIED_BEFORE_CM_PROVISIONING);
@@ -249,10 +251,10 @@ enum tfm_plat_err_t do_cm_provision(void) {
         return (enum tfm_plat_err_t)lcm_err;
     }
 
-    err = bl1_random_generate_secure((uint8_t *)generated_key_buf,
-                                        sizeof(generated_key_buf));
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
+    status = psa_generate_random((uint8_t *)generated_key_buf,
+                                 sizeof(generated_key_buf));
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
     }
 
     INFO("Provisioning HUK\n");

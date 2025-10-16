@@ -10,11 +10,11 @@
 #include "sfcp_encryption.h"
 #include "sfcp_link_hal.h"
 #include "sfcp_platform.h"
-#include "bl1_random.h"
 #include "sfcp_helpers.h"
 #include "rse_kmu_keys.h"
 #include "bl1_crypto.h"
 #include "fih.h"
+#include "psa/crypto.h"
 
 /* Definitions for transfer to and from other nodes */
 enum sfcp_handshake_msg_type_t {
@@ -438,7 +438,7 @@ static enum sfcp_error_t handle_get_iv_reply(struct sfcp_trusted_subnet_config_t
     enum sfcp_error_t sfcp_err;
     struct sfcp_handshake_get_iv_reply_payload_t *get_iv_reply;
     size_t send_payload_size;
-    int32_t bl1_random_err;
+    psa_status_t status;
 
     get_iv_reply = (struct sfcp_handshake_get_iv_reply_payload_t *)payload;
     memcpy(handshake_data[trusted_subnet->id].node_ivs[sender_node], get_iv_reply->iv,
@@ -451,10 +451,9 @@ static enum sfcp_error_t handle_get_iv_reply(struct sfcp_trusted_subnet_config_t
     }
 
     /* Generate IV for server */
-    bl1_random_err =
-        bl1_random_generate_secure(handshake_data[trusted_subnet->id].node_ivs[my_node_id],
-                                   sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id]));
-    if (bl1_random_err != 0) {
+    status = psa_generate_random(handshake_data[trusted_subnet->id].node_ivs[my_node_id],
+                                 sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id]));
+    if (status != PSA_SUCCESS) {
         return SFCP_ERROR_INTERNAL_HANDSHAKE_FAILURE;
     }
 
@@ -594,13 +593,12 @@ static enum sfcp_error_t handle_get_iv_msg(struct sfcp_trusted_subnet_config_t *
                                            uint8_t message_id)
 {
     enum sfcp_error_t sfcp_err;
-    int32_t bl1_random_err;
+    psa_status_t status;
     struct sfcp_handshake_get_iv_reply_payload_t get_iv_reply_payload;
 
-    bl1_random_err =
-        bl1_random_generate_secure(handshake_data[trusted_subnet->id].node_ivs[my_node_id],
-                                   sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id]));
-    if (bl1_random_err != 0) {
+    status = psa_generate_random(handshake_data[trusted_subnet->id].node_ivs[my_node_id],
+                                 sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id]));
+    if (status != PSA_SUCCESS) {
         return SFCP_ERROR_INTERNAL_HANDSHAKE_FAILURE;
     }
 

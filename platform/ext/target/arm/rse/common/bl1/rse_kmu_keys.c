@@ -9,12 +9,12 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "bl1_random.h"
 #include "device_definition.h"
 #include "dpa_hardened_word_copy.h"
 #include "cc3xx_drv.h"
 #include "fatal_error.h"
 #include "bl1_crypto.h"
+#include "psa/crypto.h"
 
 static const struct kmu_key_export_config_t aes_key0_export_config = {
     .export_address = CC3XX_BASE_S + 0x400, /* CC3XX AES_KEY_0 register */
@@ -295,6 +295,7 @@ enum tfm_plat_err_t setup_key_from_rng(enum rse_kmu_slot_id_t slot,
     volatile uint32_t *p_kmu_slot_buf;
     const size_t key_size = key_size_from_export_config(export_config);
     size_t kmu_slot_size;
+    psa_status_t status;
 
     kmu_err = kmu_get_key_buffer_ptr(&KMU_DEV_S, slot, &p_kmu_slot_buf, &kmu_slot_size);
     if (kmu_err != KMU_ERROR_NONE) {
@@ -305,7 +306,10 @@ enum tfm_plat_err_t setup_key_from_rng(enum rse_kmu_slot_id_t slot,
         return TFM_PLAT_ERR_KEY_DERIVATION_RNG_SLOT_TOO_SMALL;
     }
 
-    bl1_random_generate_secure((uint8_t *)p_kmu_slot_buf, key_size);
+    status = psa_generate_random((uint8_t *)p_kmu_slot_buf, key_size);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
+    }
 
     /* Due to limitations in CryptoCell, any key that needs to be used for
      * AES-CCM needs to be duplicated into a second slot.

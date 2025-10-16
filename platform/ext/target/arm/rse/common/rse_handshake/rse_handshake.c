@@ -28,7 +28,7 @@
 #include "dpa_hardened_word_copy.h"
 #include "sfcp.h"
 #include "rse_get_rse_id.h"
-#include "bl1_random.h"
+#include "psa/crypto.h"
 
 #include <string.h>
 #include <assert.h>
@@ -139,11 +139,12 @@ static enum tfm_plat_err_t exchange_vhuk_seeds_client(uint32_t rse_id, uint32_t 
     struct sfcp_reply_metadata_t reply_metadata;
     size_t payload_len;
     enum sfcp_error_t sfcp_err;
+    psa_status_t status;
 
     /* Calculate our VHUK contribution key */
-    cc_err = bl1_random_generate_secure((uint8_t *)vhuk_seed, VHUK_SEED_SIZE);
-    if (cc_err != CC3XX_ERR_SUCCESS) {
-        return cc_err;
+    status = psa_generate_random((uint8_t *)vhuk_seed, VHUK_SEED_SIZE);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
     }
 
     sfcp_err = sfcp_init_msg(sfcp_buf, sizeof(sfcp_buf), RSE_SERVER_ID, 0, 0, true, false, 0,
