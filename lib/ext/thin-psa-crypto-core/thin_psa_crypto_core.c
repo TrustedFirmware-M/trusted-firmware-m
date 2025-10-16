@@ -1136,8 +1136,9 @@ psa_status_t mbedtls_to_psa_error(int ret)
     }
 }
 
-psa_status_t psa_generate_random(uint8_t *output,
-                                 size_t output_size)
+EXTERNAL_PSA_API(psa_generate_random,
+        (uint8_t *output, size_t output_size),
+        output, output_size)
 {
 #ifdef MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
     size_t output_length = 0;
@@ -1154,20 +1155,20 @@ psa_status_t psa_generate_random(uint8_t *output,
                                              &output_length);
     if (status != PSA_SUCCESS) {
         FATAL_ERR(status);
-        return status;
+        FIH_RET(status);
     }
     /* Breaking up a request into smaller chunks is currently not supported
      * for the external RNG interface.
      */
     if (output_length != output_size) {
         FATAL_ERR(PSA_ERROR_INSUFFICIENT_ENTROPY);
-        return PSA_ERROR_INSUFFICIENT_ENTROPY;
+        FIH_RET(PSA_ERROR_INSUFFICIENT_ENTROPY);
     }
-    return PSA_SUCCESS;
 
+    FIH_RET(PSA_SUCCESS);
 #else /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
     FATAL_ERR(PSA_ERROR_NOT_SUPPORTED);
-    return PSA_ERROR_NOT_SUPPORTED;
+    FIH_RET(PSA_ERROR_NOT_SUPPORTED);
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 }
 
