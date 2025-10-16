@@ -15,7 +15,13 @@ extern "C" {
 
 /* Base address and size of shared memory with SCP for SCMI transport */
 #define SCP_SHARED_MEMORY_BASE HOST_FLASH0_TEMP_BASE_S
-#define SCP_SHARED_MEMORY_SIZE 128U
+
+#define SCP_SHARED_MEMORY_STD_SIZE (128U)
+
+/* The shared memory is split in 2 halves to allow for Agent->Platform and Platform->Agent */
+#define SCP_SHARED_MEMORY_SIZE (SCP_SHARED_MEMORY_STD_SIZE / 2)
+
+#define SCP_SHARED_MEMORY_RECEIVER_BASE (SCP_SHARED_MEMORY_BASE + SCP_SHARED_MEMORY_SIZE)
 
 #ifdef __cplusplus
 }
