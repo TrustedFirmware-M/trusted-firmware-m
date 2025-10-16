@@ -62,7 +62,8 @@ int32_t boot_platform_post_init(void)
     enum atu_error_t atu_err;
     int32_t result;
 
-    atu_err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_SECURE, atu_regions_static, atu_stat_count);
+    atu_err = atu_rse_drv_init(&ATU_LIB_S, &ATU_DEV_S, ATU_DOMAIN_SECURE,
+                               atu_regions_static, atu_stat_count);
     if (atu_err != ATU_ERR_NONE) {
         return result;
     }

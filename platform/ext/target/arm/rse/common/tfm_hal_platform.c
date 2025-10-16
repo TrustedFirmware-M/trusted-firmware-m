@@ -47,7 +47,8 @@ enum tfm_hal_status_t tfm_hal_platform_init(void)
         return TFM_HAL_ERROR_GENERIC;
     }
 
-    err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static, atu_stat_count);
+    err = atu_rse_drv_init(&ATU_LIB_S, &ATU_DEV_S, ATU_DOMAIN_ROOT,
+                           atu_regions_static, atu_stat_count);
     if (err != ATU_ERR_NONE) {
         return err;
     }

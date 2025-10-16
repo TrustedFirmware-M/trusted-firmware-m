@@ -49,7 +49,7 @@ static int32_t gic_multiple_view_init(void)
     uint32_t log_addr;
     uint32_t size;
 
-    atu_err = atu_rse_map_addr_automatically(&ATU_DEV_S, HOST_SI_GIC_VIEW_0_PHYS_BASE,
+    atu_err = atu_rse_map_addr_automatically(&ATU_LIB_S, HOST_SI_GIC_VIEW_0_PHYS_BASE,
                                              HOST_SI_GIC_VIEW_SIZE,
                                              ATU_ENCODE_ATTRIBUTES_SECURE_PAS, &log_addr, &size);
     if (atu_err != ATU_ERR_NONE) {
@@ -69,7 +69,7 @@ static int32_t gic_multiple_view_init(void)
     }
 
 free_atu:
-    atu_err = atu_rse_free_addr(&ATU_DEV_S, log_addr);
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, log_addr);
     if (atu_err != ATU_ERR_NONE) {
         return 1;
     }
@@ -118,7 +118,8 @@ int32_t boot_platform_post_init(void)
         return result;
     }
 
-    atu_err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static, atu_stat_count);
+    atu_err = atu_rse_drv_init(&ATU_LIB_S, &ATU_DEV_S, ATU_DOMAIN_ROOT,
+                               atu_regions_static, atu_stat_count);
     if (atu_err != ATU_ERR_NONE) {
             return result;
     }

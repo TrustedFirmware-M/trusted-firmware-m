@@ -49,7 +49,7 @@ static int read_from_host_flash(uint64_t offset,
         return -1;
     }
 
-    atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S, physical_address,
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S, physical_address,
                                            log_addr,
                                            METADATA_REGION_SIZE,
                                            0);
@@ -63,7 +63,7 @@ static int read_from_host_flash(uint64_t offset,
         return -1;
     }
 
-    atu_err = atu_rse_free_addr(&ATU_DEV_S, log_addr);
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, log_addr);
     if (atu_err != ATU_ERR_NONE) {
         return -1;
     }
@@ -107,7 +107,7 @@ int write_fwu_metadata(uint64_t offset,
         return -1;
     }
 
-    atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S, physical_address,
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S, physical_address,
                                            log_addr,
                                            METADATA_REGION_SIZE,
                                            0);
@@ -127,7 +127,7 @@ int write_fwu_metadata(uint64_t offset,
         return -1;
     }
 
-    atu_err = atu_rse_free_addr(&ATU_DEV_S, log_addr);
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, log_addr);
     if (atu_err != ATU_ERR_NONE) {
         return -1;
     }

@@ -108,7 +108,7 @@ static enum tfm_plat_err_t setup_region_for_host_buf(uint64_t host_addr, uint32_
     }
 
     region_params->out_bus_attr = ATU_ENCODE_ATTRIBUTES_SECURE_PAS;
-    atu_err = atu_rse_map_addr_automatically(&ATU_DEV_S, region_params->phys_addr,
+    atu_err = atu_rse_map_addr_automatically(&ATU_LIB_S, region_params->phys_addr,
                                              region_params->size, region_params->out_bus_attr,
                                              &region_params->log_addr, &region_params->size);
 
@@ -162,7 +162,7 @@ enum tfm_plat_err_t comms_atu_free_region(uint8_t region)
     region_params = &atu_regions[region];
 
     if (atu_regions[region].ref_count == 0) {
-        atu_err = atu_rse_free_addr(&ATU_DEV_S, region_params->log_addr);
+        atu_err = atu_rse_free_addr(&ATU_LIB_S, region_params->log_addr);
         if (atu_err) {
             return TFM_PLAT_ERR_SYSTEM_ERR;
         }
@@ -184,7 +184,7 @@ enum tfm_plat_err_t comms_atu_free_regions(comms_atu_region_set_t regions)
             region_params = &atu_regions[region_idx];
 
             if (atu_regions[region_idx].ref_count == 0) {
-                atu_err = atu_rse_free_addr(&ATU_DEV_S, region_params->log_addr);
+                atu_err = atu_rse_free_addr(&ATU_LIB_S, region_params->log_addr);
                 if (atu_err) {
                     return TFM_PLAT_ERR_SYSTEM_ERR;
                 }

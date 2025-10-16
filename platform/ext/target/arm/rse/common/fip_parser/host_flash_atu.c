@@ -83,9 +83,9 @@ enum tfm_plat_err_t setup_aligned_atu_slot(uint64_t physical_address, uint32_t s
     }
 
     /* If the region is used (e.g BL2 mapped the previous image earlier), clear it first */
-    (void) atu_rse_free_addr(&ATU_DEV_S, logical_address);
+    (void) atu_rse_free_addr(&ATU_LIB_S, logical_address);
     /* Initialize ATU header region */
-    atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S, aligned_physical_address, logical_address,
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S, aligned_physical_address, logical_address,
                                            *atu_slot_size, ATU_ENCODE_ATTRIBUTES_SECURE_PAS);
     if (atu_err != ATU_ERR_NONE) {
         return atu_err;
@@ -107,7 +107,7 @@ int host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
     uint64_t physical_address = IMAGE_INPUT_BASE_PHYSICAL + fip_offset;
     uint32_t alignment_offset;
     size_t atu_slot_size;
-    size_t page_size = atu_rse_get_page_size(&ATU_DEV_S);
+    size_t page_size = atu_rse_get_page_size(&ATU_LIB_S);
 
     /* There's no way to tell how big the FIP TOC will be before reading it, so
      * we just map 0x1000.
@@ -125,7 +125,7 @@ int host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
                 image_uuid, &region_offset, &region_size);
 
     /* Free the temporary region even if the entry is not found */
-    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_FLASH0_TEMP_BASE_S);
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_TEMP_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
         return atu_err;
     }
@@ -157,7 +157,7 @@ int host_flash_atu_get_gpt_header(gpt_header_t *header)
 {
     enum tfm_plat_err_t plat_err;
     enum atu_error_t atu_err;
-    size_t page_size = atu_rse_get_page_size(&ATU_DEV_S);
+    size_t page_size = atu_rse_get_page_size(&ATU_LIB_S);
     uint64_t physical_address;
     uint32_t alignment_offset;
     size_t atu_slot_size;
@@ -177,7 +177,7 @@ int host_flash_atu_get_gpt_header(gpt_header_t *header)
         return plat_err;
     }
 
-    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_FLASH0_TEMP_BASE_S);
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_TEMP_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
         return atu_err;
     }
@@ -198,7 +198,7 @@ static int
     enum atu_error_t atu_err;
     gpt_header_t header;
     gpt_entry_t entry;
-    size_t page_size = atu_rse_get_page_size(&ATU_DEV_S);
+    size_t page_size = atu_rse_get_page_size(&ATU_LIB_S);
     uint64_t physical_address;
     uint32_t alignment_offset;
     size_t atu_slot_size;
@@ -278,7 +278,7 @@ static int
         private_metadata_found[0] = false;
     }
 
-    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_FLASH0_TEMP_BASE_S);
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_TEMP_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
         return atu_err;
     }
@@ -422,14 +422,14 @@ int host_flash_atu_setup_image_output_slots(uint64_t image_load_phy_addr,
     }
 
     /* Initialize ATU header region */
-    atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S, header_phy_addr, image_load_logical_addr,
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S, header_phy_addr, image_load_logical_addr,
                                            HOST_IMAGE_HEADER_SIZE, ATU_ENCODE_ATTRIBUTES_SECURE_PAS);
     if (atu_err != ATU_ERR_NONE) {
         return atu_err;
     }
 
     /* Initialize ATU output region */
-    atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S, image_load_phy_addr,
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S, image_load_phy_addr,
                                            image_load_logical_addr + HOST_IMAGE_HEADER_SIZE,
                                            image_max_size - HOST_IMAGE_HEADER_SIZE,
                                            ATU_ENCODE_ATTRIBUTES_SECURE_PAS);
@@ -449,7 +449,7 @@ int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
 {
     uint64_t physical_address;
     uint32_t rc;
-    size_t page_size = atu_rse_get_page_size(&ATU_DEV_S);
+    size_t page_size = atu_rse_get_page_size(&ATU_LIB_S);
     uint32_t alignment_offset;
     size_t atu_slot_size;
     enum atu_error_t atu_err;
@@ -485,7 +485,7 @@ int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
         *image_found = false;
     }
 
-    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_FLASH0_TEMP_BASE_S);
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_TEMP_BASE_S);
     if (rc != ATU_ERR_NONE) {
         return rc;
     }
@@ -501,7 +501,7 @@ int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
 {
     uint64_t physical_address;
     uint32_t rc;
-    size_t page_size = atu_rse_get_page_size(&ATU_DEV_S);
+    size_t page_size = atu_rse_get_page_size(&ATU_LIB_S);
     uint32_t alignment_offset;
     size_t atu_slot_size;
     gpt_entry_t entries[2];
@@ -543,7 +543,7 @@ int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
         }
     }
 
-    rc = atu_rse_free_addr(&ATU_DEV_S, HOST_FLASH0_TEMP_BASE_S);
+    rc = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_TEMP_BASE_S);
     if (rc != ATU_ERR_NONE) {
         return rc;
     }
@@ -640,7 +640,7 @@ int host_flash_atu_setup_image_input_slots_by_type_uuid(uuid_t type_uuid, uint32
     size_t temp_size[2];
     uint64_t gpt_offset = 0;
     uint32_t image_size = 0;
-    size_t page_size = atu_rse_get_page_size(&ATU_DEV_S);
+    size_t page_size = atu_rse_get_page_size(&ATU_LIB_S);
     bool image_mapped[2] = {false};
 
     if (offsets == NULL) {
@@ -676,12 +676,12 @@ int host_flash_atu_free_input_image_regions(void)
 {
     enum atu_error_t atu_err;
 
-    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_FLASH0_IMAGE0_BASE_S);
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_IMAGE0_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
         return atu_err;
     }
 
-    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_FLASH0_IMAGE1_BASE_S);
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_IMAGE1_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
         return atu_err;
     }

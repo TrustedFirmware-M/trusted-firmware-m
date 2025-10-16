@@ -30,7 +30,7 @@ static int noc_s3_pre_init(uint64_t noc_s3_phys_address)
 {
     enum atu_error_t atu_err;
 
-    atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S, noc_s3_phys_address, HOST_NOC_S3_BASE,
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S, noc_s3_phys_address, HOST_NOC_S3_BASE,
                                            HOST_NOC_S3_SIZE, ATU_ENCODE_ATTRIBUTES_SECURE_PAS |
                                            ATU_ROBA_SET_1 << ATU_ATUROBA_AXNSE_OFF |
                                            ATU_ROBA_SET_0 << ATU_ATUROBA_AXPROT1_OFF);
@@ -46,7 +46,7 @@ static int noc_s3_post_init(void)
 {
     enum atu_error_t atu_err;
 
-    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_NOC_S3_BASE);
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_NOC_S3_BASE);
     if (atu_err != ATU_ERR_NONE) {
         return -1;
     }

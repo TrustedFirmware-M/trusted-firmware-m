@@ -153,7 +153,8 @@ int32_t boot_platform_init(void)
     }
 
     /* Initialize ATU driver */
-    err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static, atu_stat_count);
+    err = atu_rse_drv_init(&ATU_LIB_S, &ATU_DEV_S, ATU_DOMAIN_ROOT,
+                           atu_regions_static, atu_stat_count);
     if (err != ATU_ERR_NONE) {
             return err;
     }

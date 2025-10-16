@@ -223,7 +223,8 @@ int32_t boot_platform_post_init(void)
         return result;
     }
 
-    atu_err = atu_rse_drv_init(&ATU_DEV_S, ATU_DOMAIN_ROOT, atu_regions_static, atu_stat_count);
+    atu_err = atu_rse_drv_init(&ATU_LIB_S, &ATU_DEV_S, ATU_DOMAIN_ROOT,
+                               atu_regions_static, atu_stat_count);
     if (atu_err != ATU_ERR_NONE) {
             return result;
     }
@@ -533,7 +534,7 @@ static int boot_platform_pre_load_lcp(void)
      * image to be placed at the start of the ITCM. For this, setup a separate
      * ATU region for the image header.
      */
-    atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S,
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S,
                                            host_system_info->chip_ap_phys_base + HOST_LCP_0_PHYS_HDR_BASE,
                                            HOST_LCP_HDR_ATU_WINDOW_BASE_S, RSE_IMG_HDR_ATU_WINDOW_SIZE,
                                            ATU_ENCODE_ATTRIBUTES_SECURE_PAS);
@@ -545,7 +546,7 @@ static int boot_platform_pre_load_lcp(void)
     /*
      * Configure RSE ATU region to access the Cluster utility space.
      */
-    atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S,
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S,
                                            host_system_info->chip_ap_phys_base + HOST_LCP_0_PHYS_BASE,
                                            HOST_LCP_IMG_CODE_BASE_S, HOST_LCP_ATU_SIZE,
                                            ATU_ENCODE_ATTRIBUTES_SECURE_PAS);
@@ -577,7 +578,7 @@ static int boot_platform_post_load_lcp(void)
     memset((void *)HOST_LCP_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
 
     /* Close RSE ATU region configured to access LCP ITCM region */
-    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_LCP_IMG_CODE_BASE_S);
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_LCP_IMG_CODE_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
         BOOT_LOG_ERR("BL2: ATU could not uninit LCP code load region");
         return 1;
@@ -596,7 +597,7 @@ static int boot_platform_post_load_lcp(void)
          * Configure RSE ATU region to access the Cluster utility space and map
          * to the i-th LCP's ITCM
          */
-        atu_err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S,
+        atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S,
                                                host_system_info->chip_ap_phys_base +
                                                HOST_LCP_N_PHYS_BASE(lcp_idx),
                                                HOST_LCP_IMG_CODE_BASE_S, HOST_LCP_ATU_SIZE,
@@ -633,7 +634,7 @@ static int boot_platform_post_load_lcp(void)
       memset((void *)HOST_LCP_IMG_HDR_BASE_S, 0, BL2_HEADER_SIZE);
 
         /* Close RSE ATU region configured to access LCP ITCM region */
-        atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_LCP_IMG_CODE_BASE_S);
+        atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_LCP_IMG_CODE_BASE_S);
         if (atu_err != ATU_ERR_NONE) {
             BOOT_LOG_ERR("BL2: ATU could not uninit LCP code load region");
             return 1;
@@ -654,7 +655,7 @@ static int boot_platform_post_load_lcp(void)
     }
 
     /* Close RSE ATU region configured to access RSE header region for LCP */
-    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_LCP_HDR_ATU_WINDOW_BASE_S);
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_LCP_HDR_ATU_WINDOW_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
         BOOT_LOG_ERR("BL2: ATU could not uninit LCP header load region");
         return 1;

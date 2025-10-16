@@ -41,6 +41,7 @@ static const struct atu_dev_cfg_t ATU_DEV_CFG_S = {
     },
 };
 struct atu_dev_t ATU_DEV_S = {&ATU_DEV_CFG_S};
+struct atu_lib_t ATU_LIB_S;
 #endif
 
 /* Arm SIC driver structures */

@@ -251,13 +251,13 @@ static enum atu_log_type_t get_sec_type(uint32_t out_bus_attr)
  *     5       |  4kb  |  8kb  |  16kb  |  ......
  *             ------------------------------------
  *
- * @param[in] dev       Pointer to ATU device structure
+ * @param[in] atu       Pointer to ATU library structure
  *
  * @return atu_error_t  On success, ATU_ERR_NONE is returned.
  *                      On failure, appropriate error code is returned.
  *
  */
-static enum atu_error_t atu_mem_alloc_init(struct atu_dev_t *dev)
+static enum atu_error_t atu_mem_alloc_init(struct atu_lib_t *atu)
 {
     /*
      * 1. Clear the dynamic configuration data structure to zero
@@ -276,11 +276,13 @@ static enum atu_error_t atu_mem_alloc_init(struct atu_dev_t *dev)
 
         cur_atu_bank_ctx = &atu_bank_ctx[sec_type];
 
-        cur_atu_bank_ctx->mem_start = get_log_addr_space_start(dev, sec_type);
-        cur_atu_bank_ctx->mem_size = get_log_addr_space_size(dev, sec_type);
+        cur_atu_bank_ctx->mem_start = get_log_addr_space_start(atu->dev,
+                                                               sec_type);
+        cur_atu_bank_ctx->mem_size = get_log_addr_space_size(atu->dev,
+                                                             sec_type);
 
         cur_atu_bank_ctx->mem_chunk_parts = ATU_DYN_SLOT_COUNT;
-        cur_atu_bank_ctx->bank_align = atu_rse_get_page_size(dev);
+        cur_atu_bank_ctx->bank_align = atu_rse_get_page_size(atu);
         cur_atu_bank_ctx->bank_cnt_max = get_bank_cnt_max(cur_atu_bank_ctx->mem_size,
                                         cur_atu_bank_ctx->bank_align,
                                         cur_atu_bank_ctx->mem_chunk_parts);
@@ -307,25 +309,25 @@ static enum atu_error_t atu_mem_alloc_init(struct atu_dev_t *dev)
  * @brief API to perform Dynamic configuration. Initialize the required data structure
  *      to perform any dynamic configuration in runtime
  *
- * @param[in] dev       Pointer to ATU device structure
+ * @param[in] atu       Pointer to ATU library structure
  *
  * @return atu_error_t  On success, ATU_ERR_NONE is returned.
  *                      On failure, appropriate error code is returned.
  *
  */
-static enum atu_error_t atu_dyn_cfg_init(struct atu_dev_t *dev)
+static enum atu_error_t atu_dyn_cfg_init(struct atu_lib_t *atu)
 {
     enum atu_error_t err = ATU_ERR_UNKNOWN;
     uint8_t hw_avail_count = 0;
 
-    hw_avail_count = atu_rse_get_supported_region_count(dev);
+    hw_avail_count = atu_rse_get_supported_region_count(atu->dev);
 
     if ((ATU_DYN_SLOT_START > hw_avail_count) ||
         ((ATU_DYN_SLOT_START + ATU_DYN_SLOT_COUNT) > hw_avail_count)) {
         return ATU_ERR_SLOT_NOT_AVAIL;
     }
 
-    err = atu_mem_alloc_init(dev);
+    err = atu_mem_alloc_init(atu);
 
     return err;
 }
@@ -877,14 +879,15 @@ static enum atu_error_t atu_static_cfg_uninit(struct atu_dev_t *dev, const uint8
 }
 #endif /* ATU_STATIC_CFG_ENABLED */
 
-uint16_t atu_rse_get_page_size(struct atu_dev_t *dev)
+uint16_t atu_rse_get_page_size(struct atu_lib_t *atu)
 {
-    struct _atu_reg_map_t *p_atu = (struct _atu_reg_map_t *)dev->cfg->base;
+    struct _atu_reg_map_t *p_atu = (struct _atu_reg_map_t *)atu->dev->cfg->base;
 
     return (uint16_t)(0x1u << ATU_GET_ATUPS(p_atu));
 }
 
-enum atu_error_t atu_rse_drv_init(struct atu_dev_t *dev, uint8_t secure_domains,
+enum atu_error_t atu_rse_drv_init(struct atu_lib_t *atu, struct atu_dev_t *dev,
+                                  uint8_t secure_domains,
                                   const struct atu_region_map_t atu_static_cfg[],
                                   const uint8_t atu_stat_cfg_cnt)
 {
@@ -893,9 +896,10 @@ enum atu_error_t atu_rse_drv_init(struct atu_dev_t *dev, uint8_t secure_domains,
     /* Store the config for further use */
     secure_domain_cfg = secure_domains;
 
-    if (dev == NULL) {
+    if (atu == NULL || dev == NULL) {
         return ATU_ERR_INIT_REGION_INVALID_ARG;
     }
+    atu->dev = dev;
 
 #if ATU_STATIC_CFG_ENABLED
     if (atu_stat_cfg_cnt > 0) {
@@ -908,20 +912,24 @@ enum atu_error_t atu_rse_drv_init(struct atu_dev_t *dev, uint8_t secure_domains,
 #endif /* ATU_STATIC_CFG_ENABLED */
 
 #if ATU_DYNAMIC_CFG_ENABLED
-    err = atu_dyn_cfg_init(dev);
+    err = atu_dyn_cfg_init(atu);
 
 #endif /* ATU_DYNAMIC_CFG_ENABLED */
 
     return err;
 }
 
-enum atu_error_t atu_rse_drv_deinit(struct atu_dev_t *dev, const uint8_t atu_static_cfg_cnt)
+enum atu_error_t atu_rse_drv_deinit(struct atu_lib_t *atu, const uint8_t atu_static_cfg_cnt)
 {
     enum atu_error_t err = ATU_ERR_NONE;
 
+    if (atu == NULL) {
+        return ATU_ERR_UNINIT_REGION_INVALID_ARG;
+    }
+
 #if ATU_STATIC_CFG_ENABLED
     if (atu_static_cfg_cnt > 0) {
-        err = atu_static_cfg_uninit(dev, atu_static_cfg_cnt);
+        err = atu_static_cfg_uninit(atu->dev, atu_static_cfg_cnt);
 
         if (ATU_ERR_NONE != err) {
             return err;
@@ -938,7 +946,7 @@ enum atu_error_t atu_rse_drv_deinit(struct atu_dev_t *dev, const uint8_t atu_sta
 
 #if ATU_DYNAMIC_CFG_ENABLED
 
-enum atu_error_t atu_rse_map_addr_to_log_addr(struct atu_dev_t *dev, uint64_t phys_addr,
+enum atu_error_t atu_rse_map_addr_to_log_addr(struct atu_lib_t *atu, uint64_t phys_addr,
                                               uint32_t log_addr, uint32_t size,
                                               uint32_t out_bus_attr)
 {
@@ -949,14 +957,14 @@ enum atu_error_t atu_rse_map_addr_to_log_addr(struct atu_dev_t *dev, uint64_t ph
         .size = size
     };
 
-    if (dev == NULL) {
+    if (atu == NULL || atu->dev == NULL) {
         return ATU_ERR_MEM_INVALID_ARG;
     }
 
-    return atu_map_addr(dev, &addr_req);
+    return atu_map_addr(atu->dev, &addr_req);
 }
 
-enum atu_error_t atu_rse_map_addr_automatically(struct atu_dev_t *dev, uint64_t phys_addr,
+enum atu_error_t atu_rse_map_addr_automatically(struct atu_lib_t *atu, uint64_t phys_addr,
                                                 uint32_t size, uint32_t out_bus_attr,
                                                 uint32_t *log_addr, uint32_t *avail_size)
 {
@@ -968,11 +976,11 @@ enum atu_error_t atu_rse_map_addr_automatically(struct atu_dev_t *dev, uint64_t 
         .size = size
     };
 
-    if (dev == NULL) {
+    if (atu == NULL || atu->dev == NULL) {
         return ATU_ERR_MEM_INVALID_ARG;
     }
 
-    err = atu_map_addr(dev, &addr_req);
+    err = atu_map_addr(atu->dev, &addr_req);
 
     if (err == ATU_ERR_NONE) {
         *log_addr = addr_req.log_addr;
@@ -982,10 +990,11 @@ enum atu_error_t atu_rse_map_addr_automatically(struct atu_dev_t *dev, uint64_t 
     return err;
 }
 
-enum atu_error_t atu_rse_free_addr(struct atu_dev_t *dev, uint32_t log_addr)
+enum atu_error_t atu_rse_free_addr(struct atu_lib_t *atu, uint32_t log_addr)
 {
     enum atu_error_t err = ATU_ERR_UNKNOWN;
     uint8_t atu_slot_idx = 0xFF;
+    struct atu_dev_t *dev = atu->dev;
     struct _atu_reg_map_t *p_atu = (struct _atu_reg_map_t *)dev->cfg->base;
 
     err = get_dyn_cfg_slot_idx(dev, log_addr, &atu_slot_idx);

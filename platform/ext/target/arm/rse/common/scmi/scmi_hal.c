@@ -19,7 +19,7 @@ scmi_comms_err_t scmi_hal_shared_memory_init(void)
 {
     enum atu_error_t err;
 
-    err = atu_rse_map_addr_to_log_addr(&ATU_DEV_S, SCP_SHARED_MEMORY_PHYS_BASE,
+    err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S, SCP_SHARED_MEMORY_PHYS_BASE,
                                        SCP_SHARED_MEMORY_BASE, ALIGN_UP(SCP_SHARED_MEMORY_SIZE,
                                        RSE_ATU_PAGE_SIZE), 0);
     if (err != ATU_ERR_NONE) {

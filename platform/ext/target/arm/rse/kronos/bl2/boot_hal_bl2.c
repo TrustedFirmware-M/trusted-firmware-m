@@ -211,12 +211,12 @@ int boot_platform_post_load(uint32_t image_id)
         }
         BOOT_LOG_INF("Got SCP BL1 started event");
 
-        err = atu_rse_free_addr(&ATU_DEV_S, HOST_BOOT_IMAGE1_LOAD_BASE_S);
+        err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE1_LOAD_BASE_S);
         if (err != ATU_ERR_NONE) {
             return err;
         }
 
-        err = atu_rse_free_addr(&ATU_DEV_S, HOST_BOOT_IMAGE1_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
+        err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE1_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
         if (err != ATU_ERR_NONE) {
             return err;
         }
@@ -228,12 +228,12 @@ int boot_platform_post_load(uint32_t image_id)
         /* Slot 0 is used in the SCP protocol */
         mhu_v2_x_channel_send(&MHU_RSE_TO_SCP_DEV, 0, 1);
 
-        err = atu_rse_free_addr(&ATU_DEV_S, HOST_BOOT_IMAGE0_LOAD_BASE_S);
+        err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE0_LOAD_BASE_S);
         if (err != ATU_ERR_NONE) {
             return err;
         }
 
-        err = atu_rse_free_addr(&ATU_DEV_S, HOST_BOOT_IMAGE0_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
+        err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE0_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
         if (err != ATU_ERR_NONE) {
             return err;
         }

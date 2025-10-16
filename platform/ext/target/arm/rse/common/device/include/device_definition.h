@@ -41,6 +41,8 @@ extern "C" {
 #ifdef ATU_S
 #include "atu_rse_drv.h"
 extern struct atu_dev_t ATU_DEV_S;
+#include "atu_rse_lib.h"
+extern struct atu_lib_t ATU_LIB_S;
 #endif
 
 /* SIC driver structures */

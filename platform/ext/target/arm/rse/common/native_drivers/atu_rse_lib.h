@@ -30,23 +30,32 @@ enum atu_log_type_t {
 #define ATU_DOMAIN_ROOT   (1u << 2)
 #define ATU_DOMAIN_REALM  (1u << 3)
 
+/**
+ * \brief ATU library structure, wrapping the ATU device structure with
+ *        additional context.
+ */
+struct atu_lib_t {
+    struct atu_dev_t *dev; /*!< ATU device */
+};
+
  /*
  * @brief API to return the page size value of the peripheral
  *
- * @param[in] dev       Pointer to ATU device structure
+ * @param[in] atu       Pointer to ATU library structure
  *
  * @return atu_error_t  On success, ATU_ERR_NONE is returned.
  *                      On failure, appropriate error code is returned.
  *
  */
-uint16_t atu_rse_get_page_size(struct atu_dev_t *dev);
+uint16_t atu_rse_get_page_size(struct atu_lib_t *atu);
 
 /*
  * @brief API to initialize the ATU driver. Function to be called before any ATU operations
  *        in the hardware. Performs both static and dynamic initialization based on platform
  *        configuration.
  *
- * @param[in] dev                 Pointer to the ATU hardware base register address
+ * @param[out] atu                Pointer to ATU library structure
+ * @param[in] dev                 Pointer to ATU device structure to wrap into "atu"
  * @param[in] secure_domains      Domains to be considered secure
  * @param[in] atu_static_cfg      Static configuration array of the driver
  * @param[in] atu_static_cfg_cnt  Number of static configuration entries of the driver
@@ -54,25 +63,26 @@ uint16_t atu_rse_get_page_size(struct atu_dev_t *dev);
  * @return atu_error_t            On success ATU_ERR_NONE is returned, On failure
  *                                appropriate error code is returned
  */
-enum atu_error_t atu_rse_drv_init(struct atu_dev_t *dev, uint8_t secure_domains,
+enum atu_error_t atu_rse_drv_init(struct atu_lib_t *atu, struct atu_dev_t *dev,
+                                  uint8_t secure_domains,
                                   const struct atu_region_map_t atu_static_cfg[],
                                   const uint8_t atu_stat_cfg_cnt);
 
 /*
  * @brief API to De-initialize the ATU driver
  *
- * @param[in] dev                 Pointer to the ATU hardware base register address
+ * @param[in] atu                 Pointer to ATU library structure
  * @param[in] atu_static_cfg_cnt  Number of static configuration entries of the driver
  *
  * @return atu_error_t  On success, ATU_ERR_NONE is returned.
  *                      On failure, appropriate error code is returned.
  */
-enum atu_error_t atu_rse_drv_deinit(struct atu_dev_t *dev, const uint8_t atu_static_cfg_cnt);
+enum atu_error_t atu_rse_drv_deinit(struct atu_lib_t *atu, const uint8_t atu_static_cfg_cnt);
 
 /*
  * @brief API to create a new dynamic mapping based on the address request
  *
- * @param[in] dev          Pointer to the ATU hardware base register address
+ * @param[in] atu          Pointer to ATU library structure
  * @param[in] phys_addr    Physical address to be mapped
  * @param[in] log_addr     Logical address to be mapped to the physical address
  * @param[in] size         Size of the requested region
@@ -81,14 +91,14 @@ enum atu_error_t atu_rse_drv_deinit(struct atu_dev_t *dev, const uint8_t atu_sta
  * @return atu_error_t  On success, ATU_ERR_NONE is returned.
  *                      On failure, appropriate error code is returned.
  */
-enum atu_error_t atu_rse_map_addr_to_log_addr(struct atu_dev_t *dev, uint64_t phys_addr,
+enum atu_error_t atu_rse_map_addr_to_log_addr(struct atu_lib_t *atu, uint64_t phys_addr,
                                               uint32_t log_addr, uint32_t size,
                                               uint32_t out_bus_attr);
 
 /*
  * @brief API to create a new dynamic mapping with log address selected by the driver
  *
- * @param[in] dev          Pointer to the ATU hardware base register address
+ * @param[in] atu          Pointer to ATU library structure
  * @param[in] phys_addr    Physical address to be mapped
  * @param[in] size         Size of the requested region
  * @param[in] out_bus_attr Bus attributes
@@ -98,20 +108,20 @@ enum atu_error_t atu_rse_map_addr_to_log_addr(struct atu_dev_t *dev, uint64_t ph
  * @return atu_error_t  On success, ATU_ERR_NONE is returned.
  *                      On failure, appropriate error code is returned.
  */
-enum atu_error_t atu_rse_map_addr_automatically(struct atu_dev_t *dev, uint64_t phys_addr,
+enum atu_error_t atu_rse_map_addr_automatically(struct atu_lib_t *atu, uint64_t phys_addr,
                                                 uint32_t size, uint32_t out_bus_attr,
                                                 uint32_t *log_addr, uint32_t *avail_size);
 
 /*
  * @brief API to free the ATU region which has already been mapped dynamically
  *
- * @param[in] dev       Pointer to the ATU hardware base register address
+ * @param[in] atu       Pointer to ATU library structure
  * @param[in] log_addr  corresponding Logical address to release the mapping
  *
  * @return atu_error_t  On success, ATU_ERR_NONE is returned.
  *                      On failure, appropriate error code is returned.
  */
-enum atu_error_t atu_rse_free_addr(struct atu_dev_t *dev, uint32_t log_addr);
+enum atu_error_t atu_rse_free_addr(struct atu_lib_t *atu, uint32_t log_addr);
 
 /*
  * atu_map_addr and atu_rse_free_addr declaration are intentionally added without dependency
