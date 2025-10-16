@@ -16,7 +16,7 @@
 #include <string.h>
 
 #include "cc3xx_psa_key_generation.h"
-#include "cc3xx_psa_random.h"
+#include "cc3xx_rng.h"
 #include "cc3xx_misc.h"
 
 #include "cc3xx_stdlib.h"
@@ -91,7 +91,9 @@ psa_status_t cc3xx_generate_key(const psa_key_attributes_t *attributes,
         }
 #endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC */
     } else if (PSA_KEY_TYPE_IS_UNSTRUCTURED(key_type)) {
-        return cc3xx_internal_get_random(key_buffer, key_buffer_size, key_buffer_length);
+        return cc3xx_lowlevel_rng_get_random(key_buffer,
+                                             key_buffer_size,
+                                             CC3XX_RNG_DRBG);
     }
 
     (void)key_bits;
