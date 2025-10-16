@@ -11,6 +11,7 @@
  */
 
 #include "atu_config.h"
+#include "atu_rse_lib.h"
 #include "atu_rse_drv.h"
 #include "host_base_address.h"
 #include "platform_base_address.h"

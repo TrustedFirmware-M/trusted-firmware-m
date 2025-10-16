@@ -58,6 +58,7 @@
 
 #if !(defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART))
 #include "atu_config.h"
+#include "atu_rse_lib.h"
 #endif
 
 /* Needed to store the offset of primary and secondary slot of the BL2 firmware */

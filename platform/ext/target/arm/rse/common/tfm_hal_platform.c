@@ -14,6 +14,7 @@
 #include "rse_clocks.h"
 #include "rse_sam_config.h"
 #include "atu_config.h"
+#include "atu_rse_lib.h"
 
 #ifdef TFM_PARTITION_PROTECTED_STORAGE
 #define RSE_ATU_REGION_PS_SLOT  1

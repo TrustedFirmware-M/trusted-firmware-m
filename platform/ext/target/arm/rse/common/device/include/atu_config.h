@@ -13,7 +13,7 @@
 #ifndef _ATU_CONFIG_H_
 #define _ATU_CONFIG_H_
 
-#include "atu_rse_lib.h"
+#include "atu_rse_region_map.h"
 #include "platform_base_address.h"
 
 extern const struct atu_region_map_t atu_regions_static[];

@@ -12,6 +12,7 @@
 #define __HOST_ATU_BASE_ADDRESS_H__
 
 #include "atu_config.h"
+#include "atu_rse_lib.h"
 #include "image_size_defs.h"
 #include "platform_base_address.h"
 

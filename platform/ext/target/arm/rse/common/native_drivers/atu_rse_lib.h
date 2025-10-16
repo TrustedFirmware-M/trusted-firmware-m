@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include "atu_rse_drv.h"
+#include "atu_rse_region_map.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,18 +23,6 @@ enum atu_log_type_t {
     ATU_LOG_ADDR_TYPE_NON_SECURE,
     ATU_LOG_ADDR_TYPE_SECURE,
     ATU_LOG_ADDR_TYPE_MAX
-};
-
-/**
- * \brief ATU configuration request structure
- */
-struct atu_region_map_t {
-    uint64_t phys_addr;                         /*!< Physical address */
-    uint32_t log_addr;                          /*!< Logical address */
-    uint32_t size;                              /*!< Size to request */
-    uint32_t out_bus_attr;                      /*!< Output bus attributes */
-    uint8_t region_idx;                         /*!< ATU slot index */
-    bool dynamically_allocate_logical_address;  /*!< Let the driver chose logical address */
 };
 
 #define ATU_DOMAIN_SECURE (1u << 0)

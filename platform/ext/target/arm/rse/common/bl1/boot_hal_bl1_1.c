@@ -46,6 +46,7 @@
 
 #if defined(LOGGING_ENABLED) && defined(RSE_USE_HOST_UART)
 #include "atu_config.h"
+#include "atu_rse_lib.h"
 #endif
 
 #define CMSDK_SECRESPCFG_BUS_ERR_MASK   (1UL)
