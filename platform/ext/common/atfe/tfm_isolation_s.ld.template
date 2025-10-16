@@ -48,7 +48,7 @@ MEMORY
     CODE_RAM (rwx) : ORIGIN = S_RAM_CODE_START, LENGTH = S_RAM_CODE_SIZE
 #endif
 #ifdef S_RUNTIME_ITCM_START
-  ITCM     (rx)  : ORIGIN = S_RUNTIME_ITCM_START, LENGTH = S_RUNTIME_ITCM_SIZE
+    ITCM     (rx)  : ORIGIN = S_RUNTIME_ITCM_START, LENGTH = S_RUNTIME_ITCM_SIZE
 #endif
 {% if outer_namespace.use_dtcm %}
     DTCM     (rw)  : ORIGIN = S_RUNTIME_DTCM_START, LENGTH = S_RUNTIME_DTCM_SIZE
@@ -221,7 +221,7 @@ SECTIONS
     } > FLASH
     __exidx_end = .;
 
-    .ER_TFM_CODE ALIGN(8) :
+    .ER_TFM_CODE : ALIGN(4)
     {
         /* preinit data */
         PROVIDE_HIDDEN (__preinit_array_start = .);
@@ -314,7 +314,7 @@ SECTIONS
 {% endfor %}
 
     /* Collect all RO-data into a single unprivileged region */
-    .ER_RO_DATA ALIGN(TFM_LINKER_PT_RO_DATA_ALIGNMENT) :
+    .ER_RO_DATA : ALIGN(TFM_LINKER_PT_RO_DATA_ALIGNMENT)
     {
         Image$$PT_PSA_ROT_CODE_END$$Base = .;
         Image$$PT_RO_DATA_START$$Base = .;
@@ -398,7 +398,7 @@ SECTIONS
 
 #ifdef BOOT_TFM_SHARED_DATA_SIZE
     /* Shared area between BL2 and runtime to exchange data */
-    .tfm_bl2_shared_data ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT) (NOLOAD) :
+    .tfm_bl2_shared_data (NOLOAD) : ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT)
     {
         . += BOOT_TFM_SHARED_DATA_SIZE;
     } > RAM
@@ -443,7 +443,7 @@ SECTIONS
         . = ALIGN(4);
     } > RAM AT > FLASH
 
-    .ER_{{partition.manifest.name}}_BSS ALIGN(8) (NOLOAD) :
+    .ER_{{partition.manifest.name}}_BSS (NOLOAD) : ALIGN(4)
     {
         start_of_{{partition.manifest.name}}_bss = .;
     {% if partition.attr.linker_pattern.library_list %}
@@ -503,14 +503,14 @@ SECTIONS
         . += S_MSP_STACK_SIZE;
     } > RAM
     Image$$ARM_LIB_STACK$$ZI$$Base = ADDR(.msp_stack);
+    Image$$ARM_LIB_STACK$$ZI$$Limit = ADDR(.msp_stack) + SIZEOF(.msp_stack);
 
 #if defined(__ARM_ARCH_8M_MAIN__) || defined(__ARM_ARCH_8M_BASE__) || \
     defined(__ARM_ARCH_8_1M_MAIN__)
-    Image$$ARM_LIB_STACK$$ZI$$Limit = ADDR(.msp_stack) + SIZEOF(.msp_stack) - 0x8;
-    __stack_seal = Image$$ARM_LIB_STACK$$ZI$$Limit;
-#else
-    Image$$ARM_LIB_STACK$$ZI$$Limit = ADDR(.msp_stack) + SIZEOF(.msp_stack);
+    __stack_seal = Image$$ARM_LIB_STACK$$ZI$$Limit - 0x8;
+    Image$$ARM_LIB_STACK$$ZI$$Limit = __stack_seal;
 #endif
+
     __stack = Image$$ARM_LIB_STACK$$ZI$$Limit;
 
 #ifdef ENABLE_HEAP
@@ -545,7 +545,7 @@ SECTIONS
         . = ALIGN(4);
     } > RAM AT > FLASH
 
-    .ER_{{partition.manifest.name}}_BSS ALIGN(8) (NOLOAD) :
+    .ER_{{partition.manifest.name}}_BSS (NOLOAD) : ALIGN(4)
     {
         start_of_{{partition.manifest.name}}_bss = .;
     {% if partition.attr.linker_pattern.library_list %}
@@ -600,7 +600,7 @@ SECTIONS
         . = ALIGN(4);
     } > DTCM AT > FLASH
 
-    .ER_{{partition.manifest.name}}_BSS ALIGN(8) (NOLOAD) :
+    .ER_{{partition.manifest.name}}_BSS (NOLOAD) : ALIGN(4)
     {
         start_of_{{partition.manifest.name}}_bss = .;
     {% if partition.attr.linker_pattern.library_list %}
@@ -632,7 +632,7 @@ SECTIONS
     . = saved_location_counter;
 {% endif %}
 
-    .TFM_DATA ALIGN(8) :
+    .TFM_DATA : ALIGN(4)
     {
         *(SORT_BY_ALIGNMENT(.data*))
 
@@ -640,7 +640,7 @@ SECTIONS
         . = ALIGN(4);
     } > RAM AT > FLASH
 
-    .TFM_BSS ALIGN(TFM_LINKER_DEFAULT_ALIGNMENT) (NOLOAD) :
+    .TFM_BSS (NOLOAD) : ALIGN(4)
     {
         /* The runtime partition placed order is same as load partition */
         __partition_runtime_start__ = .;
