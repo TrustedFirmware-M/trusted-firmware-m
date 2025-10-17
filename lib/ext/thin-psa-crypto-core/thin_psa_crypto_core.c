@@ -1141,9 +1141,17 @@ psa_status_t psa_generate_random(uint8_t *output,
 {
 #ifdef MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
     size_t output_length = 0;
-    psa_status_t status = mbedtls_psa_external_get_random(g_ctx,
-                                                          output, output_size,
-                                                          &output_length);
+    psa_status_t status;
+
+    if (!output_size) {
+        return PSA_SUCCESS;
+    }
+
+    assert(output != NULL);
+
+    status = mbedtls_psa_external_get_random(g_ctx,
+                                             output, output_size,
+                                             &output_length);
     if (status != PSA_SUCCESS) {
         FATAL_ERR(status);
         return status;
