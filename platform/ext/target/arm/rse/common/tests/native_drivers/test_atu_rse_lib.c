@@ -847,8 +847,6 @@ static struct conditional_test_t tests[] =
             "Requesting existing region with different add value"
         },
     },
-    /* FixMe: Re-enable this test once the FVP is fixed for ATURGPV truncation */
-#if 0
     {
         .any_tp_mode  = true,
         .any_sp_state = true,
@@ -859,7 +857,6 @@ static struct conditional_test_t tests[] =
             "Test the user counter of the slots"
         },
     },
-#endif
     {
         .any_tp_mode  = true,
         .any_sp_state = true,
