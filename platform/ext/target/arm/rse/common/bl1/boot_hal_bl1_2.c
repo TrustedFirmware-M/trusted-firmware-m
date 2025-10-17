@@ -42,6 +42,9 @@
 #include "rse_otp_layout.h"
 #endif
 #include "bl1_2_debug.h"
+#ifdef RSE_SKU_ENABLED
+#include "sku_feature_control.h"
+#endif /* RSE_SKU_ENABLED */
 
 #define __CONCAT_(a, b) a##b
 #define _CONCAT(a, b)  __CONCAT_(a, b)
@@ -321,6 +324,13 @@ int32_t boot_platform_post_init(void)
             return plat_err;
         }
     }
+
+#ifdef RSE_SKU_ENABLED
+    plat_err = rse_dcu_otp_feature_control(&LCM_DEV_S);
+    if (plat_err) {
+        return plat_err;
+    }
+#endif /* RSE_SKU_ENABLED */
 
     rc = b1_2_platform_debug_init();
     if (rc != 0) {

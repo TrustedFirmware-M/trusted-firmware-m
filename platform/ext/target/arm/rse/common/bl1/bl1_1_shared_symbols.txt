@@ -5,6 +5,7 @@ KMU_DEV_S
 INTEGRITY_CHECKER_DEV_S
 LCM_DEV_S
 SAM_DEV_S
+DCSU_DEV_S
 atu_rse_set_start_logical_address
 atu_rse_get_start_logical_address
 atu_rse_set_end_logical_address
@@ -60,6 +61,9 @@ lcm_get_lcs
 lcm_get_tp_mode
 lcm_dcu_get_locked
 lcm_dcu_set_locked
+lcm_dcu_get_disable_mask
+lcm_dcu_get_enabled
+lcm_dcu_set_enabled
 pq_crypto_verify
 pq_crypto_get_pub_key_hash
 rse_check_zero_bit_count

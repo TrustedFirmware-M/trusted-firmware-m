@@ -38,7 +38,8 @@ enum runtime_provisioning_error_t runtime_provisioning_hal_init(void)
     switch (lcs) {
 #if defined(RSE_NON_ENDORSED_DM_PROVISIONING) || \
     defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING) || \
-    defined(RSE_ROTPK_REVOCATION)
+    defined(RSE_ROTPK_REVOCATION) || \
+    defined(RSE_SKU_ENABLED)
     case LCM_LCS_SE:
         break;
 #endif
@@ -92,17 +93,12 @@ static enum tfm_plat_err_t handle_plain_data_message(struct rse_provisioning_mes
 }
 #endif
 
-#if defined(RSE_BOOT_IN_DM_LCS) || \
-    defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING) || \
-    defined(RSE_ROTPK_REVOCATION)
-static enum tfm_plat_err_t handle_authenticated_message(void)
+static inline enum tfm_plat_err_t request_reset(void)
 {
-    /* Reset and let BL1_1 parse the authenticated message */
     tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
     __builtin_unreachable();
     return TFM_PLAT_ERR_SUCCESS;
 }
-#endif
 
 static enum tfm_plat_err_t handle_full_message(void)
 {
@@ -116,12 +112,13 @@ static enum tfm_plat_err_t handle_full_message(void)
 
 #ifdef RSE_ROTPK_REVOCATION
     case RSE_PROVISIONING_MESSAGE_TYPE_AUTHENTICATED_PLAIN_DATA:
-        return handle_authenticated_message();
+        return request_reset();
 #endif
 
 #if defined(RSE_BOOT_IN_DM_LCS) || defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
     case RSE_PROVISIONING_MESSAGE_TYPE_BLOB:
-        return handle_authenticated_message();
+        /* Reset and let BL1_1 parse the authenticated message */
+        return request_reset();
 #endif
 
     default:
@@ -132,14 +129,18 @@ static enum tfm_plat_err_t handle_full_message(void)
 enum runtime_provisioning_error_t runtime_provisioning_hal_process_message(void)
 {
     enum tfm_plat_err_t err;
-    bool received_full_message;
+    enum rx_command_type_handled rx_command_type;
 
-    err = provisioning_comms_receive_command_non_blocking(&received_full_message);
+    err = provisioning_comms_receive_command_non_blocking(&rx_command_type);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return RUNTIME_PROVISIONING_NO_INTERRUPT;
     }
 
-    if (received_full_message) {
+    if (rx_command_type == RX_COMMAND_TYPE_HANDLED_SINGLE_CMD_REQUIRES_RESET) {
+        request_reset();
+    }
+
+    if (rx_command_type == RX_COMMAND_TYPE_HANDLED_DATA_COMPLETE) {
         rse_set_provisioning_staging_status(PROVISIONING_STAGING_STATUS_RUNTIME_MESSAGE);
         err = handle_full_message();
         if (err != TFM_PLAT_ERR_SUCCESS) {

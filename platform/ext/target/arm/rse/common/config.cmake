@@ -114,6 +114,8 @@ set(RSE_DMA_ICS_CONFIG_PATH             ${CMAKE_CURRENT_LIST_DIR}/bl1/scripts/dm
 set(RSE_ENABLE_ROM_SELF_TESTS           OFF        CACHE BOOL "Whether the ROM will run the self tests early during boot")
 set(RSE_ENABLE_ECDSA_SELF_TEST          ON         CACHE BOOL "Whether the ECDSA self test is enabled when RSE_ENABLE_ROM_SELF_TESTS is set")
 set(RSE_ENABLE_KDF_CMAC_SELF_TEST       ON         CACHE BOOL "Whether the AES-CMAC KDF self test is enabled when RSE_ENABLE_ROM_SELF_TESTS is set")
+
+set(RSE_SKU_ENABLED                     OFF        CACHE STRING "Enable stock keeping unit based feature control")
 ######################### BL2 ##################################################
 
 set(MCUBOOT_IMAGE_NUMBER              4          CACHE STRING   "Number of images supported by MCUBoot")
@@ -164,6 +166,8 @@ set(RSE_CM_BLOB_VERSION                        0          CACHE STRING "Version 
 set(RSE_DM_BLOB_VERSION                        0          CACHE STRING "Version of DM blob")
 
 set(RSE_OTP_HAS_CC_TRNG_CONFIG                 ON         CACHE BOOL "Whether the RSE OTP contains the CryptoCell TRNG configuration")
+
+set(RSE_OTP_CM_POLICIES_FEATURE_CONTROL_BITS   0          CACHE STRING "Feature control bitfield of cm_policies")
 
 # Specific BL1_1 provisioning tests configuration
 if (TEST_BL1_1)

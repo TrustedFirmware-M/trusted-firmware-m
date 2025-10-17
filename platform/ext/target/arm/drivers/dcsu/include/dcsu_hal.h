@@ -30,6 +30,7 @@ enum dcsu_otp_field_t {
     DCSU_OTP_FIELD_SOC_CFG_DATA,
     DCSU_OTP_FIELD_CM_COD,
     DCSU_OTP_FIELD_EC_PARAMS,
+    DCSU_OTP_FIELD_FEATURE_CTRL,
 };
 
 /**

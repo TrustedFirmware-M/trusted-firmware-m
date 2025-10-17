@@ -40,10 +40,13 @@ enum tfm_plat_err_t provisioning_comms_signal_ready_non_blocking(void)
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-enum tfm_plat_err_t provisioning_comms_receive_command_non_blocking(bool *full_message)
+enum tfm_plat_err_t provisioning_comms_receive_command_non_blocking(enum rx_command_type_handled *rx_command_type)
 {
     enum dcsu_error_t err;
     bool tx_pending, rx_pending;
+    enum dcsu_rx_command rx_command;
+
+    *rx_command_type = RX_COMMAND_TYPE_HANDLED_NONE;
 
     tx_pending = dcsu_poll_for_tx_response(&DCSU_DEV_S) == DCSU_ERROR_NONE;
     if (tx_pending) {
@@ -58,13 +61,27 @@ enum tfm_plat_err_t provisioning_comms_receive_command_non_blocking(bool *full_m
      * we get around to processing the interrupt. So we handle both in this function
      */
     rx_pending = dcsu_poll_for_any_rx_command(&DCSU_DEV_S) == DCSU_ERROR_NONE;
-    *full_message = rx_pending &&
-                    (dcsu_poll_for_rx_command(&DCSU_DEV_S, DCSU_RX_COMMAND_COMPLETE_IMPORT_DATA) ==
-                     DCSU_ERROR_NONE);
     if (rx_pending) {
-        err = dcsu_handle_rx_command(&DCSU_DEV_S);
+        err = dcsu_handle_rx_command(&DCSU_DEV_S, &rx_command);
         if (err != DCSU_ERROR_NONE) {
             return (enum tfm_plat_err_t)err;
+        }
+
+        /* Command-specific steps */
+        switch (rx_command) {
+            case DCSU_RX_COMMAND_IMPORT_DATA_NO_CHECKSUM:
+            case DCSU_RX_COMMAND_IMPORT_DATA_CHECKSUM:
+                *rx_command_type = RX_COMMAND_TYPE_HANDLED_DATA;
+                break;
+            case DCSU_RX_COMMAND_COMPLETE_IMPORT_DATA:
+                *rx_command_type = RX_COMMAND_TYPE_HANDLED_DATA_COMPLETE;
+                break;
+            case DCSU_RX_COMMAND_SET_FEATURE_CTRL:
+                *rx_command_type = RX_COMMAND_TYPE_HANDLED_SINGLE_CMD_REQUIRES_RESET;
+                break;
+            default:
+                *rx_command_type = RX_COMMAND_TYPE_HANDLED_SINGLE_CMD;
+                break;
         }
     }
 
@@ -76,6 +93,7 @@ enum tfm_plat_err_t provisioning_comms_receive_commands_blocking(void)
 {
     enum dcsu_error_t err;
     bool got_complete = false;
+    enum dcsu_rx_command command;
 
     INFO("Signal DCSU ready\n");
     dcsu_import_ready(&DCSU_DEV_S);
@@ -86,7 +104,7 @@ enum tfm_plat_err_t provisioning_comms_receive_commands_blocking(void)
                 got_complete = true;
         }
 
-        err = dcsu_handle_rx_command(&DCSU_DEV_S);
+        err = dcsu_handle_rx_command(&DCSU_DEV_S, &command);
         if (err != DCSU_ERROR_NONE) {
             return (enum tfm_plat_err_t)err;
         }

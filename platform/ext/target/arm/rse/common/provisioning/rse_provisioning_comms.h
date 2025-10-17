@@ -11,6 +11,7 @@
 #include "platform_error_codes.h"
 #include "rse_provisioning_message.h"
 #include "tfm_plat_defs.h"
+#include "dcsu_drv.h"
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -18,6 +19,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+enum rx_command_type_handled {
+    RX_COMMAND_TYPE_HANDLED_NONE,
+    RX_COMMAND_TYPE_HANDLED_DATA,
+    RX_COMMAND_TYPE_HANDLED_DATA_COMPLETE,
+    RX_COMMAND_TYPE_HANDLED_SINGLE_CMD,
+    RX_COMMAND_TYPE_HANDLED_SINGLE_CMD_REQUIRES_RESET
+};
 
 /**
  * @brief Initialize provisioning communications.
@@ -50,12 +59,11 @@ enum tfm_plat_err_t provisioning_comms_signal_ready_non_blocking(void);
   * process. The function is expected to be called when an interrupt has
   * been received and will process it.
   *
-  * @param full_message Whether or not the provisioning comms HAL has received
-  *                     a full message which is ready to be processed
+  * @param rx_command_type  The received rx command type
   *
   * @return Returns a tfm_plat_err_t indicating success or failure.
   */
-enum tfm_plat_err_t provisioning_comms_receive_command_non_blocking(bool *full_message);
+enum tfm_plat_err_t provisioning_comms_receive_command_non_blocking(enum rx_command_type_handled *rx_command_type);
 
 /**
   * @brief Receive multiple provisioning commands (blocking).

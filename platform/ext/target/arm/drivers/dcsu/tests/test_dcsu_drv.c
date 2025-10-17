@@ -36,6 +36,7 @@ static enum dcsu_error_t process_multiple_commands(enum dcsu_rx_command command)
 {
     enum dcsu_error_t err;
     bool got_complete = false;
+    enum dcsu_rx_command rx_command;
 
     while (!got_complete) {
         TEST_LOG("Waiting for command...\n");
@@ -43,7 +44,7 @@ static enum dcsu_error_t process_multiple_commands(enum dcsu_rx_command command)
             got_complete = true;
         }
 
-        err = dcsu_handle_rx_command(&DCSU_DEV_S);
+        err = dcsu_handle_rx_command(&DCSU_DEV_S, &rx_command);
         if (err != DCSU_ERROR_NONE) {
             return err;
         }
@@ -77,13 +78,14 @@ static void dcsu_drv_test_0001(struct test_result_t *ret)
 static enum dcsu_error_t wait_run_command(enum dcsu_rx_command command)
 {
     enum dcsu_error_t dcsu_err;
+    enum dcsu_rx_command rx_command;
 
     dcsu_err = dcsu_wait_for_rx_command(&DCSU_DEV_S, command);
     if (dcsu_err != DCSU_ERROR_NONE) {
         return dcsu_err;
     }
 
-    return dcsu_handle_rx_command(&DCSU_DEV_S);
+    return dcsu_handle_rx_command(&DCSU_DEV_S, &rx_command);
 }
 
 static enum lcm_error_t check_otp_area_correct(uint32_t offset, size_t len, uint8_t *buf,

@@ -60,6 +60,8 @@ static inline const char *dcsu_rx_cmd_name(enum dcsu_rx_command cmd)
         return "READ_COD_DATA";
     case DCSU_RX_COMMAND_READ_EC_PARAMS:
         return "READ_EC_PARAMS";
+    case DCSU_RX_COMMAND_SET_FEATURE_CTRL:
+        return "SET_FEATURE_CTRL";
     default:
         return "INVALID_COMMAND";
     }
@@ -300,29 +302,51 @@ static enum dcsu_error_t rx_compute_zc_soc_ids(struct dcsu_dev_t *dev,
     return msg_err;
 }
 
-static enum dcsu_error_t rx_read_field(struct dcsu_dev_t *dev, enum dcsu_otp_field_t otp_field,
-                                       enum dcsu_rx_msg_response_t *msg_resp)
+static enum dcsu_error_t read_otp_field(struct dcsu_dev_t *dev, enum dcsu_otp_field_t otp_field,
+                                        uint32_t *dest, size_t buffer_size,
+                                        enum dcsu_rx_msg_response_t *msg_resp)
 {
     enum dcsu_error_t msg_err;
-    struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
     uint32_t field_offset;
     uint32_t field_size;
 
     msg_err = dcsu_hal_get_field_offset(otp_field, &field_offset);
     if (msg_err != DCSU_ERROR_NONE) {
-        /* Couldn't find field to read so command invalid */
-        *msg_resp = DCSU_RX_MSG_RESP_INVALID_COMMAND;
-    }
-
-    msg_err = dcsu_hal_get_field_size(otp_field, &field_size);
-    if (msg_err != DCSU_ERROR_NONE) {
-        /* Couldn't find field to read so command invalid */
         *msg_resp = DCSU_RX_MSG_RESP_INVALID_COMMAND;
         return DCSU_ERROR_NONE;
     }
 
-    msg_err = dcsu_hal_read_otp(otp_field, field_offset, (uint32_t *)p_dcsu->diag_tx_data,
+    msg_err = dcsu_hal_get_field_size(otp_field, &field_size);
+    if (msg_err != DCSU_ERROR_NONE) {
+        *msg_resp = DCSU_RX_MSG_RESP_INVALID_COMMAND;
+        return DCSU_ERROR_NONE;
+    }
+
+    if (buffer_size < field_size) {
+        *msg_resp = DCSU_RX_MSG_RESP_INVALID_COMMAND;
+        return DCSU_ERROR_NONE;
+    }
+
+    msg_err = dcsu_hal_read_otp(otp_field, field_offset, dest,
                                 field_size, msg_resp);
+
+    return msg_err;
+}
+
+static enum dcsu_error_t write_otp_field(struct dcsu_dev_t *dev, enum dcsu_otp_field_t otp_field,
+                                         uint32_t *data, size_t size, bool clean_write,
+                                         enum dcsu_rx_msg_response_t *msg_resp)
+{
+    uint32_t field_offset;
+    enum dcsu_error_t msg_err;
+
+    msg_err = dcsu_hal_get_field_offset(otp_field, &field_offset);
+    if (msg_err != DCSU_ERROR_NONE) {
+        *msg_resp = DCSU_RX_MSG_RESP_OTP_WRITE_FAILED;
+        return DCSU_ERROR_RX_MSG_OTP_WRITE_FAILED;
+    }
+
+    msg_err = dcsu_hal_write_otp(otp_field, field_offset, data, size, clean_write, msg_resp);
 
     return msg_err;
 }
@@ -496,22 +520,38 @@ static enum dcsu_error_t rx_cancel_import(struct dcsu_dev_t *dev,
     return dcsu_hal_cancel_import_data(msg_resp);
 }
 
-enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
+static enum dcsu_error_t rx_set_feature_ctrl(struct dcsu_dev_t *dev,
+                                             enum dcsu_rx_msg_response_t *msg_resp)
+{
+    enum dcsu_error_t msg_err;
+    struct _dcsu_reg_map_t* p_dcsu = (struct _dcsu_reg_map_t*)dev->cfg->base;
+    uint32_t feature_control = p_dcsu->diag_rx_large_param;
+
+    msg_err = write_otp_field(dev, DCSU_OTP_FIELD_FEATURE_CTRL, &feature_control,
+                              sizeof(feature_control), false, msg_resp);
+    if (msg_err != DCSU_ERROR_NONE) {
+        *msg_resp = DCSU_RX_MSG_RESP_OTP_WRITE_FAILED;
+    }
+
+    return DCSU_ERROR_NONE;
+}
+
+enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_command *command)
 {
     enum dcsu_error_t err;
     enum dcsu_rx_msg_response_t msg_resp;
-    enum dcsu_rx_command cmd;
+    struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
 
     err = dcsu_poll_for_any_rx_command(dev);
     if (err != DCSU_ERROR_NONE) {
         return err;
     }
 
-    cmd = get_rx_command(dev);
+    *command = get_rx_command(dev);
 
-    INFO("DCSU command: %s\n", dcsu_rx_cmd_name(cmd));
+    INFO("DCSU command: %s\n", dcsu_rx_cmd_name(*command));
 
-    switch(cmd) {
+    switch(*command) {
     case DCSU_RX_COMMAND_GENERATE_SOC_UNIQUE_ID:
         err = rx_generate_soc_unique_id(dev, &msg_resp);
         break;
@@ -527,10 +567,10 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
         err = rx_compute_zc_soc_ids(dev, &msg_resp);
         break;
     case DCSU_RX_COMMAND_READ_SOC_FAMILY_ID:
-        err = rx_read_field(dev, DCSU_OTP_FIELD_FAMILY_ID, &msg_resp);
+        err = read_otp_field(dev, DCSU_OTP_FIELD_FAMILY_ID, (uint32_t *)p_dcsu->diag_tx_data,sizeof(p_dcsu->diag_tx_data), &msg_resp);
         break;
     case DCSU_RX_COMMAND_READ_SOC_IEEE_ECID:
-        err = rx_read_field(dev, DCSU_OTP_FIELD_IEEE_ECID, &msg_resp);
+        err = read_otp_field(dev, DCSU_OTP_FIELD_IEEE_ECID, (uint32_t *)p_dcsu->diag_tx_data, sizeof(p_dcsu->diag_tx_data), &msg_resp);
         break;
     case DCSU_RX_COMMAND_WRITE_SOC_CONFIG_DATA:
         err = rx_write_field(dev, DCSU_OTP_FIELD_SOC_CFG_DATA, true,
@@ -561,6 +601,9 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev)
     case DCSU_RX_COMMAND_READ_EC_PARAMS:
         err = rx_read_partial_field(dev, DCSU_OTP_FIELD_EC_PARAMS, &msg_resp);
 #endif /* RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE */
+        break;
+    case DCSU_RX_COMMAND_SET_FEATURE_CTRL:
+        err = rx_set_feature_ctrl(dev, &msg_resp);
         break;
     default:
         err = DCSU_ERROR_NONE;

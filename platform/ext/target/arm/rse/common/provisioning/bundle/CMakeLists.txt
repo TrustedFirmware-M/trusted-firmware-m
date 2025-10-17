@@ -234,7 +234,6 @@ function(generate_provisioning_bundle bundle_type script exe_target blob_version
     )
 endfunction()
 
-
 create_provisioning_code_target(cm
     provisioning_code # cmake target
     do_provision # entrypoint
@@ -288,15 +287,18 @@ if (TFM_DUMMY_PROVISIONING)
     STRING(REGEX REPLACE "-.*$" "" MCUBOOT_ROTPK_TYPE ${MCUBOOT_SIGNATURE_TYPE})
     STRING(REGEX REPLACE "EC" "ECDSA" MCUBOOT_ROTPK_TYPE ${MCUBOOT_ROTPK_TYPE})
 
+    math(EXPR RSE_OTP_CM_POLICIES "${RSE_OTP_CM_POLICIES_FEATURE_CONTROL_BITS} << 8")
+    if(RSE_NON_ENDORSED_DM_PROVISIONING)
+        math(EXPR RSE_OTP_CM_POLICIES "${RSE_OTP_CM_POLICIES} | 1 << 4")
+    endif()
+
     set(CM_BUNDLE_SCRIPT_ARGS
         --non_secret_cm:bl1_2.bl1_2=${CMAKE_BINARY_DIR}/bin/bl1_2_padded.bin
         --non_secret_cm:bl1_2.bl1_2_hash=${CMAKE_BINARY_DIR}/bin/bl1_2_padded_hash.bin
         --secret_cm:guk=${TFM_GUK_PATH}
         --non_secret_cm:otp_dma_ics=${CMAKE_BINARY_DIR}/bin/otp_dma_ics.bin
         --secret_cm:kce_cm=${TFM_GUK_PATH}
-
-        # Set config flags to 1 << 0x4
-        $<$<BOOL:${RSE_NON_ENDORSED_DM_PROVISIONING}>:--non_secret_cm:cm.cm_policies=16>
+        --non_secret_cm:cm.cm_policies=${RSE_OTP_CM_POLICIES}
 
         --non_secret_cm:cm.rotpk_areas_0.rotpk_0=${TFM_BL1_2_CM_SIGNING_KEY_PATH}
         --non_secret_cm:cm.rotpk_areas_0.rotpk_policy_0 RSE_ROTPK_POLICY_SIG_REQUIRED

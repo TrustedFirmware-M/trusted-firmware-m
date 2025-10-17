@@ -171,6 +171,10 @@ __PACKED_STRUCT rse_otp_dynamic_area_t {
     uint8_t iak_endorsement_certificate_parameters[RSE_OTP_ENDORSEMENT_CERTIFICATE_PARAMETERS_SIZE];
 #endif
 
+#ifdef RSE_SKU_ENABLED
+    uint32_t feature_control;
+#endif /* RSE_SKU_ENABLED */
+
 #ifdef RSE_OTP_DYNAMIC_SUBPLATFORM_ITEMS
     struct rse_otp_subplatform_dynamic_area_t subplatform;
 #endif

@@ -9,8 +9,10 @@
 #include "device_definition.h"
 #include "rse_soc_uid.h"
 #include "rse_otp_dev.h"
+#include "rse_otp_config.h"
 #include "rse_zero_count.h"
 #include "rse_persistent_data.h"
+#include "lcm_drv.h"
 
 static inline bool is_otp_clean(uint32_t start_offset, uint32_t size)
 {
@@ -80,6 +82,11 @@ enum dcsu_error_t dcsu_hal_get_field_offset(enum dcsu_otp_field_t field, uint32_
         *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->iak_endorsement_certificate_signature);
         break;
 #endif /* RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE */
+#ifdef RSE_SKU_ENABLED
+    case DCSU_OTP_FIELD_FEATURE_CTRL:
+        *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->feature_control);
+        break;
+#endif /* RSE_SKU_ENABLED */
 #endif /* RSE_OTP_HAS_DYNAMIC_AREA */
     default:
         *offset = 0;
@@ -129,6 +136,11 @@ enum dcsu_error_t dcsu_hal_get_field_size(enum dcsu_otp_field_t field, uint32_t 
                 sizeof(P_RSE_OTP_DYNAMIC->iak_endorsement_certificate_parameters);
         break;
 #endif /* RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE */
+#ifdef RSE_SKU_ENABLED
+    case DCSU_OTP_FIELD_FEATURE_CTRL:
+        *size = sizeof(P_RSE_OTP_DYNAMIC->feature_control);
+        break;
+#endif /* RSE_SKU_ENABLED */
 #endif /* RSE_OTP_HAS_DYNAMIC_AREA */
     default:
         *size = 0;
