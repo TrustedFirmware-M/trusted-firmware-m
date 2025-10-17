@@ -278,3 +278,9 @@ install(FILES       Device/Source/armclang/musca_ns.sct
 # Install test configs
 install(DIRECTORY   ${TARGET_PLATFORM_PATH}/tests
         DESTINATION ${INSTALL_PLATFORM_NS_DIR})
+
+create_tfm_s_hex_merge_list(
+    BL2_TARGET          bl2_hex
+    TFM_S_TARGET        tfm_s_hex
+    TFM_S_SIGNED_TARGET tfm_s_signed_hex
+)
