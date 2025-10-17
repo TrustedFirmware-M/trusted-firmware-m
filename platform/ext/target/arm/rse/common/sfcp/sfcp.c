@@ -257,29 +257,25 @@ static enum sfcp_error_t send_msg_reply(struct sfcp_packet_t *packet, size_t pac
     }
 
 #ifdef SFCP_SUPPORT_LEGACY_MSG_PROTOCOL
-    {
-        enum tfm_plat_err_t plat_err;
-
-        if (is_msg) {
-            plat_err = sfcp_convert_to_legacy_msg((uint8_t *)packet, packet_transfer_size,
-                                                  sfcp_legacy_conversion_buffer,
-                                                  sizeof(sfcp_legacy_conversion_buffer),
-                                                  &packet_transfer_size);
-            if (plat_err != TFM_PLAT_ERR_SUCCESS) {
-                return (enum sfcp_error_t)plat_err;
-            }
-        } else {
-            plat_err = sfcp_convert_to_legacy_reply((uint8_t *)packet, packet_transfer_size,
-                                                    sfcp_legacy_conversion_buffer,
-                                                    sizeof(sfcp_legacy_conversion_buffer),
-                                                    &packet_transfer_size);
-            if (plat_err != TFM_PLAT_ERR_SUCCESS) {
-                return (enum sfcp_error_t)plat_err;
-            }
+    if (is_msg) {
+        sfcp_err = sfcp_convert_to_legacy_msg((uint8_t *)packet, packet_transfer_size,
+                                                sfcp_legacy_conversion_buffer,
+                                                sizeof(sfcp_legacy_conversion_buffer),
+                                                &packet_transfer_size);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
         }
-
-        packet = (struct sfcp_packet_t *)sfcp_legacy_conversion_buffer;
+    } else {
+        sfcp_err = sfcp_convert_to_legacy_reply((uint8_t *)packet, packet_transfer_size,
+                                                sfcp_legacy_conversion_buffer,
+                                                sizeof(sfcp_legacy_conversion_buffer),
+                                                &packet_transfer_size);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
     }
+
+    packet = (struct sfcp_packet_t *)sfcp_legacy_conversion_buffer;
 #endif
 
     hal_error = sfcp_hal_send_message(link_id, (const uint8_t *)packet, packet_transfer_size);
