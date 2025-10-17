@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -64,22 +64,6 @@ psa_status_t tfm_crypto_key_management_interface(psa_invec in_vec[],
                                 data, data_length, &library_key);
         /* Update the imported key id */
         *key_id = CRYPTO_LIBRARY_GET_KEY_ID(library_key);
-    }
-    break;
-    case TFM_CRYPTO_OPEN_KEY_SID:
-    {
-        psa_key_id_t *key_id = out_vec[0].base;
-        if ((out_vec[0].base == NULL) || (out_vec[0].len < sizeof(psa_key_id_t))) {
-            return PSA_ERROR_PROGRAMMER_ERROR;
-        }
-
-        status = psa_open_key(library_key, &library_key);
-        *key_id = CRYPTO_LIBRARY_GET_KEY_ID(library_key);
-    }
-    break;
-    case TFM_CRYPTO_CLOSE_KEY_SID:
-    {
-        status = psa_close_key(library_key);
     }
     break;
     case TFM_CRYPTO_DESTROY_KEY_SID:

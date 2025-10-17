@@ -76,10 +76,6 @@
         PSA_FUNCTION_NAME(psa_aead_verify)
 #define psa_aead_abort \
         PSA_FUNCTION_NAME(psa_aead_abort)
-#define psa_open_key \
-        PSA_FUNCTION_NAME(psa_open_key)
-#define psa_close_key \
-        PSA_FUNCTION_NAME(psa_close_key)
 #define psa_import_key \
         PSA_FUNCTION_NAME(psa_import_key)
 #define psa_destroy_key \

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2023 Nordic Semiconductor ASA.
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * Copyright (c) 2024-2025, Arm Limited. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,14 +57,14 @@ static uint8_t g_enc_nonce_seed[TFM_ITS_ENC_NONCE_LENGTH -
 #endif
 
 /* Copy PS solution */
-static psa_status_t its_crypto_setkey(psa_key_handle_t *its_key,
+static psa_status_t its_crypto_setkey(mbedtls_svc_key_id_t *its_key,
                                       const uint8_t *key_label,
                                       size_t key_label_len)
 {
     psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_derivation_operation_t op = PSA_KEY_DERIVATION_OPERATION_INIT;
-    psa_key_handle_t seed_key = mbedtls_svc_key_id_make(TFM_SP_ITS, TFM_BUILTIN_KEY_ID_HUK);
+    mbedtls_svc_key_id_t seed_key = mbedtls_svc_key_id_make(TFM_SP_ITS, TFM_BUILTIN_KEY_ID_HUK);
 
     if (key_label_len == 0 || key_label == NULL) {
         return PSA_ERROR_INVALID_ARGUMENT;
@@ -182,7 +182,7 @@ enum tfm_hal_status_t tfm_hal_its_aead_encrypt(
 {
 
     psa_status_t status;
-    psa_key_handle_t its_key = PSA_KEY_HANDLE_INIT;
+    mbedtls_svc_key_id_t its_key = MBEDTLS_SVC_KEY_ID_INIT;
     size_t ciphertext_length;
 
     if (!ctx_is_valid(ctx) || tag == NULL) {
@@ -232,7 +232,7 @@ enum tfm_hal_status_t tfm_hal_its_aead_decrypt(
                                         const size_t plaintext_size)
 {
     psa_status_t status;
-    psa_key_handle_t its_key = PSA_KEY_HANDLE_INIT;
+    mbedtls_svc_key_id_t its_key = MBEDTLS_SVC_KEY_ID_INIT;
     size_t ciphertext_and_tag_size, out_len;
 
     if (!ctx_is_valid(ctx) || tag == NULL) {
@@ -271,4 +271,3 @@ enum tfm_hal_status_t tfm_hal_its_aead_decrypt(
 
     return TFM_HAL_SUCCESS;
 }
-

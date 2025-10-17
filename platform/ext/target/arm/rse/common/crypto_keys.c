@@ -60,8 +60,8 @@ static enum tfm_plat_err_t tfm_plat_get_iak(const void *ctx,
     enum kmu_error_t kmu_err;
     psa_key_attributes_t seed_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t transient_attr = PSA_KEY_ATTRIBUTES_INIT;
-    psa_key_handle_t seed_key = PSA_KEY_HANDLE_INIT;
-    psa_key_handle_t transient_key = PSA_KEY_HANDLE_INIT;
+    mbedtls_svc_key_id_t seed_key = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t transient_key = MBEDTLS_SVC_KEY_ID_INIT;
     psa_key_derivation_operation_t op = PSA_KEY_DERIVATION_OPERATION_INIT;
 
     if (buf_len < PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(ATTEST_KEY_BITS)) {

@@ -2,6 +2,8 @@
  * Copyright (c) 2023-2024 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+ *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
@@ -42,14 +44,14 @@ int32_t tfm_initial_attest_get_public_key(uint8_t *public_key_buff,
     psa_key_attributes_t attr;
 #ifdef TFM_BUILTIN_KEY_ID_IAK_PUB
     /* Use public IAK directly if it is available */
-    psa_key_handle_t handle = TFM_BUILTIN_KEY_ID_IAK_PUB;
+    psa_key_id_t key_id = TFM_BUILTIN_KEY_ID_IAK_PUB;
 #else /* TFM_BUILTIN_KEY_ID_IAK_PUB */
     /* Derive public IAK from private one */
-    psa_key_handle_t handle = TFM_BUILTIN_KEY_ID_IAK;
+    psa_key_id_t key_id = TFM_BUILTIN_KEY_ID_IAK;
 #endif /* TFM_BUILTIN_KEY_ID_IAK_PUB */
     psa_key_type_t key_type;
 
-    if (psa_get_key_attributes(handle, &attr) != PSA_SUCCESS) {
+    if (psa_get_key_attributes(key_id, &attr) != PSA_SUCCESS) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
@@ -59,6 +61,6 @@ int32_t tfm_initial_attest_get_public_key(uint8_t *public_key_buff,
     /* psa_export_public_key will either export the public key directly
      * (in case of KEY_ID_IAK_PUB) or derive public key from private one
      * (in case of KEY_ID_IAK) */
-    return psa_export_public_key(handle, public_key_buff, public_key_buf_size, public_key_len);
+    return psa_export_public_key(key_id, public_key_buff, public_key_buf_size, public_key_len);
 }
 #endif

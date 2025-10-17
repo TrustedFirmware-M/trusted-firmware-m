@@ -85,8 +85,6 @@ enum tfm_crypto_group_id_t {
 
 #define KEY_MANAGEMENT_FUNCS                       \
     X(TFM_CRYPTO_GET_KEY_ATTRIBUTES)               \
-    X(TFM_CRYPTO_OPEN_KEY)                         \
-    X(TFM_CRYPTO_CLOSE_KEY)                        \
     X(TFM_CRYPTO_IMPORT_KEY)                       \
     X(TFM_CRYPTO_DESTROY_KEY)                      \
     X(TFM_CRYPTO_EXPORT_KEY)                       \

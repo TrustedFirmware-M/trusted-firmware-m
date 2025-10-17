@@ -105,36 +105,6 @@ TFM_CRYPTO_API(int, psa_can_do_cipher)(psa_key_type_t key_type, psa_algorithm_t 
     return (status != PSA_SUCCESS) ? 0 : can_do_cipher;
 }
 
-TFM_CRYPTO_API(psa_status_t, psa_open_key)(psa_key_id_t id,
-                                           psa_key_id_t *key)
-{
-    const struct tfm_crypto_pack_iovec iov = {
-        .function_id = TFM_CRYPTO_OPEN_KEY_SID,
-        .key_id = id,
-    };
-    psa_invec in_vec[] = {
-        {.base = &iov, .len = sizeof(struct tfm_crypto_pack_iovec)},
-    };
-    psa_outvec out_vec[] = {
-        {.base = key, .len = sizeof(psa_key_id_t)},
-    };
-
-    return API_DISPATCH(in_vec, out_vec);
-}
-
-TFM_CRYPTO_API(psa_status_t, psa_close_key)(psa_key_id_t key)
-{
-    const struct tfm_crypto_pack_iovec iov = {
-        .function_id = TFM_CRYPTO_CLOSE_KEY_SID,
-        .key_id = key,
-    };
-    psa_invec in_vec[] = {
-        {.base = &iov, .len = sizeof(struct tfm_crypto_pack_iovec)},
-    };
-
-    return API_DISPATCH_NO_OUTVEC(in_vec);
-}
-
 TFM_CRYPTO_API(psa_status_t, psa_import_key)(const psa_key_attributes_t *attributes,
                                              const uint8_t *data,
                                              size_t data_length,
