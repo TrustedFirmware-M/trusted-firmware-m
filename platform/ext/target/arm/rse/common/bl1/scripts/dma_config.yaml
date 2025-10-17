@@ -16,8 +16,12 @@ locations:
         size: 0x10000
         reserved: 0x8
     otp:
-        # This has to be manually calculated, and must be updated if the OTP
-        # layout changes
+        # The OTP is mapped at offset 0x1000 from the start of the LCM, which
+        # would be 0x500A0000 + 0x1000 = 0x500A1000. The structure of the OTP
+        # then depends on the integration layer options and the integration-specific
+        # OTP layout that is represented by the type __PACKED_STRUCT rse_otp_header_area_t.
+        # The base_address below is therefore computed conceptually as:
+        #     0x500A1000 + offsetof(__PACKED_STRUCT rse_otp_header_area_t, dma_ics)
         base_address: 0x500A1170
         size: 0x108
         reserved: 0x8
