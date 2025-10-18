@@ -129,7 +129,11 @@ extern "C" {
 #define FIH_CONST1 1
 #define FIH_CONST2 1
 #define FIH_LABEL_CRITICAL_POINT()
+#if defined(__ICCARM__)
+#define FIH_LABEL(str, lin, cnt) do {} while (0)
+#else
 #define FIH_LABEL(str) do {} while (0)
+#endif
 #define FIH_RET_TYPE(type)    type
 
 #endif /* TFM_FIH_PROFILE_ON */

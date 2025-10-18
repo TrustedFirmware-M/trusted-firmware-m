@@ -82,7 +82,11 @@ void fih_cfi_decrement(void)
 __attribute__((used, noinline, noreturn))
 void fih_panic_loop(void)
 {
+#if defined(__ICCARM__)
+    FIH_LABEL("FAILURE_LOOP", __LINE__, __COUNTER__);
+#else
     FIH_LABEL("FAILURE_LOOP");
+#endif
     __asm volatile ("b fih_panic_loop");
     __asm volatile ("b fih_panic_loop");
     __asm volatile ("b fih_panic_loop");
