@@ -140,10 +140,13 @@ extern "C" {
  * XORed with the mask.
  */
 extern volatile int _fih_mask;
+
 typedef struct {
-    volatile int val;
-    volatile int msk;
-} fih_int;
+    int val;
+    int msk;
+} fih_int_nv;
+
+typedef volatile fih_int_nv fih_int;
 typedef volatile int fih_ret;
 
 #else
@@ -153,8 +156,8 @@ typedef int fih_ret;
 
 #endif /* FIH_ENABLE_DOUBLE_VARS */
 
-extern fih_ret FIH_SUCCESS;
-extern fih_ret FIH_FAILURE;
+#define FIH_SUCCESS FIH_POSITIVE_VALUE
+#define FIH_FAILURE FIH_NEGATIVE_VALUE
 extern fih_ret FIH_NO_BOOTABLE_IMAGE;
 extern fih_ret FIH_BOOT_HOOK_REGULAR;
 extern volatile int _fih_ret_mask;

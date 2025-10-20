@@ -33,8 +33,6 @@ volatile int _fih_mask = _FIH_MASK_VALUE;
 #define _FIH_RET_MASK_VALUE 0xA5A5A5A5
 volatile int _fih_ret_mask = _FIH_RET_MASK_VALUE;
 
-fih_ret FIH_SUCCESS = FIH_POSITIVE_VALUE;
-fih_ret FIH_FAILURE = FIH_NEGATIVE_VALUE;
 fih_ret FIH_NO_BOOTABLE_IMAGE = FIH_CONST1;
 fih_ret FIH_BOOT_HOOK_REGULAR = FIH_CONST2;
 
