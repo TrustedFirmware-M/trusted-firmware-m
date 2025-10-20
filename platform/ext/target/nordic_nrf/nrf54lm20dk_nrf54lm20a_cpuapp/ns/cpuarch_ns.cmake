@@ -1,8 +1,9 @@
-#
+#-------------------------------------------------------------------------------
 # Copyright (c) 2024, Nordic Semiconductor ASA.
 #
-# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+# SPDX-License-Identifier: BSD-3-Clause
 #
+#-------------------------------------------------------------------------------
 
 set(PLATFORM_DIR  ${CMAKE_CURRENT_LIST_DIR})
 set(PLATFORM_PATH ${CMAKE_CURRENT_LIST_DIR})

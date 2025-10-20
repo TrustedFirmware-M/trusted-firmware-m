@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2025 Nordic Semiconductor ASA
  *
- * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #ifndef NRFX_CONFIG_NRF7120_ENGA_APPLICATION_H__
