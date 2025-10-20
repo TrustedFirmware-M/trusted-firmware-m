@@ -15,6 +15,11 @@ if (CONFIG_TFM_USE_TRUSTZONE)
             DESTINATION ${INSTALL_INTERFACE_LIB_DIR})
 endif()
 
+# export cmake scripts
+install(FILES       ${CMAKE_SOURCE_DIR}/cmake/remote_library.cmake
+                    ${CMAKE_SOURCE_DIR}/cmake/utils.cmake
+        DESTINATION ${INSTALL_CMAKE_DIR})
+
 ####################### export headers #########################################
 
 if (BL1 AND PLATFORM_DEFAULT_BL1)
