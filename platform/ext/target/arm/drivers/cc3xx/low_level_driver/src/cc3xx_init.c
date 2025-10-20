@@ -164,12 +164,18 @@ cc3xx_err_t cc3xx_lowlevel_init(void)
     /* Configure entire system to little endian */
     P_CC3XX->host_rgf.host_rgf_endian = 0x0U;
 
+    /* AHBM registers require DMA clock to be enabled */
+    P_CC3XX->misc.dma_clk_enable = 0x1U;
+
     /* Set the AHB to issue secure, privileged data access transactions */
     P_CC3XX->ahb.ahbm_hprot = 0b11U;
     P_CC3XX->ahb.ahbm_hnonsec = 0b00U;
 
     /* Set AHB transactions to Burst INCR4 by default */
     P_CC3XX->ahb.ahbm_singles = 0x0UL;
+
+    /* Disable DMA clock to save power */
+    P_CC3XX->misc.dma_clk_enable = 0x0U;
 
     /* Reset engine to PASSTHROUGH / None */
     cc3xx_engine_in_use = CC3XX_ENGINE_NONE;
