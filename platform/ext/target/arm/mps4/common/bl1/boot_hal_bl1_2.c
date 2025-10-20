@@ -127,7 +127,7 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
     stdio_uninit();
 #endif /* (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2) */
 
-    fih_delay();
+    (void)fih_delay();
 
     result = disable_rom_execution();
     if (result) {
@@ -154,7 +154,7 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
 
 int boot_platform_pre_load(uint32_t image_id)
 {
-    fih_delay();
+    (void)fih_delay();
 
     return 0;
 }

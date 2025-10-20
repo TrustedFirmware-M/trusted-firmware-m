@@ -204,7 +204,7 @@ enum lcm_error_t lcm_get_tp_mode(struct lcm_dev_t *dev, enum lcm_tp_mode_t *mode
 
     *mode = (enum lcm_tp_mode_t)p_lcm->tp_mode;
 
-    fih_delay();
+    (void)fih_delay();
 
     double_check_mode = (enum lcm_tp_mode_t)p_lcm->tp_mode;
 
@@ -291,7 +291,7 @@ enum lcm_error_t lcm_get_sp_enabled(struct lcm_dev_t *dev, enum lcm_bool_t *enab
 
     *enabled = (enum lcm_bool_t)p_lcm->sp_enable;
 
-    fih_delay();
+    (void)fih_delay();
 
     double_check_sp_mode = (enum lcm_bool_t)p_lcm->sp_enable;
 
@@ -417,7 +417,7 @@ enum lcm_error_t lcm_get_lcs(struct lcm_dev_t *dev, enum lcm_lcs_t *lcs)
 
     *lcs = (enum lcm_lcs_t)p_lcm->lcs_value;
 
-    fih_delay();
+    (void)fih_delay();
 
     double_check_lcs = (enum lcm_lcs_t)p_lcm->lcs_value;
 
@@ -977,7 +977,7 @@ enum lcm_error_t lcm_otp_read(struct lcm_dev_t *dev, uint32_t offset,
     for (idx = 0; idx < len / sizeof(uint32_t); idx++) {
         p_buf_word[idx] = p_lcm->raw_otp[(offset / sizeof(uint32_t)) + idx];
 
-        fih_delay();
+        (void)fih_delay();
 
         /* Double read verify is done in hardware for addresses outside of the
          * LCM OTP user area. In that case, don't perform a software check.

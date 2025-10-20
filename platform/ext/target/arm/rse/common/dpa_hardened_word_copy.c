@@ -53,7 +53,7 @@ void dpa_hardened_word_copy(volatile uint32_t *dst,
                                     unaligned_words : CHUNK_WORD_SIZE;
             size_t copy_shift = chunk_idx * CHUNK_WORD_SIZE;
 
-            fih_delay();
+            (void)fih_delay();
             dpa_hardened_word_copy(dst + copy_shift,
                                     src + copy_shift, copy_size);
             }
@@ -66,7 +66,7 @@ void dpa_hardened_word_copy(volatile uint32_t *dst,
         cc3xx_lowlevel_rng_get_random_permutation(permutation_buf, word_count);
 
         for(idx = 0; idx < word_count; idx++) {
-            fih_delay();
+            (void)fih_delay();
             dst[permutation_buf[idx]] = src[permutation_buf[idx]];
         }
     }

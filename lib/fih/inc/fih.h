@@ -214,21 +214,14 @@ __attribute__((always_inline)) inline
 int fih_delay(void)
 {
     unsigned char delay;
-    int foo = 0;
-    volatile int rc;
+    volatile int foo;
 
     delay = fih_delay_random();
 
-    for (volatile int i = 0; i < delay; i++) {
+    for (int i = 0; i < delay; i++) {
         foo++;
     }
-
-    rc = 1;
-
-    /* rc is volatile so if it is the return value then the function cannot be
-     * optimized
-     */
-    return rc;
+    return 1;
 }
 #endif /* FIH_ENABLE_DELAY_PLATFORM */
 

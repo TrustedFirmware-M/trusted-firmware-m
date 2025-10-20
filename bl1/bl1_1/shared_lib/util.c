@@ -20,7 +20,7 @@ fih_ret bl_fih_memeql(const void *ptr1, const void *ptr2, size_t num)
             FIH_RET(FIH_FAILURE);
         }
 
-        fih_delay();
+        (void)fih_delay();
 
         if (((uint8_t *)ptr1)[idx] != ((uint8_t *)ptr2)[idx]) {
             FIH_RET(FIH_FAILURE);

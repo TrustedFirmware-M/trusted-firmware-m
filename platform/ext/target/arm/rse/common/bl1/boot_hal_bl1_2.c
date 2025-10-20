@@ -453,7 +453,7 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
     stdio_uninit();
 #endif /* LOGGING_ENABLED */
 
-    fih_delay();
+    (void)fih_delay();
 
     disable_rom_execution();
 
@@ -477,7 +477,7 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
 
 int boot_platform_pre_load(uint32_t image_id)
 {
-    fih_delay();
+    (void)fih_delay();
 
     return 0;
 }
