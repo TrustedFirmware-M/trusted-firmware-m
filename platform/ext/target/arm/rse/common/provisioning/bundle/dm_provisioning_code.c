@@ -86,7 +86,7 @@ enum tfm_plat_err_t do_dm_provision(void) {
     if (lcm_err != LCM_ERROR_NONE) {
         return (enum tfm_plat_err_t)lcm_err;
     }
-
+#ifdef RSE_OTP_HAS_DYNAMIC_AREA
     INFO("Writing dynamic area info\n");
     lcm_err = lcm_otp_write(&LCM_DEV_S,
                             offsetof(struct rse_otp_header_area_t, dynamic_area_info),
@@ -109,8 +109,7 @@ enum tfm_plat_err_t do_dm_provision(void) {
     if (lcm_err != LCM_ERROR_NONE) {
         return (enum tfm_plat_err_t)lcm_err;
     }
-
-    dm_area_info = values->dm_area_info;
+#endif /* RSE_OTP_HAS_DYNAMIC_AREA */
 #endif /* OTP_CONFIG_DM_SETS_DM_AND_DYNAMIC_AREA_SIZE */
 
 #ifndef RSE_NON_ENDORSED_DM_PROVISIONING

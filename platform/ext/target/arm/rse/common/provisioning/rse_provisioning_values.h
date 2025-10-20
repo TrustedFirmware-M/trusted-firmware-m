@@ -20,8 +20,10 @@ struct __attribute__((__packed__)) rse_non_secret_cm_provisioning_values_t {
     struct rse_otp_area_info_t bl1_2_area_info;
 #ifndef RSE_OTP_DM_SETS_DM_AND_DYNAMIC_AREA_SIZE
     struct rse_otp_area_info_t dm_area_info;
+#ifdef RSE_OTP_HAS_DYNAMIC_AREA
     struct rse_otp_area_info_t dynamic_area_info;
-#endif
+#endif /* RSE_OTP_HAS_DYNAMIC_AREA */
+#endif /* RSE_OTP_DM_SETS_DM_AND_DYNAMIC_AREA_SIZE */
 
     uint8_t otp_dma_ics[RSE_OTP_DMA_ICS_SIZE];
     uint32_t otp_dma_ics_size;

@@ -74,11 +74,13 @@ enum dcsu_error_t dcsu_hal_get_field_offset(enum dcsu_otp_field_t field, uint32_
     case DCSU_OTP_FIELD_CM_COD:
         *offset = OTP_OFFSET(P_RSE_OTP_CM->cod);
         break;
+#ifdef RSE_OTP_HAS_DYNAMIC_AREA
 #ifdef RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE
     case DCSU_OTP_FIELD_EC_PARAMS:
         *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->iak_endorsement_certificate_signature);
         break;
 #endif /* RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE */
+#endif /* RSE_OTP_HAS_DYNAMIC_AREA */
     default:
         *offset = 0;
         return DCSU_ERROR_RX_MSG_INVALID_OTP_FIELD;
@@ -120,12 +122,14 @@ enum dcsu_error_t dcsu_hal_get_field_size(enum dcsu_otp_field_t field, uint32_t 
     case DCSU_OTP_FIELD_CM_COD:
         *size = sizeof(P_RSE_OTP_CM->cod);
         break;
+#ifdef RSE_OTP_HAS_DYNAMIC_AREA
 #ifdef RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE
     case DCSU_OTP_FIELD_EC_PARAMS:
         *size = sizeof(P_RSE_OTP_DYNAMIC->iak_endorsement_certificate_signature) +
                 sizeof(P_RSE_OTP_DYNAMIC->iak_endorsement_certificate_parameters);
         break;
 #endif /* RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE */
+#endif /* RSE_OTP_HAS_DYNAMIC_AREA */
     default:
         *size = 0;
         return DCSU_ERROR_RX_MSG_INVALID_OTP_FIELD;

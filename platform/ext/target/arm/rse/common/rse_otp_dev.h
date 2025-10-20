@@ -117,8 +117,12 @@ static inline volatile const void *__get_area_info_ptr(const struct rse_otp_area
 #define P_RSE_OTP_CM                AREA_PTR(cm)
 #define P_RSE_OTP_BL1_2             AREA_PTR(bl1_2)
 #define P_RSE_OTP_DM                AREA_PTR(dm)
+#ifdef RSE_OTP_HAS_DYNAMIC_AREA
 #define P_RSE_OTP_DYNAMIC           AREA_PTR(dynamic)
+#endif /* RSE_OTP_HAS_DYNAMIC_AREA */
+#ifdef RSE_OTP_HAS_SOC_AREA
 #define P_RSE_OTP_SOC               AREA_PTR(soc)
+#endif /* RSE_OTP_HAS_SOC_AREA */
 
 #define P_RSE_OTP_CM_ROTPK          AREA_PTR(cm_rotpk)
 #define P_RSE_OTP_DM_ROTPK          AREA_PTR(dm_rotpk)
