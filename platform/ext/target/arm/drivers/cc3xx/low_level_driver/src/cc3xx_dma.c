@@ -8,6 +8,7 @@
 #include "cc3xx_dma.h"
 
 #include "cc3xx_dev.h"
+#include "cc3xx_ahbm.h"
 #include "cc3xx_engine_state.h"
 #ifndef CC3XX_CONFIG_FILE
 #include "cc3xx_config.h"
@@ -164,9 +165,9 @@ static void process_data(const void *buf, size_t length)
 #ifdef CC3XX_CONFIG_DMA_BURST_RESTRICTED_ENABLE
         /* Force single transactions for restricted addresses */
         if (is_addr_burst_restricted(remap_output_addr)) {
-            P_CC3XX->ahb.ahbm_singles = 0x1UL;
+            P_CC3XX->ahb.ahbm_singles = CC3XX_AHBM_SINGLE_TRANSACTIONS;
         } else {
-            P_CC3XX->ahb.ahbm_singles = 0x0UL;
+            P_CC3XX->ahb.ahbm_singles = CC3XX_AHBM_BURST_INCR4_TRANSACTIONS;
         }
 #endif /* CC3XX_CONFIG_DMA_BURST_RESTRICTED_ENABLE */
 

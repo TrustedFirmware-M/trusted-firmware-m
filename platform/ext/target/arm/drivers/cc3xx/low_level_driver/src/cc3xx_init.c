@@ -8,6 +8,7 @@
 #include "cc3xx_init.h"
 #include "cc3xx_log.h"
 #include "cc3xx_dev.h"
+#include "cc3xx_ahbm.h"
 #include "cc3xx_engine_state.h"
 #include <assert.h>
 #include "cc3xx_rng.h"
@@ -64,6 +65,23 @@ static void check_features(void)
 #ifdef CC3XX_CONFIG_RNG_ENABLE
     assert(P_CC3XX->host_rgf.host_boot & (1 << 11)); /* RNG_EXISTS_LOCAL */
 #endif
+}
+
+static void setup_ahbm(void)
+{
+    /* AHBM registers require DMA clock to be enabled */
+    P_CC3XX->misc.dma_clk_enable = 0x1U;
+
+    P_CC3XX->ahb.ahbm_hprot = CC3XX_AHBM_HPROT_DATA |
+                              CC3XX_AHBM_HPROT_PRIVILEGED |
+                              CC3XX_AHBM_HPROT_CACHEABLE;
+
+    P_CC3XX->ahb.ahbm_singles = CC3XX_AHBM_BURST_INCR4_TRANSACTIONS;
+
+    P_CC3XX->ahb.ahbm_hnonsec = CC3XX_AHBM_SECURE_TRANSACTIONS;
+
+    /* Disable DMA clock to save power */
+    P_CC3XX->misc.dma_clk_enable = 0x0U;
 }
 
 static cc3xx_err_t setup_dfa_countermeasures(void)
@@ -164,26 +182,12 @@ cc3xx_err_t cc3xx_lowlevel_init(void)
     /* Configure entire system to little endian */
     P_CC3XX->host_rgf.host_rgf_endian = 0x0U;
 
-    /* AHBM registers require DMA clock to be enabled */
-    P_CC3XX->misc.dma_clk_enable = 0x1U;
-
-    /* Set the AHB to issue cacheable, secure and privileged data transactions.
-     *
-     * Note the CryptoCell HW does not issue a burst INCR4 AHB transaction
-     * if cacheability is disabled.
-     */
-    P_CC3XX->ahb.ahbm_hprot = 0b1011U;
-    P_CC3XX->ahb.ahbm_hnonsec = 0b00U;
-
-    /* Set AHB transactions to Burst INCR4 by default */
-    P_CC3XX->ahb.ahbm_singles = 0x0UL;
-
-    /* Disable DMA clock to save power */
-    P_CC3XX->misc.dma_clk_enable = 0x0U;
-
     /* Reset engine to PASSTHROUGH / None */
     cc3xx_engine_in_use = CC3XX_ENGINE_NONE;
     P_CC3XX->cc_ctl.crypto_ctl = CC3XX_ENGINE_NONE;
+
+    /* Setup AHB5 Manager Interface */
+    setup_ahbm();
 
     err = setup_dfa_countermeasures();
     if (err != CC3XX_ERR_SUCCESS) {
