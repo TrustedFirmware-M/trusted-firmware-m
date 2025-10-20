@@ -167,8 +167,12 @@ cc3xx_err_t cc3xx_lowlevel_init(void)
     /* AHBM registers require DMA clock to be enabled */
     P_CC3XX->misc.dma_clk_enable = 0x1U;
 
-    /* Set the AHB to issue secure, privileged data access transactions */
-    P_CC3XX->ahb.ahbm_hprot = 0b11U;
+    /* Set the AHB to issue cacheable, secure and privileged data transactions.
+     *
+     * Note the CryptoCell HW does not issue a burst INCR4 AHB transaction
+     * if cacheability is disabled.
+     */
+    P_CC3XX->ahb.ahbm_hprot = 0b1011U;
     P_CC3XX->ahb.ahbm_hnonsec = 0b00U;
 
     /* Set AHB transactions to Burst INCR4 by default */
