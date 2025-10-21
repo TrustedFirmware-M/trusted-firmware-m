@@ -23,9 +23,16 @@ enum tfm_plat_err_t rse_dcu_otp_feature_control(struct lcm_dev_t *lcm_dev)
     uint32_t feature_control;
     uint32_t cm_policies;
     enum lcm_error_t lcm_err;
+    enum tfm_plat_err_t plat_err;
     uint32_t dcu_disable_mask[LCM_DCU_WIDTH_IN_BYTES / sizeof(uint32_t)];
     uint32_t dcu_lines[LCM_DCU_WIDTH_IN_BYTES / sizeof(uint32_t)];
     uint8_t dcu_override_field = 0;
+    uint8_t ps_fc[4];
+    enum tfm_plat_err_t (*const ps_fc_ptr[RSE_PS_FC_HANDLERS_NUM])(void) = {
+        product_specific_feature_control_handler_0,
+        product_specific_feature_control_handler_1,
+        product_specific_feature_control_handler_2
+    };
 
     /* DCU-based feature control */
     lcm_err = lcm_otp_read(lcm_dev, OTP_OFFSET(P_RSE_OTP_DYNAMIC->feature_control),
@@ -77,6 +84,23 @@ enum tfm_plat_err_t rse_dcu_otp_feature_control(struct lcm_dev_t *lcm_dev)
         lcm_err = lcm_dcu_set_enabled(lcm_dev, (uint8_t *)&dcu_lines);
         if (lcm_err != LCM_ERROR_NONE) {
             return TFM_PLAT_ERR_DCU_FEATURE_CONTROL_ERROR;
+        }
+    }
+
+    /* Product-specific feature control */
+    lcm_err = lcm_otp_read(lcm_dev, OTP_OFFSET(P_RSE_OTP_DYNAMIC->ps_fc),
+                           sizeof(ps_fc), (uint8_t *)(ps_fc));
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+    for (uint8_t i = 0; i < RSE_PS_FC_HANDLERS_NUM; i++) {
+        if (ps_fc[i] == RSE_OTP_PS_FC_VALUE_ENABLED) {
+            plat_err = ps_fc_ptr[i]();
+
+            if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+                return plat_err;
+            }
         }
     }
 

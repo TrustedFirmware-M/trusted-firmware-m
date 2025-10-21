@@ -76,6 +76,7 @@ enum tfm_plat_err_t provisioning_comms_receive_command_non_blocking(enum rx_comm
             case DCSU_RX_COMMAND_COMPLETE_IMPORT_DATA:
                 *rx_command_type = RX_COMMAND_TYPE_HANDLED_DATA_COMPLETE;
                 break;
+            case DCSU_RX_COMMAND_SET_PS_FC:
             case DCSU_RX_COMMAND_SET_FEATURE_CTRL:
                 *rx_command_type = RX_COMMAND_TYPE_HANDLED_SINGLE_CMD_REQUIRES_RESET;
                 break;

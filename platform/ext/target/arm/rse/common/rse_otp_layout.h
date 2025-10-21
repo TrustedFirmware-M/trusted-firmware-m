@@ -173,6 +173,7 @@ __PACKED_STRUCT rse_otp_dynamic_area_t {
 
 #ifdef RSE_SKU_ENABLED
     uint32_t feature_control;
+    uint8_t ps_fc[4];
 #endif /* RSE_SKU_ENABLED */
 
 #ifdef RSE_OTP_DYNAMIC_SUBPLATFORM_ITEMS
@@ -212,6 +213,13 @@ enum rse_otp_cm_policies_t {
     CM_POLICIES_DM_PROVISIONING_RESERVED               = 0x5,
 
     _CM_POLICIES_MAX_VALUE = UINT32_MAX
+};
+
+/* Product-specific feature control values stored in the OTP */
+enum rse_otp_product_specific_fc_values_t {
+    RSE_OTP_PS_FC_DISABLED = 0u,
+    RSE_OTP_PS_FC_VALUE_ENABLED = 2u,
+    RSE_OTP_PS_FC_VALUE_DISABLED_LOCKED = 7u
 };
 
 /**

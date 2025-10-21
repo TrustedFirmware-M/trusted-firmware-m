@@ -10,6 +10,7 @@
 #include "fatal_error.h"
 
 #include "dcsu_config.h"
+#include "rse_otp_layout.h"
 
 #include "tfm_log.h"
 
@@ -60,6 +61,8 @@ static inline const char *dcsu_rx_cmd_name(enum dcsu_rx_command cmd)
         return "READ_COD_DATA";
     case DCSU_RX_COMMAND_READ_EC_PARAMS:
         return "READ_EC_PARAMS";
+    case DCSU_RX_COMMAND_SET_PS_FC:
+        return "SET_PS_FC";
     case DCSU_RX_COMMAND_SET_FEATURE_CTRL:
         return "SET_FEATURE_CTRL";
     default:
@@ -118,6 +121,10 @@ static inline const char *dcsu_rx_rsp_name(enum dcsu_rx_msg_response_t rsp)
         return "UNEXPECTED_IMPORT";
     case DCSU_RX_MSG_RESP_RANGE_NOT_INITIALIZED:
         return "RANGE_NOT_INITIALIZED";
+    case DCSU_RX_MSG_RESP_INVALID_CONTROL_PARAMETER:
+        return "INVALID_CONTROL_PARAMETER";
+    case DCSU_RX_MSG_RESP_INVALID_CONTROL_NUMBER:
+        return "INVALID_CONTROL_NUMBER";
     case DCSU_RX_MSG_RESP_GENERIC_ERROR:
         return "GENERIC_ERROR";
     case DCSU_RX_MSG_RESP_INVALID_COMMAND:
@@ -520,6 +527,67 @@ static enum dcsu_error_t rx_cancel_import(struct dcsu_dev_t *dev,
     return dcsu_hal_cancel_import_data(msg_resp);
 }
 
+static enum dcsu_error_t rx_set_product_specific_feature_ctrl(struct dcsu_dev_t *dev,
+                                                              enum dcsu_rx_msg_response_t *msg_resp)
+{
+    enum dcsu_error_t msg_err;
+    struct _dcsu_reg_map_t* p_dcsu = (struct _dcsu_reg_map_t*)dev->cfg->base;
+    /* Indexing from 0 makes usage simpler */
+    uint32_t field = DIAG_RX_COMMAND_SW_DEF - 1;
+    uint32_t new_state = DIAG_RX_COMMAND_PARAM1;
+    uint8_t ps_fc_fields[4];
+
+    if (field >= RSE_PS_FC_HANDLERS_NUM) {
+        *msg_resp = DCSU_RX_MSG_RESP_INVALID_CONTROL_NUMBER;
+        return DCSU_ERROR_NONE;
+    }
+
+    /* Only enabling or locking can be requested. Convert to bitfields */
+    switch(new_state) {
+        case 1:
+            new_state = RSE_OTP_PS_FC_VALUE_ENABLED;
+            break;
+        case 2:
+            new_state = RSE_OTP_PS_FC_VALUE_DISABLED_LOCKED;
+            break;
+        default:
+            *msg_resp = DCSU_RX_MSG_RESP_INVALID_CONTROL_PARAMETER;
+            return DCSU_ERROR_NONE;
+            break;
+    }
+
+    msg_err = read_otp_field(dev, DCSU_OTP_FIELD_PS_FC, (uint32_t*)&ps_fc_fields,
+                             sizeof(ps_fc_fields), msg_resp);
+    if (msg_err != DCSU_ERROR_NONE) {
+        *msg_resp = DCSU_RX_MSG_RESP_OTP_WRITE_FAILED;
+        return DCSU_ERROR_NONE;
+    }
+
+    if (ps_fc_fields[field] != RSE_OTP_PS_FC_DISABLED &&
+        ps_fc_fields[field] != RSE_OTP_PS_FC_VALUE_ENABLED &&
+        ps_fc_fields[field] != RSE_OTP_PS_FC_VALUE_DISABLED_LOCKED) {
+
+        *msg_resp = DCSU_RX_MSG_RESP_INVALID_CONTROL_PARAMETER;
+        return DCSU_ERROR_NONE;
+    }
+
+    /* Valid PS_FC fields can be incresed but not decreased (0 -> 2 -> 7) */
+    if (new_state <= ps_fc_fields[field]) {
+        *msg_resp = DCSU_RX_MSG_RESP_INVALID_CONTROL_PARAMETER;
+        return DCSU_ERROR_NONE;
+    }
+
+    ps_fc_fields[field] = new_state;
+
+    msg_err = write_otp_field(dev, DCSU_OTP_FIELD_PS_FC, (uint32_t*)&ps_fc_fields,
+                              sizeof(ps_fc_fields), false, msg_resp);
+    if (msg_err != DCSU_ERROR_NONE) {
+        *msg_resp = DCSU_RX_MSG_RESP_OTP_WRITE_FAILED;
+    }
+
+    return DCSU_ERROR_NONE;
+}
+
 static enum dcsu_error_t rx_set_feature_ctrl(struct dcsu_dev_t *dev,
                                              enum dcsu_rx_msg_response_t *msg_resp)
 {
@@ -601,6 +669,9 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_co
     case DCSU_RX_COMMAND_READ_EC_PARAMS:
         err = rx_read_partial_field(dev, DCSU_OTP_FIELD_EC_PARAMS, &msg_resp);
 #endif /* RSE_OTP_HAS_ENDORSEMENT_CERTIFICATE */
+        break;
+    case DCSU_RX_COMMAND_SET_PS_FC:
+        err = rx_set_product_specific_feature_ctrl(dev, &msg_resp);
         break;
     case DCSU_RX_COMMAND_SET_FEATURE_CTRL:
         err = rx_set_feature_ctrl(dev, &msg_resp);

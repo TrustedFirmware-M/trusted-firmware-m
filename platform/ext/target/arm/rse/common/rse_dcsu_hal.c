@@ -86,6 +86,9 @@ enum dcsu_error_t dcsu_hal_get_field_offset(enum dcsu_otp_field_t field, uint32_
     case DCSU_OTP_FIELD_FEATURE_CTRL:
         *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->feature_control);
         break;
+    case DCSU_OTP_FIELD_PS_FC:
+        *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->ps_fc);
+        break;
 #endif /* RSE_SKU_ENABLED */
 #endif /* RSE_OTP_HAS_DYNAMIC_AREA */
     default:
@@ -139,6 +142,9 @@ enum dcsu_error_t dcsu_hal_get_field_size(enum dcsu_otp_field_t field, uint32_t 
 #ifdef RSE_SKU_ENABLED
     case DCSU_OTP_FIELD_FEATURE_CTRL:
         *size = sizeof(P_RSE_OTP_DYNAMIC->feature_control);
+        break;
+    case DCSU_OTP_FIELD_PS_FC:
+        *size = sizeof(P_RSE_OTP_DYNAMIC->ps_fc);
         break;
 #endif /* RSE_SKU_ENABLED */
 #endif /* RSE_OTP_HAS_DYNAMIC_AREA */
