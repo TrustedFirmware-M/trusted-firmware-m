@@ -76,8 +76,7 @@ static int32_t FLASH_DRIVER_NAME##_ReadData(uint32_t addr,                    \
 {                                                                             \
     enum strataflashj3_error_t ret;                                           \
                                                                               \
-    if (STRATAFLASHJ3DriverCapabilities.data_width > 2 ||                     \
-        STRATAFLASHJ3DriverCapabilities.data_width < 0)                       \
+    if (STRATAFLASHJ3DriverCapabilities.data_width > 2)                       \
     {                                                                         \
         CFI_FLASH_LOG_MSG("%s: Incorrect data width selected: addr=0x%x\n\r", \
                           __func__,                                           \
@@ -109,8 +108,7 @@ static int32_t FLASH_DRIVER_NAME##_ProgramData(uint32_t addr,                 \
 {                                                                             \
     enum strataflashj3_error_t ret;                                           \
                                                                               \
-    if (STRATAFLASHJ3DriverCapabilities.data_width > 2 ||                     \
-        STRATAFLASHJ3DriverCapabilities.data_width < 0)                       \
+    if (STRATAFLASHJ3DriverCapabilities.data_width > 2)                       \
     {                                                                         \
         CFI_FLASH_LOG_MSG("%s: Incorrect data width selected: addr=0x%x\n\r", \
                           __func__,                                           \
