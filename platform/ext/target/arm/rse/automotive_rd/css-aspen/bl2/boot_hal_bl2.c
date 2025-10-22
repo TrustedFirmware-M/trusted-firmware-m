@@ -240,9 +240,9 @@ static enum atu_error_t initialise_atu_regions(struct atu_dev_t *dev,
 
 static int boot_platform_pre_load_secure(void)
 {
-    BOOT_LOG_WRN("There is an known issue in RSE platform css-aspen: Internal \
-        Trusted Storage (ITS) does not meet the required security expectations \
-        with respect to Confidentiality, Integrity, and Rollback Protection\n");
+    BOOT_LOG_WRN("There is a known issue in RSE platform css-aspen:\n"
+        "      Internal Trusted Storage (ITS) does not meet the required security expectations\n"
+        "      with respect to Confidentiality, Integrity, and Rollback Protection");
     return 0;
 }
 
