@@ -43,6 +43,13 @@ target_sources(platform_bl2
         ${CMAKE_CURRENT_LIST_DIR}/../cc3xx/opaque-keys/crypto_opaque_keys.c
 )
 
+if(TFM_BL1_2_IMAGE_BINDING)
+    target_sources(bl1_2
+        PRIVATE
+            ${CMAKE_CURRENT_LIST_DIR}/../cc3xx/opaque-keys/crypto_opaque_keys.c
+    )
+endif()
+
 target_include_directories(platform_bl2
     PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}

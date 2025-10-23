@@ -42,6 +42,7 @@ target_link_options(bl1_2
 target_sources(bl1_2
     PRIVATE
         main.c
+        $<$<BOOL:${TFM_BL1_2_IMAGE_BINDING}>:bl1_2_image_binding.c>
         $<$<BOOL:${CONFIG_GNU_SYSCALL_STUB_ENABLED}>:${CMAKE_SOURCE_DIR}/platform/ext/common/syscalls_stub.c>
         $<$<C_COMPILER_ID:GNU,Clang>:${CMAKE_SOURCE_DIR}/secure_fw/partitions/lib/runtime/crt_start.c>
         ${CMAKE_SOURCE_DIR}/secure_fw/shared/crt_memset.c

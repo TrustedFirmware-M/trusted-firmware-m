@@ -118,6 +118,10 @@ __assert_func
 __assert_puts
 _write
 fputc
+psa_mac_sign_setup
+psa_mac_update
+psa_mac_sign_finish
+psa_mac_abort
 putchar
 tfm_vprintf
 tfm_log

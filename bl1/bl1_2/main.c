@@ -22,6 +22,10 @@
 #include "tfm_plat_otp.h"
 #include "psa/crypto.h"
 
+#ifdef TFM_BL1_2_IMAGE_BINDING
+#include "bl1_2_image_binding.h"
+#endif /* TFM_BL1_2_IMAGE_BINDING */
+
 #ifdef TFM_MEASURED_BOOT_API
 #include "tfm_boot_measurement.h"
 #else
@@ -438,11 +442,53 @@ static fih_ret bl1_2_validate_image(uint32_t image_id)
     INFO("BL2 image copied successfully\n");
 #endif
 
+#ifdef TFM_BL1_2_IMAGE_BINDING
+    FIH_CALL(is_binding_tag_present, fih_rc, image);
+    if (FIH_EQ(fih_rc, FIH_SUCCESS)) {
+        /* Subsequent boot */
+        INFO("BL2 image binding tag present; Validate image binding\n");
+        FIH_CALL(bl1_2_validate_image_binding, fih_rc, image);
+        if (FIH_EQ(fih_rc, FIH_SUCCESS)) {
+
+            INFO("BL2 image binding verified successfully\n");
+            FIH_CALL(is_image_security_counter_valid, fih_rc, image);
+            if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+                ERROR("BL2 image security_counter failed to validate\n");
+                FIH_RET(fih_rc);
+            }
+        } else {
+            ERROR("BL2 image binding verification failed\n");
+            /* Continue with asymmetric verification */
+            FIH_CALL(bl1_2_validate_image_at_addr, fih_rc, image);
+            if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+                ERROR("BL2 image failed to validate\n");
+                FIH_RET(fih_rc);
+            }
+        }
+    } else {
+        /* First boot */
+        INFO("BL2 image binding tag not present; Verifying signature\n");
+        /* Continue with asymmetric verification */
+        FIH_CALL(bl1_2_validate_image_at_addr, fih_rc, image);
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+            ERROR("BL2 image failed to validate\n");
+            FIH_RET(fih_rc);
+        }
+        INFO("BL2 image signature validated; Bind the image \n");
+        FIH_CALL(bl1_2_do_image_binding, fih_rc, image, image_id);
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+            ERROR("BL2 image binding failed\n");
+            FIH_RET(fih_rc);
+        }
+        INFO("BL2 image binding completed successfully\n");
+    }
+#else
     FIH_CALL(bl1_2_validate_image_at_addr, fih_rc, image);
     if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         ERROR("BL2 image failed to validate\n");
         FIH_RET(fih_rc);
     }
+#endif /* TFM_BL1_2_IMAGE_BINDING */
 
     INFO("BL2 image validated successfully\n");
 
