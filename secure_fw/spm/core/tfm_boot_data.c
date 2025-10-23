@@ -123,6 +123,7 @@ void tfm_core_validate_boot_data(void)
     const uintptr_t data_base = tfm_plat_get_shared_measurement_data_base();
     const uintptr_t data_limit = data_base + tfm_plat_get_shared_measurement_data_size() - 1;
 
+#if defined(NS_DATA_START) && defined(NS_DATA_LIMIT)
     const bool overlapping_with_ns =
         ((data_base >= NS_DATA_START) && (data_base <= NS_DATA_LIMIT)) ||
         ((data_limit >= NS_DATA_START) && (data_limit <= NS_DATA_LIMIT));
@@ -131,6 +132,7 @@ void tfm_core_validate_boot_data(void)
         /* Not setting BOOT_DATA_VALID */
         return;
     }
+#endif /* defined (NS_DATA_START) && defined (NS_DATA_LIMIT) */
 
     boot_data = (struct tfm_boot_data *)data_base;
 
