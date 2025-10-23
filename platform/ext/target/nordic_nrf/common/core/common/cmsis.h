@@ -32,6 +32,6 @@
 #ifndef __NORDIC_NRF_CMSIS_H__
 #define __NORDIC_NRF_CMSIS_H__
 
-#include <nrf.h>
+#include <nrfx.h>
 
 #endif /*__NORDIC_NRF_CMSIS_H__*/

@@ -9,7 +9,7 @@
 
 #include <tfm_ioctl_core_api.h>
 
-#include "nrf.h"
+#include <nrfx.h>
 
 
 static const struct tfm_read_service_range ranges[] = {

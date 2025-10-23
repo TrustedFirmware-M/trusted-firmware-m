@@ -22,7 +22,7 @@
 #include <flash_layout.h>
 #include <string.h>
 
-#include <nrf.h>
+#include <nrfx.h>
 
 #ifdef __NRF_TFM__
 #include <zephyr/autoconf.h>
