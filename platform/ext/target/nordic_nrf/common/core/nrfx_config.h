@@ -36,13 +36,11 @@
 
 #if RTE_FLASH0
 
-#include <nrf.h>
-
-#if defined(NRF_NVMC_S)
+#if defined(NRF5340_XXAA_APPLICATION) || defined(NRF91_SERIES)
 #define NRFX_NVMC_ENABLED 1
-#elif defined(NRF_RRAMC_S)
+#elif defined(NRF54L_SERIES)
 #define NRFX_RRAMC_ENABLED 1
-#elif defined(NRF_MRAMC_S)
+#elif defined(NRF71_SERIES)
 #define NRFX_MRAMC_ENABLED 1
 #else
 #error "Unrecognized platform"
