@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include "stdint.h"
+#include "region_defs.h"
 
 #if EVENT_LOG_LIB
 #include "event_log.h"
@@ -36,6 +37,18 @@ enum boot_measurement_slot_t {
 #else
 #include "tfm_plat_boot_measurement.h"
 #endif /* PLATFORM_DEFAULT_MEASUREMENT_SLOTS */
+
+#ifdef PLAT_ROTPK_MEASUREMENT_CNT
+#define ROTPK_MEASUREMENT_COUNT PLAT_ROTPK_MEASUREMENT_CNT
+#else
+#define ROTPK_MEASUREMENT_COUNT 0
+#endif /* PLAT_OTP_ROTPK_MEASUREMENT_CNT */
+
+/* 2 measurements from the BL1 stages, 1 measurement per image from BL2 and
+ * measurements for RoTPKs.
+ */
+#define MAX_SHARED_BOOT_DATA_LENGTH \
+    ((2 + MCUBOOT_IMAGE_NUMBER + ROTPK_MEASUREMENT_COUNT) * SHARED_BOOT_MEASUREMENT_SIZE)
 
 /**
  * \brief                               Initializes the PCR index mapping for

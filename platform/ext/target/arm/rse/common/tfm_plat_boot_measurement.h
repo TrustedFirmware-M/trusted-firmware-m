@@ -1,0 +1,33 @@
+/*
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ */
+
+#ifndef __BOOT_MEASUREMENT_H__
+#define __BOOT_MEASUREMENT_H__
+
+#include "rse_rotpk_config.h"
+
+enum boot_measurement_slot_t {
+    BOOT_MEASUREMENT_SLOT_BL1_2 = 0,
+    BOOT_MEASUREMENT_SLOT_BL2,
+    BOOT_MEASUREMENT_SLOT_RT_0,
+    BOOT_MEASUREMENT_SLOT_RT_1,
+    BOOT_MEASUREMENT_SLOT_RT_2,
+    BOOT_MEASUREMENT_SLOT_RT_3,
+    BOOT_MEASUREMENT_SLOT_CM_ROTPK_0,
+    BOOT_MEASUREMENT_SLOT_CM_ROTPK_1,
+    BOOT_MEASUREMENT_SLOT_CM_ROTPK_2,
+    BOOT_MEASUREMENT_SLOT_CM_ROTPK_3,
+    BOOT_MEASUREMENT_SLOT_MAX = 32,
+    BOOT_MEASUREMENT_SLOT_MAX_THEORETICAL = 63  /* Slot index is stored in
+                                                 * 6 bits in the shared
+                                                 * memory area.
+                                                 */
+};
+
+#define PLAT_ROTPK_MEASUREMENT_CNT CM_ROTPK_CNT + DM_ROTPK_CNT
+
+#endif /* __BOOT_MEASUREMENT_H__ */

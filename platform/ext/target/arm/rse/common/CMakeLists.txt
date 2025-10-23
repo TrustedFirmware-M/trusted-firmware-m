@@ -394,6 +394,7 @@ target_sources(platform_bl2
         ./rse_attack_tracking_counter.c
         $<$<BOOL:${RSE_BL2_ENABLE_IMAGE_STAGING}>:${CMAKE_CURRENT_SOURCE_DIR}/bl2/staged_boot.c>
         $<$<BOOL:${RSE_BL2_ENABLE_IMAGE_STAGING}>:${CMAKE_CURRENT_SOURCE_DIR}/cmsis_drivers/Driver_Flash_memcpy.c>
+        ${CMAKE_CURRENT_SOURCE_DIR}/bl2/rse_boot_measurements.c
         ./rse_permanently_disable_device.c
         ./rse_zero_count.c
         ./rse_zero_count_regions.c

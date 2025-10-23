@@ -30,6 +30,8 @@ enum rse_rotpk_cm_mapping_t {
 
     CM_ROTPK_SUBPLATFORM_0 = CM_ROTPK_SECURE_DEBUG_0_MAX,
     CM_ROTPK_SUBPLATFORM_MAX = CM_ROTPK_HOST_0 + RSE_ROTPK_CM_HOST_AMOUNT,
+
+    CM_ROTPK_CNT = CM_ROTPK_SUBPLATFORM_MAX
 };
 
 enum rse_rotpk_dm_mapping_t {
@@ -47,6 +49,9 @@ enum rse_rotpk_dm_mapping_t {
 
     DM_ROTPK_SUBPLATFORM_0 = DM_ROTPK_SECURE_DEBUG_0_MAX,
     DM_ROTPK_SUBPLATFORM_MAX = DM_ROTPK_HOST_0 + RSE_ROTPK_DM_HOST_AMOUNT,
+
+    DM_ROTPK_CNT = DM_ROTPK_SUBPLATFORM_MAX
+
 };
 
 #ifdef __cplusplus

@@ -20,6 +20,27 @@
 extern "C" {
 #endif
 
+#ifndef MEASUREMENT_VALUE_MIN_SIZE
+/* Minimum measurement value size that can be requested to store */
+#define MEASUREMENT_VALUE_MIN_SIZE          32U
+#endif /* MEASUREMENT_VALUE_MIN_SIZE */
+
+#ifndef SIGNER_ID_MIN_SIZE
+/* Minimum signer id size that can be requested to store */
+#define SIGNER_ID_MIN_SIZE   MEASUREMENT_VALUE_MIN_SIZE
+#endif /* SIGNER_ID_MIN_SIZE */
+
+#ifndef MEASUREMENT_VALUE_MAX_SIZE
+/* Maximum measurement value size that can be requested to store */
+#define MEASUREMENT_VALUE_MAX_SIZE          64U
+#endif /* MEASUREMENT_VALUE_MAX_SIZE */
+
+#ifndef SIGNER_ID_MAX_SIZE
+/* Maximum signer id size that can be requested to store */
+#define SIGNER_ID_MAX_SIZE   MEASUREMENT_VALUE_MAX_SIZE
+#endif /* SIGNER_ID_MAX_SIZE */
+
+
 struct boot_arm_vector_table {
     uint32_t msp;
     uint32_t reset;

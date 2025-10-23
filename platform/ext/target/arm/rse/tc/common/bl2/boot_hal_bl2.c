@@ -18,9 +18,15 @@
 #include "platform_base_address.h"
 #include "platform_error_codes.h"
 #include "platform_regs.h"
+#include "tfm_plat_otp.h"
+#include "tfm_boot_measurement.h"
 #include "host_device_definition.h"
 #include "tfm_hal_platform.h"
 #include "rse_platform_defs.h"
+#include "rse_rotpk_mapping.h"
+#include "tfm_crypto_defs.h"
+#include "tfm_plat_nv_counters.h"
+#include "rse_boot_measurements.h"
 
 #ifdef CRYPTO_HW_ACCELERATOR
 #include "crypto_hw.h"
@@ -153,6 +159,11 @@ int32_t boot_platform_post_init(void)
         return result;
     }
 #endif /* RSE_BL2_ENABLE_IMAGE_STAGING */
+
+    result = add_rotpk_hash_to_shared_area();
+    if (result) {
+        return result;
+    }
 
     return 0;
 }
