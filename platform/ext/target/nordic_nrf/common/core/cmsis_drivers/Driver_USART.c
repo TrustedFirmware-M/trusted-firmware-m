@@ -22,7 +22,7 @@
 #include <nrfx_uarte.h>
 #include <string.h>
 #include <stdint.h>
-#include <nrf-pinctrl.h>
+#include <tfm-pinctrl.h>
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof(arr[0]))
