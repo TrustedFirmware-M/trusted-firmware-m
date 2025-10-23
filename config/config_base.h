@@ -286,12 +286,14 @@
 #endif
 
 /* Secure Test Partition Configs */
+#ifndef SECURE_TEST_PARTITION_STACK_SIZE
 #ifdef TFM_PARTITION_DPE
 /* DPE tests require larger test partition stack */
 #define SECURE_TEST_PARTITION_STACK_SIZE        0x3000
 #else
 #define SECURE_TEST_PARTITION_STACK_SIZE        0x0F00
-#endif
+#endif /* TFM_PARTITION_DPE */
+#endif /* SECURE_TEST_PARTITION_STACK_SIZE */
 
 /* SPM Configs */
 
