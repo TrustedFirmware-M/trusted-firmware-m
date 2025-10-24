@@ -288,6 +288,15 @@ if(NOT ${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_DISABLED)
     endif()
 endif()
 
+# tfm_s specific compile and link options
+add_library(tfm_s_build_flags INTERFACE)
+
+# BL2 specific compile and link options
+add_library(bl2_build_flags INTERFACE)
+
+# BL1 specific compile and link options
+add_library(bl1_build_flags INTERFACE)
+
 # Behaviour for handling scatter files is so wildly divergent between compilers
 # that this macro is required.
 macro(target_add_scatter_file target)

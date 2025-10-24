@@ -3,10 +3,18 @@
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  */
 
-#include "utilities.h"
+#if !defined(__GNUC__) || defined(__ARMCC_VERSION) || defined(__ICCARM__)
+#error This startup file is compatible with GNUArm and ATfE toolchains only.
+#endif
 
-#if defined(__clang_major__) && defined(__GNUC__)
+#include <stddef.h>
+#include "cmsis_compiler.h"
 
+#if !defined(CONFIG_TFM_INCLUDE_STDLIBC)
+
+extern int main(int argc, char **argv);
+
+#if defined(__clang_major__)  /* effectively ATfE */
 /*
  * We can not use CMSIS support for ATfE toolchain because it's incompatible
  * with it. That's why we manually implement the startup routine below.
@@ -28,8 +36,6 @@ extern const __copy_table_t __copy_table_end__;
 extern const __zero_table_t __zero_table_start__;
 extern const __zero_table_t __zero_table_end__;
 
-extern int main(int argc, char **argv);
-
 void _start(void)
 {
     for (__copy_table_t const *pTable = &__copy_table_start__; pTable < &__copy_table_end__; ++pTable) {
@@ -47,6 +53,13 @@ void _start(void)
     while (1)
         ;
 }
-#else
-#error This startup file shall be used in ATfE toolchain only.
-#endif
+#else /* defined(__clang_major__) */
+
+void _start(void)
+{
+    main(0, NULL);
+    while (1)
+        ;
+}
+#endif /* defined(__clang_major__) */
+#endif /* !defined(CONFIG_TFM_INCLUDE_STDLIBC) */

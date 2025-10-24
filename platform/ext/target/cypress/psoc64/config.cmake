@@ -15,6 +15,8 @@ set(TFM_NS_CLIENT_IDENTIFICATION        OFF         CACHE BOOL      "Enable NS c
 
 add_compile_definitions(CYB0644ABZI_S2D44)
 
+set(CONFIG_TFM_INCLUDE_STDLIBC          ON          CACHE BOOL      "Include standard C libraries and startup code or not")
+
 set(NUM_MAILBOX_QUEUE_SLOT              4           CACHE BOOL      "Number of mailbox queue slots")
 set(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE ON       CACHE BOOL      "Enable Internal Trusted Storage partition")
 set(TFM_PARTITION_PROTECTED_STORAGE     ON          CACHE BOOL      "Enable Protected Storage partition")

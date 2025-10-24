@@ -64,6 +64,7 @@ set(CODE_SHARING_OUTPUT_FILE_SUFFIX     "_shared_symbols.axf" CACHE STRING "Suff
 set(CODE_SHARING_INPUT_FILE_SUFFIX      "_shared_symbols.axf" CACHE STRING "Suffix to use for code-sharing input files")
 
 set(CONFIG_TFM_WARNINGS_ARE_ERRORS      OFF         CACHE BOOL      "Whether to treat warnings as errors")
+set(CONFIG_TFM_INCLUDE_STDLIBC          OFF         CACHE BOOL      "Include standard C libraries and startup code in GCC and ATfE toolchains")
 
 set(CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS   OFF         CACHE BOOL      "Whether to reuse copy area as SP stacks at runtime")
 

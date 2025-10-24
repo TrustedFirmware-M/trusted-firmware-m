@@ -309,6 +309,9 @@ SECTIONS
         /* .zero.table */
         . = ALIGN(4);
         __zero_table_start__ = .;
+        LONG (ADDR(.TFM_BSS))
+        LONG (SIZEOF(.TFM_BSS) / 4)
+        /* Aligment checked after the section */
 {% for partition in partitions %}
         LONG (ADDR(.ER_{{partition.manifest.name}}_BSS))
         LONG (SIZEOF(.ER_{{partition.manifest.name}}_BSS) / 4)    /* Aligment checked after the section */

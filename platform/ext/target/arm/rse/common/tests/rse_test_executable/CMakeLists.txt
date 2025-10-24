@@ -67,11 +67,6 @@ target_link_options(rse_bl1_tests
         $<$<C_COMPILER_ID:Clang>:-Wl,-Map=${CMAKE_BINARY_DIR}/bin/rse_bl1_tests.map>
 )
 
-target_link_options(rse_bl1_tests
-    PRIVATE
-        --entry=Reset_Handler
-)
-
 target_sources(rse_bl1_tests
     PRIVATE
         ../../device/source/startup_rse_bl.c
@@ -79,6 +74,10 @@ target_sources(rse_bl1_tests
         ./rse_test_executable.c
         $<$<BOOL:${CONFIG_GNU_SYSCALL_STUB_ENABLED}>:${CMAKE_SOURCE_DIR}/platform/ext/common/syscalls_stub.c>
         ../../sam_interrupts.c
+        $<$<C_COMPILER_ID:GNU,Clang>:${CMAKE_SOURCE_DIR}/secure_fw/partitions/lib/runtime/crt_start.c>
+        ${CMAKE_SOURCE_DIR}/secure_fw/partitions/lib/runtime/crt_memcmp.c
+        ${CMAKE_SOURCE_DIR}/secure_fw/shared/crt_memset.c
+        ${CMAKE_SOURCE_DIR}/secure_fw/shared/crt_memcpy.c
 )
 
 target_link_libraries(rse_bl1_tests

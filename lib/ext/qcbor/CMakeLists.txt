@@ -38,3 +38,8 @@ target_compile_options(qcbor
     PUBLIC
         ${COMPILER_CP_FLAG}
 )
+
+target_link_libraries(qcbor
+    PRIVATE
+        tfm_sprt
+)

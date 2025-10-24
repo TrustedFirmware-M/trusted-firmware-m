@@ -97,7 +97,7 @@ function(create_provisioning_code_target target linker_script entry_point
 
     target_add_scatter_file(${TARGET_NAME}
         $<$<C_COMPILER_ID:ARMClang>:${CMAKE_CURRENT_SOURCE_DIR}/${linker_script}.sct>
-        $<$<C_COMPILER_ID:GNU>:${CMAKE_CURRENT_SOURCE_DIR}/${linker_script}.ld>
+        $<$<C_COMPILER_ID:GNU,Clang>:${CMAKE_CURRENT_SOURCE_DIR}/${linker_script}.ld>
     )
 
     target_link_options(${TARGET_NAME}

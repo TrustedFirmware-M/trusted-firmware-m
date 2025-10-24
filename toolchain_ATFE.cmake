@@ -82,7 +82,7 @@ endif()
 # A module (BL1, BL2, CP) specific addional compiler and linker optoins
 
 set(BL1_COMPILER_CP_FLAG -mfloat-abi=soft -mfpu=none)
-set(BL1_LINKER_CP_OPTION -mfpu=none -ldummyhost)
+set(BL1_LINKER_CP_OPTION -mfpu=none)
 
 set(BL2_COMPILER_CP_FLAG -mfloat-abi=soft -mfpu=none)
 set(BL2_LINKER_CP_OPTION -mfpu=none)
@@ -95,10 +95,6 @@ if (CONFIG_TFM_FLOAT_ABI STREQUAL "hard")
         set(COMPILER_CP_FLAG -mfloat-abi=soft -mfpu=none)
     endif()
 endif()
-
-set(LINKER_CP_OPTION -lclang_rt.builtins -nostdlib)
-
-list(APPEND COMPILER_CP_FLAG -nostartfiles -ldummyhost)
 
 #
 # Pointer Authentication Code and Branch Target Identification (PACBTI) Options
@@ -121,6 +117,21 @@ if(NOT ${CONFIG_TFM_BRANCH_PROTECTION_FEAT} STREQUAL BRANCH_PROTECTION_DISABLED)
     else()
         message(FATAL_ERROR "Your architecture does not support BRANCH_PROTECTION")
     endif()
+endif()
+
+# tfm_s specific compile and link options
+add_library(tfm_s_build_flags INTERFACE)
+
+# BL2 specific compile and link options
+add_library(bl2_build_flags INTERFACE)
+
+# BL1 specific compile and link options
+add_library(bl1_build_flags INTERFACE)
+
+if (CONFIG_TFM_INCLUDE_STDLIBC)
+    add_compile_definitions(CONFIG_TFM_INCLUDE_STDLIBC)
+else()
+    add_link_options(-nostdlib -lclang_rt.builtins)
 endif()
 
 # Macro for adding scatter files. Supports multiple files

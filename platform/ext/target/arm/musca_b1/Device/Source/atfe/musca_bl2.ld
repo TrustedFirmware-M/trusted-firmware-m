@@ -63,6 +63,35 @@ SECTIONS
     .text : ALIGN(4)
     {
         *(.text*)
+
+        /* .copy.table
+         * To copy multiple ROM to RAM sections,
+         * define __STARTUP_COPY_MULTIPLE in startup file */
+        . = ALIGN(4);
+        __copy_table_start__ = .;
+        LONG (LOADADDR(.ER_CODE_SRAM))
+        LONG (ADDR(.ER_CODE_SRAM))
+        LONG (SIZEOF(.ER_CODE_SRAM) / 4)
+#ifdef CODE_SHARING
+        LONG (LOADADDR(.tfm_shared_symbols))
+        LONG (ADDR(.tfm_shared_symbols))
+        LONG (SIZEOF(.tfm_shared_symbols) / 4)
+#endif
+        LONG (LOADADDR(.data))
+        LONG (ADDR(.data))
+        LONG (SIZEOF(.data) / 4)
+        __copy_table_end__ = .;
+
+        /* .zero.table
+         * To clear multiple BSS sections,
+         * uncomment .zero.table and,
+         * define __STARTUP_CLEAR_BSS_MULTIPLE in startup file */
+        . = ALIGN(4);
+        __zero_table_start__ = .;
+       LONG (ADDR(.bss))
+       LONG (SIZEOF(.bss) / 4)
+        __zero_table_end__ = .;
+
         KEEP(*(.init))
         KEEP(*(.fini))
         *(.rodata*)
@@ -87,7 +116,7 @@ SECTIONS
      * share the global variables. Section size must be equal with
      * SHARED_SYMBOL_AREA_SIZE defined in region_defs.h
      */
-    .tfm_shared_symbols (NOLOAD) : ALIGN(4)
+    .tfm_shared_symbols : ALIGN(4)
     {
         *(.data.mbedtls_calloc_func)
         *(.data.mbedtls_free_func)
@@ -99,7 +128,7 @@ SECTIONS
     ASSERT(SHARED_SYMBOL_AREA_SIZE % 4 == 0, "SHARED_SYMBOL_AREA_SIZE must be divisible by 4")
 #endif
 
-    .tfm_bl2_shared_data (NOLOAD) : ALIGN(32)
+    .tfm_bl2_shared_data (NOLOAD): ALIGN(32)
     {
         . += BOOT_TFM_SHARED_DATA_SIZE;
     } > RAM

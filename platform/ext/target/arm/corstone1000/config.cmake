@@ -35,6 +35,7 @@ set(CRYPTO_HW_ACCELERATOR               ON         CACHE BOOL      "Whether to e
 set(TFM_CRYPTO_TEST_ALG_CFB             OFF        CACHE BOOL     "Test CFB cryptography mode" FORCE)
 set(NS                                  FALSE      CACHE BOOL     "Whether to build NS app")
 set(EXTERNAL_SYSTEM_SUPPORT             OFF        CACHE BOOL     "Whether to include external system support.")
+set(CONFIG_TFM_INCLUDE_STDLIBC          ON         CACHE BOOL     "Include standard C libraries and startup code or not")
 
 if (${PLATFORM_IS_FVP})
     set(PLATFORM_PSA_ADAC_SECURE_DEBUG      FALSE        CACHE BOOL      "Whether to use psa-adac secure debug.")

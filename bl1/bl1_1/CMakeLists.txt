@@ -21,26 +21,27 @@ add_convert_to_bin_target(bl1_1)
 
 target_link_options(bl1_1
     PRIVATE
-        $<$<C_COMPILER_ID:GNU>:-Wl,-Map=${CMAKE_BINARY_DIR}/bin/bl1_1.map>
+        $<$<C_COMPILER_ID:GNU,Clang>:LINKER:-Map=${CMAKE_BINARY_DIR}/bin/bl1_1.map>
         $<$<C_COMPILER_ID:ARMClang>:--map>
         $<$<C_COMPILER_ID:IAR>:--map\;${CMAKE_BINARY_DIR}/bin/bl1_1.map>
-        $<$<C_COMPILER_ID:Clang>:LINKER:-Map=${CMAKE_BINARY_DIR}/bin/bl1_1.map>
+    PUBLIC
+        ${BL1_LINKER_CP_OPTION}
 )
+
 
 target_compile_options(bl1_1
     PUBLIC
         ${BL1_COMPILER_CP_FLAG}
 )
 
-target_link_options(bl1_1
-    PUBLIC
-        ${BL1_LINKER_CP_OPTION}
-)
-
 target_sources(bl1_1
     PRIVATE
         main.c
         $<$<BOOL:${CONFIG_GNU_SYSCALL_STUB_ENABLED}>:${CMAKE_SOURCE_DIR}/platform/ext/common/syscalls_stub.c>
+        ${CMAKE_SOURCE_DIR}/secure_fw/partitions/lib/runtime/crt_memcmp.c
+        ${CMAKE_SOURCE_DIR}/secure_fw/shared/crt_memset.c
+        ${CMAKE_SOURCE_DIR}/secure_fw/shared/crt_memcpy.c
+        $<$<C_COMPILER_ID:GNU,Clang>:${CMAKE_SOURCE_DIR}/secure_fw/partitions/lib/runtime/crt_start.c>
 )
 
 target_link_libraries(bl1_1
@@ -49,6 +50,7 @@ target_link_libraries(bl1_1
         bl1_1_shared_lib
         platform_bl1_1
         $<$<AND:$<BOOL:${TEST_BL1_1}>,$<BOOL:${PLATFORM_DEFAULT_BL1_1_TESTS}>>:bl1_1_tests>
+        bl1_build_flags
 )
 
 target_compile_definitions(bl1_1

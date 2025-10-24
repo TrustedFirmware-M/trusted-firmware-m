@@ -385,7 +385,7 @@ SECTIONS
 #endif
 
     /**** Base address of secure data area */
-    .tfm_secure_data_start :
+    .tfm_secure_data_start (NOLOAD):
     {
         /* Relocate current position to RAM */
         . = ALIGN(4);
@@ -407,7 +407,7 @@ SECTIONS
     /* The code sharing between bootloader and runtime requires to share the
      * global variables.
      */
-    .TFM_SHARED_SYMBOLS ALIGN(TFM_LINKER_SHARED_SYMBOLS_ALIGNMENT) :
+    .TFM_SHARED_SYMBOLS (NOLOAD) ALIGN(TFM_LINKER_SHARED_SYMBOLS_ALIGNMENT) :
     {
         . += SHARED_SYMBOL_AREA_SIZE;
     } > RAM
@@ -415,7 +415,7 @@ SECTIONS
 
 #ifdef BOOT_TFM_SHARED_DATA_SIZE
     /* Shared area between BL2 and runtime to exchange data */
-    .tfm_bl2_shared_data (NOLOAD) : ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT)
+    .tfm_bl2_shared_data ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT) (NOLOAD) :
     {
         . += BOOT_TFM_SHARED_DATA_SIZE;
     } > RAM
@@ -498,7 +498,7 @@ SECTIONS
 
 #ifdef S_DATA_PRIV_START
     /**** Privileged data area base address specified by Armv6-M/v7-M platform */
-    .tfm_secure_priv_data_boundary :
+    .tfm_secure_priv_data_boundary (NOLOAD) :
     {
         . = ABSOLUTE(S_DATA_PRIV_START) ;
     } > RAM
@@ -509,7 +509,7 @@ SECTIONS
      */
 #ifdef BOOT_TFM_SHARED_DATA_SIZE
     /* Shared area between BL2 and runtime to exchange data */
-    .tfm_bl2_shared_data ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT) :
+    .tfm_bl2_shared_data ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT) (NOLOAD) :
     {
         . += BOOT_TFM_SHARED_DATA_SIZE;
     } > RAM

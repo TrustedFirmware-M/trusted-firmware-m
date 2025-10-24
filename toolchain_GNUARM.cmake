@@ -87,8 +87,6 @@ endif()
 
 add_link_options(
     -mcpu=${TFM_SYSTEM_PROCESSOR_FEATURED}
-    -specs=nano.specs
-    -specs=nosys.specs
     LINKER:-check-sections
     LINKER:-fatal-warnings
     LINKER:--gc-sections
@@ -130,6 +128,25 @@ if (CONFIG_TFM_FLOAT_ABI STREQUAL "hard")
 else()
     set(COMPILER_CP_FLAG -mfloat-abi=soft)
     set(LINKER_CP_OPTION -mfloat-abi=soft)
+endif()
+
+# tfm_s specific compile and link options
+add_library(tfm_s_build_flags INTERFACE)
+
+# BL2 specific compile and link options
+add_library(bl2_build_flags INTERFACE)
+
+# BL1 specific compile and link options
+add_library(bl1_build_flags INTERFACE)
+
+if (CONFIG_TFM_INCLUDE_STDLIBC)
+    add_link_options(-specs=nano.specs -specs=nosys.specs)
+    add_compile_definitions(CONFIG_TFM_INCLUDE_STDLIBC)
+else()
+    add_link_options(-nostdlib)
+    target_link_libraries(tfm_s_build_flags INTERFACE gcc)
+    target_link_libraries(bl2_build_flags INTERFACE gcc)
+    target_link_libraries(bl1_build_flags INTERFACE gcc)
 endif()
 
 # Macro for adding scatter files. Supports multiple files

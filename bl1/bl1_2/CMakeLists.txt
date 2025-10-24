@@ -43,6 +43,9 @@ target_sources(bl1_2
     PRIVATE
         main.c
         $<$<BOOL:${CONFIG_GNU_SYSCALL_STUB_ENABLED}>:${CMAKE_SOURCE_DIR}/platform/ext/common/syscalls_stub.c>
+        $<$<C_COMPILER_ID:GNU,Clang>:${CMAKE_SOURCE_DIR}/secure_fw/partitions/lib/runtime/crt_start.c>
+        ${CMAKE_SOURCE_DIR}/secure_fw/shared/crt_memset.c
+        ${CMAKE_SOURCE_DIR}/secure_fw/shared/crt_memcpy.c
 )
 
 target_link_libraries(bl1_2
@@ -52,6 +55,7 @@ target_link_libraries(bl1_2
         platform_bl1_1_interface
         platform_bl1_2
         $<$<AND:$<BOOL:${TEST_BL1_2}>,$<BOOL:${PLATFORM_DEFAULT_BL1_2_TESTS}>>:bl1_2_tests>
+        bl1_build_flags
 )
 
 target_compile_definitions(bl1_2

@@ -24,14 +24,14 @@ target_sources(tfm_sprt
         crt_memcmp.c
         crt_memmove.c
         crt_strnlen.c
-        $<$<C_COMPILER_ID:Clang>:crt_start.c>
         crt_exit.c
-        $<$<C_COMPILER_ID:Clang>:crt_strlen.c>
+        crt_strlen.c
         crt_vprintf.c
         service_api.c
         ${CMAKE_SOURCE_DIR}/secure_fw/shared/crt_memcpy.c
         ${CMAKE_SOURCE_DIR}/secure_fw/shared/crt_memset.c
         ${CMAKE_SOURCE_DIR}/secure_fw/shared/crt_strncmp.c
+        $<$<C_COMPILER_ID:GNU,Clang>:${CMAKE_SOURCE_DIR}/secure_fw/partitions/lib/runtime/crt_start.c>
         $<$<BOOL:${CONFIG_TFM_PARTITION_META}>:./sprt_partition_metadata_indicator.c>
         $<$<BOOL:${CONFIG_TFM_SPM_BACKEND_IPC}>:./sfn_common_thread.c>
         $<$<BOOL:${CONFIG_TFM_SPM_BACKEND_IPC}>:./psa_api_ipc.c>

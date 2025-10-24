@@ -44,6 +44,27 @@ SECTIONS
         __vectors_end = .;
 
         *(.text*)
+
+        /* .copy.table */
+        . = ALIGN(4);
+        __copy_table_start__ = .;
+#ifdef CODE_SHARING
+        LONG (LOADADDR(.tfm_shared_symbols))
+        LONG (ADDR(.tfm_shared_symbols))
+        LONG (SIZEOF(.tfm_shared_symbols) / 4)    /* Aligment checked after the section */
+#endif
+        LONG (LOADADDR(.data))
+        LONG (ADDR(.data))
+        LONG (SIZEOF(.data) / 4)    /* Aligment checked after the section */
+        __copy_table_end__ = .;
+
+        /* .zero.table */
+        . = ALIGN(4);
+        __zero_table_start__ = .;
+        LONG (ADDR(.bss))
+        LONG (SIZEOF(.bss) / 4)    /* Aligment checked after the section */
+        __zero_table_end__ = .;
+
         *(.rodata*)
     } > FLASH
 
@@ -52,7 +73,7 @@ SECTIONS
      * share the global variables. Section size must be equal with
      * SHARED_SYMBOL_AREA_SIZE defined in region_defs.h
      */
-    .tfm_shared_symbols (NOLOAD) : ALIGN(4)
+    .tfm_shared_symbols ALIGN(4) :
     {
         *(.data.mbedtls_calloc_func)
         *(.data.mbedtls_free_func)
@@ -115,9 +136,6 @@ SECTIONS
         __tls_base = .;                /* dummy. for picolib crt0 only */
         __arm32_tls_tcb_offset = .;    /* dummy. for picolib crt0 only */
     } > RAM
-    __heap_start = ADDR(.heap);
-    __heap_end = ADDR(.heap) + SIZEOF(.heap);
-    __heap_size = SIZEOF(.heap);
 
     /* Those 2 symbols defines the region for clearing on boot completion */
     Image$$ER_DATA$$Base = ADDR(.data);

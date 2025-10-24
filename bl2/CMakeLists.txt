@@ -150,13 +150,24 @@ endif()
 
 add_executable(bl2
     src/flash_map.c
-    src/crt_exit.c
+    $<$<C_COMPILER_ID:GNU,Clang>:
+        ${CMAKE_SOURCE_DIR}/secure_fw/partitions/lib/runtime/crt_start.c
+        ${CMAKE_SOURCE_DIR}/secure_fw/partitions/lib/runtime/crt_memcmp.c
+        ${CMAKE_SOURCE_DIR}/secure_fw/shared/crt_memset.c
+        ${CMAKE_SOURCE_DIR}/secure_fw/shared/crt_memcpy.c
+    >
     $<$<BOOL:${DEFAULT_MCUBOOT_SECURITY_COUNTERS}>:src/security_cnt.c>
     $<$<BOOL:${DEFAULT_MCUBOOT_FLASH_MAP}>:src/default_flash_map.c>
     $<$<BOOL:${MCUBOOT_DATA_SHARING}>:src/shared_data.c>
     $<$<BOOL:${PLATFORM_DEFAULT_PROVISIONING}>:src/provisioning.c>
     $<$<BOOL:${CONFIG_GNU_SYSCALL_STUB_ENABLED}>:${CMAKE_SOURCE_DIR}/platform/ext/common/syscalls_stub.c>
 )
+
+if (${CONFIG_TFM_INCLUDE_STDLIBC})
+    target_sources(bl2 PRIVATE src/crt_exit.c)
+else()
+    target_sources(bl2 PRIVATE src/mbedcrypto_stubs.c)
+endif()
 
 set_target_properties(bl2
     PROPERTIES
@@ -207,6 +218,8 @@ target_compile_definitions(bl2
         $<$<BOOL:${MCUBOOT_BUILTIN_KEY}>:MCUBOOT_BUILTIN_KEY>
         $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:MCUBOOT_ENC_IMAGES>
 )
+
+target_link_libraries(bl2 PRIVATE bl2_build_flags)
 
 add_convert_to_bin_target(bl2)
 

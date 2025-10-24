@@ -97,3 +97,5 @@ set(TFM_MANIFEST_LIST                   ${TFM_RP2350_MANIFEST_LIST} CACHE PATH "
 set(TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST "partitions/measured_boot/measured_boot_manifest_list.yaml;partitions/dtpm_client/dtpm_client_manifest_list.yaml" CACHE STRING "List of extra secure partition manifests")
 
 set(TFM_EXTRAS_REPO_EXTRA_PARTITIONS    "measured_boot;dtpm_client" CACHE STRING "List of extra secure partition directory name(s)")
+
+set(CONFIG_TFM_INCLUDE_STDLIBC          ON         CACHE BOOL      "Include standard C libraries and startup code or not")

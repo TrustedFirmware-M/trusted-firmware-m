@@ -76,10 +76,9 @@ target_compile_options(tfm_s
 
 target_link_options(tfm_s
     PRIVATE
-        $<$<C_COMPILER_ID:GNU>:-Wl,-Map=${CMAKE_BINARY_DIR}/bin/tfm_s.map -Wl,--undefined=_exit>
+        $<$<C_COMPILER_ID:GNU,Clang>:LINKER:-Map=${CMAKE_BINARY_DIR}/bin/tfm_s.map -Wl,--undefined=_exit>
         $<$<C_COMPILER_ID:ARMClang>:--map>
         $<$<C_COMPILER_ID:IAR>:--map\;${CMAKE_BINARY_DIR}/bin/tfm_s.map>
-        $<$<C_COMPILER_ID:Clang>:-Wl,-Map=${CMAKE_BINARY_DIR}/bin/tfm_s.map -nostdlib>
     PUBLIC
         ${LINKER_CP_OPTION}
 )
@@ -135,6 +134,8 @@ if(CONFIG_TFM_USE_TRUSTZONE)
             ${LINKER_VENEER_OUTPUT_FLAG}${CMAKE_CURRENT_BINARY_DIR}/s_veneers.o
     )
 endif()
+
+target_link_libraries(tfm_s PRIVATE tfm_s_build_flags)
 
 ############################### CODE SHARING ###################################
 if (TFM_CODE_SHARING)
