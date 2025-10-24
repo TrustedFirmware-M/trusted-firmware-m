@@ -126,7 +126,7 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
         goto out_error;
     }
 
-    hal_err = sfcp_hal_receive_message(link_id, allocated_buffer, message_size);
+    hal_err = sfcp_hal_receive_message(link_id, allocated_buffer, message_size, 0, message_size);
     if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
         return sfcp_hal_error_to_sfcp_error(hal_err);
     }
@@ -255,8 +255,8 @@ out_error:
                               SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(true, true);
 
         /* Message too large for buffer, receive just the header for error reply */
-        hal_err =
-            sfcp_hal_receive_message(link_id, (uint8_t *)&buffer_failure_packet, size_to_receive);
+        hal_err = sfcp_hal_receive_message(link_id, (uint8_t *)&buffer_failure_packet, message_size,
+                                           0, size_to_receive);
         if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
             /* Cannot receive the header so have to drop */
             return sfcp_hal_error_to_sfcp_error(hal_err);

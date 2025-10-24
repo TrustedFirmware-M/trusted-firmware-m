@@ -423,7 +423,7 @@ static enum sfcp_error_t receive_msg_reply_from_node(uint8_t *buf, size_t buf_si
         return SFCP_ERROR_BUFFER_TOO_SMALL;
     }
 
-    hal_error = sfcp_hal_receive_message(*link_id, buf, *received_size);
+    hal_error = sfcp_hal_receive_message(*link_id, buf, *received_size, 0, *received_size);
     if (hal_error != SFCP_HAL_ERROR_SUCCESS) {
         return sfcp_hal_error_to_sfcp_error(hal_error);
     }

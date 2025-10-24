@@ -26,7 +26,9 @@ enum sfcp_hal_error_t {
     SFCP_HAL_ERROR_DEVICE_UNSUPPORTED,
     SFCP_HAL_ERROR_INVALID_MESSAGE_ARGUMENT,
     SFCP_HAL_ERROR_INVALID_MESSAGE_SIZE,
+    SFCP_HAL_ERROR_INVALID_RECEIVE_SIZE,
     SFCP_HAL_ERROR_SEND_MESSAGE_BUS_BUSY,
+    SFCP_HAL_ERROR_MESSAGE_NOT_AVAILABLE,
     SFCP_HAL_ERROR_MAX,
     SFCP_HAL_ERROR_FORCE_UINT32 = UINT32_MAX,
 };
@@ -95,18 +97,25 @@ enum sfcp_hal_error_t sfcp_hal_get_receive_message_size(sfcp_link_id_t link_id,
                                                         size_t *message_size);
 
 /**
- * \brief Receives a message from the specified communication link.
+ * \brief Receives (a chunk of) a message from the specified communication link.
  *
- * This function receives a message from the given link and stores it in the provided buffer.
+ * The caller is responsible for providing the buffer that holds the entire message and for
+ * tracking how many bytes have already been retrieved. The function may be invoked multiple
+ * times to drain a single message in aligned chunks. The implementation guarantees that any
+ * remaining data is acknowledged so the sender can provide the next chunk.
  *
- * \param link_id      The link identifier to receive the message from.
- * \param message      Pointer to the buffer where the received message will be stored.
- * \param message_size The size of the message to receive in bytes.
- *                     The buffer must be at least this size.
+ * \param link_id             Identifier of the link to read from.
+ * \param message             Destination buffer (offset by @p already_received bytes).
+ * \param total_message_size  Total size, in bytes, of the current message being received.
+ * \param already_received    Number of bytes from the message that the caller has already copied.
+ * \param size_to_receive     Number of bytes to read into @p message during this call. The
+ *                            buffer must be at least this size.
+ *
  * \return SFCP_HAL_ERROR_SUCCESS on success, or an appropriate error code.
  */
 enum sfcp_hal_error_t sfcp_hal_receive_message(sfcp_link_id_t link_id, uint8_t *message,
-                                               size_t message_size);
+                                               size_t total_message_size, size_t already_received,
+                                               size_t size_to_receive);
 
 /**
  * \brief Initializes the communication HAL layer.

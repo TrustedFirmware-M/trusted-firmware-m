@@ -562,7 +562,8 @@ enum sfcp_hal_error_t sfcp_hal_get_receive_message_size(sfcp_link_id_t link_id,
 }
 
 static enum sfcp_hal_error_t mhu_receive_message(void *mhu_recv_device, uint8_t *message,
-                                                 size_t message_size,
+                                                 size_t total_message_size, size_t already_received,
+                                                 size_t size_to_receive,
                                                  enum sfcp_platform_device_type_t type)
 {
     const uint32_t num_channels = mhu_get_num_mhu_channels(mhu_recv_device, type);
@@ -570,26 +571,43 @@ static enum sfcp_hal_error_t mhu_receive_message(void *mhu_recv_device, uint8_t 
     uint32_t channel;
     uint32_t *message_ptr;
     size_t bytes_left;
+    size_t already_received_words;
 
-    mhu_err = mhu_check_message_alignment(message, message_size);
+    mhu_err = mhu_check_message_alignment(message, size_to_receive);
     if (mhu_err != 0) {
         return mhu_err;
     }
 
-    /* Chan 0 is initially used for the message length so start with chan 1 */
-    channel = 1;
+    /* Must have only already received 4-byte aligned size */
+    if ((already_received % sizeof(uint32_t)) != 0) {
+        return SFCP_HAL_ERROR_INVALID_MESSAGE_ARGUMENT;
+    }
+
+    already_received_words = already_received / sizeof(uint32_t);
+
+    /* First pass only has num_channels - 2 words as 1 word
+     * for message size and other for signalling */
+    if (already_received_words < (num_channels - 2)) {
+        channel = 1 + already_received_words;
+    } else {
+        channel = (already_received_words - (num_channels - 2)) % (num_channels - 1);
+    }
+
     message_ptr = (uint32_t *)message;
-    bytes_left = message_size;
+    bytes_left = size_to_receive;
     while (bytes_left > 0) {
+        size_t total_received;
+
         mhu_err = mhu_channel_receive_device_receive(mhu_recv_device, channel, message_ptr++, type);
         if (mhu_err != 0) {
             return mhu_err;
         }
 
         bytes_left -= sizeof(uint32_t);
+        total_received = (size_to_receive - bytes_left) + already_received;
 
         /* Only wait for next transfer if there is still missing data */
-        if ((++channel == (num_channels - 1)) && (bytes_left > 0)) {
+        if ((++channel == (num_channels - 1)) && (total_message_size > total_received)) {
             /* Busy wait for next transfer */
             mhu_err = mhu_recv_signal_poll_loop(mhu_recv_device, type);
             if (mhu_err != 0) {
@@ -600,11 +618,14 @@ static enum sfcp_hal_error_t mhu_receive_message(void *mhu_recv_device, uint8_t 
         }
     }
 
-    /* Clear all channels */
-    for (uint32_t i = 0; i < num_channels; i++) {
-        mhu_err = mhu_channel_clear(mhu_recv_device, i, type);
-        if (mhu_err != 0) {
-            return mhu_err;
+    /* Only clear channels on exit if we have received the
+     * whole message */
+    if (total_message_size == (already_received + size_to_receive)) {
+        for (uint32_t i = 0; i < num_channels; i++) {
+            mhu_err = mhu_channel_clear(mhu_recv_device, i, type);
+            if (mhu_err != 0) {
+                return mhu_err;
+            }
         }
     }
 
@@ -612,21 +633,40 @@ static enum sfcp_hal_error_t mhu_receive_message(void *mhu_recv_device, uint8_t 
 }
 
 enum sfcp_hal_error_t sfcp_hal_receive_message(sfcp_link_id_t link_id, uint8_t *message,
-                                               size_t message_size)
+                                               size_t total_message_size, size_t already_received,
+                                               size_t size_to_receive)
 {
     struct sfcp_platform_device_t device;
+    enum sfcp_hal_error_t hal_error;
+    bool message_is_available;
 
     device = sfcp_platform_get_receive_device(link_id);
+
+    /* Cannot receive more than the total message size */
+    if ((already_received + size_to_receive) > total_message_size) {
+        return SFCP_HAL_ERROR_INVALID_RECEIVE_SIZE;
+    }
+
+    hal_error = sfcp_hal_is_message_available(link_id, &message_is_available);
+    if (hal_error != SFCP_HAL_ERROR_SUCCESS) {
+        return hal_error;
+    }
+
+    if (!message_is_available) {
+        return SFCP_HAL_ERROR_MESSAGE_NOT_AVAILABLE;
+    }
 
     switch (device.type) {
 #ifdef MHU_V2_ENABLED
     case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
-        return mhu_receive_message((void *)device.device, message, message_size,
+        return mhu_receive_message((void *)device.device, message, total_message_size,
+                                   already_received, size_to_receive,
                                    SFCP_PLATFORM_DEVICE_TYPE_MHUV2);
 #endif
 #ifdef MHU_V3_ENABLED
     case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
-        return mhu_receive_message((void *)device.device, message, message_size,
+        return mhu_receive_message((void *)device.device, message, total_message_size,
+                                   already_received, size_to_receive,
                                    SFCP_PLATFORM_DEVICE_TYPE_MHUV3);
 #endif
     default:
