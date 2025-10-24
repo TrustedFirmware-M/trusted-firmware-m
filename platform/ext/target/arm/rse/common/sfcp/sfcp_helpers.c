@@ -6,6 +6,7 @@
  */
 
 #include "sfcp_helpers.h"
+#include "sfcp_link_hal.h"
 
 enum sfcp_error_t sfcp_helpers_parse_packet(struct sfcp_packet_t *packet, size_t packet_size,
                                             sfcp_node_id_t *sender, sfcp_node_id_t *receiver,
@@ -118,4 +119,33 @@ void sfcp_helpers_generate_protocol_error_packet(struct sfcp_packet_t *packet,
 
     packet->error_reply.client_id = client_id;
     packet->error_reply.protocol_error = error;
+}
+
+enum sfcp_error_t sfcp_helpers_drop_receive_message(sfcp_link_id_t link_id, size_t message_size,
+                                                    size_t already_received)
+{
+    enum sfcp_hal_error_t hal_err;
+    size_t remaining = message_size - already_received;
+    /* 32-byte buffer used to read out message */
+    __ALIGNED(4) uint8_t drop_message_buf[32];
+
+    while (remaining > 0) {
+        size_t chunk = remaining;
+
+        if (chunk > sizeof(drop_message_buf)) {
+            chunk = sizeof(drop_message_buf);
+        }
+
+        hal_err = sfcp_hal_receive_message(link_id, drop_message_buf, message_size,
+                                           already_received, chunk);
+        if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
+            /* Drop if we cannot drain the sender */
+            return sfcp_hal_error_to_sfcp_error(hal_err);
+        }
+
+        already_received += chunk;
+        remaining -= chunk;
+    }
+
+    return SFCP_ERROR_SUCCESS;
 }

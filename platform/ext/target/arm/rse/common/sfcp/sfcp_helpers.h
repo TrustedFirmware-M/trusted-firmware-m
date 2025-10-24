@@ -39,6 +39,9 @@ void sfcp_helpers_generate_protocol_error_packet(struct sfcp_packet_t *packet,
                                                  uint16_t client_id, uint8_t message_id,
                                                  enum sfcp_protocol_error_t error);
 
+enum sfcp_error_t sfcp_helpers_drop_receive_message(sfcp_link_id_t link_id, size_t message_size,
+                                                    size_t already_received);
+
 static inline enum sfcp_error_t sfcp_hal_error_to_sfcp_error(enum sfcp_hal_error_t hal_error)
 {
     if (hal_error == SFCP_HAL_ERROR_SUCCESS) {
