@@ -46,7 +46,7 @@ target_sources(tfm_api_ns
 target_include_directories(tfm_api_ns
     PUBLIC
         ${INTERFACE_INC_DIR}
-        ${INTERFACE_INC_DIR}/crypto_keys
+        $<$<BOOL:${PLATFORM_DEFAULT_CRYPTO_KEYS}>:${INTERFACE_INC_DIR}/crypto_keys>
 )
 
 if (CONFIG_TFM_USE_TRUSTZONE)
