@@ -256,10 +256,10 @@ def get_blob_purpose(provisioning_message_config : Provisioning_message_config,
 
     return purpose_val
 
-def get_header(provisioning_message_config : Provisioning_message_config):
+def get_aad_header(provisioning_message_config : Provisioning_message_config):
     message = provisioning_message_config.message
-    unsigned_size = message.blob.signature_size.get_size() + message.blob.signature.get_size()
-    return message.blob.to_bytes()[unsigned_size:-message.blob.code_and_data_and_secret_values.get_size()]
+    unsigned_size = message.blob.header.signature_size.get_size() + message.blob.header.signature.get_size()
+    return message.blob.header.to_bytes()[unsigned_size:]
 
 def get_blob_pubkey(sign_alg : str = None,
                     sign_key : str = None,
@@ -304,7 +304,7 @@ def get_data_to_encrypt_and_sign(provisioning_message_config : Provisioning_mess
         code += bytes(16 - (len(code) % 16))
 
     code_and_data = code
-    message.blob.code_size.set_value(len(code))
+    message.blob.header.code_size.set_value(len(code))
     code_and_data_and_secret_values_len = len(code)
 
 
@@ -312,7 +312,7 @@ def get_data_to_encrypt_and_sign(provisioning_message_config : Provisioning_mess
         if len(data) % 16 != 0:
             data += bytes(16 - (len(data) % 16))
 
-        message.blob.data_size.set_value(len(data))
+        message.blob.header.data_size.set_value(len(data))
         code_and_data_and_secret_values_len += len(data)
         code_and_data += data
 
@@ -320,16 +320,16 @@ def get_data_to_encrypt_and_sign(provisioning_message_config : Provisioning_mess
         if len(secret_values) % 16 != 0:
             secret_values += bytes(16 - (len(secret_values) % 16))
 
-        message.blob.secret_values_size.set_value(len(secret_values))
+        message.blob.header.secret_values_size.set_value(len(secret_values))
         code_and_data_and_secret_values_len += len(secret_values)
 
-    data_length = message.blob.get_size() - message.blob.code_and_data_and_secret_values.get_size() + code_and_data_and_secret_values_len
+    data_length = message.blob.header.get_size() + code_and_data_and_secret_values_len
     message.header.data_length.set_value(data_length)
 
     if version:
-        message.blob.version.set_value(version)
+        message.blob.header.version.set_value(version)
     if soc_uid:
-        message.blob.soc_uid.set_value_from_bytes(soc_uid)
+        message.blob.header.soc_uid.set_value_from_bytes(soc_uid)
 
     metadata = get_blob_details(provisioning_message_config=provisioning_message_config,
                                 encrypt_code_and_data=encrypt_code_and_data,
@@ -338,18 +338,18 @@ def get_data_to_encrypt_and_sign(provisioning_message_config : Provisioning_mess
                                 non_rom_pk_config=non_rom_pk_config,
                                 sign_key_cm_rotpk=sign_key_cm_rotpk,
                                 soc_uid=soc_uid, **sign_and_encrypt_kwargs)
-    message.blob.metadata.set_value(metadata)
+    message.blob.header.metadata.set_value(metadata)
 
     purpose = get_blob_purpose(provisioning_message_config=provisioning_message_config, signature_config=signature_config,
                                 non_rom_pk_config=non_rom_pk_config, **kwargs)
-    message.blob.purpose.set_value(purpose)
+    message.blob.header.purpose.set_value(purpose)
 
     if signature_config.name == "RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM" and \
         non_rom_pk_config.name == "RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK":
-        message.blob.public_key.set_value_from_bytes(get_blob_pubkey(**sign_and_encrypt_kwargs))
+        message.blob.header.public_key.set_value_from_bytes(get_blob_pubkey(**sign_and_encrypt_kwargs))
 
     plaintext = bytes(0)
-    aad = get_header(provisioning_message_config)
+    aad = get_aad_header(provisioning_message_config)
 
     if encrypt_code_and_data.name == "RSE_PROVISIONING_BLOB_CODE_DATA_DECRYPTION_AES":
         plaintext += code_and_data
@@ -374,7 +374,7 @@ def create_blob_message(provisioning_message_config : Provisioning_message_confi
     defines = provisioning_message_config.defines
 
     iv = token_bytes(8)
-    message.blob.iv.set_value_from_bytes(iv)
+    message.blob.header.iv.set_value_from_bytes(iv)
 
     plaintext, aad = get_data_to_encrypt_and_sign(provisioning_message_config,
                                                   sign_and_encrypt_kwargs=sign_and_encrypt_kwargs,
@@ -388,14 +388,14 @@ def create_blob_message(provisioning_message_config : Provisioning_message_confi
                                                                              aad = aad,
                                                                              iv=iv)
 
-    message.blob.signature_size.set_value(len(signature))
-    message.blob.signature.set_value_from_bytes(signature)
+    message.blob.header.signature_size.set_value(len(signature))
+    message.blob.header.signature.set_value_from_bytes(signature)
 
     logger.info(message)
 
-    header_len = len(get_header(provisioning_message_config))
+    aad_header_len = len(get_aad_header(provisioning_message_config))
 
-    return message.to_bytes()[:-message.blob.code_and_data_and_secret_values.get_size()] + aad[header_len:] + ciphertext
+    return message.to_bytes()[:message.header.get_size() + message.blob.header.get_size()] + aad[aad_header_len:] + ciphertext
 
 def create_plain_data_message(provisioning_message_config : Provisioning_message_config,
                               plain_data_type : C_enum,

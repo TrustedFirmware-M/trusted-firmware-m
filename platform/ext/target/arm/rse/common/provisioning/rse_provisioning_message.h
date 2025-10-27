@@ -18,9 +18,10 @@ extern "C" {
 #endif
 
 enum rse_provisioning_message_type_t {
-    RSE_PROVISIONING_MESSAGE_TYPE_BLOB        = 0x1111B10B,
-    RSE_PROVISIONING_MESSAGE_TYPE_CERTIFICATE = 0x2222CE57,
-    RSE_PROVISIONING_MESSAGE_TYPE_PLAIN_DATA  = 0x3333DA7A,
+    RSE_PROVISIONING_MESSAGE_TYPE_BLOB                      = 0x1111B10B,
+    RSE_PROVISIONING_MESSAGE_TYPE_CERTIFICATE               = 0x2222CE57,
+    RSE_PROVISIONING_MESSAGE_TYPE_PLAIN_DATA                = 0x3333DA7A,
+    RSE_PROVISIONING_MESSAGE_TYPE_AUTHENTICATED_PLAIN_DATA  = 0x4444DA7A,
 
     _RSE_PROVISIONING_MESSAGE_TYPE_MAX_VAL = UINT32_MAX,
 };
@@ -127,7 +128,7 @@ enum rse_provisioning_plain_data_type_t {
     RSE_PROVISIONING_PLAIN_DATA_TYPE_DM_ROTPK_ARRAY_REVOCATION                 = 0x05,
 };
 
-struct __attribute__((__packed__)) rse_provisioning_message_blob_t {
+struct __attribute__((__packed__)) rse_provisioning_authentication_header_t {
     uint32_t signature_size;
     uint8_t signature[96]; /*!< In the case of ECDSA signature, this is held as a raw format
                             * (r,s)
@@ -150,6 +151,11 @@ struct __attribute__((__packed__)) rse_provisioning_message_blob_t {
                               * in uncompressed (x,y) format without the 0x04 prefix
                               * byte
                               */
+};
+
+struct __attribute__((__packed__)) rse_provisioning_message_blob_t {
+    struct rse_provisioning_authentication_header_t header;
+
     uint8_t code_and_data_and_secret_values[];
 };
 
@@ -157,6 +163,12 @@ struct __attribute__((__packed__)) rse_provisioning_message_plain_t {
     uint32_t plain_metadata;
 
     uint8_t data[];
+};
+
+struct __attribute__((__packed__)) rse_provisioning_message_authenticated_plain_t {
+    struct rse_provisioning_authentication_header_t header;
+
+    struct rse_provisioning_message_plain_t plain_data;
 };
 
 struct __attribute__((__packed__)) rse_provisioning_message_cert_t {
@@ -174,6 +186,7 @@ struct __attribute__((__packed__)) rse_provisioning_message_t {
     union __attribute__((__packed__)) {
         struct rse_provisioning_message_blob_t blob;
         struct rse_provisioning_message_plain_t plain;
+        struct rse_provisioning_message_authenticated_plain_t authenticated_plain;
         struct rse_provisioning_message_cert_t cert;
     };
 };

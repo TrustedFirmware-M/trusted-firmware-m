@@ -89,7 +89,7 @@ static enum tfm_plat_err_t is_blob_valid_for_lcs(const struct rse_provisioning_m
         return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_LCS;
     }
 
-    if (blob->purpose & purpose_mask) {
+    if (blob->header.purpose & purpose_mask) {
         return TFM_PLAT_ERR_SUCCESS;
     }
 
@@ -102,8 +102,8 @@ static enum tfm_plat_err_t get_tp_mode_for_blob(const struct rse_provisioning_me
 {
     enum rse_provisioning_blob_required_tp_mode_config_t tp_mode_config;
 
-    tp_mode_config = (blob->purpose >> RSE_PROVISIONING_BLOB_PURPOSE_TP_MODE_OFFSET)
-                     & RSE_PROVISIONING_BLOB_PURPOSE_TP_MODE_MASK;
+    tp_mode_config = (blob->header.purpose >> RSE_PROVISIONING_BLOB_PURPOSE_TP_MODE_OFFSET) &
+                     RSE_PROVISIONING_BLOB_PURPOSE_TP_MODE_MASK;
     switch(tp_mode_config) {
     case RSE_PROVISIONING_BLOB_REQUIRES_TP_MODE_VIRGIN:
         *tp_mode = LCM_TP_MODE_VIRGIN;
@@ -122,31 +122,30 @@ static enum tfm_plat_err_t get_tp_mode_for_blob(const struct rse_provisioning_me
 
 static bool is_sp_mode_required_for_blob(const struct rse_provisioning_message_blob_t *blob)
 {
-    return (((blob->purpose >> RSE_PROVISIONING_BLOB_PURPOSE_SP_MODE_OFFSET)
-            & RSE_PROVISIONING_BLOB_PURPOSE_SP_MODE_MASK)
-            == RSE_PROVISIONING_BLOB_REQUIRES_SP_MODE_ENABLED);
+    return (((blob->header.purpose >> RSE_PROVISIONING_BLOB_PURPOSE_SP_MODE_OFFSET) &
+             RSE_PROVISIONING_BLOB_PURPOSE_SP_MODE_MASK) ==
+            RSE_PROVISIONING_BLOB_REQUIRES_SP_MODE_ENABLED);
 }
 
 static bool is_blob_chainloaded(const struct rse_provisioning_message_blob_t *blob)
 {
-    return (((blob->purpose >> RSE_PROVISIONING_BLOB_PURPOSE_SEQUENCING_OFFSET)
-            & RSE_PROVISIONING_BLOB_PURPOSE_SEQUENCING_MASK)
-            == RSE_PROVISIONING_BLOB_CHAINED);
+    return (((blob->header.purpose >> RSE_PROVISIONING_BLOB_PURPOSE_SEQUENCING_OFFSET) &
+             RSE_PROVISIONING_BLOB_PURPOSE_SEQUENCING_MASK) == RSE_PROVISIONING_BLOB_CHAINED);
 }
 
 static inline bool is_blob_personalized(const struct rse_provisioning_message_blob_t *blob)
 {
-    return (((blob->metadata >> RSE_PROVISIONING_BLOB_DETAILS_PERSONALIZATION_OFFSET)
-            & RSE_PROVISIONING_BLOB_DETAILS_PERSONALIZATION_MASK)
-            == RSE_PROVISIONING_BLOB_TYPE_PERSONALIZED);
+    return (((blob->header.metadata >> RSE_PROVISIONING_BLOB_DETAILS_PERSONALIZATION_OFFSET) &
+             RSE_PROVISIONING_BLOB_DETAILS_PERSONALIZATION_MASK) ==
+            RSE_PROVISIONING_BLOB_TYPE_PERSONALIZED);
 }
 
 TEST_STATIC_INLINE bool
 blob_needs_code_data_decryption(const struct rse_provisioning_message_blob_t *blob)
 {
     enum rse_provisioning_blob_code_and_data_decryption_config_t decryption_config =
-        (blob->metadata >> RSE_PROVISIONING_BLOB_DETAILS_CODE_DATA_DECRYPTION_OFFSET)
-        & RSE_PROVISIONING_BLOB_DETAILS_CODE_DATA_DECRYPTION_MASK;
+        (blob->header.metadata >> RSE_PROVISIONING_BLOB_DETAILS_CODE_DATA_DECRYPTION_OFFSET) &
+        RSE_PROVISIONING_BLOB_DETAILS_CODE_DATA_DECRYPTION_MASK;
 
     return (decryption_config == RSE_PROVISIONING_BLOB_CODE_DATA_DECRYPTION_AES);
 }
@@ -155,8 +154,8 @@ TEST_STATIC_INLINE bool
 blob_needs_secret_decryption(const struct rse_provisioning_message_blob_t *blob)
 {
     enum rse_provisioning_blob_secret_values_decryption_config_t decryption_config =
-        (blob->metadata >> RSE_PROVISIONING_BLOB_DETAILS_SECRET_VALUES_DECRYPTION_OFFSET)
-        & RSE_PROVISIONING_BLOB_DETAILS_SECRET_VALUES_DECRYPTION_MASK;
+        (blob->header.metadata >> RSE_PROVISIONING_BLOB_DETAILS_SECRET_VALUES_DECRYPTION_OFFSET) &
+        RSE_PROVISIONING_BLOB_DETAILS_SECRET_VALUES_DECRYPTION_MASK;
 
     return decryption_config == RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_AES;
 }
@@ -169,16 +168,17 @@ psa_status_t copy_auth_code_data(psa_aead_operation_t *operation,
 {
     psa_status_t status;
 
-    memcpy(code_output, blob->code_and_data_and_secret_values, blob->code_size);
-    memcpy(data_output, blob->code_and_data_and_secret_values + blob->code_size, blob->data_size);
+    memcpy(code_output, blob->code_and_data_and_secret_values, blob->header.code_size);
+    memcpy(data_output, blob->code_and_data_and_secret_values + blob->header.code_size,
+           blob->header.data_size);
 
     if (alg == PSA_ALG_CCM) {
-        status = psa_aead_update_ad(operation, code_output, blob->code_size);
+        status = psa_aead_update_ad(operation, code_output, blob->header.code_size);
         if (status != PSA_SUCCESS) {
             return status;
         }
 
-        status = psa_aead_update_ad(operation, data_output, blob->data_size);
+        status = psa_aead_update_ad(operation, data_output, blob->header.data_size);
         if (status != PSA_SUCCESS) {
             return status;
         }
@@ -191,8 +191,8 @@ psa_status_t copy_auth_code_data(psa_aead_operation_t *operation,
      * Architecture with seperate buses and caches for instructions and data
      * respectively.
      */
-    SCB_CleanDCache_by_Addr(code_output, blob->code_size);
-    SCB_CleanDCache_by_Addr(data_output, blob->data_size);
+    SCB_CleanDCache_by_Addr(code_output, blob->header.code_size);
+    SCB_CleanDCache_by_Addr(data_output, blob->header.data_size);
 
     return PSA_SUCCESS;
 }
@@ -206,20 +206,19 @@ psa_status_t decrypt_code_data(psa_aead_operation_t *operation,
     psa_status_t status;
 
     status = psa_aead_update(operation, blob->code_and_data_and_secret_values,
-                             blob->code_size, code_output, code_output_size,
-                             &output_length);
+                             blob->header.code_size, code_output, code_output_size, &output_length);
     if (status != PSA_SUCCESS) {
         return status;
-    } else if (output_length != blob->code_size) {
+    } else if (output_length != blob->header.code_size) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
-    status = psa_aead_update(operation, blob->code_and_data_and_secret_values +
-                             blob->code_size, blob->data_size, data_output, data_output_size,
-                             &output_length);
+    status = psa_aead_update(operation,
+                             blob->code_and_data_and_secret_values + blob->header.code_size,
+                             blob->header.data_size, data_output, data_output_size, &output_length);
     if (status != PSA_SUCCESS) {
         return status;
-    } else if (output_length != blob->data_size) {
+    } else if (output_length != blob->header.data_size) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
@@ -233,17 +232,18 @@ psa_status_t copy_auth_secret_values(psa_aead_operation_t *operation,
 {
     psa_status_t status;
 
-    memcpy(values_output, blob->code_and_data_and_secret_values + blob->code_size + blob->data_size,
-           blob->secret_values_size);
+    memcpy(values_output,
+           blob->code_and_data_and_secret_values + blob->header.code_size + blob->header.data_size,
+           blob->header.secret_values_size);
 
     if (alg == PSA_ALG_CCM) {
-        status = psa_aead_update_ad(operation, values_output, blob->secret_values_size);
+        status = psa_aead_update_ad(operation, values_output, blob->header.secret_values_size);
         if (status != PSA_SUCCESS) {
             return status;
         }
     }
 
-    SCB_CleanDCache_by_Addr(values_output, blob->secret_values_size);
+    SCB_CleanDCache_by_Addr(values_output, blob->header.secret_values_size);
 
     return PSA_SUCCESS;
 }
@@ -255,12 +255,13 @@ psa_status_t decrypt_secret_values(psa_aead_operation_t *operation,
     psa_status_t status;
     size_t output_length = 0;
 
-    status = psa_aead_update(operation, blob->code_and_data_and_secret_values +
-                             blob->code_size + blob->data_size, blob->secret_values_size,
-                             values_output, values_output_size, &output_length);
+    status = psa_aead_update(
+        operation,
+        blob->code_and_data_and_secret_values + blob->header.code_size + blob->header.data_size,
+        blob->header.secret_values_size, values_output, values_output_size, &output_length);
     if (status != PSA_SUCCESS) {
         return status;
-    } else if (output_length != blob->secret_values_size) {
+    } else if (output_length != blob->header.secret_values_size) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
@@ -277,41 +278,43 @@ static enum tfm_plat_err_t aes_generic_blob_operation(psa_algorithm_t alg,
 {
     psa_status_t status;
     enum tfm_plat_err_t err;
-    size_t actual_blob_size = sizeof(*blob) + blob->code_size + blob->data_size + blob->secret_values_size;
+    size_t actual_blob_size = sizeof(*blob) + blob->header.code_size + blob->header.data_size +
+                              blob->header.secret_values_size;
     size_t data_size_to_decrypt = 0;
     size_t data_size_to_auth = 0;
-    uint32_t authed_header_offset = offsetof(struct rse_provisioning_message_blob_t, metadata);
+    uint32_t authed_header_offset =
+        offsetof(struct rse_provisioning_message_blob_t, header.metadata);
     size_t authed_header_size = offsetof(struct rse_provisioning_message_blob_t, code_and_data_and_secret_values) - authed_header_offset;
     enum kmu_hardware_keyslot_t kmu_slot;
     psa_aead_operation_t operation = psa_aead_operation_init();
 
-    if (blob->signature_size < AES_TAG_MAX_LEN) {
+    if (blob->header.signature_size < AES_TAG_MAX_LEN) {
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_TAG_LEN);
         return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_TAG_LEN;
     }
 
-    if (blob->code_size > code_output_size) {
+    if (blob->header.code_size > code_output_size) {
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_CODE_SIZE);
         return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_CODE_SIZE;
     }
 
-    if (blob->data_size > data_output_size) {
+    if (blob->header.data_size > data_output_size) {
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_DATA_SIZE);
         return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_DATA_SIZE;
     }
 
-    if (blob->secret_values_size > values_output_size) {
+    if (blob->header.secret_values_size > values_output_size) {
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_VALUES_SIZE);
         return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_VALUES_SIZE;
     }
 
     if (blob_needs_code_data_decryption(blob)) {
-        data_size_to_decrypt += blob->code_size;
-        data_size_to_decrypt += blob->data_size;
+        data_size_to_decrypt += blob->header.code_size;
+        data_size_to_decrypt += blob->header.data_size;
     }
 
     if (blob_needs_secret_decryption(blob)) {
-        data_size_to_decrypt += blob->secret_values_size;
+        data_size_to_decrypt += blob->header.secret_values_size;
     }
 
     /* If the values are decrypted by the blob but the code is decrypted here,
@@ -401,11 +404,7 @@ static enum tfm_plat_err_t aes_generic_blob_operation(psa_algorithm_t alg,
     if (alg == PSA_ALG_CCM) {
         size_t dummy = 0;
 
-        status = psa_aead_verify(&operation,
-                                 NULL,
-                                 dummy,
-                                 &dummy,
-                                 (uint8_t*)blob->signature,
+        status = psa_aead_verify(&operation, NULL, dummy, &dummy, (uint8_t *)blob->header.signature,
                                  AES_TAG_MAX_LEN);
         if (status != PSA_SUCCESS) {
             ERROR("Tag verification failed!\r\n");
@@ -446,7 +445,7 @@ static fih_ret aes_validate_and_unpack_blob(const struct rse_provisioning_messag
 
     uint8_t iv[AES_IV_LEN] = {0};
 
-    memcpy(iv, (uint8_t*)blob->iv, sizeof(blob->iv));
+    memcpy(iv, (uint8_t *)blob->header.iv, sizeof(blob->header.iv));
 
     err = aes_generic_blob_operation(PSA_ALG_CCM, blob,
                                      iv, 8,
@@ -470,7 +469,7 @@ static fih_ret aes_decrypt_and_unpack_blob(const struct rse_provisioning_message
 
     uint8_t iv[AES_IV_LEN] = {0};
 
-    memcpy(iv, (uint8_t*)blob->iv, sizeof(blob->iv));
+    memcpy(iv, (uint8_t *)blob->header.iv, sizeof(blob->header.iv));
 
     err = aes_generic_blob_operation(PSA_ALG_CTR, blob, iv, AES_IV_LEN,
                                      code_output, code_output_size,
@@ -489,7 +488,7 @@ static enum tfm_plat_err_t hash_blob(const struct rse_provisioning_message_blob_
 {
     int32_t bl1_err;
     const uint32_t authed_header_offset =
-        offsetof(struct rse_provisioning_message_blob_t, metadata);
+        offsetof(struct rse_provisioning_message_blob_t, header.metadata);
     const size_t authed_header_size =
         offsetof(struct rse_provisioning_message_blob_t, code_and_data_and_secret_values) - authed_header_offset;
 
@@ -504,17 +503,17 @@ static enum tfm_plat_err_t hash_blob(const struct rse_provisioning_message_blob_
         return (enum tfm_plat_err_t)bl1_err;
     }
 
-    FIH_CALL(bl1_hash_update, bl1_err, code_output, blob->code_size);
+    FIH_CALL(bl1_hash_update, bl1_err, code_output, blob->header.code_size);
     if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
         return (enum tfm_plat_err_t)bl1_err;
     }
 
-    FIH_CALL(bl1_hash_update, bl1_err, data_output, blob->data_size);
+    FIH_CALL(bl1_hash_update, bl1_err, data_output, blob->header.data_size);
     if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
         return (enum tfm_plat_err_t)bl1_err;
     }
 
-    FIH_CALL(bl1_hash_update, bl1_err, values_output, blob->secret_values_size);
+    FIH_CALL(bl1_hash_update, bl1_err, values_output, blob->header.secret_values_size);
     if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
         return (enum tfm_plat_err_t)bl1_err;
     }
@@ -541,7 +540,7 @@ static fih_ret ecdsa_validate_and_unpack_blob(const struct rse_provisioning_mess
     uint32_t *public_key_y;
     size_t public_key_x_size;
     size_t public_key_y_size;
-    size_t sig_point_len = blob->signature_size / 2;
+    size_t sig_point_len = blob->header.signature_size / 2;
     size_t hash_size;
 
     /* FixMe: Check the usage of AES in the ECDSA signed blob */
@@ -568,12 +567,10 @@ static fih_ret ecdsa_validate_and_unpack_blob(const struct rse_provisioning_mess
         FIH_RET(fih_ret_encode_zero_equality(err));
     }
 
-    FIH_CALL(bl1_internal_ecdsa_verify, fih_rc, RSE_PROVISIONING_CURVE,
-             public_key_x, public_key_x_size,
-             public_key_y, public_key_y_size,
-             blob_hash, hash_size,
-             (uint32_t *)blob->signature, sig_point_len,
-             (uint32_t *)(blob->signature + sig_point_len), sig_point_len);
+    FIH_CALL(bl1_internal_ecdsa_verify, fih_rc, RSE_PROVISIONING_CURVE, public_key_x,
+             public_key_x_size, public_key_y, public_key_y_size, blob_hash, hash_size,
+             (uint32_t *)blob->header.signature, sig_point_len,
+             (uint32_t *)(blob->header.signature + sig_point_len), sig_point_len);
     FIH_RET(fih_rc);
 }
 #endif /* RSE_PROVISIONING_ENABLE_ECDSA_SIGNATURES */
@@ -590,21 +587,21 @@ validate_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob, siz
     /* Perform the size check stepwise in order to avoid the risk of underflowing
      * and check that msg_size is the sum of code, data, secret_values sizes + header size
      */
-    if (msg_size < sizeof(*blob)
-     || blob->code_size > msg_size - sizeof(*blob)
-     || blob->data_size > (msg_size - sizeof(*blob) - blob->code_size)
-     || blob->secret_values_size != (msg_size - sizeof(*blob) - blob->code_size - blob->data_size)) {
+    if (msg_size < sizeof(*blob) || blob->header.code_size > msg_size - sizeof(*blob) ||
+        blob->header.data_size > (msg_size - sizeof(*blob) - blob->header.code_size) ||
+        blob->header.secret_values_size !=
+            (msg_size - sizeof(*blob) - blob->header.code_size - blob->header.data_size)) {
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_SIZE);
         FIH_RET(fih_ret_encode_zero_equality(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_SIZE));
     }
 
-    if (blob->code_size == 0) {
+    if (blob->header.code_size == 0) {
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_ZERO_CODE_SIZE);
         FIH_RET(fih_ret_encode_zero_equality(TFM_PLAT_ERR_PROVISIONING_BLOB_ZERO_CODE_SIZE));
     }
 
-    sig_config = (blob->metadata >> RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_OFFSET)
-                 & RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_MASK;
+    sig_config = (blob->header.metadata >> RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_OFFSET) &
+                 RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_MASK;
     switch(sig_config) {
 #ifdef RSE_PROVISIONING_ENABLE_AES_SIGNATURES
     case RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE:
@@ -759,7 +756,7 @@ enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_b
 
     if (is_blob_personalized(blob)) {
 #ifdef RSE_OTP_HAS_SOC_AREA
-        if (memcmp(blob->soc_uid, (void *)P_RSE_OTP_SOC->soc_id_area.unique_id,
+        if (memcmp(blob->header.soc_uid, (void *)P_RSE_OTP_SOC->soc_id_area.unique_id,
                    sizeof(P_RSE_OTP_SOC->soc_id_area.unique_id)) != 0) {
             FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_INVALID_BLOB_PERSONALIZATION);
             return TFM_PLAT_ERR_PROVISIONING_INVALID_BLOB_PERSONALIZATION;

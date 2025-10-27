@@ -37,10 +37,10 @@ static inline bool use_cm_rotpk(const struct rse_provisioning_message_blob_t *bl
 {
     bool rotpk_not_in_rom, use_cm_rotpk;
 
-    rotpk_not_in_rom = ((blob->metadata >> RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_OFFSET)
+    rotpk_not_in_rom = ((blob->header.metadata >> RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_OFFSET)
                        & RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_MASK)
                        == RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM;
-    use_cm_rotpk = ((blob->metadata >> RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_OFFSET)
+    use_cm_rotpk = ((blob->header.metadata >> RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_OFFSET)
                    & RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_MASK)
                    == RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK;
 
@@ -109,7 +109,8 @@ calc_key_hash_from_blob(const struct rse_provisioning_message_blob_t *blob, uint
     /* Currently keys stored in CM ROTPK are in the form of hashed DER encoded,
      * ASN.1 format keys. Therefore we need to convert the key we have found
      * in the blob to this format, before hashing it */
-    err = get_asn1_from_raw_ec(blob->public_key, point_size, blob->public_key + point_size,
+    err = get_asn1_from_raw_ec(blob->header.public_key, point_size,
+                               blob->header.public_key + point_size,
                                point_size, RSE_PROVISIONING_CURVE, asn1_key, sizeof(asn1_key),
                                &len);
     if (err != TFM_PLAT_ERR_SUCCESS) {
@@ -171,7 +172,7 @@ static enum tfm_plat_err_t get_check_hash_cm_rotpk(const struct rse_provisioning
     uint32_t point_size;
     enum rse_rotpk_hash_alg hash_alg;
 
-    cm_rotpk_num = (blob->metadata >> RSE_PROVISIONING_BLOB_DETAILS_CM_ROTPK_NUMBER_OFFSET)
+    cm_rotpk_num = (blob->header.metadata >> RSE_PROVISIONING_BLOB_DETAILS_CM_ROTPK_NUMBER_OFFSET)
                    & RSE_PROVISIONING_BLOB_DETAILS_CM_ROTPK_NUMBER_MASK;
     id = PLAT_OTP_ID_CM_ROTPK + cm_rotpk_num;
 
@@ -196,9 +197,9 @@ static enum tfm_plat_err_t get_check_hash_cm_rotpk(const struct rse_provisioning
         return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_HASH_VALUE;
     }
 
-    *public_key_x = (uint32_t *)blob->public_key;
+    *public_key_x = (uint32_t *)blob->header.public_key;
     *public_key_x_size = point_size;
-    *public_key_y = (uint32_t *)(blob->public_key + point_size);
+    *public_key_y = (uint32_t *)(blob->header.public_key + point_size);
     *public_key_y_size = point_size;
 
     return TFM_PLAT_ERR_SUCCESS;

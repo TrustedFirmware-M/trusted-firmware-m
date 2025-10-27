@@ -156,7 +156,8 @@ static const struct rse_provisioning_ecdsa_gen_key_data_t ecdsa_rom_private_key 
 
 static inline size_t get_blob_size(struct rse_provisioning_message_blob_t *blob)
 {
-    return sizeof(*blob) + blob->code_size + blob->data_size + blob->secret_values_size;
+    return sizeof(*blob) + blob->header.code_size + blob->header.data_size +
+           blob->header.secret_values_size;
 }
 
 static enum tfm_plat_err_t setup_random_key(enum rse_kmu_slot_id_t key)
@@ -249,7 +250,7 @@ static enum tfm_plat_err_t aes_sign_encrypt_test_image(cc3xx_aes_mode_t mode,
     size_t data_size_to_auth = 0;
     uint8_t iv[AES_IV_LEN] = { 0 };
     const uint32_t authed_header_offset =
-        offsetof(struct rse_provisioning_message_blob_t, metadata);
+        offsetof(struct rse_provisioning_message_blob_t, header.metadata);
     const size_t authed_header_size =
         offsetof(struct rse_provisioning_message_blob_t, code_and_data_and_secret_values) -
         authed_header_offset;
@@ -257,19 +258,19 @@ static enum tfm_plat_err_t aes_sign_encrypt_test_image(cc3xx_aes_mode_t mode,
     bool encrypt_code_data = false, encrypt_secret = false;
 
     /* All sizes must be multiples of 16 bytes */
-    assert(((blob->code_size % 16) == 0) && ((blob->data_size % 16) == 0) &&
-           ((blob->secret_values_size % 16) == 0));
+    assert(((blob->header.code_size % 16) == 0) && ((blob->header.data_size % 16) == 0) &&
+           ((blob->header.secret_values_size % 16) == 0));
 
-    memcpy(iv, (uint8_t *)blob->iv, sizeof(blob->iv));
+    memcpy(iv, (uint8_t *)blob->header.iv, sizeof(blob->header.iv));
 
     if (blob_needs_code_data_decryption(blob)) {
-        data_size_to_encrypt += blob->code_size;
-        data_size_to_encrypt += blob->data_size;
+        data_size_to_encrypt += blob->header.code_size;
+        data_size_to_encrypt += blob->header.data_size;
         encrypt_code_data = true;
     }
 
     if (blob_needs_secret_decryption(blob)) {
-        data_size_to_encrypt += blob->secret_values_size;
+        data_size_to_encrypt += blob->header.secret_values_size;
         encrypt_secret = true;
     }
 
@@ -292,46 +293,46 @@ static enum tfm_plat_err_t aes_sign_encrypt_test_image(cc3xx_aes_mode_t mode,
 
     if (encrypt_code_data && encrypt_secret) {
         cc3xx_lowlevel_aes_set_output_buffer(blob->code_and_data_and_secret_values,
-                                             blob->code_size + blob->data_size +
-                                                 blob->secret_values_size);
+                                             blob->header.code_size + blob->header.data_size +
+                                                 blob->header.secret_values_size);
 
-        cc_err =
-            cc3xx_lowlevel_aes_update(blob->code_and_data_and_secret_values,
-                                      blob->code_size + blob->data_size + blob->secret_values_size);
+        cc_err = cc3xx_lowlevel_aes_update(blob->code_and_data_and_secret_values,
+                                           blob->header.code_size + blob->header.data_size +
+                                               blob->header.secret_values_size);
         if (cc_err != CC3XX_ERR_SUCCESS) {
             return (enum tfm_plat_err_t)cc_err;
         }
     } else if (!encrypt_code_data && encrypt_secret) {
         cc3xx_lowlevel_aes_update_authed_data(blob->code_and_data_and_secret_values,
-                                              blob->code_size + blob->data_size);
+                                              blob->header.code_size + blob->header.data_size);
 
         cc3xx_lowlevel_aes_set_output_buffer(blob->code_and_data_and_secret_values +
-                                                 blob->code_size + blob->data_size,
-                                             blob->secret_values_size);
+                                                 blob->header.code_size + blob->header.data_size,
+                                             blob->header.secret_values_size);
 
-        cc_err = cc3xx_lowlevel_aes_update(blob->code_and_data_and_secret_values + blob->code_size +
-                                               blob->data_size,
-                                           blob->secret_values_size);
+        cc_err = cc3xx_lowlevel_aes_update(blob->code_and_data_and_secret_values +
+                                               blob->header.code_size + blob->header.data_size,
+                                           blob->header.secret_values_size);
         if (cc_err != CC3XX_ERR_SUCCESS) {
             return (enum tfm_plat_err_t)cc_err;
         }
     } else if (!encrypt_code_data && !encrypt_secret) {
         cc3xx_lowlevel_aes_update_authed_data(blob->code_and_data_and_secret_values,
-                                              blob->code_size + blob->data_size +
-                                                  blob->secret_values_size);
+                                              blob->header.code_size + blob->header.data_size +
+                                                  blob->header.secret_values_size);
     } else {
         return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_DECRYPTION_CONFIG;
     }
 
     if ((mode == CC3XX_AES_MODE_CCM) || (data_size_to_encrypt != 0)) {
-        cc_err = cc3xx_lowlevel_aes_finish((uint32_t *)blob->signature, NULL);
+        cc_err = cc3xx_lowlevel_aes_finish((uint32_t *)blob->header.signature, NULL);
         if (cc_err != CC3XX_ERR_SUCCESS) {
             return (enum tfm_plat_err_t)cc_err;
         }
     }
 
     if (mode == CC3XX_AES_MODE_CCM) {
-        blob->signature_size = AES_TAG_MAX_LEN;
+        blob->header.signature_size = AES_TAG_MAX_LEN;
     }
 
     return TFM_PLAT_ERR_SUCCESS;
@@ -342,14 +343,15 @@ static enum tfm_plat_err_t hash_test_image(struct rse_provisioning_message_blob_
 {
     FIH_DECLARE(fih_rc, FIH_FAILURE);
     const uint32_t authed_header_offset =
-        offsetof(struct rse_provisioning_message_blob_t, metadata);
+        offsetof(struct rse_provisioning_message_blob_t, header.metadata);
     const size_t authed_header_size =
         offsetof(struct rse_provisioning_message_blob_t, code_and_data_and_secret_values) -
         authed_header_offset;
 
-    FIH_CALL(bl1_hash_compute, fih_rc, RSE_PROVISIONING_HASH_ALG, (uint8_t *)blob + authed_header_offset,
-             authed_header_size + blob->code_size + blob->data_size +
-             blob->secret_values_size,
+    FIH_CALL(bl1_hash_compute, fih_rc, RSE_PROVISIONING_HASH_ALG,
+             (uint8_t *)blob + authed_header_offset,
+             authed_header_size + blob->header.code_size + blob->header.data_size +
+                 blob->header.secret_values_size,
              hash, RSE_PROVISIONING_HASH_SIZE, hash_size);
     if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         return (enum tfm_plat_err_t)fih_ret_decode_zero_equality(fih_rc);
@@ -373,11 +375,12 @@ static enum tfm_plat_err_t ecdsa_sign_test_image(struct rse_provisioning_message
     }
 
     point_size = cc3xx_lowlevel_ec_get_modulus_size_from_curve(bl1_curve_to_cc3xx_curve(RSE_PROVISIONING_CURVE));
-    blob->signature_size = point_size * 2;
+    blob->header.signature_size = point_size * 2;
 
-    cc_err = cc3xx_lowlevel_ecdsa_sign(bl1_curve_to_cc3xx_curve(RSE_PROVISIONING_CURVE), private_key,
-                                       private_key_size, hash, hash_size, (uint32_t *)blob->signature,
-                                       point_size, &r_size, (uint32_t *)(blob->signature + point_size),
+    cc_err = cc3xx_lowlevel_ecdsa_sign(bl1_curve_to_cc3xx_curve(RSE_PROVISIONING_CURVE),
+                                       private_key, private_key_size, hash, hash_size,
+                                       (uint32_t *)blob->header.signature, point_size, &r_size,
+                                       (uint32_t *)(blob->header.signature + point_size),
                                        point_size, &s_size);
     if (cc_err != CC3XX_ERR_SUCCESS) {
         return (enum tfm_plat_err_t)cc_err;
@@ -444,30 +447,30 @@ static void init_test_image(struct rse_provisioning_message_blob_t *blob,
 
     code_data_encrypt_config = encrypt_code_data ? RSE_PROVISIONING_BLOB_CODE_DATA_DECRYPTION_AES :
                                                    RSE_PROVISIONING_BLOB_CODE_DATA_DECRYPTION_NONE;
-    blob->metadata |=
+    blob->header.metadata |=
         (code_data_encrypt_config & RSE_PROVISIONING_BLOB_DETAILS_CODE_DATA_DECRYPTION_MASK)
         << RSE_PROVISIONING_BLOB_DETAILS_CODE_DATA_DECRYPTION_OFFSET;
     secret_encrypt_config = encrypt_secret ? RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_AES :
                                              RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_BY_BLOB;
-    blob->metadata |=
+    blob->header.metadata |=
         (secret_encrypt_config & RSE_PROVISIONING_BLOB_DETAILS_SECRET_VALUES_DECRYPTION_MASK)
         << RSE_PROVISIONING_BLOB_DETAILS_SECRET_VALUES_DECRYPTION_OFFSET;
 
-    blob->metadata |= (signature_config & RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_MASK)
-                      << RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_OFFSET;
+    blob->header.metadata |= (signature_config & RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_MASK)
+                             << RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_OFFSET;
 
     if (signature_config == RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM) {
         /* No need to set CM_ROTPK_NUMBER as always assume we are using 0 */
-        blob->metadata |= (RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK &
-                           RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_MASK)
-                          << RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_OFFSET;
+        blob->header.metadata |= (RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK &
+                                  RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_MASK)
+                                 << RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_OFFSET;
     }
 
-    blob->code_size = code_size;
-    blob->data_size = data_size;
-    blob->secret_values_size = secret_size;
+    blob->header.code_size = code_size;
+    blob->header.data_size = data_size;
+    blob->header.secret_values_size = secret_size;
 
-    memcpy(blob->iv, IV_RANDOM_BYTES, sizeof(blob->iv));
+    memcpy(blob->header.iv, IV_RANDOM_BYTES, sizeof(blob->header.iv));
 }
 
 static enum tfm_plat_err_t test_teardown(enum rse_kmu_slot_id_t key,
@@ -528,9 +531,9 @@ init_test_image_sign_random_key(struct rse_provisioning_message_blob_t *blob,
                     encrypt_secret);
 
     memcpy(blob->code_and_data_and_secret_values, CODE_RANDOM_BYTES, sizeof(CODE_RANDOM_BYTES) - 1);
-    memcpy(blob->code_and_data_and_secret_values + blob->code_size, DATA_RANDOM_BYTES,
+    memcpy(blob->code_and_data_and_secret_values + blob->header.code_size, DATA_RANDOM_BYTES,
            sizeof(DATA_RANDOM_BYTES) - 1);
-    memcpy(blob->code_and_data_and_secret_values + blob->code_size + blob->data_size,
+    memcpy(blob->code_and_data_and_secret_values + blob->header.code_size + blob->header.data_size,
            VALUES_RANDOM_BYTES, sizeof(VALUES_RANDOM_BYTES) - 1);
 
     err = setup_random_key(RSE_KMU_SLOT_PROVISIONING_KEY);
@@ -598,13 +601,13 @@ void rse_bl1_provisioning_test_0002(struct test_result_t *ret)
     const size_t code_size = 32, values_size = 32, secret_size = 32;
 
     uint8_t *corruption_ptrs[] = {
-        (uint8_t *)&test_blob->metadata,
-        (uint8_t *)&test_blob->purpose,
-        (uint8_t *)&test_blob->version,
-        (uint8_t *)&test_blob->iv,
-        (uint8_t *)&test_blob->code_size,
-        (uint8_t *)&test_blob->data_size,
-        (uint8_t *)&test_blob->secret_values_size,
+        (uint8_t *)&test_blob->header.metadata,
+        (uint8_t *)&test_blob->header.purpose,
+        (uint8_t *)&test_blob->header.version,
+        (uint8_t *)&test_blob->header.iv,
+        (uint8_t *)&test_blob->header.code_size,
+        (uint8_t *)&test_blob->header.data_size,
+        (uint8_t *)&test_blob->header.secret_values_size,
         (uint8_t *)test_blob->code_and_data_and_secret_values,
         (uint8_t *)(test_blob->code_and_data_and_secret_values + code_size),
         (uint8_t *)(test_blob->code_and_data_and_secret_values + code_size + values_size),
@@ -862,8 +865,8 @@ static void setup_blob_with_provisioning_config(struct rse_provisioning_message_
         break;
     }
 
-    blob->purpose |= (tp_mode_config & RSE_PROVISIONING_BLOB_PURPOSE_TP_MODE_MASK)
-                     << RSE_PROVISIONING_BLOB_PURPOSE_TP_MODE_OFFSET;
+    blob->header.purpose |= (tp_mode_config & RSE_PROVISIONING_BLOB_PURPOSE_TP_MODE_MASK)
+                            << RSE_PROVISIONING_BLOB_PURPOSE_TP_MODE_OFFSET;
 
     for (unsigned i = 0; i < num_lcs; i++) {
         switch (valid_lcs[i]) {
@@ -884,13 +887,13 @@ static void setup_blob_with_provisioning_config(struct rse_provisioning_message_
         }
     }
 
-    blob->purpose |= (lcs_mask & RSE_PROVISIONING_BLOB_PURPOSE_LCS_MASK_MASK)
-                     << RSE_PROVISIONING_BLOB_PURPOSE_LCS_MASK_OFFSET;
+    blob->header.purpose |= (lcs_mask & RSE_PROVISIONING_BLOB_PURPOSE_LCS_MASK_MASK)
+                            << RSE_PROVISIONING_BLOB_PURPOSE_LCS_MASK_OFFSET;
 
     sp_mode_config = sp_required ? RSE_PROVISIONING_BLOB_REQUIRES_SP_MODE_ENABLED :
                                    RSE_PROVISIONING_BLOB_REQUIRES_SP_MODE_DISABLED;
-    blob->purpose |= (sp_mode_config & RSE_PROVISIONING_BLOB_PURPOSE_SP_MODE_MASK)
-                     << RSE_PROVISIONING_BLOB_PURPOSE_SP_MODE_OFFSET;
+    blob->header.purpose |= (sp_mode_config & RSE_PROVISIONING_BLOB_PURPOSE_SP_MODE_MASK)
+                            << RSE_PROVISIONING_BLOB_PURPOSE_SP_MODE_OFFSET;
 }
 
 static enum tfm_plat_err_t provision_blob(struct rse_provisioning_message_blob_t *blob)
@@ -1029,8 +1032,8 @@ create_complete_signed_blob(struct rse_provisioning_message_blob_t *blob,
     case RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE:
         return aes_sign_encrypt_test_image(CC3XX_AES_MODE_CCM, RSE_KMU_SLOT_PROVISIONING_KEY, blob);
     case RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM:
-        memcpy(blob->public_key, key_data->public_key_x, key_data->public_key_x_len);
-        memcpy(blob->public_key + key_data->public_key_x_len, key_data->public_key_y,
+        memcpy(blob->header.public_key, key_data->public_key_x, key_data->public_key_x_len);
+        memcpy(blob->header.public_key + key_data->public_key_x_len, key_data->public_key_y,
                key_data->public_key_y_len);
         return ecdsa_sign_then_encrypt_test_image(key_data->private_key, key_data->private_key_len,
                                                   RSE_KMU_SLOT_PROVISIONING_KEY, blob);

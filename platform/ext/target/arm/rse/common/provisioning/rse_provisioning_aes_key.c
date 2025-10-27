@@ -13,7 +13,7 @@
 
 static inline bool blob_is_combined(const struct rse_provisioning_message_blob_t *blob)
 {
-    return (((blob->purpose >> RSE_PROVISIONING_BLOB_PURPOSE_TYPE_OFFSET) &
+    return (((blob->header.purpose >> RSE_PROVISIONING_BLOB_PURPOSE_TYPE_OFFSET) &
              RSE_PROVISIONING_BLOB_PURPOSE_TYPE_MASK) ==
             RSE_PROVISIONING_BLOB_TYPE_COMBINED_LCS_PROVISIONING);
 }
@@ -50,13 +50,13 @@ rse_provisioning_setup_aes_key(const struct rse_provisioning_message_blob_t *blo
     if (lcs == LCM_LCS_CM || blob_is_combined(blob)) {
         label = (uint8_t *)"KMASTER_CM";
         label_len = sizeof("KMASTER_CM");
-        context = (uint8_t *)&blob->batch_id;
-        context_len = sizeof(blob->batch_id);
+        context = (uint8_t *)&blob->header.batch_id;
+        context_len = sizeof(blob->header.batch_id);
     } else {
         label = (uint8_t *)"KMASTER_DM";
         label_len = sizeof("KMASTER_DM");
-        context = (uint8_t *)&blob->dm_number;
-        context_len = sizeof(blob->dm_number);
+        context = (uint8_t *)&blob->header.dm_number;
+        context_len = sizeof(blob->header.dm_number);
     }
 
     err = rse_setup_master_key(label, label_len, context, context_len);
