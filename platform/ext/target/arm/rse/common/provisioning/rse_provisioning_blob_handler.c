@@ -160,11 +160,10 @@ blob_needs_secret_decryption(const struct rse_provisioning_message_blob_t *blob)
     return decryption_config == RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_AES;
 }
 
-psa_status_t copy_auth_code_data(psa_aead_operation_t *operation,
-                                 psa_algorithm_t alg,
-                                 const struct rse_provisioning_message_blob_t *blob,
-                                 void *code_output, size_t code_output_size,
-                                 void *data_output, size_t data_output_size)
+static psa_status_t copy_auth_code_data(psa_aead_operation_t *operation, psa_algorithm_t alg,
+                                        const struct rse_provisioning_message_blob_t *blob,
+                                        void *code_output, size_t code_output_size,
+                                        void *data_output, size_t data_output_size)
 {
     psa_status_t status;
 
@@ -197,10 +196,10 @@ psa_status_t copy_auth_code_data(psa_aead_operation_t *operation,
     return PSA_SUCCESS;
 }
 
-psa_status_t decrypt_code_data(psa_aead_operation_t *operation,
-                               const struct rse_provisioning_message_blob_t *blob,
-                               void *code_output, size_t code_output_size,
-                               void *data_output, size_t data_output_size)
+static psa_status_t decrypt_code_data(psa_aead_operation_t *operation,
+                                      const struct rse_provisioning_message_blob_t *blob,
+                                      void *code_output, size_t code_output_size, void *data_output,
+                                      size_t data_output_size)
 {
     size_t output_length = 0;
     psa_status_t status;
@@ -225,10 +224,9 @@ psa_status_t decrypt_code_data(psa_aead_operation_t *operation,
     return PSA_SUCCESS;
 }
 
-psa_status_t copy_auth_secret_values(psa_aead_operation_t *operation,
-                                     psa_algorithm_t alg,
-                                     const struct rse_provisioning_message_blob_t *blob,
-                                     void *values_output, size_t values_output_size)
+static psa_status_t copy_auth_secret_values(psa_aead_operation_t *operation, psa_algorithm_t alg,
+                                            const struct rse_provisioning_message_blob_t *blob,
+                                            void *values_output, size_t values_output_size)
 {
     psa_status_t status;
 
@@ -248,9 +246,9 @@ psa_status_t copy_auth_secret_values(psa_aead_operation_t *operation,
     return PSA_SUCCESS;
 }
 
-psa_status_t decrypt_secret_values(psa_aead_operation_t *operation,
-                                   const struct rse_provisioning_message_blob_t *blob,
-                                   void *values_output, size_t values_output_size)
+static psa_status_t decrypt_secret_values(psa_aead_operation_t *operation,
+                                          const struct rse_provisioning_message_blob_t *blob,
+                                          void *values_output, size_t values_output_size)
 {
     psa_status_t status;
     size_t output_length = 0;
