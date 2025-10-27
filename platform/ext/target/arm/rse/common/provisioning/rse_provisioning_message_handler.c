@@ -89,6 +89,13 @@ enum tfm_plat_err_t handle_provisioning_message(const struct rse_provisioning_me
             return TFM_PLAT_ERR_PROVISIONING_MESSAGE_NO_PLAIN_DATA_HANDLER;
         }
         return config->plain_data_handler(&msg->plain, msg->header.data_length, ctx);
+    case RSE_PROVISIONING_MESSAGE_TYPE_AUTHENTICATED_PLAIN_DATA:
+        if (config->authenticated_plain_data_handler == NULL) {
+            FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_MESSAGE_NO_AUTH_PLAIN_DATA_HANDLER);
+            return TFM_PLAT_ERR_PROVISIONING_MESSAGE_NO_AUTH_PLAIN_DATA_HANDLER;
+        }
+        return config->authenticated_plain_data_handler(&msg->authenticated_plain,
+                                                        msg->header.data_length, ctx);
     case RSE_PROVISIONING_MESSAGE_TYPE_CERTIFICATE:
         if (config->cert_handler == NULL) {
             FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_MESSAGE_NO_CERT_HANDLER);

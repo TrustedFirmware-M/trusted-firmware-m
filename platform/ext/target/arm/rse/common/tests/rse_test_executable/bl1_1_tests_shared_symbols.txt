@@ -15,7 +15,7 @@ lcm_get_otp_size
 tfm_hal_system_reset
 tfm_plat_otp_secure_provisioning_start
 tfm_plat_provisioning_is_required
-validate_and_unpack_blob
+validate_and_unpack_message
 default_blob_handler
 handle_provisioning_message
 provisioning_rotpk_get
@@ -50,8 +50,8 @@ dcsu_handle_tx_response
 dcsu_import_ready
 soc_area_info
 rse_soc_uid_is_generated
-blob_needs_secret_decryption
-blob_needs_code_data_decryption
+message_needs_secret_decryption
+message_needs_code_data_decryption
 integrity_checker_compute_value
 integrity_checker_check_value
 tfm_plat_init_nv_counter

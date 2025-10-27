@@ -18,18 +18,23 @@
 extern "C" {
 #endif
 
-typedef enum tfm_plat_err_t (*setup_aes_key_func_t)(const struct rse_provisioning_message_blob_t *, uint32_t *);
-typedef enum tfm_plat_err_t (*get_rotpk_func_t)(const struct rse_provisioning_message_blob_t *,
+typedef enum tfm_plat_err_t (*setup_aes_key_func_t)(const struct rse_provisioning_authentication_header_t *, uint32_t *);
+typedef enum tfm_plat_err_t (*get_rotpk_func_t)(const struct rse_provisioning_authentication_header_t *,
                              uint32_t **, size_t *, uint32_t **, size_t *);
 
-struct default_blob_handler_ctx_t {
+struct default_blob_authenticated_data_handler_ctx_t {
     setup_aes_key_func_t setup_aes_key;
     get_rotpk_func_t get_rotpk;
-    bool blob_is_chainloaded;
+    bool message_is_chainloaded;
 };
 
 enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_blob_t *blob,
                                          size_t msg_size, const void *ctx);
+
+
+enum tfm_plat_err_t default_authenticated_plain_data_handler(const struct rse_provisioning_message_authenticated_plain_t *auth_plain,
+                                                            size_t msg_size, const void *ctx);
+
 
 #ifdef __cplusplus
 }

@@ -11,15 +11,15 @@
 #include "rse_kmu_keys.h"
 #include "device_definition.h"
 
-static inline bool blob_is_combined(const struct rse_provisioning_message_blob_t *blob)
+static inline bool message_is_combined(const struct rse_provisioning_authentication_header_t *header)
 {
-    return (((blob->header.purpose >> RSE_PROVISIONING_BLOB_PURPOSE_TYPE_OFFSET) &
-             RSE_PROVISIONING_BLOB_PURPOSE_TYPE_MASK) ==
-            RSE_PROVISIONING_BLOB_TYPE_COMBINED_LCS_PROVISIONING);
+    return (((header->purpose >> RSE_PROVISIONING_AUTH_MSG_PURPOSE_TYPE_OFFSET) &
+             RSE_PROVISIONING_AUTH_MSG_PURPOSE_TYPE_MASK) ==
+            RSE_PROVISIONING_AUTH_MSG_TYPE_COMBINED_LCS_PROVISIONING);
 }
 
 enum tfm_plat_err_t
-rse_provisioning_setup_aes_key(const struct rse_provisioning_message_blob_t *blob, uint32_t *key_id)
+rse_provisioning_setup_aes_key(const struct rse_provisioning_authentication_header_t *header, uint32_t *key_id)
 {
     enum lcm_error_t lcm_err;
     enum tfm_plat_err_t err;
@@ -47,16 +47,16 @@ rse_provisioning_setup_aes_key(const struct rse_provisioning_message_blob_t *blo
         return TFM_PLAT_ERR_PROVISIONING_DERIVATION_INVALID_LCS;
     }
 
-    if (lcs == LCM_LCS_CM || blob_is_combined(blob)) {
+    if (lcs == LCM_LCS_CM || message_is_combined(header)) {
         label = (uint8_t *)"KMASTER_CM";
         label_len = sizeof("KMASTER_CM");
-        context = (uint8_t *)&blob->header.batch_id;
-        context_len = sizeof(blob->header.batch_id);
+        context = (uint8_t *)&header->batch_id;
+        context_len = sizeof(header->batch_id);
     } else {
         label = (uint8_t *)"KMASTER_DM";
         label_len = sizeof("KMASTER_DM");
-        context = (uint8_t *)&blob->header.dm_number;
-        context_len = sizeof(blob->header.dm_number);
+        context = (uint8_t *)&header->dm_number;
+        context_len = sizeof(header->dm_number);
     }
 
     err = rse_setup_master_key(label, label_len, context, context_len);
@@ -66,7 +66,7 @@ rse_provisioning_setup_aes_key(const struct rse_provisioning_message_blob_t *blo
 
     *key_id = RSE_KMU_SLOT_PROVISIONING_KEY;
 
-    if (lcs == LCM_LCS_CM || blob_is_combined(blob)) {
+    if (lcs == LCM_LCS_CM || message_is_combined(header)) {
         label = (uint8_t *)"KPROV_CM";
         label_len = sizeof("KPROV_CM");
     } else {

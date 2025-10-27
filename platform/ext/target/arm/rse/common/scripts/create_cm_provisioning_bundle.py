@@ -76,7 +76,7 @@ def main():
     logging.debug(kwargs['provisioning_config'].non_secret_cm_layout)
     logging.debug(kwargs['provisioning_config'].secret_cm_layout)
 
-    blob_type = kwargs['provisioning_message_config'].RSE_PROVISIONING_BLOB_TYPE_SINGLE_LCS_PROVISIONING
+    blob_type = kwargs['provisioning_message_config'].RSE_PROVISIONING_AUTH_MSG_TYPE_SINGLE_LCS_PROVISIONING
 
     with open(args.bundle_output_file, "wb") as f:
 

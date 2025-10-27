@@ -122,7 +122,7 @@ function(generate_provisioning_bundle bundle_type script exe_target blob_version
          additional_bundle_args additional_bundle_deps)
     set(GENERATED_FILE_NAME ${CMAKE_BINARY_DIR}/bin/provisioning/${bundle_type}_message.bin)
     set(ELF_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/bin/${exe_target}.axf)
-    list(TRANSFORM valid_lcses PREPEND "--valid_lcs=RSE_PROVISIONING_BLOB_VALID_IN_")
+    list(TRANSFORM valid_lcses PREPEND "--valid_lcs=RSE_PROVISIONING_AUTH_MSG_VALID_IN_")
     list(TRANSFORM valid_lcses APPEND "_LCS")
 
     set(CUSTOM_COMMAND_DEPENDENCIES
@@ -139,9 +139,9 @@ function(generate_provisioning_bundle bundle_type script exe_target blob_version
         --provisioning_message_config=${CMAKE_CURRENT_BINARY_DIR}/config/message_config.pickle
         --provisioning_code_elf=${ELF_FILE_NAME}
         --bundle_output_file ${GENERATED_FILE_NAME}
-        --tp_mode=RSE_PROVISIONING_BLOB_REQUIRES_TP_MODE_${RSE_TP_MODE}
+        --tp_mode=RSE_PROVISIONING_AUTH_MSG_REQUIRES_TP_MODE_${RSE_TP_MODE}
         --version=${blob_version}
-        --signature_config=RSE_PROVISIONING_BLOB_SIGNATURE_${signature_config}
+        --signature_config=RSE_PROVISIONING_AUTH_MSG_SIGNATURE_${signature_config}
         ${valid_lcses}
     )
 
@@ -163,7 +163,7 @@ function(generate_provisioning_bundle bundle_type script exe_target blob_version
     if (${signature_config} STREQUAL "ROTPK_NOT_IN_ROM")
         set(CREATE_BUNDLE_SCRIPT_ARGS
             ${CREATE_BUNDLE_SCRIPT_ARGS}
-            --non_rom_pk_config=RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_${non_rom_pk_config}
+            --non_rom_pk_config=RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_${non_rom_pk_config}
         )
         if (${non_rom_pk_config} STREQUAL "CM_ROTPK")
             set(CREATE_BUNDLE_SCRIPT_ARGS
@@ -199,25 +199,25 @@ function(generate_provisioning_bundle bundle_type script exe_target blob_version
     if (${encrypt_secret_values})
         set(SECRET_VALUES_ENCRYPT_ARG AES)
     else()
-        set(SECRET_VALUES_ENCRYPT_ARG BY_BLOB)
+        set(SECRET_VALUES_ENCRYPT_ARG BY_MESSAGE)
     endif()
 
     set(CREATE_BUNDLE_SCRIPT_ARGS
         ${CREATE_BUNDLE_SCRIPT_ARGS}
-        --encrypt_code_and_data=RSE_PROVISIONING_BLOB_CODE_DATA_DECRYPTION_${CODE_DATA_ENCRYPT_ARG}
-        --encrypt_secret_values=RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_${SECRET_VALUES_ENCRYPT_ARG}
+        --encrypt_code_and_data=RSE_PROVISIONING_AUTH_MSG_CODE_DATA_DECRYPTION_${CODE_DATA_ENCRYPT_ARG}
+        --encrypt_secret_values=RSE_PROVISIONING_AUTH_MSG_SECRET_VALUES_DECRYPTION_${SECRET_VALUES_ENCRYPT_ARG}
         ${additional_bundle_args}
     )
 
     if (sp_mode_required)
         set(CREATE_BUNDLE_SCRIPT_ARGS
             ${CREATE_BUNDLE_SCRIPT_ARGS}
-            --sp_mode RSE_PROVISIONING_BLOB_REQUIRES_SP_MODE_ENABLED
+            --sp_mode RSE_PROVISIONING_AUTH_MSG_REQUIRES_SP_MODE_ENABLED
         )
     else()
         set(CREATE_BUNDLE_SCRIPT_ARGS
             ${CREATE_BUNDLE_SCRIPT_ARGS}
-            --sp_mode RSE_PROVISIONING_BLOB_REQUIRES_SP_MODE_DISABLED
+            --sp_mode RSE_PROVISIONING_AUTH_MSG_REQUIRES_SP_MODE_DISABLED
         )
     endif()
 
@@ -349,7 +349,7 @@ if (TFM_DUMMY_PROVISIONING)
 
     if (RSE_DM_CHAINED_PROVISIONING)
         set(MAIN_DM_BUNDLE_SIGNATURE_CONFIG ROTPK_NOT_IN_ROM)
-        set(MAIN_DM_BUNDLE_NOT_IN_ROM_SIGNATURE_CONFIG PREVIOUS_BLOB)
+        set(MAIN_DM_BUNDLE_NOT_IN_ROM_SIGNATURE_CONFIG PREVIOUS_MESSAGE)
     else()
         set(MAIN_DM_BUNDLE_SIGNATURE_CONFIG ${RSE_PROVISIONING_DM_SIGNATURE_CONFIG})
         if (MAIN_DM_BUNDLE_SIGNATURE_CONFIG STREQUAL "ROTPK_NOT_IN_ROM")

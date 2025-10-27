@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-enum tfm_plat_err_t provisioning_rotpk_get(const struct rse_provisioning_message_blob_t *blob,
+enum tfm_plat_err_t provisioning_rotpk_get(const struct rse_provisioning_authentication_header_t *header,
                                            uint32_t **public_key_x,
                                            size_t *public_key_x_size,
                                            uint32_t **public_key_y,

@@ -12,7 +12,7 @@
 #include "tfm_plat_defs.h"
 #include "rse_provisioning_message.h"
 #include "rse_provisioning_message_handler.h"
-#include "rse_provisioning_blob_handler.h"
+#include "rse_provisioning_auth_message_handler.h"
 #include "rse_provisioning_rotpk.h"
 #include "rse_provisioning_tci_key.h"
 #include "rse_provisioning_message_status.h"
@@ -100,12 +100,12 @@ __attribute__((section("DO_PROVISION"))) enum tfm_plat_err_t do_provision(void) 
         .blob_handler = &default_blob_handler,
     };
 
-    struct default_blob_handler_ctx_t ctx = {
+    struct default_blob_authenticated_data_handler_ctx_t ctx = {
         .setup_aes_key = aes_setup_key,
 #ifdef RSE_PROVISIONING_ENABLE_ECDSA_SIGNATURES
         .get_rotpk = get_rotpk,
 #endif
-        .blob_is_chainloaded = true,
+        .message_is_chainloaded = true,
     };
 
     INFO("Provisioning next blob\n");

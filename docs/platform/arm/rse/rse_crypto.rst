@@ -149,8 +149,8 @@ documentation <#cc3xx-low-level-driver-api>`__
 
 -  ``cc3xx_lowlevel_kdf_cmac``
 
-``rse_provisioning_blob_handler.c``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``rse_provisioning_auth_message_handler.c``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  ``cc3xx_lowlevel_aes_init``
 -  ``cc3xx_lowlevel_aes_set_tag_len``

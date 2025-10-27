@@ -33,16 +33,16 @@ extern const size_t pci_rotpk_y_len;
 #define TEST_STATIC static
 #endif
 
-static inline bool use_cm_rotpk(const struct rse_provisioning_message_blob_t *blob)
+static inline bool use_cm_rotpk(const struct rse_provisioning_authentication_header_t *header)
 {
     bool rotpk_not_in_rom, use_cm_rotpk;
 
-    rotpk_not_in_rom = ((blob->header.metadata >> RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_OFFSET)
-                       & RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_MASK)
-                       == RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM;
-    use_cm_rotpk = ((blob->header.metadata >> RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_OFFSET)
-                   & RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_MASK)
-                   == RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK;
+    rotpk_not_in_rom = ((header->metadata >> RSE_PROVISIONING_AUTH_MSG_DETAILS_SIGNATURE_OFFSET)
+                       & RSE_PROVISIONING_AUTH_MSG_DETAILS_SIGNATURE_MASK)
+                       == RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_NOT_IN_ROM;
+    use_cm_rotpk = ((header->metadata >> RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_OFFSET)
+                   & RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_MASK)
+                   == RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK;
 
     return rotpk_not_in_rom && use_cm_rotpk;
 }
@@ -82,7 +82,7 @@ enum tfm_plat_err_t get_asn1_from_raw_ec(const uint8_t *x, size_t x_size, const 
         asn1_curve = RSE_ASN1_ECDSA_PUBLIC_KEY_CURVE_SECP384R1;
         break;
     default:
-        return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_CURVE;
+        return TFM_PLAT_ERR_PROVISIONING_AUTH_MSG_INVALID_CURVE;
     }
 
     asn1_pk = (struct rse_asn1_pk_s) {
@@ -96,8 +96,8 @@ enum tfm_plat_err_t get_asn1_from_raw_ec(const uint8_t *x, size_t x_size, const 
 }
 
 static enum tfm_plat_err_t
-calc_key_hash_from_blob(const struct rse_provisioning_message_blob_t *blob, uint8_t *key_hash,
-                        enum rse_rotpk_hash_alg alg, size_t point_size)
+calc_key_hash_from_header(const struct rse_provisioning_authentication_header_t *header,
+                          uint8_t *key_hash, enum rse_rotpk_hash_alg alg, size_t point_size)
 {
     FIH_DECLARE(fih_rc, FIH_FAILURE);;
     enum tfm_plat_err_t err;
@@ -109,8 +109,8 @@ calc_key_hash_from_blob(const struct rse_provisioning_message_blob_t *blob, uint
     /* Currently keys stored in CM ROTPK are in the form of hashed DER encoded,
      * ASN.1 format keys. Therefore we need to convert the key we have found
      * in the blob to this format, before hashing it */
-    err = get_asn1_from_raw_ec(blob->header.public_key, point_size,
-                               blob->header.public_key + point_size,
+    err = get_asn1_from_raw_ec(header->public_key, point_size,
+                               header->public_key + point_size,
                                point_size, RSE_PROVISIONING_CURVE, asn1_key, sizeof(asn1_key),
                                &len);
     if (err != TFM_PLAT_ERR_SUCCESS) {
@@ -125,7 +125,7 @@ calc_key_hash_from_blob(const struct rse_provisioning_message_blob_t *blob, uint
         bl1_hash_alg = TFM_BL1_HASH_ALG_SHA384;
         break;
     default:
-        return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_HASH_ALG;
+        return TFM_PLAT_ERR_PROVISIONING_AUTH_MSG_INVALID_HASH_ALG;
     }
 
     FIH_CALL(bl1_hash_compute, fih_rc, bl1_hash_alg, asn1_key, len, key_hash, RSE_ROTPK_MAX_SIZE,
@@ -158,11 +158,12 @@ cc3xx_ec_curve_id_t bl1_curve_to_cc3xx_curve(enum tfm_bl1_ecdsa_curve_t bl1_curv
 }
 
 
-static enum tfm_plat_err_t get_check_hash_cm_rotpk(const struct rse_provisioning_message_blob_t *blob,
-                                                   uint32_t **public_key_x,
-                                                   size_t *public_key_x_size,
-                                                   uint32_t **public_key_y,
-                                                   size_t *public_key_y_size)
+static enum tfm_plat_err_t
+get_check_hash_cm_rotpk(const struct rse_provisioning_authentication_header_t *header,
+                        uint32_t **public_key_x,
+                        size_t *public_key_x_size,
+                        uint32_t **public_key_y,
+                        size_t *public_key_y_size)
 {
     uint16_t cm_rotpk_num;
     enum tfm_otp_element_id_t id;
@@ -172,12 +173,12 @@ static enum tfm_plat_err_t get_check_hash_cm_rotpk(const struct rse_provisioning
     uint32_t point_size;
     enum rse_rotpk_hash_alg hash_alg;
 
-    cm_rotpk_num = (blob->header.metadata >> RSE_PROVISIONING_BLOB_DETAILS_CM_ROTPK_NUMBER_OFFSET)
-                   & RSE_PROVISIONING_BLOB_DETAILS_CM_ROTPK_NUMBER_MASK;
+    cm_rotpk_num = (header->metadata >> RSE_PROVISIONING_AUTH_MSG_DETAILS_CM_ROTPK_NUMBER_OFFSET)
+                   & RSE_PROVISIONING_AUTH_MSG_DETAILS_CM_ROTPK_NUMBER_MASK;
     id = PLAT_OTP_ID_CM_ROTPK + cm_rotpk_num;
 
     if (id >= PLAT_OTP_ID_CM_ROTPK_MAX) {
-        return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_CM_ROTPK;
+        return TFM_PLAT_ERR_PROVISIONING_AUTH_MSG_INVALID_CM_ROTPK;
     }
 
     point_size = cc3xx_lowlevel_ec_get_modulus_size_from_curve(
@@ -188,18 +189,18 @@ static enum tfm_plat_err_t get_check_hash_cm_rotpk(const struct rse_provisioning
         return err;
     }
 
-    err = calc_key_hash_from_blob(blob, key_hash_from_blob, hash_alg, point_size);
+    err = calc_key_hash_from_header(header, key_hash_from_blob, hash_alg, point_size);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         return err;
     }
 
     if (memcmp(key_hash_from_otp, key_hash_from_blob, RSE_ROTPK_SIZE_FROM_ALG(hash_alg))) {
-        return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_HASH_VALUE;
+        return TFM_PLAT_ERR_PROVISIONING_AUTH_MSG_INVALID_HASH_VALUE;
     }
 
-    *public_key_x = (uint32_t *)blob->header.public_key;
+    *public_key_x = (uint32_t *)header->public_key;
     *public_key_x_size = point_size;
-    *public_key_y = (uint32_t *)(blob->header.public_key + point_size);
+    *public_key_y = (uint32_t *)(header->public_key + point_size);
     *public_key_y_size = point_size;
 
     return TFM_PLAT_ERR_SUCCESS;
@@ -242,7 +243,7 @@ static enum tfm_plat_err_t get_rom_rotpk(uint32_t **public_key_x,
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-enum tfm_plat_err_t provisioning_rotpk_get(const struct rse_provisioning_message_blob_t *blob,
+enum tfm_plat_err_t provisioning_rotpk_get(const struct rse_provisioning_authentication_header_t *header,
                                            uint32_t **public_key_x,
                                            size_t *public_key_x_size,
                                            uint32_t **public_key_y,
@@ -263,8 +264,8 @@ enum tfm_plat_err_t provisioning_rotpk_get(const struct rse_provisioning_message
     valid_lcs = valid_lcs || (lcs == LCM_LCS_SE);
 #endif
 
-    if (valid_lcs && use_cm_rotpk(blob)) {
-        return get_check_hash_cm_rotpk(blob,
+    if (valid_lcs && use_cm_rotpk(header)) {
+        return get_check_hash_cm_rotpk(header,
                                        public_key_x,
                                        public_key_x_size,
                                        public_key_y,

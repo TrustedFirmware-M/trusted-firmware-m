@@ -37,7 +37,7 @@ def add_arguments(parser : argparse.ArgumentParser,
 
     if (message_type == "RSE_PROVISIONING_MESSAGE_TYPE_BLOB"):
         arg_utils.add_prefixed_enum_argument(parser=parser,
-                                             enum=provisioning_message_config.enums['rse_provisioning_blob_valid_lcs_mask_t'],
+                                             enum=provisioning_message_config.enums['rse_provisioning_auth_msg_valid_lcs_mask_t'],
                                              prefix=prefix,
                                              arg_name="valid_lcs",
                                              help="LCS is which blob can be run",
@@ -46,14 +46,14 @@ def add_arguments(parser : argparse.ArgumentParser,
                                              required=required)
 
         arg_utils.add_prefixed_enum_argument(parser=parser,
-                                             enum=provisioning_message_config.enums['rse_provisioning_blob_required_tp_mode_config_t'],
+                                             enum=provisioning_message_config.enums['rse_provisioning_auth_msg_required_tp_mode_config_t'],
                                              prefix=prefix,
                                              arg_name="tp_mode",
                                              help="TP Mode is which blob can be run",
                                              required=required)
 
         arg_utils.add_prefixed_enum_argument(parser=parser,
-                                             enum=provisioning_message_config.enums['rse_provisioning_blob_required_sp_mode_config_t'],
+                                             enum=provisioning_message_config.enums['rse_provisioning_auth_msg_required_sp_mode_config_t'],
                                              prefix=prefix,
                                              arg_name="sp_mode",
                                              help="Whether SP mode is required to be enabled for the blob to be run",
@@ -72,34 +72,34 @@ def add_arguments(parser : argparse.ArgumentParser,
                                                 type=int, required=required)
 
         arg_utils.add_prefixed_enum_argument(parser=parser,
-                                             enum=provisioning_message_config.enums['rse_provisioning_blob_signature_config_t'],
+                                             enum=provisioning_message_config.enums['rse_provisioning_auth_msg_signature_config_t'],
                                              prefix=prefix,
                                              arg_name="signature_config",
                                              help="Configuration of the blob signature",
                                              required=required)
 
         arg_utils.add_prefixed_enum_argument(parser=parser,
-                                             enum=provisioning_message_config.enums['rse_provisioning_blob_non_rom_pk_type_config_t'],
+                                             enum=provisioning_message_config.enums['rse_provisioning_auth_msg_non_rom_pk_type_config_t'],
                                              prefix=prefix,
                                              arg_name="non_rom_pk_config",
                                              help="Configuration of the blob signature when the PK is not in the ROM",
-                                             default="RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK",
+                                             default="RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK",
                                              required=False)
 
         arg_utils.add_prefixed_enum_argument(parser=parser,
-                                             enum=provisioning_message_config.enums['rse_provisioning_blob_code_and_data_decryption_config_t'],
+                                             enum=provisioning_message_config.enums['rse_provisioning_auth_msg_code_and_data_decryption_config_t'],
                                              prefix=prefix,
                                              arg_name="encrypt_code_and_data",
                                              help="Whether to encrypt blob secret values",
-                                             default="RSE_PROVISIONING_BLOB_CODE_DATA_DECRYPTION_NONE",
+                                             default="RSE_PROVISIONING_AUTH_MSG_CODE_DATA_DECRYPTION_NONE",
                                              required=False)
 
         arg_utils.add_prefixed_enum_argument(parser=parser,
-                                             enum=provisioning_message_config.enums['rse_provisioning_blob_secret_values_decryption_config_t'],
+                                             enum=provisioning_message_config.enums['rse_provisioning_auth_msg_secret_values_decryption_config_t'],
                                              prefix=prefix,
                                              arg_name="encrypt_secret_values",
                                              help="Whether to encrypt blob secret values",
-                                             default="RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_AES",
+                                             default="RSE_PROVISIONING_AUTH_MSG_SECRET_VALUES_DECRYPTION_AES",
                                              required=False)
 
 
@@ -147,16 +147,16 @@ class Provisioning_message_config:
         create_enum = lambda x:C_enum.from_h_file(h_file_path, x, includes, defines)
         enum_names = [
             'rse_provisioning_message_type_t',
-            'rse_provisioning_blob_type_t',
-            'rse_provisioning_blob_required_tp_mode_config_t',
-            'rse_provisioning_blob_required_sp_mode_config_t',
-            'rse_provisioning_blob_valid_lcs_mask_t',
-            'rse_provisioning_blob_code_and_data_decryption_config_t',
-            'rse_provisioning_blob_secret_values_decryption_config_t',
-            'rse_provisioning_blob_non_rom_pk_type_config_t',
-            'rse_provisioning_blob_signature_config_t',
-            'rse_provisioning_blob_personalization_config_t',
-            'rse_provisioning_blob_sequencing_config_t',
+            'rse_provisioning_auth_msg_type_t',
+            'rse_provisioning_auth_msg_required_tp_mode_config_t',
+            'rse_provisioning_auth_msg_required_sp_mode_config_t',
+            'rse_provisioning_auth_msg_valid_lcs_mask_t',
+            'rse_provisioning_auth_msg_code_and_data_decryption_config_t',
+            'rse_provisioning_auth_msg_secret_values_decryption_config_t',
+            'rse_provisioning_auth_msg_non_rom_pk_type_config_t',
+            'rse_provisioning_auth_msg_signature_config_t',
+            'rse_provisioning_auth_msg_personalization_config_t',
+            'rse_provisioning_auth_msg_sequencing_config_t',
             'rse_provisioning_plain_data_type_t'
         ]
 
@@ -191,32 +191,32 @@ def get_blob_details(provisioning_message_config : Provisioning_message_config,
     details_val = 0
 
     val = encrypt_code_and_data.get_value()
-    details_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_BLOB_DETAILS_CODE_DATA_DECRYPTION_MASK, 0)) \
-                   << int(provisioning_message_config.RSE_PROVISIONING_BLOB_DETAILS_CODE_DATA_DECRYPTION_OFFSET, 0)
+    details_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_DETAILS_CODE_DATA_DECRYPTION_MASK, 0)) \
+                   << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_DETAILS_CODE_DATA_DECRYPTION_OFFSET, 0)
 
     val = encrypt_secret_values.get_value()
-    details_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_BLOB_DETAILS_SECRET_VALUES_DECRYPTION_MASK, 0)) \
-                   << int(provisioning_message_config.RSE_PROVISIONING_BLOB_DETAILS_SECRET_VALUES_DECRYPTION_OFFSET, 0)
+    details_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_DETAILS_SECRET_VALUES_DECRYPTION_MASK, 0)) \
+                   << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_DETAILS_SECRET_VALUES_DECRYPTION_OFFSET, 0)
 
     val = signature_config.get_value()
-    details_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_MASK, 0)) \
-                   << int(provisioning_message_config.RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_OFFSET, 0)
+    details_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_DETAILS_SIGNATURE_MASK, 0)) \
+                   << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_DETAILS_SIGNATURE_OFFSET, 0)
 
-    if signature_config.name == "RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM":
+    if signature_config.name == "RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_NOT_IN_ROM":
         val = non_rom_pk_config.get_value()
-        details_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_MASK, 0)) \
-                        << int(provisioning_message_config.RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_OFFSET, 0)
-        if non_rom_pk_config.name == "RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK":
+        details_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_MASK, 0)) \
+                        << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_OFFSET, 0)
+        if non_rom_pk_config.name == "RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK":
             details_val |= (sign_key_cm_rotpk \
-                            & int(provisioning_message_config.RSE_PROVISIONING_BLOB_DETAILS_CM_ROTPK_NUMBER_MASK, 0)) \
-                            << int(provisioning_message_config.RSE_PROVISIONING_BLOB_DETAILS_CM_ROTPK_NUMBER_OFFSET, 0)
+                            & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_DETAILS_CM_ROTPK_NUMBER_MASK, 0)) \
+                            << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_DETAILS_CM_ROTPK_NUMBER_OFFSET, 0)
 
     if soc_uid:
-        val = provisioning_message_config.RSE_PROVISIONING_BLOB_TYPE_PERSONALIZED.get_value()
+        val = provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_TYPE_PERSONALIZED.get_value()
     else:
-        val = provisioning_message_config.RSE_PROVISIONING_BLOB_TYPE_STATIC.get_value()
-    details_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_BLOB_DETAILS_PERSONALIZATION_MASK, 0)) \
-                   << int(provisioning_message_config.RSE_PROVISIONING_BLOB_DETAILS_PERSONALIZATION_OFFSET, 0)
+        val = provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_TYPE_STATIC.get_value()
+    details_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_DETAILS_PERSONALIZATION_MASK, 0)) \
+                   << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_DETAILS_PERSONALIZATION_OFFSET, 0)
 
     return details_val
 
@@ -232,27 +232,27 @@ def get_blob_purpose(provisioning_message_config : Provisioning_message_config,
     purpose_val = 0;
 
     val = blob_type.get_value()
-    purpose_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_BLOB_PURPOSE_TYPE_MASK, 0)) \
-                    << int(provisioning_message_config.RSE_PROVISIONING_BLOB_PURPOSE_TYPE_OFFSET, 0)
+    purpose_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_TYPE_MASK, 0)) \
+                    << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_TYPE_OFFSET, 0)
 
     val = tp_mode.get_value()
-    purpose_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_BLOB_PURPOSE_TP_MODE_MASK, 0)) \
-                    << int(provisioning_message_config.RSE_PROVISIONING_BLOB_PURPOSE_TP_MODE_OFFSET, 0)
+    purpose_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_TP_MODE_MASK, 0)) \
+                    << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_TP_MODE_OFFSET, 0)
 
     val = sp_mode.get_value()
-    purpose_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_BLOB_PURPOSE_SP_MODE_MASK, 0)) \
-                    << int(provisioning_message_config.RSE_PROVISIONING_BLOB_PURPOSE_SP_MODE_OFFSET, 0)
+    purpose_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_SP_MODE_MASK, 0)) \
+                    << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_SP_MODE_OFFSET, 0)
 
     for l in valid_lcs:
         val = l.get_value()
-        purpose_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_BLOB_PURPOSE_LCS_MASK_MASK, 0)) \
-                        << int(provisioning_message_config.RSE_PROVISIONING_BLOB_PURPOSE_LCS_MASK_OFFSET, 0)
+        purpose_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_LCS_MASK_MASK, 0)) \
+                        << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_LCS_MASK_OFFSET, 0)
 
-    if signature_config.name == "RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM" and \
-        non_rom_pk_config.name == "RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_PREVIOUS_BLOB":
-        purpose_val |= (provisioning_message_config.RSE_PROVISIONING_BLOB_CHAINED.get_value() \
-                        & int(provisioning_message_config.RSE_PROVISIONING_BLOB_PURPOSE_SEQUENCING_MASK, 0)) \
-                        << int(provisioning_message_config.RSE_PROVISIONING_BLOB_PURPOSE_SEQUENCING_OFFSET, 0)
+    if signature_config.name == "RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_NOT_IN_ROM" and \
+        non_rom_pk_config.name == "RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_PREVIOUS_MESSAGE":
+        purpose_val |= (provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_CHAINED.get_value() \
+                        & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_SEQUENCING_MASK, 0)) \
+                        << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_SEQUENCING_OFFSET, 0)
 
     return purpose_val
 
@@ -297,8 +297,8 @@ def get_data_to_encrypt_and_sign(provisioning_message_config : Provisioning_mess
     message.header.type.set_value(provisioning_message_config.RSE_PROVISIONING_MESSAGE_TYPE_BLOB.get_value())
 
     # Cannot enable code and data encryption without secret values encryption
-    assert not ((encrypt_code_and_data.name ==  "RSE_PROVISIONING_BLOB_CODE_DATA_DECRYPTION_AES") \
-                and (encrypt_secret_values.name != "RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_AES"))
+    assert not ((encrypt_code_and_data.name ==  "RSE_PROVISIONING_AUTH_MSG_CODE_DATA_DECRYPTION_AES") \
+                and (encrypt_secret_values.name != "RSE_PROVISIONING_AUTH_MSG_SECRET_VALUES_DECRYPTION_AES"))
 
     if len(code) % 16 != 0:
         code += bytes(16 - (len(code) % 16))
@@ -344,19 +344,19 @@ def get_data_to_encrypt_and_sign(provisioning_message_config : Provisioning_mess
                                 non_rom_pk_config=non_rom_pk_config, **kwargs)
     message.blob.header.purpose.set_value(purpose)
 
-    if signature_config.name == "RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM" and \
-        non_rom_pk_config.name == "RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK":
+    if signature_config.name == "RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_NOT_IN_ROM" and \
+        non_rom_pk_config.name == "RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK":
         message.blob.header.public_key.set_value_from_bytes(get_blob_pubkey(**sign_and_encrypt_kwargs))
 
     plaintext = bytes(0)
     aad = get_aad_header(provisioning_message_config)
 
-    if encrypt_code_and_data.name == "RSE_PROVISIONING_BLOB_CODE_DATA_DECRYPTION_AES":
+    if encrypt_code_and_data.name == "RSE_PROVISIONING_AUTH_MSG_CODE_DATA_DECRYPTION_AES":
         plaintext += code_and_data
     else:
         aad += code_and_data
 
-    if encrypt_secret_values.name == "RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_AES":
+    if encrypt_secret_values.name == "RSE_PROVISIONING_AUTH_MSG_SECRET_VALUES_DECRYPTION_AES":
         plaintext += secret_values
     else:
         aad += secret_values

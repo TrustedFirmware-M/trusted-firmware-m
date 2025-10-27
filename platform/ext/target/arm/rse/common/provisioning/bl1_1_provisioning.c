@@ -12,7 +12,7 @@
 #include "region_defs.h"
 #include "rse_provisioning_message_handler.h"
 #include "rse_provisioning_message_status.h"
-#include "rse_provisioning_blob_handler.h"
+#include "rse_provisioning_auth_message_handler.h"
 #include "device_definition.h"
 #include "tfm_log.h"
 #include "tfm_hal_platform.h"
@@ -64,12 +64,12 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
         .blob_handler = &default_blob_handler,
     };
 
-    struct default_blob_handler_ctx_t ctx = {
+    struct default_blob_authenticated_data_handler_ctx_t ctx = {
         .setup_aes_key = rse_provisioning_setup_aes_key,
 #ifdef RSE_PROVISIONING_ENABLE_ECDSA_SIGNATURES
         .get_rotpk = provisioning_rotpk_get,
 #endif
-        .blob_is_chainloaded = false,
+        .message_is_chainloaded = false,
     };
 
     err = rse_provisioning_get_message(provisioning_message, provisioning_message_size,

@@ -16,7 +16,7 @@
 #include "region_defs.h"
 #include "rse_provisioning_message.h"
 #include "rse_provisioning_message_handler.h"
-#include "rse_provisioning_blob_handler.h"
+#include "rse_provisioning_auth_message_handler.h"
 #include "rse_provisioning_rotpk.h"
 #include "rse_rotpk_policy.h"
 #include "rse_otp_layout.h"
@@ -55,15 +55,17 @@
  * they're usually static, they are not included in any header, so in order to
  * have the definitions we need to manually define them here.
  */
-bool blob_needs_code_data_decryption(const struct rse_provisioning_message_blob_t *blob);
-bool blob_needs_secret_decryption(const struct rse_provisioning_message_blob_t *blob);
+bool message_needs_code_data_decryption(
+    const struct rse_provisioning_authentication_header_t *header);
+bool message_needs_secret_decryption(const struct rse_provisioning_authentication_header_t *header);
 cc3xx_ec_curve_id_t bl1_curve_to_cc3xx_curve(enum tfm_bl1_ecdsa_curve_t bl1_curve);
 
-enum tfm_plat_err_t
-validate_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob, size_t msg_size,
-                         void *code_output, size_t code_output_size, void *data_output,
-                         size_t data_output_size, void *values_output, size_t values_output_size,
-                         setup_aes_key_func_t setup_aes_key, get_rotpk_func_t get_rotpk);
+fih_ret validate_and_unpack_message(const struct rse_provisioning_authentication_header_t *header,
+                                    const uint8_t *code_and_data_and_secret_values, size_t msg_size,
+                                    void *code_output, size_t code_output_size, void *data_output,
+                                    size_t data_output_size, void *values_output,
+                                    size_t values_output_size, setup_aes_key_func_t setup_aes_key,
+                                    get_rotpk_func_t get_rotpk);
 
 enum tfm_plat_err_t get_asn1_from_raw_ec(const uint8_t *x, size_t x_size, const uint8_t *y,
                                          size_t y_size, enum tfm_bl1_ecdsa_curve_t curve_id,
@@ -263,13 +265,13 @@ static enum tfm_plat_err_t aes_sign_encrypt_test_image(cc3xx_aes_mode_t mode,
 
     memcpy(iv, (uint8_t *)blob->header.iv, sizeof(blob->header.iv));
 
-    if (blob_needs_code_data_decryption(blob)) {
+    if (message_needs_code_data_decryption(&blob->header)) {
         data_size_to_encrypt += blob->header.code_size;
         data_size_to_encrypt += blob->header.data_size;
         encrypt_code_data = true;
     }
 
-    if (blob_needs_secret_decryption(blob)) {
+    if (message_needs_secret_decryption(&blob->header)) {
         data_size_to_encrypt += blob->header.secret_values_size;
         encrypt_secret = true;
     }
@@ -321,7 +323,7 @@ static enum tfm_plat_err_t aes_sign_encrypt_test_image(cc3xx_aes_mode_t mode,
                                               blob->header.code_size + blob->header.data_size +
                                                   blob->header.secret_values_size);
     } else {
-        return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_DECRYPTION_CONFIG;
+        return TFM_PLAT_ERR_PROVISIONING_AUTH_MSG_INVALID_DECRYPTION_CONFIG;
     }
 
     if ((mode == CC3XX_AES_MODE_CCM) || (data_size_to_encrypt != 0)) {
@@ -438,32 +440,32 @@ ecdsa_sign_then_encrypt_test_image(const uint32_t *private_key, size_t private_k
 }
 
 static void init_test_image(struct rse_provisioning_message_blob_t *blob,
-                            enum rse_provisioning_blob_signature_config_t signature_config,
+                            enum rse_provisioning_auth_msg_signature_config_t signature_config,
                             size_t code_size, size_t data_size, size_t secret_size,
                             bool encrypt_code_data, bool encrypt_secret)
 {
-    enum rse_provisioning_blob_code_and_data_decryption_config_t code_data_encrypt_config;
-    enum rse_provisioning_blob_secret_values_decryption_config_t secret_encrypt_config;
+    enum rse_provisioning_auth_msg_code_and_data_decryption_config_t code_data_encrypt_config;
+    enum rse_provisioning_auth_msg_secret_values_decryption_config_t secret_encrypt_config;
 
-    code_data_encrypt_config = encrypt_code_data ? RSE_PROVISIONING_BLOB_CODE_DATA_DECRYPTION_AES :
-                                                   RSE_PROVISIONING_BLOB_CODE_DATA_DECRYPTION_NONE;
+    code_data_encrypt_config = encrypt_code_data ? RSE_PROVISIONING_AUTH_MSG_CODE_DATA_DECRYPTION_AES :
+                                                   RSE_PROVISIONING_AUTH_MSG_CODE_DATA_DECRYPTION_NONE;
     blob->header.metadata |=
-        (code_data_encrypt_config & RSE_PROVISIONING_BLOB_DETAILS_CODE_DATA_DECRYPTION_MASK)
-        << RSE_PROVISIONING_BLOB_DETAILS_CODE_DATA_DECRYPTION_OFFSET;
-    secret_encrypt_config = encrypt_secret ? RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_AES :
-                                             RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_BY_BLOB;
+        (code_data_encrypt_config & RSE_PROVISIONING_AUTH_MSG_DETAILS_CODE_DATA_DECRYPTION_MASK)
+        << RSE_PROVISIONING_AUTH_MSG_DETAILS_CODE_DATA_DECRYPTION_OFFSET;
+    secret_encrypt_config = encrypt_secret ? RSE_PROVISIONING_AUTH_MSG_SECRET_VALUES_DECRYPTION_AES :
+                                             RSE_PROVISIONING_AUTH_MSG_SECRET_VALUES_DECRYPTION_BY_MESSAGE;
     blob->header.metadata |=
-        (secret_encrypt_config & RSE_PROVISIONING_BLOB_DETAILS_SECRET_VALUES_DECRYPTION_MASK)
-        << RSE_PROVISIONING_BLOB_DETAILS_SECRET_VALUES_DECRYPTION_OFFSET;
+        (secret_encrypt_config & RSE_PROVISIONING_AUTH_MSG_DETAILS_SECRET_VALUES_DECRYPTION_MASK)
+        << RSE_PROVISIONING_AUTH_MSG_DETAILS_SECRET_VALUES_DECRYPTION_OFFSET;
 
-    blob->header.metadata |= (signature_config & RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_MASK)
-                             << RSE_PROVISIONING_BLOB_DETAILS_SIGNATURE_OFFSET;
+    blob->header.metadata |= (signature_config & RSE_PROVISIONING_AUTH_MSG_DETAILS_SIGNATURE_MASK)
+                             << RSE_PROVISIONING_AUTH_MSG_DETAILS_SIGNATURE_OFFSET;
 
-    if (signature_config == RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM) {
+    if (signature_config == RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_NOT_IN_ROM) {
         /* No need to set CM_ROTPK_NUMBER as always assume we are using 0 */
-        blob->header.metadata |= (RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK &
-                                  RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_MASK)
-                                 << RSE_PROVISIONING_BLOB_DETAILS_NON_ROM_PK_TYPE_OFFSET;
+        blob->header.metadata |= (RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK &
+                                  RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_MASK)
+                                 << RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_OFFSET;
     }
 
     blob->header.code_size = code_size;
@@ -498,7 +500,8 @@ static enum tfm_plat_err_t test_teardown(enum rse_kmu_slot_id_t key,
 }
 
 static enum tfm_plat_err_t
-setup_provisioning_aes_key(const struct rse_provisioning_message_blob_t *blob, uint32_t *key_id)
+setup_provisioning_aes_key(const struct rse_provisioning_authentication_header_t *header,
+                           uint32_t *key_id)
 {
     /* Key setup in setup_random_key */
     *key_id = RSE_KMU_SLOT_PROVISIONING_KEY;
@@ -506,9 +509,10 @@ setup_provisioning_aes_key(const struct rse_provisioning_message_blob_t *blob, u
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-static enum tfm_plat_err_t get_global_public_key(const struct rse_provisioning_message_blob_t *blob,
-                                                 uint32_t **public_key_x, size_t *public_key_x_size,
-                                                 uint32_t **public_key_y, size_t *public_key_y_size)
+static enum tfm_plat_err_t
+get_global_public_key(const struct rse_provisioning_authentication_header_t *header,
+                      uint32_t **public_key_x, size_t *public_key_x_size, uint32_t **public_key_y,
+                      size_t *public_key_y_size)
 {
     *public_key_x = ecdsa_public_key_data.public_key_x;
     *public_key_x_size = ecdsa_public_key_data.public_key_x_len;
@@ -521,7 +525,7 @@ static enum tfm_plat_err_t get_global_public_key(const struct rse_provisioning_m
 static enum tfm_plat_err_t
 init_test_image_sign_random_key(struct rse_provisioning_message_blob_t *blob,
                                 struct rse_provisioning_ecdsa_gen_key_data_t *ecdsa_data,
-                                enum rse_provisioning_blob_signature_config_t signature_config,
+                                enum rse_provisioning_auth_msg_signature_config_t signature_config,
                                 size_t code_size, size_t data_size, size_t secret_size,
                                 bool encrypt_code_data, bool encrypt_secret)
 {
@@ -542,10 +546,10 @@ init_test_image_sign_random_key(struct rse_provisioning_message_blob_t *blob,
     }
 
     switch (signature_config) {
-    case RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE:
+    case RSE_PROVISIONING_AUTH_MSG_SIGNATURE_KRTL_DERIVATIVE:
         return aes_sign_encrypt_test_image(CC3XX_AES_MODE_CCM, RSE_KMU_SLOT_PROVISIONING_KEY, blob);
-    case RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_IN_ROM:
-    case RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM:
+    case RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_IN_ROM:
+    case RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_NOT_IN_ROM:
         return ecdsa_sign_then_encrypt_test_image(ecdsa_data->private_key,
                                                   ecdsa_data->private_key_len,
                                                   RSE_KMU_SLOT_PROVISIONING_KEY, blob);
@@ -560,9 +564,9 @@ void rse_bl1_provisioning_test_0001(struct test_result_t *ret)
 
     bool code_data_encrypted[] = { false, true };
 
-    enum rse_provisioning_blob_signature_config_t signature_config[] = {
-        RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE,
-        RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_IN_ROM,
+    enum rse_provisioning_auth_msg_signature_config_t signature_config[] = {
+        RSE_PROVISIONING_AUTH_MSG_SIGNATURE_KRTL_DERIVATIVE,
+        RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_IN_ROM,
     };
 
     TEST_SETUP(ecdsa_initialise_key_data(&ecdsa_public_key_data));
@@ -572,18 +576,19 @@ void rse_bl1_provisioning_test_0001(struct test_result_t *ret)
         for (int signature_idx = 0; signature_idx < ARRAY_SIZE(signature_config); signature_idx++) {
             TEST_LOG(" > signature validation test %s %s:\r\n",
                      signature_config[signature_idx] ==
-                             RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE ? "AES" : "ECDSA",
+                             RSE_PROVISIONING_AUTH_MSG_SIGNATURE_KRTL_DERIVATIVE ? "AES" : "ECDSA",
                      code_data_encrypted[encryption_idx] ? "encrypted" : "not encrypted");
 
             TEST_SETUP(init_test_image_sign_random_key(test_blob, &ecdsa_public_key_data,
                                                        signature_config[signature_idx], 32, 32, 32,
                                                        code_data_encrypted[encryption_idx], true));
 
-            FIH_CALL(validate_and_unpack_blob, plat_err,
-                test_blob, get_blob_size(test_blob), (void *)PROVISIONING_BUNDLE_CODE_START,
-                PROVISIONING_BUNDLE_CODE_SIZE, (void *)PROVISIONING_BUNDLE_DATA_START,
-                PROVISIONING_BUNDLE_DATA_SIZE, (void *)PROVISIONING_BUNDLE_VALUES_START,
-                PROVISIONING_BUNDLE_VALUES_SIZE, setup_provisioning_aes_key, get_global_public_key);
+            FIH_CALL(validate_and_unpack_message, plat_err, &test_blob->header,
+                     test_blob->code_and_data_and_secret_values, get_blob_size(test_blob),
+                     (void *)PROVISIONING_BUNDLE_CODE_START, PROVISIONING_BUNDLE_CODE_SIZE,
+                     (void *)PROVISIONING_BUNDLE_DATA_START, PROVISIONING_BUNDLE_DATA_SIZE,
+                     (void *)PROVISIONING_BUNDLE_VALUES_START, PROVISIONING_BUNDLE_VALUES_SIZE,
+                     setup_provisioning_aes_key, get_global_public_key);
 
             TEST_ASSERT(plat_err == FIH_SUCCESS, "Signature validation failed\r\n");
 
@@ -613,9 +618,9 @@ void rse_bl1_provisioning_test_0002(struct test_result_t *ret)
         (uint8_t *)(test_blob->code_and_data_and_secret_values + code_size + values_size),
     };
 
-    enum rse_provisioning_blob_signature_config_t signature_config[] = {
-        RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE,
-        RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_IN_ROM,
+    enum rse_provisioning_auth_msg_signature_config_t signature_config[] = {
+        RSE_PROVISIONING_AUTH_MSG_SIGNATURE_KRTL_DERIVATIVE,
+        RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_IN_ROM,
     };
 
     TEST_SETUP(ecdsa_initialise_key_data(&ecdsa_public_key_data));
@@ -630,15 +635,16 @@ void rse_bl1_provisioning_test_0002(struct test_result_t *ret)
 
             TEST_LOG(" > %s signature: testing corruption at offset %d (%d of %d):\r\n",
                      signature_config[signature_idx] ==
-                             RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE ? "AES" : "ECDSA",
+                             RSE_PROVISIONING_AUTH_MSG_SIGNATURE_KRTL_DERIVATIVE ? "AES" : "ECDSA",
                      (uintptr_t)corruption_ptrs[idx] - (uintptr_t)&test_blob, idx + 1,
                      ARRAY_SIZE(corruption_ptrs));
 
-            FIH_CALL(validate_and_unpack_blob, plat_err,
-                test_blob, get_blob_size(test_blob), (void *)PROVISIONING_BUNDLE_CODE_START,
-                PROVISIONING_BUNDLE_CODE_SIZE, (void *)PROVISIONING_BUNDLE_DATA_START,
-                PROVISIONING_BUNDLE_DATA_SIZE, (void *)PROVISIONING_BUNDLE_VALUES_START,
-                PROVISIONING_BUNDLE_VALUES_SIZE, setup_provisioning_aes_key, get_global_public_key);
+            FIH_CALL(validate_and_unpack_message, plat_err, &test_blob->header,
+                     test_blob->code_and_data_and_secret_values, get_blob_size(test_blob),
+                     (void *)PROVISIONING_BUNDLE_CODE_START, PROVISIONING_BUNDLE_CODE_SIZE,
+                     (void *)PROVISIONING_BUNDLE_DATA_START, PROVISIONING_BUNDLE_DATA_SIZE,
+                     (void *)PROVISIONING_BUNDLE_VALUES_START, PROVISIONING_BUNDLE_VALUES_SIZE,
+                     setup_provisioning_aes_key, get_global_public_key);
 
             TEST_ASSERT(plat_err != FIH_SUCCESS,
                         "Signature validation succeeded when it should have failed\r\n");
@@ -659,8 +665,8 @@ static const enum rse_kmu_slot_id_t invalid_kmu_keys[] = {
     30, /* Not set up at all */
 };
 
-static enum tfm_plat_err_t setup_invalid_aes_key(const struct rse_provisioning_message_blob_t *blob,
-                                                 uint32_t *key_id)
+static enum tfm_plat_err_t
+setup_invalid_aes_key(const struct rse_provisioning_authentication_header_t *blob, uint32_t *key_id)
 {
     static size_t counter;
 
@@ -687,17 +693,18 @@ void rse_bl1_provisioning_test_0003(struct test_result_t *ret)
     TEST_SETUP(kmu_set_key_locked(&KMU_DEV_S, invalid_kmu_keys[1]));
 
     TEST_SETUP(init_test_image_sign_random_key(
-        test_blob, NULL, RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE, 32, 32, 32, false, true));
+        test_blob, NULL, RSE_PROVISIONING_AUTH_MSG_SIGNATURE_KRTL_DERIVATIVE, 32, 32, 32, false, true));
 
     for (int idx = 0; idx < ARRAY_SIZE(invalid_kmu_keys); idx++) {
         TEST_LOG(" > testing invalid key %d (%d of %d):\r\n", invalid_kmu_keys[idx], idx + 1,
                  ARRAY_SIZE(invalid_kmu_keys));
 
-        FIH_CALL(validate_and_unpack_blob, plat_err,
-            test_blob, get_blob_size(test_blob), (void *)PROVISIONING_BUNDLE_CODE_START,
-            PROVISIONING_BUNDLE_CODE_SIZE, (void *)PROVISIONING_BUNDLE_DATA_START,
-            PROVISIONING_BUNDLE_DATA_SIZE, (void *)PROVISIONING_BUNDLE_VALUES_START,
-            PROVISIONING_BUNDLE_VALUES_SIZE, setup_invalid_aes_key, NULL);
+        FIH_CALL(validate_and_unpack_message, plat_err, &test_blob->header,
+                 test_blob->code_and_data_and_secret_values, get_blob_size(test_blob),
+                 (void *)PROVISIONING_BUNDLE_CODE_START, PROVISIONING_BUNDLE_CODE_SIZE,
+                 (void *)PROVISIONING_BUNDLE_DATA_START, PROVISIONING_BUNDLE_DATA_SIZE,
+                 (void *)PROVISIONING_BUNDLE_VALUES_START, PROVISIONING_BUNDLE_VALUES_SIZE,
+                 setup_invalid_aes_key, NULL);
 
         TEST_ASSERT(fih_ret_decode_zero_equality(plat_err) == (enum tfm_plat_err_t)PSA_ERROR_NOT_PERMITTED,
                     "Key loading succeeded when it should have failed\r\n");
@@ -713,9 +720,10 @@ void rse_bl1_provisioning_test_0003(struct test_result_t *ret)
 
 static struct rse_provisioning_ecdsa_gen_key_data_t invalid_ecdsa_keys[2];
 
-enum tfm_plat_err_t get_invalid_public_key(const struct rse_provisioning_message_blob_t *blob,
-                                           uint32_t **public_key_x, size_t *public_key_x_size,
-                                           uint32_t **public_key_y, size_t *public_key_y_size)
+enum tfm_plat_err_t
+get_invalid_public_key(const struct rse_provisioning_authentication_header_t *blob,
+                       uint32_t **public_key_x, size_t *public_key_x_size, uint32_t **public_key_y,
+                       size_t *public_key_y_size)
 {
     static size_t counter;
     struct rse_provisioning_ecdsa_gen_key_data_t *ecdsa_data = &invalid_ecdsa_keys[counter++];
@@ -741,18 +749,19 @@ void rse_bl1_provisioning_test_0004(struct test_result_t *ret)
     TEST_SETUP(ecdsa_initialise_key_data(&ecdsa_public_key_data));
 
     TEST_SETUP(init_test_image_sign_random_key(test_blob, &ecdsa_public_key_data,
-                                               RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_IN_ROM, 32, 32,
+                                               RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_IN_ROM, 32, 32,
                                                32, false, true));
 
     for (int idx = 0; idx < ARRAY_SIZE(invalid_ecdsa_keys); idx++) {
         TEST_LOG(" > testing invalid key %d (%d of %d):\r\n", invalid_ecdsa_keys[idx], idx + 1,
                  ARRAY_SIZE(invalid_ecdsa_keys));
 
-        FIH_CALL(validate_and_unpack_blob, plat_err,
-            test_blob, get_blob_size(test_blob), (void *)PROVISIONING_BUNDLE_CODE_START,
-            PROVISIONING_BUNDLE_CODE_SIZE, (void *)PROVISIONING_BUNDLE_DATA_START,
-            PROVISIONING_BUNDLE_DATA_SIZE, (void *)PROVISIONING_BUNDLE_VALUES_START,
-            PROVISIONING_BUNDLE_VALUES_SIZE, setup_provisioning_aes_key, get_invalid_public_key);
+        FIH_CALL(validate_and_unpack_message, plat_err, &test_blob->header,
+                 test_blob->code_and_data_and_secret_values, get_blob_size(test_blob),
+                 (void *)PROVISIONING_BUNDLE_CODE_START, PROVISIONING_BUNDLE_CODE_SIZE,
+                 (void *)PROVISIONING_BUNDLE_DATA_START, PROVISIONING_BUNDLE_DATA_SIZE,
+                 (void *)PROVISIONING_BUNDLE_VALUES_START, PROVISIONING_BUNDLE_VALUES_SIZE,
+                 setup_provisioning_aes_key, get_invalid_public_key);
 
         TEST_ASSERT(fih_ret_decode_zero_equality(plat_err) == (enum tfm_plat_err_t)CC3XX_ERR_ECDSA_SIGNATURE_INVALID,
                     "Signature check succeeded when it should have failed\r\n");
@@ -846,54 +855,54 @@ static void setup_blob_with_provisioning_config(struct rse_provisioning_message_
                                                 enum lcm_lcs_t *valid_lcs, size_t num_lcs,
                                                 bool sp_required)
 {
-    enum rse_provisioning_blob_required_tp_mode_config_t tp_mode_config;
-    enum rse_provisioning_blob_valid_lcs_mask_t lcs_mask = 0;
-    enum rse_provisioning_blob_required_sp_mode_config_t sp_mode_config;
+    enum rse_provisioning_auth_msg_required_tp_mode_config_t tp_mode_config;
+    enum rse_provisioning_auth_msg_valid_lcs_mask_t lcs_mask = 0;
+    enum rse_provisioning_auth_msg_required_sp_mode_config_t sp_mode_config;
 
     switch (tp_mode) {
     case LCM_TP_MODE_VIRGIN:
-        tp_mode_config = RSE_PROVISIONING_BLOB_REQUIRES_TP_MODE_VIRGIN;
+        tp_mode_config = RSE_PROVISIONING_AUTH_MSG_REQUIRES_TP_MODE_VIRGIN;
         break;
     case LCM_TP_MODE_PCI:
-        tp_mode_config = RSE_PROVISIONING_BLOB_REQUIRES_TP_MODE_PCI;
+        tp_mode_config = RSE_PROVISIONING_AUTH_MSG_REQUIRES_TP_MODE_PCI;
         break;
     case LCM_TP_MODE_TCI:
-        tp_mode_config = RSE_PROVISIONING_BLOB_REQUIRES_TP_MODE_TCI;
+        tp_mode_config = RSE_PROVISIONING_AUTH_MSG_REQUIRES_TP_MODE_TCI;
         break;
     default:
         tp_mode_config = 0;
         break;
     }
 
-    blob->header.purpose |= (tp_mode_config & RSE_PROVISIONING_BLOB_PURPOSE_TP_MODE_MASK)
-                            << RSE_PROVISIONING_BLOB_PURPOSE_TP_MODE_OFFSET;
+    blob->header.purpose |= (tp_mode_config & RSE_PROVISIONING_AUTH_MSG_PURPOSE_TP_MODE_MASK)
+                            << RSE_PROVISIONING_AUTH_MSG_PURPOSE_TP_MODE_OFFSET;
 
     for (unsigned i = 0; i < num_lcs; i++) {
         switch (valid_lcs[i]) {
         case LCM_LCS_CM:
-            lcs_mask |= RSE_PROVISIONING_BLOB_VALID_IN_CM_LCS;
+            lcs_mask |= RSE_PROVISIONING_AUTH_MSG_VALID_IN_CM_LCS;
             break;
         case LCM_LCS_DM:
-            lcs_mask |= RSE_PROVISIONING_BLOB_VALID_IN_DM_LCS;
+            lcs_mask |= RSE_PROVISIONING_AUTH_MSG_VALID_IN_DM_LCS;
             break;
         case LCM_LCS_SE:
-            lcs_mask |= RSE_PROVISIONING_BLOB_VALID_IN_SE_LCS;
+            lcs_mask |= RSE_PROVISIONING_AUTH_MSG_VALID_IN_SE_LCS;
             break;
         case LCM_LCS_RMA:
-            lcs_mask |= RSE_PROVISIONING_BLOB_VALID_IN_RMA_LCS;
+            lcs_mask |= RSE_PROVISIONING_AUTH_MSG_VALID_IN_RMA_LCS;
             break;
         default:
             break;
         }
     }
 
-    blob->header.purpose |= (lcs_mask & RSE_PROVISIONING_BLOB_PURPOSE_LCS_MASK_MASK)
-                            << RSE_PROVISIONING_BLOB_PURPOSE_LCS_MASK_OFFSET;
+    blob->header.purpose |= (lcs_mask & RSE_PROVISIONING_AUTH_MSG_PURPOSE_LCS_MASK_MASK)
+                            << RSE_PROVISIONING_AUTH_MSG_PURPOSE_LCS_MASK_OFFSET;
 
-    sp_mode_config = sp_required ? RSE_PROVISIONING_BLOB_REQUIRES_SP_MODE_ENABLED :
-                                   RSE_PROVISIONING_BLOB_REQUIRES_SP_MODE_DISABLED;
-    blob->header.purpose |= (sp_mode_config & RSE_PROVISIONING_BLOB_PURPOSE_SP_MODE_MASK)
-                            << RSE_PROVISIONING_BLOB_PURPOSE_SP_MODE_OFFSET;
+    sp_mode_config = sp_required ? RSE_PROVISIONING_AUTH_MSG_REQUIRES_SP_MODE_ENABLED :
+                                   RSE_PROVISIONING_AUTH_MSG_REQUIRES_SP_MODE_DISABLED;
+    blob->header.purpose |= (sp_mode_config & RSE_PROVISIONING_AUTH_MSG_PURPOSE_SP_MODE_MASK)
+                            << RSE_PROVISIONING_AUTH_MSG_PURPOSE_SP_MODE_OFFSET;
 }
 
 static enum tfm_plat_err_t provision_blob(struct rse_provisioning_message_blob_t *blob)
@@ -903,7 +912,7 @@ static enum tfm_plat_err_t provision_blob(struct rse_provisioning_message_blob_t
         struct rse_provisioning_message_t message;
         uint8_t __data[CODE_DATA_SECRET_VALUES_SIZE];
     } message_with_data;
-    struct default_blob_handler_ctx_t ctx;
+    struct default_blob_authenticated_data_handler_ctx_t ctx;
     struct provisioning_message_handler_config config;
     struct rse_provisioning_message_t *message = &message_with_data.message;
 
@@ -913,7 +922,7 @@ static enum tfm_plat_err_t provision_blob(struct rse_provisioning_message_blob_t
     message->header.data_length = blob_size;
     memcpy(&message->blob, blob, blob_size);
 
-    ctx.blob_is_chainloaded = false;
+    ctx.message_is_chainloaded = false;
     ctx.setup_aes_key = setup_provisioning_aes_key;
     ctx.get_rotpk = provisioning_rotpk_get;
 
@@ -928,7 +937,7 @@ static void provisioning_test_invalid_lcs(struct test_result_t *ret, enum lcm_lc
 
     setup_blob_with_provisioning_config(test_blob, LCM_TP_MODE_PCI, &lcs, 1, true);
     plat_err = provision_blob(test_blob);
-    if (plat_err != TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_PURPOSE) {
+    if (plat_err != TFM_PLAT_ERR_PROVISIONING_AUTH_MSG_INVALID_PURPOSE) {
         TEST_FAIL("PCI blob provisioning should not be possible with invalid LCS");
         return;
     }
@@ -1003,7 +1012,7 @@ create_complete_signed_blob(struct rse_provisioning_message_blob_t *blob,
                             const struct rse_provisioning_ecdsa_gen_key_data_t *key_data,
                             uintptr_t func_ptr, enum lcm_tp_mode_t tp_mode,
                             enum lcm_lcs_t *valid_lcs, size_t num_lcs, bool sp_required,
-                            enum rse_provisioning_blob_signature_config_t signature_config,
+                            enum rse_provisioning_auth_msg_signature_config_t signature_config,
                             bool encrypt_code_data, bool encrypt_secret)
 {
     enum tfm_plat_err_t plat_err;
@@ -1029,15 +1038,15 @@ create_complete_signed_blob(struct rse_provisioning_message_blob_t *blob,
     }
 
     switch (signature_config) {
-    case RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE:
+    case RSE_PROVISIONING_AUTH_MSG_SIGNATURE_KRTL_DERIVATIVE:
         return aes_sign_encrypt_test_image(CC3XX_AES_MODE_CCM, RSE_KMU_SLOT_PROVISIONING_KEY, blob);
-    case RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM:
+    case RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_NOT_IN_ROM:
         memcpy(blob->header.public_key, key_data->public_key_x, key_data->public_key_x_len);
         memcpy(blob->header.public_key + key_data->public_key_x_len, key_data->public_key_y,
                key_data->public_key_y_len);
         return ecdsa_sign_then_encrypt_test_image(key_data->private_key, key_data->private_key_len,
                                                   RSE_KMU_SLOT_PROVISIONING_KEY, blob);
-    case RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_IN_ROM:
+    case RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_IN_ROM:
         return ecdsa_sign_then_encrypt_test_image(key_data->private_key,
                                                   key_data->private_key_len,
                                                   RSE_KMU_SLOT_PROVISIONING_KEY, blob);
@@ -1049,7 +1058,7 @@ create_complete_signed_blob(struct rse_provisioning_message_blob_t *blob,
 static void provisioning_test_complete_valid_blob(
     struct test_result_t *ret, enum lcm_tp_mode_t tp_mode,
     const struct rse_provisioning_ecdsa_gen_key_data_t *key_data,
-    enum rse_provisioning_blob_signature_config_t *signature_config, size_t signature_config_size)
+    enum rse_provisioning_auth_msg_signature_config_t *signature_config, size_t signature_config_size)
 {
     enum tfm_plat_err_t plat_err;
 
@@ -1071,9 +1080,9 @@ static void provisioning_test_complete_valid_blob(
             for (int signature_idx = 0; signature_idx < signature_config_size; signature_idx++) {
                 TEST_LOG(" > provisioning blob test %s %s %s payload 0x%x:\r\n",
                          signature_config[signature_idx] ==
-                                 RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE ? "AES" : "ECDSA",
+                                 RSE_PROVISIONING_AUTH_MSG_SIGNATURE_KRTL_DERIVATIVE ? "AES" : "ECDSA",
                          signature_config[signature_idx] ==
-                                 RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM ? "in blob" : "",
+                                 RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_NOT_IN_ROM ? "in blob" : "",
                          code_data_encrypted[encryption_idx] ? "encrypted" : "not encrypted",
                          test_payload_return_values[test_payload_idx]);
 
@@ -1100,9 +1109,9 @@ static void provisioning_test_complete_valid_blob(
 static void provisioning_test_public_key_not_in_blob(struct test_result_t *ret,
                                                      enum lcm_tp_mode_t tp_mode)
 {
-    enum rse_provisioning_blob_signature_config_t signature_config[] = {
-        RSE_PROVISIONING_BLOB_SIGNATURE_KRTL_DERIVATIVE,
-        RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_IN_ROM,
+    enum rse_provisioning_auth_msg_signature_config_t signature_config[] = {
+        RSE_PROVISIONING_AUTH_MSG_SIGNATURE_KRTL_DERIVATIVE,
+        RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_IN_ROM,
     };
 
     provisioning_test_complete_valid_blob(ret, tp_mode, &ecdsa_rom_private_key, signature_config,
@@ -1193,8 +1202,8 @@ void rse_bl1_provisioning_test_0405(struct test_result_t *ret)
 static void provisioning_test_public_key_in_blob(struct test_result_t *ret,
                                                  enum lcm_tp_mode_t tp_mode)
 {
-    enum rse_provisioning_blob_signature_config_t signature_config[] = {
-        RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM,
+    enum rse_provisioning_auth_msg_signature_config_t signature_config[] = {
+        RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_NOT_IN_ROM,
     };
 
     provisioning_test_complete_valid_blob(ret, tp_mode, &ecdsa_key_in_blob_data, signature_config,
@@ -1223,11 +1232,11 @@ static void provisioning_test_invalid_public_key_in_blob(struct test_result_t *r
 
     TEST_SETUP(create_complete_signed_blob(
         test_blob, &ecdsa_public_key_data, (uintptr_t)return_true, tp_mode, valid_lcs,
-        ARRAY_SIZE(valid_lcs), true, RSE_PROVISIONING_BLOB_SIGNATURE_ROTPK_NOT_IN_ROM, true, true));
+        ARRAY_SIZE(valid_lcs), true, RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_NOT_IN_ROM, true, true));
 
     plat_err = provision_blob(test_blob);
 
-    TEST_ASSERT(plat_err == TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_HASH_VALUE,
+    TEST_ASSERT(plat_err == TFM_PLAT_ERR_PROVISIONING_AUTH_MSG_INVALID_HASH_VALUE,
                 "Provisioning should have failed due to invalid hash value");
 
     TEST_TEARDOWN(test_teardown(RSE_KMU_SLOT_PROVISIONING_KEY, test_blob));
