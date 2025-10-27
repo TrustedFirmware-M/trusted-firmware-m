@@ -16,57 +16,49 @@
 #include "rse_boot_measurements.h"
 
 static int get_rotpk_sw_type(uint8_t rotpk_index, uint8_t rotpk_revocation_counter_index,
-                             char *sw_type_buf, size_t sw_buf_size)
+                             char *sw_type_buf, size_t sw_buf_size, bool is_cm)
 {
-    size_t sw_type_str_offset = 0;
-    char *prefix = "CM";
-    size_t prefix_size = sizeof("CM") - 1;
-
+    /* <CM|DM>_<REVOCATION_COUNTER_INDEX>_<<CM|DM>_ROTPK_INDEX>
+     * Revocation counter and CM/DM ROTPK index are assumed to be single digits.
+     */
+    char sw_type_tmp_buf[] = "XM_X_X";
 
     if (rotpk_index >= 10 || rotpk_revocation_counter_index >= 10) {
         return 1;
     }
 
-    /* CM_<REVOCATION_COUNTER_INDEX>_<CM_ROTPK_INDEX>
-     * Revocation counter and CM ROTPK index are assumed to be single digits.
-     */
-    size_t req_len = prefix_size + sizeof(char) + sizeof(char) +
-                     sizeof(char) + sizeof(char);
-
-    if (req_len > sw_buf_size) {
+    if (sizeof(sw_type_tmp_buf) > sw_buf_size) {
         return 1;
     }
 
-    memcpy(sw_type_buf + sw_type_str_offset, prefix, prefix_size);
-    sw_type_str_offset += prefix_size;
+    if (is_cm) {
+        sw_type_tmp_buf[0] = 'C';
+    } else {
+        sw_type_tmp_buf[0] = 'D';
+    }
 
-    sw_type_buf[sw_type_str_offset] = (char)('_');
-    sw_type_str_offset += sizeof(char);
+    sw_type_tmp_buf[3] = (char)('0' + rotpk_revocation_counter_index);
+    sw_type_tmp_buf[5] = (char)('0' + rotpk_index);
 
-    sw_type_buf[sw_type_str_offset] = (char)('0' + rotpk_revocation_counter_index);
-    sw_type_str_offset += sizeof(char);
-
-    sw_type_buf[sw_type_str_offset] = (char)('_');
-    sw_type_str_offset += sizeof(char);
-
-    sw_type_buf[sw_type_str_offset] = (char)('0' + rotpk_index);
-    sw_type_str_offset += sizeof(char);
-
-    sw_type_buf[sw_type_str_offset] = '\0';
+    memcpy(sw_type_buf, sw_type_tmp_buf, sizeof(sw_type_tmp_buf));
 
     return 0;
 }
 
-int32_t add_rotpk_hash_to_shared_area(void)
+int32_t add_rotpk_hash_to_shared_area(bool is_cm)
 {
     size_t rotpk_len;
-    int rotpk_cnt = 0;
     int32_t result;
     uint8_t index;
+    uint8_t index_base;
     uint8_t rotpk_buf[RSE_ROTPK_MAX_SIZE];
     enum rse_rotpk_hash_alg rse_hash_alg;
-    uint32_t active_cm_idx;
+    uint32_t active_idx;
+    enum tfm_nv_counter_t counter_id;
+    enum tfm_otp_element_id_t id;
+    enum tfm_otp_element_id_t id_max;
 
+    int rotpk_cnt = 0;
     struct boot_measurement_metadata metadata = {
         .measurement_type = 0,
         .signer_id = { 0 },
@@ -75,17 +67,27 @@ int32_t add_rotpk_hash_to_shared_area(void)
         .sw_version = { 0 },
     };
 
+    if(is_cm) {
+        id = PLAT_OTP_ID_CM_ROTPK;
+        id_max = PLAT_OTP_ID_CM_ROTPK_MAX;
+        index_base = BOOT_MEASUREMENT_SLOT_CM_ROTPK_0;
+        counter_id = PLAT_NV_COUNTER_CM_ROTPK_REPROVISIONING;
+    } else {
+        id = PLAT_OTP_ID_DM_ROTPK;
+        id_max = PLAT_OTP_ID_DM_ROTPK_MAX;
+        index_base = BOOT_MEASUREMENT_SLOT_DM_ROTPK_0;
+        counter_id = PLAT_NV_COUNTER_DM_ROTPK_REPROVISIONING;
+    }
+
     result = tfm_plat_read_nv_counter(PLAT_NV_COUNTER_CM_ROTPK_REPROVISIONING,
-                                     sizeof(active_cm_idx),
-                                     (uint8_t *)&active_cm_idx);
+                                     sizeof(active_idx),
+                                     (uint8_t *)&active_idx);
     if (result) {
         return result;
     }
 
-    for (enum tfm_otp_element_id_t id = PLAT_OTP_ID_CM_ROTPK;
-         id < PLAT_OTP_ID_CM_ROTPK_MAX; id++, rotpk_cnt++) {
-        index = BOOT_MEASUREMENT_SLOT_CM_ROTPK_0 + rotpk_cnt;
-
+    for (; id < id_max; id++, rotpk_cnt++) {
+        index =  index_base + rotpk_cnt;
         if (tfm_plat_otp_get_size(id, &rotpk_len) != TFM_PLAT_ERR_SUCCESS) {
             return 1;
         }
@@ -108,8 +110,8 @@ int32_t add_rotpk_hash_to_shared_area(void)
             return 1;
         }
 
-        get_rotpk_sw_type(rotpk_cnt, active_cm_idx,
-                          (char *)&metadata.sw_type, sizeof(metadata.sw_type));
+        get_rotpk_sw_type(rotpk_cnt, active_idx,
+                          (char *)&metadata.sw_type, sizeof(metadata.sw_type), is_cm);
 
         result = boot_store_measurement(index, rotpk_buf,
                                         rotpk_len, &metadata, true);

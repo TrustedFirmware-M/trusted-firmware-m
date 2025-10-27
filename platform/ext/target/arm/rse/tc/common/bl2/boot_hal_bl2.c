@@ -160,7 +160,14 @@ int32_t boot_platform_post_init(void)
     }
 #endif /* RSE_BL2_ENABLE_IMAGE_STAGING */
 
-    result = add_rotpk_hash_to_shared_area();
+    /* Add CM ROTPK */
+    result = add_rotpk_hash_to_shared_area(true);
+    if (result) {
+        return result;
+    }
+
+    /* Add DM ROTPK */
+    result = add_rotpk_hash_to_shared_area(false);
     if (result) {
         return result;
     }

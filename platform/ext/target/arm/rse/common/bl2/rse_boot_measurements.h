@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-int32_t add_rotpk_hash_to_shared_area(void);
+int32_t add_rotpk_hash_to_shared_area(bool is_cm);
 
 #ifdef __cplusplus
 }
