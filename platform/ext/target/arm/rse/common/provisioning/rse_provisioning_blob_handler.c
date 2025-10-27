@@ -35,33 +35,6 @@
 #define AES_IV_LEN 16
 #define AES_TAG_MAX_LEN 16
 
-static bool rse_debug_is_enabled(void)
-{
-    enum lcm_error_t lcm_err;
-    uint32_t dcu_values[LCM_DCU_WIDTH_IN_BYTES / sizeof(uint32_t)];
-
-    lcm_err = lcm_dcu_get_enabled(&LCM_DEV_S, (uint8_t *)dcu_values);
-    if (lcm_err != LCM_ERROR_NONE) {
-        FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_DEBUG_DISABLED_CHECK_FAILED);
-        /* Assume the least secure case if there is an error */
-        return true;
-    }
-
-    /* FIXME remove this once the FVP is fixed */
-    if (dcu_values[0] == 0) {
-        return false;
-    }
-
-    return (dcu_values[0] & 0x55555555) != 0;
-}
-
-static bool rse_disable_debug_and_reset(void)
-{
-    /* FixMe: Use the reset debug disable mechanism */
-    assert(false);
-    return false;
-}
-
 static enum tfm_plat_err_t is_blob_valid_for_lcs(const struct rse_provisioning_message_blob_t *blob,
                                                  enum lcm_lcs_t lcs)
 {
