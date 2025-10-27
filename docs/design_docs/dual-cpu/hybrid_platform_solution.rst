@@ -506,9 +506,11 @@ possible scenario of a secure service pre-empted by a new task.
 
 
 .. note::
-   The sequence diagram above demonstrates the denial of re-entry until the
-   secure service completes; non-secure applications must check
-   tfm_ns_check_safe_entry() and yield otherwise.
+
+   The sequence diagram above demonstrates the denial of re-entry until the secure
+   service completes; non-secure applications must check tfm_ns_check_safe_entry()
+   and yield otherwise.
+
 
 For the task in the non-secure side that makes a request to a secure service
 (attempting to reenter), below is a possible use case of the reentrancy check:

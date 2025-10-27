@@ -11,7 +11,7 @@ New major features
     - Refer to :doc:`TF-M Build Instruction </building/tfm_build_instruction>` to build SPE image.
     - Refer to :doc:`Building Tests </building/tests_build_instruction>` to build non-secure tests.
 
-  - :doc:`Update new Mailbox agent API </design_docs/dual-cpu/mailbox_ns_agent_update>`.
+  - Update new Mailbox agent API.
 
     - Decouple the specific application Mailbox from SPM, make it an application in Secure Partition.
     - Unify the interfaces between partitions and SPM, and reduces the interaction interface between them.
