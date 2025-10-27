@@ -16,22 +16,29 @@
 #include "lcm_drv.h"
 #include "device_definition.h"
 #include "rse_otp_dev.h"
+#include "lcm_drv.h"
 
 #ifdef RSE_NON_ENDORSED_DM_PROVISIONING
 static enum tfm_plat_err_t
-handle_non_endorsed_dm_rotpks(const struct rse_provisioning_message_plain_t *plain_data,
-                              size_t data_size, struct non_endorsed_provisioning_ctx_s *ctx)
+handle_non_endorsed_dm(const struct rse_provisioning_message_plain_t *plain_data, size_t data_size,
+                       struct rotpk_revocation_ctx_s *rotpk_revocation_ctx)
 {
     enum tfm_plat_err_t plat_err;
     uint32_t policies_flags;
-    struct rse_non_endorsed_dm_provisioning_values_t *non_endorsed_values;
+    const struct rse_rotpk_revocation_dm_provisioning_values_t *rotpk_revocation_values =
+        (const struct rse_rotpk_revocation_dm_provisioning_values_t *)plain_data->data;
 
-    if (data_size != sizeof(struct rse_non_endorsed_dm_provisioning_values_t)) {
-        return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_SIZE;
+    /* Non-endorsed should just be plain data */
+    if (rotpk_revocation_ctx->authenticated) {
+        return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_AUTH;
     }
 
-    non_endorsed_values = (struct rse_non_endorsed_dm_provisioning_values_t *)plain_data->data;
+    if (data_size != (offsetof(struct rse_rotpk_revocation_dm_provisioning_values_t, rotpk) +
+                      (RSE_OTP_DM_ROTPK_AMOUNT * RSE_OTP_DM_ROTPK_SIZE))) {
+        return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_ROTPK_SIZE;
+    }
 
+    /* Check if CM policy allows non-endorsed DM */
     plat_err = tfm_plat_otp_read(PLAT_OTP_ID_CM_CONFIG_FLAGS, sizeof(policies_flags),
                                  (uint8_t *)&policies_flags);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
@@ -42,17 +49,148 @@ handle_non_endorsed_dm_rotpks(const struct rse_provisioning_message_plain_t *pla
         return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_CM_POLICY;
     }
 
-    plat_err = rse_update_dm_rotpks(non_endorsed_values->non_endorsed_dm_rotpk_policies,
-                                    (uint8_t *)non_endorsed_values->rotpk,
-                                    sizeof(non_endorsed_values->rotpk));
+    /* Non-endorsed can only write to next ROTPK array (index must be 0) */
+    if (rotpk_revocation_values->index != 0) {
+        return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_ROTPK_IDX;
+    }
+
+    /* Must provision, cannot only revoke */
+    if (rotpk_revocation_values->num_rotpks != RSE_OTP_DM_ROTPK_AMOUNT) {
+        return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_NUM_ROTPKS;
+    }
+
+    plat_err = rse_update_dm_rotpks(false, 0,
+                                    rotpk_revocation_values->rotpk_revocation_dm_rotpk_policies,
+                                    (uint8_t *)rotpk_revocation_values->rotpk,
+                                    RSE_OTP_DM_ROTPK_AMOUNT * RSE_OTP_DM_ROTPK_SIZE);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
 
-    message_provisioning_finished(PROVISIONING_REPORT_STEP_UPDATE_ROTPKS);
+    message_provisioning_finished(PROVISIONING_REPORT_STEP_UPDATE_NON_ENDORSED_DM_ROTPKS);
     return TFM_PLAT_ERR_SUCCESS;
 }
 #endif /* RSE_NON_ENDORSED_DM_PROVISIONING */
+
+#ifdef RSE_ROTPK_REVOCATION
+static enum tfm_plat_err_t
+handle_cm_revocation(const struct rse_provisioning_message_plain_t *plain_data, size_t data_size,
+                     struct rotpk_revocation_ctx_s *rotpk_revocation_ctx)
+{
+    enum tfm_plat_err_t plat_err;
+    enum lcm_error_t lcm_err;
+    const struct rse_rotpk_revocation_cm_provisioning_values_t *rotpk_revocation_values =
+        (const struct rse_rotpk_revocation_cm_provisioning_values_t *)plain_data->data;
+    const size_t revocation_size_without_rotpks =
+        offsetof(struct rse_rotpk_revocation_cm_provisioning_values_t, rotpk);
+    enum lcm_lcs_t lcs;
+
+    lcm_err = lcm_get_lcs(&LCM_DEV_S, &lcs);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+    if ((lcs != LCM_LCS_DM) && (lcs != LCM_LCS_SE)) {
+        return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_LCS;
+    }
+
+    if (!rotpk_revocation_ctx->authenticated) {
+        return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_AUTH;
+    }
+
+    if (data_size < revocation_size_without_rotpks) {
+        return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_REVOCATION_SIZE;
+    }
+
+    if (rotpk_revocation_values->num_rotpks == 0) {
+        plat_err = rse_revoke_cm_rotpks(rotpk_revocation_values->index != 0,
+                                        rotpk_revocation_values->index);
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return plat_err;
+        }
+    } else {
+        if (rotpk_revocation_values->num_rotpks != RSE_OTP_CM_ROTPK_AMOUNT) {
+            return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_NUM_ROTPKS;
+        }
+
+        if (data_size !=
+            (revocation_size_without_rotpks + (RSE_OTP_CM_ROTPK_AMOUNT * RSE_OTP_CM_ROTPK_SIZE))) {
+            return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_ROTPK_SIZE;
+        }
+
+        plat_err = rse_update_cm_rotpks(rotpk_revocation_values->index != 0,
+                                        rotpk_revocation_values->index,
+                                        rotpk_revocation_values->rotpk_revocation_cm_rotpk_policies,
+                                        (uint8_t *)rotpk_revocation_values->rotpk,
+                                        RSE_OTP_CM_ROTPK_AMOUNT * RSE_OTP_CM_ROTPK_SIZE);
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return plat_err;
+        }
+    }
+
+    message_provisioning_finished(PROVISIONING_REPORT_STEP_UPDATE_CM_ROTPKS);
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
+static enum tfm_plat_err_t
+handle_dm_revocation(const struct rse_provisioning_message_plain_t *plain_data, size_t data_size,
+                     struct rotpk_revocation_ctx_s *rotpk_revocation_ctx)
+{
+    enum tfm_plat_err_t plat_err;
+    enum lcm_error_t lcm_err;
+    const struct rse_rotpk_revocation_dm_provisioning_values_t *rotpk_revocation_values =
+        (const struct rse_rotpk_revocation_dm_provisioning_values_t *)plain_data->data;
+    const size_t revocation_size_without_rotpks =
+        offsetof(struct rse_rotpk_revocation_dm_provisioning_values_t, rotpk);
+    enum lcm_lcs_t lcs;
+
+    lcm_err = lcm_get_lcs(&LCM_DEV_S, &lcs);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+    if (lcs != LCM_LCS_SE) {
+        return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_LCS;
+    }
+
+    if (!rotpk_revocation_ctx->authenticated) {
+        return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_AUTH;
+    }
+
+    if (data_size < revocation_size_without_rotpks) {
+        return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_REVOCATION_SIZE;
+    }
+
+    if (rotpk_revocation_values->num_rotpks == 0) {
+        plat_err = rse_revoke_dm_rotpks(rotpk_revocation_values->index != 0,
+                                        rotpk_revocation_values->index);
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return plat_err;
+        }
+    } else {
+        if (rotpk_revocation_values->num_rotpks != RSE_OTP_DM_ROTPK_AMOUNT) {
+            return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_NUM_ROTPKS;
+        }
+
+        if (data_size !=
+            (revocation_size_without_rotpks + (RSE_OTP_DM_ROTPK_AMOUNT * RSE_OTP_DM_ROTPK_SIZE))) {
+            return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_ROTPK_SIZE;
+        }
+
+        plat_err = rse_update_dm_rotpks(rotpk_revocation_values->index != 0,
+                                        rotpk_revocation_values->index,
+                                        rotpk_revocation_values->rotpk_revocation_dm_rotpk_policies,
+                                        (uint8_t *)rotpk_revocation_values->rotpk,
+                                        RSE_OTP_DM_ROTPK_AMOUNT * RSE_OTP_DM_ROTPK_SIZE);
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return plat_err;
+        }
+    }
+
+    message_provisioning_finished(PROVISIONING_REPORT_STEP_UPDATE_DM_ROTPKS);
+    return TFM_PLAT_ERR_SUCCESS;
+}
+#endif /* RSE_ROTPK_REVOCATION */
 
 #ifdef RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING
 static enum tfm_plat_err_t
@@ -151,31 +289,39 @@ enum tfm_plat_err_t
 default_plain_data_handler(const struct rse_provisioning_message_plain_t *plain_data,
                            size_t msg_size, const void *ctx)
 {
-#if defined(RSE_NON_ENDORSED_DM_PROVISIONING) || defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
     struct default_plain_data_handler_ctx_s *plain_data_ctx =
         (struct default_plain_data_handler_ctx_s *)ctx;
-#endif /* RSE_NON_ENDORSED_DM_PROVISIONING || RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING */
+    size_t data_size;
 
     if (msg_size < sizeof(*plain_data)) {
         return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_NO_TYPE;
     }
 
+    data_size = msg_size - sizeof(*plain_data);
+
     switch (plain_data->plain_metadata) {
 #ifdef RSE_NON_ENDORSED_DM_PROVISIONING
     case RSE_PROVISIONING_PLAIN_DATA_TYPE_NON_ENDORSED_DM_ROTPKS:
-        return handle_non_endorsed_dm_rotpks(
-            plain_data,
-            msg_size - sizeof(*plain_data),
-            &plain_data_ctx->non_endorsed_provisioning_ctx);
+        return handle_non_endorsed_dm(plain_data, data_size, &plain_data_ctx->rotpk_revocation_ctx);
 #endif /* RSE_NON_ENDORSED_DM_PROVISIONING */
+
+#ifdef RSE_ROTPK_REVOCATION
+    case RSE_PROVISIONING_PLAIN_DATA_TYPE_CM_ROTPK_ARRAY_REVOCATION:
+        return handle_cm_revocation(plain_data, data_size, &plain_data_ctx->rotpk_revocation_ctx);
+
+    case RSE_PROVISIONING_PLAIN_DATA_TYPE_DM_ROTPK_ARRAY_REVOCATION:
+        return handle_dm_revocation(plain_data, data_size, &plain_data_ctx->rotpk_revocation_ctx);
+#endif /* RSE_ROTPK_REVOCATION */
+
 #ifdef RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING
     case RSE_PROVISIONING_PLAIN_DATA_TYPE_ENDORSEMENT_CERTIFICATE_PACKAGE:
         return handle_endorsement_certificate(
-            plain_data,
-            msg_size - sizeof(*plain_data),
-            &plain_data_ctx->endorsement_certificate_provisioning_ctx);
+            plain_data, data_size, &plain_data_ctx->endorsement_certificate_provisioning_ctx);
 #endif /* RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING */
+
     default:
+        (void)plain_data_ctx;
+        (void)data_size;
         return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_TYPE_INVALID;
     }
 }

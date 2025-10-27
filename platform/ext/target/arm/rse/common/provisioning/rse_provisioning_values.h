@@ -62,8 +62,17 @@ struct __attribute__((__packed__)) rse_secret_combined_provisioning_values_t {
 };
 #endif
 
-struct __attribute__((__packed__)) rse_non_endorsed_dm_provisioning_values_t {
-    uint32_t non_endorsed_dm_rotpk_policies;
+struct __attribute__((__packed__)) rse_rotpk_revocation_cm_provisioning_values_t {
+    uint32_t index;
+    uint32_t num_rotpks;
+    uint32_t rotpk_revocation_cm_rotpk_policies;
+    uint8_t rotpk[RSE_OTP_CM_ROTPK_AMOUNT][RSE_OTP_CM_ROTPK_SIZE];
+};
+
+struct __attribute__((__packed__)) rse_rotpk_revocation_dm_provisioning_values_t {
+    uint32_t index;
+    uint32_t num_rotpks;
+    uint32_t rotpk_revocation_dm_rotpk_policies;
     uint8_t rotpk[RSE_OTP_DM_ROTPK_AMOUNT][RSE_OTP_DM_ROTPK_SIZE];
 };
 

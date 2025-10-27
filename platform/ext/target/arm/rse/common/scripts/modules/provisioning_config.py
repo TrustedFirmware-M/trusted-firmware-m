@@ -24,7 +24,8 @@ from cryptography.hazmat.primitives.serialization import load_der_public_key, En
 
 from tfm_tools.crypto_conversion_utils import convert_hash_define
 
-all_regions = ['non_endorsed_dm', 'non_secret_cm', 'secret_cm', 'non_secret_dm', 'secret_dm']
+all_regions = ['rotpk_revocation_cm', 'rotpk_revocation_dm', 'non_secret_cm',
+               'secret_cm', 'non_secret_dm', 'secret_dm']
 
 def _get_rotpk_area_index(f : str):
     try:
@@ -308,9 +309,10 @@ def parse_args(args : argparse.Namespace,
     return out;
 
 class Provisioning_config:
-    def __init__(self, non_endorsed_dm, non_secret_cm, secret_cm,
+    def __init__(self, rotpk_revocation_cm, rotpk_revocation_dm, non_secret_cm, secret_cm,
                  non_secret_dm, secret_dm, defines, enums):
-        self.non_endorsed_dm_layout = non_endorsed_dm
+        self.rotpk_revocation_cm_layout = rotpk_revocation_cm
+        self.rotpk_revocation_dm_layout = rotpk_revocation_dm
         self.non_secret_cm_layout = non_secret_cm
         self.secret_cm_layout = secret_cm
         self.non_secret_dm_layout = non_secret_dm
@@ -322,12 +324,14 @@ class Provisioning_config:
         self.enums = enums
         for e in self.enums:
             self.__dict__ |= self.enums[e].dict
-        self.non_endorsed_dm_rotpk_hash_algs = {}
+        self.rotpk_revocation_cm_rotpk_hash_algs = {}
+        self.rotpk_revocation_dm_rotpk_hash_algs = {}
         self.non_secret_cm_rotpk_hash_algs = {}
         self.secret_cm_rotpk_hash_algs = {}
         self.non_secret_dm_rotpk_hash_algs = {}
         self.secret_dm_rotpk_hash_algs = {}
-        self.non_endorsed_dm_rotpk_types = {}
+        self.rotpk_revocation_cm_rotpk_types = {}
+        self.rotpk_revocation_dm_rotpk_types = {}
         self.non_secret_cm_rotpk_types = {}
         self.secret_cm_rotpk_types = {}
         self.non_secret_dm_rotpk_types = {}

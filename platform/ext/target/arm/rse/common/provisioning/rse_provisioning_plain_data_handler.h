@@ -9,15 +9,18 @@
 #define __RSE_PROVISIONING_PLAIN_DATA_HANDLER_H__
 
 #include <stddef.h>
+#include <stdbool.h>
 #include "rse_provisioning_message.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct non_endorsed_provisioning_ctx_s {
-    /* Currently empty */
-    uint8_t __dummy;
+struct rotpk_revocation_ctx_s {
+    /* Whether the plain data message passed to the
+     * handler was authenticated
+     */
+    bool authenticated;
 };
 
 struct endorsement_certificate_provisioning_ctx_s {
@@ -30,7 +33,7 @@ struct endorsement_certificate_provisioning_ctx_s {
 };
 
 struct default_plain_data_handler_ctx_s {
-    struct non_endorsed_provisioning_ctx_s non_endorsed_provisioning_ctx;
+    struct rotpk_revocation_ctx_s rotpk_revocation_ctx;
     struct endorsement_certificate_provisioning_ctx_s endorsement_certificate_provisioning_ctx;
 };
 

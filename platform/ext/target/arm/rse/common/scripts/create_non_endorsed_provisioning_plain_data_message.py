@@ -26,7 +26,7 @@ def add_arguments(parser: argparse.ArgumentParser,
                   required: bool = True,
                   ) -> None:
     oc.add_arguments(parser, prefix, required)
-    pc.add_arguments(parser, prefix, required, regions=["non_endorsed_dm"])
+    pc.add_arguments(parser, prefix, required, regions=["rotpk_revocation_dm"])
     pmc.add_arguments(parser, prefix, required,
                       message_type="RSE_PROVISIONING_MESSAGE_TYPE_PLAIN_DATA")
 
@@ -67,7 +67,7 @@ def main():
     with open(args.output_file, "wb") as f:
         message = pmc.create_plain_data_message(**kwargs,
                                             plain_data_type=kwargs['provisioning_message_config'].RSE_PROVISIONING_PLAIN_DATA_TYPE_NON_ENDORSED_DM_ROTPKS,
-                                            data=kwargs['provisioning_config'].non_endorsed_dm_layout.to_bytes())
+                                            data=kwargs['provisioning_config'].rotpk_revocation_dm_layout.to_bytes())
         f.write(message)
 
 

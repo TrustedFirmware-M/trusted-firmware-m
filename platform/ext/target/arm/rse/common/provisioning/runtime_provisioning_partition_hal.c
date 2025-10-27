@@ -69,7 +69,13 @@ enum runtime_provisioning_error_t runtime_provisioning_hal_init(void)
 static enum tfm_plat_err_t handle_plain_data_message(struct rse_provisioning_message_t *message)
 {
     enum tfm_plat_err_t err;
-    struct default_plain_data_handler_ctx_s ctx;
+
+    struct default_plain_data_handler_ctx_s ctx = {
+        .rotpk_revocation_ctx = {
+            .authenticated = false,
+        }
+    };
+
     struct provisioning_message_handler_config config = {
         .plain_data_handler = default_plain_data_handler,
     };
