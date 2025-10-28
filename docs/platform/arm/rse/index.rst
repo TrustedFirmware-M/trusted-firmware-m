@@ -19,6 +19,7 @@ Previously known as Runtime Security Subsystem (RSS).
     RSE ROM unit test guidelines <rse_unit_tests_guidelines.rst>
     RSE staged boot <rse_staged_boot.rst>
     RSE firmware update metadata <rse_fwu_metadata.rst>
+    RSE Cryptography <rse_crypto.rst>
 
 RSE also includes the following extra partitions:
 
@@ -29,4 +30,4 @@ RSE also includes the following extra partitions:
 
 --------------
 
-*Copyright (c) 2022-2024, Arm Limited. All rights reserved.*
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
