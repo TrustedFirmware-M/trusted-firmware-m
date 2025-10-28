@@ -30,9 +30,3 @@ set(MCUBOOT_BUILTIN_KEY               ON               CACHE BOOL      "Use buil
 
 set(TFM_MERGE_HEX_FILES               ON                                              CACHE BOOL   "Create merged hex file in the end of the build")
 set(TFM_S_HEX_FILE_PATH               "${CMAKE_BINARY_DIR}/bin/secure_fw.hex"         CACHE STRING "Merged secure hex file's path")
-
-create_tfm_s_hex_merge_list(
-    BL2_TARGET          bl2_hex
-    TFM_S_TARGET        tfm_s_hex
-    TFM_S_SIGNED_TARGET tfm_s_signed_hex
-)

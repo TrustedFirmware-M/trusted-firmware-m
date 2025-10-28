@@ -126,6 +126,14 @@ macro(create_tfm_s_hex_merge_list)
     #  - For plain files: use them as-is
     set(_INPUT_ARGS)
 
+    if(NOT DEFINED BL2)
+        message(FATAL_ERROR "BL2 is not defined")
+    endif()
+
+    if(NOT DEFINED MCUBOOT_IMAGE_NUMBER)
+        message(FATAL_ERROR "MCUBOOT_IMAGE_NUMBER is not defined")
+    endif()
+
     if(BL2)
         list(APPEND _INPUT_ARGS ${MH_BL2_TARGET})
         if(MCUBOOT_IMAGE_NUMBER GREATER 1)

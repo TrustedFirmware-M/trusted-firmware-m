@@ -478,3 +478,12 @@ if(DEFAULT_NS_SCATTER)
                         ${PLATFORM_DIR}/ext/common/atfe/tfm_common_ns.ldc
             DESTINATION ${INSTALL_PLATFORM_NS_DIR}/linker_scripts)
 endif()
+
+create_tfm_s_hex_merge_list(
+    BL2_TARGET          bl2_signed_hex
+    TFM_S_TARGET        tfm_s_hex
+    TFM_S_SIGNED_TARGET tfm_s_signed_hex
+    INPUT_TARGETS       bl1_1_hex
+                        dm_provisioning_bundle_hex
+                        cm_provisioning_bundle_hex
+)
