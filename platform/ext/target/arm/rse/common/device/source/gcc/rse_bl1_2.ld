@@ -44,6 +44,7 @@ SECTIONS
         . = ALIGN(4);
         /* preinit data */
         PROVIDE_HIDDEN (__preinit_array_start = .);
+        PROVIDE(__bothinit_array_start = __preinit_array_start);
         KEEP(*(.preinit_array))
         PROVIDE_HIDDEN (__preinit_array_end = .);
 
@@ -53,6 +54,7 @@ SECTIONS
         KEEP(*(SORT(.init_array.*)))
         KEEP(*(.init_array))
         PROVIDE_HIDDEN (__init_array_end = .);
+        PROVIDE(__bothinit_array_end = __init_array_end);
 
         . = ALIGN(4);
         /* finit data */
