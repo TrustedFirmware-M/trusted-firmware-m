@@ -46,8 +46,6 @@ static inline enum sfcp_error_t sfcp_hal_error_to_sfcp_error(enum sfcp_hal_error
 {
     if (hal_error == SFCP_HAL_ERROR_SUCCESS) {
         return SFCP_ERROR_SUCCESS;
-    } else if (hal_error == SFCP_HAL_ERROR_SEND_MESSAGE_BUS_BUSY) {
-        return SFCP_ERROR_SEND_MSG_BUS_BUSY;
     } else if (hal_error >= SFCP_HAL_ERROR_MAX) {
         /* Could have error directly from HAL driver */
         return (enum sfcp_error_t)hal_error;

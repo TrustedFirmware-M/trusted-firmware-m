@@ -20,6 +20,7 @@ target_sources(platform_s
         sfcp_atu.c
         sfcp_link_hal.c
         sfcp.c
+        sfcp_random.c
         sfcp_helpers.c
         $<$<BOOL:${SFCP_SUPPORT_LEGACY_MSG_PROTOCOL}>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp_legacy_msg.c>
         # Encryption not currently supported in runtime
@@ -51,6 +52,7 @@ if (RSE_AMOUNT GREATER 1)
         PRIVATE
             sfcp_link_hal.c
             sfcp.c
+            sfcp_random.c
             sfcp_helpers.c
             $<$<BOOL:${SFCP_ENABLE_ENCRYPTION}>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp_encryption_bl.c>
             $<$<BOOL:${SFCP_ENABLE_ENCRYPTION}>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp_trusted_subnets.c>

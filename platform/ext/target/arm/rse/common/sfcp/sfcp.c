@@ -15,6 +15,7 @@
 #include "sfcp_helpers.h"
 #include "sfcp_legacy_msg.h"
 #include "sfcp_encryption.h"
+#include "sfcp_random.h"
 
 #ifndef SFCP_MAX_NUMBER_MESSAGE_HANDLERS
 #define SFCP_MAX_NUMBER_MESSAGE_HANDLERS (2)
@@ -23,6 +24,8 @@
 #ifndef SFCP_MAX_NUMBER_REPLY_HANDLERS
 #define SFCP_MAX_NUMBER_REPLY_HANDLERS (2)
 #endif
+
+#define BUS_ARBITRATION_RANDOM_DELAY_MAX_CYCLES (10000)
 
 struct sfcp_handler_table_entry_t {
     sfcp_handler_t handler;
@@ -208,13 +211,46 @@ enum sfcp_error_t sfcp_init_msg(uint8_t *buf, size_t buf_size, sfcp_node_id_t re
     return SFCP_ERROR_SUCCESS;
 }
 
+static enum sfcp_error_t __send_msg_reply(sfcp_node_id_t remote_node, sfcp_link_id_t link_id,
+                                          struct sfcp_packet_t *packet, size_t packet_size,
+                                          bool is_msg)
+{
+    enum sfcp_hal_error_t hal_error;
+    volatile uint64_t lfsr_random;
+
+    hal_error = sfcp_hal_send_message(link_id, (const uint8_t *)packet, packet_size);
+    if (hal_error != SFCP_HAL_ERROR_SEND_MESSAGE_BUS_BUSY) {
+        /* Success or error we cannot handle
+         * here
+         */
+        return sfcp_hal_error_to_sfcp_error(hal_error);
+    }
+
+    /* Wait arbitrary amount of time
+     * before returning to ensure bus arbitration.
+     * Seed the LFSR with the packet
+     */
+    lfsr_random = sfcp_random_generate_random_lfsr((uint8_t *)packet, packet_size) %
+                  BUS_ARBITRATION_RANDOM_DELAY_MAX_CYCLES;
+
+    while (lfsr_random > 0) {
+        lfsr_random--;
+    }
+
+    /* Indicate to the caller that a message is
+     * waiting, we expect the caller to receive the
+     * pending message or wait before trying to
+     * send their message again
+     */
+    return SFCP_ERROR_SEND_MSG_BUS_BUSY;
+}
+
 static enum sfcp_error_t send_msg_reply(struct sfcp_packet_t *packet, size_t packet_size,
                                         size_t payload_size, bool is_msg)
 {
     enum sfcp_error_t sfcp_err;
     bool uses_cryptography, uses_id_extension;
     sfcp_link_id_t link_id;
-    enum sfcp_hal_error_t hal_error;
     size_t packet_transfer_size;
     sfcp_node_id_t remote_node;
 
@@ -289,12 +325,7 @@ static enum sfcp_error_t send_msg_reply(struct sfcp_packet_t *packet, size_t pac
     packet = (struct sfcp_packet_t *)sfcp_legacy_conversion_buffer;
 #endif
 
-    hal_error = sfcp_hal_send_message(link_id, (const uint8_t *)packet, packet_transfer_size);
-    if (hal_error != SFCP_HAL_ERROR_SUCCESS) {
-        return sfcp_hal_error_to_sfcp_error(hal_error);
-    }
-
-    return SFCP_ERROR_SUCCESS;
+    return __send_msg_reply(remote_node, link_id, packet, packet_transfer_size, is_msg);
 }
 
 enum sfcp_error_t sfcp_send_msg(struct sfcp_packet_t *msg, size_t msg_size, size_t payload_size)
