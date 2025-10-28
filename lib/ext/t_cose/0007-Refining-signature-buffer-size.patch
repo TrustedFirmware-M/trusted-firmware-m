@@ -1,7 +1,7 @@
-From cdd08bf9efa3b470ee8ea2e37cd39c27986d7cf9 Mon Sep 17 00:00:00 2001
+From 54e9036ea276684160219d87333871a6b370b2fa Mon Sep 17 00:00:00 2001
 From: "G. Varga, Gabor" <Gabor.G.Varga@arm.com>
 Date: Tue, 29 Jul 2025 14:17:06 +0200
-Subject: [PATCH 07/10] Refining signature buffer size
+Subject: [PATCH 07/12] Refining signature buffer size
 
 When using t_cose with the PSA Crypto adaptor layer,
 the output signature buffer passed into t_cose_crypto_sign() originates
@@ -55,5 +55,5 @@ index 2095002..0d32cba 100644
  
      return_value = psa_status_to_t_cose_error_signing(psa_result);
 -- 
-2.43.0
+2.34.1
 

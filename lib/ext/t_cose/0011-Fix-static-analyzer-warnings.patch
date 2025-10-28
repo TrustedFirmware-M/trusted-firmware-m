@@ -1,0 +1,147 @@
+From f2cf155671ee56d6a2b9f91e82d3b6188656ccf4 Mon Sep 17 00:00:00 2001
+From: David Vincze <david.vincze@arm.com>
+Date: Tue, 21 Oct 2025 16:03:13 +0000
+Subject: [PATCH 11/12] Fix static analyzer warnings
+
+Fix the following static analyzer warnings:
+- Explicitly ignore return values,
+- Restructure conditionally compiled code blocks
+  to avoid logically dead code warnings.
+
+Signed-off-by: David Vincze <david.vincze@arm.com>
+---
+ crypto_adapters/t_cose_psa_crypto.c | 82 +++++++++++++++++++++--------
+ 1 file changed, 60 insertions(+), 22 deletions(-)
+
+diff --git a/crypto_adapters/t_cose_psa_crypto.c b/crypto_adapters/t_cose_psa_crypto.c
+index c9203db..11ae17e 100644
+--- a/crypto_adapters/t_cose_psa_crypto.c
++++ b/crypto_adapters/t_cose_psa_crypto.c
+@@ -164,19 +164,38 @@ bool t_cose_crypto_is_algorithm_supported(int32_t cose_algorithm_id)
+ 
+         /* --- ECDSA / ESxxx --- */
+         case T_COSE_ALGORITHM_ES256:
+-        #ifndef T_COSE_DISABLE_ES384
++#ifndef T_COSE_DISABLE_ES384
+         case T_COSE_ALGORITHM_ES384:
+-        #endif
+-        #ifndef T_COSE_DISABLE_ES512
++#endif
++#ifndef T_COSE_DISABLE_ES512
+         case T_COSE_ALGORITHM_ES512:
+-        #endif
++#endif
+         {
+-            size_t bits =
+-                (cose_algorithm_id == T_COSE_ALGORITHM_ES256) ? 256U :
+-                (cose_algorithm_id == T_COSE_ALGORITHM_ES384) ? 384U : 521U;
+-            psa_algorithm_t hash_alg =
+-                (cose_algorithm_id == T_COSE_ALGORITHM_ES256) ? PSA_ALG_SHA_256 :
+-                (cose_algorithm_id == T_COSE_ALGORITHM_ES384) ? PSA_ALG_SHA_384 : PSA_ALG_SHA_512;
++            size_t bits;
++            psa_algorithm_t hash_alg;
++
++            switch (cose_algorithm_id) {
++                case T_COSE_ALGORITHM_ES256:
++                    bits = 256U;
++                    hash_alg = PSA_ALG_SHA_256;
++                    break;
++#ifndef T_COSE_DISABLE_ES384
++                case T_COSE_ALGORITHM_ES384:
++                    bits = 384U;
++                    hash_alg = PSA_ALG_SHA_384;
++                    break;
++#endif
++#ifndef T_COSE_DISABLE_ES512
++                case T_COSE_ALGORITHM_ES512:
++                    bits = 521U;
++                    hash_alg = PSA_ALG_SHA_512;
++                    break;
++#endif
++                default:
++                    /* Should not reach here */
++                    break;
++            }
++
+             psa_algorithm_t sign_alg = PSA_ALG_ECDSA(hash_alg);
+ 
+             psa_status_t status;
+@@ -209,22 +228,41 @@ bool t_cose_crypto_is_algorithm_supported(int32_t cose_algorithm_id)
+             !defined(T_COSE_DISABLE_PS384) || \
+             !defined(T_COSE_DISABLE_PS512)
+ 
+-        #ifndef T_COSE_DISABLE_PS256
++#ifndef T_COSE_DISABLE_PS256
+         case T_COSE_ALGORITHM_PS256:
+-        #endif
+-        #ifndef T_COSE_DISABLE_PS384
++#endif
++#ifndef T_COSE_DISABLE_PS384
+         case T_COSE_ALGORITHM_PS384:
+-        #endif
+-        #ifndef T_COSE_DISABLE_PS512
++#endif
++#ifndef T_COSE_DISABLE_PS512
+         case T_COSE_ALGORITHM_PS512:
+-        #endif
++#endif
+         {
+             /* Reasonable modulus size for probing without being too heavy */
+             const size_t rsa_bits = 2048U;
++            psa_algorithm_t hash_alg;
++
++            switch (cose_algorithm_id) {
++#ifndef T_COSE_DISABLE_PS256
++                case T_COSE_ALGORITHM_PS256:
++                    hash_alg = PSA_ALG_SHA_256;
++                    break;
++#endif
++#ifndef T_COSE_DISABLE_PS384
++                case T_COSE_ALGORITHM_PS384:
++                    hash_alg = PSA_ALG_SHA_384;
++                    break;
++#endif
++#ifndef T_COSE_DISABLE_PS512
++                case T_COSE_ALGORITHM_PS512:
++                    hash_alg = PSA_ALG_SHA_512;
++                    break;
++#endif
++                default:
++                    /* Should not reach here */
++                    break;
++            }
+ 
+-            psa_algorithm_t hash_alg =
+-                (cose_algorithm_id == T_COSE_ALGORITHM_PS256) ? PSA_ALG_SHA_256 :
+-                (cose_algorithm_id == T_COSE_ALGORITHM_PS384) ? PSA_ALG_SHA_384 : PSA_ALG_SHA_512;
+             psa_algorithm_t sign_alg = PSA_ALG_RSA_PSS(hash_alg);
+ 
+             psa_status_t status;
+@@ -1207,7 +1245,7 @@ t_cose_crypto_export_symmetric_key(struct t_cose_key      key,
+ void
+ t_cose_crypto_free_symmetric_key(struct t_cose_key key)
+ {
+-    psa_close_key((psa_key_id_t)key.key.handle);
++    (void)psa_destroy_key((psa_key_id_t)key.key.handle);
+ }
+ 
+ 
+@@ -1230,7 +1268,7 @@ t_cose_crypto_make_symmetric_key_handle(int32_t               cose_algorithm_id,
+ 
+     /* TODO: remove this and put it somewhere common. (It's OK to call twice,
+      * so having it here doesn't cause a problem in the short term */
+-    psa_crypto_init();
++    (void)psa_crypto_init();
+ 
+     /* PSA always enforces policy for algorithms with no way to turn it off.
+      * It is also strict on usage, but that can be relaxed by listing lots
+@@ -1961,5 +1999,5 @@ t_cose_crypto_export_ec2_key(struct t_cose_key      key_handle,
+ void
+ t_cose_crypto_free_ec_key(struct t_cose_key key_handle)
+ {
+-    psa_destroy_key((psa_key_id_t)key_handle.key.handle);
++    (void)psa_destroy_key((psa_key_id_t)key_handle.key.handle);
+ }
+-- 
+2.34.1
+

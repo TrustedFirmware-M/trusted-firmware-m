@@ -1,0 +1,68 @@
+From d66c3fcf4f77bd1ab97b7aec5cb8d5dda252d514 Mon Sep 17 00:00:00 2001
+From: David Vincze <david.vincze@arm.com>
+Date: Mon, 27 Oct 2025 19:24:41 +0000
+Subject: [PATCH 12/12] Fix boundary checks to avoid out-of-bound memory access
+
+Signed-off-by: David Vincze <david.vincze@arm.com>
+---
+ inc/t_cose/t_cose_encrypt_dec.h  | 2 +-
+ inc/t_cose/t_cose_mac_validate.h | 2 +-
+ inc/t_cose/t_cose_sign_verify.h  | 2 +-
+ src/t_cose_util.c                | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/inc/t_cose/t_cose_encrypt_dec.h b/inc/t_cose/t_cose_encrypt_dec.h
+index c666ac7..e127eeb 100644
+--- a/inc/t_cose/t_cose_encrypt_dec.h
++++ b/inc/t_cose/t_cose_encrypt_dec.h
+@@ -407,7 +407,7 @@ static inline uint64_t
+ t_cose_encrypt_dec_nth_tag(const struct t_cose_encrypt_dec_ctx *me,
+                            size_t                               n)
+ {
+-    if(n > T_COSE_MAX_TAGS_TO_RETURN) {
++    if(n >= T_COSE_MAX_TAGS_TO_RETURN) {
+         return CBOR_TAG_INVALID64;
+     }
+     return me->unprocessed_tag_nums[n];
+diff --git a/inc/t_cose/t_cose_mac_validate.h b/inc/t_cose/t_cose_mac_validate.h
+index 5997bf6..28935e8 100644
+--- a/inc/t_cose/t_cose_mac_validate.h
++++ b/inc/t_cose/t_cose_mac_validate.h
+@@ -237,7 +237,7 @@ static inline uint64_t
+ t_cose_mac_validate_nth_tag(const struct t_cose_mac_validate_ctx *me,
+                             size_t                                n)
+ {
+-    if(n > T_COSE_MAX_TAGS_TO_RETURN) {
++    if(n >= T_COSE_MAX_TAGS_TO_RETURN) {
+         return CBOR_TAG_INVALID64;
+     }
+     return me->unprocessed_tag_nums[n];
+diff --git a/inc/t_cose/t_cose_sign_verify.h b/inc/t_cose/t_cose_sign_verify.h
+index 9ed47a7..ab868f2 100644
+--- a/inc/t_cose/t_cose_sign_verify.h
++++ b/inc/t_cose/t_cose_sign_verify.h
+@@ -412,7 +412,7 @@ static inline uint64_t
+ t_cose_sign_verify_nth_tag(const struct t_cose_sign_verify_ctx *me,
+                            size_t                                n)
+ {
+-    if(n > T_COSE_MAX_TAGS_TO_RETURN) {
++    if(n >= T_COSE_MAX_TAGS_TO_RETURN) {
+         return CBOR_TAG_INVALID64;
+     }
+     return me->unprocessed_tag_nums[n];
+diff --git a/src/t_cose_util.c b/src/t_cose_util.c
+index 47dfd70..43c1b28 100644
+--- a/src/t_cose_util.c
++++ b/src/t_cose_util.c
+@@ -200,7 +200,7 @@ t_cose_tags_and_type(const uint64_t     *relevant_cose_tag_nums,
+         if(tag_on_item == CBOR_TAG_INVALID64) {
+             break;
+         }
+-        if(returned_tag_index > T_COSE_MAX_TAGS_TO_RETURN) {
++        if(returned_tag_index >= T_COSE_MAX_TAGS_TO_RETURN) {
+             return T_COSE_ERR_TOO_MANY_TAGS;
+         }
+         unprocessed_tag_nums[returned_tag_index] = tag_on_item;
+-- 
+2.34.1
+

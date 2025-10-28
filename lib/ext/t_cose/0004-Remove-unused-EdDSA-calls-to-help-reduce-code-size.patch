@@ -1,7 +1,7 @@
-From b1e9ec2c87c18ec8a9d9bee5a508bbf92d34528c Mon Sep 17 00:00:00 2001
+From 76d4fccfdad73546ac7c47aca155b6cbd0de0a83 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Mon, 25 Nov 2024 14:29:04 +0000
-Subject: [PATCH 04/10] Remove unused EdDSA calls to help reduce code size
+Subject: [PATCH 04/12] Remove unused EdDSA calls to help reduce code size
 
 With the help of dead-code elimination and actual code removal
 in this patch it's possible to skip the complete EdDSA algorithm
@@ -101,5 +101,5 @@ index 489897b..86d7ae2 100644
  
      t_cose_sign1_verify_init(&verify_ctx, 0);
 -- 
-2.43.0
+2.34.1
 

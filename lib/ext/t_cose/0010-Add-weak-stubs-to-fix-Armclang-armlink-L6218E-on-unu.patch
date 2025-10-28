@@ -1,7 +1,7 @@
-From 7d24a4c0745dafacc995018744e74a00fd6ff0a5 Mon Sep 17 00:00:00 2001
+From ed670164ee9a676b94b5403312938ff802e94ab0 Mon Sep 17 00:00:00 2001
 From: "G. Varga, Gabor" <Gabor.G.Varga@arm.com>
 Date: Mon, 6 Oct 2025 16:46:02 +0200
-Subject: [PATCH 10/10] Add weak stubs to fix Armclang/armlink L6218E on unused
+Subject: [PATCH 10/12] Add weak stubs to fix Armclang/armlink L6218E on unused
  test helpers
 
 When building the TF-M t_cose tests with Armclang, the link failed with:
@@ -94,5 +94,5 @@ index 84a0e16..4b564da 100644
   * Public function, see t_cose_test.h
   */
 -- 
-2.43.0
+2.34.1
 
