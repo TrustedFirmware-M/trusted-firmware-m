@@ -220,6 +220,141 @@ countermeasures <#side-channel-countermeasures>`__
 -  ``psa_driver_wrapper_hash_update``
 -  ``psa_driver_wrapper_verify_hash``
 
+Runtime Crypto partition
+========================
+
+The Runtime Cryptography partition provides cryptographic services to
+other secure partitions within the RSE, and if configured callers
+outside the RSE. These services are provided via the `PSA crypto
+api <https://arm-software.github.io/psa-api/crypto/>`__, and the
+services that RSE provides may vary depending on the usecase.
+
+Default Crytocell driver support
+--------------------------------
+
+The cc3xx driver supports the following algorithms:
+
+Hash
+~~~~
+
+-  ``PSA_ALG_SHA_256``
+
+MAC
+~~~
+
+-  ``PSA_KEY_TYPE_AES``
+
+   -  ``PSA_ALG_CMAC``
+
+Cipher
+~~~~~~
+
+-  ``PSA_KEY_TYPE_AES``
+
+   -  ``PSA_ALG_ECB``
+   -  ``PSA_ALG_CTR``
+   -  ``PSA_ALG_CBC``
+
+AEAD
+~~~~
+
+-  ``PSA_KEY_TYPE_AES``
+
+   -  ``PSA_ALG_CCM``
+
+Key derivation
+~~~~~~~~~~~~~~
+
+-  ``PSA_KEY_TYPE_AES``
+
+   -  ``PSA_ALG_SP800_108_COUNTER_CMAC``
+
+Asymmetric Signature
+~~~~~~~~~~~~~~~~~~~~
+
+-  ``PSA_ALG_ECDSA``
+
+   -  ``PSA_ECC_FAMILY_SECP``
+
+Key agreement
+~~~~~~~~~~~~~
+
+-  ``PSA_ALG_ECDH``
+
+   -  ``PSA_ECC_FAMILY_SECP``
+
+Additionally, ``PSA_ALG_SHA_384`` is supported in a software
+implementation, in order to support ECDSA signing with the
+``SECP_384_R1`` curve.
+
+Runtime usage of the PSA driver API
+-----------------------------------
+
+The following PSA driver API functions are required. If the integration
+uses a different cryptographic accelerator, it MUST have a PSA driver
+API driver which implements the entry points required for these
+functions. The semantics of the entry points MUST be as described in the
+`PSA driver API <https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/main/docs/proposed/psa-driver-interface.md#driver-entry-point>`_.
+Entry points my be integrated either by patching the
+``psa_crypto_driver_wrappers.h``, or by using the
+`.json description file <https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/main/docs/proposed/psa-driver-interface.md#driver-description-syntax>`_.
+Note that it is valid for the driver to return ``PSA_ERROR_NOT_SUPPORTED`` for
+these entry points, as long as that function isn’t required for any RSE
+usecases. The implementations MUST include the required level of `side-channel
+countermeasures <#side-channel-countermeasures>`__
+
+``psa_crypto_driver_wrappers.c``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  ``psa_driver_wrapper_init``
+-  ``psa_driver_wrapper_free``
+-  ``psa_driver_wrapper_sign_message``
+-  ``psa_driver_wrapper_verify_message``
+-  ``psa_driver_wrapper_sign_hash``
+-  ``psa_driver_wrapper_verify_hash``
+-  ``psa_driver_wrapper_generate_key``
+-  ``psa_driver_wrapper_cipher_encrypt``
+-  ``psa_driver_wrapper_cipher_decrypt``
+-  ``psa_driver_wrapper_cipher_encrypt_setup``
+-  ``psa_driver_wrapper_cipher_decrypt_setup``
+-  ``psa_driver_wrapper_cipher_set_iv``
+-  ``psa_driver_wrapper_cipher_update``
+-  ``psa_driver_wrapper_cipher_finish``
+-  ``psa_driver_wrapper_cipher_abort``
+-  ``psa_driver_wrapper_hash_compute``
+-  ``psa_driver_wrapper_hash_abort``
+-  ``psa_driver_wrapper_hash_finish``
+-  ``psa_driver_wrapper_hash_setup``
+-  ``psa_driver_wrapper_hash_update``
+-  ``psa_driver_wrapper_hash_clone``
+-  ``psa_driver_wrapper_aead_encrypt``
+-  ``psa_driver_wrapper_aead_decrypt``
+-  ``psa_driver_wrapper_aead_encrypt_setup``
+-  ``psa_driver_wrapper_aead_decrypt_setup``
+-  ``psa_driver_wrapper_aead_set_nonce``
+-  ``psa_driver_wrapper_aead_set_lengths``
+-  ``psa_driver_wrapper_aead_update_ad``
+-  ``psa_driver_wrapper_aead_update``
+-  ``psa_driver_wrapper_aead_finish``
+-  ``psa_driver_wrapper_aead_verify``
+-  ``psa_driver_wrapper_aead_abort``
+-  ``psa_driver_wrapper_mac_compute``
+-  ``psa_driver_wrapper_mac_sign_setup``
+-  ``psa_driver_wrapper_mac_verify_setup``
+-  ``psa_driver_wrapper_mac_update``
+-  ``psa_driver_wrapper_mac_update``
+-  ``psa_driver_wrapper_mac_sign_finish``
+-  ``psa_driver_wrapper_mac_verify_finish``
+-  ``psa_driver_wrapper_mac_abort``
+-  ``psa_driver_wrapper_asymmetric_encrypt``
+-  ``psa_driver_wrapper_asymmetric_decrypt``
+-  ``psa_driver_wrapper_key_agreement``
+
+``psa_crypto_driver_wrappers_no_static.c``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  ``psa_driver_wrapper_export_public_key``
+
 RSE Cryptographic hardware
 ==========================
 
@@ -382,141 +517,6 @@ Keys in OTP memory are protected from tampering by a zero-count. The LCM
 hardware performs a chech between the key and the zero-count on every
 reset, and if the zero counts do not match the key is not exported to
 the KMU.
-
-Runtime Crypto partition
-========================
-
-The Runtime Cryptography partition provides cryptographic services to
-other secure partitions within the RSE, and if configured callers
-outside the RSE. These services are provided via the `PSA crypto
-api <https://arm-software.github.io/psa-api/crypto/>`__, and the
-services that RSE provides may vary depending on the usecase.
-
-Default Crytocell driver support
---------------------------------
-
-The cc3xx driver supports the following algorithms:
-
-Hash
-~~~~
-
--  ``PSA_ALG_SHA_256``
-
-MAC
-~~~
-
--  ``PSA_KEY_TYPE_AES``
-
-   -  ``PSA_ALG_CMAC``
-
-Cipher
-~~~~~~
-
--  ``PSA_KEY_TYPE_AES``
-
-   -  ``PSA_ALG_ECB``
-   -  ``PSA_ALG_CTR``
-   -  ``PSA_ALG_CBC``
-
-AEAD
-~~~~
-
--  ``PSA_KEY_TYPE_AES``
-
-   -  ``PSA_ALG_CCM``
-
-Key derivation
-~~~~~~~~~~~~~~
-
--  ``PSA_KEY_TYPE_AES``
-
-   -  ``PSA_ALG_SP800_108_COUNTER_CMAC``
-
-Asymmetric Signature
-~~~~~~~~~~~~~~~~~~~~
-
--  ``PSA_ALG_ECDSA``
-
-   -  ``PSA_ECC_FAMILY_SECP``
-
-Key agreement
-~~~~~~~~~~~~~
-
--  ``PSA_ALG_ECDH``
-
-   -  ``PSA_ECC_FAMILY_SECP``
-
-Additionally, ``PSA_ALG_SHA_384`` is supported in a software
-implementation, in order to support ECDSA signing with the
-``SECP_384_R1`` curve.
-
-Runtime usage of the PSA driver API
------------------------------------
-
-The following PSA driver API functions are required. If the integration
-uses a different cryptographic accelerator, it MUST have a PSA driver
-API driver which implements the entry points required for these
-functions. The semantics of the entry points MUST be as described in the
-`PSA driver API <https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/main/docs/proposed/psa-driver-interface.md#driver-entry-point>`_.
-Entry points my be integrated either by patching the
-``psa_crypto_driver_wrappers.h``, or by using the
-`.json description file <https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/main/docs/proposed/psa-driver-interface.md#driver-description-syntax>`_.
-Note that it is valid for the driver to return ``PSA_ERROR_NOT_SUPPORTED`` for
-these entry points, as long as that function isn’t required for any RSE
-usecases. The implementations MUST include the required level of `side-channel
-countermeasures <#side-channel-countermeasures>`__
-
-``psa_crypto_driver_wrappers.c``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--  ``psa_driver_wrapper_init``
--  ``psa_driver_wrapper_free``
--  ``psa_driver_wrapper_sign_message``
--  ``psa_driver_wrapper_verify_message``
--  ``psa_driver_wrapper_sign_hash``
--  ``psa_driver_wrapper_verify_hash``
--  ``psa_driver_wrapper_generate_key``
--  ``psa_driver_wrapper_cipher_encrypt``
--  ``psa_driver_wrapper_cipher_decrypt``
--  ``psa_driver_wrapper_cipher_encrypt_setup``
--  ``psa_driver_wrapper_cipher_decrypt_setup``
--  ``psa_driver_wrapper_cipher_set_iv``
--  ``psa_driver_wrapper_cipher_update``
--  ``psa_driver_wrapper_cipher_finish``
--  ``psa_driver_wrapper_cipher_abort``
--  ``psa_driver_wrapper_hash_compute``
--  ``psa_driver_wrapper_hash_abort``
--  ``psa_driver_wrapper_hash_finish``
--  ``psa_driver_wrapper_hash_setup``
--  ``psa_driver_wrapper_hash_update``
--  ``psa_driver_wrapper_hash_clone``
--  ``psa_driver_wrapper_aead_encrypt``
--  ``psa_driver_wrapper_aead_decrypt``
--  ``psa_driver_wrapper_aead_encrypt_setup``
--  ``psa_driver_wrapper_aead_decrypt_setup``
--  ``psa_driver_wrapper_aead_set_nonce``
--  ``psa_driver_wrapper_aead_set_lengths``
--  ``psa_driver_wrapper_aead_update_ad``
--  ``psa_driver_wrapper_aead_update``
--  ``psa_driver_wrapper_aead_finish``
--  ``psa_driver_wrapper_aead_verify``
--  ``psa_driver_wrapper_aead_abort``
--  ``psa_driver_wrapper_mac_compute``
--  ``psa_driver_wrapper_mac_sign_setup``
--  ``psa_driver_wrapper_mac_verify_setup``
--  ``psa_driver_wrapper_mac_update``
--  ``psa_driver_wrapper_mac_update``
--  ``psa_driver_wrapper_mac_sign_finish``
--  ``psa_driver_wrapper_mac_verify_finish``
--  ``psa_driver_wrapper_mac_abort``
--  ``psa_driver_wrapper_asymmetric_encrypt``
--  ``psa_driver_wrapper_asymmetric_decrypt``
--  ``psa_driver_wrapper_key_agreement``
-
-``psa_crypto_driver_wrappers_no_static.c``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--  ``psa_driver_wrapper_export_public_key``
 
 Security strength requirements
 ==============================
@@ -1389,3 +1389,7 @@ Key Derivation <#kdf-countermeasures>`__.
 
 .. [12]
    FIXME are they little or big-endian
+
+--------------
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
