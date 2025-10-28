@@ -272,7 +272,9 @@ enum lcm_error_t lcm_otp_read(struct lcm_dev_t *dev, uint32_t offset, uint32_t l
                               uint8_t *buf);
 
 /**
- * \brief This function gets the state of the Debug Control Unit.
+ * \brief This function gets the state of the Debug Control Unit with neutralized
+ *  parity. The caller still needs to be aware of DCU indidces that implement parity
+ *  checks as the bit pairs are not squashed by this functions.
  *
  * \param[in]  dev    The LCM device structure.
  * \param[out] val    The buffer into which to write the value of the DCU. Must

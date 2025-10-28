@@ -1006,7 +1006,7 @@ enum lcm_error_t lcm_dcu_get_enabled(struct lcm_dev_t *dev, uint8_t *val)
     }
 
     for (idx = 0; idx < LCM_DCU_WIDTH_IN_BYTES / sizeof(uint32_t); idx++) {
-        p_val_word[idx] = p_lcm->dcu_en[idx];
+        p_val_word[idx] = p_lcm->dcu_en[idx] & get_enabled_mask(idx);
     }
 
     return LCM_ERROR_NONE;
