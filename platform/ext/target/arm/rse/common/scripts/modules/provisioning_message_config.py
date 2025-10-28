@@ -11,6 +11,7 @@ from tfm_tools.c_macro import C_macro
 from tfm_tools import c_include
 from tfm_tools import arg_utils
 from tfm_tools import sign_then_encrypt_data
+from tfm_tools import sign_data
 import pickle
 from secrets import token_bytes
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, Encoding, PublicFormat
@@ -37,15 +38,6 @@ def add_arguments(parser : argparse.ArgumentParser,
 
     if (message_type == "RSE_PROVISIONING_MESSAGE_TYPE_BLOB"):
         arg_utils.add_prefixed_enum_argument(parser=parser,
-                                             enum=provisioning_message_config.enums['rse_provisioning_auth_msg_valid_lcs_mask_t'],
-                                             prefix=prefix,
-                                             arg_name="valid_lcs",
-                                             help="LCS is which blob can be run",
-                                             nargs="+",
-                                             action="extend",
-                                             required=required)
-
-        arg_utils.add_prefixed_enum_argument(parser=parser,
                                              enum=provisioning_message_config.enums['rse_provisioning_auth_msg_required_tp_mode_config_t'],
                                              prefix=prefix,
                                              arg_name="tp_mode",
@@ -58,33 +50,6 @@ def add_arguments(parser : argparse.ArgumentParser,
                                              arg_name="sp_mode",
                                              help="Whether SP mode is required to be enabled for the blob to be run",
                                              required=required)
-
-        arg_utils.add_prefixed_argument(parser, "sign_key_cm_rotpk", prefix,
-                                                help="CM ROTPK to use when embedding key in bundle",
-                                                type=int, required=False, default=0)
-
-        arg_utils.add_prefixed_argument(parser, "soc_uid", prefix,
-                                                help="ID of SOC to use for personalization",
-                                                type=arg_utils.arg_type_bytes, required=False)
-
-        arg_utils.add_prefixed_argument(parser, "version", prefix,
-                                                help="Version of provisioning blob",
-                                                type=int, required=required)
-
-        arg_utils.add_prefixed_enum_argument(parser=parser,
-                                             enum=provisioning_message_config.enums['rse_provisioning_auth_msg_signature_config_t'],
-                                             prefix=prefix,
-                                             arg_name="signature_config",
-                                             help="Configuration of the blob signature",
-                                             required=required)
-
-        arg_utils.add_prefixed_enum_argument(parser=parser,
-                                             enum=provisioning_message_config.enums['rse_provisioning_auth_msg_non_rom_pk_type_config_t'],
-                                             prefix=prefix,
-                                             arg_name="non_rom_pk_config",
-                                             help="Configuration of the blob signature when the PK is not in the ROM",
-                                             default="RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK",
-                                             required=False)
 
         arg_utils.add_prefixed_enum_argument(parser=parser,
                                              enum=provisioning_message_config.enums['rse_provisioning_auth_msg_code_and_data_decryption_config_t'],
@@ -102,8 +67,44 @@ def add_arguments(parser : argparse.ArgumentParser,
                                              default="RSE_PROVISIONING_AUTH_MSG_SECRET_VALUES_DECRYPTION_AES",
                                              required=False)
 
+        arg_utils.add_prefixed_argument(parser, "soc_uid", prefix,
+                                                help="ID of SOC to use for personalization",
+                                                type=arg_utils.arg_type_bytes, required=False)
 
-    sign_then_encrypt_data.add_arguments(parser, prefix)
+    if (message_type in ["RSE_PROVISIONING_MESSAGE_TYPE_BLOB", "RSE_PROVISIONING_MESSAGE_TYPE_AUTHENTICATED_PLAIN_DATA"]):
+        arg_utils.add_prefixed_enum_argument(parser=parser,
+                                             enum=provisioning_message_config.enums['rse_provisioning_auth_msg_valid_lcs_mask_t'],
+                                             prefix=prefix,
+                                             arg_name="valid_lcs",
+                                             help="LCS is which blob can be run",
+                                             nargs="+",
+                                             action="extend",
+                                             required=required)
+
+        arg_utils.add_prefixed_argument(parser, "sign_key_cm_rotpk", prefix,
+                                                help="CM ROTPK to use when embedding key in bundle",
+                                                type=int, required=False, default=0)
+
+        arg_utils.add_prefixed_enum_argument(parser=parser,
+                                             enum=provisioning_message_config.enums['rse_provisioning_auth_msg_signature_config_t'],
+                                             prefix=prefix,
+                                             arg_name="signature_config",
+                                             help="Configuration of the blob signature",
+                                             required=required)
+
+        arg_utils.add_prefixed_enum_argument(parser=parser,
+                                             enum=provisioning_message_config.enums['rse_provisioning_auth_msg_non_rom_pk_type_config_t'],
+                                             prefix=prefix,
+                                             arg_name="non_rom_pk_config",
+                                             help="Configuration of the blob signature when the PK is not in the ROM",
+                                             default="RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK",
+                                             required=False)
+
+        arg_utils.add_prefixed_argument(parser, "version", prefix,
+                                                help="Version of provisioning blob",
+                                                type=int, required=required)
+
+        sign_then_encrypt_data.add_arguments(parser, prefix)
 
     return provisioning_message_config
 
@@ -231,13 +232,15 @@ def get_blob_purpose(provisioning_message_config : Provisioning_message_config,
                      ):
     purpose_val = 0;
 
-    val = blob_type.get_value()
-    purpose_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_TYPE_MASK, 0)) \
-                    << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_TYPE_OFFSET, 0)
+    if blob_type is not None:
+        val = blob_type.get_value()
+        purpose_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_TYPE_MASK, 0)) \
+                        << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_TYPE_OFFSET, 0)
 
-    val = tp_mode.get_value()
-    purpose_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_TP_MODE_MASK, 0)) \
-                    << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_TP_MODE_OFFSET, 0)
+    if tp_mode is not None:
+        val = tp_mode.get_value()
+        purpose_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_TP_MODE_MASK, 0)) \
+                        << int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_TP_MODE_OFFSET, 0)
 
     val = sp_mode.get_value()
     purpose_val |= (val & int(provisioning_message_config.RSE_PROVISIONING_AUTH_MSG_PURPOSE_SP_MODE_MASK, 0)) \
@@ -362,7 +365,7 @@ def get_data_to_encrypt_and_sign(provisioning_message_config : Provisioning_mess
         aad += secret_values
     return plaintext, aad
 
-def create_blob_message(provisioning_message_config : Provisioning_message_config,
+def get_blob_message_aad_ciphertext(provisioning_message_config : Provisioning_message_config,
                         sign_and_encrypt_kwargs : dict,
                         signature_config : C_enum,
                         non_rom_pk_config : C_enum,
@@ -383,15 +386,41 @@ def create_blob_message(provisioning_message_config : Provisioning_message_confi
                                                   soc_uid=soc_uid,
                                                   **kwargs)
 
-    _, ciphertext, signature = sign_then_encrypt_data.sign_then_encrypt_data(**sign_and_encrypt_kwargs,
-                                                                             data = plaintext,
-                                                                             aad = aad,
-                                                                             iv=iv)
+    # Only encrypt if we have any plaintext or are using a combined
+    # signature and encryption algorithm
+    if (len(plaintext) != 0) or sign_and_encrypt_kwargs.get("sign_and_encrypt_alg"):
+        _, ciphertext, signature = sign_then_encrypt_data.sign_then_encrypt_data(**sign_and_encrypt_kwargs,
+                                                                                data = plaintext,
+                                                                                aad = aad,
+                                                                                iv=iv)
+    else:
+        signature = sign_data.sign_data(**sign_and_encrypt_kwargs,
+                                        data = aad)
+        ciphertext = bytes(0)
 
     message.blob.header.signature_size.set_value(len(signature))
     message.blob.header.signature.set_value_from_bytes(signature)
 
     logger.info(message)
+
+    return message, aad, ciphertext
+
+
+def create_blob_message(provisioning_message_config : Provisioning_message_config,
+                        sign_and_encrypt_kwargs : dict,
+                        signature_config : C_enum,
+                        non_rom_pk_config : C_enum,
+                        soc_uid : bytes = None,
+                        sign_key_cm_rotpk : bytes = None,
+                        **kwargs : dict
+                        ):
+    message, aad, ciphertext = get_blob_message_aad_ciphertext(provisioning_message_config=provisioning_message_config,
+                                                               sign_and_encrypt_kwargs=sign_and_encrypt_kwargs,
+                                                               signature_config=signature_config,
+                                                               non_rom_pk_config=non_rom_pk_config,
+                                                               soc_uid=soc_uid,
+                                                               sign_key_cm_rotpk=sign_key_cm_rotpk,
+                                                               **kwargs)
 
     aad_header_len = len(get_aad_header(provisioning_message_config))
 
@@ -411,6 +440,35 @@ def create_plain_data_message(provisioning_message_config : Provisioning_message
     message.plain.plain_metadata.set_value(plain_data_type.get_value())
 
     return message.to_bytes()[:message.header.get_size() + data_length - len(data)] + data
+
+def create_authenticated_plain_data_message(provisioning_message_config : Provisioning_message_config,
+                                            plain_data_type : C_enum,
+                                            data : bytes, **kwargs
+                                            ):
+    message = provisioning_message_config.message
+
+    message.plain.plain_metadata.set_value(plain_data_type.get_value())
+
+    data_length = message.plain.get_size() - message.plain.data.get_size() + len(data)
+    data_to_authenticate = message.to_bytes()[message.header.get_size():message.header.get_size() + data_length - len(data)] + data
+
+    message, aad, ciphertext = get_blob_message_aad_ciphertext(
+                                    provisioning_message_config, code = bytes(0),
+                                    data = data_to_authenticate,
+                                    encrypt_code_and_data = provisioning_message_config.RSE_PROVISIONING_BLOB_CODE_DATA_DECRYPTION_NONE,
+                                    encrypt_secret_values = provisioning_message_config.RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_BY_BLOB,
+                                    sp_mode = provisioning_message_config.RSE_PROVISIONING_BLOB_REQUIRES_SP_MODE_DISABLED,
+                                    blob_type = None,
+                                    tp_mode = None,
+                                    **kwargs)
+
+    assert len(ciphertext) == 0
+
+    message.header.type.set_value(provisioning_message_config.RSE_PROVISIONING_MESSAGE_TYPE_AUTHENTICATED_PLAIN_DATA.get_value())
+
+    aad_header_len = len(get_aad_header(provisioning_message_config))
+
+    return message.to_bytes()[:message.header.get_size() + message.blob.header.get_size()] + aad[aad_header_len:] + ciphertext
 
 script_description = """
 This script takes an instance of rse_provisioning_message.h, and a set of
