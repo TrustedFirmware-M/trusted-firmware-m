@@ -118,7 +118,7 @@ endfunction()
 
 function(generate_provisioning_bundle bundle_type script exe_target blob_version valid_lcses
          symmetric_provisioning signature_config sign_key encrypt_key non_rom_pk_config sign_key_cm_rotpk
-         encrypt_code_data encrypt_secret_values
+         encrypt_code_data encrypt_secret_values sp_mode_required
          additional_bundle_args additional_bundle_deps)
     set(GENERATED_FILE_NAME ${CMAKE_BINARY_DIR}/bin/provisioning/${bundle_type}_message.bin)
     set(ELF_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/bin/${exe_target}.axf)
@@ -206,9 +206,20 @@ function(generate_provisioning_bundle bundle_type script exe_target blob_version
         ${CREATE_BUNDLE_SCRIPT_ARGS}
         --encrypt_code_and_data=RSE_PROVISIONING_BLOB_CODE_DATA_DECRYPTION_${CODE_DATA_ENCRYPT_ARG}
         --encrypt_secret_values=RSE_PROVISIONING_BLOB_SECRET_VALUES_DECRYPTION_${SECRET_VALUES_ENCRYPT_ARG}
-        --sp_mode RSE_PROVISIONING_BLOB_REQUIRES_SP_MODE_ENABLED
         ${additional_bundle_args}
     )
+
+    if (sp_mode_required)
+        set(CREATE_BUNDLE_SCRIPT_ARGS
+            ${CREATE_BUNDLE_SCRIPT_ARGS}
+            --sp_mode RSE_PROVISIONING_BLOB_REQUIRES_SP_MODE_ENABLED
+        )
+    else()
+        set(CREATE_BUNDLE_SCRIPT_ARGS
+            ${CREATE_BUNDLE_SCRIPT_ARGS}
+            --sp_mode RSE_PROVISIONING_BLOB_REQUIRES_SP_MODE_DISABLED
+        )
+    endif()
 
     add_custom_target(${bundle_type}_message
         ALL
@@ -383,6 +394,7 @@ if (TFM_DUMMY_PROVISIONING)
             "" # CM ROTPK index if PK not in ROM == CM_ROTPK (not for CM)
             "${RSE_PROVISIONING_CM_ENCRYPT_CODE_DATA}" # encrypt code and data
             ON # encrypt secret values
+            ON # sp mode required
             "${CM_BUNDLE_SCRIPT_ARGS_TEMP}" # OTP values args
             "${CM_BUNDLE_SCRIPT_DEPS}" # script specific CMake dependencies
         )
@@ -401,6 +413,7 @@ if (TFM_DUMMY_PROVISIONING)
             "${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX}" # CM ROTPK index if PK not in ROM == CM_ROTPK
             "${RSE_PROVISIONING_DM_ENCRYPT_CODE_DATA}" # encrypt code and data
             ON # encrypt secret values
+            ON # sp mode required
             "${DM_BUNDLE_SCRIPT_ARGS_TEMP}" # OTP values args
             "" # No additional dependencies
         )
@@ -419,6 +432,7 @@ if (TFM_DUMMY_PROVISIONING)
             "${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX}" # CM ROTPK index if PK not in ROM == CM_ROTPK
             "${RSE_PROVISIONING_CM_ENCRYPT_CODE_DATA}" # encrypt code and data
             ON # encrypt secret values
+            ON # sp mode required
             "${CM_BUNDLE_SCRIPT_ARGS_TEMP};${DM_BUNDLE_SCRIPT_ARGS_TEMP}" # OTP values args
             "${CM_BUNDLE_SCRIPT_DEPS}" # script specific CMake dependencies
     )
@@ -439,6 +453,7 @@ if (TFM_DUMMY_PROVISIONING)
             "${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX}" # CM ROTPK index if PK not in ROM == CM_ROTPK
             "${RSE_PROVISIONING_DM_ENCRYPT_CODE_DATA}" # encrypt code and data
             OFF  # No secret values in chained blob to encrypt
+            ON # sp mode required
             "" # No provisioning values
             "" # No additional dependencies
         )
@@ -451,6 +466,7 @@ if (TFM_DUMMY_PROVISIONING)
             list(APPEND VALID_LCS_STATES DM)
         endif()
 
+        # In SE LCS or in DM LCS when performing endorsement cert provisioning we do not need to be in secure provisioning
         generate_provisioning_bundle(
             plain_data_handler_provisioning # bundle type
             ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/create_plain_data_handler_provisioning_bundle.py # script
@@ -464,6 +480,7 @@ if (TFM_DUMMY_PROVISIONING)
             "CM_ROTPK" # PK not in ROM configuration
             "${RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_IDX}" # CM ROTPK index if PK not in ROM == CM_ROTPK
             OFF # encrypt code and data
+            OFF # sp mode required
             OFF # No secret values in blob to ecrypt
             "" # No provisioning values
             "" # No additional dependencies
