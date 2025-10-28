@@ -192,4 +192,163 @@ fih_ret bl1_2_store_image_binding_tag(uint32_t image_id,
     INFO("Image binding_tag stored successfully\n");
     return FIH_SUCCESS;
 }
+
+#ifdef TFM_BL1_2_IMAGE_ENCRYPTION
+static inline uintptr_t align_down(uintptr_t v, uintptr_t a)
+{
+    return v & ~(a - 1u);
+}
+
+/* Read+patch entire sector in RAM, erase original, write back from RAM. */
+static int update_patch_sector_ram(ARM_DRIVER_FLASH *flash,
+                                   uint32_t sector_size,
+                                   uint32_t prog_unit,
+                                   uintptr_t sector_base,
+                                   uint32_t off_in_sector,
+                                   const uint8_t *patch,
+                                   size_t patch_len,
+                                   uint8_t *sector_buf)
+{
+    size_t read;
+    int rc;
+
+    if ((sector_base % sector_size) != 0) {
+        return -1;
+    }
+    if (off_in_sector + patch_len > sector_size) {
+        return -1;
+    }
+
+    /* Read whole sector into RAM buffer (prog_unit steps) */
+    read = 0;
+    while (read < sector_size) {
+        rc = flash->ReadData((uint32_t)(sector_base + read),
+                             &sector_buf[read], prog_unit);
+        if (rc != (int32_t)prog_unit) {
+            return -1;
+        }
+        read += prog_unit;
+    }
+
+    /* Apply patch into RAM image */
+    memcpy(&sector_buf[off_in_sector], patch, patch_len);
+
+    /* Erase original sector */
+    if (flash->EraseSector((uint32_t)sector_base) != ARM_DRIVER_OK) return -1;
+
+    /* Program sector */
+    if (program_buffer_aligned(flash,
+                               (uint32_t)sector_base,
+                               sector_buf,
+                               sector_size,
+                               prog_unit) != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int bl1_2_image_flash_bind_begin(bl1_2_image_flash_bind_ctx_t *ctx,
+                                 uintptr_t region_base,
+                                 size_t    region_len,
+                                 uint8_t  *sector_buf,
+                                 size_t    sector_buf_len)
+{
+    ARM_DRIVER_FLASH *flash = &FLASH_DEV_NAME_BL1;
+    const ARM_FLASH_INFO *flash_info = flash->GetInfo();
+    if (!flash_info || flash_info->sector_size == 0 || flash_info->program_unit == 0) {
+        return -1;
+    }
+    if (!sector_buf || sector_buf_len < flash_info->sector_size) {
+        return -1;
+    }
+
+    ctx->flash       = flash;
+    ctx->region_base = region_base;
+    ctx->region_len  = region_len;
+    ctx->cur         = region_base;
+    ctx->region_end  = region_base + region_len;
+    ctx->sector_size = flash_info->sector_size;
+    ctx->prog_unit   = flash_info->program_unit;
+    ctx->sector_buf  = sector_buf;
+
+    return 0;
+}
+
+int bl1_2_image_flash_bind_write(bl1_2_image_flash_bind_ctx_t *ctx,
+                                 const uint8_t *buf,
+                                 size_t len)
+{
+    size_t remaining, cap_in_sec, whole, s, block, written;
+    uintptr_t sec_base;
+    uint32_t  off_in_sec;
+    int rc;
+
+    ARM_DRIVER_FLASH *flash = ctx->flash;
+    if (ctx->cur + len > ctx->region_end) {
+        return -1;
+    }
+    remaining = len;
+    while (remaining) {
+        sec_base   = align_down(ctx->cur, ctx->sector_size);
+        off_in_sec = (uint32_t)(ctx->cur - sec_base);
+        cap_in_sec = ctx->sector_size - off_in_sec;
+        if (cap_in_sec > remaining) cap_in_sec = remaining;
+
+        /* If not a whole sector starting at boundary → do RAM RMW for this slice */
+        if (off_in_sec != 0 || cap_in_sec < ctx->sector_size) {
+
+            rc = update_patch_sector_ram(flash, ctx->sector_size, ctx->prog_unit,
+                                         sec_base, off_in_sec,
+                                         buf, cap_in_sec,
+                                         ctx->sector_buf);
+            if (rc) {
+                return -1;
+            }
+            ctx->cur += cap_in_sec;
+            buf    += cap_in_sec;
+            remaining -= cap_in_sec;
+            continue;
+        }
+
+        /* Full sector(s) path */
+        whole = remaining / ctx->sector_size;
+        if (whole == 0) {
+            /* defensive fallback */
+            rc = update_patch_sector_ram(flash, ctx->sector_size, ctx->prog_unit,
+                                         sec_base, 0, buf, remaining, ctx->sector_buf);
+            if (rc) {
+                return -1;
+            }
+            ctx->cur += remaining;
+            buf    += remaining;
+            remaining = 0;
+            continue;
+        }
+
+        /* Erase each full sector and program it from buf */
+        for (s = 0; s < whole; s++) {
+            rc = flash->EraseSector((uint32_t)(ctx->cur + s * ctx->sector_size));
+            if (rc != ARM_DRIVER_OK) {
+                return -1;
+            }
+        }
+        block = whole * ctx->sector_size;
+        written = 0;
+        while (written < block) {
+            rc = flash->ProgramData((uint32_t)(ctx->cur + written),
+                                   (void *)(buf + written),
+                                   ctx->prog_unit);
+            if (rc != ARM_DRIVER_OK) {
+                return -1;
+            }
+            written += ctx->prog_unit;
+        }
+        ctx->cur += block;
+        buf    += block;
+        remaining -= block;
+    }
+    return 0;
+}
+#endif /* TFM_BL1_2_IMAGE_ENCRYPTION */
 #endif /* TFM_BL1_2_IMAGE_BINDING */

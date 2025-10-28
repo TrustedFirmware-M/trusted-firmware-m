@@ -18,7 +18,8 @@
 extern "C" {
 #endif
 
-#define BL2_BINDING_MAC_LABEL "BL2_BINDING_MAC_KEY_V1"
+#define BL2_BINDING_MAC_LABEL   "BL2_BINDING_MAC_KEY_V1"
+#define BL2_BIND_CCM_KEY_LABEL  "BL2_BIND_CCM_KEY_V1"
 
 /**
  * @brief Determines whether a binding tag is present in the specified image.
@@ -54,7 +55,7 @@ FIH_RET_TYPE(int) bl1_2_do_image_binding(struct bl1_2_image_t *image,
  *
  * @return FIH_SUCCESS on success, non-zero on error
  */
-FIH_RET_TYPE(int) bl1_2_validate_image_binding(const struct bl1_2_image_t *image);
+FIH_RET_TYPE(int) bl1_2_validate_image_binding(struct bl1_2_image_t *image);
 
 #ifdef __cplusplus
 }

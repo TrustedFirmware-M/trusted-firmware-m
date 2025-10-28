@@ -103,6 +103,7 @@ cc3xx_lowlevel_aes_set_data_len
 cc3xx_lowlevel_aes_set_output_buffer
 cc3xx_lowlevel_aes_update
 cc3xx_lowlevel_aes_finish
+cc3xx_lowlevel_aes_uninit
 cc3xx_lowlevel_ecdsa_genkey
 cc3xx_lowlevel_ecdsa_getpub
 cc3xx_lowlevel_ecdsa_sign
@@ -122,6 +123,14 @@ psa_mac_sign_setup
 psa_mac_update
 psa_mac_sign_finish
 psa_mac_abort
+psa_aead_encrypt_setup
+psa_aead_decrypt_setup
+psa_aead_set_lengths
+psa_aead_set_nonce
+psa_aead_abort
+psa_aead_update
+psa_aead_finish
+psa_aead_verify
 putchar
 tfm_vprintf
 tfm_log

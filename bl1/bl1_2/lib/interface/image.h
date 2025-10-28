@@ -14,12 +14,26 @@
 #include "mbedtls/lms.h"
 #include "fih.h"
 #include "image_layout_bl1_2.h"
+#include "Driver_Flash.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define BL1_2_HEADER_SIZE (offsetof(struct bl1_2_image_t, protected_values.encrypted_data.data))
+
+#if defined(TFM_BL1_2_IMAGE_BINDING) && defined(TFM_BL1_2_IMAGE_ENCRYPTION)
+
+#define FLASH_PAGE_SIZE      1024U
+#define FLASH_SECTOR_SIZE    (4U * 1024U)
+#define FLASH_ERASE_BLOCK    (64U * 1024U)
+
+typedef struct {
+    uintptr_t region_base;   /* flash start of protected_values */
+    size_t    region_len;    /* total bytes to rewrite */
+    uintptr_t erased_to;     /* [region_base, erased_to) already erased (block aligned) */
+} flash_bind_ctx_t;
+#endif
 
 /**
  *
@@ -75,6 +89,58 @@ fih_int bl1_2_rollback_image(void);
 fih_ret bl1_2_store_image_binding_tag(uint32_t image_id,
                                       struct bl1_2_image_t *image,
                                       const uint8_t tag[16]);
+
+#ifdef TFM_BL1_2_IMAGE_ENCRYPTION
+typedef struct {
+    ARM_DRIVER_FLASH *flash;
+    uintptr_t region_base;    /* start of flash region to overwrite */
+    size_t    region_len;     /* total bytes to overwrite */
+    uintptr_t cur;            /* current write cursor */
+    uintptr_t region_end;     /* region_base + region_len */
+    uint32_t  sector_size;    /* flash sector_size */
+    uint32_t  prog_unit;      /* flash program_unit */
+    uint8_t  *sector_buf;     /* RAM buffer of size sector_size */
+} bl1_2_image_flash_bind_ctx_t;
+
+/**
+ * @brief Begins the binding process for a flash image region.
+ *
+ * Initializes the context for binding a flash image region, preparing it for subsequent operations.
+ * The function sets up the working context with the specified region base address, region length,
+ * and a buffer for sector operations.
+ *
+ * @param w                Pointer to the flash bind context structure to initialize.
+ * @param region_base      Base address of the flash region to bind.
+ * @param region_len       Length of the flash region to bind.
+ * @param sector_buf       Pointer to the buffer used for sector operations.
+ * @param sector_buf_len   Length of the sector buffer.
+ *
+ * @return 0 on success, or a negative error code on failure.
+ */
+int bl1_2_image_flash_bind_begin(bl1_2_image_flash_bind_ctx_t *w,
+                                 uintptr_t region_base,
+                                 size_t    region_len,
+                                 uint8_t  *sector_buf,
+                                 size_t    sector_buf_len);
+
+/**
+ * @brief Writes data to the flash image using the provided context.
+ *
+ * This function writes a buffer of data to the flash image associated with the
+ * given write context. The context maintains the state required for the write
+ * operation. The function attempts to write 'len' bytes from 'buf' to the flash.
+ *
+ * @param w   Pointer to the flash bind write context.
+ * @param buf Pointer to the buffer containing data to be written.
+ * @param len Number of bytes to write from the buffer.
+ *
+ * @return 0 on success, or a negative error code on failure.
+ */
+int bl1_2_image_flash_bind_write(bl1_2_image_flash_bind_ctx_t *w,
+                                 const uint8_t *buf,
+                                 size_t len);
+
+#endif /* TFM_BL1_2_IMAGE_ENCRYPTION */
 #endif /* TFM_BL1_2_IMAGE_BINDING */
 
 #ifdef __cplusplus

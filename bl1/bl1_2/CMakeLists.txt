@@ -62,6 +62,7 @@ target_link_libraries(bl1_2
 target_compile_definitions(bl1_2
     PRIVATE
         $<$<BOOL:${TFM_BL1_MEMORY_MAPPED_FLASH}>:TFM_BL1_MEMORY_MAPPED_FLASH>
+        $<$<BOOL:${TFM_BL1_2_IMAGE_BINDING}>:RSE_BOOT_KEYS_BINDING>
         $<$<BOOL:${TEST_BL1_1}>:TEST_BL1_1>
         $<$<BOOL:${TEST_BL1_2}>:TEST_BL1_2>
         $<$<BOOL:${TFM_BL1_2_ENABLE_LMS}>:TFM_BL1_2_ENABLE_LMS>
