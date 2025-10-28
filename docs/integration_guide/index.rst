@@ -83,7 +83,7 @@ its own implementation of ``tfm_ns_interface_dispatch()`` function.
 
 TF-M provides a reference implementation of NS mailbox on multi-core platforms,
 under folder ``interface/src/multi_core``.
-See :doc:`Mailbox design </design_docs/dual-cpu/mailbox_design>`
+See :doc:`Mailbox design </design_docs/multi-cpu/mailbox_design>`
 for TF-M multi-core mailbox design.
 
 Interface with non-secure world regression tests
@@ -137,7 +137,7 @@ interrupts cannot preempt the SPE, for example.
 
 Note that scheduling also depends on the system topology. If your system has
 multiple cores running multiple NSPEs, then refer to
-:doc:`Scheduling Hybrid Platforms </design_docs/dual-cpu/hybrid_platform_solution>`
+:doc:`Scheduling Hybrid Platforms </design_docs/multi-cpu/hybrid_platform_solution>`
 for more details.
 
 **********************************

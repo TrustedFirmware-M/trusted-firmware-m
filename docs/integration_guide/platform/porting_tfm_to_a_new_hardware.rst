@@ -678,7 +678,7 @@ tfm_hal_memory_check:
     A default implementation for Armv8-M platforms with TrustZone is provided in
     ``platform/ext/common/tfm_hal_isolation_v8m.c``. Multi-core topology
     platforms without TrustZone may use the
-    :doc:`Memory Check APIs </design_docs/dual-cpu/tfm_multi_core_access_check>`
+    :doc:`Memory Check APIs </design_docs/multi-cpu/tfm_multi_core_access_check>`
     to implement this HAL.
 
 .. code-block:: c

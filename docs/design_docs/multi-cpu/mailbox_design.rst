@@ -27,6 +27,10 @@ Because it acts as an agent, you must consider several key design details:
   the NS Agent Mailbox must respond to non-secure interrupts promptly. Blocking
   can delay the handling of non-secure communication messages.
 
+.. note::
+  All the concepts for dual-cpu can be extended to multi-cpu without loss of
+  generality. Also see the Hybrid Platform section for further details.
+
 
 ******
 Design
@@ -109,7 +113,7 @@ Both NSPE and SPE mailboxes use platform-specific inter-process communication
 
 The figure below shows the architecture.
 
-.. figure:: dual_core_mailbox_arch.png
+.. figure:: multi_cpu_mailbox_arch.png
     :align: center
     :name: fig-mailbox3
     :width: 75%

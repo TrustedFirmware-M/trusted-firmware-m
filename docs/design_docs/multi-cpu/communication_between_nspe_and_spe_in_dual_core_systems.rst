@@ -25,6 +25,10 @@ The dual-core system has the following characteristics:
   for communication between NSPE core and SPE core.
 - TF-M runs on the Secure core with platform-specific drivers support.
 
+.. note::
+  All the concepts for dual-cpu can be extended to multi-cpu without loss of
+  generality. Also see the Hybrid Platform section for further details.
+
 
 Scope
 =====
@@ -84,7 +88,7 @@ Step 3-5 are covered in `PSA client call handling flow in TF-M`_ in detail.
   This document is partially complete since the introduction of the Hybrid
   Platform Scheduling support, which extends the operation of the mailbox
   communication between local and remote NSPEs with SPE described here.
-  For more details see :doc:`/design_docs/dual-cpu/hybrid_platform_solution`.
+  For more details see :doc:`/design_docs/multi-cpu/hybrid_platform_solution`.
 
 
 **********************************

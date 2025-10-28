@@ -16,8 +16,11 @@ Scheduling for a Hybrid Platform Solution
 Introduction
 ************
 
-The Hybrid Platform solution is an extension of the Dual-CPU systems [1]_
-already supported in TF-M.
+The Hybrid Platform solution refers to the more generic support for platforms
+with one local NSPE client and one or more NSPE remote client. The local client
+resides in the same cpu as the SPE, while the remote clients reside on separate
+CPUs.
+
 A Hybrid Platform solution requires applications to run from both local and
 remote clients.
 This inevitably brings some scheduling trade-offs and limitations on the table.
@@ -88,7 +91,7 @@ Typically, a Hybrid Platform would fall into two categories:
 +---------------+--------------------------------------------------------------+
 | Remark:                                                                      |
 | When the M-Class core hosting the Secure World does NOT have a Normal World, |
-| then the solution is a Dual-CPU System [1]_.                                 |
+| then the solution is known as "Dual-CPU" System.                             |
 +------------------------------------------------------------------------------+
 
 
@@ -557,11 +560,6 @@ Limitations
 Currently Hybrid Platform is supported only for the IPC model.
 Testing is limited.
 
-**********
-References
-**********
-
-.. [1] :doc:`Dual-CPU <index>`
 
 --------------
 

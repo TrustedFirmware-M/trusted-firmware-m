@@ -5,7 +5,7 @@ Design Documents
     :maxdepth: 2
 
     Secure Boot     <booting/index>
-    Dual CPU        <dual-cpu/index>
+    Multi CPU       <multi-cpu/index>
     Secure Services <services/index>
     Software Design <software/index>
 

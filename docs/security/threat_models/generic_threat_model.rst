@@ -351,7 +351,8 @@ This section identifies threats on ``DF1`` defined in `Data Flow Diagram`_.
   |               |                                                            |
   |               | On multi-core platform, platform specific initialization   |
   |               | must halt NS core until isolation is completed, as defined |
-  |               | in [DUAL-CPU-BOOT]_ (same applies for [HYBRID_PLATFORMS]_).|
+  |               | in [MULTI-CPU-BOOT]_ (same applies for                     |
+  |               | [HYBRID_PLATFORMS]_).                                      |
   |               |                                                            |
   |               | TF-M executes isolation configuration at an early stage of |
   |               | secure initialization before starting NS execution.        |
@@ -1181,7 +1182,7 @@ References
 
 .. [FF-M-1.1-Extensions] `Arm® Firmware Framework for M 1.1 Extensions <https://developer.arm.com/documentation/aes0039/latest/>`_
 
-.. [DUAL-CPU-BOOT] :doc:`Booting a dual core system </design_docs/dual-cpu/booting_a_dual_core_system>`
+.. [MULTI-CPU-BOOT] :doc:`Booting a multi cpu system </design_docs/multi-cpu/booting_a_multi_cpu_system>`
 
 .. [CVSS] `Common Vulnerability Scoring System Version 3.1 Calculator <https://www.first.org/cvss/calculator/3.1>`_
 
@@ -1203,7 +1204,7 @@ References
 
 .. [VLLDM-Vulnerability] `VLLDM instruction Security Vulnerability <https://developer.arm.com/support/arm-security-updates/vlldm-instruction-security-vulnerability>`_
 
-.. [HYBRID_PLATFORMS] :doc:`Scheduling for a Hybrid Platform Solution </design_docs/dual-cpu/hybrid_platform_solution>`
+.. [HYBRID_PLATFORMS] :doc:`Scheduling for a Hybrid Platform Solution </design_docs/multi-cpu/hybrid_platform_solution>`
 
 
 --------------

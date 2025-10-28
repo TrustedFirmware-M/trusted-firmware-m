@@ -1,5 +1,5 @@
 ##########################
-Booting a Dual-Core System
+Booting a Multi CPU System
 ##########################
 
 :Author: Chris Brand
@@ -9,7 +9,7 @@ Booting a Dual-Core System
 *******************
 System Architecture
 *******************
-There are many possibly ways to design a dual core system. Some important
+There are many possibly ways to design a multi cpu system. Some important
 considerations from a boot perspective are:
 
 - Which core has access to which areas of Flash?
@@ -26,12 +26,16 @@ considerations from a boot perspective are:
 
     - There could be a great disparity in performance
 
+.. note::
+  Concept for multi-cpu are extended in the Hybrid Platform section.
+
+
 **********************
-TF-M Twin Core Booting
+TF-M Multi CPU Booting
 **********************
 In an effort to make the problem manageable, as well as to provide a system
-with good performance, that is flexible enough to work for a variety of dual
-core systems, the following design decisions have been made:
+with good performance, that is flexible enough to work for a variety of multi
+cpu systems, the following design decisions have been made:
 
 - TF-M will (for now) only support systems where the secure core has full
   access to the Flash that the non-secure core will boot from
@@ -65,7 +69,7 @@ core systems, the following design decisions have been made:
   the secure core will be allowed to die
 
     - The scheduler has been started at this point, and an idle thread exists.
-      Any additional work that is only required in the dual core case will be
+      Any additional work that is only required in the multi cpu case will be
       interrupt-driven.
 
     - All work related to the non-secure core will take place from a
@@ -122,7 +126,7 @@ Three new HAL functions are required:
 
     void tfm_ns_wait_for_s_cpu_ready(void);
 
-- Called on the non-secure core from ``main()`` after the dual-core-specific
+- Called on the non-secure core from ``main()`` after the multi-cpu-specific
   initialization (on a single core system, this would be the start of the
   non-secure code), before the first use of the IPC mechanism.
 
@@ -137,5 +141,5 @@ that platforms only have to provide the new functions if they are required.
 ---------------
 
 Copyright (c) 2019-2022 Cypress Semiconductor Corporation. All rights reserved.
-Copyright (c) 2021, Arm Limited. All rights reserved.
-
+SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+SPDX-License-Identifier: BSD-3-Clause

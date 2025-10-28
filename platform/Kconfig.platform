@@ -84,7 +84,7 @@ config TFM_MULTI_CORE_TOPOLOGY
     bool
     default n
     help
-      Dual-cpu architecture
+      Multi-cpu architecture
 
 config CONFIG_TFM_USE_TRUSTZONE
     bool
@@ -207,7 +207,7 @@ config TFM_PLAT_SPECIFIC_MULTI_CORE_COMM
     depends on TFM_MULTI_CORE_TOPOLOGY
     help
       Whether to use a platform specific inter-core communication instead of
-      mailbox in dual-cpu topology
+      mailbox in multi-cpu topology
 
 config TFM_NS_NV_COUNTER_AMOUNT
     int "Numbers of NS NV counters"

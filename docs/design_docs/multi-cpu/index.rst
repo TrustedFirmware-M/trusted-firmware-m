@@ -1,12 +1,12 @@
-########
-Dual CPU
-########
+#########
+Multi CPU
+#########
 
 :Organization: Arm Limited
 :Contact: tf-m@lists.trustedfirmware.org
 
 The following documents outline the design and implementation principles of TF-M
-for dual-core and hybrid platforms, where the Secure Processing Environment
+for multi-cpu and hybrid platforms, where the Secure Processing Environment
 (SPE) and Non-secure Processing Environment (NSPE) execute on separate cores.
 
 During boot, the secure core initializes the hardware and peripherals that the
@@ -17,13 +17,13 @@ mechanism.
 
 The framework includes a Remote Procedure Call (RPC) layer and an NS Agent
 Mailbox to abstract platform dependencies.
-Hybrid platform scheduling extends the dual-cpu concepts for systems with a
-local and multiple remote NSPEs, supporting flexible scheduling policies.
+Hybrid platform scheduling extends the original dual-cpu concepts for systems
+with a local and multiple remote NSPEs, supporting flexible scheduling policies.
 
 .. toctree::
     :maxdepth: 1
 
-    Booting a dual-core      <booting_a_dual_core_system.rst>
+    Booting a multi-cpu      <booting_a_multi_cpu_system.rst>
     Hybrid Platform Topology <hybrid_platform_solution.rst>
     Mailbox Design           <mailbox_design.rst>
     Memory Access Check      <tfm_multi_core_access_check.rst>

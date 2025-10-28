@@ -61,7 +61,7 @@ Here lists a minimal set of necessary functionalities:
   - There is a non-secure :term:`HAL` that focuses on the mailbox operation API
     for Dual-core topology. For more information about it, please refer to
     :doc:`Mailbox Design in TF-M on Dual-core System
-    </design_docs/dual-cpu/mailbox_design>`.
+    </design_docs/multi-cpu/mailbox_design>`.
   - The minimal set of :term:`TF-M` :term:`HAL` is sufficient for Secure
     Partitions by using customized peripheral interfaces. To provide easier
     portability for the Secure Partitions, a Secure Partition :term:`HAL` is
