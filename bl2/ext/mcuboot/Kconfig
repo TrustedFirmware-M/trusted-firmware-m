@@ -236,12 +236,8 @@ config MCUBOOT_ENC_KEY_LEN
     int "Length of the AES key for encrypting images"
     default 128
 
-config MCUBOOT_MBEDCRYPTO_CONFIG_FILEPATH
-    string "Mbed TLS config file to use with MCUboot"
-    default "$(TFM_SOURCE_DIR)/bl2/ext/mcuboot/config/mcuboot-mbedtls-cfg.h"
-
 config MCUBOOT_PSA_CRYPTO_CONFIG_FILEPATH
-    string "Mbed TLS PSA Crypto config file to use with MCUboot"
+    string "TF-PSA-Crypto config file to use with MCUboot"
     default "$(TFM_SOURCE_DIR)/bl2/ext/mcuboot/config/mcuboot_crypto_config.h"
 
 choice BL2_LOG_LEVEL

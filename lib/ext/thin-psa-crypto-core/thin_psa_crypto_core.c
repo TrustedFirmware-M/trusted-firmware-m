@@ -31,8 +31,8 @@
 #include "psa_crypto_ecp.h"
 
 /* A few Mbed TLS definitions */
-#include "mbedtls/entropy.h"
-#include "mbedtls/ecp.h"
+#include "mbedtls/private/entropy.h"
+#include "mbedtls/private/ecp.h"
 #include "mbedtls/nist_kw.h"
 #if defined(CC3XX_CRYPTO_OPAQUE_KEYS)
 #include "cc3xx_opaque_keys.h"

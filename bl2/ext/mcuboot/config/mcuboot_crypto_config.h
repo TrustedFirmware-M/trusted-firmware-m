@@ -4,15 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
+
 /**
- * \file psa/crypto_config.h
+ * \file mcuboot/config/mcuboot_crypto_config.h
  * \brief PSA crypto configuration options (set of defines)
  *
  */
-#if defined(MBEDTLS_PSA_CRYPTO_CONFIG)
 /**
- * When #MBEDTLS_PSA_CRYPTO_CONFIG is enabled in mbedtls_config.h,
- * this file determines which cryptographic mechanisms are enabled
+ * This file determines which cryptographic mechanisms are enabled
  * through the PSA Cryptography API (\c psa_xxx() functions).
  *
  * To enable a cryptographic mechanism, uncomment the definition of
@@ -28,47 +27,158 @@
  * (\c PSA_WANT_ALG_xxx). Mechanisms with additional parameters may involve
  * additional symbols.
  */
-#else
-/**
- * When \c MBEDTLS_PSA_CRYPTO_CONFIG is disabled in mbedtls_config.h,
- * this file is not used, and cryptographic mechanisms are supported
- * through the PSA API if and only if they are supported through the
- * mbedtls_xxx API.
- */
-#endif
 
-#ifndef MCUBOOT_CRYPTO_CONFIG_H
-#define MCUBOOT_CRYPTO_CONFIG_H
+#ifndef __MCUBOOT_CRYPTO_CONFIG_H__
+#define __MCUBOOT_CRYPTO_CONFIG_H__
+
+/**
+ * \name SECTION: SECTION Cryptographic mechanism selection (PSA API)
+ *
+ * This section sets PSA API settings.
+ * \{
+ */
 
 /* Hashing algorithms */
 #if defined(MCUBOOT_SIGN_EC384)
-#define PSA_WANT_ALG_SHA_384                    1
+/* When the image is signed with EC-P384 the image hash
+ * is calculated using SHA-384
+ */
+#define PSA_WANT_ALG_SHA_384                1
 #else
-#define PSA_WANT_ALG_SHA_256                    1
+/* All the other supported signing algorithms use SHA-256 to compute the image hash */
+#define PSA_WANT_ALG_SHA_256                1
 #endif
 
 /* Signature verification algorithms */
 #if defined(MCUBOOT_SIGN_RSA)
-#define PSA_WANT_ALG_RSA_PSS                    1
+#define PSA_WANT_ALG_RSA_PSS                1
 #else
-#define PSA_WANT_ALG_ECDSA                      1
+#define PSA_WANT_ALG_ECDSA                  1
 /* Curves supported for ECDSA */
 #if defined(MCUBOOT_SIGN_EC384)
-#define PSA_WANT_ECC_SECP_R1_384                1
+#define PSA_WANT_ECC_SECP_R1_384            1
 #else
-#define PSA_WANT_ECC_SECP_R1_256                1
-#endif
-#endif
+#define PSA_WANT_ECC_SECP_R1_256            1
+#endif /* MCUBOOT_SIGN_EC384 */
+#endif /* MCUBOOT_SIGN_RSA */
 
 /* Key types supported */
 #if defined(MCUBOOT_SIGN_RSA)
-#define PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY        1
+#define PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY    1
 #else
-#define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY        1
+#define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY    1
 #endif
 
-#define PSA_WANT_ALG_ECB_NO_PADDING
-#define PSA_WANT_ALG_CTR
+#define PSA_WANT_ALG_ECB_NO_PADDING         1
+#define PSA_WANT_ALG_CTR                    1       /* TODO: condition? */
+
+#if defined(MCUBOOT_ENC_IMAGES)
+#define PSA_WANT_ALG_CTR                    1
+#define PSA_WANT_KEY_TYPE_AES               1
+#endif
+
+#ifdef CRYPTO_HW_ACCELERATOR_OTP_PROVISIONING
+#define PSA_WANT_ALG_CCM
+#define PSA_WANT_ECC_SECP_R1_256
+#define PSA_WANT_ECC_MONTGOMERY_255
+#endif /* CRYPTO_HW_ACCELERATOR_OTP_PROVISIONING */
+
+/** \} name SECTION Cryptographic mechanism selection (PSA API) */
+
+/**
+ * \name SECTION: Platform abstraction layer
+ *
+ * This section sets platform specific settings.
+ * \{
+ */
+
+/* System support */
+#define MBEDTLS_PLATFORM_C
+#define MBEDTLS_PLATFORM_MEMORY
+#define MBEDTLS_MEMORY_BUFFER_ALLOC_C
+#define MBEDTLS_PLATFORM_EXIT_ALT
+#define MBEDTLS_PLATFORM_PRINTF_ALT
+
+/** \} name SECTION: Platform abstraction layer */
+
+/**
+ * \name SECTION: Cryptographic mechanism selection (extended API)
+ *
+ * This section sets cryptographic mechanism settings.
+ * \{
+ */
+
+#define MBEDTLS_MD_C
+#define MBEDTLS_NIST_KW_C
+
+ /** \} name SECTION: Cryptographic mechanism selection (extended API) */
+
+/**
+ * \name SECTION: Data format support
+ *
+ * This section sets data-format specific settings.
+ * \{
+ */
+
+#define MBEDTLS_ASN1_PARSE_C
+#define MBEDTLS_ASN1_WRITE_C
+
+ /** \} name SECTION: Data format support */
+
+/**
+ * \name SECTION: PSA core
+ *
+ * This section sets PSA specific settings.
+ * \{
+ */
+
+/* Enable PSA Crypto Core without support for the permanent storage
+ * Don't define MBEDTLS_PSA_CRYPTO_STORAGE_C to make sure that support
+ * for permanent keys is not enabled, as it is not available during boot
+ */
+#define MBEDTLS_PSA_CRYPTO_C
+#define MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+
+/** \} name SECTION: PSA core */
+
+/**
+ * \name SECTION: Builtin drivers
+ *
+ * This section sets driver specific settings.
+ * \{
+ */
+
+#if defined(MCUBOOT_SIGN_EC256)
+#define MBEDTLS_PSA_P256M_DRIVER_ENABLED
+#endif
+
+#if defined(MCUBOOT_SIGN_EC256) || defined(MCUBOOT_SIGN_EC384)
+#define MBEDTLS_ECP_NIST_OPTIM
+#endif
+
+#if defined(MCUBOOT_SIGN_RSA)
+/* Save RAM by adjusting to our exact needs */
+#if MCUBOOT_SIGN_RSA_LEN == 3072
+#define MBEDTLS_MPI_MAX_SIZE 384
+#else /* RSA2048 */
+#define MBEDTLS_MPI_MAX_SIZE 256
+#endif
+#endif /* MCUBOOT_SIGN_RSA */
+
+#if defined(MCUBOOT_ENC_IMAGES)
+#define MBEDTLS_AES_FEWER_TABLES
+#endif
+
+ /** \} name SECTION: Builtin drivers */
+
+/**
+ * \name SECTION: Legacy cryptography
+ *
+ * This section sets legacy settings.
+ * \{
+ */
+
+/** \} name SECTION: Legacy cryptography */
 
 #ifdef MCUBOOT_IMAGE_BINDING
 #ifdef MCUBOOT_ENC_IMAGES
@@ -79,8 +189,11 @@
 #endif /* MCUBOOT_IMAGE_BINDING */
 
 #ifdef CRYPTO_HW_ACCELERATOR
-#include MBEDTLS_ACCELERATOR_PSA_CRYPTO_CONFIG_FILE
+#ifdef TF_PSA_CRYPTO_ACCELERATOR_CONFIG_FILE
+#include TF_PSA_CRYPTO_ACCELERATOR_CONFIG_FILE
 #endif
+#endif /* CRYPTO_HW_ACCELERATOR */
 
 #define PSA_CRYPTO_OPAQUE_KEYS
-#endif /* MCUBOOT_CRYPTO_CONFIG_H */
+
+#endif /* __MCUBOOT_CRYPTO_CONFIG_H__ */

@@ -27,10 +27,10 @@ if(BL2)
     target_sources(bl2
         PRIVATE
             ${CMAKE_CURRENT_LIST_DIR}/device/source/startup_mps4_corstone3xx.c
-            ${MBEDCRYPTO_PATH}/library/constant_time.c
-            ${MBEDCRYPTO_PATH}/library/cipher.c
-            ${MBEDCRYPTO_PATH}/library/cipher_wrap.c
-            ${MBEDCRYPTO_PATH}/library/psa_crypto_cipher.c
+            ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/constant_time.c
+            ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/cipher.c
+            ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/cipher_wrap.c
+            ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/psa_crypto_cipher.c
     )
 
     target_add_scatter_file(bl2

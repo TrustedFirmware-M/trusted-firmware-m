@@ -87,7 +87,7 @@ set(MCUBOOT_SECURITY_COUNTER_NS         1           CACHE STRING    "Security co
 set(MCUBOOT_S_IMAGE_MIN_VER             0.0.0+0     CACHE STRING    "Minimum version of secure image required by the non-secure image for upgrade to this non-secure image. If MCUBOOT_IMAGE_NUMBER == 1 this option has no effect")
 set(MCUBOOT_NS_IMAGE_MIN_VER            0.0.0+0     CACHE STRING    "Minimum version of non-secure image required by the secure image for upgrade to this secure image. If MCUBOOT_IMAGE_NUMBER == 1 this option has no effect")
 set(MCUBOOT_ENC_KEY_LEN                 128         CACHE STRING    "Length of the AES key for encrypting images")
-set(MCUBOOT_MBEDCRYPTO_CONFIG_FILEPATH  "${CMAKE_SOURCE_DIR}/bl2/ext/mcuboot/config/mcuboot-mbedtls-cfg.h" CACHE FILEPATH "Mbed TLS config file to use with MCUboot")
-set(MCUBOOT_PSA_CRYPTO_CONFIG_FILEPATH  "${CMAKE_SOURCE_DIR}/bl2/ext/mcuboot/config/mcuboot_crypto_config.h" CACHE FILEPATH "Mbed TLS PSA Crypto config file to use with MCUboot")
 
-set(PLATFORM_DEFAULT_IMAGE_ENCRYPTION        ON         CACHE BOOL "Whether to use platform-specific code encryption keys")
+set(MCUBOOT_PSA_CRYPTO_CONFIG_FILEPATH  "${CMAKE_SOURCE_DIR}/bl2/ext/mcuboot/config/mcuboot_crypto_config.h" CACHE FILEPATH "TF-PSA-Crypto config file to use with MCUboot")
+
+set(PLATFORM_DEFAULT_IMAGE_ENCRYPTION   ON          CACHE BOOL      "Whether to use platform-specific code encryption keys")
