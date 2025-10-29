@@ -270,6 +270,9 @@ SECTIONS
         /* .zero.table */
         . = ALIGN(4);
         __zero_table_start__ = .;
+        LONG (ADDR(.TFM_BSS))
+        LONG (SIZEOF(.TFM_BSS) / 4)
+
         LONG (ADDR(.TFM_PSA_ROT_LINKER_BSS))
         LONG (SIZEOF(.TFM_PSA_ROT_LINKER_BSS) / 4)    /* Aligment checked after the section */
 
@@ -298,6 +301,7 @@ SECTIONS
 #if defined (S_RAM_CODE_START)
     CHECK_ALIGNMENT_4(SIZEOF(.ER_CODE_SRAM))
 #endif
+    CHECK_ALIGNMENT_4(SIZEOF(.TFM_BSS))
     CHECK_ALIGNMENT_4(SIZEOF(.TFM_PSA_ROT_LINKER_BSS))
     CHECK_ALIGNMENT_4(SIZEOF(.TFM_APP_ROT_LINKER_BSS))
 #if defined(CONFIG_TFM_PARTITION_META)
