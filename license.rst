@@ -28,8 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .. note::
    Individual files contain the following tag instead of the full license text.
 
-
-
     SPDX-License-Identifier:    BSD-3-Clause
 
 This enables machine processing of license information based on the SPDX
