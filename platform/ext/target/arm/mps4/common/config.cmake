@@ -51,7 +51,7 @@ set(PLATFORM_DEFAULT_ATTEST_HAL         OFF             CACHE BOOL     "Use defa
 set(PLATFORM_DEFAULT_NV_COUNTERS        OFF             CACHE BOOL     "Use default nv counter implementation.")
 set(PLATFORM_HAS_PS_NV_OTP_COUNTERS     ON              CACHE BOOL     "Platform supports nvm counters for PS in OTP")
 
-set(TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH   ${MPS4_COMMON_DIR}/mbedtls_extra_config.h CACHE PATH "Config to append to standard Mbed Crypto config, used by platforms to configure feature support")
+set(TFM_TF_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH  ${MPS4_COMMON_DIR}/tf_psa_crypto_extra_config.h CACHE FILEPATH "Config to append to standard TF-PSA-Crypto config, used by platforms to configure feature support")
 set(BL1_1_SHARED_SYMBOLS_PATH                   ${MPS4_COMMON_DIR}/bl1/bl1_1_shared_symbols.txt CACHE FILEPATH "Path to list of symbols that BL1_1 that can be referenced from BL1_2")
 set(RTL_KEY_PATH                                ${MPS4_COMMON_DIR}/provisioning/tci_krtl.bin    CACHE FILEPATH "Path to binary RTL key for encrypting provisioning bundles")
 

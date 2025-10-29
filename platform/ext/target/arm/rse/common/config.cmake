@@ -280,8 +280,8 @@ set(DEFAULT_MCUBOOT_FLASH_MAP           OFF        CACHE BOOL     "Whether to us
 set(MCUBOOT_S_IMAGE_FLASH_AREA_NUM      2          CACHE STRING   "ID of the flash area containing the primary Secure image")
 set(MCUBOOT_NS_IMAGE_FLASH_AREA_NUM     3          CACHE STRING   "ID of the flash area containing the primary Non-Secure image")
 
-set(TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH               ${CMAKE_CURRENT_LIST_DIR}/mbedtls_extra_config.h            CACHE PATH "Config to append to standard Mbed Crypto config, used by platforms to configure feature support")
-set(TFM_MBEDCRYPTO_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH    ${CMAKE_CURRENT_LIST_DIR}/mbedtls_psa_crypto_extra_config.h CACHE PATH "Config to append to standard PSA Crypto setting for Mbed Crypto, used by platforms to configure cryptographic feature support.")
+set(TFM_TF_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH   ${CMAKE_CURRENT_LIST_DIR}/tf_psa_crypto_extra_config.h
+                                                   CACHE FILEPATH "Config to append to standard TF-PSA-Crypto config, used by platforms to configure cryptographic feature support")
 
 set(TFM_EXTRAS_REPO_EXTRA_PARTITIONS    "measured_boot;delegated_attestation;dice_protection_environment;scmi;adac;runtime_provisioning" CACHE STRING "List of extra secure partition directory name(s)")
 # Below TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST path is relative to tf-m-extras repo

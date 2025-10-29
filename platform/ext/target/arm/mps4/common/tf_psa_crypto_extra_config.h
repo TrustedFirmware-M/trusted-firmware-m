@@ -1,9 +1,12 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
+
+#ifndef __TF_PSA_CRYPTO_EXTRA_CONFIG_H__
+#define __TF_PSA_CRYPTO_EXTRA_CONFIG_H__
 
 #undef PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE
 #define PSA_WANT_KEY_TYPE_ECC_KEY_PAIR_DERIVE   1
@@ -31,3 +34,5 @@
 
 #undef MBEDTLS_PSA_P256M_DRIVER_ENABLED
 #define MBEDTLS_PSA_P256M_DRIVER_ENABLED
+
+#endif /* __TF_PSA_CRYPTO_EXTRA_CONFIG_H__ */

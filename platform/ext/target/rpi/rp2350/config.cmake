@@ -36,7 +36,7 @@ set(PROVISIONING_DATA_PADDED_SIZE       "0x400"   CACHE STRING    "")
 
 set(PICO_SDK_FETCH_FROM_GIT_TAG         "2.1.1"   CACHE STRING       "Use the define Pico SDK tag for the build")
 
-set(TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH ${CMAKE_CURRENT_LIST_DIR}/mbedtls_extra_config.h CACHE PATH "Config to append to standard Mbed Crypto config, used by platforms to cnfigure feature support")
+set(TFM_TF_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH ${CMAKE_CURRENT_LIST_DIR}/tf_psa_crypto_extra_config.h CACHE PATH "Config to append to standard TF-PSA-Crypto config, used by platforms to configure feature support")
 
 set(PLATFORM_DEFAULT_PROV_LINKER_SCRIPT OFF          CACHE BOOL      "Use default provisioning linker script")
 set(ITS_ENCRYPTION                      ON           CACHE BOOL      "Enable authenticated encryption of ITS files using platform specific APIs")

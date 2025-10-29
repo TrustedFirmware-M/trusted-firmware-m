@@ -130,8 +130,8 @@ The configuration of the backend library is supplied using the
 header following the configuration scheme of TF-PSA-Crypto.
 
 Platforms can specify an extra config file by setting the
-``TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH`` variable (which is a wrapper
-around the ``MBEDTLS_USER_CONFIG_FILE`` option). This is preferred for
+``TFM_TF_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH`` variable (which is a wrapper
+around the ``TF_PSA_CRYPTO_USER_CONFIG_FILE`` option). This is preferred for
 platform configuration over ``TFM_TF_PSA_CRYPTO_CONFIG_PATH`` as it does not
 interfere with config changes due to TFM Profile.
 
@@ -184,4 +184,6 @@ References
 
 --------------
 
-*Copyright (c) 2018-2023, Arm Limited. All rights reserved.*
+*SPDX-License-Identifier: BSD-3-Clause*
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*

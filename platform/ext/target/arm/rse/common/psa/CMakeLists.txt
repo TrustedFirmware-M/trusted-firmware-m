@@ -7,11 +7,12 @@
 
 target_compile_definitions(bl1_1_psa_crypto_interface
     INTERFACE
+        # This platform-specific configuration file extends the base configuration file
+        TF_PSA_CRYPTO_USER_CONFIG_FILE="${CMAKE_CURRENT_SOURCE_DIR}/tf_psa_crypto_extra_config.h"
+
         #Configure settings related to Mbed TLS cryptographic accelerators.
         MBEDTLS_ACCELERATOR_CONFIG_FILE="${CMAKE_CURRENT_SOURCE_DIR}/mbedtls_accelerator_config.h"
 
-        # PSA Crypto-specific configuration file.
-        MBEDTLS_PSA_CRYPTO_CONFIG_FILE="${CMAKE_CURRENT_SOURCE_DIR}/psa_crypto_config.h"
         # PSA Crypto accelerator configurations.
         MBEDTLS_ACCELERATOR_PSA_CRYPTO_CONFIG_FILE="${CMAKE_CURRENT_SOURCE_DIR}/psa_accelerator_config.h"
 )

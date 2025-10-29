@@ -1,10 +1,12 @@
 /*
- * SPDX-License-Identifier: BSD-3-Clause
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
  */
 
-#ifndef __MBEDTLS_PSA_CRYPTO_EXTRA_CONFIG_H__
-#define __MBEDTLS_PSA_CRYPTO_EXTRA_CONFIG_H__
+#ifndef __TF_PSA_CRYPTO_EXTRA_CONFIG_H__
+#define __TF_PSA_CRYPTO_EXTRA_CONFIG_H__
 
 /* Disable all RSA-related cryptographic functionalities as RSE does not support it. */
 #ifdef PSA_WANT_ALG_RSA_OAEP
@@ -43,4 +45,10 @@
 #undef PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE
 #endif
 
-#endif /* __MBEDTLS_PSA_CRYPTO_EXTRA_CONFIG_H__ */
+/* RSE does not have ITS */
+#undef MBEDTLS_PSA_CRYPTO_STORAGE_C
+
+/* Static keyslots are used so that the footprint of MbedTLS can be kept under control. */
+#define MBEDTLS_PSA_STATIC_KEY_SLOTS
+
+#endif /* __TF_PSA_CRYPTO_EXTRA_CONFIG_H__ */

@@ -2,6 +2,8 @@
 # Copyright (c) 2023-2025 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+#
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
@@ -34,7 +36,7 @@ set(IFX_CRYPTO_KEYS_RRAM             ON) # Crypto key storage in RRAM, platform 
 
 set(IFX_SE_IPC_SERVICE_TYPE          BASE) # Infineon SE IPC Service with limited set of functions
 
-set(TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH "${CMAKE_CURRENT_LIST_DIR}/spe/services/crypto/mbedtls_target_config_pse84.h"    CACHE PATH      "Config to append to standard Mbed Crypto config, used by platforms to configure feature support")
+set(TFM_TF_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH "${CMAKE_CURRENT_LIST_DIR}/spe/services/crypto/mbedtls_target_config_pse84.h"    CACHE PATH      "Config to append to standard TF-PSA-Crypto config, used by platforms to configure cryptographic feature support")
 
 ################################### Drivers ####################################
 

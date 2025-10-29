@@ -53,11 +53,11 @@ config TFM_TF_PSA_CRYPTO_CONFIG_PATH
       This can be useful if the config file is generated and placed
       inside a directory already added to the include path of TF-PSA-Crypto.
 
-config TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH
-    string "Mbedtls platform crypto config path"
+config TFM_TF_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH
+    string "TF-PSA-Crypto platform crypto config path"
     default ""
     help
-      Config to append to standard Mbed Crypto config, used by platforms
+      Config to append to standard TF-PSA-Crypto config, used by platforms
       to configure feature support
 
 endmenu

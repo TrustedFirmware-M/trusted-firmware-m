@@ -339,7 +339,7 @@ target_link_libraries(platform_bl1_1
 target_compile_definitions(bl1_1_psa_crypto_interface
     INTERFACE
         # This platform-specific configuration file extends the base configuration file
-        MBEDTLS_USER_CONFIG_FILE="${CMAKE_CURRENT_LIST_DIR}/bl1/mbedcrypto_platform_config.h"
+        TF_PSA_CRYPTO_USER_CONFIG_FILE="${CMAKE_CURRENT_LIST_DIR}/bl1/tf_psa_crypto_extra_config.h"
 )
 
 target_sources(bl1_1_psa_crypto

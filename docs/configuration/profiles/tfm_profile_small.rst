@@ -408,11 +408,11 @@ Other configurations can be selected to optimize the memory footprint of Crypto
 module.
 
 A device/use case can append an extra config header to the  Profile Small
-default Mbed Crypto config file. This can be done by setting the
-``TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH`` cmake variable in the platform
+default TF-PSA-Crypto config file. This can be done by setting the
+``TFM_TF_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH`` cmake variable in the platform
 config file ``platform/ext<TFM_PLATFORM>/config.cmake``. This cmake variable is
-a wrapper around the ``MBEDTLS_USER_CONFIG_FILE`` options, but is preferred as
-it keeps all configuration in cmake.
+a wrapper around the ``TF_PSA_CRYPTO_USER_CONFIG_FILE`` options, but is
+preferred as it keeps all configuration in cmake.
 
 Internal Trusted Storage configurations
 ---------------------------------------
@@ -609,4 +609,6 @@ Reference
 
 --------------
 
-*Copyright (c) 2020-2022, Arm Limited. All rights reserved.*
+*SPDX-License-Identifier: BSD-3-Clause*
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
