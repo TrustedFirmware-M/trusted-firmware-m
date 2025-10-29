@@ -37,8 +37,7 @@ if (BL2)
 
     target_compile_definitions(bl2_crypto_config
         INTERFACE
-            MBEDTLS_ACCELERATOR_CONFIG_FILE="${CMAKE_CURRENT_SOURCE_DIR}/mbedtls_accelerator_config_bl2.h"
-            MBEDTLS_ACCELERATOR_PSA_CRYPTO_CONFIG_FILE="${CMAKE_CURRENT_SOURCE_DIR}/crypto_accelerator_config.h"
+            TF_PSA_CRYPTO_ACCELERATOR_CONFIG_FILE="${CMAKE_CURRENT_SOURCE_DIR}/tf_psa_crypto_accelerator_config_bl2.h"
     )
 
     # BL2 only supports CC3XX

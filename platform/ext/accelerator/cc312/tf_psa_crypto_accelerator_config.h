@@ -1,20 +1,20 @@
 /*
- * Copyright (c) 2019-2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
-#ifndef CRYPTO_ACCELERATOR_CONF_H
-#define CRYPTO_ACCELERATOR_CONF_H
+#ifndef __TF_PSA_CRYPTO_ACCELERATOR_CONFIG_H__
+#define __TF_PSA_CRYPTO_ACCELERATOR_CONFIG_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-/****************************************************************/
-/* Require built-in implementations based on PSA requirements */
-/****************************************************************/
+#if defined(PLATFORM_PSA_ADAC_SECURE_DEBUG) && !defined(MCUBOOT_SIGN_RSA)
+#define PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY        1
+#endif /* PLATFORM_PSA_ADAC_SECURE_DEBUG && !MCUBOOT_SIGN_RSA */
 
 #define PSA_WANT_KEY_TYPE_AES                   1
 
@@ -23,7 +23,41 @@ extern "C" {
 #undef PSA_WANT_ALG_CFB
 #endif /* PSA_WANT_ALG_CFB */
 
+#ifdef USE_MBEDTLS_CRYPTOCELL
+#define MBEDTLS_MD_C
+#endif
+
+/* RNG Config */
+#undef MBEDTLS_ENTROPY_NV_SEED
+#undef MBEDTLS_ENTROPY_NO_SOURCES_OK
+
+#define MBEDTLS_CTR_DRBG_C
+#define MBEDTLS_PSA_DRIVER_GET_ENTROPY
+
+#ifndef MCUBOOT_SIGN_EC384
+#define MBEDTLS_PSA_CRYPTO_RNG_HASH     PSA_ALG_SHA_256
+#endif
+
+#ifndef LEGACY_DRIVER_API_ENABLED
+#ifdef CC3XX_RUNTIME_ENABLED
+/* CC3XX integrates the cc3xx_random entry point through this mechanism */
+#define MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+#endif
+#endif /* !LEGACY_DRIVER_API_ENABLED */
+
+/****************************************************************/
+/* Require built-in implementations based on PSA requirements */
+/****************************************************************/
+
 #ifdef LEGACY_DRIVER_API_ENABLED
+
+#ifdef MBEDTLS_NIST_KW_C
+#define MBEDTLS_NIST_KW_ALT
+#endif /* MBEDTLS_NIST_KW_C */
+
+#ifdef PSA_WANT_ALG_CHACHA20_POLY1305
+#define MBEDTLS_POLY1305_ALT
+#endif /* MBEDTLS_POLY1305_C */
 
 #ifdef PSA_WANT_KEY_TYPE_AES
 #define MBEDTLS_AES_ALT
@@ -78,7 +112,6 @@ extern "C" {
 #ifdef PSA_WANT_ALG_SHA_256
 #define MBEDTLS_SHA256_ALT
 #define MBEDTLS_SHA256_PROCESS_ALT
-#else
 #endif /* PSA_WANT_ALG_SHA_256 */
 
 #else /* LEGACY_DRIVER_API_ENABLED */
@@ -114,12 +147,6 @@ extern "C" {
 
 #ifdef PSA_WANT_ALG_ECDSA
 #define MBEDTLS_PSA_ACCEL_ALG_ECDSA
-#ifdef PSA_WANT_ECC_SECP_R1_192
-#define MBEDTLS_PSA_ACCEL_ECC_SECP_R1_192
-#endif
-#ifdef PSA_WANT_ECC_SECP_R1_224
-#define MBEDTLS_PSA_ACCEL_ECC_SECP_R1_224
-#endif
 #ifdef PSA_WANT_ECC_SECP_R1_256
 #define MBEDTLS_PSA_ACCEL_ECC_SECP_R1_256
 #endif
@@ -129,14 +156,13 @@ extern "C" {
 #ifdef PSA_WANT_ECC_SECP_R1_521
 #define MBEDTLS_PSA_ACCEL_ECC_SECP_R1_521
 #endif
-#endif
+#endif /* PSA_WANT_ALG_ECDSA */
 
 #ifdef PSA_WANT_ALG_DETERMINISTIC_ECDSA
 #define MBEDTLS_PSA_ACCEL_ALG_DETERMINISTIC_ECDSA
 #define MBEDTLS_HMAC_DRBG_C
 #define MBEDTLS_MD_C
-#define MBEDTLS_MD_CAN_SHA256
-#endif
+#endif /* PSA_WANT_ALG_DETERMINISTIC_ECDSA */
 
 #ifdef PSA_WANT_ALG_CBC_NO_PADDING
 #define MBEDTLS_PSA_ACCEL_ALG_CBC_NO_PADDING
@@ -164,7 +190,6 @@ extern "C" {
 
 #ifdef PSA_WANT_ALG_GCM
 #define MBEDTLS_PSA_ACCEL_ALG_GCM
-#define MBEDTLS_GCM_C
 #endif
 
 #ifdef PSA_WANT_ALG_CMAC
@@ -193,22 +218,18 @@ extern "C" {
 
 #ifdef PSA_WANT_ALG_RSA_OAEP
 #define MBEDTLS_PSA_ACCEL_ALG_RSA_OAEP
-#define MBEDTLS_PKCS1_V21
 #endif
 
 #ifdef PSA_WANT_ALG_RSA_PKCS1V15_CRYPT
 #define MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_CRYPT
-#define MBEDTLS_PKCS1_V15
 #endif
 
 #ifdef PSA_WANT_ALG_RSA_PKCS1V15_SIGN
 #define MBEDTLS_PSA_ACCEL_ALG_RSA_PKCS1V15_SIGN
-#define MBEDTLS_PKCS1_V15
 #endif
 
 #ifdef PSA_WANT_ALG_RSA_PSS
 #define MBEDTLS_PSA_ACCEL_ALG_RSA_PSS
-#define MBEDTLS_PKCS1_V21
 #endif
 
 #endif /* LEGACY_DRIVER_API_ENABLED */
@@ -223,11 +244,11 @@ extern "C" {
 #define MBEDTLS_RSA_ALT
 #define MBEDTLS_PK_RSA_ALT_SUPPORT
 #endif /* LEGACY_DRIVER_API_ENABLED */
-#define MBEDTLS_GENPRIME
+#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_GENERATE     1
 #endif
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* CRYPTO_ACCELERATOR_CONF_H */
+#endif /* __TF_PSA_CRYPTO_ACCELERATOR_CONFIG_H__ */

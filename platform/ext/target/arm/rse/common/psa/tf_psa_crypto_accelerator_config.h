@@ -1,22 +1,28 @@
 /*
- * Copyright (c) 2025, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
-#ifndef MBEDTLS_ACCELERATOR_CONFIG_H
-#define MBEDTLS_ACCELERATOR_CONFIG_H
+#ifndef __TF_PSA_CRYPTO_ACCELERATOR_CONFIG_H__
+#define __TF_PSA_CRYPTO_ACCELERATOR_CONFIG_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+#include "cc3xx_opaque_keys.h"
+#include "crypto_opaque_key_ids.h"
+
+#define PSA_WANT_ALG_SHA_256                    1
+
 #define MBEDTLS_PSA_ACCEL_ALG_CCM
 #define MBEDTLS_PSA_ACCEL_ALG_CTR
-#define MBEDTLS_PSA_ACCEL_KEY_TYPE_AES
-#define PSA_WANT_ALG_SHA_256
+#define MBEDTLS_PSA_ACCEL_ALG_CMAC
 #define MBEDTLS_PSA_ACCEL_ALG_SHA_256
+#define MBEDTLS_PSA_ACCEL_KEY_TYPE_AES
+
 
 /* When using the PSA Unified driver API, this is the only define that has to be added
  * to the ones being available in the non-platform aware config files being used, i.e.
@@ -24,12 +30,8 @@ extern "C" {
  */
 #define PSA_CRYPTO_DRIVER_CC3XX
 
-#define MBEDTLS_PSA_CRYPTO_CONFIG
-
-#define MBEDTLS_PSA_ACCEL_ALG_CMAC
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* MBEDTLS_ACCELERATOR_CONFIG_H */
+#endif /* __TF_PSA_CRYPTO_ACCELERATOR_CONFIG_H__ */

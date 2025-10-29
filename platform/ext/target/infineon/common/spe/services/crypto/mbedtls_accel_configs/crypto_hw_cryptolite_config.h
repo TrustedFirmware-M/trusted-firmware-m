@@ -125,25 +125,8 @@
 #if defined(PSA_WANT_ECC_MONTGOMERY_448) && (PSA_WANT_ECC_MONTGOMERY_448 == 1)
 //#define MBEDTLS_PSA_ACCEL_ECC_MONTGOMERY_448 (not supported)
 #endif
-#if defined(PSA_WANT_ECC_SECP_K1_192) && (PSA_WANT_ECC_SECP_K1_192 == 1)
-//#define MBEDTLS_PSA_ACCEL_ECC_SECP_K1_192 (not supported)
-#endif
-/*
- * SECP224K1 is buggy via the PSA API in Mbed TLS
- * (https://github.com/Mbed-TLS/mbedtls/issues/3541). Thus, do not enable it by
- * default.
- */
-#if defined(PSA_WANT_ECC_SECP_K1_224) && (PSA_WANT_ECC_SECP_K1_224 == 1)
-//#define MBEDTLS_PSA_ACCEL_ECC_SECP_K1_224 (not supported)
-#endif
 #if defined(PSA_WANT_ECC_SECP_K1_256) && (PSA_WANT_ECC_SECP_K1_256 == 1)
 //#define MBEDTLS_PSA_ACCEL_ECC_SECP_K1_256 (not supported)
-#endif
-#if defined(PSA_WANT_ECC_SECP_R1_192) && (PSA_WANT_ECC_SECP_R1_192 == 1)
-#define MBEDTLS_PSA_ACCEL_ECC_SECP_R1_192
-#endif
-#if defined(PSA_WANT_ECC_SECP_R1_224) && (PSA_WANT_ECC_SECP_R1_224 == 1)
-#define MBEDTLS_PSA_ACCEL_ECC_SECP_R1_224
 #endif
 #if defined(PSA_WANT_ECC_SECP_R1_256) && (PSA_WANT_ECC_SECP_R1_256 == 1)
 #define MBEDTLS_PSA_ACCEL_ECC_SECP_R1_256

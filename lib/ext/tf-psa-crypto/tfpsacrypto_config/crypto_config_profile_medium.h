@@ -663,13 +663,9 @@
 #endif /* CRYPTO_NV_SEED */
 
 #ifdef CRYPTO_HW_ACCELERATOR
-#include "mbedtls_accelerator_config.h"
+#include "tf_psa_crypto_accelerator_config.h"
 #elif defined(MBEDTLS_ENTROPY_NV_SEED)
 #include "mbedtls_entropy_nv_seed_config.h"
-#endif
-
-#if defined(CRYPTO_HW_ACCELERATOR) && !defined(MBEDTLS_PSA_CRYPTO_CLIENT)
-#include "crypto_accelerator_config.h"
 #endif
 
 #else /* !TFM_PSA_CRYPTO_CLIENT_ONLY */
