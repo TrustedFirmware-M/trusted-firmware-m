@@ -55,6 +55,7 @@ if (RSE_AMOUNT GREATER 1)
             sfcp_random.c
             sfcp_helpers.c
             $<$<BOOL:${SFCP_ENABLE_ENCRYPTION}>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp_encryption.c>
+            $<$<BOOL:${SFCP_ENABLE_ENCRYPTION}>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp_encryption_hal.c>
             $<$<BOOL:${SFCP_ENABLE_ENCRYPTION}>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp_trusted_subnets.c>
             $<$<BOOL:${SFCP_ENABLE_ENCRYPTION}>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp_encryption_handshake.c>
             $<$<NOT:$<BOOL:${SFCP_ENABLE_ENCRYPTION}>>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp_encryption_stub.c>
