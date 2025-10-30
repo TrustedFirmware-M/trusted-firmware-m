@@ -57,6 +57,26 @@ fih_int bl1_2_select_image(void);
  */
 fih_int bl1_2_rollback_image(void);
 
+#if defined(TFM_BL1_2_IMAGE_BINDING)
+
+/**
+ * @brief Store the image binding tag for a BL2 image.
+ *
+ * This function persists a 16-byte binding tag for the BL2 image identified
+ * by image_id. The tag is used to bind BL1_2 to a particular BL2 image and
+ * must be stored in non-volatile storage (for example, flash) so it survives
+ * resets and firmware updates.
+ *
+ * @param image_id  Image index identifying the BL2 image
+ * @param image     Pointer to the BL2 image structure associated with image_id
+ * @param tag       16-byte image binding tag to store
+ * @return FIH_SUCCESS on success; FIH_FAILURE on error
+ */
+fih_ret bl1_2_store_image_binding_tag(uint32_t image_id,
+                                      struct bl1_2_image_t *image,
+                                      const uint8_t tag[16]);
+#endif /* TFM_BL1_2_IMAGE_BINDING */
+
 #ifdef __cplusplus
 }
 #endif

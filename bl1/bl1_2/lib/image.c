@@ -11,6 +11,11 @@
 #include "flash_layout.h"
 #include "region_defs.h"
 #include "fih.h"
+#ifdef TFM_BL1_2_IMAGE_BINDING
+#include <string.h>
+#include "tfm_log.h"
+#include "util.h"
+#endif /* TFM_BL1_2_IMAGE_BINDING */
 
 #ifndef TFM_BL1_MEMORY_MAPPED_FLASH
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME_BL1;
@@ -47,3 +52,144 @@ fih_ret bl1_image_copy_to_sram(uint32_t image_id, uint8_t *out)
     FIH_RET(fih_rc);
 }
 #endif /* !TFM_BL1_MEMORY_MAPPED_FLASH */
+
+#ifdef TFM_BL1_2_IMAGE_BINDING
+extern ARM_DRIVER_FLASH FLASH_DEV_NAME_BL1;
+
+#define BL1_FLASH_MAX_SECTOR_SIZE 0x1000
+static uint8_t sector_buf[BL1_FLASH_MAX_SECTOR_SIZE];
+
+static bool is_all(const uint8_t *p, size_t n, uint8_t v)
+{
+    size_t i;
+    for (i = 0; i < n; i++) {
+        if (p[i] != v) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static int program_buffer_aligned(ARM_DRIVER_FLASH *drv,
+                                  uint32_t dst_addr,
+                                  const uint8_t *buf,
+                                  uint32_t len,
+                                  uint32_t prog_unit)
+{
+    /* Enforce program_unit alignment for start and length */
+    if ((dst_addr % prog_unit) != 0) return -1;
+    if ((len % prog_unit) != 0)     return -1;
+
+    uint32_t written = 0;
+    while (written < len) {
+        int32_t rc = drv->ProgramData(dst_addr + written,
+                                      (void *)(buf + written),
+                                      prog_unit);
+        if (rc < 0 || (uint32_t)rc != prog_unit) return -1;
+        written += prog_unit;
+    }
+    return 0;
+}
+
+fih_ret bl1_2_store_image_binding_tag(uint32_t image_id,
+                                      struct bl1_2_image_t *image,
+                                      const uint8_t tag[16])
+{
+    int rc;
+    uint8_t flash_bytes[16], confirm_bytes[16];
+    uint32_t sector_start, sector_end, sector_size, offset_in_sector;
+    ARM_DRIVER_FLASH *flash = &FLASH_DEV_NAME_BL1;
+    const ARM_FLASH_INFO *flash_info = flash->GetInfo();
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+
+    if (!image || !tag) {
+        FIH_RET(FIH_FAILURE);
+    }
+
+    if (flash_info->sector_size > BL1_FLASH_MAX_SECTOR_SIZE) {
+        /* Increase BL1_FLASH_MAX_SECTOR_SIZE to platform's max sector size */
+        FIH_RET(FIH_FAILURE);
+    }
+
+    /* Compute absolute flash address of the 16B binding_tag field */
+    const uint32_t field_flash_off =
+        bl1_image_get_flash_offset(image_id) +
+        (uint32_t)offsetof(struct bl1_2_image_t, header.binding_tag);
+
+    const uint32_t tag_len = sizeof(image->header.binding_tag);
+
+    /* Read current on-flash bytes of the tag field */
+    rc = flash->ReadData(field_flash_off, flash_bytes, tag_len);
+    if (rc < 0 || (uint32_t)rc != tag_len) {
+        FIH_RET(FIH_FAILURE);
+    }
+
+    /* If already the same tag, nothing to do. */
+    FIH_CALL(bl_fih_memeql, fih_rc, flash_bytes, tag, tag_len);
+    if (FIH_EQ(fih_rc, FIH_SUCCESS)) {
+        INFO("Image binding_tag already up to date; no action taken\n");
+        FIH_RET(FIH_SUCCESS);
+    }
+
+    /* Check if flash is already erased, if yes, we can directly progran */
+    if (is_all(flash_bytes, tag_len, flash_info->erased_value)) {
+        /* Alignment checks */
+        if ((field_flash_off % flash_info->program_unit) != 0 ||
+            (tag_len % flash_info->program_unit) != 0) {
+            FIH_RET(FIH_FAILURE);
+        }
+
+        rc = flash->ProgramData(field_flash_off, (void *)tag, tag_len);
+        if (rc < 0 || (uint32_t)rc != tag_len) {
+            FIH_RET(FIH_FAILURE);
+        }
+        memcpy(image->header.binding_tag, tag, tag_len);
+        INFO("Image binding_tag stored successfully \n");
+        FIH_RET(FIH_SUCCESS);
+    }
+
+    /* Sector erase and rewrite */
+    sector_size = flash_info->sector_size;
+    sector_start = field_flash_off - (field_flash_off % sector_size);
+    sector_end = sector_start + sector_size;
+    offset_in_sector = field_flash_off - sector_start;
+    /* Read entire sector into RAM buffer */
+    rc = flash->ReadData(sector_start, sector_buf, sector_size);
+    if (rc < 0 || (uint32_t)rc != sector_size) {
+        FIH_RET(FIH_FAILURE);
+    }
+    /* Update binding_tag field in RAM buffer */
+    memcpy(&sector_buf[offset_in_sector], tag, tag_len);
+
+    /* Erase sector on flash */
+    rc = flash->EraseSector(sector_start);
+    if (rc < 0) {
+        FIH_RET(FIH_FAILURE);
+    }
+    /* Program entire sector from RAM buffer */
+    if (program_buffer_aligned(flash,
+                               sector_start,
+                               sector_buf,
+                               sector_size,
+                               flash_info->program_unit) != 0) {
+        FIH_RET(FIH_FAILURE);
+    }
+
+    memcpy(image->header.binding_tag, tag, tag_len);
+
+    /* Read from flash again to confirm */
+    rc = flash->ReadData(field_flash_off, confirm_bytes, tag_len);
+    if (rc < 0 || (uint32_t)rc != tag_len) {
+        FIH_RET(FIH_FAILURE);
+    }
+
+    FIH_CALL(bl_fih_memeql, fih_rc, confirm_bytes, tag, tag_len);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        ERROR("Failed to store image binding tag \n");
+        FIH_RET(FIH_FAILURE);
+    }
+
+    INFO("Image binding_tag stored successfully\n");
+    return FIH_SUCCESS;
+}
+#endif /* TFM_BL1_2_IMAGE_BINDING */

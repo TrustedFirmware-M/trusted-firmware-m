@@ -45,10 +45,16 @@ static FIH_RET_TYPE(int) store_binding_tag(struct bl1_2_image_t *image,
                                            uint8_t tag[16],
                                            uint32_t image_id)
 {
-    //TODO: To be implemented
-    (void)image;
-    (void)tag;
-    (void)image_id;
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+
+    /* Update the RAM copy header */
+    memcpy(image->header.binding_tag, tag, sizeof(image->header.binding_tag));
+
+    FIH_CALL(bl1_2_store_image_binding_tag, fih_rc, image_id, image, tag);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        FIH_RET(fih_rc);
+    }
+
     return FIH_SUCCESS;
 }
 
@@ -118,6 +124,7 @@ FIH_RET_TYPE(int) bl1_2_do_image_binding(struct bl1_2_image_t *image, uint32_t i
     /* Store calculated binding tag */
     FIH_CALL(store_binding_tag, fih_rc, image, out_tag, image_id);
     if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        FIH_RET(FIH_FAILURE);
     }
 
     return FIH_SUCCESS;
