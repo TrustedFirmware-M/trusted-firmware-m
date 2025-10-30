@@ -27,3 +27,6 @@ venv
 .venv
 
 trusted_firmware_m.egg-info/
+
+# clangd
+.cache/
