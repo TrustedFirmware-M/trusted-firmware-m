@@ -74,10 +74,26 @@ enum rse_sam_event_id_t {
 
 void sam_handle_fast_attack_counter_increment(void);
 
-#define RSE_SAM_INIT_SETUP_HANDLERS_ONLY true
-#define RSE_SAM_INIT_SETUP_FULL false
+/**
+ * @brief Select how SAM init should run.
+ *
+ * - RSE_SAM_INIT_SETUP_HANDLERS_ONLY:
+ *     Skip SAM response configuration in the SE LCS state because ADA DMA
+ *     provisions SAM responses during secure provisioning.
+ *     Also prefer this in stages beyond BL1, since SAM responses only
+ *     need to be set once.
+ *
+ * - RSE_SAM_INIT_SETUP_FULL:
+ *     Configure SAM responses and send a manual DMA ACK for trigger 4.
+ *     Required in non-SE LCS states (e.g., CM or DM). In SE, ADA DMA is
+ *     expected to provision SAM and handle the ACK sequence correctly.
+ */
+enum rse_sam_init_setup_t {
+    RSE_SAM_INIT_SETUP_HANDLERS_ONLY,
+    RSE_SAM_INIT_SETUP_FULL,
+};
 
-uint32_t rse_sam_init(bool setup_handlers_only);
+uint32_t rse_sam_init(enum rse_sam_init_setup_t setup);
 void rse_sam_finish(void);
 
 #ifdef __cplusplus

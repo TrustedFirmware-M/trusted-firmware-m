@@ -245,7 +245,7 @@ enum tfm_plat_err_t nvic_interrupt_enable(void)
     NVIC_ClearPendingIRQ(PPC_IRQn);
     NVIC_EnableIRQ(PPC_IRQn);
 
-    ret = rse_sam_init(RSE_SAM_INIT_SETUP_FULL);
+    ret = rse_sam_init(RSE_SAM_INIT_SETUP_HANDLERS_ONLY);
     if (ret) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }

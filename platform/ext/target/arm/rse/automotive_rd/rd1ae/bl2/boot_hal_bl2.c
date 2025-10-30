@@ -113,7 +113,7 @@ int32_t boot_platform_post_init(void)
     int32_t result;
     enum atu_error_t atu_err;
 
-    result = rse_sam_init(RSE_SAM_INIT_SETUP_FULL);
+    result = rse_sam_init(RSE_SAM_INIT_SETUP_HANDLERS_ONLY);
     if (result != 0) {
         return result;
     }

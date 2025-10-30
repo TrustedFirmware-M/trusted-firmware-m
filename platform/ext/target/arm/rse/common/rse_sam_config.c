@@ -199,7 +199,7 @@ static void rse_enable_sam_interrupts(void)
     NVIC_EnableIRQ(SAM_Sec_Fault_S_IRQn);
 }
 
-uint32_t rse_sam_init(bool setup_handlers_only)
+uint32_t rse_sam_init(enum rse_sam_init_setup_t setup)
 {
     enum sam_error_t sam_err;
 
@@ -219,7 +219,7 @@ uint32_t rse_sam_init(bool setup_handlers_only)
         sam_clear_all_events(&SAM_DEV_S);
     }
 
-    if (!setup_handlers_only) {
+    if (setup == RSE_SAM_INIT_SETUP_FULL) {
         for (uint32_t idx = 0; idx < ARRAY_LEN(rse_responses); idx++) {
             sam_err = sam_set_event_response(&SAM_DEV_S,
                                              idx,

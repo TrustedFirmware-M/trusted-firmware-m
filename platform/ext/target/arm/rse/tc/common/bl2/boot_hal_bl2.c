@@ -94,7 +94,7 @@ int32_t boot_platform_post_init(void)
     enum sic_error_t sic_err;
 #endif /* RSE_XIP */
 
-    result = rse_sam_init(RSE_SAM_INIT_SETUP_FULL);
+    result = rse_sam_init(RSE_SAM_INIT_SETUP_HANDLERS_ONLY);
     if (result != 0) {
         return result;
     }

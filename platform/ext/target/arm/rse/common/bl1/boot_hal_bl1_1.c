@@ -106,9 +106,11 @@ int32_t boot_platform_init(void)
     cc3xx_err_t cc_err;
     uint8_t prbg_seed[KMU_PRBG_SEED_LEN];
 #ifdef RSE_ENABLE_BRINGUP_HELPERS
-    enum lcm_error_t lcm_err;
     enum lcm_tp_mode_t tp_mode;
 #endif /* RSE_ENABLE_BRINGUP_HELPERS */
+    enum lcm_error_t lcm_err;
+    enum lcm_lcs_t lcs;
+    enum rse_sam_init_setup_t sam_setup_mode;
     psa_status_t status;
 
     /* Initialize stack limit register */
@@ -179,7 +181,21 @@ int32_t boot_platform_init(void)
     }
 #endif /* RSE_ENABLE_BRINGUP_HELPERS */
 
-    err = rse_sam_init(RSE_SAM_INIT_SETUP_HANDLERS_ONLY);
+    lcm_err = lcm_get_lcs(&LCM_DEV_S, &lcs);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return lcm_err;
+    }
+
+    /* In SE state, skip SAM response configuration since the ADA DMA
+     * provisions SAM responses during secure provisioning.
+     *
+     * A full setup also issues a manual DMA ACK for trigger 4, which is
+     * only needed outside SE states (e.g., during CM or DM). In SE,
+     * the ADA DMA already handles SAM provisioning and ACK signaling.
+     */
+    sam_setup_mode = (lcs == LCM_LCS_SE) ? RSE_SAM_INIT_SETUP_HANDLERS_ONLY
+                                         : RSE_SAM_INIT_SETUP_FULL;
+    err = rse_sam_init(sam_setup_mode);
     if (err != 0) {
         return err;
     }

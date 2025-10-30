@@ -56,7 +56,7 @@ enum tfm_hal_status_t tfm_hal_platform_init(void)
     __enable_irq();
     stdio_init();
 
-    plat_err = rse_sam_init(RSE_SAM_INIT_SETUP_FULL);
+    plat_err = rse_sam_init(RSE_SAM_INIT_SETUP_HANDLERS_ONLY);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return TFM_HAL_ERROR_GENERIC;
     }
