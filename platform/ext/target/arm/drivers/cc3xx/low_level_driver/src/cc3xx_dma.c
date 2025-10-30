@@ -144,7 +144,7 @@ static void wait_for_dma_complete(void)
     P_CC3XX->host_rgf.host_rgf_icr = poll_mask;
 }
 
-static void process_data(const void *buf, size_t length)
+static void trigger_dma(const void *buf, size_t length)
 {
     /* Enable the DMA clock */
     P_CC3XX->misc.dma_clk_enable = 0x1U;
@@ -255,7 +255,7 @@ void cc3xx_lowlevel_dma_copy_data_from_rng_sram(void* dest,
     dma_state.block_buf_needs_output = true;
 
     /* This starts the copy */
-    process_data((const void *)rng_sram_offset, length);
+    trigger_dma((const void *)rng_sram_offset, length);
 
     /* Clear the DMA state */
     cc3xx_lowlevel_dma_uninit();
@@ -315,7 +315,7 @@ cc3xx_err_t cc3xx_lowlevel_dma_buffered_input_data(const void* buf, size_t lengt
     while (data_to_process_length > 0) {
         dma_input_length = data_to_process_length < 0x10000 ? data_to_process_length
                                                             : 0x10000 - dma_state.block_buf_size;
-        process_data(buf, dma_input_length);
+        trigger_dma(buf, dma_input_length);
         data_to_process_length -= dma_input_length;
         length -= dma_input_length;
         buf += dma_input_length;
@@ -340,7 +340,7 @@ void cc3xx_lowlevel_dma_flush_buffer(bool zero_pad_first)
             dma_state.block_buf_size_in_use = dma_state.block_buf_size;
         }
 
-        process_data(dma_state.block_buf, dma_state.block_buf_size_in_use);
+        trigger_dma(dma_state.block_buf, dma_state.block_buf_size_in_use);
         dma_state.block_buf_size_in_use = 0;
     }
 }
