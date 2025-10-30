@@ -179,37 +179,24 @@ static const enum sam_response_t rse_responses[RSE_SAM_EVENT_COUNT] = {
     [RSE_SAM_EVENT_SACFG_PARITY_ERROR]      = SAM_RESPONSE_NMI,
     [RSE_SAM_EVENT_NSACFG_PARITY_ERROR]     = SAM_RESPONSE_NMI,
     [RSE_SAM_EVENT_INTEGRITY_CHECKER_ALARM] = SAM_RESPONSE_NMI,
+
+    [RSE_SAM_EVENT_SRAM_PARTIAL_WRITE]      = SAM_RESPONSE_SECURE_FAULT_INTERRUPT,
+    [RSE_SAM_EVENT_VM0_SINGLE_ECC_ERROR]    = SAM_RESPONSE_SECURE_FAULT_INTERRUPT,
+    [RSE_SAM_EVENT_VM1_SINGLE_ECC_ERROR]    = SAM_RESPONSE_SECURE_FAULT_INTERRUPT,
+    [RSE_SAM_EVENT_VM0_DOUBLE_ECC_ERROR]    = SAM_RESPONSE_SECURE_FAULT_INTERRUPT,
+    [RSE_SAM_EVENT_VM1_DOUBLE_ECC_ERROR]    = SAM_RESPONSE_SECURE_FAULT_INTERRUPT,
 };
 
-static enum sam_error_t rse_enable_sam_interrupts(void)
+static void rse_enable_sam_interrupts(void)
 {
-    enum lcm_error_t lcm_err;
-    enum lcm_lcs_t lcs;
-
-    lcm_err = lcm_get_lcs(&LCM_DEV_S, &lcs);
-    if (lcm_err != LCM_ERROR_NONE) {
-        return SAM_ERROR_GENERIC_ERROR;
-    }
-
-    if (lcs != LCM_LCS_SE) {
-        /* Do not enable interrupts */
-        return SAM_ERROR_NONE;
-    }
-
     /* Enable SAM interrupts. Set SAM critical security fault to the highest
      * priority and other SAM faults to one lower priority.
      */
     NVIC_SetPriority(SAM_Critical_Sec_Fault_S_IRQn, 0);
     NVIC_SetPriority(SAM_Sec_Fault_S_IRQn, 1);
-    NVIC_SetPriority(SRAM_TRAM_ECC_Err_S_IRQn, 1);
-    NVIC_SetPriority(SRAM_ECC_Partial_Write_S_IRQn, 1);
 
     NVIC_EnableIRQ(SAM_Critical_Sec_Fault_S_IRQn);
     NVIC_EnableIRQ(SAM_Sec_Fault_S_IRQn);
-    NVIC_EnableIRQ(SRAM_TRAM_ECC_Err_S_IRQn);
-    NVIC_EnableIRQ(SRAM_ECC_Partial_Write_S_IRQn);
-
-    return SAM_ERROR_NONE;
 }
 
 uint32_t rse_sam_init(bool setup_handlers_only)
@@ -266,7 +253,9 @@ uint32_t rse_sam_init(bool setup_handlers_only)
     /* Enable the SAM interrupts. At this point, all pending events will be
      * handled.
      */
-    return rse_enable_sam_interrupts();
+    rse_enable_sam_interrupts();
+
+    return SAM_ERROR_NONE;
 }
 
 void rse_sam_finish(void)
@@ -280,6 +269,4 @@ void rse_sam_finish(void)
      */
     NVIC_DisableIRQ(SAM_Critical_Sec_Fault_S_IRQn);
     NVIC_DisableIRQ(SAM_Sec_Fault_S_IRQn);
-    NVIC_DisableIRQ(SRAM_TRAM_ECC_Err_S_IRQn);
-    NVIC_DisableIRQ(SRAM_ECC_Partial_Write_S_IRQn);
 }
