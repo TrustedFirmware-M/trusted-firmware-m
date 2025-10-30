@@ -10,6 +10,9 @@
 #include "tfm_hal_platform.h"
 #include "device_definition.h"
 #include "rse_attack_tracking_counter.h"
+#include "dma350_ch_drv.h"
+
+#define ADA_DMA_TRIGGER_IN_4    0x4UL
 
 #define ARRAY_LEN(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -199,6 +202,37 @@ static void rse_enable_sam_interrupts(void)
     NVIC_EnableIRQ(SAM_Sec_Fault_S_IRQn);
 }
 
+/**
+ * @brief Software workaround to generate the SAM configuration done trigger ACK.
+ *
+ * In certain lifecycle states (e.g. CM/DM), the ADA DMA may not yet have
+ * provisioned or configured the SAM from OTP before the CPU attempts to
+ * access the SAMICV registers. This results in the SAM waiting indefinitely
+ * for a DMA ACK (sam_config_done_trig_ack) that never arrives.
+ *
+ * This function uses the DMA350 channel interface to manually generate the
+ * same ACK signal that the ADA DMA would have asserted when the SAM asserts
+ * the REQ signal, allowing SAM initialization to proceed without stalling.
+ */
+static void sam_config_done_trig_ack(void)
+{
+    /* Stop DMA Channel in case already running (e.g. residual state from DMA ICS) */
+    dma350_ch_cmd_and_wait_until_done(&DMA350_DMA0_CH0_DEV_S, DMA350_CH_CMD_STOPCMD);
+
+    /* Clear DMA Channel registers to reset channel state */
+    dma350_ch_cmd_and_wait_until_done(&DMA350_DMA0_CH0_DEV_S, DMA350_CH_CMD_CLEARCMD);
+
+    /* Configure the channel to wait for and ACK SAM trigger (Trigger IN 4) */
+    dma350_ch_set_srctriginsel(&DMA350_DMA0_CH0_DEV_S, ADA_DMA_TRIGGER_IN_4);
+    dma350_ch_set_srctrigintype(&DMA350_DMA0_CH0_DEV_S, DMA350_CH_SRCTRIGINTYPE_HW);
+
+    /* Enable source trigger so DMA can respond to SAM REQ */
+    dma350_ch_enable_source_trigger(&DMA350_DMA0_CH0_DEV_S);
+
+    /* Start the channel and wait until trigger-ACK transaction completes */
+    dma350_ch_cmd_and_wait_until_done(&DMA350_DMA0_CH0_DEV_S, DMA350_CH_CMD_ENABLECMD);
+}
+
 uint32_t rse_sam_init(enum rse_sam_init_setup_t setup)
 {
     enum sam_error_t sam_err;
@@ -220,12 +254,24 @@ uint32_t rse_sam_init(enum rse_sam_init_setup_t setup)
     }
 
     if (setup == RSE_SAM_INIT_SETUP_FULL) {
+        /* Ensure ACK is sent only once */
+        static bool trigger_dma_ack = true;
+
         for (uint32_t idx = 0; idx < ARRAY_LEN(rse_responses); idx++) {
             sam_err = sam_set_event_response(&SAM_DEV_S,
                                              idx,
                                              rse_responses[idx]);
             if (sam_err != SAM_ERROR_NONE) {
                 return sam_err;
+            }
+
+            /*
+             * SW mitigation: manually trigger SAM configuration done ACK once
+             * to unblock SAM FSM in CM/DM states where ADA DMA is not active.
+             */
+            if (trigger_dma_ack) {
+                sam_config_done_trig_ack();
+                trigger_dma_ack = false;
             }
         }
     }
