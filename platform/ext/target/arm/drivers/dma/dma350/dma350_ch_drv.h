@@ -2436,6 +2436,12 @@ void dma350_ch_set_yaddrstride(struct dma350_ch_dev_t *dev,
 }
 
 __STATIC_INLINE
+void dma350_ch_enable_source_trigger(struct dma350_ch_dev_t *dev)
+{
+    dev->cfg.ch_base->CH_CTRL |= DMA_CH_CTRL_USESRCTRIGIN_Msk;
+}
+
+__STATIC_INLINE
 void dma350_ch_set_transize(struct dma350_ch_dev_t *dev,
                             enum dma350_ch_transize_t transize)
 {
