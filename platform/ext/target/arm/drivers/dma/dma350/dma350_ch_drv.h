@@ -3630,6 +3630,14 @@ enum dma350_ch_cmd_t dma350_ch_get_cmd(struct dma350_ch_dev_t *dev)
 }
 
 __STATIC_INLINE
+void dma350_ch_cmd_and_wait_until_done(struct dma350_ch_dev_t *dev,
+                                                       enum dma350_ch_cmd_t cmd)
+{
+    dma350_ch_cmd(dev, cmd);
+    while (dma350_ch_get_cmd(dev) == cmd);
+}
+
+__STATIC_INLINE
 bool dma350_ch_is_busy(struct dma350_ch_dev_t *dev)
 {
     return (dev->cfg.ch_base->CH_CMD & DMA350_CH_CMD_ENABLECMD) != 0;
