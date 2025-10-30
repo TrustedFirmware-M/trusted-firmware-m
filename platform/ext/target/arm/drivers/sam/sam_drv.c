@@ -198,7 +198,7 @@ enum sam_error_t sam_set_event_response(const struct sam_dev_t *dev,
 
     old_reg_val = regs->samrrls[SAMRRLS_IDX(event_id)];
 
-    event_enabled = (response != SAM_RESPONSE_NONE);
+    event_enabled = (response != SAM_RESPONSE_NONE) ? 1UL : 0UL;
     rrl_val = (event_enabled << 3UL) | log2((uint32_t)response);
 
     new_reg_val = (old_reg_val & ~SAMRRLS_MASK(event_id)) |
