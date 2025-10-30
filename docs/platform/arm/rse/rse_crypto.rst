@@ -6,7 +6,7 @@ Runtime Security Engine (RSE).
 
 Its primary use is as a guide to a software developer who is porting the
 reference RSE software to an RSE platform which does not use the
-reference Arm Cryptocell cryptographic acclerator. To facilitate this,
+reference cryptographic accelerator. To facilitate this,
 it contains:
 
 -  A list of algorithms required to be supported at each stage of RSE
@@ -229,8 +229,8 @@ outside the RSE. These services are provided via the `PSA crypto
 api <https://arm-software.github.io/psa-api/crypto/>`__, and the
 services that RSE provides may vary depending on the usecase.
 
-Default Crytocell driver support
---------------------------------
+Default cc3xx driver support
+----------------------------
 
 The cc3xx driver supports the following algorithms:
 
