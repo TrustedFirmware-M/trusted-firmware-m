@@ -33,9 +33,29 @@ extern const size_t pci_rotpk_y_len;
 #define TEST_STATIC static
 #endif
 
-static inline bool use_cm_rotpk(const struct rse_provisioning_authentication_header_t *header)
+static bool use_cm_rotpk(const struct rse_provisioning_authentication_header_t *header)
 {
+    enum lcm_error_t lcm_err;
+    enum lcm_lcs_t lcs;
     bool rotpk_not_in_rom, use_cm_rotpk;
+
+    lcm_err = lcm_get_lcs(&LCM_DEV_S, &lcs);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+    switch (lcs) {
+    case LCM_LCS_DM:
+        break;
+#if defined(RSE_NON_ENDORSED_DM_PROVISIONING) || \
+    defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING) || \
+    defined(RSE_ROTPK_REVOCATION)
+    case LCM_LCS_SE:
+        break;
+#endif
+    default:
+        return false;
+    }
 
     rotpk_not_in_rom = ((header->metadata >> RSE_PROVISIONING_AUTH_MSG_DETAILS_SIGNATURE_OFFSET)
                        & RSE_PROVISIONING_AUTH_MSG_DETAILS_SIGNATURE_MASK)
@@ -249,22 +269,7 @@ enum tfm_plat_err_t provisioning_rotpk_get(const struct rse_provisioning_authent
                                            uint32_t **public_key_y,
                                            size_t *public_key_y_size)
 {
-    enum lcm_error_t lcm_err;
-    enum lcm_lcs_t lcs;
-    bool valid_lcs;
-
-    lcm_err = lcm_get_lcs(&LCM_DEV_S, &lcs);
-    if (lcm_err != LCM_ERROR_NONE) {
-        return (enum tfm_plat_err_t)lcm_err;
-    }
-
-    valid_lcs = (lcs == LCM_LCS_DM);
-
-#if defined(RSE_NON_ENDORSED_DM_PROVISIONING) || defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
-    valid_lcs = valid_lcs || (lcs == LCM_LCS_SE);
-#endif
-
-    if (valid_lcs && use_cm_rotpk(header)) {
+    if (use_cm_rotpk(header)) {
         return get_check_hash_cm_rotpk(header,
                                        public_key_x,
                                        public_key_x_size,

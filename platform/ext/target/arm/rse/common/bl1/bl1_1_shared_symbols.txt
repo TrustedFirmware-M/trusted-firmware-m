@@ -115,6 +115,7 @@ putchar
 tfm_vprintf
 tfm_log
 default_blob_handler
+default_authenticated_plain_data_handler
 provisioning_rotpk_get
 provisioning_comms_init
 provisioning_comms_receive_commands_blocking

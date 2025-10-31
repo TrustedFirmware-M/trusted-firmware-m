@@ -548,6 +548,7 @@ target_sources(platform_bl1_1
         ./rse_zero_count.c
         ./rse_zero_count_regions.c
         ./rse_persistent_data.c
+        ./rse_rotpk_revocation.c
         $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/src/dcsu_drv.c>
         $<$<BOOL:${RSE_ENABLE_DCSU_PROVISIONING_COMMS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_dcsu_hal.c>
         ./platform_shared_measurement_data.c

@@ -44,34 +44,42 @@ void tfm_plat_provisioning_check_for_dummy_keys(void)
 
 static bool provisioning_required_from_runtime(enum lcm_lcs_t lcs)
 {
-    bool provisioning_required = false;
+    if (!runtime_provisioning_message_available()) {
+        return false;
+    }
 
-#ifdef RSE_BOOT_IN_DM_LCS
-    provisioning_required = provisioning_required ||
-                            ((lcs == LCM_LCS_DM) && runtime_provisioning_message_available());
+    switch (lcs) {
+#if defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING) || \
+    defined(RSE_ROTPK_REVOCATION)
+    case LCM_LCS_SE:
+        return true;
 #endif
-
-#ifdef RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING
-    provisioning_required = provisioning_required ||
-                            ((lcs == LCM_LCS_SE) && runtime_provisioning_message_available());
+#if defined(RSE_BOOT_IN_DM_LCS) || \
+    defined(RSE_ROTPK_REVOCATION)
+    case LCM_LCS_DM:
+        return true;
 #endif
-
-    return provisioning_required;
+    default:
+        return false;
+    }
 }
 
 static bool provisioning_required_without_flash(enum lcm_lcs_t lcs)
 {
-    bool provisioning_required = false;
-
-#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
-    provisioning_required = provisioning_required || (lcs == LCM_LCS_SE);
+    switch (lcs) {
+#if defined(RSE_NON_ENDORSED_DM_PROVISIONING) || \
+    defined(RSE_ROTPK_REVOCATION)
+    case LCM_LCS_SE:
+        return true;
 #endif
-
-#ifdef RSE_BOOT_IN_DM_LCS
-    provisioning_required = provisioning_required || (lcs == LCM_LCS_DM);
+#if defined(RSE_BOOT_IN_DM_LCS) || \
+    defined(RSE_ROTPK_REVOCATION)
+    case LCM_LCS_DM:
+        return true;
 #endif
-
-    return provisioning_required;
+    default:
+        return false;
+    }
 }
 
 enum tfm_plat_err_t tfm_plat_provisioning_is_required(bool *provisioning_required)
@@ -110,7 +118,14 @@ enum tfm_plat_err_t tfm_plat_provisioning_perform(void)
     size_t provisioning_message_size = RSE_PROVISIONING_MESSAGE_MAX_SIZE;
 
     struct provisioning_message_handler_config config = {
+#ifdef RSE_ROTPK_REVOCATION
+        .authenticated_plain_data_handler = &default_authenticated_plain_data_handler,
+#endif
+#if defined(RSE_BOOT_IN_DM_LCS) || \
+    defined(RSE_NON_ENDORSED_DM_PROVISIONING) || \
+    defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
         .blob_handler = &default_blob_handler,
+#endif
     };
 
     struct default_blob_authenticated_data_handler_ctx_t ctx = {
