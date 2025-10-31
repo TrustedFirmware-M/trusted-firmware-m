@@ -157,6 +157,7 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
     sfcp_err = allocate_get_buffer(&buffer_handle, message_size, &allocated_buffer);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         protocol_err = allocate_error_to_protocol_error(sfcp_err);
+        buffer_allocation_failure = true;
         goto out_error;
     }
 
@@ -247,8 +248,6 @@ out_error:
         enum sfcp_error_t buffer_allocation_failure_error;
         struct sfcp_packet_t buffer_failure_packet;
         size_t size_to_receive;
-
-        buffer_allocation_failure = true;
 
         /* Only receive the header or the maximum possible size if the message is smaller */
         size_to_receive = message_size < SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(true, true) ?
