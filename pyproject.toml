@@ -71,6 +71,7 @@ rse_derive_provisioning_master_key = "rse_scripts.derive_provisioning_master_key
 rse_create_non_endorsed_provisioning_plain_data_message = "rse_scripts.create_non_endorsed_provisioning_plain_data_message:main"
 rse_create_plain_data_handler_provisioning_bundle = "rse_scripts.create_plain_data_handler_provisioning_bundle:main"
 rse_create_routing_tables_source_file = "rse_scripts.create_routing_tables_source_file:main"
+rse_create_otp_config = "rse_scripts.create_otp_config:main"
 
 [tool.setuptools]
 packages = ["tfm_tools", "bl2", "bl1", "rse", "rse_scripts"]
