@@ -1044,6 +1044,17 @@ enum lcm_error_t lcm_dcu_set_enabled(struct lcm_dev_t *dev, uint8_t *val)
     }
 
     for (idx = 0; idx < LCM_DCU_WIDTH_IN_BYTES / sizeof(uint32_t); idx++) {
+#ifdef LCM_DCU_PARITY
+        const uint32_t disable_mask = get_disabled_mask(idx);
+        /* Disable mask has the parity bits for bit pairs set. We want to assert
+         * user does not set any parity bits.
+         */
+        assert((disable_mask & p_val_word[idx]) == 0);
+
+        const uint32_t parity_disable_mask = ((uint32_t)(disable_mask >> 1) & ~p_val_word[idx]) << 1;
+        const uint32_t p_val_word_scratch = p_val_word[idx] | parity_disable_mask;
+        p_val_word[idx] = p_val_word_scratch;
+#endif /* LCM_DCU_PARITY */
         p_lcm->dcu_en[idx] = p_val_word[idx];
     }
 
