@@ -60,7 +60,8 @@ cc3xx_err_t cc3xx_lowlevel_kdf_cmac(
     cc3xx_lowlevel_aes_update_authed_data(context, context_length);
     cc3xx_lowlevel_aes_update_authed_data(l_total_length, sizeof(l_total_length));
 
-    cc3xx_lowlevel_aes_finish(k0, NULL);
+    /* Return value is always success when generating a CMAC tag */
+    (void)cc3xx_lowlevel_aes_finish(k0, NULL);
 
     for (size_t idx = 0; idx < num_blocks; idx++) {
         const uint8_t *output_key_offset = ((uint8_t *) output_key) + idx * AES_TAG_MAX_LEN;
@@ -90,7 +91,8 @@ cc3xx_err_t cc3xx_lowlevel_kdf_cmac(
         cc3xx_lowlevel_aes_update_authed_data(l_total_length, sizeof(l_total_length));
         cc3xx_lowlevel_aes_update_authed_data((uint8_t *)k0, sizeof(k0));
 
-        cc3xx_lowlevel_aes_finish((void *) output_key_offset, NULL);
+        /* Return value is always success when generating a CMAC tag */
+        (void)cc3xx_lowlevel_aes_finish((void *) output_key_offset, NULL);
     }
 
     err = CC3XX_ERR_SUCCESS;
