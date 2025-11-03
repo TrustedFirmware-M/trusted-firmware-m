@@ -733,7 +733,6 @@ static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
 
 
     if (new_lcs == LCM_LCS_SE) {
-#ifndef RSE_PROVISIONING_DM_IN_SE
 #if defined(RSE_OTP_HAS_DM_AREA)
         dm_area_info.raw_data = P_RSE_OTP_HEADER->dm_area_info.raw_data;
         err = rse_zc_region_write_zero_count(ZC_OTP_DM_AREA);
@@ -752,7 +751,6 @@ static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
         }
 #endif /* RSE_NON_ENDORSED_DM_PROVISIONING */
 #endif /* RSE_OTP_HAS_DM_AREA */
-#endif /* RSE_PROVISIONING_DM_IN_SE */
     }
 
     return TFM_PLAT_ERR_SUCCESS;
