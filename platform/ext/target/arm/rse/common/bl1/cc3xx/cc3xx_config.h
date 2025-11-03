@@ -60,6 +60,9 @@
 /* Whether CHACHA_POLY1305 is enabled */
 /* #define CC3XX_CONFIG_CHACHA_POLY1305_ENABLE */
 
+/* Whether platform DMA prologue/epilogue hooks are enabled */
+/* #define CC3XX_CONFIG_DMA_HOOKS_ENABLE */
+
 /* Whether DMA remapping is enabled */
 #define CC3XX_CONFIG_DMA_REMAP_ENABLE
 

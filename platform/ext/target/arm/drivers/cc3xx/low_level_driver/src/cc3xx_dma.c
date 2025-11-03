@@ -15,6 +15,9 @@
 #else
 #include CC3XX_CONFIG_FILE
 #endif
+#ifdef CC3XX_CONFIG_DMA_HOOKS_ENABLE
+#include "cc3xx_platform_helpers.h"
+#endif /* CC3XX_CONFIG_DMA_HOOKS_ENABLE */
 
 #include <assert.h>
 
@@ -146,6 +149,18 @@ static void wait_for_dma_complete(void)
 
 static void trigger_dma(const void *buf, size_t length)
 {
+#ifdef CC3XX_CONFIG_DMA_HOOKS_ENABLE
+    /*
+     * Optional platform prologue:
+     *   - Platforms may use this for cache, address windowing, or SoC-specific workarounds.
+     *   - Passing dst==0 communicates “no destination buffer” for this DMA invocation.
+     */
+    cc3xx_dma_platform_prologue(
+        (uintptr_t)buf,
+        dma_state.block_buf_needs_output ? (uintptr_t)dma_state.output_addr : (uintptr_t)0,
+        length);
+#endif /* CC3XX_CONFIG_DMA_HOOKS_ENABLE */
+
     /* Enable the DMA clock */
     P_CC3XX->misc.dma_clk_enable = 0x1U;
 
@@ -220,6 +235,14 @@ static void trigger_dma(const void *buf, size_t length)
 
     /* Disable the DMA clock */
     P_CC3XX->misc.dma_clk_enable = 0x0U;
+
+#ifdef CC3XX_CONFIG_DMA_HOOKS_ENABLE
+    /*
+     * Optional platform epilogue: may perform post-DMA fixups paired with
+     * the prologue (e.g. unmasking or ECC/tag re-computation on some SoCs).
+     */
+    cc3xx_dma_platform_epilogue();
+#endif /* CC3XX_CONFIG_DMA_HOOKS_ENABLE */
 }
 
 void cc3xx_lowlevel_dma_copy_data(void* dest, const void* src, size_t length)
