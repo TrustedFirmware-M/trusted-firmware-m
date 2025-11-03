@@ -20,6 +20,7 @@ default_blob_handler
 handle_provisioning_message
 provisioning_rotpk_get
 get_asn1_from_raw_ec
+bl1_curve_to_cc3xx_curve
 cc3xx_lowlevel_aes_finish
 cc3xx_lowlevel_aes_get_current_output_size
 cc3xx_lowlevel_aes_get_state
@@ -94,3 +95,4 @@ rse_setup_provisioning_key
 rse_setup_runtime_secure_image_encryption_key
 rse_setup_runtime_non_secure_image_encryption_key
 rse_setup_cc3xx_pka_sram_encryption_key
+_fih_ret_mask
