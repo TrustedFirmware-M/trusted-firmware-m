@@ -92,6 +92,32 @@ config CONFIG_TFM_USE_TRUSTZONE
     help
       Enable use of TrustZone to transition between NSPE and SPE
 
+choice
+    prompt "Hybrid Platform Scheduling Type"
+    default TFM_HYBRID_PLAT_SCHED_OFF
+
+config TFM_HYBRID_PLAT_SCHED_OFF
+    bool "OFF"
+
+config TFM_HYBRID_PLAT_SCHED_SPE
+    bool "SPE"
+
+config TFM_HYBRID_PLAT_SCHED_NSPE
+    bool "NSPE"
+
+config TFM_HYBRID_PLAT_SCHED_BALANCED
+    bool "BALANCED"
+endchoice
+
+config CONFIG_TFM_HYBRID_PLAT_SCHED_TYPE
+    int
+    default 0  if TFM_HYBRID_PLAT_SCHED_OFF
+    default 10 if TFM_HYBRID_PLAT_SCHED_SPE
+    default 20 if TFM_HYBRID_PLAT_SCHED_NSPE
+    default 30 if TFM_HYBRID_PLAT_SCHED_BALANCED
+    help
+      Scheduling type can take one of the 4 values. see docs for further details
+
 ######################### Cyrpto Hardware accelerator ##########################
 config CRYPTO_HW_ACCELERATOR_CC312
     def_bool n
