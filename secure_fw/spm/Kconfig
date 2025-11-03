@@ -88,7 +88,7 @@ config CONFIG_TFM_HALT_ON_CORE_PANIC
 
 config TFM_PXN_ENABLE
     bool "PXN"
-    depends on ARCH_ARM_V81MM
+    depends on ARCH_ARM_V81M
     default n
     help
       Privileged eXecute-Never.
