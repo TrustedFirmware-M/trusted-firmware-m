@@ -41,12 +41,12 @@ target_sources(tfm_sprt
 target_link_libraries(tfm_sprt
     PUBLIC
         psa_interface
-        tfm_spm_defs
         tfm_config
         platform_s
         tfm_log_unpriv_headers
-    PRIVATE
+        tfm_boot_status
         tfm_spm
+    PRIVATE
         psa_crypto_config
         tfm_vprintf
         tfm_log_unpriv

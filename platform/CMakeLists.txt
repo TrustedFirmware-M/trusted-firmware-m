@@ -110,7 +110,6 @@ target_link_libraries(platform_s
         $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:eventlog>
     PRIVATE
         tfm_config
-        tfm_spm_defs
         $<$<BOOL:${TFM_PARTITION_CRYPTO}>:platform_crypto_keys>
         $<$<BOOL:${PLATFORM_DEFAULT_ATTEST_HAL}>:tfm_sprt>
         $<$<BOOL:${TFM_PARTITION_CRYPTO}>:crypto_service_mbedcrypto>
@@ -388,12 +387,12 @@ if(BL1 AND PLATFORM_DEFAULT_BL1)
         PUBLIC
             platform_bl1_1_interface
             tfm_helper_lib
+            tfm_boot_status
         PRIVATE
             tfm_fih
             tfm_fih_headers
             tfm_log
             tfm_vprintf
-            tfm_boot_status
             platform_region_defs
             bl1_1_shared_lib_interface
     )

@@ -8,10 +8,6 @@
 cmake_minimum_required(VERSION 3.21)
 
 add_library(tfm_partitions INTERFACE)
-target_link_libraries(tfm_partitions
-    INTERFACE
-        tfm_spm_defs
-)
 
 add_subdirectory(lib/runtime)
 add_subdirectory(crypto)
