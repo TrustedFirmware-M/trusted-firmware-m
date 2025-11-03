@@ -266,6 +266,7 @@ target_sources(platform_s
         ${PLATFORM_DIR}/ext/target/arm/drivers/gpio/pl061/gpio_pl061_drv.c
         ./platform_fatal_error.c
         ./cc3xx/cc3xx_aes_external_key_loader.c
+        ./cc3xx/cc3xx_platform_helpers.c
         ./rse_sam_config.c
         ./rse_attack_tracking_counter.c
         runtime_shared_data.c
@@ -415,6 +416,7 @@ target_sources(platform_bl2
         ./rse_zero_count.c
         ./rse_zero_count_regions.c
         ./cc3xx/cc3xx_aes_external_key_loader.c
+        ./cc3xx/cc3xx_platform_helpers.c
         ./dpa_hardened_word_copy.c
         ./rse_persistent_data.c
         ./platform_shared_measurement_data.c
@@ -521,6 +523,7 @@ target_sources(platform_bl1_1
         $<$<BOOL:${RSE_DEBUG_UART}>:${PLATFORM_DIR}/ext/target/arm/drivers/usart/cmsdk/uart_cmsdk_drv.c>
         ./dpa_hardened_word_copy.c
         ./cc3xx/cc3xx_aes_external_key_loader.c
+        ./cc3xx/cc3xx_platform_helpers.c
         $<$<BOOL:${RSE_ENABLE_BRINGUP_HELPERS}>:${CMAKE_CURRENT_SOURCE_DIR}/bringup_helpers/rse_bringup_helpers.c>
         ./bl1/rse_kmu_keys.c
         ./rse_boot_state.c
