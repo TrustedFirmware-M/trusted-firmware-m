@@ -19,7 +19,9 @@
 #define MAX_RX_SIZE (sizeof(((struct _dcsu_reg_map_t *)0)->diag_rx_data))
 #define MAX_TX_SIZE (sizeof(((struct _dcsu_reg_map_t *)0)->diag_tx_data))
 
-#define DCSU_get_number_of_words(p_dcsu) (((p_dcsu)->diag_rx_command >> 8) & 0b11) + 1
+#define DIAG_RX_COMMAND_PARAM1 (((p_dcsu)->diag_rx_command >> 8) & ((1 << 2) - 1))
+#define DIAG_RX_COMMAND_SW_DEF (((p_dcsu)->diag_rx_command >> 10) & ((1 << 14) - 1))
+#define DCSU_get_number_of_words(p_dcsu) (DIAG_RX_COMMAND_PARAM1 + 1)
 #define DCSU_get_word_offset(p_dcsu) ((p_dcsu)->diag_rx_large_param)
 #define DCSU_get_swd_data(p_dcsu) (((p_dcsu)->diag_rx_command >> 10) & 0x3FFF)
 

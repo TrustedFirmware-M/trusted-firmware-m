@@ -17,8 +17,8 @@ logger = logging.getLogger("DCSU")
 def _chunk_bytes(x, n):
     return [x[i:i+n] for i in range(0, len(x), n)]
 
-def _round_up(x, boundary):
-    return ((x + (boundary - 1)) // boundary) * boundary
+def _value_fits_in_bits(value : int, bits : int):
+    return value <= ((1 << bits) - 1)
 
 class dcsu_tx_command(Enum):
     DCSU_TX_COMMAND_GENERATE_SOC_UNIQUE_ID = 0x1
@@ -80,30 +80,41 @@ def pre_parse_backend(backends : [str], parser : argparse.ArgumentParser, prefix
     parsed, _ = pre_arg_parser.parse_known_args()
     return parsed.backend
 
-def tx_command_send(backend, ctx, command : dcsu_tx_command, data : bytes = None, size = None, byteorder='little', checksum=True):
+def tx_command_send(backend, ctx, command : dcsu_tx_command, sw_def : int = 0, param1 : int | None = None, data : bytes = None, size = None, byteorder='little', checksum=True):
+    assert _value_fits_in_bits(command.value, 8), "CMD must fit in 8 bits"
     command_word = command.value
 
-    if (data):
-        data_words = [int.from_bytes(b, byteorder=byteorder) for b in _chunk_bytes(data, 4)]
+    # Set software defined bits
+    assert _value_fits_in_bits(sw_def, 14), "SW_DEF must fit in 14 bits"
+    command_word |= sw_def << 10
 
-        assert (len(data_words) <= 4), "Data too large"
+    # Set PARAM1 field if provided
+    if (param1):
+        assert isinstance(param1, int), "PARAM1 must be an integer"
+        assert _value_fits_in_bits(param1, 2), "PARAM1 must fit in 2 bits"
+        command_word |= param1 << 8
+    else:
+        # If PARAM1 is not provided calculate number of words and pass it through data registers
+        if (data):
+            data_words = [int.from_bytes(b, byteorder=byteorder) for b in _chunk_bytes(data, 4)]
 
-        if (size is not None):
-            assert (len(data_words) == size), "Size does not match data"
+            assert (len(data_words) <= 4), "Data too large"
 
-        command_word |= ((len(data_words) - 1) & 0b11) << 8
+            if (size is not None):
+                assert (len(data_words) == size), "Size does not match data"
 
-        for r,w in zip(["DIAG_RX_DATA{}".format(i) for i in range(len(data_words))], data_words):
-            backend.write_register(ctx, r, w)
+            command_word |= ((len(data_words) - 1) & 0b11) << 8
 
-        if checksum:
-            checksum_value = sum(data) % ((1 << 14) - 1)
-            command_word |= (checksum_value & 0x3FFF) << 10
+            for r,w in zip(["DIAG_RX_DATA{}".format(i) for i in range(len(data_words))], data_words):
+                backend.write_register(ctx, r, w)
 
-    if (not data and size is not None):
-        assert (size <= 4), "Data too large"
-        command_word |= ((size - 1) & 0b11) << 8
+            if checksum:
+                checksum_value = sum(data) % ((1 << 14) - 1)
+                command_word |= (checksum_value & 0x3FFF) << 10
 
+        if (not data and size is not None):
+            assert (size <= 4), "Data too large"
+            command_word |= ((size - 1) & 0b11) << 8
     logger.info("Sending command {}".format(command.name))
     backend.write_register(ctx, "DIAG_RX_COMMAND", command_word)
 
