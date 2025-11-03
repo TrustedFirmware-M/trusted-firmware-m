@@ -202,7 +202,7 @@
 #define BL1_2_CODE_LIMIT  (BL1_2_CODE_START + BL1_2_CODE_SIZE - 1)
 
 #define BL1_2_DATA_START  (BL1_1_DATA_START + BL1_1_DATA_SIZE)
-#define BL1_2_DATA_SIZE   (0x800) /* 2 KiB FIXME overlap once code-sharing is removed */
+#define BL1_2_DATA_SIZE   (0x1100) /* 4.25 KiB FIXME overlap once code-sharing is removed */
 #define BL1_2_DATA_LIMIT  (BL1_2_DATA_START + BL1_2_DATA_SIZE - 1)
 
 #ifdef RSE_XIP
