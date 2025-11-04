@@ -74,9 +74,8 @@ enum tfm_plat_err_t b1_1_platform_debug_init(void)
     * flag set
     */
     if (FIH_COND_CHECK_SAFE_SKIP(
-            get_persistent_data_flag(
-            RSE_PERSISTENT_DATA_FLAGS_LAST_BOOT_DEBUG_CODE)
-            == LAST_BOOT_DEBUG_CODE_APPLY_CERT_DEBUG)) {
+            RSE_GET_PERSISTENT_DATA_FLAG(RSE_PERSISTENT_DATA_FLAGS_LAST_BOOT_DEBUG_CODE) ==
+            LAST_BOOT_DEBUG_CODE_APPLY_CERT_DEBUG)) {
         /*
         * Get the certified debug vector for RSE with all bits positive by
         * inverting the negative bits.
@@ -101,8 +100,8 @@ enum tfm_plat_err_t b1_1_platform_debug_init(void)
         dcu_vector[3] |= rse_sram_persistent_data->certified_debug_vector[3];
 
         /* Clear certified debug vector to ensure it is not set next boot */
-        set_persistent_data_flag(LAST_BOOT_DEBUG_CODE_BLOCK_CERT_DEBUG,
-            RSE_PERSISTENT_DATA_FLAGS_LAST_BOOT_DEBUG_CODE);
+        RSE_SET_PERSISTENT_DATA_FLAG(RSE_PERSISTENT_DATA_FLAGS_LAST_BOOT_DEBUG_CODE,
+                                     LAST_BOOT_DEBUG_CODE_BLOCK_CERT_DEBUG);
         rse_sram_persistent_data->certified_debug_vector[0] = 0;
         rse_sram_persistent_data->certified_debug_vector[1] = 0;
         rse_sram_persistent_data->certified_debug_vector[2] = 0;
