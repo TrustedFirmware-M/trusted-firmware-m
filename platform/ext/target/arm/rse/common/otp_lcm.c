@@ -105,8 +105,8 @@ struct otp_mapping_t{
     [PLAT_OTP_ID_LFT_COUNTER] = HEADER_MAPPING(lft_counter),
 #endif
 
-    [PLAT_OTP_ID_CM_CONFIG_FLAGS] = USER_AREA_MAPPING(cm, config_flags),
-    [PLAT_OTP_ID_DM_CONFIG_FLAGS] = USER_AREA_MAPPING(dm, config_flags),
+    [PLAT_OTP_ID_CM_CONFIG_FLAGS] = USER_AREA_MAPPING(cm, cm_policies),
+    [PLAT_OTP_ID_DM_CONFIG_FLAGS] = USER_AREA_MAPPING(dm, dm_policies),
 
     [PLAT_OTP_ID_CM_ROTPK_POLICIES] = ROTPK_AREA_MAPPING(cm, cm_rotpk_policies),
     [PLAT_OTP_ID_DM_ROTPK_POLICIES] = ROTPK_AREA_MAPPING(dm, dm_rotpk_policies),
@@ -777,7 +777,7 @@ static enum tfm_plat_err_t check_lft_counter(void)
     uint32_t counter_value;
 
     /* If the LFT counter should not cause bricking of the device we just return */
-    if (!rse_otp_policy_check(P_RSE_OTP_CM->config_flags, CM_POLICIES_LFT_COUNTER_MAX_BRICKS_DEVICE)) {
+    if (!rse_otp_policy_check(P_RSE_OTP_CM->cm_policies, CM_POLICIES_LFT_COUNTER_MAX_BRICKS_DEVICE)) {
         return TFM_PLAT_ERR_SUCCESS;
     }
 

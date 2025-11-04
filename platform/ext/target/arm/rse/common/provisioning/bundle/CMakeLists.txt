@@ -296,7 +296,7 @@ if (TFM_DUMMY_PROVISIONING)
         --secret_cm:kce_cm=${TFM_GUK_PATH}
 
         # Set config flags to 1 << 0x4
-        $<$<BOOL:${RSE_NON_ENDORSED_DM_PROVISIONING}>:--non_secret_cm:cm.config_flags=16>
+        $<$<BOOL:${RSE_NON_ENDORSED_DM_PROVISIONING}>:--non_secret_cm:cm.cm_policies=16>
 
         --non_secret_cm:cm.rotpk_areas_0.rotpk_0=${TFM_BL1_2_CM_SIGNING_KEY_PATH}
         --non_secret_cm:cm.rotpk_areas_0.rotpk_policy_0 RSE_ROTPK_POLICY_SIG_REQUIRED

@@ -92,7 +92,7 @@ __PACKED_STRUCT rse_otp_cc_trng_config_t {
 __PACKED_STRUCT rse_otp_cm_area_t {
     uint32_t zero_count;
     uint32_t provisioning_blob_version;
-    uint32_t config_flags;
+    uint32_t cm_policies;
 
 #ifdef RSE_OTP_HAS_CCA_ITEMS
     uint32_t cca_system_properties;
@@ -137,7 +137,7 @@ struct rse_otp_dm_rotpk_area_t {
 __PACKED_STRUCT rse_otp_dm_area_t {
     uint32_t zero_count;
     uint32_t provisioning_blob_version;
-    uint32_t config_flags;
+    uint32_t dm_policies;
 
 #ifdef RSE_OTP_HAS_ROUTING_TABLES
     struct rse_single_node_routing_tables_t routing_tables;
