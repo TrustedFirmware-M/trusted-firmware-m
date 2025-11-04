@@ -6,6 +6,7 @@
  */
 
 #include <assert.h>
+#include <string.h>
 
 #include "platform_error_codes.h"
 #include "sfcp_link_hal.h"
@@ -388,7 +389,7 @@ static enum sfcp_hal_error_t mhu_check_message_alignment(const uint8_t *message,
         return SFCP_HAL_ERROR_INVALID_MESSAGE_ARGUMENT;
     }
 
-    if ((message_size == 0) || (message_size % sizeof(uint32_t)) != 0) {
+    if (message_size == 0) {
         return SFCP_HAL_ERROR_INVALID_MESSAGE_SIZE;
     }
 
@@ -404,6 +405,7 @@ static enum sfcp_hal_error_t mhu_send_message(void *mhu_send_device, void *mhu_r
     uint32_t mhu_err;
     bool is_available;
     const uint32_t *message_ptr;
+    uint32_t message_send_buf;
     size_t bytes_left;
 
     mhu_err = mhu_check_message_alignment(message, message_size);
@@ -439,12 +441,20 @@ static enum sfcp_hal_error_t mhu_send_message(void *mhu_send_device, void *mhu_r
     message_ptr = (const uint32_t *)message;
     bytes_left = message_size;
     while (bytes_left > 0) {
-        mhu_err = mhu_channel_send(mhu_send_device, channel, *message_ptr++, type);
+        if (bytes_left >= sizeof(uint32_t)) {
+            message_send_buf = *message_ptr++;
+            bytes_left -= sizeof(uint32_t);
+        } else {
+            /* A few bytes still to send, pad the remaining bytes */
+            message_send_buf = 0;
+            memcpy(&message_send_buf, message_ptr, bytes_left);
+            bytes_left = 0;
+        }
+
+        mhu_err = mhu_channel_send(mhu_send_device, channel, message_send_buf, type);
         if (mhu_err != 0) {
             return mhu_err;
         }
-
-        bytes_left -= sizeof(uint32_t);
 
         if (++channel == (num_channels - 1)) {
             mhu_err = mhu_send_signal_poll_loop(mhu_send_device, mhu_recv_device, type);
@@ -572,6 +582,7 @@ static enum sfcp_hal_error_t mhu_receive_message(void *mhu_recv_device, uint8_t 
     uint32_t *message_ptr;
     size_t bytes_left;
     size_t already_received_words;
+    uint32_t message_recv_buf;
 
     mhu_err = mhu_check_message_alignment(message, size_to_receive);
     if (mhu_err != 0) {
@@ -598,12 +609,20 @@ static enum sfcp_hal_error_t mhu_receive_message(void *mhu_recv_device, uint8_t 
     while (bytes_left > 0) {
         size_t total_received;
 
-        mhu_err = mhu_channel_receive_device_receive(mhu_recv_device, channel, message_ptr++, type);
+        mhu_err =
+            mhu_channel_receive_device_receive(mhu_recv_device, channel, &message_recv_buf, type);
         if (mhu_err != 0) {
             return mhu_err;
         }
 
-        bytes_left -= sizeof(uint32_t);
+        if (bytes_left >= sizeof(uint32_t)) {
+            *message_ptr++ = message_recv_buf;
+            bytes_left -= sizeof(uint32_t);
+        } else {
+            memcpy(message_ptr, &message_recv_buf, bytes_left);
+            bytes_left = 0;
+        }
+
         total_received = (size_to_receive - bytes_left) + already_received;
 
         /* Only wait for next transfer if there is still missing data */
