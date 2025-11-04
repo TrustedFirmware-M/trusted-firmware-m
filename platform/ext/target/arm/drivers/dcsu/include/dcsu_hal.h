@@ -8,6 +8,7 @@
 
 #include "dcsu_drv.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -102,10 +103,11 @@ enum dcsu_error_t dcsu_hal_generate_soc_unique_id(enum dcsu_rx_msg_response_t *r
 /**
  * \brief This function writes a value to an OTP field at a specified offset
  *
- * \param otp_area              OTP area to write to
- * \param otp_area_write_offset Offset from OTP area to write to
- * \param data                  Data to write
- * \param data_size             Size of data to write
+ * \param otp_field              OTP area to write to
+ * \param otp_field_write_offset Offset from OTP area to write to
+ * \param data                   Data to write
+ * \param data_size              Size of data to write
+ * \param clean_write            Only write if the OTP area is clean (all zero)
  * \param[out] response     The response to send via the DCSU command status
  *                          DCSU_RX_MSG_RESP_NO_RESP                No response yet (must be sent later)
  *                          DCSU_RX_MSG_RESP_SUCCESS                Operation succeeded
@@ -116,8 +118,8 @@ enum dcsu_error_t dcsu_hal_generate_soc_unique_id(enum dcsu_rx_msg_response_t *r
  *
  * \retval DCSU_ERROR_NONE                The operation has succeeded.
  */
-enum dcsu_error_t dcsu_hal_write_otp(enum dcsu_otp_field_t otp_area, uint32_t otp_area_write_offset,
-                                     uint32_t *data, size_t data_size,
+enum dcsu_error_t dcsu_hal_write_otp(enum dcsu_otp_field_t otp_field, uint32_t otp_field_write_offset,
+                                     uint32_t *data, size_t data_size, bool clean_write,
                                      enum dcsu_rx_msg_response_t *response);
 
 /**

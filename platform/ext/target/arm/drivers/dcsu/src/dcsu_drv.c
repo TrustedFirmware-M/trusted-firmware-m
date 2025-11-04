@@ -430,7 +430,7 @@ static enum dcsu_error_t rx_write_field(struct dcsu_dev_t *dev, enum dcsu_otp_fi
     }
 
     msg_err = dcsu_hal_write_otp(otp_field, field_offset, (uint32_t *)p_dcsu->diag_rx_data,
-                                 write_num_words * sizeof(uint32_t), msg_resp);
+                                 write_num_words * sizeof(uint32_t), true, msg_resp);
 
     return msg_err;
 }

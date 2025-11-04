@@ -153,9 +153,9 @@ enum dcsu_error_t dcsu_hal_generate_soc_unique_id(enum dcsu_rx_msg_response_t *r
 #endif /* RSE_OTP_HAS_SOC_AREA */
 }
 
-enum dcsu_error_t dcsu_hal_write_otp(enum dcsu_otp_field_t otp_field,
-                                     uint32_t otp_field_write_offset, uint32_t *data,
-                                     size_t data_size, enum dcsu_rx_msg_response_t *response)
+enum dcsu_error_t dcsu_hal_write_otp(enum dcsu_otp_field_t otp_field, uint32_t otp_field_write_offset,
+                                     uint32_t *data, size_t data_size, bool clean_write,
+                                     enum dcsu_rx_msg_response_t *response)
 {
     if ((data == NULL) || (response == NULL)) {
         return DCSU_ERROR_INVALID_POINTER;
@@ -196,9 +196,11 @@ enum dcsu_error_t dcsu_hal_write_otp(enum dcsu_otp_field_t otp_field,
         return DCSU_ERROR_NONE;
     }
 
-    if (!is_otp_clean(otp_field_write_offset, data_size)) {
-        *response = DCSU_RX_MSG_RESP_OTP_ALREADY_WRITTEN;
-        return DCSU_ERROR_NONE;
+    if (clean_write) {
+        if (!is_otp_clean(otp_field_write_offset, data_size)) {
+            *response = DCSU_RX_MSG_RESP_OTP_ALREADY_WRITTEN;
+            return DCSU_ERROR_NONE;
+        }
     }
 
     lcm_err = lcm_otp_write(&LCM_DEV_S, otp_field_write_offset, data_size, (uint8_t *)data);
