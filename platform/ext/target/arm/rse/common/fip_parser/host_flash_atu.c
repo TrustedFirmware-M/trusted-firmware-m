@@ -88,13 +88,13 @@ enum tfm_plat_err_t setup_aligned_atu_slot(uint64_t physical_address, uint32_t s
     atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S, aligned_physical_address, logical_address,
                                            *atu_slot_size, ATU_ENCODE_ATTRIBUTES_SECURE_PAS);
     if (atu_err != ATU_ERR_NONE) {
-        return atu_err;
+        return (enum tfm_plat_err_t)atu_err;
     }
 
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-int host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
+enum tfm_plat_err_t host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
                                                     uintptr_t logical_address,
                                                     uuid_t image_uuid,
                                                     uint32_t *logical_address_offset,
@@ -127,7 +127,7 @@ int host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
     /* Free the temporary region even if the entry is not found */
     atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_TEMP_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
-        return atu_err;
+        return (enum tfm_plat_err_t)atu_err;
     }
 
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
@@ -149,11 +149,11 @@ int host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
         *slot_size = atu_slot_size;
     }
 
-    return 0;
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 #ifdef RSE_GPT_SUPPORT
-int host_flash_atu_get_gpt_header(gpt_header_t *header)
+enum tfm_plat_err_t host_flash_atu_get_gpt_header(gpt_header_t *header)
 {
     enum tfm_plat_err_t plat_err;
     enum atu_error_t atu_err;
@@ -179,13 +179,13 @@ int host_flash_atu_get_gpt_header(gpt_header_t *header)
 
     atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_TEMP_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
-        return atu_err;
+        return (enum tfm_plat_err_t)atu_err;
     }
 
-    return 0;
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
-static int
+static enum tfm_plat_err_t
     host_flash_atu_get_fip_and_metadata_offsets(bool fip_found[2],
                                                 uint64_t fip_offsets[2],
                                                 bool metadata_found[2],
@@ -193,7 +193,6 @@ static int
                                                 bool private_metadata_found[1],
                                                 uint64_t private_metadata_offsets[1])
 {
-    int rc;
     enum tfm_plat_err_t plat_err;
     enum atu_error_t atu_err;
     gpt_header_t header;
@@ -203,9 +202,9 @@ static int
     uint32_t alignment_offset;
     size_t atu_slot_size;
 
-    rc = host_flash_atu_get_gpt_header(&header);
-    if (rc) {
-        return rc;
+    plat_err = host_flash_atu_get_gpt_header(&header);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
     physical_address = IMAGE_INPUT_BASE_PHYSICAL
@@ -280,18 +279,18 @@ static int
 
     atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_TEMP_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
-        return atu_err;
+        return (enum tfm_plat_err_t)atu_err;
     }
 
-    return 0;
+    return TFM_PLAT_ERR_SUCCESS;
 }
 #endif /* RSE_GPT_SUPPORT */
 
 
-int host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t fip_offsets[2])
+enum tfm_plat_err_t host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t fip_offsets[2])
 {
 #ifdef RSE_GPT_SUPPORT
-    int rc;
+    enum tfm_plat_err_t plat_err;
     bool metadata_found[2];
     uint64_t metadata_offsets[2];
     bool private_metadata_found[1];
@@ -299,12 +298,12 @@ int host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t fip_offsets[2])
     uint8_t bootable_fip_index;
     uint64_t found_metadata_offset;
 
-    rc = host_flash_atu_get_fip_and_metadata_offsets(fip_found, fip_offsets,
-                                                     metadata_found, metadata_offsets,
-                                                     private_metadata_found,
-                                                     private_metadata_offsets);
-    if (rc) {
-        return rc;
+    plat_err = host_flash_atu_get_fip_and_metadata_offsets(fip_found, fip_offsets,
+                                                           metadata_found, metadata_offsets,
+                                                           private_metadata_found,
+                                                           private_metadata_offsets);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
     if (!private_metadata_found[0]) {
@@ -319,11 +318,9 @@ int host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t fip_offsets[2])
                              metadata_offsets[0] : metadata_offsets[1];
 
 
-    rc = get_active_index(found_metadata_offset,
-                          &bootable_fip_index,
-                          NULL);
-    if (rc) {
-        return rc;
+    plat_err = get_active_index(found_metadata_offset, &bootable_fip_index, NULL);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
     if (!fip_found[bootable_fip_index]) {
@@ -347,32 +344,34 @@ int host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t fip_offsets[2])
     fip_offsets[1] = FLASH_FIP_B_OFFSET;
 #endif /* RSE_GPT_SUPPORT */
 
-    return 0;
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
-int host_flash_atu_setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2])
+enum tfm_plat_err_t host_flash_atu_setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2])
 {
-    int rc;
+    enum tfm_plat_err_t plat_err;
     bool fip_found[2];
     uint64_t fip_offsets[2];
     bool fip_mapped[2] = {false};
 
-    rc = host_flash_atu_get_fip_offsets(fip_found, fip_offsets);
-    if (rc) {
-        return rc;
+    plat_err = host_flash_atu_get_fip_offsets(fip_found, fip_offsets);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
-    rc = host_flash_atu_setup_image_input_slots_from_fip(fip_offsets[0],
-                                          HOST_FLASH0_IMAGE0_BASE_S, image_uuid,
-                                          &offsets[0], NULL);
-    if (rc == 0) {
+    plat_err = host_flash_atu_setup_image_input_slots_from_fip(fip_offsets[0],
+                                                               HOST_FLASH0_IMAGE0_BASE_S,
+                                                               image_uuid,
+                                                               &offsets[0], NULL);
+    if (plat_err == TFM_PLAT_ERR_SUCCESS) {
         fip_mapped[0] = true;
     }
 
-    rc = host_flash_atu_setup_image_input_slots_from_fip(fip_offsets[1],
-                                          HOST_FLASH0_IMAGE1_BASE_S, image_uuid,
-                                          &offsets[1], NULL);
-    if (rc == 0) {
+    plat_err = host_flash_atu_setup_image_input_slots_from_fip(fip_offsets[1],
+                                                               HOST_FLASH0_IMAGE1_BASE_S,
+                                                               image_uuid,
+                                                               &offsets[1], NULL);
+    if (plat_err == TFM_PLAT_ERR_SUCCESS) {
         fip_mapped[1] = true;
     }
 
@@ -384,18 +383,20 @@ int host_flash_atu_setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2
      * and fault.
      */
     if (fip_mapped[0] && !fip_mapped[1]) {
-        rc = host_flash_atu_setup_image_input_slots_from_fip(fip_offsets[0],
-                                              HOST_FLASH0_IMAGE1_BASE_S,
-                                              image_uuid, &offsets[1], NULL);
-        if (rc) {
-            return rc;
+        plat_err = host_flash_atu_setup_image_input_slots_from_fip(fip_offsets[0],
+                                                                   HOST_FLASH0_IMAGE1_BASE_S,
+                                                                   image_uuid,
+                                                                   &offsets[1], NULL);
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return plat_err;
         }
     } else if (fip_mapped[1] && !fip_mapped[0]) {
-        rc = host_flash_atu_setup_image_input_slots_from_fip(fip_offsets[1],
-                                              HOST_FLASH0_IMAGE0_BASE_S,
-                                              image_uuid, &offsets[0], NULL);
-        if (rc) {
-            return rc;
+        plat_err = host_flash_atu_setup_image_input_slots_from_fip(fip_offsets[1],
+                                                                   HOST_FLASH0_IMAGE0_BASE_S,
+                                                                   image_uuid,
+                                                                   &offsets[0], NULL);
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return plat_err;
         }
     } else if (!fip_mapped[0] && !fip_mapped[1]) {
         ERROR("Failed to find image with UUID starting %02X%02X%02X%02X\n",
@@ -407,10 +408,10 @@ int host_flash_atu_setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2
         return TFM_PLAT_ERR_HOST_FLASH_SETUP_IMAGE_SLOT_NO_FIP_MAPPED;
     }
 
-    return 0;
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
-int host_flash_atu_setup_image_output_slots(uint64_t image_load_phy_addr,
+enum tfm_plat_err_t host_flash_atu_setup_image_output_slots(uint64_t image_load_phy_addr,
                                             uint32_t image_load_logical_addr,
                                             uint32_t image_max_size,
                                             uint64_t header_phy_addr)
@@ -418,14 +419,14 @@ int host_flash_atu_setup_image_output_slots(uint64_t image_load_phy_addr,
     enum atu_error_t atu_err;
 
     if (image_max_size < HOST_IMAGE_HEADER_SIZE) {
-        return -1;
+        return TFM_PLAT_ERR_HOST_FLASH_ATU_INVALID_INPUT;
     }
 
     /* Initialize ATU header region */
     atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S, header_phy_addr, image_load_logical_addr,
                                            HOST_IMAGE_HEADER_SIZE, ATU_ENCODE_ATTRIBUTES_SECURE_PAS);
     if (atu_err != ATU_ERR_NONE) {
-        return atu_err;
+        return (enum tfm_plat_err_t)atu_err;
     }
 
     /* Initialize ATU output region */
@@ -434,51 +435,50 @@ int host_flash_atu_setup_image_output_slots(uint64_t image_load_phy_addr,
                                            image_max_size - HOST_IMAGE_HEADER_SIZE,
                                            ATU_ENCODE_ATTRIBUTES_SECURE_PAS);
     if (atu_err != ATU_ERR_NONE) {
-        return atu_err;
+        return (enum tfm_plat_err_t)atu_err;
     }
 
-    return 0;
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 #ifdef RSE_GPT_SUPPORT
-int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
-                                                          gpt_header_t header,
-                                                          bool *image_found,
-                                                          uint64_t *image_offset,
-                                                          uint32_t *image_size)
+enum tfm_plat_err_t host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
+                                                                           gpt_header_t header,
+                                                                           bool *image_found,
+                                                                           uint64_t *image_offset,
+                                                                           uint32_t *image_size)
 {
     uint64_t physical_address;
-    uint32_t rc;
+    enum tfm_plat_err_t plat_err;
     size_t page_size = atu_rse_get_page_size(&ATU_LIB_S);
     uint32_t alignment_offset;
     size_t atu_slot_size;
     enum atu_error_t atu_err;
     gpt_entry_t entry;
-    enum atu_error_t atu_err;
 
-    if (image_found == NULL || image_offset == NULL || image_size == NULL) {
-        return -1;
+    if (image_offset == NULL || image_size == NULL) {
+        return TFM_PLAT_ERR_HOST_FLASH_ATU_INVALID_INPUT;
     }
 
     physical_address = IMAGE_INPUT_BASE_PHYSICAL +
                        (header.list_lba * FLASH_LBA_SIZE);
-    rc = setup_aligned_atu_slot(physical_address,
+    plat_err = setup_aligned_atu_slot(physical_address,
                                 header.list_entry_size * header.list_num,
                                 page_size,
                                 HOST_FLASH0_TEMP_BASE_S,
                                 &alignment_offset,
                                 &atu_slot_size);
-    if (rc != TFM_PLAT_ERR_SUCCESS) {
-        return rc;
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
-    rc = gpt_get_list_entry_by_image_uuid(HOST_FLASH0_TEMP_BASE_S + alignment_offset,
+    plat_err = gpt_get_list_entry_by_image_uuid(HOST_FLASH0_TEMP_BASE_S + alignment_offset,
                                           header.list_num,
                                           header.list_entry_size,
                                           image_uuid,
                                           atu_slot_size - alignment_offset,
                                           &entry);
-    if (rc == TFM_PLAT_ERR_SUCCESS) {
+     if (plat_err == TFM_PLAT_ERR_SUCCESS) {
         *image_found = true;
         *image_offset = entry.first_lba * FLASH_LBA_SIZE;
         *image_size = (entry.last_lba - entry.first_lba + 1) * FLASH_LBA_SIZE;
@@ -486,22 +486,22 @@ int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
         *image_found = false;
     }
 
-    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_FLASH0_TEMP_BASE_S);
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_TEMP_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
-        return atu_err;
+        return (enum tfm_plat_err_t)atu_err;
     }
 
-    return 0;
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
-int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
-                                                         gpt_header_t header,
-                                                         bool *image_found,
-                                                         uint64_t *image_offset,
-                                                         size_t *image_size)
+enum tfm_plat_err_t host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
+                                                                         gpt_header_t header,
+                                                                         bool *image_found,
+                                                                         uint64_t *image_offset,
+                                                                         size_t *image_size)
 {
     uint64_t physical_address;
-    uint32_t rc;
+    enum tfm_plat_err_t plat_err;
     size_t page_size = atu_rse_get_page_size(&ATU_LIB_S);
     uint32_t alignment_offset;
     size_t atu_slot_size;
@@ -510,32 +510,32 @@ int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
     enum atu_error_t atu_err;
 
     if (image_found == NULL || image_offset == NULL || image_size == NULL) {
-        return -1;
+        return TFM_PLAT_ERR_HOST_FLASH_ATU_INVALID_INPUT;
     }
 
     physical_address = IMAGE_INPUT_BASE_PHYSICAL +
                        (header.list_lba * FLASH_LBA_SIZE);
-    rc = setup_aligned_atu_slot(physical_address,
-                                header.list_entry_size * header.list_num,
-                                page_size,
-                                HOST_FLASH0_TEMP_BASE_S,
-                                &alignment_offset,
-                                &atu_slot_size);
-    if (rc != TFM_PLAT_ERR_SUCCESS) {
-        return rc;
+    plat_err = setup_aligned_atu_slot(physical_address,
+                                      header.list_entry_size * header.list_num,
+                                      page_size,
+                                      HOST_FLASH0_TEMP_BASE_S,
+                                      &alignment_offset,
+                                      &atu_slot_size);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
     for (idx = 0; idx < 2; idx++) {
         image_found[idx] = false;
     }
 
-    rc = gpt_get_list_entry_by_type_uuid(HOST_FLASH0_TEMP_BASE_S + alignment_offset,
-                                          header.list_num,
-                                          header.list_entry_size,
-                                          type_uuid,
-                                          atu_slot_size - alignment_offset,
-                                          entries);
-    if (rc == TFM_PLAT_ERR_SUCCESS) {
+    plat_err = gpt_get_list_entry_by_type_uuid(HOST_FLASH0_TEMP_BASE_S + alignment_offset,
+                                               header.list_num,
+                                               header.list_entry_size,
+                                               type_uuid,
+                                               atu_slot_size - alignment_offset,
+                                               entries);
+    if (plat_err == TFM_PLAT_ERR_SUCCESS) {
         for (idx = 0; idx < 2; idx++) {
             if (!memcmp(&(entries[idx].type_uuid), &(type_uuid), sizeof(type_uuid))) {
                 image_found[idx] = true;
@@ -545,19 +545,21 @@ int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
         }
     }
 
-    atu_err = atu_rse_free_addr(&ATU_DEV_S, HOST_FLASH0_TEMP_BASE_S);
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_TEMP_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
-        return atu_err;
+        return (enum tfm_plat_err_t)atu_err;
     }
 
-    return 0;
+    return TFM_PLAT_ERR_SUCCESS;
 }
 #endif /* RSE_GPT_SUPPORT */
 
-int host_flash_atu_get_image_offsets_by_type_uuid(uuid_t type_uuid, uint64_t *image_offset, uint32_t *image_size)
+static enum tfm_plat_err_t host_flash_atu_get_image_offsets_by_type_uuid(uuid_t type_uuid,
+                                                                         uint64_t *image_offset,
+                                                                         uint32_t *image_size)
 {
 #ifdef RSE_GPT_SUPPORT
-    int rc = 0;
+    enum tfm_plat_err_t plat_err;
     gpt_header_t header;
     bool metadata_found[2];
     uint64_t metadata_offsets[2];
@@ -570,30 +572,30 @@ int host_flash_atu_get_image_offsets_by_type_uuid(uuid_t type_uuid, uint64_t *im
     bool image_found = false;
 
     if (image_offset == NULL || image_size == NULL){
-        return -1;
+        return TFM_PLAT_ERR_HOST_FLASH_ATU_INVALID_INPUT;
     }
 
-    rc = host_flash_atu_get_gpt_header(&header);
-    if (rc) {
-        return rc;
+    plat_err = host_flash_atu_get_gpt_header(&header);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
-    rc = host_flash_atu_get_gpt_partition_offset_by_type_uuid(UUID_RSE_METADATA,
-                                                              header,
-                                                              metadata_found,
-                                                              metadata_offsets,
-                                                              temp_size);
-    if (rc) {
-        return rc;
+    plat_err = host_flash_atu_get_gpt_partition_offset_by_type_uuid(UUID_RSE_METADATA,
+                                                                    header,
+                                                                    metadata_found,
+                                                                    metadata_offsets,
+                                                                    temp_size);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
-    rc = host_flash_atu_get_gpt_partition_offset_by_type_uuid(UUID_RSE_PRIVATE_METADATA,
-                                                              header,
-                                                              private_metadata_found,
-                                                              private_metadata_offsets,
-                                                              temp_size);
-    if (rc) {
-        return rc;
+    plat_err = host_flash_atu_get_gpt_partition_offset_by_type_uuid(UUID_RSE_PRIVATE_METADATA,
+                                                                    header,
+                                                                    private_metadata_found,
+                                                                    private_metadata_offsets,
+                                                                    temp_size);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
     if (!private_metadata_found[0]) {
@@ -607,38 +609,46 @@ int host_flash_atu_get_image_offsets_by_type_uuid(uuid_t type_uuid, uint64_t *im
     found_metadata_offset = (metadata_found[0]) ?
                              metadata_offsets[0] : metadata_offsets[1];
 
-    rc = get_active_index(found_metadata_offset,
-                          &bootable_img_index,
-                          NULL);
-    if (rc) {
-        return rc;
+    plat_err = get_active_index(found_metadata_offset,
+                                &bootable_img_index,
+                                NULL);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
-    rc = get_active_image_uuid_by_type_uuid(found_metadata_offset,
-                                            type_uuid,
-                                            &image_uuid);
-    if (rc) {
-        return rc;
+    plat_err = get_active_image_uuid_by_type_uuid(found_metadata_offset,
+                                                  type_uuid,
+                                                  &image_uuid);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
-    rc = host_flash_atu_get_gpt_partition_offset_by_image_uuid(image_uuid,
-                                                               header,
-                                                               &image_found,
-                                                               image_offset,
-                                                               image_size);
-    if (rc) {
-        return rc;
+    plat_err = host_flash_atu_get_gpt_partition_offset_by_image_uuid(image_uuid,
+                                                                     header,
+                                                                     &image_found,
+                                                                     image_offset,
+                                                                     image_size);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
-    return 0;
+    if (!image_found) {
+        return TFM_PLAT_ERR_HOST_FLASH_SETUP_IMAGE_SLOT_GPT_PARTITION_NOT_FOUND;
+    }
+
+    return TFM_PLAT_ERR_SUCCESS;
 #else
-    return -1;
+    (void)type_uuid;
+    (void)image_offset;
+    (void)image_size;
+
+    return TFM_PLAT_ERR_UNSUPPORTED;
 #endif /* RSE_GPT_SUPPORT */
 }
 
-int host_flash_atu_setup_image_input_slots_by_type_uuid(uuid_t type_uuid, uint32_t offsets[2])
+enum tfm_plat_err_t host_flash_atu_setup_image_input_slots_by_type_uuid(uuid_t type_uuid, uint32_t offsets[2])
 {
-    int rc;
+    enum tfm_plat_err_t plat_err;
     size_t temp_size[2];
     uint64_t gpt_offset = 0;
     uint32_t image_size = 0;
@@ -646,24 +656,24 @@ int host_flash_atu_setup_image_input_slots_by_type_uuid(uuid_t type_uuid, uint32
     bool image_mapped[2] = {false};
 
     if (offsets == NULL) {
-        return -1;
+        return TFM_PLAT_ERR_HOST_FLASH_ATU_INVALID_INPUT;
     }
 
-    rc = host_flash_atu_get_image_offsets_by_type_uuid(type_uuid, &gpt_offset, &image_size);
-    if (rc != 0) {
-        return -1;
+    plat_err = host_flash_atu_get_image_offsets_by_type_uuid(type_uuid, &gpt_offset, &image_size);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
-    rc = setup_aligned_atu_slot(gpt_offset + IMAGE_INPUT_BASE_PHYSICAL, image_size,
-                                page_size, HOST_FLASH0_IMAGE0_BASE_S,
-                                &offsets[0], &temp_size[0]);
-    if (rc == 0) {
+    plat_err = setup_aligned_atu_slot(gpt_offset + IMAGE_INPUT_BASE_PHYSICAL, image_size,
+                                      page_size, HOST_FLASH0_IMAGE0_BASE_S,
+                                      &offsets[0], &temp_size[0]);
+    if (plat_err == TFM_PLAT_ERR_SUCCESS) {
         image_mapped[0] = true;
     }
-    rc = setup_aligned_atu_slot(gpt_offset + IMAGE_INPUT_BASE_PHYSICAL, image_size,
+    plat_err = setup_aligned_atu_slot(gpt_offset + IMAGE_INPUT_BASE_PHYSICAL, image_size,
                                       page_size, HOST_FLASH0_IMAGE1_BASE_S,
                                       &offsets[1], &temp_size[0]);
-    if (rc == 0) {
+    if (plat_err == TFM_PLAT_ERR_SUCCESS) {
         image_mapped[1] = true;
     }
 
@@ -671,22 +681,22 @@ int host_flash_atu_setup_image_input_slots_by_type_uuid(uuid_t type_uuid, uint32
         return TFM_PLAT_ERR_HOST_FLASH_SETUP_IMAGE_SLOT_NO_FIP_MAPPED;
     }
 
-    return 0;
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
-int host_flash_atu_free_input_image_regions(void)
+enum tfm_plat_err_t host_flash_atu_free_input_image_regions(void)
 {
     enum atu_error_t atu_err;
 
     atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_IMAGE0_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
-        return atu_err;
+        return (enum tfm_plat_err_t)atu_err;
     }
 
     atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_FLASH0_IMAGE1_BASE_S);
     if (atu_err != ATU_ERR_NONE) {
-        return atu_err;
+        return (enum tfm_plat_err_t)atu_err;
     }
 
-    return 0;
+    return TFM_PLAT_ERR_SUCCESS;
 }

@@ -177,7 +177,7 @@ int boot_platform_pre_load(uint32_t image_id)
         flash_map_slot_from_flash_area_id(FLASH_AREA_IMAGE_PRIMARY(image_id));
     struct flash_area *flash_area_secondary =
         flash_map_slot_from_flash_area_id(FLASH_AREA_IMAGE_SECONDARY(image_id));
-    int rc;
+    enum tfm_plat_err_t plat_err;
 
     (void)fih_delay();
 
@@ -194,10 +194,10 @@ int boot_platform_pre_load(uint32_t image_id)
         header_phy_addr = SCP_BOOT_SRAM_BASE + SCP_BOOT_SRAM_SIZE
                                         - HOST_IMAGE_HEADER_SIZE;
         image_load_logical_addr = HOST_BOOT_IMAGE1_LOAD_BASE_S;
-        rc = host_flash_atu_setup_image_output_slots(image_load_phy_addr,
-                                                     image_load_logical_addr,
-                                                     image_max_size,
-                                                     header_phy_addr);
+        plat_err = host_flash_atu_setup_image_output_slots(image_load_phy_addr,
+                                                           image_load_logical_addr,
+                                                           image_max_size,
+                                                           header_phy_addr);
         break;
     case RSE_BL2_IMAGE_AP:
         uuid = UUID_RSE_FIRMWARE_AP_BL1;
@@ -207,10 +207,10 @@ int boot_platform_pre_load(uint32_t image_id)
         header_phy_addr = AP_BOOT_SRAM_BASE + AP_BOOT_SRAM_SIZE
                                         - HOST_IMAGE_HEADER_SIZE;
         image_load_logical_addr = HOST_BOOT_IMAGE0_LOAD_BASE_S;
-        rc = host_flash_atu_setup_image_output_slots(image_load_phy_addr,
-                                                     image_load_logical_addr,
-                                                     image_max_size,
-                                                     header_phy_addr);
+        plat_err = host_flash_atu_setup_image_output_slots(image_load_phy_addr,
+                                                           image_load_logical_addr,
+                                                           image_max_size,
+                                                           header_phy_addr);
         break;
     case RSE_BL2_IMAGE_NS:
         /*
@@ -222,7 +222,7 @@ int boot_platform_pre_load(uint32_t image_id)
 #else
         uuid = UUID_RSE_SIC_TABLES_NS;
 #endif /* RSE_XIP */
-        rc = 0;
+        plat_err = TFM_PLAT_ERR_SUCCESS;
         break;
     case RSE_BL2_IMAGE_S:
         /*
@@ -234,18 +234,18 @@ int boot_platform_pre_load(uint32_t image_id)
 #else
         uuid = UUID_RSE_SIC_TABLES_S;
 #endif /* RSE_XIP */
-        rc = 0;
+        plat_err = TFM_PLAT_ERR_SUCCESS;
         break;
     default:
         return TFM_PLAT_ERR_PRE_LOAD_IMG_BY_BL2_FAIL;
     }
 
-    if (rc != 0) {
-        return rc;
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
-    rc = host_flash_atu_setup_image_input_slots(uuid, offsets);
-    if (rc) {
+    plat_err = host_flash_atu_setup_image_input_slots(uuid, offsets);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return TFM_PLAT_ERR_PRE_LOAD_IMG_BY_BL2_FAIL;
     }
 
@@ -286,6 +286,7 @@ static int tc_scp_release_reset(void)
 int boot_platform_post_load(uint32_t image_id)
 {
     int err;
+    enum tfm_plat_err_t plat_err;
 
 #ifdef RSE_XIP
     if (sic_boot_post_load(image_id, rsp.br_image_off) != SIC_BOOT_SUCCESS) {
@@ -344,8 +345,8 @@ int boot_platform_post_load(uint32_t image_id)
 #endif /* TC_NO_RELEASE_RESET */
 
 
-    err = host_flash_atu_free_input_image_regions();
-    if (err) {
+    plat_err = host_flash_atu_free_input_image_regions();
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return TFM_PLAT_ERR_POST_LOAD_IMG_BY_BL2_FAIL;
     }
 

@@ -30,7 +30,8 @@ extern "C" {
  * \param[out] alignment_offset   Address offset after alignment.
  * \param[out] atu_slot_size      Slot size after alignment.
  *
- * \return 0 on success, non-zero on failure.
+ * \return                        TFM_PLAT_ERR_SUCCESS on success,
+ *                                platform error code on failure.
  */
 enum tfm_plat_err_t setup_aligned_atu_slot(uint64_t physical_address,
                                            uint32_t size,
@@ -45,9 +46,10 @@ enum tfm_plat_err_t setup_aligned_atu_slot(uint64_t physical_address,
  *
  * \param[out] header      The GPT header read from flash.
  *
- * \return                 0 on success, non-zero on failure.
+ * \return                 TFM_PLAT_ERR_SUCCESS on success,
+ *                         platform error code on failure.
  */
-int host_flash_atu_get_gpt_header(gpt_header_t *header);
+enum tfm_plat_err_t host_flash_atu_get_gpt_header(gpt_header_t *header);
 
 /**
  * \brief Get the partition offset of images of specific type uuid.
@@ -59,9 +61,10 @@ int host_flash_atu_get_gpt_header(gpt_header_t *header);
  * \param[out] image_offset       Offset of found images.
  * \param[out] image_size         Size of found images.
  *
- * \return 0 on success, non-zero on failure.
+ * \return                        TFM_PLAT_ERR_SUCCESS on success,
+ *                                platform error code on failure.
  */
-int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
+enum tfm_plat_err_t host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
                                                          gpt_header_t header,
                                                          bool *image_found,
                                                          uint64_t *image_offset,
@@ -76,9 +79,10 @@ int host_flash_atu_get_gpt_partition_offset_by_type_uuid(uuid_t type_uuid,
  * \param[out] image_offset       Offset of found images.
  * \param[out] image_size         Size of found images.
  *
- * \return 0 on success, non-zero on failure.
+ * \return                        TFM_PLAT_ERR_SUCCESS on success,
+ *                                platform error code on failure.
  */
-int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
+enum tfm_plat_err_t host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
                                                           gpt_header_t header,
                                                           bool *image_found,
                                                           uint64_t *image_offset,
@@ -94,9 +98,10 @@ int host_flash_atu_get_gpt_partition_offset_by_image_uuid(uuid_t image_uuid,
  *                         value of fip_offsets[x] is undefined.
  * \param[out] fip_offsets The FIP offsets.
  *
- * \return                 0 on success, non-zero on failure.
+ * \return                 TFM_PLAT_ERR_SUCCESS on success,
+ *                         platform error code on failure.
  */
-int host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t fip_offsets[2]);
+enum tfm_plat_err_t host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t fip_offsets[2]);
 
 /**
  * \brief                             Set up the input ATU slots so that an
@@ -122,9 +127,10 @@ int host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t fip_offsets[2]);
  *
  * \param[out] atu_slot_size          The size of the mapped image.
  *
- * \return                            0 on success, non-zero on failure.
+ * \return                            TFM_PLAT_ERR_SUCCESS on success,
+ *                                    platform error code on failure.
  */
-int host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
+enum tfm_plat_err_t host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
                                                     uintptr_t logical_address,
                                                     uuid_t image_uuid,
                                                     uint32_t *logical_address_offset,
@@ -145,9 +151,10 @@ int host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
  *                                    mapped at (offset from their expected
  *                                    logical addresses).
  *
- * \return                            0 on success, non-zero on failure.
+ * \return                            TFM_PLAT_ERR_SUCCESS on success,
+                                      platform error code on failure.
  */
-int host_flash_atu_setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2]);
+enum tfm_plat_err_t host_flash_atu_setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2]);
 
 /**
  * \brief                             Setup the input slots for a
@@ -165,9 +172,10 @@ int host_flash_atu_setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2
  *                                    mapped at (offset from their expected
  *                                    logical addresses).
  *
- * \return                            0 on success, non-zero on failure.
+ * \return                            TFM_PLAT_ERR_SUCCESS on success,
+ *                                    platform error code on failure.
  */
-int host_flash_atu_setup_image_input_slots_by_type_uuid(uuid_t type_uuid, uint32_t offsets[2]);
+enum tfm_plat_err_t host_flash_atu_setup_image_input_slots_by_type_uuid(uuid_t type_uuid, uint32_t offsets[2]);
 
 /**
  * \brief                                  Setup the ATU output slots for a
@@ -192,9 +200,10 @@ int host_flash_atu_setup_image_input_slots_by_type_uuid(uuid_t type_uuid, uint32
  * \param[in]  header_phy_addr             Physical address where the image
  *                                         header should be written.
  *
- * \return     0 on success, non-zero on failure.
+ * \return                                 TFM_PLAT_ERR_SUCCESS on success,
+ *                                         platform error code on failure.
  */
-int host_flash_atu_setup_image_output_slots(uint64_t image_load_phy_addr,
+enum tfm_plat_err_t host_flash_atu_setup_image_output_slots(uint64_t image_load_phy_addr,
                                             uint32_t image_load_logical_addr,
                                             uint32_t image_max_size,
                                             uint64_t header_phy_addr);
@@ -204,9 +213,10 @@ int host_flash_atu_setup_image_output_slots(uint64_t image_load_phy_addr,
  *                                    Should be called between mapping different
  *                                    images.
  *
- * \return                            0 on success, non-zero on failure.
+ * \return                            TFM_PLAT_ERR_SUCCESS on success,
+ *                                    platform error code on failure.
  */
-int host_flash_atu_free_input_image_regions(void);
+enum tfm_plat_err_t host_flash_atu_free_input_image_regions(void);
 
 #ifdef __cplusplus
 }

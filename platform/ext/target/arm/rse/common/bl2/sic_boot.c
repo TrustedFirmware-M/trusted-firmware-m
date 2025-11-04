@@ -156,10 +156,10 @@ enum sic_boot_err_t sic_boot_post_load(uint32_t image_id, uint32_t image_load_of
     uint64_t fip_offset;
     uuid_t image_uuid;
     uint32_t *image_offset;
-    int rc;
+    enum tfm_plat_err_t plat_err;
 
-    rc = host_flash_atu_get_fip_offsets(fip_found, fip_offsets);
-    if (rc) {
+    plat_err = host_flash_atu_get_fip_offsets(fip_found, fip_offsets);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return SIC_BOOT_INVALID_REGION;
     }
 
@@ -222,12 +222,12 @@ enum sic_boot_err_t sic_boot_post_load(uint32_t image_id, uint32_t image_load_of
         return SIC_BOOT_INVALID_REGION;
     }
 
-    rc = host_flash_atu_setup_image_input_slots_from_fip(fip_offset,
-                                                         xip_region_base_addr,
-                                                         image_uuid,
-                                                         image_offset,
-                                                         &xip_region_size);
-    if (rc) {
+    plat_err = host_flash_atu_setup_image_input_slots_from_fip(fip_offset,
+                                                               xip_region_base_addr,
+                                                               image_uuid,
+                                                               image_offset,
+                                                               &xip_region_size);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return SIC_BOOT_INVALID_REGION;
     }
 

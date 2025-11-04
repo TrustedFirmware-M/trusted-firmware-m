@@ -23,12 +23,13 @@
 
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 
-static int read_from_host_flash(uint64_t offset,
-                                uint32_t size,
-                                uint8_t *data_buf)
+static enum tfm_plat_err_t read_from_host_flash(uint64_t offset,
+                                                uint32_t size,
+                                                uint8_t *data_buf)
 {
     int rc;
     enum atu_error_t atu_err;
+    enum tfm_plat_err_t plat_err;
     uint32_t log_addr = HOST_FLASH0_TEMP_BASE_S;
     uint64_t physical_address = HOST_FLASH0_BASE + offset;
     const uint32_t data_width_byte[] = {
@@ -42,11 +43,11 @@ static int read_from_host_flash(uint64_t offset,
     uint8_t data_width = data_width_byte[DriverCapabilities.data_width];
 
     if (size > METADATA_REGION_SIZE) {
-        return -1;
+        return TFM_PLAT_ERR_FWU_METADATA_INVALID_SIZE;
     }
 
     if ((size / data_width) > (UINT32_MAX - offset)) {
-        return -1;
+        return TFM_PLAT_ERR_FWU_METADATA_INVALID_SIZE;
     }
 
     atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S, physical_address,
@@ -54,57 +55,58 @@ static int read_from_host_flash(uint64_t offset,
                                            METADATA_REGION_SIZE,
                                            0);
     if (atu_err != ATU_ERR_NONE) {
-        return -1;
+        return (enum tfm_plat_err_t)atu_err;
     }
 
     rc = FLASH_DEV_NAME.ReadData(log_addr - FLASH_BASE_ADDRESS, (void *)data_buf,
                                  size / data_width);
     if (rc != (size / data_width)) {
-        return -1;
+        plat_err = TFM_PLAT_ERR_FWU_METADATA_FLASH_READ_FAILED;
+        goto out_free_atu;
     }
 
+    plat_err = TFM_PLAT_ERR_SUCCESS;
+
+out_free_atu:
     atu_err = atu_rse_free_addr(&ATU_LIB_S, log_addr);
     if (atu_err != ATU_ERR_NONE) {
-        return -1;
+        return (enum tfm_plat_err_t)atu_err;
     }
 
-    return 0;
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
-int read_fwu_metadata(uint64_t offset, struct fwu_metadata_t *metadata)
+enum tfm_plat_err_t read_fwu_metadata(uint64_t offset, struct fwu_metadata_t *metadata)
 {
     if (metadata == NULL) {
-        return -1;
+        return TFM_PLAT_ERR_FWU_METADATA_INVALID_INPUT;
     }
 
-    if (read_from_host_flash(offset, sizeof(*metadata), (uint8_t *)metadata)){
-        return -1;
-    }
-
-    return 0;
+    return read_from_host_flash(offset, sizeof(*metadata), (uint8_t *)metadata);
 }
 
-int write_fwu_metadata(uint64_t offset,
-                         const struct fwu_metadata_t *metadata)
+enum tfm_plat_err_t write_fwu_metadata(uint64_t offset,
+                                       const struct fwu_metadata_t *metadata)
 {
 
     int rc;
     enum atu_error_t atu_err;
     uint32_t log_addr = HOST_FLASH0_TEMP_BASE_S;
     uint64_t physical_address = HOST_FLASH0_BASE + offset;
+    enum tfm_plat_err_t plat_err;
 
     if (metadata == NULL) {
-        return -1;
+        return TFM_PLAT_ERR_FWU_METADATA_INVALID_INPUT;
     }
 
     ARM_FLASH_INFO *DriverInfo = FLASH_DEV_NAME.GetInfo();
 
     if (DriverInfo->sector_size < (sizeof(*metadata))) {
-        return -1;
+        return TFM_PLAT_ERR_FWU_METADATA_INVALID_SIZE;
     }
 
     if ((offset + (sizeof(*metadata))) > HOST_FLASH0_SIZE) {
-        return -1;
+        return TFM_PLAT_ERR_FWU_METADATA_INVALID_SIZE;
     }
 
     atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S, physical_address,
@@ -112,40 +114,45 @@ int write_fwu_metadata(uint64_t offset,
                                            METADATA_REGION_SIZE,
                                            0);
     if (atu_err != ATU_ERR_NONE) {
-        return -1;
+        return (enum tfm_plat_err_t)atu_err;
     }
 
     rc = FLASH_DEV_NAME.EraseSector(log_addr - FLASH_BASE_ADDRESS);
     if (rc != ARM_DRIVER_OK) {
-        return -1;
+        plat_err = TFM_PLAT_ERR_FWU_METADATA_FLASH_ERASE_FAILED;
+        goto out_free_atu;
     }
 
     rc = FLASH_DEV_NAME.ProgramData(log_addr - FLASH_BASE_ADDRESS,
                                     (void *)metadata,
                                     sizeof(*metadata));
     if (rc < 0 || rc != sizeof(*metadata)) {
-        return -1;
+        plat_err = TFM_PLAT_ERR_FWU_METADATA_FLASH_WRITE_FAILED;
+        goto out_free_atu;
     }
 
+    plat_err = TFM_PLAT_ERR_SUCCESS;
+
+out_free_atu:
     atu_err = atu_rse_free_addr(&ATU_LIB_S, log_addr);
     if (atu_err != ATU_ERR_NONE) {
-        return -1;
+        return (enum tfm_plat_err_t)atu_err;
     }
 
-    return 0;
+    return plat_err;
 }
 
-int get_active_index(uint64_t md_offset,
-                     uint8_t *active_index,
-                     uint8_t *previous_active_index)
+enum tfm_plat_err_t get_active_index(uint64_t md_offset,
+                                     uint8_t *active_index,
+                                     uint8_t *previous_active_index)
 {
-    int rc;
+    enum tfm_plat_err_t plat_err;
     struct fwu_metadata_t metadata;
     uint32_t calc_crc;
 
-    rc = read_fwu_metadata(md_offset, &metadata);
-    if (rc != 0) {
-        return -1;
+    plat_err = read_fwu_metadata(md_offset, &metadata);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
     /* DEN0118 A3.2.4 Metadata Integrity check for version 2 */
@@ -153,13 +160,13 @@ int get_active_index(uint64_t md_offset,
                      metadata.metadata_size - sizeof(metadata.crc_32));
 
     if (metadata.crc_32 != calc_crc) {
-        return -1;
+        return TFM_PLAT_ERR_FWU_METADATA_CRC_MISMATCH;
     }
 
 
     if ((metadata.active_index >= FWU_BANK_COUNT) ||
         (metadata.previous_active_index >= FWU_BANK_COUNT)) {
-        return -1;
+        return TFM_PLAT_ERR_FWU_METADATA_INVALID_BANK_INDEX;
     }
 
     if (active_index != NULL) {
@@ -169,24 +176,24 @@ int get_active_index(uint64_t md_offset,
         *previous_active_index = metadata.previous_active_index;
     }
 
-    return 0;
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
-int get_active_image_uuid_by_type_uuid(uint64_t md_offset,
-                                       uuid_t type_uuid,
-                                       uuid_t *image_uuid) {
+enum tfm_plat_err_t get_active_image_uuid_by_type_uuid(uint64_t md_offset,
+                                                       uuid_t type_uuid,
+                                                       uuid_t *image_uuid) {
     struct fwu_metadata_t metadata;
-    int rc = 0;
     int idx = 0;
     uint32_t calc_crc;
+    enum tfm_plat_err_t plat_err;
 
     if (image_uuid == NULL) {
-        return -1;
+        return TFM_PLAT_ERR_FWU_METADATA_INVALID_INPUT;
     }
 
-    rc = read_fwu_metadata(md_offset, &metadata);
-    if (rc != 0) {
-        return -1;
+    plat_err = read_fwu_metadata(md_offset, &metadata);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
     /* DEN0118 A3.2.4 Metadata Integrity check for version 2 */
@@ -194,10 +201,9 @@ int get_active_image_uuid_by_type_uuid(uint64_t md_offset,
                      metadata.metadata_size - sizeof(metadata.crc_32));
 
     if (metadata.crc_32 != calc_crc) {
-        return -1;
+        return TFM_PLAT_ERR_FWU_METADATA_CRC_MISMATCH;
     }
 
-    rc = -1;
     /* Parse entries */
     for (idx = 0; idx < metadata.fw_desc.num_images; idx++) {
         /* Check type uuid */
@@ -206,10 +212,9 @@ int get_active_image_uuid_by_type_uuid(uint64_t md_offset,
             memcpy(image_uuid,
                    &metadata.fw_desc.img_entry[idx].img_bank_info[metadata.active_index].img_uuid,
                    sizeof(uuid_t));
-            rc = 0;
-            break;
+            return TFM_PLAT_ERR_SUCCESS;
         }
     }
 
-    return rc;
+    return TFM_PLAT_ERR_FWU_METADATA_IMAGE_NOT_FOUND;
 }

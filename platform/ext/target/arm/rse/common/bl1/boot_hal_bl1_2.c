@@ -279,13 +279,13 @@ int32_t boot_platform_init(void)
     }
 
 #ifdef RSE_USE_HOST_FLASH
-    result = host_flash_atu_setup_image_input_slots(UUID_RSE_FIRMWARE_BL2, image_offsets);
-    if (result != 0) {
+    plat_err = host_flash_atu_setup_image_input_slots(UUID_RSE_FIRMWARE_BL2, image_offsets);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         int32_t recovery_result = boot_initiate_recovery_mode(0);
         if (recovery_result != TFM_PLAT_ERR_BL1_2_PROVISIONING_NOT_REQUIRED) {
             return recovery_result;
         }
-        return result;
+        return plat_err;
     }
 #endif
 

@@ -113,7 +113,7 @@ int boot_platform_pre_load(uint32_t image_id)
         flash_map_slot_from_flash_area_id(FLASH_AREA_IMAGE_PRIMARY(image_id));
     struct flash_area *flash_area_secondary =
         flash_map_slot_from_flash_area_id(FLASH_AREA_IMAGE_SECONDARY(image_id));
-    int rc;
+    enum tfm_plat_err_t plat_err;
 
     if (flash_area_primary == NULL || flash_area_secondary == NULL) {
         return 1;
@@ -130,10 +130,13 @@ int boot_platform_pre_load(uint32_t image_id)
         header_phy_addr = SCP_BOOT_SRAM_BASE + SCP_BOOT_SRAM_SIZE
                                         - HOST_IMAGE_HEADER_SIZE;
         image_load_logical_addr = HOST_BOOT_IMAGE1_LOAD_BASE_S;
-        host_flash_atu_setup_image_output_slots(image_load_phy_addr,
-                                                image_load_logical_addr,
-                                                image_max_size,
-                                                header_phy_addr);
+        plat_err = host_flash_atu_setup_image_output_slots(image_load_phy_addr,
+                                                           image_load_logical_addr,
+                                                           image_max_size,
+                                                           header_phy_addr);
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return plat_err;
+        }
         break;
     case RSE_BL2_IMAGE_AP:
         uuid = UUID_RSE_FIRMWARE_AP_BL1;
@@ -143,10 +146,13 @@ int boot_platform_pre_load(uint32_t image_id)
         header_phy_addr = AP_BOOT_SRAM_BASE + AP_BOOT_SRAM_SIZE
                                         - HOST_IMAGE_HEADER_SIZE;
         image_load_logical_addr = HOST_BOOT_IMAGE0_LOAD_BASE_S;
-        host_flash_atu_setup_image_output_slots(image_load_phy_addr,
-                                                image_load_logical_addr,
-                                                image_max_size,
-                                                header_phy_addr);
+        plat_err = host_flash_atu_setup_image_output_slots(image_load_phy_addr,
+                                                           image_load_logical_addr,
+                                                           image_max_size,
+                                                           header_phy_addr);
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return plat_err;
+        }
         break;
     case RSE_BL2_IMAGE_NS:
         /*
@@ -174,9 +180,9 @@ int boot_platform_pre_load(uint32_t image_id)
         return 1;
     }
 
-    rc = host_flash_atu_setup_image_input_slots(uuid, offsets);
-    if (rc) {
-        return rc;
+    plat_err = host_flash_atu_setup_image_input_slots(uuid, offsets);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
     flash_area_primary->fa_off += offsets[0];
@@ -187,7 +193,8 @@ int boot_platform_pre_load(uint32_t image_id)
 
 int boot_platform_post_load(uint32_t image_id)
 {
-    int err;
+    enum atu_error_t atu_err;
+    enum tfm_plat_err_t plat_err;
 
 #ifdef RSE_XIP
     if (sic_boot_post_load(image_id, rsp.br_image_off) != SIC_BOOT_SUCCESS) {
@@ -211,14 +218,14 @@ int boot_platform_post_load(uint32_t image_id)
         }
         BOOT_LOG_INF("Got SCP BL1 started event");
 
-        err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE1_LOAD_BASE_S);
-        if (err != ATU_ERR_NONE) {
-            return err;
+        atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE1_LOAD_BASE_S);
+        if (atu_err != ATU_ERR_NONE) {
+            return atu_err;
         }
 
-        err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE1_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
-        if (err != ATU_ERR_NONE) {
-            return err;
+        atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE1_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
+        if (atu_err != ATU_ERR_NONE) {
+            return atu_err;
         }
 
     } else if (image_id == RSE_BL2_IMAGE_AP) {
@@ -228,20 +235,20 @@ int boot_platform_post_load(uint32_t image_id)
         /* Slot 0 is used in the SCP protocol */
         mhu_v2_x_channel_send(&MHU_RSE_TO_SCP_DEV, 0, 1);
 
-        err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE0_LOAD_BASE_S);
-        if (err != ATU_ERR_NONE) {
-            return err;
+        atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE0_LOAD_BASE_S);
+        if (atu_err != ATU_ERR_NONE) {
+            return atu_err;
         }
 
-        err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE0_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
-        if (err != ATU_ERR_NONE) {
-            return err;
+        atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE0_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
+        if (atu_err != ATU_ERR_NONE) {
+            return atu_err;
         }
     }
 
-    err = host_flash_atu_free_input_image_regions();
-    if (err) {
-        return err;
+    plat_err = host_flash_atu_free_input_image_regions();
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
     return 0;

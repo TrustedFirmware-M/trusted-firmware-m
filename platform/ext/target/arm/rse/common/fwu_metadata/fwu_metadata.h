@@ -19,6 +19,7 @@
 #include "uuid.h"
 #include "flash_layout.h"
 #include "fwu_config.h"
+#include "platform_error_codes.h"
 
 #define FWU_METADATA_VERSION      2
 #define FWU_FW_STORE_DESC_OFFSET  0x20
@@ -85,9 +86,10 @@ struct fwu_metadata_t {
  * \param[in]  offset                 The host flash offset of the metadata to
  *                                    be read.
  * \param[out] metadata               The FWU metadata read from given offset.
- * \return                            0 on success, non-zero on failure.
+ * \return                            TFM_PLAT_ERR_SUCCESS on success,
+ *                                    platform error code on failure.
  */
-int read_fwu_metadata(uint64_t offset, struct fwu_metadata_t *metadata);
+enum tfm_plat_err_t read_fwu_metadata(uint64_t offset, struct fwu_metadata_t *metadata);
 
 /**
  * \brief                             Write FWU metadata.
@@ -96,9 +98,10 @@ int read_fwu_metadata(uint64_t offset, struct fwu_metadata_t *metadata);
  *                                    be written.
  * \param[in] metadata                The FWU metadata to be written to given
  *                                    offset.
- * \return                            0 on success, non-zero on failure.
+ * \return                            TFM_PLAT_ERR_SUCCESS on success,
+ *                                    platform error code on failure.
  */
-int write_fwu_metadata(uint64_t offset, const struct fwu_metadata_t *metadata);
+enum tfm_plat_err_t write_fwu_metadata(uint64_t offset, const struct fwu_metadata_t *metadata);
 
 /**
  * \brief                             Get active index.
@@ -107,11 +110,12 @@ int write_fwu_metadata(uint64_t offset, const struct fwu_metadata_t *metadata);
  *                                    be parsed.
  * \param[out] active_index           Current active index, if not NULL.
  * \param[out] previous_active_index  Previous active index, if not NULL.
- * \return                            0 on success, non-zero on failure.
+ * \return                            TFM_PLAT_ERR_SUCCESS on success,
+ *                                    platform error code on failure.
  */
-int get_active_index(uint64_t md_offset,
-                     uint8_t *active_index,
-                     uint8_t *previous_active_index);
+enum tfm_plat_err_t get_active_index(uint64_t md_offset,
+                                     uint8_t *active_index,
+                                     uint8_t *previous_active_index);
 
 /**
  * \brief                             Retrieve the UUID of the active image from
@@ -122,10 +126,11 @@ int get_active_index(uint64_t md_offset,
  * \param[in]  type_uuid              UUID indicating the image type to query.
  * \param[out] image_uuid             UUID of the active image corresponding to
  *                                    the given type.
- * \return                            0 on success, non-zero on failure.
+ * \return                            TFM_PLAT_ERR_SUCCESS on success,
+ *                                    platform error code on failure.
  */
-int get_active_image_uuid_by_type_uuid(uint64_t md_offset,
-                                       uuid_t type_uuid,
-                                       uuid_t *image_uuid);
+enum tfm_plat_err_t get_active_image_uuid_by_type_uuid(uint64_t md_offset,
+                                                       uuid_t type_uuid,
+                                                       uuid_t *image_uuid);
 
 #endif /* __FWU_METADATA_H__ */
