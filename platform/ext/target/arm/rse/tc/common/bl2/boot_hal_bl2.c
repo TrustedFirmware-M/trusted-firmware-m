@@ -84,7 +84,9 @@ int32_t boot_platform_post_init(void)
 #endif /* PLATFORM_HAS_BOOT_DMA */
     int32_t result;
     enum atu_error_t atu_err;
+#ifdef RSE_XIP
     enum sic_error_t sic_err;
+#endif /* RSE_XIP */
 
     result = rse_sam_init(RSE_SAM_INIT_SETUP_FULL);
     if (result != 0) {
