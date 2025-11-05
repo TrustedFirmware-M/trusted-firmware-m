@@ -69,6 +69,8 @@ extern "C" {
 #define IAT_PLATFORM_CONFIG                (IAT_ARM_RANGE_BASE + 8)
 #define IAT_PLATFORM_HASH_ALGO_ID          (IAT_ARM_RANGE_BASE + 9)
 
+#define IAT_PLATFORM_CONFIG_DCU            1 /* Key for platform config map */
+
 #else
 #error "Attestation token profile is incorrect"
 #endif

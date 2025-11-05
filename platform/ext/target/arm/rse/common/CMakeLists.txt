@@ -600,6 +600,11 @@ target_link_libraries(platform_bl1_1
         bl1_1_shared_lib_interface
 )
 
+target_link_libraries(platform_s
+    PRIVATE
+        qcbor
+)
+
 if(RSE_SUPPORT_ROM_LIB_RELOCATION)
     set(ROM_LIB_RELOCATION_COMPILE_FLAGS
             # Enable position independent code

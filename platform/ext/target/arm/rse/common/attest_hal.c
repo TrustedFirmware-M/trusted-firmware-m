@@ -13,6 +13,15 @@
 #include "tfm_plat_boot_seed.h"
 #include "tfm_plat_device_id.h"
 #include "tfm_plat_otp.h"
+#include "lcm_drv.h"
+#include "device_definition.h"
+#include "tfm_attest_iat_defs.h"
+#include "qcbor/qcbor.h"
+
+struct arm_platform_config_map {
+    uint8_t dcu_key;
+    uint8_t dcu_bits[LCM_DCU_WIDTH_IN_BYTES];
+};
 
 static enum tfm_security_lifecycle_t map_otp_lcs_to_tfm_slc(enum plat_otp_lcs_t lcs)
 {
@@ -102,14 +111,44 @@ enum tfm_plat_err_t tfm_plat_get_cert_ref(uint32_t *size, uint8_t *buf)
 enum tfm_plat_err_t tfm_attest_hal_get_platform_config(uint32_t *size,
                                                        uint8_t  *buf)
 {
-    uint32_t dummy_plat_config = 0xDEADBEEF;
+    enum lcm_error_t lcm_err;
+    uint32_t dcu_state[LCM_DCU_WIDTH_IN_BYTES / sizeof(uint32_t)];
+    struct arm_platform_config_map platform_config;
+    struct q_useful_buf_c encoded_platform_config;
+    QCBOREncodeContext ctx;
+    QCBORError err;
 
-    if (*size < sizeof(dummy_plat_config)) {
+    if ((size == NULL) || (buf == NULL)) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
-     memcpy(buf, &dummy_plat_config, sizeof(dummy_plat_config));
-     *size = sizeof(dummy_plat_config);
+    UsefulBuf buffer = {
+        .ptr = buf,
+        .len = *size
+    };
+
+    lcm_err = lcm_dcu_get_enabled(&LCM_DEV_S, (uint8_t *)&dcu_state);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+    QCBOREncode_Init(&ctx, buffer);
+    QCBOREncode_OpenMap(&ctx);
+
+    platform_config.dcu_key = IAT_PLATFORM_CONFIG_DCU;
+    memcpy(platform_config.dcu_bits, dcu_state, sizeof(dcu_state));
+
+    QCBOREncode_AddBytesToMapN(&ctx, platform_config.dcu_key,
+                               (UsefulBufC){ platform_config.dcu_bits,
+                                             sizeof(platform_config.dcu_bits) });
+    QCBOREncode_CloseMap(&ctx);
+
+    err = QCBOREncode_Finish(&ctx, &encoded_platform_config);
+    if (err != QCBOR_SUCCESS) {
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
+
+    *size = (uint32_t)encoded_platform_config.len;
 
     return TFM_PLAT_ERR_SUCCESS;
 }
