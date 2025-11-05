@@ -35,7 +35,7 @@
 /* Include the spm utilities for the assert symbol */
 #include <assert.h>
 
-#include <soc/nrfx_coredep.h>
+#include <lib/nrfx_coredep.h>
 
 #ifdef __cplusplus
 extern "C" {

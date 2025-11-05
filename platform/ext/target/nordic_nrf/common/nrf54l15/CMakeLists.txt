@@ -28,7 +28,7 @@ endif()
 
 target_sources(platform_s
     PRIVATE
-        ${HAL_NORDIC_PATH}/nrfx/mdk/system_nrf54l.c
+        ${HAL_NORDIC_PATH}/nrfx/bsp/stable/mdk/system_nrf54l.c
         ../nrf54l/nrf54l_init.c
 )
 

@@ -54,7 +54,7 @@ target_include_directories(platform_ns
         .
         common
         ${HAL_NORDIC_PATH}/nrfx
-        ${HAL_NORDIC_PATH}/nrfx/mdk
+        ${HAL_NORDIC_PATH}/nrfx/bsp/stable
         ${HAL_NORDIC_PATH}/nrfx/drivers/include
         ${PLATFORM_DIR}/include
         ${PLATFORM_DIR}/ext/cmsis/Include

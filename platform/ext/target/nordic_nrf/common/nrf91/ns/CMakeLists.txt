@@ -21,7 +21,7 @@ target_include_directories(platform_ns
 
 target_sources(platform_ns
     PRIVATE
-        ${HAL_NORDIC_PATH}/nrfx/mdk/system_nrf91.c
+        ${HAL_NORDIC_PATH}/nrfx/bsp/stable/mdk/system_nrf91.c
 )
 
 target_compile_definitions(platform_ns

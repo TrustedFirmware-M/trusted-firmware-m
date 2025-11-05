@@ -20,7 +20,7 @@ target_include_directories(platform_s
 
 target_sources(platform_s
     PRIVATE
-        ${HAL_NORDIC_PATH}/nrfx/mdk/system_nrf7120_enga.c
+        ${HAL_NORDIC_PATH}/nrfx/bsp/stable/mdk/system_nrf7120_enga.c
         ./nrf71_init.c
 )
 

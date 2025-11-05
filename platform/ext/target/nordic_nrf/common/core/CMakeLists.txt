@@ -82,7 +82,7 @@ target_include_directories(platform_s
         .
         native_drivers
         ${HAL_NORDIC_PATH}/nrfx
-        ${HAL_NORDIC_PATH}/nrfx/mdk
+        ${HAL_NORDIC_PATH}/nrfx/bsp/stable
         ${HAL_NORDIC_PATH}/nrfx/drivers/include
         common
         ${PLATFORM_DIR}/..
@@ -192,7 +192,7 @@ if(BL2)
         PUBLIC
             .
             ${HAL_NORDIC_PATH}/nrfx
-            ${HAL_NORDIC_PATH}/nrfx/mdk
+            ${HAL_NORDIC_PATH}/nrfx/bsp/stable
             ${HAL_NORDIC_PATH}/nrfx/drivers/include
             common
         PRIVATE
