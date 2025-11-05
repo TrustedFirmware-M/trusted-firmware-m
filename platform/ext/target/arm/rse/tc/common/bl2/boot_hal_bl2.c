@@ -84,6 +84,7 @@ int32_t boot_platform_post_init(void)
 #endif /* PLATFORM_HAS_BOOT_DMA */
     int32_t result;
     enum atu_error_t atu_err;
+    enum sic_error_t sic_err;
 
     result = rse_sam_init(RSE_SAM_INIT_SETUP_FULL);
     if (result != 0) {
@@ -123,9 +124,9 @@ int32_t boot_platform_post_init(void)
 #endif /* PLATFORM_HAS_BOOT_DMA */
 
 #ifdef RSE_XIP
-    result = sic_boot_init();
-    if (result) {
-        return result;
+    sic_err = sic_boot_init();
+    if (sic_err != SIC_ERROR_NONE) {
+        return sic_err;
     }
 #endif /* RSE_XIP */
 
@@ -255,18 +256,18 @@ int boot_platform_pre_load(uint32_t image_id)
     return 0;
 }
 
-static int tc_scp_release_reset(void)
+static enum tfm_plat_err_t tc_scp_release_reset(void)
 {
     struct rse_sysctrl_t *sysctrl;
-    int err;
+    enum atu_error_t atu_err;
     uint32_t log_addr;
     uint32_t size;
 
-    err = atu_rse_map_addr_automatically(&ATU_LIB_S, SCP_SYSTEM_CONTROL_REGS_PHYS_BASE,
-                                         SCP_SYSTEM_CONTROL_REGS_SIZE,
-                                         ATU_ENCODE_ATTRIBUTES_SECURE_PAS, &log_addr, &size);
-    if (err != ATU_ERR_NONE) {
-        return err;
+    atu_err = atu_rse_map_addr_automatically(&ATU_LIB_S, SCP_SYSTEM_CONTROL_REGS_PHYS_BASE,
+                                             SCP_SYSTEM_CONTROL_REGS_SIZE,
+                                             ATU_ENCODE_ATTRIBUTES_SECURE_PAS, &log_addr, &size);
+    if (atu_err != ATU_ERR_NONE) {
+        return (enum tfm_plat_err_t)atu_err;
     }
 
     /* SCP SSE-310 System Control Block same as RSE System Control
@@ -275,18 +276,19 @@ static int tc_scp_release_reset(void)
         SCP_SYSTEM_CONTROL_BLOCK_OFFSET);
     sysctrl->cpuwait = 0;
 
-    err = atu_rse_free_addr(&ATU_LIB_S, log_addr);
-    if (err != ATU_ERR_NONE) {
-        return err;
+    atu_err = atu_rse_free_addr(&ATU_LIB_S, log_addr);
+    if (atu_err != ATU_ERR_NONE) {
+        return (enum tfm_plat_err_t)atu_err;
     }
 
-    return 0;
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 int boot_platform_post_load(uint32_t image_id)
 {
-    int err;
     enum tfm_plat_err_t plat_err;
+    enum atu_error_t atu_err;
+    enum mhu_error_t mhu_err;
 
 #ifdef RSE_XIP
     if (sic_boot_post_load(image_id, rsp.br_image_off) != SIC_BOOT_SUCCESS) {
@@ -298,46 +300,48 @@ int boot_platform_post_load(uint32_t image_id)
     if (image_id == RSE_BL2_IMAGE_SCP) {
         memset((void *)HOST_BOOT_IMAGE1_LOAD_BASE_S, 0, HOST_IMAGE_HEADER_SIZE);
 
-        err = tc_scp_release_reset();
-        if (err) {
-            return err;
+        plat_err = tc_scp_release_reset();
+        if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            return plat_err;
         }
 
         /* Wait for SCP to finish its startup */
         BOOT_LOG_INF("Waiting for SCP BL1 started event");
-        err = wait_for_signal_and_clear(&MHU_SCP_TO_RSE_DEV, MHU_PBX_DBCH_FLAG_SCP_COMMS);
-        if (err) {
+        mhu_err = wait_for_signal_and_clear(&MHU_SCP_TO_RSE_DEV, MHU_PBX_DBCH_FLAG_SCP_COMMS);
+        if (mhu_err != MHU_ERR_NONE) {
             return TFM_PLAT_ERR_POST_LOAD_IMG_BY_BL2_FAIL;
         }
         BOOT_LOG_INF("Got SCP BL1 started event");
 
-        err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE1_LOAD_BASE_S);
-        if (err != ATU_ERR_NONE) {
-            return err;
+        atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE1_LOAD_BASE_S);
+        if (atu_err != ATU_ERR_NONE) {
+            return atu_err;
         }
 
-        err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE1_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
-        if (err != ATU_ERR_NONE) {
-            return err;
+        atu_err =
+            atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE1_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
+        if (atu_err != ATU_ERR_NONE) {
+            return atu_err;
         }
 
     } else if (image_id == RSE_BL2_IMAGE_AP) {
         memset((void *)HOST_BOOT_IMAGE0_LOAD_BASE_S, 0, HOST_IMAGE_HEADER_SIZE);
         BOOT_LOG_INF("Telling SCP to start AP cores");
-        err = signal_and_wait_for_clear(&MHU_RSE_TO_SCP_DEV, MHU_PBX_DBCH_FLAG_SCP_COMMS);
-        if (err) {
+        mhu_err = signal_and_wait_for_clear(&MHU_RSE_TO_SCP_DEV, MHU_PBX_DBCH_FLAG_SCP_COMMS);
+        if (mhu_err != MHU_ERR_NONE) {
             return TFM_PLAT_ERR_POST_LOAD_IMG_BY_BL2_FAIL;
         }
         BOOT_LOG_INF("Sent the signal to SCP");
 
-        err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE0_LOAD_BASE_S);
-        if (err != ATU_ERR_NONE) {
-            return err;
+        atu_err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE0_LOAD_BASE_S);
+        if (atu_err != ATU_ERR_NONE) {
+            return atu_err;
         }
 
-        err = atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE0_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
-        if (err != ATU_ERR_NONE) {
-            return err;
+        atu_err =
+            atu_rse_free_addr(&ATU_LIB_S, HOST_BOOT_IMAGE0_LOAD_BASE_S + HOST_IMAGE_HEADER_SIZE);
+        if (atu_err != ATU_ERR_NONE) {
+            return atu_err;
         }
     }
 #else
