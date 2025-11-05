@@ -14,6 +14,7 @@ extern "C" {
 /**
  * SCMI protocol IDs
  */
+#define SCMI_PROTOCOL_ID_POWER_DOMAIN    UINT8_C(0x11)
 #define SCMI_PROTOCOL_ID_SYS_POWER_STATE UINT8_C(0x12)
 
 /**
