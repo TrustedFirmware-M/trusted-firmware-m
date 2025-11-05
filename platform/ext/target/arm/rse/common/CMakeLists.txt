@@ -218,6 +218,8 @@ target_include_directories(platform_s
         soft_crc
         ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/include
         ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/default_config
+        ${PLATFORM_DIR}/ext/common/scmi
+        ${PLATFORM_DIR}/ext/common/scmi/protocols
 )
 
 target_sources(platform_s
@@ -286,6 +288,8 @@ target_sources(platform_s
         ./platform_shared_measurement_data.c
         $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_get_rse_id_from_otp.c>
         ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog/arm_watchdog_drv.c
+        $<$<BOOL:${TFM_PARTITION_SCMI_COMMS}>:${PLATFORM_DIR}/ext/common/scmi/protocols/scmi_system_power.c>
+        $<$<BOOL:${TFM_PARTITION_SCMI_COMMS}>:${PLATFORM_DIR}/ext/common/scmi/scmi_common.c>
 )
 
 target_sources(tfm_sprt
@@ -320,6 +324,8 @@ if (TFM_PARTITION_SCMI_COMMS)
     target_include_directories(scmi_hal
         INTERFACE
             scmi
+            ${PLATFORM_DIR}/ext/common/scmi
+            ${PLATFORM_DIR}/ext/common/scmi/protocols
     )
 
     target_sources(scmi_hal
