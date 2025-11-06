@@ -26,7 +26,7 @@ __WEAK bool log_error_permissions_check(uint32_t err, bool is_fatal)
         }                                       \
     } while (0);
 
-__WEAK void log_error(char *file, uint32_t line, uint32_t err, void *sp, bool is_fatal)
+__WEAK void log_error(const char *file, uint32_t line, uint32_t err, void *sp, bool is_fatal)
 {
     if (stdio_is_initialized()) {
         if (is_fatal) {
