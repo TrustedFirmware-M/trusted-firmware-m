@@ -93,7 +93,48 @@ enum rse_sam_init_setup_t {
     RSE_SAM_INIT_SETUP_FULL,
 };
 
+/**
+ * @brief Initialize the SAM for RSE.
+ *
+ * This function sets up the SAM hardware and its event responses according
+ * to the provided setup mode. It also registers SAM event handlers and
+ * enables SAM interrupts to handle critical and security faults.
+ *
+ * The setup mode determines whether only event handlers are registered or
+ * whether the full SAM response configuration is also performed:
+ * - RSE_SAM_INIT_SETUP_HANDLERS_ONLY:
+ *   Skip SAM response configuration. Only register handlers.
+ *   Used when the SAM responses are expected to be pre-provisioned by ADA DMA
+ *   (e.g. in SE state during secure provisioning) or by BL1-1 in non-SE states.
+ * - RSE_SAM_INIT_SETUP_FULL:
+ *   Configure all SAM responses in software and send a one-time manual
+ *   DMA ACK to unblock the SAM FSM. This is required in CM/DM states where
+ *   ADA DMA does not provision the SAM.
+ *
+ * Additionally, if a watchdog event is pending (indicating an NMI handler
+ * failure), the attack tracking counter is incremented manually, and all
+ * pending events are cleared to ensure a clean state.
+ *
+ * @param[in] setup  Specifies the initialization mode:
+ *                   - RSE_SAM_INIT_SETUP_HANDLERS_ONLY
+ *                   - RSE_SAM_INIT_SETUP_FULL
+ *
+ * @return SAM_ERROR_NONE on success.
+ *         A specific `sam_error_t` code if SAM initialization, configuration,
+ *         or handler registration fails.
+ */
 uint32_t rse_sam_init(enum rse_sam_init_setup_t setup);
+
+/**
+ * @brief Finalize the SAM setup for the current boot stage.
+ *
+ * This function disables the SAM-related interrupt lines but keeps
+ * SAM event responses active. This allows SAM events with NMI responses
+ * to continue functioning during transitions between boot stages.
+ *
+ * Pending interrupt-driven events will remain queued and will be
+ * handled when `rse_sam_init()` re-enables the SAM interrupts.
+ */
 void rse_sam_finish(void);
 
 #ifdef __cplusplus
