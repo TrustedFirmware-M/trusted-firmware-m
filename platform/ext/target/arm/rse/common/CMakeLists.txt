@@ -316,6 +316,13 @@ target_compile_options(platform_s
         ${COMPILER_CMSE_FLAG}
 )
 
+if(TEST_S_SCMI_COMMS)
+    target_link_libraries(platform_s
+        INTERFACE
+            tfm_extras_test_secure_headers
+    )
+endif()
+
 #====================== SCMI hardware abstraction layer =======================#
 
 if (TFM_PARTITION_SCMI_COMMS)
@@ -326,6 +333,7 @@ if (TFM_PARTITION_SCMI_COMMS)
             scmi
             ${PLATFORM_DIR}/ext/common/scmi
             ${PLATFORM_DIR}/ext/common/scmi/protocols
+            ${PLATFORM_DIR}/ext/target/arm/rse/tc/common
     )
 
     target_sources(scmi_hal

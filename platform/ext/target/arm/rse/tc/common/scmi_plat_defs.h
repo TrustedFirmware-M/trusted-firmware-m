@@ -4,27 +4,18 @@
  *
  */
 
-#ifndef __SCMI_HAL_DEFS_H__
-#define __SCMI_HAL_DEFS_H__
+#ifndef __SCMI_PLAT_DEFS_H__
+#define __SCMI_PLAT_DEFS_H__
 
 #include "platform_base_address.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#ifndef SCP_SHARED_MEMORY_BASE
 /* Base address and size of shared memory with SCP for SCMI transport */
 #define SCP_SHARED_MEMORY_BASE HOST_FLASH0_TEMP_BASE_S
-
-#define SCP_SHARED_MEMORY_STD_SIZE (128U)
+#define SCP_SHARED_MEMORY_SIZE (128U)
 
 /* The shared memory is split in 2 halves to allow for Agent->Platform and Platform->Agent */
-#define SCP_SHARED_MEMORY_SIZE (SCP_SHARED_MEMORY_STD_SIZE / 2)
-
-#define SCP_SHARED_MEMORY_RECEIVER_BASE (SCP_SHARED_MEMORY_BASE + SCP_SHARED_MEMORY_SIZE)
-
-#ifdef __cplusplus
-}
+#define SCP_SHARED_MEMORY_RECEIVER_BASE (SCP_SHARED_MEMORY_BASE + (SCP_SHARED_MEMORY_SIZE / 2))
 #endif
 
-#endif /* __SCMI_HAL_DEFS_H__ */
+#endif /* __SCMI_PLAT_DEFS_H__ */

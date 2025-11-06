@@ -10,6 +10,10 @@
 #include "device_definition.h"
 #include "host_base_address.h"
 
+#if !defined(TEST_S_SCMI_COMMS)
+#include "scmi_plat_defs.h"
+#endif
+
 /* TODO: Make these configurable */
 #define SCP_MHU_DOORBELL_CHANNEL 2U
 

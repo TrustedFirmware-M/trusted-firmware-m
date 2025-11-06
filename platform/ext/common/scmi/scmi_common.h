@@ -7,6 +7,12 @@
 #ifndef __SCMI_COMMON_H__
 #define __SCMI_COMMON_H__
 
+#if defined(TEST_S_SCMI_COMMS)
+#include "scmi_hal_defs.h"
+#else
+#include "scmi_plat_defs.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,12 +49,29 @@ extern "C" {
     (UINT32_C(0x3FF) << SCMI_MESSAGE_HEADER_TOKEN_POS)
 
 /**
+ * The offset of 'message header' for the SCMI shared memory area layout, fixed
+ * by the specification (SCMIv3.0, 5.1.2).
+ */
+#define OFFSET_SCMI_TRANSPORT_PROTOCOL 24
+
+/**
+ * TRANSPORT_MESSAGE_MAX_LENGTH is made of:
+ * - Message header,  4 bytes
+ * - Message payload, N bytes
+ */
+#define TRANSPORT_MESSAGE_MAX_LENGTH \
+    ((SCP_SHARED_MEMORY_SIZE / 2) - OFFSET_SCMI_TRANSPORT_PROTOCOL)
+
+#define TRANSPORT_MESSAGE_PAYLOAD_MAX_LENGTH \
+    ((TRANSPORT_MESSAGE_MAX_LENGTH - sizeof(uint32_t)) / sizeof(uint32_t))
+
+/**
  * \brief Structure representing an SCMI message.
  */
 struct scmi_message_t {
-    uint32_t header;        /*!< Message Header */
-    uint32_t payload[24];   /*!< Message Payload */
-    uint32_t payload_len;   /*!< Payload length */
+    uint32_t header;                                          /*!< Message Header */
+    uint32_t payload[TRANSPORT_MESSAGE_PAYLOAD_MAX_LENGTH];   /*!< Message Payload */
+    uint32_t payload_len;                                     /*!< Payload length */
 };
 
 /*
@@ -58,6 +81,7 @@ struct scmi_message_t {
  * messages are sent to the platform using a 32-bit message header,
  * which is described in Table 2 (v3.0 of the spec).
  */
+
 uint32_t scmi_message_header(
     uint8_t message_id,     /*!< Message identifier */
     uint8_t message_type,   /*!< Message type */
