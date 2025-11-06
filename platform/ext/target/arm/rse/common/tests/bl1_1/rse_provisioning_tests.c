@@ -66,7 +66,7 @@ validate_and_unpack_blob(const struct rse_provisioning_message_blob_t *blob, siz
                          setup_aes_key_func_t setup_aes_key, get_rotpk_func_t get_rotpk);
 
 enum tfm_plat_err_t get_asn1_from_raw_ec(const uint8_t *x, size_t x_size, const uint8_t *y,
-                                         size_t y_size, cc3xx_ec_curve_id_t curve_id,
+                                         size_t y_size, enum tfm_bl1_ecdsa_curve_t curve_id,
                                          uint8_t *asn1_key, size_t asn1_key_size, size_t *len);
 
 struct rse_provisioning_message_blob_with_data_t {
