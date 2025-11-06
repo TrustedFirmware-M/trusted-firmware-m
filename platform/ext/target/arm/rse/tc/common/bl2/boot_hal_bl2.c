@@ -160,6 +160,11 @@ int32_t boot_platform_post_init(void)
     }
 #endif /* RSE_BL2_ENABLE_IMAGE_STAGING */
 
+
+/* FixMe: This breaks the attestation tests, disable the addition of CM/DM RoTPKs
+ * to the shared area until that is fixed
+ */
+#if 0
     /* Add CM ROTPK */
     result = add_rotpk_hash_to_shared_area(true);
     if (result) {
@@ -171,7 +176,7 @@ int32_t boot_platform_post_init(void)
     if (result) {
         return result;
     }
-
+#endif
     return 0;
 }
 
