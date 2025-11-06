@@ -27,7 +27,7 @@ void SAM_Critical_Sev_Fault_S_Handler(void)
     sam_handle_all_events(&SAM_DEV_S);
 }
 
-void SAM_Sec_Fault_S_Handler(void)
+void SAM_Sev_Fault_S_Handler(void)
 {
     sam_handle_all_events(&SAM_DEV_S);
 }

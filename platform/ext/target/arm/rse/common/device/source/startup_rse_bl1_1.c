@@ -126,7 +126,7 @@ extern const VECTOR_TABLE_Type __VECTOR_TABLE[];
 
   /* External interrupts */
   SAM_Critical_Sev_Fault_S_Handler,  /*  32: SAM Critical Severity Fault (Secure) Handler */
-  SAM_Sec_Fault_S_Handler,           /*  33: SAM Security Fault (Secure) Handler */
+  SAM_Sev_Fault_S_Handler,           /*  33: SAM Severe Fault (Secure) Handler */
   invalid_irq_handler,               /*  34: GPIO Combined (Secure) Handler */
   invalid_irq_handler,               /*  35: Secure Debug Channel Handler */
   invalid_irq_handler,               /*  36: FPU Exception Handler */
