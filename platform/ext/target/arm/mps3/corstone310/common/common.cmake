@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -138,8 +138,6 @@ target_link_options(platform_s
 target_link_libraries(platform_s
     PUBLIC
         device_definition
-    PRIVATE
-        tfm_sprt # For tfm_strnlen in attest HAL
 )
 
 #========================= Platform BL2 =======================================#

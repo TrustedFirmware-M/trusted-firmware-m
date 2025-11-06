@@ -22,10 +22,7 @@
 #include "t_cose/t_cose_common.h"
 #include "tfm_crypto_defs.h"
 #include "tfm_log.h"
-
-#if ATTEST_TOKEN_PROFILE_ARM_CCA
-#include "tfm_strnlen.h"
-#endif
+#include "tfm_sprt.h"
 
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(*(array)))
 
@@ -424,7 +421,7 @@ attest_add_hash_algo_claim(struct attest_token_encode_ctx *token_ctx)
         return PSA_ATTEST_ERR_GENERAL;
     }
 
-    if ((tfm_strnlen(buf, PLATFORM_HASH_ALGO_ID_MAX_SIZE) != size) || (size == 0)) {
+    if ((strnlen(buf, PLATFORM_HASH_ALGO_ID_MAX_SIZE) != size) || (size == 0)) {
         return PSA_ATTEST_ERR_GENERAL;
     }
 

@@ -12,7 +12,7 @@
 #include "tfm_plat_boot_seed.h"
 #include "tfm_plat_device_id.h"
 #include "tfm_plat_otp.h"
-#include "tfm_strnlen.h"
+#include "tfm_sprt.h"
 
 static enum tfm_security_lifecycle_t map_otp_lcs_to_tfm_slc(enum plat_otp_lcs_t lcs)
 {
@@ -64,7 +64,7 @@ tfm_attest_hal_get_verification_service(uint32_t *size, uint8_t *buf)
     /* Actually copied data is always the smaller */
     copy_size = *size < otp_size ? *size : otp_size;
     /* String content */
-    *size = tfm_strnlen((char*)buf, copy_size);
+    *size = strnlen((char*)buf, copy_size);
 
     return TFM_PLAT_ERR_SUCCESS;
 }
@@ -141,7 +141,7 @@ enum tfm_plat_err_t tfm_plat_get_cert_ref(uint32_t *size, uint8_t *buf)
     /* Actually copied data is always the smaller */
     copy_size = *size < otp_size ? *size : otp_size;
     /* String content */
-    *size = tfm_strnlen((char*)buf, copy_size);
+    *size = strnlen((char*)buf, copy_size);
 
     return TFM_PLAT_ERR_SUCCESS;
 }
