@@ -11,6 +11,7 @@
 #include "device_definition.h"
 #include "rse_attack_tracking_counter.h"
 #include "dma350_ch_drv.h"
+#include "sam_reg_map.h"
 #include "tfm_utils.h"
 
 #define ADA_DMA_TRIGGER_IN_4    0x4UL
@@ -55,23 +56,11 @@ static uintptr_t get_ecc_address(const struct sam_dev_t *dev,
     return 0;
 }
 
-/* On the fast-path attack tracking counter increment, first set the counter to
- * the incremented value. Once that is done we don't have any performance
- * constraints any more, so we can leisurely handle the outstanding SAM events
- * (which currently all don't have handlers, so just clear the events) and then
- * reset the system.
- *
- * This path deliberately minimizes latency between the event being triggered
- * and the attack counter being incremented, since it minimizes the chance that
- * an attacker can reset the system (by cutting the external power supply, since
- * the SAM events are preserved over a cold reset) and in doing so avoid
- * triggering the attack tracking counter increment.
- */
-void __NO_RETURN sam_handle_fast_attack_counter_increment(void)
+void __NO_RETURN sam_handle_nmi_event(void)
 {
     increment_attack_tracking_counter_major();
 
-    sam_handle_all_events(&SAM_DEV_S);
+    sam_clear_all_events(&SAM_DEV_S);
 
     tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
     __builtin_unreachable();

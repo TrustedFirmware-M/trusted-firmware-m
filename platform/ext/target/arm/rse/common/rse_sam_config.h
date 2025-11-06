@@ -72,7 +72,18 @@ enum rse_sam_event_id_t {
     RSE_SAM_EVENT_COUNT = 64
 };
 
-void sam_handle_fast_attack_counter_increment(void);
+/**
+ * @brief On the fast-path attack tracking counter increment, first set the counter to
+ * the incremented value. Once that is done we don't have any performance
+ * constraints any more, so we can leisurely acknowledge the outstanding SAM events
+ *
+ * This path deliberately minimizes latency between the event being triggered
+ * and the attack counter being incremented, since it minimizes the chance that
+ * an attacker can reset the system (by cutting the external power supply, since
+ * the SAM events are preserved over a cold reset) and in doing so avoid
+ * triggering the attack tracking counter increment.
+ */
+void sam_handle_nmi_event(void);
 
 /**
  * @brief Handle SAM critical severity event.
