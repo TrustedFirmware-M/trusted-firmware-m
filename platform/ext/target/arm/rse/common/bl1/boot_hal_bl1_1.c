@@ -218,6 +218,10 @@ int32_t boot_platform_init(void)
     }
 #endif /* CRYPTO_HW_ACCELERATOR */
 
+    /* Clear boot data area */
+    memset((void *)tfm_plat_get_shared_measurement_data_base(), 0,
+           tfm_plat_get_shared_measurement_data_size());
+
     return 0;
 }
 
