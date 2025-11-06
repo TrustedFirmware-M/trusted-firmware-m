@@ -22,7 +22,7 @@ void NMI_Handler(void)
     sam_handle_fast_attack_counter_increment();
 }
 
-void SAM_Critical_Sec_Fault_S_Handler(void)
+void SAM_Critical_Sev_Fault_S_Handler(void)
 {
     sam_handle_all_events(&SAM_DEV_S);
 }

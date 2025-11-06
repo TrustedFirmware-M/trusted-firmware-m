@@ -107,7 +107,7 @@ DEFAULT_IRQ_HANDLER(TIMER3_AON_Handler)
 DEFAULT_IRQ_HANDLER(CPU0_CTI_0_Handler)
 DEFAULT_IRQ_HANDLER(CPU0_CTI_1_Handler)
 
-DEFAULT_IRQ_HANDLER(SAM_Critical_Sec_Fault_S_Handler)
+DEFAULT_IRQ_HANDLER(SAM_Critical_Sev_Fault_S_Handler)
 DEFAULT_IRQ_HANDLER(SAM_Sec_Fault_S_Handler)
 DEFAULT_IRQ_HANDLER(GPIO_Combined_S_Handler)
 DEFAULT_IRQ_HANDLER(SDC_Handler)
@@ -206,7 +206,7 @@ const VECTOR_TABLE_Type __VECTOR_TABLE[] __VECTOR_TABLE_ATTRIBUTE = {
     0,                                 /*  31: Reserved */
 
     /* External interrupts */
-    SAM_Critical_Sec_Fault_S_Handler,  /*  32: SAM Critical Security Fault (Secure) Handler */
+    SAM_Critical_Sev_Fault_S_Handler,  /*  32: SAM Critical Severity Fault (Secure) Handler */
     SAM_Sec_Fault_S_Handler,           /*  33: SAM Security Fault (Secure) Handler */
     GPIO_Combined_S_Handler,           /*  34: GPIO Combined (Secure) Handler */
     SDC_Handler,                       /*  35: Secure Debug Channel Handler */

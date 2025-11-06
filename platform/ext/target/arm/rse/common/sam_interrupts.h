@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 void NMI_Handler(void);
-void SAM_Critical_Sec_Fault_S_Handler(void);
+void SAM_Critical_Sev_Fault_S_Handler(void);
 void SAM_Sec_Fault_S_Handler(void);
 void SRAM_TRAM_ECC_Err_S_Handler(void);
 void SRAM_ECC_Partial_Write_S_Handler(void);
