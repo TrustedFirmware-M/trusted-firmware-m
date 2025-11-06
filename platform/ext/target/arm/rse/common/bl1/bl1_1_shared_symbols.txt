@@ -89,6 +89,7 @@ rse_setup_runtime_non_secure_image_encryption_key
 rse_sam_finish
 sam_handle_all_events
 sam_handle_fast_attack_counter_increment
+sam_handle_critical_serverity_event
 stdio_init
 stdio_output_string
 stdio_uninit

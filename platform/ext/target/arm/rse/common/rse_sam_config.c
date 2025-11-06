@@ -77,6 +77,14 @@ void __NO_RETURN sam_handle_fast_attack_counter_increment(void)
     __builtin_unreachable();
 }
 
+void __NO_RETURN sam_handle_critical_serverity_event(void)
+{
+    sam_handle_all_events(&SAM_DEV_S);
+
+    tfm_hal_system_reset(TFM_PLAT_SWSYN_DEFAULT);
+    __builtin_unreachable();
+}
+
 static void read_and_write_address(enum sam_event_id_t event_id)
 {
     volatile uint64_t *vm_ptr;

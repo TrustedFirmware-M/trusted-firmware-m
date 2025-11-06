@@ -24,7 +24,7 @@ void NMI_Handler(void)
 
 void SAM_Critical_Sev_Fault_S_Handler(void)
 {
-    sam_handle_all_events(&SAM_DEV_S);
+    sam_handle_critical_serverity_event();
 }
 
 void SAM_Sev_Fault_S_Handler(void)

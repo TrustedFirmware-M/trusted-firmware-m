@@ -75,6 +75,13 @@ enum rse_sam_event_id_t {
 void sam_handle_fast_attack_counter_increment(void);
 
 /**
+ * @brief Handle SAM critical severity event.
+ *
+ * Handle pending SAM events and reset the system.
+ */
+void sam_handle_critical_serverity_event(void);
+
+/**
  * @brief Select how SAM init should run.
  *
  * - RSE_SAM_INIT_SETUP_HANDLERS_ONLY:
