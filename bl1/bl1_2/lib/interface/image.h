@@ -140,6 +140,20 @@ int bl1_2_image_flash_bind_write(bl1_2_image_flash_bind_ctx_t *w,
                                  const uint8_t *buf,
                                  size_t len);
 
+/**
+ * @brief Copies the header of the specified image into the provided image structure.
+ *
+ * This function retrieves the header information for the image identified by
+ * `image_id` and copies it into the memory pointed to by `image`. The function
+ * returns a status code indicating the success or failure of the operation.
+ *
+ * @param[in]  image_id  Identifier of the image whose header is to be copied.
+ * @param[out] image     Pointer to a bl1_2_image_t structure where the image header will be stored.
+ *
+ * @return fih_ret       Status code indicating the result of the copy operation.
+ */
+fih_ret bl1_2_copy_image_header(uint32_t image_id, struct bl1_2_image_t *image);
+
 #endif /* TFM_BL1_2_IMAGE_ENCRYPTION */
 #endif /* TFM_BL1_2_IMAGE_BINDING */
 

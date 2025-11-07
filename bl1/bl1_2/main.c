@@ -396,14 +396,13 @@ fih_ret copy_and_decrypt_image(uint32_t image_id, struct bl1_2_image_t *image)
 
     FIH_RET(FIH_SUCCESS);
 }
+#endif /* TFM_BL1_2_IMAGE_ENCRYPTION */
 
-#else /* TFM_BL1_2_IMAGE_ENCRYPTION */
-
+#if defined(TFM_BL1_2_IMAGE_BINDING) || !defined(TFM_BL1_2_IMAGE_ENCRYPTION)
 fih_ret copy_image(uint32_t image_id, struct bl1_2_image_t *image)
 {
-    struct bl1_2_image_t *image_to_copy;
-
 #ifdef TFM_BL1_MEMORY_MAPPED_FLASH
+    struct bl1_2_image_t *image_to_copy;
     image_to_copy = (struct bl1_2_image_t *)(FLASH_BL1_BASE_ADDRESS +
                        bl1_image_get_flash_offset(image_id));
 
@@ -414,9 +413,10 @@ fih_ret copy_image(uint32_t image_id, struct bl1_2_image_t *image)
 
     FIH_RET(FIH_SUCCESS);
 }
+#endif /* defined (TFM_BL1_2_IMAGE_BINDING) || !defined (TFM_BL1_2_IMAGE_ENCRYPTION)  */
 
-#endif /* TFM_BL1_2_IMAGE_ENCRYPTION */
-
+#if !defined(TFM_BL1_2_IMAGE_BINDING) && !defined(TFM_BL1_2_IMAGE_ENCRYPTION)
+/* Binding - OFF,  Encryption - OFF */
 static fih_ret bl1_2_validate_image(uint32_t image_id)
 {
     FIH_DECLARE(fih_rc, FIH_FAILURE);
@@ -424,25 +424,64 @@ static fih_ret bl1_2_validate_image(uint32_t image_id)
         (struct bl1_2_image_t *)(BL2_CODE_START -
                                  offsetof(struct bl1_2_image_t, protected_values.encrypted_data.data));
 
-#ifdef TFM_BL1_2_IMAGE_ENCRYPTION
-    FIH_CALL(copy_and_decrypt_image, fih_rc, image_id, image);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        ERROR("BL2 image failed to decrypt\n");
-        FIH_RET(fih_rc);
-    }
-
-    INFO("BL2 image decrypted successfully\n");
-#else
     FIH_CALL(copy_image, fih_rc, image_id, image);
     if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         ERROR("BL2 image failed to decrypt\n");
         FIH_RET(fih_rc);
     }
-
     INFO("BL2 image copied successfully\n");
-#endif
 
-#ifdef TFM_BL1_2_IMAGE_BINDING
+    FIH_CALL(bl1_2_validate_image_at_addr, fih_rc, image);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        ERROR("BL2 image failed to validate\n");
+        FIH_RET(fih_rc);
+    }
+    INFO("BL2 image validated successfully\n");
+
+    FIH_RET(FIH_SUCCESS);
+}
+
+#elif !defined(TFM_BL1_2_IMAGE_BINDING) && defined(TFM_BL1_2_IMAGE_ENCRYPTION)
+/* Binding - OFF,  Encryption - ON */
+static fih_ret bl1_2_validate_image(uint32_t image_id)
+{
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+    struct bl1_2_image_t *image =
+        (struct bl1_2_image_t *)(BL2_CODE_START -
+                                 offsetof(struct bl1_2_image_t, protected_values.encrypted_data.data));
+
+    FIH_CALL(copy_and_decrypt_image, fih_rc, image_id, image);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        ERROR("BL2 image failed to decrypt\n");
+        FIH_RET(fih_rc);
+    }
+    INFO("BL2 image decrypted successfully\n");
+
+    FIH_CALL(bl1_2_validate_image_at_addr, fih_rc, image);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        ERROR("BL2 image failed to validate\n");
+        FIH_RET(fih_rc);
+    }
+    INFO("BL2 image validated successfully\n");
+
+    FIH_RET(FIH_SUCCESS);
+}
+#elif defined(TFM_BL1_2_IMAGE_BINDING) && !defined(TFM_BL1_2_IMAGE_ENCRYPTION)
+/* Binding - ON,  Encryption - OFF */
+static fih_ret bl1_2_validate_image(uint32_t image_id)
+{
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+    struct bl1_2_image_t *image =
+        (struct bl1_2_image_t *)(BL2_CODE_START -
+                                 offsetof(struct bl1_2_image_t, protected_values.encrypted_data.data));
+
+    FIH_CALL(copy_image, fih_rc, image_id, image);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        ERROR("BL2 image failed to decrypt\n");
+        FIH_RET(fih_rc);
+    }
+    INFO("BL2 image copied successfully\n");
+
     FIH_CALL(is_binding_tag_present, fih_rc, image);
     if (FIH_EQ(fih_rc, FIH_SUCCESS)) {
         /* Subsequent boot */
@@ -482,18 +521,99 @@ static fih_ret bl1_2_validate_image(uint32_t image_id)
         }
         INFO("BL2 image binding completed successfully\n");
     }
-#else
-    FIH_CALL(bl1_2_validate_image_at_addr, fih_rc, image);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        ERROR("BL2 image failed to validate\n");
-        FIH_RET(fih_rc);
-    }
-#endif /* TFM_BL1_2_IMAGE_BINDING */
-
-    INFO("BL2 image validated successfully\n");
 
     FIH_RET(FIH_SUCCESS);
 }
+
+#elif defined(TFM_BL1_2_IMAGE_BINDING) && defined(TFM_BL1_2_IMAGE_ENCRYPTION)
+/* Binding - ON,  Encryption - ON */
+
+static fih_ret copy_image_header(uint32_t image_id, struct bl1_2_image_t *image)
+{
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+
+#ifdef TFM_BL1_MEMORY_MAPPED_FLASH
+    struct bl1_2_image_t *image_to_copy;
+
+    image_to_copy = (struct bl1_2_image_t *)(FLASH_BL1_BASE_ADDRESS +
+                       bl1_image_get_flash_offset(image_id));
+    /* Copy the entire header from flash into the destination image header */
+    memcpy(&image->header, &image_to_copy->header, sizeof(image->header));
+#else
+    /* If flash is not memory mapped, ask the flash driver to copy the image
+     * header only.
+     */
+    FIH_CALL(bl1_2_copy_image_header, fih_rc, image_id, image);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        FIH_RET(fih_rc);
+    }
+#endif /* TFM_BL1_MEMORY_MAPPED_FLASH */
+
+    FIH_RET(FIH_SUCCESS);
+}
+
+static fih_ret bl1_2_validate_image(uint32_t image_id)
+{
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+    struct bl1_2_image_t *image =
+        (struct bl1_2_image_t *)(BL2_CODE_START -
+                                 offsetof(struct bl1_2_image_t, protected_values.encrypted_data.data));
+
+    FIH_CALL(copy_image_header, fih_rc, image_id, image);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        ERROR("BL2 image failed to copy header\n");
+        FIH_RET(fih_rc);
+    }
+
+    FIH_CALL(is_binding_tag_present, fih_rc, image);
+    if (FIH_EQ(fih_rc, FIH_SUCCESS)) {
+        /* Subsequent boot */
+        INFO("BL2 image binding tag present; Validate image binding\n");
+        FIH_CALL(copy_image, fih_rc, image_id, image);
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+            ERROR("BL2 image failed to copy\n");
+            FIH_RET(fih_rc);
+        }
+        FIH_CALL(bl1_2_validate_image_binding, fih_rc, image);
+        if (FIH_EQ(fih_rc, FIH_SUCCESS)) {
+
+            INFO("BL2 image binding verified successfully\n");
+            FIH_CALL(is_image_security_counter_valid, fih_rc, image);
+            if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+                ERROR("BL2 image security_counter failed to validate\n");
+                FIH_RET(fih_rc);
+            }
+        } else {
+            ERROR("BL2 image binding verification failed\n");
+            FIH_RET(fih_rc);
+        }
+    } else {
+        /* First boot */
+        FIH_CALL(copy_and_decrypt_image, fih_rc, image_id, image);
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+            ERROR("BL2 image failed to decrypt\n");
+            FIH_RET(fih_rc);
+        }
+
+        FIH_CALL(bl1_2_validate_image_at_addr, fih_rc, image);
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+            ERROR("BL2 image failed to validate\n");
+            FIH_RET(fih_rc);
+        }
+        INFO("BL2 image signature verified; Bind the image\n");
+
+        FIH_CALL(bl1_2_do_image_binding, fih_rc, image, image_id);
+        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+            ERROR("BL2 image binding failed\n");
+            FIH_RET(fih_rc);
+        }
+        INFO("BL2 image binding completed successfully\n");
+    }
+
+    FIH_RET(FIH_SUCCESS);
+}
+
+#endif
 
 int main(void)
 {

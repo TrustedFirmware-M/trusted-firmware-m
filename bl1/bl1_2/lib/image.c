@@ -36,6 +36,26 @@ uint32_t __WEAK bl1_image_get_flash_offset(uint32_t image_id)
 }
 
 #ifndef TFM_BL1_MEMORY_MAPPED_FLASH
+fih_ret bl1_2_copy_image_header(uint32_t image_id, struct bl1_2_image_t *image)
+{
+    uint32_t flash_offset, header_base;
+    int rc;
+
+    flash_offset = bl1_image_get_flash_offset(image_id);
+
+    header_base = (uintptr_t)flash_offset +
+                                offsetof(struct bl1_2_image_t, header);
+
+    rc = FLASH_DEV_NAME_BL1.ReadData(header_base,
+                                        &image->header,
+                                        BL1_2_HEADER_SIZE);
+    if (rc < 0 || (uint32_t)rc != BL1_2_HEADER_SIZE) {
+        FIH_RET(FIH_FAILURE);
+    }
+
+    FIH_RET(FIH_SUCCESS);
+}
+
 fih_ret bl1_image_copy_to_sram(uint32_t image_id, uint8_t *out)
 {
     uint32_t flash_offset;
@@ -189,7 +209,6 @@ fih_ret bl1_2_store_image_binding_tag(uint32_t image_id,
         FIH_RET(FIH_FAILURE);
     }
 
-    INFO("Image binding_tag stored successfully\n");
     return FIH_SUCCESS;
 }
 
