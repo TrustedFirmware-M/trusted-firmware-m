@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -10,6 +10,7 @@
 #include "psa_manifest/pid.h"
 #include "tfm_plat_crypto_keys.h"
 #include "crypto_library.h"
+#include "tfm_log.h"
 
 #ifndef TFM_BUILTIN_MAX_KEY_LEN
 #define TFM_BUILTIN_MAX_KEY_LEN (48)
@@ -219,6 +220,8 @@ psa_status_t tfm_builtin_key_loader_init(void)
             desc_table[key].loader_key_ctx, &buf[0], TFM_BUILTIN_MAX_KEY_LEN, &key_len, &key_bits, &algorithm, &type);
 
         if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+            WARN("%s: Skipping key_id %08x (owner: %d) due to %08x platform error\r\n", __func__,
+                 CRYPTO_LIBRARY_GET_KEY_ID(key_id), CRYPTO_LIBRARY_GET_OWNER(key_id), plat_err);
             continue;
         }
 
