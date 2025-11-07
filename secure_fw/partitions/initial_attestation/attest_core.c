@@ -271,7 +271,7 @@ attest_add_profile_definition(struct attest_token_encode_ctx *token_ctx)
         WARN("[Attest] Using a mismatched profile_definition received from the HAL\r\n");
     }
 
-    INFO("[Attest] Encoding profile_definition (size: %d): %s\r\n", profile.len, profile.ptr);
+    INFO("[Attest] Encoding profile_definition (size: %d): %s\r\n", profile.len, (const char *)profile.ptr);
     attest_token_encode_add_tstr(token_ctx,
                                  IAT_PROFILE_DEFINITION,
                                  &profile);
