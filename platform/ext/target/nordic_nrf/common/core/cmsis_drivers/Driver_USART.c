@@ -42,23 +42,6 @@
 #if RTE_USART0 || RTE_USART1 || RTE_USART2 || RTE_USART3 || \
     RTE_UART00 || RTE_USART20 || RTE_UART21 || RTE_UART22 || RTE_USART30
 
-#define PSEL_DISCONNECTED 0xFFFFFFFFUL
-
-#define UART_CONFIG_INITIALIZER()                                              \
-{                                                                              \
-    .txd_pin  = PSEL_DISCONNECTED,                                             \
-    .rxd_pin  = PSEL_DISCONNECTED,                                             \
-    .rts_pin  = PSEL_DISCONNECTED,                                             \
-    .cts_pin  = PSEL_DISCONNECTED,                                             \
-    .baudrate = NRF_UARTE_BAUDRATE_115200,                                     \
-    .interrupt_priority = NRFX_UARTE_DEFAULT_CONFIG_IRQ_PRIORITY,              \
-    .config  = {                                                               \
-        .hwfc   = NRF_UARTE_HWFC_DISABLED,                                     \
-        .parity = NRF_UARTE_PARITY_EXCLUDED,                                   \
-        .stop   = NRF_UARTE_STOP_ONE,                                          \
-    },                                                                         \
-}
-
 void uart_config_set_uart_pins(nrfx_uarte_config_t *uart_config,
                                const uint32_t uart_pins[],
                                size_t uart_pins_count)
@@ -67,7 +50,7 @@ void uart_config_set_uart_pins(nrfx_uarte_config_t *uart_config,
         uint32_t psel = NRF_GET_PIN(uart_pins[i]);
 
         if (psel == NRF_PIN_DISCONNECTED) {
-            psel = PSEL_DISCONNECTED;
+            psel = NRF_UARTE_PSEL_DISCONNECTED;
         }
 
         switch (NRF_GET_FUN(uart_pins[i])) {
@@ -89,14 +72,12 @@ static const ARM_USART_CAPABILITIES DriverCapabilities = {
 };
 
 typedef struct {
-    const nrfx_uarte_t   uarte;
+    nrfx_uarte_t         uarte;
     const uint32_t      *uart_pins;
     size_t               uart_pins_count;
     size_t               tx_count;
     size_t               rx_count;
-    nrf_uarte_config_t   hal_cfg;
-    nrf_uarte_baudrate_t baudrate;
-    bool                 initialized;
+    nrfx_uarte_config_t  cfg;
 } UARTx_Resources;
 
 static ARM_DRIVER_VERSION ARM_USART_GetVersion(void)
@@ -119,33 +100,27 @@ static int32_t ARM_USARTx_Initialize(ARM_USART_SignalEvent_t cb_event,
     NVIC_ClearTargetState(NRFX_IRQ_NUMBER_GET((uint32_t)uart_resources->uarte.p_reg));
 #endif
 
-    nrfx_uarte_config_t uart_config = UART_CONFIG_INITIALIZER();
 
-    uart_config_set_uart_pins(&uart_config,
+    uart_config_set_uart_pins(&uart_resources->cfg,
                               uart_resources->uart_pins,
                               uart_resources->uart_pins_count);
 
-    nrfx_err_t err_code = nrfx_uarte_init(&uart_resources->uarte,
-                                          &uart_config,
-                                          NULL);
-    if (err_code != NRFX_SUCCESS) {
+    int err_code = nrfx_uarte_init(&uart_resources->uarte,
+                                   &uart_resources->cfg,
+                                   NULL);
+    if (err_code < 0) {
         return ARM_DRIVER_ERROR_BUSY;
     }
 
     uart_resources->tx_count = 0;
     uart_resources->rx_count = 0;
-    uart_resources->hal_cfg  = uart_config.config;
-    uart_resources->baudrate = uart_config.baudrate;
 
-    uart_resources->initialized = true;
     return ARM_DRIVER_OK;
 }
 
 static int32_t ARM_USARTx_Uninitialize(UARTx_Resources *uart_resources)
 {
     nrfx_uarte_uninit(&uart_resources->uarte);
-
-    uart_resources->initialized = false;
 
 #ifdef SPU_CONFIGURE_UART
     spu_peripheral_config_non_secure((uint32_t)uart_resources->uarte.p_reg, false);
@@ -181,7 +156,7 @@ static int32_t ARM_USARTx_PowerControl(ARM_POWER_STATE state,
 static int32_t ARM_USARTx_Send(const void *data, uint32_t num,
                                UARTx_Resources *uart_resources)
 {
-    if (!uart_resources->initialized) {
+    if (!nrfx_uarte_init_check(&uart_resources->uarte)) {
         return ARM_DRIVER_ERROR;
     }
 
@@ -198,10 +173,10 @@ static int32_t ARM_USARTx_Send(const void *data, uint32_t num,
             }
         }
     } else {
-        nrfx_err_t err_code = nrfx_uarte_tx(&uart_resources->uarte, data, num, 0);
-        if (err_code == NRFX_ERROR_BUSY) {
+        int err_code = nrfx_uarte_tx(&uart_resources->uarte, data, num, 0);
+        if (err_code == -EBUSY) {
             return ARM_DRIVER_ERROR_BUSY;
-        } else if (err_code != NRFX_SUCCESS) {
+        } else if (err_code < 0) {
             return ARM_DRIVER_ERROR;
         }
 
@@ -214,14 +189,43 @@ static int32_t ARM_USARTx_Send(const void *data, uint32_t num,
 static int32_t ARM_USARTx_Receive(void *data, uint32_t num,
                                   UARTx_Resources *uart_resources)
 {
-    if (!uart_resources->initialized) {
+    if (!nrfx_uarte_init_check(&uart_resources->uarte)) {
         return ARM_DRIVER_ERROR;
     }
 
-    nrfx_err_t err_code = nrfx_uarte_rx(&uart_resources->uarte, data, num);
-    if (err_code == NRFX_ERROR_BUSY) {
+    int err_code = nrfx_uarte_rx_buffer_set(&uart_resources->uarte, data, num);
+
+    if (err_code == -EBUSY) {
         return ARM_DRIVER_ERROR_BUSY;
-    } else if (err_code != NRFX_SUCCESS) {
+    } else if (err_code < 0) {
+        return ARM_DRIVER_ERROR;
+    }
+
+    uint32_t flags = NRFX_UARTE_RX_ENABLE_CONT | NRFX_UARTE_RX_ENABLE_STOP_ON_END;
+    err_code = nrfx_uarte_rx_enable(&uart_resources->uarte, flags);
+
+    if (err_code == -EBUSY) {
+        return ARM_DRIVER_ERROR_BUSY;
+    } else if (err_code < 0) {
+        return ARM_DRIVER_ERROR;
+    }
+
+    size_t rx_amount = 0;
+
+    do
+    {
+        err_code = nrfx_uarte_rx_ready(&uart_resources->uarte, &rx_amount);
+    } while (err_code == -EBUSY);
+
+    if ((err_code == -EALREADY) || (num > rx_amount))
+    {
+        return ARM_DRIVER_ERROR;
+    }
+
+    err_code = nrfx_uarte_rx_abort(&uart_resources->uarte, true, true);
+
+    if (err_code < 0)
+    {
         return ARM_DRIVER_ERROR;
     }
 
@@ -253,8 +257,8 @@ static uint32_t ARM_USARTx_GetRxCount(const UARTx_Resources *uart_resources)
 static int32_t ARM_USART_Control_Mode(uint32_t control, uint32_t arg,
 				      UARTx_Resources *uart_resources)
 {
-	nrf_uarte_baudrate_t baudrate = uart_resources->baudrate;
-	nrf_uarte_config_t hal_cfg = uart_resources->hal_cfg;
+	nrf_uarte_baudrate_t baudrate = uart_resources->cfg.baudrate;
+	nrf_uarte_config_t hal_cfg = uart_resources->cfg.config;
 	switch (arg) {
 	case 1200:
 		baudrate = NRF_UARTE_BAUDRATE_1200;
@@ -369,37 +373,25 @@ static int32_t ARM_USART_Control_Mode(uint32_t control, uint32_t arg,
 		return ARM_USART_ERROR_FLOW_CONTROL;
 	}
 
-	uart_resources->baudrate = baudrate;
-	uart_resources->hal_cfg = hal_cfg;
+	uart_resources->cfg.baudrate = baudrate;
+	uart_resources->cfg.config = hal_cfg;
 
-	nrf_uarte_baudrate_set(uart_resources->uarte.p_reg, uart_resources->baudrate);
-	nrf_uarte_configure(uart_resources->uarte.p_reg, &uart_resources->hal_cfg);
+	nrfx_uarte_reconfigure(&uart_resources->uarte, &uart_resources->cfg);
 
 	return ARM_DRIVER_OK;
 }
 
-static void disconnect_tx_rx_pin(uint32_t operation, UARTx_Resources *uart_resources)
+static int disconnect_tx_rx_pin(uint32_t operation, UARTx_Resources *uart_resources)
 {
-	bool uart_enabled = nrf_uarte_enable_check(uart_resources->uarte.p_reg);
-
-	/* To update the PSEL register the UART needs to be disabled in case it is enabled */
-	if (uart_enabled) {
-		nrf_uarte_disable(uart_resources->uarte.p_reg);
-	}
-
 	switch (operation) {
 	case ARM_USART_CONTROL_RX:
-		nrf_uarte_rx_pin_set(uart_resources->uarte.p_reg, NRF_UARTE_PSEL_DISCONNECTED);
-		break;
+		uart_resources->cfg.rxd_pin = NRF_UARTE_PSEL_DISCONNECTED;
+		return nrfx_uarte_reconfigure(&uart_resources->uarte, &uart_resources->cfg);
 	case ARM_USART_CONTROL_TX:
-		nrf_uarte_tx_pin_set(uart_resources->uarte.p_reg, NRF_UARTE_PSEL_DISCONNECTED);
-		break;
+		uart_resources->cfg.txd_pin = NRF_UARTE_PSEL_DISCONNECTED;
+		return nrfx_uarte_reconfigure(&uart_resources->uarte, &uart_resources->cfg);
 	default:
-		break;
-	}
-
-	if (uart_enabled) {
-		nrf_uarte_enable(uart_resources->uarte.p_reg);
+		return 0;
 	}
 }
 
@@ -417,7 +409,13 @@ static int32_t ARM_USARTx_Control(uint32_t control, uint32_t arg, UARTx_Resource
 		 * which is used by the peripheral.
 		 */
 		if (arg == 0) {
-			disconnect_tx_rx_pin(operation, uart_resources);
+			int err_code = disconnect_tx_rx_pin(operation, uart_resources);
+
+			if (err_code == -EBUSY) {
+				return ARM_DRIVER_ERROR_BUSY;
+			} else if (err_code < 0) {
+				return ARM_DRIVER_ERROR;
+			}
 		}
 		return ARM_DRIVER_OK;
 	default:
@@ -446,9 +444,11 @@ static ARM_USART_MODEM_STATUS ARM_USART_GetModemStatus(void)
 #define DRIVER_USART(idx)                                                 \
     static const uint32_t UART##idx##_pins[] = RTE_USART##idx##_PINS;     \
     static UARTx_Resources UART##idx##_Resources = {                      \
-        .uarte = NRFX_UARTE_INSTANCE(idx),                                \
+        .uarte = NRFX_UARTE_INSTANCE(NRF_UARTE##idx),                     \
         .uart_pins = UART##idx##_pins,                                    \
-        .uart_pins_count = ARRAY_SIZE(UART##idx##_pins)                   \
+        .uart_pins_count = ARRAY_SIZE(UART##idx##_pins),                  \
+        .cfg = NRFX_UARTE_DEFAULT_CONFIG(NRF_UARTE_PSEL_DISCONNECTED,     \
+                                         NRF_UARTE_PSEL_DISCONNECTED),    \
     };                                                                    \
     static int32_t ARM_USART##idx##_Initialize(                           \
                                         ARM_USART_SignalEvent_t cb_event) \
