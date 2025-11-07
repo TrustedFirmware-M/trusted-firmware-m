@@ -10,7 +10,7 @@
 #include "tfm_plat_boot_seed.h"
 #include "tfm_plat_device_id.h"
 #include "tfm_plat_otp.h"
-#include "tfm_sprt.h"
+#include "tfm_string.h"
 #include "pico/bootrom.h"
 #include "pico/sha256.h"
 

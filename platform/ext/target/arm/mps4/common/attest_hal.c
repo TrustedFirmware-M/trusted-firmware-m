@@ -12,7 +12,7 @@
 #include "tfm_plat_boot_seed.h"
 #include "tfm_plat_device_id.h"
 #include "tfm_plat_otp.h"
-#include "tfm_sprt.h"
+#include "tfm_string.h"
 
 static enum tfm_security_lifecycle_t map_otp_lcs_to_tfm_slc(enum plat_otp_lcs_t lcs)
 {

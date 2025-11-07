@@ -22,7 +22,7 @@
 #include "t_cose/t_cose_common.h"
 #include "tfm_crypto_defs.h"
 #include "tfm_log.h"
-#include "tfm_sprt.h"
+#include "tfm_string.h"
 
 #define ARRAY_LENGTH(array) (sizeof(array) / sizeof(*(array)))
 

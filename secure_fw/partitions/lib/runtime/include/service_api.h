@@ -7,6 +7,10 @@
 #ifndef __SERVICE_API_H__
 #define __SERVICE_API_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include "tfm_boot_status.h"
 #include "psa/error.h"
@@ -22,5 +26,9 @@
 psa_status_t tfm_core_get_boot_data(uint8_t major_type,
                                     struct tfm_boot_data *boot_data,
                                     uint32_t len);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __SERVICE_API_H__ */
