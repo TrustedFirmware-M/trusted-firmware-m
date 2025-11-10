@@ -956,7 +956,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/config/otp_config.pickle
     DEPENDS ${RSE_SUBPLATFORM_PAL_CONFIG_DIR}/rse_otp_config.h
     DEPENDS ${PLATFORM_DIR}/ext/target/arm/drivers/lcm/lcm_otp_layout.h
     COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_SOURCE_DIR}/tools/modules
-        rse_create_otp_config
+        ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/modules/otp_config.py
         --rse_otp_layout_h_file=${CMAKE_CURRENT_SOURCE_DIR}/rse_otp_layout.h
         --compile_commands_file=${CMAKE_BINARY_DIR}/compile_commands.json
         --otp_config_output_file=${CMAKE_CURRENT_BINARY_DIR}/config/otp_config.pickle

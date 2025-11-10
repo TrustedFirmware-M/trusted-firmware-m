@@ -13,7 +13,7 @@ from tfm_tools import arg_utils
 import logging
 logger = logging.getLogger("TF-M.{}".format(__name__))
 
-import create_otp_config as oc
+import rse.otp_config as oc
 from rse.otp_config import OTP_config
 
 import rse.provisioning_message_config as pmc
