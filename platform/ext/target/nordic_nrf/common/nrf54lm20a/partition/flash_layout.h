@@ -27,8 +27,8 @@
  * 0x0008_0000 Protected Storage Area (16 KB)
  * 0x0008_4000 Internal Trusted Storage Area (16 KB)
  * 0x0008_8000 OTP / NV counters area (8 KB)
- * 0x0008_A000 Non-secure image primary (1356 KB)
- * 0x001F_2000 Non-secure storage, used when built with NRF_NS_STORAGE=ON,
+ * 0x0008_A000 Non-secure image primary (1452 KB)
+ * 0x001F_5000 Non-secure storage, used when built with NRF_NS_STORAGE=ON,
  *             otherwise unused (32 KB)
  */
 
@@ -42,20 +42,16 @@
 /* Use Flash memory to store Code data */
 #define FLASH_BASE_ADDRESS                  (0x0)
 
-/* nRF54LM20A has 2036 kB of non volatile memory (RRAM) but the last 96kB are reserved
- * for FLPR MCU in Zephyr. For simplicity and for possible support for running FLPR along
- * with TF-M later FLPR non volatile memory is not used by TF-M. */
-#define FLASH_TOTAL_SIZE                    (0x1E5000)        /* 1940 kB since the last 96kB are reserved for FLPR */
+/* nRF54LM20A has 2036 kB of non volatile memory (RRAM) */
+#define FLASH_TOTAL_SIZE                    (0x1FD000)
 #define TOTAL_ROM_SIZE                       FLASH_TOTAL_SIZE
 
-/* nRF54LM20A has 512 kB of volatile memory (SRAM) but the last 96kB are reserved
- * for FLPR MCU in Zephyr. For simplicity and for possible support for running FLPR along
- * with TF-M later FLPR volatile memory is not used by TF-M. */
+/* nRF54LM20A has 512 kB of volatile memory (SRAM) */
 #define SRAM_BASE_ADDRESS                   (0x20000000)
-#define TOTAL_RAM_SIZE                      (0x00068000)       /* 416 kB since the last 96kB are reserved for FLPR */
+#define TOTAL_RAM_SIZE                      (0x00080000)
 
 #define FLASH_S_PARTITION_SIZE                (0x80000)       /* S partition: 512 kB*/
-#define FLASH_NS_PARTITION_SIZE               (0x153000)      /* NS partition: 1356 kB*/
+#define FLASH_NS_PARTITION_SIZE               (0x16B000)      /* NS partition: 1452 kB*/
 
 #define S_ROM_ALIAS_BASE   FLASH_BASE_ADDRESS
 #define NS_ROM_ALIAS_BASE  FLASH_BASE_ADDRESS
