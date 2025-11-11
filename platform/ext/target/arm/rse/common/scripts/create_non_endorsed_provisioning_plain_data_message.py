@@ -17,7 +17,7 @@ import rse.provisioning_config as pc
 from rse.provisioning_message_config import Provisioning_message_config
 import rse.provisioning_message_config as pmc
 from rse.otp_config import OTP_config
-import rse.otp_config as oc
+import create_otp_config as oc
 from tfm_tools import arg_utils
 
 

@@ -11,7 +11,7 @@ from tfm_tools import arg_utils
 
 sys.path.append(os.path.join(sys.path[0], 'modules'))
 
-import rse.otp_config as oc
+import create_otp_config as oc
 from rse.otp_config import OTP_config
 
 def add_arguments(parser : argparse.ArgumentParser,
