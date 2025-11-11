@@ -46,19 +46,19 @@ Supported Features
 - Remote Test Infrastructure
 
 ******
-CQ2'25
+CQ4'25
 ******
 - Supporting multiple clients (Hybrid Platforms) i.e. TF-M supporting multiple on
   core and off core clients on heterogeneous (e.g. Cortex-A + Cortex-M platforms)
-- TF-M v2.2.0 release
-- Update to Mbed TLS3.6.3
+- TF-M v2.2.2 and v2.1.4 releases
+- Integrate TF-PSACrypto1.0
 
 ******
 Future
 ******
-- Integrate TF-PSACrypto
-- TF-M v2.3.0
-- Image encryption via. PSA Crypto in mcuboot
+- Integrate TF-PSACrypto1.x-LTS
+- TF-M v2.3.0 (LTS)
+- Fuzz Testing
 - Implement support for multiple clients (Hybrid Platforms) contd.
 - Build System Enhancements - Simplify build scripts
 - TF-M Performance - Further Benchmarking and Optimization
@@ -69,7 +69,6 @@ Future
 - [Secure Storage] Extended PSA APIs
 - [Audit Logs] Secure Storage, Policy Manager
 - PSA FF Lifecycle API
-- Fuzz Testing
 
 --------------
 
