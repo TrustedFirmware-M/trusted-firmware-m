@@ -1215,5 +1215,7 @@ if (TFM_LOAD_NS_IMAGE)
             DESTINATION ${INSTALL_PLATFORM_NS_DIR}/linker_scripts)
 
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ns/config.cmake.in
-                   ${INSTALL_PLATFORM_NS_DIR}/config.cmake @ONLY)
+                   ${CMAKE_BINARY_DIR}/generated/platform/cmake/config.cmake @ONLY)
+    install(FILES       ${CMAKE_BINARY_DIR}/generated/platform/cmake/config.cmake
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR})
 endif()

@@ -19,13 +19,14 @@ set(CMAKE_INSTALL_PREFIX                ${CMAKE_BINARY_DIR}/api_ns CACHE PATH "I
 set(INTERFACE_INC_DIR                   ${CMAKE_SOURCE_DIR}/interface/include)
 set(INTERFACE_SRC_DIR                   ${CMAKE_SOURCE_DIR}/interface/src)
 
-set(INSTALL_INTERFACE_INC_DIR           ${CMAKE_INSTALL_PREFIX}/interface/include)
-set(INSTALL_INTERFACE_SRC_DIR           ${CMAKE_INSTALL_PREFIX}/interface/src)
-set(INSTALL_INTERFACE_LIB_DIR           ${CMAKE_INSTALL_PREFIX}/interface/lib)
-set(INSTALL_IMAGE_SIGNING_DIR           ${CMAKE_INSTALL_PREFIX}/image_signing)
-set(INSTALL_CMAKE_DIR                   ${CMAKE_INSTALL_PREFIX}/cmake)
-set(INSTALL_CONFIG_DIR                  ${CMAKE_INSTALL_PREFIX}/config)
-set(INSTALL_PLATFORM_NS_DIR             ${CMAKE_INSTALL_PREFIX}/platform)
+# Install DESTINATION is relative to CMAKE_INSTALL_PREFIX
+set(INSTALL_INTERFACE_INC_DIR           interface/include)
+set(INSTALL_INTERFACE_SRC_DIR           interface/src)
+set(INSTALL_INTERFACE_LIB_DIR           interface/lib)
+set(INSTALL_IMAGE_SIGNING_DIR           image_signing)
+set(INSTALL_CMAKE_DIR                   cmake)
+set(INSTALL_CONFIG_DIR                  config)
+set(INSTALL_PLATFORM_NS_DIR             platform)
 
 set(TFM_DEBUG_OPTIMISATION              OFF         CACHE BOOL      "Add basic -Og optimisation when CMAKE_BUILD_TYPE is Debug. Note that non Debug builds specify their own optimisation")
 set(TFM_CODE_COVERAGE                   OFF         CACHE BOOL      "Whether to build the binary for lcov tools")

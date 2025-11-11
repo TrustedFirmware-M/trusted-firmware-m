@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -56,7 +56,7 @@ if(PROJECT_CONFIG_HEADER_FILE)
     endif()
     target_compile_definitions(tfm_config
         INTERFACE
-            PROJECT_CONFIG_HEADER_FILE="${PROJECT_CONFIG_HEADER_FILE}"
+            $<BUILD_INTERFACE:PROJECT_CONFIG_HEADER_FILE="${PROJECT_CONFIG_HEADER_FILE}">
     )
 endif()
 
@@ -65,7 +65,7 @@ set(TARGET_CONFIG_HEADER_FILE ${TARGET_PLATFORM_PATH}/config_tfm_target.h)
 if(EXISTS ${TARGET_CONFIG_HEADER_FILE})
     target_compile_definitions(tfm_config
         INTERFACE
-            TARGET_CONFIG_HEADER_FILE="${TARGET_CONFIG_HEADER_FILE}"
+            $<BUILD_INTERFACE:TARGET_CONFIG_HEADER_FILE="${TARGET_CONFIG_HEADER_FILE}">
     )
 endif()
 

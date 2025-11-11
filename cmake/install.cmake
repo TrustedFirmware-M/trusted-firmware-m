@@ -5,9 +5,20 @@
 #
 #-------------------------------------------------------------------------------
 
+include(CMakePackageConfigHelpers)
+
 install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/
         DESTINATION bin
 )
+
+if(TFM_MERGE_HEX_FILES)
+        # Calculate name of the installed merged hex file and specify path for NS build
+        get_filename_component(TFM_S_HEX_FILNAME "${TFM_S_HEX_FILE_PATH}" NAME)
+        set(TFM_S_HEX_FILE_INSTALL_PATH bin/${TFM_S_HEX_FILNAME})
+
+        install(FILES ${TFM_S_HEX_FILE_PATH}
+                DESTINATION bin)
+endif()
 
 # export veneer lib
 if (CONFIG_TFM_USE_TRUSTZONE)
@@ -228,8 +239,17 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/scripts)
 
     if (MCUBOOT_ENC_IMAGES)
+        # Specify the MCUBOOT_KEY_ENC path for NS build
+        set(MCUBOOT_INSTALL_KEY_ENC
+            ${INSTALL_IMAGE_SIGNING_DIR}/keys/image_enc_key.pem)
         install(FILES ${MCUBOOT_KEY_ENC}
                 RENAME image_enc_key.pem
+                DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/keys)
+        # Specify the MCUBOOT_KEY_ENC_NS path for NS build
+        set(MCUBOOT_INSTALL_KEY_ENC_NS
+            ${INSTALL_IMAGE_SIGNING_DIR}/keys/image_enc_ns_key.pem)
+        install(FILES ${MCUBOOT_KEY_ENC_NS}
+                RENAME image_enc_ns_key.pem
                 DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/keys)
     endif()
 
@@ -304,22 +324,70 @@ install(FILES
         ${PLATFORM_DIR}/include/tfm_plat_ns.h
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/include)
 
+# Install config files and remap psa_crypto_config definitions to point to them
+install(FILES       ${TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH}
+        RENAME      mbedcrypto_psa_crypto_config.h
+        DESTINATION ${INSTALL_INTERFACE_INC_DIR}/mbedtls)
+
+install(FILES       ${TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH}
+        RENAME      mbedcrypto_config_client.h
+        DESTINATION ${INSTALL_INTERFACE_INC_DIR}/mbedtls)
+
+target_compile_definitions(psa_crypto_config
+        INTERFACE
+        $<INSTALL_INTERFACE:MBEDTLS_PSA_CRYPTO_CONFIG_FILE="$<INSTALL_PREFIX>/${INSTALL_INTERFACE_INC_DIR}/mbedtls/mbedcrypto_psa_crypto_config.h">
+        $<INSTALL_INTERFACE:MBEDTLS_CONFIG_FILE="$<INSTALL_PREFIX>/${INSTALL_INTERFACE_INC_DIR}/mbedtls/mbedcrypto_config_client.h">)
+
+# Install config files and remap tfm_config definitions to point to them
+if(PROJECT_CONFIG_HEADER_FILE)
+        install(FILES       ${PROJECT_CONFIG_HEADER_FILE}
+                RENAME      config_tfm_project.h
+                DESTINATION ${INSTALL_INTERFACE_INC_DIR})
+
+        target_compile_definitions(tfm_config
+                INTERFACE
+                $<INSTALL_INTERFACE:PROJECT_CONFIG_HEADER_FILE="$<INSTALL_PREFIX>/${INSTALL_INTERFACE_INC_DIR}/config_tfm_project.h">)
+endif()
+
+if(EXISTS ${TARGET_CONFIG_HEADER_FILE})
+        # TF-M looks for this file with a fixed name
+        install(FILES       ${TARGET_CONFIG_HEADER_FILE}
+                DESTINATION ${INSTALL_INTERFACE_INC_DIR})
+
+        target_compile_definitions(tfm_config
+                INTERFACE
+                $<INSTALL_INTERFACE:TARGET_CONFIG_HEADER_FILE="$<INSTALL_PREFIX>/${INSTALL_INTERFACE_INC_DIR}/config_tfm_target.h">)
+endif()
+
 install(TARGETS tfm_config psa_crypto_config psa_interface
         DESTINATION ${CMAKE_INSTALL_PREFIX}
-        EXPORT tfm-config
-        )
+        EXPORT tfm-config)
 
 target_include_directories(psa_interface
         INTERFACE
-        $<INSTALL_INTERFACE:interface/include>
-        )
+        $<INSTALL_INTERFACE:interface/include>)
 
 install(EXPORT tfm-config
         FILE spe_export.cmake
         DESTINATION ${INSTALL_CMAKE_DIR})
 
-configure_file(${CMAKE_SOURCE_DIR}/config/spe_config.cmake.in
-               ${INSTALL_CMAKE_DIR}/spe_config.cmake @ONLY)
+# Pass empty variables to PATH_VARS if they aren't defined
+set(TFM_S_HEX_FILE_INSTALL_PATH "${TFM_S_HEX_FILE_INSTALL_PATH}")
+set(MCUBOOT_INSTALL_KEY_ENC     "${MCUBOOT_INSTALL_KEY_ENC}")
+set(MCUBOOT_INSTALL_KEY_ENC_NS  "${MCUBOOT_INSTALL_KEY_ENC_NS}")
+set(MCUBOOT_INSTALL_KEY_S       "${MCUBOOT_INSTALL_KEY_S}")
+set(MCUBOOT_INSTALL_KEY_NS      "${MCUBOOT_INSTALL_KEY_NS}")
+configure_package_config_file(${CMAKE_SOURCE_DIR}/config/spe_config.cmake.in
+                              ${CMAKE_BINARY_DIR}/generated/cmake/spe_config.cmake
+        INSTALL_DESTINATION ${INSTALL_CMAKE_DIR}
+        PATH_VARS MCUBOOT_INSTALL_KEY_ENC
+                  MCUBOOT_INSTALL_KEY_ENC_NS
+                  MCUBOOT_INSTALL_KEY_S
+                  MCUBOOT_INSTALL_KEY_NS
+                  TFM_S_HEX_FILE_INSTALL_PATH)
+
+install(FILES       ${CMAKE_BINARY_DIR}/generated/cmake/spe_config.cmake
+        DESTINATION ${INSTALL_CMAKE_DIR})
 
 # Toolchain utils
 install(FILES

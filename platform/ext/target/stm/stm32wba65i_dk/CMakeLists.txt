@@ -79,10 +79,12 @@ install(FILES
     DESTINATION ${INSTALL_PLATFORM_NS_DIR}/partition/gen_layout
 )
 
-file(WRITE ${INSTALL_PLATFORM_NS_DIR}/partition/flash_layout.h
+file(WRITE ${CMAKE_BINARY_DIR}/generated/platform/partition/flash_layout.h
   "#define STM32_FLASH_LAYOUT_BEGIN_OFFSET ${STM32_FLASH_LAYOUT_BEGIN_OFFSET}\n"
   "#include \"gen_layout/flash_layout.h\"\n"
 )
+install(FILES       ${CMAKE_BINARY_DIR}/generated/platform/partition/flash_layout.h
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/partition)
 
 install(DIRECTORY   ${PLATFORM_DIR}/ext/common
                     ${PLATFORM_DIR}/ext/driver

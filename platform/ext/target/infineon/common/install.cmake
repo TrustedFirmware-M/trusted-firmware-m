@@ -1,6 +1,7 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2023-2025 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -44,7 +45,9 @@ install(FILES       ${CMAKE_CURRENT_LIST_DIR}/nspe/CMakeLists.txt
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/ifx)
 
 configure_file(${IFX_COMMON_SOURCE_DIR}/nspe/spe_config.cmake.in
-               ${INSTALL_PLATFORM_NS_DIR}/ifx/spe_config.cmake @ONLY)
+               ${CMAKE_BINARY_DIR}/generated/platform/cmake/ifx/spe_config.cmake @ONLY)
+install(FILES       ${CMAKE_BINARY_DIR}/generated/platform/cmake/ifx/spe_config.cmake
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/ifx)
 
 install(FILES       ${CMAKE_CURRENT_LIST_DIR}/nspe/os_wrapper/semaphore.h
                     ${CMAKE_CURRENT_LIST_DIR}/nspe/os_wrapper/thread.h

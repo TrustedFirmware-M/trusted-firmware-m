@@ -17,8 +17,8 @@ set(is_v8.xm    "$<OR:${is_v8.1m},${is_v8.0m}>")
 add_library(psa_crypto_config INTERFACE)
 target_compile_definitions(psa_crypto_config
     INTERFACE
-        MBEDTLS_PSA_CRYPTO_CONFIG_FILE="${TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH}"
-        MBEDTLS_CONFIG_FILE="${TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH}"
+        $<BUILD_INTERFACE:MBEDTLS_PSA_CRYPTO_CONFIG_FILE="${TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH}">
+        $<BUILD_INTERFACE:MBEDTLS_CONFIG_FILE="${TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH}">
 )
 # The following is required for tfm_plat_crypto_nv_seed.h
 target_include_directories(psa_crypto_config
