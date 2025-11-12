@@ -49,7 +49,7 @@ set(TFM_EXTRAS_REPO_PATH                "DOWNLOAD"  CACHE PATH      "Path to tf-
 set(TFM_EXTRAS_REPO_VERSION             "801f51b"   CACHE STRING    "The version of tf-m-extras to use")
 
 set(LIB_EVENTLOG_PATH                   "DOWNLOAD"  CACHE PATH      "Path to LibEventLog repo (or DOWNLOAD to fetch automatically")
-set(LIB_EVENTLOG_VERSION                "e2f92a92"  CACHE STRING    "The version of LibEventLog to use")
+set(LIB_EVENTLOG_VERSION                "0eacda85"  CACHE STRING    "The version of LibEventLog to use")
 set(EVENT_LOG_BUFFER_SIZE               "0x100"     CACHE STRING    "Size of event log buffer size")
 
 set(PLATFORM_PSA_ADAC_SECURE_DEBUG      FALSE       CACHE BOOL      "Whether to use psa-adac secure debug.")
