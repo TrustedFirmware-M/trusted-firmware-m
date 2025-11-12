@@ -38,6 +38,38 @@
 #define STACKSEAL_SIZE  0x0
 #endif
 
+/*
+ * Program Header (PHDRS) definitions
+ *
+ * These define how different segments of the final image are mapped into
+ * program headers for the ELF output. Each PHDR entry corresponds to a loadable
+ * memory segment with specific access permissions (Read, Write, Execute), which is
+ * defined by FLAGS(n):
+ * - 0x1 - Executable
+ * - 0x2 - Writable
+ * - 0x4 - Readable
+ *
+ * - flash:            Loadable segment for executable code and read-only data (FLAGS(5) → R X)
+ * - tfm_data:         TFM read/write data, (FLAGS(6) → R W)
+ * - phdr_<partition>: Dynamically generated loadable segments for each runtime partition
+ *                     with read/write permissions (FLAGS(6) → R W)
+ * - itcm:             ITCM segment for executable code (FLAGS(5) → R X)
+ * - coderam:          Executable segment placed in SRAM (FLAGS(5) → R X)
+ *
+ */
+PHDRS
+{
+  flash  PT_LOAD FLAGS(5); /* R X */
+  tfm_data  PT_LOAD FLAGS(6); /* R W */
+{% for partition in partitions %}
+  phdr_{{partition.manifest.name}} PT_LOAD FLAGS(6); /* R W */
+{% endfor %}
+#ifdef S_RUNTIME_ITCM_START
+  itcm   PT_LOAD FLAGS(5); /* R X */
+#endif
+  coderam PT_LOAD FLAGS(5); /* R X */
+}
+
 MEMORY
 {
   FLASH    (rx)  : ORIGIN = S_CODE_START, LENGTH = S_CODE_SIZE
@@ -81,13 +113,13 @@ CHECK_ALIGNMENT_256(S_CODE_START)
 .gnu.sgstubs TFM_LINKER_VENEERS_START : \
 { \
     *(.gnu.sgstubs*) \
-} > FLASH \
+} > FLASH :flash \
 /* GCC always places veneers at the end of .gnu.sgstubs section, so the only \
  * way to align the end of .gnu.sgstubs section is to align start of the \
  * next section */ \
 .sgstubs_end : TFM_LINKER_VENEERS_END \
 { \
-} > FLASH
+} > FLASH :flash
 
 __msp_stack_size__ = S_MSP_STACK_SIZE;
 
@@ -103,7 +135,7 @@ SECTIONS
         __vectors_start__ = .;
         KEEP(*(.vectors))
         __vectors_end__ = .;
-    } > FLASH
+    } > FLASH :flash
 
     ASSERT(__vectors_start__ != __vectors_end__, ".vectors should not be empty")
 
@@ -148,7 +180,7 @@ SECTIONS
         *(.dtors)
 
         KEEP(*(.eh_frame*))
-    } > FLASH
+    } > FLASH :flash
 
     /* Position tag: End of unprivileged code (shared, not PXN) */
     . = ALIGN(TFM_LINKER_PT_UNPRIV_CODE_ALIGNMENT);
@@ -177,7 +209,7 @@ SECTIONS
         *({{partition.manifest.name}}_APP-ROT_ATTR_FN)
     {% endif %}
 {% endfor %}
-    } > FLASH
+    } > FLASH :flash
 
     /* Position tag: End of Application RoT code (unprivileged, PXN) */
     . = ALIGN(TFM_LINKER_PT_APP_ROT_CODE_ALIGNMENT);
@@ -206,18 +238,18 @@ SECTIONS
         *({{partition.manifest.name}}_PSA-ROT_ATTR_FN)
     {% endif %}
 {% endfor %}
-    } > FLASH
+    } > FLASH :flash
 
     .ARM.extab :
     {
         *(.ARM.extab* .gnu.linkonce.armextab.*)
-    } > FLASH
+    } > FLASH :flash
 
     __exidx_start = .;
     .ARM.exidx :
     {
         *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-    } > FLASH
+    } > FLASH :flash
     __exidx_end = .;
 
     .ER_TFM_CODE ALIGN(4) (READONLY) :
@@ -292,7 +324,7 @@ SECTIONS
          * code region.
          */
         *(SORT_BY_ALIGNMENT(EXCLUDE_FILE(*libflash_drivers* ITCM_FILES) .text*))
-    } > FLASH
+    } > FLASH :flash
 
 #ifdef RAM_VECTORS_SUPPORT
     CHECK_ALIGNMENT_4(__vectors_end__ - __vectors_start__)
@@ -321,7 +353,7 @@ SECTIONS
     .ER_RO_DATA . :
     {
         *(SORT_BY_ALIGNMENT(EXCLUDE_FILE(*libflash_drivers* ITCM_FILES) .rodata*))
-    } > FLASH
+    } > FLASH :flash
 
     /**** Section for holding partition RO load data */
     /*
@@ -331,7 +363,7 @@ SECTIONS
     .TFM_SP_LOAD_LIST ALIGN(TFM_LINKER_PT_RO_DATA_ALIGNMENT) :
     {
         KEEP(*(.part_load))
-    } > FLASH
+    } > FLASH :flash
     Image$$TFM_SP_LOAD_LIST$$RO$$Base = ADDR(.TFM_SP_LOAD_LIST);
     Image$$TFM_SP_LOAD_LIST$$RO$$Limit = ADDR(.TFM_SP_LOAD_LIST) + SIZEOF(.TFM_SP_LOAD_LIST);
 
@@ -358,7 +390,7 @@ SECTIONS
         KEEP(*(S_RAM_CODE_EXTRA_SECTION_NAME))
 #endif
         . = ALIGN(4); /* This alignment is needed to make the section size 4 bytes aligned */
-    } > CODE_RAM AT > FLASH
+    } > CODE_RAM AT > FLASH :coderam
 
     ASSERT(S_RAM_CODE_START % 4 == 0, "S_RAM_CODE_START must be divisible by 4")
 
@@ -369,7 +401,7 @@ SECTIONS
 #endif
 
     /**** Base address of secure data area */
-    .tfm_secure_data_start :
+    .tfm_secure_data_start (NOLOAD):
     {
         /* Relocate current position to RAM */
         . = ALIGN(4);
@@ -391,7 +423,7 @@ SECTIONS
     /* The code sharing between bootloader and runtime requires to share the
      * global variables.
      */
-    .TFM_SHARED_SYMBOLS ALIGN(TFM_LINKER_SHARED_SYMBOLS_ALIGNMENT) :
+    .TFM_SHARED_SYMBOLS (NOLOAD) ALIGN(TFM_LINKER_SHARED_SYMBOLS_ALIGNMENT) :
     {
         . += SHARED_SYMBOL_AREA_SIZE;
     } > RAM
@@ -399,7 +431,7 @@ SECTIONS
 
 #ifdef BOOT_TFM_SHARED_DATA_SIZE
     /* Shared area between BL2 and runtime to exchange data */
-    .tfm_bl2_shared_data ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT) :
+    .tfm_bl2_shared_data ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT) (NOLOAD) :
     {
         . += BOOT_TFM_SHARED_DATA_SIZE;
     } > RAM
@@ -424,7 +456,7 @@ SECTIONS
 
 #ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
     /* Record the FLASH load address right before the first entry of the copy area */
-    .flash_marker1 : ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT) { } > RAM AT > FLASH
+    .flash_marker1 : ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT) { } > RAM AT > FLASH :flash
 #endif
 
 {% for partition in partitions %}
@@ -446,7 +478,7 @@ SECTIONS
     {% endif %}
         *({{partition.manifest.name}}_APP-ROT_ATTR_RW)
         . = ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT);
-    } > RAM AT > FLASH
+    } > RAM AT > FLASH :phdr_{{partition.manifest.name}}
 
     .ER_{{partition.manifest.name}}_BSS (NOLOAD) : ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT)
     {
@@ -481,7 +513,7 @@ SECTIONS
 
 #ifdef S_DATA_PRIV_START
     /**** Privileged data area base address specified by Armv6-M/v7-M platform */
-    .tfm_secure_priv_data_boundary :
+    .tfm_secure_priv_data_boundary (NOLOAD) :
     {
         . = ABSOLUTE(S_DATA_PRIV_START) ;
     } > RAM
@@ -492,7 +524,7 @@ SECTIONS
      */
 #ifdef BOOT_TFM_SHARED_DATA_SIZE
     /* Shared area between BL2 and runtime to exchange data */
-    .tfm_bl2_shared_data ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT) :
+    .tfm_bl2_shared_data ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT) (NOLOAD) :
     {
         . += BOOT_TFM_SHARED_DATA_SIZE;
     } > RAM
@@ -552,9 +584,9 @@ SECTIONS
         *({{partition.manifest.name}}_PSA-ROT_ATTR_RW)
         . = ALIGN(TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT);
     {% if partition.manifest.place_in_dtcm %}
-        } > DTCM AT > FLASH
+        } > DTCM AT > FLASH :phdr_{{partition.manifest.name}}
     {% else %}
-        } > RAM AT > FLASH
+        } > RAM AT > FLASH :phdr_{{partition.manifest.name}}
     {% endif %}
 
     .ER_{{partition.manifest.name}}_BSS (NOLOAD) : ALIGN(TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT)
@@ -576,9 +608,9 @@ SECTIONS
         /* Position tag: End of PSA RoT partition's private data */
         Image$$PT_{{partition.manifest.name}}_PRIVATE_DATA_END$$Base = .;
     {% if partition.manifest.place_in_dtcm %}
-        } > DTCM AT > FLASH
+        } > DTCM
     {% else %}
-        } > RAM AT > FLASH
+        } > RAM
     {% endif %}
     {% endif %}
 {% endfor %}
@@ -589,7 +621,7 @@ SECTIONS
 
         KEEP(*(.jcr*))
         . = ALIGN(TFM_LINKER_TFM_DATA_ALIGNMENT);
-    } > RAM AT > FLASH
+    } > RAM AT > FLASH :tfm_data
 
 #ifdef S_RUNTIME_ITCM_START
     .ER_ITCM_CODE :
@@ -597,7 +629,7 @@ SECTIONS
         ITCM_FILES:(SORT_BY_ALIGNMENT(.text*))
         ITCM_FILES:(SORT_BY_ALIGNMENT(.rodata*))
         . = ALIGN(TFM_LINKER_ITCM_CODE_ALIGNMENT);
-    } > ITCM AT > FLASH
+    } > ITCM AT > FLASH :itcm
 #endif
 
 #ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
@@ -633,6 +665,10 @@ SECTIONS
         __service_runtime_end__ = .;
         *(SORT_BY_ALIGNMENT(.bss*))
         *(COMMON)
+
+        *(SORT_BY_ALIGNMENT(.noinit*))       /* Uninitialized RAM */
+        *(SORT_BY_ALIGNMENT(.cy_sharedmem*)) /* Cypress shared memory */
+
         . = ALIGN(TFM_LINKER_TFM_BSS_ALIGNMENT);
         __bss_end__ = .;
     } > RAM

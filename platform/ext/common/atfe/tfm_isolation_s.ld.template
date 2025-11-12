@@ -677,6 +677,10 @@ SECTIONS
         __service_runtime_end__ = .;
         *(SORT_BY_ALIGNMENT(.bss*))
         *(COMMON)
+
+        *(SORT_BY_ALIGNMENT(.noinit*))       /* Uninitialized RAM */
+        *(SORT_BY_ALIGNMENT(.cy_sharedmem*)) /* Cypress shared memory */
+
         . = ALIGN(TFM_LINKER_TFM_BSS_ALIGNMENT);
     } > RAM
     Image$$ER_PART_RT_POOL$$ZI$$Base = __partition_runtime_start__;
