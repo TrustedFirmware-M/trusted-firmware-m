@@ -7,6 +7,8 @@
 #
 #-------------------------------------------------------------------------------
 
+include(utils)
+
 set (VALID_ISOLATION_LEVELS 1 2 3)
 
 tfm_invalid_config(NOT TFM_ISOLATION_LEVEL IN_LIST VALID_ISOLATION_LEVELS)

@@ -7,6 +7,8 @@
 
 cmake_minimum_required(VERSION 3.21)
 
+include(utils)
+
 ########################## FPU and MVE #########################################
 
 tfm_invalid_config(CMAKE_C_COMPILER_ID STREQUAL "IAR" AND (CONFIG_TFM_ENABLE_MVE OR CONFIG_TFM_ENABLE_MVE_FP))
