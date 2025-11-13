@@ -143,6 +143,7 @@ static int32_t error_trans(enum mpc_sie200_error_t err)
          *           covered in the switch.
          */
     }
+    return ARM_DRIVER_ERROR;
 }
 
 #if (RTE_SRAM0_MPC)

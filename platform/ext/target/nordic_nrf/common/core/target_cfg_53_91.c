@@ -118,6 +118,8 @@ enum tfm_plat_err_t init_debug(void)
 	return configure_approtect_nvmc();
 #elif defined(NRF53_SERIES)
 	return configure_approtect_registers();
+#else
+	return TFM_PLAT_ERR_SUCCESS;
 #endif
 }
 
