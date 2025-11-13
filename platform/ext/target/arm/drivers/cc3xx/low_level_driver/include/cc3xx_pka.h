@@ -124,6 +124,59 @@ void cc3xx_lowlevel_pka_read_reg(cc3xx_pka_reg_id_t id, uint32_t *data, size_t l
 void cc3xx_lowlevel_pka_read_reg_swap_endian(cc3xx_pka_reg_id_t id, uint32_t *data, size_t len);
 
 /**
+ * @brief                        Write a secret into a PKA register, utilizing
+ *                               side-channel countermeasures.
+ *
+ * @param[in]  reg_id            The register ID to write the secret into.
+ * @param[in]  secret            The secret to be written to the register.
+ * @param[in]  len               The size in bytes of the secret. Must be a
+ *                               multiple of sizeof(uint32_t). Should be less
+ *                               than or equal to the operation size.
+ */
+void cc3xx_lowlevel_pka_write_secret_reg(cc3xx_pka_reg_id_t reg_id, const uint32_t *secret,
+                                         size_t len);
+/**
+ * @brief                        Write a secret into a PKA register, utilizing
+ *                               side-channel countermeasures and performing an
+ *                               endianness swap on each word.
+ *
+ * @param[in]  reg_id            The register ID to write the secret into.
+ * @param[in]  secret            The secret to be written to the register.
+ * @param[in]  len               The size in bytes of the secret. Must be a
+ *                               multiple of sizeof(uint32_t). Should be less
+ *                               than or equal to the operation size.
+ */
+void cc3xx_lowlevel_pka_write_secret_reg_swap_endian(cc3xx_pka_reg_id_t reg_id,
+                                                     const uint32_t *secret, size_t len);
+
+/**
+ * @brief                        Read a secret from a PKA register, utilizing
+ *                               side-channel countermeasures.
+.
+ *
+ * @param[in]  id                The register ID to read the secret from.
+ * @param[out] secret            Buffer the secret will be written into.
+ * @param[in]  len               The size in bytes of the secret to be read. Must
+ *                               be a multiple of sizeof(uint32_t). The buffer
+ *                               must be of at least this size.
+ */
+void cc3xx_lowlevel_pka_read_secret_reg(cc3xx_pka_reg_id_t id, uint32_t *secret,
+                                        size_t len);
+/**
+ * @brief                        Read a secret from a PKA register, utilizing
+ *                               side-channel countermeasures and
+ *                               performing an endianness swap on each word.
+ *
+ * @param[in]  id                The register ID to write the secret into.
+ * @param[out] secret            Buffer the secret will be written into.
+ * @param[in]  len               The size in bytes of the secret to be read. Must
+ *                               be a multiple of sizeof(uint32_t). The buffer
+ *                               must be of at least this size.
+ */
+void cc3xx_lowlevel_pka_read_secret_reg_swap_endian(cc3xx_pka_reg_id_t id,
+                                                    uint32_t *secret, size_t len);
+
+/**
  * @brief                       Set the modulus of a PKA session. This must be
  *                              called before any pka_mod_* operations are used.
  *                              For PKA sessions which do not use any of the

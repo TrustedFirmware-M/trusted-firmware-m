@@ -324,25 +324,68 @@ static void CC3XX_ATTRIBUTE_INLINE ensure_virt_reg_is_mapped(cc3xx_pka_reg_id_t 
     }
 }
 
-static void pka_write_reg(cc3xx_pka_reg_id_t reg_id, const uint32_t *data,
-                          size_t len, bool swap_endian)
+static void pka_read_write_reg(cc3xx_pka_reg_id_t reg_id, uint32_t *data,
+                               size_t len, bool read, bool swap_endian,
+                               bool is_secret)
 {
     size_t idx;
-    size_t unaligned_bytes = len & (sizeof(uint32_t) - 1);
-
-#ifdef CC3XX_CONFIG_STRICT_UINT32_T_ALIGNMENT
-    /* Check alignment */
-    assert(((uintptr_t)data & (sizeof(uint32_t) - 1)) == 0);
-    assert((len & (sizeof(uint32_t) - 1)) == 0);
-#endif
+    size_t len_unaligned = len & (sizeof(uint32_t) - 1);
+    size_t len_aligned = len - len_unaligned;
+    uint32_t base_address;
+    uint32_t *aligned_ptr;
+    uint8_t *unaligned_ptr;
+    uint8_t permutation_buf[len_aligned / sizeof(uint32_t)];
+    volatile uint32_t *addr_reg;
+    volatile uint32_t *data_reg;
+    bool check_alignment;
 
     /* Check slot */
     assert(reg_id < pka_reg_am_max);
     assert(virt_reg_in_use[reg_id]);
     assert(len <= pka_state.reg_size);
 
-    /* clear the register */
-    cc3xx_lowlevel_pka_clear(reg_id);
+#ifndef CC3XX_CONFIG_DPA_MITIGATIONS_ENABLE
+    is_secret = false;
+#endif
+
+    check_alignment = is_secret;
+#ifdef CC3XX_CONFIG_STRICT_UINT32_T_ALIGNMENT
+    check_alignment = true;
+#endif
+
+    if (check_alignment) {
+        /* Check alignment */
+        assert(((uintptr_t)data & (sizeof(uint32_t) - 1)) == 0);
+        assert(len_unaligned == 0);
+        len_unaligned = 0;
+    }
+
+    if (is_secret) {
+        assert(len < UINT8_MAX * sizeof(uint32_t));
+
+        cc3xx_lowlevel_rng_get_random_permutation(permutation_buf, sizeof(permutation_buf));
+    }
+
+    if (read) {
+        addr_reg = &P_CC3XX->pka.pka_sram_raddr;
+        data_reg = &P_CC3XX->pka.pka_sram_rdata;
+    } else {
+        addr_reg = &P_CC3XX->pka.pka_sram_addr;
+        data_reg = &P_CC3XX->pka.pka_sram_wdata;
+    }
+
+    if (swap_endian) {
+        aligned_ptr = (uint32_t*)(((uint8_t*)data) + len_unaligned);
+        unaligned_ptr = (uint8_t*)data;
+    } else {
+        aligned_ptr = data;
+        unaligned_ptr = (uint8_t*)data + len_aligned;
+    }
+
+    if (!read) {
+        /* clear the register */
+        cc3xx_lowlevel_pka_clear(reg_id);
+    }
 
     /* Make sure we have a physical register mapped for the virtual register */
     ensure_virt_reg_is_mapped(reg_id);
@@ -350,142 +393,103 @@ static void pka_write_reg(cc3xx_pka_reg_id_t reg_id, const uint32_t *data,
     /* Wait for any outstanding operations to finish before performing reads or
      * writes on the PKA SRAM
      */
-    while(!P_CC3XX->pka.pka_done) {}
-    P_CC3XX->pka.pka_sram_addr =
-        P_CC3XX->pka.memory_map[virt_reg_phys_reg[reg_id]];
-    while(!P_CC3XX->pka.pka_done) {}
+    while (!P_CC3XX->pka.pka_done) {}
+    base_address = P_CC3XX->pka.memory_map[virt_reg_phys_reg[reg_id]];
+    *addr_reg = base_address;
 
-#ifndef CC3XX_CONFIG_STRICT_UINT32_T_ALIGNMENT
-    if (swap_endian && (unaligned_bytes > 0)) {
-        uint32_t word;
+    /* Process any full words of data */
+    for (idx = 0; idx < len_aligned / sizeof(uint32_t); idx++) {
+        uint32_t pka_index = is_secret ? permutation_buf[idx] : idx;
+        uint32_t buffer_idx = swap_endian ? len_aligned / sizeof(uint32_t) - 1 - pka_index :
+                                            pka_index;
 
-        /* len = 4 is covered outside this scope */
-        while(len > sizeof(uint32_t)) {
-            uint8_t *data_b = (uint8_t *) data + len - sizeof(uint32_t);
-
-            word = data_b[0] << 24 | data_b[1] << 16 | data_b[2] << 8 | data_b[3];
-            P_CC3XX->pka.pka_sram_wdata = word;
-            while(!P_CC3XX->pka.pka_done) {}
-            len -= sizeof(uint32_t);
+        if (is_secret) {
+            *addr_reg = base_address + pka_index;
         }
 
-        /* Last unaligned word */
-        word = bswap_32(data[0]);
-        word >>= (8 * (sizeof(uint32_t) - unaligned_bytes));
-
-        P_CC3XX->pka.pka_sram_wdata = word;
-        while(!P_CC3XX->pka.pka_done) {}
-
-        return;
-    }
-#endif
-
-    /* Write data */
-    for (idx = 0; idx < len / sizeof(uint32_t); idx++) {
-        P_CC3XX->pka.pka_sram_wdata = swap_endian ? bswap_32(data[(len / sizeof(uint32_t) - 1) - idx])
-                                                  : data[idx];
-        while(!P_CC3XX->pka.pka_done) {}
+        if (read) {
+            aligned_ptr[buffer_idx] = swap_endian ? bswap_32(*data_reg)
+                                                 : *data_reg;
+        } else {
+            *data_reg = swap_endian ? bswap_32(aligned_ptr[buffer_idx])
+                                    : aligned_ptr[buffer_idx];
+        }
     }
 
-#ifndef CC3XX_CONFIG_STRICT_UINT32_T_ALIGNMENT
-    /* Unaligned and little endian */
-    if (unaligned_bytes > 0) {
-        uint32_t word = 0;
-        memcpy(&word, data + len / sizeof(uint32_t), unaligned_bytes);
+    assert(len_unaligned < sizeof(uint32_t));
 
-        P_CC3XX->pka.pka_sram_wdata = word;
-        while(!P_CC3XX->pka.pka_done) {}
+    /* Process the remainer */
+    if (len_unaligned) {
+        uint32_t copy_offset = swap_endian ? sizeof(uint32_t) - len_unaligned : 0;
+
+        if (is_secret) {
+            *addr_reg = base_address + len_aligned / sizeof(uint32_t);
+        }
+
+        if (read) {
+            uint32_t last_word = *data_reg;
+
+            if (swap_endian) {
+                last_word = bswap_32(last_word);
+            }
+
+            memcpy(unaligned_ptr, (uint8_t*)&last_word + copy_offset, len_unaligned);
+        } else {
+            uint32_t last_word = 0;
+
+            memcpy((uint8_t*)&last_word + copy_offset, unaligned_ptr, len_unaligned);
+
+            if (swap_endian) {
+                last_word = bswap_32(last_word);
+            }
+
+            *data_reg = last_word;
+        }
     }
-#endif
 }
 
 void cc3xx_lowlevel_pka_write_reg_swap_endian(cc3xx_pka_reg_id_t reg_id, const uint32_t *data,
                                      size_t len)
 {
-    pka_write_reg(reg_id, (uint32_t *)data, len, true);
+    pka_read_write_reg(reg_id, (uint32_t *)data, len, false, true, false);
 }
 
 void cc3xx_lowlevel_pka_write_reg(cc3xx_pka_reg_id_t reg_id, const uint32_t *data, size_t len)
 {
-    pka_write_reg(reg_id, data, len, false);
+    pka_read_write_reg(reg_id, (uint32_t *)data, len, false, false, false);
 }
 
-static void pka_read_reg(cc3xx_pka_reg_id_t reg_id, uint32_t *data, size_t len,
-                         bool swap_endian)
+void cc3xx_lowlevel_pka_write_secret_reg_swap_endian(cc3xx_pka_reg_id_t reg_id,
+                                                     const uint32_t *secret, size_t len)
 {
-    size_t idx;
-    size_t unaligned_bytes = len & (sizeof(uint32_t) - 1);
+    pka_read_write_reg(reg_id, (uint32_t *)secret, len, false, true, true);
+}
 
-#ifdef CC3XX_CONFIG_STRICT_UINT32_T_ALIGNMENT
-    /* Check alignment */
-    assert(((uintptr_t)data & (sizeof(uint32_t) - 1)) == 0);
-    assert((len & (sizeof(uint32_t) - 1)) == 0);
-#endif
-
-    /* Check slot */
-    assert(reg_id < pka_reg_am_max);
-    assert(virt_reg_in_use[reg_id]);
-    assert(len <= pka_state.reg_size);
-
-    /* Make sure we have a physical register mapped for the virtual register */
-    ensure_virt_reg_is_mapped(reg_id);
-
-    /* The PKA registers can be remapped by the hardware (by swapping value
-     * values of the memory_map registers), so we need to read the memory_map
-     * register to find the correct address.
-     */
-    while(!P_CC3XX->pka.pka_done) {}
-    P_CC3XX->pka.pka_sram_raddr =
-        P_CC3XX->pka.memory_map[virt_reg_phys_reg[reg_id]];
-    while(!P_CC3XX->pka.pka_done) {}
-
-#ifndef CC3XX_CONFIG_STRICT_UINT32_T_ALIGNMENT
-    if (swap_endian && (unaligned_bytes > 0)) {
-        uint32_t word;
-
-        /* len = 4 is covered outside this scope */
-        while(len > sizeof(uint32_t)) {
-            uint8_t *data_b = (uint8_t *) data + len - sizeof(uint32_t);
-
-            word = bswap_32(P_CC3XX->pka.pka_sram_rdata);
-            memcpy(data_b, &word, sizeof(uint32_t));
-            len -= sizeof(uint32_t);
-        }
-
-        /* Last unaligned word */
-        word = bswap_32(P_CC3XX->pka.pka_sram_rdata);
-        memcpy(data, ((uint8_t *) &word) + (sizeof(uint32_t) - unaligned_bytes), unaligned_bytes);
-
-        return;
-    }
-#endif
-
-    /* Copy aligned words */
-    for (idx = 0; idx < len / sizeof(uint32_t); idx++) {
-        if (swap_endian) {
-            data[(len / sizeof(uint32_t) -1) - idx] = bswap_32(P_CC3XX->pka.pka_sram_rdata);
-        } else {
-            data[idx] = P_CC3XX->pka.pka_sram_rdata;
-        }
-    }
-
-#ifndef CC3XX_CONFIG_STRICT_UINT32_T_ALIGNMENT
-    /* Copy remaining unaligned bytes for little endian */
-    if (unaligned_bytes > 0) {
-        uint32_t word = P_CC3XX->pka.pka_sram_rdata;
-        memcpy(data + len / sizeof(uint32_t), &word, unaligned_bytes);
-    }
-#endif
+void cc3xx_lowlevel_pka_write_secret_reg(cc3xx_pka_reg_id_t reg_id, const uint32_t *secret, size_t len)
+{
+    pka_read_write_reg(reg_id, (uint32_t *)secret, len, false, false, true);
 }
 
 void cc3xx_lowlevel_pka_read_reg(cc3xx_pka_reg_id_t reg_id, uint32_t *data, size_t len)
 {
-    pka_read_reg(reg_id, data, len, false);
+    pka_read_write_reg(reg_id, data, len, true, false, false);
 }
 
 void cc3xx_lowlevel_pka_read_reg_swap_endian(cc3xx_pka_reg_id_t reg_id, uint32_t *data, size_t len)
 {
-    pka_read_reg(reg_id, (uint32_t *)data, len, true);
+    pka_read_write_reg(reg_id, data, len, true, true, false);
+}
+
+void cc3xx_lowlevel_pka_read_secret_reg_swap_endian(cc3xx_pka_reg_id_t reg_id,
+                                                    uint32_t *secret, size_t len)
+{
+    pka_read_write_reg(reg_id, secret, len, true, true, true);
+}
+
+void cc3xx_lowlevel_pka_read_secret_reg(cc3xx_pka_reg_id_t reg_id, uint32_t *secret,
+                                        size_t len)
+{
+    pka_read_write_reg(reg_id, secret, len, true, false, true);
 }
 
 /* Calculate the Barrett Tag (https://en.wikipedia.org/wiki/Barrett_reduction)

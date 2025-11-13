@@ -41,6 +41,28 @@ cleanup:
     return;
 }
 
+void pka_test_write_read_secret(struct test_result_t *ret)
+{
+    uint32_t r0;
+    uint64_t val = 0xFEFEFEFE0EFEFEFE;
+    uint64_t readback = 0;
+
+    cc3xx_lowlevel_pka_init(16);
+
+    r0 = cc3xx_lowlevel_pka_allocate_reg();
+
+    cc3xx_lowlevel_pka_write_secret_reg(r0, (uint32_t *)&val, sizeof(val));
+    cc3xx_lowlevel_pka_read_secret_reg(r0, (uint32_t *)&readback, sizeof(readback));
+
+    TEST_ASSERT(memcmp(&val, &readback, sizeof(val)) == 0, "readback not equal to expected val");
+
+    ret->val = TEST_PASSED;
+cleanup:
+    cc3xx_lowlevel_pka_uninit();
+
+    return;
+}
+
 void pka_test_write_partial_read(struct test_result_t *ret)
 {
     uint32_t r0;
@@ -1234,6 +1256,11 @@ static struct test_t pka_tests[] = {
         &pka_test_write_read,
         "CC3XX_PKA_TEST_WRITE_READ",
         "CC3XX PKA write then read test",
+    },
+    {
+        &pka_test_write_read_secret,
+        "CC3XX_PKA_TEST_WRITE_READ_SECRET",
+        "CC3XX PKA write secret then read test secret",
     },
     {
         &pka_test_write_partial_read,

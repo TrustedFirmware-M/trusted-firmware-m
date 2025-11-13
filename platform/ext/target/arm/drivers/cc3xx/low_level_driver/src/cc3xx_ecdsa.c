@@ -79,7 +79,7 @@ static cc3xx_err_t gen_deterministic_k(const uint32_t *private_key, size_t priva
         }
 
         /* Write the generated k into the PKA for the comparison */
-        cc3xx_lowlevel_pka_write_reg_swap_endian(reg_k, scratch, BITS_TO_BYTES(order_len));
+        cc3xx_lowlevel_pka_write_secret_reg_swap_endian(reg_k, scratch, BITS_TO_BYTES(order_len));
 
         is_k_greater_than_n = cc3xx_lowlevel_pka_greater_than(reg_k, reg_n);
 
@@ -110,7 +110,7 @@ static cc3xx_err_t load_validate_private_key(
     const uint32_t *private_key,
     size_t private_key_len)
 {
-    cc3xx_lowlevel_pka_write_reg_swap_endian(private_key_reg, private_key, private_key_len);
+    cc3xx_lowlevel_pka_write_secret_reg_swap_endian(private_key_reg, private_key, private_key_len);
     /* Check that d is less than N */
     if (!cc3xx_lowlevel_pka_less_than(private_key_reg, CC3XX_PKA_REG_N)) {
         FATAL_ERR(CC3XX_ERR_ECDSA_INVALID_KEY);
@@ -157,7 +157,7 @@ cc3xx_err_t cc3xx_lowlevel_ecdsa_genkey(cc3xx_ec_curve_id_t curve_id,
         }
     } while (!cc3xx_lowlevel_pka_greater_than_si(private_key_reg, 0));
 
-    cc3xx_lowlevel_pka_read_reg_swap_endian(private_key_reg, private_key, curve.modulus_size);
+    cc3xx_lowlevel_pka_read_secret_reg_swap_endian(private_key_reg, private_key, curve.modulus_size);
 
     /* Destroy private key register */
     cc3xx_lowlevel_pka_set_to_random(private_key_reg, curve.modulus_size * 8);
@@ -223,7 +223,7 @@ cc3xx_err_t cc3xx_lowlevel_ecdsa_derive_key(
      * it in the PKA as LE we need to swap the endianess of the
      * memory buffer that holds the key when writing it
      */
-    cc3xx_lowlevel_pka_write_reg_swap_endian(
+    cc3xx_lowlevel_pka_write_secret_reg_swap_endian(
         private_key_reg, kdf_output, sizeof(kdf_output));
 
     /* This should never happen in normal operation */
@@ -236,7 +236,7 @@ cc3xx_err_t cc3xx_lowlevel_ecdsa_derive_key(
 
     cc3xx_lowlevel_pka_reduce(private_key_reg);
 
-    cc3xx_lowlevel_pka_read_reg_swap_endian(private_key_reg, output_key, curve_data->modulus_size);
+    cc3xx_lowlevel_pka_read_secret_reg_swap_endian(private_key_reg, output_key, curve_data->modulus_size);
 
     if (out_length != NULL) {
         *out_length = curve_data->modulus_size;
