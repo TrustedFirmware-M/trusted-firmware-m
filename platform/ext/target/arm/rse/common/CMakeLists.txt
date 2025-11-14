@@ -366,6 +366,11 @@ if (TFM_PARTITION_CRYPTO)
             ./device/config
             ${RSE_SUBPLATFORM_PAL_CONFIG_DIR}
     )
+
+    target_compile_definitions(platform_crypto_keys
+        PRIVATE
+            $<$<BOOL:${TEST_S_RSE_IMAGE_VERIFICATION}>:TEST_S_RSE_IMAGE_VERIFICATION>
+    )
 endif()
 
 #========================= Platform BL2 =======================================#

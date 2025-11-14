@@ -182,6 +182,41 @@ static enum tfm_plat_err_t tfm_plat_get_dak_seed(const void *ctx,
 }
 #endif /* TFM_PARTITION_DELEGATED_ATTESTATION */
 
+#ifdef TEST_S_RSE_IMAGE_VERIFICATION
+/* This is the hash of the tfm/bl2/ext/mcuboot/root-EC-P256.pem key */
+static uint8_t test_key_hash[] = {
+    0xe3, 0x04, 0x66, 0xf6, 0xb8, 0x47, 0x0c, 0x1f,
+    0x29, 0x07, 0x0b, 0x17, 0xf1, 0xe2, 0xd3, 0xe9,
+    0x4d, 0x44, 0x5e, 0x3f, 0x60, 0x80, 0x87, 0xfd,
+    0xc7, 0x11, 0xe4, 0x38, 0x2b, 0xb5, 0x38, 0xb6,
+};
+
+static enum tfm_plat_err_t tfm_plat_get_riv_test_key(const void *ctx,
+                                                uint8_t *buf, size_t buf_len,
+                                                size_t *key_len,
+                                                psa_key_bits_t *key_bits,
+                                                psa_algorithm_t *algorithm,
+                                                psa_key_type_t *type)
+{
+    if (buf_len < 32) {
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
+
+    *key_len = 32;
+    *key_bits = 256;
+    *type = PSA_KEY_TYPE_RAW_DATA;
+    /*
+     * This is an unstructured key hash but the algorithm attribute can
+     * be used for signaling the hash algorithm that was used for the key.
+     */
+    *algorithm = PSA_ALG_SHA_256;
+
+    memcpy(buf, test_key_hash, 32);
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
+#endif /* TEST_S_RSE_IMAGE_VERIFICATION */
+
 #ifdef TFM_PARTITION_DPE
 static enum tfm_plat_err_t tfm_plat_get_rot_cdi(const void *ctx,
                                                 uint8_t *buf, size_t buf_len,
@@ -336,6 +371,16 @@ static const tfm_plat_builtin_key_per_user_policy_t g_rot_cdi_per_user_policy[] 
 };
 #endif /* TFM_PARTITION_DPE */
 
+#ifdef TEST_S_RSE_IMAGE_VERIFICATION
+/**
+ * @brief Table describing per-user key policy for the RIV test key
+ *
+ */
+static const tfm_plat_builtin_key_per_user_policy_t g_riv_test_key_per_user_policy[] = {
+    {.user = TFM_SP_RSE_IMAGE_VERIFICATION, .usage = PSA_KEY_USAGE_EXPORT},
+};
+#endif /* TEST_S_RSE_IMAGE_VERIFICATION */
+
 /**
  * @brief Table describing per-user key policy for all the CM HOST RoTPKs
  *
@@ -385,6 +430,11 @@ static const tfm_plat_builtin_key_policy_t g_builtin_keys_policy[] = {
      .per_user_policy = NUMBER_OF_ELEMENTS_OF(g_rot_cdi_per_user_policy),
      .policy_ptr = g_rot_cdi_per_user_policy},
 #endif /* TFM_PARTITION_DPE */
+#ifdef TEST_S_RSE_IMAGE_VERIFICATION
+    {.key_id = TFM_BUILTIN_RIV_TEST_KEY,
+     .per_user_policy = NUMBER_OF_ELEMENTS_OF(g_riv_test_key_per_user_policy),
+     .policy_ptr = g_riv_test_key_per_user_policy},
+#endif /* TEST_S_RSE_IMAGE_VERIFICATION */
 };
 
 /**
@@ -417,6 +467,13 @@ static const tfm_plat_builtin_key_descriptor_t g_builtin_keys_desc[] = {
      .loader_key_func = tfm_plat_get_rot_cdi,
      .loader_key_ctx = NULL},
 #endif /* TFM_PARTITION_DPE */
+#ifdef TEST_S_RSE_IMAGE_VERIFICATION
+    {.key_id = TFM_BUILTIN_RIV_TEST_KEY,
+     .slot_number = TFM_BUILTIN_KEY_SLOT_RIV_TEST_KEY,
+     .lifetime = TFM_BUILTIN_KEY_LOADER_LIFETIME,
+     .loader_key_func = tfm_plat_get_riv_test_key,
+     .loader_key_ctx = NULL},
+#endif /* TEST_S_RSE_IMAGE_VERIFICATION */
 };
 
 size_t tfm_plat_builtin_key_get_policy_table_ptr(const tfm_plat_builtin_key_policy_t *policy_ptr[])
