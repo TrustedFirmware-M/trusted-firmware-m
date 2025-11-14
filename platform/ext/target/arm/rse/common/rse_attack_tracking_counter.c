@@ -17,7 +17,8 @@
 
 void increment_attack_tracking_counter_major(void)
 {
-    uint32_t tmp;
+    /* Explict cast from uint8_t[] to uint32_t * so that we can iterate word-by-word */
+    volatile uint32_t *ctr = (volatile uint32_t *)P_RSE_OTP_HEADER->lft_counter;
 
 #ifndef NDEBUG
     /* In debug modes, catch this error to see if it is a programmer error */
@@ -25,10 +26,10 @@ void increment_attack_tracking_counter_major(void)
 #endif
 
     for (uint32_t idx = 0; idx < MAJOR_LFT_COUNTER_WORD_SIZE; idx++) {
-        tmp = P_RSE_OTP_HEADER->lft_counter[idx] + 1;
+        uint32_t tmp = ctr[idx] + 1;
 
-        if (tmp) {
-            P_RSE_OTP_HEADER->lft_counter[idx] = tmp;
+        if (tmp > 0) {
+            ctr[idx] = tmp;
             break;
         }
     }
