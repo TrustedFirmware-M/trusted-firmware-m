@@ -422,6 +422,11 @@ SECTIONS
     Image$$TFM_SP_META_PTR_END$$ZI$$Limit = Image$$TFM_SP_META_PTR$$ZI$$Limit;
 #endif
 
+#ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
+    /* Record the FLASH load address right before the first entry of the copy area */
+    .flash_marker1 : ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT) { } > RAM AT > FLASH
+#endif
+
 {% for partition in partitions %}
     {% if partition.manifest.type == 'APPLICATION-ROT' %}
 
@@ -593,27 +598,24 @@ SECTIONS
         ITCM_FILES:(SORT_BY_ALIGNMENT(.rodata*))
         . = ALIGN(TFM_LINKER_ITCM_CODE_ALIGNMENT);
     } > ITCM AT > FLASH
+#endif
 
 #ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
-    .tfm_runtime_sp_stacks (NOLOAD) : ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT)
+    /*
+     * Align the overlay load region in FLASH.
+     * We can’t rely on section placement alone, since we need the LMA
+     * to be aligned.
+     * This expression ensures the next section’s load address starts at
+     * a properly aligned boundary in FLASH for the overlay area.
+     */
+    Image$$PT_OVERLAY_AREA_BEGIN$$Base = LOADADDR(.flash_marker1);
+
+    .tfm_runtime_sp_stacks Image$$PT_OVERLAY_AREA_BEGIN$$Base (NOLOAD) : ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT)
     {
-        Image$$PT_OVERLAY_AREA_BEGIN$$Base = .;
         KEEP(*(.tfm_runtime_sp_stacks*))
     } > FLASH
-
-    /* Place an empty area after the copied area to extend it to fit the SP stacks */
-    .ER_AREA_EXTENSION :
-    {
-        reusable_area = . - Image$$PT_OVERLAY_AREA_BEGIN$$Base;
-        /* The area must not be negative! */
-        . += (reusable_area>= SIZEOF(.tfm_runtime_sp_stacks))
-                ? 0
-                : (SIZEOF(.tfm_runtime_sp_stacks) - reusable_area);
-        . = ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT);
-    } > FLASH
     Image$$PT_OVERLAY_AREA_END$$Base = .;
-#endif
-#endif
+#endif /* CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS */
 
     .TFM_BSS (NOLOAD) : ALIGN(TFM_LINKER_TFM_BSS_ALIGNMENT)
     {
