@@ -113,7 +113,11 @@ extern "C" {
 #define FIH_LABEL(str) __asm volatile ("FIH_LABEL_" str "_%=:" ::);
 #endif
 
+#if defined(__ICCARM__)
+#define FIH_LABEL_CRITICAL_POINT() FIH_LABEL("FIH_CRITICAL_POINT", __LINE__, __COUNTER__)
+#else
 #define FIH_LABEL_CRITICAL_POINT() FIH_LABEL("FIH_CRITICAL_POINT")
+#endif
 
 /*
  * FIH return type macro changes the function return types to fih_ret.
