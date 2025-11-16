@@ -107,3 +107,7 @@ target_sources(bl1_1_psa_crypto
     PRIVATE
 )
 
+target_compile_options(bl1_1_psa_crypto
+    PUBLIC
+        ${BL1_COMPILER_CP_FLAG}
+)
