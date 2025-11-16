@@ -68,6 +68,10 @@ if(NOT CRYPTO_HW_ACCELERATOR)
         PUBLIC
             bl2_crypto_config
     )
+    target_compile_options(bl2_fallback_rng
+        PRIVATE
+            ${BL2_COMPILER_CP_FLAG}
+    )
 endif()
 
 set(is_384_bit_curve "$<STREQUAL:${SIG_LEN},384>")
