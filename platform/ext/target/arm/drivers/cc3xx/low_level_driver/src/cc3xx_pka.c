@@ -363,6 +363,8 @@ static void pka_read_write_reg(cc3xx_pka_reg_id_t reg_id, uint32_t *data,
     if (is_secret) {
         /* The maximum index that can be shuffled is 256 for word-wise elements */
         assert(len < (UINT8_MAX * sizeof(uint32_t)));
+        /* is_secret and check_alignment must be set at the same time */
+        assert(check_alignment);
 
         cc3xx_lowlevel_rng_get_random_permutation(permutation_buf, sizeof(permutation_buf));
     }
@@ -422,10 +424,6 @@ static void pka_read_write_reg(cc3xx_pka_reg_id_t reg_id, uint32_t *data,
     /* Process the remainder */
     if (len_unaligned) {
         uint32_t copy_offset = swap_endian ? sizeof(uint32_t) - len_unaligned : 0;
-
-        if (is_secret) {
-            *addr_reg = base_address + len_aligned / sizeof(uint32_t);
-        }
 
         if (read) {
             uint32_t last_word = *data_reg;
