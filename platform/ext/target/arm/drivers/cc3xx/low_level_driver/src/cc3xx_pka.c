@@ -418,7 +418,7 @@ static void pka_read_write_reg(cc3xx_pka_reg_id_t reg_id, uint32_t *data,
 
     assert(len_unaligned < sizeof(uint32_t));
 
-    /* Process the remainer */
+    /* Process the remainder */
     if (len_unaligned) {
         uint32_t copy_offset = swap_endian ? sizeof(uint32_t) - len_unaligned : 0;
 
