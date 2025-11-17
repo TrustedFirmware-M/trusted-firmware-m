@@ -361,7 +361,8 @@ static void pka_read_write_reg(cc3xx_pka_reg_id_t reg_id, uint32_t *data,
     }
 
     if (is_secret) {
-        assert(len < UINT8_MAX * sizeof(uint32_t));
+        /* The maximum index that can be shuffled is 256 for word-wise elements */
+        assert(len < (UINT8_MAX * sizeof(uint32_t)));
 
         cc3xx_lowlevel_rng_get_random_permutation(permutation_buf, sizeof(permutation_buf));
     }
