@@ -170,7 +170,7 @@ LR_CODE S_CODE_START S_CODE_SIZE {
      * Sort the partition info by priority to guarantee the initing order.
      * The first loaded partition will be inited at last in SFN model.
      */
-    TFM_SP_LOAD_LIST +0 ALIGN 4 {
+    TFM_SP_LOAD_LIST +0 ALIGN TFM_LINKER_PT_RO_DATA_ALIGNMENT {
         *(.part_load)
     }
 
@@ -208,7 +208,7 @@ LR_CODE S_CODE_START S_CODE_SIZE {
 
 #ifdef S_RAM_CODE_START
     /* Flash drivers code that gets copied from Flash */
-    ER_CODE_SRAM S_RAM_CODE_START ALIGN 4 {
+    ER_CODE_SRAM S_RAM_CODE_START ALIGN 32 {
         *libflash_drivers*(+RO)
         *(.ramfunc)
     }
@@ -372,12 +372,12 @@ LR_CODE S_CODE_START S_CODE_SIZE {
     }
 
     /* The runtime partition placed order is same as load partition */
-    ER_PART_RT_POOL +0 ALIGN 4 {
+    ER_PART_RT_POOL +0 ALIGN TFM_LINKER_TFM_BSS_ALIGNMENT {
         *(.bss.part_runtime)
     }
 
     /* The runtime service placed order is same as load partition */
-    ER_SERV_RT_POOL +0 ALIGN 4 {
+    ER_SERV_RT_POOL +0 ALIGN TFM_LINKER_TFM_BSS_ALIGNMENT {
         *(.bss.serv_runtime)
     }
 

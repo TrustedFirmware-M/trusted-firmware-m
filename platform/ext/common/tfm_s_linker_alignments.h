@@ -7,10 +7,14 @@
  *
  */
 
-/* This file defines default alignments for TFM secure linker script sections.
- * If needed, platform may define some/all of them in its' region_defs.h
- * file.*/
-
+/** @def group tfm_linker_align Linker section alignment
+ *  @brief Controls alignment for sections in the linker scripts.
+ *
+ *  This file defines default alignments for TFM secure linker script sections.
+ *  If needed, platform may define some/all of them in its' region_defs.h
+ *  file.
+ *   @{
+ */
 #ifndef __TFM_S_LINKER_ALIGNMENTS__
 #define __TFM_S_LINKER_ALIGNMENTS__
 
@@ -27,113 +31,241 @@
  */
 #define CHECK_ALIGNMENT_256(addr) ASSERT((addr % 256) == 0, #addr)
 
-/* Default alignment for linker file sections is set to 32 because ARM TrustZone
- * protection units (SAU and MPU) require regions to be 32 bytes aligned. */
+/**
+ * @def   TFM_LINKER_DEFAULT_ALIGNMENT
+ * @brief Default alignment for linker file sections is set to 32 because ARM TrustZone
+ * protection units (SAU and MPU) require regions to be 32 bytes aligned.
+ */
 #ifndef TFM_LINKER_DEFAULT_ALIGNMENT
 #define TFM_LINKER_DEFAULT_ALIGNMENT    32
 #endif
 
+#if (TFM_LINKER_DEFAULT_ALIGNMENT < 0x20) || ((TFM_LINKER_DEFAULT_ALIGNMENT & 0x1F) != 0)
+#error "TFM_LINKER_DEFAULT_ALIGNMENT must be set to 32 bytes or multiple of it"
+#endif
+
+/**
+ * \def  TFM_LINKER_TFM_VECTORS_ALIGNMENT
+ */
+#ifndef TFM_LINKER_TFM_VECTORS_ALIGNMENT
+#define TFM_LINKER_TFM_VECTORS_ALIGNMENT            TFM_LINKER_DEFAULT_ALIGNMENT
+#endif
+
+/**
+ * \def  TFM_LINKER_TFM_DATA_ALIGNMENT
+ */
+#ifndef TFM_LINKER_TFM_DATA_ALIGNMENT
+#define TFM_LINKER_TFM_DATA_ALIGNMENT               TFM_LINKER_DEFAULT_ALIGNMENT
+#endif
+
+/**
+ * \def  TFM_LINKER_TFM_BSS_ALIGNMENT
+ */
+#ifndef TFM_LINKER_TFM_BSS_ALIGNMENT
+#define TFM_LINKER_TFM_BSS_ALIGNMENT                TFM_LINKER_DEFAULT_ALIGNMENT
+#endif
+
+/**
+ * \def  TFM_LINKER_TFM_HEAP_ALIGNMENT
+ */
+#ifndef TFM_LINKER_TFM_HEAP_ALIGNMENT
+#define TFM_LINKER_TFM_HEAP_ALIGNMENT               TFM_LINKER_DEFAULT_ALIGNMENT
+#endif
+
+/**
+ * \def  TFM_LINKER_TFM_SECURE_DATA_ALIGNMENT
+ */
+#ifndef TFM_LINKER_TFM_SECURE_DATA_ALIGNMENT
+#define TFM_LINKER_TFM_SECURE_DATA_ALIGNMENT        TFM_LINKER_DEFAULT_ALIGNMENT
+#endif
+
+/**
+ * \def  TFM_LINKER_SRAM_CODE_ALIGNMENT
+ */
+#ifndef TFM_LINKER_SRAM_CODE_ALIGNMENT
+#define TFM_LINKER_SRAM_CODE_ALIGNMENT        TFM_LINKER_DEFAULT_ALIGNMENT
+#endif
+
+/**
+ * \def  TFM_LINKER_ITCM_CODE_ALIGNMENT
+ */
+#ifndef TFM_LINKER_ITCM_CODE_ALIGNMENT
+#define TFM_LINKER_ITCM_CODE_ALIGNMENT              TFM_LINKER_DEFAULT_ALIGNMENT
+#endif
+
+/**
+ * \def  TFM_LINKER_VENEERS_ALIGNMENT
+ */
 #ifndef TFM_LINKER_VENEERS_ALIGNMENT
 #define TFM_LINKER_VENEERS_ALIGNMENT            TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_PSA_ROT_LINKER_CODE_ALIGNMENT
+ */
 #ifndef TFM_LINKER_PSA_ROT_LINKER_CODE_ALIGNMENT
 #define TFM_LINKER_PSA_ROT_LINKER_CODE_ALIGNMENT    TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_APP_ROT_LINKER_CODE_ALIGNMENT
+ */
 #ifndef TFM_LINKER_APP_ROT_LINKER_CODE_ALIGNMENT
 #define TFM_LINKER_APP_ROT_LINKER_CODE_ALIGNMENT    TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_SHARED_SYMBOLS_ALIGNMENT
+ */
 #ifndef TFM_LINKER_SHARED_SYMBOLS_ALIGNMENT
 #define TFM_LINKER_SHARED_SYMBOLS_ALIGNMENT     TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT
+ */
 #ifndef TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT
 #define TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT    TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_MSP_STACK_ALIGNMENT
+ */
 #ifndef TFM_LINKER_MSP_STACK_ALIGNMENT
 #define TFM_LINKER_MSP_STACK_ALIGNMENT          TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_SP_META_PTR_ALIGNMENT
+ */
 #ifndef TFM_LINKER_SP_META_PTR_ALIGNMENT
 #define TFM_LINKER_SP_META_PTR_ALIGNMENT        TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_APP_ROT_LINKER_DATA_ALIGNMENT
+ */
 #ifndef TFM_LINKER_APP_ROT_LINKER_DATA_ALIGNMENT
 #define TFM_LINKER_APP_ROT_LINKER_DATA_ALIGNMENT    TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_PSA_ROT_LINKER_DATA_ALIGNMENT
+ */
 #ifndef TFM_LINKER_PSA_ROT_LINKER_DATA_ALIGNMENT
 #define TFM_LINKER_PSA_ROT_LINKER_DATA_ALIGNMENT    TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_UNPRIV_CODE_ALIGNMENT
+ */
 #ifndef TFM_LINKER_UNPRIV_CODE_ALIGNMENT
 #define TFM_LINKER_UNPRIV_CODE_ALIGNMENT        TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_PT_RO_ALIGNMENT
+ */
 #ifndef TFM_LINKER_PT_RO_ALIGNMENT
 #define TFM_LINKER_PT_RO_ALIGNMENT              TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_PT_OVERLAY_ALIGNMENT
+ * @brief Only when CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS is enabled
+ */
 #ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
 #ifndef TFM_LINKER_PT_OVERLAY_ALIGNMENT
 #define TFM_LINKER_PT_OVERLAY_ALIGNMENT         TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 #endif
 
+/**
+ * \def  TFM_LINKER_PT_UNPRIV_CODE_ALIGNMENT
+ */
 #ifndef TFM_LINKER_PT_UNPRIV_CODE_ALIGNMENT
 #define TFM_LINKER_PT_UNPRIV_CODE_ALIGNMENT     TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_PT_APP_ROT_CODE_ALIGNMENT
+ */
 #ifndef TFM_LINKER_PT_APP_ROT_CODE_ALIGNMENT
 #define TFM_LINKER_PT_APP_ROT_CODE_ALIGNMENT    TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_PT_PSA_ROT_CODE_ALIGNMENT
+ */
 #ifndef TFM_LINKER_PT_PSA_ROT_CODE_ALIGNMENT
 #define TFM_LINKER_PT_PSA_ROT_CODE_ALIGNMENT    TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_PT_RO_DATA_ALIGNMENT
+ */
 #ifndef TFM_LINKER_PT_RO_DATA_ALIGNMENT
 #define TFM_LINKER_PT_RO_DATA_ALIGNMENT         TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_PT_APP_ROT_DATA_ALIGNMENT
+ */
 #ifndef TFM_LINKER_PT_APP_ROT_DATA_ALIGNMENT
 #define TFM_LINKER_PT_APP_ROT_DATA_ALIGNMENT    TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT
+ */
 #ifndef TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT
 #define TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT  TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_PT_PSA_ROT_DATA_ALIGNMENT
+ */
 #ifndef TFM_LINKER_PT_PSA_ROT_DATA_ALIGNMENT
 #define TFM_LINKER_PT_PSA_ROT_DATA_ALIGNMENT    TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT
+ */
 #ifndef TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT
 #define TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT  TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
+/**
+ * \def  TFM_LINKER_SPM_CODE_ALIGNMENT
+ */
 #ifndef TFM_LINKER_SPM_CODE_ALIGNMENT
 #define TFM_LINKER_SPM_CODE_ALIGNMENT  TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
-/* Alignment of stack of NS agent TZ partition. This should not be needed once
- * TZ NS agent partition is reworked to use manifest files. */
+/* TODO: This should not be needed once TZ NS agent partition is reworked to use manifest files. */
+/**
+ * \def  TFM_LINKER_NS_AGENT_TZ_STACK_ALIGNMENT
+ */
 #ifndef TFM_LINKER_NS_AGENT_TZ_STACK_ALIGNMENT
 #define TFM_LINKER_NS_AGENT_TZ_STACK_ALIGNMENT  TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
-/* Alignment of stack of Idle partition. This should not be needed once Idle
- * partition is reworked to use manifest files. */
+/* TODO: This should not be needed once Idle partition is reworked to use manifest files. */
+/**
+ * \def  TFM_LINKER_IDLE_PARTITION_STACK_ALIGNMENT
+ */
 #ifndef TFM_LINKER_IDLE_PARTITION_STACK_ALIGNMENT
 #define TFM_LINKER_IDLE_PARTITION_STACK_ALIGNMENT   TFM_LINKER_DEFAULT_ALIGNMENT
 #endif
 
-/* Alignment of RAM vector table */
+/**
+ * \def  TFM_LINKER_RAM_VECTORS_ALIGNMENT
+ */
 #ifndef TFM_LINKER_RAM_VECTORS_ALIGNMENT
 #define TFM_LINKER_RAM_VECTORS_ALIGNMENT        256
 #endif
+
+/** @} */ // end of group tfm_linker_align
 
 #endif /* __TFM_S_LINKER_ALIGNMENTS__ */

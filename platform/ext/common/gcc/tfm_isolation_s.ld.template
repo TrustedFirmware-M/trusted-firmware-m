@@ -98,11 +98,10 @@ SECTIONS
     /* Position tag: Start of code + RO-data */
     Image$$PT_RO_START$$Base = ADDR(.TFM_VECTORS);
 
-    .TFM_VECTORS : ALIGN(4)
+    .TFM_VECTORS : ALIGN(TFM_LINKER_TFM_VECTORS_ALIGNMENT)
     {
         __vectors_start__ = .;
         KEEP(*(.vectors))
-        . = ALIGN(4);
         __vectors_end__ = .;
     } > FLASH
 
@@ -329,7 +328,7 @@ SECTIONS
      * Sort the partition info by priority to guarantee the initing order.
      * The first loaded partition will be inited at last in SFN model.
      */
-    .TFM_SP_LOAD_LIST ALIGN(4) :
+    .TFM_SP_LOAD_LIST ALIGN(TFM_LINKER_PT_RO_DATA_ALIGNMENT) :
     {
         KEEP(*(.part_load))
     } > FLASH
@@ -350,7 +349,7 @@ SECTIONS
 
 #ifdef S_RAM_CODE_START
     /* Flash drivers code that gets copied from Flash */
-    .ER_CODE_SRAM ALIGN(S_RAM_CODE_START, 4) :
+    .ER_CODE_SRAM ALIGN(S_RAM_CODE_START, TFM_LINKER_SRAM_CODE_ALIGNMENT) :
     {
         KEEP(*libflash_drivers*(SORT_BY_ALIGNMENT(.text*)))
         KEEP(*libflash_drivers*(SORT_BY_ALIGNMENT(.rodata*)))
@@ -441,10 +440,10 @@ SECTIONS
         {% endfor %}
     {% endif %}
         *({{partition.manifest.name}}_APP-ROT_ATTR_RW)
-        . = ALIGN(4);
+        . = ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT);
     } > RAM AT > FLASH
 
-    .ER_{{partition.manifest.name}}_BSS (NOLOAD) : ALIGN(4)
+    .ER_{{partition.manifest.name}}_BSS (NOLOAD) : ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT)
     {
         start_of_{{partition.manifest.name}}_bss = .;
     {% if partition.attr.linker_pattern.library_list %}
@@ -461,7 +460,7 @@ SECTIONS
     {% endif %}
         *({{partition.manifest.name}}_APP-ROT_ATTR_ZI)
         . += (. - start_of_{{partition.manifest.name}}_bss) ? 0 : 4;
-        . = ALIGN(4);
+        . = ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT);
     } > RAM
 
     /* Position tag: End of Application RoT partition's private data */
@@ -518,7 +517,7 @@ SECTIONS
 
 #ifdef ENABLE_HEAP
     __heap_size__ = S_HEAP_SIZE;
-    .heap ALIGN(8) (NOLOAD) :
+    .heap ALIGN(TFM_LINKER_TFM_HEAP_ALIGNMENT) (NOLOAD) :
     {
         __end__ = .;
         PROVIDE(end = .);
@@ -546,14 +545,14 @@ SECTIONS
         {% endfor %}
     {% endif %}
         *({{partition.manifest.name}}_PSA-ROT_ATTR_RW)
-        . = ALIGN(4);
+        . = ALIGN(TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT);
     {% if partition.manifest.place_in_dtcm %}
         } > DTCM AT > FLASH
     {% else %}
         } > RAM AT > FLASH
     {% endif %}
 
-    .ER_{{partition.manifest.name}}_BSS (NOLOAD) : ALIGN(4)
+    .ER_{{partition.manifest.name}}_BSS (NOLOAD) : ALIGN(TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT)
     {
     {% if partition.attr.linker_pattern.library_list %}
         {% for pattern in partition.attr.linker_pattern.library_list %}
@@ -568,7 +567,7 @@ SECTIONS
         {% endfor %}
     {% endif %}
         *({{partition.manifest.name}}_PSA-ROT_ATTR_ZI)
-        . = ALIGN(4);
+        . = ALIGN(TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT);
         /* Position tag: End of PSA RoT partition's private data */
         Image$$PT_{{partition.manifest.name}}_PRIVATE_DATA_END$$Base = .;
     {% if partition.manifest.place_in_dtcm %}
@@ -579,12 +578,12 @@ SECTIONS
     {% endif %}
 {% endfor %}
 
-    .TFM_DATA ALIGN(4) :
+    .TFM_DATA ALIGN(TFM_LINKER_TFM_DATA_ALIGNMENT) :
     {
         *(SORT_BY_ALIGNMENT(.data*))
 
         KEEP(*(.jcr*))
-        . = ALIGN(4);
+        . = ALIGN(TFM_LINKER_TFM_DATA_ALIGNMENT);
     } > RAM AT > FLASH
 
 #ifdef S_RUNTIME_ITCM_START
@@ -592,11 +591,11 @@ SECTIONS
     {
         ITCM_FILES:(SORT_BY_ALIGNMENT(.text*))
         ITCM_FILES:(SORT_BY_ALIGNMENT(.rodata*))
-        . = ALIGN(4);
+        . = ALIGN(TFM_LINKER_ITCM_CODE_ALIGNMENT);
     } > ITCM AT > FLASH
 
 #ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
-    .tfm_runtime_sp_stacks (NOLOAD) : ALIGN(4)
+    .tfm_runtime_sp_stacks (NOLOAD) : ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT)
     {
         Image$$PT_OVERLAY_AREA_BEGIN$$Base = .;
         KEEP(*(.tfm_runtime_sp_stacks*))
@@ -610,13 +609,13 @@ SECTIONS
         . += (reusable_area>= SIZEOF(.tfm_runtime_sp_stacks))
                 ? 0
                 : (SIZEOF(.tfm_runtime_sp_stacks) - reusable_area);
-        . = ALIGN(8);
+        . = ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT);
     } > FLASH
     Image$$PT_OVERLAY_AREA_END$$Base = .;
 #endif
 #endif
 
-    .TFM_BSS (NOLOAD) : ALIGN(4)
+    .TFM_BSS (NOLOAD) : ALIGN(TFM_LINKER_TFM_BSS_ALIGNMENT)
     {
         __bss_start__ = .;
 
@@ -624,7 +623,7 @@ SECTIONS
         __partition_runtime_start__ = .;
         KEEP(*(.bss.part_runtime))
         __partition_runtime_end__ = .;
-        . = ALIGN(4);
+        . = ALIGN(TFM_LINKER_TFM_BSS_ALIGNMENT);
 
         /* The runtime service placed order is same as load partition */
         __service_runtime_start__ = .;
@@ -632,7 +631,7 @@ SECTIONS
         __service_runtime_end__ = .;
         *(SORT_BY_ALIGNMENT(.bss*))
         *(COMMON)
-        . = ALIGN(4);
+        . = ALIGN(TFM_LINKER_TFM_BSS_ALIGNMENT);
         __bss_end__ = .;
     } > RAM
     Image$$ER_PART_RT_POOL$$ZI$$Base = __partition_runtime_start__;
