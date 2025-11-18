@@ -62,8 +62,7 @@ target_sources(tfm_spm
 
 #========================= Files for building NS side platform ================#
 
-install(FILES       nrfx_config_nrf5340_application.h
-                    ns/CMakeLists.txt
+install(FILES       ns/CMakeLists.txt
                     config.cmake
                     cpuarch.cmake
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/common/nrf5340

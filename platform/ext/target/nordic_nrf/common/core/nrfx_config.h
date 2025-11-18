@@ -96,16 +96,6 @@
 #define NRF_PERIPH(P) P##_S
 #endif
 
-#if defined(NRF5340_XXAA_APPLICATION)
-    #include <nrfx_config_nrf5340_application.h>
-#elif defined(NRF91_SERIES)
-    #include <nrfx_config_nrf91.h>
-#elif defined(NRF54L_SERIES)
-    #include <nrfx_config_nrf54l.h>
-#elif defined(NRF71_SERIES)
-    #include <nrfx_config_nrf71.h>
-#else
-    #error "Unknown device."
-#endif
+#include <templates/nrfx_templates_config.h>
 
 #endif // NRFX_CONFIG_H__
