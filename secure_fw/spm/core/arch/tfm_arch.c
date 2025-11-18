@@ -5,12 +5,13 @@
  *
  */
 
-#include "compiler_ext_defs.h"
 #include "security_defs.h"
 #include "tfm_arch.h"
 #include "tfm_core_trustzone.h"
 #include "utilities.h"
 #include "config_impl.h"
+
+#include "compiler_ext_defs.h" /* Keep last. */
 
 #if defined(__ICCARM__) && (CONFIG_TFM_FLOAT_ABI >= 1)
 #pragma required = tfm_arch_clear_fp_data

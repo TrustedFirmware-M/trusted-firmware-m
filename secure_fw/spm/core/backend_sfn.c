@@ -9,7 +9,7 @@
  */
 
 #include <stdint.h>
-#include "compiler_ext_defs.h"
+#include <assert.h>
 #include "current.h"
 #include "runtime_defs.h"
 #include "tfm_hal_platform.h"
@@ -23,7 +23,8 @@
 #include "psa/service.h"
 #include "spm.h"
 #include "memory_symbols.h"
-#include "private/assert.h"
+
+#include "compiler_ext_defs.h" /* Keep last. */
 
 /* SFN Partition state */
 #define SFN_PARTITION_STATE_NOT_INITED        0

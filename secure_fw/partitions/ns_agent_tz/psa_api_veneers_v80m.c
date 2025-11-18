@@ -8,7 +8,6 @@
 #include <stdint.h>
 
 #include "cmsis_compiler.h"
-#include "compiler_ext_defs.h"
 #include "config_impl.h"
 #include "security_defs.h"
 #include "svc_num.h"
@@ -17,6 +16,8 @@
 #include "psa/client.h"
 #include "psa/service.h"
 #include "tfm_arch.h"
+
+#include "compiler_ext_defs.h" /* Keep last. */
 
 /*
  * This is the veneers of FF-M Client APIs for Armv8.0-m.

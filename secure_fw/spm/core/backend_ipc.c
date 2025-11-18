@@ -13,7 +13,6 @@
 #include "async.h"
 #include "config_spm.h"
 #include "critical_section.h"
-#include "compiler_ext_defs.h"
 #include "config_spm.h"
 #include "ffm/psa_api.h"
 #include "fih.h"
@@ -34,6 +33,8 @@
 #include "psa/error.h"
 #include "internal_status_code.h"
 #include "sprt_partition_metadata_indicator.h"
+
+#include "compiler_ext_defs.h" /* Keep last. */
 
 /* Declare the global component list */
 struct partition_head_t partition_listhead;

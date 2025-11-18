@@ -5,10 +5,11 @@
  *
  */
 
-#include "compiler_ext_defs.h"
 #include "internal_status_code.h"
 #include "spm.h"
 #include "tfm_arch.h"
+
+#include "compiler_ext_defs.h" /* Keep last. */
 
 #ifdef CONFIG_TFM_CONN_HANDLE_MAX_NUM
 #pragma message("CONFIG_TFM_CONN_HANDLE_MAX_NUM is not used in SFN model without connection-based services.")

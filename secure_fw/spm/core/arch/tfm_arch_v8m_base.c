@@ -9,7 +9,6 @@
  */
 
 #include <inttypes.h>
-#include "compiler_ext_defs.h"
 #include "config_spm.h"
 #include "security_defs.h"
 #include "spm.h"
@@ -18,6 +17,8 @@
 #include "tfm_arch.h"
 #include "tfm_svcalls.h"
 #include "utilities.h"
+
+#include "compiler_ext_defs.h" /* Keep last. */
 
 #if !defined(__ARM_ARCH_8M_BASE__)
 #error "Unsupported ARM Architecture."
