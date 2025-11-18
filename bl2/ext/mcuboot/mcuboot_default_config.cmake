@@ -68,6 +68,11 @@ else()
 endif()
 set(MCUBOOT_IMAGE_BINDING                    OFF             CACHE BOOL      "Enable image binding support for images")
 
+if(MCUBOOT_IMAGE_BINDING)
+    set(TLV_METADATA    "0x00A4;0xffffffffffffffffffffffffffffffff"  CACHE STRING "16 bytes of metadata used for image binding")
+    set(TLV_BINDING_TAG "0x00A5;0xffffffffffffffffffffffffffffffff"  CACHE STRING "16 bytes of binding tag used for image binding")
+endif()
+
 if (MCUBOOT_SIGNATURE_TYPE STREQUAL EC-P384)
     set(MCUBOOT_ROTPK_HASH_ALG          SHA384           CACHE STRING "Algoritm to use to hash mcuboot ROTPKs")
 else()

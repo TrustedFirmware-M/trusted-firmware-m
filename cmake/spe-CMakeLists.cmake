@@ -233,6 +233,13 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             ${CMAKE_BINARY_DIR}/bin/${NS_TARGET_NAME}_signed.bin
         )
 
+        if(MCUBOOT_IMAGE_BINDING)
+            list(APPEND wrapper_args
+                --extra-tlv "${TLV_METADATA}"
+                --extra-tlv "${TLV_BINDING_TAG}"
+            )
+        endif()
+
         if(MCUBOOT_BUILTIN_KEY)
             set(wrapper_args ${wrapper_args} --psa-key-ids ${TFM_NS_KEY_ID})
         endif()
@@ -312,6 +319,13 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             ${CMAKE_BINARY_DIR}/bin/tfm_s_ns.bin
             ${CMAKE_BINARY_DIR}/tfm_s_ns_signed.bin
         )
+
+        if(MCUBOOT_IMAGE_BINDING)
+            list(APPEND wrapper_args
+                --extra-tlv "${TLV_METADATA}"
+                --extra-tlv "${TLV_BINDING_TAG}"
+            )
+        endif()
 
         if(MCUBOOT_BUILTIN_KEY)
             set(wrapper_args ${wrapper_args} --psa-key-ids ${TFM_S_KEY_ID})

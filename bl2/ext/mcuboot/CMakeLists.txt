@@ -251,6 +251,13 @@ if (PLATFORM_DEFAULT_IMAGE_SIGNING)
         ${CMAKE_CURRENT_BINARY_DIR}/tfm_s_signed.bin
     )
 
+    if(MCUBOOT_IMAGE_BINDING)
+        list(APPEND wrapper_args
+            --extra-tlv "${TLV_METADATA}"
+            --extra-tlv "${TLV_BINDING_TAG}"
+        )
+    endif()
+
     if(MCUBOOT_BUILTIN_KEY)
         set(wrapper_args ${wrapper_args} --psa-key-ids ${TFM_S_KEY_ID})
         if(MCUBOOT_IMAGE_MULTI_SIG_SUPPORT AND PLATFORM_DEFAULT_ROTPK)

@@ -88,6 +88,12 @@ os.environ['LANG'] = 'C.UTF-8'
               'the image manifest: full key or hash of the key.')
 @click.option('--psa-key-ids', multiple=True, type=int, required=False,
               help='List of integer key IDs for each signature.')
+@click.option('--extra-tlv', required=False, nargs=2, default=[], multiple=True,
+              metavar='[tag] [value]',
+              help='Unprotected vendor TLV to append. '
+                   'tag is an integer (e.g. 0x00A4). '
+                   'value is 0x<hexbytes> (e.g. 16 bytes of FF) or a string. '
+                   'Repeat to add multiple TLVs.')
 @click.option('-k', '--key', multiple=True, metavar='filename')
 @click.command(help='''Create a signed or unsigned image\n
                INFILE and OUTFILE are parsed as Intel HEX if the params have
@@ -95,7 +101,8 @@ os.environ['LANG'] = 'C.UTF-8'
 def wrap(key, align, version, header_size, pad_header, layout, pad, confirm,
          max_sectors, overwrite_only, endian, encrypt, infile, outfile,
          dependencies, hex_addr, erased_val, save_enctlv, public_key_format,
-         security_counter, encrypt_keylen, measured_boot_record, psa_key_ids):
+         security_counter, encrypt_keylen, measured_boot_record, psa_key_ids,
+         extra_tlv):
 
     slot_size = macro_parser.evaluate_macro(layout, sign_bin_size_re, 0, 1)
     load_addr = macro_parser.evaluate_macro(layout, load_addr_re, 0, 1)
@@ -134,6 +141,24 @@ def wrap(key, align, version, header_size, pad_header, layout, pad, confirm,
         print("wrapper.py: PSA key ids provided: " + ", ".join(hex(x) for x in psa_key_ids))
         img.set_key_ids(psa_key_ids)
 
+    extra_tlvs = {}
+    for tlv in extra_tlv:
+        tag_str, val_str = tlv
+        tag = int(tag_str, 0)
+        if tag in extra_tlvs:
+            raise click.UsageError(f'Extra TLV {hex(tag)} already exists.')
+        if val_str.startswith('0x'):
+            hexstr = val_str[2:]
+            if len(hexstr) % 2:
+                raise click.UsageError('Extra TLV length is odd.')
+            extra_tlvs[tag] = bytes.fromhex(hexstr)
+        else:
+            extra_tlvs[tag] = val_str.encode('utf-8')
+
+
+    for tag, val in extra_tlvs.items():
+        print(f'wrapper.py: Extra TLV {hex(tag)}: {val}')
+
     if key:
         keys = [imgtool.main.load_key(k) for k in key]
     else:
@@ -147,7 +172,8 @@ def wrap(key, align, version, header_size, pad_header, layout, pad, confirm,
             raise click.UsageError("Signing and encryption must use the same "
                                    "type of key")
     img.create(keys, public_key_format, enckey, dependencies, record_sw_type,
-               None, encrypt_keylen=int(encrypt_keylen))
+               None, encrypt_keylen=int(encrypt_keylen),
+               extra_tlvs=extra_tlvs)
     img.save(outfile, hex_addr)
 
 def main():
