@@ -66,6 +66,7 @@ if(MCUBOOT_IMAGE_MULTI_SIG_SUPPORT)
 else()
     set(MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE     1           CACHE STRING    "Maximum number of RoTPK keys per image to be used in BL2")
 endif()
+set(MCUBOOT_IMAGE_BINDING                    OFF             CACHE BOOL      "Enable image binding support for images")
 
 if (MCUBOOT_SIGNATURE_TYPE STREQUAL EC-P384)
     set(MCUBOOT_ROTPK_HASH_ALG          SHA384           CACHE STRING "Algoritm to use to hash mcuboot ROTPKs")

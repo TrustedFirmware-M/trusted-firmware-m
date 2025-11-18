@@ -1,7 +1,5 @@
 #-------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
-# Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon company)
-# or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -486,6 +484,7 @@ target_compile_definitions(platform_bl2
         $<$<BOOL:${RSE_USE_SDS_LIB}>:RSE_USE_SDS_LIB>
         $<$<BOOL:${RSE_BL2_ENABLE_IMAGE_STAGING}>:RSE_BL2_ENABLE_IMAGE_STAGING>
         $<$<BOOL:${MCUBOOT_IMAGE_MULTI_SIG_SUPPORT}>:MCUBOOT_IMAGE_MULTI_SIG_SUPPORT>
+        $<$<BOOL:${MCUBOOT_IMAGE_BINDING}>:MCUBOOT_IMAGE_BINDING>
         $<$<BOOL:${MCUBOOT_ROTPK_SIGN_POLICY}>:MCUBOOT_ROTPK_SIGN_POLICY>
         MAX_KEYS_PER_IMAGE=${MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE}
 )
