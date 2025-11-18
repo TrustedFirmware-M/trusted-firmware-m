@@ -19,6 +19,14 @@
  * It is defined as weak to allow the sdk-nrf version to be used when available. */
 void __attribute__((weak)) CRACEN_IRQHandler(void){};
 
+void __attribute__((weak)) wifi_setup(void){
+	/* Kickstart the LMAC processor */
+	NRF_WIFICORE_LRCCONF_LRC0->POWERON =
+		(LRCCONF_POWERON_MAIN_AlwaysOn << LRCCONF_POWERON_MAIN_Pos);
+	NRF_WIFICORE_LMAC_VPR->INITPC = NRF_WICR->RESERVED[0];
+	NRF_WIFICORE_LMAC_VPR->CPURUN = (VPR_CPURUN_EN_Running << VPR_CPURUN_EN_Pos);
+}
+
 int  __attribute__((weak)) soc_early_init_hook(void){
 	/* Update the SystemCoreClock global variable with current core clock
 	 * retrieved from hardware state.
@@ -26,6 +34,7 @@ int  __attribute__((weak)) soc_early_init_hook(void){
 #if !defined(CONFIG_TRUSTED_EXECUTION_NONSECURE) || defined(__NRF_TFM__)
 	/* Currently not supported for non-secure */
 	SystemCoreClockUpdate();
+	wifi_setup();
 #endif
 	return 0;
 }

@@ -204,7 +204,15 @@ enum tfm_plat_err_t nrf_mpc_init_cfg(void)
 	 * owner ID 0.
 	 */
 
-	uint32_t index = 0;
+	/* Related ticket: WZN-7283 and WZN-7278
+	 * assigning Wi-Fi register in MPC00 to be non-secure to align with Wi-Fi non secure base address
+	 * NRF_MPC->REGION[9].CONFIG = 0x320A; w-r = 1, secattr = NS , slave_num = 10
+	 */
+	*(volatile uint32_t*) 0x50041690 = 0x320A;
+
+	uint32_t index_mpc00 = 0;
+	uint32_t index_mpc03 = 0;
+
 	/*
 	 * Configure the non-secure partition of the non-volatile
 	 * memory. This MPC region is intended to cover both the
@@ -218,7 +226,7 @@ enum tfm_plat_err_t nrf_mpc_init_cfg(void)
 
 		override.start_address = memory_regions.non_secure_partition_base;
 		override.endaddr = NRF_UICR_S_BASE;
-		override.index = index++;
+		override.index = index_mpc00++;
 
 		mpc_configure_override(NRF_MPC00, &override);
 	}
@@ -231,25 +239,72 @@ enum tfm_plat_err_t nrf_mpc_init_cfg(void)
 
 		override.start_address = NS_DATA_START;
 		override.endaddr = 1 + NS_DATA_LIMIT;
-		override.index = index++;
+		override.index = index_mpc00++;
 
 		mpc_configure_override(NRF_MPC00, &override);
 	}
 
-	if (index > 6) {
-		/* Used more overrides than are available */
-		tfm_core_panic();
+	/* Wi-Fi registers addr */
+	{
+		struct mpc_region_override override;
+
+		init_mpc_region_override(&override);
+
+		override.start_address = 0x48000000;
+		override.endaddr = 0x48100000;
+		override.index = index_mpc00++;
+
+		mpc_configure_override(NRF_MPC00, &override);
+	}
+
+	/* Configure RAM02 non-secure access via MPC00 for Wi-Fi non-sec access */
+	{
+		struct mpc_region_override override;
+
+		init_mpc_region_override(&override);
+
+		override.start_address = 0x200C0000;
+		override.endaddr = 0x200E0000;
+		override.index = index_mpc00++;
+
+		mpc_configure_override(NRF_MPC00, &override);
+	}
+
+	/* Configure RAM02 non-secure access via MPC03 for Wi-Fi non-sec access */
+	{
+		struct mpc_region_override override;
+
+		init_mpc_region_override(&override);
+
+		override.start_address = 0x200C0000;
+		override.endaddr = 0x200E0000;
+		override.index = index_mpc03++;
+
+		mpc_configure_override(NRF_MPC03, &override);
 	}
 
 	/* Lock and disable any unused MPC overrides to prevent malicious configuration */
-	while (index <= 6) {
+	while (index_mpc00 <= 6) {
 		struct mpc_region_override override;
 
 		init_mpc_region_override(&override);
 
 		override.config.enable = false;
 
-		override.index = index++;
+		override.index = index_mpc00++;
+
+		mpc_configure_override(NRF_MPC00, &override);
+	}
+
+	/* Lock and disable any unused MPC overrides to prevent malicious configuration */
+	while (index_mpc03 <= 3) {
+		struct mpc_region_override override;
+
+		init_mpc_region_override(&override);
+
+		override.config.enable = false;
+
+		override.index = index_mpc03++;
 
 		mpc_configure_override(NRF_MPC00, &override);
 	}
@@ -395,6 +450,28 @@ static void gpio_configuration(void)
 	}
 }
 
+void wifi_peripherals_configuration(void)
+{
+	/* Split security configuration to let Wi-Fi access GRTC */
+	nrf_spu_feature_secattr_set(NRF_SPU20, NRF_SPU_FEATURE_GRTC_CC, 15, 0, 0);
+	nrf_spu_feature_secattr_set(NRF_SPU20, NRF_SPU_FEATURE_GRTC_CC, 14, 0, 0);
+	nrf_spu_feature_secattr_set(NRF_SPU20, NRF_SPU_FEATURE_GRTC_INTERRUPT, 4, 0, 0);
+	nrf_spu_feature_secattr_set(NRF_SPU20, NRF_SPU_FEATURE_GRTC_INTERRUPT, 5, 0, 0);
+	nrf_spu_feature_secattr_set(NRF_SPU20, NRF_SPU_FEATURE_GRTC_SYSCOUNTER, 0, 0, 0);
+
+	/* TODO: Wi-Fi VPR uses UART 20 (PORT 2 Pin 2 is for the TX)
+	 * remove this line when we move to new PINSET that support uart20:
+	 * https://nordicsemi.atlassian.net/browse/WZN-6764
+	 */
+	spu_peripheral_config_non_secure(NRF_UARTE20_S_BASE, true);
+	nrf_spu_feature_secattr_set(NRF_SPU00, NRF_SPU_FEATURE_GPIO_PIN, 2, 2,
+				    SPU_FEATURE_GPIO_PIN_SECATTR_NonSecure);
+
+	/* Set permission for TXD */
+	nrf_spu_feature_secattr_set(NRF_SPU20, NRF_SPU_FEATURE_GPIO_PIN, 1, 4,
+				    SPU_FEATURE_GPIO_PIN_SECATTR_NonSecure);
+}
+
 enum tfm_plat_err_t spu_periph_init_cfg(void)
 {
 	/* Peripheral configuration */
@@ -430,6 +507,7 @@ enum tfm_plat_err_t spu_periph_init_cfg(void)
 
 	gpiote_channel_configuration();
 	gpio_configuration();
+	wifi_peripherals_configuration();
 
 	nrf_cache_enable(NRF_ICACHE);
 
