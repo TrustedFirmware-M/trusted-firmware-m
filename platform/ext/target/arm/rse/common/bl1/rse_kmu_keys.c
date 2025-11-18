@@ -36,6 +36,7 @@ static const struct kmu_key_export_config_t aes_key1_export_config = {
     .write_mask_disable = false, /* Don't disable the masking */
 };
 
+#ifdef RSE_XIP
 static const struct kmu_key_export_config_t sic_dr0_export_config = {
     .export_address = SIC_BASE_S + 0x120, /* CC3XX DR0_KEY_WORD0 register */
     .destination_port_write_delay = 0, /* No delay */
@@ -55,6 +56,7 @@ static const struct kmu_key_export_config_t sic_dr1_export_config = {
     .new_mask_for_next_key_writes = true,  /* refresh the masking */
     .write_mask_disable = false, /* Don't disable the masking */
 };
+#endif /* RSE_XIP */
 
 static const struct kmu_key_export_config_t cc3xx_pka_sram_key_config = {
     .export_address = CC3XX_BASE_S + 0xFD0, /* CC3XX keystore mux. This address is reused from the
@@ -650,8 +652,7 @@ enum tfm_plat_err_t rse_setup_runtime_secure_image_encryption_key(void)
     if (kmu_err != KMU_ERROR_NONE) {
         return (enum tfm_plat_err_t) kmu_err;
     }
-
-#endif
+#endif /* RSE_XIP */
 
     plat_err = setup_key_from_derivation(KMU_HW_SLOT_KCE_CM, NULL,
                                          label, sizeof(label), NULL, 0,
@@ -707,8 +708,7 @@ enum tfm_plat_err_t rse_setup_runtime_non_secure_image_encryption_key(void)
     if (kmu_err != KMU_ERROR_NONE) {
         return (enum tfm_plat_err_t) kmu_err;
     }
-
-#endif
+#endif /* RSE_XIP */
 
     return TFM_PLAT_ERR_SUCCESS;
 }

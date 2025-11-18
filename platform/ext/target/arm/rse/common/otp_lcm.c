@@ -655,9 +655,7 @@ static enum tfm_plat_err_t otp_read_lcs(size_t out_len, uint8_t *out)
 
 static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
 {
-    enum tfm_plat_err_t err;
-    enum lcm_error_t lcm_err;
-    uint32_t zero_count;
+    enum tfm_plat_err_t err = TFM_PLAT_ERR_SUCCESS;
     enum lcm_lcs_t dm_dynamic_area_lcs;
 
     if (new_lcs == LCM_LCS_DM) {
@@ -680,7 +678,7 @@ static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
         }
-    #endif
+#endif /* RSE_OTP_HAS_CM_AREA */
 
 #if defined(RSE_OTP_HAS_BL1_2)
         err = rse_zc_region_write_zero_count(ZC_OTP_HEADER_BL1_2_AREA);
@@ -711,7 +709,7 @@ static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
     dm_dynamic_area_lcs = LCM_LCS_SE;
 #else
     dm_dynamic_area_lcs = LCM_LCS_DM;
-#endif
+#endif /* DM_SETS_DM_AND_DYNAMIC_AREA_SIZE */
 
     if (new_lcs == dm_dynamic_area_lcs) {
 #if defined(RSE_OTP_HAS_DM_AREA)
@@ -730,7 +728,6 @@ static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
         dynamic_area_info.raw_data = P_RSE_OTP_HEADER->dynamic_area_info.raw_data;
 #endif /* RSE_OTP_HAS_DYNAMIC_AREA */
     }
-
 
     if (new_lcs == LCM_LCS_SE) {
 #if defined(RSE_OTP_HAS_DM_AREA)
@@ -753,7 +750,7 @@ static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
 #endif /* RSE_OTP_HAS_DM_AREA */
     }
 
-    return TFM_PLAT_ERR_SUCCESS;
+    return err;
 }
 
 static enum tfm_plat_err_t otp_write_lcs(size_t in_len, const uint8_t *in)
