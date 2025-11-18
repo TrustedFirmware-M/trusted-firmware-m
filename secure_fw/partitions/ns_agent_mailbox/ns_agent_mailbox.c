@@ -19,7 +19,7 @@
 #include "tfm_rpc.h"
 #include "tfm_log_unpriv.h"
 
-#include "compiler_ext_defs.h"
+#include "compiler_ext_defs.h" /* Keep last. */
 
 static void boot_ns_core(void)
 {

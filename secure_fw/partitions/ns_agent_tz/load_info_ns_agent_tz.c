@@ -12,7 +12,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "compiler_ext_defs.h"
 #include "config_impl.h"
 #include "spm.h"
 #include "load/partition_defs.h"
@@ -24,6 +23,8 @@
  */
 #include "region_defs.h"
 #include "tfm_s_linker_alignments.h"
+
+#include "compiler_ext_defs.h" /* Keep last. */
 
 #define TFM_SP_NS_AGENT_NDEPS                                   (0)
 #define TFM_SP_NS_AGENT_NSERVS                                  (0)

@@ -15,7 +15,8 @@
 #include "service_api.h"
 #include "psa/service.h"
 #include "psa_manifest/tfm_firmware_update.h"
-#include "compiler_ext_defs.h"
+
+#include "compiler_ext_defs.h" /* Keep last. */
 
 #define COMPONENTS_ITER(x)  \
     for ((x) = 0; (x) < (FWU_COMPONENT_NUMBER); (x)++)

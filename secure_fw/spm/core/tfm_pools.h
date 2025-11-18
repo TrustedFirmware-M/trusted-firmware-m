@@ -9,8 +9,9 @@
 
 #include <stdbool.h>
 #include "psa/error.h"
-#include "compiler_ext_defs.h"
 #include "lists.h"
+
+#include "compiler_ext_defs.h" /* Keep last. */
 
 /*
  * Pool Instance:

@@ -10,7 +10,6 @@
 
 #include <inttypes.h>
 
-#include "compiler_ext_defs.h"
 #include "config_spm.h"
 #include "security_defs.h"
 #include "region_defs.h"
@@ -21,6 +20,8 @@
 #include "tfm_svcalls.h"
 #include "utilities.h"
 #include "ffm/backend.h"
+
+#include "compiler_ext_defs.h" /* Keep last. */
 
 #if !defined(__ARM_ARCH_8M_MAIN__) && !defined(__ARM_ARCH_8_1M_MAIN__)
 #error "Unsupported ARM Architecture."

@@ -9,10 +9,11 @@
  */
 #include <stdint.h>
 
-#include "compiler_ext_defs.h"
 #include "security_defs.h"
 #include "tfm_arch.h"
 #include "tfm_hal_platform.h"
+
+#include "compiler_ext_defs.h" /* Keep last. */
 
 __naked void ns_agent_tz_main(uint32_t c_entry)
 {

@@ -6,7 +6,6 @@
  */
 
 #include <inttypes.h>
-#include "compiler_ext_defs.h"
 #include "security_defs.h"
 #include "utilities.h"
 #include "spm.h"
@@ -14,6 +13,8 @@
 #include "tfm_hal_device_header.h"
 #include "tfm_svcalls.h"
 #include "svc_num.h"
+
+#include "compiler_ext_defs.h" /* Keep last. */
 
 #if !defined(__ARM_ARCH_6M__) && !defined(__ARM_ARCH_7M__) && \
     !defined(__ARM_ARCH_7EM__)

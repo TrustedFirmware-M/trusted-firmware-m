@@ -14,7 +14,6 @@
 #include "async.h"
 #include "config_spm.h"
 #include "critical_section.h"
-#include "compiler_ext_defs.h"
 #include "config_spm.h"
 #include "ffm/psa_api.h"
 #include "fih.h"
@@ -38,6 +37,8 @@
 #if TFM_PARTITION_NS_AGENT_MAILBOX == 1
 #include "psa_manifest/ns_agent_mailbox.h"
 #endif
+
+#include "compiler_ext_defs.h" /* Keep last. */
 
 /* Declare the global component list */
 struct partition_head_t partition_listhead;

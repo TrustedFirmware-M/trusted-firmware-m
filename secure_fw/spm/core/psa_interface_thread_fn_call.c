@@ -4,7 +4,6 @@
  */
 
 #include <stdint.h>
-#include "compiler_ext_defs.h"
 #include "config_spm.h"
 #include "ffm/psa_api.h"
 #include "spm.h"
@@ -15,6 +14,8 @@
 #include "psa/service.h"
 #include "runtime_defs.h"
 #include "tfm_arch.h"
+
+#include "compiler_ext_defs.h" /* Keep last. */
 
 #if defined(__ICCARM__)
 #pragma required = tfm_arch_thread_fn_call
