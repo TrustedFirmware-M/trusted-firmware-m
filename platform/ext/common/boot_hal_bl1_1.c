@@ -156,7 +156,8 @@ __WEAK void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
 
 __WEAK __NO_RETURN void boot_platform_error_state(uint32_t error)
 {
-    ERROR("Fatal boot error %x\r\n", error);
+    ERROR("Fatal boot error 0x%x (0x%x)\r\n",
+        error, fih_ret_decode_zero_equality((fih_ret)error));
     while(1){}
 }
 
