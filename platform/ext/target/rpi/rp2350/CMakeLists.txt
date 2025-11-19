@@ -246,6 +246,7 @@ if(BL2)
             bl2/boot_hal_bl2.c
             cmsis_drivers/Driver_Flash_RPI_bl2.c
             cmsis_drivers/Driver_USART_RPI.c
+            tfm_plat_boot_measurement.c
             $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_OTP}>>:${CMAKE_CURRENT_SOURCE_DIR}/rp2350_otp.c>
             $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_NV_COUNTERS}>>:${CMAKE_CURRENT_SOURCE_DIR}/nv_counters.c>
     )

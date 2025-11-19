@@ -34,6 +34,9 @@ enum boot_measurement_slot_t {
     __BOOT_MEASUREMENT_MAX_VAL = UINT32_MAX
 };
 
+/* Default size for `sw_type` string borrowed from definition
+   in `boot_measurement_metadata` */
+extern char boot_measurement_sw_type[BOOT_MEASUREMENT_SLOT_RT_2 + 1][10];
 #else
 #include "tfm_plat_boot_measurement.h"
 #endif /* PLATFORM_DEFAULT_MEASUREMENT_SLOTS */

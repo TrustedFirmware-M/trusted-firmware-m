@@ -84,6 +84,7 @@ target_sources(platform_s
         $<$<OR:$<BOOL:${TEST_S_FPU}>,$<BOOL:${TEST_NS_FPU}>>:${CMAKE_SOURCE_DIR}/platform/ext/common/test_interrupt.c>
         $<$<BOOL:${TFM_SANITIZE}>:ext/common/tfm_sanitize_handlers.c>
         ./ext/common/tfm_fatal_error.c
+        $<$<BOOL:${PLATFORM_DEFAULT_MEASUREMENT_SLOTS}>:${CMAKE_SOURCE_DIR}/platform/ext/common/tfm_boot_measurement.c>
 )
 
 # If this is not added to the tfm_s it will not correctly override the weak

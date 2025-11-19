@@ -20,4 +20,9 @@ enum boot_measurement_slot_t {
                                                  */
 };
 
+
+/* Default size for `sw_type` string borrowed from definition
+   in `boot_measurement_metadata` */
+extern char boot_measurement_sw_type[BOOT_MEASUREMENT_SLOT_RT_2 + 1][10];
+
 #endif /* __BOOT_MEASUREMENT_H__ */

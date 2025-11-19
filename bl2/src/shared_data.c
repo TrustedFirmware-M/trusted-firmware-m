@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -246,29 +246,16 @@ int boot_save_shared_data(const struct image_header *hdr,
     /* Determine the index of the measurement slot. */
     slot_id = BOOT_MEASUREMENT_SLOT_RT_0 + mcuboot_image_id;
 
-    switch (slot_id) {
-    case BOOT_MEASUREMENT_SLOT_RT_0:
-        if (sizeof(metadata.sw_type) < sizeof("RT_0")) {
-            return 1;
-        }
-        memcpy(metadata.sw_type, "RT_0", sizeof("RT_0"));
-        break;
-    case BOOT_MEASUREMENT_SLOT_RT_1:
-        if (sizeof(metadata.sw_type) < sizeof("RT_1")) {
-            return 1;
-        }
-        memcpy(metadata.sw_type, "RT_1", sizeof("RT_1"));
-        break;
-    case BOOT_MEASUREMENT_SLOT_RT_2:
-        if (sizeof(metadata.sw_type) < sizeof("RT_2")) {
-            return 1;
-        }
-        memcpy(metadata.sw_type, "RT_2", sizeof("RT_2"));
-        break;
-    default:
-        /* Proceed without this piece of data. */
-        break;
+    if (slot_id > sizeof(boot_measurement_sw_type)/sizeof(boot_measurement_sw_type[0])) {
+        return 1;
     }
+
+    if (sizeof(metadata.sw_type) < sizeof(boot_measurement_sw_type[slot_id])) {
+        return 1;
+    }
+
+    memcpy(metadata.sw_type, boot_measurement_sw_type[slot_id],
+           sizeof(boot_measurement_sw_type[slot_id]));
 
     rc = collect_image_measurement_and_metadata(hdr, fap,
                                                 &metadata,

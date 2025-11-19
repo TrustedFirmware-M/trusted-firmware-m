@@ -366,6 +366,7 @@ endif()
 target_sources(platform_bl2
     PRIVATE
         tfm_hal_platform_reset.c
+        tfm_plat_boot_measurement.c
         device/source/device_definition.c
         $<$<BOOL:${RSE_DEFAULT_CLOCK_CONFIG}>:${CMAKE_CURRENT_SOURCE_DIR}/device/source/rse_clocks.c>
         device/source/system_core_init.c
