@@ -205,6 +205,7 @@ target_include_directories(platform_s
         ${PLATFORM_DIR}/ext/target/arm/drivers/kmu
         ${PLATFORM_DIR}/ext/target/arm/drivers/lcm
         ${PLATFORM_DIR}/ext/target/arm/drivers/gpio/pl061
+        ${PLATFORM_DIR}/ext/target/arm/drivers/ppu
         ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog
         ./bringup_helpers
         ./cc3xx
@@ -452,6 +453,7 @@ target_include_directories(platform_bl2
         ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/include
         ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/default_config
         ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog
+        ${PLATFORM_DIR}/ext/target/arm/drivers/ppu
         ./bringup_helpers
         ./cc3xx
         bl2/cc3xx
@@ -584,6 +586,7 @@ target_include_directories(platform_bl1_1_interface
         ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/include
         ${PLATFORM_DIR}/ext/target/arm/drivers/dcsu/default_config
         ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog
+        ${PLATFORM_DIR}/ext/target/arm/drivers/ppu
         ./bringup_helpers
         ./cc3xx
         ./bl1/cc3xx
