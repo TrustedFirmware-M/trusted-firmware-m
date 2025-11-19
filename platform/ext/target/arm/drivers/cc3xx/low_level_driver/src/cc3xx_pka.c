@@ -750,7 +750,7 @@ static uint32_t CC3XX_ATTRIBUTE_INLINE opcode_construct(enum cc3xx_pka_operation
 uint32_t cc3xx_lowlevel_pka_get_bit_size(cc3xx_pka_reg_id_t r0)
 {
     int32_t idx;
-    uint32_t word;
+    uint32_t word = 0;
 
     ensure_virt_reg_is_mapped(r0);
 
