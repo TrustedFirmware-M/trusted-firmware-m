@@ -50,6 +50,7 @@ enum boot_measurement_slot_t {
 #define MAX_SHARED_BOOT_DATA_LENGTH \
     ((2 + MCUBOOT_IMAGE_NUMBER + ROTPK_MEASUREMENT_COUNT) * SHARED_BOOT_MEASUREMENT_SIZE)
 
+#ifdef TFM_PARTITION_DTPM_CLIENT
 /**
  * \brief                               Initializes the PCR index mapping for
  *                                      boot measurement slots.
@@ -77,6 +78,7 @@ int init_pcr_index_for_boot_measurement(void);
  *                                      slot, or -1 if uninitialized.
  */
 int8_t get_pcr_index_for_boot_measurement(uint8_t slot);
+#endif /*TFM_PARTITION_DTPM_CLIENT*/
 
 #if EVENT_LOG_LIB
 /**
