@@ -372,6 +372,12 @@ uint8_t dma350_is_init(const struct dma350_dev_t *dev)
     return dev->data->state == DMA350_INITIALIZED;
 }
 
+__STATIC_INLINE
+void dma350_enable_retention(struct dma350_dev_t *dev)
+{
+    dev->cfg->dma_sec_ctrl->SEC_CTRL |= DMA_SEC_CTRL_IDLERETEN;
+}
+
 #ifdef __cplusplus
 }
 #endif
