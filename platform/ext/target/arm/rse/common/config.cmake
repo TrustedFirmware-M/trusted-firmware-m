@@ -234,6 +234,7 @@ set(CC3XX_RUNTIME_ENABLED               ON         CACHE BOOL     "Whether the C
 
 set(PLATFORM_DEFAULT_OTP                OFF        CACHE BOOL     "Use trusted on-chip flash to implement OTP memory")
 set(PLATFORM_DEFAULT_MEASUREMENT_SLOTS  OFF        CACHE BOOL     "Use default Measured Boot slots")
+set(RSE_SUBPLATFORM_BOOT_MEASUREMENTS   OFF        CACHE BOOL     "Use RSE subplatform boot measurement slot definition")
 set(PLATFORM_DEFAULT_CRYPTO_KEYS        OFF        CACHE BOOL     "Use default crypto keys implementation.")
 set(PLATFORM_DEFAULT_ROTPK              OFF        CACHE BOOL      "Use default root of trust public key.")
 set(PLATFORM_DEFAULT_PROVISIONING       OFF        CACHE BOOL     "Use default provisioning implementation")

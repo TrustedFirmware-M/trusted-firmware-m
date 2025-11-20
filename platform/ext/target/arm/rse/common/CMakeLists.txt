@@ -18,6 +18,7 @@ target_include_directories(platform_region_defs
     INTERFACE
         partition
         ${RSE_SUBPLATFORM_PAL_CONFIG_DIR}
+        $<$<NOT:$<BOOL:${RSE_SUBPLATFORM_BOOT_MEASUREMENTS}>>:${CMAKE_CURRENT_SOURCE_DIR}/boot_measurement/>
         .
 )
 
@@ -75,6 +76,7 @@ target_compile_definitions(platform_region_defs
         IC_CONFIG_DMA_CACHE_FLUSH_ENABLE
         $<$<BOOL:${TFM_CODE_COVERAGE}>:TFM_CODE_COVERAGE>
         $<$<BOOL:${CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS}>:CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS>
+        $<$<BOOL:${RSE_SUBPLATFORM_BOOT_MEASUREMENTS}>:RSE_SUBPLATFORM_BOOT_MEASUREMENTS>
 )
 
 target_link_options(platform_region_defs
@@ -370,7 +372,6 @@ endif()
 target_sources(platform_bl2
     PRIVATE
         tfm_hal_platform_reset.c
-        tfm_plat_boot_measurement.c
         device/source/device_definition.c
         $<$<BOOL:${RSE_DEFAULT_CLOCK_CONFIG}>:${CMAKE_CURRENT_SOURCE_DIR}/device/source/rse_clocks.c>
         device/source/system_core_init.c
@@ -422,6 +423,7 @@ target_sources(platform_bl2
         ./platform_shared_measurement_data.c
         $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_get_rse_id_from_otp.c>
         ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog/arm_watchdog_drv.c
+        $<$<NOT:$<BOOL:${RSE_SUBPLATFORM_BOOT_MEASUREMENTS}>>:${CMAKE_CURRENT_SOURCE_DIR}/boot_measurement/tfm_plat_boot_measurement.c>
 )
 
 target_include_directories(platform_bl2
