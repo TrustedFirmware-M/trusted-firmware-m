@@ -21,8 +21,8 @@
 #include "region_defs.h"
 #include "tfm_plat_defs.h"
 #include "region.h"
+#include "tfm_utils.h"
 
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof(arr[0]))
 
 /* The section names come from the scatter file */
 REGION_DECLARE(Load$$LR$$, LR_NS_PARTITION, $$Base);

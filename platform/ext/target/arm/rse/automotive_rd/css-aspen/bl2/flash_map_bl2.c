@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  */
 
-#include "array.h"
+#include "tfm_utils.h"
 #include "bl2_image_id.h"
 #include "Driver_Flash.h"
 #include "flash_map/flash_map.h"

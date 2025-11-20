@@ -22,7 +22,7 @@
 #include "tfm_plat_provisioning.h"
 #include "utilities.h"
 #include "region.h"
-#include "array.h"
+#include "tfm_utils.h"
 
 #ifdef __NRF_TFM__
 #include <zephyr/autoconf.h>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -9,11 +9,11 @@
 #include "bootutil/ramload.h"
 #include "platform_base_address.h"
 #include "region_defs.h"
+#include "tfm_utils.h"
 
 /* Flash device name must be specified by target */
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 /*
  * flash_map[0]: TF-M Primary
  * flash_map[1]: TF-M Secondary

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -16,7 +16,7 @@
 #include "target_cfg.h"
 #include "tfm_hal_isolation.h"
 #include "mmio_defs.h"
-#include "array.h"
+#include "tfm_utils.h"
 #include "load/spm_load_api.h"
 
 #define PROT_BOUNDARY_VAL \

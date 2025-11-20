@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, 2023 Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -11,11 +11,11 @@
 #include "bootutil/bootutil_log.h"
 #include "sysflash/sysflash.h"
 #include "Driver_Flash.h"
+#include "tfm_utils.h"
 
 /* Flash device name must be specified by target */
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
 struct flash_area flash_map[] = {
     {

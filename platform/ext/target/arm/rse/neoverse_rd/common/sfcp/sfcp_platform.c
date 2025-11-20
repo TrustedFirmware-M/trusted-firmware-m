@@ -13,7 +13,7 @@
 #include "rse_get_routing_tables.h"
 #include "tfm_plat_otp.h"
 
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
+#include "tfm_utils.h"
 
 static struct sfcp_platform_device_t sender_devices[] = {
     [0] = { 0 },

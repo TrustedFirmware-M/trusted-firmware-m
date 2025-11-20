@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -9,6 +9,7 @@
 #include "flash_map/flash_map.h"
 #include "target.h"
 #include "Driver_Flash.h"
+#include "tfm_utils.h"
 
 /* When undefined FLASH_DEV_NAME_0 or FLASH_DEVICE_ID_0 , default */
 #if !defined(FLASH_DEV_NAME_0) || !defined(FLASH_DEVICE_ID_0)
@@ -41,8 +42,6 @@
 #define FLASH_DEVICE_ID_SCRATCH FLASH_DEVICE_ID
 #endif
 #endif  /* defined(MCUBOOT_SWAP_USING_SCRATCH) */
-
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
 /* Flash device names must be specified by target */
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME_0;

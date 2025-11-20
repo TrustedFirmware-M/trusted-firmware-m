@@ -11,9 +11,9 @@
 
 #include "test_framework.h"
 #include "device_definition.h"
+#include "tfm_utils.h"
 
 /* general helpers */
-#define ARRAY_SIZE(_arr) (sizeof(_arr) / sizeof((_arr)[0]))
 
 #define TEST_ASSERT(cond, msg) \
     if (!(cond)) {             \

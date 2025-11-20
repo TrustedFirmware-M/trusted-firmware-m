@@ -14,12 +14,12 @@
 #include "rse_routing_tables.h"
 #include "rse_get_routing_tables.h"
 #include "tfm_plat_otp.h"
+#include "tfm_utils.h"
 
 #define ROUTING_TABLES_TOTAL_SIZE \
     (sizeof(((struct rse_single_node_routing_tables_t *)0)->routing_table))
 #define ROUTING_TABLES_USED_SIZE \
     (sizeof(((struct rse_single_node_routing_tables_t *)0)->routing_table[0]) * SFCP_NUMBER_NODES)
-#define ARRAY_SIZE(_arr) (sizeof(_arr) / sizeof((_arr)[0]))
 
 #ifdef RSE_OTP_HAS_ROUTING_TABLES
 /* Cache routing tables for faster lookup. This is the same size as

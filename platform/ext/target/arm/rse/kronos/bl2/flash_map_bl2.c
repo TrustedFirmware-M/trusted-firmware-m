@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -10,8 +10,7 @@
 #include "Driver_Flash.h"
 #include "host_base_address.h"
 #include "bl2_image_id.h"
-
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
+#include "tfm_utils.h"
 
 /* Flash device names must be specified by target */
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;

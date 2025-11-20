@@ -10,8 +10,8 @@
 #include "noc_s3_rse_drv.h"
 
 #include <stdint.h>
+#include "tfm_utils.h"
 
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
 /*
  * Platform specific apu region initialization macro wrapper. This macros

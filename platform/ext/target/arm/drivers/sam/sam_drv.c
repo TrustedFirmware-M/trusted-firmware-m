@@ -20,8 +20,7 @@
 
 #include "sam_reg_map.h"
 #include "tfm_hal_device_header.h"
-
-#define ARRAY_LEN(x) (sizeof(x) / sizeof((x)[0]))
+#include "tfm_utils.h"
 
 /* Index in the sames, samecl, samem or samim register arrays for event_id */
 #define SAMEx_IDX(event_id) ((uint32_t)(event_id) >> 0x5UL)
@@ -77,7 +76,7 @@ static void init_icv_regs_store(struct sam_reg_map_t *regs)
     /* Initialise the store with the values of each of the actual (not shadow) registers. Note that
      * we include all of the EC registers
      */
-    for (uint8_t i = 0; i < ARRAY_LEN(icv_regs_store); i++) {
+    for (uint8_t i = 0; i < ARRAY_SIZE(icv_regs_store); i++) {
         volatile uint32_t *reg = (volatile uint32_t *)((uintptr_t)&regs->samem + (4 * i));
 
         /* If this is an event counter that we do not have, initialise the value
@@ -104,7 +103,7 @@ static void write_icv_reg(struct sam_reg_map_t *regs, volatile uint32_t *reg, ui
     /* Write all of the backing store values to the shadow registers and keep
      * track of the zero count
      */
-    for (uint8_t i = 0; i < ARRAY_LEN(icv_regs_store); i++) {
+    for (uint8_t i = 0; i < ARRAY_SIZE(icv_regs_store); i++) {
         volatile uint32_t *reg = (volatile uint32_t *)((uintptr_t)&regs->samem + (4 * i));
 
         /* Event counters that we do not have are not included
@@ -264,7 +263,7 @@ void sam_clear_all_events(const struct sam_dev_t *dev)
 {
     struct sam_reg_map_t *regs = get_sam_dev_base(dev);
 
-    for (uint32_t idx = 0; idx < ARRAY_LEN(regs->samecl); idx++) {
+    for (uint32_t idx = 0; idx < ARRAY_SIZE(regs->samecl); idx++) {
         regs->samecl[idx] = 0xFFFFFFFF;
     }
 }
@@ -299,7 +298,7 @@ void sam_handle_all_events(const struct sam_dev_t *dev)
     /* Iterate over each bit position in each of the SAMES registers to check if
      * the corresponding event ID is pending.
      */
-    for (reg_idx = 0; reg_idx < ARRAY_LEN(regs->sames); reg_idx++) {
+    for (reg_idx = 0; reg_idx < ARRAY_SIZE(regs->sames); reg_idx++) {
         sames_val = regs->sames[reg_idx];
         samecl_val = 0;
 

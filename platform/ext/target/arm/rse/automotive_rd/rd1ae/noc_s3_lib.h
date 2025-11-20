@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -10,7 +10,7 @@
 
 #include "noc_s3_rse_drv.h"
 
-#include "array.h"
+#include "tfm_utils.h"
 #include <stdint.h>
 
 /*

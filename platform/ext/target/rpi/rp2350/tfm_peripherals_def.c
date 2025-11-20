@@ -5,7 +5,7 @@
  */
 
 #include "tfm_peripherals_def.h"
-#include "array.h"
+#include "tfm_utils.h"
 #include "tfm_hal_device_header.h"
 
 /* Allowed named MMIO of this platform */

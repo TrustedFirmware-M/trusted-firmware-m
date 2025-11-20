@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2024 ArmChina. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -7,7 +7,7 @@
  */
 
 #include "tfm_peripherals_def.h"
-#include "array.h"
+#include "tfm_utils.h"
 #include "tfm_hal_device_header.h"
 
 /* Allowed named MMIO of this platform */

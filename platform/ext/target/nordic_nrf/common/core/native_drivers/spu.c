@@ -16,7 +16,7 @@
 
 #include "spu.h"
 #include "region_defs.h"
-#include "array.h"
+#include "tfm_utils.h"
 
 /* Platform-specific configuration */
 #if NRF_SPU_HAS_MEMORY

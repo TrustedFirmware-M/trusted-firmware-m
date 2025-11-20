@@ -20,7 +20,7 @@
 #include "tfm_plat_provisioning.h"
 #include "utilities.h"
 #include "region.h"
-#include "array.h"
+#include "tfm_utils.h"
 #include <nrfx.h>
 
 #if TFM_PERIPHERAL_DCNF_SECURE

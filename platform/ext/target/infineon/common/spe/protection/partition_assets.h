@@ -11,7 +11,7 @@
 
 #include <stddef.h>
 
-#include "array.h"
+#include "tfm_utils.h"
 #include "load/asset_defs.h"
 #include "region_defs.h"
 

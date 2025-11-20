@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
-#include "array.h"
+#include "tfm_utils.h"
 #include "tfm_hal_device_header.h"
 #include "region.h"
 #include "armv8m_mpu.h"

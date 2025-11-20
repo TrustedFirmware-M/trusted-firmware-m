@@ -16,13 +16,13 @@
 #include "rse_otp_dev.h"
 #include "rse_zero_count.h"
 #include "rse_soc_uid.h"
+#include "tfm_utils.h"
 
 #define TEST_ASSERT(cond, msg) \
     if (!(cond)) {             \
         TEST_FAIL(msg);        \
         return;                \
     }
-#define ARRAY_SIZE(_arr) (sizeof(_arr) / sizeof((_arr)[0]))
 
 #define EXPECTED_DATA_BYTES "\xAB\xCD\xEF\x10\x01\x23\x45\x67"
 #define EXPECTED_DATA_BYTES_SIZE (sizeof(EXPECTED_DATA_BYTES) - 1)

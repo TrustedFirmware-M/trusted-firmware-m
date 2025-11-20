@@ -23,8 +23,7 @@
 #include "tfm_crypto_defs.h"
 #include "tfm_log.h"
 #include "tfm_string.h"
-
-#define ARRAY_LENGTH(array) (sizeof(array) / sizeof(*(array)))
+#include "tfm_utils.h"
 
 #define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
 
@@ -646,7 +645,7 @@ attest_create_token(struct q_useful_buf_c *challenge,
         goto error;
     }
 
-    for (i = 0; i < ARRAY_LENGTH(claim_query_funcs); ++i) {
+    for (i = 0; i < ARRAY_SIZE(claim_query_funcs); ++i) {
         /* Calling the attest_add_XXX_claim functions */
         attest_err = claim_query_funcs[i](&attest_token_ctx);
         if (attest_err != PSA_ATTEST_ERR_SUCCESS) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2021-2022 Nordic Semiconductor ASA
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -11,7 +11,7 @@
 #include <tfm_ioctl_core_api.h>
 #include <string.h>
 #include <arm_cmse.h>
-#include <array.h>
+#include <tfm_utils.h>
 #include <tfm_hal_isolation.h>
 
 /* This contains the user provided allowed ranges */

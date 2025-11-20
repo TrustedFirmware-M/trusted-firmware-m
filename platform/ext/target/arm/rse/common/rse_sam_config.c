@@ -11,10 +11,9 @@
 #include "device_definition.h"
 #include "rse_attack_tracking_counter.h"
 #include "dma350_ch_drv.h"
+#include "tfm_utils.h"
 
 #define ADA_DMA_TRIGGER_IN_4    0x4UL
-
-#define ARRAY_LEN(x) (sizeof(x) / sizeof((x)[0]))
 
 static uintptr_t get_ecc_address(const struct sam_dev_t *dev,
                                  enum rse_sam_event_id_t event)
@@ -257,7 +256,7 @@ uint32_t rse_sam_init(enum rse_sam_init_setup_t setup)
         /* Ensure ACK is sent only once */
         static bool trigger_dma_ack = true;
 
-        for (uint32_t idx = 0; idx < ARRAY_LEN(rse_responses); idx++) {
+        for (uint32_t idx = 0; idx < ARRAY_SIZE(rse_responses); idx++) {
             sam_err = sam_set_event_response(&SAM_DEV_S,
                                              idx,
                                              rse_responses[idx]);
@@ -276,7 +275,7 @@ uint32_t rse_sam_init(enum rse_sam_init_setup_t setup)
         }
     }
 
-    for (uint32_t idx = 0; idx < ARRAY_LEN(rse_handlers); idx++) {
+    for (uint32_t idx = 0; idx < ARRAY_SIZE(rse_handlers); idx++) {
         if (rse_handlers[idx] != NULL) {
             sam_err = sam_register_event_handler(&SAM_DEV_S,
                                                  idx,

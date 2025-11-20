@@ -43,6 +43,7 @@
 #endif
 #include "bl1_2_debug.h"
 #include "sku_se_dev.h"
+#include "tfm_utils.h"
 
 #define __CONCAT_(a, b) a##b
 #define _CONCAT(a, b)  __CONCAT_(a, b)
@@ -51,7 +52,6 @@
 #define CASSERT(expr) \
     typedef char _CONCAT(static_assertion_, __LINE__)[(expr) ? 1 : -1]
 
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
 #if (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2)
 #define LOGGING_ENABLED

@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "array.h"
+#include "tfm_utils.h"
 #include "tfm_boot_status.h"
 #include "region_defs.h"
 #include "psa_manifest/pid.h"

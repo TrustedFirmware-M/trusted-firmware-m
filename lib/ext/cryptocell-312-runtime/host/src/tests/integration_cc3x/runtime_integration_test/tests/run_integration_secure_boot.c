@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2001-2019, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
+ *
  */
 
 
@@ -11,6 +12,8 @@
 #include <string.h>
 
 #include <limits.h>
+
+#include "tfm_utils.h"
 
 /* mbedtls lib */
 #include "mbedtls/ccm.h"
@@ -41,10 +44,6 @@
  ************************************************************/
 #define RUNIT_FLASH_SIZE            0x7000
 #define RUNIT_MAX_CHAIN_LENGTH      3
-
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(x)    (uint32_t)(sizeof(x)/sizeof(x[0]))
-#endif
 
 #ifndef RUNIT_SECURE_BOOT_SKIP_TEST
 #define RUNIT_SECURE_BOOT_SKIP_TEST 0

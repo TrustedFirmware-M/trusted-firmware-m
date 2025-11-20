@@ -28,8 +28,8 @@
 #include "cc3xx_drv.h"
 #include "lcm_drv.h"
 #include "psa/crypto.h"
+#include "tfm_utils.h"
 
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
 #define TEST_ASSERT(cond, msg) \
     if (!(cond)) { \

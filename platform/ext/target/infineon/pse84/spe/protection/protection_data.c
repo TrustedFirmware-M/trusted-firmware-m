@@ -8,7 +8,7 @@
 
 #include "config_impl.h"
 #include "config_tfm.h"
-#include "array.h"
+#include "tfm_utils.h"
 #include "cy_device.h"
 #include "project_memory_layout.h"
 #include "protection_regions_cfg.h"

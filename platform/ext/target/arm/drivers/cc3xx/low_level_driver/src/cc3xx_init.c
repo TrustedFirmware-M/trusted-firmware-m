@@ -13,8 +13,8 @@
 #include <assert.h>
 #include "cc3xx_rng.h"
 #include "cc3xx_drv.h"
+#include "tfm_utils.h"
 
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
 static void check_features(void)
 {

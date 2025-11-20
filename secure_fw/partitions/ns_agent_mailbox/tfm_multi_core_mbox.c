@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <stddef.h>
 
-#include "array.h"
+#include "tfm_utils.h"
 #include "internal_status_code.h"
 #include "ns_mailbox_client_id.h"
 #include "tfm_plat_defs.h"

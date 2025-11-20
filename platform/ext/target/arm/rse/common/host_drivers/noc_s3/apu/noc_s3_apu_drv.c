@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -9,10 +9,10 @@
 #include "noc_s3_apu_drv.h"
 #include "noc_s3_apu_reg.h"
 #include "util/noc_s3_util.h"
+#include "tfm_utils.h"
 
 #include <stddef.h>
 
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
 #define NOC_S3_APU_ADDRESS_GRAN      (1ULL << 6)
 #define NOC_S3_APU_ADDRESS_MASK      (~(NOC_S3_APU_ADDRESS_GRAN - 1))

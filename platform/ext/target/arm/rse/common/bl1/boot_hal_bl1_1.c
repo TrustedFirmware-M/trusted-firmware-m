@@ -39,7 +39,7 @@
 #include "psa/crypto.h"
 #include "bl1_random.h"
 
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
+#include "tfm_utils.h"
 
 #if (LOG_LEVEL > LOG_LEVEL_NONE) || defined(TEST_BL1_1) || defined(TEST_BL1_2)
 #define LOGGING_ENABLED

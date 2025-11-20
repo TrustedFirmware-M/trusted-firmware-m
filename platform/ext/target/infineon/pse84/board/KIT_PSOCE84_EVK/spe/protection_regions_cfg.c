@@ -6,7 +6,7 @@
  *
  */
 
-#include "array.h"
+#include "tfm_utils.h"
 #include "project_memory_layout.h"
 #include "cy_device.h"
 #include "protection_regions_cfg.h"

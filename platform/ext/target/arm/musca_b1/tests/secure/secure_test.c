@@ -13,7 +13,7 @@
 #include "cc3xx_tests.h"
 #endif
 
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
+#include "tfm_utils.h"
 
 static struct test_t secure_extra_tests[100];
 

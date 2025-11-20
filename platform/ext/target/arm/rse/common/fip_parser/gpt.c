@@ -12,7 +12,7 @@
 
 #include <string.h>
 
-#define ARRAY_SIZE(x) sizeof(x)/sizeof(x[0])
+#include "tfm_utils.h"
 
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
 #include "tfm_peripherals_def.h"
-#include "array.h"
+#include "tfm_utils.h"
 #include <stddef.h>
 #include <stdint.h>
 

@@ -1,13 +1,12 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
 #include "rse_test_common.h"
-
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
+#include "tfm_utils.h"
 
 static struct test_t bl1_2_extra_tests[100];
 

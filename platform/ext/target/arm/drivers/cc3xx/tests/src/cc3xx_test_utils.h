@@ -13,6 +13,7 @@
 
 #include "test_framework.h"
 #include "tfm_hal_device_header.h"
+#include "tfm_utils.h"
 
 #define TEST_ASSERT(cond, msg) \
     if (!(cond)) { \
@@ -23,7 +24,6 @@
 #define TEST_SETUP(x) TEST_ASSERT((x) == 0, "Test setup failed")
 #define TEST_TEARDOWN(x) TEST_ASSERT((x) == 0, "Test teardown failed")
 
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
 #ifdef __cplusplus
 extern "C" {

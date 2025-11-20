@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -13,7 +13,7 @@
 #include "psa/crypto.h"
 #include "attest.h"
 
-#include "array.h"
+#include "tfm_utils.h"
 #include "psa/framework_feature.h"
 #include "psa/service.h"
 #include "psa_manifest/tfm_initial_attestation.h"

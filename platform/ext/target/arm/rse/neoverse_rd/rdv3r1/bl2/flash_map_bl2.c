@@ -10,8 +10,8 @@
 #include "bl2_image_id.h"
 #include "host_base_address.h"
 #include "target.h"
+#include "tfm_utils.h"
 
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 
 /* Flash device names must be specified by target */
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;

@@ -6,7 +6,7 @@
  *
  */
 
-#include "array.h"
+#include "tfm_utils.h"
 #include "crypto_keys_flash.h"
 #include "psa_manifest/pid.h"
 #include "tfm_builtin_key_ids.h"

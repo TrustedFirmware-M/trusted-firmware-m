@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "array.h"
+#include "tfm_utils.h"
 
 #include <nrfx.h>
 #if defined(RTC_PRESENT)

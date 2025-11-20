@@ -21,6 +21,7 @@
 #include "tfm_plat_otp.h"
 #include "tfm_plat_provisioning.h"
 #include "fwu_agent.h"
+#include "tfm_utils.h"
 
 #if defined(PLATFORM_PSA_ADAC_SECURE_DEBUG) && !defined(PSA_ADAC_AS_TFM_RUNTIME_SERVICE)
 #include "psa_adac_platform.h"
@@ -46,7 +47,6 @@ extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 REGION_DECLARE(Image$$, ER_DATA, $$Base)[];
 REGION_DECLARE(Image$$, ARM_LIB_HEAP, $$ZI$$Limit)[];
 
-#define ARRAY_SIZE(arr) (sizeof(arr)/sizeof((arr)[0]))
 extern struct flash_area flash_map[];
 
 static bool fill_flash_map_with_tfm_data(uint8_t boot_index) {

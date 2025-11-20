@@ -17,7 +17,7 @@
 
 #include <stddef.h>
 
-#include "array.h"
+#include "tfm_utils.h"
 #include "config_impl.h"
 #include "region_defs.h"
 #include "flash_layout.h"
@@ -594,10 +594,10 @@ const ifx_partition_info_t ifx_{{partition.manifest.name|lower}}_info = {
     .p_mem_cfg = &unified_mpc_domains[{{partition.manifest.name|upper}}_UNIFIED_MPC_DOMAIN_IDX],
 #else
     .p_mem_cfg = NULL,
-#endif /* defined(IFX_{{partition.manifest.name|upper}}_CUSTOM_ASSETS) && 
+#endif /* defined(IFX_{{partition.manifest.name|upper}}_CUSTOM_ASSETS) &&
           !defined(IFX_{{partition.manifest.name|upper}}_SKIP_MEMORY_DOMAIN_CONFIGS) */
 #endif /* IFX_MEMORY_CONFIGURATOR_MPC_CONFIG */
-    .p_peri_regions = ARRAY_SIZE(ifx_{{partition.manifest.name|lower}}_ppc_regions_cfg) == 0 ? 
+    .p_peri_regions = ARRAY_SIZE(ifx_{{partition.manifest.name|lower}}_ppc_regions_cfg) == 0 ?
                       NULL : ifx_{{partition.manifest.name|lower}}_ppc_regions_cfg,
     .peri_region_count = ARRAY_SIZE(ifx_{{partition.manifest.name|lower}}_ppc_regions_cfg),
 };

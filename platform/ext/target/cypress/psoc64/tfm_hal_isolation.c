@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -8,7 +8,7 @@
  *
  */
 
-#include "array.h"
+#include "tfm_utils.h"
 #include "cy_device.h"
 #include "mmio_defs.h"
 #include "internal_status_code.h"

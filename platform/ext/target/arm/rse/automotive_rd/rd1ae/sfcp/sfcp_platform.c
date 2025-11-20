@@ -11,7 +11,7 @@
 #include "platform_error_codes.h"
 #include "rse_get_routing_tables.h"
 
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
+#include "tfm_utils.h"
 
 static struct sfcp_platform_device_t sender_devices[] = {
     /* Link ID 0 is reserved */

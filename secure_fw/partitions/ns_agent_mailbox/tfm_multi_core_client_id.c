@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2023-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include <stddef.h>
 
-#include "array.h"
+#include "tfm_utils.h"
 #include "config_tfm.h"
 #include "internal_status_code.h"
 #include "ns_mailbox_client_id.h"

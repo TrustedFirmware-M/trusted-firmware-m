@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 #include "gic_720ae_lib.h"
-#include "array.h"
+#include "tfm_utils.h"
 #include "bootutil/bootutil_log.h"
 #include "gic_720ae_drv.h"
 
