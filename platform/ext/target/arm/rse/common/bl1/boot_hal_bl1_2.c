@@ -326,7 +326,7 @@ int32_t boot_platform_post_init(void)
     }
 
 #ifdef RSE_SKU_ENABLED
-    plat_err = rse_dcu_otp_feature_control(&LCM_DEV_S);
+    plat_err = rse_dcu_otp_feature_control(&LCM_DEV_S, &DCSU_DEV_S);
     if (plat_err) {
         return plat_err;
     }

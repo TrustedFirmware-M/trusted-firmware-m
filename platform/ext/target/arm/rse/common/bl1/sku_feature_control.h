@@ -36,10 +36,11 @@ enum tfm_plat_err_t product_specific_feature_control_handler_2(void);
  * \brief Set feature control related bits in DCU_EN line based on the OTP fields.
  *
  * \param[in] lcm_dev               The LCM device structure.
+ * \param[in] dcsu_dev              The DCSU device structure.
  *
  *
  * \return Returns error code as specified in \ref tfm_plat_err_t
  */
-enum tfm_plat_err_t rse_dcu_otp_feature_control(struct lcm_dev_t *lcm_dev);
+enum tfm_plat_err_t rse_dcu_otp_feature_control(struct lcm_dev_t *lcm_dev, struct dcsu_dev_t *dcsu_dev);
 
 #endif /* __SKU_FEATURE_CONTROL_H__ */
