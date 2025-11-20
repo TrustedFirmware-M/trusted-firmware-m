@@ -130,8 +130,8 @@ def wrap(key, align, version, header_size, pad_header, layout, pad, confirm,
                               max_align=max_align)
 
     img.load(infile)
-    print (f"PSA key ids values: {psa_key_ids}")
-    if psa_key_ids is not None:
+    if len(psa_key_ids) > 0:
+        print("wrapper.py: PSA key ids provided: " + ", ".join(hex(x) for x in psa_key_ids))
         img.set_key_ids(psa_key_ids)
 
     if key:
