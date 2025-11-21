@@ -129,7 +129,7 @@ static void init_mpc_region_override(struct mpc_region_override *override)
 	override->permmask = MPC_OVERRIDE_PERM_SECATTR_Msk;
 }
 
-static nrfx_err_t rramc_configuration(void)
+static int rramc_configuration(void)
 {
 	nrfx_rramc_config_t config = NRFX_RRAMC_DEFAULT_CONFIG(WRITE_BUFFER_SIZE);
 
@@ -148,12 +148,12 @@ static nrfx_err_t rramc_configuration(void)
 	 */
 	nrfx_rramc_evt_handler_t handler = NULL;
 
-	nrfx_err_t err = nrfx_rramc_init(&config, handler);
-	if (err != NRFX_SUCCESS && err != NRFX_ERROR_ALREADY) {
+	int err = nrfx_rramc_init(&config, handler);
+	if (err != 0 && err != -EALREADY) {
 		return err;
 	}
 
-	return NRFX_SUCCESS;
+	return 0;
 }
 
 enum tfm_plat_err_t init_debug(void)
@@ -472,8 +472,8 @@ enum tfm_plat_err_t spu_periph_init_cfg(void)
 
 	nrf_cache_enable(NRF_ICACHE);
 
-	nrfx_err_t nrfx_err = rramc_configuration();
-	if (nrfx_err != NRFX_SUCCESS) {
+	int nrfx_err = rramc_configuration();
+	if (nrfx_err != 0) {
 		return TFM_PLAT_ERR_SYSTEM_ERR;
 	}
 
