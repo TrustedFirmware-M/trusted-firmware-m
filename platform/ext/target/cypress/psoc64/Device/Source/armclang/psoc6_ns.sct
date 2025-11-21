@@ -25,7 +25,7 @@ LR_CODE NS_CODE_START {
 
 #ifdef RAM_VECTORS_SUPPORT
     ER_RAM_VECTORS NS_DATA_START ALIGN 256 UNINIT {
-        * (RESET_RAM, +FIRST)
+        * (RESET_RAM)
     }
 #endif
 
