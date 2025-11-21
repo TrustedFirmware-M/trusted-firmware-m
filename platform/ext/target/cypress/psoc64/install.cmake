@@ -18,9 +18,6 @@ install(FILES       ${CMAKE_CURRENT_SOURCE_DIR}/Device/Source/armclang/psoc6_ns.
                     ${CMAKE_CURRENT_SOURCE_DIR}/Device/Source/iar/psoc6_ns.icf
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/linker_scripts)
 
-install(FILES       ${CMAKE_CURRENT_SOURCE_DIR}/Device/Source/armclang/startup_psoc64_ns.s
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/Device/Source/armclang)
-
 install(FILES       ${CMAKE_CURRENT_SOURCE_DIR}/Device/Source/gcc/startup_psoc64_ns.S
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/Device/Source/gcc)
 

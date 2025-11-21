@@ -1,0 +1,80 @@
+From fcbae8ed9b6f7843233ad406fd9e5dbc52d3efe9 Mon Sep 17 00:00:00 2001
+From: Bohdan Hunko <Bohdan.Hunko@infineon.com>
+Date: Fri, 21 Nov 2025 12:32:07 +0200
+Subject: [PATCH] Make GCC assembly compatible with ARM Compiler
+
+ARM Compiler now uses GNU style assembler which is compatible with GNU
+assembler syntax. However, the Arm Compiler does not support the GNU
+.func/.endfunc directives. This change adds preprocessor checks to
+exclude these directives when compiling with ARM Compiler.
+---
+ drivers/source/TOOLCHAIN_GCC_ARM/cy_syslib_gcc.S | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/drivers/source/TOOLCHAIN_GCC_ARM/cy_syslib_gcc.S b/drivers/source/TOOLCHAIN_GCC_ARM/cy_syslib_gcc.S
+index e95a48cd..9e7e2ffa 100644
+--- a/drivers/source/TOOLCHAIN_GCC_ARM/cy_syslib_gcc.S
++++ b/drivers/source/TOOLCHAIN_GCC_ARM/cy_syslib_gcc.S
+@@ -39,7 +39,9 @@
+ /* void Cy_SysLib_DelayCycles(uint32_t cycles) */
+ .align 3                    /* Align to 8 byte boundary (2^n) */
+ .global Cy_SysLib_DelayCycles
++#ifndef __ARMCOMPILER_VERSION
+ .func Cy_SysLib_DelayCycles, Cy_SysLib_DelayCycles
++#endif /* __ARMCOMPILER_VERSION */
+ .type Cy_SysLib_DelayCycles, %function
+ .thumb_func
+ Cy_SysLib_DelayCycles:      /* cycles bytes */
+@@ -58,7 +60,9 @@ Cy_DelayCycles_done:
+     NOP                     /*    1    2    Loop alignment padding */
+     BX lr                   /*    3    2 */
+ 
++#ifndef __ARMCOMPILER_VERSION
+ .endfunc
++#endif /* __ARMCOMPILER_VERSION */
+ 
+ /*******************************************************************************
+ * Function Name: Cy_SysLib_EnterCriticalSection
+@@ -76,7 +80,9 @@ Cy_DelayCycles_done:
+ *******************************************************************************/
+ /* uint8_t Cy_SysLib_EnterCriticalSection(void) */
+ .global Cy_SysLib_EnterCriticalSection
++#ifndef __ARMCOMPILER_VERSION
+ .func Cy_SysLib_EnterCriticalSection, Cy_SysLib_EnterCriticalSection
++#endif /* __ARMCOMPILER_VERSION */
+ .type Cy_SysLib_EnterCriticalSection, %function
+ .thumb_func
+ 
+@@ -85,7 +91,9 @@ Cy_SysLib_EnterCriticalSection:
+     cpsid i                 /* Disable interrupts */
+     BX lr
+ 
++#ifndef __ARMCOMPILER_VERSION
+ .endfunc
++#endif /* __ARMCOMPILER_VERSION */
+ 
+ 
+ /*******************************************************************************
+@@ -102,7 +110,9 @@ Cy_SysLib_EnterCriticalSection:
+ *******************************************************************************/
+ /* void Cy_SysLib_ExitCriticalSection(uint8_t savedIntrStatus) */
+ .global Cy_SysLib_ExitCriticalSection
++#ifndef __ARMCOMPILER_VERSION
+ .func Cy_SysLib_ExitCriticalSection, Cy_SysLib_ExitCriticalSection
++#endif /* __ARMCOMPILER_VERSION */
+ .type Cy_SysLib_ExitCriticalSection, %function
+ .thumb_func
+ 
+@@ -110,7 +120,9 @@ Cy_SysLib_ExitCriticalSection:
+     MSR PRIMASK, r0         /* Restore interrupt state */
+     BX lr
+ 
++#ifndef __ARMCOMPILER_VERSION
+ .endfunc
++#endif /* __ARMCOMPILER_VERSION */
+ 
+ .end
+ 
+-- 
+2.49.0.windows.1
+

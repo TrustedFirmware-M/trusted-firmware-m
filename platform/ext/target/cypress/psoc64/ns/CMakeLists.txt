@@ -26,8 +26,8 @@ add_library(platform_ns)
 
 target_sources(platform_ns
     INTERFACE
-        $<$<C_COMPILER_ID:ARMClang>:${CMAKE_CURRENT_SOURCE_DIR}/Device/Source/armclang/startup_psoc64_ns.s>
-        $<$<C_COMPILER_ID:ARMClang>:${CY_MTB_PDL_CAT1_LIB_PATH}/drivers/source/TOOLCHAIN_ARM/cy_syslib_mdk.s>
+        $<$<C_COMPILER_ID:ARMClang>:${CMAKE_CURRENT_SOURCE_DIR}/Device/Source/gcc/startup_psoc64_ns.S>
+        $<$<C_COMPILER_ID:ARMClang>:${CY_MTB_PDL_CAT1_LIB_PATH}/drivers/source/TOOLCHAIN_GCC_ARM/cy_syslib_gcc.S>
         $<$<C_COMPILER_ID:GNU>:${CMAKE_CURRENT_SOURCE_DIR}/Device/Source/gcc/startup_psoc64_ns.S>
         $<$<C_COMPILER_ID:GNU>:${CY_MTB_PDL_CAT1_LIB_PATH}/drivers/source/TOOLCHAIN_GCC_ARM/cy_syslib_gcc.S>
         $<$<C_COMPILER_ID:IAR>:${CMAKE_CURRENT_SOURCE_DIR}/Device/Source/iar/startup_psoc64_ns.s>

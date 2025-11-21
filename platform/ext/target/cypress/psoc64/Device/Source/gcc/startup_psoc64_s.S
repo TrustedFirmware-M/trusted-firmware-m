@@ -31,7 +31,11 @@
     .syntax    unified
     .arch    armv6-m
 
+#ifdef __ARMCOMPILER_VERSION
+    .section RESET
+#else /* __ARMCOMPILER_VERSION */
     .section .vectors, "a"
+#endif /* __ARMCOMPILER_VERSION */
     .align 2
     .globl    __Vectors
 __Vectors:
@@ -74,7 +78,11 @@ __Vectors:
     .equ    __VectorsSize, . - __Vectors
 
 #ifdef RAM_VECTORS_SUPPORT
+#ifdef __ARMCOMPILER_VERSION
+    .section RESET_RAM
+#else /* __ARMCOMPILER_VERSION */
     .section .ram_vectors
+#endif /* __ARMCOMPILER_VERSION */
     .align 2
     .globl __ramVectors
 __ramVectors:
@@ -94,34 +102,28 @@ __ramVectors:
 
     /* Device startup customization */
     .weak   Cy_OnResetUser
-    .func   Cy_OnResetUser, Cy_OnResetUser
     .type   Cy_OnResetUser, %function
 
 Cy_OnResetUser:
     bx lr
     .size   Cy_OnResetUser, . - Cy_OnResetUser
-    .endfunc
 
     /* Saves and disables the interrupts */
     .global Cy_SaveIRQ
-    .func   Cy_SaveIRQ, Cy_SaveIRQ
     .type   Cy_SaveIRQ, %function
 Cy_SaveIRQ:
     mrs r0, PRIMASK
     cpsid i
     bx lr
     .size   Cy_SaveIRQ, . - Cy_SaveIRQ
-    .endfunc
 
     /* Restores the interrupts */
     .global Cy_RestoreIRQ
-    .func   Cy_RestoreIRQ, Cy_RestoreIRQ
     .type   Cy_RestoreIRQ, %function
 Cy_RestoreIRQ:
     msr PRIMASK, r0
     bx lr
     .size   Cy_RestoreIRQ, . - Cy_RestoreIRQ
-    .endfunc
 
     /* Reset handler */
     .weak    Reset_Handler
@@ -137,6 +139,7 @@ Reset_Handler:
  *  data to implement than the latter.
  *  Macro __STARTUP_COPY_MULTIPLE is used to choose between two schemes.  */
 
+#ifndef __ARMCOMPILER_VERSION
 #ifdef __STARTUP_COPY_MULTIPLE
 /*  Multiple sections scheme.
  *
@@ -189,6 +192,7 @@ Reset_Handler:
     bgt    .L_loop1
 .L_loop1_done:
 #endif /*__STARTUP_COPY_MULTIPLE */
+#endif /* __ARMCOMPILER_VERSION */
 /*  This part of work usually is done in C library startup code. Otherwise,
  *  define this macro to enable it in this startup.
  *
@@ -199,6 +203,7 @@ Reset_Handler:
  *  Define macro __STARTUP_CLEAR_BSS_MULTIPLE to choose the former.
  *  Otherwise define macro __STARTUP_CLEAR_BSS to choose the later.
  */
+#ifndef __ARMCOMPILER_VERSION
 #ifdef __STARTUP_CLEAR_BSS_MULTIPLE
 /*  Multiple sections scheme.
  *
@@ -245,6 +250,7 @@ Reset_Handler:
     bgt    .L_loop3
 .L_loop3_done:
 #endif /* __STARTUP_CLEAR_BSS_MULTIPLE || __STARTUP_CLEAR_BSS */
+#endif /* __ARMCOMPILER_VERSION */
 
 #ifdef RAM_VECTORS_SUPPORT
     /* Update Vector Table Offset Register. */
@@ -260,7 +266,11 @@ Reset_Handler:
     bl    SystemInit
 #endif
 
+#ifdef __ARMCOMPILER_VERSION
+    bl    __main
+#else /* __ARMCOMPILER_VERSION */
     bl    _start
+#endif /* __ARMCOMPILER_VERSION */
 
     /* Should never get here */
     b   .
