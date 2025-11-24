@@ -40,8 +40,6 @@
 #define TEST_SETUP(x) TEST_ASSERT((x) == 0, "Test setup failed")
 #define TEST_TEARDOWN(x) TEST_ASSERT((x) == 0, "Test teardown failed")
 
-#define CODE_DATA_SECRET_VALUES_SIZE (100)
-
 /* Arbitrary IV value */
 #define IV_RANDOM_BYTES "\xDE\xAD\xBE\xEF\xEF\xBE\xAD\xDE"
 
@@ -49,6 +47,16 @@
 #define CODE_RANDOM_BYTES "\x6D\xFF\x9A\x63\x16\x42\x78\xAC\x5E\xD1"
 #define DATA_RANDOM_BYTES "\x56\xB6\x03\xD7\xD2\x8F\xA1\x4C\x37\x92"
 #define VALUES_RANDOM_BYTES "\xF8\x0C\x28\x38\x38\xDD\x7A\x65\x9B\xC4"
+
+/* Must fit the bytes and be multiple of 16 */
+#define CODE_SIZE (32)
+#define DATA_SIZE (32)
+#define SECRET_VALUES_SIZE (32)
+#define CODE_DATA_SECRET_VALUES_SIZE (CODE_SIZE + DATA_SIZE + SECRET_VALUES_SIZE)
+
+static uint32_t blob_code_buffer[CODE_SIZE / sizeof(uint32_t)];
+static uint32_t blob_data_buffer[DATA_SIZE / sizeof(uint32_t)];
+static uint32_t blob_secret_values_buffer[SECRET_VALUES_SIZE / sizeof(uint32_t)];
 
 /* These functions are part of the provisioning code. They are usually static
  * functions, but enabling the provisioning tests makes them non-static. Because
@@ -581,14 +589,14 @@ void rse_bl1_provisioning_test_0001(struct test_result_t *ret)
                      code_data_encrypted[encryption_idx] ? "encrypted" : "not encrypted");
 
             TEST_SETUP(init_test_image_sign_random_key(test_blob, &ecdsa_public_key_data,
-                                                       signature_config[signature_idx], 32, 32, 32,
+                                                       signature_config[signature_idx], CODE_SIZE, DATA_SIZE, SECRET_VALUES_SIZE,
                                                        code_data_encrypted[encryption_idx], true));
 
             FIH_CALL(validate_and_unpack_message, plat_err, &test_blob->header,
                      test_blob->code_and_data_and_secret_values, get_blob_size(test_blob),
-                     (void *)PROVISIONING_BUNDLE_CODE_START, PROVISIONING_BUNDLE_CODE_SIZE,
-                     (void *)PROVISIONING_BUNDLE_DATA_START, PROVISIONING_BUNDLE_DATA_SIZE,
-                     (void *)PROVISIONING_BUNDLE_VALUES_START, PROVISIONING_BUNDLE_VALUES_SIZE,
+                     (void *)blob_code_buffer, sizeof(blob_code_buffer),
+                     (void *)blob_data_buffer, sizeof(blob_data_buffer),
+                     (void *)blob_secret_values_buffer, sizeof(blob_secret_values_buffer),
                      setup_provisioning_aes_key, get_global_public_key);
 
             TEST_ASSERT(plat_err == FIH_SUCCESS, "Signature validation failed\r\n");
@@ -604,7 +612,6 @@ void rse_bl1_provisioning_test_0001(struct test_result_t *ret)
 void rse_bl1_provisioning_test_0002(struct test_result_t *ret)
 {
     FIH_RET_TYPE(enum tfm_plat_err_t) plat_err;
-    const size_t code_size = 32, values_size = 32, secret_size = 32;
 
     uint8_t *corruption_ptrs[] = {
         (uint8_t *)&test_blob->header.metadata,
@@ -615,8 +622,8 @@ void rse_bl1_provisioning_test_0002(struct test_result_t *ret)
         (uint8_t *)&test_blob->header.data_size,
         (uint8_t *)&test_blob->header.secret_values_size,
         (uint8_t *)test_blob->code_and_data_and_secret_values,
-        (uint8_t *)(test_blob->code_and_data_and_secret_values + code_size),
-        (uint8_t *)(test_blob->code_and_data_and_secret_values + code_size + values_size),
+        (uint8_t *)(test_blob->code_and_data_and_secret_values + CODE_SIZE),
+        (uint8_t *)(test_blob->code_and_data_and_secret_values + CODE_SIZE + DATA_SIZE),
     };
 
     enum rse_provisioning_auth_msg_signature_config_t signature_config[] = {
@@ -629,8 +636,8 @@ void rse_bl1_provisioning_test_0002(struct test_result_t *ret)
     for (int idx = 0; idx < ARRAY_SIZE(corruption_ptrs); idx++) {
         for (int signature_idx = 0; signature_idx < ARRAY_SIZE(signature_config); signature_idx++) {
             TEST_SETUP(init_test_image_sign_random_key(test_blob, &ecdsa_public_key_data,
-                                                       signature_config[signature_idx], code_size,
-                                                       values_size, secret_size, false, true));
+                                                       signature_config[signature_idx], CODE_SIZE,
+                                                       DATA_SIZE, SECRET_VALUES_SIZE, false, true));
 
             *(uint32_t *)corruption_ptrs[idx] ^= 0xDEADBEEF;
 
@@ -642,9 +649,9 @@ void rse_bl1_provisioning_test_0002(struct test_result_t *ret)
 
             FIH_CALL(validate_and_unpack_message, plat_err, &test_blob->header,
                      test_blob->code_and_data_and_secret_values, get_blob_size(test_blob),
-                     (void *)PROVISIONING_BUNDLE_CODE_START, PROVISIONING_BUNDLE_CODE_SIZE,
-                     (void *)PROVISIONING_BUNDLE_DATA_START, PROVISIONING_BUNDLE_DATA_SIZE,
-                     (void *)PROVISIONING_BUNDLE_VALUES_START, PROVISIONING_BUNDLE_VALUES_SIZE,
+                     (void *)blob_code_buffer, sizeof(blob_code_buffer),
+                     (void *)blob_data_buffer, sizeof(blob_data_buffer),
+                     (void *)blob_secret_values_buffer, sizeof(blob_secret_values_buffer),
                      setup_provisioning_aes_key, get_global_public_key);
 
             TEST_ASSERT(plat_err != FIH_SUCCESS,
@@ -694,7 +701,7 @@ void rse_bl1_provisioning_test_0003(struct test_result_t *ret)
     TEST_SETUP(kmu_set_key_locked(&KMU_DEV_S, invalid_kmu_keys[1]));
 
     TEST_SETUP(init_test_image_sign_random_key(
-        test_blob, NULL, RSE_PROVISIONING_AUTH_MSG_SIGNATURE_KRTL_DERIVATIVE, 32, 32, 32, false, true));
+        test_blob, NULL, RSE_PROVISIONING_AUTH_MSG_SIGNATURE_KRTL_DERIVATIVE, CODE_SIZE, DATA_SIZE, SECRET_VALUES_SIZE, false, true));
 
     for (int idx = 0; idx < ARRAY_SIZE(invalid_kmu_keys); idx++) {
         TEST_LOG(" > testing invalid key %d (%d of %d):\r\n", invalid_kmu_keys[idx], idx + 1,
@@ -702,9 +709,9 @@ void rse_bl1_provisioning_test_0003(struct test_result_t *ret)
 
         FIH_CALL(validate_and_unpack_message, plat_err, &test_blob->header,
                  test_blob->code_and_data_and_secret_values, get_blob_size(test_blob),
-                 (void *)PROVISIONING_BUNDLE_CODE_START, PROVISIONING_BUNDLE_CODE_SIZE,
-                 (void *)PROVISIONING_BUNDLE_DATA_START, PROVISIONING_BUNDLE_DATA_SIZE,
-                 (void *)PROVISIONING_BUNDLE_VALUES_START, PROVISIONING_BUNDLE_VALUES_SIZE,
+                 (void *)blob_code_buffer, sizeof(blob_code_buffer),
+                 (void *)blob_data_buffer, sizeof(blob_data_buffer),
+                 (void *)blob_secret_values_buffer, sizeof(blob_secret_values_buffer),
                  setup_invalid_aes_key, NULL);
 
         TEST_ASSERT(fih_ret_decode_zero_equality(plat_err) == (enum tfm_plat_err_t)PSA_ERROR_NOT_PERMITTED,
@@ -750,8 +757,8 @@ void rse_bl1_provisioning_test_0004(struct test_result_t *ret)
     TEST_SETUP(ecdsa_initialise_key_data(&ecdsa_public_key_data));
 
     TEST_SETUP(init_test_image_sign_random_key(test_blob, &ecdsa_public_key_data,
-                                               RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_IN_ROM, 32, 32,
-                                               32, false, true));
+                                               RSE_PROVISIONING_AUTH_MSG_SIGNATURE_ROTPK_IN_ROM, CODE_SIZE, DATA_SIZE,
+                                               SECRET_VALUES_SIZE, false, true));
 
     for (int idx = 0; idx < ARRAY_SIZE(invalid_ecdsa_keys); idx++) {
         TEST_LOG(" > testing invalid key %d (%d of %d):\r\n", invalid_ecdsa_keys[idx], idx + 1,
@@ -759,9 +766,9 @@ void rse_bl1_provisioning_test_0004(struct test_result_t *ret)
 
         FIH_CALL(validate_and_unpack_message, plat_err, &test_blob->header,
                  test_blob->code_and_data_and_secret_values, get_blob_size(test_blob),
-                 (void *)PROVISIONING_BUNDLE_CODE_START, PROVISIONING_BUNDLE_CODE_SIZE,
-                 (void *)PROVISIONING_BUNDLE_DATA_START, PROVISIONING_BUNDLE_DATA_SIZE,
-                 (void *)PROVISIONING_BUNDLE_VALUES_START, PROVISIONING_BUNDLE_VALUES_SIZE,
+                 (void *)blob_code_buffer, sizeof(blob_code_buffer),
+                 (void *)blob_data_buffer, sizeof(blob_data_buffer),
+                 (void *)blob_secret_values_buffer, sizeof(blob_secret_values_buffer),
                  setup_provisioning_aes_key, get_invalid_public_key);
 
         TEST_ASSERT(fih_ret_decode_zero_equality(plat_err) == (enum tfm_plat_err_t)CC3XX_ERR_ECDSA_SIGNATURE_INVALID,
@@ -1026,7 +1033,7 @@ create_complete_signed_blob(struct rse_provisioning_message_blob_t *blob,
     memcpy(blob->code_and_data_and_secret_values, (void *)(func_ptr & ~0x1),
            sizeof(uint32_t) /* 2 x 2 byte instructions */);
 
-    init_test_image(blob, signature_config, code_size, 32, 32, encrypt_code_data, encrypt_secret);
+    init_test_image(blob, signature_config, code_size, DATA_SIZE, SECRET_VALUES_SIZE, encrypt_code_data, encrypt_secret);
 
     lcm_err = lcm_get_lcs(&LCM_DEV_S, &lcs);
     if (lcm_err != LCM_ERROR_NONE) {
