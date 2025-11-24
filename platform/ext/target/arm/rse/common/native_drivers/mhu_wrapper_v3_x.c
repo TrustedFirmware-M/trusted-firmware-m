@@ -21,6 +21,7 @@
 #include <string.h>
 #include <assert.h>
 
+#define MHU_REQUIRED_NUMBER_CHANNELS (4)
 #define MHU_NOTIFY_VALUE    (1234u)
 
 #ifndef ALIGN_UP
@@ -225,8 +226,8 @@ enum mhu_error_t mhu_init_sender(void *mhu_sender_dev)
         dev, MHU_V3_X_CHANNEL_TYPE_DBCH, &num_ch);
     if (err != MHU_V_3_X_ERR_NONE) {
         return err;
-    } else if (num_ch < 2) {
-        /* This wrapper requires at least two channels to be implemented */
+    } else if (num_ch < MHU_REQUIRED_NUMBER_CHANNELS) {
+        /* This wrapper requires at least 4 channels to be implemented */
         return MHU_ERR_INIT_SENDER_UNSUPPORTED;
     }
 
@@ -281,8 +282,8 @@ enum mhu_error_t mhu_init_receiver(void *mhu_receiver_dev)
         dev, MHU_V3_X_CHANNEL_TYPE_DBCH, &num_ch);
     if (err != MHU_V_3_X_ERR_NONE) {
         return err;
-    } else if (num_ch < 2) {
-        /* This wrapper requires at least two channels to be implemented */
+    } else if (num_ch < MHU_REQUIRED_NUMBER_CHANNELS) {
+        /* This wrapper requires at least 4 channels to be implemented */
         return MHU_ERR_INIT_RECEIVER_UNSUPPORTED;
     }
 

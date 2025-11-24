@@ -14,6 +14,7 @@
 #include "rse_get_rse_id.h"
 #include "sfcp_platform.h"
 
+#define MHU_REQUIRED_NUMBER_CHANNELS (4)
 #define MHU_NOTIFY_VALUE (1234u)
 
 /* Platform MHU version can be set to 0, 2, 3. 0 specifies that
@@ -707,7 +708,7 @@ static enum sfcp_hal_error_t mhu_init_sender(void *mhu_sender_dev,
     }
 
     num_channels = mhu_get_num_mhu_channels(mhu_sender_dev, type);
-    if (num_channels < 2) {
+    if (num_channels < MHU_REQUIRED_NUMBER_CHANNELS) {
         return SFCP_HAL_ERROR_DEVICE_UNSUPPORTED;
     }
 
@@ -735,7 +736,7 @@ static enum sfcp_hal_error_t mhu_init_receiver(void *mhu_receiver_dev,
     }
 
     num_channels = mhu_get_num_mhu_channels(mhu_receiver_dev, type);
-    if (num_channels < 2) {
+    if (num_channels < MHU_REQUIRED_NUMBER_CHANNELS) {
         return SFCP_HAL_ERROR_DEVICE_UNSUPPORTED;
     }
 
