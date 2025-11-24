@@ -32,9 +32,7 @@ enum boot_measurement_slot_t {
                                                  */
 };
 
-/* Default size for `sw_type` string borrowed from definition
-   in `boot_measurement_metadata` */
-extern char boot_measurement_sw_type[BOOT_MEASUREMENT_SLOT_DM_ROTPK_3 + 1][10];
+extern char boot_measurement_sw_type[BOOT_MEASUREMENT_SLOT_DM_ROTPK_3 + 1][SW_TYPE_LEN];
 
 #define PLAT_ROTPK_MEASUREMENT_CNT CM_ROTPK_CNT + DM_ROTPK_CNT
 

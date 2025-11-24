@@ -6,7 +6,7 @@
  */
 #include "tfm_boot_measurement.h"
 
-char boot_measurement_sw_type[BOOT_MEASUREMENT_SLOT_DM_ROTPK_3 + 1][10] = {
+char boot_measurement_sw_type[BOOT_MEASUREMENT_SLOT_DM_ROTPK_3 + 1][SW_TYPE_LEN] = {
     [BOOT_MEASUREMENT_SLOT_BL1_2] = "BL1_2",
     [BOOT_MEASUREMENT_SLOT_BL2] = "BL2",
     [BOOT_MEASUREMENT_SLOT_RT_0] = "RT_0",
