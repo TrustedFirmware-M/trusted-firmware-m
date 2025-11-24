@@ -19,6 +19,13 @@ extern "C" {
 #include "event_log.h"
 #endif
 
+/* Default size for `sw_type` string borrowed from definition
+ * in `boot_measurement_metadata`
+ */
+#ifndef SW_TYPE_LEN
+#define SW_TYPE_LEN 10
+#endif
+
 #if defined(PLATFORM_DEFAULT_MEASUREMENT_SLOTS)
 enum boot_measurement_slot_t {
     BOOT_MEASUREMENT_SLOT_BL1_2 = 0,
@@ -34,9 +41,7 @@ enum boot_measurement_slot_t {
     __BOOT_MEASUREMENT_MAX_VAL = UINT32_MAX
 };
 
-/* Default size for `sw_type` string borrowed from definition
-   in `boot_measurement_metadata` */
-extern char boot_measurement_sw_type[BOOT_MEASUREMENT_SLOT_RT_2 + 1][10];
+extern char boot_measurement_sw_type[BOOT_MEASUREMENT_SLOT_RT_2 + 1][SW_TYPE_LEN];
 #else
 #include "tfm_plat_boot_measurement.h"
 #endif /* PLATFORM_DEFAULT_MEASUREMENT_SLOTS */
