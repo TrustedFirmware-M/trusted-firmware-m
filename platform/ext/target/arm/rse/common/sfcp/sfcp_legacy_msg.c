@@ -87,8 +87,11 @@ static enum sfcp_error_t convert_from_legacy(uint8_t *msg_buf, size_t input_msg_
 
     if (GET_METADATA_FIELD(PROTOCOL_VERSION, ((struct sfcp_packet_t *)msg_buf)->header.metadata) ==
         SFCP_PROTOCOL_VERSION) {
-        /* Already correct format */
-        return SFCP_ERROR_SUCCESS;
+        /* If this is compiled in then the received message must be in the legacy format, we
+         * do not currently support both types simultaneously
+         */
+        WARN("[SFCP] Received new message format but legacy is enabled! Disable SFCP_SUPPORT_LEGACY_MSG_PROTOCOL\n");
+        return SFCP_ERROR_INVALID_LEGACY_FORMAT_CONFIGURATION;
     }
 
     WARN("[SFCP] Received legacy message format!\n");
