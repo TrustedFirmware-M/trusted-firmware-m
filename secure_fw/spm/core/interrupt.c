@@ -1,8 +1,5 @@
 /*
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
- * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -89,6 +86,11 @@ uint32_t tfm_flih_prepare_depriv_flih(struct partition_t *p_owner_sp,
         }
     }
 
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && defined(CONFIG_TFM_USE_TRUSTZONE)
+    /* Mask non-secure interrupts */
+    __set_BASEPRI(SECURE_THREAD_EXECUTION_PRIORITY);
+#endif
+
     /*
      * The CURRENT_COMPONENT has been stored on MSP by the SVC call, safe to
      * update it.
@@ -145,6 +147,13 @@ uint32_t tfm_flih_return_to_isr(psa_flih_result_t result,
     if (tfm_svc_thread_mode_spm_active()) {
         __set_CONTROL_nPRIV(0);
     }
+
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && defined(CONFIG_TFM_USE_TRUSTZONE)
+    if (!tfm_svc_thread_mode_spm_active() && IS_NS_AGENT_TZ(p_prev_sp->p_ldinf)) {
+        /* NS Agent TZ veneer can be preempted by non-secure interrupt */
+        __set_BASEPRI(0);
+    }
+#endif
 
     /* Restore current component */
     SET_CURRENT_COMPONENT(p_prev_sp);
