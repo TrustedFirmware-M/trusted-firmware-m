@@ -71,6 +71,7 @@ rse_check_zero_bit_count
 rse_setup_iak_seed
 rse_setup_dak_seed
 rse_setup_rot_cdi
+rse_setup_image_binding_key
 rse_setup_session_key
 rse_setup_vhuk
 rse_derive_vhuk_seed

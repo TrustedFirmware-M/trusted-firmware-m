@@ -39,6 +39,11 @@ enum rse_kmu_slot_id_t {
     RSE_KMU_SLOT_CC3XX_PKA_SRAM_ENCRYPTION_KEY,
     RSE_KMU_SLOT_SECURE_SIC_ENCRYPTION_KEY,
     RSE_KMU_SLOT_NON_SECURE_SIC_ENCRYPTION_KEY,
+#ifdef RSE_BOOT_KEYS_BINDING
+    /* AEAD binding keys requires two contiguous slots */
+    RSE_KMU_SLOT_SECURE_BINDING_KEY,
+    _RSE_KMU_SLOT_RESERVED_SECURE_BINDING_KEY,
+#endif
     /* The minimum slot number for the session key. Given that we can
      * continuously re-key the session key, and each key needs to be
      * locked, we need to allocate multiple slots. Each individual session

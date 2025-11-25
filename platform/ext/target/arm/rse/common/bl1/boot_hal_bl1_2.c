@@ -372,6 +372,13 @@ int32_t boot_platform_post_init(void)
     }
 #endif
 
+#ifdef RSE_BOOT_KEYS_BINDING
+    plat_err = rse_setup_image_binding_key();
+    if (plat_err) {
+        return plat_err;
+    }
+#endif /* RSE_BOOT_KEYS_BINDING */
+
     plat_err = rse_setup_runtime_secure_image_encryption_key();
     if (plat_err) {
         return plat_err;

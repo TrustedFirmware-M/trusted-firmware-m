@@ -473,6 +473,39 @@ enum tfm_plat_err_t rse_setup_rot_cdi(void)
 }
 #endif /* RSE_BOOT_KEYS_DPE */
 
+#ifdef RSE_BOOT_KEYS_BINDING
+enum tfm_plat_err_t rse_setup_image_binding_key(void)
+{
+    enum tfm_plat_err_t err;
+    enum kmu_error_t kmu_err;
+    const uint8_t binding_key_label[] = "BL1_2_IMAGE_BINDING_KEY_DERIVATION";
+    const boot_state_include_mask_t boot_state_config = RSE_BOOT_STATE_INCLUDE_NONE;
+
+    err =  setup_key_from_derivation(KMU_HW_SLOT_HUK, NULL, binding_key_label,
+                                     sizeof(binding_key_label), NULL, 0,
+                                     RSE_KMU_SLOT_SECURE_BINDING_KEY,
+                                     &aes_key0_export_config, &aes_key1_export_config, true,
+                                     boot_state_config);
+
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        return err;
+    }
+
+    /* Lock the key slot */
+    kmu_err = kmu_set_key_locked(&KMU_DEV_S, RSE_KMU_SLOT_SECURE_BINDING_KEY);
+    if (kmu_err != KMU_ERROR_NONE) {
+        return (enum tfm_plat_err_t) kmu_err;
+    }
+
+    kmu_err = kmu_set_key_locked(&KMU_DEV_S, RSE_KMU_SLOT_SECURE_BINDING_KEY + 1);
+    if (kmu_err != KMU_ERROR_NONE) {
+        return (enum tfm_plat_err_t) kmu_err;
+    }
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
+#endif /* RSE_BOOT_KEYS_BINDING */
+
 enum tfm_plat_err_t rse_derive_vhuk_seed(uint32_t *vhuk_seed, size_t vhuk_seed_buf_len,
                          size_t *vhuk_seed_size)
 {

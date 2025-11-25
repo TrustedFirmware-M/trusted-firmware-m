@@ -85,6 +85,13 @@ enum tfm_plat_err_t rse_setup_dak_seed(void);
 enum tfm_plat_err_t rse_setup_rot_cdi(void);
 
 /**
+ * \brief                     setup the image binding key, and lock in a KMU slot.
+ *
+ * \return                    TFM_PLAT_ERR_SUCCESS on success, non-zero on error.
+ */
+enum tfm_plat_err_t rse_setup_image_binding_key(void);
+
+/**
  * \brief                     setup the VHUK, and lock in a KMU slot.
  *
  * \param[in]  vhuk_seeds     A buffer containing the seed values.
