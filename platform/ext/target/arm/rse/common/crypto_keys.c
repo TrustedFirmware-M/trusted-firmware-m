@@ -337,11 +337,33 @@ static const tfm_plat_builtin_key_per_user_policy_t g_rot_cdi_per_user_policy[] 
 #endif /* TFM_PARTITION_DPE */
 
 /**
- * @brief Table describing per-user key policy for all the HOST RoTPK (S, NS, CCA)
+ * @brief Table describing per-user key policy for all the CM HOST RoTPKs
  *
  */
-static const tfm_plat_builtin_key_per_user_policy_t g_host_rotpk_per_user_policy[] = {
-    {.user = TFM_NS_PARTITION_ID, .usage = PSA_KEY_USAGE_VERIFY_HASH},
+static const tfm_plat_builtin_key_per_user_policy_t g_cm_host_rotpk_per_user_policy[] = {
+    {
+        .user = TFM_NS_PARTITION_ID,
+#ifdef RSE_OTP_CM_ROTPK_IS_HASH_NOT_KEY
+        .usage = PSA_KEY_USAGE_EXPORT
+#else
+        .usage = PSA_KEY_USAGE_VERIFY_HASH
+#endif
+    },
+};
+
+/**
+ * @brief Table describing per-user key policy for all the DM HOST RoTPKs
+ *
+ */
+static const tfm_plat_builtin_key_per_user_policy_t g_dm_host_rotpk_per_user_policy[] = {
+    {
+        .user = TFM_NS_PARTITION_ID,
+#ifdef RSE_OTP_DM_ROTPK_IS_HASH_NOT_KEY
+        .usage = PSA_KEY_USAGE_EXPORT
+#else
+        .usage = PSA_KEY_USAGE_VERIFY_HASH
+#endif
+    },
 };
 
 /**
@@ -412,8 +434,8 @@ size_t tfm_plat_builtin_key_get_policy_table_ptr(const tfm_plat_builtin_key_poli
         for (uint32_t idx = 0; idx < RSE_ROTPK_CM_HOST_AMOUNT; idx++) {
              tfm_plat_builtin_key_policy_t policy = {
                 .key_id = TFM_BUILTIN_KEY_HOST_CM_MIN + idx,
-                .per_user_policy = NUMBER_OF_ELEMENTS_OF(g_host_rotpk_per_user_policy),
-                .policy_ptr = g_host_rotpk_per_user_policy,
+                .per_user_policy = NUMBER_OF_ELEMENTS_OF(g_cm_host_rotpk_per_user_policy),
+                .policy_ptr = g_cm_host_rotpk_per_user_policy,
             };
 
             *dynamic_table_fill_ptr = policy;
@@ -423,8 +445,8 @@ size_t tfm_plat_builtin_key_get_policy_table_ptr(const tfm_plat_builtin_key_poli
         for (uint32_t idx = 0; idx < RSE_ROTPK_DM_HOST_AMOUNT; idx++) {
              tfm_plat_builtin_key_policy_t policy = {
                 .key_id = TFM_BUILTIN_KEY_HOST_DM_MIN + idx,
-                .per_user_policy = NUMBER_OF_ELEMENTS_OF(g_host_rotpk_per_user_policy),
-                .policy_ptr = g_host_rotpk_per_user_policy,
+                .per_user_policy = NUMBER_OF_ELEMENTS_OF(g_dm_host_rotpk_per_user_policy),
+                .policy_ptr = g_dm_host_rotpk_per_user_policy,
             };
 
             *dynamic_table_fill_ptr = policy;
