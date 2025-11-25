@@ -121,6 +121,13 @@ static uint32_t thread_mode_spm_return(uint32_t result)
     /* Invalidate saved_psp */
     saved_psp = INVALID_PSP_VALUE;
 
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && defined(CONFIG_TFM_USE_TRUSTZONE)
+    if (IS_NS_AGENT_TZ(p_part_next->p_ldinf)) {
+        /* NS Agent TZ veneer can be preempted by non-secure interrupt */
+        __set_BASEPRI(0);
+    }
+#endif
+
     return saved_exc_return;
 }
 
@@ -206,6 +213,11 @@ static int32_t prepare_to_thread_mode_spm(uint8_t svc_number, uint32_t *ctx, uin
     init_spm_func_context(svc_func, ctx);
 
     ctx[0] = (uint32_t)PSA_SUCCESS;
+
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && defined(CONFIG_TFM_USE_TRUSTZONE)
+    /* Mask non-secure interrupts */
+    __set_BASEPRI(SECURE_THREAD_EXECUTION_PRIORITY);
+#endif
 
     return EXC_RETURN_THREAD_PSP;
 }
