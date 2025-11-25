@@ -102,7 +102,7 @@ uint32_t tfm_psa_framework_version_veneer(void)
 {
     __ASM volatile(
         SYNTAX_UNIFIED
-#if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && (CONFIG_TFM_SPM_BACKEND_SFN == 1)
         "   ldr    r2, ="M2S(SECURE_THREAD_EXECUTION_PRIORITY)"\n"
         "   msr    basepri, r2                                \n"
 #endif
@@ -122,7 +122,7 @@ uint32_t tfm_psa_framework_version_veneer(void)
         "   pop    {r1, r2}                                   \n"
         "   mov    lr, r2                                     \n"
         "   mov    r4, r1                                     \n"
-#if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && (CONFIG_TFM_SPM_BACKEND_SFN == 1)
         "   ldr    r1, =0x00                                  \n"
         "   msr    basepri, r1                                \n"
 #endif
@@ -138,7 +138,7 @@ uint32_t tfm_psa_version_veneer(uint32_t sid)
 {
     __ASM volatile(
         SYNTAX_UNIFIED
-#if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && (CONFIG_TFM_SPM_BACKEND_SFN == 1)
         "   ldr    r2, ="M2S(SECURE_THREAD_EXECUTION_PRIORITY)"\n"
         "   msr    basepri, r2                                \n"
 #endif
@@ -158,7 +158,7 @@ uint32_t tfm_psa_version_veneer(uint32_t sid)
         "   pop    {r1, r2}                                   \n"
         "   mov    lr, r2                                     \n"
         "   mov    r4, r1                                     \n"
-#if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && (CONFIG_TFM_SPM_BACKEND_SFN == 1)
         "   ldr    r1, =0x00                                  \n"
         "   msr    basepri, r1                                \n"
 #endif
@@ -178,7 +178,7 @@ psa_status_t tfm_psa_call_veneer(psa_handle_t handle,
     __ASM volatile(
         SYNTAX_UNIFIED
         "   push   {r2, r3}                                   \n"
-#if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && (CONFIG_TFM_SPM_BACKEND_SFN == 1)
         "   ldr    r2, ="M2S(SECURE_THREAD_EXECUTION_PRIORITY)"\n"
         "   msr    basepri, r2                                \n"
 #endif
@@ -201,7 +201,7 @@ psa_status_t tfm_psa_call_veneer(psa_handle_t handle,
         "   pop    {r1, r2}                                   \n"
         "   mov    lr, r2                                     \n"
         "   mov    r4, r1                                     \n"
-#if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && (CONFIG_TFM_SPM_BACKEND_SFN == 1)
         "   ldr    r1, =0x00                                  \n"
         "   msr    basepri, r1                                \n"
 #endif
@@ -220,7 +220,7 @@ psa_handle_t tfm_psa_connect_veneer(uint32_t sid, uint32_t version)
 {
     __ASM volatile(
         SYNTAX_UNIFIED
-#if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && (CONFIG_TFM_SPM_BACKEND_SFN == 1)
         "   ldr    r2, ="M2S(SECURE_THREAD_EXECUTION_PRIORITY)"\n"
         "   msr    basepri, r2                                \n"
 #endif
@@ -240,7 +240,7 @@ psa_handle_t tfm_psa_connect_veneer(uint32_t sid, uint32_t version)
         "   pop    {r1, r2}                                   \n"
         "   mov    lr, r2                                     \n"
         "   mov    r4, r1                                     \n"
-#if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && (CONFIG_TFM_SPM_BACKEND_SFN == 1)
         "   ldr    r1, =0x00                                  \n"
         "   msr    basepri, r1                                \n"
 #endif
@@ -256,7 +256,7 @@ void tfm_psa_close_veneer(psa_handle_t handle)
 {
     __ASM volatile(
         SYNTAX_UNIFIED
-#if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && (CONFIG_TFM_SPM_BACKEND_SFN == 1)
         "   ldr    r2, ="M2S(SECURE_THREAD_EXECUTION_PRIORITY)"\n"
         "   msr    basepri, r2                                \n"
 #endif
@@ -276,7 +276,7 @@ void tfm_psa_close_veneer(psa_handle_t handle)
         "   pop    {r1, r2}                                   \n"
         "   mov    lr, r2                                     \n"
         "   mov    r4, r1                                     \n"
-#if CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && (CONFIG_TFM_SPM_BACKEND_SFN == 1)
         "   ldr    r1, =0x00                                  \n"
         "   msr    basepri, r1                                \n"
 #endif
