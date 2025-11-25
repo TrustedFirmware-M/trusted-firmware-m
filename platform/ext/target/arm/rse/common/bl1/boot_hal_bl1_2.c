@@ -61,8 +61,10 @@
 #include "atu_rse_lib.h"
 #endif
 
+#ifdef RSE_USE_HOST_FLASH
 /* Needed to store the offset of primary and secondary slot of the BL2 firmware */
 static uint32_t image_offsets[2];
+#endif /* RSE_USE_HOST_FLASH */
 
 /* Flash device name must be specified by target */
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
