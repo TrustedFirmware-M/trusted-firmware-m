@@ -391,6 +391,20 @@ size_t dma350_get_num_triggers_in(const struct dma350_dev_t *dev)
 }
 
 __STATIC_INLINE
+void dma350_stop_all_channels(struct dma350_dev_t *dev)
+{
+    /* 1) Request stop for all secure channels (W1S) */
+    dev->cfg->dma_sec_ctrl->SEC_CTRL |= DMA_SEC_CTRL_ALLCHSTOP;
+
+    /* 2) Wait until all secure channels report stopped */
+    while(!(dev->cfg->dma_sec_ctrl->SEC_STATUS & DMA_SEC_STATUS_STAT_ALLCHSTOPPED));
+
+    /* 3) Acknowledge (W1C): write 1 to clear the status bit
+          (this also auto-clears SEC_CTRL.ALLCHSTOP) */
+    dev->cfg->dma_sec_ctrl->SEC_STATUS = DMA_SEC_STATUS_STAT_ALLCHSTOPPED;
+}
+
+__STATIC_INLINE
 void dma350_enable_retention(struct dma350_dev_t *dev)
 {
     dev->cfg->dma_sec_ctrl->SEC_CTRL |= DMA_SEC_CTRL_IDLERETEN;
