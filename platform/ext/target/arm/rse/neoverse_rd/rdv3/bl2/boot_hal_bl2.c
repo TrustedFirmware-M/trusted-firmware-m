@@ -315,10 +315,12 @@ static int boot_platform_pre_load_non_secure(void)
     return 0;
 }
 
+#ifdef TFM_LOAD_NS_IMAGE
 static int boot_platform_post_load_non_secure(void)
 {
     return 0;
 }
+#endif /* TFM_LOAD_NS_IMAGE */
 
 /*
  * =================================== SCP ====================================

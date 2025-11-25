@@ -290,10 +290,10 @@ static int boot_platform_post_load_secure(void)
     return boot_platform_finish();
 }
 
+#ifdef TFM_LOAD_NS_IMAGE
 /*
  * ============================ Non-Secure ====================================
  */
-
 static int boot_platform_pre_load_non_secure(void)
 {
     return 0;
@@ -303,11 +303,12 @@ static int boot_platform_post_load_non_secure(void)
 {
     return 0;
 }
+#endif /* TFM_LOAD_NS_IMAGE */
 
+#ifndef TFM_S_REG_TEST
 /*
  * =================================== SCP ====================================
  */
-
 static int initialize_rse_scp_mhu(void)
 {
     enum mhu_v3_x_error_t mhuv3_err;
@@ -689,6 +690,7 @@ static int boot_platform_post_load_ap_bl1(void)
 
     return 0;
 }
+#endif /* TFM_S_REG_TEST */
 
 /*
  * ================================= VECTORS ==================================
