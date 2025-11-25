@@ -373,6 +373,15 @@ uint8_t dma350_is_init(const struct dma350_dev_t *dev)
 }
 
 __STATIC_INLINE
+size_t dma350_get_num_channels(const struct dma350_dev_t *dev)
+{
+    uint32_t val = dev->cfg->dma_info->DMA_BUILDCFG0;
+    size_t num_channels = (val & DMA_DMA_BUILDCFG0_NUM_CHANNELS_Msk) >>
+                            DMA_DMA_BUILDCFG0_NUM_CHANNELS_Pos;
+    return num_channels;
+}
+
+__STATIC_INLINE
 void dma350_enable_retention(struct dma350_dev_t *dev)
 {
     dev->cfg->dma_sec_ctrl->SEC_CTRL |= DMA_SEC_CTRL_IDLERETEN;
