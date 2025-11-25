@@ -1,8 +1,5 @@
 /*
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
- * Copyright (c) 2021-2024 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -56,10 +53,6 @@ ARCH_CLAIM_CTXCTRL_INSTANCE(spm_thread_context,
                             sizeof(spm_thread_stack));
 
 struct context_ctrl_t *p_spm_thread_context = &spm_thread_context;
-#endif
-
-#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && defined(CONFIG_TFM_USE_TRUSTZONE)
-static bool basepri_set_by_ipc_schedule;
 #endif
 
 /*
@@ -572,19 +565,6 @@ uint64_t ipc_schedule(uint32_t exc_return)
     /* Protect concurrent access to current thread/component and thread status */
     CRITICAL_SECTION_ENTER(cs);
 
-#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && defined(CONFIG_TFM_USE_TRUSTZONE)
-    if (__get_BASEPRI() == 0) {
-        /*
-         * If BASEPRI is not set, that means an interrupt was taken when
-         * Non-Secure code was executing, and a scheduling is necessary because
-         * a secure partition become runnable.
-         */
-        assert(!basepri_set_by_ipc_schedule);
-        basepri_set_by_ipc_schedule = true;
-        __set_BASEPRI(SECURE_THREAD_EXECUTION_PRIORITY);
-    }
-#endif
-
     p_curr_ctx = CURRENT_THREAD->p_context_ctrl;
 
     /*
@@ -634,29 +614,22 @@ uint64_t ipc_schedule(uint32_t exc_return)
             }
         }
 
-#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && defined(CONFIG_TFM_USE_TRUSTZONE)
-        if (IS_NS_AGENT_TZ(p_part_next->p_ldinf)) {
-            /*
-             * The Non-Secure Agent for TrustZone is going to be scheduled.
-             * A secure partition was scheduled previously, so BASEPRI must be
-             * set to non-zero. However BASEPRI only needs to be reset to 0 if
-             * Non-Secure code execution was interrupted (and not got to secure
-             * execution through a veneer call. Veneers set and unset BASEPRI on
-             * enter and exit). In this case basepri_set_by_ipc_schedule is set,
-             * so it can be used in the condition.
-             */
-            assert(__get_BASEPRI() == SECURE_THREAD_EXECUTION_PRIORITY);
-            if (basepri_set_by_ipc_schedule) {
-                basepri_set_by_ipc_schedule = false;
-                __set_BASEPRI(0);
-            }
-        }
-#endif
-
         AAPCS_DUAL_U32_SET_A1(ctx_ctrls, (uint32_t)pth_next->p_context_ctrl);
 
         CURRENT_THREAD = pth_next;
     }
+
+#if (CONFIG_TFM_SECURE_THREAD_MASK_NS_INTERRUPT == 1) && defined(CONFIG_TFM_USE_TRUSTZONE)
+    /*
+     * Force update of BASEPRI because PendSV can be called either by PSA API or interrupt handler.
+     * And it's not necessary that PendSV actually performed partition switching because
+     * blocked partition is not waiting for a new signal right now thus it will not be unblocked.
+     */
+    uint32_t basepri = IS_NS_AGENT_TZ(p_part_next->p_ldinf) ?
+                       0u :  /* It's ok to interrupt NS Agent TZ veneer code by non-secure interrupt */
+                       SECURE_THREAD_EXECUTION_PRIORITY; /* Mask non-secure interrupts */
+    __set_BASEPRI(basepri);
+#endif
 
     /* Update meta indicator */
     if (p_part_next->p_metadata == NULL) {
