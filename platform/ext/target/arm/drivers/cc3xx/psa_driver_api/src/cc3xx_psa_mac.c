@@ -24,7 +24,9 @@
 #else
 #include CC3XX_PSA_API_CONFIG_FILE
 #endif
-
+#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
+#include "cc3xx_opaque_keys.h"
+#endif
 /* ToDo: This needs to be sorted out at TF-M level
  * To be able to include the PSA style configuration
  */
