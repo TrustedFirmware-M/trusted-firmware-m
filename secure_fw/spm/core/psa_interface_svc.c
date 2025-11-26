@@ -88,11 +88,18 @@ __naked void psa_clear_svc(void)
 }
 #endif /* CONFIG_TFM_DOORBELL_API == 1 */
 
+/* Suppress false positive Pe1305 (no_return function should not return) for IAR */
+#if defined(__ICCARM__)
+#pragma diag_suppress=Pe1305
+#endif
 __naked __NO_RETURN void psa_panic_svc(void)
 {
     __asm volatile("svc     "M2S(TFM_SVC_PSA_PANIC)"           \n"
                    "b       .                                  \n");
 }
+#if defined(__ICCARM__)
+#pragma diag_default=Pe1305
+#endif
 
 __naked uint32_t psa_rot_lifecycle_state_svc(void)
 {

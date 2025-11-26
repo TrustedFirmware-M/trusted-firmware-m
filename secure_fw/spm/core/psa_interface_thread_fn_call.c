@@ -107,11 +107,18 @@ void psa_clear_thread_fn_call(void)
 }
 #endif /* CONFIG_TFM_DOORBELL_API == 1 */
 
+/* Suppress false positive Pe1305 (no_return function should not return) for IAR */
+#if defined(__ICCARM__)
+#pragma diag_suppress=Pe1305
+#endif
 __naked __NO_RETURN
 void psa_panic_thread_fn_call(void)
 {
     TFM_THREAD_FN_CALL_ENTRY(tfm_spm_partition_psa_panic);
 }
+#if defined(__ICCARM__)
+#pragma diag_default=Pe1305
+#endif
 
 __naked
 uint32_t psa_rot_lifecycle_state_thread_fn_call(void)
