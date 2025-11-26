@@ -61,7 +61,7 @@ index 6b134d1..7b48a56 100644
 +    enum t_cose_err_t result;
 +
 +
-+    QCBORDecode_Init(&cbor_decoder, cbor_encoded, 0);
++    QCBORDecode_Init(&cbor_decoder, cbor_encoded, QCBOR_DECODE_MODE_NORMAL);
 +
 +
 +    QCBORDecode_EnterMap(&cbor_decoder, NULL);
@@ -99,7 +99,7 @@ index 6b134d1..7b48a56 100644
 +            break;
 +
 +        default:
-+            return 77; // TODO: error code
++            return T_COSE_ERR_INVALID_LENGTH;
 +    }
 +
 +    /* Turn it into a t_cose_key that is imported into the library */
