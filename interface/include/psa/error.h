@@ -298,7 +298,7 @@ typedef int32_t psa_status_t;
  *  same operation context until it either returns #PSA_SUCCESS or any other
  *  error. This is not an error per se, more a notification of status.
  */
-#define PSA_OPERATION_INCOMPLETE        ((psa_status_t) - 248)
+#define PSA_OPERATION_INCOMPLETE        ((psa_status_t)-248)
 
 /* -249 to -256 is reserved for the SPM implementation */
 /* <= -257 is reserved for API-specific (RoT services) error codes */
