@@ -222,7 +222,7 @@ __attribute__((always_inline)) inline
 int fih_delay(void)
 {
     unsigned char delay;
-    volatile int foo;
+    volatile int foo = 0;
 
     delay = fih_delay_random();
 
