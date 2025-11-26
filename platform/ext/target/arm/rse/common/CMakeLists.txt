@@ -152,8 +152,7 @@ install(FILES       tfm_builtin_key_ids.h
 #========================= Platform Secure ====================================#
 
 if (TFM_MULTI_CORE_TOPOLOGY)
-    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/sfcp sfcp)
-    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/sfcp_psa_handler sfcp_psa_handler)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/sfcp)
 endif()
 
 if (RSE_AMOUNT GREATER 1)
