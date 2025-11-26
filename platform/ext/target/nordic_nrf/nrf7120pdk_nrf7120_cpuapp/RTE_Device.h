@@ -17,14 +17,14 @@
 #ifndef __RTE_DEVICE_H
 #define __RTE_DEVICE_H
 
-#define RTE_USART00 1
+#define RTE_USART20 1
 
-#define RTE_USART00_PINS         \
+#define RTE_USART20_PINS         \
 {                                \
-        NRF_PSEL(UART_TX,  2, 2),\
-        NRF_PSEL(UART_RX,  2, 0),\
-        NRF_PSEL(UART_RTS, 2, 5),\
-        NRF_PSEL(UART_CTS, 2, 4),\
+        NRF_PSEL(UART_TX,  1, 4),\
+        NRF_PSEL(UART_RX,  1, 5),\
+        NRF_PSEL(UART_RTS, 1, 6),\
+        NRF_PSEL(UART_CTS, 1, 7),\
 }
 
 
