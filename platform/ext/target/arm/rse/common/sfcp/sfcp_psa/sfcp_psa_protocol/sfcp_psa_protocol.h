@@ -93,13 +93,12 @@ struct client_request_t;
  * \param[out] msg              Buffer to populate with the serialized message.
  * \param[out] msg_len          Final serialized message size on success.
  *
- * \retval TFM_PLAT_ERR_SUCCESS Operation succeeded.
+ * \retval PSA_SUCCESS         Operation succeeded.
  * \retval Other return code    Operation failed with an error code.
  */
-enum tfm_plat_err_t sfcp_protocol_serialize_msg(psa_handle_t handle, int16_t type,
-                                                const psa_invec *in_vec, uint8_t in_len,
-                                                const psa_outvec *out_vec, uint8_t out_len,
-                                                struct serialized_psa_msg_t *msg, size_t *msg_len);
+psa_status_t sfcp_protocol_serialize_msg(psa_handle_t handle, int16_t type, const psa_invec *in_vec,
+                                         uint8_t in_len, const psa_outvec *out_vec, uint8_t out_len,
+                                         struct serialized_psa_msg_t *msg, size_t *msg_len);
 
 /**
  * \brief Convert a serialized message to a client_request_t.
@@ -111,11 +110,11 @@ enum tfm_plat_err_t sfcp_protocol_serialize_msg(psa_handle_t handle, int16_t typ
  * \note   The sanitization of the client request structure is the
  *         responsibility of the caller.
  *
- * \retval TFM_PLAT_ERR_SUCCESS  Operation succeeded.
+ * \retval PSA_SUCCESS           Operation succeeded.
  * \retval Other return code     Operation failed with an error code.
  */
-enum tfm_plat_err_t sfcp_protocol_deserialize_msg(struct client_request_t *req,
-                                                  struct serialized_psa_msg_t *msg, size_t msg_len);
+psa_status_t sfcp_protocol_deserialize_msg(struct client_request_t *req,
+                                           struct serialized_psa_msg_t *msg, size_t msg_len);
 
 /**
  * \brief Convert a a client_request_t to a serialized reply.
@@ -124,12 +123,12 @@ enum tfm_plat_err_t sfcp_protocol_deserialize_msg(struct client_request_t *req,
  * \param[out] reply             The reply to fill.
  * \param[out] reply_size        The size of the reply that was filled.
  *
- * \retval TFM_PLAT_ERR_SUCCESS  Operation succeeded.
+ * \retval PSA_SUCCESS           Operation succeeded.
  * \retval Other return code     Operation failed with an error code.
  */
-enum tfm_plat_err_t sfcp_protocol_serialize_reply(struct client_request_t *req,
-                                                  struct serialized_psa_reply_t *reply,
-                                                  size_t *reply_size);
+psa_status_t sfcp_protocol_serialize_reply(struct client_request_t *req,
+                                           struct serialized_psa_reply_t *reply,
+                                           size_t *reply_size);
 
 /**
  * \brief Deserialize a protocol reply into PSA client outputs.
@@ -140,13 +139,13 @@ enum tfm_plat_err_t sfcp_protocol_serialize_reply(struct client_request_t *req,
  * \param[in]  reply            Serialized reply received from the peer.
  * \param[in]  reply_size       Size, in bytes, of \p reply.
  *
- * \retval TFM_PLAT_ERR_SUCCESS Operation succeeded.
+ * \retval PSA_SUCCESS          Operation succeeded..
  * \retval Other return code    Operation failed with an error code.
  */
-enum tfm_plat_err_t sfcp_protocol_deserialize_reply(psa_outvec *out_vec, uint8_t out_len,
-                                                    psa_status_t *return_val,
-                                                    const struct serialized_psa_reply_t *reply,
-                                                    size_t reply_size);
+psa_status_t sfcp_protocol_deserialize_reply(psa_outvec *out_vec, uint8_t out_len,
+                                             psa_status_t *return_val,
+                                             const struct serialized_psa_reply_t *reply,
+                                             size_t reply_size);
 
 /**
  * \brief Create a serialised error reply from a header and an error code.
@@ -165,14 +164,13 @@ enum tfm_plat_err_t sfcp_protocol_deserialize_reply(psa_outvec *out_vec, uint8_t
  * \param[out] reply             The reply to fill.
  * \param[out] reply_size        The size of the reply that was filled.
  *
- * \retval TFM_PLAT_ERR_SUCCESS  Operation succeeded.
+ * \retval PSA_SUCCESS           Operation succeeded.
  * \retval Other return code     Operation failed with an error code.
  */
-enum tfm_plat_err_t sfcp_protocol_serialize_error(struct client_request_t *req,
-                                                  struct serialized_sfcp_header_t *header,
-                                                  psa_status_t error,
-                                                  struct serialized_psa_reply_t *reply,
-                                                  size_t *reply_size);
+psa_status_t sfcp_protocol_serialize_error(struct client_request_t *req,
+                                           struct serialized_sfcp_header_t *header,
+                                           psa_status_t error, struct serialized_psa_reply_t *reply,
+                                           size_t *reply_size);
 
 #ifdef __cplusplus
 }

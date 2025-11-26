@@ -13,10 +13,10 @@
 
 #include "tfm_psa_call_pack.h"
 
-enum tfm_plat_err_t sfcp_protocol_embed_serialize_msg(psa_handle_t handle, int16_t type,
-                                                      const psa_invec *in_vec, uint8_t in_len,
-                                                      const psa_outvec *out_vec, uint8_t out_len,
-                                                      struct sfcp_embed_msg_t *msg, size_t *msg_len)
+psa_status_t sfcp_protocol_embed_serialize_msg(psa_handle_t handle, int16_t type,
+                                               const psa_invec *in_vec, uint8_t in_len,
+                                               const psa_outvec *out_vec, uint8_t out_len,
+                                               struct sfcp_embed_msg_t *msg, size_t *msg_len)
 {
     uint32_t payload_size = 0;
     uint32_t i;
@@ -38,7 +38,7 @@ enum tfm_plat_err_t sfcp_protocol_embed_serialize_msg(psa_handle_t handle, int16
 
     for (i = 0U; i < in_len; ++i) {
         if (in_vec[i].len > sizeof(msg->payload) - payload_size) {
-            return TFM_PLAT_ERR_INVALID_INPUT;
+            return PSA_ERROR_INVALID_ARGUMENT;
         }
         memcpy(msg->payload + payload_size, in_vec[i].base, in_vec[i].len);
         payload_size += in_vec[i].len;
@@ -47,18 +47,17 @@ enum tfm_plat_err_t sfcp_protocol_embed_serialize_msg(psa_handle_t handle, int16
     /* Output the actual size of the message, to optimize sending */
     *msg_len = sizeof(*msg) - sizeof(msg->payload) + payload_size;
 
-    return TFM_PLAT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }
 
-enum tfm_plat_err_t sfcp_protocol_embed_deserialize_msg(struct client_request_t *req,
-                                                        struct sfcp_embed_msg_t *msg,
-                                                        size_t msg_len)
+psa_status_t sfcp_protocol_embed_deserialize_msg(struct client_request_t *req,
+                                                 struct sfcp_embed_msg_t *msg, size_t msg_len)
 {
     uint32_t payload_size = 0;
     uint32_t i;
 
     if (msg_len < (sizeof(*msg) - sizeof(msg->payload))) {
-        return TFM_PLAT_ERR_INVALID_INPUT;
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     req->in_len = PARAM_UNPACK_IN_LEN(msg->ctrl_param);
@@ -68,7 +67,7 @@ enum tfm_plat_err_t sfcp_protocol_embed_deserialize_msg(struct client_request_t 
 
     /* Only support 4 iovecs */
     if (req->in_len + req->out_len > 4) {
-        return TFM_PLAT_ERR_UNSUPPORTED;
+        return PSA_ERROR_NOT_SUPPORTED;
     }
 
     /* Invecs */
@@ -81,7 +80,7 @@ enum tfm_plat_err_t sfcp_protocol_embed_deserialize_msg(struct client_request_t 
     /* Check payload is not too big */
     if (payload_size > sizeof(req->param_copy_buf) || payload_size > sizeof(msg->payload) ||
         sizeof(*msg) - sizeof(msg->payload) + payload_size > msg_len) {
-        return TFM_PLAT_ERR_INVALID_INPUT;
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     /* Copy payload into the buffer */
@@ -96,15 +95,15 @@ enum tfm_plat_err_t sfcp_protocol_embed_deserialize_msg(struct client_request_t 
 
     /* Check payload is not too big */
     if (payload_size > sizeof(req->param_copy_buf)) {
-        return TFM_PLAT_ERR_INVALID_INPUT;
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    return TFM_PLAT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }
 
-enum tfm_plat_err_t sfcp_protocol_embed_serialize_reply(struct client_request_t *req,
-                                                        struct sfcp_embed_reply_t *reply,
-                                                        size_t *reply_size)
+psa_status_t sfcp_protocol_embed_serialize_reply(struct client_request_t *req,
+                                                 struct sfcp_embed_reply_t *reply,
+                                                 size_t *reply_size)
 {
     size_t payload_size = 0;
     size_t len;
@@ -117,7 +116,7 @@ enum tfm_plat_err_t sfcp_protocol_embed_serialize_reply(struct client_request_t 
         len = req->out_vec[i].len;
 
         if (payload_size + len > sizeof(reply->payload)) {
-            return TFM_PLAT_ERR_UNSUPPORTED;
+            return PSA_ERROR_NOT_SUPPORTED;
         }
 
         memcpy(reply->payload + payload_size, req->out_vec[i].base, len);
@@ -127,13 +126,13 @@ enum tfm_plat_err_t sfcp_protocol_embed_serialize_reply(struct client_request_t 
 
     *reply_size = sizeof(*reply) - sizeof(reply->payload) + payload_size;
 
-    return TFM_PLAT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }
 
-enum tfm_plat_err_t sfcp_protocol_embed_deserialize_reply(psa_outvec *out_vec, uint8_t out_len,
-                                                          psa_status_t *return_val,
-                                                          const struct sfcp_embed_reply_t *reply,
-                                                          size_t reply_size)
+psa_status_t sfcp_protocol_embed_deserialize_reply(psa_outvec *out_vec, uint8_t out_len,
+                                                   psa_status_t *return_val,
+                                                   const struct sfcp_embed_reply_t *reply,
+                                                   size_t reply_size)
 {
     uint32_t payload_offset = 0;
     uint32_t i;
@@ -143,7 +142,7 @@ enum tfm_plat_err_t sfcp_protocol_embed_deserialize_reply(psa_outvec *out_vec, u
 
     for (i = 0U; i < out_len; ++i) {
         if ((sizeof(*reply) - sizeof(reply->payload) + payload_offset) > reply_size) {
-            return TFM_PLAT_ERR_INVALID_INPUT;
+            return PSA_ERROR_INVALID_ARGUMENT;
         }
 
         memcpy(out_vec[i].base, reply->payload + payload_offset, reply->out_size[i]);
@@ -153,18 +152,17 @@ enum tfm_plat_err_t sfcp_protocol_embed_deserialize_reply(psa_outvec *out_vec, u
 
     *return_val = reply->return_val;
 
-    return TFM_PLAT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }
 
-enum tfm_plat_err_t sfcp_protocol_embed_serialize_error(struct client_request_t *req,
-                                                        psa_status_t err,
-                                                        struct sfcp_embed_reply_t *reply,
-                                                        size_t *reply_size)
+psa_status_t sfcp_protocol_embed_serialize_error(struct client_request_t *req, psa_status_t err,
+                                                 struct sfcp_embed_reply_t *reply,
+                                                 size_t *reply_size)
 {
     reply->return_val = err;
 
     /* Return the minimum reply size, as the out_sizes are all zeroed */
     *reply_size = sizeof(*reply) - sizeof(reply->payload);
 
-    return TFM_PLAT_ERR_SUCCESS;
+    return PSA_SUCCESS;
 }

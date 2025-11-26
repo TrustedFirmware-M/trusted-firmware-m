@@ -47,35 +47,36 @@ struct client_request_t;
  *
  * \see sfcp_protocol_serialize_msg
  */
-enum tfm_plat_err_t
-sfcp_protocol_pointer_access_serialize_msg(psa_handle_t handle, int16_t type,
-                                           const psa_invec *in_vec, uint8_t in_len,
-                                           const psa_outvec *out_vec, uint8_t out_len,
-                                           struct sfcp_pointer_access_msg_t *msg, size_t *msg_len);
+psa_status_t sfcp_protocol_pointer_access_serialize_msg(psa_handle_t handle, int16_t type,
+                                                        const psa_invec *in_vec, uint8_t in_len,
+                                                        const psa_outvec *out_vec, uint8_t out_len,
+                                                        struct sfcp_pointer_access_msg_t *msg,
+                                                        size_t *msg_len);
 
 /**
  * \brief Pointer-access-specific implementation of sfcp_protocol_deserialize_msg().
  *
  * \see sfcp_protocol_deserialize_msg
  */
-enum tfm_plat_err_t
-sfcp_protocol_pointer_access_deserialize_msg(struct client_request_t *req,
-                                             struct sfcp_pointer_access_msg_t *msg, size_t msg_len);
+psa_status_t sfcp_protocol_pointer_access_deserialize_msg(struct client_request_t *req,
+                                                          struct sfcp_pointer_access_msg_t *msg,
+                                                          size_t msg_len);
 
 /**
  * \brief Pointer-access-specific implementation of sfcp_protocol_serialize_reply().
  *
  * \see sfcp_protocol_serialize_reply
  */
-enum tfm_plat_err_t sfcp_protocol_pointer_access_serialize_reply(
-    struct client_request_t *req, struct sfcp_pointer_access_reply_t *reply, size_t *reply_size);
+psa_status_t sfcp_protocol_pointer_access_serialize_reply(struct client_request_t *req,
+                                                          struct sfcp_pointer_access_reply_t *reply,
+                                                          size_t *reply_size);
 
 /**
  * \brief Pointer-access-specific implementation of sfcp_protocol_deserialize_reply().
  *
  * \see sfcp_protocol_deserialize_reply
  */
-enum tfm_plat_err_t sfcp_protocol_pointer_access_deserialize_reply(
+psa_status_t sfcp_protocol_pointer_access_deserialize_reply(
     psa_outvec *out_vec, uint8_t out_len, psa_status_t *return_val,
     const struct sfcp_pointer_access_reply_t *reply, size_t reply_size);
 
@@ -84,10 +85,10 @@ enum tfm_plat_err_t sfcp_protocol_pointer_access_deserialize_reply(
  *
  * \see sfcp_protocol_serialize_error
  */
-enum tfm_plat_err_t
-sfcp_protocol_pointer_access_serialize_error(struct client_request_t *req, psa_status_t err,
-                                             struct sfcp_pointer_access_reply_t *reply,
-                                             size_t *reply_size);
+psa_status_t sfcp_protocol_pointer_access_serialize_error(struct client_request_t *req,
+                                                          psa_status_t err,
+                                                          struct sfcp_pointer_access_reply_t *reply,
+                                                          size_t *reply_size);
 
 #ifdef __cplusplus
 }
