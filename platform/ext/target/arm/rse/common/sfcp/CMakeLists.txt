@@ -6,4 +6,4 @@
 #-------------------------------------------------------------------------------
 
 add_subdirectory(sfcp_core)
-add_subdirectory(sfcp_psa_handler)
+add_subdirectory(sfcp_psa)
