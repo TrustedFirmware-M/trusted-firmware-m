@@ -33,13 +33,23 @@ enum sfcp_protocol_version_t {
 #endif /* SFCP_PROTOCOL_POINTER_ACCESS_ENABLED */
 };
 
+/**
+ * \brief Common header that prefixes every serialized SFCP message.
+ *
+ * The header currently identifies which protocol (embed vs. pointer access)
+ * was used when composing the payload.
+ */
 __PACKED_STRUCT serialized_sfcp_header_t {
     uint8_t protocol_ver;
     /* Pad out to 4 bytes to ensure alignment */
     uint8_t __reserved[3];
 };
 
-/* MHU message passed from NSPE to SPE to deliver a PSA client call */
+/**
+ * \brief Serialized PSA client call sent from NSPE to SPE over MHU.
+ *
+ * The union member is selected based on \ref serialized_sfcp_header_t::protocol_ver.
+ */
 __PACKED_STRUCT serialized_psa_msg_t {
     struct serialized_sfcp_header_t header;
     __PACKED_UNION {
@@ -52,7 +62,11 @@ __PACKED_STRUCT serialized_psa_msg_t {
     } msg;
 };
 
-/* MHU reply message to hold the PSA client call return result from SPE */
+/**
+ * \brief Serialized PSA reply sent from SPE to NSPE over MHU.
+ *
+ * The union member is selected based on \ref serialized_sfcp_header_t::protocol_ver.
+ */
 __PACKED_STRUCT serialized_psa_reply_t {
     struct serialized_sfcp_header_t header;
     __PACKED_UNION {
@@ -66,6 +80,26 @@ __PACKED_STRUCT serialized_psa_reply_t {
 };
 
 struct client_request_t;
+
+/**
+ * \brief Serialize a PSA client call into a protocol message.
+ *
+ * \param[in]  handle           Target PSA partition handle.
+ * \param[in]  type             PSA signal type.
+ * \param[in]  in_vec           List of input vectors to copy into the message.
+ * \param[in]  in_len           Number of valid entries in \p in_vec.
+ * \param[in]  out_vec          List of output vectors describing expected replies.
+ * \param[in]  out_len          Number of valid entries in \p out_vec.
+ * \param[out] msg              Buffer to populate with the serialized message.
+ * \param[out] msg_len          Final serialized message size on success.
+ *
+ * \retval TFM_PLAT_ERR_SUCCESS Operation succeeded.
+ * \retval Other return code    Operation failed with an error code.
+ */
+enum tfm_plat_err_t sfcp_protocol_serialize_msg(psa_handle_t handle, int16_t type,
+                                                const psa_invec *in_vec, uint8_t in_len,
+                                                const psa_outvec *out_vec, uint8_t out_len,
+                                                struct serialized_psa_msg_t *msg, size_t *msg_len);
 
 /**
  * \brief Convert a serialized message to a client_request_t.
@@ -96,6 +130,23 @@ enum tfm_plat_err_t sfcp_protocol_deserialize_msg(struct client_request_t *req,
 enum tfm_plat_err_t sfcp_protocol_serialize_reply(struct client_request_t *req,
                                                   struct serialized_psa_reply_t *reply,
                                                   size_t *reply_size);
+
+/**
+ * \brief Deserialize a protocol reply into PSA client outputs.
+ *
+ * \param[out] out_vec          Array of output buffers to populate.
+ * \param[in]  out_len          Number of valid entries in \p out_vec.
+ * \param[out] return_val       PSA status returned by the service.
+ * \param[in]  reply            Serialized reply received from the peer.
+ * \param[in]  reply_size       Size, in bytes, of \p reply.
+ *
+ * \retval TFM_PLAT_ERR_SUCCESS Operation succeeded.
+ * \retval Other return code    Operation failed with an error code.
+ */
+enum tfm_plat_err_t sfcp_protocol_deserialize_reply(psa_outvec *out_vec, uint8_t out_len,
+                                                    psa_status_t *return_val,
+                                                    const struct serialized_psa_reply_t *reply,
+                                                    size_t reply_size);
 
 /**
  * \brief Create a serialised error reply from a header and an error code.

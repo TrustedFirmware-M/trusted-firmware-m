@@ -8,9 +8,47 @@
 #include "sfcp_psa_client_request.h"
 #include "sfcp_psa_protocol_embed.h"
 
+#include <assert.h>
 #include <string.h>
 
 #include "tfm_psa_call_pack.h"
+
+enum tfm_plat_err_t sfcp_protocol_embed_serialize_msg(psa_handle_t handle, int16_t type,
+                                                      const psa_invec *in_vec, uint8_t in_len,
+                                                      const psa_outvec *out_vec, uint8_t out_len,
+                                                      struct sfcp_embed_msg_t *msg, size_t *msg_len)
+{
+    uint32_t payload_size = 0;
+    uint32_t i;
+
+    assert(msg != NULL);
+    assert(msg_len != NULL);
+    assert(in_vec != NULL);
+
+    msg->ctrl_param = PARAM_PACK(type, in_len, out_len);
+    msg->handle = handle;
+
+    /* Fill msg iovec lengths */
+    for (i = 0U; i < in_len; ++i) {
+        msg->io_size[i] = in_vec[i].len;
+    }
+    for (i = 0U; i < out_len; ++i) {
+        msg->io_size[in_len + i] = out_vec[i].len;
+    }
+
+    for (i = 0U; i < in_len; ++i) {
+        if (in_vec[i].len > sizeof(msg->payload) - payload_size) {
+            return TFM_PLAT_ERR_INVALID_INPUT;
+        }
+        memcpy(msg->payload + payload_size, in_vec[i].base, in_vec[i].len);
+        payload_size += in_vec[i].len;
+    }
+
+    /* Output the actual size of the message, to optimize sending */
+    *msg_len = sizeof(*msg) - sizeof(msg->payload) + payload_size;
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
 
 enum tfm_plat_err_t sfcp_protocol_embed_deserialize_msg(struct client_request_t *req,
                                                         struct sfcp_embed_msg_t *msg,
@@ -88,6 +126,32 @@ enum tfm_plat_err_t sfcp_protocol_embed_serialize_reply(struct client_request_t 
     }
 
     *reply_size = sizeof(*reply) - sizeof(reply->payload) + payload_size;
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
+enum tfm_plat_err_t sfcp_protocol_embed_deserialize_reply(psa_outvec *out_vec, uint8_t out_len,
+                                                          psa_status_t *return_val,
+                                                          const struct sfcp_embed_reply_t *reply,
+                                                          size_t reply_size)
+{
+    uint32_t payload_offset = 0;
+    uint32_t i;
+
+    assert(reply != NULL);
+    assert(return_val != NULL);
+
+    for (i = 0U; i < out_len; ++i) {
+        if ((sizeof(*reply) - sizeof(reply->payload) + payload_offset) > reply_size) {
+            return TFM_PLAT_ERR_INVALID_INPUT;
+        }
+
+        memcpy(out_vec[i].base, reply->payload + payload_offset, reply->out_size[i]);
+        out_vec[i].len = reply->out_size[i];
+        payload_offset += reply->out_size[i];
+    }
+
+    *return_val = reply->return_val;
 
     return TFM_PLAT_ERR_SUCCESS;
 }

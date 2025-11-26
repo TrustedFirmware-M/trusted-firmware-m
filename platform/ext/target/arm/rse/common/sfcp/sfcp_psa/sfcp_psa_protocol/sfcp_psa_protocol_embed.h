@@ -24,6 +24,12 @@ extern "C" {
     (SFCP_PAYLOAD_MAX_SIZE -            \
      (0x4 + sizeof(psa_handle_t) + sizeof(uint32_t) + (PSA_MAX_IOVEC * sizeof(uint16_t))))
 
+/**
+ * \brief Packed representation of an embed-mode PSA client request.
+ *
+ * The structure contains the PSA handle, message metadata, the per-vector
+ * sizes, and the inline payload copied from the caller.
+ */
 __PACKED_STRUCT sfcp_embed_msg_t {
     psa_handle_t handle;
     uint32_t ctrl_param; /* type, in_len, out_len */
@@ -31,6 +37,12 @@ __PACKED_STRUCT sfcp_embed_msg_t {
     uint8_t payload[SFCP_PSA_EMBED_PAYLOAD_MAX_SIZE];
 };
 
+/**
+ * \brief Packed representation of an embed-mode PSA reply.
+ *
+ * Stores the PSA status, populated output sizes, and the inline payload to
+ * return to the caller.
+ */
 __PACKED_STRUCT sfcp_embed_reply_t {
     int32_t return_val;
     uint16_t out_size[PSA_MAX_IOVEC];
@@ -39,14 +51,50 @@ __PACKED_STRUCT sfcp_embed_reply_t {
 
 struct client_request_t;
 
+/**
+ * \brief Embed-specific implementation of sfcp_protocol_serialize_msg().
+ *
+ * \see sfcp_protocol_serialize_msg
+ */
+enum tfm_plat_err_t sfcp_protocol_embed_serialize_msg(psa_handle_t handle, int16_t type,
+                                                      const psa_invec *in_vec, uint8_t in_len,
+                                                      const psa_outvec *out_vec, uint8_t out_len,
+                                                      struct sfcp_embed_msg_t *msg,
+                                                      size_t *msg_len);
+
+/**
+ * \brief Embed-specific implementation of sfcp_protocol_deserialize_msg().
+ *
+ * \see sfcp_protocol_deserialize_msg
+ */
 enum tfm_plat_err_t sfcp_protocol_embed_deserialize_msg(struct client_request_t *req,
                                                         struct sfcp_embed_msg_t *msg,
                                                         size_t msg_len);
 
+/**
+ * \brief Embed-specific implementation of sfcp_protocol_serialize_reply().
+ *
+ * \see sfcp_protocol_serialize_reply
+ */
 enum tfm_plat_err_t sfcp_protocol_embed_serialize_reply(struct client_request_t *req,
                                                         struct sfcp_embed_reply_t *reply,
                                                         size_t *reply_size);
 
+/**
+ * \brief Embed-specific implementation of sfcp_protocol_deserialize_reply().
+ *
+ * \see sfcp_protocol_deserialize_reply
+ */
+enum tfm_plat_err_t sfcp_protocol_embed_deserialize_reply(psa_outvec *out_vec, uint8_t out_len,
+                                                          psa_status_t *return_val,
+                                                          const struct sfcp_embed_reply_t *reply,
+                                                          size_t reply_size);
+
+/**
+ * \brief Embed-specific implementation of sfcp_protocol_serialize_error().
+ *
+ * \see sfcp_protocol_serialize_error
+ */
 enum tfm_plat_err_t sfcp_protocol_embed_serialize_error(struct client_request_t *req,
                                                         psa_status_t err,
                                                         struct sfcp_embed_reply_t *reply,
