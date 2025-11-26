@@ -339,9 +339,17 @@ int fih_ret_decode_zero_equality(fih_ret x)
 }
 __attribute__((always_inline)) inline
 uint32_t fih_cond_panic() {
+/* Suppress Pe111 (statement is unreachable) for IAR as redundant code is needed
+ * for FIH */
+#if defined(__ICCARM__)
+#pragma diag_suppress = Pe111
+#endif
     FIH_PANIC;
     /* Should never get here but needs a return to call in a condition. */
     return 0;
+#if defined(__ICCARM__)
+#pragma diag_default=Pe111
+#endif
 }
 
 /*
