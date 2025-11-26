@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2023, Arm Limited and Contributors. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -7,8 +7,7 @@
 # References:
 #
 # EditorConfig rules https://editorconfig.org/
-# TF-M coding rules  https://tf-m-user-guide.trustedfirmware.org/contributing/coding_guide.html
-
+# TF-M coding rules  https://trustedfirmware-m.readthedocs.io/en/latest/contributing/coding_guide.html
 root = true
 
 ################################
@@ -34,6 +33,7 @@ tab_width = 8
 ################################
 # C and C++
 [*.{c,h,cpp,hpp}]
+max_line_length = 100
 
 ################################
 # Python code
