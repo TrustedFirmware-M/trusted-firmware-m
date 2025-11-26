@@ -403,7 +403,8 @@ void fih_cfi_decrement(void);
 #define FIH_CALL(f, ret, ...) FIH_CALL2(f, ret, __LINE__, __COUNTER__, __VA_ARGS__)
 
 #define FIH_CALL2(f, ret, l, c, ...) \
-    do { \
+    do { /* Suppress Pe188 (Enumerated type mixed with another type) as ret may be enum type */ \
+        _Pragma("diag_suppress=Pe188") \
         FIH_LABEL("FIH_CALL_START", l, c);        \
         FIH_CFI_PRECALL_BLOCK; \
         ret = FIH_FAILURE; \
@@ -412,6 +413,7 @@ void fih_cfi_decrement(void);
         } \
         FIH_CFI_POSTCALL_BLOCK; \
         FIH_LABEL("FIH_CALL_END", l, c);          \
+        _Pragma("diag_default=Pe188") \
     } while (0)
 
 #else
