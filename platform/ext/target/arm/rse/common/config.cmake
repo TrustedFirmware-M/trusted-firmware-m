@@ -38,6 +38,13 @@ set(TFM_DEBUG_OPTIMISATION              ON         CACHE BOOL      "Add basic -O
 
 set(RSE_SUBPLATFORM_PAL_DEFAULT_IOCTL   OFF        CACHE BOOL      "Enable subplatform specific IOCTL service implementation")
 
+# Clock divider for CC3XX:
+# 0: 1/1    (No division)
+# 1: 1/2
+# 2: 1/3
+# 3: 1/4
+set(CC3XX_CLOCK_DIVIDER_SELECT          1          CACHE STRING "CC3XX clock divider select field (0=1/1,1=1/2,2=1/3,3=1/4)")
+
 ################# Partitions ###################################################
 
 set(TFM_PARTITION_CRYPTO                ON         CACHE BOOL     "Enable Crypto partition")
