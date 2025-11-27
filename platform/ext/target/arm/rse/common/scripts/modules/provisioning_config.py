@@ -233,10 +233,14 @@ def _handle_rotpk(args: argparse.Namespace,
         hash_alg = getattr(provisioning_config,
                            "{}_rotpk_hash_algs".format(field_owner))[area_index, rotpk_index]
         hash_alg = convert_hash_define(hash_alg, "RSE_ROTPK_HASH_ALG_")
-        digest = hashes.Hash(hash_alg())
-        digest.update(v)
-        out = digest.finalize()
-        logger.info("Hashed public key {} with value {} using alg {} to hash {}".format(f, v.hex(), hash_alg.name, out.hex()))
+        if len(v) != hash_alg.digest_size:
+            digest = hashes.Hash(hash_alg())
+            digest.update(v)
+            out = digest.finalize()
+            logger.info("Hashed public key {} with value {} using alg {} to hash {}".format(f, v.hex(), hash_alg.name, out.hex()))
+        else:
+            out = v
+            logger.info("Using pre-hashed value {} for public key {}".format(out.hex(), f))
         return out
     else:
         type = getattr(provisioning_config, "{}_rotpk_type".format(field_owner))[rotpk_index]
