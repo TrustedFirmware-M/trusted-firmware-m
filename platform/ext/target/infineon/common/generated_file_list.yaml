@@ -1,0 +1,41 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2023-2024 Cypress Semiconductor Corporation (an Infineon company)
+# or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+
+# The path of "template" can be relative path to TF-M root or absolute path
+# The path of "output" must be relative path to the root for generated files
+# Both can contain environment variables
+
+{
+  "description": "Infineon generated files list",
+  "type": "generated_file_list",
+  "version_major": 0,
+  "version_minor": 1,
+  "file_list": [
+    {
+        "description": "IFX platform specific partition info",
+        "template": "platform/ext/target/infineon/common/spe/protection/partition_info.template",
+        "output": "secure_fw/ifx/partition_info.c"
+    },
+    # IMPROVEMENT: Use secure linker files from common code, not infineon ones
+    {
+        "description": "isolation l1/l2 scatter file",
+        "template": "platform/ext/target/infineon/common/toolchain/armclang/tfm_common_s.sct.template",
+        "output": "platform/ext/target/infineon/common/toolchain/armclang/tfm_common_s.sct"
+    },
+    {
+        "description": "isolation l1/l2 linker script",
+        "template": "platform/ext/target/infineon/common/toolchain/gcc/tfm_common_s.ld.template",
+        "output": "platform/ext/target/infineon/common/toolchain/gcc/tfm_common_s.ld"
+    },
+    {
+        "description": "isolation l1/l2 linker script",
+        "template": "platform/ext/target/infineon/common/toolchain/iar/tfm_common_s.icf.template",
+        "output": "platform/ext/target/infineon/common/toolchain/iar/tfm_common_s.icf"
+    },
+  ]
+}

@@ -1,0 +1,72 @@
+/*
+ * Copyright (c) 2023-2025 Cypress Semiconductor Corporation (an Infineon company)
+ * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ */
+
+#define IFX_LINKER_SCRIPT 1
+#define IFX_ARM_CLANG_LINKER_SCRIPT 1
+
+/* Verify that target config header exists */
+#ifndef IFX_TARGET_LINKER_CONFIG_HEADER
+#error IFX_TARGET_LINKER_CONFIG_HEADER must be defined
+#endif
+
+/* Include target configuration header */
+#include IFX_TARGET_LINKER_CONFIG_HEADER
+
+LR_CODE NS_CODE_START {
+    ER_CODE NS_CODE_START NS_CODE_SIZE {
+        *.o (RESET +First)
+        .ANY (+RO)
+    }
+
+#ifdef IFX_NS_SHARED_MEMORY_ADDR
+    cy_sharedmem IFX_NS_SHARED_MEMORY_ADDR OVERLAY IFX_NS_SHARED_MEMORY_SIZE {
+        *(.cy_sharedmem)
+    }
+#endif /* IFX_NS_SHARED_MEMORY_ADDR */
+
+    /**** Base address of non-secure data area */
+    ER_NS_DATA_START NS_DATA_START {
+    }
+
+#ifdef RAM_VECTORS_SUPPORT
+    ER_RAM_VECTORS +0 ALIGN 256 UNINIT {
+        * (.bss.noinit.RESET_RAM)
+    }
+#endif
+
+#ifdef RAM_CODE_SEC_NAME
+    /* Executable code allocated in RAM */
+    TFM_RAM_CODE +0 ALIGN 32 {
+        * (S_RAM_CODE_SEC_NAME)
+    }
+#endif
+
+    /* Use up the rest space of the NS_DATA area */
+    ER_DATA +0 {
+        .ANY (+ZI +RW)
+    }
+
+    /* Allocates all available RAM to heap - similar to PDL linker script */
+    ARM_LIB_HEAP +0 ALIGN 8 EMPTY ((NS_DATA_START+NS_DATA_SIZE)-AlignExpr(ImageLimit(ER_DATA), 8)-NS_MSP_STACK_SIZE) {
+    }
+
+    /* MSP */
+    ARM_LIB_STACK +0 ALIGN 32 EMPTY NS_MSP_STACK_SIZE {
+    }
+
+    /* This empty, zero long execution region is here to mark the limit address
+     * of the last execution region that is allocated in SRAM.
+     */
+    SRAM_WATERMARK +0 EMPTY 0x0 {
+    }
+
+    /* Make sure that the sections allocated in the SRAM does not exceed the
+     * size of the SRAM available.
+     */
+    ScatterAssert(ImageLimit(SRAM_WATERMARK) <= NS_DATA_START + NS_DATA_SIZE)
+}

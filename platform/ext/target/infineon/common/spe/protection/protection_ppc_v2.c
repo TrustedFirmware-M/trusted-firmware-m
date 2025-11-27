@@ -1,0 +1,377 @@
+/*
+ * Copyright (c) 2023-2025 Cypress Semiconductor Corporation (an Infineon company)
+ * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ */
+
+#include "config_tfm.h"
+#include "cy_ppc.h"
+#include "ifx_tfm_log_shim.h"
+#include "utilities.h"
+#include "protection_types.h"
+#include "protection_regions_cfg.h"
+#include "protection_ppc_api.h"
+
+/* IMPROVEMENT: move Cy_Ppc_GetPcMask(), Cy_Ppc_GetAttrib() and Function Description to PDL (DRIVERS-10521)*/
+
+/*******************************************************************************
+* Function Name: Cy_Ppc_GetPcMask
+********************************************************************************
+*
+* \brief Get the PC mask for a regions of referenced PPC
+*
+* \param base
+* Base address of PPC being configured
+*
+* \param region
+* region in space of \ref cy_en_prot_region_t
+*
+* \return
+* Actual value of pcMask from PPC registers
+*
+*******************************************************************************/
+static uint32_t Cy_Ppc_GetPcMask(const PPC_Type* base, cy_en_prot_region_t region)
+{
+    return base->PC_MASK[CY_PPC_DRV_REGION_EXTRACT(region)];
+}
+
+/*******************************************************************************
+* Function Name: Cy_Ppc_GetPointerForRegion
+********************************************************************************
+*
+* \brief Get a pointer to the PPC_Type structure for a given PPC region.
+*
+* This function returns a pointer to the PPC_Type structure associated with the
+* specified PPC region. If the provided PPC region is invalid, the function
+* triggers a tfm_core_panic().
+*
+* \param ppc_region
+* PPC region as defined in \ref cy_en_prot_region_t
+*
+* \return
+* A pointer to the PPC_Type structure for the given PPC region.
+* In case of an invalid PPC region, the function will not return and will
+* trigger a tfm_core_panic().
+*
+*******************************************************************************/
+static PPC_Type* Cy_Ppc_GetPointerForRegion(cy_en_prot_region_t ppc_region)
+{
+    size_t index_ppc = CY_PPC_DRV_BLOCK_EXTRACT(ppc_region);
+    if (index_ppc < ifx_ppcx_region_ptrs_count) {
+        return ifx_ppcx_region_ptrs[index_ppc];
+    }
+
+    tfm_core_panic();
+}
+
+/*******************************************************************************
+* Function Name: Cy_Ppc_GetAttrib
+********************************************************************************
+*
+* \brief Get the PPC security attributes for a region of referenced PPC
+*
+* \param base
+* Base address of PPC being configured
+*
+* \param region
+* region in space of \ref cy_en_prot_region_t
+*
+* \param p_attribute
+* ptr to return attribute values \ref cy_stc_ppc_attribute_t
+*
+* \return* TFM_HAL_SUCCESS       - Attribute retrieved successfully
+*          TFM_HAL_ERROR_GENERIC - Failed to retrieve Attribute
+*
+*******************************************************************************/
+static enum tfm_hal_status_t Cy_Ppc_GetAttrib(const PPC_Type* base,
+                                              cy_en_prot_region_t ppc_region,
+                                              cy_stc_ppc_attribute_t* p_attribute)
+{
+    uint32_t            sBit;
+    uint32_t            blkIdx;
+
+    if (p_attribute == NULL) {
+        return TFM_HAL_ERROR_GENERIC;
+    }
+
+    sBit   = ((uint32_t)CY_PPC_DRV_REGION_EXTRACT(ppc_region)) % 32U;
+    blkIdx = ((uint32_t)CY_PPC_DRV_REGION_EXTRACT(ppc_region)) / 32U;
+
+    p_attribute->pcMask            = Cy_Ppc_GetPcMask(base, ppc_region);
+    p_attribute->secAttribute      = ((base->NS_ATT[blkIdx]   & (1UL << sBit)) != 0U) ? CY_PPC_NON_SECURE     : CY_PPC_SECURE;
+    if (p_attribute->secAttribute == CY_PPC_SECURE) {
+        p_attribute->privAttribute = ((base->S_P_ATT[blkIdx]  & (1UL << sBit)) !=0U) ? CY_PPC_NONPRIV         : CY_PPC_PRIV;
+    } else {
+        p_attribute->privAttribute = ((base->NS_P_ATT[blkIdx] & (1UL << sBit)) !=0U) ? CY_PPC_NONPRIV         : CY_PPC_PRIV;
+    }
+
+    return TFM_HAL_SUCCESS;
+}
+
+/* Check whether the specified config is one that can be set. Panic if not */
+static void ifx_check_config_validity(const PPC_Type               *ppc_ptr,
+                                      cy_en_prot_region_t           ppc_region,
+                                      const cy_stc_ppc_attribute_t *ppc_attribute,
+                                      const uint32_t                ppc_pcmask)
+{
+    /* IMPROVEMENT: Remove the typecast once DRIVERS-23320 is fixed */
+    uint32_t lock_mask = Cy_Ppc_GetLockMask((PPC_Type *)ppc_ptr);
+    uint32_t pc_mask = Cy_Ppc_GetPcMask(ppc_ptr, ppc_region);
+    cy_stc_ppc_attribute_t attr = {
+        .pcMask = ~pc_mask,
+        .secAttribute = CY_PPC_SECURE,
+        .privAttribute = CY_PPC_PRIV,
+    };
+    enum tfm_hal_status_t ret = Cy_Ppc_GetAttrib(ppc_ptr, ppc_region, &attr);
+
+    if ((ret != TFM_HAL_SUCCESS) || (pc_mask != attr.pcMask)) {
+        tfm_core_panic();
+    }
+
+    /* If a locked PC has access to a region, secAttribute and privAttribute cannot be changed */
+    if (pc_mask & lock_mask) {
+        if (attr.secAttribute != ppc_attribute->secAttribute) {
+            ERROR_RAW("PPC config cannot be set (secAttribute when locked PC has access) for region 0x%08x\n",
+                      (uint32_t)ppc_region);
+            ERROR_RAW("pc_mask 0x%08x\n", pc_mask);
+            ERROR_RAW("lock_mask 0x%08x\n", lock_mask);
+            ERROR_RAW("current secAttribute 0x%08x\n", (uint32_t)attr.secAttribute);
+            tfm_core_panic();
+        }
+        if (attr.privAttribute != ppc_attribute->privAttribute) {
+            ERROR_RAW("PPC config cannot be set (privAttribute when locked PC has access) for region 0x%08x\n",
+                      (uint32_t)ppc_region);
+            ERROR_RAW("pc_mask 0x%08x\n", pc_mask);
+            ERROR_RAW("lock_mask 0x%08x\n", lock_mask);
+            ERROR_RAW("current privAttribute 0x%08x\n", (uint32_t)attr.privAttribute);
+            tfm_core_panic();
+        }
+    }
+
+    /* PC mask can't be changed for a locked PC */
+    if ((pc_mask ^ ppc_pcmask) & lock_mask) {
+        ERROR_RAW("PPC config cannot be set (PC mask for locked PC) for region 0x%08x\n",
+                  (uint32_t)ppc_region);
+        ERROR_RAW("pc_mask 0x%08x\n", pc_mask);
+        ERROR_RAW("lock_mask 0x%08x\n", lock_mask);
+        tfm_core_panic();
+    }
+
+    /* If any PC with access is locked, we can't set new PC bits */
+    if (((pc_mask & lock_mask) != 0U) && (((pc_mask ^ ppc_pcmask) & ppc_pcmask) != 0U)) {
+        ERROR_RAW("PPC config cannot be set (grant access when locked PC has access) for region 0x%08x\n",
+                  (uint32_t)ppc_region);
+        ERROR_RAW("pc_mask 0x%08x\n", pc_mask);
+        ERROR_RAW("lock_mask 0x%08x\n", lock_mask);
+        tfm_core_panic();
+    }
+}
+
+static cy_en_ppc_priv_attribute_t to_priv_attr(bool allow_unpriv)
+{
+    cy_en_ppc_priv_attribute_t ret = CY_PPC_PRIV;
+
+    if (allow_unpriv == true) {
+        ret = CY_PPC_NONPRIV;
+    }
+    return ret;
+}
+
+/* Init PPC static protection for one PPC controller */
+static FIH_RET_TYPE(enum tfm_hal_status_t) ifx_ppcx_init_cfg(const ifx_ppcx_config_t* p_config)
+{
+    cy_en_ppc_status_t      ppc_status;
+    PPC_Type*               ppc_ptr;
+    cy_en_prot_region_t     ppc_region;
+
+#if IFX_PPC_DOMAIN_CONFIGURATOR
+    ppc_ptr = p_config->ppc_base;
+    for (uint32_t cfg_idx = 0UL; cfg_idx < *p_config->config_count; cfg_idx++) {
+        const cy_stc_ppc_cfg_t *p_cycfg = &p_config->configs[cfg_idx];
+        const cy_stc_ppc_attribute_t *ppc_attribute = p_cycfg->cfg;
+
+        for (uint32_t idx = 0UL; idx < p_cycfg->region_count; idx++) {
+            ppc_region    = p_cycfg->regions[idx];
+
+            ifx_check_config_validity(ppc_ptr, ppc_region, ppc_attribute, ppc_attribute->pcMask);
+
+            ppc_status = Cy_Ppc_ConfigAttrib(ppc_ptr, ppc_region, ppc_attribute);
+            if (ppc_status != CY_PPC_SUCCESS) {
+                FIH_RET(TFM_HAL_ERROR_GENERIC);
+            }
+
+            ppc_status = Cy_Ppc_SetPcMask(ppc_ptr, ppc_region, ppc_attribute->pcMask);
+            if (ppc_status != CY_PPC_SUCCESS) {
+                FIH_RET(TFM_HAL_ERROR_GENERIC);
+            }
+        }
+    }
+#else /* IFX_PPC_DOMAIN_CONFIGURATOR */
+    /* This is for legacy code without support of Edge Protect Configurator */
+    for (uint32_t idx = 0UL; idx < p_config->region_count; idx++) {
+
+        ppc_ptr    = Cy_Ppc_GetPointerForRegion(p_config->regions[idx]);
+        ppc_region = p_config->regions[idx];
+
+        cy_stc_ppc_attribute_t  ppc_attribute;
+        ppc_attribute.pcMask           = p_config->pc_mask;
+        ppc_attribute.secAttribute     = p_config->sec_attr;
+        ppc_attribute.privAttribute    = to_priv_attr(p_config->allow_unpriv);
+
+        ifx_check_config_validity(ppc_ptr, ppc_region, &ppc_attribute, p_config->pc_mask);
+
+        ppc_status = Cy_Ppc_ConfigAttrib(ppc_ptr, ppc_region, &ppc_attribute);
+        if (ppc_status != CY_PPC_SUCCESS) {
+            FIH_RET(TFM_HAL_ERROR_GENERIC);
+        }
+
+        ppc_status = Cy_Ppc_SetPcMask(ppc_ptr, ppc_region, p_config->pc_mask);
+        if (ppc_status != CY_PPC_SUCCESS) {
+            FIH_RET(TFM_HAL_ERROR_GENERIC);
+        }
+    }
+#endif /* IFX_PPC_DOMAIN_CONFIGURATOR */
+
+    FIH_RET(TFM_HAL_SUCCESS);
+}
+
+FIH_RET_TYPE(enum tfm_hal_status_t) ifx_ppc_init_cfg(void)
+{
+    IFX_FIH_DECLARE(enum tfm_hal_status_t, fih_rc, TFM_HAL_ERROR_GENERIC);
+
+    /*
+    * Starts changing actual configuration so issue DMB to ensure every
+    * transaction has completed by now
+    */
+    __DMB();
+
+    for (uint32_t idx = 0UL; idx < ifx_ppcx_region_ptrs_count; idx++) {
+        /* Initialize PPCs */
+        if (Cy_Ppc_InitPpc(ifx_ppcx_region_ptrs[idx], CY_PPC_BUS_ERR) != CY_PPC_SUCCESS) {
+            FIH_RET(TFM_HAL_ERROR_GENERIC);
+        }
+    }
+
+    for (uint32_t idx = 0UL; idx < ifx_ppcx_static_config_count; idx++) {
+        FIH_CALL(ifx_ppcx_init_cfg, fih_rc, &ifx_ppcx_static_config[idx]);
+        if (FIH_NOT_EQ(fih_rc, TFM_HAL_SUCCESS)) {
+            FIH_RET(fih_rc);
+        }
+    }
+
+    /* Add barriers to assure the PPC configuration is done before continue
+     * the execution.
+     */
+    __DSB();
+    __ISB();
+
+    FIH_RET(TFM_HAL_SUCCESS);
+}
+
+#ifdef TFM_FIH_PROFILE_ON
+FIH_RET_TYPE(enum tfm_hal_status_t) ifx_ppc_verify_static_boundaries(void)
+{
+    /*
+     * All the code here has a direct 1:1 mapping to the code in
+     * ifx_ppc_init_cfg(). This function just verifies that that
+     * one did what it was supposed to
+     */
+
+    /* all PPCs should be configured to generate a BusError exception */
+    for (uint32_t idx = 0UL; idx < ifx_ppcx_region_ptrs_count; idx++) {
+        if ((ifx_ppcx_region_ptrs[idx]->CTL & PPC_CTL_RESP_CFG_Msk) == 0U) {
+            FIH_RET(TFM_HAL_ERROR_GENERIC);
+        }
+    }
+
+    /* Each region should be configured as in ifx_ppcx_static_config[] */
+    for (uint32_t idx = 0UL; idx < ifx_ppcx_static_config_count; idx++) {
+        const ifx_ppcx_config_t* p_config = &ifx_ppcx_static_config[idx];
+
+#if IFX_PPC_DOMAIN_CONFIGURATOR
+        const PPC_Type * ppc_ptr = p_config->ppc_base;
+        for (uint32_t cfg_idx = 0UL; cfg_idx < *p_config->config_count; cfg_idx++) {
+            const cy_stc_ppc_cfg_t *p_cycfg = &p_config->configs[cfg_idx];
+            const cy_stc_ppc_attribute_t *cfg_attr = p_cycfg->cfg;
+
+            for (uint32_t i = 0UL; i < p_cycfg->region_count; i++) {
+                cy_en_prot_region_t ppc_region = p_cycfg->regions[i];
+                cy_stc_ppc_attribute_t attr;
+                enum tfm_hal_status_t ret = Cy_Ppc_GetAttrib(ppc_ptr, ppc_region, &attr);
+
+                if ((ret != TFM_HAL_SUCCESS) ||
+                    (attr.pcMask != cfg_attr->pcMask) ||
+                    (attr.secAttribute != cfg_attr->secAttribute) ||
+                    (attr.privAttribute != cfg_attr->privAttribute)) {
+                    FIH_RET(TFM_HAL_ERROR_GENERIC);
+                }
+
+                /* Cy_Ppc_GetPcMask is not checked because Cy_Ppc_GetAttrib returns
+                 * pcMask which is tested above */
+            }
+        }
+#else /* IFX_PPC_DOMAIN_CONFIGURATOR */
+        for (uint32_t i = 0UL; i < p_config->region_count; i++) {
+            const PPC_Type * ppc_ptr = Cy_Ppc_GetPointerForRegion(p_config->regions[i]);
+            cy_en_prot_region_t ppc_region = p_config->regions[i];
+            cy_stc_ppc_attribute_t attr;
+            enum tfm_hal_status_t ret = Cy_Ppc_GetAttrib(ppc_ptr, ppc_region, &attr);
+
+            if ((ret != TFM_HAL_SUCCESS) ||
+                (attr.pcMask != p_config->pc_mask) ||
+                (attr.secAttribute != p_config->sec_attr) ||
+                (attr.privAttribute != to_priv_attr(p_config->allow_unpriv))) {
+                FIH_RET(TFM_HAL_ERROR_GENERIC);
+            }
+
+            if (Cy_Ppc_GetPcMask(ppc_ptr, ppc_region) != p_config->pc_mask) {
+                FIH_RET(TFM_HAL_ERROR_GENERIC);
+            }
+        }
+#endif /* IFX_PPC_DOMAIN_CONFIGURATOR */
+    }
+
+    FIH_RET(TFM_HAL_SUCCESS);
+}
+#endif /* TFM_FIH_PROFILE_ON */
+
+FIH_RET_TYPE(enum tfm_hal_status_t) ifx_ppc_isolate_named_mmio(
+                                                 const ifx_ppc_named_mmio_config_t* ppc_cfg,
+                                                 cy_en_prot_region_t asset)
+{
+    PPC_Type* ppc_ptr = Cy_Ppc_GetPointerForRegion(asset);
+
+    /* Set PC mask for PPC region to allow SPM modify attributes */
+    uint32_t ppc_pcmask = ppc_cfg->pc_mask | IFX_PC_TFM_SPM;
+
+    cy_stc_ppc_attribute_t ppc_attribute = {
+        .pcMask           = ppc_pcmask,
+        .secAttribute     = ppc_cfg->sec_attr,
+        .privAttribute    = to_priv_attr(ppc_cfg->allow_unpriv),
+    };
+
+    ifx_check_config_validity(ppc_ptr, asset, &ppc_attribute, ppc_pcmask);
+
+    if (Cy_Ppc_SetPcMask(ppc_ptr, asset, ppc_pcmask) != CY_PPC_SUCCESS) {
+        FIH_RET(TFM_HAL_ERROR_GENERIC);
+    };
+
+    (void)fih_delay();
+
+    /* Set PPC attributes */
+    if (Cy_Ppc_ConfigAttrib(ppc_ptr, asset, &ppc_attribute) != CY_PPC_SUCCESS) {
+        FIH_RET(TFM_HAL_ERROR_GENERIC);
+    }
+
+    if ((ppc_cfg->pc_mask & IFX_PC_TFM_SPM) == 0U)
+    {
+        /* Set PC mask for PPC region according to ppc_cfg */
+        if (Cy_Ppc_SetPcMask(ppc_ptr, asset, ppc_cfg->pc_mask) != CY_PPC_SUCCESS) {
+            FIH_RET(TFM_HAL_ERROR_GENERIC);
+        };
+    }
+
+    FIH_RET(TFM_HAL_SUCCESS);
+}

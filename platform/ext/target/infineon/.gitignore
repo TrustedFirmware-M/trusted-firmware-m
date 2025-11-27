@@ -1,0 +1,7 @@
+# Saving design.modus in Device Configurator generates GeneratedSource directory
+# in folder with design.modus, thus ignore it
+GeneratedSource
+
+# Running Device Configurator CLI generates design.cyqspi.memory-export file
+# in folder with design.modus, thus ignore it
+design.cyqspi.memory-export

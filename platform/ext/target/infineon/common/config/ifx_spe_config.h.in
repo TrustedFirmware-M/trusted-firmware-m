@@ -1,0 +1,98 @@
+/*
+ * Copyright (c) 2024-2025 Cypress Semiconductor Corporation (an Infineon company)
+ * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ */
+
+#ifndef IFX_SPE_CONFIG_H
+#define IFX_SPE_CONFIG_H
+
+/*************************** Platform configuration ***************************/
+
+/**
+ * Each Infineon platform must provide \ref ifx_platform_spe_config.h file with macros
+ * used to configure secure image.
+ */
+#include "ifx_platform_spe_config.h"
+
+/* Use tfm_hal_post_partition_init_hook hook to track SPM state */
+#define CONFIG_TFM_POST_PARTITION_INIT_HOOK                 1
+
+/* Whether Protection Context switching is enabled */
+#cmakedefine01 IFX_ISOLATION_PC_SWITCHING
+
+/************************ Validation and helper macros ************************/
+
+#ifndef IFX_PLATFORM_MPC_PRESENT
+/**
+ * \brief Set to 1 if platform has memory protection controller (MPC)
+ */
+#define IFX_PLATFORM_MPC_PRESENT                            0
+#endif
+
+/* Whether MPC HW driver v1 is used */
+#cmakedefine01 IFX_MPC_DRIVER_HW_MPC_V1
+/* Whether MPC HW driver v2 is used */
+#cmakedefine01 IFX_MPC_DRIVER_HW_MPC_V2
+
+#if IFX_MPC_DRIVER_HW_MPC_V1 || IFX_MPC_DRIVER_HW_MPC_V2
+/* \brief Use HW MPC driver */
+#define IFX_MPC_DRIVER_HW_MPC                               1
+#else
+/* \brief Use HW MPC driver */
+#define IFX_MPC_DRIVER_HW_MPC                               0
+#endif /* IFX_MPC_DRIVER_HW_MPC_V1 || IFX_MPC_DRIVER_HW_MPC_V2 */
+
+#if !IFX_ISOLATION_PC_SWITCHING
+/* Defines whether PSA RoT is protected via dynamic MPC isolation on L3 */
+#define IFX_PSA_ROT_MPC_DYNAMIC_ISOLATION                   0
+/* Defines whether Application RoT is protected via dynamic MPC isolation on L3 */
+#define IFX_APP_ROT_MPC_DYNAMIC_ISOLATION                   0
+/* Defines whether NS Agent TZ is protected via dynamic MPC isolation on L3 */
+#define IFX_NS_AGENT_TZ_MPC_DYNAMIC_ISOLATION               0
+#endif /* IFX_ISOLATION_PC_SWITCHING */
+
+#ifndef IFX_PLATFORM_PPC_PRESENT
+/*
+ * \brief Set to 1 if platform has peripheral protection controller (PPC)
+ */
+#define IFX_PLATFORM_PPC_PRESENT                            0
+#endif
+
+/* Whether PPC driver v1 is used */
+#cmakedefine IFX_PPC_DRIVER_V1
+/* Whether PPC driver v2 is used */
+#cmakedefine IFX_PPC_DRIVER_V2
+
+/* Whether Device or Edge Configurator provides PPC domain configuration */
+#cmakedefine01 IFX_PPC_DOMAIN_CONFIGURATOR
+
+#ifndef IFX_PSA_ROT_PPC_DYNAMIC_ISOLATION
+/* Defines whether PSA RoT is protected via dynamic PPC isolation on L3 */
+#define IFX_PSA_ROT_PPC_DYNAMIC_ISOLATION                   0
+#endif
+
+#ifndef IFX_APP_ROT_PPC_DYNAMIC_ISOLATION
+/* Defines whether Application RoT is protected via dynamic PPC isolation on L3 */
+#define IFX_APP_ROT_PPC_DYNAMIC_ISOLATION                   0
+#endif
+
+#ifndef IFX_NS_AGENT_TZ_PPC_DYNAMIC_ISOLATION
+/* Defines whether NS Agent TZ is protected via dynamic PPC isolation on L3 */
+#define IFX_NS_AGENT_TZ_PPC_DYNAMIC_ISOLATION               0
+#endif
+
+/* Shared data is defined as dedicated memory region for Infineon devices, thus
+ * no need to allocate section for shared data in TFM data region. */
+#ifndef CONFIG_TFM_ALLOCATE_SHARED_DATA_SECTION
+#define CONFIG_TFM_ALLOCATE_SHARED_DATA_SECTION             0
+#endif
+
+#ifndef LOG_PRIV_BUFFER_SIZE
+/* Use buffered privileged output to minimize number of SVC calls by partitions */
+#define LOG_PRIV_BUFFER_SIZE                                32
+#endif
+
+#endif /* IFX_SPE_CONFIG_H */

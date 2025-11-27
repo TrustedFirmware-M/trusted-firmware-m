@@ -1,0 +1,635 @@
+/*
+ * Copyright (c) 2023-2025 Cypress Semiconductor Corporation (an Infineon company)
+ * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ */
+
+/**
+ * \file partition_info.template
+ * \brief Template file used to generate platform specific partition info and partition load info
+ *        for all partitions
+ *
+ * \details Generated file is located in
+ *          ${IFX_GENERATED_DIR}/secure_fw/ifx/partition_info.c.
+ */
+
+#include <stddef.h>
+
+#include "array.h"
+#include "config_impl.h"
+#include "region_defs.h"
+#include "flash_layout.h"
+#include "partition_info.h"
+#include "protection_regions_cfg.h"
+#include "psa_manifest/pid.h"
+#include "tfm_peripherals_def.h"
+#include "tfm_s_linker_alignments.h"
+#include "utilities.h"
+
+/* Include custom partition assets */
+#define IFX_PROVIDE_PARTITION_ASSETS
+#include "partition_assets.h"
+
+#if IFX_ISOLATION_PC_SWITCHING
+
+/* PC switching configuration of ifx_partition_load_info_t for SPM */
+#define IFX_PROTECTION_SPM_PC_CFG \
+    .secure_pc = FIH_INT_INIT(IFX_PC_TFM_SPM_ID), \
+    .non_secure_pc = FIH_INVALID_VALUE,
+
+/* PC switching configuration of ifx_partition_load_info_t for PSA RoT */
+#define IFX_PROTECTION_PSA_ROT_PC_CFG \
+    .secure_pc = FIH_INT_INIT(IFX_PC_TFM_PROT_ID), \
+    .non_secure_pc = FIH_INVALID_VALUE,
+
+/* PC switching configuration of ifx_partition_load_info_t for App RoT */
+#define IFX_PROTECTION_APP_ROT_PC_CFG \
+    .secure_pc = FIH_INT_INIT(IFX_PC_TFM_AROT_ID), \
+    .non_secure_pc = FIH_INVALID_VALUE,
+
+#else /* IFX_ISOLATION_PC_SWITCHING */
+
+/* PC switching configuration of ifx_partition_load_info_t for SPM */
+#define IFX_PROTECTION_SPM_PC_CFG
+
+/* PC switching configuration of ifx_partition_load_info_t for PSA RoT */
+#define IFX_PROTECTION_PSA_ROT_PC_CFG
+
+/* PC switching configuration of ifx_partition_load_info_t for App RoT */
+#define IFX_PROTECTION_APP_ROT_PC_CFG
+
+#endif /* IFX_ISOLATION_PC_SWITCHING */
+
+const ifx_protection_region_config_t protect_cfg_enabled_spm_rot = {
+    IFX_PPC_NAMED_MMIO_SPM_ROT_CFG
+    IFX_MPC_NAMED_MMIO_SPM_ROT_CFG
+    .mpu_regions_enable = IFX_FIH_FALSE,
+#if TFM_ISOLATION_LEVEL == 3
+#if IFX_MPC_CONFIGURED_BY_TFM
+    .mpc_dynamic = false,
+#endif /* IFX_MPC_CONFIGURED_BY_TFM */
+#if IFX_PLATFORM_PPC_PRESENT
+    .ppc_dynamic = false,
+#endif /* IFX_PLATFORM_PPC_PRESENT */
+#endif /* TFM_ISOLATION_LEVEL == 3 */
+};
+
+#if TFM_ISOLATION_LEVEL == 3
+static const ifx_protection_region_config_t protect_cfg_disabled_l3_spm_rot = {
+    IFX_PPC_NAMED_MMIO_L3_DISABLED_CFG
+    IFX_MPC_NAMED_MMIO_L3_DISABLED_CFG
+    .mpu_regions_enable = IFX_FIH_FALSE,
+#if IFX_MPC_CONFIGURED_BY_TFM
+    .mpc_dynamic = false,
+#endif /* IFX_MPC_CONFIGURED_BY_TFM */
+#if IFX_PLATFORM_PPC_PRESENT
+    .ppc_dynamic = false,
+#endif /* IFX_PLATFORM_PPC_PRESENT */
+};
+
+/* Permissions to run within SPM protection context */
+#define IFX_PROTECT_SPM_ROT_CFG \
+    .privileged = IFX_FIH_TRUE, \
+    IFX_PROTECTION_SPM_PC_CFG \
+    .protect_cfg_enabled = &protect_cfg_enabled_spm_rot, \
+    .protect_cfg_disabled = &protect_cfg_disabled_l3_spm_rot
+#else /* TFM_ISOLATION_LEVEL == 3 */
+/* Permissions to run within SPM protection context */
+#define IFX_PROTECT_SPM_ROT_CFG \
+    .privileged = IFX_FIH_TRUE, \
+    IFX_PROTECTION_SPM_PC_CFG \
+    .protect_cfg_enabled = &protect_cfg_enabled_spm_rot
+#endif /* TFM_ISOLATION_LEVEL == 3 */
+
+/* Attribute used to specify privilege level of PSA RoT partition */
+#if IFX_PSA_ROT_PRIVILEGED != 0
+#define IFX_PSA_ROT_PARTITION_PRIVILEGED_ATTR   IFX_FIH_TRUE
+#else
+#define IFX_PSA_ROT_PARTITION_PRIVILEGED_ATTR   IFX_FIH_FALSE
+#endif
+
+/* Attribute used to specify privilege level of App RoT partition */
+#if IFX_APP_ROT_PRIVILEGED != 0
+#define IFX_APP_ROT_PARTITION_PRIVILEGED_ATTR   IFX_FIH_TRUE
+#else
+#define IFX_APP_ROT_PARTITION_PRIVILEGED_ATTR   IFX_FIH_FALSE
+#endif
+
+#if TFM_ISOLATION_LEVEL == 3
+static const ifx_protection_region_config_t protect_cfg_enabled_l3_psa_rot = {
+    IFX_PPC_NAMED_MMIO_PSA_ROT_CFG
+    IFX_MPC_NAMED_MMIO_PSA_ROT_CFG
+#if IFX_PSA_ROT_PRIVILEGED == 0
+    .mpu_regions_enable = IFX_FIH_TRUE,
+#else
+    .mpu_regions_enable = IFX_FIH_FALSE,
+#endif
+#if IFX_MPC_CONFIGURED_BY_TFM
+    .mpc_dynamic = IFX_PSA_ROT_MPC_DYNAMIC_ISOLATION != 0,
+#endif /* IFX_MPC_CONFIGURED_BY_TFM */
+#if IFX_PLATFORM_PPC_PRESENT
+    .ppc_dynamic = IFX_PSA_ROT_PPC_DYNAMIC_ISOLATION != 0,
+#endif /* IFX_PLATFORM_PPC_PRESENT */
+};
+
+static const ifx_protection_region_config_t protect_cfg_disabled_l3_psa_rot = {
+    IFX_PPC_NAMED_MMIO_L3_DISABLED_CFG
+    IFX_MPC_NAMED_MMIO_L3_DISABLED_CFG
+    .mpu_regions_enable = IFX_FIH_FALSE,
+#if IFX_MPC_CONFIGURED_BY_TFM
+    .mpc_dynamic = IFX_PSA_ROT_MPC_DYNAMIC_ISOLATION != 0,
+#endif /* IFX_MPC_CONFIGURED_BY_TFM */
+#if IFX_PLATFORM_PPC_PRESENT
+    .ppc_dynamic = IFX_PSA_ROT_PPC_DYNAMIC_ISOLATION != 0,
+#endif /* IFX_PLATFORM_PPC_PRESENT */
+};
+
+static const ifx_protection_region_config_t protect_cfg_enabled_l3_app_rot = {
+    IFX_PPC_NAMED_MMIO_APP_ROT_CFG
+    IFX_MPC_NAMED_MMIO_APP_ROT_CFG
+#if IFX_APP_ROT_PRIVILEGED == 0
+    .mpu_regions_enable = IFX_FIH_TRUE,
+#else
+    .mpu_regions_enable = IFX_FIH_FALSE,
+#endif
+#if IFX_MPC_CONFIGURED_BY_TFM
+    .mpc_dynamic = IFX_APP_ROT_MPC_DYNAMIC_ISOLATION != 0,
+#endif /* IFX_MPC_CONFIGURED_BY_TFM */
+#if IFX_PLATFORM_PPC_PRESENT
+    .ppc_dynamic = IFX_APP_ROT_PPC_DYNAMIC_ISOLATION != 0,
+#endif /* IFX_PLATFORM_PPC_PRESENT  */
+};
+
+static const ifx_protection_region_config_t protect_cfg_disabled_l3_app_rot = {
+    IFX_PPC_NAMED_MMIO_L3_DISABLED_CFG
+    IFX_MPC_NAMED_MMIO_L3_DISABLED_CFG
+    .mpu_regions_enable = IFX_FIH_FALSE,
+#if IFX_MPC_CONFIGURED_BY_TFM
+    .mpc_dynamic = IFX_APP_ROT_MPC_DYNAMIC_ISOLATION != 0,
+#endif /* IFX_MPC_CONFIGURED_BY_TFM */
+#if IFX_PLATFORM_PPC_PRESENT
+    .ppc_dynamic = IFX_APP_ROT_PPC_DYNAMIC_ISOLATION != 0,
+#endif /* IFX_PLATFORM_PPC_PRESENT */
+};
+
+#define IFX_PROTECT_PSA_ROT_CFG \
+    .privileged = IFX_PSA_ROT_PARTITION_PRIVILEGED_ATTR, \
+    IFX_PROTECTION_PSA_ROT_PC_CFG \
+    .protect_cfg_enabled  = &protect_cfg_enabled_l3_psa_rot, \
+    .protect_cfg_disabled = &protect_cfg_disabled_l3_psa_rot
+
+#define IFX_PROTECT_APP_ROT_CFG \
+    .privileged = IFX_APP_ROT_PARTITION_PRIVILEGED_ATTR, \
+    IFX_PROTECTION_APP_ROT_PC_CFG \
+    .protect_cfg_enabled  = &protect_cfg_enabled_l3_app_rot, \
+    .protect_cfg_disabled = &protect_cfg_disabled_l3_app_rot
+
+#if IFX_PROTECT_IS_DOMAIN_EQUAL(IFX_PROTECT_PSA_ROT_DOMAIN_CFG, IFX_PROTECT_SPM_DOMAIN_CFG)
+/* Use SPM domain if PRoT partitions protection settings are equal to SPM */
+#define IFX_PROTECT_PSA_ROT_DOMAIN(info)        IFX_PROTECT_SPM_DOMAIN
+#elif IFX_PSA_ROT_PRIVILEGED
+/* Single domain for privileged PRoT partitions */
+#define IFX_PROTECT_PSA_ROT_DOMAIN(info)        IFX_PROTECT_PSA_ROT_SINGLE_DOMAIN
+#else
+/* Separate domain for non-privileged PRoT partitions to setup MPU */
+#define IFX_PROTECT_PSA_ROT_DOMAIN(info)        ((uintptr_t)&info)
+#endif
+
+/* Separate domain for each ARoT partition */
+#define IFX_PROTECT_APP_ROT_DOMAIN(info)        ((uintptr_t)&info)
+
+#ifdef TFM_PARTITION_NS_AGENT_TZ
+#if IFX_PROTECT_IS_DOMAIN_EQUAL(IFX_PROTECT_NS_AGENT_TZ_DOMAIN_CFG, IFX_PROTECT_SPM_DOMAIN_CFG)
+/* Use SPM domain if NS Agent TZ partition settings are equal to SPM */
+#define IFX_PROTECT_NS_AGENT_TZ_DOMAIN(info)    IFX_PROTECT_SPM_DOMAIN
+#elif IFX_PROTECT_IS_DOMAIN_EQUAL(IFX_PROTECT_NS_AGENT_TZ_DOMAIN_CFG, IFX_PROTECT_PSA_ROT_DOMAIN_CFG)
+/* Use PRoT domain if NS Agent TZ partition settings are equal to PRoT */
+#define IFX_PROTECT_NS_AGENT_TZ_DOMAIN(info)    IFX_PROTECT_PSA_ROT_SINGLE_DOMAIN
+#else
+/* A separate domain for NS Agent TZ partitions */
+#define IFX_PROTECT_NS_AGENT_TZ_DOMAIN(info)    ((uintptr_t)&info)
+#endif
+#endif /* TFM_PARTITION_NS_AGENT_TZ */
+
+#elif TFM_ISOLATION_LEVEL == 2
+static const ifx_protection_region_config_t protect_cfg_enabled_l2_psa_rot = {
+    IFX_PPC_NAMED_MMIO_PSA_ROT_CFG
+    IFX_MPC_NAMED_MMIO_PSA_ROT_CFG
+#if IFX_PSA_ROT_PRIVILEGED == 0
+    .mpu_regions_enable = IFX_FIH_TRUE,
+#else
+    .mpu_regions_enable = IFX_FIH_FALSE,
+#endif
+};
+
+static const ifx_protection_region_config_t protect_cfg_enabled_l2_app_rot = {
+    IFX_PPC_NAMED_MMIO_APP_ROT_CFG
+    IFX_MPC_NAMED_MMIO_APP_ROT_CFG
+#if IFX_APP_ROT_PRIVILEGED == 0
+    .mpu_regions_enable = IFX_FIH_TRUE,
+#else
+    .mpu_regions_enable = IFX_FIH_FALSE,
+#endif
+};
+
+#define IFX_PROTECT_PSA_ROT_CFG \
+    .privileged = IFX_PSA_ROT_PARTITION_PRIVILEGED_ATTR, \
+    IFX_PROTECTION_PSA_ROT_PC_CFG \
+    .protect_cfg_enabled = &protect_cfg_enabled_l2_psa_rot
+
+#define IFX_PROTECT_APP_ROT_CFG \
+    .privileged = IFX_APP_ROT_PARTITION_PRIVILEGED_ATTR, \
+    IFX_PROTECTION_APP_ROT_PC_CFG \
+    .protect_cfg_enabled = &protect_cfg_enabled_l2_app_rot
+
+#if IFX_PROTECT_IS_DOMAIN_EQUAL(IFX_PROTECT_PSA_ROT_DOMAIN_CFG, IFX_PROTECT_SPM_DOMAIN_CFG)
+/* Use SPM domain if PRoT partitions protection settings are equal to SPM */
+#define IFX_PROTECT_PSA_ROT_DOMAIN(info)        IFX_PROTECT_SPM_DOMAIN
+#else
+/* Single domain for PRoT partitions */
+#define IFX_PROTECT_PSA_ROT_DOMAIN(info)        IFX_PROTECT_PSA_ROT_SINGLE_DOMAIN
+#endif
+
+/* Single domain for ARoT partitions */
+#define IFX_PROTECT_APP_ROT_DOMAIN(info)        IFX_PROTECT_APP_ROT_SINGLE_DOMAIN
+
+#ifdef TFM_PARTITION_NS_AGENT_TZ
+#if IFX_PROTECT_IS_DOMAIN_EQUAL(IFX_PROTECT_NS_AGENT_TZ_DOMAIN_CFG, IFX_PROTECT_SPM_DOMAIN_CFG)
+/* Use SPM domain if NS Agent TZ partition settings are equal to SPM */
+#define IFX_PROTECT_NS_AGENT_TZ_DOMAIN(info)    IFX_PROTECT_SPM_DOMAIN
+#elif IFX_PROTECT_IS_DOMAIN_EQUAL(IFX_PROTECT_NS_AGENT_TZ_DOMAIN_CFG, IFX_PROTECT_PSA_ROT_DOMAIN_CFG)
+/* Use PRoT domain if NS Agent TZ partition settings are equal to PRoT */
+#define IFX_PROTECT_NS_AGENT_TZ_DOMAIN(info)    IFX_PROTECT_PSA_ROT_SINGLE_DOMAIN
+#elif IFX_PROTECT_IS_DOMAIN_EQUAL(IFX_PROTECT_NS_AGENT_TZ_DOMAIN_CFG, IFX_PROTECT_APP_ROT_DOMAIN_CFG)
+/* Use ARoT domain if NS Agent TZ partition settings are equal to ARoT */
+#define IFX_PROTECT_NS_AGENT_TZ_DOMAIN(info)    IFX_PROTECT_APP_ROT_SINGLE_DOMAIN
+#else
+/* A separate domain for NS Agent TZ partitions */
+#define IFX_PROTECT_NS_AGENT_TZ_DOMAIN(info)    ((uintptr_t)&info)
+#endif
+#endif /* TFM_PARTITION_NS_AGENT_TZ */
+
+#elif TFM_ISOLATION_LEVEL == 1
+static const ifx_protection_region_config_t protect_cfg_enabled_l1 = {
+    IFX_PPC_NAMED_MMIO_SPM_ROT_CFG
+    IFX_MPC_NAMED_MMIO_SPM_ROT_CFG
+    .mpu_regions_enable = IFX_FIH_FALSE,
+};
+
+#define IFX_PROTECT_PSA_ROT_CFG \
+    .privileged = IFX_PSA_ROT_PARTITION_PRIVILEGED_ATTR, \
+    IFX_PROTECTION_SPM_PC_CFG \
+    .protect_cfg_enabled = &protect_cfg_enabled_l1
+
+#define IFX_PROTECT_APP_ROT_CFG \
+    .privileged = IFX_APP_ROT_PARTITION_PRIVILEGED_ATTR, \
+    IFX_PROTECTION_SPM_PC_CFG \
+    .protect_cfg_enabled = &protect_cfg_enabled_l1
+
+/* Use SPM domain for PRoT partitions on L1 */
+#define IFX_PROTECT_PSA_ROT_DOMAIN(info)        IFX_PROTECT_SPM_DOMAIN
+
+/* Use SPM domain for ARoT partitions on L1 */
+#define IFX_PROTECT_APP_ROT_DOMAIN(info)        IFX_PROTECT_SPM_DOMAIN
+
+#ifdef TFM_PARTITION_NS_AGENT_TZ
+#if IFX_PROTECT_IS_DOMAIN_EQUAL(IFX_PROTECT_NS_AGENT_TZ_DOMAIN_CFG, IFX_PROTECT_SPM_DOMAIN_CFG)
+/* Use SPM domain if NS Agent TZ partition settings are equal to SPM */
+#define IFX_PROTECT_NS_AGENT_TZ_DOMAIN(info)    IFX_PROTECT_SPM_DOMAIN
+#else
+/* A separate domain for NS Agent TZ partitions */
+#define IFX_PROTECT_NS_AGENT_TZ_DOMAIN(info)    ((uintptr_t)&info)
+#endif
+#endif /* TFM_PARTITION_NS_AGENT_TZ */
+
+#endif /* TFM_ISOLATION_LEVEL == 3 */
+
+/************************** Default properties ********************************/
+
+/* Default platform specific properties used for partitions within SPM secure domain */
+const ifx_partition_load_info_t ifx_default_spm_partition_load_info = {
+    IFX_PROTECT_SPM_ROT_CFG,
+};
+
+/* Default platform specific properties used for PRoT partitions except special partitions */
+const ifx_partition_load_info_t ifx_default_psa_partition_load_info = {
+    IFX_PROTECT_PSA_ROT_CFG,
+};
+
+/* Default platform specific properties used for ARoT partitions except special partitions */
+const ifx_partition_load_info_t ifx_default_app_partition_load_info = {
+    IFX_PROTECT_APP_ROT_CFG,
+};
+
+/************************** IFX SE IPC Service ********************************/
+
+#ifdef IFX_PARTITION_SE_IPC_SERVICE
+/* Use SPM domain for SE IPC Service partition */
+#define IFX_IFX_SE_IPC_SERVICE_CUSTOM_INFO          ifx_default_spm_partition_load_info
+#define IFX_IFX_SE_IPC_SERVICE_CUSTOM_DOMAIN(info)  IFX_PROTECT_SPM_DOMAIN
+#endif /* IFX_PARTITION_SE_IPC_SERVICE */
+
+/************************* IFX test service partition *************************/
+
+#ifdef IFX_PARTITION_TEST_SERVICE
+/*
+ * We set privilege to access NVIC registers.
+ * Use SPM domain for IFX test service partition.
+ */
+#define IFX_IFX_TEST_SERVICE_PARTITION_CUSTOM_INFO          ifx_default_spm_partition_load_info
+#define IFX_IFX_TEST_SERVICE_PARTITION_CUSTOM_DOMAIN(info)  IFX_PROTECT_SPM_DOMAIN
+#endif /* IFX_PARTITION_TEST_SERVICE */
+
+/**************************** Idle Partition **********************************/
+
+#ifdef TFM_PARTITION_IDLE
+/**
+ * Idle partition platform specific info is provided manually because there is no manifest
+ * for this partition.
+ */
+extern const struct partition_load_info_t tfm_sp_idle_load;
+const ifx_partition_info_t ifx_tfm_sp_idle_info = {
+    .p_ldinfo = &tfm_sp_idle_load,
+    /* Stack is allocated in TFM DATA segment and requires SPM access permissions */
+    .ifx_ldinfo = &ifx_default_spm_partition_load_info,
+    .ifx_domain = IFX_PROTECT_SPM_DOMAIN,
+    .p_assets = NULL,
+    .asset_cnt = 0,
+#ifdef IFX_MEMORY_CONFIGURATOR_MPC_CONFIG
+    .p_mem_cfg = NULL,
+#endif /* IFX_MEMORY_CONFIGURATOR_MPC_CONFIG */
+    .p_peri_regions = NULL,
+    .peri_region_count = 0,
+};
+#endif /* TFM_PARTITION_IDLE */
+
+/*************************** NS Agent Mailbox *********************************/
+
+#ifdef TFM_PARTITION_NS_AGENT_MAILBOX
+/* Platform specific properties of NS Agent Mailbox partition */
+static const ifx_partition_load_info_t ifx_ns_agent_mailbox_partition_load_info = {
+    .privileged = IFX_FIH_TRUE,
+#if IFX_ISOLATION_PC_SWITCHING
+    .secure_pc = FIH_INT_INIT(IFX_PC_TFM_SPM_ID),
+    /* ns_agent_mailbox_partition should be run within SPM security domain, but
+     * with client non-secure protection context id to validate memory access rights. */
+    .non_secure_pc = FIH_INT_INIT(IFX_PC_MAILBOX_NSPE_ID),
+#endif
+    .protect_cfg_enabled = &protect_cfg_enabled_spm_rot,
+#if TFM_ISOLATION_LEVEL == 3
+    .protect_cfg_disabled = &protect_cfg_disabled_l3_spm_rot
+#endif
+};
+
+/* Use custom partition info for NS Agent Mailbox partition */
+#define IFX_TFM_NS_MAILBOX_AGENT_CUSTOM_INFO ifx_ns_agent_mailbox_partition_load_info
+
+/* Use SPM domain for NS Agent Mailbox partition */
+#define IFX_TFM_NS_MAILBOX_AGENT_CUSTOM_DOMAIN(info) IFX_PROTECT_SPM_DOMAIN
+#endif /* TFM_PARTITION_NS_AGENT_MAILBOX */
+
+/***************************** NS Agent TZ ************************************/
+
+#ifdef TFM_PARTITION_NS_AGENT_TZ
+static const ifx_protection_region_config_t protect_cfg_enabled_ns_agent_tz = {
+    IFX_PPC_NAMED_MMIO_NS_AGENT_TZ_CFG
+    IFX_MPC_NAMED_MMIO_NS_AGENT_TZ_CFG
+#if IFX_NS_AGENT_TZ_PRIVILEGED == 0
+    .mpu_regions_enable = IFX_FIH_TRUE,
+#else
+    .mpu_regions_enable = IFX_FIH_FALSE,
+#endif
+#if TFM_ISOLATION_LEVEL == 3
+#if IFX_MPC_CONFIGURED_BY_TFM
+    .mpc_dynamic = IFX_NS_AGENT_TZ_MPC_DYNAMIC_ISOLATION != 0,
+#endif /* IFX_MPC_CONFIGURED_BY_TFM */
+#if IFX_PLATFORM_PPC_PRESENT
+    .ppc_dynamic = IFX_NS_AGENT_TZ_PPC_DYNAMIC_ISOLATION != 0,
+#endif /* IFX_PLATFORM_PPC_PRESENT */
+#endif /* TFM_ISOLATION_LEVEL == 3 */
+};
+
+#if TFM_ISOLATION_LEVEL == 3
+static const ifx_protection_region_config_t protect_cfg_disabled_l3_ns_agent_tz = {
+    IFX_PPC_NAMED_MMIO_L3_DISABLED_CFG
+    IFX_MPC_NAMED_MMIO_L3_DISABLED_CFG
+    .mpu_regions_enable = IFX_FIH_FALSE,
+#if IFX_MPC_CONFIGURED_BY_TFM
+    .mpc_dynamic = IFX_NS_AGENT_TZ_MPC_DYNAMIC_ISOLATION != 0,
+#endif /* IFX_MPC_CONFIGURED_BY_TFM */
+#if IFX_PLATFORM_PPC_PRESENT
+    .ppc_dynamic = IFX_NS_AGENT_TZ_PPC_DYNAMIC_ISOLATION != 0,
+#endif /* IFX_PLATFORM_PPC_PRESENT */
+};
+#endif /* TFM_ISOLATION_LEVEL == 3 */
+
+static const ifx_partition_load_info_t ifx_ns_agent_tz_partition_load_info = {
+#if IFX_NS_AGENT_TZ_PRIVILEGED != 0
+    .privileged = IFX_FIH_TRUE,
+#else
+    .privileged = IFX_FIH_FALSE,
+#endif
+#if IFX_ISOLATION_PC_SWITCHING
+    .secure_pc = FIH_INT_INIT(IFX_PC_TZ_NSPE_ID),
+    .non_secure_pc = FIH_INT_INIT(IFX_PC_TZ_NSPE_ID),
+#endif
+    .protect_cfg_enabled  = &protect_cfg_enabled_ns_agent_tz,
+#if TFM_ISOLATION_LEVEL == 3
+    .protect_cfg_disabled = &protect_cfg_disabled_l3_ns_agent_tz,
+#endif /* TFM_ISOLATION_LEVEL == 3 */
+};
+
+const ifx_ppc_regions_config_t ifx_tfm_sp_ns_agent_tz_ppc_regions_cfg[] = {
+#ifdef IFX_TFM_SP_NS_AGENT_TZ_CUSTOM_PERI_ASSETS
+    {
+        .regions = IFX_TFM_SP_NS_AGENT_TZ_CUSTOM_PERI_ASSETS,
+        .region_count = ARRAY_SIZE(IFX_TFM_SP_NS_AGENT_TZ_CUSTOM_PERI_ASSETS),
+    }
+#endif /* IFX_TFM_SP_NS_AGENT_TZ_CUSTOM_PERI_ASSETS */
+};
+
+/**
+ * NS Agent TZ partition platform specific info is provided manually because there is no manifest
+ * for this partition.
+ */
+extern const struct partition_load_info_t tfm_sp_ns_agent_tz_load;
+const ifx_partition_info_t ifx_tfm_sp_ns_agent_tz_info = {
+    .p_ldinfo = &tfm_sp_ns_agent_tz_load,
+    .ifx_ldinfo = &ifx_ns_agent_tz_partition_load_info,
+    .ifx_domain = IFX_PROTECT_NS_AGENT_TZ_DOMAIN(tfm_sp_ns_agent_tz_load),
+#ifdef IFX_TFM_SP_NS_AGENT_TZ_CUSTOM_ASSETS
+    .p_assets = IFX_TFM_SP_NS_AGENT_TZ_CUSTOM_ASSETS,
+    .asset_cnt = ARRAY_SIZE(IFX_TFM_SP_NS_AGENT_TZ_CUSTOM_ASSETS),
+#else
+    .p_assets = NULL,
+    .asset_cnt = 0,
+#endif /* IFX_TFM_SP_NS_AGENT_TZ_CUSTOM_ASSETS */
+#ifdef IFX_MEMORY_CONFIGURATOR_MPC_CONFIG
+    .p_mem_cfg = NULL,
+#endif /* IFX_MEMORY_CONFIGURATOR_MPC_CONFIG */
+    .p_peri_regions = ARRAY_SIZE(ifx_tfm_sp_ns_agent_tz_ppc_regions_cfg) == 0 ?
+                      NULL : ifx_tfm_sp_ns_agent_tz_ppc_regions_cfg,
+    .peri_region_count = ARRAY_SIZE(ifx_tfm_sp_ns_agent_tz_ppc_regions_cfg),
+};
+#endif /* TFM_PARTITION_NS_AGENT_TZ */
+
+/*************************** Secure test partition ****************************/
+
+#ifdef TFM_SP_SECURE_TEST_PARTITION
+/* Use SPM domain for Secure test partition */
+#define IFX_TFM_SP_SECURE_TEST_PARTITION_CUSTOM_INFO          ifx_default_spm_partition_load_info
+#define IFX_TFM_SP_SECURE_TEST_PARTITION_CUSTOM_DOMAIN(info)  IFX_PROTECT_SPM_DOMAIN
+#endif /* TFM_SP_SECURE_TEST_PARTITION */
+
+/****************************** IPC Service test ******************************/
+
+#ifdef TFM_SP_IPC_SERVICE_TEST
+/* Use SPM domain for IPC Service test partition */
+#define IFX_TFM_SP_IPC_SERVICE_TEST_CUSTOM_INFO         ifx_default_spm_partition_load_info
+#define IFX_TFM_SP_IPC_SERVICE_TEST_CUSTOM_DOMAIN(info) IFX_PROTECT_SPM_DOMAIN
+#endif /* TFM_SP_IPC_SERVICE_TEST */
+
+/*********************************** PS Test **********************************/
+
+#ifdef TFM_SP_PS_TEST
+/* Use SPM domain for Protected Storage test partition, see above */
+#define IFX_TFM_SP_PS_TEST_CUSTOM_INFO          ifx_default_spm_partition_load_info
+#define IFX_TFM_SP_PS_TEST_CUSTOM_DOMAIN(info)  IFX_PROTECT_SPM_DOMAIN
+#endif /* TFM_SP_PS_TEST */
+
+/*************************** FPU service test partition ***********************/
+
+#ifdef TFM_SP_FPU_SERVICE_TEST
+/* Use SPM domain for FPU service test partition */
+#define IFX_TFM_SP_FPU_SERVICE_TEST_CUSTOM_INFO            ifx_default_spm_partition_load_info
+#define IFX_TFM_SP_FPU_SERVICE_TEST_CUSTOM_DOMAIN(info)    IFX_PROTECT_SPM_DOMAIN
+#endif /* TFM_SP_FPU_SERVICE_TEST */
+
+/******************** PSA arch tests - FF server partition ********************/
+
+#ifdef PSA_API_TEST_IPC
+/* Use SPM domain for PSA arch tests server partition */
+#define IFX_SERVER_PARTITION_CUSTOM_INFO          ifx_default_spm_partition_load_info
+#define IFX_SERVER_PARTITION_CUSTOM_DOMAIN(info)  IFX_PROTECT_SPM_DOMAIN
+#endif /* PSA_API_TEST_IPC */
+
+/*********************** Internal Trusted Storage *****************************/
+
+#ifdef TFM_PARTITION_INTERNAL_TRUSTED_STORAGE
+#if TEST_NS_IFX_ISOLATION_TEST
+/* For IFX isolation tests, use SPM domain for ITS partition. This is needed to
+ * free up MPU regions so that they can be used for assets of isolation test
+ * partitions */
+#define  IFX_TFM_SP_ITS_CUSTOM_INFO          ifx_default_spm_partition_load_info
+#define  IFX_TFM_SP_ITS_CUSTOM_DOMAIN(info)  IFX_PROTECT_SPM_DOMAIN
+#endif /* TEST_NS_IFX_ISOLATION_TEST */
+#endif /* TFM_PARTITION_INTERNAL_TRUSTED_STORAGE */
+
+/******************************* Platform *************************************/
+
+#ifdef TFM_PARTITION_PLATFORM
+#if defined(IFX_PLATFORM_PRIVILEGED) && IFX_PLATFORM_PRIVILEGED == 1
+/* Use SPM domain for Platform partition */
+#define IFX_TFM_SP_PLATFORM_CUSTOM_INFO         ifx_default_spm_partition_load_info
+#define IFX_TFM_SP_PLATFORM_CUSTOM_DOMAIN(info) IFX_PROTECT_SPM_DOMAIN
+#elif defined(IFX_PLATFORM_PRIVILEGED)
+#error IFX_PLATFORM_PRIVILEGED other than 1 is not supported
+#else /* defined(IFX_PLATFORM_PRIVILEGED) && IFX_PLATFORM_PRIVILEGED == 1 */
+/* Do nothing, default PRoT settings will be used */
+#endif /* defined(IFX_PLATFORM_PRIVILEGED) && IFX_PLATFORM_PRIVILEGED == 1 */
+#endif /* TFM_PARTITION_PLATFORM */
+
+/********************* Generated partition load info **************************/
+
+{% for partition in partitions %}
+const ifx_ppc_regions_config_t ifx_{{partition.manifest.name|lower}}_ppc_regions_cfg[] = {
+#ifdef {{partition.manifest.name|upper}}_ppc_0_REGION_COUNT
+    {
+        .regions = {{partition.manifest.name|upper}}_ppc_0_regions,
+        .region_count = {{partition.manifest.name|upper}}_ppc_0_REGION_COUNT,
+    },
+#endif /* {{partition.manifest.name|upper}}_ppc_0_REGION_COUNT */
+#ifdef {{partition.manifest.name|upper}}_ppc_1_REGION_COUNT
+    {
+        .regions = {{partition.manifest.name|upper}}_ppc_1_regions,
+        .region_count = {{partition.manifest.name|upper}}_ppc_1_REGION_COUNT,
+    },
+#endif /* {{partition.manifest.name|upper}}_ppc_1_REGION_COUNT */
+#ifdef IFX_{{partition.manifest.name|upper}}_CUSTOM_PERI_ASSETS
+    {
+        .regions = IFX_{{partition.manifest.name|upper}}_CUSTOM_PERI_ASSETS,
+        .region_count = ARRAY_SIZE(IFX_{{partition.manifest.name|upper}}_CUSTOM_PERI_ASSETS),
+    }
+#endif /* IFX_{{partition.manifest.name|upper}}_CUSTOM_PERI_ASSETS */
+};
+
+extern const struct partition_load_info_t {{partition.manifest.name|lower}}_load;
+const ifx_partition_info_t ifx_{{partition.manifest.name|lower}}_info = {
+    .p_ldinfo = &{{partition.manifest.name|lower}}_load,
+#ifdef IFX_{{partition.manifest.name|upper}}_CUSTOM_INFO
+    .ifx_ldinfo = &IFX_{{partition.manifest.name|upper}}_CUSTOM_INFO,
+    .ifx_domain = IFX_{{partition.manifest.name|upper}}_CUSTOM_DOMAIN({{partition.manifest.name|lower}}_load),
+#else
+{% if partition.manifest.type == "PSA-ROT" %}
+    .ifx_ldinfo = &ifx_default_psa_partition_load_info,
+    .ifx_domain = IFX_PROTECT_PSA_ROT_DOMAIN({{partition.manifest.name|lower}}_load),
+{% else %}
+    .ifx_ldinfo = &ifx_default_app_partition_load_info,
+    .ifx_domain = IFX_PROTECT_APP_ROT_DOMAIN({{partition.manifest.name|lower}}_load),
+{% endif %}
+#endif /* IFX_{{partition.manifest.name|upper}}_CUSTOM_INFO */
+#ifdef IFX_{{partition.manifest.name|upper}}_CUSTOM_ASSETS
+    .p_assets = IFX_{{partition.manifest.name|upper}}_CUSTOM_ASSETS,
+    .asset_cnt = ARRAY_SIZE(IFX_{{partition.manifest.name|upper}}_CUSTOM_ASSETS),
+#else
+    .p_assets = NULL,
+    .asset_cnt = 0,
+#endif /* IFX_{{partition.manifest.name|upper}}_CUSTOM_ASSETS */
+#ifdef IFX_MEMORY_CONFIGURATOR_MPC_CONFIG
+#if defined({{partition.manifest.name|upper}}_UNIFIED_MPC_DOMAIN_IDX) && \
+    !defined(IFX_{{partition.manifest.name|upper}}_SKIP_MEMORY_DOMAIN_CONFIGS)
+    /* MPC configuration generated by Device Configurator */
+    .p_mem_cfg = &unified_mpc_domains[{{partition.manifest.name|upper}}_UNIFIED_MPC_DOMAIN_IDX],
+#else
+    .p_mem_cfg = NULL,
+#endif /* defined(IFX_{{partition.manifest.name|upper}}_CUSTOM_ASSETS) && 
+          !defined(IFX_{{partition.manifest.name|upper}}_SKIP_MEMORY_DOMAIN_CONFIGS) */
+#endif /* IFX_MEMORY_CONFIGURATOR_MPC_CONFIG */
+    .p_peri_regions = ARRAY_SIZE(ifx_{{partition.manifest.name|lower}}_ppc_regions_cfg) == 0 ? 
+                      NULL : ifx_{{partition.manifest.name|lower}}_ppc_regions_cfg,
+    .peri_region_count = ARRAY_SIZE(ifx_{{partition.manifest.name|lower}}_ppc_regions_cfg),
+};
+
+{% endfor %}
+/**!
+ * \brief Platform specific partition info for each partition
+ *
+ * \note Each partition which is created without manifest must be added manually
+ */
+static const ifx_partition_info_t* ifx_partition_infos[] = {
+#ifdef TFM_PARTITION_NS_AGENT_TZ
+    &ifx_tfm_sp_ns_agent_tz_info,
+#endif
+#ifdef TFM_PARTITION_IDLE
+    &ifx_tfm_sp_idle_info,
+#endif
+{% for partition in partitions %}
+    &ifx_{{partition.manifest.name|lower}}_info,
+{% endfor %}
+};
+
+const ifx_partition_info_t * ifx_protection_get_partition_info(
+        const struct partition_load_info_t *p_ldinfo)
+{
+    for (size_t i = 0; i < ARRAY_SIZE(ifx_partition_infos); i++) {
+        const ifx_partition_info_t* p_info = ifx_partition_infos[i];
+        if (p_info->p_ldinfo == p_ldinfo) {
+            return p_info;
+        }
+    }
+
+    /* Panic on partition without boundary */
+    tfm_core_panic();
+}

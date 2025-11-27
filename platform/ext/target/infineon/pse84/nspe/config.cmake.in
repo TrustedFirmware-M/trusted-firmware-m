@@ -1,0 +1,103 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2024-2025 Cypress Semiconductor Corporation (an Infineon company)
+# or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+
+#################################### IFX #######################################
+
+# BSP config.cmake uses IFX_BSP_DESIGN_FILE_NAME, thus it must be
+# defined before BSP config.cmake is included
+set(IFX_BSP_DESIGN_FILE_NAME                @IFX_BSP_DESIGN_FILE_NAME@ CACHE STRING "Name of BSP design file to use")
+
+set(IFX_GENERATED_DIR "${CMAKE_BINARY_DIR}/generated" CACHE PATH "Path to the root directory of files generated during the build of SPE")
+
+include(${IFX_FAMILY_SOURCE_DIR}/shared/config.cmake)
+
+################################ Board support #################################
+
+set(IFX_BOARD_PATH               "${IFX_PLATFORM_SOURCE_DIR}/board" CACHE PATH    "Path to board config, override it to support custom board")
+
+# Individual board config options for EPC4
+set(IFX_CONFIG_BSP_PATH          "${IFX_PLATFORM_SOURCE_DIR}/board" CACHE FILEPATH "Path to individual BSP configurations")
+include(${IFX_CONFIG_BSP_PATH}/config.cmake OPTIONAL)
+
+if (IFX_CORE STREQUAL ${IFX_CM33})
+    set(IFX_BSP_NS_COMPONENTS    "CM33;NON_SECURE_DEVICE" CACHE PATH    "List of BSP components used to build non-secure image")
+else()
+    set(IFX_BSP_NS_COMPONENTS    "CM55;NON_SECURE_DEVICE" CACHE PATH    "List of BSP components used to build non-secure image")
+endif()
+set(IFX_BSP_NS_EXCLUDE           ".+/ns_start_pse84\.c" # TFM uses own startup files as for now
+                                                        CACHE PATH      "List of sources excluded from build of non-secure BSP target")
+
+set(IFX_BSP_DEVICE_SUPPORT_LIBS  @IFX_BSP_DEVICE_SUPPORT_LIBS@ CACHE STRING "List of additional device support libraries")
+
+#################################### IFX #######################################
+
+set(IFX_CM33_NS_PRESENT                     @IFX_CM33_NS_PRESENT@ CACHE BOOL  "Enable CM33 NSPE for IFX platform" FORCE)
+set(IFX_CM55_NS_PRESENT                     @IFX_CM55_NS_PRESENT@ CACHE BOOL  "Enable CM55 NSPE for IFX platform" FORCE)
+
+# CM55 core needs to be halted for debugging
+set(IFX_HALT_CM55                           OFF         CACHE BOOL  "Whether to halt CM55 core after reset")
+
+set(IFX_MTB_MAILBOX                         @IFX_MTB_MAILBOX@  CACHE BOOL  "Whether to use Infineon MTB mailbox implementation")
+
+if(IFX_NS_INTERFACE_TZ)
+    set(CONFIG_TFM_USE_TRUSTZONE            ON          CACHE BOOL  "Enable use of TrustZone to transition between NSPE and SPE" FORCE)
+    set(TFM_MULTI_CORE_TOPOLOGY             OFF         CACHE BOOL  "Whether to build for a dual-cpu architecture" FORCE)
+    set(TFM_PARTITION_NS_AGENT_MAILBOX      OFF         CACHE BOOL  "Enable Non-Secure Mailbox Agent partition" FORCE)
+    set(TEST_NS_MULTI_CORE                  OFF         CACHE BOOL  "Whether to build NS regression multi-core tests" FORCE)
+    # TZ managing NSID is only supported through shared data
+    if(TFM_NS_MANAGE_NSID)
+        set(PLATFORM_NSID_IN_SHARED_DATA    ON)
+    endif()
+elseif(IFX_NS_INTERFACE_MAILBOX)
+    set(CONFIG_TFM_USE_TRUSTZONE            OFF         CACHE BOOL  "Enable use of TrustZone to transition between NSPE and SPE" FORCE)
+    set(PLATFORM_NSID_IN_SHARED_DATA        OFF)
+
+    if(IFX_MTB_MAILBOX)
+        set(TFM_MULTI_CORE_TOPOLOGY         OFF         CACHE BOOL  "Whether to build for a dual-cpu architecture" FORCE)
+        set(TFM_PARTITION_NS_AGENT_MAILBOX  OFF         CACHE BOOL  "Enable Non-Secure Mailbox Agent partition" FORCE)
+        set(TFM_NS_MAILBOX_API              OFF         CACHE BOOL  "Build NS code for a remote processing element using mailbox APIs" FORCE)
+        set(TFM_NS_TZ_API                   OFF         CACHE BOOL  "Build NS code for a local processing element using TZ APIs")
+    else()
+        set(CONFIG_TFM_USE_TRUSTZONE        OFF         CACHE BOOL  "Enable use of TrustZone to transition between NSPE and SPE" FORCE)
+        set(TFM_MULTI_CORE_TOPOLOGY         ON          CACHE BOOL  "Whether to build for a dual-cpu architecture" FORCE)
+        set(TFM_PARTITION_NS_AGENT_MAILBOX  ON          CACHE BOOL  "Enable Non-Secure Mailbox Agent partition" FORCE)
+        # NSID is always passed through the mailbox for mailbox interface
+    endif()
+endif()
+
+set(IFX_USE_SW_SHA                          @IFX_USE_SW_SHA@ CACHE BOOL  "Whether to compute SHA256 by software implementation")
+
+# Configuration generated from template
+include(${IFX_COMMON_SOURCE_DIR}/spe_config.cmake)
+
+################################ PSE84 extra tests ################################
+
+if(TEST_NS_IFX_CRYPTO_BENCHMARK OR TEST_NS_IFX_EPC_VALIDATION)
+    # TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH is used by ifx_crypto_benchmark.c
+    set(TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH "${IFX_PLATFORM_SOURCE_DIR}/tests/mbedtls_target_config_pse84.h"    CACHE PATH      "Config to append to standard Mbed Crypto config, used by platforms to configure feature support")
+endif()
+
+###################################### Libs #######################################
+
+# Abstraction RTOS is only needed in NS build, thus library fetch data is
+# defined in NSPE CMake file
+set(IFX_ABSTRACTION_RTOS_LIB_PATH        "DOWNLOAD" CACHE PATH "Path to Infineon abstraction RTOS library (or DOWNLOAD to fetch automatically)")
+set(IFX_ABSTRACTION_RTOS_LIB_GIT_REMOTE  "https://github.com/Infineon/abstraction-rtos.git" CACHE STRING "Infineon abstraction RTOS library repo URL")
+set(IFX_ABSTRACTION_RTOS_LIB_PATCH_DIR   "${IFX_COMMON_SOURCE_DIR}/libs/ifx_abs_rtos/patch" CACHE STRING "Path to abstraction RTOS library patches")
+set(IFX_ABSTRACTION_RTOS_LIB_VERSION     "release-v1.12.0" CACHE STRING "The version of Infineon abstraction RTOS library to use")
+
+# MTB_IPC is only needed in NS build, thus library fetch data is
+# defined in NSPE CMake file
+set(IFX_MTB_IPC_LIB_PATH                 "DOWNLOAD"  CACHE PATH "Path to Infineon MTB IPC library (or DOWNLOAD to fetch automatically)")
+set(IFX_MTB_IPC_LIB_GIT_REMOTE           "https://github.com/Infineon/mtb-ipc.git" CACHE STRING "Infineon MTB IPC library repo URL")
+set(IFX_MTB_IPC_LIB_PATCH_DIR            "${IFX_FAMILY_SOURCE_DIR}/libs/ifx_mtb_ipc/patch" CACHE STRING "Path to MTB IPC library patches")
+set(IFX_MTB_IPC_LIB_VERSION              "release-v1.1.0" CACHE STRING "The version of Infineon MTB IPC library to use")
+
+###################################### Common #####################################
+
+include(${IFX_COMMON_SOURCE_DIR}/config.cmake)

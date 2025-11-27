@@ -1,0 +1,45 @@
+commit 8ac8b8e76a3b9bf984e49fb054a5d044b7c80099
+Author: Bohdan Hunko <Bohdan.Hunko@infineon.com>
+Date:   Fri Aug 29 11:10:51 2025 +0300
+
+    Added unique TrustZone module ID assignment for each thread.
+
+    Updated thread creation logic to ensure each thread receives a distinct
+    TrustZone module ID.
+
+    This is only done for CCMSIS RToS as other RTOS implementation handle ID
+    internally, thus they don't require such logic.
+
+    IMPROVEMENT: (TFM-4244) Remove this patch
+
+    Signed-off-by: Bohdan Hunko <Bohdan.Hunko@infineon.com>
+
+diff --git a/source/COMPONENT_RTX/cyabs_rtos_rtxv5.c b/source/COMPONENT_RTX/cyabs_rtos_rtxv5.c
+index 2e611b0b..b29d221a 100755
+--- a/source/COMPONENT_RTX/cyabs_rtos_rtxv5.c
++++ b/source/COMPONENT_RTX/cyabs_rtos_rtxv5.c
+@@ -138,6 +138,15 @@ cy_rslt_t cy_rtos_thread_create(cy_thread_t* thread, cy_thread_entry_fn_t entry_
+     cy_rslt_t      status = CY_RSLT_SUCCESS;
+     osThreadAttr_t attr;
+
++    /* The tz_module_counter is used to assign a unique TrustZone module ID to
++    * each thread. The first 100 negative IDs are unused to avoid possible
++    * clashing with thread created by other components. Each time a thread is
++    * created, it is assigned a unique (decrementing) negative ID from this
++    * counter. This is necessary so that when TrustZone thread ID functionality
++    * is enabled, each thread gets a unique and non-conflicting module ID, as
++    * required by the CMSIS-RTOS RTX implementation. */
++    static TZ_ModuleId_t tz_module_counter = (TZ_ModuleId_t)(-100);
++
+     if ((thread == NULL) || (stack_size < CY_RTOS_MIN_STACK_SIZE))
+     {
+         status = CY_RTOS_BAD_PARAM;
+@@ -153,7 +162,7 @@ cy_rslt_t cy_rtos_thread_create(cy_thread_t* thread, cy_thread_entry_fn_t entry_
+         attr.cb_size    = osRtxThreadCbSize;
+         attr.stack_size = stack_size;
+         attr.priority   = (osPriority_t)priority;
+-        attr.tz_module  = 0;
++        attr.tz_module  = tz_module_counter--;
+         attr.reserved   = 0;
+
+         // Allocate stack if NULL was passed

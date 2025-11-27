@@ -1,0 +1,21 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2024-2025 Cypress Semiconductor Corporation (an Infineon company)
+# or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+
+set(IFX_MTB_SRF                  @IFX_MTB_SRF@)
+
+# In NSPE SRF framework requires RAM_VECTORS_SUPPORT
+if(IFX_MTB_SRF)
+    set(RAM_VECTORS_SUPPORT      ON)
+    if (IFX_NS_INTERFACE_MAILBOX)
+        # In MTB Mailbox case, for remote NSPE, TFM_NS_MANAGE_NSID is not
+        # supported because, local NSPE, that acts like a proxy, has no way
+        # to pass remote NSPE client ID to SPM
+        set(TFM_NS_MANAGE_NSID   OFF CACHE BOOL "Support NSPE OS providing NSPE client_id" FORCE)
+        set(TEST_NS_MANAGE_NSID  OFF CACHE BOOL "Whether to build NS regression NSID management tests" FORCE)
+    endif()
+endif()

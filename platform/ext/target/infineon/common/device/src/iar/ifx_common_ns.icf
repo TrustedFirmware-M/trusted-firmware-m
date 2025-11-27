@@ -1,0 +1,60 @@
+/*
+ * Copyright (c) 2024-2025 Cypress Semiconductor Corporation (an Infineon company)
+ * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ */
+
+#define IFX_LINKER_SCRIPT   1
+
+/* Verify that target config header exists */
+#ifndef IFX_TARGET_LINKER_CONFIG_HEADER
+#error IFX_TARGET_LINKER_CONFIG_HEADER must be defined
+#endif
+
+/* Include target configuration header */
+#include IFX_TARGET_LINKER_CONFIG_HEADER
+
+define region CODE = mem:[from NS_CODE_START to NS_CODE_START + NS_CODE_SIZE - 1];
+define region DATA = mem:[from NS_DATA_START to NS_DATA_START + NS_DATA_SIZE - 1];
+
+#ifdef IFX_NS_SHARED_MEMORY_ADDR
+define region SHAREDMEM = mem:[from IFX_NS_SHARED_MEMORY_ADDR to IFX_NS_SHARED_MEMORY_ADDR + IFX_NS_SHARED_MEMORY_SIZE - 1];
+#endif /* IFX_NS_SHARED_MEMORY_ADDR */
+
+#ifdef RAM_CODE_SEC_NAME
+define block TFM_RAM_CODE          with alignment = 32 { section S_RAM_CODE_SEC_NAME };
+#endif /* RAM_CODE_SEC_NAME */
+
+define block ER_DATA               with alignment = 8 { readwrite };
+/* Currently linker fails to build some configurations without maximum size limitation. */
+define block HEAP                  with expanding size, maximum size = 0x2A000, alignment = 8 { };
+define block CSTACK                with alignment = 8, size = NS_MSP_STACK_SIZE { };
+
+keep { block HEAP, block CSTACK };
+
+/*-Initializations-*/
+initialize by copy { readwrite };
+do not initialize  { section .noinit, section .ramvec };
+
+place at start of CODE  { section .intvec };
+place in          CODE  { readonly };
+
+place at start of DATA  { section .ramvec };
+place in DATA {
+#ifdef RAM_CODE_SEC_NAME
+       block TFM_RAM_CODE,
+#endif /* RAM_CODE_SEC_NAME */
+       block ER_DATA,
+       block HEAP,
+};
+place at end of DATA { block CSTACK };
+
+#ifdef IFX_NS_SHARED_MEMORY_ADDR
+define region IFX_NS_SHARED_MEMORY = mem:[from IFX_NS_SHARED_MEMORY_ADDR to IFX_NS_SHARED_MEMORY_ADDR + IFX_NS_SHARED_MEMORY_SIZE - 1];
+
+place in IFX_NS_SHARED_MEMORY { section .cy_sharedmem };
+
+do not initialize  { section .cy_sharedmem };
+#endif /* IFX_NS_SHARED_MEMORY_ADDR */

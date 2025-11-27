@@ -1,0 +1,413 @@
+/*
+ * Copyright (c) 2017-2023 Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon company)
+ * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "region_defs.h"
+
+/* Include file with definitions for section alignments.
+ * Note: it should be included after region_defs.h to let platform define
+ * default values if needed. */
+#include "tfm_s_linker_alignments.h"
+
+LR_CODE S_CODE_START S_CODE_SIZE {
+    PT_RO_START +0 ALIGN TFM_LINKER_PT_RO_ALIGNMENT EMPTY 0x0 {
+        /* Position tag: code + RO-data */
+    }
+
+    /****  This initial section contains common code for secure binary */
+    ER_VECTORS S_CODE_START S_CODE_VECTOR_TABLE_SIZE {
+        *.o (RESET +First)
+    }
+#ifdef CONFIG_TFM_USE_TRUSTZONE
+    ER_VECTORS_FILL +0 EMPTY (S_CODE_VECTOR_TABLE_SIZE - ImageLength(ER_VECTORS)) {
+    }
+    /*
+     * Place the CMSE Veneers (containing the SG instruction) in a separate
+     * 32 bytes aligned region so that the SAU can be programmed to
+     * just set this region as Non-Secure Callable.
+     */
+    ER_VENEER +0 FIXED ALIGN TFM_LINKER_VENEERS_ALIGNMENT {
+        *(Veneer$$CMSE)
+    }
+    /*
+     * The Limit of the VENEER_ALIGN region should be at least 32 bytes aligned
+     * so that the SAU can set this region as Non-Secure Callable.
+     */
+    VENEER_ALIGN +0 ALIGN TFM_LINKER_VENEERS_ALIGNMENT EMPTY 0x0 {
+    }
+#endif
+
+    ER_TFM_CODE +0 {
+        *startup*(.text*)
+        *libplatform_s* (.text*, .rodata*)
+        *libtfm_spm* (+RO)
+    }
+
+    /**** Unprivileged Secure code start here */
+    /* Unprivilege code covers area from TFM_NS_AGENT_TZ_CODE_START to TFM_UNPRIV_BASE_CODE_END */
+    TFM_UNPRIV_CODE_START +0 ALIGN TFM_LINKER_UNPRIV_CODE_ALIGNMENT EMPTY 0x0 {
+        /* Position tag */
+    }
+
+#ifdef CONFIG_TFM_USE_TRUSTZONE
+    /*
+     * NS Agent TZ unprivileged Secure code.
+     *
+     * This section should contain code and read-only data that can be used by NS Agent TZ.
+     * It can be used by platforms with additional protection hardware to provide extra
+     * isolation by separation of regular unprivileged code from NS Agent TZ partition.
+     * This section should follow unprivilege code section to share a single MPU entry
+     * to allow unprivilage access for both sections.
+     */
+    TFM_NS_AGENT_TZ_CODE_START +0 ALIGN TFM_LINKER_NS_AGENT_TZ_CODE_ALIGNMENT {
+        *libns_agent_tz* (+RO-CODE, +RO-DATA)
+        *psa_api_veneers_v80m.* (+RO-CODE, +RO-DATA)
+        *psa_api_veneers.* (+RO-CODE, +RO-DATA)
+       *(SFN)
+    }
+
+    TFM_NS_AGENT_TZ_CODE_END +0 ALIGN TFM_LINKER_NS_AGENT_TZ_CODE_ALIGNMENT EMPTY 0x0 {
+        /* Position tag */
+    }
+#endif /* CONFIG_TFM_USE_TRUSTZONE */
+
+    TFM_UNPRIV_BASE_CODE_START +0 ALIGN TFM_LINKER_UNPRIV_CODE_ALIGNMENT {
+#ifndef CONFIG_TFM_USE_TRUSTZONE
+        *(SFN)
+#endif /* CONFIG_TFM_USE_TRUSTZONE */
+        * (+RO)
+    }
+
+    TFM_UNPRIV_BASE_CODE_END +0 ALIGN TFM_LINKER_UNPRIV_CODE_ALIGNMENT EMPTY 0x0 {
+        /* Position tag */
+    }
+
+    /*
+     * This empty, zero long execution region is here to mark the end address
+     * of TFM unprivileged code.
+     */
+    TFM_UNPRIV_CODE_END +0 ALIGN TFM_LINKER_UNPRIV_CODE_ALIGNMENT EMPTY 0x0 {
+    }
+
+    /**** Section for holding partition RO load data */
+    /*
+     * Sort the partition info by priority to guarantee the initing order.
+     * The first loaded partition will be inited at last in SFN model.
+     */
+    TFM_SP_LOAD_LIST +0 ALIGN 4 {
+        *(.part_load)
+    }
+
+    /**** PSA RoT RO part (CODE + RODATA) start here */
+    /*
+     * This empty, zero long execution region is here to mark the start address
+     * of PSA RoT code.
+     */
+    TFM_PSA_CODE_START +0 ALIGN TFM_LINKER_PSA_ROT_LINKER_CODE_ALIGNMENT EMPTY 0x0 {
+    }
+
+    TFM_PSA_ROT_LINKER +0 ALIGN TFM_LINKER_PSA_ROT_LINKER_CODE_ALIGNMENT {
+        *tfm_psa_rot_partition* (+RO-CODE, +RO-DATA)
+        *libplatform_s* (TFM_*_PSA-ROT_ATTR_FN)
+        *.o (TFM_*_PSA-ROT_ATTR_FN)
+{% for partition in partitions %}
+    {% if partition.manifest.type == 'PSA-ROT' %}
+    {% if partition.attr.linker_pattern.library_list %}
+        {% for pattern in partition.attr.linker_pattern.library_list %}
+        {{pattern}} (+RO-CODE, +RO-DATA)
+        {% endfor %}
+    {% endif %}
+    {% if partition.attr.linker_pattern.object_list %}
+        {% for pattern in partition.attr.linker_pattern.object_list %}
+        {{pattern}} (+RO-CODE, +RO-DATA)
+        {% endfor %}
+    {% endif %}
+        *({{partition.manifest.name}}_PSA-ROT_ATTR_FN)
+    {% endif %}
+{% endfor %}
+    }
+
+    /*
+     * This empty, zero long execution region is here to mark the end address
+     * of PSA RoT code.
+     */
+    TFM_PSA_CODE_END +0 ALIGN TFM_LINKER_PSA_ROT_LINKER_CODE_ALIGNMENT EMPTY 0x0 {
+    }
+
+    /**** APPLICATION RoT RO part (CODE + RODATA) start here */
+    /*
+     * This empty, zero long execution region is here to mark the start address
+     * of APP RoT code.
+     */
+    TFM_APP_CODE_START +0 ALIGN TFM_LINKER_APP_ROT_LINKER_CODE_ALIGNMENT EMPTY 0x0 {
+    }
+
+    TFM_APP_ROT_LINKER +0 ALIGN TFM_LINKER_APP_ROT_LINKER_CODE_ALIGNMENT {
+        *tfm_app_rot_partition* (+RO-CODE, +RO-DATA)
+        *libplatform_s* (TFM_*_APP-ROT_ATTR_FN)
+        *.o (TFM_*_APP-ROT_ATTR_FN)
+{% for partition in partitions %}
+    {% if partition.manifest.type == 'APPLICATION-ROT' %}
+    {% if partition.attr.linker_pattern.library_list %}
+        {% for pattern in partition.attr.linker_pattern.library_list %}
+        {{pattern}} (+RO-CODE, +RO-DATA)
+        {% endfor %}
+    {% endif %}
+    {% if partition.attr.linker_pattern.object_list %}
+        {% for pattern in partition.attr.linker_pattern.object_list %}
+        {{pattern}} (+RO-CODE, +RO-DATA)
+        {% endfor %}
+    {% endif %}
+        *({{partition.manifest.name}}_APP-ROT_ATTR_FN)
+    {% endif %}
+{% endfor %}
+    }
+
+    /*
+     * This empty, zero long execution region is here to mark the end address
+     * of APP RoT code.
+     */
+    TFM_APP_CODE_END +0 ALIGN TFM_LINKER_APP_ROT_LINKER_CODE_ALIGNMENT EMPTY 0x0 {
+    }
+
+#if defined(S_RAM_CODE_START)
+    /* Flash drivers code that gets copied from Flash */
+    ER_CODE_SRAM S_RAM_CODE_START ALIGN 4 {
+        *libflash_drivers* (+RO)
+        * (.ramfunc)
+    }
+
+    /* This empty, zero long execution region is here to mark the limit
+     * address of the last execution region that is allocated in CODE_SRAM.
+     */
+    ER_CODE_SRAM_WATERMARK +0 EMPTY 0x0 {
+    }
+
+    /* Make sure that the sections allocated in the CODE_SRAM does not exceed
+     * the size of the SRAM available.
+     */
+    ScatterAssert(ImageLimit(ER_CODE_SRAM_WATERMARK) <=
+                  S_RAM_CODE_START + S_RAM_CODE_SIZE)
+#endif
+
+    PT_RO_END +0 ALIGN TFM_LINKER_PT_RO_ALIGNMENT EMPTY 0x0 {
+        /* Position tag */
+    }
+
+    /**** Base address of secure data area */
+    TFM_SECURE_DATA_START S_DATA_START {
+    }
+
+    /*
+     * MPU on Armv6-M/v7-M core in multi-core topology may require more strict
+     * alignment that MPU region base address must align with the MPU region
+     * size.
+     * As a result, on Armv6-M/v7-M cores, to save memory resource and MPU
+     * regions, unprivileged data sections and privileged data sections are
+     * separated and gathered in unprivileged/privileged data area respectively.
+     * Keep BL2 shared data and MSP stack at the beginning of the secure data
+     * area on Armv8-M cores, while move the two areas to the beginning of
+     * privileged data region on Armv6-M/v7-M cores.
+     */
+#if defined(__ARM_ARCH_8M_MAIN__) || defined(__ARM_ARCH_8M_BASE__) || \
+    defined(__ARM_ARCH_8_1M_MAIN__)
+#ifdef CODE_SHARING
+    /* The code sharing between bootloader and runtime requires to share the
+     * global variables.
+     */
+    TFM_SHARED_SYMBOLS +0 ALIGN TFM_LINKER_SHARED_SYMBOLS_ALIGNMENT EMPTY SHARED_SYMBOL_AREA_SIZE {
+    }
+#endif
+
+#if CONFIG_TFM_ALLOCATE_SHARED_DATA_SECTION
+    /* Shared area between BL2 and runtime to exchange data */
+    TFM_SHARED_DATA +0 ALIGN TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT EMPTY BOOT_TFM_SHARED_DATA_SIZE {
+    }
+#endif /* CONFIG_TFM_ALLOCATE_SHARED_DATA_SECTION */
+
+    /* MSP */
+    ARM_LIB_STACK +0 ALIGN TFM_LINKER_MSP_STACK_ALIGNMENT EMPTY S_MSP_STACK_SIZE - 0x8 {
+    }
+
+    STACKSEAL +0 EMPTY 0x8 {
+    }
+
+#endif /* defined(__ARM_ARCH_8M_MAIN__) || defined(__ARM_ARCH_8M_BASE__) || \
+        * defined(__ARM_ARCH_8_1M_MAIN__) */
+
+#if defined(CONFIG_TFM_PARTITION_META)
+    /*
+     * This empty, zero long execution region is here to mark the start address
+     * of SPM read/write, TFM partition read-only region.
+     */
+    TFM_SPM_RW_OTHER_RO_START +0 ALIGN TFM_LINKER_SP_META_PTR_ALIGNMENT {
+    }
+
+    TFM_SPM_RW_OTHER_RO +0 ALIGN TFM_LINKER_SP_META_PTR_ALIGNMENT {
+        *tfm_sp_meta* (+RW +ZI)
+        *(.bss.SP_META_PTR_SPRTL_INST)
+    }
+    /*
+     * This empty, zero long execution region is here to mark the end address
+     * of SPM read/write, TFM partition read-only region.
+     */
+    TFM_SPM_RW_OTHER_RO_END +0 ALIGN TFM_LINKER_SP_META_PTR_ALIGNMENT EMPTY 0x0 {
+    }
+#endif
+
+    /**** APP RoT DATA start here */
+    /*
+     * This empty, zero long execution region is here to mark the start address
+     * of APP RoT RW and Stack.
+     */
+    TFM_APP_RW_STACK_START +0 ALIGN TFM_LINKER_APP_ROT_LINKER_DATA_ALIGNMENT EMPTY 0x0 {
+    }
+
+    TFM_APP_ROT_LINKER_DATA +0 ALIGN TFM_LINKER_APP_ROT_LINKER_DATA_ALIGNMENT {
+        *tfm_app_rot_partition* (+RW +ZI)
+        *.o(TFM_*_APP-ROT_ATTR_RW)
+        *.o(TFM_*_APP-ROT_ATTR_ZI)
+{% for partition in partitions %}
+    {% if partition.manifest.type == 'APPLICATION-ROT' %}
+    {% if partition.attr.linker_pattern.library_list %}
+        {% for pattern in partition.attr.linker_pattern.library_list %}
+        {{pattern}} (+RW +ZI)
+        {% endfor %}
+    {% endif %}
+    {% if partition.attr.linker_pattern.object_list %}
+        {% for pattern in partition.attr.linker_pattern.object_list %}
+        {{pattern}} (+RW +ZI)
+        {% endfor %}
+    {% endif %}
+        *({{partition.manifest.name}}_APP-ROT_ATTR_RW)
+        *({{partition.manifest.name}}_APP-ROT_ATTR_ZI)
+    {% endif %}
+{% endfor %}
+    }
+
+    /*
+     * This empty, zero long execution region is here to mark the end address
+     * of APP RoT RW and Stack.
+     */
+    TFM_APP_RW_STACK_END +0 ALIGN TFM_LINKER_APP_ROT_LINKER_DATA_ALIGNMENT EMPTY 0x0 {
+    }
+
+#if defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_7M__) || \
+    defined(__ARM_ARCH_7EM__)
+#ifdef S_DATA_PRIV_START
+    /**** Privileged data area base address specified by Armv6-M/v7-M platform */
+    TFM_SECURE_PRIV_DATA_BOUNDARY S_DATA_PRIV_START {
+    }
+#endif
+
+#if CONFIG_TFM_ALLOCATE_SHARED_DATA_SECTION
+    /*
+     * Move BL2 shared area and MSP stack to the beginning of privileged data
+     * area on Armv6-M/v7-M platforms.
+     */
+    /* Shared area between BL2 and runtime to exchange data */
+    TFM_SHARED_DATA +0 ALIGN TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT EMPTY BOOT_TFM_SHARED_DATA_SIZE {
+    }
+#endif /* CONFIG_TFM_ALLOCATE_SHARED_DATA_SECTION */
+
+    /* MSP */
+    ARM_LIB_STACK +0 ALIGN TFM_LINKER_MSP_STACK_ALIGNMENT EMPTY S_MSP_STACK_SIZE {
+    }
+#endif /* defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_7M__) || \
+        * defined(__ARM_ARCH_7EM__) */
+
+    ER_TFM_DATA +0 {
+        * (+RW +ZI)
+    }
+
+    /**** The runtime partition placed order is same as load partition */
+    ER_PART_RT_POOL +0 ALIGN 4 {
+        *(.bss.part_runtime)
+    }
+
+    /**** The runtime service placed order is same as load partition */
+    ER_SERV_RT_POOL +0 ALIGN 4 {
+        *(.bss.serv_runtime)
+    }
+
+    /**** PSA RoT DATA start here */
+    /*
+     * This empty, zero long execution region is here to mark the start address
+     * of PSA RoT RW and Stack.
+     */
+    TFM_PSA_RW_STACK_START +0 ALIGN TFM_LINKER_PSA_ROT_LINKER_DATA_ALIGNMENT EMPTY 0x0 {
+    }
+
+    TFM_PSA_ROT_LINKER_DATA +0 ALIGN TFM_LINKER_PSA_ROT_LINKER_DATA_ALIGNMENT {
+        *tfm_psa_rot_partition* (+RW +ZI)
+        *.o(TFM_*_PSA-ROT_ATTR_RW)
+        *.o(TFM_*_PSA-ROT_ATTR_ZI)
+{% for partition in partitions %}
+    {% if partition.manifest.type == 'PSA-ROT' %}
+    {% if partition.attr.linker_pattern.library_list %}
+        {% for pattern in partition.attr.linker_pattern.library_list %}
+        {{pattern}} (+RW +ZI)
+        {% endfor %}
+    {% endif %}
+    {% if partition.attr.linker_pattern.object_list %}
+        {% for pattern in partition.attr.linker_pattern.object_list %}
+        {{pattern}} (+RW +ZI)
+        {% endfor %}
+    {% endif %}
+        *({{partition.manifest.name}}_PSA-ROT_ATTR_RW)
+        *({{partition.manifest.name}}_PSA-ROT_ATTR_ZI)
+    {% endif %}
+{% endfor %}
+    }
+
+    /*
+     * This empty, zero long execution region is here to mark the end address
+     * of PSA RoT RW and Stack.
+     */
+    TFM_PSA_RW_STACK_END +0 ALIGN TFM_LINKER_PSA_ROT_LINKER_DATA_ALIGNMENT EMPTY 0x0 {
+    }
+
+#ifdef RAM_VECTORS_SUPPORT
+    ER_RAM_VECTORS +0 ALIGN TFM_LINKER_RAM_VECTORS_ALIGNMENT UNINIT {
+        * (RESET_RAM)
+    }
+#endif
+
+    /* This empty, zero long execution region is here to mark the limit address
+     * of the last execution region that is allocated in SRAM.
+     */
+    SRAM_WATERMARK +0 EMPTY 0x0 {
+    }
+
+    /* Make sure that the sections allocated in the SRAM does not exceed the
+     * size of the SRAM available.
+     */
+    ScatterAssert(ImageLimit(SRAM_WATERMARK) <= S_DATA_START + S_DATA_SIZE)
+}
+
+#ifdef BL2
+LR_SECONDARY_PARTITION SECONDARY_PARTITION_START {
+    /* Reserved place for new image in case of firmware upgrade.
+     * No code will be placed here, just address of this region is used in the
+     * secure code to configure certain HW components. This generates an empty
+     * execution region description warning during linking.
+     */
+    ER_SECONDARY_PARTITION SECONDARY_PARTITION_START \
+        UNINIT SECONDARY_PARTITION_SIZE {
+    }
+}
+#endif /* BL2 */
