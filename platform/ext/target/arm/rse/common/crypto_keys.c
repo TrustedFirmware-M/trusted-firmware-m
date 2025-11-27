@@ -220,7 +220,7 @@ static enum tfm_plat_err_t tfm_plat_load_cm_host_key(const void *ctx,
     tfm_plat_builtin_key_descriptor_t *descriptor =
         (tfm_plat_builtin_key_descriptor_t *)ctx;
     enum tfm_otp_element_id_t otp_id =
-        rse_cm_get_host_rotpk(TFM_BUILTIN_KEY_HOST_CM_MIN - descriptor->key_id);
+        rse_cm_get_host_rotpk(descriptor->key_id - TFM_BUILTIN_KEY_HOST_CM_MIN);
     size_t key_size;
     enum tfm_plat_err_t err;
 
@@ -260,7 +260,7 @@ static enum tfm_plat_err_t tfm_plat_load_dm_host_key(const void *ctx,
     tfm_plat_builtin_key_descriptor_t *descriptor =
         (tfm_plat_builtin_key_descriptor_t *)ctx;
     enum tfm_otp_element_id_t otp_id =
-        rse_dm_get_host_rotpk(TFM_BUILTIN_KEY_HOST_DM_MIN - descriptor->key_id);
+        rse_dm_get_host_rotpk(descriptor->key_id - TFM_BUILTIN_KEY_HOST_DM_MIN);
     size_t key_size;
     enum tfm_plat_err_t err;
 
