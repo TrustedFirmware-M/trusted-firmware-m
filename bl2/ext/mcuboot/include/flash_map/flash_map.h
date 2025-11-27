@@ -21,7 +21,7 @@
  * Original code taken from mcuboot project at:
  * https://github.com/mcu-tools/mcuboot
  * Git SHA of the original version: ac55554059147fff718015be9f4bd3108123f50a
- * Modifications are Copyright (c) 2018-2020 Arm Limited.
+ * Modifications are Copyright (c) 2018-2025 Arm Limited.
  */
 
 #ifndef H_UTIL_FLASH_MAP_
@@ -50,6 +50,7 @@ extern "C" {
  */
 #include <inttypes.h>
 #include "tfm_plat_shared_measurement_data.h"
+#include "flash_layout.h"   /* To get FLASH_XXX and MCUBOOT_XXX defines */
 #include "Driver_Flash.h"
 
 /*
