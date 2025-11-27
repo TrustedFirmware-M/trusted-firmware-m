@@ -381,6 +381,13 @@ psa_status_t tfm_spm_partition_psa_clear(void)
 
 void tfm_spm_partition_psa_panic(void)
 {
+/* Suppress Pe111 (statement is unreachable) and Pe128 (loop is unreachable) for
+ * IAR as redundant code is needed for FIH
+ */
+#if defined(__ICCARM__)
+#pragma diag_suppress = Pe111
+#pragma diag_suppress = Pe128
+#endif
 #ifdef CONFIG_TFM_HALT_ON_CORE_PANIC
     tfm_hal_system_halt();
 #else
@@ -392,11 +399,12 @@ void tfm_spm_partition_psa_panic(void)
 #endif
 
 #if defined(__ICCARM__)
-#pragma diag_default = Pe111
-#else
-    __builtin_unreachable();
-#endif
     while (1) {
         __NOP();
     }
+#pragma diag_default = Pe111
+#pragma diag_default = Pe128
+#else
+    __builtin_unreachable();
+#endif
 }
