@@ -2980,7 +2980,7 @@ psa_status_t psa_verify_message(mbedtls_svc_key_id_t key,
  * \note Implementation recommendation: support unwrapping keys created via
  *       `psa_wrap_key()` using the same algorithm and compatible attributes.
  *       Reject clearly malformed or truncated data.
- * 
+ *
  * \param attributes            The attributes for the new key.
  *                              The following attributes are required for all
  *                              keys:

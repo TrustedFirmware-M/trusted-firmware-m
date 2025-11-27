@@ -1,7 +1,7 @@
-From c2ab9f0dbdd4fdc2f10a0c8f0f25ce84e33c7296 Mon Sep 17 00:00:00 2001
+From 8dfff4e553a9635c478535ef8cf0b4a08462cf84 Mon Sep 17 00:00:00 2001
 From: Waleed Elmelegy <waleed.elmelegy@arm.com>
 Date: Mon, 19 May 2025 14:01:03 +0000
-Subject: [PATCH 01/10] Move NIST_KW to PSA API
+Subject: [PATCH 08/11] Move NIST_KW to PSA API
 
 Backport version of https://github.com/Mbed-TLS/TF-PSA-Crypto/pull/180
 & https://github.com/Mbed-TLS/mbedtls/pull/9983
@@ -13,8 +13,10 @@ Signed-off-by: Waleed Elmelegy <waleed.elmelegy@arm.com>
  ChangeLog.d/9382.txt                          |   5 +
  include/mbedtls/check_config.h                |   4 -
  include/mbedtls/cipher.h                      |  29 +-
- include/mbedtls/nist_kw.h                     | 154 ++---
- .../psa/crypto_adjust_config_dependencies.h   |   4 +
+ include/mbedtls/nist_kw.h                     | 155 ++---
+ include/psa/crypto.h                          | 126 ++++
+ .../psa/crypto_adjust_config_dependencies.h   |   5 +
+ include/psa/crypto_values.h                   |  65 ++
  library/cipher.c                              |  70 +-
  library/cipher_wrap.c                         | 153 -----
  library/nist_kw.c                             | 605 +++++-------------
@@ -23,13 +25,13 @@ Signed-off-by: Waleed Elmelegy <waleed.elmelegy@arm.com>
  tests/suites/test_suite_cipher.nist_kw.data   | 278 --------
  tests/suites/test_suite_nist_kw.data          | 475 +++++++-------
  tests/suites/test_suite_nist_kw.function      | 369 +++++------
- 13 files changed, 648 insertions(+), 1504 deletions(-)
+ 15 files changed, 841 insertions(+), 1504 deletions(-)
  create mode 100644 ChangeLog.d/9382.txt
  delete mode 100644 tests/suites/test_suite_cipher.nist_kw.data
 
 diff --git a/ChangeLog.d/9382.txt b/ChangeLog.d/9382.txt
 new file mode 100644
-index 0000000000..d4ac70f196
+index 000000000..d4ac70f19
 --- /dev/null
 +++ b/ChangeLog.d/9382.txt
 @@ -0,0 +1,5 @@
@@ -39,7 +41,7 @@ index 0000000000..d4ac70f196
 +     mbedtls_nist_kw_unwrap() now take a PSA key identifier instead of a
 +     plain-text key via a custom context.
 diff --git a/include/mbedtls/check_config.h b/include/mbedtls/check_config.h
-index aec5050b70..4e76bd9309 100644
+index aec5050b7..4e76bd930 100644
 --- a/include/mbedtls/check_config.h
 +++ b/include/mbedtls/check_config.h
 @@ -113,10 +113,6 @@
@@ -54,10 +56,10 @@ index aec5050b70..4e76bd9309 100644
  #if defined(MBEDTLS_BLOCK_CIPHER_NO_DECRYPT) && defined(MBEDTLS_PSA_CRYPTO_CONFIG)
  #if defined(PSA_WANT_ALG_CBC_NO_PADDING)
 diff --git a/include/mbedtls/cipher.h b/include/mbedtls/cipher.h
-index 1dc31c9c24..ef16937980 100644
+index e54715215..11642d93f 100644
 --- a/include/mbedtls/cipher.h
 +++ b/include/mbedtls/cipher.h
-@@ -614,7 +614,7 @@ void mbedtls_cipher_free(mbedtls_cipher_context_t *ctx);
+@@ -621,7 +621,7 @@ void mbedtls_cipher_free(mbedtls_cipher_context_t *ctx);
   *                      non-AEAD modes;
   *                      - mbedtls_cipher_auth_encrypt_ext() or
   *                      mbedtls_cipher_auth_decrypt_ext() for one-shot
@@ -66,7 +68,7 @@ index 1dc31c9c24..ef16937980 100644
   *                      - for multi-part processing, see the documentation of
   *                      mbedtls_cipher_reset().
   *
-@@ -1058,26 +1058,24 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
+@@ -1135,26 +1135,24 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
                           const unsigned char *input, size_t ilen,
                           unsigned char *output, size_t *olen);
  
@@ -97,7 +99,7 @@ index 1dc31c9c24..ef16937980 100644
   * \param input         The buffer holding the input data. This must be a
   *                      readable buffer of at least \p ilen Bytes, and may be
   *                      \c NULL if \p ilen is \c 0.
-@@ -1087,7 +1085,6 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
+@@ -1164,7 +1162,6 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
   *                      must not be \c NULL.
   * \param output_len    The length of the \p output buffer in Bytes. For AEAD
   *                      ciphers, this must be at least \p ilen + \p tag_len.
@@ -105,7 +107,7 @@ index 1dc31c9c24..ef16937980 100644
   *                      (rounded up to a multiple of 8 if KWP is used);
   *                      \p ilen + 15 is always a safe value.
   * \param olen          This will be filled with the actual number of Bytes
-@@ -1096,7 +1093,6 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
+@@ -1173,7 +1170,6 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
   * \param tag_len       The desired length of the authentication tag. For AEAD
   *                      ciphers, this must match the constraints imposed by
   *                      the cipher used, and in particular must not be \c 0.
@@ -113,7 +115,7 @@ index 1dc31c9c24..ef16937980 100644
   *
   * \return              \c 0 on success.
   * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
-@@ -1111,7 +1107,7 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
+@@ -1188,7 +1184,7 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
                                      size_t *olen, size_t tag_len);
  
  /**
@@ -122,7 +124,7 @@ index 1dc31c9c24..ef16937980 100644
   *
   * \note                If the data is not authentic, then the output buffer
   *                      is zeroed out to prevent the unauthentic plaintext being
-@@ -1119,39 +1115,34 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
+@@ -1196,39 +1192,34 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
   *
   * \note                For AEAD modes, the tag must be appended to the
   *                      ciphertext, as recommended by RFC 5116.
@@ -165,7 +167,7 @@ index 1dc31c9c24..ef16937980 100644
   *
   * \return              \c 0 on success.
   * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
-@@ -1165,7 +1156,7 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
+@@ -1242,7 +1233,7 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
                                      const unsigned char *input, size_t ilen,
                                      unsigned char *output, size_t output_len,
                                      size_t *olen, size_t tag_len);
@@ -175,20 +177,21 @@ index 1dc31c9c24..ef16937980 100644
  }
  #endif
 diff --git a/include/mbedtls/nist_kw.h b/include/mbedtls/nist_kw.h
-index d353f3d1a8..d82e248b62 100644
+index d353f3d1a..253fe0f19 100644
 --- a/include/mbedtls/nist_kw.h
 +++ b/include/mbedtls/nist_kw.h
-@@ -26,7 +26,8 @@
+@@ -26,7 +26,9 @@
  
  #include "mbedtls/build_info.h"
  
 -#include "mbedtls/cipher.h"
 +#include "psa/crypto_types.h"
 +#include "psa/crypto_values.h"
++
  
  #ifdef __cplusplus
  extern "C" {
-@@ -41,123 +42,70 @@ typedef enum {
+@@ -41,123 +43,70 @@ typedef enum {
  // Regular implementation
  //
  
@@ -361,24 +364,252 @@ index d353f3d1a8..d82e248b62 100644
  
  #ifdef __cplusplus
  }
+diff --git a/include/psa/crypto.h b/include/psa/crypto.h
+index 2fe9f35ec..1c1af5c65 100644
+--- a/include/psa/crypto.h
++++ b/include/psa/crypto.h
+@@ -2957,6 +2957,132 @@ psa_status_t psa_verify_message(mbedtls_svc_key_id_t key,
+                                 const uint8_t *signature,
+                                 size_t signature_length);
+ 
++/**
++ * \function psa_unwrap_key
++ *
++ * \brief Unwrap and import a key using a specified wrapping key.
++ *
++ * The key is unwrapped and extracted from the `data` buffer. Its location,
++ * policy, and type are taken from `attributes`. The wrapped key determines the
++ * size. `psa_get_key_bits(attributes)` must either match the size or be `0`.
++ * Zero-sized keys must be rejected by the implementation.
++ *
++ * \note The function first decrypts \c data using \c alg and `wrapping_key`, then
++ *       processes the result and `attributes` as if calling `psa_import_key()`.
++ *
++ * \note The key material remains within the cryptoprocessor, providing an extra
++ *       layer of protection.
++ *
++ * \note The API does not support asymmetric private key objects outside of a
++ *       key pair. If the public key is missing, it will be reconstructed from
++ *       the private key.
++ *
++ * \note Implementation recommendation: support unwrapping keys created via
++ *       `psa_wrap_key()` using the same algorithm and compatible attributes.
++ *       Reject clearly malformed or truncated data.
++ *
++ * \param attributes            The attributes for the new key.
++ *                              The following attributes are required for all
++ *                              keys:
++ *                                - The key type determines how the decrypted
++ *                                  `data` buffer is interpreted.
++ *                              The following attributes must be set for keys
++ *                              used in cryptographic operations:
++ *                                - The key permitted-algorithm policy, see
++ *                                  \ref permitted-algorithms.
++ *                                - The key usage flags, see \ref key-usage-flags.
++ *                              The following attributes must be set for keys
++ *                              that do not use the default volatile lifetime:
++ *                                - The key lifetime, see \ref key-lifetimes.
++ *                                - The key identifier is required for a key
++ *                                  with a persistent lifetime, see
++ *                                  \ref key-identifiers.
++ *                              The following attributes are optional:
++ *                                - If the key size is nonzero, it must be equal
++ *                                  to the key size determined from `data`.
++ *
++ *                              \note This is an input parameter: it is not
++ *                              updated with the final key attributes.
++ *                              The final attributes of the new key can be
++ *                              queried by calling `psa_get_key_attributes()` with
++ *                              the key's identifier.
++ *
++ * \param wrapping_key          Identifier of the key to use for the unwrapping
++ *                              operation. It must permit the usage
++ *                              `PSA_KEY_USAGE_UNWRAP`.
++ *
++ * \param alg                   The key-wrapping algorithm: a value of type
++ *                              `psa_algorithm_t` such that
++ *                              `PSA_ALG_IS_KEY_WRAP(alg)` is true.
++ *
++ * \param[in] data                  Buffer containing the wrapped key data.
++ *                              The content of this buffer is unwrapped using
++ *                              the algorithm `alg`, and then interpreted
++ *                              according to the type declared in `attributes`.
++ *
++ * \param data_length           Size of the `data` buffer in bytes.
++ *
++ * \param key                   On success, an identifier for the newly created
++ *                              key. `PSA_KEY_ID_NULL` on failure.
++ *
++ * \retval #PSA_SUCCESS
++ *         Success. If the key is persistent, the key material and metadata have
++ *         been saved to persistent storage.
++ *
++ * \retval #PSA_ERROR_ALREADY_EXISTS
++ *         Attempt to create a persistent key, but a persistent key with the
++ *         same identifier already exists.
++ *
++ * \retval #PSA_ERROR_INVALID_SIGNATURE
++ *         The wrapped key data could not be authenticated.
++ *
++ * \retval #PSA_ERROR_INVALID_HANDLE
++ *         `wrapping_key` is not a valid key identifier.
++ *
++ * \retval #PSA_ERROR_NOT_SUPPORTED
++ *         The following conditions can result in this error:
++ *           - `alg` is not supported or is not a key-wrapping algorithm.
++ *           - `wrapping_key` is not supported for use with `alg`.
++ *           - The key attributes are not supported, either generally or in the
++ *             specified storage location.
++ *
++ * \retval #PSA_ERROR_INVALID_ARGUMENT
++ *         The following conditions can result in this error:
++ *           - `alg` is not a key-wrapping algorithm.
++ *           - `wrapping_key` is not compatible with `alg`.
++ *           - The key type is invalid.
++ *           - The key size is nonzero and is incompatible with the data.
++ *           - The key lifetime is invalid.
++ *           - The key identifier is invalid for the key lifetime.
++ *           - Invalid key usage flags.
++ *           - Invalid permitted algorithm.
++ *           - Invalid key attributes overall.
++ *           - Invalid key format or data layout.
++ *
++ * \retval #PSA_ERROR_NOT_PERMITTED
++ *         The following conditions can result in this error:
++ *           - `wrapping_key` lacks the `PSA_KEY_USAGE_UNWRAP` flag or does not
++ *             permit the requested algorithm.
++ *           - Creating a key with the specified attributes is not allowed by
++ *             implementation policy.
++ *
++ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
++ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
++ * \retval #PSA_ERROR_COMMUNICATION_FAILURE
++ * \retval #PSA_ERROR_STORAGE_FAILURE
++ * \retval #PSA_ERROR_DATA_CORRUPT
++ * \retval #PSA_ERROR_DATA_INVALID
++ * \retval #PSA_ERROR_CORRUPTION_DETECTED
++ * \retval #PSA_ERROR_BAD_STATE
++ *         The library requires initializing by a call to `psa_crypto_init()`.
++ */
++psa_status_t psa_unwrap_key(const psa_key_attributes_t * attributes,
++                            psa_key_id_t wrapping_key,
++                            psa_algorithm_t alg,
++                            const uint8_t * data,
++                            size_t data_length,
++                            psa_key_id_t * key);
++
+ /**
+  * \brief Sign a hash or short message with a private key.
+  *
 diff --git a/include/psa/crypto_adjust_config_dependencies.h b/include/psa/crypto_adjust_config_dependencies.h
-index 92e9c4de28..b314f5988f 100644
+index 92e9c4de2..f44545473 100644
 --- a/include/psa/crypto_adjust_config_dependencies.h
 +++ b/include/psa/crypto_adjust_config_dependencies.h
-@@ -48,4 +48,8 @@
+@@ -48,4 +48,9 @@
  #define PSA_WANT_ALG_CMAC 1
  #endif
  
-+#if defined(MBEDTLS_NIST_KW_C)
++#if (defined(MBEDTLS_NIST_KW_C) && \
++    !defined(PSA_WANT_ALG_ECB_NO_PADDING))
 +#define PSA_WANT_ALG_ECB_NO_PADDING 1
 +#endif
 +
  #endif /* PSA_CRYPTO_ADJUST_CONFIG_DEPENDENCIES_H */
+diff --git a/include/psa/crypto_values.h b/include/psa/crypto_values.h
+index 1d678dbfc..c8a2f572a 100644
+--- a/include/psa/crypto_values.h
++++ b/include/psa/crypto_values.h
+@@ -789,6 +789,7 @@
+ #define PSA_ALG_CATEGORY_ASYMMETRIC_ENCRYPTION  ((psa_algorithm_t) 0x07000000)
+ #define PSA_ALG_CATEGORY_KEY_DERIVATION         ((psa_algorithm_t) 0x08000000)
+ #define PSA_ALG_CATEGORY_KEY_AGREEMENT          ((psa_algorithm_t) 0x09000000)
++#define PSA_ALG_CATEGORY_KEY_WRAP               ((psa_algorithm_t) 0x0B000000)
+ 
+ /** Whether an algorithm is vendor-defined.
+  *
+@@ -2283,6 +2284,48 @@
+ #define PSA_ALG_GET_HASH(alg) \
+     (((alg) & 0x000000ff) == 0 ? ((psa_algorithm_t) 0) : 0x02000000 | ((alg) & 0x000000ff))
+ 
++/**
++ * The AES-KW key-wrapping algorithm.
++ *
++ * This is the NIST Key Wrap algorithm, using an AES key-encryption key, as
++ * defined in [NIST SP 800-38F](https://doi.org/10.6028/NIST.SP.800-38F).
++ * The algorithm is also specified in [RFC 3394](https://datatracker.ietf.org/
++ * doc/html/rfc3394).
++ *
++ * Keys to be wrapped must have a length that is a multiple of the AES
++ * 'semi-block' size — that is, a multiple of 8 bytes.
++ *
++ * To wrap keys whose lengths are not a multiple of the AES semi-block size,
++ * use \c PSA_ALG_AES_KWP.
++ */
++#define PSA_ALG_AES_KW ((psa_algorithm_t)0x0B400100)
++
++/**
++ * The AES-KWP key-wrapping algorithm with padding.
++ *
++ * This is the NIST Key Wrap with Padding algorithm, using an AES key-encryption
++ * key, as defined in [NIST SP 800-38F](https://doi.org/10.6028/NIST.SP.800-38F).
++ * The algorithm is also specified in [RFC 5649](https://datatracker.ietf.org/
++ * doc/html/rfc5649).
++ *
++ * This algorithm can wrap a key of any length.
++ */
++#define PSA_ALG_AES_KWP ((psa_algorithm_t)0x0BC00200)
++
++/**
++ * \brief Check whether the specified algorithm is a key-wrapping algorithm.
++ *
++ * \param alg                   An algorithm identifier; a value of type
++ *                              \c psa_algorithm_t.
++ *
++ * \return                       1 if \c alg is a key-wrapping algorithm,
++ *                               0 otherwise. This macro can return either
++ *                               0 or 1 if \c alg is not a supported algorithm
++ *                              identifier.
++ */
++#define PSA_ALG_IS_KEY_WRAP(alg)                                     \
++    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_AES_KEY_WRAP)
++
+ /**@}*/
+ 
+ /** \defgroup key_lifetimes Key lifetimes
+@@ -2652,6 +2695,28 @@ static inline int mbedtls_svc_key_id_is_null(mbedtls_svc_key_id_t key)
+  */
+ #define PSA_KEY_USAGE_VERIFY_DERIVATION         ((psa_key_usage_t) 0x00008000)
+ 
++
++/**
++ * Permission to wrap another key with the key.
++ *
++ * This flag is required to use the key in a key-wrapping operation.
++ *
++ * The flag must be present on keys used with the following APIs:
++ *   - `psa_wrap_key()`
++ */
++#define PSA_KEY_USAGE_WRAP ((psa_key_usage_t)0x00010000)
++
++/**
++ * \brief Permission to unwrap another key with the key.
++ *
++ * This flag is required to use the key in a key-unwrapping operation.
++ *
++ * The flag must be present on keys used with the following APIs:
++ *   - `psa_unwrap_key()`
++ */
++#define PSA_KEY_USAGE_UNWRAP ((psa_key_usage_t)0x00020000)
++
++
+ /**@}*/
+ 
+ /** \defgroup derivation Key derivation
 diff --git a/library/cipher.c b/library/cipher.c
-index 7f4c121492..f97ef8e22b 100644
+index f9d46213d..ea786bab5 100644
 --- a/library/cipher.c
 +++ b/library/cipher.c
-@@ -47,10 +47,6 @@
+@@ -48,10 +48,6 @@
  #include "psa/crypto.h"
  #endif /* MBEDTLS_USE_PSA_CRYPTO && !MBEDTLS_DEPRECATED_REMOVED */
  
@@ -389,7 +620,7 @@ index 7f4c121492..f97ef8e22b 100644
  #include "mbedtls/platform.h"
  
  static int supported_init = 0;
-@@ -1578,9 +1574,9 @@ static int mbedtls_cipher_aead_decrypt(mbedtls_cipher_context_t *ctx,
+@@ -1607,9 +1603,9 @@ static int mbedtls_cipher_aead_decrypt(mbedtls_cipher_context_t *ctx,
  }
  #endif /* MBEDTLS_CIPHER_MODE_AEAD */
  
@@ -401,7 +632,7 @@ index 7f4c121492..f97ef8e22b 100644
   */
  int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
                                      const unsigned char *iv, size_t iv_len,
-@@ -1589,32 +1585,6 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
+@@ -1618,32 +1614,6 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
                                      unsigned char *output, size_t output_len,
                                      size_t *olen, size_t tag_len)
  {
@@ -434,7 +665,7 @@ index 7f4c121492..f97ef8e22b 100644
      /* AEAD case: check length before passing on to shared function */
      if (output_len < ilen + tag_len) {
          return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
-@@ -1625,13 +1595,10 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
+@@ -1654,13 +1624,10 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
                                            output + ilen, tag_len);
      *olen += tag_len;
      return ret;
@@ -449,7 +680,7 @@ index 7f4c121492..f97ef8e22b 100644
   */
  int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
                                      const unsigned char *iv, size_t iv_len,
-@@ -1640,32 +1607,6 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
+@@ -1669,32 +1636,6 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
                                      unsigned char *output, size_t output_len,
                                      size_t *olen, size_t tag_len)
  {
@@ -482,7 +713,7 @@ index 7f4c121492..f97ef8e22b 100644
      /* AEAD case: check length before passing on to shared function */
      if (ilen < tag_len || output_len < ilen - tag_len) {
          return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
-@@ -1674,10 +1615,7 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
+@@ -1703,10 +1644,7 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
      return mbedtls_cipher_aead_decrypt(ctx, iv, iv_len, ad, ad_len,
                                         input, ilen - tag_len, output, olen,
                                         input + ilen - tag_len, tag_len);
@@ -495,7 +726,7 @@ index 7f4c121492..f97ef8e22b 100644
  
  #endif /* MBEDTLS_CIPHER_C */
 diff --git a/library/cipher_wrap.c b/library/cipher_wrap.c
-index d2fee22e2b..0a7faeaad9 100644
+index b4c21ee39..0b75d6f09 100644
 --- a/library/cipher_wrap.c
 +++ b/library/cipher_wrap.c
 @@ -48,10 +48,6 @@
@@ -676,7 +907,7 @@ index d2fee22e2b..0a7faeaad9 100644
  #if defined(MBEDTLS_CIPHER_NULL_CIPHER)
      { MBEDTLS_CIPHER_NULL,                 &null_cipher_info },
  #endif /* MBEDTLS_CIPHER_NULL_CIPHER */
-@@ -2468,9 +2318,6 @@ const mbedtls_cipher_base_t *mbedtls_cipher_base_lookup_table[] = {
+@@ -2468,9 +2318,6 @@ const mbedtls_cipher_base_t * const mbedtls_cipher_base_lookup_table[] = {
  #if defined(MBEDTLS_GCM_C) && defined(MBEDTLS_CAMELLIA_C)
      [MBEDTLS_CIPHER_BASE_INDEX_GCM_CAMELLIA] = &gcm_camellia_info,
  #endif
@@ -687,7 +918,7 @@ index d2fee22e2b..0a7faeaad9 100644
      [MBEDTLS_CIPHER_BASE_INDEX_NULL_BASE] = &null_base_info,
  #endif
 diff --git a/library/nist_kw.c b/library/nist_kw.c
-index 8faafe43f1..f7ceeec977 100644
+index 8faafe43f..f7ceeec97 100644
 --- a/library/nist_kw.c
 +++ b/library/nist_kw.c
 @@ -29,6 +29,7 @@
@@ -1520,7 +1751,7 @@ index 8faafe43f1..f7ceeec977 100644
 -
  #endif /* MBEDTLS_NIST_KW_C */
 diff --git a/programs/test/selftest.c b/programs/test/selftest.c
-index e72386f023..f219cc41cc 100644
+index e72386f02..f219cc41c 100644
 --- a/programs/test/selftest.c
 +++ b/programs/test/selftest.c
 @@ -308,9 +308,6 @@ const selftest_t selftests[] =
@@ -1534,10 +1765,10 @@ index e72386f023..f219cc41cc 100644
      { "cmac", mbedtls_cmac_self_test },
  #endif
 diff --git a/tests/scripts/components-configuration-crypto.sh b/tests/scripts/components-configuration-crypto.sh
-index e3096f3d65..9cf4d02c55 100644
+index bb4608acc..3c45f8dd0 100644
 --- a/tests/scripts/components-configuration-crypto.sh
 +++ b/tests/scripts/components-configuration-crypto.sh
-@@ -610,6 +610,9 @@ component_test_full_no_ccm_star_no_tag () {
+@@ -665,6 +665,9 @@ component_test_full_no_ccm_star_no_tag () {
      scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_CFB
      scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_OFB
      scripts/config.py -f "$CRYPTO_CONFIG_H" unset PSA_WANT_ALG_ECB_NO_PADDING
@@ -1549,7 +1780,7 @@ index e3096f3d65..9cf4d02c55 100644
  
 diff --git a/tests/suites/test_suite_cipher.nist_kw.data b/tests/suites/test_suite_cipher.nist_kw.data
 deleted file mode 100644
-index df52e06ccb..0000000000
+index df52e06cc..000000000
 --- a/tests/suites/test_suite_cipher.nist_kw.data
 +++ /dev/null
 @@ -1,278 +0,0 @@
@@ -1832,7 +2063,7 @@ index df52e06ccb..0000000000
 -depends_on:MBEDTLS_AES_C:MBEDTLS_NIST_KW_C:!MBEDTLS_AES_ONLY_128_BIT_KEY_LENGTH
 -auth_crypt_tv:MBEDTLS_CIPHER_AES_256_KWP:"c32cb3e1e41a4b9f4de79989957866f5dd48dba38c22a6ebb80e14c84bdd9534":"":"":"c29b05c2619a58ecc1d239e7a34273cd":"":"FAIL":"":0
 diff --git a/tests/suites/test_suite_nist_kw.data b/tests/suites/test_suite_nist_kw.data
-index 2307ad564c..c96ad5e04c 100644
+index 2307ad564..c96ad5e04 100644
 --- a/tests/suites/test_suite_nist_kw.data
 +++ b/tests/suites/test_suite_nist_kw.data
 @@ -1,28 +1,27 @@
@@ -2555,7 +2786,7 @@ index 2307ad564c..c96ad5e04c 100644
 +depends_on:PSA_WANT_KEY_TYPE_ARIA
 +mbedtls_nist_kw_unwrap_key_test:MBEDTLS_KW_MODE_KWP:"000102030405060708090A0B0C0D0E0F":PSA_KEY_USAGE_DECRYPT:PSA_ALG_ECB_NO_PADDING:PSA_KEY_TYPE_ARIA:PSA_ERROR_INVALID_ARGUMENT
 diff --git a/tests/suites/test_suite_nist_kw.function b/tests/suites/test_suite_nist_kw.function
-index f2b794441a..41d6ca911c 100644
+index f2b794441..41d6ca911 100644
 --- a/tests/suites/test_suite_nist_kw.function
 +++ b/tests/suites/test_suite_nist_kw.function
 @@ -1,176 +1,80 @@
@@ -3020,5 +3251,5 @@ index f2b794441a..41d6ca911c 100644
  }
  /* END_CASE */
 -- 
-2.25.1
+2.34.1
 

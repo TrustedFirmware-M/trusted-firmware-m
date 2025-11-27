@@ -329,8 +329,15 @@ typedef struct mbedtls_cipher_context_t {
     /** Padding functions to use, if relevant for
      * the specific cipher mode.
      */
-    void(*MBEDTLS_PRIVATE(add_padding))(unsigned char *output, size_t olen, size_t data_len);
-    int(*MBEDTLS_PRIVATE(get_padding))(unsigned char *input, size_t ilen, size_t *data_len);
+    void(*MBEDTLS_PRIVATE(add_padding))(unsigned char *output, size_t olen,
+                                        size_t data_len);
+    /* Report invalid-padding condition through the output parameter
+     * invalid_padding. To minimize changes in Mbed TLS 3.6, where this
+     * declaration is in a public header, use the public type size_t
+     * rather than the internal type mbedtls_ct_condition_t. */
+    int(*MBEDTLS_PRIVATE(get_padding))(unsigned char *input, size_t ilen,
+                                       size_t *data_len,
+                                       size_t *invalid_padding);
 #endif
 
     /** Buffer for input that has not been processed yet. */
@@ -614,7 +621,7 @@ void mbedtls_cipher_free(mbedtls_cipher_context_t *ctx);
  *                      non-AEAD modes;
  *                      - mbedtls_cipher_auth_encrypt_ext() or
  *                      mbedtls_cipher_auth_decrypt_ext() for one-shot
- *                      processing with AEAD modes or NIST_KW;
+ *                      processing with AEAD modes;
  *                      - for multi-part processing, see the documentation of
  *                      mbedtls_cipher_reset().
  *
@@ -878,23 +885,24 @@ int mbedtls_cipher_set_iv(mbedtls_cipher_context_t *ctx,
  *
  * \note          With non-AEAD ciphers, the order of calls for each message
  *                is as follows:
- *                1. mbedtls_cipher_set_iv() if the mode uses an IV/nonce.
- *                2. mbedtls_cipher_reset()
- *                3. mbedtls_cipher_update() one or more times
- *                4. mbedtls_cipher_finish()
+ *                1. mbedtls_cipher_set_iv() if the mode uses an IV/nonce;
+ *                2. mbedtls_cipher_reset();
+ *                3. mbedtls_cipher_update() zero, one or more times;
+ *                4. mbedtls_cipher_finish_padded() (recommended for decryption
+ *                   if the mode uses padding) or mbedtls_cipher_finish().
  *                .
  *                This sequence can be repeated to encrypt or decrypt multiple
  *                messages with the same key.
  *
  * \note          With AEAD ciphers, the order of calls for each message
  *                is as follows:
- *                1. mbedtls_cipher_set_iv() if the mode uses an IV/nonce.
- *                2. mbedtls_cipher_reset()
- *                3. mbedtls_cipher_update_ad()
- *                4. mbedtls_cipher_update() one or more times
- *                5. mbedtls_cipher_finish()
+ *                1. mbedtls_cipher_set_iv() if the mode uses an IV/nonce;
+ *                2. mbedtls_cipher_reset();
+ *                3. mbedtls_cipher_update_ad();
+ *                4. mbedtls_cipher_update() zero, one or more times;
+ *                5. mbedtls_cipher_finish() (or mbedtls_cipher_finish_padded());
  *                6. mbedtls_cipher_check_tag() (for decryption) or
- *                mbedtls_cipher_write_tag() (for encryption).
+ *                   mbedtls_cipher_write_tag() (for encryption).
  *                .
  *                This sequence can be repeated to encrypt or decrypt multiple
  *                messages with the same key.
@@ -930,7 +938,8 @@ int mbedtls_cipher_update_ad(mbedtls_cipher_context_t *ctx,
  *                      many block-sized blocks of data as possible to output.
  *                      Any data that cannot be written immediately is either
  *                      added to the next block, or flushed when
- *                      mbedtls_cipher_finish() is called.
+ *                      mbedtls_cipher_finish() or mbedtls_cipher_finish_padded()
+ *                      is called.
  *                      Exception: For MBEDTLS_MODE_ECB, expects a single block
  *                      in size. For example, 16 Bytes for AES.
  *
@@ -964,12 +973,30 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx,
  *                      contained in it is padded to the size of
  *                      the last block, and written to the \p output buffer.
  *
+ * \warning             This function reports invalid padding through an error
+ *                      code. Adversaries may be able to decrypt encrypted
+ *                      data if they can submit chosen ciphertexts and
+ *                      detect whether it has valid padding or not,
+ *                      either through direct observation or through a side
+ *                      channel such as timing. This is known as a
+ *                      padding oracle attack.
+ *                      Therefore applications that call this function for
+ *                      decryption with a cipher that involves padding
+ *                      should take care around error handling. Preferably,
+ *                      such applications should use
+ *                      mbedtls_cipher_finish_padded() instead of this function.
+ *
  * \param ctx           The generic cipher context. This must be initialized and
  *                      bound to a key.
  * \param output        The buffer to write data to. This needs to be a writable
  *                      buffer of at least block_size Bytes.
  * \param olen          The length of the data written to the \p output buffer.
  *                      This may not be \c NULL.
+ *                      Note that when decrypting in a mode with padding,
+ *                      the actual output length is sensitive and may be
+ *                      used to mount a padding oracle attack (see warning
+ *                      above), although less efficiently than through
+ *                      the invalid-padding condition.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
@@ -977,17 +1004,66 @@ int mbedtls_cipher_update(mbedtls_cipher_context_t *ctx,
  * \return              #MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED on decryption
  *                      expecting a full block but not receiving one.
  * \return              #MBEDTLS_ERR_CIPHER_INVALID_PADDING on invalid padding
- *                      while decrypting.
+ *                      while decrypting. Note that invalid-padding errors
+ *                      should be handled carefully; see the warning above.
  * \return              A cipher-specific error code on failure.
  */
 int mbedtls_cipher_finish(mbedtls_cipher_context_t *ctx,
                           unsigned char *output, size_t *olen);
 
+/**
+ * \brief               The generic cipher finalization function. If data still
+ *                      needs to be flushed from an incomplete block, the data
+ *                      contained in it is padded to the size of
+ *                      the last block, and written to the \p output buffer.
+ *
+ * \note                This function is similar to mbedtls_cipher_finish().
+ *                      The only difference is that it reports invalid padding
+ *                      decryption differently, through the \p invalid_padding
+ *                      parameter rather than an error code.
+ *                      For encryption, and in modes without padding (including
+ *                      all authenticated modes), this function is identical
+ *                      to mbedtls_cipher_finish().
+ *
+ * \param[in,out] ctx   The generic cipher context. This must be initialized and
+ *                      bound to a key.
+ * \param[out] output   The buffer to write data to. This needs to be a writable
+ *                      buffer of at least block_size Bytes.
+ * \param[out] olen     The length of the data written to the \p output buffer.
+ *                      This may not be \c NULL.
+ *                      Note that when decrypting in a mode with padding,
+ *                      the actual output length is sensitive and may be
+ *                      used to mount a padding oracle attack (see warning
+ *                      on mbedtls_cipher_finish()).
+ * \param[out] invalid_padding
+ *                      If this function returns \c 0 on decryption,
+ *                      \p *invalid_padding is \c 0 if the ciphertext was
+ *                      valid, and all-bits-one if the ciphertext had invalid
+ *                      padding.
+ *                      On encryption, or in a mode without padding (including
+ *                      all authenticated modes), \p *invalid_padding is \c 0
+ *                      on success.
+ *                      The value in \p *invalid_padding is unspecified if
+ *                      this function returns a nonzero status.
+ *
+ * \return              \c 0 on success.
+ *                      Also \c 0 for decryption with invalid padding.
+ * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
+ *                      parameter-verification failure.
+ * \return              #MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED on decryption
+ *                      expecting a full block but not receiving one.
+ * \return              A cipher-specific error code on failure.
+ */
+int mbedtls_cipher_finish_padded(mbedtls_cipher_context_t *ctx,
+                                 unsigned char *output, size_t *olen,
+                                 size_t *invalid_padding);
+
 #if defined(MBEDTLS_GCM_C) || defined(MBEDTLS_CHACHAPOLY_C)
 /**
  * \brief               This function writes a tag for AEAD ciphers.
  *                      Currently supported with GCM and ChaCha20+Poly1305.
- *                      This must be called after mbedtls_cipher_finish().
+ *                      This must be called after mbedtls_cipher_finish()
+ *                      or mbedtls_cipher_finish_padded().
  *
  * \param ctx           The generic cipher context. This must be initialized,
  *                      bound to a key, and have just completed a cipher
@@ -1006,7 +1082,8 @@ int mbedtls_cipher_write_tag(mbedtls_cipher_context_t *ctx,
 /**
  * \brief               This function checks the tag for AEAD ciphers.
  *                      Currently supported with GCM and ChaCha20+Poly1305.
- *                      This must be called after mbedtls_cipher_finish().
+ *                      This must be called after mbedtls_cipher_finish()
+ *                      or mbedtls_cipher_finish_padded().
  *
  * \param ctx           The generic cipher context. This must be initialized.
  * \param tag           The buffer holding the tag. This must be a readable
@@ -1058,26 +1135,24 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
                          const unsigned char *input, size_t ilen,
                          unsigned char *output, size_t *olen);
 
-#if defined(MBEDTLS_CIPHER_MODE_AEAD) || defined(MBEDTLS_NIST_KW_C)
+#if defined(MBEDTLS_CIPHER_MODE_AEAD)
 /**
- * \brief               The authenticated encryption (AEAD/NIST_KW) function.
+ * \brief               The authenticated encryption (AEAD) function.
  *
  * \note                For AEAD modes, the tag will be appended to the
  *                      ciphertext, as recommended by RFC 5116.
- *                      (NIST_KW doesn't have a separate tag.)
  *
  * \param ctx           The generic cipher context. This must be initialized and
- *                      bound to a key, with an AEAD algorithm or NIST_KW.
+ *                      bound to a key, with an AEAD algorithm.
  * \param iv            The nonce to use. This must be a readable buffer of
  *                      at least \p iv_len Bytes and may be \c NULL if \p
  *                      iv_len is \c 0.
  * \param iv_len        The length of the nonce. For AEAD ciphers, this must
  *                      satisfy the constraints imposed by the cipher used.
- *                      For NIST_KW, this must be \c 0.
  * \param ad            The additional data to authenticate. This must be a
  *                      readable buffer of at least \p ad_len Bytes, and may
  *                      be \c NULL is \p ad_len is \c 0.
- * \param ad_len        The length of \p ad. For NIST_KW, this must be \c 0.
+ * \param ad_len        The length of \p ad
  * \param input         The buffer holding the input data. This must be a
  *                      readable buffer of at least \p ilen Bytes, and may be
  *                      \c NULL if \p ilen is \c 0.
@@ -1087,7 +1162,6 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
  *                      must not be \c NULL.
  * \param output_len    The length of the \p output buffer in Bytes. For AEAD
  *                      ciphers, this must be at least \p ilen + \p tag_len.
- *                      For NIST_KW, this must be at least \p ilen + 8
  *                      (rounded up to a multiple of 8 if KWP is used);
  *                      \p ilen + 15 is always a safe value.
  * \param olen          This will be filled with the actual number of Bytes
@@ -1096,7 +1170,6 @@ int mbedtls_cipher_crypt(mbedtls_cipher_context_t *ctx,
  * \param tag_len       The desired length of the authentication tag. For AEAD
  *                      ciphers, this must match the constraints imposed by
  *                      the cipher used, and in particular must not be \c 0.
- *                      For NIST_KW, this must be \c 0.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
@@ -1111,7 +1184,7 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
                                     size_t *olen, size_t tag_len);
 
 /**
- * \brief               The authenticated encryption (AEAD/NIST_KW) function.
+ * \brief               The authenticated encryption (AEAD) function.
  *
  * \note                If the data is not authentic, then the output buffer
  *                      is zeroed out to prevent the unauthentic plaintext being
@@ -1119,39 +1192,34 @@ int mbedtls_cipher_auth_encrypt_ext(mbedtls_cipher_context_t *ctx,
  *
  * \note                For AEAD modes, the tag must be appended to the
  *                      ciphertext, as recommended by RFC 5116.
- *                      (NIST_KW doesn't have a separate tag.)
  *
  * \param ctx           The generic cipher context. This must be initialized and
- *                      bound to a key, with an AEAD algorithm or NIST_KW.
+ *                      bound to a key, with an AEAD algorithm.
  * \param iv            The nonce to use. This must be a readable buffer of
  *                      at least \p iv_len Bytes and may be \c NULL if \p
  *                      iv_len is \c 0.
  * \param iv_len        The length of the nonce. For AEAD ciphers, this must
  *                      satisfy the constraints imposed by the cipher used.
- *                      For NIST_KW, this must be \c 0.
  * \param ad            The additional data to authenticate. This must be a
  *                      readable buffer of at least \p ad_len Bytes, and may
  *                      be \c NULL is \p ad_len is \c 0.
- * \param ad_len        The length of \p ad. For NIST_KW, this must be \c 0.
+ * \param ad_len        The length of \p ad.
  * \param input         The buffer holding the input data. This must be a
  *                      readable buffer of at least \p ilen Bytes, and may be
  *                      \c NULL if \p ilen is \c 0.
  * \param ilen          The length of the input data. For AEAD ciphers this
- *                      must be at least \p tag_len. For NIST_KW this must be
- *                      at least \c 8.
+ *                      must be at least \p tag_len.
  * \param output        The buffer for the output data. This must be a
  *                      writable buffer of at least \p output_len Bytes, and
  *                      may be \c NULL if \p output_len is \c 0.
  * \param output_len    The length of the \p output buffer in Bytes. For AEAD
  *                      ciphers, this must be at least \p ilen - \p tag_len.
- *                      For NIST_KW, this must be at least \p ilen - 8.
  * \param olen          This will be filled with the actual number of Bytes
  *                      written to the \p output buffer. This must point to a
  *                      writable object of type \c size_t.
  * \param tag_len       The actual length of the authentication tag. For AEAD
  *                      ciphers, this must match the constraints imposed by
  *                      the cipher used, and in particular must not be \c 0.
- *                      For NIST_KW, this must be \c 0.
  *
  * \return              \c 0 on success.
  * \return              #MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA on
@@ -1165,7 +1233,7 @@ int mbedtls_cipher_auth_decrypt_ext(mbedtls_cipher_context_t *ctx,
                                     const unsigned char *input, size_t ilen,
                                     unsigned char *output, size_t output_len,
                                     size_t *olen, size_t tag_len);
-#endif /* MBEDTLS_CIPHER_MODE_AEAD || MBEDTLS_NIST_KW_C */
+#endif /* MBEDTLS_CIPHER_MODE_AEAD */
 #ifdef __cplusplus
 }
 #endif

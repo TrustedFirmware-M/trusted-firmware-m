@@ -1,7 +1,7 @@
-From f28c8b2707a7ea81163f20ebdde5fd52064d7876 Mon Sep 17 00:00:00 2001
+From 1c73a080fdba6fe67532c087a47be19eea39fac5 Mon Sep 17 00:00:00 2001
 From: Antonio de Angelis <Antonio.deAngelis@arm.com>
 Date: Thu, 21 Mar 2024 11:44:56 +0000
-Subject: [PATCH 1/7] Add TF-M Builtin Key Loader driver entry points
+Subject: [PATCH 01/11] Add TF-M Builtin Key Loader driver entry points
 
 TF-M requires a mechanism to leverage the drivers
 and builtin keys at the same time to allow for
@@ -18,12 +18,12 @@ Co-authored-by: Antonio de Angelis <antonio.deangelis@arm.com>
  3 files changed, 143 insertions(+), 9 deletions(-)
 
 diff --git a/library/psa_crypto.c b/library/psa_crypto.c
-index 9c28609d7..2797900c1 100644
+index 9e17e27f2..7206bf588 100644
 --- a/library/psa_crypto.c
 +++ b/library/psa_crypto.c
-@@ -73,6 +73,10 @@
- #include "mbedtls/psa_util.h"
- #include "mbedtls/threading.h"
+@@ -75,6 +75,10 @@
+ 
+ #include "constant_time_internal.h"
  
 +#if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
 +#include "tfm_builtin_key_loader.h"
@@ -32,7 +32,7 @@ index 9c28609d7..2797900c1 100644
  #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) ||          \
      defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) ||  \
      defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
-@@ -1172,7 +1176,11 @@ static psa_status_t psa_get_and_lock_transparent_key_slot_with_policy(
+@@ -1174,7 +1178,11 @@ static psa_status_t psa_get_and_lock_transparent_key_slot_with_policy(
          return status;
      }
  
