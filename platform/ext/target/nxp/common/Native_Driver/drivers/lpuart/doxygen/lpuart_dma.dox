@@ -1,0 +1,4 @@
+/*!
+@defgroup lpuart_dma_driver LPUART DMA Driver
+@ingroup lpuart
+*/

@@ -1,0 +1,32 @@
+/*!
+@defgroup trdc TRDC: Trusted Resource Domain Controller
+@details The MCUXpresso SDK provides a driver for the Trusted Resource Domain
+Controller (TRDC) block of MCUXpresso SDK devices.
+@{
+
+# TRDC functions {#TRDCFunc}
+
+The TRDC module includes four submodules, as follows:
+
+ - TRDC_MGR
+   The Manager submodule coordinates all programming model reads and writes.
+
+ - TRDC_DAC
+   The Domain Assignment Controller (DAC) handles resource assignments and
+   generation of the domain identifiers.
+
+ - TRDC_MBC
+	The Memory Block Checker (MBC) implements access controls for on-chip
+	internal memories and slave peripherals based on a fixed-sized block format.
+
+ - TRDC_MRC
+   The Memory Region Checker (MRC) implements the access controls for external
+   off-chip memories and peripherals based on the pre-programmed region descriptor registers
+
+Accordingly, the TRDC driver functions could be grouped as follows:
+ - TRDC_MGR functions.
+ - TRDC_DAC functions.
+ - TRDC_MBC functions.
+ - TRDC_MRC functions.
+*/
+/*! @} */

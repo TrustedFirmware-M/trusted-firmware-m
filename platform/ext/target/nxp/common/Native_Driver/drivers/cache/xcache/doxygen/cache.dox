@@ -1,0 +1,18 @@
+/*!
+@defgroup xcache CACHE: CACHE Memory Controller
+@details The MCUXpresso SDK provides a peripheral driver for the CACHE Controller of
+         MCUXpresso SDK devices.
+
+The CACHE driver is created to help the user more easily operate the cache memory. The APIs for basic operations are including the following three levels:
+1L. The local cache driver API. This level provides the caches controller drivers.
+
+2L. The unified cache driver API.
+This level provides many APIs for unified cache driver APIs for combined L1 and L2 cache maintain operations. This is provided for SDK drivers (DMA, ENET, USDHC, etc) which should do the cache maintenance in their transactional APIs. Because in this arch, there is no L2 cache
+so the unified cache driver API directly calls local driver APIs.
+
+# Function groups {#CACHEFuncGrps}
+
+## CACHE Operation {#CACHEMaintainOperation}
+There are Enable/Disable APIs for cache control and cache maintenance operations as Invalidate/Clean/CleanInvalidate by all and by address range.
+
+*/

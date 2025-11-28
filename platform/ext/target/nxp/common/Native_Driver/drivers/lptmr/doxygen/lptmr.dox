@@ -1,0 +1,47 @@
+/*!
+@defgroup lptmr LPTMR: Low-Power Timer
+@details The MCUXpresso SDK provides a driver for the Low-Power Timer (LPTMR)
+         of MCUXpresso SDK devices.
+
+# Function groups {#LPTMRFunc}
+The LPTMR driver supports operating the module as a time counter or as a pulse counter.
+
+## Initialization and deinitialization {#LPTMRInit}
+The function LPTMR_Init() initializes the LPTMR with specified configurations. The function
+LPTMR_GetDefaultConfig() gets the default configurations. The initialization function
+configures the LPTMR for a timer or a pulse counter mode mode. It also sets up the LPTMR's
+free running mode operation and a clock source.
+
+The function LPTMR_DeInit() disables the LPTMR module and gates the module clock.
+
+## Timer period Operations {#LPTMRTimerPeriodOperation}
+The function LPTMR_SetTimerPeriod()  sets the timer period in units of count. Timers counts
+from 0 to the count value set here.
+
+The function LPTMR_GetCurrentTimerCount() reads the current timer counting value.
+This function returns the real-time timer counting value ranging from 0 to a timer period.
+
+The timer period operation function takes the count value in ticks. Call the utility macros
+provided in the fsl_common.h file to convert to microseconds or milliseconds.
+
+## Start and Stop timer operations {#LPTMRStartStopOperation}
+The function LPTMR_StartTimer() starts the timer counting. After calling this function, the timer
+counts up to the counter value set earlier by using the LPTMR_SetPeriod() function. Each time the timer
+reaches the count value and increments, it generates a trigger pulse and sets the timeout
+interrupt flag. An interrupt is also triggered if the timer interrupt is enabled.
+
+The function LPTMR_StopTimer() stops the timer counting and resets the timer's counter register.
+
+## Status {#LPTMRStatus}
+Provides functions to get and clear the LPTMR status.
+
+## Interrupt {#LPTMRInterrupt}
+Provides functions to enable/disable LPTMR interrupts and get the currently enabled interrupts.
+
+
+# Typical use case {#LPTMRUseCase}
+
+## LPTMR tick example {#LPTMRTick}
+Updates the LPTMR period and toggles an LED periodically.
+Refer to the driver examples codes located at \<SDK_ROOT\>/boards/\<BOARD\>/driver_examples/lptmr
+*/
