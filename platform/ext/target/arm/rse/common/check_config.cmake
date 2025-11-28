@@ -42,6 +42,9 @@ tfm_invalid_config((RSE_NON_ENDORSED_DM_PROVISIONING OR RSE_ENDORSEMENT_CERTIFIC
 # In case of XIP the copy regions are read only and cannot be reused as stack
 tfm_invalid_config(CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS AND RSE_XIP)
 
+# Image binding requires RAM loading
+tfm_invalid_config(MCUBOOT_IMAGE_BINDING AND NOT CONFIG_BOOT_RAM_LOAD)
+
 ########################## Attestation #########################################
 
 get_property(TFM_ATTESTATION_SCHEME_LIST CACHE TFM_ATTESTATION_SCHEME PROPERTY STRINGS)

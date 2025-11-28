@@ -47,6 +47,11 @@
 #include "staged_boot.h"
 #endif /* RSE_BL2_ENABLE_IMAGE_STAGING */
 
+#ifdef MCUBOOT_IMAGE_BINDING
+#include "bootutil/image.h"
+#include "rse_bl2_binding.h"
+#endif /* MCUBOOT_IMAGE_BINDING */
+
 #ifdef FLASH_DEV_NAME
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 #endif /* FLASH_DEV_NAME */
@@ -186,6 +191,18 @@ static struct flash_area *flash_map_slot_from_flash_area_id(uint32_t area_id)
     return NULL;
 }
 
+#if defined(MCUBOOT_IMAGE_BINDING)
+static const struct flash_area *bind_fa[MCUBOOT_IMAGE_NUMBER];
+struct image_header bind_hdr;
+
+static inline int boot_img_hdr_from_flash_area(struct flash_area *fa,
+                                               uint32_t offset,
+                                               struct image_header *hdr)
+{
+    return flash_area_read(fa, offset, hdr, sizeof(*hdr));
+}
+#endif /* MCUBOOT_IMAGE_BINDING */
+
 int boot_platform_pre_load(uint32_t image_id)
 {
     uuid_t uuid;
@@ -273,6 +290,24 @@ int boot_platform_pre_load(uint32_t image_id)
     flash_area_primary->fa_off += offsets[0];
     flash_area_secondary->fa_off += offsets[1];
 
+#if defined(MCUBOOT_IMAGE_BINDING)
+    int rc;
+    /* Read boot image header from primary area */
+    bind_fa[image_id] = flash_area_primary;
+    rc = boot_img_hdr_from_flash_area(flash_area_primary, offsets[0], &bind_hdr);
+    if (rc != 0) {
+        return TFM_PLAT_ERR_PRE_LOAD_IMG_BY_BL2_FAIL;
+    }
+
+    rc = rse_read_binding_data((uint8_t)image_id,
+                                flash_area_primary,
+                                &bind_hdr);
+    if (rc != 0) {
+        BOOT_LOG_ERR("Unable to read binding data for image %d", image_id);
+        return TFM_PLAT_ERR_PRE_LOAD_IMG_BY_BL2_FAIL;
+    }
+#endif /* MCUBOOT_IMAGE_BINDING */
+
     return 0;
 }
 
@@ -304,11 +339,69 @@ static enum tfm_plat_err_t tc_scp_release_reset(void)
     return TFM_PLAT_ERR_SUCCESS;
 }
 
+#ifdef MCUBOOT_IMAGE_BINDING
+fih_ret boot_platform_after_ramload(uint8_t image_id, const struct image_header *hdr)
+{
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+
+    /* Image already loaded to SRAM, hence cache the header info required to
+     * bind the image in boot_platform_post_load
+     */
+    rse_bind_set_ram_window(image_id, (uint8_t*)hdr->ih_load_addr + hdr->ih_hdr_size, hdr->ih_img_size);
+
+    /* Check if image had tag attached */
+    FIH_CALL(rse_bind_has_tag, fih_rc, image_id);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        FIH_RET(FIH_SUCCESS);
+    }
+
+    FIH_CALL(rse_verify_binding, fih_rc, image_id, hdr);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        FIH_RET(FIH_FAILURE);
+    }
+
+    FIH_CALL(rse_enforce_rollback, fih_rc, image_id);
+    FIH_RET(fih_rc);
+}
+
+/*
+ * @retval FIH_SUCCESS: image is valid, skip direct validation
+ *         FIH_BOOT_HOOK_REGULAR: follow the normal execution path.
+ */
+fih_ret boot_image_check_hook(int img_index, int slot)
+{
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+    (void)slot;
+
+    /* Check if image binding is authenticated */
+    FIH_CALL(rse_bind_is_authenticated, fih_rc, img_index);
+    if (FIH_EQ(fih_rc, FIH_SUCCESS)) {
+        FIH_RET(FIH_SUCCESS);
+    }
+
+    FIH_RET(FIH_BOOT_HOOK_REGULAR);
+}
+
+#endif /* MCUBOOT_IMAGE_BINDING */
+
 int boot_platform_post_load(uint32_t image_id)
 {
     enum tfm_plat_err_t plat_err;
     enum atu_error_t atu_err;
     enum mhu_error_t mhu_err;
+
+#if defined(MCUBOOT_IMAGE_BINDING)
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+    /* Read boot image header from primary area */
+    FIH_CALL(rse_bind_has_tag, fih_rc, image_id);
+    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        /* No tag present - bind the image */
+        if (rse_do_binding(image_id, bind_fa[image_id], &bind_hdr) != 0) {
+            return TFM_PLAT_ERR_POST_LOAD_IMG_BY_BL2_FAIL;
+        }
+        BOOT_LOG_INF("BL2: Image %d bound successfully", image_id);
+    }
+#endif /* MCUBOOT_IMAGE_BINDING */
 
 #ifdef RSE_XIP
     if (sic_boot_post_load(image_id, rsp.br_image_off) != SIC_BOOT_SUCCESS) {
@@ -367,7 +460,6 @@ int boot_platform_post_load(uint32_t image_id)
 #else
     BOOT_LOG_INF("Skipping SCP signaling as TC_NO_RELEASE_RESET is defined");
 #endif /* TC_NO_RELEASE_RESET */
-
 
     plat_err = host_flash_atu_free_input_image_regions();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {

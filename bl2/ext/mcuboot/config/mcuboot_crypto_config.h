@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -69,6 +69,14 @@
 
 #define PSA_WANT_ALG_ECB_NO_PADDING
 #define PSA_WANT_ALG_CTR
+
+#ifdef MCUBOOT_IMAGE_BINDING
+#ifdef MCUBOOT_ENC_IMAGES
+#define PSA_WANT_ALG_CCM
+#else
+#define PSA_WANT_ALG_CMAC
+#endif /* MCUBOOT_ENC_IMAGES */
+#endif /* MCUBOOT_IMAGE_BINDING */
 
 #ifdef CRYPTO_HW_ACCELERATOR
 #include MBEDTLS_ACCELERATOR_PSA_CRYPTO_CONFIG_FILE

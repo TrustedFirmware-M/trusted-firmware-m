@@ -32,6 +32,8 @@ target_compile_definitions(bl2_crypto_config
         $<${is_rsa_signature}:MCUBOOT_SIGN_RSA_LEN=${SIG_LEN}>
         $<${is_ec_signature}:MCUBOOT_SIGN_EC${SIG_LEN}>
         $<$<BOOL:${MCUBOOT_USE_PSA_CRYPTO}>:MCUBOOT_USE_PSA_CRYPTO>
+        $<$<BOOL:${MCUBOOT_IMAGE_BINDING}>:MCUBOOT_IMAGE_BINDING>
+        $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:MCUBOOT_ENC_IMAGES>
 )
 
 target_include_directories(bl2_crypto_config

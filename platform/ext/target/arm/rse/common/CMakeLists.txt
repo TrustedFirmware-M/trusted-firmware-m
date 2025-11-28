@@ -425,6 +425,9 @@ target_sources(platform_bl2
         $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_get_rse_id_from_otp.c>
         ${PLATFORM_DIR}/ext/target/arm/drivers/watchdog/arm_watchdog_drv.c
         $<$<NOT:$<BOOL:${RSE_SUBPLATFORM_BOOT_MEASUREMENTS}>>:${CMAKE_CURRENT_SOURCE_DIR}/boot_measurement/tfm_plat_boot_measurement.c>
+        $<$<BOOL:${MCUBOOT_IMAGE_BINDING}>:${CMAKE_CURRENT_SOURCE_DIR}/bl2/rse_bl2_binding_util.c>
+        $<$<BOOL:${MCUBOOT_IMAGE_BINDING}>:${CMAKE_CURRENT_SOURCE_DIR}/bl2/rse_bl2_binding_keys.c>
+        $<$<AND:$<BOOL:${MCUBOOT_IMAGE_BINDING}>,$<NOT:$<BOOL:${MCUBOOT_ENC_IMAGES}>>>:${CMAKE_CURRENT_SOURCE_DIR}/bl2/rse_bl2_binding_cmac.c>
 )
 
 target_include_directories(platform_bl2
