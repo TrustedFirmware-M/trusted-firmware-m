@@ -6,7 +6,7 @@
  */
 
 /**
- * \file atu_config.c
+ * \file atu_config_bl1.c
  * \brief This file defines the atu static configuration structure
  */
 

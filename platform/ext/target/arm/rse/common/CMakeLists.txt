@@ -507,7 +507,7 @@ target_sources(platform_bl1_1
         ./device/source/system_core_init.c
         ./native_drivers/atu_rse_drv.c
         ./native_drivers/atu_rse_lib.c
-        ./device/source/atu_config.c
+        ./device/source/atu_config_bl1.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/kmu/kmu_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/lcm/lcm_drv.c
         $<$<EQUAL:${PLAT_MHU_VERSION},2>:${CMAKE_CURRENT_SOURCE_DIR}/native_drivers/mhu_v2_x.c>
@@ -684,7 +684,7 @@ target_sources(platform_bl1_2
         ./sam_interrupts.c
         ./native_drivers/atu_rse_drv.c
         ./native_drivers/atu_rse_lib.c
-        ./device/source/atu_config.c
+        ./device/source/atu_config_bl1.c
 )
 
 add_dependencies(platform_bl1_2 bl1_1_shared_symbols)
