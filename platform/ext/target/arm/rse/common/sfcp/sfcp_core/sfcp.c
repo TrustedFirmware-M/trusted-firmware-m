@@ -434,6 +434,11 @@ static enum sfcp_error_t send_protocol_error(sfcp_node_id_t sender_id, sfcp_node
     return SFCP_ERROR_SUCCESS;
 }
 
+static inline enum sfcp_error_t sfcp_not_available_error(bool is_msg)
+{
+    return is_msg ? SFCP_ERROR_NO_MSG_AVAILABLE : SFCP_ERROR_NO_REPLY_AVAILABLE;
+}
+
 static enum sfcp_error_t receive_msg_reply_from_node(uint8_t *buf, size_t buf_size,
                                                      sfcp_node_id_t remote_id,
                                                      sfcp_link_id_t *link_id, bool is_msg,
@@ -453,7 +458,7 @@ static enum sfcp_error_t receive_msg_reply_from_node(uint8_t *buf, size_t buf_si
     }
 
     if (!is_available) {
-        return is_msg ? SFCP_ERROR_NO_MSG_AVAILABLE : SFCP_ERROR_NO_REPLY_AVAILABLE;
+        return sfcp_not_available_error(is_msg);
     }
 
     hal_error = sfcp_hal_get_receive_message_size(*link_id, received_size);
@@ -481,6 +486,7 @@ static enum sfcp_error_t receive_msg_reply(uint8_t *buf, size_t buf_size, bool a
 {
     enum sfcp_hal_error_t hal_error;
     enum sfcp_error_t sfcp_err;
+    sfcp_node_id_t start_node, end_node;
 
     /* We do not know if the remote will use the ID extension so ensure the
      * buffer is large enough with it enabled */
@@ -498,33 +504,28 @@ static enum sfcp_error_t receive_msg_reply(uint8_t *buf, size_t buf_size, bool a
     }
 
     if (any_remote_id) {
-        for (sfcp_node_id_t node = 0; node < SFCP_NUMBER_NODES; node++) {
-            if (node == *my_node_id) {
-                continue;
-            }
+        start_node = 0;
+        end_node = SFCP_NUMBER_NODES - 1;
+    } else {
+        start_node = remote_id;
+        end_node = remote_id;
+    }
 
-            sfcp_err =
-                receive_msg_reply_from_node(buf, buf_size, node, link_id, is_msg, received_size);
-            if (sfcp_err == SFCP_ERROR_SUCCESS) {
-                *received_remote_id = node;
-                return SFCP_ERROR_SUCCESS;
-            } else if (sfcp_err !=
-                       (is_msg ? SFCP_ERROR_NO_MSG_AVAILABLE : SFCP_ERROR_NO_REPLY_AVAILABLE)) {
-                return sfcp_err;
-            }
+    for (sfcp_node_id_t node = start_node; node <= end_node; node++) {
+        if (node == *my_node_id) {
+            continue;
         }
 
-        return is_msg ? SFCP_ERROR_NO_MSG_AVAILABLE : SFCP_ERROR_NO_REPLY_AVAILABLE;
-    } else {
-        sfcp_err =
-            receive_msg_reply_from_node(buf, buf_size, remote_id, link_id, is_msg, received_size);
-        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        sfcp_err = receive_msg_reply_from_node(buf, buf_size, node, link_id, is_msg, received_size);
+        if (sfcp_err == SFCP_ERROR_SUCCESS) {
+            *received_remote_id = node;
+            return SFCP_ERROR_SUCCESS;
+        } else if (sfcp_err != sfcp_not_available_error(is_msg)) {
             return sfcp_err;
         }
-
-        *received_remote_id = remote_id;
-        return SFCP_ERROR_SUCCESS;
     }
+
+    return sfcp_not_available_error(is_msg);
 }
 
 enum sfcp_error_t sfcp_receive_msg(uint8_t *buf, size_t buf_size, bool any_sender,
