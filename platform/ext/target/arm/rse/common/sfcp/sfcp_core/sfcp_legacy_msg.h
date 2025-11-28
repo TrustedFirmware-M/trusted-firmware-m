@@ -10,7 +10,6 @@
 
 #include <stdint.h>
 #include <cmsis.h>
-#include "platform_error_codes.h"
 #include "sfcp_defs.h"
 #include "sfcp_link_defs.h"
 #include "sfcp.h"

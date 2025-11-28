@@ -11,7 +11,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "platform_error_codes.h"
 #include "sfcp_link_defs.h"
 
 #ifdef __cplusplus

@@ -11,9 +11,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "platform_error_codes.h"
 #include "sfcp_link_defs.h"
-#include "sfcp_trusted_subnet.h"
 
 #ifdef __cplusplus
 extern "C" {
