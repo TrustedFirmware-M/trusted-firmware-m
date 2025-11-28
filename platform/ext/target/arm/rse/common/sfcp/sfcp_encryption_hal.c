@@ -11,9 +11,10 @@
 #include "sfcp_defs.h"
 #include "psa/crypto.h"
 #include "fih.h"
-#include "bl1_crypto.h"
 #include "rse_kmu_keys.h"
 #include "cc3xx_opaque_keys.h"
+
+static psa_hash_operation_t hash_op;
 
 static enum sfcp_error_t sfcp_mode_to_psa_alg(enum sfcp_cryptography_mode_t crypto_mode,
                                               psa_algorithm_t *psa_alg)
@@ -185,22 +186,22 @@ enum sfcp_error_t sfcp_encryption_hal_generate_random(uint8_t *output, size_t ou
 
 enum sfcp_error_t sfcp_encryption_hal_hash_init(enum sfcp_encryption_hal_hash_alg_t alg)
 {
-    fih_int fih_err;
-    enum tfm_bl1_hash_alg_t bl1_alg;
+    psa_algorithm_t psa_alg;
+    psa_status_t status;
 
     switch (alg) {
     case SFCP_ENCRYPTION_HAL_HASH_ALG_SHA256:
-        bl1_alg = TFM_BL1_HASH_ALG_SHA256;
+        psa_alg = PSA_ALG_SHA_256;
         break;
     case SFCP_ENCRYPTION_HAL_HASH_ALG_SHA384:
-        bl1_alg = TFM_BL1_HASH_ALG_SHA384;
+        psa_alg = PSA_ALG_SHA_384;
         break;
     default:
         return SFCP_ERROR_HANDSHAKE_HASH_ALG_UNSUPPORTED;
     }
 
-    FIH_CALL(bl1_hash_init, fih_err, bl1_alg);
-    if (FIH_NOT_EQ(fih_err, FIH_SUCCESS)) {
+    status = psa_hash_setup(&hash_op, psa_alg);
+    if (status != PSA_SUCCESS) {
         return SFCP_ERROR_HANDSHAKE_HASH_FAILURE;
     }
 
@@ -209,22 +210,23 @@ enum sfcp_error_t sfcp_encryption_hal_hash_init(enum sfcp_encryption_hal_hash_al
 
 enum sfcp_error_t sfcp_encryption_hal_hash_update(uint8_t *data, size_t data_size)
 {
-    fih_int fih_err;
+    psa_status_t status;
 
-    FIH_CALL(bl1_hash_update, fih_err, data, data_size);
-    if (FIH_NOT_EQ(fih_err, FIH_SUCCESS)) {
+    status = psa_hash_update(&hash_op, data, data_size);
+    if (status != PSA_SUCCESS) {
         return SFCP_ERROR_HANDSHAKE_HASH_FAILURE;
     }
 
     return SFCP_ERROR_SUCCESS;
 }
 
-enum sfcp_error_t sfcp_encryption_hal_hash_finish(uint8_t *hash, size_t hash_len, size_t *hash_size)
+enum sfcp_error_t sfcp_encryption_hal_hash_finish(uint8_t *hash, size_t hash_len,
+                                                  size_t *hash_size)
 {
-    fih_int fih_err;
+    psa_status_t status;
 
-    FIH_CALL(bl1_hash_finish, fih_err, hash, hash_len, hash_size);
-    if (FIH_NOT_EQ(fih_err, FIH_SUCCESS)) {
+    status = psa_hash_finish(&hash_op, hash, hash_len, hash_size);
+    if (status != PSA_SUCCESS) {
         return SFCP_ERROR_HANDSHAKE_HASH_FAILURE;
     }
 
