@@ -11,6 +11,7 @@ This document contains SOC and boards supported by NXP.
 
     LPCXpresso55S69 <lpcxpresso55s69/README.rst>
     FRDM-MCXN947 <frdmmcxn947/README.rst>
+    MCIMX93-EVK <mcimx93evk/README.rst>
 
 --------------
 
