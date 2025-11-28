@@ -400,7 +400,8 @@ static void POWER_EnterLowPower(LPC_LOWPOWER_T *p_lowpower_cfg)
  * @param
  * @return
  */
-static bool int32_MultiplyOverflow(int32_t a, int32_t b) {
+static inline bool int32_MultiplyOverflow(int32_t a, int32_t b)
+{
     if (a == 0 || b == 0) return false;
     if (a > 0 && b > 0) return a > INT32_MAX / b;
     if (a < 0 && b < 0) return a < INT32_MAX / b;
@@ -412,7 +413,8 @@ static bool int32_MultiplyOverflow(int32_t a, int32_t b) {
  * @param
  * @return
  */
-static bool int32_AddOverflow(int32_t a, int32_t b) {
+static inline bool int32_AddOverflow(int32_t a, int32_t b)
+{
     if ((b > 0) && (a > INT32_MAX - b)) return true;
     if ((b < 0) && (a < INT32_MIN - b)) return true;
     return false;
