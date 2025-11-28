@@ -5,8 +5,8 @@
  *
  */
 
-#ifndef __SFCP_GET_MHU_H__
-#define __SFCP_GET_MHU_H__
+#ifndef __SFCP_PLATFORM_H__
+#define __SFCP_PLATFORM_H__
 
 #include <stddef.h>
 #include "sfcp_link_defs.h"
@@ -91,4 +91,4 @@ void sfcp_platform_get_trusted_subnets(struct sfcp_trusted_subnet_config_t **tru
 }
 #endif
 
-#endif /* __SFCP_GET_MHU_H__ */
+#endif /* __SFCP_PLATFORM_H__ */
