@@ -9,6 +9,9 @@
 #include "device_definition.h"
 #include "sfcp_platform.h"
 #include "rse_kmu_slot_ids.h"
+#include "platform_error_codes.h"
+#include "rse_get_routing_tables.h"
+#include "tfm_plat_otp.h"
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
@@ -92,4 +95,31 @@ void sfcp_platform_get_trusted_subnets(struct sfcp_trusted_subnet_config_t **tru
 {
     *trusted_subnets = trusted_subnet_configs;
     *num_trusted_subnets = ARRAY_SIZE(trusted_subnet_configs);
+}
+
+sfcp_node_id_t sfcp_platform_get_my_node_id(void)
+{
+    enum tfm_plat_err_t plat_err;
+    uint32_t rse_id;
+
+    plat_err = tfm_plat_otp_read(PLAT_OTP_ID_RSE_ID, sizeof(rse_id), (uint8_t *)&rse_id);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        assert(false);
+        return (sfcp_node_id_t)-1;
+    }
+
+    return rse_id;
+}
+
+void sfcp_platform_get_routing_tables(const uint8_t **routing_tables, size_t *routing_tables_size)
+{
+    enum tfm_plat_err_t plat_err;
+
+    plat_err =
+        rse_get_routing_tables(routing_tables, routing_tables_size, sfcp_platform_get_my_node_id());
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        assert(false);
+        *routing_tables = NULL;
+        *routing_tables_size = 0;
+    }
 }

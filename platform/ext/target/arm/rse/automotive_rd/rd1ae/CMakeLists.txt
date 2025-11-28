@@ -108,7 +108,6 @@ target_sources(platform_s
         cmsis_drivers/Driver_Flash.c
         device/host_device_definition.c
         device/rse_expansion_device_definition.c
-        $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp/rse_get_rse_id.c>
         $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp/sfcp_platform.c>
         $<$<BOOL:${TFM_MULTI_CORE_TOPOLOGY}>:${CMAKE_CURRENT_SOURCE_DIR}/sfcp/sfcp_permissions_hal.c>
         rse_expansion_peripherals_def.c

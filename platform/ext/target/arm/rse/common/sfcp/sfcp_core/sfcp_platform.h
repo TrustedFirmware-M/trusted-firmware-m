@@ -84,6 +84,36 @@ struct sfcp_platform_device_t sfcp_platform_get_receive_device(sfcp_link_id_t li
  */
 sfcp_link_id_t sfcp_platform_get_receive_link_id(struct sfcp_platform_device_t device);
 
+/**
+ * \brief Returns the node identifier assigned to this platform instance.
+ *
+ * \return The platform node ID used for routing decisions.
+ */
+sfcp_node_id_t sfcp_platform_get_my_node_id(void);
+
+/**
+ * \brief Retrieves the routing tables provided by the platform.
+ *
+ * The routing tables describe how messages are sent between nodes.
+ *
+ * \param routing_tables Output pointer that receives the base address of the
+ *                       routing table data.
+ * \param routing_tables_size Output pointer that receives the size of the
+ *                             routing table data in bytes.
+ */
+void sfcp_platform_get_routing_tables(const uint8_t **routing_tables, size_t *routing_tables_size);
+
+/**
+ * \brief Provides the list of trusted subnet configurations for the platform.
+ *
+ * This function exposes the statically defined trusted subnet table to the caller.
+ * This is unused unless the platform is making use of SFCP encryption.
+ *
+ * \param trusted_subnets Output pointer that receives the base address of the
+ *                        trusted subnet configuration array.
+ * \param num_trusted_subnets Output pointer that receives the number of
+ *                            entries in the trusted subnet configuration array.
+ */
 void sfcp_platform_get_trusted_subnets(struct sfcp_trusted_subnet_config_t **trusted_subnets,
                                        size_t *num_trusted_subnets);
 
