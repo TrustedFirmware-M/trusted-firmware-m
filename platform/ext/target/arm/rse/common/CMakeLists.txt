@@ -232,7 +232,7 @@ target_sources(platform_s
         $<$<BOOL:${RSE_USE_SDS_LIB}>:${CMAKE_CURRENT_SOURCE_DIR}/libraries/sds.c>
         native_drivers/atu_rse_drv.c
         native_drivers/atu_rse_lib.c
-        device/source/atu_config.c
+        device/source/atu_config_runtime.c
         ${PLATFORM_DIR}/ext/common/template/tfm_fih_platform.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/dma/dma350/dma350_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/dma/dma350/dma350_ch_drv.c
@@ -1097,7 +1097,6 @@ install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/config/error_codes_mapping.csv
 
 if (TFM_LOAD_NS_IMAGE)
     install(FILES       device/source/device_definition.c
-                        device/source/atu_config.c
                         $<$<BOOL:${RSE_DEFAULT_CLOCK_CONFIG}>:${CMAKE_CURRENT_SOURCE_DIR}/device/source/rse_clocks.c>
                         device/source/startup_rse.c
                         device/source/system_core_init.c

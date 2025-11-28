@@ -58,13 +58,6 @@ const struct atu_region_map_t atu_regions_static[] =
     },
 #endif /* RSE_GPT_SUPPORT */
 #endif /* RSE_BL2_ENABLE_IMAGE_STAGING */
-#ifdef TFM_PARTITION_PROTECTED_STORAGE
-    {
-        .log_addr = HOST_ACCESS_PS_BASE_S,
-        .phys_addr = HOST_FLASH0_PS_BASE,
-        .size = HOST_FLASH0_PS_SIZE
-    },
-#endif /* TFM_PARTITION_PROTECTED_STORAGE */
 #ifdef PLAT_DEP_STATIC_CFG
     PLAT_DEP_STATIC_CFG,
 #endif /* PLAT_DEP_STATIC_CFG */
