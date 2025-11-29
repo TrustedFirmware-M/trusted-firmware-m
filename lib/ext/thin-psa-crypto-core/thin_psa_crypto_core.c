@@ -538,7 +538,7 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
     assert(!!mac_size);
     assert(mac_length != NULL);
 
-    /* Check if the key is important */
+    /* Check if the key being requested is imported already */
     if (g_key_slot.is_valid && (g_key_slot.key_id == key)) {
         status = psa_get_key_attributes(key, &attributes);
         if (status != PSA_SUCCESS) {
@@ -558,7 +558,7 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
     }
 #endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
 
-    /* In case neither a static slot, nor an opaque key is used */
+    /* We need to have a valid handle for key to use at this point */
     if (status == PSA_ERROR_INVALID_HANDLE) {
         FATAL_ERR(status);
         return status;
