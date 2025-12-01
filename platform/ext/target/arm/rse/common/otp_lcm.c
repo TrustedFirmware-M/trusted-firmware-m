@@ -1056,7 +1056,7 @@ enum tfm_plat_err_t tfm_plat_otp_get_size(enum tfm_otp_element_id_t id,
     }
 
     if (!otp_mapping_is_valid(id)) {
-        FATAL_ERR(TFM_PLAT_ERR_PLAT_OTP_GET_SIZE_ID_NOT_SET_UP);
+        NONFATAL_ERR(TFM_PLAT_ERR_PLAT_OTP_GET_SIZE_ID_NOT_SET_UP);
         return TFM_PLAT_ERR_PLAT_OTP_GET_SIZE_ID_NOT_SET_UP;
     }
 
