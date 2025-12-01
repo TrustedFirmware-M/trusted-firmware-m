@@ -474,41 +474,42 @@ static enum tfm_plat_err_t hash_message(const struct rse_provisioning_authentica
                                         void *values_output, size_t values_output_size,
                                         uint8_t *hash, size_t hash_len, size_t *hash_size)
 {
-    int32_t bl1_err;
+    psa_status_t status;
     const uint32_t authed_header_offset =
         offsetof(struct rse_provisioning_authentication_header_t, metadata);
     const size_t authed_header_size =
         sizeof(*header) - authed_header_offset;
+    psa_hash_operation_t hash_op;
 
-    FIH_CALL(bl1_hash_init, bl1_err, RSE_PROVISIONING_HASH_ALG);
-    if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)bl1_err;
+    status = psa_hash_setup(&hash_op, (psa_algorithm_t)RSE_PROVISIONING_HASH_ALG);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
     }
 
-    FIH_CALL(bl1_hash_update, bl1_err, ((uint8_t *)header) + authed_header_offset,
-                                        authed_header_size);
-    if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)bl1_err;
+    status = psa_hash_update(&hash_op, ((uint8_t *)header) + authed_header_offset,
+                             authed_header_size);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
     }
 
-    FIH_CALL(bl1_hash_update, bl1_err, code_output, header->code_size);
-    if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)bl1_err;
+    status = psa_hash_update(&hash_op, code_output, header->code_size);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
     }
 
-    FIH_CALL(bl1_hash_update, bl1_err, data_output, header->data_size);
-    if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)bl1_err;
+    status = psa_hash_update(&hash_op, data_output, header->data_size);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
     }
 
-    FIH_CALL(bl1_hash_update, bl1_err, values_output, header->secret_values_size);
-    if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)bl1_err;
+    status = psa_hash_update(&hash_op, values_output, header->secret_values_size);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
     }
 
-    FIH_CALL(bl1_hash_finish, bl1_err, hash, hash_len, hash_size);
-    if (FIH_NOT_EQ(bl1_err, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)bl1_err;
+    status = psa_hash_finish(&hash_op, hash, hash_len, hash_size);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
     }
 
     return TFM_PLAT_ERR_SUCCESS;
