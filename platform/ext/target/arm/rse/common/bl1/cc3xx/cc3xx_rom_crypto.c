@@ -16,6 +16,7 @@
 #include "fih.h"
 #include "cc3xx_drv.h"
 #include "kmu_drv.h"
+#include "rse_kmu_keys.h"
 #include "bl1_2_config.h"
 #include "fatal_error.h"
 #include "bl1_crypto.h"
@@ -53,6 +54,10 @@ static fih_ret bl1_key_to_kmu_key(enum tfm_bl1_key_id_t key_id,
         break;
     case TFM_BL1_KEY_BL2_ENCRYPTION:
         *cc3xx_key_type = KMU_HW_SLOT_KCE_CM;
+        *key_buf = NULL;
+        break;
+    case TFM_BL1_KEY_IAK_SEED:
+        *cc3xx_key_type = RSE_KMU_SLOT_IAK_SEED;
         *key_buf = NULL;
         break;
     case TFM_BL1_KEY_USER:
@@ -383,4 +388,3 @@ fih_ret bl1_ecdsa_verify(enum tfm_bl1_ecdsa_curve_t curve,
 
     FIH_RET(fih_rc);
 }
-
