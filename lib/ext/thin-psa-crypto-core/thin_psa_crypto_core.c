@@ -351,7 +351,9 @@ EXTERNAL_PSA_API(psa_hash_compute,
     FIH_RET(status);
 }
 
-psa_status_t psa_hash_abort(psa_hash_operation_t *operation)
+EXTERNAL_PSA_API(psa_hash_abort,
+        (psa_hash_operation_t *operation),
+        operation)
 {
     psa_status_t status;
 
@@ -359,21 +361,21 @@ psa_status_t psa_hash_abort(psa_hash_operation_t *operation)
 
     /* Aborting a non-active operation is allowed */
     if (operation->id == 0) {
-        return PSA_SUCCESS;
+        FIH_RET(PSA_SUCCESS);
     }
 
     status = psa_driver_wrapper_hash_abort(operation);
     operation->id = 0;
     if (status != PSA_SUCCESS) {
         FATAL_ERR(status);
-        return status;
     }
 
-    return PSA_SUCCESS;
+    FIH_RET(status);
 }
 
-psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
-                            psa_algorithm_t alg)
+EXTERNAL_PSA_API(psa_hash_setup,
+        (psa_hash_operation_t *operation, psa_algorithm_t alg),
+        operation, alg)
 {
     psa_status_t status;
 
@@ -390,15 +392,14 @@ psa_status_t psa_hash_setup(psa_hash_operation_t *operation,
     status = psa_driver_wrapper_hash_setup(operation, alg);
     if (status != PSA_SUCCESS) {
         FATAL_ERR(status);
-        return status;
     }
 
-    return PSA_SUCCESS;
+    FIH_RET(status);
 }
 
-psa_status_t psa_hash_update(psa_hash_operation_t *operation,
-                             const uint8_t *input,
-                             size_t input_length)
+EXTERNAL_PSA_API(psa_hash_update,
+        (psa_hash_operation_t *operation, const uint8_t *input, size_t input_length),
+        operation, input, input_length)
 {
     psa_status_t status;
 
@@ -409,7 +410,7 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
      * zero-length input, which may have an invalid pointer.
      */
     if (input_length == 0) {
-        return PSA_SUCCESS;
+        FIH_RET(PSA_SUCCESS);
     }
 
     assert(input != NULL);
@@ -417,16 +418,15 @@ psa_status_t psa_hash_update(psa_hash_operation_t *operation,
     status = psa_driver_wrapper_hash_update(operation, input, input_length);
     if (status != PSA_SUCCESS) {
         FATAL_ERR(status);
-        return status;
     }
 
-    return PSA_SUCCESS;
+    FIH_RET(status);
 }
 
-psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
-                             uint8_t *hash,
-                             size_t hash_size,
-                             size_t *hash_length)
+EXTERNAL_PSA_API(psa_hash_finish,
+        (psa_hash_operation_t *operation,
+         uint8_t *hash, size_t hash_size, size_t *hash_length),
+        operation, hash, hash_size, hash_length)
 {
     psa_status_t status;
     *hash_length = 0;
@@ -440,15 +440,14 @@ psa_status_t psa_hash_finish(psa_hash_operation_t *operation,
     (void)psa_hash_abort(operation);
     if (status != PSA_SUCCESS) {
         FATAL_ERR(status);
-        return status;
     }
 
-    return PSA_SUCCESS;
+    FIH_RET(status);
 }
 
-psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
-                             const uint8_t *hash,
-                             size_t hash_length)
+EXTERNAL_PSA_API(psa_hash_verify,
+        (psa_hash_operation_t *operation, const uint8_t *hash, size_t hash_length),
+        operation, hash, hash_length)
 {
     /* Size this buffer for the worst case in terms of size */
     uint32_t hash_produced[PSA_HASH_MAX_SIZE / sizeof(uint32_t)];
@@ -464,11 +463,10 @@ psa_status_t psa_hash_verify(psa_hash_operation_t *operation,
                              &hash_produced_length);
     if (status != PSA_SUCCESS) {
         FATAL_ERR(status);
-        return status;
+        FIH_RET(status);
     }
 
-    return hash_check(hash, hash_length,
-                      (uint8_t *)hash_produced, hash_produced_length);
+    FIH_RET(hash_check(hash, hash_length, (uint8_t *)hash_produced, hash_produced_length));
 }
 
 /* FixMe: psa_adac_mac_verify() and psa_adac_derive_key() for BL2 based ADAC flow with CC312
