@@ -322,5 +322,12 @@ install(DIRECTORY   native_drivers
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/common/core
 )
 
+if(HAS_RRAMC)
+    install(FILES       startup_nrf54l_common.c
+                        startup_nrf54l_common.h
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/common/core
+    )
+endif()
+
 install(FILES       ${PLATFORM_DIR}/ext/common/gcc/tfm_common_ns.ld
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/linker_scripts)

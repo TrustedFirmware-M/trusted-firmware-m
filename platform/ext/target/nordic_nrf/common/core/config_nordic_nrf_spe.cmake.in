@@ -5,3 +5,4 @@
 #
 
 set(HAL_NORDIC_PATH @HAL_NORDIC_PATH@ CACHE STRING "Path to nordic HAL" FORCE)
+set(HAS_RRAMC @HAS_RRAMC@ CACHE BOOL "Device uses RRAMC instead of NVMC" FORCE)
