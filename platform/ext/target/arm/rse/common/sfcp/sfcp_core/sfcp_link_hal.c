@@ -514,13 +514,14 @@ static enum sfcp_hal_error_t mhu_get_receive_message_size(void *mhu_recv_device,
                                                           enum sfcp_platform_device_type_t type)
 {
     uint32_t mhu_err;
+    uint32_t read_val;
 
-    mhu_err =
-        mhu_channel_receive_device_receive(mhu_recv_device, 0, (uint32_t *)message_size, type);
+    mhu_err = mhu_channel_receive_device_receive(mhu_recv_device, 0, &read_val, type);
     if (mhu_err != 0) {
         return mhu_err;
     }
 
+    *message_size = read_val;
     return SFCP_HAL_ERROR_SUCCESS;
 }
 
