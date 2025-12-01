@@ -477,21 +477,85 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
                                 psa_key_id_t key,
                                 psa_algorithm_t alg)
 {
-    return PSA_ERROR_NOT_SUPPORTED;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    const uint8_t *key_buffer;
+    size_t key_buffer_size;
+    psa_status_t status = PSA_ERROR_INVALID_HANDLE;
+
+    assert(operation != NULL);
+
+    /* Prefer static slot if it matches */
+    if (g_key_slot.is_valid && (g_key_slot.key_id == key)) {
+        status = psa_get_key_attributes(key, &attributes);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+        key_buffer      = g_key_slot.buf;
+        key_buffer_size = g_key_slot.len;
+    }
+#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
+    else {
+        status = cc3xx_opaque_keys_attr_init(&attributes, key, alg,
+                                             &key_buffer, &key_buffer_size);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+
+    }
+#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
+
+    if (status == PSA_ERROR_INVALID_HANDLE) {
+        FATAL_ERR(status);
+        return status;
+    }
+
+    return psa_driver_wrapper_mac_sign_setup(
+                operation, &attributes, key_buffer, key_buffer_size, alg);
 }
 
 psa_status_t psa_mac_verify_setup(psa_mac_operation_t *operation,
                                   psa_key_id_t key,
                                   psa_algorithm_t alg)
 {
-    return PSA_ERROR_NOT_SUPPORTED;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    const uint8_t *key_buffer;
+    size_t key_buffer_size;
+    psa_status_t status = PSA_ERROR_INVALID_HANDLE;
+
+    assert(operation != NULL);
+
+    if (g_key_slot.is_valid && (g_key_slot.key_id == key)) {
+        status = psa_get_key_attributes(key, &attributes);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+        key_buffer      = g_key_slot.buf;
+        key_buffer_size = g_key_slot.len;
+    }
+#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
+    else {
+        status = cc3xx_opaque_keys_attr_init(&attributes, key, alg,
+                                             &key_buffer, &key_buffer_size);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+    }
+#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
+
+    if (status == PSA_ERROR_INVALID_HANDLE) {
+        FATAL_ERR(status);
+        return status;
+    }
+
+    return psa_driver_wrapper_mac_verify_setup(
+                operation, &attributes, key_buffer, key_buffer_size, alg);
 }
 
 psa_status_t psa_mac_update(psa_mac_operation_t *operation,
                             const uint8_t *input,
                             size_t input_length)
 {
-    return PSA_ERROR_NOT_SUPPORTED;
+    return psa_driver_wrapper_mac_update(operation, input, input_length);
 }
 
 psa_status_t psa_mac_verify_finish(psa_mac_operation_t *operation,
@@ -506,12 +570,12 @@ psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
                                  size_t mac_size,
                                  size_t *mac_length)
 {
-    return PSA_ERROR_NOT_SUPPORTED;
+    return psa_driver_wrapper_mac_sign_finish(operation, mac, mac_size, mac_length);
 }
 
 psa_status_t psa_mac_abort(psa_mac_operation_t *operation)
 {
-    return PSA_ERROR_NOT_SUPPORTED;
+    return psa_driver_wrapper_mac_abort(operation);
 }
 
 EXTERNAL_PSA_API(psa_mac_compute,
