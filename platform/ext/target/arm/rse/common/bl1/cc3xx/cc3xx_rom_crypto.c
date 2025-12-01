@@ -23,8 +23,6 @@
 
 #define KEY_DERIVATION_MAX_BUF_SIZE 128
 
-psa_hash_operation_t multipart_hash_op;
-
 /**
  * @brief Convert from BL1 key to KMU key (driver specific). For keys
  *        which are not HUK/GUK/Kce_cm, it will load the key material
@@ -116,52 +114,6 @@ fih_ret bl1_hash_compute(enum tfm_bl1_hash_alg_t alg,
     }
 
     FIH_RET(FIH_SUCCESS);
-}
-
-fih_ret bl1_hash_init(enum tfm_bl1_hash_alg_t alg)
-{
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-
-    assert((alg == TFM_BL1_HASH_ALG_SHA256) || (alg == TFM_BL1_HASH_ALG_SHA384));
-
-    fih_rc = fih_ret_encode_zero_equality(psa_hash_setup(&multipart_hash_op,
-                                                         (psa_algorithm_t)alg));
-    if(FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
-    }
-
-    FIH_RET(FIH_SUCCESS);
-}
-
-fih_ret bl1_hash_update(const uint8_t *data,
-                        size_t data_length)
-{
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-
-    fih_rc = fih_ret_encode_zero_equality(psa_hash_update(&multipart_hash_op,
-                                                          data, data_length));
-    if(FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
-    }
-
-    FIH_RET(FIH_SUCCESS);
-}
-
-fih_ret bl1_hash_finish(uint8_t *hash,
-                        size_t hash_length,
-                        size_t *hash_size)
-{
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-
-    fih_rc = fih_ret_encode_zero_equality(psa_hash_finish(&multipart_hash_op,
-                                                          hash,
-                                                          hash_length, hash_size));
-    if(FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
-    }
-
-    FIH_RET(FIH_SUCCESS);
-
 }
 
 fih_ret bl1_aes_256_ctr_decrypt(enum tfm_bl1_key_id_t key_id,
