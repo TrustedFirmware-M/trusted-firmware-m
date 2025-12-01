@@ -90,7 +90,10 @@ static uint32_t mhu_get_num_mhu_channels(void *mhu_device, enum sfcp_platform_de
 
         mhu_v3_err =
             mhu_v3_x_get_num_channel_implemented(mhu_device, MHU_V3_X_CHANNEL_TYPE_DBCH, &num_ch);
-        assert(mhu_v3_err == MHU_V_3_X_ERR_NONE);
+        if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {
+            assert(false);
+            return 0;
+        }
 
         return num_ch;
     }
