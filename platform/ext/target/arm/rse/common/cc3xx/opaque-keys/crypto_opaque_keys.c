@@ -33,26 +33,26 @@ inline size_t cc3xx_get_key_buffer_size(psa_key_id_t key_id) {
  */
 inline uint32_t cc3xx_get_builtin_key(psa_key_id_t key_id) {
     switch (key_id) {
-        case PSA_OPAQUE_KEY_ID_KRTL:
-            return KMU_HW_SLOT_KRTL;
+    case PSA_OPAQUE_KEY_ID_KRTL:
+        return KMU_HW_SLOT_KRTL;
 
-        case PSA_OPAQUE_KEY_ID_HUK:
-            return KMU_HW_SLOT_HUK;
+    case PSA_OPAQUE_KEY_ID_HUK:
+        return KMU_HW_SLOT_HUK;
 
-        case PSA_OPAQUE_KEY_ID_GUK:
-            return KMU_HW_SLOT_GUK;
+    case PSA_OPAQUE_KEY_ID_GUK:
+        return KMU_HW_SLOT_GUK;
 
-        case PSA_OPAQUE_KEY_ID_KP_CM:
-            return KMU_HW_SLOT_KP_CM;
+    case PSA_OPAQUE_KEY_ID_KP_CM:
+        return KMU_HW_SLOT_KP_CM;
 
-        case PSA_OPAQUE_KEY_ID_KCE_CM:
-            return KMU_HW_SLOT_KCE_CM;
+    case PSA_OPAQUE_KEY_ID_KCE_CM:
+        return KMU_HW_SLOT_KCE_CM;
 
-        case PSA_OPAQUE_KEY_ID_KP_DM:
-            return KMU_HW_SLOT_KP_DM;
+    case PSA_OPAQUE_KEY_ID_KP_DM:
+        return KMU_HW_SLOT_KP_DM;
 
-        case PSA_OPAQUE_KEY_ID_KCE_DM:
-            return KMU_HW_SLOT_KCE_DM;
+    case PSA_OPAQUE_KEY_ID_KCE_DM:
+        return KMU_HW_SLOT_KCE_DM;
     }
 
     if ((key_id >= PSA_OPAQUE_KEY_ID_USER_SLOT_MIN) && (key_id <= PSA_OPAQUE_KEY_ID_USER_SLOT_MAX)) {
@@ -71,26 +71,26 @@ inline uint32_t cc3xx_get_builtin_key(psa_key_id_t key_id) {
  */
 inline psa_key_id_t cc3xx_get_opaque_key(uint32_t key_id) {
     switch (key_id) {
-        case KMU_HW_SLOT_KRTL:
-            return PSA_OPAQUE_KEY_ID_KRTL;
+    case KMU_HW_SLOT_KRTL:
+        return PSA_OPAQUE_KEY_ID_KRTL;
 
-        case KMU_HW_SLOT_HUK:
-            return PSA_OPAQUE_KEY_ID_HUK;
+    case KMU_HW_SLOT_HUK:
+        return PSA_OPAQUE_KEY_ID_HUK;
 
-        case KMU_HW_SLOT_GUK :
-            return PSA_OPAQUE_KEY_ID_GUK;
+    case KMU_HW_SLOT_GUK :
+        return PSA_OPAQUE_KEY_ID_GUK;
 
-        case KMU_HW_SLOT_KP_CM :
-            return PSA_OPAQUE_KEY_ID_KP_CM;
+    case KMU_HW_SLOT_KP_CM :
+        return PSA_OPAQUE_KEY_ID_KP_CM;
 
-        case KMU_HW_SLOT_KCE_CM :
-            return PSA_OPAQUE_KEY_ID_KCE_CM;
+    case KMU_HW_SLOT_KCE_CM :
+        return PSA_OPAQUE_KEY_ID_KCE_CM;
 
-        case KMU_HW_SLOT_KP_DM :
-            return PSA_OPAQUE_KEY_ID_KP_DM;
+    case KMU_HW_SLOT_KP_DM :
+        return PSA_OPAQUE_KEY_ID_KP_DM;
 
-        case KMU_HW_SLOT_KCE_DM :
-            return PSA_OPAQUE_KEY_ID_KCE_DM;
+    case KMU_HW_SLOT_KCE_DM :
+        return PSA_OPAQUE_KEY_ID_KCE_DM;
     }
 
     if ((key_id >= KMU_USER_SLOT_MIN ) && (key_id <= KMU_USER_SLOT_MAX)) {
@@ -116,14 +116,14 @@ psa_status_t cc3xx_opaque_keys_attr_init(psa_key_attributes_t *attributes,
     psa_set_key_id(attributes, key_id);
 
     switch (alg) {
-        case PSA_ALG_CTR:
-        case PSA_ALG_CCM:
-        case PSA_ALG_CMAC:
-        case PSA_ALG_ECB_NO_PADDING:
-            key_type = PSA_KEY_TYPE_AES;
-            break;
-        default:
-            return PSA_ERROR_NOT_SUPPORTED;
+    case PSA_ALG_CTR:
+    case PSA_ALG_CCM:
+    case PSA_ALG_CMAC:
+    case PSA_ALG_ECB_NO_PADDING:
+        key_type = PSA_KEY_TYPE_AES;
+        break;
+    default:
+        return PSA_ERROR_NOT_SUPPORTED;
     }
 
     psa_set_key_type(attributes, key_type);
