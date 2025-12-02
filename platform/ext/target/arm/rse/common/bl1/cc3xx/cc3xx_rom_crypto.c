@@ -93,29 +93,6 @@ static cc3xx_ec_curve_id_t bl1_curve_to_cc3xx_curve(enum tfm_bl1_ecdsa_curve_t b
     };
 }
 
-fih_ret bl1_hash_compute(enum tfm_bl1_hash_alg_t alg,
-                         const uint8_t *data,
-                         size_t data_length,
-                         uint8_t *hash,
-                         size_t hash_length,
-                         size_t *hash_size)
-{
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-    size_t dummy;
-
-    assert((alg == TFM_BL1_HASH_ALG_SHA256) || (alg == TFM_BL1_HASH_ALG_SHA384));
-
-    fih_rc = fih_ret_encode_zero_equality(psa_hash_compute((psa_algorithm_t)alg,
-                                                            data, data_length,
-                                                            hash, hash_length,
-                                                            hash_size ? hash_size : &dummy));
-    if(FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
-    }
-
-    FIH_RET(FIH_SUCCESS);
-}
-
 fih_ret bl1_aes_256_ctr_decrypt(enum tfm_bl1_key_id_t key_id,
                                 const uint8_t *key_material,
                                 uint8_t *counter,
