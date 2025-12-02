@@ -46,6 +46,7 @@ int pq_crypto_get_pub_key_hash(enum tfm_bl1_key_id_t key,
     FIH_DECLARE(fih_rc, FIH_FAILURE);
     uint8_t key_buf[MBEDTLS_LMS_PUBLIC_KEY_LEN(MBEDTLS_LMS_SHA256_M32_H10)];
     size_t key_size;
+    psa_status_t status;
 
     if (hash_size < 32) {
         return -1;
@@ -56,10 +57,11 @@ int pq_crypto_get_pub_key_hash(enum tfm_bl1_key_id_t key,
         FIH_RET(fih_rc);
     }
 
-    FIH_CALL(bl1_hash_compute, fih_rc, TFM_BL1_HASH_ALG_SHA256, key_buf, sizeof(key_buf),
-                                       hash, sizeof(hash), hash_length);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
+    status = psa_hash_compute((psa_algorithm_t)TFM_BL1_HASH_ALG_SHA256,
+                              key_buf, sizeof(key_buf),
+                              hash, sizeof(hash), hash_length);
+    if (status != PSA_SUCCESS) {
+        return (int)status;
     }
 
     return 0;

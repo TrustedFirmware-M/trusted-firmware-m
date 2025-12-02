@@ -5,7 +5,6 @@
  *
  */
 
-#include "bl1_crypto.h"
 #include "otp.h"
 #include "tfm_plat_provisioning.h"
 #include "tfm_plat_otp.h"
@@ -19,6 +18,7 @@
 #include "image.h"
 #include "fih.h"
 #include "bl1_1_config.h"
+#include "psa/crypto.h"
 
 #if defined(TEST_BL1_1) && defined(PLATFORM_DEFAULT_BL1_TEST_EXECUTION)
 #include "bl1_1_suites.h"
@@ -62,13 +62,14 @@ fih_ret bl1_1_validate_image_at_addr(const uint8_t *image)
     enum tfm_plat_err_t plat_err;
     uint8_t stored_bl1_2_hash[TFM_BL1_1_MEASUREMENT_HASH_MAX_SIZE];
     FIH_DECLARE(fih_rc, FIH_FAILURE);
+    psa_status_t status;
 
-    FIH_CALL(bl1_hash_compute, fih_rc, TFM_BL1_1_MEASUREMENT_HASH_ALG,
-                                       image, BL1_2_CODE_SIZE, computed_bl1_2_hash,
-                                       sizeof(computed_bl1_2_hash),
-                                       &computed_bl1_2_hash_size);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
+    status = psa_hash_compute((psa_algorithm_t)TFM_BL1_1_MEASUREMENT_HASH_ALG,
+                              image, BL1_2_CODE_SIZE, computed_bl1_2_hash,
+                              sizeof(computed_bl1_2_hash),
+                              &computed_bl1_2_hash_size);
+    if (status != PSA_SUCCESS) {
+        FIH_RET(fih_ret_encode_zero_equality(status));
     }
 
     plat_err = tfm_plat_otp_read(PLAT_OTP_ID_BL1_2_IMAGE_HASH, sizeof(stored_bl1_2_hash),
