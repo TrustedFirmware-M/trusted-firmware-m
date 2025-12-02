@@ -119,12 +119,12 @@ static enum tfm_plat_err_t
 calc_key_hash_from_header(const struct rse_provisioning_authentication_header_t *header,
                           uint8_t *key_hash, enum rse_rotpk_hash_alg alg, size_t point_size)
 {
-    FIH_DECLARE(fih_rc, FIH_FAILURE);;
     enum tfm_plat_err_t err;
     /* Max size is 120 bytes */
     uint8_t asn1_key[120];
     size_t len;
-    enum tfm_bl1_hash_alg_t bl1_hash_alg;
+    psa_algorithm_t hash_alg;
+    psa_status_t status;
 
     /* Currently keys stored in CM ROTPK are in the form of hashed DER encoded,
      * ASN.1 format keys. Therefore we need to convert the key we have found
@@ -139,22 +139,22 @@ calc_key_hash_from_header(const struct rse_provisioning_authentication_header_t 
 
     switch (alg) {
     case RSE_ROTPK_HASH_ALG_SHA256:
-        bl1_hash_alg = TFM_BL1_HASH_ALG_SHA256;
+        hash_alg = PSA_ALG_SHA_256;
         break;
     case RSE_ROTPK_HASH_ALG_SHA384:
-        bl1_hash_alg = TFM_BL1_HASH_ALG_SHA384;
+        hash_alg = PSA_ALG_SHA_384;
         break;
     default:
         return TFM_PLAT_ERR_PROVISIONING_AUTH_MSG_INVALID_HASH_ALG;
     }
 
-    FIH_CALL(bl1_hash_compute, fih_rc, bl1_hash_alg, asn1_key, len, key_hash, RSE_ROTPK_MAX_SIZE,
-             &len);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)fih_rc;
+    status = psa_hash_compute(hash_alg, asn1_key, len,
+                              key_hash, RSE_ROTPK_MAX_SIZE, &len);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
     }
 
-    FIH_RET(TFM_PLAT_ERR_SUCCESS);
+    return TFM_PLAT_ERR_SUCCESS;
 }
 
 /**

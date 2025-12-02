@@ -349,14 +349,15 @@ static enum tfm_plat_err_t hash_test_image(struct rse_provisioning_message_blob_
     const size_t authed_header_size =
         offsetof(struct rse_provisioning_message_blob_t, code_and_data_and_secret_values) -
         authed_header_offset;
+    psa_status_t status;
 
-    FIH_CALL(bl1_hash_compute, fih_rc, RSE_PROVISIONING_HASH_ALG,
-             (uint8_t *)blob + authed_header_offset,
-             authed_header_size + blob->header.code_size + blob->header.data_size +
+    status = psa_hash_compute((psa_algorithm_t)RSE_PROVISIONING_HASH_ALG,
+                 (uint8_t *)blob + authed_header_offset,
+                 authed_header_size + blob->header.code_size + blob->header.data_size +
                  blob->header.secret_values_size,
-             hash, RSE_PROVISIONING_HASH_SIZE, hash_size);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)fih_ret_decode_zero_equality(fih_rc);
+                 hash, RSE_PROVISIONING_HASH_SIZE, hash_size);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
     }
 
     return TFM_PLAT_ERR_SUCCESS;
@@ -1154,6 +1155,7 @@ ecdsa_key_write_otp(const struct rse_provisioning_ecdsa_gen_key_data_t *data, ui
         ((RSE_ROTPK_TYPE_ECDSA & 0b11) << (2 * rotpk_idx)) |
         ((RSE_ROTPK_POLICY_SIG_REQUIRED & 0b1) << (18 + rotpk_idx)) |
         ((RSE_PROVISIONING_DM_SIGN_KEY_CM_ROTPK_HASH_ALG & 0b1) << (12 + rotpk_idx));
+    psa_status_t status;
 
     /* No need to write if already written to OTP */
     lcm_err = lcm_otp_read(&LCM_DEV_S, offset, sizeof(rotpk_area), (uint8_t *)&rotpk_area);
@@ -1172,10 +1174,11 @@ ecdsa_key_write_otp(const struct rse_provisioning_ecdsa_gen_key_data_t *data, ui
         return plat_err;
     }
 
-    FIH_CALL(bl1_hash_compute, fih_rc, DM_SIGN_KEY_CM_ROTPK_BL1_HASH_ALG, asn1_key, asn1_key_len, key_hash,
-                                       DM_SIGN_KEY_CM_ROTPK_HASH_SIZE, &key_hash_size);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        return (enum tfm_plat_err_t)fih_rc;
+    status = psa_hash_compute((psa_algorithm_t)DM_SIGN_KEY_CM_ROTPK_BL1_HASH_ALG,
+                              asn1_key, asn1_key_len, key_hash,
+                              DM_SIGN_KEY_CM_ROTPK_HASH_SIZE, &key_hash_size);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
     }
 
     memcpy(rotpk_area.rotpk[rotpk_idx], key_hash, key_hash_size);
