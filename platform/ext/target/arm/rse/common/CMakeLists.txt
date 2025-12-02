@@ -607,7 +607,6 @@ target_compile_definitions(platform_bl1_1_interface
         $<$<BOOL:${TFM_PARTITION_DPE}>:RSE_BOOT_KEYS_DPE>
         KMU_CONFIG_EXTERNAL_SECURE_WORD_COPY
         $<$<BOOL:${RSE_ENCRYPTED_OTP_KEYS}>:RSE_ENCRYPTED_OTP_KEYS>
-        $<$<BOOL:${RSE_ENABLE_TRAM}>:RSE_ENABLE_TRAM>
 )
 
 target_link_libraries(platform_bl1_1
