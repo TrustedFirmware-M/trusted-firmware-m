@@ -516,13 +516,10 @@ psa_status_t psa_mac_abort(psa_mac_operation_t *operation)
     return PSA_ERROR_NOT_SUPPORTED;
 }
 
-psa_status_t psa_mac_compute(psa_key_id_t key,
-                             psa_algorithm_t alg,
-                             const uint8_t *input,
-                             size_t input_length,
-                             uint8_t *mac,
-                             size_t mac_size,
-                             size_t *mac_length)
+EXTERNAL_PSA_API(psa_mac_compute,
+        (psa_key_id_t key, psa_algorithm_t alg, const uint8_t *input,
+         size_t input_length, uint8_t *mac, size_t mac_size, size_t *mac_length),
+        key, alg, input, input_length, mac, mac_size, mac_length)
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     uint8_t *key_buffer;
@@ -530,7 +527,7 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
     psa_status_t status = PSA_ERROR_INVALID_HANDLE;
 
     if (!input_length) {
-        return PSA_SUCCESS;
+        FIH_RET(PSA_SUCCESS);
     }
 
     assert(input != NULL);
@@ -542,7 +539,7 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
     if (g_key_slot.is_valid && (g_key_slot.key_id == key)) {
         status = psa_get_key_attributes(key, &attributes);
         if (status != PSA_SUCCESS) {
-            return status;
+            FIH_RET(status);
         }
 
         key_buffer = g_key_slot.buf;
@@ -553,7 +550,7 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
         status = cc3xx_opaque_keys_attr_init(&attributes, key, alg,
                                              &key_buffer, &key_buffer_size);
         if (status != PSA_SUCCESS) {
-            return status;
+            FIH_RET(status);
         }
     }
 #endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
@@ -561,10 +558,10 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
     /* We need to have a valid handle for key to use at this point */
     if (status == PSA_ERROR_INVALID_HANDLE) {
         FATAL_ERR(status);
-        return status;
+        FIH_RET(status);
     }
 
-    return psa_driver_wrapper_mac_compute(
+    FIH_RET(psa_driver_wrapper_mac_compute(
                         &attributes,
                         key_buffer,
                         key_buffer_size,
@@ -573,7 +570,7 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
                         input_length,
                         mac,
                         mac_size,
-                        mac_length);
+                        mac_length));
 
 }
 
