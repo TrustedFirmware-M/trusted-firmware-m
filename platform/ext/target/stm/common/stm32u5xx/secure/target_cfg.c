@@ -353,6 +353,7 @@ void sau_and_idau_cfg(void)
 #define MPCBB_LOCK_SRAM2_SIZE 0xf
 #define MPCBB_LOCK_SRAM1_SIZE 0xfff
 #define MPCBB_LOCK_SRAM3_SIZE 0xffffffff
+#define MPCBB_LOCK_SRAM5_SIZE 0xffffffff
 #define MPCBB_LOCK_SRAM4_SIZE 0x1
 #define MPCBB_LOCK(A) MPCBB_LOCK_##A
 
@@ -508,11 +509,17 @@ void gtzc_init_cfg(void)
               -SRAM2_BASE, SRAM2_SIZE - 1, 0);
 #endif
       gtzc_config_sram(SRAM3_BASE, SRAM3_SIZE, 0, SRAM3_SIZE -1, FLAG_NPRIV | FLAG_NSEC);
+#if defined (SRAM5_BASE)
+      gtzc_config_sram(SRAM5_BASE, SRAM5_SIZE, 0, SRAM5_SIZE -1, FLAG_NPRIV | FLAG_NSEC);
+#endif /* SRAM5_BASE */
       gtzc_config_sram(SRAM4_BASE, SRAM4_SIZE, 0, SRAM4_SIZE -1, FLAG_NPRIV | FLAG_NSEC);
 
       GTZC_MPCBB1_S->CFGLOCKR1=MPCBB_LOCK(SRAM1_SIZE);
       GTZC_MPCBB2_S->CFGLOCKR1=MPCBB_LOCK(SRAM2_SIZE);
       GTZC_MPCBB3_S->CFGLOCKR1=MPCBB_LOCK(SRAM3_SIZE);
+#if defined (SRAM5_BASE)
+      GTZC_MPCBB5_S->CFGLOCKR1=MPCBB_LOCK(SRAM5_SIZE);
+#endif /* SRAM5_BASE */
       GTZC_MPCBB4_S->CFGLOCKR1=MPCBB_LOCK(SRAM4_SIZE);
       /* privileged secure internal flash */
       gtzc_internal_flash_priv(0x0, (uint32_t)(&REGION_NAME(Image$$, TFM_UNPRIV_CODE_START, $$RO$$Base)) - FLASH_BASE_S - 1);
@@ -606,10 +613,16 @@ void gtzc_init_cfg(void)
 #endif
 
       gtzc_config_sram(SRAM3_BASE, SRAM3_SIZE, 0, SRAM3_SIZE -1, FLAG_NPRIV | FLAG_NSEC);
+#if defined (SRAM5_BASE)
+      gtzc_config_sram(SRAM5_BASE, SRAM5_SIZE, 0, SRAM5_SIZE -1, FLAG_NPRIV | FLAG_NSEC);
+#endif /* SRAM5_BASE */
       gtzc_config_sram(SRAM4_BASE, SRAM4_SIZE, 0, SRAM4_SIZE -1, FLAG_NPRIV | FLAG_NSEC);
       if (GTZC_MPCBB1_S->CFGLOCKR1 != MPCBB_LOCK(SRAM1_SIZE)) Error_Handler();
       if (GTZC_MPCBB2_S->CFGLOCKR1 != MPCBB_LOCK(SRAM2_SIZE)) Error_Handler();
       if (GTZC_MPCBB3_S->CFGLOCKR1 != MPCBB_LOCK(SRAM3_SIZE)) Error_Handler();
+#if defined (SRAM5_BASE)
+      if (GTZC_MPCBB5_S->CFGLOCKR1 != MPCBB_LOCK(SRAM5_SIZE)) Error_Handler();
+#endif /* SRAM5_BASE */
       if (GTZC_MPCBB4_S->CFGLOCKR1 != MPCBB_LOCK(SRAM4_SIZE)) Error_Handler();
       gtzc_internal_flash_priv(0x0, (uint32_t)(&REGION_NAME(Image$$, TFM_UNPRIV_CODE_START, $$RO$$Base)) - FLASH_BASE_S - 1);
       HAL_GTZC_TZSC_GetConfigPeriphAttributes(GTZC_PERIPH_HASH, &gtzc_periph_att);
