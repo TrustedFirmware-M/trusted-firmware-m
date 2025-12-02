@@ -522,7 +522,7 @@ EXTERNAL_PSA_API(psa_mac_compute,
         key, alg, input, input_length, mac, mac_size, mac_length)
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    uint8_t *key_buffer;
+    const uint8_t *key_buffer;
     size_t key_buffer_size;
     psa_status_t status = PSA_ERROR_INVALID_HANDLE;
 
