@@ -49,18 +49,18 @@ size_t cc3xx_get_key_buffer_size(psa_key_id_t key_id);
  *                      HW key ID.
  *
  * @param[in] key_id    The PSA opaque key ID.
- * @return size_t       The HW key slot ID.
+ * @return uint32_t     The HW key slot ID.
  */
-size_t cc3xx_get_builtin_key(psa_key_id_t key_id);
+uint32_t cc3xx_get_builtin_key(psa_key_id_t key_id);
 
 /**
  * @brief               translate the key id of a HW key to its corresponding
  *                      PSA opaque key ID.
  *
  * @param[in] key_id    The HW key slot ID.
- * @return size_t       The opaque key ID.
+ * @return psa_key_id_t The opaque key ID.
  */
-size_t cc3xx_get_opaque_key(size_t key_id);
+psa_key_id_t cc3xx_get_opaque_key(uint32_t key_id);
 
 /**
  * @brief                          Initialize the key attributes of an opaque key.
@@ -73,10 +73,10 @@ size_t cc3xx_get_opaque_key(size_t key_id);
  * @return psa_status_t
  */
 psa_status_t cc3xx_opaque_keys_attr_init(psa_key_attributes_t *attributes,
-                                             psa_key_id_t key_id,
-                                             psa_algorithm_t alg,
-                                             const uint8_t **key_buffer,
-                                             size_t *key_buffer_size);
+                                         psa_key_id_t key_id,
+                                         psa_algorithm_t alg,
+                                         const uint8_t **key_buffer,
+                                         size_t *key_buffer_size);
 
 #ifdef __cplusplus
 }

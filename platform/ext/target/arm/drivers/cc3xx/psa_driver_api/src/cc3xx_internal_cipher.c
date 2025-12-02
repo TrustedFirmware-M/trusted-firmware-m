@@ -63,7 +63,7 @@ static psa_status_t cc3xx_internal_aes_setup(
 
 #ifdef CC3XX_CRYPTO_OPAQUE_KEYS
     if (CC3XX_IS_OPAQUE_KEY(attributes)) {
-        size_t opaque_key_id = (size_t)key_buffer;
+        psa_key_id_t opaque_key_id = (psa_key_id_t)key_buffer;
         key_id = (cc3xx_aes_key_id_t)cc3xx_get_builtin_key(opaque_key_id);
 
         if (CC3XX_IS_OPAQUE_KEY_INVALID(key_id)) {

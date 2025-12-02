@@ -31,7 +31,7 @@ inline size_t cc3xx_get_key_buffer_size(psa_key_id_t key_id) {
  * @param[in] key_id    The opaque key ID.
  * @return size_t       The HW key slot ID.
  */
-inline size_t cc3xx_get_builtin_key(psa_key_id_t key_id) {
+inline uint32_t cc3xx_get_builtin_key(psa_key_id_t key_id) {
     switch (key_id) {
         case PSA_OPAQUE_KEY_ID_KRTL:
             return KMU_HW_SLOT_KRTL;
@@ -69,7 +69,7 @@ inline size_t cc3xx_get_builtin_key(psa_key_id_t key_id) {
  * @param[in] key_id    The HW key slot ID.
  * @return size_t       The opaque key ID.
  */
-inline size_t cc3xx_get_opaque_key(size_t key_id) {
+inline psa_key_id_t cc3xx_get_opaque_key(uint32_t key_id) {
     switch (key_id) {
         case KMU_HW_SLOT_KRTL:
             return PSA_OPAQUE_KEY_ID_KRTL;
