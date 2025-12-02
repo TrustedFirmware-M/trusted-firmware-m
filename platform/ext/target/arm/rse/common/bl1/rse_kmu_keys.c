@@ -376,21 +376,8 @@ enum tfm_plat_err_t rse_setup_iak_seed(uint32_t *huk_buf, size_t huk_size)
     enum rse_kmu_slot_id_t input_slot;
     uint32_t *key_buf;
 
-    /* FixMe: updated spec removes the context and simplifies the procedure */
-#if defined(RSE_BOOT_KEYS_CCA) || defined(RSE_BOOT_KEYS_DPE)
-#ifdef PLATFORM_PSA_ADAC_SECURE_DEBUG
     const boot_state_include_mask boot_state_config =
-        RSE_BOOT_STATE_INCLUDE_LCS | RSE_BOOT_STATE_INCLUDE_TP_MODE |
-        RSE_BOOT_STATE_INCLUDE_BL1_2_HASH | RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS |
-        RSE_BOOT_STATE_INCLUDE_DCU_STATE;
-#else
-    const boot_state_include_mask boot_state_config =
-        RSE_BOOT_STATE_INCLUDE_LCS | RSE_BOOT_STATE_INCLUDE_TP_MODE |
-        RSE_BOOT_STATE_INCLUDE_BL1_2_HASH | RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
-#endif /* PLATFORM_PSA_ADAC_SECURE_DEBUG */
-#else
-    const boot_state_include_mask boot_state_config = RSE_BOOT_STATE_INCLUDE_NONE;
-#endif /* RSE_BOOT_KEYS_CCA || RSE_BOOT_KEYS_DPE */
+        RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
 
     if (huk_buf) {
         assert(huk_size == 32);
