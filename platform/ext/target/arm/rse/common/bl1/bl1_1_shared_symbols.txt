@@ -34,6 +34,7 @@ bl1_hash_finish
 bl1_hash_init
 bl1_hash_update
 psa_generate_random
+psa_hash_compute
 bl_fih_memeql
 cc3xx_lowlevel_uninit
 cc3xx_lowlevel_kdf_cmac

@@ -25,6 +25,7 @@ bl1_hash_update
 bl1_random_generate_secure
 computed_bl1_2_hash
 pq_crypto_verify
+psa_hash_compute
 stdio_init
 stdio_output_string
 stdio_uninit

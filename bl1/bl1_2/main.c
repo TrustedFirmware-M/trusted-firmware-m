@@ -8,7 +8,6 @@
 #include <assert.h>
 #include <string.h>
 
-#include "bl1_crypto.h"
 #include "otp.h"
 #include "boot_hal.h"
 #include "psa/crypto.h"
@@ -21,6 +20,7 @@
 #include "pq_crypto.h"
 #include "tfm_plat_nv_counters.h"
 #include "tfm_plat_otp.h"
+#include "psa/crypto.h"
 
 #ifdef TFM_MEASURED_BOOT_API
 #include "tfm_boot_measurement.h"
@@ -120,7 +120,8 @@ static fih_ret validate_image_signature(struct bl1_2_image_t *img,
     enum tfm_bl1_hash_alg_t key_hash_alg;
 #endif /* TFM_BL1_2_EMBED_ROTPK_IN_IMAGE || TFM_MEASURED_BOOT_API */
     enum tfm_bl1_key_type_t key_type;
-
+    size_t dummy;
+    psa_status_t status;
 
     if (sig->sig_len > sizeof(sig->sig)) {
         ERROR("Invalid signature length\n");
@@ -157,12 +158,12 @@ static fih_ret validate_image_signature(struct bl1_2_image_t *img,
     #error No TFM_BL1_2 ROTPK hash algorithms enabled
 #endif /* defined(TFM_BL1_ENABLE_SHA256) && defined(TFM_BL1_ENABLE_SHA384) */
 
-    FIH_CALL(bl1_hash_compute, fih_rc, key_hash_alg,
-                                       sig->rotpk, sig->rotpk_len,
-                                       rotpk_hash, sizeof(rotpk_hash), NULL);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+    status = psa_hash_compute((psa_algorithm_t)key_hash_alg,
+                               sig->rotpk, sig->rotpk_len,
+                               rotpk_hash, sizeof(rotpk_hash), &dummy);
+    if (status != PSA_SUCCESS) {
         ERROR("Hash function failure\n");
-        FIH_RET(fih_rc);
+        FIH_RET(fih_ret_encode_zero_equality(status));
     }
 
     FIH_CALL(bl_fih_memeql, fih_rc, rotpk, rotpk_hash, rotpk_size);
@@ -230,12 +231,12 @@ static fih_ret validate_image_signature(struct bl1_2_image_t *img,
      * address BL2_IMAGE_START.
      */
 #if !defined(TFM_BL1_2_EMBED_ROTPK_IN_IMAGE)
-    FIH_CALL(bl1_hash_compute, fih_rc, key_hash_alg,
-                                       p_rotpk, rotpk_size,
-                                       rotpk_hash, sizeof(rotpk_hash),
-                                       NULL);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
+    status = psa_hash_compute((psa_algorithm_t)key_hash_alg,
+                               p_rotpk, rotpk_size,
+                               rotpk_hash, sizeof(rotpk_hash),
+                               NULL);
+    if (status != PSA_SUCCESS) {
+        FIH_RET(fih_ret_encode_zero_equality(status));
     }
 #endif
     FIH_CALL(add_signer_measurement, fih_rc, rotpk_hash, sizeof(rotpk_hash));
@@ -256,16 +257,17 @@ static fih_ret is_image_signature_valid(struct bl1_2_image_t *img)
 #ifdef TFM_BL1_2_ENABLE_ROTPK_POLICIES
     enum tfm_bl1_key_policy_t policy;
 #endif
+    psa_status_t status;
 
     /* Calculate the image hash for measured boot */
-    FIH_CALL(bl1_hash_compute, fih_rc, TFM_BL1_2_MEASUREMENT_HASH_ALG,
-                                       (uint8_t *)&img->protected_values,
-                                       sizeof(img->protected_values),
-                                       measurement_hash, sizeof(measurement_hash),
-                                       &measurement_hash_size);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+    status = psa_hash_compute((psa_algorithm_t)TFM_BL1_2_MEASUREMENT_HASH_ALG,
+                               (uint8_t *)&img->protected_values,
+                               sizeof(img->protected_values),
+                               measurement_hash, sizeof(measurement_hash),
+                               &measurement_hash_size);
+    if (status != PSA_SUCCESS) {
         ERROR("Boot measurement failed\n");
-        FIH_RET(fih_rc);
+        FIH_RET(fih_ret_encode_zero_equality(status));
     }
 
     for (idx = 0; idx < TFM_BL1_2_SIGNER_AMOUNT; idx++) {

@@ -20,6 +20,7 @@ kmu_set_key_export_config
 kmu_set_key_export_config_locked
 kmu_invalidate_hardware_keys
 pq_crypto_verify
+psa_hash_compute
 stdio_init
 stdio_output_string
 stdio_uninit
