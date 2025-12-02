@@ -653,6 +653,49 @@ to enable it.
 - ``TFM_HAL_SUCCESS`` - Booting has been successful.
 - ``TFM_HAL_ERROR_GENERIC`` - Error occurred.
 
+tfm_hal_shared_metadata_rw_enable()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**Prototype**
+
+.. code-block:: c
+
+  void tfm_hal_shared_metadata_rw_enable(void);
+
+**Description**
+
+This API enables Read-Write access to the shared metadata section.
+Available when CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION is set to 1.
+
+**Return Values**
+
+- ``void`` - None
+
+**Note**
+
+This API is only available if CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION is enabled.
+
+tfm_hal_shared_metadata_rw_disable()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**Prototype**
+
+.. code-block:: c
+
+  void tfm_hal_shared_metadata_rw_disable(void);
+
+**Description**
+
+This API disables Read-Write access to the shared metadata section, restoring
+Read-Only access.
+Available when CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION is set to 1.
+
+**Return Values**
+
+- ``void`` - None
+
+**Note**
+
+This API is only available if CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION is enabled.
+
 Log API
 =======
 The log API is used by the :term:`TF-M` :doc:`log system </design_docs/tfm_log_system_design_document>`.

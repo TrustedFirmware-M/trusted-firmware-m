@@ -352,6 +352,18 @@
 #define CONFIG_TFM_POST_PARTITION_INIT_HOOK     0
 #endif
 
+/*
+ * If this option is enabled, tfm_hal_shared_metadata_rw_enable and
+ * tfm_hal_shared_metadata_rw_disable are invoked by SPM immediately before
+ * and after updating the partition metadata pointer.
+ * This ensures SPM has read-write access during metadata updates, while
+ * partitions retain read-only access at all other times for improved isolation
+ * and safety.
+ */
+#ifndef CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION
+#define CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION 0
+#endif
+
 /* Enable OTP/NV_COUNTERS emulation in RAM */
 #ifndef OTP_NV_COUNTERS_RAM_EMULATION
 #define OTP_NV_COUNTERS_RAM_EMULATION           0
