@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 enum tfm_plat_err_t setup_key_from_derivation(enum kmu_hardware_keyslot_t input_key_id,
-                                              uint32_t *key_buf,
+                                              const uint32_t *key_buf,
                                               const uint8_t *label, size_t label_len,
                                               const uint8_t *context, size_t context_len,
                                               enum rse_kmu_slot_id_t slot,

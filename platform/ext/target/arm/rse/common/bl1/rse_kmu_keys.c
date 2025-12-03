@@ -155,7 +155,7 @@ static inline size_t key_size_from_export_config(const struct kmu_key_export_con
 }
 
 enum tfm_plat_err_t setup_key_from_derivation(enum kmu_hardware_keyslot_t input_key_id,
-                                              uint32_t *key_buf,
+                                              const uint32_t *key_buf,
                                               const uint8_t *label, size_t label_len,
                                               const uint8_t *context, size_t context_len,
                                               enum rse_kmu_slot_id_t slot,
@@ -334,9 +334,9 @@ static const uint32_t zero_key[8] = {0};
 static enum tfm_plat_err_t
 setup_hardware_key_or_zero_key(enum rse_kmu_slot_id_t slot,
                                enum rse_kmu_slot_id_t *input_slot,
-                               uint32_t **key_buf)
+                               const uint32_t **key_buf)
 {
-    assert(slot == KMU_HW_SLOT_HUK);
+    assert(slot == (enum rse_kmu_slot_id_t)KMU_HW_SLOT_HUK);
     const enum kmu_error_t kmu_err = kmu_get_slot_invalid(&KMU_DEV_S, slot);
 
     if (kmu_err == KMU_ERROR_NONE) {
@@ -351,7 +351,7 @@ setup_hardware_key_or_zero_key(enum rse_kmu_slot_id_t slot,
          * PCI-dev or PCI with debug open if allowed
          */
         *input_slot = (enum rse_kmu_slot_id_t)0;
-        *key_buf = (uint8_t *)zero_key;
+        *key_buf = zero_key;
     } else {
         return (enum tfm_plat_err_t)kmu_err;
     }
@@ -374,7 +374,7 @@ enum tfm_plat_err_t rse_setup_iak_seed(uint32_t *huk_buf, size_t huk_size)
     enum tfm_plat_err_t plat_err;
     enum kmu_error_t kmu_err;
     enum rse_kmu_slot_id_t input_slot;
-    uint32_t *key_buf;
+    const uint32_t *key_buf;
 
     const boot_state_include_mask_t boot_state_config =
         RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
