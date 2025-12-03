@@ -381,7 +381,9 @@ enum tfm_plat_err_t rse_setup_iak_seed(uint32_t *huk_buf, size_t huk_size)
 
     if (huk_buf) {
         assert(huk_size == 32);
-        return TFM_PLAT_ERR_INVALID_INPUT;
+        if (huk_size != 32) {
+            return TFM_PLAT_ERR_INVALID_INPUT;
+        }
     }
 
     /* If IAK_SEED slot is locked, invalidate it first */
