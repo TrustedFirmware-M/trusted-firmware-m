@@ -41,7 +41,7 @@ void test_setup_key_from_derivation_get_boot_state_fails(void)
     struct kmu_key_export_config_t key0_export_config;
     struct kmu_key_export_config_t key1_export_config;
     bool setup_aes_aead_key;
-    boot_state_include_mask boot_state_config;
+    boot_state_include_mask_t boot_state_config;
 
     /* Prepare */
     key_id = KMU_HW_SLOT_HUK;
@@ -75,7 +75,7 @@ void test_setup_key_from_derivation_get_key_buffer_ptr_fails(void)
     struct kmu_key_export_config_t key0_export_config;
     struct kmu_key_export_config_t key1_export_config;
     bool setup_aes_aead_key;
-    boot_state_include_mask boot_state_config;
+    boot_state_include_mask_t boot_state_config;
 
     /* Prepare */
     key_id = KMU_HW_SLOT_HUK;
@@ -111,7 +111,7 @@ void test_setup_key_from_derivation_cc3xx_kdf_cmac_fails(void)
     struct kmu_key_export_config_t key0_export_config;
     struct kmu_key_export_config_t key1_export_config;
     bool setup_aes_aead_key;
-    boot_state_include_mask boot_state_config;
+    boot_state_include_mask_t boot_state_config;
 
     /* Prepare */
     key_id = KMU_HW_SLOT_HUK;
@@ -150,7 +150,7 @@ void test_setup_key_from_derivation_duplicate_into_next_slot_fails(void)
     struct kmu_key_export_config_t key0_export_config;
     struct kmu_key_export_config_t key1_export_config;
     bool setup_aes_aead_key;
-    boot_state_include_mask boot_state_config;
+    boot_state_include_mask_t boot_state_config;
 
     /* Prepare */
     key_id = KMU_HW_SLOT_HUK;
@@ -187,7 +187,7 @@ void test_setup_key_from_derivation_set_key_export_config_fails(void)
     struct kmu_key_export_config_t key0_export_config;
     struct kmu_key_export_config_t key1_export_config;
     bool setup_aes_aead_key;
-    boot_state_include_mask boot_state_config;
+    boot_state_include_mask_t boot_state_config;
 
     /* Prepare */
     key_id = KMU_HW_SLOT_HUK;
@@ -229,7 +229,7 @@ void test_setup_key_from_derivation_set_key_export_config_locked_fails(void)
     struct kmu_key_export_config_t key0_export_config;
     struct kmu_key_export_config_t key1_export_config;
     bool setup_aes_aead_key;
-    boot_state_include_mask boot_state_config;
+    boot_state_include_mask_t boot_state_config;
 
     /* Prepare */
     key_id = KMU_HW_SLOT_HUK;
@@ -273,7 +273,7 @@ void test_setup_key_from_derivation_ok(void)
     struct kmu_key_export_config_t key0_export_config;
     struct kmu_key_export_config_t key1_export_config;
     bool setup_aes_aead_key;
-    boot_state_include_mask boot_state_config;
+    boot_state_include_mask_t boot_state_config;
 
     /* Prepare */
     key_id = KMU_HW_SLOT_HUK;

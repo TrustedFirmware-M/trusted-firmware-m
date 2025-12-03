@@ -29,7 +29,7 @@ enum tfm_plat_err_t setup_key_from_derivation(enum kmu_hardware_keyslot_t input_
                                               enum rse_kmu_slot_id_t slot,
                                               const struct kmu_key_export_config_t *export_config,
                                               const struct kmu_key_export_config_t *aead_export_config,
-                                              bool setup_aes_aead_key, boot_state_include_mask mask);
+                                              bool setup_aes_aead_key, boot_state_include_mask_t mask);
 
 enum tfm_plat_err_t setup_key_from_otp(enum rse_kmu_slot_id_t slot,
                                        enum tfm_otp_element_id_t otp_id,

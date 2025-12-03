@@ -161,7 +161,7 @@ enum tfm_plat_err_t setup_key_from_derivation(enum kmu_hardware_keyslot_t input_
                                               enum rse_kmu_slot_id_t slot,
                                               const struct kmu_key_export_config_t *export_config,
                                               const struct kmu_key_export_config_t *aead_export_config,
-                                              bool setup_aes_aead_key, boot_state_include_mask mask)
+                                              bool setup_aes_aead_key, boot_state_include_mask_t mask)
 {
     enum tfm_plat_err_t plat_err;
     uint8_t boot_state_context[32] = {0};
@@ -376,7 +376,7 @@ enum tfm_plat_err_t rse_setup_iak_seed(uint32_t *huk_buf, size_t huk_size)
     enum rse_kmu_slot_id_t input_slot;
     uint32_t *key_buf;
 
-    const boot_state_include_mask boot_state_config =
+    const boot_state_include_mask_t boot_state_config =
         RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
 
     if (huk_buf) {
@@ -432,12 +432,12 @@ enum tfm_plat_err_t rse_setup_dak_seed(void)
 {
     const uint8_t dak_seed_label[]  = "BL1_DAK_SEED_DERIVATION";
 #ifdef PLATFORM_PSA_ADAC_SECURE_DEBUG
-    const boot_state_include_mask boot_state_config =
+    const boot_state_include_mask_t boot_state_config =
         RSE_BOOT_STATE_INCLUDE_LCS | RSE_BOOT_STATE_INCLUDE_TP_MODE |
         RSE_BOOT_STATE_INCLUDE_BL1_2_HASH | RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS |
         RSE_BOOT_STATE_INCLUDE_DCU_STATE;
 #else
-    const boot_state_include_mask boot_state_config =
+    const boot_state_include_mask_t boot_state_config =
         RSE_BOOT_STATE_INCLUDE_LCS | RSE_BOOT_STATE_INCLUDE_TP_MODE |
         RSE_BOOT_STATE_INCLUDE_BL1_2_HASH | RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
 #endif /* PLATFORM_PSA_ADAC_SECURE_DEBUG */
@@ -455,12 +455,12 @@ enum tfm_plat_err_t rse_setup_rot_cdi(void)
 {
     const uint8_t rot_cdi_label[] = "BL1_ROT_CDI_DERIVATION";
 #ifdef PLATFORM_PSA_ADAC_SECURE_DEBUG
-    const boot_state_include_mask boot_state_config =
+    const boot_state_include_mask_t boot_state_config =
         RSE_BOOT_STATE_INCLUDE_LCS | RSE_BOOT_STATE_INCLUDE_TP_MODE |
         RSE_BOOT_STATE_INCLUDE_BL1_2_HASH | RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS |
         RSE_BOOT_STATE_INCLUDE_DCU_STATE;
 #else
-    const boot_state_include_mask boot_state_config =
+    const boot_state_include_mask_t boot_state_config =
         RSE_BOOT_STATE_INCLUDE_LCS | RSE_BOOT_STATE_INCLUDE_TP_MODE |
         RSE_BOOT_STATE_INCLUDE_BL1_2_HASH | RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
 #endif /* PLATFORM_PSA_ADAC_SECURE_DEBUG */
@@ -501,7 +501,7 @@ enum tfm_plat_err_t rse_derive_vhuk_seed(uint32_t *vhuk_seed, size_t vhuk_seed_b
 
 enum tfm_plat_err_t rse_setup_vhuk(const uint8_t *vhuk_seeds, size_t vhuk_seeds_len)
 {
-    const boot_state_include_mask boot_state_config =
+    const boot_state_include_mask_t boot_state_config =
         RSE_BOOT_STATE_INCLUDE_LCS | RSE_BOOT_STATE_INCLUDE_TP_MODE |
         RSE_BOOT_STATE_INCLUDE_BL1_2_HASH | RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
 
@@ -517,7 +517,7 @@ static enum tfm_plat_err_t rse_setup_session_key_with_input(const uint8_t *seed,
 {
     enum tfm_plat_err_t plat_err;
     enum kmu_error_t kmu_err;
-    const boot_state_include_mask boot_state_config = RSE_BOOT_STATE_INCLUDE_NONE;
+    const boot_state_include_mask_t boot_state_config = RSE_BOOT_STATE_INCLUDE_NONE;
     const uint8_t session_key_label[] = "SFCP_SESSION_KEY_DERIVATION";
 
     plat_err = setup_key_from_derivation(input_key_id, NULL, session_key_label,
@@ -596,7 +596,7 @@ static enum tfm_plat_err_t derive_using_krtl_or_zero_key(const uint8_t *label,
                                                          const uint8_t *context,
                                                          size_t context_len,
                                                          enum rse_kmu_slot_id_t output_slot,
-                                                         boot_state_include_mask mask)
+                                                         boot_state_include_mask_t mask)
 {
     enum tfm_plat_err_t plat_err;
     uint32_t zero_key[8] = {0};
@@ -728,7 +728,7 @@ enum tfm_plat_err_t rse_setup_runtime_secure_image_encryption_key(void)
     enum tfm_plat_err_t plat_err;
     enum kmu_error_t kmu_err;
     const uint8_t label[] = "RUNTIME_SECURE_ENCRYPTION_KEY";
-    const boot_state_include_mask boot_state_config =
+    const boot_state_include_mask_t boot_state_config =
         RSE_BOOT_STATE_INCLUDE_TP_MODE |
         RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
 
@@ -769,7 +769,7 @@ enum tfm_plat_err_t rse_setup_runtime_non_secure_image_encryption_key(void)
     enum tfm_plat_err_t plat_err;
     enum kmu_error_t kmu_err;
     const uint8_t label[] = "RUNTIME_NON_SECURE_ENCRYPTION_KEY";
-    const boot_state_include_mask boot_state_config =
+    const boot_state_include_mask_t boot_state_config =
         RSE_BOOT_STATE_INCLUDE_TP_MODE |
         RSE_BOOT_STATE_INCLUDE_REPROVISIONING_BITS;
 

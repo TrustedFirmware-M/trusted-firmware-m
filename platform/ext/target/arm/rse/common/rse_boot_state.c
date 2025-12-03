@@ -18,7 +18,7 @@
 extern uint8_t computed_bl1_2_hash[];
 
 enum tfm_plat_err_t rse_get_boot_state(uint8_t *state, size_t state_buf_len,
-                       size_t *state_size, boot_state_include_mask mask)
+                       size_t *state_size, boot_state_include_mask_t mask)
 {
     cc3xx_err_t err;
 
@@ -111,4 +111,3 @@ enum tfm_plat_err_t rse_get_boot_state(uint8_t *state, size_t state_buf_len,
 
     return TFM_PLAT_ERR_SUCCESS;
 }
-

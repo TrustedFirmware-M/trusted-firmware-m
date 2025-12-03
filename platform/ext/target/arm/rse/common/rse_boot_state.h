@@ -26,10 +26,10 @@ enum boot_state_include_field {
     RSE_BOOT_STATE_INCLUDE_MULTI_RSE_STATE = 0x20,
 };
 
-typedef uint32_t boot_state_include_mask;
+typedef uint32_t boot_state_include_mask_t;
 
 enum tfm_plat_err_t rse_get_boot_state(uint8_t *state, size_t state_buf_len,
-                       size_t *state_size, boot_state_include_mask mask);
+                       size_t *state_size, boot_state_include_mask_t mask);
 
 #ifdef __cplusplus
 }
