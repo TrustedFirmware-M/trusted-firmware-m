@@ -479,7 +479,7 @@ static enum tfm_plat_err_t hash_message(const struct rse_provisioning_authentica
         offsetof(struct rse_provisioning_authentication_header_t, metadata);
     const size_t authed_header_size =
         sizeof(*header) - authed_header_offset;
-    psa_hash_operation_t hash_op;
+    psa_hash_operation_t hash_op = psa_hash_operation_init();
 
     status = psa_hash_setup(&hash_op, (psa_algorithm_t)RSE_PROVISIONING_HASH_ALG);
     if (status != PSA_SUCCESS) {

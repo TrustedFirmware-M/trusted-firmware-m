@@ -200,6 +200,8 @@ enum sfcp_error_t sfcp_encryption_hal_hash_init(enum sfcp_encryption_hal_hash_al
         return SFCP_ERROR_HANDSHAKE_HASH_ALG_UNSUPPORTED;
     }
 
+    hash_op = psa_hash_operation_init();
+
     status = psa_hash_setup(&hash_op, psa_alg);
     if (status != PSA_SUCCESS) {
         return SFCP_ERROR_HANDSHAKE_HASH_FAILURE;
