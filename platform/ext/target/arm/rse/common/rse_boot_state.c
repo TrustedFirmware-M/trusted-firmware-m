@@ -7,26 +7,26 @@
 
 #include "rse_boot_state.h"
 
-#include "cc3xx_drv.h"
 #include "tfm_plat_otp.h"
 #include "device_definition.h"
 #ifdef PLATFORM_PSA_ADAC_SECURE_DEBUG
 #include "lcm_drv.h"
 #endif /* PLATFORM_PSA_ADAC_SECURE_DEBUG */
 #include "fatal_error.h"
+#include "psa/crypto.h"
 
 extern uint8_t computed_bl1_2_hash[];
 
 enum tfm_plat_err_t rse_get_boot_state(uint8_t *state, size_t state_buf_len,
                        size_t *state_size, boot_state_include_mask_t mask)
 {
-    cc3xx_err_t err;
-
     enum tfm_plat_err_t plat_err;
     enum lcm_error_t lcm_err;
     enum plat_otp_lcs_t lcs;
     enum lcm_tp_mode_t tp_mode;
     uint32_t reprovisioning_bits;
+    psa_hash_operation_t hash_op = psa_hash_operation_init();
+    psa_status_t status;
 
     if (mask == RSE_BOOT_STATE_INCLUDE_NONE) {
         *state_size = 0;
@@ -38,9 +38,9 @@ enum tfm_plat_err_t rse_get_boot_state(uint8_t *state, size_t state_buf_len,
         return TFM_PLAT_ERR_BOOT_STATE_OUTPUT_BUFFER_TOO_SMALL;
     }
 
-    err = cc3xx_lowlevel_hash_init(CC3XX_HASH_ALG_SHA256);
-    if (err != CC3XX_ERR_SUCCESS) {
-        return (enum tfm_plat_err_t)err;
+    status = psa_hash_setup(&hash_op, PSA_ALG_SHA_256);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
     }
 
     if (mask & RSE_BOOT_STATE_INCLUDE_TP_MODE) {
@@ -49,9 +49,9 @@ enum tfm_plat_err_t rse_get_boot_state(uint8_t *state, size_t state_buf_len,
             return (enum tfm_plat_err_t)lcm_err;
         }
 
-        err = cc3xx_lowlevel_hash_update((uint8_t *)&tp_mode, sizeof(tp_mode));
-        if (err != CC3XX_ERR_SUCCESS) {
-            return (enum tfm_plat_err_t)err;
+        status = psa_hash_update(&hash_op, (uint8_t *)&tp_mode, sizeof(tp_mode));
+        if (status != PSA_SUCCESS) {
+            return (enum tfm_plat_err_t)status;
         }
     }
 
@@ -61,9 +61,9 @@ enum tfm_plat_err_t rse_get_boot_state(uint8_t *state, size_t state_buf_len,
             return plat_err;
         }
 
-        err = cc3xx_lowlevel_hash_update((uint8_t *)&lcs, sizeof(lcs));
-        if (err != CC3XX_ERR_SUCCESS) {
-            return (enum tfm_plat_err_t)err;
+        status = psa_hash_update(&hash_op, (uint8_t *)&lcs, sizeof(lcs));
+        if (status != PSA_SUCCESS) {
+            return (enum tfm_plat_err_t)status;
         }
     }
 
@@ -75,16 +75,16 @@ enum tfm_plat_err_t rse_get_boot_state(uint8_t *state, size_t state_buf_len,
             return plat_err;
         }
 
-        err = cc3xx_lowlevel_hash_update((uint8_t *)&reprovisioning_bits, sizeof(reprovisioning_bits));
-        if (err != CC3XX_ERR_SUCCESS) {
-            return (enum tfm_plat_err_t)err;
+        status = psa_hash_update(&hash_op, (uint8_t *)&reprovisioning_bits, sizeof(reprovisioning_bits));
+        if (status != PSA_SUCCESS) {
+            return (enum tfm_plat_err_t)status;
         }
     }
 
     if (mask & RSE_BOOT_STATE_INCLUDE_BL1_2_HASH) {
-        err = cc3xx_lowlevel_hash_update(computed_bl1_2_hash, 32);
-        if (err != CC3XX_ERR_SUCCESS) {
-            return (enum tfm_plat_err_t)err;
+        status = psa_hash_update(&hash_op, computed_bl1_2_hash, 32);
+        if (status != PSA_SUCCESS) {
+            return (enum tfm_plat_err_t)status;
         }
     }
 
@@ -106,8 +106,10 @@ enum tfm_plat_err_t rse_get_boot_state(uint8_t *state, size_t state_buf_len,
     }
 #endif /* PLATFORM_PSA_ADAC_SECURE_DEBUG */
 
-    cc3xx_lowlevel_hash_finish((uint32_t *)state, SHA256_OUTPUT_SIZE);
-    *state_size = SHA256_OUTPUT_SIZE;
+    status = psa_hash_finish(&hash_op, state, SHA256_OUTPUT_SIZE, state_size);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
+    }
 
     return TFM_PLAT_ERR_SUCCESS;
 }
