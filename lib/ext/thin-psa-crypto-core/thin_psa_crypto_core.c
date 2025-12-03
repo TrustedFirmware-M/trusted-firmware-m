@@ -795,7 +795,7 @@ EXTERNAL_PSA_API(psa_key_derivation_output_bytes,
     assert(k0_length == SP800_108_K0_SIZE);
 
     for (size_t idx = ctx->counter; idx < num_blocks; idx++) {
-        const uint8_t *output_key_offset = ((uint8_t *) output) + (idx * PSA_AEAD_TAG_MAX_SIZE);
+        uint8_t *output_key_offset = ((uint8_t *) output) + (idx * PSA_AEAD_TAG_MAX_SIZE);
         const size_t tag_size = ((idx == num_blocks - 1) && (unaligned_block_size > 0)) ?
                                     unaligned_block_size : PSA_AEAD_TAG_MAX_SIZE;
         size_t tag_length = 0;
