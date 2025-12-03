@@ -356,6 +356,7 @@ void sau_and_idau_cfg(void)
     secctrl->cpuseccfg |= CPUSECCFG_LOCKSAU_POS_MASK;
 }
 
+#ifdef TFM_LOAD_NS_IMAGE
 static int32_t init_mpc_region_for_required_vms(uintptr_t base, uintptr_t limit,
                                                 enum _ARM_MPC_SEC_ATTR attr)
 {
@@ -395,6 +396,7 @@ static int32_t init_mpc_region_for_required_vms(uintptr_t base, uintptr_t limit,
 
     return ret;
 }
+#endif /* TFM_LOAD_NS_IMAGE */
 
 /*------------------- Memory configuration functions -------------------------*/
 enum tfm_plat_err_t mpc_init_cfg(void)
