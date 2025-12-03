@@ -36,6 +36,7 @@ class dcsu_tx_command(Enum):
     DCSU_TX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM = 0xD
     DCSU_TX_COMMAND_READ_COD_DATA = 0xE
     DCSU_TX_COMMAND_READ_EC_PARAMS = 0xF
+    DCSU_TX_COMMAND_SET_SE_DEV = 0x10
     DCSU_TX_COMMAND_SET_PS_FC = 0x11
     DCSU_TX_COMMAND_SET_FEATURE_CTRL = 0x12
 
@@ -406,6 +407,12 @@ def dcsu_tx_command_set_ps_fc(backend, ctx, args: argparse.Namespace):
 
     return res, None
 
+def dcsu_tx_command_set_se_dev(backend, ctx, args: argparse.Namespace):
+    res = tx_command_send(backend, ctx, dcsu_tx_command.DCSU_TX_COMMAND_SET_SE_DEV,
+                          param1=args.value)
+
+    return res, None
+
 def dcsu_tx_command_set_feature_control(backend, ctx, args: argparse.Namespace):
     data = int.from_bytes(_get_data_from_args(args), byteorder=args.byte_order)
     backend.write_register(ctx, "DIAG_RX_LARGE_PARAM", data)
@@ -434,6 +441,7 @@ def dcsu_command(backend, ctx, command, args: argparse.Namespace):
         dcsu_rx_command.DCSU_RX_COMMAND_IMPORT_READY: dcsu_rx_command_import_ready,
         dcsu_rx_command.DCSU_RX_COMMAND_REPORT_STATUS: dcsu_rx_command_report_status,
         dcsu_rx_command.DCSU_RX_COMMAND_EXPORT_DATA_NO_CHECKSUM: dcsu_rx_command_export_data,
+        dcsu_tx_command.DCSU_TX_COMMAND_SET_SE_DEV: dcsu_tx_command_set_se_dev,
         dcsu_tx_command.DCSU_TX_COMMAND_SET_PS_FC: dcsu_tx_command_set_ps_fc,
         dcsu_tx_command.DCSU_TX_COMMAND_SET_FEATURE_CTRL: dcsu_tx_command_set_feature_control,
     }
@@ -533,6 +541,10 @@ offset in the COD OTP area.
 The DCSU_TX_COMMAND_READ_EC_PARAMS command reads the data from the input
 offset in the endorsement certificate and params area.
 """,
+    "DCSU_TX_COMMAND_SET_SE_DEV": """
+The DCSU_TX_COMMAND_SET_SE_DEV command sets the SE_DEV soft life cycle state by updating the
+SE_DEV_CONTROL field in the OTP.
+""",
     "DCSU_TX_COMMAND_SET_PS_FC": """
 The DCSU_TX_COMMAND_SET_PS_FC command sets the PS_FC_i OTP fields, which represent the state
 of product specific feature controls (default, product-specific policy mode, locked, or invalid).
@@ -599,6 +611,9 @@ if __name__ == "__main__":
 
     for c in ["DCSU_TX_COMMAND_SET_PS_FC"]:
         parsers[c].add_argument("--number", help="Policy specific feature control number", type=int, choices=[1,2,3], required=True)
+
+    for c in ["DCSU_TX_COMMAND_SET_PS_FC",
+              "DCSU_TX_COMMAND_SET_SE_DEV"]:
         mgroup = parsers[c].add_mutually_exclusive_group(required=True)
         mgroup.add_argument("--enable", help="Enable control for the number", action="store_const", const=1, dest="value")
         mgroup.add_argument("--disable", help="Disable control for the number", action="store_const", const=2, dest="value")

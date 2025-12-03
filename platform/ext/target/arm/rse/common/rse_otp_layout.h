@@ -152,6 +152,11 @@ __PACKED_STRUCT rse_otp_dm_area_t {
     struct rse_otp_dm_rotpk_area_t rotpk_areas[RSE_OTP_DM_ROTPK_MAX_REVOCATIONS + 1];
 };
 
+__PACKED_STRUCT rse_otp_se_dev_control_ps_fc_t {
+    uint8_t se_dev_control;
+    uint8_t ps_fc[RSE_PS_FC_HANDLERS_NUM];
+};
+
 __PACKED_STRUCT rse_otp_dynamic_area_t {
     uint8_t cm_reprovisioning[COUNTER_BYTES(RSE_OTP_MAX_REPROVISIONINGS)];
     uint8_t cm_rotpk_revocation[COUNTER_BYTES(RSE_OTP_CM_ROTPK_MAX_REVOCATIONS)];
@@ -173,8 +178,11 @@ __PACKED_STRUCT rse_otp_dynamic_area_t {
 
 #ifdef RSE_SKU_ENABLED
     uint32_t feature_control;
-    uint8_t ps_fc[4];
 #endif /* RSE_SKU_ENABLED */
+
+#if defined(RSE_HAS_SE_DEV_SOFT_LCS) || defined(RSE_SKU_ENABLED)
+    struct rse_otp_se_dev_control_ps_fc_t se_dev_control_ps_fc;
+#endif
 
 #ifdef RSE_OTP_DYNAMIC_SUBPLATFORM_ITEMS
     struct rse_otp_subplatform_dynamic_area_t subplatform;
@@ -215,11 +223,13 @@ enum rse_otp_cm_policies_t {
     _CM_POLICIES_MAX_VALUE = UINT32_MAX
 };
 
-/* Product-specific feature control values stored in the OTP */
-enum rse_otp_product_specific_fc_values_t {
-    RSE_OTP_PS_FC_DISABLED = 0u,
-    RSE_OTP_PS_FC_VALUE_ENABLED = 2u,
-    RSE_OTP_PS_FC_VALUE_DISABLED_LOCKED = 7u
+/* SE-DEV control and product specific feature control possible
+ * values
+ */
+enum rse_otp_se_dev_control_ps_fc_valus_t {
+    RSE_OTP_SE_DEV_CONTROL_PS_FC_VALUE_DISABLED         = 0b000,
+    RSE_OTP_SE_DEV_CONTROL_PS_FC_VALUE_ENABLED          = 0b010,
+    RSE_OTP_SE_DEV_CONTROL_PS_FC_VALUE_DISABLED_LOCKED  = 0b111
 };
 
 /**

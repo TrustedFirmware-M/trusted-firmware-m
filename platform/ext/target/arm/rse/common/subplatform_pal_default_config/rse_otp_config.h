@@ -101,6 +101,8 @@
 #define RSE_OTP_ENDORSEMENT_CERTIFICATE_SIGNATURE_SIZE 0x60
 #define RSE_OTP_ENDORSEMENT_CERTIFICATE_PARAMETERS_SIZE 0x60
 
+#define RSE_PS_FC_HANDLERS_NUM 3
+
 /* 4 banks of NV counters are provided. Each bank must be a fixed size, so there
  * can be up to 4 different sizes of NV counters in the unlocked area, but with
  * unlimited amounts of each size of counter.

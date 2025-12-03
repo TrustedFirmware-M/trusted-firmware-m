@@ -39,7 +39,8 @@ enum runtime_provisioning_error_t runtime_provisioning_hal_init(void)
 #if defined(RSE_NON_ENDORSED_DM_PROVISIONING) || \
     defined(RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING) || \
     defined(RSE_ROTPK_REVOCATION) || \
-    defined(RSE_SKU_ENABLED)
+    defined(RSE_SKU_ENABLED) || \
+    defined(RSE_HAS_SE_DEV_SOFT_LCS)
     case LCM_LCS_SE:
         break;
 #endif

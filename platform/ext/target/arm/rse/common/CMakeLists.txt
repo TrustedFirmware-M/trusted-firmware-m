@@ -79,6 +79,7 @@ target_compile_definitions(platform_region_defs
         $<$<BOOL:${CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS}>:CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS>
         $<$<BOOL:${RSE_SKU_ENABLED}>:RSE_SKU_ENABLED>
         $<$<BOOL:${RSE_SUBPLATFORM_BOOT_MEASUREMENTS}>:RSE_SUBPLATFORM_BOOT_MEASUREMENTS>
+        $<$<BOOL:${RSE_HAS_SE_DEV_SOFT_LCS}>:RSE_HAS_SE_DEV_SOFT_LCS>
 )
 
 target_link_options(platform_region_defs
@@ -680,7 +681,7 @@ target_sources(platform_bl1_2
         device/source/system_core_init.c
         ./bl1/boot_hal_bl1_2.c
         ./bl1/bl1_2_debug.c
-        $<$<BOOL:${RSE_SKU_ENABLED}>:${CMAKE_CURRENT_SOURCE_DIR}/bl1/sku_feature_control.c>
+        ${CMAKE_CURRENT_SOURCE_DIR}/bl1/sku_se_dev.c
         ./sam_interrupts.c
         ./native_drivers/atu_rse_drv.c
         ./native_drivers/atu_rse_lib.c

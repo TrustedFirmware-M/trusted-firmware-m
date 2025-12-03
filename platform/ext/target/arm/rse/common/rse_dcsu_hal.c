@@ -96,10 +96,17 @@ enum dcsu_error_t dcsu_hal_get_field_offset(enum dcsu_otp_field_t field, uint32_
     case DCSU_OTP_FIELD_FEATURE_CTRL:
         *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->feature_control);
         break;
+#endif
+#ifdef RSE_SKU_ENABLED
     case DCSU_OTP_FIELD_PS_FC:
-        *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->ps_fc);
+        *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->se_dev_control_ps_fc.ps_fc);
         break;
 #endif /* RSE_SKU_ENABLED */
+#ifdef RSE_HAS_SE_DEV_SOFT_LCS
+    case DCSU_OTP_FIELD_SE_DEV_CONTROL:
+        *offset = OTP_OFFSET(P_RSE_OTP_DYNAMIC->se_dev_control_ps_fc.se_dev_control);
+        break;
+#endif
 #endif /* RSE_OTP_HAS_DYNAMIC_AREA */
     default:
         *offset = 0;
@@ -153,10 +160,17 @@ enum dcsu_error_t dcsu_hal_get_field_size(enum dcsu_otp_field_t field, uint32_t 
     case DCSU_OTP_FIELD_FEATURE_CTRL:
         *size = sizeof(P_RSE_OTP_DYNAMIC->feature_control);
         break;
+#endif /* RSE_SKU_ENABLED */
+#ifdef RSE_SKU_ENABLED
     case DCSU_OTP_FIELD_PS_FC:
-        *size = sizeof(P_RSE_OTP_DYNAMIC->ps_fc);
+        *size = sizeof(P_RSE_OTP_DYNAMIC->se_dev_control_ps_fc.ps_fc);
         break;
 #endif /* RSE_SKU_ENABLED */
+#ifdef RSE_HAS_SE_DEV_SOFT_LCS
+    case DCSU_OTP_FIELD_SE_DEV_CONTROL:
+        *size = sizeof(P_RSE_OTP_DYNAMIC->se_dev_control_ps_fc.se_dev_control);
+        break;
+#endif
 #endif /* RSE_OTP_HAS_DYNAMIC_AREA */
     default:
         *size = 0;

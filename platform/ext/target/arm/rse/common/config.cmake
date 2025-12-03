@@ -115,7 +115,8 @@ set(RSE_ENABLE_ROM_SELF_TESTS           OFF        CACHE BOOL "Whether the ROM w
 set(RSE_ENABLE_ECDSA_SELF_TEST          ON         CACHE BOOL "Whether the ECDSA self test is enabled when RSE_ENABLE_ROM_SELF_TESTS is set")
 set(RSE_ENABLE_KDF_CMAC_SELF_TEST       ON         CACHE BOOL "Whether the AES-CMAC KDF self test is enabled when RSE_ENABLE_ROM_SELF_TESTS is set")
 
-set(RSE_SKU_ENABLED                     OFF        CACHE STRING "Enable stock keeping unit based feature control")
+set(RSE_HAS_SE_DEV_SOFT_LCS             OFF        CACHE BOOL "Whether RSE has support for software defined SE-DEV LCS")
+set(RSE_SKU_ENABLED                     OFF        CACHE BOOL "Enable stock keeping unit based feature control")
 ######################### BL2 ##################################################
 
 set(MCUBOOT_IMAGE_NUMBER              4          CACHE STRING   "Number of images supported by MCUBoot")
