@@ -404,7 +404,7 @@ enum kmu_error_t kmu_get_key(struct kmu_dev_t *dev, uint32_t slot, uint8_t *buf,
 
     err = kmu_get_key_locked(dev, slot);
     if (err != KMU_ERROR_NONE) {
-        FATAL_ERR(err);
+        NONFATAL_ERR(err);
         return err;
     }
 
