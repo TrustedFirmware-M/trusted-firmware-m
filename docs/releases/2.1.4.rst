@@ -1,0 +1,19 @@
+*************
+Version 2.1.4
+*************
+
+LTS Support
+===========
+
+ - Upgrade to MbedTLS v3.6.5, which contains security advisories [1]_.
+
+Reference
+=========
+
+.. [1] `Mbed TLS 3.6.5 <https://github.com/Mbed-TLS/mbedtls/releases/tag/mbedtls-3.6.5>`_
+
+--------------
+
+ *SPDX-License-Identifier: BSD-3-Clause*
+
+ *SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
