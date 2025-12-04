@@ -304,21 +304,10 @@ install(FILES
         ${PLATFORM_DIR}/include/tfm_plat_ns.h
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/include)
 
-if (TARGET psa_crypto_config)
-# FIXIT: This is a temporal patch to reduce the change scope and simplify review.
-# In the future we shall decouple this target from tfm_config becuase
-# "psa_crypto_config" target exists not in all configurations.
-# Functionally "psa_crypto_config" provides only include path for Crypto accelerator.
 install(TARGETS tfm_config psa_crypto_config psa_interface
         DESTINATION ${CMAKE_INSTALL_PREFIX}
         EXPORT tfm-config
         )
-else()
-        install(TARGETS tfm_config psa_interface
-        DESTINATION ${CMAKE_INSTALL_PREFIX}
-        EXPORT tfm-config
-        )
-endif()
 
 target_include_directories(psa_interface
         INTERFACE
