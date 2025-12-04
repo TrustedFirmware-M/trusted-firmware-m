@@ -108,6 +108,7 @@ enum tfm_plat_err_t tfm_plat_get_cert_ref(uint32_t *size, uint8_t *buf)
     return TFM_PLAT_ERR_UNSUPPORTED;
 }
 
+#if ATTEST_TOKEN_PROFILE_ARM_CCA
 enum tfm_plat_err_t tfm_attest_hal_get_platform_config(uint32_t *size,
                                                        uint8_t  *buf)
 {
@@ -152,6 +153,7 @@ enum tfm_plat_err_t tfm_attest_hal_get_platform_config(uint32_t *size,
 
     return TFM_PLAT_ERR_SUCCESS;
 }
+#endif /* ATTEST_TOKEN_PROFILE_ARM_CCA */
 
 enum tfm_plat_err_t tfm_attest_hal_get_platform_hash_algo(uint32_t *size,
                                                           const char **buf)
