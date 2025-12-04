@@ -387,67 +387,6 @@ fih_ret bl1_hash_compute(enum tfm_bl1_hash_alg_t alg,
     FIH_RET(fih_rc);
 }
 
-fih_ret bl1_aes_256_ctr_decrypt(enum tfm_bl1_key_id_t key_id,
-                                const uint8_t *key_material,
-                                uint8_t *counter,
-                                const uint8_t *ciphertext,
-                                size_t ciphertext_length,
-                                uint8_t *plaintext)
-{
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-    int rc = 0;
-    uint8_t stream_block[16];
-    uint8_t key_buf[32];
-    size_t key_size;
-    mbedtls_aes_context ctx;
-    size_t nc_off = 0;
-    const uint8_t *input_key = key_buf;
-
-    if (ciphertext_length == 0) {
-        FIH_RET(FIH_SUCCESS);
-    }
-
-    if ((ciphertext == NULL) || (plaintext == NULL) || (counter == NULL)) {
-        FIH_RET(FIH_FAILURE);
-    }
-
-    if (key_material == NULL) {
-        FIH_CALL(bl1_otp_read_key, fih_rc, key_id, key_buf, sizeof(key_buf), &key_size);
-        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-            FIH_RET(fih_rc);
-        }
-    } else {
-        input_key = key_material;
-        key_size = 32;
-    }
-
-
-    if (!mbedtls_is_initialised) {
-        mbedtls_init(mbedtls_memory_buf, sizeof(mbedtls_memory_buf));
-        mbedtls_is_initialised = 1;
-    }
-
-    mbedtls_aes_init(&ctx);
-
-    rc = mbedtls_aes_setkey_enc(&ctx, input_key, key_size * 8);
-    fih_rc = fih_ret_encode_zero_equality(rc);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        goto out;
-    }
-
-    rc = mbedtls_aes_crypt_ctr(&ctx, ciphertext_length, &nc_off, counter,
-                               stream_block, ciphertext, plaintext);
-    fih_rc = fih_ret_encode_zero_equality(rc);
-
-out:
-    mbedtls_aes_free(&ctx);
-
-    memset(key_buf, 0, 32);
-    memset(stream_block, 0, 16);
-
-    FIH_RET(fih_rc);
-}
-
 #if defined(MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG)
 psa_status_t mbedtls_psa_external_get_random(
     mbedtls_psa_external_random_context_t *context,

@@ -93,65 +93,6 @@ static cc3xx_ec_curve_id_t bl1_curve_to_cc3xx_curve(enum tfm_bl1_ecdsa_curve_t b
     };
 }
 
-fih_ret bl1_aes_256_ctr_decrypt(enum tfm_bl1_key_id_t key_id,
-                                const uint8_t *key_material,
-                                uint8_t *counter,
-                                const uint8_t *ciphertext,
-                                size_t ciphertext_length,
-                                uint8_t *plaintext)
-{
-    enum kmu_hardware_keyslot_t kmu_key_slot;
-    uint32_t key_buf[32 / sizeof(uint32_t)];
-    uint8_t *input_key = (uint8_t *)key_buf;
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-    cc3xx_err_t cc_err;
-
-    if (ciphertext_length == 0) {
-        FIH_RET(FIH_SUCCESS);
-    }
-
-    if ((counter == NULL) || (ciphertext == NULL) || (plaintext == NULL)) {
-        fih_rc = fih_ret_encode_zero_equality(TFM_PLAT_ERR_ROM_CRYPTO_AES256_CTR_DECRYPT_INVALID_INPUT);
-        FIH_RET(fih_rc);
-    }
-
-    if ((uintptr_t)counter & 0x3) {
-        fih_rc = fih_ret_encode_zero_equality(TFM_PLAT_ERR_ROM_CRYPTO_AES256_CTR_DECRYPT_INVALID_ALIGNMENT);
-        FIH_RET(fih_rc);
-    }
-
-    if (key_material == NULL) {
-        FIH_CALL(bl1_key_to_kmu_key, fih_rc, key_id, &kmu_key_slot, &input_key, sizeof(key_buf));
-        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-            FIH_RET(fih_rc);
-        }
-    } else {
-        input_key = (uint8_t *)key_material;
-        kmu_key_slot = KMU_INVALID_SLOT;
-    }
-
-    cc_err = cc3xx_lowlevel_aes_init(CC3XX_AES_DIRECTION_DECRYPT, CC3XX_AES_MODE_CTR,
-                                     kmu_key_slot, (uint32_t *)input_key,
-                                     CC3XX_AES_KEYSIZE_256, (uint32_t *)counter, 16);
-    if (cc_err != CC3XX_ERR_SUCCESS) {
-        fih_rc = fih_ret_encode_zero_equality(cc_err);
-        FIH_RET(fih_rc);
-    }
-
-    cc3xx_lowlevel_aes_set_output_buffer(plaintext, ciphertext_length);
-
-    cc_err = cc3xx_lowlevel_aes_update(ciphertext, ciphertext_length);
-    if (cc_err != CC3XX_ERR_SUCCESS) {
-        fih_rc = fih_ret_encode_zero_equality(cc_err);
-        FIH_RET(fih_rc);
-    }
-
-    /* Safely ignore the returned value, this API does not return an error for CTR mode */
-    (void) cc3xx_lowlevel_aes_finish(NULL, NULL);
-
-    FIH_RET(FIH_SUCCESS);
-}
-
 fih_ret bl1_derive_key(enum tfm_bl1_key_id_t key_id, const uint8_t *label,
                        size_t label_length, const uint8_t *context,
                        size_t context_length, uint32_t *output_key,

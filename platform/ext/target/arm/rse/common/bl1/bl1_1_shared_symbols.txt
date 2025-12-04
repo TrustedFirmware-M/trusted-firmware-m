@@ -25,7 +25,6 @@ atu_rse_drv_deinit
 atu_rse_map_addr_to_log_addr
 atu_rse_map_addr_automatically
 atu_rse_free_addr
-bl1_aes_256_ctr_decrypt
 bl1_derive_key
 bl1_otp_read_key
 bl1_otp_get_key_type

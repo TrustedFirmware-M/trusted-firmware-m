@@ -310,66 +310,6 @@ static int32_t bl1_key_to_cc3xx_key(enum tfm_bl1_key_id_t key_id,
     return 0;
 }
 
-fih_ret bl1_aes_256_ctr_decrypt(enum tfm_bl1_key_id_t key_id,
-                                const uint8_t *key_material,
-                                uint8_t *counter,
-                                const uint8_t *ciphertext,
-                                size_t ciphertext_length,
-                                uint8_t *plaintext)
-{
-    cc3xx_aes_key_id_t cc3xx_key_type;
-    uint32_t key_buf[32 / sizeof(uint32_t)];
-    FIH_DECLARE(fih_rc, FIH_FAILURE);
-    int32_t rc = 0;
-    const uint8_t *input_key = key_buf;
-    cc3xx_err_t err;
-
-    if (ciphertext_length == 0) {
-        FIH_RET(FIH_SUCCESS);
-    }
-
-    if ((counter == NULL) || (ciphertext == NULL) || (plaintext == NULL)) {
-        FIH_RET(FIH_FAILURE);
-    }
-
-    if ((uintptr_t)counter & 0x3) {
-        FIH_RET(FIH_FAILURE);
-    }
-
-    if (key_material == NULL) {
-        rc = bl1_key_to_cc3xx_key(key_id, &cc3xx_key_type, (uint8_t *)key_buf,
-                                  sizeof(key_buf));
-        fih_rc = fih_ret_encode_zero_equality(rc);
-        if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-            FIH_RET(fih_rc);
-        }
-    } else {
-        cc3xx_key_type = CC3XX_AES_KEY_ID_USER_KEY;
-        input_key = key_material;
-    }
-
-    err = cc3xx_lowlevel_aes_init(CC3XX_AES_DIRECTION_DECRYPT, CC3XX_AES_MODE_CTR,
-                                  cc3xx_key_type, input_key, CC3XX_AES_KEYSIZE_256,
-                                  (uint32_t *)counter, 16);
-    fih_rc = fih_ret_encode_zero_equality(err);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
-    }
-
-    cc3xx_lowlevel_aes_set_output_buffer(plaintext, ciphertext_length);
-
-    err = cc3xx_lowlevel_aes_update(ciphertext, ciphertext_length);
-    fih_rc = fih_ret_encode_zero_equality(err);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
-    }
-
-    /* Safely ignore the returned value, this API does not return an error for CTR mode */
-    (void) cc3xx_lowlevel_aes_finish(NULL, NULL);
-
-    FIH_RET(FIH_SUCCESS);
-}
-
 static int32_t aes_256_ecb_encrypt(enum tfm_bl1_key_id_t key_id,
                                    const uint8_t *plaintext,
                                    size_t ciphertext_length,

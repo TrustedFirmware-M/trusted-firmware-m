@@ -1,7 +1,6 @@
 Driver_FLASH1
 KMU_DEV_S
 SystemInit
-bl1_aes_256_ctr_decrypt
 bl1_derive_key
 bl1_otp_read_key
 bl1_hash_compute

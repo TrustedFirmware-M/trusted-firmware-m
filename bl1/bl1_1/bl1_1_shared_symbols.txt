@@ -11,7 +11,6 @@ Driver_FLASH0_EraseChip
 ARM_Flash_GetStatus
 Driver_FLASH0_GetInfo
 SystemInit
-bl1_aes_256_ctr_decrypt
 bl1_derive_key
 bl1_otp_read_key
 bl1_otp_get_key_type

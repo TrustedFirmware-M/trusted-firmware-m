@@ -147,27 +147,6 @@ fih_ret bl1_hash_finish(uint8_t *hash,
                         size_t hash_length,
                         size_t *hash_size);
 /**
- * @brief Performs AES-256 decryption in Counter mode
- *
- * @note  In Counter (CTR) mode encryption and decryption
- *        are implemented in the same way
- *
- * @param[in]     key_id             Key ID of type \ref tfm_bl1_key_id_t
- * @param[in]     key_material       If TFM_BL1_KEY_USER, this contains key material
- * @param[in,out] counter            Value of the counter to be used for CTR mode
- * @param[in]     ciphertext         Buffer containing the bytes to decrypt
- * @param[in]     ciphertext_length  Size in bytes of the \p ciphertext buffer
- * @param[out]    plaintext          Buffer containing the decrypted bytes
- *
- * @return int32_t 0 on success, non-zero on error
- */
-fih_ret bl1_aes_256_ctr_decrypt(enum tfm_bl1_key_id_t key_id,
-                                const uint8_t *key_material,
-                                uint8_t *counter,
-                                const uint8_t *ciphertext,
-                                size_t ciphertext_length,
-                                uint8_t *plaintext);
-/**
  * @brief Derives a key using a cryptographic method which depends on the underlying
  *        platform capabilities
  *

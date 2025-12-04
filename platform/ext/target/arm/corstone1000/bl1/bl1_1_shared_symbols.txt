@@ -1,7 +1,6 @@
 Driver_FLASH0
 Driver_FLASH1
 SystemInit
-bl1_aes_256_ctr_decrypt
 bl1_derive_key
 bl1_get_active_bl2_image
 bl1_otp_read_key

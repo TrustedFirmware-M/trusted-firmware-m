@@ -812,62 +812,6 @@ pointer is ``NULL`` in which case it MUST NOT be set.
 This function MUST NOT be called if ``bl1_hash_init`` has not been
 called.
 
-``bl1_aes_256_ctr_decrypt``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code:: c
-
-   fih_int bl1_aes_256_ctr_decrypt(enum tfm_bl1_key_id_t key_id,
-                                   const uint8_t *key_material,
-                                   uint8_t *counter,
-                                   const uint8_t *ciphertext,
-                                   size_t ciphertext_length,
-                                   uint8_t *plaintext);
-
-This function computes an AES-CTR decryption with a 256 bit key in a
-single call. All data to be decrypted must be in a contiguous buffer and
-be available when this function is called.
-
-This function MUST decrypt the data at the ``ciphertext`` pointer of
-size ``ciphertext_length``.
-
-The decrypted data MUST be output to the ``plaintext`` pointer, and must
-be exactly ``ciphertext_length`` in size.
-
-If the ``key_id`` is ``TFM_BL1_KEY_HUK``, then ``KMU_HW_SLOT_HUK`` MUST
-be used in the operation, by the mechanism of being exported from the
-KMU directly to the cryptographic accelerator. If this key slot in the
-KMU is not valid, this operation MUST return an error. Any key material
-passed in ``key_material`` MUST be ignored.
-
-If the ``key_id`` is ``TFM_BL1_KEY_GUK``, then ``KMU_HW_SLOT_GUK`` MUST
-be used in the operation, by the mechanism of being exported from the
-KMU directly to the cryptographic accelerator. If this key slot in the
-KMU is not valid, this operation MUST return an error. Any key material
-passed in ``key_material`` MUST be ignored.
-
-If the ``key_id`` is ``TFM_BL1_KEY_BL2_ENCRYPTION``, then
-``RSE_KMU_SLOT_CM_IMAGE_ENCRYPTION_KEY`` MUST be used in the operation,
-by the mechanism of being exported from the KMU directly to the
-cryptographic accelerator. If this key slot in the KMU is not valid,
-this operation MUST return an error. Any key material passed in
-``key_material`` MUST be ignored.
-
-If the ``key_id`` is ``TFM_BL1_KEY_USER``, then the key passed in the
-``key_material`` argument MUST be used in the operation. The ``key_id``
-pointer MUST point to a buffer of at least 32 bytes (256 bits) in size.
-The key input copying MUST implement the required `side-channel
-protections for Secret Handling <#secret-handling-countermeasures>`__.
-
-If the ``key_id`` is any other value, an error MUST be returned.
-
-The implementation MUST pass all NIST CAVP vectors for `AES Known-Answer
-Tests <https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Algorithm-Validation-Program/documents/aes/KAT_AES.zip>`__
-where the key length is 256 bits and the mode is CTR.
-
-This function MUST implement the required `side-channel protections for
-AES <#aes-countermeasures>`__.
-
 ``bl1_derive_key``
 ~~~~~~~~~~~~~~~~~~
 
