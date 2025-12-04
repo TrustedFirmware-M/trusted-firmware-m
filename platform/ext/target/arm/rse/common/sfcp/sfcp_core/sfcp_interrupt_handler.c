@@ -69,14 +69,16 @@ static enum sfcp_error_t send_protocol_error(sfcp_node_id_t node_id, sfcp_node_i
     {
         enum sfcp_error_t sfcp_error;
 
-        sfcp_error = sfcp_convert_to_legacy_error_reply(
-            (uint8_t *)&packet, SFCP_PACKET_SIZE_ERROR_REPLY, sfcp_legacy_conversion_buffer,
-            sizeof(sfcp_legacy_conversion_buffer), SFCP_PACKET_SIZE_ERROR_REPLY, &output_msg_size);
-        if (sfcp_error != SFCP_ERROR_SUCCESS) {
+        sfcp_error = sfcp_convert_to_legacy((uint8_t *)&packet, SFCP_PACKET_SIZE_ERROR_REPLY,
+                                            sfcp_legacy_conversion_buffer,
+                                            sizeof(sfcp_legacy_conversion_buffer), &output_msg_size,
+                                            link_id, my_node_id,
+                                            SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY);
+        if (sfcp_error == SFCP_ERROR_SUCCESS) {
+            packet_ptr = (struct sfcp_packet_t *)sfcp_legacy_conversion_buffer;
+        } else if (sfcp_error != SFCP_ERROR_LEGACY_FORMAT_CONVERSION_NOT_REQUIRED) {
             return sfcp_error;
         }
-
-        packet_ptr = (struct sfcp_packet_t *)sfcp_legacy_conversion_buffer;
     }
 #endif
 
@@ -137,31 +139,32 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
     }
 
 #ifdef SFCP_SUPPORT_LEGACY_MSG_PROTOCOL
-    sfcp_err = sfcp_convert_from_legacy_msg(allocated_buffer, message_size,
-                                            sfcp_legacy_conversion_buffer,
-                                            sizeof(sfcp_legacy_conversion_buffer), &message_size,
-                                            link_id, my_node_id);
-    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+    sfcp_err = sfcp_convert_from_legacy(allocated_buffer, message_size,
+                                        sfcp_legacy_conversion_buffer,
+                                        sizeof(sfcp_legacy_conversion_buffer), &message_size,
+                                        link_id, my_node_id, SFCP_PACKET_TYPE_MSG_NEEDS_REPLY);
+    if (sfcp_err == SFCP_ERROR_SUCCESS) {
+        /* In the case we received a legacy message, the size of the message could have changed
+        * so pop and re-allocated a buffer with the new size */
+        sfcp_err = sfcp_pop_handler_buffer(buffer_handle);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            /* The buffer handle should be valid */
+            assert(false);
+            return sfcp_err;
+        }
+
+        sfcp_err = allocate_get_buffer(&buffer_handle, message_size, &allocated_buffer);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            protocol_err = allocate_error_to_protocol_error(sfcp_err);
+            buffer_allocation_failure = true;
+            goto out_error;
+        }
+
+        memcpy(allocated_buffer, sfcp_legacy_conversion_buffer, message_size);
+
+    } else if (sfcp_err != SFCP_ERROR_LEGACY_FORMAT_CONVERSION_NOT_REQUIRED) {
         return sfcp_err;
     }
-
-    /* In the case we received a legacy message, the size of the message could have changed
-     * so pop and re-allocated a buffer with the new size */
-    sfcp_err = sfcp_pop_handler_buffer(buffer_handle);
-    if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        /* The buffer handle should be valid */
-        assert(false);
-        return sfcp_err;
-    }
-
-    sfcp_err = allocate_get_buffer(&buffer_handle, message_size, &allocated_buffer);
-    if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        protocol_err = allocate_error_to_protocol_error(sfcp_err);
-        buffer_allocation_failure = true;
-        goto out_error;
-    }
-
-    memcpy(allocated_buffer, sfcp_legacy_conversion_buffer, message_size);
 #endif
 
     packet = (struct sfcp_packet_t *)allocated_buffer;

@@ -253,6 +253,7 @@ static enum sfcp_error_t send_msg_reply(struct sfcp_packet_t *packet, size_t pac
     sfcp_link_id_t link_id;
     size_t packet_transfer_size;
     sfcp_node_id_t remote_node;
+    sfcp_node_id_t my_node_id;
 
     if (packet == NULL) {
         return SFCP_ERROR_INVALID_PACKET;
@@ -264,7 +265,13 @@ static enum sfcp_error_t send_msg_reply(struct sfcp_packet_t *packet, size_t pac
 
     uses_cryptography = GET_METADATA_FIELD(USES_CRYPTOGRAPHY, packet->header.metadata);
     uses_id_extension = GET_METADATA_FIELD(USES_ID_EXTENSION, packet->header.metadata);
-    remote_node = is_msg ? packet->header.receiver_id : packet->header.sender_id;
+    if (is_msg) {
+        remote_node = packet->header.receiver_id;
+        my_node_id = packet->header.sender_id;
+    } else {
+        remote_node = packet->header.sender_id;
+        my_node_id = packet->header.receiver_id;
+    }
 
     if (packet_size < SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(uses_cryptography, uses_id_extension)) {
         return SFCP_ERROR_MESSAGE_TOO_SMALL;
@@ -304,25 +311,15 @@ static enum sfcp_error_t send_msg_reply(struct sfcp_packet_t *packet, size_t pac
     }
 
 #ifdef SFCP_SUPPORT_LEGACY_MSG_PROTOCOL
-    if (is_msg) {
-        sfcp_err = sfcp_convert_to_legacy_msg((uint8_t *)packet, packet_transfer_size,
-                                                sfcp_legacy_conversion_buffer,
-                                                sizeof(sfcp_legacy_conversion_buffer),
-                                                &packet_transfer_size);
-        if (sfcp_err != SFCP_ERROR_SUCCESS) {
-            return sfcp_err;
-        }
-    } else {
-        sfcp_err = sfcp_convert_to_legacy_reply((uint8_t *)packet, packet_transfer_size,
-                                                sfcp_legacy_conversion_buffer,
-                                                sizeof(sfcp_legacy_conversion_buffer),
-                                                &packet_transfer_size);
-        if (sfcp_err != SFCP_ERROR_SUCCESS) {
-            return sfcp_err;
-        }
+    sfcp_err = sfcp_convert_to_legacy(
+        (uint8_t *)packet, packet_transfer_size, sfcp_legacy_conversion_buffer,
+        sizeof(sfcp_legacy_conversion_buffer), &packet_transfer_size, link_id, my_node_id,
+        is_msg ? SFCP_PACKET_TYPE_MSG_NEEDS_REPLY : SFCP_PACKET_TYPE_REPLY);
+    if (sfcp_err == SFCP_ERROR_SUCCESS) {
+        packet = (struct sfcp_packet_t *)sfcp_legacy_conversion_buffer;
+    } else if (sfcp_err != SFCP_ERROR_LEGACY_FORMAT_CONVERSION_NOT_REQUIRED) {
+        return sfcp_err;
     }
-
-    packet = (struct sfcp_packet_t *)sfcp_legacy_conversion_buffer;
 #endif
 
     return __send_msg_reply(remote_node, link_id, packet, packet_transfer_size, is_msg);
@@ -420,13 +417,33 @@ static enum sfcp_error_t send_protocol_error(sfcp_node_id_t sender_id, sfcp_node
                                              uint8_t message_id, enum sfcp_protocol_error_t error)
 {
     struct sfcp_packet_t packet;
+    struct sfcp_packet_t *packet_ptr = &packet;
     enum sfcp_hal_error_t hal_error;
+    size_t output_msg_size;
 
-    sfcp_helpers_generate_protocol_error_packet(&packet, sender_id, receiver_id, link_id, client_id,
-                                                message_id, error);
+    sfcp_helpers_generate_protocol_error_packet(packet_ptr, sender_id, receiver_id, link_id,
+                                                client_id, message_id, error);
 
-    hal_error =
-        sfcp_hal_send_message(link_id, (const uint8_t *)&packet, SFCP_PACKET_SIZE_ERROR_REPLY);
+    output_msg_size = SFCP_PACKET_SIZE_ERROR_REPLY;
+
+#ifdef SFCP_SUPPORT_LEGACY_MSG_PROTOCOL
+    {
+        enum sfcp_error_t sfcp_error;
+
+        sfcp_error = sfcp_convert_to_legacy((uint8_t *)&packet, SFCP_PACKET_SIZE_ERROR_REPLY,
+                                            sfcp_legacy_conversion_buffer,
+                                            sizeof(sfcp_legacy_conversion_buffer), &output_msg_size,
+                                            link_id, receiver_id,
+                                            SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY);
+        if (sfcp_error == SFCP_ERROR_SUCCESS) {
+            packet_ptr = (struct sfcp_packet_t *)sfcp_legacy_conversion_buffer;
+        } else if (sfcp_error != SFCP_ERROR_LEGACY_FORMAT_CONVERSION_NOT_REQUIRED) {
+            return sfcp_error;
+        }
+    }
+#endif
+
+    hal_error = sfcp_hal_send_message(link_id, (const uint8_t *)packet_ptr, output_msg_size);
     if (hal_error != SFCP_HAL_ERROR_SUCCESS) {
         return sfcp_hal_error_to_sfcp_error(hal_error);
     }
