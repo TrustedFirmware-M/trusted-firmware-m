@@ -27,6 +27,10 @@ if(BL2)
     target_sources(bl2
         PRIVATE
             ${CMAKE_CURRENT_LIST_DIR}/device/source/startup_mps4_corstone3xx.c
+            ${MBEDCRYPTO_PATH}/library/constant_time.c
+            ${MBEDCRYPTO_PATH}/library/cipher.c
+            ${MBEDCRYPTO_PATH}/library/cipher_wrap.c
+            ${MBEDCRYPTO_PATH}/library/psa_crypto_cipher.c
     )
 
     target_add_scatter_file(bl2
@@ -353,6 +357,9 @@ target_sources(bl1_1_psa_crypto
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/hkdf.c>
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/constant_time.c>
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/psa_crypto_mac.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/cipher.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/cipher_wrap.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/psa_crypto_cipher.c>
 )
 
 if (NOT ${CONFIG_TFM_INCLUDE_STDLIBC})

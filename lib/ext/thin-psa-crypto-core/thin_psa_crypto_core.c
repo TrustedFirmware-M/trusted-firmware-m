@@ -1236,7 +1236,6 @@ psa_status_t psa_driver_wrapper_export_public_key(
     return PSA_SUCCESS;
 }
 
-#if defined(MCUBOOT_ENC_IMAGES)
 psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation)
 {
     assert(operation != NULL);
@@ -1263,20 +1262,39 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
                                      mbedtls_operation_t cipher_operation)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    const uint8_t *key_buffer;
+    size_t key_buffer_size;
 
     assert(operation != NULL);
     assert(!operation->id);
     assert(PSA_ALG_IS_CIPHER(alg));
 
-    if (is_key_builtin(key)) {
-        status = get_symmetric_builtin_key(key, alg);
+    /* Prefer static slot if it matches */
+    if (g_key_slot.is_valid && (g_key_slot.key_id == key)) {
+        status = psa_get_key_attributes(key, &attributes);
         if (status != PSA_SUCCESS) {
-            FATAL_ERR(status);
             return status;
         }
-    } else {
-        assert(g_key_slot.is_valid && (g_key_slot.key_id == key));
+        key_buffer      = g_key_slot.buf;
+        key_buffer_size = g_key_slot.len;
     }
+#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
+    else {
+        status = cc3xx_opaque_keys_attr_init(&attributes, key, alg,
+                                             &key_buffer, &key_buffer_size);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+
+    }
+#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
+
+    if (status == PSA_ERROR_INVALID_HANDLE) {
+        FATAL_ERR(status);
+        return status;
+    }
+
     operation->iv_set = 0;
     if (alg == PSA_ALG_ECB_NO_PADDING) {
         operation->iv_required = 0;
@@ -1287,19 +1305,18 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     /* Try doing the operation through a driver before using software fallback. */
     if (cipher_operation == MBEDTLS_ENCRYPT) {
         status = psa_driver_wrapper_cipher_encrypt_setup(operation,
-                                                         &g_key_slot.attr,
-                                                         g_key_slot.buf,
-                                                         g_key_slot.len,
+                                                         &attributes,
+                                                         key_buffer,
+                                                         key_buffer_size,
                                                          alg);
     } else {
         status = psa_driver_wrapper_cipher_decrypt_setup(operation,
-                                                         &g_key_slot.attr,
-                                                         g_key_slot.buf,
-                                                         g_key_slot.len,
+                                                         &attributes,
+                                                         key_buffer,
+                                                         key_buffer_size,
                                                          alg);
     }
 
-exit:
     if (status != PSA_SUCCESS) {
         FATAL_ERR(status);
         psa_cipher_abort(operation);
@@ -1413,6 +1430,7 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
     return PSA_SUCCESS;
 }
 
+#if defined(MCUBOOT_ENC_IMAGES)
 void psa_reset_key_attributes(psa_key_attributes_t *attributes)
 {
     assert(attributes != NULL);
