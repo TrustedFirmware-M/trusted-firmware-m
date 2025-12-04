@@ -1365,7 +1365,7 @@ psa_status_t psa_cipher_set_iv(psa_cipher_operation_t *operation,
     assert(operation != NULL);
     assert(operation->id != 0);
     assert(!!operation->iv_required);
-    assert(!iv_set);
+    assert(!operation->iv_set);
     assert(iv_length <= PSA_CIPHER_IV_MAX_SIZE);
 
     status = psa_driver_wrapper_cipher_set_iv(operation,
