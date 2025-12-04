@@ -14,6 +14,7 @@ extern "C" {
 
 #define PSA_WANT_ALG_CTR                        1
 #define PSA_WANT_ALG_SHA_256                    1
+#define PSA_WANT_ALG_SP800_108_COUNTER_CMAC     1
 #define PSA_WANT_KEY_TYPE_AES                   1
 
 #define MBEDTLS_PLATFORM_C

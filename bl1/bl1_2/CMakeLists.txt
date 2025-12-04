@@ -185,7 +185,7 @@ add_custom_command(OUTPUT bl2_signed.bin
                     --image_security_counter ${TFM_BL1_IMAGE_SECURITY_COUNTER_BL2}
                     $<$<BOOL:${TFM_BL1_2_IMAGE_ENCRYPTION}>:--encrypt_key=${TFM_BL2_ENCRYPTION_KEY_PATH}>
                     $<$<BOOL:${TFM_BL1_2_IMAGE_ENCRYPTION}>:--encrypt_alg=AES_CTR>
-                    $<$<BOOL:${TFM_BL1_2_IMAGE_ENCRYPTION}>:--kdf_alg=$<IF:$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>,hkdf,sp800-108_cmac>>
+                    $<$<BOOL:${TFM_BL1_2_IMAGE_ENCRYPTION}>:--kdf_alg=sp800-108_cmac>
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/bl2_signed.bin ${bin_dir}
 )
 

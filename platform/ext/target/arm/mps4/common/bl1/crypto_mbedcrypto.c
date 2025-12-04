@@ -8,10 +8,9 @@
 #include "bl1_crypto.h"
 
 #include <string.h>
-#include "mbedtls/sha256.h"
-#include "mbedtls/sha512.h"
-#include "mbedtls/aes.h"
-#include "mbedtls/hkdf.h"
+#include "mbedtls/private/sha256.h"
+#include "mbedtls/private/sha512.h"
+#include "mbedtls/private/aes.h"
 #include "mbedtls/md.h"
 #include "mbedtls/memory_buffer_alloc.h"
 #include "otp.h"
@@ -35,37 +34,70 @@ fih_ret bl1_derive_key(enum tfm_bl1_key_id_t input_key, const uint8_t *label,
                        size_t output_length)
 {
     FIH_DECLARE(fih_rc, FIH_FAILURE);
-    int rc = 0;
-    uint8_t state[64] = {0};
+    psa_status_t status;
+    psa_key_derivation_operation_t op = PSA_KEY_DERIVATION_OPERATION_INIT;
     uint8_t key_buf[32] = {0};
     size_t key_size;
-    uint32_t state_len = context_length + label_length;
-    const mbedtls_md_info_t *sha256_info = NULL;
-
-    if (state_len > sizeof(state)) {
-        FIH_RET(FIH_FAILURE);
-    }
-
-    memcpy(state, label, label_length);
-    memcpy(&state[label_length], context, context_length);
-
-    if (!mbedtls_is_initialised) {
-        mbedtls_init(mbedtls_memory_buf, sizeof(mbedtls_memory_buf));
-        mbedtls_is_initialised = 1;
-    }
 
     FIH_CALL(bl1_otp_read_key, fih_rc, input_key, key_buf, sizeof(key_buf), &key_size);
     if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         FIH_RET(fih_rc);
     }
 
-    sha256_info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
+    psa_key_attributes_t input_key_attr = PSA_KEY_ATTRIBUTES_INIT;
+    psa_key_id_t input_key_id = MBEDTLS_SVC_KEY_ID_INIT;
 
-    rc = mbedtls_hkdf(sha256_info, NULL, 0, key_buf,
-                      key_size, state, state_len,
-                      (uint8_t *)output_key, output_length);
+    psa_set_key_type(&input_key_attr, PSA_KEY_TYPE_AES);
+    psa_set_key_algorithm(&input_key_attr, PSA_ALG_SP800_108_COUNTER_CMAC);
+    psa_set_key_bits(&input_key_attr, (key_size * 8));
+    psa_set_key_usage_flags(&input_key_attr, PSA_KEY_USAGE_DERIVE);
 
-    fih_rc = fih_ret_encode_zero_equality(rc);
+    status = psa_import_key(&input_key_attr, key_buf, key_size, &input_key_id);
+    if (status != PSA_SUCCESS) {
+        FIH_RET(FIH_FAILURE);
+    }
+
+    status = psa_key_derivation_setup(&op, PSA_ALG_SP800_108_COUNTER_CMAC);
+    if (status != PSA_SUCCESS) {
+        FIH_RET(FIH_FAILURE);
+    }
+
+    status = psa_key_derivation_set_capacity(&op, output_length);
+    if (status != PSA_SUCCESS) {
+        goto psa_abort_op;
+    }
+
+    /* Feed inputs in the order required by PSA key -> label -> context */
+    status = psa_key_derivation_input_key(&op, PSA_KEY_DERIVATION_INPUT_SECRET,
+                                          input_key_id);
+    if (status != PSA_SUCCESS) {
+        goto psa_abort_op;
+    }
+
+    /* Supply the key label as an input to the key derivation */
+    status = psa_key_derivation_input_bytes(&op, PSA_KEY_DERIVATION_INPUT_LABEL,
+                                            label, label_length);
+    if (status != PSA_SUCCESS) {
+        goto psa_abort_op;
+    }
+
+    /* Supply the context bytes as an input to the key derivation */
+    status = psa_key_derivation_input_bytes(&op, PSA_KEY_DERIVATION_INPUT_CONTEXT,
+                                            context, context_length);
+    if (status != PSA_SUCCESS) {
+        goto psa_abort_op;
+    }
+
+    /* Output the required number of bytes from the derivation operation */
+    status = psa_key_derivation_output_bytes(&op, output_key, output_length);
+    if (status != PSA_SUCCESS) {
+        goto psa_abort_op;
+    }
+
+psa_abort_op:
+    (void)psa_key_derivation_abort(&op);
+
+    fih_rc = fih_ret_encode_zero_equality(status);
     FIH_RET(fih_rc);
 }
 

@@ -353,6 +353,7 @@ target_sources(bl1_1_psa_crypto
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/md.c>
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/md5.c>
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/aes.c>
+        $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/cmac.c>
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/sha256.c>
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/constant_time.c>
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/psa_crypto_mac.c>
@@ -367,6 +368,10 @@ if (NOT ${CONFIG_TFM_INCLUDE_STDLIBC})
             $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${CMAKE_CURRENT_LIST_DIR}/bl1/mbedcrypto_stubs.c>
     )
 endif()
+
+# Fixme: BL1 crypto layer will need to be be re-implemented using PSA Crypto API only.
+# For now, we need to expose the private identifiers to MPS4 BL1 code to avoid build errors.
+target_compile_definitions(bl1_1_psa_crypto PRIVATE MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS)
 
 #========================= Platform BL1_2 =====================================#
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -24,7 +24,7 @@
 #include "tfm_log.h"
 #include "fih.h"
 
-#include "mbedtls/hmac_drbg.h"
+#include "mbedtls/private/hmac_drbg.h"
 #include "mbedtls/memory_buffer_alloc.h"
 
 #define BL1_MBEDTLS_MEM_BUF_LEN 0x2000
