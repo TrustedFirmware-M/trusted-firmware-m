@@ -1265,7 +1265,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
     assert(operation != NULL);
-    assert(operation->id != 0);
+    assert(!operation->id);
     assert(PSA_ALG_IS_CIPHER(alg));
 
     if (is_key_builtin(key)) {
