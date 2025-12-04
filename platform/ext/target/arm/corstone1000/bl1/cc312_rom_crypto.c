@@ -15,13 +15,15 @@
 #include "otp.h"
 #include "fih.h"
 #include "cc3xx_drv.h"
+#include "mbedtls/private/sha256.h"
+#include "mbedtls/private/sha512.h"
 
 #define KEY_DERIVATION_MAX_BUF_SIZE 128
 
 static enum tfm_bl1_hash_alg_t multipart_alg = 0;
 static mbedtls_sha512_context multipart_ctx;
 
-fih_ret sha256_init()
+static fih_ret sha256_init()
 {
     FIH_DECLARE(fih_rc, FIH_FAILURE);
 
@@ -36,9 +38,9 @@ fih_ret sha256_init()
     FIH_RET(FIH_SUCCESS);
 }
 
-fih_ret sha256_finish(uint8_t *hash,
-                        size_t hash_length,
-                        size_t *hash_size)
+static fih_ret sha256_finish(uint8_t *hash,
+                             size_t hash_length,
+                             size_t *hash_size)
 {
     cc3xx_lowlevel_hash_finish((uint32_t *)hash, hash_length);
 
@@ -51,8 +53,8 @@ fih_ret sha256_finish(uint8_t *hash,
     FIH_RET(FIH_SUCCESS);
 }
 
-fih_ret sha256_update(const uint8_t *data,
-                        size_t data_length)
+static fih_ret sha256_update(const uint8_t *data,
+                             size_t data_length)
 {
     FIH_RET(fih_ret_encode_zero_equality(cc3xx_lowlevel_hash_update(data, data_length)));
 }
@@ -87,7 +89,7 @@ static fih_ret sha256_compute(const uint8_t *data,
 }
 
 
-fih_ret sha384_init()
+static fih_ret sha384_init()
 {
     FIH_DECLARE(fih_rc, FIH_FAILURE);
     int rc;
@@ -111,9 +113,9 @@ out:
 
 }
 
-fih_ret sha384_finish(uint8_t *hash,
-                        size_t hash_length,
-                        size_t *hash_size)
+static fih_ret sha384_finish(uint8_t *hash,
+                             size_t hash_length,
+                             size_t *hash_size)
 {
     FIH_DECLARE(fih_rc, FIH_FAILURE);
     int rc;
@@ -139,8 +141,8 @@ out:
     FIH_RET(fih_rc);
 }
 
-fih_ret sha384_update(const uint8_t *data,
-                        size_t data_length)
+static fih_ret sha384_update(const uint8_t *data,
+                             size_t data_length)
 {
     int rc;
     FIH_DECLARE(fih_rc, FIH_FAILURE);
@@ -160,8 +162,10 @@ out:
 }
 
 static fih_ret sha384_compute(const uint8_t *data,
-                           size_t data_length,
-                           uint8_t *hash, size_t hash_len, size_t *hash_size)
+                              size_t data_length,
+                              uint8_t *hash,
+                              size_t hash_len,
+                              size_t *hash_size)
 {
     int rc = 0;
     FIH_DECLARE(fih_rc, FIH_FAILURE);

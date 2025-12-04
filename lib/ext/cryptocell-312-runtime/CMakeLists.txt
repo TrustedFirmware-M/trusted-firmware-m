@@ -91,7 +91,6 @@ target_compile_definitions(${CC312_CDMPU_TARGET}
 target_compile_definitions(${CC312_PSA_DRIVER_API_TARGET}
     PUBLIC
         MBEDTLS_PSA_CRYPTO_DRIVERS
-        PSA_CRYPTO_DRIVER_CC3XX
 )
 
 target_link_libraries(${CC312_PSA_DRIVER_API_TARGET}
@@ -110,4 +109,21 @@ target_link_libraries(${CC312_MBEDTLS_API_TARGET}
         ${CC312_LIB_TARGET}
     PRIVATE
         ${CC312_PLATFORM_DEPENDENCY}
+
+target_compile_definitions(${CC312_LIB_PREFIX}tfpsacrypto_config
+    INTERFACE
+        PSA_CRYPTO_DRIVER_CC3XX
 )
+
+# Export include directories to TF-PSA-Crypto config target. With defining
+# PSA_CRYPTO_DRIVER_CC3XX, the cc3xx_crypto_primitives_private.h header and
+# with it several headers from the CC-312 runtime library become visible
+# through the inclusion of the main PSA Crypto header file, i.e. psa/crypto.h.
+#
+foreach(_cc_target IN ITEMS ${CC312_PSA_DRIVER_API_TARGET}; ${CC312_LIB_TARGET}; ${CC312_PAL_TARGET})
+    get_target_property(_interface_include_dirs ${_cc_target} INTERFACE_INCLUDE_DIRECTORIES)
+
+    if(_interface_include_dirs AND NOT _interface_include_dirs STREQUAL "_interface_include_dirs-NOTFOUND")
+        target_include_directories(${CC312_LIB_PREFIX}tfpsacrypto_config INTERFACE ${_interface_include_dirs})
+    endif()
+endforeach()

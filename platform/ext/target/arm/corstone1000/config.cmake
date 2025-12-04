@@ -30,7 +30,9 @@ set(TFM_ISOLATION_LEVEL                 2          CACHE STRING   "Isolation lev
 
 set(TFM_PLAT_SPECIFIC_MULTI_CORE_COMM   ON         CACHE BOOL     "Whether to use a platform specific inter core communication instead of mailbox in dual-cpu topology")
 
-set(CRYPTO_HW_ACCELERATOR               ON         CACHE BOOL      "Whether to enable the crypto hardware accelerator on supported platforms")
+set(CRYPTO_HW_ACCELERATOR               ON         CACHE BOOL     "Whether to enable the crypto hardware accelerator on supported platforms")
+set(CC3XX_RUNTIME_ENABLED               OFF        CACHE BOOL     "Whether the CC3XX driver is used at runtime")
+set(CC312_LEGACY_DRIVER_API_ENABLED     OFF        CACHE BOOL     "Whether the legacy mbedtls accelerator API is used")
 
 set(TFM_CRYPTO_TEST_ALG_CFB             OFF        CACHE BOOL     "Test CFB cryptography mode" FORCE)
 set(NS                                  FALSE      CACHE BOOL     "Whether to build NS app")

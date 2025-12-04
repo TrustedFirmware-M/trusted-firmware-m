@@ -214,13 +214,16 @@ target_compile_definitions(platform_bl1_1
         $<$<BOOL:${PLATFORM_DEFAULT_OTP_WRITEABLE}>:OTP_WRITEABLE>
         $<$<BOOL:${CRYPTO_HW_ACCELERATOR}>:CRYPTO_HW_ACCELERATOR>
         $<$<BOOL:${CRYPTO_HW_ACCELERATOR_OTP_PROVISIONING}>:CRYPTO_HW_ACCELERATOR_OTP_PROVISIONING>
-        TF_PSA_CRYPTO_CONFIG_FILE="${CMAKE_SOURCE_DIR}/lib/ext/tf-psa-crypto/tfpsacrypto_config/crypto_config_default.h"
-
         # This definition is only added to the bl1_main target. There are
         # files that are shared between the BL1 and TFM_S targets. This flag
         # can be used if the BL1 target needs different implementation than
         # the TFM_S target.
         BL1_BUILD
+    PRIVATE
+        # c312_rom_crypto.c refers to private identifiers from drivers/builtin/src/sha512.c
+        # Fixme: BL1 crypto layer will need to be be re-implemented using the PSA Crypto API only.
+        #        For now, we need to expose the private identifiers to BL1 code to avoid build errors.
+        MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
 )
 
 target_include_directories(platform_bl1_1_interface
@@ -282,7 +285,6 @@ target_compile_definitions(platform_bl1_2
         $<$<BOOL:${PLATFORM_DEFAULT_OTP_WRITEABLE}>:OTP_WRITEABLE>
         $<$<BOOL:${CRYPTO_HW_ACCELERATOR}>:CRYPTO_HW_ACCELERATOR>
         $<$<BOOL:${CRYPTO_HW_ACCELERATOR_OTP_PROVISIONING}>:CRYPTO_HW_ACCELERATOR_OTP_PROVISIONING>
-        TF_PSA_CRYPTO_CONFIG_FILE="${CMAKE_SOURCE_DIR}/lib/ext/tf-psa-crypto/tfpsacrypto_config/crypto_config_default.h"
 )
 
 target_include_directories(platform_bl1_2
