@@ -1236,7 +1236,9 @@ psa_status_t psa_driver_wrapper_export_public_key(
     return PSA_SUCCESS;
 }
 
-psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation)
+EXTERNAL_PSA_API(psa_cipher_abort,
+        (psa_cipher_operation_t *operation),
+        operation)
 {
     assert(operation != NULL);
 
@@ -1244,7 +1246,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation)
         /* The object has (apparently) been initialized but it is not (yet)
          * in use. It's ok to call abort on such an object, and there's
          * nothing to do. */
-        return PSA_SUCCESS;
+        FIH_RET(PSA_SUCCESS);
     }
 
     psa_driver_wrapper_cipher_abort(operation);
@@ -1253,7 +1255,7 @@ psa_status_t psa_cipher_abort(psa_cipher_operation_t *operation)
     operation->iv_set = 0;
     operation->iv_required = 0;
 
-    return PSA_SUCCESS;
+    FIH_RET(PSA_SUCCESS);
 }
 
 static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
@@ -1325,12 +1327,10 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     return PSA_SUCCESS;
 }
 
-psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
-                               const uint8_t *input_external,
-                               size_t input_length,
-                               uint8_t *output_external,
-                               size_t output_size,
-                               size_t *output_length)
+EXTERNAL_PSA_API(psa_cipher_update,
+        (psa_cipher_operation_t *operation, const uint8_t *input_external,
+         size_t input_length, uint8_t *output_external, size_t output_size, size_t *output_length),
+        operation, input_external, input_length, output_external, output_size, output_length)
 {
     psa_status_t status;
 
@@ -1349,33 +1349,33 @@ psa_status_t psa_cipher_update(psa_cipher_operation_t *operation,
         *output_length = 0;
         (void)psa_cipher_abort(operation);
         FATAL_ERR(status);
-        return status;
+        FIH_RET(status);
     }
 
-    return PSA_SUCCESS;
+    FIH_RET(PSA_SUCCESS);
 }
 
-psa_status_t psa_cipher_encrypt_setup(psa_cipher_operation_t *operation,
-                                      psa_key_id_t key,
-                                      psa_algorithm_t alg)
+EXTERNAL_PSA_API(psa_cipher_encrypt_setup,
+        (psa_cipher_operation_t *operation, psa_key_id_t key, psa_algorithm_t alg),
+        operation, key, alg)
 {
     assert(operation != NULL);
 
-    return psa_cipher_setup(operation, key, alg, MBEDTLS_ENCRYPT);
+    FIH_RET(psa_cipher_setup(operation, key, alg, MBEDTLS_ENCRYPT));
 }
 
-psa_status_t psa_cipher_decrypt_setup(psa_cipher_operation_t *operation,
-                                      psa_key_id_t key,
-                                      psa_algorithm_t alg)
+EXTERNAL_PSA_API(psa_cipher_decrypt_setup,
+        (psa_cipher_operation_t *operation, psa_key_id_t key, psa_algorithm_t alg),
+        operation, key, alg)
 {
     assert(operation != NULL);
 
-    return psa_cipher_setup(operation, key, alg, MBEDTLS_DECRYPT);
+    FIH_RET(psa_cipher_setup(operation, key, alg, MBEDTLS_DECRYPT));
 }
 
-psa_status_t psa_cipher_set_iv(psa_cipher_operation_t *operation,
-                               const uint8_t *iv_external,
-                               size_t iv_length)
+EXTERNAL_PSA_API(psa_cipher_set_iv,
+        (psa_cipher_operation_t *operation, const uint8_t *iv_external, size_t iv_length),
+        operation, iv_external, iv_length)
 {
     psa_status_t status;
 
@@ -1391,18 +1391,18 @@ psa_status_t psa_cipher_set_iv(psa_cipher_operation_t *operation,
     if (status != PSA_SUCCESS) {
         (void)psa_cipher_abort(operation);
         FATAL_ERR(status);
-        return status;
+        FIH_RET(status);
     }
 
     operation->iv_set = 1;
 
-    return PSA_SUCCESS;
+    FIH_RET(PSA_SUCCESS);
 }
 
-psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
-                               uint8_t *output_external,
-                               size_t output_size,
-                               size_t *output_length)
+EXTERNAL_PSA_API(psa_cipher_finish,
+        (psa_cipher_operation_t *operation, uint8_t *output_external,
+         size_t output_size, size_t *output_length),
+        operation, output_external, output_size, output_length)
 {
     psa_status_t status;
 
@@ -1418,16 +1418,16 @@ psa_status_t psa_cipher_finish(psa_cipher_operation_t *operation,
         *output_length = 0;
         (void)psa_cipher_abort(operation);
         FATAL_ERR(status);
-        return status;
+        FIH_RET(status);
     }
 
     status = psa_cipher_abort(operation);
     if (status != PSA_SUCCESS) {
         FATAL_ERR(status);
-        return status;
+        FIH_RET(status);
     }
 
-    return PSA_SUCCESS;
+    FIH_RET(PSA_SUCCESS);
 }
 
 #if defined(MCUBOOT_ENC_IMAGES)
