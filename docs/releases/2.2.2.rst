@@ -1,0 +1,26 @@
+*************
+Version 2.2.2
+*************
+
+Features and hotfixes
+=====================
+
+ - Cherry-picks for Attestation to fix FWU due to OTP layout changes, described in [1]_
+ - Upgrade to MbedTLS v3.6.5, which contains security advisories [2]_.
+ - Validation of BL2 and TF-M binary address alignment
+ - CS1K: BL1 size, align binary addresses, adapt ADAC & BL2 build restructure
+ - BL2: Remove the weak function definition
+ - CC3XX: Improvements on logging, checks on dcu_en and ICV restrictions
+ - ADAC: Musca-B1 and Corstone-1000 do not check ICV restrictions mask
+
+Reference
+=========
+
+.. [1] `FWUpdate is broken between 2.1 and 2.2 releases due to default OTP layout change <https://github.com/TrustedFirmware-M/trusted-firmware-m/issues/37>`_
+.. [2] `Mbed TLS 3.6.5 <https://github.com/Mbed-TLS/mbedtls/releases/tag/mbedtls-3.6.5>`_
+
+--------------
+
+ *SPDX-License-Identifier: BSD-3-Clause*
+
+ *SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
