@@ -96,11 +96,12 @@ The following environments are supported:
         - Python3 `(native Windows version) <https://www.python.org/downloads/>`__ and
           the pip package manager (from Python 3.4 it's included)
 
-        3. add CMake path into environment:
+        3. add CMake and Python path into environment:
 
         .. code-block:: bash
 
             set PATH=<CMake_Path>\bin;%PATH%
+            set PATH=<python_launcher_path>;%PATH%
 
 ###########################
 Install python dependencies
@@ -156,7 +157,7 @@ dependencies.
             # NOTE: If your system python install version is <3.10 you can use `uv <https://docs.astral.sh/uv/getting-started/installation/#standalone-installer>` to setup your .venv
             uv venv --python 3.12
 
-            source .venv/bin/activate
+            .venv\Scripts\activate.bat
             # `-e` installs modules and scripts in editable/development mode
             pip install -e .
 
@@ -294,7 +295,7 @@ as an example:
             cd </tf-m-tests/tests_reg>
             cmake -S spe -B build_spe -DTFM_PLATFORM=arm/mps2/an521 -DCONFIG_TFM_SOURCE_PATH=<TF-M source dir absolute path> \
                   -DCMAKE_BUILD_TYPE=Debug -DTFM_TOOLCHAIN_FILE=<TF-M source dir absolute path>/toolchain_GNUARM.cmake \
-                  -DTEST_S=ON -DTEST_NS=ON \
+                  -DTEST_S=ON -DTEST_NS=ON
             cmake --build build_spe -- install
 
             cmake -S . -B build_test -DCONFIG_SPE_PATH=<tf-m-tests absolute path>/tests_reg/build_spe/api_ns \
@@ -305,7 +306,7 @@ as an example:
 
         .. important::
             Use "/" instead of "\\" when assigning Windows paths to CMAKE
-            variables, for example, use "c:/build" instead of "c:\\\\build".
+            variables, for example, use "c:/build" instead of "c:\\\build".
 
         Get the TF-M tests source code:
 
@@ -317,10 +318,10 @@ as an example:
 
         .. code-block:: bash
 
-            cd </tf-m-tests/tests_reg>
+            cd <\tf-m-tests\tests_reg>
             cmake -G"Unix Makefiles" -S spe -B build_spe -DTFM_PLATFORM=arm/mps2/an521 -DCONFIG_TFM_SOURCE_PATH=<TF-M source dir absolute path> \
                   -DCMAKE_BUILD_TYPE=Debug -DTFM_TOOLCHAIN_FILE=<TF-M source dir absolute path>/toolchain_GNUARM.cmake \
-                  -DTEST_S=ON -DTEST_NS=ON \
+                  -DTEST_S=ON -DTEST_NS=ON
             cmake --build build_spe -- install
 
             cmake -G"Unix Makefiles" -S . -B build_test -DCONFIG_SPE_PATH=<tf-m-tests absolute path>/tests_reg/build_spe/api_ns \
