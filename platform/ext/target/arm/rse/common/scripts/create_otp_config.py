@@ -141,10 +141,11 @@ def main() -> None:
     if args.otp_config:
         otp_config = args.otp_config
     else:
+        compiler = c_include.get_compiler(args.compile_commands_file, "otp_lcm.c")
         includes = c_include.get_includes(args.compile_commands_file, "otp_lcm.c")
         defines = c_include.get_defines(args.compile_commands_file, "otp_lcm.c")
 
-        otp_config = OTP_config.from_h_file(args.rse_otp_layout_h_file, includes, defines)
+        otp_config = OTP_config.from_h_file(args.rse_otp_layout_h_file, compiler, includes, defines)
 
     if args.otp_image_input:
         otp_config.set_value_from_bytes(args.otp_image_input)

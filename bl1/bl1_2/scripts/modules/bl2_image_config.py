@@ -38,9 +38,10 @@ class BL2_image_config:
         self.__dict__.update( self.defines._definitions)
 
     @staticmethod
-    def from_h_file(h_file_path, includes, defines):
+    def from_h_file(h_file_path, compiler, includes, defines):
         image = C_struct.from_h_file(h_file_path,
                                               'bl1_2_image_t',
+                                              compiler,
                                               includes, defines)
 
         config = C_macro.from_h_file(h_file_path, includes, defines)
@@ -71,10 +72,12 @@ if __name__ == "__main__":
     parser.add_argument("--bl2_image_config_output_file", help="file to output bl2 image config to", required=True)
     args = parser.parse_args()
 
+    compiler = c_include.get_compiler(args.compile_commands_file, "bl1_2/main.c")
     includes = c_include.get_includes(args.compile_commands_file, "bl1_2/main.c")
     defines = c_include.get_defines(args.compile_commands_file, "bl1_2/main.c")
 
     bl2_image_config = BL2_image_config.from_h_file(args.bl2_image_layout_h_file,
+                                                    compiler,
                                                     includes, defines)
 
     bl2_image_config.to_config_file(args.bl2_image_config_output_file)

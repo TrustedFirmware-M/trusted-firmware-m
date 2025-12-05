@@ -91,9 +91,10 @@ class Routing_tables:
         self.routing_tables = routing_tables
 
     @staticmethod
-    def from_h_file(h_file_path, includes, defines):
+    def from_h_file(h_file_path, compiler, includes, defines):
         routing_tables_struct =  c_struct.C_struct.from_h_file(h_file_path,
                                                               "rse_whole_system_routing_tables_t",
+                                                              compiler,
                                                               includes, defines)
 
         return Routing_tables(routing_tables_struct)
@@ -145,10 +146,11 @@ def main():
     logging.getLogger("TF-M").setLevel(args.log_level)
     logger.addHandler(logging.StreamHandler())
 
+    compiler = c_include.get_compiler(args.compile_commands_file, "rse_get_routing_tables.c")
     includes = c_include.get_includes(args.compile_commands_file, "rse_get_routing_tables.c")
     defines = c_include.get_defines(args.compile_commands_file, "rse_get_routing_tables.c")
 
-    routing_tables = Routing_tables.from_h_file(args.rse_routing_tables_h_file, includes, defines)
+    routing_tables = Routing_tables.from_h_file(args.rse_routing_tables_h_file, compiler, includes, defines)
 
     graph = load_graph(args.topology_graph_file)
     number_rses = routing_tables.get_number_rses()

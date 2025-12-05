@@ -30,9 +30,10 @@ class OTP_config:
         self.__dict__ |= self.defines._definitions
 
     @staticmethod
-    def from_h_file(h_file_path, includes, defines):
+    def from_h_file(h_file_path, compiler, includes, defines):
         make_region = lambda x: C_struct.from_h_file(h_file_path,
                                                     "rse_otp_{}_area_t".format(x),
+                                                    compiler,
                                                     includes, defines)
         regions = [make_region(x) for x in region_names]
 

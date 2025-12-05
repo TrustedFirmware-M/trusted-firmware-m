@@ -342,18 +342,19 @@ class Provisioning_config:
         self.secret_dm_rotpk_types = {}
 
     @staticmethod
-    def from_h_file(h_file_path, policy_h_file_path, includes, defines):
+    def from_h_file(h_file_path, policy_h_file_path, compiler, includes, defines):
         make_region = lambda x: C_struct.from_h_file(h_file_path,
                                                               "rse_{}_provisioning_values_t".format(x),
+                                                              compiler,
                                                               includes, defines)
         regions = [make_region(x) for x in all_regions]
         config = C_macro.from_h_file(h_file_path, includes, defines)
 
-        rotpk_types = C_enum.from_h_file(policy_h_file_path, "rse_rotpk_type", includes, defines)
-        rotpk_policies = C_enum.from_h_file(policy_h_file_path, "rse_rotpk_policy", includes, defines)
-        rotpk_hash_algs = C_enum.from_h_file(policy_h_file_path, "rse_rotpk_hash_alg", includes, defines)
+        rotpk_types = C_enum.from_h_file(policy_h_file_path, "rse_rotpk_type", compiler, includes, defines)
+        rotpk_policies = C_enum.from_h_file(policy_h_file_path, "rse_rotpk_policy", compiler, includes, defines)
+        rotpk_hash_algs = C_enum.from_h_file(policy_h_file_path, "rse_rotpk_hash_alg", compiler, includes, defines)
 
-        create_enum = lambda x:C_enum.from_h_file(policy_h_file_path, x, includes, defines)
+        create_enum = lambda x:C_enum.from_h_file(policy_h_file_path, x, compiler, includes, defines)
         enum_names = [
             'rse_rotpk_type',
             'rse_rotpk_policy',
@@ -436,9 +437,10 @@ if __name__ == "__main__":
     logging.getLogger("TF-M").setLevel(args.log_level)
     logger.addHandler(logging.StreamHandler())
 
+    compiler = c_include.get_compiler(args.compile_commands_file, "otp_lcm.c")
     includes = c_include.get_includes(args.compile_commands_file, "otp_lcm.c")
     defines = c_include.get_defines(args.compile_commands_file, "otp_lcm.c")
 
-    provisioning_config = Provisioning_config.from_h_file(args.rse_provisioning_layout_h_file, args.rse_rotpk_policy_h_file, includes, defines)
+    provisioning_config = Provisioning_config.from_h_file(args.rse_provisioning_layout_h_file, args.rse_rotpk_policy_h_file, compiler, includes, defines)
 
     provisioning_config.to_config_file(args.provisioning_config_output_file)

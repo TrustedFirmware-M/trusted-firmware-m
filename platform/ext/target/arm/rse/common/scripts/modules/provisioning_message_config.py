@@ -140,12 +140,13 @@ class Provisioning_message_config:
             self.__dict__ |= self.enums[e].dict
 
     @staticmethod
-    def from_h_file(h_file_path, includes, defines):
+    def from_h_file(h_file_path, compiler, includes, defines):
         message = C_struct.from_h_file(h_file_path,
                                                 'rse_provisioning_message_t',
+                                                compiler,
                                                 includes, defines)
 
-        create_enum = lambda x:C_enum.from_h_file(h_file_path, x, includes, defines)
+        create_enum = lambda x:C_enum.from_h_file(h_file_path, x, compiler, includes, defines)
         enum_names = [
             'rse_provisioning_message_type_t',
             'rse_provisioning_auth_msg_type_t',
@@ -488,10 +489,12 @@ if __name__ == "__main__":
     logging.getLogger("TF-M").setLevel(args.log_level)
     logger.addHandler(logging.StreamHandler())
 
+    compiler = c_include.get_compiler(args.compile_commands_file, "otp_lcm.c")
     includes = c_include.get_includes(args.compile_commands_file, "otp_lcm.c")
     defines = c_include.get_defines(args.compile_commands_file, "otp_lcm.c")
 
     provisioning_message_config = Provisioning_message_config.from_h_file(args.rse_provisioning_message_h_file,
-                                                                includes, defines)
+                                                                          compiler,
+                                                                          includes, defines)
 
     provisioning_message_config.to_config_file(args.provisioning_message_config_output_file)

@@ -31,6 +31,10 @@ def get_defines(compile_commands_file, c_file):
     compile_command = get_compile_command(compile_commands_file, c_file).split()
     return [x[2:].strip() for x in compile_command if x.rstrip()[:2] == "-D"]
 
+def get_compiler(compile_commands_file, c_file):
+    compile_command = get_compile_command(compile_commands_file, c_file).split()
+    return compile_command[0].strip()
+
 def main():
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument("--compile_commands_file", help="path to compile_command.json", required=True)

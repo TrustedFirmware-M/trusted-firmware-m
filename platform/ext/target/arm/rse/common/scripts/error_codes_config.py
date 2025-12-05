@@ -17,10 +17,10 @@ class Error_codes_config:
             self.__dict__ |= enums[e].dict
 
     @staticmethod
-    def create(h_file_path_list, includes, defines):
+    def create(h_file_path_list, compiler, includes, defines):
         enums = {}
         for h_file_path, enum_name in h_file_path_list.items():
-            enums |= {enum_name : c_struct.C_enum.from_h_file(h_file_path, enum_name, includes, defines)}
+            enums |= {enum_name : c_struct.C_enum.from_h_file(h_file_path, enum_name, compiler, includes, defines)}
 
         return Error_codes_config(enums)
 
@@ -95,6 +95,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    compiler = c_include.get_compiler(args.compile_commands_file, "boot_hal_bl1_1.c")
+
     includes = c_include.get_includes(args.compile_commands_file, "boot_hal_bl1_1.c")
     includes.extend(get_compiler_include_dirs(args.c_compiler))
 
@@ -102,7 +104,7 @@ if __name__ == "__main__":
 
     header_details = parse_error_code_header_file(args.headers)
 
-    config = Error_codes_config.create(header_details, includes, defines)
+    config = Error_codes_config.create(header_details, compiler, includes, defines)
 
     csv_content = create_error_code_csv(config)
     args.error_code_output_file.writelines(csv_content)
