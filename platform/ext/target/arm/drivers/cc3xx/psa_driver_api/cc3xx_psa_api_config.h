@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, The TrustedFirmware-M Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -28,6 +28,8 @@
 #define CC3XX_CONFIG_ENABLE_MAC_INTEGRATED_API
 
 #define CC3XX_CONFIG_ENABLE_STREAM_CIPHER
+
+#define CC3XX_CONFIG_AES_CCM_ENABLE
 
 //#define CC3XX_CONFIG_CBC_PKCS7_DECRYPT_ARBITRARY_LENGTHS
 
