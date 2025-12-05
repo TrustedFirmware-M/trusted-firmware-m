@@ -44,15 +44,30 @@ extern "C" {
 #define RSE_BIND_CMAC_BOUND   0x1
 #define RSE_BIND_CCM_BOUND    0x2
 
+/* Third byte reprsents iv length for CCM */
+#define RSE_META_BIND_CCM_IV_LEN_OFFSET 2
+#define RSE_BIND_CCM_IV_LEN             12 /* CCM L=3 → max payload len ~ 16MB */
+
+/* Fourth byte represents tag length for CCM */
+#define RSE_META_BIND_CCM_TAG_LEN_OFFSET 3
+#define RSE_BIND_CCM_TAG_LEN             16
+
+/* Byte 5 - 16 represents nonce / ctr_iv */
+#define RSE_META_BIND_CCM_NONCE_OFFSET 4
+
 struct rse_bind_ctx {
-    bool    has_tag;                 /* TLVs present */
-    bool    is_authenticated;        /* binding verified */
-    uint8_t meta[RSE_TLV_BIND_LEN];  /* UNPROT TLV */
-    uint8_t bind_state;              /* from meta[0] */
-    uint8_t tag [RSE_TLV_BIND_LEN];  /* UNPROT TLV */
-    uint32_t sec_cnt;                /* security_counter  */
-    const uint8_t *body_base;        /* load address */
-    size_t   body_len;               /* image size */
+    bool    has_tag;                 /*!< TLVs present */
+    bool    is_authenticated;        /*!< binding verified */
+    uint8_t meta[RSE_TLV_BIND_LEN];  /*!< UNPROT TLV */
+    uint8_t bind_state;              /*!< from meta[0] */
+    uint8_t tag [RSE_TLV_BIND_LEN];  /*!< UNPROT TLV */
+    uint32_t sec_cnt;                /*!< security_counter  */
+    const uint8_t *body_base;        /*!< load address */
+    size_t   body_len;               /*!< image size */
+#ifdef MCUBOOT_ENC_IMAGES
+    psa_aead_operation_t aead_op;    /*!< AEAD operation context */
+    uint8_t  nonce[RSE_BIND_CCM_IV_LEN];  /*!< CCM nonce / ctr_iv */
+#endif
 };
 
 /**
@@ -128,6 +143,24 @@ void rse_bind_set_ram_window(uint8_t image_id,
  */
 fih_ret rse_verify_binding(uint8_t image_id, const struct image_header *hdr);
 
+/**
+ * @brief Decrypts and authenticates an encrypted boot image in SRAM
+ *
+ * This function performs decryption and authentication of an encrypted boot image
+ * that has been loaded into SRAM. It uses the provided image ID and header information
+ * to locate and verify the image data.
+ *
+ * @param[in] image_id    The identifier of the boot image to decrypt and authenticate
+ * @param[in] hdr         Pointer to the image header structure containing metadata
+ *                        about the image (size, version, encryption parameters, etc.)
+ *
+ * @return fih_ret        Fault injection hardened return value indicating:
+ *                        - Success if decryption and authentication complete successfully
+ *                        - Error code if decryption fails, authentication fails, or
+ *                          other errors occur during processing
+ */
+fih_ret boot_enc_decrypt_and_auth_in_sram(uint8_t img_index,
+                                          const struct image_header *hdr);
 
 /* Optional tiny getters if you want visibility without exposing the struct */
 /**

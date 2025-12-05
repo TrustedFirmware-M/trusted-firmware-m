@@ -355,7 +355,11 @@ fih_ret boot_platform_after_ramload(uint8_t image_id, const struct image_header 
         FIH_RET(FIH_SUCCESS);
     }
 
+#ifdef MCUBOOT_ENC_IMAGES
+    FIH_CALL(boot_enc_decrypt_and_auth_in_sram, fih_rc, image_id, hdr);
+#else
     FIH_CALL(rse_verify_binding, fih_rc, image_id, hdr);
+#endif /* MCUBOOT_ENC_IMAGES */
     if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
         FIH_RET(FIH_FAILURE);
     }

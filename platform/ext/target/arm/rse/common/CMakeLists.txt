@@ -428,6 +428,7 @@ target_sources(platform_bl2
         $<$<BOOL:${MCUBOOT_IMAGE_BINDING}>:${CMAKE_CURRENT_SOURCE_DIR}/bl2/rse_bl2_binding_util.c>
         $<$<BOOL:${MCUBOOT_IMAGE_BINDING}>:${CMAKE_CURRENT_SOURCE_DIR}/bl2/rse_bl2_binding_keys.c>
         $<$<AND:$<BOOL:${MCUBOOT_IMAGE_BINDING}>,$<NOT:$<BOOL:${MCUBOOT_ENC_IMAGES}>>>:${CMAKE_CURRENT_SOURCE_DIR}/bl2/rse_bl2_binding_cmac.c>
+        $<$<AND:$<BOOL:${MCUBOOT_IMAGE_BINDING}>,$<BOOL:${MCUBOOT_ENC_IMAGES}>>:${CMAKE_CURRENT_SOURCE_DIR}/bl2/rse_bl2_binding_ccm.c>
 )
 
 target_include_directories(platform_bl2
