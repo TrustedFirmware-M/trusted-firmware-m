@@ -31,11 +31,11 @@ psa_status_t sfcp_protocol_pointer_access_serialize_msg(psa_handle_t handle, int
     /* Fill msg iovec lengths */
     for (i = 0U; i < in_len; ++i) {
         msg->io_sizes[i] = in_vec[i].len;
-        msg->host_ptrs[i] = (uint64_t)in_vec[i].base;
+        msg->host_ptrs[i] = (uint64_t)(uint32_t)in_vec[i].base;
     }
     for (i = 0U; i < out_len; ++i) {
         msg->io_sizes[in_len + i] = out_vec[i].len;
-        msg->host_ptrs[in_len + i] = (uint64_t)out_vec[i].base;
+        msg->host_ptrs[in_len + i] = (uint64_t)(uint32_t)out_vec[i].base;
     }
 
     *msg_len = sizeof(*msg);
