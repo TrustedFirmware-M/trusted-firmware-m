@@ -37,7 +37,7 @@ if((NRF_SOC_VARIANT MATCHES "^nrf54l1[05]$") OR
   # variables keep changing so we check both to be future proof
   set(HAS_RRAMC 1)
   set(HAS_CRACEN 1)
-elseif((NRF_SOC_VARIANT MATCHES nrf7120) OR (TFM_PLATFORM MATCHES "nordic\_nrf\/nrf7120pdk\_nrf7120\_cpuapp") OR (PSA_API_TEST_TARGET MATCHES "nrf7120"))
+elseif((NRF_SOC_VARIANT MATCHES nrf7120) OR (TFM_PLATFORM MATCHES "nordic\_nrf\/nrf7120dk\_nrf7120\_cpuapp") OR (PSA_API_TEST_TARGET MATCHES "nrf7120"))
   set(HAS_MRAMC 1)
   set(HAS_CRACEN 1)
 else()
