@@ -265,6 +265,11 @@ target_compile_definitions(bl1_1_psa_crypto_interface
 target_sources(bl1_1_psa_crypto
     PRIVATE
         ${MBEDCRYPTO_PATH}/library/sha256.c
+        ${MBEDCRYPTO_PATH}/library/aes.c
+        ${MBEDCRYPTO_PATH}/library/constant_time.c
+        ${MBEDCRYPTO_PATH}/library/cipher.c
+        ${MBEDCRYPTO_PATH}/library/cipher_wrap.c
+        ${MBEDCRYPTO_PATH}/library/psa_crypto_cipher.c
 )
 
 target_sources(platform_bl1_2

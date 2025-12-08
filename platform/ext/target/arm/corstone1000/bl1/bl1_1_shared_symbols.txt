@@ -17,6 +17,13 @@ corstone1000_watchdog_reset_timer
 pq_crypto_verify
 pq_crypto_get_pub_key_hash
 psa_hash_compute
+psa_import_key
+psa_cipher_decrypt_setup
+psa_cipher_set_iv
+psa_cipher_update
+psa_cipher_abort
+psa_cipher_finish
+psa_destroy_key
 stdio_init
 stdio_output_string
 stdio_uninit

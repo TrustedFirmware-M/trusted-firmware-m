@@ -21,6 +21,13 @@ kmu_set_key_export_config_locked
 kmu_invalidate_hardware_keys
 pq_crypto_verify
 psa_hash_compute
+psa_import_key
+psa_cipher_decrypt_setup
+psa_cipher_set_iv
+psa_cipher_update
+psa_cipher_abort
+psa_cipher_finish
+psa_destroy_key
 stdio_init
 stdio_output_string
 stdio_uninit

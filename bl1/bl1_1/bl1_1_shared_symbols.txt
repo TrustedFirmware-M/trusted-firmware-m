@@ -23,6 +23,13 @@ bl1_hash_finish
 bl1_hash_init
 bl1_hash_update
 bl1_random_generate_secure
+psa_import_key
+psa_cipher_decrypt_setup
+psa_cipher_set_iv
+psa_cipher_update
+psa_cipher_abort
+psa_cipher_finish
+psa_destroy_key
 computed_bl1_2_hash
 pq_crypto_verify
 psa_hash_compute

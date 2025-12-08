@@ -37,6 +37,13 @@ bl1_hash_init
 bl1_hash_update
 psa_generate_random
 psa_hash_compute
+psa_import_key
+psa_cipher_decrypt_setup
+psa_cipher_set_iv
+psa_cipher_update
+psa_cipher_abort
+psa_cipher_finish
+psa_destroy_key
 bl_fih_memeql
 cc3xx_lowlevel_uninit
 cc3xx_lowlevel_kdf_cmac

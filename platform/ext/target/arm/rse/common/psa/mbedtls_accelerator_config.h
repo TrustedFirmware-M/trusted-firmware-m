@@ -13,6 +13,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #define MBEDTLS_PSA_ACCEL_ALG_CCM
+#define MBEDTLS_PSA_ACCEL_ALG_CTR
 #define MBEDTLS_PSA_ACCEL_KEY_TYPE_AES
 #define PSA_WANT_ALG_SHA_256
 #define MBEDTLS_PSA_ACCEL_ALG_SHA_256

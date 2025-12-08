@@ -337,6 +337,17 @@ fih_ret copy_and_decrypt_image(uint32_t image_id, struct bl1_2_image_t *image)
     uint32_t key_buf[32 / sizeof(uint32_t)];
     uint8_t label[] = "BL2_DECRYPTION_KEY";
     FIH_DECLARE(fih_rc, FIH_FAILURE);
+    const size_t key_size = 32; /* 256-bit key size */
+    psa_key_id_t psa_key_id;
+    psa_key_attributes_t key_attr = psa_key_attributes_init();
+    psa_cipher_operation_t op = psa_cipher_operation_init();
+    psa_status_t status;
+    size_t output_length = 0;
+    const size_t aligned_encryption_size =
+        (sizeof(image->protected_values.encrypted_data) / MBEDTLS_MAX_BLOCK_LENGTH) *
+        MBEDTLS_MAX_BLOCK_LENGTH;
+    const size_t unaligned_encryption_size =
+        sizeof(image->protected_values.encrypted_data) - aligned_encryption_size;
 
 #ifdef TFM_BL1_MEMORY_MAPPED_FLASH
     /* If we have memory-mapped flash, we can do the decrypt directly from the
@@ -380,13 +391,91 @@ fih_ret copy_and_decrypt_image(uint32_t image_id, struct bl1_2_image_t *image)
         FIH_RET(fih_rc);
     }
 
-    FIH_CALL(bl1_aes_256_ctr_decrypt, fih_rc, TFM_BL1_KEY_USER, (uint8_t *)key_buf,
-                                 image->header.ctr_iv,
-                                 (uint8_t *)&image_to_decrypt->protected_values.encrypted_data,
-                                 sizeof(image->protected_values.encrypted_data),
-                                 (uint8_t *)&image->protected_values.encrypted_data);
-    if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
-        FIH_RET(fih_rc);
+    psa_set_key_type(&key_attr, PSA_KEY_TYPE_AES);
+    psa_set_key_algorithm(&key_attr, PSA_ALG_CTR);
+    psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_DECRYPT);
+    psa_set_key_lifetime(&key_attr, PSA_KEY_LIFETIME_VOLATILE);
+    psa_set_key_bits(&key_attr, key_size * 8);
+
+    status = psa_import_key(&key_attr, (uint8_t *)key_buf, key_size, &psa_key_id);
+    if (status != PSA_SUCCESS) {
+        FIH_RET(fih_ret_encode_zero_equality(status));
+    }
+
+    /**
+     * TODO: Use single-part CTR once the image layout places the nonce
+     * just before the encrypted data. This is not the currently case,
+     * thus use multi-part as a workaround.
+     */
+    status = psa_cipher_decrypt_setup(&op, psa_key_id, PSA_ALG_CTR);
+    if (status != PSA_SUCCESS) {
+        (void)psa_destroy_key(psa_key_id);
+        FIH_RET(fih_ret_encode_zero_equality(status));
+    }
+
+    status = psa_cipher_set_iv(&op, image->header.ctr_iv, sizeof(image->header.ctr_iv));
+    if (status != PSA_SUCCESS) {
+        (void)psa_cipher_abort(&op);
+        (void)psa_destroy_key(psa_key_id);
+        FIH_RET(fih_ret_encode_zero_equality(status));
+    }
+
+    status = psa_cipher_update(&op,
+                               (uint8_t *)&image_to_decrypt->protected_values.encrypted_data,
+                               aligned_encryption_size,
+                               (uint8_t *)&image->protected_values.encrypted_data,
+                               aligned_encryption_size,
+                               &output_length);
+    if (status != PSA_SUCCESS) {
+        (void)psa_cipher_abort(&op);
+        (void)psa_destroy_key(psa_key_id);
+        FIH_RET(fih_ret_encode_zero_equality(status));
+    }
+
+    if (unaligned_encryption_size > 0) {
+        /**
+         * MbedTLS multi-part cipher implementation does not access unaligned inputs,
+         * to block size, thus use a temporary buffer with padding to decrypt the
+         * remaining bytes.
+         *
+         * This should no longer be required once single-part can be used.
+         */
+        uint8_t cipher_blk[MBEDTLS_MAX_BLOCK_LENGTH];
+        uint8_t plaintext_blk[MBEDTLS_MAX_BLOCK_LENGTH];
+
+        memcpy(cipher_blk,
+               (uint8_t *)&image_to_decrypt->protected_values.encrypted_data + aligned_encryption_size,
+               unaligned_encryption_size);
+
+        status = psa_cipher_update(&op,
+                                   cipher_blk,
+                                   MBEDTLS_MAX_BLOCK_LENGTH,
+                                   plaintext_blk,
+                                   MBEDTLS_MAX_BLOCK_LENGTH,
+                                   &output_length);
+        if (status != PSA_SUCCESS) {
+            (void)psa_cipher_abort(&op);
+            (void)psa_destroy_key(psa_key_id);
+            FIH_RET(fih_ret_encode_zero_equality(status));
+        }
+
+        memcpy((uint8_t *)&image->protected_values.encrypted_data + aligned_encryption_size,
+               plaintext_blk,
+               unaligned_encryption_size);
+    }
+
+    status = psa_cipher_finish(&op,
+                               NULL,
+                               0,
+                               &output_length);
+    if (status != PSA_SUCCESS) {
+        (void)psa_destroy_key(psa_key_id);
+        FIH_RET(fih_ret_encode_zero_equality(status));
+    }
+
+    status = psa_destroy_key(psa_key_id);
+    if (status != PSA_SUCCESS) {
+        FIH_RET(fih_ret_encode_zero_equality(status));
     }
 
     if (image->protected_values.encrypted_data.decrypt_magic

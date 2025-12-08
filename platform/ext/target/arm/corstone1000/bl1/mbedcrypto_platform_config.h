@@ -13,6 +13,8 @@ extern "C" {
 #endif /* __cplusplus */
 
 #define MBEDTLS_SHA256_C
+#define MBEDTLS_AES_C
+#define MBEDTLS_CIPHER_MODE_CTR
 
 #ifdef __cplusplus
 }
