@@ -7,12 +7,42 @@
  */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include "tfm_hal_device_header.h"
 #include "spu.h"
 #include "utilities.h"
 #include "nrf_exception_info.h"
+#include "flash_layout.h"
 /* "exception_info.h" must be the last include because of the IAR pragma */
 #include "exception_info.h"
+
+/* Value indicating Secure Invasive Debug is enabled*/
+#define DAUTHSTATUS_SID_ENABLED          (0x3UL << DIB_DAUTHSTATUS_SID_Pos)
+
+/*
+ * Check if an address is within valid code/data memory ranges for this device.
+ * Uses FLASH_BASE_ADDRESS, TOTAL_ROM_SIZE, SRAM_BASE_ADDRESS, and TOTAL_RAM_SIZE
+ * from flash_layout.h which are device-specific.
+ *
+ * Returns true if the address is in Flash or SRAM, false otherwise.
+ * During stack unwinding, valid addresses should be in these regions.
+ * Garbage addresses from uninitialized stack will be outside these regions.
+ */
+static inline bool is_valid_memory_address(uint32_t addr)
+{
+    if (addr >= FLASH_BASE_ADDRESS &&
+        addr < (FLASH_BASE_ADDRESS + TOTAL_ROM_SIZE)) {
+        return true;
+    }
+
+    if (addr >= SRAM_BASE_ADDRESS &&
+        addr < (SRAM_BASE_ADDRESS + TOTAL_RAM_SIZE)) {
+        return true;
+    }
+
+    return false;
+}
+
 
 void SPU_Handler(void)
 {
@@ -108,17 +138,38 @@ __attribute__((naked)) void MPC_Handler(void)
 
 void MPC00_IRQHandler(void)
 {
-    /* Address 0xFFFFFFFE is used by TF-M as a return address in some cases
-     * (e.g., THRD_GENERAL_EXIT). This causes the debugger to access this
-     * address when analyzing stack frames upon hitting a breakpoint in TF-M.
-     * Attempting to access this address triggers the MPC MEMACCERR event,
-     * disrupting debugging. To prevent this, we ignore events from this address.
-     * Note that this does not affect exception information in MPC_Handler,
-     * except for scratch registers (R0-R3).
-     **/
-    if( nrf_mpc_event_check(NRF_MPC00, NRF_MPC_EVENT_MEMACCERR)){
-        if(NRF_MPC00->MEMACCERR.ADDRESS == 0xFFFFFFFE)
-        {
+    /*
+     * When a debugger with secure debug enabled is attached and performs stack
+     * unwinding (e.g., backtrace), it may read garbage addresses from the stack.
+     * These reads trigger MPC MEMACCERR events, disrupting debugging.
+     *
+     * We ignore read-only MPC faults only when ALL conditions are met:
+     *   1. A debugger is attached (CoreDebug->DHCSR.C_DEBUGEN)
+     *   2. Secure invasive debug is enabled (DAUTHSTATUS.SID == 0x3)
+     *   3. The access is read-only (not write or execute)
+     *   4. The faulting address is outside valid memory ranges (garbage address)
+     *
+     * If the address is within valid memory, we do NOT ignore the fault as it
+     * could indicate a real security issue. When secure debug is disabled, all
+     * MPC faults are enforced. Write and execute faults are never ignored.
+     */
+    if (nrf_mpc_event_check(NRF_MPC00, NRF_MPC_EVENT_MEMACCERR)) {
+        uint32_t fault_addr = NRF_MPC00->MEMACCERR.ADDRESS;
+        uint32_t fault_info = NRF_MPC00->MEMACCERR.INFO;
+
+        bool is_read = fault_info & MPC_MEMACCERR_INFO_READ_Msk;
+        bool is_write = fault_info & MPC_MEMACCERR_INFO_WRITE_Msk;
+        bool is_execute = fault_info & MPC_MEMACCERR_INFO_EXECUTE_Msk;
+
+        bool debugger_attached = (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) != 0;
+
+        /* Check if Secure Invasive Debug is enabled (CMSIS DIB->DAUTHSTATUS) */
+        bool secure_debug_enabled = (DIB->DAUTHSTATUS & DIB_DAUTHSTATUS_SID_Msk) == DAUTHSTATUS_SID_ENABLED;
+
+        bool is_garbage_address = !is_valid_memory_address(fault_addr);
+
+        if (debugger_attached && secure_debug_enabled &&
+            is_read && !is_write && !is_execute && is_garbage_address) {
             mpc_clear_events();
             NVIC_ClearPendingIRQ(MPC00_IRQn);
             return;
