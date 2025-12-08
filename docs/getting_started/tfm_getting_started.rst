@@ -201,6 +201,22 @@ versions are:
 
               - Configure proper tool variant and license.
 
+.. note::
+
+    When compiling for a Cortex-M52 target, a Cortex-M85 target, or with an
+    -march=<name> or -mcpu=<name> option that includes the +pacbti feature
+    modifier, and when configured without *User based* Licensing, the compiler
+    could incorrectly report one of these errors:
+
+    * ``Cortex-M52 is not available with the current toolkit edition and license``
+    * ``Cortex-M85 is not available with the current toolkit edition and license``
+    
+    The use of -target-feature +pacbti is disallowed in this variant of Armclang. Please use Armclang version
+    6.24+ which does not have this issue.
+
+    * GNU Arm compiler version minimum: 12.2.Rel1
+
+
     - GNU Arm compiler version minimum 12.2.Rel1
 
       .. tabs::
