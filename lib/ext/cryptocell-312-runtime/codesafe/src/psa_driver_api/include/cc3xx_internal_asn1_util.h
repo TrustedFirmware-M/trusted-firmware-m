@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -18,7 +18,6 @@
 #include "psa/crypto.h"
 
 #include "cc_common.h"
-#include "cc_ecc_internal.h"
 #include "cc_ecpki_error.h"
 #include "cc_pal_abort.h"
 #include "cc_pal_mem.h"
@@ -175,4 +174,3 @@ psa_status_t cc3xx_asn1_get_int(unsigned char **p, const unsigned char *end, int
 }
 #endif
 #endif /* CC3XX_INTERNAL_ASN1_UTIL_H */
-

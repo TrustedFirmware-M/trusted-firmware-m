@@ -23,7 +23,6 @@
 #include "psa/crypto.h"
 
 #include "cc_common.h"
-#include "cc_ecc_internal.h"
 #include "cc_ecpki_build.h"
 #include "cc_ecpki_domain.h"
 #include "cc_ecpki_ecdsa.h"

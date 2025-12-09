@@ -349,23 +349,10 @@ static psa_status_t tfm_crypto_engine_init(void)
     }
     VERBOSE("[Crypto] Init \033[0;32m%s\033[0m... \033[0;32mcomplete\033[0m.\n", library_info);
 
-    /* Initialise the crypto accelerator if one is enabled. If the driver API is
-     * the one defined by the PSA Unified Driver interface, the initialisation is
-     * performed directly through psa_crypto_init() while the PSA subsystem is
-     * initialised
-     */
-#if defined(CRYPTO_HW_ACCELERATOR) && defined(LEGACY_DRIVER_API_ENABLED)
-    INFO("[Crypto] Init HW accelerator...\n");
-    if (crypto_hw_accelerator_init() != 0) {
-        return PSA_ERROR_HARDWARE_FAILURE;
-    }
-    INFO("[Crypto] Init HW accelerator... \033[0;32mcomplete\033[0m.\n");
-#endif /* CRYPTO_HW_ACCELERATOR */
-
     /* Perform the initialisation of the PSA subsystem available through the chosen
-     * Cryptographic library. If a driver is built using the PSA Driver interface,
-     * the function below will perform also the same operations done by the HAL init
-     * crypto_hw_accelerator_init()
+     * Cryptographic library. If a driver is built using the PSA Driver interface
+     * (such as a crypto accelerator driver), the function below will perform also
+     * the same operations done by the HAL init crypto_hw_accelerator_init().
      */
     return psa_crypto_init();
 }

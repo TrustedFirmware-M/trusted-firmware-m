@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2021, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -13,7 +13,7 @@ extern "C"
 
 #include "cc_pal_types_plat.h"
 #include "cc_ecpki_types.h"
-#include "mbedtls/ecp.h"
+#include "mbedtls/private/ecp.h"
 
 /*
  *\brief         Curve types

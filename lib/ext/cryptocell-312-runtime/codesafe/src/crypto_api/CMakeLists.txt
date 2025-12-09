@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2021, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -10,6 +10,7 @@
 target_include_directories(${CC312_LIB_TARGET}
     PUBLIC
         cc3x_sym/driver
+        ../common
     INTERFACE
         common
         cc3x_sym/api
@@ -106,6 +107,14 @@ target_sources(${CC312_LIB_TARGET}
         rsa/cc_rsa_sign.c
         rsa/cc_rsa_verify.c
         rsa/cc_rsa_verify.c
+        ../common/mbedtls_common.c
+)
+
+target_compile_definitions(${CC312_LIB_TARGET}
+    PRIVATE
+        # The driver needs to access private identifiers from TF-PSA-Crypto,
+        # which were previously exposed in Mbed TLS.
+        MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
 )
 
 ########################## CDMPU ###############################################
@@ -113,6 +122,7 @@ target_sources(${CC312_LIB_TARGET}
 target_include_directories(${CC312_CDMPU_TARGET}
     INTERFACE
         common
+        ../common
         cc3x_sym/driver
         cc3x_sym/api
         rnd_dma
@@ -128,4 +138,5 @@ target_sources(${CC312_CDMPU_TARGET}
         common/cc_common_conv_endian.c
         rnd_dma/llf_rnd.c
         rnd_dma/llf_rnd_fetrng.c
+        ../common/mbedtls_common.c
 )

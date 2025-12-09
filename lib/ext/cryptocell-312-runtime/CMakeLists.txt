@@ -12,7 +12,6 @@ project("CC312 Runtime Library" LANGUAGES C ASM)
 set(CC312_LIB_TARGET            ${CC312_LIB_PREFIX}cc312)
 set(CC312_PAL_TARGET            ${CC312_LIB_PREFIX}cc312_pal)
 set(CC312_CDMPU_TARGET          ${CC312_LIB_PREFIX}cc312_cdmpu)
-set(CC312_MBEDTLS_API_TARGET    ${CC312_LIB_PREFIX}cc312_mbedtls_api)
 set(CC312_PSA_DRIVER_API_TARGET ${CC312_LIB_PREFIX}cc312_psa_driver_api)
 
 # Add library targets for this project
@@ -21,7 +20,6 @@ add_library(${CC312_PAL_TARGET} STATIC EXCLUDE_FROM_ALL)
 add_library(${CC312_CDMPU_TARGET} INTERFACE)
 
 # Library interface components
-add_library(${CC312_MBEDTLS_API_TARGET} STATIC EXCLUDE_FROM_ALL)
 add_library(${CC312_PSA_DRIVER_API_TARGET} STATIC EXCLUDE_FROM_ALL)
 
 add_subdirectory(codesafe)
@@ -52,8 +50,6 @@ target_link_libraries(${CC312_LIB_TARGET}
         ${CC312_PAL_TARGET}
         ${CC312_LIB_PREFIX}tfpsacrypto
         ${CC312_PLATFORM_DEPENDENCY}
-    INTERFACE
-        ${CC312_MBEDTLS_API_TARGET}
 )
 
 ########################## PAL #################################################
@@ -101,14 +97,6 @@ target_link_libraries(${CC312_PSA_DRIVER_API_TARGET}
     PRIVATE
         ${CC312_PLATFORM_DEPENDENCY}
 )
-
-target_link_libraries(${CC312_MBEDTLS_API_TARGET}
-    PUBLIC
-        ${CC312_LIB_PREFIX}mbedcrypto
-    INTERFACE
-        ${CC312_LIB_TARGET}
-    PRIVATE
-        ${CC312_PLATFORM_DEPENDENCY}
 
 target_compile_definitions(${CC312_LIB_PREFIX}tfpsacrypto_config
     INTERFACE

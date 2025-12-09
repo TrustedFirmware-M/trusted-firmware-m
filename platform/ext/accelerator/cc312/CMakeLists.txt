@@ -16,7 +16,7 @@ if(BL2)
     )
 endif()
 
-# The config files need to access mbedtls_accelerator_config.h and crypto_accelerator_config.h
+# The config files need to access crypto accelerator configurations.
 target_include_directories(psa_crypto_library_config
     INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}
@@ -85,30 +85,25 @@ if (TFM_PARTITION_CRYPTO)
            "EXPERIMENTAL: This variable controls whether the cc3xx driver is being used in runtime FW. \
            Enable it only for testing purposes." OFF)
 
-    # Control the enablement of the legacy CC-312 driver interface or the PSA
-    # driver interface. Default value is for the legacy interface
-    option(CC312_LEGACY_DRIVER_API_ENABLED
-           "This variable controls whether the legacy driver interface is used for CC-312." ON)
-
     # FixMe: Secure tests enabled and Debug builds with FP support set to hardware
-    #        need to fallback to the legacy driver as the new PSA driver overflows
-    #        the available flash memory on Musca-B1
-    if ((NOT ${CC312_LEGACY_DRIVER_API_ENABLED}) AND
-        TEST_S AND (${CMAKE_BUILD_TYPE} STREQUAL "Debug") AND (${CONFIG_TFM_FLOAT_ABI} STREQUAL "hard"))
-        set(CC312_LEGACY_DRIVER_API_ENABLED ON)
+    #        may overflow the available flash memory on Musca-B1 with the new PSA driver.
+    if (TEST_S AND (${CMAKE_BUILD_TYPE} STREQUAL "Debug") AND (${CONFIG_TFM_FLOAT_ABI} STREQUAL "hard"))
         message(WARNING
-            "The CC-312 legacy driver interface fallback is forced to ${CC312_LEGACY_DRIVER_API_ENABLED}. \
-            The following parameters are not supported at the same time: \
+            "The following parameters may not be operational at the same time: \
             (TEST_S: ${TEST_S}, \
             CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}, \
-            CONFIG_TFM_FLOAT_ABI: ${CONFIG_TFM_FLOAT_ABI}) for the PSA Cryptoprocessor driver interface due to flash memory constraints.")
+            CONFIG_TFM_FLOAT_ABI: ${CONFIG_TFM_FLOAT_ABI}) \
+            for the PSA Cryptoprocessor driver interface due to flash memory constraints.")
     endif()
 
-    if (${CC3XX_RUNTIME_ENABLED} AND ${CC312_LEGACY_DRIVER_API_ENABLED})
-        message(FATAL_ERROR "CC3xx and the Legacy Crypto driver API can't be enabled at the same time.")
-    endif()
+    if (${CC3XX_RUNTIME_ENABLED})
+        # Using the CC3XX driver
+        set(CC3XX_TARGET_PREFIX crypto_service_)
+        set(CC312_DRIVER_API_TARGET ${CC3XX_TARGET_PREFIX}cc3xx_psa_driver_api)
+        set(CC3XX_PLATFORM_INTERFACE platform_s)
 
-    if ((NOT ${CC312_LEGACY_DRIVER_API_ENABLED}) AND ${CC3XX_RUNTIME_ENABLED})
+        add_subdirectory(${PLATFORM_DIR}/ext/target/arm/drivers/cc3xx ${CMAKE_CURRENT_BINARY_DIR}/${CC3XX_TARGET_PREFIX}cc3xx)
+
         target_sources(crypto_service_crypto_hw
             PRIVATE
                 cc312_rom_crypto_hw.c
@@ -118,10 +113,10 @@ if (TFM_PARTITION_CRYPTO)
             PRIVATE
                 crypto_service_tfpsacrypto
         )
-    endif()
-
-    if (${CC312_LEGACY_DRIVER_API_ENABLED} OR (NOT ${CC3XX_RUNTIME_ENABLED}))
+    else()
+        # Using the CC312 driver (legacy)
         set(CC312_LIB_PREFIX crypto_service_)
+        set(CC312_DRIVER_API_TARGET ${CC312_LIB_PREFIX}cc312_psa_driver_api)
 
         target_sources(crypto_service_crypto_hw
             PRIVATE
@@ -162,23 +157,6 @@ if (TFM_PARTITION_CRYPTO)
         )
     endif()
 
-    if (${CC312_LEGACY_DRIVER_API_ENABLED})
-        set(CC312_DRIVER_API_TARGET ${CC312_LIB_PREFIX}cc312_mbedtls_api)
-    else()
-        if (${CC3XX_RUNTIME_ENABLED})
-            set(CC3XX_TARGET_PREFIX crypto_service_)
-            set(CC312_DRIVER_API_TARGET ${CC3XX_TARGET_PREFIX}cc3xx_psa_driver_api)
-        else()
-            set(CC312_DRIVER_API_TARGET ${CC312_LIB_PREFIX}cc312_psa_driver_api)
-        endif()
-    endif()
-
-    if (NOT ${CC312_LEGACY_DRIVER_API_ENABLED} AND ${CC3XX_RUNTIME_ENABLED})
-        set(CC3XX_TARGET_PREFIX crypto_service_)
-        set(CC3XX_PLATFORM_INTERFACE platform_s)
-        add_subdirectory(${PLATFORM_DIR}/ext/target/arm/drivers/cc3xx ${CMAKE_CURRENT_BINARY_DIR}/${CC3XX_TARGET_PREFIX}cc3xx)
-    endif()
-
     # Adding two targets as link-time dependencies of each other seems bad, but
     # in reality it just means that they'll share headers and compile defs.
     target_link_libraries(${CC312_DRIVER_API_TARGET}
@@ -197,9 +175,8 @@ if (TFM_PARTITION_CRYPTO)
         PUBLIC
             CRYPTO_HW_ACCELERATOR
             MBEDTLS_ECDH_LEGACY_CONTEXT
-            $<$<BOOL:${CC312_LEGACY_DRIVER_API_ENABLED}>:LEGACY_DRIVER_API_ENABLED>
             $<$<BOOL:${CC3XX_RUNTIME_ENABLED}>:CC3XX_RUNTIME_ENABLED>
-            $<$<NOT:$<BOOL:${CC312_LEGACY_DRIVER_API_ENABLED}>>:PSA_CRYPTO_DRIVER_CC3XX>
+            PSA_CRYPTO_DRIVER_CC3XX
     )
 
     target_include_directories(psa_crypto_config
