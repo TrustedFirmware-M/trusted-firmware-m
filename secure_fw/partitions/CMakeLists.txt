@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2021-2022, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -18,6 +18,7 @@ add_subdirectory(platform)
 add_subdirectory(firmware_update)
 add_subdirectory(ns_agent_tz)
 add_subdirectory(ns_agent_mailbox)
+add_subdirectory(power_mgmt)
 if (CONFIG_TFM_SPM_BACKEND_IPC)
     add_subdirectory(idle_partition)
 endif()

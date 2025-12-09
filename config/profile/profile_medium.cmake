@@ -22,6 +22,7 @@ set(TFM_PARTITION_PROTECTED_STORAGE        ON    CACHE BOOL "Enable Protected St
 set(TFM_PARTITION_INITIAL_ATTESTATION      ON    CACHE BOOL "Enable Initial Attestation partition")
 set(SYMMETRIC_INITIAL_ATTESTATION          OFF   CACHE BOOL "Use symmetric crypto for inital attestation")
 set(TFM_PARTITION_FIRMWARE_UPDATE          OFF   CACHE BOOL "Enable firmware update partition")
+set(TFM_PARTITION_POWER_MGMT               OFF   CACHE BOOL "Enable Power Management partition")
 
 ################################## Advanced options #############################
 

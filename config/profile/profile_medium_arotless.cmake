@@ -21,6 +21,7 @@ set(TFM_PARTITION_PLATFORM              ON          CACHE BOOL      "Enable the 
 set(TFM_PARTITION_INITIAL_ATTESTATION   ON          CACHE BOOL      "Enable Initial Attestation partition")
 set(TFM_PARTITION_FIRMWARE_UPDATE       ON          CACHE BOOL      "Enable firmware update partition")
 set(TFM_PARTITION_PROTECTED_STORAGE     OFF         CACHE BOOL      "Enable Protected Storage partition")
+set(TFM_PARTITION_POWER_MGMT            OFF         CACHE BOOL      "Enable Power Management partition")
 
 ################################## Dependencies ################################
 

@@ -20,6 +20,7 @@ set(TFM_PARTITION_PROTECTED_STORAGE        @TFM_PARTITION_PROTECTED_STORAGE@    
 set(TFM_PARTITION_PLATFORM                 @TFM_PARTITION_PLATFORM@                 CACHE BOOL "Enable Platform partition")
 set(TFM_PARTITION_FIRMWARE_UPDATE          @TFM_PARTITION_FIRMWARE_UPDATE@          CACHE BOOL "Enable firmware update partition")
 set(TFM_PARTITION_NS_AGENT_MAILBOX         @TFM_PARTITION_NS_AGENT_MAILBOX@         CACHE BOOL "Enable the Mailbox agents")
+set(TFM_PARTITION_POWER_MGMT               @TFM_PARTITION_POWER_MGMT@               CACHE BOOL "Enable Power Management partition")
 
 # The options necessary for signing the final image
 set(BL2                                    @BL2@)
