@@ -304,8 +304,13 @@ cc3xx_err_t cc3xx_lowlevel_ecdsa_getpub(cc3xx_ec_curve_id_t curve_id,
     cc3xx_lowlevel_pka_read_reg_swap_endian(public_key_point.x, public_key_x, curve.modulus_size);
     cc3xx_lowlevel_pka_read_reg_swap_endian(public_key_point.y, public_key_y, curve.modulus_size);
 
-    *public_key_x_size = curve.modulus_size;
-    *public_key_y_size = curve.modulus_size;
+    if (public_key_x_size != NULL) {
+        *public_key_x_size = curve.modulus_size;
+    }
+
+    if (public_key_y_size != NULL) {
+        *public_key_y_size = curve.modulus_size;
+    }
 
 out:
     cc3xx_lowlevel_ec_uninit();
