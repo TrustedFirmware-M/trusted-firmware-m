@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2001-2022, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #ifdef CC_IOT
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 #endif
 
-#if !defined(CC_IOT) || ( defined(CC_IOT) && defined(MBEDTLS_RSA_C))
+#if !defined(CC_IOT) || ( defined(CC_IOT) && defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY))
 
 
 /************* Include Files ****************/
@@ -113,4 +113,4 @@ CCError_t RsaExecPubKeyExp( CCRsaPubKey_t     *pPubKey,     /*!< [in]  Public ke
     return error;
 }
 
-#endif /* !defined(CC_IOT) || ( defined(CC_IOT) && defined(MBEDTLS_RSA_C)) */
+#endif /* !defined(CC_IOT) || ( defined(CC_IOT) && defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)) */

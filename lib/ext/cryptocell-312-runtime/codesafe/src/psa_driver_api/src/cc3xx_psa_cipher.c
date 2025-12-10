@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -21,7 +21,7 @@
 #include "cc_pal_log.h"
 
 /* To be able to include the PSA style configuration */
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 static psa_status_t add_pkcs_padding(
         uint8_t *output,

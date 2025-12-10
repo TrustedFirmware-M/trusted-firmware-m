@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -11,8 +11,8 @@
 #include "cc_pal_buff_attr.h"
 #include "cc_rnd_common.h"
 #include "mbedtls/platform.h"
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/entropy.h"
+#include "mbedtls/private/ctr_drbg.h"
+#include "mbedtls/private/entropy.h"
 #include "mbedtls_cc_mng_int.h"
 #include "arm_cmse.h"
 #include "mbedtls_cc_util_key_derivation.h"

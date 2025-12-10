@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2021, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -8,12 +8,12 @@
 
 #include "cc_pal_abort.h"
 #include "mbedtls_cc_sha512_t.h"
-#include "mbedtls/sha512.h"
+#include "mbedtls/private/sha512.h"
 #include "cc_pal_mem.h"
 
 #if defined(MBEDTLS_SHA512_C)
 
-#include "mbedtls/sha512.h"
+#include "mbedtls/private/sha512.h"
 
 #if defined(_MSC_VER) || defined(__WATCOMC__)
   #define UL64(x) x##ui64
@@ -82,15 +82,6 @@ void mbedtls_sha512_t_starts( mbedtls_sha512_context *ctx, int is224 )
     }
 
     ctx->MBEDTLS_PRIVATE(is384) = 0;
-}
-
-
-void mbedtls_sha512_t_process( mbedtls_sha512_context *ctx, const unsigned char data[128] )
-{
-    if (ctx == NULL || data == NULL) {
-        CC_PalAbort("mbedtls_sha512_context and data buffer cannot be NULL");
-    }
-    mbedtls_internal_sha512_process(ctx, data);
 }
 
 /*

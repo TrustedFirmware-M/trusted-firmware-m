@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -19,7 +19,7 @@
 #include "cc3xx_internal_rsa_util.h"
 #include "cc3xx_psa_hash.h"
 #include "cc3xx_internal_hash_util.h"
-#include "mbedtls/hmac_drbg.h"
+#include "mbedtls/private/hmac_drbg.h"
 #include "psa/crypto.h"
 
 #include "cc_common.h"
@@ -54,7 +54,7 @@
  *        interface layer should be the only part that should
  *        be configured through defines
  */
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 static psa_status_t cc3xx_internal_ecdsa_verify(
     const psa_key_attributes_t *attributes,

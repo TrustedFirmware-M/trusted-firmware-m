@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -19,7 +19,7 @@
 #include "cc_pal_mem.h"
 
 /* To be able to include the PSA style configuration */
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #define MAX_HASH_CHUNK_SIZE 0xffff
 

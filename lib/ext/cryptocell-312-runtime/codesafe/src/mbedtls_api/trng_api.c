@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2022, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -11,7 +11,7 @@
 #include "mbedtls_common.h"
 #include "cc_pal_mem.h"
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include "mbedtls/platform.h"

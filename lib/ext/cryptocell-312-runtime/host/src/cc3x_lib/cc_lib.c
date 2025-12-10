@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2022, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -25,8 +25,8 @@
 #include "dx_id_registers.h"
 #include "cc_util_pm.h"
 #include "dx_nvm.h"
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/entropy.h"
+#include "mbedtls/private/ctr_drbg.h"
+#include "mbedtls/private/entropy.h"
 #include "mbedtls/threading.h"
 #include "mbedtls_cc_mng_int.h"
 #include "mbedtls_cc_mng.h"
@@ -325,4 +325,3 @@ void __cyg_profile_func_exit (void *this_fn, void *call_site) {
     CC_PAL_LOG_ERR("Exiting: %p <- %p (stack: %p)\n",
                      call_site, this_fn, &i );
 }
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2022, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,7 +7,7 @@
 #ifndef MBEDTLS_AES_ALT_H
 #define MBEDTLS_AES_ALT_H
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include <stddef.h>
 #include <stdint.h>

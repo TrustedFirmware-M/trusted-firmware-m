@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2022, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,7 +7,7 @@
 #ifndef MBEDTLS_CC_ECC_INTERNAL_H
 #define MBEDTLS_CC_ECC_INTERNAL_H
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #if defined(MBEDTLS_ECDH_GEN_PUBLIC_ALT) || defined(MBEDTLS_ECDSA_GENKEY_ALT)
 /*
@@ -40,5 +40,3 @@ int cc_ecp_mul( mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
 #endif /* MBEDTLS_ECDH_COMPUTE_SHARED_ALT */
 
 #endif //MBEDTLS_CC_ECC_INTERNAL_H
-
-

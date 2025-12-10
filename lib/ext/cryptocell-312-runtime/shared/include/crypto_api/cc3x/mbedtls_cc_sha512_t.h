@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -19,7 +19,7 @@
 #ifndef _MBEDTLS_CC_SHA512_T_H
 #define _MBEDTLS_CC_SHA512_T_H
 
-#include <mbedtls/sha512.h>
+#include <mbedtls/private/sha512.h>
 
 /*!
    @brief This function initializes the SHA-512_t context.

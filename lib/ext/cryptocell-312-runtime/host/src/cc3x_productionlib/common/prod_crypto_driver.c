@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -21,7 +21,7 @@
 #include "driver_defs.h"
 #include "cc_production_asset.h"
 #include "cc_aes_defs.h"
-#include "mbedtls/ccm.h"
+#include "mbedtls/private/ccm.h"
 
 /**
  * This function is used to perform AES  operation.
@@ -268,5 +268,3 @@ uint32_t  CC_PROD_KeyDerivation(cryptoKeyType_t keyType,
         CC_PalMemCopy(pDerivedKey, aesCtx.ivBuf, CC_AES_BLOCK_SIZE_IN_BYTES);
         return CC_OK;
 }
-
-

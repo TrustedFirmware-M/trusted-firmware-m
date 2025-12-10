@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2024, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -50,7 +50,7 @@ target_compile_definitions(${CC312_LIB_TARGET}
 target_link_libraries(${CC312_LIB_TARGET}
     PRIVATE
         ${CC312_PAL_TARGET}
-        ${CC312_LIB_PREFIX}mbedcrypto
+        ${CC312_LIB_PREFIX}tfpsacrypto
         ${CC312_PLATFORM_DEPENDENCY}
     INTERFACE
         ${CC312_MBEDTLS_API_TARGET}
@@ -96,7 +96,7 @@ target_compile_definitions(${CC312_PSA_DRIVER_API_TARGET}
 
 target_link_libraries(${CC312_PSA_DRIVER_API_TARGET}
     PUBLIC
-        ${CC312_LIB_PREFIX}mbedcrypto
+        ${CC312_LIB_PREFIX}tfpsacrypto
     INTERFACE
         ${CC312_LIB_TARGET}
     PRIVATE

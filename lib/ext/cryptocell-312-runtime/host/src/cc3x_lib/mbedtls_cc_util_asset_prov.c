@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2020, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -15,7 +15,7 @@
 #include "mbedtls_cc_util_defs.h"
 #include "cc_util_error.h"
 #include "cc_aes_defs.h"
-#include "mbedtls/ccm.h"
+#include "mbedtls/private/ccm.h"
 #include "aes_driver.h"
 #include "driver_defs.h"
 #include "cc_util_cmac.h"
@@ -124,4 +124,3 @@ CCError_t mbedtls_util_asset_pkg_unpack(CCAssetProvKeyType_t        keyType,
     *pAssetDataLen = assetDataSize;
     return CC_OK;
 }
-

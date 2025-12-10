@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -22,7 +22,7 @@
 #include "cc_ecpki_types.h"
 #include "cc_rnd_common.h"
 
-#include "mbedtls/hmac_drbg.h"
+#include "mbedtls/private/hmac_drbg.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2001-2022, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #if defined(MBEDTLS_CHACHA20_C)
 #include "mbedtls/chacha20.h"

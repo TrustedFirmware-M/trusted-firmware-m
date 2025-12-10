@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2022, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -9,7 +9,7 @@
 #define _CC_RSA_ERROR_H
 
 #ifdef CC_IOT
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 #endif
 
 #include "cc_error.h"
@@ -240,4 +240,3 @@ extern "C"
  */
 
 #endif /* _CC_RSA_ERROR_H */
-

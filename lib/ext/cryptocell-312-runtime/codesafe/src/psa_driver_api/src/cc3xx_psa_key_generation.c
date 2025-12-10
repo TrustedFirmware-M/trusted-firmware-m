@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -59,7 +59,7 @@
  *        interface layer should be the only part that should
  *        be configured through defines
  */
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 /* Based on ecp_wrst_gen_keypair_base */
 static psa_status_t

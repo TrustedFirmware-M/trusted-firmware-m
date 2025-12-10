@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2001-2022, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
-#if defined(MBEDTLS_GCM_C)
+#if defined(PSA_WANT_ALG_GCM)
 
 #include "cc_hal_plat.h"
 #include "cc_regs.h"
@@ -459,4 +459,4 @@ ProcessExit_Err:
 
     return drvRc;
 }
-#endif
+#endif /* PSA_WANT_ALG_GCM */

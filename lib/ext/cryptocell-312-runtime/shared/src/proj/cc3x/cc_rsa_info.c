@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2001-2022, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 /* this file contains the definitions of the hashes used in the rsa */
 #ifdef CC_IOT
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 #endif
 
-#if !defined(CC_IOT) || ( defined(CC_IOT) && defined(MBEDTLS_RSA_C))
+#if !defined(CC_IOT) || ( defined(CC_IOT) && defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY))
 
 #include "cc_rsa_local.h"
 #include "cc_hash_defs.h"
@@ -60,4 +60,4 @@ const uint8_t RsaSupportedHashModes_t[CC_RSA_HASH_NumOfModes] = {
         /*CC_RSA_HASH_NO_HASH_mode           */ CC_TRUE,
 };
 
-#endif /* defined(CC_IOT) || ( defined(CC_IOT) && defined(MBEDTLS_RSA_C)) */
+#endif /* defined(CC_IOT) || ( defined(CC_IOT) && defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)) */

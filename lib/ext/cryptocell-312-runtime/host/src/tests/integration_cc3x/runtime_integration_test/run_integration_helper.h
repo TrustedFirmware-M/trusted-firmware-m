@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2022, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -7,7 +7,7 @@
 #ifndef _RUN_INTEGRATION_HELPER_H_
 #define _RUN_INTEGRATION_HELPER_H_
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include <inttypes.h>
 

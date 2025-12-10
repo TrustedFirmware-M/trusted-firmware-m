@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -19,6 +19,7 @@
 #include "cc_rnd_common.h"
 #include "cc_rng_plat.h"
 #include "llf_rnd_trng.h"
+#include "psa/crypto_driver_random.h"
 
 /** \defgroup psa_entropy PSA driver entry points for entropy collection
  *
@@ -98,14 +99,14 @@ end:
 }
 /** @} */ // end of psa_entropy
 
-/*
- * FixMe: This function is required to integrate into Mbed TLS as the PSA
- * subsystem does not yet support entropy entry points. See the header
- * entropy_poll.h for details. This needs to be revised once Mbed TLS adds
- * support for entropy.
- */
-int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t *olen)
+int mbedtls_platform_get_entropy(psa_driver_get_entropy_flags_t flags,
+                                 size_t *estimate_bits,
+                                 unsigned char *output, size_t output_size)
 {
-    CC_UNUSED_PARAM(data);
-    return cc3xx_get_entropy(0, olen, output, len);
+    /* Note from TF-PSA-Crypto migration guide:
+     *  As of TF-PSA-Crypto 1.0, the output must have full entropy, thus `estimate_bits` must be
+     *  equal to `8 * output_size`. A future version of TF-PSA-Crypto will allow entropy sources
+     *  to report smaller amounts.
+     */
+    return cc3xx_get_entropy((uint32_t)flags, estimate_bits, output, output_size);
 }

@@ -1,19 +1,19 @@
 /*
- * Copyright (c) 2001-2022, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
 /*  Inculde Files */
 #ifdef CC_IOT
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 #endif
 
 #ifndef USE_MBEDTLS_CRYPTOCELL
 #include "cc_hash.h"
 #endif
 
-#if !defined(CC_IOT) || ( defined(CC_IOT) && defined(MBEDTLS_RSA_C))
+#if !defined(CC_IOT) || ( defined(CC_IOT) && defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY))
 
 #include "cc_pal_mem.h"
 #include "cc_common_math.h"
@@ -484,4 +484,4 @@ CCError_t RsaPssSign21(
 
 void CC_RSA_PSS21_UTIL_foo(void) {}
 #endif //_INTERNAL_CC_NO_RSA_SIGN_SUPPORT
-#endif /* !defined(CC_IOT) || ( defined(CC_IOT) && defined(MBEDTLS_RSA_C)) */
+#endif /* !defined(CC_IOT) || ( defined(CC_IOT) && defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)) */

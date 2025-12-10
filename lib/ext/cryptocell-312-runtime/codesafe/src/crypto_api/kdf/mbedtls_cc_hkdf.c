@@ -210,6 +210,10 @@ CCError_t  HkdfExpand(mbedtls_hkdf_hashmode_t HKDFhashMode,
 
     /* Initialize the hmac ctx */
     mbedtls_md_init( &hmacCtx );
+    /* Fixme: The hmac parameter of the mbedtls_md_setup() function must now
+     * always be set to 0 as HMAC is no longer supported by MD. To use HMAC,
+     * please use the psa_mac_ API.
+     */
     Error = mbedtls_md_setup( &hmacCtx, mdInfo, 1 );
     if (Error != CC_OK){
         goto End;
@@ -303,5 +307,3 @@ CCError_t  mbedtls_hkdf_key_derivation(
 
     return Error;
 }
-
-

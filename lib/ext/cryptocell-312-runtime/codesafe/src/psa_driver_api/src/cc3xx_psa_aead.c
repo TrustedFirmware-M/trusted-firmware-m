@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -27,7 +27,7 @@
 #include "cc3xx_internal_chacha20_poly1305.h"
 
 /* To be able to include the PSA style configuration */
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 /* Number of valid tag lengths sizes both for CCM and GCM modes */
 #define VALID_TAG_LENGTH_SIZE 7

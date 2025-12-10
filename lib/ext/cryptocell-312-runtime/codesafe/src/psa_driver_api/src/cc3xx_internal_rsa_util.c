@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -35,7 +35,7 @@
 #endif
 
 /* To be able to include the PSA style configuration */
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 /*  This function checks if the first byte of a pointer is zero and
  *  skips it when it is. We need this when we convert a PSA RSA key
