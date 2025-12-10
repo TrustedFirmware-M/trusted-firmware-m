@@ -143,8 +143,8 @@ enum tfm_plat_err_t rse_update_cm_rotpks(bool specify_idx, uint32_t new_idx, uin
     return tfm_plat_otp_init();
 }
 
-enum tfm_plat_err_t rse_update_dm_rotpks(bool specify_idx, uint32_t new_idx, uint32_t policies,
-                                         uint8_t *rotpks, size_t rotpks_len)
+enum tfm_plat_err_t rse_update_dm_rotpks(bool specify_idx, uint32_t new_idx, bool allow_revocation,
+                                         uint32_t policies, uint8_t *rotpks, size_t rotpks_len)
 {
     enum tfm_plat_err_t err;
     enum lcm_error_t lcm_err;
@@ -159,6 +159,10 @@ enum tfm_plat_err_t rse_update_dm_rotpks(bool specify_idx, uint32_t new_idx, uin
      * write to the current ROTPK array without revoking
      */
     if (specify_idx || (IS_RSE_OTP_AREA_VALID(DM_ROTPK) && (P_RSE_OTP_DM_ROTPK->zero_count != 0))) {
+        if (!allow_revocation) {
+            return TFM_PLAT_ERR_DM_ROTPK_UPDATE_REVOCATION_NOT_PERMITTED;
+        }
+
         err = revoke_rotpks(PLAT_NV_COUNTER_DM_ROTPK_REPROVISIONING, specify_idx, new_idx,
                             RSE_OTP_DM_ROTPK_AMOUNT, false);
         if (err != TFM_PLAT_ERR_SUCCESS) {

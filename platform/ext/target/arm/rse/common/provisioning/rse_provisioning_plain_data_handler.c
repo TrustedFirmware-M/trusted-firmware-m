@@ -59,7 +59,7 @@ handle_non_endorsed_dm(const struct rse_provisioning_message_plain_t *plain_data
         return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_NUM_ROTPKS;
     }
 
-    plat_err = rse_update_dm_rotpks(false, 0,
+    plat_err = rse_update_dm_rotpks(false, 0, false,
                                     rotpk_revocation_values->rotpk_revocation_dm_rotpk_policies,
                                     (uint8_t *)rotpk_revocation_values->rotpk,
                                     RSE_OTP_DM_ROTPK_AMOUNT * RSE_OTP_DM_ROTPK_SIZE);
@@ -178,7 +178,7 @@ handle_dm_revocation(const struct rse_provisioning_message_plain_t *plain_data, 
         }
 
         plat_err = rse_update_dm_rotpks(rotpk_revocation_values->index != 0,
-                                        rotpk_revocation_values->index,
+                                        rotpk_revocation_values->index, true,
                                         rotpk_revocation_values->rotpk_revocation_dm_rotpk_policies,
                                         (uint8_t *)rotpk_revocation_values->rotpk,
                                         RSE_OTP_DM_ROTPK_AMOUNT * RSE_OTP_DM_ROTPK_SIZE);
