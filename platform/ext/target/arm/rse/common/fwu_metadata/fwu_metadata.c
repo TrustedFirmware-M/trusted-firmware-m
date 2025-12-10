@@ -23,6 +23,41 @@
 
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 
+static inline uint32_t round_down(uint32_t num, uint32_t boundary)
+{
+    return num - (num % boundary);
+}
+
+static inline uint32_t round_up(uint32_t num, uint32_t boundary)
+{
+    return (num + boundary - 1) - ((num + boundary - 1) % boundary);
+}
+
+static enum tfm_plat_err_t map_atu_align_physical_addr(uint64_t physical_addr,
+                                                       uint32_t logical_addr, uint32_t size,
+                                                       uint32_t *logical_addr_offset)
+{
+    size_t atu_page_size = atu_rse_get_page_size(&ATU_LIB_S);
+    uint64_t physical_addr_mapped;
+    uint32_t size_mapped;
+    enum atu_error_t atu_err;
+
+    physical_addr_mapped = round_down(physical_addr, atu_page_size);
+    size_mapped = round_up(size + (physical_addr_mapped - physical_addr), atu_page_size);
+
+    /* The logical address must also be aligned, that will be checked
+     * in the ATU driver
+     */
+    atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S, physical_addr_mapped, logical_addr,
+                                           size_mapped, 0);
+    if (atu_err != ATU_ERR_NONE) {
+        return (enum tfm_plat_err_t)atu_err;
+    }
+
+    *logical_addr_offset = physical_addr - physical_addr_mapped;
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
 static enum tfm_plat_err_t read_from_host_flash(uint64_t offset,
                                                 uint32_t size,
                                                 uint8_t *data_buf)
@@ -31,6 +66,7 @@ static enum tfm_plat_err_t read_from_host_flash(uint64_t offset,
     enum atu_error_t atu_err;
     enum tfm_plat_err_t plat_err;
     uint32_t log_addr = HOST_FLASH0_TEMP_BASE_S;
+    uint32_t logical_addr_offset;
     uint64_t physical_address = HOST_FLASH0_BASE + offset;
     const uint32_t data_width_byte[] = {
         sizeof(uint8_t),
@@ -50,16 +86,14 @@ static enum tfm_plat_err_t read_from_host_flash(uint64_t offset,
         return TFM_PLAT_ERR_FWU_METADATA_INVALID_SIZE;
     }
 
-    atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S, physical_address,
-                                           log_addr,
-                                           METADATA_REGION_SIZE,
-                                           0);
-    if (atu_err != ATU_ERR_NONE) {
-        return (enum tfm_plat_err_t)atu_err;
+    plat_err = map_atu_align_physical_addr(physical_address, log_addr, METADATA_REGION_SIZE,
+                                           &logical_addr_offset);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
-    rc = FLASH_DEV_NAME.ReadData(log_addr - FLASH_BASE_ADDRESS, (void *)data_buf,
-                                 size / data_width);
+    rc = FLASH_DEV_NAME.ReadData(log_addr + logical_addr_offset - FLASH_BASE_ADDRESS,
+                                 (void *)data_buf, size / data_width);
     if (rc != (size / data_width)) {
         plat_err = TFM_PLAT_ERR_FWU_METADATA_FLASH_READ_FAILED;
         goto out_free_atu;
@@ -92,6 +126,7 @@ enum tfm_plat_err_t write_fwu_metadata(uint64_t offset,
     int rc;
     enum atu_error_t atu_err;
     uint32_t log_addr = HOST_FLASH0_TEMP_BASE_S;
+    uint32_t logical_addr_offset;
     uint64_t physical_address = HOST_FLASH0_BASE + offset;
     enum tfm_plat_err_t plat_err;
 
@@ -109,23 +144,20 @@ enum tfm_plat_err_t write_fwu_metadata(uint64_t offset,
         return TFM_PLAT_ERR_FWU_METADATA_INVALID_SIZE;
     }
 
-    atu_err = atu_rse_map_addr_to_log_addr(&ATU_LIB_S, physical_address,
-                                           log_addr,
-                                           METADATA_REGION_SIZE,
-                                           0);
-    if (atu_err != ATU_ERR_NONE) {
-        return (enum tfm_plat_err_t)atu_err;
+    plat_err = map_atu_align_physical_addr(physical_address, log_addr, METADATA_REGION_SIZE,
+                                           &logical_addr_offset);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
 
-    rc = FLASH_DEV_NAME.EraseSector(log_addr - FLASH_BASE_ADDRESS);
+    rc = FLASH_DEV_NAME.EraseSector(log_addr + logical_addr_offset - FLASH_BASE_ADDRESS);
     if (rc != ARM_DRIVER_OK) {
         plat_err = TFM_PLAT_ERR_FWU_METADATA_FLASH_ERASE_FAILED;
         goto out_free_atu;
     }
 
-    rc = FLASH_DEV_NAME.ProgramData(log_addr - FLASH_BASE_ADDRESS,
-                                    (void *)metadata,
-                                    sizeof(*metadata));
+    rc = FLASH_DEV_NAME.ProgramData(log_addr + logical_addr_offset - FLASH_BASE_ADDRESS,
+                                    (void *)metadata, sizeof(*metadata));
     if (rc < 0 || rc != sizeof(*metadata)) {
         plat_err = TFM_PLAT_ERR_FWU_METADATA_FLASH_WRITE_FAILED;
         goto out_free_atu;
