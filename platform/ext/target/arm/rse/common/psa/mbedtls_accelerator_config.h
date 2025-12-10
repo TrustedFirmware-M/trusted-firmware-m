@@ -25,6 +25,8 @@ extern "C" {
 
 #define MBEDTLS_PSA_CRYPTO_CONFIG
 
+#define MBEDTLS_PSA_ACCEL_ALG_CMAC
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
