@@ -21,6 +21,7 @@ else()
 endif()
 
 set(CMAKE_C_COMPILER iccarm)
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_COMPILER iccarm)
 set(CMAKE_ASM_COMPILER iasmarm)
 
