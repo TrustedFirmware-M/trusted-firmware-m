@@ -609,17 +609,18 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_co
     enum dcsu_error_t err;
     enum dcsu_rx_msg_response_t msg_resp;
     struct _dcsu_reg_map_t *p_dcsu = (struct _dcsu_reg_map_t *)dev->cfg->base;
+    enum dcsu_rx_command received_command;
 
     err = dcsu_poll_for_any_rx_command(dev);
     if (err != DCSU_ERROR_NONE) {
         return err;
     }
 
-    *command = get_rx_command(dev);
+    received_command = get_rx_command(dev);
 
-    INFO("DCSU command: %s\n", dcsu_rx_cmd_name(*command));
+    INFO("DCSU command: %s\n", dcsu_rx_cmd_name(received_command));
 
-    switch(*command) {
+    switch(received_command) {
     case DCSU_RX_COMMAND_GENERATE_SOC_UNIQUE_ID:
         err = rx_generate_soc_unique_id(dev, &msg_resp);
         break;
@@ -691,6 +692,15 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_co
         dcsu_clear_pending_rx_interrupt(dev);
 
         rx_return_send(dev, msg_resp);
+    }
+
+    /* Only return the command that was handled if it completed
+     * successfully
+     */
+    if (msg_resp == DCSU_RX_MSG_RESP_SUCCESS) {
+        *command = received_command;
+    } else {
+        *command = DCSU_RX_COMMAND_NOP;
     }
 
     return err;
