@@ -72,18 +72,12 @@ fih_ret boot_nv_security_counter_get(uint32_t image_id, fih_int *security_cnt)
 int32_t boot_nv_security_counter_update(uint32_t image_id,
                                         uint32_t img_security_cnt)
 {
-    enum tfm_nv_counter_t nv_counter;
-    enum tfm_plat_err_t err;
+    const enum tfm_nv_counter_t nv_counter =
+                               get_nv_counter_from_image_id(image_id);
 
-    nv_counter = get_nv_counter_from_image_id(image_id);
     if (nv_counter >= TFM_BOOT_NV_COUNTER_MAX) {
-        return -1;
+        return TFM_PLAT_ERR_INVALID_INPUT;
     }
 
-    err = tfm_plat_set_nv_counter(nv_counter, img_security_cnt);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return -1;
-    }
-
-    return 0;
+    return (int32_t)tfm_plat_set_nv_counter(nv_counter, img_security_cnt);
 }
