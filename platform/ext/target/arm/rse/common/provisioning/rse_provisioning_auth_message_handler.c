@@ -785,8 +785,9 @@ enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_b
              PROVISIONING_BUNDLE_VALUES_SIZE,
              blob_ctx->setup_aes_key, blob_ctx->get_rotpk);
     if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        err = (enum tfm_plat_err_t)fih_ret_decode_zero_equality(fih_rc);
         message_handling_status_report_error(PROVISIONING_REPORT_STEP_VALIDATE_BLOB, err);
-        return (enum tfm_plat_err_t)fih_ret_decode_zero_equality(fih_rc);
+        return err;
     }
 
     message_handling_status_report_continue(PROVISIONING_REPORT_STEP_VALIDATE_BLOB);
@@ -841,9 +842,10 @@ enum tfm_plat_err_t default_authenticated_plain_data_handler(const struct rse_pr
              0,
              auth_plain_ctx->setup_aes_key, auth_plain_ctx->get_rotpk);
     if (FIH_NOT_EQ(fih_rc, FIH_SUCCESS)) {
+        err = (enum tfm_plat_err_t)fih_ret_decode_zero_equality(fih_rc);
         message_handling_status_report_error(PROVISIONING_REPORT_STEP_VALIDATE_AUTH_PLAIN_MESSAGE,
                                              err);
-        return (enum tfm_plat_err_t)fih_ret_decode_zero_equality(fih_rc);
+        return err;
     }
 
     message_handling_status_report_continue(PROVISIONING_REPORT_STEP_VALIDATE_AUTH_PLAIN_MESSAGE);
