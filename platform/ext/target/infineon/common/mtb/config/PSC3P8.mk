@@ -81,3 +81,6 @@ TFM_SOURCES+=$(wildcard $(TFM_INSTALL_PATH)/interface/src/os_wrapper/tfm_ns_inte
 endif
 
 endif # ($(DEVICE_MODE),SECURE)
+
+# Use TFM Extensions Partition files from project imports
+TFM_CONFIGURE_OPTIONS+= -DIFX_EXT_SP_PATH:PATH=$(call TFM_PATH_MIXED,$(abspath $(MTB_TOOLS__PRJ_DIR)/imports/ifx-tf-m-psc3p8/ifx_ext_sp))

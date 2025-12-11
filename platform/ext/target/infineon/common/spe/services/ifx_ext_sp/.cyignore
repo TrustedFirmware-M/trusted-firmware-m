@@ -1,0 +1,4 @@
+# Partition interface files are copied to a non-secure project by TF-M after the
+# TFM build
+# Exclude them from ModusToolbox build system to avoid compilation errors
+.

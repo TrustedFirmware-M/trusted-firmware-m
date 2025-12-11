@@ -541,6 +541,20 @@ const ifx_partition_info_t ifx_tfm_sp_ns_agent_tz_info = {
 #endif /* defined(IFX_PLATFORM_PRIVILEGED) && IFX_PLATFORM_PRIVILEGED == 1 */
 #endif /* TFM_PARTITION_PLATFORM */
 
+/******************************* Platform *************************************/
+
+#ifdef IFX_EXT_SP
+#if defined(IFX_EXT_SP_PRIVILEGED) && IFX_EXT_SP_PRIVILEGED == 1
+/* Use SPM domain for IFX Extensions partition */
+#define IFX_IFX_EXT_SP_CUSTOM_INFO              ifx_default_spm_partition_load_info
+#define IFX_IFX_EXT_SP_CUSTOM_DOMAIN(info)      IFX_PROTECT_SPM_DOMAIN
+#elif defined(IFX_EXT_SP_PRIVILEGED)
+#error IFX_EXT_SP_PRIVILEGED other than 1 is not supported
+#else /* defined(IFX_EXT_SP_PRIVILEGED) && IFX_EXT_SP_PRIVILEGED == 1 */
+/* Do nothing, default settings will be used */
+#endif /* defined(IFX_EXT_SP_PRIVILEGED) && IFX_EXT_SP_PRIVILEGED == 1 */
+#endif /* IFX_EXT_SP */
+
 /********************* Generated partition load info **************************/
 
 {% for partition in partitions %}

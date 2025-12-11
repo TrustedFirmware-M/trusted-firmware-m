@@ -1,0 +1,30 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2025 Cypress Semiconductor Corporation (an Infineon company)
+# or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+
+{
+  "psa_framework_version": 1.1,
+  "name": "IFX_EXT_SP",
+  "type": "PSA-ROT",
+  "priority": "NORMAL",
+  "model": "SFN",
+  "entry_init": "ifx_ext_sp_init",
+  "stack_size": "IFX_EXT_SP_STACK_SIZE",
+  "services" : [
+    {
+      "name": "IFX_EXT_SP_SERVICE",
+      "sid": "0x00001001",
+      "non_secure_clients": true,
+      "connection_based": false,
+      "stateless_handle": "auto",
+      "version": 1,
+      "version_policy": "STRICT"
+    }
+  ],
+  "dependencies": [
+  ]
+}

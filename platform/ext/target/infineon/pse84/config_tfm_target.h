@@ -169,11 +169,6 @@ typedef enum
 #define CRYPTO_ASYM_ENCRYPT_MODULE_ENABLED 0
 #endif
 
-#if defined(IFX_MTB_SRF)
-#define PLATFORM_ADDITIONAL_SERVICES    1
-#define CONFIG_TFM_VECTOR_ACCESS        1
-#endif
-
 #if PLATFORM_SERVICE_INPUT_BUFFER_SIZE < 128
 /* Platform service buffer size is increased to fit log message */
 #undef PLATFORM_SERVICE_INPUT_BUFFER_SIZE

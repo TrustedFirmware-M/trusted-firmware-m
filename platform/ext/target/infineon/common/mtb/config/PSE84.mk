@@ -71,17 +71,17 @@ INCLUDES+=$(wildcard $(TFM_INSTALL_PATH)/platform/pse84/shared/device/include)
 INCLUDES+=$(wildcard $(TFM_INSTALL_PATH)/platform/pse84/shared/partition)
 TFM_SOURCES+=$(wildcard $(TFM_INSTALL_PATH)/interface/src/*.c)
 # For IFX_MTB_MAILBOX on PSE84 - on core NSPE acts like a proxy for off core
-# NSPE requests. Thus multi_core include directory is added to both - on core
-# and off core NSPE include directories so that they can work with mailbox
-# request types.
-INCLUDES+=$(wildcard $(TFM_INSTALL_PATH)/interface/include/multi_core)
+# NSPE requests. Thus ifx_mtb_mailbox include directory is added to both - on
+# core and off core NSPEs include directories so that they can work with MTB
+# mailbox request types.
+INCLUDES+=$(wildcard $(TFM_INSTALL_PATH)/interface/include/ifx_mtb_mailbox)
 
 DEFINES+=DOMAIN_NS=1
 # SRF configuration
 DEFINES+=MTB_SRF_USE_PSA # Make SRF use TFM compatible code
 DEFINES+=MTB_SRF_CUSTOM_REQUEST_SUBMIT # TFM uses own SRF request handling mechanism
 
-ifneq ($(wildcard $(TFM_INSTALL_PATH)/interface/src/multi_core/ifx_mtb_mailbox.c),)
+ifneq ($(wildcard $(TFM_INSTALL_PATH)/interface/src/ifx_mtb_mailbox/ifx_mtb_mailbox.c),)
 DEFINES+=IFX_MTB_MAILBOX=1
 # Enable address remap if MTB mailbox is built, to support CM55 TCM memory
 DEFINES+=CONFIG_TFM_PSA_CALL_ADDRESS_REMAP=1
@@ -112,7 +112,7 @@ TFM_SOURCES+=$(wildcard $(TFM_INSTALL_PATH)/interface/src/os_wrapper/tfm_ns_inte
 endif
 
 # CM55 hal and utils are added to CM33 NSPE so that it can use address remap functions
-TFM_SOURCES+=$(wildcard $(TFM_INSTALL_PATH)/interface/src/multi_core/platform_hal_multi_core_cm55.c)
+TFM_SOURCES+=$(wildcard $(TFM_INSTALL_PATH)/interface/src/ifx_mtb_mailbox/platform_hal_multi_core_cm55.c)
 TFM_SOURCES+=$(wildcard $(TFM_INSTALL_PATH)/platform/ifx/utils/ifx_regions.c)
 endif # ($(CORE),CM33)
 
@@ -129,7 +129,11 @@ DEFINES+=IFX_NS_INTERFACE_MAILBOX=1
 # Ignore TZ interface
 TFM_IGNORE_SOURCES+=$(wildcard $(TFM_INSTALL_PATH)/interface/src/tfm_tz_psa_ns_api.c)
 
+# IFX MTB Mailbox interface
+TFM_SOURCES+=$(wildcard $(TFM_INSTALL_PATH)/interface/src/ifx_mtb_mailbox/ifx_mtb_mailbox_psa_ns_api.c)
+
 # Mailbox interface
+INCLUDES+=$(wildcard $(TFM_INSTALL_PATH)/interface/include/multi_core)
 TFM_SOURCES+=$(wildcard $(TFM_INSTALL_PATH)/interface/src/multi_core/ifx_mtb_mailbox.c)
 TFM_SOURCES+=$(wildcard $(TFM_INSTALL_PATH)/interface/src/multi_core/platform_multicore.c)
 TFM_SOURCES+=$(wildcard $(TFM_INSTALL_PATH)/interface/src/multi_core/platform_ns_mailbox.c)

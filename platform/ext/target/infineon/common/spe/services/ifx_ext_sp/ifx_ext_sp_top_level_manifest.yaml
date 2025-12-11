@@ -1,0 +1,30 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2025 Cypress Semiconductor Corporation (an Infineon company)
+# or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+
+{
+  "description": "IFX extensions partition manifests",
+  "type": "manifest_list",
+  "version_major": 0,
+  "version_minor": 1,
+  "manifest_list": [
+    {
+      "description": "IFX EXTENSIONS Partition",
+      "manifest": "ifx_ext_sp.yaml",
+      "output_path": "secure_fw/partitions/ifx_ext_sp",
+      "conditional": "IFX_EXT_SP",
+      "version_major": 0,
+      "version_minor": 1,
+      "pid": 0x5555a225,
+      "linker_pattern": {
+        "library_list": [
+           "*ifx_*ext_sp.*"
+         ]
+      }
+    }
+  ]
+}

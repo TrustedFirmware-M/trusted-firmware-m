@@ -13,12 +13,10 @@
 
 #if IFX_MTB_MAILBOX && IFX_NS_INTERFACE_TZ
 #include "cmsis.h"
-#include "ifx_platform_private.h"
+#include "ifx_mtb_mailbox.h"
 #include "mtb_srf_ipc.h"
 #include "mtb_srf.h"
 #include "tfm_hal_multi_core.h"
-#include "tfm_mailbox.h"
-#include "tfm_platform_api.h"
 
 cy_rslt_t mtb_srf_ipc_process_request(mtb_srf_ipc_packet_t* request)
 {
@@ -27,8 +25,8 @@ cy_rslt_t mtb_srf_ipc_process_request(mtb_srf_ipc_packet_t* request)
     }
 
     int32_t* return_val = &request->reply.return_val;
-    struct mailbox_reply_t* reply = &request->reply;
-    const struct psa_client_params_t* params = &request->params;
+    ifx_mtb_mailbox_reply_t* reply = &request->reply;
+    const ifx_psa_client_params_t* params = &request->params;
 
     psa_invec in_vec[PSA_MAX_IOVEC];
     psa_outvec out_vec[PSA_MAX_IOVEC];
@@ -36,15 +34,15 @@ cy_rslt_t mtb_srf_ipc_process_request(mtb_srf_ipc_packet_t* request)
     size_t out_len;
 
     switch (request->call_type) {
-    case MAILBOX_PSA_FRAMEWORK_VERSION:
+    case IFX_MTB_MAILBOX_PSA_FRAMEWORK_VERSION:
         *return_val = psa_framework_version();
         break;
 
-    case MAILBOX_PSA_VERSION:
+    case IFX_MTB_MAILBOX_PSA_VERSION:
         *return_val = psa_version(params->psa_params.psa_version_params.sid);
         break;
 
-    case MAILBOX_PSA_CALL:
+    case IFX_MTB_MAILBOX_PSA_CALL:
         in_len = params->psa_params.psa_call_params.in_len;
         out_len = params->psa_params.psa_call_params.out_len;
 
@@ -87,17 +85,17 @@ cy_rslt_t mtb_srf_ipc_process_request(mtb_srf_ipc_packet_t* request)
         }
         break;
 
-    case MAILBOX_PSA_CONNECT:
+    case IFX_MTB_MAILBOX_PSA_CONNECT:
         *return_val = psa_connect(params->psa_params.psa_connect_params.sid,
                                   params->psa_params.psa_connect_params.version);
         break;
 
-    case MAILBOX_PSA_CLOSE:
+    case IFX_MTB_MAILBOX_PSA_CLOSE:
         psa_close(params->psa_params.psa_close_params.handle);
         break;
 
     default:
-        *return_val = MAILBOX_INVAL_PARAMS;
+        *return_val = IFX_MTB_MAILBOX_INVAL_PARAMS;
         return MTB_SRF_ERR_BAD_PARAM;
     }
 

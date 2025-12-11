@@ -24,6 +24,14 @@ if ((IFX_SE_IPC_SERVICE_TYPE STREQUAL "FULL") AND (TFM_PARTITION_CRYPTO OR TFM_P
     set(IFX_PARTITION_SE_IPC_SERVICE        ON)
 endif()
 
+# MTB SRF is implemented through IFX Extensions Partition
+if(IFX_MTB_SRF)
+    set(IFX_EXT_SP                          ON          CACHE BOOL      "Whether to enable IFX_EXTENSIONS_PARTITION")
+endif()
+
+# Default value for IFX_EXT_SP
+set(IFX_EXT_SP                              OFF         CACHE BOOL      "Whether to enable IFX_EXTENSIONS_PARTITION")
+
 set(IFX_PRINT_CORE_PREFIX                   OFF         CACHE BOOL      "Enable printing of core prefix in stdout")
 
 set(IFX_MTB_SRF                             OFF         CACHE BOOL      "Enable MTB SRF functionality")
@@ -98,6 +106,11 @@ set(PLATFORM_EXCEPTION_INFO                 ${IFX_FAULTS_INFO_DUMP} CACHE BOOL  
 set(TFM_EXTRA_MANIFEST_LIST_FILES           ""          CACHE FILEPATH  "Extra manifest list file(s), used to list extra Secure Partition manifests.")
 
 set(TFM_EXTRA_PARTITION_PATHS               ""          CACHE PATH      "List of extra Secure Partitions directories. An extra Secure Parition folder contains source code, CMakeLists.txt and manifest files")
+
+set(IFX_EXT_SP_PATH                         "${IFX_COMMON_SOURCE_DIR}/spe/services/ifx_ext_sp" CACHE PATH "Path to IFX Extensions Partition")
+
+list(APPEND TFM_EXTRA_PARTITION_PATHS       "${IFX_EXT_SP_PATH}")
+list(APPEND TFM_EXTRA_MANIFEST_LIST_FILES   "${IFX_EXT_SP_PATH}/ifx_ext_sp_top_level_manifest.yaml")
 
 ################################# Advanced options #############################
 

@@ -9,8 +9,8 @@
 #ifndef IFX_SRF_IPC_H
 #define IFX_SRF_IPC_H
 
+#include "ifx_mtb_mailbox.h"
 #include "mtb_srf.h"
-#include "tfm_mailbox.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,10 +31,10 @@ extern "C" {
  */
 typedef struct _MTB_SRF_DATA_ALIGN {
     /* Following fields are TFM specific */
-    uint32_t call_type;                /* PSA client call type */
-    struct psa_client_params_t params; /* Contain parameters used in
-                                        * PSA client call */
-    struct mailbox_reply_t reply;      /* Reply value. */
+    uint32_t call_type;             /* PSA client call type */
+    ifx_psa_client_params_t params; /* Contain parameters used in
+                                     * PSA client call */
+    ifx_mtb_mailbox_reply_t reply;  /* Reply value. */
 
     /* Following fields are used in TFM and also are required by SRF framework */
     uint16_t semaphore_idx;            /* Semaphore index used for synchronization */

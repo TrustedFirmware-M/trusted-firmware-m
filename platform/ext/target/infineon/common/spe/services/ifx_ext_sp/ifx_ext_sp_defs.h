@@ -6,18 +6,20 @@
  *
  */
 
-#ifndef TFM_MAILBOX_CONFIG_H
-#define TFM_MAILBOX_CONFIG_H
-
-#include <stdbool.h>
-#include <stdint.h>
+#ifndef IFX_EXT_SP_DEFS_H
+#define IFX_EXT_SP_DEFS_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/**
+ * \brief MTB SRF calls
+ */
+#define IFX_EXT_SP_API_ID_MTB_SRF     1001
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* TFM_MAILBOX_CONFIG_H */
+#endif /* IFX_EXT_SP_DEFS_H */

@@ -36,11 +36,14 @@ tfm_invalid_config(NOT IFX_UART_ENABLED AND TFM_SPM_LOG_RAW_ENABLED)
 tfm_invalid_config(IFX_BSP_DESIGN_FILE_VALID_NAMES
                    AND NOT IFX_BSP_DESIGN_FILE_NAME IN_LIST IFX_BSP_DESIGN_FILE_VALID_NAMES)
 
-# MTB SRF is implemented through Platform partition
-tfm_invalid_config(IFX_MTB_SRF AND NOT TFM_PARTITION_PLATFORM)
+# MTB SRF is implemented through IFX Extensions Partition
+tfm_invalid_config(IFX_MTB_SRF AND NOT IFX_EXT_SP)
 
 # Masked and unmasked non-secure IRQ tests are mutually exclusive
 tfm_invalid_config(TEST_NS_IFX_IRQ_TEST_MASKED AND TEST_NS_IFX_IRQ_TEST_UNMASKED)
+
+# Mailbox partition is not supported for Infineon platforms
+tfm_invalid_config(TFM_PARTITION_NS_AGENT_MAILBOX)
 
 # Mailbox tests can not be executed when mailbox partition is disabled
 tfm_invalid_config(TEST_NS_IFX_MAILBOX AND NOT TFM_PARTITION_NS_AGENT_MAILBOX)

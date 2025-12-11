@@ -40,8 +40,8 @@ if(IFX_NS_INTERFACE_MAILBOX)
 
         target_sources(ifx_mtb_mailbox
             PRIVATE
-                ${INTERFACE_SRC_DIR}/multi_core/tfm_multi_core_psa_ns_api.c
-                ${INTERFACE_SRC_DIR}/multi_core/ifx_mtb_mailbox.c
+                ${INTERFACE_SRC_DIR}/ifx_mtb_mailbox/ifx_mtb_mailbox_psa_ns_api.c
+                ${INTERFACE_SRC_DIR}/ifx_mtb_mailbox/ifx_mtb_mailbox.c
         )
 
         target_link_libraries(ifx_mtb_mailbox
@@ -55,7 +55,7 @@ if(IFX_NS_INTERFACE_MAILBOX)
 
         target_include_directories(ifx_mtb_mailbox
             PUBLIC
-                ${INTERFACE_INC_DIR}/multi_core
+                ${INTERFACE_INC_DIR}/ifx_mtb_mailbox
         )
 
         target_link_libraries(tfm_api_ns
@@ -73,11 +73,11 @@ endif()
 
 if(IFX_MTB_MAILBOX AND IFX_NS_INTERFACE_TZ)
     # When IFX_MTB_MAILBOX is enabled - on core NSPE acts like a proxy for off
-    # core NSPE requests. Thus multi_core is added to on core NSPE include
+    # core NSPE requests. Thus ifx_mtb_mailbox is added to on core NSPE include
     # directories so that on core NSPE can work with off core NSPE request types.
     target_include_directories(tfm_api_ns
         PUBLIC
-            ${INTERFACE_INC_DIR}/multi_core
+            ${INTERFACE_INC_DIR}/ifx_mtb_mailbox
     )
 endif()
 

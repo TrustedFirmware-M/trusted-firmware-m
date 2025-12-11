@@ -104,34 +104,29 @@ if (TFM_PARTITION_NS_AGENT_MAILBOX)
 endif()
 
 if (IFX_MTB_MAILBOX)
-    install(FILES       ${CMAKE_SOURCE_DIR}/interface/include/multi_core/tfm_mailbox.h
-                        ${CMAKE_CURRENT_LIST_DIR}/interface/include/multi_core/tfm_ns_mailbox.h
-                        ${CMAKE_CURRENT_LIST_DIR}/interface/include/multi_core/tfm_mailbox_config.h
+    install(FILES       ${CMAKE_CURRENT_LIST_DIR}/interface/include/ifx_mtb_mailbox/ifx_mtb_mailbox.h
                         ${CMAKE_CURRENT_LIST_DIR}/shared/mailbox/ifx_platform_mailbox.h
-                        DESTINATION ${INSTALL_INTERFACE_INC_DIR}/multi_core)
+                        DESTINATION ${INSTALL_INTERFACE_INC_DIR}/ifx_mtb_mailbox)
 
 
-    install(FILES       ${CMAKE_SOURCE_DIR}/interface/src/multi_core/tfm_multi_core_psa_ns_api.c
-                        ${CMAKE_CURRENT_LIST_DIR}/interface/src/multi_core/ifx_mtb_mailbox.c
-            DESTINATION ${INSTALL_INTERFACE_SRC_DIR}/multi_core)
+    install(FILES       ${CMAKE_CURRENT_LIST_DIR}/interface/src/ifx_mtb_mailbox/ifx_mtb_mailbox_psa_ns_api.c
+                        ${CMAKE_CURRENT_LIST_DIR}/interface/src/ifx_mtb_mailbox/ifx_mtb_mailbox.c
+            DESTINATION ${INSTALL_INTERFACE_SRC_DIR}/ifx_mtb_mailbox)
 
     if (IFX_MULTICORE_CM55)
         install(FILES       ${IFX_COMMON_SOURCE_DIR}/spe/services/mailbox/platform_hal_multi_core_cm55.c
-                DESTINATION ${INSTALL_INTERFACE_SRC_DIR}/multi_core)
+                DESTINATION ${INSTALL_INTERFACE_SRC_DIR}/ifx_mtb_mailbox)
     endif()
 endif()
 
 if (TFM_PARTITION_PLATFORM)
     # Platform service headers
     install(FILES       ${CMAKE_CURRENT_LIST_DIR}/interface/include/ifx_platform_api.h
-                        $<$<BOOL:${IFX_MTB_SRF}>:${CMAKE_CURRENT_LIST_DIR}/interface/include/mtb_srf_ipc_custom_packet.h>
             DESTINATION ${INSTALL_INTERFACE_INC_DIR})
 
     # Platform service sources
     install(FILES       ${CMAKE_CURRENT_LIST_DIR}/interface/src/ifx_platform_private.h
                         ${CMAKE_CURRENT_LIST_DIR}/interface/src/ifx_platform_api.c
-                        $<$<BOOL:${IFX_MTB_SRF}>:${CMAKE_CURRENT_LIST_DIR}/interface/src/ifx_mtb_srf.c>
-                        $<$<BOOL:${IFX_MTB_MAILBOX}>:${CMAKE_CURRENT_LIST_DIR}/interface/src/ifx_mtb_srf_relay.c>
             DESTINATION ${INSTALL_INTERFACE_SRC_DIR})
 endif()
 

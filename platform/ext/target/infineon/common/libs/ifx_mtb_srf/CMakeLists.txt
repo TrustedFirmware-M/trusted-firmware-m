@@ -113,6 +113,8 @@ if (NS_BUILD)
     target_sources(tfm_api_ns
         PRIVATE
             ${INTERFACE_SRC_DIR}/ifx_mtb_srf.c
+            # MTB SRF is implemented through IFX Extensions Partition
+            ${INTERFACE_SRC_DIR}/ifx_ext_sp_api.c
     )
 
     if(IFX_MTB_MAILBOX)
@@ -131,7 +133,7 @@ if (NS_BUILD)
             PRIVATE
             # Core specific multi core hal is added so that SRF Relay on NSPE
             # can use memory remapping functions
-            $<$<AND:$<BOOL:${IFX_MULTICORE_CM55}>,$<BOOL:${IFX_NS_INTERFACE_TZ}>>:${INTERFACE_SRC_DIR}/multi_core/platform_hal_multi_core_cm55.c>
+            $<$<AND:$<BOOL:${IFX_MULTICORE_CM55}>,$<BOOL:${IFX_NS_INTERFACE_TZ}>>:${INTERFACE_SRC_DIR}/ifx_mtb_mailbox/platform_hal_multi_core_cm55.c>
         )
     endif()
 

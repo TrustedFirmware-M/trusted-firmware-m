@@ -7,8 +7,8 @@
  */
 
 #include "cybsp.h"
+#include "ifx_mtb_mailbox.h"
 #include "mtb_srf_ipc_init.h"
-#include "tfm_ns_mailbox.h"
 
 #if !defined(__DCACHE_PRESENT) || (__DCACHE_PRESENT == 0U)
 #define IFX_MTB_MAILBOX_CACHE_PRESENT   (0)
@@ -21,9 +21,8 @@
 #endif /* IFX_MTB_MAILBOX_CACHE_PRESENT */
 
 int32_t ifx_mtb_mailbox_client_call(uint32_t call_type,
-                                    const struct psa_client_params_t *params,
-                                    int32_t client_id,
-                                    struct mailbox_reply_t *reply)
+                                    const ifx_psa_client_params_t *params,
+                                    ifx_mtb_mailbox_reply_t *reply)
 {
     mtb_srf_ipc_packet_t* request = NULL;
     cy_rslt_t result = CY_RSLT_SUCCESS;
@@ -31,14 +30,16 @@ int32_t ifx_mtb_mailbox_client_call(uint32_t call_type,
     cy_rslt_t req_dealloc_rslt = CY_RSLT_SUCCESS;
     uint16_t sema_idx = 0;
 
-    (void)client_id; /* Client ID management is not supported for MTB mailbox */
+    if ((params == NULL) || (reply == NULL)) {
+        return IFX_MTB_MAILBOX_INVAL_PARAMS;
+    }
 
     /* Allocate request from shared memory. */
     result = mtb_srf_ipc_pool_req_alloc(cybsp_mtb_srf_client_context.pool,
                                         &request,
                                         MTB_SRF_IPC_SERVICE_TIMEOUT_US);
     if (result != CY_RSLT_SUCCESS) {
-        return MAILBOX_GENERIC_ERROR;
+        return IFX_MTB_MAILBOX_GENERIC_ERROR;
     }
 
     /* Allocate semaphore */
@@ -46,7 +47,10 @@ int32_t ifx_mtb_mailbox_client_call(uint32_t call_type,
                                               &sema_idx,
                                               MTB_SRF_IPC_SERVICE_TIMEOUT_US);
     if (result != CY_RSLT_SUCCESS) {
-        return MAILBOX_GENERIC_ERROR;
+        /* Deallocate request. Void deallocation result as this is already an error path */
+        (void)mtb_srf_ipc_pool_req_free(cybsp_mtb_srf_client_context.pool, request);
+
+        return IFX_MTB_MAILBOX_GENERIC_ERROR;
     }
 
     /*
@@ -126,11 +130,11 @@ int32_t ifx_mtb_mailbox_client_call(uint32_t call_type,
 
     if ((result != CY_RSLT_SUCCESS) || (sema_dealloc_rslt != CY_RSLT_SUCCESS)
         || (req_dealloc_rslt != CY_RSLT_SUCCESS)) {
-        return MAILBOX_GENERIC_ERROR;
+        return IFX_MTB_MAILBOX_GENERIC_ERROR;
     }
 
     /* Copy the entire reply structure back so the caller receives all output values. */
     *reply = request->reply;
 
-    return MAILBOX_SUCCESS;
+    return IFX_MTB_MAILBOX_SUCCESS;
 }

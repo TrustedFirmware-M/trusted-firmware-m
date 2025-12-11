@@ -39,3 +39,6 @@ endif
 
 # Use TFM linker files from project imports
 TFM_CONFIGURE_OPTIONS+= -DTFM_LINKER_FILES_BASE_PATH:PATH=$(call TFM_PATH_MIXED,$(abspath $(MTB_TOOLS__PRJ_DIR)/imports/ifx-tf-m-pse84epc4/linker_scripts))
+
+# Use TFM Extensions Partition files from project imports
+TFM_CONFIGURE_OPTIONS+= -DIFX_EXT_SP_PATH:PATH=$(call TFM_PATH_MIXED,$(abspath $(MTB_TOOLS__PRJ_DIR)/imports/ifx-tf-m-pse84epc4/ifx_ext_sp))

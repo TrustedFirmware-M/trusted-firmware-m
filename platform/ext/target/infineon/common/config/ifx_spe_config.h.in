@@ -100,4 +100,8 @@
 #define LOG_PRIV_BUFFER_SIZE                                32
 #endif
 
+#ifdef IFX_MTB_SRF
+#define CONFIG_TFM_VECTOR_ACCESS                            1
+#endif /* IFX_MTB_SRF */
+
 #endif /* IFX_SPE_CONFIG_H */

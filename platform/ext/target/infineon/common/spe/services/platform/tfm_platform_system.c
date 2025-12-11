@@ -8,36 +8,16 @@
 
 #include "cmsis.h"
 #include "cy_pdl.h"
-#ifdef IFX_MTB_SRF
-#include "cybsp.h"
-#include "mtb_srf.h"
-#endif /* IFX_MTB_SRF */
 #include "ifx_platform_api.h"
 #include "ifx_platform_private.h"
 #include "platform_svc_api.h"
-#include "psa/service.h"
 #include "tfm_platform_system.h"
-
 
 void tfm_platform_hal_system_reset(void)
 {
     /* Platform partition may be unprivileged, which means that it does not
      * have access to reset control register, thus SVC call is used. */
     ifx_call_platform_system_reset();
-}
-
-psa_status_t ifx_mtb_srf_handler(const psa_msg_t *msg)
-{
-    return PSA_ERROR_NOT_SUPPORTED;
-}
-
-psa_status_t tfm_platform_hal_additional_services(const psa_msg_t *msg)
-{
-    if (msg->type == IFX_PLATFORM_API_ID_MTB_SRF) {
-        return ifx_mtb_srf_handler(msg);
-    } else {
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
 }
 
 enum tfm_platform_err_t tfm_platform_hal_ioctl(tfm_platform_ioctl_req_t request,
