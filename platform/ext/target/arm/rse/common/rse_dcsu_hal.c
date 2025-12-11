@@ -3,6 +3,7 @@
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  */
 
+#include <string.h>
 
 #include "dcsu_hal.h"
 
@@ -13,6 +14,15 @@
 #include "rse_zero_count.h"
 #include "rse_persistent_data.h"
 #include "lcm_drv.h"
+
+static inline uint32_t round_down(uint32_t num, uint32_t boundary)
+{
+    return num - (num % boundary);
+}
+static inline uint32_t round_up(uint32_t num, uint32_t boundary)
+{
+    return (num + boundary - 1) - ((num + boundary - 1) % boundary);
+}
 
 static inline bool is_otp_clean(uint32_t start_offset, uint32_t size)
 {
@@ -171,6 +181,72 @@ enum dcsu_error_t dcsu_hal_generate_soc_unique_id(enum dcsu_rx_msg_response_t *r
 #endif /* RSE_OTP_HAS_SOC_AREA */
 }
 
+static enum dcsu_error_t __dcsu_hal_read_write_otp(uint32_t otp_field_read_offset, uint32_t *data,
+                                                   size_t data_size, bool write,
+                                                   enum dcsu_rx_msg_response_t *response)
+{
+    enum lcm_error_t lcm_err;
+    __ALIGNED(4) uint8_t otp_read_buf[8];
+    uint8_t *otp_read_buf_ptr;
+    uint32_t read_write_offset;
+    size_t read_write_size;
+    bool unaligned_read_write;
+    uint32_t read_write_offset_in_buffer;
+
+    read_write_offset = round_down(otp_field_read_offset, sizeof(uint32_t));
+    read_write_offset_in_buffer = otp_field_read_offset - read_write_offset;
+    read_write_size = round_up(data_size + read_write_offset_in_buffer, sizeof(uint32_t));
+
+    if ((read_write_offset_in_buffer == 0) && (read_write_size == data_size)) {
+        /* Temporary buffer not required */
+        unaligned_read_write = false;
+        otp_read_buf_ptr = (uint8_t *)data;
+    } else if (data_size < sizeof(uint32_t)) {
+        /* Read small enough to use temporary buffer */
+        unaligned_read_write = true;
+        otp_read_buf_ptr = otp_read_buf;
+    } else {
+        /* Unaligned read too large for us to handle */
+        *response = DCSU_RX_MSG_RESP_OTP_WRITE_FAILED;
+        return DCSU_ERROR_RX_MSG_OTP_WRITE_FAILED;
+    }
+
+    if (!write) {
+        lcm_err = lcm_otp_read(&LCM_DEV_S, read_write_offset, read_write_size, otp_read_buf_ptr);
+        if (lcm_err != LCM_ERROR_NONE) {
+            /* Most responses don't make sense this is closest interpret as OTP access failed */
+            *response = DCSU_RX_MSG_RESP_OTP_WRITE_FAILED;
+            return DCSU_ERROR_RX_MSG_OTP_WRITE_FAILED;
+        }
+
+        if (unaligned_read_write) {
+            memcpy(data, otp_read_buf + read_write_offset_in_buffer, data_size);
+        }
+    } else {
+        if (unaligned_read_write) {
+            /* Unaligned requires RMW sequence */
+            lcm_err =
+                lcm_otp_read(&LCM_DEV_S, read_write_offset, read_write_size, otp_read_buf_ptr);
+            if (lcm_err != LCM_ERROR_NONE) {
+                /* Most responses don't make sense this is closest interpret as OTP access failed */
+                *response = DCSU_RX_MSG_RESP_OTP_WRITE_FAILED;
+                return DCSU_ERROR_RX_MSG_OTP_WRITE_FAILED;
+            }
+
+            memcpy(otp_read_buf + read_write_offset_in_buffer, data, data_size);
+        }
+
+        lcm_err = lcm_otp_write(&LCM_DEV_S, read_write_offset, read_write_size, otp_read_buf_ptr);
+        if (lcm_err != LCM_ERROR_NONE) {
+            *response = DCSU_RX_MSG_RESP_OTP_WRITE_FAILED;
+            return DCSU_ERROR_RX_MSG_OTP_WRITE_FAILED;
+        }
+    }
+
+    *response = DCSU_RX_MSG_RESP_SUCCESS;
+    return DCSU_ERROR_NONE;
+}
+
 enum dcsu_error_t dcsu_hal_write_otp(enum dcsu_otp_field_t otp_field, uint32_t otp_field_write_offset,
                                      uint32_t *data, size_t data_size, bool clean_write,
                                      enum dcsu_rx_msg_response_t *response)
@@ -180,7 +256,6 @@ enum dcsu_error_t dcsu_hal_write_otp(enum dcsu_otp_field_t otp_field, uint32_t o
     }
 
 #ifdef RSE_OTP_HAS_SOC_AREA
-    enum lcm_error_t lcm_err;
     enum dcsu_error_t msg_err;
     uint32_t field_offset;
     uint32_t field_max_size;
@@ -221,14 +296,7 @@ enum dcsu_error_t dcsu_hal_write_otp(enum dcsu_otp_field_t otp_field, uint32_t o
         }
     }
 
-    lcm_err = lcm_otp_write(&LCM_DEV_S, otp_field_write_offset, data_size, (uint8_t *)data);
-    if (lcm_err != LCM_ERROR_NONE) {
-        *response = DCSU_RX_MSG_RESP_OTP_WRITE_FAILED;
-        return DCSU_ERROR_RX_MSG_OTP_WRITE_FAILED;
-    }
-
-    *response = DCSU_RX_MSG_RESP_SUCCESS;
-    return DCSU_ERROR_NONE;
+    return __dcsu_hal_read_write_otp(otp_field_write_offset, data, data_size, true, response);
 #else
     *response = DCSU_RX_MSG_RESP_INVALID_COMMAND;
     return DCSU_ERROR_RX_MSG_INVALID_OTP_FIELD;
@@ -239,7 +307,6 @@ enum dcsu_error_t dcsu_hal_read_otp(enum dcsu_otp_field_t otp_field, uint32_t ot
                                     uint32_t *data, size_t data_size,
                                     enum dcsu_rx_msg_response_t *response)
 {
-    enum lcm_error_t lcm_err;
     enum dcsu_error_t msg_err;
     uint32_t field_offset;
     uint32_t field_max_size;
@@ -271,15 +338,7 @@ enum dcsu_error_t dcsu_hal_read_otp(enum dcsu_otp_field_t otp_field, uint32_t ot
         return DCSU_ERROR_NONE;
     }
 
-    lcm_err = lcm_otp_read(&LCM_DEV_S, otp_field_read_offset, data_size, (uint8_t *)data);
-    if (lcm_err != LCM_ERROR_NONE) {
-        /* Most responses don't make sense this is closest interpret as OTP access failed */
-        *response = DCSU_RX_MSG_RESP_OTP_WRITE_FAILED;
-        return DCSU_ERROR_RX_MSG_OTP_WRITE_FAILED;
-    }
-
-    *response = DCSU_RX_MSG_RESP_SUCCESS;
-    return DCSU_ERROR_NONE;
+    return __dcsu_hal_read_write_otp(otp_field_read_offset, data, data_size, false, response);
 }
 
 enum dcsu_error_t dcsu_hal_write_zero_count(enum dcsu_otp_field_t otp_field,
