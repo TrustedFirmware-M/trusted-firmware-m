@@ -1,7 +1,7 @@
 From 1c73a080fdba6fe67532c087a47be19eea39fac5 Mon Sep 17 00:00:00 2001
 From: Antonio de Angelis <Antonio.deAngelis@arm.com>
 Date: Thu, 21 Mar 2024 11:44:56 +0000
-Subject: [PATCH 01/11] Add TF-M Builtin Key Loader driver entry points
+Subject: [PATCH 01/12] Add TF-M Builtin Key Loader driver entry points
 
 TF-M requires a mechanism to leverage the drivers
 and builtin keys at the same time to allow for

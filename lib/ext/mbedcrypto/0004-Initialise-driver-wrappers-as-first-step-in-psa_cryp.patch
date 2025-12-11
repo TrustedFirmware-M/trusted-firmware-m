@@ -1,7 +1,7 @@
 From da67812094b5bc757917214f8bf3ff50517bf074 Mon Sep 17 00:00:00 2001
 From: Antonio de Angelis <Antonio.deAngelis@arm.com>
 Date: Thu, 21 Mar 2024 11:58:19 +0000
-Subject: [PATCH 04/11] Initialise driver wrappers as first step in
+Subject: [PATCH 04/12] Initialise driver wrappers as first step in
  psa_crypto_init()
 
 This patch amends the order of initialisations performed in

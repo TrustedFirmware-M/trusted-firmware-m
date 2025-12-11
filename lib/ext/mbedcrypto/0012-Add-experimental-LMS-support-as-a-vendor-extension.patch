@@ -1,0 +1,51 @@
+From f3dd4e731bf12484d93a8487757c0fc8c86fc821 Mon Sep 17 00:00:00 2001
+From: David Vincze <david.vincze@arm.com>
+Date: Thu, 11 Dec 2025 12:40:30 +0000
+Subject: [PATCH 12/12] Add experimental LMS support as a vendor extension
+
+Add experimental support for PSA_ALG_LMS to PSA as a vendor algorithm
+and extend the PSA_ALG_IS_VENDOR_HASH_AND_SIGN macro accordingly.
+
+Signed-off-by: David Vincze <david.vincze@arm.com>
+---
+ include/psa/crypto_extra.h | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
+
+diff --git a/include/psa/crypto_extra.h b/include/psa/crypto_extra.h
+index a710397a7..6d077dec6 100644
+--- a/include/psa/crypto_extra.h
++++ b/include/psa/crypto_extra.h
+@@ -414,11 +414,29 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
+     (PSA_ALG_IS_DSA(alg) && !PSA_ALG_DSA_IS_DETERMINISTIC(alg))
+ 
+ 
++#ifdef PSA_WANT_ALG_LMS
++/* Note: TF-M supports LMS as a vendor extension and requires some LMS/HMS specific
++ * values to be available to properly override the PSA_ALG_IS_VENDOR_HASH_AND_SIGN
++ * macro.
++ */
++#include "crypto_values_lms.h"
++#endif
++
++
++#undef PSA_ALG_IS_VENDOR_HASH_AND_SIGN
++#ifdef PSA_WANT_ALG_LMS
++/* This overrides the default PSA_ALG_IS_VENDOR_HASH_AND_SIGN in crypto_values.h */
++#define PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg) ( \
++    (PSA_ALG_IS_LMS(alg)) || \
++    (PSA_ALG_IS_HSS(alg)) || \
++    (PSA_ALG_IS_DSA(alg)) \
++    )
++#else
+ /* We need to expand the sample definition of this macro from
+  * the API definition. */
+-#undef PSA_ALG_IS_VENDOR_HASH_AND_SIGN
+ #define PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg)    \
+     PSA_ALG_IS_DSA(alg)
++#endif /* PSA_WANT_ALG_LMS */
+ 
+ /**@}*/
+ 
+-- 
+2.34.1
+

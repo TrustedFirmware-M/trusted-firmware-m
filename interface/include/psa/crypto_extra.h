@@ -414,11 +414,29 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
     (PSA_ALG_IS_DSA(alg) && !PSA_ALG_DSA_IS_DETERMINISTIC(alg))
 
 
+#ifdef PSA_WANT_ALG_LMS
+/* Note: TF-M supports LMS as a vendor extension and requires some LMS/HMS specific
+ * values to be available to properly override the PSA_ALG_IS_VENDOR_HASH_AND_SIGN
+ * macro.
+ */
+#include "crypto_values_lms.h"
+#endif
+
+
+#undef PSA_ALG_IS_VENDOR_HASH_AND_SIGN
+#ifdef PSA_WANT_ALG_LMS
+/* This overrides the default PSA_ALG_IS_VENDOR_HASH_AND_SIGN in crypto_values.h */
+#define PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg) ( \
+    (PSA_ALG_IS_LMS(alg)) || \
+    (PSA_ALG_IS_HSS(alg)) || \
+    (PSA_ALG_IS_DSA(alg)) \
+    )
+#else
 /* We need to expand the sample definition of this macro from
  * the API definition. */
-#undef PSA_ALG_IS_VENDOR_HASH_AND_SIGN
 #define PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg)    \
     PSA_ALG_IS_DSA(alg)
+#endif /* PSA_WANT_ALG_LMS */
 
 /**@}*/
 

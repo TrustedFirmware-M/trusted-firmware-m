@@ -1,7 +1,7 @@
 From 8dfff4e553a9635c478535ef8cf0b4a08462cf84 Mon Sep 17 00:00:00 2001
 From: Waleed Elmelegy <waleed.elmelegy@arm.com>
 Date: Mon, 19 May 2025 14:01:03 +0000
-Subject: [PATCH 08/11] Move NIST_KW to PSA API
+Subject: [PATCH 08/12] Move NIST_KW to PSA API
 
 Backport version of https://github.com/Mbed-TLS/TF-PSA-Crypto/pull/180
 & https://github.com/Mbed-TLS/mbedtls/pull/9983

@@ -30,10 +30,4 @@
     ((hash) & PSA_ALG_HASH_MASK) \
     )
 
-/* This overrides the default PSA_ALG_IS_VENDOR_HASH_AND_SIGN in crypto_values.h */
-#define PSA_ALG_IS_VENDOR_HASH_AND_SIGN(alg) ( \
-        (PSA_ALG_IS_LMS(alg)) || \
-        (PSA_ALG_IS_HSS(alg)) \
-        )
-
 #endif /* PSA_CRYPTO_VALUES_LMS_H */
