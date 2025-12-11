@@ -23,7 +23,9 @@
 #include "test_bl1_rse_kmu_keys.h"
 #include "test_atu_rse_drv.h"
 #include "test_atu_rse_lib.h"
-
+#if defined(RSE_SKU_ENABLED) || defined(RSE_HAS_SE_DEV_SOFT_LCS)
+#include "test_bl1_rse_sku_se_dev.h"
+#endif /* RSE_SKU_ENABLED || RSE_HAS_SE_DEV_SOFT_LCS */
 #ifdef TEST_DCSU_DRV
 #include "test_dcsu_drv.h"
 #endif /* TEST_DCSU_DRV */
@@ -470,6 +472,50 @@ static struct conditional_test_t state_transitions[] = {
             "Provisioning transition to DM LCS"
         },
     },
+#ifdef RSE_SKU_ENABLED
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_CM,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &test_bl1_rse_sku_set_cm_policies,
+            "RSE_BL1_1_SKU_SET_CM_POLICIES",
+            "Setting test values for cm policies"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_DM,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &test_bl1_rse_sku_feature_control,
+            "RSE_BL1_1_SKU_FEATURE_CONTROL",
+            "Testing feature control"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_DM,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &test_bl1_rse_sku_ps_fc,
+            "RSE_BL1_1_SKU_PS_FC",
+            "Testing product specific feature control"
+        },
+    },
+#endif /* RSE_SKU_ENABLED */
+#ifdef RSE_HAS_SE_DEV_SOFT_LCS
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &test_bl1_rse_sku_se_dev,
+            "RSE_BL1_1_SKU_SE_DEV",
+            "Testing se-dev soft lcs"
+        },
+    },
+#endif /* RSE_HAS_SE_DEV_SOFT_LCS */
     {
         .any_tp_mode = true,
         .lcs = LCM_LCS_DM,

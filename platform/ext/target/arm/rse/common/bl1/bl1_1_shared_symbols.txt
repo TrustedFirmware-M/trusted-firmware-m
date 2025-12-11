@@ -44,6 +44,7 @@ computed_bl1_2_hash
 dm_area_info
 soc_area_info
 dynamic_area_info
+bl1_2_area_info
 dpa_hardened_word_copy
 host_flash_atu_setup_image_input_slots
 host_flash_atu_setup_image_input_slots_by_type_uuid
@@ -68,6 +69,7 @@ lcm_dcu_set_enabled
 dcsu_write_sw_status
 pq_crypto_verify
 pq_crypto_get_pub_key_hash
+rse_apply_sku_se_dev_overrides
 rse_check_zero_bit_count
 rse_setup_iak_seed
 rse_setup_dak_seed
@@ -182,3 +184,4 @@ sfcp_send_reply
 sfcp_receive_msg
 sfcp_receive_reply
 sfcp_register_trusted_subnet
+sku_ps_fc_called

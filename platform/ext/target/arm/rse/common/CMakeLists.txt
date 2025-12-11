@@ -564,6 +564,8 @@ target_sources(platform_bl1_1
         $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_get_rse_id_from_otp.c>
         $<$<BOOL:${RSE_ENABLE_ROM_SELF_TESTS}>:${CMAKE_CURRENT_SOURCE_DIR}/rse_boot_self_tests.c>
         ${CMAKE_CURRENT_SOURCE_DIR}/rse_chip_output_data.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/bl1/sku_se_dev.c
+        $<$<BOOL:${TEST_BL1_1}>:${CMAKE_CURRENT_SOURCE_DIR}/tests/bl1_1/sku_test_stubs.c>
 )
 
 target_compile_definitions(platform_bl1_1
