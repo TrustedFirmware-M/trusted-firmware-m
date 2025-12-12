@@ -1,0 +1,8 @@
+{
+    "configurator_support": true,
+    "core": {
+        "id": "A995766E-65B5-4DC8-AF2E-CCABD2180EDA",
+        "name": "ifx-tf-m"
+    },
+    "opt": {}
+}

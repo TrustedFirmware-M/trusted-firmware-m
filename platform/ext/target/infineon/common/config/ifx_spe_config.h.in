@@ -20,6 +20,11 @@
 /* Use tfm_hal_post_partition_init_hook hook to track SPM state */
 #define CONFIG_TFM_POST_PARTITION_INIT_HOOK                 1
 
+#ifdef CONFIG_TFM_PARTITION_META
+/* Use tfm_hal_shared_metadata_rw_enable to improve metadata section protections */
+#define CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION         1
+#endif /* CONFIG_TFM_PARTITION_META */
+
 /* Whether Protection Context switching is enabled */
 #cmakedefine01 IFX_ISOLATION_PC_SWITCHING
 

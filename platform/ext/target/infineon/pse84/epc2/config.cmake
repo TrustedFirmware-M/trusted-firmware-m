@@ -10,8 +10,8 @@
 
 # BSP config.cmake uses IFX_BSP_DESIGN_FILE_NAME, thus it must be
 # defined before BSP config.cmake is included
-set(IFX_BSP_DESIGN_FILE_NAME         "xip"       CACHE STRING "Name of BSP design file to use")
-set(IFX_BSP_DESIGN_FILE_VALID_NAMES  "sram_load;xip;rram;test")
+set(IFX_BSP_DESIGN_FILE_NAME         "default"       CACHE STRING "Name of BSP design file to use")
+set(IFX_BSP_DESIGN_FILE_VALID_NAMES  "sram_load;xip;rram;test;default")
 
 # Include board specific configuration at the beginning to allow override configuration provided by platform
 set(IFX_CONFIG_BSP_PATH              "${IFX_PLATFORM_SOURCE_DIR}/board/KIT_PSOCE84_EVK" CACHE FILEPATH "Path to individual BSP configurations")

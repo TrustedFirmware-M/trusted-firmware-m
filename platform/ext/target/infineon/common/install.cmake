@@ -140,3 +140,7 @@ endif()
 install(FILES       ${CMSIS_PATH}/CMSIS/Driver/Include/Driver_Common.h
                     ${CMSIS_PATH}/CMSIS/Driver/Include/Driver_USART.h
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/include)
+
+#################################### Tests #####################################
+
+include(${IFX_COMMON_SOURCE_DIR}/tests/install.cmake OPTIONAL)

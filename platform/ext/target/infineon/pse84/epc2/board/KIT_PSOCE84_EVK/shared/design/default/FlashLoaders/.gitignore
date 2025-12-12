@@ -1,0 +1,6 @@
+# FlashLoaders directory is required by QSPI configurator to generate the Flash
+# Loader files For simplicity - in TFM it is kept empty. In MTB, FlashLoaders
+# directory is provided by BSP and contains valid flash loader files.
+
+# Ignore Flash Loader files
+*.FLM

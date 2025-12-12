@@ -95,9 +95,9 @@ set(PLATFORM_EXCEPTION_INFO                 ${IFX_FAULTS_INFO_DUMP} CACHE BOOL  
 
 ############################# Platform services ################################
 
-set(TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST "partitions/se_rt_service/ifx_se_rt_service_manifest_list.yaml" CACHE STRING "List of extra secure partition manifests")
+set(TFM_EXTRA_MANIFEST_LIST_FILES           ""          CACHE FILEPATH  "Extra manifest list file(s), used to list extra Secure Partition manifests.")
 
-set(TFM_EXTRAS_REPO_EXTRA_PARTITIONS    "" CACHE STRING "List of extra secure partition directory name(s)")
+set(TFM_EXTRA_PARTITION_PATHS               ""          CACHE PATH      "List of extra Secure Partitions directories. An extra Secure Parition folder contains source code, CMakeLists.txt and manifest files")
 
 ################################# Advanced options #############################
 

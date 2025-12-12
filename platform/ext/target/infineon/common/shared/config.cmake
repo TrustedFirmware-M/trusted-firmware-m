@@ -10,6 +10,14 @@
 
 set(IFX_MTB_BUILD             OFF         CACHE BOOL "Enable build of artifacts used by ModusToolBox")
 
+if(IFX_MTB_BUILD)
+    # Sources generation is only needed for stand alone build. In MTB build, sources
+    # generation is handled by MTB.
+    set(IFX_GENERATE_BSP_SOURCES    OFF CACHE BOOL "Whether to generate BSP sources")
+endif()
+
+set(IFX_GENERATE_BSP_SOURCES    ON  CACHE BOOL "Whether to generate BSP sources")
+
 ################################# Dependencies #################################
 
 set(IFX_LIB_BASE_DIR          "${CMAKE_BINARY_DIR}/lib/ext" CACHE PATH "Path to folder where libraries are downloaded to speed up build process by re-using sources")

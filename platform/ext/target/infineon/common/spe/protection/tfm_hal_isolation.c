@@ -532,9 +532,9 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_post_partition_init_hook(void)
      * changing it. Do this only if CONFIG_TFM_PARTITION_META is enabled.
      * Otherwise (in Isolation Level 1) data from this section will be in normal
      * TFM section which is everyone accessible as it is Isolation Level 1 anyway. */
-#ifdef CONFIG_TFM_PARTITION_META
-    tfm_hal_shared_metadata_rw_enable(true);
-#endif /* CONFIG_TFM_PARTITION_META */
+#if CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION == 1
+    tfm_hal_shared_metadata_rw_enable();
+#endif /* CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION == 1 */
 
     /* Scheduler is about to be running */
     ifx_spm_state = IFX_SPM_STATE_RUNNING;
@@ -543,9 +543,9 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_post_partition_init_hook(void)
      * changing it. Do this only if CONFIG_TFM_PARTITION_META is enabled.
      * Otherwise (in Isolation Level 1) data from this section will be in normal
      * TFM section which is everyone accessible as it is Isolation Level 1 anyway. */
-#ifdef CONFIG_TFM_PARTITION_META
-    tfm_hal_shared_metadata_rw_enable(false);
-#endif /* CONFIG_TFM_PARTITION_META */
+#if CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION == 1
+    tfm_hal_shared_metadata_rw_disable();
+#endif /* CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION == 1 */
 
 #if TFM_ISOLATION_LEVEL == 3
     /* Start dynamic isolation of partition's assets */
@@ -562,13 +562,19 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_post_partition_init_hook(void)
     FIH_RET(TFM_HAL_SUCCESS);
 }
 
-#ifdef CONFIG_TFM_PARTITION_META
-void tfm_hal_shared_metadata_rw_enable(bool enable)
+#if CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION == 1
+void tfm_hal_shared_metadata_rw_enable(void)
 {
     /* Use MPU to apply proper protections for shared metadata section */
-    ifx_mpu_shared_metadata_rw_enable(enable);
+    ifx_mpu_shared_metadata_rw_enable(true);
 }
-#endif /* CONFIG_TFM_PARTITION_META */
+
+void tfm_hal_shared_metadata_rw_disable(void)
+{
+    /* Use MPU to apply proper protections for shared metadata section */
+    ifx_mpu_shared_metadata_rw_enable(false);
+}
+#endif /* CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION == 1 */
 
 FIH_RET_TYPE(bool) tfm_hal_boundary_need_switch(uintptr_t boundary_from, uintptr_t boundary_to)
 {

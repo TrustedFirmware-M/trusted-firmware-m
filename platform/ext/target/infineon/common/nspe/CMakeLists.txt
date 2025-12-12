@@ -15,13 +15,19 @@ target_include_directories(platform_ns
         ${IFX_COMMON_SOURCE_DIR}/interface/src
     PUBLIC
         ${IFX_COMMON_SOURCE_DIR}/device/include
+        $<$<BOOL:${TEST_NS_FPU}>:${IFX_COMMON_SOURCE_DIR}/tests>
 )
 
 target_sources(platform_ns
     PRIVATE
+        $<$<OR:$<BOOL:${TFM_NS_REG_TEST}>,$<BOOL:${TEST_PSA_API}>>:${IFX_COMMON_SOURCE_DIR}/tests/plat_test_ns.c>
+
         ${IFX_COMMON_SOURCE_DIR}/device/src/device_definition.c
         $<$<BOOL:${IFX_UART_ENABLED}>:${IFX_COMMON_SOURCE_DIR}/drivers/stdio/uart_pdl_stdout.c>
         $<$<BOOL:${TFM_PARTITION_PLATFORM}>:${INTERFACE_SRC_DIR}/ifx_platform_api.c>
+
+        $<$<BOOL:${TEST_NS_FPU}>:${IFX_COMMON_SOURCE_DIR}/tests/ifx_fpu_ns.c>
+        $<$<BOOL:${TEST_NS_FPU}>:${IFX_COMMON_SOURCE_DIR}/tests/test_interrupt.c>
 
         ${IFX_COMMON_SOURCE_DIR}/tfm_ns_platform_init.c
 

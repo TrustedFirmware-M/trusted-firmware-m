@@ -174,9 +174,6 @@ typedef enum
 #define CONFIG_TFM_VECTOR_ACCESS        1
 #endif
 
-/* Enable mostly read-only partition metadata */
-#define CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION   1
-
 #if PLATFORM_SERVICE_INPUT_BUFFER_SIZE < 128
 /* Platform service buffer size is increased to fit log message */
 #undef PLATFORM_SERVICE_INPUT_BUFFER_SIZE

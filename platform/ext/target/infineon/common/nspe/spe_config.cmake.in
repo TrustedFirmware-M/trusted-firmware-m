@@ -19,3 +19,6 @@ if(IFX_MTB_SRF)
         set(TEST_NS_MANAGE_NSID  OFF CACHE BOOL "Whether to build NS regression NSID management tests" FORCE)
     endif()
 endif()
+
+# Optional tests
+include(${IFX_COMMON_SOURCE_DIR}/tests/spe_config.cmake OPTIONAL)

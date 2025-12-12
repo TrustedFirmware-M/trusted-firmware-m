@@ -116,6 +116,10 @@ set(TFM_PARTITION_PLATFORM                  ON          CACHE BOOL  "Enable Plat
 set(TFM_PARTITION_FIRMWARE_UPDATE           OFF         CACHE BOOL  "Enable firmware update partition")
 set(TFM_PARTITION_INITIAL_ATTESTATION       ON          CACHE BOOL  "Enable Initial Attestation partition")
 
+############################# PSE84 extra tests ###################################
+
+include(${IFX_FAMILY_SOURCE_DIR}/tests/config.cmake OPTIONAL)
+
 ###################################################################################
 
 include(${IFX_COMMON_SOURCE_DIR}/config.cmake)

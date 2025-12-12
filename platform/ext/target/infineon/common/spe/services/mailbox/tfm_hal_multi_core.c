@@ -14,7 +14,7 @@
 #include "platform_multicore.h"
 #include "tfm_hal_multi_core.h"
 #include "tfm_peripherals_def.h"
-#include "tfm_log_unpriv.h"
+#include "tfm_sp_log.h"
 
 void tfm_hal_wait_for_ns_cpu_ready(void)
 {
@@ -44,7 +44,7 @@ void tfm_hal_wait_for_ns_cpu_ready(void)
             if (status == CY_IPC_DRV_SUCCESS) {
                 Cy_IPC_Drv_ReleaseNotify(rx_ipc_struct, 0);
                 if (data == ~IFX_IPC_SYNC_MAGIC) {
-                    INFO_UNPRIV_RAW("Cores sync success.\n");
+                    LOG_INFFMT("Cores sync success.\r\n");
                     break;
                 }
             }

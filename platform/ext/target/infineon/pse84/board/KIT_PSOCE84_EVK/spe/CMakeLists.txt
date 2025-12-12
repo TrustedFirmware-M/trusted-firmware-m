@@ -72,10 +72,6 @@ target_compile_definitions(platform_s
 
 # MTB uses own system for design files thus no need to install them
 if(NOT IFX_MTB_BUILD)
-    install(FILES       ${IFX_BSP_DESIGN_FILE_PATH}
-                        ${IFX_BSP_QSPI_DESIGN_FILE_PATH}
-            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/board/shared/design/${IFX_BSP_DESIGN_FILE_NAME})
-
-    install(DIRECTORY   ${IFX_BSP_QSPI_FLASH_LOADERS_DIR_PATH}
-            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/board/shared/design/${IFX_BSP_DESIGN_FILE_NAME})
+    install(DIRECTORY   ${IFX_BSP_DESIGN_DIR_PATH}
+            DESTINATION ${INSTALL_PLATFORM_NS_DIR}/board/shared/design)
 endif()

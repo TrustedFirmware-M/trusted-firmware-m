@@ -55,7 +55,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpu_isolate_numbered_mmio(
                                                     const ifx_partition_info_t *p_info,
                                                     const struct asset_desc_t *p_asset);
 
-#ifdef CONFIG_TFM_PARTITION_META
+#if CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION == 1
 /**
  * \brief  Enable/Disable Read-Write access to shared metadata section in MPU
  *
@@ -63,6 +63,6 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpu_isolate_numbered_mmio(
  *                       if false - enables RO access to shared metadata section
  */
 void ifx_mpu_shared_metadata_rw_enable(bool enable);
-#endif /* CONFIG_TFM_PARTITION_META */
+#endif /* CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION == 1 */
 
 #endif /* PROTECTION_MPU_H */

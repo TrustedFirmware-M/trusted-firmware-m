@@ -17,10 +17,10 @@
 #include "region.h"
 #include "utilities.h"
 
-#ifdef CONFIG_TFM_PARTITION_META
+#if CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION == 1
 /* Index of Shared metadata section */
 #define IFX_SHARED_METADATA_MPU_IDX             (0)
-#endif /* CONFIG_TFM_PARTITION_META */
+#endif /* CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION == 1 */
 
 /* MPU.CTRL.PRIVDEFENA is set to 1. Thus static MPU config only lists areas
  * that must be accessible in unprivileged mode. This is done to save up MPU regions. */
@@ -341,7 +341,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpu_isolate_numbered_mmio(
     FIH_RET(TFM_HAL_SUCCESS);
 }
 
-#ifdef CONFIG_TFM_PARTITION_META
+#if CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION == 1
 void ifx_mpu_shared_metadata_rw_enable(bool enable)
 {
     /*
@@ -378,4 +378,4 @@ void ifx_mpu_shared_metadata_rw_enable(bool enable)
     __DSB();
     __ISB();
 }
-#endif /* CONFIG_TFM_PARTITION_META */
+#endif /* CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION == 1 */
