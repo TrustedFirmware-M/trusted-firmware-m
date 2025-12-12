@@ -149,7 +149,7 @@ void psa_unmap_invec(psa_handle_t msg_handle, uint32_t invec_idx)
 
 void *psa_map_outvec(psa_handle_t msg_handle, uint32_t outvec_idx)
 {
-    PART_METADATA()->psa_fns->psa_map_outvec(msg_handle, outvec_idx);
+    return PART_METADATA()->psa_fns->psa_map_outvec(msg_handle, outvec_idx);
 }
 
 void psa_unmap_outvec(psa_handle_t msg_handle, uint32_t outvec_idx, size_t len)
