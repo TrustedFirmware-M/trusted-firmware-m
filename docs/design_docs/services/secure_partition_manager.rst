@@ -729,6 +729,9 @@ The common load information:
       uint32_t        nservices;      /* Service number                   */
       uint32_t        nassets;        /* Asset numbers                    */
       uint32_t        nirqs;          /* Number of IRQ owned by Partition */
+      int32_t         client_id_base; /* The min translated client ID     */
+      int32_t         client_id_limit;/* The max translated client ID     */
+      uint16_t        load_order;     /* loading order of this partition  */
   };
 
   And the example for a specific partition load info:
