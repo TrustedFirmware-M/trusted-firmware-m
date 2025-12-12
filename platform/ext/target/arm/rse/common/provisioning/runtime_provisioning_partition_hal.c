@@ -76,7 +76,7 @@ static enum tfm_plat_err_t handle_plain_data_message(struct rse_provisioning_mes
 
     struct default_plain_data_handler_ctx_s ctx = {
         .rotpk_revocation_ctx = {
-            .authenticated = false,
+            .authentication = ROTPK_REVOCATION_AUTHENTICATION_NONE,
         }
     };
 

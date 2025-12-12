@@ -39,7 +39,7 @@ __attribute__((section("DO_PROVISION"))) enum tfm_plat_err_t do_provision(void) 
 
     struct default_plain_data_handler_ctx_s ctx = {
         .rotpk_revocation_ctx = {
-            .authenticated = false,
+            .authentication = ROTPK_REVOCATION_AUTHENTICATION_NONE,
         },
 #ifdef RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING
         .endorsement_certificate_provisioning_ctx = {

@@ -29,7 +29,7 @@ handle_non_endorsed_dm(const struct rse_provisioning_message_plain_t *plain_data
         (const struct rse_rotpk_revocation_dm_provisioning_values_t *)plain_data->data;
 
     /* Non-endorsed should just be plain data */
-    if (rotpk_revocation_ctx->authenticated) {
+    if (rotpk_revocation_ctx->authentication != ROTPK_REVOCATION_AUTHENTICATION_NONE) {
         return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_AUTH;
     }
 
@@ -94,7 +94,7 @@ handle_cm_revocation(const struct rse_provisioning_message_plain_t *plain_data, 
         return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_LCS;
     }
 
-    if (!rotpk_revocation_ctx->authenticated) {
+    if (rotpk_revocation_ctx->authentication != ROTPK_REVOCATION_AUTHENTICATION_CM_ROTPK) {
         return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_AUTH;
     }
 
@@ -153,7 +153,7 @@ handle_dm_revocation(const struct rse_provisioning_message_plain_t *plain_data, 
         return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_LCS;
     }
 
-    if (!rotpk_revocation_ctx->authenticated) {
+    if (rotpk_revocation_ctx->authentication != ROTPK_REVOCATION_AUTHENTICATION_DM_ROTPK) {
         return TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_AUTH;
     }
 

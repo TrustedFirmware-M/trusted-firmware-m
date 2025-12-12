@@ -16,11 +16,14 @@
 extern "C" {
 #endif
 
+enum rotpk_revocation_authentication_t {
+    ROTPK_REVOCATION_AUTHENTICATION_NONE,
+    ROTPK_REVOCATION_AUTHENTICATION_CM_ROTPK,
+    ROTPK_REVOCATION_AUTHENTICATION_DM_ROTPK
+};
+
 struct rotpk_revocation_ctx_s {
-    /* Whether the plain data message passed to the
-     * handler was authenticated
-     */
-    bool authenticated;
+    enum rotpk_revocation_authentication_t authentication;
 };
 
 struct endorsement_certificate_provisioning_ctx_s {

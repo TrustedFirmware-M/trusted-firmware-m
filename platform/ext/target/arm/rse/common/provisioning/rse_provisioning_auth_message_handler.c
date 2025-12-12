@@ -21,6 +21,7 @@
 #include "rse_provisioning_message_handler.h"
 #include "rse_provisioning_auth_message_handler.h"
 #include "rse_provisioning_plain_data_handler.h"
+#include "rse_provisioning_rotpk.h"
 #include "psa/crypto.h"
 
 #include <string.h>
@@ -775,6 +776,13 @@ enum tfm_plat_err_t default_blob_handler(const struct rse_provisioning_message_b
         return TFM_PLAT_ERR_PROVISIONING_BLOB_ZERO_CODE_SIZE;
     }
 
+    if (provisioning_rotpk_is_non_rom(&blob->header) &&
+        (provisioning_rotpk_get_non_rom_rotpk_config(&blob->header) ==
+         RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_DM_ROTPK)) {
+        FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_DM_ROTPK_SIGNATURE);
+        return TFM_PLAT_ERR_PROVISIONING_BLOB_INVALID_DM_ROTPK_SIGNATURE;
+    }
+
     FIH_CALL(validate_and_unpack_message, fih_rc, &blob->header,
              blob->code_and_data_and_secret_values, msg_size,
              (void * )PROVISIONING_BUNDLE_CODE_START,
@@ -808,6 +816,7 @@ enum tfm_plat_err_t default_authenticated_plain_data_handler(const struct rse_pr
     enum lcm_lcs_t lcs;
     enum lcm_error_t lcm_err;
     struct default_plain_data_handler_ctx_s plain_data_handler_ctx;
+    enum rse_provisioning_auth_msg_non_rom_pk_type_config_t non_rom_config;
 
     struct default_blob_authenticated_data_handler_ctx_t *auth_plain_ctx =
         (struct default_blob_authenticated_data_handler_ctx_t *)ctx;
@@ -830,6 +839,18 @@ enum tfm_plat_err_t default_authenticated_plain_data_handler(const struct rse_pr
     if ((auth_plain->header.code_size != 0) || (auth_plain->header.secret_values_size != 0)) {
         FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_AUTH_PLAIN_DATA_INVALID_SIZE);
         return TFM_PLAT_ERR_PROVISIONING_AUTH_PLAIN_DATA_INVALID_SIZE;
+    }
+
+    if (!provisioning_rotpk_is_non_rom(&auth_plain->header)) {
+        FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_AUTH_PLAIN_DATA_INVALID_ROTPK);
+        return TFM_PLAT_ERR_PROVISIONING_AUTH_PLAIN_DATA_INVALID_ROTPK;
+    }
+
+    non_rom_config = provisioning_rotpk_get_non_rom_rotpk_config(&auth_plain->header);
+    if ((non_rom_config != RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK) &&
+        (non_rom_config != RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_DM_ROTPK)) {
+        FATAL_ERR(TFM_PLAT_ERR_PROVISIONING_AUTH_PLAIN_DATA_INVALID_NON_ROM_ROTPK);
+        return TFM_PLAT_ERR_PROVISIONING_AUTH_PLAIN_DATA_INVALID_NON_ROM_ROTPK;
     }
 
     FIH_CALL(validate_and_unpack_message, fih_rc, &auth_plain->header,
@@ -855,7 +876,8 @@ enum tfm_plat_err_t default_authenticated_plain_data_handler(const struct rse_pr
      */
     plain_data_handler_ctx = (struct default_plain_data_handler_ctx_s) {
         .rotpk_revocation_ctx = {
-            .authenticated = true
+            .authentication = (non_rom_config == RSE_PROVISIONING_AUTH_MSG_DETAILS_NON_ROM_PK_TYPE_CM_ROTPK) ?
+                              ROTPK_REVOCATION_AUTHENTICATION_CM_ROTPK : ROTPK_REVOCATION_AUTHENTICATION_DM_ROTPK,
         }
     };
 
