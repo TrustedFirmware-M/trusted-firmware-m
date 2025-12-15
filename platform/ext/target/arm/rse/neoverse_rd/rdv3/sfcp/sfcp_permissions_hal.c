@@ -11,6 +11,7 @@
 #include "tfm_hal_platform.h"
 #include "host_base_address.h"
 #include "rse_attack_tracking_counter.h"
+#include "rse_otp_layout.h"
 
 #ifdef TFM_PARTITION_INITIAL_ATTESTATION
 #include "tfm_attest_defs.h"
@@ -95,6 +96,12 @@ enum tfm_plat_err_t comms_permissions_service_check(psa_handle_t handle, const p
         if (in_len >= 1) {
             function_id = ((struct tfm_crypto_pack_iovec *)in_vec[0].base)->function_id;
             switch (function_id) {
+#if defined(RSE_OTP_CM_ROTPK_IS_HASH_NOT_KEY) || defined(RSE_OTP_DM_ROTPK_IS_HASH_NOT_KEY)
+            /* ROTPK hash cannot be exported as a public key and
+             * must use export key
+             */
+            case TFM_CRYPTO_EXPORT_KEY_SID:
+#endif
             case (TFM_CRYPTO_EXPORT_PUBLIC_KEY_SID):
                 return TFM_PLAT_ERR_SUCCESS;
             default:
