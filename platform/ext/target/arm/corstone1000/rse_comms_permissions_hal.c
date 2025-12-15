@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -72,10 +72,23 @@ enum tfm_plat_err_t comms_permissions_memory_check(void *owner,
                                                    uint32_t size,
                                                    bool is_write)
 {
+#if INTER_PROCESSOR_SHARED_MEMORY_SIZE <= 0
+#error "shared memory must have positive size"
+#endif
+#if UINT32_MAX < INTER_PROCESSOR_SHARED_MEMORY_SIZE - 1
+#error "shared memory too large"
+#endif
+#if INTER_PROCESSOR_HOST_SHARED_MEMORY_START_ADDR > \
+    UINT32_MAX - (INTER_PROCESSOR_SHARED_MEMORY_SIZE - 1)
+#error "shared memory must not wrap around the 32-bit address space"
+#endif
+    uint32_t lim = ((uint32_t)INTER_PROCESSOR_HOST_SHARED_MEMORY_START_ADDR +
+                    (INTER_PROCESSOR_SHARED_MEMORY_SIZE - 1));
+
     /* Is fully within the shared memory */
-    if ((host_ptr >= INTER_PROCESSOR_HOST_SHARED_MEMORY_START_ADDR) &&
-        ((host_ptr + size) < (INTER_PROCESSOR_HOST_SHARED_MEMORY_START_ADDR +
-                              INTER_PROCESSOR_SHARED_MEMORY_SIZE))) {
+    if (comms_range_access_valid(host_ptr, size,
+                                 INTER_PROCESSOR_HOST_SHARED_MEMORY_START_ADDR,
+                                 lim)) {
       return TFM_PLAT_ERR_SUCCESS;
     }
 
