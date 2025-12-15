@@ -71,6 +71,7 @@ set(MCUBOOT_IMAGE_BINDING                    OFF             CACHE BOOL      "En
 if(MCUBOOT_IMAGE_BINDING)
     set(TLV_METADATA    "0x00A4;0xffffffffffffffffffffffffffffffff"  CACHE STRING "16 bytes of metadata used for image binding")
     set(TLV_BINDING_TAG "0x00A5;0xffffffffffffffffffffffffffffffff"  CACHE STRING "16 bytes of binding tag used for image binding")
+    set(MCUBOOT_IMAGE_ACCESS_HOOKS           ON                      CACHE BOOL "Enable image access hooks for custom image loading/encryption")
 endif()
 
 if (MCUBOOT_SIGNATURE_TYPE STREQUAL EC-P384)

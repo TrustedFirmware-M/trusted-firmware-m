@@ -41,6 +41,8 @@ extern "C" {
 #cmakedefine MCUBOOT_IMAGE_BINDING
 #endif /* MCUBOOT_IMAGE_BINDING */
 
+#cmakedefine MCUBOOT_IMAGE_ACCESS_HOOKS
+
 /*— How many RoTPK keys per image —*/
 #define MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE  @MCUBOOT_ROTPK_MAX_KEYS_PER_IMAGE@
 

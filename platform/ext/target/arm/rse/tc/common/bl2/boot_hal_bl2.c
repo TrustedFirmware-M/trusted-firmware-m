@@ -484,3 +484,14 @@ void boot_platform_start_next_image(struct boot_arm_vector_table *vt)
 
     boot_jump_to_next_image(vt_cpy->reset);
 }
+
+#ifdef MCUBOOT_IMAGE_ACCESS_HOOKS
+int boot_read_image_header_hook(int img_index, int slot,
+                                struct image_header *img_hed)
+{
+    (void)img_index;
+    (void)slot;
+    (void)img_hed;
+    return BOOT_HOOK_REGULAR;
+}
+#endif /* MCUBOOT_IMAGE_ACCESS_HOOKS */
