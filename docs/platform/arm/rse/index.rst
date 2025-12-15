@@ -20,6 +20,7 @@ Previously known as Runtime Security Subsystem (RSS).
     RSE staged boot <rse_staged_boot.rst>
     RSE BL1_2 image binding <rse_bl1_2_image_binding.rst>
     RSE firmware update metadata <rse_fwu_metadata.rst>
+    RSE BL2 image binding <rse_bl2_image_binding.rst>
     RSE Cryptography <rse_crypto.rst>
 
 RSE also includes the following extra partitions:
