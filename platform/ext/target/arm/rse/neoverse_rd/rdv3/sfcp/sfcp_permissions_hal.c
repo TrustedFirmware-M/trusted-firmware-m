@@ -45,8 +45,8 @@ enum tfm_plat_err_t comms_permissions_memory_check(sfcp_node_id_t node_id, uint6
     (void)node_id;
 
     /* Is fully within the AP Shared SRAM? */
-    if (host_ptr >= HOST_AP_SHARED_SRAM_PHYS_BASE &&
-        host_ptr + size <= HOST_AP_SHARED_SRAM_PHYS_LIMIT) {
+    if (comms_range_access_valid(host_ptr, size, HOST_AP_SHARED_SRAM_PHYS_BASE,
+                                 HOST_AP_SHARED_SRAM_PHYS_LIMIT)) {
         return TFM_PLAT_ERR_SUCCESS;
     }
 

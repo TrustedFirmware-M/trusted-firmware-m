@@ -36,28 +36,28 @@ enum tfm_plat_err_t comms_permissions_memory_check(sfcp_node_id_t node_id, uint6
 {
     if (node_id == AP_MONITOR_NODE_ID) {
         /* Is fully within the Secure ROM and is a read */
-        if (host_ptr >= 0x0 && host_ptr + size < 0x80000 && !is_write) {
+        if (comms_range_access_valid(host_ptr, size, 0x0, 0x7FFFF) && !is_write) {
             return TFM_PLAT_ERR_SUCCESS;
         }
 
-        if (host_ptr >= 0x4000000 && host_ptr + size < 0x4080000) {
+        if (comms_range_access_valid(host_ptr, size, 0x4000000, 0x407FFFF)) {
             return TFM_PLAT_ERR_SUCCESS;
         }
     }
 
     /* Is fully within the Non-secure ROM and is a read */
-    if (host_ptr >= 0x5000000 && host_ptr + size < 0x5080000 && !is_write) {
+    if (comms_range_access_valid(host_ptr, size, 0x5000000, 0x507FFFF) && !is_write) {
         return TFM_PLAT_ERR_SUCCESS;
     }
 
     /* Is fully within the Non-secure RAM */
-    if (host_ptr >= 0x6000000 && host_ptr + size < 0x6080000) {
+    if (comms_range_access_valid(host_ptr, size, 0x6000000, 0x607FFFF)) {
         return TFM_PLAT_ERR_SUCCESS;
     }
 
 #ifdef TFM_PARTITION_DPE
     /* Is fully within the Non-secure SDRAM (BL33) */
-    if (host_ptr >= 0x80000000 && host_ptr + size < 0xf9000000) {
+    if (comms_range_access_valid(host_ptr, size, 0x80000000, 0xF8FFFFFF)) {
         return TFM_PLAT_ERR_SUCCESS;
     }
 #endif /* TFM_PARTITION_DPE */
