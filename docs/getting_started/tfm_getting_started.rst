@@ -201,13 +201,13 @@ versions are:
 
               - Configure proper tool variant and license.
 
-    - GNU Arm compiler version minimum 10.3.2021.10
+    - GNU Arm compiler version minimum 12.2.Rel1
 
       .. tabs::
 
           .. group-tab:: Linux
 
-              - Download the GNU Arm compiler from `here <https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads>`__.
+              - Download the GNU Arm compiler from `here <https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads>`__.
               - Add GNU Arm into environment:
 
                 .. code-block:: bash
@@ -216,7 +216,7 @@ versions are:
 
           .. group-tab:: Windows
 
-              - Download the GNU Arm compiler from `here <https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads>`__.
+              - Download the GNU Arm compiler from `here <https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads>`__.
               - Add GNU Arm into environment:
 
                 .. code-block:: bash
