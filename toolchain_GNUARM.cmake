@@ -30,8 +30,8 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE ${CMAKE_CURRENT_LIST_DIR}/cmake/set_extension
 # CMAKE_C_COMPILER_VERSION is not initialised at this moment so do it manually
 EXECUTE_PROCESS(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE CMAKE_C_COMPILER_VERSION)
 
-if (${CMAKE_C_COMPILER_VERSION} VERSION_LESS 10.3.1)
-    message(FATAL_ERROR "Please use GNU Arm toolchain version 10.3.1 or later")
+if (${CMAKE_C_COMPILER_VERSION} VERSION_LESS 12.2)
+    message(FATAL_ERROR "Please use GNU Arm toolchain version 12.2.Rel1 or later")
 endif()
 
 function(min_toolchain_version mcpu gnu-version)
