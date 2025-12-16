@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, The TrustedFirmware-M Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -17,6 +17,7 @@
 #include "cc3xx_psa_entropy.h"
 #include "cc3xx_entropy.h"
 #include "cc3xx_misc.h"
+#include "psa/crypto_driver_random.h"
 
 /** @defgroup psa_entropy PSA driver entry points for entropy collection
  *
@@ -71,8 +72,9 @@ psa_status_t cc3xx_get_entropy(uint32_t flags, size_t *estimate_bits,
  * entropy_poll.h for details. This needs to be revised once Mbed TLS adds
  * support for entropy.
  */
-int mbedtls_hardware_poll(void *data, unsigned char *output, size_t len, size_t *olen)
+int mbedtls_platform_get_entropy(psa_driver_get_entropy_flags_t flags,
+                                 size_t *estimate_bits,
+                                 unsigned char *output, size_t output_size)
 {
-    (void)data;
-    return cc3xx_get_entropy(0, olen, output, len);
+    return cc3xx_get_entropy(flags, estimate_bits, (uint8_t *)output, output_size);
 }

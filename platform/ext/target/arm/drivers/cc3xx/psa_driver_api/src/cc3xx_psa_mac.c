@@ -30,7 +30,7 @@
 /* ToDo: This needs to be sorted out at TF-M level
  * To be able to include the PSA style configuration
  */
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #if defined(PSA_WANT_ALG_CMAC)
 /**

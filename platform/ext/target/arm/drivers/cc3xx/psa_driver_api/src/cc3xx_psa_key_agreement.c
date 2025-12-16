@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024, The TrustedFirmware-M Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -25,7 +25,7 @@
 /* ToDo: This needs to be sorted out at TF-M level
  * To be able to include the PSA style configuration
  */
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 /** @defgroup psa_key_agreement PSA driver entry points for raw key agreement
  *
