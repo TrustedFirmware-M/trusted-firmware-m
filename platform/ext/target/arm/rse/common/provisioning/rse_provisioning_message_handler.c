@@ -17,7 +17,7 @@
 enum tfm_plat_err_t
 message_handling_status_report_continue(enum provisioning_message_report_step_t step)
 {
-#ifdef RSE_ENABLE_DCSU_PROVISIONING_COMMS
+#if defined(RSE_ENABLE_DCSU_PROVISIONING_COMMS) && !defined(TEST_BL1_1)
     struct provisioning_message_status_report_t status_report = {
         .type = PROVISIONING_STATUS_SUCCESS_CONTINUE,
         .report_step = step,
@@ -34,7 +34,7 @@ message_handling_status_report_continue(enum provisioning_message_report_step_t 
 enum tfm_plat_err_t
 message_handling_status_report_error(enum provisioning_message_report_step_t step, uint32_t error)
 {
-#ifdef RSE_ENABLE_DCSU_PROVISIONING_COMMS
+#if defined(RSE_ENABLE_DCSU_PROVISIONING_COMMS) && !defined(TEST_BL1_1)
     struct provisioning_message_status_report_t status_report = {
         .type = PROVISIONING_STATUS_ERROR,
         .report_step = step,
@@ -52,7 +52,7 @@ enum tfm_plat_err_t message_provisioning_finished(enum provisioning_message_repo
 {
     rse_set_provisioning_staging_status(PROVISIONING_STAGING_STATUS_NO_MESSAGE);
 
-#ifdef RSE_ENABLE_DCSU_PROVISIONING_COMMS
+#if defined(RSE_ENABLE_DCSU_PROVISIONING_COMMS) && !defined(TEST_BL1_1)
     struct provisioning_message_status_report_t status_report = {
         .type = PROVISIONING_STATUS_SUCCESS_COMPLETE,
         .report_step = step,
