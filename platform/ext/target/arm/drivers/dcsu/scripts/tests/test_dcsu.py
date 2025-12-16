@@ -171,20 +171,19 @@ def test_invalid_command(backend, ctx, args):
     dummy_data = bytes([0xEF])
     backend.write_register(ctx, "DIAG_RX_LARGE_PARAM", 0x0)
     status = tx_command_send(backend, ctx, invalid_dcsu_rx_command.DCSU_RX_INVALID_COMMAND,
-                             dummy_data, math.ceil(len(dummy_data) / WORD_SIZE), 'little', False)
+                             data=dummy_data, size=math.ceil(len(dummy_data) / WORD_SIZE), byteorder='little',
+                             checksum=False)
     return status == dcsu_tx_message_error.DCSU_TX_MSG_RESP_INVALID_COMMAND
-
-class dcsu_rx_command_override_checksum(Enum):
-    # IMPORT_DATA_WITH_CHECKSUM command with the
-    # checksum field set to a random value
-    DCSU_RX_COMMAND_OVERRIDE_CHECKSUM = ((0xDEAD & 0x3FFF) << 10) | (0xB)
 
 def test_invalid_checksum(backend, ctx, args):
     data = get_random_bytes(16)
     backend.write_register(ctx, "DIAG_RX_LARGE_PARAM", 0x0)
     status = tx_command_send(backend, ctx,
-                             dcsu_rx_command_override_checksum.DCSU_RX_COMMAND_OVERRIDE_CHECKSUM,
-                             data, math.ceil(len(data) / WORD_SIZE), 'little', True)
+                             dcsu_tx_command.DCSU_TX_COMMAND_IMPORT_DATA_CHECKSUM,
+                             sw_def=0x3EED,
+                             data=data, size=math.ceil(len(data) / WORD_SIZE), byteorder='little',
+                             # False as we override checksum in sw_def
+                             checksum=False)
     if status != dcsu_tx_message_error.DCSU_TX_MSG_RESP_BAD_INTEGRITY_VALUE:
         return False
 
