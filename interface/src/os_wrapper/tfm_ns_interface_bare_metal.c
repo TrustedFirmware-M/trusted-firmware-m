@@ -14,7 +14,7 @@
  */
 
 #include "tfm_ns_interface.h"
-#include "common.h"
+#include "os_wrapper/common.h"
 
 #ifdef TFM_HYBRID_PLATFORM_API_BROKER
 #include "psa/api_broker.h"
