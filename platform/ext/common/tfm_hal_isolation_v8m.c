@@ -9,6 +9,7 @@
  */
 
 #include <arm_cmse.h>
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -448,6 +449,10 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_bind_boundary(const struct partition
     get_partition_named_mmio_list(&mmio_list, &mmio_list_length);
 
     for (i = 0; i < p_ldinf->nassets; i++) {
+
+        assert(p_asset != NULL);
+        assert(mmio_list_length > 0);
+
         if (!(p_asset[i].attr & ASSET_ATTR_NAMED_MMIO)) {
             continue;
         }
