@@ -284,7 +284,7 @@ static struct conditional_test_t state_transitions[] = {
     },
 };
 
-static struct test_t bl1_1_extra_tests[123];
+static struct test_t bl1_1_extra_tests[200];
 
 void register_testsuite_extra_bl1_1(struct test_suite_t *p_test_suite)
 {
