@@ -85,13 +85,15 @@ def pre_parse_backend(backends : [str], parser : argparse.ArgumentParser, prefix
     parsed, _ = pre_arg_parser.parse_known_args()
     return parsed.backend
 
-def tx_command_send(backend, ctx, command : dcsu_tx_command, sw_def : int = 0, param1 : int | None = None, data : bytes = None, size = None, byteorder='little', checksum=True):
+def tx_command_send(backend, ctx, command : dcsu_tx_command, sw_def : int = None, param1 : int | None = None, data : bytes = None, size = None, byteorder='little', checksum=True):
     assert _value_fits_in_bits(command.value, 8), "CMD must fit in 8 bits"
     command_word = command.value
 
-    # Set software defined bits
-    assert _value_fits_in_bits(sw_def, 14), "SW_DEF must fit in 14 bits"
-    command_word |= sw_def << 10
+    # Set software defined bits if provided
+    if (sw_def):
+        assert not checksum, "SW_DEF cannot be provided if checksum enabled"
+        assert _value_fits_in_bits(sw_def, 14), "SW_DEF must fit in 14 bits"
+        command_word |= sw_def << 10
 
     # Set PARAM1 field if provided
     if (param1):
