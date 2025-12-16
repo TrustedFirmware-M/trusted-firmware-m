@@ -649,12 +649,12 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_co
         err = rx_generate_soc_unique_id(dev, &msg_resp);
         break;
     case DCSU_RX_COMMAND_WRITE_SOC_FAMILY_ID:
-        err = rx_write_field(dev, DCSU_OTP_FIELD_FAMILY_ID, false,
-                             DCSU_OTP_FIELD_SOC_ID_ZC, &msg_resp);
+        err = rx_write_field(dev, DCSU_OTP_FIELD_FAMILY_ID, DCSU_OTP_FIELD_SOC_ID_ZC, false,
+                             &msg_resp);
         break;
     case DCSU_RX_COMMAND_WRITE_SOC_IEEE_ECID:
-        err = rx_write_field(dev, DCSU_OTP_FIELD_IEEE_ECID, false,
-                             DCSU_OTP_FIELD_SOC_ID_ZC, &msg_resp);
+        err = rx_write_field(dev, DCSU_OTP_FIELD_IEEE_ECID, DCSU_OTP_FIELD_SOC_ID_ZC, false,
+                             &msg_resp);
         break;
     case DCSU_RX_COMMAND_COMPUTE_ZC_SOC_IDS:
         err = rx_compute_zc_soc_ids(dev, &msg_resp);
@@ -666,8 +666,8 @@ enum dcsu_error_t dcsu_handle_rx_command(struct dcsu_dev_t *dev, enum dcsu_rx_co
         err = read_otp_field(dev, DCSU_OTP_FIELD_IEEE_ECID, (uint32_t *)p_dcsu->diag_tx_data, sizeof(p_dcsu->diag_tx_data), &msg_resp);
         break;
     case DCSU_RX_COMMAND_WRITE_SOC_CONFIG_DATA:
-        err = rx_write_field(dev, DCSU_OTP_FIELD_SOC_CFG_DATA, true,
-                             DCSU_OTP_FIELD_SOC_CFG_DATA_ZC, &msg_resp);
+        err = rx_write_field(dev, DCSU_OTP_FIELD_SOC_CFG_DATA, DCSU_OTP_FIELD_SOC_CFG_DATA_ZC, true,
+                             &msg_resp);
         break;
     case DCSU_RX_COMMAND_COMPUTE_ZC_SOC_CFG:
         err = rx_compute_zc_soc_cfg(dev, &msg_resp);
