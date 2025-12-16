@@ -109,7 +109,6 @@ enum tfm_hal_status_t tfm_hal_platform_init(void)
         .sclk_gpio = SCLK_GPIO,
         .reset_gpio = RESET_GPIO,
         .spi_mode = SPI_MODE,
-        .spi_delay_us = SPI_DELAY_US,
     };
 
     spidev = spi_platform_init(&spi_data);

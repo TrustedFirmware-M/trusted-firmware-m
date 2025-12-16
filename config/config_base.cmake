@@ -52,6 +52,8 @@ set(LIB_EVENTLOG_PATH                   "DOWNLOAD"  CACHE PATH      "Path to Lib
 set(LIB_EVENTLOG_VERSION                "0eacda85"  CACHE STRING    "The version of LibEventLog to use")
 set(EVENT_LOG_BUFFER_SIZE               "0x100"     CACHE STRING    "Size of event log buffer size")
 
+set(LIB_DTPM_VERSION                    "2adab98"   CACHE STRING    "The version of LibTPM to use")
+
 set(PLATFORM_PSA_ADAC_SECURE_DEBUG      FALSE       CACHE BOOL      "Whether to use psa-adac secure debug.")
 set(PSA_ADAC_AS_TFM_RUNTIME_SERVICE     OFF         CACHE BOOL      "Integrate ADAC as TF-M runtime service")
 set(PLATFORM_PSA_ADAC_SOURCE_PATH       "DOWNLOAD"  CACHE PATH      "Path to source dir of psa-adac.")

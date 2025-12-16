@@ -21,4 +21,5 @@ add_subdirectory(tf-m-extras)
 
 if (${TFM_PARTITION_DTPM_CLIENT})
     add_subdirectory(eventlog)
+    add_subdirectory(dtpm)
 endif()

@@ -155,10 +155,11 @@ target_include_directories(platform_s
         partition
         device/config
         ${PLATFORM_DIR}/..
-        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/tpm_client>
         $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/spi>
     INTERFACE
         ${PLATFORM_DIR}/../interface/include
+    PRIVATE
+        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${LIB_DTPM_PATH}/include/>
 )
 
 target_link_libraries(platform_s
@@ -194,10 +195,6 @@ target_sources(platform_s
 
         $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${CMAKE_CURRENT_SOURCE_DIR}/dtpm_spi.c>
         $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${CMAKE_CURRENT_SOURCE_DIR}/mboot_to_pcr.c>
-        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/tpm_client/tpm2_cmds.c>
-        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/tpm_client/tpm2_chip.c>
-        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/tpm_client/tpm2_fifo.c>
-        $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:${PLATFORM_DIR}/ext/driver/tpm_client/tpm2_fifo_spi.c>
         $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_ATTEST_HAL}>>:${CMAKE_CURRENT_SOURCE_DIR}/attest_hal.c>
         $<$<OR:$<BOOL:${TFM_S_REG_TEST}>,$<BOOL:${TFM_NS_REG_TEST}>>:${CMAKE_CURRENT_SOURCE_DIR}/plat_test.c>
         $<$<BOOL:${TFM_PARTITION_PLATFORM}>:${CMAKE_CURRENT_SOURCE_DIR}/services/src/tfm_platform_system.c>
