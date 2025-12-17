@@ -180,6 +180,16 @@ static struct conditional_test_t provisioning_tests[] = {
         },
     },
     {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_DM,
+        .any_sp_state = true,
+        .test = {
+            &rse_bl1_provisioning_test_0415,
+            "RSE_BL1_1_PROVISIONING_TEST_0415",
+            "Provisioning ECDSA key in blob DM test setup"
+        },
+    },
+    {
         .tp_mode = LCM_TP_MODE_PCI,
         .lcs = LCM_LCS_DM,
         .sp_enabled = LCM_TRUE,
@@ -219,6 +229,148 @@ static struct conditional_test_t provisioning_tests[] = {
             "Provisioning invalid ECDSA key in blob TCI test"
         },
     },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_CM,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0501,
+            "RSE_BL1_1_PROVISIONING_TEST_0501",
+            "Provisioning auth plain invalid CM LCS test"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_DM,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0502,
+            "RSE_BL1_1_PROVISIONING_TEST_0502",
+            "Provisioning auth plain invalid DM LCS test"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .any_lcs = true,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0510,
+            "RSE_BL1_1_PROVISIONING_TEST_0510",
+            "Provisioning auth plain invalid code size test"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .any_lcs = true,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0511,
+            "RSE_BL1_1_PROVISIONING_TEST_0511",
+            "Provisioning auth plain invalid data size test"
+        },
+    },
+#ifdef RSE_ROTPK_REVOCATION
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0600,
+            "RSE_BL1_1_PROVISIONING_TEST_0600",
+            "Provisioning CM ROTPK revocation invalid auth test"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0601,
+            "RSE_BL1_1_PROVISIONING_TEST_0601",
+            "Provisioning DM ROTPK revocation invalid auth test"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0602,
+            "RSE_BL1_1_PROVISIONING_TEST_0602",
+            "Provisioning CM ROTPK revocation invalid index test"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0603,
+            "RSE_BL1_1_PROVISIONING_TEST_0603",
+            "Provisioning DM ROTPK revocation invalid index test"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0604,
+            "RSE_BL1_1_PROVISIONING_TEST_0604",
+            "Provisioning CM ROTPK revocation invalid num ROTPKs test"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0605,
+            "RSE_BL1_1_PROVISIONING_TEST_0605",
+            "Provisioning DM ROTPK revocation invalid num ROTPKs test"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0606,
+            "RSE_BL1_1_PROVISIONING_TEST_0606",
+            "Provisioning CM ROTPK revocation invalid ROTPK size test"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0607,
+            "RSE_BL1_1_PROVISIONING_TEST_0607",
+            "Provisioning DM ROTPK revocation invalid ROTPK size test"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0610,
+            "RSE_BL1_1_PROVISIONING_TEST_0610",
+            "Provisioning CM ROTPK revocation success test"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0611,
+            "RSE_BL1_1_PROVISIONING_TEST_0611",
+            "Provisioning DM ROTPK revocation success test"
+        },
+    },
+#endif /* RSE_ROTPK_REVOCATION */
 };
 
 static struct conditional_test_t state_transitions[] = {
