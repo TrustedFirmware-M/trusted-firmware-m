@@ -18,6 +18,7 @@ Previously known as Runtime Security Subsystem (RSS).
     RSE Platforms <platforms/index.rst>
     RSE ROM unit test guidelines <rse_unit_tests_guidelines.rst>
     RSE staged boot <rse_staged_boot.rst>
+    RSE BL1_2 image binding <rse_bl1_2_image_binding.rst>
     RSE firmware update metadata <rse_fwu_metadata.rst>
     RSE Cryptography <rse_crypto.rst>
 
