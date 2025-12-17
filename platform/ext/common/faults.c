@@ -19,6 +19,7 @@ void C_HardFault_Handler(void)
     tfm_core_panic();
 }
 
+EXCEPTION_INFO_IAR_REQUIRED
 __attribute__((naked)) void HardFault_Handler(void)
 {
     EXCEPTION_INFO();
@@ -39,6 +40,7 @@ void C_MemManage_Handler(void)
     tfm_core_panic();
 }
 
+EXCEPTION_INFO_IAR_REQUIRED
 __attribute__((naked)) void MemManage_Handler(void)
 {
     EXCEPTION_INFO();
@@ -59,6 +61,7 @@ void C_BusFault_Handler(void)
     tfm_core_panic();
 }
 
+EXCEPTION_INFO_IAR_REQUIRED
 __attribute__((naked)) void BusFault_Handler(void)
 {
     EXCEPTION_INFO();
@@ -79,6 +82,7 @@ void C_SecureFault_Handler(void)
     tfm_core_panic();
 }
 
+EXCEPTION_INFO_IAR_REQUIRED
 __attribute__((naked)) void SecureFault_Handler(void)
 {
     EXCEPTION_INFO();
@@ -94,6 +98,7 @@ void C_UsageFault_Handler(void)
     tfm_core_panic();
 }
 
+EXCEPTION_INFO_IAR_REQUIRED
 __attribute__((naked)) void UsageFault_Handler(void)
 {
     EXCEPTION_INFO();
