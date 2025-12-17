@@ -10,6 +10,20 @@
 /* "exception_info.h" must be the last include because of the IAR pragma */
 #include "exception_info.h"
 
+#if TFM_EXCEPTION_DUMP_LVL == LOG_LEVEL_ERROR
+#define DUMP_MSG_RAW    ERROR_RAW
+#elif TFM_EXCEPTION_DUMP_LVL == LOG_LEVEL_NOTICE
+#define DUMP_MSG_RAW    NOTICE_RAW
+#elif TFM_EXCEPTION_DUMP_LVL == LOG_LEVEL_WARN
+#define DUMP_MSG_RAW    WARN_RAW
+#elif TFM_EXCEPTION_DUMP_LVL == LOG_LEVEL_INFO
+#define DUMP_MSG_RAW    INFO_RAW
+#elif TFM_EXCEPTION_DUMP_LVL == LOG_LEVEL_VERBOSE
+#define DUMP_MSG_RAW    VERBOSE_RAW
+#else /* LOG_LEVEL_NONE or invalid value */
+#define DUMP_MSG_RAW
+#endif
+
 static struct exception_info_t exception_info;
 
 /**
@@ -85,80 +99,80 @@ uint32_t *get_exception_frame(uint32_t lr, uint32_t msp, uint32_t psp)
 static void dump_exception_info(bool stack_error,
                                 const struct exception_info_t *ctx)
 {
-    VERBOSE_RAW("Here is some context for the exception:\n");
-    VERBOSE_RAW("    EXC_RETURN (LR): 0x%08x\n", ctx->EXC_RETURN);
-    VERBOSE_RAW("    Exception came from");
+    DUMP_MSG_RAW("Here is some context for the exception:\n");
+    DUMP_MSG_RAW("    EXC_RETURN (LR): 0x%08x\n", ctx->EXC_RETURN);
+    DUMP_MSG_RAW("    Exception came from");
 #ifdef TRUSTZONE_PRESENT
     if (is_return_secure_stack(ctx->EXC_RETURN)) {
-        VERBOSE_RAW(" secure FW in");
+        DUMP_MSG_RAW(" secure FW in");
     } else {
-        VERBOSE_RAW(" non-secure FW in");
+        DUMP_MSG_RAW(" non-secure FW in");
     }
 #endif
 
     if (is_return_thread_mode(ctx->EXC_RETURN)) {
-        VERBOSE_RAW(" thread mode.\n");
+        DUMP_MSG_RAW(" thread mode.\n");
     } else {
-        VERBOSE_RAW(" handler mode.\n");
+        DUMP_MSG_RAW(" handler mode.\n");
     }
-    VERBOSE_RAW("    xPSR:    0x%08x\n", ctx->xPSR);
-    VERBOSE_RAW("    MSP:     0x%08x\n", ctx->MSP);
-    VERBOSE_RAW("    PSP:     0x%08x\n", ctx->PSP);
+    DUMP_MSG_RAW("    xPSR:    0x%08x\n", ctx->xPSR);
+    DUMP_MSG_RAW("    MSP:     0x%08x\n", ctx->MSP);
+    DUMP_MSG_RAW("    PSP:     0x%08x\n", ctx->PSP);
 #ifdef TRUSTZONE_PRESENT
-    VERBOSE_RAW("    MSP_NS:  0x%08x\n", __TZ_get_MSP_NS());
-    VERBOSE_RAW("    PSP_NS:  0x%08x\n", __TZ_get_PSP_NS());
+    DUMP_MSG_RAW("    MSP_NS:  0x%08x\n", __TZ_get_MSP_NS());
+    DUMP_MSG_RAW("    PSP_NS:  0x%08x\n", __TZ_get_PSP_NS());
 #endif
-    VERBOSE_RAW("    BASEPRI: 0x%08x\n", __get_BASEPRI());
+    DUMP_MSG_RAW("    BASEPRI: 0x%08x\n", __get_BASEPRI());
 
-    VERBOSE_RAW("    Exception frame at:   0x%08x\n", (uint32_t)ctx->EXC_FRAME);
+    DUMP_MSG_RAW("    Exception frame at:   0x%08x\n", (uint32_t)ctx->EXC_FRAME);
     if (stack_error) {
-        VERBOSE_RAW(
+        DUMP_MSG_RAW(
             "       (Note that the exception frame may be corrupted for this type of error.)\r\n");
     }
-    VERBOSE_RAW("        R0:   0x%08x\n", ctx->EXC_FRAME_COPY[0]);
-    VERBOSE_RAW("        R1:   0x%08x\n", ctx->EXC_FRAME_COPY[1]);
-    VERBOSE_RAW("        R2:   0x%08x\n", ctx->EXC_FRAME_COPY[2]);
-    VERBOSE_RAW("        R3:   0x%08x\n", ctx->EXC_FRAME_COPY[3]);
-    VERBOSE_RAW("        R12:  0x%08x\n", ctx->EXC_FRAME_COPY[4]);
-    VERBOSE_RAW("        LR:   0x%08x\n", ctx->EXC_FRAME_COPY[5]);
-    VERBOSE_RAW("        PC:   0x%08x\n", ctx->EXC_FRAME_COPY[6]);
-    VERBOSE_RAW("        xPSR: 0x%08x\n", ctx->EXC_FRAME_COPY[7]);
+    DUMP_MSG_RAW("        R0:   0x%08x\n", ctx->EXC_FRAME_COPY[0]);
+    DUMP_MSG_RAW("        R1:   0x%08x\n", ctx->EXC_FRAME_COPY[1]);
+    DUMP_MSG_RAW("        R2:   0x%08x\n", ctx->EXC_FRAME_COPY[2]);
+    DUMP_MSG_RAW("        R3:   0x%08x\n", ctx->EXC_FRAME_COPY[3]);
+    DUMP_MSG_RAW("        R12:  0x%08x\n", ctx->EXC_FRAME_COPY[4]);
+    DUMP_MSG_RAW("        LR:   0x%08x\n", ctx->EXC_FRAME_COPY[5]);
+    DUMP_MSG_RAW("        PC:   0x%08x\n", ctx->EXC_FRAME_COPY[6]);
+    DUMP_MSG_RAW("        xPSR: 0x%08x\n", ctx->EXC_FRAME_COPY[7]);
 
-    VERBOSE_RAW("    Callee saved register state:\n");
-    VERBOSE_RAW("        R4:   0x%08x\n", ctx->CALLEE_SAVED_COPY[0]);
-    VERBOSE_RAW("        R5:   0x%08x\n", ctx->CALLEE_SAVED_COPY[1]);
-    VERBOSE_RAW("        R6:   0x%08x\n", ctx->CALLEE_SAVED_COPY[2]);
-    VERBOSE_RAW("        R7:   0x%08x\n", ctx->CALLEE_SAVED_COPY[3]);
-    VERBOSE_RAW("        R8:   0x%08x\n", ctx->CALLEE_SAVED_COPY[4]);
-    VERBOSE_RAW("        R9:   0x%08x\n", ctx->CALLEE_SAVED_COPY[5]);
-    VERBOSE_RAW("        R10:  0x%08x\n", ctx->CALLEE_SAVED_COPY[6]);
-    VERBOSE_RAW("        R11:  0x%08x\n", ctx->CALLEE_SAVED_COPY[7]);
+    DUMP_MSG_RAW("    Callee saved register state:\n");
+    DUMP_MSG_RAW("        R4:   0x%08x\n", ctx->CALLEE_SAVED_COPY[0]);
+    DUMP_MSG_RAW("        R5:   0x%08x\n", ctx->CALLEE_SAVED_COPY[1]);
+    DUMP_MSG_RAW("        R6:   0x%08x\n", ctx->CALLEE_SAVED_COPY[2]);
+    DUMP_MSG_RAW("        R7:   0x%08x\n", ctx->CALLEE_SAVED_COPY[3]);
+    DUMP_MSG_RAW("        R8:   0x%08x\n", ctx->CALLEE_SAVED_COPY[4]);
+    DUMP_MSG_RAW("        R9:   0x%08x\n", ctx->CALLEE_SAVED_COPY[5]);
+    DUMP_MSG_RAW("        R10:  0x%08x\n", ctx->CALLEE_SAVED_COPY[6]);
+    DUMP_MSG_RAW("        R11:  0x%08x\n", ctx->CALLEE_SAVED_COPY[7]);
 
 #ifdef FAULT_STATUS_PRESENT
-    VERBOSE_RAW("    CFSR:  0x%08x\n", ctx->CFSR);
-    VERBOSE_RAW("    BFSR:  0x%02x",
+    DUMP_MSG_RAW("    CFSR:  0x%08x\n", ctx->CFSR);
+    DUMP_MSG_RAW("    BFSR:  0x%02x",
                     (ctx->CFSR & SCB_CFSR_BUSFAULTSR_Msk) >> SCB_CFSR_BUSFAULTSR_Pos);
     if (ctx->BFARVALID) {
-        VERBOSE_RAW("    BFAR: 0x%08x\n", ctx->BFAR);
+        DUMP_MSG_RAW("    BFAR: 0x%08x\n", ctx->BFAR);
     } else {
-        VERBOSE_RAW("    BFAR:  Not Valid\n");
+        DUMP_MSG_RAW("    BFAR:  Not Valid\n");
     }
-    VERBOSE_RAW("    MMFSR: 0x%02x",
+    DUMP_MSG_RAW("    MMFSR: 0x%02x",
                     (ctx->CFSR & SCB_CFSR_MEMFAULTSR_Msk) >> SCB_CFSR_MEMFAULTSR_Pos);
     if (ctx->MMARVALID) {
-        VERBOSE_RAW("    MMFAR: 0x%08x\n", ctx->MMFAR);
+        DUMP_MSG_RAW("    MMFAR: 0x%08x\n", ctx->MMFAR);
     } else {
-        VERBOSE_RAW("    MMFAR: Not Valid\n");
+        DUMP_MSG_RAW("    MMFAR: Not Valid\n");
     }
-    VERBOSE_RAW("    UFSR:  0x%08x\n",
+    DUMP_MSG_RAW("    UFSR:  0x%08x\n",
                     (ctx->CFSR & SCB_CFSR_USGFAULTSR_Msk) >> SCB_CFSR_USGFAULTSR_Pos);
-    VERBOSE_RAW("    HFSR:  0x%08x\n", ctx->HFSR);
+    DUMP_MSG_RAW("    HFSR:  0x%08x\n", ctx->HFSR);
 #ifdef TRUSTZONE_PRESENT
-    VERBOSE_RAW("    SFSR:  0x%08x\n", ctx->SFSR);
+    DUMP_MSG_RAW("    SFSR:  0x%08x\n", ctx->SFSR);
     if (ctx->SFARVALID) {
-        VERBOSE_RAW("    SFAR: 0x%08x\n", ctx->SFAR);
+        DUMP_MSG_RAW("    SFAR: 0x%08x\n", ctx->SFAR);
     } else {
-        VERBOSE_RAW("    SFAR: Not Valid\n");
+        DUMP_MSG_RAW("    SFAR: Not Valid\n");
     }
 #endif
 

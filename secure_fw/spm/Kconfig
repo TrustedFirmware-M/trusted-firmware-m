@@ -79,6 +79,41 @@ config TFM_EXCEPTION_INFO_DUMP
       On fatal errors in the secure firmware, capture info about the
       exception. Print the info if the "SPM Log Level" is sufficient.
 
+if TFM_EXCEPTION_INFO_DUMP
+choice EXCEPTION_DUMP_LVL
+    prompt "Exception information dump Log Level"
+    default LOG_LEVEL_VERBOSE
+
+    config LOG_LEVEL_VERBOSE
+        bool "Verbose"
+
+    config LOG_LEVEL_INFO
+        bool "Info"
+
+    config LOG_LEVEL_WARNING
+        bool "Warning"
+
+    config LOG_LEVEL_NOTICE
+        bool "Notice"
+
+    config LOG_LEVEL_ERROR
+        bool "Error"
+
+    config LOG_LEVEL_NONE
+        bool "None"
+endchoice
+
+config TFM_EXCEPTION_DUMP_LVL
+    int
+    default 50 if LOG_LEVEL_VERBOSE
+    default 40 if LOG_LEVEL_INFO
+    default 30 if LOG_LEVEL_WARN
+    default 20 if LOG_LEVEL_NOTICE
+    default 10 if LOG_LEVEL_ERROR
+    default 0 if LOG_LEVEL_NONE
+
+endif
+
 config CONFIG_TFM_HALT_ON_CORE_PANIC
     bool "Halt instead of rebooting"
     default n
