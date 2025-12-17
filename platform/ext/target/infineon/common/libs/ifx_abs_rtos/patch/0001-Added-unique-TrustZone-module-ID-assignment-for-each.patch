@@ -1,27 +1,29 @@
-commit 8ac8b8e76a3b9bf984e49fb054a5d044b7c80099
-Author: Bohdan Hunko <Bohdan.Hunko@infineon.com>
-Date:   Fri Aug 29 11:10:51 2025 +0300
+From 25b3a394c04cf6cfc6f98aae4e4d80b1be2d2502 Mon Sep 17 00:00:00 2001
+From: Bohdan Hunko <Bohdan.Hunko@infineon.com>
+Date: Fri, 29 Aug 2025 11:10:51 +0300
+Subject: [PATCH] Added unique TrustZone module ID assignment for each thread.
 
-    Added unique TrustZone module ID assignment for each thread.
+Updated thread creation logic to ensure each thread receives a distinct
+TrustZone module ID.
 
-    Updated thread creation logic to ensure each thread receives a distinct
-    TrustZone module ID.
+This is only done for CCMSIS RToS as other RTOS implementation handle ID
+internally, thus they don't require such logic.
 
-    This is only done for CCMSIS RToS as other RTOS implementation handle ID
-    internally, thus they don't require such logic.
+IMPROVEMENT: (TFM-4244) Remove this patch
 
-    IMPROVEMENT: (TFM-4244) Remove this patch
-
-    Signed-off-by: Bohdan Hunko <Bohdan.Hunko@infineon.com>
+Signed-off-by: Bohdan Hunko <Bohdan.Hunko@infineon.com>
+---
+ source/COMPONENT_RTX/cyabs_rtos_rtxv5.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
 diff --git a/source/COMPONENT_RTX/cyabs_rtos_rtxv5.c b/source/COMPONENT_RTX/cyabs_rtos_rtxv5.c
-index 2e611b0b..b29d221a 100755
+index 2e611b0bb2b0..09abcb5834b6 100755
 --- a/source/COMPONENT_RTX/cyabs_rtos_rtxv5.c
 +++ b/source/COMPONENT_RTX/cyabs_rtos_rtxv5.c
 @@ -138,6 +138,15 @@ cy_rslt_t cy_rtos_thread_create(cy_thread_t* thread, cy_thread_entry_fn_t entry_
      cy_rslt_t      status = CY_RSLT_SUCCESS;
      osThreadAttr_t attr;
-
+ 
 +    /* The tz_module_counter is used to assign a unique TrustZone module ID to
 +    * each thread. The first 100 negative IDs are unused to avoid possible
 +    * clashing with thread created by other components. Each time a thread is
@@ -41,5 +43,8 @@ index 2e611b0b..b29d221a 100755
 -        attr.tz_module  = 0;
 +        attr.tz_module  = tz_module_counter--;
          attr.reserved   = 0;
-
+ 
          // Allocate stack if NULL was passed
+-- 
+2.34.1
+
