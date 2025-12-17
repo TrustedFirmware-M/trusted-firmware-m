@@ -72,11 +72,6 @@ void tfm_exception_info_get_context(struct exception_info_t *ctx);
 void store_and_dump_context(uint32_t MSP_in, uint32_t PSP_in, uint32_t LR_in,
                             uint32_t *callee_saved);
 
-/* IAR Specific */
-#if defined(__ICCARM__)
-#pragma required = store_and_dump_context
-#endif
-
 #if defined(__ARM_ARCH_8M_BASE__) || defined(__ARCM_ARCH_V6_M__)
 #define EXCEPTION_INFO()                   \
     __ASM volatile(                        \
@@ -118,8 +113,19 @@ void store_and_dump_context(uint32_t MSP_in, uint32_t PSP_in, uint32_t LR_in,
     )
 #endif
 
+/* Declaration of required symbols for IAR inline assembler */
+#if defined(__ICCARM__)
+#define EXCEPTION_INFO_IAR_REQUIRED \
+_Pragma("required = store_and_dump_context")
+#else /*  __ICCARM__ */
+#define EXCEPTION_INFO_IAR_REQUIRED
+#endif /* __ICCARM__ */
+
 #else /* TFM_EXCEPTION_INFO_DUMP */
 #define EXCEPTION_INFO()
+
+/* Declaration of required symbols for IAR inline assembler */
+#define EXCEPTION_INFO_IAR_REQUIRED
 #endif /* TFM_EXCEPTION_INFO_DUMP */
 
 #endif /* __EXCEPTION_INFO_H__ */
