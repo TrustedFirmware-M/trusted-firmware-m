@@ -1,6 +1,7 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2023-2025 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -130,7 +131,7 @@ target_include_directories(tfm_config
 if(DEFINED IFX_PROJECT_CONFIG_PATH)
     target_compile_definitions(tfm_config
         INTERFACE
-            IFX_PROJECT_CONFIG_PATH="${IFX_PROJECT_CONFIG_PATH}"
+            $<BUILD_INTERFACE:IFX_PROJECT_CONFIG_PATH="${IFX_PROJECT_CONFIG_PATH}">
     )
 endif()
 

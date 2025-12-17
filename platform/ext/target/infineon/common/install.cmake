@@ -44,6 +44,16 @@ install(FILES       ${CMAKE_CURRENT_LIST_DIR}/nspe/CMakeLists.txt
                     ${CMAKE_CURRENT_LIST_DIR}/post_config.cmake
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/ifx)
 
+# Install config files and remap tfm_config definitions to point to them
+if(DEFINED IFX_PROJECT_CONFIG_PATH)
+        install(FILES ${IFX_PROJECT_CONFIG_PATH}
+                RENAME ifx_project_config.h
+                DESTINATION ${INSTALL_INTERFACE_INC_DIR})
+        target_compile_definitions(tfm_config
+                INTERFACE
+                $<INSTALL_INTERFACE:IFX_PROJECT_CONFIG_PATH="$<INSTALL_PREFIX>/${INSTALL_INTERFACE_INC_DIR}/ifx_project_config.h">)
+endif()
+
 configure_file(${IFX_COMMON_SOURCE_DIR}/nspe/spe_config.cmake.in
                ${CMAKE_BINARY_DIR}/generated/platform/cmake/ifx/spe_config.cmake @ONLY)
 install(FILES       ${CMAKE_BINARY_DIR}/generated/platform/cmake/ifx/spe_config.cmake
@@ -83,16 +93,20 @@ install(DIRECTORY   ${IFX_BOARD_PATH}/nspe
 
 if (TFM_PARTITION_CRYPTO)
     # Install Crypto configuration for MTB non-secure interface
-    install(FILES       ${TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH}
-            RENAME      tfm_mbedcrypto_config_client.h
-            DESTINATION ${INSTALL_INTERFACE_INC_DIR})
-    install(FILES       ${TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH}
-            RENAME      tfm_psa_crypto_config_client.h
-            DESTINATION ${INSTALL_INTERFACE_INC_DIR})
     if (MBEDTLS_PSA_CRYPTO_PLATFORM_FILE)
         install(FILES       ${MBEDTLS_PSA_CRYPTO_PLATFORM_FILE}
                 RENAME      tfm_mbedtls_psa_crypto_platform.h
                 DESTINATION ${INSTALL_INTERFACE_INC_DIR})
+    endif()
+
+    if(DEFINED IFX_MBEDTLS_CONFIG_PATH)
+        install(FILES ${IFX_MBEDTLS_CONFIG_PATH}
+                RENAME ifx_mbedtls_config.h
+                DESTINATION ${INSTALL_INTERFACE_INC_DIR}/mbedtls)
+        target_compile_definitions(tfm_config
+            INTERFACE
+                $<INSTALL_INTERFACE:IFX_MBEDTLS_CONFIG_PATH="$<INSTALL_PREFIX>/${INSTALL_INTERFACE_INC_DIR}/mbedtls/ifx_mbedtls_config.h">
+        )
     endif()
 endif()
 
