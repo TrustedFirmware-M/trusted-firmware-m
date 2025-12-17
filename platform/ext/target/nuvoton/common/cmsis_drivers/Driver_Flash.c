@@ -260,7 +260,7 @@ static int32_t ARM_Flash_ProgramData(uint32_t addr, const void *data, uint32_t c
                 // verify
                 if(M32(start_addr + i - 3) != u32Data)
                 {
-                    printf("flash write verify fail @ %08x W:%08x R:%08x\r\n", start_addr + i - 3, u32Data, M32(start_addr + i - 3));
+                    return ARM_DRIVER_ERROR;
                 }
 
                 j = 0;
