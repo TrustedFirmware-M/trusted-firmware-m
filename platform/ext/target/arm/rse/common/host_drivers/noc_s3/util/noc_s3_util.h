@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -13,21 +13,17 @@
 
 /* Pretty print log for NoC S3 */
 #ifdef NOC_S3_PRETTY_PRINT_LOG_ENABLED
-#include <stdio.h>
-#include <stdbool.h>
+#include "tfm_log.h"
 
-/* Using stderr (unbuffered) instead of stdout (buffered) */
-// TODO: Replace fprintf with common TF-M logging function
-#define NOC_S3_DRV_LOG(fmt, ...)  fprintf(stderr, fmt, ##__VA_ARGS__)
+#define NOC_S3_DRV_LOG(fmt, ...) INFO_RAW(fmt, ##__VA_ARGS__)
 
-#define NOC_S3_DRV_LOG_HEADING(fmt, ...)                                  \
-        do {                                                              \
-            NOC_S3_DRV_LOG("\r\n");                                       \
-            NOC_S3_DRV_LOG(fmt, ##__VA_ARGS__);                          \
-            NOC_S3_DRV_LOG("\r\n");                                       \
-            for (int l = 0; l < sprintf(NULL, fmt,  ##__VA_ARGS__); ++l)  \
-                NOC_S3_DRV_LOG("-");                                      \
-        } while(0);
+#define NOC_S3_DRV_LOG_HEADING(fmt, ...)    \
+    do {                                    \
+        NOC_S3_DRV_LOG("\r\n");             \
+        NOC_S3_DRV_LOG(fmt, ##__VA_ARGS__); \
+        NOC_S3_DRV_LOG("\r\n");             \
+        NOC_S3_DRV_LOG("------------");     \
+    } while (0);
 
 /* NoC S3 sorted region data structure */
 struct noc_s3_sorted_region_data {
