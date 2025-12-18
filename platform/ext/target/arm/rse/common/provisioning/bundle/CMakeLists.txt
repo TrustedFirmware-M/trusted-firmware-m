@@ -261,6 +261,8 @@ if (RSE_NON_ENDORSED_DM_PROVISIONING OR RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING
             ./../rse_provisioning_plain_data_handler.c
             ./../../rse_rotpk_revocation.c
             ./../../rse_asn1_encoding.c
+            ${CMAKE_SOURCE_DIR}/secure_fw/shared/crt_memset.c
+            ${CMAKE_SOURCE_DIR}/secure_fw/shared/crt_memcpy.c
         )
 
     create_provisioning_code_target(plain_data_handler
