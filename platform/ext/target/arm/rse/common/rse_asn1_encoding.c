@@ -10,8 +10,8 @@
 #include <assert.h>
 
 #include "rse_asn1_encoding.h"
-#include "bl1_crypto.h"
 #include "cc3xx_drv.h"
+#include "psa/crypto.h"
 
 /* ASN1 definitions */
 #define ASN1_INTEGER_POSITIVE           (0x00)
@@ -789,7 +789,6 @@ static void get_signature_ptrs(uint8_t *signature, uint8_t **r_part, uint8_t **s
 
 enum tfm_plat_err_t rse_asn1_iak_endorsement_cert_verify(struct rse_asn1_pk_s *signing_pk)
 {
-    int32_t bl1_err;
     uint32_t cert_hash[SHA_384_HASH_SIZE / sizeof(uint32_t)];
     size_t hash_size;
     cc3xx_err_t cc3xx_err;
@@ -797,12 +796,13 @@ enum tfm_plat_err_t rse_asn1_iak_endorsement_cert_verify(struct rse_asn1_pk_s *s
     uint8_t *r_part_ptr, *s_part_ptr;
     uint32_t sig_r[ECDSA_384_SIGNATURE_R_PART_SIZE / sizeof(uint32_t)];
     uint32_t sig_s[ECDSA_384_SIGNATURE_S_PART_SIZE / sizeof(uint32_t)];
+    psa_status_t status;
 
-    bl1_err = bl1_hash_compute(TFM_BL1_HASH_ALG_SHA384, (uint8_t *)&cert->tbs_certificate,
-                               sizeof(cert->tbs_certificate), (uint8_t *)cert_hash,
-                               sizeof(cert_hash), &hash_size);
-    if (bl1_err != 0) {
-        return (enum tfm_plat_err_t)bl1_err;
+    status = psa_hash_compute(PSA_ALG_SHA_384,
+                              (uint8_t *)&cert->tbs_certificate, sizeof(cert->tbs_certificate),
+                              (uint8_t *)cert_hash, sizeof(cert_hash), &hash_size);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
     }
 
     get_signature_ptrs(cert->signature.signature, &r_part_ptr, &s_part_ptr);
