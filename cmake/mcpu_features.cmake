@@ -5,45 +5,42 @@
 #
 #-------------------------------------------------------------------------------
 
-# Check if the MCPU supports security extension (CMSE)
-set(CMSE_SUPPORTED_MCUS "cortex-m23" "cortex-m33" "cortex-m35p" "cortex-m55" "cortex-m52" "cortex-m85")
-list(FIND CMSE_SUPPORTED_MCUS ${TFM_SYSTEM_PROCESSOR} ITEM_INDEX)
-if(NOT ITEM_INDEX EQUAL -1)
-    set(COMPILER_CMSE_FLAG -mcmse -mfix-cmse-cve-2021-35465)
-endif()
-
-# ===================== Set toolchain CPU and Arch =============================
 set(TFM_SYSTEM_PROCESSOR_FEATURED ${TFM_SYSTEM_PROCESSOR})
+set(CMAKE_SYSTEM_PROCESSOR ${TFM_SYSTEM_PROCESSOR})
 
-set(FEATURE_SUPPORTED_MCUS "cortex-m33" "cortex-m35p" "cortex-m55" "cortex-m52" "cortex-m85")
-list(FIND FEATURE_SUPPORTED_MCUS ${TFM_SYSTEM_PROCESSOR} ITEM_INDEX)
-if(NOT ITEM_INDEX EQUAL -1)
-    # Hardware DSP is currently not supported in TF-M
-    string(APPEND TFM_SYSTEM_PROCESSOR_FEATURED "+nodsp")
+string(FIND ${TFM_SYSTEM_ARCHITECTURE} armv8 _v8m_arch)
+if(NOT _v8m_arch EQUAL -1)
 
-    if(NOT CONFIG_TFM_ENABLE_FP)
-        string(APPEND TFM_SYSTEM_PROCESSOR_FEATURED "+nofp")
+    # Adjust features for armv8-m or later
+    set(COMPILER_CMSE_FLAG -mcmse -mfix-cmse-cve-2021-35465)
+
+    if(NOT TFM_SYSTEM_DSP AND NOT TFM_SYSTEM_PROCESSOR MATCHES cortex-m23)
+        string(APPEND TFM_SYSTEM_PROCESSOR_FEATURED "+nodsp")
     endif()
 
-    if(TFM_SYSTEM_ARCHITECTURE STREQUAL "armv8.1-m.main")
+    string(FIND ${TFM_SYSTEM_ARCHITECTURE} armv8.1-m _v81m_arch)
+    if(NOT _v81m_arch EQUAL -1)
+        # Adjust armv8.1-m features
         # For GNU Arm Embedded Toolchain doesn't emit __ARM_ARCH_8_1M_MAIN__, adding this macro manually.
         add_compile_definitions(__ARM_ARCH_8_1M_MAIN__=1)
 
-        if(NOT CONFIG_TFM_ENABLE_MVE)
+        if(CONFIG_TFM_ENABLE_MVE)
+            if(NOT CONFIG_TFM_ENABLE_MVE_FP)
+                string(APPEND TFM_SYSTEM_PROCESSOR_FEATURED "+nomve.fp") # disables MVE FP only, keeps MVE int
+            endif()
+        else()
             string(APPEND TFM_SYSTEM_PROCESSOR_FEATURED "+nomve")
         endif()
-
-        if(NOT CONFIG_TFM_ENABLE_MVE_FP)
-            string(APPEND TFM_SYSTEM_PROCESSOR_FEATURED "+nomve.fp")
+    else()
+        # Adjust armv8-m features
+        if(CONFIG_TFM_ENABLE_MVE OR CONFIG_TFM_ENABLE_MVE_FP)
+            message(FATAL_ERROR "${TFM_SYSTEM_PROCESSOR} does not support MVE/MVE-FP; disable CONFIG_TFM_ENABLE_MVE and CONFIG_TFM_ENABLE_MVE_FP")
         endif()
     endif()
-else()
-    set(NOFP_SUPPORTED_MCUS "cortex-m7" "cortex-m4")
-    list(FIND NOFP_SUPPORTED_MCUS ${TFM_SYSTEM_PROCESSOR} ITEM_INDEX)
-    if(NOT ITEM_INDEX EQUAL -1)
-        if(NOT CONFIG_TFM_ENABLE_FP)
-            string(APPEND TFM_SYSTEM_PROCESSOR_FEATURED "+nofp")
-        endif()
+
+    # .nofp shall be the last armlink acc
+    if(NOT CONFIG_TFM_ENABLE_FP AND NOT TFM_SYSTEM_PROCESSOR MATCHES cortex-m23)
+        string(APPEND TFM_SYSTEM_PROCESSOR_FEATURED "+nofp")
     endif()
 endif()
 add_compile_options(-mcpu=${TFM_SYSTEM_PROCESSOR_FEATURED})

@@ -69,11 +69,6 @@ bool stdio_is_initialized(void)
 
 /* Redirects printf to STDIO_DRIVER in case of ARMCLANG*/
 #if defined(__ARMCC_VERSION)
-/* Struct FILE is implemented in stdio.h. Used to redirect printf to
- * STDIO_DRIVER
- */
-FILE __stdout;
-FILE __stderr;
 /* __ARMCC_VERSION is only defined starting from Arm compiler version 6 */
 int fputc(int ch, FILE *f)
 {
@@ -87,8 +82,9 @@ int fputc(int ch, FILE *f)
 }
 
 /* Redirect sdtio for PicoLib in ATfE toolchain
-   as per https://github.com/picolibc/picolibc/blob/main/doc/os.md
-   'fputch()' named intentionally different from 'fputc()' from picolib */
+ *  as per https://github.com/picolibc/picolibc/blob/main/doc/os.md
+ *  'fputch()' named intentionally different from 'fputc()' from picolib
+ */
 #elif defined(__clang_major__)
 
 int fputch(char ch, struct __file *f)
