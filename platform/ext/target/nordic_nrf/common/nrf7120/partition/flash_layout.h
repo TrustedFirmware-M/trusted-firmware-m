@@ -42,21 +42,17 @@
 /* Use Flash memory to store Code data */
 #define FLASH_BASE_ADDRESS                  (0x0)
 
-/* nRF7120 has 4088 kB of non volatile memory (MRAM) but the last 116kB are reserved
+/* nRF7120 has 4084 kB of non volatile memory (MRAM) but the last 116kB are reserved
  * for FLPR MCU in Zephyr. For simplicity and for possible support for running FLPR along
  * with TF-M later FLPR non volatile memory is not used by TF-M. */
-#define FLASH_TOTAL_SIZE                    (0x3E1000)         /* 3972 kB since the last 116kB are reserved for FLPR */
+#define FLASH_TOTAL_SIZE                    (0x3E0000)         /* 3968 kB since the last 116kB are reserved for FLPR */
 #define TOTAL_ROM_SIZE                       FLASH_TOTAL_SIZE
 
-/* nRF7120 has 1024 kB of volatile memory (SRAM) but only 512kB are reserved for Arm Cortex-M33.
- * RAM_00: 512 Kb - Arm® Cortex®-M33 code and data
- * RAM_01: 256 Kb - ML accelerator
- * RAM_02: 128 Kb - Network Buffer WiFi/Radio system
- * RAM_03: 120 Kb - FLPR code, data and top 8Kb reserved
+/* nRF7120 has 1024 kB of volatile memory (SRAM) but only 768kB are reserved for Arm Cortex-M33.
  * For simplicity and for possible support for running FLPR along
  * with TF-M later FLPR volatile memory is not used by TF-M. */
 #define SRAM_BASE_ADDRESS                   (0x20000000)
-#define TOTAL_RAM_SIZE                      (0x00080000)       /* 512 kB, since other 512 kB are reserved for others */
+#define TOTAL_RAM_SIZE                      (0x000C0000)       /* 768 kB, since other 256 kB are reserved for FLPR */
 
 #define FLASH_S_PARTITION_SIZE                (0x80000)       /* S partition: 512 kB*/
 #define FLASH_NS_PARTITION_SIZE               (0xD3000)       /* NS partition: 844 kB*/
