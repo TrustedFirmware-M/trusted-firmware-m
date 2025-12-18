@@ -19,3 +19,4 @@ set(BL2_NS_IMAGE_START                  "0x30000"       CACHE STRING    "Base ad
 # Platform-specific configurations
 set(CONFIG_TFM_USE_TRUSTZONE            ON)
 set(TFM_MULTI_CORE_TOPOLOGY             OFF)
+set(CONFIG_TFM_INCLUDE_STDLIBC          ON               CACHE BOOL      "Include standard C libraries and startup code")
