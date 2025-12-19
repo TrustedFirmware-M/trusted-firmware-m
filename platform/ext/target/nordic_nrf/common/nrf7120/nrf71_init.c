@@ -6,7 +6,6 @@
  */
 #include <stdint.h>
 #include <nrfx.h>
-#include <nrf_erratas.h>
 
 #ifndef BIT_MASK
 /* Use Zephyr BIT_MASK for unasigned integers */
