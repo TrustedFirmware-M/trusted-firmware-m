@@ -25,6 +25,12 @@
 #include "fih.h"
 
 #include "mbedtls/hmac_drbg.h"
+#include "mbedtls/memory_buffer_alloc.h"
+
+#define BL1_MBEDTLS_MEM_BUF_LEN 0x2000
+
+/* Static buffer to be used by mbedtls for memory allocation */
+static uint8_t mbedtls_mem_buf[BL1_MBEDTLS_MEM_BUF_LEN];
 
 REGION_DECLARE(Image$$, ARM_LIB_STACK, $$ZI$$Base);
 
@@ -138,6 +144,14 @@ int32_t boot_platform_init(void)
     struct mps4_corstone3xx_sysctrl_t *sysctrl =
                             (struct mps4_corstone3xx_sysctrl_t *)MPS4_CORSTONE3XX_SYSCTRL_BASE_S;
     sysctrl->reset_mask |= SYSCTRL_RESET_MASK_CPU0RSTREQEN_MASK;
+
+
+    /*
+     * Initialise the mbedtls static memory allocator so that mbedtls allocates
+     * memory from the provided static buffer instead of from the heap.
+     */
+    mbedtls_memory_buffer_alloc_init(mbedtls_mem_buf, BL1_MBEDTLS_MEM_BUF_LEN);
+
 
     plat_err = tfm_plat_otp_init();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
