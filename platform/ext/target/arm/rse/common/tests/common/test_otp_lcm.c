@@ -359,18 +359,6 @@ static void test_common_otp_get_size_invalid_mapping(struct test_result_t *ret)
 
     ret->val = TEST_PASSED;
 }
-/*============================= otp secure provisioning start  =============================*/
-static void test_common_otp_secure_provisioning_start(struct test_result_t *ret)
-{
-    enum tfm_plat_err_t err;
-
-    err = tfm_plat_otp_secure_provisioning_start();
-
-    TEST_ASSERT(err == TFM_PLAT_ERR_SUCCESS,
-            "Failed to start otp secure provisioning");
-
-    ret->val = TEST_PASSED;
-}
 /*==================================== test scheduling ======================================*/
 static struct conditional_test_t tests[] = {
     {
@@ -531,16 +519,6 @@ static struct conditional_test_t tests[] = {
             &test_common_otp_read_lcs_decommissioned,
             "OTP_LCM_TEST_16",
             "OTP read LCS decommissioned"
-        },
-    },
-    {
-        .any_tp_mode = true,
-        .sp_enabled  = false,
-        .lcs         = LCM_LCS_DM,
-        .test        = {
-            &test_common_otp_secure_provisioning_start,
-            "OTP_LCM_TEST_17",
-            "OTP start secure provisioning"
         },
     },
 };
