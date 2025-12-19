@@ -354,6 +354,14 @@ target_sources(bl1_1_psa_crypto
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/constant_time.c>
         $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${MBEDCRYPTO_PATH}/library/psa_crypto_mac.c>
 )
+
+if (NOT ${CONFIG_TFM_INCLUDE_STDLIBC})
+    target_sources(bl1_1_psa_crypto
+        PRIVATE
+            $<$<BOOL:${TFM_BL1_SOFTWARE_CRYPTO}>:${CMAKE_CURRENT_LIST_DIR}/bl1/mbedcrypto_stubs.c>
+    )
+endif()
+
 #========================= Platform BL1_2 =====================================#
 
 target_add_scatter_file(bl1_2
