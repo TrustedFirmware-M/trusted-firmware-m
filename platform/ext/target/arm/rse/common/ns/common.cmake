@@ -10,7 +10,7 @@
 # The structure and sources list are fully platform specific.
 
 if (NOT TFM_LOAD_NS_IMAGE)
-    message(FATAL_ERR "NS image cannot be built with TFM_LOAD_NS_IMAGE=OFF")
+    message(FATAL_ERROR "NS image cannot be built with TFM_LOAD_NS_IMAGE=${TFM_LOAD_NS_IMAGE}")
 endif()
 
 add_library(platform_ns)

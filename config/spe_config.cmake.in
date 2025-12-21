@@ -50,6 +50,8 @@ set(MCUBOOT_IMAGE_VERSION_NS               @MCUBOOT_IMAGE_VERSION_NS@)
 set(MCUBOOT_KEY_NS                         @MCUBOOT_INSTALL_KEY_NS@)
 set(PLATFORM_DEFAULT_IMAGE_SIGNING         @PLATFORM_DEFAULT_IMAGE_SIGNING@)
 
+set(TFM_LOAD_NS_IMAGE                      @TFM_LOAD_NS_IMAGE@              CACHE BOOL   "Whether to load an NS image")
+
 # The common options describing a platform configuration
 
 set(TFM_PLATFORM                           @TFM_PLATFORM@                   CACHE STRING "Platform to build TF-M for. Must be either a relative path from [TF-M]/platform/ext/target, or an absolute path.")
