@@ -28,132 +28,103 @@
 
 static inline const char *dcsu_rx_cmd_name(enum dcsu_rx_command cmd)
 {
+#define X(cmd)                                                                 \
+  case DCSU_RX_COMMAND_##cmd:                                                  \
+    return #cmd
+
     switch (cmd) {
-    case DCSU_RX_COMMAND_NOP:
-        return "NOP";
-    case DCSU_RX_COMMAND_GENERATE_SOC_UNIQUE_ID:
-        return "GENERATE_SOC_UNIQUE_ID";
-    case DCSU_RX_COMMAND_WRITE_SOC_FAMILY_ID:
-        return "WRITE_SOC_FAMILY_ID";
-    case DCSU_RX_COMMAND_WRITE_SOC_IEEE_ECID:
-        return "WRITE_SOC_IEEE_ECID";
-    case DCSU_RX_COMMAND_COMPUTE_ZC_SOC_IDS:
-        return "COMPUTE_ZC_SOC_IDS";
-    case DCSU_RX_COMMAND_READ_SOC_FAMILY_ID:
-        return "READ_SOC_FAMILY_ID";
-    case DCSU_RX_COMMAND_READ_SOC_IEEE_ECID:
-        return "READ_SOC_IEEE_ECID";
-    case DCSU_RX_COMMAND_WRITE_SOC_CONFIG_DATA:
-        return "WRITE_SOC_CONFIG_DATA";
-    case DCSU_RX_COMMAND_COMPUTE_ZC_SOC_CFG:
-        return "COMPUTE_ZC_SOC_CFG";
-    case DCSU_RX_COMMAND_READ_SOC_CONFIG_DATA:
-        return "READ_SOC_CONFIG_DATA";
-    case DCSU_RX_COMMAND_IMPORT_DATA_NO_CHECKSUM:
-        return "IMPORT_DATA_NO_CHECKSUM";
-    case DCSU_RX_COMMAND_IMPORT_DATA_CHECKSUM:
-        return "IMPORT_DATA_CHECKSUM";
-    case DCSU_RX_COMMAND_COMPLETE_IMPORT_DATA:
-        return "COMPLETE_IMPORT_DATA";
-    case DCSU_RX_COMMAND_CANCEL_IMPORT_DATA_WITH_CHECKSUM:
-        return "CANCEL_IMPORT_DATA_WITH_CHECKSUM";
-    case DCSU_RX_COMMAND_READ_COD_DATA:
-        return "READ_COD_DATA";
-    case DCSU_RX_COMMAND_READ_EC_PARAMS:
-        return "READ_EC_PARAMS";
-    case DCSU_RX_COMMAND_SET_PS_FC:
-        return "SET_PS_FC";
-    case DCSU_RX_COMMAND_SET_FEATURE_CTRL:
-        return "SET_FEATURE_CTRL";
-    case DCSU_RX_COMMAND_SET_SE_DEV:
-        return "SET_SE_DEV";
+        X(NOP);
+        X(GENERATE_SOC_UNIQUE_ID);
+        X(WRITE_SOC_FAMILY_ID);
+        X(WRITE_SOC_IEEE_ECID);
+        X(COMPUTE_ZC_SOC_IDS);
+        X(READ_SOC_FAMILY_ID);
+        X(READ_SOC_IEEE_ECID);
+        X(WRITE_SOC_CONFIG_DATA);
+        X(COMPUTE_ZC_SOC_CFG);
+        X(READ_SOC_CONFIG_DATA);
+        X(IMPORT_DATA_NO_CHECKSUM);
+        X(IMPORT_DATA_CHECKSUM);
+        X(COMPLETE_IMPORT_DATA);
+        X(CANCEL_IMPORT_DATA_WITH_CHECKSUM);
+        X(READ_COD_DATA);
+        X(READ_EC_PARAMS);
+        X(SET_PS_FC);
+        X(SET_FEATURE_CTRL);
+        X(SET_SE_DEV);
     default:
         return "INVALID_COMMAND";
     }
+#undef X
 }
 
 static inline const char *dcsu_tx_cmd_name(enum dcsu_tx_command cmd)
 {
+#define X(cmd)                                                                 \
+  case DCSU_TX_COMMAND_##cmd:                                                  \
+    return #cmd
+
     switch (cmd) {
-    case DCSU_TX_COMMAND_NOP:
-        return "NOP";
-    case DCSU_TX_COMMAND_READY_FOR_IMPORT:
-        return "READY_FOR_IMPORT";
-    case DCSU_TX_COMMAND_REPORT_STATUS:
-        return "REPORT_STATUS";
-    case DCSU_TX_COMMAND_EXPORT_DATA_WITH_CHECKSUM:
-        return "EXPORT_DATA_CS";
-    case DCSU_TX_COMMAND_EXPORT_DATA_NO_CHECKSUM:
-        return "EXPORT_DATA_NCS";
-    case DCSU_TX_COMMAND_COMPLETE_EXPORT_DATA:
-        return "COMPLETE_EXPORT_DATA";
+        X(NOP);
+        X(READY_FOR_IMPORT);
+        X(REPORT_STATUS);
+        X(EXPORT_DATA_WITH_CHECKSUM);
+        X(EXPORT_DATA_NO_CHECKSUM);
+        X(COMPLETE_EXPORT_DATA);
     default:
         return "INVALID_COMMAND";
     }
+#undef X
 }
 
 static inline const char *dcsu_rx_rsp_name(enum dcsu_rx_msg_response_t rsp)
 {
+#define X(cmd)                                                                 \
+  case DCSU_RX_MSG_RESP_##cmd:                                                 \
+    return #cmd
+
     switch (rsp) {
-    case DCSU_RX_MSG_RESP_NO_RESP:
-        return "NO_RESP";
-    case DCSU_RX_MSG_RESP_SUCCESS:
-        return "SUCCESS";
-    case DCSU_RX_MSG_RESP_OTP_ALREADY_WRITTEN:
-        return "OTP_ALREADY_WRITTEN";
-    case DCSU_RX_MSG_RESP_OTP_WRITE_FAILED:
-        return "OTP_WRITE_FAILED";
-    case DCSU_RX_MSG_RESP_TOO_LARGE_OFFSET_PARAM:
-        return "TOO_LARGE_OFFSET_PARAM";
-    case DCSU_RX_MSG_RESP_TOO_LARGE_ACCESS_REQUEST:
-        return "TOO_LARGE_ACCESS_REQUEST";
-    case DCSU_RX_MSG_RESP_BAD_INTEGRITY_VALUE:
-        return "BAD_INTEGRITY_VALUE";
-    case DCSU_RX_MSG_RESP_SOC_FAM_ID_NOT_INIT:
-        return "SOC_FAM_ID_NOT_INIT";
-    case DCSU_RX_MSG_RESP_SOC_IEEE_ECID_NOT_INIT:
-        return "SOC_IEEE_ECID_NOT_INIT";
-    case DCSU_RX_MSG_RESP_GENERATE_SOC_UNIQUE_ID_NI:
-        return "GENERATE_SOC_UNIQUE_ID_NI";
-    case DCSU_RX_MSG_RESP_VERIFY_BLOB_FAILED:
-        return "VERIFY_BLOB_FAILED";
-    case DCSU_RX_MSG_RESP_UNEXPECTED_NUMBER_OF_WORDS:
-        return "UNEXPECTED_NUMBER_OF_WORDS";
-    case DCSU_RX_MSG_RESP_UNEXPECTED_IMPORT:
-        return "UNEXPECTED_IMPORT";
-    case DCSU_RX_MSG_RESP_RANGE_NOT_INITIALIZED:
-        return "RANGE_NOT_INITIALIZED";
-    case DCSU_RX_MSG_RESP_INVALID_CONTROL_PARAMETER:
-        return "INVALID_CONTROL_PARAMETER";
-    case DCSU_RX_MSG_RESP_INVALID_CONTROL_NUMBER:
-        return "INVALID_CONTROL_NUMBER";
-    case DCSU_RX_MSG_RESP_GENERIC_ERROR:
-        return "GENERIC_ERROR";
-    case DCSU_RX_MSG_RESP_INVALID_COMMAND:
-        return "INVALID_COMMAND";
+        X(NO_RESP);
+        X(SUCCESS);
+        X(OTP_ALREADY_WRITTEN);
+        X(OTP_WRITE_FAILED);
+        X(TOO_LARGE_OFFSET_PARAM);
+        X(TOO_LARGE_ACCESS_REQUEST);
+        X(BAD_INTEGRITY_VALUE);
+        X(SOC_FAM_ID_NOT_INIT);
+        X(SOC_IEEE_ECID_NOT_INIT);
+        X(GENERATE_SOC_UNIQUE_ID_NI);
+        X(VERIFY_BLOB_FAILED);
+        X(UNEXPECTED_NUMBER_OF_WORDS);
+        X(UNEXPECTED_IMPORT);
+        X(RANGE_NOT_INITIALIZED);
+        X(INVALID_CONTROL_PARAMETER);
+        X(INVALID_CONTROL_NUMBER);
+        X(GENERIC_ERROR);
+        X(INVALID_COMMAND);
     default:
         return "INVALID_STATUS";
     }
+#undef X
 }
 
 static inline const char *dcsu_tx_rsp_name(enum dcsu_tx_msg_response_t rsp)
 {
+#define X(cmd)                                                                 \
+  case DCSU_TX_MSG_RESP_##cmd:                                                 \
+    return #cmd
+
     switch (rsp) {
-    case DCSU_TX_MSG_RESP_NO_RESP:
-        return "NO_RESP";
-    case DCSU_TX_MSG_RESP_SUCCESS:
-        return "SUCCESS";
-    case DCSU_TX_MSG_RESP_TOO_LARGE_OFFSET_PARAM:
-        return "TOO_LARGE_OFFSET_PARAM";
-    case DCSU_TX_MSG_RESP_TOO_LARGE_ACCESS_REQUEST:
-        return "TOO_LARGE_ACCESS_REQUEST";
-    case DCSU_TX_MSG_RESP_BAD_INTEGRITY_VALUE:
-        return "BAD_INTEGRITY_VALUE";
-    case DCSU_TX_MSG_RESP_UNEXPECTED_IN_CURRENT_CONTEXT:
-        return "UNEXPECTED_IN_CURRENT_CONTEXT";
+        X(NO_RESP);
+        X(SUCCESS);
+        X(TOO_LARGE_OFFSET_PARAM);
+        X(TOO_LARGE_ACCESS_REQUEST);
+        X(BAD_INTEGRITY_VALUE);
+        X(UNEXPECTED_IN_CURRENT_CONTEXT);
     default:
         return "INVALID_STATUS";
     }
+#undef X
 }
 
 static enum dcsu_rx_command get_rx_command(struct dcsu_dev_t *dev)
