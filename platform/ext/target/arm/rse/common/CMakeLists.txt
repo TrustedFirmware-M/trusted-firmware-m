@@ -772,7 +772,6 @@ target_sources(tfm_s
 
 if (MCUBOOT_ENCRYPT_KW)
     add_custom_command(OUTPUT ${MCUBOOT_KEY_ENC}
-            DEPENDS ${CMAKE_BINARY_DIR}/bin/bl1_2_padded_hash.bin
 
             COMMAND ${Python3_EXECUTABLE}  ${CMAKE_CURRENT_SOURCE_DIR}/provisioning/bl2_key_derivation.py
                     --key_file "${CMAKE_SOURCE_DIR}/bl1/bl1_1/dummy_guk.bin"
@@ -783,7 +782,6 @@ if (MCUBOOT_ENCRYPT_KW)
     )
 
     add_custom_command(OUTPUT ${MCUBOOT_KEY_ENC_NS}
-            DEPENDS ${CMAKE_BINARY_DIR}/bin/bl1_2_padded_hash.bin
 
             COMMAND ${Python3_EXECUTABLE}  ${CMAKE_CURRENT_SOURCE_DIR}/provisioning/bl2_key_derivation.py
                     --key_file "${CMAKE_SOURCE_DIR}/bl1/bl1_1/dummy_guk.bin"
