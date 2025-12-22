@@ -31,7 +31,7 @@ tfm_invalid_config(MEASURED_BOOT_HASH_ALG STREQUAL SHA384 AND NOT MCUBOOT_SIGNAT
 
 # Provisioning features which require the provisioning comms to receive messages
 tfm_invalid_config((RSE_DM_CHAINED_PROVISIONING OR TFM_PARTITION_RUNTIME_PROVISIONING
-                    OR RSE_NON_ENDORSED_DM_PROVISIONING OR RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
+                    OR RSE_ENDORSEMENT_CERTIFICATE_PROVISIONING)
                     AND NOT RSE_ENABLE_DCSU_PROVISIONING_COMMS)
 
 # Provisioning features which require asymmetric signature verification
