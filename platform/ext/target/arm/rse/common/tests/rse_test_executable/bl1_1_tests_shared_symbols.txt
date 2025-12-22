@@ -96,3 +96,4 @@ rse_setup_runtime_secure_image_encryption_key
 rse_setup_runtime_non_secure_image_encryption_key
 rse_setup_cc3xx_pka_sram_encryption_key
 _fih_ret_mask
+default_plain_data_handler

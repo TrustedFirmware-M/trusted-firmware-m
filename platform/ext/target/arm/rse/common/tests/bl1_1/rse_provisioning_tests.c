@@ -17,6 +17,7 @@
 #include "rse_provisioning_message.h"
 #include "rse_provisioning_message_handler.h"
 #include "rse_provisioning_auth_message_handler.h"
+#include "rse_provisioning_plain_data_handler.h"
 #include "rse_provisioning_values.h"
 #include "rse_provisioning_rotpk.h"
 #include "rse_rotpk_policy.h"
@@ -1385,6 +1386,39 @@ void rse_bl1_provisioning_test_0415(struct test_result_t *ret)
     return;
 }
 
+#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
+static enum tfm_plat_err_t enable_non_endorsed_cm_policy(void)
+{
+    enum lcm_error_t lcm_err;
+    uint32_t offset =
+        sizeof(struct rse_otp_header_area_t) + offsetof(struct rse_otp_cm_area_t, cm_policies);
+    uint32_t cm_policies;
+
+    lcm_err = lcm_otp_read(&LCM_DEV_S, offset, sizeof(cm_policies), (uint8_t *)&cm_policies);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+    cm_policies |= 1 << CM_POLICIES_DM_PROVISIONING_NON_ENDORSED_FLOW;
+
+    lcm_err = lcm_otp_write(&LCM_DEV_S, offset, sizeof(cm_policies), (uint8_t *)&cm_policies);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return (enum tfm_plat_err_t)lcm_err;
+    }
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
+void rse_bl1_provisioning_test_0425(struct test_result_t *ret)
+{
+    /* Configure CM policies to allow non-endorsed DM provisioning */
+    TEST_SETUP(enable_non_endorsed_cm_policy());
+
+    ret->val = TEST_PASSED;
+    return;
+}
+#endif
+
 static void provisioning_test_public_key_in_blob(struct test_result_t *ret,
                                                  enum lcm_tp_mode_t tp_mode)
 {
@@ -1671,3 +1705,91 @@ void rse_bl1_provisioning_test_0611(struct test_result_t *ret)
                                           TFM_PLAT_ERR_SUCCESS, false);
 }
 #endif /* RSE_ROTPK_REVOCATION */
+
+#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
+static const uint8_t non_endorsed_dm_rotpk[RSE_OTP_DM_ROTPK_AMOUNT * RSE_OTP_DM_ROTPK_SIZE] = {
+    [0 ...(RSE_OTP_DM_ROTPK_AMOUNT * RSE_OTP_DM_ROTPK_SIZE) - 1] = 0x12,
+};
+
+static void provision_non_endorsed_plain_data(struct test_result_t *ret, uint32_t index,
+                                              uint32_t num_rotpks, uint32_t policies,
+                                              const uint8_t *rotpks, size_t rotpks_size,
+                                              enum tfm_plat_err_t expected_plat_err)
+{
+    static __ALIGNED(4)
+        uint8_t message_with_data[sizeof(((struct rse_provisioning_message_t *)0)->header) +
+                                  sizeof(struct rse_provisioning_message_plain_t) +
+                                  sizeof(struct rse_rotpk_revocation_dm_provisioning_values_t)];
+    struct default_plain_data_handler_ctx_s plain_data_handler_ctx;
+    struct provisioning_message_handler_config config;
+    struct rse_provisioning_message_t *message =
+        (struct rse_provisioning_message_t *)message_with_data;
+    struct rse_rotpk_revocation_dm_provisioning_values_t *dm_revocation_values =
+        (struct rse_rotpk_revocation_dm_provisioning_values_t *)message->plain.data;
+    size_t rotpk_values_size;
+
+    rotpk_values_size =
+        sizeof(*dm_revocation_values) - sizeof(dm_revocation_values->rotpk) + rotpks_size;
+    message->header.type = RSE_PROVISIONING_MESSAGE_TYPE_PLAIN_DATA;
+    message->header.data_length =
+        sizeof(struct rse_provisioning_message_plain_t) + rotpk_values_size;
+
+    message->plain.plain_metadata = RSE_PROVISIONING_PLAIN_DATA_TYPE_NON_ENDORSED_DM_ROTPKS;
+    dm_revocation_values->num_rotpks = num_rotpks;
+    dm_revocation_values->rotpk_revocation_dm_rotpk_policies = policies;
+    dm_revocation_values->index = index;
+    if (rotpks_size != 0) {
+        assert(rotpks_size <= sizeof(dm_revocation_values->rotpk));
+        memcpy(dm_revocation_values->rotpk, rotpks, rotpks_size);
+    }
+
+    plain_data_handler_ctx.rotpk_revocation_ctx.authentication =
+        ROTPK_REVOCATION_AUTHENTICATION_NONE;
+
+    config.plain_data_handler = default_plain_data_handler;
+
+    TEST_ASSERT(handle_provisioning_message(message,
+                                            sizeof(message->header) + message->header.data_length,
+                                            &config, &plain_data_handler_ctx) == expected_plat_err,
+                "Incorrect plat_err returned");
+
+    ret->val = TEST_PASSED;
+    return;
+}
+
+void rse_bl1_provisioning_test_0700(struct test_result_t *ret)
+{
+    provision_non_endorsed_plain_data(ret, 0, 0, 0, NULL, 0,
+                                      TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_ROTPK_SIZE);
+}
+
+void rse_bl1_provisioning_test_0701(struct test_result_t *ret)
+{
+    provision_non_endorsed_plain_data(ret, 2, RSE_OTP_DM_ROTPK_AMOUNT, 0, non_endorsed_dm_rotpk,
+                                      sizeof(non_endorsed_dm_rotpk),
+                                      TFM_PLAT_ERR_PROVISIONING_PLAIN_DATA_INVALID_ROTPK_IDX);
+}
+
+void rse_bl1_provisioning_test_0702(struct test_result_t *ret)
+{
+    /* DM ROTPK provisioned and should not be able to be revoked */
+    provision_non_endorsed_plain_data(ret, 0, RSE_OTP_DM_ROTPK_AMOUNT, 0, non_endorsed_dm_rotpk,
+                                      sizeof(non_endorsed_dm_rotpk),
+                                      TFM_PLAT_ERR_DM_ROTPK_UPDATE_REVOCATION_NOT_PERMITTED);
+}
+
+#ifdef RSE_ROTPK_REVOCATION
+void rse_bl1_provisioning_test_0703(struct test_result_t *ret)
+{
+    /* Revoke the current keys which should allow the non-endorsed provisioning to succeed */
+    initialise_provision_rotpk_revocation(ret, test_auth_plain, 0, 0, 0, NULL, 0,
+                                          &dm_ecdsa_key_in_blob_data, TFM_PLAT_ERR_SUCCESS, false);
+}
+
+void rse_bl1_provisioning_test_0704(struct test_result_t *ret)
+{
+    provision_non_endorsed_plain_data(ret, 0, RSE_OTP_DM_ROTPK_AMOUNT, 0, non_endorsed_dm_rotpk,
+                                      sizeof(non_endorsed_dm_rotpk), TFM_PLAT_ERR_SUCCESS);
+}
+#endif /* RSE_ROTPK_REVOCATION */
+#endif /* RSE_NON_ENDORSED_DM_PROVISIONING */

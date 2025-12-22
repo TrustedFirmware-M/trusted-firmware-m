@@ -34,6 +34,9 @@ void rse_bl1_provisioning_test_0403(struct test_result_t *ret);
 void rse_bl1_provisioning_test_0404(struct test_result_t *ret);
 void rse_bl1_provisioning_test_0405(struct test_result_t *ret);
 void rse_bl1_provisioning_test_0415(struct test_result_t *ret);
+#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
+void rse_bl1_provisioning_test_0425(struct test_result_t *ret);
+#endif
 void rse_bl1_provisioning_test_0406(struct test_result_t *ret);
 void rse_bl1_provisioning_test_0407(struct test_result_t *ret);
 void rse_bl1_provisioning_test_0408(struct test_result_t *ret);
@@ -55,6 +58,16 @@ void rse_bl1_provisioning_test_0606(struct test_result_t *ret);
 void rse_bl1_provisioning_test_0607(struct test_result_t *ret);
 void rse_bl1_provisioning_test_0610(struct test_result_t *ret);
 void rse_bl1_provisioning_test_0611(struct test_result_t *ret);
+#endif
+
+#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
+void rse_bl1_provisioning_test_0700(struct test_result_t *ret);
+void rse_bl1_provisioning_test_0701(struct test_result_t *ret);
+void rse_bl1_provisioning_test_0702(struct test_result_t *ret);
+#ifdef RSE_ROTPK_REVOCATION
+void rse_bl1_provisioning_test_0703(struct test_result_t *ret);
+void rse_bl1_provisioning_test_0704(struct test_result_t *ret);
+#endif
 #endif
 
 #ifdef __cplusplus

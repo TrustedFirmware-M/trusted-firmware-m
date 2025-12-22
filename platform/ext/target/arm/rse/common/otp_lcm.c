@@ -737,7 +737,7 @@ static enum tfm_plat_err_t write_zero_counts(enum lcm_lcs_t new_lcs)
             return err;
         }
 
-#if !defined(RSE_NON_ENDORSED_DM_PROVISIONING)
+#if !defined(RSE_NON_ENDORSED_DM_PROVISIONING) || defined(TEST_BL1_1)
         dm_rotpk_area_info.offset = dm_area_info.offset + dm_area_info.size
                 - sizeof(P_RSE_OTP_DM->rotpk_areas);
         dm_rotpk_area_info.size = sizeof(struct rse_otp_dm_rotpk_area_t);

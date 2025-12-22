@@ -189,6 +189,18 @@ static struct conditional_test_t provisioning_tests[] = {
             "Provisioning ECDSA key in blob DM test setup"
         },
     },
+#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_CM,
+        .sp_enabled = LCM_TRUE,
+        .test = {
+            &rse_bl1_provisioning_test_0425,
+            "RSE_BL1_1_PROVISIONING_TEST_0425",
+            "Non endorsed provisioning CM policy enable setup"
+        },
+    },
+#endif
     {
         .tp_mode = LCM_TP_MODE_PCI,
         .lcs = LCM_LCS_DM,
@@ -371,6 +383,60 @@ static struct conditional_test_t provisioning_tests[] = {
         },
     },
 #endif /* RSE_ROTPK_REVOCATION */
+#ifdef RSE_NON_ENDORSED_DM_PROVISIONING
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0700,
+            "RSE_BL1_1_PROVISIONING_TEST_0700",
+            "Provisioning non-endorsed DM ROTPK invalid size test"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0701,
+            "RSE_BL1_1_PROVISIONING_TEST_0701",
+            "Provisioning non-endorsed DM ROTPK invalid index test"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0702,
+            "RSE_BL1_1_PROVISIONING_TEST_0702",
+            "Provisioning non-endorsed DM ROTPK update not permitted test"
+        },
+    },
+#ifdef RSE_ROTPK_REVOCATION
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0703,
+            "RSE_BL1_1_PROVISIONING_TEST_0703",
+            "Authenticated plain data revoke to allow non-endorsed to succeed"
+        },
+    },
+    {
+        .any_tp_mode = true,
+        .lcs = LCM_LCS_SE,
+        .sp_enabled = LCM_FALSE,
+        .test = {
+            &rse_bl1_provisioning_test_0704,
+            "RSE_BL1_1_PROVISIONING_TEST_0704",
+            "Provisioning non-endorsed DM ROTPK success test"
+        },
+    },
+#endif /* RSE_ROTPK_REVOCATION */
+#endif /* RSE_NON_ENDORSED_DM_PROVISIONING */
 };
 
 static struct conditional_test_t state_transitions[] = {
