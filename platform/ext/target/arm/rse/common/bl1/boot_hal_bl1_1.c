@@ -109,15 +109,17 @@ static enum tfm_plat_err_t minimal_otp_init(void)
         return (enum tfm_plat_err_t)lcm_err;
     }
 
+#ifndef TEST_BL1_1
 #ifdef RSE_BOOT_IN_DM_LCS
     if (lcs == LCM_LCS_DM) {
         full_init = false;
     }
-#endif
+#endif /* RSE_BOOT_IN_DM_LCS */
 
     if (lcs == LCM_LCS_SE) {
         full_init = false;
     }
+#endif /* !TEST_BL1_1 */
 
     if (!full_init) {
         return tfm_plat_otp_mini_init();
