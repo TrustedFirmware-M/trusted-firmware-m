@@ -58,3 +58,8 @@ tfm_invalid_config(TEST_S_SCMI_COMMS AND (TEST_NS_SLIH_IRQ OR TEST_NS_FLIH_IRQ))
 # Test TP mode must be either TCI or PCI
 tfm_invalid_config(DEFINED RSE_TESTS_TP_MODE AND NOT (RSE_TESTS_TP_MODE STREQUAL "TCI"
                                                     OR RSE_TESTS_TP_MODE STREQUAL "PCI"))
+
+########################## RSE Image Verification ##############################
+
+tfm_invalid_config(TFM_PARTITION_RSE_IMAGE_VERIFICATION AND NOT PSA_FRAMEWORK_HAS_MM_IOVEC)
+
