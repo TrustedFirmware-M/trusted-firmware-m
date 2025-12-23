@@ -155,7 +155,7 @@ const struct irq_load_info_t *get_irq_info_for_signal(
     size_t i;
     const struct irq_load_info_t *irq_info;
 
-    if (!IS_ONLY_ONE_BIT_IN_UINT32(signal)) {
+    if ((!IS_ONLY_ONE_BIT_IN_UINT32(signal)) || (p_ldinf == NULL)) {
         return NULL;
     }
 
@@ -176,7 +176,7 @@ void spm_handle_interrupt(struct partition_t *p_pt,
     psa_status_t ret;
     FIH_RET_TYPE(bool) fih_bool;
 
-    if (!p_pt || !p_ildi) {
+    if ((p_pt == NULL) || (p_ildi == NULL) || (p_pt->p_ldinf == NULL)) {
         tfm_core_panic();
     }
 
