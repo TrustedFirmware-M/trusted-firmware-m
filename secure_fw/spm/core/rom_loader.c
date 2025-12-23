@@ -39,6 +39,10 @@ static struct partition_t *tfm_allocate_partition_assuredly(void)
     if (part_pool_sa > part_pool_ea) {
         tfm_core_panic();
     }
+    if ((struct partition_t *)part_pool_sa < p_part_allocated) {
+        /* overflow */
+        tfm_core_panic();
+    }
 
     return p_part_allocated;
 }
@@ -54,6 +58,10 @@ static struct service_t *tfm_allocate_service_assuredly(uint32_t service_count)
 
     serv_pool_sa += service_count * sizeof(struct service_t);
     if (serv_pool_sa > serv_pool_ea) {
+        tfm_core_panic();
+    }
+    if ((struct service_t *)serv_pool_sa < p_serv_allocated) {
+        /* overflow */
         tfm_core_panic();
     }
 
