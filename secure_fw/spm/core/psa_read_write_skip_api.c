@@ -56,6 +56,11 @@ size_t tfm_spm_partition_psa_read(psa_handle_t msg_handle, uint32_t invec_idx,
 #endif
 
     remaining = handle->msg.in_size[invec_idx] - handle->invec_accessed[invec_idx];
+    if (remaining > handle->msg.in_size[invec_idx]) {
+        /* underflow */
+        tfm_core_panic();
+    }
+
     /* There was no remaining data in this input vector */
     if (remaining == 0) {
         return 0;
@@ -125,6 +130,11 @@ size_t tfm_spm_partition_psa_skip(psa_handle_t msg_handle, uint32_t invec_idx,
 #endif
 
     remaining = handle->msg.in_size[invec_idx] - handle->invec_accessed[invec_idx];
+    if (remaining > handle->msg.in_size[invec_idx]) {
+        /* underflow */
+        tfm_core_panic();
+    }
+
     /* There was no remaining data in this input vector */
     if (remaining == 0) {
         return 0;
@@ -173,11 +183,21 @@ psa_status_t tfm_spm_partition_psa_write(psa_handle_t msg_handle, uint32_t outve
         tfm_core_panic();
     }
 
+    if (handle->outvec_written[outvec_idx] > handle->msg.out_size[outvec_idx]) {
+        /* Should never have written more than expected */
+        tfm_core_panic();
+    }
+
     /*
      * It is a fatal error if the call attempts to write data past the end of
      * the client output vector
      */
     if (num_bytes > (handle->msg.out_size[outvec_idx] - handle->outvec_written[outvec_idx])) {
+        tfm_core_panic();
+    }
+
+    if (num_bytes > handle->msg.out_size[outvec_idx]) {
+        /* underflow */
         tfm_core_panic();
     }
 
