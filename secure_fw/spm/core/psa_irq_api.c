@@ -119,10 +119,10 @@ psa_status_t tfm_spm_partition_psa_eoi(psa_signal_t irq_signal)
 
     CRITICAL_SECTION_ENTER(cs_assert);
     partition->signals_asserted &= ~irq_signal;
-    CRITICAL_SECTION_LEAVE(cs_assert);
 
     tfm_hal_irq_clear_pending(irq_info->source);
     tfm_hal_irq_enable(irq_info->source);
+    CRITICAL_SECTION_LEAVE(cs_assert);
 
     return PSA_SUCCESS;
 }
