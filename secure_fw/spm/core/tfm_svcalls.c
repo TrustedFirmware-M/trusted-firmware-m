@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include "aapcs_local.h"
 #include "config_spm.h"
+#include "current.h"
 #include "interrupt.h"
 #include "internal_status_code.h"
 #include "memory_symbols.h"

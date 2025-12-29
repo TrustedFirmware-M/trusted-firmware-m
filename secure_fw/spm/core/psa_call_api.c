@@ -10,6 +10,7 @@
 
 #include "config_impl.h"
 #include "critical_section.h"
+#include "current.h"
 #include "ffm/backend.h"
 #include "ffm/psa_api.h"
 #include "tfm_hal_isolation.h"

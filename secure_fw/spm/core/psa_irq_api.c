@@ -9,6 +9,7 @@
  */
 
 #include "critical_section.h"
+#include "current.h"
 #include "ffm/psa_api.h"
 #include "interrupt.h"
 #include "spm.h"

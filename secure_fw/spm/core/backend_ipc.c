@@ -15,6 +15,7 @@
 #include "config_spm.h"
 #include "critical_section.h"
 #include "config_spm.h"
+#include "current.h"
 #include "ffm/psa_api.h"
 #include "fih.h"
 #include "runtime_defs.h"

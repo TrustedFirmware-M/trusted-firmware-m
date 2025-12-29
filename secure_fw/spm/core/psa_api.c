@@ -14,6 +14,7 @@
 #include "config_impl.h"
 #include "config_spm.h"
 #include "critical_section.h"
+#include "current.h"
 #include "internal_status_code.h"
 #include "psa/lifecycle.h"
 #include "psa/service.h"

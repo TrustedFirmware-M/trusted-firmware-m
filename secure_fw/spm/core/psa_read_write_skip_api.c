@@ -7,6 +7,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
+#include "current.h"
 #include "ffm/psa_api.h"
 #include "spm.h"
 #include "utilities.h"
