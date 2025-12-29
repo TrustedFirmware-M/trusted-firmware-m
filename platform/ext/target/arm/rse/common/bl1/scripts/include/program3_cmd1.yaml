@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023, Arm Limited. All rights reserved.
+# Copyright (c) 2023-2025, Arm Limited. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -24,4 +24,4 @@ SRCTRIGINCFG:
   SRCTRIGINTYPE: 'hw'
   SRCTRIGINSEL: 'mission_provisioning'
 GPOVAL0: 0x00000004
-LINKADDR: "program3_cmd2_exec_addr"
+LINKADDR: "program6_cmd0_exec_addr"

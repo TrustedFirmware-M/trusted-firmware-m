@@ -99,7 +99,6 @@ program:
     commands:
       - !include include/program3_cmd0.yaml         # Program 3 - Command 0
       - !include include/program3_cmd1.yaml         # Program 3 - Command 1
-      - !include include/program3_cmd2.yaml         # Program 3 - Command 2
 
   - storage_location: "rom"
     execution_location: "rom"
