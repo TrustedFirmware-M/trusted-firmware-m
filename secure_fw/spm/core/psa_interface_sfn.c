@@ -39,11 +39,22 @@ uint32_t psa_version(uint32_t sid)
     return tfm_spm_client_psa_version(sid);
 }
 
+static inline psa_status_t reply_from_rot_service(
+    const struct partition_t *p_target,
+    psa_status_t status)
+{
+    if (p_target->p_reqs == NULL) {
+        tfm_core_panic();
+    }
+
+    return tfm_spm_partition_psa_reply(p_target->p_reqs->msg.handle, status);
+}
+
 psa_status_t tfm_psa_call_pack(psa_handle_t handle, uint32_t ctrl_param,
                                const psa_invec *in_vec, psa_outvec *out_vec)
 {
     const struct partition_t *p_client, *p_target;
-    psa_status_t stat;
+    psa_status_t status;
 
     if (__get_active_exc_num() != EXC_NUM_THREAD_MODE) {
         /* PSA APIs must be called from Thread mode */
@@ -52,19 +63,18 @@ psa_status_t tfm_psa_call_pack(psa_handle_t handle, uint32_t ctrl_param,
 
     p_client = GET_CURRENT_COMPONENT();
 
-    stat = tfm_spm_client_psa_call(handle, ctrl_param, in_vec, out_vec);
+    status = tfm_spm_client_psa_call(handle, ctrl_param, in_vec, out_vec);
 
     p_target = GET_CURRENT_COMPONENT();
     if (p_client != p_target) {
         /* Execution is returned from RoT Service */
-        stat = tfm_spm_partition_psa_reply(p_target->p_reqs->msg.handle,
-                                           stat);
+        status = reply_from_rot_service(p_target, status);
     } else {
         /* Execution is returned from SPM */
-        spm_handle_programmer_errors(stat);
+        spm_handle_programmer_errors(status);
     }
 
-    return (psa_status_t)stat;
+    return (psa_status_t)status;
 }
 
 size_t psa_read(psa_handle_t msg_handle, uint32_t invec_idx,
@@ -121,7 +131,7 @@ void psa_panic(void)
 psa_handle_t psa_connect(uint32_t sid, uint32_t version)
 {
     const struct partition_t *p_client, *p_target;
-    psa_status_t stat;
+    psa_status_t status;
 
     if (__get_active_exc_num() != EXC_NUM_THREAD_MODE) {
         /* PSA APIs must be called from Thread mode */
@@ -130,25 +140,24 @@ psa_handle_t psa_connect(uint32_t sid, uint32_t version)
 
     p_client = GET_CURRENT_COMPONENT();
 
-    stat = tfm_spm_client_psa_connect(sid, version);
+    status = tfm_spm_client_psa_connect(sid, version);
 
     p_target = GET_CURRENT_COMPONENT();
     if (p_client != p_target) {
         /* Execution is returned from RoT Service */
-        stat = tfm_spm_partition_psa_reply(p_target->p_reqs->msg.handle,
-                                           stat);
+        status = reply_from_rot_service(p_target, status);
     } else {
         /* Execution is returned from SPM */
-        spm_handle_programmer_errors(stat);
+        spm_handle_programmer_errors(status);
     }
 
-    return (psa_handle_t)stat;
+    return (psa_handle_t)status;
 }
 
 void psa_close(psa_handle_t handle)
 {
     const struct partition_t *p_client, *p_target;
-    psa_status_t stat;
+    psa_status_t status;
 
     if (__get_active_exc_num() != EXC_NUM_THREAD_MODE) {
         /* PSA APIs must be called from Thread mode */
@@ -157,16 +166,15 @@ void psa_close(psa_handle_t handle)
 
     p_client = GET_CURRENT_COMPONENT();
 
-    stat = tfm_spm_client_psa_close(handle);
+    status = tfm_spm_client_psa_close(handle);
 
     p_target = GET_CURRENT_COMPONENT();
     if (p_client != p_target) {
         /* Execution is returned from RoT Service */
-        stat = tfm_spm_partition_psa_reply(p_target->p_reqs->msg.handle,
-                                           PSA_SUCCESS);
+        status = reply_from_rot_service(p_target, PSA_SUCCESS);
     } else {
         /* Execution is returned from SPM */
-        spm_handle_programmer_errors(stat);
+        spm_handle_programmer_errors(status);
     }
 }
 
@@ -278,7 +286,7 @@ psa_status_t agent_psa_call(psa_handle_t handle,
                             const void *client_data_stateless)
 {
     const struct partition_t *p_client, *p_target;
-    psa_status_t stat;
+    psa_status_t status;
 
     if (__get_active_exc_num() != EXC_NUM_THREAD_MODE) {
         /* PSA APIs must be called from Thread mode */
@@ -287,19 +295,18 @@ psa_status_t agent_psa_call(psa_handle_t handle,
 
     p_client = GET_CURRENT_COMPONENT();
 
-    stat = tfm_spm_agent_psa_call(handle, control, params, client_data_stateless);
+    status = tfm_spm_agent_psa_call(handle, control, params, client_data_stateless);
 
     p_target = GET_CURRENT_COMPONENT();
     if (p_client != p_target) {
         /* Execution is returned from RoT Service */
-        stat = tfm_spm_partition_psa_reply(p_target->p_reqs->msg.handle,
-                                           stat);
+        status = reply_from_rot_service(p_target, status);
     } else {
         /* Execution is returned from SPM */
-        spm_handle_programmer_errors(stat);
+        spm_handle_programmer_errors(status);
     }
 
-    return (psa_status_t)stat;
+    return (psa_status_t)status;
 }
 
 #if CONFIG_TFM_CONNECTION_BASED_SERVICE_API == 1
@@ -307,7 +314,7 @@ psa_status_t agent_psa_connect(uint32_t sid, uint32_t version,
                                int32_t ns_client_id, const void *client_data)
 {
     const struct partition_t *p_client, *p_target;
-    psa_status_t stat;
+    psa_status_t status;
 
     if (__get_active_exc_num() != EXC_NUM_THREAD_MODE) {
         /* PSA APIs must be called from Thread mode */
@@ -316,25 +323,24 @@ psa_status_t agent_psa_connect(uint32_t sid, uint32_t version,
 
     p_client = GET_CURRENT_COMPONENT();
 
-    stat = tfm_spm_agent_psa_connect(sid, version, ns_client_id, client_data);
+    status = tfm_spm_agent_psa_connect(sid, version, ns_client_id, client_data);
 
     p_target = GET_CURRENT_COMPONENT();
     if (p_client != p_target) {
         /* Execution is returned from RoT Service */
-        stat = tfm_spm_partition_psa_reply(p_target->p_reqs->msg.handle,
-                                           stat);
+        status = reply_from_rot_service(p_target, status);
     } else {
         /* Execution is returned from SPM */
-        spm_handle_programmer_errors(stat);
+        spm_handle_programmer_errors(status);
     }
 
-    return stat;
+    return status;
 }
 
 psa_status_t agent_psa_close(psa_handle_t handle, int32_t ns_client_id)
 {
     const struct partition_t *p_client, *p_target;
-    psa_status_t stat;
+    psa_status_t status;
 
     if (__get_active_exc_num() != EXC_NUM_THREAD_MODE) {
         /* PSA APIs must be called from Thread mode */
@@ -343,19 +349,18 @@ psa_status_t agent_psa_close(psa_handle_t handle, int32_t ns_client_id)
 
     p_client = GET_CURRENT_COMPONENT();
 
-    stat = tfm_spm_agent_psa_close(handle, ns_client_id);
+    status = tfm_spm_agent_psa_close(handle, ns_client_id);
 
     p_target = GET_CURRENT_COMPONENT();
     if (p_client != p_target) {
         /* Execution is returned from RoT Service */
-        stat = tfm_spm_partition_psa_reply(p_target->p_reqs->msg.handle,
-                                           PSA_SUCCESS);
+        status = reply_from_rot_service(p_target, PSA_SUCCESS);
     } else {
         /* Execution is returned from SPM */
-        spm_handle_programmer_errors(stat);
+        spm_handle_programmer_errors(status);
     }
 
-    return stat;
+    return status;
 }
 #endif /* CONFIG_TFM_CONNECTION_BASED_SERVICE_API == 1 */
 #endif /* TFM_PARTITION_NS_AGENT_MAILBOX */
