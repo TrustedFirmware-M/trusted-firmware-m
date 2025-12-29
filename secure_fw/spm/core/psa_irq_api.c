@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2019-2023, Arm Limited. All rights reserved.
- * Copyright (c) 2022-2023 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
+#include "bitops.h"
 #include "critical_section.h"
 #include "current.h"
 #include "ffm/psa_api.h"
@@ -75,6 +73,11 @@ psa_status_t tfm_spm_partition_psa_reset_signal(psa_signal_t irq_signal)
         tfm_core_panic();
     }
 
+    if (!IS_ONLY_ONE_BIT_IN_UINT32(irq_signal)) {
+        /* Only one signal can be accepted */
+        tfm_core_panic();
+    }
+
     CRITICAL_SECTION_ENTER(cs_assert);
     partition->signals_asserted &= ~irq_signal;
     CRITICAL_SECTION_LEAVE(cs_assert);
@@ -106,6 +109,11 @@ psa_status_t tfm_spm_partition_psa_eoi(psa_signal_t irq_signal)
 
     /* It is a fatal error if passed signal is not currently asserted */
     if ((partition->signals_asserted & irq_signal) == 0) {
+        tfm_core_panic();
+    }
+
+    if (!IS_ONLY_ONE_BIT_IN_UINT32(irq_signal)) {
+        /* Only one signal can be accepted */
         tfm_core_panic();
     }
 
