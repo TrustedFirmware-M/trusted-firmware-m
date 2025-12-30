@@ -224,6 +224,9 @@ psa_status_t spm_get_idle_connection(struct connection_t **p_connection,
     if (IS_STATIC_HANDLE(handle)) {
         /* Allocate space from handle pool for static handle. */
         index = GET_INDEX_FROM_STATIC_HANDLE(handle);
+        if (index >= STATIC_HANDLE_NUM_LIMIT) {
+            return PSA_ERROR_PROGRAMMER_ERROR;
+        }
 
         service = stateless_services_ref_tbl[index];
         if (service == NULL) {
