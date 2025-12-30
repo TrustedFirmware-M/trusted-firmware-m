@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2019-2024, Arm Limited. All rights reserved.
- * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
+#include <assert.h>
 #include "ffm/backend.h"
 #include "ffm/psa_api.h"
 #include "load/service_defs.h"
@@ -90,6 +88,7 @@ psa_status_t spm_psa_connect_client_id_associated(struct connection_t **p_connec
     spm_init_idle_connection(connection, service, client_id);
     connection->msg.type = PSA_IPC_CONNECT;
 
+    assert(p_connection != NULL);
     *p_connection = connection;
 
     return PSA_SUCCESS;
