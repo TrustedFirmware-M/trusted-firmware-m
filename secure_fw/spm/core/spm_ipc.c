@@ -78,7 +78,7 @@ struct connection_t *spm_get_async_replied_handle(struct partition_t *partition)
 struct connection_t *spm_get_handle_by_signal(struct partition_t *p_ptn,
                                               psa_signal_t signal)
 {
-    struct connection_t *p_handle_iter;
+    struct connection_t *p_handle_iter = NULL;
     struct connection_t **pr_handle_iter, **last_found_handle_holder = NULL;
     struct critical_section_t cs_assert = CRITICAL_SECTION_STATIC_INIT;
     uint32_t nr_found_msgs = 0;
