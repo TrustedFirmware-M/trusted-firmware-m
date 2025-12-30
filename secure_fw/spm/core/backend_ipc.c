@@ -594,6 +594,7 @@ uint64_t ipc_schedule(uint32_t exc_return)
             TFM_FPU_CONTEXT_SIZE;
 
     pth_next = thrd_next();
+    assert(pth_next != NULL);
 
     AAPCS_DUAL_U32_SET(ctx_ctrls, (uint32_t)p_curr_ctx, (uint32_t)p_curr_ctx);
 
