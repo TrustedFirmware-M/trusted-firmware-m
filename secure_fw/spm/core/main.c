@@ -5,6 +5,7 @@
  *
  */
 
+#include <assert.h>
 #include "build_config_check.h"
 #include "internal_status_code.h"
 #include "fih.h"
@@ -99,6 +100,8 @@ static fih_ret tfm_core_init(void)
 
 uintptr_t get_spm_boundary(void)
 {
+    assert(g_spm_boundary != 0);
+
     return g_spm_boundary;
 }
 
