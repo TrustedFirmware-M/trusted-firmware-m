@@ -140,6 +140,7 @@ int32_t boot_platform_init(void)
 #endif /* RSE_ENABLE_BRINGUP_HELPERS */
     enum lcm_error_t lcm_err;
     enum lcm_lcs_t lcs;
+    enum lcm_bool_t sp_enable;
     enum rse_sam_init_setup_t sam_setup_mode;
     psa_status_t status;
 
@@ -219,15 +220,24 @@ int32_t boot_platform_init(void)
         return lcm_err;
     }
 
+    lcm_err = lcm_get_sp_enabled(&LCM_DEV_S, &sp_enable);
+    if (lcm_err != LCM_ERROR_NONE) {
+        return lcm_err;
+    }
+
     /* In SE state, skip SAM response configuration since the ADA DMA
      * provisions SAM responses during secure provisioning.
+     *
+     * Also skip SAM response configuration during secure provisioning,
+     * SAM registers are not reset upon warm reset and DMA ACK for
+     * trigger 4 is not pending.
      *
      * A full setup also issues a manual DMA ACK for trigger 4, which is
      * only needed outside SE states (e.g., during CM or DM). In SE,
      * the ADA DMA already handles SAM provisioning and ACK signaling.
      */
-    sam_setup_mode = (lcs == LCM_LCS_SE) ? RSE_SAM_INIT_SETUP_HANDLERS_ONLY
-                                         : RSE_SAM_INIT_SETUP_FULL;
+    sam_setup_mode = ((lcs == LCM_LCS_SE) || (sp_enable == LCM_TRUE)) ?
+                            RSE_SAM_INIT_SETUP_HANDLERS_ONLY : RSE_SAM_INIT_SETUP_FULL;
     err = rse_sam_init(sam_setup_mode);
     if (err != 0) {
         return err;
