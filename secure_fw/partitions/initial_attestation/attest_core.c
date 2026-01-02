@@ -424,7 +424,7 @@ attest_add_hash_algo_claim(struct attest_token_encode_ctx *token_ctx)
         return PSA_ATTEST_ERR_GENERAL;
     }
 
-    hash_algo.ptr = &buf;
+    hash_algo.ptr = buf;
     hash_algo.len = size;
     attest_token_encode_add_tstr(token_ctx,
                                  IAT_PLATFORM_HASH_ALGO_ID,
