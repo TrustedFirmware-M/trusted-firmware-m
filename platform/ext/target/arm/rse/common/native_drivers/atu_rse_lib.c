@@ -13,7 +13,11 @@
 #include "atu_rse_drv.h"
 #include "atu_rse_lib.h"
 
-#define ATU_STATIC_CFG_ENABLED ((defined ATU_STATIC_SLOT_COUNT) && (ATU_STATIC_SLOT_COUNT > 0))
+#if defined(ATU_STATIC_SLOT_COUNT) && (ATU_STATIC_SLOT_COUNT > 0)
+#define ATU_STATIC_CFG_ENABLED    1
+#else
+#define ATU_STATIC_CFG_ENABLED    0
+#endif
 
 #if ATU_DYNAMIC_CFG_ENABLED
 

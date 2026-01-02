@@ -31,7 +31,11 @@ enum atu_log_type_t {
 #define ATU_DOMAIN_ROOT   (1u << 2)
 #define ATU_DOMAIN_REALM  (1u << 3)
 
-#define ATU_DYNAMIC_CFG_ENABLED ((defined ATU_DYN_SLOT_COUNT) && (ATU_DYN_SLOT_COUNT > 0))
+#if defined(ATU_DYN_SLOT_COUNT) && (ATU_DYN_SLOT_COUNT > 0)
+#define ATU_DYNAMIC_CFG_ENABLED    1
+#else
+#define ATU_DYNAMIC_CFG_ENABLED    0
+#endif
 
 #if ATU_DYNAMIC_CFG_ENABLED
 
