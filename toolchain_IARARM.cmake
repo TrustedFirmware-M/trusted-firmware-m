@@ -64,7 +64,7 @@ add_compile_options(
     $<$<COMPILE_LANGUAGE:C,CXX>:-D_NO_DEFINITIONS_IN_HEADER_FILES>
     $<$<COMPILE_LANGUAGE:C,CXX>:--diag_suppress=Pe546,Pe940,Pa082,Pa084>
     $<$<COMPILE_LANGUAGE:C,CXX>:--no_path_in_file_macros>
-    $<$<AND:$<COMPILE_LANGUAGE:C,CXX,ASM>,$<BOOL:${TFM_DEBUG_SYMBOLS}>,$<CONFIG:Release,MinSizeRel>>:-r>
+    $<$<AND:$<COMPILE_LANGUAGE:C,CXX,ASM>,$<CONFIG:Release,MinSizeRel>>:-r>
     $<$<AND:$<COMPILE_LANGUAGE:C,CXX>,$<BOOL:${CONFIG_TFM_WARNINGS_ARE_ERRORS}>>:--warnings_are_errors>
 )
 

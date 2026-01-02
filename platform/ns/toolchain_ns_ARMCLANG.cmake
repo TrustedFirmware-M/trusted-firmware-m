@@ -225,8 +225,7 @@ add_compile_options(
     $<$<COMPILE_LANGUAGE:C>:-std=c11>
     $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>
     $<$<COMPILE_LANGUAGE:ASM>:-masm=gnu>
-    $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${TFM_DEBUG_SYMBOLS}>>:-g>
-    $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<BOOL:${TFM_DEBUG_SYMBOLS}>>:-g>
+    $<$<COMPILE_LANGUAGE:C,CXX>:-g>
     $<$<AND:$<COMPILE_LANGUAGE:C,CXX>,$<BOOL:${CONFIG_TFM_WARNINGS_ARE_ERRORS}>>:-Werror>
 )
 

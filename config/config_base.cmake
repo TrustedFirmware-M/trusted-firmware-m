@@ -27,7 +27,6 @@ set(INSTALL_CMAKE_DIR                   ${CMAKE_INSTALL_PREFIX}/cmake)
 set(INSTALL_CONFIG_DIR                  ${CMAKE_INSTALL_PREFIX}/config)
 set(INSTALL_PLATFORM_NS_DIR             ${CMAKE_INSTALL_PREFIX}/platform)
 
-set(TFM_DEBUG_SYMBOLS                   ON          CACHE BOOL      "Add debug symbols. Note that setting CMAKE_BUILD_TYPE to Debug or RelWithDebInfo will also add debug symbols.")
 set(TFM_DEBUG_OPTIMISATION              OFF         CACHE BOOL      "Add basic -Og optimisation when CMAKE_BUILD_TYPE is Debug. Note that non Debug builds specify their own optimisation")
 set(TFM_CODE_COVERAGE                   OFF         CACHE BOOL      "Whether to build the binary for lcov tools")
 
