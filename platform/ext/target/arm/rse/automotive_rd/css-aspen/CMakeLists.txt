@@ -60,7 +60,7 @@ target_sources(platform_bl2
         device/host_device_definition.c
         device/rse_expansion_device_definition.c
         device/tfm_plat_boot_measurement.c
-        $<$<BOOL:${PLATFORM_HOST_HAS_SI_CL0}>:${CMAKE_CURRENT_SOURCE_DIR}/host_drivers/ppu_drv.c>
+        $<$<BOOL:${PLATFORM_HOST_HAS_SI_CL}>:${CMAKE_CURRENT_SOURCE_DIR}/host_drivers/ppu_drv.c>
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/cfi/cfi_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/strata/spi_strataflashj3_flash_lib.c
         ${PLATFORM_DIR}/ext/target/arm/rse/common/fip_parser/fip_parser.c
@@ -83,7 +83,7 @@ target_include_directories(platform_bl2
 
 target_compile_definitions(platform_bl2
     PRIVATE
-        $<$<BOOL:${PLATFORM_HOST_HAS_SI_CL0}>:PLATFORM_HOST_HAS_SI_CL0>
+        $<$<BOOL:${PLATFORM_HOST_HAS_SI_CL}>:PLATFORM_HOST_HAS_SI_CL>
         $<$<BOOL:${PLATFORM_RSE_HAS_ATU_OWNERSHIP}>:PLATFORM_RSE_HAS_ATU_OWNERSHIP>
 )
 

@@ -32,6 +32,11 @@
 /* SI CL0 Cluster Utility Bus end address */
 #define HOST_SI_CL0_CL_UTIL_LIMIT                  0x40000287FFFFFULL
 
+/* SI CL1 Cluster Utility Bus base address */
+#define HOST_SI_CL1_CL_UTIL_BASE                   0x4000028800000ULL
+/* SI CL1 Cluster Utility Bus end address */
+#define HOST_SI_CL1_CL_UTIL_LIMIT                  0x4000028FFFFFFULL
+
 /* SI CL0 SRAM base address */
 #define HOST_SI_CL0_SRAM_PHYS_BASE                 0x4000120000000ULL
 /* SI CL0 SRAM end address */
