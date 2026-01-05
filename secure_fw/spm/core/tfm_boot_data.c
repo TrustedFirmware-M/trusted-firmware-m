@@ -5,6 +5,7 @@
  *
  */
 
+#include <assert.h>
 #include <stdint.h>
 #include <string.h>
 #include "current.h"
@@ -125,6 +126,12 @@ void tfm_core_validate_boot_data(void)
 
 #if defined(NS_DATA_START) && defined(NS_DATA_LIMIT)
     const uintptr_t data_limit = data_base + tfm_plat_get_shared_measurement_data_size() - 1;
+
+    if (data_limit <= data_base) {
+        assert(false);
+        /* Not setting BOOT_DATA_VALID */
+        return;
+    }
 
     const bool overlapping_with_ns =
         ((data_base >= NS_DATA_START) && (data_base <= NS_DATA_LIMIT)) ||
