@@ -41,6 +41,9 @@ struct thread_t *thrd_next(void)
     struct critical_section_t cs_signal = CRITICAL_SECTION_STATIC_INIT;
 
     CRITICAL_SECTION_ENTER(cs_signal);
+
+    assert(query_state_cb != NULL);
+
     /*
      * First runnable thread has highest priority since threads are
      * sorted by priority.
