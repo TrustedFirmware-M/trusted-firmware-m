@@ -84,6 +84,9 @@ install(DIRECTORY   ${IFX_COMMON_SOURCE_DIR}/board/nspe
 install(FILES       ${IFX_CONFIG_BSP_PATH}/config_bsp.h
                     ${IFX_CONFIG_BSP_PATH}/config.cmake
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/board)
+target_compile_definitions(tfm_config
+    INTERFACE
+        $<INSTALL_INTERFACE:IFX_BSP_CONFIG_HEADER_FILE="$<INSTALL_PREFIX>/${INSTALL_PLATFORM_NS_DIR}/board/config_bsp.h">)
 
 install(DIRECTORY   ${IFX_BOARD_PATH}/nspe
                     ${IFX_BOARD_PATH}/shared

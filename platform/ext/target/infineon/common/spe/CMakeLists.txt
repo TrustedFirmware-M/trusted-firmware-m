@@ -108,6 +108,7 @@ endif()
 target_compile_definitions(tfm_config
     INTERFACE
         ${IFX_BOARD_NAME}
+        $<BUILD_INTERFACE:IFX_BSP_CONFIG_HEADER_FILE="${IFX_CONFIG_BSP_PATH}/config_bsp.h">
         TEST_NS_IFX_CODE_COVERAGE=$<BOOL:${TEST_NS_IFX_CODE_COVERAGE}>
         $<$<BOOL:${IFX_PRINT_CORE_PREFIX}>:IFX_PRINT_CORE_PREFIX=1>
         $<$<BOOL:${IFX_MTB_SRF}>:IFX_MTB_SRF>

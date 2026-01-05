@@ -43,11 +43,6 @@ configure_file(${IFX_FAMILY_SOURCE_DIR}/nspe/config.cmake.in
 install(FILES       ${CMAKE_BINARY_DIR}/generated/platform/cmake/config.cmake
         DESTINATION ${INSTALL_PLATFORM_NS_DIR})
 
-# config_bsp.h is already installed in the common install.cmake
-target_compile_definitions(tfm_config
-    INTERFACE
-        $<INSTALL_INTERFACE:IFX_BSP_CONFIG_HEADER_FILE="$<INSTALL_PREFIX>/${INSTALL_PLATFORM_NS_DIR}/board/config_bsp.h">)
-
 install(DIRECTORY   ${IFX_FAMILY_SOURCE_DIR}/shared
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/pse84)
 
