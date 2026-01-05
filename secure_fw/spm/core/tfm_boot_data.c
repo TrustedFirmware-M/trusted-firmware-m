@@ -217,6 +217,11 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
                          SHARED_DATA_ENTRY_HEADER_SIZE);
 
         next_tlv_offset = SHARED_DATA_ENTRY_HEADER_SIZE + tlv_entry.tlv_len;
+        if (next_tlv_offset < SHARED_DATA_ENTRY_HEADER_SIZE) {
+            /* overflow */
+            args[0] = (uint32_t)PSA_ERROR_INVALID_ARGUMENT;
+            return;
+        }
 
         if (GET_MAJOR(tlv_entry.tlv_type) == tlv_major) {
             /* Check buffer overflow */
