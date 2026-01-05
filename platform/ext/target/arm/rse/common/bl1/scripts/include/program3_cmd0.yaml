@@ -1,10 +1,9 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
-
 # This command sets GPO value to 0x3. This is done to show that this channel
 # started executing (before the next command which waits for a trigger).
 

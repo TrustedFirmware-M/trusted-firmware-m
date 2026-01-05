@@ -1,10 +1,9 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
-
 # Disable the wait for trigger on channel 1, since otherwise later programs in
 # channel 1 will inherit the trigger wait.
 

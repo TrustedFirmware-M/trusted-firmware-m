@@ -1,10 +1,9 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
 #-------------------------------------------------------------------------------
-
 # This command in run after trigger 1 is fired. This command stops channel 1
 # from executing by writing Channel1 CH_CMD register. Trigger 1 is fired if the
 # Lifecycle is SE, CM PCI/TCI or DM
