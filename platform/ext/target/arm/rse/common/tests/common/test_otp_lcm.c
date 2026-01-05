@@ -415,7 +415,7 @@ static struct conditional_test_t tests[] = {
     },
     {
         .any_tp_mode  = true,
-        .any_sp_state = true,
+        .sp_enabled = LCM_TRUE,
         .lcs          = LCM_LCS_CM,
         .test         = {
             &test_common_otp_write,
