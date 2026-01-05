@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2019-2023, Arm Limited. All rights reserved.
- * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
+#include <assert.h>
 #include "ffm/psa_api.h"
 #include "load/service_defs.h"
 #include "spm.h"
@@ -38,6 +36,8 @@ uint32_t tfm_spm_client_psa_version(uint32_t sid)
     if (tfm_spm_check_authorization(sid, service, ns_caller) != PSA_SUCCESS) {
         return PSA_VERSION_NONE;
     }
+
+    assert(service->p_ldinf != NULL);
 
     return service->p_ldinf->version;
 }
