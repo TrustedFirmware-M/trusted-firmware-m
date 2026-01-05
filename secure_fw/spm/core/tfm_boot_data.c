@@ -123,9 +123,15 @@ void tfm_core_validate_boot_data(void)
 #ifdef BOOT_DATA_AVAILABLE
     struct tfm_boot_data *boot_data;
     const uintptr_t data_base = tfm_plat_get_shared_measurement_data_base();
+    const size_t data_size = tfm_plat_get_shared_measurement_data_size();
+
+    if (data_size < SHARED_DATA_HEADER_SIZE) {
+        /* Data does not contain valid header */
+        return;
+    }
 
 #if defined(NS_DATA_START) && defined(NS_DATA_LIMIT)
-    const uintptr_t data_limit = data_base + tfm_plat_get_shared_measurement_data_size() - 1;
+    const uintptr_t data_limit = data_base + data_size - 1;
 
     /* Test for ordering and overlapping */
     if ((data_limit <= data_base) ||
