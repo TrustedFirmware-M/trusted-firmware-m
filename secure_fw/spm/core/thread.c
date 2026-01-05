@@ -122,6 +122,8 @@ uint32_t thrd_start_scheduler(struct thread_t **ppth)
 {
     struct thread_t *pth = thrd_next();
 
+    assert(pth != NULL);
+
     arch_attempt_schedule();
 
     if (ppth) {
