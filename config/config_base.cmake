@@ -188,6 +188,7 @@ set(TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH                     "${CMAKE_SOURCE_DIR}/l
 set(TFM_MBEDCRYPTO_PSA_CRYPTO_CONFIG_PATH                 "${CMAKE_SOURCE_DIR}/lib/ext/mbedcrypto/mbedcrypto_config/crypto_config_default.h" CACHE PATH "Config to use PSA Crypto setting for Mbed Crypto.")
 set(TFM_MBEDCRYPTO_PLATFORM_EXTRA_CONFIG_PATH             ""    CACHE PATH      "Config to append to standard Mbed Crypto config, used by platforms to configure feature support.")
 set(TFM_MBEDCRYPTO_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH  ""    CACHE PATH      "Config to append to standard PSA Crypto setting for Mbed Crypto, used by platforms to configure cryptographic feature support.")
+set(MBEDTLS_PSA_CRYPTO_PLATFORM_FILE                      ""    CACHE PATH      "Platform specific MbedTLS PSA Crypto definitions file.")
 
 ########################## TF-M performance ####################################
 

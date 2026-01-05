@@ -92,13 +92,6 @@ install(DIRECTORY   ${IFX_BOARD_PATH}/nspe
 ################################## Partitions ##################################
 
 if (TFM_PARTITION_CRYPTO)
-    # Install Crypto configuration for MTB non-secure interface
-    if (MBEDTLS_PSA_CRYPTO_PLATFORM_FILE)
-        install(FILES       ${MBEDTLS_PSA_CRYPTO_PLATFORM_FILE}
-                RENAME      tfm_mbedtls_psa_crypto_platform.h
-                DESTINATION ${INSTALL_INTERFACE_INC_DIR})
-    endif()
-
     if(DEFINED IFX_MBEDTLS_CONFIG_PATH)
         install(FILES ${IFX_MBEDTLS_CONFIG_PATH}
                 RENAME ifx_mbedtls_config.h

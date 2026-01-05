@@ -333,10 +333,18 @@ install(FILES       ${TFM_MBEDCRYPTO_CONFIG_CLIENT_PATH}
         RENAME      mbedcrypto_config_client.h
         DESTINATION ${INSTALL_INTERFACE_INC_DIR}/mbedtls)
 
+# Install Crypto configuration for non-secure interface
+if (MBEDTLS_PSA_CRYPTO_PLATFORM_FILE)
+    install(FILES       ${MBEDTLS_PSA_CRYPTO_PLATFORM_FILE}
+            RENAME      tfm_mbedtls_psa_crypto_platform.h
+            DESTINATION ${INSTALL_INTERFACE_INC_DIR}/mbedtls)
+endif()
+
 target_compile_definitions(psa_crypto_config
         INTERFACE
         $<INSTALL_INTERFACE:MBEDTLS_PSA_CRYPTO_CONFIG_FILE="$<INSTALL_PREFIX>/${INSTALL_INTERFACE_INC_DIR}/mbedtls/mbedcrypto_psa_crypto_config.h">
-        $<INSTALL_INTERFACE:MBEDTLS_CONFIG_FILE="$<INSTALL_PREFIX>/${INSTALL_INTERFACE_INC_DIR}/mbedtls/mbedcrypto_config_client.h">)
+        $<INSTALL_INTERFACE:MBEDTLS_CONFIG_FILE="$<INSTALL_PREFIX>/${INSTALL_INTERFACE_INC_DIR}/mbedtls/mbedcrypto_config_client.h">
+        $<INSTALL_INTERFACE:$<$<BOOL:${MBEDTLS_PSA_CRYPTO_PLATFORM_FILE}>:MBEDTLS_PSA_CRYPTO_PLATFORM_FILE="$<INSTALL_PREFIX>/${INSTALL_INTERFACE_INC_DIR}/mbedtls/tfm_mbedtls_psa_crypto_platform.h">>)
 
 # Install config files and remap tfm_config definitions to point to them
 if(PROJECT_CONFIG_HEADER_FILE)
