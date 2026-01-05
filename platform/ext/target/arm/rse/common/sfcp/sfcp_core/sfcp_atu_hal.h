@@ -18,6 +18,9 @@
 /* There must be at least one region */
 #define SFCP_ATU_REGION_AM (SFCP_ATU_REGION_MAX - SFCP_ATU_REGION_MIN + 1)
 #define SFCP_ATU_PAGE_SIZE 0x2000
+
+#ifndef SFCP_ATU_REGION_SIZE
 #define SFCP_ATU_REGION_SIZE (SFCP_ATU_PAGE_SIZE * 8)
+#endif
 
 #endif /* __SFCP_HAL_H__ */

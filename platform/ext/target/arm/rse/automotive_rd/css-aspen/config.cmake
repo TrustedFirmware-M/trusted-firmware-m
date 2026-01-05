@@ -34,6 +34,7 @@ set(TFM_PARTITION_INITIAL_ATTESTATION   ON       CACHE BOOL    "Enable Initial A
 set(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE ON    CACHE BOOL    "Enable Internal Trusted Storage partition")
 set(TFM_PARTITION_MEASURED_BOOT         ON       CACHE BOOL    "Enable Measured Boot partition")
 set(TFM_PARTITION_PROTECTED_STORAGE     ON       CACHE BOOL    "Enable Protected Storage partition")
+set(SFCP_ATU_REGION_SIZE                0x20000  CACHE STRING  "The size of the carveout region")
 set(SFCP_NUMBER_NODES                   3        CACHE STRING  "Amount of nodes in the SFCP system, by default equal to number of RSEs")
 
 # Once all cache options are set, set common options as fallback

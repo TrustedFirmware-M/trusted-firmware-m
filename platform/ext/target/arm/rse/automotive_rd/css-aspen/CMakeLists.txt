@@ -111,3 +111,8 @@ target_sources(platform_s
         $<$<BOOL:${RSE_USE_HOST_UART}>:${PLATFORM_DIR}/ext/target/arm/drivers/usart/pl011/uart_pl011_drv.c>
         $<$<BOOL:${RSE_USE_HOST_UART}>:${CMAKE_CURRENT_SOURCE_DIR}/cmsis_drivers/Driver_USART_pl011.c>
 )
+
+target_compile_definitions(platform_s
+    PUBLIC
+        SFCP_ATU_REGION_SIZE=${SFCP_ATU_REGION_SIZE}
+)

@@ -23,7 +23,7 @@
 #define HOST_AP_MEM_EXP_FLASH_OFFSET                0x008000000ULL
 
 /* Base of AP region for MHU Pointer-access protocol */
-#define HOST_AP_MHU_POINTER_ACCESS_PHYS_BASE        0x0FFFFC000ULL
+#define HOST_AP_MHU_POINTER_ACCESS_PHYS_BASE        0x0FFFE0000ULL
 /* End of AP region for MHU Pointer-access protocol */
 #define HOST_AP_MHU_POINTER_ACCESS_PHYS_LIMIT       0x0FFFFFFFFULL
 
