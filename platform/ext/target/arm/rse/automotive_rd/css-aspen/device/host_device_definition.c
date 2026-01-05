@@ -52,6 +52,10 @@ const struct ppu_dev_t HOST_SI_CL1_CLUS_PPU_DEV = {
     .ppu_base = HOST_SI_CL1_CUB_ATU_WINDOW_BASE_S + 0x10000,
     .cluster_safety_base = HOST_SI_CL1_CUB_ATU_WINDOW_BASE_S + 0x80000,
 };
+
+const struct sid_dev_t HOST_SI_SID_DEV = {
+    .sid_base = HOST_SI_SID_ATU_WINDOW_BASE_S,
+};
 #endif /* PLATFORM_HOST_HAS_SI_CL */
 
 #ifdef PLATFORM_RSE_HAS_ATU_OWNERSHIP

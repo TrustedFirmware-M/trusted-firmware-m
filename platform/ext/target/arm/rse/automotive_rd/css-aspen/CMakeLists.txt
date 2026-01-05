@@ -61,6 +61,7 @@ target_sources(platform_bl2
         device/rse_expansion_device_definition.c
         device/tfm_plat_boot_measurement.c
         $<$<BOOL:${PLATFORM_HOST_HAS_SI_CL}>:${CMAKE_CURRENT_SOURCE_DIR}/host_drivers/ppu_drv.c>
+        $<$<BOOL:${PLATFORM_HOST_HAS_SI_CL}>:${CMAKE_CURRENT_SOURCE_DIR}/host_drivers/sid_drv.c>
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/cfi/cfi_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/strata/spi_strataflashj3_flash_lib.c
         ${PLATFORM_DIR}/ext/target/arm/rse/common/fip_parser/fip_parser.c

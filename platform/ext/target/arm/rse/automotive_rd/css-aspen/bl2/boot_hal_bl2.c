@@ -374,6 +374,40 @@ static int boot_platform_post_load_ap_bl2(void)
     return 0;
 }
 
+/* Enable SI PIK is powered on */
+static int boot_platform_si_pre_load(void)
+{
+    enum atu_error_t atu_err;
+    enum ppu_error_t ppu_err;
+
+    /* Configure RSE ATU to access SI PIK */
+    atu_err = atu_rse_initialize_region(&ATU_DEV_S,
+                                        HOST_SI_PIK_ATU_ID,
+                                        HOST_SI_PIK_ATU_WINDOW_BASE_S,
+                                        HOST_SI_PIK_PHYS_BASE,
+                                        HOST_SI_PIK_SIZE);
+    if (atu_err != ATU_ERR_NONE) {
+        BOOT_LOG_ERR("BL2: ATU init failed (%d) for SI PIK window", (int)atu_err);
+        return 1;
+    }
+
+    /* Power up SI power domain */
+    ppu_err = ppu_driver_power_on(&HOST_SI_SYSTOP_PPU_DEV);
+    if (ppu_err != PPU_ERR_NONE) {
+        BOOT_LOG_ERR("BL2: SI SYSTOP release failed: %d", (int)ppu_err);
+        return 1;
+    }
+
+    /* Close RSE ATU region configured to access SI PIK */
+    atu_err = atu_rse_uninitialize_region(&ATU_DEV_S, HOST_SI_PIK_ATU_ID);
+    if (atu_err != ATU_ERR_NONE) {
+        BOOT_LOG_ERR("BL2: ATU uninit failed (%d) for SI PIK window", (int)atu_err);
+        return 1;
+    }
+
+    return 0;
+}
+
 /*
  * =========================== SI CL0 LOAD FUNCTIONS ===========================
  */
@@ -415,29 +449,6 @@ static int boot_platform_pre_load_si_cl0(void)
     enum ppu_error_t ppu_err;
 
     BOOT_LOG_INF("BL2: SI CL0 pre load start");
-
-    /* Configure RSE ATU to access SI PIK */
-    atu_err = atu_rse_initialize_region(&ATU_DEV_S,
-                                        HOST_SI_PIK_ATU_ID,
-                                        HOST_SI_PIK_ATU_WINDOW_BASE_S,
-                                        HOST_SI_PIK_PHYS_BASE,
-                                        HOST_SI_PIK_SIZE);
-    if (atu_err != ATU_ERR_NONE) {
-        return 1;
-    }
-
-    /* Power up SI power domain */
-    ppu_err = ppu_driver_power_on(&HOST_SI_SYSTOP_PPU_DEV);
-    if (ppu_err != PPU_ERR_NONE) {
-        BOOT_LOG_ERR("BL2: SI SYSTOP release failed: %d", (int)ppu_err);
-        return 1;
-    }
-
-    /* Close RSE ATU region configured to access SI PIK */
-    atu_err = atu_rse_uninitialize_region(&ATU_DEV_S, HOST_SI_PIK_ATU_ID);
-    if (atu_err != ATU_ERR_NONE) {
-        return 1;
-    }
 
     /* Configure RSE ATU to access SI CL0 Cluster Utility Bus */
     atu_err = atu_rse_initialize_region(&ATU_DEV_S,
@@ -633,6 +644,32 @@ static int boot_platform_post_load_si_cl1(void)
     return 0;
 }
 
+static bool check_si_cl1_is_present(void)
+{
+    enum atu_error_t atu_err;
+    bool present = false;
+
+    atu_err = atu_rse_initialize_region(&ATU_DEV_S,
+                                        HOST_SI_SID_ATU_ID,
+                                        HOST_SI_SID_ATU_WINDOW_BASE_S,
+                                        HOST_SI_SID_PHYS_BASE,
+                                        HOST_SI_SID_SIZE);
+    if (atu_err != ATU_ERR_NONE) {
+        BOOT_LOG_ERR("BL2: ATU init failed (%d) for SI SID window", (int)atu_err);
+        return false;
+    }
+
+    present = sid_is_cl1_present(&HOST_SI_SID_DEV);
+
+    atu_err = atu_rse_uninitialize_region(&ATU_DEV_S, HOST_SI_SID_ATU_ID);
+    if (atu_err != ATU_ERR_NONE) {
+        BOOT_LOG_ERR("BL2: ATU uninit failed (%d) for SI SID window", (int)atu_err);
+        return false;
+    }
+
+    return present;
+}
+
 /*
  * ================================= VECTORS ==================================
  */
@@ -687,6 +724,19 @@ bool boot_platform_should_load_image(uint32_t image_id)
 {
     if (image_id == RSE_FIRMWARE_NON_SECURE_ID) {
         return false;
+    }
+
+    if (image_id == RSE_FIRMWARE_SI_CL1_ID) {
+        /* Ensure SI PIK is powered on before accessing SI space*/
+        if (boot_platform_si_pre_load()) {
+            BOOT_LOG_ERR("BL2: SI PIK power-on/pre-load failed");
+            return false;
+        }
+        /* Check if SI CL1 is present */
+        if (!check_si_cl1_is_present()) {
+            BOOT_LOG_INF("BL2: SI CL1 not present, skip loading");
+            return false;
+        }
     }
 
     if (image_id >= RSE_FIRMWARE_COUNT) {

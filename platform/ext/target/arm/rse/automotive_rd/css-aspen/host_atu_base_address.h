@@ -273,6 +273,16 @@ enum rse_atu_ids {
 /* SI CL1 Cluster Utility Bus ATU region id */
 #define HOST_SI_CL1_CUB_ATU_ID            RSE_ATU_FW_INIT_ID
 
+#define HOST_SI_SID_ATU_WINDOW_BASE_S (HOST_SI_CL1_CUB_ATU_WINDOW_BASE_S + \
+                                       HOST_SI_CL1_CUB_SIZE)
+/* SI CL SID Base Address */
+#define HOST_SI_SID_PHYS_BASE         0x400002A6B0000ULL
+/* SI CL SID ATU size */
+#define HOST_SI_SID_SIZE              ALIGN_UP(0x10000U,         \
+                                               RSE_ATU_PAGE_SIZE)
+/* SI CL SID ATU region id */
+#define HOST_SI_SID_ATU_ID            RSE_ATU_FW_INIT_ID
+
 /* ATU region mapping to access Protected Storage */
 #define HOST_ACCESS_PS_BASE_S      (HOST_ACCESS_BASE_NS + RSE_FLASH_IMG_SIZE)
 #define HOST_ACCESS_PS_BASE_OFFSET RSE_FLASH_IMG_SIZE
