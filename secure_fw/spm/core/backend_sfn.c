@@ -74,6 +74,8 @@ psa_status_t backend_messaging(struct connection_t *p_connection)
 
 psa_status_t backend_replying(struct connection_t *handle, int32_t status)
 {
+    assert(handle != NULL);
+
     SET_CURRENT_COMPONENT(handle->p_client);
 
     /*
