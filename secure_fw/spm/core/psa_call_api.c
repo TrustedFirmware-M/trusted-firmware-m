@@ -90,6 +90,12 @@ psa_status_t spm_associate_call_params(struct connection_t *p_connection,
      * Overflow is checked in tfm_hal_memory_check functions.
      */
     for (i = 0; (i + 1) < ivec_num; i++) {
+        /* Validate arithmetic overflow for the input vectors */
+        if ((uintptr_t)ivecs_local[i].base + ivecs_local[i].len <
+            (uintptr_t)ivecs_local[i].base) {
+            return PSA_ERROR_PROGRAMMER_ERROR;
+        }
+
         for (j = i + 1; j < ivec_num; j++) {
             if (!((((char *) ivecs_local[j].base + ivecs_local[j].len) <=
                   (char *) ivecs_local[i].base) ||
