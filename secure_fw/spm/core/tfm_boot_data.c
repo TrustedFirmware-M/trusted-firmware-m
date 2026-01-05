@@ -182,9 +182,17 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
 
 #ifdef BOOT_DATA_AVAILABLE
     const uintptr_t data_base = tfm_plat_get_shared_measurement_data_base();
+    const size_t boot_data_size = tfm_plat_get_shared_measurement_data_size();
+
     /* Get the boundaries of TLV section */
     boot_data = (struct tfm_boot_data *)data_base;
     tlv_end = data_base + boot_data->header.tlv_tot_len;
+
+    if ((size_t)boot_data->header.tlv_tot_len > boot_data_size) {
+        args[0] = (uint32_t)PSA_ERROR_INVALID_ARGUMENT;
+        return;
+    }
+
     offset = data_base + SHARED_DATA_HEADER_SIZE;
 #endif /* BOOT_DATA_AVAILABLE */
 
