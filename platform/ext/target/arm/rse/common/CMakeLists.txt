@@ -326,6 +326,9 @@ endif()
 #====================== SCMI hardware abstraction layer =======================#
 
 if (TFM_PARTITION_SCMI_COMMS)
+    # generate RSE platform group like neoverse_rd, tc, etc.
+    string(REGEX REPLACE "^([^/]+/[^/]+/[^/]+).*$" "\\1" RSE_PLATFORM_GROUP_DIR "${TFM_PLATFORM}")
+
     add_library(scmi_hal INTERFACE)
 
     target_include_directories(scmi_hal
@@ -333,7 +336,7 @@ if (TFM_PARTITION_SCMI_COMMS)
             scmi
             ${PLATFORM_DIR}/ext/common/scmi
             ${PLATFORM_DIR}/ext/common/scmi/protocols
-            ${PLATFORM_DIR}/ext/target/arm/rse/tc/common
+            ${PLATFORM_DIR}/ext/target/${RSE_PLATFORM_GROUP_DIR}/common
     )
 
     target_sources(scmi_hal
