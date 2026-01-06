@@ -18,6 +18,13 @@ target_include_directories(platform_s
         .
 )
 
+if(NOT NRF_DIR)
+target_include_directories(platform_s
+    PUBLIC
+        memory_service_ranges
+)
+endif()
+
 target_sources(platform_s
     PRIVATE
         ${HAL_NORDIC_PATH}/nrfx/bsp/stable/mdk/system_nrf7120_enga.c
