@@ -7,6 +7,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
+#include <assert.h>
 #include "ffm/psa_api.h"
 #include "spm.h"
 #include "load/service_defs.h"
@@ -26,6 +27,7 @@ const void *tfm_spm_partition_psa_map_invec(psa_handle_t msg_handle,
         tfm_core_panic();
     }
 
+    assert(handle->service != NULL);
     partition = handle->service->partition;
 
     /*
@@ -156,6 +158,7 @@ void *tfm_spm_partition_psa_map_outvec(psa_handle_t msg_handle,
         tfm_core_panic();
     }
 
+    assert(handle->service != NULL);
     partition = handle->service->partition;
 
     /*
