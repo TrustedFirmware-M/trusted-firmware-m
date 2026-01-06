@@ -5,6 +5,7 @@
  */
 
 #include <string.h>
+#include "cmsis_compiler.h"
 #include "tfm_arch.h"
 #include "tfm_log.h"
 /* "exception_info.h" must be the last include because of the IAR pragma */
@@ -122,8 +123,9 @@ static void dump_exception_info(bool stack_error,
     DUMP_MSG_RAW("    MSP_NS:  0x%08x\n", __TZ_get_MSP_NS());
     DUMP_MSG_RAW("    PSP_NS:  0x%08x\n", __TZ_get_PSP_NS());
 #endif
+#if (__ARM_ARCH_ISA_THUMB >= 2)
     DUMP_MSG_RAW("    BASEPRI: 0x%08x\n", __get_BASEPRI());
-
+#endif
     DUMP_MSG_RAW("    Exception frame at:   0x%08x\n", (uint32_t)ctx->EXC_FRAME);
     if (stack_error) {
         DUMP_MSG_RAW(
