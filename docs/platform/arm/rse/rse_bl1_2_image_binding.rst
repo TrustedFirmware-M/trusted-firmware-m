@@ -1,5 +1,5 @@
 RSE BL1_2 image binding
-===========================
+=======================
 
 Overview
 --------
@@ -73,3 +73,9 @@ Key handling
   ``cc3xx_get_opaque_key()``.
 - A binding tag is considered present when the header field is non-zero;
   otherwise BL1_2 treats the boot as the first binding pass.
+
+-------------
+
+*SPDX-License-Identifier: BSD-3-Clause*
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
