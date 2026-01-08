@@ -111,7 +111,7 @@ static void init_mpc_region_override(struct mpc_region_override *override)
 	override->permmask = MPC_OVERRIDE_PERM_SECATTR_Msk;
 }
 
-static nrfx_err_t mramc_configuration(void)
+static int mramc_configuration(void)
 {
 	nrfx_mramc_config_t config = NRFX_MRAMC_DEFAULT_CONFIG();
 
@@ -122,12 +122,12 @@ static nrfx_err_t mramc_configuration(void)
 	 */
 	nrfx_mramc_evt_handler_t handler = NULL;
 
-	nrfx_err_t err = nrfx_mramc_init(&config, handler);
-	if (err != NRFX_SUCCESS && err != NRFX_ERROR_ALREADY) {
+	int err = nrfx_mramc_init(&config, handler);
+	if (err != 0 && err != -EALREADY) {
 		return err;
 	}
 
-	return NRFX_SUCCESS;
+	return 0;
 }
 
 enum tfm_plat_err_t init_debug(void)
@@ -239,19 +239,6 @@ enum tfm_plat_err_t nrf_mpc_init_cfg(void)
 
 		override.start_address = NS_DATA_START;
 		override.endaddr = 1 + NS_DATA_LIMIT;
-		override.index = index_mpc00++;
-
-		mpc_configure_override(NRF_MPC00, &override);
-	}
-
-	/* Wi-Fi registers addr */
-	{
-		struct mpc_region_override override;
-
-		init_mpc_region_override(&override);
-
-		override.start_address = 0x48000000;
-		override.endaddr = 0x48100000;
 		override.index = index_mpc00++;
 
 		mpc_configure_override(NRF_MPC00, &override);
@@ -511,8 +498,8 @@ enum tfm_plat_err_t spu_periph_init_cfg(void)
 
 	nrf_cache_enable(NRF_ICACHE);
 
-	nrfx_err_t nrfx_err = mramc_configuration();
-	if (nrfx_err != NRFX_SUCCESS) {
+	int nrfx_err = mramc_configuration();
+	if (nrfx_err != 0) {
 		return TFM_PLAT_ERR_SYSTEM_ERR;
 	}
 
