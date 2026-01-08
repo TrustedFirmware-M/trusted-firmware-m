@@ -99,6 +99,7 @@ static uint32_t mhu_get_num_mhu_channels(void *mhu_device, enum sfcp_platform_de
     }
 #endif
     default:
+        assert(false);
         return 0;
     }
 }
