@@ -72,6 +72,9 @@ void *tfm_pool_alloc(struct tfm_pool_instance_t *pool)
 
     UNI_LIST_REMOVE_NODE(pool, node, next);
 
+    /* Trap invalid allocation */
+    assert(node->magic != POOL_MAGIC_ALLOCATED);
+
     node->magic = POOL_MAGIC_ALLOCATED;
 
     return &(node->data);
