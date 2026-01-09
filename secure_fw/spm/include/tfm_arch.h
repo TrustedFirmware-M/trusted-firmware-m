@@ -1,8 +1,5 @@
 /*
- * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
- * Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -12,6 +9,7 @@
 
 /* This header file collects the architecture related operations. */
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <inttypes.h>
@@ -173,8 +171,10 @@ struct context_flih_ret_t {
         } while (0)
 
 /* Allocate 'size' bytes in stack. */
-#define ARCH_CTXCTRL_ALLOCATE_STACK(x, size)                                 \
-            ((x)->sp             -= ((size) + 7) & ~0x7)
+#define ARCH_CTXCTRL_ALLOCATE_STACK(x, size) do { \
+            assert(size <= ((x)->sp - (x)->sp_limit)); \
+            ((x)->sp -= ((size) + 7) & ~0x7); \
+        } while (0)
 
 /* The last allocated pointer. */
 #define ARCH_CTXCTRL_ALLOCATED_PTR(x)         ((x)->sp)
