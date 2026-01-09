@@ -14,6 +14,7 @@
 #include "device_definition.h"
 #include "tfm_plat_defs.h"
 #include "tfm_log.h"
+#include "tfm_utils.h"
 
 #include "tfm_plat_otp.h"
 #include "psa/crypto.h"
@@ -124,9 +125,9 @@ enum tfm_plat_err_t tfm_plat_get_security_config_data(struct security_config *se
         {get_tcg_debug, {DEBUG_EVENT_ID, "TCG_DEBUG", 1}},
     };
 
-    size_t platform_sec_config_len = sizeof(platform_sec_config)/sizeof(platform_sec_config[0]);
+    size_t platform_sec_config_len = ARRAY_SIZE(platform_sec_config);
 
-    if (platform_sec_config_len < security_config_max_len) {
+    if (platform_sec_config_len > security_config_max_len) {
         return TFM_PLAT_ERR_MAX_VALUE;
     }
 
