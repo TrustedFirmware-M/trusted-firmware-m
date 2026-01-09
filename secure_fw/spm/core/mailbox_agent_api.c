@@ -50,6 +50,8 @@ psa_status_t tfm_spm_agent_psa_call(psa_handle_t handle,
     }
 
     /* Set Mailbox client data in connection handle for message reply. */
+    assert(client_data_stateless != NULL);
+
     p_connection->client_data = client_data_stateless;
 
     status = backend_messaging(p_connection);
