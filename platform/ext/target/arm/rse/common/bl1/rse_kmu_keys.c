@@ -382,7 +382,7 @@ enum tfm_plat_err_t rse_setup_iak_seed(uint32_t *huk_buf, size_t huk_size)
     if (huk_buf) {
         assert(huk_size == 32);
         if (huk_size != 32) {
-            FATAL_ERR(TFM_PLA_ERR_INVALID_INPUT);
+            FATAL_ERR(TFM_PLAT_ERR_INVALID_INPUT);
             return TFM_PLAT_ERR_INVALID_INPUT;
         }
     }
@@ -391,13 +391,13 @@ enum tfm_plat_err_t rse_setup_iak_seed(uint32_t *huk_buf, size_t huk_size)
     if (is_kmu_slot_locked(RSE_KMU_SLOT_IAK_SEED)) {
         kmu_err = kmu_set_slot_invalid(&KMU_DEV_S, RSE_KMU_SLOT_IAK_SEED);
         if (kmu_err != KMU_ERROR_NONE) {
-            return kmu_err;
+            return (enum tfm_plat_err_t)kmu_err;
         }
     }
 
     if (huk_buf == NULL) {
-        plat_err =
-            setup_hardware_key_or_zero_key(KMU_HW_SLOT_HUK, &input_slot, &key_buf);
+        plat_err = setup_hardware_key_or_zero_key(
+            (enum rse_kmu_slot_id_t)KMU_HW_SLOT_HUK, &input_slot, &key_buf);
         if (plat_err != TFM_PLAT_ERR_SUCCESS) {
             return plat_err;
         }
@@ -410,11 +410,11 @@ enum tfm_plat_err_t rse_setup_iak_seed(uint32_t *huk_buf, size_t huk_size)
     /* This derives from HUK, there is a typo in the spec, not from GUK.
      * FixMe: this should be configurable per platform
      */
-    plat_err = setup_key_from_derivation(input_slot, key_buf, iak_seed_label,
-                                         sizeof(iak_seed_label), NULL, 0,
-                                         RSE_KMU_SLOT_IAK_SEED,
-                                         &aes_key0_export_config, NULL, false,
-                                         boot_state_config);
+    plat_err = setup_key_from_derivation(
+        (enum kmu_hardware_keyslot_t)input_slot, key_buf, iak_seed_label,
+        sizeof(iak_seed_label), NULL, 0, RSE_KMU_SLOT_IAK_SEED,
+        &aes_key0_export_config, NULL, false, boot_state_config);
+
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return plat_err;
     }
