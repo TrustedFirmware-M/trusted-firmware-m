@@ -20,6 +20,7 @@
 #include "tfm_plat_defs.h"
 #include "tfm_plat_otp.h"
 #include "psa/crypto.h"
+#include "rse_soc_uid.h"
 
 /**
  * @brief Summary Checks that a OTP memory area is not all-zeros.
