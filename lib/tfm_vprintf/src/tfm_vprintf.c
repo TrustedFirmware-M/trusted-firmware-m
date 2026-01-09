@@ -193,6 +193,8 @@ static void tfm_vprintf_internal(tfm_log_output_str output_func,
             output_str(output_func, priv, va_arg(args, char *), 0, num_padding, left_aligned, ' ',
                        true);
             break;
+        case 'z':
+            continue;
         case '-':
             left_aligned = true;
             continue;
