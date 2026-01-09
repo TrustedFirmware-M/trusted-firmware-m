@@ -85,6 +85,10 @@ Maulik Patel
     :email: `Maulik.Patel@arm.com <Maulik.Patel@arm.com>`__
     :github: `maulik-arm <https://github.com/maulik-arm>`__
 
+Mudit Sharma
+    :email: `Mudit.Sharma@arm.com <Mudit.Sharma@arm.com>`__
+    :github: `muditsharmaa-arm <https://github.com/muditsharmaa-arm>`__
+
 Platform Partition
 ------------------
 
