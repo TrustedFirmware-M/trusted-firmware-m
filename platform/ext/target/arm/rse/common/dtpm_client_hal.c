@@ -113,19 +113,18 @@ static enum tfm_plat_err_t get_tcg_debug(struct security_config_data *security_c
     return TFM_PLAT_ERR_SUCCESS;
 }
 
+static const struct platform_security_config platform_sec_config[] = {
+    {get_tcg_insecure_lifecycle, {INSECURE_LIFECYCLE_EVENT_ID, "TCG_INSECURE_LIFECYCLE", 1}},
+    {get_tcg_debug, {DEBUG_EVENT_ID, "TCG_DEBUG", 1}},
+};
+
 enum tfm_plat_err_t tfm_plat_get_security_config_data(struct security_config *security_config,
                                                       size_t *security_config_len,
                                                       size_t security_config_max_len)
 {
     enum tfm_plat_err_t err;
     size_t arr_index;
-
-    struct platform_security_config platform_sec_config[] = {
-        {get_tcg_insecure_lifecycle, {INSECURE_LIFECYCLE_EVENT_ID, "TCG_INSECURE_LIFECYCLE", 1}},
-        {get_tcg_debug, {DEBUG_EVENT_ID, "TCG_DEBUG", 1}},
-    };
-
-    size_t platform_sec_config_len = ARRAY_SIZE(platform_sec_config);
+    const size_t platform_sec_config_len = ARRAY_SIZE(platform_sec_config);
 
     if (platform_sec_config_len > security_config_max_len) {
         return TFM_PLAT_ERR_MAX_VALUE;
