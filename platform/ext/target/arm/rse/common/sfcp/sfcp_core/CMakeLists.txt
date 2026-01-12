@@ -18,6 +18,7 @@ target_sources(platform_s
         sfcp_runtime_hal.c
         sfcp_interrupt_handler.c
         sfcp_atu.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../libraries/prix64.c
         sfcp_link_hal.c
         sfcp.c
         sfcp_random.c

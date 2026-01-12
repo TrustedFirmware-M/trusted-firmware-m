@@ -11,6 +11,7 @@
 #include "tfm_log.h"
 #include "device_definition.h"
 #include "platform_base_address.h"
+#include "prix64.h"
 
 struct comms_atu_region_params_t {
     uint32_t log_addr;
@@ -94,6 +95,7 @@ static enum tfm_plat_err_t setup_region_for_host_buf(uint64_t host_addr, uint32_
     struct comms_atu_region_params_t *region_params;
     int32_t atu_err;
     uint64_t host_buf_end = host_addr + size;
+    prix64_t fmt;
 
     if (host_buf_end <= host_addr) {
         return TFM_PLAT_ERR_INVALID_INPUT;
@@ -117,9 +119,9 @@ static enum tfm_plat_err_t setup_region_for_host_buf(uint64_t host_addr, uint32_
     }
 
     VERBOSE_RAW("[COMMS ATU] Mapping new region: 0x%08x\n", region_idx);
-    VERBOSE_RAW("[COMMS ATU] Region start: 0x%08x\n", region_params->phys_addr);
-    VERBOSE_RAW("[COMMS ATU] Region end:   0x%08x\n",
-                region_params->phys_addr + region_params->size);
+    VERBOSE_RAW("[COMMS ATU] Region start: %s\n", prix64(&fmt, region_params->phys_addr));
+    VERBOSE_RAW("[COMMS ATU] Region end:   %s\n",
+                prix64(&fmt, region_params->phys_addr + region_params->size));
 
     return TFM_PLAT_ERR_SUCCESS;
 }
