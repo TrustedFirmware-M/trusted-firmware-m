@@ -22,9 +22,13 @@
 #define DEVICE_STATUS_FUNCTIONAL_STATUS_OFFSET 15
 #define DEVICE_STATUS_FUNCTIONAL_STATUS_DEVICE_FUNCTIONAL 0x0
 
+enum security_config_event_id_t {
+    INSECURE_LIFECYCLE_EVENT_ID,
+    DEBUG_EVENT_ID,
+};
+
 struct platform_security_config {
     enum tfm_plat_err_t (*security_config_function)(struct security_config_data *security_config);
-    event_log_metadata_t evlog_security_config_metadata;
 };
 
 /* This implementation is platform-specific. The determination of TCG_INSECURE_LIFECYCLE
@@ -114,39 +118,39 @@ static enum tfm_plat_err_t get_tcg_debug(struct security_config_data *security_c
 }
 
 static const struct platform_security_config platform_sec_config[] = {
-    {get_tcg_insecure_lifecycle, {INSECURE_LIFECYCLE_EVENT_ID, "TCG_INSECURE_LIFECYCLE", 1}},
-    {get_tcg_debug, {DEBUG_EVENT_ID, "TCG_DEBUG", 1}},
+    [INSECURE_LIFECYCLE_EVENT_ID] = { .security_config_function = get_tcg_insecure_lifecycle },
+    [DEBUG_EVENT_ID] = { .security_config_function = get_tcg_debug },
 };
 
-enum tfm_plat_err_t tfm_plat_get_security_config_data(struct security_config *security_config,
-                                                      size_t *security_config_len,
-                                                      size_t security_config_max_len)
+static struct security_config security_config_arr[] = {
+    [INSECURE_LIFECYCLE_EVENT_ID] = {
+          .event_log_metadata = {INSECURE_LIFECYCLE_EVENT_ID, "TCG_INSECURE_LIFECYCLE", 1},
+          .pcr_index = 1,
+          .hash_type = PSA_ALG_SHA_256,
+    },
+    [DEBUG_EVENT_ID] = {
+          .event_log_metadata = {DEBUG_EVENT_ID, "TCG_DEBUG", 1},
+          .pcr_index = 1,
+          .hash_type = PSA_ALG_SHA_256,
+    },
+};
+
+enum tfm_plat_err_t tfm_plat_get_security_config_data(struct security_config **security_config,
+                                                      size_t *security_config_len)
 {
     enum tfm_plat_err_t err;
     size_t arr_index;
-    const size_t platform_sec_config_len = ARRAY_SIZE(platform_sec_config);
 
-    if (platform_sec_config_len > security_config_max_len) {
-        return TFM_PLAT_ERR_MAX_VALUE;
-    }
-
-    for (arr_index = 0; arr_index < platform_sec_config_len; arr_index++) {
+    for (arr_index = 0; arr_index < ARRAY_SIZE(platform_sec_config); arr_index++) {
         err = platform_sec_config[arr_index].security_config_function(
-                                  &security_config[arr_index].security_config_data);
+                &security_config_arr[arr_index].security_config_data);
         if (err != TFM_PLAT_ERR_SUCCESS) {
             return err;
         }
-
-        security_config[arr_index].hash_type = PSA_ALG_SHA_256;
-        security_config[arr_index].pcr_index = 1;
-
-        memcpy(&security_config[arr_index].event_log_metadata,
-               &platform_sec_config[arr_index].evlog_security_config_metadata,
-               sizeof(event_log_metadata_t));
-
     }
 
     *security_config_len = arr_index;
+    *security_config = security_config_arr;
 
     return TFM_PLAT_ERR_SUCCESS;
 }
