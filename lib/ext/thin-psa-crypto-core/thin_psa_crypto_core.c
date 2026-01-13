@@ -1269,7 +1269,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     size_t key_buffer_size;
 
     assert(operation != NULL);
-    assert(!operation->id);
+    assert(operation->id == 0);
     assert(PSA_ALG_IS_CIPHER(alg));
 
     /* Prefer static slot if it matches */
