@@ -640,6 +640,10 @@ void HAL_FLASH_OperationErrorCallback(uint32_t ReturnValue);
   * @{
   */
 /* Peripheral Control functions */
+HAL_StatusTypeDef HAL_FLASH_Unlock_NS(void);
+HAL_StatusTypeDef HAL_FLASH_Unlock_SEC(void);
+HAL_StatusTypeDef HAL_FLASH_Lock_NS(void);
+HAL_StatusTypeDef HAL_FLASH_Lock_SEC(void);
 HAL_StatusTypeDef HAL_FLASH_Unlock(void);
 HAL_StatusTypeDef HAL_FLASH_Lock(void);
 HAL_StatusTypeDef HAL_FLASH_OB_Unlock(void);
