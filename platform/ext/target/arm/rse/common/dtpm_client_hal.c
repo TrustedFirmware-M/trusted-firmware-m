@@ -124,14 +124,10 @@ static const struct platform_security_config platform_sec_config[] = {
 
 static struct security_config security_config_arr[] = {
     [INSECURE_LIFECYCLE_EVENT_ID] = {
-          .event_log_metadata = {INSECURE_LIFECYCLE_EVENT_ID, "TCG_INSECURE_LIFECYCLE", 1},
           .pcr_index = 1,
-          .hash_type = PSA_ALG_SHA_256,
     },
     [DEBUG_EVENT_ID] = {
-          .event_log_metadata = {DEBUG_EVENT_ID, "TCG_DEBUG", 1},
           .pcr_index = 1,
-          .hash_type = PSA_ALG_SHA_256,
     },
 };
 
