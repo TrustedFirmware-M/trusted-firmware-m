@@ -569,7 +569,12 @@ static int32_t Flash_ProgramData(uint32_t addr,
   stm32_icache_disable();
 #endif /* TFM_ICACHE_ENABLE */
 
-  HAL_FLASH_Unlock();
+  if (IS_FLASH_SECURE_OPERATION()) {
+    HAL_FLASH_Unlock_SEC();
+  } else {
+    HAL_FLASH_Unlock_NS();
+  }
+
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_BUSY;
   do
   {
@@ -597,7 +602,12 @@ static int32_t Flash_ProgramData(uint32_t addr,
   } while ((loop != cnt) && (err == HAL_OK));
 
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_IDLE;
-  HAL_FLASH_Lock();
+
+  if (IS_FLASH_SECURE_OPERATION()) {
+    HAL_FLASH_Lock_SEC();
+  } else {
+    HAL_FLASH_Lock_NS();
+  }
 
 #ifdef TFM_ICACHE_ENABLE
   icache_wait_for_invalidate_complete();
@@ -701,11 +711,19 @@ static int32_t Flash_EraseSector(uint32_t addr)
 #endif /* TFM_ICACHE_ENABLE */
 
   ARM_FLASH0_STATUS.error = DRIVER_STATUS_NO_ERROR;
-  HAL_FLASH_Unlock();
+  if (IS_FLASH_SECURE_OPERATION()) {
+    HAL_FLASH_Unlock_SEC();
+  } else {
+    HAL_FLASH_Unlock_NS();
+  }
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_BUSY;
   err = HAL_FLASHEx_Erase(&EraseInit, &pageError);
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_IDLE;
-  HAL_FLASH_Lock();
+  if (IS_FLASH_SECURE_OPERATION()) {
+    HAL_FLASH_Lock_SEC();
+  } else {
+    HAL_FLASH_Lock_NS();
+  }
 
 #ifdef TFM_ICACHE_ENABLE
   icache_wait_for_invalidate_complete();
