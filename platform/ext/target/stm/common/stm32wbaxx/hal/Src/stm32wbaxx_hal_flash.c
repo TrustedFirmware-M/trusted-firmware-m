@@ -515,76 +515,132 @@ __weak void HAL_FLASH_OperationErrorCallback(uint32_t ReturnValue)
   */
 
 /**
-  * @brief  Unlock the FLASH control register access.
+  * @brief  Unlock the non-secure FLASH control registers access
+  * @retval HAL Status
+  */
+HAL_StatusTypeDef HAL_FLASH_Unlock_NS(void)
+{
+  HAL_StatusTypeDef status = HAL_ERROR;
+
+  if (READ_BIT(FLASH->NSCR1, FLASH_NSCR1_LOCK) != 0U)
+  {
+    /* Authorize the FLASH Control Register access */
+    WRITE_REG(FLASH->NSKEYR, FLASH_KEY1);
+    WRITE_REG(FLASH->NSKEYR, FLASH_KEY2);
+
+    /* Verify Flash CR is unlocked */
+    if (READ_BIT(FLASH->NSCR1, FLASH_NSCR1_LOCK) == 0U)
+    {
+      status = HAL_OK;
+    }
+  }
+
+  return status;
+}
+
+/**
+  * @brief  Unlock the secure FLASH control registers access
+  * @retval HAL Status
+  */
+HAL_StatusTypeDef HAL_FLASH_Unlock_SEC(void)
+{
+  HAL_StatusTypeDef status = HAL_ERROR;
+
+#if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
+  if (READ_BIT(FLASH->SECCR1, FLASH_SECCR1_LOCK) != 0U)
+  {
+    /* Authorize the FLASH Control Register access */
+    WRITE_REG(FLASH->SECKEYR, FLASH_KEY1);
+    WRITE_REG(FLASH->SECKEYR, FLASH_KEY2);
+
+    /* verify Flash CR is unlocked */
+    if (READ_BIT(FLASH->SECCR1, FLASH_SECCR1_LOCK) == 0U)
+    {
+      status = HAL_OK;
+    }
+  }
+#endif /* __ARM_FEATURE_CMSE && __ARM_FEATURE_CMSE == 3U */
+
+  return status;
+}
+
+/**
+  * @brief  Unlock the FLASH control registers access
   * @retval HAL Status
   */
 HAL_StatusTypeDef HAL_FLASH_Unlock(void)
 {
   HAL_StatusTypeDef status = HAL_OK;
 
-  if (READ_BIT(FLASH->NSCR1, FLASH_NSCR1_LOCK) != 0U)
-  {
-    /* Authorize the FLASH Registers access */
-    WRITE_REG(FLASH->NSKEYR, FLASH_KEY1);
-    WRITE_REG(FLASH->NSKEYR, FLASH_KEY2);
-
-    /* verify Flash is unlocked */
-    if (READ_BIT(FLASH->NSCR1, FLASH_NSCR1_LOCK) != 0U)
-    {
-      status = HAL_ERROR;
-    }
-  }
+  status = HAL_FLASH_Unlock_NS();
 
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
-  if (status == HAL_OK)
-  {
-    if (READ_BIT(FLASH->SECCR1, FLASH_SECCR1_LOCK) != 0U)
-    {
-      /* Authorize the FLASH Registers access */
-      WRITE_REG(FLASH->SECKEYR, FLASH_KEY1);
-      WRITE_REG(FLASH->SECKEYR, FLASH_KEY2);
-
-      /* verify Flash is unlocked */
-      if (READ_BIT(FLASH->SECCR1, FLASH_SECCR1_LOCK) != 0U)
-      {
-        status = HAL_ERROR;
-      }
-    }
+  if (status == HAL_OK) {
+    status = HAL_FLASH_Unlock_SEC();
   }
-#endif /* __ARM_FEATURE_CMSE */
+#endif /* __ARM_FEATURE_CMSE && __ARM_FEATURE_CMSE == 3U */
 
   return status;
 }
 
 /**
-  * @brief  Lock the FLASH control register access.
+  * @brief  Locks the non-secure FLASH control registers access
   * @retval HAL Status
   */
-HAL_StatusTypeDef HAL_FLASH_Lock(void)
+HAL_StatusTypeDef HAL_FLASH_Lock_NS(void)
 {
   HAL_StatusTypeDef status = HAL_ERROR;
 
-  /* Set the LOCK Bit to lock the FLASH Registers access */
+  /* Set the LOCK Bit to lock the FLASH Control Register access */
   SET_BIT(FLASH->NSCR1, FLASH_NSCR1_LOCK);
 
-  /* verify Flash is locked */
+  /* Verify Flash is locked */
   if (READ_BIT(FLASH->NSCR1, FLASH_NSCR1_LOCK) != 0U)
   {
     status = HAL_OK;
   }
 
-#if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
-  if (status == HAL_OK)
-  {
-    SET_BIT(FLASH->SECCR1, FLASH_SECCR1_LOCK);
+  return status;
+}
 
-    /* verify Flash is locked */
-    if (READ_BIT(FLASH->SECCR1, FLASH_SECCR1_LOCK) != 0U)
-    {
-      status = HAL_OK;
-    }
+
+/**
+  * @brief  Locks the secure FLASH control registers access
+  * @retval HAL Status
+  */
+HAL_StatusTypeDef HAL_FLASH_Lock_SEC(void)
+{
+  HAL_StatusTypeDef status = HAL_ERROR;
+
+#if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
+  /* Set the LOCK Bit to lock the FLASH Control Register access */
+  SET_BIT(FLASH->SECCR1, FLASH_SECCR1_LOCK);
+
+  /* verify Flash is locked */
+  if (READ_BIT(FLASH->SECCR1, FLASH_SECCR1_LOCK) != 0U)
+  {
+    status = HAL_OK;
   }
-#endif /* __ARM_FEATURE_CMSE */
+#endif /* __ARM_FEATURE_CMSE && __ARM_FEATURE_CMSE == 3U */
+
+  return status;
+}
+
+/**
+  * @brief  Locks the FLASH control registers access
+  * @retval HAL Status
+  */
+HAL_StatusTypeDef HAL_FLASH_Lock(void)
+{
+  HAL_StatusTypeDef status = HAL_OK;
+
+  status = HAL_FLASH_Lock_NS();
+
+#if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
+  if (status == HAL_OK) {
+    status = HAL_FLASH_Lock_SEC();
+  }
+#endif /* __ARM_FEATURE_CMSE && __ARM_FEATURE_CMSE == 3U */
 
   return status;
 }
