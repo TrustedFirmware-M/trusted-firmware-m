@@ -474,7 +474,12 @@ static int32_t Flash_ProgramData(uint32_t addr,
     return ARM_DRIVER_ERROR_PARAMETER;
   }
 
-  HAL_FLASH_Unlock();
+  if (IS_FLASH_SECURE_OPERATION()) {
+    HAL_FLASH_Unlock_SEC();
+  } else {
+    HAL_FLASH_Unlock_NS();
+  }
+
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_BUSY;
   do
   {
@@ -502,7 +507,13 @@ static int32_t Flash_ProgramData(uint32_t addr,
   } while ((loop != cnt) && (err == HAL_OK));
 
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_IDLE;
-  HAL_FLASH_Lock();
+
+  if (IS_FLASH_SECURE_OPERATION()) {
+    HAL_FLASH_Lock_SEC();
+  } else {
+    HAL_FLASH_Lock_NS();
+  }
+
   /* compare data written */
 #ifdef CHECK_WRITE
   if ((err == HAL_OK) && memcmp(dest, data, cnt))
@@ -582,11 +593,23 @@ static int32_t Flash_EraseSector(uint32_t addr)
     EraseInit.Page = page_number(&ARM_FLASH0_DEV, addr);
 #endif
   ARM_FLASH0_STATUS.error = DRIVER_STATUS_NO_ERROR;
-  HAL_FLASH_Unlock();
+
+  if (IS_FLASH_SECURE_OPERATION()) {
+    HAL_FLASH_Unlock_SEC();
+  } else {
+    HAL_FLASH_Unlock_NS();
+  }
+
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_BUSY;
   err = HAL_FLASHEx_Erase(&EraseInit, &pageError);
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_IDLE;
-  HAL_FLASH_Lock();
+
+  if (IS_FLASH_SECURE_OPERATION()) {
+    HAL_FLASH_Lock_SEC();
+  } else {
+    HAL_FLASH_Lock_NS();
+  }
+
 #ifdef DEBUG_FLASH_ACCESS
   if (err != HAL_OK)
   {
