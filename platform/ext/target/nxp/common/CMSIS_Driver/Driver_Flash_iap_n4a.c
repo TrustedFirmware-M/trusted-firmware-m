@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2013-2022 ARM Limited. All rights reserved.
- * Copyright 2019-2022, 2025 NXP
+ * Copyright 2019-2022, 2025-2026 NXP
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -22,6 +22,11 @@
 #include "flash_layout.h"
 #include "fsl_flash.h"
 #include "fsl_flash_ffr.h"
+
+#define TARGET_DEBUG_LOG 0
+#if TARGET_DEBUG_LOG
+#include "tfm_spm_log.h"
+#endif
 
 #ifndef ARG_UNUSED
 #define ARG_UNUSED(arg)  ((void)arg)
@@ -195,10 +200,8 @@ static int32_t ARM_Flash_ReadData(uint32_t addr, void *data, uint32_t cnt)
 
     /* Read Data */
     if(cnt) {
-        status  = FLASH_Read(&FLASH0_DEV->flashInstance, addr, (uint8_t *)data, cnt);
-        if(status != kStatus_Success) {
-            return ARM_DRIVER_ERROR;
-        }
+        /* Read Data */
+        (void)memcpy(data, (void *)(FLASH_BASE_ADDRESS + addr), cnt);
     }
 
     cnt /= data_width_byte[DriverCapabilities.data_width];
@@ -208,7 +211,9 @@ static int32_t ARM_Flash_ReadData(uint32_t addr, void *data, uint32_t cnt)
 static int32_t ARM_Flash_ProgramData(uint32_t addr, const void *data, uint32_t cnt)
 {
     static uint32_t status;
+#if defined(FLASH_DEBUG)
     uint32_t failedAddress, failedData;
+#endif
     /* Conversion between data items and bytes */
     cnt *= data_width_byte[DriverCapabilities.data_width];
 
@@ -225,11 +230,13 @@ static int32_t ARM_Flash_ProgramData(uint32_t addr, const void *data, uint32_t c
         return ARM_DRIVER_ERROR;
     }
 
+#if defined(FLASH_DEBUG) /*Disabled flash program verify*/
     status = FLASH_VerifyProgram(&FLASH0_DEV->flashInstance, addr, cnt, (const uint8_t *)data,
-				 &failedAddress, &failedData);
+                                 &failedAddress, &failedData);
     if (status != kStatus_Success) {
         return ARM_DRIVER_ERROR;
     }
+#endif
 
     cnt /= data_width_byte[DriverCapabilities.data_width];
     return cnt;

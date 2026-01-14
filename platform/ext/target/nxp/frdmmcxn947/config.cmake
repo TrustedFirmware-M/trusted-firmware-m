@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2020-2023, Arm Limited. All rights reserved.
-# Copyright 2025 NXP
+# Copyright 2025-2026 NXP
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -12,6 +12,12 @@ set(TFM_PLATFORM_NXP_HAL_FILE_PATH         "LOCAL"      CACHE STRING     "Path t
 ############################# Platform ##########################################
 set(CONFIG_TFM_USE_TRUSTZONE               ON           CACHE BOOL      "Use TrustZone")
 set(TFM_MULTI_CORE_TOPOLOGY                OFF          CACHE BOOL      "Platform has multi core")
+
+if(BL2)
+############################ BL2 ########################################
+set(BL2_S_IMAGE_START                  "0x10000"   CACHE STRING    "Base address of the secure image in configuration with BL2")
+set(BL2_NS_IMAGE_START                 "0x58000"   CACHE STRING    "Base address of the non secure image in configuration with BL2")
+endif()
 
 ############################ Platform features ##########################################
 set(MCUX_PSA_CRYPTO_DRIVER_ELS_PKC         OFF          CACHE BOOL      "Use psa-crypto-driver to use HW acceleration via driver wrappers")

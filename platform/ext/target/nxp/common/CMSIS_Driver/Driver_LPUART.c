@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2013-2021 Arm Limited. All rights reserved.
- * Copyright 2019-2022, 2025 NXP
+ * Copyright 2019-2022, 2025-2026 NXP
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -87,15 +87,12 @@ static ARM_USART_CAPABILITIES ARM_LPUART_GetCapabilities(void)
 
 int32_t ARM_LPUARTx_Initialize(UARTx_Resources* uart_dev)
 {
-    
-#if (__ARM_FEATURE_CMSE & 0x2) /* Initialize once in S */
     uint32_t lpuartClkFreq;
 
     lpuartClkFreq = BOARD_DEBUG_UART_CLK_FREQ;
 
     LPUART_Init(uart_dev->base, &uart_dev->config, lpuartClkFreq);
-#endif
-    
+
     return ARM_DRIVER_OK;
 }
 

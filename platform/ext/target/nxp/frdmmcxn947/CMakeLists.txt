@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright 2025 NXP
+# Copyright 2025-2026 NXP
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -172,7 +172,83 @@ target_sources(tfm_s
 )
 
 #========================= Platform BL2 =======================================#
-# to be added 
+if(BL2)
+
+    target_compile_definitions(platform_bl2
+        PUBLIC
+            ${TFM_LPUART_FEATURE_COMPILE_DEFINITION}
+    )
+
+    target_include_directories(platform_bl2
+        PUBLIC
+            partition
+            Device/Include
+            project_template/bl2
+            project_template/s
+            ${PLATFORM_DIR}/ext/target/nxp/common
+            ${PLATFORM_DIR}/ext/target/nxp/common/CMSIS_Driver
+            ${PLATFORM_DIR}/ext/target/nxp/common/Device/Config
+            ${PLATFORM_DIR}/ext/target/nxp/common/Device/Include
+            ${NXP_HAL_FILE_PATH}/frdmmcxn947/Native_Driver
+            ${NXP_HAL_FILE_PATH}/frdmmcxn947/Native_Driver/periph
+            ${NXP_HAL_FILE_PATH}/frdmmcxn947/Native_Driver/drivers
+            ${NXP_HAL_FILE_PATH}/frdmmcxn947/Native_Driver/drivers/romapi/flash/
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/uart
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/debug_console_lite
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/str
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/common
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/lpflexcomm
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/lpflexcomm/lpuart
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/ctimer
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/gpio
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/mcx_spc
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/port
+
+        PRIVATE
+            .
+            ${PLATFORM_DIR}/ext/target/nxp/common/Device/Config
+            ${PLATFORM_DIR}/ext/target/nxp/common/Device/Include
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/serial_manager
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/lists
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/uart
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/debug_console
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/str
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/assert
+    )
+    target_sources(platform_bl2
+        PRIVATE
+            project_template/s/board.c
+            project_template/s/clock_config.c
+            project_template/s/pin_mux.c
+            ${NXP_COMMON_DIR}/CMSIS_Driver/Driver_Flash_iap_n4a.c
+            ${NXP_COMMON_DIR}/CMSIS_Driver/Driver_LPUART.c
+            ${NXP_HAL_FILE_PATH}/frdmmcxn947/Native_Driver/system_MCXN947_cm33_core0.c
+            ${NXP_HAL_FILE_PATH}/frdmmcxn947/Native_Driver/drivers/romapi/flash/src/fsl_flash.c
+            ${NXP_HAL_FILE_PATH}/frdmmcxn947/Native_Driver/drivers/fsl_clock.c
+            ${NXP_HAL_FILE_PATH}/frdmmcxn947/Native_Driver/drivers/fsl_reset.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/lpflexcomm/fsl_lpflexcomm.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/lpflexcomm/lpuart/fsl_lpuart.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/ctimer/fsl_ctimer.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/gpio/fsl_gpio.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/drivers/mcx_spc/fsl_spc.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/uart/fsl_adapter_lpuart.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/assert/fsl_assert.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/debug_console_lite/fsl_debug_console.c
+            ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/str/fsl_str.c
+    )
+
+    # GNU ld has some strange behaviour to do with weak functions, and does not deal
+    # well with strong functions in static libraries overriding weak functions in
+    # object files. For this reason, the file hardware_init is linked directly to
+    # the s binary as an object file. This issue does not affect armclang, but the
+    # fix is compatible.
+    target_sources(bl2
+    PRIVATE
+        project_template/bl2/hardware_init.c
+    )
+endif()
 
 #========================= tfm_spm ============================================#
 

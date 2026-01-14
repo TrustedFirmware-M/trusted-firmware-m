@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2017-2023 Arm Limited. All rights reserved.
- * Copyright 2019-2025 NXP
+ * Copyright 2019-2026 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,10 @@
 
 #include "flash_layout.h"
 
+#ifdef BL2
+#define BL2_HEAP_SIZE           (0x0001000)
+#define BL2_MSP_STACK_SIZE      (0x0001800)
+#endif
 
 #ifdef ENABLE_HEAP
     #define S_HEAP_SIZE         (0x0001000)
@@ -63,8 +67,6 @@
  * by the bootloader.
  */
 #ifdef BL2
-#define BL2_HEADER_SIZE      (0x400)       /* 1 KB */
-#define BL2_TRAILER_SIZE     (0x400)       /* 1 KB */
 #if (MCUBOOT_IMAGE_NUMBER == 1) && \
     (NS_IMAGE_PRIMARY_PARTITION_OFFSET > S_IMAGE_PRIMARY_PARTITION_OFFSET)
 /* If secure image and nonsecure image are concatenated, and nonsecure image
@@ -74,7 +76,7 @@
 #define IMAGE_S_CODE_SIZE \
             (FLASH_S_PARTITION_SIZE - BL2_HEADER_SIZE)
 #endif
-#else
+#else /* BL2 */
 #ifndef BL2_HEADER_SIZE /* if BL2_HEADER_SIZE is not defined by config.cmake, then define it*/
 /* No header if no bootloader, but keep IMAGE_CODE_SIZE the same */
 #define BL2_HEADER_SIZE      (0x0)
@@ -129,14 +131,14 @@
 #define NS_DATA_LIMIT                   (NS_DATA_START + NS_DATA_SIZE - 1)
 
 /* Flash is divided into 32 kB sub-regions. Each sub-region can be assigned individual
-security tier by programing corresponding registers in secure AHB controller.*/
+security tier by programming corresponding registers in secure AHB controller.*/
 #define FLASH_SUBREGION_SIZE    (0x8000)     /* 32 kB */
 
 #define FLASH_REGION0_SUBREGION_NUMBER          32
 #define FLASH_REGION0_SIZE                      (1024 * 1024)
-                          
+
 #define FLASH_REGION1_SUBREGION_NUMBER          32
-#define FLASH_REGION1_SIZE                      (1024 * 1024)                           
+#define FLASH_REGION1_SIZE                      (1024 * 1024)
 
 /* RAM is divided into 4 kB sub-regions. Each sub-region can be assigned individual
 security tier by programing corresponding registers in secure AHB controller. */
@@ -164,7 +166,7 @@ security tier by programing corresponding registers in secure AHB controller. */
 #define BL2_CODE_SIZE     (FLASH_AREA_BL2_SIZE)
 #define BL2_CODE_LIMIT    (BL2_CODE_START + BL2_CODE_SIZE - 1)
 
-#define BL2_DATA_START    (S_RAM_ALIAS(0x0))
+#define BL2_DATA_START    (S_RAM_ALIAS(S_DATA_OFFSET + RESERVED_RAM_SIZE))
 #define BL2_DATA_SIZE     (TOTAL_RAM_SIZE)
 #define BL2_DATA_LIMIT    (BL2_DATA_START + BL2_DATA_SIZE - 1)
 #endif /* BL2 */

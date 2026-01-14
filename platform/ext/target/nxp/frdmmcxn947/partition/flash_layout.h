@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2022 Arm Limited. All rights reserved.
- * Copyright 2019-2023, 2025 NXP
+ * Copyright 2019-2023, 2025-2026 NXP
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,21 @@
 #ifndef __FLASH_LAYOUT_H__
 #define __FLASH_LAYOUT_H__
 
+/* Flash layout on MCXN10 with BL2 (MCUBoot), multiple-image, overwrite-only
+ *
+ * Total internal flash: 2 MB (0x0020_0000)
+ * Partition alignment:  32 KB (0x0000_8000)
+ *
+ * 0x0000_0000 BL2 - MCUBoot                 (0x010000)   64 KB
+ * 0x0001_0000 Secure image primary slot     (0x048000)  288 KB
+ * 0x0005_8000 Non-secure image primary slot (0x040000)  256 KB
+ * 0x0009_8000 Secure image secondary slot   (0x048000)  288 KB
+ * 0x000E_0000 Non-secure image secondary    (0x040000)  256 KB
+ * 0x0012_0000 Protected Storage (PS)        (0x004000)   16 KB
+ * 0x0012_4000 Internal Trusted Storage (ITS)(0x004000)   16 KB
+ * 0x0012_8000 OTP / NV counters             (0x002000)    8 KB
+ * 0x0012_A000 Unused                        (rest)
+ */
 
  /* Flash layout on MCXN10 without BL2:
  *
@@ -39,21 +54,100 @@
  * marked with comment.
  */
 
+#ifdef BL2
+
+#define FLASH_S_PARTITION_SIZE         (0x48000)           /* S partition: 288 KB */
+#define FLASH_NS_PARTITION_SIZE        (0x40000)           /* NS partition: 256 KB */
+
+#if (FLASH_S_PARTITION_SIZE > FLASH_NS_PARTITION_SIZE)
+#define FLASH_MAX_PARTITION_SIZE FLASH_S_PARTITION_SIZE
+#else
+#define FLASH_MAX_PARTITION_SIZE FLASH_NS_PARTITION_SIZE
+#endif
+#else /* NO BL2 */
 /* Size of a Secure and of a Non-secure image */
-#define FLASH_S_PARTITION_SIZE              (0x80000)       /* S partition: 512 kB*/
-#define FLASH_NS_PARTITION_SIZE             (0x80000)       /* NS partition: 512 kB*/
+#define FLASH_S_PARTITION_SIZE         (0x80000)           /* S partition: 512 kB*/
+#define FLASH_NS_PARTITION_SIZE        (0x80000)           /* NS partition: 512 kB*/
+#endif /* BL2 */
 
 /* Sector size of the embedded flash hardware (erase/program) */
-#define FLASH_AREA_IMAGE_SECTOR_SIZE        (0x2000)           /* 8 KB. Flash memory erase operation granularity. */
-#define FLASH_AREA_PROGRAM_SIZE             (0x2000)                /* Minimum size of program operation */
+#define FLASH_AREA_IMAGE_SECTOR_SIZE   (0x2000)            /* 8 KB. Flash memory erase operation granularity. */
+#define FLASH_AREA_PROGRAM_SIZE        (0x2000)            /* Minimum size of program operation */
 
 /* FLASH size */
-#define FLASH_TOTAL_SIZE                    (2 * 1024 * 1024)    /* 2 MB */
-                                                            
-/* Flash layout info for BL2 bootloader */
-#define FLASH_BASE_ADDRESS                  (0x00000000)
+#define FLASH_TOTAL_SIZE               (2 * 1024 * 1024)   /* 2 MB */
 
-#define FLASH_BASE_S                  (0x10000000)
+/* Flash layout info for BL2 bootloader */
+#define FLASH_BASE_ADDRESS             (0x00000000)
+#define FLASH_BASE_S                   (0x10000000)
+
+
+#ifdef BL2
+/* Offset and size definitions of the flash partitions that are handled by the
+ * bootloader. The image swapping is done between IMAGE_PRIMARY and
+ * IMAGE_SECONDARY, SCRATCH is used as a temporary storage during image
+ * swapping.
+ */
+#define FLASH_AREA_BL2_OFFSET      (0x0)
+#define FLASH_AREA_BL2_SIZE        (0x10000)              /* 64 KB */
+
+#if !defined(MCUBOOT_IMAGE_NUMBER) || (MCUBOOT_IMAGE_NUMBER == 1)
+/* Secure + Non-secure image primary slot */
+#define FLASH_AREA_0_ID            (1)
+#define FLASH_AREA_0_OFFSET        (FLASH_AREA_BL2_OFFSET + FLASH_AREA_BL2_SIZE)
+#define FLASH_AREA_0_SIZE          (FLASH_S_PARTITION_SIZE + \
+                                    FLASH_NS_PARTITION_SIZE)
+/* Secure + Non-secure secondary slot */
+#define FLASH_AREA_2_ID            (FLASH_AREA_0_ID + 1)
+#define FLASH_AREA_2_OFFSET        (FLASH_AREA_0_OFFSET + FLASH_AREA_0_SIZE)
+#define FLASH_AREA_2_SIZE          (FLASH_S_PARTITION_SIZE + \
+                                    FLASH_NS_PARTITION_SIZE)
+/* Not used (scratch area), the 'Swap' firmware upgrade operation is not
+ * supported on FRDM-MCXN947.
+ */
+#define FLASH_AREA_SCRATCH_ID      (FLASH_AREA_2_ID + 1)
+#define FLASH_AREA_SCRATCH_OFFSET  (FLASH_AREA_2_OFFSET + FLASH_AREA_2_SIZE)
+#define FLASH_AREA_SCRATCH_SIZE    (0)
+/* Maximum number of image sectors supported by the bootloader. */
+#define MCUBOOT_MAX_IMG_SECTORS    ((FLASH_S_PARTITION_SIZE + \
+                                     FLASH_NS_PARTITION_SIZE) / \
+                                    FLASH_AREA_IMAGE_SECTOR_SIZE)
+#elif (MCUBOOT_IMAGE_NUMBER == 2)
+/* Secure image primary slot */
+#define FLASH_AREA_0_ID            (1)
+#define FLASH_AREA_0_OFFSET        (FLASH_AREA_BL2_OFFSET + FLASH_AREA_BL2_SIZE)
+#define FLASH_AREA_0_SIZE          (FLASH_S_PARTITION_SIZE)
+/* Non-secure image primary slot */
+#define FLASH_AREA_1_ID            (FLASH_AREA_0_ID + 1)
+#define FLASH_AREA_1_OFFSET        (FLASH_AREA_0_OFFSET + FLASH_AREA_0_SIZE)
+#define FLASH_AREA_1_SIZE          (FLASH_NS_PARTITION_SIZE)
+/* Secure image secondary slot */
+#define FLASH_AREA_2_ID            (FLASH_AREA_1_ID + 1)
+#define FLASH_AREA_2_OFFSET        (FLASH_AREA_1_OFFSET + FLASH_AREA_1_SIZE)
+#define FLASH_AREA_2_SIZE          (FLASH_S_PARTITION_SIZE)
+/* Non-secure image secondary slot */
+#define FLASH_AREA_3_ID            (FLASH_AREA_2_ID + 1)
+#define FLASH_AREA_3_OFFSET        (FLASH_AREA_2_OFFSET + FLASH_AREA_2_SIZE)
+#define FLASH_AREA_3_SIZE          (FLASH_NS_PARTITION_SIZE)
+/* Not used (scratch area), the 'Swap' firmware upgrade operation is not
+ * supported on FRDM-MCXN947.
+ */
+#define FLASH_AREA_SCRATCH_ID      (FLASH_AREA_3_ID + 1)
+#define FLASH_AREA_SCRATCH_OFFSET  (FLASH_AREA_3_OFFSET + FLASH_AREA_3_SIZE)
+#define FLASH_AREA_SCRATCH_SIZE    (0)
+/* Maximum number of image sectors supported by the bootloader. */
+#define MCUBOOT_MAX_IMG_SECTORS    (FLASH_MAX_PARTITION_SIZE / \
+                                    FLASH_AREA_IMAGE_SECTOR_SIZE)
+#else /* MCUBOOT_IMAGE_NUMBER > 2 */
+#error "Only MCUBOOT_IMAGE_NUMBER 1 and 2 are supported!"
+#endif /* MCUBOOT_IMAGE_NUMBER */
+
+/* Not used, the 'Swap' firmware upgrade operation is not supported on FRDM-MCXN947.
+ * The maximum number of status entries supported by the bootloader.
+ */
+#define MCUBOOT_STATUS_MAX_ENTRIES (0)
+
+#else /* NO BL2 */
 
 #ifdef SB_FILE /* Use signed Secure Binary (SB) image */
 #define FLASH_SB_TAIL   0x2000 /* 8 KB */
@@ -67,11 +161,13 @@
 #define FLASH_AREA_0_SIZE          (FLASH_S_PARTITION_SIZE + \
                                     FLASH_NS_PARTITION_SIZE + \
                                     FLASH_SB_TAIL)
-                             
+
 /* Not used*/
 #define FLASH_AREA_SCRATCH_ID      (FLASH_AREA_0_ID + 1)
 #define FLASH_AREA_SCRATCH_OFFSET  (FLASH_AREA_0_OFFSET + FLASH_AREA_0_SIZE)
 #define FLASH_AREA_SCRATCH_SIZE    (0)
+
+#endif /* BL2 */
 
 /* Note: FLASH_PS_AREA_OFFSET, FLASH_ITS_AREA_OFFSET and
  * FLASH_OTP_NV_COUNTERS_AREA_OFFSET point to offsets in flash, but reads and
