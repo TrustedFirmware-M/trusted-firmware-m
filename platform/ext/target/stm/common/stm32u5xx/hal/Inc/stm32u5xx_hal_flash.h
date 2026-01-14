@@ -902,6 +902,10 @@ void               HAL_FLASH_OperationErrorCallback(uint32_t ReturnValue);
 /** @addtogroup FLASH_Exported_Functions_Group2
   * @{
   */
+HAL_StatusTypeDef  HAL_FLASH_Unlock_NS(void);
+HAL_StatusTypeDef  HAL_FLASH_Unlock_SEC(void);
+HAL_StatusTypeDef  HAL_FLASH_Lock_NS(void);
+HAL_StatusTypeDef  HAL_FLASH_Lock_SEC(void);
 HAL_StatusTypeDef  HAL_FLASH_Unlock(void);
 HAL_StatusTypeDef  HAL_FLASH_Lock(void);
 /* Option bytes control */
