@@ -9,7 +9,6 @@
 #include "psa/service.h"
 
 #include "ifx_ext_sp_defs.h"
-#include "tfm_log_unpriv.h"
 
 #ifdef IFX_MTB_SRF
 #include "cybsp.h"
