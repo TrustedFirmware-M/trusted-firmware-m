@@ -25,8 +25,6 @@
 #include "tfm_string.h"
 #include "tfm_utils.h"
 
-#define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
-
 #if ATTEST_TOKEN_PROFILE_PSA_IOT_1
 #define ATTEST_TOKEN_PROFILE_DEFINITION_STRING "PSA_IOT_PROFILE_1"
 #elif ATTEST_TOKEN_PROFILE_ARM_CCA

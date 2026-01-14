@@ -15,6 +15,7 @@
 #include "host_base_address.h"
 #include "platform_base_address.h"
 #include "tfm_plat_defs.h"
+#include "tfm_utils.h"
 #ifdef RSE_GPT_SUPPORT
 #include "plat_def_fip_uuid.h"
 #include "fwu_metadata.h"
@@ -40,16 +41,6 @@ extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 #define IMAGE_INPUT_BASE_PHYSICAL HOST_FLASH0_BASE
 #endif /* RSE_BL2_ENABLE_IMAGE_STAGING */
 
-static inline uint32_t round_down(uint32_t num, uint32_t boundary)
-{
-    return num - (num % boundary);
-}
-
-static inline uint32_t round_up(uint32_t num, uint32_t boundary)
-{
-    return (num + boundary - 1) - ((num + boundary - 1) % boundary);
-}
-
 enum tfm_plat_err_t setup_aligned_atu_slot(uint64_t physical_address, uint32_t size,
                                                   uint32_t boundary,
                                                   uint32_t logical_address,
@@ -63,8 +54,8 @@ enum tfm_plat_err_t setup_aligned_atu_slot(uint64_t physical_address, uint32_t s
         return TFM_PLAT_ERR_HOST_FLASH_SETUP_ATU_SLOT_INVALID_INPUT;
     }
 
-    aligned_physical_address = round_down(physical_address, boundary);
-    *atu_slot_size = round_up(physical_address + size, boundary)
+    aligned_physical_address = ALIGN_DOWN(physical_address, boundary);
+    *atu_slot_size = ALIGN_UP(physical_address + size, boundary)
                      - aligned_physical_address;
 
     *alignment_offset = physical_address - aligned_physical_address;

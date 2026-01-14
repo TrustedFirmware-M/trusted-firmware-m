@@ -13,15 +13,7 @@
 #include "rse_persistent_data.h"
 #include "rse_soc_uid.h"
 #include "rse_zero_count.h"
-
-static inline uint32_t round_down(uint32_t num, uint32_t boundary)
-{
-    return num - (num % boundary);
-}
-static inline uint32_t round_up(uint32_t num, uint32_t boundary)
-{
-    return (num + boundary - 1) - ((num + boundary - 1) % boundary);
-}
+#include "tfm_utils.h"
 
 static inline bool is_otp_clean(uint32_t start_offset, uint32_t size)
 {
@@ -249,9 +241,9 @@ static enum dcsu_error_t __dcsu_hal_read_write_otp(uint32_t otp_field_read_offse
     bool unaligned_read_write;
     uint32_t read_write_offset_in_buffer;
 
-    read_write_offset = round_down(otp_field_read_offset, sizeof(uint32_t));
+    read_write_offset = ALIGN_DOWN(otp_field_read_offset, sizeof(uint32_t));
     read_write_offset_in_buffer = otp_field_read_offset - read_write_offset;
-    read_write_size = round_up(data_size + read_write_offset_in_buffer, sizeof(uint32_t));
+    read_write_size = ALIGN_UP(data_size + read_write_offset_in_buffer, sizeof(uint32_t));
 
     if ((read_write_offset_in_buffer == 0) && (read_write_size == data_size)) {
         /* Temporary buffer not required */

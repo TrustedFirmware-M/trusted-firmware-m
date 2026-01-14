@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -16,6 +16,9 @@
 #include "tfm_plat_defs.h"
 #include "Driver_Flash.h"
 #include "flash_layout.h"
+#if defined(OTP_WRITEABLE)
+#include "tfm_utils.h"
+#endif
 
 #include <string.h>
 
@@ -229,15 +232,6 @@ enum tfm_plat_err_t init_otp_nv_counters_flash(void)
 }
 
 #if defined(OTP_WRITEABLE)
-static inline uint32_t round_down(uint32_t num, uint32_t boundary)
-{
-    return num - (num % boundary);
-}
-
-static inline uint32_t round_up(uint32_t num, uint32_t boundary)
-{
-    return (num + boundary - 1) - ((num + boundary - 1) % boundary);
-}
 
 static enum tfm_plat_err_t erase_flash_region(size_t start, size_t size)
 {
@@ -248,7 +242,7 @@ static enum tfm_plat_err_t erase_flash_region(size_t start, size_t size)
         return TFM_PLAT_ERR_INVALID_INPUT;
     }
 
-    for (idx = round_down(start, TFM_OTP_NV_COUNTERS_SECTOR_SIZE);
+    for (idx = ALIGN_DOWN(start, TFM_OTP_NV_COUNTERS_SECTOR_SIZE);
          idx < start + size;
          idx += TFM_OTP_NV_COUNTERS_SECTOR_SIZE) {
         err = (enum tfm_plat_err_t)OTP_NV_COUNTERS_FLASH_DEV.EraseSector(idx);
@@ -353,15 +347,16 @@ enum tfm_plat_err_t write_otp_nv_counters_flash(uint32_t offset, const void *dat
     uint32_t swap_count_buf_size = TFM_HAL_ITS_PROGRAM_UNIT > sizeof(swap_count) ?
         TFM_HAL_ITS_PROGRAM_UNIT : sizeof(swap_count);
 
-    erase_start_offset = round_down(offset, TFM_OTP_NV_COUNTERS_SECTOR_SIZE);
-    erase_end_offset = round_up(offset + cnt, TFM_OTP_NV_COUNTERS_SECTOR_SIZE);
+    erase_start_offset = ALIGN_DOWN(offset, TFM_OTP_NV_COUNTERS_SECTOR_SIZE);
+    erase_end_offset = ALIGN_UP(offset + cnt, TFM_OTP_NV_COUNTERS_SECTOR_SIZE);
 
     swap_count_erase_start_offset =
-        round_down(offsetof(struct flash_otp_nv_counters_region_t, swap_count),
+        ALIGN_DOWN(offsetof(struct flash_otp_nv_counters_region_t, swap_count),
                    TFM_OTP_NV_COUNTERS_SECTOR_SIZE);
 
     swap_count_program_block_start_offset =
-        round_down(offsetof(struct flash_otp_nv_counters_region_t, swap_count),
+        // cppcheck-suppress moduloofone
+        ALIGN_DOWN(offsetof(struct flash_otp_nv_counters_region_t, swap_count),
                    TFM_HAL_ITS_PROGRAM_UNIT);
 
     if (erase_end_offset > TFM_OTP_NV_COUNTERS_AREA_SIZE) {

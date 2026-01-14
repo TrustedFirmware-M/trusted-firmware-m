@@ -16,6 +16,7 @@
 
 #include "mhu.h"
 #include "mhu_v3_x.h"
+#include "tfm_utils.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -23,10 +24,6 @@
 
 #define MHU_REQUIRED_NUMBER_CHANNELS (4)
 #define MHU_NOTIFY_VALUE    (1234u)
-
-#ifndef ALIGN_UP
-#define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
-#endif
 
 /*
  * MHUv3 Wrapper utility macros

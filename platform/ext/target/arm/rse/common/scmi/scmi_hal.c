@@ -9,6 +9,7 @@
 #include "scmi_hal.h"
 #include "device_definition.h"
 #include "host_base_address.h"
+#include "tfm_utils.h"
 
 #if !defined(TEST_S_SCMI_COMMS)
 #include "scmi_plat_defs.h"
@@ -16,8 +17,6 @@
 
 /* TODO: Make these configurable */
 #define SCP_MHU_DOORBELL_CHANNEL 2U
-
-#define ALIGN_UP(num, align) (((num) + ((align) - 1)) & ~((align) - 1))
 
 scmi_comms_err_t scmi_hal_shared_memory_init(void)
 {

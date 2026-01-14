@@ -15,8 +15,7 @@
 #include "atu_rse_lib.h"
 #include "image_size_defs.h"
 #include "platform_base_address.h"
-
-#define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
+#include "tfm_utils.h"
 
 /* Use the slots of the dynamic ATU as this platform makes direct calls to the ATU driver instead */
 #define RSE_ATU_BASE_ID ATU_DYN_SLOT_START

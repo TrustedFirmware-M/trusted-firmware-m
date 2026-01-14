@@ -15,8 +15,7 @@
 #include "platform_base_address.h"
 #include "host_clus_util_lcp_memory_map.h"
 #include "size_defs.h"
-
-#define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
+#include "tfm_utils.h"
 
 /*
  * ATU controller enforces a minimum size and all regions are restricted to

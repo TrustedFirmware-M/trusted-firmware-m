@@ -13,8 +13,14 @@
 
 #include "platform_base_address.h"
 
-#define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
-#define ALIGN_DOWN(num, align)  ((num) & ~((align) - 1))
+/* Do not use common definitions from tfm_utils.h, this header is included in linkerscripts */
+#ifndef ALIGN_UP
+#define ALIGN_UP(num, align)    ((num) + ((align) - ((num) % (align))) % (align))
+#endif /* ALIGN_UP */
+
+#ifndef ALIGN_DOWN
+#define ALIGN_DOWN(num, align)  ((num) - ((num) % (align)))
+#endif /* ALIGN_DOWN */
 
 #define RSE_ATU_PAGE_SIZE (0x2000U) /* 8KB */
 

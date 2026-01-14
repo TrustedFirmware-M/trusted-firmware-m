@@ -20,18 +20,9 @@
 #include "host_base_address.h"
 #include "platform_base_address.h"
 #include "soft_crc.h"
+#include "tfm_utils.h"
 
 extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
-
-static inline uint32_t round_down(uint32_t num, uint32_t boundary)
-{
-    return num - (num % boundary);
-}
-
-static inline uint32_t round_up(uint32_t num, uint32_t boundary)
-{
-    return (num + boundary - 1) - ((num + boundary - 1) % boundary);
-}
 
 static enum tfm_plat_err_t map_atu_align_physical_addr(uint64_t physical_addr,
                                                        uint32_t logical_addr, uint32_t size,
@@ -42,8 +33,8 @@ static enum tfm_plat_err_t map_atu_align_physical_addr(uint64_t physical_addr,
     uint32_t size_mapped;
     enum atu_error_t atu_err;
 
-    physical_addr_mapped = round_down(physical_addr, atu_page_size);
-    size_mapped = round_up(size + (physical_addr_mapped - physical_addr), atu_page_size);
+    physical_addr_mapped = ALIGN_DOWN(physical_addr, atu_page_size);
+    size_mapped = ALIGN_UP(size + (physical_addr_mapped - physical_addr), atu_page_size);
 
     /* The logical address must also be aligned, that will be checked
      * in the ATU driver

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 ARM Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright 2019-2022 NXP. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -21,6 +21,7 @@
 #include "platform_base_address.h"
 #include "flash_layout.h"
 #include "fsl_iap.h"
+#include "tfm_utils.h"
 
 #ifndef ARG_UNUSED
 #define ARG_UNUSED(arg)  ((void)arg)
@@ -33,11 +34,6 @@
 /* INT_STATUS - Interrupt status bits - taken from LPC5588_cm33_core0.h */
 
 #define FLASH_INT_STATUS_OVL_MASK                (0x10U)
-
-/* Alignment macros - taken from bootloader_common.h */
-#ifndef ALIGN_DOWN
-#define ALIGN_DOWN(x, a) ((x) & -(a))
-#endif
 
 /* Flash property defines */
 

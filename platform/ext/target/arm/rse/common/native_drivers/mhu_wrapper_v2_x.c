@@ -21,13 +21,10 @@
 #include <assert.h>
 
 #include "mhu_v2_x.h"
+#include "tfm_utils.h"
 
 #define MHU_REQUIRED_NUMBER_CHANNELS (4)
 #define MHU_NOTIFY_VALUE    (1234u)
-
-#ifndef ALIGN_UP
-#define ALIGN_UP(num, align)    (((num) + ((align) - 1)) & ~((align) - 1))
-#endif
 
 /*
  * MHUv2 Wrapper utility macros

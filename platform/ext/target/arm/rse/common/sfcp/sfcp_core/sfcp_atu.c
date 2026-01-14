@@ -12,6 +12,7 @@
 #include "device_definition.h"
 #include "platform_base_address.h"
 #include "prix64.h"
+#include "tfm_utils.h"
 
 struct comms_atu_region_params_t {
     uint32_t log_addr;
@@ -23,11 +24,6 @@ struct comms_atu_region_params_t {
 
 /* ATU config */
 static struct comms_atu_region_params_t atu_regions[SFCP_ATU_REGION_AM] = { 0 };
-
-static inline uint64_t round_down(uint64_t num, uint64_t boundary)
-{
-    return num - (num % boundary);
-}
 
 enum tfm_plat_err_t comms_atu_add_region_to_set(comms_atu_region_set_t *set, uint8_t region)
 {
@@ -102,7 +98,7 @@ static enum tfm_plat_err_t setup_region_for_host_buf(uint64_t host_addr, uint32_
     }
 
     region_params = &atu_regions[region_idx];
-    region_params->phys_addr = round_down(host_addr, SFCP_ATU_PAGE_SIZE);
+    region_params->phys_addr = ALIGN_DOWN(host_addr, SFCP_ATU_PAGE_SIZE);
     region_params->size = SFCP_ATU_REGION_SIZE;
 
     if (host_buf_end > region_params->phys_addr + region_params->size) {

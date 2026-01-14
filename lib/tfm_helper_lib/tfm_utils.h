@@ -18,5 +18,13 @@
 #define IOVEC_LEN(x) ((uint32_t)ARRAY_SIZE(x))
 #endif /* IOVEC_LEN */
 
+#ifndef ALIGN_UP
+#define ALIGN_UP(num, align)    ((num) + ((align) - ((num) % (align))) % (align))
+#endif /* ALIGN_UP */
+
+#ifndef ALIGN_DOWN
+#define ALIGN_DOWN(num, align)  ((num) - ((num) % (align)))
+#endif /* ALIGN_DOWN */
+
 #endif /*_TFM_UTILS_H_*/
 

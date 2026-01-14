@@ -1,4 +1,5 @@
 /*
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  * Copyright 2021 NXP
  * All rights reserved.
  *
@@ -21,16 +22,6 @@
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-
-/*! @brief Alignment(down) utility. */
-#if !defined(ALIGN_DOWN)
-#define ALIGN_DOWN(x, a) ((x) & (uint32_t)(-((int32_t)(a))))
-#endif
-
-/*! @brief Alignment(up) utility. */
-#if !defined(ALIGN_UP)
-#define ALIGN_UP(x, a) (-((int32_t)((uint32_t)(-((int32_t)(x))) & (uint32_t)(-((int32_t)(a))))))
-#endif
 
 #define FLASH_FFR_MAX_PAGE_SIZE    (512u)
 #define FLASH_FFR_CUST_ADDRESS     (0x200U)
