@@ -45,17 +45,6 @@ target_include_directories(eventlog
     ${LIB_EVENTLOG_PATH}/include/private
 )
 
-if(EVENTLOG_HASH_ALGORITHM STREQUAL "SHA512")
-    add_compile_definitions(TPM_ALG_ID=TPM_ALG_SHA512)
-    add_compile_definitions(TCG_DIGEST_SIZE=64U)
-elseif(EVENTLOG_HASH_ALGORITHM STREQUAL "SHA384")
-    add_compile_definitions(TPM_ALG_ID=TPM_ALG_SHA384)
-    add_compile_definitions(TCG_DIGEST_SIZE=48U)
-else()
-    add_compile_definitions(TPM_ALG_ID=TPM_ALG_SHA256)
-    add_compile_definitions(TCG_DIGEST_SIZE=32U)
-endif()
-
 target_link_libraries(eventlog
     PRIVATE
         tfm_log_headers
