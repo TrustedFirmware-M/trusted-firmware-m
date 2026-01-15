@@ -53,11 +53,11 @@
 #define GET_SPU_INSTANCE(periph)                                                                   \
 	((NRF_SPU_Type *)(SPU_ADDRESS_REGION | (periph.periph_start & 0x00FC0000)))
 
-#if defined(NRF54LV10A_ENGA_XXAA)
+#if defined(NRF54LV10A_XXAA)
 /* On nRF54LV10A XL1 and XL2 are(P1.13) and XL2(P1.14) */
 #define PIN_XL1 45
 #define PIN_XL2 46
-#elif defined(NRF54LM20A_ENGA_XXAA) || defined(NRF54LM20B_XXAA)
+#elif defined(NRF54LM20A_XXAA) || defined(NRF54LM20B_XXAA)
 /* On nRF54LM20A XL1 and XL2 are(P1.13) and XL2(P1.14) */
 #define PIN_XL1 45
 #define PIN_XL2 46
@@ -65,7 +65,7 @@
 /* On nRF54L15 XL1 and XL2 are(P1.00) and XL2(P1.01) */
 #define PIN_XL1 32
 #define PIN_XL2 33
-#endif /* SOC_NRF54LV10A_ENGA || SOC_NRF54LM20A_ENGA || SOC_NRF54LM20B */
+#endif /* SOC_NRF54LV10A || SOC_NRF54LM20A || SOC_NRF54LM20B */
 
 /* During TF-M system initialization we invoke a function that comes
  * from Zephyr. This function does not have a header file so we

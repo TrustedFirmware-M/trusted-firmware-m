@@ -15,7 +15,7 @@ set(TFM_SYSTEM_ARCHITECTURE armv8-m.main)
 set(CONFIG_TFM_FP_ARCH "fpv5-sp-d16")
 
 add_compile_definitions(
-  NRF54LM20A_ENGA_XXAA
+  NRF54LM20A_XXAA
   NRF54L_SERIES
   NRF_APPLICATION
   # SKIP configuring the SAU from the MDK as it does not fit TF-M's needs
