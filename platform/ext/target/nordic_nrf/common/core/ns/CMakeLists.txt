@@ -21,8 +21,8 @@ if((NRF_SOC_VARIANT MATCHES "^nrf54l1[05]$") OR
    (TFM_PLATFORM MATCHES "nordic_nrf/nrf54l15dk_nrf54l1[05]_cpuapp"))
     # nrf54l10 and nrf54l15 share the same startup file
     set(startup_file "startup_nrf54lx.c")
-elseif((NRF_SOC_VARIANT MATCHES "^nrf54lm20a?$") OR
-       (TFM_PLATFORM MATCHES "nordic_nrf/nrf54lm20dk_nrf54lm20a?_cpuapp"))
+elseif((NRF_SOC_VARIANT MATCHES "^nrf54lm20[ab]?$") OR
+       (TFM_PLATFORM MATCHES "nordic_nrf/nrf54lm20dk_nrf54lm20[ab]?_cpuapp"))
     # nrf54lm20 has its own startup file
     set(startup_file "startup_nrf54lm.c")
 elseif((NRF_SOC_VARIANT MATCHES "^nrf54lv10a?$") OR
