@@ -174,6 +174,47 @@ static struct thin_key_slot_s g_key_slot =  {
 static mbedtls_psa_external_random_context_t *g_ctx = NULL;
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
+#if defined(CC3XX_CRYPTO_OPAQUE_KEYS)
+psa_status_t cc3xx_opaque_keys_attr_init(psa_key_attributes_t *attributes,
+                                             psa_key_id_t key_id,
+                                             psa_algorithm_t alg,
+                                             const uint8_t **key_buffer,
+                                             size_t *key_buffer_size)
+{
+#if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
+
+    size_t key_size = cc3xx_get_key_buffer_size(key_id);
+    psa_key_type_t key_type;
+
+    psa_set_key_lifetime(attributes, CC3XX_OPAQUE_KEY_LIFETIME);
+    psa_set_key_bits(attributes, PSA_BYTES_TO_BITS(key_size));
+    psa_set_key_id(attributes, key_id);
+
+    switch (alg) {
+    case PSA_ALG_CTR:
+    case PSA_ALG_CCM:
+    case PSA_ALG_CMAC:
+    case PSA_ALG_ECB_NO_PADDING:
+        key_type = PSA_KEY_TYPE_AES;
+        break;
+    default:
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
+    psa_set_key_type(attributes, key_type);
+
+    g_pubkey_data[0] = cc3xx_get_builtin_key(key_id);
+
+    *key_buffer = (const uint8_t*)g_pubkey_data;
+    *key_buffer_size = key_size;
+
+    return PSA_SUCCESS;
+#else
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif
+}
+#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
+
 /**
  * @brief Retrieves the builtin key associated to the \a key_id
  *        from the underlying platform, binding the core key

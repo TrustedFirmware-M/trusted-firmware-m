@@ -17,6 +17,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
+/* KMU keys are 256-bit long */
+#define OPAQUE_KEY_SIZE ((size_t)32)
+
 /**
  * \brief The PSA driver location for builtin keys. Arbitrary within the
  *        ranges documented at
@@ -61,22 +64,6 @@ uint32_t cc3xx_get_builtin_key(psa_key_id_t key_id);
  * @return psa_key_id_t The opaque key ID.
  */
 psa_key_id_t cc3xx_get_opaque_key(uint32_t key_id);
-
-/**
- * @brief                          Initialize the key attributes of an opaque key.
- *
- * @param[in,out] attributes       Key attributes to initialize.
- * @param[in]     key_id           Opaque key ID.
- * @param[in]     alg              PSA Alg, used to set the key type.
- * @param[out]    key_buffer       key buffer which stores the opaque key ID.
- * @param[out]    key_buffer_size  Key buffer size.
- * @return psa_status_t
- */
-psa_status_t cc3xx_opaque_keys_attr_init(psa_key_attributes_t *attributes,
-                                         psa_key_id_t key_id,
-                                         psa_algorithm_t alg,
-                                         const uint8_t **key_buffer,
-                                         size_t *key_buffer_size);
 
 #ifdef __cplusplus
 }

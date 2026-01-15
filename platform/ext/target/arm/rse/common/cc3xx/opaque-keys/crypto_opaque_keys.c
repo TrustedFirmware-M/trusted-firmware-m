@@ -9,9 +9,6 @@
 #include "kmu_drv.h"
 #include "psa/crypto.h"
 
-/* KMU keys are 256-bit long */
-#define OPAQUE_KEY_SIZE ((size_t)32)
-
 /**
  * @brief           Return the corresponding key size of the corresponding
  *                  opaque key.
@@ -100,39 +97,3 @@ inline psa_key_id_t cc3xx_get_opaque_key(uint32_t key_id) {
     return CC3XX_OPAQUE_KEY_ID_INVALID;
 }
 
-psa_status_t cc3xx_opaque_keys_attr_init(psa_key_attributes_t *attributes,
-                                             psa_key_id_t key_id,
-                                             psa_algorithm_t alg,
-                                             const uint8_t **key_buffer,
-                                             size_t *key_buffer_size)
-{
-#if !defined(MBEDTLS_PSA_CRYPTO_KEY_ID_ENCODES_OWNER)
-
-    size_t key_size = cc3xx_get_key_buffer_size(key_id);
-    psa_key_type_t key_type;
-
-    psa_set_key_lifetime(attributes, CC3XX_OPAQUE_KEY_LIFETIME);
-    psa_set_key_bits(attributes, PSA_BYTES_TO_BITS(key_size));
-    psa_set_key_id(attributes, key_id);
-
-    switch (alg) {
-    case PSA_ALG_CTR:
-    case PSA_ALG_CCM:
-    case PSA_ALG_CMAC:
-    case PSA_ALG_ECB_NO_PADDING:
-        key_type = PSA_KEY_TYPE_AES;
-        break;
-    default:
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
-
-    psa_set_key_type(attributes, key_type);
-
-    *key_buffer = (const uint8_t*)key_id;
-    *key_buffer_size = key_size;
-
-    return PSA_SUCCESS;
-#else
-    return PSA_ERROR_NOT_SUPPORTED;
-#endif
-}

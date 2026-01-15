@@ -53,8 +53,7 @@ static psa_status_t cmac_compute(const psa_key_attributes_t *attributes,
 
 #ifdef CC3XX_CRYPTO_OPAQUE_KEYS
     if (CC3XX_IS_OPAQUE_KEY(attributes)) {
-        psa_key_id_t opaque_key_id = (psa_key_id_t)key_buffer;
-        key_id = (cc3xx_aes_key_id_t)cc3xx_get_builtin_key(opaque_key_id);
+        key_id = (cc3xx_aes_key_id_t)(((uint32_t *)key_buffer)[0]);
 
         if (CC3XX_IS_OPAQUE_KEY_INVALID(key_id)) {
             return PSA_ERROR_INVALID_ARGUMENT;
@@ -117,8 +116,7 @@ static psa_status_t cmac_setup(struct cc3xx_aes_state_t *state,
 
 #ifdef CC3XX_CRYPTO_OPAQUE_KEYS
     if (CC3XX_IS_OPAQUE_KEY(attributes)) {
-        psa_key_id_t opaque_key_id = (psa_key_id_t)key_buffer;
-        key_id = (cc3xx_aes_key_id_t)cc3xx_get_builtin_key(opaque_key_id);
+        key_id = (cc3xx_aes_key_id_t)(((uint32_t *)key_buffer)[0]);
 
         if (CC3XX_IS_OPAQUE_KEY_INVALID(key_id)) {
             return PSA_ERROR_INVALID_ARGUMENT;
