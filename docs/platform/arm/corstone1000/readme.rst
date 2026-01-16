@@ -115,7 +115,7 @@ FVP
         -DPLATFORM_IS_FVP=True
     cmake --build build_spe -- install
     dd conv=notrunc bs=1 if=build_spe/bin/bl1_1.bin of=build_spe/bin/bl1.bin seek=0
-    dd conv=notrunc bs=1 if=build_spe/bin/bl1_provisioning_bundle.bin of=build_spe/bin/bl1.bin seek=51200
+    dd conv=notrunc bs=1 if=build_spe/bin/bl1_provisioning_bundle.bin of=build_spe/bin/bl1.bin seek=59392
     ./<tf-m-root>/platform/ext/target/arm/corstone1000/create-flash-image.sh build_spe/bin cs1000.bin
 
     <path-to-FVP-installation>/models/Linux64_GCC-9.3/FVP_Corstone-1000 \
@@ -159,7 +159,7 @@ FPGA
         -DTEST_S_IPC=OFF
     cmake --build build_spe -- install
     dd conv=notrunc bs=1 if=build_spe/bin/bl1_1.bin of=build_spe/bin/bl1.bin seek=0
-    dd conv=notrunc bs=1 if=build_spe/bin/bl1_provisioning_bundle.bin of=build_spe/bin/bl1.bin seek=51200
+    dd conv=notrunc bs=1 if=build_spe/bin/bl1_provisioning_bundle.bin of=build_spe/bin/bl1.bin seek=59392
     ./<tf-m-root>/platform/ext/target/arm/corstone1000/create-flash-image.sh build_spe/bin cs1000.bin
     cp build_spe/bin/bl1.bin <path-to-FPGA-SD-CARD>/SOFTWARE/
     cp build_spe/bin/cs1000.bin <path-to-FPGA-SD-CARD>/SOFTWARE/
@@ -173,8 +173,13 @@ FPGA
    tests but not all. Other test configurations can be found in the
    :doc:`Test Configuration </configuration/test_configuration>`.
 
-
-*Copyright (c) 2021-2025, Arm Limited. All rights reserved.*
+*********
+Reference
+*********
 
 .. _Arm Ecosystem FVPs: https://developer.arm.com/documentation/100966/1128/Arm--Corstone-1000-FVP?lang=en
 .. _Arm Corstone-1000 User Guide: https://corstone1000.docs.arm.com/en/latest/user-guide.html
+
+--------------------------------
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
