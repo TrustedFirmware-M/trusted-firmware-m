@@ -59,21 +59,6 @@ extern char boot_measurement_sw_type[BOOT_MEASUREMENT_SLOT_RT_2 + 1][SW_TYPE_LEN
     ((2 + MCUBOOT_IMAGE_NUMBER + ROTPK_MEASUREMENT_COUNT) * SHARED_BOOT_MEASUREMENT_SIZE)
 
 #ifdef TFM_PARTITION_DTPM_CLIENT
-/**
- * \brief                               Initializes the PCR index mapping for
- *                                      boot measurement slots.
- *
- * \note                                This function sets all internal PCR index
- *                                      mappings to -1, then assigns specific PCR
- *                                      indices to predefined boot measurement
- *                                      slots using the SET_MBOOT_SLOT_PCR macro.
- *
- * \retval 0                            The PCR index mapping was initialized
- *                                      successfully.
- * \retval 1                            A slot or PCR index was out of range
- *                                      during initialization.
- */
-int init_pcr_index_for_boot_measurement(void);
 
 /**
  * \brief                               Retrieves the PCR index associated with
