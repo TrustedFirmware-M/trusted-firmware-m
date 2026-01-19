@@ -29,3 +29,4 @@ set(USE_HARDENED_PLATFORM_INIT             ON           CACHE BOOL      "Use har
 ################################## LOG LEVEL #############################################################
 set(TFM_SPM_LOG_LEVEL             LOG_LEVEL_INFO       CACHE STRING     "Set default SPM log level as INFO level" FORCE)
 set(TFM_PARTITION_LOG_LEVEL       LOG_LEVEL_INFO       CACHE STRING     "Set default Secure Partition log level as INFO level" FORCE)
+set(CONFIG_TFM_INCLUDE_STDLIBC          ON               CACHE BOOL      "Include standard C libraries and startup code")
