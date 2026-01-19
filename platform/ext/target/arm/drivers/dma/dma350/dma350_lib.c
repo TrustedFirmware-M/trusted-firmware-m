@@ -336,6 +336,8 @@ enum dma350_lib_error_t dma350_memcpy(struct dma350_ch_dev_t* dev,
         return lib_err;
     }
 
+    dma350_ch_clear(dev);
+
     lib_err = dma350_lib_set_src_des(dev, src, des, size, size);
     if(lib_err != DMA350_LIB_ERR_NONE) {
         return lib_err;
@@ -365,6 +367,8 @@ enum dma350_lib_error_t dma350_memmove(struct dma350_ch_dev_t* dev,
     if(lib_err != DMA350_LIB_ERR_NONE) {
         return lib_err;
     }
+
+    dma350_ch_clear(dev);
 
     if (src < des && (((const uint8_t*)src) + size) > (uint8_t*)des) {
         /* Start from the end if the end of the source overlaps with
@@ -405,6 +409,8 @@ enum dma350_lib_error_t dma350_endian_swap(struct dma350_ch_dev_t* dev,
     if(lib_err != DMA350_LIB_ERR_NONE) {
         return lib_err;
     }
+
+    dma350_ch_clear(dev);
 
     lib_err = dma350_lib_set_des(dev, des);
     if(lib_err != DMA350_LIB_ERR_NONE) {
@@ -476,6 +482,8 @@ enum dma350_lib_error_t dma350_draw_from_canvas(struct dma350_ch_dev_t* dev,
     if(lib_err != DMA350_LIB_ERR_NONE) {
         return lib_err;
     }
+
+    dma350_ch_clear(dev);
 
     switch(transform) {
         case DMA350_LIB_TRANSFORM_NONE:
