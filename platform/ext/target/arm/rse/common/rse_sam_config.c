@@ -230,6 +230,9 @@ static void sam_config_done_trig_ack(void)
 
     /* Start the channel and wait until trigger-ACK transaction completes */
     dma350_ch_cmd_and_wait_until_done(&DMA350_DMA0_CH0_DEV_S, DMA350_CH_CMD_ENABLECMD);
+
+    /* Clear DMA Channel registers */
+    dma350_ch_clear(&DMA350_DMA0_CH0_DEV_S);
 }
 
 uint32_t rse_sam_init(enum rse_sam_init_setup_t setup)
