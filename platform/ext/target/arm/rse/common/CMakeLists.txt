@@ -956,8 +956,16 @@ if (RSE_XIP)
             DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/keys)
 
     if (MCUBOOT_ENC_IMAGES)
+        # Specify the MCUBOOT_KEY_ENC path for NS build
+        set(MCUBOOT_INSTALL_KEY_ENC ${INSTALL_IMAGE_SIGNING_DIR}/keys/image_enc_key.pem CACHE FILEPATH "" FORCE)
         install(FILES ${MCUBOOT_KEY_ENC}
                 RENAME image_enc_key.pem
+                DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/keys)
+
+        # Specify the MCUBOOT_KEY_ENC_NS path for NS build
+        set(MCUBOOT_INSTALL_KEY_ENC_NS ${INSTALL_IMAGE_SIGNING_DIR}/keys/image_enc_ns_key.pem CACHE FILEPATH "" FORCE)
+        install(FILES ${MCUBOOT_KEY_ENC_NS}
+                RENAME image_enc_ns_key.pem
                 DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/keys)
     endif()
 endif()
