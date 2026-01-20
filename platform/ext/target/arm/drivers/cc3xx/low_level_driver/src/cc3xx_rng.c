@@ -72,18 +72,19 @@ static struct {
     .entropy_size = CC3XX_ENTROPY_SIZE,
     .init = cc3xx_lowlevel_drbg_hmac_instantiate,
     .generate = cc3xx_lowlevel_drbg_hmac_generate,
-    .reseed = cc3xx_lowlevel_drbg_hmac_reseed};
+    .reseed = cc3xx_lowlevel_drbg_hmac_reseed
 #elif defined(CC3XX_CONFIG_RNG_DRBG_CTR)
     .entropy_size = CC3XX_DRBG_CTR_SEEDLEN,
     .init = cc3xx_lowlevel_drbg_ctr_init,
     .generate = cc3xx_lowlevel_drbg_ctr_generate,
-    .reseed = cc3xx_lowlevel_drbg_ctr_reseed};
+    .reseed = cc3xx_lowlevel_drbg_ctr_reseed
 #elif defined(CC3XX_CONFIG_RNG_DRBG_HASH)
     .entropy_size = CC3XX_ENTROPY_SIZE,
     .init = cc3xx_lowlevel_drbg_hash_init,
     .generate = cc3xx_lowlevel_drbg_hash_generate,
-    .reseed = cc3xx_lowlevel_drbg_hash_reseed};
+    .reseed = cc3xx_lowlevel_drbg_hash_reseed
 #endif /* CC3XX_CONFIG_RNG_DRBG_HMAC */
+};
 
 typedef struct {
     union {

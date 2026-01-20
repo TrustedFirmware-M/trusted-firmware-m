@@ -87,7 +87,7 @@ _Static_assert(CC3XX_CONFIG_ENTROPY_REPETITION_COUNT <=
 static struct cc3xx_noise_source_ctx_t g_trng_ctx = CC3XX_NOISE_SOURCE_CONTEXT_INIT;
 
 /* Static configuration item for the entropy source continuous health tests */
-static const struct {
+static struct {
     uint32_t high_threshold;   /*!< During an observation window W, we do not want to
                                 *   observe more than this number of same symbols
                                 */
@@ -323,5 +323,28 @@ cleanup:
 void *cc3xx_lowlevel_entropy_get_noise_source_ctx(void)
 {
     return (void *)&g_trng_ctx;
+}
+
+cc3xx_err_t
+cc3xx_lowlevel_entropy_sp800_90b_set_config(uint32_t high_threshold,
+                                            uint32_t repetition_count)
+{
+    /* Basic sanitation of the adaptive proportion test cutoff rate */
+    if (high_threshold > SP800_90B_ADAPTIVE_PROPORTION_WINDOW_SIZE ||
+        high_threshold <= (SP800_90B_ADAPTIVE_PROPORTION_WINDOW_SIZE/2)) {
+        return CC3XX_ERR_RNG_SP800_90B_INVALID_THRESHOLD;
+    }
+
+    /* Basic sanitation of the repetition count test cutoff rate */
+    if (repetition_count > SP800_90B_ADAPTIVE_PROPORTION_WINDOW_SIZE ||
+        repetition_count <= 1) {
+        return CC3XX_ERR_RNG_SP800_90B_INVALID_THRESHOLD;
+    }
+
+    g_entropy_tests_config.high_threshold = high_threshold;
+    g_entropy_tests_config.low_threshold = SP800_90B_ADAPTIVE_PROPORTION_WINDOW_SIZE - high_threshold;
+    g_entropy_tests_config.repetition_count = repetition_count;
+
+    return CC3XX_ERR_SUCCESS;
 }
 /*!@}*/
