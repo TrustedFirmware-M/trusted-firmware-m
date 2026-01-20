@@ -199,6 +199,7 @@ psa_status_t backend_messaging(struct connection_t *p_connection)
     struct partition_t *p_owner = NULL;
     psa_signal_t signal = 0;
     psa_status_t ret = PSA_SUCCESS;
+    struct critical_section_t cs = CRITICAL_SECTION_STATIC_INIT;
 
     if (!p_connection || !p_connection->service ||
         !p_connection->service->p_ldinf         ||
@@ -209,7 +210,9 @@ psa_status_t backend_messaging(struct connection_t *p_connection)
     p_owner = p_connection->service->partition;
     signal = p_connection->service->p_ldinf->signal;
 
+    CRITICAL_SECTION_ENTER(cs);
     UNI_LIST_INSERT_AFTER(p_owner, p_connection, p_reqs);
+    CRITICAL_SECTION_LEAVE(cs);
 
     /* Messages put. Update signals */
     ret = backend_assert_signal(p_owner, signal);
@@ -233,6 +236,7 @@ psa_status_t backend_messaging(struct connection_t *p_connection)
 psa_status_t backend_replying(struct connection_t *handle, int32_t status)
 {
     struct partition_t *client = handle->p_client;
+    struct critical_section_t cs = CRITICAL_SECTION_STATIC_INIT;
 
     /* Prepare the replied handle. */
     handle->replied_value = (uintptr_t)status;
@@ -244,7 +248,9 @@ psa_status_t backend_replying(struct connection_t *handle, int32_t status)
      *    and will be first replied.
      *    - Currently, this is used for mailbox multi-core technology.
      */
+    CRITICAL_SECTION_ENTER(cs);
     UNI_LIST_INSERT_AFTER(client, handle, p_replied);
+    CRITICAL_SECTION_LEAVE(cs);
 
     return backend_assert_signal(handle->p_client, ASYNC_MSG_REPLY);
 }
