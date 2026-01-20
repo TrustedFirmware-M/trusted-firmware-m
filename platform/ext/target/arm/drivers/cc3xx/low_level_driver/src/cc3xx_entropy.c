@@ -143,15 +143,15 @@ static cc3xx_err_t count_zero_bits(uint8_t *buf, size_t buf_len, uint32_t *zero_
 }
 
 /* SP800-90B section 4.4.1 */
-static cc3xx_err_t repetition_count_test(const uint32_t *buf,
-                                         size_t word_count,
+static cc3xx_err_t repetition_count_test(const uint32_t *buf, size_t word_count,
                                          size_t *number_of_contiguous_0s,
                                          size_t *number_of_contiguous_1s)
 {
-    for (size_t idx = 0; idx < (word_count * sizeof(uint32_t)); idx++) {
-        uint8_t byte = ((uint8_t *)buf)[idx];
-        for (size_t bit = 0; bit < 8; bit++) {
-            if ((byte >> bit) & 0x01) {
+    for (size_t idx = 0; idx < word_count; idx++) {
+        const uint32_t w = buf[idx];
+
+        for (int i = BYTES_TO_BITS(sizeof(uint32_t)) - 1; i >= 0; i--) {
+            if ((w >> i) & 0x1UL) {
                 (*number_of_contiguous_1s)++;
                 *number_of_contiguous_0s = 0;
             } else {
