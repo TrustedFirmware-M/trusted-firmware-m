@@ -35,41 +35,76 @@ int32_t count_zero_bits_external(uint8_t *, size_t, uint32_t *);
 #define BYTES_TO_BITS(x) ((x)*8)
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-/**
- * @brief Window size (W) for the Adaptive Proportion Test in SP800-90B section 4.4.2
- *
- * @note For binary entropy sources this is fixed to 1024 bits
- *
- */
-#define SP800_90B_ADAPTIVE_PROPORTION_WINDOW_SIZE (1024UL)
+/* Check configuration parameters */
+_Static_assert(CC3XX_CONFIG_ENTROPY_WINDOW_SIZE >= 1024,
+               "SP800-90B mandates W >= 1024");
+_Static_assert(CC3XX_CONFIG_ENTROPY_HIGH_THRESHOLD <=
+                   CC3XX_CONFIG_ENTROPY_WINDOW_SIZE,
+               "SP800-90B high_threshold can't be > W");
+_Static_assert(CC3XX_CONFIG_ENTROPY_REPETITION_COUNT <=
+                   CC3XX_CONFIG_ENTROPY_WINDOW_SIZE,
+               "SP800-90B repetition_count can't be > W");
 
 /**
- * @brief Cutoff rate (C) for the Adaptive Proportion Test in SP800-90B section 4.4.2
+ * @brief Window size (W) for the Adaptive Proportion Test in SP800-90B
+ *        section 4.4.2
+ *
+ * @note The spec recommends to observe at least 1024 samples. For binary
+ *       entropy sources this is then fixed to 1024 bits
+ */
+#define SP800_90B_ADAPTIVE_PROPORTION_WINDOW_SIZE (CC3XX_CONFIG_ENTROPY_WINDOW_SIZE)
+
+/**
+ * @brief Cutoff rate (C) for the Adaptive Proportion Test in SP800-90B
+ *        section 4.4.2
  *
  * @note This is computed using the formula:
  *
- *       CRITBINOM(W, power(2,(-H)), 1-a) with W = 1024, a = 2^(-40), H = 0.5 bits/sample
+ *       C = 1 + CRITBINOM(W, power(2,(-H)), 1-a)
+ *       with W = 1024, a = 2^(-40), H = 0.5 bits/sample
  *
- *       The cutoff rate is chosen such that the probability of observing B identical
- *       samples in an observation window of length W is Pr{B >= C} < a
+ *       The cutoff rate is chosen such that the probability of observing B
+ *       identical samples in an observation window of length W is Pr{B >= C} < a
  */
-#define SP800_90B_ADAPTIVE_PROPORTION_CUTOFF_RATE (821UL)
+#define SP800_90B_ADAPTIVE_PROPORTION_CUTOFF_RATE (CC3XX_CONFIG_ENTROPY_HIGH_THRESHOLD)
 
 /**
- * @brief Cutoff rate (C) for the Repetition Count Test in SP800-90B section 4.4.1
+ * @brief Cutoff rate (C) for the Repetition Count Test in SP800-90B
+ *        section 4.4.1
  *
  * @note  This is computed using the formula:
  *
- *        1 + ceil(-log(2,a) / H) with a = 2^(-40), H = 0.5 bits/sample a
+ *        C = 1 + ceil(-log(2,a) / H)
+ *        with a = 2^(-40), H = 0.5 bits/sample a
  *
- *        The cutoff rate is chosen such that C is the smallest integer satisfying
- *        a >= 2^(-H * (C-1)), i.e. the probability of getting C consecutive identical
- *        samples is at most a
+ *        The cutoff rate is chosen such that C is the smallest integer
+ *        satisfying a >= 2^(-H * (C-1)), i.e. the probability of getting C
+ *        consecutive identical samples is at most a
  */
-#define SP800_90B_REPETITION_COUNT_CUTOFF_RATE (81UL)
+#define SP800_90B_REPETITION_COUNT_CUTOFF_RATE (CC3XX_CONFIG_ENTROPY_REPETITION_COUNT)
 
 /* Static context of the TRNG config used by the entropy module itself */
 static struct cc3xx_noise_source_ctx_t g_trng_ctx = CC3XX_NOISE_SOURCE_CONTEXT_INIT;
+
+/* Static configuration item for the entropy source continuous health tests */
+static const struct {
+    uint32_t high_threshold;   /*!< During an observation window W, we do not want to
+                                *   observe more than this number of same symbols
+                                */
+    uint32_t low_threshold;    /*!< For a binary source, W - high_threshold is used
+                                *   to count that the other possible symbol is
+                                *   observed as much as high_threshold
+                                */
+    uint32_t repetition_count; /*!< During an observation window of length W, we
+                                *   do not want to see more than repetition_count
+                                *   consecutive repetitions
+                                */
+} g_entropy_tests_config = {
+    SP800_90B_ADAPTIVE_PROPORTION_CUTOFF_RATE,
+    SP800_90B_ADAPTIVE_PROPORTION_WINDOW_SIZE -
+        SP800_90B_ADAPTIVE_PROPORTION_CUTOFF_RATE,
+    SP800_90B_REPETITION_COUNT_CUTOFF_RATE
+};
 
 /* Static context of the entropy source continuous health tests */
 static struct health_tests_ctx_t {
@@ -123,8 +158,8 @@ static cc3xx_err_t repetition_count_test(const uint32_t *buf,
                 (*number_of_contiguous_0s)++;
                 *number_of_contiguous_1s = 0;
             }
-            if (((*number_of_contiguous_0s) == SP800_90B_REPETITION_COUNT_CUTOFF_RATE) ||
-                ((*number_of_contiguous_1s) == SP800_90B_REPETITION_COUNT_CUTOFF_RATE)) {
+            if (((*number_of_contiguous_0s) == g_entropy_tests_config.repetition_count) ||
+                ((*number_of_contiguous_1s) == g_entropy_tests_config.repetition_count)) {
                 FATAL_ERR(CC3XX_ERR_RNG_SP800_90B_REPETITION_COUNT_TEST_FAIL);
                 return CC3XX_ERR_RNG_SP800_90B_REPETITION_COUNT_TEST_FAIL;
             }
@@ -156,9 +191,8 @@ static cc3xx_err_t adaptive_proportion_test(const uint32_t *buf,
         buf_size -= counted_bytes;
 
         if (*total_bits_count == SP800_90B_ADAPTIVE_PROPORTION_WINDOW_SIZE) {
-            if ((*number_of_0s >= SP800_90B_ADAPTIVE_PROPORTION_CUTOFF_RATE) ||
-                ((SP800_90B_ADAPTIVE_PROPORTION_WINDOW_SIZE - *number_of_0s) >=
-                                                    SP800_90B_ADAPTIVE_PROPORTION_CUTOFF_RATE)) {
+            if ((*number_of_0s >= g_entropy_tests_config.high_threshold) ||
+                (*number_of_0s <= g_entropy_tests_config.low_threshold)) {
                 FATAL_ERR(CC3XX_ERR_RNG_SP800_90B_ADAPTIVE_PROPORTION_TEST_FAIL);
                 return CC3XX_ERR_RNG_SP800_90B_ADAPTIVE_PROPORTION_TEST_FAIL;
             } else {
