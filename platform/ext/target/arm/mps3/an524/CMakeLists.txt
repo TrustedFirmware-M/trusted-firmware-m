@@ -34,6 +34,10 @@ if(BL2)
     target_sources(bl2
         PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/device/source/startup_an524.c
+            ${MBEDCRYPTO_PATH}/library/constant_time.c
+            ${MBEDCRYPTO_PATH}/library/cipher.c
+            ${MBEDCRYPTO_PATH}/library/cipher_wrap.c
+            ${MBEDCRYPTO_PATH}/library/psa_crypto_cipher.c
     )
     target_add_scatter_file(bl2
             $<$<C_COMPILER_ID:ARMClang>:${PLATFORM_DIR}/ext/common/armclang/tfm_common_bl2.sct>
