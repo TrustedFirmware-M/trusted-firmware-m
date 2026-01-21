@@ -64,6 +64,8 @@ install(FILES       ${CMAKE_SOURCE_DIR}/secure_fw/include/config_tfm.h
         DESTINATION ${INSTALL_INTERFACE_INC_DIR})
 install(FILES       ${CMAKE_SOURCE_DIR}/config/config_base.h
         DESTINATION ${INSTALL_INTERFACE_INC_DIR})
+install(FILES       ${CMAKE_SOURCE_DIR}/config/coverity_check.h
+        DESTINATION ${INSTALL_INTERFACE_INC_DIR})
 install(FILES       ${CMAKE_SOURCE_DIR}/secure_fw/spm/include/tfm_hybrid_platform.h
         DESTINATION ${INSTALL_INTERFACE_INC_DIR})
 
