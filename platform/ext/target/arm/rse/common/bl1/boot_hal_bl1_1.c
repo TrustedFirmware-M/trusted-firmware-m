@@ -206,6 +206,9 @@ int32_t boot_platform_init(void)
     /* Set the configuration of the noise source for the platform */
     bl1_random_set_noise_source_config();
 
+    /* Set the configuration of the SP800-90B continuous health tests */
+    bl1_random_set_sp800_90b_continuous_health_tests_thresholds();
+
 #ifdef RSE_ENABLE_BRINGUP_HELPERS
     lcm_err = lcm_get_tp_mode(&LCM_DEV_S, &tp_mode);
     if (lcm_err != LCM_ERROR_NONE) {
