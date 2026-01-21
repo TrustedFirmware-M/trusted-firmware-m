@@ -12,7 +12,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "stdint.h"
+#include <stdint.h>
 #include "region_defs.h"
 
 #if EVENT_LOG_LIB
