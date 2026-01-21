@@ -70,6 +70,14 @@ int32_t bl1_random_generate_noise(uint8_t *output, size_t output_size);
  */
 void bl1_random_set_noise_source_config(void);
 
+/**
+ * @brief Set the SP800-90B Continuous Health Tests threshold values
+ *
+ * @note  In case this function can't apply the configuration from the OTP for
+ *        any reason, falls back to using build time definitions
+ */
+void bl1_random_set_sp800_90b_continuous_health_tests_thresholds(void);
+
 #ifdef __cplusplus
 }
 #endif
