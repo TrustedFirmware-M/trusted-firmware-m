@@ -174,8 +174,6 @@ set(TFM_PARTITION_RUNTIME_PROVISIONING         OFF        CACHE BOOL "Whether to
 set(RSE_CM_BLOB_VERSION                        0          CACHE STRING "Version of CM blob")
 set(RSE_DM_BLOB_VERSION                        0          CACHE STRING "Version of DM blob")
 
-set(RSE_OTP_HAS_CC_TRNG_CONFIG                 ON         CACHE BOOL "Whether the RSE OTP contains the CryptoCell TRNG configuration")
-
 set(RSE_OTP_CM_POLICIES_FEATURE_CONTROL_BITS   0          CACHE STRING "Feature control bitfield of cm_policies")
 
 # Specific BL1_1 provisioning tests configuration

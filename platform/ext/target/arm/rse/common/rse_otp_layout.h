@@ -98,6 +98,11 @@ __PACKED_STRUCT rse_otp_cc_trng_config_t {
     uint8_t padding[3];
 };
 
+__PACKED_STRUCT rse_otp_entropy_config_t {
+    uint32_t high_threshold;
+    uint32_t repetition_count;
+};
+
 __PACKED_STRUCT rse_otp_cm_area_t {
     uint32_t zero_count;
     uint32_t provisioning_blob_version;
@@ -106,6 +111,7 @@ __PACKED_STRUCT rse_otp_cm_area_t {
 #ifdef RSE_OTP_HAS_CCA_ITEMS
     uint32_t cca_system_properties;
 #endif
+
 #ifdef RSE_OTP_HAS_RSE_ID
     uint32_t rse_id;
 #endif
@@ -116,6 +122,10 @@ __PACKED_STRUCT rse_otp_cm_area_t {
 
 #ifdef RSE_OTP_HAS_CC_TRNG_CONFIG
     struct rse_otp_cc_trng_config_t cc_trng_config;
+#endif
+
+#ifdef RSE_OTP_HAS_SP800_90B_ENTROPY_PARAMS
+    struct rse_otp_entropy_config_t entropy_config;
 #endif
 
     struct rse_otp_cod_cm_area_t cod;
