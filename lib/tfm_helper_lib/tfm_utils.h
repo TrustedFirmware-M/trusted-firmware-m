@@ -8,7 +8,7 @@
 #ifndef _TFM_UTILS_H_
 #define _TFM_UTILS_H_
 
-#include "stdint.h"
+#include <stdint.h>
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof(arr[0]))
