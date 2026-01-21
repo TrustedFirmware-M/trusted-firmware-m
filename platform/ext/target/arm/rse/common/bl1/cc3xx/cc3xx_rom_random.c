@@ -90,12 +90,47 @@ void bl1_random_set_noise_source_config(void)
 
         cc_err = cc3xx_lowlevel_noise_source_set_config(ctx, rosc_id, rosc_sc);
         if (cc_err == CC3XX_ERR_SUCCESS) {
-            INFO("Noise Source config set to (%d, 0x%x)\r\n", rosc_id, rosc_sc);
+            INFO("Noise Source: rosc_id: %u, subsample_count: 0x%x\r\n", rosc_id, rosc_sc);
         }
     }
 
     if ((lcm_err != LCM_ERROR_NONE) || (cc_err != CC3XX_ERR_SUCCESS)) {
-        WARN("Can't set CC TRNG config from OTP, lcm_err: 0x%08x, cc_err: 0x%08x\r\n",
+        WARN("Noise Source: OTP cfg error: lcm_err: 0x%08x, cc_err: 0x%08x\r\n",
+             lcm_err, cc_err);
+    }
+}
+
+void bl1_random_set_sp800_90b_continuous_health_tests_thresholds(void)
+{
+    cc3xx_err_t cc_err = CC3XX_ERR_RNG_SP800_90B_INVALID_THRESHOLD;
+    enum lcm_error_t lcm_err;
+    struct rse_otp_entropy_config_t entropy_config = {
+        .high_threshold = CC3XX_CONFIG_ENTROPY_HIGH_THRESHOLD,
+        .repetition_count = CC3XX_CONFIG_ENTROPY_REPETITION_COUNT
+    };
+
+    /* Return if OTP CM area don't exist */
+    if (!IS_RSE_OTP_AREA_VALID(CM)) {
+        return;
+    }
+
+    lcm_err = lcm_otp_read(&LCM_DEV_S, OTP_OFFSET(P_RSE_OTP_CM->entropy_config),
+                           sizeof(entropy_config), (uint8_t *)&entropy_config);
+
+    if (lcm_err == LCM_ERROR_NONE) {
+
+        cc_err = cc3xx_lowlevel_entropy_sp800_90b_set_config(
+            entropy_config.high_threshold, entropy_config.repetition_count);
+
+        if (cc_err == CC3XX_ERR_SUCCESS) {
+            INFO("SP800-90B: high_threshold: %u, repetition_count: %u\r\n",
+                 entropy_config.high_threshold,
+                 entropy_config.repetition_count);
+        }
+    }
+
+    if ((lcm_err != LCM_ERROR_NONE) || (cc_err != CC3XX_ERR_SUCCESS)) {
+        WARN("SP800-90B: OTP cfg error: lcm_err: 0x%08x, cc_err: 0x%08x\r\n",
              lcm_err, cc_err);
     }
 }
