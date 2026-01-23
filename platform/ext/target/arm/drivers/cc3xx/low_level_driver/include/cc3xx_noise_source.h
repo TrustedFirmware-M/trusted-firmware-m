@@ -126,7 +126,7 @@ void cc3xx_lowlevel_noise_source_get_stats(struct cc3xx_noise_source_stats_t *st
 void cc3xx_lowlevel_noise_source_clear_stats(void);
 #endif /* CC3XX_CONFIG_TRNG_COLLECT_STATISTCS */
 
-static inline bool is_context_valid(struct cc3xx_noise_source_ctx_t *ctx) {
+static inline bool is_context_valid(const struct cc3xx_noise_source_ctx_t *ctx) {
     return ctx && ctx->is_config_valid;
 }
 /**

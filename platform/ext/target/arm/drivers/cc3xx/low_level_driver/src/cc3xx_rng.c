@@ -187,7 +187,6 @@ static void lfsr_dword_memcpy(void *dst, const uint64_t *src, size_t len)
 {
     /* An helper type to manipulate contents of an aligned uint64_t */
     typedef union {
-        uint64_t dword;
         uint32_t word[2];
         uint8_t bytes[8];
     } data64_t;
