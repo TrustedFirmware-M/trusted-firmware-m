@@ -230,6 +230,16 @@ else()
     endif()
 endif()
 
+set(RSE_PROVISION_TRNG_CONFIG               ON  CACHE BOOL   "Whether the TRNG configuration is provisioned in OTP")
+# Default config values do not matter on FVP, keep 0 and 32 minimum subsampling
+set(RSE_TRNG_DEFAULT 0 32 32 32 32)
+set(RSE_TRNG_CONFIG "${RSE_TRNG_DEFAULT}"       CACHE STRING "[0]: ROSC in use [1-4]: Subsample count for each ROSC, Maximum 4 ROSCs")
+
+set(RSE_PROVISION_SP800_90B_ENTROPY_PARAMS  ON  CACHE BOOL   "Whether the SP800-90B entropy test thresholds are provisioned in OTP")
+# Default config values do not matter on FVP, assume H = 0.5 bits/sample for consistency
+set(RSE_ENTROPY_DEFAULT 821 81)
+set(RSE_ENTROPY_PARAMS "${RSE_ENTROPY_DEFAULT}" CACHE STRING "[0]: high_threshold, [1]: repetition_count")
+
 ################# Generic TFM platform (Do not change) #########################
 
 if (RSE_XIP)
@@ -247,7 +257,7 @@ set(PLATFORM_DEFAULT_OTP                OFF        CACHE BOOL     "Use trusted o
 set(PLATFORM_DEFAULT_MEASUREMENT_SLOTS  OFF        CACHE BOOL     "Use default Measured Boot slots")
 set(RSE_SUBPLATFORM_BOOT_MEASUREMENTS   OFF        CACHE BOOL     "Use RSE subplatform boot measurement slot definition")
 set(PLATFORM_DEFAULT_CRYPTO_KEYS        OFF        CACHE BOOL     "Use default crypto keys implementation.")
-set(PLATFORM_DEFAULT_ROTPK              OFF        CACHE BOOL      "Use default root of trust public key.")
+set(PLATFORM_DEFAULT_ROTPK              OFF        CACHE BOOL     "Use default root of trust public key.")
 set(PLATFORM_DEFAULT_PROVISIONING       OFF        CACHE BOOL     "Use default provisioning implementation")
 set(PLATFORM_DEFAULT_SHARED_MEASUREMENT_DATA OFF   CACHE BOOL     "Use default shared measurement data location")
 set(TFM_BL1_DEFAULT_PROVISIONING        OFF        CACHE BOOL     "Whether BL1_1 will use default provisioning")

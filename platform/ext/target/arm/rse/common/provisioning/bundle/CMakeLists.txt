@@ -49,6 +49,31 @@ install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/config/message_config.pickle
 install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/config/provisioning_config.pickle
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/provisioning/config)
 
+# Helper functions to convert numbers to the memory layout expected by the OTP map
+function(_byte_to_hex2 BYTE OUT_VAR)
+    # BYTE must be 0..255
+    set(_hex "0123456789ABCDEF")
+    math(EXPR _hi "(${BYTE} >> 4) & 0xF")
+    math(EXPR _lo "(${BYTE}) & 0xF")
+    string(SUBSTRING "${_hex}" ${_hi} 1 _h)
+    string(SUBSTRING "${_hex}" ${_lo} 1 _l)
+    set(${OUT_VAR} "${_h}${_l}" PARENT_SCOPE)
+endfunction()
+
+function(u32_to_hex_bytes_le VALUE OUT_VAR)
+    math(EXPR B0 "(${VALUE} >> 24) & 0xFF")
+    math(EXPR B1 "(${VALUE} >> 16) & 0xFF")
+    math(EXPR B2 "(${VALUE} >> 8)  & 0xFF")
+    math(EXPR B3 "(${VALUE})       & 0xFF")
+
+    _byte_to_hex2(${B3} H0)
+    _byte_to_hex2(${B2} H1)
+    _byte_to_hex2(${B1} H2)
+    _byte_to_hex2(${B0} H3)
+
+    set(${OUT_VAR} "${H0}${H1}${H2}${H3}" PARENT_SCOPE)
+endfunction()
+
 function(create_provisioning_code_target target linker_script entry_point
         sources defs)
     set(TARGET_NAME ${target}_provisioning_code)
@@ -375,10 +400,53 @@ if (TFM_DUMMY_PROVISIONING)
         else()
             set(BUNDLE_SUFFIX "")
         endif()
+
+        # Extract TRNG config
+        if(RSE_PROVISION_TRNG_CONFIG)
+            list(LENGTH RSE_TRNG_CONFIG _len)
+            if(NOT _len EQUAL 5)
+                message(FATAL_ERROR
+                    "RSE_TRNG_CONFIG must contain exactly 5 integers "
+                    "(trng_in_use + 4 subsample counts), got ${_len}"
+                )
+            endif()
+            list(GET RSE_TRNG_CONFIG 0 RSE_TRNG_ROSC_IN_USE)
+            list(GET RSE_TRNG_CONFIG 1 RSE_TRNG_SUBSAMPLE_COUNT_0)
+            list(GET RSE_TRNG_CONFIG 2 RSE_TRNG_SUBSAMPLE_COUNT_1)
+            list(GET RSE_TRNG_CONFIG 3 RSE_TRNG_SUBSAMPLE_COUNT_2)
+            list(GET RSE_TRNG_CONFIG 4 RSE_TRNG_SUBSAMPLE_COUNT_3)
+
+            u32_to_hex_bytes_le(${RSE_TRNG_SUBSAMPLE_COUNT_0} _hex_sc_0)
+            u32_to_hex_bytes_le(${RSE_TRNG_SUBSAMPLE_COUNT_1} _hex_sc_1)
+            u32_to_hex_bytes_le(${RSE_TRNG_SUBSAMPLE_COUNT_2} _hex_sc_2)
+            u32_to_hex_bytes_le(${RSE_TRNG_SUBSAMPLE_COUNT_3} _hex_sc_3)
+
+            set(RSE_TRNG_SUBSAMPLE_COUNT "${_hex_sc_0}${_hex_sc_1}${_hex_sc_2}${_hex_sc_3}")
+            message(STATUS ${RSE_TRNG_SUBSAMPLE_COUNT})
+        endif()
+
+        # Extract SP800-90B entropy test parameters
+        if(RSE_PROVISION_SP800_90B_ENTROPY_PARAMS)
+            list(LENGTH RSE_ENTROPY_PARAMS _len)
+            if(NOT _len EQUAL 2)
+                message(FATAL_ERROR
+                    "RSE_ENTROPY_PARAMS must contain exactly 2 integers "
+                    "(high_threshold and repetition_count), got ${_len}"
+                )
+            endif()
+            list(GET RSE_ENTROPY_PARAMS 0 RSE_ENTROPY_SP800_90B_HIGH_THRESHOLD)
+            list(GET RSE_ENTROPY_PARAMS 1 RSE_ENTROPY_SP800_90B_REPETITION_COUNT)
+        endif()
+
         set(CM_BUNDLE_SCRIPT_ARGS_TEMP
             ${CM_BUNDLE_SCRIPT_ARGS}
             $<$<BOOL:${RSE_OTP_HAS_RSE_ID}>:--non_secret_cm:cm.rse_id=${RSE_ID}>
+            $<$<BOOL:${RSE_PROVISION_TRNG_CONFIG}>:--non_secret_cm:cm.cc_trng_config.trng_in_use=${RSE_TRNG_ROSC_IN_USE}>
+            $<$<BOOL:${RSE_PROVISION_TRNG_CONFIG}>:--non_secret_cm:cm.cc_trng_config.trng_rosc_sc="${RSE_TRNG_SUBSAMPLE_COUNT}">
+            $<$<BOOL:${RSE_PROVISION_SP800_90B_ENTROPY_PARAMS}>:--non_secret_cm:cm.entropy_config.high_threshold=${RSE_ENTROPY_SP800_90B_HIGH_THRESHOLD}>
+            $<$<BOOL:${RSE_PROVISION_SP800_90B_ENTROPY_PARAMS}>:--non_secret_cm:cm.entropy_config.repetition_count=${RSE_ENTROPY_SP800_90B_REPETITION_COUNT}>
         )
+
         set(DM_BUNDLE_SCRIPT_ARGS_TEMP
             ${DM_BUNDLE_SCRIPT_ARGS}
             $<$<BOOL:${RSE_OTP_HAS_ROUTING_TABLES}>:--routing_tables_idx=${RSE_ID}>
@@ -439,7 +507,7 @@ if (TFM_DUMMY_PROVISIONING)
             ON # sp mode required
             "${CM_BUNDLE_SCRIPT_ARGS_TEMP};${DM_BUNDLE_SCRIPT_ARGS_TEMP}" # OTP values args
             "${CM_BUNDLE_SCRIPT_DEPS}" # script specific CMake dependencies
-    )
+        )
     endforeach()
 
     if (RSE_DM_CHAINED_PROVISIONING)
