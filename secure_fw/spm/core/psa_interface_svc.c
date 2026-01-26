@@ -12,6 +12,7 @@
 #include "psa/client.h"
 #include "psa/lifecycle.h"
 #include "psa/service.h"
+#include "coverity_check.h"
 
 #include "compiler_ext_defs.h" /* Keep last. */
 
@@ -93,6 +94,7 @@ __naked void psa_clear_svc(void)
 #if defined(__ICCARM__)
 #pragma diag_suppress=Pe1305
 #endif
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_17_9, "psa_panic_svc is no return function")
 __naked __NO_RETURN void psa_panic_svc(void)
 {
     __asm volatile("svc     "M2S(TFM_SVC_PSA_PANIC)"           \n"

@@ -16,6 +16,7 @@
 #include "tfm_hal_isolation.h"
 #include "tfm_psa_call_pack.h"
 #include "utilities.h"
+#include "coverity_check.h"
 
 psa_status_t spm_associate_call_params(struct connection_t *p_connection,
                                        uint32_t            ctrl_param,
@@ -120,6 +121,7 @@ psa_status_t spm_associate_call_params(struct connection_t *p_connection,
      * memory reference was invalid or not readable.
      */
     for (i = 0; i < ivec_num; i++) {
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_6, "Intentional pointer cast")
         FIH_CALL(tfm_hal_memory_check, fih_rc,
                  curr_partition->boundary, (uintptr_t)ivecs_local[i].base,
                  ivecs_local[i].len, TFM_HAL_ACCESS_READABLE | ns_access);
@@ -143,6 +145,7 @@ psa_status_t spm_associate_call_params(struct connection_t *p_connection,
      * payload memory reference was invalid or not read-write.
      */
     for (i = 0; i < ovec_num; i++) {
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_6, "Intentional pointer cast")
         FIH_CALL(tfm_hal_memory_check, fih_rc,
                  curr_partition->boundary, (uintptr_t)ovecs_local[i].base,
                  ovecs_local[i].len, TFM_HAL_ACCESS_READWRITE | ns_access);

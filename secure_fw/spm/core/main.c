@@ -12,6 +12,7 @@
 #include "tfm_boot_data.h"
 #include "memory_symbols.h"
 #include "spm.h"
+#include "coverity_check.h"
 #include "tfm_hal_isolation.h"
 #include "tfm_hal_platform.h"
 #include "tfm_log.h"
@@ -77,6 +78,7 @@ static fih_ret tfm_core_init(void)
         }
     }
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_2_2, "Parameters can be changed by user and this code will make effect")
     tfm_plat_provisioning_check_for_dummy_keys();
 
     /* Configures architecture */
@@ -113,6 +115,7 @@ int main(void)
 
     FIH_DECLARE(fih_rc, FIH_FAILURE);
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_2_2, "Parameters can be changed by user and this code will make effect")
     tfm_arch_config_branch_protection();
 
     /* set Main Stack Pointer limit */

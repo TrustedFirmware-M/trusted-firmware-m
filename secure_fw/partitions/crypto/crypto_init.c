@@ -8,6 +8,7 @@
 
 #include "config_tfm.h"
 #include "config_crypto_check.h"
+#include "coverity_check.h"
 #include "tfm_mbedcrypto_include.h"
 
 #include "tfm_crypto_api.h"
@@ -198,6 +199,7 @@ static psa_status_t tfm_crypto_api_dispatcher(psa_invec in_vec[],
                                               size_t out_len)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's PSA API design to use pointer to void")
     const struct tfm_crypto_pack_iovec *iov = in_vec[0].base;
     int32_t caller_id = 0;
     struct tfm_crypto_key_id_s encoded_key = TFM_CRYPTO_KEY_ID_S_INIT;

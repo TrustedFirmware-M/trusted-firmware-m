@@ -7,13 +7,16 @@
 
 #include <string.h>
 #include "crt_impl_private.h"
+#include "coverity_check.h"
 
 static void *memcpy_r(void *dest, const void *src, size_t n)
 {
     union composite_addr_t p_dst, p_src;
 
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_6, "Intentional pointer cast")
     p_dst.uint_addr = (uintptr_t)dest + n;
     p_src.uint_addr = (uintptr_t)src  + n;
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_6)
 
     /* Byte copy for unaligned address. check the last bit of address. */
     while (n && (ADDR_WORD_UNALIGNED(p_dst.uint_addr) ||

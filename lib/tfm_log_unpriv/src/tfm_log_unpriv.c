@@ -13,6 +13,7 @@
 #include "tfm_vprintf_priv.h"
 #include "tfm_log_unpriv.h"
 #include "tfm_hal_sp_logdev.h"
+#include "coverity_check.h"
 
 #define LOG_UNPRIV_BUFFER_SIZE (32)
 
@@ -34,7 +35,8 @@ static void output_buf(struct tfm_log_unpriv_data *data, uint32_t buf_len)
 
 static void output_string_to_buf(void *priv, const char *str, uint32_t len)
 {
-    struct tfm_log_unpriv_data *data = priv;
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "Intentional pointer cast")
+    struct tfm_log_unpriv_data *data = (struct tfm_log_unpriv_data *)priv;
 
     if ((data->buf_pos + len) > LOG_UNPRIV_BUFFER_SIZE) {
         /* Flush current buffer and re-use */

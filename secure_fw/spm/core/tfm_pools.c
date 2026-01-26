@@ -17,6 +17,7 @@
 #include "utilities.h"
 #include "lists.h"
 #include "tfm_pools.h"
+#include "coverity_check.h"
 
 /* Magic value that indicates a pool chunk has been allocated */
 #define POOL_MAGIC_ALLOCATED UINT32_C(0xF0F0CCAA)
@@ -43,9 +44,11 @@ psa_status_t tfm_pool_init(struct tfm_pool_instance_t *pool, size_t poolsz,
     /* Chain pool chunks */
     UNI_LIST_INIT_NODE(pool, next);
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_3, "Intentional pointer cast");
     pchunk = (struct tfm_pool_chunk_t *)pool->chunks;
     for (i = 0; i < num; i++) {
         UNI_LIST_INSERT_AFTER(pool, pchunk, next);
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_3, "Intentional pointer cast");
         pchunk = (struct tfm_pool_chunk_t *)&pchunk->data[chunksz];
     }
 
@@ -87,6 +90,7 @@ void tfm_pool_free(struct tfm_pool_instance_t *pool, void *ptr)
     /* In debug builds, trap invalid frees. */
     assert(is_valid_chunk_data_in_pool(pool, ptr));
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_6, "Intentional pointer cast")
     pchunk = TO_CONTAINER(ptr, struct tfm_pool_chunk_t, data);
 
     pchunk->magic = 0;

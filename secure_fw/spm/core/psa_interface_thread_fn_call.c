@@ -14,6 +14,7 @@
 #include "psa/service.h"
 #include "runtime_defs.h"
 #include "tfm_arch.h"
+#include "coverity_check.h"
 
 #include "compiler_ext_defs.h" /* Keep last. */
 
@@ -112,8 +113,8 @@ void psa_clear_thread_fn_call(void)
 #if defined(__ICCARM__)
 #pragma diag_suppress=Pe1305
 #endif
-__naked __NO_RETURN
-void psa_panic_thread_fn_call(void)
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_17_9, "psa_panic_thread_fn_call is no return function")
+__naked __NO_RETURN void psa_panic_thread_fn_call(void)
 {
     TFM_THREAD_FN_CALL_ENTRY(tfm_spm_partition_psa_panic);
 }

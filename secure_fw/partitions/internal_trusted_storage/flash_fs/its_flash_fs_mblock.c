@@ -10,6 +10,7 @@
 #include "config_tfm.h"
 #include "its_flash_fs_mblock.h"
 #include "psa/storage_common.h"
+#include "coverity_check.h"
 
 #ifndef ITS_MAX_BLOCK_DATA_COPY
 #define ITS_MAX_BLOCK_DATA_COPY 256
@@ -723,8 +724,10 @@ static psa_status_t its_mblock_validate_header_meta(
     }
 
     if (backward_compatible) {
+        TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_3, "Intentional pointer cast");
         err = its_mblock_validate_swap_count(fs_ctx,
         ((struct its_metadata_block_header_comp_t *)h_meta)->active_swap_count);
+        TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_3)
     } else {
         err = its_mblock_validate_swap_count(fs_ctx, h_meta->active_swap_count);
         if (err != PSA_SUCCESS) {
@@ -829,8 +832,10 @@ static psa_status_t its_mblock_upgrade_meta_header(
      * scratch_dblock field share the same position as in the
      * ITS_BACKWARD_SUPPORTED_VERSION. So, no need to update it.
      */
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_3, "Intentional pointer cast");
     meta_block_header_comp =
         (struct its_metadata_block_header_comp_t *)&fs_ctx->meta_block_header;
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_3)
     fs_ctx->meta_block_header.active_swap_count =
              meta_block_header_comp->active_swap_count;
     fs_ctx->meta_block_header.fs_version = ITS_SUPPORTED_VERSION;

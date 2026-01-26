@@ -12,6 +12,7 @@
 
 #include "internal_status_code.h"
 #include "spm.h"
+#include "coverity_check.h"
 #include "tfm_pools.h"
 #include "load/service_defs.h"
 
@@ -121,6 +122,7 @@ void spm_init_connection_space(void)
 
 struct connection_t *spm_allocate_connection(void)
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's API design to use pointer to void")
     return (struct connection_t *)tfm_pool_alloc(connection_pool);
 }
 

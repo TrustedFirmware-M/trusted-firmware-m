@@ -20,6 +20,7 @@
 #include "psa/service.h"
 #include "region_defs.h"
 #include "psa_manifest/tfm_platform.h"
+#include "coverity_check.h"
 
 #if !PLATFORM_NV_COUNTER_MODULE_DISABLED
 #define NV_COUNTER_ID_SIZE  sizeof(enum tfm_nv_counter_t)
@@ -205,6 +206,7 @@ static psa_status_t platform_sp_ioctl_psa_api(const psa_msg_t *msg)
         output = &outvec;
     }
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's PSA API design to use pointer to void")
     ret = tfm_platform_hal_ioctl(request, input, output);
 
     if (output != NULL) {

@@ -9,11 +9,13 @@
 #include <stdint.h>
 
 #include "config_tfm.h"
+#include "coverity_check.h"
 #include "tfm_mbedcrypto_include.h"
 
 #include "tfm_crypto_api.h"
 #include "tfm_crypto_defs.h"
 
+TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_5, "It's PSA API design to use pointer to void")
 /*!
  * \addtogroup tfm_crypto_api_shim_layer
  *
@@ -270,3 +272,4 @@ psa_status_t tfm_crypto_hash_interface(psa_invec in_vec[],
 }
 #endif /* CRYPTO_HASH_MODULE_ENABLED */
 /*!@}*/
+TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_5)

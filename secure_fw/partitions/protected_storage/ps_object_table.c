@@ -21,6 +21,7 @@
 #include "ps_utils.h"
 #include "tfm_ps_defs.h"
 #include "utilities.h"
+#include "coverity_check.h"
 
 /* FIXME: Duplicated from flash info */
 #define PS_FLASH_DEFAULT_VAL 0xFFU
@@ -886,6 +887,7 @@ psa_status_t ps_object_table_init(uint8_t *obj_data)
 #endif /* PS_ROLLBACK_PROTECTION */
     };
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_3, "Intentional pointer cast");
     init_ctx.p_table[PS_OBJ_TABLE_IDX_1] = (struct ps_obj_table_t *)obj_data;
 
     /* Read table from the file system */

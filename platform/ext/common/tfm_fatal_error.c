@@ -11,6 +11,7 @@
 #include "fatal_error.h"
 #include "tfm_hal_device_header.h"
 #include "uart_stdout.h"
+#include "coverity_check.h"
 
 __WEAK bool log_error_permissions_check(uint32_t err, bool is_fatal)
 {
@@ -48,6 +49,7 @@ __WEAK void log_error(const char *file, uint32_t line, uint32_t err, void *sp, b
         }
 
         if (sp != NULL) {
+            TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_6, "Intentional pointer cast")
             LOG_FATAL_NON_FATAL_ERR(is_fatal, "with SP=0x%"PRIx32" ", (uint32_t)sp);
         }
 

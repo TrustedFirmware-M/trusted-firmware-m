@@ -34,6 +34,7 @@
 #include "psa/error.h"
 #include "internal_status_code.h"
 #include "sprt_partition_metadata_indicator.h"
+#include "coverity_check.h"
 
 #if TFM_PARTITION_NS_AGENT_MAILBOX == 1
 #include "psa_manifest/ns_agent_mailbox.h"
@@ -337,6 +338,7 @@ void backend_init_comp_assuredly(struct partition_t *p_pt, uint32_t service_sett
     uint32_t param;
     int32_t index = PARTITION_TYPE_TO_INDEX(p_pldi->flags);
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_3, "Intentional pointer cast");
     ARCH_CTXCTRL_INIT(&p_pt->ctx_ctrl,
                       LOAD_ALLOCED_STACK_ADDR(p_pldi),
                       p_pldi->stack_size);
@@ -357,6 +359,7 @@ void backend_init_comp_assuredly(struct partition_t *p_pt, uint32_t service_sett
 
     prv_process_metadata(p_pt);
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_6, "Intentional pointer cast")
     thrd_start(&p_pt->thrd, thrd_entry, THRD_GENERAL_EXIT, (void *)param);
 }
 

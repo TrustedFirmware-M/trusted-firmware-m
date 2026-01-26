@@ -17,6 +17,7 @@
 #include "tfm_boot_measurement.h"
 #include "psa/crypto.h"
 #endif /* TFM_PARTITION_MEASURED_BOOT */
+#include "coverity_check.h"
 
 #ifndef TFM_PARTITION_MEASURED_BOOT
 #define MAX_BOOT_STATUS 512
@@ -351,8 +352,10 @@ enum psa_attest_err_t attest_boot_data_init(void)
      */
     return PSA_ATTEST_ERR_SUCCESS;
 #else
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_3, "Intentional pointer cast");
     return attest_get_boot_data(TLV_MAJOR_IAS,
                                 (struct tfm_boot_data *)&boot_data,
                                 MAX_BOOT_STATUS);
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_3)
 #endif
 }

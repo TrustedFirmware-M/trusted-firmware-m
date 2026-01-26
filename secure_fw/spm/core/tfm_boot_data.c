@@ -21,6 +21,7 @@
 #include "load/partition_defs.h"
 #include "tfm_hal_isolation.h"
 #include "tfm_plat_shared_measurement_data.h"
+#include "coverity_check.h"
 
 /*!
  * \def BOOT_DATA_VALID
@@ -207,6 +208,7 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
         args[0] = (uint32_t)PSA_ERROR_INVALID_ARGUMENT;
         return;
     } else {
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_3, "Intentional pointer cast");
         boot_data = (struct tfm_boot_data *)buf_start;
         boot_data->header.tlv_magic   = SHARED_DATA_TLV_INFO_MAGIC;
         boot_data->header.tlv_tot_len = SHARED_DATA_HEADER_SIZE;
@@ -219,6 +221,7 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
      */
     for (; offset < tlv_end; offset += next_tlv_offset) {
         /* Create local copy to avoid unaligned access */
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_6, "Intentional pointer cast")
         (void)spm_memcpy(&tlv_entry, (const void *)offset,
                          SHARED_DATA_ENTRY_HEADER_SIZE);
 
@@ -236,6 +239,7 @@ void tfm_core_get_boot_data_handler(uint32_t args[])
                 return;
             }
 
+            TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_6, "Intentional pointer cast")
             (void)spm_memcpy(ptr, (const void *)offset, next_tlv_offset);
             ptr += next_tlv_offset;
             boot_data->header.tlv_tot_len += next_tlv_offset;
