@@ -102,6 +102,12 @@ void bl1_random_set_noise_source_config(void)
 
 void bl1_random_set_sp800_90b_continuous_health_tests_thresholds(void)
 {
+#ifndef RSE_OTP_HAS_SP800_90B_ENTROPY_PARAMS
+    INFO("SP800-90B: high_threshold: %u, repetition_count: %u\r\n",
+         CC3XX_CONFIG_ENTROPY_HIGH_THRESHOLD,
+         CC3XX_CONFIG_ENTROPY_REPETITION_COUNT);
+    return;
+#else
     cc3xx_err_t cc_err = CC3XX_ERR_RNG_SP800_90B_INVALID_THRESHOLD;
     enum lcm_error_t lcm_err;
     struct rse_otp_entropy_config_t entropy_config = {
@@ -133,4 +139,5 @@ void bl1_random_set_sp800_90b_continuous_health_tests_thresholds(void)
         WARN("SP800-90B: OTP cfg error: lcm_err: 0x%08x, cc_err: 0x%08x\r\n",
              lcm_err, cc_err);
     }
+#endif /* RSE_OTP_HAS_SP800_90B_ENTROPY_PARAMS */
 }
