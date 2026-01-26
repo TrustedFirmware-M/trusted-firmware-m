@@ -22,7 +22,7 @@
 #define NO_MORE_PARTITION        NULL
 
 /* Length of extendable variables in partition load type */
-#define LOAD_INFO_EXT_LENGTH                        (2)
+#define LOAD_INFO_EXT_LENGTH                        (2U)
 /* Argument "pldinf" must be a "struct partition_load_info_t *". */
 #define LOAD_INFSZ_BYTES(pldinf)                                       \
     (sizeof(*(pldinf)) + (LOAD_INFO_EXT_LENGTH * sizeof(uintptr_t)) +    \

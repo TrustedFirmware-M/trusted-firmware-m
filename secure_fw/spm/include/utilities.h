@@ -25,7 +25,7 @@ uintptr_t get_spm_boundary(void);
 
 /* Get container structure start address from member */
 #define TO_CONTAINER(ptr, type, member) \
-    ((type *)((unsigned long)(ptr) - offsetof(type, member)))
+    ((type *)((uintptr_t)(ptr) - offsetof(type, member)))
 
 #define ERROR_MSG(msg) ERROR_RAW(msg "\n")
 
