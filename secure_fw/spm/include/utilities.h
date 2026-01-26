@@ -18,7 +18,7 @@ void tfm_core_panic(void);
 
 /* Get container structure start address from member */
 #define TO_CONTAINER(ptr, type, member) \
-    ((type *)((unsigned long)(ptr) - offsetof(type, member)))
+    ((type *)((uintptr_t)(ptr) - offsetof(type, member)))
 
 /* FixMe: Replace ERROR_MSG() in platform code with a suitable API */
 #define ERROR_MSG(msg) SPMLOG_ERRMSG(msg "\r\n")
