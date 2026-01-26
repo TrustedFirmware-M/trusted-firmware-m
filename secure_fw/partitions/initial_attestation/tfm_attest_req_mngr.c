@@ -69,7 +69,7 @@ static psa_status_t psa_attest_get_token(const psa_msg_t *msg)
     uint32_t bytes_read = 0;
     size_t challenge_size;
     size_t token_buff_size;
-    size_t token_size;
+    size_t token_size = 0;
 
     challenge_size = msg->in_size[0];
     token_buff_size = (msg->out_size[0] < sizeof(token_buff)) ?

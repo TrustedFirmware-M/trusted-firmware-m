@@ -308,7 +308,7 @@ psa_status_t ps_object_read(psa_storage_uid_t uid, int32_t client_id,
 {
     psa_status_t err;
 #ifdef PS_ENCRYPTION
-    uint32_t num_blocks;
+    uint32_t num_blocks = 0;
 #endif
 
     /* Retrieve the object information from the object table if the object
@@ -382,7 +382,7 @@ psa_status_t ps_object_create(psa_storage_uid_t uid, int32_t client_id,
     psa_status_t err;
     uint32_t old_fid = PS_INVALID_FID;
     uint32_t fid_am_reserved = 1;
-    uint32_t num_blocks;
+    uint32_t num_blocks = 0;
     bool object_exists = false;
 
     /* Boundary check the incoming request */
@@ -502,7 +502,7 @@ psa_status_t ps_object_write(psa_storage_uid_t uid, int32_t client_id,
 {
     psa_status_t err;
     uint32_t old_fid = PS_INVALID_FID;
-    uint32_t num_blocks;
+    uint32_t num_blocks = 0;
 
     /* Retrieve the object information from the object table if the object
      * exists.
@@ -610,7 +610,7 @@ psa_status_t ps_object_get_info(psa_storage_uid_t uid, int32_t client_id,
 {
     psa_status_t err;
 #ifdef PS_ENCRYPTION
-    uint32_t num_blocks;
+    uint32_t num_blocks = 0;
 #endif
 
     /* Retrieve the object information from the object table if the object
@@ -667,7 +667,7 @@ psa_status_t ps_object_delete(psa_storage_uid_t uid, int32_t client_id)
 {
     psa_status_t err;
 #ifdef PS_ENCRYPTION
-    uint32_t num_blocks;
+    uint32_t num_blocks = 0;
 #endif
 
     /* Retrieve the object information from the object table if the object

@@ -348,6 +348,7 @@ static psa_status_t tfm_crypto_engine_init(void)
         return status;
     }
     VERBOSE("[Crypto] Init \033[0;32m%s\033[0m... \033[0;32mcomplete\033[0m.\n", library_info);
+    (void)library_info;
 
     /* Perform the initialisation of the PSA subsystem available through the chosen
      * Cryptographic library. If a driver is built using the PSA Driver interface

@@ -220,7 +220,7 @@ psa_status_t ps_crypto_encrypt_and_tag(union ps_crypto_t *crypto,
                                        size_t *out_len)
 {
     psa_status_t status;
-    psa_key_id_t ps_key;
+    psa_key_id_t ps_key = 0;
     uint8_t label[LABEL_LEN];
 
     fill_key_label(crypto, label);
@@ -263,7 +263,7 @@ psa_status_t ps_crypto_auth_and_decrypt(const union ps_crypto_t *crypto,
                                         size_t *out_len)
 {
     psa_status_t status;
-    psa_key_id_t ps_key;
+    psa_key_id_t ps_key = 0;
     uint8_t label[LABEL_LEN];
 
     fill_key_label(crypto, label);
@@ -302,7 +302,7 @@ psa_status_t ps_crypto_generate_auth_tag(union ps_crypto_t *crypto,
 {
     psa_status_t status;
     size_t out_len;
-    psa_key_id_t ps_key;
+    psa_key_id_t ps_key = 0;
     uint8_t label[LABEL_LEN];
 
     fill_key_label(crypto, label);
@@ -337,7 +337,7 @@ psa_status_t ps_crypto_authenticate(const union ps_crypto_t *crypto,
 {
     psa_status_t status;
     size_t out_len;
-    psa_key_id_t ps_key;
+    psa_key_id_t ps_key = 0;
     uint8_t label[LABEL_LEN];
 
     fill_key_label(crypto, label);
@@ -375,7 +375,7 @@ psa_status_t ps_crypto_authenticate_transition(const union ps_crypto_t *crypto,
     size_t out_len;
     /* Fixed object table label used in older version of PS */
     uint8_t ps_table_key_label[] = "table_key_label";
-    psa_key_id_t ps_key;
+    psa_key_id_t ps_key = 0;
 
     /* Set object table key */
     status = ps_crypto_setkey(&ps_key, ps_table_key_label, sizeof(ps_table_key_label));
