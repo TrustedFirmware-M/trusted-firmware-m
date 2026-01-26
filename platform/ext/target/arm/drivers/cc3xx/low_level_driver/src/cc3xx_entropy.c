@@ -91,9 +91,11 @@ static struct {
     uint32_t high_threshold;   /*!< During an observation window W, we do not want to
                                 *   observe more than this number of same symbols
                                 */
-    uint32_t low_threshold;    /*!< For a binary source, W - high_threshold is used
-                                *   to count that the other possible symbol is
-                                *   observed as much as high_threshold
+    uint32_t  low_threshold;   /*!< For a binary source, the low_threshold is the
+                                *   complementary of the high_threshold wrt the window
+                                *   length (W). We don't want to observe less than this
+                                *   number of same symbols as that would imply that the
+                                *   the other symbol is above the high threshold
                                 */
     uint32_t repetition_count; /*!< During an observation window of length W, we
                                 *   do not want to see more than repetition_count
@@ -101,8 +103,8 @@ static struct {
                                 */
 } g_entropy_tests_config = {
     SP800_90B_ADAPTIVE_PROPORTION_CUTOFF_RATE,
-    SP800_90B_ADAPTIVE_PROPORTION_WINDOW_SIZE -
-        SP800_90B_ADAPTIVE_PROPORTION_CUTOFF_RATE,
+    (SP800_90B_ADAPTIVE_PROPORTION_WINDOW_SIZE -
+        SP800_90B_ADAPTIVE_PROPORTION_CUTOFF_RATE),
     SP800_90B_REPETITION_COUNT_CUTOFF_RATE
 };
 
