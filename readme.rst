@@ -19,7 +19,7 @@ Quick Links
     hosted at `git.trustedfirmware.org`_ with a read-only mirror available on
     `GitHub`_.
 
-    All official documentation is available in the `Trusted Firmware-M documentation`_
+All official reference material can be found in the `Trusted Firmware-M documentation`_.
 
 * `ARMv7-M and Armv8-M`_
 * `ARMv8-M Architecture`_
@@ -36,7 +36,7 @@ Quick Links
 ####################
 Feedback and support
 ####################
-Feedback can be submitted via email to
+Feedback can be submitted via email to the
 `TF-M mailing list <tf-m@lists.trustedfirmware.org>`__.
 
 .. _License: https://trustedfirmware-m.readthedocs.io/en/latest/contributing/lic.html
@@ -55,4 +55,4 @@ Feedback can be submitted via email to
 .. _git.trustedfirmware.org: https://git.trustedfirmware.org/
 .. _GitHub: https://github.com/TrustedFirmware-M
 
-*Copyright (c) 2017-2025, Arm Limited. All rights reserved.*
+*Copyright (c) 2017-2026, Arm Limited. All rights reserved.*
