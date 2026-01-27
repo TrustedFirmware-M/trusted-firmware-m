@@ -422,7 +422,6 @@ if (TFM_DUMMY_PROVISIONING)
             u32_to_hex_bytes_le(${RSE_TRNG_SUBSAMPLE_COUNT_3} _hex_sc_3)
 
             set(RSE_TRNG_SUBSAMPLE_COUNT "${_hex_sc_0}${_hex_sc_1}${_hex_sc_2}${_hex_sc_3}")
-            message(STATUS ${RSE_TRNG_SUBSAMPLE_COUNT})
         endif()
 
         # Extract SP800-90B entropy test parameters
