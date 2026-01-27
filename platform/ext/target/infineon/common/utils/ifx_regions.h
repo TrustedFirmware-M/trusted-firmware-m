@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "region.h"
+#include "coverity_check.h"
 
 /**
  * \brief Check whether a first memory region is inside second memory region.
@@ -49,6 +50,7 @@ bool ifx_is_region_overlap_other(uintptr_t first_region_start,
                                  uintptr_t second_region_start,
                                  uintptr_t second_region_limit);
 
+TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_8_6, "Checked manually. Regions defined in linker script")
 #ifdef CONFIG_TFM_PARTITION_META
 REGION_DECLARE(Image$$, TFM_SPM_RW_OTHER_RO_START, $$Base);
 REGION_DECLARE(Image$$, TFM_SPM_RW_OTHER_RO_END, $$Base);
@@ -90,5 +92,6 @@ REGION_DECLARE(Image$$, TFM_UNPRIV_CODE_END, $$RO$$Limit);
 REGION_DECLARE(Image$$, ARM_LIB_STACK, $$Base);
 REGION_DECLARE(Image$$, ARM_LIB_STACK, $$Limit);
 
+TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_8_6)
 
 #endif /* IFX_REGIONS_H */

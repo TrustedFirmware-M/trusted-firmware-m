@@ -18,6 +18,7 @@
 #include "uart_stdout.h"
 #include "uart_pdl_stdout.h"
 
+#include "coverity_check.h"
 
 #include <stdio.h>
 #include <limits.h>
@@ -86,14 +87,19 @@ int32_t stdio_output_string_raw(const char *str, uint32_t len, ifx_stdio_core_id
         ifx_stdio_core_out_len = 0;
 
         /* Add prefix */
+        TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_7_4, "DRIVERS-13923, Cy_SCB_UART_PutArrayBlocking() uses the second parameter as const")
+        TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_8, "DRIVERS-13923, Although we cast away the const, function works with string as read only")
         Cy_SCB_UART_PutArrayBlocking(IFX_UART_PDL_SCB,
                                      (uint8_t *)core_prefix,
                                      core_prefix_len);
+        TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_8)
+        TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_7_4)
     }
 
     ifx_stdio_core_out_len += len;
 #endif /* IFX_PRINT_CORE_PREFIX */
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_8, "DRIVERS-13923, Although we cast away the const, function works with string as read only")
     Cy_SCB_UART_PutArrayBlocking(IFX_UART_PDL_SCB, (uint8_t *)str, len);
 
 #if IFX_UART_PDL_SCB_FLUSH
@@ -114,6 +120,7 @@ int32_t stdio_output_string_raw(const char *str, uint32_t len, ifx_stdio_core_id
  * to the messages. It's useful if system has only one serial port and there is
  * output from multiple cores/images.
  */
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Directive_4_6, "The definition of stdio_output_string is in the non-platform header")
 int stdio_output_string(const char *str, uint32_t len)
 {
 #if IFX_UART_USE_SPM_LOG_MSG
@@ -141,14 +148,17 @@ int stdio_output_string(const char *str, uint32_t len)
     /* Validate that IFX_STDIO_PREFIX is a string not a pointer */
     const char check_prefix[] = IFX_STDIO_PREFIX; (void)check_prefix;
     /* Add prefix */
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_7_4, "DRIVERS-13923, Cy_SCB_UART_PutArrayBlocking() uses the second parameter as const")
     Cy_SCB_UART_PutArrayBlocking(IFX_UART_PDL_SCB,
                                  IFX_STDIO_PREFIX,
                                  sizeof(IFX_STDIO_PREFIX) - 1U);
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_7_4)
 #endif
     /* Consider to use synchronization if there is need to share
      * UART between multiple partitions/threads/cores.
      * Cy_SCB_UART_PutArrayBlocking has problems if there is more than
      * one thread/core which access UART at the same time. */
+     TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_8, "DRIVERS-13923, Although we lose const during cast string to void *, function works with string as read only")
      Cy_SCB_UART_PutArrayBlocking(IFX_UART_PDL_SCB, (void *)str, len);
 
 #if IFX_UART_PDL_SCB_FLUSH
@@ -180,6 +190,9 @@ int fputc(int ch, FILE *f)
 }
 #elif defined(__GNUC__)
 /* Redirects printf to STDIO_DRIVER in case of GNUARM */
+TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Directive_4_6, "This definition overrides weak function _write, so we keep numerical types")
+TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_21_2, "This definition overrides weak function _write, that has a _ symbol")
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_4, "This definition overrides weak function")
 int _write(int fd, char *str, int len)
 {
     (void)fd;
@@ -187,6 +200,8 @@ int _write(int fd, char *str, int len)
     /* Send string and return the number of characters written */
     return (int)stdio_output_string(str, (uint32_t)len);
 }
+TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_21_2)
+TFM_COVERITY_BLOCK_END(MISRA_C_2023_Directive_4_6)
 #elif defined(__ICCARM__)
 int putchar(int ch)
 {

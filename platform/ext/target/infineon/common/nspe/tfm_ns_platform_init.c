@@ -12,6 +12,7 @@
 
 #include "Driver_Common.h"
 #include "region_defs.h"
+#include "coverity_check.h"
 #include "tfm_hal_multi_core.h"
 #include "uart_stdout.h"
 
@@ -31,6 +32,7 @@ int32_t tfm_ns_platform_init(void)
     }
 #endif /* IFX_MTB_SRF */
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_2_2, "stdio_init may have an effect depending on the TFM configuration ")
     stdio_init();
 
 #if defined(IFX_MTB_MAILBOX) && IFX_NS_INTERFACE_TZ

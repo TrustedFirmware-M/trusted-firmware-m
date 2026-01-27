@@ -12,6 +12,7 @@
 #include "tfm_builtin_key_ids.h"
 #include "tfm_builtin_key_loader.h"
 #include "tfm_plat_crypto_keys.h"
+#include "coverity_check.h"
 #include "ifx_spe_config.h"
 
 #include <string.h>
@@ -142,6 +143,7 @@ static const tfm_plat_builtin_key_policy_t g_builtin_keys_policy[] = {
  *        that to bind the keys to the tfm_builtin_key_loader driver, the lifetime must be
  *        explicitly set to the one associated to the driver, i.e. TFM_BUILTIN_KEY_LOADER_LIFETIME
  */
+TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_12_1, "PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION() defined externally, cannot change it")
 static const tfm_plat_builtin_key_descriptor_t g_builtin_keys_desc[] = {
     { .key_id = (uint32_t)TFM_BUILTIN_KEY_ID_HUK,
       .slot_number = (psa_drv_slot_number_t)TFM_BUILTIN_KEY_SLOT_HUK,
@@ -158,6 +160,7 @@ static const tfm_plat_builtin_key_descriptor_t g_builtin_keys_desc[] = {
     },
 #endif /* TFM_PARTITION_INITIAL_ATTESTATION */
 };
+TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_12_1)
 
 size_t tfm_plat_builtin_key_get_policy_table_ptr(const tfm_plat_builtin_key_policy_t *desc_ptr[])
 {

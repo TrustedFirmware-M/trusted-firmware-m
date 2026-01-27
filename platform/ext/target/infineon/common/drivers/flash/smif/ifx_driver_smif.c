@@ -114,10 +114,13 @@ ARM_DRIVER_VERSION ifx_driver_smif_get_version(ifx_flash_driver_handler_t handle
     (void)handler;
 
     /* Driver Version */
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_1, "Drivers version defines use ARM_DRIVER_VERSION_MAJOR_MINOR define, which is provided by CMSIS. We cannot change that define")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_12_2, "Same as above, shift is done in ARM_DRIVER_VERSION_MAJOR_MINOR")
     ARM_DRIVER_VERSION driver_version = {
         .api = ARM_FLASH_API_VERSION,
         .drv = IFX_DRIVER_SMIF_VERSION
     };
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_1)
 
     return driver_version;
 }
@@ -163,6 +166,7 @@ int32_t ifx_driver_smif_initialize(ifx_flash_driver_handler_t handler,
     uint32_t region_address;
     uint32_t sector_size;
     uint32_t sector_count;
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_smif_obj_t *obj = handler;
     const ifx_driver_smif_mem_t *mem = obj->memory;
     const cy_stc_smif_mem_device_cfg_t *device = mem->mem_config->deviceCfg;
@@ -237,6 +241,7 @@ int32_t ifx_driver_smif_power_control(ifx_flash_driver_handler_t handler,
 int32_t ifx_driver_smif_erase_sector(ifx_flash_driver_handler_t handler, uint32_t addr)
 {
     cy_en_smif_status_t smif_status;
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_smif_obj_t *obj = handler;
     const ifx_driver_smif_mem_t *mem = obj->memory;
     int32_t result;
@@ -284,6 +289,7 @@ int32_t ifx_driver_smif_erase_sector(ifx_flash_driver_handler_t handler, uint32_
 
 int32_t ifx_driver_smif_erase_chip(ifx_flash_driver_handler_t handler)
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_smif_obj_t *obj = handler;
     int32_t result;
     uint32_t address = 0;
@@ -316,6 +322,7 @@ struct _ARM_FLASH_STATUS ifx_driver_smif_get_status(ifx_flash_driver_handler_t h
 
 ARM_FLASH_INFO * ifx_driver_smif_get_info(ifx_flash_driver_handler_t handler)
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_smif_obj_t *obj = handler;
     return obj->flash_info;
 }

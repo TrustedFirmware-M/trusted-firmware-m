@@ -12,6 +12,7 @@
 #include "ifx_fih.h"
 #include "platform_svc_api.h"
 #include "spm.h"
+#include "coverity_check.h"
 #include "target_cfg.h"
 #include "tfm_hal_isolation.h"
 #include "tfm_peripherals_def.h"
@@ -23,14 +24,21 @@ static int32_t ifx_svc_platform_uart_log_handler(const char *msg, uint32_t len, 
 {
 #if IFX_UART_ENABLED
     IFX_FIH_DECLARE(enum tfm_hal_status_t, fih_rc, TFM_HAL_ERROR_GENERIC);
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_6, "External macro GET_CURRENT_COMPONENT roughly casts p_curr_thrd->p_context_ctrl")
     struct partition_t *curr_partition = GET_CURRENT_COMPONENT();
 
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_3, "All parameters are converted corectly")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
     FIH_CALL(tfm_hal_memory_check, fih_rc,
              curr_partition->boundary, (uintptr_t)msg,
              (size_t)len, (uint32_t)TFM_HAL_ACCESS_READABLE);
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_3)
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
     if (FIH_NOT_EQ(fih_rc, PSA_SUCCESS)) {
         return PSA_ERROR_PROGRAMMER_ERROR;
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
 
     (void)stdio_output_string_raw(msg, len, (ifx_stdio_core_id_t)core_id);
 
@@ -75,6 +83,7 @@ static int32_t ifx_svc_platform_system_reset(void)
 #endif
 }
 
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_4, "Prototype in tfm_svcalls.c")
 int32_t platform_svc_handlers(uint8_t svc_num, uint32_t *svc_args,
                                 uint32_t lr)
 {

@@ -16,8 +16,11 @@
  */
 
 #include "device_definition.h"
+#include "coverity_check.h"
+TFM_COVERITY_DEVIATE_BLOCK(HFA, "These headers would be used to define IFX_IRQ_TEST_TIMER_NS")
 #include "tfm_peripherals_def.h"
 #include "tfm_plat_defs.h"
+TFM_COVERITY_BLOCK_END(HFA)
 
 #if defined(IFX_IRQ_TEST_TIMER_NS)
 /* TCPWM Timer structures for IRQ tests.

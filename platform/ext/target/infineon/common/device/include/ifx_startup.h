@@ -9,6 +9,7 @@
 #ifndef IFX_STARTUP_H
 #define IFX_STARTUP_H
 
+#include "coverity_check.h"
 
 #ifndef IS_POWER_OF_TWO
 #define IS_POWER_OF_TWO(x) ((x) && !((x) & ((x) - 1)))
@@ -24,10 +25,12 @@
 
 /* Validate that vector table alignment is correct according to requirements
  * from "ARMv8-M Architecture Reference Manual" section "B4.29 Vector tables" */
+TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_12_1, "VECTORTABLE_ALIGN is defined externally, cannot change it")
 #if (((VECTORTABLE_ALIGN / (VECTORTABLE_SIZE * 4)) < 1) || \
     (VECTORTABLE_ALIGN < 128) || (!(IS_POWER_OF_TWO(VECTORTABLE_ALIGN))))
     #error "VECTORTABLE_ALIGN is incorrect"
 #endif
+TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_12_1)
 
 typedef void(*VECTOR_TABLE_Type)(void);
 

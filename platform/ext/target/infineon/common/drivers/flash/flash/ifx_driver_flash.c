@@ -15,6 +15,7 @@
 #include "ifx_driver_flash.h"
 #include "ifx_driver_private.h"
 #include "ifx_utils.h"
+#include "coverity_check.h"
 
 #include <string.h>
 
@@ -83,10 +84,15 @@ static ARM_DRIVER_VERSION ifx_driver_flash_get_version(IFX_FDF_ARGS())
     IFX_UNUSED(IFX_DRIVER_FLASH_INSTANCE);
 #endif /* !IFX_DRIVER_FLASH_SINGLE_INSTANCE */
     /* Driver Version */
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_20_7, "Checked this part with preprocessor(-E option) and identified as not an issue")
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_1, "Drivers version defines use ARM_DRIVER_VERSION_MAJOR_MINOR define, which is provided by CMSIS. We cannot change that define")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_12_2, "Same as above, shift is done in ARM_DRIVER_VERSION_MAJOR_MINOR")
     ARM_DRIVER_VERSION driver_version = {
         ARM_FLASH_API_VERSION,
         IFX_DRIVER_FLASH_VERSION
     };
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_1)
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_20_7)
 
     return driver_version;
 }
@@ -108,6 +114,7 @@ static ARM_FLASH_CAPABILITIES ifx_driver_flash_get_capabilities(IFX_FDF_ARGS())
 
 static inline int32_t ifx_driver_flash_initialize(IFX_FDF_ARGS(IFX_DRIVER_FLASH_EVENT cb_event))
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_flash_obj_t *obj = IFX_DRIVER_FLASH_INSTANCE;
 
     /* Callback is not supported */
@@ -138,6 +145,7 @@ static int32_t ifx_driver_flash_power_control(IFX_FDF_ARGS(ARM_POWER_STATE state
 
 static int32_t ifx_driver_flash_read_data(IFX_FDF_ARGS(uint32_t addr, void *data, uint32_t cnt))
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_flash_obj_t *obj = IFX_DRIVER_FLASH_INSTANCE;
     uint32_t size = cnt * IFX_DRIVER_FLASH_PROGRAM_UNIT;
     int32_t result;
@@ -160,6 +168,7 @@ static int32_t ifx_driver_flash_program_data(IFX_FDF_ARGS(uint32_t addr,
                                                           const void *data,
                                                           uint32_t cnt))
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_flash_obj_t *obj = IFX_DRIVER_FLASH_INSTANCE;
     uint32_t size = cnt * IFX_DRIVER_FLASH_PROGRAM_UNIT;
     int32_t result;
@@ -213,6 +222,7 @@ static int32_t ifx_driver_flash_program_data(IFX_FDF_ARGS(uint32_t addr,
 
 static int32_t ifx_driver_flash_erase_sector(IFX_FDF_ARGS(uint32_t addr))
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_flash_obj_t *obj = IFX_DRIVER_FLASH_INSTANCE;
     int32_t result;
     uint32_t interrupt_state;
@@ -235,6 +245,7 @@ static int32_t ifx_driver_flash_erase_sector(IFX_FDF_ARGS(uint32_t addr))
 
 static int32_t ifx_driver_flash_erase_chip(IFX_FDF_ARGS())
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_flash_obj_t *obj = IFX_DRIVER_FLASH_INSTANCE;
     uint32_t address = obj->start_address;
     uint32_t interrupt_state;
@@ -254,6 +265,7 @@ static int32_t ifx_driver_flash_erase_chip(IFX_FDF_ARGS())
             break;
         }
 
+        TFM_COVERITY_DEVIATE_LINE(cert_int30_c, "This can never overflow if obj correctly describes the flash device.")
         address += obj->flash_info.sector_size;
     }
 
@@ -276,6 +288,7 @@ static struct _ARM_FLASH_STATUS ifx_driver_flash_get_status(IFX_FDF_ARGS())
 
 static ARM_FLASH_INFO *ifx_driver_flash_get_info(IFX_FDF_ARGS())
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_flash_obj_t *obj = IFX_DRIVER_FLASH_INSTANCE;
     return &obj->flash_info;
 }
@@ -298,6 +311,7 @@ ARM_DRIVER_FLASH ifx_cmsis_driver_flash = {
 #else /* IFX_DRIVER_FLASH_SINGLE_INSTANCE */
 /* In the case of a multi flash driver instance, TFM creates ifx_flash_driver_t,
  * which is used to create the CMSIS driver */
+TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_1, "Checked this part with preprocessor(-E option) and identified as not an issue")
 const struct ifx_flash_driver_t ifx_driver_flash = {
     .GetVersion = ifx_driver_flash_get_version,
     .GetCapabilities = ifx_driver_flash_get_capabilities,
@@ -311,4 +325,5 @@ const struct ifx_flash_driver_t ifx_driver_flash = {
     .GetStatus = ifx_driver_flash_get_status,
     .GetInfo = ifx_driver_flash_get_info,
 };
+TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_1)
 #endif /* IFX_DRIVER_FLASH_SINGLE_INSTANCE */

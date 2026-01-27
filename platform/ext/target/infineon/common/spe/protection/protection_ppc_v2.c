@@ -13,6 +13,7 @@
 #include "protection_types.h"
 #include "protection_regions_cfg.h"
 #include "protection_ppc_api.h"
+#include "coverity_check.h"
 
 /* IMPROVEMENT: move Cy_Ppc_GetPcMask(), Cy_Ppc_GetAttrib() and Function Description to PDL (DRIVERS-10521)*/
 
@@ -58,10 +59,12 @@ static uint32_t Cy_Ppc_GetPcMask(const PPC_Type* base, cy_en_prot_region_t regio
 *******************************************************************************/
 static PPC_Type* Cy_Ppc_GetPointerForRegion(cy_en_prot_region_t ppc_region)
 {
+    TFM_COVERITY_DEVIATE_BLOCK(constant_expression_result, "index_ppc can be more than 0")
     size_t index_ppc = CY_PPC_DRV_BLOCK_EXTRACT(ppc_region);
     if (index_ppc < ifx_ppcx_region_ptrs_count) {
         return ifx_ppcx_region_ptrs[index_ppc];
     }
+    TFM_COVERITY_BLOCK_END(constant_expression_result)
 
     tfm_core_panic();
 }
@@ -117,6 +120,7 @@ static void ifx_check_config_validity(const PPC_Type               *ppc_ptr,
                                       const uint32_t                ppc_pcmask)
 {
     /* IMPROVEMENT: Remove the typecast once DRIVERS-23320 is fixed */
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_8, "Typecast is needed due to DRIVERS-23320")
     uint32_t lock_mask = Cy_Ppc_GetLockMask((PPC_Type *)ppc_ptr);
     uint32_t pc_mask = Cy_Ppc_GetPcMask(ppc_ptr, ppc_region);
     cy_stc_ppc_attribute_t attr = {
@@ -255,10 +259,14 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_ppc_init_cfg(void)
     }
 
     for (uint32_t idx = 0UL; idx < ifx_ppcx_static_config_count; idx++) {
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
         FIH_CALL(ifx_ppcx_init_cfg, fih_rc, &ifx_ppcx_static_config[idx]);
+        TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
         if (FIH_NOT_EQ(fih_rc, TFM_HAL_SUCCESS)) {
             FIH_RET(fih_rc);
         }
+        TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
     }
 
     /* Add barriers to assure the PPC configuration is done before continue

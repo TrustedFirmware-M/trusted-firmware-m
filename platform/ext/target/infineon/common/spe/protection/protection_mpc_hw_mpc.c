@@ -20,6 +20,7 @@
 #include "ifx_regions.h"
 #include "ifx_utils.h"
 #include "utilities.h"
+#include "coverity_check.h"
 
 ifx_mpc_region_config_t ifx_fixed_mpc_static_config[IFX_MAX_FIXED_CONFIGS];
 uint32_t ifx_fixed_mpc_static_config_count = 0;
@@ -115,6 +116,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_fill_fixed_config(void)
 
     /* finally, set the count */
     if (idx > IFX_MAX_FIXED_CONFIGS) {
+        TFM_COVERITY_DEVIATE_LINE(deadcode, "Defensive overflow guard: may be reachable depending on the configuration");
         tfm_core_panic();
     }
     ifx_fixed_mpc_static_config_count = idx;
@@ -140,6 +142,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_isolate_numbered_mmio(
     mpc_reg_cfg.is_rot  = true;
 #endif
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
     FIH_CALL(ifx_mpc_apply_configuration, fih_rc, &mpc_reg_cfg);
     FIH_RET(fih_rc);
 }
@@ -176,10 +179,14 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_apply_configuration(
 #endif /* IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT */
         };
 
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
         FIH_CALL(ifx_mpc_apply_raw_configuration, mem_cfg_res_fih, &mpc_reg_cfg_raw);
+        TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
         if (FIH_NOT_EQ(mem_cfg_res_fih, TFM_HAL_SUCCESS)) {
             FIH_RET(mem_cfg_res_fih);
         }
+        TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
     }
 
     FIH_RET(TFM_HAL_SUCCESS);
@@ -252,9 +259,12 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_verify_configuration(
         };
 
         FIH_CALL(ifx_mpc_verify_raw_configuration, mem_cfg_res_2, &mpc_reg_cfg_raw);
+        TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
         if (FIH_NOT_EQ(mem_cfg_res_2, TFM_HAL_SUCCESS)) {
             FIH_RET(mem_cfg_res_2);
         }
+        TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
     }
 
     FIH_RET(TFM_HAL_SUCCESS);
@@ -266,11 +276,13 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_verify_raw_configuration(
     FIH_RET_TYPE(enum tfm_hal_status_t) mem_cfg_res;
 
     /* MPC pointer is set to NULL for MPCs that are not configurable by TFM. */
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
     if (IFX_MPC_IS_EXTERNAL(mpc_reg_cfg->mpc_base)) {
 #if IFX_SE_IPC_SERVICE_FULL || IFX_SE_IPC_SERVICE_BASE
         /* Use external service to verify protection */
         FIH_CALL(ifx_mpc_sert_verify_configuration,
                     mem_cfg_res, mpc_reg_cfg);
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
         if (FIH_NOT_EQ(mem_cfg_res, TFM_HAL_SUCCESS)) {
             FIH_RET(mem_cfg_res);
         }
@@ -281,10 +293,12 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_verify_raw_configuration(
         /* Read MPC directly */
         FIH_CALL(ifx_mpc_verify_configuration_with_mpc,
                     mem_cfg_res, mpc_reg_cfg);
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
         if (FIH_NOT_EQ(mem_cfg_res, TFM_HAL_SUCCESS)) {
             FIH_RET(mem_cfg_res);
         }
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
 
     FIH_RET(TFM_HAL_SUCCESS);
 }

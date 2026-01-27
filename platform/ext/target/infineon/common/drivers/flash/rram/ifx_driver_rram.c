@@ -17,6 +17,7 @@
 #include "ifx_driver_private.h"
 #include "ifx_driver_rram.h"
 #include "ifx_utils.h"
+#include "coverity_check.h"
 
 #include <string.h>
 #include "cy_device.h"
@@ -45,10 +46,15 @@ static ARM_DRIVER_VERSION ifx_driver_rram_get_version(ifx_flash_driver_handler_t
     IFX_UNUSED(handler);
 
     /* Driver Version */
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_20_7, "Checked this part with preprocessor(-E option) and identified as not an issue")
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_1, "Drivers version defines use ARM_DRIVER_VERSION_MAJOR_MINOR define, which is provided by CMSIS. We cannot change that define")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_12_2, "Same as above, shift is done in ARM_DRIVER_VERSION_MAJOR_MINOR")
     ARM_DRIVER_VERSION driver_version = {
         .api = ARM_FLASH_API_VERSION,
         .drv = IFX_DRIVER_RRAM_VERSION
     };
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_1)
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_20_7)
 
     return driver_version;
 }
@@ -71,6 +77,7 @@ static ARM_FLASH_CAPABILITIES ifx_driver_rram_get_capabilities(ifx_flash_driver_
 static int32_t ifx_driver_rram_initialize(ifx_flash_driver_handler_t handler,
                                           ifx_flash_driver_event_t cb_event)
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_rram_obj_t *obj = handler;
 
     /* Callback is not supported */
@@ -98,6 +105,7 @@ static int32_t ifx_driver_rram_read_data(ifx_flash_driver_handler_t handler,
             uint32_t addr, void *data, uint32_t cnt)
 {
     cy_en_rram_status_t rram_status;
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_rram_obj_t *obj = handler;
     int32_t result;
     uint32_t size = cnt * IFX_DRIVER_RRAM_PROGRAM_UNIT;
@@ -188,6 +196,7 @@ static int32_t ifx_driver_rram_write(RRAMC_Type *rram_base,
 static int32_t ifx_driver_rram_program_data(ifx_flash_driver_handler_t handler,
             uint32_t addr, const void *data, uint32_t cnt)
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_rram_obj_t *obj = handler;
     int32_t result;
     uint32_t size = cnt * IFX_DRIVER_RRAM_PROGRAM_UNIT;
@@ -206,6 +215,7 @@ static int32_t ifx_driver_rram_program_data(ifx_flash_driver_handler_t handler,
 static int32_t ifx_driver_rram_erase_sector(ifx_flash_driver_handler_t handler,
             uint32_t addr)
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_rram_obj_t *obj = handler;
     int32_t result;
     uint8_t erase_pattern[CY_RRAM_BLOCK_SIZE_BYTES];
@@ -242,6 +252,7 @@ static int32_t ifx_driver_rram_erase_sector(ifx_flash_driver_handler_t handler,
 
 static int32_t ifx_driver_rram_erase_chip(ifx_flash_driver_handler_t handler)
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_rram_obj_t *obj = handler;
     int32_t result;
     uint32_t address = 0;
@@ -273,10 +284,12 @@ static struct _ARM_FLASH_STATUS ifx_driver_rram_get_status(ifx_flash_driver_hand
 
 static ARM_FLASH_INFO *ifx_driver_rram_get_info(ifx_flash_driver_handler_t handler)
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_rram_obj_t *obj = handler;
     return &obj->flash_info;
 }
 
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_2_8, "Used in RRAM flash driver in the IFX_DRIVER_RRAM_CREATE_INSTANCE macro");
 const struct ifx_flash_driver_t ifx_driver_rram = {
     .GetVersion = ifx_driver_rram_get_version,
     .GetCapabilities = ifx_driver_rram_get_capabilities,

@@ -25,6 +25,7 @@
 #include "tfm_builtin_key_ids.h"
 #include "tfm_builtin_key_loader.h"
 #include "tfm_plat_crypto_keys.h"
+#include "coverity_check.h"
 
 #define NUMBER_OF_ELEMENTS_OF(x) sizeof(x)/sizeof(*x)
 
@@ -111,6 +112,7 @@ static enum tfm_plat_err_t ifx_plat_get_iak_pub(const void *ctx,
     }
 
     *key_bits = IFX_CRYPTO_KEYS_IAK_PUBLIC_KEY_BITS;
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_12_1, "PSA_KEY_EXPORT_ECC_PUBLIC_KEY_MAX_SIZE() defined externally, cannot change it")
     *key_len = IFX_CRYPTO_KEYS_IAK_PUBLIC_KEY_LEN;
     *algorithm = IFX_CRYPTO_KEYS_IAK_PUBLIC_ALGORITHM;
     *type = IFX_CRYPTO_KEYS_IAK_PUBLIC_TYPE;
@@ -157,6 +159,7 @@ static const tfm_plat_builtin_key_policy_t g_builtin_keys_policy[] = {
  *        that to bind the keys to the tfm_builtin_key_loader driver, the lifetime must be
  *        explicitly set to the one associated to the driver, i.e. TFM_BUILTIN_KEY_LOADER_LIFETIME
  */
+TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_12_1, "PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION() defined externally, cannot change it")
 static const tfm_plat_builtin_key_descriptor_t g_builtin_keys_desc[] = {
     { .key_id = TFM_BUILTIN_KEY_ID_HUK,
       .slot_number = TFM_BUILTIN_KEY_SLOT_HUK,
@@ -179,6 +182,7 @@ static const tfm_plat_builtin_key_descriptor_t g_builtin_keys_desc[] = {
     },
 #endif /* TFM_PARTITION_INITIAL_ATTESTATION */
 };
+TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_12_1)
 
 size_t tfm_plat_builtin_key_get_policy_table_ptr(const tfm_plat_builtin_key_policy_t *desc_ptr[])
 {

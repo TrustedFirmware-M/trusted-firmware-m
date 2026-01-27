@@ -14,6 +14,7 @@
 #include "psa/initial_attestation.h"
 #include "tfm_attest_hal.h"
 #include "tfm_plat_device_id.h"
+#include "coverity_check.h"
 
 #include <string.h>
 
@@ -104,6 +105,7 @@ tfm_attest_hal_get_token(const void *challenge_buf, size_t challenge_size,
         return PSA_ERROR_GENERIC_ERROR;
     }
 
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_6, "This is platform specific code, pointers will always fit into uint32_t for this platform.")
     status = ifx_se_get_psa_status( ifx_se_initial_attest_get_token(
                     ifx_se_fih_ptr_encode(challenge_buf),
                     ifx_se_fih_uint_encode(challenge_size),
@@ -116,6 +118,7 @@ tfm_attest_hal_get_token(const void *challenge_buf, size_t challenge_size,
                     ifx_se_fih_uint_encode(token_buf_size),
                     ifx_se_fih_ptr_encode(token_size),
                     IFX_SE_TFM_SYSCALL_CONTEXT) );
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_6)
 
     return status;
 }

@@ -20,6 +20,7 @@
 #ifdef IFX_STARTUP_HEADER_FILE
 #include IFX_STARTUP_HEADER_FILE
 #endif /* IFX_STARTUP_HEADER_FILE */
+#include "coverity_check.h"
 #include "tfm_platform_arch_hooks.h"
 
 #ifdef RAM_VECTORS_SUPPORT
@@ -58,7 +59,9 @@
 
 void ifx_pc2_exception_handler(void);
 
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_9_3, "All array members are initialized via designators")
 const VECTOR_TABLE_Type ifx_pc2_vector_table[VECTORTABLE_SIZE] __attribute__((aligned(VECTORTABLE_ALIGN))) = {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_1, "Linker variable must be cast to VECTOR_TABLE_Type")
     [0] = (VECTOR_TABLE_Type)(&__INITIAL_SP),         /*       Initial Stack Pointer */ \
     /* All entries points to common handler which performs switching to PC2 and calling handler
      * from original vector table */
@@ -74,6 +77,7 @@ const VECTOR_TABLE_Type ifx_pc2_vector_table[VECTORTABLE_SIZE] __attribute__((al
  *
  * Note: Allocate variable in scope of SPM data to avoid access by unprivileged code.
  */
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_2_8, "Used with assembler for restoring PC after handling exception");
 fih_int ifx_arch_active_protection_context = FIH_INT_INIT(IFX_PC_TFM_SPM_ID);
 
 FIH_RET_TYPE(enum tfm_hal_status_t) ifx_pc_init(void)

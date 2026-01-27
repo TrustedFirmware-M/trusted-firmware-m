@@ -16,10 +16,12 @@
 #include "ifx_driver_smif.h"
 #include "cycfg_qspi_memslot.h"
 #include "tfm_peripherals_def.h"
+#include "coverity_check.h"
 
 #if CY_SMIF_DEVICE_NUM0
 cy_stc_smif_context_t ifx_smif_0_context;
 
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_3, "Declaration uses a different type than in ifx_s_peripherals_def.h, should not be an issue")
 ifx_driver_smif_mem_t ifx_smif_0_memory_config = {
     .smif_base = IFX_SMIF_HW,
     .block_config = &smif0BlockConfig,

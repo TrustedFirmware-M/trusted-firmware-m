@@ -22,7 +22,10 @@ psa_status_t tfm_platform_ps_set_key(psa_key_id_t *ps_key, const uint8_t *key_la
     mbedtls_svc_key_id_t new_key = MBEDTLS_SVC_KEY_ID_INIT;
 
     /* Check whether the PS AEAD algorithm is PSA_ALG_CCM */
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_12_1, "IFX_ASSERT() defined externally, cannot change it")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_2_2, "This code is added to perform compile time check")
     IFX_ASSERT(PS_CRYPTO_ALG == PSA_ALG_CCM);
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_12_1)
 
     if ((key_label_len == 0U) || (key_label == NULL)) {
         return PSA_ERROR_INVALID_ARGUMENT;
@@ -33,10 +36,12 @@ psa_status_t tfm_platform_ps_set_key(psa_key_id_t *ps_key, const uint8_t *key_la
     psa_set_key_algorithm(&attributes, PSA_ALG_CCM);
     psa_set_key_type(&attributes, PS_KEY_TYPE);
     psa_set_key_bits(&attributes, PSA_BYTES_TO_BITS(PS_KEY_LEN_BYTES));
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_12_1, "PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION defined externally, cannot change it")
     psa_set_key_lifetime(&attributes,
         (PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
                 PSA_KEY_LIFETIME_VOLATILE,
                 PSA_KEY_LOCATION_IFX_SE)));
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_12_1)
 
     status = psa_key_derivation_setup(&op, PSA_ALG_KDF_IFX_SE_AES_CMAC);
     if (status != PSA_SUCCESS) {

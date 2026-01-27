@@ -12,6 +12,7 @@
 static int32_t ifx_driver_smif_read_data(ifx_flash_driver_handler_t handler,
                                          uint32_t addr, void *data, uint32_t cnt)
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_smif_obj_t *obj = handler;
     const ifx_driver_smif_mem_t *mem = obj->memory;
     cy_en_smif_status_t smif_status;
@@ -45,6 +46,7 @@ static int32_t ifx_driver_smif_read_data(ifx_flash_driver_handler_t handler,
 static int32_t ifx_driver_smif_program_data(ifx_flash_driver_handler_t handler,
                                             uint32_t addr, const void *data, uint32_t cnt)
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_smif_obj_t *obj = handler;
     const ifx_driver_smif_mem_t *mem = obj->memory;
     cy_en_smif_status_t smif_status;
@@ -77,6 +79,7 @@ static int32_t ifx_driver_smif_program_data(ifx_flash_driver_handler_t handler,
     return ARM_DRIVER_OK;
 }
 
+TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_2_8, "Usage of ifx_driver_smif_mmio depends on device configurator. It's expected that some configuration doesn't need it.")
 const struct ifx_flash_driver_t ifx_driver_smif_mmio = {
     .GetVersion = ifx_driver_smif_get_version,
     .GetCapabilities = ifx_driver_smif_get_capabilities,
@@ -90,3 +93,4 @@ const struct ifx_flash_driver_t ifx_driver_smif_mmio = {
     .GetStatus = ifx_driver_smif_get_status,
     .GetInfo = ifx_driver_smif_get_info,
 };
+TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_2_8)

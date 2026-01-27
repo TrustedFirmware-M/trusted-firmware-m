@@ -86,6 +86,7 @@ void* tfm_hal_remap_ns_cpu_address(const void* addr)
     /* ITCM/DTCM memory has different address in CM55 vs CM33 address space,
      * thus ITCM/DTCM memory address needs to be remapped to be usable on CM33
      * side. */
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_6, "Conversion is required to perform address arithmetic")
     if (IFX_IS_REGION_IN_ITCM_MEMORY((uintptr_t)addr, 0U)) {
         return (void*)(((uint32_t)addr)
                        - CY_CM55_ITCM_INTERNAL_NS_SBUS_BASE
@@ -96,7 +97,9 @@ void* tfm_hal_remap_ns_cpu_address(const void* addr)
                        + CY_CM55_DTCM_NS_SBUS_BASE);
     } else {
         /* Address is not in ITCM/DTCM memory, thus no remapping is needed */
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_8, "Cast is required to align with function signature")
         return ((void*)addr);
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_6);
 }
 #endif /* CONFIG_TFM_PSA_CALL_ADDRESS_REMAP */

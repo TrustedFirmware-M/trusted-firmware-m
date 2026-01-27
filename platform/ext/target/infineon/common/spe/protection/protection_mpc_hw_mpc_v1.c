@@ -23,6 +23,7 @@
 #include "ifx_regions.h"
 #include "ifx_utils.h"
 #include "tfm_hal_isolation.h"
+#include "coverity_check.h"
 
 #define IFX_MPC_BLOCK_SIZE_TO_BYTES(mpc_size)   (1UL << ((uint32_t)(mpc_size) + 5UL))
 
@@ -124,16 +125,24 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_init_cfg(void)
     IFX_FIH_DECLARE(enum tfm_hal_status_t, mpc_result, TFM_HAL_ERROR_BAD_STATE);
 
     /* Populate ifx_fixed_mpc_static_config[] */
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
     FIH_CALL(ifx_mpc_fill_fixed_config, mpc_result);
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
     if (FIH_NOT_EQ(mpc_result, TFM_HAL_SUCCESS)) {
         FIH_RET(mpc_result);
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
 
 #if IFX_SE_IPC_SERVICE_FULL || IFX_SE_IPC_SERVICE_BASE
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
     FIH_CALL(ifx_mpc_sert_init, mpc_result);
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
     if (FIH_NOT_EQ(mpc_result, TFM_HAL_SUCCESS)) {
         FIH_RET(mpc_result);
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
 #endif /* IFX_SE_IPC_SERVICE_FULL || IFX_SE_IPC_SERVICE_BASE */
 
     /*
@@ -165,9 +174,12 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_init_cfg(void)
             };
 
             FIH_CALL(ifx_mpc_apply_raw_configuration, mpc_result, &mpc_cfg);
+            TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+            TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
             if (FIH_NOT_EQ(mpc_result, TFM_HAL_SUCCESS)) {
                 FIH_RET(mpc_result);
             }
+            TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
         }
     }
 
@@ -194,9 +206,12 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_init_cfg(void)
             };
 
             FIH_CALL(ifx_mpc_verify_raw_configuration, mpc_result, &mpc_cfg);
+            TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+            TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
             if (FIH_NOT_EQ(mpc_result, TFM_HAL_SUCCESS)) {
                 FIH_RET(mpc_result);
             }
+            TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
         }
     }
 #endif /* defined(TFM_FIH_PROFILE_ON) */
@@ -222,11 +237,15 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_init_cfg(void)
 
     /* Apply predefined static MPC configuration for memory regions */
     for (uint32_t idx = 0UL; idx < ifx_mpc_static_config_count; idx++) {
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
         FIH_CALL(ifx_mpc_apply_configuration, mpc_result,
                  &ifx_mpc_static_config[idx]);
+        TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
         if (FIH_NOT_EQ(mpc_result, TFM_HAL_SUCCESS)) {
             FIH_RET(mpc_result);
         }
+        TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
     }
 
 #if defined(TFM_FIH_PROFILE_ON)
@@ -241,19 +260,26 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_init_cfg(void)
         FIH_RET_TYPE(enum tfm_hal_status_t) ret;
 
         FIH_CALL(ifx_mpc_verify_configuration, ret, &ifx_mpc_static_config[idx]);
+        TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
         if (FIH_NOT_EQ(ret, TFM_HAL_SUCCESS)) {
             FIH_RET(ret);
         }
+        TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
     }
 #endif /* defined(TFM_FIH_PROFILE_ON) */
 #endif /* IFX_MEMORY_CONFIGURATOR_MPC_CONFIG */
 
     for (uint32_t idx = 0UL; idx < ifx_fixed_mpc_static_config_count; idx++) {
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
         FIH_CALL(ifx_mpc_apply_configuration, mpc_result,
                  &ifx_fixed_mpc_static_config[idx]);
+        TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
         if (FIH_NOT_EQ(mpc_result, TFM_HAL_SUCCESS)) {
             FIH_RET(mpc_result);
         }
+        TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
     }
 
     /* Add barriers to assure the MPC configuration is done before continue
@@ -271,10 +297,14 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_verify_static_boundaries(void)
     IFX_FIH_DECLARE(enum tfm_hal_status_t, ret, TFM_HAL_ERROR_GENERIC);
 
     /* Populate ifx_fixed_mpc_static_config[] again, in case of fault injection */
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
     FIH_CALL(ifx_mpc_fill_fixed_config, ret);
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
     if (FIH_NOT_EQ(ret, TFM_HAL_SUCCESS)) {
         FIH_RET(ret);
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
 
 #ifdef IFX_MEMORY_CONFIGURATOR_MPC_CONFIG
     /* Check violation response provided by Device Configurator */
@@ -322,9 +352,12 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_verify_static_boundaries(void)
 
     for (uint32_t idx = 0UL; idx < ifx_fixed_mpc_static_config_count; idx++) {
         FIH_CALL(ifx_mpc_verify_configuration, ret, &ifx_fixed_mpc_static_config[idx]);
+        TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
         if (FIH_NOT_EQ(ret, TFM_HAL_SUCCESS)) {
             FIH_RET(ret);
         }
+        TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
     }
 
     FIH_RET(TFM_HAL_SUCCESS);
@@ -344,9 +377,11 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_memory_check(const struct ifx_partit
 #if CONFIG_TFM_PSA_CALL_ADDRESS_REMAP
     bool is_ns_cpu_internal_memory =
 #if defined(TFM_PARTITION_NS_AGENT_MAILBOX)
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "external macro IS_NS_AGENT_MAILBOX interprets non-boolean type as a boolean")
                             ((IS_NS_AGENT_MAILBOX(p_info->p_ldinfo))
                              && ifx_is_ns_cpu_internal_memory(base, size)) ||
 #elif IFX_MTB_MAILBOX
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "external macro IS_NS_AGENT_TZ interprets non-boolean type as a boolean")
                             ((IS_NS_AGENT_TZ(p_info->p_ldinfo))
                              && ifx_is_ns_cpu_internal_memory_remapped(base, size)) ||
 #endif /* defined(TFM_PARTITION_NS_AGENT_MAILBOX) */
@@ -357,9 +392,11 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_memory_check(const struct ifx_partit
 
     bool is_ns_cpu_internal_memory2 =
 #if defined(TFM_PARTITION_NS_AGENT_MAILBOX)
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "external macro IS_NS_AGENT_MAILBOX interprets non-boolean type as a boolean")
                             ((IS_NS_AGENT_MAILBOX(p_info->p_ldinfo))
                              && ifx_is_ns_cpu_internal_memory(base, size)) ||
 #elif IFX_MTB_MAILBOX
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "external macro IS_NS_AGENT_TZ interprets non-boolean type as a boolean")
                             ((IS_NS_AGENT_TZ(p_info->p_ldinfo))
                              && ifx_is_ns_cpu_internal_memory_remapped(base, size)) ||
 #endif /* defined(TFM_PARTITION_NS_AGENT_MAILBOX) */
@@ -401,20 +438,28 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_memory_check(const struct ifx_partit
     uint32_t first_block_idx = offset / block_size;
     uint32_t last_block_idx  = IFX_ROUND_UP_TO_MULTIPLE(offset + size, block_size) / block_size;
     IFX_FIH_BOOL is_secure = ((access_type & TFM_HAL_ACCESS_NS) == 0U) ? IFX_FIH_TRUE : IFX_FIH_FALSE;
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "external macro IS_NS_AGENT interprets non-boolean type as a boolean")
     fih_int pc               = FIH_INVALID_VALUE;
 
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change equal logic due to Fault injection architecture and define FIH_EQ")
     pc = IFX_GET_PARTITION_PC(p_info, IFX_FIH_EQ(is_secure, IFX_FIH_TRUE));
     fih_int_validate(pc);
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "external macro IS_NS_AGENT interprets non-boolean type as a boolean")
     cy_en_mpc_sec_attr_t expected_sec_attr = (IS_NS_AGENT(p_info->p_ldinfo) && IFX_FIH_EQ(is_secure, IFX_FIH_FALSE)) ? CY_MPC_NON_SECURE : CY_MPC_SECURE;
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
 
 #if defined(TFM_FIH_PROFILE_ON) && !defined(TFM_FIH_PROFILE_LOW)
     (void)fih_delay();
     volatile uint32_t access_type_2 = access_type;
     IFX_FIH_BOOL is_secure2 = ((access_type_2 & TFM_HAL_ACCESS_NS) == 0U) ? IFX_FIH_TRUE : IFX_FIH_FALSE;
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change equal logic due to Fault injection architecture and define FIH_EQ")
     if (!IFX_FIH_EQ(is_secure, is_secure2)) {
         FIH_RET(TFM_HAL_ERROR_MEM_FAULT);
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
 
     volatile uint32_t validated_block_count = 0;
 #endif

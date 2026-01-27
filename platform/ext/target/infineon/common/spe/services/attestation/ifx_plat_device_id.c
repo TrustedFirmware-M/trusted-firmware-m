@@ -14,6 +14,7 @@
 #include "ifx_assets_rram.h"
 #endif /* defined(IFX_NON_SECURE_SFLASH_BASE) */
 #include "tfm_plat_device_id.h"
+#include "coverity_check.h"
 
 #define IFX_ADD_TO_IMPLEMENTATION_ID(buffer, val)       (void)memcpy((buffer), \
                                                                      (const void*)(&(val)), \
@@ -92,6 +93,7 @@ enum tfm_plat_err_t tfm_plat_get_implementation_id(uint32_t *size, uint8_t  *buf
     /* Set Implementation ID as SI_REVISION_ID + SILICON_ID + FAMILY_ID +
      * SFLASH_SVN + DIE_LOT + DIE_WAFER + DIE_X + DIE_Y + DIE_SORT + DIE_MINOR +
      * DIE_DAY + DIE_MONTH + DIE_YEAR */
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_8, "During the execution of this function, read flash memory data is not expected to change")
     IFX_ADD_TO_IMPLEMENTATION_ID(buf, IFX_SFLASH->SI_REVISION_ID);
     IFX_ADD_TO_IMPLEMENTATION_ID(buf, IFX_SFLASH->SILICON_ID);
     IFX_ADD_TO_IMPLEMENTATION_ID(buf, IFX_SFLASH->FAMILY_ID);
@@ -105,6 +107,7 @@ enum tfm_plat_err_t tfm_plat_get_implementation_id(uint32_t *size, uint8_t  *buf
     IFX_ADD_TO_IMPLEMENTATION_ID(buf, IFX_SFLASH->DIE_DAY);
     IFX_ADD_TO_IMPLEMENTATION_ID(buf, IFX_SFLASH->DIE_MONTH);
     IFX_ADD_TO_IMPLEMENTATION_ID(buf, IFX_SFLASH->DIE_YEAR);
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_8)
 #else /* defined(IFX_NON_SECURE_SFLASH_BASE) */
 #error "Unsupported implementation or invalid configuration"
 #endif /* defined(IFX_NON_SECURE_SFLASH_BASE) */

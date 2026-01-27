@@ -13,6 +13,7 @@
 #include "ifx_se_tfm_utils.h"
 #include "protection_mpc_sert.h"
 #include "region_defs.h"
+#include "coverity_check.h"
 #include "tfm_hal_isolation.h"
 
 #define IFX_MPC_EXT_BLOCK_SIZE_TO_BYTES(mpc_size)   (1UL << ((uint32_t)(mpc_size) + 5UL))
@@ -216,6 +217,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_sert_memory_check(
     }
 
     bool is_secure = (access_type & TFM_HAL_ACCESS_NS) == 0U;
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "external macro IS_NS_AGENT interprets non-boolean type as a boolean")
     uint32_t pc = (uint32_t)fih_int_decode(IFX_GET_PARTITION_PC(p_info, is_secure));
 
     uint32_t mask = 1UL << ((pc * 4u) + 0u);

@@ -8,6 +8,7 @@
 
 #include "nv_counters_flash_driver.h"
 #include "region_defs.h"
+#include "coverity_check.h"
 
 #define IFX_TFM_NV_COUNTERS_ERASE_VALUE   IFX_DRIVER_FLASH_ERASE_VALUE
 
@@ -38,6 +39,7 @@ IFX_DRIVER_FLASH_DEFINE_SINGLE_INSTANCE(ifx_flash_obj_nv_counters)
 IFX_DRIVER_FLASH_CREATE_INSTANCE(ifx_flash_instance_nv_counters, ifx_flash_obj_nv_counters)
 
 /* Create CMSIS wrapper for FLASH driver for NV counters */
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Checked this part with preprocessor(-E option) and identified as not an issue")
 IFX_CREATE_CMSIS_FLASH_DRIVER(ifx_flash_instance_nv_counters, ifx_nv_counters_cmsis_flash_instance)
 
 #endif /* IFX_DRIVER_FLASH_SINGLE_INSTANCE */

@@ -9,6 +9,7 @@
 #include "config_tfm.h"
 #include "provisioning.h"
 #include "tfm_plat_otp.h"
+#include "coverity_check.h"
 
 enum tfm_plat_err_t tfm_plat_otp_init(void)
 {
@@ -24,6 +25,7 @@ enum tfm_plat_err_t tfm_plat_otp_read(enum tfm_otp_element_id_t id,
             return TFM_PLAT_ERR_INVALID_INPUT;
         }
 
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_3, "Intentional pointer type conversion, only byte of data is used");
         enum plat_otp_lcs_t *plat_lcs = (enum plat_otp_lcs_t *)out;
         uint32_t lcs = ifx_get_security_lifecycle() & PSA_LIFECYCLE_PSA_STATE_MASK;
         switch (lcs) {

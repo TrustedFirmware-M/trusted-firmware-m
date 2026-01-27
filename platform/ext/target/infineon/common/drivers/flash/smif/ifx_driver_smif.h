@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include "ifx_flash_driver_api.h"
 #include "cy_smif_memslot.h"
+#include "coverity_check.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,6 +57,7 @@ typedef struct ifx_driver_smif_obj_t {
 
 /* TF-M SMIF driver operations */
 extern const struct ifx_flash_driver_t ifx_driver_smif_mmio;
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_6, "Defined in driver_smif_xip.c")
 extern const struct ifx_flash_driver_t ifx_driver_smif_xip;
 
 /* Create SMIF flash driver instance  */

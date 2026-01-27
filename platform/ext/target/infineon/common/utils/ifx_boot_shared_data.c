@@ -10,6 +10,7 @@
 #include "region_defs.h"
 #include "tfm_boot_status.h"
 #include "ifx_tfm_log_shim.h"
+#include "coverity_check.h"
 
 #include <string.h>
 
@@ -25,6 +26,7 @@ void ifx_mock_boot_shared_data_if_not_present(void)
     /* length of data (including header) */
     mocked_boot_data.tlv_tot_len = (uint16_t)(sizeof(struct shared_data_tlv_header));
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_21_16, "Calling the memcmp with type uint8_t * due to first parameter being defined as an address")
     if (memcmp((uint8_t*)BOOT_TFM_SHARED_DATA_BASE,
                (uint8_t*)(&mocked_boot_data.tlv_magic),
                sizeof(mocked_boot_data.tlv_magic))) {

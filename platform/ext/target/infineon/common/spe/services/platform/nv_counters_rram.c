@@ -12,6 +12,7 @@
 #include "nv_counters_rram_driver.h"
 #include "project_memory_layout.h"
 #include "tfm_plat_nv_counters.h"
+#include "coverity_check.h"
 
 #ifndef IFX_NV_COUNTERS_CMSIS_FLASH_INSTANCE
 #error "ERROR: Flash driver instance (IFX_NV_COUNTERS_CMSIS_FLASH_INSTANCE) should be defined"
@@ -116,6 +117,7 @@ static enum tfm_plat_err_t ifx_rram_read_nv_counter_or_backup(enum tfm_nv_counte
     uint32_t counter_addr;
 
     /* Check that size is multiple of Driver bytes per word value */
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_2_2, "This code is added to perform compile time check")
     IFX_ASSERT((sizeof(counter) % IFX_TFM_NV_COUNTERS_PROGRAM_UNIT) == 0U);
     uint32_t cnt = sizeof(counter) / IFX_TFM_NV_COUNTERS_PROGRAM_UNIT;
 
@@ -170,6 +172,7 @@ static enum tfm_plat_err_t ifx_rram_program_nv_counter_or_backup(enum tfm_nv_cou
     uint32_t new_value;
 
     /* Check that size is multiple of Driver bytes per word value */
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_2_2, "This code is added to perform compile time check")
     IFX_ASSERT((sizeof(counter) % IFX_TFM_NV_COUNTERS_PROGRAM_UNIT) == 0U);
     uint32_t cnt = sizeof(counter) / IFX_TFM_NV_COUNTERS_PROGRAM_UNIT;
 
@@ -224,6 +227,7 @@ static enum tfm_plat_err_t ifx_rram_restore_counter_from_backup(enum tfm_nv_coun
     }
 
     /* Program counter */
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Directive_4_7, "It's expected that errors are handled by the caller");
     status = ifx_rram_program_nv_counter_or_backup(counter_idx, backup_val, false);
 
     return status;
@@ -352,9 +356,11 @@ enum tfm_plat_err_t tfm_plat_init_nv_counter(void)
     uint32_t counter_addr;
 
     /* Check that size is multiple of Driver bytes per word value */
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_2_2, "This code is added to perform compile time check")
     IFX_ASSERT((sizeof(counter) % IFX_TFM_NV_COUNTERS_PROGRAM_UNIT) == 0U);
     uint32_t cnt = sizeof(counter) / IFX_TFM_NV_COUNTERS_PROGRAM_UNIT;
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_2_2, "This code is added to perform compile time check")
     IFX_ASSERT((uint32_t)IFX_TFM_NV_COUNTERS_AREA_SIZE
                           >= (uint32_t)IFX_TFM_NV_COUNTERS_EXPECTED_AREA_SIZE);
 
@@ -386,6 +392,7 @@ enum tfm_plat_err_t tfm_plat_init_nv_counter(void)
         }
     }
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Directive_4_7, "It's expected that errors are handled by the caller");
     return ifx_rram_recover_tfm_nv_counters();
 }
 
@@ -398,6 +405,7 @@ enum tfm_plat_err_t tfm_plat_read_nv_counter(enum tfm_nv_counter_t counter_id,
     }
 
     /* Read counter */
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_3, "Intentional pointer type conversion");
     return ifx_rram_read_nv_counter_or_backup(counter_id, (uint32_t *) val, false);
 }
 
@@ -459,5 +467,6 @@ enum tfm_plat_err_t tfm_plat_increment_nv_counter(enum tfm_nv_counter_t counter_
         return TFM_PLAT_ERR_MAX_VALUE;
     }
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Directive_4_7, "It's expected that errors are handled by the caller");
     return tfm_plat_set_nv_counter(counter_id, security_cnt + 1u);
 }

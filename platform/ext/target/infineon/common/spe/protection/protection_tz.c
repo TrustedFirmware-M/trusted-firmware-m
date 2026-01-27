@@ -13,6 +13,7 @@
 #include "config_impl.h"
 #include "config_tfm.h"
 #include "protection_tz.h"
+#include "coverity_check.h"
 #include "tfm_hal_isolation.h"
 
 /**
@@ -56,6 +57,8 @@ static FIH_RET_TYPE(enum tfm_hal_status_t) ifx_cmse_check_address_range(uintptr_
     /* Execute the right variant of the TT instructions.  */
     pe = pb + size - 1;
     const bool singleCheck = (((uintptr_t)pb ^ (uintptr_t)pe) < 32U);
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_16_3, "Return used as unconditional break statement, discuss with Coverity why this is flagged.")
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_16_1, "Same as above, return used as unconditional break statement")
     switch (flags & known_secure_level) {
     case 0:
         permb = cmse_TT (pb);
@@ -79,6 +82,8 @@ static FIH_RET_TYPE(enum tfm_hal_status_t) ifx_cmse_check_address_range(uintptr_
         /* Invalid flag, eg.  CMSE_MPU_NONSECURE specified but __ARM_FEATURE_CMSE & 2 == 0.  */
         FIH_RET(TFM_HAL_ERROR_INVALID_INPUT);
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_16_1)
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_16_3)
 
     /* Check that the range does not cross MPU, SAU, or IDAU boundaries.  */
     if (permb.value != perme.value) {
@@ -89,6 +94,8 @@ static FIH_RET_TYPE(enum tfm_hal_status_t) ifx_cmse_check_address_range(uintptr_
     (void)perme;
 
     /* Check the permissions on the range.  */
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_16_3, "Return used as unconditional break statement, discuss with Coverity why this is flagged.")
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_16_1, "Same as above, return used as unconditional break statement")
     switch (flags & (~known_secure_level))
     {
 #if (__ARM_FEATURE_CMSE & 2) != 0
@@ -125,6 +132,8 @@ static FIH_RET_TYPE(enum tfm_hal_status_t) ifx_cmse_check_address_range(uintptr_
     default:
         FIH_RET(TFM_HAL_ERROR_MEM_FAULT);
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_16_1)
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_16_3)
 
     FIH_RET(TFM_HAL_ERROR_MEM_FAULT);
 }
@@ -138,9 +147,12 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_tz_memory_check(const ifx_partition_info
     IFX_FIH_BOOL is_non_secure = ((access_type & TFM_HAL_ACCESS_NS) != 0u) ? IFX_FIH_TRUE : IFX_FIH_FALSE;
     /* ifx_tz_memory_check only checks on-core protections (SAU, IDAU, MPU),
      * so this check is not applicable for off core request coming from NS side of mailbox. */
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "external macro IS_NS_AGENT_MAILBOX interprets non-boolean type as a boolean")
     if (IS_NS_AGENT_MAILBOX(p_info->p_ldinfo) && IFX_FIH_EQ(is_non_secure, IFX_FIH_TRUE)) {
         FIH_RET(TFM_HAL_SUCCESS);
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
 
     uint32_t flags = 0;
 
@@ -156,6 +168,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_tz_memory_check(const ifx_partition_info
     }
 
     (void)fih_delay();
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "external macro IS_NS_AGENT_TZ interprets non-boolean type as a boolean")
     if (IS_NS_AGENT_TZ(p_info->p_ldinfo)) {
         CONTROL_Type ctrl;
         ctrl.w = __TZ_get_CONTROL_NS();
@@ -166,26 +179,36 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_tz_memory_check(const ifx_partition_info
         }
         flags |= (uint32_t)CMSE_NONSECURE;
     } else { /* Partition is Secure */
+        TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change equal logic due to Fault injection architecture and define FIH_EQ")
         if (IFX_IS_PARTITION_PRIVILEGED(p_info)) {
             flags &= ~(uint32_t)CMSE_MPU_UNPRIV;
         } else {
             flags |= (uint32_t)CMSE_MPU_UNPRIV;
         }
+        TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
     }
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
     FIH_CALL(ifx_cmse_check_address_range, fih_rc,
              base, size, flags);
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
     if (FIH_NOT_EQ(fih_rc, TFM_HAL_SUCCESS)) {
         FIH_RET(TFM_HAL_ERROR_MEM_FAULT);
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
 
 #if defined(TFM_FIH_PROFILE_ON) && !defined(TFM_FIH_PROFILE_LOW)
     (void)fih_delay();
     FIH_CALL(ifx_cmse_check_address_range, fih_rc,
              base, size, flags);
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
     if (FIH_NOT_EQ(fih_rc, TFM_HAL_SUCCESS)) {
         FIH_RET(TFM_HAL_ERROR_MEM_FAULT);
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
 #endif
 
     FIH_RET(fih_rc);

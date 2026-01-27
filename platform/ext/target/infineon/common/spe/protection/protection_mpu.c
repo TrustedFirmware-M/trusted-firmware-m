@@ -16,6 +16,7 @@
 #include "protection_utils.h"
 #include "region.h"
 #include "utilities.h"
+#include "coverity_check.h"
 
 #if CONFIG_TFM_PARTITION_META_DYNAMIC_ISOLATION == 1
 /* Index of Shared metadata section */
@@ -179,6 +180,7 @@ static void ifx_mpu_config_enable_region(size_t mpu_region_idx,
 FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpu_init_cfg(void)
 {
     if (ifx_mpu_static_config_count > CPUSS_CM33_0_MPU_S_REGION_NR) {
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_14_3, "two consts comparison is fair here")
         FIH_RET(TFM_HAL_ERROR_INVALID_INPUT);
     }
 
@@ -304,9 +306,12 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpu_isolate_numbered_mmio(
 
     /* MPU.CTRL.PRIVDEFENA is set to 1. This makes memory areas which are not covered
      * by MPU regions accessible in privileged mode only, thus no MPU protection is needed. */
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change equal logic due to Fault injection architecture and define FIH_EQ")
     if (IFX_IS_PARTITION_PRIVILEGED(p_info)) {
         FIH_RET(TFM_HAL_SUCCESS);
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
 
     if (ifx_mpu_used_regions_count >= CPUSS_CM33_0_MPU_S_REGION_NR) {
         FIH_RET(TFM_HAL_ERROR_BAD_STATE);

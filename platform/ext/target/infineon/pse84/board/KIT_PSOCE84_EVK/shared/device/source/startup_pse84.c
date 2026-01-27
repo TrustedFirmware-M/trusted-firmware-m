@@ -8,6 +8,7 @@
 
 #include "startup_pse84.h"
 #include "pse84_core_interrupts.h"
+#include "coverity_check.h"
 #if DOMAIN_S
 #include "fih.h"
 #endif
@@ -15,12 +16,15 @@
 /*----------------------------------------------------------------------------
   External References
  *----------------------------------------------------------------------------*/
+TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_8_5, "Double declaration due to project architecture")
 extern uint32_t __INITIAL_SP;
 extern uint32_t __STACK_LIMIT;
 #if defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
 extern uint64_t __STACK_SEAL;
 #endif
+TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_8_5)
 
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_8, "External linkage follows CMSIS template")
 extern __NO_RETURN void __PROGRAM_START(void);
 
 /*----------------------------------------------------------------------------
@@ -38,6 +42,7 @@ __NO_RETURN void Default_Handler(void);
   Exception / Interrupt Handler
  *----------------------------------------------------------------------------*/
 /* Exceptions */
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_5, "PendSV_Handler, SVC_Handler, SysTick_Handler are defined in CMSIS libraries")
 IFX_CORE_DEFINE_EXCEPTIONS_LIST
 
 /* Interrupts */
@@ -98,7 +103,10 @@ __NO_RETURN void Reset_Handler(void)
 #endif /* FIH_ENABLE_DOUBLE_VARS */
 
 #if defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_3, "Intentional pointer type conversion")
+    TFM_COVERITY_DEVIATE_LINE(incompatible_cast, "__TZ_set_STACKSEAL_S does necessary type casts, thus suppressing the violation")
     __TZ_set_STACKSEAL_S((uint32_t *)(&__STACK_SEAL));
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_3);
 #endif
 
 #ifdef RAM_VECTORS_SUPPORT

@@ -16,6 +16,7 @@
 #include "ifx_tfm_log_shim.h"
 #include "protection_regions_cfg.h"
 #include "utilities.h"
+#include "coverity_check.h"
 
 /* Enables BUS, MEM, USG and Secure faults */
 #define SCB_SHCSR_ENABLED_FAULTS    (SCB_SHCSR_USGFAULTENA_Msk | \
@@ -32,6 +33,7 @@ static bool Cy_SysFault_GetMaskByIdx(const FAULT_STRUCT_Type *base, cy_en_SysFau
     CY_ASSERT_L3(idx < CY_SYSFAULT_NO_FAULT);
 /* Fixes coverity negative_shift warning by making idx unsigned */
     uint32_t uint_idx = (uint32_t)idx;
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_8, "The FAULT_MASKx macros cast away const, but the result is only used for reading")
     switch(((cy_en_SysFault_Set_t)(uint_idx / 32UL)))
     {
         case CY_SYSFAULT_SET0:
@@ -58,6 +60,7 @@ static bool Cy_SysFault_GetMaskByIdx(const FAULT_STRUCT_Type *base, cy_en_SysFau
         }
         break;
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_8)
 
     return mask != 0U;
 }
@@ -176,10 +179,14 @@ FIH_RET_TYPE(enum tfm_plat_err_t) ifx_faults_interrupt_enable(void)
     }
 #endif /* TFM_FIH_PROFILE_ON */
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
     FIH_CALL(ifx_faults_platform_interrupt_enable, fih_plat_err);
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
     if (FIH_NOT_EQ(fih_plat_err, TFM_PLAT_ERR_SUCCESS)) {
         FIH_RET(TFM_PLAT_ERR_SYSTEM_ERR);
     }
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
 
     FIH_RET(TFM_PLAT_ERR_SUCCESS);
 }

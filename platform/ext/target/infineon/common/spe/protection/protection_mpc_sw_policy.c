@@ -15,6 +15,7 @@
 #include "protection_types.h"
 #include "tfm_hal_isolation.h"
 #include <string.h>
+#include "coverity_check.h"
 
 /* Size of MPC block size */
 #define IFX_MPC_BLOCK_SIZE            (0x800UL) /* 2 KB */
@@ -85,8 +86,10 @@ static enum tfm_hal_status_t ifx_mpc_check_access_rights(const ifx_mpc_cfg_t *mp
 {
     bool is_secure = (access_type & TFM_HAL_ACCESS_NS) == 0U;
     fih_int pc = (fih_int)IFX_GET_PARTITION_PC(p_info, is_secure);
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Directive_4_6, "size of FIHs val is platform dependent, so size of returned value can vary")
     unsigned int pc_uint = (unsigned int)(fih_int_decode(pc));
     unsigned int pc_attr = IFX_MPC_GET_PC_ATTR(mpc_cfg->attr, pc_uint);
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Directive_4_6)
 
     /* If Read is requested but not allowed - return error */
     if (((access_type & TFM_HAL_ACCESS_READABLE) == TFM_HAL_ACCESS_READABLE) &&
@@ -116,7 +119,10 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_memory_check(const struct ifx_partit
     uint32_t mpc_start_idx;
     uint32_t mpc_end_idx;
     uint32_t mpc_base_addr;
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_8, "During the execution of this function, read flash memory data is not expected to change")
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_3, "Intentional pointer type conversion, this maps MPC policy");
     const ifx_mpc_policy_t* const mpc_policy = (ifx_mpc_policy_t*) &SFLASH->N_RAM_MPC;
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_8)
     uintptr_t base_s = IFX_S_ADDRESS_ALIAS(base);
 
     /* Handle MPCs for different memory types */

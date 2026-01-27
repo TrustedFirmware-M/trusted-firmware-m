@@ -9,6 +9,7 @@
 #include "ifx_se_crc32.h"
 #include "ifx_utils.h"
 #include "nv_counters_flash_driver.h"
+#include "coverity_check.h"
 #include "tfm_plat_nv_counters.h"
 
 #include <limits.h>
@@ -86,6 +87,7 @@ static void ifx_flash_counter_set_checksum(ifx_nv_counters_t *nv_counters)
 
 enum tfm_plat_err_t tfm_plat_init_nv_counter(void)
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_2_2, "This code is added to perform compile time check")
     IFX_ASSERT(IFX_NUM_NV_COUNTERS >= PLAT_NV_COUNTER_MAX);
 
     ifx_nv_counters_t nv_counters;
@@ -118,6 +120,7 @@ enum tfm_plat_err_t tfm_plat_init_nv_counter(void)
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_15_7, "No need for an else statement here. This adds counters if they are invalid, if they are good - we just proceed.")
     if (nv_counters.init_value != IFX_NV_COUNTERS_INITIALIZED) {
         /* Main and backup area are invalid.
          * Add watermark to indicate that NV counters have been initialized. */

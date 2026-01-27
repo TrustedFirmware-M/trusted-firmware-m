@@ -19,6 +19,7 @@
 #include "tfm_multi_core.h"
 #include "tfm_peripherals_def.h"
 #include "load/interrupt_defs.h"
+#include "coverity_check.h"
 
 static struct irq_t mbox_irq_info = {0};
 
@@ -60,6 +61,7 @@ enum tfm_hal_status_t mailbox_irq_init(void *p_pt,
     NVIC_ClearTargetState(MAILBOX_IRQ);
     NVIC_DisableIRQ(MAILBOX_IRQ);
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_6, "Intentional pointer cast")
     if (tfm_multi_core_register_client_id_range(CLIENT_ID_OWNER_MAGIC,
                                                 p_ildi->client_id_base,
                                                 p_ildi->client_id_limit) != 0) {

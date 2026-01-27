@@ -8,8 +8,10 @@
 
 #include "config_tfm.h"
 #include "partition/flash_layout.h"
+#include "coverity_check.h"
 #include "tfm_hal_its.h"
 
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_6, "This definition overrides weak function")
 enum tfm_hal_status_t tfm_hal_its_fs_info(struct tfm_hal_its_fs_info_t *fs_info)
 {
     if (fs_info == NULL) {

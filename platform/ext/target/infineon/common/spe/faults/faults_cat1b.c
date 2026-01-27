@@ -15,7 +15,9 @@
 #include "ifx_utils.h"
 #include "ifx_tfm_log_shim.h"
 #include "utilities.h"
+#include "coverity_check.h"
 
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_4, "This function prototype conforms to VECTOR_TABLE_Type, as declared in CMSIS system_Device.h")
 void c_cpuss_interrupt_msc_IRQn_Handler(void)
 {
     /* Print fault message and block execution */
@@ -32,6 +34,7 @@ void c_cpuss_interrupt_msc_IRQn_Handler(void)
 #pragma required = c_cpuss_interrupt_msc_IRQn_Handler
 EXCEPTION_INFO_IAR_REQUIRED
 #endif /* defined(__ICCARM__) */
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_4, "This function prototype conforms to VECTOR_TABLE_Type, as declared in CMSIS system_Device.h")
 __attribute__((naked)) void cpuss_interrupt_msc_IRQn_Handler(void)
 {
     EXCEPTION_INFO();
@@ -42,6 +45,7 @@ __attribute__((naked)) void cpuss_interrupt_msc_IRQn_Handler(void)
     );
 }
 
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_4, "This function prototype conforms to VECTOR_TABLE_Type, as declared in CMSIS system_Device.h")
 void c_cpuss_interrupts_fault_0_IRQn_Handler(void)
 {
     Cy_SysFault_ClearInterrupt(FAULT_STRUCT0);
@@ -54,6 +58,7 @@ void c_cpuss_interrupts_fault_0_IRQn_Handler(void)
 #pragma required = c_cpuss_interrupts_fault_0_IRQn_Handler
 EXCEPTION_INFO_IAR_REQUIRED
 #endif /* defined(__ICCARM__) */
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_4, "This function prototype conforms to VECTOR_TABLE_Type, as declared in CMSIS system_Device.h")
 __attribute__((naked)) void cpuss_interrupts_fault_0_IRQn_Handler(void)
 {
     EXCEPTION_INFO();

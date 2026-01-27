@@ -9,6 +9,7 @@
 #include "config_tfm.h"
 #include "tfm_platform_arch_hooks.h"
 #include "spm.h"
+#include "coverity_check.h"
 #include "protection_regions_cfg.h"
 
 static fih_int ifx_arch_get_partition_protection_context(const struct partition_t *partition,
@@ -40,6 +41,7 @@ ifx_aapcs_fih_int ifx_arch_get_context_protection_context(const struct context_c
 
 ifx_aapcs_fih_int ifx_arch_get_current_component_protection_context(uint32_t exc_return)
 {
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_6, "External macro GET_CURRENT_COMPONENT roughly casts p_curr_thrd->p_context_ctrl")
     const struct partition_t *partition = GET_CURRENT_COMPONENT();
     return ifx_fih_to_aapcs_fih(ifx_arch_get_partition_protection_context(partition, exc_return));
 }

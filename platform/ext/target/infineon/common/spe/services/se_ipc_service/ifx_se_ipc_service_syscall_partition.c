@@ -9,11 +9,13 @@
 #include "ifx_se_syscall.h"
 #include "psa/client.h"
 #include "psa_manifest/sid.h"
+#include "coverity_check.h"
 #include "ifx_se_ipc_service_syscall.h"
 #include "protection_shared_data.h"
 
 /* ifx_se_syscall works within SPM and service. It means that we can't link ifx_se_syscall
  * with SPM. So, \ref tfm_core_panic is declared here instead of include utilities.h */
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_5, "Can't link ifx_se_syscall.")
 void tfm_core_panic(void);
 
 /*******************************************************************************
@@ -51,6 +53,7 @@ ifx_se_status_t ifx_se_syscall(ifx_se_fih_ptr_t ipc_packet,
         psa_outvec out_vec[1];
         size_t packet_size_bytes = ifx_se_fih_uint_decode(ipc_packet_size);
 
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_6, "Current implementation requires this cast")
         const void *packet_ptr = (void *)ifx_se_fih_ptr_decode(ipc_packet);
 
         in_vec[0].base = packet_ptr;

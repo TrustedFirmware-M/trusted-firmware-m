@@ -16,6 +16,7 @@
 #include "tfm_builtin_key_ids.h"
 #include "tfm_builtin_key_loader.h"
 #include "tfm_plat_crypto_keys.h"
+#include "coverity_check.h"
 
 #define NUMBER_OF_ELEMENTS_OF(x) sizeof(x)/sizeof(*x)
 
@@ -26,6 +27,7 @@
  *        that to bind the keys to the tfm_builtin_key_loader driver, the lifetime must be
  *        explicitly set to the one associated to the driver, i.e. TFM_BUILTIN_KEY_LOADER_LIFETIME
  */
+TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_12_1, "PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION() defined externally, cannot change it")
 static const tfm_plat_builtin_key_descriptor_t g_builtin_keys_desc[] = {
     /* HUK */
     { .key_id = TFM_BUILTIN_KEY_ID_HUK,
@@ -56,6 +58,7 @@ static const tfm_plat_builtin_key_descriptor_t g_builtin_keys_desc[] = {
       .slot_number = TFM_BUILTIN_KEY_SLOT_ATTEST_PUB,
       .lifetime = TFM_BUILTIN_KEY_LOADER_LIFETIME },
 };
+TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_12_1)
 
 /*!
  * \brief This function derives a key into a provided buffer, to make sure that
@@ -129,6 +132,7 @@ static psa_status_t derive_subkey_into_buffer(
         goto wrap_up;
     }
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_3, "Intentional pointer type conversion");
     *((ifx_se_key_id_fih_t*) key_buffer) = output_key;
     *key_buffer_length = sizeof(ifx_se_key_id_fih_t);
 
@@ -275,6 +279,7 @@ psa_status_t ifx_mbedtls_get_builtin_key(psa_drv_slot_number_t slot_number,
             status = PSA_ERROR_DOES_NOT_EXIST;
     }
     if (status != PSA_SUCCESS) {
+        TFM_COVERITY_DEVIATE_LINE(deadcode, "Protection in case psa_drv_slot_number_t changes")
         return status;
     }
 
@@ -299,6 +304,7 @@ psa_status_t ifx_mbedtls_get_builtin_key(psa_drv_slot_number_t slot_number,
                                            key_buffer, key_buffer_size,
                                            key_buffer_length);
     } else {
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_3, "Intentional pointer type conversion");
         *((ifx_se_key_id_fih_t*) key_buffer) = se_key_id;
         *key_buffer_length = sizeof(ifx_se_key_id_fih_t);
     }
