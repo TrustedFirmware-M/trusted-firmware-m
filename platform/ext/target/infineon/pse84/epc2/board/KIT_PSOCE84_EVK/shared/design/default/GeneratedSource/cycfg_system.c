@@ -29,9 +29,9 @@
  ******************************************************************************/
 
 #include "cycfg_system.h"
-#include "stdbool.h"
-#include "stdint.h"
-#include "string.h"
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 
 #if defined(CY_PDL_TZ_ENABLED)
 #include "ifx_se_platform.h"

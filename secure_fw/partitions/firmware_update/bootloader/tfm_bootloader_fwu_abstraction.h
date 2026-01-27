@@ -8,7 +8,7 @@
 #ifndef __TFM_BOOTLOADER_FWU_ABSTRACTION_H__
 #define __TFM_BOOTLOADER_FWU_ABSTRACTION_H__
 
-#include "stdbool.h"
+#include <stdbool.h>
 #include "psa/update.h"
 
 #ifdef __cplusplus

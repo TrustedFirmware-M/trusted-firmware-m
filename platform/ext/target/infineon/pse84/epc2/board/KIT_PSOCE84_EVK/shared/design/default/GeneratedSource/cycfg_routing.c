@@ -30,7 +30,7 @@
 
 #include "cycfg_routing.h"
 #include "cy_trigmux.h"
-#include "stdbool.h"
+#include <stdbool.h>
 #include "cy_device_headers.h"
 
 void init_cycfg_routing(void)

@@ -7,7 +7,7 @@
 #ifndef _CC_CRYPTO_X509_DEFS_H
 #define _CC_CRYPTO_X509_DEFS_H
 
-#include "stdint.h"
+#include <stdint.h>
 
 #define CERTIFICATE_VALIDITY_ENDLESS  0
 #define CC_X509_CERT_PKG_TOKEN  0x43504B47

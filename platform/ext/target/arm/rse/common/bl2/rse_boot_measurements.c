@@ -5,7 +5,7 @@
  *
  */
 
-#include "stdint.h"
+#include <stdint.h>
 
 #include "tfm_boot_measurement.h"
 #include "tfm_crypto_defs.h"

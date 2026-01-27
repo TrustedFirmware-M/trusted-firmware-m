@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "cc_pal_log.h"
-#include "stdlib.h"
+#include <stdlib.h>
 
 
 void CC_PalAbort(const char * exp)

@@ -23,9 +23,9 @@
 #include "tfm_mbedcrypto_include.h"
 #include "se_psa.h"
 #include "stsafea_service_stub.h"
-#include "stdarg.h"
-#include "stdio.h"
-#include "string.h"
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
 #include "psa_manifest/pid.h"
 #include "tfm_nspm.h"
 #include "tfm_log.h"

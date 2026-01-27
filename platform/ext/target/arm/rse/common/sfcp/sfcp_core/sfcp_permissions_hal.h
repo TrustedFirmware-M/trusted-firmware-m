@@ -14,7 +14,7 @@
 #include "tfm_plat_defs.h"
 #include "sfcp_atu_hal.h"
 #include "sfcp_link_defs.h"
-#include "stdbool.h"
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {

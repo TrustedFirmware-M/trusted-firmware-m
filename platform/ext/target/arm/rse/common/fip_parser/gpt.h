@@ -7,8 +7,8 @@
 #ifndef GPT_H
 #define GPT_H
 
-#include "stdint.h"
-#include "stddef.h"
+#include <stdint.h>
+#include <stddef.h>
 #include "uuid.h"
 
 #include "tfm_plat_defs.h"

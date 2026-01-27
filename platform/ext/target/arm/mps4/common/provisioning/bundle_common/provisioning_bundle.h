@@ -8,7 +8,7 @@
 #ifndef __PROVISIONING_BUNDLE_H__
 #define __PROVISIONING_BUNDLE_H__
 
-#include "stdint.h"
+#include <stdint.h>
 #include "region_defs.h"
 
 #ifdef __cplusplus

@@ -12,7 +12,7 @@
 
 #include "psa/client.h"
 #include "tfm_plat_defs.h"
-#include "stdbool.h"
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {

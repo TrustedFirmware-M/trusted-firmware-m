@@ -7,7 +7,7 @@
 #ifndef _SB_CC3X_X509_EXT_PARSER_H
 #define _SB_CC3X_X509_EXT_PARSER_H
 
-#include "stdint.h"
+#include <stdint.h>
 #include "secureboot_basetypes.h"
 #include "bootimagesverifier_def.h"
 #include "secdebug_defs.h"

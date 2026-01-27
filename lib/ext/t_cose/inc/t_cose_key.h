@@ -12,8 +12,8 @@
 #ifndef __T_COSE_KEY_H__
 #define __T_COSE_KEY_H__
 
-#include "stdbool.h"
-#include "stdint.h"
+#include <stdbool.h>
+#include <stdint.h>
 #include "q_useful_buf.h"
 #include "t_cose_common.h"
 #include "t_cose_standard_constants.h"

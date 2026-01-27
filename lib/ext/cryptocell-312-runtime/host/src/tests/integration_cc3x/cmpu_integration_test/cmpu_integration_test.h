@@ -8,8 +8,8 @@
 #define _CMPU_INTEGRATION_TEST_H_
 
 /* system includes */
-#include "stdio.h"
-#include "stdint.h"
+#include <stdio.h>
+#include <stdint.h>
 
 /************************************************************
  *

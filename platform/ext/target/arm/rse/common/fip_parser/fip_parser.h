@@ -10,7 +10,7 @@
 
 #include "Driver_Flash.h"
 #include "firmware_image_package.h"
-#include "stddef.h"
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -7,7 +7,7 @@
 #ifndef _RUN_INTEGRATION_TEST_API_H_
 #define _RUN_INTEGRATION_TEST_API_H_
 
-#include "stdint.h"
+#include <stdint.h>
 
 #include "run_integration_test.h"
 

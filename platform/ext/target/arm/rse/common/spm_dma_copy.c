@@ -5,7 +5,7 @@
  *
  */
 
-#include "stddef.h"
+#include <stddef.h>
 
 #include "dma350_privileged_config.h"
 #include "dma350_lib.h"

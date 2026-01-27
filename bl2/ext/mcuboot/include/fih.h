@@ -17,7 +17,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "stdint.h"
+#include <stdint.h>
 
 /*
  * FIH return type macro changes the function return types to fih_ret.

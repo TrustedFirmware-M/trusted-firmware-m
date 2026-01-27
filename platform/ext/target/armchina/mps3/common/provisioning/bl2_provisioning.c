@@ -10,7 +10,7 @@
 #include "tfm_attest_hal.h"
 #include "region_defs.h"
 #include "bootutil/bootutil_log.h"
-#include "string.h"
+#include <string.h>
 #include "provisioning_bundle.h"
 
 static const volatile struct provisioning_bundle *encrypted_bundle =

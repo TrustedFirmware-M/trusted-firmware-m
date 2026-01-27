@@ -5,9 +5,9 @@
  *
  */
 
-#include "stdarg.h"
-#include "string.h"
-#include "stdint.h"
+#include <stdarg.h>
+#include <string.h>
+#include <stdint.h>
 #include "cc_pal_log.h"
 
 /* Log level = debug */

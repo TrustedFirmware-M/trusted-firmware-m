@@ -6,7 +6,7 @@
  */
 
 #include "tfm_boot_measurement.h"
-#include "string.h"
+#include <string.h>
 
 static int8_t pcr_index_for_boot_measurement[BOOT_MEASUREMENT_SLOT_MAX] = {0};
 

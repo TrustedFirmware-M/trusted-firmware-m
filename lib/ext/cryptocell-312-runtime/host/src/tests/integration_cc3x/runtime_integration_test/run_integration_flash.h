@@ -7,7 +7,7 @@
 #ifndef _BSV_INTEGRATION_FLASH_H_
 #define _BSV_INTEGRATION_FLASH_H_
 
-#include "stdint.h"
+#include <stdint.h>
 #include "run_integration_test.h"
 
 /**

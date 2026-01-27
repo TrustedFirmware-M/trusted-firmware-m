@@ -9,7 +9,7 @@
 
 #include "cc_pal_log.h"
 #include "cc_pal_compiler.h"
-#include "stdlib.h"
+#include <stdlib.h>
 
 void _CC_PalAbort(const char * exp);
 #endif

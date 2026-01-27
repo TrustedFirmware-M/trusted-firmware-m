@@ -8,8 +8,8 @@
 #ifndef CC3XX_STDLIB_H
 #define CC3XX_STDLIB_H
 
-#include "stdint.h"
-#include "stddef.h"
+#include <stdint.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {

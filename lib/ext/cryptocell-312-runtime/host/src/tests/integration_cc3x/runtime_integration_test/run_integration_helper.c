@@ -3,9 +3,9 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "cc_pal_types.h"
 #include "mbedtls/ctr_drbg.h"

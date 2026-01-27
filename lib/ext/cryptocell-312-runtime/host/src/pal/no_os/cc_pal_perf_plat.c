@@ -9,7 +9,7 @@
 #include "dx_reg_base_host.h"
 #include "dx_env.h"
 #include "cc_hal.h"
-#include "stdint.h"
+#include <stdint.h>
 #include "cc_pal_mem.h"
 
 #define PERF_TRACE_CMPLT_BIT 0x80000000

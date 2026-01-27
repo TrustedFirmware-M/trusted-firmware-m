@@ -7,8 +7,8 @@
 #ifndef _RUN_INTEGRATION_PROFILER_H_
 #define _RUN_INTEGRATION_PROFILER_H_
 
-#include "stdio.h"
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
 
 /* cc lib */
 #include "cc_pal_types.h"

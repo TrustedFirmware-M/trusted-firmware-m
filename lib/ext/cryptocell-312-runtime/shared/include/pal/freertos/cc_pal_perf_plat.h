@@ -8,8 +8,8 @@
 #ifndef _CC_PAL_PERF_PLAT_H__
 #define _CC_PAL_PERF_PLAT_H__
 
-#include "stdlib.h"
-#include "stdint.h"
+#include <stdlib.h>
+#include <stdint.h>
 
 typedef unsigned int CCPalPerfData_t;
 

@@ -143,7 +143,7 @@ void __attribute__((section(".core1_ns_entry"), used, naked)) core1_ns_entry(voi
     main();
 }
 
-#include "stdio.h"
+#include <stdio.h>
 int32_t tfm_platform_ns_wait_for_s_cpu_ready(void)
 {
     if(sio_hw->cpuid == 1) {

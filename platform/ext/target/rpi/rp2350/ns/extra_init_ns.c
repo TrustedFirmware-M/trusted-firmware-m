@@ -12,7 +12,7 @@
 #include "tfm_multi_core_api.h"
 #endif
 
-#include "stdint.h"
+#include <stdint.h>
 
 /* Do not use __cmsis_start */
 #define __PROGRAM_START

@@ -5,7 +5,7 @@
  *
  */
 
-#include "stdint.h"
+#include <stdint.h>
 
 #include "Driver_Flash.h"
 #include "flash_layout.h"

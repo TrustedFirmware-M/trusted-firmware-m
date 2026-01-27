@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "stdlib.h"
-#include "stdint.h"
+#include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "cc_pal_types.h"
