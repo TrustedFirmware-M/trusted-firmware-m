@@ -8,6 +8,7 @@
  *
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 #include "async.h"
 #include "bitops.h"
@@ -15,6 +16,7 @@
 #include "config_spm.h"
 #include "critical_section.h"
 #include "internal_status_code.h"
+#include "interrupt.h"
 #include "psa/lifecycle.h"
 #include "psa/service.h"
 #include "spm.h"
@@ -95,6 +97,11 @@ psa_signal_t tfm_spm_partition_psa_wait(psa_signal_t signal_mask,
         tfm_core_panic();
     }
 
+#if (CONFIG_TFM_SPM_BACKEND_IPC == 1) && (CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED == 0) && \
+    ((CONFIG_TFM_FLIH_API == 1) || (CONFIG_TFM_SLIH_API == 1))
+        /* Unconditionally get the cookie, consume it later if required */
+        bool isr_cookie = tfm_get_isr_cookie();
+#endif
     /*
      * After new signal(s) are available, the return value will be updated in
      * PendSV and blocked thread gets to run.
@@ -106,6 +113,14 @@ psa_signal_t tfm_spm_partition_psa_wait(psa_signal_t signal_mask,
         }
     } else {
         signal = partition->signals_asserted & signal_mask;
+
+#if (CONFIG_TFM_SPM_BACKEND_IPC == 1) && (CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED == 0) && \
+    ((CONFIG_TFM_FLIH_API == 1) || (CONFIG_TFM_SLIH_API == 1))
+        /* PSA_POLL and no signals, check if there are cookies left from ISR */
+        if ((signal == 0) && isr_cookie) {
+            signal = (psa_signal_t)STATUS_NEED_SCHEDULE;
+        }
+#endif
     }
 
     return signal;

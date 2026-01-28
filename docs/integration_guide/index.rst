@@ -134,6 +134,11 @@ situation, which can be done by setting
 NSPE is known to be a simple, single-threaded application or if non-secure
 interrupts cannot pre-empt the SPE, for example.
 
+When CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED is set to 0, the SPM traces
+scheduling events triggered by interrupts into a cookie.
+This feature prevents the system from missing events if interrupts from both SPE
+and NSPE occur at the same time.
+
 **********************************
 Integration with non-Cmake systems
 **********************************

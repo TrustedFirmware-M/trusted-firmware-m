@@ -32,6 +32,24 @@ const struct irq_load_info_t *get_irq_info_for_signal(
                                     psa_signal_t signal);
 
 /**
+ * \brief Clear and return the ISR cookie
+ *
+ * \details In interrupt context, the backend asserts the partition's signals.
+ *          If the partition requires scheduling, the spm interrupt handler sets
+ *          a scheduling hint in the cookie.
+ *          The cookie is a leaves a trace to the PSA API to run the scheduler
+ *          for those partitions in polling mode.
+ *
+ * \retval false    There are no cookies left from ISR handling.
+ * \retval true     At least one scheduling hint was set from ISR handling in
+ *                  the cookie.
+ *                  The cookie is always cleared.
+ *
+ * \return Returns a scheduling clue
+ */
+bool tfm_get_isr_cookie(void);
+
+/**
  * \brief Entry of Secure interrupt handler. Platforms can call this function to
  *        handle individual interrupts.
  *
