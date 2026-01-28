@@ -327,7 +327,7 @@ psa_status_t tfm_builtin_key_loader_get_builtin_key(
      * they all need access to the raw builtin key.
      */
     int32_t user = CRYPTO_LIBRARY_GET_OWNER(key_id);
-    if (psa_get_key_usage_flags(attributes) & PSA_KEY_USAGE_DERIVE && user != TFM_SP_CRYPTO) {
+    if ((psa_get_key_usage_flags(attributes) & PSA_KEY_USAGE_DERIVE) && (user != TFM_SP_CRYPTO)) {
 
         err = derive_subkey_into_buffer(key_slot, user,
                                         key_buffer, key_buffer_size,
