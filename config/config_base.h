@@ -288,7 +288,7 @@
 /* DPE tests require larger test partition stack */
 #define SECURE_TEST_PARTITION_STACK_SIZE        0x3000
 #else
-#define SECURE_TEST_PARTITION_STACK_SIZE        0x0F00
+#define SECURE_TEST_PARTITION_STACK_SIZE        0x1200
 #endif /* TFM_PARTITION_DPE */
 #endif /* SECURE_TEST_PARTITION_STACK_SIZE */
 
