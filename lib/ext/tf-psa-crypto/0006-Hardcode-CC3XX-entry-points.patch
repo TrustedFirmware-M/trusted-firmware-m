@@ -1,6 +1,6 @@
-From 3ae4e06bc0aa10355b1ffabfa965fd0aa3694103 Mon Sep 17 00:00:00 2001
+From 9d21fa01f7e351ddade1f181414ea4b05b5df48f Mon Sep 17 00:00:00 2001
 From: Antonio de Angelis <Antonio.deAngelis@arm.com>
-Date: Thu, 21 Mar 2024 12:58:37 +0000
+Date: Mon, 2 Feb 2026 12:16:08 +0000
 Subject: [PATCH 06/13] Hardcode CC3XX entry points
 
 Manually hardcode PSA driver entry points for the CC3XX driver
@@ -9,6 +9,7 @@ definitions if any). This is a temporary solution until the codegen
 framework is available for automatic integration.
 
 Signed-off-by: Antonio de Angelis <antonio.deangelis@arm.com>
+Co-authored-by: Amjad Ouled-Ameur <amjad-ouled-ameur@arm.com>
 ---
  core/psa_crypto_driver_wrappers.h             | 431 ++++++++++++++++--
  core/psa_crypto_driver_wrappers_no_static.c   |  24 +
@@ -17,7 +18,7 @@ Signed-off-by: Antonio de Angelis <antonio.deangelis@arm.com>
  4 files changed, 446 insertions(+), 29 deletions(-)
 
 diff --git a/core/psa_crypto_driver_wrappers.h b/core/psa_crypto_driver_wrappers.h
-index 252e2c8fc..a198a0433 100644
+index 252e2c8..a1472ec 100644
 --- a/core/psa_crypto_driver_wrappers.h
 +++ b/core/psa_crypto_driver_wrappers.h
 @@ -53,6 +53,16 @@
@@ -47,9 +48,9 @@ index 252e2c8fc..a198a0433 100644
  };
  
  /* END-driver id */
-@@ -95,6 +108,12 @@ static inline psa_status_t psa_driver_wrapper_init( void )
-         return( status );
- #endif
+@@ -79,6 +92,12 @@ static inline psa_status_t psa_driver_wrapper_init( void )
+ {
+     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
  
 +#if defined(PSA_CRYPTO_DRIVER_CC3XX)
 +    status = cc3xx_init();
@@ -57,9 +58,9 @@ index 252e2c8fc..a198a0433 100644
 +        return ( status );
 +#endif
 +
-     (void) status;
-     return( PSA_SUCCESS );
- }
+ #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
+     status = tfm_builtin_key_loader_init();
+     if (status != PSA_SUCCESS)
 @@ -105,6 +124,10 @@ static inline void psa_driver_wrapper_free( void )
      mbedtls_test_transparent_free( );
      mbedtls_test_opaque_free( );
@@ -809,7 +810,7 @@ index 252e2c8fc..a198a0433 100644
              if( PSA_KEY_TYPE_IS_ECC( psa_get_key_type(attributes) ) &&
                  PSA_ALG_IS_ECDH(alg) &&
 diff --git a/core/psa_crypto_driver_wrappers_no_static.c b/core/psa_crypto_driver_wrappers_no_static.c
-index ba4c2e4e4..55baad49e 100644
+index ba4c2e4..55baad4 100644
 --- a/core/psa_crypto_driver_wrappers_no_static.c
 +++ b/core/psa_crypto_driver_wrappers_no_static.c
 @@ -52,6 +52,16 @@
@@ -858,7 +859,7 @@ index ba4c2e4e4..55baad49e 100644
              status = p256_transparent_export_public_key
                  (attributes,
 diff --git a/include/psa/crypto_driver_contexts_composites.h b/include/psa/crypto_driver_contexts_composites.h
-index eade6f314..b9b44e1b1 100644
+index eade6f3..b9b44e1 100644
 --- a/include/psa/crypto_driver_contexts_composites.h
 +++ b/include/psa/crypto_driver_contexts_composites.h
 @@ -32,6 +32,10 @@
@@ -893,7 +894,7 @@ index eade6f314..b9b44e1b1 100644
  
  typedef union {
 diff --git a/include/psa/crypto_driver_contexts_primitives.h b/include/psa/crypto_driver_contexts_primitives.h
-index 303d88b4c..d018ea736 100644
+index 303d88b..d018ea7 100644
 --- a/include/psa/crypto_driver_contexts_primitives.h
 +++ b/include/psa/crypto_driver_contexts_primitives.h
 @@ -31,6 +31,10 @@
@@ -928,5 +929,5 @@ index 303d88b4c..d018ea736 100644
  
  #endif /* PSA_CRYPTO_DRIVER_CONTEXTS_PRIMITIVES_H */
 -- 
-2.34.1
+2.43.0
 
