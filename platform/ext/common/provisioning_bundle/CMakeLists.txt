@@ -65,6 +65,7 @@ target_include_directories(provisioning_bundle
 target_link_libraries(provisioning_bundle
     platform_s
     psa_interface
+    psa_crypto_config
 )
 
 target_compile_definitions(provisioning_bundle
@@ -75,7 +76,6 @@ target_compile_definitions(provisioning_bundle
         $<$<BOOL:${TFM_DUMMY_PROVISIONING}>:TFM_DUMMY_PROVISIONING>
         $<$<BOOL:${PLATFORM_DEFAULT_NV_COUNTERS}>:PLATFORM_DEFAULT_NV_COUNTERS>
         $<$<BOOL:${PLATFORM_DEFAULT_OTP_WRITEABLE}>:OTP_WRITEABLE>
-        TF_PSA_CRYPTO_CONFIG_FILE="${CMAKE_SOURCE_DIR}/lib/ext/tf-psa-crypto/tfpsacrypto_config/crypto_config_default.h"
 )
 
 add_custom_target(provisioning_bundle_bin
