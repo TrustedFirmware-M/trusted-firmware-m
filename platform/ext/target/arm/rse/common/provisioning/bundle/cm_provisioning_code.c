@@ -19,7 +19,7 @@
 #include "rse_provisioning_message_handler.h"
 #include "rse_soc_uid.h"
 #include "tfm_plat_nv_counters.h"
-#include "psa/crypto.h"
+#include "bl1_crypto.h"
 
 /* Non secret provisioning values are placed directly after the
  * blob code DATA section
