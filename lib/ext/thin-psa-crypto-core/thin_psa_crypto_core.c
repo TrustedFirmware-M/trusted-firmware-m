@@ -1138,24 +1138,22 @@ void mbedtls_psa_crypto_free(void)
 psa_status_t mbedtls_to_psa_error(int ret)
 {
     switch (ret) {
-        case 0:
-            return PSA_SUCCESS;
-
+    case 0:
+        return PSA_SUCCESS;
 #ifdef PSA_WANT_ALG_LMS
-        case MBEDTLS_ERR_LMS_BAD_INPUT_DATA:
-            return PSA_ERROR_INVALID_ARGUMENT;
-        case MBEDTLS_ERR_LMS_OUT_OF_PRIVATE_KEYS:
-            return PSA_ERROR_INSUFFICIENT_DATA;
-        case MBEDTLS_ERR_LMS_VERIFY_FAILED:
-            return PSA_ERROR_INVALID_SIGNATURE;
-        case MBEDTLS_ERR_LMS_ALLOC_FAILED:
-            return PSA_ERROR_INSUFFICIENT_MEMORY;
-        case MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL:
-            return PSA_ERROR_BUFFER_TOO_SMALL;
+    case MBEDTLS_ERR_LMS_BAD_INPUT_DATA:
+        return PSA_ERROR_INVALID_ARGUMENT;
+    case MBEDTLS_ERR_LMS_OUT_OF_PRIVATE_KEYS:
+        return PSA_ERROR_INSUFFICIENT_DATA;
+    case MBEDTLS_ERR_LMS_VERIFY_FAILED:
+        return PSA_ERROR_INVALID_SIGNATURE;
+    case MBEDTLS_ERR_LMS_ALLOC_FAILED:
+        return PSA_ERROR_INSUFFICIENT_MEMORY;
+    case MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL:
+        return PSA_ERROR_BUFFER_TOO_SMALL;
 #endif /* PSA_WANT_ALG_LMS */
-
-        default:
-            return PSA_ERROR_GENERIC_ERROR;
+    default:
+        return PSA_ERROR_GENERIC_ERROR;
     }
 }
 
