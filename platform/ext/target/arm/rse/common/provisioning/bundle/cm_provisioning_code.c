@@ -310,7 +310,7 @@ enum tfm_plat_err_t do_cm_provision(void) {
         return (enum tfm_plat_err_t)cc_err;
     }
 
-    memcpy(cm_area_temp.cod.rak_pub, sizeof(cm_area_temp.cod.rak_pub), cod_fields.rak_pub);
+    memcpy(cm_area_temp.cod.rak_pub, cod_fields.rak_pub, sizeof(cm_area_temp.cod.rak_pub));
 
     /* Clear the RAK private key as is not needed anymore */
     (void)bl1_random_generate_fast(rak, sizeof(rak));
