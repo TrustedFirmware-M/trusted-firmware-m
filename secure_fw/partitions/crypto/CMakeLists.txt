@@ -216,6 +216,18 @@ target_compile_options(${TF_PSA_CRYPTO_TARGET_PREFIX}p256m
         ${COMPILER_CP_FLAG}
 )
 
+# FPU flags for builtin
+target_compile_options(${TF_PSA_CRYPTO_TARGET_PREFIX}builtin
+    PRIVATE
+        ${COMPILER_CP_FLAG}
+)
+
+# FPU flags for everest
+target_compile_options(${TF_PSA_CRYPTO_TARGET_PREFIX}everest
+    PRIVATE
+        ${COMPILER_CP_FLAG}
+)
+
 # Passing TF-PSA-Crypto configuration and required include paths to the driver targets
 target_link_libraries(${TF_PSA_CRYPTO_TARGET_PREFIX}builtin PRIVATE crypto_service_tfpsacrypto_config)
 target_link_libraries(${TF_PSA_CRYPTO_TARGET_PREFIX}p256m   PRIVATE crypto_service_tfpsacrypto_config)
