@@ -34,6 +34,8 @@ bl1_hash_compute
 bl1_hash_finish
 bl1_hash_init
 bl1_hash_update
+bl1_ecc_derive_key
+bl1_random_generate_fast
 psa_generate_random
 psa_hash_compute
 psa_import_key
@@ -87,6 +89,9 @@ rse_derive_vhuk_seed
 rse_setup_runtime_secure_image_encryption_key
 rse_setup_runtime_non_secure_image_encryption_key
 rse_sam_finish
+rse_generate_chip_output_data
+rse_chip_output_data_setup_key
+rse_fetch_cod_data_fields_from_otp
 sam_handle_all_events
 sam_handle_fast_attack_counter_increment
 sam_handle_critical_serverity_event
@@ -193,3 +198,5 @@ sfcp_receive_msg
 sfcp_receive_reply
 sfcp_register_trusted_subnet
 sku_ps_fc_called
+memcpy
+memset
