@@ -47,9 +47,9 @@
 #define ROM_DMA_ICS_SIZE   0x1000 /* 4 KiB */
 #endif
 
-/* Memory allocated to storing persistent data */
+/* Memory allocated to storing persistent data, 1 KiB aligned */
 #ifndef PERSISTENT_DATA_SIZE
-#define PERSISTENT_DATA_SIZE (0x800)
+#define PERSISTENT_DATA_SIZE (0xC00)
 #endif
 
 
