@@ -40,6 +40,8 @@ psa_status_t cc3xx_get_entropy(uint32_t flags, size_t *estimate_bits,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     uint32_t *entrSource_ptr;
     uint32_t estimate_bytes;
+    uint32_t remaining_bytes;
+    uint32_t entr_bytes_to_copy;
 
     if (output == NULL) {
         CC_PAL_LOG_ERR("output cannot be NULL");
@@ -72,21 +74,49 @@ psa_status_t cc3xx_get_entropy(uint32_t flags, size_t *estimate_bits,
 
     cc_err = LLF_RND_GetTrngSource(&rndState,   /*in/out*/
                                    &trngParams, /*in/out*/
-                                   0,           /*in  -  isContinued - false*/
+                                   CC_FALSE,    /*in  -  isContinued - false*/
                                    NULL,        /*unused*/
                                    &entrSource_ptr,             /*out*/
                                    (uint32_t *)&estimate_bytes, /*out*/
                                    (uint32_t *)&rndWorkBuff,    /*in*/
-                                   0 /*unused*/);
+                                   0);          /*unused*/
     if (cc_err != CC_OK) {
         status = PSA_ERROR_HARDWARE_FAILURE;
     } else {
+        /* Copy the entropy bytes to the output buffer */
+        entr_bytes_to_copy = (estimate_bytes < output_size) ? estimate_bytes : output_size;
 
         CC_PalMemCopy(output,
                       entrSource_ptr + CC_RND_TRNG_SRC_INNER_OFFSET_WORDS,
-                      output_size);
-        *estimate_bits = PSA_BYTES_TO_BITS(estimate_bytes);
+                      entr_bytes_to_copy);
 
+        remaining_bytes = output_size - entr_bytes_to_copy;
+
+        /* Continue to get entropy if needed */
+        while (remaining_bytes > 0) {
+            cc_err = LLF_RND_GetTrngSource(&rndState,   /*in/out*/
+                                           &trngParams, /*in/out*/
+                                           CC_TRUE,     /*in  -  isContinued - true */
+                                           NULL,        /*unused*/
+                                           &entrSource_ptr,             /*out*/
+                                           (uint32_t *)&estimate_bytes, /*out*/
+                                           (uint32_t *)&rndWorkBuff,    /*in*/
+                                           0);          /*unused*/
+            if (cc_err != CC_OK) {
+                status = PSA_ERROR_HARDWARE_FAILURE;
+            }
+
+            entr_bytes_to_copy = (estimate_bytes < remaining_bytes) ?
+                                  estimate_bytes : remaining_bytes;
+
+            CC_PalMemCopy(output + (output_size - remaining_bytes),
+                          entrSource_ptr + CC_RND_TRNG_SRC_INNER_OFFSET_WORDS,
+                          entr_bytes_to_copy);
+
+            remaining_bytes -= entr_bytes_to_copy;
+        }
+
+        *estimate_bits = PSA_BYTES_TO_BITS(output_size);
         status = PSA_SUCCESS;
 
         CC_PalMemSetZero(&rndWorkBuff, sizeof(CCRndWorkBuff_t));

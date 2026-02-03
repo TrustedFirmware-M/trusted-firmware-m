@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2019, Arm Limited and Contributors. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -132,9 +132,8 @@ static CCError_t LLF_RND_TRNG_ReadEhrData(uint32_t *pSourceOut, bool isFipsSuppo
         uint32_t isr = 0;
         uint32_t i;
 
-
-
         /* wait RNG interrupt: isr signals error bits */
+        /* Note: Disables RNG source */
         error = LLF_RND_WaitRngInterrupt(&isr);
         if (error != CC_OK){
                 return error;
@@ -405,6 +404,7 @@ CCError_t LLF_RND_GetTrngSource(
         for (i = 0; i < LLF_RND_NUM_OF_ROSCS; ++i) {
 
                 /* read the first EHR */
+                LLF_RND_TRNG_EnableRngSourceAndWatchdog(trngParams_ptr);
                 error = LLF_RND_TRNG_ReadEhrData(trngBuff, isFipsSupported);
                 if (error == CC_OK) {
                         /* read the second EHR */
@@ -499,6 +499,3 @@ CCError_t LLF_RND_RunTrngStartupTest(
 
     return error;
 }
-
-
-
