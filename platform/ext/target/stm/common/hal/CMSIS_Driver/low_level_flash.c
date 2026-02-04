@@ -474,7 +474,7 @@ static int32_t Flash_ProgramData(uint32_t addr,
     return ARM_DRIVER_ERROR_PARAMETER;
   }
 
-  if (IS_FLASH_SECURE_OPERATION()) {
+  if (is_range_secure(&ARM_FLASH0_DEV, addr, cnt)) {
     HAL_FLASH_Unlock_SEC();
   } else {
     HAL_FLASH_Unlock_NS();
@@ -508,7 +508,7 @@ static int32_t Flash_ProgramData(uint32_t addr,
 
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_IDLE;
 
-  if (IS_FLASH_SECURE_OPERATION()) {
+  if (is_range_secure(&ARM_FLASH0_DEV, addr, cnt)) {
     HAL_FLASH_Lock_SEC();
   } else {
     HAL_FLASH_Lock_NS();
@@ -594,7 +594,7 @@ static int32_t Flash_EraseSector(uint32_t addr)
 #endif
   ARM_FLASH0_STATUS.error = DRIVER_STATUS_NO_ERROR;
 
-  if (IS_FLASH_SECURE_OPERATION()) {
+  if (is_range_secure(&ARM_FLASH0_DEV, addr, 4)) {
     HAL_FLASH_Unlock_SEC();
   } else {
     HAL_FLASH_Unlock_NS();
@@ -604,7 +604,7 @@ static int32_t Flash_EraseSector(uint32_t addr)
   err = HAL_FLASHEx_Erase(&EraseInit, &pageError);
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_IDLE;
 
-  if (IS_FLASH_SECURE_OPERATION()) {
+  if (is_range_secure(&ARM_FLASH0_DEV, addr, 4)) {
     HAL_FLASH_Lock_SEC();
   } else {
     HAL_FLASH_Lock_NS();
