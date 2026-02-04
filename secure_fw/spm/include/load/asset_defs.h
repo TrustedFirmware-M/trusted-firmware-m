@@ -18,6 +18,8 @@ enum assets_attribute_t {
     ASSET_ATTR_PPB =            (1U << 2), /*!< 1: PPB indicator */
     ASSET_ATTR_NAMED_MMIO =     (1U << 3), /*!< 1: Named MMIO object */
     ASSET_ATTR_NUMBERED_MMIO =  (1U << 4), /*!< 1: Numbered MMIO object */
+
+    ASSET_ATTR_PAD = UINT32_MAX,
 };
 
 #define ASSET_ATTR_MMIO (ASSET_ATTR_NAMED_MMIO | ASSET_ATTR_NUMBERED_MMIO)
