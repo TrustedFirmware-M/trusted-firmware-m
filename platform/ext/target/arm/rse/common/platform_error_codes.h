@@ -131,6 +131,9 @@ enum tfm_plat_err_t {
     /* RSE COD error codes */
     TFM_PLAT_ERR_COD_DATA_NOT_PROVISIONED,
     TFM_PLAT_ERR_COD_FIELDS_NOT_PROVISIONED,
+    TFM_PLAT_ERR_COD_SOC_AREA_NOT_VALID,
+    /* RSE IEEE-ECID error codes */
+    TFM_PLAT_ERR_IEEE_ECID_NOT_GENERATED,
     /* RSE key derivation error codes */
     TFM_PLAT_ERR_KEY_DERIVATION_BOOT_STATE_BUFFER_TOO_SMALL,
     TFM_PLAT_ERR_KEY_DERIVATION_INVALID_TP_MODE,
@@ -226,8 +229,8 @@ enum tfm_plat_err_t {
     TFM_PLAT_ERR_INVALID_INPUT,
     TFM_PLAT_ERR_UNSUPPORTED,
     TFM_PLAT_ERR_NOT_PERMITTED,
+    TFM_PLAT_ERR_CORRUPTION_DETECTED,
     /* Following entry is only to ensure the error code of int size */
     TFM_PLAT_ERR_FORCE_UINT_SIZE = UINT_MAX
 };
-
 #endif /* __PLATFORM_ERROR_CODES_H__ */

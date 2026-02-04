@@ -53,7 +53,7 @@ static bool check_non_zero_area(uintptr_t start, size_t length)
 
 static bool is_rse_chip_output_data_available_in_otp(void)
 {
-    if (!IS_RSE_OTP_AREA_VALID(CM)) {
+    if (!P_RSE_OTP_CM_IS_VALID) {
         return false;
     }
 
@@ -65,28 +65,39 @@ static bool is_rse_chip_output_data_available_in_otp(void)
         return check_non_zero_area(
             (uintptr_t)OTP_OFFSET(P_RSE_OTP_CM->cod.rak_pub),
             sizeof(P_RSE_OTP_CM->cod.rak_pub));
-    } else {
-        return false;
     }
+
+    return is_cmac_available;
 }
 
-#if defined(RSE_OTP_HAS_SOC_AREA)
-static bool rse_soc_ieee_ecid_is_generated(void) {
-    for (uint32_t idx = 0; idx < sizeof(P_RSE_OTP_SOC->soc_id_area.ieee_ecid) / sizeof(uint32_t); idx++) {
-        if (0 != ((uint32_t *)P_RSE_OTP_SOC->soc_id_area.ieee_ecid)[idx]) {
-            return true;
-        }
-    }
-
-    return false;
+#ifdef RSE_OTP_HAS_SOC_AREA
+static bool ieee_ecid_is_generated(void)
+{
+    return check_non_zero_area((uintptr_t)P_RSE_OTP_SOC->soc_id_area.ieee_ecid,
+                               sizeof(P_RSE_OTP_SOC->soc_id_area.ieee_ecid));
 }
 
-static bool rse_soc_family_id_is_generated(void) {
-    if (*((uint32_t *)P_RSE_OTP_SOC->soc_id_area.family_id) != 0) {
-        return true;
+static bool soc_uid_is_generated(void)
+{
+    return check_non_zero_area((uintptr_t)P_RSE_OTP_SOC->soc_id_area.unique_id,
+                               sizeof(P_RSE_OTP_SOC->soc_id_area.unique_id));
+}
+
+static tfm_plat_err_t check_otp_soc_area_fields(void)
+{
+    if (!P_RSE_OTP_SOC_IS_VALID) {
+        return TFM_PLAT_ERR_COD_SOC_AREA_NOT_VALID;
     }
 
-    return false;
+    if (!soc_uid_is_generated()) {
+        return TFM_PLAT_ERR_SOC_UID_NOT_GENERATED;
+    }
+
+    if (!ieee_ecid_is_generated()) {
+        return TFM_PLAT_ERR_IEEE_ECID_NOT_GENERATED;
+    }
+
+    return TFM_PLAT_ERR_SUCCESS;
 }
 #endif /* RSE_OTP_HAS_SOC_AREA */
 
@@ -101,6 +112,12 @@ enum tfm_plat_err_t rse_fetch_cod_data_fields_from_otp(
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
 
 #ifdef RSE_OTP_HAS_SOC_AREA
+    plat_err = check_otp_soc_area_fields();
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        ERROR("COD: SOC area OTP fields check returned 0x%08x", plat_err);
+        return plat_err;
+    }
+
     lcm_err = lcm_otp_read(&LCM_DEV_S, OTP_OFFSET(P_RSE_OTP_SOC->
                                                     soc_id_area.unique_id),
                            sizeof(P_RSE_OTP_SOC->soc_id_area.unique_id),
@@ -192,32 +209,24 @@ enum tfm_plat_err_t
 rse_get_chip_output_data(struct rse_chip_output_data_structure_t *cod_data)
 {
     enum lcm_error_t lcm_err;
+    enum tfm_plat_err_t plat_err;
 
     /* Check if we have COD data (rse_otp_cod_cm_area_t) in OTP */
     if (!is_rse_chip_output_data_available_in_otp()) {
         return TFM_PLAT_ERR_COD_DATA_NOT_PROVISIONED;
     }
 
-#if defined(RSE_OTP_HAS_SOC_AREA)
-    if (!rse_soc_uid_is_generated()) {
-        ERROR("SoC UID not generated\r\n");
-        return TFM_PLAT_ERR_SOC_UID_NOT_GENERATED;
+    /* Read the CM Area as well */
+    plat_err = rse_fetch_cod_data_fields_from_otp(&(cod_data->cod_fields), true);
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        return plat_err;
     }
-
-    if (!rse_soc_ieee_ecid_is_generated()) {
-        ERROR("SoC IEEE ECID not generated");
-        return TFM_PLAT_ERR_NOT_PERMITTED;
-    }
-#endif /* RSE_OTP_HAS_SOC_AREA */
 
     lcm_err = lcm_otp_read(&LCM_DEV_S, OTP_OFFSET(P_RSE_OTP_CM->cod.cod_cmac),
                            sizeof(P_RSE_OTP_CM->cod.cod_cmac),
                            (uint8_t *)cod_data->cod_cmac);
-    if (lcm_err != LCM_ERROR_NONE) {
-        return (enum tfm_plat_err_t)lcm_err;
-    }
 
-    return rse_fetch_cod_data_fields_from_otp(&(cod_data->cod_fields), true);
+    return (enum tfm_plat_err_t)lcm_err;
 }
 
 enum tfm_plat_err_t rse_chip_output_data_setup_key(void)
