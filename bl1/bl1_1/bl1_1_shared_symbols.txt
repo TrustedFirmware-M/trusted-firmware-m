@@ -47,3 +47,11 @@ __assert_puts
 _write
 tfm_vprintf
 tfm_log
+_sys_close
+_sys_exit
+_sys_flen
+_sys_istty
+_sys_open
+_sys_seek
+_sys_write
+_ttywrch

@@ -52,6 +52,7 @@ static const char *key_type_str = "";
 /* Avoids the semihosting issue */
 #if defined (__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
 __asm("  .global __ARM_use_no_argv\n");
+__asm("  .global __use_no_semihosting\n");
 #endif
 
 #ifdef MCUBOOT_ENCRYPT_RSA

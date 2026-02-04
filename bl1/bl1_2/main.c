@@ -41,6 +41,7 @@ enum boot_measurement_slot_t {
 /* Disable both semihosting code and argv usage for main */
 #if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
 __asm("  .global __ARM_use_no_argv\n");
+__asm("  .global __use_no_semihosting\n");
 #endif
 
 #ifdef TFM_MEASURED_BOOT_API

@@ -27,6 +27,7 @@
 /* Disable both semihosting code and argv usage for main */
 #if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
 __asm("  .global __ARM_use_no_argv\n");
+__asm("  .global __use_no_semihosting\n");
 #endif
 
 uint8_t computed_bl1_2_hash[TFM_BL1_1_MEASUREMENT_HASH_MAX_SIZE];

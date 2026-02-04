@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2023 ARM Limited
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,8 @@ bool stdio_is_initialized(void)
 
 /* Redirects printf to STDIO_DRIVER in case of ARMCLANG*/
 #if defined(__ARMCC_VERSION)
+#include <rt_misc.h>
+#include <rt_sys.h>
 /* __ARMCC_VERSION is only defined starting from Arm compiler version 6 */
 int fputc(int ch, FILE *f)
 {
@@ -79,6 +81,61 @@ int fputc(int ch, FILE *f)
 
     /* Return character written */
     return ch;
+}
+
+#define DEFAULT_HANDLE 0x100;
+
+FILEHANDLE _sys_open(const char * name, int openmode)
+{
+    return DEFAULT_HANDLE;
+}
+
+int _sys_close(FILEHANDLE fh)
+{
+    return 0;
+}
+
+int _sys_write(FILEHANDLE fh, const unsigned char * buf,
+               unsigned len, int mode)
+{
+
+    return 0;
+}
+
+int _sys_read(FILEHANDLE fh, unsigned char * buf,
+              unsigned len, int mode)
+{
+     return 0;
+}
+
+void _ttywrch(int ch)
+{
+ for (;;);
+}
+
+int _sys_istty(FILEHANDLE fh)
+{
+    return 1;
+}
+
+int _sys_seek(FILEHANDLE fh, long pos)
+{
+    return -1;
+}
+
+int _sys_ensure(FILEHANDLE fh)
+{
+    return 0;
+}
+
+long _sys_flen(FILEHANDLE fh)
+{
+    return 0;
+}
+
+void _sys_exit(int returncode)
+{
+    while(1) {};
 }
 
 /* Redirect sdtio for PicoLib in ATfE toolchain
