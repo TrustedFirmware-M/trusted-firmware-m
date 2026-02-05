@@ -65,7 +65,7 @@ psa_handle_t connection_to_handle(struct connection_t *p_connection)
 {
     psa_handle_t handle;
 
-    assert(is_valid_chunk_data_in_pool(connection_pool, p_connection));
+    assert(is_valid_chunk_data_in_pool(connection_pool, (uint8_t *)p_connection));
 
     loop_index = (loop_index + 1) % CONVERSION_FACTOR_VALUE;
     handle = (psa_handle_t)((((uintptr_t)p_connection -
@@ -103,7 +103,7 @@ struct connection_t *handle_to_connection(psa_handle_t handle)
                     CLIENT_HANDLE_VALUE_MIN) >> CONVERSION_FACTOR_BITOFFSET) +
                     (uintptr_t)connection_pool);
 
-    assert(is_valid_chunk_data_in_pool(connection_pool, p_connection));
+    assert(is_valid_chunk_data_in_pool(connection_pool, (uint8_t *)p_connection));
 
     return p_connection;
 }
