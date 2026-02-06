@@ -8,6 +8,7 @@
 
 #include "config_tfm.h"
 #include "cmsis.h"
+#include "current.h"
 #include "cy_device_headers.h"
 #include "ifx_fih.h"
 #include "platform_svc_api.h"
