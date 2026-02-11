@@ -24,7 +24,6 @@ set(PROVISIONING_CODE_PADDED_SIZE       "0x2000"  CACHE STRING    "")
 set(PROVISIONING_VALUES_PADDED_SIZE     "0x400"   CACHE STRING    "")
 set(PROVISIONING_DATA_PADDED_SIZE       "0x400"   CACHE STRING    "")
 
-set(MCUBOOT_USE_PSA_CRYPTO            ON               CACHE BOOL      "Enable the cryptographic abstraction layer to use PSA Crypto APIs")
 set(MCUBOOT_SIGNATURE_TYPE            "EC-P256"        CACHE STRING    "Algorithm to use for signature validation [RSA-2048, RSA-3072, EC-P256, EC-P384]")
 set(MCUBOOT_HW_KEY                    OFF              CACHE BOOL      "Whether to embed the entire public key in the image metadata instead of the hash only")
 set(MCUBOOT_BUILTIN_KEY               ON               CACHE BOOL      "Use builtin key(s) for validation, no public key data is embedded into the image metadata")

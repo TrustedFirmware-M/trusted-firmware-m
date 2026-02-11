@@ -34,8 +34,6 @@ set(PROVISIONING_VALUES_PADDED_SIZE     "0x400"   CACHE STRING    "")
 set(HAL_ADI_PATH                        "DOWNLOAD"  CACHE PATH      "Path to hal_adi (or DOWNLOAD to fetch automatically")
 set(HAL_ADI_VERSION                     "dd1c525"   CACHE STRING    "The version of hal_adi to use")
 
-set(MCUBOOT_USE_PSA_CRYPTO             ON          CACHE BOOL      "Use PSA Crypto for MCUBOOT")
-
 set(CRYPTO_HW_ACCELERATOR              ON          CACHE BOOL      "Enable hardware crypto accelerator")
 set(CRYPTO_HW_ACCELERATOR_TYPE         "adi"       CACHE STRING    "The hardware accelerator platform")
 
