@@ -181,9 +181,13 @@ Ruchika Gupta
 STM
 ---
 
-Ahmad EL JOUAID
-    :email: `ahmad.eljouaid@st.com <ahmad.eljouaid@st.com>`__
-    :github: `ahmadstm <https://github.com/ahmadstm>`__
+Ronan Gabou
+    :email: `ronan.gabou@st.com <ronan.gabou@st.com>`__
+    :github: `RGASTM <https://github.com/RGASTM>`__
+
+Marc Jacob
+    :email: `marc.jacob@st.com <marc.jacob@st.com>`__
+    :github: `MJASTM <https://github.com/MJASTM>`__
 
 Infineon/Cypress
 ----------------
