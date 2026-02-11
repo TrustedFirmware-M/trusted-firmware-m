@@ -25,6 +25,9 @@ set(CMAKE_CXX_COMPILER_TARGET arm-${CROSS_COMPILE})
 
 set(LINKER_VENEER_OUTPUT_FLAG --import_cmse_lib_out=)
 
+# Manually set --target= due to https://gitlab.kitware.com/cmake/cmake/-/issues/19963
+set(CMAKE_ASM_FLAGS "--target=${CMAKE_ASM_COMPILER_TARGET}")
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(imported_target)
 
