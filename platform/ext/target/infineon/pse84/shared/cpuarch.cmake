@@ -25,8 +25,8 @@ add_compile_definitions(IFX_CM55=55)
 add_compile_definitions(BOOT_DATA_AVAILABLE)
 
 # FPU for CM33 and CM55 cores
-set(CONFIG_TFM_FP_ARCH "fpv5-d16")
-set(CONFIG_TFM_FP_ARCH_ASM "FPv5_D16")
+set(CONFIG_TFM_FP_ARCH "fpv5-d16"     CACHE STRING "FPU architecture")
+set(CONFIG_TFM_FP_ARCH_ASM "FPv5_D16" CACHE STRING "FPU architecture for assembly")
 
 # Set architecture and CPU
 if (NOT DEFINED IFX_CORE)
