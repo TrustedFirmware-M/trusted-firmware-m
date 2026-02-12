@@ -25,6 +25,10 @@ David Hu
     :email: `David.Hu2@arm.com <David.Hu2@arm.com>`__
     :github: `davidhuziji <https://github.com/davidhuziji>`__
 
+Nicola Mazzucato
+    :email: `nicola.mazzucato@arm.com <nicola.mazzucato@arm.com>`__
+    :github: `nicola-mazzucato-arm <https://github.com/nicola-mazzucato-arm>`__
+
 Code owners
 ===========
 
