@@ -256,7 +256,7 @@ extern "C" {
     #define ioss_0_port_6_pin_5_HSIOM HSIOM_SEL_GPIO
 #endif
 #define CYBSP_DEBUG_UART_RX_HSIOM ioss_0_port_6_pin_5_HSIOM
-#define CYBSP_DEBUG_UART_RX_IRQ ioss_interrupts_sec_gpio_6_IRQn
+#define CYBSP_DEBUG_UART_RX_IRQ ioss_interrupts_gpio_6_IRQn
 #define CYBSP_DEBUG_UART_TX_ENABLED 1U
 #define CYBSP_DEBUG_UART_TX_PORT GPIO_PRT6
 #define CYBSP_DEBUG_UART_TX_PORT_NUM 6U
@@ -268,7 +268,7 @@ extern "C" {
     #define ioss_0_port_6_pin_7_HSIOM HSIOM_SEL_GPIO
 #endif
 #define CYBSP_DEBUG_UART_TX_HSIOM ioss_0_port_6_pin_7_HSIOM
-#define CYBSP_DEBUG_UART_TX_IRQ ioss_interrupts_sec_gpio_6_IRQn
+#define CYBSP_DEBUG_UART_TX_IRQ ioss_interrupts_gpio_6_IRQn
 #define CYBSP_SDHC_CMD_ENABLED 1U
 #define CYBSP_SDHC_CMD_PORT GPIO_PRT7
 #define CYBSP_SDHC_CMD_PORT_NUM 7U

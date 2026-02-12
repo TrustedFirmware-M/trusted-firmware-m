@@ -298,7 +298,7 @@ const cy_stc_gpio_pin_config_t CYBSP_DEBUG_UART_RX_config =
     .vrefSel = 0UL,
     .vohSel = 0UL,
     .pullUpRes = CY_GPIO_PULLUP_RES_DISABLE,
-    .nonSec = 0,
+    .nonSec = 1,
 };
 const cy_stc_gpio_pin_config_t CYBSP_DEBUG_UART_TX_config =
 {
@@ -316,7 +316,7 @@ const cy_stc_gpio_pin_config_t CYBSP_DEBUG_UART_TX_config =
     .vrefSel = 0UL,
     .vohSel = 0UL,
     .pullUpRes = CY_GPIO_PULLUP_RES_DISABLE,
-    .nonSec = 0,
+    .nonSec = 1,
 };
 const cy_stc_gpio_pin_config_t CYBSP_SDHC_CMD_config =
 {

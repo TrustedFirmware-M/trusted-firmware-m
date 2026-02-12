@@ -449,6 +449,7 @@ const mtb_srf_memory_protection_s_t mtb_srf_memory_protection_s[] =
 const uint8_t mtb_srf_protection_range_s_count = sizeof(mtb_srf_memory_protection_s) / sizeof(mtb_srf_memory_protection_s_t);
 #endif /* defined (COMPONENT_SECURE_DEVICE) && defined(COMPONENT_MW_MTB_SRF) */
 
+#if (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED)
 const cy_en_prot_region_t M33S_ppc_0_regions[] =
 {
     PROT_PERI0_M33SYSCPUSS,
@@ -482,7 +483,6 @@ const cy_en_prot_region_t M33S_ppc_0_regions[] =
     PROT_PERI0_FAULT_STRUCT1_MAIN,
     PROT_PERI0_SRSS_HIB_DATA,
     PROT_PERI0_PWRMODE_PWRMODE,
-    PROT_PERI0_SCB2,
     PROT_PERI0_DFT, 
 };
 const cy_en_prot_region_t M33_M55_ppc_0_regions[] =
@@ -707,6 +707,7 @@ const cy_en_prot_region_t M33_M55_ppc_0_regions[] =
     PROT_PERI0_TCPWM0_GRP1_CNT23_CNT,
     PROT_PERI0_LPCOMP,
     PROT_PERI0_SCB0,
+    PROT_PERI0_SCB2,
     PROT_PERI0_SCB3,
     PROT_PERI0_SCB4,
     PROT_PERI0_SCB5,
@@ -977,6 +978,8 @@ const cy_stc_ppc_cfg_t cycfg_ppc_1_domains_config[] =
     },
 };
 const size_t cycfg_ppc_1_domains_count = sizeof(cycfg_ppc_1_domains_config) / sizeof(cy_stc_ppc_cfg_t);
+
+#endif //#if (CY_SYSTEM_CPU_M33) && defined(COMPONENT_SECURE_DEVICE) && defined(CY_PDL_TZ_ENABLED)
 
 #if defined(CY_PDL_TZ_ENABLED)
 const cy_stc_sau_config_t SAU_config[4] =

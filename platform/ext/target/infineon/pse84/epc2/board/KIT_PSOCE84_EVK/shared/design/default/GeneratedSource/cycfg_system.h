@@ -108,8 +108,8 @@ extern "C" {
 #define Cy_PPC0_Init init_cycfg_ppc0
 #define Cy_PPC1_Init init_cycfg_ppc1
 #define peri_0_ENABLED 1U
-#define M33S_ppc_0_REGION_COUNT 33U
-#define M33_M55_ppc_0_REGION_COUNT 233U
+#define M33S_ppc_0_REGION_COUNT 32U
+#define M33_M55_ppc_0_REGION_COUNT 234U
 #define TFM_SP_INITIAL_ATTESTATION_ppc_0_REGION_COUNT 2U
 #define TFM_SP_CRYPTO_ppc_0_REGION_COUNT 6U
 #define peri_1_ENABLED 1U

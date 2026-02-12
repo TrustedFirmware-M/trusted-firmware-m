@@ -657,7 +657,7 @@
                         <Param id="inFlash" value="true"/>
                         <Param id="initialState" value="1"/>
                         <Param id="isrTrigger" value="CY_GPIO_INTR_DISABLE"/>
-                        <Param id="nonSec" value="0"/>
+                        <Param id="nonSec" value="1"/>
                         <Param id="pullUpRes" value="CY_GPIO_PULLUP_RES_DISABLE"/>
                         <Param id="sioOutputBuffer" value="true"/>
                         <Param id="slewRate" value="CY_GPIO_SLEW_FAST"/>
@@ -678,7 +678,7 @@
                         <Param id="inFlash" value="true"/>
                         <Param id="initialState" value="1"/>
                         <Param id="isrTrigger" value="CY_GPIO_INTR_DISABLE"/>
-                        <Param id="nonSec" value="0"/>
+                        <Param id="nonSec" value="1"/>
                         <Param id="pullUpRes" value="CY_GPIO_PULLUP_RES_DISABLE"/>
                         <Param id="sioOutputBuffer" value="true"/>
                         <Param id="slewRate" value="CY_GPIO_SLEW_FAST"/>
@@ -2621,7 +2621,7 @@
                         <Param id="reg301" value="Rj_rAX1eb8U"/>
                         <Param id="reg302" value="Rj_rAX1eb8U"/>
                         <Param id="reg303" value="Rj_rAX1eb8U"/>
-                        <Param id="reg304" value="7cPl230VJyc"/>
+                        <Param id="reg304" value="Rj_rAX1eb8U"/>
                         <Param id="reg305" value="Rj_rAX1eb8U"/>
                         <Param id="reg306" value="Rj_rAX1eb8U"/>
                         <Param id="reg307" value="Rj_rAX1eb8U"/>
