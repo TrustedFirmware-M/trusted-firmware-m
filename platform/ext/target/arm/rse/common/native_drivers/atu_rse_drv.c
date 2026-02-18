@@ -15,7 +15,7 @@
 static enum atu_error_t is_aligned_to_page(struct atu_dev_t *dev, uint64_t address)
 {
     uint8_t ps;
-    struct _atu_reg_map_t *p_atu;
+    const struct _atu_reg_map_t *p_atu;
 
     p_atu = (struct _atu_reg_map_t *)dev->cfg->base;
 
@@ -180,7 +180,7 @@ enum atu_error_t atu_rse_get_bus_attributes(struct atu_dev_t *dev, uint8_t regio
 
 uint8_t atu_rse_get_supported_region_count(struct atu_dev_t *dev)
 {
-    struct _atu_reg_map_t *p_atu = (struct _atu_reg_map_t *)dev->cfg->base;
+    const struct _atu_reg_map_t *p_atu = (struct _atu_reg_map_t *)dev->cfg->base;
 
     return (uint8_t)(0x1u << (p_atu->atubc & ATU_ATUBC_RC_MASK));
 }
@@ -199,7 +199,6 @@ enum atu_error_t atu_rse_initialize_region(struct atu_dev_t *dev, uint8_t region
                                            uint32_t size)
 {
     enum atu_error_t err;
-    struct _atu_reg_map_t *p_atu;
     uint32_t end_log_addr;
     uint64_t physical_region_offset;
 
@@ -211,8 +210,6 @@ enum atu_error_t atu_rse_initialize_region(struct atu_dev_t *dev, uint8_t region
     if (err != ATU_ERR_NONE) {
         return err;
     }
-
-    p_atu = (struct _atu_reg_map_t *)dev->cfg->base;
 
     if (log_addr > UINT32_MAX - (size - 1)) {
         return ATU_ERR_INIT_REGION_INVALID_ADDRESS;

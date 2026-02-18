@@ -177,7 +177,7 @@ static inline uint32_t get_log_addr_space_start(const struct atu_dev_t *dev,
  * @return atu_log_type_t - Return Secure or Non-secure type
  *
  */
-static enum atu_log_type_t get_sec_type(struct atu_lib_t *atu,
+static enum atu_log_type_t get_sec_type(const struct atu_lib_t *atu,
                                         uint32_t out_bus_attr)
 {
     uint32_t nse = (out_bus_attr & ATU_ATUROBA_AXNSE_MASK) >> ATU_ATUROBA_AXNSE_OFF;
@@ -325,9 +325,8 @@ static enum atu_error_t atu_dyn_cfg_init(struct atu_lib_t *atu)
  */
 static enum atu_error_t atu_slot_alloc(struct atu_dev_t *dev, uint8_t *slot_idx)
 {
-    uint8_t mask_value = 0;
     enum atu_error_t err = ATU_ERR_SLOT_NOT_AVAIL;
-    struct _atu_reg_map_t *p_atu = (struct _atu_reg_map_t *)dev->cfg->base;
+    const struct _atu_reg_map_t *p_atu = (struct _atu_reg_map_t *)dev->cfg->base;
     /*
     * Iterate over the atu slot availability status
     *
@@ -338,7 +337,7 @@ static enum atu_error_t atu_slot_alloc(struct atu_dev_t *dev, uint8_t *slot_idx)
     * Else, Return failure
     */
     for (uint8_t idx = ATU_DYN_SLOT_START; idx < (ATU_DYN_SLOT_START + ATU_DYN_SLOT_COUNT); idx++) {
-        mask_value = ((p_atu->atuc >> idx) & 1);
+        const uint8_t mask_value = ((p_atu->atuc >> idx) & 1);
         if (mask_value == 0) {
             err = ATU_ERR_NONE;
             *slot_idx = idx;
@@ -389,7 +388,7 @@ static enum atu_error_t atu_mem_alloc_addr(struct atu_lib_t *atu,
     uint32_t temp_bank_size = 0;
     uint8_t bank_align_bits = 0;
     uint8_t req_bank_idx = 0;
-    struct atu_bank_ctx_t *cur_bank = NULL;
+    const struct atu_bank_ctx_t *cur_bank = NULL;
     enum atu_log_type_t sec_type = ATU_LOG_ADDR_TYPE_MAX;
 
     /*
@@ -438,7 +437,7 @@ static enum atu_error_t check_log_overlap(struct atu_dev_t *dev, uint32_t log_ad
                                           uint32_t log_addr_end, uint8_t *idx)
 {
     enum atu_error_t atu_err = ATU_MAPPING_NOT_AVAIL;
-    struct _atu_reg_map_t *p_atu = (struct _atu_reg_map_t *)dev->cfg->base;
+    const struct _atu_reg_map_t *p_atu = (struct _atu_reg_map_t *)dev->cfg->base;
     uint32_t region_log_start = 0;
     uint32_t region_log_end = 0;
 
@@ -473,7 +472,7 @@ static enum atu_error_t check_log_overlap(struct atu_dev_t *dev, uint32_t log_ad
 static enum atu_error_t check_if_region_usable(struct atu_dev_t *dev, uint8_t idx, struct atu_region_map_t *addr_req)
 {
     enum atu_error_t atu_err = ATU_ERR_NONE;
-    struct _atu_reg_map_t *p_atu = (struct _atu_reg_map_t *)dev->cfg->base;
+    const struct _atu_reg_map_t *p_atu = (struct _atu_reg_map_t *)dev->cfg->base;
     uint64_t region_add_value = 0;
     uint32_t region_log_start = 0;
     uint32_t region_log_end = 0;
@@ -565,41 +564,36 @@ static enum atu_error_t check_if_region_usable(struct atu_dev_t *dev, uint8_t id
  */
 static enum atu_error_t atu_check_mapping(struct atu_dev_t *dev, struct atu_region_map_t *addr_req)
 {
-    enum atu_error_t atu_err = ATU_ERR_NONE;
+    enum atu_error_t atu_err;
     uint8_t idx = 0;
-    uint32_t request_log_start = 0;
-    uint32_t request_log_end = 0;
-
-    request_log_start = addr_req->log_addr;
-    request_log_end = addr_req->log_addr + addr_req->size;
+    uint32_t request_log_start = addr_req->log_addr;
+    uint32_t request_log_end = addr_req->log_addr + addr_req->size;;
 
     if (addr_req->dynamically_allocate_logical_address == false) {
         atu_err = check_log_overlap(dev, request_log_start, request_log_end, &idx);
-        if (atu_err == ATU_MAPPING_AVAIL){
+        switch (atu_err) {
+        case ATU_MAPPING_AVAIL:
             /* Found a region, which must be used to avoid duplicated logical addresses
-             * If we can't use it that means the request can not be completed */
+             * If we can't use it that means the request can not be completed
+             */
             atu_err = check_if_region_usable(dev, idx, addr_req);
-            if (atu_err == ATU_MAPPING_NOT_AVAIL) {
-                return ATU_MAPPING_INVALID;
-            }
-            return atu_err;
-        } else if (atu_err == ATU_MAPPING_NOT_AVAIL) {
-            /* Continue */
-        } else {
+            return (atu_err == ATU_MAPPING_NOT_AVAIL) ? ATU_MAPPING_INVALID : atu_err;
+        case ATU_MAPPING_NOT_AVAIL:
+            break;
+        default:
             return atu_err;
         }
     }
 
     for (idx = ATU_DYN_SLOT_START; idx < ATU_DYN_SLOT_START + ATU_DYN_SLOT_COUNT; idx ++) {
-
         atu_err = check_if_region_usable(dev, idx, addr_req);
         switch (atu_err) {
-            case ATU_ERR_SLOT_NOT_AVAIL:
-            case ATU_MAPPING_NOT_AVAIL:
-                /* Skip to the next region */
-                continue;
-            default:
-                return atu_err;
+        case ATU_ERR_SLOT_NOT_AVAIL:
+        case ATU_MAPPING_NOT_AVAIL:
+            /* Skip to the next region */
+            continue;
+        default:
+            return atu_err;
         }
     }
 
@@ -735,19 +729,12 @@ static enum atu_error_t atu_map_addr(struct atu_lib_t *atu, struct atu_region_ma
 static enum atu_error_t atu_check_addr_overlap(const struct atu_region_map_t *region,
                                                uint8_t reg_count)
 {
-    uint8_t idx_1 = 0;
-    uint8_t idx_2 = 0;
-    uint32_t start_addr_1 = 0;
-    uint32_t start_addr_2 = 0;
-    uint32_t end_addr_1 = 0;
-    uint32_t end_addr_2 = 0;
-
     if (region == NULL || reg_count == 0) {
         return ATU_ERR_MEM_INVALID_ARG;
     }
 
     /* None of the region should have zero or overflowing size */
-    for (idx_1 = 0; idx_1 < reg_count; idx_1++) {
+    for (uint8_t idx_1 = 0; idx_1 < reg_count; idx_1++) {
         if ((region[idx_1].size == 0)
             || ((UINT32_MAX - region[idx_1].log_addr) < region[idx_1].size)){
             return ATU_ERR_MEM_INVALID_ARG;
@@ -755,15 +742,15 @@ static enum atu_error_t atu_check_addr_overlap(const struct atu_region_map_t *re
     }
 
     /* Test every region to every other region against overlapping */
-    for (idx_1 = 0; idx_1 < (reg_count - 1); idx_1++) {
+    for (uint8_t idx_1 = 0; idx_1 < (reg_count - 1); idx_1++) {
 
-        start_addr_1 = region[idx_1].log_addr;
-        end_addr_1 = ((region[idx_1].log_addr + region[idx_1].size) - 1U );
+        uint32_t start_addr_1 = region[idx_1].log_addr;
+        uint32_t end_addr_1 = ((region[idx_1].log_addr + region[idx_1].size) - 1U );
 
-        for (idx_2 = idx_1 + 1; idx_2 < reg_count; idx_2++) {
+        for (uint8_t idx_2 = idx_1 + 1; idx_2 < reg_count; idx_2++) {
 
-            start_addr_2 = region[idx_2].log_addr;
-            end_addr_2 = ((region[idx_2].log_addr + region[idx_2].size) - 1U );
+            uint32_t start_addr_2 = region[idx_2].log_addr;
+            uint32_t end_addr_2 = ((region[idx_2].log_addr + region[idx_2].size) - 1U );
 
             /*
              * Validate whether two address regions overlap
@@ -793,20 +780,14 @@ static enum atu_error_t atu_static_cfg_init(struct atu_dev_t *dev,
                                             const struct atu_region_map_t *ptr_reg,
                                             const uint8_t stat_count)
 {
-    uint8_t idx = 0;
-    enum atu_error_t err = ATU_ERR_UNKNOWN;
+    enum atu_error_t err;
 
-    if (stat_count > ATU_STATIC_SLOT_COUNT) {
-        return ATU_ERR_STAT_CFG_COUNT;
-    }
-
-    err = atu_check_addr_overlap(ptr_reg, stat_count);
-
+    err = (stat_count > ATU_STATIC_SLOT_COUNT) ? ATU_ERR_STAT_CFG_COUNT : atu_check_addr_overlap(ptr_reg, stat_count);
     if (err != ATU_ERR_NONE) {
         return err;
     }
 
-    for (idx = 0; idx < stat_count; idx++) {
+    for (uint8_t idx = 0; idx < stat_count; idx++) {
         /*
          * Pass each entry of static configuration to ATU intialize
          */
@@ -842,19 +823,16 @@ static enum atu_error_t atu_static_cfg_init(struct atu_dev_t *dev,
  */
 static enum atu_error_t atu_static_cfg_uninit(struct atu_dev_t *dev, const uint8_t atu_stat_count)
 {
-    uint8_t idx = 0;
-    enum atu_error_t err = ATU_ERR_UNKNOWN;
+    enum atu_error_t err;
 
-    if (atu_stat_count > ATU_STATIC_SLOT_COUNT) {
-        return ATU_ERR_STAT_CFG_COUNT;
+    err = (atu_stat_count > ATU_STATIC_SLOT_COUNT) ? ATU_ERR_STAT_CFG_COUNT : ATU_ERR_NONE;
+    if (err != ATU_ERR_NONE) {
+        return err;
     }
 
-    for (idx = 0; idx < atu_stat_count; idx++) {
-        /*
-         * Pass each entry of static configuration to ATU unintialize
-         */
+    for (uint8_t idx = 0; idx < atu_stat_count; idx++) {
+        /* Pass each entry of static configuration to ATU unintialize */
         err = atu_rse_uninitialize_region(dev, (idx + ATU_STATIC_SLOT_START));
-
         if (err != ATU_ERR_NONE) {
             return err;
         }
@@ -866,7 +844,7 @@ static enum atu_error_t atu_static_cfg_uninit(struct atu_dev_t *dev, const uint8
 
 uint16_t atu_rse_get_page_size(struct atu_lib_t *atu)
 {
-    struct _atu_reg_map_t *p_atu = (struct _atu_reg_map_t *)atu->dev->cfg->base;
+    const struct _atu_reg_map_t *p_atu = (struct _atu_reg_map_t *)atu->dev->cfg->base;
 
     return (uint16_t)(0x1u << ATU_GET_ATUPS(p_atu));
 }
