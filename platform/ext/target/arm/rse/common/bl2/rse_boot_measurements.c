@@ -54,7 +54,6 @@ int32_t add_rotpk_hash_to_shared_area(bool is_cm)
     uint8_t rotpk_buf[RSE_ROTPK_MAX_SIZE];
     enum rse_rotpk_hash_alg rse_hash_alg;
     uint32_t active_idx;
-    enum tfm_nv_counter_t counter_id;
     enum tfm_otp_element_id_t id;
     enum tfm_otp_element_id_t id_max;
 
@@ -67,16 +66,14 @@ int32_t add_rotpk_hash_to_shared_area(bool is_cm)
         .sw_version = { 0 },
     };
 
-    if(is_cm) {
+    if (is_cm) {
         id = PLAT_OTP_ID_CM_ROTPK;
         id_max = PLAT_OTP_ID_CM_ROTPK_MAX;
         index_base = BOOT_MEASUREMENT_SLOT_CM_ROTPK_0;
-        counter_id = PLAT_NV_COUNTER_CM_ROTPK_REPROVISIONING;
     } else {
         id = PLAT_OTP_ID_DM_ROTPK;
         id_max = PLAT_OTP_ID_DM_ROTPK_MAX;
         index_base = BOOT_MEASUREMENT_SLOT_DM_ROTPK_0;
-        counter_id = PLAT_NV_COUNTER_DM_ROTPK_REPROVISIONING;
     }
 
     result = tfm_plat_read_nv_counter(PLAT_NV_COUNTER_CM_ROTPK_REPROVISIONING,
