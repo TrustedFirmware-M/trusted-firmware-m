@@ -522,6 +522,11 @@ enum kmu_error_t kmu_random_delay(struct kmu_dev_t *dev,
         return KMU_ERROR_INVALID_DELAY_LENGTH;
     }
 
+    /* This variable is used to force a read from the registers to
+     * trigger the hardware delay
+     */
+    (void)foo;
+
     return KMU_ERROR_NONE;
 }
 
