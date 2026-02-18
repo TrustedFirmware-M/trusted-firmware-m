@@ -55,32 +55,32 @@ enum mhu_error_t signal_and_wait_for_clear(
     err = mhu_v3_x_get_num_channel_implemented(dev, MHU_V3_X_CHANNEL_TYPE_DBCH,
             &num_channels);
     if (err != MHU_V_3_X_ERR_NONE) {
-        return err;
+        return (enum mhu_error_t)err;
     }
 
     /* Wait for any pending acknowledgement from transmitter side */
     do {
         err = mhu_v3_x_doorbell_read(dev, num_channels - 1, &read_val);
         if (err != MHU_V_3_X_ERR_NONE) {
-            return err;
+            return (enum mhu_error_t)err;
         }
     } while ((read_val & value) == value);
 
     /* Use the last channel to notify that a transfer is ready */
     err = mhu_v3_x_doorbell_write(dev, num_channels - 1, value);
     if (err != MHU_V_3_X_ERR_NONE) {
-        return err;
+        return (enum mhu_error_t)err;
     }
 
     /* Wait until receiver side acknowledges the transfer */
     do {
         err = mhu_v3_x_doorbell_read(dev, num_channels - 1, &read_val);
         if (err != MHU_V_3_X_ERR_NONE) {
-            return err;
+            return (enum mhu_error_t)err;
         }
     } while ((read_val & value) == value);
 
-    return err;
+    return (enum mhu_error_t)err;
 }
 
 enum mhu_error_t wait_for_signal_and_clear (
@@ -108,21 +108,21 @@ enum mhu_error_t wait_for_signal_and_clear (
     err = mhu_v3_x_get_num_channel_implemented(dev, MHU_V3_X_CHANNEL_TYPE_DBCH,
             &num_channels);
     if (err != MHU_V_3_X_ERR_NONE) {
-        return err;
+        return (enum mhu_error_t)err;
     }
 
     /* Wait on status register for transmitter side to send data */
     do {
         err = mhu_v3_x_doorbell_read(dev, num_channels - 1, &read_val);
         if (err != MHU_V_3_X_ERR_NONE) {
-            return err;
+            return (enum mhu_error_t)err;
         }
     } while ((read_val & value) != value);
 
     /* Acknowledge the transfer and clear the doorbell register */
     err = mhu_v3_x_doorbell_clear(dev, num_channels - 1, value);
     if (err != MHU_V_3_X_ERR_NONE) {
-        return err;
+        return (enum mhu_error_t)err;
     }
 
     return MHU_ERR_NONE;
@@ -153,14 +153,14 @@ enum mhu_error_t clear_and_wait_for_signal (
     err = mhu_v3_x_get_num_channel_implemented(dev, MHU_V3_X_CHANNEL_TYPE_DBCH,
             &num_channels);
     if (err != MHU_V_3_X_ERR_NONE) {
-        return err;
+        return (enum mhu_error_t)err;
     }
 
     /* Clear all channels */
     for (int i = 0; i < num_channels; ++i) {
         err = mhu_v3_x_doorbell_clear(dev, i, UINT32_MAX);
         if (err != MHU_V_3_X_ERR_NONE) {
-            return err;
+            return (enum mhu_error_t)err;
         }
     }
 
@@ -168,11 +168,11 @@ enum mhu_error_t clear_and_wait_for_signal (
     do {
         err = mhu_v3_x_doorbell_read(dev, num_channels - 1, &read_val);
         if (err != MHU_V_3_X_ERR_NONE) {
-            return err;
+            return (enum mhu_error_t)err;
         }
     } while (read_val != value);
 
-    return err;
+    return (enum mhu_error_t)err;
 }
 
 /**
@@ -215,14 +215,14 @@ enum mhu_error_t mhu_init_sender(void *mhu_sender_dev)
     /* Initialize MHUv3 */
     err = mhu_v3_x_driver_init(dev);
     if (err != MHU_V_3_X_ERR_NONE) {
-        return err;
+        return (enum mhu_error_t)err;
     }
 
     /* Read the number of doorbell channels implemented in the MHU */
     err = mhu_v3_x_get_num_channel_implemented(
         dev, MHU_V3_X_CHANNEL_TYPE_DBCH, &num_ch);
     if (err != MHU_V_3_X_ERR_NONE) {
-        return err;
+        return (enum mhu_error_t)err;
     } else if (num_ch < MHU_REQUIRED_NUMBER_CHANNELS) {
         /* This wrapper requires at least 4 channels to be implemented */
         return MHU_ERR_INIT_SENDER_UNSUPPORTED;
@@ -240,7 +240,7 @@ enum mhu_error_t mhu_init_sender(void *mhu_sender_dev)
         err = mhu_v3_x_channel_interrupt_disable(
             dev, ch, MHU_V3_X_CHANNEL_TYPE_DBCH);
         if (err != MHU_V_3_X_ERR_NONE) {
-            return err;
+            return (enum mhu_error_t)err;
         }
     }
 
@@ -271,14 +271,14 @@ enum mhu_error_t mhu_init_receiver(void *mhu_receiver_dev)
     /* Initialize MHUv3 */
     err = mhu_v3_x_driver_init(dev);
     if (err != MHU_V_3_X_ERR_NONE) {
-        return err;
+        return (enum mhu_error_t)err;
     }
 
     /* Read the number of doorbell channels implemented in the MHU */
     err = mhu_v3_x_get_num_channel_implemented(
         dev, MHU_V3_X_CHANNEL_TYPE_DBCH, &num_ch);
     if (err != MHU_V_3_X_ERR_NONE) {
-        return err;
+        return (enum mhu_error_t)err;
     } else if (num_ch < MHU_REQUIRED_NUMBER_CHANNELS) {
         /* This wrapper requires at least 4 channels to be implemented */
         return MHU_ERR_INIT_RECEIVER_UNSUPPORTED;
@@ -288,14 +288,14 @@ enum mhu_error_t mhu_init_receiver(void *mhu_receiver_dev)
     for (ch = 0; ch < (num_ch - 1); ++ch) {
         err = mhu_v3_x_doorbell_mask_set(dev, ch, UINT32_MAX);
         if (err != MHU_V_3_X_ERR_NONE) {
-            return err;
+            return (enum mhu_error_t)err;
         }
     }
 
     /* Unmask doorbell notification channel interrupt */
     err = mhu_v3_x_doorbell_mask_clear(dev, (num_ch - 1), UINT32_MAX);
     if (err != MHU_V_3_X_ERR_NONE) {
-        return err;
+        return (enum mhu_error_t)err;
     }
 
     /*
@@ -305,7 +305,7 @@ enum mhu_error_t mhu_init_receiver(void *mhu_receiver_dev)
     err = mhu_v3_x_channel_interrupt_enable(dev, (num_ch - 1),
                                                 MHU_V3_X_CHANNEL_TYPE_DBCH);
     if (err != MHU_V_3_X_ERR_NONE) {
-        return err;
+        return (enum mhu_error_t)err;
     }
 
     return MHU_ERR_NONE;
@@ -339,13 +339,13 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev, const uint8_t *send_buffer,
     mhu_v3_err = mhu_v3_x_get_num_channel_implemented(dev, MHU_V3_X_CHANNEL_TYPE_DBCH,
             &num_channels);
     if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {
-        return mhu_v3_err;
+        return (enum mhu_error_t)mhu_v3_err;
     }
 
     /* First send over the size of the actual message. */
     mhu_v3_err = mhu_v3_x_doorbell_write(dev, chan, (uint32_t)size);
     if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {
-        return mhu_v3_err;
+        return (enum mhu_error_t)mhu_v3_err;
     }
     chan++;
 
@@ -364,7 +364,7 @@ enum mhu_error_t mhu_send_data(void *mhu_sender_dev, const uint8_t *send_buffer,
         }
         mhu_v3_err = mhu_v3_x_doorbell_write(dev, chan, t_buffer);
         if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {
-            return mhu_v3_err;
+            return (enum mhu_error_t)mhu_v3_err;
         }
 
         if (++chan == (num_channels - 1)) {
@@ -406,13 +406,13 @@ enum mhu_error_t mhu_data_is_available(void *mhu_receiver_dev, bool *is_availabl
     mhu_v3_err = mhu_v3_x_get_num_channel_implemented(dev, MHU_V3_X_CHANNEL_TYPE_DBCH,
                                                &num_channels);
     if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {
-        return mhu_v3_err;
+        return (enum mhu_error_t)mhu_v3_err;
     }
 
     /* Wait for transmitter side to send data */
     mhu_v3_err = mhu_v3_x_doorbell_read(dev, num_channels - 1, &read_val);
     if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {
-        return mhu_v3_err;
+        return (enum mhu_error_t)mhu_v3_err;
     }
 
     *is_available = (read_val == MHU_NOTIFY_VALUE);
@@ -451,7 +451,7 @@ enum mhu_error_t mhu_get_receive_msg_len(void *mhu_receiver_dev, size_t *msg_len
     /* The first word is the length of the actual message. */
     mhu_v3_err = mhu_v3_x_doorbell_read(dev, 0, (uint32_t *)msg_len);
     if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {
-        return mhu_v3_err;
+        return (enum mhu_error_t)mhu_v3_err;
     }
 
     return MHU_ERR_NONE;
@@ -484,7 +484,7 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev, uint8_t *receive_buffe
     mhu_v3_err = mhu_v3_x_get_num_channel_implemented(dev, MHU_V3_X_CHANNEL_TYPE_DBCH,
             &num_channels);
     if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {
-        return mhu_v3_err;
+        return (enum mhu_error_t)mhu_v3_err;
     }
 
     /* Chan 0 is initially used for the message length so start with chan 1 */
@@ -504,7 +504,7 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev, uint8_t *receive_buffe
             bytes_left = 0;
         }
         if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {
-            return mhu_v3_err;
+            return (enum mhu_error_t)mhu_v3_err;
         }
 
         /* Only wait for next transfer if there is still missing data. */
@@ -522,7 +522,7 @@ enum mhu_error_t mhu_receive_data(void *mhu_receiver_dev, uint8_t *receive_buffe
     for (int i = 0; i < num_channels; ++i) {
         mhu_v3_err = mhu_v3_x_doorbell_clear(dev, i, UINT32_MAX);
         if (mhu_v3_err != MHU_V_3_X_ERR_NONE) {
-            return mhu_v3_err;
+            return (enum mhu_error_t)mhu_v3_err;
         }
     }
 
