@@ -37,6 +37,8 @@
 /* To be able to include the PSA style configuration */
 #include "tf-psa-crypto/build_info.h"
 
+#if defined(PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY)
+
 /*  This function checks if the first byte of a pointer is zero and
  *  skips it when it is. We need this when we convert a PSA RSA key
  *  to the CryptoCell internal type because the PSA key will use the
@@ -648,6 +650,8 @@ end:
 
     return cc3xx_rsa_cc_error_to_psa_error(cc_err);
 }
+
+#endif /* PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY */
 
 psa_status_t cc3xx_rsa_cc_error_to_psa_error(CCError_t cc_error)
 {

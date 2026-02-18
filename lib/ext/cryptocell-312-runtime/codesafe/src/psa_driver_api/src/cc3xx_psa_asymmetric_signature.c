@@ -55,6 +55,8 @@
  */
 #include "tf-psa-crypto/build_info.h"
 
+#if defined(PSA_WANT_ALG_ECDSA)
+
 static psa_status_t cc3xx_internal_ecdsa_verify(
     const psa_key_attributes_t *attributes,
     const uint8_t *key, size_t key_length,
@@ -152,7 +154,9 @@ static psa_status_t cc3xx_internal_ecdsa_sign(
     CCEcpkiUserPrivKey_t pUserPrivKey;
     CCRndContext_t rnd_ctx;
     CCEcpkiHashOpMode_t hash_mode = CC_ECPKI_HASH_OpModeLast;
+#ifdef PSA_WANT_ALG_DETERMINISTIC_ECDSA
     mbedtls_hmac_drbg_context hmac_drbg_ctx;
+#endif
 
     err = cc3xx_psa_hash_mode_to_cc_hash_mode(alg, do_hashing, &hash_mode);
     if (err != PSA_SUCCESS) {
@@ -244,6 +248,10 @@ static psa_status_t cc3xx_internal_ecdsa_sign(
 cleanup:
     return err;
 }
+
+#endif /* PSA_WANT_ALG_ECDSA */
+
+#if defined(PSA_WANT_ALG_RSA_PKCS1V15_SIGN) || defined(PSA_WANT_ALG_RSA_PSS)
 
 static psa_status_t cc3xx_internal_rsa_verify(
     const psa_key_attributes_t *attributes,
@@ -411,6 +419,8 @@ cleanup:
     return cc3xx_rsa_cc_error_to_psa_error(cc_err);
 }
 
+#endif /* PSA_WANT_ALG_RSA_PKCS1V15_SIGN || PSA_WANT_ALG_RSA_PSS */
+
 /** \defgroup psa_asym_sign PSA driver entry points for asymmetric sign/verify
  *
  *  Entry points for asymmetric message signing and signature verification as
@@ -490,15 +500,15 @@ psa_status_t cc3xx_sign_message(const psa_key_attributes_t *attributes,
                                 size_t input_length, uint8_t *signature,
                                 size_t signature_size, size_t *signature_length)
 {
-    psa_status_t ret;
-    uint8_t hash[HASH_SHA512_BLOCK_SIZE_IN_BYTES];
-    size_t hash_len;
-
     if (!PSA_KEY_TYPE_IS_ASYMMETRIC(psa_get_key_type(attributes))) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
-#if defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)
+    #if defined(PSA_WANT_ALG_DETERMINISTIC_ECDSA)
+    psa_status_t ret;
+    uint8_t hash[HASH_SHA512_BLOCK_SIZE_IN_BYTES];
+    size_t hash_len;
+
     if (PSA_ALG_IS_DETERMINISTIC_ECDSA(alg)) {
         ret = cc3xx_hash_compute(PSA_ALG_SIGN_GET_HASH(alg), input,
                                  input_length, hash, sizeof(hash), &hash_len);

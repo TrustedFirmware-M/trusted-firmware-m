@@ -46,6 +46,8 @@ static size_t psa_get_hash_block_size(psa_algorithm_t alg)
     }
 }
 
+#if defined(PSA_WANT_ALG_CMAC)
+
 /** \brief Initialize a context
  *
  */
@@ -246,6 +248,8 @@ static psa_status_t cmac_finish(cc3xx_cipher_operation_t *cmac_ctx,
 
     return PSA_SUCCESS;
 }
+
+#endif /* PSA_WANT_ALG_CMAC */
 
 /** \brief Setup an HMAC operation context with a given key and hash
  *         algorithm

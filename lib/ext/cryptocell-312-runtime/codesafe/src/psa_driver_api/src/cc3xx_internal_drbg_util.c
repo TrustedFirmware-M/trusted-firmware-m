@@ -78,6 +78,7 @@ psa_status_t cc3xx_ctr_drbg_get_ctx(CCRndContext_t *rnd_ctx)
     return PSA_SUCCESS;
 }
 
+#ifdef PSA_WANT_ALG_DETERMINISTIC_ECDSA
 psa_status_t
 cc3xx_hmac_drbg_init_with_params(mbedtls_hmac_drbg_context *hmac_drbg_ctx,
                                  const uint8_t *hash, size_t hash_len,
@@ -141,4 +142,6 @@ psa_status_t cc3xx_hmac_drbg_get_ctx(CCRndContext_t *rnd_ctx,
 
     return PSA_SUCCESS;
 }
+#endif // PSA_WANT_ALG_DETERMINISTIC_ECDSA
+
 /** @} */ // end of internal_drbg_util

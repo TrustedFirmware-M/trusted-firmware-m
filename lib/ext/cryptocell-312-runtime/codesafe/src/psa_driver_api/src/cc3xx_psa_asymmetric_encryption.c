@@ -35,6 +35,8 @@
 /* To be able to include the PSA style configuration */
 #include "tf-psa-crypto/build_info.h"
 
+#if defined(PSA_WANT_ALG_RSA_OAEP) || defined(PSA_WANT_ALG_RSA_PKCS1V15_CRYPT)
+
 static psa_status_t cc3xx_internal_rsa_encrypt(
     const psa_key_attributes_t *attributes, const uint8_t *key_buffer,
     size_t key_buffer_size, psa_algorithm_t alg, const uint8_t *input,
@@ -214,6 +216,8 @@ cleanup:
     return cc3xx_rsa_cc_error_to_psa_error(error);
 }
 
+#endif /* PSA_WANT_ALG_RSA_OAEP || PSA_WANT_ALG_RSA_PKCS1V15_CRYPT */
+
 /** \defgroup psa_asym_encrypt PSA driver entry points for asymmetric cipher
  *
  *  Entry points for asymmetric cipher encryption and decryption as described
@@ -232,12 +236,13 @@ psa_status_t cc3xx_asymmetric_encrypt(const psa_key_attributes_t *attributes,
                                       size_t *output_length)
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
-    size_t key_bits = psa_get_key_bits(attributes);
-    psa_key_type_t type = psa_get_key_type(attributes);
 
     *output_length = 0;
 
 #if defined(PSA_WANT_ALG_RSA_OAEP) || defined(PSA_WANT_ALG_RSA_PKCS1V15_CRYPT)
+    size_t key_bits = psa_get_key_bits(attributes);
+    psa_key_type_t type = psa_get_key_type(attributes);
+
     if ((alg == PSA_ALG_RSA_PKCS1V15_CRYPT) || PSA_ALG_IS_RSA_OAEP(alg)) {
         /* Check that the output buffer is large enough */
         if (output_size <

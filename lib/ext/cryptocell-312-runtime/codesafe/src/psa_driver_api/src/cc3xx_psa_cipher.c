@@ -23,6 +23,7 @@
 /* To be able to include the PSA style configuration */
 #include "tf-psa-crypto/build_info.h"
 
+#if defined(PSA_WANT_ALG_CBC_PKCS7)
 static psa_status_t add_pkcs_padding(
         uint8_t *output,
         size_t output_size,
@@ -69,6 +70,7 @@ static psa_status_t get_pkcs_padding(
 
     return( PSA_ERROR_INVALID_PADDING * ( bad != 0 ) );
 }
+#endif /* PSA_WANT_ALG_CBC_PKCS7 */
 
 static psa_status_t cipher_setup(
         cc3xx_cipher_operation_t *operation,
@@ -267,7 +269,11 @@ psa_status_t cc3xx_cipher_update(
         uint8_t *output, size_t output_size, size_t *output_length)
 {
     psa_status_t ret = PSA_ERROR_CORRUPTION_DETECTED;
+#if defined(PSA_WANT_ALG_CBC_NO_PADDING) || defined(PSA_WANT_ALG_CBC_PKCS7)
     size_t block_size = operation->block_size;
+    size_t copy_len;
+#endif
+
     size_t expected_output_size;
 
     if (!PSA_ALG_IS_STREAM_CIPHER(operation->alg)) {
@@ -283,8 +289,6 @@ psa_status_t cc3xx_cipher_update(
     }
 
     *output_length = 0;
-
-    size_t copy_len;
 
     switch (operation->key_type) {
 #if defined(PSA_WANT_KEY_TYPE_AES)
@@ -461,11 +465,13 @@ psa_status_t cc3xx_cipher_finish(
         size_t *output_length)
 {
     psa_status_t ret = PSA_ERROR_CORRUPTION_DETECTED;
+#if defined(PSA_WANT_ALG_CBC_NO_PADDING) || defined(PSA_WANT_ALG_CBC_PKCS7)
     /* Buffer for encypted/decrypted data if we have unprocessed data. This
      * is neccesary when PKCS7 padding is used so that we don't write the
      * actual padding data to the output buffer when performing decryption.
      */
     uint8_t temp_buff[AES_BLOCK_SIZE];
+#endif
     /* The length of the data without the padding, this is updated for PKCS7
      * decryption only.
      */
