@@ -25,6 +25,10 @@
 #define CFI_ERROR_BASE 0x1u
 #endif /* TFM_UNIQUE_ERROR_CODES */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* First bus cycle */
 #define NOR_CMD_READ_ARRAY		0xFF
 #define NOR_CMD_READ_ID_CODE		0x90
@@ -60,7 +64,9 @@ enum cfi_error_t {
     CFI_ERR_NOT_INITIALIZED,
     CFI_ERR_DEV_BUSY,
     CFI_ERR_GENERAL_IO,
-    CFI_ERR_DEV_PROTECTED
+    CFI_ERR_DEV_PROTECTED,
+    /* Ensure enum is in 32-bit range always */
+    _CFI_ERR_MAX = UINT32_MAX
 };
 
 /**
@@ -88,4 +94,9 @@ enum cfi_error_t nor_erase(uintptr_t base_addr);
 unsigned int nor_id_check(uintptr_t base_addr);
 uint8_t nor_cfi_reg_read(uintptr_t addr);
 void nor_cfi_reg_write(uintptr_t addr, uint32_t value);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

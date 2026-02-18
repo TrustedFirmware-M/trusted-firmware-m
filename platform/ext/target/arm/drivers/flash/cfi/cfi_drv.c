@@ -8,8 +8,6 @@
 
 #include "cfi_drv.h"
 
-
-
 /*
  * This memory is organized as an interleaved memory of two chips
  * with a 16 bit word. It means that every 32 bit access is going
@@ -30,7 +28,6 @@
 #define NOR_CMD_END (NOR_DWS | (NOR_DWS << 16l))
 #define NOR_CMD_END_8BIT (NOR_DWS)
 
-
 /* Helper macros to access two flash banks in parallel */
 #define NOR_2X16(d)			((d << 16) | (d & 0xffff))
 
@@ -49,11 +46,13 @@ static inline uint32_t mmio_read_32(uintptr_t addr)
 	return *(volatile uint32_t*)addr;
 }
 
-uint8_t nor_cfi_reg_read(uintptr_t addr){
+uint8_t nor_cfi_reg_read(uintptr_t addr)
+{
 	return *(volatile uint8_t*)addr;
 }
 
-void nor_cfi_reg_write(uintptr_t addr, uint32_t value){
+void nor_cfi_reg_write(uintptr_t addr, uint32_t value)
+{
 	*(volatile uint32_t*)addr = value;
 }
 
@@ -92,10 +91,10 @@ static enum cfi_error_t nor_poll_dws(uintptr_t base_addr, unsigned long int retr
 		nor_send_cmd(base_addr, NOR_CMD_READ_STATUS_REG);
 		status = mmio_read_32(base_addr);
 		if ((status & NOR_CMD_END) == NOR_CMD_END)
-			return 0;
+			return CFI_ERR_NONE;
 	} while (retries-- > 0);
 
-	return -CFI_ERR_DEV_BUSY;
+	return CFI_ERR_DEV_BUSY;
 }
 
 /*
@@ -111,11 +110,12 @@ static enum cfi_error_t nor_poll_dws_byte(uintptr_t base_addr, unsigned long int
 	do {
 		nor_send_cmd_byte(base_addr, NOR_CMD_READ_STATUS_REG);
 		status = nor_cfi_reg_read(base_addr);
-		if ((status & NOR_CMD_END_8BIT) == NOR_CMD_END_8BIT)
-			return 0;
+		if ((status & NOR_CMD_END_8BIT) == NOR_CMD_END_8BIT) {
+            return CFI_ERR_NONE;
+        }
 	} while (retries-- > 0);
 
-	return -CFI_ERR_DEV_BUSY;
+	return CFI_ERR_DEV_BUSY;
 }
 
 /*
@@ -131,13 +131,14 @@ static enum cfi_error_t nor_full_status_check(uintptr_t base_addr)
 	/* Full status check */
 	status = nor_status(base_addr);
 
-	if (status & (NOR_PS | NOR_BLS | NOR_ESS | NOR_PSS))
-		return -CFI_ERR_DEV_PROTECTED;
-	if (status & (NOR_VPPS | NOR_ES))
-		return -CFI_ERR_GENERAL_IO;
-	return 0;
+	if (status & (NOR_PS | NOR_BLS | NOR_ESS | NOR_PSS)) {
+		return CFI_ERR_DEV_PROTECTED;
+    }
+	if (status & (NOR_VPPS | NOR_ES)) {
+		return CFI_ERR_GENERAL_IO;
+    }
+	return CFI_ERR_NONE;
 }
-
 
 /*
  * This function programs a word in the flash. Be aware that it only
@@ -150,7 +151,7 @@ static enum cfi_error_t nor_full_status_check(uintptr_t base_addr)
 enum cfi_error_t nor_word_program(uintptr_t base_addr, unsigned long data)
 {
 	uint32_t status;
-	int ret;
+	enum cfi_error_t ret;
 
 	nor_send_cmd(base_addr, NOR_CMD_CLEAR_STATUS_REG);
 
@@ -159,29 +160,29 @@ enum cfi_error_t nor_word_program(uintptr_t base_addr, unsigned long data)
 	mmio_write_32(base_addr, data);
 
 	ret = nor_poll_dws(base_addr, DWS_WORD_PROGRAM_RETRIES);
-	if (ret == 0) {
+	if (ret == CFI_ERR_NONE) {
 		/* Full status check */
 		nor_send_cmd(base_addr, NOR_CMD_READ_STATUS_REG);
 		status = mmio_read_32(base_addr);
 
 		if (status & (NOR_PS | NOR_BLS)) {
 			nor_send_cmd(base_addr, NOR_CMD_CLEAR_STATUS_REG);
-			ret = -CFI_ERR_DEV_PROTECTED;
+			ret = CFI_ERR_DEV_PROTECTED;
 		}
 	}
 
-	if (ret == 0)
+	if (ret == CFI_ERR_NONE) {
 		ret = nor_full_status_check(base_addr);
+    }
 	nor_send_cmd(base_addr, NOR_CMD_READ_ARRAY);
 
 	return ret;
 }
 
-
 enum cfi_error_t nor_byte_program(uintptr_t base_addr, uint8_t data)
 {
 	uint32_t status;
-	int ret;
+	enum cfi_error_t ret;
 
 	nor_send_cmd_byte(base_addr, NOR_CMD_CLEAR_STATUS_REG);
 
@@ -190,14 +191,14 @@ enum cfi_error_t nor_byte_program(uintptr_t base_addr, uint8_t data)
 	mmio_write_8(base_addr, data);
 
 	ret = nor_poll_dws_byte(base_addr, DWS_WORD_PROGRAM_RETRIES);
-	if (ret == 0) {
+	if (ret == CFI_ERR_NONE) {
 		/* Full status check */
 		nor_send_cmd_byte(base_addr, NOR_CMD_READ_STATUS_REG);
 		status = nor_cfi_reg_read(base_addr);
 
 		if (status & (NOR_PS | NOR_BLS)) {
 			nor_send_cmd_byte(base_addr, NOR_CMD_CLEAR_STATUS_REG);
-			ret = -CFI_ERR_DEV_PROTECTED;
+			ret = CFI_ERR_DEV_PROTECTED;
 		}
 	}
 
@@ -215,7 +216,7 @@ enum cfi_error_t nor_byte_program(uintptr_t base_addr, uint8_t data)
  */
 enum cfi_error_t nor_erase(uintptr_t base_addr)
 {
-	int ret;
+	enum cfi_error_t ret;
 
 	nor_send_cmd(base_addr, NOR_CMD_CLEAR_STATUS_REG);
 
@@ -223,8 +224,9 @@ enum cfi_error_t nor_erase(uintptr_t base_addr)
 	nor_send_cmd(base_addr, NOR_CMD_BLOCK_ERASE_ACK);
 
 	ret = nor_poll_dws(base_addr, DWS_WORD_ERASE_RETRIES);
-	if (ret == 0)
+	if (ret == CFI_ERR_NONE) {
 		ret = nor_full_status_check(base_addr);
+    }
 	nor_send_cmd(base_addr, NOR_CMD_READ_ARRAY);
 
 	return ret;
@@ -262,9 +264,10 @@ enum cfi_error_t nor_lock(uintptr_t base_addr)
 	nor_send_cmd(base_addr, NOR_LOCK_BLOCK);
 
 	ret = nor_poll_dws(base_addr, DWS_WORD_LOCK_RETRIES);
-	if (ret == 0)
+	if (ret == CFI_ERR_NONE) {
 		ret = nor_full_status_check(base_addr);
-	nor_send_cmd(base_addr, NOR_CMD_READ_ARRAY);
+    }
+    nor_send_cmd(base_addr, NOR_CMD_READ_ARRAY);
 
 	return ret;
 }
@@ -285,8 +288,9 @@ enum cfi_error_t nor_unlock(uintptr_t base_addr)
 	nor_send_cmd(base_addr, NOR_UNLOCK_BLOCK);
 
 	ret = nor_poll_dws(base_addr, DWS_WORD_LOCK_RETRIES);
-	if (ret == 0)
+	if (ret == CFI_ERR_NONE) {
 		ret = nor_full_status_check(base_addr);
+    }
 	nor_send_cmd(base_addr, NOR_CMD_READ_ARRAY);
 
 	return ret;
