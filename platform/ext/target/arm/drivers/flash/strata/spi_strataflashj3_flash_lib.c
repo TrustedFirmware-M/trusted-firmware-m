@@ -86,11 +86,7 @@ enum strataflashj3_error_t cfi_strataflashj3_erase(
     return STRATAFLASHJ3_ERR_NONE;
 }
 
-static enum strataflashj3_error_t cfi_strataflashj3_program_data_byte(
-                                        struct cfi_strataflashj3_dev_t* dev,
-                                        uint32_t addr,
-                                        const uint8_t *data,
-                                        uint32_t cnt)
+static void cfi_strataflashj3_program_data_byte(struct cfi_strataflashj3_dev_t *dev, uint32_t addr, const uint8_t *data, uint32_t cnt)
 {
     uint32_t remaining_bytes = cnt;
     uint32_t current_data_index = 0;
@@ -116,8 +112,6 @@ static enum strataflashj3_error_t cfi_strataflashj3_program_data_byte(
         remaining_bytes -= write_size;
         current_addr += write_size;
     }
-
-    return STRATAFLASHJ3_ERR_NONE;
 }
 
 enum strataflashj3_error_t cfi_strataflashj3_program(
@@ -126,7 +120,6 @@ enum strataflashj3_error_t cfi_strataflashj3_program(
                                         const uint8_t *data,
                                         uint32_t cnt)
 {
-    enum strataflashj3_error_t ret;
     uint32_t remaining_space;
     uint32_t current_addr = addr;
     uint8_t *current_data_ptr = (uint8_t*)data;
@@ -154,25 +147,16 @@ enum strataflashj3_error_t cfi_strataflashj3_program(
         if (cnt > remaining_space) {
             /* crossing the page boundary */
             /* first write the unaligned data to make addr aligned*/
-            ret = cfi_strataflashj3_program_data_byte(dev,
-                                                      current_addr,
-                                                      current_data_ptr,
-                                                      remaining_space);
-            if (ret != STRATAFLASHJ3_ERR_NONE) {
-                return ret;
-            }
+            cfi_strataflashj3_program_data_byte(dev, current_addr, current_data_ptr, remaining_space);
             current_addr += remaining_space;
             current_data_ptr += remaining_space;
             current_cnt -= remaining_space;
         }
     }
 
-    ret = cfi_strataflashj3_program_data_byte(dev,
-                                              current_addr,
-                                              current_data_ptr,
-                                              current_cnt);
+    cfi_strataflashj3_program_data_byte(dev, current_addr, current_data_ptr, current_cnt);
 
-    return ret;
+    return STRATAFLASHJ3_ERR_NONE;
 }
 
 enum strataflashj3_error_t cfi_strataflashj3_read(
