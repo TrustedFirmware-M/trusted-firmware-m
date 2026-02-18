@@ -933,8 +933,12 @@ void cc3xx_lowlevel_aes_update_authed_data(const uint8_t* in, size_t in_len)
      *       CC3XX_ERR_DMA_OUTPUT_BUFFER_TOO_SMALL, hence must always be
      *       equal to success.
      */
-    err = cc3xx_lowlevel_dma_buffered_input_data(in, in_len, write_output, write_output);
-    assert(err == CC3XX_ERR_SUCCESS);
+    err = cc3xx_lowlevel_dma_buffered_input_data(in, in_len, write_output,
+                                                 write_output);
+    if (err != CC3XX_ERR_SUCCESS) {
+        assert(0);
+        while (1) {};
+    }
 }
 
 static void configure_engine_for_crypted_data(bool *write_output)
