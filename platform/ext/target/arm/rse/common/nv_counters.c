@@ -119,27 +119,35 @@ static enum tfm_plat_err_t get_otp_id(enum tfm_nv_counter_t counter_id,
 {
     *otp_id = PLAT_OTP_ID_INVALID;
 
+#if RSE_NV_COUNTER_BL1_AMOUNT > 0
     if (counter_id >= PLAT_NV_COUNTER_BL1_0 && counter_id < PLAT_NV_COUNTER_BL1_MAX) {
         *otp_id = rse_get_bl1_counter(counter_id - PLAT_NV_COUNTER_BL1_0);
     }
+#endif /* RSE_NV_COUNTER_BL1_AMOUNT > 0 */
 
+#if RSE_NV_COUNTER_BL2_AMOUNT > 0
     if (counter_id >= PLAT_NV_COUNTER_BL2_0 && counter_id < PLAT_NV_COUNTER_BL2_MAX) {
         *otp_id = rse_get_bl2_counter(counter_id - PLAT_NV_COUNTER_BL2_0);
     }
+#endif /* RSE_NV_COUNTER_BL2_AMOUNT > 0 */
 
 #ifdef TFM_PARTITION_PROTECTED_STORAGE
     if (counter_id >= PLAT_NV_COUNTER_PS_0 && counter_id <= PLAT_NV_COUNTER_PS_2) {
         *otp_id = rse_get_ps_counter(counter_id - PLAT_NV_COUNTER_PS_0);
     }
-#endif
+#endif /* TFM_PARTITION_PROTECTED_STORAGE */
 
+#if RSE_NV_COUNTER_HOST_AMOUNT > 0
     if (counter_id >= PLAT_NV_COUNTER_HOST_0 && counter_id < PLAT_NV_COUNTER_HOST_MAX) {
         *otp_id = rse_get_host_counter(counter_id - PLAT_NV_COUNTER_HOST_0);
     }
+#endif /* RSE_NV_COUNTER_HOST_AMOUNT > 0 */
 
+#if RSE_NV_COUNTER_SUBPLATFORM_AMOUNT > 0
     if (counter_id >= PLAT_NV_COUNTER_SUBPLATFORM_0 && counter_id < PLAT_NV_COUNTER_SUBPLATFORM_MAX) {
         *otp_id = rse_get_subplatform_counter(counter_id - PLAT_NV_COUNTER_SUBPLATFORM_0);
     }
+#endif /* RSE_NV_COUNTER_SUBPLATFORM_AMOUNT > 0 */
 
     if (counter_id == PLAT_NV_COUNTER_LFT) {
         *otp_id = PLAT_OTP_ID_LFT_COUNTER;
