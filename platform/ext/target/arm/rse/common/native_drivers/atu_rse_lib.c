@@ -482,12 +482,10 @@ static enum atu_error_t check_if_region_usable(struct atu_dev_t *dev, uint8_t id
     uint32_t region_out_bus_attr = 0;
     uint64_t request_phy_start = 0;
     uint64_t request_phy_end = 0;
-    uint64_t request_add_value = 0;
     int32_t offset = 0;
 
     request_phy_start = addr_req->phys_addr;
     request_phy_end = addr_req->phys_addr + addr_req->size;
-    request_add_value = addr_req->phys_addr - addr_req->log_addr;
 
     /* Return if the region is not active */
     if (((p_atu->atuc >> idx) & 1) == 0){
