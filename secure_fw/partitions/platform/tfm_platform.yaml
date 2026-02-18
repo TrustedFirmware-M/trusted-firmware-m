@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2018-2022, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -7,7 +7,7 @@
 
 {
   "psa_framework_version": 1.1,
-  "name": "TFM_SP_PLATFORM",
+  "name": "TFM_PLATFORM_SP",
   "type": "PSA-ROT",
   "priority": "NORMAL",
   "model": "SFN",

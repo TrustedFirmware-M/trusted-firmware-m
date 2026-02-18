@@ -6,7 +6,7 @@
  */
 
 #include "config_tfm.h"
-#include "platform_sp.h"
+#include "tfm_platform_sp.h"
 
 #include "tfm_platform_system.h"
 

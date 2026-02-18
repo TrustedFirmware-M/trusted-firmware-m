@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2020-2022, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -12,7 +12,7 @@ endif()
 cmake_minimum_required(VERSION 3.21)
 
 add_library(tfm_psa_rot_partition_platform STATIC
-    platform_sp.c
+    tfm_platform_sp.c
 )
 
 add_dependencies(tfm_psa_rot_partition_platform manifest_tool)

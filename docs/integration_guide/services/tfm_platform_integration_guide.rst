@@ -30,8 +30,8 @@ TF-M Platform service
 The Platform service interfaces and types are defined and documented in
 ``interface/include/tfm_platform_api.h``
 
-- ``platform_sp.h/c`` : These files define and implement functionalities related
-  to the platform service
+- ``tfm_platform_sp.h/c`` : These files define and implement functionalities
+  related to the platform service.
 - ``tfm_platform_api.c`` : This file implements ``tfm_platform_api.h``
   functions to be called from the secure partitions. This is the entry point
   when the secure partitions request an action to the Platform service

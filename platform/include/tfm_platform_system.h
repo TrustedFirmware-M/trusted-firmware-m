@@ -25,7 +25,7 @@ extern "C" {
  *
  * \details Requests a system reset to reset the MCU.
  */
-TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_SP_PLATFORM", "PSA-ROT")
+TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_PLATFORM_SP", "PSA-ROT")
 void tfm_platform_hal_system_reset(void);
 
 /*!
@@ -38,7 +38,7 @@ void tfm_platform_hal_system_reset(void);
  *
  * \return Returns values as specified by the \ref tfm_platform_err_t
  */
-TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_SP_PLATFORM", "PSA-ROT")
+TFM_LINK_SET_RO_IN_PARTITION_SECTION("TFM_PLATFORM_SP", "PSA-ROT")
 enum tfm_platform_err_t tfm_platform_hal_ioctl(tfm_platform_ioctl_req_t request,
                                                psa_invec *in_vec,
                                                psa_outvec *out_vec);
