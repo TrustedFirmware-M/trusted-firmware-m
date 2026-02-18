@@ -445,7 +445,7 @@ static enum lcm_error_t count_zero_bits(const uint32_t *addr, uint32_t len,
 
     if (ic_err != INTEGRITY_CHECKER_ERROR_NONE) {
         FATAL_ERR(ic_err);
-        return ic_err;
+        return (enum lcm_error_t)ic_err;
     }
 
     return LCM_ERROR_NONE;
