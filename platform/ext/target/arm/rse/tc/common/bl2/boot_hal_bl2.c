@@ -130,7 +130,7 @@ int32_t boot_platform_post_init(void)
 #ifdef PLATFORM_HAS_BOOT_DMA
     plat_err = boot_dma_init_cfg();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
-        BOOT_LOG_ERR("DMA driver initialization failed: ", plat_err);
+        BOOT_LOG_ERR("DMA driver initialization failed, err: 0x%08x", plat_err);
         return 1;
     }
     BOOT_LOG_INF("DMA350 driver initialized successfully.");
