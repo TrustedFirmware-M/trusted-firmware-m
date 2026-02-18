@@ -781,9 +781,11 @@ static enum tfm_plat_err_t check_lft_counter(void)
         return TFM_PLAT_ERR_SUCCESS;
     }
 
-    plat_err = get_bit_counter_counter_value((uint32_t *)P_RSE_OTP_HEADER->lft_counter,
-                                             sizeof(P_RSE_OTP_HEADER->lft_counter),
-                                             &counter_value);
+    do {
+        plat_err = get_bit_counter_counter_value(
+            (uint32_t *)P_RSE_OTP_HEADER->lft_counter,
+            sizeof(P_RSE_OTP_HEADER->lft_counter), &counter_value);
+    } while (plat_err != TFM_PLAT_ERR_SUCCESS);
 
     if (counter_value > RSE_OTP_LFT_COUNTER_MAX_VALUE) {
         FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_LFT_COUNTER_EXCEEDED);
@@ -801,9 +803,11 @@ static enum tfm_plat_err_t check_krtl_counter(void)
     enum tfm_plat_err_t plat_err;
     uint32_t counter_value;
 
-    plat_err = get_bit_counter_counter_value((uint32_t *)P_RSE_OTP_HEADER->krtl_usage_counter,
-                                             sizeof(P_RSE_OTP_HEADER->krtl_usage_counter),
-                                             &counter_value);
+    do {
+        plat_err = get_bit_counter_counter_value(
+            (uint32_t *)P_RSE_OTP_HEADER->krtl_usage_counter,
+            sizeof(P_RSE_OTP_HEADER->krtl_usage_counter), &counter_value);
+    } while (plat_err != TFM_PLAT_ERR_SUCCESS);
 
     if (counter_value > RSE_OTP_KRTL_COUNTER_MAX_VALUE) {
         FATAL_ERR(TFM_PLAT_ERR_OTP_INIT_KRTL_COUNTER_EXCEEDED);
