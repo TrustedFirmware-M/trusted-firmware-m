@@ -78,7 +78,7 @@ struct _kmu_reg_map_t {
 
 static inline enum kmu_error_t kmu_check_supported_slot(struct kmu_dev_t *dev, uint32_t slot)
 {
-    struct _kmu_reg_map_t* p_kmu = (struct _kmu_reg_map_t*)dev->cfg->base;
+    const struct _kmu_reg_map_t* p_kmu = (struct _kmu_reg_map_t*)dev->cfg->base;
 
     if (slot >= KMU_GET_NKS(p_kmu)) {
         FATAL_ERR(KMU_ERROR_INVALID_SLOT);
@@ -229,7 +229,7 @@ enum kmu_error_t kmu_set_key_locked(struct kmu_dev_t *dev, uint32_t slot)
 
 enum kmu_error_t kmu_get_key_locked(struct kmu_dev_t *dev, uint32_t slot)
 {
-    struct _kmu_reg_map_t* p_kmu = (struct _kmu_reg_map_t*)dev->cfg->base;
+    const struct _kmu_reg_map_t* p_kmu = (struct _kmu_reg_map_t*)dev->cfg->base;
     enum kmu_error_t err;
 
     err = kmu_check_supported_slot(dev, slot);
@@ -264,7 +264,7 @@ enum kmu_error_t kmu_set_key_export_config_locked(struct kmu_dev_t *dev,
 enum kmu_error_t kmu_get_key_export_config_locked(struct kmu_dev_t *dev,
                                                   uint32_t slot)
 {
-    struct _kmu_reg_map_t* p_kmu = (struct _kmu_reg_map_t*)dev->cfg->base;
+    const struct _kmu_reg_map_t* p_kmu = (struct _kmu_reg_map_t*)dev->cfg->base;
     enum kmu_error_t err;
 
     err = kmu_check_supported_slot(dev, slot);
@@ -306,7 +306,7 @@ enum kmu_error_t kmu_set_slot_invalid(struct kmu_dev_t *dev, uint32_t slot)
 
 enum kmu_error_t kmu_get_slot_invalid(struct kmu_dev_t *dev, uint32_t slot)
 {
-    struct _kmu_reg_map_t* p_kmu = (struct _kmu_reg_map_t*)dev->cfg->base;
+    const struct _kmu_reg_map_t* p_kmu = (struct _kmu_reg_map_t*)dev->cfg->base;
     enum kmu_error_t err;
 
     err = kmu_check_supported_slot(dev, slot);
@@ -327,7 +327,7 @@ enum kmu_error_t kmu_set_key(struct kmu_dev_t *dev, uint32_t slot, uint8_t *key,
 {
     enum kmu_error_t err;
     struct _kmu_reg_map_t* p_kmu = (struct _kmu_reg_map_t*)dev->cfg->base;
-    uint32_t* p_key_word = (uint32_t*)key;
+    const uint32_t *p_key_word = (const uint32_t *)key;
     size_t idx;
 
     if (key == NULL) {
@@ -379,7 +379,7 @@ enum kmu_error_t kmu_get_key(struct kmu_dev_t *dev, uint32_t slot, uint8_t *buf,
 {
     enum kmu_error_t err;
     struct _kmu_reg_map_t* p_kmu = (struct _kmu_reg_map_t*)dev->cfg->base;
-    uint32_t* p_buf_word = (uint32_t*)buf;
+    uint32_t *p_buf_word = (uint32_t *)buf;
     size_t idx;
 
     if (buf == NULL) {
@@ -504,7 +504,7 @@ out:
 enum kmu_error_t kmu_random_delay(struct kmu_dev_t *dev,
                                   enum kmu_delay_limit_t limit)
 {
-    struct _kmu_reg_map_t* p_kmu = (struct _kmu_reg_map_t*)dev->cfg->base;
+    const struct _kmu_reg_map_t* p_kmu = (struct _kmu_reg_map_t*)dev->cfg->base;
     uint32_t foo;
 
     switch(limit) {
