@@ -292,23 +292,21 @@ enum cfi_error_t nor_unlock(uintptr_t base_addr)
 	return ret;
 }
 
-
-
 unsigned int nor_id_check(uintptr_t base_addr)
 {
-	unsigned long status,status1,status2;
+    unsigned long status, status1, status2;
 
-	nor_send_cmd(base_addr, NOR_CMD_READ_ID_CODE);
-	status = mmio_read_32(base_addr);
-	status1 = mmio_read_32(base_addr+1*4);
-	status2 = mmio_read_32(base_addr+2*4);
+    nor_send_cmd(base_addr, NOR_CMD_READ_ID_CODE);
+    status = mmio_read_32(base_addr);
+    status1 = mmio_read_32(base_addr+1*4);
+    status2 = mmio_read_32(base_addr+2*4);
 
-  	CFI_FLASH_LOG_MSG("STATUS ID: %X \n",status);
-  	CFI_FLASH_LOG_MSG("STATUS ID: %X \n",status1);
-  	CFI_FLASH_LOG_MSG("STATUS ID: %X \n",status2);
-	status |= status >> 16; /* merge status from both flash banks */
+    CFI_FLASH_LOG_MSG("STATUS ID: %X \n", status);
+    CFI_FLASH_LOG_MSG("STATUS ID: %X \n", status1);
+    CFI_FLASH_LOG_MSG("STATUS ID: %X \n", status2);
+    status |= status >> 16; /* merge status from both flash banks */
 
-	CFI_FLASH_LOG_MSG("STATUS ID: %X \n",status);
+    CFI_FLASH_LOG_MSG("STATUS ID: %X \n", status);
 
-	return status & 0xFFFF;
+    return status & 0xFFFF;
 }

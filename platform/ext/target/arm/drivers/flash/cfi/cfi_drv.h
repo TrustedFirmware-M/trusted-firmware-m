@@ -12,6 +12,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#if defined(DOMAIN_NS) && (DOMAIN_NS == 1)
+#define CFI_FLASH_LOG_MSG(...)
+#else
+#include "tfm_log.h"
+#define CFI_FLASH_LOG_MSG(...) VERBOSE_RAW(__VA_ARGS__)
+#endif /* DOMAIN_NS && DOMAIN_NS == 1 */
+
 #if TFM_UNIQUE_ERROR_CODES == 1
 #include "error_codes_mapping.h"
 #else
@@ -46,13 +53,6 @@
 
 /* Set 1 to enable debug messages */
 #define DEBUG_CFI_FLASH         0
-
-#include <stdio.h>
-#if (DEBUG_CFI_FLASH == 1)
-    #define CFI_FLASH_LOG_MSG(f_, ...) printf((f_), ##__VA_ARGS__)
-#else
-    #define CFI_FLASH_LOG_MSG(f_, ...)
-#endif
 
 enum cfi_error_t {
     CFI_ERR_NONE,
