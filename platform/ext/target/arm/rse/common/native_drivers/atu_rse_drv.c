@@ -200,7 +200,6 @@ enum atu_error_t atu_rse_initialize_region(struct atu_dev_t *dev, uint8_t region
 {
     enum atu_error_t err;
     struct _atu_reg_map_t *p_atu;
-    uint8_t ps;
     uint32_t end_log_addr;
     uint64_t physical_region_offset;
 
@@ -214,8 +213,6 @@ enum atu_error_t atu_rse_initialize_region(struct atu_dev_t *dev, uint8_t region
     }
 
     p_atu = (struct _atu_reg_map_t *)dev->cfg->base;
-
-    ps = ATU_GET_ATUPS(p_atu);
 
     if (log_addr > UINT32_MAX - (size - 1)) {
         return ATU_ERR_INIT_REGION_INVALID_ADDRESS;
