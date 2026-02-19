@@ -101,6 +101,7 @@ target_link_libraries(${CC312_PSA_DRIVER_API_TARGET}
 target_compile_definitions(${CC312_LIB_PREFIX}tfpsacrypto_config
     INTERFACE
         PSA_CRYPTO_DRIVER_CC3XX
+        USE_MBEDTLS_CRYPTOCELL
 )
 
 # Export include directories to TF-PSA-Crypto config target. With defining
