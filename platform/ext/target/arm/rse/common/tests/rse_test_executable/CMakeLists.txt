@@ -85,6 +85,7 @@ target_link_libraries(rse_bl1_tests
         $<$<BOOL:${TEST_BL1_1}>:bl1_1_tests>
         $<$<BOOL:${TEST_BL1_2}>:bl1_2_tests>
         platform_bl1_1_interface
+        tfm_log
 )
 
 target_compile_definitions(rse_bl1_tests
