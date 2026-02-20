@@ -17,6 +17,8 @@ extern "C" {
 #endif /* PLATFORM_PSA_ADAC_SECURE_DEBUG && !MCUBOOT_SIGN_RSA */
 
 #define PSA_WANT_KEY_TYPE_AES                   1
+/* Required by MBEDTLS_CTR_DRBG_C */
+#define PSA_WANT_ALG_ECB_NO_PADDING             1
 
 /* The CC312 does not support CFB mode */
 #ifdef PSA_WANT_ALG_CFB
