@@ -72,36 +72,20 @@ static enum tfm_plat_err_t tfm_plat_get_iak_seed(const void *ctx,
 }
 
 static enum tfm_plat_err_t tfm_plat_get_iak(const void *ctx,
-                                     uint8_t *buf, size_t buf_len,
-                                     size_t *key_len,
-                                     psa_key_bits_t *key_bits,
-                                     psa_algorithm_t *algorithm,
-                                     psa_key_type_t *type)
+                                            uint8_t *buf, size_t buf_len,
+                                            size_t *key_len,
+                                            psa_key_bits_t *key_bits,
+                                            psa_algorithm_t *algorithm,
+                                            psa_key_type_t *type)
 {
     psa_status_t status;
-    enum kmu_error_t kmu_err;
-    psa_key_attributes_t seed_attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_key_attributes_t transient_attr = PSA_KEY_ATTRIBUTES_INIT;
-    mbedtls_svc_key_id_t seed_key = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t transient_key = MBEDTLS_SVC_KEY_ID_INIT;
+    mbedtls_svc_key_id_t seed_key = mbedtls_svc_key_id_make(TFM_SP_CRYPTO,
+                                                            TFM_BUILTIN_KEY_ID_IAK_SEED);
     psa_key_derivation_operation_t op = PSA_KEY_DERIVATION_OPERATION_INIT;
 
     if (buf_len < PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(ATTEST_KEY_BITS)) {
-        return TFM_PLAT_ERR_SYSTEM_ERR;
-    }
-
-    kmu_err = kmu_get_key(&KMU_DEV_S, RSE_KMU_SLOT_IAK_SEED, buf, 32);
-    if (kmu_err != KMU_ERROR_NONE) {
-        return TFM_PLAT_ERR_SYSTEM_ERR;
-    }
-
-    psa_set_key_type(&seed_attributes, PSA_KEY_TYPE_DERIVE);
-    psa_set_key_algorithm(&seed_attributes, PSA_ALG_HKDF(PSA_ALG_SHA_256));
-    psa_set_key_bits(&seed_attributes, 256);
-    psa_set_key_usage_flags(&seed_attributes, PSA_KEY_USAGE_DERIVE);
-
-    status = psa_import_key(&seed_attributes, buf, 32, &seed_key);
-    if (status != PSA_SUCCESS) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
