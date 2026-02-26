@@ -18,6 +18,7 @@
 #include "tfm_plat_otp.h"
 #include "rse_kmu_slot_ids.h"
 #include "rse_rotpk_mapping.h"
+#include "cc3xx_opaque_keys.h"
 
 #define NUMBER_OF_ELEMENTS_OF(x) sizeof(x)/sizeof(*x)
 #define MAPPED_RSE_MBOX_NS_AGENT_DEFAULT_CLIENT_ID -0x04000000
@@ -45,6 +46,27 @@ static enum tfm_plat_err_t tfm_plat_get_huk(const void *ctx,
     if (kmu_err != KMU_ERROR_NONE) {
         return TFM_PLAT_ERR_SYSTEM_ERR;
     }
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
+
+static enum tfm_plat_err_t tfm_plat_get_iak_seed(const void *ctx,
+                                                 uint8_t *buf, size_t buf_len,
+                                                 size_t *key_len,
+                                                 psa_key_bits_t *key_bits,
+                                                 psa_algorithm_t *algorithm,
+                                                 psa_key_type_t *type)
+{
+    if (buf_len < 32) {
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
+
+    *key_len = 32;
+    *key_bits = 256;
+    *algorithm = PSA_ALG_HKDF(PSA_ALG_SHA_256);
+    *type = PSA_KEY_TYPE_DERIVE;
+
+    *(uint32_t *)buf = RSE_KMU_SLOT_IAK_SEED;
 
     return TFM_PLAT_ERR_SUCCESS;
 }
@@ -326,6 +348,14 @@ static enum tfm_plat_err_t tfm_plat_load_dm_host_key(const void *ctx,
 }
 
 /**
+ * @brief Table describing per-user key policy for the IAK Seed
+ *
+ */
+static const tfm_plat_builtin_key_per_user_policy_t g_iak_seed_per_user_policy[] = {
+    {.user = TFM_SP_CRYPTO, .usage = PSA_KEY_USAGE_DERIVE},
+};
+
+/**
  * @brief Table describing per-user key policy for the IAK
  *
  */
@@ -417,6 +447,9 @@ static const tfm_plat_builtin_key_per_user_policy_t g_dm_host_rotpk_per_user_pol
  */
 static const tfm_plat_builtin_key_policy_t g_builtin_keys_policy[] = {
     {.key_id = TFM_BUILTIN_KEY_ID_HUK, .per_user_policy = 0, .usage = PSA_KEY_USAGE_DERIVE},
+    {.key_id = TFM_BUILTIN_KEY_ID_IAK_SEED,
+     .per_user_policy = NUMBER_OF_ELEMENTS_OF(g_iak_seed_per_user_policy),
+     .policy_ptr = g_iak_seed_per_user_policy},
     {.key_id = TFM_BUILTIN_KEY_ID_IAK,
      .per_user_policy = NUMBER_OF_ELEMENTS_OF(g_iak_per_user_policy),
      .policy_ptr = g_iak_per_user_policy},
@@ -447,6 +480,11 @@ static const tfm_plat_builtin_key_descriptor_t g_builtin_keys_desc[] = {
      .slot_number = TFM_BUILTIN_KEY_SLOT_HUK,
      .lifetime = TFM_BUILTIN_KEY_LOADER_LIFETIME,
      .loader_key_func = tfm_plat_get_huk,
+     .loader_key_ctx = NULL},
+    {.key_id = TFM_BUILTIN_KEY_ID_IAK_SEED,
+     .slot_number = TFM_BUILTIN_KEY_SLOT_IAK_SEED,
+     .lifetime = CC3XX_OPAQUE_KEY_LIFETIME,
+     .loader_key_func = tfm_plat_get_iak_seed,
      .loader_key_ctx = NULL},
     {.key_id = TFM_BUILTIN_KEY_ID_IAK,
      .slot_number = TFM_BUILTIN_KEY_SLOT_IAK,
