@@ -33,13 +33,12 @@ Quick Links
 License
 #######
 
-This software is provided under the :doc:`BSD-3-Clause license <license>`.
+This software is provided under the `BSD-3-Clause license <license.rst>`_.
 Contributions to this project are accepted under the same license,
 with developer sign-off as described in the `Contribution guidelines`_.
 Some files taken from external projects are dual-licensed under GPLv2 or Apache-2.0.
-In such cases, the permissive Apache-2.0 license is applied. No contributions
-are expected for those files. The full text of the Apache-2.0 license is
-available in the project root directory.
+In such cases, the permissive `Apache-2.0 license <apache-2.0.txt>`_ is applied.
+No contributions are expected for those files.
 
 The code in the ``bl2/ext``, ``platform/ext``, and ``lib/ext`` folders may include
 third-party projects and files with diverse licenses.
