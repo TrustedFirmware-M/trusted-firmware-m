@@ -63,8 +63,8 @@ static enum tfm_plat_err_t tfm_plat_get_iak_seed(const void *ctx,
 
     *key_len = 32;
     *key_bits = 256;
-    *algorithm = PSA_ALG_HKDF(PSA_ALG_SHA_256);
-    *type = PSA_KEY_TYPE_DERIVE;
+    *algorithm = PSA_ALG_CMAC;
+    *type = PSA_KEY_TYPE_AES;
 
     *(uint32_t *)buf = RSE_KMU_SLOT_IAK_SEED;
 
@@ -84,14 +84,20 @@ static enum tfm_plat_err_t tfm_plat_get_iak(const void *ctx,
     mbedtls_svc_key_id_t seed_key = mbedtls_svc_key_id_make(TFM_SP_CRYPTO,
                                                             TFM_BUILTIN_KEY_ID_IAK_SEED);
     psa_key_derivation_operation_t op = PSA_KEY_DERIVATION_OPERATION_INIT;
+    *key_bits = ATTEST_KEY_BITS;
 
     if (buf_len < PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(ATTEST_KEY_BITS)) {
-        return TFM_PLAT_ERR_SYSTEM_ERR;
+        goto exit;
     }
 
-    status = psa_key_derivation_setup(&op, PSA_ALG_HKDF(PSA_ALG_SHA_256));
+    status = psa_key_derivation_setup(&op, PSA_ALG_SP800_108_COUNTER_CMAC);
     if (status != PSA_SUCCESS) {
-        goto err_release_seed_key;
+        goto exit;
+    }
+
+    status = psa_key_derivation_set_capacity(&op, *key_len);
+    if (status != PSA_SUCCESS) {
+        goto err_release_op;
     }
 
     status = psa_key_derivation_input_key(&op, PSA_KEY_DERIVATION_INPUT_SECRET,
@@ -100,13 +106,12 @@ static enum tfm_plat_err_t tfm_plat_get_iak(const void *ctx,
         goto err_release_op;
     }
 
-    status = psa_key_derivation_input_bytes(&op, PSA_KEY_DERIVATION_INPUT_INFO,
-                                            NULL, 0);
+    status = psa_key_derivation_input_bytes(&op, PSA_KEY_DERIVATION_INPUT_LABEL,
+                                            (const uint8_t *)"RAPK_PRIV", sizeof("RAPK_PRIV"));
     if (status != PSA_SUCCESS) {
         goto err_release_op;
     }
 
-    *key_bits = ATTEST_KEY_BITS;
 #if (ATTEST_KEY_BITS == 256)
     *algorithm = PSA_ALG_ECDSA(PSA_ALG_SHA_256);
 #elif (ATTEST_KEY_BITS == 384)
@@ -138,12 +143,7 @@ static enum tfm_plat_err_t tfm_plat_get_iak(const void *ctx,
 
     status = psa_key_derivation_abort(&op);
     if (status != PSA_SUCCESS) {
-        goto err_release_seed_key;
-    }
-
-    status = psa_destroy_key(seed_key);
-    if (status != PSA_SUCCESS) {
-        return TFM_PLAT_ERR_SYSTEM_ERR;
+        goto exit;
     }
 
     return PSA_SUCCESS;
@@ -154,9 +154,7 @@ err_release_transient_key:
 err_release_op:
     (void)psa_key_derivation_abort(&op);
 
-err_release_seed_key:
-    (void)psa_destroy_key(seed_key);
-
+exit:
     return TFM_PLAT_ERR_SYSTEM_ERR;
 }
 
@@ -336,7 +334,7 @@ static enum tfm_plat_err_t tfm_plat_load_dm_host_key(const void *ctx,
  *
  */
 static const tfm_plat_builtin_key_per_user_policy_t g_iak_seed_per_user_policy[] = {
-    {.user = TFM_SP_CRYPTO, .usage = PSA_KEY_USAGE_DERIVE},
+    {.user = TFM_SP_CRYPTO, .usage = PSA_KEY_USAGE_DERIVE | PSA_KEY_USAGE_SIGN_MESSAGE},
 };
 
 /**
