@@ -19,6 +19,7 @@
 #include "rse_kmu_slot_ids.h"
 #include "rse_rotpk_mapping.h"
 #include "cc3xx_opaque_keys.h"
+#include "cc3xx_drv.h"
 
 #define NUMBER_OF_ELEMENTS_OF(x) sizeof(x)/sizeof(*x)
 #define MAPPED_RSE_MBOX_NS_AGENT_DEFAULT_CLIENT_ID -0x04000000
@@ -79,12 +80,19 @@ static enum tfm_plat_err_t tfm_plat_get_iak(const void *ctx,
                                             psa_key_type_t *type)
 {
     psa_status_t status;
-    psa_key_attributes_t transient_attr = PSA_KEY_ATTRIBUTES_INIT;
-    mbedtls_svc_key_id_t transient_key = MBEDTLS_SVC_KEY_ID_INIT;
     mbedtls_svc_key_id_t seed_key = mbedtls_svc_key_id_make(TFM_SP_CRYPTO,
                                                             TFM_BUILTIN_KEY_ID_IAK_SEED);
     psa_key_derivation_operation_t op = PSA_KEY_DERIVATION_OPERATION_INIT;
+    size_t dummy = 0;
+    cc3xx_err_t err;
+#if (ATTEST_KEY_BITS == 256) || (ATTEST_KEY_BITS == 384)
     *key_bits = ATTEST_KEY_BITS;
+    *key_len = PSA_BITS_TO_BYTES(*key_bits);
+    const cc3xx_ec_curve_id_t curve_id = (ATTEST_KEY_BITS == 256) ?
+                                        CC3XX_EC_CURVE_SECP_256_R1 : CC3XX_EC_CURVE_SECP_384_R1;
+#else
+#error "Unsupported IAK size"
+#endif
 
     if (buf_len < PSA_KEY_EXPORT_ECC_KEY_PAIR_MAX_SIZE(ATTEST_KEY_BITS)) {
         goto exit;
@@ -112,31 +120,7 @@ static enum tfm_plat_err_t tfm_plat_get_iak(const void *ctx,
         goto err_release_op;
     }
 
-#if (ATTEST_KEY_BITS == 256)
-    *algorithm = PSA_ALG_ECDSA(PSA_ALG_SHA_256);
-#elif (ATTEST_KEY_BITS == 384)
-    *algorithm = PSA_ALG_ECDSA(PSA_ALG_SHA_384);
-#else
-#error "Unsupported IAK size"
-#endif
-    *type = PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1);
-
-    psa_set_key_type(&transient_attr, *type);
-    psa_set_key_algorithm(&transient_attr, *algorithm);
-    psa_set_key_bits(&transient_attr, *key_bits);
-    psa_set_key_usage_flags(&transient_attr, PSA_KEY_USAGE_EXPORT);
-
-    status = psa_key_derivation_output_key(&transient_attr, &op, &transient_key);
-    if (status != PSA_SUCCESS) {
-        goto err_release_op;
-    }
-
-    status = psa_export_key(transient_key, buf, buf_len, key_len);
-    if (status != PSA_SUCCESS) {
-        goto err_release_transient_key;
-    }
-
-    status = psa_destroy_key(transient_key);
+    status = psa_key_derivation_output_bytes(&op, buf, buf_len);
     if (status != PSA_SUCCESS) {
         goto err_release_op;
     }
@@ -146,10 +130,16 @@ static enum tfm_plat_err_t tfm_plat_get_iak(const void *ctx,
         goto exit;
     }
 
-    return PSA_SUCCESS;
+    /* Reduce mod curve order */
+    err = cc3xx_lowlevel_ec_scalar_reduce_curve_order(curve_id,
+                                                      (const uint32_t *)buf, buf_len,
+                                                      (uint32_t *)buf, buf_len,
+                                                      &dummy);
+    if (err != CC3XX_ERR_SUCCESS) {
+        return (enum tfm_plat_err_t)err;
+    }
 
-err_release_transient_key:
-    (void)psa_destroy_key(transient_key);
+    return TFM_PLAT_ERR_SUCCESS;
 
 err_release_op:
     (void)psa_key_derivation_abort(&op);
