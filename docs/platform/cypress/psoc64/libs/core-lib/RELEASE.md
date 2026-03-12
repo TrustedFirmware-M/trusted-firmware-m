@@ -1,6 +1,8 @@
 # Core Library Release Notes
 The Core Library provides basic types and utilities that can be used between different devices. This allows different libraries to share common items between themselves to avoid reimplementation and promote consistency.
 
+##
+
 ### What's Included?
 * Common result type for reporting errors or status
 * Common utility MACROs for

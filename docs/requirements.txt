@@ -1,10 +1,10 @@
 graphviz
 Jinja2>=3.0.2
 latex
-Sphinx==5.0.0
-m2r2
-sphinx-rtd-theme>=1.0.0
-sphinxcontrib-plantuml==0.22
+Sphinx>=7,<9
+myst-parser>=4,<5
+sphinx-rtd-theme>=3.0.0
+sphinxcontrib-plantuml==0.29
 sphinxcontrib-svg2pdfconverter==1.1.1
 sphinx-tabs==3.4.5
-docutils==0.16
+docutils==0.20
