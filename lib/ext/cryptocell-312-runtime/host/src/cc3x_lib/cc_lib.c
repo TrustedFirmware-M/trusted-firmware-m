@@ -33,6 +33,8 @@
 #include "cc_rnd_common.h"
 #include "cc_int_general_defs.h"
 
+#define CC_COMPILER_BARRIER() __asm volatile("" ::: "memory")
+
 CC_PalMutex CCSymCryptoMutex;
 CC_PalMutex CCAsymCryptoMutex;
 CC_PalMutex *pCCRndCryptoMutex;
@@ -210,6 +212,7 @@ CClibRetCode_t CC_LibInit(CCRndContext_t *rndContext_ptr, CCRndWorkBuff_t  *rndW
     /* turn off the DFA since Cerberus doen't support it */
     reg = CC_HAL_READ_REGISTER(CC_REG_OFFSET(HOST_RGF, HOST_AO_LOCK_BITS));
     CC_REG_FLD_SET(0, HOST_AO_LOCK_BITS, HOST_FORCE_DFA_ENABLE, reg, 0x0);
+    CC_COMPILER_BARRIER();
     CC_HAL_WRITE_REGISTER(CC_REG_OFFSET(HOST_RGF, HOST_AO_LOCK_BITS)  ,reg );
     tempVal = CC_HAL_READ_REGISTER(CC_REG_OFFSET(HOST_RGF,HOST_AO_LOCK_BITS));
     if(tempVal != reg) {
