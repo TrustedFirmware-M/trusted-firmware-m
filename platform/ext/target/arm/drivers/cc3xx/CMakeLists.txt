@@ -13,7 +13,7 @@ set(FETCHCONTENT_QUIET FALSE)
 # Default configuration of cc3xx repository
 set(TF_PSA_CRYPTO_DRIVERS_PATH     "DOWNLOAD"         CACHE PATH   "Path to cc3xx Crypto driver (or DOWNLOAD to fetch automatically")
 set(TF_PSA_CRYPTO_DRIVERS_NAME     "vendor/arm/cc3xx" CACHE STRING "PSA Crypto driver name")
-set(TF_PSA_CRYPTO_DRIVERS_VERSION  "7da9c4b"          CACHE STRING "Revision of cc3xx to fetch")
+set(TF_PSA_CRYPTO_DRIVERS_VERSION  "91ad754"          CACHE STRING "Revision of cc3xx to fetch")
 
 fetch_remote_library(
     LIB_NAME                cc3xx
