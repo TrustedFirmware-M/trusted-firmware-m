@@ -39,7 +39,6 @@
  * This is used when bank consistency is maintained during partial capsule update
  */
 #define FLASH_CHUNK_SIZE                512
-static uint8_t flash_data_buf[FLASH_CHUNK_SIZE];
 
 /* Possible states of the bank.
  * Naming convention here matches the implementation in U-Boot 
@@ -2174,94 +2173,24 @@ out:
     return ret;
 }
 
+#ifdef BL1_BUILD
 static psa_status_t copy_image_from_other_bank(int image_index,
                                                uint32_t active_index,
                                                uint32_t previous_active_index)
 {
     FWU_LOG_FUNC_ENTER;
 
+    /* Use offsets directly */
     uint32_t bank_offset[NR_OF_FW_BANKS] = {BANK_0_PARTITION_OFFSET, BANK_1_PARTITION_OFFSET};
     psa_status_t ret;
 
-#ifdef BL1_BUILD
     /* Use offsets directly */
+    uint8_t data[FLASH_CHUNK_SIZE];
     size_t remaining_size = fwu_image[image_index].image_size;
     size_t data_size;
     size_t offset_read = bank_offset[active_index] + fwu_image[image_index].image_offset;
     size_t offset_write = bank_offset[previous_active_index] + fwu_image[image_index].image_offset;
     int data_transferred_count;
-#else
-    /* Use GPT to find the correct image */
-    struct partition_entry_t active_part;
-    ret = gpt_entry_read_by_type(
-            &(fwu_image[image_index].image_type),
-            0,
-            &active_part);
-    if (ret == PSA_ERROR_DOES_NOT_EXIST) {
-        FWU_LOG_MSG("%s: Unable to find partition '%s'\r\n",
-                __func__, fwu_image[image_index].image_names[active_index]);
-        return ret;
-    } else if (ret == PSA_ERROR_STORAGE_FAILURE) {
-        FWU_LOG_MSG("%s: Flash error whilst reading GPT partition '%s'\r\n",
-                __func__, fwu_image[image_index].image_names[active_index]);
-        return ret;
-    } else if (ret < 0) {
-        FWU_LOG_MSG("%s: Unable to read partition '%s'\r\n",
-                __func__, fwu_image[image_index].image_names[active_index]);
-        return ret;
-    }
-
-    struct partition_entry_t prev_active_part;
-    ret = gpt_entry_read_by_type(
-            &(fwu_image[image_index].image_type),
-            1,
-            &prev_active_part);
-
-    if (ret == PSA_ERROR_DOES_NOT_EXIST) {
-        /* Create the partition in the expected space */
-        struct efi_guid_t new_guid = {0};
-        char unicode_name[GPT_ENTRY_NAME_LENGTH] = {'\0'};
-        ascii_to_unicode(fwu_image[image_index].image_names[previous_active_index], unicode_name);
-
-        ret = gpt_entry_create(&(fwu_image[image_index].image_type),
-                               (bank_offset[previous_active_index] + fwu_image[image_index].image_offset) / TFM_GPT_BLOCK_SIZE,
-                               1 + ((fwu_image[image_index].image_size - 1) / TFM_GPT_BLOCK_SIZE),
-                               0,
-                               unicode_name,
-                               &new_guid);
-        if (ret == PSA_ERROR_INSUFFICIENT_STORAGE) {
-            FWU_LOG_MSG("%s: No space left on device!\r\n", __func__);
-            return ret;
-        } else if (ret == PSA_ERROR_STORAGE_FAILURE) {
-            FWU_LOG_MSG("%s: Flash error whilst creating GPT partition '%s'!\r\n",
-                    __func__, fwu_image[image_index].image_names[previous_active_index]);
-            return ret;
-        } else if (ret < 0) {
-            return ret;
-        }
-
-        ret = gpt_entry_read(&new_guid, &prev_active_part);
-        if (ret == PSA_ERROR_STORAGE_FAILURE) {
-            FWU_LOG_MSG("%s: Flash error whilst reading GPT partition '%s'\r\n",
-                    __func__, fwu_image[image_index].image_names[previous_active_index]);
-            return ret;
-        } else if (ret < 0) {
-            return ret;
-        }
-    } else if (ret == PSA_ERROR_STORAGE_FAILURE) {
-        FWU_LOG_MSG("%s: Flash error whilst reading GPT partition '%s'\r\n",
-                __func__, fwu_image[image_index].image_names[previous_active_index]);
-        return ret;
-    } else if (ret < 0) {
-        return ret;
-    }
-
-    size_t remaining_size = prev_active_part.size * TFM_GPT_BLOCK_SIZE;
-    size_t data_size;
-    size_t offset_read = active_part.start * TFM_GPT_BLOCK_SIZE;
-    size_t offset_write = prev_active_part.start * TFM_GPT_BLOCK_SIZE;
-    int data_transferred_count;
-#endif /* BL1_BUILD */
 
     ret = erase_image(offset_write, remaining_size);
     if (ret != PSA_SUCCESS) {
@@ -2273,7 +2202,7 @@ static psa_status_t copy_image_from_other_bank(int image_index,
         data_size = (remaining_size > FLASH_CHUNK_SIZE) ? FLASH_CHUNK_SIZE : remaining_size;
 
         /* read image data from flash */
-        data_transferred_count = FWU_METADATA_FLASH_DEV.ReadData(offset_read, flash_data_buf, data_size);
+        data_transferred_count = FWU_METADATA_FLASH_DEV.ReadData(offset_read, data, data_size);
         if (data_transferred_count < 0) {
             FWU_LOG_MSG("%s: ERROR - Flash read failed (ret = %d)\n\r", __func__, data_transferred_count);
             return PSA_ERROR_STORAGE_FAILURE;
@@ -2288,7 +2217,7 @@ static psa_status_t copy_image_from_other_bank(int image_index,
         offset_read += data_size;
 
         /* write image data to flash */
-        data_transferred_count = FWU_METADATA_FLASH_DEV.ProgramData(offset_write, flash_data_buf, data_size);
+        data_transferred_count = FWU_METADATA_FLASH_DEV.ProgramData(offset_write, data, data_size);
         if (data_transferred_count < 0) {
             FWU_LOG_MSG("%s: ERROR - Flash read failed (ret = %d)\n\r", __func__, data_transferred_count);
             return PSA_ERROR_STORAGE_FAILURE;
@@ -2307,6 +2236,69 @@ static psa_status_t copy_image_from_other_bank(int image_index,
     FWU_LOG_MSG("%s: exit \n\r", __func__);
     return PSA_SUCCESS;
 }
+#else
+static psa_status_t copy_image_from_other_bank(int image_index,
+                                               uint32_t active_index,
+                                               uint32_t previous_active_index)
+{
+    FWU_LOG_FUNC_ENTER;
+
+    /* Use GPT to find and copy the correct image */
+    uint32_t bank_offset[NR_OF_FW_BANKS] = {BANK_0_PARTITION_OFFSET, BANK_1_PARTITION_OFFSET};
+    uint64_t new_lba =
+        (bank_offset[previous_active_index] + fwu_image[image_index].image_offset) / TFM_GPT_BLOCK_SIZE;
+
+    struct partition_entry_t active_part;
+    psa_status_t ret = gpt_entry_read_by_type(
+            &(fwu_image[image_index].image_type),
+            0,
+            &active_part);
+    if (ret == PSA_ERROR_DOES_NOT_EXIST) {
+        FWU_LOG_MSG("%s: Unable to find partition '%s'\r\n",
+                __func__, fwu_image[image_index].image_names[active_index]);
+        return ret;
+    } else if (ret == PSA_ERROR_STORAGE_FAILURE) {
+        FWU_LOG_MSG("%s: Flash error whilst reading GPT partition '%s'\r\n",
+                __func__, fwu_image[image_index].image_names[active_index]);
+        return ret;
+    } else if (ret < 0) {
+        FWU_LOG_MSG("%s: Unable to read partition '%s'\r\n",
+                __func__, fwu_image[image_index].image_names[active_index]);
+        return ret;
+    }
+
+    struct efi_guid_t new_guid;
+    ret = gpt_entry_duplicate(&(active_part.partition_guid), new_lba, &new_guid);
+    if (ret == PSA_ERROR_STORAGE_FAILURE) {
+        FWU_LOG_MSG("%s: Flash error whilst creating GPT partition '%s'\r\n",
+                __func__, fwu_image[image_index].image_names[previous_active_index]);
+        return ret;
+    } else if (ret < 0) {
+        FWU_LOG_MSG("%s: Unable to create partition '%s'\r\n",
+                __func__, fwu_image[image_index].image_names[previous_active_index]);
+        return ret;
+    }
+
+    char unicode_name[GPT_ENTRY_NAME_LENGTH] = {'\0'};
+    ascii_to_unicode(fwu_image[image_index].image_names[previous_active_index], unicode_name);
+    ret = gpt_entry_rename(&new_guid, unicode_name);
+    if (ret != PSA_SUCCESS) {
+        FWU_LOG_MSG("%s: Unable to rename partition to '%s'\r\n",
+                __func__, fwu_image[image_index].image_names[previous_active_index]);
+
+        /* Delete the newly created partition as there is code that relies on the naming */
+        ret = gpt_entry_remove(&new_guid);
+        if (ret != PSA_SUCCESS) {
+            FWU_LOG_MSG("%s: Catastrophic failure: unable to remove duplicate partition '%s'\r\n",
+                    __func__, fwu_image[image_index].image_names[active_index]);
+        }
+        return ret;
+    }
+
+    FWU_LOG_MSG("%s: exit \n\r", __func__);
+    return PSA_SUCCESS;
+}
+#endif /* BL1_BUILD */
 
 static psa_status_t maintain_bank_consistency(void)
 {
