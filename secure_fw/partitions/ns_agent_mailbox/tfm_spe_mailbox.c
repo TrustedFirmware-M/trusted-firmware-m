@@ -264,13 +264,6 @@ static int32_t tfm_mailbox_dispatch(const struct mailbox_msg_t *msg_ptr,
         break;
 
     case MAILBOX_PSA_CALL:
-        ret = local_copy_vects(params, idx, &control);
-        if (ret != MAILBOX_SUCCESS) {
-            sync = true;
-            psa_ret = PSA_ERROR_INVALID_ARGUMENT;
-            break;
-        }
-
         if (tfm_multi_core_hal_client_id_translate(CLIENT_ID_OWNER_MAGIC,
                                                    msg_ptr->client_id,
                                                    &client_id) != SPM_SUCCESS) {
@@ -278,6 +271,14 @@ static int32_t tfm_mailbox_dispatch(const struct mailbox_msg_t *msg_ptr,
             psa_ret = PSA_ERROR_INVALID_ARGUMENT;
             break;
         }
+
+        ret = local_copy_vects(params, idx, &control);
+        if (ret != MAILBOX_SUCCESS) {
+            sync = true;
+            psa_ret = PSA_ERROR_INVALID_ARGUMENT;
+            break;
+        }
+
         client_params.ns_client_id_stateless = client_id;
         client_params.p_invecs = vectors[idx].in_vec;
         client_params.p_outvecs = vectors[idx].out_vec;
