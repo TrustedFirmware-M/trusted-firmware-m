@@ -171,6 +171,25 @@ psa_status_t gpt_entry_move(const struct efi_guid_t *guid,
                             const uint64_t           end);
 
 /**
+ * \brief Duplicates an existing partition entry into new space.
+ *
+ * \param[in]  old_guid Entry to duplicate.
+ * \param[in]  start    Starting LBA (0 uses the lowest free LBA possible).
+ * \param[out] new_guid GUID populated on success for subsequent API calls.
+ *
+ * \retval PSA_SUCCESS Success.
+ * \retval PSA_ERROR_STORAGE_FAILURE I/O error.
+ * \retval PSA_ERROR_DOES_NOT_EXIST No entry found with the provided GUID.
+ * \retval PSA_ERROR_INSUFFICIENT_STORAGE Maximum number of partitions reached.
+ * \retval PSA_ERROR_INVALID_ARGUMENT New entry would overlap with an existing partition.
+ * \retval PSA_ERROR_INVALID_ARGUMENT Part of the partition would be off flash.
+ */
+__attribute__((nonnull(1, 3)))
+psa_status_t gpt_entry_duplicate(const struct efi_guid_t *old_guid,
+                                 const uint64_t           start,
+                                 struct efi_guid_t       *new_guid);
+
+/**
  * \brief Creates a partition entry in the table.
  *
  * \param[in]  type Partition type.

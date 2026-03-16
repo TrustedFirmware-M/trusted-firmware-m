@@ -513,6 +513,29 @@ psa_status_t gpt_entry_move(const struct efi_guid_t *guid,
     return write_entry(cached_index, &cached_entry, false);
 }
 
+psa_status_t gpt_entry_duplicate(const struct efi_guid_t *old_guid,
+                                 const uint64_t           start,
+                                 struct efi_guid_t       *new_guid)
+{
+    struct partition_entry_t old_entry;
+    psa_status_t ret = gpt_entry_read(old_guid, &old_entry);
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
+
+    ret = gpt_entry_create(&(old_entry.type_guid),
+                           start,
+                           old_entry.size,
+                           old_entry.attr,
+                           old_entry.name,
+                           new_guid);
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
+
+    return move_partition(old_entry.start, start, old_entry.size);
+}
+
 psa_status_t gpt_entry_create(const struct efi_guid_t *type,
                               const uint64_t           start,
                               const uint64_t           size,
