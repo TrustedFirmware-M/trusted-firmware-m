@@ -53,6 +53,32 @@ static uint8_t sector_buf[FLASH_SECTOR_SIZE];
 /* From io_gpt.h - the driver given to the GPT library */
 struct gpt_flash_driver_t io_gpt_flash_driver = {0};
 
+/* Read the bytes that need to be erased. If they are already erased_value,
+ * report that an erase is not required. This is to reduce the number of flash
+ * erase cyles. If the read fails in any way, report erase required.
+ */
+static bool erase_required(uint32_t erase_addr,
+                           size_t   num_bytes)
+{
+    if (num_bytes > FLASH_SECTOR_SIZE) {
+        return true;
+    }
+
+    int32_t ret = flash_driver->ReadData(erase_addr, sector_buf, num_bytes);
+    if (ret < 0 || (uint32_t)ret != num_bytes) {
+        return true;
+    }
+
+    uint8_t erased_value = flash_driver->GetInfo()->erased_value;
+    for (size_t offset = 0; offset < num_bytes; ++offset) {
+        if (sector_buf[offset] != erased_value) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /* Erases TFM_GPT_BLOCK_SIZE bytes from offset within the sector beginning at
  * sector_addr. This is done via a read-erase-write pattern whereby data is read,
  * the sector is erased, and data written back to the parts of the sector that
@@ -61,6 +87,10 @@ struct gpt_flash_driver_t io_gpt_flash_driver = {0};
 static gpt_flash_err_t partially_erase_sector(uint32_t sector_addr,
                                               uint32_t offset)
 {
+    if (!erase_required(sector_addr + offset, TFM_GPT_BLOCK_SIZE)) {
+        return GPT_FLASH_SUCCESS;
+    }
+
     if (flash_driver->ReadData(
                 sector_addr,
                 sector_buf,
@@ -139,6 +169,10 @@ static ssize_t flash_erase(uint64_t lba, size_t num_blocks)
 
     /* Whole sector erases until last sector */
     for (size_t i = 0; i < num_sectors - 1; ++i) {
+        if (!erase_required(erase_addr + i * FLASH_SECTOR_SIZE, FLASH_SECTOR_SIZE)) {
+            continue;
+        }
+
         int32_t ret = flash_driver->EraseSector(erase_addr + i * FLASH_SECTOR_SIZE);
         if (ret != ARM_DRIVER_OK) {
             return i;
@@ -146,9 +180,11 @@ static ssize_t flash_erase(uint64_t lba, size_t num_blocks)
     }
 
     if (num_blocks % LBAS_PER_SECTOR == 0 && lba % LBAS_PER_SECTOR == 0) {
-        /* Fully erase final sector */
-        if (flash_driver->EraseSector(last_erase_addr) != ARM_DRIVER_OK) {
-            return (num_sectors - 1) * LBAS_PER_SECTOR;
+        /* Fully erase final sector if required */
+        if (erase_required(last_erase_addr, FLASH_SECTOR_SIZE)) {
+            if (flash_driver->EraseSector(last_erase_addr) != ARM_DRIVER_OK) {
+                return (num_sectors - 1) * LBAS_PER_SECTOR;
+            }
         }
     } else {
         /* Partial erase of final sector */
