@@ -207,7 +207,7 @@ static psa_status_t read_entry_from_flash(const struct gpt_t *table,
                                           struct gpt_entry_t *entry);
 static psa_status_t read_table_from_flash(struct gpt_t *table, bool is_primary);
 static psa_status_t flush_lba_buf(void);
-static psa_status_t write_to_flash(uint64_t lba);
+static psa_status_t write_to_flash(uint64_t lba, bool skip_erase);
 static psa_status_t write_entries_to_flash(uint32_t lbas_into_array, bool no_header_update);
 static psa_status_t write_entry(uint32_t                  array_index,
                                 const struct gpt_entry_t *entry,
@@ -221,7 +221,7 @@ static psa_status_t find_gpt_entry(const struct gpt_t      *table,
                                    const uint32_t           repeat_index,
                                    struct gpt_entry_t      *entry,
                                    uint32_t                *array_index);
-static psa_status_t move_lba(const uint64_t old_lba, const uint64_t new_lba);
+static psa_status_t move_lba(const uint64_t old_lba, const uint64_t new_lba, const bool skip_erase);
 static psa_status_t move_partition(const uint64_t old_lba,
                                    const uint64_t new_lba,
                                    const uint64_t num_blocks);
@@ -715,12 +715,12 @@ psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
 
             /* Write to backup first, then primary partition array */
             if (backup_gpt_array_lba != 0) {
-                ret = write_to_flash(backup_gpt_array_lba + i - 1 - PRIMARY_GPT_ARRAY_LBA);
+                ret = write_to_flash(backup_gpt_array_lba + i - 1 - PRIMARY_GPT_ARRAY_LBA, false);
                 if (ret != PSA_SUCCESS) {
                     return ret;
                 }
             }
-            ret = write_to_flash(i - 1);
+            ret = write_to_flash(i - 1, false);
             if (ret != PSA_SUCCESS) {
                 return ret;
             }
@@ -743,16 +743,16 @@ psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
          */
         memset(lba_buf, 0, TFM_GPT_BLOCK_SIZE);
         if (backup_gpt_array_lba != 0) {
-            int write_ret = plat_flash_driver->write(
+            ret = write_to_flash(
                     backup_gpt_array_lba + array_end_lba - PRIMARY_GPT_ARRAY_LBA,
-                    lba_buf);
-            if (write_ret != TFM_GPT_BLOCK_SIZE) {
-                return PSA_ERROR_STORAGE_FAILURE;
+                    true);
+            if (ret != PSA_SUCCESS) {
+                return ret;
             }
         }
-        int write_ret = plat_flash_driver->write(array_end_lba, lba_buf);
-        if (write_ret != TFM_GPT_BLOCK_SIZE) {
-            return PSA_ERROR_STORAGE_FAILURE;
+        ret = write_to_flash(array_end_lba, true);
+        if (ret != PSA_SUCCESS) {
+            return ret;
         }
     } else {
         /* Zero what is not needed anymore */
@@ -761,12 +761,12 @@ psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
                 0,
                 (gpt_entry_per_lba_count() - entries_in_last_lba) * GPT_ENTRY_SIZE);
         if (backup_gpt_array_lba != 0) {
-            ret = write_to_flash(backup_gpt_array_lba + array_end_lba - PRIMARY_GPT_ARRAY_LBA);
+            ret = write_to_flash(array_end_lba, false);
             if (ret != PSA_SUCCESS) {
                 return ret;
             }
         }
-        ret = write_to_flash(array_end_lba);
+        ret = write_to_flash(array_end_lba, false);
         if (ret != PSA_SUCCESS) {
             return ret;
         }
@@ -1113,14 +1113,18 @@ static psa_status_t find_gpt_entry(const struct gpt_t        *table,
 }
 
 /* Move a single LBAs data to somewhere else */
-static psa_status_t move_lba(const uint64_t old_lba, const uint64_t new_lba)
+static psa_status_t move_lba(const uint64_t old_lba, const uint64_t new_lba, const bool skip_erase)
 {
+    VERBOSE("Moving from 0x%x%x to 0x%x%x %s erase\n",
+            (uint32_t)(old_lba >> 32), (uint32_t)old_lba,
+            (uint32_t)(new_lba >> 32), (uint32_t)new_lba,
+            skip_erase ? "without" : "with");
     const psa_status_t ret = read_from_flash(old_lba);
     if (ret != PSA_SUCCESS) {
         return ret;
     }
 
-    return write_to_flash(new_lba);
+    return write_to_flash(new_lba, skip_erase);
 }
 
 /* Moves a partition's data to start from one logical block to another */
@@ -1132,18 +1136,60 @@ static psa_status_t move_partition(const uint64_t old_lba,
         return PSA_SUCCESS;
     }
 
+    /* If possible, erase all of the LBAs that the data is going to be read
+     * to, so that, in the case an LBA is smaller than a flash sector, the
+     * number of flash erase cycles is reduced. Ignore any errors when erasing,
+     * as the "write" will perform erase anyway. If the areas between where the
+     * partition is now and where it will be does not overlap, then erase all
+     * blocks in the new area. If there is overlap, erase only those which are
+     * not within the old area
+     */
     if (old_lba < new_lba) {
+        /* Attempt consecutive erase */
+        uint64_t non_overlap_blocks =
+            (old_lba + num_blocks - 1 < new_lba ? num_blocks : new_lba - old_lba);
+
+        VERBOSE("Erasing 0x%x%x blocks from LBA 0x%x%x\n",
+                (uint32_t)(non_overlap_blocks >> 32), (uint32_t)non_overlap_blocks,
+                (uint32_t)(new_lba >> 32), (uint32_t)new_lba);
+
+        const ssize_t erase_ret = plat_flash_driver->erase(
+                new_lba + (num_blocks - non_overlap_blocks),
+                (size_t)non_overlap_blocks);
+        if (erase_ret != (ssize_t)non_overlap_blocks) {
+            WARN("Failed to erase all blocks consecutively, only erased %ld. "
+                    "Continuing to erase on a per-block basis\n", erase_ret);
+            non_overlap_blocks = 0;
+        }
+
         /* Move block by block backwards */
         for (uint64_t block = num_blocks; block > 0; --block) {
-            const psa_status_t ret = move_lba(old_lba + block - 1, new_lba + block - 1);
+            const bool skip_erase = (block < non_overlap_blocks);
+            const psa_status_t ret = move_lba(old_lba + block - 1, new_lba + block - 1, skip_erase);
             if (ret != PSA_SUCCESS) {
                 return ret;
             }
         }
     } else {
+        /* Attempt consecutive erase */
+        uint64_t non_overlap_blocks =
+            (new_lba + num_blocks - 1 < old_lba ? num_blocks : old_lba - new_lba);
+
+        VERBOSE("Erasing 0x%x%x blocks from LBA 0x%x%x\n",
+                (uint32_t)(non_overlap_blocks >> 32), (uint32_t)non_overlap_blocks,
+                (uint32_t)(new_lba >> 32), (uint32_t)new_lba);
+
+        const ssize_t erase_ret = plat_flash_driver->erase(new_lba, (size_t)non_overlap_blocks);
+        if (erase_ret != (ssize_t)non_overlap_blocks) {
+            WARN("Failed to erase all blocks consecutively, only erased %ld. "
+                    "Continuing to erase on a per-block basis\n", erase_ret);
+            non_overlap_blocks = 0;
+        }
+
         /* Move block by block forwards */
         for (uint64_t block = 0; block < num_blocks; ++block) {
-            const psa_status_t ret = move_lba(old_lba + block, new_lba + block);
+            const bool skip_erase = (block < non_overlap_blocks);
+            const psa_status_t ret = move_lba(old_lba + block, new_lba + block, skip_erase);
             if (ret != PSA_SUCCESS) {
                 return ret;
             }
@@ -1362,7 +1408,7 @@ static psa_status_t flush_lba_buf(void)
         ret = write_entries_to_flash(cached_lba - backup_gpt_array_lba, false);
     } else {
         /* Some other LBA is cached, possibly data. Write it anyway */
-        ret = write_to_flash(cached_lba);
+        ret = write_to_flash(cached_lba, false);
     }
 
     in_flush = false;
@@ -1370,13 +1416,15 @@ static psa_status_t flush_lba_buf(void)
 }
 
 /* Write to the flash at the specified LBA */
-static psa_status_t write_to_flash(uint64_t lba)
+static psa_status_t write_to_flash(uint64_t lba, bool skip_erase)
 {
-    if (plat_flash_driver->erase(lba, 1) != 1) {
-        ERROR("Unable to erase flash at LBA 0x%08x%08x\n",
-                (uint32_t)(lba >> 32),
-                (uint32_t)lba);
-        return PSA_ERROR_STORAGE_FAILURE;
+    if (!skip_erase) {
+        if (plat_flash_driver->erase(lba, 1) != 1) {
+            ERROR("Unable to erase flash at LBA 0x%08x%08x\n",
+                    (uint32_t)(lba >> 32),
+                    (uint32_t)lba);
+            return PSA_ERROR_STORAGE_FAILURE;
+        }
     }
 
     if (plat_flash_driver->write(lba, lba_buf) != TFM_GPT_BLOCK_SIZE) {
@@ -1398,7 +1446,7 @@ static psa_status_t write_entries_to_flash(uint32_t lbas_into_array, bool no_hea
     psa_status_t ret;
 
     if (backup_gpt_array_lba != 0) {
-        ret = write_to_flash(backup_gpt_array_lba + lbas_into_array);
+        ret = write_to_flash(backup_gpt_array_lba + lbas_into_array, false);
         if (ret != PSA_SUCCESS) {
             ERROR("Unable to write entry to backup partition array\n");
             return ret;
@@ -1407,7 +1455,7 @@ static psa_status_t write_entries_to_flash(uint32_t lbas_into_array, bool no_hea
         WARN("Backup array LBA unknown!\n");
     }
 
-    ret = write_to_flash(PRIMARY_GPT_ARRAY_LBA + lbas_into_array);
+    ret = write_to_flash(PRIMARY_GPT_ARRAY_LBA + lbas_into_array, false);
     if (ret != PSA_SUCCESS) {
         ERROR("Unable to write entry to primary partition array\n");
         return ret;
@@ -1476,7 +1524,7 @@ static psa_status_t write_header_to_flash(const struct gpt_t *table)
     uint8_t temp_buf[GPT_HEADER_SIZE];
     memcpy(temp_buf, lba_buf, GPT_HEADER_SIZE);
     memcpy(lba_buf, &(table->header), GPT_HEADER_SIZE);
-    const psa_status_t ret = write_to_flash(table->header.current_lba);
+    const psa_status_t ret = write_to_flash(table->header.current_lba, false);
     memcpy(lba_buf, temp_buf, GPT_HEADER_SIZE);
 
     return ret;
