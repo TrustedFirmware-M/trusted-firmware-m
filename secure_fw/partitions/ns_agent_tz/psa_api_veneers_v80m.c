@@ -76,7 +76,8 @@ static void clear_caller_context(void)
         "   bics   r12, r1                                    \n"
         "   vmsr   fpscr, r12                                 \n"
 #endif
-        "   movs    r3, #0x0                                  \n"
+        "   movs   r3, #0x0                                   \n"
+        "   mov    r12, r3                                    \n"
         "   msr    APSR_nzcvq, r3                             \n"
         "   bx     lr                                         \n"
     );
