@@ -152,7 +152,7 @@ __attribute__((nonnull(1)))
 psa_status_t gpt_attr_set(const struct efi_guid_t *guid, const uint64_t attr);
 
 /**
- * \brief Moves (or resizes) a partition entry.
+ * \brief Moves (or resizes) a partition entry, including the partition data.
  *
  * \param[in] guid Entry to move.
  * \param[in] start New start LBA.
@@ -171,7 +171,8 @@ psa_status_t gpt_entry_move(const struct efi_guid_t *guid,
                             const uint64_t           end);
 
 /**
- * \brief Duplicates an existing partition entry into new space.
+ * \brief Duplicates an existing partition entry into new space, including the
+ *        partition data.
  *
  * \param[in]  old_guid Entry to duplicate.
  * \param[in]  start    Starting LBA (0 uses the lowest free LBA possible).
