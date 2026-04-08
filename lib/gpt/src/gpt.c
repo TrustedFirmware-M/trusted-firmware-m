@@ -222,9 +222,17 @@ static psa_status_t find_gpt_entry(const struct gpt_t      *table,
                                    struct gpt_entry_t      *entry,
                                    uint32_t                *array_index);
 static psa_status_t move_lba(const uint64_t old_lba, const uint64_t new_lba, const bool skip_erase);
-static psa_status_t move_partition(const uint64_t old_lba,
-                                   const uint64_t new_lba,
-                                   const uint64_t num_blocks);
+static psa_status_t move_partition_data(const uint64_t old_lba,
+                                        const uint64_t new_lba,
+                                        const uint64_t num_blocks);
+static psa_status_t move_partition(const struct efi_guid_t *guid,
+                                   const uint64_t           start,
+                                   const uint64_t           end,
+                                   const bool               no_copy);
+static psa_status_t duplicate_partition(const struct efi_guid_t *old_guid,
+                                        const uint64_t           start,
+                                        const bool               no_copy,
+                                        struct efi_guid_t       *new_guid);
 static psa_status_t mbr_load(struct mbr_t *mbr);
 static bool gpt_entry_cmp_guid(const struct gpt_entry_t *entry, const void *guid);
 static bool gpt_entry_cmp_name(const struct gpt_entry_t *entry, const void *name);
@@ -415,125 +423,28 @@ psa_status_t gpt_entry_move(const struct efi_guid_t *guid,
                             const uint64_t           start,
                             const uint64_t           end)
 {
-    if (end < start) {
-        return PSA_ERROR_INVALID_ARGUMENT;
-    }
+    return move_partition(guid, start, end, false);
+}
 
-    /* Must fit on flash */
-    if (start < primary_gpt.header.first_lba ||
-            end < primary_gpt.header.first_lba ||
-            start > primary_gpt.header.last_lba ||
-            end > primary_gpt.header.last_lba) {
-        ERROR("Requested move would not be on disk\n");
-        return PSA_ERROR_INVALID_ARGUMENT;
-    }
-
-    struct gpt_entry_t cached_entry;
-    uint32_t cached_index;
-    psa_status_t ret = find_gpt_entry(
-            &primary_gpt,
-            gpt_entry_cmp_guid,
-            guid,
-            0,
-            &cached_entry,
-            &cached_index);
-    if (ret != PSA_SUCCESS) {
-        return ret;
-    }
-
-     /* Prevent unecessary I/O */
-    if (start == cached_entry.start && end == cached_entry.end) {
-        return PSA_SUCCESS;
-    }
-
-    /* It is not possible to move a partition such that it overlaps with an
-     * existing partition (other than itself). Check the currently cached LBA
-     * first, then the others to avoid reading this LBA twice
-     */
-    struct gpt_entry_t entry;
-    const uint64_t checked_lba = cached_lba;
-    const uint64_t array_end_lba = partition_array_last_lba(&primary_gpt);
-    uint32_t num_entries_in_cached_lba;
-    if (cached_lba == array_end_lba) {
-        /* If this is 0, then the last LBA is full */
-        uint32_t num_entries_in_last_lba = primary_gpt.num_used_partitions % gpt_entry_per_lba_count();
-        if (num_entries_in_last_lba == 0) {
-            num_entries_in_cached_lba = gpt_entry_per_lba_count();
-        } else {
-            num_entries_in_cached_lba = num_entries_in_last_lba;
-        }
-    } else {
-        num_entries_in_cached_lba = gpt_entry_per_lba_count();
-    }
-
-    /* Cached LBA */
-    for (uint32_t i = 0; i < num_entries_in_cached_lba; ++i) {
-        memcpy(&entry, lba_buf + (i * GPT_ENTRY_SIZE), GPT_ENTRY_SIZE);
-
-        const struct efi_guid_t ent_guid = entry.unique_guid;
-        if (efi_guid_cmp(&ent_guid, guid) == 0) {
-            continue;
-        }
-
-        if ((start >= entry.start && start <= entry.end) ||
-                (end >= entry.start && end <= entry.end) ||
-                (start <= entry.start && end >= entry.end)) {
-            return PSA_ERROR_INVALID_ARGUMENT;
-        }
-    }
-
-    /* All the rest */
-    for (uint32_t i = 0; i < primary_gpt.num_used_partitions; ++i) {
-        if (partition_entry_lba(&primary_gpt, i) == checked_lba) {
-            continue;
-        }
-
-        ret = read_entry_from_flash(&primary_gpt, i, &entry);
-        if (ret != PSA_SUCCESS) {
-            return ret;
-        }
-
-        if ((start >= entry.start && start <= entry.end) ||
-                (end >= entry.start && end <= entry.end) ||
-                (start <= entry.start && end >= entry.end)) {
-            return PSA_ERROR_INVALID_ARGUMENT;
-        }
-    }
-
-    ret = move_partition(
-            cached_entry.start,
-            start,
-            end - start + 1);
-    if (ret != PSA_SUCCESS) {
-        return ret;
-    }
-    cached_entry.start = start;
-    cached_entry.end = end;
-
-    return write_entry(cached_index, &cached_entry, false);
+psa_status_t gpt_entry_move_no_copy(const struct efi_guid_t *guid,
+                                    const uint64_t           start,
+                                    const uint64_t           end)
+{
+    return move_partition(guid, start, end, true);
 }
 
 psa_status_t gpt_entry_duplicate(const struct efi_guid_t *old_guid,
                                  const uint64_t           start,
                                  struct efi_guid_t       *new_guid)
 {
-    struct partition_entry_t old_entry;
-    psa_status_t ret = gpt_entry_read(old_guid, &old_entry);
-    if (ret != PSA_SUCCESS) {
-        return ret;
-    }
+    return duplicate_partition(old_guid, start, false, new_guid);
+}
 
-    ret = gpt_entry_create(&(old_entry.type_guid),
-                           start,
-                           old_entry.size,
-                           old_entry.attr,
-                           old_entry.name,
-                           new_guid);
-    if (ret != PSA_SUCCESS) {
-        return ret;
-    }
-
-    return move_partition(old_entry.start, start, old_entry.size);
+psa_status_t gpt_entry_duplicate_no_copy(const struct efi_guid_t *old_guid,
+                                         const uint64_t           start,
+                                         struct efi_guid_t       *new_guid)
+{
+    return duplicate_partition(old_guid, start, true, new_guid);
 }
 
 psa_status_t gpt_entry_create(const struct efi_guid_t *type,
@@ -878,7 +789,7 @@ psa_status_t gpt_defragment(void)
         }
 
         const uint64_t num_blocks = entry.end - entry.start + 1;
-        ret = move_partition(entry.start, prev_end, num_blocks);
+        ret = move_partition_data(entry.start, prev_end, num_blocks);
         if (ret != PSA_SUCCESS) {
             return ret;
         }
@@ -1112,6 +1023,140 @@ static psa_status_t find_gpt_entry(const struct gpt_t        *table,
     return io_failure ? PSA_ERROR_STORAGE_FAILURE : PSA_ERROR_DOES_NOT_EXIST;
 }
 
+/* Duplicate a partition, potentially also copying its data but always updating
+ * the header
+ */
+static psa_status_t duplicate_partition(const struct efi_guid_t *old_guid,
+                                        const uint64_t           start,
+                                        const bool               no_copy,
+                                        struct efi_guid_t       *new_guid)
+{
+    struct partition_entry_t old_entry;
+    psa_status_t ret = gpt_entry_read(old_guid, &old_entry);
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
+
+    ret = gpt_entry_create(&(old_entry.type_guid),
+                           start,
+                           old_entry.size,
+                           old_entry.attr,
+                           old_entry.name,
+                           new_guid);
+    if (ret != PSA_SUCCESS || no_copy) {
+        return ret;
+    }
+
+    return move_partition_data(old_entry.start, start, old_entry.size);
+}
+
+/* Move a partition, potentially also copying its data but always updating the header */
+static psa_status_t move_partition(const struct efi_guid_t *guid,
+                                   const uint64_t           start,
+                                   const uint64_t           end,
+                                   const bool               no_copy)
+{
+    if (end < start) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    /* Must fit on flash */
+    if (start < primary_gpt.header.first_lba ||
+            end < primary_gpt.header.first_lba ||
+            start > primary_gpt.header.last_lba ||
+            end > primary_gpt.header.last_lba) {
+        ERROR("Requested move would not be on disk\n");
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    struct gpt_entry_t cached_entry;
+    uint32_t cached_index;
+    psa_status_t ret = find_gpt_entry(
+            &primary_gpt,
+            gpt_entry_cmp_guid,
+            guid,
+            0,
+            &cached_entry,
+            &cached_index);
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
+
+     /* Prevent unecessary I/O */
+    if (start == cached_entry.start && end == cached_entry.end) {
+        return PSA_SUCCESS;
+    }
+
+    /* It is not possible to move a partition such that it overlaps with an
+     * existing partition (other than itself). Check the currently cached LBA
+     * first, then the others to avoid reading this LBA twice
+     */
+    struct gpt_entry_t entry;
+    const uint64_t checked_lba = cached_lba;
+    const uint64_t array_end_lba = partition_array_last_lba(&primary_gpt);
+    uint32_t num_entries_in_cached_lba;
+    if (cached_lba == array_end_lba) {
+        /* If this is 0, then the last LBA is full */
+        uint32_t num_entries_in_last_lba = primary_gpt.num_used_partitions % gpt_entry_per_lba_count();
+        if (num_entries_in_last_lba == 0) {
+            num_entries_in_cached_lba = gpt_entry_per_lba_count();
+        } else {
+            num_entries_in_cached_lba = num_entries_in_last_lba;
+        }
+    } else {
+        num_entries_in_cached_lba = gpt_entry_per_lba_count();
+    }
+
+    /* Cached LBA */
+    for (uint32_t i = 0; i < num_entries_in_cached_lba; ++i) {
+        memcpy(&entry, lba_buf + (i * GPT_ENTRY_SIZE), GPT_ENTRY_SIZE);
+
+        const struct efi_guid_t ent_guid = entry.unique_guid;
+        if (efi_guid_cmp(&ent_guid, guid) == 0) {
+            continue;
+        }
+
+        if ((start >= entry.start && start <= entry.end) ||
+                (end >= entry.start && end <= entry.end) ||
+                (start <= entry.start && end >= entry.end)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+
+    /* All the rest */
+    for (uint32_t i = 0; i < primary_gpt.num_used_partitions; ++i) {
+        if (partition_entry_lba(&primary_gpt, i) == checked_lba) {
+            continue;
+        }
+
+        ret = read_entry_from_flash(&primary_gpt, i, &entry);
+        if (ret != PSA_SUCCESS) {
+            return ret;
+        }
+
+        if ((start >= entry.start && start <= entry.end) ||
+                (end >= entry.start && end <= entry.end) ||
+                (start <= entry.start && end >= entry.end)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+
+    if (!no_copy) {
+        ret = move_partition_data(
+                cached_entry.start,
+                start,
+                end - start + 1);
+        if (ret != PSA_SUCCESS) {
+            return ret;
+        }
+    }
+
+    cached_entry.start = start;
+    cached_entry.end = end;
+
+    return write_entry(cached_index, &cached_entry, false);
+}
+
 /* Move a single LBAs data to somewhere else */
 static psa_status_t move_lba(const uint64_t old_lba, const uint64_t new_lba, const bool skip_erase)
 {
@@ -1128,7 +1173,7 @@ static psa_status_t move_lba(const uint64_t old_lba, const uint64_t new_lba, con
 }
 
 /* Moves a partition's data to start from one logical block to another */
-static psa_status_t move_partition(const uint64_t old_lba,
+static psa_status_t move_partition_data(const uint64_t old_lba,
                                    const uint64_t new_lba,
                                    const uint64_t num_blocks)
 {
@@ -1770,7 +1815,7 @@ static psa_status_t restore_table(struct gpt_t *restore_from, bool is_primary)
     swap_headers(&(restore_from->header), &(restore_to.header));
 
     /* Copy the partition array as well */
-    ret = move_partition(
+    ret = move_partition_data(
             restore_from->header.array_lba,
             restore_to.header.array_lba,
             (restore_from->header.num_partitions +
