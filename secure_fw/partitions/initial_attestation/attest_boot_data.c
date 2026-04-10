@@ -352,6 +352,6 @@ enum psa_attest_err_t attest_boot_data_init(void)
 #else
     return attest_get_boot_data(TLV_MAJOR_IAS,
                                 (struct tfm_boot_data *)&boot_data,
-                                MAX_BOOT_STATUS);
+                                sizeof(boot_data));
 #endif
 }
