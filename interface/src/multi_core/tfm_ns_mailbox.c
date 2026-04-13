@@ -81,14 +81,14 @@ static uint8_t acquire_empty_slot(struct ns_mailbox_queue_t *queue)
     tfm_ns_mailbox_os_spin_lock();
     status = queue->empty_slots;
 
-    if (!status) {
+    if (status == 0U) {
         /* No empty slot */
         tfm_ns_mailbox_os_spin_unlock();
         return NUM_MAILBOX_QUEUE_SLOT;
     }
 
     for (idx = 0; idx < NUM_MAILBOX_QUEUE_SLOT; idx++) {
-        if (status & (1 << idx)) {
+        if (status & ((uint32_t)(1U << idx))) {
             clear_queue_slot_empty(queue, idx);
             break;
         }
@@ -181,11 +181,11 @@ int32_t tfm_ns_mailbox_client_call(uint32_t call_type,
     uint8_t slot_idx = NUM_MAILBOX_QUEUE_SLOT;
     int32_t ret;
 
-    if (!mailbox_queue_ptr) {
+    if (mailbox_queue_ptr == NULL) {
         return MAILBOX_INIT_ERROR;
     }
 
-    if (!params || !reply) {
+    if ((params == NULL) || (reply == NULL)) {
         return MAILBOX_INVAL_PARAMS;
     }
 
@@ -219,7 +219,7 @@ int32_t tfm_ns_mailbox_wake_reply_owner_isr(void)
     mailbox_queue_status_t replied_status;
     uint32_t critical_section;
 
-    if (!mailbox_queue_ptr) {
+    if (mailbox_queue_ptr == NULL) {
         return MAILBOX_INIT_ERROR;
     }
 
@@ -227,7 +227,7 @@ int32_t tfm_ns_mailbox_wake_reply_owner_isr(void)
     replied_status = clear_queue_slot_all_replied(mailbox_queue_ptr);
     tfm_ns_mailbox_hal_exit_critical_isr(critical_section);
 
-    if (!replied_status) {
+    if (replied_status == 0U) {
         return MAILBOX_NO_PEND_EVENT;
     }
 
@@ -236,7 +236,7 @@ int32_t tfm_ns_mailbox_wake_reply_owner_isr(void)
          * The reply has already received from SPE mailbox but
          * the wake-up signal is not sent yet.
          */
-        if (!(replied_status & (0x1UL << idx))) {
+        if ((replied_status & (0x1UL << idx)) == 0U) {
             continue;
         }
 
@@ -249,7 +249,7 @@ int32_t tfm_ns_mailbox_wake_reply_owner_isr(void)
                                      mailbox_queue_ptr->slots_ns[idx].owner);
 
         replied_status &= ~(0x1UL << idx);
-        if (!replied_status) {
+        if (replied_status == 0U) {
             break;
         }
     }

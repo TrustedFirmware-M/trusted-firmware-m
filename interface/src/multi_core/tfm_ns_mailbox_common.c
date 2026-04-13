@@ -31,9 +31,9 @@ int32_t tfm_ns_mailbox_init(struct ns_mailbox_queue_t *queue)
 
     /* Initialize empty bitmask */
     queue->empty_slots =
-            (mailbox_queue_status_t)((1UL << (NUM_MAILBOX_QUEUE_SLOT - 1)) - 1);
+            (mailbox_queue_status_t)((1UL << (NUM_MAILBOX_QUEUE_SLOT - 1U)) - 1U);
     queue->empty_slots +=
-            (mailbox_queue_status_t)(1UL << (NUM_MAILBOX_QUEUE_SLOT - 1));
+            (mailbox_queue_status_t)(1UL << (NUM_MAILBOX_QUEUE_SLOT - 1U));
 
     mailbox_set_queue_ptr(queue);
 
