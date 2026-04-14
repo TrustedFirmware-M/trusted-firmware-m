@@ -1,4 +1,4 @@
-From 8caa8664ea8b4e95ac425704c120f3b3b410b890 Mon Sep 17 00:00:00 2001
+From c6754ddec58846f2021e3fe637eaf3a974990f00 Mon Sep 17 00:00:00 2001
 From: Antonio de Angelis <Antonio.deAngelis@arm.com>
 Date: Thu, 21 Mar 2024 11:44:56 +0000
 Subject: [PATCH 1/7] Add TF-M Builtin Key Loader driver entry points
@@ -18,10 +18,10 @@ Co-authored-by: Antonio de Angelis <antonio.deangelis@arm.com>
  3 files changed, 143 insertions(+), 9 deletions(-)
 
 diff --git a/library/psa_crypto.c b/library/psa_crypto.c
-index 9e17e27f2..7206bf588 100644
+index 63b16f9284..e0a5ac263b 100644
 --- a/library/psa_crypto.c
 +++ b/library/psa_crypto.c
-@@ -75,6 +75,10 @@
+@@ -76,6 +76,10 @@
  
  #include "constant_time_internal.h"
  
@@ -32,7 +32,7 @@ index 9e17e27f2..7206bf588 100644
  #if defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF) ||          \
      defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXTRACT) ||  \
      defined(MBEDTLS_PSA_BUILTIN_ALG_HKDF_EXPAND)
-@@ -1174,7 +1178,11 @@ static psa_status_t psa_get_and_lock_transparent_key_slot_with_policy(
+@@ -1175,7 +1179,11 @@ static psa_status_t psa_get_and_lock_transparent_key_slot_with_policy(
          return status;
      }
  
@@ -46,7 +46,7 @@ index 9e17e27f2..7206bf588 100644
          *p_slot = NULL;
          return PSA_ERROR_NOT_SUPPORTED;
 diff --git a/library/psa_crypto_driver_wrappers.h b/library/psa_crypto_driver_wrappers.h
-index 0ed221b50..17b129a02 100644
+index 0ed221b501..17b129a024 100644
 --- a/library/psa_crypto_driver_wrappers.h
 +++ b/library/psa_crypto_driver_wrappers.h
 @@ -42,16 +42,32 @@
@@ -340,7 +340,7 @@ index 0ed221b50..17b129a02 100644
               * cycle through all known transparent accelerators */
              status = PSA_ERROR_NOT_SUPPORTED;
 diff --git a/library/psa_crypto_driver_wrappers_no_static.c b/library/psa_crypto_driver_wrappers_no_static.c
-index de8a5269b..436a650fc 100644
+index de8a5269b3..436a650fc3 100644
 --- a/library/psa_crypto_driver_wrappers_no_static.c
 +++ b/library/psa_crypto_driver_wrappers_no_static.c
 @@ -41,16 +41,32 @@
