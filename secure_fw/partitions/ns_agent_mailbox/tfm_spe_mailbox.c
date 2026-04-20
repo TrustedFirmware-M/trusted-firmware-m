@@ -369,7 +369,9 @@ int32_t tfm_mailbox_handle_msg(void)
         return MAILBOX_NO_PEND_EVENT;
     }
 
-    for (idx = 0; idx < spe_mailbox_queue.ns_slot_count; idx++) {
+    for (idx = 0;
+         (idx < spe_mailbox_queue.ns_slot_count) && (idx < NUM_MAILBOX_QUEUE_SLOT);
+         idx++) {
         mask_bits = (1 << idx);
         /* Check if current NSPE mailbox queue slot is pending for handling */
         if (!(pend_slots & mask_bits)) {
