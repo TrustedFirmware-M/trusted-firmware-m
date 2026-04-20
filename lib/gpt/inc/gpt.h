@@ -44,7 +44,7 @@ struct partition_entry_t {
  * \retval PSA_ERROR_STORAGE_FAILURE I/O error.
  * \retval PSA_ERROR_DOES_NOT_EXIST No entry found with the provided GUID.
  */
-__attribute__((nonnull(1,2)))
+__attribute__((nonnull(1, 2)))
 psa_status_t gpt_entry_read(const struct efi_guid_t  *guid,
                             struct partition_entry_t *partition_entry);
 
@@ -60,7 +60,7 @@ psa_status_t gpt_entry_read(const struct efi_guid_t  *guid,
  * \retval PSA_ERROR_DOES_NOT_EXIST No entry found with the provided name at \p index. For example,
  *                                  \p index was 1 (second entry) but only one entry was found.
  */
-__attribute__((nonnull(1,3)))
+__attribute__((nonnull(1, 3)))
 psa_status_t gpt_entry_read_by_name(const char                name[GPT_ENTRY_NAME_LENGTH],
                                     const uint32_t            index,
                                     struct partition_entry_t *partition_entry);
@@ -77,7 +77,7 @@ psa_status_t gpt_entry_read_by_name(const char                name[GPT_ENTRY_NAM
  * \retval PSA_ERROR_DOES_NOT_EXIST No entry found with the provided type at \p index. For example,
  *                                  \p index was 1 (second entry) but only one entry was found.
  */
-__attribute__((nonnull(1,3)))
+__attribute__((nonnull(1, 3)))
 psa_status_t gpt_entry_read_by_type(const struct efi_guid_t  *type,
                                     const uint32_t            index,
                                     struct partition_entry_t *partition_entry);
@@ -93,7 +93,7 @@ psa_status_t gpt_entry_read_by_type(const struct efi_guid_t  *type,
  * \retval PSA_ERROR_DOES_NOT_EXIST No entry found with the provided GUID.
  * \retval PSA_ERROR_INVALID_ARGUMENT Empty name.
  */
-__attribute__((nonnull(1,2)))
+__attribute__((nonnull(1, 2)))
 psa_status_t gpt_entry_rename(const struct efi_guid_t *guid,
                               const char name[GPT_ENTRY_NAME_LENGTH]);
 
@@ -108,7 +108,7 @@ psa_status_t gpt_entry_rename(const struct efi_guid_t *guid,
  * \retval PSA_ERROR_INVALID_ARGUMENT \p type is the null GUID.
  * \retval PSA_ERROR_DOES_NOT_EXIST No entry found with the provided GUID.
  */
-__attribute__((nonnull(1,2)))
+__attribute__((nonnull(1, 2)))
 psa_status_t gpt_entry_change_type(const struct efi_guid_t *guid,
                                    const struct efi_guid_t *type);
 
@@ -187,7 +187,7 @@ psa_status_t gpt_entry_move(const struct efi_guid_t *guid,
  * \retval PSA_ERROR_INVALID_ARGUMENT New entry would overlap an existing partition, the name is empty,
  *                                    or \p size is zero.
  */
-__attribute__((nonnull(1,5,6)))
+__attribute__((nonnull(1, 5, 6)))
 psa_status_t gpt_entry_create(const struct efi_guid_t *type,
                               const uint64_t           start,
                               const uint64_t           size,

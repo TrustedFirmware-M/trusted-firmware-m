@@ -423,8 +423,7 @@ psa_status_t gpt_entry_move(const struct efi_guid_t *guid,
     if (start < primary_gpt.header.first_lba ||
             end < primary_gpt.header.first_lba ||
             start > primary_gpt.header.last_lba ||
-            end > primary_gpt.header.last_lba)
-    {
+            end > primary_gpt.header.last_lba) {
         ERROR("Requested move would not be on disk\n");
         return PSA_ERROR_INVALID_ARGUMENT;
     }
@@ -478,8 +477,7 @@ psa_status_t gpt_entry_move(const struct efi_guid_t *guid,
 
         if ((start >= entry.start && start <= entry.end) ||
                 (end >= entry.start && end <= entry.end) ||
-                (start <= entry.start && end >= entry.end))
-        {
+                (start <= entry.start && end >= entry.end)) {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
     }
@@ -497,8 +495,7 @@ psa_status_t gpt_entry_move(const struct efi_guid_t *guid,
 
         if ((start >= entry.start && start <= entry.end) ||
                 (end >= entry.start && end <= entry.end) ||
-                (start <= entry.start && end >= entry.end))
-        {
+                (start <= entry.start && end >= entry.end)) {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
     }
@@ -573,8 +570,7 @@ psa_status_t gpt_entry_create(const struct efi_guid_t *type,
     if (start_lba < primary_gpt.header.first_lba ||
             end_lba < primary_gpt.header.first_lba ||
             start_lba > primary_gpt.header.last_lba ||
-            end_lba > primary_gpt.header.last_lba)
-    {
+            end_lba > primary_gpt.header.last_lba) {
         ERROR("Requested partition would not be on disk\n");
         return PSA_ERROR_INVALID_ARGUMENT;
     }
@@ -589,8 +585,7 @@ psa_status_t gpt_entry_create(const struct efi_guid_t *type,
 
         if ((start_lba >= entry.start && start_lba <= entry.end) ||
                 (end_lba >= entry.start && end_lba <= entry.end) ||
-                (start_lba <= entry.start && end_lba >= entry.end))
-        {
+                (start_lba <= entry.start && end_lba >= entry.end)) {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
     }
@@ -660,8 +655,7 @@ psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
      */
     const uint64_t array_end_lba = partition_array_last_lba(&primary_gpt);
     if (cached_index != primary_gpt.num_used_partitions - 1 ||
-            cached_index < gpt_entry_per_lba_count())
-    {
+            cached_index < gpt_entry_per_lba_count()) {
         /* Shuffle up the remainder of the LBA. If it was the last entry
          * in the LBA, there is nothing to do.
          */
@@ -682,8 +676,7 @@ psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
          */
         for (uint64_t i = partition_entry_lba(&primary_gpt, cached_index) + 1;
                 i <= array_end_lba;
-                ++i)
-        {
+                ++i) {
             uint8_t array_buf[TFM_GPT_BLOCK_SIZE] = {0};
             int read_ret = plat_flash_driver->read(i, array_buf);
             if (read_ret != TFM_GPT_BLOCK_SIZE) {
@@ -904,8 +897,7 @@ psa_status_t gpt_init(struct gpt_flash_driver_t *flash_driver, uint64_t max_part
 
     if (flash_driver->read == NULL ||
             flash_driver->write == NULL ||
-            flash_driver->erase == NULL)
-    {
+            flash_driver->erase == NULL) {
         ERROR("I/O functions must be defined\n");
         return PSA_ERROR_INVALID_ARGUMENT;
     }
@@ -1337,14 +1329,12 @@ static psa_status_t flush_lba_buf(void)
         /* Write both backup and primary headers */
         ret = write_headers_to_flash();
     } else if (PRIMARY_GPT_ARRAY_LBA <= cached_lba &&
-            cached_lba <= partition_array_last_lba(&primary_gpt))
-    {
+            cached_lba <= partition_array_last_lba(&primary_gpt)) {
         /* Primary array entry. Write to backup and primary array */
         ret = write_entries_to_flash(cached_lba - PRIMARY_GPT_ARRAY_LBA, false);
     } else if (backup_gpt_array_lba != 0 &&
             backup_gpt_array_lba <= cached_lba &&
-            cached_lba <= backup_gpt_array_lba + array_size - 1)
-    {
+            cached_lba <= backup_gpt_array_lba + array_size - 1) {
         /* Backup array entry. Write to backup and primary array */
         ret = write_entries_to_flash(cached_lba - backup_gpt_array_lba, false);
     } else {
