@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2024-2025, Arm Limited. All rights reserved.
- * Copyright (c) 2024-2025-2025 Cypress Semiconductor Corporation (an Infineon company)
+ * Copyright (c) 2024-2026 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -17,6 +17,7 @@
 
 #include "current.h"
 #include "ifx_fih.h"
+#include "ifx_platform_mailbox.h"
 #include "ifx_utils.h"
 #include "tfm_hal_isolation.h"
 #include "tfm_hal_multi_core.h"

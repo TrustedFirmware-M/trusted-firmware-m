@@ -8,19 +8,27 @@
  */
 
 #include <stdint.h>
-#include <stdio.h>
 
 #include "config_tfm.h"
 
 #include "cy_ipc_drv.h"
 #include "ifx_platform_mailbox.h"
 #include "ifx_regions.h"
+#include "ifx_tfm_log_shim.h"
 #ifdef TFM_FIH_PROFILE_ON
 #include "fih.h"
 #include "psa/service.h" /* Used for psa_panic */
 #endif /* TFM_FIH_PROFILE_ON */
 #include "tfm_hal_multi_core.h"
 #include "tfm_peripherals_def.h"
+
+#if DOMAIN_S
+#include "tfm_log.h"
+#define IFX_MC55_BOOT_LOG(...) INFO_RAW(__VA_ARGS__)
+#else
+#include <stdio.h>
+#define IFX_MC55_BOOT_LOG(...) printf(__VA_ARGS__)
+#endif
 
 #define IFX_IS_REGION_IN_ITCM_MEMORY(base, size)   \
             (ifx_is_region_inside_other(base, base + size, \
@@ -49,7 +57,7 @@
 #if (DOMAIN_S) || (IFX_MTB_MAILBOX && IFX_NS_INTERFACE_TZ)
 void tfm_hal_boot_ns_cpu(uintptr_t start_addr)
 {
-    printf("Starting Cortex-M55 at 0x%x\r\n", start_addr);
+    IFX_MC55_BOOT_LOG("Starting Cortex-M55 at 0x%08x\n", (unsigned int)start_addr);
     Cy_SysEnableCM55(IFX_MXCM55, start_addr, CY_SYS_CORE_WAIT_INFINITE);
 
 #ifdef TFM_FIH_PROFILE_ON

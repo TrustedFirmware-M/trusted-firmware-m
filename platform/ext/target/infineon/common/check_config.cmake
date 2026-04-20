@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023-2025 Cypress Semiconductor Corporation (an Infineon company)
+# Copyright (c) 2023-2026 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -41,9 +41,6 @@ tfm_invalid_config(IFX_MTB_SRF AND NOT IFX_EXT_SP)
 
 # Masked and unmasked non-secure IRQ tests are mutually exclusive
 tfm_invalid_config(TEST_NS_IFX_IRQ_TEST_MASKED AND TEST_NS_IFX_IRQ_TEST_UNMASKED)
-
-# Mailbox partition is not supported for Infineon platforms
-tfm_invalid_config(TFM_PARTITION_NS_AGENT_MAILBOX)
 
 # Mailbox tests can not be executed when mailbox partition is disabled
 tfm_invalid_config(TEST_NS_IFX_MAILBOX AND NOT TFM_PARTITION_NS_AGENT_MAILBOX)
