@@ -15,7 +15,6 @@ set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 target_include_directories(platform_region_defs
     INTERFACE
         partition
-        cc312
 )
 
 target_compile_definitions(platform_region_defs
@@ -116,8 +115,12 @@ target_include_directories(platform_s
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/n25q256a
         ${PLATFORM_DIR}/ext/target/arm/drivers/flash/sst26vf064b
         ${PLATFORM_DIR}/ext/target/arm/drivers/usart/pl011
+        ./cc3xx
+        ./runtime/cc3xx
+        ${CC3XX_DRIVER_PATH}/low_level_driver/include
+        ${CC3XX_DRIVER_PATH}/cc3xx/common
+
     INTERFACE
-        cc312
         bootloader
         io
         partition
@@ -213,8 +216,8 @@ target_sources(platform_bl1_1
         ./bootloader/mcuboot/tfm_mcuboot_fwu.c
         ./bootloader/mcuboot/uefi_fmp.c
         $<$<NOT:$<BOOL:${PLATFORM_DEFAULT_OTP}>>:${PLATFORM_DIR}/ext/accelerator/cc312/otp_cc312.c>
-        ${CMAKE_CURRENT_SOURCE_DIR}/bl1/cc312_rom_crypto.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/bl1/cc312_rom_random.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/bl1/cc3xx/cc3xx_rom_crypto.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/bl1/cc3xx/cc3xx_rom_random.c
 )
 
 target_compile_definitions(platform_bl1_1
@@ -250,6 +253,8 @@ target_include_directories(platform_bl1_1_interface
         ${PLATFORM_DIR}/ext/accelerator/cc312/
         ${CMAKE_SOURCE_DIR}/lib/fih/inc/
         ${CMAKE_SOURCE_DIR}/lib/gpt/inc # for GPT_ENTRY_NAME_LENGTH
+        ./cc3xx
+        ./bl1/cc3xx
 )
 
 target_link_libraries(platform_bl1_1
@@ -444,7 +449,8 @@ target_include_directories(platform_bl2
         ${PLATFORM_DIR}/ext/target/arm/drivers/usart/pl011
         .
     INTERFACE
-        cc312
+        ./cc3xx
+        bl2/cc3xx
     PRIVATE
         CMSIS_Driver/Config
         Device/Config
