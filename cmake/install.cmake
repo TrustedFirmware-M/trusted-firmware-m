@@ -100,26 +100,28 @@ if (TFM_PARTITION_INTERNAL_TRUSTED_STORAGE)
 endif()
 
 if (TFM_PARTITION_CRYPTO)
-    install(FILES       ${INTERFACE_INC_DIR}/psa/README.rst
-                        ${INTERFACE_INC_DIR}/psa/crypto.h
-                        ${INTERFACE_INC_DIR}/psa/crypto_compat.h
-                        ${INTERFACE_INC_DIR}/psa/crypto_driver_common.h
-                        ${INTERFACE_INC_DIR}/psa/crypto_driver_contexts_composites.h
-                        ${INTERFACE_INC_DIR}/psa/crypto_driver_contexts_key_derivation.h
-                        ${INTERFACE_INC_DIR}/psa/crypto_driver_contexts_primitives.h
-                        ${INTERFACE_INC_DIR}/psa/crypto_driver_random.h
-                        ${INTERFACE_INC_DIR}/psa/crypto_extra.h
-                        ${INTERFACE_INC_DIR}/psa/crypto_platform.h
-                        ${INTERFACE_INC_DIR}/psa/crypto_sizes.h
-                        ${INTERFACE_INC_DIR}/psa/crypto_struct.h
-                        ${INTERFACE_INC_DIR}/psa/crypto_types.h
-                        ${INTERFACE_INC_DIR}/psa/crypto_values.h
-            DESTINATION ${INSTALL_INTERFACE_INC_DIR}/psa)
+    if (TFM_INSTALL_TF_PSA_CRYPTO_HEADERS)
+        install(FILES       ${INTERFACE_INC_DIR}/psa/README.rst
+                            ${INTERFACE_INC_DIR}/psa/crypto.h
+                            ${INTERFACE_INC_DIR}/psa/crypto_compat.h
+                            ${INTERFACE_INC_DIR}/psa/crypto_driver_common.h
+                            ${INTERFACE_INC_DIR}/psa/crypto_driver_contexts_composites.h
+                            ${INTERFACE_INC_DIR}/psa/crypto_driver_contexts_key_derivation.h
+                            ${INTERFACE_INC_DIR}/psa/crypto_driver_contexts_primitives.h
+                            ${INTERFACE_INC_DIR}/psa/crypto_driver_random.h
+                            ${INTERFACE_INC_DIR}/psa/crypto_extra.h
+                            ${INTERFACE_INC_DIR}/psa/crypto_platform.h
+                            ${INTERFACE_INC_DIR}/psa/crypto_sizes.h
+                            ${INTERFACE_INC_DIR}/psa/crypto_struct.h
+                            ${INTERFACE_INC_DIR}/psa/crypto_types.h
+                            ${INTERFACE_INC_DIR}/psa/crypto_values.h
+                DESTINATION ${INSTALL_INTERFACE_INC_DIR}/psa)
+        install(DIRECTORY   ${INTERFACE_INC_DIR}/mbedtls
+                DESTINATION ${INSTALL_INTERFACE_INC_DIR})
+        install(DIRECTORY   ${INTERFACE_INC_DIR}/tf-psa-crypto
+                DESTINATION ${INSTALL_INTERFACE_INC_DIR})
+    endif()
     install(FILES       ${INTERFACE_INC_DIR}/tfm_crypto_defs.h
-            DESTINATION ${INSTALL_INTERFACE_INC_DIR})
-    install(DIRECTORY   ${INTERFACE_INC_DIR}/mbedtls
-            DESTINATION ${INSTALL_INTERFACE_INC_DIR})
-    install(DIRECTORY   ${INTERFACE_INC_DIR}/tf-psa-crypto
             DESTINATION ${INSTALL_INTERFACE_INC_DIR})
 endif()
 
@@ -320,16 +322,16 @@ install(FILES
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/include)
 
 # Install config files and remap psa_crypto_config definitions to point to them
-install(FILES       ${TFM_TF_PSA_CRYPTO_CONFIG_PATH}
-        RENAME      tf_psa_crypto_config.h
-        DESTINATION ${INSTALL_INTERFACE_INC_DIR}/mbedtls)
-
-# Install Crypto configuration for non-secure interface
-if (MBEDTLS_PSA_CRYPTO_PLATFORM_FILE)
-    install(FILES       ${MBEDTLS_PSA_CRYPTO_PLATFORM_FILE}
-            RENAME      tfm_mbedtls_psa_crypto_platform.h
+if (TFM_INSTALL_TF_PSA_CRYPTO_HEADERS)
+    install(FILES       ${TFM_TF_PSA_CRYPTO_CONFIG_PATH}
+            RENAME      tf_psa_crypto_config.h
             DESTINATION ${INSTALL_INTERFACE_INC_DIR}/mbedtls)
 endif()
+
+# Install Crypto configuration for non-secure interface
+install(FILES       ${MBEDTLS_PSA_CRYPTO_PLATFORM_FILE}
+        RENAME      tfm_mbedtls_psa_crypto_platform.h
+        DESTINATION ${INSTALL_INTERFACE_INC_DIR}/mbedtls)
 
 target_compile_definitions(psa_crypto_config
         INTERFACE

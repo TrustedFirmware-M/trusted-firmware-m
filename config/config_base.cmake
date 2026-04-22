@@ -198,6 +198,8 @@ set(TFM_TF_PSA_CRYPTO_CONFIG_PATH
 set(TFM_TF_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH "" CACHE FILEPATH  "Config to append to standard TF-PSA-Crypto config, used by platforms to configure cryptographic feature support")
 set(MBEDTLS_PSA_CRYPTO_PLATFORM_FILE             "" CACHE PATH      "Platform specific MbedTLS PSA Crypto definitions file.")
 
+set(TFM_INSTALL_TF_PSA_CRYPTO_HEADERS    ON         CACHE BOOL      "Install TF-PSA-Crypto include files to interface directory")
+
 ########################## TF-M performance ####################################
 
 set(CONFIG_TFM_ENABLE_PROFILING OFF CACHE BOOL "Enable profiling for TF-M")
