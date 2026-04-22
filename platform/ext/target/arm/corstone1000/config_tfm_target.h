@@ -39,6 +39,6 @@
  * determine the PSP and PSPLIM during the SFN backend initialization. It has to
  * be increased because a stackoverflow could happen with the default 0x800 value.
  */
-#define NS_AGENT_MAILBOX_STACK_SIZE 0x1000
+#define NS_AGENT_MAILBOX_STACK_SIZE 0x2000
 
 #endif /* __CONFIG_TFM_TARGET_H__ */
