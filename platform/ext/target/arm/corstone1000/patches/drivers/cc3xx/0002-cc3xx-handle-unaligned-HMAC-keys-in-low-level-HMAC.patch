@@ -1,0 +1,78 @@
+From 6bc9a7cfe754b771ca5027a0e5fcad50919fe5cc Mon Sep 17 00:00:00 2001
+From: Hugues KAMBA MPIANA <hugueskambampiana@arm.com>
+Date: Fri, 8 May 2026 10:17:04 +0100
+Subject: [PATCH 2/3] cc3xx: handle unaligned HMAC keys in low-level HMAC
+
+Some HMAC callers provide short key buffers that are only byte aligned,
+for example during protected-storage HKDF setup. The low-level HMAC
+implementation currently routes those short keys through
+cc3xx_dpa_hardened_word_copy(), which assumes 32-bit aligned endpoints
+and can fault on Corstone-1000 once the generic helper is restricted
+back to aligned-only use.
+
+Preserve the hardened word copy for aligned whole words, but fall back to
+byte copies for unaligned or trailing key bytes in the low-level HMAC
+key copy paths.
+
+Signed-off-by: Hugues KAMBA MPIANA <hugueskambampiana@arm.com>
+---
+ .../cc3xx/low_level_driver/src/cc3xx_hmac.c   | 29 ++++++++++++++++---
+ 1 file changed, 25 insertions(+), 4 deletions(-)
+
+diff --git a/vendor/arm/cc3xx/low_level_driver/src/cc3xx_hmac.c b/vendor/arm/cc3xx/low_level_driver/src/cc3xx_hmac.c
+index 898b456..c2e60ff 100644
+--- a/vendor/arm/cc3xx/low_level_driver/src/cc3xx_hmac.c
++++ b/vendor/arm/cc3xx/low_level_driver/src/cc3xx_hmac.c
+@@ -14,6 +14,29 @@
+ #define IPAD_PATTERN (0x36363636UL)
+ #define OPAD_PATTERN (0x5c5c5c5cUL)
+ 
++/* Preserve the hardened word copy for aligned key material, but allow
++ * callers to provide byte-aligned HMAC keys as well.
++ */
++static void copy_hmac_key(uint32_t *dst, const uint8_t *key, size_t key_size)
++{
++    size_t word_count = key_size / sizeof(uint32_t);
++    size_t trailing_byte_count = key_size % sizeof(uint32_t);
++
++    if ((word_count != 0U) &&
++        ((((uintptr_t)dst | (uintptr_t)key) &
++          (sizeof(uint32_t) - 1U)) == 0U)) {
++        cc3xx_dpa_hardened_word_copy(dst, (const uint32_t *)key, word_count);
++    } else if (word_count != 0U) {
++        memcpy(dst, key, word_count * sizeof(uint32_t));
++    }
++
++    if (trailing_byte_count != 0U) {
++        memcpy(((uint8_t *)dst) + (word_count * sizeof(uint32_t)),
++               key + (word_count * sizeof(uint32_t)),
++               trailing_byte_count);
++    }
++}
++
+ cc3xx_err_t cc3xx_lowlevel_hmac_compute(
+     size_t tag_len,
+     const uint8_t *key,
+@@ -49,8 +72,7 @@ cc3xx_err_t cc3xx_lowlevel_hmac_compute(
+ 
+         cc3xx_lowlevel_hash_finish(block, CC3XX_HASH_LENGTH(alg));
+     } else if (key_size) {
+-        assert((key_size & 0b11) == 0);
+-        cc3xx_dpa_hardened_word_copy(block, (uint32_t *)key, key_size / sizeof(uint32_t));
++        copy_hmac_key(block, key, key_size);
+     }
+ 
+     /* H(K ^ ipad) */
+@@ -137,8 +159,7 @@ cc3xx_err_t cc3xx_lowlevel_hmac_set_key(
+ 
+         cc3xx_lowlevel_hash_finish(state->key, CC3XX_HASH_LENGTH(alg));
+     } else if (key_size) {
+-        assert((key_size & 0b11) == 0);
+-        cc3xx_dpa_hardened_word_copy(state->key, (uint32_t *)key, key_size / sizeof(uint32_t));
++        copy_hmac_key(state->key, key, key_size);
+     }
+ 
+     /* H(K ^ ipad) */
+-- 
+2.34.1
+

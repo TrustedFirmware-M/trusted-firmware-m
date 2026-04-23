@@ -1,0 +1,237 @@
+From 75b37e5d22c7b0c5f7b00ffcef6df51f26f63b3f Mon Sep 17 00:00:00 2001
+From: Hugues KAMBA MPIANA <hugueskambampiana@arm.com>
+Date: Fri, 8 May 2026 11:32:41 +0100
+Subject: [PATCH 3/3] cc3xx: return NOT_SUPPORTED for runtime transparent ops
+
+Runtime CC3XX builds should keep opaque-key support on the driver path,
+but let transparent asymmetric, key generation, key agreement, public
+key export and multipart AEAD setup fall back through the PSA core.
+
+Add a small helper that returns PSA_ERROR_NOT_SUPPORTED for those
+transparent runtime operations while still allowing opaque CC3XX keys.
+
+Signed-off-by: Hugues KAMBA MPIANA <hugueskambampiana@arm.com>
+---
+ .../include/cc3xx_psa_runtime_fallback.h      | 42 +++++++++++++++++++
+ .../cc3xx/psa_driver_api/src/cc3xx_psa_aead.c | 13 ++++++
+ .../src/cc3xx_psa_asymmetric_signature.c      | 25 +++++++++++
+ .../src/cc3xx_psa_key_agreement.c             |  6 +++
+ .../src/cc3xx_psa_key_generation.c            | 13 ++++++
+ 5 files changed, 99 insertions(+)
+ create mode 100644 vendor/arm/cc3xx/psa_driver_api/include/cc3xx_psa_runtime_fallback.h
+
+diff --git a/vendor/arm/cc3xx/psa_driver_api/include/cc3xx_psa_runtime_fallback.h b/vendor/arm/cc3xx/psa_driver_api/include/cc3xx_psa_runtime_fallback.h
+new file mode 100644
+index 0000000..8d3a807
+--- /dev/null
++++ b/vendor/arm/cc3xx/psa_driver_api/include/cc3xx_psa_runtime_fallback.h
+@@ -0,0 +1,42 @@
++/*
++ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
++ *
++ * SPDX-License-Identifier: BSD-3-Clause
++ *
++ */
++
++#ifndef CC3XX_PSA_RUNTIME_FALLBACK_H
++#define CC3XX_PSA_RUNTIME_FALLBACK_H
++
++#include "psa/crypto.h"
++
++#if defined(CC3XX_CRYPTO_OPAQUE_KEYS)
++#include "cc3xx_opaque_keys.h"
++#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
++
++/* Runtime builds keep these operations on the software path for
++ * transparent keys while still allowing opaque CC3XX keys.
++ */
++static inline psa_status_t cc3xx_runtime_require_opaque_key(
++        const psa_key_attributes_t *attributes)
++{
++#if defined(CC3XX_RUNTIME_ENABLED)
++    psa_key_location_t location =
++        PSA_KEY_LIFETIME_GET_LOCATION(psa_get_key_lifetime(attributes));
++
++#if defined(CC3XX_CRYPTO_OPAQUE_KEYS)
++    if (location == CC3XX_OPAQUE_KEY_LOCATION) {
++        return PSA_SUCCESS;
++    }
++#else
++    (void)location;
++#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
++
++    return PSA_ERROR_NOT_SUPPORTED;
++#else
++    (void)attributes;
++    return PSA_SUCCESS;
++#endif /* CC3XX_RUNTIME_ENABLED */
++}
++
++#endif /* CC3XX_PSA_RUNTIME_FALLBACK_H */
+diff --git a/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_aead.c b/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_aead.c
+index d594645..995137b 100644
+--- a/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_aead.c
++++ b/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_aead.c
+@@ -15,6 +15,7 @@
+ 
+ #include "cc3xx_psa_aead.h"
+ #include "cc3xx_psa_cipher.h"
++#include "cc3xx_psa_runtime_fallback.h"
+ #include "cc3xx_crypto_primitives_private.h"
+ #include "cc3xx_misc.h"
+ #include "cc3xx_stdlib.h"
+@@ -339,6 +340,12 @@ psa_status_t cc3xx_aead_encrypt_setup(
+         const uint8_t *key_buffer, size_t key_buffer_size,
+         psa_algorithm_t alg)
+ {
++    psa_status_t status = cc3xx_runtime_require_opaque_key(attributes);
++
++    if (status != PSA_SUCCESS) {
++        return status;
++    }
++
+     return cc3xx_internal_cipher_setup_init(operation,
+                       attributes,
+                       key_buffer, key_buffer_size,
+@@ -351,6 +358,12 @@ psa_status_t cc3xx_aead_decrypt_setup(
+         const uint8_t *key_buffer, size_t key_buffer_size,
+         psa_algorithm_t alg)
+ {
++    psa_status_t status = cc3xx_runtime_require_opaque_key(attributes);
++
++    if (status != PSA_SUCCESS) {
++        return status;
++    }
++
+     return cc3xx_internal_cipher_setup_init(operation,
+                         attributes,
+                         key_buffer, key_buffer_size,
+diff --git a/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_asymmetric_signature.c b/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_asymmetric_signature.c
+index 4d06f6d..b6f95df 100644
+--- a/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_asymmetric_signature.c
++++ b/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_asymmetric_signature.c
+@@ -14,6 +14,7 @@
+  */
+ 
+ #include "cc3xx_psa_asymmetric_signature.h"
++#include "cc3xx_psa_runtime_fallback.h"
+ #include "cc3xx_psa_hash.h"
+ #include "cc3xx_psa_key_generation.h"
+ #include "cc3xx_misc.h"
+@@ -237,6 +238,12 @@ psa_status_t cc3xx_sign_hash(const psa_key_attributes_t *attributes,
+     CC3XX_ASSERT(signature != NULL);
+     CC3XX_ASSERT(signature_length != NULL);
+ 
++    psa_status_t status = cc3xx_runtime_require_opaque_key(attributes);
++
++    if (status != PSA_SUCCESS) {
++        return status;
++    }
++
+     psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
+     psa_key_type_t key_type = psa_get_key_type(attributes);
+     psa_key_bits_t key_bits = psa_get_key_bits(attributes);
+@@ -299,6 +306,12 @@ psa_status_t cc3xx_verify_hash(const psa_key_attributes_t *attributes,
+     CC3XX_ASSERT(hash != NULL);
+     CC3XX_ASSERT(signature != NULL);
+ 
++    psa_status_t status = cc3xx_runtime_require_opaque_key(attributes);
++
++    if (status != PSA_SUCCESS) {
++        return status;
++    }
++
+     psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
+     psa_key_type_t key_type = psa_get_key_type(attributes);
+     psa_key_bits_t key_bits = psa_get_key_bits(attributes);
+@@ -359,6 +372,12 @@ psa_status_t cc3xx_sign_message(const psa_key_attributes_t *attributes,
+     CC3XX_ASSERT(signature != NULL);
+     CC3XX_ASSERT(signature_length != NULL);
+ 
++    psa_status_t status = cc3xx_runtime_require_opaque_key(attributes);
++
++    if (status != PSA_SUCCESS) {
++        return status;
++    }
++
+     psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
+     psa_key_type_t key_type = psa_get_key_type(attributes);
+     psa_key_bits_t key_bits = psa_get_key_bits(attributes);
+@@ -414,6 +433,12 @@ psa_status_t cc3xx_verify_message(const psa_key_attributes_t *attributes,
+     CC3XX_ASSERT(input != NULL);
+     CC3XX_ASSERT(signature != NULL);
+ 
++    psa_status_t status = cc3xx_runtime_require_opaque_key(attributes);
++
++    if (status != PSA_SUCCESS) {
++        return status;
++    }
++
+     psa_algorithm_t hash_alg = PSA_ALG_SIGN_GET_HASH(alg);
+     psa_key_type_t key_type = psa_get_key_type(attributes);
+     psa_key_bits_t key_bits = psa_get_key_bits(attributes);
+diff --git a/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_key_agreement.c b/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_key_agreement.c
+index f49bb47..8f4cfea 100644
+--- a/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_key_agreement.c
++++ b/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_key_agreement.c
+@@ -16,6 +16,7 @@
+ #include <string.h>
+ 
+ #include "cc3xx_psa_key_agreement.h"
++#include "cc3xx_psa_runtime_fallback.h"
+ #include "cc3xx_misc.h"
+ 
+ #include "cc3xx_stdlib.h"
+@@ -49,6 +50,11 @@ psa_status_t cc3xx_key_agreement(
+     CC3XX_ASSERT(output_length != NULL);
+ 
+     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
++    psa_status_t opaque_status = cc3xx_runtime_require_opaque_key(attributes);
++
++    if (opaque_status != PSA_SUCCESS) {
++        return opaque_status;
++    }
+ 
+     /* Initialize output_length */
+     *output_length = 0;
+diff --git a/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_key_generation.c b/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_key_generation.c
+index e23adff..9824c91 100644
+--- a/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_key_generation.c
++++ b/vendor/arm/cc3xx/psa_driver_api/src/cc3xx_psa_key_generation.c
+@@ -16,6 +16,7 @@
+ #include <string.h>
+ 
+ #include "cc3xx_psa_key_generation.h"
++#include "cc3xx_psa_runtime_fallback.h"
+ #include "cc3xx_rng.h"
+ #include "cc3xx_misc.h"
+ 
+@@ -44,6 +45,12 @@ psa_status_t cc3xx_generate_key(const psa_key_attributes_t *attributes,
+     CC3XX_ASSERT(key_buffer != NULL);
+     CC3XX_ASSERT(key_buffer_length != NULL);
+ 
++    psa_status_t status = cc3xx_runtime_require_opaque_key(attributes);
++
++    if (status != PSA_SUCCESS) {
++        return status;
++    }
++
+     psa_key_type_t key_type = psa_get_key_type(attributes);
+     psa_key_bits_t key_bits = psa_get_key_bits(attributes);
+ 
+@@ -110,6 +117,12 @@ psa_status_t cc3xx_export_public_key(const psa_key_attributes_t *attributes,
+     CC3XX_ASSERT(data != NULL);
+     CC3XX_ASSERT(data_length != NULL);
+ 
++    psa_status_t status = cc3xx_runtime_require_opaque_key(attributes);
++
++    if (status != PSA_SUCCESS) {
++        return status;
++    }
++
+     psa_key_type_t key_type = psa_get_key_type(attributes);
+ 
+     /* Initialise the return value to 0 */
+-- 
+2.34.1
+

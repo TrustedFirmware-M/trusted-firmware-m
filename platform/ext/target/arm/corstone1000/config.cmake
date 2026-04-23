@@ -23,16 +23,21 @@ set(BL2                                 ON         CACHE BOOL     "Whether to bu
 set(BL2_TRAILER_SIZE                    0x800      CACHE STRING   "Trailer size")
 set(DEFAULT_MCUBOOT_FLASH_MAP           OFF        CACHE BOOL     "Whether to use the default flash map defined by TF-M project")
 set(MCUBOOT_UPGRADE_STRATEGY            "RAM_LOAD" CACHE STRING   "Upgrade strategy when multiple boot images are loaded")
-set(MCUBOOT_SECURITY_COUNTER_S          "1"      CACHE STRING    "Security counter for S image. auto sets it to IMAGE_VERSION_S")
+set(MCUBOOT_SECURITY_COUNTER_S          "1"        CACHE STRING   "Security counter for S image. auto sets it to IMAGE_VERSION_S")
 
 set(MCUBOOT_IMAGE_NUMBER                2          CACHE STRING   "Whether to combine S and NS into either 1 image, or sign each separately")
 set(TFM_ISOLATION_LEVEL                 2          CACHE STRING   "Isolation level")
 
 set(TFM_PLAT_SPECIFIC_MULTI_CORE_COMM   ON         CACHE BOOL     "Whether to use a platform specific inter core communication instead of mailbox in dual-cpu topology")
 
+set(PLATFORM_TF_PSA_CRYPTO_PATCH_DIR             ${CMAKE_CURRENT_LIST_DIR}/patches/lib/tf-psa-crypto CACHE PATH  "Path to local folder which contains platform-specific patches for the tf-psa-crypto library")
+set(PLATFORM_TF_PSA_CRYPTO_DRIVERS_PATCH_DIR     ${CMAKE_CURRENT_LIST_DIR}/patches/drivers/cc3xx     CACHE PATH  "Path to local folder which contains platform-specific patches for tf-psa-crypto-drivers")
+
+
 set(CRYPTO_HW_ACCELERATOR               ON         CACHE BOOL     "Whether to enable the crypto hardware accelerator on supported platforms")
-set(CC3XX_RUNTIME_ENABLED               OFF        CACHE BOOL     "Whether the CC3XX driver is used at runtime")
+set(CC3XX_RUNTIME_ENABLED               ON         CACHE BOOL     "Whether the CC3XX driver is used at runtime")
 set(CC312_LEGACY_DRIVER_API_ENABLED     OFF        CACHE BOOL     "Whether the legacy mbedtls accelerator API is used")
+
 
 set(TFM_CRYPTO_TEST_ALG_CFB             OFF        CACHE BOOL     "Test CFB cryptography mode" FORCE)
 set(NS                                  FALSE      CACHE BOOL     "Whether to build NS app")
