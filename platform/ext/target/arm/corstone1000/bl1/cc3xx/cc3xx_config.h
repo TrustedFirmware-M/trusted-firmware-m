@@ -32,7 +32,7 @@
 #define CC3XX_CONFIG_AES_CTR_ENABLE
 
 /* Whether the AES ECB support is enabled */
-#define CC3XX_CONFIG_AES_ECB_ENABLE
+/* #define CC3XX_CONFIG_AES_ECB_ENABLE */
 
 /* Whether the AES CBC support is enabled */
 /* #define CC3XX_CONFIG_AES_CBC_ENABLE */
@@ -49,7 +49,7 @@
 
 /* Whether the AES tunnelling support is enabled. Without this, running CCM mode
  * AES will instead only run the CBC_MAC operation with the CCM IVs, with the
- * CTR decryption having to be done seperately. */
+ * CTR decryption having to be done separately. */
 #define CC3XX_CONFIG_AES_TUNNELLING_ENABLE
 
 /* Whether CHACHA is enabled */
@@ -159,7 +159,7 @@
  * barrett tags are required for modular reduction. If disabled, this may
  * decrease code size.
  */
-#define CC3XX_CONFIG_PKA_CALC_NP_ENABLE
+/* #define CC3XX_CONFIG_PKA_CALC_NP_ENABLE */
 
 /* Whether PKA operations will be inlined to increase performance at the cost of
  * code size
@@ -177,21 +177,21 @@
 /* #define CC3XX_CONFIG_EC_CURVE_TYPE_TWISTED_EDWARDS_ENABLE */
 
 /* Whether various EC curves are enabled */
-#define CC3XX_CONFIG_EC_CURVE_SECP_192_R1_ENABLE
-#define CC3XX_CONFIG_EC_CURVE_SECP_224_R1_ENABLE
+/* #define CC3XX_CONFIG_EC_CURVE_SECP_192_R1_ENABLE */
+/* #define CC3XX_CONFIG_EC_CURVE_SECP_224_R1_ENABLE */
 #define CC3XX_CONFIG_EC_CURVE_SECP_256_R1_ENABLE
 #define CC3XX_CONFIG_EC_CURVE_SECP_384_R1_ENABLE
-#define CC3XX_CONFIG_EC_CURVE_SECP_521_R1_ENABLE
-#define CC3XX_CONFIG_EC_CURVE_SECP_192_K1_ENABLE
-#define CC3XX_CONFIG_EC_CURVE_SECP_224_K1_ENABLE
-#define CC3XX_CONFIG_EC_CURVE_SECP_256_K1_ENABLE
-#define CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_192_R1_ENABLE
-#define CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_224_R1_ENABLE
-#define CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_256_R1_ENABLE
-#define CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_320_R1_ENABLE
-#define CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_384_R1_ENABLE
-#define CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_512_R1_ENABLE
-#define CC3XX_CONFIG_EC_CURVE_FRP_256_V1_ENABLE
+/* #define CC3XX_CONFIG_EC_CURVE_SECP_521_R1_ENABLE */
+/* #define CC3XX_CONFIG_EC_CURVE_SECP_192_K1_ENABLE */
+/* #define CC3XX_CONFIG_EC_CURVE_SECP_224_K1_ENABLE */
+/* #define CC3XX_CONFIG_EC_CURVE_SECP_256_K1_ENABLE */
+/* #define CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_192_R1_ENABLE */
+/* #define CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_224_R1_ENABLE */
+/* #define CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_256_R1_ENABLE */
+/* #define CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_320_R1_ENABLE */
+/* #define CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_384_R1_ENABLE */
+/* #define CC3XX_CONFIG_EC_CURVE_BRAINPOOLP_512_R1_ENABLE */
+/* #define CC3XX_CONFIG_EC_CURVE_FRP_256_V1_ENABLE */
 
 /* #define CC3XX_CONFIG_EC_CURVE_25519_ENABLE */
 /* #define CC3XX_CONFIG_EC_CURVE_448_ENABLE */
@@ -223,7 +223,7 @@
 /* Whether an external secure word copying function (for copying keys etc) will
  * be provided by the platform
  */
-#define CC3XX_CONFIG_STDLIB_EXTERNAL_SECURE_WORD_COPY
+/* #define CC3XX_CONFIG_STDLIB_EXTERNAL_SECURE_WORD_COPY */
 
 #ifndef CC3XX_CONFIG_STDLIB_LFSR_MAX_ATTEMPTS
 #define CC3XX_CONFIG_STDLIB_LFSR_MAX_ATTEMPTS 128
