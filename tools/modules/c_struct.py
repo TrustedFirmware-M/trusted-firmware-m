@@ -497,7 +497,9 @@ class C_variable:
         return string
 
 class C_union:
-    def __init__(self, name="", c_type="", fields=[], packed=False):
+    def __init__(self, name="", c_type="", fields=None, packed=False):
+        if fields is None:
+            fields = []
         self.name = name
         self.c_type = c_type.replace("union ", "")
         self._fields = fields
@@ -538,7 +540,7 @@ class C_union:
         self._ensure_consistency()
 
     def set_value(self, field_path, value):
-        field.set_value(self.get_field(field_path))
+        self.get_field(field_path).set_value(value)
         self._ensure_consistency()
 
     def get_value(self, field_path):
@@ -572,7 +574,9 @@ class C_union:
         return _c_struct_or_union_str(self, "union")
 
 class C_struct:
-    def __init__(self, name="", c_type="", fields=[], packed=False):
+    def __init__(self, name="", c_type="", fields=None, packed=False):
+        if fields is None:
+            fields = []
         self.name = name
         self.c_type = c_type.replace("struct ", "")
         self._fields = fields
