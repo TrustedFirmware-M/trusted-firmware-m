@@ -341,7 +341,7 @@ void test_gpt_init_should_overwriteOldGpt(void)
     gpt_uninit();
 
     /* Use a different disk GUID */
-    const struct efi_guid_t new_guid = TEST_GPT_VALID_GUID(1, 1, 3, 4, 5, 6 ,7 ,8, 9, 10, 11);
+    const struct efi_guid_t new_guid = TEST_GPT_VALID_GUID(1, 1, 3, 4, 5, 6, 7 ,8, 9, 10, 11);
     test_header.disk_guid = new_guid;
 
     setup_valid_gpt();
@@ -754,10 +754,12 @@ void test_gpt_entry_duplicate_should_DuplicateOldEntry(void)
      * It doesn't matter what the data is
      */
     char unused_read_data = 'X';
+
     register_mocked_read(&unused_read_data, sizeof(unused_read_data));
 
     /* Mock out the call to create a new GUID */
     struct efi_guid_t expected_guid = TEST_GPT_VALID_GUID(5, 5, 5, 5, 5, 6, 7, 8, 9, 10, 11);
+
     efi_guid_generate_random_ExpectAnyArgsAndReturn(PSA_SUCCESS);
     efi_guid_generate_random_ReturnThruPtr_guid(&expected_guid);
 
@@ -766,6 +768,7 @@ void test_gpt_entry_duplicate_should_DuplicateOldEntry(void)
      * pointless
      */
     struct efi_guid_t new_guid = TEST_GPT_DUMMY_GUID;
+
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_entry_duplicate(
                 &old_guid,
                 TEST_GPT_DISK_FREE_SPACE_START,
@@ -789,10 +792,12 @@ void test_gpt_entry_duplicate_should_createNewEntryNextToLastEntry(void)
      * It doesn't matter what the data is
      */
     char unused_read_data = 'X';
+
     register_mocked_read(&unused_read_data, sizeof(unused_read_data));
 
     /* Mock out the call to create a new GUID */
     struct efi_guid_t expected_guid = TEST_GPT_VALID_GUID(5, 5, 5, 5, 5, 6, 7, 8, 9, 10, 11);
+
     efi_guid_generate_random_ExpectAnyArgsAndReturn(PSA_SUCCESS);
     efi_guid_generate_random_ReturnThruPtr_guid(&expected_guid);
 
@@ -801,6 +806,7 @@ void test_gpt_entry_duplicate_should_createNewEntryNextToLastEntry(void)
      * pointless
      */
     struct efi_guid_t new_guid = TEST_GPT_DUMMY_GUID;
+
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_entry_duplicate(
                 &old_guid,
                 0,
@@ -814,15 +820,19 @@ void test_gpt_entry_duplicate_should_failToCreateEntryWhenLowestFreeLbaDoesNotHa
      * the last partition to consume over half of the disk, such that duplicating
      * it won't be possible.
      */
-    struct gpt_entry_t *old_entry = &(test_partition_array[TEST_DEFAULT_NUM_PARTITIONS - 1]);
-    old_entry->end = TEST_GPT_THIRD_PARTITION_START + (TEST_DISK_NUM_BLOCKS / 2 ) + 1;
+    struct gpt_entry_t *old_entry =
+        &(test_partition_array[TEST_DEFAULT_NUM_PARTITIONS - 1]);
+
+    old_entry->end = TEST_GPT_THIRD_PARTITION_START + (TEST_DISK_NUM_BLOCKS / 2) + 1;
     struct efi_guid_t old_guid = old_entry->guid;
+
     setup_valid_gpt();
 
     /* Each entry will be read to find the entry to be duplicated. */
     register_mocked_read(&test_partition_array, sizeof(test_partition_array));
 
     struct efi_guid_t new_guid;
+
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_duplicate(
                 &old_guid,
                 0,
@@ -838,6 +848,7 @@ void test_gpt_entry_duplicate_should_failWhenEntryNotExisting(void)
     register_mocked_read(&test_partition_array, sizeof(test_partition_array));
 
     struct efi_guid_t new_guid;
+
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_duplicate(
                 &old_guid,
                 TEST_GPT_DISK_FREE_SPACE_START,
@@ -911,6 +922,7 @@ void test_gpt_entry_duplicate_no_copy_should_DuplicateOldEntry(void)
 
     /* Mock out the call to create a new GUID */
     struct efi_guid_t expected_guid = TEST_GPT_VALID_GUID(5, 5, 5, 5, 5, 6, 7, 8, 9, 10, 11);
+
     efi_guid_generate_random_ExpectAnyArgsAndReturn(PSA_SUCCESS);
     efi_guid_generate_random_ReturnThruPtr_guid(&expected_guid);
 
@@ -919,6 +931,7 @@ void test_gpt_entry_duplicate_no_copy_should_DuplicateOldEntry(void)
      * pointless
      */
     struct efi_guid_t new_guid = TEST_GPT_DUMMY_GUID;
+
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_entry_duplicate_no_copy(
                 &old_guid,
                 TEST_GPT_DISK_FREE_SPACE_START,
@@ -940,6 +953,7 @@ void test_gpt_entry_duplicate_no_copy_should_createNewEntryNextToLastEntry(void)
 
     /* Mock out the call to create a new GUID */
     struct efi_guid_t expected_guid = TEST_GPT_VALID_GUID(5, 5, 5, 5, 5, 6, 7, 8, 9, 10, 11);
+
     efi_guid_generate_random_ExpectAnyArgsAndReturn(PSA_SUCCESS);
     efi_guid_generate_random_ReturnThruPtr_guid(&expected_guid);
 
@@ -948,6 +962,7 @@ void test_gpt_entry_duplicate_no_copy_should_createNewEntryNextToLastEntry(void)
      * pointless
      */
     struct efi_guid_t new_guid = TEST_GPT_DUMMY_GUID;
+
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_entry_duplicate_no_copy(
                 &old_guid,
                 0,
@@ -961,15 +976,18 @@ void test_gpt_entry_duplicate_no_copy_should_failToCreateEntryWhenLowestFreeLbaD
      * the last partition to consume over half of the disk, such that duplicating
      * it won't be possible.
      */
-    struct gpt_entry_t *old_entry = &(test_partition_array[TEST_DEFAULT_NUM_PARTITIONS - 1]);
+    struct gpt_entry_t *old_entry =
+        &(test_partition_array[TEST_DEFAULT_NUM_PARTITIONS - 1]);
     old_entry->end = TEST_GPT_THIRD_PARTITION_START + (TEST_DISK_NUM_BLOCKS / 2) + 1;
     struct efi_guid_t old_guid = old_entry->guid;
+
     setup_valid_gpt();
 
     /* Each entry will be read to find the entry to be duplicated. */
     register_mocked_read(&test_partition_array, sizeof(test_partition_array));
 
     struct efi_guid_t new_guid;
+
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_duplicate_no_copy(
                 &old_guid,
                 0,
@@ -985,6 +1003,7 @@ void test_gpt_entry_duplicate_no_copy_should_failWhenEntryNotExisting(void)
     register_mocked_read(&test_partition_array, sizeof(test_partition_array));
 
     struct efi_guid_t new_guid;
+
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_duplicate_no_copy(
                 &old_guid,
                 TEST_GPT_DISK_FREE_SPACE_START,
@@ -1460,6 +1479,7 @@ void test_gpt_entry_move_no_copy_should_failWhenEntryNotExisting(void)
     register_mocked_read(&test_partition_array, sizeof(test_partition_array));
 
     struct efi_guid_t non_existing = NULL_GUID;
+
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_move_no_copy(
                 &non_existing,
                 TEST_GPT_DISK_FREE_SPACE_START,
@@ -1471,6 +1491,7 @@ void test_gpt_entry_move_no_copy_should_failWhenEndLessThanStart(void)
     setup_valid_gpt();
 
     struct efi_guid_t test_guid = test_partition_array[0].guid;
+
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_move_no_copy(
                 &test_guid,
                 TEST_GPT_DISK_FREE_SPACE_START + 1,
@@ -1485,6 +1506,7 @@ void test_gpt_entry_move_no_copy_should_failWhenLbaOverlapping(void)
     size_t test_index = 1;
     struct gpt_entry_t *test_entry = &(test_partition_array[test_index]);
     struct efi_guid_t test_guid = test_entry->guid;
+
     register_mocked_read(&test_partition_array, sizeof(test_partition_array));
 
     /* Try to move the test entry into the middle of the entry just read.

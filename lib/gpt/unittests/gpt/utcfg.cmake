@@ -29,4 +29,3 @@ list(APPEND MOCK_HEADERS ${TFM_ROOT_DIR}/lib/ext/efi_soft_crc/inc/efi_soft_crc.h
 # Compile-time definitions
 list(APPEND UNIT_TEST_COMPILE_DEFS LOG_LEVEL=LOG_LEVEL_VERBOSE)
 list(APPEND UNIT_TEST_COMPILE_DEFS TFM_GPT_BLOCK_SIZE=512)
-

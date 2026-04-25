@@ -11,6 +11,7 @@
 #include <string.h>
 #include <inttypes.h>
 
+#include "cmsis_compiler.h"
 #include "psa/crypto.h"
 #include "gpt.h"
 #include "gpt_flash.h"
@@ -18,6 +19,10 @@
 #include "efi_guid_structs.h"
 #include "efi_guid.h"
 #include "efi_soft_crc.h"
+
+#ifndef __maybe_unused
+#define __maybe_unused __attribute__((unused))
+#endif
 
 /* This needs to be defined by the platform and is used by the GPT library as
  * the number of bytes in a Logical Block Address (LBA). It also must be at least
@@ -91,7 +96,7 @@ struct mbr_entry_t {
      * minus one
      */
     uint32_t size;
-} __attribute__((packed));
+} __PACKED;
 
 /* MBR. This structure is used both for protective MBR and legacy MBR. The boot
  * code, flash signature and unknown sections are not read because they are
@@ -107,17 +112,17 @@ struct mbr_t {
     struct mbr_entry_t partitions[MBR_NUM_ENTRIES];
     /* 0xAA55 */
     uint16_t sig;
-} __attribute__((packed));
+} __PACKED;
 
 /* A GPT partition entry. */
- struct gpt_entry_t {
+struct gpt_entry_t {
     struct efi_guid_t partition_type;   /* Partition type, defining purpose */
     struct efi_guid_t unique_guid;      /* Unique GUID that defines each partition */
     uint64_t start;                     /* Starting LBA for partition */
     uint64_t end;                       /* Ending LBA for partition */
     uint64_t attr;                      /* Attribute bits */
     char name[GPT_ENTRY_NAME_LENGTH];   /* Human readable name for partition */
-}  __attribute__((packed));
+}  __PACKED;
 
 /* The GPT header. */
 struct gpt_header_t {
@@ -135,7 +140,7 @@ struct gpt_header_t {
     uint32_t num_partitions;        /* Number of partition entries in array */
     uint32_t entry_size;            /* Size of a single partition entry */
     uint32_t array_crc;             /* CRC of partitions array */
-} __attribute__((packed));
+} __PACKED;
 
 /* A GUID partition table in memory. The array is not stored in memory
  * due to its size
@@ -186,12 +191,9 @@ static uint64_t cached_lba = 0;
 static bool write_buffered = false;
 
 /* Helper function prototypes */
-__attribute__((unused))
-static void print_guid(struct efi_guid_t guid);
-__attribute__((unused))
-static void dump_table(const struct gpt_t *table, bool header_only);
-__attribute__((unused))
-static psa_status_t unicode_to_ascii(const char *unicode, char *ascii);
+static __maybe_unused void print_guid(struct efi_guid_t guid);
+static __maybe_unused void dump_table(const struct gpt_t *table, bool header_only);
+static __maybe_unused psa_status_t unicode_to_ascii(const char *unicode, char *ascii);
 static inline uint64_t partition_entry_lba(const struct gpt_t *table,
                                            uint32_t array_index);
 static inline uint64_t partition_array_last_lba(const struct gpt_t *table);
@@ -254,6 +256,7 @@ psa_status_t gpt_entry_read(const struct efi_guid_t  *guid,
 {
     struct gpt_entry_t cached_entry;
     const psa_status_t ret = find_gpt_entry(&primary_gpt, gpt_entry_cmp_guid, guid, 0, &cached_entry, NULL);
+
     if (ret != PSA_SUCCESS) {
         return ret;
     }
@@ -269,6 +272,7 @@ psa_status_t gpt_entry_read_by_name(const char                name[GPT_ENTRY_NAM
 {
     struct gpt_entry_t cached_entry;
     const psa_status_t ret = find_gpt_entry(&primary_gpt, gpt_entry_cmp_name, name, index, &cached_entry, NULL);
+
     if (ret != PSA_SUCCESS) {
         return ret;
     }
@@ -284,6 +288,7 @@ psa_status_t gpt_entry_read_by_type(const struct efi_guid_t  *type,
 {
     struct gpt_entry_t cached_entry;
     const psa_status_t ret = find_gpt_entry(&primary_gpt, gpt_entry_cmp_type, type, index, &cached_entry, NULL);
+
     if (ret != PSA_SUCCESS) {
         return ret;
     }
@@ -308,6 +313,7 @@ psa_status_t gpt_entry_rename(const struct efi_guid_t *guid, const char name[GPT
             0,
             &cached_entry,
             &cached_index);
+
     if (ret != PSA_SUCCESS) {
         return ret;
     }
@@ -478,8 +484,10 @@ psa_status_t gpt_entry_create(const struct efi_guid_t *type,
          * and start not being contiguous.
          */
         uint64_t prev_end = primary_gpt.header.first_lba;
+
         for (uint32_t i = 0; i < primary_gpt.header.num_partitions; ++i) {
             struct gpt_entry_t entry = {0};
+
             ret = read_entry_from_flash(&primary_gpt, i, &entry);
             if (ret != PSA_SUCCESS) {
                 return ret;
@@ -501,6 +509,7 @@ psa_status_t gpt_entry_create(const struct efi_guid_t *type,
 
     /* Must fit on flash */
     const uint64_t end_lba = start_lba + size - 1;
+
     if (start_lba < primary_gpt.header.first_lba ||
             end_lba < primary_gpt.header.first_lba ||
             start_lba > primary_gpt.header.last_lba ||
@@ -511,6 +520,7 @@ psa_status_t gpt_entry_create(const struct efi_guid_t *type,
 
     /* Do not allow overlapping partitions */
     struct gpt_entry_t entry;
+
     for (uint32_t i = 0; i < primary_gpt.num_used_partitions; ++i) {
         ret = read_entry_from_flash(&primary_gpt, i, &entry);
         if (ret != PSA_SUCCESS) {
@@ -532,6 +542,7 @@ psa_status_t gpt_entry_create(const struct efi_guid_t *type,
 
     /* Set new entry's metadata */
     struct gpt_entry_t new_entry = {0};
+
     new_entry.start = start_lba;
     new_entry.end = end_lba;
     new_entry.attr = attr;
@@ -576,6 +587,7 @@ psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
             0,
             &cached_entry,
             &cached_index);
+
     if (ret != PSA_SUCCESS) {
         return ret;
     }
@@ -588,12 +600,14 @@ psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
      * the only LBA used by the partition array
      */
     const uint64_t array_end_lba = partition_array_last_lba(&primary_gpt);
+
     if (cached_index != primary_gpt.num_used_partitions - 1 ||
             cached_index < gpt_entry_per_lba_count()) {
         /* Shuffle up the remainder of the LBA. If it was the last entry
          * in the LBA, there is nothing to do.
          */
         const uint32_t lba_index = cached_index % gpt_entry_per_lba_count();
+
         if (lba_index + 1 != gpt_entry_per_lba_count()) {
             memmove(
                     lba_buf + lba_index * GPT_ENTRY_SIZE,
@@ -613,6 +627,7 @@ psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
                 ++i) {
             uint8_t array_buf[TFM_GPT_BLOCK_SIZE] = {0};
             int read_ret = plat_flash_driver->read(i, array_buf);
+
             if (read_ret != TFM_GPT_BLOCK_SIZE) {
                 ERROR("Unable to read LBA 0x%08x%08x\n",
                         (uint32_t)(i >> 32), (uint32_t)i);
@@ -648,6 +663,7 @@ psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
     cached_lba = array_end_lba;
     write_buffered = false;
     uint32_t entries_in_last_lba = (--primary_gpt.num_used_partitions) % gpt_entry_per_lba_count();
+
     if (entries_in_last_lba == 0) {
         /* There's nothing left in this LBA, so zero it all and write it out.
          * There is also no need to do an erase just to zero afterwards.
@@ -701,6 +717,7 @@ psa_status_t gpt_validate(bool is_primary)
      * part of the entry array
      */
     psa_status_t ret;
+
     if (write_buffered) {
         ret = flush_lba_buf();
         if (ret != PSA_SUCCESS) {
@@ -714,6 +731,7 @@ psa_status_t gpt_validate(bool is_primary)
         return validate_table(&primary_gpt, true);
     } else {
         struct gpt_t backup_gpt;
+
         ret = read_table_from_flash(&backup_gpt, false);
         if (ret != PSA_SUCCESS) {
             return ret;
@@ -734,6 +752,7 @@ psa_status_t gpt_restore(bool is_primary)
      * part of the entry array
      */
     psa_status_t ret;
+
     if (write_buffered) {
         ret = flush_lba_buf();
         if (ret != PSA_SUCCESS) {
@@ -745,6 +764,7 @@ psa_status_t gpt_restore(bool is_primary)
 
     if (is_primary) {
         struct gpt_t backup_gpt;
+
         ret = read_table_from_flash(&backup_gpt, false);
         if (ret != PSA_SUCCESS) {
             return ret;
@@ -789,6 +809,7 @@ psa_status_t gpt_defragment(void)
         }
 
         const uint64_t num_blocks = entry.end - entry.start + 1;
+
         ret = move_partition_data(entry.start, prev_end, num_blocks);
         if (ret != PSA_SUCCESS) {
             return ret;
@@ -852,6 +873,7 @@ psa_status_t gpt_init(struct gpt_flash_driver_t *flash_driver, uint64_t max_part
 
     struct mbr_t mbr;
     psa_status_t ret = mbr_load(&mbr);
+
     if (ret != PSA_SUCCESS) {
         goto fail_load;
     }
@@ -888,6 +910,7 @@ psa_status_t gpt_init(struct gpt_flash_driver_t *flash_driver, uint64_t max_part
     backup_gpt_lba = primary_gpt.header.backup_lba;
     if (backup_gpt_lba != 0) {
         struct gpt_t backup_gpt;
+
         ret = read_table_from_flash(&backup_gpt, false);
         if (ret != PSA_SUCCESS) {
             goto fail_load;
@@ -1002,8 +1025,10 @@ static psa_status_t find_gpt_entry(const struct gpt_t        *table,
 
     uint32_t num_found = 0;
     bool io_failure = false;
+
     for (uint32_t i = 0; i < table->num_used_partitions; ++i) {
         const psa_status_t ret = read_entry_from_flash(table, i, entry);
+
         if (ret != PSA_SUCCESS) {
             /* This might not have been the partition being sought after anyway,
              * so may as well try the rest
@@ -1033,6 +1058,7 @@ static psa_status_t duplicate_partition(const struct efi_guid_t *old_guid,
 {
     struct partition_entry_t old_entry;
     psa_status_t ret = gpt_entry_read(old_guid, &old_entry);
+
     if (ret != PSA_SUCCESS) {
         return ret;
     }
@@ -1071,6 +1097,7 @@ static psa_status_t move_partition(const struct efi_guid_t *guid,
 
     struct gpt_entry_t cached_entry;
     uint32_t cached_index;
+
     psa_status_t ret = find_gpt_entry(
             &primary_gpt,
             gpt_entry_cmp_guid,
@@ -1082,7 +1109,7 @@ static psa_status_t move_partition(const struct efi_guid_t *guid,
         return ret;
     }
 
-     /* Prevent unecessary I/O */
+    /* Prevent unecessary I/O */
     if (start == cached_entry.start && end == cached_entry.end) {
         return PSA_SUCCESS;
     }
@@ -1095,9 +1122,12 @@ static psa_status_t move_partition(const struct efi_guid_t *guid,
     const uint64_t checked_lba = cached_lba;
     const uint64_t array_end_lba = partition_array_last_lba(&primary_gpt);
     uint32_t num_entries_in_cached_lba;
+
     if (cached_lba == array_end_lba) {
         /* If this is 0, then the last LBA is full */
-        uint32_t num_entries_in_last_lba = primary_gpt.num_used_partitions % gpt_entry_per_lba_count();
+        uint32_t num_entries_in_last_lba =
+            primary_gpt.num_used_partitions % gpt_entry_per_lba_count();
+
         if (num_entries_in_last_lba == 0) {
             num_entries_in_cached_lba = gpt_entry_per_lba_count();
         } else {
@@ -1112,6 +1142,7 @@ static psa_status_t move_partition(const struct efi_guid_t *guid,
         memcpy(&entry, lba_buf + (i * GPT_ENTRY_SIZE), GPT_ENTRY_SIZE);
 
         const struct efi_guid_t ent_guid = entry.unique_guid;
+
         if (efi_guid_cmp(&ent_guid, guid) == 0) {
             continue;
         }
@@ -1165,6 +1196,7 @@ static psa_status_t move_lba(const uint64_t old_lba, const uint64_t new_lba, con
             (uint32_t)(new_lba >> 32), (uint32_t)new_lba,
             skip_erase ? "without" : "with");
     const psa_status_t ret = read_from_flash(old_lba);
+
     if (ret != PSA_SUCCESS) {
         return ret;
     }
@@ -1202,8 +1234,8 @@ static psa_status_t move_partition_data(const uint64_t old_lba,
                 new_lba + (num_blocks - non_overlap_blocks),
                 (size_t)non_overlap_blocks);
         if (erase_ret != (ssize_t)non_overlap_blocks) {
-            WARN("Failed to erase all blocks consecutively, only erased %ld. "
-                    "Continuing to erase on a per-block basis\n", erase_ret);
+            WARN("Partial consecutive erase (%ld); erasing per block\n",
+                 erase_ret);
             non_overlap_blocks = 0;
         }
 
@@ -1211,6 +1243,7 @@ static psa_status_t move_partition_data(const uint64_t old_lba,
         for (uint64_t block = num_blocks; block > 0; --block) {
             const bool skip_erase = (block < non_overlap_blocks);
             const psa_status_t ret = move_lba(old_lba + block - 1, new_lba + block - 1, skip_erase);
+
             if (ret != PSA_SUCCESS) {
                 return ret;
             }
@@ -1225,9 +1258,10 @@ static psa_status_t move_partition_data(const uint64_t old_lba,
                 (uint32_t)(new_lba >> 32), (uint32_t)new_lba);
 
         const ssize_t erase_ret = plat_flash_driver->erase(new_lba, (size_t)non_overlap_blocks);
+
         if (erase_ret != (ssize_t)non_overlap_blocks) {
-            WARN("Failed to erase all blocks consecutively, only erased %ld. "
-                    "Continuing to erase on a per-block basis\n", erase_ret);
+            WARN("Partial consecutive erase (%ld); erasing per block\n",
+                 erase_ret);
             non_overlap_blocks = 0;
         }
 
@@ -1235,6 +1269,7 @@ static psa_status_t move_partition_data(const uint64_t old_lba,
         for (uint64_t block = 0; block < num_blocks; ++block) {
             const bool skip_erase = (block < non_overlap_blocks);
             const psa_status_t ret = move_lba(old_lba + block, new_lba + block, skip_erase);
+
             if (ret != PSA_SUCCESS) {
                 return ret;
             }
@@ -1254,12 +1289,13 @@ static psa_status_t update_header(uint32_t num_partitions)
 
     /* Take the CRC of the partition array */
     uint32_t crc = 0;
+
     for (uint32_t i = 0; i < header->num_partitions; ++i) {
-        uint8_t entry_buf[GPT_ENTRY_SIZE];
-        memset(entry_buf, 0, GPT_ENTRY_SIZE);
+        uint8_t entry_buf[GPT_ENTRY_SIZE] = {0};
         struct gpt_entry_t *entry = (struct gpt_entry_t *)entry_buf;
 
         psa_status_t ret = read_entry_from_flash(&primary_gpt, i, entry);
+
         if (ret != PSA_SUCCESS) {
             return ret;
         }
@@ -1273,12 +1309,14 @@ static psa_status_t update_header(uint32_t num_partitions)
 
     /* Calculate new CRC32 for backup header */
     struct gpt_header_t backup_header = {0};
+
     swap_headers(header, &backup_header);
     backup_header.header_crc = 0;
     backup_crc32 = efi_soft_crc32_update(0, (uint8_t *)&backup_header, GPT_HEADER_SIZE);
 
     /* Write headers */
     const psa_status_t ret = write_headers_to_flash();
+
     if (ret != PSA_SUCCESS) {
         ERROR("Unable to write headers to flash\n");
         return ret;
@@ -1295,6 +1333,7 @@ static psa_status_t mbr_load(struct mbr_t *mbr)
      * MBR_UNUSED_BYTES are unused and so do not need to be considered.
      */
     ssize_t ret = plat_flash_driver->read(MBR_LBA, lba_buf);
+
     if (ret != TFM_GPT_BLOCK_SIZE) {
         ERROR("Unable to read from flash at block 0x%08x%08x\n",
                 (uint32_t)(MBR_LBA >> 32),
@@ -1327,6 +1366,7 @@ static psa_status_t read_from_flash(uint64_t required_lba)
         write_buffered = false;
 
         ssize_t ret = plat_flash_driver->read(required_lba, lba_buf);
+
         if (ret != TFM_GPT_BLOCK_SIZE) {
             ERROR("Unable to read from flash at block 0x%08x%08x\n",
                     (uint32_t)(required_lba >> 32),
@@ -1342,14 +1382,14 @@ static psa_status_t read_from_flash(uint64_t required_lba)
 /* Returns the LBA that a particular partition entry is in based on its position
  * in the array
  */
-static uint64_t inline partition_entry_lba(const struct gpt_t *table,
+static inline uint64_t partition_entry_lba(const struct gpt_t *table,
                                            uint32_t array_index)
 {
     return table->header.array_lba + (array_index / gpt_entry_per_lba_count());
 }
 
 /* Returns the last LBA used by the partition entry array */
-static uint64_t inline partition_array_last_lba(const struct gpt_t *table)
+static inline uint64_t partition_array_last_lba(const struct gpt_t *table)
 {
     return (table->num_used_partitions == 0 ?
             table->header.array_lba :
@@ -1365,12 +1405,14 @@ static psa_status_t count_used_partitions(const struct gpt_t *table,
     for (uint32_t i = 0; i < table->header.num_partitions; ++i) {
         struct gpt_entry_t entry = {0};
         const psa_status_t ret = read_entry_from_flash(table, i, &entry);
+
         if (ret != PSA_SUCCESS) {
             return ret;
         }
 
         const struct efi_guid_t null_guid = NULL_GUID;
         const struct efi_guid_t entry_guid = entry.partition_type;
+
         if (efi_guid_cmp(&null_guid, &entry_guid) == 0) {
             *num_used = i;
             return PSA_SUCCESS;
@@ -1388,6 +1430,7 @@ static psa_status_t read_entry_from_flash(const struct gpt_t *table,
 {
     uint64_t required_lba = partition_entry_lba(table, array_index);
     const psa_status_t ret = read_from_flash(required_lba);
+
     if (ret != PSA_SUCCESS) {
         return ret;
     }
@@ -1408,7 +1451,9 @@ static psa_status_t read_table_from_flash(struct gpt_t *table, bool is_primary)
         return PSA_ERROR_STORAGE_FAILURE;
     }
 
-    const psa_status_t ret = read_from_flash(is_primary ? PRIMARY_GPT_LBA : backup_gpt_lba);
+    const psa_status_t ret = read_from_flash(
+            is_primary ? PRIMARY_GPT_LBA : backup_gpt_lba);
+
     if (ret != PSA_SUCCESS) {
         return ret;
     }
@@ -1427,6 +1472,7 @@ static psa_status_t flush_lba_buf(void)
      * flush, particularly those making multiple writes
      */
     static bool in_flush = false;
+
     if (in_flush) {
         return PSA_SUCCESS;
     }
@@ -1437,7 +1483,8 @@ static psa_status_t flush_lba_buf(void)
     /* Commit to flash what is in the buffer. Also update the backup table if
      * the cached LBA was part of the primary table (or vise-versa)
      */
-    uint64_t array_size = partition_array_last_lba(&primary_gpt) - primary_gpt.header.array_lba + 1;
+    uint64_t array_size =
+        partition_array_last_lba(&primary_gpt) - primary_gpt.header.array_lba + 1;
 
     if (cached_lba == PRIMARY_GPT_LBA || (backup_gpt_lba != 0 && cached_lba == backup_gpt_lba)) {
         /* Write both backup and primary headers */
@@ -1535,12 +1582,14 @@ static psa_status_t write_entry(uint32_t                  array_index,
      * this will be a no-op
      */
     psa_status_t ret = read_from_flash(partition_entry_lba(&primary_gpt, array_index));
+
     if (ret != PSA_SUCCESS) {
         return ret;
     }
 
     /* Copy into buffer */
     uint32_t index_in_lba = array_index % gpt_entry_per_lba_count();
+
     memcpy(lba_buf + index_in_lba * GPT_ENTRY_SIZE, entry, GPT_ENTRY_SIZE);
 
     /* Write on every nth operation. */
@@ -1567,9 +1616,11 @@ static psa_status_t write_header_to_flash(const struct gpt_t *table)
      * also in memory, there is no need to read it again before writing.
      */
     uint8_t temp_buf[GPT_HEADER_SIZE];
+
     memcpy(temp_buf, lba_buf, GPT_HEADER_SIZE);
     memcpy(lba_buf, &(table->header), GPT_HEADER_SIZE);
     const psa_status_t ret = write_to_flash(table->header.current_lba, false);
+
     memcpy(lba_buf, temp_buf, GPT_HEADER_SIZE);
 
     return ret;
@@ -1580,9 +1631,11 @@ static psa_status_t write_headers_to_flash(void)
 {
     /* Backup table first, then primary */
     struct gpt_t backup_gpt;
+
     swap_headers(&(primary_gpt.header), &(backup_gpt.header));
     backup_gpt.header.header_crc = backup_crc32;
     psa_status_t ret = write_header_to_flash(&backup_gpt);
+
     if (ret != PSA_SUCCESS) {
         ERROR("Unable to write backup GPT header\n");
         return ret;
@@ -1618,8 +1671,8 @@ static psa_status_t validate_backup_gpt_lba(const uint64_t backup_lba,
                                             const struct gpt_header_t *header)
 {
     if (backup_lba <= primary_lba) {
-        ERROR("Backup LBA (0x%08x%08x) must be final LBA on flash, "
-              "primary LBA at 0x%08x%08x\n",
+        ERROR("Backup LBA must be final LBA on flash\n");
+        ERROR("backup: 0x%08x%08x, primary: 0x%08x%08x\n",
               (uint32_t)(backup_lba >> 32),
               (uint32_t)(backup_lba),
               (uint32_t)(primary_lba >> 32),
@@ -1628,8 +1681,8 @@ static psa_status_t validate_backup_gpt_lba(const uint64_t backup_lba,
     }
 
     if (backup_lba <= header->first_lba) {
-        ERROR("Backup LBA (0x%08x%08x) must be final LBA on flash, "
-              "first usable LBA at 0x%08x%08x\n",
+        ERROR("Backup LBA must be final LBA on flash\n");
+        ERROR("backup: 0x%08x%08x, first usable: 0x%08x%08x\n",
               (uint32_t)(backup_lba >> 32),
               (uint32_t)(backup_lba),
               (uint32_t)(header->first_lba >> 32),
@@ -1638,8 +1691,8 @@ static psa_status_t validate_backup_gpt_lba(const uint64_t backup_lba,
     }
 
     if (backup_lba <= header->last_lba) {
-        ERROR("Backup LBA (0x%08x%08x) must be final LBA on flash, "
-              "last usable LBA at 0x%08x%08x\n",
+        ERROR("Backup LBA must be final LBA on flash\n");
+        ERROR("backup: 0x%08x%08x, last usable: 0x%08x%08x\n",
               (uint32_t)(backup_lba >> 32),
               (uint32_t)(backup_lba),
               (uint32_t)(header->last_lba >> 32),
@@ -1648,8 +1701,8 @@ static psa_status_t validate_backup_gpt_lba(const uint64_t backup_lba,
     }
 
     if (backup_lba <= partition_array_end) {
-        ERROR("Backup LBA (0x%08x%08x) must be final LBA on flash, "
-              "partition array ends at LBA at 0x%08x%08x\n",
+        ERROR("Backup LBA must be final LBA on flash\n");
+        ERROR("backup: 0x%08x%08x, partition array end: 0x%08x%08x\n",
               (uint32_t)(backup_lba >> 32),
               (uint32_t)(backup_lba),
               (uint32_t)(partition_array_end >> 32),
@@ -1665,8 +1718,8 @@ static psa_status_t validate_array_lba(const uint64_t partition_array_end,
                                        const uint64_t usable_lba_start)
 {
     if (partition_array_end >= usable_lba_start) {
-        ERROR("GPT partition array must not be in usable space: "
-              "0x%08x%08x >= 0x%08x%08x\n",
+        ERROR("GPT partition array must not be in usable space\n");
+        ERROR("array end: 0x%08x%08x, usable start: 0x%08x%08x\n",
               (uint32_t)(partition_array_end >> 32),
               (uint32_t)partition_array_end,
               (uint32_t)(usable_lba_start >> 32),
@@ -1691,7 +1744,9 @@ static psa_status_t validate_table(struct gpt_t *table, bool is_primary)
     /* Check header CRC */
     uint32_t calc_crc = 0;
     uint32_t old_crc = header->header_crc;
+
     header->header_crc = 0;
+
     calc_crc = efi_soft_crc32_update(calc_crc, (uint8_t *)header, GPT_HEADER_SIZE);
     header->header_crc = old_crc;
 
@@ -1703,6 +1758,7 @@ static psa_status_t validate_table(struct gpt_t *table, bool is_primary)
 
     /* Check MyLBA field points to this table */
     const uint64_t table_lba = (is_primary ? PRIMARY_GPT_LBA : backup_gpt_lba);
+
     if (table_lba != header->current_lba) {
         ERROR("MyLBA not pointing to this GPT, expected 0x%08x%08x, got 0x%08x%08x\n",
                 (uint32_t)(table_lba >> 32),
@@ -1726,11 +1782,11 @@ static psa_status_t validate_table(struct gpt_t *table, bool is_primary)
     /* Check the CRC of the partition array */
     calc_crc = 0;
     for (uint32_t i = 0; i < header->num_partitions; ++i) {
-        uint8_t entry_buf[GPT_ENTRY_SIZE];
-        memset(entry_buf, 0, GPT_ENTRY_SIZE);
+        uint8_t entry_buf[GPT_ENTRY_SIZE] = {0};
         struct gpt_entry_t *entry = (struct gpt_entry_t *)entry_buf;
 
         psa_status_t ret = read_entry_from_flash(table, i, entry);
+
         if (ret != PSA_SUCCESS) {
             return ret;
         }
@@ -1807,11 +1863,13 @@ static psa_status_t restore_table(struct gpt_t *restore_from, bool is_primary)
 {
     /* Determine if the restoring GPT is valid */
     psa_status_t ret = validate_table(restore_from, is_primary);
+
     if (ret != PSA_SUCCESS) {
         return ret;
     }
 
     struct gpt_t restore_to;
+
     swap_headers(&(restore_from->header), &(restore_to.header));
 
     /* Copy the partition array as well */
@@ -1847,6 +1905,7 @@ static int cmp_u64(const void *a, const void *b)
 {
     const uint64_t *a_u64 = (const uint64_t *)a;
     const uint64_t *b_u64 = (const uint64_t *)b;
+
     return (*a_u64 > *b_u64) - (*a_u64 < *b_u64);
 }
 
@@ -1886,6 +1945,7 @@ static psa_status_t sort_partition_array(const struct gpt_t *table)
      */
     uint64_t lba_arr[table->num_used_partitions];
     psa_status_t ret;
+
     for (uint32_t i = 0; i < table->num_used_partitions; ++i) {
         struct gpt_entry_t entry;
         ret = read_entry_from_flash(table, i, &entry);
@@ -1905,6 +1965,7 @@ static psa_status_t sort_partition_array(const struct gpt_t *table)
     struct gpt_entry_t saved_entry = {0};
     struct gpt_entry_t curr_entry;
     uint8_t handled_indices[table->num_used_partitions];
+
     memset(handled_indices, 0, table->num_used_partitions);
 
     ret = read_entry_from_flash(table, 0, &curr_entry);
@@ -1945,7 +2006,9 @@ static psa_status_t sort_partition_array(const struct gpt_t *table)
              */
             handled_indices[new_index] = 1;
             uint32_t next_entry = 0;
-            while(next_entry < table->num_used_partitions && handled_indices[next_entry]) {
+
+            while (next_entry < table->num_used_partitions &&
+                   handled_indices[next_entry]) {
                 ++next_entry;
             }
 
@@ -2021,6 +2084,7 @@ static void dump_table(const struct gpt_t *table, bool header_only)
 {
     /* Print the header first */
     const struct gpt_header_t *header = &(table->header);
+
     INFO("----------\n");
     INFO("Signature: %8s\n", header->signature);
     INFO("Revision: 0x%08x\n", header->revision);
@@ -2054,6 +2118,7 @@ static void dump_table(const struct gpt_t *table, bool header_only)
         for (uint32_t i = 0; i < table->num_used_partitions; ++i) {
             struct gpt_entry_t entry;
             psa_status_t ret = read_entry_from_flash(&primary_gpt, i, &entry);
+
             if (ret != PSA_SUCCESS) {
                 continue;
             }
@@ -2073,6 +2138,7 @@ static void dump_table(const struct gpt_t *table, bool header_only)
                     (uint32_t)(entry.attr >> 32),
                     (uint32_t)(entry.attr));
             char name[GPT_ENTRY_NAME_LENGTH >> 1];
+
             if (unicode_to_ascii(entry.name, name) != PSA_SUCCESS) {
                 INFO("\tPartitionName: [Not valid ascii]\n");
             } else {
