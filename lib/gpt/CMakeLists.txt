@@ -24,6 +24,8 @@ target_include_directories(tfm_gpt
     PUBLIC
         inc
         $<INSTALL_INTERFACE:inc>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMSIS_PATH}/CMSIS/Core/Include>
 )
 
 target_compile_definitions(tfm_gpt
@@ -40,4 +42,5 @@ target_link_libraries(tfm_gpt
     PRIVATE
         tfm_efi_guid
         tfm_efi_soft_crc
+        cmsis
 )
