@@ -38,7 +38,7 @@ try:
     if _v.group('GIT_SHA'):
         version = release + "+" + _v.group('GIT_SHA')[:7]
 
-except:
+except Exception:
     version = release = 'Unknown'
 
 # -- General configuration ---------------------------------------------------
