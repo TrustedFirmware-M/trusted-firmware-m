@@ -94,3 +94,26 @@ enum tfm_platform_err_t tfm_platform_mem_write32(uint32_t addr, uint32_t value,
 
 	return ret;
 }
+
+#if defined(CONFIG_TFM_NRF_MRAMC_SERVICE)
+enum tfm_platform_err_t tfm_platform_mramc_init(void)
+{
+	return tfm_platform_ioctl(TFM_PLATFORM_IOCTL_MRAMC_INIT_SERVICE, NULL,
+			    NULL);
+}
+
+enum tfm_platform_err_t tfm_platform_mramc_set_wen(uint32_t write_mode)
+{
+	psa_invec in_vec;
+
+	struct tfm_mramc_set_wen_service_args_t args;
+
+	args.write_mode = write_mode;
+
+	in_vec.base = (const void *)&args;
+	in_vec.len = sizeof(struct tfm_mramc_set_wen_service_args_t);
+
+	return tfm_platform_ioctl(TFM_PLATFORM_IOCTL_MRAMC_SET_WEN_SERVICE, &in_vec,
+				NULL);
+}
+#endif

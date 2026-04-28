@@ -22,6 +22,10 @@
 #include <nrfx_nvmc.h>
 #endif
 
+#if TFM_NRF_MRAMC_SERVICE
+#include <nrfx_mramc.h>
+#endif
+
 #include "handle_attr.h"
 
 enum tfm_platform_err_t
@@ -232,3 +236,39 @@ enum tfm_platform_err_t tfm_platform_hal_write32_service(const psa_invec *in_vec
 
 	return err;
 }
+
+#if TFM_NRF_MRAMC_SERVICE
+enum tfm_platform_err_t tfm_platform_hal_mramc_init_service(void)
+{
+	nrfx_mramc_config_t config = NRFX_MRAMC_DEFAULT_CONFIG();
+	int ret = nrfx_mramc_init(&config, NULL);
+
+	if (ret == -EALREADY) {
+		/* Driver is initialise by ITS or PS at the ealier stage*/
+		return TFM_PLATFORM_ERR_SUCCESS;
+	} else if (ret != 0) {
+		return TFM_PLATFORM_ERR_SYSTEM_ERROR;
+	}
+
+	return TFM_PLATFORM_ERR_SUCCESS;
+}
+
+enum tfm_platform_err_t tfm_platform_hal_mramc_set_wen_service(const psa_invec *in_vec)
+{
+	struct tfm_mramc_set_wen_service_args_t *args;
+
+	if (in_vec->len != sizeof(struct tfm_mramc_set_wen_service_args_t)) {
+		return TFM_PLATFORM_ERR_INVALID_PARAM;
+	}
+
+	args = (struct tfm_mramc_set_wen_service_args_t *)in_vec->base;
+	uint32_t write_mode = args->write_mode;
+
+	while(!nrfx_mramc_ready_check()) {
+	/* Wait until MRAMC is ready for the next operation */
+	}
+	nrfx_mramc_config_write_mode_set(write_mode);
+
+	return TFM_PLATFORM_ERR_SUCCESS;
+}
+#endif /* TFM_NRF_MRAMC_SERVICE */

@@ -31,6 +31,12 @@ enum tfm_platform_err_t
 tfm_platform_hal_write32_service(const psa_invec  *in_vec,
 				 const psa_outvec *out_vec);
 
+enum tfm_platform_err_t
+tfm_platform_hal_mramc_init_service(void);
+
+enum tfm_platform_err_t
+tfm_platform_hal_mramc_set_wen_service(const psa_invec *in_vec);
+
 #ifdef __cplusplus
 }
 #endif

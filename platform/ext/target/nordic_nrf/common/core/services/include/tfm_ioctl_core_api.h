@@ -31,6 +31,8 @@ enum tfm_platform_ioctl_core_reqest_types_t {
 	TFM_PLATFORM_IOCTL_READ_SERVICE,
 	TFM_PLATFORM_IOCTL_WRITE32_SERVICE,
 	TFM_PLATFORM_IOCTL_GPIO_SERVICE,
+	TFM_PLATFORM_IOCTL_MRAMC_INIT_SERVICE,
+	TFM_PLATFORM_IOCTL_MRAMC_SET_WEN_SERVICE,
 	/* Last core service, start platform specific from this value. */
 	TFM_PLATFORM_IOCTL_CORE_LAST
 };
@@ -88,6 +90,12 @@ struct tfm_gpio_service_args {
 struct tfm_gpio_service_out {
 	uint32_t result;
 };
+
+#if defined(CONFIG_TFM_NRF_MRAMC_SERVICE)
+struct tfm_mramc_set_wen_service_args_t {
+	uint32_t write_mode;
+};
+#endif
 
 /**
  * @brief Perform a read operation.
@@ -151,6 +159,25 @@ enum tfm_write32_service_result {
 enum tfm_platform_err_t tfm_platform_gpio_pin_mcu_select(uint32_t pin_number, uint32_t mcu,
 							 uint32_t *result);
 
+#if defined(CONFIG_TFM_NRF_MRAMC_SERVICE)
+/**
+ * @brief Initialise MRAMC peripheral.
+ *
+ * @return On success the processor will initialise MRAMC, in case of error it returns
+ *         values as specified by the \ref tfm_platform_err_t
+ */
+enum tfm_platform_err_t tfm_platform_mramc_init(void);
+
+/**
+ * @brief Setting write permission for MRAMC peripheral.
+ *
+ * @param write_mode    Write mode for MRAMC peripheral.
+ *
+ * @return On success the processor will set MRAMC config write mode, in case of error it returns
+ *         values as specified by the \ref tfm_platform_err_t
+ */
+enum tfm_platform_err_t tfm_platform_mramc_set_wen(uint32_t write_mode);
+#endif /* TFM_NRF_MRAMC_SERVICE */
 
 #ifdef __cplusplus
 }
