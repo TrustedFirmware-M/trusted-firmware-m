@@ -139,7 +139,7 @@
 #define TFM_PARTITION_SIZE                (0x50000)    /* 320 KB */
 #define TFM_PARTITION_BANK_OFFSET         (SE_BL2_PARTITION_SIZE)
 
-#define FIP_PARTITION_SIZE                (0x200000)   /* 2 MB */
+#define FIP_PARTITION_SIZE                (0x280000)   /* 2.5 MB */
 #define FIP_PARTITION_BANK_OFFSET         (TFM_PARTITION_BANK_OFFSET + TFM_PARTITION_SIZE)
 
 #define INITRAMFS_PARTITION_SIZE          (0xC00000)   /* 12 MB */
