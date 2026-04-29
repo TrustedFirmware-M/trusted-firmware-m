@@ -134,6 +134,7 @@ struct ps_obj_table_t {
 static inline uint32_t ps_object_fs_id_to_idx(uint32_t fid)
 {
     const uint32_t idx = (fid - 1) - PS_TABLE_FS_ID(PS_OBJ_TABLE_IDX_1);
+
     assert(idx < PS_OBJ_TABLE_ENTRIES);
 
     return idx;
