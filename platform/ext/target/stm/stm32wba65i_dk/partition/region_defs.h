@@ -155,7 +155,7 @@
 
 /* TFM non volatile data (NVCNT/PS/ITS) region */
 #define TFM_NV_DATA_START                   (S_ROM_ALIAS(FLASH_OTP_NV_COUNTERS_AREA_OFFSET))
-#define TFM_NV_DATA_SIZE                    (FLASH_OTP_NV_COUNTERS_AREA_SIZE + FLASH_NV_COUNTER_AREA_SIZE \
+#define TFM_NV_DATA_SIZE                    (FLASH_OTP_NV_COUNTERS_AREA_SIZE +\
                                              + FLASH_PS_AREA_SIZE + FLASH_ITS_AREA_SIZE)
 #define TFM_NV_DATA_LIMIT                   (TFM_NV_DATA_START + TFM_NV_DATA_SIZE - 1)
 /* Additional Check to detect flash download slot overlap or overflow */

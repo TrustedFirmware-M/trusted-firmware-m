@@ -60,6 +60,3 @@ $stm32programmercli $connect $erase_all
 echo "Set default OB 1 (dual bank, swap bank, sram2 reset, secure entry point, bank 1 full non-secure)"
 $stm32programmercli $connect_no_reset $default_ob1
 
-echo "Regression script done, press key"
-read -r _
-

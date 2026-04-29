@@ -32,7 +32,8 @@ sec_pend_offset=
 
 # Connection
 connect="-c port=SWD ${sn_option} mode=UR"
-connect_no_reset="-c port=SWD ${sn_option} mode=Hotplug"
+connect_no_reset="-c port=SWD ${sn_option} mode=HotPlug"
+connect_hardware_reset="-c port=SWD ${sn_option} mode=powerdown -hardRst"
 
 # OB / Actions
 rdp_0="-ob RDP=0xAA TZEN=1 UNLOCK_1A=1 UNLOCK_1B=1 UNLOCK_2A=1 UNLOCK_2B=1"
@@ -65,5 +66,5 @@ $stm32programmercli $connect_no_reset $default_ob1
 echo "Set default OB 2 (bank 2: full Non Secure)"
 $stm32programmercli $connect $default_ob2
 
-echo "Regression script done, press key"
-read -r _
+echo "Hardware reset"
+$stm32programmercli $connect_hardware_reset

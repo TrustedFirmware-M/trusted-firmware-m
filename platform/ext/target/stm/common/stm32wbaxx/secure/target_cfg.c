@@ -71,11 +71,10 @@ const struct memory_region_limits memory_regions =
 
 #define TFM_NS_REGION_CODE      0
 #define TFM_NS_REGION_DATA_1    1
-#define TFM_NS_REGION_DATA_2    2
-#define TFM_NS_REGION_VENEER    3
-#define TFM_NS_REGION_PERIPH_1  4
-#define TFM_NS_REGION_PERIPH_2  5
-#define TFM_NS_REGION_PERIPH_3  6
+#define TFM_NS_REGION_VENEER    2
+#define TFM_NS_REGION_PERIPH_1  3
+#define TFM_NS_REGION_PERIPH_2  4
+#define TFM_NS_REGION_OTP       5
 
 /* Define Peripherals NS address range for the platform */
 #define PERIPHERALS_BASE_NS_START (PERIPH_BASE_NS)
@@ -93,12 +92,6 @@ const struct sau_cfg_t sau_init_cfg[] = {
         TFM_NS_REGION_DATA_1,
         NS_DATA_START,
         NS_DATA_LIMIT,
-        TFM_FALSE,
-    },
-    {
-        TFM_NS_REGION_DATA_2,
-        SRAM2_BASE_NS,
-        (SRAM2_BASE_NS + _SRAM2_SIZE_MAX - 1),
         TFM_FALSE,
     },
     /* Configures veneers region to be non-secure callable */
@@ -122,9 +115,9 @@ const struct sau_cfg_t sau_init_cfg[] = {
         (PACKAGE_BASE + 0xfff),
         TFM_FALSE,
     },
-    /* Configure the peripherals space 3 to access package information */
+    /* Configure the OTP space to access package information */
     {
-        TFM_NS_REGION_PERIPH_3,
+        TFM_NS_REGION_OTP,
         FLASH_OTP_BASE,
         (FLASH_OTP_BASE + FLASH_OTP_SIZE - 1),
         TFM_FALSE,
