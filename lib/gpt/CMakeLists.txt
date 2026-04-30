@@ -18,6 +18,11 @@ endif()
 target_sources(tfm_gpt
     PRIVATE
         src/gpt.c
+        src/gpt_defs.c
+        src/io/gpt_io.c
+        src/io/gpt_io_read.c
+        src/io/gpt_io_read_rw.c
+        src/io/gpt_io_write.c
 )
 
 target_include_directories(tfm_gpt
@@ -26,6 +31,7 @@ target_include_directories(tfm_gpt
         $<INSTALL_INTERFACE:inc>
     PRIVATE
         $<BUILD_INTERFACE:${CMSIS_PATH}/CMSIS/Core/Include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
 
 target_compile_definitions(tfm_gpt
