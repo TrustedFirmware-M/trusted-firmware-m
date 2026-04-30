@@ -97,6 +97,7 @@ struct arm_flash_dev_t
   struct low_level_device *dev;
   ARM_FLASH_INFO *data;       /*!< FLASH memory device data */
 };
+
 /**
   * @}
   */
@@ -104,6 +105,7 @@ struct arm_flash_dev_t
   * @{
   */
 static __IO uint32_t DoubleECC_Error_Counter = 0U;
+
 /**
   * \brief      Check if the Flash memory boundaries are not violated.
   * \param[in]  flash_dev  Flash device structure \ref arm_flash_dev_t
@@ -122,6 +124,7 @@ static bool is_range_valid(struct arm_flash_dev_t *flash_dev,
 
   return (offset > flash_limit) ? (false) : (true) ;
 }
+
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
 /**
   * \brief        Check if the range is secure .
@@ -144,13 +147,16 @@ static bool is_range_secure(struct arm_flash_dev_t *flash_dev,
     return true;
   }
   for (nb = 0; nb < vect->nb; nb++)
+  {
     if ((start >= vect->range[nb].base) && ((start + len - 1) <= vect->range[nb].limit))
     {
       return true;
     }
+  }
   return false;
 }
 #endif /*  defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)  */
+
 /**
   * \brief        Check if the parameter is an erasebale page.
   * \param[in]    flash_dev  Flash device structure \ref arm_flash_dev_t
@@ -167,12 +173,15 @@ static bool is_erase_allow(struct arm_flash_dev_t *flash_dev,
   struct flash_vect *vect = &flash_dev->dev->erase;
   uint32_t nb;
   for (nb = 0; nb < vect->nb; nb++)
+  {
     if ((param >= vect->range[nb].base) && (param <= vect->range[nb].limit))
     {
       return true;
     }
+  }
   return false;
 }
+
 /**
   * \brief        Check if the parameter is writeable area.
   * \param[in]    flash_dev  Flash device structure \ref arm_flash_dev_t
@@ -189,10 +198,12 @@ static bool is_write_allow(struct arm_flash_dev_t *flash_dev,
   struct flash_vect *vect = &flash_dev->dev->write;
   uint32_t nb;
   for (nb = 0; nb < vect->nb; nb++)
+  {
     if ((start >= vect->range[nb].base) && ((start + len - 1) <= vect->range[nb].limit))
     {
       return true;
     }
+  }
   return false;
 }
 
@@ -252,8 +263,9 @@ static uint32_t bank_number(struct arm_flash_dev_t *flash_dev,
 static uint32_t page_number(struct arm_flash_dev_t *flash_dev,
                             uint32_t param)
 {
-  uint32_t page = param / flash_dev->data->page_size ;
-  page = ((page > (flash_dev->data->sector_count))) ? page - ((flash_dev->data->sector_count)) : page;
+  uint32_t page = param / flash_dev->data->page_size;
+
+  page = (page > flash_dev->data->sector_count) ? page - flash_dev->data->sector_count : page;
 #ifdef DEBUG_FLASH_ACCESS
   printf("page = %x \r\n", page);
 #endif /* DEBUG_FLASH_ACCESS */
@@ -415,10 +427,13 @@ static int32_t Flash_ReadData(uint32_t addr, void *data, uint32_t cnt)
     ret = ARM_DRIVER_OK;
   }
   DoubleECC_Error_Counter = 0U;
-  if (ret == ARM_DRIVER_OK) {
+  if (ret == ARM_DRIVER_OK)
+  {
     cnt /= data_width_byte[DriverCapabilities.data_width];
     return cnt;
-  } else {
+  }
+  else
+  {
     return ret;
   }
 }
@@ -441,13 +456,16 @@ static int stm32_icache_disable(void)
   tickstart = HAL_GetTick();
 
   /* Wait for instruction cache to get disabled */
-  while (HAL_ICACHE_IsEnabled()) {
+  while (HAL_ICACHE_IsEnabled())
+  {
     if ((HAL_GetTick() - tickstart) >
-            ICACHE_DISABLE_TIMEOUT_VALUE) {
+            ICACHE_DISABLE_TIMEOUT_VALUE)
+    {
       /* New check to avoid false timeout detection in case
        * of preemption.
        */
-      if (HAL_ICACHE_IsEnabled()) {
+      if (HAL_ICACHE_IsEnabled())
+      {
         status = ARM_DRIVER_ERROR_TIMEOUT;
         break;
       }
@@ -468,28 +486,35 @@ static int icache_wait_for_invalidate_complete(void)
   uint32_t tickstart;
 
   /* Check if ongoing invalidation operation */
-  if (__HAL_ICACHE_GET_FLAG(ICACHE_FLAG_BUSY)) {
+  if (__HAL_ICACHE_GET_FLAG(ICACHE_FLAG_BUSY))
+  {
     /* Get tick */
     tickstart = HAL_GetTick();
 
     /* Wait for end of cache invalidation */
-    while (!__HAL_ICACHE_GET_FLAG(ICACHE_FLAG_BUSYEND)) {
+    while (!__HAL_ICACHE_GET_FLAG(ICACHE_FLAG_BUSYEND))
+    {
       if ((HAL_GetTick() - tickstart) >
-          ICACHE_INVALIDATE_TIMEOUT_VALUE) {
+          ICACHE_INVALIDATE_TIMEOUT_VALUE)
+      {
         break;
       }
     }
   }
 
   /* Clear any pending flags */
-  if (__HAL_ICACHE_GET_FLAG(ICACHE_FLAG_BUSYEND)) {
+  if (__HAL_ICACHE_GET_FLAG(ICACHE_FLAG_BUSYEND))
+  {
     __HAL_ICACHE_CLEAR_FLAG(ICACHE_FLAG_BUSYEND);
     status = 0;
-  } else {
+  }
+  else
+  {
     status = ARM_DRIVER_ERROR_TIMEOUT;
   }
 
-  if (__HAL_ICACHE_GET_FLAG(ICACHE_FLAG_ERROR)) {
+  if (__HAL_ICACHE_GET_FLAG(ICACHE_FLAG_ERROR))
+  {
     __HAL_ICACHE_CLEAR_FLAG(ICACHE_FLAG_ERROR);
     status = ARM_DRIVER_ERROR;
   }
@@ -514,9 +539,11 @@ static int32_t Flash_ProgramData(uint32_t addr,
 #if defined(CHECK_WRITE) || defined(DEBUG_FLASH_ACCESS)
   void *dest;
 #endif
+
   /* Conversion between data items and bytes */
   cnt *= data_width_byte[DriverCapabilities.data_width];
   ARM_FLASH0_STATUS.error = DRIVER_STATUS_NO_ERROR;
+
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
   if (is_range_secure(&ARM_FLASH0_DEV, addr, cnt))
   {
@@ -541,12 +568,14 @@ static int32_t Flash_ProgramData(uint32_t addr,
 #endif
   }
 #endif
+
 #if defined(CHECK_WRITE) || defined(DEBUG_FLASH_ACCESS)
   dest = (void *)(flash_base + addr);
 #endif
 #ifdef DEBUG_FLASH_ACCESS
   printf("write %x n=%x \r\n", (uint32_t) dest, cnt);
 #endif /* DEBUG_FLASH_ACCESS */
+
   /* Check Flash memory boundaries and alignment with minimum write size
     * (program_unit), data size also needs to be a multiple of program_unit.
   */
@@ -569,9 +598,12 @@ static int32_t Flash_ProgramData(uint32_t addr,
   stm32_icache_disable();
 #endif /* TFM_ICACHE_ENABLE */
 
-  if (is_range_secure(&ARM_FLASH0_DEV, addr, cnt)) {
+  if (is_range_secure(&ARM_FLASH0_DEV, addr, cnt))
+  {
     HAL_FLASH_Unlock_SEC();
-  } else {
+  }
+  else
+  {
     HAL_FLASH_Unlock_NS();
   }
 
@@ -597,33 +629,41 @@ static int32_t Flash_ProgramData(uint32_t addr,
     memcpy(dword, (void *)((uint32_t)data + loop), sizeof(dword));
     if ((dword[0] != -1) || (dword[1] != -1))
     {
-      err = HAL_FLASH_Program(write_type, (flash_base + addr), (uint32_t)&dword[0]);
+      err = HAL_FLASH_Program(write_type, flash_base + addr, (uint32_t)&dword[0]);
     }
     else
-	{
+    {
         err = HAL_OK;
-	}
+    }
  #endif /* STM32L5xx_HAL_H */
 #elif FLASH0_PROG_UNIT == 0x10
     /* quadword api*/
     uint64_t dword[2];
     memcpy(dword, (void *)((uint32_t)data + loop), sizeof(dword));
     if ((dword[0] != -1) || (dword[1] != -1))
+    {
         err = HAL_FLASH_Program(write_type, (flash_base + addr), (uint32_t)&dword[0]);
+    }
     else
+    {
         err = HAL_OK;
-#else
+    }
+#else /* FLASH0_PROG_UNIT */
 #error "flash configuration must be defined here"
-#endif
+#endif /* FLASH0_PROG_UNIT */
+
     loop += sizeof(dword);
     addr += sizeof(dword);
   } while ((loop != cnt) && (err == HAL_OK));
 
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_IDLE;
 
-  if (is_range_secure(&ARM_FLASH0_DEV, addr, cnt)) {
+  if (is_range_secure(&ARM_FLASH0_DEV, addr, cnt))
+  {
     HAL_FLASH_Lock_SEC();
-  } else {
+  }
+  else
+  {
     HAL_FLASH_Lock_NS();
   }
 
@@ -646,13 +686,16 @@ static int32_t Flash_ProgramData(uint32_t addr,
 #endif /* DEBUG_FLASH_ACCESS */
   }
 #endif /* CHECK_WRITE */
+
 #ifdef DEBUG_FLASH_ACCESS
   if (err != HAL_OK)
   {
     printf("failed write %x n=%x \r\n", (uint32_t)(dest), cnt);
   }
 #endif /* DEBUG_FLASH_ACCESS */
+
   cnt /= data_width_byte[DriverCapabilities.data_width];
+
   return (err == HAL_OK) ? cnt : ARM_DRIVER_ERROR;
 }
 
@@ -665,9 +708,11 @@ static int32_t Flash_EraseSector(uint32_t addr)
   uint32_t i;
   uint32_t *pt;
 #endif /* CHECK_ERASE */
+
 #ifdef DEBUG_FLASH_ACCESS
   printf("erase %x\r\n", addr);
 #endif /* DEBUG_FLASH_ACCESS */
+
   if (!(is_range_valid(&ARM_FLASH0_DEV, addr)) ||
       !(is_erase_aligned(&ARM_FLASH0_DEV, addr)) ||
       !(is_erase_allow(&ARM_FLASH0_DEV, addr)))
@@ -682,6 +727,7 @@ static int32_t Flash_EraseSector(uint32_t addr)
 #endif /* DEBUG_FLASH_ACCESS */
     return ARM_DRIVER_ERROR_PARAMETER;
   }
+
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
   if (is_range_secure(&ARM_FLASH0_DEV, addr, 4))
   {
@@ -692,14 +738,17 @@ static int32_t Flash_EraseSector(uint32_t addr)
 #endif
   }
   else
+  {
 #if defined(FLASH_TYPEERASE_SECTORS_NS)
     EraseInit.TypeErase = FLASH_TYPEERASE_SECTORS_NS;
 #else
     EraseInit.TypeErase = FLASH_TYPEERASE_PAGES_NS;
 #endif
+  }
 #else
-    EraseInit.TypeErase = FLASH_TYPEERASE_PAGES;
+  EraseInit.TypeErase = FLASH_TYPEERASE_PAGES;
 #endif /* defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */
+
   /*  fix me assume dual bank, reading DBANK in OPTR in Flash init is better */
   /*  flash size in  DB256K in OPTR */
 #if defined (FLASH_BANK_2)
@@ -709,37 +758,44 @@ static int32_t Flash_EraseSector(uint32_t addr)
 #endif /*FLASH_BANK_2*/
 
 #if defined(FLASH_SECTOR_SIZE)
-    EraseInit.NbSectors = FLASH0_SECTOR_SIZE / FLASH_SECTOR_SIZE;
+  EraseInit.NbSectors = FLASH0_SECTOR_SIZE / FLASH_SECTOR_SIZE;
 #else
-    EraseInit.NbPages = FLASH0_SECTOR_SIZE / FLASH_PAGE_SIZE;
+  EraseInit.NbPages = FLASH0_SECTOR_SIZE / FLASH_PAGE_SIZE;
 #endif
 #if defined(FLASH_SECTOR_SIZE)
-    EraseInit.Sector = page_number(&ARM_FLASH0_DEV, addr);
+  EraseInit.Sector = page_number(&ARM_FLASH0_DEV, addr);
 #else
-    EraseInit.Page = page_number(&ARM_FLASH0_DEV, addr);
+  EraseInit.Page = page_number(&ARM_FLASH0_DEV, addr);
 #endif
 
 #ifdef TFM_ICACHE_ENABLE
   /* Disable icache, this will start the invalidation procedure.
-    * All changes(erase/write) to flash memory should happen when
-    * i-cache is disabled. A write to flash performed without
-    * disabling i-cache will set ERRF error flag in SR register.
-    */
+   * All changes(erase/write) to flash memory should happen when
+   * i-cache is disabled. A write to flash performed without
+   * disabling i-cache will set ERRF error flag in SR register.
+   */
   stm32_icache_disable();
 #endif /* TFM_ICACHE_ENABLE */
 
   ARM_FLASH0_STATUS.error = DRIVER_STATUS_NO_ERROR;
-  if (is_range_secure(&ARM_FLASH0_DEV, addr, 4)) {
+  if (is_range_secure(&ARM_FLASH0_DEV, addr, 4))
+  {
     HAL_FLASH_Unlock_SEC();
-  } else {
+  }
+  else
+  {
     HAL_FLASH_Unlock_NS();
   }
+
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_BUSY;
   err = HAL_FLASHEx_Erase(&EraseInit, &pageError);
   ARM_FLASH0_STATUS.busy = DRIVER_STATUS_IDLE;
-  if (is_range_secure(&ARM_FLASH0_DEV, addr, 4)) {
+  if (is_range_secure(&ARM_FLASH0_DEV, addr, 4))
+  {
     HAL_FLASH_Lock_SEC();
-  } else {
+  }
+  else
+  {
     HAL_FLASH_Lock_NS();
   }
 
@@ -758,6 +814,7 @@ static int32_t Flash_EraseSector(uint32_t addr)
     printf("erase failed \r\n");
   }
 #endif /* DEBUG_FLASH_ACCESS */
+
 #ifdef CHECK_ERASE
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
   if (is_range_secure(&ARM_FLASH0_DEV, addr, 4))
@@ -783,6 +840,7 @@ static int32_t Flash_EraseSector(uint32_t addr)
     }
   }
 #endif /* CHECK_ERASE */
+
   return (err == HAL_OK) ? ARM_DRIVER_OK : ARM_DRIVER_ERROR;
 }
 
