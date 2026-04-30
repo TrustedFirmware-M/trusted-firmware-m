@@ -81,7 +81,9 @@ _DEV_DEFAULT_ENTROPY_SEED = (
 )
 
 _DEV_DEFAULT_IAK_ID = "stm.example.xcube!"
-_DEV_DEFAULT_CERT_REF = "060456527282910010"
+
+# https://products.psacertified.org/products/stm32u5x-stm32wba5x-product-family
+_DEV_DEFAULT_CERT_REF = "063279352010810300"
 _SPKI_RAW_KEY_OFFSET = 26
 
 parser_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
