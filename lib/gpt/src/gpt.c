@@ -75,9 +75,15 @@ static psa_status_t sort_partition_array(const struct gpt_t *table);
 psa_status_t gpt_entry_read(const struct efi_guid_t  *guid,
                             struct partition_entry_t *partition_entry)
 {
-    struct gpt_t *primary_table = get_primary_gpt();
+    struct gpt_t *primary_table;
     struct gpt_entry_t cached_entry;
-    const psa_status_t ret = find_gpt_entry(primary_table, gpt_entry_cmp_guid, guid, 0, &cached_entry, NULL);
+    psa_status_t ret = read_table_from_flash(&primary_table, true);
+
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
+
+    ret = find_gpt_entry(primary_table, gpt_entry_cmp_guid, guid, 0, &cached_entry, NULL);
 
     if (ret != PSA_SUCCESS) {
         return ret;
@@ -92,9 +98,15 @@ psa_status_t gpt_entry_read_by_name(const char                name[GPT_ENTRY_NAM
                                     const uint32_t            index,
                                     struct partition_entry_t *partition_entry)
 {
-    struct gpt_t *primary_table = get_primary_gpt();
+    struct gpt_t *primary_table;
     struct gpt_entry_t cached_entry;
-    const psa_status_t ret = find_gpt_entry(primary_table, gpt_entry_cmp_name, name, index, &cached_entry, NULL);
+    psa_status_t ret = read_table_from_flash(&primary_table, true);
+
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
+
+    ret = find_gpt_entry(primary_table, gpt_entry_cmp_name, name, index, &cached_entry, NULL);
 
     if (ret != PSA_SUCCESS) {
         return ret;
@@ -109,9 +121,15 @@ psa_status_t gpt_entry_read_by_type(const struct efi_guid_t  *type,
                                     const uint32_t            index,
                                     struct partition_entry_t *partition_entry)
 {
-    struct gpt_t *primary_table = get_primary_gpt();
+    struct gpt_t *primary_table;
     struct gpt_entry_t cached_entry;
-    const psa_status_t ret = find_gpt_entry(primary_table, gpt_entry_cmp_type, type, index, &cached_entry, NULL);
+    psa_status_t ret = read_table_from_flash(&primary_table, true);
+
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
+
+    ret = find_gpt_entry(primary_table, gpt_entry_cmp_type, type, index, &cached_entry, NULL);
 
     if (ret != PSA_SUCCESS) {
         return ret;
@@ -128,10 +146,16 @@ psa_status_t gpt_entry_rename(const struct efi_guid_t *guid, const char name[GPT
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    struct gpt_t *primary_table = get_primary_gpt();
+    struct gpt_t *primary_table;
     struct gpt_entry_t cached_entry;
     uint32_t cached_index;
-    const psa_status_t ret = find_gpt_entry(
+    psa_status_t ret = read_table_from_flash(&primary_table, true);
+
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
+
+    ret = find_gpt_entry(
             primary_table,
             gpt_entry_cmp_guid,
             guid,
@@ -162,10 +186,16 @@ psa_status_t gpt_entry_change_type(const struct efi_guid_t *guid, const struct e
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
-    struct gpt_t *primary_table = get_primary_gpt();
+    struct gpt_t *primary_table;
     struct gpt_entry_t cached_entry;
     uint32_t cached_index;
-    const psa_status_t ret = find_gpt_entry(
+    psa_status_t ret = read_table_from_flash(&primary_table, true);
+
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
+
+    ret = find_gpt_entry(
             primary_table,
             gpt_entry_cmp_guid,
             guid,
@@ -188,10 +218,16 @@ psa_status_t gpt_attr_add(const struct efi_guid_t *guid, const uint64_t attr)
         return PSA_SUCCESS;
     }
 
-    struct gpt_t *primary_table = get_primary_gpt();
+    struct gpt_t *primary_table;
     struct gpt_entry_t cached_entry;
     uint32_t cached_index;
-    const psa_status_t ret = find_gpt_entry(
+    psa_status_t ret = read_table_from_flash(&primary_table, true);
+
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
+
+    ret = find_gpt_entry(
             primary_table,
             gpt_entry_cmp_guid,
             guid,
@@ -214,10 +250,16 @@ psa_status_t gpt_attr_remove(const struct efi_guid_t *guid, const uint64_t attr)
         return PSA_SUCCESS;
     }
 
-    struct gpt_t *primary_table = get_primary_gpt();
+    struct gpt_t *primary_table;
     struct gpt_entry_t cached_entry;
     uint32_t cached_index;
-    const psa_status_t ret = find_gpt_entry(
+    psa_status_t ret = read_table_from_flash(&primary_table, true);
+
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
+
+    ret = find_gpt_entry(
             primary_table,
             gpt_entry_cmp_guid,
             guid,
@@ -235,10 +277,16 @@ psa_status_t gpt_attr_remove(const struct efi_guid_t *guid, const uint64_t attr)
 
 psa_status_t gpt_attr_set(const struct efi_guid_t *guid, const uint64_t attr)
 {
-    struct gpt_t *primary_table = get_primary_gpt();
+    struct gpt_t *primary_table;
     struct gpt_entry_t cached_entry;
     uint32_t cached_index;
-    const psa_status_t ret = find_gpt_entry(
+    psa_status_t ret = read_table_from_flash(&primary_table, true);
+
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
+
+    ret = find_gpt_entry(
             primary_table,
             gpt_entry_cmp_guid,
             guid,
@@ -289,7 +337,12 @@ psa_status_t gpt_entry_create(const struct efi_guid_t *type,
                               const char               name[GPT_ENTRY_NAME_LENGTH],
                               struct efi_guid_t       *guid)
 {
-    struct gpt_t *primary_table = get_primary_gpt();
+    struct gpt_t *primary_table;
+    psa_status_t ret = read_table_from_flash(&primary_table, true);
+
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
 
     /* Using inequlity here handles when reading an initial GPT has more than
      * the maximum defined number of partitions.
@@ -308,7 +361,6 @@ psa_status_t gpt_entry_create(const struct efi_guid_t *type,
     }
 
     uint64_t start_lba = start;
-    psa_status_t ret = PSA_SUCCESS;
 
     if (start_lba == 0) {
         /* Use the lowest free LBA possible. Each partition uses contiguous space,
@@ -410,11 +462,17 @@ psa_status_t gpt_entry_create(const struct efi_guid_t *type,
 
 psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
 {
-    struct gpt_t *primary_table = get_primary_gpt();
+    struct gpt_t *primary_table;
     uint8_t *lba_buf = get_lba_buf();
     struct gpt_entry_t cached_entry;
     uint32_t cached_index;
-    psa_status_t ret = find_gpt_entry(
+    psa_status_t ret = read_table_from_flash(&primary_table, true);
+
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
+
+    ret = find_gpt_entry(
             primary_table,
             gpt_entry_cmp_guid,
             guid,
@@ -559,15 +617,22 @@ psa_status_t gpt_validate(bool is_primary)
     set_cached_lba(0);
 
     if (is_primary) {
-        return validate_table(get_primary_gpt(), true);
-    } else {
-        struct gpt_t backup_gpt;
+        struct gpt_t *primary_table;
 
-        ret = read_table_from_flash(&backup_gpt, false);
+        ret = read_table_from_flash(&primary_table, true);
         if (ret != PSA_SUCCESS) {
             return ret;
         }
-        return validate_table(&backup_gpt, false);
+        return validate_table(primary_table, true);
+    } else {
+        struct gpt_t backup_gpt;
+        struct gpt_t *backup_table = &backup_gpt;
+
+        ret = read_table_from_flash(&backup_table, false);
+        if (ret != PSA_SUCCESS) {
+            return ret;
+        }
+        return validate_table(backup_table, false);
     }
 }
 
@@ -596,30 +661,42 @@ psa_status_t gpt_restore(bool is_primary)
 
     if (is_primary) {
         struct gpt_t backup_gpt;
+        struct gpt_t *backup_table = &backup_gpt;
 
-        ret = read_table_from_flash(&backup_gpt, false);
+        ret = read_table_from_flash(&backup_table, false);
         if (ret != PSA_SUCCESS) {
             return ret;
         }
-        ret = count_used_partitions(&backup_gpt, &backup_gpt.num_used_partitions);
+        ret = count_used_partitions(backup_table, &(backup_table->num_used_partitions));
         if (ret != PSA_SUCCESS) {
             return ret;
         }
-        return restore_table(&backup_gpt, false);
+        return restore_table(backup_table, false);
     } else {
-        return restore_table(get_primary_gpt(), true);
+        struct gpt_t *primary_table;
+
+        ret = read_table_from_flash(&primary_table, true);
+        if (ret != PSA_SUCCESS) {
+            return ret;
+        }
+        return restore_table(primary_table, true);
     }
 }
 
 psa_status_t gpt_defragment(void)
 {
-    struct gpt_t *primary_table = get_primary_gpt();
+    struct gpt_t *primary_table;
+    psa_status_t ret = read_table_from_flash(&primary_table, true);
+
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
 
     /* First, sort the partition array according to start LBA. This means that
      * moving partitions towards the start of the flash sequentially is safe
      * and will not result in lost data.
      */
-    psa_status_t ret = sort_partition_array(primary_table);
+    ret = sort_partition_array(primary_table);
 
     if (ret != PSA_SUCCESS) {
         ERROR("Unable to defragment flash!\n");
@@ -678,10 +755,10 @@ psa_status_t gpt_defragment(void)
 /* Initialises GPT from first block. */
 psa_status_t gpt_init(struct gpt_flash_driver_t *flash_driver, uint64_t max_partitions)
 {
-    struct gpt_t *primary_table = get_primary_gpt();
-
+    invalidate_primary_gpt();
     set_cached_lba(0);
     set_write_buffered(false);
+
     if (max_partitions < GPT_MIN_PARTITIONS) {
         ERROR("Minimum number of partitions is %d\n", GPT_MIN_PARTITIONS);
         return PSA_ERROR_INVALID_ARGUMENT;
@@ -720,8 +797,10 @@ psa_status_t gpt_init(struct gpt_flash_driver_t *flash_driver, uint64_t max_part
     /* If the first record has type 0xEE (GPT protective), then the flash uses
      * GPT. Else, treat it as legacy MBR
      */
+    struct gpt_t *primary_table;
+
     if (mbr.partitions[0].os_type == MBR_TYPE_GPT) {
-        ret = read_table_from_flash(primary_table, true);
+        ret = read_table_from_flash(&primary_table, true);
     } else {
         ERROR("Unsupported legacy MBR in use\n");
         ret = PSA_ERROR_NOT_SUPPORTED;
@@ -749,18 +828,19 @@ psa_status_t gpt_init(struct gpt_flash_driver_t *flash_driver, uint64_t max_part
     set_backup_gpt_lba(primary_table->header.backup_lba);
     if (get_backup_gpt_lba() != 0) {
         struct gpt_t backup_gpt;
+        struct gpt_t *backup_table = &backup_gpt;
 
-        ret = read_table_from_flash(&backup_gpt, false);
+        ret = read_table_from_flash(&backup_table, false);
         if (ret != PSA_SUCCESS) {
             goto fail_load;
         }
-        if (backup_gpt.header.entry_size != GPT_ENTRY_SIZE) {
+        if (backup_table->header.entry_size != GPT_ENTRY_SIZE) {
             ERROR("Unsupported entry size 0x%08x, must be 0x%08x\n",
-                    backup_gpt.header.entry_size, GPT_ENTRY_SIZE);
+                    backup_table->header.entry_size, GPT_ENTRY_SIZE);
             ret = PSA_ERROR_NOT_SUPPORTED;
             goto fail_load;
         }
-        set_backup_gpt_array_lba(backup_gpt.header.array_lba);
+        set_backup_gpt_array_lba(backup_table->header.array_lba);
     } else {
         WARN("Backup GPT location is unknown!\n");
     }
@@ -775,6 +855,7 @@ fail_load:
     set_backup_gpt_array_lba(0);
     set_cached_lba(0);
     set_write_buffered(false);
+    invalidate_primary_gpt();
 
     return ret;
 }
@@ -805,6 +886,7 @@ psa_status_t gpt_uninit(void)
     set_backup_gpt_array_lba(0);
     set_cached_lba(0);
     set_write_buffered(false);
+    invalidate_primary_gpt();
 
     return ret;
 }
@@ -916,7 +998,12 @@ static psa_status_t move_partition(const struct efi_guid_t *guid,
                                    const uint64_t           end,
                                    const bool               no_copy)
 {
-    struct gpt_t *primary_table = get_primary_gpt();
+    struct gpt_t *primary_table;
+    psa_status_t ret = read_table_from_flash(&primary_table, true);
+
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
 
     if (end < start) {
         return PSA_ERROR_INVALID_ARGUMENT;
@@ -933,7 +1020,7 @@ static psa_status_t move_partition(const struct efi_guid_t *guid,
 
     struct gpt_entry_t cached_entry;
     uint32_t cached_index;
-    psa_status_t ret = find_gpt_entry(
+    ret = find_gpt_entry(
             primary_table,
             gpt_entry_cmp_guid,
             guid,
@@ -1353,7 +1440,11 @@ static psa_status_t restore_table(struct gpt_t *restore_from, bool is_primary)
 
     struct gpt_t restore_to;
 
-    swap_headers(&(restore_from->header), &(restore_to.header));
+    ret = swap_headers(&(restore_from->header), &(restore_to.header));
+
+    if (ret != PSA_SUCCESS) {
+        return ret;
+    }
 
     /* Copy the partition array as well */
     ret = move_partition_data(
@@ -1374,8 +1465,12 @@ static psa_status_t restore_table(struct gpt_t *restore_from, bool is_primary)
 
     /* The primary GPT is cached in memory */
     if (!is_primary) {
-        struct gpt_t *primary_table = get_primary_gpt();
+        struct gpt_t *primary_table;
 
+        ret = read_table_from_flash(&primary_table, true);
+        if (ret != PSA_SUCCESS) {
+            return ret;
+        }
         memcpy(&(primary_table->header), &(restore_to.header), GPT_HEADER_SIZE);
         primary_table->num_used_partitions = restore_from->num_used_partitions;
     }
