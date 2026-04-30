@@ -20,8 +20,6 @@ target_include_directories(platform_ns
 
 target_sources(platform_ns
     PRIVATE
-        $<$<OR:$<BOOL:${TFM_NS_REG_TEST}>,$<BOOL:${TEST_PSA_API}>>:${IFX_COMMON_SOURCE_DIR}/tests/plat_test_ns.c>
-
         ${IFX_COMMON_SOURCE_DIR}/device/src/device_definition.c
         $<$<BOOL:${IFX_UART_ENABLED}>:${IFX_COMMON_SOURCE_DIR}/drivers/stdio/uart_pdl_stdout.c>
         $<$<BOOL:${TFM_PARTITION_PLATFORM}>:${INTERFACE_SRC_DIR}/ifx_platform_api.c>
