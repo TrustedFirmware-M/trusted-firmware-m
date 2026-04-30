@@ -580,6 +580,19 @@ static int32_t Flash_ProgramData(uint32_t addr,
   {
 #if FLASH0_PROG_UNIT == 0x8
     /* doubleword api*/
+ #ifdef STM32L5xx_HAL_H
+    /* HAL_FLASH_Program() for L5xx expects a 64bit data, not a data address */
+    uint64_t dword;
+    memcpy(&dword, (void *)((uint32_t)data + loop), sizeof(dword));
+    if (dword != -1)
+    {
+        err = HAL_FLASH_Program(write_type, flash_base + addr, dword);
+    }
+    else
+    {
+        err = HAL_OK;
+    }
+ #else /* STM32L5xx_HAL_H */
     uint32_t dword[2];
     memcpy(dword, (void *)((uint32_t)data + loop), sizeof(dword));
     if ((dword[0] != -1) || (dword[1] != -1))
@@ -590,6 +603,7 @@ static int32_t Flash_ProgramData(uint32_t addr,
 	{
         err = HAL_OK;
 	}
+ #endif /* STM32L5xx_HAL_H */
 #elif FLASH0_PROG_UNIT == 0x10
     /* quadword api*/
     uint64_t dword[2];
