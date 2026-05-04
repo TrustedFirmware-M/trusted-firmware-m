@@ -30,7 +30,7 @@
 
  /* Flash layout (internal flash) on stm23l562e_dk with BL2 (multiple image boot):
  *
- * 0x0000_0000 BL2 - MCUBoot (72 KB)
+ * 0x0000_0000 BL2 - MCUBoot (56 KB)
  * 0x0000_e000 OTP / NV counters area (8 KB)
  * 0x0001_0000 Secure Storage Area (8 KB)
  * 0x0001_2000 Internal Trusted Storage Area (8 KB)
@@ -41,7 +41,7 @@
  *
  * Flash layout on  stm23l562e_dk with BL2 (multiple image boot, layout for test):
  * No Firmware update
- * 0x0000_0000 BL2 - MCUBoot (72 KB)
+ * 0x0000_0000 BL2 - MCUBoot (56 KB)
  * 0x0000_e000 OTP / NV counters area  area (8 KB)
  * 0x0001_0000 Secure Storage Area (8 KB)
  * 0x0001_2000 Internal Trusted Storage Area (8 KB)
