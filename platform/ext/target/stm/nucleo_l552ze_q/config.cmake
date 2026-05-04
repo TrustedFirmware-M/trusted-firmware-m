@@ -12,6 +12,7 @@
 
 set(MCUBOOT_IMAGE_NUMBER                2           CACHE STRING    "Whether to combine S and NS into either 1 image, or sign each seperately")
 set(BL2_TRAILER_SIZE                    0x2000      CACHE STRING    "Trailer size")
+set(MCUBOOT_USE_PSA_CRYPTO              ON          CACHE BOOL      "Enable the cryptographic abstraction layer to use PSA Crypto APIs")
 
 ################################## Dependencies ################################
 set(CRYPTO_HW_ACCELERATOR               ON          CACHE BOOL      "Whether to enable the crypto hardware accelerator on supported platforms")
