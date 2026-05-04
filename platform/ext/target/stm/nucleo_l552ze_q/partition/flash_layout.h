@@ -26,7 +26,7 @@
  *
  * Flash layout on nucleo_l552ze_q with BL2 (multiple image boot):
  *
- * 0x0000_0000 BL2 - MCUBoot (38 KB)
+ * 0x0000_0000 BL2 - MCUBoot (56 KB)
  * 0x0000_e000 OTP / NV counters area (8 KB)
  * 0x0001_0000 Secure Storage Area (8 KB)
  * 0x0001_2000 Internal Trusted Storage Area (8 KB)
@@ -37,7 +37,7 @@
  *
  * Flash layout on nucleo_l552ze_q with BL2 (multiple image boot, layout for test):
  * No Firmware update , ITS, PS in RAM.
- * 0x0000_0000 BL2 - MCUBoot (38 KB)
+ * 0x0000_0000 BL2 - MCUBoot (56 KB)
  * 0x0000_e000 OTP / NV counters area  area (8 KB)
  * 0x0001_0000 Secure Storage Area (8 KB)
  * 0x0001_2000 Internal Trusted Storage Area (8 KB)
