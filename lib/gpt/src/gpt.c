@@ -69,9 +69,6 @@
 /* Logical Block Address (LBA) for primary GPT */
 #define PRIMARY_GPT_LBA 1
 
-/* LBA for primary GPT partition array */
-#define PRIMARY_GPT_ARRAY_LBA 2
-
 /* MBR partition entry - both for protective MBR entry and
  * legacy MBR entry
  */
@@ -641,7 +638,9 @@ psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
 
             /* Write to backup first, then primary partition array */
             if (backup_gpt_array_lba != 0) {
-                ret = write_to_flash(backup_gpt_array_lba + i - 1 - PRIMARY_GPT_ARRAY_LBA, false);
+                ret = write_to_flash(
+                        backup_gpt_array_lba + i - 1 - primary_gpt.header.array_lba,
+                        false);
                 if (ret != PSA_SUCCESS) {
                     return ret;
                 }
@@ -671,7 +670,7 @@ psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
         memset(lba_buf, 0, TFM_GPT_BLOCK_SIZE);
         if (backup_gpt_array_lba != 0) {
             ret = write_to_flash(
-                    backup_gpt_array_lba + array_end_lba - PRIMARY_GPT_ARRAY_LBA,
+                    backup_gpt_array_lba + array_end_lba - primary_gpt.header.array_lba,
                     true);
             if (ret != PSA_SUCCESS) {
                 return ret;
@@ -1491,10 +1490,10 @@ static psa_status_t flush_lba_buf(void)
     if (cached_lba == PRIMARY_GPT_LBA || (backup_gpt_lba != 0 && cached_lba == backup_gpt_lba)) {
         /* Write both backup and primary headers */
         ret = write_headers_to_flash();
-    } else if (PRIMARY_GPT_ARRAY_LBA <= cached_lba &&
+    } else if (cached_lba >= primary_gpt.header.array_lba &&
             cached_lba <= partition_array_last_lba(&primary_gpt)) {
         /* Primary array entry. Write to backup and primary array */
-        ret = write_entries_to_flash(cached_lba - PRIMARY_GPT_ARRAY_LBA, false);
+        ret = write_entries_to_flash(cached_lba - primary_gpt.header.array_lba, false);
     } else if (backup_gpt_array_lba != 0 &&
             backup_gpt_array_lba <= cached_lba &&
             cached_lba <= backup_gpt_array_lba + array_size - 1) {
@@ -1549,7 +1548,7 @@ static psa_status_t write_entries_to_flash(uint32_t lbas_into_array, bool no_hea
         WARN("Backup array LBA unknown!\n");
     }
 
-    ret = write_to_flash(PRIMARY_GPT_ARRAY_LBA + lbas_into_array, false);
+    ret = write_to_flash(primary_gpt.header.array_lba + lbas_into_array, false);
     if (ret != PSA_SUCCESS) {
         ERROR("Unable to write entry to primary partition array\n");
         return ret;
@@ -1600,7 +1599,7 @@ static psa_status_t write_entry(uint32_t                  array_index,
         num_writes = 0;
         write_buffered = false;
 
-        ret = write_entries_to_flash(cached_lba - PRIMARY_GPT_ARRAY_LBA, no_header_update);
+        ret = write_entries_to_flash(cached_lba - primary_gpt.header.array_lba, no_header_update);
         if (ret != PSA_SUCCESS) {
             return ret;
         }
