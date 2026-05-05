@@ -668,34 +668,26 @@ psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
          * There is also no need to do an erase just to zero afterwards.
          */
         memset(lba_buf, 0, TFM_GPT_BLOCK_SIZE);
-        if (backup_gpt_array_lba != 0) {
-            ret = write_to_flash(
-                    backup_gpt_array_lba + array_end_lba - primary_gpt.header.array_lba,
-                    true);
-            if (ret != PSA_SUCCESS) {
-                return ret;
-            }
-        }
-        ret = write_to_flash(array_end_lba, true);
-        if (ret != PSA_SUCCESS) {
-            return ret;
-        }
     } else {
         /* Zero what is not needed anymore */
         memset(
                 lba_buf + GPT_ENTRY_SIZE * entries_in_last_lba,
                 0,
                 (gpt_entry_per_lba_count() - entries_in_last_lba) * GPT_ENTRY_SIZE);
-        if (backup_gpt_array_lba != 0) {
-            ret = write_to_flash(array_end_lba, false);
-            if (ret != PSA_SUCCESS) {
-                return ret;
-            }
-        }
-        ret = write_to_flash(array_end_lba, false);
+    }
+
+    if (backup_gpt_array_lba != 0) {
+        ret = write_to_flash(
+                backup_gpt_array_lba + array_end_lba - primary_gpt.header.array_lba,
+                true);
         if (ret != PSA_SUCCESS) {
             return ret;
         }
+    }
+
+    ret = write_to_flash(array_end_lba, true);
+    if (ret != PSA_SUCCESS) {
+        return ret;
     }
 
     /* Update the header after flash changes */

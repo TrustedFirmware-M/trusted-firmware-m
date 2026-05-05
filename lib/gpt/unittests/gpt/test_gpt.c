@@ -347,6 +347,12 @@ void test_gpt_init_should_overwriteOldGpt(void)
     setup_valid_gpt();
 }
 
+void test_gpt_init_should_acceptPrimaryArrayLbaNotTwo(void)
+{
+    test_header.array_lba++;
+    setup_valid_gpt();
+}
+
 void test_gpt_init_should_failWhenMbrSigBad(void)
 {
     test_mbr.sig--;
