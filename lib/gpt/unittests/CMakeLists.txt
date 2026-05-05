@@ -22,6 +22,11 @@ project(
     LANGUAGES C
 )
 
+set(UNITTEST_HOST_STDIO_BACKEND
+    ${TFM_ROOT_DIR}/platform/ext/target/arm/rse/common/unittests/src/host_uart_stdout.c)
+set(UNITTEST_UART_STDOUT_INCLUDE_DIR
+    ${TFM_ROOT_DIR}/platform/ext/common)
+
 enable_testing()
 include(CTest)
 include(${TFM_ROOT_DIR}/cmake/remote_library.cmake)
@@ -38,6 +43,15 @@ add_subdirectory(${CMOCK_SRC_DIR} ${CMOCK_SRC_DIR})
 
 function(generate_test UNIT_NAME UNIT_PATH)
         include(${UNIT_PATH}/utcfg.cmake)
+
+        if(NOT DEFINED UNIT_TEST_USE_HOST_STDIO_BACKEND)
+            set(UNIT_TEST_USE_HOST_STDIO_BACKEND ON)
+        endif()
+
+        if(UNIT_TEST_USE_HOST_STDIO_BACKEND)
+            list(APPEND UNIT_TEST_DEPS ${UNITTEST_HOST_STDIO_BACKEND})
+            list(APPEND UNIT_TEST_INCLUDE_DIRS ${UNITTEST_UART_STDOUT_INCLUDE_DIR})
+        endif()
 
         # Generate runner for the test
         file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/unittests/${UNIT_NAME})

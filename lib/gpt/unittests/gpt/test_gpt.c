@@ -12,8 +12,6 @@
 
 #include "mock_efi_guid.h"
 #include "mock_efi_soft_crc.h"
-#include "mock_tfm_log.h"
-#include "mock_tfm_vprintf.h"
 
 #include "efi_guid_structs.h"
 #include "gpt_flash.h"
@@ -312,9 +310,6 @@ void setUp(void)
 
     /* Any time this is called, return the same number and ignore the arguments */
     efi_soft_crc32_update_IgnoreAndReturn(test_header.header_crc);
-
-    /* Ignore all logging calls */
-    tfm_log_Ignore();
 
     num_mocked_reads = 0;
     registered_mocked_reads = 0;

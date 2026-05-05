@@ -10,6 +10,8 @@ set(UNIT_UNDER_TEST ${TFM_ROOT_DIR}/lib/gpt/src/gpt.c)
 set(UNIT_TEST_SUITE ${CMAKE_CURRENT_LIST_DIR}/test_gpt.c)
 
 # Dependencies for the UUT, that get linked into the executable
+list(APPEND UNIT_TEST_DEPS ${TFM_ROOT_DIR}/lib/tfm_log/src/tfm_log.c)
+list(APPEND UNIT_TEST_DEPS ${TFM_ROOT_DIR}/lib/tfm_vprintf/src/tfm_vprintf.c)
 
 # Include directories for compilation
 list(APPEND UNIT_TEST_INCLUDE_DIRS ${TFM_ROOT_DIR}/lib/gpt/unittests/include)
@@ -22,8 +24,6 @@ list(APPEND UNIT_TEST_INCLUDE_DIRS ${TFM_ROOT_DIR}/lib/tfm_vprintf/inc)
 
 # Headers to be mocked
 list(APPEND MOCK_HEADERS ${TFM_ROOT_DIR}/lib/efi_guid/inc/efi_guid.h)
-list(APPEND MOCK_HEADERS ${TFM_ROOT_DIR}/lib/tfm_log/inc/tfm_log.h)
-list(APPEND MOCK_HEADERS ${TFM_ROOT_DIR}/lib/tfm_vprintf/inc/tfm_vprintf.h)
 list(APPEND MOCK_HEADERS ${TFM_ROOT_DIR}/lib/ext/efi_soft_crc/inc/efi_soft_crc.h)
 
 # Compile-time definitions
