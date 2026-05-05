@@ -200,7 +200,6 @@ int32_t boot_platform_init(void)
        - Set NVIC Group Priority to 3
        - Low Level Initialization
      */
-  int result;
   HAL_Init();
   /* Initialize RNG */
   if (RNG_Init()){
@@ -208,7 +207,7 @@ int32_t boot_platform_init(void)
       Error_Handler();
   }
 #ifdef CRYPTO_HW_ACCELERATOR
-  result = crypto_hw_accelerator_init();
+  int result = crypto_hw_accelerator_init();
   if (result) {
     BOOT_LOG_ERR("Error while initializing Crypto Hw");
     Error_Handler();
