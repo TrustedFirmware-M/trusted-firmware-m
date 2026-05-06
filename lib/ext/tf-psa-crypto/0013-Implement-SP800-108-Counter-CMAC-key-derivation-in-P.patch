@@ -12,8 +12,8 @@ using the construction recommended by NIST Special Publication 800-108r1
 
 Signed-off-by: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
 ---
- core/psa_crypto.c | 232 ++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 226 insertions(+), 6 deletions(-)
+ core/psa_crypto.c | 234 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 228 insertions(+), 6 deletions(-)
 
 diff --git a/core/psa_crypto.c b/core/psa_crypto.c
 index 9981bb447..11de5071d 100644
@@ -329,7 +329,7 @@ index 9981bb447..11de5071d 100644
      psa_key_type_t key_type,
      const uint8_t *data,
      size_t data_length)
-@@ -7586,11 +7799,17 @@ static psa_status_t psa_key_derivation_input_internal(
+@@ -7586,11 +7799,19 @@ static psa_status_t psa_key_derivation_input_internal(
          goto exit;
      }
  
@@ -344,11 +344,13 @@ index 9981bb447..11de5071d 100644
 +        status = psa_sp800_108_counter_cmac_input(&operation->ctx.sp800_108_cmac,
 +                                                  attributes, step, data, data_length);
 +    } else
++#else /* MBEDTLS_PSA_BUILTIN_ALG_SP800_108_COUNTER_CMAC */
++    (void) attributes;
 +#endif /* MBEDTLS_PSA_BUILTIN_ALG_SP800_108_COUNTER_CMAC */
  #if defined(BUILTIN_ALG_ANY_HKDF)
      if (PSA_ALG_IS_ANY_HKDF(kdf_alg)) {
          status = psa_hkdf_input(&operation->ctx.hkdf, kdf_alg,
-@@ -7682,7 +7901,7 @@ psa_status_t psa_key_derivation_input_bytes(
+@@ -7682,7 +7903,7 @@ psa_status_t psa_key_derivation_input_bytes(
      LOCAL_INPUT_ALLOC(data_external, data_length, data);
  
      status = psa_key_derivation_input_internal(operation, step,
@@ -357,7 +359,7 @@ index 9981bb447..11de5071d 100644
                                                 data, data_length);
  #if !defined(MBEDTLS_PSA_ASSUME_EXCLUSIVE_BUFFERS)
  exit:
-@@ -7723,7 +7942,8 @@ psa_status_t psa_key_derivation_input_key(
+@@ -7723,7 +7944,8 @@ psa_status_t psa_key_derivation_input_key(
      }
  
      status = psa_key_derivation_input_internal(operation,
@@ -367,7 +369,7 @@ index 9981bb447..11de5071d 100644
                                                 slot->key.data,
                                                 slot->key.bytes);
  
-@@ -7841,7 +8061,7 @@ static psa_status_t psa_key_agreement_internal(psa_key_derivation_operation_t *o
+@@ -7841,7 +8063,7 @@ static psa_status_t psa_key_agreement_internal(psa_key_derivation_operation_t *o
       * the shared secret. A shared secret is permitted wherever a key
       * of type DERIVE is permitted. */
      status = psa_key_derivation_input_internal(operation, step,
