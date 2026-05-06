@@ -49,6 +49,7 @@ slot_ns=$((slot_ns + header_size))
 
 connect="-c port=SWD "$sn_option" mode=UR"
 connect_no_reset="-c port=SWD "$sn_option" mode=HotPlug"
+connect_hardware_reset="-c port=SWD ${sn_option} mode=powerdown -hardRst"
 
 echo "Write TFM Secure"
 # part to be updated according to flash_layout.h
@@ -57,3 +58,5 @@ echo "TFM Secure Written"
 echo "Write TFM NonSecure"
 $stm32programmercli $connect_no_reset -d $BINPATH_SPE/tfm_ns.bin $slot_ns -v
 echo "TFM NonSecure Written"
+echo "Hardware reset"
+$stm32programmercli $connect_hardware_reset

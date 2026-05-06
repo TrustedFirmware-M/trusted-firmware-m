@@ -122,11 +122,11 @@
 /* Host BL2 (TF-A) primary and secondary image. */
 #define FLASH_AREA_4_ID                 (FLASH_AREA_3_ID + 1)
 #define FLASH_AREA_5_ID                 (FLASH_AREA_4_ID + 1)
-#define FLASH_AREA_IMAGE_PRIMARY(x)     (((x) == 0) ? FLASH_AREA_2_ID : \
-                                         ((x) == 1) ? FLASH_AREA_4_ID : \
+#define FLASH_AREA_IMAGE_PRIMARY(x)     (((x) == 0) ? FLASH_AREA_0_ID : \
+                                         ((x) == 1) ? FLASH_AREA_1_ID : \
                                                       255 )
-#define FLASH_AREA_IMAGE_SECONDARY(x)   (((x) == 0) ? FLASH_AREA_3_ID : \
-                                         ((x) == 1) ? FLASH_AREA_5_ID : \
+#define FLASH_AREA_IMAGE_SECONDARY(x)   (((x) == 0) ? FLASH_AREA_2_ID : \
+                                         ((x) == 1) ? FLASH_AREA_3_ID : \
                                                       255 )
 #define FLASH_AREA_IMAGE_SCRATCH        255
 #define FLASH_DEVICE_ID                 100
@@ -139,14 +139,6 @@
 /* The size of NS partition */
 #define FLASH_NS_PARTITION_SIZE         (0x80000) /* 512 KB for NS partition */
 
-/* Non Volatile Counters definitions */
-#define FLASH_NV_COUNTERS_AREA_OFFSET           (0x0000)
-#define FLASH_NV_COUNTER_AREA_SIZE              (0x0000)
-
-/* Control Non Volatile Counters definitions */
-#if (FLASH_NV_COUNTER_AREA_SIZE % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0
-#error "FLASH_NV_COUNTER_AREA_SIZE not aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
-#endif /*  (FLASH_NV_COUNTER_AREA_SIZE % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0 */
 
 /* OTP / Non Volatile Counters definitions */
 #define FLASH_OTP_NV_COUNTERS_SECTOR_SIZE   (FLASH_AREA_IMAGE_SECTOR_SIZE)
@@ -194,7 +186,6 @@
  * Name is defined in flash driver file: low_level_flash.c
  */
 #define TFM_NV_COUNTERS_FLASH_DEV       TFM_Driver_FLASH0
-#define FLASH_DEV_NAME                  TFM_Driver_FLASH0
 #define TFM_HAL_FLASH_PROGRAM_UNIT       (0x10)
 
 /* Protected Storage (PS) Service definitions
@@ -241,7 +232,7 @@
 /* Number of physical erase sectors per logical FS block */
 #define TFM_HAL_ITS_SECTORS_PER_BLOCK  (1)
 /* Smallest flash programmable unit in bytes */
-#define TFM_HAL_ITS_PROGRAM_UNIT       (0x10)
+#define TFM_HAL_ITS_PROGRAM_UNIT       TFM_HAL_FLASH_PROGRAM_UNIT
 /* OTP area definition */
 #define TFM_OTP_NV_COUNTERS_AREA_SIZE    FLASH_OTP_NV_COUNTERS_SECTOR_SIZE
 #define TFM_OTP_NV_COUNTERS_AREA_ADDR    FLASH_OTP_NV_COUNTERS_AREA_OFFSET

@@ -172,8 +172,10 @@ const uint8_t APBPrescTable[8] = {0U, 0U, 0U, 0U, 1U, 2U, 3U, 4U};
 /** @addtogroup STM32U3xx_System_Private_FunctionPrototypes
   * @{
   */
+#if defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
 static void SystemClock_Config(void);
 static void Error_Handler(void);
+#endif /* defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */
 
 /**
   * @}
@@ -202,7 +204,9 @@ void SystemInit(void)
   SCB->VTOR = VECT_TAB_BASE_ADDRESS | VECT_TAB_OFFSET; /* Vector Table Relocation */
 #endif /* USER_VECT_TAB_ADDRESS */
 
+#if defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
   SystemClock_Config();
+#endif /* defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */
 }
 
 /**
@@ -342,6 +346,7 @@ CMSE_NS_ENTRY uint32_t SECURE_SystemCoreClockUpdate(void)
   * @}
   */
 
+#if defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -402,6 +407,7 @@ static void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
   HAL_RCC_ConfigAttributes(RCC_SYSCLK, RCC_SEC_NPRIV);
 }
 
@@ -414,3 +420,4 @@ static void Error_Handler(void)
   /* Initialization Error */
   while(1);
 }
+#endif /* defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) */

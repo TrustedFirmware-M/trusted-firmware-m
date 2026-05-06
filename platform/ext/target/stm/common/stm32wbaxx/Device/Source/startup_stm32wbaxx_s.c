@@ -72,24 +72,17 @@ DEFAULT_IRQ_HANDLER(SVC_Handler)
 DEFAULT_IRQ_HANDLER(DebugMon_Handler)
 DEFAULT_IRQ_HANDLER(PendSV_Handler)
 DEFAULT_IRQ_HANDLER(SysTick_Handler)
-
 DEFAULT_IRQ_HANDLER(WWDG_IRQHandler)
-DEFAULT_IRQ_HANDLER(PVD_AVD_IRQHandler)
+DEFAULT_IRQ_HANDLER(PVD_IRQHandler)
 DEFAULT_IRQ_HANDLER(RTC_IRQHandler)
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx)
-DEFAULT_IRQ_HANDLER(RTC_IRQHandler_S)
-#endif
+DEFAULT_IRQ_HANDLER(RTC_S_IRQHandler)
 DEFAULT_IRQ_HANDLER(TAMP_IRQHandler)
 DEFAULT_IRQ_HANDLER(RAMCFG_IRQHandler)
 DEFAULT_IRQ_HANDLER(FLASH_IRQHandler)
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
-DEFAULT_IRQ_HANDLER(FLASH_IRQHandler_S)
+DEFAULT_IRQ_HANDLER(FLASH_S_IRQHandler)
 DEFAULT_IRQ_HANDLER(GTZC_IRQHandler)
-#endif
 DEFAULT_IRQ_HANDLER(RCC_IRQHandler)
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx)
-DEFAULT_IRQ_HANDLER(RCC_IRQHandler_S)
-#endif
+DEFAULT_IRQ_HANDLER(RCC_S_IRQHandler)
 DEFAULT_IRQ_HANDLER(EXTI0_IRQHandler)
 DEFAULT_IRQ_HANDLER(EXTI1_IRQHandler)
 DEFAULT_IRQ_HANDLER(EXTI2_IRQHandler)
@@ -107,9 +100,7 @@ DEFAULT_IRQ_HANDLER(EXTI13_IRQHandler)
 DEFAULT_IRQ_HANDLER(EXTI14_IRQHandler)
 DEFAULT_IRQ_HANDLER(EXTI15_IRQHandler)
 DEFAULT_IRQ_HANDLER(IWDG_IRQHandler)
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
 DEFAULT_IRQ_HANDLER(SAES_IRQHandler)
-#endif
 DEFAULT_IRQ_HANDLER(GPDMA1_Channel0_IRQHandler)
 DEFAULT_IRQ_HANDLER(GPDMA1_Channel1_IRQHandler)
 DEFAULT_IRQ_HANDLER(GPDMA1_Channel2_IRQHandler)
@@ -123,33 +114,21 @@ DEFAULT_IRQ_HANDLER(TIM1_UP_IRQHandler)
 DEFAULT_IRQ_HANDLER(TIM1_TRG_COM_IRQHandler)
 DEFAULT_IRQ_HANDLER(TIM1_CC_IRQHandler)
 DEFAULT_IRQ_HANDLER(TIM2_IRQHandler)
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
 DEFAULT_IRQ_HANDLER(TIM3_IRQHandler)
 DEFAULT_IRQ_HANDLER(I2C1_EV_IRQHandler)
 DEFAULT_IRQ_HANDLER(I2C1_ER_IRQHandler)
 DEFAULT_IRQ_HANDLER(SPI1_IRQHandler)
-#endif
 DEFAULT_IRQ_HANDLER(USART1_IRQHandler)
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
 DEFAULT_IRQ_HANDLER(USART2_IRQHandler)
-#endif
 DEFAULT_IRQ_HANDLER(LPUART1_IRQHandler)
 DEFAULT_IRQ_HANDLER(LPTIM1_IRQHandler)
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
 DEFAULT_IRQ_HANDLER(LPTIM2_IRQHandler)
-#endif
 DEFAULT_IRQ_HANDLER(TIM16_IRQHandler)
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
 DEFAULT_IRQ_HANDLER(TIM17_IRQHandler)
-#endif
-#if defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
 DEFAULT_IRQ_HANDLER(COMP_IRQHandler)
-#endif
 DEFAULT_IRQ_HANDLER(I2C3_EV_IRQHandler)
 DEFAULT_IRQ_HANDLER(I2C3_ER_IRQHandler)
-#if defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
 DEFAULT_IRQ_HANDLER(SAI1_IRQHandler)
-#endif
 DEFAULT_IRQ_HANDLER(TSC_IRQHandler)
 DEFAULT_IRQ_HANDLER(AES_IRQHandler)
 DEFAULT_IRQ_HANDLER(RNG_IRQHandler)
@@ -162,10 +141,21 @@ DEFAULT_IRQ_HANDLER(ADC4_IRQHandler)
 DEFAULT_IRQ_HANDLER(RADIO_IRQHandler)
 DEFAULT_IRQ_HANDLER(WKUP_IRQHandler)
 DEFAULT_IRQ_HANDLER(HSEM_IRQHandler)
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx)
-DEFAULT_IRQ_HANDLER(HSEM_IRQHandler_S)
+DEFAULT_IRQ_HANDLER(HSEM_S_IRQHandler)
+DEFAULT_IRQ_HANDLER(WKUP_S_IRQHandler)
+DEFAULT_IRQ_HANDLER(RCC_AUDIOSYNC_IRQHandler)
+#if defined(STM32WBA65xx)
+DEFAULT_IRQ_HANDLER(TIM4_IRQHandler)
+DEFAULT_IRQ_HANDLER(I2C2_EV_IRQHandler)
+DEFAULT_IRQ_HANDLER(I2C2_ER_IRQHandler)
+DEFAULT_IRQ_HANDLER(SPI2_IRQHandler)
+DEFAULT_IRQ_HANDLER(OTG_HS_IRQHandler)
+DEFAULT_IRQ_HANDLER(I2C4_EV_IRQHandler)
+DEFAULT_IRQ_HANDLER(I2C4_ER_IRQHandler)
+DEFAULT_IRQ_HANDLER(USART3_IRQHandler)
+DEFAULT_IRQ_HANDLER(EXTI19_RADIO_IO_IRQHandler)
+DEFAULT_IRQ_HANDLER(EXTI20_RADIO_IO_IRQHandler)
 #endif
-
 /*----------------------------------------------------------------------------
   Exception / Interrupt Vector table
  *----------------------------------------------------------------------------*/
@@ -194,29 +184,16 @@ extern const pFunc __VECTOR_TABLE[];
   PendSV_Handler,                   /*  -2: PendSV Handler */
   SysTick_Handler,                  /*  -1: SysTick Handler */
   WWDG_IRQHandler,                  /*   0: Window WatchDog */
-  PVD_AVD_IRQHandler,               /*   1: PVD/AVD through EXTI Line detection Interrupt */
+  PVD_IRQHandler,                   /*   1: PVD through EXTI Line detection Interrupt */
   RTC_IRQHandler,                   /*   2: RTC non-secure interrupt */
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx)
-  RTC_IRQHandler_S,                 /*   3: RTC secure interrupt */
-#else
-  0,                                /*   3: Reserved */
-#endif
-  Error_Handler,                  /*   4: Tamper non-secure interrupt  */
+  RTC_S_IRQHandler,                 /*   3: RTC secure interrupt */
+  TAMP_IRQHandler,                  /*   4: Tamper non-secure interrupt  */
   RAMCFG_IRQHandler,                /*   5: RAMCFG global */
   FLASH_IRQHandler,                 /*   6: FLASH non-secure global interrupt */
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
-  FLASH_IRQHandler_S,               /*   7: FLASH secure global interrupt */
+  FLASH_S_IRQHandler,               /*   7: FLASH secure global interrupt */
   GTZC_IRQHandler,                  /*   8: Global TrustZone Controller interrupt */
-#else
-  0,                                /*   7: Reserved */
-  0,                                /*   8: Reserved */
-#endif
   RCC_IRQHandler,                   /*   9: RCC non-secure global interrupt */
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx)
-  RCC_IRQHandler_S,                 /*  10: RCC secure global interrupt */
-#else
-  0,                                /*  10: Reserved */
-#endif
+  RCC_S_IRQHandler,                 /*  10: RCC secure global interrupt */
   EXTI0_IRQHandler,                 /*  11: EXTI Line0 interrupt */
   EXTI1_IRQHandler,                 /*  12: EXTI Line1 interrupt */
   EXTI2_IRQHandler,                 /*  13: EXTI Line2 interrupt */
@@ -234,11 +211,7 @@ extern const pFunc __VECTOR_TABLE[];
   EXTI14_IRQHandler,                /*  25: EXTI Line14 interrupt */
   EXTI15_IRQHandler,                /*  26: EXTI Line15 interrupt */
   IWDG_IRQHandler,                  /*  27: IWDG global interrupt */
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
   SAES_IRQHandler,                  /*  28: Secure AES global interrupt */
-#else
-  0,                                /*  28: Reserved */
-#endif
   GPDMA1_Channel0_IRQHandler,       /*  29: GPDMA1 Channel 0 global interrupt */
   GPDMA1_Channel1_IRQHandler,       /*  30: GPDMA1 Channel 1 global interrupt */
   GPDMA1_Channel2_IRQHandler,       /*  31: GPDMA1 Channel 2 global interrupt */
@@ -252,48 +225,21 @@ extern const pFunc __VECTOR_TABLE[];
   TIM1_TRG_COM_IRQHandler,          /*  39: TIM1 Trigger and Commutation interrupt */
   TIM1_CC_IRQHandler,               /*  40: TIM1 Capture Compare interrupt */
   TIM2_IRQHandler,                  /*  41: TIM2 global interrupt */
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
   TIM3_IRQHandler,                  /*  42: TIM3 global interrupt */
   I2C1_EV_IRQHandler,               /*  43: I2C1 Event interrupt */
   I2C1_ER_IRQHandler,               /*  44: I2C1 Error interrupt */
   SPI1_IRQHandler,                  /*  45: SPI1 global interrupt */
-#else
-  0,                                /*  42: Reserved */
-  0,                                /*  43: Reserved */
-  0,                                /*  44: Reserved */
-  0,                                /*  45: Reserved */
-#endif
   USART1_IRQHandler,                /*  46: USART1 global interrupt */
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
   USART2_IRQHandler,                /*  47: USART2 global interrupt */
-#else
-  0,                                /*  47: Reserved */
-#endif
   LPUART1_IRQHandler,               /*  48: LPUART1 global interrupt */
   LPTIM1_IRQHandler,                /*  49: LPTIM1 global interrupt */
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
   LPTIM2_IRQHandler,                /*  50: LPTIM2 global interrupt */
-#else
-  0,                                /*  50: Reserved */
-#endif
   TIM16_IRQHandler,                 /*  51: TIM16 global interrupt */
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
   TIM17_IRQHandler,                 /*  52: TIM17 global interrupt */
-#else
-  0,                                /*  52: Reserved */
-#endif
-#if defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
   COMP_IRQHandler,                  /*  53: COMP1 and COMP2 through EXTI Lines interrupt */
-#else
-  0,                                /*  53: Reserved */
-#endif
   I2C3_EV_IRQHandler,               /*  54: I2C3 event */
   I2C3_ER_IRQHandler,               /*  55: I2C3 error */
-#if defined(STM32WBA54xx) || defined(STM32WBA55xx) || defined(STM32WBA65xx)
   SAI1_IRQHandler,                  /*  56: Serial Audio Interface 1 global interrupt */
-#else
-  0,                                /*  56: Reserved */
-#endif
   TSC_IRQHandler,                   /*  57: Touch Sense Controller global interrupt */
   AES_IRQHandler,                   /*  58: AES global interrupt */
   RNG_IRQHandler,                   /*  59: RNG global interrupt */
@@ -303,13 +249,23 @@ extern const pFunc __VECTOR_TABLE[];
   SPI3_IRQHandler,                  /*  63: SPI3 global interrupt */
   ICACHE_IRQHandler,                /*  64: Instruction cache global interrupt */
   ADC4_IRQHandler,                  /*  65: LP ADC (12bits) global interrupt */
-  RADIO_IRQHandler,       			/*  66: 2.4GHz RADIO global interrupt */
-  WKUP_IRQHandler,       			/*  67: PWR global WKUP pin interrupt */
-  HSEM_IRQHandler,       			/*  68: HSEM non-secure global interrupt */
-#if defined(STM32WBA52xx) || defined(STM32WBA54xx) || defined(STM32WBA55xx)
-  HSEM_IRQHandler_S,       			/*  69: HSEM secure global interrupt */
-#else
-  0,                                /*  69: Reserved */
+  RADIO_IRQHandler,                 /*  66: 2.4GHz RADIO global interrupt */
+  WKUP_IRQHandler,                  /*  67: PWR global WKUP pin interrupt */
+  HSEM_IRQHandler,                  /*  68: HSEM non-secure global interrupt */
+  HSEM_S_IRQHandler,                /*  69: HSEM secure global interrupt */
+  WKUP_S_IRQHandler,                /*  70: PWR secure global WKUP pin interrupt */
+  RCC_AUDIOSYNC_IRQHandler,         /*  71: RCC audio synchronization interrupt */
+#if defined(STM32WBA65xx)
+  TIM4_IRQHandler,                  /*  72: TIM4 global interrupt */
+  I2C2_EV_IRQHandler,               /*  73: I2C2 event interrupt */
+  I2C2_ER_IRQHandler,               /*  74: I2c2 error interrupt */
+  SPI2_IRQHandler,                  /*  75: SPI2 global interrupt */
+  OTG_HS_IRQHandler,                /*  76: USB OTG_HS global interrupt */
+  I2C4_EV_IRQHandler,               /*  77: I2C4 event global interrupt */
+  I2C4_ER_IRQHandler,               /*  78: I2C4 error global interrupt */
+  USART3_IRQHandler,                /*  79: USART3 global interrupt */
+  EXTI19_RADIO_IO_IRQHandler,       /*  80: EXTI line 19 interrupt, 2.4 GHz RADIO io[x] */
+  EXTI20_RADIO_IO_IRQHandler,       /*  81: EXTI line 20 interrupt, 2.4 GHz RADIO io[y] */
 #endif
 };
 
