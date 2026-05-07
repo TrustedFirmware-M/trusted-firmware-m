@@ -1,4 +1,4 @@
-From 67d948ea2f9504c5af2979e83b531daaec51e607 Mon Sep 17 00:00:00 2001
+From 56d114bb85ad034f108788fdb8281ac09fdacd4f Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Wed, 8 Apr 2026 15:27:17 +0000
 Subject: [PATCH] bootutil: Parse key ID for built-in keys
@@ -14,6 +14,7 @@ image_index to the key ID.
 
 Signed-off-by: Maulik Patel <maulik.patel@arm.com>
 Signed-off-by: David Vincze <david.vincze@arm.com>
+Signed-off-by: Valerio Setti <vsetti@baylibre.com>
 Change-Id: If194aaf281d34c3a2260881b9831d64c3cf386d3
 ---
  boot/bootutil/include/bootutil/crypto/ecdsa.h |  5 --
@@ -24,10 +25,10 @@ Change-Id: If194aaf281d34c3a2260881b9831d64c3cf386d3
  boot/bootutil/src/image_ecdsa.c               |  6 +-
  boot/bootutil/src/image_ed25519.c             |  4 +-
  boot/bootutil/src/image_rsa.c                 |  4 +-
- boot/bootutil/src/image_validate.c            | 35 +++++-----
+ boot/bootutil/src/image_validate.c            | 38 +++++-----
  scripts/imgtool/image.py                      | 22 ++++--
  scripts/imgtool/main.py                       | 10 ++-
- 11 files changed, 121 insertions(+), 69 deletions(-)
+ 11 files changed, 122 insertions(+), 71 deletions(-)
 
 diff --git a/boot/bootutil/include/bootutil/crypto/ecdsa.h b/boot/bootutil/include/bootutil/crypto/ecdsa.h
 index 35f0930fa..eb2fe9c66 100644
@@ -371,7 +372,17 @@ index 3e8031b76..c6652b76c 100644
       IMAGE_TLV_SHA256,
       IMAGE_TLV_SHA384,
       IMAGE_TLV_SHA512,
-@@ -216,14 +220,7 @@ bootutil_img_validate(struct boot_loader_state *state,
+@@ -204,8 +208,7 @@ bootutil_img_validate(struct boot_loader_state *state,
+                       int seed_len, uint8_t *out_hash
+                      )
+ {
+-#if (defined(EXPECTED_KEY_TLV) && defined(MCUBOOT_HW_KEY)) || \
+-    (defined(EXPECTED_SIG_TLV) && defined(MCUBOOT_BUILTIN_KEY)) || \
++#if (defined(EXPECTED_KEY_TLV)) || \
+     defined(MCUBOOT_HW_ROLLBACK_PROT) || \
+     defined(MCUBOOT_UUID_VID) || defined(MCUBOOT_UUID_CID)
+     int image_index = (state == NULL ? 0 : BOOT_CURR_IMG(state));
+@@ -216,14 +219,7 @@ bootutil_img_validate(struct boot_loader_state *state,
      uint32_t img_sz;
  #ifdef EXPECTED_SIG_TLV
      FIH_DECLARE(valid_signature, FIH_FAILURE);
@@ -386,7 +397,7 @@ index 3e8031b76..c6652b76c 100644
  #ifdef MCUBOOT_HW_KEY
      uint8_t key_buf[KEY_BUF_SIZE];
  #endif
-@@ -377,7 +374,7 @@ bootutil_img_validate(struct boot_loader_state *state,
+@@ -377,7 +373,7 @@ bootutil_img_validate(struct boot_loader_state *state,
              if (rc) {
                  goto out;
              }
