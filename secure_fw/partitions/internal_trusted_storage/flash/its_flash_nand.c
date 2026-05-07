@@ -36,7 +36,6 @@ static uint32_t get_phys_address(const struct its_flash_fs_config_t *cfg,
 
 static psa_status_t its_flash_nand_init(const struct its_flash_fs_config_t *cfg)
 {
-    int32_t err;
     TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_5, "It's filesystem API design to use pointer to void")
     struct its_flash_nand_dev_t *flash_dev =
         (struct its_flash_nand_dev_t *)cfg->flash_dev;
@@ -46,11 +45,10 @@ static psa_status_t its_flash_nand_init(const struct its_flash_fs_config_t *cfg)
         return PSA_ERROR_PROGRAMMER_ERROR;
     }
 
-    err = flash_dev->driver->Initialize(NULL);
-    if (err != ARM_DRIVER_OK) {
-        return PSA_ERROR_STORAGE_FAILURE;
-    }
-
+    /* The flash driver is initialised by the caller of
+     * its_flash_fs_init_ctx(), so it can already be queried via GetInfo()
+     * before its_flash_fs_prepare() is invoked.
+     */
     return PSA_SUCCESS;
 }
 

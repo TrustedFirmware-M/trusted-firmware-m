@@ -206,6 +206,14 @@ static psa_status_t init_its_fs_cfg(void)
 {
     struct tfm_hal_its_fs_info_t its_fs_info;
 
+    /* Initialise the flash driver before querying its info, as some drivers
+     * only populate ARM_FLASH_INFO fields (e.g. sector_size) inside
+     * Initialize().
+     */
+    if (TFM_HAL_ITS_FLASH_DRIVER.Initialize(NULL) != ARM_DRIVER_OK) {
+        return PSA_ERROR_STORAGE_FAILURE;
+    }
+
     /* Check the compile-time program unit matches the runtime value */
     if (TFM_HAL_ITS_FLASH_DRIVER.GetInfo()->program_unit
         != TFM_HAL_ITS_PROGRAM_UNIT) {
@@ -241,6 +249,14 @@ static psa_status_t init_its_fs_cfg(void)
 static psa_status_t init_ps_fs_cfg(void)
 {
     struct tfm_hal_ps_fs_info_t ps_fs_info;
+
+    /* Initialise the flash driver before querying its info, as some drivers
+     * only populate ARM_FLASH_INFO fields (e.g. sector_size) inside
+     * Initialize().
+     */
+    if (TFM_HAL_PS_FLASH_DRIVER.Initialize(NULL) != ARM_DRIVER_OK) {
+        return PSA_ERROR_STORAGE_FAILURE;
+    }
 
     /* Check the compile-time program unit matches the runtime value */
     if (TFM_HAL_PS_FLASH_DRIVER.GetInfo()->program_unit
