@@ -184,18 +184,18 @@ static void expect_mbr_load(psa_status_t ret)
 }
 
 /* Expect a read of the primary table */
-static void expect_read_primary_gpt(void)
+static void expect_read_primary_gpt(psa_status_t ret)
 {
     test_primary_gpt_ptr = &test_primary_gpt;
-    read_table_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
+    read_table_from_flash_ExpectAnyArgsAndReturn(ret);
     read_table_from_flash_ReturnThruPtr_table(&test_primary_gpt_ptr);
 }
 
 /* Expect a read of the backup table */
-static void expect_read_backup_gpt(void)
+static void expect_read_backup_gpt(psa_status_t ret)
 {
     test_backup_gpt_ptr = &test_backup_gpt;
-    read_table_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
+    read_table_from_flash_ExpectAnyArgsAndReturn(ret);
     read_table_from_flash_ReturnThruPtr_table(&test_backup_gpt_ptr);
 }
 
@@ -219,21 +219,26 @@ static void expect_read_primary_gpt_only(void)
     read_table_from_flash_Stub(read_primary_gpt_from_flash);
 }
 
+/* Expect a read of a particular entry */
+static void expect_read_entry(psa_status_t ret, struct gpt_entry_t *test_entry)
+{
+    read_entry_from_flash_ExpectAnyArgsAndReturn(ret);
+    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
+}
+
 /* Expect a read for every entry, used or unused */
-static void expect_read_all_entries(void)
+static void expect_read_all_entries(psa_status_t ret)
 {
     for (size_t i = 0; i < test_primary_gpt.header.num_partitions; ++i) {
-        read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-        read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[i]));
+        expect_read_entry(ret, &(test_partition_array[i]));
     }
 }
 
 /* Expect a read for every used entry */
-static void expect_read_used_entries(void)
+static void expect_read_used_entries(psa_status_t ret)
 {
     for (size_t i = 0; i < test_primary_gpt.num_used_partitions; ++i) {
-        read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-        read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[i]));
+        expect_read_entry(ret, &(test_partition_array[i]));
     }
 }
 
@@ -264,7 +269,7 @@ static void setup_backup_gpt(void)
 {
     MAKE_BACKUP_HEADER((test_backup_gpt.header), (test_primary_gpt.header));
 
-    expect_read_backup_gpt();
+    expect_read_backup_gpt(PSA_SUCCESS);
 }
 
 /* Uses the test MBR and GPT header to initialise for tests */
@@ -274,12 +279,12 @@ static psa_status_t setup_test_gpt(void)
     expect_mbr_load(PSA_SUCCESS);
 
     /* Expect a GPT header read second */
-    expect_read_primary_gpt();
+    expect_read_primary_gpt(PSA_SUCCESS);
 
     /* Expect third each partition is read to find the number in use (if the
-     * number in the header is non-zero)
+     * number in the header is non-zero). Stops reading once a 0 entry is found
      */
-    expect_read_all_entries();
+    expect_read_all_entries(PSA_SUCCESS);
 
     /* Expect fourth the backup to be read */
     setup_backup_gpt();
@@ -307,17 +312,17 @@ static void validate_backup_lba_not_at_end_of_disk(uint64_t invalid_lba, bool is
         test_primary_gpt.header.backup_lba = invalid_lba;
         setup_test_gpt();
 
-        expect_read_primary_gpt();
+        expect_read_primary_gpt(PSA_SUCCESS);
     } else {
         test_primary_gpt.header.backup_lba = invalid_lba;
         setup_test_gpt();
         test_backup_gpt.header.current_lba = invalid_lba;
 
-        expect_read_backup_gpt();
+        expect_read_backup_gpt(PSA_SUCCESS);
     }
 
     /* Every entry read for CRC calculation */
-    expect_read_all_entries();
+    expect_read_all_entries(PSA_SUCCESS);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_SIGNATURE, gpt_validate(is_primary));
 }
@@ -329,7 +334,7 @@ static void validate_partition_array_in_usable_disk_space(uint64_t invalid_lba, 
         test_primary_gpt.header.array_lba = invalid_lba;
         setup_test_gpt();
 
-        expect_read_primary_gpt();
+        expect_read_primary_gpt(PSA_SUCCESS);
     } else {
         test_primary_gpt.header.array_lba = default_header.array_lba;
         setup_test_gpt();
@@ -337,11 +342,11 @@ static void validate_partition_array_in_usable_disk_space(uint64_t invalid_lba, 
         MAKE_BACKUP_HEADER((test_backup_gpt.header), (test_primary_gpt.header));
         test_backup_gpt.header.array_lba = invalid_lba;
 
-        expect_read_backup_gpt();
+        expect_read_backup_gpt(PSA_SUCCESS);
     }
 
     /* Every entry read for CRC calculation */
-    expect_read_all_entries();
+    expect_read_all_entries(PSA_SUCCESS);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_SIGNATURE, gpt_validate(is_primary));
 }
@@ -427,15 +432,14 @@ void test_gpt_init_should_OnlyConsiderContiguousPartitionEntryArrays(void)
     expect_mbr_load(PSA_SUCCESS);
 
     /* Expect a GPT header read second */
-    expect_read_primary_gpt();
+    expect_read_primary_gpt(PSA_SUCCESS);
 
     /* Expect third only three partitions are read to find the number in use (if the
      * number in the header is non-zero). Third partition is read to find out it is
      * zero, and therefore ignored.
      */
     for (size_t i = 0; i < test_num_partitions + 1; ++i) {
-        read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-        read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[i]));
+        expect_read_entry(PSA_SUCCESS, &(test_partition_array[i]));
     }
 
     /* Expect fourth the backup to be read */
@@ -443,6 +447,41 @@ void test_gpt_init_should_OnlyConsiderContiguousPartitionEntryArrays(void)
 
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_init(&mock_driver, TEST_MAX_PARTITIONS));
     TEST_ASSERT_EQUAL(test_num_partitions, test_primary_gpt.num_used_partitions);
+}
+
+void test_gpt_init_should_failWhenUnableToReadMbr(void)
+{
+    expect_mbr_load(PSA_ERROR_STORAGE_FAILURE);
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_init(&mock_driver, TEST_MAX_PARTITIONS));
+}
+
+void test_gpt_init_should_failWhenUnableToReadGpt(void)
+{
+    expect_mbr_load(PSA_SUCCESS);
+
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_init(&mock_driver, TEST_MAX_PARTITIONS));
+
+    /* Now do the backup */
+    expect_mbr_load(PSA_SUCCESS);
+    expect_read_primary_gpt(PSA_SUCCESS);
+    expect_read_all_entries(PSA_SUCCESS);
+
+    expect_read_backup_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_init(&mock_driver, TEST_MAX_PARTITIONS));
+}
+
+void test_gpt_init_should_failWhenUnableToReadEntry(void)
+{
+    expect_mbr_load(PSA_SUCCESS);
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    read_entry_from_flash_IgnoreAndReturn(PSA_ERROR_STORAGE_FAILURE);
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_init(&mock_driver, TEST_MAX_PARTITIONS));
 }
 
 void test_gpt_init_should_failWhenMbrSigBad(void)
@@ -470,7 +509,7 @@ void test_gpt_init_should_failWhenEntrySizeBad(void)
 
     expect_mbr_load(PSA_SUCCESS);
 
-    expect_read_primary_gpt();
+    expect_read_primary_gpt(PSA_SUCCESS);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_NOT_SUPPORTED, gpt_init(&mock_driver, TEST_MAX_PARTITIONS));
 
@@ -478,13 +517,13 @@ void test_gpt_init_should_failWhenEntrySizeBad(void)
 
     expect_mbr_load(PSA_SUCCESS);
 
-    expect_read_primary_gpt();
+    expect_read_primary_gpt(PSA_SUCCESS);
 
-    expect_read_all_entries();
+    expect_read_all_entries(PSA_SUCCESS);
 
     MAKE_BACKUP_HEADER((test_backup_gpt.header), (test_primary_gpt.header));
     test_backup_gpt.header.entry_size = 0;
-    expect_read_backup_gpt();
+    expect_read_backup_gpt(PSA_SUCCESS);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_NOT_SUPPORTED, gpt_init(&mock_driver, TEST_MAX_PARTITIONS));
 }
@@ -512,14 +551,14 @@ void test_gpt_validate_should_validateWhenGptGood(void)
     setup_test_gpt();
 
     /* Each entry will be read in order to check the partition array CRC */
-    expect_read_primary_gpt();
-    expect_read_all_entries();
+    expect_read_primary_gpt(PSA_SUCCESS);
+    expect_read_all_entries(PSA_SUCCESS);
 
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_validate(true));
 
     /* Now do the backup */
     setup_backup_gpt();
-    expect_read_all_entries();
+    expect_read_all_entries(PSA_SUCCESS);
 
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_validate(false));
 }
@@ -529,7 +568,7 @@ void test_gpt_validate_should_failWhenGptSigBad(void)
     test_primary_gpt.header.signature[0] = '\0';
     setup_test_gpt();
 
-    expect_read_primary_gpt();
+    expect_read_primary_gpt(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_SIGNATURE, gpt_validate(true));
 
     /* Now do the backup */
@@ -542,13 +581,13 @@ void test_gpt_validate_should_failWhenHeaderCrcBad(void)
     test_primary_gpt.header.header_crc--;
     setup_test_gpt();
 
-    expect_read_primary_gpt();
+    expect_read_primary_gpt(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_SIGNATURE, gpt_validate(true));
 
     /* Now do the backup */
     MAKE_BACKUP_HEADER((test_backup_gpt.header), (test_primary_gpt.header));
     test_backup_gpt.header.header_crc--;
-    expect_read_backup_gpt();
+    expect_read_backup_gpt(PSA_SUCCESS);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_SIGNATURE, gpt_validate(false));
 }
@@ -559,7 +598,7 @@ void test_gpt_validate_should_failWhenLbaPointerBad(void)
     test_primary_gpt.header.backup_lba = 3;
     setup_test_gpt();
 
-    expect_read_primary_gpt();
+    expect_read_primary_gpt(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_SIGNATURE, gpt_validate(true));
 
     /* Now set the backup LBA to be something different that what it should be
@@ -570,7 +609,7 @@ void test_gpt_validate_should_failWhenLbaPointerBad(void)
 
     /* Now do the backup */
     MAKE_BACKUP_HEADER((test_backup_gpt.header), (test_primary_gpt.header));
-    expect_read_backup_gpt();
+    expect_read_backup_gpt(PSA_SUCCESS);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_SIGNATURE, gpt_validate(false));
 }
@@ -585,7 +624,7 @@ void test_gpt_validate_should_failWhenBackupEntrySizeInvalid(void)
 
     MAKE_BACKUP_HEADER((test_backup_gpt.header), (test_primary_gpt.header));
     test_backup_gpt.header.entry_size--;
-    expect_read_backup_gpt();
+    expect_read_backup_gpt(PSA_SUCCESS);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_NOT_SUPPORTED, gpt_validate(false));
 }
@@ -596,16 +635,16 @@ void test_gpt_validate_should_failWhenArrayCrcBad(void)
     setup_test_gpt();
 
     /* Each entry will be read in order to check the partition array CRC */
-    expect_read_primary_gpt();
-    expect_read_all_entries();
+    expect_read_primary_gpt(PSA_SUCCESS);
+    expect_read_all_entries(PSA_SUCCESS);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_SIGNATURE, gpt_validate(true));
 
     /* Now do the backup */
     MAKE_BACKUP_HEADER((test_backup_gpt.header), (test_primary_gpt.header));
     test_backup_gpt.header.array_crc--;
-    expect_read_backup_gpt();
-    expect_read_all_entries();
+    expect_read_backup_gpt(PSA_SUCCESS);
+    expect_read_all_entries(PSA_SUCCESS);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_SIGNATURE, gpt_validate(false));
 }
@@ -644,6 +683,39 @@ void test_gpt_validate_should_failWhenPartitionArrayInUsableDiskSpace(void)
     validate_partition_array_in_usable_disk_space(default_header.last_lba, false);
 }
 
+void test_gpt_validate_should_failWhenUnableToReadGpt(void)
+{
+    /* Start with a valid GPT */
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_validate(true));
+
+    /* Now do the backup */
+    expect_read_backup_gpt(PSA_ERROR_STORAGE_FAILURE);
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_validate(true));
+}
+
+void test_gpt_validate_should_failWhenUnableToReadEntry(void)
+{
+    /* Start with a valid GPT */
+    setup_valid_gpt();
+
+    /* Test primary GPT first. Fail on first entry read */
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    expect_read_entry(PSA_ERROR_STORAGE_FAILURE, &(test_partition_array[0]));
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_validate(true));
+
+    /* Now do the backup table */
+    expect_read_backup_gpt(PSA_SUCCESS);
+
+    expect_read_entry(PSA_ERROR_STORAGE_FAILURE, &(test_partition_array[0]));
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_validate(false));
+}
+
 void test_gpt_restore_should_restorePrimaryFromBackup(void)
 {
     /* Start with a valid GPT */
@@ -653,11 +725,11 @@ void test_gpt_restore_should_restorePrimaryFromBackup(void)
      * CRC32 of partition array and the number of used partitions
      */
     setup_backup_gpt();
-    expect_read_all_entries();
-    expect_read_all_entries();
-    expect_read_primary_gpt();
+    expect_read_all_entries(PSA_SUCCESS);
+    expect_read_all_entries(PSA_SUCCESS);
+    expect_read_primary_gpt(PSA_SUCCESS);
     read_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    expect_read_primary_gpt();
+    expect_read_primary_gpt(PSA_SUCCESS);
 
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_restore(true));
 }
@@ -674,32 +746,61 @@ void test_gpt_restore_should_failToRestoreWhenBackupIsBad(void)
     /* Bad signature */
     MAKE_BACKUP_HEADER((test_backup_gpt.header), (test_primary_gpt.header));
     test_backup_gpt.header.signature[0] = '\0';
-    expect_read_backup_gpt();
-    expect_read_all_entries();
+    expect_read_backup_gpt(PSA_SUCCESS);
+    expect_read_all_entries(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_SIGNATURE, gpt_restore(true));
 
     /* Bad header CRC */
     MAKE_BACKUP_HEADER((test_backup_gpt.header), (test_primary_gpt.header));
     test_backup_gpt.header.header_crc = 0;
-    expect_read_backup_gpt();
-    expect_read_all_entries();
+    expect_read_backup_gpt(PSA_SUCCESS);
+    expect_read_all_entries(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_SIGNATURE, gpt_restore(true));
 
     /* Bad LBA */
     test_primary_gpt.header.backup_lba = 2;
     MAKE_BACKUP_HEADER((test_backup_gpt.header), (test_primary_gpt.header));
-    expect_read_backup_gpt();
-    expect_read_all_entries();
+    expect_read_backup_gpt(PSA_SUCCESS);
+    expect_read_all_entries(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_SIGNATURE, gpt_restore(true));
     test_primary_gpt.header.backup_lba = default_header.backup_lba;
 
     /* Bad array CRC. Will involve reading array entries */
     MAKE_BACKUP_HEADER((test_backup_gpt.header), (test_primary_gpt.header));
     test_backup_gpt.header.array_crc = 0;
-    expect_read_backup_gpt();
-    expect_read_all_entries();
-    expect_read_all_entries();
+    expect_read_backup_gpt(PSA_SUCCESS);
+    expect_read_all_entries(PSA_SUCCESS);
+    expect_read_all_entries(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_SIGNATURE, gpt_restore(true));
+}
+
+void test_gpt_restore_should_failWhenUnableToReadRestoringGpt(void)
+{
+    setup_valid_gpt();
+
+    /* Attempt to restore primary from backup */
+    expect_read_backup_gpt(PSA_ERROR_STORAGE_FAILURE);
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_restore(true));
+
+    /* Not attempt to restore backup from primary */
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_restore(true));
+}
+
+void test_gpt_restore_should_failWhenUnableToReadEntry(void)
+{
+    /* Start with a valid GPT */
+    setup_valid_gpt();
+
+    /* Test restoring primary GPT first. Fail on first entry read */
+    expect_read_backup_gpt(PSA_SUCCESS);
+    expect_read_entry(PSA_ERROR_STORAGE_FAILURE, &(test_partition_array[0]));
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_restore(true));
+
+    /* Now do the backup table */
+    expect_read_primary_gpt(PSA_SUCCESS);
+    expect_read_entry(PSA_ERROR_STORAGE_FAILURE, &(test_partition_array[0]));
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_restore(false));
 }
 
 void test_gpt_defragment_should_succeedWhenNoIOFailure(void)
@@ -724,6 +825,32 @@ void test_gpt_defragment_should_succeedWhenNoIOFailure(void)
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_defragment());
 }
 
+void test_gpt_defragment_should_failWhenUnableToReadGpt(void)
+{
+    setup_valid_gpt();
+
+    /* Always return primary GPT when reading a table in this test. If the
+     * backup was read, it shouldn't end up mattering anyway since the same
+     * partition entry's should be read in the end too
+     */
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_defragment());
+}
+
+void test_gpt_defragment_should_failWhenUnableToReadEntry(void)
+{
+    setup_valid_gpt();
+
+    /* Always return primary GPT when reading a table in this test. If the
+     * backup was read, it shouldn't end up mattering anyway since the same
+     * partition entry's should be read in the end too
+     */
+    expect_read_primary_gpt(PSA_SUCCESS);
+    expect_read_entry(PSA_ERROR_STORAGE_FAILURE, &(test_partition_array[0]));
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_defragment());
+}
+
 void test_gpt_entry_duplicate_should_DuplicateOldEntry(void)
 {
     /* Duplicate an entry. It must not overlap with an existing entry and must also
@@ -740,11 +867,10 @@ void test_gpt_entry_duplicate_should_DuplicateOldEntry(void)
     expect_read_primary_gpt_only();
 
     /* Read the old entry */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(old_entry);
+    expect_read_entry(PSA_SUCCESS, old_entry);
 
     /* Check overlap with existing entries */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     /* Move partition data */
     read_from_flash_IgnoreAndReturn(PSA_SUCCESS);
@@ -783,14 +909,13 @@ void test_gpt_entry_duplicate_should_createNewEntryNextToLastEntry(void)
      */
     expect_read_primary_gpt_only();
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(old_entry);
+    expect_read_entry(PSA_SUCCESS, old_entry);
 
     /* Find the free space at the end of the test disk */
-    expect_read_all_entries();
+    expect_read_all_entries(PSA_SUCCESS);
 
     /* Check overlap with existing entries */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     /* Move partition data */
     read_from_flash_IgnoreAndReturn(PSA_SUCCESS);
@@ -834,9 +959,9 @@ void test_gpt_entry_duplicate_should_failToCreateEntryWhenLowestFreeLbaDoesNotHa
      */
     expect_read_primary_gpt_only();
 
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
-    expect_read_all_entries();
+    expect_read_all_entries(PSA_SUCCESS);
 
     struct efi_guid_t new_guid;
 
@@ -857,7 +982,7 @@ void test_gpt_entry_duplicate_should_failWhenEntryNotExisting(void)
      */
     expect_read_primary_gpt_only();
 
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     struct efi_guid_t new_guid;
 
@@ -880,11 +1005,9 @@ void test_gpt_entry_duplicate_should_failNewEntryOverlapping(void)
      */
     expect_read_primary_gpt_only();
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(old_entry);
+    expect_read_entry(PSA_SUCCESS, old_entry);
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
 
     /* Since the disk is not fragmented by default, there are two test cases:
      *   1. start in the middle of a partition and end in the middle of a partition
@@ -895,10 +1018,9 @@ void test_gpt_entry_duplicate_should_failNewEntryOverlapping(void)
                 TEST_GPT_FIRST_PARTITION_START + 1,
                 &new_guid));
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(old_entry);
+    expect_read_entry(PSA_SUCCESS, old_entry);
 
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_duplicate(
                 &old_guid,
@@ -931,12 +1053,45 @@ void test_gpt_entry_duplicate_should_failWhenTableFull(void)
      */
     expect_read_primary_gpt_only();
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(old_entry);
+    expect_read_entry(PSA_SUCCESS, old_entry);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INSUFFICIENT_STORAGE, gpt_entry_duplicate(
                 &old_guid,
                 new_entry_end + 1,
+                &new_guid));
+}
+
+void test_gpt_entry_duplicate_should_failWhenUnableToReadTable(void)
+{
+    setup_valid_gpt();
+
+    struct gpt_entry_t *old_entry = &(test_partition_array[0]);
+    struct efi_guid_t old_guid = old_entry->unique_guid;
+    struct efi_guid_t new_guid;
+
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_duplicate(
+                &old_guid,
+                TEST_GPT_DISK_FREE_SPACE_START,
+                &new_guid));
+}
+
+void test_gpt_entry_duplicate_should_failWhenUnableToReadEntry(void)
+{
+    setup_valid_gpt();
+
+    struct gpt_entry_t *old_entry = &(test_partition_array[0]);
+    struct efi_guid_t old_guid = old_entry->unique_guid;
+    struct efi_guid_t new_guid;
+
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    read_entry_from_flash_IgnoreAndReturn(PSA_ERROR_STORAGE_FAILURE);
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_duplicate(
+                &old_guid,
+                TEST_GPT_DISK_FREE_SPACE_START,
                 &new_guid));
 }
 
@@ -955,10 +1110,9 @@ void test_gpt_entry_duplicate_no_copy_should_DuplicateOldEntry(void)
      */
     expect_read_primary_gpt_only();
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(old_entry);
+    expect_read_entry(PSA_SUCCESS, old_entry);
 
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     /* Mock out the call to create a new GUID */
     struct efi_guid_t expected_guid = TEST_GPT_VALID_GUID(5, 5, 5, 5, 5, 6, 7, 8, 9, 10, 11);
@@ -994,11 +1148,10 @@ void test_gpt_entry_duplicate_no_copy_should_createNewEntryNextToLastEntry(void)
      */
     expect_read_primary_gpt_only();
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(old_entry);
+    expect_read_entry(PSA_SUCCESS, old_entry);
 
-    expect_read_all_entries();
-    expect_read_used_entries();
+    expect_read_all_entries(PSA_SUCCESS);
+    expect_read_used_entries(PSA_SUCCESS);
 
     /* Mock out the call to create a new GUID */
     struct efi_guid_t expected_guid = TEST_GPT_VALID_GUID(5, 5, 5, 5, 5, 6, 7, 8, 9, 10, 11);
@@ -1039,9 +1192,9 @@ void test_gpt_entry_duplicate_no_copy_should_failToCreateEntryWhenLowestFreeLbaD
      */
     expect_read_primary_gpt_only();
 
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
-    expect_read_all_entries();
+    expect_read_all_entries(PSA_SUCCESS);
 
     struct efi_guid_t new_guid;
 
@@ -1062,7 +1215,7 @@ void test_gpt_entry_duplicate_no_copy_should_failWhenEntryNotExisting(void)
      */
     expect_read_primary_gpt_only();
 
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     struct efi_guid_t new_guid;
 
@@ -1085,11 +1238,9 @@ void test_gpt_entry_duplicate_no_copy_should_failNewEntryOverlapping(void)
      */
     expect_read_primary_gpt_only();
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(old_entry);
+    expect_read_entry(PSA_SUCCESS, old_entry);
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
 
     /* Since the disk is not fragmented by default, there are two test cases:
      *   1. start in the middle of a partition and end in the middle of a partition
@@ -1100,10 +1251,9 @@ void test_gpt_entry_duplicate_no_copy_should_failNewEntryOverlapping(void)
                 TEST_GPT_FIRST_PARTITION_START + 1,
                 &new_guid));
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(old_entry);
+    expect_read_entry(PSA_SUCCESS, old_entry);
 
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_duplicate_no_copy(
                 &old_guid,
@@ -1136,12 +1286,45 @@ void test_gpt_entry_duplicate_no_copy_should_failWhenTableFull(void)
      */
     expect_read_primary_gpt_only();
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(old_entry);
+    expect_read_entry(PSA_SUCCESS, old_entry);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INSUFFICIENT_STORAGE, gpt_entry_duplicate_no_copy(
                 &old_guid,
                 new_entry_end + 1,
+                &new_guid));
+}
+
+void test_gpt_entry_duplicate_no_copy_should_failWhenUnableToReadTable(void)
+{
+    setup_valid_gpt();
+
+    struct gpt_entry_t *old_entry = &(test_partition_array[0]);
+    struct efi_guid_t old_guid = old_entry->unique_guid;
+    struct efi_guid_t new_guid;
+
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_duplicate_no_copy(
+                &old_guid,
+                TEST_GPT_DISK_FREE_SPACE_START,
+                &new_guid));
+}
+
+void test_gpt_entry_duplicate_no_copy_should_failWhenUnableToReadEntry(void)
+{
+    setup_valid_gpt();
+
+    struct gpt_entry_t *old_entry = &(test_partition_array[0]);
+    struct efi_guid_t old_guid = old_entry->unique_guid;
+    struct efi_guid_t new_guid;
+
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    read_entry_from_flash_IgnoreAndReturn(PSA_ERROR_STORAGE_FAILURE);
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_duplicate_no_copy(
+                &old_guid,
+                TEST_GPT_DISK_FREE_SPACE_START,
                 &new_guid));
 }
 
@@ -1154,7 +1337,7 @@ void test_gpt_entry_create_should_createNewEntry(void)
     expect_read_primary_gpt_only();
 
     /* Each used entry will be read to check that it doesn't overlap. */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     struct gpt_entry_t new_entry = {
         .partition_type = TEST_GPT_DUMMY_TYPE,
@@ -1190,8 +1373,8 @@ void test_gpt_entry_create_should_createNewEntryNextToLastEntry(void)
     expect_read_primary_gpt_only();
 
     /* Find the lowest free LBA, then check overlap with existing entries. */
-    expect_read_all_entries();
-    expect_read_used_entries();
+    expect_read_all_entries(PSA_SUCCESS);
+    expect_read_used_entries(PSA_SUCCESS);
 
     struct gpt_entry_t new_entry = {
         .partition_type = TEST_GPT_DUMMY_TYPE,
@@ -1230,7 +1413,7 @@ void test_gpt_entry_create_should_failToCreateEntryWhenLowestFreeLbaDoesNotHaveS
     expect_read_primary_gpt_only();
 
     /* Find the lowest free LBA before discovering the requested size will not fit. */
-    expect_read_all_entries();
+    expect_read_all_entries(PSA_SUCCESS);
 
     struct efi_guid_t existing_guid = TEST_GPT_VALID_GUID(4, 4, 4, 4, 5, 6, 7, 8, 9, 10, 11);
     struct efi_guid_t new_guid;
@@ -1337,8 +1520,7 @@ void test_gpt_entry_create_should_failWhenOverlapping(void)
     name[0] = 'a';
 
     /* Expect a read from the first entry, as that is the one overlapping */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_create(
                 &type,
@@ -1349,8 +1531,7 @@ void test_gpt_entry_create_should_failWhenOverlapping(void)
                 &guid));
 
     /* Expect a read from the first entry, as that is the one overlapping */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_create(
                 &type,
@@ -1408,6 +1589,56 @@ void test_gpt_entry_create_should_failWhenSizeIsZero(void)
                 &new_guid));
 }
 
+void test_gpt_entry_create_should_failWhenUnableToReadGpt(void)
+{
+    setup_valid_gpt();
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    struct efi_guid_t type = TEST_GPT_DUMMY_TYPE;
+    struct gpt_entry_t new_entry = {
+        .partition_type = TEST_GPT_DUMMY_TYPE,
+        .start = TEST_GPT_DISK_FREE_SPACE_START,
+        .end = TEST_GPT_DISK_FREE_SPACE_START,
+        .attr = 0,
+        .name = "Fourth partition"
+    };
+
+    struct efi_guid_t new_guid = TEST_GPT_DUMMY_GUID;
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_create(
+                &type,
+                new_entry.start,
+                new_entry.end - new_entry.start + 1,
+                new_entry.attr,
+                new_entry.name,
+                &new_guid));
+}
+
+void test_gpt_entry_create_should_failWhenUnableToReadEntry(void)
+{
+    setup_valid_gpt();
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    read_entry_from_flash_IgnoreAndReturn(PSA_ERROR_STORAGE_FAILURE);
+
+    struct efi_guid_t type = TEST_GPT_DUMMY_TYPE;
+    struct gpt_entry_t new_entry = {
+        .partition_type = TEST_GPT_DUMMY_TYPE,
+        .start = TEST_GPT_DISK_FREE_SPACE_START,
+        .end = TEST_GPT_DISK_FREE_SPACE_START,
+        .attr = 0,
+        .name = "Fourth partition"
+    };
+
+    struct efi_guid_t new_guid = TEST_GPT_DUMMY_GUID;
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_create(
+                &type,
+                new_entry.start,
+                new_entry.end - new_entry.start + 1,
+                new_entry.attr,
+                new_entry.name,
+                &new_guid));
+}
+
 void test_gpt_entry_move_should_moveEntry(void)
 {
     /* Start with a populated GPT */
@@ -1418,8 +1649,8 @@ void test_gpt_entry_move_should_moveEntry(void)
     expect_read_primary_gpt_only();
 
     /* Find the entry, then check overlap with existing entries */
-    expect_read_used_entries();
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
+    expect_read_used_entries(PSA_SUCCESS);
 
     /* Move partition data */
     read_from_flash_IgnoreAndReturn(PSA_SUCCESS);
@@ -1437,7 +1668,7 @@ void test_gpt_entry_move_should_failWhenEntryNotExisting(void)
     expect_read_primary_gpt_only();
 
     /* Read every entry */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     struct efi_guid_t non_existing = NULL_GUID;
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_move(
@@ -1471,14 +1702,11 @@ void test_gpt_entry_move_should_failWhenLbaOverlapping(void)
     struct efi_guid_t test_guid = test_entry->unique_guid;
 
     /* Find entry */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, test_entry);
 
     /* Check for overlap */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_move(
                 &test_guid,
@@ -1489,14 +1717,11 @@ void test_gpt_entry_move_should_failWhenLbaOverlapping(void)
      * Starting in the middle
      */
     /* Find the second entry */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, test_entry);
 
     /* Overlap with the first */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_move(
                 &test_guid,
@@ -1504,16 +1729,12 @@ void test_gpt_entry_move_should_failWhenLbaOverlapping(void)
                 TEST_GPT_SECOND_PARTITION_END));
 
     /* Find the second entry */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, test_entry);
 
     /* Overlap with the third entry */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, test_entry);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_move(
                 &test_guid,
@@ -1523,12 +1744,9 @@ void test_gpt_entry_move_should_failWhenLbaOverlapping(void)
     /* Try to move the test entry into the middle of the entry just read.
      * Starting and ending in the middle.
      */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, test_entry);
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_move(
                 &test_guid,
@@ -1571,6 +1789,36 @@ void test_gpt_entry_move_should_failWhenLbaOffDisk(void)
                 TEST_GPT_BACKUP_LBA + 1));
 }
 
+void test_gpt_entry_move_should_failWhenUnableToReadGpt(void)
+{
+    setup_valid_gpt();
+    struct gpt_entry_t *test_entry = &(test_partition_array[0]);
+    struct efi_guid_t test_guid = test_entry->unique_guid;
+
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_move(
+                &test_guid,
+                TEST_GPT_DISK_FREE_SPACE_START,
+                TEST_GPT_DISK_FREE_SPACE_START));
+}
+
+void test_gpt_entry_move_should_failWhenUnableToReadEntry(void)
+{
+    setup_valid_gpt();
+    struct gpt_entry_t *test_entry = &(test_partition_array[0]);
+    struct efi_guid_t test_guid = test_entry->unique_guid;
+
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    read_entry_from_flash_IgnoreAndReturn(PSA_ERROR_STORAGE_FAILURE);
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_move(
+                &test_guid,
+                TEST_GPT_DISK_FREE_SPACE_START,
+                TEST_GPT_DISK_FREE_SPACE_START));
+}
+
 void test_gpt_entry_move_no_copy_should_moveEntry(void)
 {
     /* Start with a populated GPT */
@@ -1581,8 +1829,8 @@ void test_gpt_entry_move_no_copy_should_moveEntry(void)
     expect_read_primary_gpt_only();
 
     /* Find the entry, then check overlap with existing entries */
-    expect_read_used_entries();
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
+    expect_read_used_entries(PSA_SUCCESS);
 
     /* Do a valid move and resize in one */
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_entry_move_no_copy(
@@ -1597,7 +1845,7 @@ void test_gpt_entry_move_no_copy_should_failWhenEntryNotExisting(void)
     expect_read_primary_gpt_only();
 
     /* Read every entry */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     struct efi_guid_t non_existing = NULL_GUID;
 
@@ -1633,13 +1881,9 @@ void test_gpt_entry_move_no_copy_should_failWhenLbaOverlapping(void)
     /* Try to move the test entry into the middle of the entry just read.
      * Starting at the same LBA
      */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-
-    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, test_entry);
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_move_no_copy(
                 &test_guid,
@@ -1649,28 +1893,20 @@ void test_gpt_entry_move_no_copy_should_failWhenLbaOverlapping(void)
     /* Try to move the test entry into the middle of the entry just read.
      * Starting in the middle
      */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-
-    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, test_entry);
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_move_no_copy(
                 &test_guid,
                 TEST_GPT_FIRST_PARTITION_START + 1,
                 TEST_GPT_SECOND_PARTITION_END));
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, test_entry);
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, test_entry);
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_move_no_copy(
                 &test_guid,
@@ -1680,12 +1916,9 @@ void test_gpt_entry_move_no_copy_should_failWhenLbaOverlapping(void)
     /* Try to move the test entry into the middle of the entry just read.
      * Starting and ending in the middle.
      */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, test_entry);
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
 
     TEST_ASSERT_EQUAL(PSA_ERROR_INVALID_ARGUMENT, gpt_entry_move_no_copy(
                 &test_guid,
@@ -1728,6 +1961,36 @@ void test_gpt_entry_move_no_copy_should_failWhenLbaOffDisk(void)
                 TEST_GPT_BACKUP_LBA + 1));
 }
 
+void test_gpt_entry_move_no_copy_should_failWhenUnableToReadGpt(void)
+{
+    setup_valid_gpt();
+    struct gpt_entry_t *test_entry = &(test_partition_array[0]);
+    struct efi_guid_t test_guid = test_entry->unique_guid;
+
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_move_no_copy(
+                &test_guid,
+                TEST_GPT_DISK_FREE_SPACE_START,
+                TEST_GPT_DISK_FREE_SPACE_START));
+}
+
+void test_gpt_entry_move_no_copy_should_failWhenUnableToReadEntry(void)
+{
+    setup_valid_gpt();
+    struct gpt_entry_t *test_entry = &(test_partition_array[0]);
+    struct efi_guid_t test_guid = test_entry->unique_guid;
+
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    read_entry_from_flash_IgnoreAndReturn(PSA_ERROR_STORAGE_FAILURE);
+
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_move_no_copy(
+                &test_guid,
+                TEST_GPT_DISK_FREE_SPACE_START,
+                TEST_GPT_DISK_FREE_SPACE_START));
+}
+
 void test_gpt_attr_set_should_setAttributes(void)
 {
     /* Start with a populated GPT */
@@ -1735,8 +1998,7 @@ void test_gpt_attr_set_should_setAttributes(void)
     expect_read_primary_gpt_only();
 
     /* First entry is read */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[0]));
+    expect_read_entry(PSA_SUCCESS, &(test_partition_array[0]));
 
     struct efi_guid_t guid = test_partition_array[0].unique_guid;
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_attr_set(&guid, 0x1));
@@ -1748,10 +2010,34 @@ void test_gpt_attr_set_should_failWhenEntryNotExisting(void)
     expect_read_primary_gpt_only();
 
     /* Read every used entry */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     struct efi_guid_t non_existing = NULL_GUID;
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_attr_set(&non_existing, 0x1));
+}
+
+void test_gpt_attr_set_should_failWhenUnableToReadGpt(void)
+{
+    /* Start with a populated GPT */
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    struct efi_guid_t guid = test_partition_array[0].unique_guid;
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_attr_set(&guid, 0x1));
+}
+
+void test_gpt_attr_set_should_failWhenUnableToReadEntry(void)
+{
+    /* Start with a populated GPT */
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    read_entry_from_flash_IgnoreAndReturn(PSA_ERROR_STORAGE_FAILURE);
+
+    struct efi_guid_t guid = test_partition_array[0].unique_guid;
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_attr_set(&guid, 0x1));
 }
 
 void test_gpt_attr_remove_should_removeAttributes(void)
@@ -1764,8 +2050,7 @@ void test_gpt_attr_remove_should_removeAttributes(void)
     expect_read_primary_gpt_only();
 
     /* First entry is read */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
+    expect_read_entry(PSA_SUCCESS, test_entry);
 
     struct efi_guid_t test_guid = test_entry->unique_guid;
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_attr_remove(&test_guid, test_attr));
@@ -1777,10 +2062,32 @@ void test_gpt_attr_remove_should_failWhenEntryNotExisting(void)
     expect_read_primary_gpt_only();
 
     /* Read every used entry */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     struct efi_guid_t non_existing = NULL_GUID;
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_attr_remove(&non_existing, 0x1));
+}
+
+void test_gpt_attr_remove_should_failWhenUnableToReadGpt(void)
+{
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    struct efi_guid_t guid = test_partition_array[0].unique_guid;
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_attr_remove(&guid, 0x1));
+}
+
+void test_gpt_attr_remove_should_failWhenUnableToReadEntry(void)
+{
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    read_entry_from_flash_IgnoreAndReturn(PSA_ERROR_STORAGE_FAILURE);
+
+    struct efi_guid_t guid = test_partition_array[0].unique_guid;
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_attr_remove(&guid, 0x1));
 }
 
 void test_gpt_attr_add_should_addAttributes(void)
@@ -1791,8 +2098,7 @@ void test_gpt_attr_add_should_addAttributes(void)
     expect_read_primary_gpt_only();
 
     /* First entry is read */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
+    expect_read_entry(PSA_SUCCESS, test_entry);
 
     struct efi_guid_t test_guid = test_entry->unique_guid;
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_attr_add(&test_guid, 0x1));
@@ -1804,10 +2110,32 @@ void test_gpt_attr_add_should_failWhenEntryNotExisting(void)
     expect_read_primary_gpt_only();
 
     /* Read every used entry */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     struct efi_guid_t non_existing = NULL_GUID;
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_attr_add(&non_existing, 0x1));
+}
+
+void test_gpt_attr_add_should_failWhenUnableToReadGpt(void)
+{
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    struct efi_guid_t guid = test_partition_array[0].unique_guid;
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_attr_add(&guid, 0x1));
+}
+
+void test_gpt_attr_add_should_failWhenUnableToReadEntry(void)
+{
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    read_entry_from_flash_IgnoreAndReturn(PSA_ERROR_STORAGE_FAILURE);
+
+    struct efi_guid_t guid = test_partition_array[0].unique_guid;
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_attr_add(&guid, 0x1));
 }
 
 void test_gpt_entry_change_type_should_setNewType(void)
@@ -1818,8 +2146,7 @@ void test_gpt_entry_change_type_should_setNewType(void)
     expect_read_primary_gpt_only();
 
     /* First entry is read */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
+    expect_read_entry(PSA_SUCCESS, test_entry);
 
     struct efi_guid_t test_guid = test_entry->unique_guid;
 
@@ -1836,11 +2163,35 @@ void test_gpt_entry_change_type_should_failWhenEntryNotExisting(void)
     expect_read_primary_gpt_only();
 
     /* Read every used entry */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     struct efi_guid_t non_existing = NULL_GUID;
     struct efi_guid_t new_type = TEST_GPT_VALID_TYPE(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_change_type(&non_existing, &new_type));
+}
+
+void test_gpt_entry_change_type_should_failWhenUnableToReadGpt(void)
+{
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    struct efi_guid_t guid = test_partition_array[0].unique_guid;
+    struct efi_guid_t new_type = TEST_GPT_VALID_TYPE(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_change_type(&guid, &new_type));
+}
+
+void test_gpt_entry_change_type_should_failWhenUnableToReadEntry(void)
+{
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    read_entry_from_flash_IgnoreAndReturn(PSA_ERROR_STORAGE_FAILURE);
+
+    struct efi_guid_t guid = test_partition_array[0].unique_guid;
+    struct efi_guid_t new_type = TEST_GPT_VALID_TYPE(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_change_type(&guid, &new_type));
 }
 
 void test_gpt_entry_change_type_should_failWhenSettingTypeToNullGuid(void)
@@ -1860,8 +2211,7 @@ void test_gpt_entry_rename_should_renameEntry(void)
     expect_read_primary_gpt_only();
 
     /* First entry is read */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(test_entry);
+    expect_read_entry(PSA_SUCCESS, test_entry);
 
     char new_name[GPT_ENTRY_NAME_LENGTH] = {'\0'};
     new_name[0] = 'a';
@@ -1886,12 +2236,38 @@ void test_gpt_entry_rename_should_failWhenEntryNotExisting(void)
     expect_read_primary_gpt_only();
 
     /* Read every used entry */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     struct efi_guid_t non_existing = NULL_GUID;
     char new_name[GPT_ENTRY_NAME_LENGTH] = {'\0'};
     new_name[0] = 'a';
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_rename(&non_existing, new_name));
+}
+
+void test_gpt_entry_rename_should_failWhenUnableToReadGpt(void)
+{
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    struct efi_guid_t guid = test_partition_array[0].unique_guid;
+    char new_name[GPT_ENTRY_NAME_LENGTH] = {'\0'};
+    new_name[0] = 'a';
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_rename(&guid, new_name));
+}
+
+void test_gpt_entry_rename_should_failWhenUnableToReadEntry(void)
+{
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    read_entry_from_flash_IgnoreAndReturn(PSA_ERROR_STORAGE_FAILURE);
+
+    struct efi_guid_t guid = test_partition_array[0].unique_guid;
+    char new_name[GPT_ENTRY_NAME_LENGTH] = {'\0'};
+    new_name[0] = 'a';
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_rename(&guid, new_name));
 }
 void test_gpt_entry_remove_should_removeEntry(void)
 {
@@ -1900,7 +2276,7 @@ void test_gpt_entry_remove_should_removeEntry(void)
     expect_read_primary_gpt_only();
 
     /* Each used entry is read to find the target */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
 
     struct gpt_entry_t *test_entry = &(test_partition_array[TEST_DEFAULT_NUM_PARTITIONS - 1]);
     struct efi_guid_t test_guid = test_entry->unique_guid;
@@ -1912,7 +2288,7 @@ void test_gpt_entry_remove_should_failWhenEntryNotExisting(void)
 {
     /* Start by trying to remove from an empty table */
     setup_empty_gpt();
-    expect_read_primary_gpt();
+    expect_read_primary_gpt(PSA_SUCCESS);
 
     struct efi_guid_t non_existing = NULL_GUID;
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_remove(&non_existing));
@@ -1923,7 +2299,7 @@ void test_gpt_entry_remove_should_failWhenEntryNotExisting(void)
     expect_read_primary_gpt_only();
 
     /* Each used entry should be read. */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_remove(&non_existing));
 }
 
@@ -1938,7 +2314,7 @@ void test_gpt_entry_read_should_populateEntry(void)
     struct gpt_entry_t *desired = &(test_partition_array[TEST_DEFAULT_NUM_PARTITIONS - 1]);
     struct efi_guid_t test_guid = desired->unique_guid;
     struct efi_guid_t test_type = desired->partition_type;
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_entry_read(&test_guid, &entry));
 
     /* Ensure this is the correct entry */
@@ -1957,7 +2333,7 @@ void test_gpt_entry_read_should_failWhenEntryNotExisting(void)
 {
     /* Start with an empty GPT */
     setup_empty_gpt();
-    expect_read_primary_gpt();
+    expect_read_primary_gpt(PSA_SUCCESS);
 
     /* Try to read something */
     struct partition_entry_t entry;
@@ -1970,8 +2346,32 @@ void test_gpt_entry_read_should_failWhenEntryNotExisting(void)
     expect_read_primary_gpt_only();
 
     /* Each used entry should be read */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_read(&non_existing, &entry));
+}
+
+void test_gpt_entry_read_should_failWhenUnableToReadGpt(void)
+{
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    struct partition_entry_t entry;
+    struct efi_guid_t guid = test_partition_array[0].unique_guid;
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_read(&guid, &entry));
+}
+
+void test_gpt_entry_read_should_failWhenUnableToReadEntry(void)
+{
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    read_entry_from_flash_IgnoreAndReturn(PSA_ERROR_STORAGE_FAILURE);
+
+    struct partition_entry_t entry;
+    struct efi_guid_t guid = test_partition_array[0].unique_guid;
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_read(&guid, &entry));
 }
 
 void test_gpt_entry_read_by_name_should_populateEntry(void)
@@ -1992,8 +2392,7 @@ void test_gpt_entry_read_by_name_should_populateEntry(void)
     struct efi_guid_t test_type2 = desired2->partition_type;
     memcpy(desired2->name, desired1->name, GPT_ENTRY_NAME_LENGTH);
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(desired1);
+    expect_read_entry(PSA_SUCCESS, desired1);
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_entry_read_by_name(desired1->name, 0, &entry));
 
     /* Ensure this is the correct entry */
@@ -2005,10 +2404,8 @@ void test_gpt_entry_read_by_name_should_populateEntry(void)
     TEST_ASSERT_EQUAL_MEMORY(desired1->name, entry.name, GPT_ENTRY_NAME_LENGTH);
 
     /* Do again but the next entry */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(desired1);
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(desired2);
+    expect_read_entry(PSA_SUCCESS, desired1);
+    expect_read_entry(PSA_SUCCESS, desired2);
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_entry_read_by_name(desired1->name, 1, &entry));
 
     /* Ensure this is the correct entry */
@@ -2024,7 +2421,7 @@ void test_gpt_entry_read_by_name_should_failWhenEntryNotExisting(void)
 {
     /* Start with an empty GPT */
     setup_empty_gpt();
-    expect_read_primary_gpt();
+    expect_read_primary_gpt(PSA_SUCCESS);
 
     /* Try to read something */
     struct partition_entry_t entry;
@@ -2037,18 +2434,44 @@ void test_gpt_entry_read_by_name_should_failWhenEntryNotExisting(void)
     expect_read_primary_gpt_only();
 
     /* Each used entry should be read */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_read_by_name(test_name, 0, &entry));
 
     /* Finally, search for the second entry of a name that appears only once */
     memcpy(test_name, test_partition_array[0].name, GPT_ENTRY_NAME_LENGTH);
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_read_by_name(test_name, 1, &entry));
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_read_by_name(
                 test_name,
                 TEST_DEFAULT_NUM_PARTITIONS,
                 &entry));
+}
+
+void test_gpt_entry_read_by_name_should_failWhenUnableToReadGpt(void)
+{
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    struct partition_entry_t entry;
+    char test_name[GPT_ENTRY_NAME_LENGTH] = {'\0'};
+    memcpy(test_name, test_partition_array[0].name, GPT_ENTRY_NAME_LENGTH);
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_read_by_name(test_name, 0, &entry));
+}
+
+void test_gpt_entry_read_by_name_should_failWhenUnableToReadEntry(void)
+{
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    read_entry_from_flash_IgnoreAndReturn(PSA_ERROR_STORAGE_FAILURE);
+
+    struct partition_entry_t entry;
+    char test_name[GPT_ENTRY_NAME_LENGTH] = {'\0'};
+    memcpy(test_name, test_partition_array[0].name, GPT_ENTRY_NAME_LENGTH);
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_read_by_name(test_name, 0, &entry));
 }
 
 void test_gpt_entry_read_by_type_should_populateEntry(void)
@@ -2068,8 +2491,7 @@ void test_gpt_entry_read_by_type_should_populateEntry(void)
     struct efi_guid_t test_type2 = test_type1;
     desired2->partition_type = test_type2;
 
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(desired1);
+    expect_read_entry(PSA_SUCCESS, desired1);
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_entry_read_by_type(&test_type1, 0, &entry));
 
     /* Ensure this is the correct entry */
@@ -2082,10 +2504,8 @@ void test_gpt_entry_read_by_type_should_populateEntry(void)
     TEST_ASSERT_EQUAL_MEMORY(desired1->name, entry.name, GPT_ENTRY_NAME_LENGTH);
 
     /* Do again but the next entry */
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(desired1);
-    read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
-    read_entry_from_flash_ReturnThruPtr_entry(desired2);
+    expect_read_entry(PSA_SUCCESS, desired1);
+    expect_read_entry(PSA_SUCCESS, desired2);
     TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_entry_read_by_type(&test_type1, 1, &entry));
 
     /* Ensure this is the correct entry */
@@ -2101,7 +2521,7 @@ void test_gpt_entry_read_by_type_should_failWhenEntryNotExisting(void)
 {
     /* Start with an empty GPT */
     setup_empty_gpt();
-    expect_read_primary_gpt();
+    expect_read_primary_gpt(PSA_SUCCESS);
 
     /* Try to read something */
     struct partition_entry_t entry;
@@ -2114,16 +2534,40 @@ void test_gpt_entry_read_by_type_should_failWhenEntryNotExisting(void)
     expect_read_primary_gpt_only();
 
     /* Each used entry should be read */
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_read_by_type(&test_type, 0, &entry));
 
     /* Finally, search for the second entry of a type that appears only once */
     test_type = test_partition_array[0].partition_type;
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_read_by_type(&test_type, 1, &entry));
-    expect_read_used_entries();
+    expect_read_used_entries(PSA_SUCCESS);
     TEST_ASSERT_EQUAL(PSA_ERROR_DOES_NOT_EXIST, gpt_entry_read_by_type(
                 &test_type,
                 TEST_DEFAULT_NUM_PARTITIONS,
                 &entry));
+}
+
+void test_gpt_entry_read_by_type_should_failWhenUnableToReadGpt(void)
+{
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_ERROR_STORAGE_FAILURE);
+
+    struct partition_entry_t entry;
+    struct efi_guid_t test_type = test_partition_array[0].partition_type;
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_read_by_type(&test_type, 0, &entry));
+}
+
+void test_gpt_entry_read_by_type_should_failWhenUnableToReadEntry(void)
+{
+    setup_valid_gpt();
+
+    expect_read_primary_gpt(PSA_SUCCESS);
+
+    read_entry_from_flash_IgnoreAndReturn(PSA_ERROR_STORAGE_FAILURE);
+
+    struct partition_entry_t entry;
+    struct efi_guid_t test_type = test_partition_array[0].partition_type;
+    TEST_ASSERT_EQUAL(PSA_ERROR_STORAGE_FAILURE, gpt_entry_read_by_type(&test_type, 0, &entry));
 }
