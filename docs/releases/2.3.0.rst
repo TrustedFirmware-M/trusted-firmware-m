@@ -1,0 +1,214 @@
+*************
+Version 2.3.0
+*************
+
+New major features
+==================
+
+  - Use TF-PSA-Crypto 1.1.0 in place of Mbed-TLS
+  - New Clang/LLVM Toolchain Support
+  - (TF-M Tests) RTX OS is built from source
+
+
+Other relevant changes and fixes
+================================
+
+  - Fixes and improvements for FPU context flushing
+  - Allow PSA calls before RTOS ready
+  - Hardening Protected Storage partition
+  - Improve mailbox vectors handling
+  - Add GPT library
+  - SCMI: Reorganization and add support for more protocols
+  - Crypto: improvements, fixes and support the use of opaque keys
+  - Crypto: enable SP800-108 Counter CMAC support in runtime
+  - Build: Unify use of ATfE toolchain with GCC
+  - SPM: Introduce cookie for ISR scheduling attempts
+  - Lib: Use upstream libTPM
+  - Static checks: Various MISRA violations fixes
+  - SPM: various improvements for connection_pool, mailbox, mmiovec, backends,
+    psa_calls, thread, boot_data, spm_ipc, psa_irq_api, rom_loader, interrupt
+  - Lib: tfm_utils: Use stdint from standard
+  - BL1_2, BL2: Various improvements and switch to MCUboot feature branch
+    v2.4.0-rc1
+  - Crypto: add FIH support to PSA cipher APIs
+  - Build: Upgrade all toolchains to C11 standard
+  - Build: Remove crt0 and libc from secure binaries
+  - SPM: ns_agent_tz: Introduce reentrancy checks for NSPE calls
+  - SPM: Introduce API to ensure shared metadata section is protected correctly
+  - Build: Update TF-M versioning logic, fix IAR build and optional patching of
+    by platform code
+  - dma350: various improvements and fixes
+
+
+Other relevant platforms changes
+================================
+
+  - STM32WBA/H5/U5: update for TF-PSA-Crypto 1.0.0
+  - IFX/PSE84: Various updates
+  - CS1000: Updates for TF-PSA-Crypto
+  - fix broken an524 platform build
+  - RSE: Various fixes and updates, add support for COD generation
+  - nordic_nrf: Align to nrfx 4.0
+
+
+New security advisories
+=======================
+
+None.
+Introduced a Security Recommendations section.
+
+
+New platforms support
+=====================
+
+  - STM32: Add support of nucleo_u3c5zi_q
+  - Add support of nxp frdmmca577
+  - nordic_nrf: add support for nRF54LM20B
+  - Add support for mcimx93evk
+
+
+Deprecated platforms
+====================
+
+None.
+
+
+Tested platforms
+================
+
+The following platforms are successfully tested in this release.
+
+- **Arm**
+  - corstone1000
+  - mps2/an519
+  - mps2/an521
+  - mps3/an524
+  - mps3/corstone300
+  - mps3/corstone310
+  - mps4/corstone315
+  - mps4/corstone320
+  - musca_b1
+  - rse/css-aspen
+  - rse/rd1ae
+  - rse/rdv3
+  - rse/rdv3r1
+  - rse/tc4
+
+- **Infineon**
+  - pse4
+
+- **NXP**
+  - frdmmcxn947
+  - lpcxpresso55s69
+
+- **RPi**
+  - rp2350
+
+- **STM**
+  - b_u585i_iot02a
+  - nucleo_u3c5zi_q
+  - stm32h573i_dk
+  - stm32wba65i_dk
+
+
+Reference memory footprint
+==========================
+
+
+All measurements below are made for *AN521* platform, built `TF-Mv2.3.0-RC1
+<https://git.trustedfirmware.org/TF-M/trusted-firmware-m.git/tag/?h=TF-Mv2.3.0-RC1>`_
+on Windows 10 using Armclang v6.21 and build type MinSizeRel.
+
+All modules are measured in bytes. Some minor modules are not shown in the table below.
+
+.. note::
+
+  Profile `Medium-ARoT-less` built with disabled Firmware Update service to align with other
+  TF-M Profiles.
+
++----------------------+--------------+--------------+--------------+--------------+--------------+
+| Module               |      Base    |     Small    |   ARoT-less  |    Medium    |    Large     |
++                      +-------+------+-------+------+-------+------+-------+------+-------+------+
+| Module               | Base  | RAM  | Small | RAM  | ARoT  | RAM  | Med.  | RAM  | Large | RAM  |
++======================+=======+======+=======+======+=======+======+=======+======+=======+======+
+|Generated             |    112|  3184|    208|  3184|    224|  3184|    272|  3184|    272|  3184|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|Objects               |    978|  1056|   1298|  5188|   1399|  5872|   1541|  1492|   1613|  1492|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|c_w.l                 |    206|     0|    522|     0|    522|     0|    522|     0|    762|     0|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|platform_s.a          |   5322|   281|   5618|   281|   6016|   281|   6392|   281|   6522|   281|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|spm.a                 |   3606|   173|   4480|   173|   3986|   173|   6616|  1409|   6818|  1414|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|sprt.a                |    238|     0|   1346|     0|   1310|     0|   2500|     4|   2520|     4|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|tfpsacrypto.a         |      0|     0|  26296|  1780|  33542|  1780|  33542|  1780|  75539|  1660|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|PROT_attestation.a    |      0|     0|   1664|   557|   1641|  1153|   1641|  3201|   1757|  3201|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|PROT_crypto.a         |      0|     0|   3534|  2048|   4032| 16004|   4032| 22148|   4680| 28228|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|PROT_its.a            |      0|     0|   4796|    80|   4864|   112|   5034|  1988|   5042|  2468|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|PROT_platform.a       |      0|     0|      0|     0|    528|     0|    528|  1280|    528|  1280|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|AROT_ps.a             |      0|     0|      0|     0|      0|     0|   3372|  4344|   3372|  4344|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|Padding               |     30|    34|    104|    37|    104|    37|    124|    49|    163|    44|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|platform_crypto_keys.a|      0|     0|    258|     0|    276|     0|    276|     0|    276|     0|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|qcbor.a               |      0|     0|    852|     0|   1070|     0|   1070|     0|   1070|     0|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|t_cose_s.a            |      0|     0|   1028|     0|   2186|     0|   2186|     0|   2186|     0|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+|Total inc. Padding    |  10492|  4728|  52004| 13328|  61700| 28596|  69648| 41160| 113120| 47600|
++----------------------+-------+------+-------+------+-------+------+-------+------+-------+------+
+
+
+Known issues
+============
+
+Some open issues are not fixed in this release.
+
+.. list-table::
+  :header-rows: 1
+
+  * - Descriptions
+    - Issue links
+  * - Some DPE tests (DPE_S_TEST) in RSE fail
+    - <None>
+  * - SPM does not automatically unmap mm-iovecs.
+    - https://github.com/TrustedFirmware-M/trusted-firmware-m/issues/20
+  * - Long paths in Windows builds prevent successful builds
+    - <None>
+
+
+Issues fixed since v2.2.2
+-------------------------
+
+The following tracked issues have been fixed since the v2.2.2 release.
+
+.. list-table::
+  :header-rows: 1
+
+  * - Descriptions
+    - Issue links
+  * - create_provisioning_data.py outputs incorrectly when using EC-P384
+    - https://github.com/TrustedFirmware-M/trusted-firmware-m/issues/42
+  * - Race condition in SPM scheduler lock logic
+    - https://lists.trustedfirmware.org/archives/list/tf-m@lists.trustedfirmware.org/thread/JO5T75SNGBZMIQYGTSAEZFB4HKQSQF7E/
+
+
+Reference
+=========
+
+None
+
+
+--------------
+
+ *SPDX-License-Identifier: BSD-3-Clause*
+
+ *SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*

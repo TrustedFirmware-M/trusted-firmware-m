@@ -1,7 +1,7 @@
 From 1861feec1205cb72edb171766be3e24b1314f3d0 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
-Subject: [PATCH 11/16] Exclude built-in definitions for PSA Crypto client
+Subject: [PATCH 11/17] Exclude built-in definitions for PSA Crypto client
 
 Do not include context definitions or additional symbols used by
 built-in crypto modules/drivers for a PSA Crypto client. These are

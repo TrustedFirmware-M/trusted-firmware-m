@@ -7,6 +7,7 @@ Security
 
     Threat Models <threat_models/index>
     Security Advisories <security_advisories/index>
+    Security Recommendations <security_recommendations>
 
 Security Disclosures
 --------------------

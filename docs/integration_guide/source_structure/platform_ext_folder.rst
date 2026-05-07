@@ -35,7 +35,7 @@ To configure a cryptographic accelerator at build time, two cmake options can be
 specified.
 
 - ``CRYPTO_HW_ACCELERATOR``
-   - ``ON`` All possible mbedtls cryptographic operations will be offloaded to
+   - ``ON`` All possible cryptographic operations will be offloaded to
      the accelerator.
    - ``OFF`` The cryptographic accelerator will be ignored and software
      cryptography will be used.
@@ -317,6 +317,8 @@ HW components:
 
 --------------
 
-*Copyright (c) 2017-2023, Arm Limited. All rights reserved.*
 *Copyright (c) 2020-2022 Cypress Semiconductor Corporation (an Infineon company)
 or an affiliate of Cypress Semiconductor Corporation. All rights reserved.*
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
+
+*SPDX-License-Identifier: BSD-3-Clause*

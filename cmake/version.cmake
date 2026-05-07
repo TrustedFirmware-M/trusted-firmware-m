@@ -8,7 +8,7 @@
 # TFM_VERSION_MANUAL is used as a fallback when Git tags aren’t available.
 # The '**' is added on purpose to show that the version is uncertain in that case.
 # Please keep it in place when updating.
-set(TFM_VERSION_MANUAL "2.2.2**")
+set(TFM_VERSION_MANUAL "2.3.0**")
 
 execute_process(COMMAND git describe --always --candidates=1
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

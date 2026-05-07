@@ -85,9 +85,11 @@ in the links below.
    except profile Small.
 2. Many platforms redefine `ITS_BUF_SIZE` value.
 
-Each profile has predefined configuration for cryptographic library, located in
-``/lib/ext/mbedcrypto/mbedcrypto_config/``
+Each profile has predefined configuration for the cryptographic library,
+located in ``/lib/ext/tf-psa-crypto/tfpsacrypto_config/``
 
 --------------
 
-*Copyright (c) 2020, Arm Limited. All rights reserved.*
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
+
+*SPDX-License-Identifier: BSD-3-Clause*

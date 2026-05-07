@@ -236,16 +236,14 @@ Crypto Secure Partition
 TF-M Profile Large enables Crypto SP in top-level CMake config file and selects
 all the Crypto modules.
 
-MbedTLS configurations
-^^^^^^^^^^^^^^^^^^^^^^
+TF-PSA-Crypto configurations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-TF-M Profile Large adds a dedicated MbedTLS config file
-``tfm_mbedcrypto_config_profile_large.h`` and MbedTLS PSA config file
-``crypto_config_profile_large.h`` under
-``/lib/ext/mbedcrypto/mbedcrypto_config`` folder, instead of the common one
-``tfm_mbedcrypto_config_default.h`` and ``crypto_config_default.h`` [7]_.
+TF-M Profile Large adds a dedicated TF-PSA-Crypto config file ``crypto_config_profile_large.h``
+under ``/lib/ext/tf-psa-crypto/tfpsacrypto_config`` folder, instead of the common one
+``crypto_config_default.h`` [7]_.
 
-Major MbedTLS configurations are set as listed below:
+Major cryptographic configurations are set as listed below:
 
     - Enable SHA256, SHA384 and SHA512
     - Enable generic message digest wrappers
@@ -325,7 +323,7 @@ a platform can add a platform configuration file at
 Test configuration
 ------------------
 
-Some cryptography tests are disabled due to the reduced MbedTLS config.
+Some cryptography tests are disabled due to the reduced cryptographic configuration profile.
 Profile Large specific test configurations are also specified in Profile Large
 top-level CMake config file ``config/profile/profile_large_test.cmake``.
 

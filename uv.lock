@@ -1204,7 +1204,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/dd/b2/b931869a9f9ad9fa1
 
 [[package]]
 name = "trusted-firmware-m"
-version = "2.2.0"
+version = "2.3.0"
 source = { editable = "." }
 dependencies = [
     { name = "cbor2" },

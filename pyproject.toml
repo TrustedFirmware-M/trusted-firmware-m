@@ -4,7 +4,7 @@ description = "Trusted Firmware-M (TF-M) Python dependencies."
 authors = [{ name = "Arm Ltd." }]
 license = "BSD-3-Clause"
 readme = "readme.rst"
-version = "2.2.0"
+version = "2.3.0"
 
 requires-python = ">=3.10"
 

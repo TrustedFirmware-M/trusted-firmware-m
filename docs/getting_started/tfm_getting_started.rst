@@ -131,6 +131,7 @@ dependencies.
             uv venv --python 3.12
 
             source .venv/bin/activate
+            cd </trusted-firmware-m>
             # `-e` installs modules and scripts in editable/development mode
             pip install -e .
 
@@ -158,6 +159,7 @@ dependencies.
             uv venv --python 3.12
 
             .venv\Scripts\activate.bat
+            cd <\trusted-firmware-m>
             # `-e` installs modules and scripts in editable/development mode
             pip install -e .
 

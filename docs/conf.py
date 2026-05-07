@@ -20,7 +20,7 @@ from subprocess import check_output
 # -- Project information -----------------------------------------------------
 
 project = 'Trusted Firmware-M'
-copyright = '2017-2025, ARM CE-OSS'
+copyright = '2017-2026, ARM CE-OSS'
 author = 'ARM CE-OSS'
 title = 'User Guide'
 

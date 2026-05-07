@@ -331,7 +331,7 @@ vulnerable RoT service to access assets after fault injection.
 
 Physical attacks against TF-M Crypto service
 --------------------------------------------
-Since crypto operations are done by mbedTLS library or by a custom crypto
+Since crypto operations are done by TF-PSA-Crypto library or by a custom crypto
 accelerator engine and its related software driver stack, the analysis of
 physical attacks against crypto operations is out-of-scope for this document.
 However, in general the same requirements are applicable for the crypto, to be
@@ -631,4 +631,6 @@ Reference
 
 --------------------------------
 
-*Copyright (c) 2021-2022, Arm Limited. All rights reserved.*
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
+
+*SPDX-License-Identifier: BSD-3-Clause*

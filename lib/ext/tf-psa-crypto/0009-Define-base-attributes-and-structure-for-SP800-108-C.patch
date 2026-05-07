@@ -1,7 +1,7 @@
 From afde33e77ded33ec9637453b23a7940fa376d52f Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
-Subject: [PATCH 09/16] Define base attributes and structure for SP800-108 CMAC
+Subject: [PATCH 09/17] Define base attributes and structure for SP800-108 CMAC
 
 This adds support for CMAC-based, counter mode key-derivation function,
 using the construction recommended by NIST Special Publication 800-108r1

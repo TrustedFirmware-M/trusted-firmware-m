@@ -89,8 +89,8 @@ folders. The original license text is included in those source files.
   fetched from upstream at build time only.
 
    - ``CMSIS_5``    - Apache 2.0 license
-   - ``mbedcrypto`` - `Apache 2.0 license MbedTLS
-     <https://github.com/Mbed-TLS/mbedtls/blob/development/LICENSE>`_
+   - ``tf-psa-crypto`` - `Apache 2.0 license TF-PSA-Crypto
+     <https://github.com/Mbed-TLS/TF-PSA-Crypto/blob/development/LICENSE>`_
    - ``mcuboot``    - `Apache 2.0 license MCUBoot
      <https://github.com/mcu-tools/mcuboot/blob/main/LICENSE>`_
    - ``qcbor``      - `Modified BSD-3-Clause license
@@ -133,4 +133,6 @@ online. Welcome to join `TF-M Forum <https://www.trustedfirmware.org/meetings/tf
 
 --------------
 
-*Copyright (c) 2017-2022, Arm Limited. All rights reserved.*
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
+
+*SPDX-License-Identifier: BSD-3-Clause*

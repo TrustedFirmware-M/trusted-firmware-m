@@ -65,8 +65,8 @@ test suites will be enabled or disabled as appropriate for the TF-M
 configuration (i.e. all enabled secure partitions will be tested).
 
 Some cryptographic tests can be enabled and disabled. This is done to prevent
-false failures from being reported when a smaller Mbed Crypto config is being
-used which does not support all features.
+false failures from being reported when a smaller crypto configuration profile
+is being used which does not support all features.
 
 +---------------------------------------+---------------------------------------+---------------+
 | Parameter                             | Description                           | Default value |
@@ -117,3 +117,9 @@ The Firmware Framework test suites are:
 
 Note that these map directly to the ``SUITE`` cmake variable used in the
 psa-arch-tests documentation.
+
+--------------
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
+
+*SPDX-License-Identifier: BSD-3-Clause*

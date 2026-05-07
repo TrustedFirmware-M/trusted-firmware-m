@@ -35,12 +35,12 @@ In TF-M's legacy solution, the IAK is loaded by the attestation service as a
 volatile key, which requires some key-loading logic to be implemented by that
 partition. The HUK is not loaded in the crypto service, and is instead used by
 an implementation of a TF-M specific KDF algorithm which then loads the key and
-invokes Mbed TLS directly. Both solutions are far from ideal as they require an
-effort to load (and duplicate) the keys per each user, or require a dedicated
-code in TF-M that directly interacts with the HAL layer and invokes functions
-from the crypto library bypassing the PSA Crypto interface. The aim of the
-``tfm_builtin_key_loader`` driver is to provide a uniform interface to use the
-builtin keys available in a platform.
+invokes TF-PSA-Crypto directly. Both solutions are far from ideal as they
+require an effort to load (and duplicate) the keys per each user, or require a
+dedicated code in TF-M that directly interacts with the HAL layer and invokes
+functions from the crypto library bypassing the PSA Crypto interface. The aim of
+the ``tfm_builtin_key_loader`` driver is to provide a uniform interface to use
+the builtin keys available in a platform.
 
 Implementing a driver to deal with builtin keys allows to expand the legacy
 solution for dealing with this type of keys in several ways. For example, it
@@ -214,16 +214,16 @@ otherwise. For builtin keys that do not derive platform keys but are directly
 used, care must be taken with access control where multiple partitions have
 access to the same raw key material.
 
----------------------------------
-Mbed TLS transparent builtin keys
----------------------------------
+--------------------------------------
+TF-PSA-Crypto transparent builtin keys
+--------------------------------------
 
-Mbed TLS does not natively support transparent builtin keys (transparent keys
-are keys where the key material is directly accessible by the PSA Crypto core),
-so some modifications had to be made. Opaque keyslots have the same basic
+TF-PSA-Crypto does not natively support transparent builtin keys (transparent
+keys are keys where the key material is directly accessible by the PSA Crypto
+core), so some modifications had to be made. Opaque keyslots have the same basic
 structure as standard transparent key slots, and can be passed to the functions
 usually reserved for transparent keys, though this is a private implementation
-detail of the Mbed TLS library and is not specified in the driver interface.
+detail of the TF-PSA-Crypto library and is not specified in the driver interface.
 Therefore, the only modification required currently is to allow keys that have
 the location ``TFM_BUILTIN_KEY_LOADER_KEY_LOCATION`` to be passed to the
 functions that usually accept transparent keys only, i.e. with the location
@@ -232,10 +232,10 @@ assumption of the PSA Crypto core is that, if a driver that provides an
 additional location, will also provide dedicated cryptographic mechanisms to act
 on those keys, but this is not the case of the ``tfm_builtin_key_loader``, as it
 just provides a mechanism to load keys (which act as a transparent key with
-local storage, once loaded), but Mbed TLS does not support such "transparent
-builtin key" concept. Note that the modifications on Mbed TLS are relying on non
-standard implementation details hence this particular integration can change
-between releases [3]_.
+local storage, once loaded), but TF-PSA-Crypto does not support such "transparent
+builtin key" concept. Note that the modifications on TF-PSA-Crypto are relying
+on non standard implementation details hence this particular integration can
+change between releases [3]_.
 
 **********************************************
 Using Opaque PSA crypto accelerators with TF-M
@@ -265,4 +265,6 @@ References
 
 --------------
 
-*Copyright (c) 2022-2023, Arm Limited. All rights reserved.*
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
+
+*SPDX-License-Identifier: BSD-3-Clause*

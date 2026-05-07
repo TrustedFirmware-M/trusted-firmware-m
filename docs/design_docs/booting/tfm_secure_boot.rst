@@ -322,7 +322,7 @@ Example of how to provide the secure image minimum version::
 ********************
 Signature algorithms
 ********************
-MbedTLS library is used to sign the images. The list of supported signing
+TF-PSA-Crypto library is used to sign the images. The list of supported signing
 algorithms:
 
   - `RSA-2048`
@@ -828,6 +828,8 @@ bootutil_misc.c to control the image status.
     So the Firmware Update partition cannot decide where to write the new
     image. As a result, the firmware update service is not supported in
     direct-xip mode and ram-load mode.
+
+--------------------------------
 
 *SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
 

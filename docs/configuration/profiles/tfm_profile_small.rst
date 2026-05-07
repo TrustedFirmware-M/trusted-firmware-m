@@ -385,16 +385,14 @@ Other modules and configurations [11]_ are kept as default values.
 Additional configuration flags with more fine granularity can be added to
 control building of specific crypto algorithms and corresponding test cases.
 
-Mbed Crypto configurations
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+TF-PSA-Crypto configurations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-TF-M Profile Small adds a dedicated Mbed Crypto config file
-``tfm_mbedcrypto_config_profile_small.h`` and Mbed Crypto PSA config file
-``crypto_config_profile_small.h`` at ``/lib/ext/mbedcrypto/mbedcrypto_config``
-folder, instead of the common one ``tfm_mbedcrypto_config_default.h`` and
+TF-M Profile Small adds a dedicated TF-PSA-Crypto config file ``crypto_config_profile_small.h``
+under ``/lib/ext/tf-psa-crypto/tfpsacrypto_config`` folder, instead of the common one
 ``crypto_config_default.h`` [11]_.
 
-Major Mbed Crypto configurations are set as listed below:
+Major cryptographic configurations are set as listed below:
 
     - Enable SHA256
     - Enable generic message digest wrappers
@@ -459,7 +457,7 @@ in Profile Small top-level CMake config file.
 Test configuration
 ------------------
 
-Some cryptography tests are disabled due to the reduced Mbed Crypto config.
+Some cryptography tests are disabled due to the reduced cryptographic configuration profile.
 Some of them are shown in the table below.
 
 .. table:: TFM options in Profile Small top-level CMake config file
