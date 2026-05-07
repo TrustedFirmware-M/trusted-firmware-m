@@ -27,6 +27,7 @@ target_include_directories(tfm_fwu_mcuboot_util
         ${MCUBOOT_PATH}/boot/bootutil/src
         ${CMAKE_CURRENT_SOURCE_DIR}/../
         ${TF_PSA_CRYPTO_PATH}/include
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/include/
 )
 
 target_link_libraries(tfm_fwu_mcuboot_util
