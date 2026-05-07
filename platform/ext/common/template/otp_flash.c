@@ -51,9 +51,14 @@ enum tfm_plat_err_t tfm_plat_otp_read(enum tfm_otp_element_id_t id,
 {
     switch (id) {
     case PLAT_OTP_ID_HUK:
-        return write_to_output(id, offsetof(struct flash_otp_nv_counters_region_t, huk), out_len, out);
+        /* HUK is the device root-of-trust key and must never be directly
+         * readable via the generic OTP interface. Access is blocked to
+         * prevent exposure to compromised or non-secure callers. */
+        return TFM_PLAT_ERR_UNSUPPORTED;
     case PLAT_OTP_ID_IAK:
-        return write_to_output(id, offsetof(struct flash_otp_nv_counters_region_t, iak), out_len, out);
+        /* IAK is a sensitive attestation key and must not be directly
+         * readable via the generic OTP interface. */
+        return TFM_PLAT_ERR_UNSUPPORTED;
     case PLAT_OTP_ID_IAK_LEN:
         return write_to_output(id, offsetof(struct flash_otp_nv_counters_region_t, iak_len), out_len, out);
     case PLAT_OTP_ID_IAK_TYPE:
