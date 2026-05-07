@@ -411,6 +411,40 @@ void test_gpt_init_should_acceptPrimaryArrayLbaNotTwo(void)
     setup_valid_gpt();
 }
 
+void test_gpt_init_should_OnlyConsiderContiguousPartitionEntryArrays(void)
+{
+    /* Sparse array, where 2 partitions are contiguous */
+    const uint32_t test_num_partitions = 2;
+
+    memcpy(&(test_partition_array[test_num_partitions]),
+            &(test_partition_array[test_num_partitions + 1]),
+            sizeof(test_partition_array[test_num_partitions]));
+    memset(&(test_partition_array[test_num_partitions]),
+            0,
+            sizeof(test_partition_array[test_num_partitions]));
+
+    /* Expect first a valid MBR read */
+    expect_mbr_load(PSA_SUCCESS);
+
+    /* Expect a GPT header read second */
+    expect_read_primary_gpt();
+
+    /* Expect third only three partitions are read to find the number in use (if the
+     * number in the header is non-zero). Third partition is read to find out it is
+     * zero, and therefore ignored.
+     */
+    for (size_t i = 0; i < test_num_partitions + 1; ++i) {
+        read_entry_from_flash_ExpectAnyArgsAndReturn(PSA_SUCCESS);
+        read_entry_from_flash_ReturnThruPtr_entry(&(test_partition_array[i]));
+    }
+
+    /* Expect fourth the backup to be read */
+    setup_backup_gpt();
+
+    TEST_ASSERT_EQUAL(PSA_SUCCESS, gpt_init(&mock_driver, TEST_MAX_PARTITIONS));
+    TEST_ASSERT_EQUAL(test_num_partitions, test_primary_gpt.num_used_partitions);
+}
+
 void test_gpt_init_should_failWhenMbrSigBad(void)
 {
     test_mbr.sig--;
