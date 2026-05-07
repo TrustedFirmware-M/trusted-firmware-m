@@ -6,6 +6,7 @@
  *
  */
 #include <string.h>
+#include "coverity_check.h"
 #include "its_flash_nor.h"
 
 #include "flash_fs/its_flash_fs.h"
@@ -37,6 +38,7 @@ static psa_status_t its_flash_nor_init(const struct its_flash_fs_config_t *cfg)
 {
     int32_t err;
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's filesystem API design to use pointer to void")
     err = ((ARM_DRIVER_FLASH *)cfg->flash_dev)->Initialize(NULL);
     if (err != ARM_DRIVER_OK) {
         return PSA_ERROR_STORAGE_FAILURE;
@@ -59,8 +61,10 @@ static psa_status_t flash_read_unaligned(
     uint8_t data_width;
     int ret;
 
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_5, "It's filesystem API design to use pointer to void")
     DriverCapabilities =
                     ((ARM_DRIVER_FLASH *)cfg->flash_dev)->GetCapabilities();
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_5)
     data_width = data_width_byte[DriverCapabilities.data_width];
 
     /*
@@ -73,6 +77,7 @@ static psa_status_t flash_read_unaligned(
 
     /* Read the first data_width bytes data if `addr` is not aligned. */
     if (aligned_addr != addr) {
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's filesystem API design to use pointer to void")
         ret = ((ARM_DRIVER_FLASH *)cfg->flash_dev)->ReadData(aligned_addr,
                                                              temp_buffer, 1);
         if (ret < 0) {
@@ -95,6 +100,7 @@ static psa_status_t flash_read_unaligned(
     if (remaining_len) {
         item_number = remaining_len / data_width;
         if (item_number) {
+            TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's filesystem API design to use pointer to void")
             ret = ((ARM_DRIVER_FLASH *)cfg->flash_dev)->ReadData(
                                                 addr + read_length,
                                                 (uint8_t *)buff + read_length,
@@ -109,6 +115,7 @@ static psa_status_t flash_read_unaligned(
 
     /* Read the last data item if there is still remaining data. */
     if (remaining_len) {
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's filesystem API design to use pointer to void")
         ret = ((ARM_DRIVER_FLASH *)cfg->flash_dev)->ReadData(
                                                             addr + read_length,
                                                             temp_buffer, 1);
@@ -143,12 +150,15 @@ static psa_status_t its_flash_nor_write(const struct its_flash_fs_config_t *cfg,
     uint32_t addr;
     uint8_t data_width;
 
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_5, "It's filesystem API design to use pointer to void")
     DriverCapabilities =
                     ((ARM_DRIVER_FLASH *)cfg->flash_dev)->GetCapabilities();
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_5)
     data_width = data_width_byte[DriverCapabilities.data_width];
 
     addr = get_phys_address(cfg, block_id, offset);
 
+    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's filesystem API design to use pointer to void")
     err = ((ARM_DRIVER_FLASH *)cfg->flash_dev)->ProgramData(addr, buff,
                                                         size / data_width);
     if (err < 0) {
@@ -179,6 +189,7 @@ static psa_status_t its_flash_nor_erase(const struct its_flash_fs_config_t *cfg,
     for (offset = 0; offset < cfg->block_size; offset += cfg->sector_size) {
         addr = get_phys_address(cfg, block_id, offset);
 
+        TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's filesystem API design to use pointer to void")
         err = ((ARM_DRIVER_FLASH *)cfg->flash_dev)->EraseSector(addr);
         if (err != ARM_DRIVER_OK) {
             return PSA_ERROR_STORAGE_FAILURE;

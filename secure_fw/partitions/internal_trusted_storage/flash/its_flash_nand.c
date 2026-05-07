@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "its_flash_nand.h"
+#include "coverity_check.h"
 #include "flash_fs/its_flash_fs.h"
 
 /* Valid entries for data item width */
@@ -36,8 +37,10 @@ static uint32_t get_phys_address(const struct its_flash_fs_config_t *cfg,
 static psa_status_t its_flash_nand_init(const struct its_flash_fs_config_t *cfg)
 {
     int32_t err;
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_5, "It's filesystem API design to use pointer to void")
     struct its_flash_nand_dev_t *flash_dev =
         (struct its_flash_nand_dev_t *)cfg->flash_dev;
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_5)
 
     if (flash_dev->buf_size < cfg->block_size) {
         return PSA_ERROR_PROGRAMMER_ERROR;
@@ -55,8 +58,10 @@ static psa_status_t its_flash_nand_read(const struct its_flash_fs_config_t *cfg,
                                         uint32_t block_id, uint8_t *buff,
                                         size_t offset, size_t size)
 {
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_5, "It's filesystem API design to use pointer to void")
     struct its_flash_nand_dev_t *flash_dev =
         (struct its_flash_nand_dev_t *)cfg->flash_dev;
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_5)
     uint32_t addr;
     uint32_t remaining_len, read_length = 0;
     uint32_t aligned_addr;
@@ -142,8 +147,10 @@ static psa_status_t its_flash_nand_write(
                                     uint32_t block_id, const uint8_t *buff,
                                     size_t offset, size_t size)
 {
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_5, "It's filesystem API design to use pointer to void")
     struct its_flash_nand_dev_t *flash_dev =
         (struct its_flash_nand_dev_t *)cfg->flash_dev;
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_5)
 
     if (block_id == ITS_BLOCK_INVALID_ID) {
         return PSA_ERROR_PROGRAMMER_ERROR;
@@ -174,8 +181,10 @@ static psa_status_t its_flash_nand_flush(
                                     uint32_t block_id)
 {
     int32_t err;
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_5, "It's filesystem API design to use pointer to void")
     struct its_flash_nand_dev_t *flash_dev =
         (struct its_flash_nand_dev_t *)cfg->flash_dev;
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_5)
     uint32_t addr;
     ARM_FLASH_CAPABILITIES DriverCapabilities;
     uint8_t data_width;
@@ -224,8 +233,10 @@ static psa_status_t its_flash_nand_erase(const struct its_flash_fs_config_t *cfg
     int32_t err;
     uint32_t addr;
     size_t offset;
+    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_5, "It's filesystem API design to use pointer to void")
     struct its_flash_nand_dev_t *flash_dev =
         (struct its_flash_nand_dev_t *)cfg->flash_dev;
+    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_5)
 
     for (offset = 0; offset < cfg->block_size; offset += cfg->sector_size) {
         addr = get_phys_address(cfg, block_id, offset);
