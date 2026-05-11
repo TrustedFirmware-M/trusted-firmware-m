@@ -77,6 +77,7 @@ list(APPEND BL2_CRYPTO_SRC
     $<${build_sha_256}:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/sha256.c>
     $<${build_sha_384}:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/sha512.c>
     $<$<AND:${is_ec_signature},$<NOT:${build_p256m}>>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/psa_crypto_ecp.c>
+    $<$<AND:${is_ec_signature},$<NOT:${build_p256m}>>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/psa_util_internal.c>
     $<$<AND:${is_ec_signature},$<NOT:${build_p256m}>>:${TF_PSA_CRYPTO_PATH}/core/psa_util.c>
     $<$<AND:${is_ec_signature},$<NOT:${build_p256m}>>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/ecp.c>
     $<$<AND:${is_ec_signature},$<NOT:${build_p256m}>>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/ecp_curves.c>
