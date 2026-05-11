@@ -672,7 +672,7 @@ void LL_SECU_CheckStaticProtections(void)
     BOOT_LOG_ERR("Unexpected value for secure flash protection");
     Error_Handler();
 #else
-    BOOT_LOG_ERR("Unexpected value for secure flash protection: set wmsec1");
+    BOOT_LOG_WRN("Unexpected value for secure flash protection: set wmsec1");
     flash_option_bytes_bank1.WMSecStartPage = start;
     flash_option_bytes_bank1.WMSecEndPage = end;
     flash_option_bytes_bank1.OptionType |= OPTIONBYTE_WMSEC;
@@ -695,7 +695,7 @@ void LL_SECU_CheckStaticProtections(void)
     BOOT_LOG_ERR("Unexpected value for secure flash protection");
     Error_Handler();
 #else
-    BOOT_LOG_ERR("Unexpected value for secure flash protection : set wmsec2");
+    BOOT_LOG_WRN("Unexpected value for secure flash protection : set wmsec2");
     flash_option_bytes_bank2.WMSecStartPage = start;
     flash_option_bytes_bank2.WMSecEndPage = end;
     flash_option_bytes_bank2.OptionType = OPTIONBYTE_WMSEC;
@@ -712,7 +712,7 @@ void LL_SECU_CheckStaticProtections(void)
     BOOT_LOG_ERR("Unexpected value for secure flash protection");
     Error_Handler();
 #else
-    BOOT_LOG_ERR("Unexpected value for secure flash protection : set wmsec2");
+    BOOT_LOG_WRN("Unexpected value for secure flash protection : set wmsec2");
     /* bank is not unsecured , modify option bytes */
     flash_option_bytes_bank2.WMSecStartPage = 127;
     flash_option_bytes_bank2.WMSecEndPage = 0;
@@ -737,11 +737,10 @@ void LL_SECU_CheckStaticProtections(void)
     BOOT_LOG_ERR("Unexpected value for write protection ");
     Error_Handler();
 #else
+    BOOT_LOG_WRN("Unexpected value for write protection : set wrp1");
     flash_option_bytes_bank1.WRPStartOffset = start;
     flash_option_bytes_bank1.WRPEndOffset = end;
     flash_option_bytes_bank1.WRPArea |= OB_WRPAREA_BANK1_AREAA;
-
-    BOOT_LOG_ERR("Unexpected value for write protection : set wrp1");
     flash_option_bytes_bank1.OptionType |= OPTIONBYTE_WRP;
 #endif /* TFM_ENABLE_SET_OB */
   }
@@ -770,11 +769,10 @@ void LL_SECU_CheckStaticProtections(void)
     BOOT_LOG_ERR("Unexpected value for write protection ");
     Error_Handler();
 #else
+    BOOT_LOG_WRN("Unexpected value for write protection : set wrp2");
     flash_option_bytes_bank2.WRPStartOffset = start;
     flash_option_bytes_bank2.WRPEndOffset = end;
     flash_option_bytes_bank2.WRPArea |= OB_WRPAREA_BANK2_AREAA;
-
-    BOOT_LOG_ERR("Unexpected value for write protection : set wrp2");
     flash_option_bytes_bank2.OptionType |= OPTIONBYTE_WRP;
 #endif /* TFM_ENABLE_SET_OB */
   }
@@ -809,7 +807,7 @@ void LL_SECU_CheckStaticProtections(void)
     BOOT_LOG_ERR("Unexpected value for secure user flash protection");
     Error_Handler();
 #else
-    BOOT_LOG_ERR("Unexpected value for secure user flash protection : set hdp1");
+    BOOT_LOG_WRN("Unexpected value for secure user flash protection : set hdp1");
     flash_option_bytes_bank1.WMSecStartPage = start;
     flash_option_bytes_bank1.WMHDPEndPage = end;
     flash_option_bytes_bank1.OptionType |= OPTIONBYTE_WMSEC;
