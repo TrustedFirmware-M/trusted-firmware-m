@@ -1,0 +1,25 @@
+*************
+Version 2.1.5
+*************
+
+LTS Support
+===========
+
+ - Attestation: Fixes for size of boot data, pointers
+ - SPM: Fixes for FPU context cleanup, add r12 into caller context clearing
+ - CC312: Fix various build issues and warnings, barriers
+ - Build: Fixes for IAR builds and licences
+ - Crypto: Fixes for interface, operators
+ - Upgrade to MbedTLS v3.6.6, which contains security advisories [1]_.
+ - driver: Update ethos-u and NPU drivers
+
+Reference
+=========
+
+.. [1] `Mbed TLS 3.6.6 <https://github.com/Mbed-TLS/mbedtls/releases/tag/mbedtls-3.6.6>`_
+
+--------------
+
+ *SPDX-License-Identifier: BSD-3-Clause*
+
+ *SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
