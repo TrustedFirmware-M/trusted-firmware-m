@@ -712,6 +712,7 @@ void LL_SECU_CheckStaticProtections(void)
     BOOT_LOG_ERR("Unexpected value for secure flash protection");
     Error_Handler();
 #else
+    BOOT_LOG_ERR("Unexpected value for secure flash protection : set wmsec2");
     /* bank is not unsecured , modify option bytes */
     flash_option_bytes_bank2.WMSecStartPage = 127;
     flash_option_bytes_bank2.WMSecEndPage = 0;
