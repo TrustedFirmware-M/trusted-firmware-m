@@ -6,6 +6,7 @@
 
 
 #include <nrfx.h>
+#include <hal/nrf_gpio.h>
 #include <stdint.h>
 #include "tfm_platform_api.h"
 #include "tfm_ioctl_core_api.h"
@@ -38,7 +39,7 @@ enum tfm_platform_err_t tfm_platform_mem_read(void *destination, uint32_t addr,
 enum tfm_platform_err_t tfm_platform_gpio_pin_mcu_select(uint32_t pin_number, uint32_t mcu,
 							 uint32_t *result)
 {
-#if defined(GPIO_PIN_CNF_MCUSEL_Msk)
+#if NRF_GPIO_HAS_SEL
 	enum tfm_platform_err_t ret;
 	psa_invec in_vec;
 	psa_outvec out_vec;
