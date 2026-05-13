@@ -136,25 +136,18 @@ message_needs_secret_decryption(const struct rse_provisioning_authentication_hea
     return decryption_config == RSE_PROVISIONING_AUTH_MSG_SECRET_VALUES_DECRYPTION_AES;
 }
 
-static psa_status_t copy_auth_code_data(psa_aead_operation_t *operation, psa_algorithm_t alg,
-                                        const struct rse_provisioning_authentication_header_t *header,
-                                        const uint8_t *code_and_data_and_secret_values,
-                                        void *code_output, size_t code_output_size,
-                                        void *data_output, size_t data_output_size)
+static psa_status_t copy_auth_code(psa_aead_operation_t *operation,
+                                   psa_algorithm_t alg,
+                                   const struct rse_provisioning_authentication_header_t *header,
+                                   const uint8_t *code_and_data_and_secret_values,
+                                   void *code_output)
 {
     psa_status_t status;
 
-    memcpy(code_output, code_and_data_and_secret_values, header->code_size);
-    memcpy(data_output, code_and_data_and_secret_values + header->code_size,
-           header->data_size);
+    (void)memcpy(code_output, code_and_data_and_secret_values, header->code_size);
 
     if (alg == PSA_ALG_CCM) {
         status = psa_aead_update_ad(operation, code_output, header->code_size);
-        if (status != PSA_SUCCESS) {
-            return status;
-        }
-
-        status = psa_aead_update_ad(operation, data_output, header->data_size);
         if (status != PSA_SUCCESS) {
             return status;
         }
@@ -168,31 +161,88 @@ static psa_status_t copy_auth_code_data(psa_aead_operation_t *operation, psa_alg
      * respectively.
      */
     SCB_CleanDCache_by_Addr(code_output, header->code_size);
+
+    return PSA_SUCCESS;
+}
+
+static psa_status_t copy_auth_data(psa_aead_operation_t *operation,
+                                   psa_algorithm_t alg,
+                                   const struct rse_provisioning_authentication_header_t *header,
+                                   const uint8_t *code_and_data_and_secret_values,
+                                   void *data_output)
+{
+    psa_status_t status;
+
+    if (header->data_size == 0) {
+        return PSA_SUCCESS;
+    }
+
+    (void)memcpy(data_output,
+                 code_and_data_and_secret_values + header->code_size,
+                 header->data_size);
+
+    if (alg == PSA_ALG_CCM) {
+        status = psa_aead_update_ad(operation, data_output, header->data_size);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+    }
+
+    /*
+     * Explicitly clean and flush the DCache after copying the provisioning code.
+     * If copied provides in cachable SRAM (VM's) then this is required to ensure
+     * data coherency and correct instruction fetches from SRAM as M55 use Havard
+     * Architecture with seperate buses and caches for instructions and data
+     * respectively.
+     */
     SCB_CleanDCache_by_Addr(data_output, header->data_size);
 
     return PSA_SUCCESS;
 }
 
-static psa_status_t decrypt_code_data(psa_aead_operation_t *operation,
-                                      const struct rse_provisioning_authentication_header_t *header,
-                                      const uint8_t *code_and_data_and_secret_values,
-                                      void *code_output, size_t code_output_size, void *data_output,
-                                      size_t data_output_size)
+static psa_status_t decrypt_code(psa_aead_operation_t *operation,
+                                 const struct rse_provisioning_authentication_header_t *header,
+                                 const uint8_t *code_and_data_and_secret_values,
+                                 void *code_output,
+                                 size_t code_output_size)
 {
     size_t output_length = 0;
     psa_status_t status;
 
-    status = psa_aead_update(operation, code_and_data_and_secret_values,
-                             header->code_size, code_output, code_output_size, &output_length);
+    status = psa_aead_update(operation,
+                             code_and_data_and_secret_values,
+                             header->code_size,
+                             code_output,
+                             code_output_size,
+                             &output_length);
     if (status != PSA_SUCCESS) {
         return status;
     } else if (output_length != header->code_size) {
         return PSA_ERROR_BUFFER_TOO_SMALL;
     }
 
+    return PSA_SUCCESS;
+}
+
+static psa_status_t decrypt_data(psa_aead_operation_t *operation,
+                                 const struct rse_provisioning_authentication_header_t *header,
+                                 const uint8_t *code_and_data_and_secret_values,
+                                 void *data_output,
+                                 size_t data_output_size)
+{
+    size_t output_length = 0;
+    psa_status_t status;
+
+    if (header->data_size == 0) {
+        return PSA_SUCCESS;
+    }
+
     status = psa_aead_update(operation,
                              code_and_data_and_secret_values + header->code_size,
-                             header->data_size, data_output, data_output_size, &output_length);
+                             header->data_size,
+                             data_output,
+                             data_output_size,
+                             &output_length);
     if (status != PSA_SUCCESS) {
         return status;
     } else if (output_length != header->data_size) {
@@ -352,37 +402,57 @@ static enum tfm_plat_err_t aes_generic_message_operation(psa_algorithm_t alg,
     }
 
     if (message_needs_code_data_decryption(header)) {
-        status = decrypt_code_data(&operation,
-                                   header,
-                                   code_and_data_and_secret_values,
-                                   code_output, code_output_size,
-                                   data_output, data_output_size);
+        status = decrypt_code(&operation,
+                               header,
+                               code_and_data_and_secret_values,
+                               code_output,
+                               code_output_size);
+        if (status != PSA_SUCCESS) {
+            ERROR("Error decrypting code\r\n");
+            goto psa_abort;
+        }
+        status = decrypt_data(&operation,
+                               header,
+                               code_and_data_and_secret_values,
+                               data_output,
+                               data_output_size);
     } else {
-        status = copy_auth_code_data(&operation, alg,
-                                     header,
-                                     code_and_data_and_secret_values,
-                                     code_output, code_output_size,
-                                     data_output, data_output_size);
+        status = copy_auth_code(&operation,
+                                alg,
+                                header,
+                                code_and_data_and_secret_values,
+                                code_output);
+        if (status != PSA_SUCCESS) {
+            ERROR("Error copying/decrypting code\r\n");
+            goto psa_abort;
+        }
+        status = copy_auth_data(&operation,
+                                alg,
+                                header,
+                                code_and_data_and_secret_values,
+                                data_output);
     }
     if (status != PSA_SUCCESS) {
-        ERROR("Error decrypting or authenticating code / data\r\n");
+        ERROR("Error decrypting or authenticating data\r\n");
         goto psa_abort;
     }
 
-    if (message_needs_secret_decryption(header)) {
-        status = decrypt_secret_values(&operation,
-                                       header,
-                                       code_and_data_and_secret_values,
-                                       values_output, values_output_size);
-    } else {
-        status = copy_auth_secret_values(&operation, alg,
-                                         header,
-                                         code_and_data_and_secret_values,
-                                         values_output, values_output_size);
-    }
-    if (status != PSA_SUCCESS) {
-        ERROR("Error decrypting or authenticating code / data\r\n");
-        goto psa_abort;
+    if (header->secret_values_size > 0) {
+        if (message_needs_secret_decryption(header)) {
+            status = decrypt_secret_values(&operation,
+                                           header,
+                                           code_and_data_and_secret_values,
+                                           values_output, values_output_size);
+        } else {
+            status = copy_auth_secret_values(&operation, alg,
+                                             header,
+                                             code_and_data_and_secret_values,
+                                             values_output, values_output_size);
+        }
+        if (status != PSA_SUCCESS) {
+            ERROR("Error decrypting or authenticating secret_values\r\n");
+            goto psa_abort;
+        }
     }
 
     if (alg == PSA_ALG_CCM) {
