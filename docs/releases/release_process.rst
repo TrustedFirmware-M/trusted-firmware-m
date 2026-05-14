@@ -88,10 +88,10 @@ Long Term Support (LTS)
 
 From v2.1.0, TF-M project will provide LTS branches. Every alternate release
 will be an LTS release maintained for 3 years.
-The LTS release will be synchronized with
-`Mbed TLS <https://www.trustedfirmware.org/projects/mbed-tls>`_
-project to be aligned with LTS releases cadence. Mbed TLS is used as the
-default cryptography library by the TF-M Crypto service.
+The LTS release will be synchronized with either
+`Mbed TLS or TF-PSA-Crypto <https://www.trustedfirmware.org/projects/mbed-tls>`_
+project to be aligned with LTS releases cadence. Either Mbed TLS or TF-PSA-Crypto
+is used as the default cryptography library by the TF-M Crypto service.
 
 The main purpose of TF-M LTS is to offer a maintained and PSA certified TF-M
 codebase for the whole period of LTS. Without LTS, every TF-M based product
@@ -237,4 +237,6 @@ Q&A
 
 --------------
 
-*Copyright (c) 2020-2024, Arm Limited. All rights reserved.*
+*SPDX-License-Identifier: BSD-3-Clause*
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
