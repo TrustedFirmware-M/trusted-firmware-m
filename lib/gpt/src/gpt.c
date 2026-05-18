@@ -663,29 +663,32 @@ psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
     write_buffered = false;
     uint32_t entries_in_last_lba = (--primary_gpt.num_used_partitions) % gpt_entry_per_lba_count();
 
+    bool skip_erase;
     if (entries_in_last_lba == 0) {
         /* There's nothing left in this LBA, so zero it all and write it out.
          * There is also no need to do an erase just to zero afterwards.
          */
         memset(lba_buf, 0, TFM_GPT_BLOCK_SIZE);
+        skip_erase = true;
     } else {
         /* Zero what is not needed anymore */
         memset(
                 lba_buf + GPT_ENTRY_SIZE * entries_in_last_lba,
                 0,
                 (gpt_entry_per_lba_count() - entries_in_last_lba) * GPT_ENTRY_SIZE);
+        skip_erase = false;
     }
 
     if (backup_gpt_array_lba != 0) {
         ret = write_to_flash(
                 backup_gpt_array_lba + array_end_lba - primary_gpt.header.array_lba,
-                true);
+                skip_erase);
         if (ret != PSA_SUCCESS) {
             return ret;
         }
     }
 
-    ret = write_to_flash(array_end_lba, true);
+    ret = write_to_flash(array_end_lba, skip_erase);
     if (ret != PSA_SUCCESS) {
         return ret;
     }
