@@ -18,7 +18,7 @@ fetch_remote_library(
         GIT_REPOSITORY      ${MCUBOOT_GIT_REMOTE}
         GIT_TAG             ${MCUBOOT_VERSION}
         GIT_PROGRESS        TRUE
-        GIT_SHALLOW         TRUE
+        GIT_SHALLOW         ${MCUBOOT_GIT_SHALLOW}
         GIT_SUBMODULES      "docs"
 )
 
