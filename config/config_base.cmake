@@ -48,7 +48,7 @@ set(MCUBOOT_FORCE_PATCH                 OFF         CACHE BOOL      "Always appl
 
 set(TFM_EXTRAS_REPO_PATH                "DOWNLOAD"  CACHE PATH      "Path to tf-m-extras repo (or DOWNLOAD to fetch automatically")
 set(TFM_EXTRAS_GIT_REMOTE               "https://git.trustedfirmware.org/TF-M/tf-m-extras.git" CACHE STRING "The URL to retrieve tf-m-extras from")
-set(TFM_EXTRAS_REPO_VERSION             "2ac90aff"  CACHE STRING    "The version of tf-m-extras to use")
+set(TFM_EXTRAS_REPO_VERSION             "b72780b2"  CACHE STRING    "The version of tf-m-extras to use")
 
 set(LIB_EVENTLOG_PATH                   "DOWNLOAD"  CACHE PATH      "Path to LibEventLog repo (or DOWNLOAD to fetch automatically")
 set(LIB_EVENTLOG_GIT_REMOTE             "https://git.trustedfirmware.org/shared/libEventLog" CACHE STRING "The URL to retrieve LibEventLog from.")
