@@ -19,6 +19,9 @@ tfm_invalid_config(NOT IFX_CRYPTO_SE_RT AND IFX_CRYPTO_KEYS_SE_RT)
 tfm_invalid_config(IFX_MBEDTLS_ACCELERATION_ENABLED AND IFX_MBEDTLS_ACCELERATOR_VALID_TYPES
                AND NOT IFX_MBEDTLS_ACCELERATOR_TYPE IN_LIST IFX_MBEDTLS_ACCELERATOR_VALID_TYPES)
 
+# CryptoSuite requires mbedTLS hardware acceleration
+tfm_invalid_config(IFX_CRYPTOSUITE_ENABLED AND NOT IFX_MBEDTLS_ACCELERATION_ENABLED)
+
 ################################### Drivers ####################################
 
 # Only FULL SE_RT service provides NV counters

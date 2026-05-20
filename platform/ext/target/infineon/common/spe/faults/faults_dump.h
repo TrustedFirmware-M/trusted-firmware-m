@@ -12,7 +12,7 @@
 #include "cmsis_compiler.h"
 #include "cy_sysfault.h"
 #include "ifx_utils.h"
-#include "ifx_tfm_log_shim.h"
+#include "tfm_log.h"
 
 /**
  * \brief Print PPC violation fault information captured by fault peripheral when

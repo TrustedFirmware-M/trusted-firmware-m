@@ -59,7 +59,7 @@ if (TFM_PARTITION_CRYPTO)
                 crypto/crypto_rnd_se_rt.c
         )
 
-        target_compile_definitions(${IFX_SE_RT_SERVICES_UTILS_S_TARGET}
+        target_compile_definitions(ifx_se_rt_services_utils_s
             PUBLIC
                 MBEDTLS_PSA_CRYPTO_DRIVERS
         )
@@ -99,7 +99,7 @@ if (TFM_PARTITION_CRYPTO)
 
         target_link_libraries(platform_crypto_keys
             PUBLIC
-                $<$<BOOL:${IFX_SE_RT_SERVICES_UTILS_ENABLED}>:${IFX_SE_RT_SERVICES_UTILS_S_TARGET}>
+                $<$<BOOL:${IFX_SE_RT_SERVICES_UTILS_ENABLED}>:ifx_se_rt_services_utils_s>
         )
     endif()
 
@@ -116,14 +116,14 @@ if (TFM_PARTITION_CRYPTO)
 
         target_link_libraries(platform_crypto_keys
             PUBLIC
-                ${IFX_SE_RT_SERVICES_UTILS_S_TARGET}
+                ifx_se_rt_services_utils_s
             PRIVATE
                 psa_interface
         )
 
         target_link_libraries(crypto_service_tfpsacrypto
             PUBLIC
-                ${IFX_SE_RT_SERVICES_UTILS_S_TARGET}
+                ifx_se_rt_services_utils_s
         )
     endif()
 
@@ -138,7 +138,7 @@ if (TFM_PARTITION_CRYPTO)
             # provides PSA crypto API. Thus accelerator library is dependent on SE RT Services Utils.
             target_link_libraries(ifx_mbedtls_acceleration
                 PUBLIC
-                    ${IFX_SE_RT_SERVICES_UTILS_S_TARGET}
+                    ifx_se_rt_services_utils_s
             )
         endif()
     endif()
@@ -195,7 +195,7 @@ if (TFM_PARTITION_INITIAL_ATTESTATION)
 
     target_link_libraries(tfm_psa_rot_partition_attestation
         PRIVATE
-            $<$<BOOL:${IFX_SE_RT_SERVICES_UTILS_ENABLED}>:${IFX_SE_RT_SERVICES_UTILS_S_TARGET}>
+            $<$<BOOL:${IFX_SE_RT_SERVICES_UTILS_ENABLED}>:ifx_se_rt_services_utils_s>
     )
 endif()
 
@@ -266,7 +266,7 @@ if (TFM_PARTITION_PLATFORM)
 
     target_link_libraries(tfm_psa_rot_partition_platform
         PRIVATE
-            $<$<BOOL:${IFX_SE_RT_SERVICES_UTILS_ENABLED}>:${IFX_SE_RT_SERVICES_UTILS_S_TARGET}>
+            $<$<BOOL:${IFX_SE_RT_SERVICES_UTILS_ENABLED}>:ifx_se_rt_services_utils_s>
             tfm_spm
     )
 endif()
@@ -315,7 +315,9 @@ if (TEST_PSA_API STREQUAL IPC)
     )
 endif()
 
-target_sources(tfm_spm
-    PRIVATE
-        tfm_tests/tfm_interrupts_test_s.c
-)
+if (TEST_NS_FLIH_IRQ OR TEST_NS_SLIH_IRQ OR (TEST_PSA_API STREQUAL IPC))
+    target_sources(tfm_spm
+        PRIVATE
+            tfm_tests/tfm_interrupts_test_s.c
+    )
+endif()

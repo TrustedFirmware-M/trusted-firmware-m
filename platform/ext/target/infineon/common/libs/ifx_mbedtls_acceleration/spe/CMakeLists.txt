@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2024 Cypress Semiconductor Corporation (an Infineon company)
+# Copyright (c) 2024-2026 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -33,6 +33,10 @@ elseif(IFX_MBEDTLS_ACCELERATOR_TYPE STREQUAL "MXCRYPTO")
     include(${IFX_COMMON_SOURCE_DIR}/libs/ifx_mbedtls_acceleration/spe/mxcrypto.cmake)
 else()
     message(FATAL_ERROR "Unsupported accelerator type: ${IFX_MBEDTLS_ACCELERATOR_TYPE}")
+endif()
+
+if(IFX_CRYPTOSUITE_ENABLED AND S_BUILD)
+    include(${IFX_COMMON_SOURCE_DIR}/libs/ifx_mbedtls_acceleration/spe/cryptosuite.cmake)
 endif()
 
 target_compile_definitions(ifx_mbedtls_acceleration

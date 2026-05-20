@@ -7,10 +7,15 @@
  */
 
 #include "config_tfm.h"
+#include "region_defs.h"
 
-#if !ITS_RAM_FS
+#ifndef IFX_TFM_ITS_LOCATION
+#error "IFX_TFM_ITS_LOCATION is not defined"
+#endif /* IFX_TFM_ITS_LOCATION */
+
+#if defined(IFX_MEMORY_TYPE_FLASH) && (IFX_TFM_ITS_LOCATION == IFX_MEMORY_TYPE_FLASH)
 #include "ifx_driver_flash.h"
-#include "partition/flash_layout.h"
+#include "coverity_check.h"
 
 /* FLASH driver object for Internal Trusted Storage */
 static const ifx_driver_flash_obj_t ifx_flash_obj_its = {
@@ -35,6 +40,6 @@ static const ifx_driver_flash_obj_t ifx_flash_obj_its = {
 IFX_DRIVER_FLASH_CREATE_INSTANCE(ifx_flash_instance_its, ifx_flash_obj_its)
 
 /* Create CMSIS wrapper for FLASH driver for ITS */
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Checked this part with preprocessor(-E option) and identified as not an issue")
 IFX_CREATE_CMSIS_FLASH_DRIVER(ifx_flash_instance_its, ifx_its_cmsis_flash_instance)
-
-#endif /* !ITS_RAM_FS */
+#endif /* defined(IFX_MEMORY_TYPE_FLASH) && (IFX_TFM_ITS_LOCATION == IFX_MEMORY_TYPE_FLASH) */

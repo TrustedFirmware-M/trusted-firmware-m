@@ -147,7 +147,7 @@ static int32_t ifx_driver_flash_read_data(IFX_FDF_ARGS(uint32_t addr, void *data
 {
     TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_flash_obj_t *obj = IFX_DRIVER_FLASH_INSTANCE;
-    uint32_t size = cnt * IFX_DRIVER_FLASH_PROGRAM_UNIT;
+    uint32_t size = cnt;
     int32_t result;
 
     /* Validate arguments */
@@ -170,7 +170,7 @@ static int32_t ifx_driver_flash_program_data(IFX_FDF_ARGS(uint32_t addr,
 {
     TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "It's flash driver API design to use pointer to void")
     const ifx_driver_flash_obj_t *obj = IFX_DRIVER_FLASH_INSTANCE;
-    uint32_t size = cnt * IFX_DRIVER_FLASH_PROGRAM_UNIT;
+    uint32_t size = cnt;
     int32_t result;
     uint32_t interrupt_state;
 

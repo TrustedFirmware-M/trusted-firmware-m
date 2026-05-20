@@ -9,7 +9,11 @@
 #include "config_tfm.h"
 #include "region_defs.h"
 
-#if !PS_RAM_FS
+#ifndef IFX_TFM_PS_LOCATION
+#error "IFX_TFM_PS_LOCATION is not defined"
+#endif /* IFX_TFM_PS_LOCATION */
+
+#if defined(IFX_MEMORY_TYPE_FLASH) && (IFX_TFM_PS_LOCATION == IFX_MEMORY_TYPE_FLASH)
 #include "ifx_driver_flash.h"
 #include "tfm_peripherals_def.h"
 
@@ -37,4 +41,4 @@ IFX_DRIVER_FLASH_CREATE_INSTANCE(ifx_flash_instance_ps, ifx_flash_obj_ps)
 
 /* Create CMSIS wrapper for FLASH driver for PS */
 IFX_CREATE_CMSIS_FLASH_DRIVER(ifx_flash_instance_ps, ifx_ps_cmsis_flash_instance)
-#endif /* !PS_RAM_FS*/
+#endif /* defined(IFX_MEMORY_TYPE_FLASH) && (IFX_TFM_PS_LOCATION == IFX_MEMORY_TYPE_FLASH) */

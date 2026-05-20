@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2024-2025 Cypress Semiconductor Corporation (an Infineon company)
+# Copyright (c) 2024-2026 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -41,12 +41,15 @@ if (NOT TFM_EXTRA_GENERATED_FILE_LIST_PATH)
 endif()
 
 # Infineon specific generated files
-list(APPEND TFM_EXTRA_GENERATED_FILE_LIST_PATH "${IFX_COMMON_SOURCE_DIR}/generated_file_list.yaml")
+# Default to Infineon secure linker templates, but allow overriding from cache.
+set(TFM_LINKER_FILES_BASE_PATH "${IFX_COMMON_SOURCE_DIR}/toolchain" CACHE STRING "Path to folder with TFM linker script files")
 
+configure_file("${IFX_COMMON_SOURCE_DIR}/generated_file_list.yaml.in"
+               "${IFX_GENERATED_DIR}/platform/ext/target/infineon/generated_file_list.yaml"
+               @ONLY)
+
+list(APPEND TFM_EXTRA_GENERATED_FILE_LIST_PATH "${IFX_GENERATED_DIR}/platform/ext/target/infineon/generated_file_list.yaml")
 if(TFM_ISOLATION_LEVEL EQUAL 3)
-    # Set TFM_LINKER_FILES_BASE_PATH to be able to use it early
-    set(TFM_LINKER_FILES_BASE_PATH "${CMAKE_SOURCE_DIR}/platform/ext/common" CACHE STRING "Path to folder with TFM linker script files")
-
     # Isolation level 3 specific generated files
     configure_file("${IFX_COMMON_SOURCE_DIR}/generated_file_list_l3.yaml.in"
                    "${IFX_GENERATED_DIR}/platform/ext/target/infineon/generated_file_list_l3.yaml"
@@ -54,6 +57,8 @@ if(TFM_ISOLATION_LEVEL EQUAL 3)
 
     list(APPEND TFM_EXTRA_GENERATED_FILE_LIST_PATH "${IFX_GENERATED_DIR}/platform/ext/target/infineon/generated_file_list_l3.yaml")
 endif()
+
+set(IFX_BSP_DEVICE_SUPPORT_LIBS "${IFX_COMMON_SOURCE_DIR}/deploy/mtb-personalities/props.json" CACHE STRING "List of additional device support libraries")
 
 ################################## Isolation ###################################
 
@@ -100,7 +105,23 @@ set(PLATFORM_EXCEPTION_INFO                 ${IFX_FAULTS_INFO_DUMP} CACHE BOOL  
 
 ################################# Dependencies #################################
 
+set(MBEDCRYPTO_VERSION                      "release-v3.6.400" CACHE STRING  "The version of Mbed Crypto to use")
+set(MBEDCRYPTO_GIT_REMOTE                   "https://github.com/Infineon/ifx-mbedtls.git" CACHE STRING "The URL (or path) to retrieve MbedTLS from.")
+set(MBEDCRYPTO_PATCH_DIR                    "${IFX_COMMON_SOURCE_DIR}/libs/mbedcrypto/patch" CACHE STRING "Path to mbedtls patches")
+set(MBEDCRYPTO_FORCE_PATCH                  ON          CACHE BOOL      "Always apply MBed Crypto patches")
+
 set(IFX_MBEDTLS_ACCELERATION_ENABLED         OFF        CACHE BOOL      "Enable crypto accelerator")
+
+if(NOT DEFINED MBEDCRYPTO_PATH OR MBEDCRYPTO_PATH STREQUAL "DOWNLOAD")
+    # MBEDCRYPTO_PATH is still "DOWNLOAD" so ${CMAKE_BINARY_DIR}/lib/ext/mbedcrypto-src is used
+    set(MBEDTLS_PSA_CRYPTO_PLATFORM_PATH    "${CMAKE_BINARY_DIR}/lib/ext/mbedcrypto-src/target/infineon/interface"    CACHE PATH      "Infineon features definitions to extend the standard Mbed Crypto platform")
+else()
+    set(MBEDTLS_PSA_CRYPTO_PLATFORM_PATH    "${MBEDCRYPTO_PATH}/target/infineon/interface"    CACHE PATH      "Infineon features definitions to extend the standard Mbed Crypto platform")
+endif()
+
+if(IFX_CRYPTO_SE_RT)
+    set(MBEDTLS_PSA_CRYPTO_PLATFORM_FILE    "${MBEDTLS_PSA_CRYPTO_PLATFORM_PATH}/ifx_crypto_platform.h")
+endif()
 
 ############################# Platform services ################################
 

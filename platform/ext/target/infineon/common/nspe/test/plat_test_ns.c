@@ -63,4 +63,9 @@ int32_t tfm_initial_attest_get_public_key(uint8_t *public_key_buff,
      * (in case of KEY_ID_IAK) */
     return psa_export_public_key(key_id, public_key_buff, public_key_buf_size, public_key_len);
 }
+
+psa_key_id_t tfm_initial_attest_get_iak_id(void)
+{
+    return TFM_BUILTIN_KEY_ID_IAK;
+}
 #endif

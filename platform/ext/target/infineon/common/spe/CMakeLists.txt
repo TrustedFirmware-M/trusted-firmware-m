@@ -21,6 +21,7 @@ target_include_directories(psa_interface
 
 target_include_directories(platform_region_defs
     INTERFACE
+        ${IFX_COMMON_SOURCE_DIR}/shared/partition
         ${IFX_COMMON_SOURCE_DIR}/utils
 )
 
@@ -37,6 +38,8 @@ target_include_directories(platform_s
         ${IFX_COMMON_SOURCE_DIR}/drivers/flash/smif
         ${IFX_COMMON_SOURCE_DIR}/drivers/flash
         ${IFX_COMMON_SOURCE_DIR}/interface/include
+        ${IFX_COMMON_SOURCE_DIR}/shared
+        ${IFX_COMMON_SOURCE_DIR}/spe
         ${IFX_COMMON_SOURCE_DIR}/spe/faults
         ${IFX_COMMON_SOURCE_DIR}/spe/provisioning
         ${IFX_COMMON_SOURCE_DIR}/spe/svc
@@ -50,10 +53,12 @@ target_sources(platform_s
     PRIVATE
         ${CMAKE_SOURCE_DIR}/platform/ext/common/tfm_hal_nvic.c
         ${IFX_COMMON_SOURCE_DIR}/device/src/device_definition.c
+        ${IFX_COMMON_SOURCE_DIR}/device/src/ifx_spm_init.c
         $<$<BOOL:${IFX_UART_ENABLED}>:${IFX_COMMON_SOURCE_DIR}/drivers/stdio/uart_pdl_stdout.c>
         $<$<BOOL:${IFX_PLATFORM_DEFAULT_OTP}>:${IFX_COMMON_SOURCE_DIR}/spe/otp/otp_flash.c>
         ${CMAKE_SOURCE_DIR}/platform/ext/common/provisioning_bundle/runtime_stub_provisioning.c
         ${IFX_COMMON_SOURCE_DIR}/spe/provisioning/provisioning.c
+        ${IFX_COMMON_SOURCE_DIR}/spe/provisioning/ifx_dap.c
         ${IFX_COMMON_SOURCE_DIR}/utils/ifx_boot_shared_data.c
         ${IFX_COMMON_SOURCE_DIR}/utils/ifx_regions.c
         $<$<BOOL:${TEST_S_FPU}>:${IFX_COMMON_SOURCE_DIR}/spe/test/ifx_fpu_s.c>
@@ -75,8 +80,10 @@ target_compile_definitions(platform_s
 target_link_libraries(platform_s
     PUBLIC
         ifx_pdl_s
-        ${IFX_SHARED_RO_DATA_TARGET}
+        ifx_tfm_sp_meta
         tfm_boot_status
+    PRIVATE
+        tfm_vprintf
 )
 
 # SPRT can be used by ARoT partitions
@@ -106,8 +113,6 @@ endif()
 
 target_compile_definitions(tfm_config
     INTERFACE
-        ${IFX_BOARD_NAME}
-        $<BUILD_INTERFACE:IFX_BSP_CONFIG_HEADER_FILE="${IFX_CONFIG_BSP_PATH}/config_bsp.h">
         $<$<BOOL:${TEST_NS_IFX_CODE_COVERAGE}>:TEST_NS_IFX_CODE_COVERAGE=1>
         $<$<BOOL:${IFX_PRINT_CORE_PREFIX}>:IFX_PRINT_CORE_PREFIX=1>
         $<$<BOOL:${IFX_MTB_SRF}>:IFX_MTB_SRF>
@@ -122,6 +127,13 @@ target_compile_definitions(tfm_config
         DUMP_TOKEN=1
         $<$<BOOL:${IFX_MTB_MAILBOX}>:IFX_MTB_MAILBOX=1>
 )
+
+if(DEFINED IFX_SMIF_0_MEMORY_CONFIG)
+    target_compile_definitions(tfm_config
+        INTERFACE
+            IFX_SMIF_0_MEMORY_CONFIG=${IFX_SMIF_0_MEMORY_CONFIG}
+    )
+endif()
 
 target_include_directories(tfm_config
     INTERFACE
@@ -193,20 +205,28 @@ target_sources(tfm_spm
 target_compile_definitions(tfm_spm
     PRIVATE
         $<$<BOOL:${IFX_FAULTS_INFO_DUMP}>:IFX_FAULTS_INFO_DUMP>
+        # Define dummy symbols for NSC region to fix ARM Clang error.
+        # Although TFM manages the NSC region using its own driver, ARM Clang
+        # still requires these symbols to be present for the default SAU
+        # configuration.
+        NSC_START_ADDRESS=0
+        NSC_END_ADDRESS=0
+        NSC_SIZE=0
 )
 
 #################################### Shared data #####################################
 
-target_include_directories(${IFX_SHARED_RO_DATA_TARGET}
+target_include_directories(ifx_tfm_sp_meta
     PRIVATE
         ${IFX_COMMON_SOURCE_DIR}/drivers/flash/smif
         ${IFX_COMMON_SOURCE_DIR}/drivers/flash
+        ${IFX_COMMON_SOURCE_DIR}/shared
         ${IFX_COMMON_SOURCE_DIR}/utils
         ${IFX_FAMILY_SOURCE_DIR}/shared
         ${CMAKE_SOURCE_DIR}/platform/ext/driver
 )
 
-target_link_libraries(${IFX_SHARED_RO_DATA_TARGET}
+target_link_libraries(ifx_tfm_sp_meta
     PUBLIC
         ifx_pdl_inc_s
         tfm_config

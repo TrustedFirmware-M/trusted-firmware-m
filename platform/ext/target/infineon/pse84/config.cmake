@@ -17,7 +17,7 @@ set(IFX_GENERATED_DIR "${CMAKE_BINARY_DIR}/generated" CACHE PATH "Path to the ro
 
 ################################ Board support #################################
 
-set(IFX_BOARD_PATH        "${IFX_FAMILY_SOURCE_DIR}/board/KIT_PSOCE84_EVK"   CACHE PATH    "Path to board config, override it to support custom board")
+set(IFX_BOARD_PATH        "${IFX_FAMILY_SOURCE_DIR}/board"   CACHE PATH    "Path to board config, override it to support custom board")
 
 set(IFX_BSP_S_COMPONENTS  "CM33;SECURE_DEVICE" CACHE PATH    "List of BSP components used to build secure image")
 set(IFX_BSP_S_EXCLUDE     ".+/cycfg_qspi_memslot\.c" # QSPI configuration can be used by multiple partitions
@@ -25,11 +25,9 @@ set(IFX_BSP_S_EXCLUDE     ".+/cycfg_qspi_memslot\.c" # QSPI configuration can be
                           ".+/cycfg_ppc\.c" # cycfg_ppc.c has protection settings, thus is linked to tfm_spm
                           ".+/cycfg_mpc\.c" # cycfg_mpc.c has functions to apply protection settings, TFM has own functions
                           ".+/cycfg_system\.c" # cycfg_system.c has protection settings, thus is linked to tfm_spm
-                          ".+/s_system_pse84\.c" # s_system_pse84.c has data that are shared and linked into ${IFX_SHARED_RO_DATA_TARGET} library
+                          ".+/s_system_pse84\.c" # s_system_pse84.c has data that are shared and linked into ifx_tfm_sp_meta library
                           ".+/tfm_config/.+" # tfm_config folder contains files that are added to the build manually (e.g. custom partitions)
                           CACHE PATH      "List of sources excluded from build of secure BSP target")
-
-set(IFX_BSP_DEVICE_SUPPORT_LIBS "${IFX_COMMON_SOURCE_DIR}/deploy/mtb-personalities/props.json" CACHE STRING "List of additional device support libraries")
 
 ################################################################################
 
@@ -70,7 +68,6 @@ set(IFX_PPC_DOMAIN_CONFIGURATOR             ON) # Edge Configurator provides PPC
 set(IFX_SE_RT_SERVICES_UTILS_PATH           "DOWNLOAD"  CACHE PATH  "Path to Infineon SE RT Services Utils library (or DOWNLOAD to fetch automatically)")
 set(IFX_SE_RT_SERVICES_UTILS_GIT_REMOTE     "https://github.com/Infineon/se-rt-services-utils.git" CACHE STRING "Infineon SE RT Services Utils library repo URL")
 set(IFX_SE_RT_SERVICES_UTILS_VERSION        "release-v1.2.0" CACHE STRING  "The version of Infineon SE RT Services Utils library to use")
-set(IFX_SE_RT_SERVICES_UTILS_S_TARGET       "ifx_se_rt_services_utils_s"  CACHE STRING  "Infineon SE RT Services Utils library target for S image used by Infineon platform")
 
 set(IFX_MBEDTLS_ACCELERATION_LIB_PATH       "DOWNLOAD"  CACHE PATH  "Path to Infineon MBEDTLS Acceleration library (or DOWNLOAD to fetch automatically)")
 set(IFX_MBEDTLS_ACCELERATION_LIB_GIT_REMOTE "https://github.com/Infineon/cy-mbedtls-acceleration" CACHE STRING "The URL to retrieve MBEDTLS Acceleration from.")

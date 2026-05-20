@@ -9,13 +9,8 @@
 #define IFX_LINKER_SCRIPT 1
 #define IFX_ARM_CLANG_LINKER_SCRIPT 1
 
-/* Verify that target config header exists */
-#ifndef IFX_TARGET_LINKER_CONFIG_HEADER
-#error IFX_TARGET_LINKER_CONFIG_HEADER must be defined
-#endif
-
 /* Include target configuration header */
-#include IFX_TARGET_LINKER_CONFIG_HEADER
+#include "region_defs.h"
 
 LR_CODE NS_CODE_START {
     ER_CODE NS_CODE_START NS_CODE_SIZE {

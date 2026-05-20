@@ -8,10 +8,33 @@
 
 #include "ifx_driver_private.h"
 
+int32_t ifx_flash_driver_get_region_size(ARM_FLASH_INFO *flash_info,
+                                         uint32_t *region_size)
+{
+    if ((flash_info == NULL) || (region_size == NULL) ||
+        (flash_info->sector_size == 0U) || (flash_info->sector_count == 0U)) {
+        return ARM_DRIVER_ERROR_PARAMETER;
+    }
+
+    if (flash_info->sector_count > (UINT32_MAX / flash_info->sector_size)) {
+        return ARM_DRIVER_ERROR_PARAMETER;
+    }
+
+    *region_size = flash_info->sector_size * flash_info->sector_count;
+
+    return ARM_DRIVER_OK;
+}
+
 int32_t ifx_flash_driver_validate_region(ARM_FLASH_INFO *flash_info,
                                          uint32_t address, uint32_t size)
 {
-    uint32_t region_size = flash_info->sector_size * flash_info->sector_count;
+    uint32_t region_size;
+    int32_t result;
+
+    result = ifx_flash_driver_get_region_size(flash_info, &region_size);
+    if (result != ARM_DRIVER_OK) {
+        return result;
+    }
 
     /* Validate size */
     if ((size > region_size) || (size == 0U)) {

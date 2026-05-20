@@ -7,11 +7,14 @@
  */
 
 #include "config_tfm.h"
+#include "region_defs.h"
 
-#if !ITS_RAM_FS && (IFX_TFM_ITS_LOCATION == IFX_MEMORY_TYPE_RRAM)
+#ifndef IFX_TFM_ITS_LOCATION
+#error "IFX_TFM_ITS_LOCATION is not defined"
+#endif /* IFX_TFM_ITS_LOCATION */
+
+#if defined(IFX_MEMORY_TYPE_RRAM) && (IFX_TFM_ITS_LOCATION == IFX_MEMORY_TYPE_RRAM)
 #include "ifx_driver_rram.h"
-#include "partition/flash_layout.h"
-
 #include "cy_device.h"
 
 /* RRAM driver object for Internal Trusted Storage */
@@ -39,5 +42,4 @@ IFX_DRIVER_RRAM_CREATE_INSTANCE(ifx_flash_instance_its, ifx_rram_obj_its)
 
 /* Create CMSIS wrapper for RRAM driver for ITS */
 IFX_CREATE_CMSIS_FLASH_DRIVER(ifx_flash_instance_its, ifx_its_cmsis_flash_instance)
-
-#endif /* !ITS_RAM_FS && (IFX_TFM_ITS_LOCATION == IFX_MEMORY_TYPE_RRAM) */
+#endif /* #if defined(IFX_MEMORY_TYPE_RRAM) && (IFX_TFM_ITS_LOCATION == IFX_MEMORY_TYPE_RRAM) */

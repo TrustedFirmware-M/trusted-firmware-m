@@ -9,7 +9,7 @@
 #include "ifx_boot_shared_data.h"
 #include "region_defs.h"
 #include "tfm_boot_status.h"
-#include "ifx_tfm_log_shim.h"
+#include "tfm_log.h"
 #include "coverity_check.h"
 
 #include <string.h>

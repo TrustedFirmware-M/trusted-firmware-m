@@ -24,4 +24,4 @@ set(IFX_LIB_BASE_DIR          "${CMAKE_BINARY_DIR}/lib/ext" CACHE PATH "Path to 
 
 set(IFX_CORE_LIB_PATH         "DOWNLOAD"  CACHE PATH "Path to Infineon Core library (or DOWNLOAD to fetch automatically)")
 set(IFX_CORE_LIB_GIT_REMOTE   "https://github.com/Infineon/core-lib.git" CACHE STRING "Infineon Core library repo URL")
-set(IFX_CORE_LIB_VERSION      "release-v1.6.0" CACHE STRING "The version of Infineon Core library to use")
+set(IFX_CORE_LIB_VERSION      "release-v1.7.0" CACHE STRING "The version of Infineon Core library to use")

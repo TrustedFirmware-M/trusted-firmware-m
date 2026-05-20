@@ -61,15 +61,20 @@ ifx_mtb_autodiscovery(
 ##################### TFM library with shared R/O data #########################
 
 # Make shared R/O data dependent on generated sources
-add_dependencies(${IFX_SHARED_RO_DATA_TARGET} ifx_bsp_generated_sources)
+add_dependencies(ifx_tfm_sp_meta ifx_bsp_generated_sources)
 
-target_link_libraries(${IFX_SHARED_RO_DATA_TARGET}
+target_link_libraries(ifx_tfm_sp_meta
     PUBLIC
         ifx_pdl_inc_s
         ifx_pdl_s
 )
 
 ###################### TFM libraries for Secure image ##########################
+
+target_sources(tfm_s
+    PRIVATE
+        ${IFX_COMMON_SOURCE_DIR}/device/src/ifx_startup.c
+)
 
 target_link_libraries(platform_s
     PUBLIC

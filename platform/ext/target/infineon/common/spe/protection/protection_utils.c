@@ -7,9 +7,11 @@
  */
 
 #include "protection_utils.h"
+#include "protection_data_common.h"
 #include "ifx_regions.h"
 #include "mxs22.h"
 
+#if IFX_MPC_DRIVER_HW_MPC
 enum tfm_hal_status_t ifx_split_memory_region_across_mpcs(
                                         uint32_t mem_address,
                                         uint32_t mem_size,
@@ -180,3 +182,4 @@ enum tfm_hal_status_t ifx_get_all_memory_configs(
 
     return TFM_HAL_SUCCESS;
 }
+#endif /* IFX_MPC_DRIVER_HW_MPC */

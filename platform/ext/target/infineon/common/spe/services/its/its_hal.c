@@ -20,13 +20,8 @@ enum tfm_hal_status_t tfm_hal_its_fs_info(struct tfm_hal_its_fs_info_t *fs_info)
 
     /* Infineon devices expect to use relative address to flash region allocated for ITS */
     fs_info->flash_area_addr = 0;
-#if ITS_RAM_FS
-    fs_info->flash_area_size = ITS_RAM_FS_SIZE;
-    fs_info->sectors_per_block = TFM_HAL_ITS_SECTORS_PER_BLOCK;
-#else
     fs_info->flash_area_size = TFM_HAL_ITS_FLASH_AREA_SIZE;
     fs_info->sectors_per_block = TFM_HAL_ITS_SECTORS_PER_BLOCK;
-#endif
 
     return TFM_HAL_SUCCESS;
 }

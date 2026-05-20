@@ -9,7 +9,11 @@
 #include "config_tfm.h"
 #include "region_defs.h"
 
-#if !PS_RAM_FS && IS_SMIF_MEMORY(IFX_TFM_PS_LOCATION)
+#ifndef IFX_TFM_PS_LOCATION
+#error "IFX_TFM_PS_LOCATION is not defined"
+#endif /* IFX_TFM_PS_LOCATION */
+
+#if IS_SMIF_MEMORY(IFX_TFM_PS_LOCATION)
 #include "ifx_driver_smif.h"
 #include "tfm_peripherals_def.h"
 
@@ -29,4 +33,4 @@ IFX_DRIVER_SMIF_MMIO_INSTANCE(ifx_flash_instance_ps, ifx_flash_smif_instance_ps)
 
 /* Create CMSIS wrapper for SMIF driver for Protected Storage */
 IFX_CREATE_CMSIS_FLASH_DRIVER(ifx_flash_instance_ps, ifx_ps_cmsis_flash_instance)
-#endif /* !PS_RAM_FS && IS_SMIF_MEMORY(IFX_TFM_PS_LOCATION) */
+#endif /* IS_SMIF_MEMORY(IFX_TFM_PS_LOCATION) */

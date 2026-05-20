@@ -14,14 +14,8 @@ target_include_directories(platform_s
     PUBLIC
         ${IFX_COMMON_SOURCE_DIR}/spe/v80m
         ${IFX_FAMILY_SOURCE_DIR}/shared
-        ${IFX_FAMILY_SOURCE_DIR}/shared/device/include
         ${IFX_FAMILY_SOURCE_DIR}/config
         ${IFX_FAMILY_SOURCE_DIR}/spe
-)
-
-target_sources(platform_s
-    PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/provisioning/ifx_platform_provisioning.c
 )
 
 ############################### PDL code to run from SRAM ############################
@@ -55,7 +49,6 @@ target_include_directories(tfm_spm
 target_compile_definitions(tfm_s_scatter
     PRIVATE
         ${IFX_PDL_PART_NUMBER}
-        ${IFX_BOARD_NAME}
         $<$<BOOL:${IFX_CM33_NS_PRESENT}>:IFX_CM33_NS_PRESENT=1>
         $<$<BOOL:${IFX_CM55_NS_PRESENT}>:IFX_CM55_NS_PRESENT=1>
 )

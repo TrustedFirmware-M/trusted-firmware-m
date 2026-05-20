@@ -14,7 +14,7 @@
 
 uint32_t ifx_platform_log_msg(const char *msg, uint32_t msg_size)
 {
-    IFX_ASSERT(IFX_STDIO_CORE_ID < IFX_STDIO_CORE_COUNT);
+    IFX_ASSERT(IFX_STDIO_CORE_ID < IFX_STDIO_CORE_MAX_COUNT);
     const uint32_t max_chunk_len = (uint32_t)PLATFORM_SERVICE_INPUT_BUFFER_SIZE;
 
     uint32_t out_count = 0U;

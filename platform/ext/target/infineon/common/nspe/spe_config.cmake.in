@@ -20,5 +20,8 @@ if(IFX_MTB_SRF)
     endif()
 endif()
 
+# Additional BSP device support libs
+set(IFX_BSP_DEVICE_SUPPORT_LIBS  @IFX_BSP_DEVICE_SUPPORT_LIBS@ CACHE STRING "List of additional device support libraries")
+
 # Optional tests
 include(${IFX_COMMON_SOURCE_DIR}/tests/spe_config.cmake OPTIONAL)

@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 #define IFX_DRIVER_FLASH_ERASE_VALUE        (0xFFU)
-#define IFX_DRIVER_FLASH_PROGRAM_UNIT       (1U) /* 1 B */
+#define IFX_DRIVER_FLASH_PROGRAM_UNIT       (4U)
 #define IFX_DRIVER_FLASH_SECTOR_SIZE        CY_FLASH_SIZEOF_ROW  /* 512 B */
 
 /* Type ifx_driver_flash_obj_t similar to struct arm_flash_dev_t */

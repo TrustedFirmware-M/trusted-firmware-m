@@ -9,9 +9,12 @@
 #include "config_tfm.h"
 #include "region_defs.h"
 
-#if !PS_RAM_FS && (IFX_TFM_PS_LOCATION == IFX_MEMORY_TYPE_RRAM)
+#ifndef IFX_TFM_PS_LOCATION
+#error "IFX_TFM_PS_LOCATION is not defined"
+#endif /* IFX_TFM_PS_LOCATION */
+
+#if defined(IFX_MEMORY_TYPE_RRAM) && (IFX_TFM_PS_LOCATION == IFX_MEMORY_TYPE_RRAM)
 #include "ifx_driver_rram.h"
-#include "tfm_peripherals_def.h"
 
 /* RRAM driver object for Protected Storage */
 static const ifx_driver_rram_obj_t ifx_flash_rram_instance_ps = {
@@ -38,4 +41,4 @@ IFX_DRIVER_RRAM_CREATE_INSTANCE(ifx_flash_instance_ps, ifx_flash_rram_instance_p
 
 /* Create CMSIS wrapper for RRAM driver for Protected Storage */
 IFX_CREATE_CMSIS_FLASH_DRIVER(ifx_flash_instance_ps, ifx_ps_cmsis_flash_instance)
-#endif /* !PS_RAM_FS && (IFX_TFM_PS_LOCATION == IFX_MEMORY_TYPE_RRAM) */
+#endif /* #if defined(IFX_MEMORY_TYPE_RRAM) && (IFX_TFM_PS_LOCATION == IFX_MEMORY_TYPE_RRAM) */

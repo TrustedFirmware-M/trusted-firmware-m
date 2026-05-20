@@ -33,10 +33,8 @@ target_sources(ifx_pdl_ns
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_ipc_sema.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_scb_common.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_scb_uart.c
-        ${IFX_PDL_LIB_PATH}/drivers/source/cy_sysclk_${IFX_PDL_CY_SYSCLK_VERSION}.c
         $<$<BOOL:${RAM_VECTORS_SUPPORT}>:${IFX_PDL_LIB_PATH}/drivers/source/cy_sysint_v2.c>
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_syslib.c
-        ${IFX_PDL_LIB_PATH}/drivers/source/cy_syspm_${IFX_PDL_CY_SYSPM_VERSION}.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_syspm_pdcm.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_syspm_ppu.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_tcpwm_counter.c
@@ -44,6 +42,27 @@ target_sources(ifx_pdl_ns
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_wdt.c
         ${IFX_PDL_LIB_PATH}/drivers/source/ppu_v1.c
 )
+
+set(IFX_PDL_OPTIONAL_SOURCES
+    # Different sysclk versions
+    ${IFX_PDL_LIB_PATH}/drivers/source/cy_sysclk_srip.c
+    ${IFX_PDL_LIB_PATH}/drivers/source/cy_sysclk_v2.c
+    ${IFX_PDL_LIB_PATH}/drivers/source/cy_sysclk_v4.c
+    # Different syspm versions
+    ${IFX_PDL_LIB_PATH}/drivers/source/cy_syspm_srip.c
+    ${IFX_PDL_LIB_PATH}/drivers/source/cy_syspm_v2.c
+    ${IFX_PDL_LIB_PATH}/drivers/source/cy_syspm_v4.c
+    ${IFX_PDL_LIB_PATH}/drivers/source/cy_syspm_v5.c
+)
+
+foreach(pdl_optional_source IN LISTS IFX_PDL_OPTIONAL_SOURCES)
+    if(EXISTS ${pdl_optional_source})
+        target_sources(ifx_pdl_ns
+            PRIVATE
+                ${pdl_optional_source}
+        )
+    endif()
+endforeach()
 
 target_compile_definitions(ifx_pdl_ns
     PRIVATE

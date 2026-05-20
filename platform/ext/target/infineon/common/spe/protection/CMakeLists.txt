@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023-2025 Cypress Semiconductor Corporation (an Infineon company)
+# Copyright (c) 2023-2026 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -8,6 +8,7 @@
 
 target_sources(tfm_spm
     PRIVATE
+        protection_data_common.c
         $<$<BOOL:${IFX_MPC_DRIVER_HW_MPC_V1}>:${CMAKE_CURRENT_LIST_DIR}/protection_mpc_hw_mpc_v1.c>
         $<$<BOOL:${IFX_MPC_DRIVER_HW_MPC_V2}>:${CMAKE_CURRENT_LIST_DIR}/protection_mpc_hw_mpc_v2.c>
         $<$<OR:$<BOOL:${IFX_MPC_DRIVER_HW_MPC_V1}>,$<BOOL:${IFX_MPC_DRIVER_HW_MPC_V2}>>:${CMAKE_CURRENT_LIST_DIR}/protection_mpc_hw_mpc.c>
@@ -47,12 +48,12 @@ target_include_directories(platform_s
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_sources(${IFX_SHARED_RO_DATA_TARGET}
+target_sources(ifx_tfm_sp_meta
     PRIVATE
         protection_shared_data.c
 )
 
-target_compile_options(${IFX_SHARED_RO_DATA_TARGET}
+target_compile_options(ifx_tfm_sp_meta
     PRIVATE
         ${COMPILER_CP_FLAG}
 )

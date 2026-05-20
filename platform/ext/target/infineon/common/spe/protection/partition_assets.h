@@ -67,16 +67,22 @@ const struct asset_desc_t ifx_tfm_sp_its_assets[] = {
         .mem.limit = (uintptr_t)(TFM_HAL_ITS_FLASH_AREA_ADDR + TFM_HAL_ITS_FLASH_AREA_SIZE),
         .attr      = ASSET_ATTR_NUMBERED_MMIO | ASSET_ATTR_READ_WRITE,
     },
-#endif
+#endif /* !ITS_RAM_FS */
 /* External memory has bigger MPC block sizes (e.g. 128 KB) so it is hard
  * to protect small PS area here, thus it is protected by protections */
-#if (defined(TFM_PARTITION_PROTECTED_STORAGE) && (!IS_SMIF_MEMORY(IFX_TFM_PS_LOCATION)) && !PS_RAM_FS)
+#ifdef TFM_PARTITION_PROTECTED_STORAGE
+#ifndef IFX_TFM_PS_LOCATION
+#error "IFX_TFM_PS_LOCATION is not defined"
+#endif /* IFX_TFM_PS_LOCATION */
+
+#if (!IS_SMIF_MEMORY(IFX_TFM_PS_LOCATION)) && !PS_RAM_FS
     {
         .mem.start = (uintptr_t)TFM_HAL_PS_FLASH_AREA_ADDR,
         .mem.limit = (uintptr_t)(TFM_HAL_PS_FLASH_AREA_ADDR + TFM_HAL_PS_FLASH_AREA_SIZE),
         .attr      = ASSET_ATTR_NUMBERED_MMIO | ASSET_ATTR_READ_WRITE,
     },
-#endif
+#endif /* (!IS_SMIF_MEMORY(IFX_TFM_PS_LOCATION)) && !PS_RAM_FS) */
+#endif /* TFM_PARTITION_PROTECTED_STORAGE */
 };
 
 #define IFX_TFM_SP_ITS_CUSTOM_ASSETS ifx_tfm_sp_its_assets

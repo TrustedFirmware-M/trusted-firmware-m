@@ -34,8 +34,6 @@ endif()
 set(IFX_BSP_NS_EXCLUDE           ".+/ns_start_pse84\.c" # TFM uses own startup files as for now
                                                         CACHE PATH      "List of sources excluded from build of non-secure BSP target")
 
-set(IFX_BSP_DEVICE_SUPPORT_LIBS  @IFX_BSP_DEVICE_SUPPORT_LIBS@ CACHE STRING "List of additional device support libraries")
-
 #################################### IFX #######################################
 
 set(IFX_CM33_NS_PRESENT                     @IFX_CM33_NS_PRESENT@ CACHE BOOL  "Enable CM33 NSPE for IFX platform" FORCE)

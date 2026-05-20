@@ -8,7 +8,7 @@
 
 #include "ifx_se_platform.h"
 #include "ifx_se_tfm_utils.h"
-#include "ifx_tfm_log_shim.h"
+#include "tfm_log.h"
 #include "ifx_se_ipc_service_spm.h"
 
 enum tfm_plat_err_t ifx_se_ipc_service_spm_init(void)

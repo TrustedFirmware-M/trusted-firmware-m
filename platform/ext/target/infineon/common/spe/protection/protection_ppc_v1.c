@@ -13,7 +13,7 @@
 #include "protection_regions_cfg.h"
 #include "protection_ppc_api.h"
 #include "coverity_check.h"
-#include "ifx_tfm_log_shim.h"
+#include "tfm_log.h"
 
 /* IMPROVEMENT: move Cy_Ppc_GetPcMask(), Cy_Ppc_GetAttrib() and Function Description to PDL (DRIVERS-10521)*/
 

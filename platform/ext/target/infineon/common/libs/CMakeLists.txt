@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023-2025 Cypress Semiconductor Corporation (an Infineon company)
+# Copyright (c) 2023-2026 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -34,9 +34,8 @@ if (IFX_MTB_SRF)
     add_subdirectory(ifx_mtb_srf "${CMAKE_BINARY_DIR}/ifx_srf")
 endif()
 
-# Device DB is only used for sources generation and sources generation is only
-# done in non-MTB builds thus Device DB is only needed for non-MTB builds
-if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/ifx_device_db AND NOT IFX_MTB_BUILD)
+# Device DB is only used for sources generation
+if(IFX_GENERATE_BSP_SOURCES)
     add_subdirectory(ifx_device_db "${CMAKE_BINARY_DIR}/ifx_db")
 endif()
 
@@ -48,6 +47,11 @@ if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/ifx_se_rt_services_utils
    AND S_BUILD AND IFX_SE_RT_SERVICES_UTILS_ENABLED)
     # SE RT Services is used by TF-M secure code only
     add_subdirectory(ifx_se_rt_services_utils "${CMAKE_BINARY_DIR}/ifx_srt")
+endif()
+
+if(S_BUILD AND IFX_CRYPTOSUITE_ENABLED)
+    # Crypto Suite is used by TF-M secure code only
+    add_subdirectory(ifx_cryptosuite "${CMAKE_BINARY_DIR}/ifx_cryptosuite")
 endif()
 
 if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/ifx_mbedtls_acceleration AND TFM_PARTITION_CRYPTO AND IFX_MBEDTLS_ACCELERATION_ENABLED AND IFX_MBEDTLS_ACCELERATOR_TYPE)

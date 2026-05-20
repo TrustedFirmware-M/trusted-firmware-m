@@ -81,4 +81,42 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_memory_check(const struct ifx_partit
                                                          size_t size,
                                                          uint32_t access_type);
 
+#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
+/**
+ * \brief Check whether the given platform MPC uses ROT-based configuration.
+ *
+ * Some platforms support MPC instances that support ROT attributes with
+ * instances that expose only Secure/Non-Secure configuration. This function
+ * lets the common MPC driver select the correct programming and verification
+ * path for the provided MPC.
+ *
+ * \param[in] mpc Pointer to the MPC instance being queried.
+ *
+ * \retval true  MPC uses ROT-based configuration.
+ * \retval false MPC uses non-ROT configuration.
+ */
+bool ifx_platform_mpc_is_rot(const MPC_Type *mpc);
+#endif /* IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT */
+
+/**
+ * \brief Check whether the given MPC uses ROT-based configuration.
+ *
+ * Some platforms support MPC instances that support ROT attributes with
+ * instances that expose only Secure/Non-Secure configuration. This function
+ * lets the common MPC driver select the correct programming and verification
+ * path for the provided MPC.
+ *
+ * \param[in] mpc Pointer to the MPC instance being queried.
+ *
+ * \retval true  MPC uses ROT-based configuration.
+ * \retval false MPC uses non-ROT configuration.
+ */
+#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
+#define IFX_MPC_IS_ROT(mpc) ifx_platform_mpc_is_rot(mpc)
+#elif IFX_MPC_DRIVER_HW_MPC_WITH_ROT
+#define IFX_MPC_IS_ROT(mpc) (true)
+#elif IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
+#define IFX_MPC_IS_ROT(mpc) (false)
+#endif /* IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT */
+
 #endif /* PROTECTION_MPC_API_H */

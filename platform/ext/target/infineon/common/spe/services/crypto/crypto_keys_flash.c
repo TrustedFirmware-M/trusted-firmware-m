@@ -18,10 +18,19 @@
 #include <string.h>
 #include <stdbool.h>
 
-#ifdef TEST_NS_ATTESTATION
+#if defined(TEST_NS_ATTESTATION) || \
+    (defined(PSA_API_TEST_INITIAL_ATTESTATION) && defined(SYMMETRIC_INITIAL_ATTESTATION))
+/* The NS attestation test client is mapped to the TZ NS agent default client ID. */
 #define MAPPED_TZ_NS_AGENT_DEFAULT_CLIENT_ID 0xaaaa7fffU
+#endif /* TEST_NS_ATTESTATION || (PSA_API_TEST_INITIAL_ATTESTATION && SYMMETRIC_INITIAL_ATTESTATION) */
+
+#ifdef TEST_NS_ATTESTATION
 #define IFX_IAK_TEST_NS_PARTITION_ID         MAPPED_TZ_NS_AGENT_DEFAULT_CLIENT_ID
 #endif /* TEST_NS_ATTESTATION */
+
+#if defined(PSA_API_TEST_INITIAL_ATTESTATION) && defined(SYMMETRIC_INITIAL_ATTESTATION)
+#define IFX_IAK_PSA_API_TEST_NS_PARTITION_ID MAPPED_TZ_NS_AGENT_DEFAULT_CLIENT_ID
+#endif /* PSA_API_TEST_INITIAL_ATTESTATION && SYMMETRIC_INITIAL_ATTESTATION */
 
 static inline bool ifx_is_key_empty(const uint8_t *key_data, size_t key_len) {
     uint8_t sum = 0;
@@ -120,6 +129,9 @@ static const tfm_plat_builtin_key_per_user_policy_t g_iak_per_user_policy[] = {
 #ifdef TEST_NS_ATTESTATION
     { .user = IFX_IAK_TEST_NS_PARTITION_ID, .usage = PSA_KEY_USAGE_VERIFY_HASH },
 #endif /* TEST_NS_ATTESTATION */
+#if defined(PSA_API_TEST_INITIAL_ATTESTATION) && defined(SYMMETRIC_INITIAL_ATTESTATION)
+    { .user = IFX_IAK_PSA_API_TEST_NS_PARTITION_ID, .usage = PSA_KEY_USAGE_VERIFY_MESSAGE },
+#endif /* PSA_API_TEST_INITIAL_ATTESTATION && SYMMETRIC_INITIAL_ATTESTATION */
 };
 #endif /* TFM_PARTITION_INITIAL_ATTESTATION */
 

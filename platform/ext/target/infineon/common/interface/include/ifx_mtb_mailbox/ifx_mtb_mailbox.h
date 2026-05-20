@@ -63,7 +63,7 @@ typedef struct {
         struct {
             psa_handle_t    handle;
         } psa_close_params;
-    } psa_params;
+    };
 } ifx_psa_client_params_t;
 
 /*

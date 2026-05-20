@@ -21,7 +21,6 @@
 
 #include <string.h>
 #include "cy_device.h"
-#include "cy_rram.h"
 
 #define IFX_DRIVER_RRAM_VERSION      ARM_DRIVER_VERSION_MAJOR_MINOR(1UL, 0U)
 

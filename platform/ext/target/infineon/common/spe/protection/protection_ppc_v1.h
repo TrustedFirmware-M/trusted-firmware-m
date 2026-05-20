@@ -21,6 +21,7 @@
 #include <stdbool.h>
 
 #include "ifx_spe_config.h"
+#include "protection_pc_mask.h"
 #include "tfm_hal_defs.h"
 #include "cy_ppc.h"
 #include "load/partition_defs.h"

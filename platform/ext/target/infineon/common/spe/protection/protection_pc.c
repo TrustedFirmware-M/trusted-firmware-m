@@ -14,12 +14,7 @@
 #include "memory_symbols.h"
 #include "protection_pc.h"
 #include "protection_regions_cfg.h"
-#ifdef IFX_BSP_CONFIG_HEADER_FILE
-#include IFX_BSP_CONFIG_HEADER_FILE
-#endif /* IFX_BSP_CONFIG_HEADER_FILE */
-#ifdef IFX_STARTUP_HEADER_FILE
-#include IFX_STARTUP_HEADER_FILE
-#endif /* IFX_STARTUP_HEADER_FILE */
+#include "ifx_platform_startup.h"
 #include "coverity_check.h"
 #include "tfm_platform_arch_hooks.h"
 

@@ -44,7 +44,7 @@ uint32_t psa_version(uint32_t sid)
     int32_t ret;
     ifx_mtb_mailbox_reply_t reply = {.return_val = IFX_MTB_MAILBOX_GENERIC_ERROR};
 
-    params.psa_params.psa_version_params.sid = sid;
+    params.psa_version_params.sid = sid;
 
     ret = ifx_mtb_mailbox_client_call(IFX_MTB_MAILBOX_PSA_VERSION, &params,
                                       &reply);
@@ -63,8 +63,8 @@ psa_handle_t psa_connect(uint32_t sid, uint32_t version)
     int32_t ret;
     ifx_mtb_mailbox_reply_t reply = {.return_val = IFX_MTB_MAILBOX_GENERIC_ERROR};
 
-    params.psa_params.psa_connect_params.sid = sid;
-    params.psa_params.psa_connect_params.version = version;
+    params.psa_connect_params.sid = sid;
+    params.psa_connect_params.version = version;
 
     ret = ifx_mtb_mailbox_client_call(IFX_MTB_MAILBOX_PSA_CONNECT, &params,
                                       &reply);
@@ -85,8 +85,8 @@ psa_status_t psa_call(psa_handle_t handle, int32_t type,
     ifx_mtb_mailbox_reply_t reply = {.return_val = IFX_MTB_MAILBOX_GENERIC_ERROR, .out_vec_len = {0}};
     psa_status_t status;
 
-    if ((in_len > IOVEC_LEN(params.psa_params.psa_call_params.in_vec)) ||
-        (out_len > IOVEC_LEN(params.psa_params.psa_call_params.out_vec)) ||
+    if ((in_len > IOVEC_LEN(params.psa_call_params.in_vec)) ||
+        (out_len > IOVEC_LEN(params.psa_call_params.out_vec)) ||
         ((in_len + out_len) > PSA_MAX_IOVEC) ||
         ((in_vec == NULL) && (in_len > 0U)) ||
         ((out_vec == NULL) && (out_len > 0U))) {
@@ -102,16 +102,16 @@ psa_status_t psa_call(psa_handle_t handle, int32_t type,
      * copy operation, involving only a few bytes, is considered acceptable
      * for the sake of code maintainability and clarity.
      */
-    params.psa_params.psa_call_params.handle = handle;
-    params.psa_params.psa_call_params.type = type;
+    params.psa_call_params.handle = handle;
+    params.psa_call_params.type = type;
     if (in_len > 0U) {
-        memcpy(params.psa_params.psa_call_params.in_vec, in_vec, sizeof(in_vec[0]) * in_len);
+        memcpy(params.psa_call_params.in_vec, in_vec, sizeof(in_vec[0]) * in_len);
     }
-    params.psa_params.psa_call_params.in_len = in_len;
+    params.psa_call_params.in_len = in_len;
     if (out_len > 0U) {
-        memcpy(params.psa_params.psa_call_params.out_vec, out_vec, sizeof(out_vec[0]) * out_len);
+        memcpy(params.psa_call_params.out_vec, out_vec, sizeof(out_vec[0]) * out_len);
     }
-    params.psa_params.psa_call_params.out_len = out_len;
+    params.psa_call_params.out_len = out_len;
 
     ret = ifx_mtb_mailbox_client_call(IFX_MTB_MAILBOX_PSA_CALL, &params,
                                       &reply);
@@ -132,7 +132,7 @@ void psa_close(psa_handle_t handle)
     ifx_psa_client_params_t params;
     ifx_mtb_mailbox_reply_t reply = {.return_val = IFX_MTB_MAILBOX_GENERIC_ERROR};
 
-    params.psa_params.psa_close_params.handle = handle;
+    params.psa_close_params.handle = handle;
 
     (void)ifx_mtb_mailbox_client_call(IFX_MTB_MAILBOX_PSA_CLOSE, &params,
                                       &reply);

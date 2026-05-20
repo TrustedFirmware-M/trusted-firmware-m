@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Cypress Semiconductor Corporation (an Infineon company)
+ * Copyright (c) 2023-2026 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -10,6 +10,8 @@
 #define PROTECTION_TYPES_H
 
 #include "config_tfm.h"
+#include "cy_mpc.h"
+#include "cy_ms_ctl.h"
 #include "fih.h"
 #include "ifx_fih.h"
 #include "ifx_spe_config.h"
@@ -32,6 +34,28 @@
 #error "Unsupported PPC driver"
 #endif /* IFX_PPC_DRIVER_V1 */
 #endif /* IFX_PLATFORM_PPC_PRESENT */
+
+#ifdef IFX_MEMORY_CONFIGURATOR_SAU_CONFIG
+#include "cy_cmsis_utils.h"
+#endif /* IFX_MEMORY_CONFIGURATOR_SAU_CONFIG */
+
+#if IFX_PLATFORM_MPC_PRESENT
+typedef struct {
+    MPC_Type*            mpc;            /**< MPC type */
+    cy_en_mpc_size_t     mpc_block_size; /**< Size of MPC memory block. MPC configures the
+                                          *   attributes of each fixed-sized block for all PCs */
+    uint32_t             s_address;      /**< MPC secure  region base address */
+    uint32_t             size;           /**< MPC region size */
+} ifx_memory_config_t;
+#endif /* IFX_PLATFORM_MPC_PRESENT */
+
+#ifdef IFX_MEMORY_CONFIGURATOR_MPC_CONFIG
+/* MPC domain settings provided by Device Configurator. */
+typedef cy_stc_mpc_unified_t ifx_mem_domain_cfg_t;
+
+/* MPC region configuration provided by Device Configurator. */
+typedef cy_stc_mpc_regions_t ifx_mem_domain_region_cfg_t;
+#endif /* IFX_MEMORY_CONFIGURATOR_MPC_CONFIG */
 
 #define IFX_IS_PARTITION_PRIVILEGED(p_info) (IFX_FIH_EQ((p_info)->ifx_ldinfo->privileged, \
                                                         IFX_FIH_TRUE))
@@ -150,6 +174,22 @@ typedef struct ifx_ppc_regions_config_t {
     uint32_t                    region_count;
 } ifx_ppc_regions_config_t;
 
+#if IFX_MSC_ACG_RESP_CONFIG
+typedef struct {
+    en_ms_ctl_master_sc_acg_t      bus_master;
+    cy_en_ms_ctl_cfg_gate_resp_t   gate_resp;
+    cy_en_ms_ctl_sec_resp_t        sec_resp;
+} ifx_msc_agc_resp_config_t;
+#endif /* IFX_MSC_ACG_RESP_CONFIG */
+
+#if IFX_MSC_ACG_RESP_CONFIG_V1
+typedef struct {
+    en_ms_ctl_master_sc_acg_v1_t   bus_master;
+    cy_en_ms_ctl_cfg_gate_resp_t   gate_resp;
+    cy_en_ms_ctl_sec_resp_t        sec_resp;
+} ifx_msc_agc_resp_config_v1_t;
+#endif /* IFX_MSC_ACG_RESP_CONFIG_V1 */
+
 /**
  * \brief Structure used to store platform specific protection properties.
  */
@@ -246,5 +286,16 @@ typedef enum {
  */
 extern ifx_asset_protection_type_t ifx_asset_protection_type;
 #endif /* TFM_ISOLATION_LEVEL == 3 */
+
+#ifdef IFX_MEMORY_CONFIGURATOR_SAU_CONFIG
+typedef cy_stc_sau_config_t ifx_sau_config_t;
+#else /* IFX_MEMORY_CONFIGURATOR_SAU_CONFIG */
+/* Structure used to configure SAU region */
+typedef struct {
+    uint32_t    base_addr; /* Base address of SAU region. Must be aligned to 32 bytes */
+    uint32_t    size;      /* Size of SAU region. Must be aligned to 32 bytes */
+    bool        nsc;       /* Whether this region is Non-Secure Callable */
+} ifx_sau_config_t;
+#endif /* IFX_MEMORY_CONFIGURATOR_SAU_CONFIG */
 
 #endif /* PROTECTION_TYPES_H */

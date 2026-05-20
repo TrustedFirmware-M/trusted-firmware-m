@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Cypress Semiconductor Corporation (an Infineon company)
+ * Copyright (c) 2024-2026 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -13,7 +13,13 @@
 #include "ifx_s_peripherals_def.h"
 
 #include <stdint.h>
+
+#include "cy_device.h"
+#if defined(CY_IP_MXS22RRAMC) && (CY_IP_MXS22RRAMC_VERSION == 1)
 #include "cy_rram.h"
+#elif defined(CY_IP_MXS22RRAMC) && (CY_IP_MXS22RRAMC_VERSION == 2)
+#include "cy_v2_rram.h"
+#endif /* defined(CY_IP_MXS22RRAMC) && (CY_IP_MXS22RRAMC_VERSION == 1) */
 
 #ifdef __cplusplus
 extern "C" {

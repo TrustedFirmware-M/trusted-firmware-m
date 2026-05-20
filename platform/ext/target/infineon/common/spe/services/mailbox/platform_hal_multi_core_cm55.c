@@ -14,7 +14,6 @@
 #include "cy_ipc_drv.h"
 #include "ifx_platform_mailbox.h"
 #include "ifx_regions.h"
-#include "ifx_tfm_log_shim.h"
 #ifdef TFM_FIH_PROFILE_ON
 #include "fih.h"
 #include "psa/service.h" /* Used for psa_panic */

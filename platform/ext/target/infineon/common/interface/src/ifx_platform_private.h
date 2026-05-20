@@ -14,6 +14,7 @@
 #define IFX_PLATFORM_PRIVATE
 
 #include "config_tfm.h"
+#include "ifx_stdio_core.h"
 #include "tfm_platform_api.h"
 
 #if DOMAIN_S
@@ -33,7 +34,7 @@ extern "C" {
 /**
  * \brief Log message to SPM UART for the last core id
  */
-#define IFX_PLATFORM_IOCTL_LOG_MSG_MAX  (IFX_PLATFORM_IOCTL_LOG_MSG_MIN + IFX_STDIO_CORE_COUNT - 1)
+#define IFX_PLATFORM_IOCTL_LOG_MSG_MAX  (IFX_PLATFORM_IOCTL_LOG_MSG_MIN + (int32_t)IFX_STDIO_CORE_MAX_COUNT - 1)
 
 #ifndef IFX_CUSTOM_PLATFORM_HAL_IOCTL
 #define IFX_CUSTOM_PLATFORM_HAL_IOCTL   0

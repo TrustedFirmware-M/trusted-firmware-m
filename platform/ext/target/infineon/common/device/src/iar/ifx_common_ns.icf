@@ -8,13 +8,8 @@
 
 #define IFX_LINKER_SCRIPT   1
 
-/* Verify that target config header exists */
-#ifndef IFX_TARGET_LINKER_CONFIG_HEADER
-#error IFX_TARGET_LINKER_CONFIG_HEADER must be defined
-#endif
-
 /* Include target configuration header */
-#include IFX_TARGET_LINKER_CONFIG_HEADER
+#include "region_defs.h"
 
 define region CODE = mem:[from NS_CODE_START to NS_CODE_START + NS_CODE_SIZE - 1];
 define region DATA = mem:[from NS_DATA_START to NS_DATA_START + NS_DATA_SIZE - 1];

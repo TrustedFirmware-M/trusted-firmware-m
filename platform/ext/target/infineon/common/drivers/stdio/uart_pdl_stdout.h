@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "ifx_stdio_core.h"
+
 #ifdef  __cplusplus
 extern "C"
 {

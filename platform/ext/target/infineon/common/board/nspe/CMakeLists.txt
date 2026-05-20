@@ -58,9 +58,15 @@ ifx_mtb_autodiscovery(
 target_compile_definitions(ifx_pdl_inc_ns
     INTERFACE
         ${IFX_PDL_PART_NUMBER}
+        CYBSP_SKIP_PM_REGISTRATION # PM registration is not supported in TFM for Infineon platforms
 )
 
 ################################################################################
+
+target_sources(tfm_ns
+    PRIVATE
+        ${IFX_COMMON_SOURCE_DIR}/device/src/ifx_startup.c
+)
 
 target_link_libraries(platform_ns
     PUBLIC

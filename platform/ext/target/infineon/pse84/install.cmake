@@ -31,7 +31,7 @@ install(FILES       ${CMAKE_BINARY_DIR}/generated/platform/cmake/config.cmake
         DESTINATION ${INSTALL_PLATFORM_NS_DIR})
 
 install(DIRECTORY   ${IFX_FAMILY_SOURCE_DIR}/shared
-        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/pse84)
+        DESTINATION ${INSTALL_PLATFORM_NS_DIR}/family)
 
 install(FILES       ${IFX_PLATFORM_SOURCE_DIR}/ifx_platform_config.h
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/include)

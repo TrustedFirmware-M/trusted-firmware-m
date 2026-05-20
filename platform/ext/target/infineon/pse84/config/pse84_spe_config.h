@@ -40,9 +40,6 @@
 
 /* The size of RRAM MPC block size controlled by SE RT Services */
 #define IFX_SE_RT_RRAM_BLOCK_SIZE                           4096u
-/* The default attributes used to initialize ifx_mpc_se_rt_rram_attr.
- * PC2/S - has read access to RRAM by default while PC0, PC1 are ignored. */
-#define IFX_SE_RT_RRAM_MPC_DEFAULT_ATTRIBUTES               0x00000400u
 
 /* \brief Platform has peripheral protection controller (PPC) */
 #define IFX_PLATFORM_PPC_PRESENT                            1

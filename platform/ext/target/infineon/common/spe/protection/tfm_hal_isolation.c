@@ -27,7 +27,7 @@
 #include "partition_info.h"
 #include "ifx_regions.h"
 #include "tfm_hal_isolation.h"
-#include "ifx_tfm_log_shim.h"
+#include "tfm_log.h"
 #include "tfm_peripherals_def.h"
 #include "load/spm_load_api.h"
 #include "load/asset_defs.h"
@@ -266,6 +266,7 @@ static FIH_RET_TYPE(enum tfm_hal_status_t) ifx_protect_partition_assets(
     /* Apply MPC domain settings provided by Device Configurator */
     if (p_info->p_mem_cfg != NULL) {
         const ifx_mem_domain_cfg_t *p_mem_cfg = p_info->p_mem_cfg;
+#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT
         for (uint32_t i = 0; i < p_mem_cfg->region_count; i++) {
             const ifx_mem_domain_region_cfg_t *p_region = &p_mem_cfg->regions[i];
             /* Skip empty region */
@@ -300,6 +301,44 @@ static FIH_RET_TYPE(enum tfm_hal_status_t) ifx_protect_partition_assets(
             }
             TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
         }
+#endif /* IFX_MPC_DRIVER_HW_MPC_WITH_ROT */
+
+#if IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
+        for (uint32_t i = 0; i < p_mem_cfg->locked_rot_region_count; i++) {
+            const ifx_mem_domain_region_cfg_t *p_region = &p_mem_cfg->locked_rot_regions[i];
+            /* Skip empty region */
+            if (p_region->size == 0UL) {
+                continue;
+            }
+
+            /* Convert platform specific memory configuration to TF-M asset structure */
+            struct asset_desc_t asset = {0};
+            bool valid = true;
+            TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
+            FIH_CALL(ifx_domain_mem_get_asset, result, p_region, &asset, &valid);
+            TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+            TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
+            if (FIH_NOT_EQ(result, TFM_HAL_SUCCESS)) {
+                FIH_RET(result);
+            }
+            TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
+
+            /* Skip duplicate region if needed */
+            if (!valid) {
+                continue;
+            }
+
+            /* Apply protection */
+            TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
+            FIH_CALL(ifx_apply_assets, result, p_info, cfg, &asset, 1);
+            TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
+            TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
+            if (FIH_NOT_EQ(result, TFM_HAL_SUCCESS)) {
+                FIH_RET(result);
+            }
+            TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
+        }
+#endif /* IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT */
     }
 #endif /* IFX_MEMORY_CONFIGURATOR_MPC_CONFIG */
 

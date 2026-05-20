@@ -8,10 +8,6 @@
 
 #################################### IFX #######################################
 
-# PDL sysclk and syspm version
-set(IFX_PDL_CY_SYSCLK_VERSION               "v2")
-set(IFX_PDL_CY_SYSPM_VERSION                "v4")
-
 set(IFX_MULTICORE_CM55                      ON) # Use multicore HAL for CM55 non-secure core
 
 ################################### Platform ###################################

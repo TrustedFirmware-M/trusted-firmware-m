@@ -33,6 +33,7 @@ uint64_t ifx_fih_to_aapcs_fih(fih_int x)
     return ret.u64_val;
 }
 
+/* IMPROVEMENT: (TFM-4579) Ideally common FIH macros should be used instead of IFX ones */
 #define IFX_FIH_EQ(x, y)                                          \
         ( ((x).val == (y).val) &&                                 \
           fih_delay() &&                                          \

@@ -20,17 +20,17 @@
     # IMPROVEMENT: (TFM-4582) Use secure linker files from common code, not Infineon ones
     {
         "description": "isolation l3 scatter file",
-        "template": "platform/ext/target/infineon/common/toolchain/armclang/tfm_isolation_l3.sct.template",
+        "template": "@TFM_LINKER_FILES_BASE_PATH@/armclang/tfm_isolation_l3.sct.template",
         "output": "platform/ext/target/infineon/common/toolchain/armclang/tfm_isolation_l3.sct"
     },
     {
         "description": "isolation l3 linker script",
-        "template": "platform/ext/target/infineon/common/toolchain/gcc/tfm_isolation_l3.ld.template",
+        "template": "@TFM_LINKER_FILES_BASE_PATH@/gcc/tfm_isolation_l3.ld.template",
         "output": "platform/ext/target/infineon/common/toolchain/gcc/tfm_isolation_l3.ld"
     },
     {
         "description": "isolation l3 linker script",
-        "template": "platform/ext/target/infineon/common/toolchain/iar/tfm_isolation_l3.icf.template",
+        "template": "@TFM_LINKER_FILES_BASE_PATH@/iar/tfm_isolation_l3.icf.template",
         "output": "platform/ext/target/infineon/common/toolchain/iar/tfm_isolation_l3.icf"
     },
     {

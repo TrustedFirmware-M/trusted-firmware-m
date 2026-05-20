@@ -20,7 +20,6 @@
 #include "ifx_platform_mailbox.h"
 #include "ifx_utils.h"
 #include "tfm_hal_isolation.h"
-#include "tfm_hal_multi_core.h"
 #include "tfm_peripherals_def.h"
 #include "tfm_spe_mailbox.h"
 #include "platform_multicore.h"
@@ -95,10 +94,8 @@ int32_t tfm_mailbox_hal_init(struct secure_mailbox_queue_t *s_queue)
     }
     TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
 
-    void* ns_init_remapped = tfm_hal_remap_ns_cpu_address(ns_init);
-
-    MAILBOX_INVALIDATE_CACHE(ns_init_remapped, sizeof(*ns_init));
-    memcpy(&ns_init_s, ns_init_remapped, sizeof(*ns_init));
+    MAILBOX_INVALIDATE_CACHE(ns_init, sizeof(*ns_init));
+    memcpy(&ns_init_s, ns_init, sizeof(*ns_init));
 
     if ((ns_init_s.slot_count == 0U) || (ns_init_s.slot_count > NUM_MAILBOX_QUEUE_SLOT)) {
         return MAILBOX_INIT_ERROR;
@@ -128,11 +125,9 @@ int32_t tfm_mailbox_hal_init(struct secure_mailbox_queue_t *s_queue)
     }
     TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
 
-    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "Conversion is safe as ns_init_s.status has the same type as s_queue->ns_status")
-    s_queue->ns_status = (struct mailbox_status_t*)tfm_hal_remap_ns_cpu_address(ns_init_s.status);
+    s_queue->ns_status = ns_init_s.status;
     s_queue->ns_slot_count = ns_init_s.slot_count;
-    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_11_5, "Conversion is safe as ns_init_s.slots has the same type as s_queue->ns_slots")
-    s_queue->ns_slots = (struct mailbox_slot_t*)tfm_hal_remap_ns_cpu_address(ns_init_s.slots);
+    s_queue->ns_slots = ns_init_s.slots;
 
     ifx_mailbox_ipc_config();
 

@@ -40,12 +40,12 @@ cy_rslt_t mtb_srf_ipc_process_request(mtb_srf_ipc_packet_t* request)
         break;
 
     case IFX_MTB_MAILBOX_PSA_VERSION:
-        *return_val = psa_version(params->psa_params.psa_version_params.sid);
+        *return_val = psa_version(params->psa_version_params.sid);
         break;
 
     case IFX_MTB_MAILBOX_PSA_CALL:
-        in_len = params->psa_params.psa_call_params.in_len;
-        out_len = params->psa_params.psa_call_params.out_len;
+        in_len = params->psa_call_params.in_len;
+        out_len = params->psa_call_params.out_len;
 
         memset(in_vec, 0, sizeof(in_vec));
         memset(out_vec, 0, sizeof(out_vec));
@@ -53,29 +53,29 @@ cy_rslt_t mtb_srf_ipc_process_request(mtb_srf_ipc_packet_t* request)
         for (size_t i = 0; i < in_len; i++) {
             /* NULL pointer is a special case that should not be remapped even
              * if it is a valid memory in off core NSPE. */
-            if (params->psa_params.psa_call_params.in_vec[i].base == NULL) {
+            if (params->psa_call_params.in_vec[i].base == NULL) {
                 in_vec[i].base = NULL;
             } else {
                 in_vec[i].base = tfm_hal_remap_ns_cpu_address(
-                                       params->psa_params.psa_call_params.in_vec[i].base);
+                                       params->psa_call_params.in_vec[i].base);
             }
-            in_vec[i].len = params->psa_params.psa_call_params.in_vec[i].len;
+            in_vec[i].len = params->psa_call_params.in_vec[i].len;
         }
 
         for (size_t i = 0; i < out_len; i++) {
             /* NULL pointer is a special case that should not be remapped even
              * if it is a valid memory in off core NSPE. */
-            if (params->psa_params.psa_call_params.out_vec[i].base == NULL) {
+            if (params->psa_call_params.out_vec[i].base == NULL) {
                 out_vec[i].base = NULL;
             } else {
                 out_vec[i].base = tfm_hal_remap_ns_cpu_address(
-                                       params->psa_params.psa_call_params.out_vec[i].base);
+                                       params->psa_call_params.out_vec[i].base);
             }
-            out_vec[i].len = params->psa_params.psa_call_params.out_vec[i].len;
+            out_vec[i].len = params->psa_call_params.out_vec[i].len;
         }
 
-        *return_val = psa_call(params->psa_params.psa_call_params.handle,
-                               params->psa_params.psa_call_params.type,
+        *return_val = psa_call(params->psa_call_params.handle,
+                               params->psa_call_params.type,
                                in_vec,
                                in_len,
                                out_vec,
@@ -87,12 +87,12 @@ cy_rslt_t mtb_srf_ipc_process_request(mtb_srf_ipc_packet_t* request)
         break;
 
     case IFX_MTB_MAILBOX_PSA_CONNECT:
-        *return_val = psa_connect(params->psa_params.psa_connect_params.sid,
-                                  params->psa_params.psa_connect_params.version);
+        *return_val = psa_connect(params->psa_connect_params.sid,
+                                  params->psa_connect_params.version);
         break;
 
     case IFX_MTB_MAILBOX_PSA_CLOSE:
-        psa_close(params->psa_params.psa_close_params.handle);
+        psa_close(params->psa_close_params.handle);
         break;
 
     default:

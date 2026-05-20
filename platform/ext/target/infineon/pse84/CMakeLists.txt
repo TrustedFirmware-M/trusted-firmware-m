@@ -14,10 +14,9 @@ cmake_minimum_required(VERSION 3.27.7)
 cmake_policy(SET CMP0118 NEW)
 
 # Library with shared read-only data, only SPM can write it
-set(IFX_SHARED_RO_DATA_TARGET "ifx_tfm_sp_meta")
-add_library(${IFX_SHARED_RO_DATA_TARGET} STATIC)
+add_library(ifx_tfm_sp_meta STATIC)
 
-target_compile_options(${IFX_SHARED_RO_DATA_TARGET}
+target_compile_options(ifx_tfm_sp_meta
     PRIVATE
         ${COMPILER_CMSE_FLAG}
 )
@@ -51,6 +50,25 @@ target_include_directories(tfm_config
 
 add_subdirectory(spe)
 add_subdirectory(${IFX_EPC})
+
+################################ Code coverage #################################
+
+# Code coverage flags must be added after all platform files have been added
+# to the build
+
+if(TEST_NS_IFX_CODE_COVERAGE)
+    include(${IFX_COMMON_SOURCE_DIR}/cmake/code_coverage.cmake)
+
+    set(IFX_COVERAGE_IGNORE_LIST "")
+
+    # Exclude test (we measure coverage of the secure code, not the code that tests it)
+    list(APPEND IFX_COVERAGE_IGNORE_LIST "platform/ext/target/infineon/pse84/tests")
+
+    ifx_add_code_coverage(
+        EXCLUDE ${IFX_COVERAGE_IGNORE_LIST}
+        FILTER_FILE "${IFX_COMMON_SOURCE_DIR}/deploy/tfm_files_to_deploy.txt"
+    )
+endif()
 
 ################################################################################
 

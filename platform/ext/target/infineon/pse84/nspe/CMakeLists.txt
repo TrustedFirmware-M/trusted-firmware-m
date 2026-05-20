@@ -50,7 +50,6 @@ target_include_directories(platform_ns
         ext/common
         include
         ${IFX_FAMILY_SOURCE_DIR}/shared
-        ${IFX_FAMILY_SOURCE_DIR}/shared/device/include
 )
 
 target_link_libraries(platform_ns

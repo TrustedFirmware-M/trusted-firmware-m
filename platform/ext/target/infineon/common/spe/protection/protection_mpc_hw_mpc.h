@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Cypress Semiconductor Corporation (an Infineon company)
+ * Copyright (c) 2024-2026 Cypress Semiconductor Corporation (an Infineon company)
  * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -23,9 +23,8 @@
 #include "config_tfm.h"
 #include "cy_mpc.h"
 #include "fih.h"
-
-#include "ifx_platform_spe_types.h"
 #include "ifx_spe_config.h"
+#include "protection_pc_mask.h"
 
 typedef struct {
     ifx_pc_mask_t   pc_mask; /**< Mask that define what PCs must be modified.
@@ -40,9 +39,6 @@ typedef struct {
     ifx_pc_mask_t        ns_mask; /**< NS bit mask for each PC*/
     ifx_pc_mask_t        r_mask;  /**< R  bit mask for each PC*/
     ifx_pc_mask_t        w_mask;  /**< W  bit mask for each PC*/
-#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-    bool                 is_rot;  /**< True if this MPC region is for ROT, false otherwise */
-#endif /* IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT */
 } ifx_mpc_region_config_t;
 
 /**
@@ -53,13 +49,14 @@ typedef struct {
     cy_en_mpc_size_t     mpc_block_size; /**< Size of the MPC block */
     uint32_t             offset;
     uint32_t             size;
+    ifx_pc_mask_t        pc_apply_mask; /**< PCs to update/verify. */
     ifx_pc_mask_t        ns_mask; /**< NS bit mask for each PC*/
     ifx_pc_mask_t        r_mask;  /**< R  bit mask for each PC*/
     ifx_pc_mask_t        w_mask;  /**< W  bit mask for each PC*/
-#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-    bool                 is_rot;  /**< True if this MPC region is for ROT, false otherwise */
-#endif /* IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT */
 } ifx_mpc_raw_region_config_t;
+
+/* Select all PCs when a raw MPC configuration must be applied or verified. */
+#define IFX_MPC_APPLY_ALL_PCS ((ifx_pc_mask_t)0xFFFFFFFFU)
 
 /* SPM protection configuration for \ref ifx_mpc_numbered_mmio_config_t */
 #define IFX_MPC_NAMED_MMIO_SPM_ROT_CFG \
@@ -110,7 +107,7 @@ typedef struct {
     },
 #endif
 
-#define IFX_MAX_FIXED_CONFIGS 5U
+#define IFX_MAX_FIXED_CONFIGS 6U
 
 /* Additional configs that are internal to TFM.
  * The sizes can't be determined by the compiler as constants.

@@ -18,11 +18,35 @@
 
 #define IFX_MPC_EXT_BLOCK_SIZE_TO_BYTES(mpc_size)   (1UL << ((uint32_t)(mpc_size) + 5UL))
 
+/* Cached attributes are stored as 4-bit fields, one field per protection context.
+ * This emulates MPC HW structure */
+#define IFX_MPC_EXT_CACHE_PC_FIELD_BITS        (4U)
+
+/* Returns the starting bit position of the cached field for the selected PC. */
+#define IFX_MPC_EXT_CACHE_PC_FIELD_SHIFT(pc)   ((uint32_t)(pc) * IFX_MPC_EXT_CACHE_PC_FIELD_BITS)
+
+/* Bit positions within each cached protection-context field. */
+#define IFX_MPC_EXT_CACHE_NS_BIT               (0U)
+#define IFX_MPC_EXT_CACHE_READ_BIT             (1U)
+#define IFX_MPC_EXT_CACHE_WRITE_BIT            (2U)
+
+/* Encodes a single cached permission bit for the selected PC. */
+#define IFX_MPC_EXT_CACHE_PC_BIT(pc, bit)      \
+    (1UL << (IFX_MPC_EXT_CACHE_PC_FIELD_SHIFT(pc) + (uint32_t)(bit)))
+
+/* Default value used to initialize cache attributes before populating them. */
+#define IFX_MPC_EXT_CACHE_ATTR_DEFAULT         (0U)
+
 /* The size of RRAM memory controlled by SE RT Services */
 #define IFX_SE_RT_RRAM_SIZE         IFX_RRAM_SIZE
 
 /* The number of RRAM MPC blocks controlled by SE RT Services */
 #define IFX_SE_RT_RRAM_BLOCK_COUNT  (IFX_SE_RT_RRAM_SIZE / IFX_SE_RT_RRAM_BLOCK_SIZE)
+
+/* The default attributes used to initialize ifx_mpc_se_rt_rram_attr.
+ * PC2/S - has read access to RRAM by default while PC0, PC1 are ignored. */
+#define IFX_SE_RT_RRAM_MPC_DEFAULT_ATTRIBUTES   \
+    (IFX_MPC_EXT_CACHE_PC_BIT(IFX_PC_TFM_SPM_ID, IFX_MPC_EXT_CACHE_READ_BIT))
 
 /* MPC attribute cache used to implement ifx_mpc_memory_check for RRAM MPC controlled
  * by SE RT Services in following format:
@@ -46,6 +70,8 @@ static uint32_t ifx_mpc_se_rt_rram_attr[IFX_SE_RT_RRAM_BLOCK_COUNT] = {0};
 typedef struct {
     /*! Bit field with MPC cached attributes */
     uint32_t attr;
+    /*! Cache-bit mask derived from pc_apply_mask for the selected PCs. */
+    uint32_t pc_cache_mask;
     /*! First block index in cached attributes */
     uint32_t first_block_idx;
     /*! Last block index in cached attributes */
@@ -72,7 +98,8 @@ static enum tfm_hal_status_t ifx_mpc_sert_config_to_cache_info(
     }
 
     /* Default values to improve FIH resistance */
-    info->attr = 0x00000000U;
+    info->attr = IFX_MPC_EXT_CACHE_ATTR_DEFAULT;
+    info->pc_cache_mask = IFX_MPC_EXT_CACHE_ATTR_DEFAULT;
 
     uint32_t block_size = IFX_MPC_EXT_BLOCK_SIZE_TO_BYTES(mpc_reg_cfg->mpc_block_size);
     if (IFX_SE_RT_RRAM_BLOCK_SIZE != block_size) {
@@ -89,17 +116,31 @@ static enum tfm_hal_status_t ifx_mpc_sert_config_to_cache_info(
         return TFM_HAL_ERROR_INVALID_INPUT;
     }
 
+    /* MPC config works with PC >= IFX_PC_TFM_SPM_ID. Lower PCs
+     * are responsible for protecting/verifying their own resources. */
     for (uint32_t pc = IFX_PC_TFM_SPM_ID; pc < MPC_PC_NR; pc++) {
+        /* Apply only the PCs explicitly requested by the configuration and
+         * leave any other PC settings unchanged. */
+        if (IFX_GET_PC(mpc_reg_cfg->pc_apply_mask, pc) == 0U) {
+            continue;
+        }
+
+        /* Indicate that this PC has cached attributes */
+        info->pc_cache_mask |= IFX_MPC_EXT_CACHE_PC_BIT(pc, IFX_MPC_EXT_CACHE_NS_BIT) |
+                               IFX_MPC_EXT_CACHE_PC_BIT(pc, IFX_MPC_EXT_CACHE_READ_BIT) |
+                               IFX_MPC_EXT_CACHE_PC_BIT(pc, IFX_MPC_EXT_CACHE_WRITE_BIT);
+
+        /* Cache secure/non-secure and read/write permissions for this PC. */
         if (IFX_GET_PC(mpc_reg_cfg->ns_mask, pc) != 0U) {
-            info->attr |= (1UL << ((pc * 4U) + 0U));
+            info->attr |= IFX_MPC_EXT_CACHE_PC_BIT(pc, IFX_MPC_EXT_CACHE_NS_BIT);
         }
 
         if (IFX_GET_PC(mpc_reg_cfg->r_mask, pc) != 0U) {
-            info->attr |= (1UL << ((pc * 4U) + 1U));
+            info->attr |= IFX_MPC_EXT_CACHE_PC_BIT(pc, IFX_MPC_EXT_CACHE_READ_BIT);
         }
 
         if (IFX_GET_PC(mpc_reg_cfg->w_mask, pc) != 0U) {
-            info->attr |= (1UL << ((pc * 4U) + 2U));
+            info->attr |= IFX_MPC_EXT_CACHE_PC_BIT(pc, IFX_MPC_EXT_CACHE_WRITE_BIT);
         }
     }
 
@@ -126,7 +167,16 @@ enum tfm_hal_status_t ifx_mpc_sert_apply_configuration(
     } else {
         return TFM_HAL_ERROR_INVALID_INPUT;
     }
+
+    /* MPC config works with PC >= IFX_PC_TFM_SPM_ID. Lower PCs
+     * are responsible for protecting/verifying their own resources. */
     for (uint32_t pc = IFX_PC_TFM_SPM_ID; pc < MPC_PC_NR; pc++) {
+        /* Apply only the PCs explicitly requested by the configuration and
+         * leave any other PC settings unchanged. */
+        if (IFX_GET_PC(mpc_reg_cfg->pc_apply_mask, pc) == 0U) {
+            continue;
+        }
+
         config.mpc_config.pc = (ifx_se_mpc_prot_context_t)pc;
         config.mpc_config.secure = IFX_SE_MPC_SECURE;
         config.mpc_config.access = IFX_SE_MPC_ACCESS_DISABLED;
@@ -163,7 +213,17 @@ enum tfm_hal_status_t ifx_mpc_sert_apply_configuration(
     }
 
     for (uint32_t block_id = info.first_block_idx; block_id < info.last_block_idx; block_id++) {
-        ifx_mpc_se_rt_rram_attr[block_id] = info.attr;
+        /* Keep cached bits for PCs outside info.pc_cache_mask and replace only
+         * the selected PC fields with the new attributes from info.attr. */
+        /* Read current cached attributes */
+        uint32_t cached_attr = ifx_mpc_se_rt_rram_attr[block_id];
+        /* Zero out bits for PCs being updated, but keep other PC bits unchanged. */
+        uint32_t preserved_attr = cached_attr & ~info.pc_cache_mask;
+        /* Set bits for PCs being updated according to new configuration. */
+        uint32_t updated_attr = preserved_attr | info.attr;
+
+        /* Write updated block to cache */
+        ifx_mpc_se_rt_rram_attr[block_id] = updated_attr;
     }
 
     return TFM_HAL_SUCCESS;
@@ -182,7 +242,11 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_sert_verify_configuration(
     }
 
     for (uint32_t block_id = info.first_block_idx; block_id < info.last_block_idx; block_id++) {
-        if (ifx_mpc_se_rt_rram_attr[block_id] != info.attr) {
+        /* Verify only the PCs explicitly requested by the configuration and
+         * leave any other PC settings unchanged. */
+        uint32_t selected_attr = ifx_mpc_se_rt_rram_attr[block_id] & info.pc_cache_mask;
+
+        if (selected_attr != info.attr) {
             FIH_RET(TFM_HAL_ERROR_GENERIC);
         }
     }
@@ -220,17 +284,18 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_sert_memory_check(
     TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "external macro IS_NS_AGENT interprets non-boolean type as a boolean")
     uint32_t pc = (uint32_t)fih_int_decode(IFX_GET_PARTITION_PC(p_info, is_secure));
 
-    uint32_t mask = 1UL << ((pc * 4u) + 0u);
-    uint32_t attr = is_secure ? 0u : (1UL << ((pc * 4u) + 0u));
+    /* Only the bits relevant to the requesting PC participate in the check. */
+    uint32_t mask = IFX_MPC_EXT_CACHE_PC_BIT(pc, IFX_MPC_EXT_CACHE_NS_BIT);
+    uint32_t attr = is_secure ? 0U : IFX_MPC_EXT_CACHE_PC_BIT(pc, IFX_MPC_EXT_CACHE_NS_BIT);
 
     if ((access_type & TFM_HAL_ACCESS_READABLE) != 0U) {
-        mask |= 1UL << ((pc * 4u) + 1u);
-        attr |= 1UL << ((pc * 4u) + 1u);
+        mask |= IFX_MPC_EXT_CACHE_PC_BIT(pc, IFX_MPC_EXT_CACHE_READ_BIT);
+        attr |= IFX_MPC_EXT_CACHE_PC_BIT(pc, IFX_MPC_EXT_CACHE_READ_BIT);
     }
 
     if ((access_type & TFM_HAL_ACCESS_WRITABLE) != 0U) {
-        mask |= 1UL << ((pc * 4u) + 2u);
-        attr |= 1UL << ((pc * 4u) + 2u);
+        mask |= IFX_MPC_EXT_CACHE_PC_BIT(pc, IFX_MPC_EXT_CACHE_WRITE_BIT);
+        attr |= IFX_MPC_EXT_CACHE_PC_BIT(pc, IFX_MPC_EXT_CACHE_WRITE_BIT);
     }
 
     for (uint32_t block_id = first_block_idx; block_id < last_block_idx; block_id++) {

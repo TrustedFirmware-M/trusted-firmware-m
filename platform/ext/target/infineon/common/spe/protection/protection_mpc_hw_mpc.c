@@ -33,7 +33,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_fill_fixed_config(void)
      * need to reconfigure. */
 #if IFX_ISOLATION_PC_SWITCHING
 #if (TFM_ISOLATION_LEVEL == 2) && (CONFIG_TFM_AROT_PRESENT == 1)
-    /* RW, ZI and stack as one region */
+    /* ARoT RW, ZI and stack as one region */
     ifx_fixed_mpc_static_config[idx++] =
     (ifx_mpc_region_config_t){
         .address    = (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_START, $$Base),
@@ -42,11 +42,21 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_fill_fixed_config(void)
         .ns_mask    = IFX_PC_NONE, /**< All secure */
         .r_mask     = IFX_PC_TFM_SPM | IFX_PC_TFM_PROT | IFX_PC_TFM_AROT,
         .w_mask     = IFX_PC_TFM_SPM | IFX_PC_TFM_PROT | IFX_PC_TFM_AROT,
-#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-        .is_rot     = true,
-#endif
     };
 #endif /* (TFM_ISOLATION_LEVEL == 2) && (CONFIG_TFM_AROT_PRESENT == 1) */
+
+#if (TFM_ISOLATION_LEVEL == 2)
+    /* PRoT RW, ZI and stack as one region */
+    ifx_fixed_mpc_static_config[idx++] =
+    (ifx_mpc_region_config_t){
+        .address    = (uint32_t)&REGION_NAME(Image$$, TFM_PSA_RW_STACK_START, $$Base),
+        .size       = (uint32_t)&REGION_NAME(Image$$, TFM_PSA_RW_STACK_END, $$Base) -
+                      (uint32_t)&REGION_NAME(Image$$, TFM_PSA_RW_STACK_START, $$Base),
+        .ns_mask    = IFX_PC_NONE, /**< All secure */
+        .r_mask     = IFX_PC_TFM_SPM | IFX_PC_TFM_PROT,
+        .w_mask     = IFX_PC_TFM_SPM | IFX_PC_TFM_PROT,
+    };
+#endif /* (TFM_ISOLATION_LEVEL == 2) */
 
 #ifdef CONFIG_TFM_PARTITION_META
     /* RW, ZI and stack as one region */
@@ -58,9 +68,6 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_fill_fixed_config(void)
             .ns_mask    = IFX_PC_NONE, /**< All secure */
             .r_mask     = IFX_PC_TFM_SPM | IFX_PC_TFM_PROT | IFX_PC_TFM_AROT | IFX_PC_TZ_NSPE,
             .w_mask     = IFX_PC_TFM_SPM,
-#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-        .is_rot         = true,
-#endif
     };
 #endif /* CONFIG_TFM_PARTITION_META */
 
@@ -75,9 +82,6 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_fill_fixed_config(void)
             .ns_mask    = IFX_PC_NONE, /**< All secure */
             .r_mask     = IFX_PC_TFM_SPM | IFX_PC_TFM_PROT | IFX_PC_TFM_AROT | IFX_PC_TZ_NSPE,
             .w_mask     = IFX_PC_TFM_SPM | IFX_PC_TFM_PROT | IFX_PC_TFM_AROT | IFX_PC_TZ_NSPE,
-#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-        .is_rot         = true,
-#endif
     };
 #endif /* TEST_NS_IFX_CODE_COVERAGE */
 #endif /* TFM_ISOLATION_LEVEL == 3 */
@@ -91,9 +95,6 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_fill_fixed_config(void)
         .ns_mask    = IFX_PC_NONE, /**< All secure */
         .r_mask     = IFX_PC_TFM_SPM | IFX_PC_TFM_PROT | IFX_PC_TZ_NSPE,
         .w_mask     = IFX_PC_NONE,
-#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-        .is_rot     = true,
-#endif
     };
 
     /* Unprivileged S code region for TFM image with enabled Default PC (with SPM) + PRoT + ARoT  */
@@ -105,10 +106,17 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_fill_fixed_config(void)
         .ns_mask    = IFX_PC_NONE, /**< All secure */
         .r_mask     = IFX_PC_TFM_SPM | IFX_PC_TFM_PROT | IFX_PC_TFM_AROT | IFX_PC_TZ_NSPE,
         .w_mask     = IFX_PC_NONE, /**< No write to code, R/O data */
-#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-        .is_rot     = true,
-#endif
     };
+
+    /* Unprivileged Secure code region for TFM image with enabled Default PC (with SPM) + PRoT + ARoT  */
+    ifx_fixed_mpc_static_config[idx++] =
+    (ifx_mpc_region_config_t){
+        .address    = (uint32_t)&REGION_NAME(Image$$, TFM_UNPRIV_BASE_CODE_START, $$RO$$Base),
+        .size       = (uint32_t)&REGION_NAME(Image$$, TFM_UNPRIV_BASE_CODE_END, $$RO$$Limit) -
+                      (uint32_t)&REGION_NAME(Image$$, TFM_UNPRIV_BASE_CODE_START, $$RO$$Base),
+        .ns_mask    = IFX_PC_NONE, /**< All secure */
+        .r_mask     = IFX_PC_TFM_SPM | IFX_PC_TFM_PROT | IFX_PC_TFM_AROT,
+        .w_mask     = IFX_PC_NONE, /**< No write to code, R/O data */
     };
 #endif /* CONFIG_TFM_USE_TRUSTZONE */
 #endif /* IFX_ISOLATION_PC_SWITCHING */
@@ -136,10 +144,6 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_isolate_numbered_mmio(
 
     mpc_reg_cfg.r_mask  = mpc_cfg->pc_mask;
     mpc_reg_cfg.w_mask  = ((asset->attr & ASSET_ATTR_READ_WRITE) != 0U) ? mpc_cfg->pc_mask : 0U;
-
-#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-    mpc_reg_cfg.is_rot  = true;
-#endif
 
     TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
     FIH_CALL(ifx_mpc_apply_configuration, fih_rc, &mpc_reg_cfg);
@@ -170,12 +174,10 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_apply_configuration(
             .offset         = IFX_S_ADDRESS_ALIAS(mpc_reg_cfg->address)
                                - memory_configs[mem_idx]->s_address,
             .size           = mpc_reg_cfg->size,
+            .pc_apply_mask  = IFX_MPC_APPLY_ALL_PCS,
             .ns_mask        = mpc_reg_cfg->ns_mask,
             .r_mask         = mpc_reg_cfg->r_mask,
             .w_mask         = mpc_reg_cfg->w_mask,
-#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-            .is_rot         = mpc_reg_cfg->is_rot,
-#endif /* IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT */
         };
 
         TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_20_7, "Cannot wrap with parentheses due to Fault injection architecture and define FIH_RET_TYPE")
@@ -249,12 +251,10 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_verify_configuration(
             .offset         = IFX_S_ADDRESS_ALIAS(mpc_reg_cfg->address)
                                - memory_configs[mem_idx]->s_address,
             .size           = mpc_reg_cfg->size,
+            .pc_apply_mask  = IFX_MPC_APPLY_ALL_PCS,
             .ns_mask        = mpc_reg_cfg->ns_mask,
             .r_mask         = mpc_reg_cfg->r_mask,
             .w_mask         = mpc_reg_cfg->w_mask,
-#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-            .is_rot         = mpc_reg_cfg->is_rot,
-#endif /* IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT */
         };
 
         FIH_CALL(ifx_mpc_verify_raw_configuration, mem_cfg_res_2, &mpc_reg_cfg_raw);

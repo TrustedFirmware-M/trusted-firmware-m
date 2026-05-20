@@ -50,13 +50,10 @@ target_sources(ifx_pdl_s
         $<$<OR:$<BOOL:${IFX_MPC_DRIVER_HW_MPC_V1}>,$<BOOL:${IFX_MPC_DRIVER_HW_MPC_V2}>>:${IFX_PDL_LIB_PATH}/drivers/source/cy_mpc.c>
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_ms_ctl.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_ppc.c
-        $<$<BOOL:${IFX_RRAM_DRIVER_ENABLED}>:${IFX_PDL_LIB_PATH}/drivers/source/cy_rram.c>
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_scb_common.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_scb_uart.c
-        ${IFX_PDL_LIB_PATH}/drivers/source/cy_sysclk_${IFX_PDL_CY_SYSCLK_VERSION}.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_sysfault.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_sysint_v2.c
-        ${IFX_PDL_LIB_PATH}/drivers/source/cy_syspm_${IFX_PDL_CY_SYSPM_VERSION}.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_syspm_pdcm.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_syspm_ppu.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_tcpwm_counter.c
@@ -64,6 +61,35 @@ target_sources(ifx_pdl_s
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_wdt.c
         ${IFX_PDL_LIB_PATH}/drivers/source/ppu_v1.c
 )
+
+set(IFX_PDL_OPTIONAL_SOURCES
+    # Different sysclk driver versions
+    ${IFX_PDL_LIB_PATH}/drivers/source/cy_sysclk_srip.c
+    ${IFX_PDL_LIB_PATH}/drivers/source/cy_sysclk_v2.c
+    ${IFX_PDL_LIB_PATH}/drivers/source/cy_sysclk_v4.c
+    # Different syspm driver versions
+    ${IFX_PDL_LIB_PATH}/drivers/source/cy_syspm_srip.c
+    ${IFX_PDL_LIB_PATH}/drivers/source/cy_syspm_v2.c
+    ${IFX_PDL_LIB_PATH}/drivers/source/cy_syspm_v4.c
+    ${IFX_PDL_LIB_PATH}/drivers/source/cy_syspm_v5.c
+)
+
+if(IFX_RRAM_DRIVER_ENABLED)
+    list(APPEND IFX_PDL_OPTIONAL_SOURCES
+            # Different RRAM driver versions
+            ${IFX_PDL_LIB_PATH}/drivers/source/cy_rram.c
+            ${IFX_PDL_LIB_PATH}/drivers/source/cy_v2_rram.c
+        )
+endif()
+
+foreach(pdl_optional_source IN LISTS IFX_PDL_OPTIONAL_SOURCES)
+    if(EXISTS ${pdl_optional_source})
+        target_sources(ifx_pdl_s
+            PRIVATE
+                ${pdl_optional_source}
+        )
+    endif()
+endforeach()
 
 if(IFX_MTB_SRF) # MTB SRF specific PDL code
     target_sources(ifx_pdl_s
@@ -99,7 +125,7 @@ target_link_libraries(ifx_pdl_s
     PUBLIC
         ifx_pdl_inc_s
     PRIVATE
-        ${IFX_SHARED_RO_DATA_TARGET}
+        ifx_tfm_sp_meta
         flash_drivers
 )
 
@@ -138,6 +164,14 @@ target_compile_definitions(ifx_pdl_inc_s
         $<$<STREQUAL:${IFX_CORE},${IFX_CM33}>:CORE_NAME_CM33_0>
         $<$<STREQUAL:${IFX_CORE},${IFX_CM55}>:COMPONENT_CM55>
         $<$<STREQUAL:${IFX_CORE},${IFX_CM55}>:CORE_NAME_CM55_0>
+        # Power Management callbacks are not supported in TFM
+        CYBSP_SKIP_PM_REGISTRATION
+        # Disable the vector relocation code as this is handled by TFM startup files
+        CY_SYSINT_VECTOR_RW_DISABLED
+        CYBSP_SKIP_SAU_INIT # TFM configures SAU by own code
+        CYBSP_SKIP_MPC_INIT # TFM configures MPC by own code
+        CYBSP_SKIP_MPU_INIT # TFM configures MPU by own code
+        CYBSP_SKIP_PPC_INIT # TFM configures PPC by own code
 )
 
 target_compile_options(ifx_pdl_inc_s

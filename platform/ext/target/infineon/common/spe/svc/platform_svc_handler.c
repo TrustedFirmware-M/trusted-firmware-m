@@ -9,7 +9,7 @@
 #include "config_tfm.h"
 #include "cmsis.h"
 #include "current.h"
-#include "cy_device_headers.h"
+#include "cy_device.h"
 #include "ifx_fih.h"
 #include "platform_svc_api.h"
 #include "platform_svc_private.h"

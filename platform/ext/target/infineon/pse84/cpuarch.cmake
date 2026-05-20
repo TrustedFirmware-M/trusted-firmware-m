@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023-2025 Cypress Semiconductor Corporation (an Infineon company)
+# Copyright (c) 2023-2026 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -16,12 +16,8 @@ set(IFX_PLATFORM_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/${IFX_EPC})
 set(IFX_FAMILY_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 set(IFX_COMMON_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/../common)
 
-# secure image
-add_compile_definitions(DOMAIN_S=1)
-add_compile_definitions(COMPONENT_SECURE_DEVICE)
+include(${IFX_COMMON_SOURCE_DIR}/shared/core_defs.cmake)
 
-set(S_BUILD ON)
+set(IFX_CORE ${IFX_CM33})
 
-set(IFX_CORE "cm33")
-
-include(${IFX_FAMILY_SOURCE_DIR}/shared/cpuarch.cmake OPTIONAL)
+include(${IFX_COMMON_SOURCE_DIR}/spe/cpuarch.cmake)

@@ -12,8 +12,11 @@
 #include "cyip_fault.h"
 #include "exception_info.h"
 #include "faults.h"
+#include "ifx_interrupt_defs.h"
 #include "protection_regions_cfg.h"
-#include "ifx_tfm_log_shim.h"
+#include "tfm_peripherals_def.h"
+#include "tfm_log.h"
+#include "utilities.h"
 #include "coverity_check.h"
 
 /* Enables BUS, MEM, USG and Secure faults */
@@ -64,15 +67,106 @@ static bool Cy_SysFault_GetMaskByIdx(const FAULT_STRUCT_Type *base, cy_en_SysFau
 }
 #endif /* TFM_FIH_PROFILE_ON */
 
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_4, "This function prototype conforms to VECTOR_TABLE_Type, as declared in CMSIS system_Device.h")
+void ifx_msc_fault_irq_handler(void)
+{
+    /* Print fault message and block execution */
+    ERROR_RAW("Platform Exception: MSC fault!!!\n");
+
+    /* Clear all causes of MSC interrupt */
+    CPUSS->INTR_MSC = 0;
+
+    tfm_core_panic();
+}
+
+/* IAR Specific */
+#if defined(__ICCARM__)
+#pragma required = ifx_msc_fault_irq_handler
+EXCEPTION_INFO_IAR_REQUIRED
+#endif /* defined(__ICCARM__) */
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_4, "This function prototype conforms to VECTOR_TABLE_Type, as declared in CMSIS system_Device.h")
+__attribute__((naked)) void IFX_IRQ_NAME_TO_HANDLER(IFX_TFM_MSC_IRQ)(void)
+{
+    EXCEPTION_INFO();
+
+    __ASM volatile(
+        "BL        ifx_msc_fault_irq_handler                \n"
+        "B         .                                        \n"
+    );
+}
+
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_4, "This function prototype conforms to VECTOR_TABLE_Type, as declared in CMSIS system_Device.h")
+void ifx_fault_irq_handler(void)
+{
+    Cy_SysFault_ClearInterrupt(IFX_TFM_FAULT_STRUCT);
+    Cy_SysFault_ClearStatus(IFX_TFM_FAULT_STRUCT);
+
+    tfm_core_panic();
+}
+
+#if defined(__ICCARM__)
+#pragma required = ifx_fault_irq_handler
+EXCEPTION_INFO_IAR_REQUIRED
+#endif /* defined(__ICCARM__) */
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_8_4, "This function prototype conforms to VECTOR_TABLE_Type, as declared in CMSIS system_Device.h")
+__attribute__((naked)) void IFX_IRQ_NAME_TO_HANDLER(IFX_TFM_FAULT_IRQ)(void)
+{
+    EXCEPTION_INFO();
+
+    __ASM volatile(
+        "BL        ifx_fault_irq_handler                    \n"
+        "B         .                                        \n"
+    );
+}
+
+FIH_RET_TYPE(enum tfm_plat_err_t) ifx_faults_platform_interrupt_enable(void)
+{
+    /* Set fault and secure violations priority to less than half of max priority
+     * (with AIRCR.PRIS set) to prevent Non-secure from pre-empting faults
+     * that may indicate corruption of Secure state. */
+    NVIC_SetPriority(IFX_TFM_MSC_IRQ, 0);
+    NVIC_SetPriority(IFX_TFM_FAULT_IRQ, 0);
+
+#ifdef TFM_FIH_PROFILE_ON
+    (void)fih_delay();
+
+    /* Verify that fault interrupt has the highest priority */
+    if (NVIC_GetPriority(IFX_TFM_MSC_IRQ) != 0U) {
+        FIH_RET(TFM_PLAT_ERR_SYSTEM_ERR);
+    }
+
+    /* Verify that fault interrupt has the highest priority */
+    if (NVIC_GetPriority(IFX_TFM_FAULT_IRQ) != 0U) {
+        FIH_RET(TFM_PLAT_ERR_SYSTEM_ERR);
+    }
+#endif /* TFM_FIH_PROFILE_ON */
+
+    /* Enables needed interrupts */
+    NVIC_EnableIRQ(IFX_TFM_MSC_IRQ);
+    NVIC_EnableIRQ(IFX_TFM_FAULT_IRQ);
+
+#ifdef TFM_FIH_PROFILE_ON
+    (void)fih_delay();
+
+    /* Verify that needed interrupts have been enabled */
+    if ((NVIC_GetEnableIRQ(IFX_TFM_MSC_IRQ) == 0U) ||
+        (NVIC_GetEnableIRQ(IFX_TFM_FAULT_IRQ) == 0U)) {
+        FIH_RET(TFM_PLAT_ERR_SYSTEM_ERR);
+    }
+#endif /* TFM_FIH_PROFILE_ON */
+
+    FIH_RET(TFM_PLAT_ERR_SUCCESS);
+}
+
 FIH_RET_TYPE(enum tfm_plat_err_t) ifx_faults_cfg(void)
 {
     /* Enable Fault interrupts for secure violation sources */
-    for (uint32_t idx = 0UL; idx < ifx_fault_sources_fault_struct0_count; idx++) {
-        Cy_SysFault_SetMaskByIdx(FAULT_STRUCT0, ifx_fault_sources_fault_struct0[idx]);
+    for (uint32_t idx = 0UL; idx < ifx_tfm_fault_sources_count; idx++) {
+        Cy_SysFault_SetMaskByIdx(IFX_TFM_FAULT_STRUCT, ifx_tfm_fault_sources[idx]);
     }
 
 #ifdef IFX_FAULTS_INFO_DUMP
-    cy_en_SysFault_source_t fault_source = Cy_SysFault_GetErrorSource(FAULT_STRUCT0);
+    cy_en_SysFault_source_t fault_source = Cy_SysFault_GetErrorSource(IFX_TFM_FAULT_STRUCT);
     /* Typecast is necessary because on some platforms CY_SYSFAULT_NO_FAULT is returned
      * from Cy_SysFault_GetErrorSource() although it is not an enumeral in
      * cy_en_SysFault_source_t but in others it is
@@ -86,8 +180,8 @@ FIH_RET_TYPE(enum tfm_plat_err_t) ifx_faults_cfg(void)
         ERROR_RAW("========================================\n");
     }
 #else
-    while ((uint8_t)Cy_SysFault_GetErrorSource(FAULT_STRUCT0) != (uint8_t)CY_SYSFAULT_NO_FAULT) {
-        Cy_SysFault_ClearStatus(FAULT_STRUCT0);
+    while ((uint8_t)Cy_SysFault_GetErrorSource(IFX_TFM_FAULT_STRUCT) != (uint8_t)CY_SYSFAULT_NO_FAULT) {
+        Cy_SysFault_ClearStatus(IFX_TFM_FAULT_STRUCT);
     }
 #endif
 
@@ -100,15 +194,15 @@ FIH_RET_TYPE(enum tfm_plat_err_t) ifx_faults_cfg(void)
     cy_en_SysFault_status_t  sys_fault_status;
 
     /* Enable Fault structure for interrupt handling */
-    Cy_SysFault_ClearInterrupt(FAULT_STRUCT0);
-    Cy_SysFault_ClearStatus(FAULT_STRUCT0);
-    Cy_SysFault_SetInterruptMask(FAULT_STRUCT0);
+    Cy_SysFault_ClearInterrupt(IFX_TFM_FAULT_STRUCT);
+    Cy_SysFault_ClearStatus(IFX_TFM_FAULT_STRUCT);
+    Cy_SysFault_SetInterruptMask(IFX_TFM_FAULT_STRUCT);
 
     /* TF-M fault IRQs dumps (optionally) information about fault and calls tfm_core_panic */
     ifx_fault_cfg.ResetEnable   = false;
     ifx_fault_cfg.OutputEnable  = false;
     ifx_fault_cfg.TriggerEnable = false;
-    sys_fault_status = Cy_SysFault_Init(FAULT_STRUCT0, &ifx_fault_cfg);
+    sys_fault_status = Cy_SysFault_Init(IFX_TFM_FAULT_STRUCT, &ifx_fault_cfg);
     if (sys_fault_status != CY_SYSFAULT_SUCCESS) {
         FIH_RET(TFM_PLAT_ERR_SYSTEM_ERR);
     }
@@ -117,9 +211,9 @@ FIH_RET_TYPE(enum tfm_plat_err_t) ifx_faults_cfg(void)
     (void)fih_delay();
 
     /* Verify that Fault interrupts for secure violation sources ware enabled */
-    for (uint32_t idx = 0UL; idx < ifx_fault_sources_fault_struct0_count; idx++) {
-        if (Cy_SysFault_GetMaskByIdx(FAULT_STRUCT0,
-                                     ifx_fault_sources_fault_struct0[idx]) == false) {
+    for (uint32_t idx = 0UL; idx < ifx_tfm_fault_sources_count; idx++) {
+        if (Cy_SysFault_GetMaskByIdx(IFX_TFM_FAULT_STRUCT,
+                                     ifx_tfm_fault_sources[idx]) == false) {
             FIH_RET(TFM_PLAT_ERR_SYSTEM_ERR);
         }
     }
@@ -145,9 +239,9 @@ FIH_RET_TYPE(enum tfm_plat_err_t) ifx_faults_cfg(void)
     }
 
     /* Verify that Fault structure for interrupt handling ware enabled */
-    if ((Cy_SysFault_GetInterruptStatus(FAULT_STRUCT0) != 0U) ||
-        (FAULT_STATUS(FAULT_STRUCT0) != 0U) ||
-        (Cy_SysFault_GetInterruptMask(FAULT_STRUCT0) != FAULT_STRUCT_INTR_MASK_FAULT_Msk)) {
+    if ((Cy_SysFault_GetInterruptStatus(IFX_TFM_FAULT_STRUCT) != 0U) ||
+        (FAULT_STATUS(IFX_TFM_FAULT_STRUCT) != 0U) ||
+        (Cy_SysFault_GetInterruptMask(IFX_TFM_FAULT_STRUCT) != FAULT_STRUCT_INTR_MASK_FAULT_Msk)) {
         FIH_RET(TFM_PLAT_ERR_SYSTEM_ERR);
     }
 
@@ -156,7 +250,7 @@ FIH_RET_TYPE(enum tfm_plat_err_t) ifx_faults_cfg(void)
                              _VAL2FLD(FAULT_STRUCT_CTL_OUT_EN, ifx_fault_cfg.OutputEnable) |
                              _VAL2FLD(FAULT_STRUCT_CTL_RESET_REQ_EN, ifx_fault_cfg.ResetEnable));
 
-    if ((FAULT_CTL(FAULT_STRUCT0) & expected_cfg) != expected_cfg) {
+    if ((FAULT_CTL(IFX_TFM_FAULT_STRUCT) & expected_cfg) != expected_cfg) {
         FIH_RET(TFM_PLAT_ERR_SYSTEM_ERR);
     }
 #endif /* TFM_FIH_PROFILE_ON */

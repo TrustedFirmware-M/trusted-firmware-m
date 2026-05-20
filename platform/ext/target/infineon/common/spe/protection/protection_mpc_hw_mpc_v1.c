@@ -11,6 +11,7 @@
 #include "cy_mpc.h"
 #include "fih.h"
 #include "region_defs.h"
+#include "protection_data_common.h"
 #include "protection_types.h"
 #include "protection_utils.h"
 #include "protection_regions_cfg.h"
@@ -44,13 +45,7 @@
 enum tfm_hal_status_t ifx_mpc_apply_configuration_with_mpc(
                                         const ifx_mpc_raw_region_config_t* mpc_reg_cfg)
 {
-#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-    const bool rot_config = mpc_reg_cfg->is_rot;
-#elif IFX_MPC_DRIVER_HW_MPC_WITH_ROT
-    const bool rot_config = true;
-#elif IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-    const bool rot_config = false;
-#endif /* IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT */
+    const bool rot_config = IFX_MPC_IS_ROT(mpc_reg_cfg->mpc_base);
 
     if (rot_config) {
         cy_stc_mpc_rot_cfg_t       mpc_rot_cfg;
@@ -59,7 +54,15 @@ enum tfm_hal_status_t ifx_mpc_apply_configuration_with_mpc(
         mpc_rot_cfg.size       = mpc_reg_cfg->size;
         mpc_rot_cfg.regionSize = mpc_reg_cfg->mpc_block_size;
 
-        for (uint32_t pc = 0UL; pc < MPC_PC_NR; pc++) {
+        /* MPC config works with PC >= IFX_PC_TFM_SPM_ID. Lower PCs
+         * are responsible for protecting/verifying their own resources. */
+        for (uint32_t pc = IFX_PC_TFM_SPM_ID; pc < MPC_PC_NR; pc++) {
+            /* Apply only the PCs explicitly requested by the configuration and
+             * leave any other PC settings unchanged. */
+            if (IFX_GET_PC(mpc_reg_cfg->pc_apply_mask, pc) == 0U) {
+                continue;
+            }
+
             mpc_rot_cfg.pc     = (cy_en_mpc_prot_context_t)pc;
             mpc_rot_cfg.secure = ifx_mpc_secure_cfg(mpc_reg_cfg, (cy_en_mpc_prot_context_t)pc);
             mpc_rot_cfg.access = ifx_mpc_access_cfg(mpc_reg_cfg, (cy_en_mpc_prot_context_t)pc);
@@ -86,38 +89,62 @@ enum tfm_hal_status_t ifx_mpc_apply_configuration_with_mpc(
 FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_verify_configuration_with_mpc(
                                         const ifx_mpc_raw_region_config_t* mpc_reg_cfg)
 {
-    /* Verify that the MPC is configured as specified */
-    for (uint32_t pc = 0U; pc < MPC_PC_NR; pc++) {
-        cy_en_mpc_sec_attr_t secure = ifx_mpc_secure_cfg(mpc_reg_cfg,
-                                                         (cy_en_mpc_prot_context_t)pc);
-        cy_en_mpc_access_attr_t access = ifx_mpc_access_cfg(mpc_reg_cfg,
-                                                            (cy_en_mpc_prot_context_t)pc);
-        uint32_t block_size      = IFX_MPC_BLOCK_SIZE_TO_BYTES(mpc_reg_cfg->mpc_block_size);
-        uint32_t offset          = mpc_reg_cfg->offset;
-        uint32_t first_block_idx = offset / block_size;
-        uint32_t last_block_idx  = IFX_ROUND_UP_TO_MULTIPLE(offset + mpc_reg_cfg->size, block_size)
-                                    / block_size;
+    uint32_t block_size      = IFX_MPC_BLOCK_SIZE_TO_BYTES(mpc_reg_cfg->mpc_block_size);
+    uint32_t offset          = mpc_reg_cfg->offset;
+    uint32_t first_block_idx = offset / block_size;
+    uint32_t last_block_idx  = IFX_ROUND_UP_TO_MULTIPLE(offset + mpc_reg_cfg->size, block_size)
+                                / block_size;
 
+    const bool rot_config = IFX_MPC_IS_ROT(mpc_reg_cfg->mpc_base);
+
+    if (rot_config) {
+        /* MPC config works with PC >= IFX_PC_TFM_SPM_ID. Lower PCs
+         * are responsible for protecting/verifying their own resources. */
+        for (uint32_t pc = IFX_PC_TFM_SPM_ID; pc < MPC_PC_NR; pc++) {
+            /* Verify only the PCs explicitly requested by the configuration and
+             * leave any other PC settings unchanged. */
+            if (IFX_GET_PC(mpc_reg_cfg->pc_apply_mask, pc) == 0U) {
+                continue;
+            }
+
+            cy_en_mpc_sec_attr_t secure = ifx_mpc_secure_cfg(mpc_reg_cfg,
+                                                             (cy_en_mpc_prot_context_t)pc);
+            cy_en_mpc_access_attr_t access = ifx_mpc_access_cfg(mpc_reg_cfg,
+                                                                (cy_en_mpc_prot_context_t)pc);
+            for (uint32_t idx = first_block_idx; idx < last_block_idx; idx++) {
+                cy_stc_mpc_rot_block_attr_t mpc_rot_cfg;
+
+                /* Read the block config */
+                cy_en_mpc_status_t ret = Cy_Mpc_GetRotBlockAttr(mpc_reg_cfg->mpc_base,
+                                                                (cy_en_mpc_prot_context_t)pc,
+                                                                idx,
+                                                                &mpc_rot_cfg);
+
+                /* Check that it is as expected */
+                if ((ret != CY_MPC_SUCCESS)  ||
+                    (mpc_rot_cfg.secure != secure)  ||
+                    (mpc_rot_cfg.access != access)) {
+
+                    FIH_RET(TFM_HAL_ERROR_GENERIC);
+                }
+            }
+        }
+
+        FIH_RET(TFM_HAL_SUCCESS);
+    } else {
+        /* Non-RoT MPC: no PC dimension, verify security attribute for every block */
+        cy_en_mpc_sec_attr_t secure = (mpc_reg_cfg->ns_mask == 0U) ? CY_MPC_SECURE : CY_MPC_NON_SECURE;
         for (uint32_t idx = first_block_idx; idx < last_block_idx; idx++) {
-            cy_stc_mpc_rot_block_attr_t mpc_rot_cfg;
-
-            /* Read the block config */
-            cy_en_mpc_status_t ret = Cy_Mpc_GetRotBlockAttr(mpc_reg_cfg->mpc_base,
-                                                            (cy_en_mpc_prot_context_t)pc,
-                                                            idx,
-                                                            &mpc_rot_cfg);
-
-            /* Check that it is as expected */
-            if ((ret != CY_MPC_SUCCESS)  ||
-                (mpc_rot_cfg.secure != secure)  ||
-                (mpc_rot_cfg.access != access)) {
-
+            cy_stc_mpc_block_attr_t mpc_no_rot_cfg;
+            if (Cy_Mpc_GetBlockAttr(mpc_reg_cfg->mpc_base, idx, &mpc_no_rot_cfg) != CY_MPC_SUCCESS) {
+                FIH_RET(TFM_HAL_ERROR_MEM_FAULT);
+            }
+            if (mpc_no_rot_cfg.secure != secure) {
                 FIH_RET(TFM_HAL_ERROR_GENERIC);
             }
         }
+        FIH_RET(TFM_HAL_SUCCESS);
     }
-
-    FIH_RET(TFM_HAL_SUCCESS);
 }
 #endif /* TFM_FIH_PROFILE_ON */
 
@@ -166,12 +193,11 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_init_cfg(void)
                 .mpc_block_size = cy_mpc_unified_config[idx].regionSize,
                 .offset         = cy_mpc_unified_config[idx].config[jdx].offset,
                 .size           = cy_mpc_unified_config[idx].config[jdx].size,
+                /* Selective PC configuration is not implemented for v1 config as it will be deprecated */
+                .pc_apply_mask  = IFX_MPC_APPLY_ALL_PCS,
                 .ns_mask        = cy_mpc_unified_config[idx].config[jdx].ns_mask,
                 .r_mask         = cy_mpc_unified_config[idx].config[jdx].r_mask,
                 .w_mask         = cy_mpc_unified_config[idx].config[jdx].w_mask,
-#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-                .is_rot         = true,
-#endif
             };
 
             FIH_CALL(ifx_mpc_apply_raw_configuration, mpc_result, &mpc_cfg);
@@ -198,12 +224,11 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_init_cfg(void)
                 .mpc_block_size = cy_mpc_unified_config[idx].regionSize,
                 .offset         = cy_mpc_unified_config[idx].config[jdx].offset,
                 .size           = cy_mpc_unified_config[idx].config[jdx].size,
+                /* Selective PC configuration is not implemented for v1 config as it will be deprecated */
+                .pc_apply_mask  = IFX_MPC_APPLY_ALL_PCS,
                 .ns_mask        = cy_mpc_unified_config[idx].config[jdx].ns_mask,
                 .r_mask         = cy_mpc_unified_config[idx].config[jdx].r_mask,
                 .w_mask         = cy_mpc_unified_config[idx].config[jdx].w_mask,
-#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-                .is_rot         = true,
-#endif
             };
 
             FIH_CALL(ifx_mpc_verify_raw_configuration, mpc_result, &mpc_cfg);
@@ -497,13 +522,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_memory_check(const struct ifx_partit
 #endif /* IFX_SE_IPC_SERVICE_FULL || IFX_SE_IPC_SERVICE_BASE */
         }
 
-#if IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-        const bool rot_config = mem_region_cfg->is_rot;
-#elif IFX_MPC_DRIVER_HW_MPC_WITH_ROT
-        const bool rot_config = true;
-#elif IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT
-        const bool rot_config = false;
-#endif /* IFX_MPC_DRIVER_HW_MPC_WITH_ROT && IFX_MPC_DRIVER_HW_MPC_WITHOUT_ROT */
+        const bool rot_config = IFX_MPC_IS_ROT(mem_region_cfg->mpc);
 
         for (uint32_t idx = first_block_idx; idx < last_block_idx; idx++) {
             cy_stc_mpc_rot_block_attr_t mpc_settings;

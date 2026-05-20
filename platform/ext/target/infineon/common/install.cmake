@@ -42,6 +42,7 @@ install(FILES       ${CMAKE_CURRENT_LIST_DIR}/nspe/tfm_ns_platform_init.c
 
 install(FILES       ${CMAKE_CURRENT_LIST_DIR}/nspe/CMakeLists.txt
                     ${CMAKE_CURRENT_LIST_DIR}/nspe/config.cmake
+                    ${CMAKE_CURRENT_LIST_DIR}/nspe/cpuarch.cmake
                     ${CMAKE_CURRENT_LIST_DIR}/post_config.cmake
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/ifx)
 
@@ -92,12 +93,8 @@ install(FILES       ${IFX_COMMON_SOURCE_DIR}/board/CMakeLists.txt
 install(DIRECTORY   ${IFX_COMMON_SOURCE_DIR}/board/nspe
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/ifx/board)
 
-install(FILES       ${IFX_CONFIG_BSP_PATH}/config_bsp.h
-                    ${IFX_CONFIG_BSP_PATH}/config.cmake
+install(FILES       ${IFX_CONFIG_BSP_PATH}/config.cmake
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/board)
-target_compile_definitions(tfm_config
-    INTERFACE
-        $<INSTALL_INTERFACE:IFX_BSP_CONFIG_HEADER_FILE="$<INSTALL_PREFIX>/${INSTALL_PLATFORM_NS_DIR}/board/config_bsp.h">)
 
 install(DIRECTORY   ${IFX_BOARD_PATH}/nspe
                     ${IFX_BOARD_PATH}/shared
