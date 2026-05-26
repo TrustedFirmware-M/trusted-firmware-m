@@ -169,10 +169,8 @@
 /* Define additional symbols used by support modules. */
 #include "tf-psa-crypto/private/crypto_adjust_config_support.h"
 
-#if defined(MBEDTLS_PSA_CRYPTO_C)
 /* Define additional symbols used by built-in crypto modules. */
 #include "mbedtls/private/crypto_adjust_config_tweak_builtins.h"
-#endif
 
 #if defined(TF_PSA_CRYPTO_TEST_LIBTESTDRIVER1)
 #include "mbedtls/private/libtestdriver1-crypto_adjust_config_tweak_builtins.h"
