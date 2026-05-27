@@ -265,7 +265,15 @@ static uint32_t page_number(struct arm_flash_dev_t *flash_dev,
 {
   uint32_t page = param / flash_dev->data->page_size;
 
+#ifdef STM32H5xx_HAL_H
+  /* H5 HAL expects page index relative to the selected bank. */
+  {
+    uint32_t sector_bank = flash_dev->data->sector_count / 2U;
+    page = (page >= sector_bank) ? page - sector_bank : page;
+  }
+#else
   page = (page > flash_dev->data->sector_count) ? page - flash_dev->data->sector_count : page;
+#endif /* STM32H5xx_HAL_H */
 #ifdef DEBUG_FLASH_ACCESS
   printf("page = %x \r\n", page);
 #endif /* DEBUG_FLASH_ACCESS */
@@ -828,7 +836,7 @@ static int32_t Flash_EraseSector(uint32_t addr)
 #else
   pt = (uint32_t *)((uint32_t)FLASH_BASE + addr);
 #endif /* defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)  */
-  for (i = 0; i > 0x400; i++)
+  for (i = 0; i < (FLASH0_SECTOR_SIZE / 4); i++)
   {
     if (pt[i] != 0xffffffff)
     {

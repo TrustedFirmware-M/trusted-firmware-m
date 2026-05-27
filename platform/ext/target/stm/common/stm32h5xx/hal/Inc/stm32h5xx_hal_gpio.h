@@ -9,10 +9,9 @@
   * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -279,6 +278,23 @@ typedef enum
 #define IS_GPIO_PIN(__PIN__)        ((((uint32_t)(__PIN__) & GPIO_PIN_MASK) != 0x00U) &&\
                                      (((uint32_t)(__PIN__) & ~GPIO_PIN_MASK) == 0x00U))
 
+#define IS_GPIO_SINGLE_PIN(__PIN__) (((__PIN__) == GPIO_PIN_0)   ||\
+                                     ((__PIN__) == GPIO_PIN_1)   ||\
+                                     ((__PIN__) == GPIO_PIN_2)   ||\
+                                     ((__PIN__) == GPIO_PIN_3)   ||\
+                                     ((__PIN__) == GPIO_PIN_4)   ||\
+                                     ((__PIN__) == GPIO_PIN_5)   ||\
+                                     ((__PIN__) == GPIO_PIN_6)   ||\
+                                     ((__PIN__) == GPIO_PIN_7)   ||\
+                                     ((__PIN__) == GPIO_PIN_8)   ||\
+                                     ((__PIN__) == GPIO_PIN_9)   ||\
+                                     ((__PIN__) == GPIO_PIN_10)  ||\
+                                     ((__PIN__) == GPIO_PIN_11)  ||\
+                                     ((__PIN__) == GPIO_PIN_12)  ||\
+                                     ((__PIN__) == GPIO_PIN_13)  ||\
+                                     ((__PIN__) == GPIO_PIN_14)  ||\
+                                     ((__PIN__) == GPIO_PIN_15))
+
 #define IS_GPIO_COMMON_PIN(__RESETMASK__, __SETMASK__)  \
   (((uint32_t)(__RESETMASK__) & (uint32_t)(__SETMASK__)) == 0x00u)
 
@@ -343,7 +359,7 @@ void              HAL_GPIO_DeInit(GPIO_TypeDef  *GPIOx, uint32_t GPIO_Pin);
   */
 
 /* IO operation functions *****************************************************/
-GPIO_PinState     HAL_GPIO_ReadPin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin);
+GPIO_PinState     HAL_GPIO_ReadPin(const GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin);
 void              HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState);
 void              HAL_GPIO_WriteMultipleStatePin(GPIO_TypeDef *GPIOx, uint16_t PinReset, uint16_t PinSet);
 void              HAL_GPIO_TogglePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin);
@@ -366,7 +382,8 @@ void              HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin);
 
 /* IO attributes management functions *****************************************/
 void              HAL_GPIO_ConfigPinAttributes(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, uint32_t PinAttributes);
-HAL_StatusTypeDef HAL_GPIO_GetConfigPinAttributes(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, uint32_t *pPinAttributes);
+HAL_StatusTypeDef HAL_GPIO_GetConfigPinAttributes(const GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin,
+                                                  uint32_t *pPinAttributes);
 
 /**
   * @}

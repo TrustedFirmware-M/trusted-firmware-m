@@ -10,12 +10,11 @@
   * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
-  ******************************************************************************
+  **********************************************************************************************************************
   */
 
 /* Define to prevent recursive inclusion -----------------------------------------------------------------------------*/
@@ -72,7 +71,9 @@ typedef enum
     (__DMA_HANDLE__).Parent = (__HANDLE__);              \
   } while(0)
 
+#if !defined(UNUSED)
 #define UNUSED(x) ((void)(x))
+#endif /* UNUSED */
 
 /** @brief Reset the Handle's State field.
   * @param __HANDLE__: specifies the Peripheral Handle.
@@ -174,7 +175,7 @@ typedef enum
 /**
   * @brief  __RAM_FUNC definition
   */
-#if defined ( __CC_ARM   ) || ((__ARMCC_VERSION) && (__ARMCC_VERSION >= ARMCC_MIN_VERSION))
+#if defined ( __CC_ARM   ) || (defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= ARMCC_MIN_VERSION))
 
 /* ARM Compiler
 
@@ -207,7 +208,8 @@ typedef enum
 /**
   * @brief  __NOINLINE definition
   */
-#if defined ( __CC_ARM   ) || ((__ARMCC_VERSION) && (__ARMCC_VERSION >= ARMCC_MIN_VERSION)) || defined   (  __GNUC__  )
+#if defined ( __CC_ARM   ) || (defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= ARMCC_MIN_VERSION)) || \
+    defined   (  __GNUC__  )
 /* ARM & GNUCompiler
 
 */
@@ -219,7 +221,7 @@ typedef enum
 */
 #define __NOINLINE _Pragma("optimize = no_inline")
 
-#endif /* ( __CC_ARM   ) || ((__ARMCC_VERSION) && (__ARMCC_VERSION >= ARMCC_MIN_VERSION)) || defined   (  __GNUC__  ) */
+#endif /* ( __CC_ARM   ) || ((__ARMCC_VERSION) && (__ARMCC_VERSION >= ARMCC_MIN_VERSION)) || defined   ( __GNUC__ ) */
 
 
 #ifdef __cplusplus

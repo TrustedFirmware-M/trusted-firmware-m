@@ -9,10 +9,9 @@
   * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -153,8 +152,6 @@ typedef struct
 /**
   * @}
   */
-
-
 /**
   * @}
   */
@@ -255,7 +252,6 @@ typedef struct
   * @}
   */
 
-
 /* Exported functions --------------------------------------------------------*/
 
 /** @defgroup RAMCFG_Exported_Functions RAMCFG Exported Functions
@@ -336,6 +332,7 @@ HAL_RAMCFG_StateTypeDef HAL_RAMCFG_GetState(const RAMCFG_HandleTypeDef *hramcfg)
   * @}
   */
 
+
 /**
   * @}
   */
@@ -362,7 +359,13 @@ HAL_RAMCFG_StateTypeDef HAL_RAMCFG_GetState(const RAMCFG_HandleTypeDef *hramcfg)
   (((INTERRUPT) != 0U) && (((INTERRUPT) & ~(RAMCFG_IT_SINGLEERR | RAMCFG_IT_DOUBLEERR | RAMCFG_IT_NMIERR)) == 0U))
 
 
+#if defined (RAMCFG_WPR4_P96WP)
+#define IS_RAMCFG_WRITEPROTECTION_PAGE(PAGE)   ((PAGE) <= 127U)
+#elif defined (RAMCFG_WPR3_P64WP)
+#define IS_RAMCFG_WRITEPROTECTION_PAGE(PAGE)   ((PAGE) <= 80U)
+#else
 #define IS_RAMCFG_WRITEPROTECTION_PAGE(PAGE)   ((PAGE) <= 64U)
+#endif /* RAMCFG_WPR4_P96WP */
 
 
 /**

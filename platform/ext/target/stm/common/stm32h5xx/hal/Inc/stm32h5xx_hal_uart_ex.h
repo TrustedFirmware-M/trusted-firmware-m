@@ -9,10 +9,9 @@
   * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -177,9 +176,11 @@ HAL_StatusTypeDef HAL_UARTEx_SetRxFifoThreshold(UART_HandleTypeDef *huart, uint3
 HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint16_t *RxLen,
                                            uint32_t Timeout);
 HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
+#if defined(HAL_DMA_MODULE_ENABLED)
 HAL_StatusTypeDef HAL_UARTEx_ReceiveToIdle_DMA(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
+#endif /* HAL_DMA_MODULE_ENABLED */
 
-HAL_UART_RxEventTypeTypeDef HAL_UARTEx_GetRxEventType(UART_HandleTypeDef *huart);
+HAL_UART_RxEventTypeTypeDef HAL_UARTEx_GetRxEventType(const UART_HandleTypeDef *huart);
 
 
 /**
@@ -200,7 +201,8 @@ HAL_UART_RxEventTypeTypeDef HAL_UARTEx_GetRxEventType(UART_HandleTypeDef *huart)
   * @param  __CLOCKSOURCE__ output variable.
   * @retval UART clocking source, written in __CLOCKSOURCE__.
   */
-#if (defined(STM32H573xx) || defined(STM32H563xx) || defined(STM32H562xx))
+#if defined(STM32H573xx) || defined(STM32H563xx) || defined(STM32H562xx) \
+ || defined(STM32H5E4xx) || defined(STM32H5E5xx) || defined(STM32H5F4xx) || defined(STM32H5F5xx)
 #define UART_GETCLOCKSOURCE(__HANDLE__,__CLOCKSOURCE__)           \
   do {                                                            \
     if((__HANDLE__)->Instance == USART1)                          \
@@ -260,6 +262,42 @@ HAL_UART_RxEventTypeTypeDef HAL_UARTEx_GetRxEventType(UART_HandleTypeDef *huart)
       (__CLOCKSOURCE__) = 0U;                                     \
     }                                                             \
   } while(0U)
+#elif (defined(STM32H523xx) || defined(STM32H533xx))
+#define UART_GETCLOCKSOURCE(__HANDLE__,__CLOCKSOURCE__)           \
+  do {                                                            \
+    if((__HANDLE__)->Instance == USART1)                          \
+    {                                                             \
+      (__CLOCKSOURCE__) = (uint32_t)RCC_PERIPHCLK_USART1;         \
+    }                                                             \
+    else if((__HANDLE__)->Instance == USART2)                     \
+    {                                                             \
+      (__CLOCKSOURCE__) = (uint32_t)RCC_PERIPHCLK_USART2;         \
+    }                                                             \
+    else if((__HANDLE__)->Instance == USART3)                     \
+    {                                                             \
+      (__CLOCKSOURCE__) = (uint32_t)RCC_PERIPHCLK_USART3;         \
+    }                                                             \
+    else if((__HANDLE__)->Instance == UART4)                      \
+    {                                                             \
+      (__CLOCKSOURCE__) = (uint32_t)RCC_PERIPHCLK_UART4;          \
+    }                                                             \
+    else if((__HANDLE__)->Instance == UART5)                      \
+    {                                                             \
+      (__CLOCKSOURCE__) = (uint32_t)RCC_PERIPHCLK_UART5;          \
+    }                                                             \
+    else if((__HANDLE__)->Instance == USART6)                     \
+    {                                                             \
+      (__CLOCKSOURCE__) = (uint32_t)RCC_PERIPHCLK_USART6;         \
+    }                                                             \
+    else if((__HANDLE__)->Instance == LPUART1)                    \
+    {                                                             \
+      (__CLOCKSOURCE__) = (uint32_t)RCC_PERIPHCLK_LPUART1;        \
+    }                                                             \
+    else                                                          \
+    {                                                             \
+      (__CLOCKSOURCE__) = 0U;                                     \
+    }                                                             \
+  } while(0U)
 #else
 #define UART_GETCLOCKSOURCE(__HANDLE__,__CLOCKSOURCE__)           \
   do {                                                            \
@@ -284,7 +322,9 @@ HAL_UART_RxEventTypeTypeDef HAL_UARTEx_GetRxEventType(UART_HandleTypeDef *huart)
       (__CLOCKSOURCE__) = 0U;                                     \
     }                                                             \
   } while(0U)
-#endif /* (defined(STM32H573xx) || defined(STM32H563xx) || defined(STM32H562xx) */
+#endif /* defined(STM32H573xx) || defined(STM32H563xx) || defined(STM32H562xx) ||
+        * defined(STM32H5E4xx) || defined(STM32H5E5xx) || defined(STM32H5F4xx) || defined(STM32H5F5xx)
+        */
 
 
 /** @brief  Report the UART mask to apply to retrieve the received data

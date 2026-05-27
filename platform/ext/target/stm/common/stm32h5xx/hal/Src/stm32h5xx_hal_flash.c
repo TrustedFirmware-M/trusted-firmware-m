@@ -12,7 +12,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 STMicroelectronics.
+  * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -124,6 +124,9 @@ static void          FLASH_Program_QuadWord(uint32_t FlashAddress, uint32_t Data
 static void          FLASH_Program_QuadWord_OBK(uint32_t FlashAddress, uint32_t DataAddress);
 #endif /* FLASH_SR_OBKERR */
 static void          FLASH_Program_HalfWord(uint32_t FlashAddress, uint32_t DataAddress);
+#if defined(FLASH_EDATAR_EDATA_EN)
+static void          FLASH_Program_Word(uint32_t FlashAddress, uint32_t DataAddress);
+#endif /* FLASH_EDATAR_EDATA_EN */
 
 /**
   * @}
@@ -170,9 +173,6 @@ HAL_StatusTypeDef HAL_FLASH_Program(uint32_t TypeProgram, uint32_t FlashAddress,
   /* Check the parameters */
   assert_param(IS_FLASH_TYPEPROGRAM(TypeProgram));
 
-  /* Process Locked */
-  __HAL_LOCK(&pFlash);
-
   /* Reset error code */
   pFlash.ErrorCode = HAL_FLASH_ERROR_NONE;
 
@@ -218,6 +218,14 @@ HAL_StatusTypeDef HAL_FLASH_Program(uint32_t TypeProgram, uint32_t FlashAddress,
       /* Program a Flash high-cycle data half-word at a specified address */
       FLASH_Program_HalfWord(FlashAddress, DataAddress);
     }
+    else if ((TypeProgram & (~FLASH_NON_SECURE_MASK)) == FLASH_TYPEPROGRAM_WORD_EDATA)
+    {
+      /* Check the parameters */
+      assert_param(IS_FLASH_EDATA_ADDRESS(FlashAddress));
+
+      /* Program a Flash high-cycle data half-word at a specified address */
+      FLASH_Program_Word(FlashAddress, DataAddress);
+    }
 #endif /* FLASH_EDATAR_EDATA_EN */
     else
     {
@@ -246,9 +254,6 @@ HAL_StatusTypeDef HAL_FLASH_Program(uint32_t TypeProgram, uint32_t FlashAddress,
     CLEAR_BIT((*reg_cr), (TypeProgram & ~(FLASH_NON_SECURE_MASK |  FLASH_OTP)));
 #endif /* FLASH_SR_OBKERR */
   }
-  /* Process Unlocked */
-  __HAL_UNLOCK(&pFlash);
-
   /* return status */
   return status;
 }
@@ -270,9 +275,6 @@ HAL_StatusTypeDef HAL_FLASH_Program_IT(uint32_t TypeProgram, uint32_t FlashAddre
 
   /* Check the parameters */
   assert_param(IS_FLASH_TYPEPROGRAM(TypeProgram));
-
-  /* Process Locked */
-  __HAL_LOCK(&pFlash);
 
   /* Reset error code */
   pFlash.ErrorCode = HAL_FLASH_ERROR_NONE;
@@ -336,6 +338,14 @@ HAL_StatusTypeDef HAL_FLASH_Program_IT(uint32_t TypeProgram, uint32_t FlashAddre
       /* Program a Flash high-cycle data half-word at a specified address */
       FLASH_Program_HalfWord(FlashAddress, DataAddress);
     }
+     else if ((TypeProgram & (~FLASH_NON_SECURE_MASK)) == FLASH_TYPEPROGRAM_WORD_EDATA)
+    {
+      /* Check the parameters */
+      assert_param(IS_FLASH_EDATA_ADDRESS(FlashAddress));
+
+      /* Program a Flash high-cycle data word at a specified address */
+      FLASH_Program_Word(FlashAddress, DataAddress);
+    }
 #endif /* FLASH_EDATAR_EDATA_EN */
     else
     {
@@ -361,7 +371,8 @@ void HAL_FLASH_IRQHandler(void)
   uint32_t errorflag;
   __IO uint32_t *reg_cr;
   __IO uint32_t *reg_ccr;
-  __IO uint32_t *reg_sr;
+  const __IO uint32_t *reg_sr;
+  const __IO uint32_t *reg_ecccorr;
 
   /* Access to CR, CCR and SR registers depends on operation type */
 #if defined (FLASH_OPTSR2_TZEN)
@@ -373,6 +384,7 @@ void HAL_FLASH_IRQHandler(void)
   reg_ccr = &(FLASH_NS->NSCCR);
   reg_sr = &(FLASH_NS->NSSR);
 #endif /* FLASH_OPTSR2_TZEN */
+  reg_ecccorr = &(FLASH->ECCCORR);
 
   /* Save Flash errors */
   errorflag = (*reg_sr) & FLASH_FLAG_SR_ERRORS;
@@ -460,9 +472,19 @@ void HAL_FLASH_IRQHandler(void)
     HAL_FLASH_EndOfOperationCallback(param);
   }
 
+  /* Check FLASH ECC correction flag */
+  if ((*reg_ecccorr & FLASH_ECCR_ECCC) != 0U)
+  {
+    /* Call User callback */
+    HAL_FLASHEx_EccCorrectionCallback();
+
+    /* Clear ECC correction flag in order to allow new ECC error record */
+    FLASH->ECCCORR |= FLASH_ECCR_ECCC;
+  }
+
   if (pFlash.ProcedureOnGoing == 0U)
   {
-    /* Disable Bank1 Operation and Error source interrupt */
+    /* Disable Flash Operation and Error source interrupt */
 #if defined (FLASH_SR_OBKERR)
     (*reg_cr) &= ~(FLASH_IT_EOP     | FLASH_IT_WRPERR | FLASH_IT_PGSERR | \
                    FLASH_IT_STRBERR | FLASH_IT_INCERR | FLASH_IT_OBKERR | \
@@ -471,8 +493,6 @@ void HAL_FLASH_IRQHandler(void)
     (*reg_cr) &= ~(FLASH_IT_EOP     | FLASH_IT_WRPERR | FLASH_IT_PGSERR | \
                    FLASH_IT_STRBERR | FLASH_IT_INCERR | FLASH_IT_OPTCHANGEERR);
 #endif /* FLASH_SR_OBKERR */
-    /* Process Unlocked */
-    __HAL_UNLOCK(&pFlash);
   }
 }
 
@@ -577,7 +597,7 @@ HAL_StatusTypeDef HAL_FLASH_Unlock_SEC(void)
       status = HAL_OK;
     }
   }
-#endif /* __ARM_FEATURE_CMSE && __ARM_FEATURE_CMSE == 3U */
+#endif /* __ARM_FEATURE_CMSE */
 
   return status;
 }
@@ -596,7 +616,7 @@ HAL_StatusTypeDef HAL_FLASH_Unlock(void)
   if (status == HAL_OK) {
     status = HAL_FLASH_Unlock_SEC();
   }
-#endif /* __ARM_FEATURE_CMSE && __ARM_FEATURE_CMSE == 3U */
+#endif /* __ARM_FEATURE_CMSE */
 
   return status;
 }
@@ -621,7 +641,6 @@ HAL_StatusTypeDef HAL_FLASH_Lock_NS(void)
   return status;
 }
 
-
 /**
   * @brief  Locks the secure FLASH control registers access
   * @retval HAL Status
@@ -639,7 +658,7 @@ HAL_StatusTypeDef HAL_FLASH_Lock_SEC(void)
   {
     status = HAL_OK;
   }
-#endif /* __ARM_FEATURE_CMSE && __ARM_FEATURE_CMSE == 3U */
+#endif /* __ARM_FEATURE_CMSE */
 
   return status;
 }
@@ -658,7 +677,7 @@ HAL_StatusTypeDef HAL_FLASH_Lock(void)
   if (status == HAL_OK) {
     status = HAL_FLASH_Lock_SEC();
   }
-#endif /* __ARM_FEATURE_CMSE && __ARM_FEATURE_CMSE == 3U */
+#endif /* __ARM_FEATURE_CMSE */
 
   return status;
 }
@@ -719,6 +738,25 @@ HAL_StatusTypeDef HAL_FLASH_OB_Launch(void)
 
   return status;
 }
+
+#if defined(FLASH_CR_PUF_LAUNCH)
+/**
+  * @brief  Launch the PUF preparation.
+  * @retval HAL Status
+  */
+HAL_StatusTypeDef HAL_FLASHEx_PUF_Launch(void)
+{
+  HAL_StatusTypeDef status;
+
+  /* Set PUF_LAUNCH Bit */
+  SET_BIT(FLASH->NSCR, FLASH_CR_PUF_LAUNCH);
+
+  /* Wait for OB change operation to be completed */
+  status = FLASH_WaitForLastOperation(FLASH_TIMEOUT_VALUE);
+
+  return status;
+}
+#endif /* FLASH_CR_PUF_LAUNCH */
 
 /**
   * @}
@@ -783,7 +821,7 @@ HAL_StatusTypeDef FLASH_WaitForLastOperation(uint32_t Timeout)
      flag will be set */
 
   uint32_t errorflag;
-  __IO uint32_t *reg_sr;
+  const __IO uint32_t *reg_sr;
   __IO uint32_t *reg_ccr;
 
   uint32_t tickstart = HAL_GetTick();
@@ -958,6 +996,31 @@ static void FLASH_Program_HalfWord(uint32_t FlashAddress, uint32_t DataAddress)
   /* Program a halfword word (16 bits) */
   *(__IO uint16_t *)FlashAddress = *(__IO uint16_t *)DataAddress;
 }
+
+#if defined(FLASH_EDATAR_EDATA_EN)
+/**
+  * @brief  Program a word (32-bit) at a specified address.
+  * @param  FlashAddress specifies the address to be programmed.
+  * @param  DataAddress specifies the address of data to be programmed.
+  * @retval None
+  */
+static void FLASH_Program_Word(uint32_t FlashAddress, uint32_t DataAddress)
+{
+  __IO uint32_t *reg_cr;
+
+  /* Access to SECCR or NSCR registers depends on operation type */
+#if defined (FLASH_OPTSR2_TZEN)
+  reg_cr = IS_FLASH_SECURE_OPERATION() ? &(FLASH->SECCR) : &(FLASH_NS->NSCR);
+#else
+  reg_cr = &(FLASH_NS->NSCR);
+#endif /* FLASH_OPTSR2_TZEN */
+
+  /* Set PG bit */
+  SET_BIT((*reg_cr), FLASH_CR_PG);
+
+    *(__IO uint32_t *)FlashAddress = *(__IO uint32_t *)DataAddress;
+}
+#endif /* FLASH_EDATAR_EDATA_EN */
 
 /**
   * @}

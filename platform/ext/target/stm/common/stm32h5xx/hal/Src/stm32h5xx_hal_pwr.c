@@ -12,7 +12,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 STMicroelectronics.
+  * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -122,7 +122,6 @@ void HAL_PWR_DisableBkUpAccess(void)
   * @}
   */
 
-
 /** @defgroup PWR_Exported_Functions_Group2 Peripheral Control Functions
   *  @brief   Low power modes configuration functions
   *
@@ -142,7 +141,7 @@ void HAL_PWR_DisableBkUpAccess(void)
   *                      PVD configuration information (PVDLevel and EventMode).
   * @retval None.
   */
-HAL_StatusTypeDef HAL_PWR_ConfigPVD(PWR_PVDTypeDef *sConfigPVD)
+HAL_StatusTypeDef HAL_PWR_ConfigPVD(const PWR_PVDTypeDef *sConfigPVD)
 {
   /* Check the parameters */
   assert_param(IS_PWR_PVD_LEVEL(sConfigPVD->PVDLevel));
@@ -192,7 +191,6 @@ void HAL_PWR_EnablePVD(void)
 {
   SET_BIT(PWR->VMCR, PWR_VMCR_PVDEN);
 }
-
 
 /**
   * @brief  Disable the programmable voltage detector (PVD).
@@ -394,10 +392,11 @@ void HAL_PWR_EnterSTANDBYMode(void)
   /* Set SLEEPDEEP bit of Cortex System Control Register */
   SET_BIT(SCB->SCR, ((uint32_t)SCB_SCR_SLEEPDEEP_Msk));
 
-  /* This option is used to ensure that store operations are completed */
-#if defined ( __CC_ARM)
-  __force_stores();
-#endif /* __CC_ARM */
+  /* Wait For all memory accesses to complete before continuing */
+  __DSB();
+
+  /* Ensure that the processor pipeline is flushed */
+  __ISB();
 
   /* Wait For Interrupt Request */
   __WFI();
@@ -459,6 +458,9 @@ void HAL_PWR_DisableSEVOnPend(void)
 /**
   * @brief  This function handles the PWR PVD interrupt request.
   * @note   This API should be called under the PVD_AVD_IRQHandler().
+  * @note   The use of this API is only when we activate the PVD.
+  * @note   When the PVD and AVD are activated at the same time you must use this API:
+  *         HAL_PWREx_PVD_AVD_IRQHandler.
   * @retval None.
   */
 void HAL_PWR_PVD_IRQHandler(void)
@@ -513,13 +515,20 @@ __weak void HAL_PWR_PVDCallback(void)
   * @note   Available attributes are security and privilege protection.
   * @note   Security attribute can only be set only by secure access.
   * @note   Privilege attribute for secure items can be managed only by a secure
-  *         priliged access.
+  *         privileged access.
   * @note   Privilege attribute for nsecure items can be managed  by a secure
-  *         priliged access or by a nsecure priliged access.
+  *         privileged access or by a nsecure privileged access.
+  * @note   As the privileged attributes concern either all secure or all non-secure
+  *         PWR resources accesses and not each PWR individual items access attribute,
+  *         the application must ensure that the privilege access attribute configurations
+  *         are coherent amongst the security level set on PWR individual items so not to
+  *         overwrite a previous more restricted access rule (consider either all secure
+  *         and/or all non-secure PWR resources accesses by privileged-only transactions
+  *         or privileged and unprivileged transactions).
   * @param  Item       : Specifies the item(s) to set attributes on.
-  *                      This parameter can be a combination of @ref PWR_ITEMS.
+  *                      This parameter can be a combination of @ref PWR_Items.
   * @param  Attributes : Specifies the available attribute(s).
-  *                      This parameter can be one of @ref PWR_ATTRIBUTES.
+  *                      This parameter can be one of @ref PWR_Attributes.
   * @retval None.
   */
 void HAL_PWR_ConfigAttributes(uint32_t Item, uint32_t Attributes)
@@ -595,16 +604,14 @@ void HAL_PWR_ConfigAttributes(uint32_t Item, uint32_t Attributes)
     }
   }
 #endif /* PWR_SECCFGR_WUP1SEC */
-
 }
-
 
 /**
   * @brief  Get attribute(s) of a PWR item.
   * @param  Item        : Specifies the item(s) to set attributes on.
-  *                       This parameter can be one of @ref PWR_ITEMS.
+  *                       This parameter can be one of @ref PWR_Items.
   * @param  pAttributes : Pointer to return attribute(s).
-  *                       Returned value could be on of @ref PWR_ATTRIBUTES.
+  *                       Returned value could be on of @ref PWR_Attributes.
   * @retval HAL Status.
   */
 HAL_StatusTypeDef HAL_PWR_GetConfigAttributes(uint32_t Item, uint32_t *pAttributes)
@@ -637,10 +644,13 @@ HAL_StatusTypeDef HAL_PWR_GetConfigAttributes(uint32_t Item, uint32_t *pAttribut
 #endif /* __ARM_FEATURE_CMSE */
 
 #else  /* PWR_SECCFGR_WUP1SEC*/
+  /* Prevent unused argument(s) compilation warning */
   UNUSED(Item);
+
   /* Get Non-Secure privileges attribute */
   attributes = ((PWR->PRIVCFGR & PWR_PRIVCFGR_PRIV) == 0U) ? PWR_NPRIV : PWR_PRIV;
 #endif /* PWR_SECCFGR_WUP1SEC */
+
   /* return value */
   *pAttributes = attributes;
 

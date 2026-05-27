@@ -6,6 +6,8 @@ SPDX-License-Identifier: BSD-3-Clause
 -->
 
 
+Content from https://github.com/STMicroelectronics/stm32h5xx-hal-driver (HAL version - Tag V1.6.0)
+
 ---
 
 # Patch-1

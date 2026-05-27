@@ -9,10 +9,9 @@
   * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -49,7 +48,7 @@ typedef struct
   uint32_t TypeErase;   /*!< Mass erase or sector Erase.
                              This parameter can be a value of @ref FLASH_Type_Erase */
 
-  uint32_t Banks;       /*!< Select banks to erase when Mass erase is enabled.
+  uint32_t Banks;       /*!< Select bank to erase.
                              This parameter can be a value of @ref FLASH_Banks
                              (FLASH_BANK_BOTH should be used only for mass erase) */
 
@@ -90,7 +89,7 @@ typedef struct
                                 @ref FLASH_OB_USER_SRAM2_RST, @ref FLASH_OB_USER_BKPRAM_ECC,
                                 @ref FLASH_OB_USER_SRAM3_ECC, @ref FLASH_OB_USER_SRAM2_ECC,
                                 @ref FLASH_OB_USER_SRAM1_RST, @ref FLASH_OB_USER_SRAM1_ECC,
-                                @ref FLASH_OB_USER_UNIQUE_KEY, @ref FLASH_OB_USER_TZEN */
+                                @ref FLASH_OB_USER_USBPD_DIS, @ref FLASH_OB_USER_TZEN */
 
   uint32_t Banks;          /*!< Select banks for WRP , HDP and secure area configuration.
                                 This parameter must be a value of @ref FLASH_Banks */
@@ -98,7 +97,7 @@ typedef struct
   uint32_t WRPState;       /*!< Write protection activation or deactivation.
                                 This parameter can be a value of @ref FLASH_WRP_State */
 
-  uint32_t WRPSector;      /*!< Specifies the sector(s) to be write protected.
+  uint64_t WRPSector;      /*!< Specifies the sector(s) to be write protected.
                                 The value of this parameter depend on device used within the same series */
 
   uint32_t BootConfig;     /*!< Specifies if the Boot Address to be configured: secure or non-secure.
@@ -173,6 +172,19 @@ typedef struct
 } FLASH_HDPExtensionTypeDef;
 
 /**
+  * @brief  ECC Info Structure definition
+  */
+typedef struct
+{
+  uint32_t               Area;             /*!< Area from which an ECC was detected.
+                                                This parameter can be a value of @ref FLASH_ECC_Area  */
+
+  uint32_t               Address;          /*!< ECC error address */
+
+  uint32_t               Data;             /*!< ECC failing data */
+} FLASH_EccInfoTypeDef;
+
+/**
   * @}
   */
 /* Exported constants --------------------------------------------------------*/
@@ -207,6 +219,26 @@ typedef struct
                                                                                                   activation */
 #endif /* FLASH_SR_OBKERR */
 #endif /* __ARM_FEATURE_CMSE */
+
+/** @defgroup FLASH_ECC_Area FLASH ECC Area
+  * @brief    FLASH ECC Area
+  * @{
+  */
+#define FLASH_ECC_AREA_USER_BANK1         0x00000000U               /*!< FLASH bank 1 area                */
+#define FLASH_ECC_AREA_USER_BANK2         FLASH_ECCR_BK_ECC         /*!< FLASH bank 2 area                */
+#define FLASH_ECC_AREA_SYSTEM             FLASH_ECCR_SYSF_ECC       /*!< System FLASH area                */
+#if defined (FLASH_SR_OBKERR)
+#define FLASH_ECC_AREA_OBK                FLASH_ECCR_OBK_ECC        /*!< FLASH OBK area                   */
+#endif /* FLASH_SR_OBKERR */
+#define FLASH_ECC_AREA_OTP                FLASH_ECCR_OTP_ECC        /*!< FLASH OTP area                   */
+#if defined (FLASH_EDATAR_EDATA_EN)
+#define FLASH_ECC_AREA_EDATA_BANK1        FLASH_ECCR_DATA_ECC       /*!< FLASH high-cycle data area       */
+#define FLASH_ECC_AREA_EDATA_BANK2        (FLASH_ECCR_DATA_ECC | FLASH_ECCR_BK_ECC)    /*!< FLASH high-cycle data area       */
+#endif /* FLASH_EDATAR_EDATA_EN */
+/**
+  * @}
+  */
+
 /**
   * @}
   */
@@ -268,6 +300,8 @@ byte configuration */
 
 #if defined (FLASH_OPTSR2_SRAM1_3_RST)
 #define OB_USER_SRAM1_3_RST       0x00001000U     /*!< SRAM1 and SRAM3 erase upon system reset */
+#elif defined (FLASH_OPTSR2_SRAM1_3_4_5_RST)
+#define OB_USER_SRAM1_3_4_5_RST   0x00001000U     /*!< SRAM1, SRAM3, SRAM4 and SRAM5 erase upon system reset */
 #endif /* FLASH_OPTSR2_SRAM1_3_RST */
 #if defined (FLASH_OPTSR2_SRAM1_RST)
 #define OB_USER_SRAM1_RST         0x00001000U     /*!< SRAM1 Erase when system reset */
@@ -277,28 +311,39 @@ byte configuration */
 #define OB_USER_SRAM3_ECC         0x00008000U     /*!< SRAM3 ECC detection and correction enable */
 #define OB_USER_SRAM2_ECC         0x00010000U     /*!< SRAM2 ECC detection and correction enable */
 #define OB_USER_SRAM1_ECC         0x00020000U     /*!< SRAM1 ECC detection and correction enable */
-#if defined (FLASH_SR_PUF_STATE)
-#define OB_USER_HUK_PUF           0x00040000U     /*!< Unique key type */
-#endif /* FLASH_SR_PUF_STATE */
+#if defined (FLASH_OPTSR2_USBPD_DIS)
+#define OB_USER_USBPD_DIS         0x00040000U     /*!< USB power delivery configuration enable */
+#endif /*FLASH_OPTSR2_USBPD_DIS*/
 #if defined (FLASH_OPTSR2_TZEN)
 #define OB_USER_TZEN              0x00080000U     /*!< Global TrustZone security enable */
 #endif /* FLASH_OPTSR2_TZEN */
+#if defined (FLASH_OPTSR2_HUK_PUF)
+#define OB_USER_HUK_PUF           0x00100000U     /*!< HUK source sent to the SAES is RHUK/PUF */
+#endif /* FLASH_OPTSR2_HUK_PUF */
 
-#if defined (FLASH_OPTSR2_SRAM1_3_RST) && defined (FLASH_OPTSR_BOOT_UBE)
+#if defined (FLASH_OPTSR2_SRAM1_3_RST) && defined (FLASH_OPTSR_BOOT_UBE) && defined (FLASH_OPTSR2_USBPD_DIS)
 #define OB_USER_ALL (OB_USER_BOR_LEV        | OB_USER_BORH_EN        | OB_USER_IWDG_SW     |\
                      OB_USER_WWDG_SW        | OB_USER_NRST_STOP      | OB_USER_NRST_STDBY  |\
                      OB_USER_IO_VDD_HSLV    | OB_USER_IO_VDDIO2_HSLV | OB_USER_IWDG_STOP   |\
                      OB_USER_IWDG_STDBY     | OB_USER_BOOT_UBE       | OB_USER_SWAP_BANK   |\
                      OB_USER_SRAM1_3_RST    | OB_USER_SRAM2_RST      | OB_USER_BKPRAM_ECC  |\
-                     OB_USER_SRAM3_ECC      | OB_USER_SRAM2_ECC      | OB_USER_HUK_PUF     |\
+                     OB_USER_SRAM3_ECC      | OB_USER_SRAM2_ECC      | OB_USER_USBPD_DIS   |\
                      OB_USER_TZEN)
+#elif defined (FLASH_OPTSR2_SRAM1_3_4_5_RST) && defined (FLASH_OPTSR_BOOT_UBE) && defined (FLASH_OPTSR2_USBPD_DIS)
+#define OB_USER_ALL (OB_USER_BOR_LEV         | OB_USER_BORH_EN        | OB_USER_IWDG_SW     |\
+                     OB_USER_WWDG_SW         | OB_USER_NRST_STOP      | OB_USER_NRST_STDBY  |\
+                     OB_USER_IO_VDD_HSLV     | OB_USER_IO_VDDIO2_HSLV | OB_USER_IWDG_STOP   |\
+                     OB_USER_IWDG_STDBY      | OB_USER_BOOT_UBE       | OB_USER_SWAP_BANK   |\
+                     OB_USER_SRAM1_3_4_5_RST | OB_USER_SRAM2_RST      | OB_USER_BKPRAM_ECC  |\
+                     OB_USER_SRAM3_ECC       | OB_USER_SRAM2_ECC      | OB_USER_USBPD_DIS   |\
+                     OB_USER_TZEN            | OB_USER_HUK_PUF)
 #else
 #define OB_USER_ALL (OB_USER_BOR_LEV        | OB_USER_BORH_EN        | OB_USER_IWDG_SW     |\
                      OB_USER_WWDG_SW        | OB_USER_NRST_STOP      | OB_USER_NRST_STDBY  |\
                      OB_USER_IO_VDD_HSLV    | OB_USER_IO_VDDIO2_HSLV | OB_USER_IWDG_STOP   |\
                      OB_USER_IWDG_STDBY     | OB_USER_SWAP_BANK      | OB_USER_SRAM1_RST   |\
                      OB_USER_SRAM2_RST      | OB_USER_BKPRAM_ECC     | OB_USER_SRAM3_ECC   |\
-                     OB_USER_SRAM2_ECC      |  OB_USER_SRAM1_ECC)
+                     OB_USER_SRAM2_ECC      | OB_USER_SRAM1_ECC)
 #endif /* FLASH_OPTSR2_SRAM1_3_RST && FLASH_OPTSR_BOOT_UBE */
 /**
   * @}
@@ -307,9 +352,9 @@ byte configuration */
 /** @defgroup FLASH_OB_USER_BOR_LEVEL FLASH BOR Reset Level
   * @{
   */
-#define OB_BOR_LEVEL_1        FLASH_OPTSR_BOR_LEV_0                            /*!< Reset level 1 threshold */
-#define OB_BOR_LEVEL_2        FLASH_OPTSR_BOR_LEV_1                            /*!< Reset level 2 threshold */
-#define OB_BOR_LEVEL_3        (FLASH_OPTSR_BOR_LEV_1 | FLASH_OPTSR_BOR_LEV_0)  /*!< Reset level 3 threshold */
+#define OB_BOR_LEVEL_1        0U                                               /*!< Reset level 1 threshold */
+#define OB_BOR_LEVEL_2        FLASH_OPTSR_BOR_LEV_0                            /*!< Reset level 2 threshold */
+#define OB_BOR_LEVEL_3        FLASH_OPTSR_BOR_LEV_1                            /*!< Reset level 3 threshold */
 /**
   * @}
   */
@@ -362,14 +407,14 @@ byte configuration */
 /** @defgroup FLASH_OB_Product_State FLASH Product State
   * @{
   */
-#define OB_PROD_STATE_OPEN                   (0xEDU << FLASH_OPTSR_PRODUCT_STATE_Pos)
-#define OB_PROD_STATE_PROVISIONING           (0x17U << FLASH_OPTSR_PRODUCT_STATE_Pos)
-#define OB_PROD_STATE_IROT_PROVISIONED       (0x2EU << FLASH_OPTSR_PRODUCT_STATE_Pos)
-#define OB_PROD_STATE_TZ_CLOSED              (0xC6U << FLASH_OPTSR_PRODUCT_STATE_Pos)
-#define OB_PROD_STATE_CLOSED                 (0x72U << FLASH_OPTSR_PRODUCT_STATE_Pos)
-#define OB_PROD_STATE_LOCKED                 (0x5CU << FLASH_OPTSR_PRODUCT_STATE_Pos)
-#define OB_PROD_STATE_REGRESSION             (0x9AU << FLASH_OPTSR_PRODUCT_STATE_Pos)
-#define OB_PROD_STATE_NS_REGRESSION          (0xA3U << FLASH_OPTSR_PRODUCT_STATE_Pos)
+#define OB_PROD_STATE_OPEN                   (0xEDUL << FLASH_OPTSR_PRODUCT_STATE_Pos)
+#define OB_PROD_STATE_PROVISIONING           (0x17UL << FLASH_OPTSR_PRODUCT_STATE_Pos)
+#define OB_PROD_STATE_IROT_PROVISIONED       (0x2EUL << FLASH_OPTSR_PRODUCT_STATE_Pos)
+#define OB_PROD_STATE_TZ_CLOSED              (0xC6UL << FLASH_OPTSR_PRODUCT_STATE_Pos)
+#define OB_PROD_STATE_CLOSED                 (0x72UL << FLASH_OPTSR_PRODUCT_STATE_Pos)
+#define OB_PROD_STATE_LOCKED                 (0x5CUL << FLASH_OPTSR_PRODUCT_STATE_Pos)
+#define OB_PROD_STATE_REGRESSION             (0x9AUL << FLASH_OPTSR_PRODUCT_STATE_Pos)
+#define OB_PROD_STATE_NS_REGRESSION          (0xA3UL << FLASH_OPTSR_PRODUCT_STATE_Pos)
 /**
   * @}
   */
@@ -416,8 +461,8 @@ byte configuration */
   * @{
   */
 #if defined (FLASH_OPTSR_BOOT_UBE)
-#define OB_UBE_OEM_IROT   (0xB4U << FLASH_OPTSR_BOOT_UBE_Pos) /*!< OEM-iRoT (user flash) selected  */
-#define OB_UBE_ST_IROT    (0xC3U << FLASH_OPTSR_BOOT_UBE_Pos) /*!< ST-iRoT (system flash) selected */
+#define OB_UBE_OEM_IROT   (0xB4UL << FLASH_OPTSR_BOOT_UBE_Pos) /*!< OEM-iRoT (user flash) selected  */
+#define OB_UBE_ST_IROT    (0xC3UL << FLASH_OPTSR_BOOT_UBE_Pos) /*!< ST-iRoT (system flash) selected */
 #endif /* FLASH_OPTSR_BOOT_UBE */
 /**
   * @}
@@ -440,6 +485,17 @@ byte configuration */
 #define OB_SRAM1_3_RST_NOT_ERASE  FLASH_OPTSR2_SRAM1_3_RST  /*!< SRAM1 and SRAM3 are not erased when a system reset
                                                                  occurs */
 #endif /* FLASH_OPTSR2_SRAM1_3_RST */
+/**
+  * @}
+  */
+
+/** @defgroup FLASH_OB_USER_SRAM1_3_4_5_RST FLASH Option Bytes SRAM1_3 Erase On Reset
+  * @{
+  */
+#if defined (FLASH_OPTSR2_SRAM1_3_4_5_RST)
+#define OB_SRAM1_3_4_5_RST_ERASE      0x00000000U                   /*!< SRAM1, SRAM3, SRAM4, and SRAM5 erased when a system reset occurs    */
+#define OB_SRAM1_3_4_5_RST_NOT_ERASE  FLASH_OPTSR2_SRAM1_3_4_5_RST  /*!< SRAM1, SRAM3, SRAM4, and SRAM5 when a system reset occurs */
+#endif /* FLASH_OPTSR2_SRAM1_3_4_5_RST */
 /**
   * @}
   */
@@ -494,6 +550,17 @@ byte configuration */
   * @}
   */
 
+/** @defgroup FLASH_OB_HUK_PUF FLASH Option Bytes User PUF STATE check
+  * @{
+  */
+#if defined (FLASH_SR_PUF_STATE)
+#define FLASH_FLAG_PUF_NOT_READY    0x00000000U              /*!< PUF is not ready. Retry PUF_LAUNCH */
+#define FLASH_FLAG_PUF_READY        FLASH_SR_PUF_STATE       /*!< PUF is ready for use */
+#endif /* FLASH_SR_PUF_STATE */
+/**
+  * @}
+  */
+
 /** @defgroup FLASH_OB_USER_SRAM1_ECC FLASH Option Bytes User SRAM1 ECC check
   * @{
   */
@@ -505,23 +572,33 @@ byte configuration */
   * @}
   */
 
-/** @defgroup FLASH_OB_USER_UNIQUE_KEY FLASH Option Bytes User Unique Key
+/** @defgroup FLASH_OB_USER_USBPD_DIS FLASH Option Bytes USB power delivery configuration
   * @{
   */
-#if defined (FLASH_SR_PUF_STATE)
-#define OB_UNIQUE_KEY_HUK         0x00000000U              /*!< The key is treated as HUK */
-#define OB_UNIQUE_KEY_PUF         FLASH_OPTSR2_HUK_PUF     /*!< The key is treated as PUF */
-#endif /* FLASH_SR_PUF_STATE */
+#if defined (FLASH_OPTSR2_USBPD_DIS)
+#define OB_USBPD_DIS_ENABLE       0x00000000U            /*!< USB power delivery check enable  */
+#define OB_USBPD_DIS_DISABLE      FLASH_OPTSR2_USBPD_DIS /*!< USB power delivery check disable */
+#endif /* FLASH_OPTSR2_USBPD_DIS */
 /**
   * @}
   */
-
 /** @defgroup FLASH_OB_USER_TZEN FLASH Option Bytes Global TrustZone
   * @{
   */
 #if defined (FLASH_OPTSR2_TZEN)
-#define OB_TZEN_DISABLE   (0xC3U << FLASH_OPTSR2_TZEN_Pos) /*!< Global TrustZone security disabled */
-#define OB_TZEN_ENABLE    (0xB4U << FLASH_OPTSR2_TZEN_Pos) /*!< Global TrustZone security enabled */
+#define OB_TZEN_DISABLE   (0xC3UL << FLASH_OPTSR2_TZEN_Pos) /*!< Global TrustZone security disabled */
+#define OB_TZEN_ENABLE    (0xB4UL << FLASH_OPTSR2_TZEN_Pos) /*!< Global TrustZone security enabled */
+#endif /* FLASH_OPTSR2_TZEN */
+/**
+  * @}
+  */
+
+/** @defgroup FLASH_OPTSR2_HUK_PUF FLASH Option Bytes Global TrustZone
+  * @{
+  */
+#if defined (FLASH_OPTSR2_HUK_PUF)
+#define OB_UNIQUE_KEY_HUK    0x00000000U                 /*!< HUK source is RHUK */
+#define OB_UNIQUE_KEY_PUF    FLASH_OPTSR2_HUK_PUF        /*!< HUK source is PUF */
 #endif /* FLASH_OPTSR2_TZEN */
 /**
   * @}
@@ -540,51 +617,98 @@ byte configuration */
 /** @defgroup FLASH_OB_Write_Protection_Sectors FLASH Option Bytes Write Protection Sectors
   * @{
   */
-#if (FLASH_SECTOR_NB == 128)
-#define OB_WRP_SECTOR_0TO3       0x00000001U /*!< Write protection of Sector0  to Sector3    */
-#define OB_WRP_SECTOR_4TO7       0x00000002U /*!< Write protection of Sector4  to Sector7    */
-#define OB_WRP_SECTOR_8TO11      0x00000004U /*!< Write protection of Sector8  to Sector11   */
-#define OB_WRP_SECTOR_12TO15     0x00000008U /*!< Write protection of Sector12 to Sector15   */
-#define OB_WRP_SECTOR_16TO19     0x00000010U /*!< Write protection of Sector16 to Sector19   */
-#define OB_WRP_SECTOR_20TO23     0x00000020U /*!< Write protection of Sector20 to Sector23   */
-#define OB_WRP_SECTOR_24TO27     0x00000040U /*!< Write protection of Sector24 to Sector27   */
-#define OB_WRP_SECTOR_28TO31     0x00000080U /*!< Write protection of Sector28 to Sector31   */
-#define OB_WRP_SECTOR_32TO35     0x00000100U /*!< Write protection of Sector32 to Sector35   */
-#define OB_WRP_SECTOR_36TO39     0x00000200U /*!< Write protection of Sector36 to Sector39   */
-#define OB_WRP_SECTOR_40TO43     0x00000400U /*!< Write protection of Sector40 to Sector43   */
-#define OB_WRP_SECTOR_44TO47     0x00000800U /*!< Write protection of Sector44 to Sector47   */
-#define OB_WRP_SECTOR_48TO51     0x00001000U /*!< Write protection of Sector48 to Sector51   */
-#define OB_WRP_SECTOR_52TO55     0x00002000U /*!< Write protection of Sector52 to Sector55   */
-#define OB_WRP_SECTOR_56TO59     0x00004000U /*!< Write protection of Sector56 to Sector59   */
-#define OB_WRP_SECTOR_60TO63     0x00008000U /*!< Write protection of Sector60 to Sector63   */
-#define OB_WRP_SECTOR_64TO67     0x00010000U /*!< Write protection of Sector64 to Sector67   */
-#define OB_WRP_SECTOR_68TO71     0x00020000U /*!< Write protection of Sector68 to Sector71   */
-#define OB_WRP_SECTOR_72TO75     0x00040000U /*!< Write protection of Sector72 to Sector75   */
-#define OB_WRP_SECTOR_76TO79     0x00080000U /*!< Write protection of Sector76 to Sector79   */
-#define OB_WRP_SECTOR_80TO83     0x00100000U /*!< Write protection of Sector80 to Sector83   */
-#define OB_WRP_SECTOR_84TO87     0x00200000U /*!< Write protection of Sector84 to Sector87   */
-#define OB_WRP_SECTOR_88TO91     0x00400000U /*!< Write protection of Sector88 to Sector91   */
-#define OB_WRP_SECTOR_92TO95     0x00800000U /*!< Write protection of Sector92 to Sector95   */
-#define OB_WRP_SECTOR_96TO99     0x01000000U /*!< Write protection of Sector96  to Sector99  */
-#define OB_WRP_SECTOR_100TO103   0x02000000U /*!< Write protection of Sector100 to Sector103 */
-#define OB_WRP_SECTOR_104TO107   0x04000000U /*!< Write protection of Sector104 to Sector107 */
-#define OB_WRP_SECTOR_108TO111   0x08000000U /*!< Write protection of Sector108 to Sector111 */
-#define OB_WRP_SECTOR_112TO115   0x10000000U /*!< Write protection of Sector112 to Sector115 */
-#define OB_WRP_SECTOR_116TO119   0x20000000U /*!< Write protection of Sector116 to Sector119 */
-#define OB_WRP_SECTOR_120TO123   0x40000000U /*!< Write protection of Sector120 to Sector123 */
-#define OB_WRP_SECTOR_124TO127   0x80000000U /*!< Write protection of Sector124 to Sector127 */
-#define OB_WRP_SECTOR_ALL        0xFFFFFFFFU /*!< Write protection of all Sectors            */
+#if (FLASH_SECTOR_NB == 8)
+#define OB_WRP_SECTOR_0          0x0000000000000001U /*!< Write protection of Sector0                */
+#define OB_WRP_SECTOR_1          0x0000000000000002U /*!< Write protection of Sector1                */
+#define OB_WRP_SECTOR_2          0x0000000000000004U /*!< Write protection of Sector2                */
+#define OB_WRP_SECTOR_3          0x0000000000000008U /*!< Write protection of Sector3                */
+#define OB_WRP_SECTOR_4          0x0000000000000010U /*!< Write protection of Sector4                */
+#define OB_WRP_SECTOR_5          0x0000000000000020U /*!< Write protection of Sector5                */
+#define OB_WRP_SECTOR_6          0x0000000000000040U /*!< Write protection of Sector6                */
+#define OB_WRP_SECTOR_7          0x0000000000000080U /*!< Write protection of Sector7                */
+#define OB_WRP_SECTOR_ALL        0x00000000000000FFU /*!< Write protection of all Sectors            */
 #else
-#define OB_WRP_SECTOR_0          0x00000001U /*!< Write protection of Sector0                */
-#define OB_WRP_SECTOR_1          0x00000002U /*!< Write protection of Sector1                */
-#define OB_WRP_SECTOR_2          0x00000004U /*!< Write protection of Sector2                */
-#define OB_WRP_SECTOR_3          0x00000008U /*!< Write protection of Sector3                */
-#define OB_WRP_SECTOR_4          0x00000010U /*!< Write protection of Sector4                */
-#define OB_WRP_SECTOR_5          0x00000020U /*!< Write protection of Sector5                */
-#define OB_WRP_SECTOR_6          0x00000040U /*!< Write protection of Sector6                */
-#define OB_WRP_SECTOR_7          0x00000080U /*!< Write protection of Sector7                */
-#define OB_WRP_SECTOR_ALL        0x000000FFU /*!< Write protection of all Sectors            */
-#endif /* (FLASH_SECTOR_NB == 128) */
+#define OB_WRP_SECTOR_0TO3       0x0000000000000001U /*!< Write protection of Sector0  to Sector3    */
+#define OB_WRP_SECTOR_4TO7       0x0000000000000002U /*!< Write protection of Sector4  to Sector7    */
+#define OB_WRP_SECTOR_8TO11      0x0000000000000004U /*!< Write protection of Sector8  to Sector11   */
+#define OB_WRP_SECTOR_12TO15     0x0000000000000008U /*!< Write protection of Sector12 to Sector15   */
+#define OB_WRP_SECTOR_16TO19     0x0000000000000010U /*!< Write protection of Sector16 to Sector19   */
+#define OB_WRP_SECTOR_20TO23     0x0000000000000020U /*!< Write protection of Sector20 to Sector23   */
+#define OB_WRP_SECTOR_24TO27     0x0000000000000040U /*!< Write protection of Sector24 to Sector27   */
+#define OB_WRP_SECTOR_28TO31     0x0000000000000080U /*!< Write protection of Sector28 to Sector31   */
+#if (FLASH_SECTOR_NB == 64) || (FLASH_SECTOR_NB == 128) || (FLASH_SECTOR_NB == 256)
+#define OB_WRP_SECTOR_32TO35     0x0000000000000100U /*!< Write protection of Sector32 to Sector35   */
+#define OB_WRP_SECTOR_36TO39     0x0000000000000200U /*!< Write protection of Sector36 to Sector39   */
+#define OB_WRP_SECTOR_40TO43     0x0000000000000400U /*!< Write protection of Sector40 to Sector43   */
+#define OB_WRP_SECTOR_44TO47     0x0000000000000800U /*!< Write protection of Sector44 to Sector47   */
+#define OB_WRP_SECTOR_48TO51     0x0000000000001000U /*!< Write protection of Sector48 to Sector51   */
+#define OB_WRP_SECTOR_52TO55     0x0000000000002000U /*!< Write protection of Sector52 to Sector55   */
+#define OB_WRP_SECTOR_56TO59     0x0000000000004000U /*!< Write protection of Sector56 to Sector59   */
+#define OB_WRP_SECTOR_60TO63     0x0000000000008000U /*!< Write protection of Sector60 to Sector63   */
+#endif /* (FLASH_SECTOR_NB == 64) || (FLASH_SECTOR_NB == 128) || (FLASH_SECTOR_NB == 256) */
+#if (FLASH_SECTOR_NB == 128) || (FLASH_SECTOR_NB == 256)
+#define OB_WRP_SECTOR_64TO67     0x0000000000010000U /*!< Write protection of Sector64 to Sector67   */
+#define OB_WRP_SECTOR_68TO71     0x0000000000020000U /*!< Write protection of Sector68 to Sector71   */
+#define OB_WRP_SECTOR_72TO75     0x0000000000040000U /*!< Write protection of Sector72 to Sector75   */
+#define OB_WRP_SECTOR_76TO79     0x0000000000080000U /*!< Write protection of Sector76 to Sector79   */
+#define OB_WRP_SECTOR_80TO83     0x0000000000100000U /*!< Write protection of Sector80 to Sector83   */
+#define OB_WRP_SECTOR_84TO87     0x0000000000200000U /*!< Write protection of Sector84 to Sector87   */
+#define OB_WRP_SECTOR_88TO91     0x0000000000400000U /*!< Write protection of Sector88 to Sector91   */
+#define OB_WRP_SECTOR_92TO95     0x0000000000800000U /*!< Write protection of Sector92 to Sector95   */
+#define OB_WRP_SECTOR_96TO99     0x0000000001000000U /*!< Write protection of Sector96  to Sector99  */
+#define OB_WRP_SECTOR_100TO103   0x0000000002000000U /*!< Write protection of Sector100 to Sector103 */
+#define OB_WRP_SECTOR_104TO107   0x0000000004000000U /*!< Write protection of Sector104 to Sector107 */
+#define OB_WRP_SECTOR_108TO111   0x0000000008000000U /*!< Write protection of Sector108 to Sector111 */
+#define OB_WRP_SECTOR_112TO115   0x0000000010000000U /*!< Write protection of Sector112 to Sector115 */
+#define OB_WRP_SECTOR_116TO119   0x0000000020000000U /*!< Write protection of Sector116 to Sector119 */
+#define OB_WRP_SECTOR_120TO123   0x0000000040000000U /*!< Write protection of Sector120 to Sector123 */
+#define OB_WRP_SECTOR_124TO127   0x0000000080000000U /*!< Write protection of Sector124 to Sector127 */
+#endif /* (FLASH_SECTOR_NB == 128) || (FLASH_SECTOR_NB == 256) */
+#if (FLASH_SECTOR_NB == 256)
+#define OB_WRP_SECTOR_128TO131   0x0000000100000000U /*!< Write protection of Sector128 to Sector131 */
+#define OB_WRP_SECTOR_132TO135   0x0000000200000000U /*!< Write protection of Sector132 to Sector135 */
+#define OB_WRP_SECTOR_136TO139   0x0000000400000000U /*!< Write protection of Sector136 to Sector139 */
+#define OB_WRP_SECTOR_140TO143   0x0000000800000000U /*!< Write protection of Sector140 to Sector143 */
+#define OB_WRP_SECTOR_144TO147   0x0000001000000000U /*!< Write protection of Sector144 to Sector147 */
+#define OB_WRP_SECTOR_148TO151   0x0000002000000000U /*!< Write protection of Sector148 to Sector151 */
+#define OB_WRP_SECTOR_152TO155   0x0000004000000000U /*!< Write protection of Sector152 to Sector155 */
+#define OB_WRP_SECTOR_156TO159   0x0000008000000000U /*!< Write protection of Sector156 to Sector159 */
+#define OB_WRP_SECTOR_160TO163   0x0000010000000000U /*!< Write protection of Sector160 to Sector163 */
+#define OB_WRP_SECTOR_164TO167   0x0000020000000000U /*!< Write protection of Sector164 to Sector167 */
+#define OB_WRP_SECTOR_168TO171   0x0000040000000000U /*!< Write protection of Sector168 to Sector171 */
+#define OB_WRP_SECTOR_172TO175   0x0000080000000000U /*!< Write protection of Sector172 to Sector175 */
+#define OB_WRP_SECTOR_176TO179   0x0000100000000000U /*!< Write protection of Sector176 to Sector179 */
+#define OB_WRP_SECTOR_180TO183   0x0000200000000000U /*!< Write protection of Sector180 to Sector183 */
+#define OB_WRP_SECTOR_184TO187   0x0000400000000000U /*!< Write protection of Sector184 to Sector187 */
+#define OB_WRP_SECTOR_188TO191   0x0000800000000000U /*!< Write protection of Sector188 to Sector191 */
+#define OB_WRP_SECTOR_192TO195   0x0001000000000000U /*!< Write protection of Sector192 to Sector195 */
+#define OB_WRP_SECTOR_196TO199   0x0002000000000000U /*!< Write protection of Sector196 to Sector199 */
+#define OB_WRP_SECTOR_200TO203   0x0004000000000000U /*!< Write protection of Sector200 to Sector203 */
+#define OB_WRP_SECTOR_204TO207   0x0008000000000000U /*!< Write protection of Sector204 to Sector207 */
+#define OB_WRP_SECTOR_208TO211   0x0010000000000000U /*!< Write protection of Sector208 to Sector211 */
+#define OB_WRP_SECTOR_212TO215   0x0020000000000000U /*!< Write protection of Sector212 to Sector215 */
+#define OB_WRP_SECTOR_216TO219   0x0040000000000000U /*!< Write protection of Sector216 to Sector219 */
+#define OB_WRP_SECTOR_220TO223   0x0080000000000000U /*!< Write protection of Sector220 to Sector223 */
+#define OB_WRP_SECTOR_224TO227   0x0100000000000000U /*!< Write protection of Sector224 to Sector227 */
+#define OB_WRP_SECTOR_228TO231   0x0200000000000000U /*!< Write protection of Sector228 to Sector231 */
+#define OB_WRP_SECTOR_232TO235   0x0400000000000000U /*!< Write protection of Sector232 to Sector235 */
+#define OB_WRP_SECTOR_236TO239   0x0800000000000000U /*!< Write protection of Sector236 to Sector239 */
+#define OB_WRP_SECTOR_240TO243   0x1000000000000000U /*!< Write protection of Sector240 to Sector243 */
+#define OB_WRP_SECTOR_244TO247   0x2000000000000000U /*!< Write protection of Sector244 to Sector247 */
+#define OB_WRP_SECTOR_248TO251   0x4000000000000000U /*!< Write protection of Sector248 to Sector251 */
+#define OB_WRP_SECTOR_252TO255   0x8000000000000000U /*!< Write protection of Sector252 to Sector255 */
+#endif /* (FLASH_SECTOR_NB == 256) */
+#endif /* (FLASH_SECTOR_NB == 8) */
+#if (FLASH_SECTOR_NB == 32)
+#define OB_WRP_SECTOR_ALL        0x00000000000000FFU /*!< Write protection of all Sectors            */
+#elif (FLASH_SECTOR_NB == 64)
+#define OB_WRP_SECTOR_ALL        0x000000000000FFFFU /*!< Write protection of all Sectors            */
+#elif (FLASH_SECTOR_NB == 128)
+#define OB_WRP_SECTOR_ALL        0x00000000FFFFFFFFU /*!< Write protection of all Sectors            */
+#elif (FLASH_SECTOR_NB == 256)
+#define OB_WRP_SECTOR_ALL        0xFFFFFFFFFFFFFFFFU /*!< Write protection of all Sectors            */
+#endif /* FLASH_SECTOR_NB == 32 */
+
 /**
   * @}
   */
@@ -592,13 +716,12 @@ byte configuration */
 /** @defgroup FLASH_Programming_Delay FLASH Programming Delay
   * @{
   */
-#define FLASH_PROGRAMMING_DELAY_0   0x00000000U            /*!< programming delay set for Flash running at 70 MHz or
+#define FLASH_PROGRAMMING_DELAY_0   0x00000000U            /*!< programming delay set for Flash running at 84 MHz or
                                                                 below */
-#define FLASH_PROGRAMMING_DELAY_1   FLASH_ACR_WRHIGHFREQ_0 /*!< programming delay set for Flash running between 70 MHz
-                                                                and 185 MHz */
-#define FLASH_PROGRAMMING_DELAY_2   FLASH_ACR_WRHIGHFREQ_1 /*!< programming delay set for Flash running between 185 MHz
-                                                                and 225 MHz */
-#define FLASH_PROGRAMMING_DELAY_3   FLASH_ACR_WRHIGHFREQ   /*!< programming delay set for Flash at startup */
+#define FLASH_PROGRAMMING_DELAY_1   FLASH_ACR_WRHIGHFREQ_0 /*!< programming delay set for Flash running between 84 MHz
+                                                                and 168 MHz */
+#define FLASH_PROGRAMMING_DELAY_2   FLASH_ACR_WRHIGHFREQ_1 /*!< programming delay set for Flash running between 168 MHz
+                                                                and 250 MHz */
 /**
   * @}
   */
@@ -828,11 +951,8 @@ void              HAL_FLASHEx_OBGetConfig(FLASH_OBProgramInitTypeDef *pOBInit);
 HAL_StatusTypeDef HAL_FLASHEx_OBK_Unlock(void);
 HAL_StatusTypeDef HAL_FLASHEx_OBK_Lock(void);
 HAL_StatusTypeDef HAL_FLASHEx_OBK_Swap(uint32_t SwapOffset);
+HAL_StatusTypeDef HAL_FLASHEx_OBK_Swap_IT(uint32_t SwapOffset);
 #endif /* FLASH_SR_OBKERR */
-#if defined (FLASH_SR_PUF_STATE)
-HAL_StatusTypeDef HAL_FLASHEx_PUF_Launch(void);
-#endif /* FLASH_SR_PUF_STATE */
-
 void              HAL_FLASHEx_GetOperation(FLASH_OperationTypeDef *pFlashOperation);
 /**
   * @}
@@ -842,7 +962,7 @@ void              HAL_FLASHEx_GetOperation(FLASH_OperationTypeDef *pFlashOperati
   * @{
   */
 /* Extension Protection configuration functions  *************************************/
-HAL_StatusTypeDef HAL_FLASHEx_ConfigBBAttributes(FLASH_BBAttributesTypeDef *pBBAttributes);
+HAL_StatusTypeDef HAL_FLASHEx_ConfigBBAttributes(const FLASH_BBAttributesTypeDef *pBBAttributes);
 void              HAL_FLASHEx_GetConfigBBAttributes(FLASH_BBAttributesTypeDef *pBBAttributes);
 void              HAL_FLASHEx_ConfigPrivMode(uint32_t PrivMode);
 uint32_t          HAL_FLASHEx_GetPrivMode(void);
@@ -850,11 +970,24 @@ uint32_t          HAL_FLASHEx_GetPrivMode(void);
 HAL_StatusTypeDef HAL_FLASHEx_ConfigSecInversion(uint32_t SecInvState);
 uint32_t          HAL_FLASHEx_GetSecInversion(void);
 #endif /* __ARM_FEATURE_CMSE */
-HAL_StatusTypeDef HAL_FLASHEx_ConfigHDPExtension(FLASH_HDPExtensionTypeDef *pHDPExtension);
+HAL_StatusTypeDef HAL_FLASHEx_ConfigHDPExtension(const FLASH_HDPExtensionTypeDef *pHDPExtension);
 /**
   * @}
   */
 
+/**
+  * @}
+  */
+
+/** @addtogroup FLASHEx_Exported_Functions_Group3
+  * @{
+  */
+void              HAL_FLASHEx_EnableEccCorrectionInterrupt(void);
+void              HAL_FLASHEx_DisableEccCorrectionInterrupt(void);
+void              HAL_FLASHEx_GetEccInfo(FLASH_EccInfoTypeDef *pData);
+void              HAL_FLASHEx_ECCD_IRQHandler(void);
+__weak void       HAL_FLASHEx_EccDetectionCallback(void);
+__weak void       HAL_FLASHEx_EccCorrectionCallback(void);
 /**
   * @}
   */
@@ -865,6 +998,21 @@ HAL_StatusTypeDef HAL_FLASHEx_ConfigHDPExtension(FLASH_HDPExtensionTypeDef *pHDP
   * @{
   */
 #define FLASH_TYPEPROGRAM_OB (0x00008000U | FLASH_NON_SECURE_MASK) /*!< Program Option Bytes operation type */
+#define FLASH_ADDRESS_OFFSET_OTP       (0x00000600U)               /*!< Flash address offset of OTP area */
+#if defined(STM32H5F5xx)
+#define FLASH_ADDRESS_OFFSET_EDATA     (0x0001E000U)               /*!< Flash address offset of EDATA area */
+#elif defined(STM32H533xx) || defined(STM32H523xx)
+#define FLASH_ADDRESS_OFFSET_EDATA     (0x00003000U)               /*!< Flash address offset of EDATA area */
+#elif defined(STM32H553xx) || defined(STM32H543xx)
+#define FLASH_ADDRESS_OFFSET_EDATA     (0x00007000U)               /*!< Flash address offset of EDATA area */
+#else
+#define FLASH_ADDRESS_OFFSET_EDATA     (0x0000F000U)               /*!< Flash address offset of EDATA area */
+#endif /* STM32H533xx || STM32H523xx */
+#if defined(STM32H5F5xx)
+#define FLASH_EDATA_BANK_SIZE          (0x00018000U)               /*!< FLASH EDATA Bank Size */
+#else
+#define FLASH_EDATA_BANK_SIZE          (0x0000C000U)               /*!< FLASH EDATA Bank Size */
+#endif /* STM32H5F5xx */
 /**
   * @}
   */
@@ -939,6 +1087,11 @@ HAL_StatusTypeDef HAL_FLASHEx_ConfigHDPExtension(FLASH_HDPExtensionTypeDef *pHDP
 #define IS_OB_USER_SRAM1_3_RST(VALUE)    (((VALUE) == OB_SRAM1_3_RST_ERASE) || ((VALUE) == OB_SRAM1_3_RST_NOT_ERASE))
 #endif /* FLASH_OPTSR2_SRAM1_3_RST */
 
+#if defined (FLASH_OPTSR2_SRAM1_3_4_5_RST)
+#define IS_OB_USER_SRAM1_3_4_5_RST(VALUE) (((VALUE) == OB_SRAM1_3_4_5_RST_ERASE) || \
+                                           ((VALUE) == OB_SRAM1_3_4_5_RST_NOT_ERASE))
+#endif /* FLASH_OPTSR2_SRAM1_3_4_5_RST */
+
 #if defined (FLASH_OPTSR2_SRAM1_RST)
 #define IS_OB_USER_SRAM1_RST(VALUE)      (((VALUE) == OB_SRAM1_RST_ERASE) || ((VALUE) == OB_SRAM1_RST_NOT_ERASE))
 #endif /* FLASH_OPTSR2_SRAM1_RST */
@@ -957,10 +1110,13 @@ HAL_StatusTypeDef HAL_FLASHEx_ConfigHDPExtension(FLASH_HDPExtensionTypeDef *pHDP
 
 #define IS_OB_USER_SRAM2_ECC(VALUE)      (((VALUE) == OB_SRAM2_ECC_ENABLE) || ((VALUE) == OB_SRAM2_ECC_DISABLE))
 
-#if defined (FLASH_SR_PUF_STATE)
-#define IS_OB_USER_HUK_PUF(VALUE)        (((VALUE) == OB_UNIQUE_KEY_HUK) || ((VALUE) == OB_UNIQUE_KEY_PUF))
-#endif /* FLASH_SR_PUF_STATE */
+#if defined (FLASH_OPTSR2_HUK_PUF)
+#define IS_OB_USER_HUK_PUF(VALUE)        (((VALUE) == OB_UNIQUE_KEY_PUF)    || ((VALUE) == OB_UNIQUE_KEY_HUK))
+#endif /* FLASH_OPTSR2_HUK_PUF */
 
+#if defined(FLASH_OPTSR2_USBPD_DIS)
+#define IS_OB_USER_USBPD_DIS(VALUE)      (((VALUE) == OB_USBPD_DIS_ENABLE) || ((VALUE) == OB_USBPD_DIS_DISABLE))
+#endif /* FLASH_OPTSR2_USBPD_DIS */
 #define IS_OB_USER_TZEN(VALUE)           (((VALUE) == OB_TZEN_DISABLE) || ((VALUE) == OB_TZEN_ENABLE))
 
 #define IS_OB_USER_TYPE(TYPE)           ((((TYPE) & OB_USER_ALL) != 0U) && \

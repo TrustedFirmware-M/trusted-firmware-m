@@ -30,6 +30,8 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
+#define RCC_LSI_TIMEOUT_VALUE           ((uint32_t)2U)    /* 2 ms (minimum Tick + 1) */
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private constant ----------------------------------------------------------*/
@@ -134,11 +136,7 @@ const RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct_RTC =
 #if defined(LPTIM6)
     .Lptim6ClockSelection = 0,
 #endif /* LPTIM6 */
-#if defined(FDCAN2)
-    .Fdcan12ClockSelection = 0,
-#else
-    .Fdcan1ClockSelection = 0,
-#endif /* FDCAN2 */
+    .FdcanClockSelection = 0,
 #if defined(SAI1)
     .Sai1ClockSelection = 0,
 #endif /* SAI1 */
@@ -237,7 +235,7 @@ HAL_StatusTypeDef RCC_OscConfig(const RCC_OscInitTypeDef  *pOscInitStruct)
       /* Wait till LSI is ready */
       while (READ_BIT(RCC->BDCR, RCC_BDCR_LSIRDY) == 0U)
       {
-        if ((HAL_GetTick() - tickstart) > LSI_TIMEOUT_VALUE)
+        if ((HAL_GetTick() - tickstart) > RCC_LSI_TIMEOUT_VALUE)
         {
           return HAL_TIMEOUT;
         }
@@ -254,7 +252,7 @@ HAL_StatusTypeDef RCC_OscConfig(const RCC_OscInitTypeDef  *pOscInitStruct)
       /* Wait till LSI is disabled */
       while (READ_BIT(RCC->BDCR, RCC_BDCR_LSIRDY) != 0U)
       {
-        if ((HAL_GetTick() - tickstart) > LSI_TIMEOUT_VALUE)
+        if ((HAL_GetTick() - tickstart) > RCC_LSI_TIMEOUT_VALUE)
         {
           return HAL_TIMEOUT;
         }

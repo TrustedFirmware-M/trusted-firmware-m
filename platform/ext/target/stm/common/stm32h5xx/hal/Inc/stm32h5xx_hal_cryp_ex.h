@@ -9,10 +9,9 @@
   * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -40,12 +39,66 @@ extern "C" {
   */
 
 /* Exported types ------------------------------------------------------------*/
+/** @defgroup CRYPEx_Exported_Types CRYPEx Exported Types
+  * @{
+  */
+
+/**
+  * @}
+  */
 /* Exported constants --------------------------------------------------------*/
+/** @defgroup CRYPEx_Exported_Constants CRYPEx Constants
+  * @{
+  */
+
+/**
+  * @}
+  */
 /* Private types -------------------------------------------------------------*/
+/** @defgroup CRYPEx_Private_Types CRYPEx Private Types
+  * @{
+  */
+
+/**
+  * @}
+  */
+
 /* Private variables ---------------------------------------------------------*/
+/** @defgroup CRYPEx_Private_Variables CRYPEx Private Variables
+  * @{
+  */
+
+/**
+  * @}
+  */
+
 /* Private constants ---------------------------------------------------------*/
+/** @defgroup CRYPEx_Private_Constants CRYPEx Private Constants
+  * @{
+  */
+
+/**
+  * @}
+  */
+
 /* Private macros ------------------------------------------------------------*/
+/** @defgroup CRYPEx_Private_Macros CRYPEx Private Macros
+  * @{
+  */
+
+/**
+  * @}
+  */
+
 /* Private functions ---------------------------------------------------------*/
+/** @defgroup CRYPEx_Private_Functions CRYPEx Private Functions
+  * @{
+  */
+
+/**
+  * @}
+  */
+
 /* Exported functions --------------------------------------------------------*/
 /** @defgroup CRYPEx_Exported_Functions CRYPEx Exported Functions
   * @{
@@ -54,8 +107,10 @@ extern "C" {
 /** @addtogroup CRYPEx_Exported_Functions_Group1 Extended AES processing functions
   * @{
   */
-HAL_StatusTypeDef HAL_CRYPEx_AESGCM_GenerateAuthTAG(CRYP_HandleTypeDef *hcryp, uint32_t *pAuthTag, uint32_t Timeout);
-HAL_StatusTypeDef HAL_CRYPEx_AESCCM_GenerateAuthTAG(CRYP_HandleTypeDef *hcryp, uint32_t *pAuthTag, uint32_t Timeout);
+HAL_StatusTypeDef HAL_CRYPEx_AESGCM_GenerateAuthTAG(CRYP_HandleTypeDef *hcryp, const uint32_t *pAuthTag,
+                                                    uint32_t Timeout);
+HAL_StatusTypeDef HAL_CRYPEx_AESCCM_GenerateAuthTAG(CRYP_HandleTypeDef *hcryp, const uint32_t *pAuthTag,
+                                                    uint32_t Timeout);
 /**
   * @}
   */

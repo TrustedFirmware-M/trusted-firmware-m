@@ -10,10 +10,9 @@
   * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -106,6 +105,7 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
   * @}
   */
 
+#if defined(VREFBUF)
 /** @defgroup VREFBUF_VoltageScale VREFBUF Voltage Scale
   * @{
   */
@@ -128,6 +128,7 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
 /**
   * @}
   */
+#endif /* VREFBUF */
 
 /** @defgroup SBS_FastModePlus_GPIO Fast-mode Plus on GPIO
   * @{
@@ -156,26 +157,11 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
 #define IS_SBS_ETHERNET_CONFIG(CONFIG) (((CONFIG) == SBS_ETH_MII)        || \
                                         ((CONFIG) == SBS_ETH_RMII))
 
+
 /**
   * @}
   */
 #endif /* SBS_PMCR_ETH_SEL_PHY */
-
-/** @defgroup SBS_Boostvddsel_Selection  Boost VDD Selection
-  * @{
-  */
-#define SBS_BOOSTVDDSEL_VDDA             ((uint32_t)0x00000000) /*!< Select VDDA as analog switch supply voltage
-                                                                     (when BOOSTEN bit is cleared) */
-#define SBS_BOOSTVDDSEL_VDD              SBS_PMCR_BOOSTVDDSEL   /*!< Select VDD  as analog switch supply voltage
-                                                                     (regardless of BOOSTEN bit) */
-
-#define IS_SBS_BOOSTVDD_SELECTION(BOOSTVDDSEL) (((BOOSTVDDSEL) == SBS_BOOSTVDDSEL_VDDA)        || \
-                                                ((BOOSTVDDSEL) == SBS_BOOSTVDDSEL_VDD))
-
-/**
-  * @}
-  */
-
 
 /** @defgroup SBS_Memories_Erase_Flag_Status  Memory Erase Flags Status
   * @{
@@ -217,8 +203,8 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
 /** @defgroup SBS_EPOCH_Selection  EPOCH Selection
   * @{
   */
-#define SBS_EPOCH_SEL_SECURE             0x0UL                         /*!< EPOCH secure selected */
-#define SBS_EPOCH_SEL_NONSECURE          SBS_EPOCHSELCR_EPOCH_SEL_0    /*!< EPOCH non secure selected */
+#define SBS_EPOCH_SEL_NONSECURE          0x0UL                         /*!< EPOCH non secure selected */
+#define SBS_EPOCH_SEL_SECURE             SBS_EPOCHSELCR_EPOCH_SEL_0    /*!< EPOCH secure selected */
 #define SBS_EPOCH_SEL_PUFCHECK           SBS_EPOCHSELCR_EPOCH_SEL_1    /*!< EPOCH all zeros for PUF integrity check */
 
 #define IS_SBS_EPOCH_SELECTION(SELECT) (((SELECT) == SBS_EPOCH_SEL_SECURE)    || \
@@ -233,10 +219,10 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
 /** @defgroup SBS_NextHDPL_Selection  Next HDPL Selection
   * @{
   */
-#define SBS_OBKHDPL_INCR_0                   0x00U
-#define SBS_OBKHDPL_INCR_1                   SBS_NEXTHDPLCR_NEXTHDPL_0
-#define SBS_OBKHDPL_INCR_2                   SBS_NEXTHDPLCR_NEXTHDPL_1
-#define SBS_OBKHDPL_INCR_3                   SBS_NEXTHDPLCR_NEXTHDPL
+#define SBS_OBKHDPL_INCR_0                   0x00U                      /*!< Index to add to the current HDPL to point (through OBK-HDPL) to the next secure storage areas */
+#define SBS_OBKHDPL_INCR_1                   SBS_NEXTHDPLCR_NEXTHDPL_0  /*!< Index to add to the current HDPL to point (through OBK-HDPL) to the next secure storage areas */
+#define SBS_OBKHDPL_INCR_2                   SBS_NEXTHDPLCR_NEXTHDPL_1  /*!< Index to add to the current HDPL to point (through OBK-HDPL) to the next secure storage areas */
+#define SBS_OBKHDPL_INCR_3                   SBS_NEXTHDPLCR_NEXTHDPL    /*!< Index to add to the current HDPL to point (through OBK-HDPL) to the next secure storage areas */
 /**
   * @}
   */
@@ -245,14 +231,24 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
 /** @defgroup SBS_HDPL_Value  HDPL Value
   * @{
   */
-#define SBS_HDPL_VALUE_0                     0x000000B4U
-#define SBS_HDPL_VALUE_1                     0x00000051U
-#define SBS_HDPL_VALUE_2                     0x0000008AU
-#define SBS_HDPL_VALUE_3                     0x0000006FU
+#define SBS_HDPL_VALUE_0                     0x000000B4U   /*!< Hide protection level 0 */
+#define SBS_HDPL_VALUE_1                     0x00000051U   /*!< Hide protection level 1 */
+#define SBS_HDPL_VALUE_2                     0x0000008AU   /*!< Hide protection level 2 */
+#define SBS_HDPL_VALUE_3                     0x0000006FU   /*!< Hide protection level 3 */
 /**
   * @}
   */
 
+#if defined(SBS_DBGCR_DBG_AUTH_SEC)
+/** @defgroup SBS_DEBUG_SEC_Value  Debug sec Value
+  * @{
+  */
+#define SBS_DEBUG_SEC_NSEC                   0x000000B4U   /*!< Debug opening for secure and non-secure */
+#define SBS_DEBUG_NSEC                       0x0000003CU   /*!< Debug opening for non-secure only */
+/**
+  * @}
+  */
+#endif /* SBS_DBGCR_DBG_AUTH_SEC */
 
 /** @defgroup SBS_Lock_items SBS Lock items
   * @brief SBS items to set lock on
@@ -270,7 +266,7 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
                                                                           code only) */
 #define SBS_LOCK_ALL                (SBS_MPU_NSEC|SBS_VTOR_NSEC|SBS_SAU|SBS_MPU_SEC|SBS_VTOR_AIRCR_SEC)  /*!< All */
 #else
-#define SBS_LOCK_ALL                (SBS_MPU_NSEC|SBS_VTOR_NSEC)  /*!< All (privileged secure or non-secure only) */
+#define SBS_LOCK_ALL                (SBS_MPU_NSEC|SBS_VTOR_NSEC)     /*!< All (privileged secure or non-secure only) */
 #endif /* __ARM_FEATURE_CMSE */
 /**
   * @}
@@ -283,8 +279,7 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
 #define SBS_CLK                     SBS_SECCFGR_SBSSEC      /*!< SBS clock control */
 #define SBS_CLASSB                  SBS_SECCFGR_CLASSBSEC   /*!< Class B */
 #define SBS_FPU                     SBS_SECCFGR_FPUSEC      /*!< FPU */
-#define SBS_SMPS                    SBS_SECCFGR_SDCE_SEC_EN /*!< SMPS */
-#define SBS_ALL                     (SBS_CLK | SBS_CLASSB | SBS_FPU | SBS_SMPS) /*!< All */
+#define SBS_ALL                     (SBS_CLK | SBS_CLASSB | SBS_FPU) /*!< All */
 /**
   * @}
   */
@@ -298,6 +293,54 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
 /**
   * @}
   */
+
+#if defined(SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE)
+/** @defgroup SBS_OTG_PHYTUNER_PreemphasisCurrent  OTG PHYTUNER Preemphasis Current
+  * @{
+  */
+
+/** @brief  High-speed (HS) transmitter preemphasis current control
+  */
+#define SBS_OTG_HS_PHY_PREEMP_DISABLED   0x00000000U                                                                       /*!< HS transmitter preemphasis circuit disabled */
+#define SBS_OTG_HS_PHY_PREEMP_1X         SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE_0                                              /*!< HS transmitter preemphasis circuit sources 1x preemphasis current */
+#define SBS_OTG_HS_PHY_PREEMP_2X         SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE_1                                              /*!< HS transmitter preemphasis circuit sources 2x preemphasis current */
+#define SBS_OTG_HS_PHY_PREEMP_3X         (SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE_0 | SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE_1)     /*!< HS transmitter preemphasis circuit sources 3x preemphasis current */
+
+/**
+  * @}
+  */
+#endif /* SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE */
+
+#if defined(SBS_OTGHSPHYTUNER2_SQRXTUNE)
+/** @defgroup SBS_OTG_PHYTUNER_SquelchThreshold  OTG PHYTUNER Squelch Threshold
+  * @{
+  */
+
+/** @brief Squelch threshold adjustment
+  */
+#define SBS_OTG_HS_PHY_SQUELCH_15PERCENT       0x00000000U                                                                        /*!< +15% (recommended value) */
+#define SBS_OTG_HS_PHY_SQUELCH_0PERCENT        (SBS_OTGHSPHYTUNER2_SQRXTUNE_0 | SBS_OTGHSPHYTUNER2_SQRXTUNE_1)                   /*!< 0% (default value) */
+
+/**
+  * @}
+  */
+#endif /* SBS_OTGHSPHYTUNER2_SQRXTUNE */
+
+#if defined(SBS_OTGHSPHYTUNER2_COMPDISTUNE)
+/** @defgroup SBS_OTG_PHYTUNER_DisconnectThreshold  OTG PHYTUNER Disconnect Threshold
+  * @{
+  */
+
+/** @brief Disconnect threshold adjustment
+  */
+#define SBS_OTG_HS_PHY_DISCONNECT_5_9PERCENT    SBS_OTGHSPHYTUNER2_COMPDISTUNE_1     /*!< +5.9% (recommended value) */
+#define SBS_OTG_HS_PHY_DISCONNECT_0PERCENT      SBS_OTGHSPHYTUNER2_COMPDISTUNE_0     /*!< 0% (default value) */
+
+/**
+  * @}
+  */
+
+#endif /* SBS_OTGHSPHYTUNER2_COMPDISTUNE */
 
 /**
   * @}
@@ -326,10 +369,10 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
 #define __HAL_DBGMCU_UNFREEZE_TIM4()         CLEAR_BIT(DBGMCU->APB1FZR1, DBGMCU_APB1FZR1_DBG_TIM4_STOP)
 #endif /* DBGMCU_APB1FZR1_DBG_TIM4_STOP */
 
-#if defined(DBGMCU_APB1FZR1_DBG_TIM4_STOP)
+#if defined(DBGMCU_APB1FZR1_DBG_TIM5_STOP)
 #define __HAL_DBGMCU_FREEZE_TIM5()           SET_BIT(DBGMCU->APB1FZR1, DBGMCU_APB1FZR1_DBG_TIM5_STOP)
 #define __HAL_DBGMCU_UNFREEZE_TIM5()         CLEAR_BIT(DBGMCU->APB1FZR1, DBGMCU_APB1FZR1_DBG_TIM5_STOP)
-#endif /* DBGMCU_APB1FZR1_DBG_TIM4_STOP */
+#endif /* DBGMCU_APB1FZR1_DBG_TIM5_STOP */
 
 #if defined(DBGMCU_APB1FZR1_DBG_TIM6_STOP)
 #define __HAL_DBGMCU_FREEZE_TIM6()           SET_BIT(DBGMCU->APB1FZR1, DBGMCU_APB1FZR1_DBG_TIM6_STOP)
@@ -496,6 +539,26 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
 #define __HAL_DBGMCU_UNFREEZE_GPDMA1_7()          CLEAR_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA1_CH7_STOP)
 #endif /* DBGMCU_AHB1FZR_DBG_GPDMA1_CH7_STOP */
 
+#if defined(DBGMCU_AHB1FZR_DBG_GPDMA1_CH8_STOP)
+#define __HAL_DBGMCU_FREEZE_GPDMA1_8()            SET_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA1_CH8_STOP)
+#define __HAL_DBGMCU_UNFREEZE_GPDMA1_8()          CLEAR_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA1_CH8_STOP)
+#endif /* DBGMCU_AHB1FZR_DBG_GPDMA1_CH8_STOP */
+
+#if defined(DBGMCU_AHB1FZR_DBG_GPDMA1_CH9_STOP)
+#define __HAL_DBGMCU_FREEZE_GPDMA1_9()            SET_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA1_CH9_STOP)
+#define __HAL_DBGMCU_UNFREEZE_GPDMA1_9()          CLEAR_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA1_CH9_STOP)
+#endif /* DBGMCU_AHB1FZR_DBG_GPDMA1_CH9_STOP */
+
+#if defined(DBGMCU_AHB1FZR_DBG_GPDMA1_CH10_STOP)
+#define __HAL_DBGMCU_FREEZE_GPDMA1_10()           SET_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA1_CH10_STOP)
+#define __HAL_DBGMCU_UNFREEZE_GPDMA1_10()         CLEAR_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA1_CH10_STOP)
+#endif /* DBGMCU_AHB1FZR_DBG_GPDMA1_CH10_STOP */
+
+#if defined(DBGMCU_AHB1FZR_DBG_GPDMA1_CH11_STOP)
+#define __HAL_DBGMCU_FREEZE_GPDMA1_11()           SET_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA1_CH11_STOP)
+#define __HAL_DBGMCU_UNFREEZE_GPDMA1_11()         CLEAR_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA1_CH11_STOP)
+#endif /* DBGMCU_AHB1FZR_DBG_GPDMA1_CH11_STOP */
+
 #if defined(DBGMCU_AHB1FZR_DBG_GPDMA2_CH0_STOP)
 #define __HAL_DBGMCU_FREEZE_GPDMA2_0()            SET_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA2_CH0_STOP)
 #define __HAL_DBGMCU_UNFREEZE_GPDMA2_0()          CLEAR_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA2_CH0_STOP)
@@ -536,6 +599,25 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
 #define __HAL_DBGMCU_UNFREEZE_GPDMA2_7()          CLEAR_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA2_CH7_STOP)
 #endif /* DBGMCU_AHB1FZR_DBG_GPDMA2_CH7_STOP */
 
+#if defined(DBGMCU_AHB1FZR_DBG_GPDMA2_CH8_STOP)
+#define __HAL_DBGMCU_FREEZE_GPDMA2_8()            SET_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA2_CH8_STOP)
+#define __HAL_DBGMCU_UNFREEZE_GPDMA2_8()          CLEAR_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA2_CH8_STOP)
+#endif /* DBGMCU_AHB1FZR_DBG_GPDMA2_CH8_STOP */
+
+#if defined(DBGMCU_AHB1FZR_DBG_GPDMA2_CH9_STOP)
+#define __HAL_DBGMCU_FREEZE_GPDMA2_9()            SET_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA2_CH9_STOP)
+#define __HAL_DBGMCU_UNFREEZE_GPDMA2_9()          CLEAR_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA2_CH9_STOP)
+#endif /* DBGMCU_AHB1FZR_DBG_GPDMA2_CH9_STOP */
+
+#if defined(DBGMCU_AHB1FZR_DBG_GPDMA2_CH10_STOP)
+#define __HAL_DBGMCU_FREEZE_GPDMA2_10()           SET_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA2_CH10_STOP)
+#define __HAL_DBGMCU_UNFREEZE_GPDMA2_10()         CLEAR_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA2_CH10_STOP)
+#endif /* DBGMCU_AHB1FZR_DBG_GPDMA2_CH10_STOP */
+
+#if defined(DBGMCU_AHB1FZR_DBG_GPDMA2_CH11_STOP)
+#define __HAL_DBGMCU_FREEZE_GPDMA2_11()           SET_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA2_CH11_STOP)
+#define __HAL_DBGMCU_UNFREEZE_GPDMA2_11()         CLEAR_BIT(DBGMCU->AHB1FZR, DBGMCU_AHB1FZR_DBG_GPDMA2_CH11_STOP)
+#endif /* DBGMCU_AHB1FZR_DBG_GPDMA2_CH11_STOP */
 /**
   * @}
   */
@@ -638,6 +720,7 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
                                             ((__CONFIG__) == SBS_BREAK_SRAM_ECC)   || \
                                             ((__CONFIG__) == SBS_BREAK_LOCKUP))
 
+#if defined(VREFBUF)
 #define IS_VREFBUF_VOLTAGE_SCALE(__SCALE__)  (((__SCALE__) == VREFBUF_VOLTAGE_SCALE0) || \
                                               ((__SCALE__) == VREFBUF_VOLTAGE_SCALE1) || \
                                               ((__SCALE__) == VREFBUF_VOLTAGE_SCALE2) || \
@@ -647,6 +730,7 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
                                                ((__VALUE__) == VREFBUF_HIGH_IMPEDANCE_ENABLE))
 
 #define IS_VREFBUF_TRIMMING(__VALUE__)  (((__VALUE__) > 0U) && ((__VALUE__) <= VREFBUF_CCR_TRIM))
+#endif /* VREFBUF*/
 
 #if defined(SBS_FASTMODEPLUS_PB9)
 #define IS_SBS_FASTMODEPLUS(__PIN__)    ((((__PIN__) & SBS_FASTMODEPLUS_PB6) == SBS_FASTMODEPLUS_PB6) || \
@@ -659,6 +743,9 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
                                          (((__PIN__) & SBS_FASTMODEPLUS_PB8) == SBS_FASTMODEPLUS_PB8))
 #endif /* SBS_FASTMODEPLUS_PB9 */
 
+#define IS_SBS_HDPL(__LEVEL__)          (((__LEVEL__) == SBS_HDPL_VALUE_0) || ((__LEVEL__) == SBS_HDPL_VALUE_1) || \
+                                         ((__LEVEL__) == SBS_HDPL_VALUE_2) || ((__LEVEL__) == SBS_HDPL_VALUE_3))
+
 #define IS_SBS_OBKHDPL_SELECTION(__SELECT__)    (((__SELECT__) == SBS_OBKHDPL_INCR_0)  || \
                                                  ((__SELECT__) == SBS_OBKHDPL_INCR_1)  || \
                                                  ((__SELECT__) == SBS_OBKHDPL_INCR_2)  || \
@@ -667,11 +754,26 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
 #define IS_SBS_ITEMS_ATTRIBUTES(__ITEM__) ((((__ITEM__) & SBS_CLK)    == SBS_CLK)    || \
                                            (((__ITEM__) & SBS_CLASSB) == SBS_CLASSB) || \
                                            (((__ITEM__) & SBS_FPU)    == SBS_FPU)    || \
-                                           (((__ITEM__) & SBS_SMPS)   == SBS_SMPS)  || \
                                            (((__ITEM__) & ~(SBS_ALL)) == 0U))
 
 #define IS_SBS_ATTRIBUTES(__ATTRIBUTES__) (((__ATTRIBUTES__) == SBS_SEC)  ||\
                                            ((__ATTRIBUTES__) == SBS_NSEC))
+
+#if defined(SBS_OTGHSPHYTUNER2_COMPDISTUNE)
+#define IS_SBS_OTGPHY_DISCONNECT(__VALUE__)        (((__VALUE__) == SBS_OTG_HS_PHY_DISCONNECT_5_9PERCENT) || \
+                                                    ((__VALUE__) == SBS_OTG_HS_PHY_DISCONNECT_0PERCENT))
+#endif /* SBS_OTGHSPHYTUNER2_COMPDISTUNE*/
+#if defined(SBS_OTGHSPHYTUNER2_SQRXTUNE)
+#define IS_SBS_OTGPHY_SQUELCH(__VALUE__)           (((__VALUE__) == SBS_OTG_HS_PHY_SQUELCH_0PERCENT) || \
+                                                    ((__VALUE__) == SBS_OTG_HS_PHY_SQUELCH_15PERCENT))
+#endif /* SBS_OTGHSPHYTUNER2_SQRXTUNE */
+
+#if defined(SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE)
+#define IS_SBS_OTGPHY_PREEMPHASIS(__VALUE__)       (((__VALUE__) == SBS_OTG_HS_PHY_PREEMP_DISABLED) || \
+                                                    ((__VALUE__) == SBS_OTG_HS_PHY_PREEMP_1X) || \
+                                                    ((__VALUE__) == SBS_OTG_HS_PHY_PREEMP_2X) || \
+                                                    ((__VALUE__) == SBS_OTG_HS_PHY_PREEMP_3X))
+#endif /* SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE */
 
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
 
@@ -714,11 +816,11 @@ extern HAL_TickFreqTypeDef      uwTickFreq;
   */
 
 /* Initialization and de-initialization functions  ******************************/
-HAL_StatusTypeDef HAL_Init(void);
-HAL_StatusTypeDef HAL_DeInit(void);
-void HAL_MspInit(void);
-void HAL_MspDeInit(void);
-HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority);
+HAL_StatusTypeDef    HAL_Init(void);
+HAL_StatusTypeDef    HAL_DeInit(void);
+void                 HAL_MspInit(void);
+void                 HAL_MspDeInit(void);
+HAL_StatusTypeDef    HAL_InitTick(uint32_t TickPriority);
 
 /**
   * @}
@@ -729,20 +831,20 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority);
   */
 
 /* Peripheral Control functions  ************************************************/
-void HAL_IncTick(void);
-void HAL_Delay(uint32_t Delay);
-uint32_t HAL_GetTick(void);
-uint32_t HAL_GetTickPrio(void);
-HAL_StatusTypeDef HAL_SetTickFreq(HAL_TickFreqTypeDef Freq);
-HAL_TickFreqTypeDef HAL_GetTickFreq(void);
-void HAL_SuspendTick(void);
-void HAL_ResumeTick(void);
-uint32_t HAL_GetHalVersion(void);
-uint32_t HAL_GetREVID(void);
-uint32_t HAL_GetDEVID(void);
-uint32_t HAL_GetUIDw0(void);
-uint32_t HAL_GetUIDw1(void);
-uint32_t HAL_GetUIDw2(void);
+void                 HAL_IncTick(void);
+void                 HAL_Delay(uint32_t Delay);
+uint32_t             HAL_GetTick(void);
+uint32_t             HAL_GetTickPrio(void);
+HAL_StatusTypeDef    HAL_SetTickFreq(HAL_TickFreqTypeDef Freq);
+HAL_TickFreqTypeDef  HAL_GetTickFreq(void);
+void                 HAL_SuspendTick(void);
+void                 HAL_ResumeTick(void);
+uint32_t             HAL_GetHalVersion(void);
+uint32_t             HAL_GetREVID(void);
+uint32_t             HAL_GetDEVID(void);
+uint32_t             HAL_GetUIDw0(void);
+uint32_t             HAL_GetUIDw1(void);
+uint32_t             HAL_GetUIDw2(void);
 
 /**
   * @}
@@ -753,10 +855,10 @@ uint32_t HAL_GetUIDw2(void);
   */
 
 /* DBGMCU Peripheral Control functions  *****************************************/
-void HAL_DBGMCU_EnableDBGStopMode(void);
-void HAL_DBGMCU_DisableDBGStopMode(void);
-void HAL_DBGMCU_EnableDBGStandbyMode(void);
-void HAL_DBGMCU_DisableDBGStandbyMode(void);
+void                 HAL_DBGMCU_EnableDBGStopMode(void);
+void                 HAL_DBGMCU_DisableDBGStopMode(void);
+void                 HAL_DBGMCU_EnableDBGStandbyMode(void);
+void                 HAL_DBGMCU_DisableDBGStandbyMode(void);
 
 /**
   * @}
@@ -766,48 +868,98 @@ void HAL_DBGMCU_DisableDBGStandbyMode(void);
   * @{
   */
 
-/* SBS Control functions  ****************************************************/
+/* VREFBUF Control functions  ****************************************************/
+#if defined(VREFBUF)
+void                 HAL_VREFBUF_VoltageScalingConfig(uint32_t VoltageScaling);
+void                 HAL_VREFBUF_HighImpedanceConfig(uint32_t Mode);
+void                 HAL_VREFBUF_TrimmingConfig(uint32_t TrimmingValue);
+HAL_StatusTypeDef    HAL_EnableVREFBUF(void);
+void                 HAL_DisableVREFBUF(void);
+#endif /* VREFBUF */
 
-void HAL_VREFBUF_VoltageScalingConfig(uint32_t VoltageScaling);
-void HAL_VREFBUF_HighImpedanceConfig(uint32_t Mode);
-void HAL_VREFBUF_TrimmingConfig(uint32_t TrimmingValue);
-HAL_StatusTypeDef HAL_EnableVREFBUF(void);
-void HAL_DisableVREFBUF(void);
+/**
+  * @}
+  */
 
-void HAL_SBS_EnableIOAnalogSwitchBooster(void);
-void HAL_SBS_DisableIOAnalogSwitchBooster(void);
-void HAL_SBS_ETHInterfaceSelect(uint32_t SBS_ETHInterface);
-void HAL_SBS_AnalogSwitchSupplyVoltageSelection(uint32_t SBS_BOOSTVDDSEL);
-void HAL_SBS_EnableVddIO1CompensationCell(void);
-void HAL_SBS_DisableVddIO1CompensationCell(void);
-void HAL_SBS_EnableVddIO2CompensationCell(void);
-void HAL_SBS_DisableVddIO2CompensationCell(void);
-void HAL_SBS_VDDCompensationCodeSelect(uint32_t SBS_CompCode);
-void HAL_SBS_VDDIOCompensationCodeSelect(uint32_t SBS_CompCode);
-uint32_t HAL_SBS_GetVddIO1CompensationCellReadyFlag(void);
-uint32_t HAL_SBS_GetVddIO2CompensationCellReadyFlag(void);
-void HAL_SBS_VDDCompensationCodeConfig(uint32_t SBS_PMOSCode, uint32_t SBS_NMOSCode);
-void HAL_SBS_VDDIOCompensationCodeConfig(uint32_t SBS_PMOSCode, uint32_t SBS_NMOSCode);
-uint32_t HAL_SBS_GetNMOSVddCompensationValue(void);
-uint32_t HAL_SBS_GetPMOSVddCompensationValue(void);
-uint32_t HAL_SBS_GetNMOSVddIO2CompensationValue(void);
-uint32_t HAL_SBS_GetPMOSVddIO2CompensationValue(void);
-void HAL_SBS_EPOCHSelection(uint32_t Epoch_Selection);
-uint32_t HAL_SBS_GetEPOCHSelection(void);
-void HAL_SBS_IncrementHDPLValue(void);
-uint32_t HAL_SBS_GetHDPLValue(void);
-void HAL_SBS_SetOBKHDPL(uint32_t OBKHDPL_Value);
-uint32_t HAL_SBS_GetOBKHDPL(void);
-void HAL_SBS_FLASH_EnableECCNMI(void);
-void HAL_SBS_FLASH_DisableECCNMI(void);
-uint32_t HAL_SBS_FLASH_ECCNMI_IsDisabled(void);
+/** @addtogroup HAL_Exported_Functions_Group5
+  * @{
+  */
+
+/* SBS System Configuration functions  *******************************************/
+void                 HAL_SBS_ETHInterfaceSelect(uint32_t SBS_ETHInterface);
+void                 HAL_SBS_EnableVddIO1CompensationCell(void);
+void                 HAL_SBS_DisableVddIO1CompensationCell(void);
+void                 HAL_SBS_EnableVddIO2CompensationCell(void);
+void                 HAL_SBS_DisableVddIO2CompensationCell(void);
+void                 HAL_SBS_VDDCompensationCodeSelect(uint32_t SBS_CompCode);
+void                 HAL_SBS_VDDIOCompensationCodeSelect(uint32_t SBS_CompCode);
+uint32_t             HAL_SBS_GetVddIO1CompensationCellReadyFlag(void);
+uint32_t             HAL_SBS_GetVddIO2CompensationCellReadyFlag(void);
+void                 HAL_SBS_VDDCompensationCodeConfig(uint32_t SBS_PMOSCode, uint32_t SBS_NMOSCode);
+void                 HAL_SBS_VDDIOCompensationCodeConfig(uint32_t SBS_PMOSCode, uint32_t SBS_NMOSCode);
+uint32_t             HAL_SBS_GetNMOSVddCompensationValue(void);
+uint32_t             HAL_SBS_GetPMOSVddCompensationValue(void);
+uint32_t             HAL_SBS_GetNMOSVddIO2CompensationValue(void);
+uint32_t             HAL_SBS_GetPMOSVddIO2CompensationValue(void);
+void                 HAL_SBS_FLASH_EnableECCNMI(void);
+void                 HAL_SBS_FLASH_DisableECCNMI(void);
+uint32_t             HAL_SBS_FLASH_ECCNMI_IsDisabled(void);
+void                 HAL_SBS_SetOTGPHYDisconnectThreshold(uint32_t DisconnectThreshold);
+uint32_t             HAL_SBS_GetOTGPHYDisconnectThreshold(void);
+void                 HAL_SBS_SetOTGPHYSquelchThreshold(uint32_t SquelchThreshold);
+uint32_t             HAL_SBS_GetOTGPHYSquelchThreshold(void);
+void                 HAL_SBS_SetOTGPHYPreemphasisCurrent(uint32_t PreemphasisCurrent);
+uint32_t             HAL_SBS_GetOTGPHYPreemphasisCurrent(void);
+
+/**
+  * @}
+  */
+
+/** @addtogroup HAL_Exported_Functions_Group6
+  * @{
+  */
+
+/* SBS Boot control functions  ***************************************************/
+void                 HAL_SBS_IncrementHDPLValue(void);
+uint32_t             HAL_SBS_GetHDPLValue(void);
+
+/**
+  * @}
+  */
+
+/** @addtogroup HAL_Exported_Functions_Group7
+  * @{
+  */
+
+/* SBS Hardware secure storage control functions  ********************************/
+void                 HAL_SBS_EPOCHSelection(uint32_t Epoch_Selection);
+uint32_t             HAL_SBS_GetEPOCHSelection(void);
+void                 HAL_SBS_SetOBKHDPL(uint32_t OBKHDPL_Value);
+uint32_t             HAL_SBS_GetOBKHDPL(void);
+
+/**
+  * @}
+  */
+
+/** @addtogroup HAL_Exported_Functions_Group8
+  * @{
+  */
+
+/* SBS Debug control functions  ***************************************************/
+void                 HAL_SBS_OpenAccessPort(void);
+void                 HAL_SBS_OpenDebug(void);
+HAL_StatusTypeDef    HAL_SBS_ConfigDebugLevel(uint32_t Level);
+uint32_t             HAL_SBS_GetDebugLevel(void);
+void                 HAL_SBS_LockDebugConfig(void);
+void                 HAL_SBS_ConfigDebugSecurity(uint32_t Security);
+uint32_t             HAL_SBS_GetDebugSecurity(void);
 
 /**
   * @}
   */
 
 
-/** @addtogroup HAL_Exported_Functions_Group5
+/** @addtogroup HAL_Exported_Functions_Group9
   * @{
   */
 
@@ -819,7 +971,7 @@ HAL_StatusTypeDef HAL_SBS_GetLock(uint32_t *pItem);
   * @}
   */
 
-/** @addtogroup HAL_Exported_Functions_Group6
+/** @addtogroup HAL_Exported_Functions_Group10
   * @{
   */
 

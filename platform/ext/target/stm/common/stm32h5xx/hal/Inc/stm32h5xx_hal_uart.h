@@ -9,10 +9,9 @@
   * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -48,12 +47,10 @@ typedef struct
 {
   uint32_t BaudRate;                /*!< This member configures the UART communication baud rate.
                                          The baud rate register is computed using the following formula:
-                                         LPUART:
-                                         =======
+                                         @note For LPUART :
                                          Baud Rate Register = ((256 * lpuart_ker_ckpres) / ((huart->Init.BaudRate)))
-                                         where lpuart_ker_ck_pres is the UART input clock divided by a prescaler
-                                         UART:
-                                         =====
+                                         where lpuart_ker_ck_pres is the UART input clock divided by a prescaler.
+                                         @note For UART :
                                          - If oversampling is 16 or in LIN mode,
                                             Baud Rate Register = ((uart_ker_ckpres) / ((huart->Init.BaudRate)))
                                          - If oversampling is 8,
@@ -123,9 +120,11 @@ typedef struct
   uint32_t OverrunDisable;        /*!< Specifies whether the reception overrun detection is disabled.
                                        This parameter can be a value of @ref UART_Overrun_Disable. */
 
+#if defined(HAL_DMA_MODULE_ENABLED)
   uint32_t DMADisableonRxError;   /*!< Specifies whether the DMA is disabled in case of reception error.
                                        This parameter can be a value of @ref UART_DMA_Disable_on_Rx_Error. */
 
+#endif /* HAL_DMA_MODULE_ENABLED */
   uint32_t AutoBaudRateEnable;    /*!< Specifies whether auto Baud rate detection is enabled.
                                        This parameter can be a value of @ref UART_AutoBaudRate_Enable. */
 
@@ -184,12 +183,13 @@ typedef uint32_t HAL_UART_StateTypeDef;
   */
 typedef enum
 {
-  UART_CLOCKSOURCE_PCLK1      = 0x00U,    /*!< PCLK1 clock source  */
-  UART_CLOCKSOURCE_PCLK2      = 0x01U,    /*!< PCLK2 clock source  */
-  UART_CLOCKSOURCE_HSI        = 0x02U,    /*!< HSI clock source    */
-  UART_CLOCKSOURCE_SYSCLK     = 0x04U,    /*!< SYSCLK clock source */
-  UART_CLOCKSOURCE_LSE        = 0x08U,    /*!< LSE clock source       */
-  UART_CLOCKSOURCE_UNDEFINED  = 0x10U     /*!< Undefined clock source */
+  UART_CLOCKSOURCE_PCLK1      = 0x00U,    /*!< PCLK1 clock source         */
+  UART_CLOCKSOURCE_PLL2Q      = 0x01U,    /*!< PLL2Q clock source         */
+  UART_CLOCKSOURCE_PLL3Q      = 0x02U,    /*!< PLL3Q clock source         */
+  UART_CLOCKSOURCE_HSI        = 0x04U,    /*!< HSI clock source           */
+  UART_CLOCKSOURCE_CSI        = 0x08U,    /*!< CSI clock source           */
+  UART_CLOCKSOURCE_LSE        = 0x10U,    /*!< LSE clock source           */
+  UART_CLOCKSOURCE_UNDEFINED  = 0x20U     /*!< Undefined clock source     */
 } UART_ClockSourceTypeDef;
 
 /**
@@ -254,10 +254,12 @@ typedef struct __UART_HandleTypeDef
 
   void (*TxISR)(struct __UART_HandleTypeDef *huart); /*!< Function pointer on Tx IRQ handler */
 
+#if defined(HAL_DMA_MODULE_ENABLED)
   DMA_HandleTypeDef        *hdmatx;                  /*!< UART Tx DMA Handle parameters      */
 
   DMA_HandleTypeDef        *hdmarx;                  /*!< UART Rx DMA Handle parameters      */
 
+#endif /* HAL_DMA_MODULE_ENABLED */
   HAL_LockTypeDef           Lock;                    /*!< Locking object                     */
 
   __IO HAL_UART_StateTypeDef    gState;              /*!< UART state information related to global Handle management
@@ -362,7 +364,9 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
 #define  HAL_UART_ERROR_NE               (0x00000002U)    /*!< Noise error             */
 #define  HAL_UART_ERROR_FE               (0x00000004U)    /*!< Frame error             */
 #define  HAL_UART_ERROR_ORE              (0x00000008U)    /*!< Overrun error           */
+#if defined(HAL_DMA_MODULE_ENABLED)
 #define  HAL_UART_ERROR_DMA              (0x00000010U)    /*!< DMA transfer error      */
+#endif /* HAL_DMA_MODULE_ENABLED */
 #define  HAL_UART_ERROR_RTO              (0x00000020U)    /*!< Receiver Timeout error  */
 
 #if (USE_HAL_UART_REGISTER_CALLBACKS == 1)
@@ -502,6 +506,7 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
   * @}
   */
 
+#if defined(HAL_DMA_MODULE_ENABLED)
 /** @defgroup UART_DMA_Tx    UART DMA Tx
   * @{
   */
@@ -519,6 +524,7 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
 /**
   * @}
   */
+#endif /* HAL_DMA_MODULE_ENABLED */
 
 /** @defgroup UART_Half_Duplex_Selection  UART Half Duplex Selection
   * @{
@@ -559,7 +565,9 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
 #define UART_ADVFEATURE_DATAINVERT_INIT         0x00000004U          /*!< Binary data inversion                    */
 #define UART_ADVFEATURE_SWAP_INIT               0x00000008U          /*!< TX/RX pins swap                          */
 #define UART_ADVFEATURE_RXOVERRUNDISABLE_INIT   0x00000010U          /*!< RX overrun disable                       */
+#if defined(HAL_DMA_MODULE_ENABLED)
 #define UART_ADVFEATURE_DMADISABLEONERROR_INIT  0x00000020U          /*!< DMA disable on Reception Error           */
+#endif /* HAL_DMA_MODULE_ENABLED */
 #define UART_ADVFEATURE_AUTOBAUDRATE_INIT       0x00000040U          /*!< Auto Baud rate detection initialization  */
 #define UART_ADVFEATURE_MSBFIRST_INIT           0x00000080U          /*!< Most significant bit sent/received first */
 /**
@@ -620,6 +628,7 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
   * @}
   */
 
+#if defined(HAL_DMA_MODULE_ENABLED)
 /** @defgroup UART_DMA_Disable_on_Rx_Error   UART Advanced Feature DMA Disable On Rx Error
   * @{
   */
@@ -628,6 +637,7 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
 /**
   * @}
   */
+#endif /* HAL_DMA_MODULE_ENABLED */
 
 /** @defgroup UART_MSB_First   UART Advanced Feature MSB First
   * @{
@@ -1231,7 +1241,7 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
 /** @defgroup UART_Private_Macros   UART Private Macros
   * @{
   */
-/** @brief  Get UART clok division factor from clock prescaler value.
+/** @brief  Get UART clock division factor from clock prescaler value.
   * @param  __CLOCKPRESCALER__ UART prescaler value.
   * @retval UART clock division factor
   */
@@ -1246,8 +1256,7 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
    ((__CLOCKPRESCALER__) == UART_PRESCALER_DIV16)  ? 16U :      \
    ((__CLOCKPRESCALER__) == UART_PRESCALER_DIV32)  ? 32U :      \
    ((__CLOCKPRESCALER__) == UART_PRESCALER_DIV64)  ? 64U :      \
-   ((__CLOCKPRESCALER__) == UART_PRESCALER_DIV128) ? 128U :     \
-   ((__CLOCKPRESCALER__) == UART_PRESCALER_DIV256) ? 256U : 1U)
+   ((__CLOCKPRESCALER__) == UART_PRESCALER_DIV128) ? 128U : 256U)
 
 /** @brief  BRR division operation to set BRR register with LPUART.
   * @param  __PCLK__ LPUART clock.
@@ -1290,7 +1299,7 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
   *         divided by the smallest oversampling used on the USART (i.e. 8)
   * @retval SET (__BAUDRATE__ is valid) or RESET (__BAUDRATE__ is invalid)
   */
-#define IS_UART_BAUDRATE(__BAUDRATE__) ((__BAUDRATE__) < 20000000U)
+#define IS_UART_BAUDRATE(__BAUDRATE__) ((__BAUDRATE__) <= 20000000U)
 
 /** @brief  Check UART assertion time.
   * @param  __TIME__ 5-bit value assertion time.
@@ -1414,6 +1423,7 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
 #define IS_UART_LIN_BREAK_DETECT_LENGTH(__LENGTH__) (((__LENGTH__) == UART_LINBREAKDETECTLENGTH_10B) || \
                                                      ((__LENGTH__) == UART_LINBREAKDETECTLENGTH_11B))
 
+#if defined(HAL_DMA_MODULE_ENABLED)
 /**
   * @brief Ensure that UART DMA TX state is valid.
   * @param __DMATX__ UART DMA TX state.
@@ -1430,6 +1440,7 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
 #define IS_UART_DMA_RX(__DMARX__)     (((__DMARX__) == UART_DMA_RX_DISABLE) || \
                                        ((__DMARX__) == UART_DMA_RX_ENABLE))
 
+#endif /* HAL_DMA_MODULE_ENABLED */
 /**
   * @brief Ensure that UART half-duplex state is valid.
   * @param __HDSEL__ UART half-duplex state.
@@ -1462,6 +1473,7 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
   * @param __INIT__ UART advanced features initialization.
   * @retval SET (__INIT__ is valid) or RESET (__INIT__ is invalid)
   */
+#if defined(HAL_DMA_MODULE_ENABLED)
 #define IS_UART_ADVFEATURE_INIT(__INIT__)   ((__INIT__) <= (UART_ADVFEATURE_NO_INIT                | \
                                                             UART_ADVFEATURE_TXINVERT_INIT          | \
                                                             UART_ADVFEATURE_RXINVERT_INIT          | \
@@ -1471,6 +1483,16 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
                                                             UART_ADVFEATURE_DMADISABLEONERROR_INIT | \
                                                             UART_ADVFEATURE_AUTOBAUDRATE_INIT      | \
                                                             UART_ADVFEATURE_MSBFIRST_INIT))
+#else
+#define IS_UART_ADVFEATURE_INIT(__INIT__)   ((__INIT__) <= (UART_ADVFEATURE_NO_INIT                | \
+                                                            UART_ADVFEATURE_TXINVERT_INIT          | \
+                                                            UART_ADVFEATURE_RXINVERT_INIT          | \
+                                                            UART_ADVFEATURE_DATAINVERT_INIT        | \
+                                                            UART_ADVFEATURE_SWAP_INIT              | \
+                                                            UART_ADVFEATURE_RXOVERRUNDISABLE_INIT  | \
+                                                            UART_ADVFEATURE_AUTOBAUDRATE_INIT      | \
+                                                            UART_ADVFEATURE_MSBFIRST_INIT))
+#endif /* HAL_DMA_MODULE_ENABLED */
 
 /**
   * @brief Ensure that UART frame TX inversion setting is valid.
@@ -1521,6 +1543,7 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
                                                             UART_ADVFEATURE_AUTOBAUDRATE_DISABLE) || \
                                                            ((__AUTOBAUDRATE__) == UART_ADVFEATURE_AUTOBAUDRATE_ENABLE))
 
+#if defined(HAL_DMA_MODULE_ENABLED)
 /**
   * @brief Ensure that UART DMA enabling or disabling on error setting is valid.
   * @param __DMA__ UART DMA enabling or disabling on error setting.
@@ -1528,6 +1551,7 @@ typedef  void (*pUART_RxEventCallbackTypeDef)
   */
 #define IS_UART_ADVFEATURE_DMAONRXERROR(__DMA__)  (((__DMA__) == UART_ADVFEATURE_DMA_ENABLEONRXERROR) || \
                                                    ((__DMA__) == UART_ADVFEATURE_DMA_DISABLEONRXERROR))
+#endif /* HAL_DMA_MODULE_ENABLED */
 
 /**
   * @brief Ensure that UART frame MSB first setting is valid.
@@ -1636,11 +1660,13 @@ HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, const uint8_t *pD
 HAL_StatusTypeDef HAL_UART_Receive(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
 HAL_StatusTypeDef HAL_UART_Transmit_IT(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size);
 HAL_StatusTypeDef HAL_UART_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
+#if defined(HAL_DMA_MODULE_ENABLED)
 HAL_StatusTypeDef HAL_UART_Transmit_DMA(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size);
 HAL_StatusTypeDef HAL_UART_Receive_DMA(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
 HAL_StatusTypeDef HAL_UART_DMAPause(UART_HandleTypeDef *huart);
 HAL_StatusTypeDef HAL_UART_DMAResume(UART_HandleTypeDef *huart);
 HAL_StatusTypeDef HAL_UART_DMAStop(UART_HandleTypeDef *huart);
+#endif /* HAL_DMA_MODULE_ENABLED */
 /* Transfer Abort functions */
 HAL_StatusTypeDef HAL_UART_Abort(UART_HandleTypeDef *huart);
 HAL_StatusTypeDef HAL_UART_AbortTransmit(UART_HandleTypeDef *huart);
@@ -1714,7 +1740,9 @@ HAL_StatusTypeDef UART_WaitOnFlagUntilTimeout(UART_HandleTypeDef *huart, uint32_
                                               uint32_t Tickstart, uint32_t Timeout);
 void              UART_AdvFeatureConfig(UART_HandleTypeDef *huart);
 HAL_StatusTypeDef UART_Start_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
+#if defined(HAL_DMA_MODULE_ENABLED)
 HAL_StatusTypeDef UART_Start_Receive_DMA(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
+#endif /* HAL_DMA_MODULE_ENABLED */
 
 /**
   * @}

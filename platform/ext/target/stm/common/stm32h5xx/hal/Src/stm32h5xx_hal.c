@@ -21,7 +21,7 @@
   **********************************************************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 STMicroelectronics.
+  * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -48,18 +48,27 @@
 /* Private typedef ---------------------------------------------------------------------------------------------------*/
 /* Private define ----------------------------------------------------------------------------------------------------*/
 /**
-  * @brief STM32H5xx HAL Driver version number 0.5.0
+  * @brief STM32H5xx HAL Driver version number 1.6.0
    */
-#define __STM32H5XX_HAL_VERSION_MAIN   (0x00U) /*!< [31:24] main version */
-#define __STM32H5XX_HAL_VERSION_SUB1   (0x05U) /*!< [23:16] sub1 version */
-#define __STM32H5XX_HAL_VERSION_SUB2   (0x00U) /*!< [15:8]  sub2 version */
-#define __STM32H5XX_HAL_VERSION_RC     (0x00U) /*!< [7:0]  release candidate */
+#define __STM32H5XX_HAL_VERSION_MAIN   (0x01UL) /*!< [31:24] main version */
+#define __STM32H5XX_HAL_VERSION_SUB1   (0x06UL) /*!< [23:16] sub1 version */
+#define __STM32H5XX_HAL_VERSION_SUB2   (0x00UL) /*!< [15:8]  sub2 version */
+#define __STM32H5XX_HAL_VERSION_RC     (0x00UL) /*!< [7:0]  release candidate */
 #define __STM32H5XX_HAL_VERSION         ((__STM32H5XX_HAL_VERSION_MAIN << 24U)\
                                          |(__STM32H5XX_HAL_VERSION_SUB1 << 16U)\
                                          |(__STM32H5XX_HAL_VERSION_SUB2 << 8U )\
                                          |(__STM32H5XX_HAL_VERSION_RC))
 
-#define VREFBUF_TIMEOUT_VALUE           10U   /* 10 ms (to be confirmed) */
+#if defined(VREFBUF)
+#define VREFBUF_TIMEOUT_VALUE           10U   /* 10 ms */
+#endif /* VREFBUF */
+
+/* Value used to increment hide protection level */
+#define SBS_HDPL_INCREMENT_VALUE  (uint8_t)0x6A
+
+/* Value used to lock/unlock debug functionalities */
+#define SBS_DEBUG_LOCK_VALUE      (uint8_t)0xC3
+#define SBS_DEBUG_UNLOCK_VALUE    (uint8_t)0xB4
 
 /* Private macro -----------------------------------------------------------------------------------------------------*/
 /* Private variables -------------------------------------------------------------------------------------------------*/
@@ -123,8 +132,8 @@ HAL_TickFreqTypeDef uwTickFreq = HAL_TICK_FREQ_DEFAULT;  /* 1KHz */
   * @note   HAL_Init() function is called at the beginning of program after reset and before
   *         the clock configuration.
   *
-  * @note   In the default implementation the System Timer (Systick) is used as source of time base.
-  *         The Systick configuration is based on HSI clock, as HSI is the clock
+  * @note   In the default implementation the System Timer (SysTick) is used as source of time base.
+  *         The SysTick configuration is based on HSI clock, as HSI is the clock
   *         used after a system Reset and the NVIC configuration is set to Priority group 4.
   *         Once done, time base tick starts incrementing: the tick variable counter is incremented
   *         each 1ms in the SysTick_Handler() interrupt handler.
@@ -143,6 +152,9 @@ HAL_StatusTypeDef HAL_Init(void)
 
   /* Update the SystemCoreClock global variable */
   SystemCoreClock = HAL_RCC_GetSysClockFreq() >> AHBPrescTable[(RCC->CFGR2 & RCC_CFGR2_HPRE) >> RCC_CFGR2_HPRE_Pos];
+
+  /* Select HCLK as SysTick clock source */
+  HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
   /* Use systick as time base source and configure 1ms tick (default clock after Reset is HSI) */
   if (HAL_InitTick(TICK_INT_PRIORITY) != HAL_OK)
@@ -232,28 +244,56 @@ __weak void HAL_MspDeInit(void)
   */
 __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 {
+  uint32_t ticknumber = 0U;
+  uint32_t systicksel;
+
   /* Check uwTickFreq for MisraC 2012 (even if uwTickFreq is a enum type that don't take the value zero)*/
   if ((uint32_t)uwTickFreq == 0UL)
   {
     return HAL_ERROR;
   }
 
+  /* Check Clock source to calculate the tickNumber */
+  if (READ_BIT(SysTick->CTRL, SysTick_CTRL_CLKSOURCE_Msk) == SysTick_CTRL_CLKSOURCE_Msk)
+  {
+    /* HCLK selected as SysTick clock source */
+    ticknumber = SystemCoreClock / (1000UL / (uint32_t)uwTickFreq);
+  }
+  else
+  {
+    systicksel = HAL_SYSTICK_GetCLKSourceConfig();
+    switch (systicksel)
+    {
+      /* HCLK_DIV8 selected as SysTick clock source */
+      case SYSTICK_CLKSOURCE_HCLK_DIV8:
+        /* Calculate tick value */
+        ticknumber = (SystemCoreClock / (8000UL / (uint32_t)uwTickFreq));
+        break;
+      /* LSI selected as SysTick clock source */
+      case SYSTICK_CLKSOURCE_LSI:
+        /* Calculate tick value */
+        ticknumber = (LSI_VALUE / (1000UL / (uint32_t)uwTickFreq));
+        break;
+      /* LSE selected as SysTick clock source */
+      case SYSTICK_CLKSOURCE_LSE:
+        /* Calculate tick value */
+        ticknumber = (LSE_VALUE / (1000UL / (uint32_t)uwTickFreq));
+        break;
+      default:
+        /* Nothing to do */
+        break;
+    }
+  }
+
   /* Configure the SysTick to have interrupt in 1ms time basis*/
-  if (HAL_SYSTICK_Config(SystemCoreClock / (1000UL / (uint32_t)uwTickFreq)) > 0U)
+  if (HAL_SYSTICK_Config(ticknumber) > 0U)
   {
     return HAL_ERROR;
   }
 
   /* Configure the SysTick IRQ priority */
-  if (TickPriority < (1UL << __NVIC_PRIO_BITS))
-  {
-    HAL_NVIC_SetPriority(SysTick_IRQn, TickPriority, 0U);
-    uwTickPrio = TickPriority;
-  }
-  else
-  {
-    return HAL_ERROR;
-  }
+  HAL_NVIC_SetPriority(SysTick_IRQn, TickPriority, 0U);
+  uwTickPrio = TickPriority;
 
   /* Return function status */
   return HAL_OK;
@@ -287,7 +327,7 @@ __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   * @brief This function is called to increment a global variable "uwTick"
   *        used as application time base.
   * @note In the default implementation, this variable is incremented each 1ms
-  *       in Systick ISR.
+  *       in SysTick ISR.
   * @note This function is declared as __weak to be overwritten in case of other
   *      implementations in user file.
   * @retval None
@@ -351,7 +391,8 @@ HAL_StatusTypeDef HAL_SetTickFreq(HAL_TickFreqTypeDef Freq)
 
 /**
   * @brief Return tick frequency.
-  * @retval tick period in Hz
+  * @retval Tick frequency.
+  *         Value of @ref HAL_TickFreqTypeDef.
   */
 HAL_TickFreqTypeDef HAL_GetTickFreq(void)
 {
@@ -450,7 +491,7 @@ uint32_t HAL_GetDEVID(void)
   */
 uint32_t HAL_GetUIDw0(void)
 {
-  return(READ_REG(*((uint32_t *)UID_BASE)));
+  return (READ_REG(*((uint32_t *)UID_BASE)));
 }
 
 /**
@@ -459,7 +500,7 @@ uint32_t HAL_GetUIDw0(void)
   */
 uint32_t HAL_GetUIDw1(void)
 {
-  return(READ_REG(*((uint32_t *)(UID_BASE + 4U))));
+  return (READ_REG(*((uint32_t *)(UID_BASE + 4U))));
 }
 
 /**
@@ -468,7 +509,7 @@ uint32_t HAL_GetUIDw1(void)
   */
 uint32_t HAL_GetUIDw2(void)
 {
-  return(READ_REG(*((uint32_t *)(UID_BASE + 8U))));
+  return (READ_REG(*((uint32_t *)(UID_BASE + 8U))));
 }
 
 /**
@@ -531,22 +572,22 @@ void HAL_DBGMCU_DisableDBGStandbyMode(void)
   * @}
   */
 
-/** @defgroup HAL_Exported_Functions_Group4 HAL SBS configuration functions
-  *  @brief    HAL SBS configuration functions
+/** @defgroup HAL_Exported_Functions_Group4 HAL VREFBUF Control functions
+  *  @brief    HAL VREFBUF Control functions
   *
 @verbatim
  =======================================================================================================================
-                                       ##### HAL SBS configuration functions #####
+                                       ##### HAL VREFBUF Control functions #####
  =======================================================================================================================
     [..]  This section provides functions allowing to:
       (+) Configure the Voltage reference buffer
       (+) Enable/Disable the Voltage reference buffer
-      (+) Enable/Disable the I/O analog switch voltage booster
 
 @endverbatim
   * @{
   */
 
+#if defined(VREFBUF)
 /**
   * @brief Configure the internal voltage reference buffer voltage scale.
   * @param  VoltageScaling: specifies the output voltage to achieve
@@ -631,6 +672,30 @@ void HAL_DisableVREFBUF(void)
 {
   CLEAR_BIT(VREFBUF->CSR, VREFBUF_CSR_ENVR);
 }
+#endif /* VREFBUF */
+
+/**
+  * @}
+  */
+
+/** @defgroup HAL_Exported_Functions_Group5 HAL SBS configuration functions
+  *  @brief    HAL SBS configuration functions
+  *
+@verbatim
+ =======================================================================================================================
+                                       ##### HAL SBS configuration functions #####
+ =======================================================================================================================
+    [..]  This section provides functions allowing to:
+      (+) Select the Ethernet PHY Interface
+      (+) Enable/Disable the VDD I/Os Compensation Cell
+      (+) Code selection/configuration for the VDD I/O Compensation cell
+      (+) Get ready flag status of VDD I/Os Compensation cell
+      (+) Get PMOS/NMOS compensation value of the I/Os supplied by VDD
+      (+) Enable/Disable the NMI in case of double ECC error in FLASH Interface
+
+@endverbatim
+  * @{
+  */
 
 #if defined(SBS_PMCR_ETH_SEL_PHY)
 /**
@@ -649,42 +714,6 @@ void HAL_SBS_ETHInterfaceSelect(uint32_t SBS_ETHInterface)
   MODIFY_REG(SBS->PMCR, SBS_PMCR_ETH_SEL_PHY, (uint32_t)(SBS_ETHInterface));
 }
 #endif /* SBS_PMCR_ETH_SEL_PHY */
-
-/**
-  * @brief  Enable the I/O analog switch voltage booster
-  *
-  * @retval None
-  */
-void HAL_SBS_EnableIOAnalogSwitchBooster(void)
-{
-  SET_BIT(SBS->PMCR, SBS_PMCR_BOOSTEN);
-}
-
-/**
-  * @brief  Disable the I/O analog switch voltage booster
-  *
-  * @retval None
-  */
-void HAL_SBS_DisableIOAnalogSwitchBooster(void)
-{
-  CLEAR_BIT(SBS->PMCR, SBS_PMCR_BOOSTEN);
-}
-
-/**
-  * @brief  Analog switch supply voltage selection (VDD/VDDA/booster)
-  * @param  SBS_BOOSTVDDSEL: Selects the Analog switch supply voltage (VDD/VDDA/booster)
-  *         This parameter can be one of the following values:
-  *           @arg SBS_BOOSTVDDSEL_VDDA : Select the VDDA as analog switch supply voltage (when BOOSTEN bit is cleared).
-  *           @arg SBS_BOOSTVDDSEL_VDD: Select the VDD as analog switch supply voltage.
-  * @retval None
-  */
-void HAL_SBS_AnalogSwitchSupplyVoltageSelection(uint32_t SBS_BOOSTVDDSEL)
-{
-  /* Check the parameter */
-  assert_param(IS_SBS_BOOSTVDD_SELECTION(SBS_BOOSTVDDSEL));
-
-  MODIFY_REG(SBS->PMCR, SBS_PMCR_BOOSTVDDSEL, (uint32_t)(SBS_BOOSTVDDSEL));
-}
 
 /**
   * @brief  Enables the VDD I/Os Compensation Cell.
@@ -762,7 +791,6 @@ void HAL_SBS_VDDIOCompensationCodeSelect(uint32_t SBS_CompCode)
 
 /**
   * @brief  VDDIO1 I/O Compensation cell get ready flag status
-  * @param  None
   * @retval State of bit (1 or 0).
   */
 uint32_t HAL_SBS_GetVddIO1CompensationCellReadyFlag(void)
@@ -772,7 +800,6 @@ uint32_t HAL_SBS_GetVddIO1CompensationCellReadyFlag(void)
 
 /**
   * @brief  VDDIO2 I/O Compensation cell get ready flag status
-  * @param  None
   * @retval State of bit (1 or 0).
   */
 uint32_t HAL_SBS_GetVddIO2CompensationCellReadyFlag(void)
@@ -781,7 +808,7 @@ uint32_t HAL_SBS_GetVddIO2CompensationCellReadyFlag(void)
 }
 
 /**
-  * @brief  Code selection for the VDD I/O Compensation cell
+  * @brief  Code configuration for the VDD I/O Compensation cell
   * @param  SBS_PMOSCode: PMOS compensation code
   *         This code is applied to the VDD I/O compensation cell when the CS1 bit of the
   *          SBS_CCSR is set
@@ -800,7 +827,7 @@ void HAL_SBS_VDDCompensationCodeConfig(uint32_t SBS_PMOSCode, uint32_t SBS_NMOSC
 }
 
 /**
-  * @brief  Code selection for the VDDIO I/O Compensation cell
+  * @brief  Code configuration for the VDDIO I/O Compensation cell
   * @param  SBS_PMOSCode: PMOS compensation code
   *         This code is applied to the VDDIO I/O compensation cell when the CS2 bit of the
   *          SBS_CCSR is set
@@ -820,7 +847,6 @@ void HAL_SBS_VDDIOCompensationCodeConfig(uint32_t SBS_PMOSCode, uint32_t SBS_NMO
 
 /**
   * @brief  Get NMOS compensation value of the I/Os supplied by VDD
-  * @param  None
   * @retval None
   */
 uint32_t HAL_SBS_GetNMOSVddCompensationValue(void)
@@ -830,7 +856,6 @@ uint32_t HAL_SBS_GetNMOSVddCompensationValue(void)
 
 /**
   * @brief  Get PMOS compensation value of the I/Os supplied by VDD
-  * @param  None
   * @retval None
   */
 uint32_t HAL_SBS_GetPMOSVddCompensationValue(void)
@@ -840,7 +865,6 @@ uint32_t HAL_SBS_GetPMOSVddCompensationValue(void)
 
 /**
   * @brief  Get NMOS compensation value of the I/Os supplied by VDDIO2
-  * @param  None
   * @retval None
   */
 uint32_t HAL_SBS_GetNMOSVddIO2CompensationValue(void)
@@ -851,104 +875,12 @@ uint32_t HAL_SBS_GetNMOSVddIO2CompensationValue(void)
 
 /**
   * @brief  Get PMOS compensation value of the I/Os supplied by VDDIO2
-  * @param  None
   * @retval None
   */
 uint32_t HAL_SBS_GetPMOSVddIO2CompensationValue(void)
 {
   return (uint32_t)(READ_BIT(SBS->CCVALR, SBS_CCVALR_APSRC2) >>  SBS_CCVALR_APSRC2_Pos);
 }
-
-#if defined(SBS_EPOCHSELCR_EPOCH_SEL)
-/**
-  * @brief  Select EPOCH security sent to SAES IP to encrypt/decrypt keys
-  * @param  Epoch_Selection: Select EPOCH security
-  *         This parameter can be one of the following values:
-  *           @arg SBS_EPOCH_SEL_SECURE    : EPOCH secure selected.
-  *           @arg SBS_EPOCH_SEL_NONSECURE : EPOCH non secure selected.
-  *           @arg SBS_EPOCH_SEL_PUFCHECK  : EPOCH all zeros for PUF integrity check.
-  * @retval None
-  */
-void HAL_SBS_EPOCHSelection(uint32_t Epoch_Selection)
-{
-  /* Check the parameter */
-  assert_param(IS_SBS_EPOCH_SELECTION(Epoch_Selection));
-
-  MODIFY_REG(SBS->EPOCHSELCR, SBS_EPOCHSELCR_EPOCH_SEL, (uint32_t)(Epoch_Selection));
-}
-
-/**
-  * @brief  Get EPOCH security selection
-  * @param  none
-  * @retval Returned value can be one of the following values:
-  *           @arg SBS_EPOCH_SEL_SECURE    : EPOCH secure selected.
-  *           @arg SBS_EPOCH_SEL_NONSECURE : EPOCH non secure selected.
-  *           @arg SBS_EPOCH_SEL_PUFCHECK  : EPOCH all zeros for PUF integrity check.
-  */
-uint32_t HAL_SBS_GetEPOCHSelection(void)
-{
-  return (uint32_t)(READ_BIT(SBS->EPOCHSELCR, SBS_EPOCHSELCR_EPOCH_SEL));
-}
-#endif /* SBS_EPOCHSELCR_EPOCH_SEL */
-
-/**
-  * @brief  Increment by 1 the HDPL value
-  * @param  None
-  * @retval None
-  */
-void HAL_SBS_IncrementHDPLValue(void)
-{
-  MODIFY_REG(SBS->HDPLCR, SBS_HDPLCR_INCR_HDPL, 0x00000006AU);
-}
-
-/**
-  * @brief  Get the HDPL Value.
-  *
-  * @retval  Returns the HDPL value
-  *          This return value can be one of the following values:
-  *            @arg SBS_HDPL_VALUE_0: HDPL0
-  *            @arg SBS_HDPL_VALUE_1: HDPL1
-  *            @arg SBS_HDPL_VALUE_2: HDPL2
-  *            @arg SBS_HDPL_VALUE_3: HDPL3
-  */
-uint32_t HAL_SBS_GetHDPLValue(void)
-{
-  return (uint32_t)(READ_BIT(SBS->HDPLSR, SBS_HDPLSR_HDPL));
-}
-
-#if defined(SBS_NEXTHDPLCR_NEXTHDPL)
-/**
-  * @brief  Set the OBK-HDPL Value.
-  * @param  Set the increment to add to HDPL value to generate the OBK-HDPL.
-  *         This parameter can be one of the following values:
-  *           @arg SBS_OBKHDPL_INCR_0 : HDPL
-  *           @arg SBS_OBKHDPL_INCR_1 : HDPL + 1
-  *           @arg SBS_OBKHDPL_INCR_2 : HDPL + 2
-  *           @arg SBS_OBKHDPL_INCR_3 : HDPL + 3
-  * @retval None
-  */
-void HAL_SBS_SetOBKHDPL(uint32_t OBKHDPL_Value)
-{
-  /* Check the parameter */
-  assert_param(IS_SBS_OBKHDPL_SELECTION(OBKHDPL_Value));
-
-  MODIFY_REG(SBS->NEXTHDPLCR, SBS_NEXTHDPLCR_NEXTHDPL, (uint32_t)(OBKHDPL_Value));
-}
-
-/**
-  * @brief  Get the OBK-HDPL Value.
-  * @retval  Returns the incremement to add to HDPL value to generate OBK-HDPL
-  *          This return value can be one of the following values:
-  *            @arg SBS_OBKHDPL_INCR_0: HDPL
-  *            @arg SBS_OBKHDPL_INCR_1: HDPL + 1
-  *            @arg SBS_OBKHDPL_INCR_2: HDPL + 2
-  *            @arg SBS_OBKHDPL_INCR_3: HDPL + 3
-  */
-uint32_t HAL_SBS_GetOBKHDPL(void)
-{
-  return (uint32_t)(READ_BIT(SBS->NEXTHDPLCR, SBS_NEXTHDPLCR_NEXTHDPL));
-}
-#endif /* SBS_NEXTHDPLCR_NEXTHDPL */
 
 /**
   * @brief  Disable the NMI in case of double ECC error in FLASH Interface.
@@ -980,12 +912,349 @@ uint32_t HAL_SBS_FLASH_ECCNMI_IsDisabled(void)
   return ((READ_BIT(SBS->ECCNMIR, SBS_ECCNMIR_ECCNMI_MASK_EN) == SBS_ECCNMIR_ECCNMI_MASK_EN) ? 1UL : 0UL);
 }
 
+/**
+  * @}
+  */
+
+/** @defgroup HAL_Exported_Functions_Group6 HAL SBS Boot control functions
+  *  @brief    HAL SBS Boot functions
+  *
+@verbatim
+ =======================================================================================================================
+                                       ##### HAL SBS Boot control functions #####
+ =======================================================================================================================
+    [..]  This section provides functions allowing to:
+      (+) Increment the HDPL value
+      (+) Get the HDPL value
+
+@endverbatim
+  * @{
+  */
+
+/**
+  * @brief  Increment by 1 the HDPL value
+  * @retval None
+  */
+void HAL_SBS_IncrementHDPLValue(void)
+{
+  MODIFY_REG(SBS->HDPLCR, SBS_HDPLCR_INCR_HDPL, SBS_HDPL_INCREMENT_VALUE);
+}
+
+/**
+  * @brief  Get the HDPL Value.
+  *
+  * @retval  Returns the HDPL value
+  *          This return value can be one of the following values:
+  *            @arg SBS_HDPL_VALUE_0: HDPL0
+  *            @arg SBS_HDPL_VALUE_1: HDPL1
+  *            @arg SBS_HDPL_VALUE_2: HDPL2
+  *            @arg SBS_HDPL_VALUE_3: HDPL3
+  */
+uint32_t HAL_SBS_GetHDPLValue(void)
+{
+  return (uint32_t)(READ_BIT(SBS->HDPLSR, SBS_HDPLSR_HDPL));
+}
 
 /**
   * @}
   */
 
-/** @defgroup HAL_Exported_Functions_Group5 HAL SBS lock management functions
+/** @defgroup HAL_Exported_Functions_Group7 HAL SBS Hardware secure storage control functions
+  *  @brief    HAL SBS Hardware secure storage functions
+  *
+@verbatim
+ =======================================================================================================================
+                                       ##### HAL SBS Hardware secure storage control functions #####
+ =======================================================================================================================
+    [..]  This section provides functions allowing to:
+      (+) Select EPOCH security sent to SAES IP
+      (+) Set/Get EPOCH security selection
+      (+) Set/Get the OBK-HDPL Value
+
+@endverbatim
+  * @{
+  */
+
+#if defined(SBS_EPOCHSELCR_EPOCH_SEL)
+/**
+  * @brief  Select EPOCH security sent to SAES IP to encrypt/decrypt keys
+  * @param  Epoch_Selection: Select EPOCH security
+  *         This parameter can be one of the following values:
+  *           @arg SBS_EPOCH_SEL_SECURE    : EPOCH secure selected.
+  *           @arg SBS_EPOCH_SEL_NONSECURE : EPOCH non secure selected.
+  *           @arg SBS_EPOCH_SEL_PUFCHECK  : EPOCH all zeros for PUF integrity check.
+  * @retval None
+  */
+void HAL_SBS_EPOCHSelection(uint32_t Epoch_Selection)
+{
+  /* Check the parameter */
+  assert_param(IS_SBS_EPOCH_SELECTION(Epoch_Selection));
+
+  MODIFY_REG(SBS->EPOCHSELCR, SBS_EPOCHSELCR_EPOCH_SEL, (uint32_t)(Epoch_Selection));
+}
+
+/**
+  * @brief  Get EPOCH security selection
+  * @retval Returned value can be one of the following values:
+  *           @arg SBS_EPOCH_SEL_SECURE    : EPOCH secure selected.
+  *           @arg SBS_EPOCH_SEL_NONSECURE : EPOCH non secure selected.
+  *           @arg SBS_EPOCH_SEL_PUFCHECK  : EPOCH all zeros for PUF integrity check.
+  */
+uint32_t HAL_SBS_GetEPOCHSelection(void)
+{
+  return (uint32_t)(READ_BIT(SBS->EPOCHSELCR, SBS_EPOCHSELCR_EPOCH_SEL));
+}
+#endif /* SBS_EPOCHSELCR_EPOCH_SEL */
+
+#if defined(SBS_NEXTHDPLCR_NEXTHDPL)
+/**
+  * @brief  Set the OBK-HDPL Value.
+  * @param  OBKHDPL_Value Value of the increment to add to HDPL value to generate the OBK-HDPL.
+  *         This parameter can be one of the following values:
+  *           @arg SBS_OBKHDPL_INCR_0 : HDPL
+  *           @arg SBS_OBKHDPL_INCR_1 : HDPL + 1
+  *           @arg SBS_OBKHDPL_INCR_2 : HDPL + 2
+  *           @arg SBS_OBKHDPL_INCR_3 : HDPL + 3
+  * @retval None
+  */
+void HAL_SBS_SetOBKHDPL(uint32_t OBKHDPL_Value)
+{
+  /* Check the parameter */
+  assert_param(IS_SBS_OBKHDPL_SELECTION(OBKHDPL_Value));
+
+  MODIFY_REG(SBS->NEXTHDPLCR, SBS_NEXTHDPLCR_NEXTHDPL, (uint32_t)(OBKHDPL_Value));
+}
+
+/**
+  * @brief  Get the OBK-HDPL Value.
+  * @retval  Returns the incremement to add to HDPL value to generate OBK-HDPL
+  *          This return value can be one of the following values:
+  *            @arg SBS_OBKHDPL_INCR_0: HDPL
+  *            @arg SBS_OBKHDPL_INCR_1: HDPL + 1
+  *            @arg SBS_OBKHDPL_INCR_2: HDPL + 2
+  *            @arg SBS_OBKHDPL_INCR_3: HDPL + 3
+  */
+uint32_t HAL_SBS_GetOBKHDPL(void)
+{
+  return (uint32_t)(READ_BIT(SBS->NEXTHDPLCR, SBS_NEXTHDPLCR_NEXTHDPL));
+}
+#endif /* SBS_NEXTHDPLCR_NEXTHDPL */
+
+/**
+  * @}
+  */
+
+/** @defgroup HAL_Exported_Functions_Group8 HAL SBS Debug control functions
+  *  @brief    HAL SBS Debug functions
+  *
+@verbatim
+ =======================================================================================================================
+                                       ##### SBS Debug control functions #####
+ =======================================================================================================================
+    [..]  This section provides functions allowing to:
+      (+) Open the device access port
+      (+) Open the debug
+      (+) Configure the authenticated debug HDPL
+      (+) Get the current value of the hide protection level
+      (+) Lock the access to the debug control register
+      (+) Configure/Get the authenticated debug security access
+
+@endverbatim
+  * @{
+  */
+
+/**
+  * @brief  Open the device access port.
+  * @note   This function can be only used when device state is Closed.
+  * @retval None
+  */
+void HAL_SBS_OpenAccessPort(void)
+{
+  MODIFY_REG(SBS->DBGCR, SBS_DBGCR_AP_UNLOCK, SBS_DEBUG_UNLOCK_VALUE);
+}
+
+/**
+  * @brief  Open the debug when the hide protection level is authorized.
+  * @note   This function can be only used when device state is Closed.
+  * @retval None
+  */
+void HAL_SBS_OpenDebug(void)
+{
+  MODIFY_REG(SBS->DBGCR, SBS_DBGCR_DBG_UNLOCK, ((uint32_t)SBS_DEBUG_UNLOCK_VALUE << SBS_DBGCR_DBG_UNLOCK_Pos));
+}
+
+/**
+  * @brief  Configure the authenticated debug hide protection level.
+  * @note   This function can be only used when device state is Closed.
+  * @param  Level Hide protection level where the authenticated debug opens
+  *            This value is one of @ref SBS_HDPL_Value (except SBS_HDPL_VALUE_0)
+  * @retval HAL_OK if parameter is correct
+  *         HAL_ERROR otherwise
+  */
+HAL_StatusTypeDef HAL_SBS_ConfigDebugLevel(uint32_t Level)
+{
+  /* Check the parameter */
+  assert_param(IS_SBS_HDPL(Level));
+
+  if (Level != SBS_HDPL_VALUE_0)
+  {
+    MODIFY_REG(SBS->DBGCR, SBS_DBGCR_DBG_AUTH_HDPL, (Level << SBS_DBGCR_DBG_AUTH_HDPL_Pos));
+    return HAL_OK;
+  }
+  else
+  {
+    return HAL_ERROR;
+  }
+}
+
+/**
+  * @brief  Get the current value of the hide protection level.
+  * @note   This function can be only used when device state is Closed.
+  * @retval Current hide protection level
+  *            This value is one of @ref SBS_HDPL_Value
+  */
+uint32_t HAL_SBS_GetDebugLevel(void)
+{
+  return ((SBS->DBGCR & SBS_DBGCR_DBG_AUTH_HDPL) >> SBS_DBGCR_DBG_AUTH_HDPL_Pos);
+}
+
+/**
+  * @brief  Lock the access to the debug control register.
+  * @note   This function can be only used when device state is Closed.
+  * @note   locking the current debug configuration is released only by a reset.
+  * @retval None
+  */
+void HAL_SBS_LockDebugConfig(void)
+{
+  MODIFY_REG(SBS->DBGLOCKR, SBS_DBGLOCKR_DBGCFG_LOCK, SBS_DEBUG_LOCK_VALUE);
+}
+
+#if defined(SBS_DBGCR_DBG_AUTH_SEC)
+/**
+  * @brief  Configure the authenticated debug security access.
+  * @param  Security debug opening secure/non-secure or non-secure only
+  *         This parameter can be one of the following values:
+  *            @arg SBS_DEBUG_SEC_NSEC: debug opening for secure and non-secure.
+  *            @arg SBS_DEBUG_NSEC: debug opening for non-secure only.
+  * @retval None
+  */
+void HAL_SBS_ConfigDebugSecurity(uint32_t Security)
+{
+  MODIFY_REG(SBS->DBGCR, SBS_DBGCR_DBG_AUTH_SEC, (Security << SBS_DBGCR_DBG_AUTH_SEC_Pos));
+}
+
+/**
+  * @brief  Get the current value of the hide protection level.
+  * @note   This function can be only used when device state is Closed.
+  * @retval Returned value can be one of the following values:
+  *            @arg SBS_DEBUG_SEC_NSEC: debug opening for secure and non-secure.
+  *            @arg SBS_DEBUG_NSEC: debug opening for non-secure only.
+  */
+uint32_t HAL_SBS_GetDebugSecurity(void)
+{
+  return ((SBS->DBGCR & SBS_DBGCR_DBG_AUTH_SEC) >> SBS_DBGCR_DBG_AUTH_SEC_Pos);
+}
+#endif /* SBS_DBGCR_DBG_AUTH_SEC */
+
+#if defined(SBS_OTGHSPHYTUNER2_COMPDISTUNE)
+/**
+  * @brief  Set the OTG PHY Disconnect Threshold.
+  * @param  DisconnectThreshold Defines the voltage level for the threshold used to detect a disconnect event.
+  *         This parameter can be one of the following values:
+  *            @arg SBS_OTG_HS_PHY_DISCONNECT_5_9PERCENT: +5.9% (recommended value)
+  *            @arg SBS_OTG_HS_PHY_DISCONNECT_0PERCENT: 0% (default value)
+  * @retval None
+  */
+
+void HAL_SBS_SetOTGPHYDisconnectThreshold(uint32_t DisconnectThreshold)
+{
+  /* Check the parameter */
+  assert_param(IS_SBS_OTGPHY_DISCONNECT(DisconnectThreshold));
+
+  MODIFY_REG(SBS->OTGHSPHYTUNER2, SBS_OTGHSPHYTUNER2_COMPDISTUNE, DisconnectThreshold);
+}
+
+/**
+  * @brief  Get the current voltage level for the threshold used to detect a disconnect event.
+  * @retval The returned value can be one of the following values:
+  *            @arg SBS_OTG_HS_PHY_DISCONNECT_5_9PERCENT: +5.9% (recommended value)
+  *            @arg SBS_OTG_HS_PHY_DISCONNECT_0PERCENT: 0% (default value)
+  */
+uint32_t HAL_SBS_GetOTGPHYDisconnectThreshold(void)
+{
+  return (uint32_t)(READ_BIT(SBS->OTGHSPHYTUNER2, SBS_OTGHSPHYTUNER2_COMPDISTUNE));
+}
+#endif /* SBS_OTGHSPHYTUNER2_COMPDISTUNE */
+
+#if defined(SBS_OTGHSPHYTUNER2_SQRXTUNE)
+/**
+  * @brief  Adjust the voltage level for the threshold used to detect valid high speed data.
+  * @param  SquelchThreshold Defines the voltage level.
+  *          This parameter can be one of the following values:
+  *            @arg SBS_OTG_HS_PHY_SQUELCH_15PERCENT: +15% (recommended value)
+  *            @arg SBS_OTG_HS_PHY_SQUELCH_0PERCENT: 0% (default value)
+  * @retval None
+  */
+
+void HAL_SBS_SetOTGPHYSquelchThreshold(uint32_t SquelchThreshold)
+{
+  /* Check the parameter */
+  assert_param(IS_SBS_OTGPHY_SQUELCH(SquelchThreshold));
+
+  MODIFY_REG(SBS->OTGHSPHYTUNER2, SBS_OTGHSPHYTUNER2_SQRXTUNE, SquelchThreshold);
+}
+
+/**
+  * @brief  Get the current voltage level for the threshold used to detect a squelch event.
+  * @retval The returned value can be one of the following values:
+  *            @arg SBS_OTG_HS_PHY_SQUELCH_15PERCENT: +15% (recommended value)
+  *            @arg SBS_OTG_HS_PHY_SQUELCH_0PERCENT: 0% (default value)
+  */
+uint32_t HAL_SBS_GetOTGPHYSquelchThreshold(void)
+{
+  return (uint32_t)(READ_BIT(SBS->OTGHSPHYTUNER2, SBS_OTGHSPHYTUNER2_SQRXTUNE));
+}
+#endif /* SBS_OTGHSPHYTUNER2_SQRXTUNE */
+
+#if defined(SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE)
+/**
+  * @brief  Set the OTG PHY Current config.
+  * @param  PreemphasisCurrent Defines the current configuration.
+  *         This parameter can be one of the following values:
+  *            @arg SBS_OTG_HS_PHY_PREEMP_DISABLED: HS transmitter preemphasis circuit disabled
+  *            @arg SBS_OTG_HS_PHY_PREEMP_1X: HS transmitter preemphasis circuit sources 1x preemphasis current
+  *            @arg SBS_OTG_HS_PHY_PREEMP_2X: HS transmitter preemphasis circuit sources 2x preemphasis current
+  *            @arg SBS_OTG_HS_PHY_PREEMP_3X: HS transmitter preemphasis circuit sources 3x preemphasis current
+  * @retval None
+  */
+
+void HAL_SBS_SetOTGPHYPreemphasisCurrent(uint32_t PreemphasisCurrent)
+{
+  /* Check the parameter */
+  assert_param(IS_SBS_OTGPHY_PREEMPHASIS(PreemphasisCurrent));
+
+  MODIFY_REG(SBS->OTGHSPHYTUNER2, SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE, PreemphasisCurrent);
+}
+
+/**
+  * @brief  Get the current level for the preemphasis.
+  * @retval The returned value can be one of the following values:
+  *            @arg SBS_OTG_HS_PHY_PREEMP_DISABLED: HS transmitter preemphasis circuit disabled
+  *            @arg SBS_OTG_HS_PHY_PREEMP_1X: HS transmitter preemphasis circuit sources 1x preemphasis current
+  *            @arg SBS_OTG_HS_PHY_PREEMP_2X: HS transmitter preemphasis circuit sources 2x preemphasis current
+  *            @arg SBS_OTG_HS_PHY_PREEMP_3X: HS transmitter preemphasis circuit sources 3x preemphasis current
+  */
+uint32_t HAL_SBS_GetOTGPHYPreemphasisCurrent(void)
+{
+  return (uint32_t)(READ_BIT(SBS->OTGHSPHYTUNER2, SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE));
+}
+#endif /* SBS_OTGHSPHYTUNER2_TXPREEMPAMPTUNE */
+
+/**
+  * @}
+  */
+
+/** @defgroup HAL_Exported_Functions_Group9 HAL SBS lock management functions
   *  @brief SBS lock management functions.
   *
 @verbatim
@@ -1054,7 +1323,7 @@ HAL_StatusTypeDef HAL_SBS_GetLock(uint32_t *pItem)
   * @}
   */
 
-/** @defgroup HAL_Exported_Functions_Group6 HAL SBS attributes management functions
+/** @defgroup HAL_Exported_Functions_Group10 HAL SBS attributes management functions
   *  @brief SBS attributes management functions.
   *
 @verbatim

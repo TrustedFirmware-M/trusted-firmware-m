@@ -16,7 +16,7 @@
   *
   ******************************************************************************
   */
- 
+
 #include "flash_layout.h"
 #include "low_level_flash.h"
 static struct flash_range erase_vect[] =

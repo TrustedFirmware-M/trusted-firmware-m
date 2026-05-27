@@ -6,14 +6,14 @@
   *          This file provides firmware functions to manage the following
   *          functionalities of the Power Controller extension peripheral :
   *           + Power Supply Control Functions
-  *           + Low Power Control Functions
   *           + Voltage Monitoring Functions
+  *           + Wakeup Pins configuration Functions
   *           + Memories Retention Functions
-  *           + I/O Pull-Up Pull-Down Configuration Functions
+  *           + IO and JTAG Retention Functions
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 STMicroelectronics.
+  * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -51,14 +51,10 @@
 /** @defgroup PWR_PVM_Mode_Mask PWR PVM Mode Mask
   * @{
   */
-#define PVM_RISING_EDGE  (0x01U)  /*!< Mask for rising edge set as PVM
-                                       trigger                                */
-#define PVM_FALLING_EDGE (0x02U)  /*!< Mask for falling edge set as PVM
-                                       trigger                                */
-#define PVM_MODE_IT      (0x04U)  /*!< Mask for interruption yielded by PVM
-                                       threshold crossing                     */
-#define PVM_MODE_EVT     (0x08U)  /*!< Mask for event yielded by PVM threshold
-                                       crossing                               */
+#define PVM_RISING_EDGE  (0x01U)  /*!< Mask for rising edge set as PVM trigger                      */
+#define PVM_FALLING_EDGE (0x02U)  /*!< Mask for falling edge set as PVM trigger                     */
+#define PVM_MODE_IT      (0x04U)  /*!< Mask for interruption yielded by PVM threshold crossing      */
+#define PVM_MODE_EVT     (0x08U)  /*!< Mask for event yielded by PVM threshold crossing             */
 /**
   * @}
   */
@@ -171,7 +167,7 @@ HAL_StatusTypeDef HAL_PWREx_ControlVoltageScaling(uint32_t VoltageScaling)
   assert_param(IS_PWR_VOLTAGE_SCALING_RANGE(VoltageScaling));
 
   /* Get the voltage scaling  */
-  if ((PWR->VOSSR & PWR_VOSSR_ACTVOS) == VoltageScaling)
+  if ((PWR->VOSSR & PWR_VOSSR_ACTVOS) == (VoltageScaling << 10U))
   {
     /* Old and new voltage scaling configuration match : nothing to do */
     return HAL_OK;
@@ -181,7 +177,7 @@ HAL_StatusTypeDef HAL_PWREx_ControlVoltageScaling(uint32_t VoltageScaling)
   MODIFY_REG(PWR->VOSCR, PWR_VOSCR_VOS, VoltageScaling);
 
   /* Wait till voltage level flag is set */
-  while (__HAL_PWR_GET_FLAG(PWR_FLAG_ACTVOSRDY) == 0U)
+  while (__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY) == 0U)
   {
     if ((HAL_GetTick() - tickstart) > PWR_FLAG_SETTING_DELAY)
     {
@@ -269,7 +265,7 @@ uint32_t HAL_PWREx_GetStopModeVoltageRange(void)
   *         detection level.
   * @retval None.
   */
-void HAL_PWREx_ConfigAVD(PWREx_AVDTypeDef *sConfigAVD)
+void HAL_PWREx_ConfigAVD(const PWREx_AVDTypeDef *sConfigAVD)
 {
   /* Check the parameters */
   assert_param(IS_PWR_AVD_LEVEL(sConfigAVD->AVDLevel));
@@ -349,9 +345,7 @@ void HAL_PWREx_DisableUSBVoltageDetector(void)
   /* Disable the USB voltage detector */
   CLEAR_BIT(PWR->USBSCR, PWR_USBSCR_USB33DEN);
 }
-#endif /* PWR_USBSCR_USB33DEN */
 
-#if defined (PWR_USBSCR_USB33SV)
 /**
   * @brief  Enable VDDUSB supply.
   * @note   Remove VDDUSB electrical and logical isolation, once VDDUSB supply
@@ -371,7 +365,29 @@ void HAL_PWREx_DisableVddUSB(void)
 {
   CLEAR_BIT(PWR->USBSCR, PWR_USBSCR_USB33SV);
 }
-#endif /* PWR_USBSCR_USB33SV */
+#endif /* PWR_USBSCR_USB33DEN */
+
+#if defined (PWR_USBSCR_OTGHSEN)
+/**
+  * @brief Enable the USB OTGHS PHY.
+  * @retval None.
+  */
+void HAL_PWREx_EnableUSBOTGHSPhy(void)
+{
+  /* Enable the USB OTGHS PHY */
+  SET_BIT(PWR->USBSCR, PWR_USBSCR_OTGHSEN);
+}
+
+/**
+  * @brief Disable the USB OTGHS PHY.
+  * @retval None.
+  */
+void HAL_PWREx_DisableUSBOTGHSPhy(void)
+{
+  /* Disable the OTGHS PHY */
+  CLEAR_BIT(PWR->USBSCR, PWR_USBSCR_OTGHSEN);
+}
+#endif /* PWR_USBSCR_OTGHSEN */
 
 /**
   * @brief  Enable the VBAT and temperature monitoring.
@@ -506,64 +522,48 @@ void HAL_PWREx_DisableAnalogBooster(void)
 /**
   * @brief  This function handles the PWR PVD/AVD interrupt request.
   * @note   This API should be called under the PVD_AVD_IRQHandler().
+  * @note   The use of this API is when the PVD and AVD are activated at the same time.
   * @retval None
   */
 void HAL_PWREx_PVD_AVD_IRQHandler(void)
 {
-  /* Check if the Programmable Voltage Detector is enabled (PVD) */
-  if (READ_BIT(PWR->VMCR, PWR_VMCR_PVDEN) != 0U)
+  /* Check PWR PVD AVD EXTI Rising flag */
+  if (__HAL_PWR_PVD_AVD_EXTI_GET_RISING_FLAG() != 0U)
   {
-    /* Check PWR EXTI Rising flag */
-    if (__HAL_PWR_PVD_EXTI_GET_RISING_FLAG() != 0U)
-    {
-      /* PWR PVD interrupt user callback */
-      HAL_PWR_PVDCallback();
+    /* Clear PWR PVD AVD EXTI Rising pending bit */
+    WRITE_REG(EXTI->RPR1, PWR_EXTI_LINE_AVD);
 
-      /* Clear PWR EXTI pending bit */
-      __HAL_PWR_PVD_EXTI_CLEAR_FLAG();
-    }
-
-    /* Check PWR EXTI Falling flag */
-    if (__HAL_PWR_PVD_EXTI_GET_FALLING_FLAG() != 0U)
-    {
-      /* PWR PVD interrupt user callback */
-      HAL_PWR_PVDCallback();
-
-      /* Clear PWR EXTI pending bit */
-      __HAL_PWR_PVD_EXTI_CLEAR_FLAG();
-    }
+    /* PWR PVD AVD Rising interrupt user callback */
+    HAL_PWREx_PVD_AVD_Rising_Callback();
   }
 
-  /* Check if the Analog Voltage Detector is enabled (AVD) */
-  if (READ_BIT(PWR->VMCR, PWR_VMCR_AVDEN) != 0U)
+  /* Check PWR PVD AVD EXTI Falling flag */
+  if (__HAL_PWR_PVD_AVD_EXTI_GET_FALLING_FLAG() != 0U)
   {
-    /* Check PWR EXTI flag */
-    if (__HAL_PWR_AVD_EXTI_GET_RISING_FLAG() != 0U)
-    {
-      /* PWR AVD interrupt user callback */
-      HAL_PWREx_AVDCallback();
+    /* Clear PWR PVD AVD EXTI Falling pending bit */
+    WRITE_REG(EXTI->FPR1, PWR_EXTI_LINE_AVD);
 
-      /* Clear PWR EXTI pending bit */
-      __HAL_PWR_AVD_EXTI_CLEAR_FLAG();
-    }
-
-    /* Check PWR EXTI flag */
-    if (__HAL_PWR_AVD_EXTI_GET_FALLING_FLAG() != 0U)
-    {
-      /* PWR AVD interrupt user callback */
-      HAL_PWREx_AVDCallback();
-
-      /* Clear PWR EXTI pending bit */
-      __HAL_PWR_AVD_EXTI_CLEAR_FLAG();
-    }
+    /* PWR PVD AVD Falling interrupt user callback */
+    HAL_PWREx_PVD_AVD_Falling_Callback();
   }
 }
 
 /**
-  * @brief PWR AVD interrupt callback.
+  * @brief PWR PVD AVD Rising interrupt callback.
   * @retval None.
   */
-__weak void HAL_PWREx_AVDCallback(void)
+__weak void HAL_PWREx_PVD_AVD_Rising_Callback(void)
+{
+  /* NOTE : This function should not be modified, when the callback is needed,
+            the HAL_PWR_AVDCallback can be implemented in the user file
+  */
+}
+
+/**
+  * @brief PWR PVD AVD Falling interrupt callback.
+  * @retval None.
+  */
+__weak void HAL_PWREx_PVD_AVD_Falling_Callback(void)
 {
   /* NOTE : This function should not be modified, when the callback is needed,
             the HAL_PWR_AVDCallback can be implemented in the user file
@@ -573,12 +573,12 @@ __weak void HAL_PWREx_AVDCallback(void)
   * @}
   */
 
-/** @defgroup PWREx_Exported_Functions_Group3 Wakeup Pins configuration functions
-  * @brief    Low power control functions
+/** @defgroup PWREx_Exported_Functions_Group3 Wakeup Pins configuration Functions
+  * @brief    Wakeup Pins configuration functions
   *
 @verbatim
  ===============================================================================
-                     ##### Wakeup Pins configuration functions #####
+                     ##### Wakeup Pins configuration Functions #####
  ===============================================================================
     [..]
 @endverbatim
@@ -592,7 +592,7 @@ __weak void HAL_PWREx_AVDCallback(void)
   *                      Pin.
   * @retval None.
   */
-void HAL_PWREx_EnableWakeUpPin(PWREx_WakeupPinTypeDef *sPinParams)
+void HAL_PWREx_EnableWakeUpPin(const PWREx_WakeupPinTypeDef *sPinParams)
 {
   uint32_t pinConfig;
   uint32_t regMask;
@@ -629,7 +629,7 @@ void HAL_PWREx_EnableWakeUpPin(PWREx_WakeupPinTypeDef *sPinParams)
   *           @arg PWR_WAKEUP_PIN6
   *           @arg PWR_WAKEUP_PIN7
   *           @arg PWR_WAKEUP_PIN8
-  * @note   The PWR_WAKEUP_PIN6, PWR_WAKEUP_PIN7 and PWR_WAKEUP_PIN7 are not available for
+  * @note   The PWR_WAKEUP_PIN6, PWR_WAKEUP_PIN7 and PWR_WAKEUP_PIN8 are not available for
   *         STM32H503xx devices.
   * @retval None
   */
@@ -694,13 +694,47 @@ void HAL_PWREx_DisableFlashPowerDown(void)
   *         content. The user can select which memory is discarded during STOP
   *         mode by means of xxSO bits.
   * @param  MemoryBlock : Specifies the memory block to shut-off during Stop mode.
-  *          This parameter can be one of the following values:
-  *            @arg PWR_ETHERNET_MEMORY_BLOCK PWR_PMCR_ETHERNETSO    : Ethernet shut-off control in Stop mode
-  *            @arg PWR_RAM3_MEMORY_BLOCK     PWR_PMCR_SRAM3SO       : RAM3 shut-off control in Stop mode
-  *            @arg PWR_RAM2_16_MEMORY_BLOCK  PWR_PMCR_SRAM2_16SO    : RAM2 16k byte shut-off control in Stop mode
-  *            @arg PWR_RAM2_48_MEMORY_BLOCK  PWR_PMCR_SRAM2_48SO    : RAM2 48k byte shut-off control in Stop mode
-  *            @arg PWR_RAM1_MEMORY_BLOCK     PWR_PMCR_SRAM1SO       : RAM1 shut-off control in Stop mode
-  * @note   The PWR_ETHERNET_MEMORY_BLOCK is not available for STM32H503xx devices.
+  *          This parameter can be one of the following values for STM32H5F5xx/STM32H5F4xx/STM32H5E5xx/STM32H5E4xx :
+  *            @arg PWR_ETHERNET_MEMORY_BLOCK      PWR_PMCR_ETHERNETSO    : Ethernet shut-off control in Stop mode
+  *            @arg PWR_LTDC_MEMORY_BLOCK          PWR_PMCR_LTDCSO        : LTDC shut-off control in Stop mode
+  *            @arg PWR_RAM5_MEMORY_BLOCK          PWR_PMCR_SRAM5SO       : RAM5 shut-off control in Stop mode
+  *            @arg PWR_RAM4_MEMORY_BLOCK          PWR_PMCR_SRAM4SO       : RAM4 shut-off control in Stop mode
+  *            @arg PWR_RAM3_MEMORY_BLOCK          PWR_PMCR_SRAM3SO       : RAM3 shut-off control in Stop mode
+  *            @arg PWR_RAM2_LOW_16_MEMORY_BLOCK   PWR_PMCR_SRAM2_16LSO   : RAM2 Low 16k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM2_HIGH_16_MEMORY_BLOCK  PWR_PMCR_SRAM2_16HSO   : RAM2 High 16k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM2_LOW_48_MEMORY_BLOCK   PWR_PMCR_SRAM2_48LSO   : RAM2 Low 48k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM2_HIGH_48_MEMORY_BLOCK  PWR_PMCR_SRAM2_48HSO   : RAM2 High 48k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM1_MEMORY_BLOCK          PWR_PMCR_SRAM1SO       : RAM1 shut-off control in Stop mode
+  *          This parameter can be one of the following values for STM32H553xx/STM32H543xx :
+  *            @arg PWR_ETHERNET_MEMORY_BLOCK      PWR_PMCR_ETHERNETSO    : Ethernet shut-off control in Stop mode
+  *            @arg PWR_RAM3_MEMORY_BLOCK          PWR_PMCR_SRAM3SO       : RAM3 shut-off control in Stop mode
+  *            @arg PWR_RAM2_LOW_16_MEMORY_BLOCK   PWR_PMCR_SRAM2_16LSO   : RAM2 Low 16k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM2_HIGH_16_MEMORY_BLOCK  PWR_PMCR_SRAM2_16HSO   : RAM2 High 16k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM2_48_MEMORY_BLOCK       PWR_PMCR_SRAM2_48SO    : RAM2 48k byte shut-off control in Stop mode
+  *            @arg PWR_RAM1_MEMORY_BLOCK          PWR_PMCR_SRAM1SO       : RAM1 shut-off control in Stop mode
+  *          This parameter can be one of the following values for STM32H573xx/STM32H563xx/STM32H562xx :
+  *            @arg PWR_ETHERNET_MEMORY_BLOCK      PWR_PMCR_ETHERNETSO    : Ethernet shut-off control in Stop mode
+  *            @arg PWR_RAM3_MEMORY_BLOCK          PWR_PMCR_SRAM3SO       : RAM3 shut-off control in Stop mode
+  *            @arg PWR_RAM2_16_MEMORY_BLOCK       PWR_PMCR_SRAM2_16SO    : RAM2 16k byte shut-off control in Stop mode
+  *            @arg PWR_RAM2_48_MEMORY_BLOCK       PWR_PMCR_SRAM2_48SO    : RAM2 48k byte shut-off control in Stop mode
+  *            @arg PWR_RAM1_MEMORY_BLOCK          PWR_PMCR_SRAM1SO       : RAM1 shut-off control in Stop mode
+  *          This parameter can be one of the following values for STM32H533xx/STM32H523xx :
+  *            @arg PWR_RAM3_MEMORY_BLOCK          PWR_PMCR_SRAM3SO       : RAM3 shut-off control in Stop mode
+  *            @arg PWR_RAM2_LOW_16_MEMORY_BLOCK   PWR_PMCR_SRAM2_16LSO   : RAM2 Low 16k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM2_HIGH_16_MEMORY_BLOCK  PWR_PMCR_SRAM2_16HSO   : RAM2 High 16k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM2_48_MEMORY_BLOCK       PWR_PMCR_SRAM2_48SO    : RAM2 48k byte shut-off control in Stop mode
+  *            @arg PWR_RAM1_MEMORY_BLOCK          PWR_PMCR_SRAM1SO       : RAM1 shut-off control in Stop mode
+  *          This parameter can be one of the following values for STM32H503xx :
+  *            @arg PWR_RAM2_MEMORY_BLOCK          PWR_PMCR_SRAM2SO       : RAM2 shut-off control in Stop mode
+  *            @arg PWR_RAM1_MEMORY_BLOCK          PWR_PMCR_SRAM1SO       : RAM1 shut-off control in Stop mode
   * @retval None.
   */
 void HAL_PWREx_EnableMemoryShutOff(uint32_t MemoryBlock)
@@ -716,13 +750,47 @@ void HAL_PWREx_EnableMemoryShutOff(uint32_t MemoryBlock)
   * @brief Disable memory block shut-off in Stop mode
   * @param  MemoryBlock : Specifies the memory block to keep content during
   *                       Stop mode.
-  *          This parameter can be one of the following values:
-  *            @arg PWR_ETHERNET_MEMORY_BLOCK PWR_PMCR_ETHERNETSO    : Ethernet shut-off control in Stop mode
-  *            @arg PWR_RAM3_MEMORY_BLOCK     PWR_PMCR_SRAM3SO       : RAM3 shut-off control in Stop mode
-  *            @arg PWR_RAM2_16_MEMORY_BLOCK  PWR_PMCR_SRAM2_16SO    : RAM2 16k byte shut-off control in Stop mode
-  *            @arg PWR_RAM2_48_MEMORY_BLOCK  PWR_PMCR_SRAM2_48SO    : RAM2 48k byte shut-off control in Stop mode
-  *            @arg PWR_RAM1_MEMORY_BLOCK     PWR_PMCR_SRAM1SO       : RAM1 shut-off control in Stop mode
-  * @note   The PWR_ETHERNET_MEMORY_BLOCK is not available for STM32H503xx devices.
+  *          This parameter can be one of the following values for STM32H5F5xx/STM32H5F4xx/STM32H5E5xx/STM32H5E4xx :
+  *            @arg PWR_ETHERNET_MEMORY_BLOCK      PWR_PMCR_ETHERNETSO    : Ethernet shut-off control in Stop mode
+  *            @arg PWR_LTDC_MEMORY_BLOCK          PWR_PMCR_LTDCSO        : LTDC shut-off control in Stop mode
+  *            @arg PWR_RAM5_MEMORY_BLOCK          PWR_PMCR_SRAM5SO       : RAM5 shut-off control in Stop mode
+  *            @arg PWR_RAM4_MEMORY_BLOCK          PWR_PMCR_SRAM4SO       : RAM4 shut-off control in Stop mode
+  *            @arg PWR_RAM3_MEMORY_BLOCK          PWR_PMCR_SRAM3SO       : RAM3 shut-off control in Stop mode
+  *            @arg PWR_RAM2_LOW_16_MEMORY_BLOCK   PWR_PMCR_SRAM2_16LSO   : RAM2 Low 16k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM2_HIGH_16_MEMORY_BLOCK  PWR_PMCR_SRAM2_16HSO   : RAM2 High 16k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM2_LOW_48_MEMORY_BLOCK   PWR_PMCR_SRAM2_48LSO   : RAM2 Low 48k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM2_HIGH_48_MEMORY_BLOCK  PWR_PMCR_SRAM2_48HSO   : RAM2 High 48k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM1_MEMORY_BLOCK          PWR_PMCR_SRAM1SO       : RAM1 shut-off control in Stop mode
+  *          This parameter can be one of the following values for STM32H553xx/STM32H543xx :
+  *            @arg PWR_ETHERNET_MEMORY_BLOCK      PWR_PMCR_ETHERNETSO    : Ethernet shut-off control in Stop mode
+  *            @arg PWR_RAM3_MEMORY_BLOCK          PWR_PMCR_SRAM3SO       : RAM3 shut-off control in Stop mode
+  *            @arg PWR_RAM2_LOW_16_MEMORY_BLOCK   PWR_PMCR_SRAM2_16LSO   : RAM2 Low 16k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM2_HIGH_16_MEMORY_BLOCK  PWR_PMCR_SRAM2_16HSO   : RAM2 High 16k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM2_48_MEMORY_BLOCK       PWR_PMCR_SRAM2_48SO    : RAM2 48k byte shut-off control in Stop mode
+  *            @arg PWR_RAM1_MEMORY_BLOCK          PWR_PMCR_SRAM1SO       : RAM1 shut-off control in Stop mode
+  *          This parameter can be one of the following values for STM32H573xx/STM32H563xx/STM32H562xx :
+  *            @arg PWR_ETHERNET_MEMORY_BLOCK      PWR_PMCR_ETHERNETSO    : Ethernet shut-off control in Stop mode
+  *            @arg PWR_RAM3_MEMORY_BLOCK          PWR_PMCR_SRAM3SO       : RAM3 shut-off control in Stop mode
+  *            @arg PWR_RAM2_16_MEMORY_BLOCK       PWR_PMCR_SRAM2_16SO    : RAM2 16k byte shut-off control in Stop mode
+  *            @arg PWR_RAM2_48_MEMORY_BLOCK       PWR_PMCR_SRAM2_48SO    : RAM2 48k byte shut-off control in Stop mode
+  *            @arg PWR_RAM1_MEMORY_BLOCK          PWR_PMCR_SRAM1SO       : RAM1 shut-off control in Stop mode
+  *          This parameter can be one of the following values for STM32H533xx/STM32H523xx :
+  *            @arg PWR_RAM3_MEMORY_BLOCK          PWR_PMCR_SRAM3SO       : RAM3 shut-off control in Stop mode
+  *            @arg PWR_RAM2_LOW_16_MEMORY_BLOCK   PWR_PMCR_SRAM2_16LSO   : RAM2 Low 16k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM2_HIGH_16_MEMORY_BLOCK  PWR_PMCR_SRAM2_16HSO   : RAM2 High 16k byte shut-off control
+  *            in Stop mode
+  *            @arg PWR_RAM2_48_MEMORY_BLOCK       PWR_PMCR_SRAM2_48SO    : RAM2 48k byte shut-off control in Stop mode
+  *            @arg PWR_RAM1_MEMORY_BLOCK          PWR_PMCR_SRAM1SO       : RAM1 shut-off control in Stop mode
+  *          This parameter can be one of the following values for STM32H503xx :
+  *            @arg PWR_RAM2_MEMORY_BLOCK          PWR_PMCR_SRAM2SO       : RAM2 shut-off control in Stop mode
+  *            @arg PWR_RAM1_MEMORY_BLOCK          PWR_PMCR_SRAM1SO       : RAM1 shut-off control in Stop mode
   * @retval None.
   */
 void HAL_PWREx_DisableMemoryShutOff(uint32_t MemoryBlock)
@@ -735,7 +803,7 @@ void HAL_PWREx_DisableMemoryShutOff(uint32_t MemoryBlock)
 }
 
 /**
-  * @brief  Enable the Backup RAM retention in Standby, Shutdown and VBAT modes.
+  * @brief  Enable the Backup RAM retention in Standby and VBAT modes.
   * @note   If BREN is reset, the backup RAM can still be used in Run, Sleep and
   *         Stop modes. However, its content is lost in Standby, Shutdown and
   *         VBAT modes. This bit can be writte
@@ -749,7 +817,7 @@ HAL_StatusTypeDef HAL_PWREx_EnableBkupRAMRetention(void)
 }
 
 /**
-  * @brief  Disable the Backup RAM retention in Standby, Shutdown and VBAT modes.
+  * @brief  Disable the Backup RAM retention in Standby and VBAT modes.
   * @note   If BREN is reset, the backup RAM can still be used in Run, Sleep and
   *         Stop modes. However, its content is lost in Standby, Shutdown and
   *         VBAT modes. This bit can be write
@@ -763,12 +831,12 @@ void HAL_PWREx_DisableBkupRAMRetention(void)
   * @}
   */
 
-/** @defgroup PWREx_Exported_Functions_Group5 IO/JTAG Retention Functions
-  * @brief    IO/JTAG Retention Functions
+/** @defgroup PWREx_Exported_Functions_Group5 IO and JTAG Retention Functions
+  * @brief    IO and JTAG Retention functions
   *
 @verbatim
  ===============================================================================
-                     ##### IO/JTAG Retention Functions #####
+                     ##### IO and JTAG Retention Functions #####
  ===============================================================================
     [..]
       In the Standby mode, the I/Os are by default in floating state. If the IORETEN bit in the
@@ -792,8 +860,8 @@ void HAL_PWREx_DisableBkupRAMRetention(void)
   */
 void HAL_PWREx_EnableStandbyIORetention(void)
 {
-  /* Enable the Flash Power Down */
-  SET_BIT(PWR->IORETR, PWR_IORETR_IORETREN);
+  /* Enable GPIO state retention */
+  SET_BIT(PWR->IORETR, PWR_IORETR_IORETEN);
 }
 
 /**
@@ -802,8 +870,8 @@ void HAL_PWREx_EnableStandbyIORetention(void)
   */
 void HAL_PWREx_DisableStandbyIORetention(void)
 {
-  /* Disable the Flash Power Down */
-  CLEAR_BIT(PWR->IORETR, PWR_IORETR_IORETREN);
+  /* Disable GPIO state retention */
+  CLEAR_BIT(PWR->IORETR, PWR_IORETR_IORETEN);
 }
 
 /**
@@ -814,7 +882,7 @@ void HAL_PWREx_DisableStandbyIORetention(void)
   */
 void HAL_PWREx_EnableStandbyJTAGIORetention(void)
 {
-  /* Enable the Flash Power Down */
+  /* Enable JTAG IOs state retention */
   SET_BIT(PWR->IORETR, PWR_IORETR_JTAGIORETEN);
 }
 
@@ -824,7 +892,7 @@ void HAL_PWREx_EnableStandbyJTAGIORetention(void)
   */
 void HAL_PWREx_DisableStandbyJTAGIORetention(void)
 {
-  /* Disable the Flash Power Down */
+  /* Enable JTAG IOs state retention */
   CLEAR_BIT(PWR->IORETR, PWR_IORETR_JTAGIORETEN);
 }
 
@@ -832,6 +900,10 @@ void HAL_PWREx_DisableStandbyJTAGIORetention(void)
   * @}
   */
 #endif /* defined (HAL_PWR_MODULE_ENABLED) */
+
+/**
+  * @}
+  */
 
 /**
   * @}

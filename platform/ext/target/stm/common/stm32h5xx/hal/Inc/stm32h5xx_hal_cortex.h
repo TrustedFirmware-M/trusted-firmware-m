@@ -9,10 +9,9 @@
   * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -124,14 +123,10 @@ typedef struct
 /** @defgroup CORTEX_MPU_HFNMI_PRIVDEF_Control CORTEX MPU HFNMI and PRIVILEGED Access control
   * @{
   */
-#define  MPU_HFNMI_PRIVDEF_NONE          0U /*!< MPU is disabled during HardFault and NMI handlers,
-                                                 privileged software access to the default memory map is disabled */
-#define  MPU_HARDFAULT_NMI               2U /*!< MPU is enabled during HardFault and NMI handlers,
-                                                 privileged software access to the default memory map is disabled */
-#define  MPU_PRIVILEGED_DEFAULT          4U /*!< MPU is disabled during HardFault and NMI handlers,
-                                                 privileged software access to the default memory map is enabled  */
-#define  MPU_HFNMI_PRIVDEF               6U /*!< MPU is enabled during HardFault and NMI handlers,
-                                                 privileged software access to the default memory map is enabled  */
+#define  MPU_HFNMI_PRIVDEF_NONE          0U /*!< Background region access not allowed, MPU disabled for Hardfaults, NMIs, and exception handlers when FAULTMASK=1 */
+#define  MPU_HARDFAULT_NMI               2U /*!< Background region access not allowed, MPU enabled for Hardfaults, NMIs, and exception handlers when FAULTMASK=1 */
+#define  MPU_PRIVILEGED_DEFAULT          4U /*!< Background region privileged-only access allowed, MPU disabled for Hardfaults, NMIs, and exception handlers when FAULTMASK=1 */
+#define  MPU_HFNMI_PRIVDEF               6U /*!< Background region privileged-only access allowed, MPU enabled for Hardfaults, NMIs, and exception handlers when FAULTMASK=1 */
 /**
   * @}
   */
@@ -139,8 +134,8 @@ typedef struct
 /** @defgroup CORTEX_MPU_Region_Enable CORTEX MPU Region Enable
   * @{
   */
-#define  MPU_REGION_ENABLE               1U /*!< MPU region enabled  */
-#define  MPU_REGION_DISABLE              0U /*!< MPU region disabled */
+#define  MPU_REGION_ENABLE               1U /*!< Enable region */
+#define  MPU_REGION_DISABLE              0U /*!< Disable region */
 /**
   * @}
   */
@@ -148,8 +143,8 @@ typedef struct
 /** @defgroup CORTEX_MPU_Instruction_Access CORTEX MPU Instruction Access
   * @{
   */
-#define  MPU_INSTRUCTION_ACCESS_ENABLE   0U /*!< MPU region execution permitted (if read permitted) */
-#define  MPU_INSTRUCTION_ACCESS_DISABLE  1U /*!< MPU region execution not permitted                 */
+#define  MPU_INSTRUCTION_ACCESS_ENABLE   0U /*!< Execute attribute */
+#define  MPU_INSTRUCTION_ACCESS_DISABLE  1U /*!< Execute never attribute */
 /**
   * @}
   */
@@ -157,9 +152,9 @@ typedef struct
 /** @defgroup CORTEX_MPU_Access_Shareable CORTEX MPU Instruction Access Shareable
   * @{
   */
-#define  MPU_ACCESS_NOT_SHAREABLE        0U /*!< MPU region not shareable   */
-#define  MPU_ACCESS_OUTER_SHAREABLE      1U /*!< MPU region outer shareable */
-#define  MPU_ACCESS_INNER_SHAREABLE      3U /*!< MPU region inner shareable */
+#define  MPU_ACCESS_NOT_SHAREABLE        0U /*!< Not shareable attribute */
+#define  MPU_ACCESS_OUTER_SHAREABLE      2U /*!< Outer shareable attribute */
+#define  MPU_ACCESS_INNER_SHAREABLE      3U /*!< Inner shareable attribute */
 /**
   * @}
   */
@@ -167,10 +162,10 @@ typedef struct
 /** @defgroup CORTEX_MPU_Region_Permission_Attributes CORTEX MPU Region Permission Attributes
   * @{
   */
-#define  MPU_REGION_PRIV_RW              0U /*!< MPU region Read/write by privileged code only */
-#define  MPU_REGION_ALL_RW               1U /*!< MPU region Read/write by any privilege level  */
-#define  MPU_REGION_PRIV_RO              2U /*!< MPU region Read-only by privileged code only  */
-#define  MPU_REGION_ALL_RO               3U /*!< MPU region Read-only by any privilege level   */
+#define  MPU_REGION_PRIV_RW              0U /*!< Read/write privileged-only attribute */
+#define  MPU_REGION_ALL_RW               1U /*!< Read/write privileged/unprivileged attribute */
+#define  MPU_REGION_PRIV_RO              2U /*!< Read-only privileged-only attribute */
+#define  MPU_REGION_ALL_RO               3U /*!< Read-only privileged/unprivileged attribute */
 /**
   * @}
   */
@@ -214,18 +209,26 @@ typedef struct
 /** @defgroup CORTEX_MPU_Attributes CORTEX MPU Attributes
   * @{
   */
-#define  MPU_DEVICE_nGnRnE          0x0U  /*!< Device, noGather, noReorder, noEarly acknowledge. */
-#define  MPU_DEVICE_nGnRE           0x4U  /*!< Device, noGather, noReorder, Early acknowledge.   */
-#define  MPU_DEVICE_nGRE            0x8U  /*!< Device, noGather, Reorder, Early acknowledge.     */
-#define  MPU_DEVICE_GRE             0xCU  /*!< Device, Gather, Reorder, Early acknowledge.       */
+/* Device memory attributes */
+#define  MPU_DEVICE_nGnRnE          0x0U  /*!< Device non-Gathering, non-Reordering, no Early write acknowledgement */
+#define  MPU_DEVICE_nGnRE           0x4U  /*!< Device non-Gathering, non-Reordering, Early write acknowledgement */
+#define  MPU_DEVICE_nGRE            0x8U  /*!< Device non-Gathering, Reordering, Early write acknowledgement */
+#define  MPU_DEVICE_GRE             0xCU  /*!< Device Gathering, Reordering, Early write acknowledgement */
 
-#define  MPU_WRITE_THROUGH          0x0U  /*!< Normal memory, write-through. */
+/* Normal memory attributes */
+/* To set with INNER_OUTER() macro for both inner/outer cache attributes */
+
+/* Non-cacheable memory attribute */
 #define  MPU_NOT_CACHEABLE          0x4U  /*!< Normal memory, non-cacheable. */
-#define  MPU_WRITE_BACK             0x4U  /*!< Normal memory, write-back.    */
 
+/* Cacheable memory attributes: combination of cache write policy, transient and allocation */
+/* - cache write policy */
+#define  MPU_WRITE_THROUGH          0x0U  /*!< Normal memory, write-through. */
+#define  MPU_WRITE_BACK             0x4U  /*!< Normal memory, write-back.    */
+/* - transient mode attribute */
 #define  MPU_TRANSIENT              0x0U  /*!< Normal memory, transient.     */
 #define  MPU_NON_TRANSIENT          0x8U  /*!< Normal memory, non-transient. */
-
+/* - allocation attribute */
 #define  MPU_NO_ALLOCATE            0x0U  /*!< Normal memory, no allocate.         */
 #define  MPU_W_ALLOCATE             0x1U  /*!< Normal memory, write allocate.      */
 #define  MPU_R_ALLOCATE             0x2U  /*!< Normal memory, read allocate.       */
@@ -283,6 +286,7 @@ uint32_t HAL_NVIC_GetActive(IRQn_Type IRQn);
 /* SYSTICK functions ***********************************************/
 uint32_t HAL_SYSTICK_Config(uint32_t TicksNumb);
 void HAL_SYSTICK_CLKSourceConfig(uint32_t CLKSource);
+uint32_t HAL_SYSTICK_GetCLKSourceConfig(void);
 void HAL_SYSTICK_IRQHandler(void);
 void HAL_SYSTICK_Callback(void);
 /**
@@ -296,12 +300,16 @@ void HAL_SYSTICK_Callback(void);
 /* MPU functions ***********************************************/
 void HAL_MPU_Enable(uint32_t MPU_Control);
 void HAL_MPU_Disable(void);
+void HAL_MPU_EnableRegion(uint32_t RegionNumber);
+void HAL_MPU_DisableRegion(uint32_t RegionNumber);
 void HAL_MPU_ConfigRegion(const MPU_Region_InitTypeDef *const pMPU_RegionInit);
 void HAL_MPU_ConfigMemoryAttributes(const MPU_Attributes_InitTypeDef *const pMPU_AttributesInit);
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
 /* MPU_NS Control functions ***********************************************/
 void HAL_MPU_Enable_NS(uint32_t MPU_Control);
 void HAL_MPU_Disable_NS(void);
+void HAL_MPU_EnableRegion_NS(uint32_t RegionNumber);
+void HAL_MPU_DisableRegion_NS(uint32_t RegionNumber);
 void HAL_MPU_ConfigRegion_NS(const MPU_Region_InitTypeDef *const pMPU_RegionInit);
 void HAL_MPU_ConfigMemoryAttributes_NS(const MPU_Attributes_InitTypeDef *const pMPU_AttributesInit);
 #endif /* __ARM_FEATURE_CMSE */
@@ -369,6 +377,15 @@ void HAL_MPU_ConfigMemoryAttributes_NS(const MPU_Attributes_InitTypeDef *const p
                                          ((NUMBER) == MPU_REGION_NUMBER9) || \
                                          ((NUMBER) == MPU_REGION_NUMBER10)|| \
                                          ((NUMBER) == MPU_REGION_NUMBER11))
+
+#define IS_MPU_REGION_NUMBER_NS(NUMBER) (((NUMBER) == MPU_REGION_NUMBER0) || \
+                                         ((NUMBER) == MPU_REGION_NUMBER1) || \
+                                         ((NUMBER) == MPU_REGION_NUMBER2) || \
+                                         ((NUMBER) == MPU_REGION_NUMBER3) || \
+                                         ((NUMBER) == MPU_REGION_NUMBER4) || \
+                                         ((NUMBER) == MPU_REGION_NUMBER5) || \
+                                         ((NUMBER) == MPU_REGION_NUMBER6) || \
+                                         ((NUMBER) == MPU_REGION_NUMBER7))
 #else
 #define IS_MPU_REGION_NUMBER(NUMBER)    (((NUMBER) == MPU_REGION_NUMBER0) || \
                                          ((NUMBER) == MPU_REGION_NUMBER1) || \

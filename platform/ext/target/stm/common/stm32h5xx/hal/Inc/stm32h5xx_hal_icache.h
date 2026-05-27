@@ -9,10 +9,9 @@
   * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -28,6 +27,7 @@ extern "C" {
 /* Includes -----------------------------------------------------------------*/
 #include "stm32h5xx_hal_def.h"
 
+#if defined(ICACHE)
 /** @addtogroup STM32H5xx_HAL_Driver
   * @{
   */
@@ -73,7 +73,7 @@ typedef struct
 /** @defgroup ICACHE_WaysSelection Ways selection
   * @{
   */
-#define ICACHE_1WAY                    0U                /*!< 1-way cache (direct mapped cache) */
+#define ICACHE_1WAY                    0UL               /*!< 1-way cache (direct mapped cache) */
 #define ICACHE_2WAYS                   ICACHE_CR_WAYSEL  /*!< 2-ways set associative cache (default) */
 /**
   * @}
@@ -93,10 +93,10 @@ typedef struct
 /** @defgroup ICACHE_Region Remapped Region number
   * @{
   */
-#define ICACHE_REGION_0                0U  /*!< Region 0 */
-#define ICACHE_REGION_1                1U  /*!< Region 1 */
-#define ICACHE_REGION_2                2U  /*!< Region 2 */
-#define ICACHE_REGION_3                3U  /*!< Region 3 */
+#define ICACHE_REGION_0                0UL  /*!< Region 0 */
+#define ICACHE_REGION_1                1UL  /*!< Region 1 */
+#define ICACHE_REGION_2                2UL  /*!< Region 2 */
+#define ICACHE_REGION_3                3UL  /*!< Region 3 */
 /**
   * @}
   */
@@ -104,13 +104,13 @@ typedef struct
 /** @defgroup ICACHE_Region_Size Remapped Region size
   * @{
   */
-#define ICACHE_REGIONSIZE_2MB          1U  /*!< Region size 2MB */
-#define ICACHE_REGIONSIZE_4MB          2U  /*!< Region size 4MB */
-#define ICACHE_REGIONSIZE_8MB          3U  /*!< Region size 8MB */
-#define ICACHE_REGIONSIZE_16MB         4U  /*!< Region size 16MB */
-#define ICACHE_REGIONSIZE_32MB         5U  /*!< Region size 32MB */
-#define ICACHE_REGIONSIZE_64MB         6U  /*!< Region size 64MB */
-#define ICACHE_REGIONSIZE_128MB        7U  /*!< Region size 128MB */
+#define ICACHE_REGIONSIZE_2MB          1UL  /*!< Region size 2MB */
+#define ICACHE_REGIONSIZE_4MB          2UL  /*!< Region size 4MB */
+#define ICACHE_REGIONSIZE_8MB          3UL  /*!< Region size 8MB */
+#define ICACHE_REGIONSIZE_16MB         4UL  /*!< Region size 16MB */
+#define ICACHE_REGIONSIZE_32MB         5UL  /*!< Region size 32MB */
+#define ICACHE_REGIONSIZE_64MB         6UL  /*!< Region size 64MB */
+#define ICACHE_REGIONSIZE_128MB        7UL  /*!< Region size 128MB */
 /**
   * @}
   */
@@ -118,7 +118,7 @@ typedef struct
 /** @defgroup ICACHE_Traffic_Route Remapped Traffic route
   * @{
   */
-#define ICACHE_MASTER1_PORT            0U                  /*!< Master1 port */
+#define ICACHE_MASTER1_PORT            0UL                 /*!< Master1 port */
 #define ICACHE_MASTER2_PORT            ICACHE_CRRx_MSTSEL  /*!< Master2 port */
 /**
   * @}
@@ -127,7 +127,7 @@ typedef struct
 /** @defgroup ICACHE_Output_Burst_Type Remapped Output burst type
   * @{
   */
-#define ICACHE_OUTPUT_BURST_WRAP       0U                  /*!< WRAP */
+#define ICACHE_OUTPUT_BURST_WRAP       0UL                 /*!< WRAP */
 #define ICACHE_OUTPUT_BURST_INCR       ICACHE_CRRx_HBURST  /*!< INCR */
 /**
   * @}
@@ -291,6 +291,7 @@ HAL_StatusTypeDef HAL_ICACHE_DisableRemapRegion(uint32_t Region);
 /**
   * @}
   */
+#endif /* ICACHE */
 
 #ifdef __cplusplus
 }
