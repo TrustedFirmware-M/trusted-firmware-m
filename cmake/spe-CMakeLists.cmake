@@ -40,6 +40,7 @@ target_sources(tfm_api_ns
         $<$<BOOL:${TFM_PARTITION_CRYPTO}>:${INTERFACE_SRC_DIR}/tfm_crypto_api.c>
         $<$<BOOL:${TFM_PARTITION_INITIAL_ATTESTATION}>:${INTERFACE_SRC_DIR}/tfm_attest_api.c>
         $<$<BOOL:${TFM_PARTITION_FIRMWARE_UPDATE}>:${INTERFACE_SRC_DIR}/tfm_fwu_api.c>
+        $<$<BOOL:${TFM_PARTITION_POWER_MGMT}>:${INTERFACE_SRC_DIR}/tfm_power_mgmt_api.c>
 )
 
 # Include interface headers exported by TF-M

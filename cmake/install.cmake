@@ -138,6 +138,13 @@ if(TFM_PARTITION_PLATFORM)
             DESTINATION ${INSTALL_INTERFACE_INC_DIR})
 endif()
 
+if(TFM_PARTITION_POWER_MGMT)
+    install(FILES       ${INTERFACE_INC_DIR}/power_mgmt/tfm_power_mgmt_api.h
+            DESTINATION ${INSTALL_INTERFACE_INC_DIR}/power_mgmt)
+    install(FILES       ${TARGET_PLATFORM_PATH}/tfm_plat_power_mgmt_defs.h
+            DESTINATION ${INSTALL_INTERFACE_INC_DIR})
+endif()
+
 if(TFM_PARTITION_FIRMWARE_UPDATE)
     install(FILES       ${INTERFACE_INC_DIR}/psa/update.h
             DESTINATION ${INSTALL_INTERFACE_INC_DIR}/psa)
@@ -217,6 +224,11 @@ endif()
 
 if(TFM_PARTITION_PLATFORM)
     install(FILES       ${INTERFACE_SRC_DIR}/tfm_platform_api.c
+            DESTINATION ${INSTALL_INTERFACE_SRC_DIR})
+endif()
+
+if(TFM_PARTITION_POWER_MGMT)
+    install(FILES       ${INTERFACE_SRC_DIR}/tfm_power_mgmt_api.c
             DESTINATION ${INSTALL_INTERFACE_SRC_DIR})
 endif()
 

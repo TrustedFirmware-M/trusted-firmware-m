@@ -56,6 +56,7 @@ target_sources(tfm_sprt
         $<$<BOOL:${TFM_PARTITION_INTERNAL_TRUSTED_STORAGE}>:${CMAKE_CURRENT_SOURCE_DIR}/src/tfm_its_api.c>
         $<$<BOOL:${TFM_PARTITION_PLATFORM}>:${CMAKE_CURRENT_SOURCE_DIR}/src/tfm_platform_api.c>
         $<$<BOOL:${TFM_PARTITION_PROTECTED_STORAGE}>:${CMAKE_CURRENT_SOURCE_DIR}/src/tfm_ps_api.c>
+        $<$<BOOL:${TFM_PARTITION_POWER_MGMT}>:${CMAKE_CURRENT_SOURCE_DIR}/src/tfm_power_mgmt_api.c>
         ${CMAKE_CURRENT_SOURCE_DIR}/src/tfm_psa_call.c
 )
 
