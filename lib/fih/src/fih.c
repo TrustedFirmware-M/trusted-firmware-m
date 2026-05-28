@@ -17,13 +17,6 @@
 
 #ifdef FIH_ENABLE_DOUBLE_VARS
 
-/* A volatile mask is used to prevent compiler optimization - the mask is xored
- * with the variable to create the backup and the integrity can be checked with
- * another xor. The mask value doesn't _really_ matter that much, as long as
- * it has reasonably high hamming weight.
- */
-#define _FIH_MASK_VALUE 0xBEEF
-
 /* Variable that could be (but isn't) changed at runtime to force the compiler
  * not to optimize the double check. Value doesn't matter.
  */

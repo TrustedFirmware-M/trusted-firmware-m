@@ -144,6 +144,15 @@ extern "C" {
 
 #ifdef FIH_ENABLE_DOUBLE_VARS
 
+/* A volatile mask is used to prevent compiler optimization - the mask is xored
+ * with the variable to create the backup and the integrity can be checked with
+ * another xor. The mask value doesn't _really_ matter that much, as long as
+ * it has reasonably high hamming weight.
+ *
+ * This define is here to support the declaration of const fih_ints.
+ */
+#define _FIH_MASK_VALUE 0xBEEF
+
 /* All ints are replaced with two int - the normal one and a backup which is
  * XORed with the mask.
  */
@@ -157,10 +166,16 @@ typedef struct {
 typedef volatile fih_int_nv fih_int;
 typedef volatile int fih_ret;
 
+/* Macro for initialising const fih_ints e.g. const fih_int foo = FIH_INT_INIT(7); */
+#define FIH_INT_INIT(x)    { .val = (x), .msk = (unsigned)(x) ^ (unsigned)_FIH_MASK_VALUE }
+
 #else
 
 typedef int fih_int;
 typedef int fih_ret;
+
+/* Macro for initialising const fih_ints e.g. const fih_int foo = FIH_INT_INIT(7); */
+#define FIH_INT_INIT(x)    (x)
 
 #endif /* FIH_ENABLE_DOUBLE_VARS */
 
