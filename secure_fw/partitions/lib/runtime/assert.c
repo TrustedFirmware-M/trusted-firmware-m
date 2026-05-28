@@ -39,3 +39,16 @@ void __assert_puts(const char *msg)
     }
 }
 #endif /* __ARMCC_VERSION*/
+
+/* picolibc's <assert.h> expands assert() into a call to __assert_no_args() when
+ * NDEBUG and ASSERT_VERBOSE are not defined. The TF-M secure image is linked with -nostdlib
+ * (since it defaults to TFM_INCLUDE_STDLIBC=n), so in some configurations this results
+ * in undefined reference to __assert_no_args() when assert() is used in the TF-M secure image.
+ * Make it weak so that it acts a fallback implementation.
+ */
+__WEAK __NO_RETURN void __assert_no_args(void)
+{
+    while (1) {
+        ;
+    }
+}
