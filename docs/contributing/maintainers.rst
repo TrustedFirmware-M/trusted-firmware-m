@@ -100,6 +100,13 @@ Nicola Mazzucato
     :email: `Nicola.Mazzucato@arm.com <Nicola.Mazzucato@arm.com>`__
     :github: `nicola-mazzucato-arm <https://github.com/nicola-mazzucato-arm>`__
 
+Power Management Partition
+--------------------------
+
+Nicola Mazzucato
+    :email: `Nicola.Mazzucato@arm.com <Nicola.Mazzucato@arm.com>`__
+    :github: `nicola-mazzucato-arm <https://github.com/nicola-mazzucato-arm>`__
+
 Build System
 ------------
 

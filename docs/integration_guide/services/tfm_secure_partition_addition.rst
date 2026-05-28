@@ -280,6 +280,7 @@ Secure Partitions.
    TFM_SP_INITIAL_ATTESTATION      4
    TFM_SP_FWU                      5
    TFM_SP_PLATFORM                 6
+   TFM_SP_POWER_MGMT               7
    =============================== =======================
 
 For the indexes of other Secure Partitions, please refer to their manifests or
