@@ -248,6 +248,11 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_set_up_static_boundaries(
     mpu_init();
 #endif /* CONFIG_TFM_ENABLE_MEMORY_PROTECT */
 
+#if TFM_ISOLATION_LEVEL == 1
+struct mpu_armv8m_dev_t dev_mpu_s_disable = { MPU_BASE };
+    mpu_armv8m_disable(&dev_mpu_s_disable);
+#endif
+
     *p_spm_boundary = (uintptr_t)PROT_BOUNDARY_VAL;
 
     FIH_RET(fih_int_encode(TFM_HAL_SUCCESS));
