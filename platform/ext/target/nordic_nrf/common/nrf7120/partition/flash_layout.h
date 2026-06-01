@@ -30,6 +30,14 @@
  * 0x0008_A000 Non-secure image primary (844 KB)
  * 0x0015_D000 Non-secure storage, used when built with NRF_NS_STORAGE=ON,
  *             otherwise unused (32 KB)
+ *
+ * RAM layout on nRF7120 Application MCU (768 kB M33 SRAM):
+ *
+ * 0x2000_0000 Secure RAM (64 kB)
+ * 0x2001_0000 Non-secure RAM (704 kB, remainder of TOTAL_RAM_SIZE)
+ *
+ * Secure RAM is kept to 64 kB so the non-secure application (Wi-Fi stack)
+ * gets as much of the M33 SRAM map as TF-M can grant.
  */
 
 /* This header file is included from linker scatter file as well, where only a
@@ -53,6 +61,7 @@
  * with TF-M later FLPR volatile memory is not used by TF-M. */
 #define SRAM_BASE_ADDRESS                   (0x20000000)
 #define TOTAL_RAM_SIZE                      (0x000C0000)       /* 768 kB, since other 256 kB are reserved for FLPR */
+#define S_RAM_PARTITION_SIZE                (0x10000)          /* 64 kB secure RAM */
 
 #define FLASH_S_PARTITION_SIZE                (0x80000)       /* S partition: 512 kB*/
 #define FLASH_NS_PARTITION_SIZE               (0xD3000)       /* NS partition: 844 kB*/
@@ -101,8 +110,8 @@
 
 /* Non-secure storage region */
 #define NRF_FLASH_NS_STORAGE_AREA_SIZE      (0x8000)   /* 32 KB */
-#define NRF_FLASH_NS_STORAGE_AREA_OFFSET    (FLASH_TOTAL_SIZE - \
-                                             NRF_FLASH_NS_STORAGE_AREA_SIZE)
+#define NRF_FLASH_NS_STORAGE_AREA_OFFSET    (SECURE_STORAGE_PARTITIONS_END + \
+                                             FLASH_NS_PARTITION_SIZE)
 
 /* Flash device name used by BL2
  * Name is defined in flash driver file: Driver_Flash.c

@@ -50,7 +50,7 @@
 #define S_CODE_LIMIT    (S_CODE_START + S_CODE_SIZE - 1)
 
 #define S_DATA_START    (S_RAM_ALIAS(0x0))
-#define S_DATA_SIZE     (TOTAL_RAM_SIZE / 2)
+#define S_DATA_SIZE     (S_RAM_PARTITION_SIZE)
 #define S_DATA_LIMIT    (S_DATA_START + S_DATA_SIZE - 1)
 
 /* Copied from the CONFIG_TFM_S_CODE_VECTOR_TABLE_SIZE in sdk-nrf */
