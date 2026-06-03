@@ -211,9 +211,9 @@ enum tfm_plat_err_t setup_key_from_derivation(enum kmu_hardware_keyslot_t input_
             return (enum tfm_plat_err_t)status;
         }
     } else {
-        psa_key_id = cc3xx_get_opaque_key(input_key_id);
-        if (CC3XX_IS_OPAQUE_KEY_INVALID(psa_key_id)) {
-            return (enum tfm_plat_err_t)PSA_ERROR_INVALID_ARGUMENT;
+        status = cc3xx_get_opaque_key(input_key_id, &psa_key_id);
+        if (status != PSA_SUCCESS) {
+            return (enum tfm_plat_err_t)status;
         }
     }
 
@@ -517,9 +517,9 @@ enum tfm_plat_err_t rse_derive_vhuk_seed(uint32_t *vhuk_seed, size_t vhuk_seed_b
         return 1;
     }
 
-    psa_key_id = cc3xx_get_opaque_key(KMU_HW_SLOT_HUK);
-    if (CC3XX_IS_OPAQUE_KEY_INVALID(psa_key_id)) {
-        return (enum tfm_plat_err_t)PSA_ERROR_INVALID_ARGUMENT;
+    status = cc3xx_get_opaque_key(KMU_HW_SLOT_HUK, &psa_key_id);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
     }
 
     status = bl1_psa_derive_key(psa_key_id, vhuk_seed_label, sizeof(vhuk_seed_label),

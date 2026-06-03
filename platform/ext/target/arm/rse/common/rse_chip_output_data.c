@@ -190,7 +190,12 @@ rse_generate_chip_output_data(struct rse_chip_output_data_fields_t *cod_fields,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     size_t mac_length = 0;
-    const psa_key_id_t key_id = cc3xx_get_opaque_key(RSE_KMU_SLOT_EXPORT_KEY);
+    psa_key_id_t key_id = PSA_KEY_ID_NULL;
+
+    status = cc3xx_get_opaque_key(RSE_KMU_SLOT_EXPORT_KEY, &key_id);
+    if (status != PSA_SUCCESS) {
+        return (enum tfm_plat_err_t)status;
+    }
 
     status = psa_mac_compute(key_id, PSA_ALG_CMAC,
                              (const uint8_t *)&cod_fields, sizeof(cod_fields),

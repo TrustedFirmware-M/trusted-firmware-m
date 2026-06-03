@@ -239,14 +239,19 @@ enum sfcp_error_t sfcp_encryption_hal_setup_session_key(uint8_t *seed, size_t se
                                                         uint32_t *output_key_id)
 {
     enum tfm_plat_err_t plat_err;
+    psa_key_id_t output_psa_key_id;
+    psa_status_t status;
 
     plat_err = rse_setup_session_key(seed, seed_len, output_key_id);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return SFCP_ERROR_HANDSHAKE_SETUP_SESSION_KEY_FAILURE;
     }
 
-    *output_key_id = cc3xx_get_opaque_key(*output_key_id);
-    assert(!CC3XX_IS_OPAQUE_KEY_INVALID(*output_key_id));
+    status = cc3xx_get_opaque_key(*output_key_id, &output_psa_key_id);
+    if (status != PSA_SUCCESS) {
+        return SFCP_ERROR_HANDSHAKE_SETUP_SESSION_KEY_FAILURE;
+    }
+    *output_key_id = output_psa_key_id;
 
     return SFCP_ERROR_SUCCESS;
 }
@@ -256,6 +261,8 @@ enum sfcp_error_t sfcp_encryption_hal_rekey_session_key(uint8_t *seed, size_t se
                                                         uint32_t *output_key_id)
 {
     enum tfm_plat_err_t plat_err;
+    psa_key_id_t output_psa_key_id;
+    psa_status_t status;
 
     plat_err =
         rse_rekey_session_key(seed, seed_len, cc3xx_get_builtin_key(input_key_id), output_key_id);
@@ -263,8 +270,11 @@ enum sfcp_error_t sfcp_encryption_hal_rekey_session_key(uint8_t *seed, size_t se
         return SFCP_ERROR_HANDSHAKE_REKEY_SESSION_KEY_FAILURE;
     }
 
-    *output_key_id = cc3xx_get_opaque_key(*output_key_id);
-    assert(!CC3XX_IS_OPAQUE_KEY_INVALID(*output_key_id));
+    status = cc3xx_get_opaque_key(*output_key_id, &output_psa_key_id);
+    if (status != PSA_SUCCESS) {
+        return SFCP_ERROR_HANDSHAKE_REKEY_SESSION_KEY_FAILURE;
+    }
+    *output_key_id = output_psa_key_id;
 
     return SFCP_ERROR_SUCCESS;
 }

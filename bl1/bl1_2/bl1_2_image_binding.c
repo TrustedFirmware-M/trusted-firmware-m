@@ -22,7 +22,15 @@
 
 static inline psa_key_id_t get_binding_key(void)
 {
-    return cc3xx_get_opaque_key(RSE_KMU_SLOT_SECURE_BINDING_KEY);
+    psa_key_id_t key_id = PSA_KEY_ID_NULL;
+    psa_status_t status;
+
+    status = cc3xx_get_opaque_key(RSE_KMU_SLOT_SECURE_BINDING_KEY, &key_id);
+    if (status != PSA_SUCCESS) {
+        return PSA_KEY_ID_NULL;
+    }
+
+    return key_id;
 }
 
 FIH_RET_TYPE(int) is_binding_tag_present(const struct bl1_2_image_t *image)

@@ -20,11 +20,12 @@ static inline uint16_t rse_bind_slot_for_img(int img_index)
 
 psa_key_id_t rse_get_cmac_key_for_image(int img_index)
 {
-    psa_key_id_t kid;
+    psa_key_id_t kid = PSA_KEY_ID_NULL;
+    psa_status_t status;
     uint16_t slot = rse_bind_slot_for_img(img_index);
-    kid = cc3xx_get_opaque_key(slot);
+    status = cc3xx_get_opaque_key(slot, &kid);
 
-    if (kid == 0) {
+    if (status != PSA_SUCCESS) {
         return PSA_KEY_ID_NULL;
     }
 

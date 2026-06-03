@@ -6,6 +6,7 @@
  */
 #include "cc3xx_opaque_keys.h"
 #include "crypto_opaque_key_ids.h"
+#include "fatal_error.h"
 #include "kmu_drv.h"
 #include "psa/crypto.h"
 
@@ -16,7 +17,8 @@
  * @param key_id    Opaque key ID.
  * @return size_t   The opaque key ID size in bytes.
  */
-inline size_t cc3xx_get_opaque_key_buffer_size(mbedtls_svc_key_id_t key) {
+inline size_t cc3xx_get_opaque_key_buffer_size(psa_key_id_t key)
+{
     (void)key;
     return OPAQUE_KEY_SIZE;
 }
@@ -26,11 +28,15 @@ inline size_t cc3xx_get_opaque_key_buffer_size(mbedtls_svc_key_id_t key) {
  *                  HW key ID. The latter makes sense to actual consumer of
  *                  they key.
  *
- * @param[in] mbedtls_svc_key_id_t      The opaque key ID.
+ * @param[in] psa_key_id_t              The opaque key ID.
  * @return uint32_t                     The HW key slot ID.
  */
-inline uint32_t cc3xx_get_builtin_key(mbedtls_svc_key_id_t key) {
-    psa_key_id_t key_id = MBEDTLS_SVC_KEY_ID_GET_KEY_ID(key);
+inline uint32_t cc3xx_get_builtin_key(psa_key_id_t key_id)
+{
+    if ((key_id >= PSA_OPAQUE_KEY_ID_USER_SLOT_MIN) &&
+        (key_id <= PSA_OPAQUE_KEY_ID_USER_SLOT_MAX)) {
+        return KMU_USER_SLOT_MIN + (key_id - PSA_OPAQUE_KEY_ID_USER_SLOT_MIN);
+    }
 
     switch (key_id) {
     case PSA_OPAQUE_KEY_ID_KRTL:
@@ -53,53 +59,58 @@ inline uint32_t cc3xx_get_builtin_key(mbedtls_svc_key_id_t key) {
 
     case PSA_OPAQUE_KEY_ID_KCE_DM:
         return KMU_HW_SLOT_KCE_DM;
+    default:
+        FATAL_ERR(PSA_ERROR_INVALID_ARGUMENT);
+        return 0;
     }
-
-    if ((key_id >= PSA_OPAQUE_KEY_ID_USER_SLOT_MIN) && (key_id <= PSA_OPAQUE_KEY_ID_USER_SLOT_MAX)) {
-        return KMU_USER_SLOT_MIN + (key_id - PSA_OPAQUE_KEY_ID_USER_SLOT_MIN);
-    }
-
-    return CC3XX_OPAQUE_KEY_ID_INVALID;
 }
 
 /**
  * @brief           translate they key id of a HW key to its corresponding
  *                  Opaque key ID.
  *
- * @param[in] hw_key_i              The HW key slot ID.
- * @return mbedtls_svc_key_id_t     The opaque key ID.
+ * @param[in] hw_key_id             The HW key slot ID.
+ * @param[out] key_id               The opaque key ID.
+ * @return psa_status_t             Status code.
  */
-inline mbedtls_svc_key_id_t cc3xx_get_opaque_key(uint32_t hw_key_id) {
-    psa_key_id_t key_id = CC3XX_OPAQUE_KEY_ID_INVALID;
-
-    switch (hw_key_id) {
-    case KMU_HW_SLOT_KRTL:
-        key_id = PSA_OPAQUE_KEY_ID_KRTL;
-        break;
-    case KMU_HW_SLOT_HUK:
-        key_id = PSA_OPAQUE_KEY_ID_HUK;
-        break;
-    case KMU_HW_SLOT_GUK :
-        key_id = PSA_OPAQUE_KEY_ID_GUK;
-        break;
-    case KMU_HW_SLOT_KP_CM :
-        key_id = PSA_OPAQUE_KEY_ID_KP_CM;
-        break;
-    case KMU_HW_SLOT_KCE_CM :
-        key_id = PSA_OPAQUE_KEY_ID_KCE_CM;
-        break;
-    case KMU_HW_SLOT_KP_DM :
-        key_id = PSA_OPAQUE_KEY_ID_KP_DM;
-        break;
-    case KMU_HW_SLOT_KCE_DM :
-        key_id = PSA_OPAQUE_KEY_ID_KCE_DM;
-        break;
+inline psa_status_t cc3xx_get_opaque_key(uint32_t hw_key_id, psa_key_id_t *key_id)
+{
+    if (key_id == NULL) {
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
 
     if ((hw_key_id >= KMU_USER_SLOT_MIN ) && (hw_key_id <= KMU_USER_SLOT_MAX)) {
-        key_id = PSA_OPAQUE_KEY_ID_USER_SLOT_MIN + (hw_key_id - KMU_USER_SLOT_MIN);
+        *key_id = PSA_OPAQUE_KEY_ID_USER_SLOT_MIN +
+                  (hw_key_id - KMU_USER_SLOT_MIN);
+        return PSA_SUCCESS;
     }
 
-    return mbedtls_svc_key_id_make(0, key_id);
-}
+    switch (hw_key_id) {
+    case KMU_HW_SLOT_KRTL:
+        *key_id = PSA_OPAQUE_KEY_ID_KRTL;
+        break;
+    case KMU_HW_SLOT_HUK:
+        *key_id = PSA_OPAQUE_KEY_ID_HUK;
+        break;
+    case KMU_HW_SLOT_GUK :
+        *key_id = PSA_OPAQUE_KEY_ID_GUK;
+        break;
+    case KMU_HW_SLOT_KP_CM :
+        *key_id = PSA_OPAQUE_KEY_ID_KP_CM;
+        break;
+    case KMU_HW_SLOT_KCE_CM :
+        *key_id = PSA_OPAQUE_KEY_ID_KCE_CM;
+        break;
+    case KMU_HW_SLOT_KP_DM :
+        *key_id = PSA_OPAQUE_KEY_ID_KP_DM;
+        break;
+    case KMU_HW_SLOT_KCE_DM :
+        *key_id = PSA_OPAQUE_KEY_ID_KCE_DM;
+        break;
+    default:
+        FATAL_ERR(PSA_ERROR_INVALID_ARGUMENT);
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
 
+    return PSA_SUCCESS;
+}

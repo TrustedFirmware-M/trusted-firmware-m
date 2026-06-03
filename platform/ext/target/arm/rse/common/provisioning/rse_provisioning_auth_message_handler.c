@@ -360,6 +360,7 @@ static enum tfm_plat_err_t aes_generic_message_operation(psa_algorithm_t alg,
 
     if ((alg == PSA_ALG_CCM) || (data_size_to_decrypt != 0)) {
         psa_key_id_t psa_key_id;
+        psa_status_t key_status;
 
         err = setup_aes_key(header, (uint32_t *)&kmu_slot);
         if (err != TFM_PLAT_ERR_SUCCESS) {
@@ -367,10 +368,10 @@ static enum tfm_plat_err_t aes_generic_message_operation(psa_algorithm_t alg,
             return err;
         }
 
-        psa_key_id = cc3xx_get_opaque_key(kmu_slot);
-        if (CC3XX_IS_OPAQUE_KEY_INVALID(psa_key_id)) {
+        key_status = cc3xx_get_opaque_key(kmu_slot, &psa_key_id);
+        if (key_status != PSA_SUCCESS) {
             ERROR("Invalid key\r\n");
-            status = PSA_ERROR_INVALID_ARGUMENT;
+            status = key_status;
             goto psa_abort;
         }
 
