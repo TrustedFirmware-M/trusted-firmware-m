@@ -275,9 +275,9 @@ fih_int fih_int_encode(int x)
 }
 
 /* Standard equality. If A == B then 1, else 0 */
-#define FIH_EQ(x, y) ((x == y) && fih_delay() && !(y != x))
-#define FIH_NOT_EQ(x, y) ((x != y) || !fih_delay() || !(y == x))
-#define FIH_SET(x, y) x = y; if(fih_delay() && (x != y)) FIH_PANIC
+#define FIH_EQ(x, y) (((x) == (y)) && (bool)fih_delay() && !((y) != (x)))
+#define FIH_NOT_EQ(x, y) (((x) != (y)) || !(bool)fih_delay() || !((y) == (x)))
+#define FIH_SET(x, y) (x) = (y); if((bool)fih_delay() && ((x) != (y))) {FIH_PANIC;}
 
 #else /* FIH_ENABLE_DOUBLE_VARS */
 
@@ -303,9 +303,9 @@ fih_int fih_int_encode(int x)
     return x;
 }
 
-#define FIH_EQ(x, y) (x == y)
-#define FIH_NOT_EQ(x, y) (x != y)
-#define FIH_SET(x, y) x = y
+#define FIH_EQ(x, y) ((x) == (y))
+#define FIH_NOT_EQ(x, y) ((x) != (y))
+#define FIH_SET(x, y) (x) = (y)
 
 #endif /* FIH_ENABLE_DOUBLE_VARS */
 
