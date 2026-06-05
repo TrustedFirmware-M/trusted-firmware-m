@@ -320,7 +320,7 @@ __attribute__((always_inline)) inline
 fih_ret fih_ret_encode_zero_equality(int x)
 {
     // cppcheck-suppress knownConditionTrueFalse
-    if (x == 0 && fih_delay() && x == 0) {
+    if (x == 0 && (bool)fih_delay() && x == 0) {
         return FIH_SUCCESS;
     } else {
         return (fih_ret)(x ^ _fih_ret_mask);
@@ -331,7 +331,7 @@ __attribute__((always_inline)) inline
 int fih_ret_decode_zero_equality(fih_ret x)
 {
     // cppcheck-suppress knownConditionTrueFalse
-    if (x == FIH_SUCCESS && fih_delay() && x == FIH_SUCCESS) {
+    if (x == FIH_SUCCESS && (bool)fih_delay() && x == FIH_SUCCESS) {
         return 0;
     } else {
         return (fih_ret)(x ^ _fih_ret_mask);
@@ -358,11 +358,11 @@ uint32_t fih_cond_panic() {
  */
 #define FIH_COND_CHECK(cond)                                  \
     (((cond) &&                                               \
-      (((fih_delay() && (!(!(cond)))) || fih_cond_panic()) && \
-       ((fih_delay() && (cond)) || fih_cond_panic()))         \
+      ((((bool)fih_delay() && (!(!(cond)))) || fih_cond_panic()) && \
+       (((bool)fih_delay() && (cond)) || fih_cond_panic()))         \
            ) ||                                               \
-      (((fih_delay() && (!(!(cond)))) && fih_cond_panic()) || \
-       ((fih_delay() && (cond)) && fih_cond_panic())))
+      ((((bool)fih_delay() && (!(!(cond)))) && fih_cond_panic()) || \
+       (((bool)fih_delay() && (cond)) && fih_cond_panic())))
 
 /*
  * Guard a condition against tampering by trying 3 times and returning 'true' if
@@ -374,9 +374,9 @@ uint32_t fih_cond_panic() {
  */
 #define FIH_COND_CHECK_SAFE_SKIP(cond) \
     ((cond) &&                         \
-     fih_delay() &&                    \
+     (bool)fih_delay() &&                    \
      (!(!(cond))) &&                   \
-     fih_delay() &&                    \
+     (bool)fih_delay() &&                    \
      (cond))
 
 /*
@@ -415,7 +415,7 @@ void fih_cfi_decrement(void);
         FIH_LABEL("FIH_CALL_START", l, c);        \
         FIH_CFI_PRECALL_BLOCK; \
         ret = FIH_FAILURE; \
-        if (fih_delay()) { \
+        if ((bool)fih_delay()) { \
             ret = f(__VA_ARGS__); \
         } \
         FIH_CFI_POSTCALL_BLOCK; \
@@ -430,7 +430,7 @@ void fih_cfi_decrement(void);
         FIH_LABEL("FIH_CALL_START"); \
         FIH_CFI_PRECALL_BLOCK; \
         ret = FIH_FAILURE; \
-        if (fih_delay()) { \
+        if ((bool)fih_delay()) { \
             ret = f(__VA_ARGS__); \
         } \
         FIH_CFI_POSTCALL_BLOCK; \
