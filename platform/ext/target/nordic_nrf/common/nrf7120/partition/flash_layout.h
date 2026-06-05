@@ -23,20 +23,20 @@
 
 /* Flash layout on NRF7120 Application MCU without BL2:
  *
- * 0x0000_0000 Secure image primary (512 KB)
- * 0x0008_0000 Protected Storage Area (16 KB)
- * 0x0008_4000 Internal Trusted Storage Area (16 KB)
- * 0x0008_8000 OTP / NV counters area (8 KB)
- * 0x0008_A000 Non-secure image primary (844 KB)
+ * 0x0000_0000 Secure image primary (512 KiB)
+ * 0x0008_0000 Protected Storage Area (16 KiB)
+ * 0x0008_4000 Internal Trusted Storage Area (16 KiB)
+ * 0x0008_8000 OTP / NV counters area (8 KiB)
+ * 0x0008_A000 Non-secure image primary (844 KiB)
  * 0x0015_D000 Non-secure storage, used when built with NRF_NS_STORAGE=ON,
- *             otherwise unused (32 KB)
+ *             otherwise unused (32 KiB)
  *
- * RAM layout on nRF7120 Application MCU (1016 kB M33 SRAM):
+ * RAM layout on nRF7120 Application MCU (1016 KiB M33 SRAM):
  *
- * 0x2000_0000 Secure RAM (128 kB)
- * 0x2002_0000 Non-secure RAM (888 kB, remainder of TOTAL_RAM_SIZE)
+ * 0x2000_0000 Secure RAM (128 KiB)
+ * 0x2002_0000 Non-secure RAM (888 KiB, remainder of TOTAL_RAM_SIZE)
  *
- * Secure RAM is kept to 128 kB so the non-secure application (Wi-Fi stack)
+ * Secure RAM is kept to 128 KiB so the non-secure application (Wi-Fi stack)
  * gets as much of the M33 SRAM map as TF-M can grant.
  */
 
@@ -50,34 +50,34 @@
 /* Use Flash memory to store Code data */
 #define FLASH_BASE_ADDRESS                  (0x0)
 
-/* nRF7120 has 4084 kB of non volatile memory (MRAM) but the last 116kB are reserved
+/* nRF7120 has 4084 KiB of non volatile memory (MRAM) but the last 116KiB are reserved
  * for FLPR MCU in Zephyr. For simplicity and for possible support for running FLPR along
  * with TF-M later FLPR non volatile memory is not used by TF-M. */
-#define FLASH_TOTAL_SIZE                    (0x3E0000)         /* 3968 kB since the last 116 kB are reserved for FLPR */
+#define FLASH_TOTAL_SIZE                    (0x3E0000)         /* 3968 KiB since the last 116 KiB are reserved for FLPR */
 #define TOTAL_ROM_SIZE                       FLASH_TOTAL_SIZE
 
 /* Default RAM Layout on nRF7120 Application MCU without FLPR:
  *
- * 0x2000_0000 Secure data in RAM_00 (128 kB)
- * 0x2002_0000 Non-secure data (888 kB, remainder of TOTAL_RAM_SIZE)
+ * 0x2000_0000 Secure data in RAM_00 (128 KiB)
+ * 0x2002_0000 Non-secure data (888 KiB, remainder of TOTAL_RAM_SIZE)
  * Dissection of Non-secure RAM macro:
- * 0x2002_0000 Non-secure data in RAM_00 (384 kB)
- * 0x2008_0000 Non-secure data in RAM_01 (256 kB)
- * 0x200C_0000 Non-secure data in RAM_02 (128 kB)
- * 0x200E_0000 Non-secure data in RAM_03 (120 kB)
+ * 0x2002_0000 Non-secure data in RAM_00 (384 KiB)
+ * 0x2008_0000 Non-secure data in RAM_01 (256 KiB)
+ * 0x200C_0000 Non-secure data in RAM_02 (128 KiB)
+ * 0x200E_0000 Non-secure data in RAM_03 (120 KiB)
  * Reserved RAM not for use:
- * 0x200E_F000 Reserved RAM in RAM_03    (8 kB)
+ * 0x200E_F000 Reserved RAM in RAM_03    (8 KiB)
  *
- * nRF7120 has 1016 kB of volatile memory (SRAM) available for Arm Cortex-M33,
+ * nRF7120 has 1016 KiB of volatile memory (SRAM) available for Arm Cortex-M33,
  * which is split into 4 RAM areas. RAM allocation for FLPR core is not considered
  * for default case therefore all RAM are allocated to Arm Cortex-M33 in here.
  */
 #define SRAM_BASE_ADDRESS                   (0x20000000)
-#define TOTAL_RAM_SIZE                      (0x000FE000)       /* 1016 kB, since other 8 kB from 1024 kB are reserved for KMU exchange area */
-#define S_RAM_PARTITION_SIZE                (0x20000)          /* 128 kB secure RAM */
+#define TOTAL_RAM_SIZE                      (0x000FE000)       /* 1016 KiB, since other 8 KiB from 1024 KiB are reserved for KMU exchange area */
+#define S_RAM_PARTITION_SIZE                (0x20000)          /* 128 KiB secure RAM */
 
-#define FLASH_S_PARTITION_SIZE                (0x80000)       /* S partition: 512 kB*/
-#define FLASH_NS_PARTITION_SIZE               (0xD3000)       /* NS partition: 844 kB*/
+#define FLASH_S_PARTITION_SIZE                (0x80000)       /* S partition: 512 KiB*/
+#define FLASH_NS_PARTITION_SIZE               (0xD3000)       /* NS partition: 844 KiB*/
 
 #define S_ROM_ALIAS_BASE   FLASH_BASE_ADDRESS
 #define NS_ROM_ALIAS_BASE  FLASH_BASE_ADDRESS
@@ -87,7 +87,7 @@
 #define NS_RAM_ALIAS_BASE SRAM_BASE_ADDRESS
 
 /* Sector size of the embedded flash hardware (erase/program) */
-#define FLASH_AREA_IMAGE_SECTOR_SIZE        (0x1000)           /* 4 KB. Flash memory program/erase operations have a page granularity. */
+#define FLASH_AREA_IMAGE_SECTOR_SIZE        (0x1000)           /* 4 KiB. Flash memory program/erase operations have a page granularity. */
 
 #if (FLASH_S_PARTITION_SIZE > FLASH_NS_PARTITION_SIZE)
 #define FLASH_MAX_PARTITION_SIZE FLASH_S_PARTITION_SIZE
@@ -103,15 +103,15 @@
 
 /* Protected Storage (PS) Service definitions */
 #define FLASH_PS_AREA_OFFSET            (SECURE_STORAGE_PARTITIONS_START)
-#define FLASH_PS_AREA_SIZE              (0x4000)   /* 16 KB */
+#define FLASH_PS_AREA_SIZE              (0x4000)   /* 16 KiB */
 
 /* Internal Trusted Storage (ITS) Service definitions */
 #define FLASH_ITS_AREA_OFFSET           (FLASH_PS_AREA_OFFSET + FLASH_PS_AREA_SIZE)
-#define FLASH_ITS_AREA_SIZE             (0x4000)   /* 16 KB */
+#define FLASH_ITS_AREA_SIZE             (0x4000)   /* 16 KiB */
 
 /* OTP_definitions */
 #define FLASH_OTP_NV_COUNTERS_AREA_OFFSET (FLASH_ITS_AREA_OFFSET + FLASH_ITS_AREA_SIZE)
-#define FLASH_OTP_NV_COUNTERS_AREA_SIZE   (0x2000) /* 8KB */
+#define FLASH_OTP_NV_COUNTERS_AREA_SIZE   (0x2000) /* 8KiB */
 
 #define FLASH_OTP_NV_COUNTERS_SECTOR_SIZE FLASH_AREA_IMAGE_SECTOR_SIZE
 
@@ -122,7 +122,7 @@
 #define NON_SECURE_IMAGE_OFFSET               (SECURE_STORAGE_PARTITIONS_END)
 
 /* Non-secure storage region */
-#define NRF_FLASH_NS_STORAGE_AREA_SIZE      (0x8000)   /* 32 KB */
+#define NRF_FLASH_NS_STORAGE_AREA_SIZE      (0x8000)   /* 32 KiB */
 #define NRF_FLASH_NS_STORAGE_AREA_OFFSET    (SECURE_STORAGE_PARTITIONS_END + \
                                              FLASH_NS_PARTITION_SIZE)
 
