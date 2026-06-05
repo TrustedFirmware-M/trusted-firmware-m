@@ -242,27 +242,14 @@ enum tfm_plat_err_t nrf_mpc_init_cfg(void)
 		mpc_configure_override(NRF_MPC00, &override);
 	}
 
-	/* Configure RAM02 non-secure access via MPC00 for Wi-Fi non-sec access */
+	/* Configure AMBIX03 non-secure access via MPC03 for to access RAM_02, RAM_03 */
 	{
 		struct mpc_region_override override;
 
 		init_mpc_region_override(&override);
 
-		override.start_address = 0x200C0000;
-		override.endaddr = 0x200E0000;
-		override.index = index_mpc00++;
-
-		mpc_configure_override(NRF_MPC00, &override);
-	}
-
-	/* Configure RAM02 non-secure access via MPC03 for Wi-Fi non-sec access */
-	{
-		struct mpc_region_override override;
-
-		init_mpc_region_override(&override);
-
-		override.start_address = 0x200C0000;
-		override.endaddr = 0x200E0000;
+		override.start_address = 0x200C0000; /* Start of RAM_02 */
+		override.endaddr = 1 + NS_DATA_LIMIT;
 		override.index = index_mpc03++;
 
 		mpc_configure_override(NRF_MPC03, &override);

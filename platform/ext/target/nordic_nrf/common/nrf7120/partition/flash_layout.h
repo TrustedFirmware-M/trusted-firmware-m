@@ -31,12 +31,12 @@
  * 0x0015_D000 Non-secure storage, used when built with NRF_NS_STORAGE=ON,
  *             otherwise unused (32 KB)
  *
- * RAM layout on nRF7120 Application MCU (768 kB M33 SRAM):
+ * RAM layout on nRF7120 Application MCU (1016 kB M33 SRAM):
  *
- * 0x2000_0000 Secure RAM (64 kB)
- * 0x2001_0000 Non-secure RAM (704 kB, remainder of TOTAL_RAM_SIZE)
+ * 0x2000_0000 Secure RAM (128 kB)
+ * 0x2002_0000 Non-secure RAM (888 kB, remainder of TOTAL_RAM_SIZE)
  *
- * Secure RAM is kept to 64 kB so the non-secure application (Wi-Fi stack)
+ * Secure RAM is kept to 128 kB so the non-secure application (Wi-Fi stack)
  * gets as much of the M33 SRAM map as TF-M can grant.
  */
 
@@ -53,15 +53,28 @@
 /* nRF7120 has 4084 kB of non volatile memory (MRAM) but the last 116kB are reserved
  * for FLPR MCU in Zephyr. For simplicity and for possible support for running FLPR along
  * with TF-M later FLPR non volatile memory is not used by TF-M. */
-#define FLASH_TOTAL_SIZE                    (0x3E0000)         /* 3968 kB since the last 116kB are reserved for FLPR */
+#define FLASH_TOTAL_SIZE                    (0x3E0000)         /* 3968 kB since the last 116 kB are reserved for FLPR */
 #define TOTAL_ROM_SIZE                       FLASH_TOTAL_SIZE
 
-/* nRF7120 has 1024 kB of volatile memory (SRAM) but only 768kB are reserved for Arm Cortex-M33.
- * For simplicity and for possible support for running FLPR along
- * with TF-M later FLPR volatile memory is not used by TF-M. */
+/* Default RAM Layout on nRF7120 Application MCU without FLPR:
+ *
+ * 0x2000_0000 Secure data in RAM_00 (128 kB)
+ * 0x2002_0000 Non-secure data (888 kB, remainder of TOTAL_RAM_SIZE)
+ * Dissection of Non-secure RAM macro:
+ * 0x2002_0000 Non-secure data in RAM_00 (384 kB)
+ * 0x2008_0000 Non-secure data in RAM_01 (256 kB)
+ * 0x200C_0000 Non-secure data in RAM_02 (128 kB)
+ * 0x200E_0000 Non-secure data in RAM_03 (120 kB)
+ * Reserved RAM not for use:
+ * 0x200E_F000 Reserved RAM in RAM_03    (8 kB)
+ *
+ * nRF7120 has 1016 kB of volatile memory (SRAM) available for Arm Cortex-M33,
+ * which is split into 4 RAM areas. RAM allocation for FLPR core is not considered
+ * for default case therefore all RAM are allocated to Arm Cortex-M33 in here.
+ */
 #define SRAM_BASE_ADDRESS                   (0x20000000)
-#define TOTAL_RAM_SIZE                      (0x000C0000)       /* 768 kB, since other 256 kB are reserved for FLPR */
-#define S_RAM_PARTITION_SIZE                (0x10000)          /* 64 kB secure RAM */
+#define TOTAL_RAM_SIZE                      (0x000FE000)       /* 1016 kB, since other 8 kB from 1024 kB are reserved for KMU exchange area */
+#define S_RAM_PARTITION_SIZE                (0x20000)          /* 128 kB secure RAM */
 
 #define FLASH_S_PARTITION_SIZE                (0x80000)       /* S partition: 512 kB*/
 #define FLASH_NS_PARTITION_SIZE               (0xD3000)       /* NS partition: 844 kB*/
