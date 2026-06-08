@@ -397,7 +397,6 @@ static psa_status_t get_file_info(psa_storage_uid_t uid, int32_t client_id)
 
 static psa_status_t tfm_its_write_data_to_fs(const int32_t client_id,
                                      const uint8_t *fid,
-                                     struct its_flash_fs_file_info_t *finfo,
                                      const size_t data_size,
                                      const size_t offset,
                                      uint8_t *data)
@@ -482,7 +481,6 @@ psa_status_t tfm_its_set(int32_t client_id,
 #elif PSA_FRAMEWORK_HAS_MM_IOVEC == 1
     status = tfm_its_write_data_to_fs(client_id,
                                       g_fid,
-                                      &g_file_info,
                                       data_length, 0,
                                       its_req_mngr_get_vec_base());
 #else
@@ -498,8 +496,11 @@ psa_status_t tfm_its_set(int32_t client_id,
         /* Read asset data from the caller */
         (void)its_req_mngr_read(asset_data, write_size);
 
-        status = tfm_its_write_data_to_fs(client_id, g_fid, &g_file_info,
-                                          write_size, offset, asset_data);
+        status = tfm_its_write_data_to_fs(
+            client_id,
+            g_fid,
+            write_size,
+            offset, asset_data);
 
         if (status != PSA_SUCCESS) {
                 return status;
