@@ -110,7 +110,7 @@
 #define IMAGE_NS_CODE_SIZE \
     (FLASH_NS_PARTITION_SIZE - BL2_HEADER_SIZE - BL2_TRAILER_SIZE)
 
-/* Size to accomodate the veneers for iovec based services */
+/* Size to accommodate the veneers for iovec based services */
 #define CMSE_VENEER_REGION_SIZE             (0x00000040)
 
 /* Use SRAM1 memory to store Code data */

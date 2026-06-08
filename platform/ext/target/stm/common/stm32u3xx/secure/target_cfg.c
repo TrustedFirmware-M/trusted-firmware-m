@@ -355,7 +355,7 @@ static void  gtzc_config_sram(uint32_t base, uint32_t max_size, uint32_t off_sta
   }
   /* compute index to start and to end */
   /* start and end index is on superblock */
-  /* end index is highest supreblock */
+  /* end index is highest superblock */
   for (index = 0; index < (max_size/MPCBB_BLOCK_SIZE); index++)
   {
     /* clean register on index aligned */
