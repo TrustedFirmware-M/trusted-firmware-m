@@ -234,22 +234,50 @@ void enable_ns_clk_config(void)
 /*  set all pin mux to un-secure */
 void pinmux_init_cfg(void)
 {
+#if defined(GPIOA)
   __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOE_CLK_ENABLE();
-  __HAL_RCC_GPIOF_CLK_ENABLE();
-  __HAL_RCC_GPIOG_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
   GPIOA_S->SECCFGR = 0x0;
+#endif
+#if defined(GPIOB)
+  __HAL_RCC_GPIOB_CLK_ENABLE();
   GPIOB_S->SECCFGR = 0x0;
+#endif
+#if defined(GPIOC)
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   GPIOC_S->SECCFGR = 0x0;
+#endif
+#if defined(GPIOD)
+  __HAL_RCC_GPIOD_CLK_ENABLE();
   GPIOD_S->SECCFGR = 0x0;
+#endif
+#if defined(GPIOE)
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   GPIOE_S->SECCFGR = 0x0;
+#endif
+#if defined(GPIOF)
+  __HAL_RCC_GPIOF_CLK_ENABLE();
   GPIOF_S->SECCFGR = 0x0;
+#endif
+#if defined(GPIOG)
+  __HAL_RCC_GPIOG_CLK_ENABLE();
   GPIOG_S->SECCFGR = 0x0;
+#endif
+#if defined(GPIOH)
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   GPIOH_S->SECCFGR = 0x0;
+#endif
+#if defined(GPIOI)
+  __HAL_RCC_GPIOI_CLK_ENABLE();
+  GPIOI_S->SECCFGR = 0x0;
+#endif
+#if defined(GPIOJ)
+  __HAL_RCC_GPIOJ_CLK_ENABLE();
+  GPIOJ_S->SECCFGR = 0x0;
+#endif
+#if defined(GPIOK)
+  __HAL_RCC_GPIOK_CLK_ENABLE();
+  GPIOK_S->SECCFGR = 0x0;
+#endif
 
 }
 /*------------------- SAU/IDAU configuration functions -----------------------*/
