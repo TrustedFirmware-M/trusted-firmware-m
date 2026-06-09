@@ -31,6 +31,7 @@ static psa_status_t tfm_its_set_req(const psa_msg_t *msg)
     psa_storage_create_flags_t create_flags;
     size_t num;
     size_t data_length;
+    psa_status_t status;
 
     if ((msg->in_size[0] != sizeof(uid)) ||
         (msg->in_size[2] != sizeof(create_flags))) {
@@ -49,7 +50,7 @@ static psa_status_t tfm_its_set_req(const psa_msg_t *msg)
     }
     data_length = msg->in_size[1];
 #if PSA_FRAMEWORK_HAS_MM_IOVEC == 1
-    if (data_length) {
+    if (data_length > 0) {
         p_data = (uint8_t *)psa_map_invec(msg->handle, 1);
     } else {
         p_data = NULL;
@@ -57,7 +58,15 @@ static psa_status_t tfm_its_set_req(const psa_msg_t *msg)
 #else
     handle = msg->handle;
 #endif
-    return tfm_its_set(msg->client_id, uid, data_length, create_flags);
+    status = tfm_its_set(msg->client_id, uid, data_length, create_flags);
+
+#if PSA_FRAMEWORK_HAS_MM_IOVEC == 1
+    if (data_length > 0) {
+        psa_unmap_invec(msg->handle, 1);
+    }
+#endif
+
+    return status;
 }
 
 static psa_status_t tfm_its_get_req(const psa_msg_t *msg)
