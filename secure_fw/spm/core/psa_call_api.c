@@ -92,10 +92,12 @@ psa_status_t spm_associate_call_params(struct connection_t *p_connection,
      */
     for (i = 0; (i + 1) < ivec_num; i++) {
         /* Validate arithmetic overflow for the input vectors */
+        TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_11_6, "Intentional pointer cast")
         if ((uintptr_t)ivecs_local[i].base + ivecs_local[i].len <
             (uintptr_t)ivecs_local[i].base) {
             return PSA_ERROR_PROGRAMMER_ERROR;
         }
+        TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_11_6)
 
         for (j = i + 1; j < ivec_num; j++) {
             if (!((((char *) ivecs_local[j].base + ivecs_local[j].len) <=
