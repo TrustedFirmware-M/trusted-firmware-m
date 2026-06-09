@@ -131,9 +131,8 @@ set(MCUBOOT_GIT_SHALLOW               OFF              CACHE BOOL      "Whether 
 set(MCUBOOT_PATCH_DIR                 ""               CACHE PATH      "Path to local folder which contains patches for MCUboot")
 set(MCUBOOT_IMAGE_NUMBER              4                CACHE STRING    "Number of images supported by MCUBoot")
 set(MCUBOOT_SIGNATURE_TYPE            "EC-P256"        CACHE STRING    "Algorithm to use for signature validation [RSA-2048, RSA-3072, EC-P256, EC-P384]")
-set(MCUBOOT_ENC_IMAGES                OFF              CACHE BOOL      "Enable image encryption")
-set(MCUBOOT_ENCRYPT_KW                OFF              CACHE BOOL      "Enable Key Wrapping encryption")
-set(MCUBOOT_ENCRYPT_AES               ON              CACHE BOOL      "Enable AES encryption")
+set(MCUBOOT_ENC_IMAGES                OFF              CACHE BOOL      "Enable image encryption (AES)")
+set(MCUBOOT_ENCRYPT_KW                OFF              CACHE BOOL      "Use AES-KW for encryption key wrapping")
 
 set(MCUBOOT_HW_KEY                    ON               CACHE BOOL      "Whether to embed the entire public key in the image metadata instead of the hash only")
 set(MCUBOOT_BUILTIN_KEY               OFF              CACHE BOOL      "Use builtin key(s) for validation, no public key data is embedded into the image metadata")

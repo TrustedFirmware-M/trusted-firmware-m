@@ -36,11 +36,11 @@ set_property(CACHE MCUBOOT_UPGRADE_STRATEGY PROPERTY STRINGS "OVERWRITE_ONLY;SWA
 set_property(CACHE MCUBOOT_ALIGN_VAL PROPERTY STRINGS "1;2;4;8;16;32")
 
 set(MCUBOOT_HW_ROLLBACK_PROT            ON          CACHE BOOL      "Enable security counter validation against non-volatile HW counters")
-set(MCUBOOT_ENC_IMAGES                  OFF         CACHE BOOL      "Enable encrypted image upgrade support")
+set(MCUBOOT_ENC_IMAGES                  OFF         CACHE BOOL      "Enable image encryption (AES)")
+set(MCUBOOT_ENC_KEY_LEN                 128         CACHE STRING    "Length of the AES key for encrypting images")
+set(MCUBOOT_ENCRYPT_RSA                 OFF         CACHE BOOL      "Use RSA-OAEP for encryption key wrapping")
+set(MCUBOOT_ENCRYPT_KW                  OFF         CACHE BOOL      "Use AES-KW for encryption key wrapping")
 set(MCUBOOT_BOOTSTRAP                   OFF         CACHE BOOL      "Support initial state with empty primary slot and images installed from secondary slots")
-set(MCUBOOT_ENCRYPT_RSA                 OFF         CACHE BOOL      "Use RSA for encrypted image upgrade support")
-set(MCUBOOT_ENCRYPT_KW                  OFF         CACHE BOOL      "Use AES-KW for encrypted images")
-set(MCUBOOT_ENCRYPT_AES                 ON          CACHE BOOL      "Enable AES encryption")
 set(MCUBOOT_FIH_PROFILE                 OFF         CACHE STRING    "Fault injection hardening profile [OFF, LOW, MEDIUM, HIGH]")
 set(MCUBOOT_USE_PSA_CRYPTO              ON          CACHE BOOL      "The crypto abstraction layer must use PSA Crypto APIs")
 if(${MCUBOOT_UPGRADE_STRATEGY} STREQUAL DIRECT_XIP)
@@ -86,7 +86,6 @@ set(MCUBOOT_SECURITY_COUNTER_S          1           CACHE STRING    "Security co
 set(MCUBOOT_SECURITY_COUNTER_NS         1           CACHE STRING    "Security counter for NS image. auto sets it to IMAGE_VERSION_NS")
 set(MCUBOOT_S_IMAGE_MIN_VER             0.0.0+0     CACHE STRING    "Minimum version of secure image required by the non-secure image for upgrade to this non-secure image. If MCUBOOT_IMAGE_NUMBER == 1 this option has no effect")
 set(MCUBOOT_NS_IMAGE_MIN_VER            0.0.0+0     CACHE STRING    "Minimum version of non-secure image required by the secure image for upgrade to this secure image. If MCUBOOT_IMAGE_NUMBER == 1 this option has no effect")
-set(MCUBOOT_ENC_KEY_LEN                 128         CACHE STRING    "Length of the AES key for encrypting images")
 
 set(MCUBOOT_PSA_CRYPTO_CONFIG_FILEPATH  "${CMAKE_SOURCE_DIR}/bl2/ext/mcuboot/config/mcuboot_crypto_config.h" CACHE FILEPATH "TF-PSA-Crypto config file to use with MCUboot")
 

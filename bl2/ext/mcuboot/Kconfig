@@ -144,15 +144,21 @@ config MCUBOOT_HW_ROLLBACK_PROT
     default y
 
 config MCUBOOT_ENC_IMAGES
-    bool "Enable encrypted image upgrade support"
-    default n
-
-config MCUBOOT_BOOTSTRAP
-    bool "Support initial state with empty primary slot and images installed from secondary slots"
+    bool "Enable image encryption (AES)"
     default n
 
 config MCUBOOT_ENCRYPT_RSA
-    bool "Use RSA for encrypted image upgrade support"
+    bool "Use RSA-OAEP for encryption key wrapping"
+    default n
+    depends on MCUBOOT_ENC_IMAGES
+
+config MCUBOOT_ENCRYPT_KW
+    bool "Use AES-KW for encryption key wrapping"
+    default n
+    depends on MCUBOOT_ENC_IMAGES
+
+config MCUBOOT_BOOTSTRAP
+    bool "Support initial state with empty primary slot and images installed from secondary slots"
     default n
 
 choice MCUBOOT_FIH_PROFILE_CHOICE

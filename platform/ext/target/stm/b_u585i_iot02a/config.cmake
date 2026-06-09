@@ -16,8 +16,8 @@ set(MCUBOOT_UPGRADE_STRATEGY      "SWAP_USING_SCRATCH" CACHE STRING    "Upgrade 
 set(MCUBOOT_USE_PSA_CRYPTO                 ON          CACHE BOOL      "Enable the cryptographic abstraction layer to use PSA Crypto APIs")
 set(TFM_PARTITION_PLATFORM                 ON          CACHE BOOL      "Enable platform partition")
 set(MCUBOOT_BOOTSTRAP                      ON          CACHE BOOL      "Allow initial state with images in secondary slots(empty primary slots)")
-set(MCUBOOT_ENC_IMAGES                     OFF         CACHE BOOL      "Enable encrypted image upgrade support")
-set(MCUBOOT_ENCRYPT_RSA                    OFF         CACHE BOOL      "Use RSA for encrypted image upgrade support")
+set(MCUBOOT_ENC_IMAGES                     OFF         CACHE BOOL      "Enable image encryption (AES)")
+set(MCUBOOT_ENCRYPT_RSA                    OFF         CACHE BOOL      "Use RSA-OAEP for encryption key wrapping")
 set(MCUBOOT_DATA_SHARING                   ON          CACHE BOOL      "Enable Data Sharing")
 ################################## Dependencies ################################################################################################
 set(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE ON          CACHE BOOL      "Enable Internal Trusted Storage partition")
