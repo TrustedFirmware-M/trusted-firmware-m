@@ -69,10 +69,8 @@
 #define PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY    1
 #endif
 
-#define PSA_WANT_ALG_ECB_NO_PADDING         1
-#define PSA_WANT_ALG_CTR                    1       /* TODO: condition? */
-
 #if defined(MCUBOOT_ENC_IMAGES)
+#define PSA_WANT_ALG_ECB_NO_PADDING         1
 #define PSA_WANT_ALG_CTR                    1
 #define PSA_WANT_KEY_TYPE_AES               1
 #endif
@@ -109,7 +107,10 @@
  */
 
 #define MBEDTLS_MD_C
+
+#if defined(MCUBOOT_ENC_IMAGES)
 #define MBEDTLS_NIST_KW_C
+#endif
 
  /** \} name SECTION: Cryptographic mechanism selection (extended API) */
 

@@ -64,7 +64,7 @@ set(build_p256m      "$<IF:$<BOOL:${MBEDTLS_P256M_ENABLED}>,$<AND:${is_ec_signat
 
 list(APPEND BL2_CRYPTO_SRC
     $<$<OR:$<BOOL:${MCUBOOT_USE_PSA_CRYPTO}>,$<BOOL:${MCUBOOT_USE_MBED_TLS}>>:${CMAKE_SOURCE_DIR}/lib/ext/thin-psa-crypto-core/thin_psa_crypto_core.c>
-    ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/aes.c
+    $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/aes.c>
     ${TF_PSA_CRYPTO_PATH}/platform/platform.c
     ${TF_PSA_CRYPTO_PATH}/platform/platform_util.c
     ${TF_PSA_CRYPTO_PATH}/platform/memory_buffer_alloc.c
@@ -93,7 +93,7 @@ list(APPEND BL2_CRYPTO_SRC
     $<${is_rsa_signature}:${TF_PSA_CRYPTO_PATH}/extras/md.c>
     $<$<AND:${is_ec_signature},${build_p256m}>:${TF_PSA_CRYPTO_PATH}/drivers/p256-m/p256-m_driver_entrypoints.c>
     $<$<AND:${is_ec_signature},${build_p256m}>:${TF_PSA_CRYPTO_PATH}/drivers/p256-m/p256-m/p256-m.c>
-    $<$<BOOL:${MCUBOOT_ENCRYPT_KW}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/nist_kw.c>
+    $<$<BOOL:${MCUBOOT_ENCRYPT_KW}>:${TF_PSA_CRYPTO_PATH}/extras/nist_kw.c>
     $<$<BOOL:${MCUBOOT_ENCRYPT_KW}>:${TF_PSA_CRYPTO_PATH}/utilities/constant_time.c>
     # Include __weak stub implementation, serving as a fallback for random number generation in case no other RNG is provided.
     $<$<NOT:$<BOOL:${CRYPTO_HW_ACCELERATOR}>>:src/psa_stub_rng.c>
