@@ -19,7 +19,7 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
                          void *p_data,
                          psa_storage_create_flags_t create_flags)
 {
-    p_psa_src_data = p_data;
+    p_psa_src_data = (uint8_t *)p_data;
 
     return tfm_its_set(TFM_SP_PS, uid, data_length, create_flags);
 }
