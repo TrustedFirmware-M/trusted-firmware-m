@@ -6,9 +6,9 @@
  */
 #include <string.h>
 #include "psa/framework_feature.h"
-#if PSA_FRAMEWORK_HAS_MM_IOVEC != 1
+
 #include "cmsis_compiler.h"
-#endif
+
 #include "config_tfm.h"
 #include "tfm_internal_trusted_storage.h"
 #include "tfm_its_req_mngr.h"
@@ -39,7 +39,6 @@ extern uint8_t *p_psa_dest_data;
 static uint8_t g_fid[ITS_FILE_ID_SIZE];
 static struct its_flash_fs_file_info_t g_file_info;
 
-#if (PSA_FRAMEWORK_HAS_MM_IOVEC != 1) && defined(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE)
 /* Buffer to store asset data from the caller.
  * Note: size must be aligned to the max flash program unit to meet the
  * alignment requirement of the filesystem.
@@ -50,7 +49,6 @@ static uint8_t __ALIGNED(4) asset_data[ITS_UTILS_ALIGN(ITS_BUF_SIZE,
 #else
 static uint8_t __ALIGNED(4) asset_data[ITS_UTILS_ALIGN(ITS_MAX_ASSET_SIZE,
                                               ITS_FLASH_MAX_ALIGNMENT)];
-#endif
 #endif
 
 #ifdef TFM_PARTITION_INTERNAL_TRUSTED_STORAGE
@@ -398,6 +396,7 @@ static psa_status_t tfm_its_write_data_to_fs(const int32_t client_id,
 {
     psa_status_t status;
     uint8_t *buffer_ptr = data;
+    struct its_flash_fs_ctx_t *fs_ctx = get_fs_ctx(client_id);
 
 #ifdef ITS_ENCRYPTION /* ITS_ENCRYPTION */
 
@@ -414,12 +413,27 @@ static psa_status_t tfm_its_write_data_to_fs(const int32_t client_id,
     if (status != PSA_SUCCESS) {
         return status;
     }
+
+    if (buffer_ptr == enc_asset_data) {
+        /*
+         * Zero the tail of enc_asset_data, the tag is preserved in the file
+         * info.
+         */
+        (void)memset(
+            enc_asset_data + data_size,
+            0,
+            ITS_UTILS_ALIGN(data_size, fs_ctx->cfg->program_unit) - data_size);
+    }
+
 #endif /* ITS_ENCRYPTION */
 
-    status = its_flash_fs_file_write(get_fs_ctx(client_id),
-                                        fid,
-                                        &g_file_info,
-                                        data_size, offset, buffer_ptr);
+    status = its_flash_fs_file_write(
+        fs_ctx,
+        fid,
+        &g_file_info,
+        data_size,
+        offset,
+        buffer_ptr);
     if (status != PSA_SUCCESS) {
         return status;
     }
@@ -427,16 +441,37 @@ static psa_status_t tfm_its_write_data_to_fs(const int32_t client_id,
     return PSA_SUCCESS;
 }
 
+#if (ITS_FLASH_MAX_ALIGNMENT != 1)
+static void zeroize_excess_asset_data(
+    int32_t client_id,
+    size_t write_size)
+{
+    struct its_flash_fs_ctx_t *fs_ctx;
+    /*
+     * With ITS_FLASH_MAX_ALIGNMENT != 1 the flash filesystem ops may align
+     * up the actual write size to the flash minimum unit size.
+     * Zero the asset buffer up to the aligned size so the excess written
+     * is meaningless.
+     */
+    if (write_size != sizeof(asset_data)) {
+        fs_ctx = get_fs_ctx(client_id);
+
+        (void)memset(
+            asset_data,
+            0,
+            ITS_UTILS_ALIGN(write_size, fs_ctx->cfg->program_unit));
+    }
+}
+#endif
+
 psa_status_t tfm_its_set(int32_t client_id,
                          psa_storage_uid_t uid,
                          size_t data_length,
                          psa_storage_create_flags_t create_flags)
 {
     psa_status_t status;
-#if (PSA_FRAMEWORK_HAS_MM_IOVEC != 1) && defined(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE)
     size_t write_size;
     size_t offset;
-#endif
 
     /* Check that the UID is valid */
     if (uid == TFM_ITS_INVALID_UID) {
@@ -477,19 +512,122 @@ psa_status_t tfm_its_set(int32_t client_id,
     g_file_info.flags = (uint32_t)create_flags |
                         ITS_FLASH_FS_FLAG_CREATE | ITS_FLASH_FS_FLAG_TRUNCATE;
 
-
 #ifndef TFM_PARTITION_INTERNAL_TRUSTED_STORAGE
+
+#if (ITS_FLASH_MAX_ALIGNMENT != 1)
+    uint8_t *data_to_fs;
+    uint8_t *ps_data = p_psa_src_data;
+
+    offset = 0;
+
+    /*
+     * Write initially the largest amount that is integer times the size of
+     * asset_data and then the final partial chunk.
+     */
+    do {
+        if (data_length >= sizeof(asset_data)) {
+            write_size = (data_length / sizeof(asset_data)) * sizeof(asset_data);
+            data_to_fs = ps_data;
+        } else {
+            write_size = data_length;
+
+            if (write_size > 0) {
+                zeroize_excess_asset_data(client_id, write_size);
+
+                /* Copy the tail of the data */
+                memcpy(&asset_data[0], ps_data + offset, write_size);
+            }
+
+            data_to_fs = &asset_data[0];
+        }
+
+        status = its_flash_fs_file_write(
+            get_fs_ctx(client_id),
+            g_fid,
+            &g_file_info,
+            write_size,
+            offset,
+            data_to_fs);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+
+        /* Do not create or truncate after the first iteration */
+        g_file_info.flags &= ~(ITS_FLASH_FS_FLAG_CREATE | ITS_FLASH_FS_FLAG_TRUNCATE);
+
+        offset += write_size;
+        data_length -= write_size;
+    } while (data_length > 0);
+
+#else
     /* Write to the file in the file system
      * No encryption needed as this will be stored in the Protected Storage
      * Partition if ITS partition is not enabled.
      */
-    status = its_flash_fs_file_write(get_fs_ctx(client_id), g_fid, &g_file_info,
-                                     data_length, 0, p_psa_src_data);
+    status = its_flash_fs_file_write(
+        get_fs_ctx(client_id),
+        g_fid,
+        &g_file_info,
+        data_length,
+        0,
+        p_psa_src_data);
+
+#endif /* ITS_FLASH_MAX_ALIGNMENT */
+
 #elif PSA_FRAMEWORK_HAS_MM_IOVEC == 1
-    status = tfm_its_write_data_to_fs(client_id,
-                                      g_fid,
-                                      data_length, 0,
-                                      its_req_mngr_get_vec_base());
+    uint8_t *iovec_base = its_req_mngr_get_vec_base();
+
+#if (ITS_FLASH_MAX_ALIGNMENT != 1)
+    uint8_t *data_to_fs;
+
+    offset = 0;
+
+    /*
+     * Write initially the largest amount that is integer times the size of
+     * asset_data and then the final partial chunk.
+     */
+    do {
+        if (data_length >= sizeof(asset_data)) {
+            write_size = (data_length / sizeof(asset_data)) * sizeof(asset_data);
+            data_to_fs = iovec_base;
+        } else {
+            write_size = data_length;
+
+            if (write_size > 0) {
+                zeroize_excess_asset_data(client_id, write_size);
+
+                /* Copy the tail of the data */
+                memcpy(&asset_data[0], iovec_base + offset, write_size);
+            }
+
+            data_to_fs = &asset_data[0];
+        }
+
+        status = tfm_its_write_data_to_fs(
+            client_id,
+            g_fid,
+            write_size,
+            offset,
+            data_to_fs);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+
+        /* Do not create or truncate after the first iteration */
+        g_file_info.flags &= ~(ITS_FLASH_FS_FLAG_CREATE | ITS_FLASH_FS_FLAG_TRUNCATE);
+
+        offset += write_size;
+        data_length -= write_size;
+    } while (data_length > 0);
+#else
+    status = tfm_its_write_data_to_fs(
+        client_id,
+        g_fid,
+        data_length,
+        0,
+        iovec_base);
+#endif /* ITS_FLASH_MAX_ALIGNMENT */
+
 #else
     offset = 0;
 
@@ -500,6 +638,10 @@ psa_status_t tfm_its_set(int32_t client_id,
         /* Write as much of the data as will fit in the asset_data buffer */
         write_size = ITS_UTILS_MIN(data_length, sizeof(asset_data));
 
+#if (ITS_FLASH_MAX_ALIGNMENT != 1)
+        zeroize_excess_asset_data(client_id, write_size);
+#endif
+
         /* Read asset data from the caller */
         (void)its_req_mngr_read(asset_data, write_size);
 
@@ -507,7 +649,8 @@ psa_status_t tfm_its_set(int32_t client_id,
             client_id,
             g_fid,
             write_size,
-            offset, asset_data);
+            offset,
+            asset_data);
 
         if (status != PSA_SUCCESS) {
                 return status;
