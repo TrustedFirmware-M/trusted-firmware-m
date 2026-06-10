@@ -134,6 +134,7 @@ psa_status_t tfm_crypto_cipher_interface(psa_invec in_vec[],
     psa_cipher_operation_t *operation = NULL;
     uint32_t *p_handle = NULL;
     enum tfm_crypto_func_sid_t sid = (enum tfm_crypto_func_sid_t)iov->function_id;
+    uint32_t local_handle = 0u;
 
     if (sid == TFM_CRYPTO_CAN_DO_CIPHER_SID) {
         int *p_result = out_vec[0].base;
@@ -276,7 +277,16 @@ psa_status_t tfm_crypto_cipher_interface(psa_invec in_vec[],
         status = psa_cipher_update(operation, input, input_length,
                                    output, output_size, &out_vec[0].len);
         if (status != PSA_SUCCESS) {
+            /*
+             * psa_cipher_update() already aborts the PSA operation on error,
+             * but the TF-M multipart-operation slot still needs to be
+             * released. Use a local handle here because update() has no
+             * handle outvec wired to p_handle.
+             */
             out_vec[0].len = 0;
+            local_handle = iov->op_handle;
+            p_handle = &local_handle;
+            goto release_operation_and_return;
         }
         return status;
     }
