@@ -91,7 +91,7 @@ struct tfm_gpio_service_out {
 	uint32_t result;
 };
 
-#if defined(CONFIG_SOC_NRF71_TFM_MRAMC_SERVICE)
+#if defined(CONFIG_SOC_NRF7120_TFM_MRAMC_SERVICE)
 struct tfm_mramc_set_wen_service_args_t {
 	uint32_t write_mode;
 };
@@ -159,7 +159,7 @@ enum tfm_write32_service_result {
 enum tfm_platform_err_t tfm_platform_gpio_pin_mcu_select(uint32_t pin_number, uint32_t mcu,
 							 uint32_t *result);
 
-#if defined(CONFIG_SOC_NRF71_TFM_MRAMC_SERVICE)
+#if defined(CONFIG_SOC_NRF7120_TFM_MRAMC_SERVICE)
 /**
  * @brief Initialise MRAMC peripheral.
  *
@@ -177,7 +177,7 @@ enum tfm_platform_err_t tfm_platform_mramc_init(void);
  *         values as specified by the \ref tfm_platform_err_t
  */
 enum tfm_platform_err_t tfm_platform_mramc_set_wen(uint32_t write_mode);
-#endif /* SOC_NRF71_TFM_MRAMC_SERVICE */
+#endif /* SOC_NRF7120_TFM_MRAMC_SERVICE */
 
 #ifdef __cplusplus
 }

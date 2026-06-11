@@ -96,7 +96,7 @@ enum tfm_platform_err_t tfm_platform_mem_write32(uint32_t addr, uint32_t value,
 	return ret;
 }
 
-#if defined(CONFIG_SOC_NRF71_TFM_MRAMC_SERVICE)
+#if defined(CONFIG_SOC_NRF7120_TFM_MRAMC_SERVICE)
 enum tfm_platform_err_t tfm_platform_mramc_init(void)
 {
 	return tfm_platform_ioctl(TFM_PLATFORM_IOCTL_MRAMC_INIT_SERVICE, NULL,
