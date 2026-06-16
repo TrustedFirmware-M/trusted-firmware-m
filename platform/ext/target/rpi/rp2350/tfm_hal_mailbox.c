@@ -25,15 +25,6 @@ int32_t tfm_mailbox_hal_init(struct secure_mailbox_queue_t *s_queue)
 
     ns_init = (struct mailbox_init_t *) multicore_ns_fifo_pop_blocking_inline();
 
-    /*
-     * FIXME
-     * Necessary sanity check of the address of NPSE mailbox queue should
-     * be implemented there.
-     */
-    if (ns_init->slot_count > NUM_MAILBOX_QUEUE_SLOT) {
-        return MAILBOX_INIT_ERROR;
-    }
-
     s_queue->ns_status = ns_init->status;
     s_queue->ns_slot_count = ns_init->slot_count;
     s_queue->ns_slots = ns_init->slots;
