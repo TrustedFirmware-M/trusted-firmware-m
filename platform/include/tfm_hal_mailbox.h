@@ -42,8 +42,16 @@ struct secure_mailbox_queue_t {
  *
  * \param[in] s_queue           The base address of SPE mailbox queue.
  *
+ * \note The callee is expected to do the following:
+ *       - allocate a temporary struct mailbox_init_t
+ *       - perform the platform-specific call into non-secure to fetch the
+ *         pointer above
+ *       - fill status, slot_count and slots pointers in the given SPE mailbox
+ *         queue.
+ *       Once returned, SPE checks the filled addresses and the slot counts.
+ *
  * \retval MAILBOX_SUCCESS      Operation succeeded.
- * \retval Other return code    Operation failed with an error code.
+ * \retval Other return code    Operation failed with an error code (< 0).
  */
 int32_t tfm_mailbox_hal_init(struct secure_mailbox_queue_t *s_queue);
 

@@ -14,6 +14,8 @@
 
 #include "async.h"
 #include "config_impl.h"
+#include "current.h"
+#include "fih.h"
 #include "internal_status_code.h"
 #include "psa/error.h"
 #include "utilities.h"
@@ -22,10 +24,10 @@
 #include "tfm_psa_call_pack.h"
 #include "tfm_spe_mailbox.h"
 #include "tfm_rpc.h"
+#include "tfm_hal_isolation.h"
 #include "tfm_hal_multi_core.h"
 #include "tfm_multi_core.h"
 #include "ffm/mailbox_agent_api.h"
-
 
 /* If there's no dcache at all, the SCB cache functions won't exist */
 /* If the mailbox is uncached on the S side, no need to flush and invalidate */
@@ -503,6 +505,45 @@ static const struct tfm_rpc_ops_t mailbox_rpc_ops = {
     .process_new_msg = mailbox_process_new_msg,
 };
 
+/*
+ * Validate that the ranges stored in spe_mailbox_queue are NS
+ * read/write accessible. Also validate the slots count.
+ * If the validation fails, the ns_agent_mailbox entry point panics.
+ */
+static int32_t validate_mailbox_address_ranges(void)
+{
+    FIH_DECLARE(fih_rc, FIH_FAILURE);
+    const struct partition_t *partition = GET_CURRENT_COMPONENT();
+    struct secure_mailbox_queue_t *s_queue = &spe_mailbox_queue;
+
+    if ((s_queue->ns_slot_count > NUM_MAILBOX_QUEUE_SLOT) ||
+        (s_queue->ns_slot_count == 0)){
+        return MAILBOX_INIT_ERROR;
+    }
+
+    FIH_CALL(tfm_hal_memory_check,
+             fih_rc,
+             partition->boundary,
+             (uintptr_t)s_queue->ns_status,
+             sizeof(*s_queue->ns_status),
+             (TFM_HAL_ACCESS_READWRITE | TFM_HAL_ACCESS_NS));
+    if (FIH_NOT_EQ(fih_rc, PSA_SUCCESS)) {
+        return MAILBOX_INVAL_PARAMS;
+    }
+
+    FIH_CALL(tfm_hal_memory_check,
+             fih_rc,
+             partition->boundary,
+             (uintptr_t)s_queue->ns_slots,
+             sizeof(*s_queue->ns_slots) * s_queue->ns_slot_count,
+             (TFM_HAL_ACCESS_READWRITE | TFM_HAL_ACCESS_NS));
+    if (FIH_NOT_EQ(fih_rc, PSA_SUCCESS)) {
+        return MAILBOX_INVAL_PARAMS;
+    }
+
+    return MAILBOX_SUCCESS;
+}
+
 static int32_t tfm_mailbox_init(void)
 {
     int32_t ret;
@@ -526,6 +567,13 @@ static int32_t tfm_mailbox_init(void)
      * NSPE mailbox queue
      */
     ret = tfm_mailbox_hal_init(&spe_mailbox_queue);
+    if (ret != MAILBOX_SUCCESS) {
+        tfm_rpc_unregister_ops();
+
+        return ret;
+    }
+
+    ret = validate_mailbox_address_ranges();
     if (ret != MAILBOX_SUCCESS) {
         tfm_rpc_unregister_ops();
 
