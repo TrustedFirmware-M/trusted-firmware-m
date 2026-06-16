@@ -97,34 +97,6 @@ int32_t tfm_mailbox_hal_init(struct secure_mailbox_queue_t *s_queue)
     MAILBOX_INVALIDATE_CACHE(ns_init, sizeof(*ns_init));
     memcpy(&ns_init_s, ns_init, sizeof(*ns_init));
 
-    if ((ns_init_s.slot_count == 0U) || (ns_init_s.slot_count > NUM_MAILBOX_QUEUE_SLOT)) {
-        return MAILBOX_INIT_ERROR;
-    }
-
-    TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
-    FIH_CALL(tfm_hal_memory_check,
-             fih_rc,
-             partition->boundary,
-             (uintptr_t)ns_init_s.status,
-             sizeof(*ns_init_s.status),
-             (TFM_HAL_ACCESS_READWRITE | TFM_HAL_ACCESS_NS));
-    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
-    if (FIH_NOT_EQ(fih_rc, PSA_SUCCESS)) {
-        tfm_core_panic();
-    }
-
-    FIH_CALL(tfm_hal_memory_check,
-             fih_rc,
-             partition->boundary,
-             (uintptr_t)ns_init_s.slots,
-             sizeof(*ns_init_s.slots) * ns_init_s.slot_count,
-             (TFM_HAL_ACCESS_READWRITE | TFM_HAL_ACCESS_NS));
-    TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_10_1, "Cannot change not equal logic due to Fault injection architecture and define FIH_NOT_EQ")
-    if (FIH_NOT_EQ(fih_rc, PSA_SUCCESS)) {
-        tfm_core_panic();
-    }
-    TFM_COVERITY_BLOCK_END(MISRA_C_2023_Rule_10_4)
-
     s_queue->ns_status = ns_init_s.status;
     s_queue->ns_slot_count = ns_init_s.slot_count;
     s_queue->ns_slots = ns_init_s.slots;
