@@ -636,11 +636,11 @@ static enum atu_error_t get_dyn_cfg_slot_idx(struct atu_dev_t *dev, uint32_t log
              (log_addr <  end_logical_address)) {
             /* For loop indexing protects from underflow */
             *slot_idx = idx;
-            err = ATU_ERR_NONE;
-            break;
+            return ATU_ERR_NONE;
         }
     }
-    return err;
+
+    return ATU_ERR_GET_DYN_CFG_SLOT_IDX_NO_MATCH;
 }
 
 static enum atu_error_t atu_map_addr(struct atu_lib_t *atu, struct atu_region_map_t *addr_req)
@@ -961,7 +961,10 @@ enum atu_error_t atu_rse_free_addr(struct atu_lib_t *atu, uint32_t log_addr)
 
     err = get_dyn_cfg_slot_idx(dev, log_addr, &atu_slot_idx);
 
-    if (ATU_ERR_NONE != err) {
+    if (err == ATU_ERR_GET_DYN_CFG_SLOT_IDX_NO_MATCH) {
+        /* This region is not mapped */
+        return ATU_ERR_NONE;
+    } else if (err != ATU_ERR_NONE) {
         return err;
     }
 

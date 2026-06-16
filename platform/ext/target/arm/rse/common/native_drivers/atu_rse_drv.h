@@ -56,6 +56,7 @@ enum atu_error_t {
     ATU_MAPPING_TOO_SMALL,
     ATU_MAPPING_NOT_AVAIL,
     ATU_MAPPING_INVALID,
+    ATU_ERR_GET_DYN_CFG_SLOT_IDX_NO_MATCH,
     /* Unknown Error scenario */
     ATU_ERR_UNKNOWN,
     ATU_ERR_FORCE_UINT_SIZE = UINT_MAX,
