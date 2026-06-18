@@ -22,7 +22,7 @@
 #include <nrfx_nvmc.h>
 #endif
 
-#if TFM_NRF_MRAMC_SERVICE
+#if SOC_NRF7120_TFM_MRAMC_SERVICE
 #include <nrfx_mramc.h>
 #endif
 
@@ -237,7 +237,7 @@ enum tfm_platform_err_t tfm_platform_hal_write32_service(const psa_invec *in_vec
 	return err;
 }
 
-#if TFM_NRF_MRAMC_SERVICE
+#if SOC_NRF7120_TFM_MRAMC_SERVICE
 enum tfm_platform_err_t tfm_platform_hal_mramc_init_service(void)
 {
 	nrfx_mramc_config_t config = NRFX_MRAMC_DEFAULT_CONFIG();
@@ -271,4 +271,4 @@ enum tfm_platform_err_t tfm_platform_hal_mramc_set_wen_service(const psa_invec *
 
 	return TFM_PLATFORM_ERR_SUCCESS;
 }
-#endif /* TFM_NRF_MRAMC_SERVICE */
+#endif /* SOC_NRF7120_TFM_MRAMC_SERVICE */
