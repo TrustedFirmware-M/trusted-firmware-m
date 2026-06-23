@@ -206,16 +206,16 @@ const struct partition_{{manifest.name|lower}}_load_info_t {{manifest.name|lower
         {
             .mem.start              = {{region.base}},
             .mem.limit              = {{region.base}} + {{region.size}},
-            .attr                   = ASSET_ATTR_NUMBERED_MMIO
+            .attr                   = (enum assets_attribute_t)(ASSET_ATTR_NUMBERED_MMIO
         {% elif region.name %}
         {
             .dev.dev_ref            = PTR_TO_REFERENCE({{region.name}}),
-            .attr                   = ASSET_ATTR_NAMED_MMIO
+            .attr                   = (enum assets_attribute_t)(ASSET_ATTR_NAMED_MMIO
         {% endif %}
         {% if region.permission == "READ-WRITE" %}
-                                    | ASSET_ATTR_READ_WRITE,
+                                    | ASSET_ATTR_READ_WRITE),
         {% else %}
-                                    | ASSET_ATTR_READ_ONLY,
+                                    | ASSET_ATTR_READ_ONLY),
         {% endif %}
         },
         {% if region.conditional %}
@@ -235,16 +235,16 @@ const struct partition_{{manifest.name|lower}}_load_info_t {{manifest.name|lower
         {
             .mem.start              = {{region.base}},
             .mem.limit              = {{region.base}} + {{region.size}},
-            .attr                   = ASSET_ATTR_NUMBERED_MMIO
+            .attr                   = (enum assets_attribute_t)(ASSET_ATTR_NUMBERED_MMIO
         {% elif region.name %}
         {
             .dev.dev_ref            = PTR_TO_REFERENCE({{region.name}}),
-            .attr                   = ASSET_ATTR_NAMED_MMIO
+            .attr                   = (enum assets_attribute_t)(ASSET_ATTR_NAMED_MMIO
         {% endif %}
         {% if region.permission == "READ-WRITE" %}
-                                    | ASSET_ATTR_READ_WRITE,
+                                    | ASSET_ATTR_READ_WRITE),
         {% else %}
-                                    | ASSET_ATTR_READ_ONLY,
+                                    | ASSET_ATTR_READ_ONLY),
         {% endif %}
         },
         {% if region.conditional %}
