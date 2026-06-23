@@ -249,11 +249,11 @@ index 9981bb447..11de5071d 100644
 +            kdf->state = SP800_108_COUNTER_CMAC_STATE_KEYED;
 +            return PSA_SUCCESS;
 +        case PSA_KEY_DERIVATION_INPUT_LABEL:
-+            if (kdf->state != SP800_108_COUNTER_CMAC_STATE_KEYED) {
++        case PSA_KEY_DERIVATION_INPUT_CONTEXT: {
++            if (step == PSA_KEY_DERIVATION_INPUT_LABEL &&
++                kdf->state != SP800_108_COUNTER_CMAC_STATE_KEYED) {
 +                return PSA_ERROR_BAD_STATE;
 +            }
-+            // fall through
-+        case PSA_KEY_DERIVATION_INPUT_CONTEXT: {
 +            const size_t ctx_input_offset = (step == PSA_KEY_DERIVATION_INPUT_LABEL) ?
 +                                                SP800_108_INPUT_LABEL_OFFSET(kdf) :
 +                                                SP800_108_INPUT_CONTEXT_OFFSET(kdf);
