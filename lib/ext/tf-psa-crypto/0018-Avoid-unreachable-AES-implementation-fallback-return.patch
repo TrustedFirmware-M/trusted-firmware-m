@@ -1,0 +1,38 @@
+From 0c76477d9493c43e9e0b007e9d9ac8d162409369 Mon Sep 17 00:00:00 2001
+From: Bohdan Hunko <Bohdan.Hunko@infineon.com>
+Date: Tue, 23 Jun 2026 15:24:13 +0300
+Subject: [PATCH] Avoid unreachable AES implementation fallback return
+
+The AES implementation selector returns MBEDTLS_AES_IMP_SOFTWARE
+unconditionally when software AES is available
+(!MBEDTLS_AES_USE_HARDWARE_ONLY), followed by a final
+return MBEDTLS_AES_IMP_UNKNOWN. In that configuration the latter is dead
+code, which IAR reports as Pe111 (statement is unreachable).
+
+Move the fallback into the #else branch so exactly one return is
+compiled per configuration: SOFTWARE when software AES is available,
+UNKNOWN otherwise. No functional change.
+
+Signed-off-by: Bohdan Hunko <Bohdan.Hunko@infineon.com>
+---
+ drivers/builtin/src/aes.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/builtin/src/aes.c b/drivers/builtin/src/aes.c
+index 0bb4ff4..a7d7ff6 100644
+--- a/drivers/builtin/src/aes.c
++++ b/drivers/builtin/src/aes.c
+@@ -500,8 +500,9 @@ mbedtls_aes_implementation mbedtls_aes_get_implementation(void)
+ 
+ #if !defined(MBEDTLS_AES_USE_HARDWARE_ONLY)
+     return MBEDTLS_AES_IMP_SOFTWARE;
+-#endif
++#else
+     return MBEDTLS_AES_IMP_UNKNOWN;
++#endif
+ }
+ 
+ #if defined(MBEDTLS_CIPHER_MODE_XTS)
+-- 
+2.52.0.windows.1
+
