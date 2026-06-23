@@ -38,8 +38,8 @@ index c9203db..11ae17e 100644
 -            psa_algorithm_t hash_alg =
 -                (cose_algorithm_id == T_COSE_ALGORITHM_ES256) ? PSA_ALG_SHA_256 :
 -                (cose_algorithm_id == T_COSE_ALGORITHM_ES384) ? PSA_ALG_SHA_384 : PSA_ALG_SHA_512;
-+            size_t bits;
-+            psa_algorithm_t hash_alg;
++            size_t bits = 0U;
++            psa_algorithm_t hash_alg = PSA_ALG_NONE;
 +
 +            switch (cose_algorithm_id) {
 +                case T_COSE_ALGORITHM_ES256:
@@ -88,7 +88,7 @@ index c9203db..11ae17e 100644
          {
              /* Reasonable modulus size for probing without being too heavy */
              const size_t rsa_bits = 2048U;
-+            psa_algorithm_t hash_alg;
++            psa_algorithm_t hash_alg = PSA_ALG_NONE;
 +
 +            switch (cose_algorithm_id) {
 +#ifndef T_COSE_DISABLE_PS256
