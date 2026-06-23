@@ -1,12 +1,17 @@
 From 2a509f29cbb5276e3151d6319863e5e0ef740486 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 2 Apr 2026 20:16:58 +0000
-Subject: [PATCH 16/17] Do not define __STDC_WANT_LIB_EXT1__ with ATfE
+Subject: [PATCH 16/17] Do not define __STDC_WANT_LIB_EXT1__ with ATfE or IAR
 
 Do not try to include bounds-checking functions from this standard
 library extension when building with the ATfE toolchain.
 Defining __STDC_WANT_LIB_EXT1__ led to build errors due to inconsistency
 in the toolchain configuration.
+
+Also exclude the IAR toolchain: when __STDC_WANT_LIB_EXT1__ is requested,
+IAR's DLib marks the plain memset()/memcpy()/memmove() as deprecated in
+favour of the Annex K bounds-checking variants, emitting diagnostic
+Pe1215 at every call site across the crypto sources.
 
 Change-Id: I350e6d037119b2ece0e42f55d65a7dc2eaa83b5a
 Signed-off-by: Anton Komlev <anton.komlev@arm.com>
@@ -23,13 +28,13 @@ index 4acb758d4..351eb4026 100644
  #ifndef TF_PSA_CRYPTO_TF_PSA_CRYPTO_PLATFORM_REQUIREMENTS_H
  #define TF_PSA_CRYPTO_TF_PSA_CRYPTO_PLATFORM_REQUIREMENTS_H
  
-+ /* Do not try to use the library extension with ATfE toolchain */
-+#if !defined(__GNUC__) || !defined(__clang_major__)
++ /* Do not try to use the library extension with the ATfE or IAR toolchains */
++#if (!defined(__GNUC__) || !defined(__clang_major__)) && !defined(__ICCARM__)
  #ifndef __STDC_WANT_LIB_EXT1__
  /* Ask for the C11 gmtime_s() and memset_s() if available */
  #define __STDC_WANT_LIB_EXT1__ 1
  #endif
-+#endif /* !__GNUC__ || !__clang_major__ */
++#endif /* (!__GNUC__ || !__clang_major__) && !__ICCARM__ */
  
  #if !defined(_POSIX_C_SOURCE)
  /* For standards-compliant access to
