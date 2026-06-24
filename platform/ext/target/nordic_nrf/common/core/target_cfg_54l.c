@@ -53,8 +53,8 @@
 #define GET_SPU_INSTANCE(periph)                                                                   \
 	((NRF_SPU_Type *)(SPU_ADDRESS_REGION | (periph.periph_start & 0x00FC0000)))
 
-#if defined(NRF54LV10A_XXAA)
-/* On nRF54LV10A XL1 and XL2 are(P1.13) and XL2(P1.14) */
+#if defined(NRF54LV10A_XXAA) || defined(NRF54LC10A_XXAA)
+/* On nRF54LV10A and nRF54LC10A XL1 and XL2 are(P1.13) and XL2(P1.14) */
 #define PIN_XL1 45
 #define PIN_XL2 46
 #elif defined(NRF54LM20A_XXAA) || defined(NRF54LM20B_XXAA)

@@ -25,10 +25,10 @@ elseif((NRF_SOC_VARIANT MATCHES "^nrf54lm20[ab]?$") OR
        (TFM_PLATFORM MATCHES "nordic_nrf/nrf54lm20dk_nrf54lm20[ab]?_cpuapp"))
     # nrf54lm20 has its own startup file
     set(startup_file "startup_nrf54lm.c")
-elseif((NRF_SOC_VARIANT MATCHES "^nrf54lv10a?$") OR
-       (TFM_PLATFORM MATCHES "nordic_nrf/nrf54lv10dk_nrf54lv10a?_cpuapp"))
-    # nrf54lv10 has its own startup file
-    set(startup_file "startup_nrf54lv.c")
+elseif((NRF_SOC_VARIANT MATCHES "^nrf54l[vc]10a?$") OR
+       (TFM_PLATFORM MATCHES "nordic_nrf/nrf54l[vc]10dk_nrf54l[vc]10a?_cpuapp"))
+    # nrf54l[vc]10 variants share the same startup file
+    set(startup_file "startup_nrf54lvc.c")
 else()
     # Default to the original startup file for other targets
     set(startup_file "startup_${target}.c")
