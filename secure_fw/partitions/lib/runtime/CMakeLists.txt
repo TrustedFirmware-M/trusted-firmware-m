@@ -54,7 +54,6 @@ target_link_libraries(tfm_sprt
 
 target_compile_definitions(tfm_config
     INTERFACE
-        LOG_LEVEL_UNPRIV=${TFM_PARTITION_LOG_LEVEL}
         $<$<BOOL:${TFM_SP_LOG_RAW_ENABLED}>:TFM_SP_LOG_RAW_ENABLED>
 )
 
