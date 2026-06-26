@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "tfm_vprintf_priv.h"
+#include "tfm_vprintf_unpriv.h"
 #include "tfm_log_unpriv.h"
 #include "tfm_hal_sp_logdev.h"
 #include "coverity_check.h"
