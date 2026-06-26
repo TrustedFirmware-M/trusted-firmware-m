@@ -118,3 +118,72 @@ enum tfm_platform_err_t tfm_platform_mramc_set_wen(uint32_t write_mode)
 				NULL);
 }
 #endif
+
+#if defined(CONFIG_NRF_TFM_RAM_CTRL_SERVICE)
+static enum tfm_platform_err_t ram_ctrl_set(uint32_t op, uint32_t addr, uint32_t len, bool on)
+{
+	psa_invec in_vec;
+	psa_outvec out_vec;
+	struct tfm_ram_ctrl_service_args_t args;
+	struct tfm_ram_ctrl_service_out_t out;
+
+	args.op = op;
+	args.addr = addr;
+	args.len = len;
+	args.on = (uint32_t)on;
+
+	in_vec.base = (const void *)&args;
+	in_vec.len = sizeof(args);
+	out_vec.base = (void *)&out;
+	out_vec.len = sizeof(out);
+
+	return tfm_platform_ioctl(TFM_PLATFORM_IOCTL_RAM_CTRL_SERVICE, &in_vec, &out_vec);
+}
+
+enum tfm_platform_err_t tfm_platform_ram_ctrl_power_set(uint32_t addr, uint32_t len, bool on)
+{
+	return ram_ctrl_set(TFM_RAM_CTRL_OP_POWER, addr, len, on);
+}
+
+enum tfm_platform_err_t tfm_platform_ram_ctrl_retention_set(uint32_t addr, uint32_t len, bool on)
+{
+	return ram_ctrl_set(TFM_RAM_CTRL_OP_RETAIN, addr, len, on);
+}
+
+enum tfm_platform_err_t tfm_platform_ram_ctrl_read_status(uint32_t *control, uint32_t *ret,
+							  uint32_t *ret2, uint32_t *ret_planned)
+{
+	enum tfm_platform_err_t err;
+	psa_invec in_vec;
+	psa_outvec out_vec;
+	struct tfm_ram_ctrl_service_args_t args;
+	struct tfm_ram_ctrl_service_out_t out;
+
+	args.op = TFM_RAM_CTRL_OP_READ_STATUS;
+	args.addr = 0;
+	args.len = 0;
+	args.on = 0;
+
+	in_vec.base = (const void *)&args;
+	in_vec.len = sizeof(args);
+	out_vec.base = (void *)&out;
+	out_vec.len = sizeof(out);
+
+	err = tfm_platform_ioctl(TFM_PLATFORM_IOCTL_RAM_CTRL_SERVICE, &in_vec, &out_vec);
+
+	if (control != NULL) {
+		*control = out.control;
+	}
+	if (ret != NULL) {
+		*ret = out.ret;
+	}
+	if (ret2 != NULL) {
+		*ret2 = out.ret2;
+	}
+	if (ret_planned != NULL) {
+		*ret_planned = out.ret_planned;
+	}
+
+	return err;
+}
+#endif /* NRF_TFM_RAM_CTRL_SERVICE */

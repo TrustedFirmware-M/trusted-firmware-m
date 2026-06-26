@@ -172,6 +172,18 @@ if(SOC_NRF7120_TFM_MRAMC_SERVICE)
     )
 endif()
 
+# RAM-control service (set by zephyr's -DNRF_RAM_CTRL_SERVICE=ON).
+if(NRF_RAM_CTRL_SERVICE)
+    target_sources(platform_s
+        PRIVATE
+            ${HAL_NORDIC_PATH}/nrfx/helpers/nrfx_ram_ctrl.c
+    )
+    target_compile_definitions(platform_s
+        PUBLIC
+            TFM_NRF_RAM_CTRL_SERVICE
+    )
+endif()
+
 target_compile_options(platform_s
     PUBLIC
         ${COMPILER_CMSE_FLAG}

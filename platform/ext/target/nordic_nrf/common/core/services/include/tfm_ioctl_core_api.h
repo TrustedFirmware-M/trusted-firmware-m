@@ -19,6 +19,8 @@
  */
 
 #include <limits.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <tfm_platform_api.h>
 
 #ifdef __cplusplus
@@ -33,6 +35,7 @@ enum tfm_platform_ioctl_core_reqest_types_t {
 	TFM_PLATFORM_IOCTL_GPIO_SERVICE,
 	TFM_PLATFORM_IOCTL_MRAMC_INIT_SERVICE,
 	TFM_PLATFORM_IOCTL_MRAMC_SET_WEN_SERVICE,
+	TFM_PLATFORM_IOCTL_RAM_CTRL_SERVICE,
 	/* Last core service, start platform specific from this value. */
 	TFM_PLATFORM_IOCTL_CORE_LAST
 };
@@ -94,6 +97,35 @@ struct tfm_gpio_service_out {
 #if defined(CONFIG_SOC_NRF7120_TFM_MRAMC_SERVICE)
 struct tfm_mramc_set_wen_service_args_t {
 	uint32_t write_mode;
+};
+#endif
+
+#if defined(CONFIG_NRF_TFM_RAM_CTRL_SERVICE) || defined(TFM_NRF_RAM_CTRL_SERVICE)
+/** @brief RAM-control operation selector. */
+enum tfm_ram_ctrl_op {
+	/** System ON power (MEMCONF CONTROL), applied immediately. */
+	TFM_RAM_CTRL_OP_POWER,
+	/** System OFF retention (MEMCONF RET), recorded in the secure cache. */
+	TFM_RAM_CTRL_OP_RETAIN,
+	/** Read back CONTROL/RET/RET2 and the cached retention plan. */
+	TFM_RAM_CTRL_OP_READ_STATUS,
+};
+
+/** @brief Argument list for the RAM-control service. */
+struct tfm_ram_ctrl_service_args_t {
+	uint32_t op;   /* enum tfm_ram_ctrl_op */
+	uint32_t addr; /* RAM region start (must lie within non-secure RAM) */
+	uint32_t len;  /* RAM region length in bytes */
+	uint32_t on;   /* powered/retained (true) or not (false) */
+};
+
+/** @brief Output for the RAM-control service. */
+struct tfm_ram_ctrl_service_out_t {
+	uint32_t result;
+	uint32_t control;     /* MEMCONF POWER[0].CONTROL snapshot (read status) */
+	uint32_t ret;         /* MEMCONF POWER[0].RET snapshot (read status) */
+	uint32_t ret2;        /* MEMCONF POWER[0].RET2 snapshot (read status) */
+	uint32_t ret_planned; /* cached mask of 32 KiB sections to retain at OFF (read status) */
 };
 #endif
 
@@ -178,6 +210,45 @@ enum tfm_platform_err_t tfm_platform_mramc_init(void);
  */
 enum tfm_platform_err_t tfm_platform_mramc_set_wen(uint32_t write_mode);
 #endif /* SOC_NRF7120_TFM_MRAMC_SERVICE */
+
+#if defined(CONFIG_NRF_TFM_RAM_CTRL_SERVICE)
+/**
+ * @brief Power up/down a non-secure RAM range in System ON (MEMCONF CONTROL).
+ *
+ * @param addr  Start address of the range (must be within non-secure RAM).
+ * @param len   Length of the range in bytes.
+ * @param on    true to power up, false to power down.
+ *
+ * @return Values as specified by \ref tfm_platform_err_t.
+ */
+enum tfm_platform_err_t tfm_platform_ram_ctrl_power_set(uint32_t addr, uint32_t len, bool on);
+
+/**
+ * @brief Mark/unmark a non-secure RAM range for retention across System OFF.
+ *
+ * Recorded in the secure domain; applied when the system enters System OFF.
+ *
+ * @param addr  Start address of the range (must be within non-secure RAM).
+ * @param len   Length of the range in bytes.
+ * @param on    true to retain across System OFF, false to drop retention.
+ *
+ * @return Values as specified by \ref tfm_platform_err_t.
+ */
+enum tfm_platform_err_t tfm_platform_ram_ctrl_retention_set(uint32_t addr, uint32_t len, bool on);
+
+/**
+ * @brief Read back MEMCONF POWER[0] CONTROL/RET/RET2 and the cached retention plan.
+ *
+ * @param control      MEMCONF POWER[0].CONTROL value (may be NULL).
+ * @param ret          MEMCONF POWER[0].RET value (may be NULL).
+ * @param ret2         MEMCONF POWER[0].RET2 value (may be NULL).
+ * @param ret_planned  Cached mask of 32 KiB sections to retain at OFF (may be NULL).
+ *
+ * @return Values as specified by \ref tfm_platform_err_t.
+ */
+enum tfm_platform_err_t tfm_platform_ram_ctrl_read_status(uint32_t *control, uint32_t *ret,
+							  uint32_t *ret2, uint32_t *ret_planned);
+#endif /* NRF_TFM_RAM_CTRL_SERVICE */
 
 #ifdef __cplusplus
 }
