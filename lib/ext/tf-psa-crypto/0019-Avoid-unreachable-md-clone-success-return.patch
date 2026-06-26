@@ -1,0 +1,41 @@
+From 59a492ccfbf32e1aea2b3213f730020040e3027c Mon Sep 17 00:00:00 2001
+From: Bohdan Hunko <Bohdan.Hunko@infineon.com>
+Date: Fri, 26 Jun 2026 12:34:58 +0300
+Subject: [PATCH] Avoid unreachable md clone success return
+
+When no legacy digest clone implementation is enabled, the switch in
+mbedtls_md_clone() contains only the default case, which returns
+MBEDTLS_ERR_MD_BAD_INPUT_DATA. The success return after the switch is
+then unreachable, and IAR reports Pe111 (statement is unreachable).
+
+Compile the success return only when at least one legacy digest clone
+case is present. No functional change: configurations without cloneable
+legacy digests already always return from the switch.
+
+Signed-off-by: Bohdan Hunko <Bohdan.Hunko@infineon.com>
+---
+ extras/md.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/extras/md.c b/extras/md.c
+index e73d58e..6cc2870 100644
+--- a/extras/md.c
++++ b/extras/md.c
+@@ -429,7 +429,15 @@ int mbedtls_md_clone(mbedtls_md_context_t *dst,
+             return MBEDTLS_ERR_MD_BAD_INPUT_DATA;
+     }
+ 
++#if defined(MBEDTLS_MD5_C) || defined(MBEDTLS_RIPEMD160_C) || \
++    defined(MBEDTLS_SHA1_C) || defined(MBEDTLS_SHA224_C) || \
++    defined(MBEDTLS_SHA256_C) || defined(MBEDTLS_SHA384_C) || \
++    defined(MBEDTLS_SHA512_C) || defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_224) || \
++    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_256) || \
++    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_384) || \
++    defined(MBEDTLS_PSA_BUILTIN_ALG_SHA3_512)
+     return 0;
++#endif
+ }
+ 
+ #define ALLOC(type)                                                   \
+-- 
+2.52.0.windows.1
