@@ -1,6 +1,6 @@
 cbor2
 click
-cryptography>=40.0.0
+cryptography>=48.0.1
 pyasn1
 Jinja2>=2.10.3
 jsonschema >= 3.2.0
