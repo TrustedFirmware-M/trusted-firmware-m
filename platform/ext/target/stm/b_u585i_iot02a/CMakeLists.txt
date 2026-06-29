@@ -66,6 +66,24 @@ install(FILES
     DESTINATION ${INSTALL_PLATFORM_NS_DIR}/partition
 )
 
+install(FILES
+    ${STM_COMMON_DIR}/hal/CMSIS_Driver/low_level_ospi_flash.c
+    ${STM_COMMON_DIR}/hal/CMSIS_Driver/low_level_ospi_flash.h
+    DESTINATION ${INSTALL_PLATFORM_NS_DIR}/CMSIS_Driver
+)
+
+install(FILES
+    ${STM_COMMON_DIR}/hal/Components/mx25lm51245g/mx25lm51245g.c
+    ${STM_COMMON_DIR}/hal/Components/mx25lm51245g/mx25lm51245g.h
+    DESTINATION ${INSTALL_PLATFORM_NS_DIR}/Components/mx25lm51245g
+)
+
+install(FILES
+    ${STM_COMMON_DIR}/stm32u5xx/bl2/low_level_ospi_device.c
+    ${B_U585I_IOT02A_DIR}/src/b_u585i_iot02a_ospi.c
+    DESTINATION ${INSTALL_PLATFORM_NS_DIR}/src
+)
+
 if(BL2)
     set(provision_script_dir ${CMAKE_CURRENT_LIST_DIR}/provision)
     set(provision_output_dir ${CMAKE_BINARY_DIR}/platform/target)

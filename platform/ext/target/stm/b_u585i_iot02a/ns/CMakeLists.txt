@@ -18,6 +18,10 @@ target_sources(platform_ns
         hal/Src/stm32u5xx_hal.c
         Device/Source/system_stm32u5xx.c
         CMSIS_Driver/low_level_com.c
+        CMSIS_Driver/low_level_ospi_flash.c
+        src/low_level_ospi_device.c
+        Components/mx25lm51245g/mx25lm51245g.c
+        src/b_u585i_iot02a_ospi.c
         hal/Src/stm32u5xx_hal_dma.c
         hal/Src/stm32u5xx_hal_dma_ex.c
         hal/Src/stm32u5xx_hal_pwr.c
@@ -28,16 +32,21 @@ target_sources(platform_ns
         hal/Src/stm32u5xx_hal_uart_ex.c
         hal/Src/stm32u5xx_hal_cortex.c
         hal/Src/stm32u5xx_hal_rcc_ex.c
+        hal/Src/stm32u5xx_hal_ospi.c
+        hal/Src/stm32u5xx_ll_dlyb.c
 )
 
 target_include_directories(platform_ns
     PUBLIC
         include
+        partition
         ext/cmsis/Include
         ext/cmsis/Include/m-profile
         ext/common
         Device/Include
         hal/Inc
+        CMSIS_Driver
+        Components/mx25lm51245g
 )
 
 # Include region_defs.h and flash_layout.h

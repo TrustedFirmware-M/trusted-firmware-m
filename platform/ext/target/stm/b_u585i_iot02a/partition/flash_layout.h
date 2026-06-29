@@ -40,13 +40,13 @@
  * 0x0004_c000 Internal Trusted Storage Area (64 KB)
  * 0x0005_c000 > reserved for bootloader purposes (16k)
  * 0x0006_0000 Secure image     primary slot (512 KB)    Internal flash
- * 0x000f_0000 Non-secure image primary slot (1024 KB)   Internal flash
- * 0x001f_0000 User Defined     primary slot (128 KB)    Internal flash (ex. Zephyr storage)
+ * 0x000e_0000 Non-secure image primary slot (1024 KB)   Internal flash
+ * 0x001e_0000 User Defined     primary slot (128 KB)    Internal flash (ex. Zephyr storage)
  * 0x0000_0000 Secure image     secondary slot (512 KB)  External flash
- * 0x0008_0000 Non-secure image secondary slot (3072 KB) External flash
- * 0x0018_0000 > User Defined                            External flash
+ * 0x0008_8000 Non-secure image secondary slot (1024 KB) External flash
+ * 0x0018_8000 > User Defined                            External flash
  *
- * Bl2 binary is written at 0x1_2000:
+ * BL2 binary is written at 0x1_2000:
  * it contains bl2_counter init value, OTP write protect, NV counters area init.
  */
 

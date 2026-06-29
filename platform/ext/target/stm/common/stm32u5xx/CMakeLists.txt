@@ -164,6 +164,8 @@ install(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/hal/Src/stm32u5xx_hal_uart_ex.c
         ${CMAKE_CURRENT_SOURCE_DIR}/hal/Src/stm32u5xx_hal_cortex.c
         ${CMAKE_CURRENT_SOURCE_DIR}/hal/Src/stm32u5xx_hal_rcc_ex.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/hal/Src/stm32u5xx_hal_ospi.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/hal/Src/stm32u5xx_ll_dlyb.c
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/hal/Src
 )
 

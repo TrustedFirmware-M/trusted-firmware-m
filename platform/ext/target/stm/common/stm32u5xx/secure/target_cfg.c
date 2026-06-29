@@ -77,6 +77,8 @@ const struct memory_region_limits memory_regions =
 #define TFM_NS_REGION_VENEER    3
 #define TFM_NS_REGION_PERIPH_1  4
 #define TFM_NS_REGION_PERIPH_2  5
+#define TFM_NS_REGION_OSPI2     6 /* allow non secure access to memory mapped external Flash memory */
+
 /* Define Peripherals NS address range for the platform */
 #define PERIPHERALS_BASE_NS_START (PERIPH_BASE_NS)
 #define PERIPHERALS_BASE_NS_END   (0x4FFFFFFF)
@@ -158,6 +160,20 @@ const struct sau_cfg_t sau_init_cfg[] = {
         FLOW_CTRL_SAU_CH_R5,
 #endif /* FLOW_CONTROL */
     },
+#ifdef EXTERNAL_FLASH
+    {
+        TFM_NS_REGION_OSPI2,
+        OSPI_FLASH_BASE_ADDRESS,
+        OSPI_FLASH_BASE_ADDRESS + OSPI_FLASH_TOTAL_SIZE - 1,
+        TFM_FALSE,
+#ifdef FLOW_CONTROL
+        FLOW_STEP_SAU_EN_R6,
+        FLOW_CTRL_SAU_EN_R6,
+        FLOW_STEP_SAU_CH_R6,
+        FLOW_CTRL_SAU_CH_R6,
+#endif /* FLOW_CONTROL */
+    },
+#endif  /* EXTERNAL_FLASH */
 };
 #ifdef TFM_DEV_MODE
 static __IO int once=0;
@@ -524,6 +540,28 @@ void gtzc_init_cfg(void)
       /* privileged secure internal flash */
       gtzc_internal_flash_priv(0x0, (uint32_t)(&REGION_NAME(Image$$, TFM_UNPRIV_CODE_START, $$RO$$Base)) - FLASH_BASE_S - 1);
 
+#ifdef EXTERNAL_FLASH
+      /* Allow non secure access to memory mapped external Flash memory */
+      MPCWM_ConfigTypeDef OSPI_MPCWM_Desc;
+
+      /* Completly open mapped Flash memory on OCTOSPI2 for NonSecure/NonPrivileged access */
+      OSPI_MPCWM_Desc.AreaId = GTZC_TZSC_MPCWM_ID1;
+      OSPI_MPCWM_Desc.Offset = 0;                       /* Offset 0 from start of Flash memory */
+      OSPI_MPCWM_Desc.Length = OSPI_FLASH_TOTAL_SIZE;   /* all external Flash */
+      OSPI_MPCWM_Desc.Attribute = GTZC_TZSC_MPCWM_REGION_NSEC | GTZC_TZSC_MPCWM_REGION_NPRIV;
+      OSPI_MPCWM_Desc.Lock = GTZC_TZSC_MPCWM_LOCK_OFF;
+      OSPI_MPCWM_Desc.AreaStatus = ENABLE;
+
+      /* HAL programs the MPCWM address/config registers for the OCTOSPI2 area. */
+      if (HAL_GTZC_TZSC_MPCWM_ConfigMemAttributes(OCTOSPI2_BASE, &OSPI_MPCWM_Desc) != HAL_OK)
+      {
+          Error_Handler();
+      }
+
+      HAL_GTZC_TZSC_ConfigPeriphAttributes(GTZC_PERIPH_OCTOSPI2_REG, GTZC_TZSC_PERIPH_NSEC | GTZC_TZSC_PERIPH_NPRIV);
+      HAL_GTZC_TZSC_ConfigPeriphAttributes(GTZC_PERIPH_OCTOSPI2_MEM, GTZC_TZSC_PERIPH_NSEC | GTZC_TZSC_PERIPH_NPRIV);
+    #endif /* EXTERNAL_FLASH */
+
       /*  use sticky bit to lock all SRAM config  */
 
       /* Configure Secure peripherals */
@@ -629,6 +667,7 @@ void gtzc_init_cfg(void)
       if (gtzc_periph_att != (GTZC_TZSC_PERIPH_SEC | GTZC_TZSC_PERIPH_PRIV)) {
           Error_Handler();
       }
+
       FLOW_CONTROL_STEP(uFlowProtectValue, FLOW_STEP_GTZC_PERIPH_CH, FLOW_CTRL_GTZC_PERIPH_CH);
   }
   /* Lock GTZC */
