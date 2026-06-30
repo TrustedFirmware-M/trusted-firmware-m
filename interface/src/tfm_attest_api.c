@@ -52,9 +52,11 @@ psa_initial_attest_get_token_size(size_t  challenge_size,
         {&token_size_param, sizeof(token_size_param)}
     };
 
+#if SIZE_MAX > ROT_SIZE_MAX
     if (challenge_size > ROT_SIZE_MAX) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
+#endif
     challenge_size_param = (rot_size_t)challenge_size;
 
     if (token_size == NULL) {

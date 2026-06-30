@@ -53,9 +53,11 @@ psa_status_t psa_its_get(psa_storage_uid_t uid,
         { .base = p_data, .len = data_size }
     };
 
+#if SIZE_MAX > ROT_SIZE_MAX
     if (data_offset > ROT_SIZE_MAX) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
+#endif
     data_offset_param = (rot_size_t)data_offset;
     (void)data_offset_param;
 
