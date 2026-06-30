@@ -40,7 +40,7 @@
 #define ARM_USART_DRV_VERSION  ARM_DRIVER_VERSION_MAJOR_MINOR(2, 2)
 
 #if RTE_USART0 || RTE_USART1 || RTE_USART2 || RTE_USART3 || \
-    RTE_UART00 || RTE_USART20 || RTE_UART21 || RTE_UART22 || RTE_USART30
+    RTE_USART00 || RTE_USART20 || RTE_USART21 || RTE_USART22 || RTE_USART30
 
 void uart_config_set_uart_pins(nrfx_uarte_config_t *uart_config,
                                const uint32_t uart_pins[],

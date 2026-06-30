@@ -21,21 +21,21 @@
 
 #define RTE_USART20_PINS         \
 {                                \
-        NRF_PSEL(UART_TX,  1, 4),\
-        NRF_PSEL(UART_RX,  1, 5),\
-        NRF_PSEL(UART_RTS, 1, 6),\
-        NRF_PSEL(UART_CTS, 1, 7),\
+        NRF_PSEL(UART_TX,  0, 32),\
+        NRF_PSEL(UART_RX,  0, 33),\
+        NRF_PSEL(UART_RTS, 0, 34),\
+        NRF_PSEL(UART_CTS, 0, 35),\
 }
 
 
-#define RTE_USART30 1
+#define RTE_USART21 1
 
-#define RTE_USART30_PINS         \
+#define RTE_USART21_PINS         \
 {                                \
-        NRF_PSEL(UART_TX,  0, 5),\
-        NRF_PSEL(UART_RX,  0, 6),\
-        NRF_PSEL(UART_RTS, 0, 2),\
-        NRF_PSEL(UART_CTS, 0, 3),\
+        NRF_PSEL(UART_TX,  0, 40),\
+        NRF_PSEL(UART_RX,  0, 41),\
+        NRF_PSEL(UART_RTS, 0, 42),\
+        NRF_PSEL(UART_CTS, 0, 43),\
 }
 
 
