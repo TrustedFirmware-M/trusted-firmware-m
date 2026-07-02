@@ -96,21 +96,7 @@ extern struct platform_data_t tfm_peripheral_uarte30;
 #define TFM_PERIPHERAL_UARTE22       (&tfm_peripheral_uarte22)
 #define TFM_PERIPHERAL_UARTE30       (&tfm_peripheral_uarte30)
 
-#define TFM_PERIPHERAL_STD_UART     TFM_PERIPHERAL_UARTE30
-
-extern struct platform_data_t tfm_peripheral_uarte00;
-extern struct platform_data_t tfm_peripheral_uarte20;
-extern struct platform_data_t tfm_peripheral_uarte21;
-extern struct platform_data_t tfm_peripheral_uarte22;
-extern struct platform_data_t tfm_peripheral_uarte30;
-
-#define TFM_PERIPHERAL_UARTE00       (&tfm_peripheral_uarte00)
-#define TFM_PERIPHERAL_UARTE20       (&tfm_peripheral_uarte20)
-#define TFM_PERIPHERAL_UARTE21       (&tfm_peripheral_uarte21)
-#define TFM_PERIPHERAL_UARTE22       (&tfm_peripheral_uarte22)
-#define TFM_PERIPHERAL_UARTE30       (&tfm_peripheral_uarte30)
-
-#define TFM_PERIPHERAL_STD_UART     TFM_PERIPHERAL_UARTE30
+#define TFM_PERIPHERAL_STD_UART     TFM_PERIPHERAL_UARTE21
 
 #ifdef PSA_API_TEST_IPC
 /* see other platforms when supporting this */
