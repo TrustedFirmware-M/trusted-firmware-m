@@ -63,7 +63,7 @@ set(build_sha_256    "$<NOT:${build_sha_384}>")
 set(build_p256m      "$<IF:$<BOOL:${MBEDTLS_P256M_ENABLED}>,$<AND:${is_ec_signature},${is_256_bit_curve}>,0>")
 
 list(APPEND BL2_CRYPTO_SRC
-    $<$<OR:$<BOOL:${MCUBOOT_USE_PSA_CRYPTO}>,$<BOOL:${MCUBOOT_USE_MBED_TLS}>>:${CMAKE_SOURCE_DIR}/lib/ext/thin-psa-crypto-core/thin_psa_crypto_core.c>
+    $<$<BOOL:${MCUBOOT_USE_PSA_CRYPTO}>:${CMAKE_SOURCE_DIR}/lib/ext/thin-psa-crypto-core/thin_psa_crypto_core.c>
     $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/aes.c>
     ${TF_PSA_CRYPTO_PATH}/platform/platform.c
     ${TF_PSA_CRYPTO_PATH}/platform/platform_util.c
