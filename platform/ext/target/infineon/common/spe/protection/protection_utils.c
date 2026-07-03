@@ -132,6 +132,32 @@ const ifx_memory_config_t* ifx_find_memory_config(uint32_t address,
     return NULL;
 }
 
+enum tfm_hal_status_t ifx_find_memory_config_by_mpc(
+                                        const ifx_memory_config_t** memory_config,
+                                        const MPC_Type* mpc,
+                                        const ifx_memory_config_t* const configs[],
+                                        const size_t config_count)
+{
+    if ((memory_config == NULL) || (configs == NULL)) {
+        return TFM_HAL_ERROR_INVALID_INPUT;
+    }
+
+    for (size_t idx = 0; idx < config_count; idx++) {
+        const ifx_memory_config_t* mpc_config = configs[idx];
+
+        if (mpc_config == NULL) {
+            continue;
+        }
+
+        if (mpc_config->mpc == mpc) {
+            *memory_config = mpc_config;
+            return TFM_HAL_SUCCESS;
+        }
+    }
+
+    return TFM_HAL_ERROR_GENERIC;
+}
+
 enum tfm_hal_status_t ifx_get_all_memory_configs(
                                         const ifx_memory_config_t* memory_config[],
                                         uint32_t* list_size,

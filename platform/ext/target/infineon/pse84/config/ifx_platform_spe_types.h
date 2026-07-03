@@ -31,8 +31,7 @@
                                                                   + MMIO_M55APP_SIZE - 1))
 
 #define IFX_MPC_IS_EXTERNAL(base) \
-    (((void *)base == IFX_MPC_NOT_CONTROLLED_BY_TFM) || \
-     ((void *)base == RRAMC0_MPC0) || \
+    (((void *)base == RRAMC0_MPC0) || \
      ((void *)base == RRAMC0_MPC1))
 
 #if (IFX_CORE == IFX_CM33)

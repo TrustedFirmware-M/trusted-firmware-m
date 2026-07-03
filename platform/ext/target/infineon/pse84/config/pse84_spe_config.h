@@ -36,7 +36,6 @@
  * For example RRAM is protected by 1 MPC and same SMIF address is protected
  * by 2 MPCs (one for CM33 and one for CM55 bus master) */
 #define IFX_REGION_MAX_MPC_COUNT                            (2U)
-#define IFX_MPC_NOT_CONTROLLED_BY_TFM                       (NULL)
 
 /* The size of RRAM MPC block size controlled by SE RT Services */
 #define IFX_SE_RT_RRAM_BLOCK_SIZE                           4096u

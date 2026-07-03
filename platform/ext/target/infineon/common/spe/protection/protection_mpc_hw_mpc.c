@@ -209,7 +209,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_apply_raw_configuration(
         FIH_RET(TFM_HAL_ERROR_INVALID_INPUT);
     }
 
-    /* MPC pointer is set to NULL for MPCs that are not configurable by TFM. */
+    /* External MPCs are not configured directly by TFM. */
     if (IFX_MPC_IS_EXTERNAL(mpc_reg_cfg->mpc_base)) {
 #if IFX_SE_IPC_SERVICE_FULL || IFX_SE_IPC_SERVICE_BASE
         /* Use external service to protect memory */
@@ -281,7 +281,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_verify_raw_configuration(
 {
     FIH_RET_TYPE(enum tfm_hal_status_t) mem_cfg_res;
 
-    /* MPC pointer is set to NULL for MPCs that are not configurable by TFM. */
+    /* External MPCs are not verified directly by TFM. */
     TFM_COVERITY_DEVIATE_BLOCK(MISRA_C_2023_Rule_10_4, "Cannot change types due to Fault injection architecture")
     if (IFX_MPC_IS_EXTERNAL(mpc_reg_cfg->mpc_base)) {
 #if IFX_SE_IPC_SERVICE_FULL || IFX_SE_IPC_SERVICE_BASE
@@ -414,13 +414,23 @@ static void ifx_mpc_get_unified_region(const cy_stc_mpc_regions_t *mpc_region,
 {
     TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_14_3, "IFX_MPC_IS_EXTERNAL() is a constant on some platforms")
     if (IFX_MPC_IS_EXTERNAL(mpc_region->base)) {
-        mpc_cfg->mpc_base       = IFX_MPC_NOT_CONTROLLED_BY_TFM;
-        mpc_cfg->mpc_block_size = CY_MPC_SIZE_4KB;
+        /* External MPCs can't be read directly, so the block size is taken from
+         * the static memory configuration table. */
+        const ifx_memory_config_t* mem_cfg = NULL;
+        if (ifx_find_memory_config_by_mpc(&mem_cfg, mpc_region->base,
+                                          ifx_memory_cm33_config,
+                                          ifx_memory_cm33_config_count) != TFM_HAL_SUCCESS) {
+            tfm_core_panic();
+        }
+        mpc_cfg->mpc_block_size = mem_cfg->mpc_block_size;
     } else {
-        mpc_cfg->mpc_base       = mpc_region->base;
+        /* MPC is controlled by TF-M, so read the block size directly from the
+         * hardware register instead of looking it up in the memory
+         * configuration table, as the direct read is faster than the lookup. */
         mpc_cfg->mpc_block_size = (cy_en_mpc_size_t)_FLD2VAL(IFX_MPC_BLK_CFG_BLOCK_SIZE,
                                                              mpc_region->base->BLK_CFG);
     }
+    mpc_cfg->mpc_base = mpc_region->base;
     mpc_cfg->offset = mpc_region->offset;
     mpc_cfg->size   = mpc_region->size;
 }
@@ -695,7 +705,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_init_cfg(void)
 #else /* IFX_MEMORY_CONFIGURATOR_MPC_CONFIG */
     /* Set violation response for all used memory types */
     for (uint32_t idx = 0UL; idx < ifx_memory_cm33_config_count; idx++) {
-        /* Some MPCs are not controlled by TFM so the MPC pointer is set to NULL */
+        /* Some MPCs are external and are not controlled by TFM. */
         TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_14_3, "IFX_MPC_IS_EXTERNAL() is a constant on some platforms")
         if (!IFX_MPC_IS_EXTERNAL(ifx_memory_cm33_config[idx]->mpc)) {
             /* Set violation response as Bus Error instead RZWI */
@@ -705,7 +715,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_init_cfg(void)
 
 #if IFX_MPC_CM55_MPC
     for (uint32_t idx = 0UL; idx < ifx_memory_cm55_config_count; idx++) {
-        /* Some MPCs are not controlled by TFM so the MPC pointer is set to NULL */
+        /* Some MPCs are external and are not controlled by TFM. */
         TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_14_3, "IFX_MPC_IS_EXTERNAL() is a constant on some platforms")
         if (!IFX_MPC_IS_EXTERNAL(ifx_memory_cm55_config[idx]->mpc)) {
             /* Set violation response as Bus Error instead RZWI */
@@ -805,7 +815,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_verify_static_boundaries(void)
 #else
     /* Check violation response for all used memory types */
     for (uint32_t idx = 0UL; idx < ifx_memory_cm33_config_count; idx++) {
-        /* Some MPCs are not controlled by TFM so the MPC pointer is set to NULL */
+        /* Some MPCs are external and are not controlled by TFM. */
         TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_14_3, "IFX_MPC_IS_EXTERNAL() is a constant on some platforms")
         if (!IFX_MPC_IS_EXTERNAL(ifx_memory_cm33_config[idx]->mpc)) {
             /* Read back violation response, should be Bus Error */
@@ -818,7 +828,7 @@ FIH_RET_TYPE(enum tfm_hal_status_t) ifx_mpc_verify_static_boundaries(void)
 
 #if IFX_MPC_CM55_MPC
     for (uint32_t idx = 0UL; idx < ifx_memory_cm55_config_count; idx++) {
-        /* Some MPCs are not controlled by TFM so the MPC pointer is set to NULL */
+        /* Some MPCs are external and are not controlled by TFM. */
         TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Rule_14_3, "IFX_MPC_IS_EXTERNAL() is a constant on some platforms")
         if (!IFX_MPC_IS_EXTERNAL(ifx_memory_cm55_config[idx]->mpc)) {
             /* Read back violation response, should be Bus Error */

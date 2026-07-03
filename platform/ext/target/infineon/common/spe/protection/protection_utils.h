@@ -91,6 +91,30 @@ const ifx_memory_config_t* ifx_find_memory_config(uint32_t address,
                                                   const size_t config_count);
 
 /**
+ * \brief Returns configuration of the memory served by the provided MPC.
+ *
+ * Unlike \ref ifx_find_memory_config() which matches by address range, this
+ * function matches by the MPC controller pointer stored in
+ * \ref ifx_memory_config_t::mpc. It is primarily used to obtain the static
+ * configuration (e.g. block size) of external MPCs that can't be read directly.
+ *
+ * \param[out] memory_config Output pointer that receives the matching config.
+ * \param[in]  mpc           MPC controller pointer to match against
+ *                           \ref ifx_memory_config_t::mpc.
+ * \param[in]  configs       Pointer to memory configs \ref ifx_memory_config_t array.
+ * \param[in]  config_count  Number of elements in memory configs array.
+ *
+ * \return    TFM_HAL_SUCCESS             - matching configuration was found.
+ *            TFM_HAL_ERROR_INVALID_INPUT - invalid input parameters.
+ *            TFM_HAL_ERROR_GENERIC       - no configuration uses the provided MPC.
+ */
+enum tfm_hal_status_t ifx_find_memory_config_by_mpc(
+                                        const ifx_memory_config_t** memory_config,
+                                        const MPC_Type* mpc,
+                                        const ifx_memory_config_t* const configs[],
+                                        const size_t config_count);
+
+/**
  * \brief Returns all configurations of the memory in which provided region is
  * located. For IFX devices same memory can have different configuration (e.g.
  * different MPC) when accessing from different bus masters.

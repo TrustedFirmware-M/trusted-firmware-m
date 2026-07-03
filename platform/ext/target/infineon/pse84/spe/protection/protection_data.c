@@ -18,7 +18,7 @@
  * Secure, thus, in memory configs, MPC macros are cast to Secure alias */
 
 static const ifx_memory_config_t ifx_rram0_sbus_config = {
-    .mpc = IFX_MPC_NOT_CONTROLLED_BY_TFM,  /* RRAM MPC is owned by SE and inaccessible to TF-M */
+    .mpc = (MPC_Type*)IFX_S_ADDRESS_ALIAS((uint32_t)RRAMC0_MPC0),  /* RRAM MPC is owned by SE and inaccessible to TF-M */
     .mpc_block_size = CY_MPC_SIZE_4KB,
     .s_address = IFX_S_ADDRESS_ALIAS(IFX_RRAM_SBUS_BASE),
     .size = IFX_RRAM_SIZE,
@@ -64,7 +64,7 @@ static const ifx_memory_config_t ifx_xip_port1_ahb_sbus_config = {
 #endif /* IFX_SMIF_XIP1_ENABLED */
 
 static const ifx_memory_config_t ifx_rram0_cbus_config = {
-    .mpc = IFX_MPC_NOT_CONTROLLED_BY_TFM,  /* RRAM MPC is owned by SE and inaccessible to TF-M */
+    .mpc = (MPC_Type*)IFX_S_ADDRESS_ALIAS((uint32_t)RRAMC0_MPC0),  /* RRAM MPC is owned by SE and inaccessible to TF-M */
     .mpc_block_size = CY_MPC_SIZE_4KB,
     .s_address = IFX_S_ADDRESS_ALIAS(IFX_RRAM_CBUS_BASE),
     .size = IFX_RRAM_SIZE,
