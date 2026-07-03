@@ -79,17 +79,6 @@ extern "C" {
 #define MCUBOOT_BOOT_MAX_ALIGN @MCUBOOT_BOOT_MAX_ALIGN@
 
 /*
- * Cryptographic settings
- */
-/* MCUboot and TF-M also supports the usage of PSA Crypto API along with
- * Mbed TLS as the source of cryptographic primitives. However, the support for
- * MCUBOOT_USE_PSA_CRYPTO is still limited and it doesn't cover all the
- * crypto abstractions of MCUboot. For this reason it's allowed to have both
- * of them defined, in which case MCUBOOT_USE_PSA_CRYPTO will take precedence.
- */
-#define MCUBOOT_USE_MBED_TLS
-
-/*
  * Logging
  */
 #define MCUBOOT_HAVE_LOGGING    1
