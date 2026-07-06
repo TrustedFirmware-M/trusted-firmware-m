@@ -786,6 +786,7 @@ psa_status_t gpt_defragment(void)
      * and will not result in lost data.
      */
     psa_status_t ret = sort_partition_array(&primary_gpt);
+
     if (ret != PSA_SUCCESS) {
         ERROR("Unable to defragment flash!\n");
         return ret;
@@ -1097,7 +1098,6 @@ static psa_status_t move_partition(const struct efi_guid_t *guid,
 
     struct gpt_entry_t cached_entry;
     uint32_t cached_index;
-
     psa_status_t ret = find_gpt_entry(
             &primary_gpt,
             gpt_entry_cmp_guid,
@@ -1233,6 +1233,7 @@ static psa_status_t move_partition_data(const uint64_t old_lba,
         const ssize_t erase_ret = plat_flash_driver->erase(
                 new_lba + (num_blocks - non_overlap_blocks),
                 (size_t)non_overlap_blocks);
+
         if (erase_ret != (ssize_t)non_overlap_blocks) {
             WARN("Partial consecutive erase (%ld); erasing per block\n",
                  erase_ret);
@@ -1359,6 +1360,7 @@ static psa_status_t read_from_flash(uint64_t required_lba)
     if (required_lba != cached_lba) {
         if (write_buffered && cached_lba != 0) {
             psa_status_t ret = flush_lba_buf();
+
             if (ret != PSA_SUCCESS) {
                 return ret;
             }
