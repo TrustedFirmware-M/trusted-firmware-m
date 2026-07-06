@@ -42,7 +42,6 @@ set(MCUBOOT_ENCRYPT_RSA                 OFF         CACHE BOOL      "Use RSA-OAE
 set(MCUBOOT_ENCRYPT_KW                  OFF         CACHE BOOL      "Use AES-KW for encryption key wrapping")
 set(MCUBOOT_BOOTSTRAP                   OFF         CACHE BOOL      "Support initial state with empty primary slot and images installed from secondary slots")
 set(MCUBOOT_FIH_PROFILE                 OFF         CACHE STRING    "Fault injection hardening profile [OFF, LOW, MEDIUM, HIGH]")
-set(MCUBOOT_USE_PSA_CRYPTO              ON          CACHE BOOL      "The crypto abstraction layer must use PSA Crypto APIs")
 if(${MCUBOOT_UPGRADE_STRATEGY} STREQUAL DIRECT_XIP)
     set(MCUBOOT_DIRECT_XIP_REVERT       ON          CACHE BOOL      "Enable the revert mechanism in direct-xip mode")
 else()

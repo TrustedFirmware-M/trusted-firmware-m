@@ -37,8 +37,6 @@ tfm_invalid_config(BL2 AND (NOT MCUBOOT_UPGRADE_STRATEGY STREQUAL "DIRECT_XIP" A
 # Maximum number of MCUBoot images supported by TF-M NV counters and ROTPKs
 tfm_invalid_config(MCUBOOT_IMAGE_NUMBER GREATER 9)
 
-# Since moving TF-PSA-Crypto Mbed TLS legacy APIs are not available anymore
-tfm_invalid_config(BL2 AND NOT MCUBOOT_USE_PSA_CRYPTO)
 tfm_invalid_config(MCUBOOT_SIGNATURE_TYPE STREQUAL "RSA-2048" AND MCUBOOT_BUILTIN_KEY)
 tfm_invalid_config(MCUBOOT_SIGNATURE_TYPE STREQUAL "RSA-3072" AND MCUBOOT_BUILTIN_KEY)
 

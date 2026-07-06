@@ -42,10 +42,6 @@ config MCUBOOT_EXECUTION_SLOT
     int "Slot from which to execute the image, used for XIP mode"
     default 1
 
-config MCUBOOT_USE_PSA_CRYPTO
-    bool "Enable cryptography through PSA Crypto APIs"
-    default n
-
 choice MCUBOOT_HW_KEY_CHOICE
     prompt "Hardware key options for signature verification"
     optional

@@ -42,5 +42,4 @@ set(FWU_DEVICE_CONFIG_FILE                 ""          CACHE STRING    "The devi
 set(MCUBOOT_DATA_SHARING                  ON           CACHE BOOL      "Add sharing of application specific data using the same shared data area as for the measured boot")
 #set(TEST_S_FWU                            ON)
 #set(TEST_NS_FWU                           ON)
-set(MCUBOOT_USE_PSA_CRYPTO            ON               CACHE BOOL      "Enable the cryptographic abstraction layer to use PSA Crypto APIs")
 #set(MCUBOOT_PATH      "set mcuboot PATH"  CACHE PATH      "Path to MCUboot (or DOWNLOAD to fetch automatically")

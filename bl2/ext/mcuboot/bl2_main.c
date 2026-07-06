@@ -37,7 +37,6 @@
 #include "mcuboot_suites.h"
 #endif /* TEST_BL2 */
 
-#if defined(MCUBOOT_USE_PSA_CRYPTO)
 #include "psa/crypto.h"
 /* A few macros for stringification */
 #define str(X) #X
@@ -47,7 +46,6 @@ static const char *key_type_str = ", using builtin keys";
 #else
 static const char *key_type_str = "";
 #endif
-#endif /* MCUBOOT_USE_PSA_CRYPTO */
 
 /* Avoids the semihosting issue */
 #if defined (__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
@@ -179,8 +177,7 @@ int main(void)
         boot_platform_error_state(err);
     }
 
-#if defined(MCUBOOT_USE_PSA_CRYPTO)
-    /* If the bootloader is configured to use PSA Crypto APIs in the
+    /* Since bootloader is configured to use PSA Crypto APIs in the
      * abstraction layer, the component needs to be explicitly initialized
      * before MCUboot APIs, as the crypto abstraction expects that the init
      * has already happened
@@ -191,7 +188,6 @@ int main(void)
         boot_platform_error_state(status);
     }
     BOOT_LOG_INF("PSA Crypto init done, sig_type: %s%s", xstr(MCUBOOT_SIGNATURE_TYPE), key_type_str);
-#endif /* MCUBOOT_USE_PSA_CRYPTO */
 
 #ifdef TEST_BL2
     (void)run_mcuboot_testsuite();
@@ -269,8 +265,6 @@ int crypto_hw_accelerator_init(void)
 
 int crypto_hw_accelerator_finish(void)
 {
-#if defined(MCUBOOT_USE_PSA_CRYPTO)
     mbedtls_psa_crypto_free();
-#endif /* MCUBOOT_USE_PSA_CRYPTO */
     return 0;
 }

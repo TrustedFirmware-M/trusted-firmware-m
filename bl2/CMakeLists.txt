@@ -25,12 +25,12 @@ add_library(bl2_crypto_config INTERFACE)
 
 target_compile_definitions(bl2_crypto_config
     INTERFACE
+        MCUBOOT_USE_PSA_CRYPTO
         TF_PSA_CRYPTO_CONFIG_FILE="${MCUBOOT_PSA_CRYPTO_CONFIG_FILEPATH}"
         # The config files have conditional includes based on these four definitions
         $<${is_rsa_signature}:MCUBOOT_SIGN_RSA>
         $<${is_rsa_signature}:MCUBOOT_SIGN_RSA_LEN=${SIG_LEN}>
         $<${is_ec_signature}:MCUBOOT_SIGN_EC${SIG_LEN}>
-        $<$<BOOL:${MCUBOOT_USE_PSA_CRYPTO}>:MCUBOOT_USE_PSA_CRYPTO>
         $<$<BOOL:${MCUBOOT_IMAGE_BINDING}>:MCUBOOT_IMAGE_BINDING>
         $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:MCUBOOT_ENC_IMAGES>
 )
@@ -63,7 +63,7 @@ set(build_sha_256    "$<NOT:${build_sha_384}>")
 set(build_p256m      "$<IF:$<BOOL:${MBEDTLS_P256M_ENABLED}>,$<AND:${is_ec_signature},${is_256_bit_curve}>,0>")
 
 list(APPEND BL2_CRYPTO_SRC
-    $<$<BOOL:${MCUBOOT_USE_PSA_CRYPTO}>:${CMAKE_SOURCE_DIR}/lib/ext/thin-psa-crypto-core/thin_psa_crypto_core.c>
+    ${CMAKE_SOURCE_DIR}/lib/ext/thin-psa-crypto-core/thin_psa_crypto_core.c
     $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/aes.c>
     ${TF_PSA_CRYPTO_PATH}/platform/platform.c
     ${TF_PSA_CRYPTO_PATH}/platform/platform_util.c
