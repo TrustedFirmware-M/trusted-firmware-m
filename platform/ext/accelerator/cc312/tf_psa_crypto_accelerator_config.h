@@ -40,10 +40,8 @@ extern "C" {
 #define MBEDTLS_PSA_CRYPTO_RNG_HASH     PSA_ALG_SHA_256
 #endif
 
-#ifdef CC3XX_RUNTIME_ENABLED
 /* CC3XX integrates the cc3xx_random entry point through this mechanism */
 #define MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
-#endif
 
 /****************************************************************/
 /* Require built-in implementations based on PSA requirements */
