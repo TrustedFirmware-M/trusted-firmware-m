@@ -1882,26 +1882,46 @@ out:
     return ret;
 }
 
-psa_status_t parse_fmp_header(psa_fwu_component_t component, const void *block, size_t size, size_t *fmp_bytes)
+static psa_status_t parse_fmp_header(
+    psa_fwu_component_t component,
+    const void *block,
+    size_t size,
+    size_t *fmp_bytes)
 {
+    size_t header_size = sizeof(fmp_header_image_info[component].fmp_hdr);
+    size_t *header_size_recv = &fmp_header_image_info[component].fmp_hdr_size_recvd;
+
+    if ((*header_size_recv + size) < size) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
     /* Parse the incoming block to make sure complete FMP header is received */
-    if (sizeof(fmp_header_image_info[component].fmp_hdr) >= (fmp_header_image_info[component].fmp_hdr_size_recvd + size)) {
-        memcpy(&fmp_header_image_info[component].fmp_hdr, block, size);
-        fmp_header_image_info[component].fmp_hdr_size_recvd += size;
+    if (header_size >= (*header_size_recv + size)) {
+        memcpy(
+            (uint8_t *)&fmp_header_image_info[component].fmp_hdr + *header_size_recv,
+            block,
+            size);
+
         *fmp_bytes = size;
+        *header_size_recv += size;
+
         return PSA_ERROR_INSUFFICIENT_DATA;
     }
-    if (fmp_header_image_info[component].fmp_hdr_size_recvd != sizeof(fmp_header_image_info[component].fmp_hdr)) {
-        memcpy(&fmp_header_image_info[component].fmp_hdr,
-                block,
-                (sizeof(fmp_header_image_info[component].fmp_hdr) - fmp_header_image_info[component].fmp_hdr_size_recvd));
+    if (*header_size_recv != header_size) {
+        memcpy(
+            (uint8_t *)&fmp_header_image_info[component].fmp_hdr + *header_size_recv,
+            block,
+            (header_size - *header_size_recv));
 
-        *fmp_bytes = sizeof(fmp_header_image_info[component].fmp_hdr) - fmp_header_image_info[component].fmp_hdr_size_recvd;
-        fmp_header_image_info[component].fmp_hdr_size_recvd = sizeof(fmp_header_image_info[component].fmp_hdr);
+        *fmp_bytes = header_size - *header_size_recv;
+        *header_size_recv = header_size;
+
         return PSA_SUCCESS;
     }
 
+    FWU_ASSERT(0);
 }
+
 psa_status_t fwu_bootloader_load_image(psa_fwu_component_t component,
                                        size_t block_offset,
                                        const void *block,
@@ -1943,6 +1963,9 @@ psa_status_t fwu_bootloader_load_image(psa_fwu_component_t component,
         ret = parse_fmp_header(fwu_image_index, block, block_size, &fmp_bytes);
         if(ret == PSA_ERROR_INSUFFICIENT_DATA) {
             return PSA_SUCCESS;
+        }
+        if(ret == PSA_ERROR_INVALID_ARGUMENT) {
+            return ret;
         }
         if (ret == PSA_SUCCESS) {
             block_size -= fmp_bytes;
