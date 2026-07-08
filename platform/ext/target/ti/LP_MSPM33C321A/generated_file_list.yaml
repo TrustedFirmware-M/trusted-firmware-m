@@ -1,0 +1,28 @@
+#-------------------------------------------------------------------------------
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+# Copyright (c) 2025 Texas Instruments Incorporated. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause
+#-------------------------------------------------------------------------------
+# Platform-specific generated file list for LP_MSPM33C321A.
+#
+# Overrides the common tfm_isolation_s.ld.template to add ALIGN(16) inside
+# .TFM_SP_LOAD_LIST. This ensures the flash LOAD segment FileSiz is divisible
+# by 16 bytes — a hardware requirement on MSPM33C321A:
+#
+#   The MSPM33C321A flash controller has a 128-bit (16-byte) word width.
+#   All flash program addresses must be 16-byte aligned.
+#   Reference: dl_flashctl.h line 931, DL_FlashCTL_programMemoryBlocking().
+
+{
+  "description": "LP_MSPM33C321A generated files list",
+  "type": "generated_file_list",
+  "version_major": 0,
+  "version_minor": 1,
+  "file_list": [
+    {
+        "description": "isolation l1-l3 linker script with 16-byte flash word alignment",
+        "template": "platform/ext/target/ti/LP_MSPM33C321A/gcc/tfm_isolation_s.ld.template",
+        "output": "platform/ext/target/ti/LP_MSPM33C321A/gcc/tfm_isolation_s.ld"
+    }
+  ]
+}

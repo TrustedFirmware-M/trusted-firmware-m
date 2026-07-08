@@ -235,6 +235,13 @@ Sadik Ozer
     :email: `Sadik.Ozer@analog.com <Sadik.Ozer@analog.com>`__
     :github: `ozersa <https://github.com/ozersa>`__
 
+Texas Instruments
+-----------------
+
+UTKARSH Kripashankar
+    :email: `u-kripashankar@ti.com <u-kripashankar@ti.com>`__
+    :github: `Utkarsh-TII <https://github.com/Utkarsh-TII>`__
+
 -------------
 
 .. _Project Maintenance Process: https://trusted-firmware-docs.readthedocs.io/en/latest/generic_processes/project_maintenance_process.html

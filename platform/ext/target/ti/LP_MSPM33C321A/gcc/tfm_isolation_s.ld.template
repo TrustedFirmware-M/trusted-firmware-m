@@ -1,0 +1,718 @@
+;/*
+; * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
+; * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon company)
+; * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+; *
+; * Licensed under the Apache License, Version 2.0 (the "License");
+; * you may not use this file except in compliance with the License.
+; * You may obtain a copy of the License at
+; *
+; *     http://www.apache.org/licenses/LICENSE-2.0
+; *
+; * Unless required by applicable law or agreed to in writing, software
+; * distributed under the License is distributed on an "AS IS" BASIS,
+; * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+; * See the License for the specific language governing permissions and
+; * limitations under the License.
+; *
+; *
+; * This file is derivative of CMSIS V5.00 gcc_arm.ld
+; */
+
+/***********{{utilities.donotedit_warning}}***********/
+
+/* Linker script to configure memory regions. */
+/* This file will be run through the pre-processor. */
+
+#include "region_defs.h"
+
+/* Include file with definitions for section alignments.
+ * Note: it should be included after region_defs.h to let platform define
+ * default values if needed. */
+#include "tfm_s_linker_alignments.h"
+
+#if defined(__ARM_ARCH_8M_MAIN__) || defined(__ARM_ARCH_8M_BASE__) || \
+    defined(__ARM_ARCH_8_1M_MAIN__)
+#define STACKSEAL_SIZE  0x8
+#else
+#define STACKSEAL_SIZE  0x0
+#endif
+
+/*
+ * Program Header (PHDRS) definitions
+ *
+ * These define how different segments of the final image are mapped into
+ * program headers for the ELF output. Each PHDR entry corresponds to a loadable
+ * memory segment with specific access permissions (Read, Write, Execute), which is
+ * defined by FLAGS(n):
+ * - 0x1 - Executable
+ * - 0x2 - Writable
+ * - 0x4 - Readable
+ *
+ * - flash:            Loadable segment for executable code and read-only data (FLAGS(5) → R X)
+ * - tfm_data:         TFM read/write data, (FLAGS(6) → R W)
+ * - phdr_<partition>: Dynamically generated loadable segments for each runtime partition
+ *                     with read/write permissions (FLAGS(6) → R W)
+ * - itcm:             ITCM segment for executable code (FLAGS(5) → R X)
+ * - coderam:          Executable segment placed in SRAM (FLAGS(5) → R X)
+ *
+ */
+PHDRS
+{
+  flash  PT_LOAD FLAGS(5); /* R X */
+  tfm_data  PT_LOAD FLAGS(6); /* R W */
+{% for partition in partitions %}
+  phdr_{{partition.manifest.name}} PT_LOAD FLAGS(6); /* R W */
+{% endfor %}
+#ifdef S_RUNTIME_ITCM_START
+  itcm   PT_LOAD FLAGS(5); /* R X */
+#endif
+  coderam PT_LOAD FLAGS(5); /* R X */
+}
+
+MEMORY
+{
+  FLASH    (rx)  : ORIGIN = S_CODE_START, LENGTH = S_CODE_SIZE
+  RAM      (rw)  : ORIGIN = S_DATA_START, LENGTH = S_DATA_SIZE
+#ifdef S_RAM_CODE_START
+  CODE_RAM (rwx) : ORIGIN = S_RAM_CODE_START, LENGTH = S_RAM_CODE_SIZE
+#endif
+#ifdef S_RUNTIME_ITCM_START
+  ITCM     (rx)  : ORIGIN = S_RUNTIME_ITCM_START, LENGTH = S_RUNTIME_ITCM_SIZE
+  #define ITCM_FILES *tfm_spm*
+#else
+  #define ITCM_FILES
+#endif
+#ifdef S_RUNTIME_DTCM_START
+  DTCM     (rw)  : ORIGIN = S_RUNTIME_DTCM_START, LENGTH = S_RUNTIME_DTCM_SIZE
+#endif
+}
+
+/* For Cortex-M0+ VTOR: 256-byte vector table is at the offset 0x00 of the image.
+ * To keep that table in one block, the image base must be a multiple of 0x100.
+ * For reference: https://developer.arm.com/documentation/ddi0419/latest/
+ */
+#if defined(__ARM_ARCH_6M__)
+CHECK_ALIGNMENT_256(S_CODE_START)
+#endif
+
+#ifndef TFM_LINKER_VENEERS_START
+#define TFM_LINKER_VENEERS_START ALIGN(TFM_LINKER_VENEERS_ALIGNMENT)
+#endif
+
+#ifndef TFM_LINKER_VENEERS_END
+#define TFM_LINKER_VENEERS_END ALIGN(TFM_LINKER_VENEERS_ALIGNMENT)
+#endif
+
+#define VENEERS() \
+/* \
+ * Place the CMSE Veneers (containing the SG instruction) after the code, in \
+ * a separate at least 32 bytes aligned region so that the SAU can \
+ * programmed to just set this region as Non-Secure Callable. \
+ */ \
+.gnu.sgstubs TFM_LINKER_VENEERS_START : \
+{ \
+    *(.gnu.sgstubs*) \
+} > FLASH :flash \
+/* GCC always places veneers at the end of .gnu.sgstubs section, so the only \
+ * way to align the end of .gnu.sgstubs section is to align start of the \
+ * next section */ \
+.sgstubs_end : TFM_LINKER_VENEERS_END \
+{ \
+} > FLASH :flash
+
+__msp_stack_size__ = S_MSP_STACK_SIZE;
+
+ENTRY(Reset_Handler)
+
+SECTIONS
+{
+    /* Position tag: Start of code + RO-data */
+    Image$$PT_RO_START$$Base = ADDR(.TFM_VECTORS);
+
+    .TFM_VECTORS : ALIGN(TFM_LINKER_TFM_VECTORS_ALIGNMENT)
+    {
+        __vectors_start__ = .;
+        KEEP(*(.vectors))
+        __vectors_end__ = .;
+    } > FLASH :flash
+
+    ASSERT(__vectors_start__ != __vectors_end__, ".vectors should not be empty")
+
+#ifdef S_CODE_VECTOR_TABLE_SIZE
+    ASSERT(. <= ADDR(.TFM_VECTORS) + S_CODE_VECTOR_TABLE_SIZE, ".TFM_VECTORS section size overflow.")
+    . = ADDR(.TFM_VECTORS) + S_CODE_VECTOR_TABLE_SIZE;
+#endif
+
+    /* Position tag: Start of unprivileged code (shared, not PXN) */
+    . = ALIGN(TFM_LINKER_PT_UNPRIV_CODE_ALIGNMENT);
+    Image$$PT_UNPRIV_CODE_START$$Base = .;
+
+#if defined(CONFIG_TFM_USE_TRUSTZONE) && !defined(TFM_LINKER_VENEERS_LOCATION_END)
+    VENEERS()
+#endif
+
+    .ER_UNPRIV_CODE . :
+    {
+        /* Shared library code */
+        *libgcc*:(SORT_BY_ALIGNMENT(.text*))
+        *libc_nano*:(SORT_BY_ALIGNMENT(.text*))
+        *libg_nano*:(SORT_BY_ALIGNMENT(.text*))
+        *libtfm_sprt*:(SORT_BY_ALIGNMENT(.text*))
+        *libqcbor*:(SORT_BY_ALIGNMENT(.text*))
+        *libtfm_t_cose_s*:(SORT_BY_ALIGNMENT(.text*))
+
+        KEEP(*(.init))
+        KEEP(*(.fini))
+
+        /* .ctors */
+        *crtbegin.o(.ctors)
+        *crtbegin?.o(.ctors)
+        *(EXCLUDE_FILE(*crtend?.o *crtend.o) .ctors)
+        *(SORT(.ctors.*))
+        *(.ctors)
+
+        /* .dtors */
+        *crtbegin.o(.dtors)
+        *crtbegin?.o(.dtors)
+        *(EXCLUDE_FILE(*crtend?.o *crtend.o) .dtors)
+        *(SORT(.dtors.*))
+        *(.dtors)
+
+        KEEP(*(.eh_frame*))
+    } > FLASH :flash
+
+    /* Position tag: End of unprivileged code (shared, not PXN) */
+    . = ALIGN(TFM_LINKER_PT_UNPRIV_CODE_ALIGNMENT);
+    Image$$PT_UNPRIV_CODE_END$$Base = .;
+
+    /* Position tag: Start of Application RoT code (unprivileged, PXN) */
+    . = ALIGN(TFM_LINKER_PT_APP_ROT_CODE_ALIGNMENT);
+    Image$$PT_APP_ROT_CODE_START$$Base = .;
+
+    .ER_APP_ROT_CODE . :
+    {
+        *tfm_app_rot_partition*:(SORT_BY_ALIGNMENT(.text*))
+        *(TFM_*_APP-ROT_ATTR_FN)
+{% for partition in partitions %}
+    {% if partition.manifest.type == 'APPLICATION-ROT' %}
+    {% if partition.attr.linker_pattern.library_list %}
+        {% for pattern in partition.attr.linker_pattern.library_list %}
+        {{pattern}}:(SORT_BY_ALIGNMENT(.text*))
+        {% endfor %}
+    {% endif %}
+    {% if partition.attr.linker_pattern.object_list %}
+        {% for pattern in partition.attr.linker_pattern.object_list %}
+        {{pattern}}(SORT_BY_ALIGNMENT(.text*))
+        {% endfor %}
+    {% endif %}
+        *({{partition.manifest.name}}_APP-ROT_ATTR_FN)
+    {% endif %}
+{% endfor %}
+    } > FLASH :flash
+
+    /* Position tag: End of Application RoT code (unprivileged, PXN) */
+    . = ALIGN(TFM_LINKER_PT_APP_ROT_CODE_ALIGNMENT);
+    Image$$PT_APP_ROT_CODE_END$$Base = .;
+
+    /* Position tag: Start of PSA RoT code (privileged) */
+    . = ALIGN(TFM_LINKER_PT_PSA_ROT_CODE_ALIGNMENT);
+    Image$$PT_PSA_ROT_CODE_START$$Base = .;
+
+    .ER_PSA_ROT_CODE . :
+    {
+        *tfm_psa_rot_partition*:(SORT_BY_ALIGNMENT(.text*))
+        *(TFM_*_PSA-ROT_ATTR_FN)
+{% for partition in partitions %}
+    {% if partition.manifest.type == 'PSA-ROT' %}
+    {% if partition.attr.linker_pattern.library_list %}
+        {% for pattern in partition.attr.linker_pattern.library_list %}
+        {{pattern}}:(SORT_BY_ALIGNMENT(.text*))
+        {% endfor %}
+    {% endif %}
+    {% if partition.attr.linker_pattern.object_list %}
+        {% for pattern in partition.attr.linker_pattern.object_list %}
+        {{pattern}}(SORT_BY_ALIGNMENT(.text*))
+        {% endfor %}
+    {% endif %}
+        *({{partition.manifest.name}}_PSA-ROT_ATTR_FN)
+    {% endif %}
+{% endfor %}
+    } > FLASH :flash
+
+    .ARM.extab :
+    {
+        *(.ARM.extab* .gnu.linkonce.armextab.*)
+    } > FLASH :flash
+
+    __exidx_start = .;
+    .ARM.exidx :
+    {
+        *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+    } > FLASH :flash
+    __exidx_end = .;
+
+    .ER_TFM_CODE ALIGN(4) (READONLY) :
+    {
+        . = ALIGN(4);
+        /* preinit data */
+        PROVIDE_HIDDEN (__preinit_array_start = .);
+        KEEP(*(.preinit_array))
+        PROVIDE_HIDDEN (__preinit_array_end = .);
+
+        . = ALIGN(4);
+        /* init data */
+        PROVIDE_HIDDEN (__init_array_start = .);
+        KEEP(*(SORT(.init_array.*)))
+        KEEP(*(.init_array))
+        PROVIDE_HIDDEN (__init_array_end = .);
+
+        . = ALIGN(4);
+        /* finit data */
+        PROVIDE_HIDDEN (__fini_array_start = .);
+        KEEP(*(SORT(.fini_array.*)))
+        KEEP(*(.fini_array))
+        PROVIDE_HIDDEN (__fini_array_end = .);
+
+        /* .copy.table */
+        . = ALIGN(4);
+        __copy_table_start__ = .;
+#ifdef RAM_VECTORS_SUPPORT
+        /* Copy interrupt vectors from flash to RAM */
+        LONG (__vectors_start__)                            /* From */
+        LONG (__ram_vectors_start__)                        /* To   */
+        LONG ((__vectors_end__ - __vectors_start__) / 4)    /* Size, aligment checked after the section */
+#endif
+        LONG (LOADADDR(.TFM_DATA))
+        LONG (ADDR(.TFM_DATA))
+        LONG (SIZEOF(.TFM_DATA) / 4)    /* Aligment checked after the section */
+
+{% for partition in partitions %}
+        LONG (LOADADDR(.ER_{{partition.manifest.name}}_DATA))
+        LONG (ADDR(.ER_{{partition.manifest.name}}_DATA))
+        LONG (SIZEOF(.ER_{{partition.manifest.name}}_DATA) / 4)    /* Aligment checked after the section */
+{% endfor %}
+
+#ifdef S_RUNTIME_ITCM_START
+        LONG (LOADADDR(.ER_ITCM_CODE))
+        LONG (ADDR(.ER_ITCM_CODE))
+        LONG (SIZEOF(.ER_ITCM_CODE) / 4)
+#endif
+
+#ifdef S_RAM_CODE_START
+        LONG (LOADADDR(.ER_CODE_SRAM))
+        LONG (ADDR(.ER_CODE_SRAM))
+        LONG (SIZEOF(.ER_CODE_SRAM) / 4)    /* Aligment checked after the section */
+#endif
+        __copy_table_end__ = .;
+
+        /* .zero.table */
+        . = ALIGN(4);
+        __zero_table_start__ = .;
+        LONG (ADDR(.TFM_BSS))
+        LONG (SIZEOF(.TFM_BSS) / 4)
+        /* Aligment checked after the section */
+{% for partition in partitions %}
+        LONG (ADDR(.ER_{{partition.manifest.name}}_BSS))
+        LONG (SIZEOF(.ER_{{partition.manifest.name}}_BSS) / 4)    /* Aligment checked after the section */
+{% endfor %}
+
+#ifdef CONFIG_TFM_PARTITION_META
+        LONG (ADDR(.TFM_SP_META_PTR))
+        LONG (SIZEOF(.TFM_SP_META_PTR) / 4)    /* Aligment checked after the section */
+#endif
+        __zero_table_end__ = .;
+
+        /* Capture all remaining code (except RAM code) in the privileged TF-M
+         * code region.
+         */
+        *(SORT_BY_ALIGNMENT(EXCLUDE_FILE(*libflash_drivers* ITCM_FILES) .text*))
+    } > FLASH :flash
+
+#ifdef RAM_VECTORS_SUPPORT
+    CHECK_ALIGNMENT_4(__vectors_end__ - __vectors_start__)
+#endif
+    CHECK_ALIGNMENT_4(SIZEOF(.TFM_DATA))
+#ifdef S_RAM_CODE_START
+    CHECK_ALIGNMENT_4(SIZEOF(.ER_CODE_SRAM))
+#endif
+#ifdef CONFIG_TFM_PARTITION_META
+    CHECK_ALIGNMENT_4(SIZEOF(.TFM_SP_META_PTR))
+#endif
+{% for partition in partitions %}
+    CHECK_ALIGNMENT_4(SIZEOF(.ER_{{partition.manifest.name}}_DATA))
+    CHECK_ALIGNMENT_4(SIZEOF(.ER_{{partition.manifest.name}}_BSS))
+{% endfor %}
+
+    /* Position tag: End of PSA RoT code (privileged) */
+    . = ALIGN(TFM_LINKER_PT_PSA_ROT_CODE_ALIGNMENT);
+    Image$$PT_PSA_ROT_CODE_END$$Base = .;
+
+    /* Position tag: Start of RO-data (unprivileged, execute-never) */
+    . = ALIGN(TFM_LINKER_PT_RO_DATA_ALIGNMENT);
+    Image$$PT_RO_DATA_START$$Base = .;
+
+    /* Collect all RO-data into a single unprivileged region */
+    .ER_RO_DATA . :
+    {
+        *(SORT_BY_ALIGNMENT(EXCLUDE_FILE(*libflash_drivers* ITCM_FILES) .rodata*))
+    } > FLASH :flash
+
+    /**** Section for holding partition RO load data */
+    /*
+     * Sort the partition info by priority to guarantee the initing order.
+     * The first loaded partition will be inited at last in SFN model.
+     */
+    .TFM_SP_LOAD_LIST ALIGN(TFM_LINKER_PT_RO_DATA_ALIGNMENT) :
+    {
+        KEEP(*(.part_load))
+        /*
+         * MSPM33C321A flash word width is 128 bits (16 bytes).
+         * All flash program addresses must be 16-byte aligned per hardware
+         * requirement (DL_FlashCTL datasheet, dl_flashctl.h line 931).
+         * Align the end of this section so the ELF LOAD segment FileSiz
+         * is divisible by 16.
+         */
+        . = ALIGN(16);
+    } > FLASH :flash
+    Image$$TFM_SP_LOAD_LIST$$RO$$Base = ADDR(.TFM_SP_LOAD_LIST);
+    Image$$TFM_SP_LOAD_LIST$$RO$$Limit = ADDR(.TFM_SP_LOAD_LIST) + SIZEOF(.TFM_SP_LOAD_LIST);
+
+    /* Position tag: End of RO-data (unprivileged, execute-never) */
+    . = ALIGN(TFM_LINKER_PT_RO_DATA_ALIGNMENT);
+    Image$$PT_RO_DATA_END$$Base = .;
+
+#if defined(CONFIG_TFM_USE_TRUSTZONE) && defined(TFM_LINKER_VENEERS_LOCATION_END)
+    VENEERS()
+#endif
+
+    /* Position tag: End of code + RO-data */
+    . = ALIGN(TFM_LINKER_PT_RO_ALIGNMENT);
+    Image$$PT_RO_END$$Base = .;
+
+#ifdef S_RAM_CODE_START
+    /* Flash drivers code that gets copied from Flash */
+    .ER_CODE_SRAM ALIGN(S_RAM_CODE_START, TFM_LINKER_SRAM_CODE_ALIGNMENT) :
+    {
+        KEEP(*libflash_drivers*(SORT_BY_ALIGNMENT(.text*)))
+        KEEP(*libflash_drivers*(SORT_BY_ALIGNMENT(.rodata*)))
+        KEEP(*(.ramfunc))
+#if defined(S_RAM_CODE_EXTRA_SECTION_NAME)
+        KEEP(*(S_RAM_CODE_EXTRA_SECTION_NAME))
+#endif
+        . = ALIGN(16); /* Pad to 16-byte boundary: MSPM33C321A flash writes in 128-bit words */
+    } > CODE_RAM AT > FLASH :coderam
+
+    ASSERT(S_RAM_CODE_START % 16 == 0, "S_RAM_CODE_START must be divisible by 16")
+
+    Image$$ER_CODE_SRAM$$RO$$Base = ADDR(.ER_CODE_SRAM);
+    Image$$ER_CODE_SRAM$$RO$$Limit = ADDR(.ER_CODE_SRAM) + SIZEOF(.ER_CODE_SRAM);
+    Image$$ER_CODE_SRAM$$Base = ADDR(.ER_CODE_SRAM);
+    Image$$ER_CODE_SRAM$$Limit = ADDR(.ER_CODE_SRAM) + SIZEOF(.ER_CODE_SRAM);
+#endif
+
+    /**** Base address of secure data area */
+    .tfm_secure_data_start (NOLOAD):
+    {
+        /* Relocate current position to RAM */
+        . = ALIGN(4);
+    } > RAM
+
+    /*
+     * MPU on Armv6-M/v7-M core in multi-core topology may require more strict
+     * alignment that MPU region base address must align with the MPU region
+     * size.
+     * As a result, on Armv6-M/v7-M cores, to save memory resource and MPU
+     * regions, unprivileged data sections and privileged data sections can be
+     * separated and gathered in unprivileged/privileged data area respectively
+     * by defining S_DATA_PRIV_START. If so, the BL2 shared data area is moved
+     * to the beginning of the privileged data area, otherwise it is kept at the
+     * beginning of the secure data area.
+     */
+#ifndef S_DATA_PRIV_START
+#ifdef CODE_SHARING
+    /* The code sharing between bootloader and runtime requires to share the
+     * global variables.
+     */
+    .TFM_SHARED_SYMBOLS (NOLOAD) ALIGN(TFM_LINKER_SHARED_SYMBOLS_ALIGNMENT) :
+    {
+        . += SHARED_SYMBOL_AREA_SIZE;
+    } > RAM
+#endif
+
+#ifdef BOOT_TFM_SHARED_DATA_SIZE
+    /* Shared area between BL2 and runtime to exchange data */
+    .tfm_bl2_shared_data ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT) (NOLOAD) :
+    {
+        . += BOOT_TFM_SHARED_DATA_SIZE;
+    } > RAM
+#endif
+#endif /* !S_DATA_PRIV_START */
+
+    /* Position tag: Start of Application RoT data (unprivileged) */
+    . = ALIGN(TFM_LINKER_PT_APP_ROT_DATA_ALIGNMENT);
+    Image$$PT_APP_ROT_DATA_START$$Base = .;
+
+#ifdef CONFIG_TFM_PARTITION_META
+    .TFM_SP_META_PTR ALIGN(TFM_LINKER_SP_META_PTR_ALIGNMENT) (NOLOAD) :
+    {
+        *(.bss.SP_META_PTR_SPRTL_INST)
+        . = ALIGN(TFM_LINKER_SP_META_PTR_ALIGNMENT);
+    } > RAM
+    Image$$TFM_SP_META_PTR$$ZI$$Base = ADDR(.TFM_SP_META_PTR);
+    Image$$TFM_SP_META_PTR$$ZI$$Limit = ADDR(.TFM_SP_META_PTR) + SIZEOF(.TFM_SP_META_PTR);
+    /* This is needed for the uniform configuration of MPU region. */
+    Image$$TFM_SP_META_PTR_END$$ZI$$Limit = Image$$TFM_SP_META_PTR$$ZI$$Limit;
+#endif
+
+#ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
+    /* Record the FLASH load address right before the first entry of the copy area */
+    .flash_marker1 : ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT) { } > RAM AT > FLASH :flash
+#endif
+
+{% for partition in partitions %}
+    {% if partition.manifest.type == 'APPLICATION-ROT' %}
+
+    .ER_{{partition.manifest.name}}_DATA : ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT)
+    {
+    /* Position tag: Start of Application RoT partition's private data */
+    Image$$PT_{{partition.manifest.name}}_PRIVATE_DATA_START$$Base = .;
+    {% if partition.attr.linker_pattern.library_list %}
+        {% for pattern in partition.attr.linker_pattern.library_list %}
+        {{pattern}}:(SORT_BY_ALIGNMENT(.data*))
+        {% endfor %}
+    {% endif %}
+    {% if partition.attr.linker_pattern.object_list %}
+        {% for pattern in partition.attr.linker_pattern.object_list %}
+        {{pattern}}(SORT_BY_ALIGNMENT(.data*))
+        {% endfor %}
+    {% endif %}
+        *({{partition.manifest.name}}_APP-ROT_ATTR_RW)
+        . = ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT);
+    } > RAM AT > FLASH :phdr_{{partition.manifest.name}}
+
+    .ER_{{partition.manifest.name}}_BSS (NOLOAD) : ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT)
+    {
+        start_of_{{partition.manifest.name}}_bss = .;
+    {% if partition.attr.linker_pattern.library_list %}
+        {% for pattern in partition.attr.linker_pattern.library_list %}
+        {{pattern}}:(SORT_BY_ALIGNMENT(.bss*))
+        {{pattern}}:(COMMON)
+        {% endfor %}
+    {% endif %}
+    {% if partition.attr.linker_pattern.object_list %}
+        {% for pattern in partition.attr.linker_pattern.object_list %}
+        {{pattern}}(SORT_BY_ALIGNMENT(.bss*))
+        {{pattern}}(COMMON)
+        {% endfor %}
+    {% endif %}
+        *({{partition.manifest.name}}_APP-ROT_ATTR_ZI)
+        . += (. - start_of_{{partition.manifest.name}}_bss) ? 0 : 4;
+        . = ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT);
+    } > RAM
+
+    /* Position tag: End of Application RoT partition's private data */
+    . = ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT);
+    Image$$PT_{{partition.manifest.name}}_PRIVATE_DATA_END$$Base = .;
+
+    {% endif %}
+{% endfor %}
+
+    /* Position tag: End of Application RoT data (unprivileged) */
+    . = ALIGN(TFM_LINKER_PT_APP_ROT_DATA_ALIGNMENT);
+    Image$$PT_APP_ROT_DATA_END$$Base = .;
+
+#ifdef S_DATA_PRIV_START
+    /**** Privileged data area base address specified by Armv6-M/v7-M platform */
+    .tfm_secure_priv_data_boundary (NOLOAD) :
+    {
+        . = ABSOLUTE(S_DATA_PRIV_START) ;
+    } > RAM
+
+    /*
+     * Move BL2 shared area to the beginning of privileged data area on
+     * Armv6-M/v7-M platforms.
+     */
+#ifdef BOOT_TFM_SHARED_DATA_SIZE
+    /* Shared area between BL2 and runtime to exchange data */
+    .tfm_bl2_shared_data ALIGN(TFM_LINKER_BL2_SHARED_DATA_ALIGNMENT) (NOLOAD) :
+    {
+        . += BOOT_TFM_SHARED_DATA_SIZE;
+    } > RAM
+#endif
+#endif /* S_DATA_PRIV_START */
+
+    /* Position tag: Start of PSA RoT data (privileged) */
+    . = ALIGN(TFM_LINKER_PT_PSA_ROT_DATA_ALIGNMENT);
+    Image$$PT_PSA_ROT_DATA_START$$Base = .;
+
+    .msp_stack ALIGN(TFM_LINKER_MSP_STACK_ALIGNMENT) (NOLOAD) :
+    {
+        . += __msp_stack_size__ - STACKSEAL_SIZE;
+    } > RAM
+    Image$$ARM_LIB_STACK$$ZI$$Base = ADDR(.msp_stack);
+    Image$$ARM_LIB_STACK$$ZI$$Limit = ADDR(.msp_stack) + SIZEOF(.msp_stack);
+    PROVIDE(__stack = Image$$ARM_LIB_STACK$$ZI$$Limit);
+
+#if defined(__ARM_ARCH_8M_MAIN__) || defined(__ARM_ARCH_8M_BASE__) || \
+    defined(__ARM_ARCH_8_1M_MAIN__)
+    .msp_stack_seal_res (NOLOAD) :
+    {
+        . += STACKSEAL_SIZE;
+    } > RAM
+    __StackSeal = ADDR(.msp_stack_seal_res);
+#endif
+
+#ifdef ENABLE_HEAP
+    __heap_size__ = S_HEAP_SIZE;
+    .heap ALIGN(TFM_LINKER_TFM_HEAP_ALIGNMENT) (NOLOAD) :
+    {
+        __end__ = .;
+        PROVIDE(end = .);
+        __HeapBase = .;
+        . += __heap_size__;
+        __HeapLimit = .;
+        __heap_limit = .; /* Add for _sbrk */
+    } > RAM
+#endif
+
+{% for partition in partitions %}
+    {% if partition.manifest.type == 'PSA-ROT' %}
+    .ER_{{partition.manifest.name}}_DATA : ALIGN(TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT)
+    {
+        /* Position tag: Start of PSA RoT partition's private data */
+        Image$$PT_{{partition.manifest.name}}_PRIVATE_DATA_START$$Base = .;
+    {% if partition.attr.linker_pattern.library_list %}
+        {% for pattern in partition.attr.linker_pattern.library_list %}
+        {{pattern}}:(SORT_BY_ALIGNMENT(.data*))
+        {% endfor %}
+    {% endif %}
+    {% if partition.attr.linker_pattern.object_list %}
+        {% for pattern in partition.attr.linker_pattern.object_list %}
+        {{pattern}}(SORT_BY_ALIGNMENT(.data*))
+        {% endfor %}
+    {% endif %}
+        *({{partition.manifest.name}}_PSA-ROT_ATTR_RW)
+        . = ALIGN(TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT);
+    {% if partition.manifest.place_in_dtcm %}
+        } > DTCM AT > FLASH :phdr_{{partition.manifest.name}}
+    {% else %}
+        } > RAM AT > FLASH :phdr_{{partition.manifest.name}}
+    {% endif %}
+
+    .ER_{{partition.manifest.name}}_BSS (NOLOAD) : ALIGN(TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT)
+    {
+    {% if partition.attr.linker_pattern.library_list %}
+        {% for pattern in partition.attr.linker_pattern.library_list %}
+        {{pattern}}:(SORT_BY_ALIGNMENT(.bss*))
+        {{pattern}}:(COMMON)
+        {% endfor %}
+    {% endif %}
+    {% if partition.attr.linker_pattern.object_list %}
+        {% for pattern in partition.attr.linker_pattern.object_list %}
+        {{pattern}}(SORT_BY_ALIGNMENT(.bss*))
+        {{pattern}}(COMMON)
+        {% endfor %}
+    {% endif %}
+        *({{partition.manifest.name}}_PSA-ROT_ATTR_ZI)
+        . = ALIGN(TFM_LINKER_PT_PROT_PART_PRIVATE_DATA_ALIGNMENT);
+        /* Position tag: End of PSA RoT partition's private data */
+        Image$$PT_{{partition.manifest.name}}_PRIVATE_DATA_END$$Base = .;
+    {% if partition.manifest.place_in_dtcm %}
+        } > DTCM
+    {% else %}
+        } > RAM
+    {% endif %}
+    {% endif %}
+{% endfor %}
+
+    .TFM_DATA ALIGN(TFM_LINKER_TFM_DATA_ALIGNMENT) :
+    {
+        *(SORT_BY_ALIGNMENT(.data*))
+
+        KEEP(*(.jcr*))
+        . = ALIGN(TFM_LINKER_TFM_DATA_ALIGNMENT);
+    } > RAM AT > FLASH :tfm_data
+
+#ifdef S_RUNTIME_ITCM_START
+    .ER_ITCM_CODE :
+    {
+        ITCM_FILES:(SORT_BY_ALIGNMENT(.text*))
+        ITCM_FILES:(SORT_BY_ALIGNMENT(.rodata*))
+        . = ALIGN(TFM_LINKER_ITCM_CODE_ALIGNMENT);
+    } > ITCM AT > FLASH :itcm
+#endif
+
+#ifdef CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS
+    /*
+     * Align the overlay load region in FLASH.
+     * We can’t rely on section placement alone, since we need the LMA
+     * to be aligned.
+     * This expression ensures the next section’s load address starts at
+     * a properly aligned boundary in FLASH for the overlay area.
+     */
+    Image$$PT_OVERLAY_AREA_BEGIN$$Base = LOADADDR(.flash_marker1);
+
+    .tfm_runtime_sp_stacks Image$$PT_OVERLAY_AREA_BEGIN$$Base (NOLOAD) : ALIGN(TFM_LINKER_PT_AROT_PART_PRIVATE_DATA_ALIGNMENT)
+    {
+        KEEP(*(.tfm_runtime_sp_stacks*))
+    } > FLASH
+    Image$$PT_OVERLAY_AREA_END$$Base = .;
+#endif /* CONFIG_TFM_REUSE_COPY_AREA_FOR_SP_STACKS */
+
+    .TFM_BSS (NOLOAD) : ALIGN(TFM_LINKER_TFM_BSS_ALIGNMENT)
+    {
+        __bss_start__ = .;
+
+        /* The runtime partition placed order is same as load partition */
+        __partition_runtime_start__ = .;
+        KEEP(*(.bss.part_runtime))
+        __partition_runtime_end__ = .;
+        . = ALIGN(TFM_LINKER_TFM_BSS_ALIGNMENT);
+
+        /* The runtime service placed order is same as load partition */
+        __service_runtime_start__ = .;
+        KEEP(*(.bss.serv_runtime))
+        __service_runtime_end__ = .;
+        *(SORT_BY_ALIGNMENT(.bss*))
+        *(COMMON)
+
+        *(SORT_BY_ALIGNMENT(.noinit*))       /* Uninitialized RAM */
+        *(SORT_BY_ALIGNMENT(.cy_sharedmem*)) /* Cypress shared memory */
+
+        . = ALIGN(TFM_LINKER_TFM_BSS_ALIGNMENT);
+        __bss_end__ = .;
+    } > RAM
+    Image$$ER_PART_RT_POOL$$ZI$$Base = __partition_runtime_start__;
+    Image$$ER_PART_RT_POOL$$ZI$$Limit = __partition_runtime_end__;
+    Image$$ER_SERV_RT_POOL$$ZI$$Base = __service_runtime_start__;
+    Image$$ER_SERV_RT_POOL$$ZI$$Limit = __service_runtime_end__;
+
+    /* Position tag: End of PSA RoT data (privileged) */
+    . = ALIGN(TFM_LINKER_PT_PSA_ROT_DATA_ALIGNMENT);
+    Image$$PT_PSA_ROT_DATA_END$$Base = .;
+
+#ifdef RAM_VECTORS_SUPPORT
+    .ramVectors ALIGN(TFM_LINKER_RAM_VECTORS_ALIGNMENT) (NOLOAD) :
+    {
+        __ram_vectors_start__ = .;
+        KEEP(*(.ram_vectors))
+        __ram_vectors_end__   = .;
+    } > RAM
+#endif
+
+#ifdef CONFIG_TFM_USE_TRUSTZONE
+    Image$$ER_VENEER$$Base = ADDR(.gnu.sgstubs);
+    Image$$VENEER_ALIGN$$Limit = ADDR(.sgstubs_end);
+
+#ifdef TFM_LINKER_VENEERS_SIZE
+    ASSERT ((Image$$VENEER_ALIGN$$Limit - Image$$ER_VENEER$$Base) <= TFM_LINKER_VENEERS_SIZE, "Veneer region overflowed")
+#endif
+#endif
+
+    Load$$LR$$LR_NS_PARTITION$$Base = NS_PARTITION_START;
+
+#ifdef BL2
+    Load$$LR$$LR_SECONDARY_PARTITION$$Base = SECONDARY_PARTITION_START;
+#endif /* BL2 */
+}

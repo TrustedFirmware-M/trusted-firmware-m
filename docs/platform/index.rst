@@ -16,6 +16,7 @@ TF-M Platforms
     NXP <nxp/index>
     Raspberry Pi <rpi/index>
     STMICROELECTRONICS <stm/index>
+    Texas Instruments <ti/index>
 
 --------------
 
