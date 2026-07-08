@@ -336,7 +336,7 @@ void test_gpt_init_should_overwriteOldGpt(void)
     gpt_uninit();
 
     /* Use a different disk GUID */
-    const struct efi_guid_t new_guid = TEST_GPT_VALID_GUID(1, 1, 3, 4, 5, 6, 7 ,8, 9, 10, 11);
+    const struct efi_guid_t new_guid = TEST_GPT_VALID_GUID(1, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11);
     test_header.disk_guid = new_guid;
 
     setup_valid_gpt();
@@ -979,6 +979,7 @@ void test_gpt_entry_duplicate_no_copy_should_failToCreateEntryWhenLowestFreeLbaD
      */
     struct gpt_entry_t *old_entry =
         &(test_partition_array[TEST_DEFAULT_NUM_PARTITIONS - 1]);
+
     old_entry->end = TEST_GPT_THIRD_PARTITION_START + (TEST_DISK_NUM_BLOCKS / 2) + 1;
     struct efi_guid_t old_guid = old_entry->guid;
 

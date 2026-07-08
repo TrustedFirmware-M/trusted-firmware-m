@@ -119,7 +119,7 @@ struct gpt_entry_t {
     uint64_t end;                       /* Ending LBA for partition */
     uint64_t attr;                      /* Attribute bits */
     char name[GPT_ENTRY_NAME_LENGTH];   /* Human readable name for partition */
-}  __PACKED;
+} __PACKED;
 
 /* The GPT header. */
 struct gpt_header_t {
@@ -310,7 +310,6 @@ psa_status_t gpt_entry_rename(const struct efi_guid_t *guid, const char name[GPT
             0,
             &cached_entry,
             &cached_index);
-
     if (ret != PSA_SUCCESS) {
         return ret;
     }
@@ -329,6 +328,7 @@ psa_status_t gpt_entry_rename(const struct efi_guid_t *guid, const char name[GPT
 psa_status_t gpt_entry_change_type(const struct efi_guid_t *guid, const struct efi_guid_t *type)
 {
     struct efi_guid_t null_type = NULL_GUID;
+
     if (efi_guid_cmp(&null_type, type) == 0) {
         ERROR("Cannot set type to null-GUID; delete instead\n");
         return PSA_ERROR_INVALID_ARGUMENT;
@@ -475,6 +475,7 @@ psa_status_t gpt_entry_create(const struct efi_guid_t *type,
 
     uint64_t start_lba = start;
     psa_status_t ret = PSA_SUCCESS;
+
     if (start_lba == 0) {
         /* Use the lowest free LBA possible. Each partition uses contiguous space,
          * so if there is a gap between partitions, that will be shown by the end
@@ -584,7 +585,6 @@ psa_status_t gpt_entry_remove(const struct efi_guid_t *guid)
             0,
             &cached_entry,
             &cached_index);
-
     if (ret != PSA_SUCCESS) {
         return ret;
     }
@@ -1379,7 +1379,7 @@ static psa_status_t read_from_flash(uint64_t required_lba)
  * in the array
  */
 static inline uint64_t partition_entry_lba(const struct gpt_t *table,
-                                           uint32_t array_index)
+                                           uint32_t            array_index)
 {
     return table->header.array_lba + (array_index / gpt_entry_per_lba_count());
 }
@@ -1448,7 +1448,7 @@ static psa_status_t read_table_from_flash(struct gpt_t *table, bool is_primary)
     }
 
     const psa_status_t ret = read_from_flash(
-            is_primary ? PRIMARY_GPT_LBA : backup_gpt_lba);
+        is_primary ? PRIMARY_GPT_LBA : backup_gpt_lba);
 
     if (ret != PSA_SUCCESS) {
         return ret;
@@ -1944,6 +1944,7 @@ static psa_status_t sort_partition_array(const struct gpt_t *table)
 
     for (uint32_t i = 0; i < table->num_used_partitions; ++i) {
         struct gpt_entry_t entry;
+
         ret = read_entry_from_flash(table, i, &entry);
         if (ret != PSA_SUCCESS) {
             return ret;
@@ -1996,6 +1997,7 @@ static psa_status_t sort_partition_array(const struct gpt_t *table)
 
         struct efi_guid_t saved_guid = saved_entry.unique_guid;
         struct efi_guid_t curr_guid = curr_entry.unique_guid;
+
         if (efi_guid_cmp(&saved_guid, &curr_guid) == 0) {
             /* This entry is already where it needs to be, so try the smallest
              * index not yet handled next
