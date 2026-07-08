@@ -1103,7 +1103,7 @@ static psa_status_t move_partition(const struct efi_guid_t *guid,
         return ret;
     }
 
-    /* Prevent unecessary I/O */
+    /* Prevent unnecessary I/O */
     if (start == cached_entry.start && end == cached_entry.end) {
         return PSA_SUCCESS;
     }
