@@ -15,7 +15,10 @@ Secure Services
     Internal Trusted Storage        <tfm_its_service.rst>
     Firmware Update                 <tfm_fwu_service.rst>
     PS Key Management               <ps_key_management.rst>
+    Power Management                <tfm_power_mgmt.rst>
 
 --------------
 
-*Copyright (c) 2023-2025, Arm Limited. All rights reserved.*
+*SPDX-License-Identifier: BSD-3-Clause*
+
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
