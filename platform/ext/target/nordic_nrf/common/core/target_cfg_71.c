@@ -223,11 +223,53 @@ enum tfm_plat_err_t nrf_mpc_init_cfg(void)
 		init_mpc_region_override(&override);
 
 		override.start_address = memory_regions.non_secure_partition_base;
+#if defined(NRF_NS_SECONDARY) || defined(NRF_NS_STORAGE_PARTITION_START)
+		/* If there is a secondary partition, the non-secure partition limit
+		 * is the start of the secondary partition.
+		 */
+		override.endaddr = memory_regions.non_secure_partition_limit;
+#else
+		override.endaddr = NRF_UICR_S_BASE;
+#endif
+		override.index = index_mpc00++;
+
+		mpc_configure_override(NRF_MPC00, &override);
+	}
+
+#ifdef NRF_NS_SECONDARY
+	{
+		struct mpc_region_override override;
+
+		init_mpc_region_override(&override);
+
+		override.start_address = memory_regions.secondary_partition_base;
+#ifdef NRF_NS_STORAGE_PARTITION_START
+		/* If there is a non-secure storage partition, the secondary partition
+		 * limit is the start of the non-secure storage partition.
+		 */
+		override.endaddr = memory_regions.secondary_partition_limit;
+#else
+		override.endaddr = NRF_UICR_S_BASE;
+#endif
+		override.index = index_mpc00++;
+
+		mpc_configure_override(NRF_MPC00, &override);
+	}
+#endif /* NRF_NS_SECONDARY */
+
+#ifdef NRF_NS_STORAGE_PARTITION_START
+	{
+		struct mpc_region_override override;
+
+		init_mpc_region_override(&override);
+
+		override.start_address = memory_regions.non_secure_storage_partition_base;
 		override.endaddr = NRF_UICR_S_BASE;
 		override.index = index_mpc00++;
 
 		mpc_configure_override(NRF_MPC00, &override);
 	}
+#endif /* NRF_NS_STORAGE_PARTITION_START */
 
 	/* Configure the non-secure partition of the volatile memory */
 	{
