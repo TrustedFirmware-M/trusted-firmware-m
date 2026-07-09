@@ -150,8 +150,8 @@ static int stm32_risab_dt_to_region(const struct device *dev,
 	const struct risab_dt_region *dt_region = &(drv_cfg->dt_regions[idx]);
 	uint32_t page_sz = drv_data->hw_block_sz * drv_data->hw_n_blocks;
 	const struct risab_memory_area *m_area = drv_cfg->risab_marea;
-	uint32_t offset_start = 0;
-	uint32_t offset_end = 0;
+	uintptr_t offset_start = 0;
+	uintptr_t offset_end = 0;
 	uint32_t region_pages;
 	uint8_t dccid;
 	int i;
@@ -159,11 +159,12 @@ static int stm32_risab_dt_to_region(const struct device *dev,
 	memset(region, 0, sizeof(struct risab_region));
 
 	for (i = 0; i < drv_cfg->n_risab_marea; i++, m_area++) {
-		offset_start = dt_region->base - m_area->base;
-		offset_end = dt_region->base + dt_region->size - m_area->base;
-
-		if (offset_start >= 0 && offset_end <= m_area->size)
+		if (dt_region->base >= m_area->base &&
+		    dt_region->base + dt_region->size <= m_area->base + m_area->size) {
+			offset_start = dt_region->base - m_area->base;
+			offset_end = dt_region->base + dt_region->size - m_area->base;
 			break;
+		}
 	}
 
 	if (drv_cfg->n_risab_marea == 0 || i >= drv_cfg->n_risab_marea) {
