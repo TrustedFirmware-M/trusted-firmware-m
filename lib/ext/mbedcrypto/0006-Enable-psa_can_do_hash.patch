@@ -1,4 +1,4 @@
-From 1ac5d11fb4d3ede03892d4779b348c4beba4a5ab Mon Sep 17 00:00:00 2001
+From 4dc5d00f0bf3b11ec9685f05d57676c53f536029 Mon Sep 17 00:00:00 2001
 From: Antonio de Angelis <Antonio.deAngelis@arm.com>
 Date: Thu, 21 Mar 2024 13:02:44 +0000
 Subject: [PATCH 6/7] Enable psa_can_do_hash
@@ -14,7 +14,7 @@ Signed-off-by: Summer Qin <summer.qin@arm.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/library/psa_crypto.c b/library/psa_crypto.c
-index 0dd9f9686c..d65c7709ca 100644
+index 544847916..7fc13461b 100644
 --- a/library/psa_crypto.c
 +++ b/library/psa_crypto.c
 @@ -291,7 +291,8 @@ static uint8_t psa_get_drivers_initialized(void)

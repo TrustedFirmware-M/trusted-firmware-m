@@ -1,4 +1,4 @@
-From c74eb1553e1c7d5b0465d8b8a8898126c42e79ee Mon Sep 17 00:00:00 2001
+From faba50697f9ef69887ebda8326b182b9245f95df Mon Sep 17 00:00:00 2001
 From: Antonio de Angelis <Antonio.deAngelis@arm.com>
 Date: Thu, 21 Mar 2024 12:58:37 +0000
 Subject: [PATCH 5/7] Hardcode CC3XX entry points
@@ -17,7 +17,7 @@ Signed-off-by: Antonio de Angelis <antonio.deangelis@arm.com>
  4 files changed, 446 insertions(+), 29 deletions(-)
 
 diff --git a/include/psa/crypto_driver_contexts_composites.h b/include/psa/crypto_driver_contexts_composites.h
-index d717c51909..f6a54aefde 100644
+index d717c5190..f6a54aefd 100644
 --- a/include/psa/crypto_driver_contexts_composites.h
 +++ b/include/psa/crypto_driver_contexts_composites.h
 @@ -30,6 +30,10 @@
@@ -52,7 +52,7 @@ index d717c51909..f6a54aefde 100644
  
  typedef union {
 diff --git a/include/psa/crypto_driver_contexts_primitives.h b/include/psa/crypto_driver_contexts_primitives.h
-index c90a5fbe74..3f00006f82 100644
+index c90a5fbe7..3f00006f8 100644
 --- a/include/psa/crypto_driver_contexts_primitives.h
 +++ b/include/psa/crypto_driver_contexts_primitives.h
 @@ -29,6 +29,10 @@
@@ -87,7 +87,7 @@ index c90a5fbe74..3f00006f82 100644
  
  #endif /* PSA_CRYPTO_DRIVER_CONTEXTS_PRIMITIVES_H */
 diff --git a/library/psa_crypto_driver_wrappers.h b/library/psa_crypto_driver_wrappers.h
-index 17b129a024..5c581ff724 100644
+index 17b129a02..5c581ff72 100644
 --- a/library/psa_crypto_driver_wrappers.h
 +++ b/library/psa_crypto_driver_wrappers.h
 @@ -53,6 +53,16 @@
@@ -879,7 +879,7 @@ index 17b129a024..5c581ff724 100644
              if( PSA_KEY_TYPE_IS_ECC( psa_get_key_type(attributes) ) &&
                  PSA_ALG_IS_ECDH(alg) &&
 diff --git a/library/psa_crypto_driver_wrappers_no_static.c b/library/psa_crypto_driver_wrappers_no_static.c
-index 436a650fc3..bc65e2c7f9 100644
+index 436a650fc..bc65e2c7f 100644
 --- a/library/psa_crypto_driver_wrappers_no_static.c
 +++ b/library/psa_crypto_driver_wrappers_no_static.c
 @@ -52,6 +52,16 @@

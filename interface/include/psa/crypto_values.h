@@ -1760,8 +1760,7 @@
  * \warning     Calling psa_asymmetric_decrypt() with this algorithm as a
  *              parameter is considered an inherently dangerous function
  *              (CWE-242). Unless it is used in a side channel free and safe
- *              way (eg. implementing the TLS protocol as per 7.4.7.1 of
- *              RFC 5246), the calling code is vulnerable.
+ *              way, the calling code is vulnerable.
  *
  */
 #define PSA_ALG_RSA_PKCS1V15_CRYPT              ((psa_algorithm_t) 0x07000200)
@@ -1789,8 +1788,6 @@
     (PSA_ALG_IS_RSA_OAEP(alg) ?                                 \
      ((alg) & PSA_ALG_HASH_MASK) | PSA_ALG_CATEGORY_HASH :      \
      0)
-
-#define PSA_ALG_SP800_108_COUNTER_CMAC          ((psa_algorithm_t) 0x08000800)
 
 #define PSA_ALG_HKDF_BASE                       ((psa_algorithm_t) 0x08000100)
 /** Macro to build an HKDF algorithm.
@@ -2285,48 +2282,6 @@
 #define PSA_ALG_GET_HASH(alg) \
     (((alg) & 0x000000ff) == 0 ? ((psa_algorithm_t) 0) : 0x02000000 | ((alg) & 0x000000ff))
 
-/**
- * The AES-KW key-wrapping algorithm.
- *
- * This is the NIST Key Wrap algorithm, using an AES key-encryption key, as
- * defined in [NIST SP 800-38F](https://doi.org/10.6028/NIST.SP.800-38F).
- * The algorithm is also specified in [RFC 3394](https://datatracker.ietf.org/
- * doc/html/rfc3394).
- *
- * Keys to be wrapped must have a length that is a multiple of the AES
- * 'semi-block' size — that is, a multiple of 8 bytes.
- *
- * To wrap keys whose lengths are not a multiple of the AES semi-block size,
- * use \c PSA_ALG_AES_KWP.
- */
-#define PSA_ALG_AES_KW ((psa_algorithm_t)0x0B400100)
-
-/**
- * The AES-KWP key-wrapping algorithm with padding.
- *
- * This is the NIST Key Wrap with Padding algorithm, using an AES key-encryption
- * key, as defined in [NIST SP 800-38F](https://doi.org/10.6028/NIST.SP.800-38F).
- * The algorithm is also specified in [RFC 5649](https://datatracker.ietf.org/
- * doc/html/rfc5649).
- *
- * This algorithm can wrap a key of any length.
- */
-#define PSA_ALG_AES_KWP ((psa_algorithm_t)0x0BC00200)
-
-/**
- * \brief Check whether the specified algorithm is a key-wrapping algorithm.
- *
- * \param alg                   An algorithm identifier; a value of type
- *                              \c psa_algorithm_t.
- *
- * \return                       1 if \c alg is a key-wrapping algorithm,
- *                               0 otherwise. This macro can return either
- *                               0 or 1 if \c alg is not a supported algorithm
- *                              identifier.
- */
-#define PSA_ALG_IS_KEY_WRAP(alg)                                     \
-    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_AES_KEY_WRAP)
-
 /**@}*/
 
 /** \defgroup key_lifetimes Key lifetimes
@@ -2696,28 +2651,6 @@ static inline int mbedtls_svc_key_id_is_null(mbedtls_svc_key_id_t key)
  */
 #define PSA_KEY_USAGE_VERIFY_DERIVATION         ((psa_key_usage_t) 0x00008000)
 
-
-/**
- * Permission to wrap another key with the key.
- *
- * This flag is required to use the key in a key-wrapping operation.
- *
- * The flag must be present on keys used with the following APIs:
- *   - `psa_wrap_key()`
- */
-#define PSA_KEY_USAGE_WRAP ((psa_key_usage_t)0x00010000)
-
-/**
- * \brief Permission to unwrap another key with the key.
- *
- * This flag is required to use the key in a key-unwrapping operation.
- *
- * The flag must be present on keys used with the following APIs:
- *   - `psa_unwrap_key()`
- */
-#define PSA_KEY_USAGE_UNWRAP ((psa_key_usage_t)0x00020000)
-
-
 /**@}*/
 
 /** \defgroup derivation Key derivation
@@ -2806,13 +2739,6 @@ static inline int mbedtls_svc_key_id_is_null(mbedtls_svc_key_id_t key)
  * This must be a direct input, passed to psa_key_derivation_input_integer().
  */
 #define PSA_KEY_DERIVATION_INPUT_COST       ((psa_key_derivation_step_t) 0x0205)
-
-/** A Context for key derivation.
- *
- * This should be a direct input.
- * It can also be a key of type #PSA_KEY_TYPE_RAW_DATA.
- */
-#define PSA_KEY_DERIVATION_INPUT_CONTEXT    ((psa_key_derivation_step_t) 0x0206)
 
 /**@}*/
 
