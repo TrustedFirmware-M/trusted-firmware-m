@@ -135,7 +135,17 @@ add_library(bl2_build_flags INTERFACE)
 add_library(bl1_build_flags INTERFACE)
 
 if (CONFIG_TFM_INCLUDE_STDLIBC)
-    add_link_options(-specs=nano.specs -specs=nosys.specs)
+    # newlib-nano (nano.specs) is the standard arm-none-eabi C library. A
+    # picolibc-based GCC (e.g. the Zephyr SDK's arm-zephyr-eabi) has no
+    # nano.specs and links its default C library (picolibc) on its own, so
+    # only request nano.specs when the compiler actually provides it.
+    execute_process(
+        COMMAND ${CMAKE_C_COMPILER} -print-file-name=nano.specs
+        OUTPUT_VARIABLE NANO_SPECS_PATH
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if (NOT NANO_SPECS_PATH STREQUAL "nano.specs")
+        add_link_options(-specs=nano.specs -specs=nosys.specs)
+    endif()
     add_compile_definitions(CONFIG_TFM_INCLUDE_STDLIBC)
 else()
     add_link_options(-nostdlib)
