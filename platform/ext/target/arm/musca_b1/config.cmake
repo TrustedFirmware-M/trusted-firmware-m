@@ -10,6 +10,7 @@
 include(hex_generator)
 
 set(CRYPTO_HW_ACCELERATOR               ON          CACHE BOOL      "Whether to enable the crypto hardware accelerator on supported platforms")
+set(CC3XX_RUNTIME_ENABLED               ON          CACHE BOOL     "Whether the CC3XX driver is used at runtime")
 
 set(PLATFORM_GPLED_ENABLED              OFF         CACHE BOOL      "Use the general purpose LEDs on the platform board")
 
@@ -30,7 +31,6 @@ set(PLATFORM_HAS_ISOLATION_L3_SUPPORT   ON)
 
 set(PLATFORM_HAS_FIRMWARE_UPDATE_SUPPORT ON)
 set(MCUBOOT_DATA_SHARING                ON)
-
 if(TEST_CC3XX)
     set(EXTRA_S_TEST_SUITE_PATH         "${CMAKE_CURRENT_LIST_DIR}/tests/secure" CACHE STRING "path to extra secure testsuite")
 endif()
