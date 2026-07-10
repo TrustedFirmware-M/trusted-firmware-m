@@ -53,3 +53,11 @@ __attribute__((weak))
 void _write(void)
 {
 }
+
+__attribute__((weak, noreturn))
+void _exit(int status)
+{
+    (void)status;
+    while (1) {
+    }
+}

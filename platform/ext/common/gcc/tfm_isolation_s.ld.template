@@ -566,6 +566,10 @@ SECTIONS
         __HeapLimit = .;
         __heap_limit = .; /* Add for _sbrk */
     } > RAM
+    /* Heap bounds picolibc's malloc expects. */
+    __heap_start = ADDR(.heap);
+    __heap_end = ADDR(.heap) + SIZEOF(.heap);
+    __heap_size = SIZEOF(.heap);
 #endif
 
 {% for partition in partitions %}
