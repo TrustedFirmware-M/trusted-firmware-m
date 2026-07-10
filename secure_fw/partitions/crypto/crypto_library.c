@@ -57,7 +57,6 @@ static char tfpsacrypto_version_full[20];
  *
  */
 #if defined(MBEDTLS_MEMORY_BUFFER_ALLOC_C)
-#include "config_engine_buf.h"
 static uint8_t mbedtls_mem_buf[CRYPTO_ENGINE_BUF_SIZE] = {0};
 #endif
 
