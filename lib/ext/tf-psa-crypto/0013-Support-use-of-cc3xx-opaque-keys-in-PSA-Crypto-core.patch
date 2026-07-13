@@ -1,7 +1,7 @@
-From c3f1bfe03fee0871e3cbf7d5fb5f2d6c1e57283b Mon Sep 17 00:00:00 2001
+From 9b9d4203ed8cfe3bee40fbe1fa7c6bb87b5af6bb Mon Sep 17 00:00:00 2001
 From: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
-Subject: [PATCH 14/17] Support use of cc3xx opaque keys in PSA Crypto core
+Subject: [PATCH 13/17] Support use of cc3xx opaque keys in PSA Crypto core
 
 This allows passing cc3xx opaque keys to the PSA Core seamlessly via the
 existing TF-M builtin key platform hooks.
@@ -13,7 +13,7 @@ Signed-off-by: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
  2 files changed, 17 insertions(+), 1 deletion(-)
 
 diff --git a/core/psa_crypto.c b/core/psa_crypto.c
-index 11de5071d..273ae81ed 100644
+index 5a326d986..4ca55db32 100644
 --- a/core/psa_crypto.c
 +++ b/core/psa_crypto.c
 @@ -76,6 +76,10 @@
@@ -41,10 +41,10 @@ index 11de5071d..273ae81ed 100644
          psa_unregister_read_under_mutex(*p_slot);
          *p_slot = NULL;
 diff --git a/core/psa_crypto_driver_wrappers_no_static.c b/core/psa_crypto_driver_wrappers_no_static.c
-index 3bdbf440e..40145b92d 100644
+index 0b179217a..68163c333 100644
 --- a/core/psa_crypto_driver_wrappers_no_static.c
 +++ b/core/psa_crypto_driver_wrappers_no_static.c
-@@ -54,6 +54,9 @@
+@@ -59,6 +59,9 @@
  #define PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT
  #endif
  #include "tfm_builtin_key_loader.h"
@@ -54,7 +54,7 @@ index 3bdbf440e..40145b92d 100644
  #endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
  
  #if defined(PSA_CRYPTO_DRIVER_CC3XX)
-@@ -137,6 +140,9 @@ psa_status_t psa_driver_wrapper_get_key_buffer_size(
+@@ -143,6 +146,9 @@ psa_status_t psa_driver_wrapper_get_key_buffer_size(
  
  #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
          case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:
@@ -64,7 +64,7 @@ index 3bdbf440e..40145b92d 100644
              return tfm_builtin_key_loader_get_key_buffer_size(psa_get_key_id(attributes),
                                                                key_buffer_size);
  #endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
-@@ -266,6 +272,9 @@ psa_status_t psa_driver_wrapper_get_builtin_key(
+@@ -282,6 +288,9 @@ psa_status_t psa_driver_wrapper_get_builtin_key(
  
  #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
          case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:

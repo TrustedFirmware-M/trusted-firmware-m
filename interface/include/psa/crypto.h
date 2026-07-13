@@ -3251,13 +3251,13 @@ psa_status_t psa_verify_message(mbedtls_svc_key_id_t key,
  *           - Creating a key with the specified attributes is not allowed by
  *             implementation policy.
  *
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY
- * \retval #PSA_ERROR_INSUFFICIENT_STORAGE
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE
- * \retval #PSA_ERROR_STORAGE_FAILURE
- * \retval #PSA_ERROR_DATA_CORRUPT
- * \retval #PSA_ERROR_DATA_INVALID
- * \retval #PSA_ERROR_CORRUPTION_DETECTED
+ * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
+ * \retval #PSA_ERROR_INSUFFICIENT_STORAGE \emptydescription
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
+ * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
+ * \retval #PSA_ERROR_DATA_INVALID \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  * \retval #PSA_ERROR_BAD_STATE
  *         The library requires initializing by a call to `psa_crypto_init()`.
  */
@@ -3371,6 +3371,89 @@ psa_status_t psa_verify_hash(mbedtls_svc_key_id_t key,
                              size_t hash_length,
                              const uint8_t *signature,
                              size_t signature_length);
+
+/** The type of the state data structure for multipart signature operations.
+ *
+ * Before calling any function on a signature operation object, the
+ * application must initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_sign_operation_t operation;
+ *   memset(&operation, 0, sizeof(operation));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_sign_operation_t operation = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_SIGN_OPERATION_INIT,
+ *   for example:
+ *   \code
+ *   psa_sign_operation_t operation = PSA_SIGN_OPERATION_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_sign_operation_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_sign_operation_t operation;
+ *   operation = psa_sign_operation_init();
+ *   \endcode
+ *
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure.
+ * Implementation details can change in future versions without notice. */
+typedef struct psa_sign_operation_s psa_sign_operation_t;
+
+/** \def PSA_SIGN_OPERATION_INIT
+ *
+ * This macro returns a suitable initializer for a signature
+ * operation object of type #psa_sign_operation_t.
+ */
+
+/** Return an initial value for a signature operation object.
+ */
+static psa_sign_operation_t psa_sign_operation_init(void);
+
+/** The type of the state data structure for multipart signature verification
+ * operations.
+ *
+ * Before calling any function on a signature verification operation object, the
+ * application must initialize it by any of the following means:
+ * - Set the structure to all-bits-zero, for example:
+ *   \code
+ *   psa_verify_operation_t operation;
+ *   memset(&operation, 0, sizeof(operation));
+ *   \endcode
+ * - Initialize the structure to logical zero values, for example:
+ *   \code
+ *   psa_verify_operation_t operation = {0};
+ *   \endcode
+ * - Initialize the structure to the initializer #PSA_VERIFY_OPERATION_INIT,
+ *   for example:
+ *   \code
+ *   psa_verify_operation_t operation = PSA_VERIFY_OPERATION_INIT;
+ *   \endcode
+ * - Assign the result of the function psa_verify_operation_init()
+ *   to the structure, for example:
+ *   \code
+ *   psa_verify_operation_t operation;
+ *   operation = psa_verify_operation_init();
+ *   \endcode
+ *
+ *
+ * This is an implementation-defined \c struct. Applications should not
+ * make any assumptions about the content of this structure.
+ * Implementation details can change in future versions without notice. */
+typedef struct psa_verify_operation_s psa_verify_operation_t;
+
+/** \def PSA_VERIFY_OPERATION_INIT
+ *
+ * This macro returns a suitable initializer for a signature verification
+ * operation object of type #psa_verify_operation_t.
+ */
+
+/** Return an initial value for a signature verification operation object.
+ */
+static psa_verify_operation_t psa_verify_operation_init(void);
 
 /**
  * \brief Encrypt a short message with a public key.

@@ -1,4 +1,4 @@
-From afde33e77ded33ec9637453b23a7940fa376d52f Mon Sep 17 00:00:00 2001
+From 077966cf0d1b2a8bc517830bf5cee484ff8f5a12 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
 Subject: [PATCH 09/17] Define base attributes and structure for SP800-108 CMAC
@@ -177,7 +177,7 @@ index d30b8d2f4..8d851f889 100644
  
  /** \defgroup helper_macros Helper macros
 diff --git a/include/tf-psa-crypto/private/crypto_adjust_config_dependencies.h b/include/tf-psa-crypto/private/crypto_adjust_config_dependencies.h
-index 7d809d182..cdc8ab45f 100644
+index d07684e46..bff272e9c 100644
 --- a/include/tf-psa-crypto/private/crypto_adjust_config_dependencies.h
 +++ b/include/tf-psa-crypto/private/crypto_adjust_config_dependencies.h
 @@ -37,7 +37,8 @@

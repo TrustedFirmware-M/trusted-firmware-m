@@ -1,7 +1,7 @@
-From d8d5b0c3e8cc9e02cdc38d0fdf064303f5e8ae24 Mon Sep 17 00:00:00 2001
+From 48754b7dc39c280348edd1ae4409e12e596ad166 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 2 Apr 2026 13:33:21 +0000
-Subject: [PATCH 15/17] Re-add support for AES Keywrap for TF-M
+Subject: [PATCH 14/17] Re-add support for AES Keywrap for TF-M
 
 AES keywrap support was previously added for TF-M (commit dc5843f252)
 but was unintentionally removed when the PSA interface headers were
@@ -17,7 +17,7 @@ Signed-off-by: David Vincze <david.vincze@arm.com>
  2 files changed, 191 insertions(+)
 
 diff --git a/include/psa/crypto.h b/include/psa/crypto.h
-index 1bd257431..d53e79b33 100644
+index 561a4c7dd..bb2c0df38 100644
 --- a/include/psa/crypto.h
 +++ b/include/psa/crypto.h
 @@ -3142,6 +3142,132 @@ psa_status_t psa_verify_message(mbedtls_svc_key_id_t key,

@@ -1,4 +1,4 @@
-From 00f702a1e6554642e3ddbbcda104946627193909 Mon Sep 17 00:00:00 2001
+From 5ae5f7623e5d13577549bd2d8fb2bd8d68f75326 Mon Sep 17 00:00:00 2001
 From: Hugues KAMBA MPIANA <hugueskambampiana@arm.com>
 Date: Fri, 8 May 2026 11:32:41 +0100
 Subject: [PATCH] Allow transparent fallback for runtime CC3XX
@@ -18,10 +18,10 @@ Signed-off-by: Hugues KAMBA MPIANA <hugueskambampiana@arm.com>
  2 files changed, 18 insertions(+), 9 deletions(-)
 
 diff --git a/core/psa_crypto_driver_wrappers.h b/core/psa_crypto_driver_wrappers.h
-index b5496f7c7..bd2be40eb 100644
+index 2e67ed93a..cfb961c6a 100644
 --- a/core/psa_crypto_driver_wrappers.h
 +++ b/core/psa_crypto_driver_wrappers.h
-@@ -189,7 +189,8 @@ static inline psa_status_t psa_driver_wrapper_sign_message(
+@@ -195,7 +195,8 @@ static inline psa_status_t psa_driver_wrapper_sign_message(
                          signature,
                          signature_size,
                          signature_length );
@@ -30,8 +30,8 @@ index b5496f7c7..bd2be40eb 100644
 +                return( status );
  #endif /* PSA_CRYPTO_DRIVER_CC3XX */
  #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-             return( psa_sign_message_builtin( attributes,
-@@ -276,7 +277,8 @@ static inline psa_status_t psa_driver_wrapper_verify_message(
+ #if defined(TF_PSA_CRYPTO_PQCP_MLDSA_ENABLED)
+@@ -516,7 +517,8 @@ static inline psa_status_t psa_driver_wrapper_verify_message(
                          input_length,
                          signature,
                          signature_length );
@@ -40,8 +40,8 @@ index b5496f7c7..bd2be40eb 100644
 +                return( status );
  #endif /* PSA_CRYPTO_DRIVER_CC3XX */
  #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
-             return( psa_verify_message_builtin( attributes,
-@@ -356,7 +358,8 @@ static inline psa_status_t psa_driver_wrapper_sign_hash(
+ 
+@@ -827,7 +829,8 @@ static inline psa_status_t psa_driver_wrapper_sign_hash(
                                        signature,
                                        signature_size,
                                        signature_length );
@@ -51,7 +51,7 @@ index b5496f7c7..bd2be40eb 100644
  #endif /* PSA_CRYPTO_DRIVER_CC3XX */
  #if defined (MBEDTLS_PSA_P256M_DRIVER_ENABLED)
              if( PSA_KEY_TYPE_IS_ECC( psa_get_key_type(attributes) ) &&
-@@ -453,7 +456,8 @@ static inline psa_status_t psa_driver_wrapper_verify_hash(
+@@ -924,7 +927,8 @@ static inline psa_status_t psa_driver_wrapper_verify_hash(
                                          hash_length,
                                          signature,
                                          signature_length );
@@ -61,7 +61,7 @@ index b5496f7c7..bd2be40eb 100644
  #endif /* PSA_CRYPTO_DRIVER_CC3XX */
  #if defined (MBEDTLS_PSA_P256M_DRIVER_ENABLED)
              if( PSA_KEY_TYPE_IS_ECC( psa_get_key_type(attributes) ) &&
-@@ -830,7 +834,8 @@ static inline psa_status_t psa_driver_wrapper_generate_key(
+@@ -1301,7 +1305,8 @@ static inline psa_status_t psa_driver_wrapper_generate_key(
                  status = cc3xx_generate_key(
                      attributes, key_buffer, key_buffer_size,
                      key_buffer_length );
@@ -71,7 +71,7 @@ index b5496f7c7..bd2be40eb 100644
  #endif /* PSA_CRYPTO_DRIVER_CC3XX */
  #if defined(MBEDTLS_PSA_P256M_DRIVER_ENABLED)
                  if( PSA_KEY_TYPE_IS_ECC( psa_get_key_type(attributes) ) &&
-@@ -2169,7 +2174,8 @@ static inline psa_status_t psa_driver_wrapper_aead_encrypt_setup(
+@@ -2647,7 +2652,8 @@ static inline psa_status_t psa_driver_wrapper_aead_encrypt_setup(
                      attributes, key_buffer, key_buffer_size,
                      alg );
  
@@ -81,7 +81,7 @@ index b5496f7c7..bd2be40eb 100644
  #endif /* PSA_CRYPTO_DRIVER_CC3XX */
  #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
  
-@@ -2240,7 +2246,8 @@ static inline psa_status_t psa_driver_wrapper_aead_decrypt_setup(
+@@ -2718,7 +2724,8 @@ static inline psa_status_t psa_driver_wrapper_aead_decrypt_setup(
                      key_buffer, key_buffer_size,
                      alg );
  
@@ -91,7 +91,7 @@ index b5496f7c7..bd2be40eb 100644
  #endif /* PSA_CRYPTO_DRIVER_CC3XX */
  #endif /* PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT */
  
-@@ -3189,7 +3196,8 @@ static inline psa_status_t psa_driver_wrapper_key_agreement(
+@@ -3667,7 +3674,8 @@ static inline psa_status_t psa_driver_wrapper_key_agreement(
                                            shared_secret_size,
                                            shared_secret_length,
                                            alg );
@@ -102,10 +102,10 @@ index b5496f7c7..bd2be40eb 100644
  #if defined(MBEDTLS_PSA_P256M_DRIVER_ENABLED)
              if( PSA_KEY_TYPE_IS_ECC( psa_get_key_type(attributes) ) &&
 diff --git a/core/psa_crypto_driver_wrappers_no_static.c b/core/psa_crypto_driver_wrappers_no_static.c
-index 40145b92d..697fc40c1 100644
+index 68163c333..ae7b71173 100644
 --- a/core/psa_crypto_driver_wrappers_no_static.c
 +++ b/core/psa_crypto_driver_wrappers_no_static.c
-@@ -197,7 +197,8 @@ psa_status_t psa_driver_wrapper_export_public_key(
+@@ -189,7 +189,8 @@ psa_status_t psa_driver_wrapper_export_public_key(
                           data,
                           data_size,
                           data_length );

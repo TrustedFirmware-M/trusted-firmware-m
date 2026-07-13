@@ -1,4 +1,4 @@
-From 4c3743865464b0a285006ca464df983e11cb5eae Mon Sep 17 00:00:00 2001
+From c0c369bf7e8fd72696df213967da16fe1fe83678 Mon Sep 17 00:00:00 2001
 From: Antonio de Angelis <Antonio.deAngelis@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
 Subject: [PATCH 02/17] Add TF-M Builtin Key Loader driver entry points
@@ -13,12 +13,12 @@ Signed-off-by: Raef Coles <raef.coles@arm.com>
 Co-authored-by: Antonio de Angelis <antonio.deangelis@arm.com>
 ---
  core/psa_crypto.c                           |  10 +-
- core/psa_crypto_driver_wrappers.h           | 102 +++++++++++++++++++-
- core/psa_crypto_driver_wrappers_no_static.c |  40 +++++++-
- 3 files changed, 143 insertions(+), 9 deletions(-)
+ core/psa_crypto_driver_wrappers.h           | 104 +++++++++++++++++++-
+ core/psa_crypto_driver_wrappers_no_static.c |  42 +++++++-
+ 3 files changed, 145 insertions(+), 11 deletions(-)
 
 diff --git a/core/psa_crypto.c b/core/psa_crypto.c
-index d7931d225..ccd59bfac 100644
+index c6f165d29..8b8cb8c17 100644
 --- a/core/psa_crypto.c
 +++ b/core/psa_crypto.c
 @@ -72,6 +72,10 @@
@@ -46,10 +46,10 @@ index d7931d225..ccd59bfac 100644
          *p_slot = NULL;
          return PSA_ERROR_NOT_SUPPORTED;
 diff --git a/core/psa_crypto_driver_wrappers.h b/core/psa_crypto_driver_wrappers.h
-index 9891d2ced..4252452e5 100644
+index 2728b0aa3..51bc5453e 100644
 --- a/core/psa_crypto_driver_wrappers.h
 +++ b/core/psa_crypto_driver_wrappers.h
-@@ -47,16 +47,32 @@
+@@ -52,17 +52,33 @@
  
  #endif
  
@@ -71,14 +71,16 @@ index 9891d2ced..4252452e5 100644
   * ID 1 is reserved for the Mbed TLS software driver. */
  /* BEGIN-driver id definition */
 -#define PSA_CRYPTO_MBED_TLS_DRIVER_ID (1)
--#define MBEDTLS_TEST_OPAQUE_DRIVER_ID (2)
--#define MBEDTLS_TEST_TRANSPARENT_DRIVER_ID (3)
--#define P256_TRANSPARENT_DRIVER_ID (4)
+-#define P256_TRANSPARENT_DRIVER_ID (2)
+-#define PQCP_TRANSPARENT_DRIVER_ID (3)
+-#define MBEDTLS_TEST_TRANSPARENT_DRIVER_ID (4)
+-#define MBEDTLS_TEST_OPAQUE_DRIVER_ID (5)
 +enum {
 +    PSA_CRYPTO_MBED_TLS_DRIVER_ID = 1,
-+    MBEDTLS_TEST_OPAQUE_DRIVER_ID,
-+    MBEDTLS_TEST_TRANSPARENT_DRIVER_ID,
 +    P256_TRANSPARENT_DRIVER_ID,
++    PQCP_TRANSPARENT_DRIVER_ID,
++    MBEDTLS_TEST_TRANSPARENT_DRIVER_ID,
++    MBEDTLS_TEST_OPAQUE_DRIVER_ID,
 +#if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
 +    PSA_CRYPTO_TFM_BUILTIN_KEY_LOADER_DRIVER_ID,
 +#endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
@@ -86,7 +88,7 @@ index 9891d2ced..4252452e5 100644
  
  /* END-driver id */
  
-@@ -68,6 +84,12 @@ static inline psa_status_t psa_driver_wrapper_init( void )
+@@ -74,6 +90,12 @@ static inline psa_status_t psa_driver_wrapper_init( void )
  {
      psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
  
@@ -99,7 +101,7 @@ index 9891d2ced..4252452e5 100644
  #if defined(PSA_CRYPTO_DRIVER_TEST)
      status = mbedtls_test_transparent_init( );
      if( status != PSA_SUCCESS )
-@@ -109,6 +131,9 @@ static inline psa_status_t psa_driver_wrapper_sign_message(
+@@ -115,6 +137,9 @@ static inline psa_status_t psa_driver_wrapper_sign_message(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -109,7 +111,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -183,6 +208,9 @@ static inline psa_status_t psa_driver_wrapper_verify_message(
+@@ -424,6 +449,9 @@ static inline psa_status_t psa_driver_wrapper_verify_message(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -119,7 +121,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -250,6 +278,9 @@ static inline psa_status_t psa_driver_wrapper_sign_hash(
+@@ -722,6 +750,9 @@ static inline psa_status_t psa_driver_wrapper_sign_hash(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -129,7 +131,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -333,6 +364,9 @@ static inline psa_status_t psa_driver_wrapper_verify_hash(
+@@ -805,6 +836,9 @@ static inline psa_status_t psa_driver_wrapper_verify_hash(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -139,7 +141,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -462,6 +496,9 @@ static inline psa_status_t psa_driver_wrapper_sign_hash_start(
+@@ -934,6 +968,9 @@ static inline psa_status_t psa_driver_wrapper_sign_hash_start(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -149,7 +151,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  
-@@ -554,6 +591,9 @@ static inline psa_status_t psa_driver_wrapper_verify_hash_start(
+@@ -1026,6 +1063,9 @@ static inline psa_status_t psa_driver_wrapper_verify_hash_start(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -159,7 +161,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  
-@@ -696,6 +736,9 @@ static inline psa_status_t psa_driver_wrapper_generate_key(
+@@ -1168,6 +1208,9 @@ static inline psa_status_t psa_driver_wrapper_generate_key(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -169,7 +171,7 @@ index 9891d2ced..4252452e5 100644
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
              /* Transparent drivers are limited to generating asymmetric keys. */
              /* We don't support passing custom production parameters
-@@ -771,6 +814,9 @@ static inline psa_status_t psa_driver_wrapper_import_key(
+@@ -1243,6 +1286,9 @@ static inline psa_status_t psa_driver_wrapper_import_key(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -179,7 +181,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -852,6 +898,9 @@ static inline psa_status_t psa_driver_wrapper_export_key(
+@@ -1325,6 +1371,9 @@ static inline psa_status_t psa_driver_wrapper_export_key(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -189,7 +191,7 @@ index 9891d2ced..4252452e5 100644
              return( psa_export_key_internal( attributes,
                                               key_buffer,
                                               key_buffer_size,
-@@ -947,6 +996,9 @@ static inline psa_status_t psa_driver_wrapper_cipher_encrypt(
+@@ -1420,6 +1469,9 @@ static inline psa_status_t psa_driver_wrapper_cipher_encrypt(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -199,7 +201,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -1037,6 +1089,9 @@ static inline psa_status_t psa_driver_wrapper_cipher_decrypt(
+@@ -1510,6 +1562,9 @@ static inline psa_status_t psa_driver_wrapper_cipher_decrypt(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -209,7 +211,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -1114,6 +1169,9 @@ static inline psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
+@@ -1587,6 +1642,9 @@ static inline psa_status_t psa_driver_wrapper_cipher_encrypt_setup(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -219,7 +221,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -1187,6 +1245,9 @@ static inline psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
+@@ -1660,6 +1718,9 @@ static inline psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -229,7 +231,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -1720,6 +1781,9 @@ static inline psa_status_t psa_driver_wrapper_aead_encrypt(
+@@ -2193,6 +2254,9 @@ static inline psa_status_t psa_driver_wrapper_aead_encrypt(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -239,7 +241,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  
-@@ -1782,6 +1846,9 @@ static inline psa_status_t psa_driver_wrapper_aead_decrypt(
+@@ -2255,6 +2319,9 @@ static inline psa_status_t psa_driver_wrapper_aead_decrypt(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -249,7 +251,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  
-@@ -1841,6 +1908,9 @@ static inline psa_status_t psa_driver_wrapper_aead_encrypt_setup(
+@@ -2314,6 +2381,9 @@ static inline psa_status_t psa_driver_wrapper_aead_encrypt_setup(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -259,7 +261,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  
-@@ -1895,6 +1965,9 @@ static inline psa_status_t psa_driver_wrapper_aead_decrypt_setup(
+@@ -2368,6 +2438,9 @@ static inline psa_status_t psa_driver_wrapper_aead_decrypt_setup(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -269,7 +271,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  
-@@ -2236,6 +2309,9 @@ static inline psa_status_t psa_driver_wrapper_mac_compute(
+@@ -2709,6 +2782,9 @@ static inline psa_status_t psa_driver_wrapper_mac_compute(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -279,7 +281,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -2300,6 +2376,9 @@ static inline psa_status_t psa_driver_wrapper_mac_sign_setup(
+@@ -2773,6 +2849,9 @@ static inline psa_status_t psa_driver_wrapper_mac_sign_setup(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -289,7 +291,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -2372,6 +2451,9 @@ static inline psa_status_t psa_driver_wrapper_mac_verify_setup(
+@@ -2845,6 +2924,9 @@ static inline psa_status_t psa_driver_wrapper_mac_verify_setup(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -299,7 +301,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -2572,6 +2654,9 @@ static inline psa_status_t psa_driver_wrapper_asymmetric_encrypt(
+@@ -3045,6 +3127,9 @@ static inline psa_status_t psa_driver_wrapper_asymmetric_encrypt(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -309,7 +311,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -2630,6 +2715,9 @@ static inline psa_status_t psa_driver_wrapper_asymmetric_decrypt(
+@@ -3103,6 +3188,9 @@ static inline psa_status_t psa_driver_wrapper_asymmetric_decrypt(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -319,7 +321,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -2694,6 +2782,9 @@ static inline psa_status_t psa_driver_wrapper_key_agreement(
+@@ -3167,6 +3255,9 @@ static inline psa_status_t psa_driver_wrapper_key_agreement(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -329,7 +331,7 @@ index 9891d2ced..4252452e5 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -2774,6 +2865,9 @@ static inline psa_status_t psa_driver_wrapper_pake_setup(
+@@ -3247,6 +3338,9 @@ static inline psa_status_t psa_driver_wrapper_pake_setup(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -340,10 +342,10 @@ index 9891d2ced..4252452e5 100644
               * cycle through all known transparent accelerators */
              status = PSA_ERROR_NOT_SUPPORTED;
 diff --git a/core/psa_crypto_driver_wrappers_no_static.c b/core/psa_crypto_driver_wrappers_no_static.c
-index a8bd7eb3a..03b163300 100644
+index e9fd4f398..14d695d2a 100644
 --- a/core/psa_crypto_driver_wrappers_no_static.c
 +++ b/core/psa_crypto_driver_wrappers_no_static.c
-@@ -45,16 +45,32 @@
+@@ -50,17 +50,33 @@
  
  #endif
  
@@ -365,14 +367,16 @@ index a8bd7eb3a..03b163300 100644
   * ID 1 is reserved for the Mbed TLS software driver. */
  /* BEGIN-driver id definition */
 -#define PSA_CRYPTO_MBED_TLS_DRIVER_ID (1)
--#define MBEDTLS_TEST_OPAQUE_DRIVER_ID (2)
--#define MBEDTLS_TEST_TRANSPARENT_DRIVER_ID (3)
--#define P256_TRANSPARENT_DRIVER_ID (4)
+-#define P256_TRANSPARENT_DRIVER_ID (2)
+-#define PQCP_TRANSPARENT_DRIVER_ID (3)
+-#define MBEDTLS_TEST_TRANSPARENT_DRIVER_ID (4)
+-#define MBEDTLS_TEST_OPAQUE_DRIVER_ID (5)
 +enum {
 +    PSA_CRYPTO_MBED_TLS_DRIVER_ID = 1,
-+    MBEDTLS_TEST_OPAQUE_DRIVER_ID,
-+    MBEDTLS_TEST_TRANSPARENT_DRIVER_ID,
 +    P256_TRANSPARENT_DRIVER_ID,
++    PQCP_TRANSPARENT_DRIVER_ID,
++    MBEDTLS_TEST_TRANSPARENT_DRIVER_ID,
++    MBEDTLS_TEST_OPAQUE_DRIVER_ID,
 +#if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
 +    PSA_CRYPTO_TFM_BUILTIN_KEY_LOADER_DRIVER_ID,
 +#endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
@@ -380,7 +384,7 @@ index a8bd7eb3a..03b163300 100644
  
  /* END-driver id */
  
-@@ -106,6 +122,12 @@ psa_status_t psa_driver_wrapper_get_key_buffer_size(
+@@ -112,6 +128,12 @@ psa_status_t psa_driver_wrapper_get_key_buffer_size(
                      PSA_SUCCESS : PSA_ERROR_NOT_SUPPORTED );
  #endif /* PSA_CRYPTO_DRIVER_TEST */
  
@@ -393,7 +397,7 @@ index a8bd7eb3a..03b163300 100644
          default:
              (void)key_type;
              (void)key_bits;
-@@ -127,6 +149,9 @@ psa_status_t psa_driver_wrapper_export_public_key(
+@@ -133,6 +155,9 @@ psa_status_t psa_driver_wrapper_export_public_key(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -403,7 +407,7 @@ index a8bd7eb3a..03b163300 100644
              /* Key is stored in the slot in export representation, so
               * cycle through all known transparent accelerators */
  #if defined(PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT)
-@@ -215,6 +240,13 @@ psa_status_t psa_driver_wrapper_get_builtin_key(
+@@ -232,6 +257,13 @@ psa_status_t psa_driver_wrapper_get_builtin_key(
          ));
  #endif
  
