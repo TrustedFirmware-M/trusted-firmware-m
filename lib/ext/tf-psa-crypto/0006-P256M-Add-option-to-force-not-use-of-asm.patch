@@ -1,7 +1,7 @@
-From ffc45ca016b5980bf7d3cae76dbaafa09cea6770 Mon Sep 17 00:00:00 2001
+From eec1b350aa5b029ededf0cec44f3bec80568491b Mon Sep 17 00:00:00 2001
 From: Antonio de Angelis <Antonio.deAngelis@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
-Subject: [PATCH 06/17] P256M: Add option to force not use of asm
+Subject: [PATCH 06/16] P256M: Add option to force not use of asm
 
 Add an option to let the compiler generate the assembly
 code for u32_muladd64(), especially for MinSizeRel and

@@ -1,7 +1,7 @@
-From d8d5b0c3e8cc9e02cdc38d0fdf064303f5e8ae24 Mon Sep 17 00:00:00 2001
+From 9cea57727751d7418d4f44cb962350cc211fe7c2 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 2 Apr 2026 13:33:21 +0000
-Subject: [PATCH 15/17] Re-add support for AES Keywrap for TF-M
+Subject: [PATCH 15/16] Re-add support for AES Keywrap for TF-M
 
 AES keywrap support was previously added for TF-M (commit dc5843f252)
 but was unintentionally removed when the PSA interface headers were

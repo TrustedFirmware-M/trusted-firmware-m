@@ -1,7 +1,7 @@
-From 2a509f29cbb5276e3151d6319863e5e0ef740486 Mon Sep 17 00:00:00 2001
+From befef06cf30bcfa2c42e94df744c1bf06296fa4d Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 2 Apr 2026 20:16:58 +0000
-Subject: [PATCH 16/17] Do not define __STDC_WANT_LIB_EXT1__ with ATfE
+Subject: [PATCH 16/16] Do not define __STDC_WANT_LIB_EXT1__ with ATfE
 
 Do not try to include bounds-checking functions from this standard
 library extension when building with the ATfE toolchain.

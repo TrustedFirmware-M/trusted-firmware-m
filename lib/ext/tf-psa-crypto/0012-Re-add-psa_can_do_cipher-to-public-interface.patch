@@ -1,7 +1,7 @@
-From c00abb42f45ad7d3550b43e5a9dbfedeb5b4e8a4 Mon Sep 17 00:00:00 2001
+From d15ac37a896ffa2a2c304c401e537cfedafc1b02 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
-Subject: [PATCH 12/17] Re-add psa_can_do_cipher() to public interface
+Subject: [PATCH 12/16] Re-add psa_can_do_cipher() to public interface
 
 Its prototype was removed from the public interface by 327c9c0.
 TF-M keeps using this function - add again to avoid build errors.

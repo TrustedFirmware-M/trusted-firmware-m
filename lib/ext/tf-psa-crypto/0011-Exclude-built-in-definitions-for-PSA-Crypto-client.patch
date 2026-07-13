@@ -1,7 +1,7 @@
-From 1861feec1205cb72edb171766be3e24b1314f3d0 Mon Sep 17 00:00:00 2001
+From fd8288d8c0d2ca203284f7c3e8ea02a52c9e9848 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
-Subject: [PATCH 11/17] Exclude built-in definitions for PSA Crypto client
+Subject: [PATCH 11/16] Exclude built-in definitions for PSA Crypto client
 
 Do not include context definitions or additional symbols used by
 built-in crypto modules/drivers for a PSA Crypto client. These are
@@ -56,7 +56,7 @@ index 063808743..d283875b7 100644
  struct psa_key_derivation_s {
  #if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
 diff --git a/include/tf-psa-crypto/build_info.h b/include/tf-psa-crypto/build_info.h
-index 611e96d47..b1ab8acb5 100644
+index 4dcb3d8d8..e8dc5eed1 100644
 --- a/include/tf-psa-crypto/build_info.h
 +++ b/include/tf-psa-crypto/build_info.h
 @@ -169,8 +169,10 @@
