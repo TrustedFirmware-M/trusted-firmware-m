@@ -8,10 +8,14 @@ cmake_minimum_required(VERSION 3.21)
 
 SET(CMAKE_SYSTEM_NAME Generic)
 
+find_program(CMAKE_C_COMPILER armclang)
+if(CMAKE_C_COMPILER STREQUAL "CMAKE_C_COMPILER-NOTFOUND")
+    message(FATAL_ERROR "Could not find compiler: 'armclang'")
+endif()
+
 # C++ support is not quaranted. This settings is to compile with RPi Pico SDK.
-set(CMAKE_ASM_COMPILER armclang)
-set(CMAKE_C_COMPILER   armclang)
-set(CMAKE_CXX_COMPILER armclang)
+set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER})
+set(CMAKE_CXX_COMPILER ${CMAKE_C_COMPILER})
 
 set(CMAKE_C_STANDARD   11)
 

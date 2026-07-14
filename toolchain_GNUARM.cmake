@@ -7,14 +7,22 @@
 
 set(CMAKE_SYSTEM_NAME Generic)
 
-set(CMAKE_C_COMPILER ${CROSS_COMPILE}-gcc)
+find_program(CMAKE_C_COMPILER ${CROSS_COMPILE}-gcc)
+if(CMAKE_C_COMPILER STREQUAL "CMAKE_C_COMPILER-NOTFOUND")
+    message(FATAL_ERROR "Could not find compiler: '${CROSS_COMPILE}-gcc'")
+endif()
+
 set(CMAKE_C_COMPILER_FORCED TRUE)
 set(CMAKE_C_STANDARD 11)
 
 set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER})
 
 # C++ support is not quaranted. This settings is to compile with RPi Pico SDK.
-set(CMAKE_CXX_COMPILER ${CROSS_COMPILE}-g++)
+find_program(CMAKE_CXX_COMPILER ${CROSS_COMPILE}-g++)
+if(CMAKE_CXX_COMPILER STREQUAL "CMAKE_CXX_COMPILER-NOTFOUND")
+    message(WARNING "Could not find compiler: '${CROSS_COMPILE}-g++'")
+endif()
+
 set(CMAKE_CXX_COMPILER_FORCED TRUE)
 set(CMAKE_CXX_STANDARD 11)
 

@@ -20,10 +20,18 @@ else()
     set(CMAKE_ASM_COMPILER_TARGET    arm-arm-none-eabi)
 endif()
 
-set(CMAKE_C_COMPILER iccarm)
+find_program(CMAKE_C_COMPILER iccarm)
+if(CMAKE_C_COMPILER STREQUAL "CMAKE_C_COMPILER-NOTFOUND")
+    message(FATAL_ERROR "Could not find compiler: 'iccarm'")
+endif()
+
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_COMPILER iccarm)
-set(CMAKE_ASM_COMPILER iasmarm)
+set(CMAKE_CXX_COMPILER ${CMAKE_C_COMPILER})
+
+find_program(CMAKE_ASM_COMPILER iasmarm)
+if(CMAKE_ASM_COMPILER STREQUAL "CMAKE_ASM_COMPILER-NOTFOUND")
+    message(FATAL_ERROR "Could not find assembler: 'iasmarm'")
+endif()
 
 set(LINKER_VENEER_OUTPUT_FLAG --import_cmse_lib_out= )
 set(COMPILER_CMSE_FLAG --cmse)
