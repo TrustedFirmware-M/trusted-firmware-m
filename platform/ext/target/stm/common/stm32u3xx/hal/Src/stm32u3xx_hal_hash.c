@@ -863,6 +863,12 @@ HAL_StatusTypeDef HAL_HASH_Start(HASH_HandleTypeDef *hhash, const uint8_t *const
     return HAL_ERROR;
   }
 
+  /* Validate buffer pointers */
+  if (((pInBuffer == NULL) && (Size > 0U)) || (pOutBuffer == NULL))
+  {
+    return HAL_ERROR;
+  }
+
   /* Check if peripheral is ready to start process */
   if (hhash->State == HAL_HASH_STATE_READY)
   {
@@ -942,6 +948,12 @@ HAL_StatusTypeDef HAL_HASH_Start_IT(HASH_HandleTypeDef *hhash, const uint8_t *co
     return HAL_ERROR;
   }
 
+  /* Validate buffer pointers */
+  if (((pInBuffer == NULL) && (Size > 0U)) || (pOutBuffer == NULL))
+  {
+    return HAL_ERROR;
+  }
+
   /* Check if peripheral is ready to start process or suspended */
   temp_state = hhash->State;
   if ((temp_state == HAL_HASH_STATE_READY) || (temp_state == HAL_HASH_STATE_SUSPENDED))
@@ -1006,6 +1018,12 @@ HAL_StatusTypeDef HAL_HASH_Start_DMA(HASH_HandleTypeDef *hhash, const uint8_t *c
 
   /* Check the hash handle allocation */
   if (hhash == NULL)
+  {
+    return HAL_ERROR;
+  }
+
+  /* Validate buffer pointers */
+  if (((pInBuffer == NULL) && (Size > 0U)) || (pOutBuffer == NULL))
   {
     return HAL_ERROR;
   }
