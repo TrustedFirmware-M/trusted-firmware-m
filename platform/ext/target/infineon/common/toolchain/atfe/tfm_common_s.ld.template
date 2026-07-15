@@ -1,7 +1,7 @@
 ;/*
 ; * Copyright (c) 2009-2024 Arm Limited
-; * Copyright (c) 2022-2026 Cypress Semiconductor Corporation (an Infineon company)
-; * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+; * (c) 2022-2026, Infineon Technologies AG, or an affiliate of Infineon
+; * Technologies AG. All rights reserved.
 ; *
 ; * Licensed under the Apache License, Version 2.0 (the "License");
 ; * you may not use this file except in compliance with the License.
@@ -93,7 +93,14 @@ SECTIONS
 
 #if defined(CONFIG_TFM_USE_TRUSTZONE) && !defined(TFM_LINKER_VENEERS_LOCATION_END)
     VENEERS()
-#endif
+
+    /* TODO: This is not compatible with Nordic patch c7404edfac2dc819cf3f21ba5397976d17e8c0cd, because
+     * veneers are located at the end of an SPU Flash page */
+    /* GCC always places veneers at the end of .gnu.sgstubs section, so the only
+     * way to align the end of .gnu.sgstubs section is to align start of the
+     * next section */
+    .TFM_SP_LOAD_LIST ALIGN(TFM_LINKER_VENEERS_ALIGNMENT) :
+#else
 
     /**** Section for holding partition RO load data */
     /*
@@ -101,6 +108,7 @@ SECTIONS
      * The first loaded partition will be inited at last in SFN model.
      */
     .TFM_SP_LOAD_LIST ALIGN(TFM_LINKER_PT_RO_DATA_ALIGNMENT) :
+#endif
     {
        KEEP(*(.part_load*))
     } > FLASH
@@ -301,9 +309,39 @@ SECTIONS
         *libtfm_spm*:*(.rodata*)
     } > FLASH
 
+#ifdef CONFIG_TFM_USE_TRUSTZONE
+    /*
+     * NS Agent TZ unprivileged Secure code.
+     *
+     * This section should contain code and read-only data that can be used by NS Agent TZ.
+     * It can be used by platforms with additional protection hardware to provide extra
+     * isolation by separation of regular unprivileged code from NS Agent TZ partition.
+     * This section should follow unprivilege code section to share a single MPU entry
+     * to allow unprivilage access for both sections.
+     */
+    .TFM_NS_AGENT_TZ_CODE ALIGN(TFM_LINKER_NS_AGENT_TZ_CODE_ALIGNMENT) :
+    {
+        *libns_agent_tz*:(SORT_BY_ALIGNMENT(.text*))
+        *libns_agent_tz*:(SORT_BY_ALIGNMENT(.rodata*))
+        *psa_api_veneers_v80m.o(SORT_BY_ALIGNMENT(.text*))
+        *psa_api_veneers_v80m.o(SORT_BY_ALIGNMENT(.rodata*))
+        *psa_api_veneers.o(SORT_BY_ALIGNMENT(.text*))
+        *psa_api_veneers.o(SORT_BY_ALIGNMENT(.rodata*))
+        *tfm_ns_client_ext.o(SORT_BY_ALIGNMENT(.text*))
+        *tfm_ns_client_ext.o(SORT_BY_ALIGNMENT(.rodata*))
+        *(SFN)
+
+        . = ALIGN(TFM_LINKER_NS_AGENT_TZ_CODE_ALIGNMENT);
+    } > FLASH
+    Image$$TFM_NS_AGENT_TZ_CODE_START$$RO$$Base = ADDR(.TFM_NS_AGENT_TZ_CODE);
+    Image$$TFM_NS_AGENT_TZ_CODE_END$$RO$$Limit = ADDR(.TFM_NS_AGENT_TZ_CODE) + SIZEOF(.TFM_NS_AGENT_TZ_CODE);
+#endif /* CONFIG_TFM_USE_TRUSTZONE */
+
     .TFM_UNPRIV_CODE ALIGN(TFM_LINKER_UNPRIV_CODE_ALIGNMENT) :
     {
+#ifndef CONFIG_TFM_USE_TRUSTZONE
         *(SFN)
+#endif /* CONFIG_TFM_USE_TRUSTZONE */
         *(SORT_BY_ALIGNMENT(.text*))
 
         KEEP(*(.init))
@@ -328,8 +366,18 @@ SECTIONS
         KEEP(*(.eh_frame*))
         . = ALIGN(TFM_LINKER_UNPRIV_CODE_ALIGNMENT);
     } > FLASH
+
+    Image$$TFM_UNPRIV_BASE_CODE_START$$RO$$Base = ADDR(.TFM_UNPRIV_CODE);
+    Image$$TFM_UNPRIV_BASE_CODE_END$$RO$$Limit = ADDR(.TFM_UNPRIV_CODE) + SIZEOF(.TFM_UNPRIV_CODE);
+
+#ifdef CONFIG_TFM_USE_TRUSTZONE
+    /* Unprivilege code covers area from .TFM_NS_AGENT_TZ_CODE to .TFM_UNPRIV_CODE */
+    Image$$TFM_UNPRIV_CODE_START$$RO$$Base = Image$$TFM_NS_AGENT_TZ_CODE_START$$RO$$Base;
+    Image$$TFM_UNPRIV_CODE_END$$RO$$Limit = Image$$TFM_UNPRIV_BASE_CODE_END$$RO$$Limit;
+#else /* CONFIG_TFM_USE_TRUSTZONE */
     Image$$TFM_UNPRIV_CODE_START$$RO$$Base = ADDR(.TFM_UNPRIV_CODE);
     Image$$TFM_UNPRIV_CODE_END$$RO$$Limit = ADDR(.TFM_UNPRIV_CODE) + SIZEOF(.TFM_UNPRIV_CODE);
+#endif /* CONFIG_TFM_USE_TRUSTZONE */
 
 #if defined(CONFIG_TFM_USE_TRUSTZONE) && defined(TFM_LINKER_VENEERS_LOCATION_END)
     VENEERS()
@@ -454,7 +502,7 @@ SECTIONS
     {% endif %}
 {% endfor %}
         *(TFM_*_APP-ROT_ATTR_RW)
-        . = ALIGN(32);
+        . = ALIGN(4);
     } > RAM AT> FLASH
     Image$$TFM_APP_ROT_LINKER_DATA$$RW$$Base = ADDR(.TFM_APP_ROT_LINKER_DATA);
     Image$$TFM_APP_ROT_LINKER_DATA$$RW$$Limit = ADDR(.TFM_APP_ROT_LINKER_DATA) + SIZEOF(.TFM_APP_ROT_LINKER_DATA);
@@ -571,7 +619,7 @@ SECTIONS
     {% endif %}
 {% endfor %}
         *(TFM_*_PSA-ROT_ATTR_RW)
-        . = ALIGN(32);
+        . = ALIGN(4);
     } > RAM AT> FLASH
     Image$$TFM_PSA_ROT_LINKER_DATA$$RW$$Base = ADDR(.TFM_PSA_ROT_LINKER_DATA);
     Image$$TFM_PSA_ROT_LINKER_DATA$$RW$$Limit = ADDR(.TFM_PSA_ROT_LINKER_DATA) + SIZEOF(.TFM_PSA_ROT_LINKER_DATA);

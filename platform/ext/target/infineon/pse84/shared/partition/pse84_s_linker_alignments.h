@@ -62,6 +62,8 @@
  * levels stack is not a partition asset and is protected as part of PSA/APP RoT
  * or SPM section thus special alignment is not needed. */
 #if (TFM_ISOLATION_LEVEL == 3) || (TFM_ISOLATION_LEVEL == 2)
+#define TFM_LINKER_TFM_BSS_ALIGNMENT           IFX_LINKER_DATA_ALIGNMENT
+
 #define TFM_LINKER_NS_AGENT_TZ_STACK_ALIGNMENT      IFX_LINKER_DATA_ALIGNMENT
 
 #define TFM_LINKER_IDLE_PARTITION_STACK_ALIGNMENT   IFX_LINKER_DATA_ALIGNMENT

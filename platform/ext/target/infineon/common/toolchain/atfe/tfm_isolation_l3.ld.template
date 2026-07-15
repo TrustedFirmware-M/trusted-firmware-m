@@ -1,7 +1,7 @@
 ;/*
 ; * Copyright (c) 2009-2024 Arm Limited
-; * Copyright (c) 2022-2026 Cypress Semiconductor Corporation (an Infineon company)
-; * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+; * (c) 2022-2026, Infineon Technologies AG, or an affiliate of Infineon
+; * Technologies AG. All rights reserved.
 ; *
 ; * Licensed under the Apache License, Version 2.0 (the "License");
 ; * you may not use this file except in compliance with the License.
@@ -256,10 +256,39 @@ SECTIONS
     } > FLASH
 
     /**** Unprivileged Secure code starts here */
+#ifdef CONFIG_TFM_USE_TRUSTZONE
+    /*
+     * NS Agent TZ unprivileged Secure code.
+     *
+     * This section should contain code and read-only data that can be used by NS Agent TZ.
+     * It can be used by platforms with additional protection hardware to provide extra
+     * isolation by separation of regular unprivileged code from NS Agent TZ partition.
+     * This section should follow unprivilege code section to share a single MPU entry
+     * to allow unprivilage access for both sections.
+     */
+    .TFM_NS_AGENT_TZ_CODE ALIGN(TFM_LINKER_NS_AGENT_TZ_CODE_ALIGNMENT) :
+    {
+        *libns_agent_tz*:(SORT_BY_ALIGNMENT(.text*))
+        *libns_agent_tz*:(SORT_BY_ALIGNMENT(.rodata*))
+        *psa_api_veneers_v80m.o(SORT_BY_ALIGNMENT(.text*))
+        *psa_api_veneers_v80m.o(SORT_BY_ALIGNMENT(.rodata*))
+        *psa_api_veneers.o(SORT_BY_ALIGNMENT(.text*))
+        *psa_api_veneers.o(SORT_BY_ALIGNMENT(.rodata*))
+        *tfm_ns_client_ext.o(SORT_BY_ALIGNMENT(.text*))
+        *tfm_ns_client_ext.o(SORT_BY_ALIGNMENT(.rodata*))
+        *(SFN)
+
+        . = ALIGN(TFM_LINKER_NS_AGENT_TZ_CODE_ALIGNMENT);
+    } > FLASH
+    Image$$TFM_NS_AGENT_TZ_CODE_START$$RO$$Base = ADDR(.TFM_NS_AGENT_TZ_CODE);
+    Image$$TFM_NS_AGENT_TZ_CODE_END$$RO$$Limit = ADDR(.TFM_NS_AGENT_TZ_CODE) + SIZEOF(.TFM_NS_AGENT_TZ_CODE);
+#endif /* CONFIG_TFM_USE_TRUSTZONE */
 
     .ER_UNPRIV_CODE ALIGN(TFM_LINKER_UNPRIV_CODE_ALIGNMENT) :
     {
+#ifndef CONFIG_TFM_USE_TRUSTZONE
         *(SFN)
+#endif /* CONFIG_TFM_USE_TRUSTZONE */
         *(SORT_BY_ALIGNMENT(.text*))
 
         KEEP(*(.init))
@@ -285,8 +314,18 @@ SECTIONS
 
         . = ALIGN(TFM_LINKER_UNPRIV_CODE_ALIGNMENT);
     } > FLASH
+
+    Image$$TFM_UNPRIV_BASE_CODE_START$$RO$$Base = ADDR(.ER_UNPRIV_CODE);
+    Image$$TFM_UNPRIV_BASE_CODE_END$$RO$$Limit = ADDR(.ER_UNPRIV_CODE) + SIZEOF(.ER_UNPRIV_CODE);
+
+#ifdef CONFIG_TFM_USE_TRUSTZONE
+    /* Unprivilege code covers area from .TFM_NS_AGENT_TZ_CODE to .ER_UNPRIV_CODE */
+    Image$$TFM_UNPRIV_CODE_START$$RO$$Base = Image$$TFM_NS_AGENT_TZ_CODE_START$$RO$$Base;
+    Image$$TFM_UNPRIV_CODE_END$$RO$$Limit = Image$$TFM_UNPRIV_BASE_CODE_END$$RO$$Limit;
+#else /* CONFIG_TFM_USE_TRUSTZONE */
     Image$$TFM_UNPRIV_CODE_START$$RO$$Base = ADDR(.ER_UNPRIV_CODE);
     Image$$TFM_UNPRIV_CODE_END$$RO$$Limit = ADDR(.ER_UNPRIV_CODE) + SIZEOF(.ER_UNPRIV_CODE);
+#endif /* CONFIG_TFM_USE_TRUSTZONE */
 
     /* Position tag */
     . = ALIGN(TFM_LINKER_PT_RO_ALIGNMENT);
@@ -380,7 +419,7 @@ SECTIONS
         . = ALIGN(4);
     } > RAM AT> FLASH
 
-    .IFX_CODE_COVERAGE_BSS ALIGN(4) (NOLOAD) :
+    .IFX_CODE_COVERAGE_BSS ALIGN(TFM_LINKER_IFX_CODE_COVERAGE_ALIGNMENT) (NOLOAD) :
     {
         /* coverage related bss */
         *gcov*:(SORT_BY_ALIGNMENT(.bss*))
