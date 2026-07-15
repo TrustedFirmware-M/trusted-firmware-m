@@ -7,6 +7,7 @@
 #include "string.h"
 
 #include "spi/spi.h"
+#include "tfm_plat_defs.h"
 #include "transport/spi.h"
 #include "tfm_log.h"
 
@@ -111,6 +112,11 @@ struct spi_plat *spi_platform_init(struct spi_gpio_data *spi_data)
     gpio_set_dir(spi_data->cs_gpio, GPIO_OUT);
     gpio_put(spi_data->cs_gpio, 1);
 
+    /* Reset for tested dTPM is active-low, so we'll initialise it to a driven-high state */
+    gpio_init(spi_data->reset_gpio);
+    gpio_set_dir(spi_data->reset_gpio, GPIO_OUT);
+    gpio_put(spi_data->reset_gpio, 1);
+
     spidev_priv_data.ctx = NULL;
     memcpy(&spidev_priv_data.gpio_data, spi_data, sizeof(struct spi_gpio_data));
 
@@ -165,3 +171,27 @@ int tpm_plat_get_tpm_platform_config(struct tpm_timeout_ops *timeout_ops,
 
     return 0;
 }
+
+#ifdef DTPM_CLIENT_ALLOCATE_PCR_DURING_INIT
+enum tfm_plat_err_t tpm_plat_perform_tpm_reset(const struct tpm_spi_plat *spi_plat)
+{
+    (void)spi_plat;
+    volatile int i = 0;
+
+    gpio_put(spidev_priv_data.gpio_data.reset_gpio, 0);
+
+    /* Add arbiatory reset time */
+    while (i < 100000) {
+        i++;
+    }
+
+    gpio_put(spidev_priv_data.gpio_data.reset_gpio, 1);
+
+    i = 0;
+    while (i < 100000) {
+        i++;
+    }
+
+    return TFM_PLAT_ERR_SUCCESS;
+}
+#endif /* DTPM_CLIENT_ALLOCATE_PCR_DURING_INIT */

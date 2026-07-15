@@ -226,6 +226,7 @@ target_compile_definitions(platform_s
         $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:RESET_GPIO=${RESET_GPIO}>
         $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:SPI_MODE=${SPI_MODE}>
         $<$<BOOL:${TFM_PARTITION_DTPM_CLIENT}>:SPI_DELAY_US=${SPI_DELAY_US}>
+        $<$<BOOL:${DTPM_CLIENT_ALLOCATE_PCR_DURING_INIT}>:DTPM_CLIENT_ALLOCATE_PCR_DURING_INIT>
 )
 
 # GNU Arm compiler version greater equal than *11.3.Rel1*
