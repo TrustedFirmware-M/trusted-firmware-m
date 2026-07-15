@@ -15,6 +15,7 @@ Security Advisories
     debug_log_vulnerability
     user_pointers_mailbox_vectors_vulnerability
     fwu_tlv_payload_out_of_bounds_vulnerability
+    missing_ns_pointer_validation_mailbox_init
 
 +------------+-----------------------------------------------------------------+
 | ID         | Title                                                           |
@@ -43,6 +44,8 @@ Security Advisories
 +------------+-----------------------------------------------------------------+
 |  |TFMV-9|  | FWU does not check the length of the TLV's payload              |
 +------------+-----------------------------------------------------------------+
+|  |TFMV-10| | Missing NS pointer validation in platform mailbox init          |
++------------+-----------------------------------------------------------------+
 
 .. |TFMV-1| replace:: :doc:`TFMV-1 <stack_seal_vulnerability>`
 .. |TFMV-2| replace:: :doc:`TFMV-2 <svc_caller_sp_fetching_vulnerability>`
@@ -53,6 +56,7 @@ Security Advisories
 .. |TFMV-7| replace:: :doc:`TFMV-7 <debug_log_vulnerability>`
 .. |TFMV-8| replace:: :doc:`TFMV-8 <user_pointers_mailbox_vectors_vulnerability>`
 .. |TFMV-9| replace:: :doc:`TFMV-9 <fwu_tlv_payload_out_of_bounds_vulnerability>`
+.. |TFMV-10| replace:: :doc:`TFMV-10 <missing_ns_pointer_validation_mailbox_init>`
 
 --------------
 
