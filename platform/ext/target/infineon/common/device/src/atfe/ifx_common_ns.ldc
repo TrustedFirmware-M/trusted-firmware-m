@@ -190,7 +190,7 @@ SECTIONS
     } > ram
 
 
-    .data __ram_vectors_end__ :
+    .data ALIGN(__ram_vectors_end__, 8) :
 #else
     .data :
 #endif
@@ -231,6 +231,18 @@ SECTIONS
         *(COMMON)
         . = ALIGN(4);
         __bss_end__ = .;
+    } > ram
+
+
+    /* Thread-local uninitialized data. Keep this separate from .bss so output
+     * section flags remain TLS-compatible for ATFE/libc TLS objects. */
+    .tbss (NOLOAD) : ALIGN(4)
+    {
+        *(.tbss*)
+        *(.tcommon)
+        . = ALIGN(4);
+        __tls_base = .;
+        __arm32_tls_tcb_offset = .;
     } > ram
 
 
