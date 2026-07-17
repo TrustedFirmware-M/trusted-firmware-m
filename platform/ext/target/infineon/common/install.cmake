@@ -139,6 +139,15 @@ if (TFM_PARTITION_PLATFORM)
             DESTINATION ${INSTALL_INTERFACE_SRC_DIR})
 endif()
 
+if (IFX_EXT_SP)
+    install(FILES       $<$<BOOL:${IFX_MTB_SRF}>:${IFX_COMMON_SOURCE_DIR}/interface/include/mtb_srf_ipc_custom_packet.h>
+            DESTINATION ${INSTALL_INTERFACE_INC_DIR})
+
+    install(FILES       $<$<BOOL:${IFX_MTB_SRF}>:${IFX_COMMON_SOURCE_DIR}/interface/src/ifx_mtb_srf.c>
+                        $<$<BOOL:${IFX_MTB_MAILBOX}>:${IFX_COMMON_SOURCE_DIR}/interface/src/ifx_mtb_srf_relay.c>
+            DESTINATION ${INSTALL_INTERFACE_SRC_DIR})
+endif()
+
 #################################### Tests #####################################
 
 include(${IFX_COMMON_SOURCE_DIR}/tests/install.cmake OPTIONAL)
