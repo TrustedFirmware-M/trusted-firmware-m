@@ -257,6 +257,7 @@ static enum sfcp_error_t send_msg_reply(struct sfcp_packet_t *packet, size_t pac
     sfcp_link_id_t link_id;
     size_t packet_transfer_size;
     sfcp_node_id_t remote_node;
+    uint8_t trusted_subnet_id = 0;
     sfcp_node_id_t my_node_id;
 
     if (packet == NULL) {
@@ -290,19 +291,20 @@ static enum sfcp_error_t send_msg_reply(struct sfcp_packet_t *packet, size_t pac
         SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(uses_cryptography, uses_id_extension) + payload_size;
 
     if (uses_cryptography) {
+        trusted_subnet_id =
+            packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id;
+
         if (is_msg) {
             sfcp_err = sfcp_encrypt_msg(
                 packet, packet_transfer_size,
-                packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id,
-                remote_node);
+                trusted_subnet_id, remote_node);
             if (sfcp_err != SFCP_ERROR_SUCCESS) {
                 return sfcp_err;
             }
         } else {
             sfcp_err = sfcp_encrypt_reply(
                 packet, packet_transfer_size,
-                packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id,
-                remote_node);
+                trusted_subnet_id, remote_node);
             if (sfcp_err != SFCP_ERROR_SUCCESS) {
                 return sfcp_err;
             }
@@ -326,7 +328,16 @@ static enum sfcp_error_t send_msg_reply(struct sfcp_packet_t *packet, size_t pac
     }
 #endif
 
-    return __send_msg_reply(remote_node, link_id, packet, packet_transfer_size, is_msg);
+    sfcp_err = __send_msg_reply(remote_node, link_id, packet, packet_transfer_size, is_msg);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        return sfcp_err;
+    }
+
+    if (uses_cryptography) {
+        return sfcp_trusted_subnet_increment_send_seq_num(trusted_subnet_id, remote_node);
+    }
+
+    return SFCP_ERROR_SUCCESS;
 }
 
 enum sfcp_error_t sfcp_send_msg(struct sfcp_packet_t *msg, size_t msg_size, size_t payload_size)

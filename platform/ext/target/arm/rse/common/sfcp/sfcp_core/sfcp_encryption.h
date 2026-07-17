@@ -81,6 +81,9 @@ enum sfcp_error_t
 sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *trusted_subnet,
                                      sfcp_node_id_t remote_node, uint16_t *seq_num);
 
+enum sfcp_error_t sfcp_trusted_subnet_increment_send_seq_num(uint8_t trusted_subnet_id,
+                                                             sfcp_node_id_t remote_node);
+
 enum sfcp_error_t
 sfcp_trusted_subnet_check_recv_seq_num(struct sfcp_trusted_subnet_config_t *trusted_subnet,
                                        sfcp_node_id_t remote_node, uint16_t seq_num);

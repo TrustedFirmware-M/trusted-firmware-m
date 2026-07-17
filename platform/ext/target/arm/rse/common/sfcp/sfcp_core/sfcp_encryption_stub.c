@@ -78,6 +78,15 @@ sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *truste
     return SFCP_ERROR_CRYPTOGRAPHY_NOT_SUPPORTED;
 }
 
+enum sfcp_error_t sfcp_trusted_subnet_increment_send_seq_num(uint8_t trusted_subnet_id,
+                                                             sfcp_node_id_t remote_node)
+{
+    (void)trusted_subnet_id;
+    (void)remote_node;
+
+    return SFCP_ERROR_CRYPTOGRAPHY_NOT_SUPPORTED;
+}
+
 enum sfcp_error_t sfcp_trusted_subnet_state_requires_handshake_encryption(uint8_t trusted_subnet_id,
                                                                           bool *requires_handshake,
                                                                           bool *requires_encryption)

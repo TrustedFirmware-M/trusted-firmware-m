@@ -440,6 +440,7 @@ enum sfcp_error_t sfcp_trusted_subnet_state_requires_handshake_encryption(uint8_
 enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id, bool block)
 {
     enum sfcp_error_t sfcp_err;
+    enum sfcp_error_t rollback_err;
     enum sfcp_hal_error_t hal_err;
     struct sfcp_trusted_subnet_config_t *trusted_subnet;
     sfcp_node_id_t my_node_id;
@@ -491,14 +492,20 @@ enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id,
 
     if (server_node_id == my_node_id) {
         sfcp_err = encryption_handshake_initiator_server(trusted_subnet, my_node_id, re_keying);
-        if (sfcp_err != SFCP_ERROR_SUCCESS) {
-            return sfcp_err;
-        }
     } else {
         sfcp_err = encryption_handshake_initiator_client(trusted_subnet, server_node_id, re_keying);
-        if (sfcp_err != SFCP_ERROR_SUCCESS) {
-            return sfcp_err;
+    }
+
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        if (re_keying) {
+            rollback_err = sfcp_trusted_subnet_set_state(
+                trusted_subnet_id, SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_REQUIRED);
+            if (rollback_err != SFCP_ERROR_SUCCESS) {
+                return rollback_err;
+            }
         }
+
+        return sfcp_err;
     }
 
     if (!block) {
@@ -540,6 +547,15 @@ enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id,
 
 out:
     sfcp_encryption_hal_enable_irq(disable_irq_cookie);
+
+    if (re_keying && (sfcp_err != SFCP_ERROR_SUCCESS)) {
+        rollback_err = sfcp_trusted_subnet_set_state(
+            trusted_subnet_id, SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_REQUIRED);
+        if (rollback_err != SFCP_ERROR_SUCCESS) {
+            return rollback_err;
+        }
+    }
+
     return sfcp_err;
 }
 
