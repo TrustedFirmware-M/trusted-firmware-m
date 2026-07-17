@@ -130,9 +130,11 @@ set(TFM_EXTRA_MANIFEST_LIST_FILES           ""          CACHE FILEPATH  "Extra m
 set(TFM_EXTRA_PARTITION_PATHS               ""          CACHE PATH      "List of extra Secure Partitions directories. An extra Secure Parition folder contains source code, CMakeLists.txt and manifest files")
 
 set(IFX_EXT_SP_PATH                         "${TFM_EXTRAS_REPO_PATH}/partitions/ifx_ext_sp" CACHE PATH "Path to IFX Extensions Partition")
+set(IFX_SE_IPC_SERVICE_PATH                 "${TFM_EXTRAS_REPO_PATH}/partitions/ifx_se_ipc_service" CACHE PATH "Path to IFX SE IPC Service partition")
 
 list(APPEND TFM_EXTRA_PARTITION_PATHS       "${IFX_EXT_SP_PATH}")
 list(APPEND TFM_EXTRA_MANIFEST_LIST_FILES   "${IFX_EXT_SP_PATH}/ifx_ext_sp_manifest_list.yaml")
+list(APPEND TFM_EXTRA_MANIFEST_LIST_FILES   "${IFX_SE_IPC_SERVICE_PATH}/ifx_se_ipc_service_manifest_list.yaml")
 
 ################################# Advanced options #############################
 

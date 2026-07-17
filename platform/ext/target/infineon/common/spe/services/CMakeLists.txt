@@ -8,7 +8,7 @@
 #-------------------------------------------------------------------------------
 
 # SE IPC Service to handle se-rt-services-utils requests
-add_subdirectory(se_ipc_service)
+add_subdirectory(${IFX_SE_IPC_SERVICE_PATH} se_ipc_service)
 
 target_compile_definitions(tfm_config
     INTERFACE
