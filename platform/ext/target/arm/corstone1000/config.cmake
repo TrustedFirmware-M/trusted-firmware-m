@@ -35,9 +35,6 @@ set(PLATFORM_TF_PSA_CRYPTO_DRIVERS_PATCH_DIR     ${CMAKE_CURRENT_LIST_DIR}/patch
 
 
 set(CRYPTO_HW_ACCELERATOR               ON         CACHE BOOL     "Whether to enable the crypto hardware accelerator on supported platforms")
-set(CC3XX_RUNTIME_ENABLED               ON         CACHE BOOL     "Whether the CC3XX driver is used at runtime")
-set(CC312_LEGACY_DRIVER_API_ENABLED     OFF        CACHE BOOL     "Whether the legacy mbedtls accelerator API is used")
-
 
 set(TFM_CRYPTO_TEST_ALG_CFB             OFF        CACHE BOOL     "Test CFB cryptography mode" FORCE)
 set(NS                                  FALSE      CACHE BOOL     "Whether to build NS app")
