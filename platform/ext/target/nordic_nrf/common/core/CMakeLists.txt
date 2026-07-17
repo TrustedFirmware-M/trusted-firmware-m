@@ -172,12 +172,17 @@ if(SOC_NRF7120_TFM_MRAMC_SERVICE)
     )
 endif()
 
-# RAM-control service (set by zephyr's -DNRF_RAM_CTRL_SERVICE=ON).
-if(NRF_RAM_CTRL_SERVICE)
+# nRF7120 disables RAM retention during secure startup. Other platforms need
+# the helper only when the RAM-control service is enabled.
+if(NRF_RAM_CTRL_SERVICE OR target STREQUAL "nrf7120")
     target_sources(platform_s
         PRIVATE
             ${HAL_NORDIC_PATH}/nrfx/helpers/nrfx_ram_ctrl.c
     )
+endif()
+
+# RAM-control service (set by zephyr's -DNRF_RAM_CTRL_SERVICE=ON).
+if(NRF_RAM_CTRL_SERVICE)
     target_compile_definitions(platform_s
         PUBLIC
             TFM_NRF_RAM_CTRL_SERVICE

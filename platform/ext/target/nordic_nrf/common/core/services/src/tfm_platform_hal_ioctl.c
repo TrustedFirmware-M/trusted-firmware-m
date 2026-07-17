@@ -281,15 +281,12 @@ enum tfm_platform_err_t tfm_platform_hal_mramc_set_wen_service(const psa_invec *
 
 #if TFM_NRF_RAM_CTRL_SERVICE
 
-/* RAM section granularity for the retention cache (32 KiB on nRF54L / nRF7120). */
+/* RAM section granularity (32 KiB on nRF54L / nRF7120). */
 #define RAM_CTRL_SECTION_SIZE 0x8000U
 
 /* Align a RAM address down/up to the section granularity (power-of-two size). */
 #define RAM_CTRL_SECTION_DOWN(x) ((x) & ~(RAM_CTRL_SECTION_SIZE - 1U))
 #define RAM_CTRL_SECTION_UP(x)   RAM_CTRL_SECTION_DOWN((x) + (RAM_CTRL_SECTION_SIZE - 1U))
-
-/* Mask of 32 KiB RAM sections to retain at System OFF (bit i => POWER[0] section i). */
-static uint32_t s_ret_section_mask;
 
 /* True if [addr, addr+len) lies entirely within the non-secure RAM window. */
 static bool ram_ctrl_range_is_ns(uint32_t addr, uint32_t len)
@@ -299,28 +296,6 @@ static bool ram_ctrl_range_is_ns(uint32_t addr, uint32_t len)
 	}
 
 	return (addr >= NS_DATA_START) && ((addr + len - 1U) <= NS_DATA_LIMIT);
-}
-
-static uint32_t ram_ctrl_range_to_section_mask(uint32_t addr, uint32_t len)
-{
-	uint32_t first, last, count;
-
-	if (len == 0U || addr < NRF_MEMORY_RAM_BASE) {
-		return 0U;
-	}
-
-	first = (addr - NRF_MEMORY_RAM_BASE) / RAM_CTRL_SECTION_SIZE;
-	last = (addr + len - 1U - NRF_MEMORY_RAM_BASE) / RAM_CTRL_SECTION_SIZE;
-	if (last > 31U) {
-		return 0U;
-	}
-
-	count = last - first + 1U;
-	if (count >= 32U) {
-		return 0xFFFFFFFFU;
-	}
-
-	return ((1U << count) - 1U) << first;
 }
 
 enum tfm_platform_err_t
@@ -340,14 +315,12 @@ tfm_platform_hal_ram_ctrl_service(const psa_invec *in_vec, const psa_outvec *out
 	out->control = 0;
 	out->ret = 0;
 	out->ret2 = 0;
-	out->ret_planned = 0;
 
-	/* Read back MEMCONF registers + the cached retention plan. */
+	/* Read back MEMCONF registers. */
 	if (args->op == TFM_RAM_CTRL_OP_READ_STATUS) {
 		out->control = NRF_MEMCONF->POWER[0].CONTROL;
 		out->ret = NRF_MEMCONF->POWER[0].RET;
 		out->ret2 = NRF_MEMCONF->POWER[0].RET2;
-		out->ret_planned = s_ret_section_mask;
 		out->result = 0;
 		return TFM_PLATFORM_ERR_SUCCESS;
 	}
@@ -374,14 +347,21 @@ tfm_platform_hal_ram_ctrl_service(const psa_invec *in_vec, const psa_outvec *out
 		break;
 	}
 	case TFM_RAM_CTRL_OP_RETAIN: {
-		/* Record in the secure cache; applied at System OFF. */
-		uint32_t m = ram_ctrl_range_to_section_mask(args->addr, args->len);
+		/* RET is controlled per 32 KiB section. Reject requests whose
+		 * containing sections overlap memory outside the non-secure window
+		 * instead of silently applying only part of the requested range.
+		 */
+		uint32_t start = RAM_CTRL_SECTION_DOWN(args->addr);
+		uint32_t end = RAM_CTRL_SECTION_UP(args->addr + args->len);
+		uint32_t ns_lo = RAM_CTRL_SECTION_UP((uint32_t)NS_DATA_START);
+		uint32_t ns_hi = RAM_CTRL_SECTION_DOWN((uint32_t)NS_DATA_LIMIT + 1U);
 
-		if (args->on != 0U) {
-			s_ret_section_mask |= m;
-		} else {
-			s_ret_section_mask &= ~m;
+		if (start < ns_lo || end > ns_hi || start >= end) {
+			return TFM_PLATFORM_ERR_INVALID_PARAM;
 		}
+
+		nrfx_ram_ctrl_retention_enable_set((void *)(uintptr_t)start,
+					       end - start, args->on != 0U);
 		break;
 	}
 	default:

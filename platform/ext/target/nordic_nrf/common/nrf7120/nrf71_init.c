@@ -6,6 +6,7 @@
  */
 #include <stdint.h>
 #include <nrfx.h>
+#include <helpers/nrfx_ram_ctrl.h>
 
 #ifndef BIT_MASK
 /* Use Zephyr BIT_MASK for unasigned integers */
@@ -45,6 +46,8 @@ void __attribute__((weak)) wifi_setup(void){
 #endif
 
 int  __attribute__((weak)) soc_early_init_hook(void){
+    nrfx_ram_ctrl_retention_enable_all_set(false);
+
 	/* Update the SystemCoreClock global variable with current core clock
 	 * retrieved from hardware state.
 	 */

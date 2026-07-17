@@ -105,9 +105,9 @@ struct tfm_mramc_set_wen_service_args_t {
 enum tfm_ram_ctrl_op {
 	/** System ON power (MEMCONF CONTROL), applied immediately. */
 	TFM_RAM_CTRL_OP_POWER,
-	/** System OFF retention (MEMCONF RET), recorded in the secure cache. */
+	/** System OFF retention (MEMCONF RET), applied immediately. */
 	TFM_RAM_CTRL_OP_RETAIN,
-	/** Read back CONTROL/RET/RET2 and the cached retention plan. */
+	/** Read back CONTROL/RET/RET2. */
 	TFM_RAM_CTRL_OP_READ_STATUS,
 };
 
@@ -125,7 +125,6 @@ struct tfm_ram_ctrl_service_out_t {
 	uint32_t control;     /* MEMCONF POWER[0].CONTROL snapshot (read status) */
 	uint32_t ret;         /* MEMCONF POWER[0].RET snapshot (read status) */
 	uint32_t ret2;        /* MEMCONF POWER[0].RET2 snapshot (read status) */
-	uint32_t ret_planned; /* cached mask of 32 KiB sections to retain at OFF (read status) */
 };
 #endif
 
@@ -226,7 +225,7 @@ enum tfm_platform_err_t tfm_platform_ram_ctrl_power_set(uint32_t addr, uint32_t 
 /**
  * @brief Mark/unmark a non-secure RAM range for retention across System OFF.
  *
- * Recorded in the secure domain; applied when the system enters System OFF.
+ * Applied immediately in the secure domain.
  *
  * @param addr  Start address of the range (must be within non-secure RAM).
  * @param len   Length of the range in bytes.
@@ -237,17 +236,15 @@ enum tfm_platform_err_t tfm_platform_ram_ctrl_power_set(uint32_t addr, uint32_t 
 enum tfm_platform_err_t tfm_platform_ram_ctrl_retention_set(uint32_t addr, uint32_t len, bool on);
 
 /**
- * @brief Read back MEMCONF POWER[0] CONTROL/RET/RET2 and the cached retention plan.
+ * @brief Read back MEMCONF POWER[0] CONTROL/RET/RET2.
  *
  * @param control      MEMCONF POWER[0].CONTROL value (may be NULL).
  * @param ret          MEMCONF POWER[0].RET value (may be NULL).
  * @param ret2         MEMCONF POWER[0].RET2 value (may be NULL).
- * @param ret_planned  Cached mask of 32 KiB sections to retain at OFF (may be NULL).
- *
  * @return Values as specified by \ref tfm_platform_err_t.
  */
 enum tfm_platform_err_t tfm_platform_ram_ctrl_read_status(uint32_t *control, uint32_t *ret,
-							  uint32_t *ret2, uint32_t *ret_planned);
+							  uint32_t *ret2);
 #endif /* NRF_TFM_RAM_CTRL_SERVICE */
 
 #ifdef __cplusplus

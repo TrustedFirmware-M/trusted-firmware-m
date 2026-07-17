@@ -151,7 +151,7 @@ enum tfm_platform_err_t tfm_platform_ram_ctrl_retention_set(uint32_t addr, uint3
 }
 
 enum tfm_platform_err_t tfm_platform_ram_ctrl_read_status(uint32_t *control, uint32_t *ret,
-							  uint32_t *ret2, uint32_t *ret_planned)
+							  uint32_t *ret2)
 {
 	enum tfm_platform_err_t err;
 	psa_invec in_vec;
@@ -179,9 +179,6 @@ enum tfm_platform_err_t tfm_platform_ram_ctrl_read_status(uint32_t *control, uin
 	}
 	if (ret2 != NULL) {
 		*ret2 = out.ret2;
-	}
-	if (ret_planned != NULL) {
-		*ret_planned = out.ret_planned;
 	}
 
 	return err;
