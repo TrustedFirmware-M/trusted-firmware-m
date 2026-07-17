@@ -26,7 +26,7 @@ project(
 enable_testing()
 include(CTest)
 
-find_package(Ruby)
+find_program(Ruby_EXECUTABLE ruby REQUIRED)
 find_program(LCOV lcov REQUIRED)
 find_program(GENHTML genhtml REQUIRED)
 

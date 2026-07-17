@@ -31,7 +31,7 @@ enable_testing()
 include(CTest)
 include(${TFM_ROOT_DIR}/cmake/remote_library.cmake)
 
-find_package(Ruby)
+find_program(Ruby_EXECUTABLE ruby REQUIRED)
 find_program(LCOV lcov REQUIRED)
 find_program(GENHTML genhtml REQUIRED)
 
