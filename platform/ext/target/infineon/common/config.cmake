@@ -125,16 +125,22 @@ endif()
 
 ############################# Platform services ################################
 
-set(TFM_EXTRA_MANIFEST_LIST_FILES           ""          CACHE FILEPATH  "Extra manifest list file(s), used to list extra Secure Partition manifests.")
+# Note that we can't add ifx_se_ipc_service here because it depends on ifx_se_rt_services_utils_s
+# and so CMake has to be aware of that library before seeing the ifx_se_ipc_service CMakeLists.txt
+set(TFM_EXTRAS_REPO_EXTRA_PARTITIONS    "ifx_ext_sp" CACHE STRING "List of extra secure partition directory name(s)")
+set(TFM_EXTRAS_REPO_EXTRA_MANIFEST_LIST  "partitions/ifx_ext_sp/ifx_ext_sp_manifest_list.yaml;partitions/ifx_se_ipc_service/ifx_se_ipc_service_manifest_list.yaml" CACHE STRING "List of extra secure partition manifests")
 
-set(TFM_EXTRA_PARTITION_PATHS               ""          CACHE PATH      "List of extra Secure Partitions directories. An extra Secure Parition folder contains source code, CMakeLists.txt and manifest files")
+# TFM_EXTRAS_REPO_PATH defaults are loaded later (config_base.cmake). When this
+# file is parsed, the value can still be empty. In auto-download mode,
+# fetch_remote_library() downloads tf-m-extras into ${CMAKE_BINARY_DIR}/lib/ext.
+if (NOT DEFINED TFM_EXTRAS_REPO_PATH OR TFM_EXTRAS_REPO_PATH STREQUAL "" OR TFM_EXTRAS_REPO_PATH STREQUAL "DOWNLOAD")
+    set(IFX_TFM_EXTRAS_EFFECTIVE_PATH       "${CMAKE_BINARY_DIR}/lib/ext/tf-m-extras-src")
+else()
+    set(IFX_TFM_EXTRAS_EFFECTIVE_PATH       "${TFM_EXTRAS_REPO_PATH}")
+endif()
 
-set(IFX_EXT_SP_PATH                         "${TFM_EXTRAS_REPO_PATH}/partitions/ifx_ext_sp" CACHE PATH "Path to IFX Extensions Partition")
-set(IFX_SE_IPC_SERVICE_PATH                 "${TFM_EXTRAS_REPO_PATH}/partitions/ifx_se_ipc_service" CACHE PATH "Path to IFX SE IPC Service partition")
-
-list(APPEND TFM_EXTRA_PARTITION_PATHS       "${IFX_EXT_SP_PATH}")
-list(APPEND TFM_EXTRA_MANIFEST_LIST_FILES   "${IFX_EXT_SP_PATH}/ifx_ext_sp_manifest_list.yaml")
-list(APPEND TFM_EXTRA_MANIFEST_LIST_FILES   "${IFX_SE_IPC_SERVICE_PATH}/ifx_se_ipc_service_manifest_list.yaml")
+set(IFX_EXT_SP_PATH                         "${IFX_TFM_EXTRAS_EFFECTIVE_PATH}/partitions/ifx_ext_sp" CACHE PATH "Path to IFX Extensions Partition")
+set(IFX_SE_IPC_SERVICE_PATH                 "${IFX_TFM_EXTRAS_EFFECTIVE_PATH}/partitions/ifx_se_ipc_service" CACHE PATH "Path to IFX SE IPC Service partition")
 
 ################################# Advanced options #############################
 
