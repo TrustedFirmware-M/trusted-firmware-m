@@ -445,17 +445,18 @@ enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id,
     struct sfcp_trusted_subnet_config_t *trusted_subnet;
     sfcp_node_id_t my_node_id;
     sfcp_node_id_t server_node_id;
-    enum sfcp_trusted_subnet_state_t state;
+    enum sfcp_trusted_subnet_state_t initial_state;
+    enum sfcp_trusted_subnet_state_t current_state;
     enum sfcp_trusted_subnet_state_t new_state;
     bool re_keying;
     uint32_t disable_irq_cookie;
 
-    sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet_id, &state);
+    sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet_id, &initial_state);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         return sfcp_err;
     }
 
-    switch (state) {
+    switch (initial_state) {
     /* Mutual auth requires the same initial setup as session key */
     case SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_REQUIRED:
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_REQUIRED:
@@ -497,12 +498,9 @@ enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id,
     }
 
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        if (re_keying) {
-            rollback_err = sfcp_trusted_subnet_set_state(
-                trusted_subnet_id, SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_REQUIRED);
-            if (rollback_err != SFCP_ERROR_SUCCESS) {
-                return rollback_err;
-            }
+        rollback_err = sfcp_trusted_subnet_set_state(trusted_subnet_id, initial_state);
+        if (rollback_err != SFCP_ERROR_SUCCESS) {
+            return rollback_err;
         }
 
         return sfcp_err;
@@ -522,13 +520,13 @@ enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id,
      * respond if required
      */
     while (1) {
-        sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet_id, &state);
+        sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet_id, &current_state);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             goto out;
         }
 
-        if ((state == SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID) ||
-            (state == SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_COMPLETED)) {
+        if ((current_state == SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID) ||
+            (current_state == SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_COMPLETED)) {
             break;
         }
 
@@ -548,9 +546,8 @@ enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id,
 out:
     sfcp_encryption_hal_enable_irq(disable_irq_cookie);
 
-    if (re_keying && (sfcp_err != SFCP_ERROR_SUCCESS)) {
-        rollback_err = sfcp_trusted_subnet_set_state(
-            trusted_subnet_id, SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_REQUIRED);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        rollback_err = sfcp_trusted_subnet_set_state(trusted_subnet_id, initial_state);
         if (rollback_err != SFCP_ERROR_SUCCESS) {
             return rollback_err;
         }

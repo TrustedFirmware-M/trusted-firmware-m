@@ -189,7 +189,7 @@ sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *truste
         return sfcp_err;
     }
 
-    if (trusted_subnet_node->send_seq_num == UINT16_MAX) {
+    if (trusted_subnet_node->send_seq_num == SFCP_TRUSTED_SUBNET_RE_KEY_SEQ_NUM) {
         return SFCP_ERROR_INVALID_SEQUENCE_NUMBER;
     }
 
