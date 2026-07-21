@@ -22,6 +22,12 @@ set(TFM_MULTI_CORE_TOPOLOGY           OFF)
 set(PLATFORM_HAS_ISOLATION_L3_SUPPORT ON)
 set(PLATFORM_HAS_FIRMWARE_UPDATE_SUPPORT ON)
 
+# Partition
+set(TFM_PARTITION_PLATFORM                 ON          CACHE BOOL      "Enable Platform partition")
+set(TFM_PARTITION_CRYPTO                   ON          CACHE BOOL      "Enable Crypto partition")
+set(TFM_PARTITION_INTERNAL_TRUSTED_STORAGE ON          CACHE BOOL      "Enable Internal Trusted Storage partition")
+set(TFM_PARTITION_FIRMWARE_UPDATE          ON          CACHE BOOL      "Enable firmware update partition")
+
 set(MCUBOOT_DATA_SHARING              ON               CACHE BOOL      "Enable Data Sharing")
 set(MCUBOOT_SIGNATURE_TYPE            "EC-P256"        CACHE STRING    "Algorithm to use for signature validation [RSA-2048, RSA-3072, EC-P256, EC-P384]")
 set(MCUBOOT_HW_KEY                    OFF              CACHE BOOL      "Whether to embed the entire public key in the image metadata instead of the hash only")
