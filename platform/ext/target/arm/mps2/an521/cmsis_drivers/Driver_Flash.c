@@ -21,6 +21,7 @@
 #include "Driver_Flash.h"
 #include "platform_retarget.h"
 #include "RTE_Device.h"
+#include "region_defs.h"
 
 #ifndef ARG_UNUSED
 #define ARG_UNUSED(arg)  ((void)arg)
@@ -55,7 +56,6 @@ static const uint32_t data_width_byte[DATA_WIDTH_ENUM_SIZE] = {
  * interface and behaviour on top of the SRAM memory.
  */
 struct arm_flash_dev_t {
-    const uint32_t memory_base;   /*!< FLASH memory base address */
     ARM_FLASH_INFO *data;         /*!< FLASH data */
 };
 
@@ -127,6 +127,39 @@ static int32_t is_flash_ready_to_write(const uint8_t *start_addr, uint32_t cnt)
     return rc;
 }
 
+/*
+ * Get the correct memory base address for a given flash offset.
+ *
+ * On AN521, the MPC marks certain flash regions as Non-Secure (NS partition,
+ * secondary partition). These regions must be accessed via the Non-Secure
+ * alias (FLASH0_BASE_NS) even from Secure code. Accessing them via the
+ * Secure alias (FLASH0_BASE_S) causes a BusFault.
+ */
+static uint32_t get_flash_base_for_offset(uint32_t offset)
+{
+#if (__DOMAIN_NS == 1)
+    return FLASH0_BASE_NS;
+#else
+    /* Check if offset falls within NS primary partition */
+    if ((offset >= NS_IMAGE_PRIMARY_PARTITION_OFFSET) &&
+        (offset < (NS_IMAGE_PRIMARY_PARTITION_OFFSET + FLASH_NS_PARTITION_SIZE))) {
+        return FLASH0_BASE_NS;
+    }
+
+#ifdef BL2
+    /* Check if offset falls within secondary partition (marked NS by MPC) */
+    if ((offset >= S_IMAGE_SECONDARY_PARTITION_OFFSET) &&
+        (offset < (S_IMAGE_SECONDARY_PARTITION_OFFSET + FLASH_S_PARTITION_SIZE +
+                   FLASH_NS_PARTITION_SIZE))) {
+        return FLASH0_BASE_NS;
+    }
+#endif /* BL2 */
+
+    /* Default: Secure regions use Secure alias */
+    return FLASH0_BASE_S;
+#endif /* __DOMAIN_NS == 1 */
+}
+
 #if (RTE_FLASH0)
 static ARM_FLASH_INFO ARM_FLASH0_DEV_DATA = {
     .sector_info  = NULL,                  /* Uniform sector layout */
@@ -137,11 +170,6 @@ static ARM_FLASH_INFO ARM_FLASH0_DEV_DATA = {
     .erased_value = ARM_FLASH_DRV_ERASE_VALUE};
 
 static struct arm_flash_dev_t ARM_FLASH0_DEV = {
-#if (__DOMAIN_NS == 1)
-    .memory_base = FLASH0_BASE_NS,
-#else
-    .memory_base = FLASH0_BASE_S,
-#endif /* __DOMAIN_NS == 1 */
     .data        = &(ARM_FLASH0_DEV_DATA)};
 
 struct arm_flash_dev_t *FLASH0_DEV = &ARM_FLASH0_DEV;
@@ -195,7 +223,7 @@ static int32_t ARM_Flash_PowerControl(ARM_POWER_STATE state)
 
 static int32_t ARM_Flash_ReadData(uint32_t addr, void *data, uint32_t cnt)
 {
-    uint32_t start_addr = FLASH0_DEV->memory_base + addr;
+    uint32_t start_addr = get_flash_base_for_offset(addr) + addr;
     int32_t rc = 0;
 
     /* CMSIS ARM_FLASH_ReadData API requires the `addr` data type size aligned.
@@ -226,7 +254,7 @@ static int32_t ARM_Flash_ReadData(uint32_t addr, void *data, uint32_t cnt)
 static int32_t ARM_Flash_ProgramData(uint32_t addr, const void *data,
                                      uint32_t cnt)
 {
-    uint32_t start_addr = FLASH0_DEV->memory_base + addr;
+    uint32_t start_addr = get_flash_base_for_offset(addr) + addr;
     int32_t rc = 0;
 
     /* Conversion between data items and bytes */
@@ -254,7 +282,7 @@ static int32_t ARM_Flash_ProgramData(uint32_t addr, const void *data,
 
 static int32_t ARM_Flash_EraseSector(uint32_t addr)
 {
-    uint32_t start_addr = FLASH0_DEV->memory_base + addr;
+    uint32_t start_addr = get_flash_base_for_offset(addr) + addr;
     uint32_t rc = 0;
 
     rc  = is_range_valid(FLASH0_DEV, addr);
@@ -273,18 +301,21 @@ static int32_t ARM_Flash_EraseSector(uint32_t addr)
 static int32_t ARM_Flash_EraseChip(void)
 {
     uint32_t i;
-    uint32_t addr = FLASH0_DEV->memory_base;
+    uint32_t offset = 0;
+    uint32_t addr;
     int32_t rc = ARM_DRIVER_ERROR_UNSUPPORTED;
 
     /* Check driver capability erase_chip bit */
     if (DriverCapabilities.erase_chip == 1) {
         for (i = 0; i < FLASH0_DEV->data->sector_count; i++) {
+            addr = get_flash_base_for_offset(offset) + offset;
+
             /* Flash interface just emulated over SRAM, use memset */
             memset((void *)addr,
                    FLASH0_DEV->data->erased_value,
                    FLASH0_DEV->data->sector_size);
 
-            addr += FLASH0_DEV->data->sector_size;
+            offset += FLASH0_DEV->data->sector_size;
             rc = ARM_DRIVER_OK;
         }
     }
