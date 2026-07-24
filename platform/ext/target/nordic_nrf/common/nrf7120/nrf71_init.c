@@ -5,8 +5,11 @@
  *
  */
 #include <stdint.h>
+#include <errno.h>
 #include <nrfx.h>
 #include <helpers/nrfx_ram_ctrl.h>
+
+#include "wicr_setup.h"
 
 #ifndef BIT_MASK
 /* Use Zephyr BIT_MASK for unasigned integers */
@@ -54,6 +57,12 @@ int  __attribute__((weak)) soc_early_init_hook(void){
 #if !defined(CONFIG_TRUSTED_EXECUTION_NONSECURE) || defined(__NRF_TFM__)
 	/* Currently not supported for non-secure */
 	SystemCoreClockUpdate();
+
+#if defined (CONFIG_SOC_NRF71_WICR)
+	if (wicr_setup() != 0) {
+		return -EIO;
+	}
+#endif
 
 #if defined(CONFIG_SOC_NRF71_WIFI_BOOT)
 	wifi_setup();
