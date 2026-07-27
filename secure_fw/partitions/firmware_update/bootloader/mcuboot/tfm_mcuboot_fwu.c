@@ -248,7 +248,6 @@ psa_status_t fwu_bootloader_install_image(const psa_fwu_component_t *candidates,
                 return PSA_ERROR_STORAGE_FAILURE;
             } else if (rc > 0) {
                 /* No more dependency found. */
-                rc = 0;
                 break;
             }
 
