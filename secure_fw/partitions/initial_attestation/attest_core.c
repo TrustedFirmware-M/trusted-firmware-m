@@ -116,7 +116,7 @@ attest_add_all_sw_components(struct attest_token_encode_ctx *token_ctx)
     QCBOREncodeContext *cbor_encode_ctx = NULL;
     uint32_t component_cnt;
     int32_t map_label = IAT_SW_COMPONENTS;
-    enum psa_attest_err_t err;
+    enum psa_attest_err_t err = PSA_ATTEST_ERR_GENERAL;
 
     cbor_encode_ctx = attest_token_encode_borrow_cbor_cntxt(token_ctx);
 
@@ -157,7 +157,7 @@ static enum psa_attest_err_t
 attest_add_implementation_id_claim(struct attest_token_encode_ctx *token_ctx)
 {
     uint8_t implementation_id[IMPLEMENTATION_ID_MAX_SIZE];
-    enum tfm_plat_err_t res_plat;
+    enum tfm_plat_err_t res_plat = TFM_PLAT_ERR_SYSTEM_ERR;
     uint32_t size = sizeof(implementation_id);
     struct q_useful_buf_c claim_value;
 
@@ -189,7 +189,7 @@ static enum psa_attest_err_t
 attest_add_instance_id_claim(struct attest_token_encode_ctx *token_ctx)
 {
     struct q_useful_buf_c claim_value;
-    enum psa_attest_err_t err;
+    enum psa_attest_err_t err = PSA_ATTEST_ERR_GENERAL;
 
     /* Leave the first byte for UEID type byte */
     err = attest_get_instance_id(&claim_value);
@@ -246,7 +246,7 @@ attest_add_profile_definition(struct attest_token_encode_ctx *token_ctx)
      */
     uint32_t buf[ALIGN_UP(PROFILE_DEFINITION_MAX_SIZE + 1, sizeof(uint32_t)) / sizeof(uint32_t)] = {0};
     uint32_t size = sizeof(buf) - 1;
-    enum tfm_plat_err_t err;
+    enum tfm_plat_err_t err = TFM_PLAT_ERR_SYSTEM_ERR;
 
     err = tfm_attest_hal_get_profile_definition(&size, (uint8_t *)buf);
     if (err != TFM_PLAT_ERR_SUCCESS) {
@@ -288,7 +288,7 @@ attest_add_verification_service(struct attest_token_encode_ctx *token_ctx)
     struct q_useful_buf_c service;
     uint8_t buf[VERIFICATION_URL_MAX_SIZE];
     uint32_t size = sizeof(buf);
-    enum tfm_plat_err_t err;
+    enum tfm_plat_err_t err = TFM_PLAT_ERR_SYSTEM_ERR;
 
     err = tfm_attest_hal_get_verification_service(&size, buf);
     if (err != TFM_PLAT_ERR_SUCCESS) {
@@ -345,7 +345,7 @@ attest_add_boot_seed_claim(struct attest_token_encode_ctx *token_ctx)
 static enum psa_attest_err_t
 attest_add_caller_id_claim(struct attest_token_encode_ctx *token_ctx)
 {
-    enum psa_attest_err_t res;
+    enum psa_attest_err_t res = PSA_ATTEST_ERR_GENERAL;
     int32_t caller_id;
 
     res = attest_get_caller_client_id(&caller_id);
@@ -373,7 +373,7 @@ static enum psa_attest_err_t
 attest_add_cert_ref_claim(struct attest_token_encode_ctx *token_ctx)
 {
     uint8_t buf[CERTIFICATION_REF_MAX_SIZE];
-    enum tfm_plat_err_t res_plat;
+    enum tfm_plat_err_t res_plat = TFM_PLAT_ERR_SYSTEM_ERR;
     uint32_t size = sizeof(buf);
     struct q_useful_buf_c claim_value = {0};
 
@@ -411,7 +411,7 @@ attest_add_hash_algo_claim(struct attest_token_encode_ctx *token_ctx)
     struct q_useful_buf_c hash_algo;
     const char *buf = NULL;
     uint32_t size = 0;
-    enum tfm_plat_err_t err;
+    enum tfm_plat_err_t err = TFM_PLAT_ERR_SYSTEM_ERR;
 
     err = tfm_attest_hal_get_platform_hash_algo(&size, &buf);
     if (err != TFM_PLAT_ERR_SUCCESS && buf == NULL) {
@@ -446,7 +446,7 @@ attest_add_platform_config_claim(struct attest_token_encode_ctx *token_ctx)
 {
 
     uint8_t plat_config[PLATFORM_CONFIG_MAX_SIZE];
-    enum tfm_plat_err_t res;
+    enum tfm_plat_err_t res = TFM_PLAT_ERR_SYSTEM_ERR;
     uint32_t size = sizeof(plat_config);
     struct q_useful_buf_c claim_value;
 
@@ -511,7 +511,7 @@ static enum psa_attest_err_t attest_verify_challenge_size(size_t challenge_size)
 static enum psa_attest_err_t attest_get_t_cose_algorithm(
         int32_t *cose_algorithm_id)
 {
-    psa_status_t status;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     psa_key_attributes_t attr;
     psa_key_id_t key_id = TFM_BUILTIN_KEY_ID_IAK;
     psa_key_type_t key_type;
@@ -612,7 +612,7 @@ attest_create_token(struct q_useful_buf_c *challenge,
                     struct q_useful_buf   *token,
                     struct q_useful_buf_c *completed_token)
 {
-    enum psa_attest_err_t attest_err = PSA_ATTEST_ERR_SUCCESS;
+    enum psa_attest_err_t attest_err = PSA_ATTEST_ERR_GENERAL;
     enum attest_token_err_t token_err;
     struct attest_token_encode_ctx attest_token_ctx;
     int32_t key_select = 0;
@@ -666,7 +666,7 @@ initial_attest_get_token(const void *challenge_buf, size_t challenge_size,
                          void *token_buf, size_t token_buf_size,
                          size_t *token_size)
 {
-    enum psa_attest_err_t attest_err = PSA_ATTEST_ERR_SUCCESS;
+    enum psa_attest_err_t attest_err = PSA_ATTEST_ERR_GENERAL;
     struct q_useful_buf_c challenge;
     struct q_useful_buf token;
     struct q_useful_buf_c completed_token;
@@ -700,7 +700,7 @@ error:
 psa_status_t
 initial_attest_get_token_size(size_t challenge_size, size_t *token_size)
 {
-    enum psa_attest_err_t attest_err = PSA_ATTEST_ERR_SUCCESS;
+    enum psa_attest_err_t attest_err = PSA_ATTEST_ERR_GENERAL;
     struct q_useful_buf_c challenge;
     struct q_useful_buf token;
     struct q_useful_buf_c completed_token;

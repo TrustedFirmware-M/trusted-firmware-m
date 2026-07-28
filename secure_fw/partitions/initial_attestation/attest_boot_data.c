@@ -225,8 +225,8 @@ attest_encode_sw_components_array(QCBOREncodeContext *encode_ctx,
     struct q_useful_buf_c measurement_desc = NULL_Q_USEFUL_BUF_C;
     uint32_t measurement_algo;
     bool is_locked;
-    enum psa_attest_err_t err;
-    psa_status_t status;
+    enum psa_attest_err_t err = PSA_ATTEST_ERR_GENERAL;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
     if ((encode_ctx == NULL) || (cnt == NULL)) {
         return PSA_ATTEST_ERR_INVALID_INPUT;
