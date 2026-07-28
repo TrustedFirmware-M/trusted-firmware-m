@@ -21,13 +21,7 @@
 
 #ifdef DT_HAS_COMPAT_STATUS_OKAY
 #if DT_HAS_COMPAT_STATUS_OKAY(nordic_nrf_pwr_antswc)
-
-#if !defined(CONFIG_TRUSTED_EXECUTION_NONSECURE) || defined(__NRF_TFM__)
 #define PWR_ANTSWC_REG (0x5010F780UL)
-#else /* CONFIG_TRUSTED_EXECUTION_NONSECURE */
-#define PWR_ANTSWC_REG (0x4010F780UL)
-#endif /* CONFIG_TRUSTED_EXECUTION_NONSECURE */
-
 #define PWR_ANTSWC_ENABLE (0x3UL)
 #endif /* DT_HAS_COMPAT_STATUS_OKAY(nordic_nrf_pwr_antswc) */
 #endif /* DT_HAS_COMPAT_STATUS_OKAY */
@@ -38,6 +32,7 @@
  * It is defined as weak to allow the sdk-nrf version to be used when available. */
 void __attribute__((weak)) CRACEN_IRQHandler(void){};
 
+#ifndef __NRF_TFM__
 #if defined(CONFIG_SOC_NRF71_WIFI_BOOT)
 void __attribute__((weak)) wifi_setup(void){
 	/* Kickstart the LMAC processor */
@@ -48,17 +43,10 @@ void __attribute__((weak)) wifi_setup(void){
 }
 #endif
 
-int  __attribute__((weak)) soc_early_init_hook(void){
+int soc_early_init_hook(void){
     nrfx_ram_ctrl_retention_enable_all_set(false);
 
-	/* Update the SystemCoreClock global variable with current core clock
-	 * retrieved from hardware state.
-	 */
-#if !defined(CONFIG_TRUSTED_EXECUTION_NONSECURE) || defined(__NRF_TFM__)
-	/* Currently not supported for non-secure */
-	SystemCoreClockUpdate();
-
-#if defined (CONFIG_SOC_NRF71_WICR)
+#if defined (CONFIG_SOC_NRF7120_WICR_SETUP)
 	if (wicr_setup() != 0) {
 		return -EIO;
 	}
@@ -82,6 +70,6 @@ int  __attribute__((weak)) soc_early_init_hook(void){
 #endif /* DT_ENUM_HAS_VALUE(LFXO_NODE, load_capacitors, internal) */
 #endif /* DT_ENUM_HAS_VALUE */
 
-#endif /* CONFIG_TRUSTED_EXECUTION_NONSECURE && !__NRF_TFM__ */
 	return 0;
 }
+#endif /* __NRF_TFM__ */
