@@ -317,7 +317,7 @@ static enum psa_attest_err_t
 attest_add_boot_seed_claim(struct attest_token_encode_ctx *token_ctx)
 {
     uint8_t boot_seed[BOOT_SEED_SIZE];
-    enum tfm_plat_err_t res;
+    enum tfm_plat_err_t res = TFM_PLAT_ERR_SYSTEM_ERR;
     struct q_useful_buf_c claim_value = {0};
 
     /* Use callback function to get it from runtime SW */
