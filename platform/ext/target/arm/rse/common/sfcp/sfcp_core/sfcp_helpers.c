@@ -33,6 +33,10 @@ enum sfcp_error_t sfcp_helpers_parse_packet(struct sfcp_packet_t *packet, size_t
     *uses_cryptography = GET_METADATA_FIELD(USES_CRYPTOGRAPHY, packet->header.metadata);
     *uses_id_extension = GET_METADATA_FIELD(USES_ID_EXTENSION, packet->header.metadata);
 
+    if ((*sender >= SFCP_NUMBER_NODES) || (*receiver >= SFCP_NUMBER_NODES)) {
+        return SFCP_ERROR_INVALID_NODE;
+    }
+
     switch (*packet_type) {
     case SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY:
         if (packet_size != SFCP_PACKET_SIZE_ERROR_REPLY) {

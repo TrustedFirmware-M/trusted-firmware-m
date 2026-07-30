@@ -1042,6 +1042,18 @@ static enum sfcp_error_t msg_process_for_trusted_subnet(
 {
     enum sfcp_error_t sfcp_err;
     enum sfcp_trusted_subnet_state_t state;
+    bool remote_node_is_member = false;
+
+    for (uint8_t i = 0; i < trusted_subnet->node_amount; i++) {
+        if (trusted_subnet->nodes[i].id == remote_node) {
+            remote_node_is_member = true;
+            break;
+        }
+    }
+
+    if (!remote_node_is_member) {
+        goto out_invalid;
+    }
 
     sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet->id, &state);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
@@ -1361,6 +1373,10 @@ static enum sfcp_error_t msg_process(struct sfcp_packet_t *packet, size_t packet
     size_t num_trusted_subnets;
 
     *msg_processed = false;
+
+    if (remote_node >= SFCP_NUMBER_NODES) {
+        return SFCP_ERROR_INVALID_TRUSTED_SUBNET_NODE_ID;
+    }
 
     sfcp_platform_get_trusted_subnets(&configs, &num_trusted_subnets);
 
