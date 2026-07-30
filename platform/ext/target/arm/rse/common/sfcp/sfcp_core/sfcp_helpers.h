@@ -42,6 +42,11 @@ void sfcp_helpers_generate_protocol_error_packet(struct sfcp_packet_t *packet,
 enum sfcp_error_t sfcp_helpers_drop_receive_message(sfcp_link_id_t link_id, size_t message_size,
                                                     size_t already_received);
 
+enum sfcp_error_t sfcp_helpers_encryption_handshake_validate(
+    struct sfcp_packet_t *packet, size_t packet_size, enum sfcp_packet_type_t packet_type,
+    sfcp_node_id_t remote_node, uint8_t message_id, bool packet_uses_crypto, uint8_t *payload,
+    size_t payload_size, bool *is_handshake_msg);
+
 static inline enum sfcp_error_t sfcp_hal_error_to_sfcp_error(enum sfcp_hal_error_t hal_error)
 {
     if (hal_error == SFCP_HAL_ERROR_SUCCESS) {

@@ -6,6 +6,7 @@
  */
 
 #include "sfcp_helpers.h"
+#include "sfcp_encryption.h"
 #include "sfcp_link_hal.h"
 
 enum sfcp_error_t sfcp_helpers_parse_packet(struct sfcp_packet_t *packet, size_t packet_size,
@@ -145,6 +146,69 @@ enum sfcp_error_t sfcp_helpers_drop_receive_message(sfcp_link_id_t link_id, size
 
         already_received += chunk;
         remaining -= chunk;
+    }
+
+    return SFCP_ERROR_SUCCESS;
+}
+
+enum sfcp_error_t sfcp_helpers_encryption_handshake_validate(
+    struct sfcp_packet_t *packet, size_t packet_size, enum sfcp_packet_type_t packet_type,
+    sfcp_node_id_t remote_node, uint8_t message_id, bool packet_uses_crypto, uint8_t *payload,
+    size_t payload_size, bool *is_handshake_msg)
+{
+    enum sfcp_error_t sfcp_err;
+    struct sfcp_trusted_subnet_config_t *trusted_subnet;
+    bool requires_handshake;
+    bool requires_encryption;
+    bool remote_node_is_member = false;
+
+    if (packet_type == SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY) {
+        *is_handshake_msg = false;
+        return SFCP_ERROR_SUCCESS;
+    }
+
+    sfcp_err = sfcp_encryption_handshake_responder(packet, packet_size, remote_node, message_id,
+                                                   packet_uses_crypto, payload, payload_size,
+                                                   is_handshake_msg);
+    if ((sfcp_err != SFCP_ERROR_SUCCESS) || *is_handshake_msg) {
+        return sfcp_err;
+    }
+
+    if (packet_uses_crypto) {
+        sfcp_err = sfcp_get_trusted_subnet_by_id(
+            packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id,
+            &trusted_subnet);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+
+        for (uint8_t i = 0; i < trusted_subnet->node_amount; i++) {
+            if (trusted_subnet->nodes[i].id == remote_node) {
+                remote_node_is_member = true;
+                break;
+            }
+        }
+
+        if (!remote_node_is_member) {
+            return SFCP_ERROR_INVALID_TRUSTED_SUBNET_NODE_ID;
+        }
+    } else {
+        sfcp_err = sfcp_get_trusted_subnet_for_node(remote_node, &trusted_subnet);
+        if (sfcp_err == SFCP_ERROR_INVALID_NODE) {
+            return SFCP_ERROR_SUCCESS;
+        } else if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+    }
+
+    sfcp_err = sfcp_trusted_subnet_state_requires_handshake_encryption(
+        trusted_subnet->id, &requires_handshake, &requires_encryption);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        return sfcp_err;
+    }
+
+    if (requires_handshake || (requires_encryption && !packet_uses_crypto)) {
+        return SFCP_ERROR_INVALID_MSG;
     }
 
     return SFCP_ERROR_SUCCESS;

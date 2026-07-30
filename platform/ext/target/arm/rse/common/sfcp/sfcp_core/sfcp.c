@@ -601,8 +601,8 @@ enum sfcp_error_t sfcp_receive_msg(uint8_t *buf, size_t buf_size, bool any_sende
         goto error_reply;
     }
 
-    sfcp_err = sfcp_encryption_handshake_responder(
-        packet, received_size,
+    sfcp_err = sfcp_helpers_encryption_handshake_validate(
+        packet, received_size, packet_type,
         packet_type == SFCP_PACKET_TYPE_REPLY ? packet_receiver : packet_sender, message_id,
         packet_uses_crypto, *payload, *payload_len, &is_handshake_req);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {

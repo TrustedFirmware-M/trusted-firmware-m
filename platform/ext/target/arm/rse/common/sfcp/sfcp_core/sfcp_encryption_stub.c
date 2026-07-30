@@ -64,7 +64,7 @@ sfcp_get_trusted_subnet_for_node(sfcp_node_id_t node,
     (void)node;
     (void)trusted_subnet;
 
-    return SFCP_ERROR_CRYPTOGRAPHY_NOT_SUPPORTED;
+    return SFCP_ERROR_INVALID_NODE;
 }
 
 enum sfcp_error_t
