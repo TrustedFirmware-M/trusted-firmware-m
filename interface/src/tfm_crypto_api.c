@@ -67,7 +67,7 @@ TFM_CRYPTO_API(psa_status_t, psa_crypto_init)(void)
 TFM_CRYPTO_API(int, psa_can_do_hash)(psa_algorithm_t hash_alg)
 {
     psa_status_t status;
-    int can_do_hash;
+    int can_do_hash = 0;
     const struct tfm_crypto_pack_iovec iov = {
         .function_id = TFM_CRYPTO_CAN_DO_HASH_SID,
         .alg = hash_alg,
@@ -87,7 +87,7 @@ TFM_CRYPTO_API(int, psa_can_do_hash)(psa_algorithm_t hash_alg)
 TFM_CRYPTO_API(int, psa_can_do_cipher)(psa_key_type_t key_type, psa_algorithm_t cipher_alg)
 {
     psa_status_t status;
-    int can_do_cipher;
+    int can_do_cipher = 0;
     const struct tfm_crypto_pack_iovec iov = {
         .function_id = TFM_CRYPTO_CAN_DO_CIPHER_SID,
         .alg = cipher_alg,
