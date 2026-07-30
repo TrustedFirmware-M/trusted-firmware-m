@@ -1,7 +1,7 @@
-From 6bc9a7cfe754b771ca5027a0e5fcad50919fe5cc Mon Sep 17 00:00:00 2001
+From f2dd600445cd7139f8847e5af6db945aeddd01cc Mon Sep 17 00:00:00 2001
 From: Hugues KAMBA MPIANA <hugueskambampiana@arm.com>
 Date: Fri, 8 May 2026 10:17:04 +0100
-Subject: [PATCH 2/3] cc3xx: handle unaligned HMAC keys in low-level HMAC
+Subject: [PATCH 1/2] cc3xx: handle unaligned HMAC keys in low-level HMAC
 
 Some HMAC callers provide short key buffers that are only byte aligned,
 for example during protected-storage HKDF setup. The low-level HMAC
@@ -74,5 +74,5 @@ index 898b456..c2e60ff 100644
  
      /* H(K ^ ipad) */
 -- 
-2.34.1
+2.53.0
 

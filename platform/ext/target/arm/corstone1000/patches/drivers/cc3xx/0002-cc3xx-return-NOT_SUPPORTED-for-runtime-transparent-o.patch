@@ -1,7 +1,7 @@
-From 75b37e5d22c7b0c5f7b00ffcef6df51f26f63b3f Mon Sep 17 00:00:00 2001
+From 0ca1b46a83636edd843fe174c48c1134b4a644c7 Mon Sep 17 00:00:00 2001
 From: Hugues KAMBA MPIANA <hugueskambampiana@arm.com>
 Date: Fri, 8 May 2026 11:32:41 +0100
-Subject: [PATCH 3/3] cc3xx: return NOT_SUPPORTED for runtime transparent ops
+Subject: [PATCH 2/2] cc3xx: return NOT_SUPPORTED for runtime transparent ops
 
 Runtime CC3XX builds should keep opaque-key support on the driver path,
 but let transparent asymmetric, key generation, key agreement, public
@@ -233,5 +233,5 @@ index e23adff..9824c91 100644
  
      /* Initialise the return value to 0 */
 -- 
-2.34.1
+2.53.0
 
