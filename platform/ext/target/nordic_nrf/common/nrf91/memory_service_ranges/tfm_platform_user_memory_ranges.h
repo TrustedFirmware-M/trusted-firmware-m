@@ -11,9 +11,11 @@
 
 #include <nrfx.h>
 
+#define FICR_INFO_ADDR          (NRF_FICR_S_BASE + offsetof(NRF_FICR_Type, INFO))
+#define FICR_INFO_SIZE          (sizeof(FICR_INFO_Type))
 
 static const struct tfm_read_service_range ranges[] = {
-	{ .start = 0xFFFFFFFF, .size = 0x0},
+	{ .start = FICR_INFO_ADDR, .size = FICR_INFO_SIZE },
 };
 
 static const struct tfm_write32_service_address tfm_write32_service_addresses[] = {
