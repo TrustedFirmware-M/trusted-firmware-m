@@ -178,6 +178,7 @@ enum sfcp_error_t
 sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *trusted_subnet,
                                      sfcp_node_id_t remote_node, uint16_t *seq_num)
 {
+    enum sfcp_error_t sfcp_err;
     struct sfcp_trusted_subnet_node_t *trusted_subnet_node;
 
     if (trusted_subnet == NULL || seq_num == NULL) {
@@ -211,7 +212,10 @@ enum sfcp_error_t sfcp_trusted_subnet_increment_send_seq_num(uint8_t trusted_sub
         return sfcp_err;
     }
 
-    trusted_subnet_node = &trusted_subnet->nodes[remote_node];
+    sfcp_err = get_trusted_subnet_node(trusted_subnet, remote_node, &trusted_subnet_node);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        return sfcp_err;
+    }
 
     sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet_id, &current_state);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
