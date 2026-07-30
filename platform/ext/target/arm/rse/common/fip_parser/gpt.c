@@ -86,6 +86,7 @@ enum tfm_plat_err_t gpt_get_list_entry_by_name(uint32_t list_base, uint32_t list
         sizeof(uint32_t),
     };
     const size_t data_width = data_width_byte[DriverCapabilities.data_width];
+    const uint32_t read_cnt = sizeof(gpt_entry_t) / data_width;
     int rc;
     uint64_t idx;
 
@@ -106,9 +107,8 @@ enum tfm_plat_err_t gpt_get_list_entry_by_name(uint32_t list_base, uint32_t list
     for (idx = list_base;
          idx < list_base + list_num_entries * list_entry_size;
          idx += list_entry_size) {
-        rc = FLASH_DEV_NAME.ReadData(idx - FLASH_BASE_ADDRESS, entry,
-                                     sizeof(gpt_entry_t));
-        if (rc != sizeof(gpt_entry_t) / data_width) {
+        rc = FLASH_DEV_NAME.ReadData(idx - FLASH_BASE_ADDRESS, entry, read_cnt);
+        if (rc != read_cnt) {
             return TFM_PLAT_ERR_GPT_ENTRY_INVALID_READ;
         }
 
@@ -139,6 +139,7 @@ enum tfm_plat_err_t gpt_get_list_entry_by_image_uuid(uint32_t list_base,
         sizeof(uint32_t),
     };
     const size_t data_width = data_width_byte[DriverCapabilities.data_width];
+    const uint32_t read_cnt = sizeof(gpt_entry_t) / data_width;
     int rc;
     uint64_t idx;
 
@@ -159,9 +160,8 @@ enum tfm_plat_err_t gpt_get_list_entry_by_image_uuid(uint32_t list_base,
     for (idx = list_base;
          idx < list_base + list_num_entries * list_entry_size;
          idx += list_entry_size) {
-        rc = FLASH_DEV_NAME.ReadData(idx - FLASH_BASE_ADDRESS, entry,
-                                     sizeof(gpt_entry_t));
-        if (rc != sizeof(gpt_entry_t) / data_width) {
+        rc = FLASH_DEV_NAME.ReadData(idx - FLASH_BASE_ADDRESS, entry, read_cnt);
+        if (rc != read_cnt) {
             return TFM_PLAT_ERR_GPT_ENTRY_INVALID_READ;
         }
 
@@ -189,6 +189,7 @@ enum tfm_plat_err_t gpt_get_list_entry_by_type_uuid(uint32_t list_base,
         sizeof(uint32_t),
     };
     const size_t data_width = data_width_byte[DriverCapabilities.data_width];
+    const uint32_t read_cnt = sizeof(gpt_entry_t) / data_width;
     int rc;
     uint8_t entry_cnt = 0;
     uint64_t idx;
@@ -210,10 +211,10 @@ enum tfm_plat_err_t gpt_get_list_entry_by_type_uuid(uint32_t list_base,
     for (idx = list_base;
          (idx < list_base + list_num_entries * list_entry_size) &&
          (entry_cnt < 2);
-         idx += list_entry_size) {
+        idx += list_entry_size) {
         rc = FLASH_DEV_NAME.ReadData(idx - FLASH_BASE_ADDRESS, &entries[entry_cnt],
-                                     sizeof(gpt_entry_t));
-        if (rc != sizeof(gpt_entry_t) / data_width) {
+                                     read_cnt);
+        if (rc != read_cnt) {
             return TFM_PLAT_ERR_GPT_ENTRY_INVALID_READ;
         }
 
