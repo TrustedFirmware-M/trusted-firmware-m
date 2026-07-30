@@ -146,6 +146,10 @@ enum sfcp_error_t sfcp_init_msg(uint8_t *buf, size_t buf_size, sfcp_node_id_t re
         sfcp_err = sfcp_get_trusted_subnet_for_node(receiver, &trusted_subnet);
         if (sfcp_err == SFCP_ERROR_SUCCESS) {
             found_trusted_subnet = true;
+        } else if (sfcp_err == SFCP_ERROR_INVALID_NODE) {
+            found_trusted_subnet = false;
+        } else {
+            return sfcp_err;
         }
     }
 
