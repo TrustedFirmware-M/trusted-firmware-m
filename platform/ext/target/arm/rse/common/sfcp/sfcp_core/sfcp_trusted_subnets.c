@@ -15,6 +15,21 @@
 
 static enum sfcp_trusted_subnet_state_t trusted_subnet_states[SFCP_MAX_TRUSTED_SUBNET_ID];
 
+static enum sfcp_error_t
+get_trusted_subnet_node(struct sfcp_trusted_subnet_config_t *trusted_subnet,
+                        sfcp_node_id_t remote_node,
+                        struct sfcp_trusted_subnet_node_t **trusted_subnet_node)
+{
+    for (uint8_t i = 0; i < trusted_subnet->node_amount; i++) {
+        if (trusted_subnet->nodes[i].id == remote_node) {
+            *trusted_subnet_node = &trusted_subnet->nodes[i];
+            return SFCP_ERROR_SUCCESS;
+        }
+    }
+
+    return SFCP_ERROR_INVALID_TRUSTED_SUBNET_NODE_ID;
+}
+
 enum sfcp_error_t
 sfcp_trusted_subnet_get_server(struct sfcp_trusted_subnet_config_t *trusted_subnet,
                                sfcp_node_id_t *server_node)
@@ -171,7 +186,10 @@ sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *truste
         return SFCP_ERROR_INVALID_POINTER;
     }
 
-    trusted_subnet_node = &trusted_subnet->nodes[remote_node];
+    sfcp_err = get_trusted_subnet_node(trusted_subnet, remote_node, &trusted_subnet_node);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        return sfcp_err;
+    }
 
     *seq_num = trusted_subnet_node->send_seq_num++;
 
@@ -212,6 +230,7 @@ enum sfcp_error_t
 sfcp_trusted_subnet_check_recv_seq_num(struct sfcp_trusted_subnet_config_t *trusted_subnet,
                                        sfcp_node_id_t remote_node, uint16_t seq_num)
 {
+    enum sfcp_error_t sfcp_err;
     uint8_t bitfield_index;
     struct sfcp_trusted_subnet_node_t *trusted_subnet_node;
 
@@ -219,7 +238,10 @@ sfcp_trusted_subnet_check_recv_seq_num(struct sfcp_trusted_subnet_config_t *trus
         return SFCP_ERROR_INVALID_POINTER;
     }
 
-    trusted_subnet_node = &trusted_subnet->nodes[remote_node];
+    sfcp_err = get_trusted_subnet_node(trusted_subnet, remote_node, &trusted_subnet_node);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        return sfcp_err;
+    }
 
     if (seq_num < trusted_subnet_node->recv_seq_num) {
         return SFCP_ERROR_MSG_ALREADY_RECEIVED;
