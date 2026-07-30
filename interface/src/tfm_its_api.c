@@ -57,6 +57,7 @@ psa_status_t psa_its_get(psa_storage_uid_t uid,
         return PSA_ERROR_INVALID_ARGUMENT;
     }
     data_offset_param = (rot_size_t)data_offset;
+    (void)data_offset_param;
 
     if (p_data_length == NULL) {
         return PSA_ERROR_INVALID_ARGUMENT;
