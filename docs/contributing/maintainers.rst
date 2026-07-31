@@ -141,9 +141,9 @@ David Hazi
 Corstone1000
 ^^^^^^^^^^^^
 
-Hugues Kamba Mpiana
-    :email: `Hugues.KambaMpiana@arm.com <hugues.kambampiana@arm.com>`__
-    :github: `hugueskamba <https://github.com/hugueskamba>`__
+Harsimran Singh Tungal
+    :email: `Harsimran Singh Tungal" <HarsimranSingh.Tungal@arm.com>`__
+    :github: `hartun01 <https://github.com/hartun01>`__
 
 Emekcan Aras
     :email: `Emekcan.Aras@arm.com <emekcan.aras@arm.com>`__
