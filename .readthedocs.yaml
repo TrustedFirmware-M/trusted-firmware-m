@@ -23,10 +23,10 @@ build:
     - cmake
   jobs:
     pre_build:
-      - cmake -P docs/doxygen/configure_rtd.cmake
-      - doxygen Doxyfile
+      - cmake -S docs -B build_docs
+      - cmake --build build_docs --target=tfm_docs_refman_html
     post_build:
-      - cp -a reference_manual/html/. $READTHEDOCS_OUTPUT/html/doxygen
+      - cp -a build_docs/reference_manual/html/. $READTHEDOCS_OUTPUT/html/doxygen
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
