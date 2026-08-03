@@ -16,6 +16,7 @@ Security Advisories
     user_pointers_mailbox_vectors_vulnerability
     fwu_tlv_payload_out_of_bounds_vulnerability
     missing_ns_pointer_validation_mailbox_init
+    fwu_partial_fmp_header
 
 +------------+-----------------------------------------------------------------+
 | ID         | Title                                                           |
@@ -46,6 +47,9 @@ Security Advisories
 +------------+-----------------------------------------------------------------+
 |  |TFMV-10| | Missing NS pointer validation in platform mailbox init          |
 +------------+-----------------------------------------------------------------+
+|  |TFMV-11| | Incorrect FMP Header Fragment Reconstruction Allows             |
+|            | Attacker-Controlled Firmware Version Values                     |
++------------+-----------------------------------------------------------------+
 
 .. |TFMV-1| replace:: :doc:`TFMV-1 <stack_seal_vulnerability>`
 .. |TFMV-2| replace:: :doc:`TFMV-2 <svc_caller_sp_fetching_vulnerability>`
@@ -57,6 +61,7 @@ Security Advisories
 .. |TFMV-8| replace:: :doc:`TFMV-8 <user_pointers_mailbox_vectors_vulnerability>`
 .. |TFMV-9| replace:: :doc:`TFMV-9 <fwu_tlv_payload_out_of_bounds_vulnerability>`
 .. |TFMV-10| replace:: :doc:`TFMV-10 <missing_ns_pointer_validation_mailbox_init>`
+.. |TFMV-11| replace:: :doc:`TFMV-11 <fwu_partial_fmp_header>`
 
 --------------
 
