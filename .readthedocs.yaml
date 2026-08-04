@@ -19,6 +19,15 @@ build:
     python: "3.11"
   apt_packages:
     - plantuml
+    - doxygen
+    - graphviz
+    - cmake
+  jobs:
+    pre_build:
+      - cmake -S docs -B build_docs
+      - cmake --build build_docs --target=tfm_docs_refman_html
+    post_build:
+      - cp -a build_docs/reference_manual/html/. $READTHEDOCS_OUTPUT/html/doxygen
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:

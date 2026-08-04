@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2018-2020, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -799,9 +799,7 @@ WARN_LOGFILE           =
 
 INPUT                  = "doxygen" \
                          "../interface" \
-                         "../secure_fw" \
-                         "../test"
-
+                         "../secure_fw"
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
