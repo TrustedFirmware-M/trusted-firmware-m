@@ -10,7 +10,7 @@
 # Please keep it in place when updating.
 set(TFM_VERSION_MANUAL "2.3.0**")
 
-execute_process(COMMAND git describe --always --candidates=1
+execute_process(COMMAND git describe --always
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     OUTPUT_VARIABLE TFM_VERSION_FULL
     OUTPUT_STRIP_TRAILING_WHITESPACE
