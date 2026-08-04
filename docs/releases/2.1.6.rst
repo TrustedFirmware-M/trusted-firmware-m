@@ -1,0 +1,28 @@
+*************
+Version 2.1.6
+*************
+
+LTS Support
+===========
+
+ - its: Zero the aligned data buffer before write into flash
+ - mailbox: Centralize address range checks on init & related platform adjustments
+ - Upgrade to MbedTLS v3.6.7, which contains security advisories [1]_.
+ - crypto: Fix checks on AEAD ops
+
+Known issues
+============
+
+Musca-B1 CRYPTO psa-arch tests fail with GCC and isolation level 1.
+
+
+Reference
+=========
+
+.. [1] `Mbed TLS 3.6.7 <https://github.com/Mbed-TLS/mbedtls/releases/tag/mbedtls-3.6.7>`_
+
+--------------
+
+ *SPDX-License-Identifier: BSD-3-Clause*
+
+ *SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
