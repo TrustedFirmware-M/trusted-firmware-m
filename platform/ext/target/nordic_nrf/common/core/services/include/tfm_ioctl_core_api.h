@@ -100,7 +100,7 @@ struct tfm_mramc_set_wen_service_args_t {
 };
 #endif
 
-#if defined(CONFIG_NRF_TFM_RAM_CTRL_SERVICE) || defined(TFM_NRF_RAM_CTRL_SERVICE)
+#if defined(CONFIG_SOC_SERIES_NRF71_TFM_RAM_CTRL_SERVICE) || defined(TFM_NRF_RAM_CTRL_SERVICE)
 /** @brief RAM-control operation selector. */
 enum tfm_ram_ctrl_op {
 	/** System ON power (MEMCONF CONTROL), applied immediately. */
@@ -210,7 +210,7 @@ enum tfm_platform_err_t tfm_platform_mramc_init(void);
 enum tfm_platform_err_t tfm_platform_mramc_set_wen(uint32_t write_mode);
 #endif /* SOC_NRF7120_TFM_MRAMC_SERVICE */
 
-#if defined(CONFIG_NRF_TFM_RAM_CTRL_SERVICE)
+#if defined(CONFIG_SOC_SERIES_NRF71_TFM_RAM_CTRL_SERVICE)
 /**
  * @brief Power up/down a non-secure RAM range in System ON (MEMCONF CONTROL).
  *
