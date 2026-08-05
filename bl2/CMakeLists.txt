@@ -141,6 +141,7 @@ endif()
 
 add_executable(bl2
     src/flash_map.c
+    src/watchdog.c
     $<$<C_COMPILER_ID:GNU,Clang>:
         ${CMAKE_SOURCE_DIR}/secure_fw/partitions/lib/runtime/crt_start.c
         ${CMAKE_SOURCE_DIR}/secure_fw/partitions/lib/runtime/crt_memcmp.c

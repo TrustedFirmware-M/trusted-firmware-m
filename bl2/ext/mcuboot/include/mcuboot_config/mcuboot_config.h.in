@@ -88,10 +88,8 @@ extern "C" {
 /*
  * Watchdog feeding
  */
-#define MCUBOOT_WATCHDOG_FEED()     \
-    do {                            \
-        /* Do nothing. */           \
-    } while (0)
+extern void mcuboot_watchdog_feed(void);
+#define MCUBOOT_WATCHDOG_FEED() mcuboot_watchdog_feed()
 
 #ifdef __cplusplus
 }
