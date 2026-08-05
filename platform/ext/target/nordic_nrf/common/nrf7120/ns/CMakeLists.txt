@@ -8,7 +8,7 @@
 cmake_policy(SET CMP0076 NEW)
 set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
-set(target nrf7120)
+set(target nrf71)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../core nrf_common)
 
 target_include_directories(platform_ns

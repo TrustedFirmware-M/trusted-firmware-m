@@ -8,7 +8,7 @@
 cmake_policy(SET CMP0076 NEW)
 set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
-set(target nrf7120)
+set(target nrf71)
 add_subdirectory(../core nrf_common)
 
 #========================= Platform Secure ====================================#
@@ -16,6 +16,7 @@ add_subdirectory(../core nrf_common)
 target_include_directories(platform_s
     PUBLIC
         .
+        ../nrf71
 )
 
 if(NOT NRF_DIR)
@@ -28,7 +29,7 @@ endif()
 target_sources(platform_s
     PRIVATE
         ${HAL_NORDIC_PATH}/nrfx/bsp/stable/mdk/nrf71/system_nrf71.c
-        ./nrf71_init.c
+        ../nrf71/nrf71_init.c
 )
 
 target_compile_definitions(platform_s
@@ -40,12 +41,12 @@ target_compile_definitions(platform_s
 
 target_sources(tfm_spm
     PRIVATE
-        $<$<OR:$<BOOL:${CONFIG_TFM_FLIH_API}>,$<BOOL:${CONFIG_TFM_SLIH_API}>>:${CMAKE_CURRENT_SOURCE_DIR}/tfm_interrupts.c>
+        $<$<OR:$<BOOL:${CONFIG_TFM_FLIH_API}>,$<BOOL:${CONFIG_TFM_SLIH_API}>>:${CMAKE_CURRENT_SOURCE_DIR}/../nrf71/tfm_interrupts.c>
 )
 
 #========================= Files for building NS side platform ================#
 
-install(FILES       ./config.cmake
+install(FILES       ../nrf71/config.cmake
                     ns/CMakeLists.txt
                     cpuarch.cmake
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/common/nrf7120
