@@ -38,7 +38,9 @@ if((NRF_SOC_VARIANT MATCHES "^nrf54l1[05]$") OR
   set(HAS_RRAMC 1)
   set(HAS_CRACEN 1)
   set(HAS_KMU 1)
-elseif((NRF_SOC_VARIANT MATCHES nrf7120) OR (TFM_PLATFORM MATCHES "nordic\_nrf\/nrf7120dk\_nrf7120\_cpuapp") OR (PSA_API_TEST_TARGET MATCHES "nrf7120"))
+elseif((NRF_SOC_VARIANT MATCHES "^nrf7120e?$") OR
+       (TFM_PLATFORM MATCHES "nordic_nrf/nrf7120dk_nrf7120e?_cpuapp") OR
+       (PSA_API_TEST_TARGET MATCHES "^nrf7120e?$"))
   set(HAS_MRAMC 1)
   set(HAS_CRACEN 1)
   set(HAS_KMU 1)
@@ -174,7 +176,7 @@ endif()
 
 # nRF7120 disables RAM retention during secure startup. Other platforms need
 # the helper only when the RAM-control service is enabled.
-if(NRF_RAM_CTRL_SERVICE OR target STREQUAL "nrf7120")
+if(NRF_RAM_CTRL_SERVICE OR target STREQUAL "nrf71")
     target_sources(platform_s
         PRIVATE
             ${HAL_NORDIC_PATH}/nrfx/helpers/nrfx_ram_ctrl.c
@@ -272,6 +274,10 @@ elseif((NRF_SOC_VARIANT MATCHES "^nrf54l[vc]10a?$") OR
        (TFM_PLATFORM MATCHES "nordic_nrf/nrf54l[vc]10dk_nrf54l[vc]10a?_cpuapp"))
     # nrf54l[vc]10 variants share the same startup file
     set(startup_file "startup_nrf54lvc.c")
+elseif((NRF_SOC_VARIANT MATCHES "^nrf7120e?$") OR
+       (TFM_PLATFORM MATCHES "nordic_nrf/nrf7120dk_nrf7120e?_cpuapp"))
+    # nrf7120 and nrf7120e share the same startup file
+    set(startup_file "startup_nrf7120.c")
 else()
     # Default to the original startup file for other targets
     set(startup_file "startup_${target}.c")
