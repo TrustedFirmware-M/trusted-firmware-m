@@ -175,116 +175,120 @@ To compile TF-M code, at least one of the supported compiler toolchains have to
 be available in the build environment. The currently supported compiler
 versions are:
 
-    - Arm Compiler minimum version v6.21
+****************************
+Arm Compiler (minimum v6.21)
+****************************
+.. tabs::
 
-      .. tabs::
+    .. group-tab:: Linux
 
-          .. group-tab:: Linux
+        - Download the standalone packages from `here <https://developer.arm.com/products/software-development-tools/compilers/arm-compiler/downloads/version-6>`__.
+        - Add Arm Compiler into environment:
 
-              - Download the standalone packages from `here <https://developer.arm.com/products/software-development-tools/compilers/arm-compiler/downloads/version-6>`__.
-              - Add Arm Compiler into environment:
+        .. code-block:: bash
 
-                .. code-block:: bash
+            export PATH=<ARM_CLANG_PATH>/bin:$PATH
+            export ARM_PRODUCT_PATH=<ARM_CLANG_PATH>/sw/mappings
 
-                    export PATH=<ARM_CLANG_PATH>/bin:$PATH
-                    export ARM_PRODUCT_PATH=<ARM_CLANG_PATH>/sw/mappings
+        - Configure proper tool variant and license.
 
-              - Configure proper tool variant and license.
+    .. group-tab:: Windows
 
-          .. group-tab:: Windows
+        - Download the standalone packages from `here <https://developer.arm.com/products/software-development-tools/compilers/arm-compiler/downloads/version-6>`__.
+        - Add Arm Compiler into environment:
 
-              - Download the standalone packages from `here <https://developer.arm.com/products/software-development-tools/compilers/arm-compiler/downloads/version-6>`__.
-              - Add Arm Compiler into environment:
+        .. code-block:: bash
 
-                .. code-block:: bash
+            set PATH=<ARM_CLANG_PATH>\bin;%PATH%
+            set ARM_PRODUCT_PATH=<ARM_CLANG_PATH>\sw\mappings
 
-                    set PATH=<ARM_CLANG_PATH>\bin;%PATH%
-                    set ARM_PRODUCT_PATH=<ARM_CLANG_PATH>\sw\mappings
+        - Configure proper tool variant and license.
 
-              - Configure proper tool variant and license.
+.. note::
 
-    .. note::
+    When compiling for a Cortex-M52 target, a Cortex-M85 target, or with an
+    -mcpu=<name> option that includes the **+pacbti** feature modifier,
+    and when configured without *User based* Licensing, the compiler
+    could incorrectly report one of these errors:
 
-        When compiling for a Cortex-M52 target, a Cortex-M85 target, or with an
-        -mcpu=<name> option that includes the **+pacbti** feature modifier,
-        and when configured without *User based* Licensing, the compiler
-        could incorrectly report one of these errors:
+    * ``Cortex-M52 is not available with the current toolkit edition and license``
+    * ``Cortex-M85 is not available with the current toolkit edition and license``
 
-        * ``Cortex-M52 is not available with the current toolkit edition and license``
-        * ``Cortex-M85 is not available with the current toolkit edition and license``
+    The use of -target-feature **+pacbti** is disallowed in this variant of Armclang.
+    Please use Armclang version 6.24+ which does not have this issue.
 
-        The use of -target-feature **+pacbti** is disallowed in this variant of Armclang.
-        Please use Armclang version 6.24+ which does not have this issue.
+*************************************
+GNU Arm compiler (minimum v12.2.Rel1)
+*************************************
+.. tabs::
 
-    - GNU Arm compiler version minimum 12.2.Rel1
+    .. group-tab:: Linux
 
-      .. tabs::
+        - Download the GNU Arm compiler from `here <https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads>`__.
+        - Add GNU Arm into environment:
 
-          .. group-tab:: Linux
+        .. code-block:: bash
 
-              - Download the GNU Arm compiler from `here <https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads>`__.
-              - Add GNU Arm into environment:
+            export PATH=<GNU_ARM_PATH>/bin:$PATH
 
-                .. code-block:: bash
+    .. group-tab:: Windows
 
-                    export PATH=<GNU_ARM_PATH>/bin:$PATH
+        - Download the GNU Arm compiler from `here <https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads>`__.
+        - Add GNU Arm into environment:
 
-          .. group-tab:: Windows
+        .. code-block:: bash
 
-              - Download the GNU Arm compiler from `here <https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads>`__.
-              - Add GNU Arm into environment:
+            set PATH=<GNU_ARM_PATH>\bin;%PATH%
 
-                .. code-block:: bash
+**********************************
+IAR Arm compiler (minimum v9.30.1)
+**********************************
+.. tabs::
 
-                    set PATH=<GNU_ARM_PATH>\bin;%PATH%
+    .. group-tab:: Linux
 
-    - IAR Arm compiler v9.30.1
+        - Download IAR build tools from `here <https://www.iar.com/embedded-development-tools/iar-build-tools>`__.
+        - Add IAR Arm compiler into environment:
 
-      .. tabs::
+        .. code-block:: bash
 
-          .. group-tab:: Linux
+            export PATH=<IAR_COMPILER_PATH>/bin:$PATH
 
-              - Download IAR build tools from `here <https://www.iar.com/embedded-development-tools/iar-build-tools>`__.
-              - Add IAR Arm compiler into environment:
+    .. group-tab:: Windows
 
-                .. code-block:: bash
+        - Download IAR build tools from `here <https://www.iar.com/embedded-development-tools/iar-build-tools>`__.
+        - Add IAR Arm compiler into environment:
 
-                    export PATH=<IAR_COMPILER_PATH>/bin:$PATH
+        .. code-block:: bash
 
-          .. group-tab:: Windows
+            set PATH=<IAR_COMPILER_PATH>\bin;%PATH%
 
-              - Download IAR build tools from `here <https://www.iar.com/embedded-development-tools/iar-build-tools>`__.
-              - Add IAR Arm compiler into environment:
+********************************************
+Arm Toolchain for Embedded (minimum v20.1.0)
+********************************************
+.. tabs::
 
-                .. code-block:: bash
+    .. group-tab:: Linux
 
-                    set PATH=<IAR_COMPILER_PATH>\bin;%PATH%
+        - Download the Arm Toolchain for Embedded (ATfE) from `here <https://github.com/arm/arm-toolchain/releases>`__.
+        - Add ATfE into environment:
 
-    - Arm Toolchain for Embedded (ATfE) v20.1.0+
+        .. code-block:: bash
 
-      .. tabs::
+            export PATH=<ATFE_PATH>/bin:$PATH
 
-          .. group-tab:: Linux
+    .. group-tab:: Windows
 
-              - Download the Arm Toolchain for Embedded from `here <https://github.com/arm/arm-toolchain/releases>`__.
-              - Add ATfE into environment:
+        - Download the Arm Toolchain for Embedded from `here <https://github.com/arm/arm-toolchain/releases>`__.
+        - Add ATfE into environment:
 
-                .. code-block:: bash
+        .. code-block:: bash
 
-                    export PATH=<ATFE_PATH>/bin:$PATH
+            set PATH=<ATFE_PATH>\bin;%PATH%
 
-          .. group-tab:: Windows
+.. note::
 
-              - Download the Arm Toolchain for Embedded from `here <https://github.com/arm/arm-toolchain/releases>`__.
-              - Add ATfE into environment:
-
-                .. code-block:: bash
-
-                    set PATH=<ATFE_PATH>\bin;%PATH%
-
-      .. note::
-
-          Not all platforms support this toolchain. Please refer to a platform documentation or check with the platform owner.
+    Not all platforms support this toolchain. Please refer to a platform documentation or check with the platform owner.
 
 #############################
 Build AN521 regression sample
@@ -365,7 +369,7 @@ Arm Development Studio.
 
     .. group-tab:: Linux
 
-        1. install Arm Development Studio to get the fast-model.
+        1. Install Arm Development Studio to get the fast-model.
 
            Download Arm Development Studio from `here <https://developer.arm.com/Tools%20and%20Software/Arm%20Development%20Studio#Downloads>`__.
 
@@ -407,7 +411,7 @@ Arm Development Studio.
 
     .. group-tab:: Windows
 
-        1. install Arm Development Studio to get the fast-model.
+        1. Install Arm Development Studio to get the fast-model.
 
            Download Arm Development Studio from `here <https://developer.arm.com/Tools%20and%20Software/Arm%20Development%20Studio#Downloads>`__.
 
@@ -471,7 +475,7 @@ To build the TF-M firmware the following tools are needed:
    - Git
    - gmake, aka GNU Make
    - Python >=v3.11
-   - [Optionally] `uv <https://docs.astral.sh/uv/getting-started/installation/#standalone-installer>`
+   - [Optionally] `uv <https://docs.astral.sh/uv/getting-started/installation/#standalone-installer>`__
 
 ****************
 Dependency chain
