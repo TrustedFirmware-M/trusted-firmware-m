@@ -32,6 +32,10 @@
 #include "region_defs.h"
 #endif
 
+#if CONFIG_NRF_WIFI_KMU
+#include <wifi_kmu/wifi_kmu.h>
+#endif
+
 #include "handle_attr.h"
 
 enum tfm_platform_err_t
@@ -372,3 +376,28 @@ tfm_platform_hal_ram_ctrl_service(const psa_invec *in_vec, const psa_outvec *out
 	return TFM_PLATFORM_ERR_SUCCESS;
 }
 #endif /* TFM_NRF_RAM_CTRL_SERVICE */
+
+#if CONFIG_NRF_WIFI_KMU
+enum tfm_platform_err_t tfm_platform_hal_wifi_kmu_write_key_service(const psa_invec *in_vec)
+{
+	struct tfm_wifi_kmu_write_key_service_args_t *args;
+	int err;
+
+	if (in_vec->len != sizeof *args) {
+		return TFM_PLATFORM_ERR_INVALID_PARAM;
+	}
+
+	args = (struct tfm_wifi_kmu_write_key_service_args_t *)in_vec->base;
+	err = wifi_kmu_write_key(args->slot_id, args->target_addr, args->key_buffer,
+				 args->key_size);
+
+	return err ? TFM_PLATFORM_ERR_SYSTEM_ERROR : TFM_PLATFORM_ERR_SUCCESS;
+}
+
+enum tfm_platform_err_t tfm_platform_hal_wifi_kmu_erase_keys_service(void)
+{
+	int err = wifi_kmu_erase_keys();
+
+	return err ? TFM_PLATFORM_ERR_SYSTEM_ERROR : TFM_PLATFORM_ERR_SUCCESS;
+}
+#endif /* CONFIG_NRF_WIFI_KMU */

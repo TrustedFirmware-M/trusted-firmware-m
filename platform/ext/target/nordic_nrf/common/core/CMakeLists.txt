@@ -191,6 +191,17 @@ if(NRF_RAM_CTRL_SERVICE)
     )
 endif()
 
+if(CONFIG_NRF_WIFI_KMU)
+    target_sources(platform_s
+        PRIVATE
+            ${ZEPHYR_NRF_MODULE_DIR}/lib/wifi_kmu/wifi_kmu.c
+    )
+    target_compile_definitions(platform_s
+        PUBLIC
+            CONFIG_NRF_WIFI_KMU=1
+    )
+endif()
+
 target_compile_options(platform_s
     PUBLIC
         ${COMPILER_CMSE_FLAG}

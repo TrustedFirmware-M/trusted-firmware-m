@@ -40,6 +40,12 @@ tfm_platform_hal_mramc_set_wen_service(const psa_invec *in_vec);
 enum tfm_platform_err_t
 tfm_platform_hal_ram_ctrl_service(const psa_invec *in_vec, const psa_outvec *out_vec);
 
+enum tfm_platform_err_t
+tfm_platform_hal_wifi_kmu_write_key_service(const psa_invec *in_vec);
+
+enum tfm_platform_err_t
+tfm_platform_hal_wifi_kmu_erase_keys_service(void);
+
 #ifdef __cplusplus
 }
 #endif

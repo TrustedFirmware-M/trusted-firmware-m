@@ -184,3 +184,27 @@ enum tfm_platform_err_t tfm_platform_ram_ctrl_read_status(uint32_t *control, uin
 	return err;
 }
 #endif /* NRF_TFM_RAM_CTRL_SERVICE */
+
+#if defined(CONFIG_NRF_WIFI_KMU)
+enum tfm_platform_err_t tfm_platform_wifi_kmu_write_key(uint32_t slot_id, uint32_t target_addr,
+							const uint8_t *key_buffer, size_t key_size)
+{
+	psa_invec in_vec;
+	struct tfm_wifi_kmu_write_key_service_args_t args;
+
+	args.slot_id = slot_id;
+	args.target_addr = target_addr;
+	args.key_buffer = key_buffer;
+	args.key_size = key_size;
+
+	in_vec.base = (const void *)&args;
+	in_vec.len = sizeof args;
+
+	return tfm_platform_ioctl(TFM_PLATFORM_IOCTL_WIFI_KMU_WRITE_KEY_SERVICE, &in_vec, NULL);
+}
+
+enum tfm_platform_err_t tfm_platform_wifi_kmu_erase_keys(void)
+{
+	return tfm_platform_ioctl(TFM_PLATFORM_IOCTL_WIFI_KMU_ERASE_KEYS_SERVICE, NULL, NULL);
+}
+#endif /* CONFIG_NRF_WIFI_KMU */

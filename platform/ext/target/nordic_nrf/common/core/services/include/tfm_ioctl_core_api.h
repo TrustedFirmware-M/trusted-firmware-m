@@ -36,6 +36,8 @@ enum tfm_platform_ioctl_core_reqest_types_t {
 	TFM_PLATFORM_IOCTL_MRAMC_INIT_SERVICE,
 	TFM_PLATFORM_IOCTL_MRAMC_SET_WEN_SERVICE,
 	TFM_PLATFORM_IOCTL_RAM_CTRL_SERVICE,
+	TFM_PLATFORM_IOCTL_WIFI_KMU_WRITE_KEY_SERVICE,
+	TFM_PLATFORM_IOCTL_WIFI_KMU_ERASE_KEYS_SERVICE,
 	/* Last core service, start platform specific from this value. */
 	TFM_PLATFORM_IOCTL_CORE_LAST
 };
@@ -127,6 +129,16 @@ struct tfm_ram_ctrl_service_out_t {
 	uint32_t ret2;        /* MEMCONF POWER[0].RET2 snapshot (read status) */
 };
 #endif
+
+#if defined(CONFIG_NRF_WIFI_KMU)
+/** @brief Argument list for Wi-Fi KMU write key service */
+struct tfm_wifi_kmu_write_key_service_args_t {
+	uint32_t slot_id;
+	uint32_t target_addr;
+	const uint8_t *key_buffer;
+	size_t key_size;
+};
+#endif /* CONFIG_NRF_WIFI_KMU */
 
 /**
  * @brief Perform a read operation.
@@ -246,6 +258,28 @@ enum tfm_platform_err_t tfm_platform_ram_ctrl_retention_set(uint32_t addr, uint3
 enum tfm_platform_err_t tfm_platform_ram_ctrl_read_status(uint32_t *control, uint32_t *ret,
 							  uint32_t *ret2);
 #endif /* NRF_TFM_RAM_CTRL_SERVICE */
+
+#if defined(CONFIG_NRF_WIFI_KMU)
+/**
+ * @brief Write key to Wi-Fi secure RAM via KMU.
+ *
+ * @param[in] slot_id      Starting KMU slot ID.
+ * @param[in] target_addr  Address in Wi-Fi secure RAM.
+ * @param[in] key_buffer   Buffer containing key.
+ * @param[in] key_size     Size of key buffer in bytes.
+ *
+ * @return Values as specified by \ref tfm_platform_err_t.
+ */
+enum tfm_platform_err_t tfm_platform_wifi_kmu_write_key(uint32_t slot_id, uint32_t target_addr,
+							const uint8_t *key_buffer, size_t key_size);
+
+/**
+ * @brief Erase all KMU slots used by Wi-Fi keys.
+ *
+ * @return Values as specified by \ref tfm_platform_err_t.
+ */
+enum tfm_platform_err_t tfm_platform_wifi_kmu_erase_keys(void);
+#endif /* CONFIG_NRF_WIFI_KMU */
 
 #ifdef __cplusplus
 }
