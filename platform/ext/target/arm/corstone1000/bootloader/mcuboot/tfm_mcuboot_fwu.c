@@ -2088,6 +2088,31 @@ psa_status_t fwu_bootloader_load_image(psa_fwu_component_t component,
     image_offset = part.start * TFM_GPT_BLOCK_SIZE;
 #endif /* BL1_BUILD */
 
+    if ((fmp_header_image_info[fwu_image_index].image_size_recvd >
+            (UINT32_MAX - image_offset)) ||
+        (block_size > (UINT32_MAX - image_offset -
+            fmp_header_image_info[fwu_image_index].image_size_recvd))) {
+        FWU_LOG_MSG("%s: image write range overflows flash address space\n\r", __func__);
+        ret = PSA_ERROR_INVALID_ARGUMENT;
+        goto out;
+    }
+
+#ifdef BL1_BUILD
+    if ((fmp_header_image_info[fwu_image_index].image_size_recvd >
+            fwu_image[fwu_image_index].image_size) ||
+        (block_size > (fwu_image[fwu_image_index].image_size -
+            fmp_header_image_info[fwu_image_index].image_size_recvd))) {
+#else
+    if ((fmp_header_image_info[fwu_image_index].image_size_recvd >
+            (part.size * TFM_GPT_BLOCK_SIZE)) ||
+        (block_size > ((part.size * TFM_GPT_BLOCK_SIZE) -
+            fmp_header_image_info[fwu_image_index].image_size_recvd))) {
+#endif
+        FWU_LOG_MSG("%s: image write exceeds partition size\n\r", __func__);
+        ret = PSA_ERROR_INSUFFICIENT_STORAGE;
+        goto out;
+    }
+
     /* Firmware update process can only start in regular state. */
     current_state = get_fwu_image_state(&_metadata, &priv_metadata, fwu_image_index);
     if (current_state != PSA_FWU_READY) {
