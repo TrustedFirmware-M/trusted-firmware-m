@@ -282,7 +282,7 @@ int boot_platform_pre_load(uint32_t image_id)
         return plat_err;
     }
 
-    plat_err = host_flash_atu_setup_image_input_slots(uuid, offsets);
+    plat_err = host_flash_atu_setup_image_input_slots(uuid, 0, offsets);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return TFM_PLAT_ERR_PRE_LOAD_IMG_BY_BL2_FAIL;
     }

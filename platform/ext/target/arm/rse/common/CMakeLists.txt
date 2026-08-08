@@ -749,6 +749,11 @@ target_include_directories(platform_bl1_2
         ./native_drivers
 )
 
+target_link_libraries(platform_bl1_2
+    PRIVATE
+        bl1_2_lib
+)
+
 target_compile_definitions(platform_bl1_2
     PUBLIC
         $<$<BOOL:${TFM_PARTITION_DELEGATED_ATTESTATION}>:RSE_BOOT_KEYS_CCA>

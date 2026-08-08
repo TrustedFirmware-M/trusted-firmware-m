@@ -34,7 +34,7 @@ extern "C" {
  *                                platform error code on failure.
  */
 enum tfm_plat_err_t setup_aligned_atu_slot(uint64_t physical_address,
-                                           uint32_t size,
+                                           size_t   size,
                                            uint32_t boundary,
                                            uint32_t logical_address,
                                            uint32_t *alignment_offset,
@@ -115,6 +115,11 @@ enum tfm_plat_err_t host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t f
  * \param[in] logical_address         The address in RSE memory to which the ATU
  *                                    should map the image.
  *
+ * \param[in] expected_size           The expected size of the image that should
+ *                                    have its input slot set up. This is used
+ *                                    to validate the ATU slot size. If 0,
+ *                                    validation is skipped.
+ *
  * \param[in] image_uuid              The UUID of the image that should have
  *                                    its slot set up. This is used when parsing
  *                                    the FIP for the offset.
@@ -132,6 +137,7 @@ enum tfm_plat_err_t host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t f
  */
 enum tfm_plat_err_t host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
                                                     uintptr_t logical_address,
+                                                    size_t expected_size,
                                                     uuid_t image_uuid,
                                                     uint32_t *logical_address_offset,
                                                     size_t *atu_slot_size);
@@ -146,6 +152,11 @@ enum tfm_plat_err_t host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip
  * \param[in] image_uuid              The UUID of the image that should have
  *                                    its input slot set up.
  *
+ * \param[in] expected_size           The expected size of the image that should
+ *                                    have its input slot set up. This is used
+ *                                    to validate the ATU slot size. If 0,
+ *                                    validation is skipped.
+ *
  * \param[out] offsets                The offsets that the primary and secondary
  *                                    images for that particular UUID have been
  *                                    mapped at (offset from their expected
@@ -154,7 +165,9 @@ enum tfm_plat_err_t host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip
  * \return                            TFM_PLAT_ERR_SUCCESS on success,
                                       platform error code on failure.
  */
-enum tfm_plat_err_t host_flash_atu_setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2]);
+enum tfm_plat_err_t host_flash_atu_setup_image_input_slots(uuid_t image_uuid,
+                                                           size_t expected_size,
+                                                           uint32_t offsets[2]);
 
 /**
  * \brief                             Setup the input slots for a

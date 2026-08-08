@@ -41,7 +41,7 @@ extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 #define IMAGE_INPUT_BASE_PHYSICAL HOST_FLASH0_BASE
 #endif /* RSE_BL2_ENABLE_IMAGE_STAGING */
 
-enum tfm_plat_err_t setup_aligned_atu_slot(uint64_t physical_address, uint32_t size,
+enum tfm_plat_err_t setup_aligned_atu_slot(uint64_t physical_address, size_t size,
                                                   uint32_t boundary,
                                                   uint32_t logical_address,
                                                   uint32_t *alignment_offset,
@@ -87,6 +87,7 @@ enum tfm_plat_err_t setup_aligned_atu_slot(uint64_t physical_address, uint32_t s
 
 enum tfm_plat_err_t host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip_offset,
                                                     uintptr_t logical_address,
+                                                    size_t expected_size,
                                                     uuid_t image_uuid,
                                                     uint32_t *logical_address_offset,
                                                     size_t *slot_size)
@@ -125,6 +126,9 @@ enum tfm_plat_err_t host_flash_atu_setup_image_input_slots_from_fip(uint64_t fip
         return plat_err;
     }
 
+    if ((expected_size != 0) && (region_size < expected_size)) {
+        return TFM_PLAT_ERR_HOST_FLASH_SETUP_ATU_SLOT_INVALID_INPUT;
+    }
     /* Initialize primary input region */
     plat_err = setup_aligned_atu_slot(physical_address + region_offset, region_size,
                                       page_size, logical_address,
@@ -338,7 +342,9 @@ enum tfm_plat_err_t host_flash_atu_get_fip_offsets(bool fip_found[2], uint64_t f
     return TFM_PLAT_ERR_SUCCESS;
 }
 
-enum tfm_plat_err_t host_flash_atu_setup_image_input_slots(uuid_t image_uuid, uint32_t offsets[2])
+enum tfm_plat_err_t host_flash_atu_setup_image_input_slots(uuid_t image_uuid,
+                                                            size_t expected_size,
+                                                            uint32_t offsets[2])
 {
     enum tfm_plat_err_t plat_err;
     bool fip_found[2];
@@ -352,6 +358,7 @@ enum tfm_plat_err_t host_flash_atu_setup_image_input_slots(uuid_t image_uuid, ui
 
     plat_err = host_flash_atu_setup_image_input_slots_from_fip(fip_offsets[0],
                                                                HOST_FLASH0_IMAGE0_BASE_S,
+                                                               expected_size,
                                                                image_uuid,
                                                                &offsets[0], NULL);
     if (plat_err == TFM_PLAT_ERR_SUCCESS) {
@@ -360,6 +367,7 @@ enum tfm_plat_err_t host_flash_atu_setup_image_input_slots(uuid_t image_uuid, ui
 
     plat_err = host_flash_atu_setup_image_input_slots_from_fip(fip_offsets[1],
                                                                HOST_FLASH0_IMAGE1_BASE_S,
+                                                               expected_size,
                                                                image_uuid,
                                                                &offsets[1], NULL);
     if (plat_err == TFM_PLAT_ERR_SUCCESS) {
@@ -376,6 +384,7 @@ enum tfm_plat_err_t host_flash_atu_setup_image_input_slots(uuid_t image_uuid, ui
     if (fip_mapped[0] && !fip_mapped[1]) {
         plat_err = host_flash_atu_setup_image_input_slots_from_fip(fip_offsets[0],
                                                                    HOST_FLASH0_IMAGE1_BASE_S,
+                                                                   expected_size,
                                                                    image_uuid,
                                                                    &offsets[1], NULL);
         if (plat_err != TFM_PLAT_ERR_SUCCESS) {
@@ -384,6 +393,7 @@ enum tfm_plat_err_t host_flash_atu_setup_image_input_slots(uuid_t image_uuid, ui
     } else if (fip_mapped[1] && !fip_mapped[0]) {
         plat_err = host_flash_atu_setup_image_input_slots_from_fip(fip_offsets[1],
                                                                    HOST_FLASH0_IMAGE0_BASE_S,
+                                                                   expected_size,
                                                                    image_uuid,
                                                                    &offsets[0], NULL);
         if (plat_err != TFM_PLAT_ERR_SUCCESS) {
