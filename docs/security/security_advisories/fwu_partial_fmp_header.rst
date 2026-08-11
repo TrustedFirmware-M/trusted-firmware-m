@@ -5,7 +5,7 @@ Advisory TFMV-11
 | Title           | Incorrect FMP Header Fragment Reconstruction Allows        |
 |                 | Attacker-Controlled Firmware Version Values                |
 +=================+============================================================+
-| CVE ID          | Requested, being assigned                                  |
+| CVE ID          | `CVE-2026-73063`_                                          |
 +-----------------+------------------------------------------------------------+
 | Public          | Aug 03, 2026                                               |
 | Disclosure Date |                                                            |
@@ -63,6 +63,7 @@ Perform correct storage of the incoming partial FMP header.
 
 See commit `d92781c5b966ee700ddaa9525230e677789def96`_.
 
+.. _CVE-2026-73063: https://www.cve.org/CVERecord?id=CVE-2026-73063
 .. _v2.2.0: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m/+/refs/tags/TF-Mv2.2.0
 .. _v2.3.0: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m/+/refs/tags/TF-Mv2.3.0
 .. _d92781c5b966ee700ddaa9525230e677789def96: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m.git/+/d92781c5b966ee700ddaa9525230e677789def96
