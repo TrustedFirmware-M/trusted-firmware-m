@@ -49,6 +49,10 @@ psa_status_t tfm_crypto_aead_interface(psa_invec in_vec[],
                                                                  &iov->aead_in;
         const uint8_t *nonce = aead_pack_input->nonce;
         size_t nonce_length = aead_pack_input->nonce_length;
+        if (nonce_length > TFM_CRYPTO_MAX_NONCE_LENGTH) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+
         const uint8_t *plaintext = in_vec[1].base;
         size_t plaintext_length = in_vec[1].len;
         uint8_t *ciphertext = out_vec[0].base;
@@ -75,6 +79,10 @@ psa_status_t tfm_crypto_aead_interface(psa_invec in_vec[],
                                                                  &iov->aead_in;
         const uint8_t *nonce = aead_pack_input->nonce;
         size_t nonce_length = aead_pack_input->nonce_length;
+        if (nonce_length > TFM_CRYPTO_MAX_NONCE_LENGTH) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+
         const uint8_t *ciphertext = in_vec[1].base;
         size_t ciphertext_length = in_vec[1].len;
         uint8_t *plaintext = out_vec[0].base;
