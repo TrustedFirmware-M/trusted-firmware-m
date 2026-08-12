@@ -186,7 +186,7 @@ void sau_and_idau_cfg(void)
 	   non-secure NVM and before the UICR.*/
 	SAU->RNR = 0;
 	SAU->RBAR = (memory_regions.non_secure_partition_base & SAU_RBAR_BADDR_Msk);
-	SAU->RLAR = (NRF_UICR_S_BASE & SAU_RLAR_LADDR_Msk) | SAU_RLAR_ENABLE_Msk;
+	SAU->RLAR = ((NRF_UICR_S_BASE - 1) & SAU_RLAR_LADDR_Msk) | SAU_RLAR_ENABLE_Msk;
 
 	/* Leave SAU region 1 disabled until we find a use for it */
 
