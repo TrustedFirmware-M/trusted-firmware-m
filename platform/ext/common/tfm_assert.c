@@ -32,3 +32,16 @@ void __assert_puts(const char *msg)
     __builtin_unreachable();
 }
 #endif /* __ARMCC_VERSION */
+
+/* The picolibc <assert.h> defines assert() as a call to __assert_no_args() when
+ * NDEBUG and ASSERT_VERBOSE are not defined.
+ */
+void __assert_no_args(void)
+{
+    if (stdio_is_initialized()) {
+        ERROR("Assertion failed\n");
+    }
+
+    FIH_PANIC;
+    __builtin_unreachable();
+}
