@@ -225,6 +225,11 @@
 #define CC3XX_CONFIG_ECDSA_VERIFY_ENABLE
 #define CC3XX_CONFIG_ECDSA_KEYGEN_ENABLE
 
+/* Whether the ECDSA module supports computing the value of parameter k following
+ * the deterministic procedure described in RFC 6979, i.e. DETERMINISTIC_ECDSA
+ */
+#define CC3XX_CONFIG_ECDSA_SIGN_DETERMINISTIC_ENABLE
+
 /* Whether ECDH feature is enabled */
 #define CC3XX_CONFIG_ECDH_ENABLE
 
