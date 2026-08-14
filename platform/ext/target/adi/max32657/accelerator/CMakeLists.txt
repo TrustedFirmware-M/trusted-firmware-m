@@ -9,6 +9,11 @@
 
 ############################ Crypto Service ####################################
 
+target_include_directories(platform_s
+    PUBLIC
+        ${PLATFORM_DIR}/ext/target/${TFM_PLATFORM}/accelerator/include
+)
+
 if(TFM_PARTITION_CRYPTO)
     target_sources(crypto_service_crypto_hw
         PUBLIC
@@ -24,11 +29,6 @@ if(TFM_PARTITION_CRYPTO)
             ${PLATFORM_DIR}/ext/target/${TFM_PLATFORM}/accelerator/include
             ${HAL_ADI_PERIPH_INC_DIR}
             ${HAL_ADI_CMSIS_INC_DIR}
-    )
-
-    target_include_directories(platform_s
-        PUBLIC
-            ${PLATFORM_DIR}/ext/target/${TFM_PLATFORM}/accelerator/include
     )
 
     target_link_libraries(crypto_service_crypto_hw

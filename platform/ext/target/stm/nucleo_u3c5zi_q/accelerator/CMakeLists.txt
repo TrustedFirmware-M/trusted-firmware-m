@@ -8,6 +8,11 @@
 
 ############################ Crypto Service ####################################
 
+target_include_directories(platform_s
+    PUBLIC
+        ${PLATFORM_DIR}/ext/target/${TFM_PLATFORM}/accelerator/include
+)
+
 if (TFM_PARTITION_CRYPTO)
     target_sources(crypto_service_crypto_hw
         PRIVATE
@@ -23,11 +28,6 @@ if (TFM_PARTITION_CRYPTO)
             ${PLATFORM_DIR}/ext/target/${TFM_PLATFORM}/include/
             ${PLATFORM_DIR}/ext/target/stm/common/stm32u3xx/hal/Inc/
             ${PLATFORM_DIR}/ext/target/stm/common/stm32u3xx/Device/Include/
-    )
-
-    target_include_directories(platform_s
-        PUBLIC
-            ${PLATFORM_DIR}/ext/target/${TFM_PLATFORM}/accelerator/include
     )
 
     target_link_libraries(crypto_service_crypto_hw
