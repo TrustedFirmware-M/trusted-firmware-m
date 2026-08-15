@@ -22,13 +22,116 @@
 #include "flash_layout.h"
 #include "low_level_flash.h"
 
-struct flash_range nvm_psa_its_vect[] = {
-	{ FLASH_OTP_NV_COUNTERS_AREA_OFFSET, FLASH_ITS_AREA_OFFSET + FLASH_ITS_AREA_SIZE - 1},
+/* Marker for flash drivers located on internal flash */
+#define TFM_Driver_FLASH0_IS_INTERNAL_FLASH 1
+
+/* Helper to test at compile time whether a given flash driver is the internal SOC flash driver:
+ * An unknown driver token expands to 0 (undefined identifier) in #if.
+ */
+#define _FLASH_DRIVER_CONCAT(a, b) a ## b
+#define _FLASH_DRIVER_EXPAND(a, b) _FLASH_DRIVER_CONCAT(a, b)
+#define FLASH_DRIVER_IS_INTERNAL(drv) (_FLASH_DRIVER_EXPAND(drv, _IS_INTERNAL_FLASH) == 1)
+
+/* When undefined FLASH_DEV_NAME_0 or FLASH_DEVICE_ID_0, default */
+#if !defined(FLASH_DEV_NAME_0) || !defined(FLASH_DEVICE_ID_0)
+#define FLASH_DEV_NAME_0  FLASH_DEV_NAME
+#define FLASH_DEVICE_ID_0 FLASH_DEVICE_ID
+#endif
+
+/* When undefined FLASH_DEV_NAME_1 or FLASH_DEVICE_ID_1, default */
+#if !defined(FLASH_DEV_NAME_1) || !defined(FLASH_DEVICE_ID_1)
+#define FLASH_DEV_NAME_1  FLASH_DEV_NAME
+#define FLASH_DEVICE_ID_1 FLASH_DEVICE_ID
+#endif
+
+/* When undefined FLASH_DEV_NAME_2 or FLASH_DEVICE_ID_2, default */
+#if !defined(FLASH_DEV_NAME_2) || !defined(FLASH_DEVICE_ID_2)
+#define FLASH_DEV_NAME_2  FLASH_DEV_NAME
+#define FLASH_DEVICE_ID_2 FLASH_DEVICE_ID
+#endif
+
+/* When undefined FLASH_DEV_NAME_3 or FLASH_DEVICE_ID_3, default */
+#if !defined(FLASH_DEV_NAME_3) || !defined(FLASH_DEVICE_ID_3)
+#define FLASH_DEV_NAME_3  FLASH_DEV_NAME
+#define FLASH_DEVICE_ID_3 FLASH_DEVICE_ID
+#endif
+
+/* When undefined FLASH_DEV_NAME_SCRATCH or FLASH_DEVICE_ID_SCRATCH, default */
+#if !defined(FLASH_DEV_NAME_SCRATCH) || !defined(FLASH_DEVICE_ID_SCRATCH)
+#define FLASH_DEV_NAME_SCRATCH  FLASH_DEV_NAME
+#define FLASH_DEVICE_ID_SCRATCH FLASH_DEVICE_ID
+#endif
+
+/* Flash area 0 (secure firmware) can only be located on internal flash */
+#if !FLASH_DRIVER_IS_INTERNAL(FLASH_DEV_NAME_0)
+#error "FLASH_DEV_NAME_0 must be the internal flash driver"
+#endif
+
+/* Partitions on SoC flash allowed to be written by TF-M */
+static struct flash_range write_vect[] = {
+#if FLASH_OTP_NV_COUNTERS_AREA_SIZE > 0
+	{ FLASH_OTP_NV_COUNTERS_AREA_OFFSET, FLASH_OTP_NV_COUNTERS_AREA_OFFSET + FLASH_OTP_NV_COUNTERS_AREA_SIZE - 1 },
+#endif
+#if TFM_HAL_PS_FLASH_AREA_SIZE > 0 && FLASH_DRIVER_IS_INTERNAL(TFM_HAL_PS_FLASH_DRIVER)
+	{ TFM_HAL_PS_FLASH_AREA_ADDR, TFM_HAL_PS_FLASH_AREA_ADDR + TFM_HAL_PS_FLASH_AREA_SIZE - 1 },
+#endif
+#if FLASH_ITS_AREA_SIZE > 0
+	{ FLASH_ITS_AREA_OFFSET, FLASH_ITS_AREA_OFFSET + FLASH_ITS_AREA_SIZE - 1 },
+#endif
+#if FLASH_AREA_0_SIZE > 0
+	/* Write access to primary image necessary to confirm it after swap */
+	{ FLASH_AREA_0_OFFSET, FLASH_AREA_0_OFFSET + FLASH_AREA_0_SIZE - 1 },
+#endif
+#if FLASH_AREA_1_SIZE > 0 && FLASH_DRIVER_IS_INTERNAL(FLASH_DEV_NAME_1)
+	/* Write access to primary image necessary to confirm it after swap */
+	{ FLASH_AREA_1_OFFSET, FLASH_AREA_1_OFFSET + FLASH_AREA_1_SIZE - 1 },
+#endif
+#if FLASH_AREA_2_SIZE > 0 && FLASH_DRIVER_IS_INTERNAL(FLASH_DEV_NAME_2)
+	{ FLASH_AREA_2_OFFSET, FLASH_AREA_2_OFFSET + FLASH_AREA_2_SIZE - 1 },
+#endif
+#if FLASH_AREA_3_SIZE > 0 && FLASH_DRIVER_IS_INTERNAL(FLASH_DEV_NAME_3)
+	{ FLASH_AREA_3_OFFSET, FLASH_AREA_3_OFFSET + FLASH_AREA_3_SIZE - 1 },
+#endif
 };
 
-struct low_level_device FLASH0_DEV =  {
-	.erase = { .nb =sizeof(nvm_psa_its_vect)/sizeof(struct flash_range), .range = nvm_psa_its_vect},
-	.write = { .nb =sizeof(nvm_psa_its_vect)/sizeof(struct flash_range), .range = nvm_psa_its_vect},
-	.secure = { 0, NULL},
+/* Partitions on SoC flash allowed to be erased by TF-M */
+static struct flash_range erase_vect[] = {
+#if FLASH_OTP_NV_COUNTERS_AREA_SIZE > 0
+	{ FLASH_OTP_NV_COUNTERS_AREA_OFFSET, FLASH_OTP_NV_COUNTERS_AREA_OFFSET + FLASH_OTP_NV_COUNTERS_AREA_SIZE - 1 },
+#endif
+#if TFM_HAL_PS_FLASH_AREA_SIZE > 0 && FLASH_DRIVER_IS_INTERNAL(TFM_HAL_PS_FLASH_DRIVER)
+	{ TFM_HAL_PS_FLASH_AREA_ADDR, TFM_HAL_PS_FLASH_AREA_ADDR + TFM_HAL_PS_FLASH_AREA_SIZE - 1 },
+#endif
+#if FLASH_ITS_AREA_SIZE > 0
+	{ FLASH_ITS_AREA_OFFSET, FLASH_ITS_AREA_OFFSET + FLASH_ITS_AREA_SIZE - 1 },
+#endif
+#if FLASH_AREA_2_SIZE > 0 && FLASH_DRIVER_IS_INTERNAL(FLASH_DEV_NAME_2)
+	{ FLASH_AREA_2_OFFSET, FLASH_AREA_2_OFFSET + FLASH_AREA_2_SIZE - 1 },
+#endif
+#if FLASH_AREA_3_SIZE > 0 && FLASH_DRIVER_IS_INTERNAL(FLASH_DEV_NAME_3)
+	{ FLASH_AREA_3_OFFSET, FLASH_AREA_3_OFFSET + FLASH_AREA_3_SIZE - 1 },
+#endif
+};
+
+/* Partitions on SoC flash mapped to secure address range */
+static struct flash_range secure_vect[] = {
+#if FLASH_OTP_NV_COUNTERS_AREA_SIZE > 0
+	{ FLASH_OTP_NV_COUNTERS_AREA_OFFSET, FLASH_OTP_NV_COUNTERS_AREA_OFFSET + FLASH_OTP_NV_COUNTERS_AREA_SIZE - 1 },
+#endif
+#if TFM_HAL_PS_FLASH_AREA_SIZE > 0 && FLASH_DRIVER_IS_INTERNAL(TFM_HAL_PS_FLASH_DRIVER)
+	{ FLASH_PS_AREA_OFFSET, FLASH_PS_AREA_OFFSET + FLASH_PS_AREA_SIZE - 1 },
+#endif
+#if FLASH_ITS_AREA_SIZE > 0
+	{ FLASH_ITS_AREA_OFFSET, FLASH_ITS_AREA_OFFSET + FLASH_ITS_AREA_SIZE - 1 },
+#endif
+#if FLASH_AREA_0_SIZE > 0
+	{ FLASH_AREA_0_OFFSET, FLASH_AREA_0_OFFSET + FLASH_AREA_0_SIZE - 1 },
+#endif
+};
+
+struct low_level_device FLASH0_DEV = {
+	.erase = { .nb = sizeof(erase_vect) / sizeof(struct flash_range), .range = erase_vect },
+	.write = { .nb = sizeof(write_vect) / sizeof(struct flash_range), .range = write_vect },
+	.secure = { .nb = sizeof(secure_vect) / sizeof(struct flash_range), .range = secure_vect },
 	.read_error = 1
 };
