@@ -38,6 +38,10 @@ typedef void( *pFunc )( void );
 extern uint32_t __MSP_INITIAL_SP;
 extern uint32_t __MSP_STACK_LIMIT;
 
+#if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
+extern uint64_t __STACK_SEAL;
+#endif
+
 extern void Error_Handler(void);
 extern __NO_RETURN void __PROGRAM_START(void);
 
@@ -521,6 +525,11 @@ void Reset_Handler(void)
   NVIC_SetPriority(TAMP_IRQn, 0);
   NVIC_EnableIRQ(TAMP_IRQn);
   __set_MSPLIM((uint32_t)(&__MSP_STACK_LIMIT));
+
+#if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
+  __TZ_set_STACKSEAL_S((uint32_t *)(&__STACK_SEAL));
+#endif
+
   SCB->VTOR = (uint32_t) &__VECTOR_TABLE[0];
   /* Program AIRCR with PRIS = 1*/
   tmp = SCB->AIRCR;
