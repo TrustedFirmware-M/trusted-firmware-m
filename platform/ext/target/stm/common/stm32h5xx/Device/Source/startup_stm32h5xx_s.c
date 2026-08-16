@@ -523,9 +523,6 @@ void Reset_Handler(void)
 
   /* disable IRQ is removed */
   /*__disable_irq();*/
-  /* Tamp IRQ prio is set to highest , and IRQ is enabled */
-  NVIC_SetPriority(TAMP_IRQn, 0);
-  NVIC_EnableIRQ(TAMP_IRQn);
 
   __set_PSP((uint32_t)(&__INITIAL_SP));
 
@@ -537,6 +534,11 @@ void Reset_Handler(void)
 #endif
 
   SCB->VTOR = (uint32_t) &__VECTOR_TABLE[0];
+
+  /* Tamp IRQ prio is set to highest , and IRQ is enabled */
+  NVIC_SetPriority(TAMP_IRQn, 0);
+  NVIC_EnableIRQ(TAMP_IRQn);
+
   /* Program AIRCR with PRIS = 1*/
   tmp = SCB->AIRCR;
   //SCB->AIRCR = (~tmp & SCB_AIRCR_VECTKEYSTAT_Msk) | SCB_AIRCR_PRIS_Msk | (tmp & ~SCB_AIRCR_VECTKEY_Msk);
