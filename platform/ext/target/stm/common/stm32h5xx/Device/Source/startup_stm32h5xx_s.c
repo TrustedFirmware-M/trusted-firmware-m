@@ -37,6 +37,8 @@ typedef void( *pFunc )( void );
 
 extern uint32_t __MSP_INITIAL_SP;
 extern uint32_t __MSP_STACK_LIMIT;
+extern uint32_t __INITIAL_SP;
+extern uint32_t __STACK_LIMIT;
 
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
 extern uint64_t __STACK_SEAL;
@@ -524,7 +526,11 @@ void Reset_Handler(void)
   /* Tamp IRQ prio is set to highest , and IRQ is enabled */
   NVIC_SetPriority(TAMP_IRQn, 0);
   NVIC_EnableIRQ(TAMP_IRQn);
+
+  __set_PSP((uint32_t)(&__INITIAL_SP));
+
   __set_MSPLIM((uint32_t)(&__MSP_STACK_LIMIT));
+  __set_PSPLIM((uint32_t)(&__STACK_LIMIT));
 
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
   __TZ_set_STACKSEAL_S((uint32_t *)(&__STACK_SEAL));
