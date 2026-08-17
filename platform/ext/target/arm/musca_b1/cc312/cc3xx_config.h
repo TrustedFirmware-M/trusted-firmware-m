@@ -37,9 +37,17 @@
 /* Whether the AES CBC support is enabled */
 #define CC3XX_CONFIG_AES_CBC_ENABLE
 
+/* When set, AES-CBC-PKCS7 can decrypt arbitrary lengths during a multipart
+ * update flow. Otherwise, the caller must pass multiples of the AES block
+ * size to the update function. This option increases flexibility but it comes
+ * with a tradeoff on code size and a performance decrease due to the additional
+ * buffering required.
+ */
+#define CC3XX_CONFIG_CBC_PKCS7_DECRYPT_ARBITRARY_LENGTHS
+
 /* Whether the AES GCM support is enabled */
 #define CC3XX_CONFIG_AES_GCM_ENABLE
-/* #define CC3XX_CONFIG_AES_GCM_VARIABLE_IV_ENABLE */
+#define CC3XX_CONFIG_AES_GCM_VARIABLE_IV_ENABLE
 
 /* Whether the AES CMAC support is enabled */
 #define CC3XX_CONFIG_AES_CMAC_ENABLE
