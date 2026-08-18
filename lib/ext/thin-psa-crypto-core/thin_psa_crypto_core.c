@@ -769,9 +769,13 @@ static psa_status_t psa_sp800_108_counter_cmac_input(psa_sp800_108_cmac_key_deri
         const size_t ctx_input_offset = (step == PSA_KEY_DERIVATION_INPUT_LABEL) ?
                                             SP800_108_INPUT_LABEL_OFFSET(kdf) :
                                             SP800_108_INPUT_CONTEXT_OFFSET(kdf);
+
+#ifndef NDEBUG
         const size_t ctx_input_max_size = (step == PSA_KEY_DERIVATION_INPUT_LABEL) ?
                                             SP800_108_LABEL_MAX_SIZE :
                                             SP800_108_CONTEXT_MAX_SIZE;
+#endif /* NDEBUG */
+
         size_t *ctx_input_length = (step == PSA_KEY_DERIVATION_INPUT_LABEL) ?
                                             &kdf->label_length :
                                             &kdf->context_length;
