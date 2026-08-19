@@ -51,6 +51,5 @@ if ((NOT TFM_PARTITION_LOG_LEVEL STREQUAL ""
      AND
      NOT TFM_SPM_LOG_LEVEL STREQUAL "TFM_SPM_LOG_LEVEL_SILENCE"))
 
-set(NRF_SECURE_UART_INSTANCE            1           CACHE STRING  "The UART instance number to use for secure UART")
 set(SECURE_UART1                        ON         CACHE BOOL      "Enable secure UART1")
 endif()

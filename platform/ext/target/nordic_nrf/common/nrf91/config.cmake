@@ -9,3 +9,5 @@
 set(HAS_NVMC 1)
 
 include(${PLATFORM_PATH}/common/core/config.cmake)
+
+set(NRF_SECURE_UART_INSTANCE            1           CACHE STRING    "The UART instance number to use for secure UART")
