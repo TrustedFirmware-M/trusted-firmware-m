@@ -1319,7 +1319,7 @@ TFM_CRYPTO_API(psa_status_t, psa_key_derivation_get_capacity)(
     };
 
     psa_outvec out_vec[] = {
-        {.base = capacity, .len = sizeof(size_t)},
+        {.base = capacity, .len = sizeof(rot_size_t)},
     };
 
     return API_DISPATCH(in_vec, out_vec);

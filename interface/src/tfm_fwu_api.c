@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -27,9 +27,15 @@ psa_status_t psa_fwu_write(psa_fwu_component_t component,
                            const void *block,
                            size_t block_size)
 {
+#if SIZE_MAX > ROT_SIZE_MAX
+    if (image_offset > ROT_SIZE_MAX) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+#endif
+
     psa_invec in_vec[] = {
         { .base = &component, .len = sizeof(component) },
-        { .base = &image_offset, .len = sizeof(image_offset) },
+        { .base = &image_offset, .len = sizeof(rot_size_t) },
         { .base = block, .len = block_size }
     };
 
