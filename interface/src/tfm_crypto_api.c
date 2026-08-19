@@ -81,7 +81,11 @@ TFM_CRYPTO_API(int, psa_can_do_hash)(psa_algorithm_t hash_alg)
 
     status = API_DISPATCH(in_vec, out_vec);
 
-    return (status != PSA_SUCCESS) ? 0 : can_do_hash;
+    if (status != PSA_SUCCESS) {
+        return 0;
+    }
+
+    return can_do_hash;
 }
 
 TFM_CRYPTO_API(int, psa_can_do_cipher)(psa_key_type_t key_type, psa_algorithm_t cipher_alg)
@@ -102,7 +106,11 @@ TFM_CRYPTO_API(int, psa_can_do_cipher)(psa_key_type_t key_type, psa_algorithm_t 
 
     status = API_DISPATCH(in_vec, out_vec);
 
-    return (status != PSA_SUCCESS) ? 0 : can_do_cipher;
+    if (status != PSA_SUCCESS) {
+        return 0;
+    }
+
+    return can_do_cipher;
 }
 
 TFM_CRYPTO_API(psa_status_t, psa_import_key)(const psa_key_attributes_t *attributes,
