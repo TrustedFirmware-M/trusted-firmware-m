@@ -10,15 +10,13 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "config_impl.h"
 #include "config_spm.h"
 #include "tfm_arch.h"
 #include "lists.h"
 #include "runtime_defs.h"
 #include "thread.h"
 #include "psa/service.h"
-#include "load/partition_defs.h"
-#include "load/interrupt_defs.h"
+#include "load/spm_load_api.h"
 
 #include "compiler_ext_defs.h"
 

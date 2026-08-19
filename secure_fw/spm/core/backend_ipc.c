@@ -11,7 +11,6 @@
 #include "async.h"
 #include "config_spm.h"
 #include "critical_section.h"
-#include "config_spm.h"
 #include "current.h"
 #include "ffm/psa_api.h"
 #include "fih.h"
@@ -21,14 +20,9 @@
 #include "tfm_hal_isolation.h"
 #include "tfm_hal_platform.h"
 #include "tfm_nspm.h"
-#include "tfm_rpc.h"
 #include "ffm/backend.h"
 #include "utilities.h"
-#include "memory_symbols.h"
-#include "load/partition_defs.h"
-#include "load/service_defs.h"
 #include "load/spm_load_api.h"
-#include "psa/error.h"
 #include "internal_status_code.h"
 #include "sprt_partition_metadata_indicator.h"
 #include "coverity_check.h"
@@ -36,8 +30,6 @@
 #if TFM_PARTITION_NS_AGENT_MAILBOX == 1
 #include "psa_manifest/ns_agent_mailbox.h"
 #endif
-
-#include "compiler_ext_defs.h" /* Keep last. */
 
 /* Declare the global component list */
 struct partition_head_t partition_listhead;

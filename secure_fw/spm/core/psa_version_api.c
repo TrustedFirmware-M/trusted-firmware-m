@@ -6,8 +6,11 @@
  */
 
 #include <assert.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 #include "ffm/psa_api.h"
-#include "load/service_defs.h"
+#include "load/spm_load_api.h"
 #include "spm.h"
 
 uint32_t tfm_spm_client_psa_framework_version(void)

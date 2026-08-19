@@ -1,15 +1,8 @@
 /*
- * Copyright (c) 2019-2024, Arm Limited. All rights reserved.
- * Copyright (c) 2022-2023 Cypress Semiconductor Corporation (an Infineon company)
- * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
- */
-
-/*
- * Definitions of Remote Procedure Call (RPC) functionalities in TF-M, which
- * sits between upper TF-M SPM and underlying mailbox implementation.
  */
 
 #ifndef __TFM_RPC_H__
@@ -19,7 +12,6 @@
 
 #include <stdint.h>
 #include "cmsis_compiler.h"
-#include "psa/client.h"
 #include "psa/service.h"
 #include "thread.h"
 #include "spm.h"

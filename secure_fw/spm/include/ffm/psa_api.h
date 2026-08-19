@@ -16,7 +16,6 @@
 #ifdef TFM_PARTITION_NS_AGENT_MAILBOX
 #include "ffm/mailbox_agent_api.h"
 #endif
-#include "psa/client.h"
 #include "psa/service.h"
 
 #include "compiler_ext_defs.h"

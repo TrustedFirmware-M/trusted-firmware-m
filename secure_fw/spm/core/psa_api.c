@@ -1,37 +1,33 @@
 /*
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
- * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include "async.h"
 #include "bitops.h"
 #include "config_impl.h"
-#include "config_spm.h"
 #include "critical_section.h"
 #include "current.h"
 #include "internal_status_code.h"
-#include "interrupt.h"
 #include "psa/lifecycle.h"
-#include "psa/service.h"
 #include "spm.h"
-#include "tfm_arch.h"
-#include "load/partition_defs.h"
-#include "load/service_defs.h"
-#include "load/interrupt_defs.h"
 #include "utilities.h"
 #include "ffm/backend.h"
 #include "ffm/psa_api.h"
+#include "load/spm_load_api.h"
 #include "tfm_hal_platform.h"
 #include "tfm_plat_otp.h"
-#include "tfm_psa_call_pack.h"
 #include "tfm_hal_isolation.h"
+
+#if (CONFIG_TFM_SPM_BACKEND_IPC == 1) \
+    || (CONFIG_TFM_FLIH_API == 1) || (CONFIG_TFM_SLIH_API == 1)
+#include "interrupt.h"
+#endif
 
 void spm_handle_programmer_errors(psa_status_t status)
 {

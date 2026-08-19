@@ -1,18 +1,15 @@
 /*
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
- * Copyright (c) 2023 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
+#include <stddef.h>
 #include <stdint.h>
 #include <assert.h>
 #include "thread.h"
 #include "tfm_arch.h"
-#include "utilities.h"
 #include "critical_section.h"
 
 /* Declaration of current thread pointer. */

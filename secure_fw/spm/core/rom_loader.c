@@ -1,27 +1,25 @@
 /*
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
- * Copyright (c) 2022 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
-#include <limits.h>
+
+#include <assert.h>
+#include <stddef.h>
 #include <stdint.h>
 #include "config_impl.h"
 #include "lists.h"
 #include "memory_symbols.h"
-#include "region_defs.h"
+#include "psa/service.h"
 #include "spm.h"
-#include "tfm_hal_interrupt.h"
-#include "tfm_plat_defs.h"
 #include "utilities.h"
 #include "ffm/backend.h"
-#include "load/partition_defs.h"
 #include "load/spm_load_api.h"
-#include "load/service_defs.h"
-#include "psa/client.h"
+
+#if (CONFIG_TFM_FLIH_API == 1) || (CONFIG_TFM_SLIH_API == 1)
+#include "tfm_hal_interrupt.h"
+#endif
 
 static uintptr_t ldinf_sa     = PART_INFOLIST_START;
 static uintptr_t ldinf_ea     = PART_INFOLIST_END;

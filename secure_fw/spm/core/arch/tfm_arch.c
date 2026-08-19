@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2018-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
-#include "security_defs.h"
 #include "tfm_arch.h"
-#include "tfm_core_trustzone.h"
 #include "utilities.h"
 #include "config_impl.h"
 #include "coverity_check.h"

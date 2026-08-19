@@ -6,12 +6,13 @@
  */
 
 #include <assert.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include "build_config_check.h"
 #include "internal_status_code.h"
 #include "fih.h"
 #include "tfm_boot_data.h"
 #include "memory_symbols.h"
-#include "spm.h"
 #include "coverity_check.h"
 #include "tfm_hal_isolation.h"
 #include "tfm_hal_platform.h"

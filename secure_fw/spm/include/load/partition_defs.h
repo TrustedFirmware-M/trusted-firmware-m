@@ -1,8 +1,5 @@
 /*
- * Copyright (c) 2021-2024, Arm Limited. All rights reserved.
- * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -11,6 +8,7 @@
 #ifndef __PARTITION_DEFS_H__
 #define __PARTITION_DEFS_H__
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 

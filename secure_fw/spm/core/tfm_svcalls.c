@@ -8,10 +8,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "aapcs_local.h"
-#include "config_spm.h"
 #include "current.h"
-#include "interrupt.h"
-#include "internal_status_code.h"
 #include "memory_symbols.h"
 #include "spm.h"
 #include "coverity_check.h"
@@ -19,16 +16,11 @@
 #include "tfm_arch.h"
 #include "tfm_svcalls.h"
 #include "tfm_boot_data.h"
-#include "tfm_hal_platform.h"
 #include "tfm_hal_isolation.h"
 #include "tfm_hal_spm_logdev.h"
-#include "tfm_core_trustzone.h"
 #include "utilities.h"
 #include "ffm/backend.h"
 #include "ffm/psa_api.h"
-#include "load/spm_load_api.h"
-#include "load/partition_defs.h"
-#include "psa/client.h"
 
 #define INVALID_PSP_VALUE 0xFFFFFFFFU
 

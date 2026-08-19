@@ -1,8 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
- * Copyright (c) 2022-2024 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -16,7 +13,6 @@
 #include "interrupt_defs.h"
 #include "partition_defs.h"
 #include "service_defs.h"
-#include "spm.h"
 
 /* No more partition to be loaded */
 #define NO_MORE_PARTITION        NULL

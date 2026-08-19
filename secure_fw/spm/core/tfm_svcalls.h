@@ -1,13 +1,15 @@
 /*
- * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
+
 #ifndef __TFM_SVCALLS_H__
 #define __TFM_SVCALLS_H__
 
 #include <stdint.h>
+#include "psa/service.h"
 
 /**
  * \brief The C source of SVCall handlers

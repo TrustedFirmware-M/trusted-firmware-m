@@ -1,18 +1,17 @@
 /*
- * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
+
 #ifndef __TFM_POOLS_H__
 #define __TFM_POOLS_H__
 
 #include <stdbool.h>
 #include "psa/error.h"
-#include "lists.h"
 
 #include "compiler_ext_defs.h" /* Keep last. */
-
 /*
  * Pool Instance:
  *  [ Pool Instance ] + N * [ Pool Chunks ]

@@ -12,11 +12,9 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "spm.h"
-
 #include "load/interrupt_defs.h"
 #include "load/partition_defs.h"
-#include "psa/service.h"
+#include "tfm_arch.h"
 
 /**
  * \brief Return the IRQ load info context pointer associated with a signal

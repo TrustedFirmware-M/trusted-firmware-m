@@ -11,11 +11,13 @@
 
 #include <assert.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <inttypes.h>
-#include "fih.h"
 #include "tfm_hal_device_header.h"
 #include "cmsis_compiler.h"
+
+#ifdef TFM_FIH_PROFILE_ON
+#include "fih.h"
+#endif
 
 #if defined(__ARM_ARCH_8_1M_MAIN__) || \
     defined(__ARM_ARCH_8M_MAIN__)  || defined(__ARM_ARCH_8M_BASE__)

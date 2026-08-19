@@ -1,20 +1,20 @@
 /*
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
- * Copyright (c) 2024 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
 #include <assert.h>
-
-#include "internal_status_code.h"
-#include "spm.h"
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 #include "coverity_check.h"
+#include "internal_status_code.h"
+#include "psa/service.h"
+#include "spm.h"
 #include "tfm_pools.h"
-#include "load/service_defs.h"
+#include "utilities.h"
 
 #if !(defined CONFIG_TFM_CONN_HANDLE_MAX_NUM) || (CONFIG_TFM_CONN_HANDLE_MAX_NUM == 0)
 #error "CONFIG_TFM_CONN_HANDLE_MAX_NUM must be defined and not zero."

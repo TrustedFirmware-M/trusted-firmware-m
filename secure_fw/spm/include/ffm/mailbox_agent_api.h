@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2023 Cypress Semiconductor Corporation (an Infineon company)
- * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -10,9 +9,6 @@
 #define __AGENT_API_H__
 
 #include <stdint.h>
-
-#include "config_impl.h"
-#include "psa/client.h"
 #include "psa/service.h"
 
 struct client_params_t {

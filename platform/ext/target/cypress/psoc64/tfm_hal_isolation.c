@@ -20,6 +20,7 @@
 #include "load/asset_defs.h"
 #include "load/spm_load_api.h"
 #include "tfm_hal_isolation.h"
+#include "utilities.h"
 
 #define PROT_BOUNDARY_VAL \
     ((1U << HANDLE_ATTR_PRIV_POS) & HANDLE_ATTR_PRIV_MASK)

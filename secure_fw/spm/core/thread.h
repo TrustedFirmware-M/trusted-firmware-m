@@ -1,8 +1,5 @@
 /*
- * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributor
- * Copyright (c) 2023 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -11,10 +8,7 @@
 #ifndef __M_THREAD_H__ /* Add an extra M as thread.h is common. */
 #define __M_THREAD_H__
 
-#include <stddef.h>
 #include <stdint.h>
-
-#include "tfm_arch.h"
 
 /* State codes */
 #define THRD_STATE_CREATING       0

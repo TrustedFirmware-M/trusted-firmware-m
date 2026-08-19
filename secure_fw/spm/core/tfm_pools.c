@@ -4,16 +4,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
-#include <inttypes.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
 #include <assert.h>
-#include "thread.h"
-#include "psa/client.h"
 #include "psa/service.h"
 #include "internal_status_code.h"
-#include "cmsis_compiler.h"
 #include "utilities.h"
 #include "lists.h"
 #include "tfm_pools.h"

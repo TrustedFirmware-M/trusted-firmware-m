@@ -1,9 +1,8 @@
 /*
- * SPDX-License-Identifier: BSD-3-Clause
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
- * Copyright (c) 2023 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
  */
 
 #ifndef __RUNTIME_DEFS_H__
@@ -11,9 +10,6 @@
 
 #include <stdint.h>
 
-#include "config_impl.h"
-#include "psa/client.h"
-#include "psa/error.h"
 #include "psa/service.h"
 #include "ffm/mailbox_agent_api.h"
 

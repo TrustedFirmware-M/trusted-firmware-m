@@ -3,14 +3,13 @@
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  */
 
+#include <stddef.h>
 #include <stdint.h>
-#include "config_spm.h"
+#include "cmsis_compiler.h"
+#include "config_impl.h"
 #include "runtime_defs.h"
 #include "svc_num.h"
-#include "tfm_psa_call_pack.h"
 #include "utilities.h"
-#include "psa/client.h"
-#include "psa/lifecycle.h"
 #include "psa/service.h"
 #include "coverity_check.h"
 

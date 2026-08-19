@@ -1,45 +1,28 @@
 /*
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
- * Copyright (c) 2021-2024 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
-#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 #include <assert.h>
 #include "async.h"
 #include "config_impl.h"
-#include "config_spm.h"
 #include "critical_section.h"
 #include "current.h"
 #include "fih.h"
-#include "psa/client.h"
 #include "psa/service.h"
-#include "thread.h"
 #include "internal_status_code.h"
-#include "tfm_arch.h"
 #include "tfm_hal_defs.h"
-#include "tfm_hal_interrupt.h"
 #include "tfm_hal_isolation.h"
 #include "spm.h"
-#include "tfm_peripherals_def.h"
 #include "tfm_nspm.h"
-#include "tfm_core_trustzone.h"
 #include "lists.h"
-#include "tfm_pools.h"
-#include "region.h"
-#include "psa_manifest/pid.h"
 #include "ffm/backend.h"
-#include "load/partition_defs.h"
-#include "load/service_defs.h"
-#include "load/asset_defs.h"
 #include "load/spm_load_api.h"
-#include "tfm_nspm.h"
 
 /* Partition and service runtime data list head/runtime data table */
 static struct service_head_t services_listhead;

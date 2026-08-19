@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -9,10 +9,10 @@
 #define __BACKEND_H__
 
 #include <stdint.h>
+#include "load/spm_load_api.h"
+#include "psa/service.h"
 #include "spm.h"
 #include "tfm_arch.h"
-#include "load/spm_load_api.h"
-#include "psa/error.h"
 
 #if CONFIG_TFM_SPM_BACKEND_IPC == 1
 #include "backend_ipc.h"

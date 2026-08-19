@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -9,8 +9,10 @@
 #define __SERVICE_DEFS_H__
 
 #include <stdint.h>
-#include "config_impl.h"
+
+#if CONFIG_TFM_SPM_BACKEND_IPC == 1
 #include "psa/service.h"
+#endif
 
 /*
  * Service load data - flags

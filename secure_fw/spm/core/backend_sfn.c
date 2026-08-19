@@ -1,8 +1,5 @@
 /*
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
- * Copyright (c) 2022-2023 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -16,10 +13,7 @@
 #include "tfm_nspm.h"
 #include "ffm/backend.h"
 #include "stack_watermark.h"
-#include "load/partition_defs.h"
-#include "load/service_defs.h"
 #include "load/spm_load_api.h"
-#include "psa/error.h"
 #include "psa/service.h"
 #include "spm.h"
 #include "memory_symbols.h"
