@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -255,11 +255,6 @@
 /* The maximal number of secure services that are connected or requested at the same time */
 #ifndef CONFIG_TFM_CONN_HANDLE_MAX_NUM
 #define CONFIG_TFM_CONN_HANDLE_MAX_NUM         8
-#endif
-
-/* Enable the doorbell APIs */
-#ifndef CONFIG_TFM_DOORBELL_API
-#define CONFIG_TFM_DOORBELL_API                1
 #endif
 
 #endif /* __CONFIG_PROFILE_LARGE_H__ */

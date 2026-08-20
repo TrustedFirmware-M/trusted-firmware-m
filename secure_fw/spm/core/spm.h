@@ -1,8 +1,5 @@
 /*
- * Copyright (c) 2020-2024, Arm Limited. All rights reserved.
- * Copyright (c) 2021-2024 Cypress Semiconductor Corporation (an Infineon
- * company) or an affiliate of Cypress Semiconductor Corporation. All rights
- * reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -22,6 +19,8 @@
 #include "psa/service.h"
 #include "load/partition_defs.h"
 #include "load/interrupt_defs.h"
+
+#include "compiler_ext_defs.h"
 
 enum connection_status {
     TFM_HANDLE_STATUS_IDLE = 0,     /* Handle created, idle */
@@ -180,6 +179,7 @@ struct connection_t *spm_get_handle_by_signal(struct partition_t *p_ptn,
  * \retval "Not NULL"       Return the partition context pointer
  *                          \ref partition_t structures
  */
+__deprecated
 struct partition_t *tfm_spm_get_partition_by_id(int32_t partition_id);
 #endif /* CONFIG_TFM_DOORBELL_API == 1 */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -7,8 +7,6 @@
 
 #ifndef __COMPILER_EXT_DEFS_H__
 #define __COMPILER_EXT_DEFS_H__
-
-#if defined(__ARMCC_VERSION) || defined(__GNUC__) || defined(__ICCARM__)
 
 #ifndef __naked
 #define __naked __attribute__((naked))
@@ -26,7 +24,9 @@
 #define __used __attribute__((used))
 #endif
 
-#endif /* __ARMCC_VERSION __GNUC__ __ICCARM__*/
+#ifndef __deprecated
+#define __deprecated __attribute__((deprecated("may be removed in future releases")))
+#endif
 
 #if !defined(__ICCARM__)
 #define SYNTAX_UNIFIED    ".syntax unified \n"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -18,6 +18,8 @@
 #endif
 #include "psa/client.h"
 #include "psa/service.h"
+
+#include "compiler_ext_defs.h"
 
 #if PSA_FRAMEWORK_HAS_MM_IOVEC
 /*
@@ -414,6 +416,7 @@ psa_status_t tfm_spm_partition_psa_reply(psa_handle_t msg_handle,
  * \retval "PROGRAMMER ERROR"   partition_id does not correspond to a Secure
  *                              Partition.
  */
+__deprecated
 psa_status_t tfm_spm_partition_psa_notify(int32_t partition_id);
 
 /**
@@ -423,6 +426,7 @@ psa_status_t tfm_spm_partition_psa_notify(int32_t partition_id);
  * \retval "PROGRAMMER ERROR"   The Secure Partition's doorbell signal is not
  *                              currently asserted.
  */
+__deprecated
 psa_status_t tfm_spm_partition_psa_clear(void);
 #else
 #define tfm_spm_partition_psa_notify    NULL

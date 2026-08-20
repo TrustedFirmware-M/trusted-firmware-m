@@ -199,6 +199,9 @@ This chapter describes the PSA API in an implementation manner.
 - This API sets DOORBELL bit in destination partition's event. This API does
   not take the initiative to change caller status.
 
+.. deprecated:: PSA v1.1
+    Please avoid using functions `psa_notify()` and `psa_clear()` in new design.
+
 .. code-block:: c
 
     void psa_panic(void);

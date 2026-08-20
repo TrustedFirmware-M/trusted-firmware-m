@@ -19,7 +19,7 @@ config CONFIG_TFM_CONN_HANDLE_MAX_NUM
 config CONFIG_TFM_DOORBELL_API
     bool "Enable the doorbell APIs"
     depends on CONFIG_TFM_SPM_BACKEND_IPC
-    default y
+    default n
 
 config CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED
     bool "Run the scheduler after a secure interrupt pre-empts the NSPE"

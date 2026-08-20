@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -249,10 +249,5 @@
 #endif
 
 /* SPM Partition Configs */
-
-/* Disable the doorbell APIs */
-#ifndef CONFIG_TFM_DOORBELL_API
-#define CONFIG_TFM_DOORBELL_API                0
-#endif
 
 #endif /* __CONFIG_PROFILE_SMALL_H__ */

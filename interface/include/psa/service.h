@@ -236,6 +236,7 @@ void psa_reply(psa_handle_t msg_handle, psa_status_t status);
  * \note The call is a "PROGRAMMER ERROR" if partition_id does not correspond to
  *       a Secure Partition.
  */
+__attribute__((deprecated("may be removed in future releases")))
 void psa_notify(int32_t partition_id);
 
 /**
@@ -244,6 +245,7 @@ void psa_notify(int32_t partition_id);
  * \note The call is a "PROGRAMMER ERROR" if the Secure Partition's doorbell
  *       signal is not currently asserted.
  */
+__attribute__((deprecated("may be removed in future releases")))
 void psa_clear(void);
 
 /**

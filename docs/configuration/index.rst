@@ -298,7 +298,7 @@ Secure Partition Manager
 +--------------------------------------------+-----------+-------------+
 |CONFIG_TFM_CONN_HANDLE_MAX_NUM              | Component |   8         |
 +--------------------------------------------+-----------+-------------+
-|CONFIG_TFM_DOORBELL_API                     | Component |   0         |
+|CONFIG_TFM_DOORBELL_API (deprecated)        | Component |   0         |
 +--------------------------------------------+-----------+-------------+
 |CONFIG_TFM_SCHEDULE_WHEN_NS_INTERRUPTED     | Component |   0         |
 +--------------------------------------------+-----------+-------------+
