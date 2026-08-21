@@ -36,6 +36,7 @@ set_property(CACHE MCUBOOT_UPGRADE_STRATEGY PROPERTY STRINGS "OVERWRITE_ONLY;SWA
 set_property(CACHE MCUBOOT_ALIGN_VAL PROPERTY STRINGS "1;2;4;8;16;32")
 
 set(MCUBOOT_HW_ROLLBACK_PROT            ON          CACHE BOOL      "Enable security counter validation against non-volatile HW counters")
+set(MCUBOOT_USE_PSA_CRYPTO              ON          CACHE BOOL      "Use PSA Crypto in MCUboot")
 set(MCUBOOT_ENC_IMAGES                  OFF         CACHE BOOL      "Enable image encryption (AES)")
 set(MCUBOOT_ENC_KEY_LEN                 128         CACHE STRING    "Length of the AES key for encrypting images")
 set(MCUBOOT_ENCRYPT_RSA                 OFF         CACHE BOOL      "Use RSA-OAEP for encryption key wrapping")
