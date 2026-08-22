@@ -44,6 +44,7 @@ if(BL2)
             ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/cipher.c
             ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/cipher_wrap.c
             ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src/psa_crypto_cipher.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/bl2_pseudo_rng.c
     )
     target_include_directories(bl2
         PRIVATE
