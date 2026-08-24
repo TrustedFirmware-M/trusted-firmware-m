@@ -11,6 +11,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "internal_status_code.h"
 #include "sfcp_runtime_hal.h"
@@ -29,6 +30,10 @@
 #include "sfcp_platform.h"
 #include "critical_section.h"
 
+#ifdef TFM_PARTITION_CRYPTO
+#include "psa_manifest/sid.h"
+#endif
+
 struct sfcp_pool_entry_t {
     sfcp_buffer_handle_t buffer_handle;
     struct client_request_t req;
@@ -45,6 +50,35 @@ static __ALIGNED(4) uint8_t
                          sizeof(struct serialized_psa_msg_t) :
                          sizeof(struct serialized_psa_reply_t))];
 
+#ifdef TFM_PARTITION_CRYPTO
+static psa_status_t prepare_crypto_iovec(struct client_request_t *req)
+{
+    if (req->handle != TFM_CRYPTO_HANDLE) {
+        return PSA_SUCCESS;
+    }
+
+    if ((req->in_len == 0) ||
+        (req->in_vec[0].len != sizeof(req->crypto_iovec))) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+#ifdef SFCP_PROTOCOL_POINTER_ACCESS_ENABLED
+    if (req->protocol_ver == SFCP_PROTOCOL_POINTER_ACCESS) {
+        /*
+         * The pointer-access protocol maps memory controlled by the remote
+         * requester. Preserve the Crypto request header so that the
+         * permission check and the service consume the same immutable data.
+         */
+        memcpy(&req->crypto_iovec, req->in_vec[0].base,
+               sizeof(req->crypto_iovec));
+        req->in_vec[0].base = &req->crypto_iovec;
+    }
+#endif
+
+    return PSA_SUCCESS;
+}
+#endif
+
 static psa_status_t message_deserialize_dispatch(struct sfcp_pool_entry_t *pool_entry,
                                                  uint8_t *payload, size_t payload_size)
 {
@@ -57,6 +91,13 @@ static psa_status_t message_deserialize_dispatch(struct sfcp_pool_entry_t *pool_
         ERROR_UNPRIV_RAW("[SFCP] Deserialize failed: %d\n", plat_err);
         return PSA_ERROR_INVALID_ARGUMENT;
     }
+
+#ifdef TFM_PARTITION_CRYPTO
+    if (prepare_crypto_iovec(req) != PSA_SUCCESS) {
+        ERROR_UNPRIV_RAW("[SFCP] Invalid Crypto request header\n");
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+#endif
 
     /* Create the call parameters */
     struct client_params_t params = {
