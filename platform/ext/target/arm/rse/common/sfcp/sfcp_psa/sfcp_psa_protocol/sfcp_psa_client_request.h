@@ -14,6 +14,10 @@
 #include "sfcp_atu.h"
 #include "sfcp_psa_protocol.h"
 
+#ifdef TFM_PARTITION_CRYPTO
+#include "tfm_crypto_defs.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,6 +41,9 @@ struct client_request_t {
     psa_outvec out_vec[PSA_MAX_IOVEC];
     int32_t return_val;
     uint64_t out_vec_host_addr[PSA_MAX_IOVEC];
+#ifdef TFM_PARTITION_CRYPTO
+    struct tfm_crypto_pack_iovec crypto_iovec;
+#endif
     uint8_t param_copy_buf[SFCP_PSA_EMBED_PAYLOAD_MAX_SIZE];
     comms_atu_region_set_t atu_regions;
 };
