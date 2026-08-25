@@ -4,10 +4,12 @@ Releases
 .. toctree::
     :hidden:
 
+    v2.3.1 <https://trustedfirmware-m.readthedocs.io/en/tf-mv2.3.1/releases/2.3.1.html>
     v2.3.0 <2.3.0>
     v2.2.2 <2.2.2>
     v2.2.1 <2.2.1>
     v2.2.0 <2.2.0>
+    v2.1.6 <https://trustedfirmware-m.readthedocs.io/en/tf-mv2.1.6/releases/2.1.6.html>
     v2.1.5 <2.1.5>
     v2.1.4 <2.1.4>
     v2.1.3 <2.1.3>
@@ -20,6 +22,8 @@ Releases
 +----------------------------------+--------------+----------------------------+
 | Version                          | Date         | PSA-arch tag/hash          |
 +==================================+==============+============================+
+| `v2.3.1`_                        | 2026-08-19   | v24.03_API1.6_CRYPTO_1.1.0 |
++----------------------------------+--------------+----------------------------+
 | :doc:`v2.3.0 </releases/2.3.0>`  | 2026-04-28   | v24.03_API1.6_CRYPTO_1.1.0 |
 +----------------------------------+--------------+----------------------------+
 | :doc:`v2.2.2 </releases/2.2.2>`  | 2025-11-27   | v24.03_API1.6_CRYPTO_1.1.0 |
@@ -27,6 +31,8 @@ Releases
 | :doc:`v2.2.1 </releases/2.2.1>`  | 2025-07-24   | v24.03_API1.6_CRYPTO_1.1.0 |
 +----------------------------------+--------------+----------------------------+
 | :doc:`v2.2.0 </releases/2.2.0>`  | 2025-04-14   | v24.03_API1.6_CRYPTO_1.1.0 |
++----------------------------------+--------------+----------------------------+
+| `v2.1.6`_                        | 2026-08-19   | v23.06_API1.5_ADAC_EAC     |
 +----------------------------------+--------------+----------------------------+
 | :doc:`v2.1.5 </releases/2.1.5>`  | 2026-05-06   | v23.06_API1.5_ADAC_EAC     |
 +----------------------------------+--------------+----------------------------+
@@ -93,6 +99,9 @@ The dates below are tentative and subject to change.
 Please refer to
 :ref:`releases/release_process:Release Cadence and Process` for
 interpreting version numbers.
+
+.. _v2.1.6: https://trustedfirmware-m.readthedocs.io/en/tf-mv2.1.6/releases/2.1.6.html
+.. _v2.3.1: https://trustedfirmware-m.readthedocs.io/en/tf-mv2.3.1/releases/2.3.1.html
 
 --------------
 
