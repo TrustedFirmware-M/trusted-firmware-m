@@ -320,7 +320,7 @@ enum tfm_plat_err_t nrf_mpc_init_cfg(void)
 
 		override.index = index_mpc03++;
 
-		mpc_configure_override(NRF_MPC00, &override);
+		mpc_configure_override(NRF_MPC03, &override);
 	}
 
 	return TFM_PLAT_ERR_SUCCESS;
