@@ -293,8 +293,8 @@ include(${CMAKE_SOURCE_DIR}/lib/ext/tf-m-tests/read_version.cmake)
 
 install(CODE "MESSAGE(\"----- Installing platform NS -----\")")
 
-install(DIRECTORY   $<BUILD_INTERFACE:${CMSIS_PATH}/CMSIS/Core/Include>
-                    $<BUILD_INTERFACE:${CMSIS_PATH}/CMSIS/Driver/Include>
+install(DIRECTORY   $<BUILD_INTERFACE:${CMSIS_SOURCE_ROOT}/Core/Include>
+                    $<BUILD_INTERFACE:${CMSIS_SOURCE_ROOT}/Driver/Include>
         DESTINATION ${INSTALL_PLATFORM_NS_DIR}/ext/cmsis)
 
 if(PLATFORM_DEFAULT_UART_STDOUT)
