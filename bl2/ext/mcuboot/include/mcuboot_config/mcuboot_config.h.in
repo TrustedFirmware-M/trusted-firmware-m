@@ -69,8 +69,12 @@ extern "C" {
 #define MAX_BOOT_RECORD_SZ  (132u)
 #endif /* MCUBOOT_SIGN_EC384 */
 
+#ifndef MCUBOOT_ENCRYPT_RSA
 #cmakedefine MCUBOOT_ENCRYPT_RSA
+#endif
+#ifndef MCUBOOT_ENCRYPT_KW
 #cmakedefine MCUBOOT_ENCRYPT_KW
+#endif
 
 #ifdef MCUBOOT_ENC_IMAGES
 #define MCUBOOT_AES_@MCUBOOT_ENC_KEY_LEN@

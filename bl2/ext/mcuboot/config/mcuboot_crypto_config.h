@@ -73,6 +73,11 @@
 #define PSA_WANT_ALG_ECB_NO_PADDING         1
 #define PSA_WANT_ALG_CTR                    1
 #define PSA_WANT_KEY_TYPE_AES               1
+#if defined(MCUBOOT_ENCRYPT_RSA)
+#define PSA_WANT_ALG_RSA_OAEP                 1
+#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_BASIC  1
+#define PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT 1
+#endif
 #endif
 
 #ifdef CRYPTO_HW_ACCELERATOR_OTP_PROVISIONING

@@ -33,6 +33,8 @@ target_compile_definitions(bl2_crypto_config
         $<${is_ec_signature}:MCUBOOT_SIGN_EC${SIG_LEN}>
         $<$<BOOL:${MCUBOOT_IMAGE_BINDING}>:MCUBOOT_IMAGE_BINDING>
         $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:MCUBOOT_ENC_IMAGES>
+        $<$<BOOL:${MCUBOOT_ENCRYPT_RSA}>:MCUBOOT_ENCRYPT_RSA>
+        $<$<BOOL:${MCUBOOT_ENCRYPT_KW}>:MCUBOOT_ENCRYPT_KW>
 )
 
 target_include_directories(bl2_crypto_config
