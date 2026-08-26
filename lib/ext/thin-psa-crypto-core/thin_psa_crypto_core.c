@@ -1713,6 +1713,49 @@ psa_status_t psa_unwrap_key(const psa_key_attributes_t *attributes,
 
     return PSA_SUCCESS;
 }
+
+psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
+                                    psa_algorithm_t alg,
+                                    const uint8_t *input,
+                                    size_t input_length,
+                                    const uint8_t *salt,
+                                    size_t salt_length,
+                                    uint8_t *output,
+                                    size_t output_size,
+                                    size_t *output_length)
+{
+    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    const uint8_t *key_buffer;
+    size_t key_buffer_size;
+
+    assert(output != NULL);
+    assert(output_length != NULL);
+
+    if (g_key_slot.is_valid && (g_key_slot.key_id == key)) {
+        status = psa_get_key_attributes(key, &attributes);
+        if (status != PSA_SUCCESS) {
+            FATAL_ERR(status);
+            return status;
+        }
+        key_buffer      = g_key_slot.buf;
+        key_buffer_size = g_key_slot.len;
+    } else {
+        FATAL_ERR(PSA_ERROR_INVALID_HANDLE);
+        return PSA_ERROR_INVALID_HANDLE;
+    }
+
+    status = psa_driver_wrapper_asymmetric_decrypt(
+                &attributes, key_buffer, key_buffer_size,
+                alg, input, input_length, salt, salt_length,
+                output, output_size, output_length);
+    if (status != PSA_SUCCESS) {
+        FATAL_ERR(status);
+        return status;
+    }
+
+    return PSA_SUCCESS;
+}
 #endif /* MCUBOOT_ENC_IMAGES */
 
 /* Set the key for a multipart authenticated encryption operation. */
