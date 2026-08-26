@@ -1060,14 +1060,30 @@ psa_status_t psa_import_key(const psa_key_attributes_t *attributes,
     assert(data_length > 0);
     assert(key != NULL);
 
-#if PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY == 1
+#if (PSA_WANT_KEY_TYPE_RSA_PUBLIC_KEY == 1) || (PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT == 1)
     if (PSA_KEY_TYPE_IS_RSA(psa_get_key_type(attributes))) {
         /* This is either a 2048, 3072 or 4096 bit RSA key, hence the TLV must place
-        * the length at index (6,7) with a leading 0x00. The leading 0x00 is due to
-        * the fact that the MSB will always be set for RSA keys where the length is
-        * a multiple of 8 bits.
-        */
-        bits = PSA_BYTES_TO_BITS((((uint16_t)data[6]) << 8) | (uint16_t)data[7]) - 8;
+         * the modulus length with a leading 0x00. The leading 0x00 is due to the
+         * fact that the MSB will always be set for RSA keys where the length is a
+         * multiple of 8 bits.
+         *
+         * RSA public key (PKCS#1v2 RSAPublicKey):
+         *   SEQUENCE { INTEGER modulus, INTEGER publicExponent }
+         *   -> modulus length at index (6,7)
+         *
+         * RSA private key (PKCS#1v2 RSAPrivateKey):
+         *   SEQUENCE { INTEGER version, INTEGER modulus, INTEGER publicExponent, ... }
+         *   -> the fixed 3-byte version INTEGER (02 01 00) shifts the
+         *      modulus length to index (9,10)
+         */
+#if (PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT == 1)
+        if (PSA_KEY_TYPE_IS_KEY_PAIR(psa_get_key_type(attributes))) {
+            bits = PSA_BYTES_TO_BITS((((uint16_t)data[9]) << 8) | (uint16_t)data[10]) - 8;
+        } else
+#endif /* PSA_WANT_KEY_TYPE_RSA_KEY_PAIR_IMPORT == 1 */
+        {
+            bits = PSA_BYTES_TO_BITS((((uint16_t)data[6]) << 8) | (uint16_t)data[7]) - 8;
+        }
     }
 #elif PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY == 1
     if (PSA_KEY_TYPE_IS_ECC(psa_get_key_type(attributes))) {
