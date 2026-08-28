@@ -83,6 +83,7 @@ target_sources(platform_s
         $<$<OR:$<BOOL:${TEST_S_FPU}>,$<BOOL:${TEST_NS_FPU}>>:${CMAKE_SOURCE_DIR}/platform/ext/common/test_interrupt.c>
         $<$<BOOL:${TFM_SANITIZE}>:ext/common/tfm_sanitize_handlers.c>
         ./ext/common/tfm_fatal_error.c
+        ./ext/common/tfm_copy_zero_tables.c
         $<$<BOOL:${PLATFORM_DEFAULT_MEASUREMENT_SLOTS}>:${CMAKE_SOURCE_DIR}/platform/ext/common/tfm_boot_measurement.c>
 )
 
@@ -212,6 +213,7 @@ if(BL2)
             $<$<BOOL:${PLATFORM_DEFAULT_SHARED_MEASUREMENT_DATA}>:ext/common/template/tfm_shared_measurement_data.c>
             $<$<BOOL:${BL2_SANITIZE}>:ext/common/tfm_sanitize_handlers.c>
             ./ext/common/tfm_fatal_error.c
+        ./ext/common/tfm_copy_zero_tables.c
             ./ext/common/tfm_assert.c
             $<$<BOOL:${MCUBOOT_IMAGE_MULTI_SIG_SUPPORT}>:ext/common/bl2_hal_multisig.c>
     )
@@ -325,6 +327,7 @@ if(BL1 AND PLATFORM_DEFAULT_BL1)
             $<$<BOOL:${PLATFORM_DEFAULT_SHARED_MEASUREMENT_DATA}>:ext/common/template/tfm_shared_measurement_data.c>
             $<$<OR:$<BOOL:${BL1_1_SANITIZE}>,$<BOOL:${TFM_BL1_2_SANITIZE}>>:ext/common/tfm_sanitize_handlers.c>
             ./ext/common/tfm_fatal_error.c
+        ./ext/common/tfm_copy_zero_tables.c
             ./ext/common/tfm_assert.c
     )
 
@@ -378,6 +381,7 @@ if(BL1 AND PLATFORM_DEFAULT_BL1)
     target_sources(platform_bl1_2
         PRIVATE
             ext/common/boot_hal_bl1_2.c
+            ./ext/common/tfm_copy_zero_tables.c
             $<$<BOOL:${PLATFORM_DEFAULT_NV_COUNTERS}>:ext/common/template/nv_counters.c>
             $<$<OR:$<BOOL:${PLATFORM_DEFAULT_NV_COUNTERS}>,$<BOOL:${PLATFORM_DEFAULT_OTP}>>:ext/common/template/flash_otp_nv_counters_backend.c>
             $<$<BOOL:${PLATFORM_DEFAULT_OTP}>:ext/common/template/otp_flash.c>

@@ -22,6 +22,7 @@
  */
 
 #include "tfm_hal_device_header.h"
+#include "tfm_copy_zero_tables.h"
 
 /*----------------------------------------------------------------------------
   External References
@@ -144,5 +145,6 @@ extern const VECTOR_TABLE_Type __VECTOR_TABLE[48];
 void Reset_Handler(void)
 {
     SystemInit();                             /* CMSIS System Initialization */
+    tfm_copy_zero_tables();                   /* picolibc crt0 inits one region only */
     __PROGRAM_START();                        /* Enter PreMain (C library entry point) */
 }
