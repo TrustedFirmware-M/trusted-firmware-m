@@ -519,6 +519,13 @@ static psa_status_t util_img_hash(const struct flash_area *fap,
     uint32_t tmp_buf_sz = BOOT_TMPBUF_SZ;
     uint32_t blk_sz = 0;
     uint32_t off;
+    uint32_t data_size_u32;
+
+    if (data_size > fap->fa_size) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    data_size_u32 = (uint32_t)data_size;
 
     /* Setup the hash object for the desired hash. */
     status = psa_hash_setup(&handle, PSA_ALG_SHA_256);
@@ -526,8 +533,8 @@ static psa_status_t util_img_hash(const struct flash_area *fap,
         return status;
     }
 
-    for (off = 0; off < data_size; off += blk_sz) {
-        blk_sz = data_size - off;
+    for (off = 0; off < data_size_u32; off += blk_sz) {
+        blk_sz = data_size_u32 - off;
         if (blk_sz > tmp_buf_sz) {
             blk_sz = tmp_buf_sz;
         }
