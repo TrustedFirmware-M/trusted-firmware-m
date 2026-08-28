@@ -165,9 +165,10 @@ SECTIONS
         *(COMMON)
         . = ALIGN(4);
         __tls_base = . ;                /* to satisfy picolibc crt0 */
-        __arm32_tls_tcb_offset = . ;    /* to satisfy picolibc crt0 */
         __bss_end__ = .;
     } > RAM
+    /* picolibc puts the thread pointer this far below the TLS block */
+    PROVIDE(__arm32_tls_tcb_offset = 8);
     /* Symbols required by picolibc's crt0 (_start). */
     __bss_start = ADDR(.bss);
     __bss_size = SIZEOF(.bss);

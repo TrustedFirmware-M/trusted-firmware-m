@@ -161,8 +161,9 @@ SECTIONS
     {
         . += BL2_HEAP_SIZE;
         __tls_base = .;                /* dummy. for picolib crt0 only */
-        __arm32_tls_tcb_offset = .;    /* dummy. for picolib crt0 only */
     } > RAM
+    /* picolibc puts the thread pointer this far below the TLS block */
+    PROVIDE(__arm32_tls_tcb_offset = 8);
     __heap_start = ADDR(.heap);
     __heap_end = ADDR(.heap) + SIZEOF(.heap);
     __heap_size = SIZEOF(.heap);
