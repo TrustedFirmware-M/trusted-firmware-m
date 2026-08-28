@@ -11,9 +11,9 @@
 #include "psa/crypto.h"
 
 #ifdef MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
-/* This function is stubbed as no source of randomness is required
- * by APIs used in the BLx stages. Nevertheless, a hardware driver
- * for a TRNG might override this implementation with a valid one,
+/* This stub is only built for configurations in which no source of
+ * randomness is required by the APIs used in the BLx stages. A hardware
+ * driver for a TRNG might override this implementation with a valid one,
  * hence mark it as weak. This stub sets output_length to zero.
  */
 __attribute__((weak))

@@ -98,7 +98,9 @@ list(APPEND BL2_CRYPTO_SRC
     $<$<BOOL:${MCUBOOT_ENCRYPT_KW}>:${TF_PSA_CRYPTO_PATH}/extras/nist_kw.c>
     $<$<BOOL:${MCUBOOT_ENCRYPT_KW}>:${TF_PSA_CRYPTO_PATH}/utilities/constant_time.c>
     # Include __weak stub implementation, serving as a fallback for random number generation in case no other RNG is provided.
-    $<$<NOT:$<BOOL:${CRYPTO_HW_ACCELERATOR}>>:src/psa_stub_rng.c>
+    # The stub is not built when RSA-OAEP image encryption is enabled, as that requires a real RNG:
+    # a platform that provides none then fails at link time instead of at runtime.
+    $<$<NOT:$<OR:$<BOOL:${CRYPTO_HW_ACCELERATOR}>,$<BOOL:${MCUBOOT_ENCRYPT_RSA}>>>:src/psa_stub_rng.c>
 )
 
 add_library(bl2_crypto STATIC ${BL2_CRYPTO_SRC})
