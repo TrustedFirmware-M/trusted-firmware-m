@@ -256,6 +256,7 @@ set(PLATFORM_DEFAULT_OTP                OFF        CACHE BOOL     "Use trusted o
 set(PLATFORM_DEFAULT_MEASUREMENT_SLOTS  OFF        CACHE BOOL     "Use default Measured Boot slots")
 set(RSE_SUBPLATFORM_BOOT_MEASUREMENTS   OFF        CACHE BOOL     "Use RSE subplatform boot measurement slot definition")
 set(PLATFORM_DEFAULT_CRYPTO_KEYS        OFF        CACHE BOOL     "Use default crypto keys implementation.")
+set(CRYPTO_TFM_OPAQUE_KEYS_DRIVER       ON         CACHE BOOL     "Whether to allow crypto service to use opaque keys. This allows accessing hardware-managed keys, which cannot be read by software")
 set(PLATFORM_DEFAULT_ROTPK              OFF        CACHE BOOL     "Use default root of trust public key.")
 set(PLATFORM_DEFAULT_PROVISIONING       OFF        CACHE BOOL     "Use default provisioning implementation")
 set(PLATFORM_DEFAULT_SHARED_MEASUREMENT_DATA OFF   CACHE BOOL     "Use default shared measurement data location")
