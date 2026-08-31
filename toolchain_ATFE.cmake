@@ -65,6 +65,8 @@ add_compile_options(
     -funsigned-char
     -fno-exceptions
     -fno-rtti
+    -fno-unwind-tables
+    -fno-asynchronous-unwind-tables
     # Strip /workspace/
     -fmacro-prefix-map=${TOP_LEVEL_PROJECT_DIR}/=
     # Strip /workspace/trusted-firmware-m
@@ -73,6 +75,8 @@ add_compile_options(
     # Always enable debug symbols — this should not affect the final binary files
     -g
 )
+
+set(CMAKE_C_FLAGS_MINSIZEREL "-Oz -DNDEBUG")
 
 add_link_options(
     -mcpu=${TFM_SYSTEM_PROCESSOR_FEATURED}

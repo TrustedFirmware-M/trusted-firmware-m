@@ -56,11 +56,17 @@ add_compile_options(
     -ffunction-sections
     -fno-builtin
     -funsigned-char
+    -fno-exceptions
+    -fno-rtti
+    -fno-unwind-tables
+    -fno-asynchronous-unwind-tables
     # Strip /workspace/
     -fmacro-prefix-map=${TOP_LEVEL_PROJECT_DIR}/=
     # Strip /workspace/trusted-firmware-m
     -fmacro-prefix-map=${CMAKE_SOURCE_DIR}/=
 )
+
+set(CMAKE_C_FLAGS_MINSIZEREL "-Oz -DNDEBUG")
 
 #
 # Pointer Authentication Code and Branch Target Identification (PACBTI) Options
