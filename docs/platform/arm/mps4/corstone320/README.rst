@@ -83,6 +83,10 @@ To run the example code on Corstone-320 Ethos-U85 Ecosystem FVP
 ---------------------------------------------------------------
 FVP is available to download `here <https://developer.arm.com/Tools%20and%20Software/Fixed%20Virtual%20Platforms/IoT%20FVPs>`__
 
+.. note::
+
+   The TF-M port is aligned with version 11.27 of the Corstone-320 FVP.
+
 #. Install the FVP
 #. Copy ``bl1_1.bin``, ``cm_provisioning_bundle.bin``, ``dm_provisioning_bundle.bin``,
    ``bl2_signed.bin`` and ``tfm_s_ns_signed.bin``  files from
@@ -143,4 +147,6 @@ FVP is available to download `here <https://developer.arm.com/Tools%20and%20Soft
 
 -------------
 
-*Copyright (c) 2024-2025, Arm Limited. All rights reserved.*
+*SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors*
+
+*SPDX-License-Identifier: BSD-3-Clause*
