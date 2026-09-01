@@ -90,6 +90,10 @@ static enum tfm_plat_err_t tfm_plat_get_iak(const void *ctx,
     *key_len = PSA_BITS_TO_BYTES(*key_bits);
     const cc3xx_ec_curve_id_t curve_id = (ATTEST_KEY_BITS == 256) ?
                                         CC3XX_EC_CURVE_SECP_256_R1 : CC3XX_EC_CURVE_SECP_384_R1;
+
+    *algorithm = (ATTEST_KEY_BITS == 256) ? PSA_ALG_ECDSA(PSA_ALG_SHA_256) :
+                                            PSA_ALG_ECDSA(PSA_ALG_SHA_384);
+    *type = PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1);
 #else
 #error "Unsupported IAK size"
 #endif
