@@ -120,7 +120,7 @@ static enum tfm_plat_err_t tfm_plat_get_iak(const void *ctx,
         goto err_release_op;
     }
 
-    status = psa_key_derivation_output_bytes(&op, buf, buf_len);
+    status = psa_key_derivation_output_bytes(&op, buf, *key_len);
     if (status != PSA_SUCCESS) {
         goto err_release_op;
     }
