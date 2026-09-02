@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -367,7 +367,7 @@ psa_status_t tfm_fwu_reject(const psa_msg_t *msg)
     psa_fwu_component_t component = 0;
     psa_status_t status = PSA_SUCCESS, error;
     psa_fwu_component_info_t info;
-    bool staged_trial_component_found = false, in_trial_state = false;
+    bool staged_trial_component_found = false;
     size_t num;
 
     /* Check input parameters. */
@@ -380,7 +380,8 @@ psa_status_t tfm_fwu_reject(const psa_msg_t *msg)
     }
 
     COMPONENTS_ITER(component) {
-        in_trial_state = false;
+        bool in_trial_state = false;
+
         if (fwu_ctx[component].in_use) {
             if (fwu_ctx[component].component_state == PSA_FWU_STAGED) {
                 /* If the installation state is STAGED, then the state of
