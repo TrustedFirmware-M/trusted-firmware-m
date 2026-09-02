@@ -158,7 +158,7 @@ __NO_RETURN void tfm_hal_system_reset(uint32_t sw_reset_syn_value)
     /* Set SYS PD to OFF */
     val = rse_sysctrl->pdcm_pd_sys_sense;
     val &= 0x3fffffff;   //min pwr: off, sensitivity: none, ignore PDCM_Q
-    rse_sysctrl->pdcm_pd_vmr1_sense = val;
+    rse_sysctrl->pdcm_pd_sys_sense = val;
 
     /* Enable deep sleep for CPU0 */
     SCB->SCR |= 0x4;
