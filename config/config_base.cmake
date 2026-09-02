@@ -36,6 +36,7 @@ set(PROJECT_CONFIG_HEADER_FILE          ""          CACHE FILEPATH  "User define
 # External libraries source and version
 set(TF_PSA_CRYPTO_PATH                  "DOWNLOAD"  CACHE PATH      "Path to TF-PSA-Crypto (or DOWNLOAD to fetch automatically")
 set(TF_PSA_CRYPTO_VERSION               "v1.2.0"    CACHE STRING    "The version of TF-PSA-Crypto to use")
+set(TF_PSA_CRYPTO_PATCH_DIR             "${CMAKE_SOURCE_DIR}/lib/ext/tf-psa-crypto" CACHE PATH "Path to local folder which contains patches for TF-PSA-Crypto")
 set(TF_PSA_CRYPTO_FORCE_PATCH           OFF         CACHE BOOL      "Always apply TF-PSA-Crypto patches")
 set(TF_PSA_CRYPTO_GIT_REMOTE            "https://github.com/Mbed-TLS/TF-PSA-Crypto" CACHE STRING "The URL to retrieve TF-PSA-Crypto from.")
 

@@ -8,7 +8,7 @@
 fetch_remote_library(
     LIB_NAME                tf-psa-crypto
     LIB_SOURCE_PATH_VAR     TF_PSA_CRYPTO_PATH
-    LIB_PATCH_DIR           ${CMAKE_CURRENT_LIST_DIR}
+    LIB_PATCH_DIR           ${TF_PSA_CRYPTO_PATCH_DIR}
     LIB_FORCE_PATCH         ${TF_PSA_CRYPTO_FORCE_PATCH}
     FETCH_CONTENT_ARGS
         GIT_REPOSITORY      ${TF_PSA_CRYPTO_GIT_REMOTE}
