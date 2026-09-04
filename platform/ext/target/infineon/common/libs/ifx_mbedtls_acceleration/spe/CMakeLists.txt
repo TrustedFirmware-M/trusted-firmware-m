@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2024-2026 Cypress Semiconductor Corporation (an Infineon company)
-# or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+# (c) 2024-2026, Infineon Technologies AG, or an affiliate of Infineon
+# Technologies AG. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -42,19 +42,28 @@ endif()
 target_compile_definitions(ifx_mbedtls_acceleration
     PUBLIC
         MBEDTLS_PSA_CRYPTO_DRIVERS
+        # Select the tf-psa-crypto v1.1.0+ header locations
+        # (tf-psa-crypto/build_info.h, mbedtls/private/*, psa/error.h) in the patched
+        # acceleration sources. When this macro is not defined the sources fall back to
+        # the classic mbedtls header layout, so the library can still be consumed by
+        # projects built against pre-v1.1.0 mbedtls.
+        IFX_TF_PSA_CRYPTO_INCLUDES
 )
 
 target_include_directories(ifx_mbedtls_acceleration
     PUBLIC
-        ${MBEDCRYPTO_PATH}/include
-        ${MBEDCRYPTO_PATH}/library
+        ${TF_PSA_CRYPTO_PATH}/include
+        ${TF_PSA_CRYPTO_PATH}/core
+    PRIVATE
+        ${TF_PSA_CRYPTO_PATH}/drivers/builtin/src
+        ${CMAKE_SOURCE_DIR}/interface/include
 )
 
 target_link_libraries(ifx_mbedtls_acceleration
     PUBLIC
         ifx_pdl_s
     PRIVATE
-        crypto_service_tfpsacrypto
+        crypto_service_tfpsacrypto_config
         psa_crypto_library_config
         platform_common_interface
         ifx_pdl_mbedtls_acceleration
@@ -63,10 +72,10 @@ target_link_libraries(ifx_mbedtls_acceleration
 target_link_libraries(ifx_pdl_mbedtls_acceleration
     PRIVATE
         # Use crypto service options to build PDL crypto drivers for mbedtls acceleration library
-        crypto_service_tfpsacrypto
+        crypto_service_tfpsacrypto_config
 )
 
-target_link_libraries(crypto_service_mbedcrypto
+target_link_libraries(crypto_service_tfpsacrypto
     PUBLIC
         ifx_mbedtls_acceleration
 )

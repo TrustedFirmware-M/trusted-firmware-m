@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2023-2026 Cypress Semiconductor Corporation (an Infineon company)
- * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+ * (c) 2023-2026, Infineon Technologies AG, or an affiliate of Infineon
+ * Technologies AG. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
+#include "coverity_check.h"
 #include "tfm_fih_trng.h"
 
 #define PRNG_A   13
@@ -41,13 +42,15 @@ static void ifx_prng_init(void)
      * that can be done because even calling tfm_core_panic requires fih_delay
      * which uses RNG. */
     do {
-        rnd = ifx_prng_dwX = ifx_trng();
+        ifx_prng_dwX = ifx_trng();
+        rnd = ifx_prng_dwX;
     } while (rnd == ifx_prng_get());
 
     ifx_prng_initialised = true;
 }
 
-int32_t fih_delay_init(void)
+TFM_COVERITY_DEVIATE_LINE(MISRA_C_2023_Directive_4_6, "FIH uses basic types without size and signedness")
+int fih_delay_init(void)
 {
     ifx_prng_init();
 

@@ -1,0 +1,105 @@
+/*
+ * (c) 2026, Infineon Technologies AG, or an affiliate of Infineon
+ * Technologies AG. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ */
+
+#ifndef IFX_PDL_CRYPTOLITE_CONFIG_H
+#define IFX_PDL_CRYPTOLITE_CONFIG_H
+
+/* PDL Configuration - SHA */
+#define CY_CRYPTOLITE_CFG_SHA_C
+#define CY_CRYPTOLITE_CFG_SHA2_256_ENABLED
+#define CY_CRYPTOLITE_CFG_SHA2_512_ENABLED
+
+/* PDL Configuration - HMAC and Key Derivation */
+#define CY_CRYPTOLITE_CFG_HMAC_C
+#define CY_CRYPTOLITE_CFG_HKDF_C
+
+/* PDL Configuration - TRNG */
+#define CY_CRYPTOLITE_CFG_TRNG_C
+
+/*
+ * AES/CMAC/CCM ownership is in CryptoSuite when it is enabled.
+ */
+#if !defined(IFX_CRYPTOSUITE_ENABLED)
+/* PDL Configuration - AES */
+#define CY_CRYPTOLITE_CFG_AES_C
+#define CY_CRYPTOLITE_CFG_CBC_MAC_C
+#define CY_CRYPTOLITE_CFG_CMAC_C
+
+/* PDL Configuration - AES Cipher Modes */
+#define CY_CRYPTOLITE_CFG_CIPHER_MODE_CBC
+#define CY_CRYPTOLITE_CFG_CIPHER_MODE_CFB
+#define CY_CRYPTOLITE_CFG_CIPHER_MODE_CTR
+#define CY_CRYPTOLITE_CFG_CIPHER_MODE_CCM
+#endif /* IFX_CRYPTOSUITE_ENABLED */
+
+/* PDL Configuration - ECC Curves */
+#define CY_CRYPTOLITE_CFG_ECP_C
+#define CY_CRYPTOLITE_CFG_ECP_DP_SECP256R1_ENABLED
+#define CY_CRYPTOLITE_CFG_ECP_DP_SECP384R1_ENABLED
+#define CY_CRYPTOLITE_CFG_ECP_DP_SECP256K1_ENABLED
+
+/* PDL Configuration - ECDSA */
+#define CY_CRYPTOLITE_CFG_ECDSA_C
+#define CY_CRYPTOLITE_CFG_ECDSA_SIGN_C
+#define CY_CRYPTOLITE_CFG_ECDSA_VERIFY_C
+
+/* PSA Configuration - SHA */
+#define IFX_PSA_CRYPTOLITE_SHA
+#define IFX_PSA_CRYPTOLITE_SHA_224
+#define IFX_PSA_CRYPTOLITE_SHA_256
+#define IFX_PSA_CRYPTOLITE_SHA_384
+#define IFX_PSA_CRYPTOLITE_SHA_512
+
+/* PSA Configuration - MAC */
+#define IFX_PSA_CRYPTOLITE_MAC
+#define IFX_PSA_CRYPTOLITE_HMAC
+#if !defined(IFX_CRYPTOSUITE_ENABLED)
+#define IFX_PSA_CRYPTOLITE_CMAC
+#endif /* IFX_CRYPTOSUITE_ENABLED */
+
+/* PSA Configuration - Key Derivation */
+#define IFX_PSA_CRYPTOLITE_KEY_DERIVATION
+#define IFX_PSA_CRYPTOLITE_HKDF
+#define IFX_PSA_CRYPTOLITE_PBKDF2_HMAC
+#define IFX_PSA_CRYPTOLITE_TLS12_PRF
+#define IFX_PSA_CRYPTOLITE_TLS12_PSK_TO_MS
+
+#if !defined(IFX_CRYPTOSUITE_ENABLED)
+/* PSA Configuration - AES */
+// #define IFX_PSA_CRYPTOLITE_CIPHER
+#define IFX_PSA_CRYPTOLITE_CBC_NO_PADDING
+#define IFX_PSA_CRYPTOLITE_CFB
+#define IFX_PSA_CRYPTOLITE_CTR
+
+/* PSA Configuration - AEAD */
+#define IFX_PSA_CRYPTOLITE_AEAD
+#define IFX_PSA_CRYPTOLITE_CCM
+#endif /* IFX_CRYPTOSUITE_ENABLED */
+
+/* PSA Configuration - ECC Curves */
+#define IFX_PSA_CRYPTOLITE_ECC_SECP_R1_256
+// #define IFX_PSA_CRYPTOLITE_ECC_SECP_R1_384
+// #define IFX_PSA_CRYPTOLITE_ECC_SECP_R1_521
+
+/* PSA Configuration - ECDSA */
+#define IFX_PSA_CRYPTOLITE_ECDSA_SIGN
+#define IFX_PSA_CRYPTOLITE_ECDSA_VERIFY
+#define IFX_PSA_CRYPTOLITE_ECDSA_VERIFY_USE_PK
+
+/* PSA Configuration - ECDH */
+#define IFX_PSA_CRYPTOLITE_ECDH
+
+/* PSA Configuration - Key Management */
+#define IFX_PSA_CRYPTOLITE_KEY_GENERATION
+#define IFX_PSA_CRYPTOLITE_ECC_PUBLIC_KEY_EXPORT
+#define IFX_PSA_CRYPTOLITE_PUBLIC_KEY_EXPORT
+
+/* Memory Configuration */
+#define IFX_PSA_CRYPTOLITE_USE_STACK_MEM
+
+#endif /* IFX_PDL_CRYPTOLITE_CONFIG_H */

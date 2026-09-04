@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2023-2026 Cypress Semiconductor Corporation (an Infineon company)
- * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+ * (c) 2023-2026, Infineon Technologies AG, or an affiliate of Infineon
+ * Technologies AG. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -16,6 +16,7 @@
 #include "ifx_fih.h"
 #include "ifx_spe_config.h"
 #include "ifx_platform_spe_types.h"
+#include "load/asset_defs.h"
 
 #if IFX_PLATFORM_MPC_PRESENT
 #if IFX_MPC_DRIVER_HW_MPC
@@ -59,6 +60,12 @@ typedef cy_stc_mpc_regions_t ifx_mem_domain_region_cfg_t;
 
 #define IFX_IS_PARTITION_PRIVILEGED(p_info) (IFX_FIH_EQ((p_info)->ifx_ldinfo->privileged, \
                                                         IFX_FIH_TRUE))
+
+#define IFX_ASSET_ATTR_IS_SET(attr, mask) \
+    ((((uint32_t)(attr)) & ((uint32_t)(mask))) != 0U)
+
+#define IFX_ASSET_ATTR_COMBINE(attr_0, attr_1) \
+    ((enum assets_attribute_t)(((uint32_t)(attr_0)) | ((uint32_t)(attr_1))))
 
 #define IFX_SPM_BOUNDARY                        ((uintptr_t)0xFFFFFFFFU)
 

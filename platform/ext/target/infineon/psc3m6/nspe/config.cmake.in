@@ -1,0 +1,44 @@
+#-------------------------------------------------------------------------------
+# (c) 2026, Infineon Technologies AG, or an affiliate of Infineon
+# Technologies AG. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+
+#################################### IFX #######################################
+
+# BSP config.cmake uses IFX_BSP_DESIGN_FILE_NAME, thus it must be
+# defined before BSP config.cmake is included
+set(IFX_BSP_DESIGN_FILE_NAME                @IFX_BSP_DESIGN_FILE_NAME@ CACHE STRING "Name of BSP design file to use")
+
+set(IFX_GENERATED_DIR "${CMAKE_BINARY_DIR}/generated" CACHE PATH "Path to the root directory of files generated during the build of SPE")
+
+include(${IFX_PLATFORM_SOURCE_DIR}/shared/config.cmake)
+
+################################ Board support #################################
+
+set(IFX_BOARD_PATH                          "${IFX_PLATFORM_SOURCE_DIR}/board" CACHE PATH    "Path to board config, override it to support custom board")
+
+# Individual board config options for this device
+set(IFX_CONFIG_BSP_PATH                     "${IFX_PLATFORM_SOURCE_DIR}/board" CACHE FILEPATH "Path to individual BSP configurations")
+include(${IFX_CONFIG_BSP_PATH}/config.cmake OPTIONAL)
+
+set(IFX_BSP_NS_COMPONENTS                   "CM33;NON_SECURE_DEVICE" CACHE PATH    "List of BSP components used to build non-secure image")
+set(IFX_BSP_NS_EXCLUDE                      ".+/startup_cat1b_cm33\.c" # TFM uses own startup files as for now
+                                                        CACHE PATH      "List of sources excluded from build of non-secure BSP target")
+
+###################################### Libs #######################################
+
+# Abstraction RTOS is only needed in NS build, thus library fetch data is
+# defined in NSPE CMake file
+set(IFX_ABSTRACTION_RTOS_LIB_PATH        "DOWNLOAD" CACHE PATH "Path to Infineon abstraction RTOS library (or DOWNLOAD to fetch automatically)")
+set(IFX_ABSTRACTION_RTOS_LIB_GIT_REMOTE  "https://github.com/Infineon/abstraction-rtos.git" CACHE STRING "Infineon abstraction RTOS library repo URL")
+set(IFX_ABSTRACTION_RTOS_LIB_PATCH_DIR   "${IFX_COMMON_SOURCE_DIR}/libs/ifx_abs_rtos/patch" CACHE STRING "Path to abstraction RTOS library patches")
+set(IFX_ABSTRACTION_RTOS_LIB_VERSION     "release-v1.12.0" CACHE STRING "The version of Infineon abstraction RTOS library to use")
+
+##################################### Common ###################################
+
+# Configuration generated from template
+include(${IFX_COMMON_SOURCE_DIR}/spe_config.cmake)
+include(${IFX_COMMON_SOURCE_DIR}/config.cmake)

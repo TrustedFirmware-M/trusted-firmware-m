@@ -1,0 +1,56 @@
+/*
+ * (c) 2026, Infineon Technologies AG, or an affiliate of Infineon
+ * Technologies AG. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ */
+
+#ifndef IFX_PDL_PSA_CRYPTOLITE_CONFIG_H
+#define IFX_PDL_PSA_CRYPTOLITE_CONFIG_H
+
+#define IFX_PSA_CRYPTOLITE_KEY_DERIVATION
+#define IFX_PSA_CRYPTOLITE_HMAC
+// #define IFX_PSA_CRYPTOLITE_CMAC
+
+#define IFX_PSA_CRYPTOLITE_SHA_256
+#define IFX_PSA_CRYPTOLITE_SHA
+
+
+/*  AES configuration */
+// #define IFX_PSA_CRYPTOLITE_ECB_NO_PADDING
+// #define IFX_PSA_CRYPTOLITE_CBC_NO_PADDING
+// #define IFX_PSA_CRYPTOLITE_CFB
+// #define IFX_PSA_CRYPTOLITE_CTR
+// #define IFX_PSA_CRYPTOLITE_CCM
+
+
+/*  ECDSA configuration */
+
+// #define IFX_PSA_CRYPTOLITE_ECC_SECP_R1_192
+// #define IFX_PSA_CRYPTOLITE_ECC_SECP_R1_224
+#define IFX_PSA_CRYPTOLITE_ECC_SECP_R1_256
+// #define IFX_PSA_CRYPTOLITE_ECC_SECP_R1_384
+// #define IFX_PSA_CRYPTOLITE_ECC_SECP_R1_521
+
+
+/*  ECDH configuration */
+#define IFX_PSA_CRYPTOLITE_ECDH
+
+/*  RSA configuration */
+// #define IFX_PSA_CRYPTOLITE_RSA_PUBLIC_KEY_EXPORT
+#define IFX_PSA_CRYPTOLITE_ECC_PUBLIC_KEY_EXPORT
+#define IFX_PSA_CRYPTOLITE_PUBLIC_KEY_EXPORT
+
+#define IFX_PSA_CRYPTOLITE_ECDSA_SIGN
+#define IFX_PSA_CRYPTOLITE_ECDSA_VERIFY
+#define IFX_PSA_CRYPTOLITE_ECDSA_VERIFY_USE_PK
+
+#define IFX_PSA_CRYPTOLITE_KEY_GENERATION
+
+/*  RSA configuration */
+// #define IFX_PSA_CRYPTOLITE_RSA
+/* RSA PKCS 1.5 verification */
+// #define IFX_PSA_CRYPTOLITE_RSA_VERIFY
+
+#endif /* IFX_PDL_PSA_CRYPTOLITE_CONFIG_H */

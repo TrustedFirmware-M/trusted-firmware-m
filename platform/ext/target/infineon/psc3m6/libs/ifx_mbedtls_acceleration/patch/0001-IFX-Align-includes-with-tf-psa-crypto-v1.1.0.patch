@@ -1,0 +1,158 @@
+From f7e89090ff5762d04fc8caa8209a494ef0983b99 Mon Sep 17 00:00:00 2001
+From: IFX <ifx@infineon.com>
+Date: Wed, 9 Sep 2026 16:24:46 -0700
+Subject: [PATCH] IFX: Align includes with tf-psa-crypto v1.1.0
+
+tf-psa-crypto v1.1.0 renamed mbedtls/build_info.h to
+tf-psa-crypto/build_info.h and moved legacy low-level headers
+(ecp.h, aes.h, ...) under mbedtls/private/.
+
+Update only the headers/sources that are actually reached by the
+MXCRYPTO transparent-driver build used by TF-M. The mbedtls_alt_*
+sources that still reference removed classic headers are not
+compiled in this build, so they are left untouched.
+
+ifx_cryptolite_config.h's default configuration branch (used whenever
+no IFX_PSA_CRYPTOLITE_USER_CONFIG_FILE is supplied, e.g. builds with
+IFX_CRYPTOSUITE_ENABLED=OFF) needs the same treatment, but is reached
+by every TF-PSA-Crypto TU (e.g. crypto_service_p256-m) via
+psa/crypto_struct.h -> crypto_driver_contexts_primitives.h, not just
+by ifx_mbedtls_acceleration's own sources, so it is guarded on
+IFX_TF_PSA_CRYPTO_INCLUDES (forwarded to every such TU via the
+$<COMPILE_ONLY:ifx_mbedtls_acceleration> usage requirements in
+common/spe/services/CMakeLists.txt) rather than swapped
+unconditionally.
+---
+ mbedtls_MXCRYPTOLITE/ecdsa_alt_mxcryptolite.c    |  2 +-
+ mbedtls_MXCRYPTOLITE/sha256_alt_mxcryptolite.c   | 16 +++++++++++-----
+ mbedtls_MXCRYPTOLITE/trng_alt_mxcryptolite.c     |  8 ++++----
+ .../ifx_cryptolite_common.h                      |  2 +-
+ .../ifx_cryptolite_config.h                      |  4 ++++
+ .../ifx_cryptolite_transparent_functions.h       |  2 +-
+ 6 files changed, 22 insertions(+), 12 deletions(-)
+
+diff --git a/mbedtls_MXCRYPTOLITE/ecdsa_alt_mxcryptolite.c b/mbedtls_MXCRYPTOLITE/ecdsa_alt_mxcryptolite.c
+index 4d62b8fcdfab..3af1129aff41 100644
+--- a/mbedtls_MXCRYPTOLITE/ecdsa_alt_mxcryptolite.c
++++ b/mbedtls_MXCRYPTOLITE/ecdsa_alt_mxcryptolite.c
+@@ -29,7 +29,7 @@
+ 
+ #if defined (CY_IP_MXCRYPTOLITE)
+ 
+-#include "mbedtls/build_info.h"
++#include "tf-psa-crypto/build_info.h"
+ 
+ #if defined(MBEDTLS_ECDSA_C)
+ 
+diff --git a/mbedtls_MXCRYPTOLITE/sha256_alt_mxcryptolite.c b/mbedtls_MXCRYPTOLITE/sha256_alt_mxcryptolite.c
+index 565f619691eb..e8bc27af193e 100644
+--- a/mbedtls_MXCRYPTOLITE/sha256_alt_mxcryptolite.c
++++ b/mbedtls_MXCRYPTOLITE/sha256_alt_mxcryptolite.c
+@@ -29,16 +29,15 @@
+ 
+ #if defined (CY_IP_MXCRYPTOLITE)
+ 
+-#include "mbedtls/build_info.h"
++#include "tf-psa-crypto/build_info.h"
+ 
+ #if defined(MBEDTLS_SHA256_C)
+ 
+ /* Allow only *_alt implementations to access private members of structures*/
+ #define MBEDTLS_ALLOW_PRIVATE_ACCESS
+ 
+-#include "mbedtls/sha256.h"
++#include "mbedtls/private/sha256.h"
+ #include "mbedtls/platform_util.h"
+-#include "mbedtls/compat-2.x.h"
+ 
+ #include <string.h>
+ 
+@@ -48,8 +47,15 @@
+ 
+ /* Parameter validation macros based on platform_util.h */
+ #define SHA256_VALIDATE_RET(cond)                           \
+-     MBEDTLS_INTERNAL_VALIDATE_RET( cond, MBEDTLS_ERR_SHA256_BAD_INPUT_DATA )
+-#define SHA256_VALIDATE(cond)  MBEDTLS_INTERNAL_VALIDATE( cond )
++    do {                                                     \
++        if (!(cond))                                         \
++            return MBEDTLS_ERR_SHA256_BAD_INPUT_DATA;       \
++    } while (0)
++#define SHA256_VALIDATE(cond)                                \
++    do {                                                     \
++        if (!(cond))                                         \
++            return;                                          \
++    } while (0)
+ 
+ void mbedtls_sha256_init( mbedtls_sha256_context *ctx )
+ {
+diff --git a/mbedtls_MXCRYPTOLITE/trng_alt_mxcryptolite.c b/mbedtls_MXCRYPTOLITE/trng_alt_mxcryptolite.c
+index 2f1ca111e775..53f502e1e9f5 100644
+--- a/mbedtls_MXCRYPTOLITE/trng_alt_mxcryptolite.c
++++ b/mbedtls_MXCRYPTOLITE/trng_alt_mxcryptolite.c
+@@ -33,17 +33,17 @@
+ #if CY_CPU_CORTEX_M0P || ((CY_CPU_CORTEX_M7 || CY_CPU_CORTEX_M4 || CY_CPU_CORTEX_M33 || CY_CPU_CORTEX_M55) && !defined(CY_DEVICE_SECURE) && !defined(CY_TFM_PSA_SUPPORTED))
+ #if defined (CY_IP_MXCRYPTOLITE)
+ 
+-#include "mbedtls/build_info.h"
++#include "tf-psa-crypto/build_info.h"
+ 
+ 
+ #if defined(MBEDTLS_ENTROPY_C)
+ 
+ #include <string.h>
+-#include "mbedtls/entropy.h"
++#include "mbedtls/private/entropy.h"
+ #include "mbedtls/platform.h"
+ #include "mbedtls/platform_util.h"
+-#include "mbedtls/error.h"
+-#include "mbedtls/compat-2.x.h"
++#include "psa/error.h"
++// #include "mbedtls/compat-2.x.h"
+ 
+ #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+ 
+diff --git a/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_common.h b/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_common.h
+index d922368e2303..3466ca15f96b 100644
+--- a/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_common.h
++++ b/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_common.h
+@@ -26,7 +26,7 @@
+ #if !defined(IFX_CRYPTOLITE_COMMON_H)
+ #define IFX_CRYPTOLITE_COMMON_H
+ 
+-#include "mbedtls/build_info.h"
++#include "tf-psa-crypto/build_info.h"
+ 
+ #include "cy_device.h"
+ 
+diff --git a/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_config.h b/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_config.h
+index b4e372d156c0..4dda274fd79c 100644
+--- a/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_config.h
++++ b/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_config.h
+@@ -37,7 +37,11 @@ extern "C" {
+ #include IFX_PSA_CRYPTOLITE_USER_CONFIG_FILE
+ #else
+ 
++#if defined(IFX_TF_PSA_CRYPTO_INCLUDES)
++#include "tf-psa-crypto/build_info.h"
++#else
+ #include "mbedtls/build_info.h"
++#endif
+ #include "psa/crypto_driver_common.h"
+ 
+ /* Default configuration of PSA CRYPTOLITE Driver:
+diff --git a/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_transparent_functions.h b/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_transparent_functions.h
+index b8e71bdacca0..25cede9e4a70 100644
+--- a/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_transparent_functions.h
++++ b/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_transparent_functions.h
+@@ -27,7 +27,7 @@
+ #if !defined(IFX_CRYPTOLITE_TRANSPARENT_FUNCS_H)
+ #define IFX_CRYPTOLITE_TRANSPARENT_FUNCS_H
+ 
+-#include "mbedtls/build_info.h"
++#include "tf-psa-crypto/build_info.h"
+ 
+ #include "ifx_cryptolite_transparent_hash.h"
+ #include "ifx_cryptolite_transparent_mac.h"
+-- 
+2.34.1
+
