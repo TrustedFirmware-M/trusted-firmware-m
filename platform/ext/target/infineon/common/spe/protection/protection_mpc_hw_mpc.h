@@ -12,7 +12,7 @@
  *
  * \note Don't include this file directly, include protection_types.h instead !!!
  * It's expected that this file is included by protection_types.h if platform is configured
- * to use HW MPC driver via IFX_MPC_DRIVER_HW_MPC_V1 or IFX_MPC_DRIVER_HW_MPC_V2 option.
+ * to use HW MPC driver via IFX_MPC_DRIVER_HW_MPC option.
  */
 
 #ifndef PROTECTION_MPC_HW_MPC_H

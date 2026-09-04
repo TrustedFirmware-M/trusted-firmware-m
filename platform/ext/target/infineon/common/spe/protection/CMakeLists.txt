@@ -9,9 +9,7 @@
 target_sources(tfm_spm
     PRIVATE
         protection_data_common.c
-        $<$<BOOL:${IFX_MPC_DRIVER_HW_MPC_V1}>:${CMAKE_CURRENT_LIST_DIR}/protection_mpc_hw_mpc_v1.c>
-        $<$<BOOL:${IFX_MPC_DRIVER_HW_MPC_V2}>:${CMAKE_CURRENT_LIST_DIR}/protection_mpc_hw_mpc_v2.c>
-        $<$<OR:$<BOOL:${IFX_MPC_DRIVER_HW_MPC_V1}>,$<BOOL:${IFX_MPC_DRIVER_HW_MPC_V2}>>:${CMAKE_CURRENT_LIST_DIR}/protection_mpc_hw_mpc.c>
+        $<$<BOOL:${IFX_MPC_DRIVER_HW_MPC}>:${CMAKE_CURRENT_LIST_DIR}/protection_mpc_hw_mpc.c>
         $<$<OR:$<STREQUAL:${IFX_SE_IPC_SERVICE_TYPE},FULL>,$<STREQUAL:${IFX_SE_IPC_SERVICE_TYPE},BASE>>:${CMAKE_CURRENT_LIST_DIR}/protection_mpc_sert.c>
         $<$<BOOL:${IFX_MPC_DRIVER_SW_POLICY}>:${CMAKE_CURRENT_LIST_DIR}/protection_mpc_sw_policy.c>
         protection_mpu.c
@@ -20,7 +18,7 @@ target_sources(tfm_spm
         $<$<BOOL:${IFX_PPC_DRIVER_V2}>:${CMAKE_CURRENT_LIST_DIR}/protection_ppc_v2.c>
         protection_sau.c
         protection_tz.c
-        $<$<OR:$<BOOL:${IFX_MPC_DRIVER_HW_MPC_V1}>,$<BOOL:${IFX_MPC_DRIVER_HW_MPC_V2}>>:${CMAKE_CURRENT_LIST_DIR}/protection_utils.c>
+        $<$<BOOL:${IFX_MPC_DRIVER_HW_MPC}>:${CMAKE_CURRENT_LIST_DIR}/protection_utils.c>
         tfm_hal_isolation.c
         $<$<BOOL:${PLATFORM_ARCH_HOOKS}>:${CMAKE_CURRENT_LIST_DIR}/tfm_platform_arch_hooks.c>
         ${IFX_GENERATED_DIR}/secure_fw/ifx/partition_info.c

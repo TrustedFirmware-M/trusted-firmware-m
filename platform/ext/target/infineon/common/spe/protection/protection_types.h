@@ -18,7 +18,7 @@
 #include "ifx_platform_spe_types.h"
 
 #if IFX_PLATFORM_MPC_PRESENT
-#if IFX_MPC_DRIVER_HW_MPC_V1 || IFX_MPC_DRIVER_HW_MPC_V2
+#if IFX_MPC_DRIVER_HW_MPC
 #include "protection_mpc_hw_mpc.h"
 #elif IFX_MPC_DRIVER_SW_POLICY
 #include "protection_mpc_sw_policy.h"

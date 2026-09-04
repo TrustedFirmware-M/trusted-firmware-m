@@ -37,18 +37,8 @@
 #define IFX_PLATFORM_MPC_PRESENT                            0
 #endif
 
-/* Whether MPC HW driver v1 is used */
-#cmakedefine01 IFX_MPC_DRIVER_HW_MPC_V1
-/* Whether MPC HW driver v2 is used */
-#cmakedefine01 IFX_MPC_DRIVER_HW_MPC_V2
-
-#if IFX_MPC_DRIVER_HW_MPC_V1 || IFX_MPC_DRIVER_HW_MPC_V2
-/* \brief Use HW MPC driver */
-#define IFX_MPC_DRIVER_HW_MPC                               1
-#else
-/* \brief Use HW MPC driver */
-#define IFX_MPC_DRIVER_HW_MPC                               0
-#endif /* IFX_MPC_DRIVER_HW_MPC_V1 || IFX_MPC_DRIVER_HW_MPC_V2 */
+/* Whether HW MPC driver is used */
+#cmakedefine01 IFX_MPC_DRIVER_HW_MPC
 
 #if !IFX_ISOLATION_PC_SWITCHING
 /* Defines whether PSA RoT is protected via dynamic MPC isolation on L3 */

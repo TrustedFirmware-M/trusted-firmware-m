@@ -61,7 +61,7 @@ endif()
 set(IFX_CM33_NS_PRESENT                     ON   CACHE BOOL  "Enable CM33 NSPE for IFX platform")
 set(IFX_CM55_NS_PRESENT                     ON   CACHE BOOL  "Enable CM55 NSPE for IFX platform")
 
-set(IFX_MPC_DRIVER_HW_MPC_V2                ON) # Use MPC driver v2
+set(IFX_MPC_DRIVER_HW_MPC                   ON) # Use HW MPC driver
 set(IFX_PPC_DRIVER_V2                       ON) # Use PPC driver v2
 set(IFX_PPC_DOMAIN_CONFIGURATOR             ON) # Edge Configurator provides PPC domain configuration
 

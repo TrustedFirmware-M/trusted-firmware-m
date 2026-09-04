@@ -47,7 +47,7 @@ target_sources(ifx_pdl_s
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_gpio.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_ipc_drv.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_ipc_sema.c
-        $<$<OR:$<BOOL:${IFX_MPC_DRIVER_HW_MPC_V1}>,$<BOOL:${IFX_MPC_DRIVER_HW_MPC_V2}>>:${IFX_PDL_LIB_PATH}/drivers/source/cy_mpc.c>
+        $<$<BOOL:${IFX_MPC_DRIVER_HW_MPC}>:${IFX_PDL_LIB_PATH}/drivers/source/cy_mpc.c>
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_ms_ctl.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_ppc.c
         ${IFX_PDL_LIB_PATH}/drivers/source/cy_scb_common.c
