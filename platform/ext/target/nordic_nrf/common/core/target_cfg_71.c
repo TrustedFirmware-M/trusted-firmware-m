@@ -51,7 +51,7 @@
  * from Zephyr. This function does not have a header file so we
  * declare its prototype here.
  */
-int soc_early_init_hook(void);
+int nordicsemi_nrf71_init(void);
 
 extern const struct memory_region_limits memory_regions;
 
@@ -533,7 +533,7 @@ enum tfm_plat_err_t spu_periph_init_cfg(void)
 	}
 
 	/* SOC configuration from Zephyr's soc.c. */
-	int soc_err = soc_early_init_hook();
+	int soc_err = nordicsemi_nrf71_init();
 	if (soc_err) {
 		return TFM_PLAT_ERR_SYSTEM_ERR;
 	}

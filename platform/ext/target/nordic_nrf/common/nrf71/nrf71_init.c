@@ -43,8 +43,8 @@ void __attribute__((weak)) wifi_setup(void){
 }
 #endif
 
-int soc_early_init_hook(void){
-    nrfx_ram_ctrl_retention_enable_all_set(false);
+int nordicsemi_nrf71_init(void){
+	nrfx_ram_ctrl_retention_enable_all_set(false);
 
 #if defined (CONFIG_SOC_NRF7120_WICR_SETUP)
 	if (wicr_setup() != 0) {
