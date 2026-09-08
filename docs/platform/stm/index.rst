@@ -15,6 +15,7 @@ This document contains SOC and boards supported by stm32.
     stm32l562e_dk/readme.rst
     stm32h573i_dk/readme.rst
     stm32wba65i-dk/readme.rst
+    stm32mp2/readme.rst
 
 
 --------------
