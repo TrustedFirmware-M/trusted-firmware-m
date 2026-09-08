@@ -1,0 +1,170 @@
+/*
+ * Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		/* Internal RAM reserved memory declaration */
+		tfa_bl31: sysram1@e000000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xe000000 0x0 0x20000>;
+			#memory-region-cells = <0>;
+		};
+
+		hpdma_lli: hpdma-lli@e020000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xe020000 0x0 0x20000>;
+			#memory-region-cells = <0>;
+		};
+
+		bsec_mirror: bsec-mirror@e040000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xe040000 0x0 0x1000>;
+			#memory-region-cells = <0>;
+		};
+
+		cm33_sram1: cm33_sram1@e041000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xe041000 0x0 0x1e000>;
+			#memory-region-cells = <0>;
+		};
+
+		/*end of areas not used in bl2 */
+
+		tfm_shared_data: tfm_shared_data@e05f000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xe05f000 0x0 0x1000>;
+			#memory-region-cells = <0>;
+		};
+
+		ddr_fw_buffer: ddr-fw-buffer@e060000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xe060000 0x0 0x20000>;
+			#memory-region-cells = <0>;
+		};
+
+		retram: retram@e080000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xe080000 0x0 0x20000>;
+			#memory-region-cells = <0>;
+		};
+
+		vderam: vderam@e0a0000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xe0a0000 0x0 0x20000>;
+			#memory-region-cells = <0>;
+		};
+
+		/* PCIe reserved memory declaration */
+		pcie_device: pcie-device@10000000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x10000000 0x0 0x10000000>;
+			#memory-region-cells = <0>;
+		};
+
+		/* Backup RAM reserved memory declaration */
+		bl31_lowpower: bl31-lowpower@52000000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x52000000 0x0 0x1000>;
+			#memory-region-cells = <0>;
+		};
+
+		tfm_its: tfm-its@52001000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x52001000 0x0 0x1000>;
+			#memory-region-cells = <0>;
+		};
+
+		/* Octo Memory Manager reserved memory declaration */
+		mm_ospi2: mm-ospi@60000000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x60000000 0x0 0x10000000>;
+			#memory-region-cells = <0>;
+		};
+
+		/* DDR reserved memory declaration */
+		tfm_code: tfm-code@80000000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x80000000 0x0 0x100000>;
+			#memory-region-cells = <0>;
+		};
+
+		cm33_cube_fw: cm33-cube-fw@80100000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x80100000 0x0 0x800000>;
+			#memory-region-cells = <0>;
+		};
+
+		tfm_data: tfm-data@80900000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x80900000 0x0 0x100000>;
+			#memory-region-cells = <0>;
+		};
+
+		cm33_cube_data: cm33-cube-data@80a00000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x80a00000 0x0 0x800000>;
+			#memory-region-cells = <0>;
+		};
+
+		ipc_shmem: ipc-shmem@81200000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x81200000 0x0 0x100000>;
+			#memory-region-cells = <0>;
+		};
+
+		spare1: spare1@81300000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x81300000 0x0 0xc00000>;
+			#memory-region-cells = <0>;
+		};
+
+		bl31_context: bl31-context@81ff0000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x81fc0000 0x0 0x40000>;
+			#memory-region-cells = <0>;
+		};
+
+		op_tee: op-tee@82000000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x82000000 0x0 0x2000000>;
+			#memory-region-cells = <0>;
+		};
+
+		linuxkernel1: linuxkernel@84000000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x84000000 0x0 0x77000000>;
+			#memory-region-cells = <0>;
+		};
+
+		gpu_reserved: gpu-reserved@fb000000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xfb000000 0x0 0x4000000>;
+			#memory-region-cells = <0>;
+		};
+
+		ltdc_sec_layer: ltdc-sec-layer@ff000000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xff000000 0x0 0x800000>;
+			#memory-region-cells = <0>;
+		};
+
+		ltdc_sec_rotation: ltdc-sec-rotation@ff800000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xff800000 0x0 0x800000>;
+			#memory-region-cells = <0>;
+		};
+
+		linuxkernel2: linuxkernel2@100000000 {
+			compatible = "reserved-memory";
+			reg = <0x1 0x00000000 0x0 0x80000000>;
+			#memory-region-cells = <0>;
+		};
+	};
+};

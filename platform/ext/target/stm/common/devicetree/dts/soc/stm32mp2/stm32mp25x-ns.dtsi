@@ -1,0 +1,173 @@
+/*
+ * Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+/*
+ * This file allows to overwrite stm32mp25X.dtsi to change secure reg
+ * properties by non secure value (for soc devices)
+ */
+
+&bsec {
+	reg = <0x44000000 0x1000>;
+};
+
+&exti2 {
+	reg = <0x46230000 0x400>;
+};
+
+&i2c1 {
+	reg = <0x40120000 0x400>;
+};
+
+&i2c2 {
+	reg = <0x40130000 0x400>;
+};
+
+&i2c3 {
+	reg = <0x40140000 0x400>;
+};
+
+&i2c4 {
+	reg = <0x40150000 0x400>;
+};
+
+&i2c5 {
+	reg = <0x40160000 0x400>;
+};
+
+&i2c6 {
+	reg = <0x40170000 0x400>;
+};
+
+&i2c8 {
+	reg = <0x46040000 0x400>;
+};
+
+&iac {
+	reg = <0x42090000 0x400>;
+};
+
+&ommanager {
+	reg = <0x40500000 0x400>, <0x60000000 0x10000000>;
+	ranges = <0 0 0x40430000 0x400>,
+		 <1 0 0x40440000 0x400>,
+		 <2 0 0x60000000 0x80000000>,
+		 <3 0 0x68000000 0x80000000>;
+};
+
+&pinctrl {
+	ranges = <0 0x44240000 0xa0400>;
+};
+
+&pinctrl_z {
+	ranges = <0 0x46200000 0x400>;
+};
+
+&rcc {
+	reg = <0x44200000 0x10000>;
+};
+
+&risaf4 {
+	reg = <0x420d0000 0x1000>;
+};
+
+&rifsc {
+	reg = <0x42080000 0x1000>;
+};
+
+&serc {
+	reg = <0x44080000 0x1000>;
+};
+
+&tim2 {
+	reg = <0x40000000 0x400>;
+};
+
+&tim3 {
+	reg = <0x40010000 0x400>;
+};
+
+&tim4 {
+	reg = <0x40020000 0x400>;
+};
+
+&tim5 {
+	reg = <0x40030000 0x400>;
+};
+
+&tim6 {
+	reg = <0x40040000 0x400>;
+};
+
+&tim7 {
+	reg = <0x40050000 0x400>;
+};
+
+&tim10 {
+	reg = <0x401c0000 0x400>;
+};
+
+&tim11 {
+	reg = <0x401d0000 0x400>;
+};
+
+&tim12 {
+	reg = <0x40060000 0x400>;
+};
+
+&tim13 {
+	reg = <0x40070000 0x400>;
+};
+
+&tim14 {
+	reg = <0x40080000 0x400>;
+};
+
+&tim15 {
+	reg = <0x40250000 0x400>;
+};
+
+&tim16 {
+	reg = <0x40260000 0x400>;
+};
+
+&tim17 {
+	reg = <0x40270000 0x400>;
+};
+
+&uart4 {
+	reg = <0x40100000 0x400>;
+};
+
+&uart5 {
+	reg = <0x40110000 0x400>;
+};
+
+&uart7 {
+	reg = <0x40370000 0x400>;
+};
+
+&uart8 {
+	reg = <0x40380000 0x400>;
+};
+
+&uart9 {
+	reg = <0x402c0000 0x400>;
+};
+
+&usart1 {
+	reg = <0x40330000 0x400>;
+};
+
+&usart2 {
+	reg = <0x400e0000 0x400>;
+};
+
+&usart3 {
+	reg = <0x400f0000 0x400>;
+};
+
+&usart6 {
+	reg = <0x40220000 0x400>;
+};

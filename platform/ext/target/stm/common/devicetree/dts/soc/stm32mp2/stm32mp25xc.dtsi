@@ -1,0 +1,23 @@
+/*
+ * Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+/*
+ * This file allows to overwrite stm32mp25xc.dtsi to change secure reg
+ * properties by non secure value (for soc devices)
+ */
+
+#include <dt-bindings/rif/stm32mp25-rifsc.h>
+
+&rifsc {
+	saes: saes@52050000 {
+		compatible = "st,stm32mp13-saes";
+		reg = <0x52050000 0x400>;
+		clocks = <&rcc CK_BUS_SAES>, <&rcc CK_BUS_RNG>;
+		clock-names = "bus", "rng";
+		access-controllers = <&rifsc RIFPROT(STM32MP25_RIFSC_SAES_ID, RIF_CID1_BF|RIF_CID2_BF, RIF_LOCK, RIF_SEC, RIF_PRIV, RIF_UNUSED, RIF_SEM_EN, RIF_CFEN)>;
+		resets = <&rcc_reset SAES_R>;
+		status = "disabled";
+	};
+};

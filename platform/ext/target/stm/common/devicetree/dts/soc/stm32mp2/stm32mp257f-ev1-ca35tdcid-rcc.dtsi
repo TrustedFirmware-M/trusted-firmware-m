@@ -1,0 +1,30 @@
+/*
+ * Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+&clk_hse {
+	clock-frequency = <40000000>;
+	status = "disabled";
+};
+
+&clk_hsi {
+	clock-frequency = <64000000>;
+	status = "disabled";
+};
+
+&clk_lse {
+	clock-frequency = <32768>;
+	status = "disabled";
+};
+
+&clk_lsi {
+	clock-frequency = <32000>;
+	status = "disabled";
+};
+
+&clk_msi {
+	clock-frequency = <16000000>;
+	status = "disabled";
+};

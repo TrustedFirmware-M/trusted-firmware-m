@@ -1,0 +1,10 @@
+/*
+ * Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+#include "stm32mp253.dtsi"
+
+/ {
+};
+

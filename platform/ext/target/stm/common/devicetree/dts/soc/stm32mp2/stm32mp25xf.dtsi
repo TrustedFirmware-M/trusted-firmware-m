@@ -1,0 +1,11 @@
+/*
+ * Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+/*
+ * This file allows to overwrite stm32mp25xc.dtsi to change secure reg
+ * properties by non secure value (for soc devices)
+ */
+
+#include "stm32mp25xc.dtsi"
