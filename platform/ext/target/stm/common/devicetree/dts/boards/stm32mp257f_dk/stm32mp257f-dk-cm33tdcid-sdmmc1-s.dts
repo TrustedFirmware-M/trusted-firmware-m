@@ -1,0 +1,524 @@
+/*
+ * Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <dt-bindings/clock/stm32mp25-clksrc.h>
+#include <dt-bindings/power/stm32mp25-power.h>
+#include <dt-bindings/regulator/stm32mp25-regulator.h>
+#include <dt-bindings/regulator/st,stpmic2.h>
+#include <dt-bindings/reset/st,stm32mp25-rcc.h>
+#include <dt-bindings/rif/stm32mp25-rif.h>
+#include <dt-bindings/rif/stm32mp2-rifsc.h>
+#include <dt-bindings/rif/stm32mp25-rifsc.h>
+#include <dt-bindings/rif/stm32mp2-risaf.h>
+#include <dt-bindings/rif/stm32mp25-risab.h>
+#include <dt-bindings/tamp/st,stm32mp25-tamp.h>
+#include <dt-bindings/gpio/st,stm32mp25-tamp-gpio.h>
+#include <dt-bindings/memory-attr/memory-attr-arm.h>
+
+#include "stm32mp257.dtsi"
+#include "stm32mp25xf.dtsi"
+#include "stm32mp257f-dk-cm33tdcid-resmem.dtsi"
+#include "stm32mp257f-dk-cm33tdcid-rcc.dtsi"
+#include "stm32mp257f-dk-cm33tdcid-s-rif.dtsi"
+#include "stm32mp25-pinctrl.dtsi"
+#include "stm32mp25xxai-pinctrl.dtsi"
+
+/ {
+	model = "STMicroelectronics stm32mp257f-dk CM33TDCID OSTL A35_SDCARD Discovery Board";
+	compatible = "st,stm32mp257f-dk-cm33tdcid-ostl-sdcard", "st,stm32mp257f-dk", "st,stm32mp257";
+
+	aliases {
+		serial0 = &uart5;
+	};
+
+	chosen {
+		stdout-device = &uart5;
+		tfm,entropy = &rng;
+		tfm,watchdog = &iwdg3;
+	};
+
+	memory@80000000 {
+		device_type = "memory";
+		reg = <0x80000000 0x80000000>;
+	};
+};
+
+&nvram {
+	status = "okay";
+};
+
+&bsec {
+	memory-region = <&bsec_mirror>;
+	status = "okay";
+};
+
+&exti1 {
+	status = "okay";
+};
+
+&exti2 {
+	status = "okay";
+};
+
+&hconf1_otp {
+	shadow-provisionning = <0x00018db6>;
+};
+
+&hpdma1 {
+	status = "okay";
+};
+
+&hpdma2 {
+	status = "okay";
+};
+
+&hpdma3 {
+	status = "okay";
+};
+
+&i2c7 {
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&i2c7_pins_a>;
+	pinctrl-1 = <&i2c7_sleep_pins_a>;
+	i2c-scl-rising-time-ns = <185>;
+	i2c-scl-falling-time-ns = <20>;
+	clock-frequency = <400000>;
+	status = "okay";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	stpmic25: pmic@33 {
+		compatible = "st,stpmic2";
+		reg = <0x33>;
+		interrupts-extended = <&exti1 52 IRQ_TYPE_EDGE_FALLING>;
+		interrupt-controller;
+		#interrupt-cells = <1>;
+		status = "okay";
+
+		regulators {
+			compatible = "st,stpmic2-regulators";
+
+			vddcpu: buck1 {
+				regulator-name = "vddcpu";
+				regulator-min-microvolt = <800000>;
+				regulator-max-microvolt = <910000>;
+				regulator-always-on;
+				st,pwrctrl-sel = <2>;
+				st,pwrctrl-enable;
+
+				default {
+					regulator-off-in-suspend;
+				};
+				lplv {
+					regulator-off-in-suspend;
+				};
+				standby {
+					regulator-off-in-suspend;
+				};
+				off {
+					regulator-off-in-suspend;
+				};
+			};
+			vddcore: buck2 {
+				regulator-name = "vddcore";
+				regulator-min-microvolt = <820000>;
+				regulator-max-microvolt = <820000>;
+				regulator-always-on;
+				st,pwrctrl-sel = <1>;
+				st,pwrctrl-enable;
+
+				default {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <820000>;
+				};
+				lplv {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <670000>;
+				};
+				standby {
+					regulator-off-in-suspend;
+				};
+				off {
+					regulator-off-in-suspend;
+				};
+			};
+			vddgpu_pmic: buck3 {
+				regulator-name = "vddgpu_pmic";
+				regulator-min-microvolt = <800000>;
+				regulator-max-microvolt = <900000>;
+				regulator-over-current-protection;
+
+				standby {
+					regulator-off-in-suspend;
+				};
+				off {
+					regulator-off-in-suspend;
+				};
+			};
+			vddio_pmic: buck4 {
+				regulator-name = "vddio_pmic";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-always-on;
+				st,mask-reset;
+				st,pwrctrl-sel = <1>;
+				st,pwrctrl-enable;
+
+				default {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <3300000>;
+				};
+				lplv {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <3300000>;
+				};
+				standby {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <3300000>;
+				};
+				off {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <3300000>;
+				};
+			};
+			v1v8: buck5 {
+				regulator-name = "v1v8";
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <1800000>;
+				regulator-always-on;
+				st,pwrctrl-sel = <1>;
+				st,pwrctrl-enable;
+
+				default {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <1800000>;
+				};
+				lplv {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <1800000>;
+				};
+				standby {
+					regulator-off-in-suspend;
+				};
+				off {
+					regulator-off-in-suspend;
+				};
+			};
+			vdd2_ddr: buck6 {
+				regulator-name = "vdd2_ddr";
+				regulator-min-microvolt = <1100000>;
+				regulator-max-microvolt = <1100000>;
+				regulator-always-on;
+				st,pwrctrl-sel = <1>;
+				st,pwrctrl-enable;
+
+				default {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <1100000>;
+				};
+				lplv {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <1100000>;
+				};
+				standby {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <1100000>;
+				};
+				off {
+					regulator-off-in-suspend;
+				};
+			};
+			v3v3: buck7 {
+				regulator-name = "v3v3";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-always-on;
+				regulator-over-current-protection;
+				st,pwrctrl-sel = <1>;
+				st,pwrctrl-enable;
+
+				default {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <3300000>;
+				};
+				lplv {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <3300000>;
+				};
+				standby {
+					regulator-off-in-suspend;
+				};
+				off {
+					regulator-off-in-suspend;
+				};
+			};
+			vdda1v8_aon: ldo1 {
+				regulator-name = "vdda1v8_aon";
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <1800000>;
+				regulator-always-on;
+				st,alternate-input-source;
+				st,mask-reset;
+			};
+			vdd_emmc: ldo2 {
+				regulator-name = "vdd_emmc";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-over-current-protection;
+				st,pwrctrl-sel = <3>;
+				st,pwrctrl-reset;
+			};
+			vdd1_ddr: ldo3 {
+				regulator-name = "vdd1_ddr";
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <1800000>;
+				regulator-always-on;
+				st,pwrctrl-sel = <1>;
+				st,pwrctrl-enable;
+
+				default {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <1800000>;
+				};
+				lplv {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <1800000>;
+				};
+				standby {
+					regulator-on-in-suspend;
+					regulator-suspend-microvolt = <1800000>;
+				};
+				off {
+					regulator-off-in-suspend;
+				};
+			};
+			vdd3v3_usb: ldo4 {
+				regulator-name = "vdd3v3_usb";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-over-current-protection;
+
+				standby {
+					regulator-off-in-suspend;
+				};
+				off {
+					regulator-off-in-suspend;
+				};
+			};
+			v5v_hdmi: ldo5 {
+				regulator-name = "v5v_hdmi";
+				regulator-min-microvolt = <5000000>;
+				regulator-max-microvolt = <5000000>;
+				st,regulator-bypass-microvolt = <5000000>;
+				st,pwrctrl-sel = <0>;
+				st,pwrctrl-enable;
+			};
+			v5v_vconn: ldo6 {
+				regulator-name = "v5v_vconn";
+				regulator-min-microvolt = <4000000>;
+				regulator-max-microvolt = <4000000>;
+				regulator-always-on;
+				st,regulator-bypass-microvolt = <4000000>;
+				st,pwrctrl-sel = <0>;
+				st,pwrctrl-reset;
+			};
+			vdd_sdcard: ldo7 {
+				regulator-name = "vdd_sdcard";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-over-current-protection;
+				st,regulator-bypass-microvolt = <3300000>;
+				st,pwrctrl-sel = <3>;
+				st,pwrctrl-reset;
+			};
+			vddio_sdcard: ldo8 {
+				regulator-name = "vddio_sdcard";
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-over-current-protection;
+				st,regulator-bypass-microvolt = <3300000>;
+				st,pwrctrl-sel = <3>;
+				st,pwrctrl-reset;
+			};
+		};
+	};
+};
+
+&iac {
+	status = "okay";
+};
+
+&iwdg3 {
+	/* If the watchdog is started the NS application must ping watchdog */
+	/*status = "okay";*/
+	timeout-sec = <120>;
+};
+
+&pwr {
+	status = "okay";
+
+	pwr_intc: interrupt-controller {
+		status = "okay";
+	};
+
+	pwr_rif: access-controller {
+		status = "okay";
+	};
+
+	regulators {
+		status = "okay";
+
+		vdd33ucpd: vdd33ucpd {
+			status = "okay";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			vin-supply = <&vdd3v3_usb>;
+			regulator-always-on;
+		};
+
+		vdda18adc: vdda18adc {
+			status = "okay";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
+			vin-supply = <&v1v8>;
+			regulator-always-on;
+		};
+
+		vddgpu: vddgpu {
+			status = "okay";
+			vin-supply = <&vddgpu_pmic>;
+		};
+
+		vddio1: vddio1 {
+			status = "okay";
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <3300000>;
+			vin-supply = <&vddio_sdcard>;
+		};
+
+		vddio2: vddio2 {
+			status = "okay";
+			vin-supply = <&v1v8>;
+			regulator-always-on;
+		};
+
+		vddio3: vddio3 {
+			status = "okay";
+			vin-supply = <&vddio_pmic>;
+			regulator-always-on;
+		};
+
+		vddio4: vddio4 {
+			status = "okay";
+			vin-supply = <&vddio_pmic>;
+			regulator-always-on;
+		};
+
+		vddio: vddio {
+			status = "okay";
+			vin-supply = <&vddio_pmic>;
+		};
+	};
+};
+
+&ramcfg {
+	status = "okay";
+};
+
+&rifsc {
+	status = "okay";
+};
+
+&risab3 {
+	status = "okay";
+};
+
+&risab4 {
+	status = "okay";
+};
+
+&risab5 {
+	status = "okay";
+};
+
+&risaf1 {
+	status = "okay";
+};
+
+&risaf4 {
+	status = "okay";
+};
+
+&rng {
+	status = "okay";
+};
+
+&rtc {
+	status = "okay";
+};
+
+&saes {
+	status = "okay";
+};
+
+&serc {
+	status = "okay";
+};
+
+&systick {
+	clocks = <&rcc CK_ICN_HS_MCU>;
+	clock-frequency = <1000000>; /* tick at 1us */
+	status = "okay";
+};
+
+&tamp {
+	status = "okay";
+	st,tamp-passive-precharge = <2>;
+	st,tamp-passive-nb-sample = <4>;
+	st,tamp-passive-sample-clk-div = <16384>;
+	st,tamp-active-filter = <1>;
+	st,tamp-active-clk-div = <2048>;
+
+	tamp-button {
+		compatible = "st,stm32-tamp-external";
+		tamper-gpios = <&tamp STM32_TAMP_GPIO_IN(3, PZ2) 0>;
+		st,tamp-mode = <TAMPER_CONFIRMED_MODE>;
+		st,tamp-id = <3>;
+		status = "okay";
+	};
+};
+
+&tim2 {
+	status = "okay";
+};
+
+&uart5 {
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&uart5_pins_a>;
+	pinctrl-1 = <&uart5_sleep_pins_a>;
+	clocks = <&rcc CK_KER_UART5>;
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&sau {
+	memory-region = <&peripheral_ns>, <&cm33_cube_fw>, <&cm33_cube_data>, <&ltdc_m33_layer>, <&fwu_shmem>;
+	status = "okay";
+};
+
+&mpu {
+	status = "okay";
+};
+
+&syscfg {
+	st,reg-init = <STM32MP25_SYSCFG_ICNE2EBWRCR 0x00000051>,
+		      <STM32MP25_SYSCFG_ICNGPUBWLCR 0x00004009>,
+		      <STM32MP25_SYSCFG_ICNQPCR2 0x2149865A>,
+		      <STM32MP25_SYSCFG_ICNCPU1BWLCR 0x00005002>;
+};
