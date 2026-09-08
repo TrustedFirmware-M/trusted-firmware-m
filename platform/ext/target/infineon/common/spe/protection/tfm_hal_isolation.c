@@ -34,6 +34,7 @@
 #include "protection_shared_data.h"
 #include "protection_utils.h"
 #include "ifx_spm_init.h"
+#include "utilities.h"
 #if IFX_SE_IPC_SERVICE_FULL || IFX_SE_IPC_SERVICE_BASE
 #include "ifx_se_ipc_service_spm.h"
 #endif
