@@ -29,6 +29,10 @@
 #include "cmsis_override.h"
 #endif
 
+#if defined(TFM_COPY_ZERO_TABLES_REQUIRED)
+#include "tfm_copy_zero_tables.h"
+#endif /* TFM_COPY_ZERO_TABLES_REQUIRED */
+
 #include "cmsis.h"
 
 /*----------------------------------------------------------------------------
@@ -655,6 +659,7 @@ void Reset_Handler(void)
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
     __disable_irq();
 #endif
+
     __set_PSP((uint32_t)(&__INITIAL_SP));
 
     __set_MSPLIM((uint32_t)(&__STACK_LIMIT));
@@ -664,6 +669,14 @@ void Reset_Handler(void)
     __TZ_set_STACKSEAL_S((uint32_t *)(&__STACK_SEAL));
 #endif
 
-    SystemInit();                             /* CMSIS System Initialization */
-    __PROGRAM_START();                        /* Enter PreMain (C library entry point) */
+    /* CMSIS System Initialization */
+    SystemInit();
+
+#if defined(TFM_COPY_ZERO_TABLES_REQUIRED)
+    /* Initialize regions not handled by the C runtime startup. */
+    tfm_copy_zero_tables();
+#endif /* TFM_COPY_ZERO_TABLES_REQUIRED */
+
+    /* Enter PreMain (C library entry point) */
+    __PROGRAM_START();
 }

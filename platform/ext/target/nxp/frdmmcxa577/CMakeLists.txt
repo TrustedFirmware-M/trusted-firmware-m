@@ -52,6 +52,12 @@ if(BL2)
 endif()
 
 #========================= Platform Secure ====================================#
+if(CONFIG_TFM_INCLUDE_STDLIBC AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    target_compile_definitions(tfm_s
+        PRIVATE
+            TFM_COPY_ZERO_TABLES_REQUIRED
+    )
+endif()
 
 if (USE_TFM_LPUART_FEATURE)
     set(TFM_LPUART_FEATURE_COMPILE_DEFINITION "TFM_LPUART_FEATURE")

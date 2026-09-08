@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 # Copyright (c) 2020, Linaro. All rights reserved.
-# Copyright 2021-2025 NXP
+# Copyright 2021-2026 NXP
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -60,6 +60,12 @@ if(BL2)
 endif()
 
 #========================= Platform Secure ====================================#
+if(CONFIG_TFM_INCLUDE_STDLIBC AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    target_compile_definitions(tfm_s
+        PRIVATE
+            TFM_COPY_ZERO_TABLES_REQUIRED
+    )
+endif()
 
 target_include_directories(platform_s
     PUBLIC

@@ -26,9 +26,13 @@
  * secure and bl2 linker scripts remain untouched (region.h compatibility).
  * To be compatible with the untouched files (which using ARMCLANG naming style),
  * we have to override __INITIAL_SP and __STACK_LIMIT labels. */
-#if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U) 
+#if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
 #include "cmsis_override.h"
 #endif
+
+#if defined(TFM_COPY_ZERO_TABLES_REQUIRED)
+#include "tfm_copy_zero_tables.h"
+#endif /* TFM_COPY_ZERO_TABLES_REQUIRED */
 
 #include "cmsis.h"
 
@@ -417,9 +421,6 @@ const VECTOR_TABLE_Type __VECTOR_TABLE[] __VECTOR_TABLE_ATTRIBUTE = {
  *----------------------------------------------------------------------------*/
 void Reset_Handler(void)
 {
-   //volatile int xx = 0;
-   //while (xx);
-
 #if defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3U)
     __disable_irq();
 #endif
@@ -433,6 +434,14 @@ void Reset_Handler(void)
     __TZ_set_STACKSEAL_S((uint32_t *)(&__STACK_SEAL));
 #endif
 
-    SystemInit();                             /* CMSIS System Initialization */
-    __PROGRAM_START();                        /* Enter PreMain (C library entry point) */
+    /* CMSIS System Initialization */
+    SystemInit();
+
+#if defined(TFM_COPY_ZERO_TABLES_REQUIRED)
+    /* Initialize regions not handled by the C runtime startup. */
+    tfm_copy_zero_tables();
+#endif /* TFM_COPY_ZERO_TABLES_REQUIRED */
+
+    /* Enter PreMain (C library entry point) */
+    __PROGRAM_START();
 }
