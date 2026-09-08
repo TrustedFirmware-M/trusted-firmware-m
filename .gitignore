@@ -9,6 +9,12 @@
 # Visual Studio Code
 .vscode/
 
+# Vi
+*~
+*.swp
+*.swn
+*.swo
+
 # Local dependency repo
 localrepos.cmake
 
