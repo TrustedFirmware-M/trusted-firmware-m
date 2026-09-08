@@ -36,7 +36,7 @@ set(IFX_CRYPTO_KEYS_RRAM             ON) # Crypto key storage in RRAM, platform 
 
 set(IFX_SE_IPC_SERVICE_TYPE          BASE) # Infineon SE IPC Service with limited set of functions
 
-set(TFM_TF_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH "${CMAKE_CURRENT_LIST_DIR}/spe/services/crypto/mbedtls_target_config_pse84.h"    CACHE PATH      "Config to append to standard TF-PSA-Crypto config, used by platforms to configure cryptographic feature support")
+set(TFM_TF_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH "${CMAKE_CURRENT_LIST_DIR}/spe/services/crypto/mbedtls_target_config.h"    CACHE PATH      "Config to append to standard TF-PSA-Crypto config, used by platforms to configure cryptographic feature support")
 
 ################################### Drivers ####################################
 

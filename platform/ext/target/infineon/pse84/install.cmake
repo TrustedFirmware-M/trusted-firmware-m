@@ -17,7 +17,7 @@ if (NOT PLATFORM_DEFAULT_CRYPTO_KEYS)
 endif()
 
 if (TEST_NS_IFX_CRYPTO_BENCHMARK OR TEST_NS_IFX_EPC_VALIDATION)
-    install(FILES       ${IFX_PLATFORM_SOURCE_DIR}/spe/services/crypto/mbedtls_target_config_pse84.h
+    install(FILES       ${IFX_PLATFORM_SOURCE_DIR}/spe/services/crypto/mbedtls_target_config.h
             DESTINATION ${INSTALL_PLATFORM_NS_DIR}/tests)
 endif()
 

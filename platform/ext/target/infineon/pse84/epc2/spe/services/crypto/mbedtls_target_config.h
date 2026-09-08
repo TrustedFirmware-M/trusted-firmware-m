@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2023-2025 Cypress Semiconductor Corporation (an Infineon company)
- * or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
+ * (c) 2023-2026, Infineon Technologies AG, or an affiliate of Infineon
+ * Technologies AG. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
-#ifndef MBEDTLS_TARGET_CONFIG_PSE84_H
-#define MBEDTLS_TARGET_CONFIG_PSE84_H
+#ifndef MBEDTLS_TARGET_CONFIG_H
+#define MBEDTLS_TARGET_CONFIG_H
 
 /* *** DO NOT CHANGE ANY SETTINGS IN THIS SECTION *** */
 
@@ -37,4 +37,4 @@
 #include IFX_MBEDTLS_CONFIG_PATH
 #endif
 
-#endif /* MBEDTLS_TARGET_CONFIG_PSE84_H */
+#endif /* MBEDTLS_TARGET_CONFIG_H */

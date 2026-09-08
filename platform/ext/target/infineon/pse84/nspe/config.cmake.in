@@ -79,7 +79,7 @@ include(${IFX_COMMON_SOURCE_DIR}/spe_config.cmake)
 
 if(TEST_NS_IFX_CRYPTO_BENCHMARK OR TEST_NS_IFX_EPC_VALIDATION)
     # TFM_TF_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH is used by ifx_crypto_benchmark.c
-    set(TFM_TF_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH "${IFX_PLATFORM_SOURCE_DIR}/tests/mbedtls_target_config_pse84.h"    CACHE PATH      "Config to append to standard TF-PSA-Crypto config, used by platforms to configure cryptographic feature support")
+    set(TFM_TF_PSA_CRYPTO_PLATFORM_EXTRA_CONFIG_PATH "${IFX_PLATFORM_SOURCE_DIR}/tests/mbedtls_target_config.h"    CACHE PATH      "Config to append to standard TF-PSA-Crypto config, used by platforms to configure cryptographic feature support")
 endif()
 
 ###################################### Libs #######################################
