@@ -1,0 +1,19 @@
+/*
+ * Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ */
+#include "region_defs.h"
+/* Enumeration that is used by the assemble.py and imgtool.py scripts
+ * for correct binary generation when nested macros are used
+ */
+
+enum image_attributes {
+    RE_SECURE_IMAGE_OFFSET       = FLASH_AREA_1_OFFSET,
+    RE_SECURE_IMAGE_MAX_SIZE     = STM32MP_DDR_FW_MAX_SIZE,
+    RE_NON_SECURE_IMAGE_OFFSET   = FLASH_AREA_1_OFFSET + STM32MP_DDR_FW_MAX_SIZE,
+    RE_NON_SECURE_IMAGE_MAX_SIZE = 0,
+    RE_IMAGE_LOAD_ADDRESS = DDR_FW_DEST_ADDR,
+    RE_SIGN_BIN_SIZE = FLASH_AREA_1_SIZE,
+};

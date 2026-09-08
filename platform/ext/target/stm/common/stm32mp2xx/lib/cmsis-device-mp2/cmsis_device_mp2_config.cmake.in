@@ -1,0 +1,13 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+
+# This CMake script template contains the set of cmsis-device-mp2 options settled on
+# secure side build but necessary for building the non-secure side too.
+
+set(CMSIS_DEVICE_MP2_PATH          @CMSIS_DEVICE_MP2_PATH@              CACHE PATH      "Path to cmsis-device-mp2 package (or DOWNLOAD to fetch automatically)")
+set(CMSIS_DEVICE_MP2_GIT_REMOTE    @CMSIS_DEVICE_MP2_GIT_REMOTE@        CACHE STRING    "URL (or path) to retrieve cmsis-device-mp2 package")
+set(CMSIS_DEVICE_MP2_VERSION       @CMSIS_DEVICE_MP2_VERSION@           CACHE STRING    "version of cmsis-device-mp2 package")

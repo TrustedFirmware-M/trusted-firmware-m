@@ -1,0 +1,13 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+
+# This CMake script template contains the set of stm32mp2xx-hal-driver options settled on
+# secure side build but necessary for building the non-secure side too.
+
+set(STM32MP2XX_HAL_DRIVER_PATH          @STM32MP2XX_HAL_DRIVER_PATH@              CACHE PATH      "Path to stm32mp2xx-hal-driver package (or DOWNLOAD to fetch automatically)")
+set(STM32MP2XX_HAL_DRIVER_GIT_REMOTE    @STM32MP2XX_HAL_DRIVER_GIT_REMOTE@        CACHE STRING    "URL (or path) to retrieve stm32mp2xx-hal-driver package")
+set(STM32MP2XX_HAL_DRIVER_VERSION       @STM32MP2XX_HAL_DRIVER_VERSION@           CACHE STRING    "version of stm32mp2xx-hal-driver package")

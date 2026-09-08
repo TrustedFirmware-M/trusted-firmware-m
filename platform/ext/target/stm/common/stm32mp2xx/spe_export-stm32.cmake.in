@@ -1,0 +1,16 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+
+# This CMake script template contains the set of options settled on secure side
+# build but necessary for building the non-secure side too.
+#
+# based on config/spe_config.cmake.in
+# included by spe_export.cmake of api_ns/cmake/spe_export.cmake
+
+# specific for STM32MP platform
+set(STM32_M33TDCID                  @STM32_M33TDCID@                CACHE BOOL "Define M33 like Trusted Domain Compartiment ID" FORCE)
+set(STM32_FWU_STORAGE_ACCESS        @STM32_FWU_STORAGE_ACCESS@      CACHE BOOL "Enable Storage access in case of dual storage" FORCE)
