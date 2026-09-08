@@ -17,6 +17,7 @@
 #define IFX_FIH_TRUE                        ((fih_int)FIH_INT_INIT(FIH_POSITIVE_VALUE))
 #define IFX_FIH_FALSE                       ((fih_int)FIH_INT_INIT(FIH_NEGATIVE_VALUE))
 #define IFX_FIH_BOOL                        fih_int
+#define FIH_INVALID_VALUE                   { FIH_POSITIVE_VALUE, FIH_NEGATIVE_VALUE }
 
 /*
  * Type used to return fih_int to assembler code via registers for AAPCS ABI.
@@ -48,6 +49,7 @@ uint64_t ifx_fih_to_aapcs_fih(fih_int x)
 #define IFX_FIH_TRUE                        true
 #define IFX_FIH_FALSE                       false
 #define IFX_FIH_BOOL                        bool
+#define FIH_INVALID_VALUE                   FIH_NEGATIVE_VALUE
 
 /*! Type used to return uint32_t to assembler code via registers for AAPCS ABI */
 typedef uint32_t ifx_aapcs_fih_int;
