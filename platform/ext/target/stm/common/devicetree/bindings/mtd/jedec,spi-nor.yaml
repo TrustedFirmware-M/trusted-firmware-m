@@ -1,0 +1,90 @@
+# Copyright (c) 2023 STMICROELECTRONICS
+# SPDX-License-Identifier: Apache-2.0
+
+description: SPI NOR flash chips
+
+compatible: "jedec,spi-nor"
+
+properties:
+  reg:
+    type: int
+    description: Chip select used by the device.
+    required: true
+
+  spi-max-frequency:
+    type: int
+    description: Maximum SPI clocking speed of the device in Hz.
+    required: true
+
+  spi-rx-bus-width:
+    type: int
+    description: Bus width to the SPI bus used for read transfers.
+    enum:
+      - 1 # SPI mode on 1 data line
+      - 2 # Dual mode on 2 data lines
+      - 4 # Quad mode on 4 data lines
+      - 8 # Octo mode on 8 data lines
+
+  spi-tx-bus-width:
+    type: int
+    description: Bus width to the SPI bus used for write transfers.
+    enum:
+      - 1 # SPI mode on 1 data line
+      - 2 # Dual mode on 2 data lines
+      - 4 # Quad mode on 4 data lines
+      - 8 # Octo mode on 8 data lines
+
+  size:
+    type: int
+    description: Size of the device in bytes.
+    required: true
+
+  erase-size:
+    type: int
+    description: Size of a block or sector of the device in bytes.
+    required: true
+
+  write-size:
+    type: int
+    description: Size of a write sector of the device in bytes.
+    enum: [256, 512]
+    required: true
+
+  read-cmd:
+    type: string
+    description: The read command to used.
+      If the property is not present, "READ" command is used.
+    enum:
+      - "READ"
+      - "READ_FAST"
+      - "READ_1_1_4"
+      - "READ_1_1_4_4B"
+
+  write-cmd:
+    type: string
+    description: The write command to used.
+      If the property is not present, "WRITE" command is used.
+    enum:
+      - "WRITE"
+      - "WRITE_1_4_4"
+      - "WRITE_1_4_4_4B"
+
+  erase-cmd:
+    type: string
+    description: The erase command to used.
+      If the property is not present, "BE" command is used.
+    enum:
+      - "BE"
+      - "BE_4B"
+      - "SE"
+      - "SE_4B"
+
+  use-bank:
+    type: boolean
+    description: The flash supports the bank selection. It allows to
+      address more than the first 16 Mbytes of the flash.
+
+  use-fsr:
+    type: boolean
+    description: The flash supports the Flag status register that indicates
+      various errors that may be encountered during erase/write operations.

@@ -1,0 +1,35 @@
+# Copyright (c) 2024 STMICROELECTRONICS
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  These properties are common to multiple MMC host controllers. Any host
+  that requires the respective functionality should implement them using
+  these definitions.
+
+properties:
+  vmmc-supply:
+    type: phandle
+    description: Reference to the regulator that controls the card power
+
+  vqmmc-supply:
+    type: phandle
+    description: Reference to the regulator that controls the bus IO line power
+
+  max-frequency:
+    type: int
+    description: |
+      Maximum operating frequency of the bus
+
+  bus-width:
+    type: int
+    description: |
+      Number of data lines
+    enum:
+      - 1
+      - 4
+      - 8
+
+  no-mmc:
+    type: boolean
+    description:
+      Controller is limited to send MMC commands during initialization.

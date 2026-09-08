@@ -1,0 +1,26 @@
+description: ARMv8-M NVIC (Nested Vectored Interrupt Controller)
+
+compatible: "arm,v8m-nvic"
+
+include: [interrupt-controller.yaml, base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  arm,num-irq-priority-bits:
+    type: int
+    required: true
+    description: number of bits of IRQ priorities
+
+  arm,num-irqs:
+    type: int
+    required: true
+    description: Number of irqs supported by the interrupt controller
+
+  "#interrupt-cells":
+    const: 2
+
+interrupt-cells:
+  - irq
+  - priority

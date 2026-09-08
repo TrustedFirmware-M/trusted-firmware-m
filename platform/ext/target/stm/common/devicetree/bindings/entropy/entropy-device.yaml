@@ -1,0 +1,10 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+   This file needs to be included by devices that need to fill a buffer with entropy.
+
+properties:
+   entropy:
+      type: phandle
+      description: phandle to entropy controller node

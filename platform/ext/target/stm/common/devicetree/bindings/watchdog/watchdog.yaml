@@ -1,0 +1,10 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+# Common fields for watchdog controllers
+
+properties:
+  timeout-sec:
+    type: int
+    description: |
+      Contains the watchdog timeout in seconds.

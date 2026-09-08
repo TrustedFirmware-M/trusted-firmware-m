@@ -1,0 +1,12 @@
+# Copyright (c) 2023 STMICROELECTRONICS
+# SPDX-License-Identifier: Apache-2.0
+
+description: System Controller Registers R/W
+
+compatible: "syscon"
+
+include: [base.yaml]
+
+properties:
+  reg:
+    required: true

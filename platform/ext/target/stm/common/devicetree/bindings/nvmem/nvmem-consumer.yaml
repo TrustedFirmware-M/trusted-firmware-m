@@ -1,0 +1,12 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+properties:
+  nvmem-cells:
+    type: phandle-array
+    description: Non-volatile memory cells
+    specifier-space: nvmem-cell
+
+  nvmem-cell-names:
+    type: string-array
+    description: Provided names of non-volatile memory cells

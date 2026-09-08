@@ -1,0 +1,14 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+properties:
+  "#nvmem-cell-cells":
+    type: int
+    description: Indicate that a cell can be provided to a consumer, and the number of arguments.
+    required: true
+
+  reg:
+    type: array
+    description: |
+      This follow the format <OFFSET SIZE> with OFFSET and SIZE in bytes.
+    required: true

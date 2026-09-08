@@ -1,0 +1,20 @@
+# Copyright (c) 2023 STMICROELECTRONICS
+# SPDX-License-Identifier: Apache-2.0
+
+description: ARMv8-M System Tick
+
+compatible: "arm,armv8m-systick"
+
+include: base.yaml
+
+properties:
+  reg:
+    required: true
+
+  clock-frequency:
+    type: int
+    required: true
+    description: Clock frequency information for Timer operation
+
+  clocks:
+    required: true

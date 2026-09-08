@@ -1,0 +1,30 @@
+# Copyright (c) 2017 I-SENSE group of ICCS
+# SPDX-License-Identifier: Apache-2.0
+
+# Common fields for I2C controllers
+
+include: base.yaml
+
+bus: i2c
+
+properties:
+  "#address-cells":
+    required: true
+    const: 1
+  "#size-cells":
+    required: true
+    const: 0
+  clock-frequency:
+    type: int
+    description: Initial clock frequency in Hz
+  i2c-analog-filter:
+    type: boolean
+    description: Enable analog filter for i2c lines.
+  i2c-scl-rising-time-ns:
+    type: int
+    description: |
+      Number of nanoseconds the SCL signal takes to rise; t(r) in the I2C specification
+  i2c-scl-falling-time-ns:
+    type: int
+    description: |
+      Number of nanoseconds the SCL signal takes to fall; t(f) in the I2C specification.

@@ -1,0 +1,18 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: ARMv8-M Security Attribution Unit
+
+compatible: "arm,armv8m-sau"
+
+include:
+  - base.yaml
+  - memory-region.yaml
+
+properties:
+  reg:
+    required: true
+
+  memory-region:
+    description: |
+      List SAU regions to define the security attribute.

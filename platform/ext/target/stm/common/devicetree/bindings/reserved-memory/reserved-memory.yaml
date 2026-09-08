@@ -1,0 +1,52 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  Reserved memory is specified as a node under the /reserved-memory node. The
+  operating system shall exclude reserved memory from normal usage one can
+  create child nodes describing particular reserved (excluded from normal use)
+  memory regions. Such memory regions are usually designed for the special
+  usage by various device drivers.
+
+  Each child of the reserved-memory node specifies one or more regions
+  of reserved memory. Each child node may either use a 'reg' property to
+  specify a specific range of reserved memory, or a 'size' property with
+  optional constraints to request a dynamically allocated block of
+  memory.
+
+compatible: "reserved-memory"
+
+include: [base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  "#memory-region-cells":
+    required: true
+    type: int
+    const: 0
+
+  arm,sau-nsc:
+    type: boolean
+    description: |
+      Add this property if the SAU region is Non-secure callable.
+      Controls whether Non-secure state is permitted to execute a Secure Gateway
+      instruction from this region.
+
+  tfm,memory-attr:
+    type: int
+    description: |
+      Attribute or set of attributes (bitmask) for the memory region. See
+      'include/dt-bindings/memory-attr/memory-attr.h' for a
+      comprehensive list with description of possible values.
+
+  st,protreg:
+    type: array
+    description: |
+      protection value of rif peripherals, each entry is defined by a 32 bit.
+
+  memory-region:
+    type: phandle-array
+    specifier-space: memory-region
+    description: List of memory region phandles
