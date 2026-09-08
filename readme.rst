@@ -2,6 +2,10 @@
 Trusted Firmware-M
 ##################
 
+.. image:: https://ci.trustedfirmware.org/view/TF-M/job/tf-m-nightly/badge/icon?style=plastic&subject=TF-M+nightly+CI+job
+   :alt: tf-m-nightly CI job Status
+   :target: https://ci.trustedfirmware.org/view/TF-M/job/tf-m-nightly/
+
 .. image:: https://scan.coverity.com/projects/22164/badge.svg
    :alt: Coverity Scan Build Status
    :target: https://scan.coverity.com/projects/trusted-firmware-m-35b064f0-65c2-4afb-9ba9-24aa432fb7fa
