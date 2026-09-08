@@ -130,6 +130,7 @@ target_compile_definitions(platform_region_defs
         BL2_HEADER_SIZE=${BL2_HEADER_SIZE}
         BL2_TRAILER_SIZE=${BL2_TRAILER_SIZE}
         $<$<BOOL:${MCUBOOT_IMAGE_NUMBER}>:MCUBOOT_IMAGE_NUMBER=${MCUBOOT_IMAGE_NUMBER}>
+        $<$<BOOL:${TFM_NS_INDEPENDENT_SIG}>:TFM_NS_INDEPENDENT_SIG=${TFM_NS_INDEPENDENT_SIG}>
         $<$<STREQUAL:${MCUBOOT_EXECUTION_SLOT},2>:LINK_TO_SECONDARY_PARTITION>
         $<$<BOOL:${TEST_PSA_API}>:PSA_API_TEST_${TEST_PSA_API}>
         $<$<OR:$<CONFIG:Debug>,$<CONFIG:relwithdebinfo>>:ENABLE_HEAP>
@@ -212,7 +213,7 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             $<TARGET_FILE_DIR:${NS_TARGET_NAME}>/${S_NS_SIGNED_TARGET_NAME}.hex
     )
 
-    if (MCUBOOT_IMAGE_NUMBER GREATER 1)
+    if (TFM_NS_INDEPENDENT_SIG)
 
         set(wrapper_args
             --version ${MCUBOOT_IMAGE_VERSION_NS}
@@ -355,7 +356,7 @@ endif()
 
 if(TFM_MERGE_HEX_FILES)
     if(BL2)
-        if(MCUBOOT_IMAGE_NUMBER GREATER 1)
+        if(TFM_NS_INDEPENDENT_SIG)
             set(MERGE_HEX_INPUT_TARGET ${NS_TARGET_NAME}_signed_hex)
         else()
             set(MERGE_HEX_INPUT_TARGET tfm_s_ns_signed_hex)

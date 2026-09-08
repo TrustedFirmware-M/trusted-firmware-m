@@ -34,9 +34,15 @@ config MCUBOOT_NS_IMAGE_FLASH_AREA_NUM
     default 1
 
 config MCUBOOT_IMAGE_NUMBER
-    int "Whether to combine S and NS into either 1 image, or sign each seperately"
+    int "Number of images supported by MCUBoot"
     default 2
     range 1 9
+
+config TFM_NS_INDEPENDENT_SIG
+    bool "Indicate if S and NS must be signed independently or not"
+    default y
+    help
+      Indicate if S and NS must be signed independently or not
 
 config MCUBOOT_EXECUTION_SLOT
     int "Slot from which to execute the image, used for XIP mode"

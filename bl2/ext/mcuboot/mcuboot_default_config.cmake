@@ -15,7 +15,9 @@ set(DEFAULT_MCUBOOT_FLASH_MAP           ON          CACHE BOOL      "Whether to 
 set(MCUBOOT_S_IMAGE_FLASH_AREA_NUM      0           CACHE STRING    "ID of the flash area containing the primary Secure image")
 set(MCUBOOT_NS_IMAGE_FLASH_AREA_NUM     1           CACHE STRING    "ID of the flash area containing the primary Non-Secure image")
 
-set(MCUBOOT_IMAGE_NUMBER                2           CACHE STRING    "Whether to combine S and NS into either 1 image, or sign each seperately")
+set(MCUBOOT_IMAGE_NUMBER                2           CACHE STRING    "Number of images supported by MCUBoot")
+set(TFM_NS_INDEPENDENT_SIG              ON          CACHE BOOL      "Indicate if S and NS must be signed independently or not")
+
 set(MCUBOOT_EXECUTION_SLOT              1           CACHE STRING    "Slot from which to execute the image, used for XIP mode")
 set(TFM_BL2_LOG_LEVEL                   LOG_LEVEL_INFO      CACHE STRING    "Level of logging to use for BL2: LOG_LEVEL_[NONE, ERROR, WARNING, INFO, VERBOSE]")
 set(MCUBOOT_HW_KEY                      ON          CACHE BOOL      "Whether to embed the entire public key in the image metadata instead of the hash only")

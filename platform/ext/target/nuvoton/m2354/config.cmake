@@ -6,7 +6,7 @@
 #
 #-------------------------------------------------------------------------------
 
-set(MCUBOOT_IMAGE_NUMBER    2           CACHE STRING    "Whether to combine S and NS into either 1 image, or sign each separately")
+set(MCUBOOT_IMAGE_NUMBER    2           CACHE STRING    "Number of images supported by MCUBoot")
 set(BL2_TRAILER_SIZE        0x800       CACHE STRING    "Trailer size")
 set(MCUBOOT_SIGNATURE_TYPE  "EC-P256"   CACHE STRING    "Algorithm to use for signature validation [RSA-2048, RSA-3072, EC-P256, EC-P384]")
 

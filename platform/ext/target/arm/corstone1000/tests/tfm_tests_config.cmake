@@ -6,7 +6,8 @@
 #-------------------------------------------------------------------------------
 if (TFM_S_REG_TEST)
     # Test configuration: host images are not needed and work only with isolation level 1
-    set(MCUBOOT_IMAGE_NUMBER                1          CACHE STRING   "Whether to combine S and NS into either 1 image, or sign each separately" FORCE)
+    set(MCUBOOT_IMAGE_NUMBER                1          CACHE STRING   "Number of images supported by MCUBoot" FORCE)
+    set(TFM_NS_INDEPENDENT_SIG              OFF        CACHE BOOL     "Indicate if S and NS must be signed independently or not" FORCE)
     set(TFM_ISOLATION_LEVEL                 1          CACHE STRING   "Isolation level" FORCE)
 endif()
 

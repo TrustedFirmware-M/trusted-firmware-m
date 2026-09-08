@@ -21,7 +21,7 @@ set(PLATFORM_DEFAULT_NV_COUNTERS           ON           CACHE BOOL      "Use def
 set(PLATFORM_DEFAULT_OTP                   ON           CACHE BOOL      "Use trusted on-chip flash to implement OTP memory")
 set(TFM_PARTITION_PLATFORM                 ON)
 set(DEFAULT_MCUBOOT_FLASH_MAP              ON           CACHE BOOL     "Whether to use the default flash map defined by TF-M project")
-set(MCUBOOT_IMAGE_NUMBER                    2           CACHE STRING    "Whether to combine S and NS into either 1 image, or sign each seperately")
+set(MCUBOOT_IMAGE_NUMBER                    2           CACHE STRING    "Number of images supported by MCUBoot")
 ################################## Platform-specific configurations ####################################
 set(BL2                                    OFF          CACHE BOOL      "Whether to build BL2")
 set(CONFIG_TFM_USE_TRUSTZONE               ON           CACHE BOOL      "Use TrustZone")

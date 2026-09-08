@@ -7,7 +7,8 @@
 #
 #-------------------------------------------------------------------------------
 
-set(MCUBOOT_IMAGE_NUMBER                1            CACHE STRING "Whether to combine S and NS into either 1 image, or sign each separately")
+set(MCUBOOT_IMAGE_NUMBER                1            CACHE STRING "Number of images supported by MCUBoot")
+set(TFM_NS_INDEPENDENT_SIG              OFF          CACHE BOOL   "Indicate if S and NS must be signed independently or not")
 set(MCUBOOT_UPGRADE_STRATEGY            "DIRECT_XIP" CACHE STRING "Upgrade strategy for images")
 if(NOT BL2)
     set(BL2_TRAILER_SIZE                0x800        CACHE STRING "Trailer size")

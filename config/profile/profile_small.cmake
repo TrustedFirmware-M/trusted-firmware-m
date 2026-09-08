@@ -26,7 +26,8 @@ set(TFM_PARTITION_POWER_MGMT               OFF   CACHE BOOL "Enable Power Manage
 ################################## Advanced options #############################
 
 set(PSA_FRAMEWORK_HAS_MM_IOVEC             ON    CACHE BOOL      "Enable MM-IOVEC")
-set(MCUBOOT_IMAGE_NUMBER                   1     CACHE STRING    "Whether to combine S and NS into either 1 image, or sign each seperately")
+set(MCUBOOT_IMAGE_NUMBER                   1     CACHE STRING    "Number of images supported by MCUBoot")
+set(TFM_NS_INDEPENDENT_SIG                 OFF   CACHE BOOL      "Indicate if S and NS must be signed independently or not")
 
 ################################## Dependencies ################################
 

@@ -7,7 +7,7 @@
 #-------------------------------------------------------------------------------
 
 ################################## BL2 #################################################
-set(MCUBOOT_IMAGE_NUMBER                   2           CACHE STRING    "Whether to combine S and NS into either 1 image, or sign each seperately")
+set(MCUBOOT_IMAGE_NUMBER                   2           CACHE STRING    "Number of images supported by MCUBoot")
 set(BL2_HEADER_SIZE                        0x400       CACHE STRING    "Header size")
 set(BL2_TRAILER_SIZE                       0x2000      CACHE STRING    "Trailer size")
 set(MCUBOOT_ALIGN_VAL                      16          CACHE STRING    "Align option to build image with imgtool")

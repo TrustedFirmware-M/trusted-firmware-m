@@ -25,7 +25,7 @@ set(DEFAULT_MCUBOOT_FLASH_MAP           OFF        CACHE BOOL     "Whether to us
 set(MCUBOOT_UPGRADE_STRATEGY            "RAM_LOAD" CACHE STRING   "Upgrade strategy when multiple boot images are loaded")
 set(MCUBOOT_SECURITY_COUNTER_S          "1"        CACHE STRING   "Security counter for S image. auto sets it to IMAGE_VERSION_S")
 
-set(MCUBOOT_IMAGE_NUMBER                2          CACHE STRING   "Whether to combine S and NS into either 1 image, or sign each separately")
+set(MCUBOOT_IMAGE_NUMBER                2          CACHE STRING   "Number of images supported by MCUBoot")
 set(TFM_ISOLATION_LEVEL                 2          CACHE STRING   "Isolation level")
 
 set(TFM_PLAT_SPECIFIC_MULTI_CORE_COMM   ON         CACHE BOOL     "Whether to use a platform specific inter core communication instead of mailbox in dual-cpu topology")
