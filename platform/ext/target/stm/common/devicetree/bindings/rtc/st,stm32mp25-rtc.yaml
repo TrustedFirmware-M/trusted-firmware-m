@@ -1,0 +1,17 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: STMicroelectronics STM32 RTC
+
+compatible: "st,stm32mp25-rtc"
+
+include:
+  - base.yaml
+  - st,stm32mp25-rif.yaml
+
+properties:
+  reg:
+    required: true
+
+  clocks:
+    required: true

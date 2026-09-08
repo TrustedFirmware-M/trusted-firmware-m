@@ -1,0 +1,11 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+    STM32MP257 Pin controller Node
+    Based on st,stm32-pinctrl.yaml binding.
+
+compatible: "st,stm32mp257-pinctrl"
+
+include: st,stm32-pinctrl.yaml
+

@@ -1,0 +1,33 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The STM32 DMA3 is a direct memory access controller with different features
+  depending on its hardware configuration.
+  It is either called LPDMA (Low Power), GPDMA (General Purpose) or
+  HPDMA (High Performance).
+
+compatible: "st,stm32mp25-dma3"
+
+include:
+  - base.yaml
+  - reset-device.yaml
+  - st,stm32mp25-rif.yaml
+
+properties:
+  reg:
+    required: true
+
+  clocks:
+    required: true
+
+  resets:
+    required: true
+
+  st,errata-ahbrisab:
+    type: boolean
+    description: |
+      If set, a software workaround is set to that the RISAB AHB errata is
+      managed. Whenever CID filtering is enabled on either RISAB3/4/5 instances,
+      then DMA channels cannot hold the CID0 value on the bus to avoid unwanted
+      access rights to some memories.

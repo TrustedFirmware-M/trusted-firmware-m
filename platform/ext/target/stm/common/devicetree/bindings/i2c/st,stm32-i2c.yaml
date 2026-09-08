@@ -1,0 +1,25 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  I2C controller embedded in STMicroelectronics STM32 I2C platform
+
+compatible: "st,stm32mp25-i2c"
+
+include: [i2c-controller.yaml, pinctrl-device.yaml, reset-device.yaml]
+
+properties:
+  reg:
+    required: true
+
+  pinctrl-0:
+    required: true
+
+  pinctrl-names:
+    required: true
+
+  resets:
+    required: true
+
+  clocks:
+    required: true

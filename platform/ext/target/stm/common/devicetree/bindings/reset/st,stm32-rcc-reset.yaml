@@ -1,0 +1,30 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STM32 Reset and Clock Control (RCC) node.
+  This node is in charge of reset control.
+
+  To specify the reset line in a peripheral, the standard resets property needs
+  to be used, e.g.:
+
+    usart5: serial@xxx {
+        ...
+        /* Cell contains information about RCU register offset and bit */
+        resets = <&rctl UART5_R>;
+        ...
+    };
+
+  RCC reset cells are available in
+  include/dt-bindings/reset/stm32{soc_family}_resets.h header files.
+
+compatible: "st,stm32-rcc-reset"
+
+include: [reset-controller.yaml, base.yaml]
+
+properties:
+  "#reset-cells":
+    const: 1
+
+reset-cells:
+  - id

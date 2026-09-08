@@ -1,0 +1,29 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: stm32 system configuration properties
+
+properties:
+
+  st,syscfg-dlyb:
+    type: phandle-array
+    specifier-space: syscfg-reg
+    description: |
+      Use to set the OSPI delay block within SYSCFG to:
+        - Tune the phase of the RX sampling clock (or DQS) in order
+        to sample the data in their valid window.
+        - Tune the phase of the TX launch clock in order to meet setup
+        and hold constraints of TX signals versus the memory clock.
+
+  st,syscfg-amcr:
+    type: phandle-array
+    specifier-space: syscfg-reg-mask
+    description: The Address Mapping Control Register (AMCR) is used
+      to split the 256MB memory map area shared between the 2 OSPI
+      Memory Interface (OMI). The Octo Memory Manager sets the AMCR
+      depending of the memory-region configuration.
+
+  st,syscfg-vddio:
+    type: phandle-array
+    specifier-space: syscfg-reg
+    description: Use to enable / disable IO compensation for vddio's.

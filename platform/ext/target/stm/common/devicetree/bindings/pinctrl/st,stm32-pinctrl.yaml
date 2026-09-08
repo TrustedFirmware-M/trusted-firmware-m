@@ -1,0 +1,92 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STMicroelectronics's STM32 MCUs intregrate a GPIO and Pin mux/config hardware
+  controller. It controls the input/output settings on the available pins and
+  also provides ability to multiplex and configure the output of various
+  on-chip controllers onto these pads.
+
+compatible: "st,stm32-pinctrl"
+
+include:
+  - base.yaml
+
+properties:
+  "#gpio-range-cells":
+    type: int
+    const: 3
+
+gpio-range-cells:
+  - gpio_offset
+  - pin_offset
+  - npins
+
+child-binding:
+  description: STM32 pin controller pin group
+  child-binding:
+    description: STM32 pin controller pin configuration node.
+    include:
+      - name: pincfg-node.yaml
+        property-allowlist:
+          - bias-disable
+          - bias-pull-down
+          - bias-pull-up
+          - drive-push-pull
+          - drive-open-drain
+          - output-low
+          - output-high
+          - slew-rate
+
+    properties:
+      pinmux:
+        required: true
+        type: array
+        description: |
+          Integer array, represents gpio pin number and mux setting.
+          Supported pin number and mux varies for different SoCs, and are
+          defined in dt-bindings/pinctrl/<soc>-pinfunc.h directly.
+          These defines are calculated as: ((port * 16 + line) << 8) | function
+          With:
+          - port: The gpio port index (PA = 0, PB = 1, ..., PK = 11)
+          - line: The line offset within the port (PA0 = 0, PA1 = 1, ..., PA15 = 15)
+          - function: The function number, can be:
+          * 0 : GPIO
+          * 1 : Alternate Function 0
+          * 2 : Alternate Function 1
+          * 3 : Alternate Function 2
+          * ...
+          * 16 : Alternate Function 15
+          * 17 : Analog
+          * 18 : Reserved
+          To simplify the usage, macro is available to generate "pinmux" field.
+          This macro is available here:
+            - include/dt-bindings/pinctrl/stm32-pinfunc.h
+          Setting the pinmux's function to the Reserved (RSVD) value is used to inform
+          the driver that it shall not apply the mux setting. This can be used to
+          reserve some pins, for example to a co-processor not running Linux.
+          Some examples of using macro:
+           /* GPIO A9 set as alernate function 2 */
+           ... {
+                      pinmux = <STM32_PINMUX('A', 9, AF2)>;
+           };
+           /* GPIO A9 set as GPIO  */
+           ... {
+                      pinmux = <STM32_PINMUX('A', 9, GPIO)>;
+           };
+           /* GPIO A9 set as analog */
+           ... {
+                      pinmux = <STM32_PINMUX('A', 9, ANALOG)>;
+           };
+           /* GPIO A9 reserved for co-processor */
+           ... {
+                      pinmux = <STM32_PINMUX('A', 9, RSVD)>;
+           };
+
+      slew-rate:
+        enum: [0, 1, 2, 3]
+        description: |
+          0: Low speed
+          1: Medium speed
+          2: Fast speed
+          3: High speed

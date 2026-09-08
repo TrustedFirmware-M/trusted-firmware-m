@@ -1,0 +1,27 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The anti-tamper detection circuit is used to protect sensitive data from
+  external attacks. 128 32-bit backup registers are retained in all low-power
+  modes and also in V BAT mode.
+
+compatible: "st,stm32-tamp"
+
+include:
+  - base.yaml
+  - gpio-controller.yaml
+
+properties:
+  reg:
+    required: true
+
+  clocks:
+    required: true
+
+  "#gpio-cells":
+    const: 2
+
+gpio-cells:
+  - pin
+  - flags

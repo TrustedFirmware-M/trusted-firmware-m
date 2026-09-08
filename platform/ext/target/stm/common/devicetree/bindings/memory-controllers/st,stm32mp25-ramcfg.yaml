@@ -1,0 +1,42 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The RAMCFG configures the features of the internal SRAMs (SYSRAM, RETRAM,
+  SRAM1, SRAM2, LPSRAM1, LPSRAM2, LPSRAM3, BKPSRAM and VDERAM).
+
+compatible: "st,stm32mp25-ramcfg"
+
+include:
+  - name: base.yaml
+    property-blocklist: [reg]
+
+properties:
+  ranges:
+    type: array
+    required: true
+
+  "#address-cells":
+    required: true
+    const: 1
+
+  "#size-cells":
+    required: true
+    const: 1
+
+child-binding:
+  description: |
+    Each child node represents a block of configuration registers for one
+    internal SRAM.
+    These should usually look like this:
+      ramcfg_<memory>: <memory>-sram@START_OFFSET {
+              reg = <0xSTART_OFFSET 0xSIZE>;
+      };
+
+  include:
+    - name: base.yaml
+      property-allowlist: [reg]
+
+  properties:
+    reg:
+      required: true

@@ -1,0 +1,60 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The anti-tamper detection circuit is used to protect sensitive data from
+  external attacks. STM32MP25 has 13 internal and 8 external tamper events.
+  128 32-bit backup registers are retained in all low-power modes and also
+  in V BAT mode.
+
+compatible: "st,stm32mp25-tamp"
+
+include:
+  - st,stm32-tamp.yaml
+  - st,stm32mp25-rif.yaml
+
+properties:
+  st,tamp-passive-precharge:
+    description: 0 is no precharge, so the pull-up is disabled for all external passive tamper.
+       1, 2, 3, 4, 8,... defines the number of cycle the STM32 precharge the pin before
+       checking the value (low/high) for all external tamper.
+    type: int
+    enum: [0, 1, 2, 4, 8]
+
+  st,tamp-passive-nb-sample:
+    description: The number of sample to read in a row to raise a passive tamper.
+    type: int
+    enum: [0, 2, 4, 8]
+
+  st,tamp-passive-sample-clk-div:
+    description: Clock divider to define frequency to read a sample for a passive tamper.
+    type: int
+    enum: [256, 512, 1024, 2048, 4096, 8192, 16384, 32768]
+
+  st,tamp-active-filter:
+    description: Set the active tamper filtering. 0 when active tamper filtering is disabled.
+      1 when active tamper filtering is enabled. A tamper event is detected when 2 comparison
+      mismatches occur out of 4 consecutive samples.
+    type: int
+    enum: [0, 1]
+
+  st,tamp-active-clk-div:
+    description: clock divider to define the frequency of read/write cycle for all active tampers.
+    type: int
+    enum: [1, 2, 4, 8, 16, 32, 64, 128, 2048]
+
+  st,backup-zones:
+    type: array
+    required: true
+    description: |
+      Defines the topology of the backup registers zones
+      For STM32MP2x platforms, it corresponds to
+      <zone1-rif1 zone1-rif2 zone2-rif1 zone2-rif2 zone3-rif1 zone3-rif0 zone3-rif2>;
+
+  st,tamp-internal-tampers:
+    type: array
+    description:
+      List of the internal tamper detection cells to be enabled and whether they
+      should be enabled in potential or confirmed mode. Each entry is composed
+      of 2 arguments. The first one is the ID of the tamper to activate. The
+      second one is the mode.

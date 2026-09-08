@@ -1,0 +1,10 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The STM32 hardware random number generator is a simple fixed purpose
+  IP and is fully separated from other crypto functions.
+
+compatible: "st,stm32mp25-rng"
+
+include: st,stm32-rng.yaml

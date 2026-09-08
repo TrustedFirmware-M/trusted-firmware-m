@@ -1,0 +1,61 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STMicroelectronics power control (PWR) provides an overview of the supply
+  architecture of the different power supply.
+
+include:
+  - base.yaml
+
+child-binding:
+  include:
+    - power.yaml
+    - name: regulator.yaml
+      property-allowlist:
+        - regulator-name
+        - regulator-boot-on
+        - regulator-always-on
+        - regulator-min-microvolt
+        - regulator-max-microvolt
+        - regulator-allowed-modes
+        - regulator-over-current-protection
+        - regulator-ramp-delay
+        - regulator-enable-ramp-delay
+
+  properties:
+    vin-supply:
+      type: phandle
+      description: Reference to the regulator supply
+
+    st,iocomp:
+      type: array
+      description: |
+        Defines the pmos and nmos value for an IO domain.
+        For STM32MP2x platforms, it corresponds to <pmos nmos>
+
+    st,popl-d1-ms:
+      type: int
+      description: |
+        PWR_CPU_ON pulse low configuration (PWR_D1CR)
+
+    st,podh-d2-ms:
+      type: int
+      description: |
+        PWR_ON delay high configuration (PWR_D2CR)
+
+    st,popl-d2-ms:
+      type: int
+      description: |
+        PWR_ON pulse low configuration (PWR_D2CR)
+
+    st,lpcfg-d2:
+      type: int
+      description: |
+        PWR_ON pin configuration (PWR_D2CR)
+
+    st,lplvdly-d2:
+      type: int
+      description: |
+        LPLV delay value (PWR_D2CR), 3bits and with 6xLSI cycles unit
+        (0:187 μs... 111:1.5 ms)

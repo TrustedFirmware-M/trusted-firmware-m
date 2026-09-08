@@ -1,0 +1,13 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The secure AES coprocessor (SAES) embedded in STM32MP21 SoC inherits of the
+  features described in st,stm32mp13-saes.yaml. In this version, support for
+  192-bit key sizes has been introduced, in addition to the existing 128-bit and
+  256-bit key sizes.
+
+compatible: "st,stm32mp21-saes"
+
+include:
+  - st,stm32mp13-saes.yaml

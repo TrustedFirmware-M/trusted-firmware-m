@@ -1,0 +1,20 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The data cache (DCACHE) is introduced on S-AHB system bus of the Cortex ® -M33
+  processor to improve the performance of data traffic to/from external memories.
+  Some specific features like hit-under-miss and critical-word-first refill policy allow optimum
+  performance on external memories data accesses.
+
+compatible: "st,stm32mp2-dcache"
+
+include:
+  - base.yaml
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true

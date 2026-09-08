@@ -1,0 +1,37 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STMicroelectronics Power Management Integrated Circuit (PMIC) STPMIC25
+
+  The STPMIC25 has seven buck converters and nine LDOs (inlcuing one refddr).
+  All need to be defined as children of regulators node, with node names:
+  buck1..7, ldo1..8 and refddr
+  see st,stpmic2-regulators.yaml for reguators bindings
+
+  stpmic25: pmic@33 {
+    compatible = "st,stpmic2";
+    reg = <0x33>;
+    ...
+    regulators {
+      compatible = "st,stpmic2-regulators";
+
+      buck1 {
+      };
+      ...
+      buck7 {
+      };
+      ldo1 {
+      };
+      ...
+      ldo8 {
+      };
+      refddr {
+      };
+    };
+  };
+
+compatible: "st,stpmic2"
+
+include:
+  - st,stpmic.yaml

@@ -1,0 +1,59 @@
+# Copyright (c) 2024 STMICROELECTRONICS
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The STM32 Octo Memory Manager is a low-level interface that enables an
+  efficient OCTOSPI pin assignment with a full I/O matrix (before alternate
+  function map) and multiplex of single/dual/quad/octal SPI interfaces over
+  the same bus.
+
+compatible: "st,stm32mp25-omm"
+
+include:
+  - base.yaml
+  - pinctrl-device.yaml
+  - reset-device.yaml
+  - access-device.yaml
+  - memory-region.yaml
+  - st,stm32mp25-rif.yaml
+  - name: st,stm32mp25-syscfg-properties.yaml
+    property-allowlist:
+      - st,syscfg-amcr
+
+properties:
+  reg:
+    required: true
+
+  clocks:
+    required: true
+
+  st,syscfg-amcr:
+    required: true
+
+  st,omm-req2ack-ns:
+    type: int
+    description: |
+      In multiplexed mode (MUXEN = 1), this field defines the time in
+      nanoseconds between two transactions.
+
+  st,omm-cssel-ovr:
+    type: int
+    description: |
+      Configure the chip select selector override for the 2 OCTOSPIs.
+      The 2 bits mask muxing description is:
+        -bit 0: Chip select selector override setting for OCTOSPI1
+          0x0: the chip select signal from OCTOSPI1 is sent to NCS1
+          0x1: the chip select signal from OCTOSPI1 is sent to NCS2
+        -bit 1: Chip select selector override setting for OCTOSPI2
+          0x0: the chip select signal from OCTOSPI2 is sent to NCS1
+          0x1: the chip select signal from OCTOSPI2 is sent to NCS2
+
+  st,omm-mux:
+    type: int
+    description: |
+      Configure the muxing between the 2 OCTOSPIs busses and the 2 output ports.
+      The muxing 2 bits mask description is:
+        - 0x0: direct mode, default
+        - 0x1: mux OCTOSPI1 and OCTOSPI2 to port 1
+        - 0x2: swapped mode
+        - 0x3: mux OCTOSPI1 and OCTOSPI2 to port 2

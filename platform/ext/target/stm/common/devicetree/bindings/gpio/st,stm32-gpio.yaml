@@ -1,0 +1,53 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STMicroelectronics's STM32 MCUs intregrate a GPIO and Pin mux/config hardware
+  controller. This part is focused on gpio bank configuration.
+
+compatible: "st,stm32-gpio"
+
+include:
+  - base.yaml
+  - gpio-controller.yaml
+  - st,stm32mp25-rif.yaml
+
+properties:
+  reg:
+    required: true
+
+  clocks:
+    required: true
+
+  "#gpio-cells":
+    const: 2
+
+  st,bank-name:
+    type: string
+    description:
+      Should be a name string for this bank as specified in the datasheet.
+    enum:
+      - GPIOA
+      - GPIOB
+      - GPIOC
+      - GPIOD
+      - GPIOE
+      - GPIOF
+      - GPIOG
+      - GPIOH
+      - GPIOI
+      - GPIOJ
+      - GPIOK
+      - GPIOZ
+
+  st,bank-ioport:
+    type: int
+    description: |
+      Should correspond to the EXTI IOport selection (EXTI line used
+      to select GPIOs as interrupts).
+
+gpio-cells:
+  - pin
+  - flags
+
+

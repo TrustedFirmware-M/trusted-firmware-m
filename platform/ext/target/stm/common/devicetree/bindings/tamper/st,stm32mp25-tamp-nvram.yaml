@@ -1,0 +1,69 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The anti-tamper detection circuit exposes 128 32-bit backup registers that are
+  retained in all low-power and V-BAT modes.
+
+compatible: "st,stm32mp25-tamp-nvram"
+
+include: [base.yaml, access-device.yaml]
+
+child-binding:
+  description: |
+    Non volatile memory layouts
+
+    Here is an example:
+
+      nvram0@56010100 {
+          compatible = "st,stm32mp25-tamp-nvram";
+          reg = <0x56010100 0x200>;
+          nvmem-layout {
+               #address-cells = <1>;
+              #size-cells = <1>;
+              nvmem_bckup0: tamp-bkp@0 {
+                  #nvmem-cell-cells = <0>;
+                  reg = <0x0 0x4>;
+              };
+              nvmem_bckup1: tamp-bkp@100 {
+                  #nvmem-cell-cells = <0>;
+                  reg = <0x100 0x4>;
+              };
+          };
+      };
+
+    Note that the usual name for this node is 'nvmem-layout'.
+    Above, backup register address 0x0 means that the backup register
+    begins at that offset from the parent memory nvmem0's base address.
+    That is, backup register addresses are relative; physical addresses
+    must be calculated by adding the start address of nvmem0 in memory
+    to each backup register's address.
+
+  properties:
+    "#address-cells":
+      type: int
+      description: |
+        Number of cells required to represent a child node's
+        reg property address. This must be large enough to
+        represent the start offset of each backup register.
+
+    "#size-cells":
+      type: int
+      description: |
+        Number of cells required to represent a child node's
+        reg property address. This must be large enough to
+        represent the size of each backup register in bytes.
+
+  child-binding:
+    include: [nvmem-provider.yaml]
+
+    description: |
+      Each child node of the fixed-nvmems node represents
+      an individual non volatile backup register.
+    properties:
+      "#nvmem-cell-cells":
+        required: true
+
+      reg:
+        required: true
+

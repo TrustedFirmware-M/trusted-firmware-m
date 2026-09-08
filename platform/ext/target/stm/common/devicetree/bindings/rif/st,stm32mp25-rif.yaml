@@ -1,0 +1,8 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+properties:
+  st,protreg:
+    type: array
+    description: |
+      protection value of rif peripherals, each entry is defined by a 32 bit.

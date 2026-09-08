@@ -1,0 +1,37 @@
+# Copyright (c) 2020 STMICROELECTRONICS
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STM32 OSPI Memory Interface allows a SPI flash or HyperFlash connected to
+  the SoC to be accessed via the external address space.
+
+  The flash chip itself should be represented by a subnode of the STM32 OSPI
+  Memory Interface node. The flash interface is selected based on the
+  "compatible" property of this subnode:
+  - if it contains "jedec,spi-nor", then SPI is used;
+  - if it contains "spi-nand", then SPI is used.
+  - if it contains "cfi-flash", then HyperFlash is used.
+
+compatible: "st,stm32mp25-ospi"
+
+include:
+  - base.yaml
+  - pinctrl-device.yaml
+  - reset-device.yaml
+  - memory-region.yaml
+  - name: st,stm32mp25-syscfg-properties.yaml
+    property-allowlist:
+      - st,syscfg-dlyb
+
+properties:
+  reg:
+    required: true
+
+  clocks:
+    required: true
+
+  resets:
+    required: true
+
+  st,syscfg-dlyb:
+    required: true

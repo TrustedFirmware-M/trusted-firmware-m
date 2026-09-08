@@ -1,0 +1,60 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The extended interrupts and event controller (EXTI) manages the individual CPU and
+  system wake-up through configurable and direct event inputs.
+
+compatible: "st,stm32mp1-exti"
+
+include:
+  - base.yaml
+  - interrupt-controller.yaml
+  - st,stm32mp25-rif.yaml
+
+properties:
+  reg:
+    required: true
+
+  st,proccid:
+    type: array
+    description: |
+      Applicable for platforms implementing the RIF. Used to affect the CID
+      number to a particular CPU in EXTI. On STM32MP2x platforms CPU1 = A35,
+      CPU2 = M33 and CPU3 = M0+. As EXTI does not know which is the CID for
+      each CPU, is must be set.
+      For EXTI 1, <1 RIF_CID1>, <2 RIF_CID2>;
+      For EXTI 2, <1 RIF_CID1>, <2 RIF_CID2>, <3 RIF_CID3>;
+
+  num-lines:
+    type: int
+    required: true
+    description: Total number of lines supported by the interrupt controller.
+
+  interrupts:
+    description: |
+      Interrupts references to primary interrupt controller. The order must be aligned
+      with line-ranges.
+
+  line-ranges:
+    type: array
+    required: true
+    description: |
+      Description of the input lines range for each interrupt line supported
+      by the external interrupt controller. For each line a couple of integers is
+      provided: the first line of the range start and the length
+      of the range.
+      As example:
+             line-ranges = <0 1>, <1 1>, <2 1>, <3 1>,
+                           <4 1>, <5 5>, <10 6>;
+      Above property provides event-range for 7 lines.
+      5 first lines contain one element
+      6th line starts with input line 5 and contains 5 elements (5 to 9)
+      7th line starts with input line 10 and contains 6 elements (10 to 15)
+
+  "#interrupt-cells":
+    const: 2
+
+interrupt-cells:
+  - irq
+  - type

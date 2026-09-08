@@ -1,0 +1,18 @@
+# Copyright (c) 2023 STMICROELECTRONICS
+# SPDX-License-Identifier: Apache-2.0
+
+description: stm32 timer
+
+compatible: "st,stm32mp25-timers"
+
+include: base.yaml
+
+properties:
+  reg:
+    required: true
+
+  clocks:
+    required: true
+
+  interrupts:
+    required: true

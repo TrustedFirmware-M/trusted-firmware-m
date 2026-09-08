@@ -1,0 +1,15 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+        RISAF (enc:encode) managing DDR includes the DDR memory cipher engine (DDRMCE) feature.
+
+compatible: "st,stm32mp25-risaf-enc"
+
+include:
+   - st,stm32mp25-risaf.yaml
+   - entropy-device.yaml
+
+properties:
+   entropy:
+      required: true

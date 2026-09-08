@@ -1,0 +1,17 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  Embedded one time programmable (OTP) array of fuses. NVMEM abstraction
+  for OTP fuses mapped in BSEC driver.
+
+compatible: "st,stm32mp2-otp"
+
+include: [base.yaml, nvmem-consumer.yaml]
+
+properties:
+  nvmem-cells:
+    required: true
+
+  nvmem-cell-names:
+    required: true

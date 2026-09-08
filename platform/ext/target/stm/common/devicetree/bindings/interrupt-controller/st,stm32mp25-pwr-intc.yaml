@@ -1,0 +1,19 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STMicroelectronics power control (PWR) provides wake-up pin interrupts.
+
+compatible: "st,stm32mp25-pwr-intc"
+
+include:
+  - base.yaml
+  - interrupt-controller.yaml
+
+properties:
+  "#interrupt-cells":
+    const: 2
+
+interrupt-cells:
+  - irq
+  - type

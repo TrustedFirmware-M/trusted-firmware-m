@@ -1,0 +1,105 @@
+# Copyright (c) 2023 STMICROELECTRONICS
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STM32 ddr controller provides a complete memory interface solution for the DDR memory
+  subsystem (DDRCTRL and DDRPHY).
+  Jedec compliant lpddr4, ddr4, ddr3l
+
+compatible: "st,stm32mp2-ddr"
+
+include: [base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  reg-names:
+    required: true
+    description: Name of each register space "ctrl", "phy", "dbg"
+
+  clocks:
+    required: true
+
+  st,mem-name:
+    type: string
+    required: true
+    description: name for the DDR configuration, a simple string for information
+
+  st,mem-speed:
+    type: int
+    required: true
+    description: DDR expected speed in kHz
+
+  st,mem-size:
+    type: array
+    required: true
+    description: DDR mem size in bytes, split in 2 32bit values to have size on 64bit
+
+  st,ctl-reg:
+    type: array
+    required: true
+    description: controller values depending on the DDR type
+
+  st,ctl-timing:
+    type: array
+    required: true
+    description: controller values depending on the DDR frequency and timing parameters
+
+  st,ctl-map:
+    type: array
+    required: true
+    description: controller values depending on the address mapping
+
+  st,ctl-perf:
+    type: array
+    required: true
+    description: controller values depending on performance and scheduling
+
+  st,phy-basic:
+    type: array
+    required: true
+    description: basic entry values for the PHYINIT driver
+
+  st,phy-advanced:
+    type: array
+    required: true
+    description: advanced entry values for the PHYINIT driver
+
+  st,phy-mr:
+    type: array
+    required: true
+    description: mode register entry values for the PHYINIT driver
+
+  st,phy-swizzle:
+    type: array
+    required: true
+    description: swizzling (i.e. signal/ball multiplexing) entry values for the PHYINIT driver
+
+  vpp-supply:
+    type: phandle
+    description: Reference to the regulator that controls vpp power
+
+  vdd-supply:
+    type: phandle
+    description: Reference to the regulator that controls vdd power
+
+  vref-supply:
+    type: phandle
+    description: Reference to the regulator that controls vref power
+
+  vtt-supply:
+    type: phandle
+    description: Reference to the regulator that controls vtt power
+
+  vdd1-supply:
+    type: phandle
+    description: Reference to the regulator that controls vdd1 power
+
+  vdd2-supply:
+    type: phandle
+    description: Reference to the regulator that controls vdd2 power
+
+  vddq-supply:
+    type: phandle
+    description: Reference to the regulator that controls vddq power

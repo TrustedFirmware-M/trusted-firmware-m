@@ -1,0 +1,16 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The STM32 DMA3 is a direct memory access controller with different features
+  depending on its hardware configuration.
+  It is either called LPDMA (Low Power), GPDMA (General Purpose) or
+  HPDMA (High Performance).
+
+compatible: "st,stm32mp21-dma3"
+
+include:
+  - st,stm32mp25-dma3.yaml
+  - name: st,stm32mp21-syscfg-properties.yaml
+    property-allowlist:
+      - st,syscfg-arcr

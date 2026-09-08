@@ -1,0 +1,18 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STMicroelectronics power control (PWR) provides an overview of the supply
+  architecture of the different power domains of STM32MP25 SoC.
+
+compatible: "st,stm32mp25-pwr"
+
+include:
+  - st,stm32mp2-pwr.yaml
+  - name: st,stm32mp25-syscfg-properties.yaml
+    property-allowlist:
+      - st,syscfg-vddio
+
+properties:
+  st,syscfg-vddio:
+    required: true

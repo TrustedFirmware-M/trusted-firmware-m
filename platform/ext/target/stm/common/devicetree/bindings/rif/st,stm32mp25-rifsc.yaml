@@ -1,0 +1,68 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  Resource isolation framework (RIF) is a comprehensive set of hardware blocks
+  designed to enforce and manage isolation of STM32 hardware resources like
+  memory and peripherals.
+
+  The RIFSC (RIF security controller) is composed of three sets of registers,
+  each managing a specific set of hardware resources:
+    - RISC registers associated with RISUP logic (resource isolation device unit
+      for peripherals), assign all non-RIF aware peripherals to zero, one or
+      any security domains (secure, privilege, compartment).
+    - RIMC registers: associated with RIMU logic (resource isolation master
+      unit), assign all non RIF-aware bus master to one security domain by
+      setting secure, privileged and compartment information on the system bus.
+      Alternatively, the RISUP logic controlling the device port access to a
+      peripheral can assign target bus attributes to this peripheral master port
+      (supported attribute: CID).
+    - RISC registers associated with RISAL logic (resource isolation device unit
+      for address space - Lite version), assign address space subregions to one
+      security domains (secure, privilege, compartment).
+
+  On stm32mp25, 15 RIMU are available.
+
+compatible: "st,stm32mp25-rifsc"
+
+include:
+  - base.yaml
+  - access-controller.yaml
+  - st,stm32mp25-rif.yaml
+
+properties:
+  reg:
+    required: true
+
+  st,glocked:
+    type: int
+    description:
+      Applicable for platforms implementing the RIF. Used to globally lock
+      the RIF configuration. When set, Security, privilege, and CID
+      configurations are locked and can't be modified until next reset.
+      RIMU global lock is enabled with bit 0 and RISUP global lock by
+      bit 1.
+    enum:
+      - 0
+      - 1
+      - 2
+      - 3
+
+  "#access-controller-cells":
+    const: 1
+
+  st,rimu:
+    type: array
+    description:
+      protection value of rif master port, each entry is defined by a 32 bit.
+
+  st,errata-ahbrisab:
+    type: boolean
+    description: |
+      If set, a software workaround is set to that the RISAB AHB errata is
+      managed. Whenever CID filtering is enabled on either RISAB3/4/5 instances,
+      then RIMUs cannot hold the CID0 value on the bus to avoid unwanted access
+      rights to some memories.
+
+access-controller-cells:
+  - protreg

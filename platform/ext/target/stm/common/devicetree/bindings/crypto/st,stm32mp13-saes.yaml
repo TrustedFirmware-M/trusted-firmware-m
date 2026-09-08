@@ -1,0 +1,33 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The secure AES coprocessor (SAES) encrypts or decrypts data, using an
+  algorithm and implementation fully compliant with the advanced encryption
+  standard (AES) defined in Federal information processing standards (FIPS)
+  publication 197. It incorporates a protection against side-channel attacks
+  (SCA), including differential power analysis (DPA), certified SESIP and
+  PSA security assurance level 3. The peripheral supports CTR, GCM, GMAC,
+  CCM, ECB, and CBC chaining modes for key sizes of 128 or 256 bits, as
+  well as special modes such as hardware secret key encryption/decryption
+  (Wrapped-key mode) and key sharing.
+  SAES has the possibility to load by hardware STM32 hardware secret keys
+  (boot hardware key BHK and derived hardware unique key DHUK), usable but
+  not readable by application.
+
+compatible: "st,stm32mp13-saes"
+
+include:
+  - name: access-device.yaml
+  - name: base.yaml
+  - name: reset-device.yaml
+
+properties:
+  reg:
+    required: true
+
+  resets:
+    required: true
+
+  clocks:
+    required: true

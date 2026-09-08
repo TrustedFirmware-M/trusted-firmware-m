@@ -1,0 +1,49 @@
+# Copyright (c) 2024 STMICROELECTRONICS
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The ARM PrimeCells SDMMC2 provides an interface for
+  reading and writing to MultiMedia and SD cards alike.
+
+compatible: "st,stm32mp25-sdmmc2"
+
+include:
+  - base.yaml
+  - pinctrl-device.yaml
+  - reset-device.yaml
+  - mmc-controller.yaml
+
+properties:
+  reg:
+    required: true
+
+  clocks:
+    required: true
+
+  resets:
+    required: true
+
+  pinctrl-0:
+    required: true
+
+  pinctrl-names:
+    required: true
+
+  st,sig-dir:
+    type: boolean
+    description: |
+      ST Micro-specific property, signal direction polarity used for
+      pins CMD, DAT[0], DAT[1], DAT[2] and DAT[3].
+
+  st,neg-edge:
+    type: boolean
+    description: |
+      ST Micro-specific property, data and command phase relation,
+      generated on the sd clock falling edge.
+
+  st,use-ckin:
+    type: boolean
+    description: |
+      ST Micro-specific property, use CKIN pin from an external
+      driver to sample the receive data (for example with a voltage switch
+      transceiver).

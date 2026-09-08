@@ -1,0 +1,178 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The RCC IP is both a reset and a clock controller.
+  RCC makes also power management (resume/supend and wakeup interrupt).
+  Please also refer to reset for common reset controller binding usage.
+
+  Specifying clocks
+  =================
+
+  All available clocks are defined as preprocessor macros in
+  dt-bindings/clock/st,stm32mp25-rcc.h and can be used in device
+  tree sources.
+
+  Specifying softreset control of devices
+  =======================================
+
+  Device nodes should specify the clock channel required in their "clocks"
+  property, containing a phandle to the clock device node and an index specifying
+  which channel to use.
+  The index is the bit number within the RCC registers bank, starting from RCC
+  base address.
+  It is calculated as: index = register_offset / 4 * 32 + bit_offset.
+  Where bit_offset is the bit offset within the register.
+
+compatible: "st,stm32mp25-rcc"
+
+include:
+  - base.yaml
+  - clock-controller.yaml
+  - st,stm32mp25-rif.yaml
+
+properties:
+  reg:
+    required: true
+
+  "#clock-cells":
+    const: 1
+
+  st,c1msrd:
+    type: int
+    description: |
+      defines the minimum duration of the low-level pulse on NRSTC1MS when C1MSRST is high.
+
+  st,busclk:
+    type: array
+    description: |
+      - The property is a list of dividers defined by macros DIV(DIV_<DIV-CLOCK>,
+        value) as defined by header file dt-bindings/clock/stm32mp25-clksrc.h.
+      - For the STM32MP25 family there are 8 dividers values expected:
+        LSMCU APB1 APB2 APB3 APB4 DIV_APBDBG
+      - Each divider value uses the DIV coding defined in RCC associated register
+        RCC_xxxDIVR. In most cases, it is:
+          0x0: not divided
+          0x1: division by 2
+          0x2: division by 4
+          0x3: division by 8
+          ...
+      - Property can be used to configure the clock main dividers value:
+          st,busclk = <
+            DIV(DIV_LSMCU, 1)
+            DIV(DIV_APB1, 0)
+            DIV(DIV_APB2, 0)
+            DIV(DIV_APB3, 0)
+            DIV(DIV_APB4, 0)
+            DIV(DIV_APBDBG, 0)
+          >;
+
+  st,flexgen:
+    type: array
+    description: |
+      - Used to configure the flexgen clock selection.
+        The property is a list of flex clock source identifiers defined
+        by macros as defined by header file dt-bindings/clock/stm32mp25-clksrc.h:
+          - FLEXGEN_CFG(chanel, XBAR_SRC_<PARENT-CLOCK>, pre_div, final_div)
+            - pre_div
+                0x0: not divided
+                0x1: division by 2
+                0x3: division by 4
+                0x3ff: division by 1024
+            - final_div
+                0x0: not divided
+                0x1: division by 2
+                0x2: division by 3
+                ...
+                0x3f: division by 64
+      - Property can be used to configure the clock distribution tree:
+        st,flexgen = <
+                FLEXGEN_CFG(0, XBAR_SRC_PLL4, 0, 2)
+                FLEXGEN_CFG(2, XBAR_SRC_PLL4, 0, 1)
+                FLEXGEN_CFG(3, XBAR_SRC_PLL4, 0, 2)
+                FLEXGEN_CFG(4, XBAR_SRC_PLL4, 0, 3)
+                FLEXGEN_CFG(5, XBAR_SRC_PLL4, 0, 2)
+                FLEXGEN_CFG(6, XBAR_SRC_PLL4, 0, 1)
+                FLEXGEN_CFG(7, XBAR_SRC_PLL4, 0, 11)
+                ...
+                FLEXGEN_CFG(59, XBAR_SRC_PLL4, 0, 1)
+                FLEXGEN_CFG(60, XBAR_SRC_PLL6, 0, 3)
+                FLEXGEN_CFG(61, XBAR_SRC_PLL4, 0, 7)
+                FLEXGEN_CFG(62, XBAR_SRC_PLL4, 0, 7)
+                FLEXGEN_CFG(63, XBAR_SRC_PLL4, 0, 2)
+        >;
+
+  st,kerclk:
+    type: array
+    description: |
+      - used to configure the peripherals kernel clock selection.
+        The property is a list of peripheral kernel clock source identifiers defined
+        by macros as defined by header file dt-bindings/clock/stm32mp25-clksrc.h:
+          - DIV(DIV_<DIV-CLOCK>, value)
+          - MUX_CFG(MUX_<KERNEL-CLOCK>, MUX<KERNEL-CLOCK>_<PARENT-CLOCK>
+          - MCO_CFG(MCO_CLOCK, MUX_<MCO-CLOCK>_<PARENT-CLOCK>, ON / OFF)
+      - st,kerclk may not list all the kernel clocks and has no ordering requirements.
+      - Property can be used to configure the clock distribution tree:
+        st,kerclk = <
+                DIV_CFG(DIV_RTC, 23)
+                MUX_CFG(MUX_ADC12, MUX_ADC12_FLEX46)
+                MUX_CFG(MUX_ADC3, MUX_ADC3_FLEX47)
+                MUX_CFG(MUX_USB2PHY1, MUX_USB2PHY1_FLEX57)
+                MUX_CFG(MUX_USB2PHY2, MUX_USB2PHY2_FLEX58)
+                MUX_CFG(MUX_USB3PCIEPHY, MUX_USB3PCIEPHY_FLEX34)
+                MUX_CFG(MUX_DSIPHY, MUX_DSIPHY_FLEX28)
+                MUX_CFG(MUX_DSIBLANE, MUX_DSIBLANE_DSIPHY)
+                MUX_CFG(MUX_LVDSPHY, MUX_LVDSPHY_FLEX32)
+                MUX_CFG(MUX_DTS, MUX_DTS_HSE)
+                MUX_CFG(MUX_RTC, MUX_RTC_HSE)
+                MUX_CFG(MUX_D3PER, MUX_D3PER_LSE)
+                MCO_CFG(MCO2, MUX_MCO2_FLEX62, MCO_OFF)
+        >;
+
+  st,pll-enable:
+    type: phandles
+    description: |
+      Phandle of the default pll configuration.
+      A pll could have several configuration (5 max) and should be described in a subnode
+      just below.
+
+clock-cells:
+  - bits
+
+child-binding:
+  child-binding:
+    properties:
+      cfg:
+        description: |
+         The parameters for PLL frequency configuration in the following order
+         <FBDIV FREFDIV POSTDIV1 POSTDIV2>
+         FREF * (FBDIV / FREFDIV) / POSTDIV1 / POSTDIV2
+         POSTDIVx
+           0x0: not applicable
+           0x1: division by 1
+           ...
+           0x7: division by 7
+          (see ref manual for details)
+        type: array
+
+      src:
+        description: |
+          Clock source configuration values are defined by macros MUX_CFG(MUX_<NAME>_<SOURCE>)
+          from dt-bindings/clock/stm32mp25-clksrc.h.
+        type: int
+      frac:
+        description: |
+          Fractional part of the multiplication factor
+          (optional, PLL is in integer mode when absent).
+        type: int
+      csg:
+        description: |
+          Clock Spreading Generator (optional) with parameters in the
+          following order: MOD_PER INC_STEP SSCG_MODE.
+          MOD_PER: Modulation Period Adjustment
+          INC_STEP: Modulation Depth Adjustment
+          SSCG_MODE: Spread spectrum clock generator mode, with associated
+          defines from stm32mp13-clksrc.h:
+          - SSCG_MODE_CENTER_SPREAD = 0
+          - SSCG_MODE_DOWN_SPREAD = 1
+        type: int

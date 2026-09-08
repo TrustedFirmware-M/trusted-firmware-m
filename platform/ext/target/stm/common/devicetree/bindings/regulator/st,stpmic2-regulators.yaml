@@ -1,0 +1,127 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STMicroelectronics regulators provided by STPMIC Power Management Integrated Circuit
+
+  The STPMIC2 has several regulators as buck converters and LDOs and all need
+  to be defined as children nodes with the expected name.
+
+  The STPMIC25 has seven buck converters and nine LDOs:
+  BUCK1..7, LDO1..8 and REFDDR.
+  The STPMIC1L provides BUCK1, BUCK2, LDO2..5, GPO1..2 regulators
+  The STPMIC2L provides BUCK1..4, LDO1..LDO7, GPO1..5 regulators
+
+  Each child regulator node can have sub-nodes as defined in the generic binding
+  which define the regulator configuration in low power modes:
+  the alternate setting (when the regulator is controlled by a pwrctrl line
+  st,pwrctrl-enable = true) or the forced setting (st,pwrctrl-enable = false).
+  The supported sub-node are:
+  - default: applied for Stop1, LP-Stop1, Stop2, LP-Stop2
+  - lplv: applied for LPLV-STOP1, LPLV-STOP2
+  - standby: applied for Standby with DDR in self-refresh
+             (Standby1 for STM32MP25/23)
+  - off: applied for Standby with DDR OFF
+        (Standby2 for STM32MP25/23)
+
+  For example:
+
+  stpmic25: pmic@33 {
+    compatible = "st,stpmic2";
+    reg = <0x33>;
+    ...
+    regulators {
+      compatible = "st,stpmic2-regulators";
+
+      buck1 {
+        /* all properties for buck1 */
+        default {
+        };
+        lplv {
+        };
+        standby {
+        };
+        off {
+        };
+      };
+      ...
+      buck7 {
+        /* all properties for buck7 */
+      };
+      ldo1 {
+        /* all properties for ldo1 */
+      };
+      ...
+      ldo8 {
+        /* all properties for ldo8 */
+      };
+      refddr {
+        /* all properties for refddr ldo */
+      };
+    };
+  };
+
+compatible: "st,stpmic2-regulators"
+
+include: base.yaml
+
+child-binding:
+  include:
+    - name: regulator.yaml
+      property-allowlist:
+        - regulator-name
+        - regulator-boot-on
+        - regulator-always-on
+        - regulator-min-microvolt
+        - regulator-max-microvolt
+        - regulator-allowed-modes
+        - regulator-over-current-protection
+        - regulator-enable-ramp-delay
+        - regulator-pull-down
+
+  properties:
+    st,mask-reset:
+      type: boolean
+      description: |
+        mask reset for this regulator, the regulator configuration
+        is maintained during pmic reset.
+
+    st,pwrctrl-enable:
+      type: boolean
+      description: |
+        enable pwrctrl mode if it's available on this regulator.
+
+    st,pwrctrl-reset:
+      type: boolean
+      description: |
+        enable pwrctrl reset mode if it's available on this regulator.
+
+    st,pwrctrl-sel:
+      type: int
+      description: |
+        configure pwrctrl source selection
+      enum: [0, 1, 2, 3]
+
+    st,regulator-bypass-microvolt:
+      type: int
+      description: |
+        regulator output voltage when configured in bypass.
+        Authorize automatic bypass mode selection depending on voltage.
+
+    st,regulator-sink-source:
+      type: boolean
+      description: |
+        enable sink-source mode if it's available on this regulator.
+
+    st,alternate-input-source:
+      type: boolean
+      description: |
+        enable secondary input source on LDO1.
+
+  child-binding:
+    include:
+      - name: regulator.yaml
+        property-allowlist:
+          - regulator-on-in-suspend
+          - regulator-off-in-suspend
+          - regulator-suspend-microvolt

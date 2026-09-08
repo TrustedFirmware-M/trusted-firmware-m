@@ -1,0 +1,26 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The RIF (resource isolation framework) is a comprehensive set of hardware blocks
+  designed to enforce and manage isolation of STM32 hardware resources such as memory
+  and peripherals.
+
+  The RIF uses the SERC (Software error robustness collector) to detects accesses on target peripherals
+  that are either shutdown (computing clock off), or under reset. Managed by a secure application
+  running in the trusted domain.
+
+compatible: "st,stm32mp25-serc"
+
+include: base.yaml
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true
+
+  id_disable:
+    type: array
+    description: rif index which can be disabled (no irq occurs)

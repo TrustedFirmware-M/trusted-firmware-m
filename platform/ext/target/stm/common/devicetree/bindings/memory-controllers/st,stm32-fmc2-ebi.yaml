@@ -1,0 +1,46 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The FMC2 functional block makes the interface with: synchronous and
+  asynchronous static devices (such as PSNOR, PSRAM or other memory-mapped
+  peripherals) and NAND flash memories.
+  Its main purposes are:
+    - to translate AXI transactions into the appropriate external device
+      protocol
+    - to meet the access time requirements of the external devices
+  All external devices share the addresses, data and control signals with the
+  controller. Each external device is accessed by means of a unique Chip
+  Select. The FMC2 performs only one access at a time to an external device.
+
+compatible: "st,stm32mp25-fmc2-ebi"
+
+include:
+  - base.yaml
+  - reset-device.yaml
+  - pinctrl-device.yaml
+  - st,stm32mp25-rif.yaml
+
+properties:
+  reg:
+    required: true
+
+  clocks:
+    required: true
+
+  pinctrl-0:
+    required: true
+
+  st,fmc2-ebi-cs-cclk-enable:
+    type: boolean
+    description: |
+      Continuous clock enable (first bank must be configured
+      in synchronous mode). The FMC_CLK is generated continuously
+      during asynchronous and synchronous access. By default, the
+      FMC_CLK is only generated during synchronous access.
+
+  st,fmc2-ebi-cs-clk-period-ns:
+    type: int
+    description: |
+      This property defines the FMC_CLK output signal period in
+      nanoseconds.

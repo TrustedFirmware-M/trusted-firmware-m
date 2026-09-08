@@ -1,0 +1,31 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STM32 System configuration controller (SYSCFG) node.
+
+compatible: "st,stm32mp25-syscfg"
+
+include: [syscon.yaml]
+
+properties:
+  st,reg-init:
+    type: array
+    description: |
+      This property can be used if the register cannot be set by framework
+      or driver through the syscon API. Each register is defined by <offset value>.
+
+  "#syscfg-reg-cells":
+    type: int
+    const: 1
+
+  "#syscfg-reg-mask-cells":
+    type: int
+    const: 2
+
+syscfg-reg-cells:
+  - offset
+
+syscfg-reg-mask-cells:
+  - offset
+  - mask

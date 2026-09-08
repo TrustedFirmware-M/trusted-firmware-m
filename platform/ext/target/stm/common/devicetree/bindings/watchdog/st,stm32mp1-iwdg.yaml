@@ -1,0 +1,25 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The independent watchdog (IWDG) peripheral offers a high safety level, thanks to its
+  capability to detect malfunctions due to software or hardware failures.
+
+  The IWDG is clocked by an independent clock, and stays active even if the main clock fails.
+
+compatible: "st,stm32mp1-iwdg"
+
+include:
+  - name: base.yaml
+  - name: watchdog.yaml
+  - name: reset-device.yaml
+
+properties:
+  reg:
+    required: true
+
+  clocks:
+    required: true
+
+  clock-names:
+    required: true

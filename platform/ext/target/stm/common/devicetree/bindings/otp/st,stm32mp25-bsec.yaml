@@ -1,0 +1,36 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The boot and security control (BSEC) peripheral manages the accesses to an embedded
+  one time programmable (OTP) array of fuses. Those fuses are used to store on-chip,
+  non-volatile data like boot and security parameters.
+
+compatible: "st,stm32mp25-bsec"
+
+include: [base.yaml, memory-region.yaml, access-device.yaml]
+
+properties:
+  reg:
+    required: true
+
+  memory-region:
+    required: false
+
+child-binding:
+  include: [nvmem-provider.yaml]
+
+  description: |
+    Each child node describes an OTP area.
+    The area can look like this :
+
+      hconf1_otp: otp124@1f0 {
+        #nvmem-cell-cells = <0>;
+        reg = <0x1f0 0x4>;
+      };
+
+  properties:
+    shadow-provisionning:
+      type: array
+      description: |
+        Value to provision in the shadow of the OTP.

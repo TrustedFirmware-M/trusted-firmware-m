@@ -1,0 +1,40 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STMicroelectronics Power Management Integrated Circuit (PMIC) STPMIC2L
+
+  The STPMIC2L has four buck converters, seven LDOs and two GPOs.
+  All need to be defined as children of regulators node, with node names:
+  buck1..4, ldo1..7 and gpo1..5
+  see st,stpmic2-regulators.yaml for reguators bindings
+
+  stpmic2l: pmic@33 {
+    compatible = "st,stpmic2l";
+    reg = <0x33>;
+    ...
+    regulators {
+      compatible = "st,stpmic2-regulators";
+
+      buck1 {
+      };
+      ...
+      buck4 {
+      };
+      ldo1 {
+      };
+      ...
+      ldo7 {
+      };
+      gpo1 {
+      };
+      ...
+      gpo5 {
+      };
+    };
+  };
+
+compatible: "st,stpmic2l"
+
+include:
+  - st,stpmic.yaml

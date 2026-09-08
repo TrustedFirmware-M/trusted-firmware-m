@@ -1,0 +1,23 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  the PWR implements the following security/isolation requirements which apply
+  to any defined security domain:
+    - filtering of secure/non-secure accesses
+    - privileged/unprivileged accesses
+    - filtering of hardware execution compartments
+
+compatible: "st,stm32mp25-pwr-rif"
+
+include:
+  - base.yaml
+  - access-controller.yaml
+  - st,stm32mp25-rif.yaml
+
+properties:
+  "#access-controller-cells":
+    const: 1
+
+access-controller-cells:
+  - protreg

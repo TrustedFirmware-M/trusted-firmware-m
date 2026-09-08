@@ -1,0 +1,46 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STMicroelectronics power control (PWR) provides an overview of the supply
+  architecture of the different power supply. The regulators need to be defined
+  as child nodes, strictly following the vddio1, vddio2, vddio3, vddio4, vddio,
+  vdd33ucpd, vdda18adc, vddgpu, node names. For example:
+
+    pwr: pwr@54210000 {
+      compatible = "st,stm32mp25-pwr";
+      ...
+      regulators {
+        compatible = "st,stm32mp25-pwr-regulators";
+
+        vdd33ucpd {
+          /* all properties for vdd33ucpd */
+        };
+        vdda18adc {
+          /* all properties for vdda18adc */
+        };
+        vddgpu {
+          /* all properties for vddgpu */
+        };
+        vddio1 {
+          /* all properties for vddio1 */
+        };
+        vddio2 {
+          /* all properties for vddio2 */
+        };
+        vddio3 {
+          /* all properties for vddio3 */
+        };
+        vddio4 {
+          /* all properties for vddio4 */
+        };
+        vddio {
+          /* all properties for vddio */
+        };
+      };
+    };
+
+compatible: "st,stm32mp25-pwr-regulators"
+
+include:
+  - st,stm32mp-pwr-regulators.yaml

@@ -1,0 +1,49 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  External tamper event circuit is used to protect soc and board attacks.
+
+compatible: "st,stm32-tamp-external"
+
+include:
+  - base.yaml
+
+properties:
+  st,tamp-mode:
+    required: true
+    type: int
+    enum:
+      - 1 # TAMPER_CONFIRMED_MODE
+      - 2 # TAMPER_POTENTIAL_MODE
+    description: |
+      Each tamper can be configured in two modes
+      - Confirmed mode: immediate erase of secrets on tamper detection, including
+                        backup registers erase
+      - Potential mode: most of the secrets erase following a tamper detection are
+                        launched by software
+
+  st,tamp-id:
+    required: true
+    type: array
+    description: |
+      IDs of a tamper event. The external I/Os tamper detection supports 2 main configurations:
+      - Passive mode: TAMP_INx is monitored and a tamper is detected either on edge or on level
+        (only one id is needed).
+      - Active mode: TAMP_INx (in id x) is continuously compared with TAMP_OUTy (out id y)
+        allowing open-short detection (2 id needed in and out).
+
+  st,trig-on:
+    type: boolean
+    description: Defines the active level to activate this passive tamper
+      (not used if tamper-gpios has 2 entries).
+      It also depends on st,tamp-passive-precharge value. When st,tamp-passive-precharge=0
+      this passive tamper activates at edge. When st,tamp-passive-precharge != 0, with st,trig-on
+      defined, this passive tamper will activate if st,tamp-passive-nb-sample in a row are high.
+      If not defined the passive tamper event is raised if st,tamp-passive-nb-sample in a row
+      are low.
+
+  tamper-gpios:
+    required: true
+    type: phandle-array
+    description: GPIOs used for the external tamper
