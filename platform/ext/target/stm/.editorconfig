@@ -1,0 +1,51 @@
+#
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+
+#################################
+# files in STM32MP2 directories
+# C
+[common/devicetree/**.{c,h}]
+indent_style = tab
+indent_size = 8
+tab_width = 8
+max_line_length = 100
+[common/stm32mp2xx/**.{c,h}]
+indent_style = tab
+indent_size = 8
+tab_width = 8
+max_line_length = 100
+[stm32mp2*/**.{c,h}]
+indent_style = tab
+indent_size = 8
+tab_width = 8
+max_line_length = 100
+
+# YAML
+[common/devicetree/**.{yml,yaml}]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Device tree
+[common/devicetree/**.{dts,dtsi}]
+indent_style = tab
+indent_size = 8
+tab_width = 8
+
+# CMake
+[stm32mp2*/*{CMakeLists.txt,*.cmake}]
+indent_style = space
+indent_size = 4
+tab_width = 4
+
+[common/stm32mp2xx/*{CMakeLists.txt,*.cmake}]
+indent_style = space
+indent_size = 4
+tab_width = 4
+
+# Git commit messages
+[COMMIT_EDITMSG]
+max_line_length = 72
