@@ -16,11 +16,12 @@ extern const struct provisioning_data_t data;
 
 enum tfm_plat_err_t __attribute__((section("DO_PROVISION"))) do_provision(void) {
     enum tfm_plat_err_t err;
+    int32_t flash_ret;
     uint32_t new_lcs;
 
-    err = (enum tfm_plat_err_t)FLASH_DEV_NAME.Initialize(NULL);
-    if (err != TFM_PLAT_ERR_SUCCESS) {
-        return err;
+    flash_ret = FLASH_DEV_NAME.Initialize(NULL);
+    if (flash_ret != ARM_DRIVER_OK) {
+        return TFM_PLAT_ERR_SYSTEM_ERR;
     }
 
     err = tfm_plat_otp_write(PLAT_OTP_ID_BL2_ROTPK_0,
