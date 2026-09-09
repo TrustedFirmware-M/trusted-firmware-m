@@ -88,7 +88,7 @@ __NO_RETURN void tfm_hal_system_reset(uint32_t sw_reset_syn_value)
     struct rse_sysctrl_t *rse_sysctrl = (struct rse_sysctrl_t *)RSE_SYSCTRL_BASE_S;
 
     sw_reset_syn_value |=
-        (0b1 << RSE_PERSISTENT_DATA_FLAGS_PERSISTENT_DATA_INITIALIZED_BITFIELD_POS);
+        (0b1U << RSE_PERSISTENT_DATA_FLAGS_PERSISTENT_DATA_INITIALIZED_BITFIELD_POS);
 
     __DSB();
     rse_sysctrl->swreset = SYSCTRL_SWRESET_SWRESETREQ_MASK |
