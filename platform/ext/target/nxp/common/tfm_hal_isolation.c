@@ -28,6 +28,9 @@
 #include "load/spm_load_api.h"
 #include "fih.h"
 #include "tfm_log.h"
+#ifdef HARDENING_MACROS_ENABLED
+#include "utilities.h"
+#endif
 
 extern const struct memory_region_limits memory_regions;
 
