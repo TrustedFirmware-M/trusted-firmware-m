@@ -294,7 +294,8 @@ void tfm_arch_clear_fp_data(void);
  * It frees the stack used by SPM initialization and do Exception Return.
  * It does not return.
  */
-void tfm_arch_free_msp_and_exc_ret(uint32_t msp_base, uint32_t exc_return);
+__NO_RETURN void tfm_arch_free_msp_and_exc_ret(uint32_t msp_base,
+                                               uint32_t exc_return);
 
 /*
  * This function sets return value on APIs that cause scheduling, for example
