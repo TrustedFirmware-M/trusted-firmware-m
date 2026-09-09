@@ -257,7 +257,7 @@ static psa_status_t tfm_fwu_install(void)
 static psa_status_t tfm_fwu_query(const psa_msg_t *msg)
 {
     psa_fwu_component_t component = { 0 };
-    psa_fwu_component_info_t info;
+    psa_fwu_component_info_t info = { 0 };
     psa_status_t result;
 #ifdef FWU_MCUBOOT_BOOTLOADER_LIB
     bool query_impl_info = false;
