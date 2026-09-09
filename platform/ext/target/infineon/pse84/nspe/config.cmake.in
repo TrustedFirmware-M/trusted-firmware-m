@@ -49,13 +49,8 @@ if(IFX_NS_INTERFACE_TZ)
     set(TFM_MULTI_CORE_TOPOLOGY             OFF         CACHE BOOL  "Whether to build for a dual-cpu architecture" FORCE)
     set(TFM_PARTITION_NS_AGENT_MAILBOX      OFF         CACHE BOOL  "Enable Non-Secure Mailbox Agent partition" FORCE)
     set(TEST_NS_MULTI_CORE                  OFF         CACHE BOOL  "Whether to build NS regression multi-core tests" FORCE)
-    # TZ managing NSID is only supported through shared data
-    if(TFM_NS_MANAGE_NSID)
-        set(PLATFORM_NSID_IN_SHARED_DATA    ON)
-    endif()
 elseif(IFX_NS_INTERFACE_MAILBOX)
     set(CONFIG_TFM_USE_TRUSTZONE            OFF         CACHE BOOL  "Enable use of TrustZone to transition between NSPE and SPE" FORCE)
-    set(PLATFORM_NSID_IN_SHARED_DATA        OFF)
 
     if(IFX_MTB_MAILBOX)
         set(TFM_MULTI_CORE_TOPOLOGY         OFF         CACHE BOOL  "Whether to build for a dual-cpu architecture" FORCE)

@@ -97,10 +97,6 @@ else()
     set(TFM_MULTI_CORE_TOPOLOGY             ${IFX_CM55_NS_PRESENT}  CACHE BOOL  "Whether to build for a dual-cpu architecture")
 endif()
 
-# CM33 managing NSID is only supported through shared data
-if(TFM_NS_MANAGE_NSID AND ${IFX_CM33_NS_PRESENT})
-    set(PLATFORM_NSID_IN_SHARED_DATA        ON)
-endif()
 set(NUM_MAILBOX_QUEUE_SLOT                  4U          CACHE STRING  "Number of mailbox queue slots")
 
 set(MCUBOOT_DATA_SHARING                    ON          CACHE BOOL  "Add sharing of application specific data using the same shared data area as for the measured boot")
