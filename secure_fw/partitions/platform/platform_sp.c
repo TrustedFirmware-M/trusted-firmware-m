@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
+ * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -9,17 +9,12 @@
 #include "platform_sp.h"
 
 #include "tfm_platform_system.h"
-#include "load/partition_defs.h"
-#include "psa_manifest/pid.h"
 
 #if !PLATFORM_NV_COUNTER_MODULE_DISABLED
 #include "tfm_plat_nv_counters.h"
 #endif /* !PLATFORM_NV_COUNTER_MODULE_DISABLED */
 
-#include "psa/client.h"
 #include "psa/service.h"
-#include "region_defs.h"
-#include "psa_manifest/tfm_platform.h"
 #include "coverity_check.h"
 
 #if !PLATFORM_NV_COUNTER_MODULE_DISABLED
