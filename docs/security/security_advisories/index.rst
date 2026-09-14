@@ -18,6 +18,7 @@ Security Advisories
     missing_ns_pointer_validation_mailbox_init
     fwu_partial_fmp_header
     rse_sfcp_pre_auth_oob_write
+    rse_sfcp_plaintext_packets
 
 +------------+-----------------------------------------------------------------+
 | ID         | Title                                                           |
@@ -54,6 +55,9 @@ Security Advisories
 |  |TFMV-12| | Pre-auth OOB write in RSE SFCP handshake hijacks BL1            |
 |            | boot-ROM control flow                                           |
 +------------+-----------------------------------------------------------------+
+|  |TFMV-13| | Plaintext SFCP packet on RSE returns delegated-attestation      |
+|            | private key                                                     |
++------------+-----------------------------------------------------------------+
 
 .. |TFMV-1| replace:: :doc:`TFMV-1 <stack_seal_vulnerability>`
 .. |TFMV-2| replace:: :doc:`TFMV-2 <svc_caller_sp_fetching_vulnerability>`
@@ -67,6 +71,7 @@ Security Advisories
 .. |TFMV-10| replace:: :doc:`TFMV-10 <missing_ns_pointer_validation_mailbox_init>`
 .. |TFMV-11| replace:: :doc:`TFMV-11 <fwu_partial_fmp_header>`
 .. |TFMV-12| replace:: :doc:`TFMV-12 <rse_sfcp_pre_auth_oob_write>`
+.. |TFMV-13| replace:: :doc:`TFMV-13 <rse_sfcp_plaintext_packets>`
 
 --------------
 
