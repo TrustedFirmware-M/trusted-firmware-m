@@ -7,8 +7,6 @@
 #
 #-------------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.27.7)
-
 # Set CMP0118: The GENERATED source file property is now visible in all
 # directories for all targets created in this file
 cmake_policy(SET CMP0118 NEW)
