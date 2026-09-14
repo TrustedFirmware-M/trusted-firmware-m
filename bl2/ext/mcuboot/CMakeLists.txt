@@ -35,8 +35,8 @@ if (MCUBOOT_ENCRYPT_KW)
     set(MCUBOOT_KEY_ENC "${MCUBOOT_PATH}/enc-aeskw-128.b64" CACHE FILEPATH "Path to key with which to encrypt Secure firmware")
     set(MCUBOOT_KEY_ENC_NS "${MCUBOOT_PATH}/enc-aeskw-128_ns.b64" CACHE FILEPATH "Path to key with which to encrypt non secure firmware")
 else()
-    set(MCUBOOT_KEY_ENC "${MCUBOOT_PATH}/enc-rsa2048-pub.pem" CACHE FILEPATH "Path to key with which to encrypt binary")
-    set(MCUBOOT_KEY_ENC_NS "${MCUBOOT_PATH}/enc-rsa2048-pub.pem" CACHE FILEPATH "Path to key with which to encrypt non secure firmware")
+    set(MCUBOOT_KEY_ENC "${MCUBOOT_PATH}/enc-rsa2048-priv.pem" CACHE FILEPATH "Path to RSA private key used to encrypt Secure firmware")
+    set(MCUBOOT_KEY_ENC_NS "${MCUBOOT_PATH}/enc-rsa2048-priv.pem" CACHE FILEPATH "Path to RSA private key used to encrypt non secure firmware")
 endif()
 
 # Add/process CBOR encoded measured boot data (MCUBOOT_MEASURED_BOOT) only if
@@ -90,6 +90,46 @@ set(BL2_SOURCES
 
 if(PLATFORM_DEFAULT_IMAGE_ENCRYPTION)
 list(APPEND BL2_SOURCES $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:${CMAKE_CURRENT_SOURCE_DIR}/keys_enc.c>)
+
+    if(MCUBOOT_ENC_IMAGES)
+        # Generate the keys embedded in BL2 from the configured key files
+        set(BL2_ENC_KEY_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/keys_enc_generated.c)
+
+        if(MCUBOOT_ENCRYPT_RSA)
+            # BL2 holds a single RSA private key to unwrap the image
+            # encryption keys, so both images must be encrypted with the
+            # same key.
+            if(NOT MCUBOOT_KEY_ENC_NS STREQUAL MCUBOOT_KEY_ENC)
+                message(FATAL_ERROR "MCUBOOT_ENCRYPT_RSA requires MCUBOOT_KEY_ENC_NS to be the same key as MCUBOOT_KEY_ENC")
+            endif()
+
+            add_custom_command(OUTPUT ${BL2_ENC_KEY_SOURCE}
+                DEPENDS ${MCUBOOT_KEY_ENC}
+                COMMAND ${Python3_EXECUTABLE} ${MCUBOOT_PATH}/scripts/imgtool.py
+                    getpriv
+                    -k ${MCUBOOT_KEY_ENC}
+                    > ${BL2_ENC_KEY_SOURCE}
+            )
+        elseif(MCUBOOT_ENCRYPT_KW)
+            add_custom_command(OUTPUT ${BL2_ENC_KEY_SOURCE}
+                DEPENDS ${MCUBOOT_KEY_ENC} ${MCUBOOT_KEY_ENC_NS}
+                DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_kw_keys.py
+                COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_kw_keys.py
+                    --key-s ${MCUBOOT_KEY_ENC}
+                    --key-ns ${MCUBOOT_KEY_ENC_NS}
+                    -o ${BL2_ENC_KEY_SOURCE}
+            )
+        else()
+            message(FATAL_ERROR "MCUBOOT_ENC_IMAGES requires MCUBOOT_ENCRYPT_RSA or MCUBOOT_ENCRYPT_KW")
+        endif()
+
+        # The bl2 target is defined in the parent directory, so it cannot
+        # consume the custom command output directly and depends on a
+        # target instead.
+        add_custom_target(bl2_enc_key DEPENDS ${BL2_ENC_KEY_SOURCE})
+        add_dependencies(bl2 bl2_enc_key)
+        list(APPEND BL2_SOURCES ${BL2_ENC_KEY_SOURCE})
+    endif()
 endif()
 
 if(PLATFORM_DEFAULT_ROTPK)
