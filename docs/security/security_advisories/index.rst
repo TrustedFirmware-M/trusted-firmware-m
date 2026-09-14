@@ -19,6 +19,7 @@ Security Advisories
     fwu_partial_fmp_header
     rse_sfcp_pre_auth_oob_write
     rse_sfcp_plaintext_packets
+    cs1k_oob_flash_write_secure_enclave
 
 +------------+-----------------------------------------------------------------+
 | ID         | Title                                                           |
@@ -58,6 +59,9 @@ Security Advisories
 |  |TFMV-13| | Plaintext SFCP packet on RSE returns delegated-attestation      |
 |            | private key                                                     |
 +------------+-----------------------------------------------------------------+
+|  |TFMV-14| | OOB flash write in corstone1000 update bricks the secure        |
+|            | enclave                                                         |
++------------+-----------------------------------------------------------------+
 
 .. |TFMV-1| replace:: :doc:`TFMV-1 <stack_seal_vulnerability>`
 .. |TFMV-2| replace:: :doc:`TFMV-2 <svc_caller_sp_fetching_vulnerability>`
@@ -72,6 +76,7 @@ Security Advisories
 .. |TFMV-11| replace:: :doc:`TFMV-11 <fwu_partial_fmp_header>`
 .. |TFMV-12| replace:: :doc:`TFMV-12 <rse_sfcp_pre_auth_oob_write>`
 .. |TFMV-13| replace:: :doc:`TFMV-13 <rse_sfcp_plaintext_packets>`
+.. |TFMV-14| replace:: :doc:`TFMV-14 <cs1k_oob_flash_write_secure_enclave>`
 
 --------------
 
