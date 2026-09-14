@@ -17,6 +17,7 @@ Security Advisories
     fwu_tlv_payload_out_of_bounds_vulnerability
     missing_ns_pointer_validation_mailbox_init
     fwu_partial_fmp_header
+    rse_sfcp_pre_auth_oob_write
 
 +------------+-----------------------------------------------------------------+
 | ID         | Title                                                           |
@@ -50,6 +51,9 @@ Security Advisories
 |  |TFMV-11| | Incorrect FMP Header Fragment Reconstruction Allows             |
 |            | Attacker-Controlled Firmware Version Values                     |
 +------------+-----------------------------------------------------------------+
+|  |TFMV-12| | Pre-auth OOB write in RSE SFCP handshake hijacks BL1            |
+|            | boot-ROM control flow                                           |
++------------+-----------------------------------------------------------------+
 
 .. |TFMV-1| replace:: :doc:`TFMV-1 <stack_seal_vulnerability>`
 .. |TFMV-2| replace:: :doc:`TFMV-2 <svc_caller_sp_fetching_vulnerability>`
@@ -62,6 +66,7 @@ Security Advisories
 .. |TFMV-9| replace:: :doc:`TFMV-9 <fwu_tlv_payload_out_of_bounds_vulnerability>`
 .. |TFMV-10| replace:: :doc:`TFMV-10 <missing_ns_pointer_validation_mailbox_init>`
 .. |TFMV-11| replace:: :doc:`TFMV-11 <fwu_partial_fmp_header>`
+.. |TFMV-12| replace:: :doc:`TFMV-12 <rse_sfcp_pre_auth_oob_write>`
 
 --------------
 
