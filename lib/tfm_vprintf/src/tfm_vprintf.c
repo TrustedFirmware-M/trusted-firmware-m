@@ -95,54 +95,67 @@ static void output_str_not_formatted(tfm_log_output_str output_func, void *priv,
 
 static void output_val(tfm_log_output_str output_func, void *priv, uint32_t val,
                        uint16_t num_padding, bool zero_padding, bool left_aligned, uint8_t base,
-                       bool signed_specifier, bool hex_caps)
+                       bool signed_specifier, bool hex_caps, bool alternate_form)
 {
     uint8_t digit;
     /* uint32_t has maximum value of 4,294,967,295. Require enough space in buffer
-     * for 10 digits + '-'. Note that the buffer does not need to be NULL terminated
-     * as we pass the string length to output_str */
+     * for 10 digits + '-', or 8 hex digits + '0x'. Note that the buffer does not
+     * need to be NULL terminated as we pass the string length to output_str
+     */
     char buf[11] = { 0 };
-    char *const buf_end = &buf[sizeof(buf) - 1];
+    char *const buf_end = buf + sizeof(buf);
     char *buf_ptr = buf_end;
-    const char pad_char = zero_padding ? '0' : ' ';
-    const char negative_char = '-';
+    const char pad_char = (zero_padding && !left_aligned) ? '0' : ' ';
     const char start_hex_char = hex_caps ? 'A' : 'a';
-    bool negative = false;
+    const char *prefix = NULL;
+    uint8_t prefix_len = 0;
 
     if (signed_specifier && ((int32_t)val < 0)) {
         val = -val;
-        negative = true;
+        prefix = "-";
+        prefix_len = 1;
+    } else if (alternate_form && base == 16 && val != 0) {
+        prefix = hex_caps ? "0X" : "0x";
+        prefix_len = 2;
     }
 
     do {
         digit = val % base;
 
         if (digit < 10) {
-            *buf_ptr-- = '0' + digit;
+            *--buf_ptr = '0' + digit;
         } else {
-            *buf_ptr-- = start_hex_char + digit - 10;
+            *--buf_ptr = start_hex_char + digit - 10;
         }
 
         val /= base;
     } while (val);
 
-    if (negative) {
-        if (!zero_padding) {
-            *buf_ptr-- = negative_char;
+    if (prefix_len != 0) {
+        if (pad_char == '0') {
+            /* The sign or hex prefix precedes zero padding, but still counts
+             * towards the total field width.
+             */
+            output_func(priv, prefix, prefix_len);
+            num_padding = num_padding > prefix_len ? num_padding - prefix_len : 0;
         } else {
-            output_char(output_func, priv, negative_char);
+            while (prefix_len != 0) {
+                *--buf_ptr = prefix[--prefix_len];
+            }
         }
     }
 
-    output_str(output_func, priv, buf_ptr + 1, buf_end - buf_ptr, num_padding, left_aligned,
+    output_str(output_func, priv, buf_ptr, buf_end - buf_ptr, num_padding, left_aligned,
                pad_char, false);
 }
 
 /* Basic vprintf, understands:
  * %s: output string
  * %u: output uint32_t in decimal
- * %d: output int32_t in decimal
- * %x: output uint32_t in hex
+ * %d, %i: output int32_t in decimal
+ * %x, %X: output uint32_t in lowercase or uppercase hex
+ * Integer formatting supports field widths, '-' and '0' padding flags, and
+ * '#' to prefix nonzero hex values with 0x or 0X.
  */
 static void tfm_vprintf_internal(tfm_log_output_str output_func,
                                 void *priv, const char *fmt, va_list args)
@@ -152,6 +165,7 @@ static void tfm_vprintf_internal(tfm_log_output_str output_func,
     uint16_t num_padding = 0;
     bool zero_padding = false;
     bool left_aligned = false;
+    bool alternate_form = false;
 
     while ((c = *fmt++) != '\0') {
         if (!formatting) {
@@ -159,6 +173,7 @@ static void tfm_vprintf_internal(tfm_log_output_str output_func,
                 zero_padding = false;
                 num_padding = 0;
                 left_aligned = false;
+                alternate_form = false;
                 formatting = true;
             } else {
                 if (c == '\n') {
@@ -174,26 +189,29 @@ static void tfm_vprintf_internal(tfm_log_output_str output_func,
             continue;
         case 'u':
             output_val(output_func, priv, va_arg(args, uint32_t), num_padding, zero_padding,
-                       left_aligned, 10, false, false);
+                       left_aligned, 10, false, false, false);
             break;
         case 'd':
         case 'i':
             output_val(output_func, priv, va_arg(args, uint32_t), num_padding, zero_padding,
-                       left_aligned, 10, true, false);
+                       left_aligned, 10, true, false, false);
             break;
         case 'x':
             output_val(output_func, priv, va_arg(args, uint32_t), num_padding, zero_padding,
-                       left_aligned, 16, false, false);
+                       left_aligned, 16, false, false, alternate_form);
             break;
         case 'X':
             output_val(output_func, priv, va_arg(args, uint32_t), num_padding, zero_padding,
-                       left_aligned, 16, false, true);
+                       left_aligned, 16, false, true, alternate_form);
             break;
         case 's':
             output_str(output_func, priv, va_arg(args, char *), 0, num_padding, left_aligned, ' ',
                        true);
             break;
         case 'z':
+            continue;
+        case '#':
+            alternate_form = true;
             continue;
         case '-':
             left_aligned = true;
