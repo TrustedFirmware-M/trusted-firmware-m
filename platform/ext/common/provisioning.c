@@ -132,8 +132,14 @@ static struct tfm_psa_rot_provisioning_data_t psa_rot_prov_data;
 void tfm_plat_provisioning_check_for_dummy_keys(void)
 {
     uint64_t iak_start;
+    enum tfm_plat_err_t err;
 
-    tfm_plat_otp_read(PLAT_OTP_ID_IAK, sizeof(iak_start), (uint8_t*)&iak_start);
+    err = tfm_plat_otp_read(PLAT_OTP_ID_IAK, sizeof(iak_start), (uint8_t*)&iak_start);
+
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        VERBOSE("Check for dummy keys was unsuccessful\n");
+        return;
+    }
 
     if(iak_start == 0xA4906F6DB254B4A9) {
         ERROR_RAW("[WRN]\033[1;31m ");

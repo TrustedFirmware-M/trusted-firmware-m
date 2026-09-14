@@ -33,8 +33,14 @@ static const struct bl1_assembly_and_test_provisioning_data_t *bl1_assembly_and_
 void tfm_plat_provisioning_check_for_dummy_keys(void)
 {
     uint64_t guk_start;
+    enum tfm_plat_err_t err;
 
-    tfm_plat_otp_read(PLAT_OTP_ID_GUK, sizeof(guk_start), (uint8_t *)&guk_start);
+    err = tfm_plat_otp_read(PLAT_OTP_ID_GUK, sizeof(guk_start), (uint8_t *)&guk_start);
+
+    if (err != TFM_PLAT_ERR_SUCCESS) {
+        VERBOSE("Check for dummy keys in OTP was unsuccessful\n");
+        return;
+    }
 
     if (guk_start == 0x0706050403020100) {
         WARN("\033[1;31m"
