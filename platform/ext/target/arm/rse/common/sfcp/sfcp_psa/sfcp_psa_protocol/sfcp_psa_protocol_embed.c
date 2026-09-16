@@ -21,18 +21,35 @@ psa_status_t sfcp_protocol_embed_serialize_msg(psa_handle_t handle, int16_t type
     uint32_t payload_size = 0;
     uint32_t i;
 
-    assert(msg != NULL);
-    assert(msg_len != NULL);
-    assert(in_vec != NULL);
+    if ((msg == NULL) || (msg_len == NULL) || (in_len + out_len > PSA_MAX_IOVEC) ||
+        ((in_len != 0) && (in_vec == NULL)) || ((out_len != 0) && (out_vec == NULL))) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    for (size_t i = 0; i < in_len; i++) {
+        if ((in_vec[i].len != 0) && (in_vec[i].base == NULL)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+    for (size_t i = 0; i < out_len; i++) {
+        if ((out_vec[i].len != 0) && (out_vec[i].base == NULL)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
 
     msg->ctrl_param = PARAM_PACK(type, in_len, out_len);
     msg->handle = handle;
 
     /* Fill msg iovec lengths */
     for (i = 0U; i < in_len; ++i) {
+        if (in_vec[i].len > UINT16_MAX) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
         msg->io_size[i] = in_vec[i].len;
     }
     for (i = 0U; i < out_len; ++i) {
+        if (out_vec[i].len > UINT16_MAX) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
         msg->io_size[in_len + i] = out_vec[i].len;
     }
 
@@ -40,7 +57,9 @@ psa_status_t sfcp_protocol_embed_serialize_msg(psa_handle_t handle, int16_t type
         if (in_vec[i].len > sizeof(msg->payload) - payload_size) {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
-        memcpy(msg->payload + payload_size, in_vec[i].base, in_vec[i].len);
+        if (in_vec[i].len != 0) {
+            memcpy(msg->payload + payload_size, in_vec[i].base, in_vec[i].len);
+        }
         payload_size += in_vec[i].len;
     }
 
@@ -122,11 +141,13 @@ psa_status_t sfcp_protocol_embed_serialize_reply(struct client_request_t *req,
     for (i = 0; i < req->out_len; ++i) {
         len = req->out_vec[i].len;
 
-        if (payload_size + len > sizeof(reply->payload)) {
+        if (len > sizeof(reply->payload) - payload_size) {
             return PSA_ERROR_NOT_SUPPORTED;
         }
 
-        memcpy(reply->payload + payload_size, req->out_vec[i].base, len);
+        if (len != 0) {
+            memcpy(reply->payload + payload_size, req->out_vec[i].base, len);
+        }
         reply->out_size[i] = len;
         payload_size += len;
     }

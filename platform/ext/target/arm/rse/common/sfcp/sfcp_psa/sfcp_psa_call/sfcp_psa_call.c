@@ -47,9 +47,15 @@ static enum sfcp_protocol_version_t select_protocol_version(const psa_invec *in_
     size_t i;
 
     for (i = 0U; i < in_len; ++i) {
+        if (in_vec[i].len > SFCP_MHU_MAX_TRANSFER_SIZE - in_size_total) {
+            return SFCP_PROTOCOL_POINTER_ACCESS;
+        }
         in_size_total += in_vec[i].len;
     }
     for (i = 0U; i < out_len; ++i) {
+        if (out_vec[i].len > SFCP_MHU_MAX_TRANSFER_SIZE - out_size_total) {
+            return SFCP_PROTOCOL_POINTER_ACCESS;
+        }
         out_size_total += out_vec[i].len;
     }
 
@@ -97,8 +103,20 @@ psa_status_t psa_call(psa_handle_t handle, int32_t type, const psa_invec *in_vec
     const uint16_t client_id = select_client_id();
 
     if (type > PSA_CALL_TYPE_MAX || type < PSA_CALL_TYPE_MIN || in_len > PSA_MAX_IOVEC ||
-        out_len > PSA_MAX_IOVEC) {
+        out_len > PSA_MAX_IOVEC || in_len + out_len > PSA_MAX_IOVEC ||
+        ((in_len != 0) && (in_vec == NULL)) || ((out_len != 0) && (out_vec == NULL))) {
         return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    for (size_t i = 0; i < in_len; i++) {
+        if ((in_vec[i].len != 0) && (in_vec[i].base == NULL)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+    for (size_t i = 0; i < out_len; i++) {
+        if ((out_vec[i].len != 0) && (out_vec[i].base == NULL)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
     }
 
     sfcp_err = sfcp_init_msg(psa_payload_buf, sizeof(psa_payload_buf), SFCP_PSA_SERVER_NODE_ID,

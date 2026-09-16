@@ -22,9 +22,20 @@ psa_status_t sfcp_protocol_pointer_access_serialize_msg(psa_handle_t handle, int
 {
     uint8_t i;
 
-    assert(msg != NULL);
-    assert(msg_len != NULL);
-    assert(in_vec != NULL);
+    if ((msg == NULL) || (msg_len == NULL) || (in_len + out_len > PSA_MAX_IOVEC) ||
+        ((in_len != 0) && (in_vec == NULL)) || ((out_len != 0) && (out_vec == NULL))) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    for (size_t i = 0; i < in_len; i++) {
+        if ((in_vec[i].len != 0) && (in_vec[i].base == NULL)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+    for (size_t i = 0; i < out_len; i++) {
+        if ((out_vec[i].len != 0) && (out_vec[i].base == NULL)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
 
     msg->ctrl_param = PARAM_PACK(type, in_len, out_len);
     msg->handle = handle;
@@ -32,11 +43,11 @@ psa_status_t sfcp_protocol_pointer_access_serialize_msg(psa_handle_t handle, int
     /* Fill msg iovec lengths */
     for (i = 0U; i < in_len; ++i) {
         msg->io_sizes[i] = in_vec[i].len;
-        msg->host_ptrs[i] = (uint64_t)(uint32_t)in_vec[i].base;
+        msg->host_ptrs[i] = (uint64_t)(uintptr_t)in_vec[i].base;
     }
     for (i = 0U; i < out_len; ++i) {
         msg->io_sizes[in_len + i] = out_vec[i].len;
-        msg->host_ptrs[in_len + i] = (uint64_t)(uint32_t)out_vec[i].base;
+        msg->host_ptrs[in_len + i] = (uint64_t)(uintptr_t)out_vec[i].base;
     }
 
     *msg_len = sizeof(*msg);

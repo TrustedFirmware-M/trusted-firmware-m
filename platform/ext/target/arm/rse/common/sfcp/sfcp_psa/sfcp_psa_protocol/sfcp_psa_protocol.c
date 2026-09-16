@@ -17,9 +17,24 @@ psa_status_t sfcp_protocol_serialize_msg(psa_handle_t handle, int16_t type, cons
 {
     psa_status_t status;
 
-    assert(msg != NULL);
-    assert(msg_len != NULL);
-    assert(in_vec != NULL);
+    if ((msg == NULL) || (msg_len == NULL) || (in_len + out_len > PSA_MAX_IOVEC) ||
+        ((in_len != 0) && (in_vec == NULL)) || ((out_len != 0) && (out_vec == NULL))) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    for (size_t i = 0; i < in_len; i++) {
+        if ((in_vec[i].len != 0) && (in_vec[i].base == NULL)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+    for (size_t i = 0; i < out_len; i++) {
+        if ((out_vec[i].len != 0) && (out_vec[i].base == NULL)) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+
+    uint8_t protocol = msg->header.protocol_ver;
+    memset(msg, 0, sizeof(*msg));
+    msg->header.protocol_ver = protocol;
 
     switch (msg->header.protocol_ver) {
 #ifdef SFCP_PROTOCOL_EMBED_ENABLED
