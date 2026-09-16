@@ -27,7 +27,8 @@ static struct comms_atu_region_params_t atu_regions[SFCP_ATU_REGION_AM] = { 0 };
 
 enum tfm_plat_err_t comms_atu_add_region_to_set(comms_atu_region_set_t *set, uint8_t region)
 {
-    if (region >= SFCP_ATU_REGION_AM) {
+    if ((set == NULL) || (region >= SFCP_ATU_REGION_AM) ||
+        (set->ref_counts[region] >= atu_regions[region].ref_count)) {
         return TFM_PLAT_ERR_INVALID_INPUT;
     }
 
@@ -46,7 +47,8 @@ static enum tfm_plat_err_t get_region_idx_from_host_buf(uint64_t host_addr, uint
         region = &atu_regions[idx];
 
         if (atu_regions[idx].ref_count > 0 && host_addr >= region->phys_addr &&
-            host_addr + size <= region->phys_addr + region->size) {
+            host_addr - region->phys_addr < region->size &&
+            size <= region->size - (host_addr - region->phys_addr)) {
             *region_idx = idx;
             return TFM_PLAT_ERR_SUCCESS;
         }
@@ -60,13 +62,18 @@ enum tfm_plat_err_t comms_atu_get_rse_ptr_from_host_addr(uint8_t region, uint64_
 {
     struct comms_atu_region_params_t *region_params;
 
-    if (region >= SFCP_ATU_REGION_AM) {
+    if ((rse_ptr == NULL) || (region >= SFCP_ATU_REGION_AM)) {
         return TFM_PLAT_ERR_INVALID_INPUT;
     }
 
     region_params = &atu_regions[region];
-    *rse_ptr =
-        (uint8_t *)((uint32_t)(host_addr - region_params->phys_addr) + region_params->log_addr);
+    if ((region_params->ref_count == 0) || (host_addr < region_params->phys_addr) ||
+        (host_addr - region_params->phys_addr >= region_params->size) ||
+        (host_addr - region_params->phys_addr > UINTPTR_MAX - (uintptr_t)region_params->log_addr)) {
+        return TFM_PLAT_ERR_INVALID_INPUT;
+    }
+    *rse_ptr = (uint8_t *)((uint32_t)(host_addr - region_params->phys_addr) +
+                           (uint32_t)region_params->log_addr);
 
     return TFM_PLAT_ERR_SUCCESS;
 }
@@ -101,7 +108,8 @@ static enum tfm_plat_err_t setup_region_for_host_buf(uint64_t host_addr, uint32_
     region_params->phys_addr = ALIGN_DOWN(host_addr, SFCP_ATU_PAGE_SIZE);
     region_params->size = SFCP_ATU_REGION_SIZE;
 
-    if (host_buf_end > region_params->phys_addr + region_params->size) {
+    if ((region_params->size > UINT64_MAX - region_params->phys_addr) ||
+        (host_buf_end - region_params->phys_addr > region_params->size)) {
         return TFM_PLAT_ERR_INVALID_INPUT;
     }
 
@@ -127,6 +135,10 @@ enum tfm_plat_err_t comms_atu_alloc_region(uint64_t host_addr, uint32_t size, ui
     uint32_t region_idx;
     enum tfm_plat_err_t err;
 
+    if ((region == NULL) || (size == 0) || (size > UINT64_MAX - host_addr)) {
+        return TFM_PLAT_ERR_INVALID_INPUT;
+    }
+
     err = get_region_idx_from_host_buf(host_addr, size, &region_idx);
     if (err != TFM_PLAT_ERR_SUCCESS) {
         err = get_free_region_idx(&region_idx);
@@ -140,6 +152,9 @@ enum tfm_plat_err_t comms_atu_alloc_region(uint64_t host_addr, uint32_t size, ui
         }
     }
 
+    if (atu_regions[region_idx].ref_count == UINT32_MAX) {
+        return TFM_PLAT_ERR_INVALID_INPUT;
+    }
     atu_regions[region_idx].ref_count++;
 
     *region = region_idx;
@@ -152,14 +167,13 @@ enum tfm_plat_err_t comms_atu_free_region(uint8_t region)
     int32_t atu_err;
     struct comms_atu_region_params_t *region_params;
 
-    if (region >= SFCP_ATU_REGION_AM) {
+    if ((region >= SFCP_ATU_REGION_AM) || (atu_regions[region].ref_count == 0)) {
         return TFM_PLAT_ERR_INVALID_INPUT;
     }
 
-    atu_regions[region].ref_count--;
     region_params = &atu_regions[region];
 
-    if (atu_regions[region].ref_count == 0) {
+    if (atu_regions[region].ref_count == 1) {
         atu_err = atu_rse_free_addr(&ATU_LIB_S, region_params->log_addr);
         if (atu_err) {
             return TFM_PLAT_ERR_SYSTEM_ERR;
@@ -167,6 +181,7 @@ enum tfm_plat_err_t comms_atu_free_region(uint8_t region)
         VERBOSE_RAW("[COMMS ATU] Deallocating region: 0x%08x\n", region);
     }
 
+    atu_regions[region].ref_count--;
     return TFM_PLAT_ERR_SUCCESS;
 }
 
@@ -176,18 +191,25 @@ enum tfm_plat_err_t comms_atu_free_regions(comms_atu_region_set_t regions)
     int32_t atu_err;
     struct comms_atu_region_params_t *region_params;
 
+    /* Validate the complete set before decrementing any reference counts. */
+    for (region_idx = 0; region_idx < SFCP_ATU_REGION_AM; region_idx++) {
+        if (regions.ref_counts[region_idx] > atu_regions[region_idx].ref_count) {
+            return TFM_PLAT_ERR_INVALID_INPUT;
+        }
+    }
+
     for (region_idx = 0; region_idx < SFCP_ATU_REGION_AM; region_idx++) {
         if ((regions.ref_counts[region_idx]) > 0) {
-            atu_regions[region_idx].ref_count -= regions.ref_counts[region_idx];
             region_params = &atu_regions[region_idx];
 
-            if (atu_regions[region_idx].ref_count == 0) {
+            if (atu_regions[region_idx].ref_count == regions.ref_counts[region_idx]) {
                 atu_err = atu_rse_free_addr(&ATU_LIB_S, region_params->log_addr);
                 if (atu_err) {
                     return TFM_PLAT_ERR_SYSTEM_ERR;
                 }
                 VERBOSE_RAW("[COMMS ATU] Deallocating region: 0x%08x\n", region_idx);
             }
+            atu_regions[region_idx].ref_count -= regions.ref_counts[region_idx];
         }
     }
 
