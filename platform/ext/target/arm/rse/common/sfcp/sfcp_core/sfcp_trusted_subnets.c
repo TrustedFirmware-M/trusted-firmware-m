@@ -253,7 +253,7 @@ static inline void clear_bitfield_bit(uint8_t *bitfield, uint8_t index)
 
 enum sfcp_error_t
 sfcp_trusted_subnet_check_recv_seq_num(struct sfcp_trusted_subnet_config_t *trusted_subnet,
-                                       sfcp_node_id_t remote_node, uint16_t seq_num)
+                                       sfcp_node_id_t remote_node, uint16_t seq_num, bool commit)
 {
     enum sfcp_error_t sfcp_err;
     uint8_t bitfield_index;
@@ -282,9 +282,11 @@ sfcp_trusted_subnet_check_recv_seq_num(struct sfcp_trusted_subnet_config_t *trus
 
     if (is_bitfield_bit_set(trusted_subnet_node->inflight_bitfield, bitfield_index)) {
         return SFCP_ERROR_MSG_ALREADY_RECEIVED;
-    } else {
-        set_bitfield_bit(trusted_subnet_node->inflight_bitfield, bitfield_index);
     }
+    if (!commit) {
+        return SFCP_ERROR_SUCCESS;
+    }
+    set_bitfield_bit(trusted_subnet_node->inflight_bitfield, bitfield_index);
 
     while (is_bitfield_bit_set(trusted_subnet_node->inflight_bitfield,
                                trusted_subnet_node->bitfield_start_index)) {

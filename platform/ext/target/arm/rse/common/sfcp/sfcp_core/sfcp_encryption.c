@@ -51,18 +51,31 @@ static enum sfcp_error_t encrypt_decrypt_packet(struct sfcp_packet_t *packet, si
         }
 
         crypto_config->seq_num = seq_num;
-    } else {
-        sfcp_err = sfcp_trusted_subnet_check_recv_seq_num(trusted_subnet, remote_node,
-                                                          crypto_config->seq_num);
-        if (sfcp_err != SFCP_ERROR_SUCCESS) {
-            return sfcp_err;
-        }
     }
 
     if (encrypt) {
         return sfcp_encryption_hal_encrypt_packet(trusted_subnet->key_id, packet, packet_size);
     } else {
-        return sfcp_encryption_hal_decrypt_packet(trusted_subnet->key_id, packet, packet_size);
+        /* Serialize authentication and replay bookkeeping with key changes and
+         * other receives. Unauthenticated packets must never consume a sequence.
+         */
+        uint32_t irq_cookie = sfcp_encryption_hal_save_disable_irq();
+
+        /* A temporary window rejection must leave ciphertext intact for retry.
+         * This preliminary check never consumes an unauthenticated sequence.
+         */
+        sfcp_err = sfcp_trusted_subnet_check_recv_seq_num(trusted_subnet, remote_node,
+                                                          crypto_config->seq_num, false);
+        if (sfcp_err == SFCP_ERROR_SUCCESS) {
+            sfcp_err = sfcp_encryption_hal_decrypt_packet(trusted_subnet->key_id, packet,
+                                                          packet_size);
+        }
+        if (sfcp_err == SFCP_ERROR_SUCCESS) {
+            sfcp_err = sfcp_trusted_subnet_check_recv_seq_num(trusted_subnet, remote_node,
+                                                              crypto_config->seq_num, true);
+        }
+        sfcp_encryption_hal_enable_irq(irq_cookie);
+        return sfcp_err;
     }
 }
 

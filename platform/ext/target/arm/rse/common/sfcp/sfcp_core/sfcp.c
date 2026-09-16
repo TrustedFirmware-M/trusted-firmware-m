@@ -660,7 +660,9 @@ enum sfcp_error_t sfcp_receive_msg(uint8_t *buf, size_t buf_size, bool any_sende
     if (packet_uses_crypto) {
         sfcp_err = sfcp_decrypt_msg(packet, received_size, received_sender_id);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
-            protocol_error = SFCP_PROTOCOL_ERROR_DECRYPTION_FAILED;
+            protocol_error = sfcp_err == SFCP_ERROR_MSG_OUT_OF_ORDER_TEMPORARY_FAILURE
+                                 ? SFCP_PROTOCOL_ERROR_TRY_AGAIN_LATER
+                                 : SFCP_PROTOCOL_ERROR_DECRYPTION_FAILED;
             goto error_reply;
         }
     }
@@ -910,7 +912,9 @@ enum sfcp_error_t sfcp_pop_msg_from_buffer(sfcp_buffer_handle_t buffer_handle,
     if (packet_uses_crypto) {
         sfcp_err = sfcp_decrypt_msg(packet, packet_size, *sender);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
-            protocol_error = SFCP_PROTOCOL_ERROR_DECRYPTION_FAILED;
+            protocol_error = sfcp_err == SFCP_ERROR_MSG_OUT_OF_ORDER_TEMPORARY_FAILURE
+                                 ? SFCP_PROTOCOL_ERROR_TRY_AGAIN_LATER
+                                 : SFCP_PROTOCOL_ERROR_DECRYPTION_FAILED;
             goto error_reply;
         }
     }
@@ -939,7 +943,10 @@ error_reply:
 
         send_reply_error = send_protocol_error(*sender, packet_receiver, link_id, *client_id,
                                                message_id, protocol_error);
-        if (send_reply_error != SFCP_ERROR_SUCCESS) {
+        /* Preserve the receive status even if sending its error reply fails. */
+        if ((send_reply_error != SFCP_ERROR_SUCCESS) &&
+            (protocol_error != SFCP_PROTOCOL_ERROR_DECRYPTION_FAILED) &&
+            (sfcp_err != SFCP_ERROR_MSG_OUT_OF_ORDER_TEMPORARY_FAILURE)) {
             return send_reply_error;
         }
     }
