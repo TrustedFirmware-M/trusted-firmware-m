@@ -113,6 +113,10 @@ enum sfcp_hal_error_t sfcp_hal_get_receive_message_size(sfcp_link_id_t link_id,
  *
  * \return SFCP_HAL_ERROR_SUCCESS on success, or an appropriate error code.
  */
+/* Empty transfers are acknowledged and rejected. Polling SFCP APIs drain
+ * packets that exceed their supplied buffer instead of retaining them for a
+ * retry. Excessively large transfers require coordinated peer/local reset.
+ */
 enum sfcp_hal_error_t sfcp_hal_receive_message(sfcp_link_id_t link_id, uint8_t *message,
                                                size_t total_message_size, size_t already_received,
                                                size_t size_to_receive);

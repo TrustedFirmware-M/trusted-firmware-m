@@ -138,6 +138,7 @@ psa_status_t sfcp_protocol_serialize_reply(struct client_request_t *req,
  * \param[out] return_val       PSA status returned by the service.
  * \param[in]  reply            Serialized reply received from the peer.
  * \param[in]  reply_size       Size, in bytes, of \p reply.
+ * \param[in]  expected_protocol Protocol selected for the original request.
  *
  * \retval PSA_SUCCESS          Operation succeeded..
  * \retval Other return code    Operation failed with an error code.

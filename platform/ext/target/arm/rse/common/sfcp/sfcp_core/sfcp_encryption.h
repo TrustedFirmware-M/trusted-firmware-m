@@ -150,6 +150,8 @@ sfcp_get_trusted_subnet_for_node(sfcp_node_id_t node,
  * \param[in]  remote_node    Destination node identifier.
  * \param[out] seq_num        Sequence number to use for the packet.
  *
+ * \param[in] rekey Select the reserved sequence range for a rekey handshake.
+ *
  * \return SFCP_ERROR_SUCCESS on success, or an SFCP error otherwise.
  */
 enum sfcp_error_t
@@ -165,6 +167,8 @@ sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *truste
  * \param[in] trusted_subnet_id Identifier of the trusted subnet.
  * \param[in] remote_node       Destination node identifier.
  *
+ * \param[in] rekey Select the reserved sequence range for a rekey handshake.
+ *
  * \return SFCP_ERROR_SUCCESS on success, or an SFCP error otherwise.
  */
 enum sfcp_error_t sfcp_trusted_subnet_increment_send_seq_num(uint8_t trusted_subnet_id,
@@ -172,11 +176,16 @@ enum sfcp_error_t sfcp_trusted_subnet_increment_send_seq_num(uint8_t trusted_sub
                                                              bool rekey);
 
 /**
- * \brief Validate and record a received packet sequence number.
+ * \brief Validate a received packet sequence number and optionally record it.
+ *
+ * Hold the crypto interrupt lock against concurrent receives and key changes.
+ * Check with commit=false before in-place decryption, then commit=true only
+ * after successful authentication, without releasing the lock between calls.
  *
  * \param[in] trusted_subnet Trusted-subnet configuration.
  * \param[in] remote_node    Source node identifier.
  * \param[in] seq_num        Received packet sequence number.
+ * \param[in] commit         Record the sequence only when true.
  *
  * \return SFCP_ERROR_SUCCESS on success, or an SFCP error otherwise.
  */
@@ -239,6 +248,8 @@ enum sfcp_error_t sfcp_encryption_handshake_responder(struct sfcp_packet_t *pack
  * \param[in]     trusted_subnet_id Identifier of the trusted subnet.
  * \param[in]     remote_node       Destination node identifier.
  *
+ * \param[in] rekey Select the reserved sequence range for a rekey handshake.
+ *
  * \return SFCP_ERROR_SUCCESS on success, or an SFCP error otherwise.
  */
 enum sfcp_error_t sfcp_encrypt_msg(struct sfcp_packet_t *msg, size_t packet_size,
@@ -247,6 +258,10 @@ enum sfcp_error_t sfcp_encrypt_msg(struct sfcp_packet_t *msg, size_t packet_size
 
 /**
  * \brief Authenticate and decrypt an SFCP message in place.
+ *
+ * Sequence rejection leaves the packet unchanged, permitting retry after a
+ * temporary receive-window rejection. Authentication failures may modify the
+ * payload; discard those packets. Failed calls never update replay state.
  *
  * \param[in,out] msg         Message to decrypt.
  * \param[in]     packet_size Total size of \p msg in bytes.
@@ -269,6 +284,8 @@ enum sfcp_error_t sfcp_decrypt_msg(struct sfcp_packet_t *msg, size_t packet_size
  * \param[in]     trusted_subnet_id Identifier of the trusted subnet.
  * \param[in]     remote_node       Destination node identifier.
  *
+ * \param[in] rekey Select the reserved sequence range for a rekey handshake.
+ *
  * \return SFCP_ERROR_SUCCESS on success, or an SFCP error otherwise.
  */
 enum sfcp_error_t sfcp_encrypt_reply(struct sfcp_packet_t *reply, size_t packet_size,
@@ -277,6 +294,10 @@ enum sfcp_error_t sfcp_encrypt_reply(struct sfcp_packet_t *reply, size_t packet_
 
 /**
  * \brief Authenticate and decrypt an SFCP reply in place.
+ *
+ * Sequence rejection leaves the packet unchanged, permitting retry after a
+ * temporary receive-window rejection. Authentication failures may modify the
+ * payload; discard those packets. Failed calls never update replay state.
  *
  * \param[in,out] reply       Reply to decrypt.
  * \param[in]     packet_size Total size of \p reply in bytes.

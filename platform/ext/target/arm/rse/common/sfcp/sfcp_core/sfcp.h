@@ -162,7 +162,9 @@ typedef uint32_t sfcp_buffer_handle_t;
  * \details
  * The handler is invoked from the IRQ/deferred context with a buffer handle.
  * The handler typically enqueues the handle and returns quickly; later, the
- * consumer calls the appropriate *_pop_* routine to copy data out.
+ * consumer calls the appropriate *_pop_* routine to copy data out. Returning
+ * success transfers ownership to the handler; on failure the interrupt path
+ * releases the buffer, so the handler must not release it and then fail.
  *
  * \param[in] buffer_handle  Handle for the buffered packet to process.
  *
@@ -214,7 +216,7 @@ enum sfcp_error_t sfcp_init_msg(uint8_t *buf, size_t buf_size, sfcp_node_id_t re
 /**
  * \brief Transmit a prepared message packet.
  *
- * \param[in] msg           Pointer to packet prepared by sfcp_init_msg (unaltered).
+ * \param[in,out] msg       Pointer to packet prepared by sfcp_init_msg.
  * \param[in] msg_size      Total size of the packet buffer.
  * \param[in] payload_size  Number of bytes of the payload area actually used.
  *
@@ -224,8 +226,13 @@ enum sfcp_error_t sfcp_init_msg(uint8_t *buf, size_t buf_size, sfcp_node_id_t re
  *         SFCP_ERROR_INVALID_NODE if routing fails;
  *         a translated HAL error on transport failure.
  *
- * \note The application supplies plaintext in the payload; the library performs any required
- *       encryption/authentication transparently before sending.
+ * \note Encryption modifies the packet in place. Once a sequence number is
+ *       assigned, another send of that packet returns
+ *       SFCP_ERROR_ENCRYPTED_PACKET_ALREADY_SENT, including after BUS_BUSY or
+ *       encryption failure. Reinitialize the packet and refill its plaintext
+ *       payload before a new attempt; do not reset its sequence field manually.
+ *       Failed encryption/send attempts consume their assigned sequence number.
+ *       Unencrypted packets remain unchanged and may be retried on BUS_BUSY.
  */
 enum sfcp_error_t sfcp_send_msg(struct sfcp_packet_t *msg, size_t msg_size, size_t payload_size);
 
@@ -254,7 +261,7 @@ enum sfcp_error_t sfcp_init_reply(uint8_t *buf, size_t buf_size,
 /**
  * \brief Transmit a prepared reply packet.
  *
- * \param[in] reply          Pointer to packet prepared by sfcp_init_reply (unaltered).
+ * \param[in,out] reply      Pointer to packet prepared by sfcp_init_reply.
  * \param[in] reply_size     Total size of the packet buffer.
  * \param[in] payload_size   Number of bytes of the payload area actually used.
  *
@@ -262,6 +269,9 @@ enum sfcp_error_t sfcp_init_reply(uint8_t *buf, size_t buf_size,
  *
  * \note Normal replies MUST mirror the message’s uses_cryptography bit.
  *       Protocol error replies are never encrypted.
+ *       Encrypted replies follow the same in-place encryption and no-retry
+ *       contract as sfcp_send_msg. Reinitialize and refill the plaintext before
+ *       a new attempt, even if the previous attempt returned BUS_BUSY.
  */
 enum sfcp_error_t sfcp_send_reply(struct sfcp_packet_t *reply, size_t reply_size,
                                   size_t payload_size);
@@ -375,6 +385,9 @@ enum sfcp_error_t sfcp_register_msg_handler(uint16_t application_id, sfcp_handle
  *  - Removes the Message from the internal buffer.
  *
  * On failure, the Message MUST NOT be removed from the buffer.
+ * Temporary receive-window rejection preserves ciphertext for retry.
+ * Authentication failures may overwrite the payload; discard and release
+ * the retained handle in that case.
  *
  * \param[in]  buffer_handle  Handle previously delivered to a message handler.
  * \param[out] sender         Set to the Sender node ID.
@@ -439,7 +452,13 @@ enum sfcp_error_t sfcp_register_reply_handler(uint16_t application_id, sfcp_hand
  *  - Fills \p metadata so the caller can match the Reply to the original Message.
  *  - Removes the Reply from the internal buffer.
  *
- * On failure, the Reply MUST NOT be removed from the buffer.
+ * Temporary receive-window rejection preserves ciphertext for retry.
+ * Authentication failures may overwrite the payload; discard and release
+ * the retained handle in that case.
+ *
+ * On failure, the Reply MUST NOT be removed from the buffer. A protocol error
+ * also fills correlation metadata and sets payload_size to zero; the caller
+ * must release the retained handle when it discards that error.
  *
  * \param[in]  buffer_handle  Handle previously delivered to a reply handler.
  * \param[out] payload        Destination buffer for the plaintext payload
