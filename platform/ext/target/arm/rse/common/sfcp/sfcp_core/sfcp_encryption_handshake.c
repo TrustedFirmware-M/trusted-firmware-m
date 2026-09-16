@@ -79,10 +79,11 @@ struct sfcp_handshake_data_t {
 
 static struct sfcp_handshake_data_t handshake_data[SFCP_MAX_TRUSTED_SUBNET_ID];
 
-static __ALIGNED(4) uint8_t sfcp_packet_buffer[SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(false, false) +
-                                               sizeof(struct sfcp_handshake_send_ivs_msg_payload_t)];
+static __ALIGNED(4) uint8_t
+    sfcp_packet_buffer[SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(true, true) +
+                       sizeof(struct sfcp_handshake_send_ivs_msg_payload_t)];
 
-static __ALIGNED(4) uint8_t sfcp_poll_buffer[SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(false, false) +
+static __ALIGNED(4) uint8_t sfcp_poll_buffer[SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(true, true) +
                                              sizeof(struct sfcp_handshake_send_ivs_msg_payload_t)];
 
 static inline bool
@@ -145,14 +146,17 @@ static enum sfcp_error_t construct_send_handshake_msg(sfcp_node_id_t receiver_no
     handshake_data[trusted_subnet_id].send_message_id[receiver_node] = metadata->message_id;
 
     handshake_data[trusted_subnet_id].pending_replies[receiver_node] = true;
-    sfcp_err = sfcp_send_msg(msg, msg_size, payload_size);
+    const struct sfcp_handshake_msg_header_t *header = (const void *)payload;
+    bool rekey = (header->type == SFCP_HANDSHAKE_PAYLOAD_CLIENT_RE_KEY_REQUEST_MSG) ||
+                 (header->type == SFCP_HANDSHAKE_PAYLOAD_SERVER_RE_KEY_SEND_IVS_MSG);
+    sfcp_err = sfcp_send_packet(msg, msg_size, payload_size, true, rekey);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         handshake_data[trusted_subnet_id].pending_replies[receiver_node] = false;
     }
     return sfcp_err;
 }
 
-static enum sfcp_error_t construct_send_reply(bool encrypt,
+static enum sfcp_error_t construct_send_reply(bool encrypt, bool rekey,
                                               struct sfcp_trusted_subnet_config_t *trusted_subnet,
                                               sfcp_node_id_t sender_node, uint8_t message_id,
                                               uint8_t *payload, size_t payload_size)
@@ -183,7 +187,7 @@ static enum sfcp_error_t construct_send_reply(bool encrypt,
         memcpy(handshake_payload, payload, payload_size);
     }
 
-    return sfcp_send_reply(reply, reply_size, payload_size);
+    return sfcp_send_packet(reply, reply_size, payload_size, false, rekey);
 }
 
 static enum sfcp_error_t
@@ -582,7 +586,8 @@ static enum sfcp_error_t handle_client_request(struct sfcp_trusted_subnet_config
         return sfcp_err;
     }
 
-    sfcp_err = construct_send_reply(encrypt, trusted_subnet, sender_node, message_id, NULL, 0);
+    sfcp_err = construct_send_reply(encrypt, re_keying, trusted_subnet, sender_node, message_id,
+                                    NULL, 0);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         return sfcp_err;
     }
@@ -664,6 +669,8 @@ static void reset_trusted_subnet_seq_num(struct sfcp_trusted_subnet_config_t *tr
 
         node_config->send_seq_num = 0;
         node_config->recv_seq_num = 0;
+        node_config->rekey_send_count = 0;
+        node_config->rekey_received = 0;
         node_config->bitfield_start_index = 0;
         memset(node_config->inflight_bitfield, 0, sizeof(node_config->inflight_bitfield));
     }
@@ -811,7 +818,7 @@ static enum sfcp_error_t handle_get_iv_msg(struct sfcp_trusted_subnet_config_t *
     memcpy(get_iv_reply_payload.iv, handshake_data[trusted_subnet->id].node_ivs[my_node_id],
            sizeof(handshake_data[trusted_subnet->id].node_ivs[my_node_id]));
 
-    sfcp_err = construct_send_reply(encrypt, trusted_subnet, sender_node, message_id,
+    sfcp_err = construct_send_reply(encrypt, false, trusted_subnet, sender_node, message_id,
                                     (uint8_t *)&get_iv_reply_payload, sizeof(get_iv_reply_payload));
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         return sfcp_err;
@@ -871,7 +878,8 @@ static enum sfcp_error_t handle_send_ivs_msg(struct sfcp_trusted_subnet_config_t
         }
     }
 
-    sfcp_err = construct_send_reply(encrypt, trusted_subnet, sender_node, message_id, NULL, 0);
+    sfcp_err = construct_send_reply(encrypt, re_keying, trusted_subnet, sender_node, message_id,
+                                    NULL, 0);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         return sfcp_err;
     }
@@ -949,7 +957,7 @@ static enum sfcp_error_t handle_mutual_auth_msg(struct sfcp_trusted_subnet_confi
 {
     enum sfcp_error_t sfcp_err;
 
-    sfcp_err = construct_send_reply(true, trusted_subnet, remote_node, message_id, NULL, 0);
+    sfcp_err = construct_send_reply(true, false, trusted_subnet, remote_node, message_id, NULL, 0);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         return sfcp_err;
     }

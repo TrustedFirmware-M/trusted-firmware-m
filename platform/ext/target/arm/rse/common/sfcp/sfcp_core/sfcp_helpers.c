@@ -188,6 +188,11 @@ enum sfcp_error_t sfcp_helpers_encryption_handshake_validate(
         return sfcp_err;
     }
 
+    if (packet_uses_crypto && (packet->cryptography_used.cryptography_metadata.config.seq_num >=
+                               SFCP_TRUSTED_SUBNET_RE_KEY_SEQ_NUM)) {
+        return SFCP_ERROR_INVALID_SEQUENCE_NUMBER;
+    }
+
     if (packet_uses_crypto) {
         sfcp_err = sfcp_get_trusted_subnet_by_id(
             packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id,

@@ -47,6 +47,10 @@ enum sfcp_error_t sfcp_helpers_encryption_handshake_validate(
     sfcp_node_id_t remote_node, uint8_t message_id, bool packet_uses_crypto, uint8_t *payload,
     size_t payload_size, bool *is_handshake_msg);
 
+/* Internal send path. Only handshake construction may select rekey sequences. */
+enum sfcp_error_t sfcp_send_packet(struct sfcp_packet_t *packet, size_t packet_size,
+                                   size_t payload_size, bool is_msg, bool rekey);
+
 static inline enum sfcp_error_t sfcp_hal_error_to_sfcp_error(enum sfcp_hal_error_t hal_error)
 {
     if (hal_error == SFCP_HAL_ERROR_SUCCESS) {

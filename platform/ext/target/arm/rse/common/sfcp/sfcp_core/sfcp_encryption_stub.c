@@ -69,7 +69,7 @@ sfcp_get_trusted_subnet_for_node(sfcp_node_id_t node,
 
 enum sfcp_error_t
 sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *trusted_subnet,
-                                     sfcp_node_id_t remote_node, uint16_t *seq_num)
+                                     sfcp_node_id_t remote_node, uint16_t *seq_num, bool rekey)
 {
     (void)trusted_subnet;
     (void)remote_node;
@@ -79,7 +79,7 @@ sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *truste
 }
 
 enum sfcp_error_t sfcp_trusted_subnet_increment_send_seq_num(uint8_t trusted_subnet_id,
-                                                             sfcp_node_id_t remote_node)
+                                                             sfcp_node_id_t remote_node, bool rekey)
 {
     (void)trusted_subnet_id;
     (void)remote_node;
@@ -124,7 +124,8 @@ enum sfcp_error_t sfcp_encryption_handshake_responder(struct sfcp_packet_t *pack
 }
 
 enum sfcp_error_t sfcp_encrypt_msg(struct sfcp_packet_t *msg, size_t packet_size,
-                                   uint8_t trusted_subnet_id, sfcp_node_id_t remote_node)
+                                   uint8_t trusted_subnet_id, sfcp_node_id_t remote_node,
+                                   bool rekey)
 {
     (void)msg;
     (void)packet_size;
@@ -145,7 +146,8 @@ enum sfcp_error_t sfcp_decrypt_msg(struct sfcp_packet_t *msg, size_t packet_size
 }
 
 enum sfcp_error_t sfcp_encrypt_reply(struct sfcp_packet_t *reply, size_t packet_size,
-                                     uint8_t trusted_subnet_id, sfcp_node_id_t remote_node)
+                                     uint8_t trusted_subnet_id, sfcp_node_id_t remote_node,
+                                     bool rekey)
 {
     (void)reply;
     (void)packet_size;

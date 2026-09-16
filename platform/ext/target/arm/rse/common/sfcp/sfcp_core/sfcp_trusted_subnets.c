@@ -176,7 +176,7 @@ sfcp_get_trusted_subnet_for_node(sfcp_node_id_t node,
 
 enum sfcp_error_t
 sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *trusted_subnet,
-                                     sfcp_node_id_t remote_node, uint16_t *seq_num)
+                                     sfcp_node_id_t remote_node, uint16_t *seq_num, bool rekey)
 {
     enum sfcp_error_t sfcp_err;
     struct sfcp_trusted_subnet_node_t *trusted_subnet_node;
@@ -190,7 +190,15 @@ sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *truste
         return sfcp_err;
     }
 
-    if (trusted_subnet_node->send_seq_num == SFCP_TRUSTED_SUBNET_RE_KEY_SEQ_NUM) {
+    if (rekey) {
+        if (trusted_subnet_node->rekey_send_count >= 16) {
+            return SFCP_ERROR_INVALID_SEQUENCE_NUMBER;
+        }
+        *seq_num = SFCP_TRUSTED_SUBNET_RE_KEY_SEQ_NUM + trusted_subnet_node->rekey_send_count;
+        return SFCP_ERROR_SUCCESS;
+    }
+
+    if (trusted_subnet_node->send_seq_num >= SFCP_TRUSTED_SUBNET_RE_KEY_SEQ_NUM) {
         return SFCP_ERROR_INVALID_SEQUENCE_NUMBER;
     }
 
@@ -200,7 +208,7 @@ sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *truste
 }
 
 enum sfcp_error_t sfcp_trusted_subnet_increment_send_seq_num(uint8_t trusted_subnet_id,
-                                                             sfcp_node_id_t remote_node)
+                                                             sfcp_node_id_t remote_node, bool rekey)
 {
     enum sfcp_error_t sfcp_err;
     struct sfcp_trusted_subnet_config_t *trusted_subnet;
@@ -215,6 +223,17 @@ enum sfcp_error_t sfcp_trusted_subnet_increment_send_seq_num(uint8_t trusted_sub
     sfcp_err = get_trusted_subnet_node(trusted_subnet, remote_node, &trusted_subnet_node);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         return sfcp_err;
+    }
+
+    if (rekey) {
+        if (trusted_subnet_node->rekey_send_count >= 16) {
+            return SFCP_ERROR_INVALID_SEQUENCE_NUMBER;
+        }
+        trusted_subnet_node->rekey_send_count++;
+        return SFCP_ERROR_SUCCESS;
+    }
+    if (trusted_subnet_node->send_seq_num >= SFCP_TRUSTED_SUBNET_RE_KEY_SEQ_NUM) {
+        return SFCP_ERROR_INVALID_SEQUENCE_NUMBER;
     }
 
     sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet_id, &current_state);
@@ -266,6 +285,25 @@ sfcp_trusted_subnet_check_recv_seq_num(struct sfcp_trusted_subnet_config_t *trus
     sfcp_err = get_trusted_subnet_node(trusted_subnet, remote_node, &trusted_subnet_node);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         return sfcp_err;
+    }
+
+    /* Reserved handshake sequences have their own authenticated replay bitmap.
+     * Peers can rekey even when their ordinary receive floors differ.
+     */
+    if (seq_num >= SFCP_TRUSTED_SUBNET_RE_KEY_SEQ_NUM) {
+        uint16_t bit;
+
+        if (seq_num == UINT16_MAX) {
+            return SFCP_ERROR_INVALID_SEQUENCE_NUMBER;
+        }
+        bit = 1U << (seq_num - SFCP_TRUSTED_SUBNET_RE_KEY_SEQ_NUM);
+        if (trusted_subnet_node->rekey_received & bit) {
+            return SFCP_ERROR_MSG_ALREADY_RECEIVED;
+        }
+        if (commit) {
+            trusted_subnet_node->rekey_received |= bit;
+        }
+        return SFCP_ERROR_SUCCESS;
     }
 
     if (seq_num < trusted_subnet_node->recv_seq_num) {

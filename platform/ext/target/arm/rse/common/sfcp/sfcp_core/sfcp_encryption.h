@@ -153,7 +153,7 @@ sfcp_get_trusted_subnet_for_node(sfcp_node_id_t node,
  */
 enum sfcp_error_t
 sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *trusted_subnet,
-                                     sfcp_node_id_t remote_node, uint16_t *seq_num);
+                                     sfcp_node_id_t remote_node, uint16_t *seq_num, bool rekey);
 
 /**
  * \brief Consume the current send sequence number after a successful send.
@@ -167,7 +167,8 @@ sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *truste
  * \return SFCP_ERROR_SUCCESS on success, or an SFCP error otherwise.
  */
 enum sfcp_error_t sfcp_trusted_subnet_increment_send_seq_num(uint8_t trusted_subnet_id,
-                                                             sfcp_node_id_t remote_node);
+                                                             sfcp_node_id_t remote_node,
+                                                             bool rekey);
 
 /**
  * \brief Validate and record a received packet sequence number.
@@ -236,7 +237,8 @@ enum sfcp_error_t sfcp_encryption_handshake_responder(struct sfcp_packet_t *pack
  * \return SFCP_ERROR_SUCCESS on success, or an SFCP error otherwise.
  */
 enum sfcp_error_t sfcp_encrypt_msg(struct sfcp_packet_t *msg, size_t packet_size,
-                                   uint8_t trusted_subnet_id, sfcp_node_id_t remote_node);
+                                   uint8_t trusted_subnet_id, sfcp_node_id_t remote_node,
+                                   bool rekey);
 
 /**
  * \brief Authenticate and decrypt an SFCP message in place.
@@ -261,7 +263,8 @@ enum sfcp_error_t sfcp_decrypt_msg(struct sfcp_packet_t *msg, size_t packet_size
  * \return SFCP_ERROR_SUCCESS on success, or an SFCP error otherwise.
  */
 enum sfcp_error_t sfcp_encrypt_reply(struct sfcp_packet_t *reply, size_t packet_size,
-                                     uint8_t trusted_subnet_id, sfcp_node_id_t remote_node);
+                                     uint8_t trusted_subnet_id, sfcp_node_id_t remote_node,
+                                     bool rekey);
 
 /**
  * \brief Authenticate and decrypt an SFCP reply in place.

@@ -39,6 +39,8 @@ struct sfcp_trusted_subnet_node_t {
     sfcp_node_id_t id;
     uint16_t send_seq_num;
     uint16_t recv_seq_num;
+    uint16_t rekey_send_count;
+    uint16_t rekey_received;
     uint8_t bitfield_start_index;
     uint8_t inflight_bitfield[(SFCP_INFLIGHT_BITFIELD_SIZE + 7) / 8];
 };

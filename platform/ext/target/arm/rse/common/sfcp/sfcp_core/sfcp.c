@@ -249,8 +249,8 @@ static enum sfcp_error_t __send_msg_reply(sfcp_node_id_t remote_node, sfcp_link_
     return SFCP_ERROR_SEND_MSG_BUS_BUSY;
 }
 
-static enum sfcp_error_t send_msg_reply(struct sfcp_packet_t *packet, size_t packet_size,
-                                        size_t payload_size, bool is_msg)
+enum sfcp_error_t sfcp_send_packet(struct sfcp_packet_t *packet, size_t packet_size,
+                                   size_t payload_size, bool is_msg, bool rekey)
 {
     enum sfcp_error_t sfcp_err;
     bool uses_cryptography, uses_id_extension;
@@ -295,16 +295,14 @@ static enum sfcp_error_t send_msg_reply(struct sfcp_packet_t *packet, size_t pac
             packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id;
 
         if (is_msg) {
-            sfcp_err = sfcp_encrypt_msg(
-                packet, packet_transfer_size,
-                trusted_subnet_id, remote_node);
+            sfcp_err = sfcp_encrypt_msg(packet, packet_transfer_size, trusted_subnet_id,
+                                        remote_node, rekey);
             if (sfcp_err != SFCP_ERROR_SUCCESS) {
                 return sfcp_err;
             }
         } else {
-            sfcp_err = sfcp_encrypt_reply(
-                packet, packet_transfer_size,
-                trusted_subnet_id, remote_node);
+            sfcp_err = sfcp_encrypt_reply(packet, packet_transfer_size, trusted_subnet_id,
+                                          remote_node, rekey);
             if (sfcp_err != SFCP_ERROR_SUCCESS) {
                 return sfcp_err;
             }
@@ -334,7 +332,7 @@ static enum sfcp_error_t send_msg_reply(struct sfcp_packet_t *packet, size_t pac
     }
 
     if (uses_cryptography) {
-        return sfcp_trusted_subnet_increment_send_seq_num(trusted_subnet_id, remote_node);
+        return sfcp_trusted_subnet_increment_send_seq_num(trusted_subnet_id, remote_node, rekey);
     }
 
     return SFCP_ERROR_SUCCESS;
@@ -352,7 +350,7 @@ enum sfcp_error_t sfcp_send_msg(struct sfcp_packet_t *msg, size_t msg_size, size
         }
     }
 
-    return send_msg_reply(msg, msg_size, payload_size, true);
+    return sfcp_send_packet(msg, msg_size, payload_size, true, false);
 }
 
 enum sfcp_error_t sfcp_init_reply(uint8_t *buf, size_t buf_size,
@@ -424,7 +422,7 @@ enum sfcp_error_t sfcp_init_reply(uint8_t *buf, size_t buf_size,
 enum sfcp_error_t sfcp_send_reply(struct sfcp_packet_t *reply, size_t reply_size,
                                   size_t payload_size)
 {
-    return send_msg_reply(reply, reply_size, payload_size, false);
+    return sfcp_send_packet(reply, reply_size, payload_size, false, false);
 }
 
 static enum sfcp_error_t send_protocol_error(sfcp_node_id_t sender_id, sfcp_node_id_t receiver_id,
@@ -813,6 +811,14 @@ enum sfcp_error_t sfcp_receive_reply(uint8_t *buf, size_t buf_size,
         return SFCP_ERROR_INVALID_SEQUENCE_NUMBER;
     }
 
+    if (packet_uses_crypto &&
+        ((packet->cryptography_used.cryptography_metadata.config.seq_num >=
+          SFCP_TRUSTED_SUBNET_RE_KEY_SEQ_NUM) ||
+         (packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id !=
+          metadata.trusted_subnet_id))) {
+        return SFCP_ERROR_INVALID_SEQUENCE_NUMBER;
+    }
+
     if (packet_uses_crypto) {
         sfcp_err = sfcp_decrypt_reply(packet, received_size, received_receiver_id);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
@@ -1088,6 +1094,11 @@ enum sfcp_error_t sfcp_pop_reply_from_buffer(sfcp_buffer_handle_t buffer_handle,
 
     if (packet_payload_size > payload_len) {
         return SFCP_ERROR_PAYLOAD_TOO_LARGE;
+    }
+
+    if (packet_uses_crypto && (packet->cryptography_used.cryptography_metadata.config.seq_num >=
+                               SFCP_TRUSTED_SUBNET_RE_KEY_SEQ_NUM)) {
+        return SFCP_ERROR_INVALID_SEQUENCE_NUMBER;
     }
 
     if (packet_uses_crypto) {

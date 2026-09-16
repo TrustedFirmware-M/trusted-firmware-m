@@ -13,7 +13,8 @@
 
 static enum sfcp_error_t encrypt_decrypt_packet(struct sfcp_packet_t *packet, size_t packet_size,
                                                 uint8_t trusted_subnet_id,
-                                                sfcp_node_id_t remote_node, bool encrypt)
+                                                sfcp_node_id_t remote_node, bool encrypt,
+                                                bool rekey)
 {
     enum sfcp_error_t sfcp_err;
     struct sfcp_cryptography_metadata_t *crypto_metadata;
@@ -45,7 +46,8 @@ static enum sfcp_error_t encrypt_decrypt_packet(struct sfcp_packet_t *packet, si
         crypto_config->trusted_subnet_id = trusted_subnet->id;
         crypto_config->mode = trusted_subnet->mode;
 
-        sfcp_err = sfcp_trusted_subnet_get_send_seq_num(trusted_subnet, remote_node, &seq_num);
+        sfcp_err = sfcp_trusted_subnet_get_send_seq_num(trusted_subnet, remote_node, &seq_num,
+                                                        rekey);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             return sfcp_err;
         }
@@ -80,25 +82,27 @@ static enum sfcp_error_t encrypt_decrypt_packet(struct sfcp_packet_t *packet, si
 }
 
 enum sfcp_error_t sfcp_encrypt_msg(struct sfcp_packet_t *msg, size_t packet_size,
-                                   uint8_t trusted_subnet_id, sfcp_node_id_t remote_node)
+                                   uint8_t trusted_subnet_id, sfcp_node_id_t remote_node,
+                                   bool rekey)
 {
-    return encrypt_decrypt_packet(msg, packet_size, trusted_subnet_id, remote_node, true);
+    return encrypt_decrypt_packet(msg, packet_size, trusted_subnet_id, remote_node, true, rekey);
 }
 
 enum sfcp_error_t sfcp_decrypt_msg(struct sfcp_packet_t *msg, size_t packet_size,
                                    sfcp_node_id_t remote_node)
 {
-    return encrypt_decrypt_packet(msg, packet_size, 0, remote_node, false);
+    return encrypt_decrypt_packet(msg, packet_size, 0, remote_node, false, false);
 }
 
 enum sfcp_error_t sfcp_encrypt_reply(struct sfcp_packet_t *reply, size_t packet_size,
-                                     uint8_t trusted_subnet_id, sfcp_node_id_t remote_node)
+                                     uint8_t trusted_subnet_id, sfcp_node_id_t remote_node,
+                                     bool rekey)
 {
-    return encrypt_decrypt_packet(reply, packet_size, trusted_subnet_id, remote_node, true);
+    return encrypt_decrypt_packet(reply, packet_size, trusted_subnet_id, remote_node, true, rekey);
 }
 
 enum sfcp_error_t sfcp_decrypt_reply(struct sfcp_packet_t *reply, size_t packet_size,
                                      sfcp_node_id_t remote_node)
 {
-    return encrypt_decrypt_packet(reply, packet_size, 0, remote_node, false);
+    return encrypt_decrypt_packet(reply, packet_size, 0, remote_node, false, false);
 }
