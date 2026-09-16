@@ -1016,7 +1016,9 @@ enum sfcp_error_t sfcp_pop_msg_from_buffer(sfcp_buffer_handle_t buffer_handle,
         }
     }
 
-    memcpy(payload, packet_payload, packet_payload_size);
+    if (packet_payload_size != 0) {
+        memcpy(payload, packet_payload, packet_payload_size);
+    }
     *payload_size = packet_payload_size;
 
     populate_msg_metadata(
@@ -1174,7 +1176,9 @@ enum sfcp_error_t sfcp_pop_reply_from_buffer(sfcp_buffer_handle_t buffer_handle,
         }
     }
 
-    memcpy(payload, packet_payload, packet_payload_size);
+    if (packet_payload_size != 0) {
+        memcpy(payload, packet_payload, packet_payload_size);
+    }
     *payload_size = packet_payload_size;
 
     populate_reply_metadata(
