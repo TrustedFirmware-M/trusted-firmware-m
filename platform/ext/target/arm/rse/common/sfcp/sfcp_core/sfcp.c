@@ -16,6 +16,8 @@
 #include "sfcp_legacy_msg.h"
 #include "sfcp_encryption.h"
 #include "sfcp_random.h"
+#include "config_tfm.h"
+#include "sfcp_encryption_hal.h"
 
 #ifndef SFCP_MAX_NUMBER_MESSAGE_HANDLERS
 #define SFCP_MAX_NUMBER_MESSAGE_HANDLERS (2)
@@ -200,6 +202,7 @@ enum sfcp_error_t sfcp_init_msg(uint8_t *buf, size_t buf_size, sfcp_node_id_t re
             &msg_ptr->cryptography_used.cryptography_metadata;
 
         crypto_metadata->config.trusted_subnet_id = trusted_subnet->id;
+        crypto_metadata->config.seq_num = SFCP_SEQUENCE_NUMBER_UNASSIGNED;
     }
 
     *payload = (uint8_t *)GET_SFCP_PAYLOAD_PTR(msg_ptr, uses_cryptography, uses_id_extension);
@@ -258,6 +261,8 @@ enum sfcp_error_t sfcp_send_packet(struct sfcp_packet_t *packet, size_t packet_s
     size_t packet_transfer_size;
     sfcp_node_id_t remote_node;
     uint8_t trusted_subnet_id = 0;
+    sfcp_node_id_t local_node;
+    uint32_t irq_cookie = 0;
     sfcp_node_id_t my_node_id;
 
     if (packet == NULL) {
@@ -290,7 +295,22 @@ enum sfcp_error_t sfcp_send_packet(struct sfcp_packet_t *packet, size_t packet_s
     packet_transfer_size =
         SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(uses_cryptography, uses_id_extension) + payload_size;
 
+    if ((sfcp_hal_get_my_node_id(&local_node) != SFCP_HAL_ERROR_SUCCESS) ||
+        (remote_node == local_node) || (remote_node >= SFCP_NUMBER_NODES)) {
+        return SFCP_ERROR_INVALID_NODE;
+    }
+    link_id = sfcp_hal_get_route(remote_node);
+    if (link_id == 0) {
+        return SFCP_ERROR_INVALID_NODE;
+    }
+
     if (uses_cryptography) {
+        if (packet_transfer_size >
+            SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(true, true) + SFCP_PAYLOAD_MAX_SIZE) {
+            return SFCP_ERROR_PAYLOAD_TOO_LARGE;
+        }
+        /* Serialize the packet's first encryption and sequence allocation. */
+        irq_cookie = sfcp_encryption_hal_save_disable_irq();
         trusted_subnet_id =
             packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id;
 
@@ -298,20 +318,15 @@ enum sfcp_error_t sfcp_send_packet(struct sfcp_packet_t *packet, size_t packet_s
             sfcp_err = sfcp_encrypt_msg(packet, packet_transfer_size, trusted_subnet_id,
                                         remote_node, rekey);
             if (sfcp_err != SFCP_ERROR_SUCCESS) {
-                return sfcp_err;
+                goto out;
             }
         } else {
             sfcp_err = sfcp_encrypt_reply(packet, packet_transfer_size, trusted_subnet_id,
                                           remote_node, rekey);
             if (sfcp_err != SFCP_ERROR_SUCCESS) {
-                return sfcp_err;
+                goto out;
             }
         }
-    }
-
-    link_id = sfcp_hal_get_route(remote_node);
-    if (link_id == 0) {
-        return SFCP_ERROR_INVALID_NODE;
     }
 
 #ifdef SFCP_SUPPORT_LEGACY_MSG_PROTOCOL
@@ -322,20 +337,20 @@ enum sfcp_error_t sfcp_send_packet(struct sfcp_packet_t *packet, size_t packet_s
     if (sfcp_err == SFCP_ERROR_SUCCESS) {
         packet = (struct sfcp_packet_t *)sfcp_legacy_conversion_buffer;
     } else if (sfcp_err != SFCP_ERROR_LEGACY_FORMAT_CONVERSION_NOT_REQUIRED) {
-        return sfcp_err;
+        goto out;
     }
 #endif
 
     sfcp_err = __send_msg_reply(remote_node, link_id, packet, packet_transfer_size, is_msg);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        return sfcp_err;
+        goto out;
     }
 
+out:
     if (uses_cryptography) {
-        return sfcp_trusted_subnet_increment_send_seq_num(trusted_subnet_id, remote_node, rekey);
+        sfcp_encryption_hal_enable_irq(irq_cookie);
     }
-
-    return SFCP_ERROR_SUCCESS;
+    return sfcp_err;
 }
 
 enum sfcp_error_t sfcp_send_msg(struct sfcp_packet_t *msg, size_t msg_size, size_t payload_size)
@@ -407,6 +422,7 @@ enum sfcp_error_t sfcp_init_reply(uint8_t *buf, size_t buf_size,
             &reply_ptr->cryptography_used.cryptography_metadata;
 
         crypto_metadata->config.trusted_subnet_id = trusted_subnet->id;
+        crypto_metadata->config.seq_num = SFCP_SEQUENCE_NUMBER_UNASSIGNED;
     }
 
     *payload = (uint8_t *)GET_SFCP_PAYLOAD_PTR(reply_ptr, uses_cryptography, uses_id_extension);

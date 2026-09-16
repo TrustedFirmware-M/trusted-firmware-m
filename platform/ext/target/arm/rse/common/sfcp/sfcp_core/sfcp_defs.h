@@ -19,6 +19,13 @@ extern "C" {
 
 #define SFCP_PROTOCOL_VERSION (0b10)
 
+/* Local marker for an initialized packet that has not been encrypted. This
+ * value is outside both the ordinary and reserved rekey sequence ranges.
+ */
+#define SFCP_SEQUENCE_NUMBER_UNASSIGNED UINT16_MAX
+
+/* docs_anchor:sfcp_cryptography_header_decl:start */
+/* docs_anchor:sfcp_cryptography_config_decl:start */
 /*
  * Crptography
  */

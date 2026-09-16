@@ -160,18 +160,6 @@ enum sfcp_error_t sfcp_encryption_hal_decrypt_packet(uint32_t key_id, struct sfc
     return encrypt_decrypt_packet(key_id, packet, packet_size, false);
 }
 
-uint32_t sfcp_encryption_hal_save_disable_irq(void)
-{
-    uint32_t primask = __get_PRIMASK();
-    __disable_irq();
-    return primask;
-}
-
-void sfcp_encryption_hal_enable_irq(uint32_t cookie)
-{
-    __set_PRIMASK(cookie);
-}
-
 enum sfcp_error_t sfcp_encryption_hal_generate_random(uint8_t *output, size_t output_size)
 {
     psa_status_t status;

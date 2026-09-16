@@ -142,8 +142,9 @@ sfcp_get_trusted_subnet_for_node(sfcp_node_id_t node,
  * \brief Retrieve the next sequence number for an encrypted packet.
  *
  * This function does not consume the sequence number. Call
- * sfcp_trusted_subnet_increment_send_seq_num() after successfully sending the
- * packet.
+ * sfcp_trusted_subnet_increment_send_seq_num() before encryption, while holding
+ * the send critical section across both operations. Failed attempts must not
+ * reuse a sequence number.
  *
  * \param[in]  trusted_subnet Trusted-subnet configuration.
  * \param[in]  remote_node    Destination node identifier.
@@ -156,7 +157,7 @@ sfcp_trusted_subnet_get_send_seq_num(struct sfcp_trusted_subnet_config_t *truste
                                      sfcp_node_id_t remote_node, uint16_t *seq_num, bool rekey);
 
 /**
- * \brief Consume the current send sequence number after a successful send.
+ * \brief Reserve the current send sequence number before encryption.
  *
  * The trusted subnet is marked as requiring re-keying when the sequence-number
  * threshold is reached.
@@ -229,6 +230,10 @@ enum sfcp_error_t sfcp_encryption_handshake_responder(struct sfcp_packet_t *pack
 /**
  * \brief Encrypt an SFCP message in place.
  *
+ * The packet must have been initialized and not previously encrypted. Its
+ * sequence number is consumed even if encryption fails. Hold the send critical
+ * section to serialize sequence allocation, encryption and key changes.
+ *
  * \param[in,out] msg               Message to encrypt.
  * \param[in]     packet_size       Total size of \p msg in bytes.
  * \param[in]     trusted_subnet_id Identifier of the trusted subnet.
@@ -254,6 +259,10 @@ enum sfcp_error_t sfcp_decrypt_msg(struct sfcp_packet_t *msg, size_t packet_size
 
 /**
  * \brief Encrypt an SFCP reply in place.
+ *
+ * The packet must have been initialized and not previously encrypted. Its
+ * sequence number is consumed even if encryption fails. Hold the send critical
+ * section to serialize sequence allocation, encryption and key changes.
  *
  * \param[in,out] reply             Reply to encrypt.
  * \param[in]     packet_size       Total size of \p reply in bytes.

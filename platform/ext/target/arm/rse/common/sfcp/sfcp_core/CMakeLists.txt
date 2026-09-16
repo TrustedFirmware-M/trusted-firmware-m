@@ -15,6 +15,7 @@ target_include_directories(platform_s
 
 target_sources(platform_s
     PRIVATE
+        sfcp_interrupt_hal.c
         sfcp_runtime_hal.c
         sfcp_interrupt_handler.c
         sfcp_atu.c
@@ -51,6 +52,7 @@ if (RSE_AMOUNT GREATER 1)
 
     target_sources(platform_bl1_1
         PRIVATE
+            sfcp_interrupt_hal.c
             sfcp_link_hal.c
             sfcp.c
             sfcp_random.c

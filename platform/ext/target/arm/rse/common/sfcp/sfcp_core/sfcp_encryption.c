@@ -31,6 +31,10 @@ static enum sfcp_error_t encrypt_decrypt_packet(struct sfcp_packet_t *packet, si
     crypto_metadata = &packet->cryptography_used.cryptography_metadata;
     crypto_config = &crypto_metadata->config;
 
+    if (encrypt && (crypto_config->seq_num != SFCP_SEQUENCE_NUMBER_UNASSIGNED)) {
+        return SFCP_ERROR_ENCRYPTED_PACKET_ALREADY_SENT;
+    }
+
     if (!encrypt) {
         trusted_subnet_id = crypto_config->trusted_subnet_id;
     }
@@ -52,6 +56,15 @@ static enum sfcp_error_t encrypt_decrypt_packet(struct sfcp_packet_t *packet, si
             return sfcp_err;
         }
 
+        /* Reserve the nonce before crypto can modify the caller's packet. A
+         * failed encryption or send must not reuse it for different plaintext.
+         * Assigning the sequence also makes this packet ineligible for retry.
+         */
+        sfcp_err = sfcp_trusted_subnet_increment_send_seq_num(trusted_subnet->id, remote_node,
+                                                              rekey);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
         crypto_config->seq_num = seq_num;
     }
 
