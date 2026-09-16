@@ -840,30 +840,16 @@ enum sfcp_error_t sfcp_receive_reply(uint8_t *buf, size_t buf_size,
         return SFCP_ERROR_INVALID_NODE;
     }
 
-    if (message_id != metadata.message_id) {
-        return SFCP_ERROR_INVALID_SEQUENCE_NUMBER;
-    }
-
-    if (packet_type == SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY) {
-        if (packet_client_id == metadata.client_id) {
-            /* Error message for us */
-            return sfcp_protocol_error_to_sfcp_error(packet->error_reply.protocol_error);
-        } else {
-            /* Error message for a different client ID, drop */
-            return SFCP_ERROR_NO_REPLY_AVAILABLE;
-        }
-    }
-
-    if (!uses_id_extension && (metadata.client_id != 0)) {
-        return SFCP_ERROR_INVALID_CLIENT_ID;
-    }
-
-    if (uses_id_extension && (packet_client_id != metadata.client_id)) {
-        /* This reply is not for us so we have to drop it */
+    if ((message_id != metadata.message_id) || (packet_client_id != metadata.client_id)) {
+        /* Stale or unrelated traffic must not terminate the awaited call. */
         return SFCP_ERROR_NO_REPLY_AVAILABLE;
     }
 
-    if (uses_id_extension && (packet_application_id != metadata.application_id)) {
+    if (packet_type == SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY) {
+        return sfcp_protocol_error_to_sfcp_error(packet->error_reply.protocol_error);
+    }
+
+    if (packet_application_id != metadata.application_id) {
         /* Message has the client ID so it is for us, but the sender has not correctly
          * set the application ID, drop */
         return SFCP_ERROR_INVALID_APPLICATION_ID;
