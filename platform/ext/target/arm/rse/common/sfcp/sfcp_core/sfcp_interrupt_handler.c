@@ -130,12 +130,14 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
 
     hal_err = sfcp_hal_receive_message(link_id, allocated_buffer, message_size, 0, message_size);
     if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
-        return sfcp_hal_error_to_sfcp_error(hal_err);
+        sfcp_err = sfcp_hal_error_to_sfcp_error(hal_err);
+        goto out_free;
     }
 
     hal_err = sfcp_hal_get_my_node_id(&my_node_id);
     if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
-        return sfcp_hal_error_to_sfcp_error(hal_err);
+        sfcp_err = sfcp_hal_error_to_sfcp_error(hal_err);
+        goto out_free;
     }
 
 #ifdef SFCP_SUPPORT_LEGACY_MSG_PROTOCOL
@@ -155,15 +157,14 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
 
         sfcp_err = allocate_get_buffer(&buffer_handle, message_size, &allocated_buffer);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
-            protocol_err = allocate_error_to_protocol_error(sfcp_err);
-            buffer_allocation_failure = true;
-            goto out_error;
+            /* The original transfer has already been consumed. */
+            return sfcp_err;
         }
 
         memcpy(allocated_buffer, sfcp_legacy_conversion_buffer, message_size);
 
     } else if (sfcp_err != SFCP_ERROR_LEGACY_FORMAT_CONVERSION_NOT_REQUIRED) {
-        return sfcp_err;
+        goto out_free;
     }
 #endif
 
@@ -175,7 +176,7 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
                                          &payload_len, &needs_reply, &packet_type);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         /* Do not have enough information about this packet to reply */
-        return sfcp_err;
+        goto out_free;
     }
 
     /* Replies retain the sender and receiver IDs of the original request. Check
@@ -208,8 +209,9 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
             goto out_error;
         }
 
-        /* Message has been successfully forwarded, nothing else to do */
-        return SFCP_ERROR_SUCCESS;
+        /* Forwarding does not transfer ownership of the receive buffer. */
+        sfcp_err = SFCP_ERROR_SUCCESS;
+        goto out_free;
     }
 
     sfcp_err = sfcp_helpers_encryption_handshake_validate(
@@ -222,8 +224,8 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
     }
 
     if (is_handshake_req) {
-        /* Handshake message has been successfully handled, nothing else to do */
-        return SFCP_ERROR_SUCCESS;
+        /* The handshake responder does not retain the receive buffer. */
+        goto out_free;
     }
 
     switch (packet_type) {
@@ -304,6 +306,7 @@ out_error:
         }
     }
 
+out_free:
     if (!buffer_allocation_failure) {
         enum sfcp_error_t free_buffer_failure = sfcp_pop_handler_buffer(buffer_handle);
         if (free_buffer_failure != SFCP_ERROR_SUCCESS) {
