@@ -17,12 +17,21 @@ enum sfcp_error_t sfcp_helpers_parse_packet(struct sfcp_packet_t *packet, size_t
                                             size_t *payload_len, bool *needs_reply,
                                             enum sfcp_packet_type_t *packet_type)
 {
-    if (GET_METADATA_FIELD(PROTOCOL_VERSION, packet->header.metadata) != SFCP_PROTOCOL_VERSION) {
-        return SFCP_ERROR_INVALID_PROTOCOL_VERSION;
+    if ((packet == NULL) || (sender == NULL) || (receiver == NULL) || (message_id == NULL) ||
+        (uses_cryptography == NULL) || (uses_id_extension == NULL) || (application_id == NULL) ||
+        (client_id == NULL) || (payload == NULL) || (payload_len == NULL) ||
+        (needs_reply == NULL) || (packet_type == NULL)) {
+        return SFCP_ERROR_INVALID_POINTER;
     }
-
     if (packet_size < sizeof(packet->header)) {
         return SFCP_ERROR_INVALID_PACKET_SIZE;
+    }
+    if (packet->header.metadata & (1U << 3)) {
+        return SFCP_ERROR_INVALID_MSG;
+    }
+
+    if (GET_METADATA_FIELD(PROTOCOL_VERSION, packet->header.metadata) != SFCP_PROTOCOL_VERSION) {
+        return SFCP_ERROR_INVALID_PROTOCOL_VERSION;
     }
 
     /* Parse header */
@@ -39,6 +48,9 @@ enum sfcp_error_t sfcp_helpers_parse_packet(struct sfcp_packet_t *packet, size_t
 
     switch (*packet_type) {
     case SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY:
+        if (*uses_cryptography || *uses_id_extension) {
+            return SFCP_ERROR_INVALID_MSG;
+        }
         if (packet_size != SFCP_PACKET_SIZE_ERROR_REPLY) {
             return SFCP_ERROR_INVALID_PACKET_SIZE;
         }

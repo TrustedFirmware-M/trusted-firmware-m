@@ -72,10 +72,10 @@ enum sfcp_packet_type_t {
 __PACKED_STRUCT sfcp_header_t {
     /*
      * Metadata field consists of (in descending bit order):
-     * - packet_type : 1
+     * - packet_type : 2
      * - uses_cryptography : 1
      * - uses_id_extension: 1
-     * - reserved: 2
+     * - reserved: 1
      * - protocol_version: 3
      */
     uint8_t metadata;
