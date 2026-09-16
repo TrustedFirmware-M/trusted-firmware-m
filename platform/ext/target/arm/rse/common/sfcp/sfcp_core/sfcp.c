@@ -531,7 +531,7 @@ static enum sfcp_error_t receive_msg_reply(uint8_t *buf, size_t buf_size, bool a
         return sfcp_hal_error_to_sfcp_error(hal_error);
     }
 
-    if (!any_remote_id && (remote_id == *my_node_id)) {
+    if (!any_remote_id && ((remote_id >= SFCP_NUMBER_NODES) || (remote_id == *my_node_id))) {
         return SFCP_ERROR_INVALID_NODE;
     }
 
@@ -580,6 +580,7 @@ enum sfcp_error_t sfcp_receive_msg(uint8_t *buf, size_t buf_size, bool any_sende
     sfcp_node_id_t packet_sender;
     sfcp_node_id_t packet_receiver;
     sfcp_node_id_t forwarding_destination;
+    sfcp_node_id_t transmitting_node;
     sfcp_node_id_t received_sender_id;
     bool is_handshake_req;
 
@@ -607,6 +608,17 @@ enum sfcp_error_t sfcp_receive_msg(uint8_t *buf, size_t buf_size, bool any_sende
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         /* Do not know enough about this packet to reply */
         return sfcp_err;
+    }
+
+    /* Replies carry the endpoint IDs of the original request. Validate the
+     * actual receive link before any forwarding or handshake state changes.
+     */
+    transmitting_node = ((packet_type == SFCP_PACKET_TYPE_REPLY) ||
+                         (packet_type == SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY))
+                            ? packet_receiver
+                            : packet_sender;
+    if ((transmitting_node == my_node_id) || (sfcp_hal_get_route(transmitting_node) != link_id)) {
+        return SFCP_ERROR_INVALID_NODE;
     }
 
     if (sfcp_helpers_packet_requires_forwarding_get_destination(
@@ -637,7 +649,7 @@ enum sfcp_error_t sfcp_receive_msg(uint8_t *buf, size_t buf_size, bool any_sende
         goto error_reply;
     }
 
-    if ((packet_sender != received_sender_id) || (packet_receiver != my_node_id)) {
+    if ((!any_sender && (packet_sender != sender)) || (packet_receiver != my_node_id)) {
         protocol_error = SFCP_PROTOCOL_ERROR_UNSUPPORTED;
         sfcp_err = SFCP_ERROR_INVALID_NODE;
         goto error_reply;
@@ -658,7 +670,7 @@ enum sfcp_error_t sfcp_receive_msg(uint8_t *buf, size_t buf_size, bool any_sende
     }
 
     if (packet_uses_crypto) {
-        sfcp_err = sfcp_decrypt_msg(packet, received_size, received_sender_id);
+        sfcp_err = sfcp_decrypt_msg(packet, received_size, packet_sender);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             protocol_error = sfcp_err == SFCP_ERROR_MSG_OUT_OF_ORDER_TEMPORARY_FAILURE
                                  ? SFCP_PROTOCOL_ERROR_TRY_AGAIN_LATER
@@ -668,10 +680,10 @@ enum sfcp_error_t sfcp_receive_msg(uint8_t *buf, size_t buf_size, bool any_sende
     }
 
     populate_msg_metadata(
-        metadata, received_sender_id, packet_uses_crypto, *client_id, application_id, message_id,
-        packet_uses_crypto ?
-            packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id :
-            0);
+        metadata, packet_sender, packet_uses_crypto, *client_id, application_id, message_id,
+        packet_uses_crypto
+            ? packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id
+            : 0);
 
     return SFCP_ERROR_SUCCESS;
 
@@ -706,6 +718,7 @@ enum sfcp_error_t sfcp_receive_reply(uint8_t *buf, size_t buf_size,
     sfcp_node_id_t packet_sender;
     sfcp_node_id_t packet_receiver;
     sfcp_node_id_t forwarding_destination;
+    sfcp_node_id_t transmitting_node;
     sfcp_node_id_t received_receiver_id;
     uint8_t message_id;
 
@@ -728,6 +741,17 @@ enum sfcp_error_t sfcp_receive_reply(uint8_t *buf, size_t buf_size,
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         /* Do not know enough about this packet to reply */
         return sfcp_err;
+    }
+
+    /* Replies carry the endpoint IDs of the original request. Validate the
+     * actual receive link before any forwarding or handshake state changes.
+     */
+    transmitting_node = ((packet_type == SFCP_PACKET_TYPE_REPLY) ||
+                         (packet_type == SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY))
+                            ? packet_receiver
+                            : packet_sender;
+    if ((transmitting_node == my_node_id) || (sfcp_hal_get_route(transmitting_node) != link_id)) {
+        return SFCP_ERROR_INVALID_NODE;
     }
 
     if (sfcp_helpers_packet_requires_forwarding_get_destination(
