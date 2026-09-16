@@ -145,7 +145,7 @@ psa_status_t sfcp_protocol_serialize_reply(struct client_request_t *req,
 psa_status_t sfcp_protocol_deserialize_reply(psa_outvec *out_vec, uint8_t out_len,
                                              psa_status_t *return_val,
                                              const struct serialized_psa_reply_t *reply,
-                                             size_t reply_size);
+                                             size_t reply_size, uint8_t expected_protocol);
 
 /**
  * \brief Create a serialised error reply from a header and an error code.

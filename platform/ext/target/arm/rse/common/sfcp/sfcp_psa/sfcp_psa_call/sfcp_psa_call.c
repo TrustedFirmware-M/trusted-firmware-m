@@ -93,6 +93,7 @@ psa_status_t psa_call(psa_handle_t handle, int32_t type, const psa_invec *in_vec
     size_t msg_size;
     struct sfcp_reply_metadata_t metadata;
     psa_status_t return_val;
+    uint8_t request_protocol;
     const uint16_t client_id = select_client_id();
 
     if (type > PSA_CALL_TYPE_MAX || type < PSA_CALL_TYPE_MIN || in_len > PSA_MAX_IOVEC ||
@@ -111,7 +112,8 @@ psa_status_t psa_call(psa_handle_t handle, int32_t type, const psa_invec *in_vec
         return PSA_ERROR_INSUFFICIENT_STORAGE;
     }
 
-    psa_msg->header.protocol_ver = select_protocol_version(in_vec, in_len, out_vec, out_len);
+    request_protocol = select_protocol_version(in_vec, in_len, out_vec, out_len);
+    psa_msg->header.protocol_ver = request_protocol;
 
     status = sfcp_protocol_serialize_msg(handle, type, in_vec, in_len, out_vec, out_len, psa_msg,
                                          &psa_msg_len);
@@ -132,7 +134,8 @@ psa_status_t psa_call(psa_handle_t handle, int32_t type, const psa_invec *in_vec
         return PSA_ERROR_COMMUNICATION_FAILURE;
     }
 
-    status = sfcp_protocol_deserialize_reply(out_vec, out_len, &return_val, psa_reply, payload_len);
+    status = sfcp_protocol_deserialize_reply(out_vec, out_len, &return_val, psa_reply, payload_len,
+                                             request_protocol);
     if (status != PSA_SUCCESS) {
         return status;
     }

@@ -151,8 +151,16 @@ psa_status_t sfcp_protocol_pointer_access_deserialize_reply(
 {
     uint8_t i;
 
-    assert(reply != NULL);
-    assert(return_val != NULL);
+    if ((reply == NULL) || (return_val == NULL) || (reply_size != sizeof(*reply)) ||
+        (out_len > PSA_MAX_IOVEC) || ((out_len != 0) && (out_vec == NULL))) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
+    for (i = 0; i < out_len; ++i) {
+        if (reply->out_size[i] > out_vec[i].len) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
+    }
 
     for (i = 0U; i < out_len; ++i) {
         out_vec[i].len = reply->out_size[i];

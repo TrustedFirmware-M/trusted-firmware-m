@@ -115,10 +115,16 @@ psa_status_t sfcp_protocol_serialize_reply(struct client_request_t *req,
 psa_status_t sfcp_protocol_deserialize_reply(psa_outvec *out_vec, uint8_t out_len,
                                              psa_status_t *return_val,
                                              const struct serialized_psa_reply_t *reply,
-                                             size_t reply_size)
+                                             size_t reply_size, uint8_t expected_protocol)
 {
-    assert(reply != NULL);
-    assert(return_val != NULL);
+    if ((reply == NULL) || (return_val == NULL) || (out_len > PSA_MAX_IOVEC) ||
+        ((out_len != 0) && (out_vec == NULL)) || (reply_size < sizeof(reply->header))) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    if (reply->header.protocol_ver != expected_protocol) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    reply_size -= sizeof(reply->header);
 
     switch (reply->header.protocol_ver) {
 #ifdef SFCP_PROTOCOL_EMBED_ENABLED

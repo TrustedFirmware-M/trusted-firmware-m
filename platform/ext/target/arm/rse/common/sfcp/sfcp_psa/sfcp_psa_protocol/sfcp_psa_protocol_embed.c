@@ -134,18 +134,31 @@ psa_status_t sfcp_protocol_embed_deserialize_reply(psa_outvec *out_vec, uint8_t 
                                                    const struct sfcp_embed_reply_t *reply,
                                                    size_t reply_size)
 {
-    uint32_t payload_offset = 0;
+    size_t payload_offset = 0;
+    const size_t header_size = offsetof(struct sfcp_embed_reply_t, payload);
     uint32_t i;
 
-    assert(reply != NULL);
-    assert(return_val != NULL);
+    if ((reply == NULL) || (return_val == NULL) || (out_len > PSA_MAX_IOVEC) ||
+        ((out_len != 0) && (out_vec == NULL)) || (reply_size < header_size) ||
+        (reply_size > sizeof(*reply))) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
 
-    for (i = 0U; i < out_len; ++i) {
-        if ((sizeof(*reply) - sizeof(reply->payload) + payload_offset) > reply_size) {
+    /* Validate the complete reply before changing caller buffers or lengths. */
+    for (i = 0; i < out_len; ++i) {
+        if ((reply->out_size[i] > out_vec[i].len) ||
+            (reply->out_size[i] > reply_size - header_size - payload_offset) ||
+            ((reply->out_size[i] != 0) && (out_vec[i].base == NULL))) {
             return PSA_ERROR_INVALID_ARGUMENT;
         }
+        payload_offset += reply->out_size[i];
+    }
 
-        memcpy(out_vec[i].base, reply->payload + payload_offset, reply->out_size[i]);
+    payload_offset = 0;
+    for (i = 0; i < out_len; ++i) {
+        if (reply->out_size[i] != 0) {
+            memcpy(out_vec[i].base, reply->payload + payload_offset, reply->out_size[i]);
+        }
         out_vec[i].len = reply->out_size[i];
         payload_offset += reply->out_size[i];
     }
