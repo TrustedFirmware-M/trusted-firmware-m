@@ -944,6 +944,9 @@ error_reply:
         }
     }
 
+    /* Failed pops retain ownership, including after sending an error. */
+    return sfcp_err;
+
 pop_message: {
     enum sfcp_error_t pop_buffer_sfcp_error = sfcp_pop_handler_buffer(buffer_handle);
     if (pop_buffer_sfcp_error != SFCP_ERROR_SUCCESS) {
@@ -1087,6 +1090,9 @@ error_reply:
             return send_reply_error;
         }
     }
+
+    /* Failed pops retain ownership, including after sending an error. */
+    return sfcp_err;
 
 pop_message: {
     enum sfcp_error_t pop_buffer_sfcp_error = sfcp_pop_handler_buffer(buffer_handle);
