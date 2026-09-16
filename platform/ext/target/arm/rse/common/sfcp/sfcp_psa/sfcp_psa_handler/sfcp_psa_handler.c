@@ -39,6 +39,7 @@ struct sfcp_pool_entry_t {
     sfcp_buffer_handle_t buffer_handle;
     struct client_request_t req;
     struct sfcp_msg_metadata_t metadata;
+    bool request_valid;
 };
 
 TFM_POOL_DECLARE(sfcp_pool, sizeof(struct sfcp_pool_entry_t), SFCP_PSA_HANDLER_MAX_CONCURRENT_REQ);
@@ -151,6 +152,7 @@ static psa_status_t message_deserialize_dispatch(struct sfcp_pool_entry_t *pool_
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
+    pool_entry->request_valid = true;
     return tfm_rpc_psa_call(req->handle, PARAM_PACK(req->type, req->in_len, req->out_len), &params,
                             pool_entry);
 }
@@ -191,8 +193,15 @@ static void sfcp_reply(const void *owner, int32_t ret)
         goto out_error;
     }
 
-    plat_err = sfcp_protocol_serialize_reply(req, (struct serialized_psa_reply_t *)payload,
-                                             &psa_payload_size);
+    if (pool_entry->request_valid) {
+        plat_err = sfcp_protocol_serialize_reply(req, (struct serialized_psa_reply_t *)payload,
+                                                 &psa_payload_size);
+    } else {
+        struct serialized_sfcp_header_t header = {.protocol_ver = req->protocol_ver};
+
+        plat_err = sfcp_protocol_serialize_error(
+            req, &header, ret, (struct serialized_psa_reply_t *)payload, &psa_payload_size);
+    }
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         goto out_error;
     }
@@ -208,6 +217,10 @@ static void sfcp_reply(const void *owner, int32_t ret)
 out_error:
     VERBOSE_UNPRIV_RAW("[SFCP] Sending reply failed!: %d\n", plat_err);
 out_free:
+#ifdef SFCP_PROTOCOL_POINTER_ACCESS_ENABLED
+    /* Serialization normally releases mappings. Also cover failures before it. */
+    (void)comms_atu_free_regions(req->atu_regions);
+#endif
     /* Prevent concurrent queue accesses from sfcp_handler which is called
      * in interrupt context
      */
@@ -251,6 +264,7 @@ static void sfcp_handle_req(void)
          * will be completely populated
          */
         memset(&pool_entry->req, 0, sizeof(pool_entry->req));
+        pool_entry->request_valid = false;
 
         sfcp_err = sfcp_pop_msg_from_buffer(pool_entry->buffer_handle, &sender, &client_id,
                                             &needs_reply, psa_payload_buf, sizeof(psa_payload_buf),

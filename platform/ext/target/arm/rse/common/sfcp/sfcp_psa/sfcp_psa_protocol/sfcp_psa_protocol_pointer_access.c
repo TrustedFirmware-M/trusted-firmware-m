@@ -6,6 +6,7 @@
  */
 
 #include <assert.h>
+#include <string.h>
 
 #include "sfcp_psa_protocol_pointer_access.h"
 #include "sfcp_psa_client_request.h"
@@ -56,15 +57,16 @@ psa_status_t sfcp_protocol_pointer_access_deserialize_msg(struct client_request_
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
+    /* Validate counts before publishing them to an error-reply path. */
+    if (PARAM_UNPACK_IN_LEN(msg->ctrl_param) + PARAM_UNPACK_OUT_LEN(msg->ctrl_param) >
+        PSA_MAX_IOVEC) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
     req->in_len = PARAM_UNPACK_IN_LEN(msg->ctrl_param);
     req->out_len = PARAM_UNPACK_OUT_LEN(msg->ctrl_param);
     req->type = PARAM_UNPACK_TYPE(msg->ctrl_param);
     req->handle = msg->handle;
-
-    /* Only support 4 iovecs */
-    if (req->in_len + req->out_len > PSA_MAX_IOVEC) {
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
 
     /* Invecs */
     for (idx = 0; idx < req->in_len; idx++) {
@@ -81,6 +83,7 @@ psa_status_t sfcp_protocol_pointer_access_deserialize_msg(struct client_request_
 
         err = comms_atu_add_region_to_set(&req->atu_regions, atu_region);
         if (err != TFM_PLAT_ERR_SUCCESS) {
+            (void)comms_atu_free_region(atu_region);
             return PSA_ERROR_INVALID_ARGUMENT;
         }
 
@@ -110,6 +113,7 @@ psa_status_t sfcp_protocol_pointer_access_deserialize_msg(struct client_request_
 
         err = comms_atu_add_region_to_set(&req->atu_regions, atu_region);
         if (err != TFM_PLAT_ERR_SUCCESS) {
+            (void)comms_atu_free_region(atu_region);
             return PSA_ERROR_INVALID_ARGUMENT;
         }
 
@@ -141,6 +145,7 @@ psa_status_t sfcp_protocol_pointer_access_serialize_reply(struct client_request_
 
     *reply_size = sizeof(*reply);
     comms_atu_free_regions(req->atu_regions);
+    memset(&req->atu_regions, 0, sizeof(req->atu_regions));
 
     return PSA_SUCCESS;
 }
@@ -183,6 +188,7 @@ psa_status_t sfcp_protocol_pointer_access_serialize_error(struct client_request_
     *reply_size = sizeof(*reply);
     if (req != NULL) {
         comms_atu_free_regions(req->atu_regions);
+        memset(&req->atu_regions, 0, sizeof(req->atu_regions));
     }
 
     return PSA_SUCCESS;

@@ -60,18 +60,22 @@ psa_status_t sfcp_protocol_embed_deserialize_msg(struct client_request_t *req,
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
+    /* Validate counts before publishing them to an error-reply path. */
+    if (PARAM_UNPACK_IN_LEN(msg->ctrl_param) + PARAM_UNPACK_OUT_LEN(msg->ctrl_param) >
+        PSA_MAX_IOVEC) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+
     req->in_len = PARAM_UNPACK_IN_LEN(msg->ctrl_param);
     req->out_len = PARAM_UNPACK_OUT_LEN(msg->ctrl_param);
     req->type = PARAM_UNPACK_TYPE(msg->ctrl_param);
     req->handle = msg->handle;
 
-    /* Only support 4 iovecs */
-    if (req->in_len + req->out_len > 4) {
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
-
     /* Invecs */
     for (i = 0; i < req->in_len; ++i) {
+        if (msg->io_size[i] > sizeof(req->param_copy_buf) - payload_size) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
         req->in_vec[i].base = req->param_copy_buf + payload_size;
         req->in_vec[i].len = msg->io_size[i];
         payload_size += msg->io_size[i];
@@ -88,6 +92,9 @@ psa_status_t sfcp_protocol_embed_deserialize_msg(struct client_request_t *req,
 
     /* Outvecs */
     for (i = 0; i < req->out_len; ++i) {
+        if (msg->io_size[req->in_len + i] > sizeof(req->param_copy_buf) - payload_size) {
+            return PSA_ERROR_INVALID_ARGUMENT;
+        }
         req->out_vec[i].base = req->param_copy_buf + payload_size;
         req->out_vec[i].len = msg->io_size[req->in_len + i];
         payload_size += msg->io_size[req->in_len + i];
