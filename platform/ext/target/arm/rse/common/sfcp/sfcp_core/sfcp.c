@@ -210,7 +210,7 @@ enum sfcp_error_t sfcp_init_msg(uint8_t *buf, size_t buf_size, sfcp_node_id_t re
     *msg_size = buf_size;
 
     populate_reply_metadata(metadata, receiver, uses_cryptography, client_id, application_id,
-                            message_id, trusted_subnet_id);
+                            message_id, found_trusted_subnet ? trusted_subnet->id : 0);
 
     return SFCP_ERROR_SUCCESS;
 }

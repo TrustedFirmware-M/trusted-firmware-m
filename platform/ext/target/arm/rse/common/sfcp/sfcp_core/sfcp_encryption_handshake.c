@@ -127,8 +127,8 @@ static enum sfcp_error_t construct_send_handshake_msg(sfcp_node_id_t receiver_no
     size_t msg_size;
 
     sfcp_err = sfcp_init_msg(sfcp_packet_buffer, sizeof(sfcp_packet_buffer), receiver_node, 0, 0,
-                             true, false, 0, &handshake_payload, &handshake_payload_len, &msg,
-                             &msg_size, metadata);
+                             true, true, trusted_subnet_id, &handshake_payload,
+                             &handshake_payload_len, &msg, &msg_size, metadata);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         return sfcp_err;
     }
