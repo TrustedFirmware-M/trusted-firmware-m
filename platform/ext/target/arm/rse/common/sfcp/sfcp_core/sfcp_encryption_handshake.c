@@ -664,6 +664,8 @@ static void reset_trusted_subnet_seq_num(struct sfcp_trusted_subnet_config_t *tr
 
         node_config->send_seq_num = 0;
         node_config->recv_seq_num = 0;
+        node_config->bitfield_start_index = 0;
+        memset(node_config->inflight_bitfield, 0, sizeof(node_config->inflight_bitfield));
     }
 }
 
