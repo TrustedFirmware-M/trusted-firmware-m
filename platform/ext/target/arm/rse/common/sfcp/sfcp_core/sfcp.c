@@ -41,13 +41,6 @@ struct sfcp_handler_table_entry_t {
 static struct sfcp_handler_table_entry_t sfcp_msg_handlers[SFCP_MAX_NUMBER_MESSAGE_HANDLERS];
 static struct sfcp_handler_table_entry_t sfcp_reply_handlers[SFCP_MAX_NUMBER_REPLY_HANDLERS];
 
-struct sfcp_requires_handshake_t {
-    bool requires_handshake;
-    uint8_t trusted_subnet_id;
-};
-
-static struct sfcp_requires_handshake_t sfcp_requires_handshake;
-
 static inline enum sfcp_error_t
 sfcp_protocol_error_to_sfcp_error(enum sfcp_protocol_error_t protocol_error)
 {
@@ -125,6 +118,7 @@ enum sfcp_error_t sfcp_init_msg(uint8_t *buf, size_t buf_size, sfcp_node_id_t re
     struct sfcp_trusted_subnet_config_t *trusted_subnet;
     bool found_trusted_subnet = false;
     bool uses_cryptography;
+    bool requires_handshake;
 
     if ((buf == NULL) || (payload == NULL) || (payload_len == NULL) || (msg == NULL) ||
         (msg_size == NULL) || (metadata == NULL)) {
@@ -157,14 +151,11 @@ enum sfcp_error_t sfcp_init_msg(uint8_t *buf, size_t buf_size, sfcp_node_id_t re
 
     if (found_trusted_subnet) {
         sfcp_err = sfcp_trusted_subnet_state_requires_handshake_encryption(
-            trusted_subnet->id, &sfcp_requires_handshake.requires_handshake, &uses_cryptography);
+            trusted_subnet->id, &requires_handshake, &uses_cryptography);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             return sfcp_err;
         }
 
-        if (sfcp_requires_handshake.requires_handshake) {
-            sfcp_requires_handshake.trusted_subnet_id = trusted_subnet->id;
-        }
     } else {
         uses_cryptography = false;
     }
@@ -356,13 +347,68 @@ out:
 enum sfcp_error_t sfcp_send_msg(struct sfcp_packet_t *msg, size_t msg_size, size_t payload_size)
 {
     enum sfcp_error_t sfcp_err;
+    struct sfcp_trusted_subnet_config_t *subnet;
+    bool encrypted, requires_handshake, requires_encryption;
 
-    if (sfcp_requires_handshake.requires_handshake) {
-        sfcp_err =
-            sfcp_encryption_handshake_initiator(sfcp_requires_handshake.trusted_subnet_id, true);
+    if (msg == NULL) {
+        return SFCP_ERROR_INVALID_POINTER;
+    }
+    if (msg_size < sizeof(msg->header)) {
+        return SFCP_ERROR_MESSAGE_TOO_SMALL;
+    }
+    encrypted = GET_METADATA_FIELD(USES_CRYPTOGRAPHY, msg->header.metadata);
+    if (msg_size < SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(
+                       encrypted, GET_METADATA_FIELD(USES_ID_EXTENSION, msg->header.metadata))) {
+        return SFCP_ERROR_MESSAGE_TOO_SMALL;
+    }
+
+    /* Reject used packets before a retry can initiate another handshake. */
+    if (encrypted && (msg->cryptography_used.cryptography_metadata.config.seq_num !=
+                      SFCP_SEQUENCE_NUMBER_UNASSIGNED)) {
+        return SFCP_ERROR_ENCRYPTED_PACKET_ALREADY_SENT;
+    }
+
+    if (payload_size >
+        msg_size - SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(
+                       encrypted, GET_METADATA_FIELD(USES_ID_EXTENSION, msg->header.metadata))) {
+        return SFCP_ERROR_PAYLOAD_TOO_LARGE;
+    }
+    if (msg->header.receiver_id >= SFCP_NUMBER_NODES) {
+        return SFCP_ERROR_INVALID_NODE;
+    }
+
+    /* Derive the policy from this packet, never from the last initialized one. */
+    if (encrypted) {
+        sfcp_err = sfcp_get_trusted_subnet_by_id(
+            msg->cryptography_used.cryptography_metadata.config.trusted_subnet_id, &subnet);
+    } else {
+        sfcp_err = sfcp_get_trusted_subnet_for_node(msg->header.receiver_id, &subnet);
+    }
+    if (sfcp_err == SFCP_ERROR_SUCCESS) {
+        sfcp_err = sfcp_trusted_subnet_state_requires_handshake_encryption(
+            subnet->id, &requires_handshake, &requires_encryption);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             return sfcp_err;
         }
+        if (requires_handshake) {
+            sfcp_err = sfcp_encryption_handshake_initiator(subnet->id, true);
+            if (sfcp_err != SFCP_ERROR_SUCCESS) {
+                return sfcp_err;
+            }
+        }
+        enum sfcp_trusted_subnet_state_t state;
+        sfcp_err = sfcp_trusted_subnet_get_state(subnet->id, &state);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            return sfcp_err;
+        }
+        if ((state != SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_NOT_REQUIRED) &&
+            (state != SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_COMPLETED) &&
+            ((state != SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID) || !encrypted ||
+             (subnet->type == SFCP_TRUSTED_SUBNET_INITIALLY_UNTRUSTED_LINKS))) {
+            return SFCP_ERROR_INVALID_TRUSTED_SUBNET_STATE;
+        }
+    } else if (encrypted || (sfcp_err != SFCP_ERROR_INVALID_NODE)) {
+        return sfcp_err;
     }
 
     return sfcp_send_packet(msg, msg_size, payload_size, true, false);
