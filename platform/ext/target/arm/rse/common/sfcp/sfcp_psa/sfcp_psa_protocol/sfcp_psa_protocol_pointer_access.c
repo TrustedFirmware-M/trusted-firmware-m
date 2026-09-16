@@ -70,6 +70,11 @@ psa_status_t sfcp_protocol_pointer_access_deserialize_msg(struct client_request_
 
     /* Invecs */
     for (idx = 0; idx < req->in_len; idx++) {
+        if (msg->io_sizes[idx] == 0) {
+            req->in_vec[idx].base = NULL;
+            req->in_vec[idx].len = 0;
+            continue;
+        }
         err = comms_permissions_memory_check(req->remote_id, msg->host_ptrs[idx],
                                              msg->io_sizes[idx], false);
         if (err != TFM_PLAT_ERR_SUCCESS) {
@@ -99,6 +104,11 @@ psa_status_t sfcp_protocol_pointer_access_deserialize_msg(struct client_request_
 
     /* Outvecs */
     for (idx = 0; idx < req->out_len; idx++) {
+        if (msg->io_sizes[idx + req->in_len] == 0) {
+            req->out_vec[idx].base = NULL;
+            req->out_vec[idx].len = 0;
+            continue;
+        }
         err = comms_permissions_memory_check(req->remote_id, msg->host_ptrs[idx + req->in_len],
                                              msg->io_sizes[idx + req->in_len], true);
         if (err != TFM_PLAT_ERR_SUCCESS) {
