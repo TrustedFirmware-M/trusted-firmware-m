@@ -19,6 +19,10 @@ extern "C" {
 #define SFCP_INFLIGHT_BITFIELD_SIZE 8
 #endif
 
+#if (SFCP_INFLIGHT_BITFIELD_SIZE < 1) || (SFCP_INFLIGHT_BITFIELD_SIZE > 256)
+#error "SFCP receive windows must contain between 1 and 256 bits"
+#endif
+
 #define SFCP_TRUSTED_SUBNET_RE_KEY_SEQ_NUM (UINT16_MAX - 16)
 
 enum sfcp_cryptography_mode_t {
@@ -50,7 +54,8 @@ struct sfcp_trusted_subnet_config_t {
     enum sfcp_trusted_subnet_type_t type;
     uint32_t key_id;
     enum sfcp_cryptography_mode_t mode;
-    uint8_t node_amount;
+    /* Keep oversized configuration counts representable until validation. */
+    uint16_t node_amount;
     struct sfcp_trusted_subnet_node_t *nodes;
 };
 

@@ -59,7 +59,7 @@ static enum sfcp_error_t get_node_id_from_link_id(sfcp_link_id_t link_id, sfcp_n
                                                   sfcp_node_id_t my_node_id)
 {
     /* Assume point-to-point links for the case of legacy SFCP protocol */
-    for (sfcp_node_id_t node = 0; node < SFCP_NUMBER_NODES; node++) {
+    for (size_t node = 0; node < SFCP_NUMBER_NODES; node++) {
         if (node == my_node_id) {
             continue;
         }

@@ -1426,7 +1426,7 @@ static enum sfcp_error_t msg_process(struct sfcp_packet_t *packet, size_t packet
 
     sfcp_platform_get_trusted_subnets(&configs, &num_trusted_subnets);
 
-    for (uint8_t i = 0; i < num_trusted_subnets; i++) {
+    for (size_t i = 0; i < num_trusted_subnets; i++) {
         sfcp_err = msg_process_for_trusted_subnet(packet, packet_size, remote_node, my_node_id,
                                                   message_id, packet_encrypted, payload,
                                                   payload_size, &configs[i], msg_processed);

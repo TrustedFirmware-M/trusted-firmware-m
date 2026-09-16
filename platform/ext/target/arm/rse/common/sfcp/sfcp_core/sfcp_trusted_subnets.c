@@ -64,7 +64,27 @@ enum sfcp_error_t sfcp_trusted_subnet_state_init(void)
 
     sfcp_platform_get_trusted_subnets(&configs, &num_configs);
 
+    if ((num_configs > SFCP_MAX_TRUSTED_SUBNET_ID) || ((num_configs != 0) && (configs == NULL))) {
+        return SFCP_ERROR_INVALID_TRUSTED_SUBNET_ID;
+    }
+    memset(trusted_subnet_states, 0, sizeof(trusted_subnet_states));
     for (size_t i = 0; i < num_configs; i++) {
+        /* The IV count on the wire is one byte, even in a 256-node network. */
+        if ((configs[i].id >= SFCP_MAX_TRUSTED_SUBNET_ID) || (configs[i].nodes == NULL) ||
+            (configs[i].node_amount == 0) || (configs[i].node_amount > UINT8_MAX) ||
+            (trusted_subnet_states[configs[i].id] != SFCP_TRUSTED_SUBNET_STATE_NOT_REGISTERED)) {
+            return SFCP_ERROR_INVALID_TRUSTED_SUBNET_ID;
+        }
+        for (uint8_t j = 0; j < configs[i].node_amount; j++) {
+            if (configs[i].nodes[j].id >= SFCP_NUMBER_NODES) {
+                return SFCP_ERROR_INVALID_TRUSTED_SUBNET_NODE_ID;
+            }
+            for (uint8_t k = 0; k < j; k++) {
+                if (configs[i].nodes[k].id == configs[i].nodes[j].id) {
+                    return SFCP_ERROR_INVALID_TRUSTED_SUBNET_NODE_ID;
+                }
+            }
+        }
         switch (configs[i].type) {
         case SFCP_TRUSTED_SUBNET_TRUSTED_LINKS:
             trusted_subnet_states[configs[i].id] =
@@ -331,9 +351,10 @@ sfcp_trusted_subnet_check_recv_seq_num(struct sfcp_trusted_subnet_config_t *trus
         clear_bitfield_bit(trusted_subnet_node->inflight_bitfield,
                            trusted_subnet_node->bitfield_start_index);
 
-        trusted_subnet_node->bitfield_start_index++;
-        if (trusted_subnet_node->bitfield_start_index >= SFCP_INFLIGHT_BITFIELD_SIZE) {
+        if (trusted_subnet_node->bitfield_start_index == SFCP_INFLIGHT_BITFIELD_SIZE - 1) {
             trusted_subnet_node->bitfield_start_index = 0;
+        } else {
+            trusted_subnet_node->bitfield_start_index++;
         }
 
         trusted_subnet_node->recv_seq_num++;

@@ -562,7 +562,7 @@ static enum sfcp_error_t receive_msg_reply(uint8_t *buf, size_t buf_size, bool a
         end_node = remote_id;
     }
 
-    for (sfcp_node_id_t node = start_node; node <= end_node; node++) {
+    for (size_t node = start_node; node <= end_node; node++) {
         if (node == *my_node_id) {
             continue;
         }
@@ -862,7 +862,7 @@ enum sfcp_error_t sfcp_get_msg_handler(uint16_t application_id, sfcp_handler_t *
         return SFCP_ERROR_INVALID_POINTER;
     }
 
-    for (uint8_t i = 0; i < SFCP_MAX_NUMBER_MESSAGE_HANDLERS; i++) {
+    for (size_t i = 0; i < SFCP_MAX_NUMBER_MESSAGE_HANDLERS; i++) {
         if (sfcp_msg_handlers[i].in_use &&
             (sfcp_msg_handlers[i].application_id == application_id)) {
             *handler = sfcp_msg_handlers[i].handler;
@@ -879,7 +879,7 @@ enum sfcp_error_t sfcp_register_msg_handler(uint16_t application_id, sfcp_handle
         return SFCP_ERROR_INVALID_POINTER;
     }
 
-    for (uint8_t i = 0; i < SFCP_MAX_NUMBER_MESSAGE_HANDLERS; i++) {
+    for (size_t i = 0; i < SFCP_MAX_NUMBER_MESSAGE_HANDLERS; i++) {
         if (!sfcp_msg_handlers[i].in_use) {
             sfcp_msg_handlers[i].handler = handler;
             sfcp_msg_handlers[i].application_id = application_id;
@@ -1017,7 +1017,7 @@ pop_message: {
 
 enum sfcp_error_t sfcp_get_reply_handler(uint16_t client_id, sfcp_handler_t *handler)
 {
-    for (uint8_t i = 0; i < SFCP_MAX_NUMBER_REPLY_HANDLERS; i++) {
+    for (size_t i = 0; i < SFCP_MAX_NUMBER_REPLY_HANDLERS; i++) {
         if (sfcp_reply_handlers[i].in_use && (sfcp_reply_handlers[i].client_id == client_id)) {
             *handler = sfcp_reply_handlers[i].handler;
             return SFCP_ERROR_SUCCESS;
@@ -1029,7 +1029,7 @@ enum sfcp_error_t sfcp_get_reply_handler(uint16_t client_id, sfcp_handler_t *han
 
 enum sfcp_error_t sfcp_register_reply_handler(uint16_t client_id, sfcp_handler_t handler)
 {
-    for (uint8_t i = 0; i < SFCP_MAX_NUMBER_REPLY_HANDLERS; i++) {
+    for (size_t i = 0; i < SFCP_MAX_NUMBER_REPLY_HANDLERS; i++) {
         if (!sfcp_reply_handlers[i].in_use) {
             sfcp_reply_handlers[i].handler = handler;
             sfcp_reply_handlers[i].client_id = client_id;

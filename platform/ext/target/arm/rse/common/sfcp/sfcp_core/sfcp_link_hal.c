@@ -57,7 +57,17 @@ sfcp_link_id_t sfcp_hal_get_route(sfcp_node_id_t node_id)
 
 enum sfcp_hal_error_t sfcp_hal_get_my_node_id(sfcp_node_id_t *node_id)
 {
-    *node_id = sfcp_platform_get_my_node_id();
+    sfcp_node_id_t id = sfcp_platform_get_my_node_id();
+
+    if (node_id == NULL) {
+        return SFCP_HAL_ERROR_CANNOT_GET_ID;
+    }
+#if SFCP_NUMBER_NODES < 256
+    if (id >= SFCP_NUMBER_NODES) {
+        return SFCP_HAL_ERROR_CANNOT_GET_ID;
+    }
+#endif
+    *node_id = id;
 
     return SFCP_HAL_ERROR_SUCCESS;
 }
@@ -828,7 +838,11 @@ enum sfcp_hal_error_t sfcp_hal_init(void)
     memset(receive_aborted, 0, sizeof(receive_aborted));
     get_routing_tables_and_rse_id(&routing_tables, &routing_tables_size, &rse_id);
 
-    for (sfcp_node_id_t node = 0; node < routing_tables_size; node++) {
+    if ((routing_tables_size > SFCP_NUMBER_NODES) || (rse_id >= SFCP_NUMBER_NODES)) {
+        return SFCP_HAL_ERROR_CANNOT_GET_ROUTING_TABLES;
+    }
+
+    for (size_t node = 0; node < routing_tables_size; node++) {
         if (node == rse_id) {
             continue;
         }

@@ -38,7 +38,7 @@ enum sfcp_error_t sfcp_allocate_handler_buffer(sfcp_buffer_handle_t *buffer_hand
 
     /* Prevent potential concurrent access from higher priority interrupts */
     CRITICAL_SECTION_ENTER(cs_assert);
-    for (uint8_t i = 0; i < SFCP_MAX_CONCURRENT_REQ; i++) {
+    for (size_t i = 0; i < SFCP_MAX_CONCURRENT_REQ; i++) {
         if (!sfcp_buffer[i].in_use) {
             *buffer_handle = i;
             sfcp_buffer[i].in_use = true;

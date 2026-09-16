@@ -10,6 +10,10 @@
 
 #include <stdint.h>
 
+#if defined(SFCP_NUMBER_NODES) && ((SFCP_NUMBER_NODES < 1) || (SFCP_NUMBER_NODES > 256))
+#error "SFCP node IDs support between 1 and 256 nodes"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
