@@ -272,7 +272,7 @@ sfcp_trusted_subnet_check_recv_seq_num(struct sfcp_trusted_subnet_config_t *trus
         return SFCP_ERROR_MSG_ALREADY_RECEIVED;
     }
 
-    if ((seq_num - trusted_subnet_node->recv_seq_num) > SFCP_INFLIGHT_BITFIELD_SIZE) {
+    if ((seq_num - trusted_subnet_node->recv_seq_num) >= SFCP_INFLIGHT_BITFIELD_SIZE) {
         return SFCP_ERROR_MSG_OUT_OF_ORDER_TEMPORARY_FAILURE;
     }
 
