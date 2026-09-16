@@ -15,6 +15,7 @@
 
 #include "internal_status_code.h"
 #include "sfcp_runtime_hal.h"
+#include "sfcp_handler_buffer.h"
 #include "sfcp_psa_queue.h"
 #include "tfm_rpc.h"
 #include "tfm_multi_core.h"
@@ -256,12 +257,14 @@ static void sfcp_handle_req(void)
                                             &payload_size, &pool_entry->metadata);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             VERBOSE_UNPRIV_RAW("[SFCP] Pop msg from buffer failed: %d\n", sfcp_err);
-            continue;
+            /* A failed pop retains the packet. This worker is discarding it. */
+            (void)sfcp_pop_handler_buffer(pool_entry->buffer_handle);
+            goto discard_request;
         }
 
         if (!needs_reply) {
             VERBOSE_UNPRIV_RAW("[SFCP] Expecting a message which needs a reply\n");
-            continue;
+            goto discard_request;
         }
 
         pool_entry->req.client_id = client_id;
@@ -285,6 +288,12 @@ static void sfcp_handle_req(void)
         /* In SFN model, the service call has been finished. Reply to the peer directly. */
         sfcp_reply(pool_entry, status);
 #endif
+        continue;
+
+discard_request:
+        CRITICAL_SECTION_ENTER(cs_assert);
+        tfm_pool_free(sfcp_pool, pool_entry);
+        CRITICAL_SECTION_LEAVE(cs_assert);
     }
 }
 
