@@ -264,7 +264,7 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
 out_error:
     if (buffer_allocation_failure) {
         enum sfcp_error_t buffer_allocation_failure_error;
-        struct sfcp_packet_t buffer_failure_packet;
+        __ALIGNED(4) struct sfcp_packet_t buffer_failure_packet;
         size_t size_to_receive;
 
         /* Only receive the header or the maximum possible size if the message is smaller */
@@ -280,6 +280,15 @@ out_error:
             return sfcp_hal_error_to_sfcp_error(hal_err);
         }
 
+        /* Use the packet stack buffer that we have to read out the rest of the message
+         * to prevent the sender blocking */
+        if (message_size > size_to_receive) {
+            enum sfcp_error_t discard_err = sfcp_helpers_drop_receive_message(link_id, message_size,
+                                                                              size_to_receive);
+            if (discard_err != SFCP_ERROR_SUCCESS) {
+                return discard_err;
+            }
+        }
         buffer_allocation_failure_error = sfcp_helpers_parse_packet(
             &buffer_failure_packet, size_to_receive, &packet_sender, &packet_receiver, &message_id,
             &packet_uses_crypto, &uses_id_extension, &packet_application_id, &packet_client_id,
@@ -287,14 +296,6 @@ out_error:
         if (buffer_allocation_failure_error != SFCP_ERROR_SUCCESS) {
             /* Cannot parse this packet so must drop */
             return buffer_allocation_failure_error;
-        }
-
-        /* Use the packet stack buffer that we have to read out the rest of the message
-         * to prevent the sender blocking */
-        if (message_size > size_to_receive) {
-            /* Ignore error code as we will send a protocol error reply
-             * anyway */
-            (void)sfcp_helpers_drop_receive_message(link_id, message_size, size_to_receive);
         }
     }
 

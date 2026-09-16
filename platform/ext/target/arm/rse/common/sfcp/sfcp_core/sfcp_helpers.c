@@ -130,9 +130,20 @@ enum sfcp_error_t sfcp_helpers_drop_receive_message(sfcp_link_id_t link_id, size
                                                     size_t already_received)
 {
     enum sfcp_hal_error_t hal_err;
-    size_t remaining = message_size - already_received;
+    size_t remaining;
     /* 32-byte buffer used to read out message */
     __ALIGNED(4) uint8_t drop_message_buf[32];
+
+    if (already_received > message_size) {
+        return SFCP_ERROR_INVALID_PACKET_SIZE;
+    }
+    remaining = message_size - already_received;
+    /* Bound rejected traffic independently of the remote length field. A
+     * transfer that is excessively large requires coordinated link reset.
+     */
+    if (remaining > UINT16_MAX) {
+        return sfcp_hal_error_to_sfcp_error(sfcp_hal_abort_receive(link_id));
+    }
 
     while (remaining > 0) {
         size_t chunk = remaining;

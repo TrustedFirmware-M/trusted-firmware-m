@@ -28,6 +28,7 @@ enum sfcp_hal_error_t {
     SFCP_HAL_ERROR_INVALID_RECEIVE_SIZE,
     SFCP_HAL_ERROR_SEND_MESSAGE_BUS_BUSY,
     SFCP_HAL_ERROR_MESSAGE_NOT_AVAILABLE,
+    SFCP_HAL_ERROR_RECEIVE_ABORTED,
     SFCP_HAL_ERROR_MAX,
     SFCP_HAL_ERROR_FORCE_UINT32 = UINT32_MAX,
 };
@@ -124,6 +125,11 @@ enum sfcp_hal_error_t sfcp_hal_receive_message(sfcp_link_id_t link_id, uint8_t *
  *
  * \return SFCP_HAL_ERROR_SUCCESS on successful initialization, or an appropriate error code.
  */
+/* Quarantine a rejected transfer. The peer and local transport must be
+ * reset together before calling sfcp_hal_init() to re-enable this link.
+ */
+enum sfcp_hal_error_t sfcp_hal_abort_receive(sfcp_link_id_t link_id);
+
 enum sfcp_hal_error_t sfcp_hal_init(void);
 
 #ifdef __cplusplus
