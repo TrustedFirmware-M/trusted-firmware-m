@@ -162,8 +162,7 @@ enum sfcp_error_t sfcp_helpers_encryption_handshake_validate(
 {
     enum sfcp_error_t sfcp_err;
     struct sfcp_trusted_subnet_config_t *trusted_subnet;
-    bool requires_handshake;
-    bool requires_encryption;
+    enum sfcp_trusted_subnet_state_t state;
     bool remote_node_is_member = false;
 
     if (packet_type == SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY) {
@@ -205,15 +204,27 @@ enum sfcp_error_t sfcp_helpers_encryption_handshake_validate(
         }
     }
 
-    sfcp_err = sfcp_trusted_subnet_state_requires_handshake_encryption(
-        trusted_subnet->id, &requires_handshake, &requires_encryption);
+    /* Handshake plaintext is admitted only by the responder above. Ordinary
+     * traffic requires the final trust state, even while key setup is active.
+     */
+    sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet->id, &state);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         return sfcp_err;
     }
 
-    if (requires_handshake || (requires_encryption && !packet_uses_crypto)) {
-        return SFCP_ERROR_INVALID_MSG;
+    switch (state) {
+    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_NOT_REQUIRED:
+    case SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_COMPLETED:
+        return SFCP_ERROR_SUCCESS;
+    case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID:
+        if (packet_uses_crypto &&
+            (trusted_subnet->type != SFCP_TRUSTED_SUBNET_INITIALLY_UNTRUSTED_LINKS)) {
+            return SFCP_ERROR_SUCCESS;
+        }
+        break;
+    default:
+        break;
     }
 
-    return SFCP_ERROR_SUCCESS;
+    return SFCP_ERROR_INVALID_MSG;
 }
