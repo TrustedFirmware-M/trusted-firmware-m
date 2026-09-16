@@ -794,8 +794,8 @@ enum sfcp_error_t sfcp_receive_reply(uint8_t *buf, size_t buf_size,
         return SFCP_ERROR_INVALID_NODE;
     }
 
-    if (!uses_id_extension && (metadata.client_id != 0)) {
-        return SFCP_ERROR_INVALID_CLIENT_ID;
+    if (message_id != metadata.message_id) {
+        return SFCP_ERROR_INVALID_SEQUENCE_NUMBER;
     }
 
     if (packet_type == SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY) {
@@ -806,6 +806,10 @@ enum sfcp_error_t sfcp_receive_reply(uint8_t *buf, size_t buf_size,
             /* Error message for a different client ID, drop */
             return SFCP_ERROR_NO_REPLY_AVAILABLE;
         }
+    }
+
+    if (!uses_id_extension && (metadata.client_id != 0)) {
+        return SFCP_ERROR_INVALID_CLIENT_ID;
     }
 
     if (uses_id_extension && (packet_client_id != metadata.client_id)) {
@@ -821,10 +825,6 @@ enum sfcp_error_t sfcp_receive_reply(uint8_t *buf, size_t buf_size,
 
     if (packet_uses_crypto != metadata.uses_cryptography) {
         return SFCP_ERROR_INVALID_CRYPTO_MODE;
-    }
-
-    if (message_id != metadata.message_id) {
-        return SFCP_ERROR_INVALID_SEQUENCE_NUMBER;
     }
 
     if (packet_uses_crypto &&
@@ -1105,6 +1105,10 @@ enum sfcp_error_t sfcp_pop_reply_from_buffer(sfcp_buffer_handle_t buffer_handle,
     }
 
     if (packet_type == SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY) {
+        populate_reply_metadata(metadata, packet_receiver, false, packet_client_id, 0, message_id,
+                                0);
+        *payload_size = 0;
+        /* An error return retains the packet, as with other failed pops. */
         return sfcp_protocol_error_to_sfcp_error(packet->error_reply.protocol_error);
     }
 

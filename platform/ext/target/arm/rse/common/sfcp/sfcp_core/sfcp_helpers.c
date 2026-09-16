@@ -101,7 +101,9 @@ bool sfcp_helpers_packet_requires_forwarding_get_destination(sfcp_node_id_t send
         return true;
     }
 
-    reply_requires_forwarding = (packet_type == SFCP_PACKET_TYPE_REPLY) && (sender != my_node_id);
+    reply_requires_forwarding = ((packet_type == SFCP_PACKET_TYPE_REPLY) ||
+                                 (packet_type == SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY)) &&
+                                (sender != my_node_id);
     if (reply_requires_forwarding) {
         *destination = sender;
         return true;
