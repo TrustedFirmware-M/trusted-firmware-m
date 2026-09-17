@@ -566,7 +566,13 @@ static enum sfcp_error_t handle_client_request(struct sfcp_trusted_subnet_config
                                                bool re_keying)
 {
     enum sfcp_error_t sfcp_err;
-    enum sfcp_trusted_subnet_state_t new_state;
+    enum sfcp_trusted_subnet_state_t new_state, initial_state;
+    enum sfcp_error_t rollback_err;
+
+    sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet->id, &initial_state);
+    if (sfcp_err != SFCP_ERROR_SUCCESS) {
+        return sfcp_err;
+    }
 
     if (!re_keying) {
         new_state = SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_RECIEVED_CLIENT_REQUEST;
@@ -581,11 +587,21 @@ static enum sfcp_error_t handle_client_request(struct sfcp_trusted_subnet_config
 
     sfcp_err = construct_send_reply(encrypt, re_keying, trusted_subnet, sender_node, message_id,
                                     NULL, 0);
+    if (sfcp_err == SFCP_ERROR_SUCCESS) {
+        sfcp_err = encryption_handshake_initiator_server(trusted_subnet, my_node_id, re_keying);
+    }
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        return sfcp_err;
+        /* No key has been installed yet. Retain consumed nonces and replay
+         * state, but allow a fresh request to restart the handshake. */
+        memset(handshake_data[trusted_subnet->id].pending_replies, 0,
+               sizeof(handshake_data[trusted_subnet->id].pending_replies));
+        rollback_err = sfcp_trusted_subnet_set_state(trusted_subnet->id, initial_state);
+        if (rollback_err != SFCP_ERROR_SUCCESS) {
+            return rollback_err;
+        }
     }
 
-    return encryption_handshake_initiator_server(trusted_subnet, my_node_id, re_keying);
+    return sfcp_err;
 }
 
 static enum sfcp_error_t handle_get_iv_reply(struct sfcp_trusted_subnet_config_t *trusted_subnet,
