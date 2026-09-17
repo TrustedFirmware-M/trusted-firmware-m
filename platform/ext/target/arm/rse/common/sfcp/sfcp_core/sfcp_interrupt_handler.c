@@ -50,7 +50,7 @@ static enum sfcp_error_t allocate_get_buffer(sfcp_buffer_handle_t *buffer_handle
     return SFCP_ERROR_SUCCESS;
 }
 
-static enum sfcp_error_t send_protocol_error(sfcp_node_id_t node_id, sfcp_node_id_t my_node_id,
+static enum sfcp_error_t send_protocol_error(sfcp_node_id_t node_id, sfcp_node_id_t receiver_id,
                                              sfcp_link_id_t link_id, uint16_t client_id,
                                              uint8_t message_id, enum sfcp_protocol_error_t error)
 {
@@ -59,14 +59,20 @@ static enum sfcp_error_t send_protocol_error(sfcp_node_id_t node_id, sfcp_node_i
     struct sfcp_packet_t *packet_ptr = &packet;
     size_t output_msg_size;
 
-    sfcp_helpers_generate_protocol_error_packet(packet_ptr, node_id, my_node_id, link_id, client_id,
-                                                message_id, error);
+    sfcp_helpers_generate_protocol_error_packet(packet_ptr, node_id, receiver_id, link_id,
+                                                client_id, message_id, error);
 
     output_msg_size = SFCP_PACKET_SIZE_ERROR_REPLY;
 
 #ifdef SFCP_SUPPORT_LEGACY_MSG_PROTOCOL
     {
         enum sfcp_error_t sfcp_error;
+        sfcp_node_id_t my_node_id;
+
+        hal_error = sfcp_hal_get_my_node_id(&my_node_id);
+        if (hal_error != SFCP_HAL_ERROR_SUCCESS) {
+            return sfcp_hal_error_to_sfcp_error(hal_error);
+        }
 
         sfcp_error = sfcp_convert_to_legacy((uint8_t *)&packet, SFCP_PACKET_SIZE_ERROR_REPLY,
                                             sfcp_legacy_conversion_buffer,

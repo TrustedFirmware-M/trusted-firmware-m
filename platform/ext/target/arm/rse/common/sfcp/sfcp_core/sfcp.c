@@ -504,12 +504,17 @@ static enum sfcp_error_t send_protocol_error(sfcp_node_id_t sender_id, sfcp_node
 #ifdef SFCP_SUPPORT_LEGACY_MSG_PROTOCOL
     {
         enum sfcp_error_t sfcp_error;
+        sfcp_node_id_t my_node_id;
 
-        sfcp_error = sfcp_convert_to_legacy((uint8_t *)&packet, SFCP_PACKET_SIZE_ERROR_REPLY,
-                                            sfcp_legacy_conversion_buffer,
-                                            sizeof(sfcp_legacy_conversion_buffer), &output_msg_size,
-                                            link_id, receiver_id,
-                                            SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY);
+        hal_error = sfcp_hal_get_my_node_id(&my_node_id);
+        if (hal_error != SFCP_HAL_ERROR_SUCCESS) {
+            return sfcp_hal_error_to_sfcp_error(hal_error);
+        }
+
+        sfcp_error = sfcp_convert_to_legacy(
+            (uint8_t *)&packet, SFCP_PACKET_SIZE_ERROR_REPLY, sfcp_legacy_conversion_buffer,
+            sizeof(sfcp_legacy_conversion_buffer), &output_msg_size, link_id, my_node_id,
+            SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY);
         if (sfcp_error == SFCP_ERROR_SUCCESS) {
             packet_ptr = (struct sfcp_packet_t *)sfcp_legacy_conversion_buffer;
         } else if (sfcp_error != SFCP_ERROR_LEGACY_FORMAT_CONVERSION_NOT_REQUIRED) {
