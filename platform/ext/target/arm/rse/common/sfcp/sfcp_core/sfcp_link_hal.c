@@ -312,6 +312,13 @@ static enum sfcp_hal_error_t mhu_send_signal_poll_loop(void *mhu_send_device, vo
             return mhu_err;
         }
 
+        /* A peer may start its reply as soon as it acknowledges the final
+         * chunk. Completed transmission takes precedence over reverse traffic.
+         */
+        if ((send_signal & MHU_NOTIFY_VALUE) != MHU_NOTIFY_VALUE) {
+            return SFCP_HAL_ERROR_SUCCESS;
+        }
+
         /* Also check the receive device, if we find that a signal is pending
          * for us there, both devices are talking to each other at once. Return
          * an error and let the higher layers decide what to do
@@ -323,7 +330,18 @@ static enum sfcp_hal_error_t mhu_send_signal_poll_loop(void *mhu_send_device, vo
         }
 
         if ((recv_signal & MHU_NOTIFY_VALUE) == MHU_NOTIFY_VALUE) {
-            return SFCP_HAL_ERROR_SEND_MESSAGE_BUS_BUSY;
+            /* The acknowledgement can arrive between the two register reads.
+             * Confirm that our notification is still pending before reporting
+             * a collision with the incoming transfer.
+             */
+            mhu_err = mhu_channel_send_device_receive(mhu_send_device, send_num_channels - 1,
+                                                      &send_signal, type);
+            if (mhu_err != 0) {
+                return mhu_err;
+            }
+            return ((send_signal & MHU_NOTIFY_VALUE) == MHU_NOTIFY_VALUE)
+                       ? SFCP_HAL_ERROR_SEND_MESSAGE_BUS_BUSY
+                       : SFCP_HAL_ERROR_SUCCESS;
         }
     } while ((send_signal & MHU_NOTIFY_VALUE) == MHU_NOTIFY_VALUE);
 
