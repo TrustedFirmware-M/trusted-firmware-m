@@ -370,7 +370,10 @@ static uint32_t mhu_recv_signal_poll_loop(void *mhu_recv_device,
         if (mhu_err != 0) {
             return mhu_err;
         }
-    } while ((recv_signal & MHU_NOTIFY_VALUE) != MHU_NOTIFY_VALUE);
+        if ((recv_signal != 0) && (recv_signal != MHU_NOTIFY_VALUE)) {
+            return SFCP_HAL_ERROR_RECEIVE_ABORTED;
+        }
+    } while (recv_signal != MHU_NOTIFY_VALUE);
 
     return 0;
 }
@@ -388,6 +391,9 @@ static enum sfcp_hal_error_t mhu_message_is_available(void *mhu_recv_device, boo
     }
 
     *is_available = (value == MHU_NOTIFY_VALUE);
+    if ((value != 0) && !*is_available) {
+        return SFCP_HAL_ERROR_RECEIVE_ABORTED;
+    }
 
     return SFCP_HAL_ERROR_SUCCESS;
 }
@@ -495,6 +501,7 @@ enum sfcp_hal_error_t sfcp_hal_send_message(sfcp_link_id_t link_id, const uint8_
                                             size_t message_size)
 {
     struct sfcp_platform_device_t send_device, recv_device;
+    enum sfcp_hal_error_t hal_error;
 
     send_device = sfcp_platform_get_send_device(link_id);
     recv_device = sfcp_platform_get_receive_device(link_id);
@@ -502,24 +509,30 @@ enum sfcp_hal_error_t sfcp_hal_send_message(sfcp_link_id_t link_id, const uint8_
     switch (send_device.type) {
 #ifdef MHU_V2_ENABLED
     case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
-        return mhu_send_message((void *)send_device.device, (void *)recv_device.device, message,
-                                message_size, SFCP_PLATFORM_DEVICE_TYPE_MHUV2);
+        hal_error = mhu_send_message((void *)send_device.device, (void *)recv_device.device,
+                                     message, message_size, SFCP_PLATFORM_DEVICE_TYPE_MHUV2);
+        break;
 #endif
 #ifdef MHU_V3_ENABLED
     case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
-        return mhu_send_message((void *)send_device.device, (void *)recv_device.device, message,
-                                message_size, SFCP_PLATFORM_DEVICE_TYPE_MHUV3);
+        hal_error = mhu_send_message((void *)send_device.device, (void *)recv_device.device,
+                                     message, message_size, SFCP_PLATFORM_DEVICE_TYPE_MHUV3);
+        break;
 #endif
     default:
         return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
     }
 
-    return SFCP_HAL_ERROR_SUCCESS;
+    if (hal_error == SFCP_HAL_ERROR_RECEIVE_ABORTED) {
+        (void)sfcp_hal_abort_receive(link_id);
+    }
+    return hal_error;
 }
 
 enum sfcp_hal_error_t sfcp_hal_is_message_available(sfcp_link_id_t link_id, bool *is_available)
 {
     struct sfcp_platform_device_t device;
+    enum sfcp_hal_error_t hal_error;
 
     if (receive_aborted[link_id]) {
         *is_available = false;
@@ -531,19 +544,25 @@ enum sfcp_hal_error_t sfcp_hal_is_message_available(sfcp_link_id_t link_id, bool
     switch (device.type) {
 #ifdef MHU_V2_ENABLED
     case SFCP_PLATFORM_DEVICE_TYPE_MHUV2:
-        return mhu_message_is_available((void *)device.device, is_available,
-                                        SFCP_PLATFORM_DEVICE_TYPE_MHUV2);
+        hal_error = mhu_message_is_available((void *)device.device, is_available,
+                                             SFCP_PLATFORM_DEVICE_TYPE_MHUV2);
+        break;
 #endif
 #ifdef MHU_V3_ENABLED
     case SFCP_PLATFORM_DEVICE_TYPE_MHUV3:
-        return mhu_message_is_available((void *)device.device, is_available,
-                                        SFCP_PLATFORM_DEVICE_TYPE_MHUV3);
+        hal_error = mhu_message_is_available((void *)device.device, is_available,
+                                             SFCP_PLATFORM_DEVICE_TYPE_MHUV3);
+        break;
 #endif
     default:
         return SFCP_HAL_ERROR_UNSUPPORTED_DEVICE;
     }
 
-    return SFCP_HAL_ERROR_SUCCESS;
+    if (hal_error == SFCP_HAL_ERROR_RECEIVE_ABORTED) {
+        /* A nonzero invalid notification still asserts the hardware IRQ. */
+        (void)sfcp_hal_abort_receive(link_id);
+    }
+    return hal_error;
 }
 
 static enum sfcp_hal_error_t mhu_get_receive_message_size(void *mhu_recv_device,
