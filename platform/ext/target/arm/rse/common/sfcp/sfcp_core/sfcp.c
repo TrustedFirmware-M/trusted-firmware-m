@@ -41,8 +41,8 @@ struct sfcp_handler_table_entry_t {
 static struct sfcp_handler_table_entry_t sfcp_msg_handlers[SFCP_MAX_NUMBER_MESSAGE_HANDLERS];
 static struct sfcp_handler_table_entry_t sfcp_reply_handlers[SFCP_MAX_NUMBER_REPLY_HANDLERS];
 
-static inline enum sfcp_error_t
-sfcp_protocol_error_to_sfcp_error(enum sfcp_protocol_error_t protocol_error)
+/* Keep the full wire value: short enums would alias unknown errors to known ones. */
+static inline enum sfcp_error_t sfcp_protocol_error_to_sfcp_error(uint16_t protocol_error)
 {
     switch (protocol_error) {
     case SFCP_PROTOCOL_ERROR_TRY_AGAIN_LATER:
