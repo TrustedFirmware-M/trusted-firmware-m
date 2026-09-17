@@ -292,7 +292,13 @@ fih_int fih_int_encode(int x)
 /* Standard equality. If A == B then 1, else 0 */
 #define FIH_EQ(x, y) (((x) == (y)) && (bool)fih_delay() && !((y) != (x)))
 #define FIH_NOT_EQ(x, y) (((x) != (y)) || !(bool)fih_delay() || !((y) == (x)))
-#define FIH_SET(x, y) (x) = (y); if((bool)fih_delay() && ((x) != (y))) {FIH_PANIC;}
+#define FIH_SET(x, y)                              \
+    do {                                          \
+        (x) = (y);                                \
+        if ((bool)fih_delay() && ((x) != (y))) {     \
+            FIH_PANIC;                            \
+        }                                         \
+    } while (0)
 
 #else /* FIH_ENABLE_DOUBLE_VARS */
 
@@ -324,8 +330,10 @@ fih_int fih_int_encode(int x)
 
 #endif /* FIH_ENABLE_DOUBLE_VARS */
 
+/* Keep the variable in the caller's scope; FIH_SET is a statement. */
 #define FIH_DECLARE(var, val) \
-    fih_ret FIH_SET(var, val)
+    fih_ret var;             \
+    FIH_SET(var, val)
 
 /* C has a common return pattern where 0 is a correct value and all others are
  * errors. This function converts 0 to FIH_SUCCESS and any other number to a

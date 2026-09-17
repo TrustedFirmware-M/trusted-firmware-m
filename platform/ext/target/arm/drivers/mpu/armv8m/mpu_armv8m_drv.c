@@ -37,7 +37,8 @@ FIH_RET_TYPE(enum mpu_armv8m_error_t) mpu_armv8m_enable(
     __DSB();
     __ISB();
 
-    FIH_RET(FIH_SET(fih_rc, MPU_ARMV8M_OK));
+    FIH_SET(fih_rc, MPU_ARMV8M_OK);
+    FIH_RET(fih_rc);
 }
 
 enum mpu_armv8m_error_t mpu_armv8m_disable(struct mpu_armv8m_dev_t *dev)
@@ -62,10 +63,12 @@ FIH_RET_TYPE(enum mpu_armv8m_error_t) mpu_armv8m_region_enable(
     FIH_DECLARE(fih_rc, FIH_FAILURE);
 
     if ((region_cfg->region_base & ~MPU_RBAR_BASE_Msk) != 0) {
-        FIH_RET(FIH_SET(fih_rc, MPU_ARMV8M_ERROR));
+        FIH_SET(fih_rc, MPU_ARMV8M_ERROR);
+        FIH_RET(fih_rc);
     }
     if ((region_cfg->region_limit & ~MPU_RLAR_LIMIT_Msk) != 0x1F) {
-        FIH_RET(FIH_SET(fih_rc, MPU_ARMV8M_ERROR));
+        FIH_SET(fih_rc, MPU_ARMV8M_ERROR);
+        FIH_RET(fih_rc);
     }
 
     ctrl_before = mpu->CTRL;
@@ -106,7 +109,8 @@ FIH_RET_TYPE(enum mpu_armv8m_error_t) mpu_armv8m_region_enable(
     __DSB();
     __ISB();
 
-    FIH_RET(FIH_SET(fih_rc, MPU_ARMV8M_OK));
+    FIH_SET(fih_rc, MPU_ARMV8M_OK);
+    FIH_RET(fih_rc);
 }
 
 FIH_RET_TYPE(enum mpu_armv8m_error_t) mpu_armv8m_region_disable(
@@ -129,7 +133,8 @@ FIH_RET_TYPE(enum mpu_armv8m_error_t) mpu_armv8m_region_disable(
     /*Restore main MPU control*/
     mpu->CTRL = ctrl_before;
 
-    FIH_RET(FIH_SET(fih_rc, MPU_ARMV8M_OK));
+    FIH_SET(fih_rc, MPU_ARMV8M_OK);
+    FIH_RET(fih_rc);
 }
 
 enum mpu_armv8m_error_t mpu_armv8m_clean(struct mpu_armv8m_dev_t *dev)
