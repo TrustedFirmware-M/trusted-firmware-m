@@ -268,6 +268,7 @@ enum sfcp_error_t sfcp_init_reply(uint8_t *buf, size_t buf_size,
  * \return SFCP_ERROR_SUCCESS on success; the same validation/routing/transport errors as send_msg.
  *
  * \note Normal replies MUST mirror the message’s uses_cryptography bit.
+ *       Required handshakes, including rekeying, complete before transmission.
  *       Protocol error replies are never encrypted.
  *       Encrypted replies follow the same in-place encryption and no-retry
  *       contract as sfcp_send_msg. Reinitialize and refill the plaintext before

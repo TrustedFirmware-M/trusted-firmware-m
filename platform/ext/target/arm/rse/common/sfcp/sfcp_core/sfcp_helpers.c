@@ -234,8 +234,9 @@ enum sfcp_error_t sfcp_helpers_encryption_handshake_validate(
         }
     }
 
-    /* Handshake plaintext is admitted only by the responder above. Ordinary
-     * traffic requires the final trust state, even while key setup is active.
+    /* Handshake plaintext is admitted only by the responder above. A key that
+     * requires rekeying still authenticates incoming ordinary traffic; the next
+     * application send performs the rekey before reserving its sequence.
      */
     sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet->id, &state);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
@@ -247,6 +248,7 @@ enum sfcp_error_t sfcp_helpers_encryption_handshake_validate(
     case SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_COMPLETED:
         return SFCP_ERROR_SUCCESS;
     case SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID:
+    case SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_REQUIRED:
         if (packet_uses_crypto &&
             (trusted_subnet->type != SFCP_TRUSTED_SUBNET_INITIALLY_UNTRUSTED_LINKS)) {
             return SFCP_ERROR_SUCCESS;
