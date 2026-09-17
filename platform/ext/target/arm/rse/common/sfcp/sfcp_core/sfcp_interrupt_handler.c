@@ -13,6 +13,7 @@
 #include "sfcp_helpers.h"
 #include "sfcp_legacy_msg.h"
 #include "sfcp_handler_buffer.h"
+#include "critical_section.h"
 
 static inline enum sfcp_protocol_error_t allocate_error_to_protocol_error(enum sfcp_error_t error)
 {
@@ -58,11 +59,14 @@ static enum sfcp_error_t send_protocol_error(sfcp_node_id_t node_id, sfcp_node_i
     struct sfcp_packet_t packet;
     struct sfcp_packet_t *packet_ptr = &packet;
     size_t output_msg_size;
+    enum sfcp_error_t result;
+    struct critical_section_t cs = CRITICAL_SECTION_STATIC_INIT;
 
     sfcp_helpers_generate_protocol_error_packet(packet_ptr, node_id, receiver_id, link_id,
                                                 client_id, message_id, error);
 
     output_msg_size = SFCP_PACKET_SIZE_ERROR_REPLY;
+    CRITICAL_SECTION_ENTER(cs);
 
 #ifdef SFCP_SUPPORT_LEGACY_MSG_PROTOCOL
     {
@@ -71,7 +75,8 @@ static enum sfcp_error_t send_protocol_error(sfcp_node_id_t node_id, sfcp_node_i
 
         hal_error = sfcp_hal_get_my_node_id(&my_node_id);
         if (hal_error != SFCP_HAL_ERROR_SUCCESS) {
-            return sfcp_hal_error_to_sfcp_error(hal_error);
+            result = sfcp_hal_error_to_sfcp_error(hal_error);
+            goto out;
         }
 
         sfcp_error = sfcp_convert_to_legacy((uint8_t *)&packet, SFCP_PACKET_SIZE_ERROR_REPLY,
@@ -82,17 +87,20 @@ static enum sfcp_error_t send_protocol_error(sfcp_node_id_t node_id, sfcp_node_i
         if (sfcp_error == SFCP_ERROR_SUCCESS) {
             packet_ptr = (struct sfcp_packet_t *)sfcp_legacy_conversion_buffer;
         } else if (sfcp_error != SFCP_ERROR_LEGACY_FORMAT_CONVERSION_NOT_REQUIRED) {
-            return sfcp_error;
+            result = sfcp_error;
+            goto out;
         }
     }
 #endif
 
     hal_error = sfcp_hal_send_message(link_id, (const uint8_t *)packet_ptr, output_msg_size);
-    if (hal_error != SFCP_HAL_ERROR_SUCCESS) {
-        return sfcp_hal_error_to_sfcp_error(hal_error);
-    }
+    result = sfcp_hal_error_to_sfcp_error(hal_error);
 
-    return SFCP_ERROR_SUCCESS;
+#ifdef SFCP_SUPPORT_LEGACY_MSG_PROTOCOL
+out:
+#endif
+    CRITICAL_SECTION_LEAVE(cs);
+    return result;
 }
 
 enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
@@ -147,6 +155,9 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
     }
 
 #ifdef SFCP_SUPPORT_LEGACY_MSG_PROTOCOL
+    struct critical_section_t conversion_cs = CRITICAL_SECTION_STATIC_INIT;
+
+    CRITICAL_SECTION_ENTER(conversion_cs);
     sfcp_err = sfcp_convert_from_legacy(allocated_buffer, message_size,
                                         sfcp_legacy_conversion_buffer,
                                         sizeof(sfcp_legacy_conversion_buffer), &message_size,
@@ -158,20 +169,24 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             /* The buffer handle should be valid */
             assert(false);
+            CRITICAL_SECTION_LEAVE(conversion_cs);
             return sfcp_err;
         }
 
         sfcp_err = allocate_get_buffer(&buffer_handle, message_size, &allocated_buffer);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
             /* The original transfer has already been consumed. */
+            CRITICAL_SECTION_LEAVE(conversion_cs);
             return sfcp_err;
         }
 
         memcpy(allocated_buffer, sfcp_legacy_conversion_buffer, message_size);
 
     } else if (sfcp_err != SFCP_ERROR_LEGACY_FORMAT_CONVERSION_NOT_REQUIRED) {
+        CRITICAL_SECTION_LEAVE(conversion_cs);
         goto out_free;
     }
+    CRITICAL_SECTION_LEAVE(conversion_cs);
 #endif
 
     packet = (struct sfcp_packet_t *)allocated_buffer;
@@ -208,7 +223,10 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
             goto out_error;
         }
 
+        struct critical_section_t send_cs = CRITICAL_SECTION_STATIC_INIT;
+        CRITICAL_SECTION_ENTER(send_cs);
         hal_err = sfcp_hal_send_message(forwarding_link_id, (uint8_t *)packet, message_size);
+        CRITICAL_SECTION_LEAVE(send_cs);
         if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
             protocol_err = SFCP_PROTOCOL_ERROR_FORWARDING_FAILED;
             sfcp_err = sfcp_hal_error_to_sfcp_error(hal_err);

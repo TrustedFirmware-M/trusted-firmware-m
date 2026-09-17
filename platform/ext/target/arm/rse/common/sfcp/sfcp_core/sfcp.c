@@ -253,7 +253,7 @@ enum sfcp_error_t sfcp_send_packet(struct sfcp_packet_t *packet, size_t packet_s
     sfcp_node_id_t remote_node;
     uint8_t trusted_subnet_id = 0;
     sfcp_node_id_t local_node;
-    uint32_t irq_cookie = 0;
+    uint32_t irq_cookie;
     sfcp_node_id_t my_node_id;
 
     if (packet == NULL) {
@@ -300,8 +300,13 @@ enum sfcp_error_t sfcp_send_packet(struct sfcp_packet_t *packet, size_t packet_s
             SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(true, true) + SFCP_PAYLOAD_MAX_SIZE) {
             return SFCP_ERROR_PAYLOAD_TOO_LARGE;
         }
-        /* Serialize the packet's first encryption and sequence allocation. */
-        irq_cookie = sfcp_encryption_hal_save_disable_irq();
+    }
+
+    /* Own the transmitter and shared legacy conversion buffer through the
+     * complete send, including plaintext packets.
+     */
+    irq_cookie = sfcp_encryption_hal_save_disable_irq();
+    if (uses_cryptography) {
         trusted_subnet_id =
             packet->cryptography_used.cryptography_metadata.config.trusted_subnet_id;
 
@@ -338,9 +343,7 @@ enum sfcp_error_t sfcp_send_packet(struct sfcp_packet_t *packet, size_t packet_s
     }
 
 out:
-    if (uses_cryptography) {
-        sfcp_encryption_hal_enable_irq(irq_cookie);
-    }
+    sfcp_encryption_hal_enable_irq(irq_cookie);
     return sfcp_err;
 }
 
@@ -495,11 +498,14 @@ static enum sfcp_error_t send_protocol_error(sfcp_node_id_t sender_id, sfcp_node
     struct sfcp_packet_t *packet_ptr = &packet;
     enum sfcp_hal_error_t hal_error;
     size_t output_msg_size;
+    enum sfcp_error_t result;
+    uint32_t irq_cookie;
 
     sfcp_helpers_generate_protocol_error_packet(packet_ptr, sender_id, receiver_id, link_id,
                                                 client_id, message_id, error);
 
     output_msg_size = SFCP_PACKET_SIZE_ERROR_REPLY;
+    irq_cookie = sfcp_encryption_hal_save_disable_irq();
 
 #ifdef SFCP_SUPPORT_LEGACY_MSG_PROTOCOL
     {
@@ -508,7 +514,8 @@ static enum sfcp_error_t send_protocol_error(sfcp_node_id_t sender_id, sfcp_node
 
         hal_error = sfcp_hal_get_my_node_id(&my_node_id);
         if (hal_error != SFCP_HAL_ERROR_SUCCESS) {
-            return sfcp_hal_error_to_sfcp_error(hal_error);
+            result = sfcp_hal_error_to_sfcp_error(hal_error);
+            goto out;
         }
 
         sfcp_error = sfcp_convert_to_legacy(
@@ -518,17 +525,20 @@ static enum sfcp_error_t send_protocol_error(sfcp_node_id_t sender_id, sfcp_node
         if (sfcp_error == SFCP_ERROR_SUCCESS) {
             packet_ptr = (struct sfcp_packet_t *)sfcp_legacy_conversion_buffer;
         } else if (sfcp_error != SFCP_ERROR_LEGACY_FORMAT_CONVERSION_NOT_REQUIRED) {
-            return sfcp_error;
+            result = sfcp_error;
+            goto out;
         }
     }
 #endif
 
     hal_error = sfcp_hal_send_message(link_id, (const uint8_t *)packet_ptr, output_msg_size);
-    if (hal_error != SFCP_HAL_ERROR_SUCCESS) {
-        return sfcp_hal_error_to_sfcp_error(hal_error);
-    }
+    result = sfcp_hal_error_to_sfcp_error(hal_error);
 
-    return SFCP_ERROR_SUCCESS;
+#ifdef SFCP_SUPPORT_LEGACY_MSG_PROTOCOL
+out:
+#endif
+    sfcp_encryption_hal_enable_irq(irq_cookie);
+    return result;
 }
 
 static inline enum sfcp_error_t sfcp_not_available_error(bool is_msg)
