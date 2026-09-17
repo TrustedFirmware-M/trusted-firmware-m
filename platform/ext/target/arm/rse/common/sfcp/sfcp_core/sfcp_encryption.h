@@ -210,6 +210,8 @@ enum sfcp_error_t sfcp_trusted_subnet_state_requires_handshake_encryption(
  *
  * \param[in] trusted_subnet_id Identifier of the trusted subnet.
  * \param[in] block             Wait for the handshake to complete when true.
+ * Failed attempts abandon pending replies without rewinding cryptographic
+ * sequence numbers.
  *
  * \return SFCP_ERROR_SUCCESS on success, or an SFCP error otherwise.
  */

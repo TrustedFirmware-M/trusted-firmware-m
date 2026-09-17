@@ -459,11 +459,11 @@ enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id,
     enum sfcp_trusted_subnet_state_t current_state;
     enum sfcp_trusted_subnet_state_t new_state;
     bool re_keying;
-    uint32_t disable_irq_cookie;
+    uint32_t disable_irq_cookie = sfcp_encryption_hal_save_disable_irq();
 
     sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet_id, &initial_state);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        return sfcp_err;
+        goto out;
     }
 
     switch (initial_state) {
@@ -478,27 +478,29 @@ enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id,
         new_state = SFCP_TRUSTED_SUBNET_STATE_RE_KEYING_INITIATOR_STARTED;
         break;
     default:
-        return SFCP_ERROR_INVALID_TRUSTED_SUBNET_STATE;
+        sfcp_err = SFCP_ERROR_INVALID_TRUSTED_SUBNET_STATE;
+        goto out;
     }
 
     sfcp_err = sfcp_get_trusted_subnet_by_id(trusted_subnet_id, &trusted_subnet);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        return sfcp_err;
+        goto out;
     }
 
     hal_err = sfcp_hal_get_my_node_id(&my_node_id);
     if (hal_err != SFCP_HAL_ERROR_SUCCESS) {
-        return sfcp_hal_error_to_sfcp_error(hal_err);
+        sfcp_err = sfcp_hal_error_to_sfcp_error(hal_err);
+        goto out;
     }
 
     sfcp_err = sfcp_trusted_subnet_get_server(trusted_subnet, &server_node_id);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        return sfcp_err;
+        goto out;
     }
 
     sfcp_err = sfcp_trusted_subnet_set_state(trusted_subnet->id, new_state);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        return sfcp_err;
+        goto out;
     }
 
     if (server_node_id == my_node_id) {
@@ -508,22 +510,12 @@ enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id,
     }
 
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        rollback_err = sfcp_trusted_subnet_set_state(trusted_subnet_id, initial_state);
-        if (rollback_err != SFCP_ERROR_SUCCESS) {
-            return rollback_err;
-        }
-
-        return sfcp_err;
+        goto rollback;
     }
 
     if (!block) {
-        return SFCP_ERROR_SUCCESS;
+        goto out;
     }
-
-    /* The following is synchronous and therefore we do not want the interrupt handler
-     * running when we receive a message
-     */
-    disable_irq_cookie = sfcp_encryption_hal_save_disable_irq();
 
     /* Continuously poll for messages and check if the handshake is complete.
      * The receive_msg function will check if messages have been received and then
@@ -532,37 +524,38 @@ enum sfcp_error_t sfcp_encryption_handshake_initiator(uint8_t trusted_subnet_id,
     while (1) {
         sfcp_err = sfcp_trusted_subnet_get_state(trusted_subnet_id, &current_state);
         if (sfcp_err != SFCP_ERROR_SUCCESS) {
-            goto out;
+            goto rollback;
         }
 
         if ((current_state == SFCP_TRUSTED_SUBNET_STATE_SESSION_KEY_SETUP_VALID) ||
             (current_state == SFCP_TRUSTED_SUBNET_STATE_MUTUAL_AUTH_COMPLETED)) {
-            break;
+            goto out;
         }
 
         if (server_node_id == my_node_id) {
             sfcp_err = message_poll_server(trusted_subnet, my_node_id);
             if (sfcp_err != SFCP_ERROR_SUCCESS) {
-                goto out;
+                goto rollback;
             }
         } else {
             sfcp_err = message_poll_client(server_node_id);
             if (sfcp_err != SFCP_ERROR_SUCCESS) {
-                goto out;
+                goto rollback;
             }
         }
     }
 
-out:
-    sfcp_encryption_hal_enable_irq(disable_irq_cookie);
-
-    if (sfcp_err != SFCP_ERROR_SUCCESS) {
-        rollback_err = sfcp_trusted_subnet_set_state(trusted_subnet_id, initial_state);
-        if (rollback_err != SFCP_ERROR_SUCCESS) {
-            return rollback_err;
-        }
+rollback:
+    /* Never rewind send counters or replay state after a failed attempt. */
+    memset(handshake_data[trusted_subnet_id].pending_replies, 0,
+           sizeof(handshake_data[trusted_subnet_id].pending_replies));
+    rollback_err = sfcp_trusted_subnet_set_state(trusted_subnet_id, initial_state);
+    if (rollback_err != SFCP_ERROR_SUCCESS) {
+        sfcp_err = rollback_err;
     }
 
+out:
+    sfcp_encryption_hal_enable_irq(disable_irq_cookie);
     return sfcp_err;
 }
 
