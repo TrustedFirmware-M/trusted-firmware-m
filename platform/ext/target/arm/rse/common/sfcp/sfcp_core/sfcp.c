@@ -793,6 +793,7 @@ enum sfcp_error_t sfcp_receive_reply(uint8_t *buf, size_t buf_size,
     bool uses_id_extension;
     size_t received_size;
     bool packet_uses_crypto;
+    bool is_handshake_req;
     uint16_t packet_application_id;
     uint16_t packet_client_id;
     sfcp_node_id_t packet_sender;
@@ -839,6 +840,21 @@ enum sfcp_error_t sfcp_receive_reply(uint8_t *buf, size_t buf_size,
         protocol_error = SFCP_PROTOCOL_FORWARDING_UNSUPPORTED;
         sfcp_err = SFCP_ERROR_NO_REPLY_AVAILABLE;
         goto error_reply;
+    }
+
+    /* The peer may need to rekey before it can send the awaited reply. Service
+     * handshake traffic on this link before correlating application replies. */
+    if (packet_type != SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY) {
+        sfcp_err = sfcp_encryption_handshake_responder(packet, received_size, transmitting_node,
+                                                       message_id, packet_uses_crypto, *payload,
+                                                       *payload_len, &is_handshake_req);
+        if (sfcp_err != SFCP_ERROR_SUCCESS) {
+            protocol_error = SFCP_PROTOCOL_ERROR_HANDSHAKE_FAILED;
+            goto error_reply;
+        }
+        if (is_handshake_req) {
+            return SFCP_ERROR_NO_REPLY_AVAILABLE;
+        }
     }
 
     if ((packet_type != SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY) &&
