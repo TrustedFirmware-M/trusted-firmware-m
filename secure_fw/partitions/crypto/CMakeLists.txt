@@ -202,6 +202,7 @@ target_link_libraries(${TF_PSA_CRYPTO_TARGET_PREFIX}tfpsacrypto
         crypto_service_tfpsacrypto_config
     INTERFACE
         platform_common_interface
+        $<LINK_ONLY:tfm_sprt>
     )
 
 ############################### TF-PSA-Crypto internal targets #################
