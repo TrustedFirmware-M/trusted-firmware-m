@@ -326,7 +326,7 @@ sds_struct_add(const struct sds_structure_desc *struct_desc)
         err = TFM_PLAT_ERR_INVALID_INPUT;
     }
 
-    err2 = sds_region_unmap(1);
+    err2 = sds_region_unmap(atu_region);
     if (err2 != TFM_PLAT_ERR_SUCCESS) {
         return err2;
     }
