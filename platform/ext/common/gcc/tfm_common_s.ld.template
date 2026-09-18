@@ -184,27 +184,6 @@ SECTIONS
     /**** APPLICATION RoT RO part (CODE + RODATA) end here */
     Image$$TFM_APP_CODE_END$$Base = .;
 
-#if defined(S_RAM_CODE_START)
-    /* Flash drivers code that gets copied from Flash */
-    .ER_CODE_SRAM ALIGN(S_RAM_CODE_START, 4) :
-    {
-        *libflash_drivers*:(SORT_BY_ALIGNMENT(.text*))
-        *libflash_drivers*:(SORT_BY_ALIGNMENT(.rodata*))
-        KEEP(*(.ramfunc))
-#if defined(S_RAM_CODE_EXTRA_SECTION_NAME)
-        KEEP(*(S_RAM_CODE_EXTRA_SECTION_NAME))
-#endif
-        . = ALIGN(4); /* This alignment is needed to make the section size 4 bytes aligned */
-    } > CODE_RAM AT > FLASH
-
-    ASSERT(S_RAM_CODE_START % 4 == 0, "S_RAM_CODE_START must be divisible by 4")
-
-    Image$$ER_CODE_SRAM$$RO$$Base = ADDR(.ER_CODE_SRAM);
-    Image$$ER_CODE_SRAM$$RO$$Limit = ADDR(.ER_CODE_SRAM) + SIZEOF(.ER_CODE_SRAM);
-    Image$$ER_CODE_SRAM$$Base = ADDR(.ER_CODE_SRAM);
-    Image$$ER_CODE_SRAM$$Limit = ADDR(.ER_CODE_SRAM) + SIZEOF(.ER_CODE_SRAM);
-#endif
-
     .ARM.extab :
     {
         *(.ARM.extab* .gnu.linkonce.armextab.*)
@@ -346,6 +325,30 @@ SECTIONS
     /* Position tag */
     . = ALIGN(TFM_LINKER_PT_RO_ALIGNMENT);
     Image$$PT_RO_END$$Base = .;
+
+#if defined(S_RAM_CODE_START)
+    /* Flash drivers code that gets copied from Flash.
+     * Kept after the other FLASH sections on purpose: it leaves the location
+     * counter in CODE_RAM, which a FLASH section with an explicit address
+     * expression would inherit. */
+    .ER_CODE_SRAM ALIGN(S_RAM_CODE_START, 4) :
+    {
+        *libflash_drivers*:(SORT_BY_ALIGNMENT(.text*))
+        *libflash_drivers*:(SORT_BY_ALIGNMENT(.rodata*))
+        KEEP(*(.ramfunc))
+#if defined(S_RAM_CODE_EXTRA_SECTION_NAME)
+        KEEP(*(S_RAM_CODE_EXTRA_SECTION_NAME))
+#endif
+        . = ALIGN(4); /* This alignment is needed to make the section size 4 bytes aligned */
+    } > CODE_RAM AT > FLASH
+
+    ASSERT(S_RAM_CODE_START % 4 == 0, "S_RAM_CODE_START must be divisible by 4")
+
+    Image$$ER_CODE_SRAM$$RO$$Base = ADDR(.ER_CODE_SRAM);
+    Image$$ER_CODE_SRAM$$RO$$Limit = ADDR(.ER_CODE_SRAM) + SIZEOF(.ER_CODE_SRAM);
+    Image$$ER_CODE_SRAM$$Base = ADDR(.ER_CODE_SRAM);
+    Image$$ER_CODE_SRAM$$Limit = ADDR(.ER_CODE_SRAM) + SIZEOF(.ER_CODE_SRAM);
+#endif
 
     /**** Base address of secure data area */
     .tfm_secure_data_start :
