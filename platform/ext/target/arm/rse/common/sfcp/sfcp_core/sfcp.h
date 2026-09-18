@@ -369,7 +369,11 @@ enum sfcp_error_t sfcp_get_msg_handler(uint16_t application_id, sfcp_handler_t *
  * \param[in] handler         Callback to invoke when a message for this
  *                            Application ID is received.
  *
- * \return SFCP_ERROR_SUCCESS on success; an error code otherwise.
+ * \return SFCP_ERROR_SUCCESS on registration or replacement;
+ *         SFCP_ERROR_INVALID_POINTER if \p handler is NULL;
+ *         SFCP_ERROR_HANDLER_TABLE_FULL if a new identifier requires a slot
+ *         and no slot is available. Replacing an existing identifier uses no
+ *         additional slot.
  */
 enum sfcp_error_t sfcp_register_msg_handler(uint16_t application_id, sfcp_handler_t handler);
 
@@ -438,7 +442,11 @@ enum sfcp_error_t sfcp_get_reply_handler(uint16_t client_id, sfcp_handler_t *han
  *                            the reply handler (commonly the client_id).
  * \param[in] handler         Callback to invoke when a matching reply arrives.
  *
- * \return SFCP_ERROR_SUCCESS on success; an error code otherwise.
+ * \return SFCP_ERROR_SUCCESS on registration or replacement;
+ *         SFCP_ERROR_INVALID_POINTER if \p handler is NULL;
+ *         SFCP_ERROR_HANDLER_TABLE_FULL if a new identifier requires a slot
+ *         and no slot is available. Replacing an existing identifier uses no
+ *         additional slot.
  */
 enum sfcp_error_t sfcp_register_reply_handler(uint16_t application_id, sfcp_handler_t handler);
 

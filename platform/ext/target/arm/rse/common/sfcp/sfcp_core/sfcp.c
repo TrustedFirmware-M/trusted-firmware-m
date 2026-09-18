@@ -955,20 +955,32 @@ enum sfcp_error_t sfcp_get_msg_handler(uint16_t application_id, sfcp_handler_t *
 
 enum sfcp_error_t sfcp_register_msg_handler(uint16_t application_id, sfcp_handler_t handler)
 {
+    struct sfcp_handler_table_entry_t *entry = NULL;
+
     if (handler == NULL) {
         return SFCP_ERROR_INVALID_POINTER;
     }
 
+    /* Remember the first free slot, but prefer an existing identifier. */
     for (size_t i = 0; i < SFCP_MAX_NUMBER_MESSAGE_HANDLERS; i++) {
-        if (!sfcp_msg_handlers[i].in_use) {
-            sfcp_msg_handlers[i].handler = handler;
-            sfcp_msg_handlers[i].application_id = application_id;
-            sfcp_msg_handlers[i].in_use = true;
-            return SFCP_ERROR_SUCCESS;
+        if (sfcp_msg_handlers[i].in_use) {
+            if (sfcp_msg_handlers[i].application_id == application_id) {
+                entry = &sfcp_msg_handlers[i];
+                break;
+            }
+        } else if (entry == NULL) {
+            entry = &sfcp_msg_handlers[i];
         }
     }
 
-    return SFCP_ERROR_HANDLER_TABLE_FULL;
+    if (entry == NULL) {
+        return SFCP_ERROR_HANDLER_TABLE_FULL;
+    }
+
+    entry->handler = handler;
+    entry->application_id = application_id;
+    entry->in_use = true;
+    return SFCP_ERROR_SUCCESS;
 }
 
 enum sfcp_error_t sfcp_pop_msg_from_buffer(sfcp_buffer_handle_t buffer_handle,
@@ -1099,6 +1111,10 @@ pop_message: {
 
 enum sfcp_error_t sfcp_get_reply_handler(uint16_t client_id, sfcp_handler_t *handler)
 {
+    if (handler == NULL) {
+        return SFCP_ERROR_INVALID_POINTER;
+    }
+
     for (size_t i = 0; i < SFCP_MAX_NUMBER_REPLY_HANDLERS; i++) {
         if (sfcp_reply_handlers[i].in_use && (sfcp_reply_handlers[i].client_id == client_id)) {
             *handler = sfcp_reply_handlers[i].handler;
@@ -1111,16 +1127,32 @@ enum sfcp_error_t sfcp_get_reply_handler(uint16_t client_id, sfcp_handler_t *han
 
 enum sfcp_error_t sfcp_register_reply_handler(uint16_t client_id, sfcp_handler_t handler)
 {
+    struct sfcp_handler_table_entry_t *entry = NULL;
+
+    if (handler == NULL) {
+        return SFCP_ERROR_INVALID_POINTER;
+    }
+
+    /* Remember the first free slot, but prefer an existing identifier. */
     for (size_t i = 0; i < SFCP_MAX_NUMBER_REPLY_HANDLERS; i++) {
-        if (!sfcp_reply_handlers[i].in_use) {
-            sfcp_reply_handlers[i].handler = handler;
-            sfcp_reply_handlers[i].client_id = client_id;
-            sfcp_reply_handlers[i].in_use = true;
-            return SFCP_ERROR_SUCCESS;
+        if (sfcp_reply_handlers[i].in_use) {
+            if (sfcp_reply_handlers[i].client_id == client_id) {
+                entry = &sfcp_reply_handlers[i];
+                break;
+            }
+        } else if (entry == NULL) {
+            entry = &sfcp_reply_handlers[i];
         }
     }
 
-    return SFCP_ERROR_HANDLER_TABLE_FULL;
+    if (entry == NULL) {
+        return SFCP_ERROR_HANDLER_TABLE_FULL;
+    }
+
+    entry->handler = handler;
+    entry->client_id = client_id;
+    entry->in_use = true;
+    return SFCP_ERROR_SUCCESS;
 }
 
 enum sfcp_error_t sfcp_pop_reply_from_buffer(sfcp_buffer_handle_t buffer_handle, uint8_t *payload,
