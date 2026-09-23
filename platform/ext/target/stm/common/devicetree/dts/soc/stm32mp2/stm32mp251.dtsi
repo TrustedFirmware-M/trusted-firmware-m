@@ -531,6 +531,7 @@
 				reg = <0x54030000 0x400>;
 				clocks = <&rcc CK_BUS_IWDG3>, <&rcc LSI_CK>;
 				clock-names = "pclk", "kclk";
+				interrupts = <2 2>;
 				status = "disabled";
 			};
 		};
