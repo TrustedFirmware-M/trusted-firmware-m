@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023-2025, Arm Limited. All rights reserved.
+# SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -13,7 +13,7 @@ fetch_remote_library(
     LIB_PATCH_DIR           ${CMAKE_CURRENT_LIST_DIR}
     FETCH_CONTENT_ARGS
         GIT_REPOSITORY      ${ETHOS_DRIVER_GIT_REMOTE}
-        GIT_TAG             "25.05"
+        GIT_TAG             "26.08"
         GIT_SHALLOW         TRUE
         GIT_PROGRESS        TRUE
 # We set the SOURCE_SUBDIR variable to a non-existent directory as a workaround

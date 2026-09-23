@@ -133,6 +133,8 @@ target_compile_definitions(platform_s
         ETHOSU_ARCH=$<LOWER_CASE:${ETHOSU_ARCH}>
         ETHOS$<UPPER_CASE:${ETHOSU_ARCH}>
         ETHOSU_LOG_SEVERITY=${ETHOSU_LOG_SEVERITY}
+        TFM_ETHOSU_DEVICE_DESC=ethosu_device_desc_$<LOWER_CASE:${ETHOSU_ARCH}>
+        TFM_ETHOSU_DEVICE_CONFIG=ethosu_device_config_$<LOWER_CASE:${ETHOSU_ARCH}>
 )
 
 target_compile_definitions(platform_s

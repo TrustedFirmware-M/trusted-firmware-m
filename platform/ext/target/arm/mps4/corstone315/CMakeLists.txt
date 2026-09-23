@@ -42,7 +42,7 @@ target_sources(platform_s
         device/source/system_core_init.c
         device/source/platform_s_device_definition.c
         native_drivers/ppc_corstone315_drv.c
-        ${ETHOS_DRIVER_PATH}/src/ethosu_device_u55_u65.c
+        ${ETHOS_DRIVER_PATH}/src/ethosu_backend_$<LOWER_CASE:${ETHOSU_ARCH}>.c
 )
 
 target_compile_definitions(platform_s
