@@ -23,3 +23,9 @@ properties:
 
   clock-names:
     required: true
+
+  interrupts:
+    description: |
+      Early watchdog interrupt (EWI). When provided, the driver
+      extends the timeout beyond the hardware capability with a software
+      counter decremented on each early watchdog interrupt.
