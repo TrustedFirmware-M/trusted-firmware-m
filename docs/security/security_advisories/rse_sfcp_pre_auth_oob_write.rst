@@ -20,7 +20,7 @@ Advisory TFMV-12
 |                 | ROM during the pre-authentication boot-time session-key    |
 |                 | handshake                                                  |
 +-----------------+------------------------------------------------------------+
-| Fix Version     | `5f592a5fbeb13a2c00ccf3070ce57bb97db213f7`_ and            |
+| Fix Version     | `61f9218b1d3a777e666ad31b15e5202e5e35721c`_ and            |
 |                 | TF-M `v2.3.1`_                                             |
 +-----------------+------------------------------------------------------------+
 | Credits         | Mohammad Seet / Rayan Al Garni                             |
@@ -60,7 +60,7 @@ reject sender or receiver IDs greater than or equal to ``SFCP_NUMBER_NODES``.
 .. _CVE-2026-73065: https://www.cve.org/CVERecord?id=CVE-2026-73065
 .. _v2.3.0: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m.git/+/refs/tags/TF-Mv2.3.0
 .. _v2.3.1: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m.git/+/refs/tags/TF-Mv2.3.1
-.. _5f592a5fbeb13a2c00ccf3070ce57bb97db213f7: https://review.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m/+/5f592a5fbeb13a2c00ccf3070ce57bb97db213f7
+.. _61f9218b1d3a777e666ad31b15e5202e5e35721c: https://review.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m/+/61f9218b1d3a777e666ad31b15e5202e5e35721c
 
 ---------------------
 

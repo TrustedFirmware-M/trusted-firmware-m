@@ -53,11 +53,9 @@ secure partition memory.
 Can be done at platform-level although we recommend to be performed at
 central-level (tfm_spe_mailbox).
 
-See commit `00d1b3e716dc636f7ad4398980ae55427dc1731d`_.
-
 .. _CVE-2026-54467: https://www.cve.org/CVERecord?id=CVE-2026-54467
 .. _v2.3.0: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m/+/refs/tags/TF-Mv2.3.0
-.. _00d1b3e716dc636f7ad4398980ae55427dc1731d: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m.git/+/00d1b3e716dc636f7ad4398980ae55427dc1731d
+.. _00d1b3e716dc636f7ad4398980ae55427dc1731d: https://git.trustedfirmware.org/plugins/gitiles/TF-M/trusted-firmware-m/+/00d1b3e716dc636f7ad4398980ae55427dc1731d
 
 ---------------------
 
