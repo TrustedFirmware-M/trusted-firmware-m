@@ -3257,6 +3257,7 @@
                     <Block location="scb[2]" locked="true">
                         <Aliases>
                             <Alias value="CYBSP_DEBUG_UART"/>
+                            <Alias value="IFX_TFM_SPM_UART"/>
                         </Aliases>
                     </Block>
                     <Parameters>

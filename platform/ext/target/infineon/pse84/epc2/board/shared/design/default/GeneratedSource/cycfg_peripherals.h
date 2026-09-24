@@ -82,8 +82,11 @@ extern "C" {
 #define CYBSP_I2C_CONTROLLER_HW SCB0
 #define CYBSP_I2C_CONTROLLER_IRQ scb_0_interrupt_IRQn
 #define CYBSP_DEBUG_UART_ENABLED 1U
+#define IFX_TFM_SPM_UART_ENABLED CYBSP_DEBUG_UART_ENABLED
 #define CYBSP_DEBUG_UART_HW SCB2
+#define IFX_TFM_SPM_UART_HW CYBSP_DEBUG_UART_HW
 #define CYBSP_DEBUG_UART_IRQ scb_2_interrupt_IRQn
+#define IFX_TFM_SPM_UART_IRQ CYBSP_DEBUG_UART_IRQ
 #define CYBSP_BT_UART_ENABLED 1U
 #define CYBSP_BT_UART_HW SCB4
 #define CYBSP_BT_UART_IRQ scb_4_interrupt_IRQn
@@ -204,13 +207,18 @@ extern const mtb_hal_i2c_configurator_t CYBSP_I2C_CONTROLLER_hal_config;
 
 extern const cy_stc_scb_uart_config_t CYBSP_DEBUG_UART_config;
 
+#define IFX_TFM_SPM_UART_config CYBSP_DEBUG_UART_config
+
 #if defined (COMPONENT_MTB_HAL)
 extern const mtb_hal_peri_div_t CYBSP_DEBUG_UART_clock_ref;
+#define IFX_TFM_SPM_UART_clock_ref CYBSP_DEBUG_UART_clock_ref
 extern const mtb_hal_clock_t CYBSP_DEBUG_UART_hal_clock;
+#define IFX_TFM_SPM_UART_hal_clock CYBSP_DEBUG_UART_hal_clock
 #endif /* defined (COMPONENT_MTB_HAL) */
 
 #if defined (COMPONENT_MTB_HAL) && (MTB_HAL_DRIVER_AVAILABLE_UART)
 extern const mtb_hal_uart_configurator_t CYBSP_DEBUG_UART_hal_config;
+#define IFX_TFM_SPM_UART_hal_config CYBSP_DEBUG_UART_hal_config
 #endif /* defined (COMPONENT_MTB_HAL) && (MTB_HAL_DRIVER_AVAILABLE_UART) */
 
 extern const cy_stc_scb_uart_config_t CYBSP_BT_UART_config;
