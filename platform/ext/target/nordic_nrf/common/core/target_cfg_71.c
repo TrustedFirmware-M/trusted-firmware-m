@@ -367,13 +367,13 @@ void peripheral_configuration(void)
 		spu_peripheral_config_secure(base_addresses[i], SPU_LOCK_CONF_LOCKED);
 	}
 
-	/* Configure NRF_REGULATORS, and NRF_OSCILLATORS to be secure as it is
-	 * needed to prevent glitches when the power supply is attacked.
+	/* Configure NRF_REGULATORS and NRF_OSCILLATORS to be non-secure so
+	 * non-secure Wi-Fi can configure the PLL.
 	 *
-	 * NB: Note that NRF_OSCILLATORS and NRF_REGULATORS have the same base address and must
-	 * therefore have the same security configuration.
+	 * NRF_OSCILLATORS and NRF_REGULATORS have the same base address and
+	 * must therefore have the same security configuration.
 	 */
-	spu_peripheral_config_secure(NRF_REGULATORS_S_BASE, SPU_LOCK_CONF_LOCKED);
+	spu_peripheral_config_non_secure(NRF_REGULATORS_S_BASE, SPU_LOCK_CONF_LOCKED);
 }
 
 static void gpiote_channel_configuration(void)
