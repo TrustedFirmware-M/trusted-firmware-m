@@ -133,12 +133,34 @@ void sau_and_idau_cfg(void);
 #endif
 
 /**
- * \brief Enable Fault handling.
+ * \brief Enables the fault handlers BusFault, UsageFault,
+ *        MemManageFault and SecureFault.
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
  */
 enum tfm_plat_err_t enable_fault_handlers(void);
 
 /**
- * \brief Set NVIC interrupt target state to NS.
+ * \brief Configures the system reset request properties
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
+ */
+enum tfm_plat_err_t system_reset_cfg(void);
+
+/**
+ * \brief This function enable the interrupts associated
+ *        to the secure peripherals (plus MPC and PPC)
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
+ */
+enum tfm_plat_err_t nvic_interrupt_enable(void);
+
+/**
+ * \brief Configures all external interrupts to target the
+ *        NS state, apart for the ones associated to secure
+ *        peripherals (plus MPC and PPC)
+ *
+ * \return Returns values as specified by the \ref tfm_plat_err_t
  */
 enum tfm_plat_err_t nvic_interrupt_target_state_cfg(void);
 
