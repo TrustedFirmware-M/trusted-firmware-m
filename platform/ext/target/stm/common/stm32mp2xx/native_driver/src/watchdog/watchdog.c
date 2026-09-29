@@ -38,6 +38,21 @@ int watchdog_setup(const struct device *dev, const struct watchdog_timeout_cfg *
 	return api->setup(wdt_dev, cfg);
 }
 
+int watchdog_get_timeout(const struct device *dev, uint32_t *timeout)
+{
+	const struct watchdog_driver_api *api;
+	const struct device *wdt_dev;
+
+	wdt_dev = _wdt_get_dev(dev);
+	if (!wdt_dev)
+		return -ENODEV;
+
+	api = wdt_dev->api;
+	*timeout = api->get_timeout(wdt_dev);
+
+	return 0;
+}
+
 int watchdog_status(const struct device *dev)
 {
 	const struct watchdog_driver_api *api;

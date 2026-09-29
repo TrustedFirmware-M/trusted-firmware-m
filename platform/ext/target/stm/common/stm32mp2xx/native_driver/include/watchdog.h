@@ -48,9 +48,15 @@ typedef int (*watchdog_api_stop_t)(const struct device *dev);
  */
 typedef int (*watchdog_api_ping_t)(const struct device *dev);
 
+/**
+ * @brief Callback API that get timeout value set in watchdog device.
+ */
+typedef uint32_t (*watchdog_api_get_timeout_t)(const struct device *dev);
+
 struct watchdog_driver_api {
 	watchdog_api_setup_t setup;
 	watchdog_api_status_t status;
+	watchdog_api_get_timeout_t get_timeout;
 	watchdog_api_start_t start;
 	watchdog_api_stop_t stop;
 	watchdog_api_ping_t ping;
@@ -112,5 +118,18 @@ int watchdog_stop(const struct device *dev);
  * @return 0 on success, negative errno on failure.
  */
 int watchdog_ping(const struct device *dev);
+
+/**
+ * @brief Get timeout of watchdog instance.
+ *
+ * @param dev Watchdog device instance.
+ *            If NULL take system watchdog device defined by
+ *            tfm,watchdog (chosen node)
+ * @param timeout reference is filled on success with configured watchdog timeout
+ *            in milliseconds.
+ *
+ * @return 0 on success, negative errno on failure.
+ */
+int watchdog_get_timeout(const struct device *dev, uint32_t *timeout);
 
 #endif /* _INCLUDE_WATCHDOG_H_ */
