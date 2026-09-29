@@ -70,6 +70,24 @@ index 61b670c..da37466 100644
 
  #if defined(MBEDTLS_SHA256_C)
 
+@@ -36,7 +36,15 @@
+ /* Allow only *_alt implementations to access private members of structures*/
+ #define MBEDTLS_ALLOW_PRIVATE_ACCESS
+
+-#include "mbedtls/sha256.h"
++#if defined(IFX_TF_PSA_CRYPTO_INCLUDES)
++#include "mbedtls/private/sha256.h"
++#else
++#include "mbedtls/sha256.h"
++#endif
+ #include "mbedtls/platform_util.h"
+-#include "mbedtls/compat-2.x.h"
++#if defined(IFX_TF_PSA_CRYPTO_INCLUDES)
++#include "mbedtls/compat-3-crypto.h"
++#else
++#include "mbedtls/compat-2.x.h"
++#endif
+
 diff --git a/mbedtls_MXCRYPTOLITE/trng_alt_mxcryptolite.c b/mbedtls_MXCRYPTOLITE/trng_alt_mxcryptolite.c
 index 2f1ca11..53f502e 100644
 --- a/mbedtls_MXCRYPTOLITE/trng_alt_mxcryptolite.c
