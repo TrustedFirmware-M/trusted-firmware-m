@@ -1,0 +1,165 @@
+From 0000000000000000000000000000000000000001 Mon Sep 17 00:00:00 2001
+From: IFX <ifx@infineon.com>
+Date: Wed, 22 Apr 2026 00:00:00 +0000
+Subject: [PATCH] IFX: Align includes with tf-psa-crypto v1.1.0
+
+tf-psa-crypto v1.1.0 renamed mbedtls/build_info.h to
+tf-psa-crypto/build_info.h and moved legacy low-level headers
+(ecp.h, aes.h, ...) under mbedtls/private/.
+
+Because this acceleration library may also be consumed by projects
+that still build against the classic mbedtls header layout, the
+include paths are selected at build time instead of being replaced:
+when IFX_TF_PSA_CRYPTO_INCLUDES is defined the new
+tf-psa-crypto v1.1.0 locations are used, otherwise the original
+mbedtls locations are kept. TF-M defines this macro for the
+ifx_mbedtls_acceleration target.
+
+Update only the headers/sources that are actually reached by the
+MXCRYPTO transparent-driver build used by TF-M. The mbedtls_alt_*
+sources that still reference removed classic headers are not
+compiled in this build, so they are left untouched.
+
+ifx_cryptolite_config.h's default configuration branch (used whenever
+no IFX_PSA_CRYPTOLITE_USER_CONFIG_FILE is supplied, e.g. builds with
+IFX_CRYPTOSUITE_ENABLED=OFF) needs the same treatment: it is reached
+by every TF-PSA-Crypto TU (e.g. crypto_service_p256-m) via
+psa/crypto_struct.h -> crypto_driver_contexts_primitives.h, not just
+by ifx_mbedtls_acceleration's own sources.
+
+---
+ mbedtls_MXCRYPTOLITE/ecdsa_alt_mxcryptolite.c             |  6 +++++-
+ mbedtls_MXCRYPTOLITE/sha256_alt_mxcryptolite.c            |  6 +++++-
+ mbedtls_MXCRYPTOLITE/trng_alt_mxcryptolite.c              | 20 ++++++++++++++----
+ .../mbedtls_psa_MXCryptolite/ifx_cryptolite_common.h      |  6 +++++-
+ .../mbedtls_psa_MXCryptolite/ifx_cryptolite_config.h      |  6 +++++-
+ .../ifx_cryptolite_transparent_functions.h                |  6 +++++-
+ 6 files changed, 41 insertions(+), 9 deletions(-)
+
+diff --git a/mbedtls_MXCRYPTOLITE/ecdsa_alt_mxcryptolite.c b/mbedtls_MXCRYPTOLITE/ecdsa_alt_mxcryptolite.c
+index 4d62b8f..3af1129 100644
+--- a/mbedtls_MXCRYPTOLITE/ecdsa_alt_mxcryptolite.c
++++ b/mbedtls_MXCRYPTOLITE/ecdsa_alt_mxcryptolite.c
+@@ -29,7 +29,11 @@
+
+ #if defined (CY_IP_MXCRYPTOLITE)
+
+-#include "mbedtls/build_info.h"
++#if defined(IFX_TF_PSA_CRYPTO_INCLUDES)
++#include "tf-psa-crypto/build_info.h"
++#else
++#include "mbedtls/build_info.h"
++#endif
+
+ #if defined(MBEDTLS_ECDSA_C)
+
+diff --git a/mbedtls_MXCRYPTOLITE/sha256_alt_mxcryptolite.c b/mbedtls_MXCRYPTOLITE/sha256_alt_mxcryptolite.c
+index 61b670c..da37466 100644
+--- a/mbedtls_MXCRYPTOLITE/sha256_alt_mxcryptolite.c
++++ b/mbedtls_MXCRYPTOLITE/sha256_alt_mxcryptolite.c
+@@ -29,7 +29,11 @@
+
+ #if defined (CY_IP_MXCRYPTOLITE)
+
+-#include "mbedtls/build_info.h"
++#if defined(IFX_TF_PSA_CRYPTO_INCLUDES)
++#include "tf-psa-crypto/build_info.h"
++#else
++#include "mbedtls/build_info.h"
++#endif
+
+ #if defined(MBEDTLS_SHA256_C)
+
+diff --git a/mbedtls_MXCRYPTOLITE/trng_alt_mxcryptolite.c b/mbedtls_MXCRYPTOLITE/trng_alt_mxcryptolite.c
+index 2f1ca11..53f502e 100644
+--- a/mbedtls_MXCRYPTOLITE/trng_alt_mxcryptolite.c
++++ b/mbedtls_MXCRYPTOLITE/trng_alt_mxcryptolite.c
+@@ -33,17 +33,29 @@
+ #if CY_CPU_CORTEX_M0P || ((CY_CPU_CORTEX_M7 || CY_CPU_CORTEX_M4 || CY_CPU_CORTEX_M33 || CY_CPU_CORTEX_M55) && !defined(CY_DEVICE_SECURE) && !defined(CY_TFM_PSA_SUPPORTED))
+ #if defined (CY_IP_MXCRYPTOLITE)
+
+-#include "mbedtls/build_info.h"
++#if defined(IFX_TF_PSA_CRYPTO_INCLUDES)
++#include "tf-psa-crypto/build_info.h"
++#else
++#include "mbedtls/build_info.h"
++#endif
+
+
+ #if defined(MBEDTLS_ENTROPY_C)
+
+ #include <string.h>
+-#include "mbedtls/entropy.h"
++#if defined(IFX_TF_PSA_CRYPTO_INCLUDES)
++#include "mbedtls/private/entropy.h"
++#else
++#include "mbedtls/entropy.h"
++#endif
+ #include "mbedtls/platform.h"
+ #include "mbedtls/platform_util.h"
+-#include "mbedtls/error.h"
+-#include "mbedtls/compat-2.x.h"
++#if defined(IFX_TF_PSA_CRYPTO_INCLUDES)
++#include "psa/error.h"
++#else
++#include "mbedtls/error.h"
++#include "mbedtls/compat-2.x.h"
++#endif
+
+ #if defined(MBEDTLS_ENTROPY_HARDWARE_ALT)
+
+diff --git a/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_common.h b/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_common.h
+index d922368..3466ca1 100644
+--- a/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_common.h
++++ b/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_common.h
+@@ -26,7 +26,11 @@
+ #if !defined(IFX_CRYPTOLITE_COMMON_H)
+ #define IFX_CRYPTOLITE_COMMON_H
+
+-#include "mbedtls/build_info.h"
++#if defined(IFX_TF_PSA_CRYPTO_INCLUDES)
++#include "tf-psa-crypto/build_info.h"
++#else
++#include "mbedtls/build_info.h"
++#endif
+
+ #include "cy_device.h"
+
+diff --git a/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_config.h b/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_config.h
+index 1111111..2222222 100644
+--- a/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_config.h
++++ b/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_config.h
+@@ -37,7 +37,11 @@
+ #include IFX_PSA_CRYPTOLITE_USER_CONFIG_FILE
+ #else
+
+-#include "mbedtls/build_info.h"
++#if defined(IFX_TF_PSA_CRYPTO_INCLUDES)
++#include "tf-psa-crypto/build_info.h"
++#else
++#include "mbedtls/build_info.h"
++#endif
+ #include "psa/crypto_driver_common.h"
+
+ /* Default configuration of PSA CRYPTOLITE Driver:
+
+diff --git a/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_transparent_functions.h b/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_transparent_functions.h
+index b8e71bd..25cede9 100644
+--- a/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_transparent_functions.h
++++ b/mbedtls_PSA/mbedtls_psa_MXCryptolite/ifx_cryptolite_transparent_functions.h
+@@ -27,7 +27,11 @@
+ #if !defined(IFX_CRYPTOLITE_TRANSPARENT_FUNCS_H)
+ #define IFX_CRYPTOLITE_TRANSPARENT_FUNCS_H
+
+-#include "mbedtls/build_info.h"
++#if defined(IFX_TF_PSA_CRYPTO_INCLUDES)
++#include "tf-psa-crypto/build_info.h"
++#else
++#include "mbedtls/build_info.h"
++#endif
+
+ #include "ifx_cryptolite_transparent_hash.h"
+ #include "ifx_cryptolite_transparent_mac.h"
+--
+2.47.0.windows.2
+

@@ -1,0 +1,1114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration app="BACKEND" formatVersion="15" lastSavedWith="Configurator Backend" lastSavedWithVersion="3.80.0" toolsPackage="ModusToolbox 3.8.0" xmlns="http://cypress.com/xsd/cydesignfile_v7">
+    <Devices>
+        <Device mpn="PSC3M8GFS3PAHQ1">
+            <BlockConfig>
+                <Personality template="protection_sau" version="1.0" instance="0EC3HMAXQlg">
+                    <Block location="cpuss[0].cm33[0].sau[0]" locked="true"/>
+                </Personality>
+                <Personality template="pin" version="3.0" instance="w88CIaaxIzE">
+                    <Block location="ioss[0].port[3].pin[3]" locked="true">
+                        <Aliases>
+                            <Alias value="CYBSP_DEBUG_UART_TX"/>
+                        </Aliases>
+                    </Block>
+                    <Parameters>
+                        <Param id="DriveModes" value="CY_GPIO_DM_STRONG_IN_OFF"/>
+                        <Param id="driveStrength" value="CY_GPIO_DRIVE_1_2"/>
+                        <Param id="driveStrengthTrim" value="CY_GPIO_DRIVE_STRENGTH_DEFAULT"/>
+                        <Param id="inFlash" value="true"/>
+                        <Param id="initialState" value="1"/>
+                        <Param id="isrTrigger" value="CY_GPIO_INTR_DISABLE"/>
+                        <Param id="nonSec" value="0"/>
+                        <Param id="pullUpRes" value="CY_GPIO_PULLUP_RES_DISABLE"/>
+                        <Param id="sioOutputBuffer" value="true"/>
+                        <Param id="slewRate" value="CY_GPIO_SLEW_FAST"/>
+                        <Param id="vtrip" value="CY_GPIO_VTRIP_CMOS"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pin" version="3.0" instance="EYL95s3NAv0">
+                    <Block location="ioss[0].port[3].pin[4]" locked="true">
+                        <Aliases>
+                            <Alias value="CYBSP_DEBUG_UART_RX"/>
+                        </Aliases>
+                    </Block>
+                    <Parameters>
+                        <Param id="DriveModes" value="CY_GPIO_DM_HIGHZ"/>
+                        <Param id="driveStrength" value="CY_GPIO_DRIVE_1_2"/>
+                        <Param id="driveStrengthTrim" value="CY_GPIO_DRIVE_STRENGTH_DEFAULT"/>
+                        <Param id="inFlash" value="true"/>
+                        <Param id="initialState" value="1"/>
+                        <Param id="isrTrigger" value="CY_GPIO_INTR_DISABLE"/>
+                        <Param id="nonSec" value="0"/>
+                        <Param id="pullUpRes" value="CY_GPIO_PULLUP_RES_DISABLE"/>
+                        <Param id="sioOutputBuffer" value="true"/>
+                        <Param id="slewRate" value="CY_GPIO_SLEW_FAST"/>
+                        <Param id="vtrip" value="CY_GPIO_VTRIP_CMOS"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pin" version="3.0" instance="Ey8DaoeYMtI">
+                    <Block location="ioss[0].port[5].pin[1]" locked="true">
+                        <Aliases>
+                            <Alias value="CYBSP_USER_LED"/>
+                            <Alias value="CYBSP_USER_LED1"/>
+                        </Aliases>
+                    </Block>
+                    <Parameters>
+                        <Param id="DriveModes" value="CY_GPIO_DM_ANALOG"/>
+                        <Param id="driveStrength" value="CY_GPIO_DRIVE_1_2"/>
+                        <Param id="driveStrengthTrim" value="CY_GPIO_DRIVE_STRENGTH_DEFAULT"/>
+                        <Param id="inFlash" value="true"/>
+                        <Param id="initialState" value="1"/>
+                        <Param id="isrTrigger" value="CY_GPIO_INTR_DISABLE"/>
+                        <Param id="nonSec" value="1"/>
+                        <Param id="pullUpRes" value="CY_GPIO_PULLUP_RES_DISABLE"/>
+                        <Param id="sioOutputBuffer" value="true"/>
+                        <Param id="slewRate" value="CY_GPIO_SLEW_FAST"/>
+                        <Param id="vtrip" value="CY_GPIO_VTRIP_CMOS"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="protection_ppc" version="1.0" instance="EE6x5iNHCbQ">
+                    <Block location="peri[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="parent_0" value="3EsHLnVyxOE"/>
+                        <Param id="parent_1" value="3EsHLnVyxOE"/>
+                        <Param id="parent_10" value="3EsHLnVyxOE"/>
+                        <Param id="parent_100" value="3EsHLnVyxOE"/>
+                        <Param id="parent_101" value="3EsHLnVyxOE"/>
+                        <Param id="parent_102" value="3EsHLnVyxOE"/>
+                        <Param id="parent_103" value="3EsHLnVyxOE"/>
+                        <Param id="parent_104" value="3EsHLnVyxOE"/>
+                        <Param id="parent_105" value="3EsHLnVyxOE"/>
+                        <Param id="parent_106" value="3EsHLnVyxOE"/>
+                        <Param id="parent_107" value="3EsHLnVyxOE"/>
+                        <Param id="parent_108" value="3EsHLnVyxOE"/>
+                        <Param id="parent_109" value="3EsHLnVyxOE"/>
+                        <Param id="parent_11" value="3EsHLnVyxOE"/>
+                        <Param id="parent_110" value="3EsHLnVyxOE"/>
+                        <Param id="parent_111" value="3EsHLnVyxOE"/>
+                        <Param id="parent_112" value="3EsHLnVyxOE"/>
+                        <Param id="parent_113" value="3EsHLnVyxOE"/>
+                        <Param id="parent_114" value="3EsHLnVyxOE"/>
+                        <Param id="parent_115" value="3EsHLnVyxOE"/>
+                        <Param id="parent_116" value="3EsHLnVyxOE"/>
+                        <Param id="parent_117" value="3EsHLnVyxOE"/>
+                        <Param id="parent_118" value="3EsHLnVyxOE"/>
+                        <Param id="parent_119" value="3EsHLnVyxOE"/>
+                        <Param id="parent_12" value="3EsHLnVyxOE"/>
+                        <Param id="parent_120" value="3EsHLnVyxOE"/>
+                        <Param id="parent_13" value="3EsHLnVyxOE"/>
+                        <Param id="parent_14" value="3EsHLnVyxOE"/>
+                        <Param id="parent_15" value="3EsHLnVyxOE"/>
+                        <Param id="parent_16" value="3EsHLnVyxOE"/>
+                        <Param id="parent_17" value="3EsHLnVyxOE"/>
+                        <Param id="parent_18" value="3EsHLnVyxOE"/>
+                        <Param id="parent_19" value="3EsHLnVyxOE"/>
+                        <Param id="parent_2" value="3EsHLnVyxOE"/>
+                        <Param id="parent_20" value="3EsHLnVyxOE"/>
+                        <Param id="parent_21" value="3EsHLnVyxOE"/>
+                        <Param id="parent_22" value="3EsHLnVyxOE"/>
+                        <Param id="parent_23" value="3EsHLnVyxOE"/>
+                        <Param id="parent_24" value="3EsHLnVyxOE"/>
+                        <Param id="parent_25" value="3EsHLnVyxOE"/>
+                        <Param id="parent_26" value="3EsHLnVyxOE"/>
+                        <Param id="parent_27" value="3EsHLnVyxOE"/>
+                        <Param id="parent_28" value="3EsHLnVyxOE"/>
+                        <Param id="parent_29" value="3EsHLnVyxOE"/>
+                        <Param id="parent_3" value="3EsHLnVyxOE"/>
+                        <Param id="parent_30" value="3EsHLnVyxOE"/>
+                        <Param id="parent_31" value="3EsHLnVyxOE"/>
+                        <Param id="parent_32" value="3EsHLnVyxOE"/>
+                        <Param id="parent_33" value="3EsHLnVyxOE"/>
+                        <Param id="parent_34" value="3EsHLnVyxOE"/>
+                        <Param id="parent_35" value="3EsHLnVyxOE"/>
+                        <Param id="parent_36" value="3EsHLnVyxOE"/>
+                        <Param id="parent_37" value="3EsHLnVyxOE"/>
+                        <Param id="parent_38" value="3EsHLnVyxOE"/>
+                        <Param id="parent_39" value="3EsHLnVyxOE"/>
+                        <Param id="parent_4" value="3EsHLnVyxOE"/>
+                        <Param id="parent_40" value="3EsHLnVyxOE"/>
+                        <Param id="parent_41" value="3EsHLnVyxOE"/>
+                        <Param id="parent_42" value="3EsHLnVyxOE"/>
+                        <Param id="parent_43" value="3EsHLnVyxOE"/>
+                        <Param id="parent_44" value="3EsHLnVyxOE"/>
+                        <Param id="parent_45" value="3EsHLnVyxOE"/>
+                        <Param id="parent_46" value="3EsHLnVyxOE"/>
+                        <Param id="parent_47" value="3EsHLnVyxOE"/>
+                        <Param id="parent_48" value="3EsHLnVyxOE"/>
+                        <Param id="parent_49" value="3EsHLnVyxOE"/>
+                        <Param id="parent_5" value="3EsHLnVyxOE"/>
+                        <Param id="parent_50" value="3EsHLnVyxOE"/>
+                        <Param id="parent_51" value="3EsHLnVyxOE"/>
+                        <Param id="parent_52" value="3EsHLnVyxOE"/>
+                        <Param id="parent_53" value="3EsHLnVyxOE"/>
+                        <Param id="parent_54" value="3EsHLnVyxOE"/>
+                        <Param id="parent_55" value="3EsHLnVyxOE"/>
+                        <Param id="parent_56" value="3EsHLnVyxOE"/>
+                        <Param id="parent_57" value="3EsHLnVyxOE"/>
+                        <Param id="parent_58" value="3EsHLnVyxOE"/>
+                        <Param id="parent_59" value="3EsHLnVyxOE"/>
+                        <Param id="parent_6" value="3EsHLnVyxOE"/>
+                        <Param id="parent_60" value="3EsHLnVyxOE"/>
+                        <Param id="parent_61" value="3EsHLnVyxOE"/>
+                        <Param id="parent_62" value="3EsHLnVyxOE"/>
+                        <Param id="parent_63" value="3EsHLnVyxOE"/>
+                        <Param id="parent_64" value="3EsHLnVyxOE"/>
+                        <Param id="parent_65" value="3EsHLnVyxOE"/>
+                        <Param id="parent_66" value="3EsHLnVyxOE"/>
+                        <Param id="parent_67" value="3EsHLnVyxOE"/>
+                        <Param id="parent_68" value="3EsHLnVyxOE"/>
+                        <Param id="parent_69" value="3EsHLnVyxOE"/>
+                        <Param id="parent_7" value="3EsHLnVyxOE"/>
+                        <Param id="parent_70" value="3EsHLnVyxOE"/>
+                        <Param id="parent_71" value="3EsHLnVyxOE"/>
+                        <Param id="parent_72" value="3EsHLnVyxOE"/>
+                        <Param id="parent_73" value="3EsHLnVyxOE"/>
+                        <Param id="parent_74" value="3EsHLnVyxOE"/>
+                        <Param id="parent_75" value="3EsHLnVyxOE"/>
+                        <Param id="parent_76" value="3EsHLnVyxOE"/>
+                        <Param id="parent_77" value="3EsHLnVyxOE"/>
+                        <Param id="parent_78" value="3EsHLnVyxOE"/>
+                        <Param id="parent_79" value="3EsHLnVyxOE"/>
+                        <Param id="parent_8" value="3EsHLnVyxOE"/>
+                        <Param id="parent_80" value="3EsHLnVyxOE"/>
+                        <Param id="parent_81" value="3EsHLnVyxOE"/>
+                        <Param id="parent_82" value="3EsHLnVyxOE"/>
+                        <Param id="parent_83" value="3EsHLnVyxOE"/>
+                        <Param id="parent_84" value="3EsHLnVyxOE"/>
+                        <Param id="parent_85" value="3EsHLnVyxOE"/>
+                        <Param id="parent_86" value="3EsHLnVyxOE"/>
+                        <Param id="parent_87" value="3EsHLnVyxOE"/>
+                        <Param id="parent_88" value="3EsHLnVyxOE"/>
+                        <Param id="parent_89" value="3EsHLnVyxOE"/>
+                        <Param id="parent_9" value="3EsHLnVyxOE"/>
+                        <Param id="parent_90" value="3EsHLnVyxOE"/>
+                        <Param id="parent_91" value="3EsHLnVyxOE"/>
+                        <Param id="parent_92" value="3EsHLnVyxOE"/>
+                        <Param id="parent_93" value="3EsHLnVyxOE"/>
+                        <Param id="parent_94" value="3EsHLnVyxOE"/>
+                        <Param id="parent_95" value="3EsHLnVyxOE"/>
+                        <Param id="parent_96" value="3EsHLnVyxOE"/>
+                        <Param id="parent_97" value="3EsHLnVyxOE"/>
+                        <Param id="parent_98" value="3EsHLnVyxOE"/>
+                        <Param id="parent_99" value="3EsHLnVyxOE"/>
+                        <Param id="reg0" value="3EsHLnVyxOE"/>
+                        <Param id="reg1" value="3EsHLnVyxOE"/>
+                        <Param id="reg10" value="FFhsvKojURY"/>
+                        <Param id="reg100" value="3EsHLnVyxOE"/>
+                        <Param id="reg101" value="3EsHLnVyxOE"/>
+                        <Param id="reg102" value="3EsHLnVyxOE"/>
+                        <Param id="reg103" value="3EsHLnVyxOE"/>
+                        <Param id="reg104" value="hH89z5NxW58"/>
+                        <Param id="reg105" value="hH89z5NxW58"/>
+                        <Param id="reg106" value="3EsHLnVyxOE"/>
+                        <Param id="reg107" value="hH89z5NxW58"/>
+                        <Param id="reg108" value="hH89z5NxW58"/>
+                        <Param id="reg109" value="hH89z5NxW58"/>
+                        <Param id="reg11" value="FFhsvKojURY"/>
+                        <Param id="reg110" value="3EsHLnVyxOE"/>
+                        <Param id="reg111" value="hH89z5NxW58"/>
+                        <Param id="reg112" value="3EsHLnVyxOE"/>
+                        <Param id="reg113" value="3EsHLnVyxOE"/>
+                        <Param id="reg114" value="hH89z5NxW58"/>
+                        <Param id="reg115" value="3EsHLnVyxOE"/>
+                        <Param id="reg116" value="3EsHLnVyxOE"/>
+                        <Param id="reg117" value="3EsHLnVyxOE"/>
+                        <Param id="reg118" value="3EsHLnVyxOE"/>
+                        <Param id="reg119" value="3EsHLnVyxOE"/>
+                        <Param id="reg12" value="FFhsvKojURY"/>
+                        <Param id="reg120" value="FFhsvKojURY"/>
+                        <Param id="reg121" value="hH89z5NxW58"/>
+                        <Param id="reg122" value="hH89z5NxW58"/>
+                        <Param id="reg123" value="FFhsvKojURY"/>
+                        <Param id="reg124" value="FFhsvKojURY"/>
+                        <Param id="reg125" value="3EsHLnVyxOE"/>
+                        <Param id="reg126" value="hH89z5NxW58"/>
+                        <Param id="reg127" value="FFhsvKojURY"/>
+                        <Param id="reg128" value="hH89z5NxW58"/>
+                        <Param id="reg129" value="3EsHLnVyxOE"/>
+                        <Param id="reg13" value="3EsHLnVyxOE"/>
+                        <Param id="reg130" value="3EsHLnVyxOE"/>
+                        <Param id="reg131" value="3EsHLnVyxOE"/>
+                        <Param id="reg132" value="3EsHLnVyxOE"/>
+                        <Param id="reg133" value="3EsHLnVyxOE"/>
+                        <Param id="reg134" value="3EsHLnVyxOE"/>
+                        <Param id="reg135" value="3EsHLnVyxOE"/>
+                        <Param id="reg136" value="3EsHLnVyxOE"/>
+                        <Param id="reg137" value="3EsHLnVyxOE"/>
+                        <Param id="reg138" value="3EsHLnVyxOE"/>
+                        <Param id="reg139" value="3EsHLnVyxOE"/>
+                        <Param id="reg14" value="FFhsvKojURY"/>
+                        <Param id="reg140" value="3EsHLnVyxOE"/>
+                        <Param id="reg141" value="3EsHLnVyxOE"/>
+                        <Param id="reg142" value="3EsHLnVyxOE"/>
+                        <Param id="reg143" value="3EsHLnVyxOE"/>
+                        <Param id="reg144" value="3EsHLnVyxOE"/>
+                        <Param id="reg145" value="3EsHLnVyxOE"/>
+                        <Param id="reg146" value="3EsHLnVyxOE"/>
+                        <Param id="reg147" value="3EsHLnVyxOE"/>
+                        <Param id="reg148" value="3EsHLnVyxOE"/>
+                        <Param id="reg149" value="3EsHLnVyxOE"/>
+                        <Param id="reg15" value="FFhsvKojURY"/>
+                        <Param id="reg150" value="3EsHLnVyxOE"/>
+                        <Param id="reg151" value="3EsHLnVyxOE"/>
+                        <Param id="reg152" value="3EsHLnVyxOE"/>
+                        <Param id="reg153" value="3EsHLnVyxOE"/>
+                        <Param id="reg154" value="3EsHLnVyxOE"/>
+                        <Param id="reg155" value="3EsHLnVyxOE"/>
+                        <Param id="reg156" value="3EsHLnVyxOE"/>
+                        <Param id="reg157" value="3EsHLnVyxOE"/>
+                        <Param id="reg158" value="3EsHLnVyxOE"/>
+                        <Param id="reg159" value="3EsHLnVyxOE"/>
+                        <Param id="reg16" value="3EsHLnVyxOE"/>
+                        <Param id="reg160" value="3EsHLnVyxOE"/>
+                        <Param id="reg161" value="3EsHLnVyxOE"/>
+                        <Param id="reg162" value="3EsHLnVyxOE"/>
+                        <Param id="reg163" value="3EsHLnVyxOE"/>
+                        <Param id="reg164" value="3EsHLnVyxOE"/>
+                        <Param id="reg165" value="3EsHLnVyxOE"/>
+                        <Param id="reg166" value="3EsHLnVyxOE"/>
+                        <Param id="reg167" value="3EsHLnVyxOE"/>
+                        <Param id="reg168" value="3EsHLnVyxOE"/>
+                        <Param id="reg169" value="3EsHLnVyxOE"/>
+                        <Param id="reg17" value="hH89z5NxW58"/>
+                        <Param id="reg170" value="3EsHLnVyxOE"/>
+                        <Param id="reg171" value="3EsHLnVyxOE"/>
+                        <Param id="reg172" value="3EsHLnVyxOE"/>
+                        <Param id="reg173" value="3EsHLnVyxOE"/>
+                        <Param id="reg174" value="3EsHLnVyxOE"/>
+                        <Param id="reg175" value="3EsHLnVyxOE"/>
+                        <Param id="reg176" value="3EsHLnVyxOE"/>
+                        <Param id="reg177" value="3EsHLnVyxOE"/>
+                        <Param id="reg178" value="3EsHLnVyxOE"/>
+                        <Param id="reg179" value="3EsHLnVyxOE"/>
+                        <Param id="reg18" value="hH89z5NxW58"/>
+                        <Param id="reg180" value="FFhsvKojURY"/>
+                        <Param id="reg181" value="3EsHLnVyxOE"/>
+                        <Param id="reg182" value="FFhsvKojURY"/>
+                        <Param id="reg183" value="3EsHLnVyxOE"/>
+                        <Param id="reg184" value="hH89z5NxW58"/>
+                        <Param id="reg185" value="3EsHLnVyxOE"/>
+                        <Param id="reg186" value="3EsHLnVyxOE"/>
+                        <Param id="reg187" value="3EsHLnVyxOE"/>
+                        <Param id="reg188" value="3EsHLnVyxOE"/>
+                        <Param id="reg189" value="3EsHLnVyxOE"/>
+                        <Param id="reg19" value="hH89z5NxW58"/>
+                        <Param id="reg190" value="3EsHLnVyxOE"/>
+                        <Param id="reg191" value="hH89z5NxW58"/>
+                        <Param id="reg192" value="3EsHLnVyxOE"/>
+                        <Param id="reg193" value="3EsHLnVyxOE"/>
+                        <Param id="reg194" value="3EsHLnVyxOE"/>
+                        <Param id="reg195" value="3EsHLnVyxOE"/>
+                        <Param id="reg196" value="3EsHLnVyxOE"/>
+                        <Param id="reg197" value="3EsHLnVyxOE"/>
+                        <Param id="reg198" value="3EsHLnVyxOE"/>
+                        <Param id="reg199" value="3EsHLnVyxOE"/>
+                        <Param id="reg2" value="3EsHLnVyxOE"/>
+                        <Param id="reg20" value="FFhsvKojURY"/>
+                        <Param id="reg200" value="3EsHLnVyxOE"/>
+                        <Param id="reg201" value="3EsHLnVyxOE"/>
+                        <Param id="reg202" value="3EsHLnVyxOE"/>
+                        <Param id="reg203" value="3EsHLnVyxOE"/>
+                        <Param id="reg204" value="3EsHLnVyxOE"/>
+                        <Param id="reg205" value="3EsHLnVyxOE"/>
+                        <Param id="reg206" value="3EsHLnVyxOE"/>
+                        <Param id="reg207" value="3EsHLnVyxOE"/>
+                        <Param id="reg208" value="3EsHLnVyxOE"/>
+                        <Param id="reg209" value="3EsHLnVyxOE"/>
+                        <Param id="reg21" value="FFhsvKojURY"/>
+                        <Param id="reg210" value="3EsHLnVyxOE"/>
+                        <Param id="reg211" value="3EsHLnVyxOE"/>
+                        <Param id="reg212" value="3EsHLnVyxOE"/>
+                        <Param id="reg213" value="3EsHLnVyxOE"/>
+                        <Param id="reg214" value="3EsHLnVyxOE"/>
+                        <Param id="reg215" value="3EsHLnVyxOE"/>
+                        <Param id="reg216" value="3EsHLnVyxOE"/>
+                        <Param id="reg217" value="3EsHLnVyxOE"/>
+                        <Param id="reg218" value="3EsHLnVyxOE"/>
+                        <Param id="reg219" value="3EsHLnVyxOE"/>
+                        <Param id="reg22" value="hH89z5NxW58"/>
+                        <Param id="reg220" value="3EsHLnVyxOE"/>
+                        <Param id="reg221" value="3EsHLnVyxOE"/>
+                        <Param id="reg222" value="3EsHLnVyxOE"/>
+                        <Param id="reg223" value="hH89z5NxW58"/>
+                        <Param id="reg224" value="hH89z5NxW58"/>
+                        <Param id="reg225" value="hH89z5NxW58"/>
+                        <Param id="reg226" value="hH89z5NxW58"/>
+                        <Param id="reg227" value="hH89z5NxW58"/>
+                        <Param id="reg228" value="3EsHLnVyxOE"/>
+                        <Param id="reg229" value="3EsHLnVyxOE"/>
+                        <Param id="reg23" value="hH89z5NxW58"/>
+                        <Param id="reg230" value="3EsHLnVyxOE"/>
+                        <Param id="reg231" value="3EsHLnVyxOE"/>
+                        <Param id="reg232" value="3EsHLnVyxOE"/>
+                        <Param id="reg233" value="3EsHLnVyxOE"/>
+                        <Param id="reg234" value="3EsHLnVyxOE"/>
+                        <Param id="reg235" value="3EsHLnVyxOE"/>
+                        <Param id="reg236" value="3EsHLnVyxOE"/>
+                        <Param id="reg237" value="3EsHLnVyxOE"/>
+                        <Param id="reg238" value="hH89z5NxW58"/>
+                        <Param id="reg239" value="hH89z5NxW58"/>
+                        <Param id="reg24" value="hH89z5NxW58"/>
+                        <Param id="reg240" value="hH89z5NxW58"/>
+                        <Param id="reg241" value="hH89z5NxW58"/>
+                        <Param id="reg242" value="hH89z5NxW58"/>
+                        <Param id="reg243" value="hH89z5NxW58"/>
+                        <Param id="reg244" value="hH89z5NxW58"/>
+                        <Param id="reg245" value="hH89z5NxW58"/>
+                        <Param id="reg246" value="hH89z5NxW58"/>
+                        <Param id="reg247" value="hH89z5NxW58"/>
+                        <Param id="reg248" value="hH89z5NxW58"/>
+                        <Param id="reg249" value="hH89z5NxW58"/>
+                        <Param id="reg25" value="hH89z5NxW58"/>
+                        <Param id="reg250" value="hH89z5NxW58"/>
+                        <Param id="reg251" value="hH89z5NxW58"/>
+                        <Param id="reg252" value="hH89z5NxW58"/>
+                        <Param id="reg253" value="3EsHLnVyxOE"/>
+                        <Param id="reg254" value="3EsHLnVyxOE"/>
+                        <Param id="reg255" value="3EsHLnVyxOE"/>
+                        <Param id="reg256" value="3EsHLnVyxOE"/>
+                        <Param id="reg257" value="3EsHLnVyxOE"/>
+                        <Param id="reg258" value="3EsHLnVyxOE"/>
+                        <Param id="reg259" value="3EsHLnVyxOE"/>
+                        <Param id="reg26" value="hH89z5NxW58"/>
+                        <Param id="reg260" value="3EsHLnVyxOE"/>
+                        <Param id="reg261" value="3EsHLnVyxOE"/>
+                        <Param id="reg262" value="3EsHLnVyxOE"/>
+                        <Param id="reg263" value="3EsHLnVyxOE"/>
+                        <Param id="reg264" value="3EsHLnVyxOE"/>
+                        <Param id="reg265" value="3EsHLnVyxOE"/>
+                        <Param id="reg266" value="3EsHLnVyxOE"/>
+                        <Param id="reg267" value="3EsHLnVyxOE"/>
+                        <Param id="reg268" value="3EsHLnVyxOE"/>
+                        <Param id="reg269" value="3EsHLnVyxOE"/>
+                        <Param id="reg27" value="hH89z5NxW58"/>
+                        <Param id="reg270" value="3EsHLnVyxOE"/>
+                        <Param id="reg271" value="3EsHLnVyxOE"/>
+                        <Param id="reg272" value="3EsHLnVyxOE"/>
+                        <Param id="reg273" value="3EsHLnVyxOE"/>
+                        <Param id="reg274" value="3EsHLnVyxOE"/>
+                        <Param id="reg275" value="3EsHLnVyxOE"/>
+                        <Param id="reg276" value="3EsHLnVyxOE"/>
+                        <Param id="reg277" value="3EsHLnVyxOE"/>
+                        <Param id="reg278" value="3EsHLnVyxOE"/>
+                        <Param id="reg279" value="3EsHLnVyxOE"/>
+                        <Param id="reg28" value="hH89z5NxW58"/>
+                        <Param id="reg280" value="3EsHLnVyxOE"/>
+                        <Param id="reg281" value="3EsHLnVyxOE"/>
+                        <Param id="reg282" value="3EsHLnVyxOE"/>
+                        <Param id="reg283" value="3EsHLnVyxOE"/>
+                        <Param id="reg284" value="3EsHLnVyxOE"/>
+                        <Param id="reg285" value="3EsHLnVyxOE"/>
+                        <Param id="reg286" value="3EsHLnVyxOE"/>
+                        <Param id="reg287" value="3EsHLnVyxOE"/>
+                        <Param id="reg288" value="3EsHLnVyxOE"/>
+                        <Param id="reg289" value="3EsHLnVyxOE"/>
+                        <Param id="reg29" value="hH89z5NxW58"/>
+                        <Param id="reg290" value="3EsHLnVyxOE"/>
+                        <Param id="reg291" value="3EsHLnVyxOE"/>
+                        <Param id="reg292" value="3EsHLnVyxOE"/>
+                        <Param id="reg293" value="3EsHLnVyxOE"/>
+                        <Param id="reg294" value="3EsHLnVyxOE"/>
+                        <Param id="reg295" value="3EsHLnVyxOE"/>
+                        <Param id="reg296" value="3EsHLnVyxOE"/>
+                        <Param id="reg3" value="3EsHLnVyxOE"/>
+                        <Param id="reg30" value="3EsHLnVyxOE"/>
+                        <Param id="reg31" value="FFhsvKojURY"/>
+                        <Param id="reg32" value="FFhsvKojURY"/>
+                        <Param id="reg33" value="FFhsvKojURY"/>
+                        <Param id="reg34" value="hH89z5NxW58"/>
+                        <Param id="reg35" value="hH89z5NxW58"/>
+                        <Param id="reg36" value="hH89z5NxW58"/>
+                        <Param id="reg37" value="FFhsvKojURY"/>
+                        <Param id="reg38" value="hH89z5NxW58"/>
+                        <Param id="reg39" value="hH89z5NxW58"/>
+                        <Param id="reg4" value="3EsHLnVyxOE"/>
+                        <Param id="reg40" value="hH89z5NxW58"/>
+                        <Param id="reg41" value="FFhsvKojURY"/>
+                        <Param id="reg42" value="FFhsvKojURY"/>
+                        <Param id="reg43" value="FFhsvKojURY"/>
+                        <Param id="reg44" value="hH89z5NxW58"/>
+                        <Param id="reg45" value="3EsHLnVyxOE"/>
+                        <Param id="reg46" value="hH89z5NxW58"/>
+                        <Param id="reg47" value="3EsHLnVyxOE"/>
+                        <Param id="reg48" value="FFhsvKojURY"/>
+                        <Param id="reg49" value="FFhsvKojURY"/>
+                        <Param id="reg5" value="3EsHLnVyxOE"/>
+                        <Param id="reg50" value="FFhsvKojURY"/>
+                        <Param id="reg51" value="FFhsvKojURY"/>
+                        <Param id="reg52" value="FFhsvKojURY"/>
+                        <Param id="reg53" value="hH89z5NxW58"/>
+                        <Param id="reg54" value="3EsHLnVyxOE"/>
+                        <Param id="reg55" value="3EsHLnVyxOE"/>
+                        <Param id="reg56" value="3EsHLnVyxOE"/>
+                        <Param id="reg57" value="3EsHLnVyxOE"/>
+                        <Param id="reg58" value="3EsHLnVyxOE"/>
+                        <Param id="reg59" value="3EsHLnVyxOE"/>
+                        <Param id="reg6" value="3EsHLnVyxOE"/>
+                        <Param id="reg60" value="3EsHLnVyxOE"/>
+                        <Param id="reg61" value="3EsHLnVyxOE"/>
+                        <Param id="reg62" value="3EsHLnVyxOE"/>
+                        <Param id="reg63" value="3EsHLnVyxOE"/>
+                        <Param id="reg64" value="3EsHLnVyxOE"/>
+                        <Param id="reg65" value="3EsHLnVyxOE"/>
+                        <Param id="reg66" value="3EsHLnVyxOE"/>
+                        <Param id="reg67" value="3EsHLnVyxOE"/>
+                        <Param id="reg68" value="3EsHLnVyxOE"/>
+                        <Param id="reg69" value="3EsHLnVyxOE"/>
+                        <Param id="reg7" value="FFhsvKojURY"/>
+                        <Param id="reg70" value="3EsHLnVyxOE"/>
+                        <Param id="reg71" value="3EsHLnVyxOE"/>
+                        <Param id="reg72" value="3EsHLnVyxOE"/>
+                        <Param id="reg73" value="FFhsvKojURY"/>
+                        <Param id="reg74" value="hH89z5NxW58"/>
+                        <Param id="reg75" value="3EsHLnVyxOE"/>
+                        <Param id="reg76" value="hH89z5NxW58"/>
+                        <Param id="reg77" value="FFhsvKojURY"/>
+                        <Param id="reg78" value="FFhsvKojURY"/>
+                        <Param id="reg79" value="FFhsvKojURY"/>
+                        <Param id="reg8" value="FFhsvKojURY"/>
+                        <Param id="reg80" value="FFhsvKojURY"/>
+                        <Param id="reg81" value="FFhsvKojURY"/>
+                        <Param id="reg82" value="FFhsvKojURY"/>
+                        <Param id="reg83" value="FFhsvKojURY"/>
+                        <Param id="reg84" value="FFhsvKojURY"/>
+                        <Param id="reg85" value="hH89z5NxW58"/>
+                        <Param id="reg86" value="hH89z5NxW58"/>
+                        <Param id="reg87" value="3EsHLnVyxOE"/>
+                        <Param id="reg88" value="3EsHLnVyxOE"/>
+                        <Param id="reg89" value="3EsHLnVyxOE"/>
+                        <Param id="reg9" value="FFhsvKojURY"/>
+                        <Param id="reg90" value="hH89z5NxW58"/>
+                        <Param id="reg91" value="hH89z5NxW58"/>
+                        <Param id="reg92" value="3EsHLnVyxOE"/>
+                        <Param id="reg93" value="3EsHLnVyxOE"/>
+                        <Param id="reg94" value="3EsHLnVyxOE"/>
+                        <Param id="reg95" value="3EsHLnVyxOE"/>
+                        <Param id="reg96" value="3EsHLnVyxOE"/>
+                        <Param id="reg97" value="3EsHLnVyxOE"/>
+                        <Param id="reg98" value="3EsHLnVyxOE"/>
+                        <Param id="reg99" value="3EsHLnVyxOE"/>
+                        <Param id="response" value="CY_PPC_BUS_ERR"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pclk_v2" version="1.0" instance="lDVZxgVapb4">
+                    <Block location="peri[0].group[3].div_8[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="fracDivider" value="0"/>
+                        <Param id="intDivider" value="26"/>
+                        <Param id="startOnReset" value="true"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="uart" version="3.0" instance="pDd40G2lLpI">
+                    <Block location="scb[2]" locked="true">
+                        <Aliases>
+                            <Alias value="IFX_TFM_SPM_UART"/>
+                        </Aliases>
+                    </Block>
+                    <Parameters>
+                        <Param id="ApiMode" value="HIGH_LEVEL"/>
+                        <Param id="BaudRate" value="115200"/>
+                        <Param id="BitsOrder" value="CY_SCB_UART_LSB_FIRST"/>
+                        <Param id="BreakLevel" value="0"/>
+                        <Param id="BreakSignalBits" value="11"/>
+                        <Param id="ComMode" value="CY_SCB_UART_STANDARD"/>
+                        <Param id="CtsPolarity" value="CY_SCB_UART_ACTIVE_LOW"/>
+                        <Param id="DataWidth" value="8"/>
+                        <Param id="DropOnFrameErr" value="false"/>
+                        <Param id="DropOnParityErr" value="false"/>
+                        <Param id="EnableHalfDuplex" value="false"/>
+                        <Param id="EnableInputFilter" value="false"/>
+                        <Param id="EnableTxEn" value="false"/>
+                        <Param id="FlowControl" value="false"/>
+                        <Param id="IntrRxBreakDetected" value="false"/>
+                        <Param id="IntrRxFrameErr" value="false"/>
+                        <Param id="IntrRxFull" value="false"/>
+                        <Param id="IntrRxNotEmpty" value="false"/>
+                        <Param id="IntrRxOverflow" value="false"/>
+                        <Param id="IntrRxParityErr" value="false"/>
+                        <Param id="IntrRxTrigger" value="false"/>
+                        <Param id="IntrRxUnderflow" value="false"/>
+                        <Param id="IntrTxEmpty" value="false"/>
+                        <Param id="IntrTxNotFull" value="false"/>
+                        <Param id="IntrTxOverflow" value="false"/>
+                        <Param id="IntrTxTrigger" value="false"/>
+                        <Param id="IntrTxUartDone" value="false"/>
+                        <Param id="IntrTxUartLostArb" value="false"/>
+                        <Param id="IntrTxUartNack" value="false"/>
+                        <Param id="IntrTxUnderflow" value="false"/>
+                        <Param id="IrdaLowPower" value="false"/>
+                        <Param id="IrdaPolarity" value="NON_INVERTING"/>
+                        <Param id="MpRxAcceptAddress" value="false"/>
+                        <Param id="MpRxAddress" value="0"/>
+                        <Param id="MpRxAddressMask" value="255"/>
+                        <Param id="MultiProc" value="false"/>
+                        <Param id="Oversample" value="8"/>
+                        <Param id="ParityType" value="CY_SCB_UART_PARITY_NONE"/>
+                        <Param id="RtsPolarity" value="CY_SCB_UART_ACTIVE_LOW"/>
+                        <Param id="RtsTriggerLevel" value="63"/>
+                        <Param id="RxTriggerLevel" value="63"/>
+                        <Param id="SmCardRetryOnNack" value="false"/>
+                        <Param id="StopBits" value="CY_SCB_UART_STOP_BITS_1"/>
+                        <Param id="TxTriggerLevel" value="63"/>
+                        <Param id="inFlash" value="true"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="sysclocks" version="3.0" instance="8_WRLmjCuws">
+                    <Block location="srss[0].clock[0]" locked="true"/>
+                </Personality>
+                <Personality template="bakclk" version="3.0" instance="3xafZYn0Yu8">
+                    <Block location="srss[0].clock[0].bakclk[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="lfclk"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk" version="3.0" instance="1QLQPJ758A4">
+                    <Block location="srss[0].clock[0].hfclk[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="accuracyCsv" value="99"/>
+                        <Param id="actionCsv" value="FAULT"/>
+                        <Param id="divider" value="1"/>
+                        <Param id="sourceClockCsv" value="IMO"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk" version="3.0" instance="UOjmDSiNwUo">
+                    <Block location="srss[0].clock[0].hfclk[1]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="accuracyCsv" value="99"/>
+                        <Param id="actionCsv" value="FAULT"/>
+                        <Param id="divider" value="2"/>
+                        <Param id="sourceClockCsv" value="IMO"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk" version="3.0" instance="Ebp4yK8SjQo">
+                    <Block location="srss[0].clock[0].hfclk[2]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="accuracyCsv" value="99"/>
+                        <Param id="actionCsv" value="FAULT"/>
+                        <Param id="divider" value="2"/>
+                        <Param id="sourceClockCsv" value="IMO"/>
+                        <Param id="sourceClockNumber" value="1"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk" version="3.0" instance="aBEnusB0XLw">
+                    <Block location="srss[0].clock[0].hfclk[3]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="accuracyCsv" value="99"/>
+                        <Param id="actionCsv" value="FAULT"/>
+                        <Param id="divider" value="2"/>
+                        <Param id="sourceClockCsv" value="IMO"/>
+                        <Param id="sourceClockNumber" value="1"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk" version="3.0" instance="rTIazaiZiKA">
+                    <Block location="srss[0].clock[0].hfclk[4]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="accuracyCsv" value="99"/>
+                        <Param id="actionCsv" value="FAULT"/>
+                        <Param id="divider" value="2"/>
+                        <Param id="sourceClockCsv" value="IMO"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="hfclk" version="3.0" instance="oSphKSOICkc">
+                    <Block location="srss[0].clock[0].hfclk[5]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkHfCsv" value="false"/>
+                        <Param id="accuracyCsv" value="99"/>
+                        <Param id="actionCsv" value="FAULT"/>
+                        <Param id="divider" value="2"/>
+                        <Param id="sourceClockCsv" value="IMO"/>
+                        <Param id="sourceClockNumber" value="0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="mxs40iho" version="1.0" instance="eSPG2rLVlTI">
+                    <Block location="srss[0].clock[0].iho[0]" locked="true"/>
+                </Personality>
+                <Personality template="ilo" version="3.0" instance="iXv-frgt970">
+                    <Block location="srss[0].clock[0].ilo[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="hibernate" value="true"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="imo" version="3.0" instance="cQJSNNFyJ5M">
+                    <Block location="srss[0].clock[0].imo[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="trim" value="1"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="lfclk" version="3.0" instance="B6Ixpbh9sno">
+                    <Block location="srss[0].clock[0].lfclk[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="ClkLfCsv" value="false"/>
+                        <Param id="accuracyCsv" value="99"/>
+                        <Param id="sourceClock" value="ilo"/>
+                        <Param id="sourceClockCsv" value="IMO"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="X4AGgQtregc">
+                    <Block location="srss[0].clock[0].pathmux[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="2xN1JwN_btI">
+                    <Block location="srss[0].clock[0].pathmux[1]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="kX3KRvyD9cY">
+                    <Block location="srss[0].clock[0].pathmux[2]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="efHRLaeopRY">
+                    <Block location="srss[0].clock[0].pathmux[3]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="rBPZ2i8pwu0">
+                    <Block location="srss[0].clock[0].pathmux[4]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="zgydL-uLsL8">
+                    <Block location="srss[0].clock[0].pathmux[5]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="pathmux" version="3.0" instance="TfZBBIe5yFw">
+                    <Block location="srss[0].clock[0].pathmux[6]" locked="true"/>
+                    <Parameters>
+                        <Param id="sourceClock" value="iho"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="timerclk" version="3.0" instance="1AtyY1Bn0rs">
+                    <Block location="srss[0].clock[0].timerclk[0]" locked="true"/>
+                </Personality>
+                <Personality template="power_v2" version="1.0" instance="sz1rDhBSSGQ">
+                    <Block location="srss[0].power[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="actPwrMode" value="ULP"/>
+                        <Param id="backupSrc" value="VDDD"/>
+                        <Param id="deepsleepLatency" value="0"/>
+                        <Param id="enableLowPowerProfileMode" value="false"/>
+                        <Param id="idlePwrMode" value="CY_CFG_PWR_MODE_DEEPSLEEP"/>
+                        <Param id="minCurrRegulator" value="CY_SYSPM_LDO_MODE_NORMAL"/>
+                        <Param id="sdr0BypassModeMacro" value="true"/>
+                        <Param id="vddaMv" value="3300"/>
+                        <Param id="vddbuckMv" value="3300"/>
+                        <Param id="vdddMv" value="3300"/>
+                        <Param id="vddio0Mv" value="3300"/>
+                        <Param id="vddio1Mv" value="3300"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="edge_protect" version="1.1" instance="PvqSC7UFWfs">
+                    <Block location="vres[0].edge_protect[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="m33s_code_MEMORY_PLACED" value="false"/>
+                        <Param id="m33s_data_MEMORY_PLACED" value="false"/>
+                        <Param id="m33s_nvm_MEMORY_PLACED" value="false"/>
+                        <Param id="m33s_shared_MEMORY_PLACED" value="false"/>
+                        <Param id="show_detailed_configuration" value="false"/>
+                        <Param id="tfm_general_CUSTOM_SERVICE_COUNT" value="0"/>
+                        <Param id="tfm_services_attestation_ENABLED" value="false"/>
+                        <Param id="tfm_services_crypto_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_0_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_0_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_0_NAME" value=""/>
+                        <Param id="tfm_services_custom_0_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_0_REMOVED" value="false"/>
+                        <Param id="tfm_services_custom_10_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_10_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_10_NAME" value=""/>
+                        <Param id="tfm_services_custom_10_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_10_REMOVED" value="false"/>
+                        <Param id="tfm_services_custom_11_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_11_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_11_NAME" value=""/>
+                        <Param id="tfm_services_custom_11_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_11_REMOVED" value="false"/>
+                        <Param id="tfm_services_custom_12_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_12_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_12_NAME" value=""/>
+                        <Param id="tfm_services_custom_12_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_12_REMOVED" value="false"/>
+                        <Param id="tfm_services_custom_13_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_13_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_13_NAME" value=""/>
+                        <Param id="tfm_services_custom_13_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_13_REMOVED" value="false"/>
+                        <Param id="tfm_services_custom_14_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_14_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_14_NAME" value=""/>
+                        <Param id="tfm_services_custom_14_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_14_REMOVED" value="false"/>
+                        <Param id="tfm_services_custom_1_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_1_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_1_NAME" value=""/>
+                        <Param id="tfm_services_custom_1_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_1_REMOVED" value="false"/>
+                        <Param id="tfm_services_custom_2_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_2_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_2_NAME" value=""/>
+                        <Param id="tfm_services_custom_2_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_2_REMOVED" value="false"/>
+                        <Param id="tfm_services_custom_3_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_3_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_3_NAME" value=""/>
+                        <Param id="tfm_services_custom_3_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_3_REMOVED" value="false"/>
+                        <Param id="tfm_services_custom_4_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_4_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_4_NAME" value=""/>
+                        <Param id="tfm_services_custom_4_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_4_REMOVED" value="false"/>
+                        <Param id="tfm_services_custom_5_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_5_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_5_NAME" value=""/>
+                        <Param id="tfm_services_custom_5_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_5_REMOVED" value="false"/>
+                        <Param id="tfm_services_custom_6_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_6_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_6_NAME" value=""/>
+                        <Param id="tfm_services_custom_6_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_6_REMOVED" value="false"/>
+                        <Param id="tfm_services_custom_7_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_7_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_7_NAME" value=""/>
+                        <Param id="tfm_services_custom_7_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_7_REMOVED" value="false"/>
+                        <Param id="tfm_services_custom_8_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_8_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_8_NAME" value=""/>
+                        <Param id="tfm_services_custom_8_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_8_REMOVED" value="false"/>
+                        <Param id="tfm_services_custom_9_DOMAIN_NAME" value=""/>
+                        <Param id="tfm_services_custom_9_ENABLED" value="false"/>
+                        <Param id="tfm_services_custom_9_NAME" value=""/>
+                        <Param id="tfm_services_custom_9_PARTITION_TYPE" value=""/>
+                        <Param id="tfm_services_custom_9_REMOVED" value="false"/>
+                        <Param id="tfm_services_its_ENABLED" value="false"/>
+                        <Param id="tfm_services_its_MEMORY_PLACED" value="false"/>
+                        <Param id="tfm_services_platform_MEMORY_PLACED" value="false"/>
+                        <Param id="tfm_services_platform_MEMORY_SUPPORTED" value="true"/>
+                        <Param id="tfm_services_ps_ENABLED" value="false"/>
+                        <Param id="tfm_services_ps_MEMORY_PLACED" value="false"/>
+                        <Param id="use_separate_execute_region" value="false"/>
+                    </Parameters>
+                    <Personality template="security_mpu_tfm" instance="9NWTpv46De4">
+                        <Block location="cpuss[0].cm33[0].mpu_s[0]" locked="false"/>
+                    </Personality>
+                    <Personality template="domain_spe" instance="DB424MobJ_M">
+                        <Block location="vres[0].protection[0].domain[4]" locked="false"/>
+                    </Personality>
+                </Personality>
+                <Personality template="memory" version="2.0" instance="rIfOuCgeVWw">
+                    <Block location="vres[0].memory[0]" locked="true"/>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="VI3MI3rinPo">
+                    <Block location="vres[0].memory_region_data[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="DB424MobJ_M"/>
+                        <Param id="memoryId" value="FLASH"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="m33s_nvm"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x0004B800"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="Sn36G4vC7To">
+                    <Block location="vres[0].memory_region_data[1]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="hH89z5NxW58"/>
+                        <Param id="memoryId" value="FLASH"/>
+                        <Param id="offset" value="0x0004D800"/>
+                        <Param id="regionId" value="TFM_ITS"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00001000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="CNb52UBSM_o">
+                    <Block location="vres[0].memory_region_data[2]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="hH89z5NxW58"/>
+                        <Param id="memoryId" value="FLASH"/>
+                        <Param id="offset" value="0x0004E800"/>
+                        <Param id="regionId" value="TFM_NV_COUNTERS"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00000800"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="6w8zbEecq9Q">
+                    <Block location="vres[0].memory_region_data[3]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="3EsHLnVyxOE"/>
+                        <Param id="memoryId" value="FLASH"/>
+                        <Param id="offset" value="0x0004F000"/>
+                        <Param id="regionId" value="m33ns_nvm"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00030000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="qear3ZVI-kI">
+                    <Block location="vres[0].memory_region_data[4]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="hH89z5NxW58"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="m33s_shared"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00001000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="VcszAVWm_xY">
+                    <Block location="vres[0].memory_region_data[5]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="hH89z5NxW58"/>
+                        <Param id="memoryId" value="FLASH"/>
+                        <Param id="offset" value="0x0004B800"/>
+                        <Param id="regionId" value="TFM_PS"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00002000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="J7eAYZKrByo">
+                    <Block location="vres[0].memory_region_data[6]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="hH89z5NxW58"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x00001000"/>
+                        <Param id="regionId" value="m33s_data"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00016FC0"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="HSCyDhGKBTE">
+                    <Block location="vres[0].memory_region_data[7]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="3EsHLnVyxOE"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x00018000"/>
+                        <Param id="regionId" value="m33ns_data"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00007C00"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="wdmPLSQDU10">
+                    <Block location="vres[0].memory_region_data[8]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="3EsHLnVyxOE"/>
+                        <Param id="memoryId" value="FLASH"/>
+                        <Param id="offset" value="0x0007F000"/>
+                        <Param id="regionId" value="m33s_nvm_secondary_slot"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00000800"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="GRRLA5dxzBs">
+                    <Block location="vres[0].memory_region_data[9]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="3EsHLnVyxOE"/>
+                        <Param id="memoryId" value="FLASH"/>
+                        <Param id="offset" value="0x0007F800"/>
+                        <Param id="regionId" value="m33_nvm_secondary_slot"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00000800"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="-CxaiCMA7Ns">
+                    <Block location="vres[0].memory_region_data[10]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="hH89z5NxW58"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x00017FC0"/>
+                        <Param id="regionId" value="TEST_PROT_PARTITION_MEMORY"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00000020"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="KU_EpmPTtxU">
+                    <Block location="vres[0].memory_region_data[11]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="hH89z5NxW58"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x00017FE0"/>
+                        <Param id="regionId" value="TEST_AROT_PARTITION_MEMORY"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00000020"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="r98jWXpHzHg">
+                    <Block location="vres[0].memory_region_data[12]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="3EsHLnVyxOE"/>
+                        <Param id="memoryId" value="PPCA_CPU0_CODE_SRAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="ppca0_cm33_code"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00007FFC"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="QLF6AGL_aSE">
+                    <Block location="vres[0].memory_region_data[13]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="3EsHLnVyxOE"/>
+                        <Param id="memoryId" value="PPCA_CPU0_CODE_SRAM"/>
+                        <Param id="offset" value="0x00007FFC"/>
+                        <Param id="regionId" value="ppca0_cm33_crc"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00000004"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="m9fwGul0aH0">
+                    <Block location="vres[0].memory_region_data[14]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="3EsHLnVyxOE"/>
+                        <Param id="memoryId" value="PPCA_CPU0_DATA_SRAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="ppca0_cm33_data"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00004000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="Q498xRcqfhg">
+                    <Block location="vres[0].memory_region_data[15]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="3EsHLnVyxOE"/>
+                        <Param id="memoryId" value="PPCA_CPU1_CODE_SRAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="ppca1_cm33_code"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00007FFC"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="KnCYSu_vtGo">
+                    <Block location="vres[0].memory_region_data[16]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="3EsHLnVyxOE"/>
+                        <Param id="memoryId" value="PPCA_CPU1_CODE_SRAM"/>
+                        <Param id="offset" value="0x00007FFC"/>
+                        <Param id="regionId" value="ppca1_cm33_crc"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00000004"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="bIutxT9bTIs">
+                    <Block location="vres[0].memory_region_data[17]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="3EsHLnVyxOE"/>
+                        <Param id="memoryId" value="PPCA_CPU1_DATA_SRAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="ppca1_cm33_data"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00004000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="dHbk18z7r20">
+                    <Block location="vres[0].memory_region_data[18]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="3EsHLnVyxOE"/>
+                        <Param id="memoryId" value="PPCA_SHARED_DATA_SRAM"/>
+                        <Param id="offset" value="0x00000000"/>
+                        <Param id="regionId" value="ppca_shm_sram"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00004000"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="memory_region_data" version="1.0" instance="9DQD3Yp7gqw">
+                    <Block location="vres[0].memory_region_data[19]" locked="true"/>
+                    <Parameters>
+                        <Param id="description" value=""/>
+                        <Param id="domain" value="3EsHLnVyxOE"/>
+                        <Param id="memoryId" value="SRAM"/>
+                        <Param id="offset" value="0x0001FC00"/>
+                        <Param id="regionId" value="m33ns_shm_data"/>
+                        <Param id="reservedGuid" value="USER_DEFINED"/>
+                        <Param id="size" value="0x00000400"/>
+                    </Parameters>
+                </Personality>
+                <Personality template="protection" version="1.0" instance="b7N8_4WjUs8">
+                    <Block location="vres[0].protection[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="pcSwitch" value="false"/>
+                        <Param id="secureDebuggerAccess" value="true"/>
+                        <Param id="type" value="SECURE_CUSTOM"/>
+                        <Param id="validation_security_boundary" value="SECURE"/>
+                    </Parameters>
+                    <Personality template="domain0" instance="hH89z5NxW58">
+                        <Block location="vres[0].protection[0].domain[0]" locked="false"/>
+                    </Personality>
+                    <Personality template="domain1" instance="3EsHLnVyxOE">
+                        <Block location="vres[0].protection[0].domain[1]" locked="false"/>
+                    </Personality>
+                    <Personality template="domain2" instance="3UuiA7YIfYM">
+                        <Block location="vres[0].protection[0].domain[2]" locked="false"/>
+                    </Personality>
+                    <Personality template="domain3" instance="FFhsvKojURY">
+                        <Block location="vres[0].protection[0].domain[3]" locked="false"/>
+                    </Personality>
+                </Personality>
+                <Personality template="protection_mpc" version="1.0" instance="-_UrYj0WAU4">
+                    <Block location="vres[0].protection[0].mpc[0]" locked="true"/>
+                    <Parameters>
+                        <Param id="responsePPCASRAM0" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responsePPCASRAM1" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responsePPCASRAM2" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responsePPCASRAM3" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responsePPCASRAM4" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responseSMIF0" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responseSMIF1" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responseSOCMEM" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responseSRAM0" value="CY_MPC_BUS_ERR"/>
+                        <Param id="responseSRAM1" value="CY_MPC_BUS_ERR"/>
+                    </Parameters>
+                </Personality>
+            </BlockConfig>
+            <Netlist>
+                <Net>
+                    <Port name="ioss[0].port[3].pin[3].digital_inout[0]"/>
+                    <Port name="scb[2].uart_tx[0]"/>
+                </Net>
+                <Net>
+                    <Port name="ioss[0].port[3].pin[4].digital_inout[0]"/>
+                    <Port name="scb[2].uart_rx[0]"/>
+                </Net>
+                <Net>
+                    <Port name="peri[0].group[3].div_8[0].clk[0]"/>
+                    <Port name="scb[2].clock_scb_en[0]"/>
+                </Net>
+            </Netlist>
+        </Device>
+    </Devices>
+</Configuration>
