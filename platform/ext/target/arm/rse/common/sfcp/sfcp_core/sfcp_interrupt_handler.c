@@ -107,6 +107,7 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
     uint16_t packet_client_id;
     sfcp_node_id_t packet_sender;
     sfcp_node_id_t packet_receiver;
+    sfcp_node_id_t remote_node;
     sfcp_node_id_t forwarding_destination;
     uint8_t message_id;
     uint8_t *payload;
@@ -175,6 +176,19 @@ enum sfcp_error_t sfcp_interrupt_handler(sfcp_link_id_t link_id)
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         /* Do not have enough information about this packet to reply */
         return sfcp_err;
+    }
+
+    /* Replies retain the sender and receiver IDs of the original request. Check
+     * the route to the transmitting node before forwarding or handling the packet.
+     */
+    remote_node = ((packet_type == SFCP_PACKET_TYPE_REPLY) ||
+                   (packet_type == SFCP_PACKET_TYPE_PROTOCOL_ERROR_REPLY))
+                      ? packet_receiver
+                      : packet_sender;
+    if ((remote_node == my_node_id) || (sfcp_hal_get_route(remote_node) != link_id)) {
+        protocol_err = SFCP_PROTOCOL_ERROR_UNSUPPORTED;
+        sfcp_err = SFCP_ERROR_INVALID_NODE;
+        goto out_error;
     }
 
     if (sfcp_helpers_packet_requires_forwarding_get_destination(
