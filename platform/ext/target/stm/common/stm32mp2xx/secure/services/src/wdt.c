@@ -50,16 +50,17 @@ static enum tfm_platform_err_t _wdt_ping(void)
 
 static enum tfm_platform_err_t _wdt_get_info(struct wdt_info *info)
 {
-	int status;
+	uint32_t timeout = 0;
+	int err, status;
 
 	status = watchdog_status(NULL);
+	err = watchdog_get_timeout(NULL, &timeout);
 
-	if (status == WATCHDOG_DISABLED)
-		info->status = WDT_DISABLED;
-	else if (status == WATCHDOG_ENABLED)
-		info->status = WDT_ENABLED;
-	else
+	if (err || status < 0)
 		return TFM_PLATFORM_ERR_SYSTEM_ERROR;
+
+	info->timeout = timeout;
+	info->status = (status == WATCHDOG_ENABLED) ? WDT_ENABLED : WDT_DISABLED;
 
 	return TFM_PLATFORM_ERR_SUCCESS;
 }
