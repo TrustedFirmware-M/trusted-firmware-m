@@ -6,6 +6,3 @@
 #-------------------------------------------------------------------------------
 
 include(${MPS4_COMMON_DIR}/config.cmake)
-
-# Ethos-U NPU configurations
-set(ETHOSU_ARCH                       "U85"            CACHE STRING    "Ethos-U NPU type [U85]")

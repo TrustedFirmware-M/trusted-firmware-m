@@ -15,7 +15,7 @@
 #include "syscounter_armv8-m_cntrl_drv.h"
 #include "uart_stdout.h"
 #include "tfm_peripherals_def.h"
-#include "ethosu_device.h"
+#include "ethosu_reset.h"
 
 #ifdef PSA_API_TEST_IPC
 #define PSA_FF_TEST_SECURE_UART2
@@ -59,9 +59,6 @@ extern ARM_DRIVER_PPC_CORSTONE310 Driver_PERIPH_EXP0_PPC_CORSTONE310;
 extern ARM_DRIVER_PPC_CORSTONE310 Driver_PERIPH_EXP1_PPC_CORSTONE310;
 extern ARM_DRIVER_PPC_CORSTONE310 Driver_PERIPH_EXP2_PPC_CORSTONE310;
 extern ARM_DRIVER_PPC_CORSTONE310 Driver_PERIPH_EXP3_PPC_CORSTONE310;
-
-/* Import NPU driver */
-extern struct ethosu_device NPU0_S;
 
 /* Define Peripherals NS address range for the platform */
 #define PERIPHERALS_BASE_NS_START      (0x40000000)
@@ -743,10 +740,8 @@ enum tfm_plat_err_t ppc_init_cfg(void)
     err |= Driver_PERIPH_EXP1_PPC_CORSTONE310.Initialize();
     err |= Driver_PERIPH_EXP3_PPC_CORSTONE310.Initialize();
 
-    /* initialize and config NPU */
-    err |= !TFM_ETHOSU_DEVICE_DESC.ops->init(
-        &NPU0_S, &TFM_ETHOSU_DEVICE_DESC, &TFM_ETHOSU_DEVICE_CONFIG,
-        NULL, (void *)NPU0_S.reg, NPU0_S.secure, NPU0_S.privileged);
+    /* Reset the NPU into non-secure, unprivileged mode */
+    err |= ethosu_reset_nonsecure_user(NPU0_APB_BASE_S);
 
     /*
      * Configure the response to a security violation as a

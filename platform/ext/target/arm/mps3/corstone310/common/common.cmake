@@ -72,11 +72,10 @@ target_include_directories(device_definition
         ${PLATFORM_DIR}/ext/target/arm/drivers/mpc_sie
         ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m
         ${PLATFORM_DIR}/ext/target/arm/drivers/counter/armv8m
+        ${PLATFORM_DIR}/ext/target/arm/drivers/ethosu
         ${PLATFORM_DIR}/ext/target/arm/drivers/timer/armv8m
         ${PLATFORM_DIR}/ext/target/arm/drivers/tgu
         ${PLATFORM_DIR}/include
-        ${ETHOS_DRIVER_PATH}/src
-        ${ETHOS_DRIVER_PATH}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/device/config
         ${CMAKE_SOURCE_DIR}
 )
@@ -109,7 +108,7 @@ target_sources(platform_s
         ${PLATFORM_DIR}/ext/target/arm/drivers/mpc_sie/mpc_sie_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/mpu/armv8m/mpu_armv8m_drv.c
         ${PLATFORM_DIR}/ext/target/arm/drivers/counter/armv8m/syscounter_armv8-m_cntrl_drv.c
-        ${ETHOS_DRIVER_PATH}/src/ethosu_backend_$<LOWER_CASE:${ETHOSU_ARCH}>.c
+        ${PLATFORM_DIR}/ext/target/arm/drivers/ethosu/ethosu_reset.c
         $<$<OR:$<BOOL:${TFM_PARTITION_SLIH_TEST}>,$<BOOL:${TFM_PARTITION_FLIH_TEST}>>:${CORSTONE310_COMMON_DIR}/plat_test.c>
         $<$<BOOL:${TFM_PARTITION_PLATFORM}>:${CORSTONE310_COMMON_DIR}/services/src/tfm_platform_system.c>
 )
@@ -126,15 +125,6 @@ target_compile_definitions(platform_s
     PUBLIC
         $<$<BOOL:${TEST_NS_FPU}>:TEST_NS_FPU>
         $<$<BOOL:${TEST_S_FPU}>:TEST_S_FPU>
-)
-
-target_compile_definitions(platform_s
-    PUBLIC
-        ETHOSU_ARCH=$<LOWER_CASE:${ETHOSU_ARCH}>
-        ETHOS$<UPPER_CASE:${ETHOSU_ARCH}>
-        ETHOSU_LOG_SEVERITY=${ETHOSU_LOG_SEVERITY}
-        TFM_ETHOSU_DEVICE_DESC=ethosu_device_desc_$<LOWER_CASE:${ETHOSU_ARCH}>
-        TFM_ETHOSU_DEVICE_CONFIG=ethosu_device_config_$<LOWER_CASE:${ETHOSU_ARCH}>
 )
 
 target_compile_options(platform_s

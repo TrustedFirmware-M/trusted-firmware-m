@@ -565,11 +565,6 @@ struct mpc_sie_dev_t MPC_DDR4_DEV_S = {
     &(MPC_DDR4_DEV_CFG_S),
     &(MPC_DDR4_DEV_DATA_S)};
 
-struct ethosu_device NPU0_S = {
-    .reg = (struct NPU_REG *)NPU0_APB_BASE_S,
-    .secure = 0,
-    .privileged = 0,
-};
 
 static struct lcm_dev_cfg_t LCM_DEV_CFG_S = {
     .base = LCM_BASE_S

@@ -74,9 +74,6 @@ extern struct mpc_sie_dev_t MPC_DDR4_DEV_S;
 extern struct tgu_armv8_m_dev_t TGU_ARMV8_M_ITCM_DEV_S;
 extern struct tgu_armv8_m_dev_t TGU_ARMV8_M_DTCM_DEV_S;
 
-#include "ethosu_device.h"
-extern struct ethosu_device ETHOS_S;
-
 #ifdef __cplusplus
 }
 #endif

@@ -27,11 +27,6 @@ set(TFM_PXN_ENABLE                    ON    CACHE BOOL    "Use Privileged execut
 set(CONFIG_TFM_USE_TRUSTZONE          ON)
 set(TFM_MULTI_CORE_TOPOLOGY           OFF)
 
-# Ethos-U NPU configurations
-set(ETHOSU_ARCH                       "U55"            CACHE STRING    "Ethos-U NPU type [U55,U65]")
-set(ETHOS_DRIVER_PATH                 "DOWNLOAD"       CACHE PATH      "Path to Ethos-U Core Driver (or DOWNLOAD to fetch automatically")
-set(ETHOSU_LOG_SEVERITY               "-1"             CACHE STRING    "Ethos-U Core Driver log severity")
-
 set(MCUBOOT_SIGNATURE_TYPE            "EC-P256"        CACHE STRING    "Algorithm to use for signature validation [RSA-2048, RSA-3072, EC-P256, EC-P384]")
 set(MCUBOOT_HW_KEY                    OFF              CACHE BOOL      "Whether to embed the entire public key in the image metadata instead of the hash only")
 set(MCUBOOT_BUILTIN_KEY               ON               CACHE BOOL      "Use builtin key(s) for validation, no public key data is embedded into the image metadata")

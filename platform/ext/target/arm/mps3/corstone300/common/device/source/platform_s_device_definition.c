@@ -554,9 +554,3 @@ static struct mpc_sie_dev_data_t MPC_DDR4_DEV_DATA_S = {
 struct mpc_sie_dev_t MPC_DDR4_DEV_S = {
     &(MPC_DDR4_DEV_CFG_S),
     &(MPC_DDR4_DEV_DATA_S)};
-
-struct ethosu_device ETHOS_S = {
-    .reg = (struct NPU_REG *)ETHOS_U55_APB_BASE_S,
-    .secure = 0,
-    .privileged = 0,
-};

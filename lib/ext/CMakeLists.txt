@@ -14,10 +14,6 @@ add_subdirectory(efi_soft_crc)
 if (${PLATFORM_PSA_ADAC_SECURE_DEBUG})
     add_subdirectory(psa-adac)
 endif()
-if(DEFINED ETHOSU_ARCH)
-    add_subdirectory(ethos_u_core_driver)
-endif()
-
 add_subdirectory(tf-m-extras)
 
 if (${TFM_PARTITION_DTPM_CLIENT})

@@ -15,7 +15,7 @@
 #include "syscounter_armv8-m_cntrl_drv.h"
 #include "uart_stdout.h"
 #include "tfm_peripherals_def.h"
-#include "ethosu_device.h"
+#include "ethosu_reset.h"
 
 #ifdef PSA_API_TEST_IPC
 #define PSA_FF_TEST_SECURE_UART2
@@ -59,9 +59,6 @@ extern DRIVER_PPC_SSE300 Driver_PPC_SSE300_PERIPH_EXP0;
 extern DRIVER_PPC_SSE300 Driver_PPC_SSE300_PERIPH_EXP1;
 extern DRIVER_PPC_SSE300 Driver_PPC_SSE300_PERIPH_EXP2;
 extern DRIVER_PPC_SSE300 Driver_PPC_SSE300_PERIPH_EXP3;
-
-/* Import NPU driver */
-extern struct ethosu_device ETHOS_S;
 
 /* Define Peripherals NS address range for the platform */
 #define PERIPHERALS_BASE_NS_START      (0x40000000)
@@ -768,10 +765,8 @@ enum tfm_plat_err_t ppc_init_cfg(void)
     err |= Driver_PPC_SSE300_PERIPH_EXP1.Initialize();
     err |= Driver_PPC_SSE300_PERIPH_EXP3.Initialize();
 
-    /* initialize and config NPU */
-    err |= !TFM_ETHOSU_DEVICE_DESC.ops->init(
-        &ETHOS_S, &TFM_ETHOSU_DEVICE_DESC, &TFM_ETHOSU_DEVICE_CONFIG,
-        NULL, (void *)ETHOS_S.reg, ETHOS_S.secure, ETHOS_S.privileged);
+    /* Reset the NPU into non-secure, unprivileged mode */
+    err |= ethosu_reset_nonsecure_user(ETHOS_U55_APB_BASE_S);
 
     /*
      * Configure the response to a security violation as a

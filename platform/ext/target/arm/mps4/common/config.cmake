@@ -27,10 +27,6 @@ set(TFM_PXN_ENABLE                    ON    CACHE BOOL    "Use Privileged execut
 set(CONFIG_TFM_USE_TRUSTZONE          ON)
 set(TFM_MULTI_CORE_TOPOLOGY           OFF)
 
-# Ethos-U NPU configurations
-set(ETHOS_DRIVER_PATH                 "DOWNLOAD"  CACHE PATH      "Path to Ethos-U Core Driver (or DOWNLOAD to fetch automatically")
-set(ETHOSU_LOG_SEVERITY               "-1"        CACHE STRING    "Ethos-U Core Driver log severity")
-
 set(PLATFORM_SVC_HANDLERS               ON              CACHE BOOL     "Platform specific SVC handlers")
 set(PROVISIONING_CODE_PADDED_SIZE       "0x2000"        CACHE STRING   "")
 set(PROVISIONING_VALUES_PADDED_SIZE     "0x3800"        CACHE STRING   "")

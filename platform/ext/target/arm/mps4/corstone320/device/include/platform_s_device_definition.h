@@ -82,9 +82,6 @@ extern const struct dma350_remap_list_t dma350_address_remap;
 extern struct tgu_armv8_m_dev_t TGU_ARMV8_M_ITCM_DEV_S;
 extern struct tgu_armv8_m_dev_t TGU_ARMV8_M_DTCM_DEV_S;
 
-#include "ethosu_device.h"
-extern struct ethosu_device NPU0_S;
-
 /* LCM driver structure */
 #include "lcm_drv.h"
 extern struct lcm_dev_t LCM_DEV_S;
