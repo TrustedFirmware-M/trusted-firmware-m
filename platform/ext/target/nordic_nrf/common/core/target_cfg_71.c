@@ -374,6 +374,11 @@ void peripheral_configuration(void)
 	 * must therefore have the same security configuration.
 	 */
 	spu_peripheral_config_non_secure(NRF_REGULATORS_S_BASE, SPU_LOCK_CONF_LOCKED);
+
+	/* Configure NRF_LFXO to be secure, as its load capacitance is configured
+	 * by the secure image and the non-secure image does not use it.
+	 */
+	spu_peripheral_config_secure(NRF_LFXO_S_BASE, SPU_LOCK_CONF_LOCKED);
 }
 
 static void gpiote_channel_configuration(void)

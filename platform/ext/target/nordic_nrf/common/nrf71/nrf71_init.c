@@ -8,8 +8,13 @@
 #include <errno.h>
 #include <nrfx.h>
 #include <helpers/nrfx_ram_ctrl.h>
+#include <hal/nrf_lfxo.h>
 
 #include "wicr_setup.h"
+
+#ifdef DT_NODELABEL
+#define LFXO_NODE DT_NODELABEL(lfxo)
+#endif
 
 #ifndef BIT_MASK
 /* Use Zephyr BIT_MASK for unasigned integers */
