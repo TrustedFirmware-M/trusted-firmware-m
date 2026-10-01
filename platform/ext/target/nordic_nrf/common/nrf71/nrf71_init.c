@@ -11,6 +11,9 @@
 #include <hal/nrf_lfxo.h>
 
 #include "wicr_setup.h"
+#if defined(CONFIG_SOC_NRF7120_APPROTECT_BOOT_WORKAROUND)
+#include "approtect_setup.h"
+#endif
 
 #ifdef DT_NODELABEL
 #define LFXO_NODE DT_NODELABEL(lfxo)
@@ -50,6 +53,10 @@ void __attribute__((weak)) wifi_setup(void){
 
 int nordicsemi_nrf71_init(void){
 	nrfx_ram_ctrl_retention_enable_all_set(false);
+
+#if defined(CONFIG_SOC_NRF7120_APPROTECT_BOOT_WORKAROUND)
+	approtect_setup();
+#endif
 
 #if defined (CONFIG_SOC_NRF7120_WICR_SETUP)
 	if (wicr_setup() != 0) {
