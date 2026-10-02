@@ -24,6 +24,8 @@
 #include "stm32l5xx_hal.h"
 #include <stdio.h>
 
+#define SCB_AIRCR_WRITE_MASK    (0x5FAUL << SCB_AIRCR_VECTKEY_Pos)
+
 /* The section names come from the scatter file */
 REGION_DECLARE(Load$$LR$$, LR_NS_PARTITION, $$Base);
 REGION_DECLARE(Image$$, ER_VENEER, $$Base);
@@ -72,7 +74,7 @@ enum tfm_plat_err_t enable_fault_handlers(void)
 }
 
 /*----------------- NVIC interrupt target state to NS configuration ----------*/
-enum tfm_plat_err_t nvic_interrupt_target_state_cfg()
+enum tfm_plat_err_t nvic_interrupt_target_state_cfg(void)
 {
   /* Target every interrupt to NS; unimplemented interrupts will be WI */
   for (uint8_t i = 0; i < sizeof(NVIC->ITNS) / sizeof(NVIC->ITNS[0]); i++)
@@ -81,23 +83,29 @@ enum tfm_plat_err_t nvic_interrupt_target_state_cfg()
   }
   return TFM_PLAT_ERR_SUCCESS;
 }
-void system_reset_cfg(void)
+/*----------------- Configures the system reset request properties ----------*/
+enum tfm_plat_err_t system_reset_cfg(void)
 {
-  /*  fix me : not implemented yet */
+  uint32_t reg_value = SCB->AIRCR;
 
+  /* Clear VECTKEY field before writing the key value */
+  reg_value &= ~(uint32_t)SCB_AIRCR_VECTKEY_Msk;
+
+  /* Allow system reset request from secure state only */
+  reg_value |= (uint32_t)(SCB_AIRCR_WRITE_MASK | SCB_AIRCR_SYSRESETREQS_Msk);
+
+  SCB->AIRCR = reg_value;
+
+  return TFM_PLAT_ERR_SUCCESS;
 }
 
 /*----------------- NVIC interrupt enabling for S peripherals ----------------*/
-void nvic_interrupt_enable()
+enum tfm_plat_err_t nvic_interrupt_enable(void)
 {
-  /*  interrupt in s not supported at this stage */
-}
-/*----------------- RCC accessible for non secure --------------- */
-/*  allow clock configuration from non secure */
-void enable_ns_clk_config(void)
-{
-  /*  fix me : not implemented yet */
+  NVIC_SetPriority(GTZC_IRQn, 1);
+  NVIC_EnableIRQ(GTZC_IRQn);
 
+  return TFM_PLAT_ERR_SUCCESS;
 }
 /*----------------- GPIO Pin mux configuration for non secure --------------- */
 /*  set all pin mux to un-secure */
