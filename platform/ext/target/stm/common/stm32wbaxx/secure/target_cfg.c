@@ -22,6 +22,7 @@ extern volatile uint32_t uFlowStage;
 #define FLOW_CONTROL_CHECK(B,A) ((void)0)
 #define FLOW_STAGE_CFG          (0x0)
 #define FLOW_STAGE_CHK          (0x1)
+
 #include "Driver_MPC.h"
 #include "region_defs.h"
 #include "tfm_plat_defs.h"
@@ -34,6 +35,8 @@ extern volatile uint32_t uFlowStage;
 #endif
 
 extern void Error_Handler(void);
+
+#define SCB_AIRCR_WRITE_MASK    (0x5FAUL << SCB_AIRCR_VECTKEY_Pos)
 #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof(arr[0]))
 
 volatile uint32_t uFlowStage;
@@ -151,7 +154,7 @@ enum tfm_plat_err_t enable_fault_handlers(void)
 }
 
 /*----------------- NVIC interrupt target state to NS configuration ----------*/
-enum tfm_plat_err_t nvic_interrupt_target_state_cfg()
+enum tfm_plat_err_t nvic_interrupt_target_state_cfg(void)
 {
   /* Target every interrupt to NS; unimplemented interrupts will be WI */
   for (uint8_t i = 0; i < sizeof(NVIC->ITNS) / sizeof(NVIC->ITNS[0]); i++)
@@ -160,14 +163,25 @@ enum tfm_plat_err_t nvic_interrupt_target_state_cfg()
   }
   return TFM_PLAT_ERR_SUCCESS;
 }
-void system_reset_cfg(void)
-{
-  /*  fix me : not implemented yet */
 
+/*----------------- Configures the system reset request properties ----------*/
+enum tfm_plat_err_t system_reset_cfg(void)
+{
+  uint32_t reg_value = SCB->AIRCR;
+
+  /* Clear VECTKEY field before writing the key value */
+  reg_value &= ~(uint32_t)SCB_AIRCR_VECTKEY_Msk;
+
+  /* Allow system reset request from secure state only */
+  reg_value |= (uint32_t)(SCB_AIRCR_WRITE_MASK | SCB_AIRCR_SYSRESETREQS_Msk);
+
+  SCB->AIRCR = reg_value;
+
+  return TFM_PLAT_ERR_SUCCESS;
 }
 
 /*----------------- NVIC interrupt enabling for S peripherals ----------------*/
-enum tfm_plat_err_t nvic_interrupt_enable()
+enum tfm_plat_err_t nvic_interrupt_enable(void)
 {
   /* Check TAMP_IRQn has highest prio (0) and is enabled  */
   if ((NVIC_GetPriority(TAMP_IRQn) > 0) || !(NVIC_GetEnableIRQ(TAMP_IRQn)))
@@ -176,13 +190,6 @@ enum tfm_plat_err_t nvic_interrupt_enable()
   NVIC_SetPriority(GTZC_IRQn, 1);
   NVIC_EnableIRQ(GTZC_IRQn);
   return TFM_PLAT_ERR_SUCCESS;
-}
-/*----------------- RCC accessible for non secure --------------- */
-/*  allow clock configuration from non secure */
-void enable_ns_clk_config(void)
-{
-  /*  fix me : not implemented yet */
-
 }
 /*----------------- GPIO Pin mux configuration for non secure --------------- */
 /*  set all pin mux to un-secure */

@@ -54,10 +54,25 @@ FIH_RET_TYPE(enum tfm_hal_status_t) tfm_hal_platform_init(void)
 {
     enum tfm_plat_err_t plat_err = TFM_PLAT_ERR_SYSTEM_ERR;
 
+    plat_err = enable_fault_handlers();
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
+    }
+
+    plat_err = system_reset_cfg();
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
+    }
+
     __enable_irq();
     stdio_init();
 
     plat_err = nvic_interrupt_target_state_cfg();
+    if (plat_err != TFM_PLAT_ERR_SUCCESS) {
+        FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
+    }
+
+    plat_err = nvic_interrupt_enable();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         FIH_RET(fih_int_encode(TFM_HAL_ERROR_GENERIC));
     }
