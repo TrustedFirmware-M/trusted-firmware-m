@@ -1,7 +1,7 @@
-From 48754b7dc39c280348edd1ae4409e12e596ad166 Mon Sep 17 00:00:00 2001
+From c3d7198d9a4eaa5bd5908a128e10d4d3dd734018 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 2 Apr 2026 13:33:21 +0000
-Subject: [PATCH 14/17] Re-add support for AES Keywrap for TF-M
+Subject: [PATCH 14/18] Re-add support for AES Keywrap for TF-M
 
 AES keywrap support was previously added for TF-M (commit dc5843f252)
 but was unintentionally removed when the PSA interface headers were
@@ -244,5 +244,5 @@ index 8d851f889..f6b0e8d7f 100644
  
  /** \defgroup derivation Key derivation
 -- 
-2.34.1
+2.43.0
 

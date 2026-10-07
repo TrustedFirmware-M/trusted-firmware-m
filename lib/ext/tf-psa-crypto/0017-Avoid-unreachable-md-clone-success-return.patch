@@ -1,7 +1,7 @@
-From a5fc05a841f86ba2693635075d827258a2c686ac Mon Sep 17 00:00:00 2001
+From c742f16f96e269eb4a720b0b1f7d454944e7c6ea Mon Sep 17 00:00:00 2001
 From: Bohdan Hunko <Bohdan.Hunko@infineon.com>
 Date: Fri, 26 Jun 2026 12:34:58 +0300
-Subject: [PATCH 17/17] Avoid unreachable md clone success return
+Subject: [PATCH 17/18] Avoid unreachable md clone success return
 
 When no legacy digest clone implementation is enabled, the switch in
 mbedtls_md_clone() contains only the default case, which returns
@@ -38,5 +38,5 @@ index e73d58ed3..6cc28702f 100644
  
  #define ALLOC(type)                                                   \
 -- 
-2.34.1
+2.43.0
 

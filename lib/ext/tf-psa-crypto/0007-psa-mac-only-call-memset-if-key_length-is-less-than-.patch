@@ -1,7 +1,7 @@
-From 44de8eb6e1d1becf641663fa1369e5cb3d3010b9 Mon Sep 17 00:00:00 2001
+From 7bd966654cc878908472d080e65c680f7273c53b Mon Sep 17 00:00:00 2001
 From: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
-Subject: [PATCH 07/17] psa: mac: only call memset if key_length is less than
+Subject: [PATCH 07/18] psa: mac: only call memset if key_length is less than
  block size
 
 In case key_length is equal to block_size, memset would be called with a
@@ -45,5 +45,5 @@ index 82a3a79da..ed9d33738 100644
      status = psa_hash_setup(&hmac->hash_ctx, hash_alg);
      if (status != PSA_SUCCESS) {
 -- 
-2.34.1
+2.43.0
 

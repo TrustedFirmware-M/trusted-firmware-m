@@ -1,7 +1,7 @@
-From 384f2b1465eb9193f89706478c7e60b9cba5bf30 Mon Sep 17 00:00:00 2001
+From 2fe0985afd4203347aedf0a08c656822123055b1 Mon Sep 17 00:00:00 2001
 From: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
-Subject: [PATCH 12/17] Implement SP800-108 Counter CMAC key derivation in PSA
+Subject: [PATCH 12/18] Implement SP800-108 Counter CMAC key derivation in PSA
  Crypto Core
 
 This adds support for CMAC-based, counter mode key-derivation function,
@@ -16,7 +16,7 @@ Signed-off-by: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
  1 file changed, 228 insertions(+), 6 deletions(-)
 
 diff --git a/core/psa_crypto.c b/core/psa_crypto.c
-index 1ba64c0b2..5a326d986 100644
+index 1ba64c0b2..bacdc1143 100644
 --- a/core/psa_crypto.c
 +++ b/core/psa_crypto.c
 @@ -928,6 +928,13 @@ static int psa_key_algorithm_permits(psa_key_type_t key_type,
@@ -102,7 +102,7 @@ index 1ba64c0b2..5a326d986 100644
 +    }
 +
 +    if (kdf->state != SP800_108_COUNTER_CMAC_STATE_OUTPUT) {
-+        uint8_t *k0_input = &kdf->inputs[SP800_108_INTERATION_COUNTER_SIZE];
++        const uint8_t *k0_input = &kdf->inputs[SP800_108_INTERATION_COUNTER_SIZE];
 +        const size_t k0_input_size = kdf->label_length +
 +                                     SP800_108_NULL_BYTE_SIZE +
 +                                     kdf->context_length +
@@ -380,5 +380,5 @@ index 1ba64c0b2..5a326d986 100644
                                                 shared_secret_length);
  exit:
 -- 
-2.34.1
+2.43.0
 

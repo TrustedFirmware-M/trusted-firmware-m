@@ -1,7 +1,7 @@
-From 8226aaa168707f32961f80da8b06619a892dd529 Mon Sep 17 00:00:00 2001
+From 6b7e5e1719e42f3da410a1f1cd34bad3ff6a3369 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 2 Apr 2026 20:16:58 +0000
-Subject: [PATCH 15/17] Do not define __STDC_WANT_LIB_EXT1__ with ATfE or IAR
+Subject: [PATCH 15/18] Do not define __STDC_WANT_LIB_EXT1__ with ATfE or IAR
 
 Do not try to include bounds-checking functions from this standard
 library extension when building with the ATfE toolchain.
@@ -39,5 +39,5 @@ index 4acb758d4..54b01e31a 100644
  #if !defined(_POSIX_C_SOURCE)
  /* For standards-compliant access to
 -- 
-2.34.1
+2.43.0
 

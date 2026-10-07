@@ -1,7 +1,7 @@
-From c40bd32b579f6505dbe1192402e70c6b2e137886 Mon Sep 17 00:00:00 2001
+From 042a60e1724bde9cfdcddbd6d239b10e5ed3d5d0 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
-Subject: [PATCH 10/17] Add experimental LMS support as a vendor extension
+Subject: [PATCH 10/18] Add experimental LMS support as a vendor extension
 
 Add experimental support for PSA_ALG_LMS to PSA as a vendor algorithm
 and extend the PSA_ALG_IS_VENDOR_HASH_AND_SIGN macro accordingly.
@@ -47,5 +47,5 @@ index cc887b021..5aa6174d1 100644
  /**@}*/
  
 -- 
-2.34.1
+2.43.0
 

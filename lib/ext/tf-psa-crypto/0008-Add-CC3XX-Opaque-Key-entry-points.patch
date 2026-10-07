@@ -1,7 +1,7 @@
-From c46c53255bcae8d1dc726ba09634aeb140c6d2ba Mon Sep 17 00:00:00 2001
+From 5a7ef0da3a78895f13c725f5a1fb541c92e4165f Mon Sep 17 00:00:00 2001
 From: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
-Subject: [PATCH 08/17] Add CC3XX Opaque Key entry points
+Subject: [PATCH 08/18] Add CC3XX Opaque Key entry points
 
 TF-M requires a mechanism to leverage the use of HW-managed keys, the
 concept is called "Opaque Keys". Basically, the key ID as well as the key
@@ -110,5 +110,5 @@ index 49bf449de..2e67ed93a 100644
          case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:
  #endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
 -- 
-2.34.1
+2.43.0
 

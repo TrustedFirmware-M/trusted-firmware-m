@@ -1,7 +1,7 @@
-From 74e531ba4656c3895ffe191f9e3b875e5aa07780 Mon Sep 17 00:00:00 2001
+From 4de0cbd06f940adc2d0ec5030e8da74d78b59464 Mon Sep 17 00:00:00 2001
 From: Tamas Ban <tamas.ban@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
-Subject: [PATCH 03/17] Enable crypto code sharing between independent binaries
+Subject: [PATCH 03/18] Enable crypto code sharing between independent binaries
 
 Signed-off-by: Tamas Ban <tamas.ban@arm.com>
 ---
@@ -49,5 +49,5 @@ index 3dd58f3aa..98904fd54 100644
  
  void mbedtls_platform_zeroize(void *buf, size_t len)
 -- 
-2.34.1
+2.43.0
 

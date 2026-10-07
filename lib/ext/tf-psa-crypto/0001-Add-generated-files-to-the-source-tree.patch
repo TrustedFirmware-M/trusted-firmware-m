@@ -1,7 +1,7 @@
-From 6436275acf9bce174ecacd563565df13a66b9262 Mon Sep 17 00:00:00 2001
+From 6bc0c02cd88100e0799fb8fcf1a207249f930440 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Mon, 13 Jul 2026 13:51:14 +0000
-Subject: [PATCH 01/17] Add generated files to the source tree
+Subject: [PATCH 01/18] Add generated files to the source tree
 
 Generated files are now automatically created when invoking CMake.
 However, not all components of TF-M use CMake to consume TF-PSA-Crypto
@@ -4944,5 +4944,5 @@ index 000000000..1b29a58c2
 +
 +/* End of automatically generated tf_psa_crypto_config_check_user.h */
 -- 
-2.34.1
+2.43.0
 

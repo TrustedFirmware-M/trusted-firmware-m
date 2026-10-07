@@ -1,0 +1,108 @@
+From 1bc1e15ab2ed1412787aca63a336d668c92dd6b7 Mon Sep 17 00:00:00 2001
+From: Antonio de Angelis <antonio.deangelis@arm.com>
+Date: Wed, 7 Oct 2026 11:23:46 +0100
+Subject: [PATCH 18/18] Fix validation of input key during
+ SP800-108-COUNTER-CMAC flow
+
+Validate the policy on the key against the required algorithm
+and not against base PSA_ALG_CMAC
+
+Signed-off-by: Antonio de Angelis <antonio.deangelis@arm.com>
+---
+ core/psa_crypto.c | 50 +++++++++++++++++++++++++++++++----------------
+ 1 file changed, 33 insertions(+), 17 deletions(-)
+
+diff --git a/core/psa_crypto.c b/core/psa_crypto.c
+index 094951677..27c89af63 100644
+--- a/core/psa_crypto.c
++++ b/core/psa_crypto.c
+@@ -5903,6 +5903,9 @@ static psa_status_t psa_sp800_108_counter_cmac_read(psa_sp800_108_cmac_key_deriv
+                                 kdf->block_size;
+     const size_t unaligned_block_size = output_length % kdf->block_size;
+     psa_status_t status;
++    psa_status_t unlock_status;
++    psa_key_slot_t *slot;
++    uint8_t mac_size;
+ 
+     if (!num_blocks) {
+         /* Nothing to do */
+@@ -5913,6 +5916,23 @@ static psa_status_t psa_sp800_108_counter_cmac_read(psa_sp800_108_cmac_key_deriv
+         return PSA_ERROR_BAD_STATE;
+     }
+ 
++    /* Validate the policy with the specific algorithm for the derivation */
++    status = psa_get_and_lock_transparent_key_slot_with_policy(
++        kdf->key, &slot, PSA_KEY_USAGE_DERIVE, PSA_ALG_SP800_108_COUNTER_CMAC);
++    if (status != PSA_SUCCESS) {
++        return status;
++    }
++
++    status = psa_mac_finalize_alg_and_key_validation(PSA_ALG_CMAC, &slot->attr,
++                                                     &mac_size);
++    if (status != PSA_SUCCESS) {
++        goto exit;
++    }
++    if (mac_size != kdf->block_size) {
++        status = PSA_ERROR_INVALID_ARGUMENT;
++        goto exit;
++    }
++
+     if (kdf->state != SP800_108_COUNTER_CMAC_STATE_OUTPUT) {
+         const uint8_t *k0_input = &kdf->inputs[SP800_108_INTERATION_COUNTER_SIZE];
+         const size_t k0_input_size = kdf->label_length +
+@@ -5935,15 +5955,11 @@ static psa_status_t psa_sp800_108_counter_cmac_read(psa_sp800_108_cmac_key_deriv
+         kdf->capacity_set = true;
+ 
+         /* Compute K0 */
+-        status =  psa_mac_compute(kdf->key,
+-                                  PSA_ALG_CMAC,
+-                                  k0_input,
+-                                  k0_input_size,
+-                                  k0,
+-                                  kdf->block_size,
+-                                  &k0_length);
++        status = psa_driver_wrapper_mac_compute(
++            &slot->attr, slot->key.data, slot->key.bytes, PSA_ALG_CMAC,
++            k0_input, k0_input_size, k0, kdf->block_size, &k0_length);
+         if (status != PSA_SUCCESS) {
+-            return status;
++            goto exit;
+         }
+ 
+         kdf->counter = 1;
+@@ -5968,15 +5984,12 @@ static psa_status_t psa_sp800_108_counter_cmac_read(psa_sp800_108_cmac_key_deriv
+                               kdf->inputs,
+                               SP800_108_INPUT_INTERATION_COUNTER_OFFSET(kdf));
+ 
+-        status = psa_mac_compute(kdf->key,
+-                                 PSA_ALG_CMAC,
+-                                 kdf->inputs,
+-                                 SP800_108_INPUT_LENGTH(kdf),
+-                                 mac_out,
+-                                 kdf->block_size,
+-                                 &mac_len);
++        status = psa_driver_wrapper_mac_compute(
++            &slot->attr, slot->key.data, slot->key.bytes, PSA_ALG_CMAC,
++            kdf->inputs, SP800_108_INPUT_LENGTH(kdf),
++            mac_out, kdf->block_size, &mac_len);
+         if (status != PSA_SUCCESS) {
+-            return status;
++            goto exit;
+         }
+ 
+         if (is_partial) {
+@@ -5987,7 +6000,10 @@ static psa_status_t psa_sp800_108_counter_cmac_read(psa_sp800_108_cmac_key_deriv
+         kdf->counter++;
+     }
+ 
+-    return PSA_SUCCESS;
++    status = PSA_SUCCESS;
++exit:
++    unlock_status = psa_unregister_read_under_mutex(slot);
++    return status == PSA_SUCCESS ? unlock_status : status;
+ }
+ #endif /* MBEDTLS_PSA_BUILTIN_ALG_SP800_108_COUNTER_CMAC */
+ 
+-- 
+2.43.0
+

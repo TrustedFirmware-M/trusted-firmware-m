@@ -1,7 +1,7 @@
-From 6f876a1ea4572a254ed53ee70352db4fa79b8448 Mon Sep 17 00:00:00 2001
+From 9f63b2f60aa3fa5f2a2a568676fd9d3f8c0ed45d Mon Sep 17 00:00:00 2001
 From: Bohdan Hunko <Bohdan.Hunko@infineon.com>
 Date: Tue, 23 Jun 2026 15:24:13 +0300
-Subject: [PATCH 16/17] Avoid unreachable AES implementation fallback return
+Subject: [PATCH 16/18] Avoid unreachable AES implementation fallback return
 
 The AES implementation selector returns MBEDTLS_AES_IMP_SOFTWARE
 unconditionally when software AES is available
@@ -34,5 +34,5 @@ index 0bb4ff489..a7d7ff61e 100644
  
  #if defined(MBEDTLS_CIPHER_MODE_XTS)
 -- 
-2.34.1
+2.43.0
 
