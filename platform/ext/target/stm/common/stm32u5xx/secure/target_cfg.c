@@ -487,6 +487,12 @@ static void gtzc_internal_flash_priv(uint32_t offset_start, uint32_t offset_end)
     }
   }
 }
+
+/* Override in the project to configure peripherals before TZSC lock. */
+__WEAK void tfm_platform_gtzc_pre_lock_config(void)
+{
+}
+
 void gtzc_init_cfg(void)
 {
   uint32_t gtzc_periph_att;
@@ -589,6 +595,9 @@ void gtzc_init_cfg(void)
       HAL_GTZC_TZIC_EnableIT(GTZC_PERIPH_TZIC1);
       HAL_GTZC_TZIC_EnableIT(GTZC_PERIPH_TZIC2);
       HAL_GTZC_TZIC_EnableIT(GTZC_PERIPH_TZSC2);
+
+      tfm_platform_gtzc_pre_lock_config();
+
       /* Add barriers to assure the GTZC configuration is done before continue
        * the execution.
        */

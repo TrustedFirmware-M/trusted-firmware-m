@@ -104,6 +104,12 @@ struct platform_data_t
 };
 
 /**
+ * \brief Configure project-specific peripheral attributes before TZSC lock.
+ */
+void tfm_platform_gtzc_pre_lock_config(void);
+
+
+/**
  * \brief Configures the Memory Protection Controller.
  */
 void gtzc_init_cfg(void);
