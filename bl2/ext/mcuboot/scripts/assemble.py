@@ -25,6 +25,14 @@ import io
 import re
 import os
 import shutil
+import sys
+
+# Add the parent directory of this script to the path so that
+# "import bl2.macro_parser" resolves both in the TF-M source tree and
+# in the exported NS integration package, where the scripts are
+# installed next to a "bl2" package directory.
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import bl2.macro_parser as macro_parser
 
 offset_re = re.compile(r"^\s*RE_([0-9A-Z_]+)_IMAGE_OFFSET\s*=\s*(.*)")

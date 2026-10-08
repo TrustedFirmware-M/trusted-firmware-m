@@ -244,6 +244,17 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
             PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                         GROUP_EXECUTE GROUP_READ)
 
+    # Install the signing scripts a second time as a "bl2" Python
+    # package so that "import bl2.macro_parser" resolves when the
+    # scripts are executed from the exported NS integration package.
+    # This matches the in-tree layout where the TF-M pip package maps
+    # "bl2" to bl2/ext/mcuboot/scripts.
+    install(DIRECTORY bl2/ext/mcuboot/scripts/
+            DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/bl2
+            FILES_MATCHING PATTERN "*.py"
+            PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                        GROUP_EXECUTE GROUP_READ)
+
     install(DIRECTORY ${MCUBOOT_PATH}/scripts/imgtool
             DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/scripts)
 
