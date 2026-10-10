@@ -13,6 +13,7 @@
 #include "spm.h"
 #include "tfm_hal_isolation.h"
 #include "tfm_multi_core.h"
+#include "utilities.h"
 #include "ffm/mailbox_agent_api.h"
 #include "ffm/backend.h"
 #include "ffm/psa_api.h"
@@ -24,9 +25,14 @@ psa_status_t tfm_spm_agent_psa_call(psa_handle_t handle,
                                     const void *client_data_stateless)
 {
     struct connection_t *p_connection;
+    struct client_params_t params_local;
     const struct partition_t *curr_partition = GET_CURRENT_COMPONENT();
     FIH_DECLARE(fih_rc, FIH_FAILURE);
     psa_status_t status;
+
+    if (!IS_NS_AGENT_MAILBOX(curr_partition->p_ldinf)) {
+        tfm_core_panic();
+    }
 
     FIH_CALL(tfm_hal_memory_check, fih_rc,
              curr_partition->boundary, (uintptr_t)params,
@@ -36,12 +42,21 @@ psa_status_t tfm_spm_agent_psa_call(psa_handle_t handle,
         return PSA_ERROR_PROGRAMMER_ERROR;
     }
 
-    status = spm_get_idle_connection(&p_connection, handle, params->ns_client_id_stateless);
+    spm_memcpy(&params_local, params, sizeof(params_local));
+
+    if (params_local.ns_client_id_stateless >= 0) {
+        tfm_core_panic();
+    }
+
+    status = spm_get_idle_connection(&p_connection, handle,
+                                     params_local.ns_client_id_stateless);
     if (status != PSA_SUCCESS) {
         return status;
     }
 
-    status = spm_associate_call_params(p_connection, control, params->p_invecs, params->p_outvecs);
+    status = spm_associate_call_params(p_connection, control,
+                                       params_local.p_invecs,
+                                       params_local.p_outvecs);
     if (status != PSA_SUCCESS) {
         if (IS_STATIC_HANDLE(handle)) {
             spm_free_connection(p_connection);
