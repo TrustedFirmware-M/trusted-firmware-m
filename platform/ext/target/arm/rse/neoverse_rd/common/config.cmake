@@ -37,5 +37,7 @@ set(RSE_OTP_HAS_RSE_ID                  ON       CACHE BOOL    "Use RSE ID")
 math(EXPR SFCP_NUMBER_NODES_EXPR "${RSE_AMOUNT} + 2")
 set(SFCP_NUMBER_NODES                   ${SFCP_NUMBER_NODES_EXPR} CACHE STRING "Amount of nodes in the SFCP system, by default equal to number of RSEs")
 
+set(SFCP_PAYLOAD_MAX_SIZE 4160 CACHE STRING "Maximum SFCP payload size in bytes")
+
 # Once all cache options are set, set common options as fallback
 include(${CMAKE_CURRENT_LIST_DIR}/../../common/config.cmake)

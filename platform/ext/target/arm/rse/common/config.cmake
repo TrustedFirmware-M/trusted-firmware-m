@@ -28,6 +28,7 @@ set(PLAT_MHU_VERSION                    2          CACHE STRING  "Supported MHU 
 
 set(RSE_AMOUNT                          1          CACHE STRING  "Amount of RSEes in the system")
 set(SFCP_NUMBER_NODES                   ${RSE_AMOUNT}      CACHE STRING "Amount of nodes in the SFCP system, by default equal to number of RSEs")
+set(SFCP_NUMBER_TRUSTED_SUBNETS 1 CACHE STRING "Number of trusted subnets containing this RSE")
 
 set(RSE_TP_MODE                         TCI        CACHE STRING "Whether system is in Test or Production mode")
 

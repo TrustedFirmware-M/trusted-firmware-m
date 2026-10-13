@@ -693,6 +693,10 @@ if(RSE_SUPPORT_ROM_LIB_RELOCATION)
         PUBLIC
             ${ROM_LIB_RELOCATION_COMPILE_FLAGS}
     )
+    if(TFM_MULTI_CORE_TOPOLOGY AND RSE_AMOUNT GREATER 1)
+        target_compile_options(sfcp_platform_bl1_1 PRIVATE
+            ${ROM_LIB_RELOCATION_COMPILE_FLAGS})
+    endif()
 endif()
 
 if (RSE_USE_ROM_LIB_FROM_SRAM)

@@ -40,9 +40,6 @@
 /* Clock configuration value to write to CLK_CFG1.SYSCLKCFG to drive SYSCLKCFG signal */
 #define SYSCLKCFG_VAL  0
 
-/* Maximum SFCP payload size */
-#define SFCP_PAYLOAD_MAX_SIZE (0x40 + 0x1000)
-
 /* SCMI Comms SCP doorbell IRQ number and handler */
 #define SCP_DOORBELL_IRQ         CMU_MHU4_Receiver_IRQn
 #define SCP_DOORBELL_IRQ_HANDLER CMU_MHU4_Receiver_Handler

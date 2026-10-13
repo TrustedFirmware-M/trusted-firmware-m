@@ -8,6 +8,7 @@
 #include <assert.h>
 
 #include "sfcp_encryption_hal.h"
+#include "cmsis_compiler.h"
 #include "sfcp_defs.h"
 #include "psa/crypto.h"
 #include "fih.h"
@@ -32,8 +33,6 @@ static enum sfcp_error_t encrypt_decrypt_packet(uint32_t key_id, struct sfcp_pac
                                                 size_t packet_size, bool encrypt)
 {
     enum sfcp_error_t sfcp_err;
-    struct sfcp_cryptography_metadata_t *crypto_metadata;
-    struct sfcp_cryptography_config_t *crypto_config;
     bool uses_id_extension;
     size_t data_size_to_crypt;
     size_t data_size_to_auth;
@@ -41,19 +40,20 @@ static enum sfcp_error_t encrypt_decrypt_packet(uint32_t key_id, struct sfcp_pac
     psa_algorithm_t psa_alg;
     psa_status_t psa_status;
     uint8_t *payload_ptr;
+    uint8_t *tag = packet->with_crypto_extension.encrypted.tag;
     size_t data_size_encrypted;
     __ALIGNED(4) uint8_t additional_encrypted_data[15];
     size_t additional_encrypted_data_size;
 
-    crypto_metadata = &packet->cryptography_used.cryptography_metadata;
-    crypto_config = &crypto_metadata->config;
     uses_id_extension = GET_METADATA_FIELD(USES_ID_EXTENSION, packet->header.metadata);
-    data_size_to_auth =
-        SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(true, uses_id_extension) - sizeof(*crypto_metadata);
-    data_size_to_crypt = packet_size - SFCP_PACKET_SIZE_WITHOUT_PAYLOAD(true, uses_id_extension);
-    payload_ptr = (uint8_t *)GET_SFCP_PAYLOAD_PTR(packet, true, uses_id_extension);
+    data_size_to_auth = sfcp_packet_get_header_size(false, SFCP_CRYPTOGRAPHY_MODE_NONE,
+                                                    uses_id_extension);
+    data_size_to_crypt = packet_size -
+                         sfcp_packet_get_header_size(true, SFCP_CRYPTOGRAPHY_MODE_AES256_CCM,
+                                                     uses_id_extension);
+    payload_ptr = sfcp_packet_get_payload(packet);
 
-    sfcp_err = sfcp_mode_to_psa_alg(crypto_config->mode, &psa_alg);
+    sfcp_err = sfcp_mode_to_psa_alg(sfcp_packet_get_crypto_mode(packet), &psa_alg);
     if (sfcp_err != SFCP_ERROR_SUCCESS) {
         return sfcp_err;
     }
@@ -75,9 +75,9 @@ static enum sfcp_error_t encrypt_decrypt_packet(uint32_t key_id, struct sfcp_pac
         goto error_out;
     }
 
-    psa_status = psa_aead_set_nonce(
-        &operation, (uint8_t *)packet,
-        sizeof(packet->header) + sizeof(packet->cryptography_used.cryptography_metadata.config));
+    psa_status = psa_aead_set_nonce(&operation, (uint8_t *)packet,
+                                    sizeof(packet->header) +
+                                        sizeof(packet->with_crypto_extension.config));
     if (psa_status != PSA_SUCCESS) {
         goto error_out;
     }
@@ -88,9 +88,9 @@ static enum sfcp_error_t encrypt_decrypt_packet(uint32_t key_id, struct sfcp_pac
     }
 
     if (uses_id_extension) {
-        psa_status = psa_aead_update_ad(&operation, (uint8_t *)&GET_SFCP_CLIENT_ID(packet, true),
-                                        sizeof(GET_SFCP_CLIENT_ID(packet, true)) +
-                                            sizeof(GET_SFCP_APPLICATION_ID(packet, true)));
+        psa_status = psa_aead_update_ad(
+            &operation, (const uint8_t *)&sfcp_packet_get_body(packet)->with_id_extension,
+            offsetof(union sfcp_message_body_t, with_id_extension.payload));
         if (psa_status != PSA_SUCCESS) {
             goto error_out;
         }
@@ -109,23 +109,20 @@ static enum sfcp_error_t encrypt_decrypt_packet(uint32_t key_id, struct sfcp_pac
     if (encrypt) {
         size_t tag_length;
 
-        psa_status = psa_aead_finish(&operation, additional_encrypted_data,
-                                     sizeof(additional_encrypted_data),
-                                     &additional_encrypted_data_size,
-                                     (uint8_t *)crypto_metadata->tag, sizeof(crypto_metadata->tag),
-                                     &tag_length);
+        psa_status = psa_aead_finish(
+            &operation, additional_encrypted_data, sizeof(additional_encrypted_data),
+            &additional_encrypted_data_size, tag, SFCP_CRYPTOGRAPHY_TAG_SIZE, &tag_length);
         if (psa_status != PSA_SUCCESS) {
             goto error_out;
         }
 
-        if (tag_length != sizeof(crypto_metadata->tag)) {
+        if (tag_length != SFCP_CRYPTOGRAPHY_TAG_SIZE) {
             goto error_out;
         }
     } else {
-        psa_status = psa_aead_verify(&operation, additional_encrypted_data,
-                                     sizeof(additional_encrypted_data),
-                                     &additional_encrypted_data_size,
-                                     (uint8_t *)crypto_metadata->tag, sizeof(crypto_metadata->tag));
+        psa_status = psa_aead_verify(
+            &operation, additional_encrypted_data, sizeof(additional_encrypted_data),
+            &additional_encrypted_data_size, tag, SFCP_CRYPTOGRAPHY_TAG_SIZE);
         if (psa_status != PSA_SUCCESS) {
             goto error_out;
         }

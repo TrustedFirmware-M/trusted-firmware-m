@@ -16,6 +16,8 @@ set(MULTI_RSE_TOPOLOGY_FILE     ${CMAKE_CURRENT_LIST_DIR}/../common/sfcp/tc.tgf 
 
 set(CC3XX_CLOCK_DIVIDER_SELECT  0      CACHE STRING "CC3XX clock divider select field (0=1/1,1=1/2,2=1/3,3=1/4)")
 
+set(SFCP_PAYLOAD_MAX_SIZE 2112 CACHE STRING "Maximum SFCP payload size in bytes")
+
 # Once all options are set, set common options as fallback
 
 include(${CMAKE_CURRENT_LIST_DIR}/../../common/config.cmake)

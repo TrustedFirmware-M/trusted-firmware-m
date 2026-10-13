@@ -19,5 +19,7 @@ set(TFM_MANIFEST_LIST                          "${CMAKE_CURRENT_LIST_DIR}/manife
 
 set(PLATFORM_HAS_PS_NV_OTP_COUNTERS            ON  CACHE BOOL   "Platform supports nvm counters for PS in OTP")
 
+set(SFCP_PAYLOAD_MAX_SIZE 2112 CACHE STRING "Maximum SFCP payload size in bytes")
+
 # Once all options are set, set common options as fallback
 include(${CMAKE_CURRENT_LIST_DIR}/../common/config.cmake)

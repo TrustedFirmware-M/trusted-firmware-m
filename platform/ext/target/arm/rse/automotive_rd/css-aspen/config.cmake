@@ -36,5 +36,7 @@ set(TFM_PARTITION_PROTECTED_STORAGE     ON       CACHE BOOL    "Enable Protected
 set(SFCP_ATU_REGION_SIZE                0x20000  CACHE STRING  "The size of the carveout region")
 set(SFCP_NUMBER_NODES                   3        CACHE STRING  "Amount of nodes in the SFCP system, by default equal to number of RSEs")
 
+set(SFCP_PAYLOAD_MAX_SIZE 16352 CACHE STRING "Maximum SFCP payload size in bytes")
+
 # Once all cache options are set, set common options as fallback
 include(${CMAKE_CURRENT_LIST_DIR}/../../common/config.cmake)

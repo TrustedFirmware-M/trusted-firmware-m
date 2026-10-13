@@ -30,5 +30,7 @@ set(TFM_PARTITION_PROTECTED_STORAGE     ON       CACHE BOOL    "Enable Protected
 set(SFCP_NUMBER_NODES                   4        CACHE STRING "Amount of nodes in the SFCP system, by default equal to number of RSEs")
 set(MULTI_RSE_TOPOLOGY_FILE             ${CMAKE_CURRENT_LIST_DIR}/sfcp/rd1ae.tgf CACHE STRING "Topology file for RSE to RSE BL1 communication")
 
+set(SFCP_PAYLOAD_MAX_SIZE 16352 CACHE STRING "Maximum SFCP payload size in bytes")
+
 # Once all cache options are set, set common options as fallback
 include(${CMAKE_CURRENT_LIST_DIR}/../../common/config.cmake)

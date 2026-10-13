@@ -8,6 +8,8 @@
  */
 
 #include "sfcp_psa_client_request.h"
+#include "sfcp_psa_rse.h"
+#include "cmsis_compiler.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -38,6 +40,7 @@
 struct sfcp_pool_entry_t {
     sfcp_buffer_handle_t buffer_handle;
     struct client_request_t req;
+    struct sfcp_psa_rse_request_t platform_data;
     struct sfcp_msg_metadata_t metadata;
     bool request_valid;
 };
@@ -55,12 +58,13 @@ static __ALIGNED(4) uint8_t
 #ifdef TFM_PARTITION_CRYPTO
 static psa_status_t prepare_crypto_iovec(struct client_request_t *req)
 {
+    struct sfcp_psa_rse_request_t *data = req->platform_data;
+
     if (req->handle != TFM_CRYPTO_HANDLE) {
         return PSA_SUCCESS;
     }
 
-    if ((req->in_len == 0) ||
-        (req->in_vec[0].len != sizeof(req->crypto_iovec))) {
+    if ((req->in_len == 0) || (req->in_vec[0].len != sizeof(data->crypto_iovec))) {
         return PSA_ERROR_INVALID_ARGUMENT;
     }
 
@@ -71,9 +75,8 @@ static psa_status_t prepare_crypto_iovec(struct client_request_t *req)
          * requester. Preserve the Crypto request header so that the
          * permission check and the service consume the same immutable data.
          */
-        memcpy(&req->crypto_iovec, req->in_vec[0].base,
-               sizeof(req->crypto_iovec));
-        req->in_vec[0].base = &req->crypto_iovec;
+        memcpy(&data->crypto_iovec, req->in_vec[0].base, sizeof(data->crypto_iovec));
+        req->in_vec[0].base = &data->crypto_iovec;
     }
 #endif
 
@@ -219,7 +222,7 @@ out_error:
 out_free:
 #ifdef SFCP_PROTOCOL_POINTER_ACCESS_ENABLED
     /* Serialization normally releases mappings. Also cover failures before it. */
-    (void)comms_atu_free_regions(req->atu_regions);
+    sfcp_psa_unmap_buffers(req);
 #endif
     /* Prevent concurrent queue accesses from sfcp_handler which is called
      * in interrupt context
@@ -264,6 +267,8 @@ static void sfcp_handle_req(void)
          * will be completely populated
          */
         memset(&pool_entry->req, 0, sizeof(pool_entry->req));
+        memset(&pool_entry->platform_data, 0, sizeof(pool_entry->platform_data));
+        pool_entry->req.platform_data = &pool_entry->platform_data;
         pool_entry->request_valid = false;
 
         sfcp_err = sfcp_pop_msg_from_buffer(pool_entry->buffer_handle, &sender, &client_id,
