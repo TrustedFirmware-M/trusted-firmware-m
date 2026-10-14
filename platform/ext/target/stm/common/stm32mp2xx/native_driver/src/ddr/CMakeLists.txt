@@ -100,8 +100,8 @@ find_package(Python3)
 set(BL2_SOURCE ${CMAKE_SOURCE_DIR}/bl2)
 set(API_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/api_ns)
 
-if (NOT EXISTS ${MUCBOOT_KEY_DDRFW})
-    set(MUCBOOT_KEY_DDRFW ${MCUBOOT_KEY_NS})
+if (NOT EXISTS ${MCUBOOT_KEY_DDRFW})
+    set(MCUBOOT_KEY_DDRFW ${MCUBOOT_KEY_NS})
 endif()
 
 configure_file(signing_layout.c.in ${CMAKE_CURRENT_BINARY_DIR}/signing_layout.c @ONLY)
@@ -128,7 +128,7 @@ extract_imgtool_version("${DDR_PHY_BIN_VERSION}" DDR_PHY_BIN_IMGTOOL_VERSION)
 set(wrapper_args
     -v ${DDR_PHY_BIN_IMGTOOL_VERSION}
     --layout $<TARGET_OBJECTS:signing_layout_for_ddr_phy>
-    -k ${MUCBOOT_KEY_DDRFW}
+    -k ${MCUBOOT_KEY_DDRFW}
     --public-key-format $<IF:$<BOOL:${MCUBOOT_HW_KEY}>,full,hash>
     --align ${MCUBOOT_ALIGN_VAL}
     --pad
