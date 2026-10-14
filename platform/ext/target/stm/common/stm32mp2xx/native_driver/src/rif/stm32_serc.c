@@ -83,16 +83,10 @@ static void stm32_serc_get_hwconfig(const struct device *dev)
 #define SERC_EXCEPT_MSB_BIT(x) (x * _PERIPH_IDS_PER_REG + _PERIPH_IDS_PER_REG - 1)
 #define SERC_EXCEPT_LSB_BIT(x) (x * _PERIPH_IDS_PER_REG)
 
-#define SERC_LOG(str) do { \
-    stdio_output_string((const char *)str, strlen(str)); \
-} while (0);
-
 __weak void access_violation_handler(void)
 {
-	SERC_LOG("Ooops...\n\r");
-	while (1) {
-		;
-	}
+	EMSG("Ooops...\n\r");
+	panic();
 }
 
 static irqreturn_t stm32_serc_isr(void *data)
@@ -102,8 +96,9 @@ static irqreturn_t stm32_serc_isr(void *data)
 	struct stm32_serc_data *drv_data = dev_get_data(dev);
 	int nreg = div_round_up(drv_data->num_ilac, _PERIPH_IDS_PER_REG);
 	uint32_t isr = 0;
-	char tmp[50];
 	int i = 0;
+
+	IMSG("\r\n");
 
 	for (i = 0; i < nreg; i++) {
 		uint32_t offset = sizeof(uint32_t) * i;
@@ -111,12 +106,10 @@ static irqreturn_t stm32_serc_isr(void *data)
 		isr = io_read32(drv_cfg->base + _SERC_ISR0 + offset);
 		isr &= io_read32(drv_cfg->base + _SERC_IER0 + offset);
 		if (isr) {
-			snprintf(tmp, sizeof(tmp),
-				 "\r\nserc exceptions: [%d:%d]=%#08x\r\n",
-				 SERC_EXCEPT_MSB_BIT(i),
-				 SERC_EXCEPT_LSB_BIT(i), isr);
+			EMSG("serc exceptions: [%d:%d]=0x%08x\r\n",
+			     SERC_EXCEPT_MSB_BIT(i),
+			     SERC_EXCEPT_LSB_BIT(i), isr);
 
-			SERC_LOG(tmp);
 			io_write32(drv_cfg->base + _SERC_ICR0 + offset, isr);
 		}
 	}

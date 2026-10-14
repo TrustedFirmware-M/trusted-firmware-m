@@ -145,18 +145,14 @@ static int stm32_dcache_waitforready(int flags)
 	return err;
 }
 
-#define DCACHE_LOG(str) \
-	stdio_output_string((const char *)(str), strlen(str))
-
 static irqreturn_t stm32_dcache_isr(void *data)
 {
 	const struct device *dev = data;
 	const struct stm32_dcache_config *dev_cfg = dev_get_config(dev);
 	uint32_t sr = io_read32(dev_cfg->base + _DCACHE_SR);
-	char tmp[40];
 
-	snprintf(tmp, sizeof(tmp), "\r\ndata cache exceptions: %#08x\r\n", sr);
-	DCACHE_LOG(tmp);
+	EMSG("\r\n");
+	EMSG("data cache exceptions: 0x%08x\r\n", sr);
 
 	return IRQ_HANDLED;
 }

@@ -114,18 +114,10 @@ static void stm32_iac_get_hwconfig(const struct device *dev)
 #define IAC_EXCEPT_MSB_BIT(x) (x * _PERIPH_IDS_PER_REG + _PERIPH_IDS_PER_REG - 1)
 #define IAC_EXCEPT_LSB_BIT(x) (x * _PERIPH_IDS_PER_REG)
 
-#define IAC_LOG(str) do { \
-    stdio_output_string((const char *)str, strlen(str)); \
-} while (0);
-
 __weak void access_violation_handler(void)
 {
-	IAC_LOG("Ooops...\n\r");
-#ifdef CONFIG_TFM_HALT_ON_CORE_PANIC
-	tfm_hal_system_halt();
-#else
-	tfm_platform_hal_system_reset();
-#endif /* CONFIG_TFM_HALT_ON_CORE_PANIC */
+	EMSG("Ooops...\n\r");
+	panic();
 }
 
 static bool stm32_iac_discarded(uint32_t iac)
@@ -156,9 +148,10 @@ static irqreturn_t stm32_iac_isr(void *data)
 	int nreg = div_round_up(drv_data->num_ilac, _PERIPH_IDS_PER_REG);
 	uint32_t isr = 0;
 	uint32_t iac = 0;
-	char tmp[50];
 	int i = 0, j = 0;
 	bool error = false;
+
+	IMSG("\r\n");
 
 	for (i = 0; i < nreg; i++) {
 		uint32_t offset = sizeof(uint32_t) * i;
@@ -168,11 +161,9 @@ static irqreturn_t stm32_iac_isr(void *data)
 		if (!isr)
 			continue;
 
-		snprintf(tmp, sizeof(tmp),
-			 "\r\niac exceptions: [%d:%d]=%#08x\r\n",
-			 IAC_EXCEPT_MSB_BIT(i),
-			 IAC_EXCEPT_LSB_BIT(i), isr);
-		IAC_LOG(tmp);
+		IMSG("iac exceptions: [%d:%d]=0x%08x\r\n",
+		     IAC_EXCEPT_MSB_BIT(i),
+		     IAC_EXCEPT_LSB_BIT(i), isr);
 
 		for (j = 0; j < _PERIPH_IDS_PER_REG; j++) {
 			if (!(isr & BIT(j)))
@@ -180,13 +171,11 @@ static irqreturn_t stm32_iac_isr(void *data)
 
 			iac = IAC_EXCEPT_LSB_BIT(i) + j;
 			if (stm32_iac_discarded(iac)) {
-				snprintf(tmp, sizeof(tmp), "Discarded IAC ID: %03d\r\n", iac);
+				IMSG("Discarded IAC ID: %03d\r\n", iac);
 			} else {
 				error = true;
-				snprintf(tmp, sizeof(tmp), "IAC exception ID: %03d\r\n", iac);
+				EMSG("IAC exception ID: %03d\r\n", iac);
 			}
-
-			IAC_LOG(tmp);
 		}
 
 		io_write32(drv_cfg->base + _IAC_ICR0 + offset, isr);

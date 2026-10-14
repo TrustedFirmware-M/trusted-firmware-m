@@ -464,26 +464,21 @@ static __unused int _stm32mp25_bkpr11_errata(const struct device *dev)
 }
 #endif /* defined(CONFIG_STM32MP25X_REVY) */
 
-#define TAMP_LOG(str)								\
-	do {									\
-		stdio_output_string((const char *)str, strlen(str));		\
-	} while (0);
-
 static __unused irqreturn_t stm32_tamper_isr(void *data)
 {
 	const struct device *dev = data;
 	const struct stm32_tamp_config *dev_cfg = dev_get_config(dev);
 	struct stm32_tamp_data *dev_data = dev_get_data(dev);
 	uint32_t tamper_mask, sr;
-	char tmp[60];
 
 	sr = io_read32(dev_cfg->base + _TAMP_SR);
 	tamper_mask = _FLD_PREP(_SR_ITAMP_F, dev_data->hw_int_tamper_mask);
 	tamper_mask |= _FLD_PREP(_SR_ETAMP_F, GENMASK_32(dev_data->hw_nb_ext_tamper - 1, 0));
 
+	IMSG("\r\n");
+
 	if ((sr | tamper_mask) != tamper_mask) {
-		snprintf(tmp, sizeof(tmp), "[INF] [%s] spurious detection: 0x%x\n", dev->name, sr);
-		TAMP_LOG(tmp);
+		EMSG("[%s] spurious detection: 0x%x\r\n", dev->name, sr);
 		panic();
 	}
 
@@ -494,11 +489,9 @@ static __unused irqreturn_t stm32_tamper_isr(void *data)
 
 		t_id -= _FLD_GET(_SR_ITAMP_F, scr) ? _SR_ITAMP_F_SHIFT : 0;
 
-		snprintf(tmp, sizeof(tmp), "[INF] [%s] %s tamper detection (id: %d)\r\n",
-			 dev->name,
-			 _FLD_GET(_SR_ITAMP_F, scr) ? "internal" : "external", t_id);
-
-		TAMP_LOG(tmp);
+		IMSG("[%s] %s tamper detection (id: %d)\r\n",
+		     dev->name,
+		     _FLD_GET(_SR_ITAMP_F, scr) ? "internal" : "external", t_id);
 
 		/* clear tamper exception */
 		io_write32(dev_cfg->base + _TAMP_SCR, scr);

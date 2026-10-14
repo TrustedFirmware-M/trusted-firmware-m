@@ -26,14 +26,20 @@ extern ARM_DRIVER_FLASH FLASH_DEV_NAME;
 #if STM32_PARTITION_DEBUG
 static void dump_entries(int num) {
 	char name[EFI_NAMELEN];
-	int i, j, len;
+	size_t len;
+	int i;
 
 	INFO("Partition table with %d entries:\n", num);
 	for (i = 0; i < num; i++) {
-		len = snprintf(name, EFI_NAMELEN, "%s", list.list[i].name);
-		for (j = 0; j < EFI_NAMELEN - len - 1; j++) {
-			name[len + j] = ' ';
+		/* name may not be nul terminated, bound the length */
+		len = 0;
+		while ((len < EFI_NAMELEN - 1) &&
+		       (list.list[i].name[len] != '\0')) {
+			len++;
 		}
+
+		memcpy(name, list.list[i].name, len);
+		memset(name + len, ' ', EFI_NAMELEN - 1 - len);
 		name[EFI_NAMELEN - 1] = '\0';
 		INFO("%d: %s %x%x %d\n", i + 1, name,
 		     (uint32_t)(list.list[i].start >> 32),
