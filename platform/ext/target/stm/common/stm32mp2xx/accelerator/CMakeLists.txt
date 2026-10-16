@@ -6,6 +6,11 @@
 #-------------------------------------------------------------------------------
 
 #========================= Crypto Service =====================================#
+target_include_directories(platform_s
+    PUBLIC
+        ${STM_FAMILY_DIR}/accelerator/include
+)
+
 if(TFM_PARTITION_CRYPTO)
     target_sources(crypto_service_crypto_hw
         PRIVATE
@@ -14,11 +19,6 @@ if(TFM_PARTITION_CRYPTO)
 
     target_include_directories(crypto_service_crypto_hw
         PRIVATE
-            ${STM_FAMILY_DIR}/accelerator/include
-    )
-
-    target_include_directories(platform_s
-        PUBLIC
             ${STM_FAMILY_DIR}/accelerator/include
     )
 
