@@ -6,7 +6,7 @@
 #-------------------------------------------------------------------------------
 
 set(SFCP_PATH "DOWNLOAD" CACHE PATH "Path to SFCP (or DOWNLOAD to fetch automatically)")
-set(SFCP_VERSION "bfd498afb1b12df90838071938d0b08a4570bf3e" CACHE STRING "The version of SFCP to use")
+set(SFCP_VERSION "9994276949d80db05cc8aa3cf22c1b5569729a56" CACHE STRING "The version of SFCP to use")
 set(SFCP_GIT_REMOTE "https://review.trustedfirmware.org/shared/sfcp" CACHE STRING "The URL to retrieve SFCP from")
 
 fetch_remote_library(
