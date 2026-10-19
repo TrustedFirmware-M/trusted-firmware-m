@@ -31,14 +31,6 @@ fetch_remote_library(
 
 add_library(mcuboot_config INTERFACE)
 
-if (MCUBOOT_ENCRYPT_KW)
-    set(MCUBOOT_KEY_ENC "${MCUBOOT_PATH}/enc-aeskw-128.b64" CACHE FILEPATH "Path to key with which to encrypt Secure firmware")
-    set(MCUBOOT_KEY_ENC_NS "${MCUBOOT_PATH}/enc-aeskw-128_ns.b64" CACHE FILEPATH "Path to key with which to encrypt non secure firmware")
-else()
-    set(MCUBOOT_KEY_ENC "${MCUBOOT_PATH}/enc-rsa2048-priv.pem" CACHE FILEPATH "Path to RSA private key used to encrypt Secure firmware")
-    set(MCUBOOT_KEY_ENC_NS "${MCUBOOT_PATH}/enc-rsa2048-priv.pem" CACHE FILEPATH "Path to RSA private key used to encrypt non secure firmware")
-endif()
-
 # Add/process CBOR encoded measured boot data (MCUBOOT_MEASURED_BOOT) only if
 # the store encoded measurements config is enabled. Otherwise, unencoded
 # measurements are stored in the shared data area and must be processed at
@@ -89,13 +81,16 @@ set(BL2_SOURCES
 )
 
 if(PLATFORM_DEFAULT_IMAGE_ENCRYPTION)
-list(APPEND BL2_SOURCES $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:${CMAKE_CURRENT_SOURCE_DIR}/keys_enc.c>)
+    list(APPEND BL2_SOURCES $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:${CMAKE_CURRENT_SOURCE_DIR}/keys_enc.c>)
 
     if(MCUBOOT_ENC_IMAGES)
         # Generate the keys embedded in BL2 from the configured key files
         set(BL2_ENC_KEY_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/keys_enc_generated.c)
 
         if(MCUBOOT_ENCRYPT_RSA)
+            set(MCUBOOT_KEY_ENC    "${MCUBOOT_PATH}/enc-rsa2048-priv.pem" CACHE FILEPATH "Path to the RSA private key used to unwrap the secure firmware encryption key")
+            set(MCUBOOT_KEY_ENC_NS "${MCUBOOT_PATH}/enc-rsa2048-priv.pem" CACHE FILEPATH "Path to the RSA private key used to unwrap the non-secure firmware encryption key")
+
             # BL2 holds a single RSA private key to unwrap the image
             # encryption keys, so both images must be encrypted with the
             # same key.
@@ -111,6 +106,9 @@ list(APPEND BL2_SOURCES $<$<BOOL:${MCUBOOT_ENC_IMAGES}>:${CMAKE_CURRENT_SOURCE_D
                     > ${BL2_ENC_KEY_SOURCE}
             )
         elseif(MCUBOOT_ENCRYPT_KW)
+            set(MCUBOOT_KEY_ENC "${MCUBOOT_PATH}/enc-aeskw-128.b64" CACHE FILEPATH "Path to the AES key used to unwrap the secure firmware encryption key")
+            set(MCUBOOT_KEY_ENC_NS "${MCUBOOT_PATH}/enc-aeskw-128_ns.b64" CACHE FILEPATH "Path to the AES key used to unwrap the non-secure firmware encryption key")
+
             add_custom_command(OUTPUT ${BL2_ENC_KEY_SOURCE}
                 DEPENDS ${MCUBOOT_KEY_ENC} ${MCUBOOT_KEY_ENC_NS}
                 DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_kw_keys.py

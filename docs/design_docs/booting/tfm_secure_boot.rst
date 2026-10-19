@@ -416,8 +416,8 @@ MCUBoot related compile time switches can be set by cmake variables.
     build type.
 - MCUBOOT_ENC_IMAGES (default: False):
     - **True:** Adds encrypted image support in the source and encrypts the
-      resulting images using the keys given by ``MCUBOOT_KEY_ENC`` and
-      ``MCUBOOT_KEY_ENC_NS``.
+      resulting images using an image-encryption key that is wrapped with the
+      key-encryption keys (KEKs) specified by ``MCUBOOT_KEY_ENC`` and ``MCUBOOT_KEY_ENC_NS``.
     - **False:** Doesn't add encrypted image support and doesn't encrypt the
       image.
 
@@ -434,7 +434,7 @@ MCUBoot related compile time switches can be set by cmake variables.
         the primary image area as well, to trigger the update.
 
 - MCUBOOT_KEY_ENC (default: "enc-rsa2048-priv.pem" or "enc-aeskw-128.b64"):
-    Path to the key used to encrypt the secure image when
+    Path to the KEK used to encrypt the secure image when
     ``MCUBOOT_ENC_IMAGES`` is enabled. With ``MCUBOOT_ENCRYPT_RSA`` this is
     the RSA private key, by default ``enc-rsa2048-priv.pem`` from the MCUBoot
     repository: the build embeds it in BL2, which uses it to unwrap the image
@@ -444,7 +444,7 @@ MCUBoot related compile time switches can be set by cmake variables.
     repository, a file holding ``AES-KW:`` followed by the base64 encoded
     key, which is embedded in BL2.
 - MCUBOOT_KEY_ENC_NS (default: "enc-rsa2048-priv.pem" or "enc-aeskw-128_ns.b64"):
-    Path to the key used to encrypt the non-secure image. With
+    Path to the KEK used to encrypt the non-secure image. With
     ``MCUBOOT_ENCRYPT_RSA`` BL2 holds a single key, so this must point to the
     same file as ``MCUBOOT_KEY_ENC``. With ``MCUBOOT_ENCRYPT_KW`` this is the
     AES key-wrapping key of the non-secure image, by default

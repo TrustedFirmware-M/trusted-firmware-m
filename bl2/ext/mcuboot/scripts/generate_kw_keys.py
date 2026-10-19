@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#
 # -------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
 #
@@ -6,7 +7,7 @@
 #
 # -------------------------------------------------------------------------------
 
-"""Generate the AES-KW image encryption keys embedded in BL2.
+"""Generate the AES-KW Key-Encryption-Key (KEK) embedded in BL2.
 
 The key files hold "AES-KW:" followed by the base64 encoded key, the
 format consumed by imgtool.
