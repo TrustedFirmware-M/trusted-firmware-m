@@ -178,38 +178,18 @@ else()
     target_link_libraries(bl1_build_flags INTERFACE gcc)
 endif()
 
-# Macro for adding scatter files. Supports multiple files
-macro(target_add_scatter_file target)
+# include the common toolchain file for common macros
+include(toolchain_common)
+include(toolchain_symbol_helpers)
+
+# Function for adding scatter files. Supports multiple files
+function(target_add_scatter_file target)
     target_link_options(${target} PRIVATE -T $<TARGET_OBJECTS:${target}_scatter>)
 
-    add_library(${target}_scatter OBJECT)
-    foreach(scatter_file ${ARGN})
-        target_sources(${target}_scatter PRIVATE ${scatter_file}
-        )
-        # Cmake cannot use generator expressions in the
-        # set_source_file_properties command, so instead we just parse the regex
-        # for the filename and set the property on all files, regardless of if
-        # the generator expression would evaluate to true or not.
-        string(REGEX REPLACE ".*>:(.*)>$" "\\1" SCATTER_FILE_PATH "${scatter_file}")
-        set_source_files_properties(${SCATTER_FILE_PATH}
-            PROPERTIES
-            LANGUAGE C
-            KEEP_EXTENSION True # Don't use .o extension for the preprocessed file
-        )
-    endforeach()
-
-    add_dependencies(${target} ${target}_scatter)
-
-    set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS $<TARGET_OBJECTS:${target}_scatter>)
-
-    target_link_libraries(${target}_scatter
-        platform_region_defs
-        psa_interface
-        tfm_config
-    )
+    _target_add_scatter_file(${target} ${ARGN})
 
     target_compile_options(${target}_scatter PRIVATE -E -P -xc)
-endmacro()
+endfunction()
 
 # Macro for converting the output *.axf file to finary files: bin, elf, hex
 macro(add_convert_to_bin_target target)
@@ -274,68 +254,6 @@ macro(target_share_symbols target)
     )
 endmacro()
 
-macro(target_link_shared_code target)
-    foreach(symbol_provider ${ARGN})
-        if (TARGET ${symbol_provider})
-            get_target_property(SYMBOL_PROVIDER_TYPE ${symbol_provider} TYPE)
-            if (NOT SYMBOL_PROVIDER_TYPE STREQUAL "EXECUTABLE")
-                message(FATAL_ERROR "${symbol_provider} is not an executable. Symbols cannot be shared from libraries.")
-            endif()
-        endif()
-
-        # Ensure ${symbol_provider}_shared_symbols is built before ${target}
-        add_dependencies(${target} ${symbol_provider}_shared_symbols)
-        # ${symbol_provider}_shared_symbols - a custom target is always considered out-of-date
-        # To only link when necessary, depend on ${symbol_provider} instead
-        set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS $<TARGET_OBJECTS:${symbol_provider}>)
-        target_link_options(${target} PRIVATE LINKER:--just-symbols $<TARGET_FILE_DIR:${symbol_provider}>/${symbol_provider}${CODE_SHARING_INPUT_FILE_SUFFIX})
-    endforeach()
-endmacro()
-
-macro(target_strip_symbols target)
-    set(SYMBOL_LIST "${ARGN}")
-    list(TRANSFORM SYMBOL_LIST PREPEND  --strip-symbol=)
-
-    add_custom_command(
-        TARGET ${target}
-        POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY}
-        ARGS $<TARGET_FILE:${target}> --wildcard ${SYMBOL_LIST} $<TARGET_FILE:${target}>
-    )
-endmacro()
-
-macro(target_strip_symbols_from_dependency target dependency)
-    set(SYMBOL_LIST "${ARGN}")
-    list(TRANSFORM SYMBOL_LIST PREPEND  --strip-symbol=)
-
-    add_custom_command(
-        TARGET ${target}
-        PRE_LINK
-        COMMAND ${CMAKE_OBJCOPY}
-        ARGS $<TARGET_FILE:${dependency}> --wildcard ${SYMBOL_LIST} $<TARGET_FILE:${dependency}>
-    )
-endmacro()
-
-macro(target_weaken_symbols target)
-    set(SYMBOL_LIST "${ARGN}")
-    list(TRANSFORM SYMBOL_LIST PREPEND  --weaken-symbol=)
-
-    add_custom_command(
-        TARGET ${target}
-        POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY}
-        ARGS $<TARGET_FILE:${target}> --wildcard ${SYMBOL_LIST} $<TARGET_FILE:${target}>
-    )
-endmacro()
-
-macro(target_weaken_symbols_from_dependency target dependency)
-    set(SYMBOL_LIST "${ARGN}")
-    list(TRANSFORM SYMBOL_LIST PREPEND  --weaken-symbol=)
-
-    add_custom_command(
-        TARGET ${target}
-        PRE_LINK
-        COMMAND ${CMAKE_OBJCOPY}
-        ARGS $<TARGET_FILE:${dependency}> --wildcard ${SYMBOL_LIST} $<TARGET_FILE:${dependency}>
-    )
-endmacro()
+function(target_link_shared_code target)
+    _target_link_shared_code(${target} TRUE ${ARGN})
+endfunction()

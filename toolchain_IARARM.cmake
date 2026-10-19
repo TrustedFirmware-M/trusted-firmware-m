@@ -191,49 +191,24 @@ add_library(bl2_build_flags INTERFACE)
 # BL1 specific compile and link options
 add_library(bl1_build_flags INTERFACE)
 
+# include the common toolchain file for common macros
+include(toolchain_common)
+
 # Behaviour for handling scatter files is so wildly divergent between compilers
-# that this macro is required.
-macro(target_add_scatter_file target)
+# that this function is required.
+function(target_add_scatter_file target)
     target_link_options(${target}
         PRIVATE
         --config $<TARGET_OBJECTS:${target}_scatter>
     )
 
-    add_library(${target}_scatter OBJECT)
-    foreach(scatter_file ${ARGN})
-        target_sources(${target}_scatter
-            PRIVATE
-                ${scatter_file}
-        )
-        # Cmake cannot use generator expressions in the
-        # set_source_file_properties command, so instead we just parse the regex
-        # for the filename and set the property on all files, regardless of if
-        # the generator expression would evaluate to true or not.
-        string(REGEX REPLACE ".*>:(.*)>$" "\\1" SCATTER_FILE_PATH "${scatter_file}")
-        set_source_files_properties(${SCATTER_FILE_PATH}
-            PROPERTIES
-            LANGUAGE C
-            KEEP_EXTENSION True # Don't use .o extension for the preprocessed file
-        )
-    endforeach()
-
-    add_dependencies(${target}
-        ${target}_scatter
-    )
-
-    set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS $<TARGET_OBJECTS:${target}_scatter>)
-
-    target_link_libraries(${target}_scatter
-        platform_region_defs
-        psa_interface
-        tfm_config
-    )
+    _target_add_scatter_file(${target} ${ARGN})
 
     target_compile_options(${target}_scatter
         PRIVATE
             --preprocess=sn $<TARGET_OBJECTS:${target}_scatter>
     )
-endmacro()
+endfunction()
 
 macro(add_convert_to_bin_target target)
     get_target_property(bin_dir ${target} RUNTIME_OUTPUT_DIRECTORY)
@@ -333,25 +308,9 @@ macro(target_share_symbols target)
     )
 endmacro()
 
-macro(target_link_shared_code target)
-    get_target_property(TARGET_SOURCE_DIR ${target} SOURCE_DIR)
-
-    foreach(symbol_provider ${ARGN})
-        if (TARGET ${symbol_provider})
-            get_target_property(SYMBOL_PROVIDER_TYPE ${symbol_provider} TYPE)
-            if (NOT SYMBOL_PROVIDER_TYPE STREQUAL "EXECUTABLE")
-                message(FATAL_ERROR "${symbol_provider} is not an executable. Symbols cannot be shared from libraries.")
-            endif()
-        endif()
-
-        # Ensure ${symbol_provider}_shared_symbols is built before ${target}
-        add_dependencies(${target} ${symbol_provider}_shared_symbols)
-        # ${symbol_provider}_shared_symbols - a custom target is always considered out-of-date
-        # To only link when necessary, depend on ${symbol_provider} instead
-        set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS $<TARGET_OBJECTS:${symbol_provider}>)
-        target_link_options(${target} PRIVATE LINKER:$<TARGET_FILE_DIR:${symbol_provider}>/${symbol_provider}${CODE_SHARING_INPUT_FILE_SUFFIX})
-    endforeach()
-endmacro()
+function(target_link_shared_code target)
+    _target_link_shared_code(${target} FALSE ${ARGN})
+endfunction()
 
 macro(compiler_create_shared_code TARGET SHARED_SYMBOL_TEMPLATE)
     message(FATAL_ERROR "Code sharing support is not implemented by IAR.")
