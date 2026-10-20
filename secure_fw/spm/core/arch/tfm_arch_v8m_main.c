@@ -10,6 +10,7 @@
 #include "config_spm.h"
 #include "security_defs.h"
 #include "tfm_arch.h"
+#include "tfm_svcalls.h"
 #include "utilities.h"
 #include "ffm/backend.h"
 

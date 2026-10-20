@@ -7,8 +7,10 @@
 #include <stdint.h>
 #include "cmsis_compiler.h"
 #include "config_impl.h"
+#include "ffm/psa_api.h"
 #include "psa/service.h"
 #include "runtime_defs.h"
+#include "tfm_arch.h"
 #include "coverity_check.h"
 #include "utilities.h"
 
