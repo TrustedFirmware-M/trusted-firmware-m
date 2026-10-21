@@ -486,6 +486,7 @@ const cy_en_prot_region_t M33S_ppc_0_regions[] =
     PROT_PERI0_FAULT_STRUCT1_MAIN,
     PROT_PERI0_SRSS_HIB_DATA,
     PROT_PERI0_PWRMODE_PWRMODE,
+    PROT_PERI0_SCB2,
     PROT_PERI0_DFT, 
 };
 const cy_en_prot_region_t M33_M55_ppc_0_regions[] =
@@ -710,7 +711,6 @@ const cy_en_prot_region_t M33_M55_ppc_0_regions[] =
     PROT_PERI0_TCPWM0_GRP1_CNT23_CNT,
     PROT_PERI0_LPCOMP,
     PROT_PERI0_SCB0,
-    PROT_PERI0_SCB2,
     PROT_PERI0_SCB3,
     PROT_PERI0_SCB4,
     PROT_PERI0_SCB5,
