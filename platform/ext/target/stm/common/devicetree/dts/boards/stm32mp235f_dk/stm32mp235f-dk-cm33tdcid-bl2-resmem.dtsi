@@ -1,0 +1,46 @@
+/*
+ * Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+ * Author: Raphaël Gallais-Pou <raphael.gallais-pou@foss.st.com> for STMicroelectronics.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		/* Internal RAM reserved memory declaration */
+		tfm_shared_data: tfm-shared-data@e05f000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xe05f000 0x0 0x1000>;
+			#memory-region-cells = <0>;
+		};
+
+		/* DDR reserved memory declaration */
+		tfm_code: tfm-code@80000000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x80000000 0x0 0x80000>;
+			#memory-region-cells = <0>;
+		};
+
+		cm33_cube_fw: cm33-cube-fw@80080000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x80080000 0x0 0x200000>;
+			#memory-region-cells = <0>;
+		};
+
+		tfm_data: tfm-data@80280000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x80280000 0x0 0x100000>;
+			#memory-region-cells = <0>;
+		};
+
+		cm33_cube_data: cm33-cube-data@80380000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0x80380000 0x0 0x680000>;
+			#memory-region-cells = <0>;
+		};
+	};
+};
