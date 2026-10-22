@@ -25,8 +25,8 @@
 #include "stm32mp25xxai-pinctrl.dtsi"
 
 / {
-	model = "STMicroelectronics stm32mp257f-dk SDCARD CM33TDCID OSTL Discovery Board";
-	compatible = "st,stm32mp257f-dk-cm33tdcid-ostl-sdcard", "st,stm32mp257f-dk", "st,stm32mp257";
+	model = "STMicroelectronics stm32mp257f-dk SDCARD CM33TDCID Discovery Board";
+	compatible = "st,stm32mp257f-dk-cm33tdcid-sdcard", "st,stm32mp257f-dk", "st,stm32mp257";
 
 	aliases {
 		serial0 = &uart5;

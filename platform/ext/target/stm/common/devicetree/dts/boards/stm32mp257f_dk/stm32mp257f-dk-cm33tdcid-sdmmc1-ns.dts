@@ -19,8 +19,8 @@
 
 
 / {
-	model = "STMicroelectronics STM32MP257F-DK OSTL DiscoverBoard";
-	compatible = "st,stm32mp257f-dk-m33tdcid-ostl", "st,stm32mp257f-dk", "st,stm32mp257";
+	model = "STMicroelectronics STM32MP257F-DK DiscoverBoard";
+	compatible = "st,stm32mp257f-dk-m33tdcid", "st,stm32mp257f-dk", "st,stm32mp257";
 
 	aliases {
 		serial0 = &uart5;
