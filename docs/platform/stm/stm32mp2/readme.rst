@@ -73,6 +73,7 @@ Directory content
     :caption: Available platforms
     :glob:
 
+    stm32mp235f_dk/readme.rst
     stm32mp257f_dk/readme.rst
 
 -------------
