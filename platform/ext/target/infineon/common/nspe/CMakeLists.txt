@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright (c) 2023-2025 Cypress Semiconductor Corporation (an Infineon company)
+# Copyright (c) 2023-2026 Cypress Semiconductor Corporation (an Infineon company)
 # or an affiliate of Cypress Semiconductor Corporation. All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -67,6 +67,14 @@ if(IFX_MTB_MAILBOX)
             PUBLIC
                 ifx_mtb_mailbox
         )
+
+        # This NSPE talks to the on-core NSPE (which proxies requests to TF-M)
+        # rather than to TF-M itself, so it needs neither the TrustZone nor the
+        # TF-M mailbox NS API. Provide an empty tfm_api_ns_tz so that NS
+        # applications which link it when TFM_NS_MAILBOX_API is OFF still build.
+        if(NOT TARGET tfm_api_ns_tz)
+            add_library(tfm_api_ns_tz INTERFACE)
+        endif()
     elseif(IFX_NS_INTERFACE_TZ)
         # When IFX_MTB_MAILBOX is enabled - on core NSPE acts like a proxy for off
         # core NSPE requests. Thus ifx_mtb_mailbox headers are needed so that on
