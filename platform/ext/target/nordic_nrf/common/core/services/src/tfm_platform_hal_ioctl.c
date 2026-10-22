@@ -66,6 +66,10 @@ tfm_platform_hal_read_service(const psa_invec  *in_vec,
 		return TFM_PLATFORM_ERR_INVALID_PARAM;
 	}
 
+	if (args->addr == 0xffffffff || ((UINT32_MAX - args->addr) <= args->len)) {
+		return TFM_PLATFORM_ERR_INVALID_PARAM;
+	}
+
 	status = tfm_hal_memory_check(boundary, (uintptr_t)args->destination,
 	                              args->len, attr);
 	if (status != TFM_HAL_SUCCESS) {
