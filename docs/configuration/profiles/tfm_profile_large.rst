@@ -135,13 +135,16 @@ TF-M Platform :term:`Secure Partition` (SP).
 Software countermeasures against physical attacks
 =================================================
 
-TF-M Profile Large enables TF-M Fault Injection Hardening (FIH) library Profile
-Medium by default. It enables the following countermeasure techniques:
+TF-M Profile Large enables MCUBoot Fault Injection Hardening (FIH) Profile
+Medium by default. It enables the following countermeasure techniques in BL2:
 
     - Control flow monitor
     - Failure loop hardening
     - Complex constants
     - Redundant variables and condition checks
+
+TF-M Profile Large does not enable the TF-M FIH library by default. A platform
+or use case can enable it by selecting a TF-M FIH library profile.
 
 Refer to TF-M physical attack mitigation design document [6]_ for FIH library
 details.
@@ -309,8 +312,14 @@ implementation defined.
 Software countermeasure against physical attacks
 ------------------------------------------------
 
-Profile Large selects TF-M FIH library Profile Medium by specifying
-``-DTFM_FIH_PROFILE=MEDIUM`` in top-level CMake config file.
+Profile Large selects MCUBoot FIH Profile Medium by setting
+``MCUBOOT_FIH_PROFILE`` to ``MEDIUM`` in top-level CMake config file. This only
+affects BL2.
+
+Profile Large leaves ``TFM_FIH_PROFILE`` at its default value of ``OFF``. To
+enable the TF-M FIH library in the SPE, specify
+``-DTFM_FIH_PROFILE=<LOW, MEDIUM, HIGH>`` at build time or set it in the
+platform configuration extension file.
 
 System integrators shall implement software countermeasures in platform specific
 implementations.
