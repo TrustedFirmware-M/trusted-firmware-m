@@ -5,7 +5,7 @@
 #
 #-------------------------------------------------------------------------------
 
-fetch_remote_library(
+set(TF_PSA_CRYPTO_ARGS
     LIB_NAME                tf-psa-crypto
     LIB_SOURCE_PATH_VAR     TF_PSA_CRYPTO_PATH
     LIB_PATCH_DIR           ${TF_PSA_CRYPTO_PATCH_DIR}
@@ -23,6 +23,17 @@ fetch_remote_library(
 # Related details: https://gitlab.kitware.com/cmake/cmake/-/issues/26220
         SOURCE_SUBDIR       non-exist-dir
 )
+
+if(TF_PSA_CRYPTO_GIT_SUBMODULES)
+    fetch_remote_library(
+    ${TF_PSA_CRYPTO_ARGS}
+)
+else()
+    fetch_remote_library(
+    ${TF_PSA_CRYPTO_ARGS}
+        GIT_SUBMODULES ""
+)
+endif()
 
 ################################################################################
 # Apply platform-specific tf-psa-crypto patches (if provided via patch.cmake)

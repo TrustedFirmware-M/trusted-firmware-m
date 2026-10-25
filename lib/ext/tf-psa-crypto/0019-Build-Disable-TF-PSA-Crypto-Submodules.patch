@@ -1,0 +1,59 @@
+From dd553049c65aeff2e47928cb0d14db85e380a76a Mon Sep 17 00:00:00 2001
+From: Hussein Serageldin <hussein.serageldin@arm.com>
+Date: Mon, 26 Oct 2026 10:35:23 +0100
+Subject: [PATCH] Build: Disable TF-PSA-Crypto Submodules
+
+Allow TF-PSA-Crypto submodules to be disabled, as they introduce
+unnecessary overhead during fetch and build when they are not 
+needed.
+
+Signed-off-by: Hussein Serageldin <hussein.serageldin@arm.com>
+---
+ CMakeLists.txt              | 6 ++++--
+ drivers/pqcp/CMakeLists.txt | 6 ++++++
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9b3e1679b..647bfb62d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -396,7 +396,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Check" AND TEST_CPP)
+     endif()
+ endif()
+ 
+-if (NOT EXISTS "${TF_PSA_CRYPTO_FRAMEWORK_DIR}/CMakeLists.txt")
++if (TF_PSA_CRYPTO_GIT_SUBMODULES AND NOT EXISTS "${TF_PSA_CRYPTO_FRAMEWORK_DIR}/CMakeLists.txt")
+     message(FATAL_ERROR "${TF_PSA_CRYPTO_FRAMEWORK_DIR}/CMakeLists.txt not found. Run `git submodule update --init` from the source tree to fetch the submodule contents.")
+ endif()
+ 
+@@ -423,7 +423,9 @@ set(TF_PSA_CRYPTO_PRIVATE_INCLUDE_DIRS
+ # constructed in `drivers/CMakeLists.txt`. This list may include a generated
+ # test driver.
+ #
+-add_subdirectory(framework)
++if(TF_PSA_CRYPTO_GIT_SUBMODULES)
++    add_subdirectory(framework)
++endif()
+ add_subdirectory(include)
+ add_subdirectory(drivers)   # must precede core
+ add_subdirectory(extras)
+diff --git a/drivers/pqcp/CMakeLists.txt b/drivers/pqcp/CMakeLists.txt
+index ab531a942..1382f09f1 100644
+--- a/drivers/pqcp/CMakeLists.txt
++++ b/drivers/pqcp/CMakeLists.txt
+@@ -6,6 +6,12 @@ file(GLOB pqcp_src_files RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.c)
+ 
+ include(${PROJECT_SOURCE_DIR}/drivers/driver.cmake)
+ 
++if(TF_PSA_CRYPTO_GIT_SUBMODULES
++   AND NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mldsa-native/mldsa/mldsa_native.h")
++    message(FATAL_ERROR
++        "MLDSA requires drivers/pqcp/mldsa-native. Fetch submodules or disable MLDSA.")
++endif()
++
+ foreach (target IN LISTS target_libraries)
+     target_include_directories(${target}
+         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+-- 
+2.53.0
+
