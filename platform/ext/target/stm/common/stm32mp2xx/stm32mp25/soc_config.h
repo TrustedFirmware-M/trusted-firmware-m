@@ -65,7 +65,6 @@
 #define IPCC_IRQ			DT_IRQN(DT_NODELABEL(ipcc1))
 #define IPCC_IRQ_LEGACY                 RESERVED_309
 #endif
-#define EXTI2_IWDG_1			BIT(15)
 #endif
 
 #endif /* __SOC_CONFIG_H__ */
