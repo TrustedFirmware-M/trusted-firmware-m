@@ -1,0 +1,11 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The RAMCFG configures the features of the internal SRAMs (SYSRAM, RETRAM,
+  SRAM1 and BKPSRAM).
+
+compatible: "st,stm32mp21-ramcfg"
+
+include:
+  - st,stm32mp25-ramcfg.yaml

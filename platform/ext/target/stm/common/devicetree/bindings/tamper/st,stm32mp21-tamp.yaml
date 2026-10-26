@@ -1,0 +1,13 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The anti-tamper detection circuit is used to protect sensitive data from
+  external attacks. STM32MP21 has 16 internal and 7 external tamper events.
+  128 32-bit backup registers are retained in all low-power modes and also
+  in V BAT mode.
+
+compatible: "st,stm32mp21-tamp"
+
+include:
+  - st,stm32mp25-tamp.yaml

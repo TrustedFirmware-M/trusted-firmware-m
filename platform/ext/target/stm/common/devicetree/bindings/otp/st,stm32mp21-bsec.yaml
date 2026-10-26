@@ -1,0 +1,11 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  The boot and security control (BSEC) peripheral manages the accesses to an embedded
+  one time programmable (OTP) array of fuses. Those fuses are used to store on-chip,
+  non-volatile data like boot and security parameters.
+
+compatible: "st,stm32mp21-bsec"
+
+include: st,stm32mp25-bsec.yaml

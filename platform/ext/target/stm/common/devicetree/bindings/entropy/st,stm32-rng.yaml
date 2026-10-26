@@ -19,3 +19,14 @@ properties:
 
   clocks:
     required: true
+
+  clock-names:
+    required: true
+    enum:
+      - "rng_clk"
+      - "rng_hclk"
+    description: |
+      Expected names are the following:
+      - "rng_clk" is the RNG clock domain source, used to compute CLKDIV
+      - "rng_hclk" is the AHB bus clock feeding the peripheral
+      rng_clk may be backed by a clock controller or by a fixed-clock device without clk_subsys

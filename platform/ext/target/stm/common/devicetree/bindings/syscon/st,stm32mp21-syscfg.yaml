@@ -1,0 +1,12 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STM32 System configuration controller (SYSCFG) in STM32MP21 SoC inherits of
+  the features described in st,stm32mp25-syscfg.yaml. This version support less
+  registers.
+
+compatible: "st,stm32mp21-syscfg"
+
+include:
+  - st,stm32mp25-syscfg.yaml

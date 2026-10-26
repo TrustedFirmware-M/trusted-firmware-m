@@ -1,0 +1,9 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  STM32MP21 RCC node.
+
+compatible: "st,stm32mp21-rcc"
+
+include: st,stm32mp25-rcc.yaml

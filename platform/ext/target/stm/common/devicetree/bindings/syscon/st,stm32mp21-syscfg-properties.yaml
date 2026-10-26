@@ -1,0 +1,20 @@
+# Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+# SPDX-License-Identifier: Apache-2.0
+
+description: stm32 system configuration properties for stm32mp21
+
+include:
+  - name: st,stm32mp25-syscfg-properties.yaml
+    property-allowlist:
+      - st,syscfg-dlyb
+      - st,syscfg-vddio
+
+properties:
+
+  st,syscfg-arcr:
+    type: phandle-array
+    specifier-space: syscfg-reg-mask
+    description: |
+      Phandle to system configuration controller. It is used to get the status of the STM32 DMA3 AXI
+      port address remapping. When enabled, the 4GB address space accessible by the STM32 DMA3 AXI
+      port starts at address 0x80000000 instead of 0x00000000.
