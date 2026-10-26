@@ -284,6 +284,23 @@ enum tfm_plat_err_t nrf_mpc_init_cfg(void)
 		mpc_configure_override(NRF_MPC00, &override);
 	}
 
+	/* Configure non-secure access to the first 4 KB of Wi-Fi RAM_0, which
+	 * holds the Wi-Fi System Off token, written by the non-secure Wi-Fi driver.
+	 * 4 KB is the MPC override granularity, so this is the smallest region
+	 * covering the token.
+	 */
+	{
+		struct mpc_region_override override;
+
+		init_mpc_region_override(&override);
+
+		override.start_address = 0x28000000;
+		override.endaddr = 0x28001000;
+		override.index = index_mpc00++;
+
+		mpc_configure_override(NRF_MPC00, &override);
+	}
+
 	/* Configure AMBIX03 non-secure access via MPC03 for to access RAM_02, RAM_03 */
 	{
 		struct mpc_region_override override;
