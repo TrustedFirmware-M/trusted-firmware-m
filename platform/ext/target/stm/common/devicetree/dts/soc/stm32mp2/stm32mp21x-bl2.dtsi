@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2026, STMicroelectronics - All Rights Reserved
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/ {
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		bl2_code: bl2-code@e040000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xe040000 0x0 0x19000>;
+			#memory-region-cells = <0>;
+		};
+
+		bl2_data: bl2-data@e059000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xe059000 0x0 0xc000>;
+			#memory-region-cells = <0>;
+		};
+
+		ddr_fw_buffer: ddr-fw-buffer@e065000 {
+			compatible = "reserved-memory";
+			reg = <0x0 0xe065000 0x0 0xa000>;
+			#memory-region-cells = <0>;
+		};
+	};
+};

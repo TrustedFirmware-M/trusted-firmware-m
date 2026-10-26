@@ -241,6 +241,23 @@ extern "C" {
 	DT_PHA_BY_NAME(node_id, clocks, name, cell)
 
 /**
+ * @brief Like DT_CLOCKS_CELL_BY_NAME() but with a fallback value.
+ *
+ * If the named clock exists and has the given cell, the cell value is returned.
+ * Otherwise, @p default_value is returned.
+ *
+ * @param node_id node identifier for a node with a clocks property
+ * @param name lowercase-and-underscores name of a clocks element
+ *             as defined by the node's clock-names property
+ * @param cell lowercase-and-underscores cell name
+ * @param default_value fallback value to return if the cell is absent
+ * @return the cell value, or @p default_value
+ * @see DT_PHA_BY_NAME_OR()
+ */
+#define DT_CLOCKS_CELL_BY_NAME_OR(node_id, name, cell, default_value) \
+        DT_PHA_BY_NAME_OR(node_id, clocks, name, cell, default_value)
+
+/**
  * @brief Equivalent to DT_CLOCKS_CELL_BY_IDX(node_id, 0, cell)
  * @param node_id node identifier for a node with a clocks property
  * @param cell lowercase-and-underscores cell name
@@ -334,6 +351,23 @@ extern "C" {
  */
 #define DT_INST_CLOCKS_CELL_BY_NAME(inst, name, cell) \
 	DT_CLOCKS_CELL_BY_NAME(DT_DRV_INST(inst), name, cell)
+
+/**
+ * @brief Like DT_INST_CLOCKS_CELL_BY_NAME() but with a fallback value.
+ *
+ * If the named clock exists and has the given cell, the cell value is returned.
+ * Otherwise, @p default_value is returned.
+ *
+ * @param inst DT_DRV_COMPAT instance number
+ * @param name lowercase-and-underscores name of a clocks element
+ *             as defined by the node's clock-names property
+ * @param cell lowercase-and-underscores cell name
+ * @param default_value fallback value to return if the cell is absent
+ * @return the cell value, or @p default_value
+ * @see DT_CLOCKS_CELL_BY_NAME_OR()
+ */
+#define DT_INST_CLOCKS_CELL_BY_NAME_OR(inst, name, cell, default_value) \
+        DT_CLOCKS_CELL_BY_NAME_OR(DT_DRV_INST(inst), name, cell, default_value)
 
 /**
  * @brief Equivalent to DT_INST_CLOCKS_CELL_BY_IDX(inst, 0, cell)

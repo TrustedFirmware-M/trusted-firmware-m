@@ -650,11 +650,12 @@
 		};
 
 		risaf4: risaf@520d0000 {
-			compatible = "st,stm32mp25-risaf";
+			compatible = "st,stm32mp25-risaf-enc";
 			reg = <0x520d0000 0x1000>;
 			#access-controller-cells = <2>;
 			clocks = <&rcc CK_BUS_RISAF4>;
 			st,mem-map = <0x0 0x80000000 0x1 0x00000000>;
+			entropy = <&rng>;
 			status = "disabled";
 		};
 
