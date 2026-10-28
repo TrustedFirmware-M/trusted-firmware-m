@@ -431,6 +431,9 @@ enum tfm_plat_err_t ppc_init_cfg(void)
                             (1U << CMSDK_DMA2_PPC_POS) |
                             (1U << CMSDK_DMA3_PPC_POS);
 
+    /* Match the DMA master security attributes to their NS peripheral access. */
+    spctrl->nsmscexp |= (0xFU << 16);
+
     /* in NS, grant un-privileged for UART0 */
     nspctrl->apbnspppcexp1 |= (1U << CMSDK_UART0_APB_PPC_POS);
 
