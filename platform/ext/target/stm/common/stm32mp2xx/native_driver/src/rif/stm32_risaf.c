@@ -227,7 +227,7 @@ struct stm32_risaf_config {
 	const clk_subsys_t clk_subsys;
 	const struct risaf_dt_region *dt_regions;
 	const int ndt_regions;
-/*    const struct device *entropy_dev;*/
+	const struct device *entropy_dev;
 	const uint32_t st_mce_keysize;
 	const struct firewall_spec *firewall_ctrls;
 	const int n_firewall_ctrls;
@@ -400,6 +400,30 @@ static void stm32_risaf_dt_to_subregion(const struct risaf_dt_region *dt_region,
 	}
 }
 
+static int stm32_risaf_ecc_check(const struct device *dev, struct risaf_region *region)
+{
+	const struct stm32_risaf_config *drv_cfg = dev_get_config(dev);
+	struct stm32_risaf_data *drv_data = dev_get_data(dev);
+
+	if (region->enc_mode) {
+		if ((!drv_data->variant->has_enc) || !(region->cfg & _RISAF_REG_CFGR_SEC))
+			return -EINVAL;
+
+		if ((region->enc_mode == RIF_ENC_EN) &&
+		    ((drv_data->variant->default_encryption_fn == NULL) ||
+		     !(mmio_read_32(drv_cfg->base + _RISAF_SR) & _RISAF_SR_KEYVALID) ||
+		     !(mmio_read_32(drv_cfg->base + _RISAF_SR) & _RISAF_SR_KEYRDY)))
+			return -EINVAL;
+
+		if ((region->enc_mode == RIF_ENC_MCE_EN) &&
+		    ((drv_data->variant->mce_encryption_fn == NULL) ||
+		     !(mmio_read_32(drv_cfg->base + _RISAF_XSR) & _RISAF_XSR_MKVALID)))
+			return -EINVAL;
+	}
+
+	return 0;
+}
+
 static int stm32_risaf_setup_region_cfg(const struct device *dev,
 					struct risaf_region *region,
 					struct risaf_subregion *subregion, uint8_t nb_sub)
@@ -418,6 +442,9 @@ static int stm32_risaf_setup_region_cfg(const struct device *dev,
 	 * - disable the temporary region
 	 */
 	if (region->id >= drv_data->hw_nregions)
+		return -EINVAL;
+
+	if (stm32_risaf_ecc_check(dev, region))
 		return -EINVAL;
 
 	tmp_copy = stm32_risaf_region_is_enabled(dev, region->id);
@@ -553,6 +580,38 @@ static __unused int stm32_risaf_install_mce_encryption_key(const struct device *
 	if (err)
 		EMSG("[%s] Timeout waiting mce encryption key expension\n", dev->name);
 
+	return err;
+}
+
+static __unused int stm32_risaf_encryption_init(const struct device *dev)
+{
+	const struct stm32_risaf_config *drv_cfg = dev_get_config(dev);
+	struct stm32_risaf_data *drv_data = dev_get_data(dev);
+	const struct stm32_risaf_variant *variant = drv_data->variant;
+	uint8_t key[RISAF_MAX_KEY_SZ / BITS_PER_BYTES];
+	int err;
+
+	if (!variant->default_encryption_fn && !variant->mce_encryption_fn)
+		return -EINVAL;
+
+	bzero(key, RISAF_MAX_KEY_SZ / BITS_PER_BYTES);
+
+	err = entropy_get_entropy(drv_cfg->entropy_dev, key, variant->max_key_sz / BITS_PER_BYTES);
+	if (err) {
+		EMSG("[%s] Could not get specific entropy\n", dev->name);
+		goto out;
+	}
+
+	if (variant->default_encryption_fn) {
+		err = variant->default_encryption_fn(dev, key);
+		if (err)
+			goto out;
+	}
+
+	if (variant->mce_encryption_fn)
+		err = variant->mce_encryption_fn(dev, key);
+
+out:
 	return err;
 }
 
@@ -704,6 +763,25 @@ static int stm32_risaf_init(const struct device *dev)
 		}
 	}
 
+	if (IS_ENABLED(STM32_BL2)) {
+		if (drv_data->variant->has_enc) {
+			if (!drv_cfg->entropy_dev) {
+				err = -EINVAL;
+				goto out;
+			}
+
+			err = stm32_risaf_encryption_init(dev);
+			if (err)
+				goto out;
+		}
+	} else {
+		err = stm32_risaf_encryption_check(dev);
+		if (err) {
+			EMSG("[%s] encryption key not initialized by BL2\n", dev->name);
+			goto out;
+		}
+	}
+
 	for_each_dt_region(drv_cfg->dt_regions, dt_region, drv_cfg->ndt_regions, i) {
 		struct risaf_subregion subregion[_RISAF_MAX_SUBREGIONS];
 		struct risaf_region region;
@@ -717,8 +795,10 @@ static int stm32_risaf_init(const struct device *dev)
 
 out:
 	clk_disable(clk);
-	if (err)
+	if (err) {
+		EMSG("[%s] [LBA-%s] err:%d\n", dev->name, __func__, err);
 		panic();
+	}
 
 out_access:
 	/* release firewall access right */
@@ -749,15 +829,26 @@ static __unused const struct stm32_risaf_variant stm32mp25_variant = {
 	.max_key_sz = RISAF_NO_KEY,
 };
 
+static __unused const struct stm32_risaf_variant stm32mp25_enc_variant = {
+	.has_enc = true,
+	.default_encryption_fn = &stm32_risaf_install_encryption_key,
+	.mce_encryption_fn = NULL,
+	.max_key_sz = RISAF_KEY_128BITS,
+};
+
+static __unused const struct stm32_risaf_variant stm32mp21_enc_variant = {
+	.has_enc = true,
+	.default_encryption_fn = &stm32_risaf_install_encryption_key,
+	.mce_encryption_fn = &stm32_risaf_install_mce_encryption_key,
+	.max_key_sz = RISAF_KEY_256BITS,
+};
+
 #define _RISAF_REGION_NAME(_node)							\
 	_CONCAT(DEVICE_DT_NAME_GET(_node), _risaf_dt_regions)
 
 #define _RISAF_REGIONS_GET(_node)							\
-	COND_CODE_1(DT_NODE_HAS_PROP(_node, memory_region),				\
+	COND_CODE_1(DT_MEMORY_REGION_HAS(_node),					\
 		    (_RISAF_REGION_NAME(_node)), (NULL))
-
-#define _RISAF_REGION_NUM(_node)							\
-	DT_PROP_LEN_OR(_node, memory_region, 0)
 
 #define _RISAF_ADDR(_mr_node, _mem_region, _root_node)					\
 	(_mem_region - DT_PROP_BY_IDX(_root_node, st_mem_map, 1))
@@ -777,25 +868,24 @@ static __unused const struct stm32_risaf_variant stm32mp25_variant = {
 		.end_addr = _RISAF_END_ADDR(_mr_node, _root_node),			\
 		.st_protreg = _RISAF_PROTREG(_mr_node),					\
 		.dt_regions = _RISAF_REGIONS_GET(_mr_node),				\
-		.ndt_regions = _RISAF_REGION_NUM(_mr_node),				\
+		.ndt_regions = DT_NUM_MEMORY_REGION(_mr_node),				\
 	}
 
 #define _RISAF_MR_ELEM(_node, _prop, _idx, _root_node)					\
-	__RISAF_MR_ELEM(DT_PHANDLE_BY_IDX(_node, _prop, _idx), _root_node)
+	__RISAF_MR_ELEM(DT_MEMORY_REGION_BY_IDX(_node, _idx), _root_node)
 
 #define __RISAF_REGIONS_DEFINE(_node, _root_node)					\
-	COND_CODE_1(DT_NODE_HAS_PROP(_node, memory_region),				\
+	COND_CODE_1(DT_MEMORY_REGION_HAS(_node),					\
 	(static __unused const struct risaf_dt_region _RISAF_REGION_NAME(_node)[] = {	\
-		DT_FOREACH_PROP_ELEM_SEP_VARGS(_node, memory_region, _RISAF_MR_ELEM,	\
-					       (,), _root_node)				\
+		DT_FOREACH_MEMORY_REGION_SEP_VARGS(_node, _RISAF_MR_ELEM,		\
+						   (,), _root_node)			\
 	 };), ())
 
 #define _RISAF_SUB_REGIONS_DEFINE(_node, _prop, _idx, _root_node)			\
-	__RISAF_REGIONS_DEFINE(DT_PHANDLE_BY_IDX(_node, _prop, _idx), _root_node)
+	__RISAF_REGIONS_DEFINE(DT_MEMORY_REGION_BY_IDX(_node, _idx), _root_node)
 
 #define _RISAF_REGIONS_DEFINE(_node, _root_node)					\
-	DT_FOREACH_PROP_ELEM_VARGS(_node, memory_region,				\
-				   _RISAF_SUB_REGIONS_DEFINE, _root_node)		\
+	DT_FOREACH_MEMORY_REGION_VARGS(_node, _RISAF_SUB_REGIONS_DEFINE, _root_node)	\
 	__RISAF_REGIONS_DEFINE(_node, _root_node)
 
 #define _INST_RISAF_REGIONS_DEFINE(inst)						\
@@ -812,9 +902,10 @@ static const struct stm32_risaf_config stm32_risaf_cfg_##name####n = {			\
 	.clk_dev = DEVICE_DT_GET(DT_INST_CLOCKS_CTLR(n)),				\
 	.clk_subsys = (clk_subsys_t) DT_INST_CLOCKS_CELL(n, bits),			\
 	.dt_regions = _RISAF_REGIONS_GET(DT_DRV_INST(n)),				\
-	.ndt_regions = _RISAF_REGION_NUM(DT_DRV_INST(n)),				\
+	.ndt_regions = DT_INST_NUM_MEMORY_REGION(n),					\
 	.firewall_ctrls = DT_INST_ACCESS_CTRLS_GET(n),					\
 	.n_firewall_ctrls = DT_INST_ACCESS_CTRLS_NUM(n),				\
+	.entropy_dev = DEVICE_DT_GET_OR_NULL(DT_INST_ENTROPY_CTLR(n)),			\
 	.st_mce_keysize = DT_INST_PROP_OR(n, st_mce_keysize_bits,			\
 					  RISAF_KEY_128BITS)				\
 };											\
@@ -833,3 +924,12 @@ DEVICE_DT_INST_DEFINE(n, &stm32_risaf_init,						\
 		      &stm32_risaf_firewall_api);
 
 DT_INST_FOREACH_STATUS_OKAY_VARGS(STM32_RISAF_INIT, DT_DRV_COMPAT, stm32mp25_variant)
+
+#undef DT_DRV_COMPAT
+#define DT_DRV_COMPAT st_stm32mp25_risaf_enc
+DT_INST_FOREACH_STATUS_OKAY_VARGS(STM32_RISAF_INIT, DT_DRV_COMPAT, stm32mp25_enc_variant)
+
+#undef DT_DRV_COMPAT
+#define DT_DRV_COMPAT st_stm32mp21_risaf_enc
+DT_INST_FOREACH_STATUS_OKAY_VARGS(STM32_RISAF_INIT, DT_DRV_COMPAT, stm32mp21_enc_variant)
+

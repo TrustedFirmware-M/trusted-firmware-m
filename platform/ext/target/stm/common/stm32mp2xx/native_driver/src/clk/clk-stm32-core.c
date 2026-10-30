@@ -686,7 +686,7 @@ void clk_stm32_register_clocks(struct clk_stm32_priv *priv)
 		if (!clk)
 			continue;
 
-		if (priv->is_critical && priv->is_critical(clk))
+		if (clk->flags & CLK_IS_CRITICAL)
 			clk_enable(clk);
 	}
 }

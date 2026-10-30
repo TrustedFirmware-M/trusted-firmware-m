@@ -1772,10 +1772,17 @@ static void clk_stm32_osc_ker_disable(struct clk *clk)
 		clk_stm32_gate_disable(clk);
 }
 
+static void __maybe_unused clk_stm32_osc_ker_pm_restore(struct clk *clk)
+{
+	if (clk_is_enabled(clk) && clk_stm32_osc_ker_enable(clk))
+		panic();
+}
+
 static const struct clk_ops clk_stm32_osc_ker_ops = {
 	.enable		= clk_stm32_osc_ker_enable,
 	.disable	= clk_stm32_osc_ker_disable,
 	.is_enabled	= clk_stm32_gate_is_enabled,
+	.restore_context = clk_stm32_osc_ker_pm_restore,
 };
 
 static int clk_stm32_hse_div_set_rate(struct clk *clk,
@@ -2882,11 +2889,11 @@ static STM32_DT_OSC(clk_lsi);
 static STM32_DT_OSC(clk_lse);
 
 /* Oscillator clocks */
-static STM32_OSC(ck_hsi, &clk_hsi,0, GATE_HSI);
-static STM32_OSC(ck_hse, &clk_hse, 0, GATE_HSE);
-static STM32_OSC_MSI(ck_msi, &clk_msi, 0, GATE_MSI);
-static STM32_OSC(ck_lsi, &clk_lsi, 0, GATE_LSI);
-static STM32_OSC(ck_lse, &clk_lse, 0, GATE_LSE);
+static STM32_OSC(ck_hsi, &clk_hsi, CLK_IS_CRITICAL, GATE_HSI);
+static STM32_OSC(ck_hse, &clk_hse, CLK_IS_CRITICAL, GATE_HSE);
+static STM32_OSC_MSI(ck_msi, &clk_msi, CLK_IS_CRITICAL, GATE_MSI);
+static STM32_OSC(ck_lsi, &clk_lsi, CLK_IS_CRITICAL, GATE_LSI);
+static STM32_OSC(ck_lse, &clk_lse, CLK_IS_CRITICAL, GATE_LSE);
 
 static STM32_OSC_KER(ck_hsi_ker, &clk_hsi, 0, GATE_HSI_KER);
 static STM32_OSC_KER(ck_hse_ker, &clk_hse, 0, GATE_HSE_KER);
@@ -2930,13 +2937,16 @@ static struct clk *xbar_parents[] = {
 };
 
 /* Flexgen clocks */
-static STM32_FLEXGEN(ck_icn_hs_mcu, 0, 0);
-static STM32_FLEXGEN(ck_icn_sdmmc, 0, 1);
-static STM32_FLEXGEN(ck_icn_ddr, 0, 2);
-static STM32_FLEXGEN(ck_icn_display, 0, 3);
-static STM32_FLEXGEN(ck_icn_hsl, 0, 4);
-static STM32_FLEXGEN(ck_icn_nic, 0, 5);
-static STM32_FLEXGEN(ck_icn_vid, 0, 6);
+static STM32_FLEXGEN(ck_icn_hs_mcu, CLK_IS_CRITICAL_TDCID_SEC, 0);
+static STM32_FLEXGEN(ck_icn_sdmmc, CLK_IS_CRITICAL_TDCID_SEC, 1);
+
+/* Fix me: critical to switch on in TF-A before calling ddr init */
+static STM32_FLEXGEN(ck_icn_ddr, CLK_IS_CRITICAL, 2);
+
+static STM32_FLEXGEN(ck_icn_display, CLK_IS_CRITICAL_TDCID_SEC, 3);
+static STM32_FLEXGEN(ck_icn_hsl, CLK_IS_CRITICAL_TDCID_SEC, 4);
+static STM32_FLEXGEN(ck_icn_nic, CLK_IS_CRITICAL_TDCID_SEC, 5);
+static STM32_FLEXGEN(ck_icn_vid, CLK_IS_CRITICAL_TDCID_SEC, 6);
 
 static STM32_DIVIDER(ck_icn_ls_mcu, &ck_icn_hs_mcu, 0, DIV_LSMCU);
 
@@ -2992,7 +3002,7 @@ static STM32_FLEXGEN(ck_flexgen_55, 0, 55);
 static STM32_FLEXGEN(ck_flexgen_56, 0, 56);
 static STM32_FLEXGEN(ck_flexgen_57, 0, 57);
 static STM32_FLEXGEN(ck_flexgen_58, 0, 58);
-static STM32_FLEXGEN(ck_flexgen_59, 0, 59);
+static STM32_FLEXGEN(ck_flexgen_59, CLK_IS_CRITICAL_TDCID_SEC, 59);
 static STM32_FLEXGEN(ck_flexgen_60, 0, 60);
 static STM32_FLEXGEN(ck_flexgen_61, 0, 61);
 static STM32_FLEXGEN(ck_flexgen_62, 0, 62);
@@ -3001,7 +3011,10 @@ static STM32_FLEXGEN(ck_flexgen_63, 0, 63);
 /* Bus Clocks */
 static STM32_DIVIDER(ck_icn_apb1, &ck_icn_ls_mcu, 0, DIV_APB1);
 static STM32_DIVIDER(ck_icn_apb2, &ck_icn_ls_mcu, 0, DIV_APB2);
-static STM32_DIVIDER(ck_icn_apb3, &ck_icn_ls_mcu, 0, DIV_APB3);
+
+/*  Fix me: critical for ck_icn_apb3 */
+static STM32_DIVIDER(ck_icn_apb3, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		     DIV_APB3);
 static STM32_DIVIDER(ck_icn_apb4, &ck_icn_ls_mcu, 0, DIV_APB4);
 static RIF_COMPOSITE(ck_icn_apbdbg, 1, PARENTS(&ck_icn_ls_mcu), 0,
 		     GATE_DBG, DIV_APBDBG, NO_MUX, RCC_RIF_DEBUG_TRACE);
@@ -3011,7 +3024,9 @@ static STM32_TIMER(ck_timg1, &ck_icn_apb1, 0, RCC_APB1DIVR, RCC_TIMG1PRER);
 static STM32_TIMER(ck_timg2, &ck_icn_apb2, 0, RCC_APB2DIVR, RCC_TIMG2PRER);
 
 /* Clocks under RCC RIF protection */
-static RIF_GATE(ck_sys_dbg, &ck_icn_apbdbg, 0, GATE_DBG, RCC_RIF_DEBUG_TRACE);
+static RIF_GATE(ck_sys_dbg, &ck_icn_apbdbg, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_DBG, RCC_RIF_DEBUG_TRACE);
+
 static RIF_GATE(ck_icn_p_stm, &ck_icn_apbdbg, 0, GATE_STM, RCC_RIF_DEBUG_TRACE);
 static RIF_GATE(ck_icn_s_stm, &ck_icn_ls_mcu, 0, GATE_STM, RCC_RIF_DEBUG_TRACE);
 static RIF_GATE(ck_ker_tsdbg, &ck_flexgen_43, 0, GATE_DBG, RCC_RIF_DEBUG_TRACE);
@@ -3020,79 +3035,119 @@ static RIF_GATE(ck_ker_tpiu, &ck_flexgen_44, 0, GATE_TRACE,
 static RIF_GATE(ck_icn_p_etr, &ck_icn_apbdbg, 0, GATE_ETR,RCC_RIF_DEBUG_TRACE);
 static RIF_GATE(ck_icn_m_etr, &ck_flexgen_45, 0, GATE_ETR, RCC_RIF_DEBUG_TRACE);
 static RIF_GATE(ck_sys_atb, &ck_flexgen_45, 0, GATE_DBG, RCC_RIF_DEBUG_TRACE);
-static RIF_GATE(ck_icn_s_sysram, &ck_icn_hs_mcu, 0, GATE_SYSRAM,
-		RCC_RIF_SYSRAM);
-static RIF_GATE(ck_icn_s_vderam, &ck_icn_hs_mcu, 0, GATE_VDERAM,
-		RCC_RIF_VDERAM);
+static RIF_GATE(ck_icn_s_sysram, &ck_icn_hs_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_SYSRAM, RCC_RIF_SYSRAM);
+static RIF_GATE(ck_icn_s_vderam, &ck_icn_hs_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_VDERAM, RCC_RIF_VDERAM);
 static RIF_GATE(ck_icn_s_retram, &ck_icn_hs_mcu, 0, GATE_RETRAM,
 		RCC_RIF_RETRAM);
-static RIF_GATE(ck_icn_s_bkpsram, &ck_icn_ls_mcu, 0, GATE_BKPSRAM,
-		RCC_RIF_BKPSRAM);
-static RIF_GATE(ck_icn_s_sram1, &ck_icn_hs_mcu, 0, GATE_SRAM1, RCC_RIF_SRAM1);
-static RIF_GATE(ck_icn_s_sram2, &ck_icn_hs_mcu, 0, GATE_SRAM2, RCC_RIF_SRAM2);
-static RIF_GATE(ck_icn_s_lpsram1, &ck_icn_ls_mcu, 0, GATE_LPSRAM1,
-		RCC_RIF_LPSRAM1);
-static RIF_GATE(ck_icn_s_lpsram2, &ck_icn_ls_mcu, 0, GATE_LPSRAM2,
-		RCC_RIF_LPSRAM2);
-static RIF_GATE(ck_icn_s_lpsram3, &ck_icn_ls_mcu, 0, GATE_LPSRAM3,
-		RCC_RIF_LPSRAM3);
-static RIF_GATE(ck_icn_p_hpdma1, &ck_icn_ls_mcu, 0, GATE_HPDMA1,
-		RCC_RIF_HPDMA1);
-static RIF_GATE(ck_icn_p_hpdma2, &ck_icn_ls_mcu, 0, GATE_HPDMA2,
-		RCC_RIF_HPDMA2);
-static RIF_GATE(ck_icn_p_hpdma3, &ck_icn_ls_mcu, 0, GATE_HPDMA3,
-		RCC_RIF_HPDMA3);
+static RIF_GATE(ck_icn_s_bkpsram, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_BKPSRAM, RCC_RIF_BKPSRAM);
+static RIF_GATE(ck_icn_s_sram1, &ck_icn_hs_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_SRAM1, RCC_RIF_SRAM1);
+
+/* Fix me: critical to retrieve ddr binary */
+static RIF_GATE(ck_icn_s_sram2, &ck_icn_hs_mcu, CLK_IS_CRITICAL,
+		GATE_SRAM2, RCC_RIF_SRAM2);
+
+static RIF_GATE(ck_icn_s_lpsram1, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_LPSRAM1, RCC_RIF_LPSRAM1);
+static RIF_GATE(ck_icn_s_lpsram2, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_LPSRAM2, RCC_RIF_LPSRAM2);
+static RIF_GATE(ck_icn_s_lpsram3, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_LPSRAM3, RCC_RIF_LPSRAM3);
+static RIF_GATE(ck_icn_p_hpdma1, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_HPDMA1, RCC_RIF_HPDMA1);
+static RIF_GATE(ck_icn_p_hpdma2, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_HPDMA2, RCC_RIF_HPDMA2);
+static RIF_GATE(ck_icn_p_hpdma3, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_HPDMA3, RCC_RIF_HPDMA3);
 static RIF_GATE(ck_icn_p_lpdma, &ck_icn_ls_mcu, 0, GATE_LPDMA,
 		RCC_RIF_LPDMA);
 static RIF_GATE(ck_icn_p_lpdma_am, &ck_icn_p_lpdma, 0, GATE_LPDMAAM,
 		RCC_RIF_LPDMA);
-static RIF_GATE(ck_icn_p_ipcc1, &ck_icn_ls_mcu, 0, GATE_IPCC1, RCC_RIF_IPCC1);
-static RIF_GATE(ck_icn_p_ipcc2, &ck_icn_ls_mcu, 0, GATE_IPCC2, RCC_RIF_IPCC2);
+static RIF_GATE(ck_icn_p_ipcc1, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_IPCC1, RCC_RIF_IPCC1);
+static RIF_GATE(ck_icn_p_ipcc2, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_IPCC2, RCC_RIF_IPCC2);
 static RIF_GATE(ck_icn_p_ipcc2_am, &ck_icn_p_ipcc2, 0, GATE_IPCC2AM,
 		RCC_RIF_IPCC2);
 static RIF_GATE(ck_icn_p_hsem, &ck_icn_ls_mcu, 0, GATE_HSEM, RCC_RIF_HSEM);
-static RIF_GATE(ck_icn_p_gpioa, &ck_icn_ls_mcu, 0, GATE_GPIOA, RCC_RIF_GPIOA);
-static RIF_GATE(ck_icn_p_gpiob, &ck_icn_ls_mcu, 0, GATE_GPIOB, RCC_RIF_GPIOB);
-static RIF_GATE(ck_icn_p_gpioc, &ck_icn_ls_mcu, 0, GATE_GPIOC, RCC_RIF_GPIOC);
-static RIF_GATE(ck_icn_p_gpiod, &ck_icn_ls_mcu, 0, GATE_GPIOD, RCC_RIF_GPIOD);
-static RIF_GATE(ck_icn_p_gpioe, &ck_icn_ls_mcu, 0, GATE_GPIOE, RCC_RIF_GPIOE);
-static RIF_GATE(ck_icn_p_gpiof, &ck_icn_ls_mcu, 0, GATE_GPIOF, RCC_RIF_GPIOF);
-static RIF_GATE(ck_icn_p_gpiog, &ck_icn_ls_mcu, 0, GATE_GPIOG, RCC_RIF_GPIOG);
-static RIF_GATE(ck_icn_p_gpioh, &ck_icn_ls_mcu, 0, GATE_GPIOH, RCC_RIF_GPIOH);
-static RIF_GATE(ck_icn_p_gpioi, &ck_icn_ls_mcu, 0, GATE_GPIOI, RCC_RIF_GPIOI);
-static RIF_GATE(ck_icn_p_gpioj, &ck_icn_ls_mcu, 0, GATE_GPIOJ, RCC_RIF_GPIOJ);
-static RIF_GATE(ck_icn_p_gpiok, &ck_icn_ls_mcu, 0, GATE_GPIOK, RCC_RIF_GPIOK);
-static RIF_GATE(ck_icn_p_gpioz, &ck_icn_ls_mcu, 0, GATE_GPIOZ, RCC_RIF_GPIOZ);
+static RIF_GATE(ck_icn_p_gpioa, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_GPIOA, RCC_RIF_GPIOA);
+static RIF_GATE(ck_icn_p_gpiob, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_GPIOB, RCC_RIF_GPIOB);
+static RIF_GATE(ck_icn_p_gpioc, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_GPIOC, RCC_RIF_GPIOC);
+
+/*  Fix me: critical for octospi */
+static RIF_GATE(ck_icn_p_gpiod, &ck_icn_ls_mcu, CLK_IS_CRITICAL,
+		GATE_GPIOD, RCC_RIF_GPIOD);
+
+static RIF_GATE(ck_icn_p_gpioe, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_GPIOE, RCC_RIF_GPIOE);
+static RIF_GATE(ck_icn_p_gpiof, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_GPIOF, RCC_RIF_GPIOF);
+
+/*  Fix me: critical for uart */
+static RIF_GATE(ck_icn_p_gpiog, &ck_icn_ls_mcu, CLK_IS_CRITICAL,
+		GATE_GPIOG, RCC_RIF_GPIOG);
+
+static RIF_GATE(ck_icn_p_gpioh, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_GPIOH, RCC_RIF_GPIOH);
+static RIF_GATE(ck_icn_p_gpioi, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_GPIOI, RCC_RIF_GPIOI);
+static RIF_GATE(ck_icn_p_gpioj, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_GPIOJ, RCC_RIF_GPIOJ);
+static RIF_GATE(ck_icn_p_gpiok, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_GPIOK, RCC_RIF_GPIOK);
+static RIF_GATE(ck_icn_p_gpioz, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_GPIOZ, RCC_RIF_GPIOZ);
 static RIF_GATE(ck_icn_p_gpioz_am, &ck_icn_p_gpioz, 0, GATE_GPIOZAM,
 		RCC_RIF_GPIOZ);
-static RIF_GATE(ck_icn_p_rtc, &ck_icn_ls_mcu, 0, GATE_RTC, RCC_RIF_RTC_TAMP);
-static RIF_GATE(ck_icn_p_rtc_am, &ck_icn_p_rtc, 0, GATE_RTCAM,
-		RCC_RIF_RTC_TAMP);
+
+static RIF_GATE(ck_icn_p_rtc, &ck_icn_ls_mcu, CLK_IS_CRITICAL_SEC,
+		GATE_RTC, RCC_RIF_RTC_TAMP);
+
+static RIF_GATE(ck_icn_p_rtc_am, &ck_icn_p_rtc, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_RTCAM, RCC_RIF_RTC_TAMP);
 static RIF_COMPOSITE(ck_rtc, 4, PARENTS(&ck_off, &ck_lse, &ck_lsi, &ck_hse_rtc),
 		     0, GATE_RTCCK, NO_DIV, MUX_RTC, RCC_RIF_RTC_TAMP);
-static RIF_GATE(ck_icn_p_bsec, &ck_icn_apb3, 0, GATE_BSEC, RCC_RIF_BSEC);
-static RIF_GATE(ck_icn_p_ddrphyc, &ck_icn_ls_mcu, 0, GATE_DDRPHYCAPB,
-		RCC_RIF_DDR_PLL2);
-static RIF_GATE(ck_icn_p_risaf4, &ck_icn_ls_mcu, 0, GATE_DDRCP,
-		RCC_RIF_DDR_PLL2);
-static RIF_GATE(ck_icn_s_ddr, &ck_icn_ddr, 0, GATE_DDRCP, RCC_RIF_DDR_PLL2);
-static RIF_GATE(ck_icn_p_ddrc, &ck_icn_apb4, 0, GATE_DDRCAPB,
-		RCC_RIF_DDR_PLL2);
-static RIF_GATE(ck_icn_p_ddrcfg, &ck_icn_apb4, 0, GATE_DDRCFG,
-		RCC_RIF_DDR_PLL2);
-static RIF_GATE(ck_icn_p_syscpu1, &ck_icn_ls_mcu, 0, GATE_SYSCPU1,
-		RCC_RIF_SYSCPU1);
+
+/* Fix me: critical for bsec */
+static RIF_GATE(ck_icn_p_bsec, &ck_icn_apb3, CLK_IS_CRITICAL,
+		GATE_BSEC, RCC_RIF_BSEC);
+
+static RIF_GATE(ck_icn_p_ddrphyc, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_DDRPHYCAPB, RCC_RIF_DDR_PLL2);
+
+static RIF_GATE(ck_icn_p_risaf4, &ck_icn_ls_mcu, CLK_IS_CRITICAL_SEC,
+		GATE_DDRCP, RCC_RIF_DDR_PLL2);
+
+static RIF_GATE(ck_icn_s_ddr, &ck_icn_ddr, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_DDRCP, RCC_RIF_DDR_PLL2);
+
+static RIF_GATE(ck_icn_p_ddrc, &ck_icn_apb4, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_DDRCAPB, RCC_RIF_DDR_PLL2);
+static RIF_GATE(ck_icn_p_ddrcfg, &ck_icn_apb4, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_DDRCFG, RCC_RIF_DDR_PLL2);
+static RIF_GATE(ck_icn_p_syscpu1, &ck_icn_ls_mcu, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_SYSCPU1, RCC_RIF_SYSCPU1);
+
 static RIF_GATE(ck_icn_p_is2m, &ck_icn_apb3, 0, GATE_IS2M, RCC_RIF_IS2M);
 static RIF_COMPOSITE(ck_mco1, 2, PARENTS(&ck_flexgen_61, &ck_obser0), 0,
 		     GATE_MCO1, NO_DIV, MUX_MCO1, RCC_RIF_MCO1);
 static RIF_COMPOSITE(ck_mco2, 2, PARENTS(&ck_flexgen_62, &ck_obser1), 0,
 		     GATE_MCO2, NO_DIV, MUX_MCO2, RCC_RIF_MCO2);
 static RIF_GATE(ck_icn_s_ospi1, &ck_icn_hs_mcu, 0, GATE_OSPI1, RCC_RIF_OSPI1);
-static RIF_GATE(ck_ker_ospi1, &ck_flexgen_48, 0, GATE_OSPI1, RCC_RIF_OSPI1);
+static RIF_GATE(ck_ker_ospi1, &ck_flexgen_48, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_OSPI1, RCC_RIF_OSPI1);
 static RIF_GATE(ck_icn_s_ospi2, &ck_icn_hs_mcu, 0, GATE_OSPI2, RCC_RIF_OSPI2);
-static RIF_GATE(ck_ker_ospi2, &ck_flexgen_49, 0, GATE_OSPI2, RCC_RIF_OSPI2);
+static RIF_GATE(ck_ker_ospi2, &ck_flexgen_49, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_OSPI2, RCC_RIF_OSPI2);
 static RIF_GATE(ck_icn_p_fmc, &ck_icn_ls_mcu, 0, GATE_FMC, RCC_RIF_FMC);
-static RIF_GATE(ck_ker_fmc, &ck_flexgen_50, 0, GATE_FMC, RCC_RIF_FMC);
+static RIF_GATE(ck_ker_fmc, &ck_flexgen_50, CLK_IS_CRITICAL_TDCID_SEC,
+		GATE_FMC, RCC_RIF_FMC);
 
 /* Kernel Clocks */
 static STM32_GATE(ck_icn_p_cci, &ck_icn_ls_mcu, 0, GATE_CCI);
@@ -3120,8 +3175,10 @@ static STM32_GATE(ck_icn_p_i2c8, &ck_icn_ls_mcu, 0, GATE_I2C8);
 static STM32_GATE(ck_icn_p_lptim3, &ck_icn_ls_mcu, 0, GATE_LPTIM3);
 static STM32_GATE(ck_icn_p_lptim4, &ck_icn_ls_mcu, 0, GATE_LPTIM4);
 static STM32_GATE(ck_icn_p_lptim5, &ck_icn_ls_mcu, 0, GATE_LPTIM5);
-static STM32_GATE(ck_icn_m_sdmmc1, &ck_icn_sdmmc, 0, GATE_SDMMC1);
-static STM32_GATE(ck_icn_m_sdmmc2, &ck_icn_sdmmc, 0, GATE_SDMMC2);
+static STM32_GATE(ck_icn_m_sdmmc1, &ck_icn_sdmmc, CLK_IS_CRITICAL_TDCID_SEC,
+		  GATE_SDMMC1);
+static STM32_GATE(ck_icn_m_sdmmc2, &ck_icn_sdmmc, CLK_IS_CRITICAL_TDCID_SEC,
+		  GATE_SDMMC2);
 static STM32_GATE(ck_icn_m_sdmmc3, &ck_icn_sdmmc, 0, GATE_SDMMC3);
 static STM32_GATE(ck_icn_m_usb2ohci, &ck_icn_hsl, 0, GATE_USB2);
 static STM32_GATE(ck_icn_m_usb2ehci, &ck_icn_hsl, 0, GATE_USB2);
@@ -3142,7 +3199,8 @@ static STM32_GATE(ck_icn_p_lptim2, &ck_icn_apb1, 0, GATE_LPTIM2);
 static STM32_GATE(ck_icn_p_spi2, &ck_icn_apb1, 0, GATE_SPI2);
 static STM32_GATE(ck_icn_p_spi3, &ck_icn_apb1, 0, GATE_SPI3);
 static STM32_GATE(ck_icn_p_spdifrx, &ck_icn_apb1, 0, GATE_SPDIFRX);
-static STM32_GATE(ck_icn_p_usart2, &ck_icn_apb1, 0, GATE_USART2);
+static STM32_GATE(ck_icn_p_usart2, &ck_icn_apb1, CLK_IS_CRITICAL_TDCID_SEC,
+		  GATE_USART2);
 static STM32_GATE(ck_icn_p_usart3, &ck_icn_apb1, 0, GATE_USART3);
 static STM32_GATE(ck_icn_p_uart4, &ck_icn_apb1, 0, GATE_UART4);
 static STM32_GATE(ck_icn_p_uart5, &ck_icn_apb1, 0, GATE_UART5);
@@ -3722,82 +3780,6 @@ static void __unused clk_stm32_set_flexgen_as_critical(struct clk_stm32_priv *pr
 	}
 }
 
-static bool clk_stm32_clock_is_critical(__maybe_unused struct clk *clk)
-{
-	struct clk *clk_criticals[] = {
-		/* Fix me: activate temporay all clock required */
-		&ck_hsi,
-		&ck_hse,
-		&ck_msi,		/* critical in TF-A */
-		&ck_lsi,
-		&ck_lse,
-		&ck_icn_p_gpiod,	/* octospi */
-		&ck_icn_p_gpiog,	/* uart */
-		&ck_icn_p_bsec,		/* bsec  */
-		&ck_icn_ddr,		/* switch on in TF-A before calling ddr init */
-		&ck_icn_s_sram2,	/* sram2 is used to retrieve ddr binary */
-		&ck_icn_s_sysram,
-#if defined(STM32_SEC)
-		&ck_icn_p_risaf4,
-		&ck_icn_p_rtc,
-#if defined(STM32_M33TDCID)
-		&ck_icn_hs_mcu,
-		&ck_icn_sdmmc,
-		&ck_icn_display,
-		&ck_icn_hsl,
-		&ck_icn_nic,
-		&ck_icn_vid,
-		&ck_sys_dbg,
-		&ck_icn_p_syscpu1,
-		&ck_icn_s_ddr,
-		&ck_icn_p_ddrc,
-		&ck_icn_p_ddrcfg,
-		&ck_icn_p_ddrphyc,
-		&ck_icn_s_sysram,
-		&ck_icn_s_sram1,
-		&ck_icn_s_bkpsram,
-		&ck_flexgen_59,
-		&ck_ker_fmc,
-		&ck_ker_ospi1,
-		&ck_ker_ospi2,
-		&ck_icn_s_vderam,
-		&ck_icn_s_lpsram1,
-		&ck_icn_s_lpsram2,
-		&ck_icn_s_lpsram3,
-		&ck_icn_p_hpdma1,
-		&ck_icn_p_hpdma2,
-		&ck_icn_p_hpdma3,
-		&ck_icn_m_sdmmc1,
-		&ck_icn_m_sdmmc2,
-		&ck_icn_p_ipcc1,
-		&ck_icn_p_ipcc2,
-		&ck_icn_p_usart2,
-		&ck_icn_p_gpioa, /* 90 */
-		&ck_icn_p_gpiob,
-		&ck_icn_p_gpioc,
-		&ck_icn_p_gpioe,
-		&ck_icn_p_gpiof,
-		&ck_icn_p_gpioh,
-		&ck_icn_p_gpioi,
-		&ck_icn_p_gpioj,
-		&ck_icn_p_gpiok,
-		&ck_icn_p_gpioz,
-		&ck_icn_apb3,
-#endif
-#endif
-	};
-	size_t i = 0;
-
-	for (i = 0; i < ARRAY_SIZE(clk_criticals); i++) {
-		struct clk *clk_critical = clk_criticals[i];
-
-		if (clk == clk_critical)
-			return true;
-	}
-
-	return false;
-}
-
 static uint8_t refcounts_mp25[GATE_NB];
 
 static struct clk_stm32_priv stm32mp25_clock_data = {
@@ -3809,7 +3791,6 @@ static struct clk_stm32_priv stm32mp25_clock_data = {
 	.nb_div			= ARRAY_SIZE(dividers_mp25),
 	.nb_clk_refs		= STM32MP25_ALL_CLK_NB,
 	.clk_refs		= stm32mp25_clk_provided,
-	.is_critical		= clk_stm32_clock_is_critical,
 	.gate_cpt		= refcounts_mp25,
 
 };

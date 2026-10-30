@@ -51,6 +51,7 @@ target_compile_definitions(tfm_config
         $<$<BOOL:${STM32_OVERRIDE_OTP}>:STM32_OVERRIDE_OTP>
         $<$<BOOL:${STM32_CACHE_ENABLED}>:STM32_CACHE_ENABLED>
         $<$<BOOL:${TFM_PLATFORM_WDT_API}>:TFM_PLATFORM_WDT_API>
+        $<$<BOOL:${CONFIG_TFM_HALT_ON_CORE_PANIC}>:CONFIG_TFM_HALT_ON_CORE_PANIC>
 )
 
 target_include_directories(tfm_config
@@ -143,6 +144,7 @@ target_sources(dt_tfm_s_libs
         ${STM_FAMILY_DIR}/native_driver/src/nvmem/nvmem.c
         ${STM_FAMILY_DIR}/native_driver/src/syscfg/stm32_syscfg.c
         ${STM_FAMILY_DIR}/native_driver/src/clk/clk.c
+        ${STM_FAMILY_DIR}/native_driver/src/clk/fixed-clock.c
         ${STM_FAMILY_DIR}/native_driver/src/clk/clk-stm32-core.c
         ${STM_FAMILY_DIR}/native_driver/src/clk/stm32mp_clkfunc.c
         ${STM_FAMILY_DIR}/native_driver/src/reset/core.c
@@ -285,6 +287,7 @@ if(BL2)
             ${STM_FAMILY_DIR}/native_driver/src/nvmem/nvmem.c
             ${STM_FAMILY_DIR}/native_driver/src/syscfg/stm32_syscfg.c
             ${STM_FAMILY_DIR}/native_driver/src/clk/clk.c
+            ${STM_FAMILY_DIR}/native_driver/src/clk/fixed-clock.c
             ${STM_FAMILY_DIR}/native_driver/src/clk/clk-stm32-core.c
             ${STM_FAMILY_DIR}/native_driver/src/clk/stm32mp_clkfunc.c
             ${STM_FAMILY_DIR}/native_driver/src/reset/core.c

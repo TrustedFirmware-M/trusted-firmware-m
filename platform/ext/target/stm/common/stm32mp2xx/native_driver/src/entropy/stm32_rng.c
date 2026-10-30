@@ -47,6 +47,8 @@
 
 struct stm32_rng_config {
 	uintptr_t base;
+	const struct device *clk_dev;
+	const clk_subsys_t clk_subsys;
 	const struct device *hclk_dev;
 	const clk_subsys_t hclk_subsys;
 	const struct reset_control rst_ctl;
@@ -64,6 +66,8 @@ struct stm32_rng_variant {
 struct stm32_rng_data {
 	const struct stm32_rng_variant *variant;
 	struct clk *clk;
+	struct clk *hclk;
+	unsigned long clock_rate;
 	uint32_t pm_cr;
 	uint32_t pm_health;
 	uint32_t pm_noise_ctrl;
@@ -86,11 +90,9 @@ static int seed_error_recovery(const struct device *dev)
 
 static uint32_t stm32_rng_clock_freq_restrain(const struct device *dev)
 {
-	unsigned long clock_rate;
-	uint32_t clock_div = 0U;
 	struct stm32_rng_data *drv_data = dev_get_data(dev);
-
-	clock_rate = clk_get_rate(drv_data->clk);
+	unsigned long clock_rate = drv_data->clock_rate;
+	uint32_t clock_div = 0U;
 
 	/*
 	 * Get the exponent to apply on the CLKDIV field in _RNG_CR register.
@@ -100,7 +102,7 @@ static uint32_t stm32_rng_clock_freq_restrain(const struct device *dev)
 	while ((clock_rate >> clock_div) > drv_data->variant->max_noise_clk_freq)
 		clock_div++;
 
-	VERBOSE("[%s] RNG clk rate : %lu\n", dev->name, clk_get_rate(drv_data->clk) >> clock_div);
+	VERBOSE("[%s] RNG clk rate : %lu\n", dev->name, clock_rate >> clock_div);
 
 	return clock_div;
 }
@@ -109,17 +111,17 @@ static int check_data_integrity(const struct device *dev)
 {
 	const struct stm32_rng_config *drv_cfg = dev_get_config(dev);
 	uint32_t status = mmio_read_32(drv_cfg->base + _RNG_SR);
-	int nb_tries, err;
+	int nb_tries, err = 0;
 	uint32_t sr;
 
 	if ((status & (_SR_SECS | _SR_SEIS | _SR_DRDY)) != _SR_DRDY) {
 		for (nb_tries = RNG_TIMEOUT_TRIALS; nb_tries > 0; nb_tries--) {
-			uint32_t status = mmio_read_32(drv_cfg->base + _RNG_SR);
 
+			status = mmio_read_32(drv_cfg->base + _RNG_SR);
 			if ((status & (_SR_SECS | _SR_SEIS)) != 0U) {
 				err = seed_error_recovery(dev);
 				if (err)
-					return err;
+					break;
 			}
 
 			err = mmio_read32_poll_timeout(drv_cfg->base + _RNG_SR,
@@ -128,15 +130,11 @@ static int check_data_integrity(const struct device *dev)
 						       RNG_TIMEOUT_STEP_US);
 
 			if (!err)
-				goto out;
+				break;
 		}
-
-		if (err && nb_tries == 0)
-			return -ETIMEDOUT;
 	}
 
-out:
-	return 0;
+	return err;
 }
 
 static void stm32_rng_set_enable(uintptr_t rng_base, uint32_t health, uint32_t noise_ctl)
@@ -292,23 +290,46 @@ static int __maybe_unused stm32_rng_init(const struct device *dev)
 	if (err)
 		return err;
 
-	drv_data->clk = clk_get(drv_cfg->hclk_dev, drv_cfg->hclk_subsys);
-	if (!drv_data->clk)
-		return -ENODEV;
+	drv_data->clk = clk_get(drv_cfg->clk_dev, drv_cfg->clk_subsys);
+	if (!drv_data->clk) {
+		err = -ENODEV;
+		goto release_sem;
+	}
 
 	err = clk_enable(drv_data->clk);
 	if (err)
-		return err;
+		goto release_sem;
+
+	drv_data->clock_rate = clk_get_rate(drv_data->clk);
+
+	drv_data->hclk = clk_get(drv_cfg->hclk_dev, drv_cfg->hclk_subsys);
+	if (!drv_data->hclk) {
+		err = -ENODEV;
+		goto disable_clk;
+	}
+
+	err = clk_enable(drv_data->hclk);
+	if (err)
+		goto disable_clk;
 
 	err = reset_control_reset(&drv_cfg->rst_ctl);
 	if (err)
-		return err;
+		goto disable_hclk;
 
 	err = stm32_rng_enable(dev);
 	if (err)
-		return err;
+		goto disable_hclk;
 
 	return stm32_rng_release_sem(drv_cfg);
+
+disable_hclk:
+	clk_disable(drv_data->hclk);
+disable_clk:
+	clk_disable(drv_data->clk);
+release_sem:
+	stm32_rng_release_sem(drv_cfg);
+
+	return err;
 }
 
 #ifdef CONFIG_PM_DEVICE
@@ -334,6 +355,9 @@ int stm32_rng_pm_suspend(const struct device *dev)
 	err = mmio_read32_poll_timeout(drv_cfg->base + _RNG_CR, cr,
 				       !(cr & _CR_CONDRST), RNG_TIMEOUT_US);
 
+	clk_disable(drv_data->hclk);
+	clk_disable(drv_data->clk);
+
 	return err;
 }
 
@@ -343,6 +367,15 @@ int stm32_rng_pm_resume(const struct device *dev)
 	struct stm32_rng_data *drv_data = dev_get_data(dev);
 	uintptr_t rng_base = drv_cfg->base;
 	uint32_t cr;
+	int err;
+
+	err = clk_enable(drv_data->clk);
+	if (err)
+		return err;
+
+	err = clk_enable(drv_data->hclk);
+	if (err)
+		goto disable_clk;
 
 	mmio_write_32(rng_base + _RNG_SR, 0U);
 
@@ -356,8 +389,17 @@ int stm32_rng_pm_resume(const struct device *dev)
 
 	stm32_rng_set_enable(rng_base, drv_data->pm_health, drv_data->pm_noise_ctrl);
 
-	return mmio_read32_poll_timeout(rng_base + _RNG_CR, cr,
-					!(cr & _CR_CONDRST), RNG_TIMEOUT_US);
+	err = mmio_read32_poll_timeout(rng_base + _RNG_CR, cr,
+				       !(cr & _CR_CONDRST), RNG_TIMEOUT_US);
+
+	if (!err)
+		return 0;
+
+	clk_disable(drv_data->hclk);
+disable_clk:
+	clk_disable(drv_data->clk);
+
+	return err;
 }
 
 static int stm32_rng_pm_action(const struct device *dev,
@@ -396,8 +438,10 @@ DT_INST_ACCESS_CTRLS_DEFINE(n);								  \
 											  \
 static const struct stm32_rng_config stm32_rng_cfg_##n = {				  \
 	.base = DT_INST_REG_ADDR(n),							  \
-	.hclk_dev = DEVICE_DT_GET(DT_INST_CLOCKS_CTLR_BY_NAME(n, rng_hclk)),              \
-	.hclk_subsys = (clk_subsys_t)DT_INST_CLOCKS_CELL_BY_NAME(n, rng_hclk, bits),      \
+	.clk_dev = DEVICE_DT_GET(DT_INST_CLOCKS_CTLR_BY_NAME(n, rng_clk)),		  \
+	.clk_subsys = (clk_subsys_t)DT_INST_CLOCKS_CELL_BY_NAME_OR(n, rng_clk, bits, 0),  \
+	.hclk_dev = DEVICE_DT_GET(DT_INST_CLOCKS_CTLR_BY_NAME(n, rng_hclk)),		  \
+	.hclk_subsys = (clk_subsys_t)DT_INST_CLOCKS_CELL_BY_NAME(n, rng_hclk, bits),	  \
 	.rst_ctl = DT_INST_RESET_CONTROL_GET(n),					  \
 	.firewall = DT_INST_ACCESS_CTRLS_GET(n),					  \
 	.n_firewall = DT_INST_ACCESS_CTRLS_NUM(n),					  \

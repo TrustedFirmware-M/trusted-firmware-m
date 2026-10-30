@@ -454,8 +454,8 @@ static __unused int stm32_risab_pm_action(const struct device *dev,
 
 #define RISAB_REGION(_node_id, _prop, _idx)					\
 	{									\
-		.base = DT_REG_ADDR(DT_PHANDLE_BY_IDX(_node_id, _prop, _idx)),	\
-		.size = DT_REG_SIZE(DT_PHANDLE_BY_IDX(_node_id, _prop, _idx)),	\
+		.base = DT_MEMORY_REGION_ADDR_BY_IDX(_node_id, _idx),		\
+		.size = DT_MEMORY_REGION_SIZE_BY_IDX(_node_id, _idx),		\
 		.st_protreg = RISAB_MR_DT_PROTREG(_node_id, _prop, _idx),	\
 	},
 
@@ -468,7 +468,7 @@ static __unused int stm32_risab_pm_action(const struct device *dev,
 #define STM32_RISAB_INIT(n)							\
 										\
 static const struct risab_dt_region risab_dt_regions_##n[] = {			\
-	DT_INST_FOREACH_PROP_ELEM_SEP(n, memory_region, RISAB_REGION, ())	\
+	DT_INST_FOREACH_MEMORY_REGION_SEP(n, RISAB_REGION, ())			\
 };										\
 										\
 static const struct risab_memory_area risab_marea_##n[] = {			\

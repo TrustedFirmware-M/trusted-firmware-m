@@ -10,6 +10,18 @@
 
 int stm32mp2_clk_init(void);
 
+#if defined(STM32_SEC)
+	#define CLK_IS_CRITICAL_SEC		CLK_IS_CRITICAL
+#else
+	#define CLK_IS_CRITICAL_SEC		0
+#endif
+
+#if defined(STM32_SEC) && defined(STM32_M33TDCID)
+	#define CLK_IS_CRITICAL_TDCID_SEC	CLK_IS_CRITICAL
+#else
+	#define CLK_IS_CRITICAL_TDCID_SEC	0
+#endif
+
 #define MAX_OPP 2
 
 enum stm32_osc {

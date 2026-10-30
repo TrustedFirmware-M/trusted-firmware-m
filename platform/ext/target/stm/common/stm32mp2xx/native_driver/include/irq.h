@@ -222,7 +222,15 @@ int interrupt_unmask(const struct irq_spec *spec);
 #define DT_IRQS_SPEC_GET_BY_NAME(node_id, name)						\
 	DT_IRQS_SPEC_GET_BY_IDX(node_id, DT_IRQS_ELEM_IDX_BY_NAME(node_id, name))
 
+#define DT_IRQS_SPEC_GET_BY_NAME_OR(node_id, name, default_value)			\
+	COND_CODE_1(DT_IRQ_HAS_NAME(node_id, name),					\
+		    (DT_IRQS_SPEC_GET_BY_NAME(node_id, name)),				\
+		    (default_value))
+
 #define DT_INST_IRQS_SPEC_GET_BY_NAME(inst, name)					\
 	DT_IRQS_SPEC_GET_BY_NAME(DT_DRV_INST(inst), name)
+
+#define DT_INST_IRQS_SPEC_GET_BY_NAME_OR(inst, name, default_value)			\
+	DT_IRQS_SPEC_GET_BY_NAME_OR(DT_DRV_INST(inst), name, default_value)
 
 #endif /* INCLUDE_IRQ_H_ */

@@ -65,7 +65,6 @@ struct clk_stm32_priv {
 	const uint32_t nb_div;
 	bool clk_ignore_unused;
 	bool (*is_ignore_unused)(struct clk *clk);
-	bool (*is_critical)(struct clk *clk);
 };
 
 static inline uintptr_t clk_stm32_get_rcc_base(struct clk_stm32_priv *priv)
