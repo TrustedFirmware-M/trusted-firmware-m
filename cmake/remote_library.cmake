@@ -147,11 +147,18 @@ function(fetch_remote_library)
     endif()
 
     # Content fetching
+    if(GIT_SUBMODULES STREQUAL "")
     FetchContent_Declare(${ARG_LIB_NAME}
         ${ARG_FETCH_CONTENT_ARGS}
-        ${GIT_SUBMODULES}     ${GIT_SUBMODULES_VALUE}
         ${PATCH_COMMAND}
     )
+    else()
+        FetchContent_Declare(${ARG_LIB_NAME}
+            ${ARG_FETCH_CONTENT_ARGS}
+            GIT_SUBMODULES     "${GIT_SUBMODULES_VALUE}"
+            ${PATCH_COMMAND}
+        )
+    endif()
     FetchContent_MakeAvailable(${ARG_LIB_NAME})
     set(${ARG_LIB_SOURCE_PATH_VAR} ${${ARG_LIB_NAME}_SOURCE_DIR} CACHE PATH "Library has been downloaded from ${REPO_URL_VAR}, tag ${TAG_VAR}" FORCE)
 endfunction()
