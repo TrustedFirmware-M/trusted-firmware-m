@@ -433,23 +433,23 @@ MCUBoot related compile time switches can be set by cmake variables.
         ``SWAP_USING_SCRATCH`` or ``SWAP_USING_MOVE``, an image is needed in
         the primary image area as well, to trigger the update.
 
-- MCUBOOT_KEY_ENC (default: "enc-rsa2048-priv.pem" or "enc-aeskw-128.b64"):
+- MCUBOOT_KEY_ENC (default: "enc-rsa2048-priv.pem" or "enc-aes128kw.b64"):
     Path to the KEK used to encrypt the secure image when
     ``MCUBOOT_ENC_IMAGES`` is enabled. With ``MCUBOOT_ENCRYPT_RSA`` this is
     the RSA private key, by default ``enc-rsa2048-priv.pem`` from the MCUBoot
     repository: the build embeds it in BL2, which uses it to unwrap the image
     encryption keys, and derives the public key with which the images are
     encrypted. With ``MCUBOOT_ENCRYPT_KW`` this is the AES key-wrapping key
-    of the secure image, by default ``enc-aeskw-128.b64`` from the MCUBoot
-    repository, a file holding ``AES-KW:`` followed by the base64 encoded
-    key, which is embedded in BL2.
-- MCUBOOT_KEY_ENC_NS (default: "enc-rsa2048-priv.pem" or "enc-aeskw-128_ns.b64"):
+    of the secure image, by default ``enc-aes128kw.b64`` from the MCUBoot
+    repository, a file holding the base64 encoded key, which is embedded in
+    BL2.
+- MCUBOOT_KEY_ENC_NS (default: "enc-rsa2048-priv.pem" or "enc-aes128kw.b64"):
     Path to the KEK used to encrypt the non-secure image. With
     ``MCUBOOT_ENCRYPT_RSA`` BL2 holds a single key, so this must point to the
     same file as ``MCUBOOT_KEY_ENC``. With ``MCUBOOT_ENCRYPT_KW`` this is the
     AES key-wrapping key of the non-secure image, by default
-    ``enc-aeskw-128_ns.b64`` from the MCUBoot repository, in the same format
-    as ``MCUBOOT_KEY_ENC`` and also embedded in BL2.
+    ``enc-aes128kw.b64`` from the MCUBoot repository, in the same format as
+    ``MCUBOOT_KEY_ENC`` and also embedded in BL2.
 
     .. Danger::
         DO NOT use the default keys in production code, they are exclusively

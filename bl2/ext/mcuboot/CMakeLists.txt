@@ -106,8 +106,8 @@ if(PLATFORM_DEFAULT_IMAGE_ENCRYPTION)
                     > ${BL2_ENC_KEY_SOURCE}
             )
         elseif(MCUBOOT_ENCRYPT_KW)
-            set(MCUBOOT_KEY_ENC "${MCUBOOT_PATH}/enc-aeskw-128.b64" CACHE FILEPATH "Path to the AES key used to unwrap the secure firmware encryption key")
-            set(MCUBOOT_KEY_ENC_NS "${MCUBOOT_PATH}/enc-aeskw-128_ns.b64" CACHE FILEPATH "Path to the AES key used to unwrap the non-secure firmware encryption key")
+            set(MCUBOOT_KEY_ENC "${MCUBOOT_PATH}/enc-aes128kw.b64" CACHE FILEPATH "Path to the AES key used to unwrap the secure firmware encryption key")
+            set(MCUBOOT_KEY_ENC_NS "${MCUBOOT_PATH}/enc-aes128kw.b64" CACHE FILEPATH "Path to the AES key used to unwrap the non-secure firmware encryption key")
 
             add_custom_command(OUTPUT ${BL2_ENC_KEY_SOURCE}
                 DEPENDS ${MCUBOOT_KEY_ENC} ${MCUBOOT_KEY_ENC_NS}

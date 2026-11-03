@@ -9,24 +9,25 @@
 
 """Generate the AES-KW Key-Encryption-Key (KEK) embedded in BL2.
 
-The key files hold "AES-KW:" followed by the base64 encoded key, the
-format consumed by imgtool.
+The key files hold the base64 encoded key, the format consumed by
+imgtool.
 """
 
 import argparse
 import base64
+import binascii
 import sys
 
-KEY_PREFIX = "AES-KW:"
 KEY_SIZES = (16, 32)
 
 
 def read_key(path):
     with open(path, "r", encoding="utf-8") as key_file:
         content = key_file.read().strip()
-    if not content.startswith(KEY_PREFIX):
-        sys.exit(f"{path}: key does not start with {KEY_PREFIX}")
-    key = base64.b64decode(content[len(KEY_PREFIX):], validate=True)
+    try:
+        key = base64.b64decode(content, validate=True)
+    except binascii.Error:
+        sys.exit(f"{path}: key is not base64 encoded")
     if len(key) not in KEY_SIZES:
         sys.exit(f"{path}: key must be 16 or 32 bytes, not {len(key)}")
     return key
