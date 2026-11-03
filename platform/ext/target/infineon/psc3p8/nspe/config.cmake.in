@@ -8,9 +8,10 @@
 
 #################################### IFX #######################################
 
-# BSP config.cmake uses IFX_BSP_DESIGN_FILE_NAME, thus it must be
-# defined before BSP config.cmake is included
+# BSP config.cmake uses IFX_BSP_DESIGN_FILE_NAME and IFX_GENERATE_BSP_SOURCES,
+# thus they must be defined before BSP config.cmake is included
 set(IFX_BSP_DESIGN_FILE_NAME                @IFX_BSP_DESIGN_FILE_NAME@ CACHE STRING "Name of BSP design file to use")
+set(IFX_GENERATE_BSP_SOURCES                @IFX_GENERATE_BSP_SOURCES@ CACHE BOOL   "Whether to generate BSP sources")
 
 set(IFX_GENERATED_DIR "${CMAKE_BINARY_DIR}/generated" CACHE PATH "Path to the root directory of files generated during the build of SPE")
 
