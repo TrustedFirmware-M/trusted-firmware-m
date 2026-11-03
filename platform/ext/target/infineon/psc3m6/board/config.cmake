@@ -19,5 +19,16 @@ set(IFX_DEVICE_DB_LIB_VERSION     "release-v4.39.0"   CACHE STRING "The version 
 
 set(IFX_BSP_DESIGN_FILE_PATH      "${CMAKE_CURRENT_LIST_DIR}/shared/design/${IFX_BSP_DESIGN_FILE_NAME}/design.modus" CACHE FILEPATH "Path to design.modus file to use for BSP code generation by Device Configurator.")
 
+# Building with -DIFX_GENERATE_BSP_SOURCES=OFF uses the pregenerated BSP
+# sources provided with the design (unless IFX_BSP_GENERATED_FILES_OUTPUT_PATH
+# is provided, e.g. by ModusToolbox), so ModusToolbox is not required
+if(DEFINED IFX_GENERATE_BSP_SOURCES AND NOT IFX_GENERATE_BSP_SOURCES
+   AND NOT DEFINED IFX_BSP_GENERATED_FILES_OUTPUT_PATH)
+    set(IFX_BSP_GENERATED_FILES_OUTPUT_PATH "${CMAKE_CURRENT_LIST_DIR}/shared/design/${IFX_BSP_DESIGN_FILE_NAME}/GeneratedSource")
+    if(NOT EXISTS ${IFX_BSP_GENERATED_FILES_OUTPUT_PATH})
+        message(FATAL_ERROR "BSP design '${IFX_BSP_DESIGN_FILE_NAME}' has no pregenerated sources, IFX_GENERATE_BSP_SOURCES must be ON")
+    endif()
+endif()
+
 # Memory configuration specific config
 include(${CMAKE_CURRENT_LIST_DIR}/shared/design/${IFX_BSP_DESIGN_FILE_NAME}/config.cmake OPTIONAL)
