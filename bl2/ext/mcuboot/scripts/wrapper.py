@@ -177,7 +177,18 @@ def wrap(key, align, version, header_size, pad_header, layout, pad, confirm,
     else:
         keys = None
 
-    enckey = imgtool.main.load_key(encrypt) if encrypt else None
+    # Upstream imgtool only loads a base64 encoded AES-KW key when load_key()
+    # is called with allow_aes=True. The imgtool on the tfm-2.3.0 feature
+    # branch of MCUboot, which the RSE platform uses, does not have the
+    # argument and loads "AES-KW:" prefixed keys as is.
+    if encrypt:
+        if "allow_aes" in signature(imgtool.main.load_key).parameters:
+            enckey = imgtool.main.load_key(encrypt, allow_aes=True)
+        else:
+            enckey = imgtool.main.load_key(encrypt)
+    else:
+        enckey = None
+
     if enckey and key:
         if (isinstance(key, imgtool.keys.RSA) and
            not isinstance(enckey, imgtool.keys.RSAPublic)):
