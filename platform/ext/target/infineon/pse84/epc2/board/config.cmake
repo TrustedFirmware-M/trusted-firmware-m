@@ -33,7 +33,18 @@ set(IFX_BSP_DESIGN_FILE_PATH      "${IFX_BSP_DESIGN_DIR_PATH}/design.modus"  CAC
 set(IFX_BSP_QSPI_DESIGN_FILE_PATH "${IFX_BSP_DESIGN_DIR_PATH}/design.cyqspi" CACHE FILEPATH "Path to design.cyqspi file to use for BSP code generation by QSPI Configurator.")
 
 if(IFX_BSP_DESIGN_FILE_NAME STREQUAL "default")
-    # Default BSP design file uses pregenerated sources
+    # Default BSP design file can't be regenerated with the device support
+    # libraries in use, so it uses pregenerated sources by default
     set(IFX_GENERATE_BSP_SOURCES   OFF CACHE BOOL "Whether to generate BSP sources")
-    set(IFX_BSP_GENERATED_FILES_OUTPUT_PATH "${IFX_BSP_DESIGN_DIR_PATH}/GeneratedSource" CACHE PATH "BSP code generation output directory.")
+endif()
+
+# Building with -DIFX_GENERATE_BSP_SOURCES=OFF uses the pregenerated BSP
+# sources provided with the design (unless IFX_BSP_GENERATED_FILES_OUTPUT_PATH
+# is provided, e.g. by ModusToolbox), so ModusToolbox is not required
+if(DEFINED IFX_GENERATE_BSP_SOURCES AND NOT IFX_GENERATE_BSP_SOURCES
+   AND NOT DEFINED IFX_BSP_GENERATED_FILES_OUTPUT_PATH)
+    set(IFX_BSP_GENERATED_FILES_OUTPUT_PATH "${IFX_BSP_DESIGN_DIR_PATH}/GeneratedSource")
+    if(NOT EXISTS ${IFX_BSP_GENERATED_FILES_OUTPUT_PATH})
+        message(FATAL_ERROR "BSP design '${IFX_BSP_DESIGN_FILE_NAME}' has no pregenerated sources, IFX_GENERATE_BSP_SOURCES must be ON")
+    endif()
 endif()
