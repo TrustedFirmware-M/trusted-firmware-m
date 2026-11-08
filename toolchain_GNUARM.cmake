@@ -7,12 +7,14 @@
 
 set(CMAKE_SYSTEM_NAME Generic)
 
+# Detect the compiler ABI without linking a bare-metal executable.
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+
 find_program(CMAKE_C_COMPILER ${CROSS_COMPILE}-gcc)
 if(CMAKE_C_COMPILER STREQUAL "CMAKE_C_COMPILER-NOTFOUND")
     message(FATAL_ERROR "Could not find compiler: '${CROSS_COMPILE}-gcc'")
 endif()
 
-set(CMAKE_C_COMPILER_FORCED TRUE)
 set(CMAKE_C_STANDARD 11)
 
 set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER})
@@ -23,7 +25,6 @@ if(CMAKE_CXX_COMPILER STREQUAL "CMAKE_CXX_COMPILER-NOTFOUND")
     message(WARNING "Could not find compiler: '${CROSS_COMPILE}-g++'")
 endif()
 
-set(CMAKE_CXX_COMPILER_FORCED TRUE)
 set(CMAKE_CXX_STANDARD 11)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)

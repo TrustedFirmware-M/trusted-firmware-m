@@ -7,18 +7,19 @@
 
 set(CMAKE_SYSTEM_NAME Generic)
 
+# Detect the compiler ABI without linking a bare-metal executable.
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+
 if(NOT DEFINED CROSS_COMPILE)
     set(CROSS_COMPILE    "arm-none-eabi" CACHE STRING "Cross-compiler prefix")
 endif()
 
 set(CMAKE_C_COMPILER ${CROSS_COMPILE}-gcc)
-set(CMAKE_C_COMPILER_FORCED TRUE)
 set(CMAKE_C_STANDARD 11)
 
 set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER})
 
 set(CMAKE_CXX_COMPILER ${CROSS_COMPILE}-g++)
-set(CMAKE_CXX_COMPILER_FORCED TRUE)
 set(CMAKE_CXX_STANDARD 11)
 
 # This variable name is a bit of a misnomer. The file it is set to is included
