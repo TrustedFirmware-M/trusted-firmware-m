@@ -7,6 +7,10 @@
 cmake_minimum_required(VERSION 3.21)
 
 SET(CMAKE_SYSTEM_NAME Generic)
+
+# Detect the compiler ABI without linking a bare-metal executable.
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+
 if(NOT DEFINED CROSS_COMPILE)
     set(CROSS_COMPILE    arm-none-eabi)
 endif()
@@ -16,11 +20,6 @@ set(CMAKE_C_COMPILER   armclang)
 set(CMAKE_CXX_COMPILER armclang)
 
 set(CMAKE_C_STANDARD   11)
-
-set(CMAKE_ASM_COMPILER_FORCED TRUE)
-set(CMAKE_C_COMPILER_FORCED   TRUE)
-set(CMAKE_CXX_COMPILER_FORCED TRUE)
-
 
 set(CMAKE_ASM_COMPILER_TARGET arm-${CROSS_COMPILE})
 set(CMAKE_C_COMPILER_TARGET   arm-${CROSS_COMPILE})
