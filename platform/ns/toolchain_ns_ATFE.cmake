@@ -10,16 +10,16 @@
 #
 set(CMAKE_SYSTEM_NAME Generic)
 
+# Detect the compiler ABI without linking a bare-metal executable.
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+
 # Specify the cross compiler
 set(CMAKE_C_COMPILER clang)
-set(CMAKE_C_COMPILER_FORCED TRUE)
 set(CMAKE_C_STANDARD 11)
 
 set(CMAKE_ASM_COMPILER clang)
-set(CMAKE_ASM_COMPILER_FORCED TRUE)
 
 set(CMAKE_CXX_COMPILER clang++)
-set(CMAKE_CXX_COMPILER_FORCED TRUE)
 set(CMAKE_CXX_STANDARD 11)
 
 if(NOT DEFINED CROSS_COMPILE)
@@ -27,6 +27,7 @@ if(NOT DEFINED CROSS_COMPILE)
 endif()
 set(CMAKE_C_COMPILER_TARGET ${CROSS_COMPILE})
 set(CMAKE_ASM_COMPILER_TARGET ${CROSS_COMPILE})
+set(CMAKE_CXX_COMPILER_TARGET ${CROSS_COMPILE})
 
 # This variable name is a bit of a misnomer. The file it is set to is included
 # at a particular step in the compiler initialisation. It is used here to
