@@ -8,10 +8,11 @@
 cmake_minimum_required(VERSION 3.21)
 cmake_policy(SET CMP0115 NEW)
 
-set(CMAKE_C_COMPILER_FORCED TRUE)
-set(CMAKE_CXX_COMPILER_FORCED TRUE)
-
 SET(CMAKE_SYSTEM_NAME Generic)
+
+# Detect the compiler ABI without linking a bare-metal executable.
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+
 set(CMAKE_SYSTEM_PROCESSOR       ${TFM_SYSTEM_PROCESSOR})
 
 if(CROSS_COMPILE)
