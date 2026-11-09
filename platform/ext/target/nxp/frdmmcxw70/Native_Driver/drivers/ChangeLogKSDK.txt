@@ -1,0 +1,21 @@
+/*!
+@page driver_log Driver Change Log
+@section clock CLOCK
+  The current CLOCK driver version is 1.0.0.
+
+  - 1.0.0
+    - Initial version.
+
+@section romapi ROMAPI
+  The current ROMAPI driver version is 1.0.0.
+
+  - 1.0.0
+    - initial version.
+
+@section memory MEMORY
+  The current MEMORY driver version is 1.0.0.
+
+  - 1.0.0
+    - initial version.
+
+*/
