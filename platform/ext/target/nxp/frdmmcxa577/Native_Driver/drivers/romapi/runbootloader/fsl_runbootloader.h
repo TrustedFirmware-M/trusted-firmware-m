@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 NXP
+ * Copyright 2025-2026 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -58,6 +58,12 @@ typedef struct
 extern "C" {
 #endif
 
+#ifdef MCUX_ROMAPI_TFM_INTERFACE
+#include "fsl_romapi_tfm_ns.h" 
+#elif !defined(MCUX_ROMAPI_TFM_INTERFACE) && (defined(DOMAIN_NS) && (DOMAIN_NS == 1))
+#error "You need to enable the MCUX_COMPONENT_middleware.tfm.ns.romapi for accessing the ROM APIs in NSPE!"
+#else
+
 /*******************************************************************************
  * API
  ******************************************************************************/
@@ -76,5 +82,7 @@ void ROMAPI_RunBootloader(void *arg);
 /**
  * @}
  */
+
+#endif /* MCUX_ROMAPI_TFM_INTERFACE */ 
 
 #endif /* FSL_RUN_BOOTLOADER_H_ */

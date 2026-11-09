@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 NXP
+ * Copyright 2025-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -20,8 +20,8 @@
 
 /*! @name Driver version */
 /*@{*/
-/*! @brief reset driver version 2.4.0 */
-#define FSL_RESET_DRIVER_VERSION (MAKE_VERSION(2, 4, 0))
+/*! @brief reset driver version 2.0.0 */
+#define FSL_RESET_DRIVER_VERSION (MAKE_VERSION(2, 0, 0))
 /*@}*/
 
 /*!
@@ -179,8 +179,9 @@ typedef enum _SYSCON_RSTn
 #define GLIKEY_RSTS_N GLIKEY_RSTS
 
 /*! @brief Reset bits for GPIO peripheral */
-#define GPIO_RSTS \
-    {kGPIO0_RST_SHIFT_RSTn, kGPIO1_RST_SHIFT_RSTn, kGPIO2_RST_SHIFT_RSTn, kGPIO3_RST_SHIFT_RSTn, kGPIO4_RST_SHIFT_RSTn}
+#define GPIO_RSTS                                                         \
+    {kGPIO0_RST_SHIFT_RSTn, kGPIO1_RST_SHIFT_RSTn, kGPIO2_RST_SHIFT_RSTn, \
+     kGPIO3_RST_SHIFT_RSTn, kGPIO4_RST_SHIFT_RSTn, NotAvail_RSTn}
 #define GPIO_RSTS_N GPIO_RSTS
 
 /*! @brief Reset bits for I3C peripheral */
@@ -218,8 +219,9 @@ typedef enum _SYSCON_RSTn
 #define PKC_RSTS_N PKC_RSTS
 
 /*! @brief Reset bits for PORT peripheral */
-#define PORT_RSTS \
-    {kPORT0_RST_SHIFT_RSTn, kPORT1_RST_SHIFT_RSTn, kPORT2_RST_SHIFT_RSTn, kPORT3_RST_SHIFT_RSTn, kPORT4_RST_SHIFT_RSTn}
+#define PORT_RSTS                                                         \
+    {kPORT0_RST_SHIFT_RSTn, kPORT1_RST_SHIFT_RSTn, kPORT2_RST_SHIFT_RSTn, \
+     kPORT3_RST_SHIFT_RSTn, kPORT4_RST_SHIFT_RSTn, NotAvail_RSTn}
 #define PORT_RSTS_N PORT_RSTS
 
 /*! @brief Reset bits for SMARTDMA peripheral */
@@ -231,8 +233,10 @@ typedef enum _SYSCON_RSTn
 #define SPIFILTER_RSTS_N SPIFILTER_RSTS
 
 /*! @brief Reset bits for T1S peripheral */
-#define T1S_RSTS   {kT1S0_RST_SHIFT_RSTn}
-#define T1S_RSTS_N T1S_RSTS
+#define T1S_RSTS           {kT1S0_RST_SHIFT_RSTn}
+#define T1S_RSTS_N         T1S_RSTS
+#define TENBASET_PHY_RST   T1S_RSTS
+#define TENBASET_PHY_RST_N T1S_RSTS
 
 /*! @brief Reset bits for TRNG peripheral */
 #define TRNG_RSTS   {kTRNG0_RST_SHIFT_RSTn}
@@ -271,7 +275,7 @@ extern "C" {
  * @param peripheral Assert reset to this peripheral. The enum argument contains
  * encoding of reset register and reset bit position in the reset register.
  */
-void RESET_SetPeripheralReset(reset_ip_name_t peripheral);
+status_t RESET_SetPeripheralReset(reset_ip_name_t peripheral);
 
 /*!
  * @brief Clear reset to peripheral.
@@ -281,7 +285,7 @@ void RESET_SetPeripheralReset(reset_ip_name_t peripheral);
  * @param peripheral Clear reset to this peripheral. The enum argument contains
  * encoding of reset register and reset bit position in the reset register.
  */
-void RESET_ClearPeripheralReset(reset_ip_name_t peripheral);
+status_t RESET_ClearPeripheralReset(reset_ip_name_t peripheral);
 
 /*!
  * @brief Reset peripheral module.

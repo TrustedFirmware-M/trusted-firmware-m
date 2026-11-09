@@ -1,21 +1,22 @@
 /*
- * Copyright 2025 NXP
+ * Copyright 2025-2026 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
+#ifndef MCUX_ROMAPI_TFM_INTERFACE
+
 #include "fsl_flash.h"
 #include "fsl_flexspi_nor_flash.h"
 #include "fsl_lpspi_flash.h"
+#include "fsl_romapi_tree.h"
 
 /*! @brief Component ID definition, used by tools. */
 #ifndef FSL_COMPONENT_ID
-#define FSL_COMPONENT_ID "platform.drivers.flashiap"
+#define FSL_COMPONENT_ID "platform.drivers.romapi_flashiap"
 #endif
-
-#define BOOTLOADER_API_TREE_POINTER ((bootloader_tree_t *)0x1303d800u)
 
 /*!
  * @name flash,ifr
@@ -90,25 +91,9 @@ typedef struct FlashDriverInterface
 
 /*! @}*/
 
-/*!
- * @brief Root of the bootloader API tree.
- *
- * An instance of this struct resides in read-only memory in the bootloader. It
- * provides a user application access to APIs exported by the bootloader.
- *
- * @note The order of existing fields must not be changed.
- */
-typedef struct BootloaderTree
-{
-    void (*runBootloader)(void *arg);                        /*!< Function to start the bootloader executing.*/
-    const flash_driver_interface_t *flashDriver;             /*!< Internal Flash driver API.*/
-    uint32_t reserved1;                                      /*!< reserved */
-    uint32_t nbootDriver;                                    /*!< NBOOT driver */
-    const flexspi_nor_flash_driver_t *flexspiNorDriver;      /*!< FlexSPI NOR FLASH Driver API.*/
-    const LPSPI_EEPROM_driver_interface_t *lpspiFlashDriver; /*!< LPSPI Flash driver API.*/
-    uint32_t version;                                        /*!< Bootloader version number.*/
-    const char *copyright;                                   /*!< Copyright string.*/
-} bootloader_tree_t;
+#define FLASH_DRIVER        ((const flash_driver_interface_t *)BOOTLOADER_API_TREE_POINTER->flashDriver)
+#define FLEXSPI_NOR_DRIVER  ((const flexspi_nor_flash_driver_t *)BOOTLOADER_API_TREE_POINTER->flexspiNorDriver)
+#define LPSPI_EEPROM_DRIVER ((const LPSPI_EEPROM_driver_interface_t *)BOOTLOADER_API_TREE_POINTER->lpspiFlashDriver)
 
 /*******************************************************************************
  * Code
@@ -125,7 +110,7 @@ typedef struct BootloaderTree
 status_t FLASH_Init(flash_config_t *config)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flashDriver->flash_init(config);
+    return FLASH_DRIVER->flash_init(config);
 }
 
 /*!
@@ -137,7 +122,7 @@ status_t FLASH_Init(flash_config_t *config)
 status_t FLASH_EraseSector(flash_config_t *config, uint32_t start, uint32_t lengthInBytes, uint32_t key)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flashDriver->flash_erase_sector(config, start, lengthInBytes, key);
+    return FLASH_DRIVER->flash_erase_sector(config, start, lengthInBytes, key);
 }
 
 /*!
@@ -149,7 +134,7 @@ status_t FLASH_EraseSector(flash_config_t *config, uint32_t start, uint32_t leng
 status_t FLASH_ProgramPhrase(flash_config_t *config, uint32_t start, uint8_t *src, uint32_t lengthInBytes)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flashDriver->flash_program_phrase(config, start, src, lengthInBytes);
+    return FLASH_DRIVER->flash_program_phrase(config, start, src, lengthInBytes);
 }
 
 /*!
@@ -161,7 +146,7 @@ status_t FLASH_ProgramPhrase(flash_config_t *config, uint32_t start, uint8_t *sr
 status_t FLASH_ProgramPage(flash_config_t *config, uint32_t start, uint8_t *src, uint32_t lengthInBytes)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flashDriver->flash_program_page(config, start, src, lengthInBytes);
+    return FLASH_DRIVER->flash_program_page(config, start, src, lengthInBytes);
 }
 
 /*!
@@ -179,8 +164,7 @@ status_t FLASH_VerifyProgram(flash_config_t *config,
                              uint32_t *failedData)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flashDriver->flash_verify_program(config, start, lengthInBytes, expectedData,
-                                                                          failedAddress, failedData);
+    return FLASH_DRIVER->flash_verify_program(config, start, lengthInBytes, expectedData, failedAddress, failedData);
 }
 
 /*!
@@ -193,7 +177,7 @@ status_t FLASH_VerifyProgram(flash_config_t *config,
 status_t FLASH_VerifyErasePhrase(flash_config_t *config, uint32_t start, uint32_t lengthInBytes)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flashDriver->flash_verify_erase_phrase(config, start, lengthInBytes);
+    return FLASH_DRIVER->flash_verify_erase_phrase(config, start, lengthInBytes);
 }
 
 /*!
@@ -206,7 +190,7 @@ status_t FLASH_VerifyErasePhrase(flash_config_t *config, uint32_t start, uint32_
 status_t FLASH_VerifyErasePage(flash_config_t *config, uint32_t start, uint32_t lengthInBytes)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flashDriver->flash_verify_erase_page(config, start, lengthInBytes);
+    return FLASH_DRIVER->flash_verify_erase_page(config, start, lengthInBytes);
 }
 
 /*!
@@ -219,7 +203,7 @@ status_t FLASH_VerifyErasePage(flash_config_t *config, uint32_t start, uint32_t 
 status_t FLASH_VerifyEraseSector(flash_config_t *config, uint32_t start, uint32_t lengthInBytes)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flashDriver->flash_verify_erase_sector(config, start, lengthInBytes);
+    return FLASH_DRIVER->flash_verify_erase_sector(config, start, lengthInBytes);
 }
 
 /*!
@@ -228,7 +212,19 @@ status_t FLASH_VerifyEraseSector(flash_config_t *config, uint32_t start, uint32_
 status_t FLASH_GetProperty(flash_config_t *config, flash_property_tag_t whichProperty, uint32_t *value)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flashDriver->flash_get_property(config, whichProperty, value);
+    return FLASH_DRIVER->flash_get_property(config, whichProperty, value);
+}
+
+/*!
+ * @brief Reads data from the desired flash area.
+ *
+ * This function reads data from the flash memory for a given flash area as
+ * determined by the start address and the length.
+ */
+status_t FLASH_Read(flash_config_t *config, uint32_t start, uint8_t *dest, uint32_t lengthInBytes)
+{
+    assert(BOOTLOADER_API_TREE_POINTER);
+    return FLASH_DRIVER->flash_read(config, start, dest, lengthInBytes);
 }
 
 /*!
@@ -241,7 +237,7 @@ status_t FLASH_GetProperty(flash_config_t *config, flash_property_tag_t whichPro
 status_t IFR_VerifyErasePhrase(flash_config_t *config, uint32_t start, uint32_t lengthInBytes)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flashDriver->ifr_verify_erase_phrase(config, start, lengthInBytes);
+    return FLASH_DRIVER->ifr_verify_erase_phrase(config, start, lengthInBytes);
 }
 
 /*!
@@ -254,7 +250,7 @@ status_t IFR_VerifyErasePhrase(flash_config_t *config, uint32_t start, uint32_t 
 status_t IFR_VerifyErasePage(flash_config_t *config, uint32_t start, uint32_t lengthInBytes)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flashDriver->ifr_verify_erase_page(config, start, lengthInBytes);
+    return FLASH_DRIVER->ifr_verify_erase_page(config, start, lengthInBytes);
 }
 
 /*!
@@ -267,7 +263,7 @@ status_t IFR_VerifyErasePage(flash_config_t *config, uint32_t start, uint32_t le
 status_t IFR_VerifyEraseSector(flash_config_t *config, uint32_t start, uint32_t lengthInBytes)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flashDriver->ifr_verify_erase_sector(config, start, lengthInBytes);
+    return FLASH_DRIVER->ifr_verify_erase_sector(config, start, lengthInBytes);
 }
 
 /*!
@@ -278,7 +274,7 @@ status_t IFR_VerifyEraseSector(flash_config_t *config, uint32_t start, uint32_t 
 standard_version_t FLASH_GetAPIVersion(flash_config_t *config)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flashDriver->version;
+    return FLASH_DRIVER->version;
 }
 
 /********************************************************************************
@@ -293,7 +289,7 @@ standard_version_t FLASH_GetAPIVersion(flash_config_t *config)
 status_t FLEXSPI_NorFlash_Init(uint32_t instance, flexspi_nor_config_t *config)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flexspiNorDriver->init(instance, config);
+    return FLEXSPI_NOR_DRIVER->init(instance, config);
 }
 
 /*!
@@ -307,7 +303,7 @@ status_t FLEXSPI_NorFlash_ProgramPage(uint32_t instance,
                                       const uint32_t *src)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flexspiNorDriver->page_program(instance, config, dstAddr, src);
+    return FLEXSPI_NOR_DRIVER->page_program(instance, config, dstAddr, src);
 }
 
 /*!
@@ -318,7 +314,7 @@ status_t FLEXSPI_NorFlash_ProgramPage(uint32_t instance,
 status_t FLEXSPI_NorFlash_EraseAll(uint32_t instance, flexspi_nor_config_t *config)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flexspiNorDriver->erase_all(instance, config);
+    return FLEXSPI_NOR_DRIVER->erase_all(instance, config);
 }
 
 /*!
@@ -329,7 +325,7 @@ status_t FLEXSPI_NorFlash_EraseAll(uint32_t instance, flexspi_nor_config_t *conf
 status_t FLEXSPI_NorFlash_Erase(uint32_t instance, flexspi_nor_config_t *config, uint32_t start, uint32_t length)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flexspiNorDriver->erase(instance, config, start, length);
+    return FLEXSPI_NOR_DRIVER->erase(instance, config, start, length);
 }
 
 /*!
@@ -340,7 +336,7 @@ status_t FLEXSPI_NorFlash_Erase(uint32_t instance, flexspi_nor_config_t *config,
 status_t FLEXSPI_NorFlash_EraseSector(uint32_t instance, flexspi_nor_config_t *config, uint32_t address)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flexspiNorDriver->erase_sector(instance, config, address);
+    return FLEXSPI_NOR_DRIVER->erase_sector(instance, config, address);
 }
 
 /*!
@@ -351,7 +347,7 @@ status_t FLEXSPI_NorFlash_EraseSector(uint32_t instance, flexspi_nor_config_t *c
 status_t FLEXSPI_NorFlash_EraseBlock(uint32_t instance, flexspi_nor_config_t *config, uint32_t address)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flexspiNorDriver->erase_block(instance, config, address);
+    return FLEXSPI_NOR_DRIVER->erase_block(instance, config, address);
 }
 
 /*!
@@ -362,7 +358,7 @@ status_t FLEXSPI_NorFlash_EraseBlock(uint32_t instance, flexspi_nor_config_t *co
 status_t FLEXSPI_NorFlash_GetConfig(uint32_t instance, flexspi_nor_config_t *config, serial_nor_config_option_t *option)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flexspiNorDriver->get_config(instance, config, option);
+    return FLEXSPI_NOR_DRIVER->get_config(instance, config, option);
 }
 
 /*!
@@ -374,7 +370,7 @@ status_t FLEXSPI_NorFlash_Read(
     uint32_t instance, flexspi_nor_config_t *config, uint32_t *dst, uint32_t start, uint32_t bytes)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flexspiNorDriver->read(instance, config, dst, start, bytes);
+    return FLEXSPI_NOR_DRIVER->read(instance, config, dst, start, bytes);
 }
 
 /*!
@@ -385,7 +381,7 @@ status_t FLEXSPI_NorFlash_Read(
 status_t FLEXSPI_NorFlash_Xfer(uint32_t instance, flexspi_xfer_t *xfer)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flexspiNorDriver->xfer(instance, xfer);
+    return FLEXSPI_NOR_DRIVER->xfer(instance, xfer);
 }
 
 /*!
@@ -396,7 +392,7 @@ status_t FLEXSPI_NorFlash_Xfer(uint32_t instance, flexspi_xfer_t *xfer)
 status_t FLEXSPI_NorFlash_UpdateLut(uint32_t instance, uint32_t seqIndex, const uint32_t *lutBase, uint32_t numberOfSeq)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flexspiNorDriver->update_lut(instance, seqIndex, lutBase, numberOfSeq);
+    return FLEXSPI_NOR_DRIVER->update_lut(instance, seqIndex, lutBase, numberOfSeq);
 }
 
 /*!
@@ -407,7 +403,7 @@ status_t FLEXSPI_NorFlash_UpdateLut(uint32_t instance, uint32_t seqIndex, const 
 status_t FLEXSPI_NorFlash_SetClockSource(uint32_t clockSrc)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flexspiNorDriver->set_clock_source(clockSrc);
+    return FLEXSPI_NOR_DRIVER->set_clock_source(clockSrc);
 }
 
 /*!
@@ -418,7 +414,7 @@ status_t FLEXSPI_NorFlash_SetClockSource(uint32_t clockSrc)
 void FLEXSPI_NorFlash_ConfigClock(uint32_t instance, uint32_t freqOption, uint32_t sampleClkMode)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    BOOTLOADER_API_TREE_POINTER->flexspiNorDriver->config_clock(instance, freqOption, sampleClkMode);
+    FLEXSPI_NOR_DRIVER->config_clock(instance, freqOption, sampleClkMode);
 }
 
 /*!
@@ -430,7 +426,7 @@ status_t FLEXSPI_NorFlash_PartialProgram(
     uint32_t instance, flexspi_nor_config_t *config, uint32_t dstAddr, const uint32_t *src, uint32_t length)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->flexspiNorDriver->partial_program(instance, config, dstAddr, src, length);
+    return FLEXSPI_NOR_DRIVER->partial_program(instance, config, dstAddr, src, length);
 }
 
 /********************************************************************************
@@ -445,7 +441,7 @@ status_t FLEXSPI_NorFlash_PartialProgram(
 status_t LPSPI_EepromInit(void)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->lpspiFlashDriver->spi_eeprom_init();
+    return LPSPI_EEPROM_DRIVER->spi_eeprom_init();
 }
 
 /*!
@@ -456,7 +452,7 @@ status_t LPSPI_EepromInit(void)
 status_t LPSPI_EepromRead(uint32_t address, uint32_t NoOfBytes, uint8_t *restrict buffer)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->lpspiFlashDriver->spi_eeprom_read(address, NoOfBytes, buffer);
+    return LPSPI_EEPROM_DRIVER->spi_eeprom_read(address, NoOfBytes, buffer);
 }
 
 /*!
@@ -467,7 +463,7 @@ status_t LPSPI_EepromRead(uint32_t address, uint32_t NoOfBytes, uint8_t *restric
 status_t LPSPI_EepromWrite(uint32_t address, uint32_t NoOfBytes, const uint8_t *buffer)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->lpspiFlashDriver->spi_eeprom_write(address, NoOfBytes, buffer);
+    return LPSPI_EEPROM_DRIVER->spi_eeprom_write(address, NoOfBytes, buffer);
 }
 
 /*!
@@ -478,7 +474,7 @@ status_t LPSPI_EepromWrite(uint32_t address, uint32_t NoOfBytes, const uint8_t *
 status_t LPSPI_EepromErase(uint32_t address, uint32_t length)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->lpspiFlashDriver->spi_eeprom_erase(address, length);
+    return LPSPI_EEPROM_DRIVER->spi_eeprom_erase(address, length);
 }
 
 /*!
@@ -489,7 +485,7 @@ status_t LPSPI_EepromErase(uint32_t address, uint32_t length)
 status_t LPSPI_EepromConfig(uint32_t *config)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->lpspiFlashDriver->spi_eeprom_config(config);
+    return LPSPI_EEPROM_DRIVER->spi_eeprom_config(config);
 }
 
 /*!
@@ -500,7 +496,7 @@ status_t LPSPI_EepromConfig(uint32_t *config)
 status_t LPSPI_EepromFlush(void)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->lpspiFlashDriver->spi_eeprom_flush();
+    return LPSPI_EEPROM_DRIVER->spi_eeprom_flush();
 }
 
 /*!
@@ -511,5 +507,7 @@ status_t LPSPI_EepromFlush(void)
 status_t LPSPI_EepromEraseAll(void)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->lpspiFlashDriver->spi_eeprom_erase_all();
+    return LPSPI_EEPROM_DRIVER->spi_eeprom_erase_all();
 }
+
+#endif /* MCUX_ROMAPI_TFM_INTERFACE */

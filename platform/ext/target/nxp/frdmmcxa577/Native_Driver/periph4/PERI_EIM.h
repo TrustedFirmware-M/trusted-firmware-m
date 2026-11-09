@@ -1,14 +1,20 @@
 /*
 ** ###################################################################
-**     Processors:          MCXA286VLL
+**     Processors:          MCXA286VAPR
+**                          MCXA286VASR
+**                          MCXA286VLL
 **                          MCXA286VLQ
 **                          MCXA286VPN
+**                          MCXA287VAPR
+**                          MCXA287VASR
 **                          MCXA287VLL
 **                          MCXA287VLQ
 **                          MCXA287VPN
+**                          MCXA456VASR
 **                          MCXA456VLL
 **                          MCXA456VLQ
 **                          MCXA456VPN
+**                          MCXA457VASR
 **                          MCXA457VLL
 **                          MCXA457VLQ
 **                          MCXA457VPN
@@ -18,25 +24,29 @@
 **                          MCXA537VLL
 **                          MCXA537VLQ
 **                          MCXA537VPN
+**                          MCXA556BVPN
 **                          MCXA556VPN
+**                          MCXA557BVPN
+**                          MCXA557VPN
 **                          MCXA566VLL
 **                          MCXA566VLQ
 **                          MCXA566VPN
 **                          MCXA567VLL
 **                          MCXA567VLQ
 **                          MCXA567VPN
+**                          MCXA577VAPR
 **                          MCXA577VLL
 **                          MCXA577VLQ
 **                          MCXA577VPN
 **
 **     Version:             rev. 2.0, 2024-10-29
-**     Build:               b251029
+**     Build:               b260904
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for EIM
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -64,95 +74,31 @@
 #if !defined(PERI_EIM_H_)
 #define PERI_EIM_H_                              /**< Symbol preventing repeated inclusion */
 
-#if (defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
+#if (defined(CPU_MCXA286VAPR) || defined(CPU_MCXA286VASR) || defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
 #include "MCXA286_COMMON.h"
-#elif (defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
+#elif (defined(CPU_MCXA287VAPR) || defined(CPU_MCXA287VASR) || defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
 #include "MCXA287_COMMON.h"
-#elif (defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
+#elif (defined(CPU_MCXA456VASR) || defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
 #include "MCXA456_COMMON.h"
-#elif (defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
+#elif (defined(CPU_MCXA457VASR) || defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
 #include "MCXA457_COMMON.h"
 #elif (defined(CPU_MCXA536VLL) || defined(CPU_MCXA536VLQ) || defined(CPU_MCXA536VPN))
 #include "MCXA536_COMMON.h"
 #elif (defined(CPU_MCXA537VLL) || defined(CPU_MCXA537VLQ) || defined(CPU_MCXA537VPN))
 #include "MCXA537_COMMON.h"
-#elif (defined(CPU_MCXA556VPN))
+#elif (defined(CPU_MCXA556BVPN) || defined(CPU_MCXA556VPN))
 #include "MCXA556_COMMON.h"
+#elif (defined(CPU_MCXA557BVPN) || defined(CPU_MCXA557VPN))
+#include "MCXA557_COMMON.h"
 #elif (defined(CPU_MCXA566VLL) || defined(CPU_MCXA566VLQ) || defined(CPU_MCXA566VPN))
 #include "MCXA566_COMMON.h"
 #elif (defined(CPU_MCXA567VLL) || defined(CPU_MCXA567VLQ) || defined(CPU_MCXA567VPN))
 #include "MCXA567_COMMON.h"
-#elif (defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
+#elif (defined(CPU_MCXA577VAPR) || defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
 #include "MCXA577_COMMON.h"
 #else
   #error "No valid CPU defined!"
 #endif
-
-/* ----------------------------------------------------------------------------
-   -- Mapping Information
-   ---------------------------------------------------------------------------- */
-
-/*!
- * @addtogroup Mapping_Information Mapping Information
- * @{
- */
-
-/** Mapping Information */
-#if !defined(EIM_MEMORY_CHANNEL_T_)
-#define EIM_MEMORY_CHANNEL_T_
-/*!
- * @addtogroup eim_memory_channel
- * @{
- */
-
-/*******************************************************************************
- * Definitions
- ******************************************************************************/
-
-/*!
- * @brief Structure for the eim_memory_channel
- *
- * Defines the structure for the EIM resource collections.
- */
-
-typedef enum _eim_memory_channel
-{
-    kEIM_MemoryChannelRAMA0         = 0U,          /**< Memory RAMA0 */
-} eim_memory_channel_t;
-
-/* @} */
-#endif /* EIM_MEMORY_CHANNEL_T_ */
-
-#if !defined(EIM_ERROR_INJECTION_CHANNEL_ENABLE_T_)
-#define EIM_ERROR_INJECTION_CHANNEL_ENABLE_T_
-/*!
- * @addtogroup eim_error_injection_channel_enable
- * @{
- */
-
-/*******************************************************************************
- * Definitions
- ******************************************************************************/
-
-/*!
- * @brief Structure for the eim_error_injection_channel_enable
- *
- * Defines the structure for the EIM error injection resource collections.
- */
-
-typedef enum _eim_error_injection_channel_enable
-{
-    kEIM_MemoryChannelRAMAEnable    = 0x80000000U, /**< Memory channel 0(RAMA0) error injection enable */
-} eim_error_injection_channel_enable_t;
-
-/* @} */
-#endif /* EIM_ERROR_INJECTION_CHANNEL_ENABLE_T_ */
-
-
-/*!
- * @}
- */ /* end of group Mapping_Information */
-
 
 /* ----------------------------------------------------------------------------
    -- Device Peripheral Access Layer

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 NXP
+ * Copyright 2025-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -51,6 +51,15 @@
 #define PLL_SSCG_MD_INT_M            ((uint64_t)0xFFUL << PLL_SSCG_MD_INT_P)
 #define PLL_SSCG_MD_FRACT_SET(value) (((uint64_t)(value) << PLL_SSCG_MD_FRACT_P) & PLL_SSCG_MD_FRACT_M)
 #define PLL_SSCG_MD_INT_SET(value)   (((uint64_t)(value) << PLL_SSCG_MD_INT_P) & PLL_SSCG_MD_INT_M)
+
+/*! @brief Retry times for waiting flag. */
+#ifndef SOC_DRIVER_RETRY_TIMES
+#ifdef CONFIG_SOC_DRIVER_RETRY_TIMES
+#define SOC_DRIVER_RETRY_TIMES CONFIG_SOC_DRIVER_RETRY_TIMES
+#else
+#define SOC_DRIVER_RETRY_TIMES 0U /* Defining to zero means to keep waiting for the flag until it is assert/deassert. */
+#endif
+#endif
 
 /*******************************************************************************
  * Variables
@@ -179,11 +188,13 @@ clock_attach_id_t CLOCK_GetClockAttachId(clock_attach_id_t connection)
     actual_sel      = CLOCK_GetClockSelect((clock_select_name_t)reg_offset);
     clock_attach_id = CLK_ATTACH_MUX(reg_offset, actual_sel);
 
+    assert(clock_attach_id < kNONE_to_NONE);
+
     return (clock_attach_id_t)clock_attach_id;
 }
 
 /* Set the clock selection value */
-void CLOCK_SetClockSelect(clock_select_name_t sel_name, uint32_t value)
+status_t CLOCK_SetClockSelect(clock_select_name_t sel_name, uint32_t value)
 {
     volatile uint32_t *pClkCtrl = (volatile uint32_t *)(MRCC0_BASE + (uint32_t)sel_name);
     assert(sel_name <= kCLOCK_SelMax);
@@ -191,8 +202,19 @@ void CLOCK_SetClockSelect(clock_select_name_t sel_name, uint32_t value)
     if (sel_name == kCLOCK_SelSCGSCS)
     {
         SCG0->RCCR = (SCG0->RCCR & ~(SCG_RCCR_SCS_MASK)) | SCG_RCCR_SCS(value);
+
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+        uint32_t waitTimes = SOC_DRIVER_RETRY_TIMES;
+#endif
         while ((SCG0->CSR & SCG_CSR_SCS_MASK) != SCG_CSR_SCS(value))
         {
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+            if (--waitTimes == 0U)
+            {
+                assert(false);
+                return kStatus_Timeout;
+            }
+#endif
         }
     }
     else
@@ -205,6 +227,8 @@ void CLOCK_SetClockSelect(clock_select_name_t sel_name, uint32_t value)
         /* Freeze clock configuration */
         SYSCON->CLKUNLOCK |= SYSCON_CLKUNLOCK_UNLOCK_MASK;
     }
+
+    return kStatus_Success;
 }
 
 /* Get the clock selection value */
@@ -232,19 +256,38 @@ void CLOCK_SetClockDiv(clock_div_name_t div_name, uint32_t value)
     volatile uint32_t *pDivCtrl = (volatile uint32_t *)(SYSCON_BASE + (uint32_t)div_name);
     assert(div_name <= kCLOCK_DivMax);
 
+    /* Early exit: current DIV value already matches the requested value,
+     * and the divider is not in halt state */
+    if ((value != 0U) && ((*pDivCtrl & (1UL << 30U)) == 0U) && ((*pDivCtrl & 0xFFU) == (value - 1U)))
+    {
+        return;
+    }
+
     /* Unlock clock configuration */
     SYSCON->CLKUNLOCK &= ~SYSCON_CLKUNLOCK_UNLOCK_MASK;
 
-    /* halt and reset clock dividers */
-    *pDivCtrl = 0x3UL << 29U;
-
-    if (value == 0U) /*!<  halt */
+    /* AHBCLKDIV does not support HALT(bit30) or RESET(bit29);
+     * writing those bits would corrupt reserved fields. Write the DIV value directly. */
+    if (div_name == kCLOCK_DivAHBCLK)
     {
-        *pDivCtrl |= (1UL << 30U);
+        *pDivCtrl = (value == 0U) ? 0U : (value - 1U);
     }
     else
     {
-        *pDivCtrl = (value - 1U);
+        /* halt and reset clock dividers */
+        *pDivCtrl = 0x3UL << 29U;
+
+        if (value == 0U) /*!<  halt */
+        {
+            *pDivCtrl |= (1UL << 30U);
+        }
+        else
+        {
+            /* Write new DIV value while keeping HALT bit set */
+            *pDivCtrl = (value - 1U) | (1UL << 30U);
+            /* Clear HALT bit to start the divider with the new value */
+            *pDivCtrl &= ~(1UL << 30U);
+        }
     }
 
     /* Freeze clock configuration */
@@ -324,9 +367,19 @@ status_t CLOCK_SetupFROHFClocking(uint32_t iFreq)
     /* Enable FIRC */
     SCG0->FIRCCSR |= SCG_FIRCCSR_FIRCEN_MASK;
 
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+    uint32_t waitTimes = SOC_DRIVER_RETRY_TIMES;
+#endif
     /* Wait for FIRC clock to be valid. */
     while ((SCG0->FIRCCSR & SCG_FIRCCSR_FIRCVLD_MASK) == 0U)
     {
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+        if (--waitTimes == 0U)
+        {
+            assert(false);
+            return kStatus_Timeout;
+        }
+#endif
     }
 
     return kStatus_Success;
@@ -344,9 +397,19 @@ status_t CLOCK_SetupFRO12MClocking(void)
     /* Lock SIRCCSR */
     SCG0->SIRCCSR |= SCG_SIRCCSR_LK_MASK;
 
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+    uint32_t waitTimes = SOC_DRIVER_RETRY_TIMES;
+#endif
     /* Wait for SIRC clock to be valid. */
     while ((SCG0->SIRCCSR & SCG_SIRCCSR_SIRCVLD_MASK) == 0U)
     {
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+        if (--waitTimes == 0U)
+        {
+            assert(false);
+            return kStatus_Timeout;
+        }
+#endif
     }
 
     /* Release FROLFDIV */
@@ -424,9 +487,19 @@ status_t CLOCK_SetupExtClocking(uint32_t iFreq)
     /* Enable SOSC clock monitor and Enable SOSC */
     SCG0->SOSCCSR |= (SCG_SOSCCSR_SOSCCM_MASK | SCG_SOSCCSR_SOSCEN_MASK);
 
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+    uint32_t waitTimes = SOC_DRIVER_RETRY_TIMES;
+#endif
     /* Wait for SOSC clock to be valid. */
     while ((SCG0->SOSCCSR & SCG_SOSCCSR_SOSCVLD_MASK) == 0U)
     {
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+        if (--waitTimes == 0U)
+        {
+            assert(false);
+            return kStatus_Timeout;
+        }
+#endif
     }
 
     s_Ext_Clk_Freq = iFreq;
@@ -467,9 +540,19 @@ status_t CLOCK_SetupExtRefClocking(uint32_t iFreq)
     /* Enable SOSC clock monitor and Enable SOSC */
     SCG0->SOSCCSR |= (SCG_SOSCCSR_SOSCCM_MASK | SCG_SOSCCSR_SOSCEN_MASK);
 
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+    uint32_t waitTimes = SOC_DRIVER_RETRY_TIMES;
+#endif
     /* Wait for SOSC clock to be valid. */
     while ((SCG0->SOSCCSR & SCG_SOSCCSR_SOSCVLD_MASK) == 0U)
     {
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+        if (--waitTimes == 0U)
+        {
+            assert(false);
+            return kStatus_Timeout;
+        }
+#endif
     }
 
     s_Ext_Clk_Freq = iFreq;
@@ -484,17 +567,40 @@ status_t CLOCK_SetupExtRefClocking(uint32_t iFreq)
  */
 status_t CLOCK_SetupOsc32KClocking(uint32_t id)
 {
-    /* Enable LDO */
-    SCG0->LDOCSR |= SCG_LDOCSR_LDOEN_MASK | SCG_LDOCSR_VOUT_OK_MASK;
+    uint32_t temp32 = 0;
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+    uint32_t waitTimes;
+#endif
 
-    VBAT0->OSCCTLA =
-        (VBAT0->OSCCTLA & ~(VBAT_OSCCTLA_MODE_EN_MASK | VBAT_OSCCTLA_CAP_SEL_EN_MASK | VBAT_OSCCTLA_OSC_EN_MASK)) |
-        VBAT_OSCCTLA_MODE_EN(0x0) | VBAT_OSCCTLA_CAP_SEL_EN_MASK | VBAT_OSCCTLA_OSC_EN_MASK;
+    /* Enable LDO */
+    SCG0->LDOCSR |= SCG_LDOCSR_LDOEN_MASK;
+    
+    VBAT0->OSCCFGA = (VBAT0->OSCCFGA & ~VBAT_OSCCFGA_INIT_TRIM_MASK) | VBAT_OSCCFGA_INIT_TRIM(3);
+
+    temp32 = VBAT0->OSCCTLA;
+
+    temp32 &= ~(VBAT_OSCCTLA_EXTAL_CAP_SEL_MASK | VBAT_OSCCTLA_XTAL_CAP_SEL_MASK | VBAT_OSCCTLA_COARSE_AMP_GAIN_MASK);
+    temp32 |= (VBAT_OSCCTLA_EXTAL_CAP_SEL(0x6) | VBAT_OSCCTLA_XTAL_CAP_SEL(0x6) | VBAT_OSCCTLA_COARSE_AMP_GAIN(1));
+
+    temp32 &= ~(VBAT_OSCCTLA_MODE_EN_MASK | VBAT_OSCCTLA_CAP_SEL_EN_MASK | VBAT_OSCCTLA_OSC_EN_MASK);
+    temp32 |= VBAT_OSCCTLA_MODE_EN(0x1) | VBAT_OSCCTLA_CAP_SEL_EN_MASK | VBAT_OSCCTLA_OSC_EN_MASK;
+
+    VBAT0->OSCCTLA = temp32;
+
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+    waitTimes = SOC_DRIVER_RETRY_TIMES;
+#endif
     /* Wait for STATUSA[OSC_RDY] to set. */
     while ((VBAT0->STATUSA & VBAT_STATUSA_OSC_RDY_MASK) == 0U)
     {
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+        if (--waitTimes == 0U)
+        {
+            assert(false);
+            return kStatus_Timeout;
+        }
+#endif
     }
-    VBAT0->OSCLCKA = VBAT_OSCLCKA_LOCK_MASK;
 
     VBAT0->OSCCLKE |= VBAT_OSCCLKE_CLKE(id);
 
@@ -507,9 +613,19 @@ status_t CLOCK_SetupOsc32KClocking(uint32_t id)
     /* Enable SOSC clock monitor and Enable ROSC */
     SCG0->ROSCCSR |= SCG_ROSCCSR_ROSCCM_MASK;
 
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+    waitTimes = SOC_DRIVER_RETRY_TIMES;
+#endif
     /* Wait for ROSC clock to be valid. */
     while ((SCG0->ROSCCSR & SCG_ROSCCSR_ROSCVLD_MASK) == 0U)
     {
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+        if (--waitTimes == 0U)
+        {
+            assert(false);
+            return kStatus_Timeout;
+        }
+#endif
     }
 
     return kStatus_Success;
@@ -529,6 +645,7 @@ status_t CLOCK_SetupOsc32KClocking(uint32_t id)
  *   config->extalCap = kVBAT_OscExtal22pFCap;
  *   config->ampGain  = kVBAT_OscCoarseAdjustment05;
  *   config->id       = kCLOCK_Osc32kToVbat;
+ *   config->updateTrim = false
  * @param   config: Pointer to a configuration structure
  */
 void CLOCK_GetDefaultOsc32KConfig(osc_32k_config_t *config)
@@ -544,7 +661,8 @@ void CLOCK_GetDefaultOsc32KConfig(osc_32k_config_t *config)
     config->extalCap = kVBAT_OscExtal22pFCap;
     config->ampGain  = kVBAT_OscCoarseAdjustment05;
 
-    config->id = kCLOCK_Osc32kToVbat;
+    config->id         = kCLOCK_Osc32kToVbat;
+    config->updateTrim = false;
 }
 
 /**
@@ -554,28 +672,101 @@ void CLOCK_GetDefaultOsc32KConfig(osc_32k_config_t *config)
  */
 status_t CLOCK_SetupOsc32KClockingConfig(osc_32k_config_t config)
 {
-    uint32_t temp32;
+    uint32_t oscctlaMask = 0U;
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+    uint32_t waitTimes;
+#endif
 
     /* Enable LDO */
-    SCG0->LDOCSR |= SCG_LDOCSR_LDOEN_MASK | SCG_LDOCSR_VOUT_OK_MASK;
+    SCG0->LDOCSR |= SCG_LDOCSR_LDOEN_MASK;
 
-    temp32 = VBAT_OSCCFGA_INIT_TRIM(config.initTrim) | VBAT_OSCCFGA_CAP_TRIM(config.capTrim) |
-             VBAT_OSCCFGA_DLY_TRIM(config.dlyTrim) | VBAT_OSCCFGA_CAP2_TRIM(config.cap2Trim) |
-             VBAT_OSCCFGA_CMP_TRIM(config.cmpTrim);
-    VBAT0->OSCCFGA = temp32;
+    oscctlaMask =
+        (VBAT_OSCCTLA_MODE_EN_MASK | VBAT_OSCCTLA_CAP_SEL_EN_MASK | VBAT_OSCCTLA_OSC_EN_MASK |
+         VBAT_OSCCTLA_XTAL_CAP_SEL_MASK | VBAT_OSCCTLA_EXTAL_CAP_SEL_MASK | VBAT_OSCCTLA_COARSE_AMP_GAIN_MASK);
 
-    temp32 = (VBAT0->OSCCTLA &
-              ~(VBAT_OSCCTLA_MODE_EN_MASK | VBAT_OSCCTLA_CAP_SEL_EN_MASK | VBAT_OSCCTLA_OSC_EN_MASK |
-                VBAT_OSCCTLA_XTAL_CAP_SEL_MASK | VBAT_OSCCTLA_EXTAL_CAP_SEL_MASK | VBAT_OSCCTLA_COARSE_AMP_GAIN_MASK)) |
-             VBAT_OSCCTLA_MODE_EN(config.mode) | VBAT_OSCCTLA_OSC_EN_MASK | VBAT_OSCCTLA_XTAL_CAP_SEL(config.xtalCap) |
-             VBAT_OSCCTLA_EXTAL_CAP_SEL(config.extalCap) | VBAT_OSCCTLA_CAP_SEL_EN_MASK |
-             VBAT_OSCCTLA_COARSE_AMP_GAIN(config.ampGain);
-
-    VBAT0->OSCCTLA = temp32;
-
-    /* Wait for STATUSA[OSC_RDY] to set. */
-    while ((VBAT0->STATUSA & VBAT_STATUSA_OSC_RDY_MASK) == 0U)
+    if (config.updateTrim)
     {
+        VBAT0->OSCCFGA = VBAT_OSCCFGA_INIT_TRIM(config.initTrim) | VBAT_OSCCFGA_CAP_TRIM(config.capTrim) |
+                         VBAT_OSCCFGA_DLY_TRIM(config.dlyTrim) | VBAT_OSCCFGA_CAP2_TRIM(config.cap2Trim) |
+                         VBAT_OSCCFGA_CMP_TRIM(config.cmpTrim);
+    }
+
+    if (config.mode == kVBAT_OscLowpowerModeEnable)
+    {
+        VBAT0->OSCCFGA = (VBAT0->OSCCFGA & ~VBAT_OSCCFGA_INIT_TRIM_MASK) | VBAT_OSCCFGA_INIT_TRIM(3);
+
+        /* Low power mode sequence: enter startup mode first, then switch to low power mode. */
+        VBAT0->OSCCTLA = (VBAT0->OSCCTLA & ~oscctlaMask) | VBAT_OSCCTLA_MODE_EN(kVBAT_OscStartupModeEnable) |
+                         VBAT_OSCCTLA_OSC_EN_MASK | VBAT_OSCCTLA_XTAL_CAP_SEL(config.xtalCap) |
+                         VBAT_OSCCTLA_EXTAL_CAP_SEL(config.extalCap) | VBAT_OSCCTLA_CAP_SEL_EN_MASK |
+                         VBAT_OSCCTLA_COARSE_AMP_GAIN(config.ampGain);
+
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+        waitTimes = SOC_DRIVER_RETRY_TIMES;
+#endif
+        /* Wait for STATUSA[OSC_RDY] to set. */
+        while ((VBAT0->STATUSA & VBAT_STATUSA_OSC_RDY_MASK) == 0U)
+        {
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+            if (--waitTimes == 0U)
+            {
+                assert(false);
+                return kStatus_Timeout;
+            }
+#endif
+        }
+
+        /* Clear INIT_TRIM after oscillator is ready. */
+        VBAT0->OSCCFGA &= ~VBAT_OSCCFGA_INIT_TRIM_MASK;
+
+        /* Switch to low power mode. Cap selections are forced to 0. */
+        VBAT0->OSCCTLA = (VBAT0->OSCCTLA & ~oscctlaMask) | VBAT_OSCCTLA_MODE_EN(kVBAT_OscLowpowerModeEnable) |
+                         VBAT_OSCCTLA_OSC_EN_MASK | VBAT_OSCCTLA_XTAL_CAP_SEL(0U) | VBAT_OSCCTLA_EXTAL_CAP_SEL(0U) |
+                         VBAT_OSCCTLA_CAP_SEL_EN_MASK | VBAT_OSCCTLA_COARSE_AMP_GAIN(config.ampGain);
+
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+        waitTimes = SOC_DRIVER_RETRY_TIMES;
+#endif
+        /* Wait for STATUSA[OSC_RDY] to set. */
+        while ((VBAT0->STATUSA & VBAT_STATUSA_OSC_RDY_MASK) == 0U)
+        {
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+            if (--waitTimes == 0U)
+            {
+                assert(false);
+                return kStatus_Timeout;
+            }
+#endif
+        }
+    }
+    else
+    {
+        /* Normal/startup mode sequence. */
+        VBAT0->OSCCTLA = (VBAT0->OSCCTLA & ~oscctlaMask) | VBAT_OSCCTLA_MODE_EN(config.mode) |
+                         VBAT_OSCCTLA_OSC_EN_MASK | VBAT_OSCCTLA_XTAL_CAP_SEL(config.xtalCap) |
+                         VBAT_OSCCTLA_EXTAL_CAP_SEL(config.extalCap) | VBAT_OSCCTLA_CAP_SEL_EN_MASK |
+                         VBAT_OSCCTLA_COARSE_AMP_GAIN(config.ampGain);
+
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+        waitTimes = SOC_DRIVER_RETRY_TIMES;
+#endif
+        /* Wait for STATUSA[OSC_RDY] to set. */
+        while ((VBAT0->STATUSA & VBAT_STATUSA_OSC_RDY_MASK) == 0U)
+        {
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+            if (--waitTimes == 0U)
+            {
+                assert(false);
+                return kStatus_Timeout;
+            }
+#endif
+        }
+
+        if (config.mode == kVBAT_OscNormalModeEnable)
+        {
+            /* Clear CAP_SEL */
+            VBAT0->OSCCTLA &= ~(VBAT_OSCCTLA_EXTAL_CAP_SEL_MASK | VBAT_OSCCTLA_XTAL_CAP_SEL_MASK);
+        }
     }
 
     VBAT0->OSCCLKE |= VBAT_OSCCLKE_CLKE(config.id);
@@ -589,9 +780,19 @@ status_t CLOCK_SetupOsc32KClockingConfig(osc_32k_config_t config)
     /* Enable SOSC clock monitor and Enable ROSC */
     SCG0->ROSCCSR |= SCG_ROSCCSR_ROSCCM_MASK;
 
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+    waitTimes = SOC_DRIVER_RETRY_TIMES;
+#endif
     /* Wait for ROSC clock to be valid. */
     while ((SCG0->ROSCCSR & SCG_ROSCCSR_ROSCVLD_MASK) == 0U)
     {
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+        if (--waitTimes == 0U)
+        {
+            assert(false);
+            return kStatus_Timeout;
+        }
+#endif
     }
 
     return kStatus_Success;
@@ -808,8 +1009,10 @@ static uint32_t CLOCK_GetExtClkFreq(void)
  */
 static uint32_t CLOCK_GetOsc32KFreq(uint32_t id)
 {
+    assert(id <= 2u);
+
     return ((SCG0->ROSCCSR & SCG_ROSCCSR_ROSCVLD_MASK) != 0UL) ?
-               (((VBAT0->OSCCLKE & VBAT_OSCCLKE_CLKE(1 << id)) != 0UL) ? OSC32K_Freq : 0U) :
+               (((VBAT0->OSCCLKE & VBAT_OSCCLKE_CLKE(1UL << id)) != 0UL) ? OSC32K_Freq : 0U) :
                0U;
 }
 
@@ -819,19 +1022,15 @@ static uint32_t CLOCK_GetOsc32KFreq(uint32_t id)
  */
 static uint32_t CLOCK_GetLposcFreq(void)
 {
-    uint32_t freq = 0U;
+    uint32_t freq;
 
-    switch ((RTC0->CTRL & RTC_CTRL_CLK_SEL_MASK) >> RTC_CTRL_CLK_SEL_SHIFT)
+    if ((RTC0->CTRL & RTC_CTRL_CLK_SEL_MASK) == 0U)
     {
-        case 0U:
-            freq = CLOCK_GetClk16KFreq(0);
-            break;
-        case 1U:
-            freq = CLOCK_GetOsc32KFreq(0);
-            break;
-        default:
-            freq = 0U;
-            break;
+        freq = CLOCK_GetClk16KFreq(0);
+    }
+    else
+    {
+        freq = CLOCK_GetOsc32KFreq(0);
     }
 
     return freq;
@@ -929,8 +1128,18 @@ bool CLOCK_EnableUsbhsPhyPllClock(uint32_t clockSourceFreq)
     USBHS1_PHY->CTRL_CLR = USBPHY_CTRL_CLR_CLKGATE_MASK;
     USBHS1_PHY->PWD      = 0x0U;
 
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+    uint32_t waitTimes = SOC_DRIVER_RETRY_TIMES;
+#endif
     while (0UL == (USBHS1_PHY->PLL_SIC & USBPHY_PLL_SIC_PLL_LOCK_MASK))
     {
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+        if (--waitTimes == 0U)
+        {
+            assert(false);
+            return false;
+        }
+#endif
     }
 
     return true;
@@ -945,13 +1154,14 @@ void CLOCK_DisableUsbhsPhyPllClock(void)
     USBHS1_PHY->CTRL |= USBPHY_CTRL_CLKGATE_MASK; /* Set to 1U to gate clocks */
 }
 
+#ifdef USBHS1
 /*! brief Enable USB HS clock.
  * retval true The clock is set successfully.
  * retval false The clock source is invalid to get proper USB HS clock.
  */
 bool CLOCK_EnableUsbhsClock(void)
 {
-    USBHS1__USBC->USBCMD |= USBHS_USBCMD_RST_MASK;
+    USBHS1->USBCMD |= USBHS_USBCMD_RST_MASK;
     /* Add a delay between RST and RS so make sure there is a DP pullup sequence*/
     for (uint32_t i = 0; i < 400000U; i++)
     {
@@ -959,6 +1169,7 @@ bool CLOCK_EnableUsbhsClock(void)
     }
     return true;
 }
+#endif
 
 /* Get UsbPll */
 static uint32_t CLOCK_GetUsbPllFreq(void)
@@ -989,10 +1200,21 @@ bool CLOCK_EnableUsbhsPhyPfdClock(uint32_t pfdDiv, pfd_clkout_selection_t pfdClk
     USBHS1_PHY->PLL_SIC &= ~USBPHY_PLL_SIC_PLL_POWER_MASK;
     USBHS1_PHY->PLL_SIC |= USBPHY_PLL_SIC_PLL_POWER_MASK;
 
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+    uint32_t waitTimes = SOC_DRIVER_RETRY_TIMES;
+#endif
     /* Wait for USBPLL to stabilize */
     while (0 == (USBHS1_PHY->PLL_SIC & USBPHY_PLL_SIC_PLL_LOCK_MASK))
     {
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+        if (--waitTimes == 0U)
+        {
+            assert(false);
+            return kStatus_Timeout;
+        }
+#else
         __NOP();
+#endif
     }
 
     /* Select the PFD clock source */
@@ -1004,12 +1226,6 @@ bool CLOCK_EnableUsbhsPhyPfdClock(uint32_t pfdDiv, pfd_clkout_selection_t pfdClk
 
     /* Ungate the PFD clock */
     USBHS1_PHY->PFDA &= ~USBPHY_PFDA_PFD0_CLKGATE_MASK;
-
-    /* Wait for PFD to stabilize */
-    while (!(USBHS1_PHY->PFDA & USBPHY_PFDA_PFD0_STABLE_MASK))
-    {
-        __NOP();
-    }
 
     return kStatus_Success;
 }
@@ -1023,7 +1239,8 @@ static uint32_t CLOCK_GetUsbPfdClkFreq(void)
     uint32_t usbPhyClkSrc = 0U;
     uint32_t freq         = 0U;
 
-    if ((0U != (USBHS1_PHY->CTRL & USBPHY_CTRL_CLKGATE_MASK)) || (0U != (USBHS1_PHY->PFDA & USBPHY_PFDA_PFD0_CLKGATE_MASK)))
+    if ((0U != (USBHS1_PHY->CTRL & USBPHY_CTRL_CLKGATE_MASK)) ||
+        (0U != (USBHS1_PHY->PFDA & USBPHY_PFDA_PFD0_CLKGATE_MASK)))
     {
         return 0U;
     }
@@ -1064,13 +1281,9 @@ static uint32_t CLOCK_GetUsbPfdClkFreq(void)
     {
         freq = (pfdOutClk >> 1U);
     }
-    else if (pfdClkSel == 3U)
-    {
-        freq = pfdOutClk;
-    }
     else
     {
-        freq = 0U;
+        freq = pfdOutClk;
     }
 
     return freq;
@@ -1119,7 +1332,7 @@ uint32_t CLOCK_GetMainClk(void)
             freq = CLOCK_GetClk16KFreq(1);
             break;
         case 6U:
-            freq = CLOCK_GetPll1ClkFreq();
+            freq = CLOCK_GetPll1ClkFreq() / ((SCG0->SPLLCSR & SCG_SPLLCSR_SPLL_DIV2_EN_MASK) ? 2U : 1U);
             break;
         case 7U:
             freq = CLOCK_GetUsbPfdClkFreq();
@@ -1544,6 +1757,9 @@ uint32_t CLOCK_GetOstimerClkFreq(void)
     {
         case 0U:
             freq = CLOCK_GetClk16KFreq(1);
+            break;
+        case 1U:
+            freq = CLOCK_GetOsc32KFreq(1);
             break;
         case 2U:
             freq = CLOCK_GetClk1MFreq();
@@ -2267,9 +2483,13 @@ status_t CLOCK_SetFLASHAccessCyclesForFreq(uint32_t system_freq_hz, run_mode_t m
         }
         case (uint32_t)kOD_Mode:
         {
-            if (system_freq_hz > 200000000U)
+            if (system_freq_hz > 240000000U)
             {
                 return kStatus_Fail;
+            }
+            else if (system_freq_hz > 200000000U)
+            {
+                num_wait_states_added = 5U;
             }
             else if (system_freq_hz > 160000000U)
             {
@@ -2489,9 +2709,19 @@ pll_error_t CLOCK_SetPLL1Freq(const pll_setup_t *pSetup)
     /* Power on PLL1 and enable PLL1 clock */
     SCG0->SPLLCSR |= (SCG_SPLLCSR_SPLLPWREN_MASK | SCG_SPLLCSR_SPLLCLKEN_MASK);
 
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+    uint32_t waitTimes = SOC_DRIVER_RETRY_TIMES;
+#endif
     /* Wait for APLL lock */
     while (CLOCK_IsPLL1Locked() == false)
     {
+#if (SOC_DRIVER_RETRY_TIMES != 0U)
+        if (--waitTimes == 0U)
+        {
+            assert(false);
+            return kStatus_PLL_Timeout;
+        }
+#endif
     }
 
     if (pSetup->pllRate != CLOCK_GetPll1ClkFreq())
@@ -2590,7 +2820,7 @@ static uint32_t findPll1PostDiv(void)
 /* Get multiplier (M) from PLL1 MDEC. */
 static float findPll1MMult(void)
 {
-    float mMult = 1.0F;
+    float mMult;
     float mMult_fract;
     uint32_t mMult_int;
 
@@ -2832,7 +3062,8 @@ static pll_error_t CLOCK_GetPllConfigInternal(uint32_t finHz, uint32_t foutHz, p
         fc = ((uint64_t)(uint32_t)(fccoHz % nDivOutHz) << 25UL) / nDivOutHz;
 
         /* Set multiplier */
-        pSetup->pllsscg[0] = (uint32_t)(PLL_SSCG_MD_INT_SET(pllMultiplier) | PLL_SSCG_MD_FRACT_SET((uint32_t)fc));
+        pSetup->pllsscg[0] =
+            (uint32_t)((PLL_SSCG_MD_INT_SET(pllMultiplier) | PLL_SSCG_MD_FRACT_SET((uint32_t)fc)) & 0xFFFFFFFFU);
         pSetup->pllsscg[1] = (uint32_t)(PLL_SSCG_MD_INT_SET(pllMultiplier) >> 32U) | SCG_SPLLSSCG1_SEL_SS_MDIV_MASK;
     }
 
@@ -2919,7 +3150,7 @@ static uint32_t findPllPostDivFromSetup(pll_setup_t *pSetup)
 /* Get multiplier (M) from from setup structure */
 static float findPllMMultFromSetup(pll_setup_t *pSetup)
 {
-    float mMult = 1.0F;
+    float mMult;
     float mMult_fract;
     uint32_t mMult_int;
 

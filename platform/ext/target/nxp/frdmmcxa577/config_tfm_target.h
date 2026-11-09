@@ -28,7 +28,6 @@
 /* The maximum number of assets to be stored in the Internal Trusted Storage */
 #define ITS_NUM_ASSETS       5
 
-
 #ifdef PLATFORM_NO_FLASH
 /* Enable emulated RAM FS for platforms that don't have flash for Internal Trusted Storage partition */
 #define ITS_RAM_FS           1

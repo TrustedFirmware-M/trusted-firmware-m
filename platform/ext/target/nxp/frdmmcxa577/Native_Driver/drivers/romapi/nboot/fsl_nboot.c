@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 NXP
+ * Copyright 2025-2026 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -7,16 +7,15 @@
 #include "fsl_nboot_hal.h"
 #include "fsl_nboot.h"
 #include "fsl_common.h"
+#include "fsl_romapi_tree.h"
 
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
 /*! @brief Component ID definition, used by tools. */
 #ifndef FSL_COMPONENT_ID
-#define FSL_COMPONENT_ID "platform.drivers.nboot"
+#define FSL_COMPONENT_ID "platform.drivers.romapi_nboot"
 #endif
-
-#define BOOTLOADER_API_TREE_POINTER ((bootloader_tree_t *)0x1303d800u)
 
 /**
  * @brief Image authentication operations.
@@ -56,25 +55,7 @@ typedef struct nboot_interface_struct
     nboot_status_protected_t (*nboot_background_hash_enable)(nboot_context_t *context, uint32_t hashDmaChannel);
 } nboot_interface_t;
 
-/*!
- * @brief Root of the bootloader API tree.
- *
- * An instance of this struct resides in read-only memory in the bootloader. It
- * provides a user application access to APIs exported by the bootloader.
- *
- * @note The order of existing fields must not be changed.
- */
-typedef struct BootloaderTree
-{
-    void (*runBootloader)(void *arg);     /*!< Function to start the bootloader executing.*/
-    uint32_t flashDriver;                 /*!< Internal Flash driver API.*/
-    uint32_t reserved1;                   /*!< reserved */
-    const nboot_interface_t *nbootDriver; /*!< NBOOT driver */
-    uint32_t flexspiNorDriver;            /*!< FlexSPI NOR FLASH Driver API.*/
-    uint32_t lpspiFlashDriver;            /*!< LPSPI Flash driver API.*/
-    uint32_t version;                     /*!< Bootloader version number.*/
-    const char *copyright;                /*!< Copyright string.*/
-} bootloader_tree_t;
+#define NBOOT_DRIVER ((const nboot_interface_t *)BOOTLOADER_API_TREE_POINTER->nbootDriver)
 
 /*******************************************************************************
  * API
@@ -92,7 +73,7 @@ typedef struct BootloaderTree
 nboot_status_protected_t NBOOT_ContextInit(nboot_context_t *context)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->nbootDriver->nboot_context_init(context);
+    return NBOOT_DRIVER->nboot_context_init(context);
 }
 
 /*!
@@ -107,7 +88,7 @@ nboot_status_protected_t NBOOT_ContextInit(nboot_context_t *context)
 nboot_status_protected_t NBOOT_ContextDeinit(nboot_context_t *context)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->nbootDriver->nboot_context_deinit(context);
+    return NBOOT_DRIVER->nboot_context_deinit(context);
 }
 
 /*!
@@ -126,7 +107,7 @@ nboot_status_protected_t NBOOT_ContextDeinit(nboot_context_t *context)
 nboot_status_protected_t NBOOT_ContextSetUuid(nboot_context_t *context, const uint8_t uuid[16])
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->nbootDriver->nboot_context_set_uuid(context, uuid);
+    return NBOOT_DRIVER->nboot_context_set_uuid(context, uuid);
 }
 
 /*!
@@ -149,7 +130,7 @@ nboot_status_protected_t NBOOT_Sb4LoadManifest(nboot_context_t *context,
                                                nboot_sb4_load_manifest_parms_t *parms)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->nbootDriver->nboot_sb4_load_manifest(context, manifest, parms);
+    return NBOOT_DRIVER->nboot_sb4_load_manifest(context, manifest, parms);
 }
 
 /*!
@@ -167,7 +148,7 @@ nboot_status_protected_t NBOOT_Sb4LoadManifest(nboot_context_t *context,
 nboot_status_protected_t NBOOT_Sb4LoadBlock(nboot_context_t *context, uint32_t *block)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->nbootDriver->nboot_sb4_load_block(context, block);
+    return NBOOT_DRIVER->nboot_sb4_load_block(context, block);
 }
 
 /*!
@@ -189,8 +170,7 @@ nboot_status_protected_t NBOOT_SB4CheckAuthenticityAndCompleteness(nboot_context
                                                                    nboot_sb4_load_manifest_parms_t *parms)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->nbootDriver->nboot_sb4_check_authenticity_and_completeness_romapi(
-        context, address, parms);
+    return NBOOT_DRIVER->nboot_sb4_check_authenticity_and_completeness_romapi(context, address, parms);
 }
 
 /*!
@@ -214,8 +194,7 @@ nboot_status_protected_t NBOOT_ImgAuthenticate(nboot_context_t *context,
                                                nboot_img_auth_parms_t *parms)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->nbootDriver->nboot_img_authenticate_romapi(context, imageStartAddress,
-                                                                                   isSignatureVerified, parms);
+    return NBOOT_DRIVER->nboot_img_authenticate_romapi(context, imageStartAddress, isSignatureVerified, parms);
 }
 
 /*!
@@ -239,8 +218,8 @@ nboot_status_protected_t NBOOT_MemCryptEnableEncryptForAddressRange(nboot_contex
                                                                     nboot_mem_crypt_iped_mode_select_t ipedModeSelect)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->nbootDriver->nboot_mem_crypt_enable_encrypt_for_address_range(
-        context, regionNumber, regionConfig, ipedModeSelect);
+    return NBOOT_DRIVER->nboot_mem_crypt_enable_encrypt_for_address_range(context, regionNumber, regionConfig,
+                                                                          ipedModeSelect);
 }
 
 /*!
@@ -271,8 +250,8 @@ nboot_status_protected_t NBOOT_MemCryptRangeChecker(nboot_context_t *context,
                                                     uint32_t npx_erase_check_en)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->nbootDriver->nboot_mem_crypt_range_checker(
-        context, operation, address, length, flags, npx_iv_erase_cntr, iped_iv_erase_cntr, npx_erase_check_en);
+    return NBOOT_DRIVER->nboot_mem_crypt_range_checker(context, operation, address, length, flags, npx_iv_erase_cntr,
+                                                       iped_iv_erase_cntr, npx_erase_check_en);
 }
 
 /*!
@@ -290,5 +269,5 @@ nboot_status_protected_t NBOOT_MemCryptRangeChecker(nboot_context_t *context,
 nboot_status_protected_t NBOOT_BackgroundHashEnable(nboot_context_t *context, uint32_t hashDmaChannel)
 {
     assert(BOOTLOADER_API_TREE_POINTER);
-    return BOOTLOADER_API_TREE_POINTER->nbootDriver->nboot_background_hash_enable(context, hashDmaChannel);
+    return NBOOT_DRIVER->nboot_background_hash_enable(context, hashDmaChannel);
 }

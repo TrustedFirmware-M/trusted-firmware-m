@@ -1,14 +1,20 @@
 /*
 ** ###################################################################
-**     Processors:          MCXA286VLL
+**     Processors:          MCXA286VAPR
+**                          MCXA286VASR
+**                          MCXA286VLL
 **                          MCXA286VLQ
 **                          MCXA286VPN
+**                          MCXA287VAPR
+**                          MCXA287VASR
 **                          MCXA287VLL
 **                          MCXA287VLQ
 **                          MCXA287VPN
+**                          MCXA456VASR
 **                          MCXA456VLL
 **                          MCXA456VLQ
 **                          MCXA456VPN
+**                          MCXA457VASR
 **                          MCXA457VLL
 **                          MCXA457VLQ
 **                          MCXA457VPN
@@ -18,25 +24,29 @@
 **                          MCXA537VLL
 **                          MCXA537VLQ
 **                          MCXA537VPN
+**                          MCXA556BVPN
 **                          MCXA556VPN
+**                          MCXA557BVPN
+**                          MCXA557VPN
 **                          MCXA566VLL
 **                          MCXA566VLQ
 **                          MCXA566VPN
 **                          MCXA567VLL
 **                          MCXA567VLQ
 **                          MCXA567VPN
+**                          MCXA577VAPR
 **                          MCXA577VLL
 **                          MCXA577VLQ
 **                          MCXA577VPN
 **
 **     Version:             rev. 2.0, 2024-10-29
-**     Build:               b251029
+**     Build:               b260904
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for SECCON
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -64,25 +74,27 @@
 #if !defined(PERI_SECCON_H_)
 #define PERI_SECCON_H_                           /**< Symbol preventing repeated inclusion */
 
-#if (defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
+#if (defined(CPU_MCXA286VAPR) || defined(CPU_MCXA286VASR) || defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
 #include "MCXA286_COMMON.h"
-#elif (defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
+#elif (defined(CPU_MCXA287VAPR) || defined(CPU_MCXA287VASR) || defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
 #include "MCXA287_COMMON.h"
-#elif (defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
+#elif (defined(CPU_MCXA456VASR) || defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
 #include "MCXA456_COMMON.h"
-#elif (defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
+#elif (defined(CPU_MCXA457VASR) || defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
 #include "MCXA457_COMMON.h"
 #elif (defined(CPU_MCXA536VLL) || defined(CPU_MCXA536VLQ) || defined(CPU_MCXA536VPN))
 #include "MCXA536_COMMON.h"
 #elif (defined(CPU_MCXA537VLL) || defined(CPU_MCXA537VLQ) || defined(CPU_MCXA537VPN))
 #include "MCXA537_COMMON.h"
-#elif (defined(CPU_MCXA556VPN))
+#elif (defined(CPU_MCXA556BVPN) || defined(CPU_MCXA556VPN))
 #include "MCXA556_COMMON.h"
+#elif (defined(CPU_MCXA557BVPN) || defined(CPU_MCXA557VPN))
+#include "MCXA557_COMMON.h"
 #elif (defined(CPU_MCXA566VLL) || defined(CPU_MCXA566VLQ) || defined(CPU_MCXA566VPN))
 #include "MCXA566_COMMON.h"
 #elif (defined(CPU_MCXA567VLL) || defined(CPU_MCXA567VLQ) || defined(CPU_MCXA567VPN))
 #include "MCXA567_COMMON.h"
-#elif (defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
+#elif (defined(CPU_MCXA577VAPR) || defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
 #include "MCXA577_COMMON.h"
 #else
   #error "No valid CPU defined!"
@@ -289,23 +301,15 @@ typedef struct {
 
 #define SECCON_RAM_XEN_RAMX0_XEN_MASK            (0x1U)
 #define SECCON_RAM_XEN_RAMX0_XEN_SHIFT           (0U)
-/*! RAMX0_XEN - RAMX0-3 Execute permission control.
+/*! RAMX0_XEN - RAMX0 to RAMX3 Execute Permission Control.
  *  0b0..Execute permission is disabled, R/W are enabled.
  *  0b1..Execute permission is enabled, R/W/X are enabled.
  */
 #define SECCON_RAM_XEN_RAMX0_XEN(x)              (((uint32_t)(((uint32_t)(x)) << SECCON_RAM_XEN_RAMX0_XEN_SHIFT)) & SECCON_RAM_XEN_RAMX0_XEN_MASK)
 
-#define SECCON_RAM_XEN_RAMX1_XEN_MASK            (0x2U)
-#define SECCON_RAM_XEN_RAMX1_XEN_SHIFT           (1U)
-/*! RAMX1_XEN - RAMXn (excepts RAMA0-3) Execute permission control.
- *  0b0..Execute permission is disabled, R/W are enabled.
- *  0b1..Execute permission is enabled, R/W/X are enabled.
- */
-#define SECCON_RAM_XEN_RAMX1_XEN(x)              (((uint32_t)(((uint32_t)(x)) << SECCON_RAM_XEN_RAMX1_XEN_SHIFT)) & SECCON_RAM_XEN_RAMX1_XEN_MASK)
-
 #define SECCON_RAM_XEN_RAMA0_XEN_MASK            (0x4U)
 #define SECCON_RAM_XEN_RAMA0_XEN_SHIFT           (2U)
-/*! RAMA0_XEN - RAMA0 Execute permission control.
+/*! RAMA0_XEN - RAMA0 Execute Permission Control.
  *  0b0..Execute permission is disabled, R/W are enabled.
  *  0b1..Execute permission is enabled, R/W/X are enabled.
  */
@@ -313,7 +317,7 @@ typedef struct {
 
 #define SECCON_RAM_XEN_RAMA1_XEN_MASK            (0x8U)
 #define SECCON_RAM_XEN_RAMA1_XEN_SHIFT           (3U)
-/*! RAMA1_XEN - RAMAx (excepts RAMA0) Execute permission control.
+/*! RAMA1_XEN - RAMAx (excluding RAMA0) Execute Permission Control.
  *  0b0..Execute permission is disabled, R/W are enabled.
  *  0b1..Execute permission is enabled, R/W/X are enabled.
  */
@@ -321,7 +325,7 @@ typedef struct {
 
 #define SECCON_RAM_XEN_RAMB_XEN_MASK             (0x10U)
 #define SECCON_RAM_XEN_RAMB_XEN_SHIFT            (4U)
-/*! RAMB_XEN - RAMBx Execute permission control.
+/*! RAMB_XEN - RAMBx Execute Permission Control.
  *  0b0..Execute permission is disabled, R/W are enabled.
  *  0b1..Execute permission is enabled, R/W/X are enabled.
  */
@@ -344,11 +348,6 @@ typedef struct {
 #define SECCON_RAM_XEN_DP_RAMX0_XEN_SHIFT        (0U)
 /*! RAMX0_XEN - Refer to RAM_XEN for more details. */
 #define SECCON_RAM_XEN_DP_RAMX0_XEN(x)           (((uint32_t)(((uint32_t)(x)) << SECCON_RAM_XEN_DP_RAMX0_XEN_SHIFT)) & SECCON_RAM_XEN_DP_RAMX0_XEN_MASK)
-
-#define SECCON_RAM_XEN_DP_RAMX1_XEN_MASK         (0x2U)
-#define SECCON_RAM_XEN_DP_RAMX1_XEN_SHIFT        (1U)
-/*! RAMX1_XEN - Refer to RAM_XEN for more details. */
-#define SECCON_RAM_XEN_DP_RAMX1_XEN(x)           (((uint32_t)(((uint32_t)(x)) << SECCON_RAM_XEN_DP_RAMX1_XEN_SHIFT)) & SECCON_RAM_XEN_DP_RAMX1_XEN_MASK)
 
 #define SECCON_RAM_XEN_DP_RAMA0_XEN_MASK         (0x4U)
 #define SECCON_RAM_XEN_DP_RAMA0_XEN_SHIFT        (2U)

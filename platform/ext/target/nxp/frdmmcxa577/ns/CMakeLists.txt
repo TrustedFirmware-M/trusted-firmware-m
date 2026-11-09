@@ -17,6 +17,13 @@ target_compile_definitions(platform_ns
         TFM_LPUART_FEATURE=1
         ${HARDENING_COMPILE_DEFINITION}
 )
+if(USE_TFM_ROMAPI_FLASH_SERVICE)
+target_compile_definitions(platform_ns
+    PUBLIC
+        NXP_NS_STORAGE
+        MCUX_ROMAPI_TFM_INTERFACE
+)
+endif()
 
 target_sources(platform_ns
     PUBLIC
@@ -27,7 +34,6 @@ target_sources(platform_ns
         clock_config.c
         pin_mux.c
         Driver_LPUART.c
-        Driver_mflash.c
         Native_Driver/system_MCXA577.c
         Native_Driver/drivers/fsl_clock.c
         Native_Driver/drivers/fsl_reset.c
@@ -45,11 +51,10 @@ target_sources(platform_ns
         Native_Driver/utilities/debug_console_lite/fsl_debug_console.c
         Native_Driver/utilities/str/fsl_str.c
         Native_Driver/components/uart/fsl_adapter_lpuart.c
-        Native_Driver/components/flash/mflash/mflash_file.c
-        Native_Driver/components/flash/mflash/mcxa/mflash_drv.c
         $<$<BOOL:${TFM_PARTITION_PLATFORM}>:plat_test.c>
-)
+        $<$<BOOL:${USE_TFM_ROMAPI_FLASH_SERVICE}>:tfm_ioctl_ns_api.c>
 
+)
 
 target_include_directories(platform_ns
     PUBLIC
@@ -66,7 +71,7 @@ target_include_directories(platform_ns
         Native_Driver/drivers/romapi/nboot
         Native_Driver/drivers/romapi/runbootloader
         Native_Driver/drivers/romapi/flash
-        #Native_Driver/drivers/romapi/kbapi
+        Native_Driver/drivers/romapi/kbapi
         Native_Driver/drivers/crc
         Native_Driver/drivers/inputmux
         Native_Driver/drivers/trng
@@ -79,8 +84,6 @@ target_include_directories(platform_ns
         Native_Driver/drivers/port
         Native_Driver/periph4
         Native_Driver/components/uart
-        Native_Driver/components/flash/mflash
-        Native_Driver/components/flash/mflash/mcxa
         Native_Driver/utilities/debug_console_lite
         Native_Driver/utilities/str
         Native_Driver/utilities/assert
@@ -92,4 +95,12 @@ target_include_directories(platform_ns
 target_include_directories(platform_region_defs
     INTERFACE
         partition
+)
+
+# Include interface headers exported by TF-M
+target_include_directories(tfm_api_ns
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${INTERFACE_INC_DIR}
+        Native_Driver/drivers
 )

@@ -1,14 +1,20 @@
 /*
 ** ###################################################################
-**     Processors:          MCXA286VLL
+**     Processors:          MCXA286VAPR
+**                          MCXA286VASR
+**                          MCXA286VLL
 **                          MCXA286VLQ
 **                          MCXA286VPN
+**                          MCXA287VAPR
+**                          MCXA287VASR
 **                          MCXA287VLL
 **                          MCXA287VLQ
 **                          MCXA287VPN
+**                          MCXA456VASR
 **                          MCXA456VLL
 **                          MCXA456VLQ
 **                          MCXA456VPN
+**                          MCXA457VASR
 **                          MCXA457VLL
 **                          MCXA457VLQ
 **                          MCXA457VPN
@@ -18,25 +24,29 @@
 **                          MCXA537VLL
 **                          MCXA537VLQ
 **                          MCXA537VPN
+**                          MCXA556BVPN
 **                          MCXA556VPN
+**                          MCXA557BVPN
+**                          MCXA557VPN
 **                          MCXA566VLL
 **                          MCXA566VLQ
 **                          MCXA566VPN
 **                          MCXA567VLL
 **                          MCXA567VLQ
 **                          MCXA567VPN
+**                          MCXA577VAPR
 **                          MCXA577VLL
 **                          MCXA577VLQ
 **                          MCXA577VPN
 **
 **     Version:             rev. 2.0, 2024-10-29
-**     Build:               b251029
+**     Build:               b260904
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for CMC
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -64,25 +74,27 @@
 #if !defined(PERI_CMC_H_)
 #define PERI_CMC_H_                              /**< Symbol preventing repeated inclusion */
 
-#if (defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
+#if (defined(CPU_MCXA286VAPR) || defined(CPU_MCXA286VASR) || defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
 #include "MCXA286_COMMON.h"
-#elif (defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
+#elif (defined(CPU_MCXA287VAPR) || defined(CPU_MCXA287VASR) || defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
 #include "MCXA287_COMMON.h"
-#elif (defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
+#elif (defined(CPU_MCXA456VASR) || defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
 #include "MCXA456_COMMON.h"
-#elif (defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
+#elif (defined(CPU_MCXA457VASR) || defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
 #include "MCXA457_COMMON.h"
 #elif (defined(CPU_MCXA536VLL) || defined(CPU_MCXA536VLQ) || defined(CPU_MCXA536VPN))
 #include "MCXA536_COMMON.h"
 #elif (defined(CPU_MCXA537VLL) || defined(CPU_MCXA537VLQ) || defined(CPU_MCXA537VPN))
 #include "MCXA537_COMMON.h"
-#elif (defined(CPU_MCXA556VPN))
+#elif (defined(CPU_MCXA556BVPN) || defined(CPU_MCXA556VPN))
 #include "MCXA556_COMMON.h"
+#elif (defined(CPU_MCXA557BVPN) || defined(CPU_MCXA557VPN))
+#include "MCXA557_COMMON.h"
 #elif (defined(CPU_MCXA566VLL) || defined(CPU_MCXA566VLQ) || defined(CPU_MCXA566VPN))
 #include "MCXA566_COMMON.h"
 #elif (defined(CPU_MCXA567VLL) || defined(CPU_MCXA567VLQ) || defined(CPU_MCXA567VPN))
 #include "MCXA567_COMMON.h"
-#elif (defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
+#elif (defined(CPU_MCXA577VAPR) || defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
 #include "MCXA577_COMMON.h"
 #else
   #error "No valid CPU defined!"
@@ -153,9 +165,9 @@ typedef struct {
        uint8_t RESERVED_3[12];
   __IO uint32_t FM[CMC_FM_COUNT];                  /**< Force Mode, array offset: 0xB0, array step: 0x4 */
        uint8_t RESERVED_4[12];
-  __IO uint32_t SRAMDIS[CMC_SRAMDIS_COUNT];        /**< SRAM Shut Down Register, array offset: 0xC0, array step: 0x4 */
+  __IO uint32_t SRAMDIS[CMC_SRAMDIS_COUNT];        /**< SRAM Disable, array offset: 0xC0, array step: 0x4 */
        uint8_t RESERVED_5[12];
-  __IO uint32_t SRAMRET[CMC_SRAMRET_COUNT];        /**< SRAM Deep Sleep Register, array offset: 0xD0, array step: 0x4 */
+  __IO uint32_t SRAMRET[CMC_SRAMRET_COUNT];        /**< SRAM Retention, array offset: 0xD0, array step: 0x4 */
        uint8_t RESERVED_6[12];
   __IO uint32_t FLASHCR;                           /**< Flash Control, offset: 0xE0 */
        uint8_t RESERVED_7[28];
@@ -202,8 +214,6 @@ typedef struct {
 /*! CKMODE - Clocking Mode
  *  0b0000..Core clock is on
  *  0b0001..Core clock is off
- *  0b0011..Core and platform clocks are off
- *  0b0111..Core, platform, and peripheral clocks are off, but no change in Low-Power mode
  *  0b1111..Core, platform, and peripheral clocks are off, and core enters Low-Power mode
  */
 #define CMC_CKCTRL_CKMODE(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_CKCTRL_CKMODE_SHIFT)) & CMC_CKCTRL_CKMODE_MASK)
@@ -225,8 +235,6 @@ typedef struct {
 /*! CKMODE - Low Power Status
  *  0b0000..Core clock is on
  *  0b0001..Core clock is off
- *  0b0011..Core and platform clocks are off
- *  0b0111..Core, platform, and peripheral clocks are off, but no change in Low-Power mode
  *  0b1111..Core, platform, and peripheral clocks are off, and core enters Low-Power mode
  */
 #define CMC_CKSTAT_CKMODE(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_CKSTAT_CKMODE_SHIFT)) & CMC_CKSTAT_CKMODE_MASK)
@@ -294,10 +302,10 @@ typedef struct {
 #define CMC_PMCTRL_LPMODE_MASK                   (0xFU)
 #define CMC_PMCTRL_LPMODE_SHIFT                  (0U)
 /*! LPMODE - Low-Power Mode
- *  0b0000..Active
- *  0b0001..Sleep
- *  0b0011..Deep Sleep
- *  0b0111..Power Down
+ *  0b0000..Active/Sleep
+ *  0b0001..Deep Sleep
+ *  0b0011..Power Down
+ *  0b0111..Reserved
  *  0b1111..Deep-Power Down
  */
 #define CMC_PMCTRL_LPMODE(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_PMCTRL_LPMODE_SHIFT)) & CMC_PMCTRL_LPMODE_MASK)
@@ -322,21 +330,13 @@ typedef struct {
  */
 #define CMC_SRS_POR(x)                           (((uint32_t)(((uint32_t)(x)) << CMC_SRS_POR_SHIFT)) & CMC_SRS_POR_MASK)
 
-#define CMC_SRS_LVD_MASK                         (0x4U)
-#define CMC_SRS_LVD_SHIFT                        (2U)
-/*! LVD - Low Voltage Detect Reset
+#define CMC_SRS_VD_MASK                          (0x4U)
+#define CMC_SRS_VD_SHIFT                         (2U)
+/*! VD - Voltage Detect Reset
  *  0b0..Reset not generated
  *  0b1..Reset generated
  */
-#define CMC_SRS_LVD(x)                           (((uint32_t)(((uint32_t)(x)) << CMC_SRS_LVD_SHIFT)) & CMC_SRS_LVD_MASK)
-
-#define CMC_SRS_HVD_MASK                         (0x8U)
-#define CMC_SRS_HVD_SHIFT                        (3U)
-/*! HVD - High Voltage Detect Reset
- *  0b0..Reset not generated
- *  0b1..Reset generated
- */
-#define CMC_SRS_HVD(x)                           (((uint32_t)(((uint32_t)(x)) << CMC_SRS_HVD_SHIFT)) & CMC_SRS_HVD_MASK)
+#define CMC_SRS_VD(x)                            (((uint32_t)(((uint32_t)(x)) << CMC_SRS_VD_SHIFT)) & CMC_SRS_VD_MASK)
 
 #define CMC_SRS_WARM_MASK                        (0x10U)
 #define CMC_SRS_WARM_SHIFT                       (4U)
@@ -394,13 +394,13 @@ typedef struct {
  */
 #define CMC_SRS_SCG(x)                           (((uint32_t)(((uint32_t)(x)) << CMC_SRS_SCG_SHIFT)) & CMC_SRS_SCG_MASK)
 
-#define CMC_SRS_WDOG0_MASK                       (0x2000U)
-#define CMC_SRS_WDOG0_SHIFT                      (13U)
-/*! WDOG0 - Watchdog 0 Reset
+#define CMC_SRS_WWDT0_MASK                       (0x2000U)
+#define CMC_SRS_WWDT0_SHIFT                      (13U)
+/*! WWDT0 - Windowed Watchdog 0 Reset
  *  0b0..Reset is not generated
  *  0b1..Reset is generated
  */
-#define CMC_SRS_WDOG0(x)                         (((uint32_t)(((uint32_t)(x)) << CMC_SRS_WDOG0_SHIFT)) & CMC_SRS_WDOG0_MASK)
+#define CMC_SRS_WWDT0(x)                         (((uint32_t)(((uint32_t)(x)) << CMC_SRS_WWDT0_SHIFT)) & CMC_SRS_WWDT0_MASK)
 
 #define CMC_SRS_SW_MASK                          (0x4000U)
 #define CMC_SRS_SW_SHIFT                         (14U)
@@ -418,13 +418,13 @@ typedef struct {
  */
 #define CMC_SRS_LOCKUP(x)                        (((uint32_t)(((uint32_t)(x)) << CMC_SRS_LOCKUP_SHIFT)) & CMC_SRS_LOCKUP_MASK)
 
-#define CMC_SRS_WDOG1_MASK                       (0x2000000U)
-#define CMC_SRS_WDOG1_SHIFT                      (25U)
-/*! WDOG1 - Watchdog 1 Reset
+#define CMC_SRS_WWDT1_MASK                       (0x2000000U)
+#define CMC_SRS_WWDT1_SHIFT                      (25U)
+/*! WWDT1 - Windowed Watchdog 1 Reset
  *  0b0..Reset is not generated
  *  0b1..Reset is generated
  */
-#define CMC_SRS_WDOG1(x)                         (((uint32_t)(((uint32_t)(x)) << CMC_SRS_WDOG1_SHIFT)) & CMC_SRS_WDOG1_MASK)
+#define CMC_SRS_WWDT1(x)                         (((uint32_t)(((uint32_t)(x)) << CMC_SRS_WWDT1_SHIFT)) & CMC_SRS_WWDT1_MASK)
 
 #define CMC_SRS_CDOG0_MASK                       (0x4000000U)
 #define CMC_SRS_CDOG0_SHIFT                      (26U)
@@ -511,21 +511,13 @@ typedef struct {
  */
 #define CMC_SSRS_POR(x)                          (((uint32_t)(((uint32_t)(x)) << CMC_SSRS_POR_SHIFT)) & CMC_SSRS_POR_MASK)
 
-#define CMC_SSRS_LVD_MASK                        (0x4U)
-#define CMC_SSRS_LVD_SHIFT                       (2U)
-/*! LVD - Low Voltage Detect Reset
+#define CMC_SSRS_VD_MASK                         (0x4U)
+#define CMC_SSRS_VD_SHIFT                        (2U)
+/*! VD - Voltage Detect Reset
  *  0b0..Reset not generated
  *  0b1..Reset generated
  */
-#define CMC_SSRS_LVD(x)                          (((uint32_t)(((uint32_t)(x)) << CMC_SSRS_LVD_SHIFT)) & CMC_SSRS_LVD_MASK)
-
-#define CMC_SSRS_HVD_MASK                        (0x8U)
-#define CMC_SSRS_HVD_SHIFT                       (3U)
-/*! HVD - High Voltage Detect Reset
- *  0b0..Reset not generated
- *  0b1..Reset generated
- */
-#define CMC_SSRS_HVD(x)                          (((uint32_t)(((uint32_t)(x)) << CMC_SSRS_HVD_SHIFT)) & CMC_SSRS_HVD_MASK)
+#define CMC_SSRS_VD(x)                           (((uint32_t)(((uint32_t)(x)) << CMC_SSRS_VD_SHIFT)) & CMC_SSRS_VD_MASK)
 
 #define CMC_SSRS_WARM_MASK                       (0x10U)
 #define CMC_SSRS_WARM_SHIFT                      (4U)
@@ -583,13 +575,13 @@ typedef struct {
  */
 #define CMC_SSRS_SCG(x)                          (((uint32_t)(((uint32_t)(x)) << CMC_SSRS_SCG_SHIFT)) & CMC_SSRS_SCG_MASK)
 
-#define CMC_SSRS_WDOG0_MASK                      (0x2000U)
-#define CMC_SSRS_WDOG0_SHIFT                     (13U)
-/*! WDOG0 - Watchdog 0 Reset
+#define CMC_SSRS_WWDT0_MASK                      (0x2000U)
+#define CMC_SSRS_WWDT0_SHIFT                     (13U)
+/*! WWDT0 - Windowed Watchdog 0 Reset
  *  0b0..Reset is not generated
  *  0b1..Reset is generated
  */
-#define CMC_SSRS_WDOG0(x)                        (((uint32_t)(((uint32_t)(x)) << CMC_SSRS_WDOG0_SHIFT)) & CMC_SSRS_WDOG0_MASK)
+#define CMC_SSRS_WWDT0(x)                        (((uint32_t)(((uint32_t)(x)) << CMC_SSRS_WWDT0_SHIFT)) & CMC_SSRS_WWDT0_MASK)
 
 #define CMC_SSRS_SW_MASK                         (0x4000U)
 #define CMC_SSRS_SW_SHIFT                        (14U)
@@ -607,13 +599,13 @@ typedef struct {
  */
 #define CMC_SSRS_LOCKUP(x)                       (((uint32_t)(((uint32_t)(x)) << CMC_SSRS_LOCKUP_SHIFT)) & CMC_SSRS_LOCKUP_MASK)
 
-#define CMC_SSRS_WDOG1_MASK                      (0x2000000U)
-#define CMC_SSRS_WDOG1_SHIFT                     (25U)
-/*! WDOG1 - Watchdog 1 Reset
+#define CMC_SSRS_WWDT1_MASK                      (0x2000000U)
+#define CMC_SSRS_WWDT1_SHIFT                     (25U)
+/*! WWDT1 - Windowed Watchdog 1 Reset
  *  0b0..Reset is not generated
  *  0b1..Reset is generated
  */
-#define CMC_SSRS_WDOG1(x)                        (((uint32_t)(((uint32_t)(x)) << CMC_SSRS_WDOG1_SHIFT)) & CMC_SSRS_WDOG1_MASK)
+#define CMC_SSRS_WWDT1(x)                        (((uint32_t)(((uint32_t)(x)) << CMC_SSRS_WWDT1_SHIFT)) & CMC_SSRS_WWDT1_MASK)
 
 #define CMC_SSRS_CDOG0_MASK                      (0x4000000U)
 #define CMC_SSRS_CDOG0_SHIFT                     (26U)
@@ -691,13 +683,13 @@ typedef struct {
  */
 #define CMC_SRIE_SCG(x)                          (((uint32_t)(((uint32_t)(x)) << CMC_SRIE_SCG_SHIFT)) & CMC_SRIE_SCG_MASK)
 
-#define CMC_SRIE_WDOG0_MASK                      (0x2000U)
-#define CMC_SRIE_WDOG0_SHIFT                     (13U)
-/*! WDOG0 - Watchdog 0 Reset
+#define CMC_SRIE_WWDT0_MASK                      (0x2000U)
+#define CMC_SRIE_WWDT0_SHIFT                     (13U)
+/*! WWDT0 - Windowed Watchdog 0 Reset
  *  0b0..Interrupt disabled
  *  0b1..Interrupt enabled
  */
-#define CMC_SRIE_WDOG0(x)                        (((uint32_t)(((uint32_t)(x)) << CMC_SRIE_WDOG0_SHIFT)) & CMC_SRIE_WDOG0_MASK)
+#define CMC_SRIE_WWDT0(x)                        (((uint32_t)(((uint32_t)(x)) << CMC_SRIE_WWDT0_SHIFT)) & CMC_SRIE_WWDT0_MASK)
 
 #define CMC_SRIE_SW_MASK                         (0x4000U)
 #define CMC_SRIE_SW_SHIFT                        (14U)
@@ -715,13 +707,13 @@ typedef struct {
  */
 #define CMC_SRIE_LOCKUP(x)                       (((uint32_t)(((uint32_t)(x)) << CMC_SRIE_LOCKUP_SHIFT)) & CMC_SRIE_LOCKUP_MASK)
 
-#define CMC_SRIE_WDOG1_MASK                      (0x2000000U)
-#define CMC_SRIE_WDOG1_SHIFT                     (25U)
-/*! WDOG1 - Watchdog 1 Reset
+#define CMC_SRIE_WWDT1_MASK                      (0x2000000U)
+#define CMC_SRIE_WWDT1_SHIFT                     (25U)
+/*! WWDT1 - Windowed Watchdog 1 Reset
  *  0b0..Interrupt disabled
  *  0b1..Interrupt enabled
  */
-#define CMC_SRIE_WDOG1(x)                        (((uint32_t)(((uint32_t)(x)) << CMC_SRIE_WDOG1_SHIFT)) & CMC_SRIE_WDOG1_MASK)
+#define CMC_SRIE_WWDT1(x)                        (((uint32_t)(((uint32_t)(x)) << CMC_SRIE_WWDT1_SHIFT)) & CMC_SRIE_WWDT1_MASK)
 
 #define CMC_SRIE_CDOG0_MASK                      (0x4000000U)
 #define CMC_SRIE_CDOG0_SHIFT                     (26U)
@@ -767,13 +759,13 @@ typedef struct {
  */
 #define CMC_SRIF_LPACK(x)                        (((uint32_t)(((uint32_t)(x)) << CMC_SRIF_LPACK_SHIFT)) & CMC_SRIF_LPACK_MASK)
 
-#define CMC_SRIF_WDOG0_MASK                      (0x2000U)
-#define CMC_SRIF_WDOG0_SHIFT                     (13U)
-/*! WDOG0 - Watchdog 0 Reset
+#define CMC_SRIF_WWDT0_MASK                      (0x2000U)
+#define CMC_SRIF_WWDT0_SHIFT                     (13U)
+/*! WWDT0 - Windowed Watchdog 0 Reset
  *  0b0..Reset source not pending
  *  0b1..Reset source pending
  */
-#define CMC_SRIF_WDOG0(x)                        (((uint32_t)(((uint32_t)(x)) << CMC_SRIF_WDOG0_SHIFT)) & CMC_SRIF_WDOG0_MASK)
+#define CMC_SRIF_WWDT0(x)                        (((uint32_t)(((uint32_t)(x)) << CMC_SRIF_WWDT0_SHIFT)) & CMC_SRIF_WWDT0_MASK)
 
 #define CMC_SRIF_SW_MASK                         (0x4000U)
 #define CMC_SRIF_SW_SHIFT                        (14U)
@@ -791,13 +783,13 @@ typedef struct {
  */
 #define CMC_SRIF_LOCKUP(x)                       (((uint32_t)(((uint32_t)(x)) << CMC_SRIF_LOCKUP_SHIFT)) & CMC_SRIF_LOCKUP_MASK)
 
-#define CMC_SRIF_WDOG1_MASK                      (0x2000000U)
-#define CMC_SRIF_WDOG1_SHIFT                     (25U)
-/*! WDOG1 - Watchdog 1 Reset
+#define CMC_SRIF_WWDT1_MASK                      (0x2000000U)
+#define CMC_SRIF_WWDT1_SHIFT                     (25U)
+/*! WWDT1 - Windowed Watchdog 1 Reset
  *  0b0..Reset source not pending
  *  0b1..Reset source pending
  */
-#define CMC_SRIF_WDOG1(x)                        (((uint32_t)(((uint32_t)(x)) << CMC_SRIF_WDOG1_SHIFT)) & CMC_SRIF_WDOG1_MASK)
+#define CMC_SRIF_WWDT1(x)                        (((uint32_t)(((uint32_t)(x)) << CMC_SRIF_WWDT1_SHIFT)) & CMC_SRIF_WWDT1_MASK)
 
 #define CMC_SRIF_CDOG0_MASK                      (0x4000000U)
 #define CMC_SRIF_CDOG0_SHIFT                     (26U)
@@ -821,7 +813,7 @@ typedef struct {
 
 #define CMC_MR_ISPMODE_n_MASK                    (0x1U)
 #define CMC_MR_ISPMODE_n_SHIFT                   (0U)
-/*! ISPMODE_n - Boot Configuration */
+/*! ISPMODE_n - In System Programming Mode */
 #define CMC_MR_ISPMODE_n(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_MR_ISPMODE_n_SHIFT)) & CMC_MR_ISPMODE_n_MASK)
 /*! @} */
 
@@ -837,331 +829,523 @@ typedef struct {
 #define CMC_FM_FORCECFG(x)                       (((uint32_t)(((uint32_t)(x)) << CMC_FM_FORCECFG_SHIFT)) & CMC_FM_FORCECFG_MASK)
 /*! @} */
 
-/*! @name SRAMDIS - SRAM Shut Down Register */
+/*! @name SRAMDIS - SRAM Disable */
 /*! @{ */
 
 #define CMC_SRAMDIS_DIS0_MASK                    (0x1U)
 #define CMC_SRAMDIS_DIS0_SHIFT                   (0U)
-/*! DIS0 - Shut Down Enable */
+/*! DIS0 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS0(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS0_SHIFT)) & CMC_SRAMDIS_DIS0_MASK)
 
 #define CMC_SRAMDIS_DIS1_MASK                    (0x2U)
 #define CMC_SRAMDIS_DIS1_SHIFT                   (1U)
-/*! DIS1 - Shut Down Enable */
+/*! DIS1 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS1(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS1_SHIFT)) & CMC_SRAMDIS_DIS1_MASK)
 
 #define CMC_SRAMDIS_DIS2_MASK                    (0x4U)
 #define CMC_SRAMDIS_DIS2_SHIFT                   (2U)
-/*! DIS2 - Shut Down Enable */
+/*! DIS2 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS2(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS2_SHIFT)) & CMC_SRAMDIS_DIS2_MASK)
 
 #define CMC_SRAMDIS_DIS3_MASK                    (0x8U)
 #define CMC_SRAMDIS_DIS3_SHIFT                   (3U)
-/*! DIS3 - Shut Down Enable */
+/*! DIS3 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS3(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS3_SHIFT)) & CMC_SRAMDIS_DIS3_MASK)
 
 #define CMC_SRAMDIS_DIS4_MASK                    (0x10U)
 #define CMC_SRAMDIS_DIS4_SHIFT                   (4U)
-/*! DIS4 - Shut Down Enable */
+/*! DIS4 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS4(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS4_SHIFT)) & CMC_SRAMDIS_DIS4_MASK)
 
 #define CMC_SRAMDIS_DIS5_MASK                    (0x20U)
 #define CMC_SRAMDIS_DIS5_SHIFT                   (5U)
-/*! DIS5 - Shut Down Enable */
+/*! DIS5 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS5(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS5_SHIFT)) & CMC_SRAMDIS_DIS5_MASK)
 
 #define CMC_SRAMDIS_DIS6_MASK                    (0x40U)
 #define CMC_SRAMDIS_DIS6_SHIFT                   (6U)
-/*! DIS6 - Shut Down Enable */
+/*! DIS6 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS6(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS6_SHIFT)) & CMC_SRAMDIS_DIS6_MASK)
 
 #define CMC_SRAMDIS_DIS7_MASK                    (0x80U)
 #define CMC_SRAMDIS_DIS7_SHIFT                   (7U)
-/*! DIS7 - Shut Down Enable */
+/*! DIS7 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS7(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS7_SHIFT)) & CMC_SRAMDIS_DIS7_MASK)
 
 #define CMC_SRAMDIS_DIS8_MASK                    (0x100U)
 #define CMC_SRAMDIS_DIS8_SHIFT                   (8U)
-/*! DIS8 - Shut Down Enable */
+/*! DIS8 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS8(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS8_SHIFT)) & CMC_SRAMDIS_DIS8_MASK)
 
 #define CMC_SRAMDIS_DIS9_MASK                    (0x200U)
 #define CMC_SRAMDIS_DIS9_SHIFT                   (9U)
-/*! DIS9 - Shut Down Enable */
+/*! DIS9 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS9(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS9_SHIFT)) & CMC_SRAMDIS_DIS9_MASK)
 
 #define CMC_SRAMDIS_DIS10_MASK                   (0x400U)
 #define CMC_SRAMDIS_DIS10_SHIFT                  (10U)
-/*! DIS10 - Shut Down Enable */
+/*! DIS10 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS10(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS10_SHIFT)) & CMC_SRAMDIS_DIS10_MASK)
 
 #define CMC_SRAMDIS_DIS11_MASK                   (0x800U)
 #define CMC_SRAMDIS_DIS11_SHIFT                  (11U)
-/*! DIS11 - Shut Down Enable */
+/*! DIS11 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS11(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS11_SHIFT)) & CMC_SRAMDIS_DIS11_MASK)
 
 #define CMC_SRAMDIS_DIS12_MASK                   (0x1000U)
 #define CMC_SRAMDIS_DIS12_SHIFT                  (12U)
-/*! DIS12 - Shut Down Enable */
+/*! DIS12 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS12(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS12_SHIFT)) & CMC_SRAMDIS_DIS12_MASK)
 
 #define CMC_SRAMDIS_DIS13_MASK                   (0x2000U)
 #define CMC_SRAMDIS_DIS13_SHIFT                  (13U)
-/*! DIS13 - Shut Down Enable */
+/*! DIS13 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS13(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS13_SHIFT)) & CMC_SRAMDIS_DIS13_MASK)
 
 #define CMC_SRAMDIS_DIS14_MASK                   (0x4000U)
 #define CMC_SRAMDIS_DIS14_SHIFT                  (14U)
-/*! DIS14 - Shut Down Enable */
+/*! DIS14 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS14(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS14_SHIFT)) & CMC_SRAMDIS_DIS14_MASK)
 
 #define CMC_SRAMDIS_DIS15_MASK                   (0x8000U)
 #define CMC_SRAMDIS_DIS15_SHIFT                  (15U)
-/*! DIS15 - Shut Down Enable */
+/*! DIS15 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS15(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS15_SHIFT)) & CMC_SRAMDIS_DIS15_MASK)
 
 #define CMC_SRAMDIS_DIS16_MASK                   (0x10000U)
 #define CMC_SRAMDIS_DIS16_SHIFT                  (16U)
-/*! DIS16 - Shut Down Enable */
+/*! DIS16 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS16(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS16_SHIFT)) & CMC_SRAMDIS_DIS16_MASK)
 
 #define CMC_SRAMDIS_DIS17_MASK                   (0x20000U)
 #define CMC_SRAMDIS_DIS17_SHIFT                  (17U)
-/*! DIS17 - Shut Down Enable */
+/*! DIS17 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS17(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS17_SHIFT)) & CMC_SRAMDIS_DIS17_MASK)
 
 #define CMC_SRAMDIS_DIS18_MASK                   (0x40000U)
 #define CMC_SRAMDIS_DIS18_SHIFT                  (18U)
-/*! DIS18 - Shut Down Enable */
+/*! DIS18 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS18(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS18_SHIFT)) & CMC_SRAMDIS_DIS18_MASK)
 
 #define CMC_SRAMDIS_DIS19_MASK                   (0x80000U)
 #define CMC_SRAMDIS_DIS19_SHIFT                  (19U)
-/*! DIS19 - Shut Down Enable */
+/*! DIS19 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS19(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS19_SHIFT)) & CMC_SRAMDIS_DIS19_MASK)
 
 #define CMC_SRAMDIS_DIS20_MASK                   (0x100000U)
 #define CMC_SRAMDIS_DIS20_SHIFT                  (20U)
-/*! DIS20 - Shut Down Enable */
+/*! DIS20 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS20(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS20_SHIFT)) & CMC_SRAMDIS_DIS20_MASK)
 
 #define CMC_SRAMDIS_DIS21_MASK                   (0x200000U)
 #define CMC_SRAMDIS_DIS21_SHIFT                  (21U)
-/*! DIS21 - Shut Down Enable */
+/*! DIS21 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS21(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS21_SHIFT)) & CMC_SRAMDIS_DIS21_MASK)
 
 #define CMC_SRAMDIS_DIS22_MASK                   (0x400000U)
 #define CMC_SRAMDIS_DIS22_SHIFT                  (22U)
-/*! DIS22 - Shut Down Enable */
+/*! DIS22 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS22(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS22_SHIFT)) & CMC_SRAMDIS_DIS22_MASK)
 
 #define CMC_SRAMDIS_DIS23_MASK                   (0x800000U)
 #define CMC_SRAMDIS_DIS23_SHIFT                  (23U)
-/*! DIS23 - Shut Down Enable */
+/*! DIS23 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS23(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS23_SHIFT)) & CMC_SRAMDIS_DIS23_MASK)
 
 #define CMC_SRAMDIS_DIS24_MASK                   (0x1000000U)
 #define CMC_SRAMDIS_DIS24_SHIFT                  (24U)
-/*! DIS24 - Shut Down Enable */
+/*! DIS24 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS24(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS24_SHIFT)) & CMC_SRAMDIS_DIS24_MASK)
 
 #define CMC_SRAMDIS_DIS25_MASK                   (0x2000000U)
 #define CMC_SRAMDIS_DIS25_SHIFT                  (25U)
-/*! DIS25 - Shut Down Enable */
+/*! DIS25 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS25(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS25_SHIFT)) & CMC_SRAMDIS_DIS25_MASK)
 
 #define CMC_SRAMDIS_DIS26_MASK                   (0x4000000U)
 #define CMC_SRAMDIS_DIS26_SHIFT                  (26U)
-/*! DIS26 - Shut Down Enable */
+/*! DIS26 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS26(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS26_SHIFT)) & CMC_SRAMDIS_DIS26_MASK)
 
 #define CMC_SRAMDIS_DIS27_MASK                   (0x8000000U)
 #define CMC_SRAMDIS_DIS27_SHIFT                  (27U)
-/*! DIS27 - Shut Down Enable */
+/*! DIS27 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS27(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS27_SHIFT)) & CMC_SRAMDIS_DIS27_MASK)
 
 #define CMC_SRAMDIS_DIS28_MASK                   (0x10000000U)
 #define CMC_SRAMDIS_DIS28_SHIFT                  (28U)
-/*! DIS28 - Shut Down Enable */
+/*! DIS28 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS28(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS28_SHIFT)) & CMC_SRAMDIS_DIS28_MASK)
 
 #define CMC_SRAMDIS_DIS29_MASK                   (0x20000000U)
 #define CMC_SRAMDIS_DIS29_SHIFT                  (29U)
-/*! DIS29 - Shut Down Enable */
+/*! DIS29 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS29(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS29_SHIFT)) & CMC_SRAMDIS_DIS29_MASK)
 
 #define CMC_SRAMDIS_DIS30_MASK                   (0x40000000U)
 #define CMC_SRAMDIS_DIS30_SHIFT                  (30U)
-/*! DIS30 - Shut Down Enable */
+/*! DIS30 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS30(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS30_SHIFT)) & CMC_SRAMDIS_DIS30_MASK)
 
 #define CMC_SRAMDIS_DIS31_MASK                   (0x80000000U)
 #define CMC_SRAMDIS_DIS31_SHIFT                  (31U)
-/*! DIS31 - Shut Down Enable */
+/*! DIS31 - SRAM Disable
+ *  0b0..Enables
+ *  0b1..Disables
+ */
 #define CMC_SRAMDIS_DIS31(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS31_SHIFT)) & CMC_SRAMDIS_DIS31_MASK)
 /*! @} */
 
-/*! @name SRAMRET - SRAM Deep Sleep Register */
+/*! @name SRAMRET - SRAM Retention */
 /*! @{ */
 
 #define CMC_SRAMRET_RET0_MASK                    (0x1U)
 #define CMC_SRAMRET_RET0_SHIFT                   (0U)
-/*! RET0 - Deep Sleep Enable */
+/*! RET0 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET0(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET0_SHIFT)) & CMC_SRAMRET_RET0_MASK)
 
 #define CMC_SRAMRET_RET1_MASK                    (0x2U)
 #define CMC_SRAMRET_RET1_SHIFT                   (1U)
-/*! RET1 - Deep Sleep Enable */
+/*! RET1 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET1(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET1_SHIFT)) & CMC_SRAMRET_RET1_MASK)
 
 #define CMC_SRAMRET_RET2_MASK                    (0x4U)
 #define CMC_SRAMRET_RET2_SHIFT                   (2U)
-/*! RET2 - Deep Sleep Enable */
+/*! RET2 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET2(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET2_SHIFT)) & CMC_SRAMRET_RET2_MASK)
 
 #define CMC_SRAMRET_RET3_MASK                    (0x8U)
 #define CMC_SRAMRET_RET3_SHIFT                   (3U)
-/*! RET3 - Deep Sleep Enable */
+/*! RET3 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET3(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET3_SHIFT)) & CMC_SRAMRET_RET3_MASK)
 
 #define CMC_SRAMRET_RET4_MASK                    (0x10U)
 #define CMC_SRAMRET_RET4_SHIFT                   (4U)
-/*! RET4 - Deep Sleep Enable */
+/*! RET4 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET4(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET4_SHIFT)) & CMC_SRAMRET_RET4_MASK)
 
 #define CMC_SRAMRET_RET5_MASK                    (0x20U)
 #define CMC_SRAMRET_RET5_SHIFT                   (5U)
-/*! RET5 - Deep Sleep Enable */
+/*! RET5 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET5(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET5_SHIFT)) & CMC_SRAMRET_RET5_MASK)
 
 #define CMC_SRAMRET_RET6_MASK                    (0x40U)
 #define CMC_SRAMRET_RET6_SHIFT                   (6U)
-/*! RET6 - Deep Sleep Enable */
+/*! RET6 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET6(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET6_SHIFT)) & CMC_SRAMRET_RET6_MASK)
 
 #define CMC_SRAMRET_RET7_MASK                    (0x80U)
 #define CMC_SRAMRET_RET7_SHIFT                   (7U)
-/*! RET7 - Deep Sleep Enable */
+/*! RET7 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET7(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET7_SHIFT)) & CMC_SRAMRET_RET7_MASK)
 
 #define CMC_SRAMRET_RET8_MASK                    (0x100U)
 #define CMC_SRAMRET_RET8_SHIFT                   (8U)
-/*! RET8 - Deep Sleep Enable */
+/*! RET8 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET8(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET8_SHIFT)) & CMC_SRAMRET_RET8_MASK)
 
 #define CMC_SRAMRET_RET9_MASK                    (0x200U)
 #define CMC_SRAMRET_RET9_SHIFT                   (9U)
-/*! RET9 - Deep Sleep Enable */
+/*! RET9 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET9(x)                      (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET9_SHIFT)) & CMC_SRAMRET_RET9_MASK)
 
 #define CMC_SRAMRET_RET10_MASK                   (0x400U)
 #define CMC_SRAMRET_RET10_SHIFT                  (10U)
-/*! RET10 - Deep Sleep Enable */
+/*! RET10 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET10(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET10_SHIFT)) & CMC_SRAMRET_RET10_MASK)
 
 #define CMC_SRAMRET_RET11_MASK                   (0x800U)
 #define CMC_SRAMRET_RET11_SHIFT                  (11U)
-/*! RET11 - Deep Sleep Enable */
+/*! RET11 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET11(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET11_SHIFT)) & CMC_SRAMRET_RET11_MASK)
 
 #define CMC_SRAMRET_RET12_MASK                   (0x1000U)
 #define CMC_SRAMRET_RET12_SHIFT                  (12U)
-/*! RET12 - Deep Sleep Enable */
+/*! RET12 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET12(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET12_SHIFT)) & CMC_SRAMRET_RET12_MASK)
 
 #define CMC_SRAMRET_RET13_MASK                   (0x2000U)
 #define CMC_SRAMRET_RET13_SHIFT                  (13U)
-/*! RET13 - Deep Sleep Enable */
+/*! RET13 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET13(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET13_SHIFT)) & CMC_SRAMRET_RET13_MASK)
 
 #define CMC_SRAMRET_RET14_MASK                   (0x4000U)
 #define CMC_SRAMRET_RET14_SHIFT                  (14U)
-/*! RET14 - Deep Sleep Enable */
+/*! RET14 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET14(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET14_SHIFT)) & CMC_SRAMRET_RET14_MASK)
 
 #define CMC_SRAMRET_RET15_MASK                   (0x8000U)
 #define CMC_SRAMRET_RET15_SHIFT                  (15U)
-/*! RET15 - Deep Sleep Enable */
+/*! RET15 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET15(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET15_SHIFT)) & CMC_SRAMRET_RET15_MASK)
 
 #define CMC_SRAMRET_RET16_MASK                   (0x10000U)
 #define CMC_SRAMRET_RET16_SHIFT                  (16U)
-/*! RET16 - Deep Sleep Enable */
+/*! RET16 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET16(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET16_SHIFT)) & CMC_SRAMRET_RET16_MASK)
 
 #define CMC_SRAMRET_RET17_MASK                   (0x20000U)
 #define CMC_SRAMRET_RET17_SHIFT                  (17U)
-/*! RET17 - Deep Sleep Enable */
+/*! RET17 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET17(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET17_SHIFT)) & CMC_SRAMRET_RET17_MASK)
 
 #define CMC_SRAMRET_RET18_MASK                   (0x40000U)
 #define CMC_SRAMRET_RET18_SHIFT                  (18U)
-/*! RET18 - Deep Sleep Enable */
+/*! RET18 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET18(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET18_SHIFT)) & CMC_SRAMRET_RET18_MASK)
 
 #define CMC_SRAMRET_RET19_MASK                   (0x80000U)
 #define CMC_SRAMRET_RET19_SHIFT                  (19U)
-/*! RET19 - Deep Sleep Enable */
+/*! RET19 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET19(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET19_SHIFT)) & CMC_SRAMRET_RET19_MASK)
 
 #define CMC_SRAMRET_RET20_MASK                   (0x100000U)
 #define CMC_SRAMRET_RET20_SHIFT                  (20U)
-/*! RET20 - Deep Sleep Enable */
+/*! RET20 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET20(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET20_SHIFT)) & CMC_SRAMRET_RET20_MASK)
 
 #define CMC_SRAMRET_RET21_MASK                   (0x200000U)
 #define CMC_SRAMRET_RET21_SHIFT                  (21U)
-/*! RET21 - Deep Sleep Enable */
+/*! RET21 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET21(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET21_SHIFT)) & CMC_SRAMRET_RET21_MASK)
 
 #define CMC_SRAMRET_RET22_MASK                   (0x400000U)
 #define CMC_SRAMRET_RET22_SHIFT                  (22U)
-/*! RET22 - Deep Sleep Enable */
+/*! RET22 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET22(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET22_SHIFT)) & CMC_SRAMRET_RET22_MASK)
 
 #define CMC_SRAMRET_RET23_MASK                   (0x800000U)
 #define CMC_SRAMRET_RET23_SHIFT                  (23U)
-/*! RET23 - Deep Sleep Enable */
+/*! RET23 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET23(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET23_SHIFT)) & CMC_SRAMRET_RET23_MASK)
 
 #define CMC_SRAMRET_RET24_MASK                   (0x1000000U)
 #define CMC_SRAMRET_RET24_SHIFT                  (24U)
-/*! RET24 - Deep Sleep Enable */
+/*! RET24 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET24(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET24_SHIFT)) & CMC_SRAMRET_RET24_MASK)
 
 #define CMC_SRAMRET_RET25_MASK                   (0x2000000U)
 #define CMC_SRAMRET_RET25_SHIFT                  (25U)
-/*! RET25 - Deep Sleep Enable */
+/*! RET25 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET25(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET25_SHIFT)) & CMC_SRAMRET_RET25_MASK)
 
 #define CMC_SRAMRET_RET26_MASK                   (0x4000000U)
 #define CMC_SRAMRET_RET26_SHIFT                  (26U)
-/*! RET26 - Deep Sleep Enable */
+/*! RET26 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET26(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET26_SHIFT)) & CMC_SRAMRET_RET26_MASK)
 
 #define CMC_SRAMRET_RET27_MASK                   (0x8000000U)
 #define CMC_SRAMRET_RET27_SHIFT                  (27U)
-/*! RET27 - Deep Sleep Enable */
+/*! RET27 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET27(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET27_SHIFT)) & CMC_SRAMRET_RET27_MASK)
 
 #define CMC_SRAMRET_RET28_MASK                   (0x10000000U)
 #define CMC_SRAMRET_RET28_SHIFT                  (28U)
-/*! RET28 - Deep Sleep Enable */
+/*! RET28 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET28(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET28_SHIFT)) & CMC_SRAMRET_RET28_MASK)
 
 #define CMC_SRAMRET_RET29_MASK                   (0x20000000U)
 #define CMC_SRAMRET_RET29_SHIFT                  (29U)
-/*! RET29 - Deep Sleep Enable */
+/*! RET29 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET29(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET29_SHIFT)) & CMC_SRAMRET_RET29_MASK)
 
 #define CMC_SRAMRET_RET30_MASK                   (0x40000000U)
 #define CMC_SRAMRET_RET30_SHIFT                  (30U)
-/*! RET30 - Deep Sleep Enable */
+/*! RET30 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET30(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET30_SHIFT)) & CMC_SRAMRET_RET30_MASK)
 
 #define CMC_SRAMRET_RET31_MASK                   (0x80000000U)
 #define CMC_SRAMRET_RET31_SHIFT                  (31U)
-/*! RET31 - Deep Sleep Enable */
+/*! RET31 - SRAM Retention
+ *  0b0..Retains
+ *  0b1..Powers off
+ */
 #define CMC_SRAMRET_RET31(x)                     (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET31_SHIFT)) & CMC_SRAMRET_RET31_MASK)
 /*! @} */
 
@@ -1230,17 +1414,6 @@ typedef struct {
 /*!
  * @}
  */ /* end of group CMC_Register_Masks */
-
-/* Backward compatibility for CMC */
-#define CMC_SRAMDIS_DIS_MASK                     (0xFFFFFFFFU)
-#define CMC_SRAMDIS_DIS_SHIFT                    (0U)
-/*! DIS - SRAM Disable */
-#define CMC_SRAMDIS_DIS(x)                       (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS_SHIFT)) & CMC_SRAMDIS_DIS_MASK)
-
-#define CMC_SRAMRET_RET_MASK                     (0xFFFFFFFFU)
-#define CMC_SRAMRET_RET_SHIFT                    (0U)
-/*! RET - SRAM Retention */
-#define CMC_SRAMRET_RET(x)                       (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET_SHIFT)) & CMC_SRAMRET_RET_MASK)
 
 
 /*!

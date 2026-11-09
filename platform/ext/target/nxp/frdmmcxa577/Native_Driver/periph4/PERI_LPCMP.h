@@ -1,14 +1,20 @@
 /*
 ** ###################################################################
-**     Processors:          MCXA286VLL
+**     Processors:          MCXA286VAPR
+**                          MCXA286VASR
+**                          MCXA286VLL
 **                          MCXA286VLQ
 **                          MCXA286VPN
+**                          MCXA287VAPR
+**                          MCXA287VASR
 **                          MCXA287VLL
 **                          MCXA287VLQ
 **                          MCXA287VPN
+**                          MCXA456VASR
 **                          MCXA456VLL
 **                          MCXA456VLQ
 **                          MCXA456VPN
+**                          MCXA457VASR
 **                          MCXA457VLL
 **                          MCXA457VLQ
 **                          MCXA457VPN
@@ -18,25 +24,29 @@
 **                          MCXA537VLL
 **                          MCXA537VLQ
 **                          MCXA537VPN
+**                          MCXA556BVPN
 **                          MCXA556VPN
+**                          MCXA557BVPN
+**                          MCXA557VPN
 **                          MCXA566VLL
 **                          MCXA566VLQ
 **                          MCXA566VPN
 **                          MCXA567VLL
 **                          MCXA567VLQ
 **                          MCXA567VPN
+**                          MCXA577VAPR
 **                          MCXA577VLL
 **                          MCXA577VLQ
 **                          MCXA577VPN
 **
 **     Version:             rev. 2.0, 2024-10-29
-**     Build:               b251029
+**     Build:               b260904
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for LPCMP
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -64,25 +74,27 @@
 #if !defined(PERI_LPCMP_H_)
 #define PERI_LPCMP_H_                            /**< Symbol preventing repeated inclusion */
 
-#if (defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
+#if (defined(CPU_MCXA286VAPR) || defined(CPU_MCXA286VASR) || defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
 #include "MCXA286_COMMON.h"
-#elif (defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
+#elif (defined(CPU_MCXA287VAPR) || defined(CPU_MCXA287VASR) || defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
 #include "MCXA287_COMMON.h"
-#elif (defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
+#elif (defined(CPU_MCXA456VASR) || defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
 #include "MCXA456_COMMON.h"
-#elif (defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
+#elif (defined(CPU_MCXA457VASR) || defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
 #include "MCXA457_COMMON.h"
 #elif (defined(CPU_MCXA536VLL) || defined(CPU_MCXA536VLQ) || defined(CPU_MCXA536VPN))
 #include "MCXA536_COMMON.h"
 #elif (defined(CPU_MCXA537VLL) || defined(CPU_MCXA537VLQ) || defined(CPU_MCXA537VPN))
 #include "MCXA537_COMMON.h"
-#elif (defined(CPU_MCXA556VPN))
+#elif (defined(CPU_MCXA556BVPN) || defined(CPU_MCXA556VPN))
 #include "MCXA556_COMMON.h"
+#elif (defined(CPU_MCXA557BVPN) || defined(CPU_MCXA557VPN))
+#include "MCXA557_COMMON.h"
 #elif (defined(CPU_MCXA566VLL) || defined(CPU_MCXA566VLQ) || defined(CPU_MCXA566VPN))
 #include "MCXA566_COMMON.h"
 #elif (defined(CPU_MCXA567VLL) || defined(CPU_MCXA567VLQ) || defined(CPU_MCXA567VPN))
 #include "MCXA567_COMMON.h"
-#elif (defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
+#elif (defined(CPU_MCXA577VAPR) || defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
 #include "MCXA577_COMMON.h"
 #else
   #error "No valid CPU defined!"
@@ -205,7 +217,7 @@ typedef struct {
 
 #define LPCMP_CCR0_CMP_STOP_EN_MASK              (0x2U)
 #define LPCMP_CCR0_CMP_STOP_EN_SHIFT             (1U)
-/*! CMP_STOP_EN - Comparator STOP Mode Enable
+/*! CMP_STOP_EN - Comparator Deep Sleep Mode Enable
  *  0b0..Disables the analog comparator regardless of CMP_EN.
  *  0b1..Allows CMP_EN to enable the analog comparator.
  */
@@ -367,28 +379,28 @@ typedef struct {
 #define LPCMP_CCR2_PSEL_MASK                     (0x70000U)
 #define LPCMP_CCR2_PSEL_SHIFT                    (16U)
 /*! PSEL - Plus Input MUX Select
- *  0b000..
- *  0b001..
- *  0b010..
- *  0b011..
- *  0b100..
- *  0b101..
- *  0b110..
- *  0b111..
+ *  0b000..Input 0p
+ *  0b001..Input 1p
+ *  0b010..Input 2p
+ *  0b011..Input 3p
+ *  0b100..Input 4p
+ *  0b101..Input 5p
+ *  0b110..Reserved
+ *  0b111..Internal DAC output
  */
 #define LPCMP_CCR2_PSEL(x)                       (((uint32_t)(((uint32_t)(x)) << LPCMP_CCR2_PSEL_SHIFT)) & LPCMP_CCR2_PSEL_MASK)
 
 #define LPCMP_CCR2_MSEL_MASK                     (0x700000U)
 #define LPCMP_CCR2_MSEL_SHIFT                    (20U)
 /*! MSEL - Minus Input MUX Select
- *  0b000..
- *  0b001..
- *  0b010..
- *  0b011..
- *  0b100..
- *  0b101..
- *  0b110..
- *  0b111..
+ *  0b000..Input 0m
+ *  0b001..Input 1m
+ *  0b010..Input 2m
+ *  0b011..Input 3m
+ *  0b100..Input 4m
+ *  0b101..Input 5m
+ *  0b110..Reserved
+ *  0b111..Internal DAC output
  */
 #define LPCMP_CCR2_MSEL(x)                       (((uint32_t)(((uint32_t)(x)) << LPCMP_CCR2_MSEL_SHIFT)) & LPCMP_CCR2_MSEL_MASK)
 /*! @} */
@@ -497,6 +509,22 @@ typedef struct {
  *  0b1..Enable
  */
 #define LPCMP_RRCR0_RR_EN(x)                     (((uint32_t)(((uint32_t)(x)) << LPCMP_RRCR0_RR_EN_SHIFT)) & LPCMP_RRCR0_RR_EN_MASK)
+
+#define LPCMP_RRCR0_RR_TRG_SEL_MASK              (0x2U)
+#define LPCMP_RRCR0_RR_TRG_SEL_SHIFT             (1U)
+/*! RR_TRG_SEL - Round-Robin Trigger Select
+ *  0b0..External trigger
+ *  0b1..Internal trigger
+ */
+#define LPCMP_RRCR0_RR_TRG_SEL(x)                (((uint32_t)(((uint32_t)(x)) << LPCMP_RRCR0_RR_TRG_SEL_SHIFT)) & LPCMP_RRCR0_RR_TRG_SEL_MASK)
+
+#define LPCMP_RRCR0_RR_EXTTRG_SEL_MASK           (0x4U)
+#define LPCMP_RRCR0_RR_EXTTRG_SEL_SHIFT          (2U)
+/*! RR_EXTTRG_SEL - External Trigger Source Select
+ *  0b0..Select external trigger source 0
+ *  0b1..Select external trigger source 1
+ */
+#define LPCMP_RRCR0_RR_EXTTRG_SEL(x)             (((uint32_t)(((uint32_t)(x)) << LPCMP_RRCR0_RR_EXTTRG_SEL_SHIFT)) & LPCMP_RRCR0_RR_EXTTRG_SEL_MASK)
 
 #define LPCMP_RRCR0_RR_NSAM_MASK                 (0x300U)
 #define LPCMP_RRCR0_RR_NSAM_SHIFT                (8U)

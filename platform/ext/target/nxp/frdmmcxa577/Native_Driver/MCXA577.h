@@ -1,23 +1,25 @@
 /*
 ** ###################################################################
-**     Processors:          MCXA577VLL
+**     Processors:          MCXA577VAPR
+**                          MCXA577VLL
 **                          MCXA577VLQ
 **                          MCXA577VPN
 **
-**     Compilers:           GNU C Compiler
+**     Compilers:
+**                          GNU C Compiler
 **                          IAR ANSI C/C++ Compiler for ARM
 **                          Keil ARM C/C++ Compiler
 **                          MCUXpresso Compiler
 **
 **     Reference manual:    MCXAP144M180FS6_RM_Rev.1_DraftC
 **     Version:             rev. 2.0, 2024-10-29
-**     Build:               b251031
+**     Build:               b260904
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for MCXA577
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -89,14 +91,13 @@
 #include "PERI_SGI.h"
 #include "PERI_SMARTDMA.h"
 #include "PERI_SPC.h"
-#include "PERI_SPI_FILTER.h"
 #include "PERI_SYSCON.h"
 #include "PERI_TENBASET_PHY.h"
 #include "PERI_TRDC.h"
 #include "PERI_TRNG.h"
 #include "PERI_TSI.h"
-#include "PERI_UDF.h"
 #include "PERI_USBHS.h"
+#include "PERI_USBHSDCD.h"
 #include "PERI_USBNC.h"
 #include "PERI_USBPHY.h"
 #include "PERI_UTICK.h"

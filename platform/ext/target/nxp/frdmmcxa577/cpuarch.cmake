@@ -17,6 +17,7 @@ set(TFM_SYSTEM_ARCHITECTURE armv8-m.main)
 
 # Set processor type for NXP MCUx SDK
 add_definitions(-DCPU_MCXA577VPN)
+add_definitions(-DMCXA577_SERIES)
 
 # Define serial port ID
 add_definitions(-DSERIAL_PORT_TYPE_UART=1)

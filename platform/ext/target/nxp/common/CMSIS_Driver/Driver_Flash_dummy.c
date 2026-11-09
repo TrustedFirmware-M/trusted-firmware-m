@@ -20,7 +20,6 @@
 #include "Driver_Flash.h"
 #include "platform_base_address.h"
 #include "flash_layout.h"
-#include "fsl_cache.h"
 
 #ifndef ARG_UNUSED
 #define ARG_UNUSED(arg)  ((void)arg)
@@ -44,12 +43,6 @@
     DATA_WIDTH_ENUM_SIZE
 };
 
-static const uint32_t data_width_byte[DATA_WIDTH_ENUM_SIZE] = {
-    sizeof(uint8_t),
-    sizeof(uint16_t),
-    sizeof(uint32_t),
-};
-
 /* Chip erase capability values */
 #define CHIP_ERASE_NOT_SUPPORTED    (0u)
 #define CHIP_ERASE_SUPPORTED        (1u)
@@ -57,7 +50,6 @@ static const uint32_t data_width_byte[DATA_WIDTH_ENUM_SIZE] = {
 /* ARM FLASH device structure */
 struct arm_flash_dev_t {
     ARM_FLASH_INFO *data;         /*!< FLASH data */
-    FLEXSPI_Type *base;
 };
 
 /* Flash Status */
@@ -104,9 +96,8 @@ static ARM_FLASH_CAPABILITIES ARM_Flash_GetCapabilities(void)
 static int32_t ARM_Flash_Initialize(ARM_Flash_SignalEvent_t cb_event)
 {
     ARG_UNUSED(cb_event);
-    status_t status;
 
-	/* This is a dummy placeholder */
+    /* This is a dummy placeholder */
     return ARM_DRIVER_OK;
 }
 

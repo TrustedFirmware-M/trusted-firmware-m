@@ -76,7 +76,7 @@ static void enable_mem_rule_for_partition(uint32_t memory_region_base, uint32_t 
     uint32_t ns_region_end_id   = 0;
 
     ns_region_start_id = (memory_region_base - NS_ROM_ALIAS_BASE) / FLASH_SUBREGION_SIZE;
-    ns_region_end_id = (memory_region_limit - NS_ROM_ALIAS_BASE / FLASH_SUBREGION_SIZE) + 1;
+    ns_region_end_id = ((memory_region_limit - NS_ROM_ALIAS_BASE) / FLASH_SUBREGION_SIZE) + 1;
 
     /* Set to non-secure and non-privileged user access allowed */
     for(ns_region_id = ns_region_start_id; ns_region_id < ns_region_end_id; ns_region_id++) /* == Region 0 == */
@@ -238,7 +238,7 @@ static void trdc_configs(void)
 
 }
 
-static void APP_SetTrdcAccessible(uint32_t idx)
+static void app_set_glikey_accessible(uint32_t idx)
 {
     /* Use Glikey to enable modifications of MBC registers: */
 
@@ -307,6 +307,11 @@ int32_t mpc_init_cfg(void)
     assert(((memory_regions.non_secure_partition_limit - NS_ROM_ALIAS_BASE + 1) % FLASH_SUBREGION_SIZE) == 0);
 
     enable_mem_rule_for_partition(memory_regions.non_secure_partition_base, memory_regions.non_secure_partition_limit);
+
+#ifdef NXP_NS_STORAGE
+    enable_mem_rule_for_partition(NXP_FLASH_NS_STORAGE_OFFSET,
+                                  NXP_FLASH_NS_STORAGE_OFFSET + NXP_FLASH_NS_STORAGE_SIZE - 1U);
+#endif /* NXP_NS_STORAGE */
 
 #ifdef BL2 /* Set secondary image region to NS, when BL2 is enabled */
     /* The regions have to be alligned to 32 kB to cover the AHB Flash Region. */
@@ -735,7 +740,7 @@ int32_t ppc_init_cfg(void)
       AHBSC_FLEXSPI0_REGION1_6_MEM_RULE_FLEXSPI0_REGION_MEM_RULE_RULE3(0x0U);
 
     /* TRDC- MBC0 configs*/
-    APP_SetTrdcAccessible(glikey_index_mbc);
+    app_set_glikey_accessible(glikey_index_mbc);
     trdc_configs();
 
      /* CPU Lock register*/
@@ -764,7 +769,7 @@ int32_t ppc_init_cfg(void)
           AHBSC_MASTER_SEC_ANTI_POL_REG_ENET0_MASK      |
           AHBSC_MASTER_SEC_ANTI_POL_REG_USB1_MASK       |
           AHBSC_MASTER_SEC_ANTI_POL_REG_PKC_MASK ),
-         (AHBSC_MASTER_SEC_ANTI_POL_REG_DMA0(0x0U)      |
+         ~(AHBSC_MASTER_SEC_ANTI_POL_REG_DMA0(0x0U)      |
           AHBSC_MASTER_SEC_ANTI_POL_REG_DMA1(0x0U)      |
           AHBSC_MASTER_SEC_ANTI_POL_REG_SMARTDMA(0x0U)  |
           AHBSC_MASTER_SEC_ANTI_POL_REG_ENET0(0x0U)     |
@@ -775,8 +780,10 @@ int32_t ppc_init_cfg(void)
     SECURE_READ_MODIFY_WRITE_REGISTER(&( AHBSC->MISC_CTRL_REG),
         ~(AHBSC_MISC_CTRL_REG_WRITE_LOCK_MASK                |
           AHBSC_MISC_CTRL_REG_ENABLE_SECURE_CHECKING_MASK    |
-          AHBSC_MISC_CTRL_REG_DISABLE_STRICT_MODE_MASK       |
+          AHBSC_MISC_CTRL_REG_ENABLE_S_PRIV_CHECK_MASK       |
+          AHBSC_MISC_CTRL_REG_ENABLE_NS_PRIV_CHECK_MASK      |
           AHBSC_MISC_CTRL_REG_DISABLE_VIOLATION_ABORT_MASK   |
+          AHBSC_MISC_CTRL_REG_DISABLE_STRICT_MODE_MASK       |
           AHBSC_MISC_CTRL_REG_IDAU_ALL_NS_MASK               ),
          (AHBSC_MISC_CTRL_REG_WRITE_LOCK              (0x2U) |         /* 2 = Writes to this register and to the Memory and Peripheral RULE registers are allowed */
           AHBSC_MISC_CTRL_REG_ENABLE_SECURE_CHECKING  (0x1U) |         /* 1 = Enable Secure Checking (restrictive mode) */
@@ -790,8 +797,10 @@ int32_t ppc_init_cfg(void)
     SECURE_READ_MODIFY_WRITE_REGISTER(&( AHBSC->MISC_CTRL_DP_REG),
         ~(AHBSC_MISC_CTRL_DP_REG_WRITE_LOCK_MASK                |
           AHBSC_MISC_CTRL_DP_REG_ENABLE_SECURE_CHECKING_MASK    |
-          AHBSC_MISC_CTRL_DP_REG_DISABLE_STRICT_MODE_MASK       |
+          AHBSC_MISC_CTRL_DP_REG_ENABLE_S_PRIV_CHECK_MASK       |
+          AHBSC_MISC_CTRL_DP_REG_ENABLE_NS_PRIV_CHECK_MASK      |
           AHBSC_MISC_CTRL_DP_REG_DISABLE_VIOLATION_ABORT_MASK   |
+          AHBSC_MISC_CTRL_DP_REG_DISABLE_STRICT_MODE_MASK       |
           AHBSC_MISC_CTRL_DP_REG_IDAU_ALL_NS_MASK               ),
          (AHBSC_MISC_CTRL_DP_REG_WRITE_LOCK              (0x2U) |      /* 2 = Writes to this register and to the Memory and Peripheral RULE registers are allowed */
           AHBSC_MISC_CTRL_DP_REG_ENABLE_SECURE_CHECKING  (0x1U) |      /* 1 = Enable Secure Checking (restrictive mode) */

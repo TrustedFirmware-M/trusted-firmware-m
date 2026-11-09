@@ -1,42 +1,26 @@
 /*
 ** ###################################################################
-**     Processors:          MCXA286VLL
-**                          MCXA286VLQ
-**                          MCXA286VPN
-**                          MCXA287VLL
-**                          MCXA287VLQ
-**                          MCXA287VPN
+**     Processors:          MCXA456VASR
 **                          MCXA456VLL
 **                          MCXA456VLQ
 **                          MCXA456VPN
+**                          MCXA457VASR
 **                          MCXA457VLL
 **                          MCXA457VLQ
 **                          MCXA457VPN
-**                          MCXA536VLL
-**                          MCXA536VLQ
-**                          MCXA536VPN
-**                          MCXA537VLL
-**                          MCXA537VLQ
-**                          MCXA537VPN
-**                          MCXA556VPN
-**                          MCXA566VLL
-**                          MCXA566VLQ
-**                          MCXA566VPN
-**                          MCXA567VLL
-**                          MCXA567VLQ
-**                          MCXA567VPN
+**                          MCXA577VAPR
 **                          MCXA577VLL
 **                          MCXA577VLQ
 **                          MCXA577VPN
 **
 **     Version:             rev. 2.0, 2024-10-29
-**     Build:               b251029
+**     Build:               b260904
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for TSI
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -64,25 +48,11 @@
 #if !defined(PERI_TSI_H_)
 #define PERI_TSI_H_                              /**< Symbol preventing repeated inclusion */
 
-#if (defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
-#include "MCXA286_COMMON.h"
-#elif (defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
-#include "MCXA287_COMMON.h"
-#elif (defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
+#if (defined(CPU_MCXA456VASR) || defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
 #include "MCXA456_COMMON.h"
-#elif (defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
+#elif (defined(CPU_MCXA457VASR) || defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
 #include "MCXA457_COMMON.h"
-#elif (defined(CPU_MCXA536VLL) || defined(CPU_MCXA536VLQ) || defined(CPU_MCXA536VPN))
-#include "MCXA536_COMMON.h"
-#elif (defined(CPU_MCXA537VLL) || defined(CPU_MCXA537VLQ) || defined(CPU_MCXA537VPN))
-#include "MCXA537_COMMON.h"
-#elif (defined(CPU_MCXA556VPN))
-#include "MCXA556_COMMON.h"
-#elif (defined(CPU_MCXA566VLL) || defined(CPU_MCXA566VLQ) || defined(CPU_MCXA566VPN))
-#include "MCXA566_COMMON.h"
-#elif (defined(CPU_MCXA567VLL) || defined(CPU_MCXA567VLQ) || defined(CPU_MCXA567VPN))
-#include "MCXA567_COMMON.h"
-#elif (defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
+#elif (defined(CPU_MCXA577VAPR) || defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
 #include "MCXA577_COMMON.h"
 #else
   #error "No valid CPU defined!"
@@ -129,13 +99,13 @@
 /** TSI - Register Layout Typedef */
 typedef struct {
   union {                                          /* offset: 0x0 */
-    __IO uint32_t CONFIG_MUTUAL;                     /**< TSI CONFIG Register (TSI_CONFIG) for mutual-capacitor (CONFIG_MUTUAL), offset: 0x0 */
-    __IO uint32_t CONFIG;                            /**< TSI CONFIG Register (TSI_CONFIG) for self-capacitor (CONFIG), offset: 0x0 */
+    __IO uint32_t CONFIG_MUTUAL;                     /**< TSI CONFIG register (TSI_CONFIG) for mutual-capacitor (CONFIG_MUTUAL), offset: 0x0 */
+    __IO uint32_t CONFIG;                            /**< TSI CONFIG Register (TSI_CONFIG) for self-capacitor, offset: 0x0 */
   };
   __IO uint32_t TSHD;                              /**< TSI Threshold Register, offset: 0x4 */
   __IO uint32_t GENCS;                             /**< TSI General Control and Status Register, offset: 0x8 */
   __IO uint32_t MUL;                               /**< TSI Mutual-cap Register, offset: 0xC */
-  __IO uint32_t SINC;                              /**< TSI SINC filter Register, offset: 0x10 */
+  __IO uint32_t SINC;                              /**< TSI SINC Filter Register, offset: 0x10 */
   __IO uint32_t SSC0;                              /**< TSI SSC Register 0, offset: 0x14 */
   __IO uint32_t SSC1;                              /**< TSI SSC Register 1, offset: 0x18 */
   __IO uint32_t SSC2;                              /**< TSI SSC Register 2, offset: 0x1C */
@@ -153,7 +123,7 @@ typedef struct {
   __IO uint32_t MUTUAL_TX_SEL_69_64;               /**< Mutual TX mode channels selection(CH69~CH64), offset: 0x4C */
   __IO uint32_t MUTUAL_RX_SEL_31_0;                /**< Mutual RX mode channels selection(CH31~CH0), offset: 0x50 */
   __IO uint32_t MUTUAL_RX_SEL_63_32;               /**< Mutual RX mode channels selection(CH63~CH32), offset: 0x54 */
-  __IO uint32_t MUTUAL_RX_SEL_69_64;               /**< Mutual RX mode channels selection(CH69~CH64), offset: 0x58 */
+  __IO uint32_t MUTUAL_RX_SEL_69_64;               /**< Mutual RX mode channels selection (CH69~CH64), offset: 0x58 */
        uint8_t RESERVED_1[164];
   __IO uint32_t DATA;                              /**< TSI Data and Status Register, offset: 0x100 */
        uint8_t RESERVED_2[4];
@@ -171,14 +141,14 @@ typedef struct {
  * @{
  */
 
-/*! @name CONFIG_MUTUAL - TSI CONFIG Register (TSI_CONFIG) for mutual-capacitor (CONFIG_MUTUAL) */
+/*! @name CONFIG_MUTUAL - TSI CONFIG register (TSI_CONFIG) for mutual-capacitor (CONFIG_MUTUAL) */
 /*! @{ */
 
 #define TSI_CONFIG_MUTUAL_MODE_MASK              (0x1U)
 #define TSI_CONFIG_MUTUAL_MODE_SHIFT             (0U)
 /*! MODE - MODE
- *  0b0..self-cap mode, this address is TSI_CONFIG for self-cap
- *  0b1..mutual-cap mode, this address is TSI_CONFIG for mutual-cap
+ *  0b0..Self-cap mode, this address is TSI_CONFIG for self-cap
+ *  0b1..Mutual-cap mode, this address is TSI_CONFIG for mutual-cap
  */
 #define TSI_CONFIG_MUTUAL_MODE(x)                (((uint32_t)(((uint32_t)(x)) << TSI_CONFIG_MUTUAL_MODE_SHIFT)) & TSI_CONFIG_MUTUAL_MODE_MASK)
 
@@ -219,16 +189,16 @@ typedef struct {
 #define TSI_CONFIG_MUTUAL_M_CNT_EN_MASK          (0x10000U)
 #define TSI_CONFIG_MUTUAL_M_CNT_EN_SHIFT         (16U)
 /*! M_CNT_EN - M_CNT_EN
- *  0b0..disable, the counter work in all scan process
- *  0b1..enable, the counter only work when the capacitor does the integration
+ *  0b0..Disable, the counter works in all scan process
+ *  0b1..Enable, the counter only works when the capacitor does the integration
  */
 #define TSI_CONFIG_MUTUAL_M_CNT_EN(x)            (((uint32_t)(((uint32_t)(x)) << TSI_CONFIG_MUTUAL_M_CNT_EN_SHIFT)) & TSI_CONFIG_MUTUAL_M_CNT_EN_MASK)
 
 #define TSI_CONFIG_MUTUAL_M_TX_PD_EN_MASK        (0x20000U)
 #define TSI_CONFIG_MUTUAL_M_TX_PD_EN_SHIFT       (17U)
 /*! M_TX_PD_EN - M_TX_PD_EN
- *  0b0..disable
- *  0b1..enable (default)
+ *  0b0..Disable
+ *  0b1..Enable (default)
  */
 #define TSI_CONFIG_MUTUAL_M_TX_PD_EN(x)          (((uint32_t)(((uint32_t)(x)) << TSI_CONFIG_MUTUAL_M_TX_PD_EN_SHIFT)) & TSI_CONFIG_MUTUAL_M_TX_PD_EN_MASK)
 
@@ -273,8 +243,8 @@ typedef struct {
 #define TSI_CONFIG_MUTUAL_PRE_CHRG_MODE_MASK     (0x800000U)
 #define TSI_CONFIG_MUTUAL_PRE_CHRG_MODE_SHIFT    (23U)
 /*! PRE_CHRG_MODE - PRE_CHRG_MODE
- *  0b0..mode 0
- *  0b1..mode 1
+ *  0b0..Mode 0
+ *  0b1..Mode 1
  */
 #define TSI_CONFIG_MUTUAL_PRE_CHRG_MODE(x)       (((uint32_t)(((uint32_t)(x)) << TSI_CONFIG_MUTUAL_PRE_CHRG_MODE_SHIFT)) & TSI_CONFIG_MUTUAL_PRE_CHRG_MODE_MASK)
 
@@ -307,14 +277,14 @@ typedef struct {
 #define TSI_CONFIG_MUTUAL_M_PRE_CURRENT(x)       (((uint32_t)(((uint32_t)(x)) << TSI_CONFIG_MUTUAL_M_PRE_CURRENT_SHIFT)) & TSI_CONFIG_MUTUAL_M_PRE_CURRENT_MASK)
 /*! @} */
 
-/*! @name CONFIG - TSI CONFIG Register (TSI_CONFIG) for self-capacitor (CONFIG) */
+/*! @name CONFIG - TSI CONFIG Register (TSI_CONFIG) for self-capacitor */
 /*! @{ */
 
 #define TSI_CONFIG_MODE_MASK                     (0x1U)
 #define TSI_CONFIG_MODE_SHIFT                    (0U)
 /*! MODE - MODE
- *  0b0..self-cap mode, this address is TSI_SEL_CONFIG
- *  0b1..mutual-cap mode, this address is TSI_MUL_CONFIG
+ *  0b0..Self-cap mode, this address is TSI_SEL_CONFIG
+ *  0b1..Mutual-cap mode, this address is TSI_MUL_CONFIG
  */
 #define TSI_CONFIG_MODE(x)                       (((uint32_t)(((uint32_t)(x)) << TSI_CONFIG_MODE_SHIFT)) & TSI_CONFIG_MODE_MASK)
 
@@ -397,8 +367,8 @@ typedef struct {
 #define TSI_CONFIG_S_NOISE_MASK                  (0x80000U)
 #define TSI_CONFIG_S_NOISE_SHIFT                 (19U)
 /*! S_NOISE - S_NOISE
- *  0b0..noise cancellation off (default)
- *  0b1..noise cancellation on
+ *  0b0..Noise cancellation off (default)
+ *  0b1..Noise cancellation on
  */
 #define TSI_CONFIG_S_NOISE(x)                    (((uint32_t)(((uint32_t)(x)) << TSI_CONFIG_S_NOISE_SHIFT)) & TSI_CONFIG_S_NOISE_MASK)
 
@@ -449,8 +419,8 @@ typedef struct {
 #define TSI_CONFIG_SELF_BOOST_MODE_MASK          (0x80000000U)
 #define TSI_CONFIG_SELF_BOOST_MODE_SHIFT         (31U)
 /*! SELF_BOOST_MODE - self_boost_mode
- *  0b0..cap boost mode (default)
- *  0b1..current boost mode
+ *  0b0..Cap boost mode (default)
+ *  0b1..Current boost mode
  */
 #define TSI_CONFIG_SELF_BOOST_MODE(x)            (((uint32_t)(((uint32_t)(x)) << TSI_CONFIG_SELF_BOOST_MODE_SHIFT)) & TSI_CONFIG_SELF_BOOST_MODE_MASK)
 /*! @} */
@@ -460,7 +430,7 @@ typedef struct {
 
 #define TSI_TSHD_THRESL_MASK                     (0xFFFFU)
 #define TSI_TSHD_THRESL_SHIFT                    (0U)
-/*! THRESL - TSI Wakeup Channel Low-threshold */
+/*! THRESL - TSI Wakeup Channel Low-Threshold */
 #define TSI_TSHD_THRESL(x)                       (((uint32_t)(((uint32_t)(x)) << TSI_TSHD_THRESL_SHIFT)) & TSI_TSHD_THRESL_MASK)
 
 #define TSI_TSHD_THRESH_MASK                     (0xFFFF0000U)
@@ -507,8 +477,8 @@ typedef struct {
 #define TSI_GENCS_CLK_SEL_MASK                   (0x40U)
 #define TSI_GENCS_CLK_SEL_SHIFT                  (6U)
 /*! CLK_SEL - KHz clock selection
- *  0b0..Select 32K clock to use
- *  0b1..Select 16K clock to use
+ *  0b0..Select 16K clock to use
+ *  0b1..Select 32K clock to use
  */
 #define TSI_GENCS_CLK_SEL(x)                     (((uint32_t)(((uint32_t)(x)) << TSI_GENCS_CLK_SEL_SHIFT)) & TSI_GENCS_CLK_SEL_MASK)
 
@@ -619,10 +589,10 @@ typedef struct {
 #define TSI_MUL_M_MODE_MASK                      (0x6U)
 #define TSI_MUL_M_MODE_SHIFT                     (1U)
 /*! M_MODE - M_MODE
- *  0b00..sense both pos and neg side
- *  0b01..sense pos side only
- *  0b10..sense neg side only
- *  0b11..not allowed
+ *  0b00..Sense both pos and neg side
+ *  0b01..Sense pos side only
+ *  0b10..Sense neg side only
+ *  0b11..Not allowed
  */
 #define TSI_MUL_M_MODE(x)                        (((uint32_t)(((uint32_t)(x)) << TSI_MUL_M_MODE_SHIFT)) & TSI_MUL_M_MODE_MASK)
 
@@ -642,7 +612,7 @@ typedef struct {
 #define TSI_MUL_M_TRIM_USED(x)                   (((uint32_t)(((uint32_t)(x)) << TSI_MUL_M_TRIM_USED_SHIFT)) & TSI_MUL_M_TRIM_USED_MASK)
 /*! @} */
 
-/*! @name SINC - TSI SINC filter Register */
+/*! @name SINC - TSI SINC Filter Register */
 /*! @{ */
 
 #define TSI_SINC_SSC_CONTROL_OUT_MASK            (0x1U)
@@ -680,38 +650,38 @@ typedef struct {
 #define TSI_SINC_SINC_DECIMATION_MASK            (0x1F0000U)
 #define TSI_SINC_SINC_DECIMATION_SHIFT           (16U)
 /*! SINC_DECIMATION - SINC_DECIMATION
- *  0b00000..The TSI_DATA[TSICNT] bits is the counter value of 1 triger period
- *  0b00001..The TSI_DATA[TSICNT] bits is the counter value of 2 triger periods
- *  0b00010..The TSI_DATA[TSICNT] bits is the counter value of 3 triger periods
- *  0b00011..The TSI_DATA[TSICNT] bits is the counter value of 4 triger periods
- *  0b00100..The TSI_DATA[TSICNT] bits is the counter value of 5 triger periods
- *  0b00101..The TSI_DATA[TSICNT] bits is the counter value of 6 triger periods
- *  0b00110..The TSI_DATA[TSICNT] bits is the counter value of 7 triger periods
- *  0b00111..The TSI_DATA[TSICNT] bits is the counter value of 8 triger periods
- *  0b01000..The TSI_DATA[TSICNT] bits is the counter value of 9 triger periods
- *  0b01001..The TSI_DATA[TSICNT] bits is the counter value of 10 triger periods
- *  0b01010..The TSI_DATA[TSICNT] bits is the counter value of 11 triger periods
- *  0b01011..The TSI_DATA[TSICNT] bits is the counter value of 12 triger periods
- *  0b01100..The TSI_DATA[TSICNT] bits is the counter value of 13 triger periods
- *  0b01101..The TSI_DATA[TSICNT] bits is the counter value of 14 triger periods
- *  0b01110..The TSI_DATA[TSICNT] bits is the counter value of 15 triger periods
- *  0b01111..The TSI_DATA[TSICNT] bits is the counter value of 16 triger periods
- *  0b10000..The TSI_DATA[TSICNT] bits is the counter value of 17 triger periods
- *  0b10001..The TSI_DATA[TSICNT] bits is the counter value of 18 triger periods
- *  0b10010..The TSI_DATA[TSICNT] bits is the counter value of 19 triger periods
- *  0b10011..The TSI_DATA[TSICNT] bits is the counter value of 20 triger periods
- *  0b10100..The TSI_DATA[TSICNT] bits is the counter value of 21 triger periods
- *  0b10101..The TSI_DATA[TSICNT] bits is the counter value of 22 triger periods
- *  0b10110..The TSI_DATA[TSICNT] bits is the counter value of 23 triger periods
- *  0b10111..The TSI_DATA[TSICNT] bits is the counter value of 24 triger periods
- *  0b11000..The TSI_DATA[TSICNT] bits is the counter value of 25 triger periods
- *  0b11001..The TSI_DATA[TSICNT] bits is the counter value of 26 triger periods
- *  0b11010..The TSI_DATA[TSICNT] bits is the counter value of 27 triger periods
- *  0b11011..The TSI_DATA[TSICNT] bits is the counter value of 28 triger periods
- *  0b11100..The TSI_DATA[TSICNT] bits is the counter value of 29 triger periods
- *  0b11101..The TSI_DATA[TSICNT] bits is the counter value of 30 triger periods
- *  0b11110..The TSI_DATA[TSICNT] bits is the counter value of 31 triger periods
- *  0b11111..The TSI_DATA[TSICNT] bits is the counter value of 32 triger periods
+ *  0b00000..The TSI_DATA[TSICNT] bits is the counter value of 1 trigger period
+ *  0b00001..The TSI_DATA[TSICNT] bits is the counter value of 2 trigger periods
+ *  0b00010..The TSI_DATA[TSICNT] bits is the counter value of 3 trigger periods
+ *  0b00011..The TSI_DATA[TSICNT] bits is the counter value of 4 trigger periods
+ *  0b00100..The TSI_DATA[TSICNT] bits is the counter value of 5 trigger periods
+ *  0b00101..The TSI_DATA[TSICNT] bits is the counter value of 6 trigger periods
+ *  0b00110..The TSI_DATA[TSICNT] bits is the counter value of 7 trigger periods
+ *  0b00111..The TSI_DATA[TSICNT] bits is the counter value of 8 trigger periods
+ *  0b01000..The TSI_DATA[TSICNT] bits is the counter value of 9 trigger periods
+ *  0b01001..The TSI_DATA[TSICNT] bits is the counter value of 10 trigger periods
+ *  0b01010..The TSI_DATA[TSICNT] bits is the counter value of 11 trigger periods
+ *  0b01011..The TSI_DATA[TSICNT] bits is the counter value of 12 trigger periods
+ *  0b01100..The TSI_DATA[TSICNT] bits is the counter value of 13 trigger periods
+ *  0b01101..The TSI_DATA[TSICNT] bits is the counter value of 14 trigger periods
+ *  0b01110..The TSI_DATA[TSICNT] bits is the counter value of 15 trigger periods
+ *  0b01111..The TSI_DATA[TSICNT] bits is the counter value of 16 trigger periods
+ *  0b10000..The TSI_DATA[TSICNT] bits is the counter value of 17 trigger periods
+ *  0b10001..The TSI_DATA[TSICNT] bits is the counter value of 18 trigger periods
+ *  0b10010..The TSI_DATA[TSICNT] bits is the counter value of 19 trigger periods
+ *  0b10011..The TSI_DATA[TSICNT] bits is the counter value of 20 trigger periods
+ *  0b10100..The TSI_DATA[TSICNT] bits is the counter value of 21 trigger periods
+ *  0b10101..The TSI_DATA[TSICNT] bits is the counter value of 22 trigger periods
+ *  0b10110..The TSI_DATA[TSICNT] bits is the counter value of 23 trigger periods
+ *  0b10111..The TSI_DATA[TSICNT] bits is the counter value of 24 trigger periods
+ *  0b11000..The TSI_DATA[TSICNT] bits is the counter value of 25 trigger periods
+ *  0b11001..The TSI_DATA[TSICNT] bits is the counter value of 26 trigger periods
+ *  0b11010..The TSI_DATA[TSICNT] bits is the counter value of 27 trigger periods
+ *  0b11011..The TSI_DATA[TSICNT] bits is the counter value of 28 trigger periods
+ *  0b11100..The TSI_DATA[TSICNT] bits is the counter value of 29 trigger periods
+ *  0b11101..The TSI_DATA[TSICNT] bits is the counter value of 30 trigger periods
+ *  0b11110..The TSI_DATA[TSICNT] bits is the counter value of 31 trigger periods
+ *  0b11111..The TSI_DATA[TSICNT] bits is the counter value of 32 trigger periods
  */
 #define TSI_SINC_SINC_DECIMATION(x)              (((uint32_t)(((uint32_t)(x)) << TSI_SINC_SINC_DECIMATION_SHIFT)) & TSI_SINC_SINC_DECIMATION_MASK)
 
@@ -726,7 +696,7 @@ typedef struct {
 #define TSI_SINC_SINC_CUTOFF_MASK                (0xF000000U)
 #define TSI_SINC_SINC_CUTOFF_SHIFT               (24U)
 /*! SINC_CUTOFF - SINC_CUTOFF
- *  0b0000..div=0
+ *  0b0000..div=1
  *  0b0001..div=2
  *  0b0010..div=4
  *  0b0011..div=8
@@ -941,23 +911,23 @@ typedef struct {
 
 #define TSI_BASELINE_BASE_TRACE_DEBOUNCE_MASK    (0xF0000U)
 #define TSI_BASELINE_BASE_TRACE_DEBOUNCE_SHIFT   (16U)
-/*! BASE_TRACE_DEBOUNCE - BASE_TRACE_ DEBOUNCE
- *  0b0000..The current counter value take 0 ratio
- *  0b0001..The current counter value take 1/16 ratio
- *  0b0010..The current counter value take 2/16 ratio
- *  0b0011..The current counter value take 3/16 ratio
- *  0b0100..The current counter value take 4/16 ratio
- *  0b0101..The current counter value take 5/16 ratio
+/*! BASE_TRACE_DEBOUNCE - BASE_TRACE_DEBOUNCE
+ *  0b0000..The current counter value takes 0 ratio
+ *  0b0001..The current counter value takes 1/16 ratio
+ *  0b0010..The current counter value takes 2/16 ratio
+ *  0b0011..The current counter value takes 3/16 ratio
+ *  0b0100..The current counter value takes 4/16 ratio
+ *  0b0101..The current counter value takes 5/16 ratio
  *  0b0110..The current counter value take 6/16 ratio
- *  0b0111..The current counter value take 7/16 ratio
- *  0b1000..The current counter value take 8/16 ratio
- *  0b1001..The current counter value take 9/16 ratio
- *  0b1010..The current counter value take 10/16 ratio
- *  0b1011..The current counter value take 11/16 ratio
- *  0b1100..The current counter value take 12/16 ratio
- *  0b1101..The current counter value take 13/16 ratio
- *  0b1110..The current counter value take 14/16 ratio
- *  0b1111..The current counter value take 15/16 ratio
+ *  0b0111..The current counter value takes 7/16 ratio
+ *  0b1000..The current counter value takes 8/16 ratio
+ *  0b1001..The current counter value takes 9/16 ratio
+ *  0b1010..The current counter value takes 10/16 ratio
+ *  0b1011..The current counter value takes 11/16 ratio
+ *  0b1100..The current counter value takes 12/16 ratio
+ *  0b1101..The current counter value takes 13/16 ratio
+ *  0b1110..The current counter value takes 14/16 ratio
+ *  0b1111..The current counter value takes 15/16 ratio
  */
 #define TSI_BASELINE_BASE_TRACE_DEBOUNCE(x)      (((uint32_t)(((uint32_t)(x)) << TSI_BASELINE_BASE_TRACE_DEBOUNCE_SHIFT)) & TSI_BASELINE_BASE_TRACE_DEBOUNCE_MASK)
 
@@ -1011,7 +981,7 @@ typedef struct {
 
 #define TSI_SELF_SEL_31_0_AS_SELF_31_0_MASK      (0xFFFFFFFFU)
 #define TSI_SELF_SEL_31_0_AS_SELF_31_0_SHIFT     (0U)
-/*! AS_SELF_31_0 - config tsi channel as self-cap mode among CH31~CH0 */
+/*! AS_SELF_31_0 - Config TSI channel as self-cap mode among CH31~CH0 */
 #define TSI_SELF_SEL_31_0_AS_SELF_31_0(x)        (((uint32_t)(((uint32_t)(x)) << TSI_SELF_SEL_31_0_AS_SELF_31_0_SHIFT)) & TSI_SELF_SEL_31_0_AS_SELF_31_0_MASK)
 /*! @} */
 
@@ -1020,7 +990,7 @@ typedef struct {
 
 #define TSI_SELF_SEL_63_32_AS_SELF_63_32_MASK    (0xFFFFFFFFU)
 #define TSI_SELF_SEL_63_32_AS_SELF_63_32_SHIFT   (0U)
-/*! AS_SELF_63_32 - config tsi channel as self-cap mode among CH63~CH32 */
+/*! AS_SELF_63_32 - Config TSI channel as self-cap mode among CH63~CH32 */
 #define TSI_SELF_SEL_63_32_AS_SELF_63_32(x)      (((uint32_t)(((uint32_t)(x)) << TSI_SELF_SEL_63_32_AS_SELF_63_32_SHIFT)) & TSI_SELF_SEL_63_32_AS_SELF_63_32_MASK)
 /*! @} */
 
@@ -1029,7 +999,7 @@ typedef struct {
 
 #define TSI_SELF_SEL_69_64_AS_SELF_69_64_MASK    (0x3FU)
 #define TSI_SELF_SEL_69_64_AS_SELF_69_64_SHIFT   (0U)
-/*! AS_SELF_69_64 - config tsi channel as self-cap mode among CH69~CH64 */
+/*! AS_SELF_69_64 - Config TSI channel as self-cap mode among CH69~CH64 */
 #define TSI_SELF_SEL_69_64_AS_SELF_69_64(x)      (((uint32_t)(((uint32_t)(x)) << TSI_SELF_SEL_69_64_AS_SELF_69_64_SHIFT)) & TSI_SELF_SEL_69_64_AS_SELF_69_64_MASK)
 /*! @} */
 
@@ -1038,7 +1008,7 @@ typedef struct {
 
 #define TSI_SHIELD_SEL_31_0_AS_SHIELD_31_0_MASK  (0xFFFFFFFFU)
 #define TSI_SHIELD_SEL_31_0_AS_SHIELD_31_0_SHIFT (0U)
-/*! AS_SHIELD_31_0 - config tsi channel as shield mode among CH31~CH0 */
+/*! AS_SHIELD_31_0 - Config TSI channel as shield mode among CH31~CH0 */
 #define TSI_SHIELD_SEL_31_0_AS_SHIELD_31_0(x)    (((uint32_t)(((uint32_t)(x)) << TSI_SHIELD_SEL_31_0_AS_SHIELD_31_0_SHIFT)) & TSI_SHIELD_SEL_31_0_AS_SHIELD_31_0_MASK)
 /*! @} */
 
@@ -1047,7 +1017,7 @@ typedef struct {
 
 #define TSI_SHIELD_SEL_63_32_AS_SHIELD_63_32_MASK (0xFFFFFFFFU)
 #define TSI_SHIELD_SEL_63_32_AS_SHIELD_63_32_SHIFT (0U)
-/*! AS_SHIELD_63_32 - config tsi channel as shield mode among CH63~CH32 */
+/*! AS_SHIELD_63_32 - Config TSI channel as shield mode among CH63~CH32 */
 #define TSI_SHIELD_SEL_63_32_AS_SHIELD_63_32(x)  (((uint32_t)(((uint32_t)(x)) << TSI_SHIELD_SEL_63_32_AS_SHIELD_63_32_SHIFT)) & TSI_SHIELD_SEL_63_32_AS_SHIELD_63_32_MASK)
 /*! @} */
 
@@ -1056,7 +1026,7 @@ typedef struct {
 
 #define TSI_SHIELD_SEL_69_64_AS_SHIELD_69_64_MASK (0x3FU)
 #define TSI_SHIELD_SEL_69_64_AS_SHIELD_69_64_SHIFT (0U)
-/*! AS_SHIELD_69_64 - config tsi channel as shield mode among CH69~CH64 */
+/*! AS_SHIELD_69_64 - Config TSI channel as shield mode among CH69~CH64 */
 #define TSI_SHIELD_SEL_69_64_AS_SHIELD_69_64(x)  (((uint32_t)(((uint32_t)(x)) << TSI_SHIELD_SEL_69_64_AS_SHIELD_69_64_SHIFT)) & TSI_SHIELD_SEL_69_64_AS_SHIELD_69_64_MASK)
 /*! @} */
 
@@ -1065,7 +1035,7 @@ typedef struct {
 
 #define TSI_MUTUAL_TX_SEL_31_0_AS_MUTUAL_TX_31_0_MASK (0xFFFFFFFFU)
 #define TSI_MUTUAL_TX_SEL_31_0_AS_MUTUAL_TX_31_0_SHIFT (0U)
-/*! AS_MUTUAL_TX_31_0 - config tsi channel as mutual TX mode among CH31~CH0 */
+/*! AS_MUTUAL_TX_31_0 - Config TSI channel as mutual TX mode among CH31~CH0 */
 #define TSI_MUTUAL_TX_SEL_31_0_AS_MUTUAL_TX_31_0(x) (((uint32_t)(((uint32_t)(x)) << TSI_MUTUAL_TX_SEL_31_0_AS_MUTUAL_TX_31_0_SHIFT)) & TSI_MUTUAL_TX_SEL_31_0_AS_MUTUAL_TX_31_0_MASK)
 /*! @} */
 
@@ -1074,7 +1044,7 @@ typedef struct {
 
 #define TSI_MUTUAL_TX_SEL_63_32_AS_MUTUAL_TX_63_32_MASK (0xFFFFFFFFU)
 #define TSI_MUTUAL_TX_SEL_63_32_AS_MUTUAL_TX_63_32_SHIFT (0U)
-/*! AS_MUTUAL_TX_63_32 - config tsi channel as mutual TX mode among CH63~CH32 */
+/*! AS_MUTUAL_TX_63_32 - Config TSI channel as mutual TX mode among CH63~CH32 */
 #define TSI_MUTUAL_TX_SEL_63_32_AS_MUTUAL_TX_63_32(x) (((uint32_t)(((uint32_t)(x)) << TSI_MUTUAL_TX_SEL_63_32_AS_MUTUAL_TX_63_32_SHIFT)) & TSI_MUTUAL_TX_SEL_63_32_AS_MUTUAL_TX_63_32_MASK)
 /*! @} */
 
@@ -1083,7 +1053,7 @@ typedef struct {
 
 #define TSI_MUTUAL_TX_SEL_69_64_AS_MUTUAL_TX_69_64_MASK (0x3FU)
 #define TSI_MUTUAL_TX_SEL_69_64_AS_MUTUAL_TX_69_64_SHIFT (0U)
-/*! AS_MUTUAL_TX_69_64 - config tsi channel as mutual TX mode among CH69~CH64 */
+/*! AS_MUTUAL_TX_69_64 - Config TSI channel as mutual TX mode among CH69~CH64 */
 #define TSI_MUTUAL_TX_SEL_69_64_AS_MUTUAL_TX_69_64(x) (((uint32_t)(((uint32_t)(x)) << TSI_MUTUAL_TX_SEL_69_64_AS_MUTUAL_TX_69_64_SHIFT)) & TSI_MUTUAL_TX_SEL_69_64_AS_MUTUAL_TX_69_64_MASK)
 /*! @} */
 
@@ -1092,7 +1062,7 @@ typedef struct {
 
 #define TSI_MUTUAL_RX_SEL_31_0_AS_MUTUAL_RX_31_0_MASK (0xFFFFFFFFU)
 #define TSI_MUTUAL_RX_SEL_31_0_AS_MUTUAL_RX_31_0_SHIFT (0U)
-/*! AS_MUTUAL_RX_31_0 - config tsi channel as mutual RX mode among CH31~CH0 */
+/*! AS_MUTUAL_RX_31_0 - Config TSI channel as mutual RX mode among CH31~CH0 */
 #define TSI_MUTUAL_RX_SEL_31_0_AS_MUTUAL_RX_31_0(x) (((uint32_t)(((uint32_t)(x)) << TSI_MUTUAL_RX_SEL_31_0_AS_MUTUAL_RX_31_0_SHIFT)) & TSI_MUTUAL_RX_SEL_31_0_AS_MUTUAL_RX_31_0_MASK)
 /*! @} */
 
@@ -1101,16 +1071,16 @@ typedef struct {
 
 #define TSI_MUTUAL_RX_SEL_63_32_AS_MUTUAL_RX_63_32_MASK (0xFFFFFFFFU)
 #define TSI_MUTUAL_RX_SEL_63_32_AS_MUTUAL_RX_63_32_SHIFT (0U)
-/*! AS_MUTUAL_RX_63_32 - config tsi channel as mutual RX mode among CH63~CH32 */
+/*! AS_MUTUAL_RX_63_32 - Config TSI channel as mutual RX mode among CH63~CH32 */
 #define TSI_MUTUAL_RX_SEL_63_32_AS_MUTUAL_RX_63_32(x) (((uint32_t)(((uint32_t)(x)) << TSI_MUTUAL_RX_SEL_63_32_AS_MUTUAL_RX_63_32_SHIFT)) & TSI_MUTUAL_RX_SEL_63_32_AS_MUTUAL_RX_63_32_MASK)
 /*! @} */
 
-/*! @name MUTUAL_RX_SEL_69_64 - Mutual RX mode channels selection(CH69~CH64) */
+/*! @name MUTUAL_RX_SEL_69_64 - Mutual RX mode channels selection (CH69~CH64) */
 /*! @{ */
 
 #define TSI_MUTUAL_RX_SEL_69_64_AS_MUTUAL_RX_69_64_MASK (0x3FU)
 #define TSI_MUTUAL_RX_SEL_69_64_AS_MUTUAL_RX_69_64_SHIFT (0U)
-/*! AS_MUTUAL_RX_69_64 - config tsi channel as mutual RX mode among CH69~CH64 */
+/*! AS_MUTUAL_RX_69_64 - Config TSI channel as mutual RX mode among CH69~CH64 */
 #define TSI_MUTUAL_RX_SEL_69_64_AS_MUTUAL_RX_69_64(x) (((uint32_t)(((uint32_t)(x)) << TSI_MUTUAL_RX_SEL_69_64_AS_MUTUAL_RX_69_64_SHIFT)) & TSI_MUTUAL_RX_SEL_69_64_AS_MUTUAL_RX_69_64_MASK)
 /*! @} */
 
@@ -1133,32 +1103,32 @@ typedef struct {
 #define TSI_DATA_EOSF_MASK                       (0x8000000U)
 #define TSI_DATA_EOSF_SHIFT                      (27U)
 /*! EOSF - End of Scan Flag
- *  0b0..scan is not done
- *  0b1..scan is done
+ *  0b0..Scan is not done
+ *  0b1..Scan is done
  */
 #define TSI_DATA_EOSF(x)                         (((uint32_t)(((uint32_t)(x)) << TSI_DATA_EOSF_SHIFT)) & TSI_DATA_EOSF_MASK)
 
 #define TSI_DATA_OVERRUNF_MASK                   (0x20000000U)
 #define TSI_DATA_OVERRUNF_SHIFT                  (29U)
 /*! OVERRUNF - Overrun Flag
- *  0b0..there is trigger or ips bus writing during scan progress
- *  0b1..there is no trigger or ips bus writing during scan progress
+ *  0b0..There is trigger or ips bus writing during scan progress
+ *  0b1..There is no trigger or ips bus writing during scan progress
  */
 #define TSI_DATA_OVERRUNF(x)                     (((uint32_t)(((uint32_t)(x)) << TSI_DATA_OVERRUNF_SHIFT)) & TSI_DATA_OVERRUNF_MASK)
 
 #define TSI_DATA_OUTRGF_MASK                     (0x40000000U)
 #define TSI_DATA_OUTRGF_SHIFT                    (30U)
 /*! OUTRGF - Out of Range Flag
- *  0b0..the counter value is not out of range
- *  0b1..the counter value is out of range
+ *  0b0..The counter value is not out of range
+ *  0b1..The counter value is out of range
  */
 #define TSI_DATA_OUTRGF(x)                       (((uint32_t)(((uint32_t)(x)) << TSI_DATA_OUTRGF_SHIFT)) & TSI_DATA_OUTRGF_MASK)
 
 #define TSI_DATA_DPD_OUTRGF_MASK                 (0x80000000U)
 #define TSI_DATA_DPD_OUTRGF_SHIFT                (31U)
 /*! DPD_OUTRGF - DPD Out of Range Flag
- *  0b0..the counter value is not out of range
- *  0b1..the counter value is out of range
+ *  0b0..The counter value is not out of range
+ *  0b1..The counter value is out of range
  */
 #define TSI_DATA_DPD_OUTRGF(x)                   (((uint32_t)(((uint32_t)(x)) << TSI_DATA_DPD_OUTRGF_SHIFT)) & TSI_DATA_DPD_OUTRGF_MASK)
 /*! @} */
@@ -1168,57 +1138,57 @@ typedef struct {
 
 #define TSI_MISC_CAP_BANK_2500FF_MASK            (0x7U)
 #define TSI_MISC_CAP_BANK_2500FF_SHIFT           (0U)
-/*! CAP_BANK_2500FF - enable the 2500fF caps inside cap bank
- *  0b000..enable another 2.5 pF in cap bank
- *  0b001..enable another 5.0 pF in cap bank
- *  0b010..enable another 7.5 pF in cap bank
- *  0b011..enable another 10 pF in cap bank
- *  0b100..enable another 12.5 pF in cap bank
- *  0b101..enable another 15 pF in cap bank
- *  0b110..enable another 17.5 pF in cap bank
- *  0b111..enable another 20 pF in cap bank
+/*! CAP_BANK_2500FF - Enable the 2500fF caps inside cap bank
+ *  0b000..Enable another 2.5 pF in cap bank
+ *  0b001..Enable another 5.0 pF in cap bank
+ *  0b010..Enable another 7.5 pF in cap bank
+ *  0b011..Enable another 10 pF in cap bank
+ *  0b100..Enable another 12.5 pF in cap bank
+ *  0b101..Enable another 15 pF in cap bank
+ *  0b110..Enable another 17.5 pF in cap bank
+ *  0b111..Enable another 20 pF in cap bank
  */
 #define TSI_MISC_CAP_BANK_2500FF(x)              (((uint32_t)(((uint32_t)(x)) << TSI_MISC_CAP_BANK_2500FF_SHIFT)) & TSI_MISC_CAP_BANK_2500FF_MASK)
 
 #define TSI_MISC_CAP_BANK_312FF_MASK             (0x70U)
 #define TSI_MISC_CAP_BANK_312FF_SHIFT            (4U)
-/*! CAP_BANK_312FF - enable the 312fF caps inside cap bank
- *  0b000..enable another 0.3125 pF
- *  0b001..enable another 0.625 pF
- *  0b010..enable another 0.936 pF
- *  0b011..enable another 1.25 pF
- *  0b100..enable another 1.56 pF
- *  0b101..enable another 1.87 pF
- *  0b110..enable another 2.19 pF
- *  0b111..enable another 2.5 pF
+/*! CAP_BANK_312FF - Enable the 312fF caps inside cap bank
+ *  0b000..Enable another 0.3125 pF
+ *  0b001..Enable another 0.625 pF
+ *  0b010..Enable another 0.936 pF
+ *  0b011..Enable another 1.25 pF
+ *  0b100..Enable another 1.56 pF
+ *  0b101..Enable another 1.87 pF
+ *  0b110..Enable another 2.19 pF
+ *  0b111..Enable another 2.5 pF
  */
 #define TSI_MISC_CAP_BANK_312FF(x)               (((uint32_t)(((uint32_t)(x)) << TSI_MISC_CAP_BANK_312FF_SHIFT)) & TSI_MISC_CAP_BANK_312FF_MASK)
 
 #define TSI_MISC_DPD_MODE_ENABLE_MASK            (0x80000U)
 #define TSI_MISC_DPD_MODE_ENABLE_SHIFT           (19U)
 /*! DPD_MODE_ENABLE - DPD_MODE_ENABLE
- *  0b0..configuration information in 3v domain logic is latched
- *  0b1..configuration information in 3v domain logic is updating from configuration registers simultaneously
+ *  0b0..Configuration information in 3v domain logic is latched
+ *  0b1..Configuration information in 3v domain logic is updating from configuration registers simultaneously
  */
 #define TSI_MISC_DPD_MODE_ENABLE(x)              (((uint32_t)(((uint32_t)(x)) << TSI_MISC_DPD_MODE_ENABLE_SHIFT)) & TSI_MISC_DPD_MODE_ENABLE_MASK)
 
 #define TSI_MISC_CAP_BANK_148FF_MASK             (0x700000U)
 #define TSI_MISC_CAP_BANK_148FF_SHIFT            (20U)
 /*! CAP_BANK_148FF - CAP_BANK_148FF
- *  0b000..enable another 148 pF in cap bank
- *  0b001..enable another 296 pF in cap bank
- *  0b010..enable another 444 pF in cap bank
- *  0b011..enable another 592 pF in cap bank
- *  0b100..enable another 740 pF in cap bank
- *  0b101..enable another 888 pF in cap bank
- *  0b110..enable another 1036 pF in cap bank
- *  0b111..enable another 1184 pF in cap bank
+ *  0b000..Enable another 148 pF in cap bank
+ *  0b001..Enable another 296 pF in cap bank
+ *  0b010..Enable another 444 pF in cap bank
+ *  0b011..Enable another 592 pF in cap bank
+ *  0b100..Enable another 740 pF in cap bank
+ *  0b101..Enable another 888 pF in cap bank
+ *  0b110..Enable another 1036 pF in cap bank
+ *  0b111..Enable another 1184 pF in cap bank
  */
 #define TSI_MISC_CAP_BANK_148FF(x)               (((uint32_t)(((uint32_t)(x)) << TSI_MISC_CAP_BANK_148FF_SHIFT)) & TSI_MISC_CAP_BANK_148FF_MASK)
 
 #define TSI_MISC_CAP_BANK_EN_MASK                (0x800000U)
 #define TSI_MISC_CAP_BANK_EN_SHIFT               (23U)
-/*! CAP_BANK_EN - Test finger function enable signal
+/*! CAP_BANK_EN - Cap bank function enable signal
  *  0b0..Disable cap bank function
  *  0b1..Enable cap bank function
  */
@@ -1287,8 +1257,8 @@ typedef struct {
 #define TSI_TRIG_TRIG_EN_MASK                    (0x40000000U)
 #define TSI_TRIG_TRIG_EN_SHIFT                   (30U)
 /*! TRIG_EN - TRIG_EN
- *  0b0..disabled
- *  0b1..enabled
+ *  0b0..Disabled
+ *  0b1..Enabled
  */
 #define TSI_TRIG_TRIG_EN(x)                      (((uint32_t)(((uint32_t)(x)) << TSI_TRIG_TRIG_EN_SHIFT)) & TSI_TRIG_TRIG_EN_MASK)
 
@@ -1323,8 +1293,8 @@ typedef struct {
 #define TSI_TEST_DPD_TEST_EOSF_MASK              (0x100U)
 #define TSI_TEST_DPD_TEST_EOSF_SHIFT             (8U)
 /*! DPD_TEST_EOSF - End of Scan Flag in DPD test mode
- *  0b0..scan is not done in DPD test mode
- *  0b1..scan is done in DPD test mode
+ *  0b0..Scan is not done in DPD test mode
+ *  0b1..Scan is done in DPD test mode
  */
 #define TSI_TEST_DPD_TEST_EOSF(x)                (((uint32_t)(((uint32_t)(x)) << TSI_TEST_DPD_TEST_EOSF_SHIFT)) & TSI_TEST_DPD_TEST_EOSF_MASK)
 
@@ -1361,8 +1331,8 @@ typedef struct {
 #define TSI_TEST_RUN_CTRL_MASK                   (0x200000U)
 #define TSI_TEST_RUN_CTRL_SHIFT                  (21U)
 /*! RUN_CTRL - RUN_CTRL
- *  0b0..gate analog switch clock
- *  0b1..not gate analog switch clock
+ *  0b0..Gate analog switch clock
+ *  0b1..Not gate analog switch clock
  */
 #define TSI_TEST_RUN_CTRL(x)                     (((uint32_t)(((uint32_t)(x)) << TSI_TEST_RUN_CTRL_SHIFT)) & TSI_TEST_RUN_CTRL_MASK)
 /*! @} */

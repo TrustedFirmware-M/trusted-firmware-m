@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 NXP
+ * Copyright 2025-2026 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -157,7 +157,7 @@ typedef struct nboot_trng_cfg_load
 
 typedef struct nboot_context_struct
 {
-    uint8_t opaque[0x00000858u];
+    uint8_t opaque[0x00000A94u];
 } nboot_context_t;
 /*!
  * @brief NBOOT type for the root of trust parameters

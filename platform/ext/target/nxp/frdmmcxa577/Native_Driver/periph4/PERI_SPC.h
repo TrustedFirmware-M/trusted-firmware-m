@@ -1,14 +1,20 @@
 /*
 ** ###################################################################
-**     Processors:          MCXA286VLL
+**     Processors:          MCXA286VAPR
+**                          MCXA286VASR
+**                          MCXA286VLL
 **                          MCXA286VLQ
 **                          MCXA286VPN
+**                          MCXA287VAPR
+**                          MCXA287VASR
 **                          MCXA287VLL
 **                          MCXA287VLQ
 **                          MCXA287VPN
+**                          MCXA456VASR
 **                          MCXA456VLL
 **                          MCXA456VLQ
 **                          MCXA456VPN
+**                          MCXA457VASR
 **                          MCXA457VLL
 **                          MCXA457VLQ
 **                          MCXA457VPN
@@ -18,25 +24,29 @@
 **                          MCXA537VLL
 **                          MCXA537VLQ
 **                          MCXA537VPN
+**                          MCXA556BVPN
 **                          MCXA556VPN
+**                          MCXA557BVPN
+**                          MCXA557VPN
 **                          MCXA566VLL
 **                          MCXA566VLQ
 **                          MCXA566VPN
 **                          MCXA567VLL
 **                          MCXA567VLQ
 **                          MCXA567VPN
+**                          MCXA577VAPR
 **                          MCXA577VLL
 **                          MCXA577VLQ
 **                          MCXA577VPN
 **
 **     Version:             rev. 2.0, 2024-10-29
-**     Build:               b251029
+**     Build:               b260904
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for SPC
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -64,25 +74,27 @@
 #if !defined(PERI_SPC_H_)
 #define PERI_SPC_H_                              /**< Symbol preventing repeated inclusion */
 
-#if (defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
+#if (defined(CPU_MCXA286VAPR) || defined(CPU_MCXA286VASR) || defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
 #include "MCXA286_COMMON.h"
-#elif (defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
+#elif (defined(CPU_MCXA287VAPR) || defined(CPU_MCXA287VASR) || defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
 #include "MCXA287_COMMON.h"
-#elif (defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
+#elif (defined(CPU_MCXA456VASR) || defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
 #include "MCXA456_COMMON.h"
-#elif (defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
+#elif (defined(CPU_MCXA457VASR) || defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
 #include "MCXA457_COMMON.h"
 #elif (defined(CPU_MCXA536VLL) || defined(CPU_MCXA536VLQ) || defined(CPU_MCXA536VPN))
 #include "MCXA536_COMMON.h"
 #elif (defined(CPU_MCXA537VLL) || defined(CPU_MCXA537VLQ) || defined(CPU_MCXA537VPN))
 #include "MCXA537_COMMON.h"
-#elif (defined(CPU_MCXA556VPN))
+#elif (defined(CPU_MCXA556BVPN) || defined(CPU_MCXA556VPN))
 #include "MCXA556_COMMON.h"
+#elif (defined(CPU_MCXA557BVPN) || defined(CPU_MCXA557VPN))
+#include "MCXA557_COMMON.h"
 #elif (defined(CPU_MCXA566VLL) || defined(CPU_MCXA566VLQ) || defined(CPU_MCXA566VPN))
 #include "MCXA566_COMMON.h"
 #elif (defined(CPU_MCXA567VLL) || defined(CPU_MCXA567VLQ) || defined(CPU_MCXA567VPN))
 #include "MCXA567_COMMON.h"
-#elif (defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
+#elif (defined(CPU_MCXA577VAPR) || defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
 #include "MCXA577_COMMON.h"
 #else
   #error "No valid CPU defined!"
@@ -320,7 +332,7 @@ typedef struct {
  *  0b00..
  *  0b01..1.0 V
  *  0b10..1.1 V
- *  0b11..
+ *  0b11..SRAM configured for "1.2" V operation
  */
 #define SPC_SRAMCTL_VSM(x)                       (((uint32_t)(((uint32_t)(x)) << SPC_SRAMCTL_VSM_SHIFT)) & SPC_SRAMCTL_VSM_MASK)
 
@@ -355,10 +367,9 @@ typedef struct {
 #define SPC_ACTIVE_CFG_CORELDO_VDD_LVL_MASK      (0xCU)
 #define SPC_ACTIVE_CFG_CORELDO_VDD_LVL_SHIFT     (2U)
 /*! CORELDO_VDD_LVL - LDO_CORE VDD Regulator Voltage Level
- *  0b00..
  *  0b01..Regulate to mid voltage (1.0 V)
  *  0b10..Regulate to normal voltage (1.1 V)
- *  0b11..Regulate to overdrive voltage (1.15 V)
+ *  0b11..Regulate to overdrive voltage (1.2 V)
  */
 #define SPC_ACTIVE_CFG_CORELDO_VDD_LVL(x)        (((uint32_t)(((uint32_t)(x)) << SPC_ACTIVE_CFG_CORELDO_VDD_LVL_SHIFT)) & SPC_ACTIVE_CFG_CORELDO_VDD_LVL_MASK)
 
@@ -455,7 +466,7 @@ typedef struct {
  *  0b00..Reserved
  *  0b01..Mid voltage (1.0 V)
  *  0b10..Normal voltage (1.1 V)
- *  0b11..Overdrive voltage (1.15 V)
+ *  0b11..Overdrive voltage (1.2 V)
  */
 #define SPC_LP_CFG_CORELDO_VDD_LVL(x)            (((uint32_t)(((uint32_t)(x)) << SPC_LP_CFG_CORELDO_VDD_LVL_SHIFT)) & SPC_LP_CFG_CORELDO_VDD_LVL_MASK)
 
@@ -765,16 +776,16 @@ typedef struct {
 #define SPC_GLITCH_DETECT_SC_RE_MASK             (0x40U)
 #define SPC_GLITCH_DETECT_SC_RE_SHIFT            (6U)
 /*! RE - Glitch Detect Reset Enable
- *  0b0..GLITCH_DETECT_FLAG[CNT_SELECT] does not generate POR/LVD reset
- *  0b1..GLITCH_DETECT_FLAG[CNT_SELECT] does generate POR/LVD reset
+ *  0b0..Disables POR/LVD reset generation
+ *  0b1..Enables POR/LVD reset generation
  */
 #define SPC_GLITCH_DETECT_SC_RE(x)               (((uint32_t)(((uint32_t)(x)) << SPC_GLITCH_DETECT_SC_RE_SHIFT)) & SPC_GLITCH_DETECT_SC_RE_MASK)
 
 #define SPC_GLITCH_DETECT_SC_IE_MASK             (0x80U)
 #define SPC_GLITCH_DETECT_SC_IE_SHIFT            (7U)
 /*! IE - Glitch Detect Interrupt Enable
- *  0b0..GLITCH_DETECT_FLAG[CNT_SELECT] does not generate hardware interrupt (user polling)
- *  0b1..GLITCH_DETECT_FLAG[CNT_SELECT] does generate hardware interrupt
+ *  0b0..Disables automatic interrupt generation (user polling)
+ *  0b1..Enables automatic interrupt generation
  */
 #define SPC_GLITCH_DETECT_SC_IE(x)               (((uint32_t)(((uint32_t)(x)) << SPC_GLITCH_DETECT_SC_IE_SHIFT)) & SPC_GLITCH_DETECT_SC_IE_MASK)
 
@@ -829,16 +840,16 @@ typedef struct {
 #define SPC_GLITCH_VDDA_DETECT_SC_RE_MASK        (0x40U)
 #define SPC_GLITCH_VDDA_DETECT_SC_RE_SHIFT       (6U)
 /*! RE - Glitch Detect Reset Enable
- *  0b0..GLITCH_DETECT_FLAG[CNT_SELECT] does not generate POR/LVD reset
- *  0b1..GLITCH_DETECT_FLAG[CNT_SELECT] does generate POR/LVD reset
+ *  0b0..Disables POR/LVD reset generation
+ *  0b1..Enables POR/LVD reset generation
  */
 #define SPC_GLITCH_VDDA_DETECT_SC_RE(x)          (((uint32_t)(((uint32_t)(x)) << SPC_GLITCH_VDDA_DETECT_SC_RE_SHIFT)) & SPC_GLITCH_VDDA_DETECT_SC_RE_MASK)
 
 #define SPC_GLITCH_VDDA_DETECT_SC_IE_MASK        (0x80U)
 #define SPC_GLITCH_VDDA_DETECT_SC_IE_SHIFT       (7U)
 /*! IE - Glitch Detect Interrupt Enable
- *  0b0..GLITCH_DETECT_FLAG[CNT_SELECT] does not generate hardware interrupt (user polling)
- *  0b1..GLITCH_DETECT_FLAG[CNT_SELECT] does generate hardware interrupt
+ *  0b0..Disables automatic interrupt generation (user polling)
+ *  0b1..Enables automatic interrupt generation
  */
 #define SPC_GLITCH_VDDA_DETECT_SC_IE(x)          (((uint32_t)(((uint32_t)(x)) << SPC_GLITCH_VDDA_DETECT_SC_IE_SHIFT)) & SPC_GLITCH_VDDA_DETECT_SC_IE_MASK)
 

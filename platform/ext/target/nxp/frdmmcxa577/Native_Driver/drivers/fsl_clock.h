@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 NXP
+ * Copyright 2025-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -20,8 +20,8 @@
 
 /*! @name Driver version */
 /*@{*/
-/*! @brief CLOCK driver version 2.0.0. */
-#define FSL_CLOCK_DRIVER_VERSION (MAKE_VERSION(2, 0, 0))
+/*! @brief CLOCK driver version 2.0.1. */
+#define FSL_CLOCK_DRIVER_VERSION (MAKE_VERSION(2, 0, 1))
 /*@}*/
 
 /*! @brief Configure whether driver controls clock
@@ -41,7 +41,7 @@
 /* Definition for delay API in clock driver, users can redefine it to the real
  * application. */
 #ifndef SDK_DEVICE_MAXIMUM_CPU_CLOCK_FREQUENCY
-#define SDK_DEVICE_MAXIMUM_CPU_CLOCK_FREQUENCY (200000000U)
+#define SDK_DEVICE_MAXIMUM_CPU_CLOCK_FREQUENCY (240000000U)
 #endif
 
 /*! @brief Clock gate name used for CLOCK_EnableClock/CLOCK_DisableClock. */
@@ -156,7 +156,7 @@ typedef enum _clock_ip_name
 #define CTIMER_CLOCKS \
     {kCLOCK_GateCTIMER0, kCLOCK_GateCTIMER1, kCLOCK_GateCTIMER2, kCLOCK_GateCTIMER3, kCLOCK_GateCTIMER4}
 /*! @brief Clock ip name array for DMA. */
-#define DMA_CLOCKS {kCLOCK_GateDMA0}
+#define DMA_CLOCKS {kCLOCK_GateDMA0, kCLOCK_GateDMA1}
 /*! @brief Clock gate name array for EDMA. */
 #define EDMA_CLOCKS {kCLOCK_GateDMA0}
 /*! @brief Clock ip name array for ERM. */
@@ -200,7 +200,7 @@ typedef enum _clock_ip_name
 #define LPSPI_CLOCKS \
     {kCLOCK_GateLPSPI0, kCLOCK_GateLPSPI1, kCLOCK_GateLPSPI2, kCLOCK_GateLPSPI3, kCLOCK_GateLPSPI4, kCLOCK_GateLPSPI5}
 /*! @brief Clock ip name array for I3C. */
-#define I3C_CLOCKS {kCLOCK_GateI3C0, kCLOCK_GateI3C1, kCLOCK_GateI3C2}
+#define I3C_CLOCKS {kCLOCK_GateI3C0, kCLOCK_GateI3C1, kCLOCK_GateI3C2, kCLOCK_GateI3C3}
 /*! @brief Clock ip name array for OSTIMER. */
 #define OSTIMER_CLOCKS {kCLOCK_GateOSTIMER0}
 /*! @brief Clock ip name array for PORT. */
@@ -568,8 +568,8 @@ typedef enum _clock_attach_id
     kPll1ClkDiv_to_LPUART5 = CLK_ATTACH_MUX(kCLOCK_SelLPUART5, 6U),         /*!< Attach Pll1ClkDiv to LPUART5. */
     kNONE_to_LPUART5       = CLK_ATTACH_MUX(kCLOCK_SelLPUART5, 7U),         /*!< Attach NONE to LPUART5.       */
 
-    kCLK_32K_to_USBHS      = CLK_ATTACH_MUX(kCLOCK_SelUSBHS, 0U),           /*!< Attach FRO_HF to USBHS.*/
-    kCLK_1M_to_USBHS       = CLK_ATTACH_MUX(kCLOCK_SelUSBHS, 1U),           /*!< Attach CLK_IN to USBHS.*/
+    kCLK_32K_to_USBHS      = CLK_ATTACH_MUX(kCLOCK_SelUSBHS, 0U),           /*!< Attach CLK_32K to USBHS.*/
+    kCLK_1M_to_USBHS       = CLK_ATTACH_MUX(kCLOCK_SelUSBHS, 1U),           /*!< Attach CLK_1M to USBHS.*/
     kPHY_CLK_XTAL_to_USBHS = CLK_ATTACH_MUX(kCLOCK_SelUSBHS, 2U),           /*!< Attach CLK_IN to USBHS.*/
     kNONE_to_USBHS         = CLK_ATTACH_MUX(kCLOCK_SelUSBHS, 3U),           /*!< Attach NONE to USBHS.  */
 
@@ -584,9 +584,10 @@ typedef enum _clock_attach_id
     kPll1ClkDiv_to_LPTMR0 = CLK_ATTACH_MUX(kCLOCK_SelLPTMR0, 6U),           /*!< Attach Pll1ClkDiv to LPTMR0. */
     kNONE_to_LPTMR0       = CLK_ATTACH_MUX(kCLOCK_SelLPTMR0, 7U),           /*!< Attach NONE to LPTMR0.       */
 
-    kCLK_16K_to_OSTIMER = CLK_ATTACH_MUX(kCLOCK_SelOSTIMER0, 0U),           /*!< Attach FRO16K to OSTIMER0. */
-    kCLK_1M_to_OSTIMER  = CLK_ATTACH_MUX(kCLOCK_SelOSTIMER0, 2U),           /*!< Attach CLK_1M to OSTIMER0. */
-    kNONE_to_OSTIMER    = CLK_ATTACH_MUX(kCLOCK_SelOSTIMER0, 3U),           /*!< Attach NONE to OSTIMER0.   */
+    kCLK_16K_to_OSTIMER = CLK_ATTACH_MUX(kCLOCK_SelOSTIMER0, 0U),           /*!< Attach FRO16K to OSTIMER0.     */
+    kCLK_32K_to_OSTIMER = CLK_ATTACH_MUX(kCLOCK_SelOSTIMER0, 1U),           /*!< Attach OSC_32K[1] to OSTIMER0. */
+    kCLK_1M_to_OSTIMER  = CLK_ATTACH_MUX(kCLOCK_SelOSTIMER0, 2U),           /*!< Attach CLK_1M to OSTIMER0.     */
+    kNONE_to_OSTIMER    = CLK_ATTACH_MUX(kCLOCK_SelOSTIMER0, 3U),           /*!< Attach NONE to OSTIMER0.       */
 
     kFRO_LF_DIV_to_ADC = CLK_ATTACH_MUX(kCLOCK_SelADC, 0U),                 /*!< Attach FRO_LF_DIV to ADC. */
     kFRO_HF_to_ADC     = CLK_ATTACH_MUX(kCLOCK_SelADC, 1U),                 /*!< Attach FRO_HF to ADC.     */
@@ -986,6 +987,7 @@ typedef struct _osc_32k_config
     vbat_osc_coarse_adjustment_value_t ampGain;
 
     osc32k_clk_gate_id_t id;
+    bool updateTrim;
 } osc_32k_config_t;
 
 /*! @brief Source of PFD Clock Selection. */
@@ -1077,7 +1079,7 @@ clock_attach_id_t CLOCK_GetClockAttachId(clock_attach_id_t connection);
  * @param   sel_name : Clock select.
  * @param   value    : value to be set.
  */
-void CLOCK_SetClockSelect(clock_select_name_t sel_name, uint32_t value);
+status_t CLOCK_SetClockSelect(clock_select_name_t sel_name, uint32_t value);
 
 /**
  * @brief   Get the clock select value.
@@ -1337,6 +1339,7 @@ bool CLOCK_EnableUsbhsPhyPllClock(uint32_t clockSourceFreq);
  */
 void CLOCK_DisableUsbhsPhyPllClock(void);
 
+#ifdef USBHS1
 /*!
  * @brief Enable USB HS clock.
  *
@@ -1345,6 +1348,7 @@ void CLOCK_DisableUsbhsPhyPllClock(void);
  * @return true if success, false if failure.
  */
 bool CLOCK_EnableUsbhsClock(void);
+#endif
 
 /*!
  * @brief Enable USB HS PHY PFD clock.
@@ -1522,7 +1526,8 @@ typedef enum _pll_error
     kStatus_PLL_InputTooHigh    = MAKE_STATUS(kStatusGroup_Generic, 5), /*!< PLL input rate is too high */
     kStatus_PLL_OutsideIntLimit = MAKE_STATUS(kStatusGroup_Generic, 6), /*!< Requested output rate isn't possible */
     kStatus_PLL_CCOTooLow       = MAKE_STATUS(kStatusGroup_Generic, 7), /*!< Requested CCO rate isn't possible */
-    kStatus_PLL_CCOTooHigh      = MAKE_STATUS(kStatusGroup_Generic, 8)  /*!< Requested CCO rate isn't possible */
+    kStatus_PLL_CCOTooHigh      = MAKE_STATUS(kStatusGroup_Generic, 8), /*!< Requested CCO rate isn't possible */
+    kStatus_PLL_Timeout         = MAKE_STATUS(kStatusGroup_Generic, 9)  /*!< Generic status for timeout */
 } pll_error_t;
 
 /*! @brief    Return PLL0 output clock rate from setup structure

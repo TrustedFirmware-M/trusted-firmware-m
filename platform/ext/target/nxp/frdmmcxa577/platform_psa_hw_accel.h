@@ -22,10 +22,6 @@ extern "C" {
 #undef PSA_WANT_ALG_SHA_224
 #endif
 
-#if defined(PSA_WANT_ALG_SHA_256)
-#define MBEDTLS_PSA_ACCEL_ALG_SHA_256 1
-#endif
-
 #if defined(PSA_WANT_ALG_SHA_384)
 #define MBEDTLS_PSA_ACCEL_ALG_SHA_384 1
 #endif

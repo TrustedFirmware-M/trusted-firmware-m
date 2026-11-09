@@ -1,14 +1,20 @@
 /*
 ** ###################################################################
-**     Processors:          MCXA286VLL
+**     Processors:          MCXA286VAPR
+**                          MCXA286VASR
+**                          MCXA286VLL
 **                          MCXA286VLQ
 **                          MCXA286VPN
+**                          MCXA287VAPR
+**                          MCXA287VASR
 **                          MCXA287VLL
 **                          MCXA287VLQ
 **                          MCXA287VPN
+**                          MCXA456VASR
 **                          MCXA456VLL
 **                          MCXA456VLQ
 **                          MCXA456VPN
+**                          MCXA457VASR
 **                          MCXA457VLL
 **                          MCXA457VLQ
 **                          MCXA457VPN
@@ -18,25 +24,29 @@
 **                          MCXA537VLL
 **                          MCXA537VLQ
 **                          MCXA537VPN
+**                          MCXA556BVPN
 **                          MCXA556VPN
+**                          MCXA557BVPN
+**                          MCXA557VPN
 **                          MCXA566VLL
 **                          MCXA566VLQ
 **                          MCXA566VPN
 **                          MCXA567VLL
 **                          MCXA567VLQ
 **                          MCXA567VPN
+**                          MCXA577VAPR
 **                          MCXA577VLL
 **                          MCXA577VLQ
 **                          MCXA577VPN
 **
 **     Version:             rev. 2.0, 2024-10-29
-**     Build:               b251029
+**     Build:               b260904
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for DIGTMP
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -64,25 +74,27 @@
 #if !defined(PERI_DIGTMP_H_)
 #define PERI_DIGTMP_H_                           /**< Symbol preventing repeated inclusion */
 
-#if (defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
+#if (defined(CPU_MCXA286VAPR) || defined(CPU_MCXA286VASR) || defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
 #include "MCXA286_COMMON.h"
-#elif (defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
+#elif (defined(CPU_MCXA287VAPR) || defined(CPU_MCXA287VASR) || defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
 #include "MCXA287_COMMON.h"
-#elif (defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
+#elif (defined(CPU_MCXA456VASR) || defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
 #include "MCXA456_COMMON.h"
-#elif (defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
+#elif (defined(CPU_MCXA457VASR) || defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
 #include "MCXA457_COMMON.h"
 #elif (defined(CPU_MCXA536VLL) || defined(CPU_MCXA536VLQ) || defined(CPU_MCXA536VPN))
 #include "MCXA536_COMMON.h"
 #elif (defined(CPU_MCXA537VLL) || defined(CPU_MCXA537VLQ) || defined(CPU_MCXA537VPN))
 #include "MCXA537_COMMON.h"
-#elif (defined(CPU_MCXA556VPN))
+#elif (defined(CPU_MCXA556BVPN) || defined(CPU_MCXA556VPN))
 #include "MCXA556_COMMON.h"
+#elif (defined(CPU_MCXA557BVPN) || defined(CPU_MCXA557VPN))
+#include "MCXA557_COMMON.h"
 #elif (defined(CPU_MCXA566VLL) || defined(CPU_MCXA566VLQ) || defined(CPU_MCXA566VPN))
 #include "MCXA566_COMMON.h"
 #elif (defined(CPU_MCXA567VLL) || defined(CPU_MCXA567VLQ) || defined(CPU_MCXA567VPN))
 #include "MCXA567_COMMON.h"
-#elif (defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
+#elif (defined(CPU_MCXA577VAPR) || defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
 #include "MCXA577_COMMON.h"
 #else
   #error "No valid CPU defined!"
@@ -896,6 +908,70 @@ typedef struct {
  *  0b1..Inverted
  */
 #define DIGTMP_PPR_TPP7(x)                       (((uint32_t)(((uint32_t)(x)) << DIGTMP_PPR_TPP7_SHIFT)) & DIGTMP_PPR_TPP7_MASK)
+
+#define DIGTMP_PPR_TPID0_MASK                    (0x10000U)
+#define DIGTMP_PPR_TPID0_SHIFT                   (16U)
+/*! TPID0 - Tamper Pin n Input Data
+ *  0b0..Zero
+ *  0b1..One
+ */
+#define DIGTMP_PPR_TPID0(x)                      (((uint32_t)(((uint32_t)(x)) << DIGTMP_PPR_TPID0_SHIFT)) & DIGTMP_PPR_TPID0_MASK)
+
+#define DIGTMP_PPR_TPID1_MASK                    (0x20000U)
+#define DIGTMP_PPR_TPID1_SHIFT                   (17U)
+/*! TPID1 - Tamper Pin n Input Data
+ *  0b0..Zero
+ *  0b1..One
+ */
+#define DIGTMP_PPR_TPID1(x)                      (((uint32_t)(((uint32_t)(x)) << DIGTMP_PPR_TPID1_SHIFT)) & DIGTMP_PPR_TPID1_MASK)
+
+#define DIGTMP_PPR_TPID2_MASK                    (0x40000U)
+#define DIGTMP_PPR_TPID2_SHIFT                   (18U)
+/*! TPID2 - Tamper Pin n Input Data
+ *  0b0..Zero
+ *  0b1..One
+ */
+#define DIGTMP_PPR_TPID2(x)                      (((uint32_t)(((uint32_t)(x)) << DIGTMP_PPR_TPID2_SHIFT)) & DIGTMP_PPR_TPID2_MASK)
+
+#define DIGTMP_PPR_TPID3_MASK                    (0x80000U)
+#define DIGTMP_PPR_TPID3_SHIFT                   (19U)
+/*! TPID3 - Tamper Pin n Input Data
+ *  0b0..Zero
+ *  0b1..One
+ */
+#define DIGTMP_PPR_TPID3(x)                      (((uint32_t)(((uint32_t)(x)) << DIGTMP_PPR_TPID3_SHIFT)) & DIGTMP_PPR_TPID3_MASK)
+
+#define DIGTMP_PPR_TPID4_MASK                    (0x100000U)
+#define DIGTMP_PPR_TPID4_SHIFT                   (20U)
+/*! TPID4 - Tamper Pin n Input Data
+ *  0b0..Zero
+ *  0b1..One
+ */
+#define DIGTMP_PPR_TPID4(x)                      (((uint32_t)(((uint32_t)(x)) << DIGTMP_PPR_TPID4_SHIFT)) & DIGTMP_PPR_TPID4_MASK)
+
+#define DIGTMP_PPR_TPID5_MASK                    (0x200000U)
+#define DIGTMP_PPR_TPID5_SHIFT                   (21U)
+/*! TPID5 - Tamper Pin n Input Data
+ *  0b0..Zero
+ *  0b1..One
+ */
+#define DIGTMP_PPR_TPID5(x)                      (((uint32_t)(((uint32_t)(x)) << DIGTMP_PPR_TPID5_SHIFT)) & DIGTMP_PPR_TPID5_MASK)
+
+#define DIGTMP_PPR_TPID6_MASK                    (0x400000U)
+#define DIGTMP_PPR_TPID6_SHIFT                   (22U)
+/*! TPID6 - Tamper Pin n Input Data
+ *  0b0..Zero
+ *  0b1..One
+ */
+#define DIGTMP_PPR_TPID6(x)                      (((uint32_t)(((uint32_t)(x)) << DIGTMP_PPR_TPID6_SHIFT)) & DIGTMP_PPR_TPID6_MASK)
+
+#define DIGTMP_PPR_TPID7_MASK                    (0x800000U)
+#define DIGTMP_PPR_TPID7_SHIFT                   (23U)
+/*! TPID7 - Tamper Pin n Input Data
+ *  0b0..Zero
+ *  0b1..One
+ */
+#define DIGTMP_PPR_TPID7(x)                      (((uint32_t)(((uint32_t)(x)) << DIGTMP_PPR_TPID7_SHIFT)) & DIGTMP_PPR_TPID7_MASK)
 /*! @} */
 
 /*! @name PGFR - Pin Glitch Filter */

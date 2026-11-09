@@ -92,6 +92,7 @@ target_include_directories(platform_s
         ${PLATFORM_DIR}/ext/target/nxp/common/CMSIS_Driver
         ${PLATFORM_DIR}/ext/target/nxp/common/Device/Config
         ${PLATFORM_DIR}/ext/target/nxp/common/Device/Include
+        $<$<BOOL:${USE_TFM_ROMAPI_FLASH_SERVICE}>:${PLATFORM_DIR}/ext/target/nxp/common/services/include>
         ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver
         ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers
         ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/periph4
@@ -99,7 +100,7 @@ target_include_directories(platform_s
         ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/nboot
         ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/runbootloader
         ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/flash
-        #${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/kbapi
+        ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/kbapi
         ${NXP_HAL_FILE_PATH}/common/Native_Driver
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/uart
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/debug_console_lite
@@ -133,7 +134,7 @@ target_sources(platform_s
         project_template/s/pin_mux.c
         ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/system_MCXA577.c
         ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/flash/fsl_flash.c
-        #${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/kbapi/fsl_kbapi.c
+        ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/kbapi/fsl_kbapi.c
         ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/nboot/fsl_nboot.c
         ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/runbootloader/fsl_runbootloader.c
         ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/fsl_clock.c
@@ -157,17 +158,25 @@ target_sources(platform_s
         ${NXP_HAL_FILE_PATH}/common/Native_Driver/utilities/str/fsl_str.c
         $<$<BOOL:${TFM_PARTITION_PLATFORM}>:${PLATFORM_DIR}/ext/target/nxp/common/plat_test.c>
         $<$<BOOL:${TFM_PARTITION_PLATFORM}>:${PLATFORM_DIR}/ext/target/nxp/common/services/src/tfm_platform_system.c>
+        $<$<BOOL:${USE_TFM_ROMAPI_FLASH_SERVICE}>:${PLATFORM_DIR}/ext/target/nxp/common/services/src/tfm_flash_ioctl_hal.c>
 )
+
+# ROMAPI flash service configuration:
+# - Enables NS storage IOCTL support
+# - Selects the MCXA-specific ROM API HAL implementation
+if(USE_TFM_ROMAPI_FLASH_SERVICE)
+    target_compile_definitions(platform_s
+        PRIVATE
+            NXP_NS_STORAGE
+            ROMAPI_PROXY_HAL_MCXA
+    )
+endif()
 
 target_link_libraries(platform_s
     PRIVATE
     # For attest HAL strnlen
         tfm_sprt
 )
-
-if (MCUX_PSA_CRYPTO_DRIVER_SGI_PKC)
- #TODO link SGI PKC
-endif()
 
 # GNU ld has some strange behaviour to do with weak functions, and does not deal
 # well with strong functions in static libraries overriding weak functions in
@@ -204,7 +213,7 @@ if(BL2)
             ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/nboot
             ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/runbootloader
             ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/flash
-            #${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/kbapi
+            ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver/drivers/romapi/kbapi
             ${NXP_HAL_FILE_PATH}/common/Native_Driver
             ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/uart
             ${NXP_HAL_FILE_PATH}/common/Native_Driver/components/flash/mflash
@@ -294,38 +303,11 @@ target_sources(tfm_s
         ${NXP_COMMON_DIR}/mpc_ppc_faults.c
 )
 
-# TODO: Use HW acceleration
-if (MCUX_PSA_CRYPTO_DRIVER_SGI_PKC)
-if (TFM_PARTITION_CRYPTO)
-
-    target_compile_options(platform_crypto_keys
-        PUBLIC
-            ${COMPILER_CMSE_FLAG}
-    )
-
-    # TODO: add crypto_keys.c with frdmmcxa577 implementation of huk/iak.
-
-    target_link_libraries(platform_crypto_keys
-        PRIVATE
-            cmsis
-    )
-
-    target_include_directories(platform_crypto_keys
-        PUBLIC
-            ./Device/Include
-            ${PLATFORM_DIR}/ext/target/nxp/common/Device/Config
-            ${PLATFORM_DIR}/ext/target/nxp/common/Device/Include
-            ${NXP_HAL_FILE_PATH}/frdmmcxa577/Native_Driver
-    )
-
-    target_compile_definitions(platform_crypto_keys
-        PUBLIC
-            $<$<BOOL:${USE_SGI_PKC_HUK}>:USE_SGI_PKC_HUK>
-            $<$<BOOL:${USE_SGI_PKC_IAK}>:USE_SGI_PKC_IAK>
-    )
-
-endif()
-endif()
+#========================= Install platform specific interface files ===============================#
+install(FILES
+    ${NXP_HAL_FILE_PATH}/../../../../interface/include/crypto_keys/tfm_builtin_key_ids.h
+    DESTINATION "${INSTALL_PLATFORM_NS_DIR}/../interface/include"
+)
 
 #========================= Files for building NS side platform ================#
 
@@ -375,3 +357,16 @@ install(DIRECTORY   ${TARGET_PLATFORM_PATH}/ns/
 install(FILES       ${TARGET_PLATFORM_PATH}/cpuarch.cmake
                     ${TARGET_PLATFORM_PATH}/config.cmake
         DESTINATION ${INSTALL_PLATFORM_NS_DIR})
+
+if(USE_TFM_ROMAPI_FLASH_SERVICE)
+install(FILES
+    ${PLATFORM_DIR}/ext/target/nxp/common/services/include/fsl_flash_tfm_ns.h
+    ${PLATFORM_DIR}/ext/target/nxp/common/services/include/fsl_romapi_tfm_ns.h
+    ${PLATFORM_DIR}/ext/target/nxp/common/services/include/tfm_ioctl_api.h
+    DESTINATION ${INSTALL_PLATFORM_NS_DIR}/include
+)
+install(FILES
+    ${PLATFORM_DIR}/ext/target/nxp/common/services/src/tfm_ioctl_ns_api.c
+    DESTINATION ${INSTALL_PLATFORM_NS_DIR}
+)
+endif()

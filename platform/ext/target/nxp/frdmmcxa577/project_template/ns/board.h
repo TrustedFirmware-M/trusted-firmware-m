@@ -36,6 +36,17 @@
 #define BOARD_UART_IRQ_HANDLER      LPUART1_IRQHandler
 #define BOARD_UART_IRQ              LPUART1_IRQn
 
+/*! @brief Indexes of the TSI channels for on-board electrodes */
+#ifndef BOARD_TSI_ELECTRODE_1
+#define BOARD_TSI_ELECTRODE_1 0
+#endif
+#ifndef BOARD_TSI_ELECTRODE_2
+#define BOARD_TSI_ELECTRODE_2 2
+#endif
+
+#define BOARD_TSI_MUTUAL_TX_ELECTRODE_1 1U
+#define BOARD_TSI_MUTUAL_RX_ELECTRODE_1 44 + 8U
+
 /*! @brief GPIO for LED. */
 #ifndef BOARD_LED_RED_GPIO
 #define BOARD_LED_RED_GPIO GPIO2
@@ -79,6 +90,11 @@
 #define BOARD_SW3_IRQ         GPIO0_IRQn
 #define BOARD_SW3_IRQ_HANDLER GPIO0_IRQHandler
 
+/* USB PHY condfiguration */
+#define BOARD_USB_PHY_D_CAL     (0x04U)
+#define BOARD_USB_PHY_TXCAL45DP (0x07U)
+#define BOARD_USB_PHY_TXCAL45DM (0x07U)
+
 /* Board LED color mapping */
 #define LOGIC_LED_ON  0U
 #define LOGIC_LED_OFF 1U
@@ -97,9 +113,9 @@
     GPIO_PinWrite(BOARD_LED_GREEN_GPIO, BOARD_LED_GREEN_GPIO_PIN, output); \
     BOARD_LED_GREEN_GPIO->PDDR |= (1U << BOARD_LED_GREEN_GPIO_PIN)             /*!< Enable target LED_GREEN */
 #define LED_GREEN_ON() \
-    GPIO_PinWrite(BOARD_LED_RED_GPIO, BOARD_LED_GREEN_GPIO_PIN, LOGIC_LED_ON)  /*!< Turn on target LED_GREEN */
+    GPIO_PinWrite(BOARD_LED_GREEN_GPIO, BOARD_LED_GREEN_GPIO_PIN, LOGIC_LED_ON)  /*!< Turn on target LED_GREEN */
 #define LED_GREEN_OFF() \
-    GPIO_PinWrite(BOARD_LED_RED_GPIO, BOARD_LED_GREEN_GPIO_PIN, LOGIC_LED_OFF) /*!< Turn off target LED_GREEN */
+    GPIO_PinWrite(BOARD_LED_GREEN_GPIO, BOARD_LED_GREEN_GPIO_PIN, LOGIC_LED_OFF) /*!< Turn off target LED_GREEN */
 #define LED_GREEN_TOGGLE() \
     GPIO_PortToggle(BOARD_LED_GREEN_GPIO, 1U << BOARD_LED_GREEN_GPIO_PIN)      /*!< Toggle on target LED_GREEN */
 
@@ -107,9 +123,9 @@
     GPIO_PinWrite(BOARD_LED_BLUE_GPIO, BOARD_LED_BLUE_GPIO_PIN, output); \
     BOARD_LED_BLUE_GPIO->PDDR |= (1U << BOARD_LED_BLUE_GPIO_PIN)              /*!< Enable target LED_BLUE */
 #define LED_BLUE_ON() \
-    GPIO_PinWrite(BOARD_LED_RED_GPIO, BOARD_LED_BLUE_GPIO_PIN, LOGIC_LED_ON)  /*!< Turn on target LED_BLUE */
+    GPIO_PinWrite(BOARD_LED_BLUE_GPIO, BOARD_LED_BLUE_GPIO_PIN, LOGIC_LED_ON)  /*!< Turn on target LED_BLUE */
 #define LED_BLUE_OFF() \
-    GPIO_PinWrite(BOARD_LED_RED_GPIO, BOARD_LED_BLUE_GPIO_PIN, LOGIC_LED_OFF) /*!< Turn off target LED_BLUE */
+    GPIO_PinWrite(BOARD_LED_BLUE_GPIO, BOARD_LED_BLUE_GPIO_PIN, LOGIC_LED_OFF) /*!< Turn off target LED_BLUE */
 #define LED_BLUE_TOGGLE() \
     GPIO_PortToggle(BOARD_LED_BLUE_GPIO, 1U << BOARD_LED_BLUE_GPIO_PIN)       /*!< Toggle on target LED_BLUE */
 

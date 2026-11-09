@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 NXP
+ * Copyright 2025-2026 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -7,8 +7,6 @@
 
 #ifndef FSL_NBOOT_HAL_H_
 #define FSL_NBOOT_HAL_H_
-
-#include "fsl_nboot.h"
 
 /*! @addtogroup nboot_driver */
 /*! @{ */

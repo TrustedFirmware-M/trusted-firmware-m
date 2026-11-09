@@ -1,42 +1,46 @@
 /*
 ** ###################################################################
-**     Processors:          MCXA286VLL
+**     Processors:          MCXA286VAPR
+**                          MCXA286VASR
+**                          MCXA286VLL
 **                          MCXA286VLQ
 **                          MCXA286VPN
+**                          MCXA287VAPR
+**                          MCXA287VASR
 **                          MCXA287VLL
 **                          MCXA287VLQ
 **                          MCXA287VPN
+**                          MCXA456VASR
 **                          MCXA456VLL
 **                          MCXA456VLQ
 **                          MCXA456VPN
+**                          MCXA457VASR
 **                          MCXA457VLL
 **                          MCXA457VLQ
 **                          MCXA457VPN
-**                          MCXA536VLL
-**                          MCXA536VLQ
-**                          MCXA536VPN
-**                          MCXA537VLL
-**                          MCXA537VLQ
-**                          MCXA537VPN
+**                          MCXA556BVPN
 **                          MCXA556VPN
+**                          MCXA557BVPN
+**                          MCXA557VPN
 **                          MCXA566VLL
 **                          MCXA566VLQ
 **                          MCXA566VPN
 **                          MCXA567VLL
 **                          MCXA567VLQ
 **                          MCXA567VPN
+**                          MCXA577VAPR
 **                          MCXA577VLL
 **                          MCXA577VLQ
 **                          MCXA577VPN
 **
 **     Version:             rev. 2.0, 2024-10-29
-**     Build:               b251029
+**     Build:               b260904
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for I3C
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -64,25 +68,23 @@
 #if !defined(PERI_I3C_H_)
 #define PERI_I3C_H_                              /**< Symbol preventing repeated inclusion */
 
-#if (defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
+#if (defined(CPU_MCXA286VAPR) || defined(CPU_MCXA286VASR) || defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
 #include "MCXA286_COMMON.h"
-#elif (defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
+#elif (defined(CPU_MCXA287VAPR) || defined(CPU_MCXA287VASR) || defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
 #include "MCXA287_COMMON.h"
-#elif (defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
+#elif (defined(CPU_MCXA456VASR) || defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
 #include "MCXA456_COMMON.h"
-#elif (defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
+#elif (defined(CPU_MCXA457VASR) || defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
 #include "MCXA457_COMMON.h"
-#elif (defined(CPU_MCXA536VLL) || defined(CPU_MCXA536VLQ) || defined(CPU_MCXA536VPN))
-#include "MCXA536_COMMON.h"
-#elif (defined(CPU_MCXA537VLL) || defined(CPU_MCXA537VLQ) || defined(CPU_MCXA537VPN))
-#include "MCXA537_COMMON.h"
-#elif (defined(CPU_MCXA556VPN))
+#elif (defined(CPU_MCXA556BVPN) || defined(CPU_MCXA556VPN))
 #include "MCXA556_COMMON.h"
+#elif (defined(CPU_MCXA557BVPN) || defined(CPU_MCXA557VPN))
+#include "MCXA557_COMMON.h"
 #elif (defined(CPU_MCXA566VLL) || defined(CPU_MCXA566VLQ) || defined(CPU_MCXA566VPN))
 #include "MCXA566_COMMON.h"
 #elif (defined(CPU_MCXA567VLL) || defined(CPU_MCXA567VLQ) || defined(CPU_MCXA567VPN))
 #include "MCXA567_COMMON.h"
-#elif (defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
+#elif (defined(CPU_MCXA577VAPR) || defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
 #include "MCXA577_COMMON.h"
 #else
   #error "No valid CPU defined!"
@@ -137,8 +139,8 @@ typedef struct {
   __I  uint32_t SINTMASKED;                        /**< Target Interrupt Mask, offset: 0x18 */
   __IO uint32_t SERRWARN;                          /**< Target Errors and Warnings, offset: 0x1C */
   __IO uint32_t SDMACTRL;                          /**< Target DMA Control, offset: 0x20 */
-  __IO uint32_t SHDRBTCFG;                         /**< Target HDR-BT Configuration, offset: 0x24, not available in all instances (available on 22 out of 88) */
-  __I  uint32_t SHDRBTLAST;                        /**< Target HDR-Last, offset: 0x28, not available in all instances (available on 22 out of 88) */
+  __IO uint32_t SHDRBTCFG;                         /**< Target HDR-BT Configuration, offset: 0x24, not available in all instances (available on 32 out of 128) */
+  __I  uint32_t SHDRBTLAST;                        /**< Target HDR-Last, offset: 0x28, not available in all instances (available on 32 out of 128) */
   __IO uint32_t SDATACTRL;                         /**< Target Data Control, offset: 0x2C */
   __O  uint32_t SWDATAB;                           /**< Target Write Data Byte, offset: 0x30 */
   __O  uint32_t SWDATABE;                          /**< Target Write Data Byte End, offset: 0x34 */
@@ -168,8 +170,8 @@ typedef struct {
   __I  uint32_t MINTMASKED;                        /**< Controller Interrupt Mask, offset: 0x98 */
   __IO uint32_t MERRWARN;                          /**< Controller Errors and Warnings, offset: 0x9C */
   __IO uint32_t MDMACTRL;                          /**< Controller DMA Control, offset: 0xA0 */
-  __IO uint32_t MHDRBTCFG;                         /**< Controller HDR-BT Configuration, offset: 0xA4, not available in all instances (available on 22 out of 88) */
-  __I  uint32_t MHDRBTLAST;                        /**< Controller HDR-Last, offset: 0xA8, not available in all instances (available on 22 out of 88) */
+  __IO uint32_t MHDRBTCFG;                         /**< Controller HDR-BT Configuration, offset: 0xA4, not available in all instances (available on 32 out of 128) */
+  __I  uint32_t MHDRBTLAST;                        /**< Controller HDR-Last, offset: 0xA8, not available in all instances (available on 32 out of 128) */
   __IO uint32_t MDATACTRL;                         /**< Controller Data Control, offset: 0xAC */
   __O  uint32_t MWDATAB;                           /**< Controller Write Data Byte, offset: 0xB0 */
   __O  uint32_t MWDATABE;                          /**< Controller Write Data Byte End, offset: 0xB4 */
@@ -193,9 +195,9 @@ typedef struct {
        uint8_t RESERVED_5[4];
   __IO uint32_t MDYNADDR;                          /**< Controller Dynamic Address, offset: 0xE4 */
        uint8_t RESERVED_6[8];
-  __O  uint32_t MWDATAW;                           /**< Write Word Data (to Bus), offset: 0xF0, not available in all instances (available on 22 out of 88) */
+  __O  uint32_t MWDATAW;                           /**< Write Word Data (to Bus), offset: 0xF0, not available in all instances (available on 32 out of 128) */
        uint8_t RESERVED_7[4];
-  __I  uint32_t MRDATAW;                           /**< Read Word Data (from Bus), offset: 0xF8, not available in all instances (available on 22 out of 88) */
+  __I  uint32_t MRDATAW;                           /**< Read Word Data (from Bus), offset: 0xF8, not available in all instances (available on 32 out of 128) */
        uint8_t RESERVED_8[32];
   __I  uint32_t SMAPCTRL0;                         /**< Map Feature Control 0, offset: 0x11C */
   __IO uint32_t SMAPCTRL1;                         /**< Map Feature Control 1, offset: 0x120 */
@@ -203,9 +205,9 @@ typedef struct {
   __IO uint32_t IBIEXT1;                           /**< Extended IBI Data 1, offset: 0x140 */
   __IO uint32_t IBIEXT2;                           /**< Extended IBI Data 2, offset: 0x144 */
        uint8_t RESERVED_10[8];
-  __O  uint32_t SWDATAW;                           /**< Target Write Word Data (to Bus), offset: 0x150, not available in all instances (available on 22 out of 88) */
+  __O  uint32_t SWDATAW;                           /**< Target Write Word Data (to Bus), offset: 0x150, not available in all instances (available on 32 out of 128) */
        uint8_t RESERVED_11[4];
-  __I  uint32_t SRDATAW;                           /**< Target Read Word Data (from Bus), offset: 0x158, not available in all instances (available on 22 out of 88) */
+  __I  uint32_t SRDATAW;                           /**< Target Read Word Data (from Bus), offset: 0x158, not available in all instances (available on 32 out of 128) */
        uint8_t RESERVED_12[3744];
   __I  uint32_t SID;                               /**< Target Module ID, offset: 0xFFC */
 } I3C_Type;

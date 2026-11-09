@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 NXP
+ * Copyright 2025-2026 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -318,6 +318,13 @@ typedef struct
     bool useAhbRead;
 } flash_config_t;
 
+
+#ifdef MCUX_ROMAPI_TFM_INTERFACE
+#include "fsl_flash_tfm_ns.h"
+#elif !defined(MCUX_ROMAPI_TFM_INTERFACE) && (defined(DOMAIN_NS) && (DOMAIN_NS == 1))
+#error "You need to enable the MCUX_COMPONENT_middleware.tfm.ns.romapi for accessing the ROM APIs in NSPE!"
+#else
+
 /*******************************************************************************
  * API
  ******************************************************************************/
@@ -579,6 +586,26 @@ status_t FLASH_VerifyProgram(flash_config_t *config,
 status_t FLASH_GetProperty(flash_config_t *config, flash_property_tag_t whichProperty, uint32_t *value);
 
 /*!
+ * @brief Reads data from the desired flash area.
+ *
+ * @param config A pointer to the storage for the driver runtime state.
+ * @param start The start address of the desired flash memory to be read.
+ * @param dest A pointer to the destination buffer where read data is stored.
+ * @param lengthInBytes The length, in bytes, to be read.
+ *
+ * @retval #kStatus_FLASH_Success API was executed successfully.
+ * @retval #kStatus_FLASH_InvalidArgument An invalid argument is provided.
+ * @retval #kStatus_FLASH_AlignmentError Parameter is not aligned with specified baseline.
+ * @retval #kStatus_FLASH_AddressError Address is out of range.
+ * @retval #kStatus_FLASH_ReadHidingAreaDisallowed Flash hiding read is not allowed.
+ * @retval #kStatus_FLASH_CommandFailure Run-time error during the command execution.
+ * @retval #kStatus_FLASH_CommandNotSupported Flash API is not supported.
+ * @retval #kStatus_FLASH_RegulationLoss A loss of regulation during read.
+ * @retval #kStatus_FLASH_EccError A correctable or uncorrectable error during command execution.
+ */
+status_t FLASH_Read(flash_config_t *config, uint32_t start, uint8_t *dest, uint32_t lengthInBytes);
+
+/*!
  * @brief Gets the flash driver version.
  *
  * This function returns the version information of the flash driver.
@@ -671,5 +698,7 @@ status_t IFR_VerifyEraseSector(flash_config_t *config, uint32_t start, uint32_t 
 #endif
 
 /*! @} */
+
+#endif /* MCUX_ROMAPI_TFM_INTERFACE */
 
 #endif /* FSL_FLASH_H_ */

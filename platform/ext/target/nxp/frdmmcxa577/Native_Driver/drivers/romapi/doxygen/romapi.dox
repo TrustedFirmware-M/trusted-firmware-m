@@ -21,3 +21,9 @@
 @ingroup romapi
 @details
 */
+
+/*!
+@defgroup kbapi_driver KB Driver
+@ingroup romapi
+@details
+*/

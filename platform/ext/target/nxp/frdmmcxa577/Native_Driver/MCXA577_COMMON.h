@@ -1,6 +1,7 @@
 /*
 ** ###################################################################
-**     Processors:          MCXA577VLL
+**     Processors:          MCXA577VAPR
+**                          MCXA577VLL
 **                          MCXA577VLQ
 **                          MCXA577VPN
 **
@@ -12,7 +13,7 @@
 **
 **     Reference manual:    MCXAP144M180FS6_RM_Rev.1_DraftC
 **     Version:             rev. 2.0, 2024-10-29
-**     Build:               b260128
+**     Build:               b260904
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for MCXA577
@@ -160,13 +161,13 @@ typedef enum IRQn {
   CDOG1_IRQn                   = 109,              /**< Code Watchdog Timer 1 interrupt */
   PKC_IRQn                     = 110,              /**< PKC interrupt */
   SGI_IRQn                     = 111,              /**< SGI interrupt */
-  SPI_FILTER_IRQn              = 112,              /**< Reserved interrupt */
+  Reserved128_IRQn             = 112,              /**< Reserved interrupt */
   TRNG0_IRQn                   = 113,              /**< True Random Number Generator interrupt */
   SECURE_ERR_IRQn              = 114,              /**< Secure IP Error interrupt. It OR SGI, PKC, TRNG error together.  */
   SEC_HYPERVISOR_CALL_IRQn     = 115,              /**< AHB Secure Controller hypervisor call interrupt */
   RTC_IRQn                     = 119,              /**< RTC alarm interrupt */
-  GDET_IRQn                    = 122,              /**< Digital Glitch Detect 0 interrupt  */
-  EWM0_IRQn                    = 123,              /**< External Watchdog Monitor interrupt */
+  DGDET0_IRQn                  = 122,              /**< Digital Glitch Detect 0 interrupt  */
+  EWM_IRQn                     = 123,              /**< External Watchdog Monitor interrupt */
   TSI_END_OF_SCAN_IRQn         = 124,              /**< TSI End of Scan interrupt */
   TSI_OUT_OF_SCAN_IRQn         = 125,              /**< TSI Out of Scan interrupt */
   GPIO0_1_IRQn                 = 126,              /**< General Purpose Input/Output 0 interrupt 1 */
@@ -220,6 +221,89 @@ typedef enum IRQn {
 #endif
 /* CPU specific feature definitions */
 #include "MCXA577_features.h"
+
+/* ----------------------------------------------------------------------------
+   -- Mapping Information
+   ---------------------------------------------------------------------------- */
+
+/*!
+ * @addtogroup Mapping_Information Mapping Information
+ * @{
+ */
+
+/** Mapping Information */
+/*!
+ * @addtogroup eim_memory_channel_mapping
+ * @{
+ */
+
+/*******************************************************************************
+ * Definitions
+ ******************************************************************************/
+
+/*!
+ * @brief Structure for the eim_memory_channel
+ *
+ *
+ * Defines the structure for the EIM resource collections.
+ */
+typedef enum _eim_memory_channel
+{
+    kEIM_MemoryChannelRAMA0         = 0U,          /**< Memory RAMA0 */
+} eim_memory_channel_t;
+
+/* @} */
+
+/*!
+ * @addtogroup eim_error_injection_channel_enab_mapping
+ * @{
+ */
+
+/*******************************************************************************
+ * Definitions
+ ******************************************************************************/
+
+/*!
+ * @brief Structure for the eim_error_injection_channel_enable
+ *
+ *
+ * Defines the structure for the EIM error injection resource collections.
+ */
+typedef enum _eim_error_injection_channel_enab
+{
+    kEIM_MemoryChannelRAMAEnable    = 0x80000000U, /**< Memory channel 0(RAMA0) error injection enable */
+} eim_error_injection_channel_enab_t;
+
+/* @} */
+
+/*!
+ * @addtogroup erm_memory_channel_mapping
+ * @{
+ */
+
+/*******************************************************************************
+ * Definitions
+ ******************************************************************************/
+
+/*!
+ * @brief Structure for the erm_memory_channel
+ *
+ *
+ * Defines the structure for the ERM resource collections.
+ */
+typedef enum _erm_memory_channel
+{
+    kERM_MemoryChannelRAMA0         = 0U,          /**< Memory RAMA0 */
+    kERM_MemoryChannelFLASH         = 1U,          /**< Memory FLASH */
+} erm_memory_channel_t;
+
+/* @} */
+
+
+/*!
+ * @}
+ */ /* end of group Mapping_Information */
+
 
 /* ADC - Peripheral instance base addresses */
 #if (defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2))
@@ -661,6 +745,9 @@ typedef enum IRQn {
   /** Array initializer of DMA peripheral base pointers */
   #define DMA_BASE_PTRS                            { DMA0, DMA1 }
 #endif
+/** Interrupt vectors for the DMA peripheral type */
+#define DMA_IRQS                                 { { DMA0_CH0_IRQn, DMA0_CH1_IRQn, DMA0_CH2_IRQn, DMA0_CH3_IRQn, DMA0_CH4_IRQn, DMA0_CH5_IRQn, DMA0_CH6_IRQn, DMA0_CH7_IRQn, DMA0_CH8_IRQn, DMA0_CH9_IRQn, DMA0_CH10_IRQn, DMA0_CH11_IRQn }, \
+                                                   { DMA1_CH0_IRQn, DMA1_CH1_IRQn, DMA1_CH2_IRQn, DMA1_CH3_IRQn, NotAvail_IRQn, NotAvail_IRQn, NotAvail_IRQn, NotAvail_IRQn, NotAvail_IRQn, NotAvail_IRQn, NotAvail_IRQn, NotAvail_IRQn } }
 
 /* EIM - Peripheral instance base addresses */
 #if (defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2))
@@ -722,6 +809,9 @@ typedef enum IRQn {
 /** Interrupt vectors for the ENET peripheral type */
 #define ENET_IRQS                                { ETHERNET_IRQn }
 #define ENET_PMT_IRQS                            { ETHERNET_PMT_IRQn }
+/* Backward compatibility */
+#define ENET ENET0
+
 
 /* ERM - Peripheral instance base addresses */
 #if (defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2))
@@ -811,6 +901,8 @@ typedef enum IRQn {
   /** Array initializer of EWM peripheral base pointers */
   #define EWM_BASE_PTRS                            { EWM }
 #endif
+/** Interrupt vectors for the EWM peripheral type */
+#define EWM_IRQS                                 { EWM_IRQn }
 
 /* FLEXIO - Peripheral instance base addresses */
 #if (defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2))
@@ -955,6 +1047,8 @@ typedef enum IRQn {
   /** Array initializer of FMU peripheral base pointers */
   #define FMU_BASE_PTRS                            { FMU0 }
 #endif
+/** Interrupt vectors for the FMU peripheral type */
+#define FMU_IRQS                                 { FMU0_IRQn }
 
 /* FREQME - Peripheral instance base addresses */
 #if (defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2))
@@ -1016,7 +1110,7 @@ typedef enum IRQn {
   #define GDET_BASE_PTRS                           { DGDET0 }
 #endif
 /** Interrupt vectors for the GDET peripheral type */
-#define GDET_IRQS                                { GDET_IRQn }
+#define GDET_IRQS                                { DGDET0_IRQn }
 
 /* GLIKEY - Peripheral instance base addresses */
 #if (defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2))
@@ -1717,6 +1811,8 @@ typedef enum IRQn {
   /** Array initializer of PKC peripheral base pointers */
   #define PKC_BASE_PTRS                            { PKC0 }
 #endif
+/** Interrupt vectors for the PKC peripheral type */
+#define PKC_IRQS                                 { PKC_IRQn }
 
 /* PORT - Peripheral instance base addresses */
 #if (defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2))
@@ -1983,35 +2079,6 @@ typedef enum IRQn {
   #define SPC_BASE_PTRS                            { SPC0 }
 #endif
 
-/* SPI_FILTER - Peripheral instance base addresses */
-#if (defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2))
-  /** Peripheral SPI_FILTER base address */
-  #define SPI_FILTER_BASE                          (0x5002C000u)
-  /** Peripheral SPI_FILTER base address */
-  #define SPI_FILTER_BASE_NS                       (0x4002C000u)
-  /** Peripheral SPI_FILTER base pointer */
-  #define SPI_FILTER                               ((SPI_FILTER_Type *)SPI_FILTER_BASE)
-  /** Peripheral SPI_FILTER base pointer */
-  #define SPI_FILTER_NS                            ((SPI_FILTER_Type *)SPI_FILTER_BASE_NS)
-  /** Array initializer of SPI_FILTER peripheral base addresses */
-  #define SPI_FILTER_BASE_ADDRS                    { SPI_FILTER_BASE }
-  /** Array initializer of SPI_FILTER peripheral base pointers */
-  #define SPI_FILTER_BASE_PTRS                     { SPI_FILTER }
-  /** Array initializer of SPI_FILTER peripheral base addresses */
-  #define SPI_FILTER_BASE_ADDRS_NS                 { SPI_FILTER_BASE_NS }
-  /** Array initializer of SPI_FILTER peripheral base pointers */
-  #define SPI_FILTER_BASE_PTRS_NS                  { SPI_FILTER_NS }
-#else
-  /** Peripheral SPI_FILTER base address */
-  #define SPI_FILTER_BASE                          (0x4002C000u)
-  /** Peripheral SPI_FILTER base pointer */
-  #define SPI_FILTER                               ((SPI_FILTER_Type *)SPI_FILTER_BASE)
-  /** Array initializer of SPI_FILTER peripheral base addresses */
-  #define SPI_FILTER_BASE_ADDRS                    { SPI_FILTER_BASE }
-  /** Array initializer of SPI_FILTER peripheral base pointers */
-  #define SPI_FILTER_BASE_PTRS                     { SPI_FILTER }
-#endif
-
 /* SYSCON - Peripheral instance base addresses */
 #if (defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2))
   /** Peripheral SYSCON base address */
@@ -2100,6 +2167,8 @@ typedef enum IRQn {
   /** Array initializer of TRDC peripheral base pointers */
   #define TRDC_BASE_PTRS                           { MBC0 }
 #endif
+/** Interrupt vectors for the TRDC peripheral type */
+#define TRDC_IRQS                                { MBC0_IRQn }
 #define MBC0_MEMORY_CFG_WORD_COUNT {1,2,4,1}
 #define MBC1_MEMORY_CFG_WORD_COUNT {1,1,1,1}
 #define MBC2_MEMORY_CFG_WORD_COUNT {9,6,1,1}
@@ -2170,93 +2239,93 @@ typedef enum IRQn {
   #define TSI_BASE_PTRS                            { TSI0 }
 #endif
 
-/* UDF - Peripheral instance base addresses */
-#if (defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2))
-  /** Peripheral UDF0 base address */
-  #define UDF0_BASE                                (0x500ED000u)
-  /** Peripheral UDF0 base address */
-  #define UDF0_BASE_NS                             (0x400ED000u)
-  /** Peripheral UDF0 base pointer */
-  #define UDF0                                     ((UDF_Type *)UDF0_BASE)
-  /** Peripheral UDF0 base pointer */
-  #define UDF0_NS                                  ((UDF_Type *)UDF0_BASE_NS)
-  /** Array initializer of UDF peripheral base addresses */
-  #define UDF_BASE_ADDRS                           { UDF0_BASE }
-  /** Array initializer of UDF peripheral base pointers */
-  #define UDF_BASE_PTRS                            { UDF0 }
-  /** Array initializer of UDF peripheral base addresses */
-  #define UDF_BASE_ADDRS_NS                        { UDF0_BASE_NS }
-  /** Array initializer of UDF peripheral base pointers */
-  #define UDF_BASE_PTRS_NS                         { UDF0_NS }
-#else
-  /** Peripheral UDF0 base address */
-  #define UDF0_BASE                                (0x400ED000u)
-  /** Peripheral UDF0 base pointer */
-  #define UDF0                                     ((UDF_Type *)UDF0_BASE)
-  /** Array initializer of UDF peripheral base addresses */
-  #define UDF_BASE_ADDRS                           { UDF0_BASE }
-  /** Array initializer of UDF peripheral base pointers */
-  #define UDF_BASE_PTRS                            { UDF0 }
-#endif
-
 /* USBHS - Peripheral instance base addresses */
 #if (defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2))
-  /** Peripheral USBHS1__USBC base address */
-  #define USBHS1__USBC_BASE                        (0x5002E000u)
-  /** Peripheral USBHS1__USBC base address */
-  #define USBHS1__USBC_BASE_NS                     (0x4002E000u)
-  /** Peripheral USBHS1__USBC base pointer */
-  #define USBHS1__USBC                             ((USBHS_Type *)USBHS1__USBC_BASE)
-  /** Peripheral USBHS1__USBC base pointer */
-  #define USBHS1__USBC_NS                          ((USBHS_Type *)USBHS1__USBC_BASE_NS)
+  /** Peripheral USBHS1 base address */
+  #define USBHS1_BASE                              (0x5002E000u)
+  /** Peripheral USBHS1 base address */
+  #define USBHS1_BASE_NS                           (0x4002E000u)
+  /** Peripheral USBHS1 base pointer */
+  #define USBHS1                                   ((USBHS_Type *)USBHS1_BASE)
+  /** Peripheral USBHS1 base pointer */
+  #define USBHS1_NS                                ((USBHS_Type *)USBHS1_BASE_NS)
   /** Array initializer of USBHS peripheral base addresses */
-  #define USBHS_BASE_ADDRS                         { USBHS1__USBC_BASE }
+  #define USBHS_BASE_ADDRS                         { USBHS1_BASE }
   /** Array initializer of USBHS peripheral base pointers */
-  #define USBHS_BASE_PTRS                          { USBHS1__USBC }
+  #define USBHS_BASE_PTRS                          { USBHS1 }
   /** Array initializer of USBHS peripheral base addresses */
-  #define USBHS_BASE_ADDRS_NS                      { USBHS1__USBC_BASE_NS }
+  #define USBHS_BASE_ADDRS_NS                      { USBHS1_BASE_NS }
   /** Array initializer of USBHS peripheral base pointers */
-  #define USBHS_BASE_PTRS_NS                       { USBHS1__USBC_NS }
+  #define USBHS_BASE_PTRS_NS                       { USBHS1_NS }
 #else
-  /** Peripheral USBHS1__USBC base address */
-  #define USBHS1__USBC_BASE                        (0x4002E000u)
-  /** Peripheral USBHS1__USBC base pointer */
-  #define USBHS1__USBC                             ((USBHS_Type *)USBHS1__USBC_BASE)
+  /** Peripheral USBHS1 base address */
+  #define USBHS1_BASE                              (0x4002E000u)
+  /** Peripheral USBHS1 base pointer */
+  #define USBHS1                                   ((USBHS_Type *)USBHS1_BASE)
   /** Array initializer of USBHS peripheral base addresses */
-  #define USBHS_BASE_ADDRS                         { USBHS1__USBC_BASE }
+  #define USBHS_BASE_ADDRS                         { USBHS1_BASE }
   /** Array initializer of USBHS peripheral base pointers */
-  #define USBHS_BASE_PTRS                          { USBHS1__USBC }
+  #define USBHS_BASE_PTRS                          { USBHS1 }
 #endif
 /** Interrupt vectors for the USBHS peripheral type */
 #define USBHS_IRQS                               { USB1_HS_IRQn }
 
+/* USBHSDCD - Peripheral instance base addresses */
+#if (defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2))
+  /** Peripheral USBHS1_PHY_DCD base address */
+  #define USBHS1_PHY_DCD_BASE                      (0x5002F800u)
+  /** Peripheral USBHS1_PHY_DCD base address */
+  #define USBHS1_PHY_DCD_BASE_NS                   (0x4002F800u)
+  /** Peripheral USBHS1_PHY_DCD base pointer */
+  #define USBHS1_PHY_DCD                           ((USBHSDCD_Type *)USBHS1_PHY_DCD_BASE)
+  /** Peripheral USBHS1_PHY_DCD base pointer */
+  #define USBHS1_PHY_DCD_NS                        ((USBHSDCD_Type *)USBHS1_PHY_DCD_BASE_NS)
+  /** Array initializer of USBHSDCD peripheral base addresses */
+  #define USBHSDCD_BASE_ADDRS                      { USBHS1_PHY_DCD_BASE }
+  /** Array initializer of USBHSDCD peripheral base pointers */
+  #define USBHSDCD_BASE_PTRS                       { USBHS1_PHY_DCD }
+  /** Array initializer of USBHSDCD peripheral base addresses */
+  #define USBHSDCD_BASE_ADDRS_NS                   { USBHS1_PHY_DCD_BASE_NS }
+  /** Array initializer of USBHSDCD peripheral base pointers */
+  #define USBHSDCD_BASE_PTRS_NS                    { USBHS1_PHY_DCD_NS }
+#else
+  /** Peripheral USBHS1_PHY_DCD base address */
+  #define USBHS1_PHY_DCD_BASE                      (0x4002F800u)
+  /** Peripheral USBHS1_PHY_DCD base pointer */
+  #define USBHS1_PHY_DCD                           ((USBHSDCD_Type *)USBHS1_PHY_DCD_BASE)
+  /** Array initializer of USBHSDCD peripheral base addresses */
+  #define USBHSDCD_BASE_ADDRS                      { USBHS1_PHY_DCD_BASE }
+  /** Array initializer of USBHSDCD peripheral base pointers */
+  #define USBHSDCD_BASE_PTRS                       { USBHS1_PHY_DCD }
+#endif
+
 /* USBNC - Peripheral instance base addresses */
 #if (defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2))
-  /** Peripheral USBHS1__USBNC base address */
-  #define USBHS1__USBNC_BASE                       (0x5002E200u)
-  /** Peripheral USBHS1__USBNC base address */
-  #define USBHS1__USBNC_BASE_NS                    (0x4002E200u)
-  /** Peripheral USBHS1__USBNC base pointer */
-  #define USBHS1__USBNC                            ((USBNC_Type *)USBHS1__USBNC_BASE)
-  /** Peripheral USBHS1__USBNC base pointer */
-  #define USBHS1__USBNC_NS                         ((USBNC_Type *)USBHS1__USBNC_BASE_NS)
+  /** Peripheral USBHS1NC base address */
+  #define USBHS1NC_BASE                            (0x5002E200u)
+  /** Peripheral USBHS1NC base address */
+  #define USBHS1NC_BASE_NS                         (0x4002E200u)
+  /** Peripheral USBHS1NC base pointer */
+  #define USBHS1NC                                 ((USBNC_Type *)USBHS1NC_BASE)
+  /** Peripheral USBHS1NC base pointer */
+  #define USBHS1NC_NS                              ((USBNC_Type *)USBHS1NC_BASE_NS)
   /** Array initializer of USBNC peripheral base addresses */
-  #define USBNC_BASE_ADDRS                         { USBHS1__USBNC_BASE }
+  #define USBNC_BASE_ADDRS                         { USBHS1NC_BASE }
   /** Array initializer of USBNC peripheral base pointers */
-  #define USBNC_BASE_PTRS                          { USBHS1__USBNC }
+  #define USBNC_BASE_PTRS                          { USBHS1NC }
   /** Array initializer of USBNC peripheral base addresses */
-  #define USBNC_BASE_ADDRS_NS                      { USBHS1__USBNC_BASE_NS }
+  #define USBNC_BASE_ADDRS_NS                      { USBHS1NC_BASE_NS }
   /** Array initializer of USBNC peripheral base pointers */
-  #define USBNC_BASE_PTRS_NS                       { USBHS1__USBNC_NS }
+  #define USBNC_BASE_PTRS_NS                       { USBHS1NC_NS }
 #else
-  /** Peripheral USBHS1__USBNC base address */
-  #define USBHS1__USBNC_BASE                       (0x4002E200u)
-  /** Peripheral USBHS1__USBNC base pointer */
-  #define USBHS1__USBNC                            ((USBNC_Type *)USBHS1__USBNC_BASE)
+  /** Peripheral USBHS1NC base address */
+  #define USBHS1NC_BASE                            (0x4002E200u)
+  /** Peripheral USBHS1NC base pointer */
+  #define USBHS1NC                                 ((USBNC_Type *)USBHS1NC_BASE)
   /** Array initializer of USBNC peripheral base addresses */
-  #define USBNC_BASE_ADDRS                         { USBHS1__USBNC_BASE }
+  #define USBNC_BASE_ADDRS                         { USBHS1NC_BASE }
   /** Array initializer of USBNC peripheral base pointers */
-  #define USBNC_BASE_PTRS                          { USBHS1__USBNC }
+  #define USBNC_BASE_PTRS                          { USBHS1NC }
 #endif
 
 /* USBPHY - Peripheral instance base addresses */
@@ -2296,6 +2365,7 @@ typedef enum IRQn {
 #define USBPHY_TX_TXCAL45DM_MASK            USBPHY_TX_TXCAL45DN_MASK
 #define USBPHY_TX_TXCAL45DM_SHIFT           USBPHY_TX_TXCAL45DN_SHIFT
 #define USBPHY_TX_TXCAL45DM(x)              USBPHY_TX_TXCAL45DN(x)
+
 
 
 /* UTICK - Peripheral instance base addresses */
@@ -2446,6 +2516,8 @@ typedef enum IRQn {
   /** Array initializer of WUU peripheral base pointers */
   #define WUU_BASE_PTRS                            { WUU0 }
 #endif
+/** Interrupt vectors for the WUU peripheral type */
+#define WUU_IRQS                                 { WUU0_IRQn }
 
 /* WWDT - Peripheral instance base addresses */
 #if (defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2))
@@ -2487,6 +2559,8 @@ typedef enum IRQn {
   /** Array initializer of WWDT peripheral base pointers */
   #define WWDT_BASE_PTRS                           { WWDT0, WWDT1 }
 #endif
+/** Interrupt vectors for the WWDT peripheral type */
+#define WWDT_IRQS                                { WWDT0_IRQn, WWDT1_IRQn }
 
 /* ----------------------------------------------------------------------------
    -- Macros for use with bit field definitions (xxx_SHIFT, xxx_MASK).

@@ -1,14 +1,20 @@
 /*
 ** ###################################################################
-**     Processors:          MCXA286VLL
+**     Processors:          MCXA286VAPR
+**                          MCXA286VASR
+**                          MCXA286VLL
 **                          MCXA286VLQ
 **                          MCXA286VPN
+**                          MCXA287VAPR
+**                          MCXA287VASR
 **                          MCXA287VLL
 **                          MCXA287VLQ
 **                          MCXA287VPN
+**                          MCXA456VASR
 **                          MCXA456VLL
 **                          MCXA456VLQ
 **                          MCXA456VPN
+**                          MCXA457VASR
 **                          MCXA457VLL
 **                          MCXA457VLQ
 **                          MCXA457VPN
@@ -18,25 +24,29 @@
 **                          MCXA537VLL
 **                          MCXA537VLQ
 **                          MCXA537VPN
+**                          MCXA556BVPN
 **                          MCXA556VPN
+**                          MCXA557BVPN
+**                          MCXA557VPN
 **                          MCXA566VLL
 **                          MCXA566VLQ
 **                          MCXA566VPN
 **                          MCXA567VLL
 **                          MCXA567VLQ
 **                          MCXA567VPN
+**                          MCXA577VAPR
 **                          MCXA577VLL
 **                          MCXA577VLQ
 **                          MCXA577VPN
 **
 **     Version:             rev. 2.0, 2024-10-29
-**     Build:               b251029
+**     Build:               b260904
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for USBNC
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -64,25 +74,27 @@
 #if !defined(PERI_USBNC_H_)
 #define PERI_USBNC_H_                            /**< Symbol preventing repeated inclusion */
 
-#if (defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
+#if (defined(CPU_MCXA286VAPR) || defined(CPU_MCXA286VASR) || defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
 #include "MCXA286_COMMON.h"
-#elif (defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
+#elif (defined(CPU_MCXA287VAPR) || defined(CPU_MCXA287VASR) || defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
 #include "MCXA287_COMMON.h"
-#elif (defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
+#elif (defined(CPU_MCXA456VASR) || defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
 #include "MCXA456_COMMON.h"
-#elif (defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
+#elif (defined(CPU_MCXA457VASR) || defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
 #include "MCXA457_COMMON.h"
 #elif (defined(CPU_MCXA536VLL) || defined(CPU_MCXA536VLQ) || defined(CPU_MCXA536VPN))
 #include "MCXA536_COMMON.h"
 #elif (defined(CPU_MCXA537VLL) || defined(CPU_MCXA537VLQ) || defined(CPU_MCXA537VPN))
 #include "MCXA537_COMMON.h"
-#elif (defined(CPU_MCXA556VPN))
+#elif (defined(CPU_MCXA556BVPN) || defined(CPU_MCXA556VPN))
 #include "MCXA556_COMMON.h"
+#elif (defined(CPU_MCXA557BVPN) || defined(CPU_MCXA557VPN))
+#include "MCXA557_COMMON.h"
 #elif (defined(CPU_MCXA566VLL) || defined(CPU_MCXA566VLQ) || defined(CPU_MCXA566VPN))
 #include "MCXA566_COMMON.h"
 #elif (defined(CPU_MCXA567VLL) || defined(CPU_MCXA567VLQ) || defined(CPU_MCXA567VPN))
 #include "MCXA567_COMMON.h"
-#elif (defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
+#elif (defined(CPU_MCXA577VAPR) || defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
 #include "MCXA577_COMMON.h"
 #else
   #error "No valid CPU defined!"
@@ -131,7 +143,7 @@ typedef struct {
   __IO uint32_t CTRL1;                             /**< USB Control 1, offset: 0x0 */
   __IO uint32_t CTRL2;                             /**< USB Control 2, offset: 0x4 */
        uint8_t RESERVED_0[36];
-  __IO uint32_t HSIC_DLL_CFG4;                     /**< HSIC DLL Configure Register 4, offset: 0x2C */
+  __IO uint32_t HSIC_DLL_CFG4;                     /**< HSIC DLL Configuration 4, offset: 0x2C */
        uint8_t RESERVED_1[112];
   __IO uint32_t LPM_CSR0;                          /**< USB LPM Control and Status 0, offset: 0xA0 */
   __IO uint32_t LPM_CSR1;                          /**< USB LPM Control and Status 1, offset: 0xA4 */
@@ -161,8 +173,8 @@ typedef struct {
 #define USBNC_CTRL1_OVER_CUR_DIS_MASK            (0x80U)
 #define USBNC_CTRL1_OVER_CUR_DIS_SHIFT           (7U)
 /*! OVER_CUR_DIS - Overcurrent Disable
- *  0b0..Enable
- *  0b1..Disable
+ *  0b0..Enables
+ *  0b1..Disables
  */
 #define USBNC_CTRL1_OVER_CUR_DIS(x)              (((uint32_t)(((uint32_t)(x)) << USBNC_CTRL1_OVER_CUR_DIS_SHIFT)) & USBNC_CTRL1_OVER_CUR_DIS_MASK)
 
@@ -185,16 +197,16 @@ typedef struct {
 #define USBNC_CTRL1_WIE_MASK                     (0x400U)
 #define USBNC_CTRL1_WIE_SHIFT                    (10U)
 /*! WIE - Wake-Up Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBNC_CTRL1_WIE(x)                       (((uint32_t)(((uint32_t)(x)) << USBNC_CTRL1_WIE_SHIFT)) & USBNC_CTRL1_WIE_MASK)
 
 #define USBNC_CTRL1_WKUP_SW_EN_MASK              (0x4000U)
 #define USBNC_CTRL1_WKUP_SW_EN_SHIFT             (14U)
 /*! WKUP_SW_EN - Software Wake-Up Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBNC_CTRL1_WKUP_SW_EN(x)                (((uint32_t)(((uint32_t)(x)) << USBNC_CTRL1_WKUP_SW_EN_SHIFT)) & USBNC_CTRL1_WKUP_SW_EN_MASK)
 
@@ -209,24 +221,24 @@ typedef struct {
 #define USBNC_CTRL1_WKUP_ID_EN_MASK              (0x10000U)
 #define USBNC_CTRL1_WKUP_ID_EN_SHIFT             (16U)
 /*! WKUP_ID_EN - Wake-Up After ID Change Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBNC_CTRL1_WKUP_ID_EN(x)                (((uint32_t)(((uint32_t)(x)) << USBNC_CTRL1_WKUP_ID_EN_SHIFT)) & USBNC_CTRL1_WKUP_ID_EN_MASK)
 
 #define USBNC_CTRL1_WKUP_VBUS_EN_MASK            (0x20000U)
 #define USBNC_CTRL1_WKUP_VBUS_EN_SHIFT           (17U)
 /*! WKUP_VBUS_EN - Wake-Up After VBUS Change Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBNC_CTRL1_WKUP_VBUS_EN(x)              (((uint32_t)(((uint32_t)(x)) << USBNC_CTRL1_WKUP_VBUS_EN_SHIFT)) & USBNC_CTRL1_WKUP_VBUS_EN_MASK)
 
 #define USBNC_CTRL1_REMOTE_WAKEUP_EN_MASK        (0x10000000U)
 #define USBNC_CTRL1_REMOTE_WAKEUP_EN_SHIFT       (28U)
 /*! REMOTE_WAKEUP_EN - Remote Wake-Up Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBNC_CTRL1_REMOTE_WAKEUP_EN(x)          (((uint32_t)(((uint32_t)(x)) << USBNC_CTRL1_REMOTE_WAKEUP_EN_SHIFT)) & USBNC_CTRL1_REMOTE_WAKEUP_EN_MASK)
 
@@ -271,22 +283,22 @@ typedef struct {
 #define USBNC_CTRL2_UTMI_CLK_VLD(x)              (((uint32_t)(((uint32_t)(x)) << USBNC_CTRL2_UTMI_CLK_VLD_SHIFT)) & USBNC_CTRL2_UTMI_CLK_VLD_MASK)
 /*! @} */
 
-/*! @name HSIC_DLL_CFG4 - HSIC DLL Configure Register 4 */
+/*! @name HSIC_DLL_CFG4 - HSIC DLL Configuration 4 */
 /*! @{ */
 
 #define USBNC_HSIC_DLL_CFG4_LPM_EN_ENDP_CHK_MASK (0x40000000U)
 #define USBNC_HSIC_DLL_CFG4_LPM_EN_ENDP_CHK_SHIFT (30U)
-/*! LPM_EN_ENDP_CHK - LPM EXT token ENDP check enable
- *  0b0..Disabled
- *  0b1..Enabled
+/*! LPM_EN_ENDP_CHK - LPM EXT Token ENDP Check Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBNC_HSIC_DLL_CFG4_LPM_EN_ENDP_CHK(x)   (((uint32_t)(((uint32_t)(x)) << USBNC_HSIC_DLL_CFG4_LPM_EN_ENDP_CHK_SHIFT)) & USBNC_HSIC_DLL_CFG4_LPM_EN_ENDP_CHK_MASK)
 
 #define USBNC_HSIC_DLL_CFG4_FS_ISO_B2B_FIXEN_MASK (0x80000000U)
 #define USBNC_HSIC_DLL_CFG4_FS_ISO_B2B_FIXEN_SHIFT (31U)
-/*! FS_ISO_B2B_FIXEN - FS Isochronous back to back transfer enable
- *  0b0..Disabled
- *  0b1..Enabled
+/*! FS_ISO_B2B_FIXEN - FS Isochronous Back-to-Back Transfer Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBNC_HSIC_DLL_CFG4_FS_ISO_B2B_FIXEN(x)  (((uint32_t)(((uint32_t)(x)) << USBNC_HSIC_DLL_CFG4_FS_ISO_B2B_FIXEN_SHIFT)) & USBNC_HSIC_DLL_CFG4_FS_ISO_B2B_FIXEN_MASK)
 /*! @} */
@@ -297,24 +309,24 @@ typedef struct {
 #define USBNC_LPM_CSR0_LPM_EN_MASK               (0x1U)
 #define USBNC_LPM_CSR0_LPM_EN_SHIFT              (0U)
 /*! LPM_EN - Link Power Management Feature Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBNC_LPM_CSR0_LPM_EN(x)                 (((uint32_t)(((uint32_t)(x)) << USBNC_LPM_CSR0_LPM_EN_SHIFT)) & USBNC_LPM_CSR0_LPM_EN_MASK)
 
 #define USBNC_LPM_CSR0_LPM_ERRATA_EN_MASK        (0x2U)
 #define USBNC_LPM_CSR0_LPM_ERRATA_EN_SHIFT       (1U)
 /*! LPM_ERRATA_EN - Link Power Management ECN Errata Feature Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBNC_LPM_CSR0_LPM_ERRATA_EN(x)          (((uint32_t)(((uint32_t)(x)) << USBNC_LPM_CSR0_LPM_ERRATA_EN_SHIFT)) & USBNC_LPM_CSR0_LPM_ERRATA_EN_MASK)
 
 #define USBNC_LPM_CSR0_LPM_AUTO_PHCD_MASK        (0x8U)
 #define USBNC_LPM_CSR0_LPM_AUTO_PHCD_SHIFT       (3U)
 /*! LPM_AUTO_PHCD - Auto Low-Power Mode
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBNC_LPM_CSR0_LPM_AUTO_PHCD(x)          (((uint32_t)(((uint32_t)(x)) << USBNC_LPM_CSR0_LPM_AUTO_PHCD_SHIFT)) & USBNC_LPM_CSR0_LPM_AUTO_PHCD_MASK)
 
@@ -433,8 +445,8 @@ typedef struct {
 #define USBNC_LPM_CSR2_LPM_HST_RWKEN_MASK        (0x1000U)
 #define USBNC_LPM_CSR2_LPM_HST_RWKEN_SHIFT       (12U)
 /*! LPM_HST_RWKEN - LPM Host Extension Token's bRemoteWake
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBNC_LPM_CSR2_LPM_HST_RWKEN(x)          (((uint32_t)(((uint32_t)(x)) << USBNC_LPM_CSR2_LPM_HST_RWKEN_SHIFT)) & USBNC_LPM_CSR2_LPM_HST_RWKEN_MASK)
 
@@ -483,8 +495,8 @@ typedef struct {
 #define USBNC_CLK_RECOVER_CTRL_CLOCK_RECOVER_EN_MASK (0x80U)
 #define USBNC_CLK_RECOVER_CTRL_CLOCK_RECOVER_EN_SHIFT (7U)
 /*! CLOCK_RECOVER_EN - Crystal-Less USB Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBNC_CLK_RECOVER_CTRL_CLOCK_RECOVER_EN(x) (((uint8_t)(((uint8_t)(x)) << USBNC_CLK_RECOVER_CTRL_CLOCK_RECOVER_EN_SHIFT)) & USBNC_CLK_RECOVER_CTRL_CLOCK_RECOVER_EN_MASK)
 /*! @} */

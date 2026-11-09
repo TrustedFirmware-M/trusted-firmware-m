@@ -1,6 +1,6 @@
 /*
  * SPDX-FileCopyrightText: Copyright The TrustedFirmware-M Contributors
- * Copyright 2020-2022, 2025 NXP
+ * Copyright 2020-2022, 2025-2026 NXP
  * Copyright (c) 2024 Cypress Semiconductor Corporation (an Infineon
  * company) or an affiliate of Cypress Semiconductor Corporation. All rights
  * reserved.
@@ -28,6 +28,7 @@
 #include "load/spm_load_api.h"
 #include "fih.h"
 #include "tfm_log.h"
+#include "target_cfg.h"
 #ifdef HARDENING_MACROS_ENABLED
 #include "utilities.h"
 #endif

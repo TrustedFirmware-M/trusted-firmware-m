@@ -272,20 +272,20 @@ void BOARD_InitTenBaseT1SPins(void);
 
 #define PCR_IBE_ibe1 0x01u /*!<@brief Input Buffer Enable: Enables */
 
-/*! @name PORT1_10 (coord C2), EPHY_RSTB
+/*! @name PORT4_1 (coord G4), EPHY_RSTB
   @{ */
 
 /* Symbols to be used with GPIO driver */
-#define BOARD_INITENETPINS_EPHY_RSTB_GPIO GPIO1                /*!<@brief GPIO peripheral base pointer */
-#define BOARD_INITENETPINS_EPHY_RSTB_INIT_GPIO_VALUE 1U        /*!<@brief GPIO output initial state */
-#define BOARD_INITENETPINS_EPHY_RSTB_GPIO_PIN 10U              /*!<@brief GPIO pin number */
-#define BOARD_INITENETPINS_EPHY_RSTB_GPIO_PIN_MASK (1U << 10U) /*!<@brief GPIO pin mask */
+#define BOARD_INITENETPINS_EPHY_RSTB_GPIO GPIO4               /*!<@brief GPIO peripheral base pointer */
+#define BOARD_INITENETPINS_EPHY_RSTB_INIT_GPIO_VALUE 1U       /*!<@brief GPIO output initial state */
+#define BOARD_INITENETPINS_EPHY_RSTB_GPIO_PIN 1U              /*!<@brief GPIO pin number */
+#define BOARD_INITENETPINS_EPHY_RSTB_GPIO_PIN_MASK (1U << 1U) /*!<@brief GPIO pin mask */
 
 /* Symbols to be used with PORT driver */
-#define BOARD_INITENETPINS_EPHY_RSTB_PORT PORT1                /*!<@brief PORT peripheral base pointer */
-#define BOARD_INITENETPINS_EPHY_RSTB_PIN 10U                   /*!<@brief PORT pin number */
-#define BOARD_INITENETPINS_EPHY_RSTB_PIN_MASK (1U << 10U)      /*!<@brief PORT pin mask */
-                                                               /* @} */
+#define BOARD_INITENETPINS_EPHY_RSTB_PORT PORT4               /*!<@brief PORT peripheral base pointer */
+#define BOARD_INITENETPINS_EPHY_RSTB_PIN 1U                   /*!<@brief PORT pin number */
+#define BOARD_INITENETPINS_EPHY_RSTB_PIN_MASK (1U << 1U)      /*!<@brief PORT pin mask */
+                                                              /* @} */
 
 /*!
  * @brief Configures pin routing and optionally pin electrical features.
@@ -293,19 +293,27 @@ void BOARD_InitTenBaseT1SPins(void);
  */
 void BOARD_InitENETPins(void);
 
-#define PCR_DSE_dse0 0x00u /*!<@brief Drive Strength Enable: Low */
-#define PCR_IBE_ibe1 0x01u /*!<@brief Input Buffer Enable: Enables */
-#define PCR_INV_inv0 0x00u /*!<@brief Invert Input: Does not invert */
-#define PCR_ODE_ode0 0x00u /*!<@brief Open Drain Enable: Disables */
-#define PCR_PE_pe0 0x00u   /*!<@brief Pull Enable: Disables */
-#define PCR_PS_ps0 0x00u   /*!<@brief Pull Select: Enables internal pulldown resistor */
-#define PCR_SRE_sre0 0x00u /*!<@brief Slew Rate Enable: Fast */
+/*!
+ * @brief Configures pin routing and optionally pin electrical features.
+ *
+ */
+void BOARD_InitESPIPins(void);
 
 /*!
  * @brief Configures pin routing and optionally pin electrical features.
  *
  */
-void BOARD_InitSPIFILTERPins(void);
+void BOARD_InitTSIPins(void);
+
+#define PCR_IBE_ibe1 0x01u          /*!<@brief Input Buffer Enable: Enables */
+#define PORT2_PCR10_MUX_mux11 0x03u /*!<@brief Pin Multiplex Control: Alternative 3 (chip-specific) */
+#define PORT2_PCR11_MUX_mux11 0x03u /*!<@brief Pin Multiplex Control: Alternative 3 (chip-specific) */
+
+/*!
+ * @brief Configures pin routing and optionally pin electrical features.
+ *
+ */
+void BOARD_InitENET_DEBUG_UARTPins(void);
 
 #if defined(__cplusplus)
 }

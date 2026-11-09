@@ -1,14 +1,20 @@
 /*
 ** ###################################################################
-**     Processors:          MCXA286VLL
+**     Processors:          MCXA286VAPR
+**                          MCXA286VASR
+**                          MCXA286VLL
 **                          MCXA286VLQ
 **                          MCXA286VPN
+**                          MCXA287VAPR
+**                          MCXA287VASR
 **                          MCXA287VLL
 **                          MCXA287VLQ
 **                          MCXA287VPN
+**                          MCXA456VASR
 **                          MCXA456VLL
 **                          MCXA456VLQ
 **                          MCXA456VPN
+**                          MCXA457VASR
 **                          MCXA457VLL
 **                          MCXA457VLQ
 **                          MCXA457VPN
@@ -18,25 +24,29 @@
 **                          MCXA537VLL
 **                          MCXA537VLQ
 **                          MCXA537VPN
+**                          MCXA556BVPN
 **                          MCXA556VPN
+**                          MCXA557BVPN
+**                          MCXA557VPN
 **                          MCXA566VLL
 **                          MCXA566VLQ
 **                          MCXA566VPN
 **                          MCXA567VLL
 **                          MCXA567VLQ
 **                          MCXA567VPN
+**                          MCXA577VAPR
 **                          MCXA577VLL
 **                          MCXA577VLQ
 **                          MCXA577VPN
 **
 **     Version:             rev. 2.0, 2024-10-29
-**     Build:               b251029
+**     Build:               b260904
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for AHBSC
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -64,25 +74,27 @@
 #if !defined(PERI_AHBSC_H_)
 #define PERI_AHBSC_H_                            /**< Symbol preventing repeated inclusion */
 
-#if (defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
+#if (defined(CPU_MCXA286VAPR) || defined(CPU_MCXA286VASR) || defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
 #include "MCXA286_COMMON.h"
-#elif (defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
+#elif (defined(CPU_MCXA287VAPR) || defined(CPU_MCXA287VASR) || defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
 #include "MCXA287_COMMON.h"
-#elif (defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
+#elif (defined(CPU_MCXA456VASR) || defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
 #include "MCXA456_COMMON.h"
-#elif (defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
+#elif (defined(CPU_MCXA457VASR) || defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
 #include "MCXA457_COMMON.h"
 #elif (defined(CPU_MCXA536VLL) || defined(CPU_MCXA536VLQ) || defined(CPU_MCXA536VPN))
 #include "MCXA536_COMMON.h"
 #elif (defined(CPU_MCXA537VLL) || defined(CPU_MCXA537VLQ) || defined(CPU_MCXA537VPN))
 #include "MCXA537_COMMON.h"
-#elif (defined(CPU_MCXA556VPN))
+#elif (defined(CPU_MCXA556BVPN) || defined(CPU_MCXA556VPN))
 #include "MCXA556_COMMON.h"
+#elif (defined(CPU_MCXA557BVPN) || defined(CPU_MCXA557VPN))
+#include "MCXA557_COMMON.h"
 #elif (defined(CPU_MCXA566VLL) || defined(CPU_MCXA566VLQ) || defined(CPU_MCXA566VPN))
 #include "MCXA566_COMMON.h"
 #elif (defined(CPU_MCXA567VLL) || defined(CPU_MCXA567VLQ) || defined(CPU_MCXA567VPN))
 #include "MCXA567_COMMON.h"
-#elif (defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
+#elif (defined(CPU_MCXA577VAPR) || defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
 #include "MCXA577_COMMON.h"
 #else
   #error "No valid CPU defined!"
@@ -3048,61 +3060,61 @@ typedef struct {
 
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_SMARTDMA_MASK (0x30U)
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_SMARTDMA_SHIFT (4U)
-/*! SMARTDMA - SMARTDMA Data
- *  0b00..Non-secure and non-privileged Master
- *  0b01..Non-secure and privileged Master
- *  0b10..Secure and non-privileged Master
- *  0b11..Secure and privileged Master
+/*! SMARTDMA
+ *  0b00..Secure and privileged Master
+ *  0b01..Secure and non-privileged Master
+ *  0b10..Non-secure and privileged Master
+ *  0b11..Non-secure and non-privileged Master
  */
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_SMARTDMA(x) (((uint32_t)(((uint32_t)(x)) << AHBSC_MASTER_SEC_ANTI_POL_REG_SMARTDMA_SHIFT)) & AHBSC_MASTER_SEC_ANTI_POL_REG_SMARTDMA_MASK)
 
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_DMA0_MASK  (0xC0U)
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_DMA0_SHIFT (6U)
 /*! DMA0 - eDMA0
- *  0b00..Non-secure and non-privileged Master
- *  0b01..Non-secure and privileged Master
- *  0b10..Secure and non-privileged Master
- *  0b11..Secure and privileged Master
+ *  0b00..Secure and privileged Master
+ *  0b01..Secure and non-privileged Master
+ *  0b10..Non-secure and privileged Master
+ *  0b11..Non-secure and non-privileged Master
  */
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_DMA0(x)    (((uint32_t)(((uint32_t)(x)) << AHBSC_MASTER_SEC_ANTI_POL_REG_DMA0_SHIFT)) & AHBSC_MASTER_SEC_ANTI_POL_REG_DMA0_MASK)
 
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_DMA1_MASK  (0x300U)
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_DMA1_SHIFT (8U)
 /*! DMA1 - eDMA1
- *  0b00..Non-secure and non-privileged Master
- *  0b01..Non-secure and privileged Master
- *  0b10..Secure and non-privileged Master
- *  0b11..Secure and privileged Master
+ *  0b00..Secure and privileged Master
+ *  0b01..Secure and non-privileged Master
+ *  0b10..Non-secure and privileged Master
+ *  0b11..Non-secure and non-privileged Master
  */
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_DMA1(x)    (((uint32_t)(((uint32_t)(x)) << AHBSC_MASTER_SEC_ANTI_POL_REG_DMA1_SHIFT)) & AHBSC_MASTER_SEC_ANTI_POL_REG_DMA1_MASK)
 
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_PKC_MASK   (0xC00U)
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_PKC_SHIFT  (10U)
 /*! PKC - PKC
- *  0b00..Non-secure and non-privileged Master
- *  0b01..Non-secure and privileged Master
- *  0b10..Secure and non-privileged Master
- *  0b11..Secure and privileged Master
+ *  0b00..Secure and privileged Master
+ *  0b01..Secure and non-privileged Master
+ *  0b10..Non-secure and privileged Master
+ *  0b11..Non-secure and non-privileged Master
  */
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_PKC(x)     (((uint32_t)(((uint32_t)(x)) << AHBSC_MASTER_SEC_ANTI_POL_REG_PKC_SHIFT)) & AHBSC_MASTER_SEC_ANTI_POL_REG_PKC_MASK)
 
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_ENET0_MASK (0x3000000U)
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_ENET0_SHIFT (24U)
 /*! ENET0 - ENET0
- *  0b00..Non-secure and non-privileged Master
- *  0b01..Non-secure and privileged Master
- *  0b10..Secure and non-privileged Master
- *  0b11..Secure and privileged Master
+ *  0b00..Secure and privileged Master
+ *  0b01..Secure and non-privileged Master
+ *  0b10..Non-secure and privileged Master
+ *  0b11..Non-secure and non-privileged Master
  */
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_ENET0(x)   (((uint32_t)(((uint32_t)(x)) << AHBSC_MASTER_SEC_ANTI_POL_REG_ENET0_SHIFT)) & AHBSC_MASTER_SEC_ANTI_POL_REG_ENET0_MASK)
 
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_USB1_MASK  (0xC000000U)
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_USB1_SHIFT (26U)
 /*! USB1 - USB1
- *  0b00..Non-secure and non-privileged Master
- *  0b01..Non-secure and privileged Master
- *  0b10..Secure and non-privileged Master
- *  0b11..Secure and privileged Master
+ *  0b00..Secure and privileged Master
+ *  0b01..Secure and non-privileged Master
+ *  0b10..Non-secure and privileged Master
+ *  0b11..Non-secure and non-privileged Master
  */
 #define AHBSC_MASTER_SEC_ANTI_POL_REG_USB1(x)    (((uint32_t)(((uint32_t)(x)) << AHBSC_MASTER_SEC_ANTI_POL_REG_USB1_SHIFT)) & AHBSC_MASTER_SEC_ANTI_POL_REG_USB1_MASK)
 /*! @} */

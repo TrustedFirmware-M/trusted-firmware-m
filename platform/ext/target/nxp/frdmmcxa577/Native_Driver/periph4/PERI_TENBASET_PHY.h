@@ -1,42 +1,30 @@
 /*
 ** ###################################################################
-**     Processors:          MCXA286VLL
-**                          MCXA286VLQ
-**                          MCXA286VPN
-**                          MCXA287VLL
-**                          MCXA287VLQ
-**                          MCXA287VPN
-**                          MCXA456VLL
-**                          MCXA456VLQ
-**                          MCXA456VPN
-**                          MCXA457VLL
-**                          MCXA457VLQ
-**                          MCXA457VPN
-**                          MCXA536VLL
+**     Processors:          MCXA536VLL
 **                          MCXA536VLQ
 **                          MCXA536VPN
 **                          MCXA537VLL
 **                          MCXA537VLQ
 **                          MCXA537VPN
-**                          MCXA556VPN
 **                          MCXA566VLL
 **                          MCXA566VLQ
 **                          MCXA566VPN
 **                          MCXA567VLL
 **                          MCXA567VLQ
 **                          MCXA567VPN
+**                          MCXA577VAPR
 **                          MCXA577VLL
 **                          MCXA577VLQ
 **                          MCXA577VPN
 **
 **     Version:             rev. 2.0, 2024-10-29
-**     Build:               b251029
+**     Build:               b260904
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for TENBASET_PHY
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -64,25 +52,15 @@
 #if !defined(PERI_TENBASET_PHY_H_)
 #define PERI_TENBASET_PHY_H_                     /**< Symbol preventing repeated inclusion */
 
-#if (defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
-#include "MCXA286_COMMON.h"
-#elif (defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
-#include "MCXA287_COMMON.h"
-#elif (defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
-#include "MCXA456_COMMON.h"
-#elif (defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
-#include "MCXA457_COMMON.h"
-#elif (defined(CPU_MCXA536VLL) || defined(CPU_MCXA536VLQ) || defined(CPU_MCXA536VPN))
+#if (defined(CPU_MCXA536VLL) || defined(CPU_MCXA536VLQ) || defined(CPU_MCXA536VPN))
 #include "MCXA536_COMMON.h"
 #elif (defined(CPU_MCXA537VLL) || defined(CPU_MCXA537VLQ) || defined(CPU_MCXA537VPN))
 #include "MCXA537_COMMON.h"
-#elif (defined(CPU_MCXA556VPN))
-#include "MCXA556_COMMON.h"
 #elif (defined(CPU_MCXA566VLL) || defined(CPU_MCXA566VLQ) || defined(CPU_MCXA566VPN))
 #include "MCXA566_COMMON.h"
 #elif (defined(CPU_MCXA567VLL) || defined(CPU_MCXA567VLQ) || defined(CPU_MCXA567VPN))
 #include "MCXA567_COMMON.h"
-#elif (defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
+#elif (defined(CPU_MCXA577VAPR) || defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
 #include "MCXA577_COMMON.h"
 #else
   #error "No valid CPU defined!"
@@ -162,7 +140,7 @@ typedef struct {
   __IO uint16_t WKCFG;                             /**< Wake Configuration, offset: 0x122 */
        uint8_t RESERVED_7[2];
   __IO uint16_t WUPCTRL;                           /**< Wake Control, offset: 0x126 */
-  __IO uint16_t WUPCFG;                            /**< Wakeup Confguration, offset: 0x128 */
+  __IO uint16_t WUPCFG;                            /**< Wakeup Configuration, offset: 0x128 */
   __I  uint16_t WUPSTAT;                           /**< Wakeup Status, offset: 0x12A */
        uint8_t RESERVED_8[20];
   __IO uint16_t SMIDATA;                           /**< SMI Frame DATA, offset: 0x140 */
@@ -253,7 +231,7 @@ typedef struct {
 
 #define TENBASET_PHY_PHYID0_OUI_03_18_MASK       (0xFFFFU)
 #define TENBASET_PHY_PHYID0_OUI_03_18_SHIFT      (0U)
-/*! OUI_03_18 - Organizationally Unique Idendifier */
+/*! OUI_03_18 - Organizationally Unique Identifier */
 #define TENBASET_PHY_PHYID0_OUI_03_18(x)         (((uint16_t)(((uint16_t)(x)) << TENBASET_PHY_PHYID0_OUI_03_18_SHIFT)) & TENBASET_PHY_PHYID0_OUI_03_18_MASK)
 /*! @} */
 
@@ -272,7 +250,7 @@ typedef struct {
 
 #define TENBASET_PHY_PHYID1_OUI_19_24_MASK       (0xFC00U)
 #define TENBASET_PHY_PHYID1_OUI_19_24_SHIFT      (10U)
-/*! OUI_19_24 - Organizationally Unique Idendifier */
+/*! OUI_19_24 - Organizationally Unique Identifier */
 #define TENBASET_PHY_PHYID1_OUI_19_24(x)         (((uint16_t)(((uint16_t)(x)) << TENBASET_PHY_PHYID1_OUI_19_24_SHIFT)) & TENBASET_PHY_PHYID1_OUI_19_24_MASK)
 /*! @} */
 
@@ -631,7 +609,7 @@ typedef struct {
 #define TENBASET_PHY_WUPCTRL_ABORTCMD(x)         (((uint16_t)(((uint16_t)(x)) << TENBASET_PHY_WUPCTRL_ABORTCMD_SHIFT)) & TENBASET_PHY_WUPCTRL_ABORTCMD_MASK)
 /*! @} */
 
-/*! @name WUPCFG - Wakeup Confguration */
+/*! @name WUPCFG - Wakeup Configuration */
 /*! @{ */
 
 #define TENBASET_PHY_WUPCFG_LCLWKWUP_MASK        (0x1U)
@@ -657,7 +635,7 @@ typedef struct {
  *  0b00..IDLE
  *  0b01..WAITLINK
  *  0b10..PENDING
- *  0b10..TRANSMIT
+ *  0b11..TRANSMIT
  */
 #define TENBASET_PHY_WUPSTAT_STAT(x)             (((uint16_t)(((uint16_t)(x)) << TENBASET_PHY_WUPSTAT_STAT_SHIFT)) & TENBASET_PHY_WUPSTAT_STAT_MASK)
 
@@ -866,7 +844,7 @@ typedef struct {
 
 #define TENBASET_PHY_INTENCAPT1_SSPDET_MASK      (0x800U)
 #define TENBASET_PHY_INTENCAPT1_SSPDET_SHIFT     (11U)
-/*! SSPDET - Suaspend Symbol Detects
+/*! SSPDET - Suspend Symbol Detects
  *  0b0..NO Effect
  *  0b1..Clear
  */
@@ -1362,7 +1340,7 @@ typedef struct {
 
 #define TENBASET_PHY_INTENCAPT2_SSPDET_MASK      (0x800U)
 #define TENBASET_PHY_INTENCAPT2_SSPDET_SHIFT     (11U)
-/*! SSPDET - Suaspend Symbol Detects
+/*! SSPDET - Suspend Symbol Detects
  *  0b0..NO Effect
  *  0b1..Clear
  */
@@ -1843,7 +1821,7 @@ typedef struct {
 
 #define TENBASET_PHY_PLCADIAG4_TOCNT_MASK        (0xFFFFU)
 #define TENBASET_PHY_PLCADIAG4_TOCNT_SHIFT       (0U)
-/*! TOCNT - Transmit Oppurtunity Counter */
+/*! TOCNT - Transmit Opportunity Counter */
 #define TENBASET_PHY_PLCADIAG4_TOCNT(x)          (((uint16_t)(((uint16_t)(x)) << TENBASET_PHY_PLCADIAG4_TOCNT_SHIFT)) & TENBASET_PHY_PLCADIAG4_TOCNT_MASK)
 /*! @} */
 

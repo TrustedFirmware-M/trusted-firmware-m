@@ -1,42 +1,46 @@
 /*
 ** ###################################################################
-**     Processors:          MCXA286VLL
+**     Processors:          MCXA286VAPR
+**                          MCXA286VASR
+**                          MCXA286VLL
 **                          MCXA286VLQ
 **                          MCXA286VPN
+**                          MCXA287VAPR
+**                          MCXA287VASR
 **                          MCXA287VLL
 **                          MCXA287VLQ
 **                          MCXA287VPN
+**                          MCXA456VASR
 **                          MCXA456VLL
 **                          MCXA456VLQ
 **                          MCXA456VPN
+**                          MCXA457VASR
 **                          MCXA457VLL
 **                          MCXA457VLQ
 **                          MCXA457VPN
-**                          MCXA536VLL
-**                          MCXA536VLQ
-**                          MCXA536VPN
-**                          MCXA537VLL
-**                          MCXA537VLQ
-**                          MCXA537VPN
+**                          MCXA556BVPN
 **                          MCXA556VPN
+**                          MCXA557BVPN
+**                          MCXA557VPN
 **                          MCXA566VLL
 **                          MCXA566VLQ
 **                          MCXA566VPN
 **                          MCXA567VLL
 **                          MCXA567VLQ
 **                          MCXA567VPN
+**                          MCXA577VAPR
 **                          MCXA577VLL
 **                          MCXA577VLQ
 **                          MCXA577VPN
 **
 **     Version:             rev. 2.0, 2024-10-29
-**     Build:               b251029
+**     Build:               b260904
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for USBHS
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -64,25 +68,23 @@
 #if !defined(PERI_USBHS_H_)
 #define PERI_USBHS_H_                            /**< Symbol preventing repeated inclusion */
 
-#if (defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
+#if (defined(CPU_MCXA286VAPR) || defined(CPU_MCXA286VASR) || defined(CPU_MCXA286VLL) || defined(CPU_MCXA286VLQ) || defined(CPU_MCXA286VPN))
 #include "MCXA286_COMMON.h"
-#elif (defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
+#elif (defined(CPU_MCXA287VAPR) || defined(CPU_MCXA287VASR) || defined(CPU_MCXA287VLL) || defined(CPU_MCXA287VLQ) || defined(CPU_MCXA287VPN))
 #include "MCXA287_COMMON.h"
-#elif (defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
+#elif (defined(CPU_MCXA456VASR) || defined(CPU_MCXA456VLL) || defined(CPU_MCXA456VLQ) || defined(CPU_MCXA456VPN))
 #include "MCXA456_COMMON.h"
-#elif (defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
+#elif (defined(CPU_MCXA457VASR) || defined(CPU_MCXA457VLL) || defined(CPU_MCXA457VLQ) || defined(CPU_MCXA457VPN))
 #include "MCXA457_COMMON.h"
-#elif (defined(CPU_MCXA536VLL) || defined(CPU_MCXA536VLQ) || defined(CPU_MCXA536VPN))
-#include "MCXA536_COMMON.h"
-#elif (defined(CPU_MCXA537VLL) || defined(CPU_MCXA537VLQ) || defined(CPU_MCXA537VPN))
-#include "MCXA537_COMMON.h"
-#elif (defined(CPU_MCXA556VPN))
+#elif (defined(CPU_MCXA556BVPN) || defined(CPU_MCXA556VPN))
 #include "MCXA556_COMMON.h"
+#elif (defined(CPU_MCXA557BVPN) || defined(CPU_MCXA557VPN))
+#include "MCXA557_COMMON.h"
 #elif (defined(CPU_MCXA566VLL) || defined(CPU_MCXA566VLQ) || defined(CPU_MCXA566VPN))
 #include "MCXA566_COMMON.h"
 #elif (defined(CPU_MCXA567VLL) || defined(CPU_MCXA567VLQ) || defined(CPU_MCXA567VPN))
 #include "MCXA567_COMMON.h"
-#elif (defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
+#elif (defined(CPU_MCXA577VAPR) || defined(CPU_MCXA577VLL) || defined(CPU_MCXA577VLQ) || defined(CPU_MCXA577VPN))
 #include "MCXA577_COMMON.h"
 #else
   #error "No valid CPU defined!"
@@ -609,8 +611,8 @@ typedef struct {
 #define USBHS_USBCMD_ASPE_MASK                   (0x800U)
 #define USBHS_USBCMD_ASPE_SHIFT                  (11U)
 /*! ASPE - Asynchronous Schedule Park Mode Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBCMD_ASPE(x)                     (((uint32_t)(((uint32_t)(x)) << USBHS_USBCMD_ASPE_SHIFT)) & USBHS_USBCMD_ASPE_MASK)
 
@@ -868,144 +870,144 @@ typedef struct {
 #define USBHS_USBINTR_UE_MASK                    (0x1U)
 #define USBHS_USBINTR_UE_SHIFT                   (0U)
 /*! UE - USB Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_UE(x)                      (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_UE_SHIFT)) & USBHS_USBINTR_UE_MASK)
 
 #define USBHS_USBINTR_UEE_MASK                   (0x2U)
 #define USBHS_USBINTR_UEE_SHIFT                  (1U)
 /*! UEE - USB Error Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_UEE(x)                     (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_UEE_SHIFT)) & USBHS_USBINTR_UEE_MASK)
 
 #define USBHS_USBINTR_PCE_MASK                   (0x4U)
 #define USBHS_USBINTR_PCE_SHIFT                  (2U)
 /*! PCE - Port Change Detect Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_PCE(x)                     (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_PCE_SHIFT)) & USBHS_USBINTR_PCE_MASK)
 
 #define USBHS_USBINTR_FRE_MASK                   (0x8U)
 #define USBHS_USBINTR_FRE_SHIFT                  (3U)
 /*! FRE - Frame List Rollover Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_FRE(x)                     (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_FRE_SHIFT)) & USBHS_USBINTR_FRE_MASK)
 
 #define USBHS_USBINTR_SEE_MASK                   (0x10U)
 #define USBHS_USBINTR_SEE_SHIFT                  (4U)
 /*! SEE - System Error Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_SEE(x)                     (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_SEE_SHIFT)) & USBHS_USBINTR_SEE_MASK)
 
 #define USBHS_USBINTR_AAE_MASK                   (0x20U)
 #define USBHS_USBINTR_AAE_SHIFT                  (5U)
 /*! AAE - Asynchronous Advance Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_AAE(x)                     (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_AAE_SHIFT)) & USBHS_USBINTR_AAE_MASK)
 
 #define USBHS_USBINTR_URE_MASK                   (0x40U)
 #define USBHS_USBINTR_URE_SHIFT                  (6U)
 /*! URE - USB Reset Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_URE(x)                     (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_URE_SHIFT)) & USBHS_USBINTR_URE_MASK)
 
 #define USBHS_USBINTR_SRE_MASK                   (0x80U)
 #define USBHS_USBINTR_SRE_SHIFT                  (7U)
 /*! SRE - SOF Received Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_SRE(x)                     (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_SRE_SHIFT)) & USBHS_USBINTR_SRE_MASK)
 
 #define USBHS_USBINTR_SLE_MASK                   (0x100U)
 #define USBHS_USBINTR_SLE_SHIFT                  (8U)
 /*! SLE - Sleep Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_SLE(x)                     (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_SLE_SHIFT)) & USBHS_USBINTR_SLE_MASK)
 
 #define USBHS_USBINTR_NAKE_MASK                  (0x10000U)
 #define USBHS_USBINTR_NAKE_SHIFT                 (16U)
 /*! NAKE - NAK Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_NAKE(x)                    (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_NAKE_SHIFT)) & USBHS_USBINTR_NAKE_MASK)
 
 #define USBHS_USBINTR_UAIE_MASK                  (0x40000U)
 #define USBHS_USBINTR_UAIE_SHIFT                 (18U)
 /*! UAIE - USB Host Asynchronous Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_UAIE(x)                    (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_UAIE_SHIFT)) & USBHS_USBINTR_UAIE_MASK)
 
 #define USBHS_USBINTR_UPIE_MASK                  (0x80000U)
 #define USBHS_USBINTR_UPIE_SHIFT                 (19U)
 /*! UPIE - USB Host Periodic Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_UPIE(x)                    (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_UPIE_SHIFT)) & USBHS_USBINTR_UPIE_MASK)
 
 #define USBHS_USBINTR_TIE0_MASK                  (0x1000000U)
 #define USBHS_USBINTR_TIE0_SHIFT                 (24U)
 /*! TIE0 - General Purpose Timer 0 Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_TIE0(x)                    (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_TIE0_SHIFT)) & USBHS_USBINTR_TIE0_MASK)
 
 #define USBHS_USBINTR_TIE1_MASK                  (0x2000000U)
 #define USBHS_USBINTR_TIE1_SHIFT                 (25U)
 /*! TIE1 - General Purpose Timer 1 Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_TIE1(x)                    (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_TIE1_SHIFT)) & USBHS_USBINTR_TIE1_MASK)
 
 #define USBHS_USBINTR_LPM_L1_EXITIE_MASK         (0x10000000U)
 #define USBHS_USBINTR_LPM_L1_EXITIE_SHIFT        (28U)
 /*! LPM_L1_EXITIE - L1 Exit Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_LPM_L1_EXITIE(x)           (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_LPM_L1_EXITIE_SHIFT)) & USBHS_USBINTR_LPM_L1_EXITIE_MASK)
 
 #define USBHS_USBINTR_LPM_L1_ENTRYIE_MASK        (0x20000000U)
 #define USBHS_USBINTR_LPM_L1_ENTRYIE_SHIFT       (29U)
 /*! LPM_L1_ENTRYIE - L1 Entry Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_LPM_L1_ENTRYIE(x)          (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_LPM_L1_ENTRYIE_SHIFT)) & USBHS_USBINTR_LPM_L1_ENTRYIE_MASK)
 
 #define USBHS_USBINTR_LPM_DEV_RCVDIE_MASK        (0x40000000U)
 #define USBHS_USBINTR_LPM_DEV_RCVDIE_SHIFT       (30U)
 /*! LPM_DEV_RCVDIE - Device Received Extension Token Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_LPM_DEV_RCVDIE(x)          (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_LPM_DEV_RCVDIE_SHIFT)) & USBHS_USBINTR_LPM_DEV_RCVDIE_MASK)
 
 #define USBHS_USBINTR_LPM_HST_COMPIE_MASK        (0x80000000U)
 #define USBHS_USBINTR_LPM_HST_COMPIE_SHIFT       (31U)
 /*! LPM_HST_COMPIE - Host Completed LPM Transaction Interrupt Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBINTR_LPM_HST_COMPIE(x)          (((uint32_t)(((uint32_t)(x)) << USBHS_USBINTR_LPM_HST_COMPIE_SHIFT)) & USBHS_USBINTR_LPM_HST_COMPIE_MASK)
 /*! @} */
@@ -1176,8 +1178,8 @@ typedef struct {
 #define USBHS_PORTSC1_PE_MASK                    (0x4U)
 #define USBHS_PORTSC1_PE_SHIFT                   (2U)
 /*! PE - Port Enable and Disable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_PORTSC1_PE(x)                      (((uint32_t)(((uint32_t)(x)) << USBHS_PORTSC1_PE_SHIFT)) & USBHS_PORTSC1_PE_MASK)
 
@@ -1292,16 +1294,16 @@ typedef struct {
 #define USBHS_PORTSC1_WKCN_MASK                  (0x100000U)
 #define USBHS_PORTSC1_WKCN_SHIFT                 (20U)
 /*! WKCN - Wake on Connect Enable (WKCNNT_E)
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_PORTSC1_WKCN(x)                    (((uint32_t)(((uint32_t)(x)) << USBHS_PORTSC1_WKCN_SHIFT)) & USBHS_PORTSC1_WKCN_MASK)
 
 #define USBHS_PORTSC1_WKDC_MASK                  (0x200000U)
 #define USBHS_PORTSC1_WKDC_SHIFT                 (21U)
 /*! WKDC - Wake on Disconnect Enable (WKDSCNNT_E)
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_PORTSC1_WKDC(x)                    (((uint32_t)(((uint32_t)(x)) << USBHS_PORTSC1_WKDC_SHIFT)) & USBHS_PORTSC1_WKDC_MASK)
 
@@ -1313,8 +1315,8 @@ typedef struct {
 #define USBHS_PORTSC1_PHCD_MASK                  (0x800000U)
 #define USBHS_PORTSC1_PHCD_SHIFT                 (23U)
 /*! PHCD - PHY Low-Power Suspend - Clock Disable (PLPSCD)
- *  0b0..Enable
- *  0b1..Disable
+ *  0b0..Enables
+ *  0b1..Disables
  */
 #define USBHS_PORTSC1_PHCD(x)                    (((uint32_t)(((uint32_t)(x)) << USBHS_PORTSC1_PHCD_SHIFT)) & USBHS_PORTSC1_PHCD_MASK)
 
@@ -1379,8 +1381,8 @@ typedef struct {
 #define USBHS_OTGSC_HAAR_MASK                    (0x4U)
 #define USBHS_OTGSC_HAAR_SHIFT                   (2U)
 /*! HAAR - Hardware Assist Auto Reset
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_OTGSC_HAAR(x)                      (((uint32_t)(((uint32_t)(x)) << USBHS_OTGSC_HAAR_SHIFT)) & USBHS_OTGSC_HAAR_MASK)
 
@@ -1402,16 +1404,16 @@ typedef struct {
 #define USBHS_OTGSC_HADP_MASK                    (0x40U)
 #define USBHS_OTGSC_HADP_SHIFT                   (6U)
 /*! HADP - Hardware Assist Data Pulse
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_OTGSC_HADP(x)                      (((uint32_t)(((uint32_t)(x)) << USBHS_OTGSC_HADP_SHIFT)) & USBHS_OTGSC_HADP_MASK)
 
 #define USBHS_OTGSC_HABA_MASK                    (0x80U)
 #define USBHS_OTGSC_HABA_SHIFT                   (7U)
 /*! HABA - Hardware Assist B-Disconnect to A-connect
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_OTGSC_HABA(x)                      (((uint32_t)(((uint32_t)(x)) << USBHS_OTGSC_HABA_SHIFT)) & USBHS_OTGSC_HABA_MASK)
 
@@ -1556,8 +1558,8 @@ typedef struct {
 #define USBHS_USBMODE_SDIS_MASK                  (0x10U)
 #define USBHS_USBMODE_SDIS_SHIFT                 (4U)
 /*! SDIS - Stream Disable Mode
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_USBMODE_SDIS(x)                    (((uint32_t)(((uint32_t)(x)) << USBHS_USBMODE_SDIS_SHIFT)) & USBHS_USBMODE_SDIS_MASK)
 /*! @} */
@@ -1657,8 +1659,8 @@ typedef struct {
 #define USBHS_ENDPTCTRL0_RXE_MASK                (0x80U)
 #define USBHS_ENDPTCTRL0_RXE_SHIFT               (7U)
 /*! RXE - RX Endpoint Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_ENDPTCTRL0_RXE(x)                  (((uint32_t)(((uint32_t)(x)) << USBHS_ENDPTCTRL0_RXE_SHIFT)) & USBHS_ENDPTCTRL0_RXE_MASK)
 
@@ -1678,8 +1680,8 @@ typedef struct {
 #define USBHS_ENDPTCTRL0_TXE_MASK                (0x800000U)
 #define USBHS_ENDPTCTRL0_TXE_SHIFT               (23U)
 /*! TXE - TX Endpoint Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_ENDPTCTRL0_TXE(x)                  (((uint32_t)(((uint32_t)(x)) << USBHS_ENDPTCTRL0_TXE_SHIFT)) & USBHS_ENDPTCTRL0_TXE_MASK)
 /*! @} */
@@ -1713,8 +1715,8 @@ typedef struct {
 #define USBHS_ENDPTCTRL_RXI_MASK                 (0x20U)
 #define USBHS_ENDPTCTRL_RXI_SHIFT                (5U)
 /*! RXI - RX Data Toggle Inhibit
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_ENDPTCTRL_RXI(x)                   (((uint32_t)(((uint32_t)(x)) << USBHS_ENDPTCTRL_RXI_SHIFT)) & USBHS_ENDPTCTRL_RXI_MASK)
 
@@ -1729,8 +1731,8 @@ typedef struct {
 #define USBHS_ENDPTCTRL_RXE_MASK                 (0x80U)
 #define USBHS_ENDPTCTRL_RXE_SHIFT                (7U)
 /*! RXE - RX Endpoint Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_ENDPTCTRL_RXE(x)                   (((uint32_t)(((uint32_t)(x)) << USBHS_ENDPTCTRL_RXE_SHIFT)) & USBHS_ENDPTCTRL_RXE_MASK)
 
@@ -1776,8 +1778,8 @@ typedef struct {
 #define USBHS_ENDPTCTRL_TXE_MASK                 (0x800000U)
 #define USBHS_ENDPTCTRL_TXE_SHIFT                (23U)
 /*! TXE - TX Endpoint Enable
- *  0b0..Disable
- *  0b1..Enable
+ *  0b0..Disables
+ *  0b1..Enables
  */
 #define USBHS_ENDPTCTRL_TXE(x)                   (((uint32_t)(((uint32_t)(x)) << USBHS_ENDPTCTRL_TXE_SHIFT)) & USBHS_ENDPTCTRL_TXE_MASK)
 /*! @} */

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018-2024, Arm Limited. All rights reserved.
- * Copyright 2019-2020, 2025 NXP
+ * Copyright 2019-2020, 2025-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -25,6 +25,7 @@ void C_SEC_VIO_IRQHandler(void)
     tfm_core_panic();
 }
 
+EXCEPTION_INFO_IAR_REQUIRED
 __attribute__((naked)) void SEC_VIO_IRQHandler(void)
 {
     EXCEPTION_INFO();
