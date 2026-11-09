@@ -1144,6 +1144,44 @@ above.
   | String        |                                                            |
   +---------------+------------------------------------------------------------+
 
+.. table:: NS-originated Denial-of-Service (DoS)
+  :widths: 10 50
+
+  +---------------+------------------------------------------------------------+
+  | Index         | **TFM-GENERIC-NS-DOS**                                     |
+  +---------------+------------------------------------------------------------+
+  | Description   | Non-Secure software can trigger faults on the NSPE that    |
+  |               | make the SPE unavailable.                                  |
+  +---------------+------------------------------------------------------------+
+  | Justification | There might be various scenarios that lead the NSPE to     |
+  |               | generate a fault that affects the availability of the SPE  |
+  |               | given that both processing environments share underlying   |
+  |               | microprocessor resources. For example, the underlying NSPE |
+  |               | can be configured to catch NULL pointer dereferencing by   |
+  |               | suitable configuration of the MPU, or unexpected           |
+  |               | conditions can lead to division-by-zero. All these         |
+  |               | scenarios, whether triggered maliciously or by mistake,    |
+  |               | are considered programmer errors. The list of such         |
+  |               | scenarios is not comprehensive.                            |
+  +---------------+------------------------------------------------------------+
+  | Category      | Denial of service                                          |
+  +---------------+------------------------------------------------------------+
+  | Mitigation    | **Out-of-scope**: Except for the DoS scenarios explicitly  |
+  |               | covered in this threat model, NSPE-originated DoS attacks  |
+  |               | are out of scope. TF-M does not guarantee system           |
+  |               | availability against these attacks. Other parts of the     |
+  |               | integrated system are responsible for implementing any     |
+  |               | required mitigations.                                      |
+  |               |                                                            |
+  |               | These availability-only attacks do not compromise the      |
+  |               | confidentiality or integrity of data protected by TF-M.    |
+  +---------------+------------------------------------------------------------+
+  | CVSS Score    | 7.1 (High)                                                 |
+  +---------------+------------------------------------------------------------+
+  | CVSS Vector   | CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:C/C:N/I:N/A:H               |
+  | String        |                                                            |
+  +---------------+------------------------------------------------------------+
+
 ***************
 Version control
 ***************
@@ -1159,7 +1197,7 @@ Version control
   +---------+--------------------------------------------------+---------------+
   | v1.1    | Update version                                   | TF-M v1.5.0   |
   +---------+--------------------------------------------------+---------------+
-  | v1.2    | Update details to align FP support in NSPE.      | TF-M v1.5.0   |
+  | v1.2    | Update details to align FP support in NSPE       | TF-M v1.5.0   |
   +---------+--------------------------------------------------+---------------+
   | v1.3    | Update for validity of dual-cpu model Armv8-M    | TF-M v2.1.0   |
   +---------+--------------------------------------------------+---------------+
@@ -1167,10 +1205,12 @@ Version control
   +---------+--------------------------------------------------+---------------+
   | v1.5    | Updated terminology to replace 'dual-cpu' with   | TF-M v2.2.1   |
   |         | 'multi-core' for broader applicability to hybrid |               |
-  |         | and multi-core platforms.                        |               |
-  |         | Also fixed typos.                                |               |
+  |         | and multi-core platforms; Fixed typos.           |               |
   +---------+--------------------------------------------------+---------------+
-
+  | v1.6    | Add a generic threat associated to NS originated | TF-M v2.3.1   |
+  |         | Denial-of-Service attacks not explicitly covered |               |
+  |         | anywhere else in this threat model               |               |
+  +---------+--------------------------------------------------+---------------+
 
 **********
 References
