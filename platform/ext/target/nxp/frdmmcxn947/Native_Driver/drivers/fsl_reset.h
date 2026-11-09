@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 NXP
+ * Copyright 2022-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -25,7 +25,7 @@
 /*! @name Driver version */
 /*@{*/
 /*! @brief reset driver version 2.4.1 */
-#define FSL_RESET_DRIVER_VERSION (MAKE_VERSION(2, 4, 1))
+#define FSL_RESET_DRIVER_VERSION (MAKE_VERSION(2, 4, 2))
 /*@}*/
 
 /*!
@@ -157,6 +157,11 @@ typedef enum _SYSCON_RSTn
         kGPIO0_RST_SHIFT_RSTn, kGPIO1_RST_SHIFT_RSTn, kGPIO2_RST_SHIFT_RSTn, kGPIO3_RST_SHIFT_RSTn, \
             kGPIO4_RST_SHIFT_RSTn, kRST_None                                                        \
     } /* Reset bits for GPIO peripheral */
+#define PORT_RSTS_N                                                                                 \
+    {                                                                                               \
+        kPORT0_RST_SHIFT_RSTn, kPORT1_RST_SHIFT_RSTn, kPORT2_RST_SHIFT_RSTn, kPORT3_RST_SHIFT_RSTn, \
+            kPORT4_RST_SHIFT_RSTn, kRST_None                                                        \
+    } /* Reset bits for PORT peripheral */
 #define INPUTMUX_RSTS       \
     {                       \
         kMUX_RST_SHIFT_RSTn \
@@ -201,6 +206,58 @@ typedef enum _SYSCON_RSTn
     {                                              \
         kI3C0_RST_SHIFT_RSTn, kI3C1_RST_SHIFT_RSTn \
     } /* Reset bits for I3C peripheral */
+#define FREQME_RSTS_N          \
+    {                          \
+        kFREQME_RST_SHIFT_RSTn \
+    } /* Reset bits for FREQME peripheral */
+#define FLEXSPI_RSTS            \
+    {                           \
+        kFLEXSPI_RST_SHIFT_RSTn \
+    } /* Reset bits for FLEXSPI peripheral */
+#define DAC_RSTS_N                                                       \
+    {                                                                    \
+        kDAC0_RST_SHIFT_RSTn, kDAC1_RST_SHIFT_RSTn, kDAC2_RST_SHIFT_RSTn \
+    } /* Reset bits for DAC peripheral */
+#define SMARTDMA_RSTS             \
+    {                             \
+        kSMART_DMA_RST_SHIFT_RSTn \
+    } /* Reset bits for SMARTDMA peripheral */
+#define FLEXIO_RSTS            \
+    {                          \
+        kFLEXIO_RST_SHIFT_RSTn \
+    } /* Resets bits for FLEXIO peripheral */
+#define SAI_RSTS                                   \
+    {                                              \
+        kSAI0_RST_SHIFT_RSTn, kSAI1_RST_SHIFT_RSTn \
+    } /* Reset bits for SAI peripheral */
+#define FLEXCAN_RSTS                                       \
+    {                                                      \
+        kFLEXCAN0_RST_SHIFT_RSTn, kFLEXCAN1_RST_SHIFT_RSTn \
+    } /* Reset bits for FLEXCAN peripheral */
+#define PUF_RSTS            \
+    {                       \
+        kPUF_RST_SHIFT_RSTn \
+    } /* Reset bits for PUF peripheral */
+#define EQDC_RSTS                                  \
+    {                                              \
+        kQDC0_RST_SHIFT_RSTn, kQDC1_RST_SHIFT_RSTn \
+    } /* Reset bits for EQDC peripheral */
+#define PWM_RSTS                                   \
+    {                                              \
+        kPWM0_RST_SHIFT_RSTn, kPWM1_RST_SHIFT_RSTn \
+    } /* Reset bits for PWM peripheral */
+#define AOI_RSTS             \
+    {                        \
+        kAOI0_RST_SHIFT_RSTn \
+    } /* Reset bits for ADC peripheral */
+#define OPAMP_RSTS                                                             \
+    {                                                                          \
+        kOPAMP0_RST_SHIFT_RSTn, kOPAMP1_RST_SHIFT_RSTn, kOPAMP2_RST_SHIFT_RSTn \
+    } /* Reset bits for OPAMP peripheral */
+#define EIM_RSTS_N           \
+    {                       \
+        kEIM_RST_SHIFT_RSTn \
+    } /* Reset bits for EIM peripheral */
 typedef SYSCON_RSTn_t reset_ip_name_t;
 
 /*******************************************************************************
@@ -262,11 +319,11 @@ static inline void CLOCK_SetCpu1Reset(SYSCON_Type *base, bool enable)
 {
     if (enable)
     {
-        base->CPUCTRL |= SYSCON_CPUCTRL_CPU1RSTEN_MASK;
+        base->CPUCTRL = base->CPUCTRL | SYSCON_CPUCTRL_CPU1RSTEN_MASK;
     }
     else
     {
-        base->CPUCTRL &= ~SYSCON_CPUCTRL_CPU1RSTEN_MASK;
+        base->CPUCTRL = base->CPUCTRL & ~SYSCON_CPUCTRL_CPU1RSTEN_MASK;
     }
 }
 

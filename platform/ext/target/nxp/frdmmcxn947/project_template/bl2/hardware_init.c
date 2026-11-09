@@ -56,6 +56,10 @@ void SystemInit(void)
 
     SCB->NSACR |= ((3UL << 0) | (3UL << 10));           /* enable CP0, CP1, CP10, CP11 Non-secure Access */
 
+    SYSCON->ECC_ENABLE_CTRL = 0; /* disable RAM ECC to get max RAM size */
+
+    SYSCON->NVM_CTRL &= ~SYSCON_NVM_CTRL_DIS_MBECC_ERR_DATA_MASK; /* enables bus error on multi-bit ECC error for data */
+
     extern void *__VECTOR_TABLE[];
     SCB->VTOR = (uint32_t) & (__VECTOR_TABLE[0]);
 

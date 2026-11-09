@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 NXP
+ * Copyright 2025-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -17,27 +17,11 @@
 /*${function:start}*/
 void BOARD_InitHardware(void)
 {
-    /* attach FRO 12M to FLEXCOMM4 (debug console) */
-    CLOCK_SetClkDiv(kCLOCK_DivFlexcom4Clk, 1u);
-    CLOCK_AttachClk(BOARD_DEBUG_UART_CLK_ATTACH);	
-
-
-    // /* Step 1: Set PLL clock divider */
-    // CLOCK_AttachClk(kPLL0_to_PLLCLKDIV);               // Attach PLL0 to PLLCLKDIV
-    // CLOCK_SetClkDiv(kCLOCK_DivPllClk, 1U);              // Set PLL divider to 1
-    
-    // /* Step 2: Attach PLL divided clock to FlexCOMM4 */
-    // CLOCK_AttachClk(kPLL_DIV_to_FLEXCOMM4);            // Use PLL_DIV as source for FlexCOMM4
-    
-    // /* Step 3: Set FlexCOMM4 clock divider */
-    // CLOCK_SetClkDiv(kCLOCK_DivFlexcom4Clk, 1U);         // Set divider for FlexCOMM4
-
-
     BOARD_InitPins();
     BOARD_InitBootClocks();
-    
-    /* Removing Debug Console Init */
-    // BOARD_InitDebugConsole();
+    /* attach FRO 12M to FLEXCOMM4 (debug console) */
+    CLOCK_AttachClk(BOARD_DEBUG_UART_CLK_ATTACH);
+    CLOCK_SetClkDiv(kCLOCK_DivFlexcom4Clk, 1u);
 }
 
 void SystemInit(void)
@@ -51,6 +35,10 @@ void SystemInit(void)
     SCB_NS->CPACR |= ((3UL << 0 * 2) | (3UL << 1 * 2)); /* set CP0, CP1 Full Access in Normal mode (enable PowerQuad) */
 
     SCB->NSACR |= ((3UL << 0) | (3UL << 10));           /* enable CP0, CP1, CP10, CP11 Non-secure Access */
+
+    SYSCON->ECC_ENABLE_CTRL = 0; /* disable RAM ECC to get max RAM size */
+
+    SYSCON->NVM_CTRL &= ~SYSCON_NVM_CTRL_DIS_MBECC_ERR_DATA_MASK; /* enables bus error on multi-bit ECC error for data */
 
     extern void *__VECTOR_TABLE[];
     SCB->VTOR = (uint32_t) & (__VECTOR_TABLE[0]);

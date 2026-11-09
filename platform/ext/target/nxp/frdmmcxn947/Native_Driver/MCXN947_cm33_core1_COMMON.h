@@ -13,13 +13,13 @@
 **
 **     Reference manual:    MCXNx4x Reference Manual
 **     Version:             rev. 3.0, 2024-10-29
-**     Build:               b250703
+**     Build:               b260716
 **
 **     Abstract:
 **         CMSIS Peripheral Access Layer for MCXN947_cm33_core1
 **
 **     Copyright 1997-2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -182,7 +182,7 @@ typedef enum IRQn {
   CDOG1_IRQn                   = 94,               /**< Code Watchdog Timer 1 interrupt */
   I3C0_IRQn                    = 95,               /**< Improved Inter Integrated Circuit interrupt 0 */
   I3C1_IRQn                    = 96,               /**< Improved Inter Integrated Circuit interrupt 1 */
-  NPU_IRQn                     = 97,               /**< NPU interrupt */
+  Reserved113_IRQn             = 97,               /**< Reserved interrupt */
   GDET_IRQn                    = 98,               /**< Digital Glitch Detect 0 interrupt  or Digital Glitch Detect 1 interrupt */
   VBAT0_IRQn                   = 99,               /**< VBAT interrupt( VBAT interrupt or digital tamper interrupt) */
   EWM0_IRQn                    = 100,              /**< External Watchdog Monitor interrupt */
@@ -277,6 +277,113 @@ typedef enum IRQn {
 #endif
 /* CPU specific feature definitions */
 #include "MCXN947_cm33_core1_features.h"
+
+/* ----------------------------------------------------------------------------
+   -- Mapping Information
+   ---------------------------------------------------------------------------- */
+
+/*!
+ * @addtogroup Mapping_Information Mapping Information
+ * @{
+ */
+
+/** Mapping Information */
+/*!
+ * @addtogroup eim_memory_channel_mapping
+ * @{
+ */
+
+/*******************************************************************************
+ * Definitions
+ ******************************************************************************/
+
+/*!
+ * @brief Structure for the eim_memory_channel
+ *
+ *
+ * Defines the structure for the EIM resource collections.
+ */
+typedef enum _eim_memory_channel
+{
+    kEIM_MemoryChannelRAMX          = 0U,          /**< Memory RAMX */
+    kEIM_MemoryChannelRAMA          = 1U,          /**< Memory RAMA  */
+    kEIM_MemoryChannelRAMB          = 2U,          /**< Memory RAMB */
+    kEIM_MemoryChannelRAMC          = 3U,          /**< Memory RAMC */
+    kEIM_MemoryChannelRAMD          = 4U,          /**< Memory RAMD */
+    kEIM_MemoryChannelRAME          = 5U,          /**< Memory RAME */
+    kEIM_MemoryChannelRAMF          = 6U,          /**< Memory RAMF */
+    kEIM_MemoryChannelLPCACRAM      = 7U,          /**< Memory LPCACRAM */
+    kEIM_MemoryChannelPKCRAM        = 8U,          /**< Memory PKCRAM */
+} eim_memory_channel_t;
+
+/* @} */
+
+/*!
+ * @addtogroup eim_error_injection_channel_enab_mapping
+ * @{
+ */
+
+/*******************************************************************************
+ * Definitions
+ ******************************************************************************/
+
+/*!
+ * @brief Structure for the eim_error_injection_channel_enable
+ *
+ *
+ * Defines the structure for the EIM error injection resource collections.
+ */
+typedef enum _eim_error_injection_channel_enab
+{
+    kEIM_MemoryChannelRAMXEnable    = 0x80000000U, /**< Memory channel 0(RAMX) error injection enable */
+    kEIM_MemoryChannelRAMAEnable    = 0x40000000U, /**< Memory channel 1(RAMA) error injection enable  */
+    kEIM_MemoryChannelRAMBEnable    = 0x20000000U, /**< Memory channel 2(RAMB) error injection enable */
+    kEIM_MemoryChannelRAMCEnable    = 0x10000000U, /**< Memory channel 3(RAMC) error injection enable */
+    kEIM_MemoryChannelRAMDEnable    = 0x8000000U,  /**< Memory channel 4(RAMD) error injection enable */
+    kEIM_MemoryChannelRAMEEnable    = 0x4000000U,  /**< Memory channel 5(RAME) error injection enable */
+    kEIM_MemoryChannelRAMFEnable    = 0x2000000U,  /**< Memory channel 6(RAMF) error injection enable */
+    kEIM_MemoryChannelLPCACRAMEnable = 0x1000000U, /**< Memory channel 7(LPCACRAM) error injection enable */
+    kEIM_MemoryChannelPKCRAMEnable  = 0x800000U,   /**< Memory channel 8(PKCRAM) error injection enable */
+} eim_error_injection_channel_enab_t;
+
+/* @} */
+
+/*!
+ * @addtogroup erm_memory_channel_mapping
+ * @{
+ */
+
+/*******************************************************************************
+ * Definitions
+ ******************************************************************************/
+
+/*!
+ * @brief Structure for the erm_memory_channel
+ *
+ *
+ * Defines the structure for the ERM resource collections.
+ */
+typedef enum _erm_memory_channel
+{
+    kERM_MemoryChannelRAMX          = 0U,          /**< Memory RAMX */
+    kERM_MemoryChannelRAMA          = 1U,          /**< Memory RAMA  */
+    kERM_MemoryChannelRAMB          = 2U,          /**< Memory RAMB */
+    kERM_MemoryChannelRAMC          = 3U,          /**< Memory RAMC */
+    kERM_MemoryChannelRAMD          = 4U,          /**< Memory RAMD */
+    kERM_MemoryChannelRAME          = 5U,          /**< Memory RAME */
+    kERM_MemoryChannelRAMF          = 6U,          /**< Memory RAMF */
+    kERM_MemoryChannelLPCACRAM      = 7U,          /**< Memory LPCACRAM */
+    kERM_MemoryChannelPKCRAM        = 8U,          /**< Memory PKCRAM */
+    kERM_MemoryChannelFLASH         = 9U,          /**< Memory FLASH */
+} erm_memory_channel_t;
+
+/* @} */
+
+
+/*!
+ * @}
+ */ /* end of group Mapping_Information */
+
 
 /* ADC - Peripheral instance base addresses */
 #if ((defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2)) || defined(CPU1_IS_SECURE_MASTER))
@@ -615,6 +722,19 @@ typedef enum IRQn {
   /** Array initializer of CMC peripheral base pointers */
   #define CMC_BASE_PTRS                            { CMC0 }
 #endif
+/** Interrupt vectors for the CMC peripheral type */
+#define CMC_IRQS                                 { CMC0_IRQn }
+/* Backward compatibility for CMC */
+#define CMC_SRAMDIS_DIS_MASK                     (0xFFFFFFFFU)
+#define CMC_SRAMDIS_DIS_SHIFT                    (0U)
+/*! DIS - SRAM Disable */
+#define CMC_SRAMDIS_DIS(x)                       (((uint32_t)(((uint32_t)(x)) << CMC_SRAMDIS_DIS_SHIFT)) & CMC_SRAMDIS_DIS_MASK)
+
+#define CMC_SRAMRET_RET_MASK                     (0xFFFFFFFFU)
+#define CMC_SRAMRET_RET_SHIFT                    (0U)
+/*! RET - SRAM Retention */
+#define CMC_SRAMRET_RET(x)                       (((uint32_t)(((uint32_t)(x)) << CMC_SRAMRET_RET_SHIFT)) & CMC_SRAMRET_RET_MASK)
+
 
 /* CRC - Peripheral instance base addresses */
 #if ((defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2)) || defined(CPU1_IS_SECURE_MASTER))
@@ -1137,6 +1257,8 @@ typedef enum IRQn {
   /** Array initializer of FMU peripheral base pointers */
   #define FMU_BASE_PTRS                            { FMU0 }
 #endif
+/** Interrupt vectors for the FMU peripheral type */
+#define FMU_IRQS                                 { FMU0_IRQn }
 
 /* FMUTEST - Peripheral instance base addresses */
 #if ((defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2)) || defined(CPU1_IS_SECURE_MASTER))
@@ -1401,6 +1523,9 @@ typedef enum IRQn {
   /** Array initializer of GPIO peripheral base pointers */
   #define GPIO_BASE_PTRS                           { GPIO0, GPIO1, GPIO2, GPIO3, GPIO4, GPIO5, GPIO0_ALIAS1, GPIO1_ALIAS1, GPIO2_ALIAS1, GPIO3_ALIAS1, GPIO4_ALIAS1, GPIO5_ALIAS1 }
 #endif
+/** Interrupt vectors for the GPIO peripheral type */
+#define GPIO_IRQS                                { GPIO00_IRQn, GPIO10_IRQn, GPIO20_IRQn, GPIO30_IRQn, GPIO40_IRQn, GPIO50_IRQn, GPIO00_IRQn, GPIO10_IRQn, GPIO20_IRQn, GPIO30_IRQn, GPIO40_IRQn, GPIO50_IRQn }
+#define GPIO_S_IRQS                              { GPIO01_IRQn, GPIO11_IRQn, GPIO21_IRQn, GPIO31_IRQn, GPIO41_IRQn, GPIO51_IRQn, GPIO01_IRQn, GPIO11_IRQn, GPIO21_IRQn, GPIO31_IRQn, GPIO41_IRQn, GPIO51_IRQn }
 
 /* HPDAC - Peripheral instance base addresses */
 #if ((defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2)) || defined(CPU1_IS_SECURE_MASTER))
@@ -2534,7 +2659,7 @@ typedef enum IRQn {
   #define PDM_BASE_PTRS                            { PDM }
 #endif
 /** Interrupt vectors for the PDM peripheral type */
-#define PDM_IRQS                                 { PDM_EVENT_IRQn }
+#define PDM_Event_IRQS                                 { PDM_EVENT_IRQn }
 
 /* PINT - Peripheral instance base addresses */
 #if ((defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2)) || defined(CPU1_IS_SECURE_MASTER))
@@ -2713,6 +2838,8 @@ typedef enum IRQn {
   /** Array initializer of PORT peripheral base pointers */
   #define PORT_BASE_PTRS                           { PORT0, PORT1, PORT2, PORT3, PORT4, PORT5 }
 #endif
+/** Interrupt vectors for the PORT peripheral type */
+#define PORT_IRQS                                { PORT_EFT_IRQn, PORT_EFT_IRQn, PORT_EFT_IRQn, PORT_EFT_IRQn, PORT_EFT_IRQn, PORT_EFT_IRQn }
 
 /* POWERQUAD - Peripheral instance base addresses */
 #if ((defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2)) || defined(CPU1_IS_SECURE_MASTER))
@@ -2809,6 +2936,8 @@ typedef enum IRQn {
   /** Array initializer of PUF peripheral base pointers */
   #define PUF_BASE_PTRS                            { PUF, PUF_ALIAS1, PUF_ALIAS2, PUF_ALIAS3 }
 #endif
+/** Interrupt vectors for the PUF peripheral type */
+#define PUF_IRQS                                 { PUF_IRQn, NotAvail_IRQn, NotAvail_IRQn, NotAvail_IRQn }
 
 /* PWM - Peripheral instance base addresses */
 #if ((defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2)) || defined(CPU1_IS_SECURE_MASTER))
@@ -3116,6 +3245,8 @@ typedef enum IRQn {
   /** Array initializer of SINC peripheral base pointers */
   #define SINC_BASE_PTRS                           { SINC0 }
 #endif
+/** Interrupt vectors for the SINC peripheral type */
+#define SINC_IRQS                                { { SINC_FILTER_IRQn, SINC_FILTER_IRQn, SINC_FILTER_IRQn, SINC_FILTER_IRQn } }
 
 /* SMARTDMA - Peripheral instance base addresses */
 #if ((defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2)) || defined(CPU1_IS_SECURE_MASTER))
@@ -3652,6 +3783,8 @@ typedef enum IRQn {
   /** Array initializer of WUU peripheral base pointers */
   #define WUU_BASE_PTRS                            { WUU0 }
 #endif
+/** Interrupt vectors for the WUU peripheral type */
+#define WUU_IRQS                                 { WUU_IRQn }
 
 /* WWDT - Peripheral instance base addresses */
 #if ((defined(__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE & 0x2)) || defined(CPU1_IS_SECURE_MASTER))

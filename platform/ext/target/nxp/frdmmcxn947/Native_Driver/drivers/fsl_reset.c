@@ -54,12 +54,15 @@ void RESET_SetPeripheralReset(reset_ip_name_t peripheral)
     }
 
     /* reset register is in SYSCON */
-    /* set bit */
-    SYSCON->PRESETCTRLSET[regIndex] = bitMask;
-    /* wait until it reads 0b1 */
-    pResetCtrl = &(SYSCON->PRESETCTRL0);
-    while (0u == ((uint32_t)((volatile uint32_t *)pResetCtrl)[regIndex] & bitMask))
+    if (regIndex < SYSCON_PRESETCTRLSET_COUNT)
     {
+        /* set bit */
+        SYSCON->PRESETCTRLSET[regIndex] = bitMask;
+        /* wait until it reads 0b1 */
+        pResetCtrl = &(SYSCON->PRESETCTRL0);
+        while (0u == ((uint32_t)pResetCtrl[regIndex] & bitMask))
+        {
+        }
     }
 }
 
@@ -87,13 +90,15 @@ void RESET_ClearPeripheralReset(reset_ip_name_t peripheral)
     }
 
     /* reset register is in SYSCON */
-
-    /* clear bit */
-    SYSCON->PRESETCTRLCLR[regIndex] = bitMask;
-    /* wait until it reads 0b0 */
-    pResetCtrl = &(SYSCON->PRESETCTRL0);
-    while (bitMask == ((uint32_t)((volatile uint32_t *)pResetCtrl)[regIndex] & bitMask))
+    if (regIndex < SYSCON_PRESETCTRLSET_COUNT)
     {
+        /* clear bit */
+        SYSCON->PRESETCTRLCLR[regIndex] = bitMask;
+        /* wait until it reads 0b0 */
+        pResetCtrl = &(SYSCON->PRESETCTRL0);
+        while (bitMask == ((uint32_t)pResetCtrl[regIndex] & bitMask))
+        {
+        }
     }
 }
 

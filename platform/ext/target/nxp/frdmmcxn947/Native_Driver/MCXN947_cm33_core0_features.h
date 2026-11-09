@@ -1,13 +1,13 @@
 /*
 ** ###################################################################
-**     Version:             rev. 1.0, 2021-08-03
-**     Build:               b250814
+**     Version:             rev. 1.1, 2025-11-17
+**     Build:               b260804
 **
 **     Abstract:
 **         Chip specific module features.
 **
 **     Copyright 2016 Freescale Semiconductor, Inc.
-**     Copyright 2016-2025 NXP
+**     Copyright 2016-2026 NXP
 **     SPDX-License-Identifier: BSD-3-Clause
 **
 **     http:                 www.nxp.com
@@ -16,6 +16,8 @@
 **     Revisions:
 **     - rev. 1.0 (2021-08-03)
 **         Initial version based on SPEC1.6
+**     - rev. 1.1 (2025-11-17)
+**         Update lpcmp feature align to shared definition changes
 **
 ** ###################################################################
 */
@@ -133,8 +135,8 @@
 #define FSL_FEATURE_SOC_TSI_COUNT (1)
 /* @brief USB availability on the SoC. */
 #define FSL_FEATURE_SOC_USB_COUNT (1)
-/* @brief USBC availability on the SoC. */
-#define FSL_FEATURE_SOC_USBC_COUNT (1)
+/* @brief USBHS availability on the SoC. */
+#define FSL_FEATURE_SOC_USBHS_COUNT (1)
 /* @brief USBHSDCD availability on the SoC. */
 #define FSL_FEATURE_SOC_USBHSDCD_COUNT (2)
 /* @brief USBNC availability on the SoC. */
@@ -145,6 +147,8 @@
 #define FSL_FEATURE_SOC_USDHC_COUNT (1)
 /* @brief UTICK availability on the SoC. */
 #define FSL_FEATURE_SOC_UTICK_COUNT (1)
+/* @brief VBAT availability on the SoC. */
+#define FSL_FEATURE_SOC_VBAT_COUNT (1)
 /* @brief VREF availability on the SoC. */
 #define FSL_FEATURE_SOC_VREF_COUNT (1)
 /* @brief WWDT availability on the SoC. */
@@ -228,6 +232,10 @@
 #define FSL_FEATURE_LPADC_HAS_CMDH_CMPEN (1)
 /* @brief Has High Speed Mode Trim Request (bitfield CTRL[CALHS]). */
 #define FSL_FEATURE_LPADC_HAS_CTRL_CALHS (0)
+/* @brief Has Justified Left Enable (bitfield CFG2[JLEFT]). */
+#define FSL_FEATURE_LPADC_HAS_CFG2_JLEFT (0)
+/* @brief Trigger Control Count. */
+#define FSL_FEATURE_LPADC_TCTRL_COUNT (4)
 /* @brief Temperature sensor parameter A (slope). */
 #define FSL_FEATURE_LPADC_TEMP_PARAMETER_A (783U)
 /* @brief Temperature sensor parameter B (offset). */
@@ -241,10 +249,8 @@
 
 /* @brief Cache Line size in byte. */
 #define FSL_FEATURE_CACHE64_CTRL_LINESIZE_BYTE (32)
-
-/* CACHE64_POLSEL module features */
-
-/* No feature definitions */
+/* @brief Cache does not support write buffer. */
+#define FSL_FEATURE_CACHE64_CTRL_HAS_NO_WRITE_BUF (0)
 
 /* FLEXCAN module features */
 
@@ -342,6 +348,10 @@
 #define FSL_FEATURE_MCX_CMC_HAS_BLR_REG (1)
 /* @brief Has no bitfield FLASHWAKE in FLASHCR register */
 #define FSL_FEATURE_MCX_CMC_HAS_NO_FLASHCR_WAKE (1)
+/* @brief Has SCR bit in BSR register */
+#define FSL_FEATURE_MCX_CMC_HAS_BSR_SCR_BIT (0)
+/* @brief Has DBGCTL register */
+#define FSL_FEATURE_MCX_CMC_HAS_DBGCTL_REG (1)
 
 /* LPCMP module features */
 
@@ -355,6 +365,28 @@
 #define FSL_FEATURE_LPCMP_HAS_ROUNDROBIN_MODE (1)
 /* @brief Has window mode (related to existence of CCR1.WINDOW_CLS). */
 #define FSL_FEATURE_LPCMP_HAS_WINDOW_CONTROL (1)
+/* @brief Has no CCR0 CMP_STOP_EN bitfield. */
+#define FSL_FEATURE_LPCMP_HAS_NO_CCR0_CMP_STOP_EN (1)
+/* @brief Has RRCR0 RR_CLK_SEL bitfield. */
+#define FSL_FEATURE_LPCMP_HAS_RRCR0_RR_CLK_SEL (1)
+/* @brief Has RRCR0 RR_TRG_SEL bitfield. */
+#define FSL_FEATURE_LPCMP_HAS_RRCR0_RR_TRG_SEL (1)
+/* @brief Has RRCR0 RR_SAMPLE_CNT bitfield. */
+#define FSL_FEATURE_LPCMP_HAS_RRCR0_RR_SAMPLE_CNT (1)
+/* @brief Has RRCR0 RR_SAMPLE_THRESHOLD bitfield. */
+#define FSL_FEATURE_LPCMP_HAS_RRCR0_RR_SAMPLE_THRESHOLD (1)
+/* @brief Has CCR2 INPSEL bitfield. */
+#define FSL_FEATURE_LPCMP_HAS_CCR2_INPSEL (0)
+/* @brief Has CCR2 INMSEL bitfield. */
+#define FSL_FEATURE_LPCMP_HAS_CCR2_INMSEL (0)
+/* @brief Has CCR2 CMP_NPMD bitfield. */
+#define FSL_FEATURE_LPCMP_HAS_CCR2_CMP_NPMD (1)
+/* @brief Has DCR DAC_HPMD bitfield. */
+#define FSL_FEATURE_LPCMP_HAS_DCR_DAC_HPMD (1)
+/* @brief Has CCR0 LINKEN bitfield. */
+#define FSL_FEATURE_LPCMP_HAS_CCR0_LINKEN (0)
+/* @brief Has RRCR2 register. */
+#define FSL_FEATURE_LPCMP_HAS_RRCR2 (1)
 /* @brief Has CCR0 CMP_STOP_EN bitfield. */
 #define FSL_FEATURE_LPCMP_HAS_CCR0_CMP_STOP_EN (1)
 /* @brief CMP instance support CCR0 CMP_STOP_EN bitfield. */
@@ -365,12 +397,19 @@
 
 /* SYSPM module features */
 
-/* @brief Temperature sensor parameter A (slope). */
+/* @brief SYSPM support disable counters if stopped or halted. */
 #define FSL_FEATURE_SYSPM_HAS_PMCR_DCIFSH (0)
-/* @brief Temperature sensor parameter B (offset). */
+/* @brief SYSPM has reset instruction counter. */
 #define FSL_FEATURE_SYSPM_HAS_PMCR_RICTR (0)
 /* @brief Number of PMCR registers signals number of performance monitors available in single SYSPM instance. */
 #define FSL_FEATURE_SYSPM_PMCR_COUNT (1)
+/* @brief SYSPM has instruction counter. */
+#define FSL_FEATURE_SYSPM_HAS_PMICTR (0)
+
+/* CRC module features */
+
+/* @brief Has data register with name CRC */
+#define FSL_FEATURE_CRC_HAS_CRC_REG (0)
 
 /* CTIMER module features */
 
@@ -403,6 +442,14 @@
 #define FSL_FEATURE_LPDAC_HAS_INTERNAL_REFERENCE_CURRENT (1)
 /* @brief Support Period trigger mode DAC (bitfield IER[PTGCOCO_IE]). */
 #define FSL_FEATURE_LPDAC_HAS_PERIODIC_TRIGGER_MODE (1)
+/* @brief Optional Enable(bitfield GCR[DAC_OPTION_EN]). */
+#define FSL_FEATURE_LPDAC_HAS_GCR_DAC_OPTION_EN (0)
+/* @brief Has no Internal PTAT Current Reference Select (bitfield GCR[IREF_PTAT_EXT_SEL]). */
+#define FSL_FEATURE_LPDAC_HAS_GCR_IREF_PTAT_EXT_SEL (1)
+/* @brief Internal Current Select (bitfield GCR[IREF_INT_SEL]). */
+#define FSL_FEATURE_LPDAC_HAS_GCR_IREF_INT_SEL (0)
+/* @brief Internal Current Trim Register (bitfield GCR[IREF_INT_TRIM]). */
+#define FSL_FEATURE_LPDAC_HAS_GCR_IREF_INT_TRIM (0)
 
 /* EDMA module features */
 
@@ -418,50 +465,50 @@
 #define FSL_FEATURE_EDMA_HAS_ERROR_IRQ (1)
 /* @brief If 64 bytes transfer supported. */
 #define FSL_FEATURE_EDMA_SUPPORT_64_BYTES_TRANSFER (0)
-/* @brief whether has prot register */
-#define FSL_FEATURE_EDMA_INSTANCE_HAS_PROT_REGISTERn(x) (0)
-/* @brief If 128 bytes transfer supported. */
-#define FSL_FEATURE_EDMA_SUPPORT_128_BYTES_TRANSFER (0)
-/* @brief whether has MP channel mux */
-#define FSL_FEATURE_EDMA_INSTANCE_HAS_MP_CHANNEL_MUXn(x) (0)
-/* @brief If 128 bytes transfer supported. */
-#define FSL_FEATURE_EDMA_INSTANCE_SUPPORT_128_BYTES_TRANSFERn(x) (0)
 /* @brief If channel clock controlled independently */
 #define FSL_FEATURE_EDMA_CHANNEL_HAS_OWN_CLOCK_GATE (1)
-/* @brief Has register CH_CSR. */
-#define FSL_FEATURE_EDMA_HAS_CHANNEL_CONFIG (1)
+/* @brief If 128 bytes transfer supported. */
+#define FSL_FEATURE_EDMA_SUPPORT_128_BYTES_TRANSFER (0)
 /* @brief Number of channel for each EDMA instance, (only defined for soc with different channel numbers for difference instance) */
 #define FSL_FEATURE_EDMA_INSTANCE_CHANNELn(x) (16)
-/* @brief Has channel mux */
-#define FSL_FEATURE_EDMA_HAS_CHANNEL_MUX (1)
+/* @brief If 128 bytes transfer supported. */
+#define FSL_FEATURE_EDMA_INSTANCE_SUPPORT_128_BYTES_TRANSFERn(x) (0)
 /* @brief Has no register bit fields MP_CSR[EBW]. */
 #define FSL_FEATURE_EDMA_HAS_NO_MP_CSR_EBW (1)
-/* @brief Instance has channel mux */
-#define FSL_FEATURE_EDMA_INSTANCE_HAS_CHANNEL_MUXn(x) (1)
+/* @brief Has register CH_CSR. */
+#define FSL_FEATURE_EDMA_HAS_CHANNEL_CONFIG (1)
 /* @brief If dma has common clock gate */
 #define FSL_FEATURE_EDMA_HAS_COMMON_CLOCK_GATE (0)
-/* @brief Has register CH_SBR. */
-#define FSL_FEATURE_EDMA_HAS_SBR (1)
+/* @brief Has channel mux */
+#define FSL_FEATURE_EDMA_HAS_CHANNEL_MUX (1)
 /* @brief If dma channel IRQ support parameter */
 #define FSL_FEATURE_EDMA_MODULE_CHANNEL_IRQ_ENTRY_SUPPORT_PARAMETER (0)
-/* @brief Has no register bit fields CH_SBR[ATTR]. */
-#define FSL_FEATURE_EDMA_HAS_NO_CH_SBR_ATTR (1)
+/* @brief Instance has channel mux */
+#define FSL_FEATURE_EDMA_INSTANCE_HAS_CHANNEL_MUXn(x) (1)
 /* @brief NBYTES must be multiple of 8 when using scatter gather. */
 #define FSL_FEATURE_EDMA_HAS_ERRATA_51327 (0)
-/* @brief Has register bit field CH_CSR[SWAP]. */
-#define FSL_FEATURE_EDMA_HAS_CHANNEL_SWAP_SIZE (0)
+/* @brief Has register CH_SBR. */
+#define FSL_FEATURE_EDMA_HAS_SBR (1)
 /* @brief NBYTES must be multiple of 8 when using scatter gather. */
 #define FSL_FEATURE_EDMA_INSTANCE_HAS_ERRATA_51327n(x) (0)
-/* @brief Instance has register bit field CH_CSR[SWAP]. */
-#define FSL_FEATURE_EDMA_INSTANCE_HAS_CHANNEL_SWAP_SIZEn(x) (0)
+/* @brief Has no register bit fields CH_SBR[ATTR]. */
+#define FSL_FEATURE_EDMA_HAS_NO_CH_SBR_ATTR (1)
 /* @brief Has register bit fields MP_CSR[GMRC]. */
 #define FSL_FEATURE_EDMA_HAS_GLOBAL_MASTER_ID_REPLICATION (1)
+/* @brief Has register bit field CH_CSR[SWAP]. */
+#define FSL_FEATURE_EDMA_HAS_CHANNEL_SWAP_SIZE (0)
+/* @brief Whether instance has prot register. */
+#define FSL_FEATURE_EDMA_INSTANCE_HAS_PROT_REGISTERn(x) (0)
+/* @brief Instance has register bit field CH_CSR[SWAP]. */
+#define FSL_FEATURE_EDMA_INSTANCE_HAS_CHANNEL_SWAP_SIZEn(x) (0)
+/* @brief Whether instance has MP channel mux. */
+#define FSL_FEATURE_EDMA_INSTANCE_HAS_MP_CHANNEL_MUXn(x) (0)
 /* @brief Has register bit field CH_SBR[INSTR]. */
 #define FSL_FEATURE_EDMA_HAS_CHANNEL_ACCESS_TYPE (0)
 /* @brief Instance has register bit field CH_SBR[INSTR]. */
 #define FSL_FEATURE_EDMA_INSTANCE_HAS_CHANNEL_ACCESS_TYPEn(x) (0)
 /* @brief Has register bit fields CH_MATTR[WCACHE], CH_MATTR[RCACHE]. */
-#define FSL_FEATURE_EDMA_HAS_CHANNEL_MEMORY_ATTRIBUTE  (0)
+#define FSL_FEATURE_EDMA_HAS_CHANNEL_MEMORY_ATTRIBUTE (0)
 /* @brief Instance has register CH_MATTR. */
 #define FSL_FEATURE_EDMA_INSTANCE_HAS_CHANNEL_MEMORY_ATTRIBUTEn(x) (0)
 /* @brief Has register bit field CH_CSR[SIGNEXT]. */
@@ -480,7 +527,7 @@
 #define FSL_FEATURE_EDMA_HAS_NO_CH_SBR_SEC (0)
 /* @brief edma5 has different tcd type. */
 #define FSL_FEATURE_EDMA_TCD_TYPEn(x) (0)
-/* @brief Number of DMA channels with asynchronous request capability. (Valid only for eDMA modules.) */
+/* @brief Number of DMA channels with asynchronous request capability. */
 #define FSL_FEATURE_EDMA_ASYNCHRO_REQUEST_CHANNEL_COUNT (16)
 
 /* EVTG module features */
@@ -606,10 +653,19 @@
 /* @brief P-Flash page size. */
 #define FSL_FEATURE_FLASH_PFLASH_PAGE_SIZE (128)
 
+/* FREQME module features */
+
+/* @brief FREQME instance support REF and TAR register. */
+#define FSL_FEATURE_FREQME_HAS_CLOCK_SOURCE_SELECT (0)
+/* @brief FREQME frequency calculation formula. 0: CTRL_R[RESULT] - 2; 1: CTRL_R[RESULT] + 1. */
+#define FSL_FEATURE_FREQME_RESULT_CALCULATION_MODE (0)
+
 /* GPIO module features */
 
 /* @brief Has GPIO attribute checker register (GACR). */
 #define FSL_FEATURE_GPIO_HAS_ATTRIBUTE_CHECKER (0)
+/* @brief GPIO registers width */
+#define FSL_FEATURE_GPIO_REGISTERS_WIDTH (32)
 /* @brief Has GPIO version ID register (VERID). */
 #define FSL_FEATURE_GPIO_HAS_VERSION_INFO_REGISTER (1)
 /* @brief Has secure/non-secure access protection registers (LOCK, PCNS, PCNP, ICNS, ICNP). */
@@ -666,6 +722,8 @@
 #define FSL_FEATURE_LPI2C_FIFO_SIZEn(x) (8)
 /* @brief Has dedicated interrupt for master and slave. */
 #define FSL_FEATURE_LPI2C_HAS_ROLE_SPLIT_IRQ (0)
+/* @brief Belong to LPFLEXCOMM */
+#define FSL_FEATURE_LPI2C_IS_LPFLEXCOMM (1)
 
 /* LPSPI module features */
 
@@ -679,6 +737,8 @@
 #define FSL_FEATURE_LPSPI_HAS_NO_PCSCFG (0)
 /* @brief Has no WIDTH bits in TCR register. */
 #define FSL_FEATURE_LPSPI_HAS_NO_MULTI_WIDTH (0)
+/* @brief Belong to LPFLEXCOMM */
+#define FSL_FEATURE_LPSPI_IS_LPFLEXCOMM (1)
 
 /* LPTMR module features */
 
@@ -776,10 +836,6 @@
 /* @brief UART support receive rts configuration (has bit MODIR[RTSWATER]). */
 #define FSL_FEATURE_LPUART_HAS_MODIR_RTSWATER (1)
 
-/* LP_FLEXCOMM module features */
-
-/* No feature definitions */
-
 /* MAILBOX module features */
 
 /* @brief Mailbox side for current core */
@@ -788,7 +844,7 @@
 /* MRT module features */
 
 /* @brief number of channels. */
-#define FSL_FEATURE_MRT_NUMBER_OF_CHANNELS  (4)
+#define FSL_FEATURE_MRT_NUMBER_OF_CHANNELS (4)
 
 /* OPAMP module features */
 
@@ -805,7 +861,12 @@
 /* @brief Opamp has OPAMP_CTR TRIGMD bit */
 #define FSL_FEATURE_OPAMP_HAS_OPAMP_CTR_TRIGMD (1)
 /* @brief OPAMP support reference buffer */
-#define FSL_FEATURE_OPAMP_HAS_SUPPORT_REFERENCE_BUFFER (1)
+#define FSL_FEATURE_OPAMP_HAS_SUPPORT_REFERENCE_BUFFER (1U)
+
+/* OSTIMER module features */
+
+/* @brief Has binary encoded value in counter register. */
+#define FSL_FEATURE_OSTIMER_HAS_BINARY_ENCODED_COUNTER (0)
 
 /* PDM module features */
 
@@ -823,7 +884,7 @@
 #define FSL_FEATURE_PDM_HAS_STATUS_LOW_FREQ (0)
 /* @brief PDM Has No VADEF Bitfield In PDM VAD0_STAT Register */
 #define FSL_FEATURE_PDM_HAS_NO_VADEF (1)
-/* @brief PDM Has no minimum clkdiv */
+/* @brief PDM has no minimum clkdiv. */
 #define FSL_FEATURE_PDM_HAS_NO_MINIMUM_CLKDIV (1)
 /* @brief PDM Has no FIR_RDY Bitfield In PDM STAT Register */
 #define FSL_FEATURE_PDM_HAS_NO_FIR_RDY (1)
@@ -831,11 +892,11 @@
 #define FSL_FEATURE_PDM_HAS_NO_DOZEN (0)
 /* @brief PDM Has DEC_BYPASS Bitfield In PDM CTRL_2 Register */
 #define FSL_FEATURE_PDM_HAS_DECIMATION_FILTER_BYPASS (0)
-/* @brief PDM Has DC_OUT_CTRL */
+/* @brief PDM Has DC_OUT_CTRL. */
 #define FSL_FEATURE_PDM_HAS_DC_OUT_CTRL (1)
 /* @brief PDM Has Fixed DC CTRL VALUE. */
 #define FSL_FEATURE_PDM_DC_CTRL_VALUE_FIXED (1)
-/* @brief PDM Has no independent error IRQ */
+/* @brief PDM Has no independent error IRQ. */
 #define FSL_FEATURE_PDM_HAS_NO_INDEPENDENT_ERROR_IRQ (1)
 /* @brief PDM has no hardware Voice Activity Detector */
 #define FSL_FEATURE_PDM_HAS_NO_HWVAD (1)
@@ -896,12 +957,16 @@
 #define FSL_FEATURE_PORT_HAS_MULTIPLE_IRQ_CONFIG (0)
 /* @brief Has Input Buffer Enable (register bit field PCR[IBE]). */
 #define FSL_FEATURE_PORT_HAS_INPUT_BUFFER (1)
-/* @brief Has Invert Input (register bit field PCR[IBE]). */
+/* @brief Has Invert Input (register bit field PCR[INV]). */
 #define FSL_FEATURE_PORT_HAS_INVERT_INPUT (1)
 /* @brief Defines whether PCR[IRQC] bit-field has flag states. */
 #define FSL_FEATURE_PORT_HAS_IRQC_FLAG (0)
 /* @brief Defines whether PCR[IRQC] bit-field has trigger states. */
 #define FSL_FEATURE_PORT_HAS_IRQC_TRIGGER (0)
+
+/* POWERQUAD module features */
+
+/* No feature definitions */
 
 /* PUF module features */
 
@@ -940,6 +1005,12 @@
 #define FSL_FEATURE_PWM_HAS_CAPTURE_ON_CHANNELX (1)
 /* @brief Is affected by errata with ID 51989. */
 #define FSL_FEATURE_PWM_HAS_ERRATA_51989 (1)
+/* @brief If (e)FlexPWM MASK register has UPDATE_MASK bit field. */
+#define FSL_FEATURE_PWM_MASK_HAS_UPDATE_MASK_BITFIELD (1)
+/* @brief If (e)FlexPWM MCTRL2 register has STRETCH_CNT_PRSC bit field. */
+#define FSL_FEATURE_PWM_MCTRL2_HAS_STRETCH_CNT_PRSC_BITFIELD (1)
+/* @brief If (e)FlexPWM MCTRL2 register has WRPROT bit field. */
+#define FSL_FEATURE_PWM_MCTRL2_HAS_WRPROT_BITFIELD (1)
 
 /* QDC module features */
 
@@ -980,6 +1051,14 @@
 #define FSL_FEATURE_RTC_HAS_NO_GP_DATA_REG (1)
 /* @brief Has TIMER_STB_MASK bitfile in CTRL register. */
 #define FSL_FEATURE_RTC_HAS_NO_TIMER_STB_MASK (1)
+/* @brief Has RTC Tamper 45 Filter Configuration Register support */
+#define FSL_FEATURE_RTC_HAS_FILTER45_CFG (0)
+/* @brief Has RTC Tamper 67 Filter Configuration Register support */
+#define FSL_FEATURE_RTC_HAS_FILTER67_CFG (0)
+/* @brief Has RTC Minutes Count Down Timer Register support */
+#define FSL_FEATURE_RTC_HAS_MINUTES_TIMER_FEATURE (0)
+/* @brief Has RTC BCD mode support */
+#define FSL_FEATURE_RTC_HAS_BCD_MODE (0)
 
 /* SAI module features */
 
@@ -1053,34 +1132,54 @@
 
 /* SPC module features */
 
-/* @brief Has DCDC */
+/* @brief Has DCDC. */
 #define FSL_FEATURE_MCX_SPC_HAS_DCDC (1)
-/* @brief Has SYS LDO */
+/* @brief Has SYS LDO. */
 #define FSL_FEATURE_MCX_SPC_HAS_SYS_LDO (1)
-/* @brief Has IOVDD_LVDF */
+/* @brief Has IOVDD_LVDF. */
 #define FSL_FEATURE_MCX_SPC_HAS_IOVDD_VD (1)
-/* @brief Has COREVDD_HVDF */
+/* @brief Has COREVDD_HVDF. */
 #define FSL_FEATURE_MCX_SPC_HAS_COREVDD_HVD (1)
-/* @brief Has CORELDO_VDD_DS */
+/* @brief Has CORELDO_VDD_DS. */
 #define FSL_FEATURE_SPC_HAS_CORELDO_VDD_DS (1)
-/* @brief Has LPBUFF_EN */
+/* @brief Has LPBUFF_EN. */
 #define FSL_FEATURE_MCX_SPC_HAS_LPBUFF_EN_BIT (1)
-/* @brief Has COREVDD_IVS_EN */
+/* @brief Has COREVDD_IVS_EN. */
 #define FSL_FEATURE_MCX_SPC_HAS_COREVDD_IVS_EN_BIT (1)
-/* @brief Has SWITCH_STATE */
+/* @brief Has SWITCH_STATE. */
 #define FSL_FEATURE_MCX_SPC_HAS_SWITCH_STATE_BIT (0)
-/* @brief Has SRAMRETLDO */
+/* @brief Has SRAMRETLDO. */
 #define FSL_FEATURE_MCX_SPC_HAS_SRAMRETLDO_REG (0)
-/* @brief Has CFG register */
+/* @brief Has CFG register. */
 #define FSL_FEATURE_MCX_SPC_HAS_CFG_REG (0)
-/* @brief Has SRAMLDO_DPD_ON */
+/* @brief Has SRAMLDO_DPD_ON. */
 #define FSL_FEATURE_MCX_SPC_HAS_SRAMLDO_DPD_ON_BIT (0)
-/* @brief Has CNTRL register */
+/* @brief Has CNTRL register. */
 #define FSL_FEATURE_MCX_SPC_HAS_CNTRL_REG (1)
-/* @brief Has DPDOWN_PULLDOWN_DISABLE */
+/* @brief Has DPDOWN_PULLDOWN_DISABLE. */
 #define FSL_FEATURE_MCX_SPC_HAS_DPDOWN_PULLDOWN_DISABLE_BIT (1)
-/* @brief Has BLEED_EN */
+/* @brief Not have glitch detect. */
+#define FSL_FEATURE_MCX_SPC_HAS_NO_GLITCH_DETECT (0)
+/* @brief Has BLEED_EN. */
 #define FSL_FEATURE_MCX_SPC_HAS_DCDC_CFG_BLEED_EN (1)
+/* @brief Has Power Request Status Flag. */
+#define FSL_FEATURE_MCX_SPC_HAS_PD_STATUS_PWR_REQ_STATUS_BIT (1)
+/* @brief Support overdrive voltage. */
+#define FSL_FEATURE_MCX_SPC_SUPPORT_OVERDRIVE_VOLTAGE (1)
+/* @brief Has SPC_LP_REQ bit in SC register. */
+#define FSL_FEATURE_MCX_SPC_HAS_SC_SPC_LP_REQ_BIT (1)
+/* @brief Has SPC_LP_MODE bit in SC register. */
+#define FSL_FEATURE_MCX_SPC_HAS_SC_SPC_LP_MODE_BIT (1)
+/* @brief Has SRAMCTL register. */
+#define FSL_FEATURE_MCX_SPC_HAS_SRAMCTL_REG (1)
+/* @brief Has PD_STATUS register. */
+#define FSL_FEATURE_MCX_SPC_HAS_PD_STATUS_REG (1)
+/* @brief Has SRAMRETLDO_REFTRIM register. */
+#define FSL_FEATURE_MCX_SPC_HAS_SRAMRETLDO_REFTRIM_REG (0)
+/* @brief Has LVSEL bitfield in VD_IO_CFG register. */
+#define FSL_FEATURE_MCX_SPC_HAS_VD_IO_CFG_LVSEL (1)
+/* @brief Has high-voltage detect on IO VDD. */
+#define FSL_FEATURE_MCX_SPC_HAS_IOVDD_HVD (1)
 
 /* SYSCON module features */
 
@@ -1126,13 +1225,37 @@
 #define FSL_FEATURE_TRDC_HAS_DOMAIN_ERROR (0)
 /* @brief TRDC instance has TRDC_FLW_CTL. */
 #define FSL_FEATURE_TRDC_HAS_FLW (0)
+/* @brief TRDC DERRLOC.MBCINST uses flat one-bit-per-MBC-instance encoding (bit N = MBC[N]). Other devices use 4-bits-per-MBC encoding (bit 4i+j = MBC[i] SLV[j]). */
+#define FSL_FEATURE_TRDC_DERRLOC_MBCINST_FLAT_ENCODING (0)
 
 /* TSI module features */
 
-/* @brief TSI Version */
+/* @brief TSI Version. */
 #define FSL_FEATURE_TSI_VERSION (6U)
-/* @brief TSI Channel Count */
-#define FSL_FEATURE_TSI_CHANNEL_COUNT (25U)
+/* @brief Has channels selection reigster(Self-cap,Shield,Mutual TX or Mutual RX). */
+#define FSL_FEATURE_TSI_HAS_CHANNEL_SEL (0)
+/* @brief Has Self-cap mode channels selection reigster. */
+#define FSL_FEATURE_TSI_HAS_SELF_SEL (0)
+/* @brief Has Shield mode channels selection reigster. */
+#define FSL_FEATURE_TSI_HAS_SHIELD_SEL (0)
+/* @brief Has Mutual TX mode channels selection reigster. */
+#define FSL_FEATURE_TSI_HAS_MUTUAL_TX_SEL (0)
+/* @brief Has Mutual RX mode channels selection reigster. */
+#define FSL_FEATURE_TSI_HAS_MUTUAL_RX_SEL (0)
+/* @brief Has no bitfield SETCLK in GENCS register. */
+#define FSL_FEATURE_TSI_HAS_NO_SETCLK (0)
+/* @brief Do not has bitfield M_TX_USED in MUL register. */
+#define FSL_FEATURE_TSI_HAS_NO_MUTUAL_TX_USED (0)
+/* @brief Do not has bitfield S_CTRIM in CONFIG register. */
+#define FSL_FEATURE_TSI_HAS_NO_S_CTRIM (0)
+/* @brief Has bitfield CLK_SEL in GENCS register. */
+#define FSL_FEATURE_TSI_HAS_CLK_SEL (0)
+/* @brief DVOLT value option num. */
+#define FSL_FEATURE_TSI_DVOLT_OPTION_NUM (5)
+/* @brief Has SINC_BITFIELD in SINC register. */
+#define FSL_FEATURE_TSI_HAS_SINC_SINC_BITFIELD (0)
+/* @brief TSI Channel Count. */
+#define FSL_FEATURE_TSI_CHANNEL_COUNT (25)
 
 /* USBHSDCD module features */
 
@@ -1169,6 +1292,15 @@
 #define FSL_FEATURE_USB_KHCI_HAS_STALL_LOW (1)
 /* @brief Has STALL_IH/OH_DIS registers */
 #define FSL_FEATURE_USB_KHCI_HAS_STALL_HIGH (1)
+
+/* USBHS module features */
+
+/* @brief EHCI module instance count */
+#define FSL_FEATURE_USBHS_EHCI_COUNT (1)
+/* @brief Number of endpoints supported */
+#define FSL_FEATURE_USBHS_ENDPT_COUNT (8)
+/* @brief If the USB controller support eUSB PHY */
+#define FSL_FEATURE_USBHS_SUPPORT_EUSBn(x) (0)
 
 /* USBPHY module features */
 
@@ -1229,6 +1361,68 @@
 #define FSL_FEATURE_MCX_VBAT_HAS_CLKMON_REG (0)
 /* @brief Has FINE_AMP_GAIN bitfield in register OSCCTLA */
 #define FSL_FEATURE_MCX_VBAT_HAS_OSCCTLA_FINE_AMP_GAIN_BIT (0)
+/* @brief Has OSCCTLB register */
+#define FSL_FEATURE_MCX_VBAT_HAS_B_SIDE_REG (1)
+/* @brief Has OSCCTLA[MODE_EN] bitfield */
+#define FSL_FEATURE_MCX_VBAT_HAS_OSCCTLA_MODE_EN_BIT (1)
+/* @brief Has OSCCFGA[CMP_TRIM] bitfield */
+#define FSL_FEATURE_MCX_VBAT_HAS_OSCCFGA_CMP_TRIM_BIT (1)
+/* @brief Has OSCCFGA[DLY_TRIM] bitfield */
+#define FSL_FEATURE_MCX_VBAT_HAS_OSCCFGA_DLY_TRIM_BIT (1)
+/* @brief Has OSCCFGA[CAP_TRIM] bitfield */
+#define FSL_FEATURE_MCX_VBAT_HAS_OSCCFGA_CAP_TRIM_BIT (1)
+/* @brief Has STATUSA[WAKEUP_FLAG] bitfield */
+#define FSL_FEATURE_MCX_VBAT_HAS_STATUSA_WAKEUP_FLAG_BIT (1)
+/* @brief Has STATUSA[TIMER0_FLAG] bitfield */
+#define FSL_FEATURE_MCX_VBAT_HAS_STATUSA_TIMER0_FLAG_BIT (1)
+/* @brief Has STATUSA[TIMER1_FLAG] bitfield */
+#define FSL_FEATURE_MCX_VBAT_HAS_STATUSA_TIMER1_FLAG_BIT (1)
+/* @brief Has STATUSA[LDO_RDY] bitfield */
+#define FSL_FEATURE_MCX_VBAT_HAS_STATUSA_LDO_RDY_BIT (1)
+/* @brief Has STATUSA[IRQ0_DET] bitfield */
+#define FSL_FEATURE_MCX_VBAT_HAS_STATUSA_IRQ0_DET_BIT (1)
+/* @brief Has STATUSA[IRQ1_DET] bitfield */
+#define FSL_FEATURE_MCX_VBAT_HAS_STATUSA_IRQ1_DET_BIT (1)
+/* @brief Has STATUSA[IRQ2_DET] bitfield */
+#define FSL_FEATURE_MCX_VBAT_HAS_STATUSA_IRQ2_DET_BIT (1)
+/* @brief Has STATUSA[IRQ3_DET] bitfield */
+#define FSL_FEATURE_MCX_VBAT_HAS_STATUSA_IRQ3_DET_BIT (1)
+/* @brief Has WAKENA register */
+#define FSL_FEATURE_MCX_VBAT_HAS_WAKENA_REG (1)
+/* @brief Has WAKECFG register */
+#define FSL_FEATURE_MCX_VBAT_HAS_WAKECFG_REG (1)
+/* @brief Has LOCKA register */
+#define FSL_FEATURE_MCX_VBAT_HAS_LOCKA_REG (1)
+
+/* VREF module features */
+
+/* @brief Has chop oscillator (bit TRM[CHOPEN]) */
+#define FSL_FEATURE_VREF_HAS_CHOP_OSC (0)
+/* @brief Has second order curvature compensation (bit SC[ICOMPEN]) */
+#define FSL_FEATURE_VREF_HAS_COMPENSATION (0)
+/* @brief If high/low buffer mode supported */
+#define FSL_FEATURE_VREF_MODE_LV_TYPE (0)
+/* @brief Module has also low reference (registers VREFL/VREFH) */
+#define FSL_FEATURE_VREF_HAS_LOW_REFERENCE (0)
+/* @brief Has VREF_TRM4. */
+#define FSL_FEATURE_VREF_HAS_TRM4 (0)
+/* @brief Has bitfield LPBG_BUF_EN in CSR register. */
+#define FSL_FEATURE_VREF_HAS_LOWPOWER_BUFFER (1)
+/* @brief Has bitfield LPBGEN in CSR register. */
+#define FSL_FEATURE_VREF_HAS_LPBGEN (1)
+/* @brief Has bitfield IBIAS_EN in CSR register. */
+#define FSL_FEATURE_VREF_HAS_IBIAS_EN (0)
+/* @brief Has bitfield REFCHSELN_EN in CSR register. */
+#define FSL_FEATURE_VREF_HAS_REFCHSELN_EN (0)
+/* @brief Has bitfield REFCHSELP_EN in CSR register. */
+#define FSL_FEATURE_VREF_HAS_REFCHSELP_EN (0)
+/* @brief Support max voltage of 2.5V. */
+#define FSL_FEATURE_VREF_SUPPORT_2V5 (0)
+
+/* WUU module features */
+
+/* @brief Has MF register. */
+#define FSL_FEATURE_WUU_HAS_MF (0)
 
 /* WWDT module features */
 
