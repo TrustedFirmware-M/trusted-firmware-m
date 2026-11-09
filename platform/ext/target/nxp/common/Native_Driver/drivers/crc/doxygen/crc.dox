@@ -1,0 +1,54 @@
+/*!
+@defgroup crc CRC: Cyclic Redundancy Check Driver
+@details The MCUXpresso SDK provides a peripheral driver for the Cyclic Redundancy Check (CRC) module of MCUXpresso SDK devices.@n
+ @n
+The cyclic redundancy check (CRC) module generates 16/32-bit CRC code for error detection.
+The CRC module also provides a programmable polynomial, seed, and other parameters required to implement a 16-bit or 32-bit CRC standard.
+ @n
+
+# CRC Driver Initialization and Configuration {#CRCInit}
+
+CRC_Init() function enables the clock gate for the CRC module in the SIM module and fully (re-)configures the CRC module according to the configuration structure.
+The seed member of the configuration structure is the initial checksum for which new data can be added to.
+When starting a new checksum computation, the seed is set to the initial checksum per the CRC protocol specification.
+For continued checksum operation, the seed is set to the intermediate checksum value as obtained from previous calls to CRC_Get16bitResult() or CRC_Get32bitResult() function.
+After calling the CRC_Init(), one or multiple CRC_WriteData() calls follow to update the checksum with data and CRC_Get16bitResult() or CRC_Get32bitResult() follow to read the result.
+The crcResult member of the configuration structure determines whether the CRC_Get16bitResult() or CRC_Get32bitResult() return value is a final checksum or an intermediate checksum.
+The CRC_Init() function can be called as many times as required allowing for runtime changes of the CRC protocol.
+
+
+CRC_GetDefaultConfig() function can be used to set the module configuration structure with parameters for CRC-16/CCIT-FALSE protocol.
+
+# CRC Write Data {#CRCWrite}
+
+The CRC_WriteData() function adds data to the CRC. Internally, it tries to use 32-bit reads and writes for all aligned data in the user buffer
+and 8-bit reads and writes for all unaligned data in the user buffer. This function can update the CRC with user-supplied data chunks of an arbitrary size,
+so one can update the CRC byte by byte or with all bytes at once. Prior to calling the CRC configuration function CRC_Init() fully specifies the CRC module
+configuration for the CRC_WriteData() call.
+
+# CRC Get Checksum {#CRCGet}
+
+The CRC_Get16bitResult() or CRC_Get32bitResult() function reads the CRC module data register. Depending on the prior CRC module usage, the return value
+is either an intermediate checksum or the final checksum. For example, for 16-bit CRCs the following call sequences can be used.
+
+* CRC_Init() / CRC_WriteData() / CRC_Get16bitResult() to get the final checksum.
+
+* CRC_Init() / CRC_WriteData() / ... / CRC_WriteData() / CRC_Get16bitResult() to get the final checksum.
+
+* CRC_Init() / CRC_WriteData() / CRC_Get16bitResult() to get an intermediate checksum.
+
+* CRC_Init() / CRC_WriteData() / ... / CRC_WriteData() / CRC_Get16bitResult() to get an intermediate checksum.
+
+# Comments about API usage in RTOS {#CRCRtos}
+
+If multiple RTOS tasks share the CRC module to compute checksums with different data and/or protocols, the following needs to be implemented by the user.
+
+
+The triplets
+
+* CRC_Init() / CRC_WriteData() / CRC_Get16bitResult() or CRC_Get32bitResult()
+
+The triplets are protected by the RTOS mutex to protect the CRC module against concurrent accesses from different tasks. This is an example.
+Refer to the driver examples codes located at \<SDK_ROOT\>/boards/\<BOARD\>/driver_examples/crcRefer to the driver examples codes located at \<SDK_ROOT\>/boards/\<BOARD\>/driver_examples/crcRefer to the driver examples codes located at \<SDK_ROOT\>/boards/\<BOARD\>/driver_examples/crcRefer to the driver examples codes located at \<SDK_ROOT\>/boards/\<BOARD\>/driver_examples/crcRefer to the driver examples codes located at \<SDK_ROOT\>/boards/\<BOARD\>/driver_examples/crc
+
+*/

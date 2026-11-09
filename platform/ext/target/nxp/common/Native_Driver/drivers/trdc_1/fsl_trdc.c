@@ -28,6 +28,14 @@
 #define TRDC_MBC_SLAVE_INCREMENT(x) \
     (((x) == 0U) ? (0U) : (((x) == 1U) ? (0x140UL) : (((x) == 2U) ? (0x168UL) : (0x190UL))))
 
+#ifndef TRDC_MBC_MEMN_GLBAC_LK_MASK
+#define TRDC_MBC_MEMN_GLBAC_LK_MASK 0x80000000U
+#endif
+
+#ifndef TRDC_MRC_GLBAC_LK_MASK
+#define TRDC_MRC_GLBAC_LK_MASK 0x80000000U
+#endif
+
 typedef union
 {
 #if defined(FSL_FEATURE_TRDC_HAS_DOMAIN_ASSIGNMENT) && FSL_FEATURE_TRDC_HAS_DOMAIN_ASSIGNMENT
@@ -368,11 +376,13 @@ void TRDC_GetDefaultFlashLogicalWindowConfig(trdc_flw_config_t *flwConfiguration
 void TRDC_SetFlashLogicalWindow(TRDC_Type *base, const trdc_flw_config_t *flwConfiguration)
 {
     assert(NULL != flwConfiguration);
+    assert((TRDC_FLW_BASE(base)->TRDC_FLW_CTL & TRDC_TRDC_FLW_CTL_LK_MASK) == 0U);
 
     TRDC_FLW_BASE(base)->TRDC_FLW_ABASE = flwConfiguration->arrayBaseAddr;
     TRDC_FLW_BASE(base)->TRDC_FLW_BCNT  = flwConfiguration->blockCount;
     TRDC_FLW_BASE(base)->TRDC_FLW_CTL =
-        TRDC_TRDC_FLW_CTL_V(flwConfiguration->enable) | TRDC_TRDC_FLW_CTL_LK(flwConfiguration->lock);
+        TRDC_TRDC_FLW_CTL_V(flwConfiguration->enable ? 1U : 0U) |
+        TRDC_TRDC_FLW_CTL_LK(flwConfiguration->lock ? 1U : 0U);
 }
 #endif
 
@@ -512,8 +522,16 @@ status_t TRDC_GetAndClearFirstSpecificDomainError(TRDC_Type *base, trdc_domain_e
         else
         {
             /* Error in Memory Block Controller (MBC) */
+#if defined(FSL_FEATURE_TRDC_DERRLOC_MBCINST_FLAT_ENCODING) && FSL_FEATURE_TRDC_DERRLOC_MBCINST_FLAT_ENCODING
+            /* Devices with flat MBCINST encoding (e.g. KW43 and MCXW70) uses a flat one-bit-per-MBC-instance encoding:
+             * bit N simply indicates that MBC[N] captured a violation. There is no per-slave information encoded
+             * in DERRLOC at all on these devices. */
+            error->slaveMemoryIdx = 0U;
+#else
+            /* Standard encoding: 4 bits per MBC instance, one bit per slave memory. */
             error->slaveMemoryIdx = errorIndex % 4U;
             errorIndex /= 4U;
+#endif
             error->controller = (trdc_controller_t)errorIndex;
 
             /* Check if the MBC error index exceeds the module's max MBC index to avoid overrun access. */
@@ -577,6 +595,9 @@ void TRDC_MrcSetMemoryAccessConfig(TRDC_Type *base,
 {
     assert(NULL != base);
     assert(NULL != config);
+    assert(regIdx < 8U);
+    /* Check if this access config register has already been locked. */
+    assert((TRDC_MRC_BASE(base, mrcIdx)->MRC_GLBAC[regIdx] & TRDC_MRC_GLBAC_LK_MASK) == 0U);
 
     trdc_reg32_convert_t pid;
 
@@ -692,14 +713,20 @@ void TRDC_MrcSetRegionDescriptorConfig(TRDC_Type *base, const trdc_mrc_region_de
 
     /* Set configuration for word 0 */
     uint32_t data = TRDC_MRC_DOM0_RGD_W_MRACSEL(config->memoryAccessControlSelect) |
-                    ((config->startAddr) & ~(TRDC_MRC_DOM0_RGD_W_MRACSEL_MASK));
+                    (config->startAddr & TRDC_MRC_DOM0_RGD_W_STRT_ADDR_MASK);
     *(uint32_t *)regAddr = data;
+
+    /* Check whether the register is set according to configuration. */
+    assert(*(uint32_t *)regAddr == data);
 
     /* Set configuration for word 1 */
     regAddr += 4U;
-    data = TRDC_MRC_DOM0_RGD_W_VLD(config->valid) | TRDC_MRC_DOM0_RGD_W_NSE(config->nseEnable) |
-           ((config->endAddr) & ~(TRDC_MRC_DOM0_RGD_W_VLD_MASK | TRDC_MRC_DOM0_RGD_W_NSE_MASK));
+    data = TRDC_MRC_DOM0_RGD_W_VLD(config->valid ? 1U : 0U) | TRDC_MRC_DOM0_RGD_W_NSE(config->nseEnable ? 1U : 0U) |
+           (config->endAddr & TRDC_MRC_DOM0_RGD_W_END_ADDR_MASK);
     *(uint32_t *)regAddr = data;
+
+    /* Check whether the register is set according to configuration. */
+    assert(*(uint32_t *)regAddr == data);
 }
 #endif
 
@@ -818,6 +845,9 @@ void TRDC_MbcSetMemoryAccessConfig(TRDC_Type *base,
 {
     assert(NULL != base);
     assert(NULL != config);
+    assert(rgdIdx < 8U);
+    /* Check if this access config register has already been locked. */
+    assert((TRDC_MBC_BASE(base, mbcIdx)->MBC_MEMN_GLBAC[rgdIdx] & TRDC_MBC_MEMN_GLBAC_LK_MASK) == 0U);
 
     trdc_reg32_convert_t pid;
 
@@ -850,5 +880,8 @@ void TRDC_MbcSetMemoryBlockConfig(TRDC_Type *base, const trdc_mbc_memory_block_c
                ((uint32_t)config->memoryBlockIdx / 8U) * sizeof(uint32_t);
     configWord           = configWord | (*(uint32_t *)regAddr & ~(0xFUL << shift));
     *(uint32_t *)regAddr = configWord;
+
+    /* Check whether the register is set according to configuration. */
+    assert((*(uint32_t *)regAddr & (0xFUL << shift)) == ((pid._u32 & 0xFU) << shift));
 }
 #endif

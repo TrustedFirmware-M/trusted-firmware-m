@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2016, Freescale Semiconductor, Inc.
- * Copyright 2016-2020,2022 NXP
+ * Copyright 2016-2020, 2022, 2026 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -69,6 +69,32 @@ volatile uint8_t s_dummyData[FSL_FEATURE_SOC_SPI_COUNT] = {0};
  * Code
  ******************************************************************************/
 
+static uint32_t SPI_GenTxControlBitsFromConfigFlags(uint32_t configFlags, bool isLastFrame)
+{
+    uint32_t controlBits = (configFlags & SPI_FIFOWR_FLAGS_MASK) & (~(uint32_t)kSPI_FrameAssert);
+
+    if (((configFlags & (uint32_t)kSPI_FrameAssertEachFrame) != 0U) ||
+        (((configFlags & (uint32_t)kSPI_FrameAssert) != 0U) && isLastFrame))
+    {
+        controlBits |= (uint32_t)kSPI_FrameAssert;
+    }
+
+    return controlBits;
+}
+
+uint32_t SPI_GenFifoWriteControl(uint32_t configFlags, const spi_config_t *config, bool isLastFrame)
+{
+    uint32_t controlBits;
+
+    assert(config != NULL);
+
+    controlBits = (uint32_t)SPI_FIFOWR_LEN(config->dataWidth);
+    controlBits |= ((uint32_t)SPI_DEASSERT_ALL & (~(uint32_t)SPI_DEASSERTNUM_SSEL((uint32_t)config->sselNum)));
+    controlBits |= SPI_GenTxControlBitsFromConfigFlags(configFlags, isLastFrame);
+
+    return controlBits;
+}
+
 /* Get the index corresponding to the FLEXCOMM */
 /*! brief Returns instance number for SPI peripheral base address. */
 uint32_t SPI_GetInstance(SPI_Type *base)
@@ -77,7 +103,7 @@ uint32_t SPI_GetInstance(SPI_Type *base)
 
     for (i = 0U; i < (uint32_t)FSL_FEATURE_SOC_SPI_COUNT; i++)
     {
-        if (MSDK_REG_SECURE_ADDR((uint32_t)base) == MSDK_REG_SECURE_ADDR(s_spiBaseAddrs[i]))
+        if (MSDK_REG_NONSECURE_ADDR((uint32_t)base) == MSDK_REG_NONSECURE_ADDR(s_spiBaseAddrs[i]))
         {
             break;
         }
@@ -446,12 +472,7 @@ void SPI_WriteData(SPI_Type *base, uint16_t data, uint32_t configFlags)
     /* get and check instance */
     instance = SPI_GetInstance(base);
 
-    /* set data width */
-    control |= (uint32_t)SPI_FIFOWR_LEN((g_configs[instance].dataWidth));
-    /* set sssel */
-    control |= (SPI_DEASSERT_ALL & (~SPI_DEASSERTNUM_SSEL((uint32_t)(g_configs[instance].sselNum))));
-    /* mask configFlags */
-    control |= (configFlags & (uint32_t)SPI_FIFOWR_FLAGS_MASK);
+    control = SPI_GenFifoWriteControl(configFlags, &g_configs[instance], true);
     /* control should not affect lower 16 bits */
     assert(0U == (control & 0xFFFFU));
     base->FIFOWR = data | control;
@@ -498,8 +519,6 @@ status_t SPI_MasterTransferCreateHandle(SPI_Type *base,
     }
 
     handle->dataWidth = (uint8_t)(g_configs[instance].dataWidth);
-    /* in slave mode, the sselNum is not important */
-    handle->sselNum     = (uint8_t)(g_configs[instance].sselNum);
     handle->txWatermark = (uint8_t)SPI_FIFOTRIG_TXLVL_GET(base);
     handle->rxWatermark = (uint8_t)SPI_FIFOTRIG_RXLVL_GET(base);
     handle->callback    = callback;
@@ -558,14 +577,10 @@ status_t SPI_MasterTransferBlocking(SPI_Type *base, spi_transfer_t *xfer)
     /* clear tx/rx errors and empty FIFOs */
     base->FIFOCFG |= SPI_FIFOCFG_EMPTYTX_MASK | SPI_FIFOCFG_EMPTYRX_MASK;
     base->FIFOSTAT |= SPI_FIFOSTAT_TXERR_MASK | SPI_FIFOSTAT_RXERR_MASK;
-    /* select slave to talk with */
-    tx_ctrl |= (SPI_DEASSERT_ALL & (~SPI_DEASSERTNUM_SSEL((uint32_t)(g_configs[instance].sselNum))));
-    /* set width of data - range asserted at entry */
-    tx_ctrl |= SPI_FIFOWR_LEN(dataWidth);
-    /* delay for frames */
-    tx_ctrl |= ((xfer->configFlags & (uint32_t)kSPI_FrameDelay) != 0U) ? (uint32_t)kSPI_FrameDelay : 0U;
-    /* end of transfer */
-    last_ctrl |= ((xfer->configFlags & (uint32_t)kSPI_FrameAssert) != 0U) ? (uint32_t)kSPI_FrameAssert : 0U;
+
+    tx_ctrl   = SPI_GenFifoWriteControl(xfer->configFlags, &g_configs[instance], false);
+    last_ctrl = SPI_GenFifoWriteControl(xfer->configFlags, &g_configs[instance], true);
+
     /* last index of loop */
     while ((txRemainingBytes != 0U) || (rxRemainingBytes != 0U) || (toReceiveCount != 0U))
     {
@@ -598,6 +613,8 @@ status_t SPI_MasterTransferBlocking(SPI_Type *base, spi_transfer_t *xfer)
         if (((base->FIFOSTAT & SPI_FIFOSTAT_TXNOTFULL_MASK) != 0U) && (toReceiveCount < fifoDepth) &&
             ((txRemainingBytes != 0U) || (rxRemainingBytes >= SPI_COUNT_TO_BYTES(dataWidth, toReceiveCount + 1U))))
         {
+            bool isLastFrame;
+
             /* txBuffer is not empty */
             if (txRemainingBytes != 0U)
             {
@@ -609,23 +626,16 @@ status_t SPI_MasterTransferBlocking(SPI_Type *base, spi_transfer_t *xfer)
                     tmp32 |= ((uint32_t)(*(txData++))) << 8U;
                     txRemainingBytes--;
                 }
-                if (txRemainingBytes == 0U)
-                {
-                    tx_ctrl |= last_ctrl;
-                }
+                isLastFrame = (txRemainingBytes == 0U);
             }
             else
             {
                 tmp32 = (uint32_t)s_dummyData[instance];
                 tmp32 |= (uint32_t)s_dummyData[instance] << 8U;
-                /* last transfer */
-                if (rxRemainingBytes == SPI_COUNT_TO_BYTES(dataWidth, toReceiveCount + 1U))
-                {
-                    tx_ctrl |= last_ctrl;
-                }
+                isLastFrame = (rxRemainingBytes == SPI_COUNT_TO_BYTES(dataWidth, toReceiveCount + 1U));
             }
             /* send data */
-            tmp32        = tx_ctrl | tmp32;
+            tmp32        = (isLastFrame ? last_ctrl : tx_ctrl) | tmp32;
             base->FIFOWR = tmp32;
             toReceiveCount += 1U;
         }
@@ -660,6 +670,8 @@ status_t SPI_MasterTransferBlocking(SPI_Type *base, spi_transfer_t *xfer)
  */
 status_t SPI_MasterTransferNonBlocking(SPI_Type *base, spi_master_handle_t *handle, spi_transfer_t *xfer)
 {
+    uint32_t instance;
+
     /* check params */
     assert(
         !((NULL == base) || (NULL == handle) || (NULL == xfer) || ((NULL == xfer->txData) && (NULL == xfer->rxData))));
@@ -681,6 +693,8 @@ status_t SPI_MasterTransferNonBlocking(SPI_Type *base, spi_master_handle_t *hand
         return kStatus_SPI_Busy;
     }
 
+    instance = SPI_GetInstance(base);
+
     /* Set the handle information */
     handle->txData = xfer->txData;
     handle->rxData = xfer->rxData;
@@ -690,7 +704,8 @@ status_t SPI_MasterTransferNonBlocking(SPI_Type *base, spi_master_handle_t *hand
     handle->totalByteCount   = xfer->dataSize;
     /* other options */
     handle->toReceiveCount = 0;
-    handle->configFlags    = xfer->configFlags;
+    handle->txControl      = SPI_GenFifoWriteControl(xfer->configFlags, &g_configs[instance], false);
+    handle->lastControl    = SPI_GenFifoWriteControl(xfer->configFlags, &g_configs[instance], true);
     /* Set the SPI state to busy */
     handle->state = (uint32_t)kStatus_SPI_Busy;
     /* clear FIFOs when transfer starts */
@@ -891,7 +906,7 @@ void SPI_MasterTransferAbort(SPI_Type *base, spi_master_handle_t *handle)
 
 static void SPI_TransferHandleIRQInternal(SPI_Type *base, spi_master_handle_t *handle)
 {
-    uint32_t tx_ctrl = 0U, last_ctrl = 0U, tmp32;
+    uint32_t tx_ctrl, last_ctrl, tmp32;
     bool loopContinue;
     uint32_t fifoDepth;
     /* Get flexcomm instance by 'base' param */
@@ -904,14 +919,9 @@ static void SPI_TransferHandleIRQInternal(SPI_Type *base, spi_master_handle_t *h
     assert((NULL != base) && (NULL != handle) && ((NULL != handle->txData) || (NULL != handle->rxData)));
 
     fifoDepth = SPI_FIFO_DEPTH(base);
-    /* select slave to talk with */
-    tx_ctrl |= ((uint32_t)SPI_DEASSERT_ALL & (uint32_t)SPI_ASSERTNUM_SSEL(handle->sselNum));
-    /* set width of data */
-    tx_ctrl |= SPI_FIFOWR_LEN(handle->dataWidth);
-    /* delay for frames */
-    tx_ctrl |= ((handle->configFlags & (uint32_t)kSPI_FrameDelay) != 0U) ? (uint32_t)kSPI_FrameDelay : 0U;
-    /* end of transfer */
-    last_ctrl |= ((handle->configFlags & (uint32_t)kSPI_FrameAssert) != 0U) ? (uint32_t)kSPI_FrameAssert : 0U;
+    tx_ctrl   = handle->txControl;
+    last_ctrl = handle->lastControl;
+
     do
     {
         loopContinue = false;
@@ -950,6 +960,8 @@ static void SPI_TransferHandleIRQInternal(SPI_Type *base, spi_master_handle_t *h
             ((txRemainingBytes != 0U) ||
              (rxRemainingBytes >= SPI_COUNT_TO_BYTES(handle->dataWidth, (uint32_t)toReceiveCount + 1U))))
         {
+            bool isLastFrame;
+
             /* txBuffer is not empty */
             if ((txRemainingBytes != 0U) && (handle->txData != NULL))
             {
@@ -964,24 +976,16 @@ static void SPI_TransferHandleIRQInternal(SPI_Type *base, spi_master_handle_t *h
                     handle->txRemainingBytes--;
                     txRemainingBytes = handle->txRemainingBytes;
                 }
-                /* last transfer */
-                if (handle->txRemainingBytes == 0U)
-                {
-                    tx_ctrl |= last_ctrl;
-                }
+                isLastFrame = (handle->txRemainingBytes == 0U);
             }
             else
             {
                 tmp32 = (uint32_t)s_dummyData[instance];
                 tmp32 |= (uint32_t)s_dummyData[instance] << 8U;
-                /* last transfer */
-                if (rxRemainingBytes == SPI_COUNT_TO_BYTES(handle->dataWidth, (uint32_t)toReceiveCount + 1U))
-                {
-                    tx_ctrl |= last_ctrl;
-                }
+                isLastFrame = (rxRemainingBytes == SPI_COUNT_TO_BYTES(handle->dataWidth, (uint32_t)toReceiveCount + 1U));
             }
             /* send data */
-            tmp32        = tx_ctrl | tmp32;
+            tmp32        = (isLastFrame ? last_ctrl : tx_ctrl) | tmp32;
             base->FIFOWR = tmp32;
             /* increase number of expected data to receive */
             handle->toReceiveCount += 1;

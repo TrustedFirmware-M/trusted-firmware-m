@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2016, Freescale Semiconductor, Inc.
- * Copyright 2016-2023 NXP
+ * Copyright 2016-2023, 2026 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -58,7 +58,7 @@ uint32_t USART_GetInstance(USART_Type *base)
 
     for (i = 0; i < (uint32_t)FSL_FEATURE_SOC_USART_COUNT; i++)
     {
-        if (MSDK_REG_SECURE_ADDR((uint32_t)base) == MSDK_REG_SECURE_ADDR(s_usartBaseAddrs[i]))
+        if (MSDK_REG_NONSECURE_ADDR((uint32_t)base) == MSDK_REG_NONSECURE_ADDR(s_usartBaseAddrs[i]))
         {
             break;
         }
@@ -237,7 +237,9 @@ status_t USART_Init(USART_Type *base, const usart_config_t *config, uint32_t src
                 USART_CFG_DATALEN(config->bitCountPerChar) | USART_CFG_LOOP(config->loopback) |
                 USART_CFG_SYNCEN((uint32_t)config->syncMode >> 1) | USART_CFG_SYNCMST((uint8_t)config->syncMode) |
                 USART_CFG_CLKPOL(config->clockPolarity) | USART_CFG_MODE32K(config->enableMode32k) |
-                USART_CFG_CTSEN(config->enableHardwareFlowControl) | USART_CFG_ENABLE_MASK;
+                USART_CFG_CTSEN(config->enableHardwareFlowControl) | USART_CFG_ENABLE_MASK |
+                USART_CFG_OESEL(config->enable485ControlOutput) | USART_CFG_OEPOL(config->enableActiveHighRts) |
+                USART_CFG_OETA(config->extendRtsOutput);
 
     /* Setup baudrate */
     if (config->enableMode32k)
@@ -337,6 +339,9 @@ void USART_GetDefaultConfig(usart_config_t *config)
     config->enableContinuousSCLK      = false;
     config->clockPolarity             = kUSART_RxSampleOnFallingEdge;
     config->enableHardwareFlowControl = false;
+    config->enable485ControlOutput    = false;
+    config->enableActiveHighRts       = false;
+    config->extendRtsOutput           = false;
 #if defined(FSL_FEATURE_USART_HAS_FIFORXTIMEOUTCFG) && FSL_FEATURE_USART_HAS_FIFORXTIMEOUTCFG
     config->rxTimeout.enable                = false;
     config->rxTimeout.resetCounterOnEmpty   = true;
@@ -1291,6 +1296,16 @@ void USART_TransferHandleIRQ(USART_Type *base, usart_handle_t *handle)
         if (handle->callback != NULL)
         {
             handle->callback(base, handle, kStatus_USART_TxIdle, handle->userData);
+        }
+    }
+
+    /* rx start and the interrupt is enabled. */
+    if ((0U != (base->INTENSET & USART_INTENSET_STARTEN_MASK)) && (0U != (base->INTSTAT & USART_INTENSET_STARTEN_MASK)))
+    {
+        /* Trigger callback. */
+        if (handle->callback != NULL)
+        {
+            handle->callback(base, handle, kStatus_USART_RxStart, handle->userData);
         }
     }
 

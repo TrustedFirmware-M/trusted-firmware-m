@@ -47,10 +47,15 @@ uint32_t XCACHE_GetInstanceByAddr(uint32_t address)
 {
     uint32_t i;
 
-    for (i = 0; i < ARRAY_SIZE(s_xcachectrlBases); i++)
+    /*
+     * $Branch Coverage Justification$
+     * (i >= ARRAY_SIZE(s_xcachectrlBases)) not covered.
+     * The instance is always valid and checked by assert.
+     */
+    for (i = 0; i < ARRAY_SIZE(s_xcachectrlBases); i++) /* GCOVR_EXCL_BR_LINE */
     {
         if ((address >= s_xcachePhymemBases[i]) &&
-            (address < (s_xcachePhymemBases[i] + s_xcachePhymemSizes[i] - 0x01U)))
+            ((address - s_xcachePhymemBases[i]) < s_xcachePhymemSizes[i]))
         {
             break;
         }
@@ -68,11 +73,17 @@ void XCACHE_EnableCache(XCACHE_Type *base)
     /* Return if XCACHE is already enabled */
     if ((base->CCR & XCACHE_CCR_ENCACHE_MASK) == 0x00U)
     {
+        __DSB();
+        __ISB();
+
         /* First, invalidate the entire cache. */
         XCACHE_InvalidateCache(base);
 
         /* Now enable the cache. */
         base->CCR |= XCACHE_CCR_ENCACHE_MASK;
+
+        __DSB();
+        __ISB();
     }
 }
 
@@ -84,11 +95,17 @@ void XCACHE_DisableCache(XCACHE_Type *base)
 {
     if (XCACHE_CCR_ENCACHE_MASK == (XCACHE_CCR_ENCACHE_MASK & base->CCR))
     {
+        __DSB();
+        __ISB();
+
         /* First, push any modified contents. */
         XCACHE_CleanCache(base);
 
         /* Now disable the cache. */
         base->CCR &= ~XCACHE_CCR_ENCACHE_MASK;
+
+        __DSB();
+        __ISB();
     }
 }
 
@@ -124,7 +141,12 @@ void XCACHE_InvalidateCache(XCACHE_Type *base)
 void XCACHE_InvalidateCacheByRange(uint32_t address, uint32_t size_byte)
 {
     assert(address < UINT32_MAX - size_byte);
-    if (size_byte > 0UL)
+    /*
+     * $Branch Coverage Justification$
+     * (size_byte <= 0UL) not covered.
+     * Upper layer should guarantee size_byte is larger than 0.
+     */
+    if (size_byte > 0UL) /* GCOVR_EXCL_BR_LINE */
     {
         uint32_t endAddr = address + size_byte - 0x01U;
         uint32_t pccReg  = 0;
@@ -134,7 +156,12 @@ void XCACHE_InvalidateCacheByRange(uint32_t address, uint32_t size_byte)
         uint32_t endLim;
         XCACHE_Type *base;
 
-        if (instance >= ARRAY_SIZE(s_xcachectrlBases))
+        /*
+         * $Branch Coverage Justification$
+         * (instance >= ARRAY_SIZE(s_xcachectrlBases)) not covered.
+         * The instance is always valid and checked by assert.
+         */
+        if (instance >= ARRAY_SIZE(s_xcachectrlBases)) /* GCOVR_EXCL_BR_LINE */
         {
             return;
         }
@@ -152,7 +179,12 @@ void XCACHE_InvalidateCacheByRange(uint32_t address, uint32_t size_byte)
             base->CSAR = (startAddr & XCACHE_CSAR_PHYADDR_MASK) | XCACHE_CSAR_LGO_MASK;
 
             /* Wait until the cache command completes. */
-            while ((base->CSAR & XCACHE_CSAR_LGO_MASK) != 0x00U)
+            /*
+             * $Branch Coverage Justification$
+             * ((base->CSAR & XCACHE_CSAR_LGO_MASK) == 0x00U) not covered.
+             * Test unfeasible, the command execution state is too short to be caught in a test.
+             */
+            while ((base->CSAR & XCACHE_CSAR_LGO_MASK) != 0x00U) /* GCOVR_EXCL_BR_LINE */
             {
             }
             startAddr += (uint32_t)XCACHE_LINESIZE_BYTE;
@@ -170,7 +202,12 @@ void XCACHE_CleanCache(XCACHE_Type *base)
     base->CCR |= XCACHE_CCR_PUSHW0_MASK | XCACHE_CCR_PUSHW1_MASK | XCACHE_CCR_GO_MASK;
 
     /* Wait until the cache command completes. */
-    while ((base->CCR & XCACHE_CCR_GO_MASK) != 0x00U)
+    /*
+     * $Branch Coverage Justification$
+     * ((base->CCR & XCACHE_CCR_GO_MASK) != 0x00U) not covered.
+     * Test unfeasible, the command execution state is too short to be caught in a test.
+     */
+    while ((base->CCR & XCACHE_CCR_GO_MASK) != 0x00U) /* GCOVR_EXCL_BR_LINE */
     {
     }
 
@@ -192,7 +229,12 @@ void XCACHE_CleanCache(XCACHE_Type *base)
 void XCACHE_CleanCacheByRange(uint32_t address, uint32_t size_byte)
 {
     assert(address < UINT32_MAX - size_byte);
-    if (size_byte > 0UL)
+    /*
+     * $Branch Coverage Justification$
+     * (size_byte <= 0UL) not covered.
+     * Upper layer should guarantee size_byte is larger than 0.
+     */
+    if (size_byte > 0UL) /* GCOVR_EXCL_BR_LINE */
     {
         uint32_t endAddr = address + size_byte - 0x01U;
         uint32_t pccReg  = 0;
@@ -202,7 +244,12 @@ void XCACHE_CleanCacheByRange(uint32_t address, uint32_t size_byte)
         uint32_t endLim;
         XCACHE_Type *base;
 
-        if (instance >= ARRAY_SIZE(s_xcachectrlBases))
+        /*
+         * $Branch Coverage Justification$
+         * (instance >= ARRAY_SIZE(s_xcachectrlBases)) not covered.
+         * The instance is always valid and checked by assert.
+         */
+        if (instance >= ARRAY_SIZE(s_xcachectrlBases)) /* GCOVR_EXCL_BR_LINE */
         {
             return;
         }
@@ -220,7 +267,12 @@ void XCACHE_CleanCacheByRange(uint32_t address, uint32_t size_byte)
             base->CSAR = (startAddr & XCACHE_CSAR_PHYADDR_MASK) | XCACHE_CSAR_LGO_MASK;
 
             /* Wait until the cache command completes. */
-            while ((base->CSAR & XCACHE_CSAR_LGO_MASK) != 0x00U)
+            /*
+             * $Branch Coverage Justification$
+             * ((base->CSAR & XCACHE_CSAR_LGO_MASK) == 0x00U) not covered.
+             * Test unfeasible, the command execution state is too short to be caught in a test.
+             */
+            while ((base->CSAR & XCACHE_CSAR_LGO_MASK) != 0x00U) /* GCOVR_EXCL_BR_LINE */
             {
             }
             startAddr += (uint32_t)XCACHE_LINESIZE_BYTE;
@@ -239,7 +291,12 @@ void XCACHE_CleanInvalidateCache(XCACHE_Type *base)
                  XCACHE_CCR_GO_MASK;
 
     /* Wait until the cache command completes. */
-    while ((base->CCR & XCACHE_CCR_GO_MASK) != 0x00U)
+    /*
+     * $Branch Coverage Justification$
+     * ((base->CCR & XCACHE_CCR_GO_MASK) == 0x00U) not covered.
+     * Test unfeasible, the command execution state is too short to be caught in a test.
+     */
+    while ((base->CCR & XCACHE_CCR_GO_MASK) != 0x00U) /* GCOVR_EXCL_BR_LINE */
     {
     }
 
@@ -261,7 +318,12 @@ void XCACHE_CleanInvalidateCache(XCACHE_Type *base)
 void XCACHE_CleanInvalidateCacheByRange(uint32_t address, uint32_t size_byte)
 {
     assert(address < UINT32_MAX - size_byte);
-    if (size_byte > 0UL)
+    /*
+     * $Branch Coverage Justification$
+     * (size_byte <= 0UL) not covered.
+     * Upper layer should guarantee size_byte is larger than 0.
+     */
+    if (size_byte > 0UL) /* GCOVR_EXCL_BR_LINE */
     {
         uint32_t endAddr = address + size_byte - 0x01U;
         uint32_t pccReg  = 0;
@@ -271,7 +333,12 @@ void XCACHE_CleanInvalidateCacheByRange(uint32_t address, uint32_t size_byte)
         uint32_t endLim;
         XCACHE_Type *base;
 
-        if (instance >= ARRAY_SIZE(s_xcachectrlBases))
+        /*
+         * $Branch Coverage Justification$
+         * (instance >= ARRAY_SIZE(s_xcachectrlBases)) not covered.
+         * The instance is always valid and checked by assert.
+         */
+        if (instance >= ARRAY_SIZE(s_xcachectrlBases)) /* GCOVR_EXCL_BR_LINE */
         {
             return;
         }
@@ -289,7 +356,12 @@ void XCACHE_CleanInvalidateCacheByRange(uint32_t address, uint32_t size_byte)
             base->CSAR = (startAddr & XCACHE_CSAR_PHYADDR_MASK) | XCACHE_CSAR_LGO_MASK;
 
             /* Wait until the cache command completes. */
-            while ((base->CSAR & XCACHE_CSAR_LGO_MASK) != 0x00U)
+            /*
+             * $Branch Coverage Justification$
+             * ((base->CSAR & XCACHE_CSAR_LGO_MASK) == 0x00U) not covered.
+             * Test unfeasible, the command execution state is too short to be caught in a test.
+             */
+            while ((base->CSAR & XCACHE_CSAR_LGO_MASK) != 0x00U) /* GCOVR_EXCL_BR_LINE */
             {
             }
             startAddr += (uint32_t)XCACHE_LINESIZE_BYTE;

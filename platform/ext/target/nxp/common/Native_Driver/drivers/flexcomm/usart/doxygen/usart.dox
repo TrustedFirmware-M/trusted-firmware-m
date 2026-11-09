@@ -1,0 +1,298 @@
+
+
+/*!
+@defgroup usart USART: Universal Synchronous/Asynchronous Receiver/Transmitter Driver
+@details The MCUXpresso SDK provides a peripheral UART driver for the Universal Synchronous Receiver/Transmitter (USART)
+         module of MCUXpresso SDK devices. Driver does not support synchronous mode.
+
+The USART driver includes two parts: functional APIs and transactional APIs.
+
+Functional APIs are used for USART initialization/configuration/operation for
+optimization/customization purpose. Using the functional API requires the
+knowledge of the USART peripheral and know how to organize functional APIs to
+meet the application requirements. All functional API use the peripheral base
+address as the first parameter. USART functional operation groups provide the
+functional APIs set.
+
+Transactional APIs can be used to enable the peripheral quickly and in the
+application if the code size and performance of transactional APIs can satisfy the
+requirements. If the code size and performance are critical requirements,
+see the transactional API implementation and write custom code. All
+transactional APIs use the usart_handle_t as the second parameter.
+Initialize the handle by calling the USART_TransferCreateHandle() API.
+
+Transactional APIs support asynchronous transfer, which means that the functions
+USART_TransferSendNonBlocking() and USART_TransferReceiveNonBlocking() set up an interrupt for data
+transfer. When the transfer completes, the upper layer is notified through a callback
+function with the kStatus_USART_TxIdle and kStatus_USART_RxIdle.
+
+Transactional receive APIs support the ring buffer. Prepare the
+memory for the ring buffer and pass in the start address and size while calling the
+USART_TransferCreateHandle(). If passing  NULL, the ring buffer feature is disabled.
+When the ring buffer is enabled, the received data is saved to the ring buffer in the background.
+The USART_TransferReceiveNonBlocking() function first gets data from the ring buffer. If
+the ring buffer does not have enough data, the function first returns the data in the
+ring buffer and then saves the received data to user memory. When all data is received,
+the upper layer is informed through a callback with the kStatus_USART_RxIdle.
+
+If the receive ring buffer is full, the upper layer is informed through a callback with the
+kStatus_USART_RxRingBufferOverrun. In the callback function, the upper layer reads
+data out from the ring buffer. If not, the oldest data is overwritten by the new data.
+
+The ring buffer size is specified when creating the handle. Note that
+one byte is reserved for the ring buffer maintenance. When
+creating handle using the following code:
+
+~~~~~{.c}
+    USART_TransferCreateHandle(USART0, &handle, USART_UserCallback, NULL);
+~~~~~
+
+In this example, the buffer size is 32, but only 31 bytes are used for
+saving data.
+
+# Typical use case {#USARTCase}
+
+## USART Send/receive using a polling method {#USARTCasePolling}
+
+~~~~~{.c}
+    uint8_t ch;
+    USART_GetDefaultConfig(&user_config);
+    user_config.baudRate_Bps = 115200U;
+    user_config.enableTx = true;
+    user_config.enableRx = true;
+
+    USART_Init(USART1,&user_config,120000000U);
+
+    while(1)
+    {
+        USART_ReadBlocking(USART1, &ch, 1);
+        USART_WriteBlocking(USART1, &ch, 1);
+    }
+~~~~~
+
+## USART Send/receive using an interrupt method {#USARTCaseInterrupt}
+
+~~~~~{.c}
+    usart_handle_t g_usartHandle;
+    usart_config_t user_config;
+    usart_transfer_t sendXfer;
+    usart_transfer_t receiveXfer;
+    volatile bool txFinished;
+    volatile bool rxFinished;
+    uint8_t sendData[] = ['H', 'e', 'l', 'l', 'o'];
+    uint8_t receiveData[32];
+
+    void USART_UserCallback(usart_handle_t *handle, status_t status, void *userData)
+    {
+        userData = userData;
+
+        if (kStatus_USART_TxIdle == status)
+        {
+            txFinished = true;
+        }
+
+        if (kStatus_USART_RxIdle == status)
+        {
+            rxFinished = true;
+        }
+    }
+
+    void main(void)
+    {
+        //...
+
+        USART_GetDefaultConfig(&user_config);
+        user_config.baudRate_Bps = 115200U;
+        user_config.enableTx = true;
+        user_config.enableRx = true;
+
+        USART_Init(USART1, &user_config, 120000000U);
+        USART_TransferCreateHandle(USART1, &g_usartHandle, USART_UserCallback, NULL);
+
+        // Prepare to send.
+        sendXfer.data = sendData
+        sendXfer.dataSize = sizeof(sendData);
+        txFinished = false;
+
+        // Send out.
+        USART_TransferSendNonBlocking(USART1, &g_usartHandle, &sendXfer);
+
+        // Wait send finished.
+        while (!txFinished)
+        {
+        }
+
+        // Prepare to receive.
+        receiveXfer.data = receiveData;
+        receiveXfer.dataSize = sizeof(receiveData);
+        rxFinished = false;
+
+        // Receive.
+        USART_TransferReceiveNonBlocking(USART1, &g_usartHandle, &receiveXfer, NULL);
+
+        // Wait receive finished.
+        while (!rxFinished)
+        {
+        }
+
+        // ...
+    }
+~~~~~
+
+## USART Receive using the ringbuffer feature {#USARTCaseRing}
+
+~~~~~{.c}
+    #define RING_BUFFER_SIZE 64
+    #define RX_DATA_SIZE     32
+
+    usart_handle_t g_usartHandle;
+    usart_config_t user_config;
+    usart_transfer_t sendXfer;
+    usart_transfer_t receiveXfer;
+    volatile bool txFinished;
+    volatile bool rxFinished;
+    uint8_t receiveData[RX_DATA_SIZE];
+    uint8_t ringBuffer[RING_BUFFER_SIZE];
+
+    void USART_UserCallback(usart_handle_t *handle, status_t status, void *userData)
+    {
+        userData = userData;
+
+        if (kStatus_USART_RxIdle == status)
+        {
+            rxFinished = true;
+        }
+    }
+
+    void main(void)
+    {
+        size_t bytesRead;
+        //...
+
+        USART_GetDefaultConfig(&user_config);
+        user_config.baudRate_Bps = 115200U;
+        user_config.enableTx = true;
+        user_config.enableRx = true;
+
+        USART_Init(USART1, &user_config, 120000000U);
+        USART_TransferCreateHandle(USART1, &g_usartHandle, USART_UserCallback, NULL);
+        USART_TransferStartRingBuffer(USART1, &g_usartHandle, ringBuffer, RING_BUFFER_SIZE);
+        // Now the RX is working in background, receive in to ring buffer.
+
+        // Prepare to receive.
+        receiveXfer.data = receiveData;
+        receiveXfer.dataSize = sizeof(receiveData);
+        rxFinished = false;
+
+        // Receive.
+        USART_TransferReceiveNonBlocking(USART1, &g_usartHandle, &receiveXfer);
+
+        if (bytesRead = RX_DATA_SIZE) /* Have read enough data. */
+        {
+            ;
+        }
+        else
+        {
+            if (bytesRead) /* Received some data, process first. */
+            {
+                ;
+            }
+
+            // Wait receive finished.
+            while (!rxFinished)
+            {
+            }
+        }
+
+        // ...
+    }
+~~~~~
+
+## USART Send/Receive using the DMA method {#USARTCaseDma}
+
+~~~~~{.c}
+    usart_handle_t g_usartHandle;
+    dma_handle_t g_usartTxDmaHandle;
+    dma_handle_t g_usartRxDmaHandle;
+    usart_config_t user_config;
+    usart_transfer_t sendXfer;
+    usart_transfer_t receiveXfer;
+    volatile bool txFinished;
+    volatile bool rxFinished;
+    uint8_t sendData[] = ['H', 'e', 'l', 'l', 'o'];
+    uint8_t receiveData[32];
+
+    void USART_UserCallback(usart_handle_t *handle, status_t status, void *userData)
+    {
+        userData = userData;
+
+        if (kStatus_USART_TxIdle == status)
+        {
+            txFinished = true;
+        }
+
+        if (kStatus_USART_RxIdle == status)
+        {
+            rxFinished = true;
+        }
+    }
+
+    void main(void)
+    {
+        //...
+
+        USART_GetDefaultConfig(&user_config);
+        user_config.baudRate_Bps = 115200U;
+        user_config.enableTx = true;
+        user_config.enableRx = true;
+
+        USART_Init(USART1, &user_config, 120000000U);
+
+        // Set up the DMA
+        DMA_Init(DMA0);
+        DMA_EnableChannel(DMA0, USART_TX_DMA_CHANNEL);
+        DMA_EnableChannel(DMA0, USART_RX_DMA_CHANNEL);
+
+        DMA_CreateHandle(&g_usartTxDmaHandle, DMA0, USART_TX_DMA_CHANNEL);
+        DMA_CreateHandle(&g_usartRxDmaHandle, DMA0, USART_RX_DMA_CHANNEL);
+
+        USART_TransferCreateHandleDMA(USART1, &g_usartHandle, USART_UserCallback, NULL, &g_usartTxDmaHandle, &g_usartRxDmaHandle);
+
+        // Prepare to send.
+        sendXfer.data = sendData
+        sendXfer.dataSize = sizeof(sendData);
+        txFinished = false;
+
+        // Send out.
+        USART_TransferSendDMA(USART1, &g_usartHandle, &sendXfer);
+
+        // Wait send finished.
+        while (!txFinished)
+        {
+        }
+
+        // Prepare to receive.
+        receiveXfer.data = receiveData;
+        receiveXfer.dataSize = sizeof(receiveData);
+        rxFinished = false;
+
+        // Receive.
+        USART_TransferReceiveDMA(USART1, &g_usartHandle, &receiveXfer);
+
+        // Wait receive finished.
+        while (!rxFinished)
+        {
+        }
+
+        // ...
+    }
+~~~~~
+
+*/
+
+/*!
+@defgroup usart_driver USART Driver
+@ingroup usart
+*/
+
+

@@ -27,7 +27,7 @@
 /*! @name Driver version */
 /*! @{ */
 /*! @brief Group interrupt driver version for SDK */
-#define FSL_INPUTMUX_DRIVER_VERSION (MAKE_VERSION(2, 0, 10))
+#define FSL_INPUTMUX_DRIVER_VERSION (MAKE_VERSION(2, 0, 11))
 /*! @} */
 
 /*******************************************************************************
@@ -39,32 +39,71 @@ extern "C" {
 #endif
 
 /*!
- * @brief	Initialize INPUTMUX peripheral.
-
+ * @brief Initialize INPUTMUX peripheral.
+ *
  * This function enables the INPUTMUX clock.
  *
  * @param base Base address of the INPUTMUX peripheral.
- *
- * @retval None.
  */
 void INPUTMUX_Init(void *base);
 
 /*!
  * @brief Attaches a signal
  *
- * This function attaches multiplexed signals from INPUTMUX to target signals.
- * For example, to attach GPIO PORT0 Pin 5 to PINT peripheral, do the following:
+ * This function writes a source signal selection into an INPUTMUX multiplexer register.
+ * The target register address is computed as:
  * @code
- *      INPUTMUX_AttachSignal(INPUTMUX, 2, kINPUTMUX_GpioPort0Pin5ToPintsel);
+ *   target address = base + pmux_id + index * 4
  * @endcode
- * In this example, INTMUX has 8 registers for PINT, PINT_SEL0~PINT_SEL7.
- * With parameter @p index specified as 2, this function configures register PINT_SEL2.
  *
- * @param base Base address of the INPUTMUX peripheral.
- * @param index The serial number of destination register in the group of INPUTMUX registers with same name.
- * @param connection Applies signal from source signals collection to target signal.
+ * Each @ref inputmux_connection_t enum value encodes two fields via @c PMUX_SHIFT (20):
+ * @code
+ *   31          20 19                    0
+ *   +------------+------------------------+
+ *   |  pmux_id   |       output_id        |
+ *   +------------+------------------------+
+ *        |                   |
+ *   group base          signal value
+ *   addr offset         to write
+ * @endcode
  *
- * @retval None.
+ * When N consecutive registers all accept the same set of source signals (same @c pmux_id),
+ * only one set of enum values is defined for the whole group; @p index (0 ~ N-1) selects
+ * which register to write, avoiding duplicate enum entries.
+ *
+ * Example: SCT0 has 8 input mux registers sharing @c SCT0_INMUX0 = 0x000 as the group base:
+ * @code
+ *   base
+ *    |
+ *    +--[+0x000] SCT0_INMUX0  <-- index=0
+ *    +--[+0x004] SCT0_INMUX1  <-- index=1
+ *    +--[+0x008] SCT0_INMUX2  <-- index=2
+ *    :   ...
+ *    +--[+0x014] SCT0_INMUX5  <-- index=5  (write target for the call below)
+ *    :   ...
+ *    +--[+0x01C] SCT0_INMUX7  <-- index=7
+ * @endcode
+ * To connect CMP0 output to SCT0 input 5:
+ * @code
+ *   INPUTMUX_AttachSignal(INPUTMUX, 5, kINPUTMUX_Cmp0OutToSct0);
+ *   // write address = base + 0x000 + 5*4 = base + 0x014  (SCT0_INMUX5)
+ * @endcode
+ *
+ * For peripherals with only a single register per function (e.g. @c FREQMEAS_REF_REG = 0x180,
+ * @c FREQMEAS_TAR_REG = 0x184), each register has its own unique @c pmux_id and @p index must be 0.
+ * The two registers are distinguished by their different @c pmux_id values, not by @p index:
+ * @code
+ *   base
+ *    |
+ *    +--[+0x180] FREQMEAS_REF_REG  (pmux_id=0x180, index=0)
+ *    +--[+0x184] FREQMEAS_TAR_REG  (pmux_id=0x184, index=0)
+ * @endcode
+ *
+ * @param base       Base address of the INPUTMUX peripheral.
+ * @param index      Zero-based index of the destination register within its group.
+ *                   Each increment advances the address by 4 bytes. Use 0 for single-register groups.
+ * @param connection Encodes the group base offset (bits [31:PMUX_SHIFT]) and the source
+ *                   signal value (bits [PMUX_SHIFT-1:0]).
  */
 void INPUTMUX_AttachSignal(void *base, uint16_t index, inputmux_connection_t connection);
 
@@ -72,25 +111,21 @@ void INPUTMUX_AttachSignal(void *base, uint16_t index, inputmux_connection_t con
 /*!
  * @brief Enable/disable a signal
  *
- * This function gates the INPUTPMUX clock.
+ * This function gates the INPUTMUX clock.
  *
  * @param base Base address of the INPUTMUX peripheral.
  * @param signal Enable signal register id and bit offset.
  * @param enable Selects enable or disable.
- *
- * @retval None.
  */
 void INPUTMUX_EnableSignal(void *base, inputmux_signal_t signal, bool enable);
 #endif
 
 /*!
- * @brief	Deinitialize INPUTMUX peripheral.
-
+ * @brief Deinitialize INPUTMUX peripheral.
+ *
  * This function disables the INPUTMUX clock.
  *
  * @param base Base address of the INPUTMUX peripheral.
- *
- * @retval None.
  */
 void INPUTMUX_Deinit(void *base);
 

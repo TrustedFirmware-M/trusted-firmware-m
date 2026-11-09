@@ -1,0 +1,4 @@
+/*!
+@defgroup flexspi_dma FLEXSPI DMA Driver
+@ingroup flexspi
+*/

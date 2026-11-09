@@ -1,0 +1,8 @@
+/*!
+@defgroup glikey GLIKEY
+@ingroup glikey
+@details The MCUXpresso SDK provides a peripheral driver for the GLIKEY module.@n
+ @n
+Glikey IP provides a mechanism to safely access security-sensitive registers. The write-enable and reset's of these registers are controlled via GLIKEY and ensures integrity protection of security-sensitive registers during write and at rest against power glitch attacks and integrity protection of security-sensitive registers at rest against privilege escalation.
+ @n
+*/

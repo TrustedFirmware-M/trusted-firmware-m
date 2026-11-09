@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 NXP
+ * Copyright 2022-2024,2026 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -19,7 +19,7 @@
 /******************************************************************************
  * Definitions
  *****************************************************************************/
-#define FSL_TRDC_DRIVER_VERSION (MAKE_VERSION(2, 2, 1))
+#define FSL_TRDC_DRIVER_VERSION (MAKE_VERSION(2, 2, 3))
 
 #if defined(FSL_FEATURE_TRDC_HAS_GENERAL_CONFIG) && FSL_FEATURE_TRDC_HAS_GENERAL_CONFIG
 /* Hardware configuration definitions */

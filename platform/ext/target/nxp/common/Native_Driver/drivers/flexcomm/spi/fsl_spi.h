@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2016, Freescale Semiconductor, Inc.
- * Copyright 2016-2020,2022 NXP
+ * Copyright 2016-2020, 2022, 2026 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -25,7 +25,7 @@
 /*! @name Driver version */
 /*! @{ */
 /*! @brief SPI driver version. */
-#define FSL_SPI_DRIVER_VERSION (MAKE_VERSION(2, 3, 2))
+#define FSL_SPI_DRIVER_VERSION (MAKE_VERSION(2, 4, 0))
 /*! @} */
 /*! @brief SPI default SSEL COUNT*/
 #if !(defined(FSL_FEATURE_SPI_SSEL_COUNT) || defined(FSL_FEATURE_SPI_IS_SSEL_PIN_COUNT_EQUAL_TO_THREE))
@@ -60,8 +60,9 @@ extern volatile uint8_t s_dummyData[];
 /*! @brief SPI transfer option.*/
 typedef enum _spi_xfer_option
 {
-    kSPI_FrameDelay  = (SPI_FIFOWR_EOF_MASK), /*!< A delay may be inserted, defined in the DLY register.*/
-    kSPI_FrameAssert = (SPI_FIFOWR_EOT_MASK), /*!< SSEL will be deasserted at the end of a transfer */
+    kSPI_FrameDelay           = (SPI_FIFOWR_EOF_MASK), /*!< A delay may be inserted, defined in the DLY register.*/
+    kSPI_FrameAssert          = (SPI_FIFOWR_EOT_MASK), /*!< SSEL will be deasserted at the end of a transfer. */
+    kSPI_FrameAssertEachFrame = (1UL << 0U),           /*!< SSEL will be deasserted at the end of each frame. */
 } spi_xfer_option_t;
 
 /*! @brief SPI data shifter direction options.*/
@@ -292,10 +293,10 @@ struct _spi_master_handle
     spi_master_callback_t callback; /*!< SPI callback */
     void *userData;                 /*!< Callback parameter */
     uint8_t dataWidth;              /*!< Width of the data [Valid values: 1 to 16] */
-    uint8_t sselNum;      /*!< Slave select number to be asserted when transferring data [Valid values: 0 to 3] */
-    uint32_t configFlags; /*!< Additional option to control transfer */
     uint8_t txWatermark;  /*!< txFIFO watermark */
     uint8_t rxWatermark;  /*!< rxFIFO watermark */
+    uint32_t txControl;   /*!< Precomputed FIFOWR control bits for non-last frames in interrupt transfer. */
+    uint32_t lastControl; /*!< Precomputed FIFOWR control bits for the last frame in interrupt transfer. */
 };
 
 /*! @brief Typedef for master interrupt handler. */
@@ -565,6 +566,21 @@ static inline void SPI_SetTransferDelay(SPI_Type *base, const spi_delay_config_t
  * @param dummyData Data to be transferred when tx buffer is NULL.
  */
 void SPI_SetDummyData(SPI_Type *base, uint8_t dummyData);
+
+/*!
+ * @brief Gets SPI FIFOWR control bits from transfer flags and SPI configuration.
+ *
+ * This helper combines frame control flags, selected SSEL, and frame length into
+ * the control bits written to `FIFOWR` for a normal frame or the last frame in a
+ * transfer.
+ *
+ * @param configFlags SPI transfer configuration flags.
+ * @param config Internal SPI configuration containing data width and SSEL.
+ * @param isLastFrame Pass `true` when generating control bits for the last frame of
+ *        the transfer, otherwise pass `false`.
+ * @return The control bits corresponding to the specified transfer flags and SPI configuration.
+ */
+uint32_t SPI_GenFifoWriteControl(uint32_t configFlags, const spi_config_t *config, bool isLastFrame);
 
 /*! @} */
 

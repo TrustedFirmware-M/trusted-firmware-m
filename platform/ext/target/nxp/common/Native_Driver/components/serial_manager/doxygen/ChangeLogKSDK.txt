@@ -1,0 +1,16 @@
+/*!
+@page component_log Component Change Log
+
+@section Serial_Manager SERIAL_MANAGER
+  The current Serial_Manager component version is 1.0.2.
+
+  - 1.0.2
+    - Add SerialManager_WriteTimeDelay()/SerialManager_ReadTimeDelay() for serial manager's read/write non-blocking mode.
+
+  - 1.0.1
+    - Add prefixing fsl_component_xxx/fsl_adapter_xxx.
+
+  - 1.0.0
+    - Initial version
+
+*/

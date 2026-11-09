@@ -193,6 +193,7 @@ int DbgConsole_Scanf(char *fmt_s, ...)
     va_list ap;
     int32_t i;
     char result;
+    int32_t scanResult;
 
     /* Do nothing if the debug UART is not initialized. */
     if (kSerialPort_None == s_debugConsole.serial_port_type)
@@ -210,7 +211,7 @@ int DbgConsole_Scanf(char *fmt_s, ...)
             break;
         }
 
-        result      = (char)DbgConsole_Getchar();
+        result      = (char)(uint8_t)DbgConsole_Getchar();
         temp_buf[i] = result;
 
         if ((result == '\r') || (result == '\n'))
@@ -238,10 +239,10 @@ int DbgConsole_Scanf(char *fmt_s, ...)
     {
         temp_buf[i + 1] = '\0';
     }
-    result = (char)StrFormatScanf(temp_buf, fmt_s, ap);
-    va_end(ap);
 
-    return (int)result;
+    scanResult = (int32_t)StrFormatScanf(temp_buf, fmt_s, ap);
+    va_end(ap);
+    return (int)scanResult;
 }
 
 /* See fsl_debug_console.h for documentation of this function. */
@@ -395,7 +396,7 @@ static int32_t DbgConsole_ConvertRadixNumToString(char *numstr, void *nump, int3
 #endif /* PRINTF_ADVANCED_ENABLE */
             else
             {
-                c = c + (int)'0';
+                c = (long long int)((unsigned int)c + (unsigned int)'0');
             }
             a        = b;
             *nstrp++ = (char)c;
@@ -510,11 +511,11 @@ static int32_t DbgConsole_ConvertFloatRadixNumToString(char *numstr,
         c  = (int32_t)dc;
         if (c < 0)
         {
-            c = (int32_t)'0' - c;
+            c = (int32_t)((uint32_t)(int32_t)'0' - (uint32_t)c);
         }
         else
         {
-            c = c + '0';
+            c = (int32_t)((uint32_t)c + (uint32_t)'0');
         }
         fa       = fb;
         *nstrp++ = (char)c;
@@ -536,11 +537,11 @@ static int32_t DbgConsole_ConvertFloatRadixNumToString(char *numstr,
             c = (int32_t)a - ((int32_t)b * (int32_t)radix);
             if (c < 0)
             {
-                c = (int32_t)'0' - c;
+                c = (int32_t)((uint32_t)(int32_t)'0' - (uint32_t)c);
             }
             else
             {
-                c = c + '0';
+                c = (int32_t)((uint32_t)c + (uint32_t)'0');
             }
             a        = b;
             *nstrp++ = (char)c;
@@ -1387,7 +1388,7 @@ int __attribute__((weak)) _read_r(void *ptr, int handle, char *buffer, int size)
 
     /* Receive data. */
     (void)s_debugConsole.getChar((hal_uart_handle_t)&s_debugConsole.uartHandleBuffer[0], (uint8_t *)buffer, size);
-    return size;
+    return (int)size;
 }
 #endif /* SDK_DEBUGCONSOLE_UART */
 
@@ -1420,7 +1421,7 @@ int __attribute__((weak)) _write(int handle, char *buffer, int size)
     /* Send data. */
     (void)s_debugConsole.putChar((hal_uart_handle_t)&s_debugConsole.uartHandleBuffer[0], (uint8_t *)buffer, size);
 
-    return size;
+    return (int)size;
 }
 
 int __attribute__((weak)) _read(int handle, char *buffer, int size);

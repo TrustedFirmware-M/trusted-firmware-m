@@ -1,0 +1,146 @@
+
+
+/*!
+@defgroup spi SPI: Serial Peripheral Interface Driver
+@details
+
+SPI driver includes functional APIs and transactional APIs.
+
+Functional APIs are feature/property target low level APIs.
+Functional APIs can be used for SPI initialization/configuration/operation for
+optimization/customization purpose. Using the functional API requires the
+knowledge of the SPI peripheral and how to organize functional APIs to
+meet the application requirements. All functional API use the peripheral base
+address as the first parameter. SPI functional operation groups provide the
+functional API set.
+
+Transactional APIs are transaction target high level APIs.
+Transactional APIs can be used to enable the peripheral and in the
+application if the code size and performance of transactional APIs satisfy the
+requirements. If the code size and performance are a critical requirement,
+see the transactional API implementation and write a custom code. All
+transactional APIs use the spi_handle_t as the first parameter.
+Initialize the handle by calling the SPI_MasterTransferCreateHandle() or SPI_SlaveTransferCreateHandle() API.
+
+Transactional APIs support asynchronous transfer. This means that the functions
+SPI_MasterTransferNonBlocking() and SPI_SlaveTransferNonBlocking() set up the interrupt for data
+transfer. When the transfer completes, the upper layer is notified through a callback
+function with the kStatus_SPI_Idle status.
+
+# Typical use case {#SPICase}
+
+## SPI master transfer using an interrupt method {#SPICaseInterrupt}
+
+~~~~~{.c}
+    #define BUFFER_LEN (64)
+    spi_master_handle_t spiHandle;
+    spi_master_config_t masterConfig;
+    spi_transfer_t xfer;
+    volatile bool isFinished = false;
+
+    const uint8_t sendData[BUFFER_LEN] = [......];
+    uint8_t receiveBuff[BUFFER_LEN];
+
+    void SPI_UserCallback(SPI_Type *base, spi_master_handle_t *handle, status_t status, void *userData)
+    {
+        isFinished = true;
+    }
+
+    void main(void)
+    {
+        //...
+
+        SPI_MasterGetDefaultConfig(&masterConfig);
+
+        SPI_MasterInit(SPI0, &masterConfig, srcClock_Hz);
+        SPI_MasterTransferCreateHandle(SPI0, &spiHandle, SPI_UserCallback, NULL);
+
+        // Prepare to send.
+        xfer.txData = sendData;
+        xfer.rxData = receiveBuff;
+        xfer.dataSize = sizeof(sendData);
+
+        // Send out.
+        SPI_MasterTransferNonBlocking(SPI0, &spiHandle, &xfer);
+
+        // Wait send finished.
+        while (!isFinished)
+        {
+        }
+
+        // ...
+    }
+~~~~~
+
+## SPI Send/receive using a DMA method {#SPICaseDma}
+
+~~~~~{.c}
+    #define BUFFER_LEN (64)
+    spi_dma_handle_t spiHandle;
+    dma_handle_t g_spiTxDmaHandle;
+    dma_handle_t g_spiRxDmaHandle;
+    spi_config_t masterConfig;
+    spi_transfer_t xfer;
+    volatile bool isFinished;
+    
+    uint8_t sendData[BUFFER_LEN] = ...;
+    uint8_t receiveBuff[BUFFER_LEN];
+
+    void SPI_UserCallback(SPI_Type *base, spi_dma_handle_t *handle, status_t status, void *userData)
+    {
+        isFinished = true;
+    }
+
+    void main(void)
+    {
+        //...
+
+        // Initialize DMA peripheral
+        DMA_Init(DMA0);
+
+        // Initialize SPI peripheral
+        SPI_MasterGetDefaultConfig(&masterConfig);
+        masterConfig.sselNum = SPI_SSEL;
+        SPI_MasterInit(SPI0, &masterConfig, srcClock_Hz);
+
+        // Enable DMA channels connected to SPI0 Tx/SPI0 Rx request lines
+        DMA_EnableChannel(SPI0, SPI_MASTER_TX_CHANNEL);
+        DMA_EnableChannel(SPI0, SPI_MASTER_RX_CHANNEL);
+
+        // Set DMA channels priority
+        DMA_SetChannelPriority(SPI0, SPI_MASTER_TX_CHANNEL, kDMA_ChannelPriority3);
+        DMA_SetChannelPriority(SPI0, SPI_MASTER_RX_CHANNEL, kDMA_ChannelPriority2);
+
+        // Creates the DMA handle.
+        DMA_CreateHandle(&masterTxHandle, SPI0, SPI_MASTER_TX_CHANNEL);
+        DMA_CreateHandle(&masterRxHandle, SPI0, SPI_MASTER_RX_CHANNEL);
+
+        // Create SPI DMA handle
+        SPI_MasterTransferCreateHandleDMA(SPI0, spiHandle, SPI_UserCallback, NULL, &g_spiTxDmaHandle, &g_spiRxDmaHandle);
+
+        // Prepares to send.
+        xfer.txData = sendData;
+        xfer.rxData = receiveBuff;
+        xfer.dataSize = sizeof(sendData);
+
+        // Sends out.
+        SPI_MasterTransferDMA(SPI0, &spiHandle, &xfer);
+
+        // Waits for send to complete.
+        while (!isFinished)
+        {
+        }
+
+        // ...
+    }
+~~~~~
+
+*/
+
+/*!
+@defgroup spi_driver SPI Driver
+@ingroup spi
+@details This section describes the programming interface of the SPI DMA driver.
+*/
+
+

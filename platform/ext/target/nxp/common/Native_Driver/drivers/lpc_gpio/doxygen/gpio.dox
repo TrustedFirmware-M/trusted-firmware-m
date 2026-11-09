@@ -1,0 +1,29 @@
+/*!
+@defgroup lpc_gpio GPIO: General Purpose I/O
+
+@details The MCUXpresso SDK provides a peripheral driver for the General Purpose I/O (GPIO) module of
+         MCUXpresso SDK devices.
+
+# Function groups {#GPIOFuncGrps}
+
+## Initialization and deinitialization {#GPIOInit}
+The function GPIO_PinInit() initializes the GPIO with specified configuration.
+
+## Pin manipulation {#GPIOPinManipulation}
+The function GPIO_PinWrite() set output state of selected GPIO pin.
+The function GPIO_PinRead() read input value of selected GPIO pin.
+
+## Port manipulation {#GPIOPortManipulation}
+The function GPIO_PortSet() sets the output level of selected GPIO pins to the logic 1.
+The function GPIO_PortClear() sets the output level of selected GPIO pins to the logic 0.
+The function GPIO_PortToggle() reverse the output level of selected GPIO pins.
+The function GPIO_PortRead() read input value of selected port.
+
+## Port masking {#GPIOPortMasking}
+The function GPIO_PortMaskedSet() set port mask, only pins masked by 0 will be enabled in following functions.
+The function GPIO_PortMaskedWrite()  sets the state of selected GPIO port, only pins masked by 0 will be affected.
+The function GPIO_PortMaskedRead() reads the state of selected GPIO port, only pins masked by 0 are enabled for read, pins masked by 1 are read as 0.
+
+# Typical use case {#GPIOTpyUC}
+Example use of GPIO API.
+Refer to the driver examples codes located at \<SDK_ROOT\>/boards/\<BOARD\>/driver_examples/gpio*/

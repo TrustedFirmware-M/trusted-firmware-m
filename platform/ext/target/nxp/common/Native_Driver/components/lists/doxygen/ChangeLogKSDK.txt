@@ -1,0 +1,13 @@
+/*!
+@page component_log Component Change Log
+
+@section GenericList GENERICLIST
+  The current GenericList component version is 1.0.1.
+
+  - 1.0.1
+    - Add prefixing fsl_component_xxx.
+
+  - 1.0.0
+    - Initial version
+
+*/

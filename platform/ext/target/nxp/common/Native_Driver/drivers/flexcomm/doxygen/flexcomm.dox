@@ -1,0 +1,12 @@
+/*!
+@defgroup flexcomm FLEXCOMM: FLEXCOMM Driver
+@details The MCUXpresso SDK provides a generic driver and multiple protocol-specific FLEXCOMM drivers for the FLEXCOMM module of MCUXpresso SDK devices.
+
+*/
+
+/*!
+@defgroup flexcomm_driver FLEXCOMM Driver
+@ingroup flexcomm
+
+*/
+

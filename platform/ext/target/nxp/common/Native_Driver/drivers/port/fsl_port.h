@@ -341,7 +341,7 @@ static inline void PORT_SecletPortVoltageRange(PORT_Type *base, port_voltage_ran
  *
  * This is an example to define an input pin or output pin PCR configuration.
  * @code
- * // Define a digital input pin PCR configuration
+ * Define a digital input pin PCR configuration
  * port_pin_config_t config = {
  *      kPORT_PullUp,
  *      kPORT_FastSlewRate,
@@ -359,7 +359,7 @@ static inline void PORT_SecletPortVoltageRange(PORT_Type *base, port_voltage_ran
  */
 static inline void PORT_SetPinConfig(PORT_Type *base, uint32_t pin, const port_pin_config_t *config)
 {
-    assert(config);
+    assert(NULL != config);
     uint32_t addr                = (uint32_t)&base->PCR[pin];
     *(volatile uint16_t *)(addr) = *((const uint16_t *)(const void *)config);
 }
@@ -388,7 +388,7 @@ static inline void PORT_SetPinConfig(PORT_Type *base, uint32_t pin, const port_p
  */
 static inline void PORT_SetMultiplePinsConfig(PORT_Type *base, uint32_t mask, const port_pin_config_t *config)
 {
-    assert(config);
+    assert(NULL != config);
 
     uint16_t pcrl = *((const uint16_t *)(const void *)config);
 
@@ -402,6 +402,7 @@ static inline void PORT_SetMultiplePinsConfig(PORT_Type *base, uint32_t mask, co
     }
 }
 
+#if !(defined(FSL_FEATURE_PORT_HAS_NO_INTERRUPT) && FSL_FEATURE_PORT_HAS_NO_INTERRUPT)
 #if defined(FSL_FEATURE_PORT_HAS_MULTIPLE_IRQ_CONFIG) && FSL_FEATURE_PORT_HAS_MULTIPLE_IRQ_CONFIG
 /*!
  * @brief Sets the port interrupt configuration in PCR register for multiple pins.
@@ -422,12 +423,10 @@ static inline void PORT_SetMultiplePinsConfig(PORT_Type *base, uint32_t mask, co
  *        - #kPORT_InterruptEitherEdge : Interrupt on either edge.
  *        - #kPORT_InterruptLogicOne   : Interrupt when logic one.
  *        - #kPORT_ActiveHighTriggerOutputEnable : Enable active high-trigger output (if the trigger states exit).
- *        - #kPORT_ActiveLowTriggerOutputEnable  : Enable active low-trigger output (if the trigger states exit)..
+ *        - #kPORT_ActiveLowTriggerOutputEnable  : Enable active low-trigger output (if the trigger states exit).
  */
 static inline void PORT_SetMultipleInterruptPinsConfig(PORT_Type *base, uint32_t mask, port_interrupt_t config)
 {
-    assert(config);
-
     if (0U != ((uint32_t)mask & 0xffffU))
     {
         base->GICLR = ((uint32_t)config << 16U) | ((uint32_t)mask & 0xffffU);
@@ -438,6 +437,7 @@ static inline void PORT_SetMultipleInterruptPinsConfig(PORT_Type *base, uint32_t
         base->GICHR = ((uint32_t)config << 16U) | ((uint32_t)mask & 0xffffU);
     }
 }
+#endif
 #endif
 
 /*!
@@ -495,7 +495,7 @@ static inline void PORT_EnablePinsDigitalFilter(PORT_Type *base, uint32_t mask, 
  */
 static inline void PORT_SetDigitalFilterConfig(PORT_Type *base, const port_digital_filter_config_t *config)
 {
-    assert(config);
+    assert(NULL != config);
 
     base->DFCR = PORT_DFCR_CS(config->clockSource);
     base->DFWR = PORT_DFWR_FILT(config->digitalFilterWidth);
@@ -659,7 +659,6 @@ static inline void PORT_DisableEFTDetectInterrupts(PORT_Type *base, uint32_t int
  * @note : Port B and Port C pins share the same EFT detector clear control from PORTC_EDCR register. Any write to the
  * PORTB_EDCR does not take effect.
  * @param base PORT peripheral base pointer
- * @param interrupt EFT detect interrupt
  */
 static inline void PORT_ClearAllLowEFTDetectors(PORT_Type *base)
 {
@@ -671,7 +670,6 @@ static inline void PORT_ClearAllLowEFTDetectors(PORT_Type *base)
  * @brief Clear all high EFT detector.
  *
  * @param base PORT peripheral base pointer
- * @param interrupt EFT detect interrupt
  */
 static inline void PORT_ClearAllHighEFTDetectors(PORT_Type *base)
 {

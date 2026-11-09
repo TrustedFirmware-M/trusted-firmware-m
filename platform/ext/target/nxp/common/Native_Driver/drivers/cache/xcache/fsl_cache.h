@@ -22,7 +22,7 @@
 /*! @name Driver version */
 /*! @{ */
 /*! @brief cache driver version. */
-#define FSL_CACHE_DRIVER_VERSION (MAKE_VERSION(2, 0, 3))
+#define FSL_CACHE_DRIVER_VERSION (MAKE_VERSION(2, 0, 6))
 /*! @} */
 
 /*! @brief cache line size. */

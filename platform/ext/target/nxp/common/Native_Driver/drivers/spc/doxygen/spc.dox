@@ -1,0 +1,16 @@
+/*!
+@defgroup spc SPC: System Power Control driver
+@details The MCUXpresso SDK provides a peripheral driver for the System Power Control (SPC) module of
+MCUXpresso SDK devices. The SPC module contains and controls two LDOs and one DCDC used for regulating
+System Core.
+
+API functions are provided to configure on-chip regulators in active mode and low power modes.
+For Active modes, SPC_ConfigActiveModeRegulators() function accepts different parameters to config the
+voltage level and drive strength for each on-chip regulator. For Active mode, Some APIs also provided
+individually to config each on-chip regulator's voltage level and drive strength.
+For low power modes, SPC_ConfigLowPowerModeRegulators() function accepts different parameters
+to config the voltage level and drive strength for each on-chip regulator. For low power mode, some APIs
+also provided individually to config each on-chip regulator's voltage level and driver strength.
+For gating each Voltage detector for each voltage domain, there are also some APIs provided.
+
+*/

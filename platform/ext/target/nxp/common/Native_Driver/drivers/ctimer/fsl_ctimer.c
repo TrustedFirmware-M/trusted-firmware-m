@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2016, Freescale Semiconductor, Inc.
- * Copyright 2016-2022, 2024-2025 NXP
+ * Copyright 2016-2022, 2024-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -75,7 +75,7 @@ static uint32_t CTIMER_GetInstance(CTIMER_Type *base)
     /* Find the instance index from base address mappings. */
     for (instance = 0; instance < ctimerArrayCount; instance++)
     {
-        if (MSDK_REG_SECURE_ADDR(s_ctimerBases[instance]) == MSDK_REG_SECURE_ADDR(base))
+        if (MSDK_REG_NONSECURE_ADDR(s_ctimerBases[instance]) == MSDK_REG_NONSECURE_ADDR(base))
         {
             break;
         }
@@ -203,17 +203,21 @@ status_t CTIMER_SetupPwm(CTIMER_Type *base,
                          bool enableInt)
 {
     assert(pwmFreq_Hz > 0U);
-    assert(dutyCyclePercent <= 100U);
 
     uint32_t reg;
     uint32_t period;
     uint64_t pulsePeriod;
     uint64_t prescaleValue;
     uint64_t timerClock;
-    uint32_t index      = CTIMER_GetInstance(base);
+    uint32_t index = CTIMER_GetInstance(base);
+
+    if (dutyCyclePercent > 100U)
+    {
+        return kStatus_Fail;
+    }
 
     prescaleValue = (uint64_t)base->PR + 1U;
-    timerClock = (uint64_t)srcClock_Hz / prescaleValue;
+    timerClock    = (uint64_t)srcClock_Hz / prescaleValue;
     if (timerClock < pwmFreq_Hz)
     {
         return kStatus_Fail;
@@ -254,13 +258,13 @@ status_t CTIMER_SetupPwm(CTIMER_Type *base,
     }
     else
     {
-        pulsePeriod = ((uint64_t)period * (100U - (uint32_t)dutyCyclePercent)) / 100U;
+        pulsePeriod = ((uint64_t)period * ((uint64_t)100U - (uint64_t)dutyCyclePercent)) / 100U;
     }
 
     /* Specified channel pwmPeriodChannel will define the PWM period */
     base->MR[pwmPeriodChannel] = period;
 
-    /* 
+    /*
      * Only occurs when duty cyle is 0 and PWM period is 0xFFFFFFFF.
      * CTimer cannot output 0% duty cyle PWM in this case.
      */
@@ -379,7 +383,11 @@ status_t CTIMER_UpdatePwmDutycycle(CTIMER_Type *base,
 {
     uint32_t period;
     uint64_t pulsePeriod;
-    assert(dutyCyclePercent <= 100U);
+
+    if (dutyCyclePercent > 100U)
+    {
+        return kStatus_Fail;
+    }
 
     /* Specified channel pwmPeriodChannel  defines the PWM period */
     period = base->MR[pwmPeriodChannel];
@@ -391,10 +399,10 @@ status_t CTIMER_UpdatePwmDutycycle(CTIMER_Type *base,
     }
     else
     {
-        pulsePeriod = ((uint64_t)period * (100U - (uint32_t)dutyCyclePercent)) / 100U;
+        pulsePeriod = ((uint64_t)period * ((uint64_t)100U - (uint64_t)dutyCyclePercent)) / 100U;
     }
 
-    /* 
+    /*
      * Only occurs when duty cyle is 0 and PWM period is 0xFFFFFFFF.
      * CTimer cannot output 0% duty cyle PWM in this case.
      */
@@ -435,17 +443,17 @@ void CTIMER_SetupMatch(CTIMER_Type *base, ctimer_match_t matchChannel, const cti
 
     if (config->enableCounterReset)
     {
-        reg |= (CTIMER_MCR_MR0R_MASK << ((uint32_t)matchChannel * 3U));
+        reg |= (uint32_t)CTIMER_MCR_MR0R_MASK << ((uint32_t)matchChannel * 3U);
     }
 
     if (config->enableCounterStop)
     {
-        reg |= (CTIMER_MCR_MR0S_MASK << ((uint32_t)matchChannel * 3U));
+        reg |= (uint32_t)CTIMER_MCR_MR0S_MASK << ((uint32_t)matchChannel * 3U);
     }
 
     if (config->enableInterrupt)
     {
-        reg |= (CTIMER_MCR_MR0I_MASK << ((uint32_t)matchChannel * 3U));
+        reg |= (uint32_t)CTIMER_MCR_MR0I_MASK << ((uint32_t)matchChannel * 3U);
     }
 
     base->MCR = reg;
@@ -460,7 +468,7 @@ void CTIMER_SetupMatch(CTIMER_Type *base, ctimer_match_t matchChannel, const cti
 
     if (config->outPinInitState)
     {
-        reg |= (CTIMER_EMR_EM0_MASK << (uint32_t)matchChannel);
+        reg |= (uint32_t)CTIMER_EMR_EM0_MASK << (uint32_t)matchChannel;
     }
 
     base->EMR = reg;
@@ -538,7 +546,7 @@ void CTIMER_SetupCapture(CTIMER_Type *base,
  * For example:
  * ctimer_callback_t ctimer_callback = pwm_match_callback;
  * CTIMER_RegisterCallBack(CTIMER, &ctimer_callback, kCTIMER_SingleCallback);
- * 
+ *
  * - Multiple Callback:
  * cb_func should be pointer to array of callback function pointers
  * Each element corresponds to Interrupt Flag in IR register.
@@ -569,7 +577,20 @@ static void CTIMER_GenericIRQHandler(uint32_t index)
     /* Get Interrupt status flags */
     int_stat = CTIMER_GetStatusFlags(s_ctimerBases[index]);
     /* Clear the status flags that were set */
+#if defined(FSL_FEATURE_CTIMER_HAS_ERRATA_53024) && FSL_FEATURE_CTIMER_HAS_ERRATA_53024
+    uint32_t int_stat_tmp = int_stat;
+    do
+    {
+        /* ERR053024: CTIMER may enter interrupt twice when function clock
+         * is much slower than bus clock. Keep clearing the interrupt flag
+         * until it's confirmed to be cleared to avoid spurious interrupts.
+         */
+        CTIMER_ClearStatusFlags(s_ctimerBases[index], int_stat_tmp);
+    } while ((int_stat_tmp = CTIMER_GetStatusFlags(s_ctimerBases[index])) != 0U);
+#else
     CTIMER_ClearStatusFlags(s_ctimerBases[index], int_stat);
+#endif
+
     if (ctimerCallbackType[index] == kCTIMER_SingleCallback)
     {
         if (s_ctimerCallback[index][0] != NULL)

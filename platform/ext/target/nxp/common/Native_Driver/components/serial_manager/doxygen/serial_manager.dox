@@ -1,0 +1,52 @@
+/*!
+@defgroup serialmanager Serial Manager
+@details This chapter describes the programming interface of the serial manager component.
+
+The serial manager component provides a series of APIs to operate different serial port types.
+The port types it supports are UART, USB CDC and SWO.
+*/
+
+/*!
+@if dox_section_serial_manager_uart
+@defgroup serial_port_uart Serial Port Uart
+@ingroup serialmanager
+@endif
+*/
+
+/*!
+@if dox_section_serial_manager_usb
+@defgroup serial_port_usb Serial Port USB
+@ingroup serialmanager
+@endif
+*/
+
+/*!
+@if dox_section_serial_manager_usb
+@defgroup usb_device_configuration USB Device Configuration
+@ingroup serial_port_usb
+@endif
+*/
+
+/*!
+@if dox_section_serial_manager_swo
+@defgroup serial_port_swo Serial Port SWO
+@ingroup serialmanager
+@endif
+*/
+
+/*!
+@if dox_section_serial_manager_virtual
+@defgroup serial_port_virtual Serial Port Virtual
+@ingroup serialmanager
+@details This chapter describes how to redirect the serial manager stream to application CDC. The weak functions can be implemented by application to redirect the serial manager stream.
+         The weak functions are following, @n
+         USB_DeviceVcomInit - Initialize the cdc vcom. @n
+         USB_DeviceVcomDeinit - De-initialize the cdc vcom. @n
+         USB_DeviceVcomWrite - Write data with non-blocking mode. After data is sent, the installed TX callback should be called with the result. @n
+         USB_DeviceVcomRead - Read data with non-blocking mode. After data is received, the installed RX callback should be called with the result. @n
+         USB_DeviceVcomCancelWrite - Cancel write request. @n
+         USB_DeviceVcomInstallTxCallback - Install TX callback. @n
+         USB_DeviceVcomInstallRxCallback - Install RX callback. @n
+         USB_DeviceVcomIsrFunction - The hardware ISR function. @n
+@endif
+*/

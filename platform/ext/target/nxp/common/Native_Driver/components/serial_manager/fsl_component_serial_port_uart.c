@@ -1,6 +1,5 @@
 /*
  * Copyright 2018 -2021 NXP
- * All rights reserved.
  *
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -186,7 +185,7 @@ serial_manager_status_t Serial_UartInit(serial_handle_t serialHandle, void *seri
 #endif
 
     assert(serialConfig);
-    assert(serialHandle);
+    assert(serialHandle != NULL);
     assert(SERIAL_PORT_UART_HANDLE_SIZE >= sizeof(serial_uart_state_t));
 
     serialUartHandle    = (serial_uart_state_t *)serialHandle;
@@ -214,7 +213,7 @@ serial_manager_status_t Serial_UartDeinit(serial_handle_t serialHandle)
 {
     serial_uart_state_t *serialUartHandle;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     serialUartHandle = (serial_uart_state_t *)serialHandle;
 
@@ -245,7 +244,7 @@ serial_manager_status_t Serial_UartWrite(serial_handle_t serialHandle, uint8_t *
     hal_uart_transfer_t transfer;
 #endif
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
     assert(buffer);
     assert(length);
 
@@ -276,7 +275,7 @@ serial_manager_status_t Serial_UartWrite(serial_handle_t serialHandle, uint8_t *
 
 serial_manager_status_t Serial_UartRead(serial_handle_t serialHandle, uint8_t *buffer, uint32_t length)
 {
-    assert(serialHandle);
+    assert(serialHandle != NULL);
     (void)buffer;
     (void)length;
     return (serial_manager_status_t)Serial_UartEnableReceiving(serialHandle);
@@ -288,7 +287,7 @@ serial_manager_status_t Serial_UartWrite(serial_handle_t serialHandle, uint8_t *
 {
     serial_uart_state_t *serialUartHandle;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
     assert(buffer);
     assert(length);
 
@@ -302,7 +301,7 @@ serial_manager_status_t Serial_UartRead(serial_handle_t serialHandle, uint8_t *b
 {
     serial_uart_state_t *serialUartHandle;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
     assert(buffer);
     assert(length);
 
@@ -322,7 +321,7 @@ serial_manager_status_t Serial_UartCancelWrite(serial_handle_t serialHandle)
     uint32_t primask;
     uint8_t isBusy = 0U;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     serialUartHandle = (serial_uart_state_t *)serialHandle;
 
@@ -355,7 +354,7 @@ serial_manager_status_t Serial_UartInstallTxCallback(serial_handle_t serialHandl
 {
     serial_uart_state_t *serialUartHandle;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     serialUartHandle = (serial_uart_state_t *)serialHandle;
 
@@ -371,7 +370,7 @@ serial_manager_status_t Serial_UartInstallRxCallback(serial_handle_t serialHandl
 {
     serial_uart_state_t *serialUartHandle;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     serialUartHandle = (serial_uart_state_t *)serialHandle;
 
@@ -388,7 +387,7 @@ void Serial_UartIsrFunction(serial_handle_t serialHandle)
 {
     serial_uart_state_t *serialUartHandle;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     serialUartHandle = (serial_uart_state_t *)serialHandle;
 
@@ -401,7 +400,7 @@ serial_manager_status_t Serial_UartEnterLowpower(serial_handle_t serialHandle)
     serial_uart_state_t *serialUartHandle;
     hal_uart_status_t uartstatus;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     serialUartHandle = (serial_uart_state_t *)serialHandle;
 
@@ -418,17 +417,13 @@ serial_manager_status_t Serial_UartExitLowpower(serial_handle_t serialHandle)
     serial_manager_status_t status = kStatus_SerialManager_Success;
     hal_uart_status_t uartstatus;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     serialUartHandle = (serial_uart_state_t *)serialHandle;
 
     uartstatus = HAL_UartExitLowpower(((hal_uart_handle_t)&serialUartHandle->usartHandleBuffer[0]));
     assert(kStatus_HAL_UartSuccess == uartstatus);
     (void)uartstatus;
-
-#if (defined(SERIAL_MANAGER_NON_BLOCKING_MODE) && (SERIAL_MANAGER_NON_BLOCKING_MODE > 0U))
-    status = Serial_UartEnableReceiving(serialUartHandle);
-#endif
 
     return status;
 }
@@ -511,7 +506,7 @@ serial_manager_status_t Serial_UartDmaInit(serial_handle_t serialHandle, void *s
     serial_manager_status_t serialManagerStatus = kStatus_SerialManager_Success;
 
     assert(serialConfig);
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     assert(SERIAL_PORT_UART_DMA_HANDLE_SIZE >= sizeof(serial_uart_dma_state_t));
 
@@ -555,7 +550,7 @@ serial_manager_status_t Serial_UartDmaDeinit(serial_handle_t serialHandle)
 {
     serial_uart_dma_state_t *serialUartHandle;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     serialUartHandle = (serial_uart_dma_state_t *)serialHandle;
 
@@ -579,7 +574,7 @@ serial_manager_status_t Serial_UartDmaWrite(serial_handle_t serialHandle, uint8_
     serial_uart_dma_state_t *serialUartHandle;
     hal_uart_status_t uartstatus;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
     assert(buffer);
     assert(length);
 
@@ -613,7 +608,7 @@ serial_manager_status_t Serial_UartDmaCancelWrite(serial_handle_t serialHandle)
     uint32_t primask;
     uint8_t isBusy = 0U;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     serialUartHandle = (serial_uart_dma_state_t *)serialHandle;
 
@@ -643,7 +638,7 @@ serial_manager_status_t Serial_UartDmaInstallTxCallback(serial_handle_t serialHa
 {
     serial_uart_dma_state_t *serialUartHandle;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     serialUartHandle = (serial_uart_dma_state_t *)serialHandle;
 
@@ -659,7 +654,7 @@ serial_manager_status_t Serial_UartDmaInstallRxCallback(serial_handle_t serialHa
 {
     serial_uart_dma_state_t *serialUartHandle;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     serialUartHandle = (serial_uart_dma_state_t *)serialHandle;
 
@@ -673,7 +668,7 @@ void Serial_UartDmaIsrFunction(serial_handle_t serialHandle)
 {
     serial_uart_dma_state_t *serialUartHandle;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     serialUartHandle = (serial_uart_dma_state_t *)serialHandle;
 
@@ -686,7 +681,7 @@ serial_manager_status_t Serial_UartDmaEnterLowpower(serial_handle_t serialHandle
     serial_uart_dma_state_t *serialUartHandle;
     hal_uart_status_t uartstatus;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     serialUartHandle = (serial_uart_dma_state_t *)serialHandle;
 
@@ -703,7 +698,7 @@ serial_manager_status_t Serial_UartDmaExitLowpower(serial_handle_t serialHandle)
     serial_manager_status_t status = kStatus_SerialManager_Success;
     hal_uart_status_t uartstatus;
 
-    assert(serialHandle);
+    assert(serialHandle != NULL);
 
     serialUartHandle = (serial_uart_dma_state_t *)serialHandle;
 

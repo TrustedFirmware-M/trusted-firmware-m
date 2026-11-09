@@ -1,0 +1,39 @@
+/*!
+@defgroup gpio GPIO: General-Purpose Input/Output Driver
+
+*/
+
+/*!
+@defgroup gpio_driver GPIO Driver
+@ingroup gpio
+@details The MCUXpresso SDK provides a peripheral driver for the General-Purpose Input/Output (GPIO)
+module of MCUXpresso SDK devices.
+
+# Typical use case {#GPIOTpyUC}
+
+## Output Operation {#GPIOOutOps}
+
+Refer to the driver examples codes located at \<SDK_ROOT\>/boards/\<BOARD\>/driver_examples/gpio
+## Input Operation {#GPIOInOps}
+
+Refer to the driver examples codes located at \<SDK_ROOT\>/boards/\<BOARD\>/driver_examples/gpio*/
+
+/*!
+@defgroup fgpio_driver FGPIO Driver
+@ingroup gpio
+@details This section describes the programming interface of the FGPIO driver.
+The FGPIO driver configures the FGPIO module and provides a functional interface  to build the GPIO application.
+
+@note FGPIO (Fast GPIO) is only available in a few MCUs. FGPIO and GPIO share the same
+peripheral but use different registers. FGPIO is closer to the core than the regular GPIO
+and it's faster to read and write.
+
+# Typical use case {#FGPIOTpyUC}
+
+## Output Operation {#FGPIOOutOps}
+
+Refer to the driver examples codes located at \<SDK_ROOT\>/boards/\<BOARD\>/driver_examples/gpio
+## Input Operation {#FGPIOInOps}
+
+Refer to the driver examples codes located at \<SDK_ROOT\>/boards/\<BOARD\>/driver_examples/gpio*/
+

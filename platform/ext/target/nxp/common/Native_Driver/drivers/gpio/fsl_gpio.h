@@ -23,12 +23,13 @@
 /*! @name Driver version */
 /*! @{ */
 /*! @brief GPIO driver version. */
-#define FSL_GPIO_DRIVER_VERSION (MAKE_VERSION(2, 8, 2))
+#define FSL_GPIO_DRIVER_VERSION (MAKE_VERSION(2, 8, 6))
 /*! @} */
 
 #if defined(FSL_FEATURE_GPIO_REGISTERS_WIDTH) && (FSL_FEATURE_GPIO_REGISTERS_WIDTH == 8U)
-#define GPIO_FIT_REG(value) \
-    ((uint8_t)(value)) /*!< For some platforms with 8-bit register width, cast the type to uint8_t */
+/*!< For some platforms with 8-bit register width, cast the type to uint8_t. Mask with 0xFFU to make
+     truncation from wider integer types explicit (CERT INT31-C). */
+#define GPIO_FIT_REG(value) ((uint8_t)((value) & 0xFFU))
 #else
 #define GPIO_FIT_REG(value) ((uint32_t)(value))
 #endif /*FSL_FEATURE_GPIO_REGISTERS_WIDTH*/
@@ -198,9 +199,9 @@ void GPIO_PinInit(GPIO_Type *base, uint32_t pin, const gpio_pin_config_t *config
  * @brief Get GPIO version information.
  *
  * @param base GPIO peripheral base pointer (GPIOA, GPIOB, GPIOC, and so on.)
- * @param info GPIO version information
+ * @param verInfo GPIO version information
  */
-void GPIO_GetVersionInfo(GPIO_Type *base, gpio_version_info_t *info);
+void GPIO_GetVersionInfo(GPIO_Type *base, gpio_version_info_t *verInfo);
 #endif /* FSL_FEATURE_GPIO_HAS_VERSION_INFO_REGISTER */
 
 #if defined(FSL_FEATURE_GPIO_HAS_SECURE_PRIVILEGE_CONTROL) && FSL_FEATURE_GPIO_HAS_SECURE_PRIVILEGE_CONTROL
@@ -458,6 +459,10 @@ uint32_t GPIO_PortGetInterruptFlags(GPIO_Type *base);
  */
 void GPIO_PortClearInterruptFlags(GPIO_Type *base, uint32_t mask);
 #else
+
+#define GPIO_PortGetInterruptFlags(base) GPIO_GpioGetInterruptFlags((base))
+#define GPIO_PortClearInterruptFlags(base, mask) GPIO_GpioClearInterruptFlags((base), (mask))
+
 /*!
  * @brief Configures the gpio pin interrupt/DMA request.
  *
@@ -481,7 +486,7 @@ void GPIO_PortClearInterruptFlags(GPIO_Type *base, uint32_t mask);
  */
 static inline void GPIO_SetPinInterruptConfig(GPIO_Type *base, uint32_t pin, gpio_interrupt_config_t config)
 {
-    assert(base);
+    assert(NULL != base);
 
     base->ICR[pin] = GPIO_FIT_REG((base->ICR[pin] & ~GPIO_ICR_IRQC_MASK) | GPIO_ICR_IRQC(config));
 }
@@ -498,7 +503,7 @@ static inline void GPIO_SetPinInterruptConfig(GPIO_Type *base, uint32_t pin, gpi
  */
 static inline void GPIO_SetPinInterruptChannel(GPIO_Type *base, uint32_t pin, gpio_interrupt_selection_t selection)
 {
-    assert(base);
+    assert(NULL != base);
 
     base->ICR[pin] = GPIO_FIT_REG((base->ICR[pin] & ~GPIO_ICR_IRQS_MASK) | GPIO_ICR_IRQS(selection));
 }
@@ -566,7 +571,7 @@ void GPIO_PinClearInterruptFlag(GPIO_Type *base, uint32_t pin);
  */
 static inline uint32_t GPIO_GetPinsDMARequestFlags(GPIO_Type *base)
 {
-    assert(base);
+    assert(NULL != base);
     return (base->ISFR[1]);
 }
 #endif
@@ -594,7 +599,7 @@ static inline uint32_t GPIO_GetPinsDMARequestFlags(GPIO_Type *base)
  */
 static inline void GPIO_SetMultipleInterruptPinsConfig(GPIO_Type *base, uint32_t mask, gpio_interrupt_config_t config)
 {
-    assert(base);
+    assert(NULL != base);
 
     if (0UL != (mask & 0xffffUL))
     {

@@ -1,0 +1,636 @@
+/*!
+@defgroup debugconsolelite Debug Console Lite
+@details This chapter describes the programming interface of the debug console driver.
+
+The debug console enables debug log messages to be output via the specified peripheral with
+frequency of the peripheral source clock and base address at the specified baud rate.
+Additionally, it provides input and output functions to scan and print formatted data.
+
+# Function groups {#DbgConsoleFunGrps}
+
+## Initialization {#DbgConsoleInit}
+
+To initialize the debug console, call the <span style="color:red">DbgConsole_Init()</span> function with these parameters.
+This function automatically enables the module and the clock.
+
+@code
+/*!
+ * @brief Initializes the peripheral used for debug messages.
+ *
+ * Call this function to enable debug log messages to be output via the specified peripheral,
+ * frequency of peripheral source clock, and base address at the specified baud rate.
+ * After this function has returned, stdout and stdin are connected to the selected peripheral.
+ *
+ * @param instance      The instance of the module.
+ * @param baudRate      The desired baud rate in bits per second.
+ * @param device        Low level device type for the debug console, can be one of the following.
+ *                      @arg kSerialPort_Uart.
+ * @param clkSrcFreq    Frequency of peripheral source clock.
+ *
+ * @return              Indicates whether initialization was successful or not.
+ * @retval kStatus_Success          Execution successfully
+ * @retval kStatus_Fail             Execution failure
+ */
+status_t DbgConsole_Init(uint8_t instance, uint32_t baudRate, serial_port_type_t device, uint32_t clkSrcFreq);
+@endcode
+
+Selects the supported debug console hardware device type, such as
+
+~~~~~{.c}
+typedef enum _serial_port_type
+{
+    kSerialPort_None = 0U,                /*!< Serial port is none */
+    kSerialPort_Uart = 1U,                /*!< Serial port UART */
+} serial_port_type_t;
+~~~~~
+
+After the initialization is successful, stdout and stdin are connected to the selected peripheral.
+The debug console state is stored in the debug_console_state_t structure, such as shown here.
+
+~~~~~{.c}
+typedef struct DebugConsoleState
+{
+    uint8_t uartHandleBuffer[HAL_UART_HANDLE_SIZE];
+    hal_uart_status_t (*putChar)(hal_uart_handle_t handle, const uint8_t *data, size_t length); /*!< put char function pointer */
+    hal_uart_status_t (*getChar)(hal_uart_handle_t handle, uint8_t *data, size_t length);   /*!< get char function pointer */
+    serial_port_type_t type; /*!< The initialized port of the debug console. */
+} debug_console_state_t;
+~~~~~
+
+This example shows how to call the DbgConsole_Init() given the user configuration structure.
+
+~~~~~{.c}
+DbgConsole_Init(BOARD_DEBUG_USART_INSTANCE, BOARD_DEBUG_USART_BAUDRATE, BOARD_DEBUG_USART_TYPE,
+                             BOARD_DEBUG_USART_CLK_FREQ);
+~~~~~
+
+## Advanced Feature {#DbgConsoleAdvFeature}
+
+The debug console provides input and output functions to scan and print formatted data.
+
++ Support a format specifier for PRINTF following this prototype
+<span>" %[flags][width][.precision][length]specifier"</span>, which is explained below
+
+<div style="width:800px;">
+    <table>
+        <tr>
+            <th>flags</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>-</td>
+            <td>Left-justified within the given field width. Right-justified is the default.</td>
+        </tr>
+        <tr>
+            <td>+</td>
+            <td>Forces to precede the result with a plus or minus sign (+ or -) even for positive numbers.
+                By default, only negative numbers are preceded with a - sign.
+            </td>
+        </tr>
+        <tr>
+            <td>(space)</td>
+            <td>If no sign is written, a blank space is inserted before the value.</td>
+        </tr>
+        <tr>
+            <td>#</td>
+            <td>Used with o, x, or X specifiers the value is preceded with 0, 0x, or 0X respectively for
+                values other than zero. Used with e, E and f, it forces the written output to
+                contain a decimal point even if no digits would follow. By default, if no digits follow,
+                no decimal point is written. Used with g or G the result is the same as with e or E
+                but trailing zeros are not removed.
+            </td>
+        </tr>
+        <tr>
+            <td>0</td>
+            <td>Left-pads the number with zeroes (0) instead of spaces, where padding is specified
+                (see width sub-specifier).
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div style="width:800px;">
+    <table>
+        <tr>
+            <th>Width</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>(number)</td>
+            <td>A minimum number of characters to be printed. If the value to be printed is shorter than this number,
+                the result is padded with blank spaces. The value is not truncated even if the result is larger.
+            </td>
+        </tr>
+        <tr>
+            <td>*</td>
+            <td>The width is not specified in the format string, but as an additional integer value argument
+                preceding the argument that has to be formatted.
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div style="width:800px;">
+    <table>
+        <tr>
+            <th>.precision</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>.number</td>
+            <td>For integer specifiers (d, i, o, u, x, X) − precision specifies the minimum number of
+                digits to be written. If the value to be written is shorter than this number, the result
+                is padded with leading zeros. The value is not truncated even if the result is longer.
+                A precision of 0 means that no character is written for the value 0.
+                For e, E, and f specifiers − this is the number of digits to be printed after the decimal point.
+                For g and G specifiers − This is the maximum number of significant digits to be printed.
+                For s − this is the maximum number of characters to be printed.
+                By default, all characters are printed until the ending null character is encountered.
+                For c type − it has no effect. When no precision is specified, the default is 1.
+                If the period is specified without an explicit value for precision, 0 is assumed.
+            </td>
+        </tr>
+        <tr>
+            <td>.*</td>
+            <td>The precision is not specified in the format string, but as an additional integer value argument
+                preceding the argument that has to be formatted.
+            </td>
+        </tr>
+    </table>
+</div>
+
+<table>
+    <tr>
+        <th>length</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td colspan=2>Do not support</td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <th>specifier</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>d or i</td>
+        <td>Signed decimal integer</td>
+    </tr>
+    <tr>
+        <td>f</td>
+        <td>Decimal floating point</td>
+    </tr>
+    <tr>
+        <td>F</td>
+        <td>Decimal floating point capital letters</td>
+    </tr>
+    <tr>
+        <td>x</td>
+        <td>Unsigned hexadecimal integer</td>
+    </tr>
+    <tr>
+        <td>X</td>
+        <td>Unsigned hexadecimal integer capital letters</td>
+    </tr>
+    <tr>
+        <td>o</td>
+        <td>Signed octal</td>
+    </tr>
+    <tr>
+        <td>b</td>
+        <td>Binary value</td>
+    </tr>
+    <tr>
+        <td>p</td>
+        <td>Pointer address</td>
+    </tr>
+    <tr>
+        <td>u</td>
+        <td>Unsigned decimal integer</td>
+    </tr>
+    <tr>
+        <td>c</td>
+        <td>Character</td>
+    </tr>
+    <tr>
+        <td>s</td>
+        <td>String of characters</td>
+    </tr>
+    <tr>
+        <td>n</td>
+        <td>Nothing printed</td>
+    </tr>
+</table>
+
++ Support a format specifier for SCANF following this prototype
+<span style="color:red">" %[*][width][length]specifier"</span>, which is explained below
+
+<div style="width:800px;">
+    <table>
+        <tr>
+            <th>*</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td colspan=2>An optional starting asterisk indicates that the data is to be read
+                from the stream but ignored. In other words, it is not stored in the corresponding argument.
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div style="width:800px;">
+    <table>
+        <tr>
+            <th>width</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td colspan=2>This specifies the maximum number of characters to be read
+                in the current reading operation.
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div style="width:800px;">
+    <table>
+        <tr>
+            <th>length</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>hh</td>
+            <td>The argument is interpreted as a signed character or unsigned character (only applies
+                to integer specifiers: i, d, o, u, x, and X).
+            </td>
+        </tr>
+        <tr>
+            <td>h</td>
+            <td>The argument is interpreted as a short integer or unsigned short integer (only applies
+                to integer specifiers: i, d, o, u, x, and X).
+            </td>
+        </tr>
+        <tr>
+            <td>l</td>
+            <td>The argument is interpreted as a long integer or unsigned long integer for integer
+                specifiers (i, d, o, u, x, and X) and as a wide character or wide character
+                string for specifiers c and s.
+            </td>
+        </tr>
+        <tr>
+            <td>ll</td>
+            <td>The argument is interpreted as a long long integer or unsigned long long integer for integer
+                specifiers (i, d, o, u, x, and X) and as a wide character or wide character
+                string for specifiers c and s.
+            </td>
+        </tr>
+        <tr>
+            <td>L</td>
+            <td>The argument is interpreted as a long double (only applies to
+                floating point specifiers: e, E, f, g, and G).
+            </td>
+        </tr>
+        <tr>
+            <td>j or z or t</td>
+            <td>Not supported</td>
+        </tr>
+    </table>
+</div>
+
+<div style="width:800px;">
+    <table>
+        <tr>
+            <th>specifier</th>
+            <th>Qualifying Input</th>
+            <th>Type of argument</th>
+        </tr>
+        <tr>
+            <td>c</td>
+            <td>Single character: Reads the next character. If a width different from 1 is specified,
+                the function reads width characters and stores them in the successive locations of the array
+                passed as argument. No null character is appended at the end.
+            </td>
+            <td>char *</td>
+        </tr>
+        <tr>
+            <td>i</td>
+            <td>Integer: : Number optionally preceded with a + or - sign</td>
+            <td>int *</td>
+        </tr>
+        <tr>
+            <td>d</td>
+            <td>Decimal integer: Number optionally preceded with a + or - sign</td>
+            <td>int *</td>
+        </tr>
+        <tr>
+            <td>a, A, e, E, f, F, g, G</td>
+            <td>Floating point: Decimal number containing a decimal point, optionally preceded by a + or - sign and
+                optionally followed by the e or E character and a decimal number. Two examples of valid
+                entries are -732.103 and 7.12e4
+            </td>
+            <td>float *</td>
+        </tr>
+        <tr>
+            <td>o</td>
+            <td>Octal Integer:</td>
+            <td>int *</td>
+        </tr>
+        <tr>
+            <td>s</td>
+            <td>String of characters. This reads subsequent characters until a white space is found
+                (white space characters are considered to be blank, newline, and tab).
+            </td>
+            <td>char *</td>
+        </tr>
+        <tr>
+            <td>u</td>
+            <td>Unsigned decimal integer.</td>
+            <td>unsigned int *</td>
+        </tr>
+    </table>
+</div>
+
+The debug console has its own printf/scanf/putchar/getchar functions which are defined in the header file.
+
+~~~~~{.c}
+int DbgConsole_Printf(const char *fmt_s, ...);  /*!< Writes formatted output to the standard output stream. */
+int DbgConsole_Putchar(int ch);                 /*!< Writes a character to stdout. */
+int DbgConsole_Scanf(char *fmt_ptr, ...);       /*!< Reads formatted data from the standard input stream. */
+int DbgConsole_Getchar(void);                   /*!< Reads a character from standard input. */
+~~~~~
+
+This utility supports selecting toolchain's printf/scanf or the MCUXpresso SDK printf/scanf.
+
+~~~~~{.c}
+#if SDK_DEBUGCONSOLE == DEBUGCONSOLE_DISABLE /* Disable debug console */
+#define PRINTF
+#define SCANF
+#define PUTCHAR
+#define GETCHAR
+#elif SDK_DEBUGCONSOLE == DEBUGCONSOLE_REDIRECT_TO_SDK /* Select printf, scanf, putchar, getchar of SDK version. */
+#define PRINTF DbgConsole_Printf
+#define SCANF DbgConsole_Scanf
+#define PUTCHAR DbgConsole_Putchar
+#define GETCHAR DbgConsole_Getchar
+#elif SDK_DEBUGCONSOLE == DEBUGCONSOLE_REDIRECT_TO_TOOLCHAIN /* Select printf, scanf, putchar, getchar of toolchain. */
+#define PRINTF printf
+#define SCANF scanf
+#define PUTCHAR putchar
+#define GETCHAR getchar
+#endif /* SDK_DEBUGCONSOLE */
+~~~~~
+
+## SDK_DEBUGCONSOLE and SDK_DEBUGCONSOLE_UART {#DbgConsoleFrontendAndBackend}
+
+There are two macros SDK_DEBUGCONSOLE and SDK_DEBUGCONSOLE_UART added to configure PRINTF and low level output perihperal.
+
++ The macro SDK_DEBUGCONSOLE is used for forntend. Whether debug console redirect to toolchain or SDK or disabled, it decides which is the frontend of the debug console, Tool chain or SDK. The fucntion can be set by the macro SDK_DEBUGCONSOLE.
++ The macro SDK_DEBUGCONSOLE_UART is used for backend. It is use to decide whether provide low level IO implementation to toolchain printf and scanf. For example, within MCUXpresso, if the macro SDK_DEBUGCONSOLE_UART is defined, \__sys_write and \__sys_readc will be used when \__REDLIB\__ is defined; _write and _read will be used in other cases.The macro does not specifically refer to the perihpheral "UART". It refers to the external perihperal UART. So if the macro SDK_DEBUGCONSOLE_UART is not defined when tool-chain printf is calling, the semihosting will be used.
+
+The following the matrix show the effects of SDK_DEBUGCONSOLE and SDK_DEBUGCONSOLE_UART on PRINTF and printf. The green mark is the default setting of the debug console.
+<div style="width:800px;">
+    <table>
+        <tr>
+            <th>SDK_DEBUGCONSOLE</th>
+            <th>SDK_DEBUGCONSOLE_UART</th>
+            <th>PRINTF</th>
+            <th>printf</th>
+        </tr>
+        <tr>
+            <td>DEBUGCONSOLE_REDIRECT_TO_SDK</td>
+            <td>defined</td>
+            <td>UART</td>
+            <td>UART</td>
+        </tr>
+        <tr>
+            <td style="color:green">DEBUGCONSOLE_REDIRECT_TO_SDK</td>
+            <td style="color:green">undefined</td>
+            <td style="color:green">UART</td>
+            <td style="color:green">semihost</td>
+        </tr>
+        <tr>
+            <td>DEBUGCONSOLE_REDIRECT_TO_TOOLCHAIN</td>
+            <td>defined</td>
+            <td>UART</td>
+            <td>UART</td>
+        </tr>
+        <tr>
+            <td>DEBUGCONSOLE_REDIRECT_TO_TOOLCHAIN</td>
+            <td>undefined</td>
+            <td>semihost</td>
+            <td>semihost</td>
+        </tr>
+        <tr>
+            <td>DEBUGCONSOLE_DISABLE</td>
+            <td>defined</td>
+            <td>No ouput</td>
+            <td>UART</td>
+        </tr>
+        <tr>
+            <td>DEBUGCONSOLE_DISABLE</td>
+            <td>undefined</td>
+            <td>No ouput</td>
+            <td>semihost</td>
+        </tr>
+    </table>
+</div>
+
+
+# Typical use case {#DbgConsoleTpyUC}
+
+## Some examples use the PUTCHAR & GETCHAR function
+
+~~~~~{.c}
+ch = GETCHAR();
+PUTCHAR(ch);
+~~~~~
+
+## Some examples use the PRINTF function
+
+Statement prints the string format.
+
+~~~~~{.c}
+PRINTF("%s %s\r\n", "Hello", "world!");
+~~~~~
+
+Statement prints the hexadecimal format/
+
+~~~~~{.c}
+PRINTF("0x%02X hexadecimal number equivalents 255", 255);
+~~~~~
+
+Statement prints the decimal floating point and unsigned decimal.
+
+~~~~~{.c}
+PRINTF("Execution timer: %s\n\rTime: %u ticks %2.5f milliseconds\n\rDONE\n\r", "1 day", 86400, 86.4);
+~~~~~
+
+## Some examples use the SCANF function
+
+~~~~~{.c}
+PRINTF("Enter a decimal number: ");
+SCANF("%d", &i);
+PRINTF("\r\nYou have entered %d.\r\n", i, i);
+PRINTF("Enter a hexadecimal number: ");
+SCANF("%x", &i);
+PRINTF("\r\nYou have entered 0x%X (%d).\r\n", i, i);
+~~~~~
+
+## Print out failure messages using MCUXpresso SDK __assert_func:
+
+~~~~~{.c}
+void __assert_func(const char *file, int line, const char *func, const char *failedExpr)
+{
+    PRINTF("ASSERT ERROR \" %s \": file \"%s\" Line \"%d\" function name \"%s\" \n", failedExpr, file , line, func);
+    for (;;)
+    {}
+}
+~~~~~
+## Note:
+<P>To use 'printf' and 'scanf' for GNUC Base, add file <B>'fsl_sbrk.c'</B> in path: <B>..\\{package}\\devices\\{subset}\\utilities\\fsl_sbrk.c </B> to your project.</P>
+
+*/
+
+/*!
+@if dox_section_semihosting
+@defgroup Semihosting Semihosting
+@ingroup debugconsolelite
+@details Semihosting is a mechanism for ARM targets to communicate input/output requests from application code to a host computer running a debugger.
+This mechanism can be used, for example, to enable functions in the C library, such as printf() and scanf(), to use the screen and keyboard of the host
+rather than having a screen and keyboard on the target system.
+
+# Guide Semihosting for IAR {#SemihostingGrps}
+
+\b NOTE: After the setting both "printf" and "scanf" are available for debugging.
+
+## Step 1: Setting up the environment
+
+1.  To set debugger options, choose Project>Options. In the Debugger category, click the Setup tab.
+2.  Select Run to main and click OK. This ensures that the debug session starts by running the main function.
+3.  The project is now ready to be built.
+
+## Step 2: Building the project
+
+1.  Compile and link the project by choosing Project>Make or F7.
+2.  Alternatively, click the Make button on the tool bar. The Make command compiles and links those files that have been modified.
+
+## Step 3: Starting semihosting
+
+1.  Choose "Semihosting_IAR" project -> "Options" -> "Debugger" -> "J-Link/J-Trace".
+2.  Choose tab "J-Link/J-Trace" -> "Connection" tab ->  "SWD".
+3.  Choose tab "General Options" -> "Library Configurations", select Semihosted, select Via semihosting. Please Make sure the SDK_DEBUGCONSOLE_UART is not defined in project settings.
+4.  Start the project by choosing Project>Download and Debug.
+5.  Choose View>Terminal I/O to display the output from the I/O operations.
+
+
+# Guide Semihosting for Keil µVision {#SemihostingKeilGrps}
+
+\b NOTE: Semihosting is not support by MDK-ARM, use the retargeting functionality of MDK-ARM instead.
+
+
+# Guide Semihosting for MCUXpresso IDE {#SemihostingGrps9}
+## Step 1: Setting up the environment
+1.  To set debugger options, choose Project>Properties. select the setting category.
+2.  Select Tool Settings, unfold MCU C Compile.
+3.  Select Preprocessor item.
+4.  Set SDK_DEBUGCONSOLE=0, if set SDK_DEBUGCONSOLE=1, the log will be redirect to the UART.
+
+## Step 2: Building the project
+1.  Compile and link the project.
+
+## Step 3: Starting semihosting
+1.  Download and debug the project.
+2.  When the project runs successfully, the result can be seen in the Console window.
+
+Semihosting can also be selected through the "Quick settings" menu in the left bottom window, Quick settings->SDK Debug Console->Semihost console.
+
+# Guide Semihosting for ARMGCC {#SemihostingGrps11}
+## Step 1: Setting up the environment
+1.  Turn on "J-LINK GDB Server" -> Select suitable "Target device" -> "OK".
+2.  Turn on "PuTTY". Set up as follows.
+       - "Host Name (or IP address)" : localhost
+       - "Port" :2333
+       - "Connection type" : Telet.
+       -  Click "Open".
+3.  Increase "Heap/Stack" for GCC to 0x2000:
+<P><B> Add to "CMakeLists.txt" </B>
+
+SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} --defsym=__stack_size__=0x2000")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} --defsym=__stack_size__=0x2000")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} --defsym=__heap_size__=0x2000")
+
+SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} --defsym=__heap_size__=0x2000")
+## Step 2: Building the project
+<OL>
+<LI>Change "CMakeLists.txt":</LI>
+<P><B> Change </B> "SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} --specs=nano.specs")"
+<P><B>to </B> "SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} --specs=rdimon.specs")"
+
+<P><B> Replace paragraph </B>
+<P>
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fno-common")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -ffunction-sections")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fdata-sections")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -ffreestanding")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fno-builtin")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -mthumb")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -mapcs")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -Xlinker")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} --gc-sections")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -Xlinker")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -static")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -Xlinker")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -z")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -Xlinker")
+
+SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} muldefs")
+
+<P><B> To </B>
+
+<P>SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} --specs=rdimon.specs ") </P>
+
+<P><B> Remove </B>
+<P> target_link_libraries(semihosting_ARMGCC.elf debug nosys)
+
+<LI>Run "build_debug.bat" to build project</LI>
+</OL>
+
+## Step 3: Starting semihosting
+1.  Download the image and set as follows.
+~~~~~
+    cd D:\mcu-sdk-2.0-origin\boards\twrk64f120m\driver_examples\semihosting\armgcc\debug
+    d:
+    C:\PROGRA~2\GNUTOO~1\4BD65~1.920\bin\arm-none-eabi-gdb.exe
+    target remote localhost:2331
+    monitor reset
+    monitor semihosting enable
+    monitor semihosting thumbSWI 0xAB
+    monitor semihosting IOClient 1
+    monitor flash device = MK64FN1M0xxx12
+    load semihosting_ARMGCC.elf
+    monitor reg pc = (0x00000004)
+    monitor reg sp = (0x00000000)
+    continue
+~~~~~
+
+2.  After the setting, press "enter". The PuTTY window now shows the printf() output.
+@endif
+*/

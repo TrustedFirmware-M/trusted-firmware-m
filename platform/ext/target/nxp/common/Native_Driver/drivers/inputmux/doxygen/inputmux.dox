@@ -1,0 +1,15 @@
+/*!
+@defgroup inputmux_driver INPUTMUX: Input Multiplexing Driver
+
+@details The MCUXpresso SDK provides a driver for the Input multiplexing (INPUTMUX).
+ @n
+It configures the inputs to the pin interrupt block, DMA trigger, and frequency measure function. Once
+configured, the clock is not needed for the inputmux.
+ @n
+
+# Input Multiplexing Driver operation {#INPUTMUXInit}
+
+INPUTMUX_AttachSignal function configures the specified input
+
+# Typical use case {#INPUTMUXTypUC}
+Refer to the driver examples codes located at \<SDK_ROOT\>/boards/\<BOARD\>/driver_examples/inputmux*/

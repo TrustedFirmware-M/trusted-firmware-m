@@ -1,0 +1,17 @@
+/*!
+@page component_log Component Change Log
+
+@section UART_Adapter UART_ADAPTER
+  The current UART_Adapter component version is 1.0.2.
+
+  - 1.0.2
+    - Improvements
+      - Conditionally compile interrupt handling code to solve the problem of using this driver on CPU cores that do not support interrupts.
+
+  - 1.0.1
+    - Add prefixing fsl_adapter_xxx.
+
+  - 1.0.0
+    - Initial version
+
+*/

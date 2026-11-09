@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015-2016, Freescale Semiconductor, Inc.
- * Copyright 2016-2021,2023,2024 NXP
+ * Copyright 2016-2021,2023,2024, 2026 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -126,10 +126,17 @@ void DisableDeepSleepIRQ(IRQn_Type interrupt)
 void MSDK_EnableCpuCycleCounter(void)
 {
     /* Make sure the DWT trace fucntion is enabled. */
+#if (__CM_CMSIS_VERSION_MAIN < 6U)
+    if (CoreDebug_DEMCR_TRCENA_Msk != (CoreDebug_DEMCR_TRCENA_Msk & CoreDebug->DEMCR))
+    {
+        CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    }
+#else
     if (DCB_DEMCR_TRCENA_Msk != (DCB_DEMCR_TRCENA_Msk & DCB->DEMCR))
     {
         DCB->DEMCR |= DCB_DEMCR_TRCENA_Msk;
     }
+#endif
 
     /* CYCCNT not supported on this device. */
     assert(DWT_CTRL_NOCYCCNT_Msk != (DWT->CTRL & DWT_CTRL_NOCYCCNT_Msk));
@@ -253,9 +260,18 @@ void SDK_DelayAtLeastUs(uint32_t delayTime_us, uint32_t coreClock_Hz)
          * not matter because other instructions outside while loop is enough to fill the time.
          */
         count = count / 3U * 2U;
+#elif (__CORTEX_M == 85)
 #else
         count = count / 4U;
 #endif
+        /* Ensure at least one loop iteration when delayTime_us > 0.
+         * USEC_TO_COUNT truncates, so at low clocks (e.g. 32 kHz) small delays
+         * yield count 0 after division. DelayLoop(0) would underflow its
+         * unsigned counter and spin for ~2^32 iterations instead of returning. */
+        if (count == 0U)
+        {
+            count = 1U;
+        }
         DelayLoop((uint32_t)count);
 #endif /* defined(SDK_DELAY_USE_DWT) && defined(DWT) */
     }
@@ -367,3 +383,23 @@ void EnableGlobalIRQEx(uint32_t primask)
     EnableGlobalIRQ(primask);
 }
 #endif /* FSL_FEATURE_MEASURE_CRITICAL_SECTION */
+
+#if defined(FSL_FEATURE_IRQSTEER_EXT_INT_MAX_NUM) && (FSL_FEATURE_IRQSTEER_EXT_INT_MAX_NUM > 0) && defined(FSL_FEATURE_IRQSTEER_IRQ_START_INDEX) && (FSL_FEATURE_IRQSTEER_IRQ_START_INDEX > 0)
+__attribute__((weak)) void IRQSTEER_EnableInterrupt(int32_t irqsteerInstIdx, IRQn_Type interrupt)
+{
+    (void)irqsteerInstIdx;
+    (void)interrupt;
+}
+
+__attribute__((weak)) void IRQSTEER_DisableInterrupt(int32_t irqsteerInstIdx, IRQn_Type interrupt)
+{
+    (void)irqsteerInstIdx;
+    (void)interrupt;
+}
+
+__attribute__((weak)) int32_t IRQSTEER_GetInstIdxByIRQ(IRQn_Type irq)
+{
+    (void)irq;
+    return -1;
+}
+#endif

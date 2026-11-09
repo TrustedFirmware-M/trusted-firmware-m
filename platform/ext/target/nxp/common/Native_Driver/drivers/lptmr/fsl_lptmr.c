@@ -13,6 +13,12 @@
 #define FSL_COMPONENT_ID "platform.drivers.lptmr"
 #endif
 
+#if defined(LPTMR_RSTS)
+#define LPTMR_RESETS_ARRAY LPTMR_RSTS
+#elif defined(LPTMR_RSTS_N)
+#define LPTMR_RESETS_ARRAY LPTMR_RSTS_N
+#endif
+
 #if (defined(LPTMR_CLOCKS) && !(defined(FSL_SDK_DISABLE_DRIVER_CLOCK_CONTROL) && FSL_SDK_DISABLE_DRIVER_CLOCK_CONTROL))
 #define LPTMR_DRIVER_CLK_CTRL 1
 #endif
@@ -49,6 +55,11 @@ static const clock_ip_name_t s_lptmrPeriphClocks[] = LPTMR_PERIPH_CLOCKS;
 
 #endif /* LPTMR_DRIVER_CLK_CTRL */
 
+#if defined(LPTMR_RESETS_ARRAY)
+/* Reset array */
+static const reset_ip_name_t s_lptmrResets[] = LPTMR_RESETS_ARRAY;
+#endif
+
 /*******************************************************************************
  * Code
  ******************************************************************************/
@@ -60,7 +71,7 @@ static uint32_t LPTMR_GetInstance(LPTMR_Type *base)
     /* Find the instance index from base address mappings. */
     for (instance = 0; instance < ARRAY_SIZE(s_lptmrBases); instance++)
     {
-        if (MSDK_REG_SECURE_ADDR(s_lptmrBases[instance]) == MSDK_REG_SECURE_ADDR(base))
+        if (MSDK_REG_NONSECURE_ADDR(s_lptmrBases[instance]) == MSDK_REG_NONSECURE_ADDR(base))
         {
             break;
         }
@@ -91,6 +102,10 @@ void LPTMR_Init(LPTMR_Type *base, const lptmr_config_t *config)
     CLOCK_EnableClock(s_lptmrClocks[instance]);
 #if defined(LPTMR_PERIPH_CLOCKS)
     CLOCK_EnableClock(s_lptmrPeriphClocks[instance]);
+#endif
+
+#if defined(LPTMR_RESETS_ARRAY)
+    RESET_ReleasePeripheralReset(s_lptmrResets[instance]);
 #endif
 #endif /* LPTMR_DRIVER_CLK_CTRL */
 

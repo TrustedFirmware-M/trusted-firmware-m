@@ -1,0 +1,4 @@
+/*!
+@defgroup usart_dma_driver USART DMA Driver
+@ingroup usart
+*/

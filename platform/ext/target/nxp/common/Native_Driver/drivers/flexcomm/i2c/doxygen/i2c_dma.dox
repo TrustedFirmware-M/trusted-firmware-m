@@ -1,0 +1,5 @@
+/*!
+@defgroup i2c_dma_driver I2C DMA Driver
+@ingroup i2c
+@details
+*/

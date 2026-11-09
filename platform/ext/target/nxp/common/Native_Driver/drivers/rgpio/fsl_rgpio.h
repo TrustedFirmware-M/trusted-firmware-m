@@ -22,8 +22,8 @@
 
 /*! @name Driver version */
 /*! @{ */
-/*! @brief RGPIO driver version 2.1.0. */
-#define FSL_RGPIO_DRIVER_VERSION (MAKE_VERSION(2, 1, 0))
+/*! @brief RGPIO driver version 2.2.0. */
+#define FSL_RGPIO_DRIVER_VERSION (MAKE_VERSION(2, 2, 0))
 /*! @} */
 
 /*! @brief RGPIO direction definition */
@@ -155,6 +155,20 @@ void RGPIO_PinInit(RGPIO_Type *base, uint32_t pin, const rgpio_pin_config_t *con
  * @retval RGPIO instance
  */
 uint32_t RGPIO_GetInstance(RGPIO_Type *base);
+
+/*!
+ * @brief Gets the current direction of a RGPIO pin.
+ *
+ * @param base RGPIO peripheral base pointer (RGPIOA, RGPIOB, RGPIOC, and so on.)
+ * @param pin  RGPIO port pin number
+ * @retval RGPIO pin direction
+ *        - kRGPIO_DigitalInput: pin is configured as digital input.
+ *        - kRGPIO_DigitalOutput: pin is configured as digital output.
+ */
+static inline rgpio_pin_direction_t RGPIO_GetPinDirection(RGPIO_Type *base, uint32_t pin)
+{
+    return ((((base->PDDR) >> pin) & 0x01U) != 0) ? kRGPIO_DigitalOutput : kRGPIO_DigitalInput;
+}
 /*! @} */
 
 /*! @name RGPIO Output Operations */
@@ -511,6 +525,20 @@ void FGPIO_PinInit(FGPIO_Type *base, uint32_t pin, const rgpio_pin_config_t *con
  * @retval FGPIO instance
  */
 uint32_t FGPIO_GetInstance(FGPIO_Type *base);
+
+/*!
+ * @brief Gets the current direction of a FGPIO pin.
+ *
+ * @param base FGPIO peripheral base pointer (FGPIOA, FGPIOB, FGPIOC, and so on.)
+ * @param pin  FGPIO port pin number
+ * @retval FGPIO pin direction
+ *        - kRGPIO_DigitalInput: pin is configured as digital input.
+ *        - kRGPIO_DigitalOutput: pin is configured as digital output.
+ */
+static inline rgpio_pin_direction_t FGPIO_GetPinDirection(FGPIO_Type *base, uint32_t pin)
+{
+    return ((((base->PDDR) >> pin) & 0x01U) != 0) ? kRGPIO_DigitalOutput : kRGPIO_DigitalInput;
+}
 /*! @} */
 
 /*! @name FGPIO Output Operations */

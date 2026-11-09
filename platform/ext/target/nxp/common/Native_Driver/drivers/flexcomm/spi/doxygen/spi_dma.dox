@@ -1,0 +1,5 @@
+/*!
+@defgroup spi_dma_driver SPI DMA Driver
+@ingroup spi
+@details This section describes the programming interface of the SPI DMA driver.
+*/

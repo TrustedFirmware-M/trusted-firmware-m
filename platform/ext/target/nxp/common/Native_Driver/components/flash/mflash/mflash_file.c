@@ -410,7 +410,7 @@ static status_t mflash_format_internal(mflash_fs_t *fs,
 
     /* Create directory entries in reverse order so that programming of the page containing the dir header is the last
      * step */
-    for (uint32_t fi = file_count; 0u != fi--;)
+    for (uint32_t fi = file_count; fi-- > 0;)
     {
         /* Check for enough space for the directory record */
         assert(dir_offset >= sizeof(mflash_dir_record_t));

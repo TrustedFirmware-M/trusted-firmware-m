@@ -606,7 +606,7 @@ static int32_t ConvertRadixNumToString(char *numstr, void *nump, unsigned int ne
 #endif /* PRINTF_ADVANCED_ENABLE */
             else
             {
-                c = c + (int)'0';
+                c = (long long int)((unsigned int)c + (unsigned int)(int)'0');
             }
             a        = b;
             *nstrp++ = (char)c;
@@ -713,11 +713,11 @@ static int32_t ConvertFloatRadixNumToString(char *numstr, void *nump, int32_t ra
             uc = ~uc;
             c  = (int32_t)uc;
             c += (int32_t)1;
-            c += (int32_t)'0';
+            c = (int32_t)((uint32_t)c + (uint32_t)(int32_t)'0');
         }
         else
         {
-            c = c + '0';
+            c = (int32_t)((uint32_t)c + (uint32_t)'0');
         }
         fa       = fb;
         *nstrp++ = (char)c;
@@ -743,11 +743,11 @@ static int32_t ConvertFloatRadixNumToString(char *numstr, void *nump, int32_t ra
                 uc = ~uc;
                 c  = (int32_t)uc;
                 c += (int32_t)1;
-                c += (int32_t)'0';
+                c = (int32_t)((uint32_t)c + (uint32_t)(int32_t)'0');
             }
             else
             {
-                c = c + '0';
+                c = (int32_t)((uint32_t)c + (uint32_t)'0');
             }
             a        = b;
             *nstrp++ = (char)c;
@@ -833,11 +833,11 @@ static int32_t ConvertPrecisionWidthToLength(char *sval)
 #if (defined(PRINTF_ADVANCED_ENABLE) && (PRINTF_ADVANCED_ENABLE > 0U))
     if (valid_precision_width)
     {
-        vlen = (int)precision_width;
+        vlen = (precision_width <= (uint32_t)INT32_MAX) ? (int32_t)precision_width : INT32_MAX;
     }
     else
     {
-        vlen = (int)strlen(sval);
+        vlen = (int32_t)strlen(sval);
     }
 #else
     vlen = (int32_t)strlen(sval);
@@ -1584,7 +1584,7 @@ int StrFormatScanf(const char *line_ptr, char *format, va_list args_ptr)
         }
         else if (0U == StrFormatScanIsFormatStarting(c))
         {
-            if (*c == '%') 
+            if (*c == '%')
             {
                 /* A % followed by another % matches a single %, so skip the first % */
                 c++;
@@ -1638,7 +1638,6 @@ int StrFormatScanf(const char *line_ptr, char *format, va_list args_ptr)
             {
                 n_decode += ScanIgnoreWhiteSpace(&p);
                 s    = p;
-                val  = 0;
                 base = StrFormatScanGetBase(base, s);
 
                 added = StrFormatScanCheckSymbol(p, &neg);

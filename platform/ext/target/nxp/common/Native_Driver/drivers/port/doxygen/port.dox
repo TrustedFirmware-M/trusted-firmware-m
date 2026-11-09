@@ -1,0 +1,7 @@
+/*!
+@defgroup port PORT: Port Control and Interrupts
+@details The MCUXpresso SDK provides a driver for the Port Control and Interrupts (PORT)
+module of MCUXpresso SDK devices.
+
+
+*/

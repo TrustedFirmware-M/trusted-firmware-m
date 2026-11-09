@@ -1,0 +1,9 @@
+/*!
+@defgroup lpflexcomm LPFLEXCOMM: LPFLEXCOMM Driver
+@details The MCUXpresso SDK provides a generic driver and multiple protocol-specific LPFLEXCOMM drivers for the LPFLEXCOMM module of MCUXpresso SDK devices.
+*/
+
+/*!
+@defgroup lpflexcomm_driver LPFLEXCOMM Driver
+@ingroup lpflexcomm
+*/

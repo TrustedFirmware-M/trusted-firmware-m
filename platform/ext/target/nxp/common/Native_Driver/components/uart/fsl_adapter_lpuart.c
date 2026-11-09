@@ -771,7 +771,7 @@ hal_uart_status_t HAL_UartDeinit(hal_uart_handle_t handle)
 
     uartHandle = (hal_uart_state_t *)handle;
 
-    LPUART_Deinit(s_LpuartAdapterBase[uartHandle->instance]); /*LPUART Deinitialization*/
+    (void)LPUART_Deinit(s_LpuartAdapterBase[uartHandle->instance]); /*LPUART Deinitialization*/
 
 #if (defined(UART_ADAPTER_NON_BLOCKING_MODE) && (UART_ADAPTER_NON_BLOCKING_MODE > 0U))
 
@@ -825,7 +825,7 @@ hal_uart_status_t HAL_UartExitLowpower(hal_uart_handle_t handle)
 {
 #if (defined(HAL_UART_ADAPTER_LOWPOWER) && (HAL_UART_ADAPTER_LOWPOWER > 0U))
     hal_uart_state_t *uartHandle;
-    assert(handle);
+    assert(handle != NULL);
 
     uartHandle = (hal_uart_state_t *)handle;
 
@@ -897,7 +897,7 @@ hal_uart_status_t HAL_UartTransferInstallCallback(hal_uart_handle_t handle,
 {
     hal_uart_state_t *uartHandle;
 
-    assert(handle);
+    assert(handle != NULL);
     assert(0U != HAL_UART_TRANSFER_MODE);
 
     uartHandle = (hal_uart_state_t *)handle;
@@ -912,7 +912,7 @@ hal_uart_status_t HAL_UartTransferReceiveNonBlocking(hal_uart_handle_t handle, h
 {
     hal_uart_state_t *uartHandle;
     status_t status;
-    assert(handle);
+    assert(handle != NULL);
     assert(transfer);
     assert(0U != HAL_UART_TRANSFER_MODE);
 
@@ -928,7 +928,7 @@ hal_uart_status_t HAL_UartTransferSendNonBlocking(hal_uart_handle_t handle, hal_
 {
     hal_uart_state_t *uartHandle;
     status_t status;
-    assert(handle);
+    assert(handle != NULL);
     assert(transfer);
     assert(0U != HAL_UART_TRANSFER_MODE);
 
@@ -944,7 +944,7 @@ hal_uart_status_t HAL_UartTransferGetReceiveCount(hal_uart_handle_t handle, uint
 {
     hal_uart_state_t *uartHandle;
     status_t status;
-    assert(handle);
+    assert(handle != NULL);
     assert(count);
     assert(0U != HAL_UART_TRANSFER_MODE);
 
@@ -960,7 +960,7 @@ hal_uart_status_t HAL_UartTransferGetSendCount(hal_uart_handle_t handle, uint32_
 {
     hal_uart_state_t *uartHandle;
     status_t status;
-    assert(handle);
+    assert(handle != NULL);
     assert(count);
     assert(0U != HAL_UART_TRANSFER_MODE);
 
@@ -974,7 +974,7 @@ hal_uart_status_t HAL_UartTransferGetSendCount(hal_uart_handle_t handle, uint32_
 hal_uart_status_t HAL_UartTransferAbortReceive(hal_uart_handle_t handle)
 {
     hal_uart_state_t *uartHandle;
-    assert(handle);
+    assert(handle != NULL);
     assert(0U != HAL_UART_TRANSFER_MODE);
 
     uartHandle = (hal_uart_state_t *)handle;
@@ -987,7 +987,7 @@ hal_uart_status_t HAL_UartTransferAbortReceive(hal_uart_handle_t handle)
 hal_uart_status_t HAL_UartTransferAbortSend(hal_uart_handle_t handle)
 {
     hal_uart_state_t *uartHandle;
-    assert(handle);
+    assert(handle != NULL);
     assert(0U != HAL_UART_TRANSFER_MODE);
 
     uartHandle = (hal_uart_state_t *)handle;
@@ -1866,7 +1866,7 @@ static void LPUART_StartRingBufferEDMA(hal_uart_handle_t handle)
     hal_uart_state_t *uartHandle;
     hal_uart_dma_state_t *uartDmaHandle;
 
-    assert(handle);
+    assert(handle != NULL);
 
     uartHandle    = (hal_uart_state_t *)handle;
     uartDmaHandle = uartHandle->dmaHandle;
@@ -1916,7 +1916,7 @@ static void LPUART_DMACallbacks(LPUART_Type *base, lpuart_edma_handle_t *handle,
     hal_uart_dma_state_t *uartDmaHandle;
     hal_uart_status_t uartStatus = HAL_UartGetStatus(status);
     hal_dma_callback_msg_t dmaMsg;
-    assert(handle);
+    assert(handle != NULL);
 
     uartDmaHandle = (hal_uart_dma_state_t *)userData;
 
@@ -2012,7 +2012,7 @@ hal_uart_dma_status_t HAL_UartDMAInit(hal_uart_handle_t handle,
     edma_config_t config;
 #endif /* HAL_UART_DMA_INIT_ENABLE > 0 */
 #endif
-    assert(handle);
+    assert(handle != NULL);
     assert(dmaHandle);
     assert(HAL_UART_DMA_HANDLE_SIZE >= sizeof(hal_uart_dma_state_t));
 
@@ -2147,7 +2147,7 @@ hal_uart_dma_status_t HAL_UartDMADeinit(hal_uart_handle_t handle)
     hal_uart_dma_state_t *prev;
     hal_uart_dma_state_t *curr;
 
-    assert(handle);
+    assert(handle != NULL);
 
     uartHandle    = (hal_uart_state_t *)handle;
     uartDmaHandle = uartHandle->dmaHandle;
@@ -2224,7 +2224,7 @@ hal_uart_dma_status_t HAL_UartDMATransferInstallCallback(hal_uart_handle_t handl
     hal_uart_state_t *uartHandle;
     hal_uart_dma_state_t *uartDmaHandle;
 
-    assert(handle);
+    assert(handle != NULL);
 
     uartHandle    = (hal_uart_state_t *)handle;
     uartDmaHandle = uartHandle->dmaHandle;
@@ -2263,8 +2263,8 @@ hal_uart_dma_status_t HAL_UartDMATransferReceive(hal_uart_handle_t handle,
     hal_uart_state_t *uartHandle;
     hal_uart_dma_state_t *uartDmaHandle;
 
-    assert(handle);
-    assert(data);
+    assert(handle != NULL);
+    assert(data != NULL);
 
     uartHandle    = (hal_uart_state_t *)handle;
     uartDmaHandle = uartHandle->dmaHandle;
@@ -2318,8 +2318,8 @@ hal_uart_dma_status_t HAL_UartDMATransferSend(hal_uart_handle_t handle, uint8_t 
 #if (defined(FSL_FEATURE_SOC_EDMA_COUNT) && (FSL_FEATURE_SOC_EDMA_COUNT > 0U))
     lpuart_transfer_t xfer;
 #endif
-    assert(handle);
-    assert(data);
+    assert(handle != NULL);
+    assert(data != NULL);
 
     uartHandle    = (hal_uart_state_t *)handle;
     uartDmaHandle = uartHandle->dmaHandle;
@@ -2359,7 +2359,7 @@ hal_uart_dma_status_t HAL_UartDMAGetReceiveCount(hal_uart_handle_t handle, uint3
     hal_uart_state_t *uartHandle;
     hal_uart_dma_state_t *uartDmaHandle;
 
-    assert(handle);
+    assert(handle != NULL);
 
     uartHandle    = (hal_uart_state_t *)handle;
     uartDmaHandle = uartHandle->dmaHandle;
@@ -2397,7 +2397,7 @@ hal_uart_dma_status_t HAL_UartDMAGetSendCount(hal_uart_handle_t handle, uint32_t
     hal_uart_state_t *uartHandle;
     hal_uart_dma_state_t *uartDmaHandle;
 
-    assert(handle);
+    assert(handle != NULL);
 
     uartHandle    = (hal_uart_state_t *)handle;
     uartDmaHandle = uartHandle->dmaHandle;
@@ -2422,7 +2422,7 @@ hal_uart_dma_status_t HAL_UartDMAAbortReceive(hal_uart_handle_t handle)
     hal_uart_state_t *uartHandle;
     hal_uart_dma_state_t *uartDmaHandle;
 
-    assert(handle);
+    assert(handle != NULL);
 
     uartHandle    = (hal_uart_state_t *)handle;
     uartDmaHandle = uartHandle->dmaHandle;
@@ -2447,7 +2447,7 @@ hal_uart_dma_status_t HAL_UartDMAAbortSend(hal_uart_handle_t handle)
     hal_uart_state_t *uartHandle;
     hal_uart_dma_state_t *uartDmaHandle;
 
-    assert(handle);
+    assert(handle != NULL);
 
     uartHandle    = (hal_uart_state_t *)handle;
     uartDmaHandle = uartHandle->dmaHandle;
@@ -2458,7 +2458,9 @@ hal_uart_dma_status_t HAL_UartDMAAbortSend(hal_uart_handle_t handle)
     LPUART_TransferAbortSendEDMA(s_LpuartAdapterBase[uartDmaHandle->instance], &uartDmaHandle->edmaHandle);
 #elif (defined(FSL_FEATURE_SOC_DMA_COUNT) && (FSL_FEATURE_SOC_DMA_COUNT > 0U))
 #endif /* FSL_FEATURE_SOC_EDMA_COUNT */
-
+    uartDmaHandle->dma_tx.buffer       = NULL;
+    uartDmaHandle->dma_tx.bufferLength = 0U;
+    uartDmaHandle->dma_tx.bufferSofar  = 0U;
     return kStatus_HAL_UartDmaSuccess;
 }
 #endif /* HAL_UART_DMA_ENABLE */

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2016, Freescale Semiconductor, Inc.
- * Copyright 2016-2017, 2023, 2025 NXP
+ * Copyright 2016-2017, 2023, 2025-2026 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -234,7 +234,18 @@ static inline uint32_t LPTMR_GetEnabledInterrupts(LPTMR_Type *base)
 
 #if defined(FSL_FEATURE_LPTMR_HAS_CSR_TDRE) && (FSL_FEATURE_LPTMR_HAS_CSR_TDRE)
 /*!
- * @brief Enable or disable timer DMA request
+ * @brief Enable or disable timer DMA request.
+ *
+ * Toggles CSR[TDRE] on the LPTMR side only: when enabled, every compare
+ * event (CSR[TCF]=1) raises an LPTMR DMA request line which is auto-cleared
+ * after the DMA controller services it.
+ *
+ * @note LPTMR runs on a low-power clock that is asynchronous to the EDMA
+ * bus clock. On some EDMA IP variants the channel has TWO gates that must
+ * BOTH be opened for an LPTMR request to be accepted: the base hardware
+ * request gate (ERQ, opened by EDMA_EnableChannelRequest()) and an extra
+ * asynchronous-request gate (opened by EDMA_EnableAsyncRequest() on
+ * EDMA4; the classic EDMA + DMAMUX combination does not need this).
  *
  * @param base base LPTMR peripheral base address
  * @param enable Switcher of timer DMA feature. "true" means to enable, "false" means to disable.

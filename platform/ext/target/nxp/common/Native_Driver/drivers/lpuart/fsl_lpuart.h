@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2015-2016, Freescale Semiconductor, Inc.
- * Copyright 2016-2025 NXP
+ * Copyright 2016-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -21,7 +21,7 @@
 /*! @name Driver version */
 /*! @{ */
 /*! @brief LPUART driver version. */
-#define FSL_LPUART_DRIVER_VERSION (MAKE_VERSION(2, 10, 0))
+#define FSL_LPUART_DRIVER_VERSION (MAKE_VERSION(2, 11, 0))
 /*! @} */
 
 /*! @brief Retry times for waiting flag. */
@@ -94,6 +94,13 @@ typedef enum _lpuart_transmit_cts_config
     kLPUART_CtsSampleAtStart = 0U, /*!< CTS input is sampled at the start of each character. */
     kLPUART_CtsSampleAtIdle  = 1U, /*!< CTS input is sampled when the transmitter is idle */
 } lpuart_transmit_cts_config_t;
+
+/*! @brief LPUART transmitter RTS polarity. */
+typedef enum _lpuart_transmit_rts_polarity
+{
+    kLPUART_RtsPolarityLow  = 0U, /*!< Transmitter RTS is active low. */
+    kLPUART_RtsPolarityHigh = 1U, /*!< Transmitter RTS is active high. */
+} lpuart_transmit_rts_polarity_t;
 #endif
 
 /*! @brief LPUART idle flag type defines when the receiver starts counting. */
@@ -255,9 +262,11 @@ typedef struct _lpuart_config
 #endif
 #if defined(FSL_FEATURE_LPUART_HAS_MODEM_SUPPORT) && FSL_FEATURE_LPUART_HAS_MODEM_SUPPORT
     bool enableRxRTS;                         /*!< RX RTS enable */
+    bool enableTxRTS;                         /*!< TX RTS enable */
     bool enableTxCTS;                         /*!< TX CTS enable */
     lpuart_transmit_cts_source_t txCtsSource; /*!< TX CTS source */
     lpuart_transmit_cts_config_t txCtsConfig; /*!< TX CTS configure */
+    lpuart_transmit_rts_polarity_t txRtsPolarity; /*!< TX RTS polarity */
 #if defined(FSL_FEATURE_LPUART_HAS_MODIR_RTSWATER) && FSL_FEATURE_LPUART_HAS_MODIR_RTSWATER
     uint8_t rtsWatermark;                     /*!< RTS watermark */
 #endif
@@ -269,6 +278,7 @@ typedef struct _lpuart_config
 #if defined(FSL_FEATURE_LPUART_HAS_CTRL_SWAP) && FSL_FEATURE_LPUART_HAS_CTRL_SWAP
     bool swapTxdRxd;                          /*!< Swap TXD and RXD pins */
 #endif
+    bool inverseTxd;                          /*!< Transmit Data Inversion - Setting true reverses the polarity of the transmitted data output */
 } lpuart_config_t;
 
 /*! @brief LPUART transfer structure. */
@@ -825,7 +835,7 @@ static inline uint8_t LPUART_ReadByte(LPUART_Type *base)
      * If ctrl & LPUART_CTRL_M7_MASK is 0, it can't be !0 in next judge.
      */
     bool isSevenDataBits = (((ctrl & LPUART_CTRL_M7_MASK) != 0U) ||
-                            (((ctrl & LPUART_CTRL_M7_MASK) == 0U) && ((ctrl & LPUART_CTRL_M_MASK) == 0U) &&
+                            (((ctrl & LPUART_CTRL_M7_MASK) == 0U) && ((ctrl & LPUART_CTRL_M_MASK) == 0U) && /* GCOVR_EXCL_BR_LINE */
                              ((ctrl & LPUART_CTRL_PE_MASK) != 0U)));
 
     if (isSevenDataBits)

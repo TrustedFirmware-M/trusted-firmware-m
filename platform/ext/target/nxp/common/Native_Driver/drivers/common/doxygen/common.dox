@@ -1,0 +1,6 @@
+/*!
+@defgroup ksdk_common Common Driver
+@details The MCUXpresso SDK provides a driver for the common module of MCUXpresso SDK devices.
+
+*/
+

@@ -1,0 +1,267 @@
+
+
+/*!
+@defgroup i2c I2C: Inter-Integrated Circuit Driver
+@details The MCUXpresso SDK provides a peripheral driver for the Inter-Integrated Circuit (I2C) module of MCUXpresso SDK devices.
+
+
+The I2C driver includes functional APIs and transactional APIs.
+
+Functional APIs are feature/property target low-level APIs.
+Functional APIs can be used for the I2C master/slave initialization/configuration/operation for
+optimization/customization purpose. Using the functional APIs requires the
+knowledge of the I2C master peripheral and how to organize functional APIs
+to meet the application requirements. The I2C functional operation groups provide the functional APIs set.
+
+Transactional APIs are transaction target high-level APIs.
+The transactional APIs can be used to enable the peripheral quickly and also in the
+application if the code size and performance of transactional APIs satisfy
+the requirements. If the code size and performance are critical requirements,
+see the transactional API implementation and write custom code using the functional APIs or accessing the hardware registers.
+
+Transactional APIs support asynchronous transfer. This means that the functions I2C_MasterTransferNonBlocking() set up the interrupt non-blocking transfer.
+When the transfer completes, the upper layer is notified through a callback function with the status.
+
+# Typical use case {#I2CTpyUC}
+
+## Master Operation in functional method{#I2CMasterOpsFunctional}
+
+~~~~~{.c}
+    i2c_master_config_t masterConfig;
+    uint8_t status;
+    status_t result = kStatus_Success;
+    uint8_t txBuff[BUFFER_SIZE];
+
+    /* Get default configuration for master. */
+    I2C_MasterGetDefaultConfig(&masterConfig);
+
+    /* Init I2C master. */
+    I2C_MasterInit(EXAMPLE_I2C_MASTER_BASEADDR, &masterConfig, I2C_MASTER_CLK);
+
+    /* Send start and slave address. */
+    I2C_MasterStart(EXAMPLE_I2C_MASTER_BASEADDR, 7-bit slave address, kI2C_Write/kI2C_Read);
+
+    /* Wait address sent out. */
+    while(!((status = I2C_GetStatusFlag(EXAMPLE_I2C_MASTER_BASEADDR)) & kI2C_IntPendingFlag))
+    {
+
+    }
+
+    if(status & kI2C_ReceiveNakFlag)
+    {
+        return kStatus_I2C_Nak;
+    }
+
+    result = I2C_MasterWriteBlocking(EXAMPLE_I2C_MASTER_BASEADDR, txBuff, BUFFER_SIZE, kI2C_TransferDefaultFlag);
+
+    if(result)
+    {
+        /* If error occours, send STOP. */
+        I2C_MasterStop(EXAMPLE_I2C_MASTER_BASEADDR, kI2CStop);
+        return result;
+    }
+
+    while(!(I2C_GetStatusFlag(EXAMPLE_I2C_MASTER_BASEADDR) & kI2C_IntPendingFlag))
+    {
+
+    }
+
+    /* Wait all data sent out, send STOP. */
+    I2C_MasterStop(EXAMPLE_I2C_MASTER_BASEADDR, kI2CStop);
+~~~~~
+
+## Master Operation in interrupt transactional method{#I2CMasterOpsTransIRQ}
+
+~~~~~{.c}
+    i2c_master_handle_t g_m_handle;
+    volatile bool g_MasterCompletionFlag = false;
+    i2c_master_config_t masterConfig;
+    uint8_t status;
+    status_t result = kStatus_Success;
+    uint8_t txBuff[BUFFER_SIZE];
+    i2c_master_transfer_t masterXfer;
+
+    static void i2c_master_callback(I2C_Type *base, i2c_master_handle_t *handle, status_t status, void *userData)
+    {
+        /* Signal transfer success when received success status. */
+        if (status == kStatus_Success)
+        {
+            g_MasterCompletionFlag = true;
+        }
+    }
+
+    /* Get default configuration for master. */
+    I2C_MasterGetDefaultConfig(&masterConfig);
+
+    /* Init I2C master. */
+    I2C_MasterInit(EXAMPLE_I2C_MASTER_BASEADDR, &masterConfig, I2C_MASTER_CLK);
+
+    masterXfer.slaveAddress = I2C_MASTER_SLAVE_ADDR_7BIT;
+    masterXfer.direction = kI2C_Write;
+    masterXfer.subaddress = NULL;
+    masterXfer.subaddressSize = 0;
+    masterXfer.data = txBuff;
+    masterXfer.dataSize = BUFFER_SIZE;
+    masterXfer.flags = kI2C_TransferDefaultFlag;
+
+    I2C_MasterTransferCreateHandle(EXAMPLE_I2C_MASTER_BASEADDR, &g_m_handle, i2c_master_callback, NULL);
+    I2C_MasterTransferNonBlocking(EXAMPLE_I2C_MASTER_BASEADDR, &g_m_handle, &masterXfer);
+
+    /*  Wait for transfer completed. */
+    while (!g_MasterCompletionFlag)
+    {
+    }
+    g_MasterCompletionFlag = false;
+~~~~~
+
+## Master Operation in DMA transactional method{#I2CMasterOpsTransDMA}
+
+~~~~~{.c}
+    i2c_master_dma_handle_t g_m_dma_handle;
+    dma_handle_t dmaHandle;
+    volatile bool g_MasterCompletionFlag = false;
+    i2c_master_config_t masterConfig;
+    uint8_t txBuff[BUFFER_SIZE];
+    i2c_master_transfer_t masterXfer;
+
+    static void i2c_master_callback(I2C_Type *base, i2c_master_dma_handle_t *handle, status_t status, void *userData)
+    {
+        /* Signal transfer success when received success status. */
+        if (status == kStatus_Success)
+        {
+            g_MasterCompletionFlag = true;
+        }
+    }
+
+    /* Get default configuration for master. */
+    I2C_MasterGetDefaultConfig(&masterConfig);
+
+    /* Init I2C master. */
+    I2C_MasterInit(EXAMPLE_I2C_MASTER_BASEADDR, &masterConfig, I2C_MASTER_CLK);
+
+    masterXfer.slaveAddress = I2C_MASTER_SLAVE_ADDR_7BIT;
+    masterXfer.direction = kI2C_Write;
+    masterXfer.subaddress = NULL;
+    masterXfer.subaddressSize = 0;
+    masterXfer.data = txBuff;
+    masterXfer.dataSize = BUFFER_SIZE;
+    masterXfer.flags = kI2C_TransferDefaultFlag;
+
+    DMA_EnableChannel(EXAMPLE_DMA, EXAMPLE_I2C_MASTER_CHANNEL);
+    DMA_CreateHandle(&dmaHandle, EXAMPLE_DMA, EXAMPLE_I2C_MASTER_CHANNEL);
+
+    I2C_MasterTransferCreateHandleDMA(EXAMPLE_I2C_MASTER_BASEADDR, &g_m_dma_handle, i2c_master_callback, NULL, &dmaHandle);
+    I2C_MasterTransferDMA(EXAMPLE_I2C_MASTER_BASEADDR, &g_m_dma_handle, &masterXfer);
+
+    /*  Wait for transfer completed. */
+    while (!g_MasterCompletionFlag)
+    {
+    }
+    g_MasterCompletionFlag = false;
+~~~~~
+
+## Slave Operation in functional method{#I2CSlaveOpsFunctional}
+
+~~~~~{.c}
+    i2c_slave_config_t slaveConfig;
+    uint8_t status;
+    status_t result = kStatus_Success;
+
+    I2C_SlaveGetDefaultConfig(&slaveConfig); /*default configuration 7-bit addressing mode*/
+    slaveConfig.slaveAddr = 7-bit address
+    slaveConfig.addressingMode = kI2C_Address7bit/kI2C_RangeMatch;
+    I2C_SlaveInit(EXAMPLE_I2C_SLAVE_BASEADDR, &slaveConfig);
+
+    /* Wait address match. */
+    while(!((status = I2C_GetStatusFlag(EXAMPLE_I2C_SLAVE_BASEADDR)) & kI2C_AddressMatchFlag))
+    {
+
+    }
+
+    /* Slave transmit, master reading from slave. */
+    if (status & kI2C_TransferDirectionFlag)
+    {
+        result = I2C_SlaveWriteBlocking(EXAMPLE_I2C_SLAVE_BASEADDR);
+    }
+    else
+    {
+        I2C_SlaveReadBlocking(EXAMPLE_I2C_SLAVE_BASEADDR);
+    }
+
+    return result;
+~~~~~
+
+## Slave Operation in interrupt transactional method{#I2CSlaveOpsTransIRQ}
+
+~~~~~{.c}
+    i2c_slave_config_t slaveConfig;
+    i2c_slave_handle_t g_s_handle;
+    volatile bool g_SlaveCompletionFlag = false;
+
+    static void i2c_slave_callback(I2C_Type *base, i2c_slave_transfer_t *xfer, void *userData)
+    {
+        switch (xfer->event)
+        {
+            /*  Transmit request */
+            case kI2C_SlaveTransmitEvent:
+                /*  Update information for transmit process */
+                xfer->data = g_slave_buff;
+                xfer->dataSize = I2C_DATA_LENGTH;
+                break;
+
+            /*  Receive request */
+            case kI2C_SlaveReceiveEvent:
+                /*  Update information for received process */
+                xfer->data = g_slave_buff;
+                xfer->dataSize = I2C_DATA_LENGTH;
+                break;
+
+            /*  Transfer done */
+            case kI2C_SlaveCompletionEvent:
+                g_SlaveCompletionFlag = true;
+                break;
+
+            default:
+                g_SlaveCompletionFlag = true;
+                break;
+        }
+    }
+
+    I2C_SlaveGetDefaultConfig(&slaveConfig); /*default configuration 7-bit addressing mode*/
+    slaveConfig.slaveAddr = 7-bit address
+    slaveConfig.addressingMode = kI2C_Address7bit/kI2C_RangeMatch;
+
+    I2C_SlaveInit(EXAMPLE_I2C_SLAVE_BASEADDR, &slaveConfig);
+
+    I2C_SlaveTransferCreateHandle(EXAMPLE_I2C_SLAVE_BASEADDR, &g_s_handle, i2c_slave_callback, NULL);
+
+    I2C_SlaveTransferNonBlocking(EXAMPLE_I2C_SLAVE_BASEADDR, &g_s_handle, kI2C_SlaveCompletionEvent);
+
+    /*  Wait for transfer completed. */
+    while (!g_SlaveCompletionFlag)
+    {
+    }
+    g_SlaveCompletionFlag = false;
+~~~~~
+
+*/
+
+/*!
+@defgroup i2c_driver I2C Driver
+@ingroup i2c
+@details
+*/
+
+/*!
+@defgroup i2c_master_driver I2C Master Driver
+@ingroup i2c
+@details
+*/
+
+/*!
+@defgroup i2c_slave_driver I2C Slave Driver
+@ingroup i2c
+@details
+*/
+
+

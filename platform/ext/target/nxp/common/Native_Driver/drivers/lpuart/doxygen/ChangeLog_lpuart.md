@@ -1,5 +1,14 @@
 # LPUART
 
+## [2.11.0]
+
+- New Feature
+  - Added support to enable transmitter RTS and configure transmitter RTS polarity.
+  - Added support to enable Transmit Data Inversion.
+
+- Improvements
+  - Updated to work on DSC platform.
+
 ## [2.10.0]
 
 - New Feature

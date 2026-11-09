@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2016, Freescale Semiconductor, Inc.
- * Copyright 2016-2023, 2025 NXP
+ * Copyright 2016-2023, 2025-2026 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -22,7 +22,7 @@
 /*! @name Driver version */
 /*! @{ */
 /*! @brief USART driver version. */
-#define FSL_USART_DRIVER_VERSION (MAKE_VERSION(2, 8, 5))
+#define FSL_USART_DRIVER_VERSION (MAKE_VERSION(2, 9, 0))
 /*! @} */
 
 #define USART_FIFOTRIG_TXLVL_GET(base) (((base)->FIFOTRIG & USART_FIFOTRIG_TXLVL_MASK) >> USART_FIFOTRIG_TXLVL_SHIFT)
@@ -58,6 +58,7 @@ enum
 #if UART_RETRY_TIMES
     kStatus_USART_Timeout = MAKE_STATUS(kStatusGroup_LPC_USART, 14), /*!< USART time out. */
 #endif
+    kStatus_USART_RxStart             = MAKE_STATUS(kStatusGroup_LPC_USART, 15), /*!< Start is detected on the receiver input */
 };
 
 /*! @brief USART synchronous mode. */
@@ -219,6 +220,9 @@ typedef struct _usart_config
     bool enableContinuousSCLK;            /*!< USART continuous Clock generation enable in synchronous master mode. */
     bool enableMode32k;                   /*!< USART uses 32 kHz clock from the RTC oscillator as the clock source. */
     bool enableHardwareFlowControl;       /*!< Enable hardware control RTS/CTS */
+    bool enable485ControlOutput;          /*!< Configure RTS signal to provide an output enable signal to control an RS-485 transceiver. */
+    bool enableActiveHighRts;             /*!< Output enable polarity. */
+    bool extendRtsOutput;                 /*!< Output Enable Turnaround time enable for RS-485 operation. */
     usart_txfifo_watermark_t txWatermark; /*!< txFIFO watermark */
     usart_rxfifo_watermark_t rxWatermark; /*!< rxFIFO watermark */
     usart_sync_mode_t syncMode; /*!< Transfer mode select - asynchronous, synchronous master, synchronous slave. */

@@ -1,5 +1,10 @@
 # RGPIO
 
+## [2.2.0]
+
+  - Added RGPIO_GetPinDirection() API to get the current direction of a RGPIO pin.
+  - Added FGPIO_GetPinDirection() API to get the current direction of a FGPIO pin.
+
 ## [2.1.0]
 
 - New feature:

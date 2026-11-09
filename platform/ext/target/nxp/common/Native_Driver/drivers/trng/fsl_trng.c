@@ -27,12 +27,7 @@
 #elif (defined(KV56F24_SERIES) || defined(KV58F24_SERIES) || defined(KL28Z7_SERIES) || defined(KL81Z7_SERIES) || \
        defined(KL82Z7_SERIES) || defined(K32L2A41A_SERIES))
 #define TRNG_USER_CONFIG_DEFAULT_OSC_DIV kTRNG_RingOscDiv4
-#elif (                                                                                                               \
-    defined(K81F25615_SERIES) || defined(K32L3A60_cm4_SERIES) || defined(K32L3A60_cm0plus_SERIES) ||                  \
-    defined(MCXN546_cm33_core0_SERIES) || defined(MCXN546_cm33_core1_SERIES) || defined(MCXN547_cm33_core0_SERIES) || \
-    defined(MCXN547_cm33_core1_SERIES) || defined(MCXN945_cm33_core0_SERIES) || defined(MCXN945_cm33_core1_SERIES) || \
-    defined(MCXN946_cm33_core0_SERIES) || defined(MCXN946_cm33_core1_SERIES) || defined(MCXN947_cm33_core0_SERIES) || \
-    defined(MCXN947_cm33_core1_SERIES) || defined(MCXN948_cm33_core0_SERIES) || defined(MCXN948_cm33_core1_SERIES))
+#elif (defined(K81F25615_SERIES) || defined(K32L3A60_cm4_SERIES) || defined(K32L3A60_cm0plus_SERIES))
 #define TRNG_USER_CONFIG_DEFAULT_OSC_DIV kTRNG_RingOscDiv2
 #else
 /* Default value for the TRNG user configuration structure can be optionally
@@ -167,22 +162,21 @@
 #elif (defined(MCXL253_cm0plus_SERIES) || defined(MCXL253_cm33_SERIES) || \
        defined(MCXL254_cm0plus_SERIES) || defined(MCXL254_cm33_SERIES) || \
        defined(MCXL255_cm0plus_SERIES) || defined(MCXL255_cm33_SERIES) || \
-       defined(MCXA266_SERIES) || defined(MCXA366_SERIES) || \
-       defined(MCXA286_SERIES) || defined(MCXA287_SERIES) || \
-       defined(MCXA456_SERIES) || defined(MCXA457_SERIES) || \
-       defined(MCXA536_SERIES) || defined(MCXA537_SERIES) || \
-       defined(MCXA556_SERIES) || defined(MCXA566_SERIES) || \
-       defined(MCXA567_SERIES) || defined(MCXA577_SERIES) || \
-       defined(MCXC151_SERIES) || defined(MCXC161_SERIES) || \
-       defined(MCXC162_SERIES))
-      
+       defined(KW43B43ZC2_SERIES) || defined(KW43B43ZC3_SERIES) || \
+       defined(KW43B43ZC6_SERIES) || defined(KW43B43ZC7_SERIES) || \
+       defined(KW43L43Z92_SERIES) || defined(KW43L43Z93_SERIES) || \
+       defined(KW43L43Z96_SERIES) || defined(KW43L43Z97_SERIES) || \
+       defined(MCXW70AC_SERIES) || defined(MCXW70AD_SERIES) || \
+       defined(MCXC151_SERIES) || \
+       defined(MCXC161_SERIES) || defined(MCXC162_SERIES))
+
 #ifndef TRNG_ENT_COUNT
 #define TRNG_ENT_COUNT TRNG_ENTA_ENT_COUNT
 #endif
-      
-/* MCXA/MCXL specific settings for the TRNG */
+
+/* MCXL/KW43 specific settings for the TRNG */
 #define TRNG_USER_CONFIG_DEFAULT_LOCK             0
-#define TRNG_USER_CONFIG_DEFAULT_ENTROPY_DELAY    32000
+#define TRNG_USER_CONFIG_DEFAULT_ENTROPY_DELAY    100
 #define TRNG_USER_CONFIG_DEFAULT_SAMPLE_SIZE      1024
 #define TRNG_USER_CONFIG_DEFAULT_SPARSE_BIT_LIMIT 0
 #define TRNG_USER_CONFIG_DEFAULT_RETRY_COUNT      2
@@ -196,7 +190,7 @@
 #define TRNG_USER_CONFIG_DEFAULT_RUNBIT2_MINIMUM     (TRNG_USER_CONFIG_DEFAULT_RUNBIT2_MAXIMUM - 77)
 #define TRNG_USER_CONFIG_DEFAULT_RUNBIT3_MAXIMUM     97
 #define TRNG_USER_CONFIG_DEFAULT_RUNBIT3_MINIMUM     (TRNG_USER_CONFIG_DEFAULT_RUNBIT3_MAXIMUM - 64)
-// The following ones are unused, MCXA and MCXL RNG does not support those.
+// The following ones are unused, MCXL/KW43 TRNG does not support those.
 #define TRNG_USER_CONFIG_DEFAULT_RUNBIT4_MAXIMUM     0
 #define TRNG_USER_CONFIG_DEFAULT_RUNBIT4_MINIMUM     0
 #define TRNG_USER_CONFIG_DEFAULT_RUNBIT5_MAXIMUM     0
@@ -205,14 +199,145 @@
 #define TRNG_USER_CONFIG_DEFAULT_RUNBIT6PLUS_MINIMUM 0
 #define TRNG_USER_CONFIG_DEFAULT_POKER_MAXIMUM       0
 #define TRNG_USER_CONFIG_DEFAULT_POKER_MINIMUM       0
-      
-#define TRNG_USER_CONFIG_DEFAULT_OSCILLATOR_MODE  kTRNG_DualOscillatorMode
+
+#define TRNG_USER_CONFIG_DEFAULT_OSCILLATOR_MODE  kTRNG_SingleOscillatorModeOsc2
 #define TRNG_USER_CONFIG_DEFAULT_OSC2_DIV         kTRNG_RingOscDiv0
 
 #define FSL_FEATURE_TRNG_FORCE_USER_CONFIG_DEFAULT_FREQUENCY_MINIMUM 1
-#define FSL_FEATURE_TRNG_USER_CONFIG_DEFAULT_FREQUENCY_MINIMUM_VALUE 30000
+#define FSL_FEATURE_TRNG_USER_CONFIG_DEFAULT_FREQUENCY_MINIMUM_VALUE 1000
 #define FSL_FEATURE_TRNG_FORCE_USER_CONFIG_DEFAULT_FREQUENCY_MAXIMUM 1
-#define FSL_FEATURE_TRNG_USER_CONFIG_DEFAULT_FREQUENCY_MAXIMUM_VALUE 75000
+#define FSL_FEATURE_TRNG_USER_CONFIG_DEFAULT_FREQUENCY_MAXIMUM_VALUE 70000
+
+#elif (defined(MCXA286_SERIES) || defined(MCXA287_SERIES) || \
+       defined(MCXA456_SERIES) || defined(MCXA457_SERIES) || \
+       defined(MCXA536_SERIES) || defined(MCXA537_SERIES) || \
+       defined(MCXA556_SERIES) || defined(MCXA557_SERIES) || \
+       defined(MCXA566_SERIES) || defined(MCXA567_SERIES) || \
+       defined(MCXA577_SERIES))
+
+#ifndef TRNG_ENT_COUNT
+#define TRNG_ENT_COUNT TRNG_ENTA_ENT_COUNT
+#endif
+
+/* MCXA5 specific settings for the TRNG */
+#define TRNG_USER_CONFIG_DEFAULT_LOCK             0
+#define TRNG_USER_CONFIG_DEFAULT_ENTROPY_DELAY    300
+#define TRNG_USER_CONFIG_DEFAULT_SAMPLE_SIZE      1024
+#define TRNG_USER_CONFIG_DEFAULT_SPARSE_BIT_LIMIT 0
+#define TRNG_USER_CONFIG_DEFAULT_RETRY_COUNT      2
+#define TRNG_USER_CONFIG_DEFAULT_RUN_MAX_LIMIT    32
+
+#define TRNG_USER_CONFIG_DEFAULT_MONOBIT_MAXIMUM     596
+#define TRNG_USER_CONFIG_DEFAULT_MONOBIT_MINIMUM     (TRNG_USER_CONFIG_DEFAULT_MONOBIT_MAXIMUM - 169)
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT1_MAXIMUM     187
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT1_MINIMUM     (TRNG_USER_CONFIG_DEFAULT_RUNBIT1_MAXIMUM - 112)
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT2_MAXIMUM     105
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT2_MINIMUM     (TRNG_USER_CONFIG_DEFAULT_RUNBIT2_MAXIMUM - 77)
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT3_MAXIMUM     97
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT3_MINIMUM     (TRNG_USER_CONFIG_DEFAULT_RUNBIT3_MAXIMUM - 64)
+// The following ones are unused, MCXA5 TRNG does not support those.
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT4_MAXIMUM     0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT4_MINIMUM     0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT5_MAXIMUM     0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT5_MINIMUM     0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT6PLUS_MAXIMUM 0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT6PLUS_MINIMUM 0
+#define TRNG_USER_CONFIG_DEFAULT_POKER_MAXIMUM       0
+#define TRNG_USER_CONFIG_DEFAULT_POKER_MINIMUM       0
+
+#define TRNG_USER_CONFIG_DEFAULT_OSCILLATOR_MODE  kTRNG_SingleOscillatorModeOsc2
+#define TRNG_USER_CONFIG_DEFAULT_OSC2_DIV         kTRNG_RingOscDiv0
+
+#define FSL_FEATURE_TRNG_FORCE_USER_CONFIG_DEFAULT_FREQUENCY_MINIMUM 1
+#define FSL_FEATURE_TRNG_USER_CONFIG_DEFAULT_FREQUENCY_MINIMUM_VALUE 1000
+#define FSL_FEATURE_TRNG_FORCE_USER_CONFIG_DEFAULT_FREQUENCY_MAXIMUM 1
+#define FSL_FEATURE_TRNG_USER_CONFIG_DEFAULT_FREQUENCY_MAXIMUM_VALUE 80000
+
+#elif (defined(MCXC151_SERIES) || defined(MCXC161_SERIES) || defined(MCXC162_SERIES))
+
+#ifndef TRNG_ENT_COUNT
+#define TRNG_ENT_COUNT TRNG_ENTA_ENT_COUNT
+#endif
+
+/* MCXC16x specific settings for the TRNG */
+#define TRNG_USER_CONFIG_DEFAULT_LOCK             0
+#define TRNG_USER_CONFIG_DEFAULT_ENTROPY_DELAY    200
+#define TRNG_USER_CONFIG_DEFAULT_SAMPLE_SIZE      1024
+#define TRNG_USER_CONFIG_DEFAULT_SPARSE_BIT_LIMIT 0
+#define TRNG_USER_CONFIG_DEFAULT_RETRY_COUNT      2
+#define TRNG_USER_CONFIG_DEFAULT_RUN_MAX_LIMIT    32
+
+#define TRNG_USER_CONFIG_DEFAULT_MONOBIT_MAXIMUM     596
+#define TRNG_USER_CONFIG_DEFAULT_MONOBIT_MINIMUM     (TRNG_USER_CONFIG_DEFAULT_MONOBIT_MAXIMUM - 169)
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT1_MAXIMUM     187
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT1_MINIMUM     (TRNG_USER_CONFIG_DEFAULT_RUNBIT1_MAXIMUM - 112)
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT2_MAXIMUM     105
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT2_MINIMUM     (TRNG_USER_CONFIG_DEFAULT_RUNBIT2_MAXIMUM - 77)
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT3_MAXIMUM     97
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT3_MINIMUM     (TRNG_USER_CONFIG_DEFAULT_RUNBIT3_MAXIMUM - 64)
+/* The following ones are unused, MCXC16x TRNG does not support those. */
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT4_MAXIMUM     0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT4_MINIMUM     0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT5_MAXIMUM     0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT5_MINIMUM     0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT6PLUS_MAXIMUM 0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT6PLUS_MINIMUM 0
+#define TRNG_USER_CONFIG_DEFAULT_POKER_MAXIMUM       0
+#define TRNG_USER_CONFIG_DEFAULT_POKER_MINIMUM       0
+
+#define TRNG_USER_CONFIG_DEFAULT_OSCILLATOR_MODE kTRNG_SingleOscillatorModeOsc1
+#define TRNG_USER_CONFIG_DEFAULT_OSC2_DIV        kTRNG_RingOscDiv0
+
+#define FSL_FEATURE_TRNG_FORCE_USER_CONFIG_DEFAULT_FREQUENCY_MINIMUM 1
+#define FSL_FEATURE_TRNG_USER_CONFIG_DEFAULT_FREQUENCY_MINIMUM_VALUE 2000
+#define FSL_FEATURE_TRNG_FORCE_USER_CONFIG_DEFAULT_FREQUENCY_MAXIMUM 1
+#define FSL_FEATURE_TRNG_USER_CONFIG_DEFAULT_FREQUENCY_MAXIMUM_VALUE 25000
+
+#elif (defined(MCXA175_SERIES) || defined(MCXA176_SERIES) || \
+       defined(MCXA185_SERIES) || defined(MCXA186_SERIES) || \
+       defined(MCXA255_SERIES) || defined(MCXA256_SERIES) || \
+       defined(MCXA265_SERIES) || defined(MCXA266_SERIES) || \
+       defined(MCXA345_SERIES) || defined(MCXA346_SERIES) || \
+       defined(MCXA355_SERIES) || defined(MCXA356_SERIES) || \
+       defined(MCXA365_SERIES) || defined(MCXA366_SERIES))
+
+#ifndef TRNG_ENT_COUNT
+#define TRNG_ENT_COUNT TRNG_ENTA_ENT_COUNT
+#endif
+
+/* MCXA2 specific settings for the TRNG */
+#define TRNG_USER_CONFIG_DEFAULT_LOCK             0
+#define TRNG_USER_CONFIG_DEFAULT_ENTROPY_DELAY    300
+#define TRNG_USER_CONFIG_DEFAULT_SAMPLE_SIZE      1024
+#define TRNG_USER_CONFIG_DEFAULT_SPARSE_BIT_LIMIT 0
+#define TRNG_USER_CONFIG_DEFAULT_RETRY_COUNT      2
+#define TRNG_USER_CONFIG_DEFAULT_RUN_MAX_LIMIT    32
+
+#define TRNG_USER_CONFIG_DEFAULT_MONOBIT_MAXIMUM     596
+#define TRNG_USER_CONFIG_DEFAULT_MONOBIT_MINIMUM     (TRNG_USER_CONFIG_DEFAULT_MONOBIT_MAXIMUM - 169)
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT1_MAXIMUM     187
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT1_MINIMUM     (TRNG_USER_CONFIG_DEFAULT_RUNBIT1_MAXIMUM - 112)
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT2_MAXIMUM     105
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT2_MINIMUM     (TRNG_USER_CONFIG_DEFAULT_RUNBIT2_MAXIMUM - 77)
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT3_MAXIMUM     97
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT3_MINIMUM     (TRNG_USER_CONFIG_DEFAULT_RUNBIT3_MAXIMUM - 64)
+// The following ones are unused, MCXA2 TRNG does not support those.
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT4_MAXIMUM     0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT4_MINIMUM     0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT5_MAXIMUM     0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT5_MINIMUM     0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT6PLUS_MAXIMUM 0
+#define TRNG_USER_CONFIG_DEFAULT_RUNBIT6PLUS_MINIMUM 0
+#define TRNG_USER_CONFIG_DEFAULT_POKER_MAXIMUM       0
+#define TRNG_USER_CONFIG_DEFAULT_POKER_MINIMUM       0
+
+#define TRNG_USER_CONFIG_DEFAULT_OSCILLATOR_MODE  kTRNG_SingleOscillatorModeOsc2
+#define TRNG_USER_CONFIG_DEFAULT_OSC2_DIV         kTRNG_RingOscDiv0
+
+#define FSL_FEATURE_TRNG_FORCE_USER_CONFIG_DEFAULT_FREQUENCY_MINIMUM 1
+#define FSL_FEATURE_TRNG_USER_CONFIG_DEFAULT_FREQUENCY_MINIMUM_VALUE 1000
+#define FSL_FEATURE_TRNG_FORCE_USER_CONFIG_DEFAULT_FREQUENCY_MAXIMUM 1
+#define FSL_FEATURE_TRNG_USER_CONFIG_DEFAULT_FREQUENCY_MAXIMUM_VALUE 20000
 
 #else
 
@@ -1439,7 +1564,7 @@ static uint32_t trng_GetInstance(TRNG_Type *base)
     /* Find the instance index from base address mappings. */
     for (instance = 0; instance < ARRAY_SIZE(s_trngBases); instance++)
     {
-        if (MSDK_REG_SECURE_ADDR(s_trngBases[instance]) == MSDK_REG_SECURE_ADDR(base))
+        if (MSDK_REG_NONSECURE_ADDR(s_trngBases[instance]) == MSDK_REG_NONSECURE_ADDR(base))
         {
             break;
         }
@@ -1782,7 +1907,7 @@ static status_t trng_SetStatisticalCheckLimit(TRNG_Type *base,
 
     if ((NULL != limit) && ((int32_t)limit->maximum > limit->minimum))
     {
-        range = limit->maximum - limit->minimum; /* Registers use range instead of minimum value.*/
+        range = limit->maximum - (uint32_t)limit->minimum; /* Registers use range instead of minimum value.*/
 
         if (statistical_check == kTRNG_StatisticalCheckMonobit) /* Allowable maximum and minimum number of ones/zero
                                                                    detected during entropy generation. */
@@ -1829,7 +1954,7 @@ static status_t trng_SetStatisticalCheckLimit(TRNG_Type *base,
                                                                                entropy sample frquency count during
                                                                                entropy generation . */
         {
-            status = trng_SetFrequencyCountMaxLimit(base, limit->minimum, limit->maximum);
+            status = trng_SetFrequencyCountMaxLimit(base, (uint32_t)limit->minimum, limit->maximum);
         }
         else
         {

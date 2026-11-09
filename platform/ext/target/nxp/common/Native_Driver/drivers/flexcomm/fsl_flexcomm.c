@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2016, Freescale Semiconductor, Inc.
- * Copyright 2016-2019 NXP
+ * Copyright 2016-2019, 2026 NXP
  * All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -57,7 +57,7 @@ static const reset_ip_name_t s_flexcommResets[] = FLEXCOMM_RSTS;
  * Code
  ******************************************************************************/
 
-/* check whether flexcomm supports peripheral type */
+ /* check whether flexcomm supports peripheral type */
 static bool FLEXCOMM_PeripheralIsPresent(FLEXCOMM_Type *base, FLEXCOMM_PERIPH_T periph)
 {
     if (periph == FLEXCOMM_PERIPH_NONE)
@@ -72,12 +72,17 @@ static bool FLEXCOMM_PeripheralIsPresent(FLEXCOMM_Type *base, FLEXCOMM_PERIPH_T 
     {
         return (base->PSELID & (1U << 7U)) > (uint32_t)0U ? true : false;
     }
+#if defined(FSL_FEATURE_FLEXCOMM_HAS_QSPI_FLR)
+    else if (periph == FLEXCOMM_QSPI_FLR)
+    {
+        return (base->PSELID & (1U << 8U)) > (uint32_t)0U ? true : false;
+    }
+#endif
     else
     {
         return false;
     }
 }
-
 /* Get the index corresponding to the FLEXCOMM */
 /*! brief Returns instance number for FLEXCOMM module with given base address. */
 uint32_t FLEXCOMM_GetInstance(void *base)
@@ -86,7 +91,7 @@ uint32_t FLEXCOMM_GetInstance(void *base)
 
     for (i = 0U; i < (uint32_t)FSL_FEATURE_SOC_FLEXCOMM_COUNT; i++)
     {
-        if (MSDK_REG_SECURE_ADDR((uintptr_t)(uint8_t*)base) == MSDK_REG_SECURE_ADDR(s_flexcommBaseAddrs[i]))
+        if (MSDK_REG_NONSECURE_ADDR((uintptr_t)(uint8_t*)base) == MSDK_REG_NONSECURE_ADDR(s_flexcommBaseAddrs[i]))
         {
             break;
         }
@@ -157,6 +162,16 @@ void FLEXCOMM_SetIRQHandler(void *base, flexcomm_irq_handler_t handler, void *fl
     s_flexcommIrqHandler[instance] = NULL;
     s_flexcommHandle[instance]     = flexcommHandle;
     s_flexcommIrqHandler[instance] = handler;
+    SDK_ISR_EXIT_BARRIER;
+}
+
+void FLEXCOMM_DriverIRQHandler(uint32_t instance)
+{
+    if (instance < ARRAY_SIZE(s_flexcommBaseAddrs))
+    {
+        assert(s_flexcommIrqHandler[instance] != NULL);
+        s_flexcommIrqHandler[instance]((uint32_t *)s_flexcommBaseAddrs[instance], s_flexcommHandle[instance]);
+    }
     SDK_ISR_EXIT_BARRIER;
 }
 

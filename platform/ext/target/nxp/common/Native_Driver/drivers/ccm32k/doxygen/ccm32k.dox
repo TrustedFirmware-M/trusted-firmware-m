@@ -1,0 +1,15 @@
+/*!
+@defgroup ccm32k CCM32K: 32kHz Clock Control Module
+@details The MCUxpreeso SDK provides a driver for the 32kHz Clock Control Module (CCM32K)
+
+# Control 32kHz free-running oscillator
+The function CCM32K_Enable32kFro() can be used to enable/disable 32kHz free-running oscillator.
+To trim the frequency of output clock when the clock source is selected as 32kHz free-running oscillator,
+the function CCM32K_Get32kFroTrimValue() has been provided to realize this feature.
+
+# Control 32kHz crystal oscillator
+The function CCM32K_Set32kOscConfig() can be used to enable/disable/bypass 32kHz Crystal Oscillator.
+If the parameter "mode" is selected as kCCM32K_Disable32kHzCrystalOsc it means to disable the 32kHz
+Crystal Oscillator. If the parameter "mode" is selected as kCCM32K_Bypass32kHzCrystalOsc, it means the
+application uses the 32kHz Oscillator or 32kHz external clock from EXTAL pin.
+ */

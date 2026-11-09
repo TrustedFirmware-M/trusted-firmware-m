@@ -1,0 +1,43 @@
+/*!
+@defgroup ctimer CTIMER: Standard counter/timers
+@details The MCUXpresso SDK provides a driver for the cTimer module of MCUXpresso SDK devices.
+
+# Function groups {#CTIMERFunc}
+The cTimer driver supports the generation of PWM signals, input capture, and
+setting up the timer match conditions.
+
+## Initialization and deinitialization {#CTIMERInit}
+The function CTIMER_Init() initializes the cTimer with specified configurations. The function
+CTIMER_GetDefaultConfig() gets the default configurations. The initialization function
+configures the counter/timer mode and input selection when running in counter mode.
+
+The function CTIMER_Deinit() stops the timer and turns off the module clock.
+
+## PWM Operations {#CTIMERPwmOperation}
+The function CTIMER_SetupPwm() sets up channels for PWM output. Each channel has its
+own duty cycle, however the same PWM period is applied to all channels requesting the PWM output.
+The signal duty cycle is provided as a percentage of the PWM period. Its value should be between 0 and 100
+0=inactive signal(0% duty cycle) and 100=always active signal (100% duty cycle).
+
+The function CTIMER_UpdatePwmDutycycle() updates the PWM signal duty cycle
+of a particular channel.
+
+## Match Operation {#CTIMERMatchOperation}
+The function CTIMER_SetupMatch() sets up channels for match operation. Each channel is configured with
+a match value: if the counter should stop on match, if counter should reset on match, and output
+pin action. The output signal can be cleared, set, or toggled on match.
+
+## Input capture operations {#CTIMERInpOperation}
+The function CTIMER_SetupCapture() sets up an channel for input capture.
+The user can specify the capture edge and if a interrupt should be generated when processing
+the input signal.
+
+
+# Typical use case {#CTimerCase}
+
+## Match example {#CTIMERMatchExample}
+Set up a match channel to toggle output when a match occurs.
+Refer to the driver examples codes located at \<SDK_ROOT\>/boards/\<BOARD\>/driver_examples/ctimer
+## PWM output example {#CTIMERPwmExample}
+Set up a channel for PWM output.
+Refer to the driver examples codes located at \<SDK_ROOT\>/boards/\<BOARD\>/driver_examples/ctimer*/

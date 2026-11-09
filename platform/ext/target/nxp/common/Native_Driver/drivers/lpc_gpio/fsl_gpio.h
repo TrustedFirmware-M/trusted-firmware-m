@@ -6,8 +6,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#ifndef _LPC_GPIO_H_
-#define _LPC_GPIO_H_
+#ifndef FSL_LPC_GPIO_H_
+#define FSL_LPC_GPIO_H_
 
 #include "fsl_common.h"
 
@@ -361,4 +361,4 @@ void GPIO_PinClearInterruptFlag(GPIO_Type *base, uint32_t port, uint32_t pin, ui
  * @}
  */
 
-#endif /* _LPC_GPIO_H_*/
+#endif /* LPC_GPIO_H_*/

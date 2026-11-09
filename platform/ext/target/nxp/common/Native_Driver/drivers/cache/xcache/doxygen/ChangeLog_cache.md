@@ -1,5 +1,20 @@
 # CACHE XCACHE
 
+## [2.0.6]
+
+- Improvements
+  - Add assert in XCACHE_GetInstanceByAddr() to check out-of-range address.
+
+## [2.0.5]
+
+- Bug Fixes
+  - Fixed boundary check in XCACHE_GetInstanceByAddr() to correctly include the last address of the memory range.
+
+## [2.0.4]
+
+- Improvements
+  - Add memory barrier when enabling/disabling cache.
+
 ## [2.0.3]
 
 - Bug Fixes

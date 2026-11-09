@@ -1,0 +1,64 @@
+/*!
+@defgroup mcx_spc MCX_SPC: System Power Control driver
+@details The MCUXpresso SDK provides a peripheral driver for the System Power Control (SPC) module of
+MCUXpresso SDK devices. The SPC module contains and controls two LDOs and one DCDC used for regulating
+System Core.
+
+API functions are provided to configure on-chip regulators in active mode and low power modes.
+For Active modes, SPC_ConfigActiveModeRegulators() function accepts different parameters to config the
+voltage level and drive strength for each on-chip regulator. For Active mode, Some APIs also provided
+individually to config each on-chip regulator's voltage level and drive strength.
+For low power modes, SPC_ConfigLowPowerModeRegulators() function accepts different parameters
+to config the voltage level and drive strength for each on-chip regulator. For low power mode, some APIs
+also provided individually to config each on-chip regulator's voltage level and driver strength.
+For gating each Voltage detector for each voltage domain, there are also some APIs provided.
+
+#SPC Status
+It includes functions for querying and manipulating various power-related states and requests, such as:
+
+SPC_GetPeriphIOIsolationStatus: Retrieves the isolation status for each power domain, indicating if specific peripherals and IO pads are in a latched state due to being in POWERDOWN mode.
+
+SPC_ClearPeriphIOIsolationFlag: Clears isolation flags for peripherals and IO pads across power domains after recovery from POWERDOWN mode, releasing them back to their normal run mode state. This should be invoked after restoring chip configuration, particularly for enabled WUU wakeup pins.
+
+SPC_GetBusyStatusFlag: Returns the SPC busy status flag. The flag is set and the function returns true when the SPC is executing any power mode transition in ACTIVE mode or during SOC low power modes, or when adjusting CORE LDO and DCDC voltage levels in ACTIVE mode.
+
+SPC_CheckLowPowerReqest: Checks if all power domains have requested a low power mode entry. If so, the SPC enters a low power state, with its regulators controlled by the LP_CFG register. The function returns true in this case; otherwise, it returns false, indicating that the SPC is in active
+#SRAM Retention LDO Control APIs
+
+#Low Power Request configuration
+SPC_SetLowPowerRequestConfig: Configure low power request pin.
+
+#Integrated Power Switch Control APIs
+It includes functions to control integrated power switch.
+Please note that not all device supported this function group.
+#VDD Core Glitch Detector Control APIs
+It includes functions to control glitch detector.
+#SRAM Control APIs
+SPC_SetSRAMOperateVoltage: Set SRAM operate voltage.
+#Active Mode configuration
+It includes serval functions to set/read ACTIVE_CFG register.
+SPC_SetActiveModeRegulatorsConfig: Configs all settings of regulators in Active mode at a time.
+If this function can not satisfy some tricky settings, please invoke other APIs in low level function group.
+
+#Low Power mode configuration
+It includes serval functions to set/read LP_CFG register.
+SPC_SetActiveModeRegulatorsConfig: Configs all settings of regulators in Active mode at a time.
+If this function can not satisfy some tricky settings, please invoke other APIs in low level function group.
+#Voltage Detect Status
+
+#Voltage Detect configuration for Core voltage domain.
+It includes functions to set voltage detect features for Core VDD.
+#Voltage detect configuration for System Voltage domain
+It includes functions to set voltage detect features for System VDD.
+#Voltage detect configuration for IO voltage domain
+It includes functions to set voltage detect features for I/O VDD.
+#External Voltage domains configuration
+SPC_SetExternalVoltageDomainsConfig: Configs external voltage domains isolation.
+SPC_GetExternalDomainsStatus: Gets External Domains status.
+#Low Level APIs To Set CORE LDO Regulator
+It contains low level APIs to set Core LDO regulator, it is more flexible than some one-time configuration APIs.
+#Low Level APIs To Set System LDO Regulator
+It contains low level APIs to set System LDO regulator, it is more flexible than some one-time configuration APIs.
+#Low Level APIs To Set DCDC Regulator
+It contains low level APIs to set DCDC regulator, it is more flexible than some one-time configuration APIs.
+*/
