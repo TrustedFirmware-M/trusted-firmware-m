@@ -1,0 +1,9 @@
+# Copyright 2024 NXP
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+menu "Device specific drivers configuration"
+     rsource "./Kconfig_clock"
+     rsource "./Kconfig_romapi"
+     rsource "./Kconfig_memory"
+endmenu

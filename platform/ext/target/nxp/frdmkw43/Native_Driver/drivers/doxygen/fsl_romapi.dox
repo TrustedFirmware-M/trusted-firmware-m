@@ -1,0 +1,11 @@
+/*!
+@defgroup romapi ROMAPI driver
+@details The ROMAPI driver provides the functionalities to operate the internal flash and
+         external flash connected to the LPSPI.
+
+The ROMAPI driver supports:
+  - Initialize internal and external flash
+  - Erase internal and external flash
+  - Program data to internal and external flash.
+
+*/
