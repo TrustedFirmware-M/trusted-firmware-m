@@ -155,6 +155,9 @@ struct mps4_corstone3xx_sacfg_t {
     volatile uint32_t cidr3;          /* 0xFFC (R/ ) Component ID 3 */
 };
 
+/* NSMSCEXP[31] drives the ISP MSC's NSMSCEXP[15] configuration signal. */
+#define ISP_MSC_NONSECURE_POS_MASK   (1UL << 31)
+
 /* PPC interrupt position mask */
 #define PERIPH_PPC0_INT_POS_MASK     (1UL << 0)
 #define PERIPH_PPC1_INT_POS_MASK     (1UL << 1)

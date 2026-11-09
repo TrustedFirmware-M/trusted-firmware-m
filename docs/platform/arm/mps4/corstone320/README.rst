@@ -20,6 +20,21 @@ with Isolation Level 1 and 2.
 
    For Armclang compiler v6.18 or later version is required.
 
+ISP manager security
+--------------------
+
+Secure initialization configures the Mali-C55 ISP as a Non-secure manager by
+setting bit 31 of the Secure Access Configuration block's ``NSMSCEXP`` register.
+This bit controls expansion MSC 15. Other expansion MSC settings are preserved.
+The ISP and virtual camera controls remain available to Non-secure applications.
+Peripheral initialization checks that the bit reads back as set and reports a
+system error if the policy write was ignored.
+
+The SSE-320 Example Subsystem Reference Manual (109758), sections 2.8.2, 4.14
+and 5.5.1.17, describes this control. The ISP's MSC and IDAU enforce the manager
+policy alongside the platform's MPCs and PPCs. Configuring CPU SAU regions alone
+does not restrict ISP memory accesses.
+
 Building TF-M
 -------------
 

@@ -450,6 +450,12 @@ void sau_and_idau_cfg(void)
     __DMB();
     /* Allows IDAU to define the RAM region as a NSC */
     sacfg->nsccfg |= RAMNSC;
+    /*
+     * The ISP is controlled by Non-secure software. Configure its expansion
+     * MSC as a Non-secure manager before handing control to the NS image.
+     * NSMSCEXP[31:16] controls expansion MSCs [15:0]; the ISP uses MSC 15.
+     */
+    sacfg->nsmscexp |= ISP_MSC_NONSECURE_POS_MASK;
     /* Configures SAU regions to be non-secure */
     /* Configure ITCM, SRAM, DTCM, ISRAM, and QSPI */
     SAU->RNR = 0;
@@ -680,6 +686,11 @@ enum tfm_plat_err_t ppc_init_cfg(void)
     struct mps4_corstone3xx_sacfg_t *sacfg =
                                 (struct mps4_corstone3xx_sacfg_t*)MPS4_CORSTONE3XX_SACFG_BASE_S;
     int32_t err = ARM_DRIVER_OK;
+
+    /* Do not start NS software if the ISP manager policy was not applied. */
+    if ((sacfg->nsmscexp & ISP_MSC_NONSECURE_POS_MASK) == 0U) {
+        return TFM_PLAT_ERR_SYSTEM_ERR;
+    }
 
     /* Grant non-secure access to peripherals on PERIPH0 */
     err |= Driver_PERIPH0_PPC_CORSTONE320.Initialize();
