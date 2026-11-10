@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2026, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -87,6 +87,40 @@ static enum dma350_lib_error_t check_blocking(enum dma350_lib_exec_type_t exec_t
     return DMA350_LIB_ERR_NONE;
 }
 
+/**
+ * \brief Calculate the byte span accessed by one DMA350 draw buffer.
+ *
+ * \param[in]  width       Width of the accessed region in pixels.
+ * \param[in]  height      Height of the accessed region in pixels.
+ * \param[in]  line_width  Distance between rows in pixels.
+ * \param[in]  pixelsize   DMA350 transfer-size encoding for one pixel.
+ * \param[out] size        Byte span accessed by the DMA operation.
+ *
+ * \return DMA350_LIB_ERR_NONE on success, otherwise DMA350_LIB_ERR_CFG_ERR.
+ */
+static enum dma350_lib_error_t get_draw_buffer_size(
+    uint32_t width, uint16_t height, uint16_t line_width,
+    enum dma350_ch_transize_t pixelsize, uint32_t *size)
+{
+    uint32_t elem_bytes;
+    uint32_t pixel_count;
+
+    if ((width == 0U) || (height == 0U) ||
+        ((uint32_t)pixelsize > (uint32_t)DMA350_CH_TRANSIZE_1024BITS)) {
+        return DMA350_LIB_ERR_CFG_ERR;
+    }
+
+    elem_bytes = 1U << (uint32_t)pixelsize;
+    if (__builtin_mul_overflow((uint32_t)line_width,
+                               (uint32_t)height - 1U, &pixel_count) ||
+        __builtin_add_overflow(pixel_count, width, &pixel_count) ||
+        __builtin_mul_overflow(pixel_count, elem_bytes, size)) {
+        return DMA350_LIB_ERR_CFG_ERR;
+    }
+
+    return DMA350_LIB_ERR_NONE;
+}
+
 static enum dma350_lib_error_t dma350_call_memcpy(struct dma350_memcpy_config *config, struct dma350_ch_dev_t* ch_dev)
 {
     enum dma350_lib_error_t ret_val;
@@ -135,12 +169,25 @@ static enum dma350_lib_error_t dma350_call_draw(struct dma350_draw_config *confi
         return ret_val;
     }
 
-    src_size = config->src_line_width * (config->src_height - 1) + config->src_width;
+    ret_val = get_draw_buffer_size(
+        config->src_width, config->src_height, config->src_line_width,
+        config->pixelsize, &src_size);
+    if (ret_val != DMA350_LIB_ERR_NONE) {
+        return ret_val;
+    }
+
     ret_val = dma350_check_src_unpriv_access(config->src, src_size);
     if(ret_val != DMA350_LIB_ERR_NONE) {
         return ret_val;
     }
-    des_size = config->des_line_width * (config->des_height - 1) + config->des_width;;
+
+    ret_val = get_draw_buffer_size(
+        config->des_width, config->des_height, config->des_line_width,
+        config->pixelsize, &des_size);
+    if (ret_val != DMA350_LIB_ERR_NONE) {
+        return ret_val;
+    }
+
     ret_val = dma350_check_dst_unpriv_access(config->des, des_size);
     if(ret_val != DMA350_LIB_ERR_NONE) {
         return ret_val;
