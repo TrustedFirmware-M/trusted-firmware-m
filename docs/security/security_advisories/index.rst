@@ -21,6 +21,7 @@ Security Advisories
     0013_rse_sfcp_plaintext_packets
     0014_cs1k_oob_flash_write_secure_enclave
     0015_aead_oob_read
+    0016_configure_DMA_master_security_attributes
 
 +------------+-----------------------------------------------------------------+
 | ID         | Title                                                           |
