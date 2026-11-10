@@ -20,6 +20,7 @@ Security Advisories
     rse_sfcp_pre_auth_oob_write
     rse_sfcp_plaintext_packets
     cs1k_oob_flash_write_secure_enclave
+    aead_oob_read
 
 +------------+-----------------------------------------------------------------+
 | ID         | Title                                                           |
@@ -62,6 +63,8 @@ Security Advisories
 |  |TFMV-14| | OOB flash write in corstone1000 update bricks the secure        |
 |            | enclave                                                         |
 +------------+-----------------------------------------------------------------+
+|  |TFMV-15| | Out-of-bounds read in crypto AEAD service                       |
++------------+-----------------------------------------------------------------+
 
 .. |TFMV-1| replace:: :doc:`TFMV-1 <stack_seal_vulnerability>`
 .. |TFMV-2| replace:: :doc:`TFMV-2 <svc_caller_sp_fetching_vulnerability>`
@@ -77,6 +80,7 @@ Security Advisories
 .. |TFMV-12| replace:: :doc:`TFMV-12 <rse_sfcp_pre_auth_oob_write>`
 .. |TFMV-13| replace:: :doc:`TFMV-13 <rse_sfcp_plaintext_packets>`
 .. |TFMV-14| replace:: :doc:`TFMV-14 <cs1k_oob_flash_write_secure_enclave>`
+.. |TFMV-15| replace:: :doc:`TFMV-15 <aead_oob_read>`
 
 --------------
 
