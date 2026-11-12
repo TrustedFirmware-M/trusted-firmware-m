@@ -32,7 +32,7 @@ New security advisories
 =======================
 
 A Security vulnerability fixed in v1.8.1
-Refer to :doc:`TFMV-6 </security/security_advisories/cc3xx_partial_tag_compare_on_chacha20_poly1305>` for more details.
+Refer to :doc:`TFMV-6 </security/security_advisories/0006_cc3xx_partial_tag_compare_on_chacha20_poly1305>` for more details.
 The mitigation is included in this release.
 
 New platforms supported

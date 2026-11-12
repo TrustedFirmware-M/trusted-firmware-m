@@ -27,7 +27,7 @@ New security advisories
 Stack sealing
 -------------
 
-Refer to :doc:`Advisory TFMV-1</security/security_advisories/stack_seal_vulnerability>`
+Refer to :doc:`Advisory TFMV-1</security/security_advisories/0001_stack_seal_vulnerability>`
 for more details.
 A common mitigation is included in this release.
 

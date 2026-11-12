@@ -19,7 +19,7 @@ New security advisories
 =======================
 
 A new security vulnerability has been fixed in v2.2.1.
-Refer to :doc:`TFMV-9 </security/security_advisories/fwu_tlv_payload_out_of_bounds_vulnerability>` for more details.
+Refer to :doc:`TFMV-9 </security/security_advisories/0009_fwu_tlv_payload_out_of_bounds_vulnerability>` for more details.
 The mitigation is included in this release.
 
 --------------

@@ -6,21 +6,21 @@ Security Advisories
     :maxdepth: 1
     :hidden:
 
-    stack_seal_vulnerability
-    svc_caller_sp_fetching_vulnerability
-    crypto_multi_part_ops_abort_fail
-    profile_small_key_id_encoding_vulnerability
-    fwu_write_vulnerability
-    cc3xx_partial_tag_compare_on_chacha20_poly1305
-    debug_log_vulnerability
-    user_pointers_mailbox_vectors_vulnerability
-    fwu_tlv_payload_out_of_bounds_vulnerability
-    missing_ns_pointer_validation_mailbox_init
-    fwu_partial_fmp_header
-    rse_sfcp_pre_auth_oob_write
-    rse_sfcp_plaintext_packets
-    cs1k_oob_flash_write_secure_enclave
-    aead_oob_read
+    0001_stack_seal_vulnerability
+    0002_svc_caller_sp_fetching_vulnerability
+    0003_crypto_multi_part_ops_abort_fail
+    0004_profile_small_key_id_encoding_vulnerability
+    0005_fwu_write_vulnerability
+    0006_cc3xx_partial_tag_compare_on_chacha20_poly1305
+    0007_debug_log_vulnerability
+    0008_user_pointers_mailbox_vectors_vulnerability
+    0009_fwu_tlv_payload_out_of_bounds_vulnerability
+    0010_missing_ns_pointer_validation_mailbox_init
+    0011_fwu_partial_fmp_header
+    0012_rse_sfcp_pre_auth_oob_write
+    0013_rse_sfcp_plaintext_packets
+    0014_cs1k_oob_flash_write_secure_enclave
+    0015_aead_oob_read
 
 +------------+-----------------------------------------------------------------+
 | ID         | Title                                                           |
@@ -66,21 +66,21 @@ Security Advisories
 |  |TFMV-15| | Out-of-bounds read in crypto AEAD service                       |
 +------------+-----------------------------------------------------------------+
 
-.. |TFMV-1| replace:: :doc:`TFMV-1 <stack_seal_vulnerability>`
-.. |TFMV-2| replace:: :doc:`TFMV-2 <svc_caller_sp_fetching_vulnerability>`
-.. |TFMV-3| replace:: :doc:`TFMV-3 <crypto_multi_part_ops_abort_fail>`
-.. |TFMV-4| replace:: :doc:`TFMV-4 <profile_small_key_id_encoding_vulnerability>`
-.. |TFMV-5| replace:: :doc:`TFMV-5 <fwu_write_vulnerability>`
-.. |TFMV-6| replace:: :doc:`TFMV-6 <cc3xx_partial_tag_compare_on_chacha20_poly1305>`
-.. |TFMV-7| replace:: :doc:`TFMV-7 <debug_log_vulnerability>`
-.. |TFMV-8| replace:: :doc:`TFMV-8 <user_pointers_mailbox_vectors_vulnerability>`
-.. |TFMV-9| replace:: :doc:`TFMV-9 <fwu_tlv_payload_out_of_bounds_vulnerability>`
-.. |TFMV-10| replace:: :doc:`TFMV-10 <missing_ns_pointer_validation_mailbox_init>`
-.. |TFMV-11| replace:: :doc:`TFMV-11 <fwu_partial_fmp_header>`
-.. |TFMV-12| replace:: :doc:`TFMV-12 <rse_sfcp_pre_auth_oob_write>`
-.. |TFMV-13| replace:: :doc:`TFMV-13 <rse_sfcp_plaintext_packets>`
-.. |TFMV-14| replace:: :doc:`TFMV-14 <cs1k_oob_flash_write_secure_enclave>`
-.. |TFMV-15| replace:: :doc:`TFMV-15 <aead_oob_read>`
+.. |TFMV-1| replace:: :doc:`TFMV-1 <0001_stack_seal_vulnerability>`
+.. |TFMV-2| replace:: :doc:`TFMV-2 <0002_svc_caller_sp_fetching_vulnerability>`
+.. |TFMV-3| replace:: :doc:`TFMV-3 <0003_crypto_multi_part_ops_abort_fail>`
+.. |TFMV-4| replace:: :doc:`TFMV-4 <0004_profile_small_key_id_encoding_vulnerability>`
+.. |TFMV-5| replace:: :doc:`TFMV-5 <0005_fwu_write_vulnerability>`
+.. |TFMV-6| replace:: :doc:`TFMV-6 <0006_cc3xx_partial_tag_compare_on_chacha20_poly1305>`
+.. |TFMV-7| replace:: :doc:`TFMV-7 <0007_debug_log_vulnerability>`
+.. |TFMV-8| replace:: :doc:`TFMV-8 <0008_user_pointers_mailbox_vectors_vulnerability>`
+.. |TFMV-9| replace:: :doc:`TFMV-9 <0009_fwu_tlv_payload_out_of_bounds_vulnerability>`
+.. |TFMV-10| replace:: :doc:`TFMV-10 <0010_missing_ns_pointer_validation_mailbox_init>`
+.. |TFMV-11| replace:: :doc:`TFMV-11 <0011_fwu_partial_fmp_header>`
+.. |TFMV-12| replace:: :doc:`TFMV-12 <0012_rse_sfcp_pre_auth_oob_write>`
+.. |TFMV-13| replace:: :doc:`TFMV-13 <0013_rse_sfcp_plaintext_packets>`
+.. |TFMV-14| replace:: :doc:`TFMV-14 <0014_cs1k_oob_flash_write_secure_enclave>`
+.. |TFMV-15| replace:: :doc:`TFMV-15 <0015_aead_oob_read>`
 
 --------------
 

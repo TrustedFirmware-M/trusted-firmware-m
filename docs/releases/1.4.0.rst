@@ -24,7 +24,7 @@ New security advisories
 'abort' function may not take effect in some TF-M Crypto multi-part operations
 ------------------------------------------------------------------------------
 
-Refer to :doc:`Advisory TFMV-3 </security/security_advisories/crypto_multi_part_ops_abort_fail>`
+Refer to :doc:`Advisory TFMV-3 </security/security_advisories/0003_crypto_multi_part_ops_abort_fail>`
 for more details.
 The mitigation is included in this release.
 

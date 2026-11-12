@@ -22,7 +22,7 @@ New security advisories
 =======================
 
 A new security vulnerability has been fixed in v2.1.0.
-Refer to :doc:`TFMV-7 </security/security_advisories/debug_log_vulnerability>` for more details.
+Refer to :doc:`TFMV-7 </security/security_advisories/0007_debug_log_vulnerability>` for more details.
 The mitigation is included in this release.
 
 New platforms supported

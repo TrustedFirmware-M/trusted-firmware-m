@@ -31,7 +31,7 @@ New security advisories
 Invoking secure functions from non-secure handler mode
 ------------------------------------------------------
 
-Refer to :doc:`Advisory TFMV-2</security/security_advisories/svc_caller_sp_fetching_vulnerability>`
+Refer to :doc:`Advisory TFMV-2</security/security_advisories/0002_svc_caller_sp_fetching_vulnerability>`
 for more details.
 The mitigation is included in this release.
 

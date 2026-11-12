@@ -10,7 +10,7 @@ Hotfixes
  - Fix for "Partial tag comparison when using Chacha20-Poly1305
    on the PSA driver API interface in CryptoCell enabled
    platforms" (`CVE-2023-40271 <https://www.cve.org/CVERecord?id=CVE-2023-40271>`_)
-   (:doc:`TFMV-6 </security/security_advisories/cc3xx_partial_tag_compare_on_chacha20_poly1305>`)
+   (:doc:`TFMV-6 </security/security_advisories/0006_cc3xx_partial_tag_compare_on_chacha20_poly1305>`)
 
 --------------
 

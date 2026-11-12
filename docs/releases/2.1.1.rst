@@ -11,7 +11,7 @@ New security advisories
 =======================
 
 A new security vulnerability has been fixed in v2.1.1.
-Refer to :doc:`TFMV-8 </security/security_advisories/user_pointers_mailbox_vectors_vulnerability>` for more details.
+Refer to :doc:`TFMV-8 </security/security_advisories/0008_user_pointers_mailbox_vectors_vulnerability>` for more details.
 The mitigation is included in this release.
 
 New platforms supported

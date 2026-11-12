@@ -32,7 +32,7 @@ New major features
 New security advisories
 =======================
 
-  - :doc:`TFMV-5. </security/security_advisories/fwu_write_vulnerability>`
+  - :doc:`TFMV-5. </security/security_advisories/0005_fwu_write_vulnerability>`
 
 New platforms supported
 =======================

@@ -36,7 +36,7 @@ Profile Small key ID encoding vulnerability
 
 NSPE may access secure keys stored in TF-M Crypto service in Profile Small with
 Crypto key ID encoding disabled.
-Refer to :doc:`Advisory TFMV-4 </security/security_advisories/profile_small_key_id_encoding_vulnerability>`
+Refer to :doc:`Advisory TFMV-4 </security/security_advisories/0004_profile_small_key_id_encoding_vulnerability>`
 for more details.
 The mitigation is included in this release.
 

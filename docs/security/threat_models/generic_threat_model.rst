@@ -1238,9 +1238,9 @@ References
 
 .. [STACK-SEAL] `Armv8-M processor Secure software Stack Sealing vulnerability <https://developer.arm.com/support/arm-security-updates/armv8-m-stack-sealing>`_
 
-.. [ADVISORY-TFMV-1] :doc:`Advisory TFMV-1 </security/security_advisories/stack_seal_vulnerability>`
+.. [ADVISORY-TFMV-1] :doc:`Advisory TFMV-1 </security/security_advisories/0001_stack_seal_vulnerability>`
 
-.. [ADVISORY-TFMV-2] :doc:`Advisory TFMV-2 </security/security_advisories/svc_caller_sp_fetching_vulnerability>`
+.. [ADVISORY-TFMV-2] :doc:`Advisory TFMV-2 </security/security_advisories/0002_svc_caller_sp_fetching_vulnerability>`
 
 .. [VLLDM-Vulnerability] `VLLDM instruction Security Vulnerability <https://developer.arm.com/support/arm-security-updates/vlldm-instruction-security-vulnerability>`_
 
