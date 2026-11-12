@@ -227,7 +227,7 @@ enum tfm_plat_err_t nrf_mpc_init_cfg(void)
 		/* If there is a secondary partition, the non-secure partition limit
 		 * is the start of the secondary partition.
 		 */
-		override.endaddr = memory_regions.non_secure_partition_limit;
+		override.endaddr = 1 + memory_regions.non_secure_partition_limit;
 #else
 		override.endaddr = NRF_UICR_S_BASE;
 #endif
@@ -247,7 +247,7 @@ enum tfm_plat_err_t nrf_mpc_init_cfg(void)
 		/* If there is a non-secure storage partition, the secondary partition
 		 * limit is the start of the non-secure storage partition.
 		 */
-		override.endaddr = memory_regions.secondary_partition_limit;
+		override.endaddr = 1 + memory_regions.secondary_partition_limit;
 #else
 		override.endaddr = NRF_UICR_S_BASE;
 #endif
