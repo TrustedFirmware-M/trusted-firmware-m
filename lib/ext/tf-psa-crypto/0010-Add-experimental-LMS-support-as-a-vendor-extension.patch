@@ -1,4 +1,4 @@
-From a8350e74604c845536043cb352e467ecb7165caf Mon Sep 17 00:00:00 2001
+From ae003b4b35f8deca12d2706e8f80a119ef0cc8e0 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
 Subject: [PATCH 10/16] Add experimental LMS support as a vendor extension
@@ -12,7 +12,7 @@ Signed-off-by: David Vincze <david.vincze@arm.com>
  1 file changed, 19 insertions(+), 1 deletion(-)
 
 diff --git a/include/psa/crypto_extra.h b/include/psa/crypto_extra.h
-index cc887b021..5aa6174d1 100644
+index 3b14d80d7..c17980823 100644
 --- a/include/psa/crypto_extra.h
 +++ b/include/psa/crypto_extra.h
 @@ -238,11 +238,29 @@ void mbedtls_psa_get_stats(mbedtls_psa_stats_t *stats);

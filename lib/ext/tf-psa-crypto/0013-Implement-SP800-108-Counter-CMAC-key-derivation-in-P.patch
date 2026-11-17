@@ -1,4 +1,4 @@
-From 8dd2addb96ea7e8252f822268c4300458c839341 Mon Sep 17 00:00:00 2001
+From ded536ea24fa013909cc69828a959d4e356e6f53 Mon Sep 17 00:00:00 2001
 From: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
 Subject: [PATCH 13/16] Implement SP800-108 Counter CMAC key derivation in PSA
@@ -16,7 +16,7 @@ Signed-off-by: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
  1 file changed, 226 insertions(+), 6 deletions(-)
 
 diff --git a/core/psa_crypto.c b/core/psa_crypto.c
-index 1ba64c0b2..f17daeaee 100644
+index 9e2192cbc..117900bfb 100644
 --- a/core/psa_crypto.c
 +++ b/core/psa_crypto.c
 @@ -928,6 +928,13 @@ static int psa_key_algorithm_permits(psa_key_type_t key_type,

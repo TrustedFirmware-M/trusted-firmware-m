@@ -1,4 +1,4 @@
-From 8ef1a5f3db2c67b50024bce7bbbc91e94c5bc739 Mon Sep 17 00:00:00 2001
+From dd40e7816a310df50d6fd4fba58d80fabcda512c Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Mon, 13 Jul 2026 11:38:54 +0000
 Subject: [PATCH 01/16] Add generated files to the source tree
@@ -15,12 +15,12 @@ library configuration.
 Change-Id: I54a759a1480c4d088525cc00a208694c5fde9daf
 Signed-off-by: David Vincze <david.vincze@arm.com>
 ---
- core/psa_crypto_driver_wrappers.h           | 2922 +++++++++++++++++++
- core/psa_crypto_driver_wrappers_no_static.c |  230 ++
+ core/psa_crypto_driver_wrappers.h           | 2918 +++++++++++++++++++
+ core/psa_crypto_driver_wrappers_no_static.c |  226 ++
  core/tf_psa_crypto_config_check_before.h    |   12 +
  core/tf_psa_crypto_config_check_final.h     |   12 +
  core/tf_psa_crypto_config_check_user.h      | 1220 ++++++++
- 5 files changed, 4396 insertions(+)
+ 5 files changed, 4388 insertions(+)
  create mode 100644 core/psa_crypto_driver_wrappers.h
  create mode 100644 core/psa_crypto_driver_wrappers_no_static.c
  create mode 100644 core/tf_psa_crypto_config_check_before.h
@@ -29,10 +29,10 @@ Signed-off-by: David Vincze <david.vincze@arm.com>
 
 diff --git a/core/psa_crypto_driver_wrappers.h b/core/psa_crypto_driver_wrappers.h
 new file mode 100644
-index 000000000..9891d2ced
+index 000000000..99d4f17a0
 --- /dev/null
 +++ b/core/psa_crypto_driver_wrappers.h
-@@ -0,0 +1,2922 @@
+@@ -0,0 +1,2918 @@
 +/*
 + *  Functions to delegate cryptographic operations to an available
 + *  and appropriate accelerator.
@@ -54,10 +54,6 @@ index 000000000..9891d2ced
 +#include "psa_crypto_mac.h"
 +#include "psa_crypto_pake.h"
 +#include "psa_crypto_rsa.h"
-+
-+#if defined(TF_PSA_CRYPTO_PQCP_MLDSA_ENABLED)
-+#include "psa_crypto_mldsa.h"
-+#endif
 +
 +#include "mbedtls/platform.h"
 +#include "mbedtls/constant_time.h"
@@ -2957,10 +2953,10 @@ index 000000000..9891d2ced
 +#endif /* MBEDTLS_PSA_CRYPTO_C */
 diff --git a/core/psa_crypto_driver_wrappers_no_static.c b/core/psa_crypto_driver_wrappers_no_static.c
 new file mode 100644
-index 000000000..a8bd7eb3a
+index 000000000..f8eff253f
 --- /dev/null
 +++ b/core/psa_crypto_driver_wrappers_no_static.c
-@@ -0,0 +1,230 @@
+@@ -0,0 +1,226 @@
 +/*
 + *  Functions to delegate cryptographic operations to an available
 + *  and appropriate accelerator.
@@ -2981,10 +2977,6 @@ index 000000000..a8bd7eb3a
 +#include "psa_crypto_mac.h"
 +#include "psa_crypto_pake.h"
 +#include "psa_crypto_rsa.h"
-+
-+#if defined(TF_PSA_CRYPTO_PQCP_MLDSA_ENABLED)
-+#include "psa_crypto_mldsa.h"
-+#endif
 +
 +#include "mbedtls/platform.h"
 +/* END-common headers */

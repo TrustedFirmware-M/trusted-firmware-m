@@ -1,4 +1,4 @@
-From cbc5cd12f36f65f04fef4d668581f12699fd922d Mon Sep 17 00:00:00 2001
+From bcf934fdda85139a87fbddcab9c86e48914842ca Mon Sep 17 00:00:00 2001
 From: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
 Subject: [PATCH 08/16] Add CC3XX Opaque Key entry points
@@ -16,7 +16,7 @@ Signed-off-by: Maulik Patel <maulik.patel@arm.com>
  1 file changed, 21 insertions(+)
 
 diff --git a/core/psa_crypto_driver_wrappers.h b/core/psa_crypto_driver_wrappers.h
-index b1fe97a4c..b5496f7c7 100644
+index 745aaf70c..733e93952 100644
 --- a/core/psa_crypto_driver_wrappers.h
 +++ b/core/psa_crypto_driver_wrappers.h
 @@ -19,6 +19,9 @@
@@ -27,9 +27,9 @@ index b1fe97a4c..b5496f7c7 100644
 +#include "cc3xx_opaque_keys.h"
 +#endif
  
- #if defined(TF_PSA_CRYPTO_PQCP_MLDSA_ENABLED)
- #include "psa_crypto_mldsa.h"
-@@ -1355,6 +1358,9 @@ static inline psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
+ #include "mbedtls/platform.h"
+ #include "mbedtls/constant_time.h"
+@@ -1351,6 +1354,9 @@ static inline psa_status_t psa_driver_wrapper_cipher_decrypt_setup(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -39,7 +39,7 @@ index b1fe97a4c..b5496f7c7 100644
  #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
          case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:
  #endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
-@@ -2135,6 +2141,9 @@ static inline psa_status_t psa_driver_wrapper_aead_encrypt_setup(
+@@ -2131,6 +2137,9 @@ static inline psa_status_t psa_driver_wrapper_aead_encrypt_setup(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -49,7 +49,7 @@ index b1fe97a4c..b5496f7c7 100644
  #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
          case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:
  #endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
-@@ -2201,6 +2210,9 @@ static inline psa_status_t psa_driver_wrapper_aead_decrypt_setup(
+@@ -2197,6 +2206,9 @@ static inline psa_status_t psa_driver_wrapper_aead_decrypt_setup(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -59,7 +59,7 @@ index b1fe97a4c..b5496f7c7 100644
  #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
          case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:
  #endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
-@@ -2599,6 +2611,9 @@ static inline psa_status_t psa_driver_wrapper_mac_compute(
+@@ -2595,6 +2607,9 @@ static inline psa_status_t psa_driver_wrapper_mac_compute(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -69,7 +69,7 @@ index b1fe97a4c..b5496f7c7 100644
  #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
          case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:
  #endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
-@@ -2672,6 +2687,9 @@ static inline psa_status_t psa_driver_wrapper_mac_sign_setup(
+@@ -2668,6 +2683,9 @@ static inline psa_status_t psa_driver_wrapper_mac_sign_setup(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:
@@ -79,7 +79,7 @@ index b1fe97a4c..b5496f7c7 100644
  #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
          case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:
  #endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
-@@ -2756,6 +2774,9 @@ static inline psa_status_t psa_driver_wrapper_mac_verify_setup(
+@@ -2752,6 +2770,9 @@ static inline psa_status_t psa_driver_wrapper_mac_verify_setup(
      switch( location )
      {
          case PSA_KEY_LOCATION_LOCAL_STORAGE:

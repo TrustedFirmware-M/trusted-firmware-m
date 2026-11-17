@@ -1,4 +1,4 @@
-From 7343c8fbbc8ffcaadce88ff02762b4ee173dceb9 Mon Sep 17 00:00:00 2001
+From 4171676882444035a5a31d7d9eb0765f3c23386f Mon Sep 17 00:00:00 2001
 From: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
 Subject: [PATCH 14/16] Support use of cc3xx opaque keys in PSA Crypto core
@@ -13,7 +13,7 @@ Signed-off-by: Amjad Ouled-Ameur <amjad.ouled-ameur@arm.com>
  2 files changed, 17 insertions(+), 1 deletion(-)
 
 diff --git a/core/psa_crypto.c b/core/psa_crypto.c
-index f17daeaee..8a98dbf15 100644
+index 117900bfb..de5ccb7b7 100644
 --- a/core/psa_crypto.c
 +++ b/core/psa_crypto.c
 @@ -76,6 +76,10 @@
@@ -41,10 +41,10 @@ index f17daeaee..8a98dbf15 100644
          psa_unregister_read_under_mutex(*p_slot);
          *p_slot = NULL;
 diff --git a/core/psa_crypto_driver_wrappers_no_static.c b/core/psa_crypto_driver_wrappers_no_static.c
-index 3bdbf440e..40145b92d 100644
+index 55baad49e..1e6997b7e 100644
 --- a/core/psa_crypto_driver_wrappers_no_static.c
 +++ b/core/psa_crypto_driver_wrappers_no_static.c
-@@ -54,6 +54,9 @@
+@@ -50,6 +50,9 @@
  #define PSA_CRYPTO_ACCELERATOR_DRIVER_PRESENT
  #endif
  #include "tfm_builtin_key_loader.h"
@@ -54,7 +54,7 @@ index 3bdbf440e..40145b92d 100644
  #endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
  
  #if defined(PSA_CRYPTO_DRIVER_CC3XX)
-@@ -137,6 +140,9 @@ psa_status_t psa_driver_wrapper_get_key_buffer_size(
+@@ -133,6 +136,9 @@ psa_status_t psa_driver_wrapper_get_key_buffer_size(
  
  #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
          case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:
@@ -64,7 +64,7 @@ index 3bdbf440e..40145b92d 100644
              return tfm_builtin_key_loader_get_key_buffer_size(psa_get_key_id(attributes),
                                                                key_buffer_size);
  #endif /* PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER */
-@@ -266,6 +272,9 @@ psa_status_t psa_driver_wrapper_get_builtin_key(
+@@ -262,6 +268,9 @@ psa_status_t psa_driver_wrapper_get_builtin_key(
  
  #if defined(PSA_CRYPTO_DRIVER_TFM_BUILTIN_KEY_LOADER)
          case TFM_BUILTIN_KEY_LOADER_KEY_LOCATION:

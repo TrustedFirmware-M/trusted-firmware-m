@@ -1,4 +1,4 @@
-From eec1b350aa5b029ededf0cec44f3bec80568491b Mon Sep 17 00:00:00 2001
+From b3ea4ce9fd01d91df1abc829367da1e610fbaff2 Mon Sep 17 00:00:00 2001
 From: Antonio de Angelis <Antonio.deAngelis@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
 Subject: [PATCH 06/16] P256M: Add option to force not use of asm
@@ -13,10 +13,10 @@ Signed-off-by: Antonio de Angelis <antonio.deangelis@arm.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/p256-m/p256-m/p256-m.c b/drivers/p256-m/p256-m/p256-m.c
-index 42c35b5bf..558a8bc95 100644
+index 103ddee79..846ad1e8f 100644
 --- a/drivers/p256-m/p256-m/p256-m.c
 +++ b/drivers/p256-m/p256-m/p256-m.c
-@@ -197,7 +197,7 @@ static uint64_t u32_muladd64(uint32_t x, uint32_t y, uint32_t z, uint32_t t);
+@@ -290,7 +290,7 @@ static uint64_t u32_muladd64(uint32_t x, uint32_t y, uint32_t z, uint32_t t);
   * v7-M architectures. __ARM_ARCH_PROFILE is not defined for v6 and earlier.
   * Thumb and 32-bit assembly is supported; aarch64 is not supported.
   */

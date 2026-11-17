@@ -1,4 +1,4 @@
-From 9cea57727751d7418d4f44cb962350cc211fe7c2 Mon Sep 17 00:00:00 2001
+From d0c9856caab0695cf11ef3f420e37cd8ca5746ae Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 2 Apr 2026 13:33:21 +0000
 Subject: [PATCH 15/16] Re-add support for AES Keywrap for TF-M
@@ -17,7 +17,7 @@ Signed-off-by: David Vincze <david.vincze@arm.com>
  2 files changed, 191 insertions(+)
 
 diff --git a/include/psa/crypto.h b/include/psa/crypto.h
-index 1bd257431..d53e79b33 100644
+index 1bd257431..f96e17d11 100644
 --- a/include/psa/crypto.h
 +++ b/include/psa/crypto.h
 @@ -3142,6 +3142,132 @@ psa_status_t psa_verify_message(mbedtls_svc_key_id_t key,
@@ -154,7 +154,7 @@ index 1bd257431..d53e79b33 100644
   * \brief Sign a hash or short message with a private key.
   *
 diff --git a/include/psa/crypto_values.h b/include/psa/crypto_values.h
-index 8d851f889..f6b0e8d7f 100644
+index 9b656f1ba..3a8adecd1 100644
 --- a/include/psa/crypto_values.h
 +++ b/include/psa/crypto_values.h
 @@ -779,6 +779,7 @@

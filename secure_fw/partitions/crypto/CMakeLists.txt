@@ -220,7 +220,6 @@ set(_tfpsa_internal_targets
     ${TF_PSA_CRYPTO_TARGET_PREFIX}builtin
     ${TF_PSA_CRYPTO_TARGET_PREFIX}everest
     ${TF_PSA_CRYPTO_TARGET_PREFIX}platform
-    ${TF_PSA_CRYPTO_TARGET_PREFIX}pqcp
     ${TF_PSA_CRYPTO_TARGET_PREFIX}utilities
     ${TF_PSA_CRYPTO_TARGET_PREFIX}extras
 )

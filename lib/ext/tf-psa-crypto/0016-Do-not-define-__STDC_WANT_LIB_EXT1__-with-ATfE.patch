@@ -1,4 +1,4 @@
-From befef06cf30bcfa2c42e94df744c1bf06296fa4d Mon Sep 17 00:00:00 2001
+From d69ee54837483decd15118189462008e887855d5 Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 2 Apr 2026 20:16:58 +0000
 Subject: [PATCH 16/16] Do not define __STDC_WANT_LIB_EXT1__ with ATfE

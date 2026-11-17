@@ -1,4 +1,4 @@
-From ec91a2231493a85b589e8fbebe6739b9bbdb76d0 Mon Sep 17 00:00:00 2001
+From b6c235b4f11b608709a5dec802e0d35825d39b2f Mon Sep 17 00:00:00 2001
 From: David Vincze <david.vincze@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
 Subject: [PATCH 09/16] Define base attributes and structure for SP800-108 CMAC
@@ -138,7 +138,7 @@ index 4f76c0473..5c5088d51 100644
  
  #endif /* PSA_CRYPTO_DRIVER_CONTEXTS_KEY_DERIVATION_H */
 diff --git a/include/psa/crypto_values.h b/include/psa/crypto_values.h
-index d30b8d2f4..8d851f889 100644
+index a2f4da446..9b656f1ba 100644
 --- a/include/psa/crypto_values.h
 +++ b/include/psa/crypto_values.h
 @@ -1822,6 +1822,19 @@

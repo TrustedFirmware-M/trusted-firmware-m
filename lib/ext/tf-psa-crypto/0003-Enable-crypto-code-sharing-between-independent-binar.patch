@@ -1,4 +1,4 @@
-From a6a1e3efd4a22325a30ce4f96a15f93eb02b1323 Mon Sep 17 00:00:00 2001
+From 055d849cde9c672fa09371dd39d73e39a2793a1b Mon Sep 17 00:00:00 2001
 From: Tamas Ban <tamas.ban@arm.com>
 Date: Thu, 12 Mar 2026 13:41:43 +0000
 Subject: [PATCH 03/16] Enable crypto code sharing between independent binaries
@@ -36,7 +36,7 @@ index 204458c46..215a49037 100644
  void *mbedtls_calloc(size_t nmemb, size_t size)
  {
 diff --git a/platform/platform_util.c b/platform/platform_util.c
-index 3dd58f3aa..98904fd54 100644
+index 37c653673..c28c8cb4c 100644
 --- a/platform/platform_util.c
 +++ b/platform/platform_util.c
 @@ -72,7 +72,7 @@
