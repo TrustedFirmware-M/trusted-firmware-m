@@ -18,7 +18,7 @@ Antonio de Angelis
     :github: `adeaarm <https://github.com/adeaarm>`__
 
 Chris Brand
-    :email: `Chris.Brand@cypress.com <chris.brand@cypress.com>`__
+    :email: `Chris.Carter.Brand@gmail.com <chris.carter.brand@gmail.com>`__
     :github: `UEWBot <https://github.com/UEWBot>`__
 
 David Vincze
