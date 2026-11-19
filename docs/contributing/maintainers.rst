@@ -21,9 +21,9 @@ Chris Brand
     :email: `Chris.Brand@cypress.com <chris.brand@cypress.com>`__
     :github: `UEWBot <https://github.com/UEWBot>`__
 
-David Hu
-    :email: `David.Hu2@arm.com <David.Hu2@arm.com>`__
-    :github: `davidhuziji <https://github.com/davidhuziji>`__
+David Vincze
+    :email: `David.Vincze@arm.com <David.Vincze@arm.com>`__
+    :github: `davidvincze <https://github.com/davidvincze>`__
 
 Nicola Mazzucato
     :email: `nicola.mazzucato@arm.com <nicola.mazzucato@arm.com>`__
