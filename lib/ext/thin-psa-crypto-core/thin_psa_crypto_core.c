@@ -655,11 +655,7 @@ EXTERNAL_PSA_API(psa_mac_compute,
     uint8_t operation_mac_size = 0;
     psa_status_t status = PSA_ERROR_INVALID_HANDLE;
 
-    if (!input_length) {
-        FIH_RET(PSA_SUCCESS);
-    }
-
-    assert(input != NULL);
+    assert(input_length == 0 || input != NULL);
     assert(mac != NULL);
     assert(!!mac_size);
     assert(mac_length != NULL);
