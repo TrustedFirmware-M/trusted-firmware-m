@@ -575,6 +575,9 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
         return status;
     }
 
+    operation->mac_size = PSA_MAC_LENGTH(psa_get_key_type(&attributes),
+                                          psa_get_key_bits(&attributes), alg);
+    operation->is_sign = 1;
     return psa_driver_wrapper_mac_sign_setup(
                 operation, &attributes, key_buffer, key_buffer_size, alg);
 }
@@ -613,6 +616,9 @@ psa_status_t psa_mac_verify_setup(psa_mac_operation_t *operation,
         return status;
     }
 
+    operation->mac_size = PSA_MAC_LENGTH(psa_get_key_type(&attributes),
+                                          psa_get_key_bits(&attributes), alg);
+    operation->is_sign = 0;
     return psa_driver_wrapper_mac_verify_setup(
                 operation, &attributes, key_buffer, key_buffer_size, alg);
 }
@@ -628,7 +634,22 @@ psa_status_t psa_mac_verify_finish(psa_mac_operation_t *operation,
                                    const uint8_t *mac,
                                    size_t mac_length)
 {
-    return PSA_ERROR_NOT_SUPPORTED;
+    psa_status_t status;
+    psa_status_t abort_status;
+
+    assert(operation != NULL);
+    assert(mac_length == 0 || mac != NULL);
+
+    if (operation->id == 0 || operation->is_sign || operation->mac_size == 0) {
+        status = PSA_ERROR_BAD_STATE;
+    } else if (mac_length != operation->mac_size) {
+        status = PSA_ERROR_INVALID_SIGNATURE;
+    } else {
+        status = psa_driver_wrapper_mac_verify_finish(operation, mac, mac_length);
+    }
+
+    abort_status = psa_mac_abort(operation);
+    return status == PSA_SUCCESS ? abort_status : status;
 }
 
 psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
@@ -641,7 +662,18 @@ psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
 
 psa_status_t psa_mac_abort(psa_mac_operation_t *operation)
 {
-    return psa_driver_wrapper_mac_abort(operation);
+    psa_status_t status;
+
+    assert(operation != NULL);
+    if (operation->id == 0) {
+        return PSA_SUCCESS;
+    }
+
+    status = psa_driver_wrapper_mac_abort(operation);
+    operation->id = 0;
+    operation->mac_size = 0;
+    operation->is_sign = 0;
+    return status;
 }
 
 EXTERNAL_PSA_API(psa_mac_compute,
