@@ -1152,7 +1152,30 @@ psa_status_t psa_get_key_attributes(psa_key_id_t key,
 {
     assert(attributes != NULL);
 
-    assert(g_key_slot.is_valid && (g_key_slot.key_id == key));
+    /* Preserve an active slot, including an opaque image-unwrapping key. */
+    if (!g_key_slot.is_valid || (g_key_slot.key_id != key)) {
+#if defined(MCUBOOT_BUILTIN_KEY)
+        psa_status_t status;
+
+        if (!is_key_builtin(key)) {
+            return PSA_ERROR_INVALID_HANDLE;
+        }
+
+        /* Loading may overwrite the previous slot even if it fails. */
+        g_key_slot.is_valid = false;
+        g_key_slot.attr = psa_key_attributes_init();
+        status = get_builtin_key(key);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+
+        g_key_slot.key_id = key;
+        g_key_slot.is_valid = true;
+#else
+        return PSA_ERROR_INVALID_HANDLE;
+#endif /* MCUBOOT_BUILTIN_KEY */
+    }
+
     memcpy(attributes, &g_key_slot.attr, sizeof(psa_key_attributes_t));
     return PSA_SUCCESS;
 }
