@@ -1431,8 +1431,6 @@ EXTERNAL_PSA_API(psa_cipher_abort,
         (psa_cipher_operation_t *operation),
         operation)
 {
-#if defined(PSA_WANT_ALG_CTR) || \
-    defined(PSA_WANT_ALG_ECB_NO_PADDING)
     assert(operation != NULL);
 
     if (operation->id == 0) {
@@ -1449,14 +1447,8 @@ EXTERNAL_PSA_API(psa_cipher_abort,
     operation->iv_required = 0;
 
     FIH_RET(PSA_SUCCESS);
-#else
-    FATAL_ERR(PSA_ERROR_NOT_SUPPORTED);
-    FIH_RET(PSA_ERROR_NOT_SUPPORTED);
-#endif /* PSA_WANT_ALG_CTR || PSA_WANT_ALG_ECB_NO_PADDING */
 }
 
-#if defined(PSA_WANT_ALG_CTR) || \
-    defined(PSA_WANT_ALG_ECB_NO_PADDING)
 static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
                                      psa_key_id_t key,
                                      psa_algorithm_t alg,
@@ -1507,15 +1499,12 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
 
     return status;
 }
-#endif /* PSA_WANT_ALG_CTR || PSA_WANT_ALG_ECB_NO_PADDING */
 
 EXTERNAL_PSA_API(psa_cipher_update,
         (psa_cipher_operation_t *operation, const uint8_t *input_external,
          size_t input_length, uint8_t *output_external, size_t output_size, size_t *output_length),
         operation, input_external, input_length, output_external, output_size, output_length)
 {
-#if defined(PSA_WANT_ALG_CTR) || \
-    defined(PSA_WANT_ALG_ECB_NO_PADDING)
     psa_status_t status;
 
     assert(operation != NULL);
@@ -1537,50 +1526,32 @@ EXTERNAL_PSA_API(psa_cipher_update,
     }
 
     FIH_RET(PSA_SUCCESS);
-#else
-    FATAL_ERR(PSA_ERROR_NOT_SUPPORTED);
-    FIH_RET(PSA_ERROR_NOT_SUPPORTED);
-#endif /* PSA_WANT_ALG_CTR || PSA_WANT_ALG_ECB_NO_PADDING */
 }
 
 EXTERNAL_PSA_API(psa_cipher_encrypt_setup,
         (psa_cipher_operation_t *operation, psa_key_id_t key, psa_algorithm_t alg),
         operation, key, alg)
 {
-#if defined(PSA_WANT_ALG_CTR) || \
-    defined(PSA_WANT_ALG_ECB_NO_PADDING)
     assert(operation != NULL);
 
     FIH_RET(psa_cipher_setup(operation, key, alg, MBEDTLS_ENCRYPT));
 
-#else
-    FATAL_ERR(PSA_ERROR_NOT_SUPPORTED);
-    FIH_RET(PSA_ERROR_NOT_SUPPORTED);
-#endif /* PSA_WANT_ALG_CTR || PSA_WANT_ALG_ECB_NO_PADDING */
 }
 
 EXTERNAL_PSA_API(psa_cipher_decrypt_setup,
         (psa_cipher_operation_t *operation, psa_key_id_t key, psa_algorithm_t alg),
         operation, key, alg)
 {
-#if defined(PSA_WANT_ALG_CTR) || \
-    defined(PSA_WANT_ALG_ECB_NO_PADDING)
     assert(operation != NULL);
 
     FIH_RET(psa_cipher_setup(operation, key, alg, MBEDTLS_DECRYPT));
 
-#else
-    FATAL_ERR(PSA_ERROR_NOT_SUPPORTED);
-    FIH_RET(PSA_ERROR_NOT_SUPPORTED);
-#endif /* PSA_WANT_ALG_CTR || PSA_WANT_ALG_ECB_NO_PADDING */
 }
 
 EXTERNAL_PSA_API(psa_cipher_set_iv,
         (psa_cipher_operation_t *operation, const uint8_t *iv_external, size_t iv_length),
         operation, iv_external, iv_length)
 {
-#if defined(PSA_WANT_ALG_CTR) || \
-    defined(PSA_WANT_ALG_ECB_NO_PADDING)
     psa_status_t status;
 
     assert(operation != NULL);
@@ -1601,10 +1572,6 @@ EXTERNAL_PSA_API(psa_cipher_set_iv,
     operation->iv_set = 1;
 
     FIH_RET(PSA_SUCCESS);
-#else
-    FATAL_ERR(PSA_ERROR_NOT_SUPPORTED);
-    FIH_RET(PSA_ERROR_NOT_SUPPORTED);
-#endif /* PSA_WANT_ALG_CTR || PSA_WANT_ALG_ECB_NO_PADDING */
 }
 
 EXTERNAL_PSA_API(psa_cipher_finish,
@@ -1612,8 +1579,6 @@ EXTERNAL_PSA_API(psa_cipher_finish,
          size_t output_size, size_t *output_length),
         operation, output_external, output_size, output_length)
 {
-#if defined(PSA_WANT_ALG_CTR) || \
-    defined(PSA_WANT_ALG_ECB_NO_PADDING)
     psa_status_t status;
 
     assert(operation != NULL);
@@ -1638,10 +1603,6 @@ EXTERNAL_PSA_API(psa_cipher_finish,
     }
 
     FIH_RET(PSA_SUCCESS);
-#else
-    FATAL_ERR(PSA_ERROR_NOT_SUPPORTED);
-    FIH_RET(PSA_ERROR_NOT_SUPPORTED);
-#endif /* PSA_WANT_ALG_CTR || PSA_WANT_ALG_ECB_NO_PADDING */
 }
 
 #if defined(MCUBOOT_ENC_IMAGES)
