@@ -372,6 +372,36 @@ static psa_status_t hash_check(const uint8_t *a, size_t la, const uint8_t *b,
     return chk == 0 ? PSA_SUCCESS : PSA_ERROR_INVALID_SIGNATURE;
 }
 
+static psa_status_t get_key_attributes_and_buffer(psa_key_id_t key,
+                                                  psa_algorithm_t alg,
+                                                  psa_key_attributes_t *attributes,
+                                                  const uint8_t **key_buffer,
+                                                  size_t *key_buffer_size)
+{
+    psa_status_t status;
+
+    *key_buffer = NULL;
+    *key_buffer_size = 0;
+
+    if (g_key_slot.is_valid && (g_key_slot.key_id == key)) {
+        status = psa_get_key_attributes(key, attributes);
+        if (status != PSA_SUCCESS) {
+            return status;
+        }
+
+        *key_buffer = g_key_slot.buf;
+        *key_buffer_size = g_key_slot.len;
+        return PSA_SUCCESS;
+    }
+
+#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
+    return cc3xx_init_opaque_key(attributes, key, alg, key_buffer, key_buffer_size);
+#else
+    (void)alg;
+    return PSA_ERROR_INVALID_HANDLE;
+#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
+}
+
 /*!
  * \defgroup thin_psa_crypto Set of functions implementing a thin PSA Crypto core
  *                           with the bare minimum set of APIs required for
@@ -535,10 +565,6 @@ EXTERNAL_PSA_API(psa_hash_verify,
     FIH_RET(hash_check(hash, hash_length, (uint8_t *)hash_produced, hash_produced_length));
 }
 
-/* FixMe: psa_adac_mac_verify() and psa_adac_derive_key() for BL2 based ADAC flow with CC312
- *        are not implemented yet, hence the APIs below are just stubbed to emulate
- *        the same behaviour, i.e. PSA_ERROR_NOT_SUPPORTED
- */
 psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
                                 psa_key_id_t key,
                                 psa_algorithm_t alg)
@@ -546,31 +572,13 @@ psa_status_t psa_mac_sign_setup(psa_mac_operation_t *operation,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t *key_buffer;
     size_t key_buffer_size;
-    psa_status_t status = PSA_ERROR_INVALID_HANDLE;
+    psa_status_t status;
 
     assert(operation != NULL);
 
-    /* Prefer static slot if it matches */
-    if (g_key_slot.is_valid && (g_key_slot.key_id == key)) {
-        status = psa_get_key_attributes(key, &attributes);
-        if (status != PSA_SUCCESS) {
-            return status;
-        }
-        key_buffer      = g_key_slot.buf;
-        key_buffer_size = g_key_slot.len;
-    }
-#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
-    else {
-        status = cc3xx_init_opaque_key(&attributes, key, alg,
-                                       &key_buffer, &key_buffer_size);
-        if (status != PSA_SUCCESS) {
-            return status;
-        }
-
-    }
-#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
-
-    if (status == PSA_ERROR_INVALID_HANDLE) {
+    status = get_key_attributes_and_buffer(key, alg, &attributes,
+                                            &key_buffer, &key_buffer_size);
+    if (status != PSA_SUCCESS) {
         FATAL_ERR(status);
         return status;
     }
@@ -589,29 +597,13 @@ psa_status_t psa_mac_verify_setup(psa_mac_operation_t *operation,
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t *key_buffer;
     size_t key_buffer_size;
-    psa_status_t status = PSA_ERROR_INVALID_HANDLE;
+    psa_status_t status;
 
     assert(operation != NULL);
 
-    if (g_key_slot.is_valid && (g_key_slot.key_id == key)) {
-        status = psa_get_key_attributes(key, &attributes);
-        if (status != PSA_SUCCESS) {
-            return status;
-        }
-        key_buffer      = g_key_slot.buf;
-        key_buffer_size = g_key_slot.len;
-    }
-#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
-    else {
-        status = cc3xx_init_opaque_key(&attributes, key, alg,
-                                       &key_buffer, &key_buffer_size);
-        if (status != PSA_SUCCESS) {
-            return status;
-        }
-    }
-#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
-
-    if (status == PSA_ERROR_INVALID_HANDLE) {
+    status = get_key_attributes_and_buffer(key, alg, &attributes,
+                                            &key_buffer, &key_buffer_size);
+    if (status != PSA_SUCCESS) {
         FATAL_ERR(status);
         return status;
     }
@@ -685,35 +677,16 @@ EXTERNAL_PSA_API(psa_mac_compute,
     const uint8_t *key_buffer;
     size_t key_buffer_size;
     uint8_t operation_mac_size = 0;
-    psa_status_t status = PSA_ERROR_INVALID_HANDLE;
+    psa_status_t status;
 
     assert(input_length == 0 || input != NULL);
     assert(mac != NULL);
     assert(!!mac_size);
     assert(mac_length != NULL);
 
-    /* Check if the key being requested is imported already */
-    if (g_key_slot.is_valid && (g_key_slot.key_id == key)) {
-        status = psa_get_key_attributes(key, &attributes);
-        if (status != PSA_SUCCESS) {
-            FIH_RET(status);
-        }
-
-        key_buffer = g_key_slot.buf;
-        key_buffer_size = g_key_slot.len;
-    }
-#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
-    else {
-        status = cc3xx_init_opaque_key(&attributes, key, alg,
-                                       &key_buffer, &key_buffer_size);
-        if (status != PSA_SUCCESS) {
-            FIH_RET(status);
-        }
-    }
-#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
-
-    /* We need to have a valid handle for key to use at this point */
-    if (status == PSA_ERROR_INVALID_HANDLE) {
+    status = get_key_attributes_and_buffer(key, alg, &attributes,
+                                            &key_buffer, &key_buffer_size);
+    if (status != PSA_SUCCESS) {
         FATAL_ERR(status);
         FIH_RET(status);
     }
@@ -1489,7 +1462,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
                                      psa_algorithm_t alg,
                                      mbedtls_operation_t cipher_operation)
 {
-    psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_status_t status;
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     const uint8_t *key_buffer;
     size_t key_buffer_size;
@@ -1498,27 +1471,9 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     assert(operation->id == 0);
     assert(PSA_ALG_IS_CIPHER(alg));
 
-    /* Prefer static slot if it matches */
-    if (g_key_slot.is_valid && (g_key_slot.key_id == key)) {
-        status = psa_get_key_attributes(key, &attributes);
-        if (status != PSA_SUCCESS) {
-            return status;
-        }
-        key_buffer      = g_key_slot.buf;
-        key_buffer_size = g_key_slot.len;
-    }
-#ifdef CC3XX_CRYPTO_OPAQUE_KEYS
-    else {
-        status = cc3xx_init_opaque_key(&attributes, key, alg,
-                                       &key_buffer, &key_buffer_size);
-        if (status != PSA_SUCCESS) {
-            return status;
-        }
-
-    }
-#endif /* CC3XX_CRYPTO_OPAQUE_KEYS */
-
-    if (status == PSA_ERROR_INVALID_HANDLE) {
+    status = get_key_attributes_and_buffer(key, alg, &attributes,
+                                            &key_buffer, &key_buffer_size);
+    if (status != PSA_SUCCESS) {
         FATAL_ERR(status);
         return status;
     }
