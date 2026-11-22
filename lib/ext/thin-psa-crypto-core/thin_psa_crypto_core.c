@@ -1264,7 +1264,8 @@ psa_status_t psa_verify_message(psa_key_id_t key,
                                       alg, message, message_length,
                                       signature, signature_length);
     }
-#else
+#endif /* PSA_WANT_ALG_LMS */
+
     status = psa_driver_wrapper_hash_compute(hash_alg, message, message_length,
                                              hash, sizeof(hash), &hash_length);
     if (status != PSA_SUCCESS) {
@@ -1274,7 +1275,6 @@ psa_status_t psa_verify_message(psa_key_id_t key,
 
     return psa_verify_hash(key, alg, hash, hash_length,
                            signature, signature_length);
-#endif /* PSA_WANT_ALG_LMS */
 }
 
 void mbedtls_psa_crypto_free(void)
