@@ -1120,9 +1120,8 @@ psa_status_t psa_export_key(psa_key_id_t key,
     psa_status_t status;
 
     assert(data_external != NULL);
-    assert(data_size >= g_key_slot.len);
-
-    (void)data_length;
+    assert(data_length != NULL);
+    *data_length = 0;
 
     if (is_key_builtin(key)) {
         status = get_builtin_key(key);
@@ -1134,7 +1133,12 @@ psa_status_t psa_export_key(psa_key_id_t key,
         assert(g_key_slot.is_valid && (g_key_slot.key_id == key));
     }
 
+    if (data_size < g_key_slot.len) {
+        return PSA_ERROR_BUFFER_TOO_SMALL;
+    }
+
     memcpy(data_external, g_key_slot.buf, g_key_slot.len);
+    *data_length = g_key_slot.len;
     return PSA_SUCCESS;
 }
 
