@@ -1772,6 +1772,96 @@ psa_status_t psa_asymmetric_decrypt(mbedtls_svc_key_id_t key,
 }
 #endif /* MCUBOOT_ENC_IMAGES */
 
+EXTERNAL_PSA_API(psa_aead_encrypt,
+        (mbedtls_svc_key_id_t key, psa_algorithm_t alg,
+         const uint8_t *nonce, size_t nonce_length,
+         const uint8_t *additional_data, size_t additional_data_length,
+         const uint8_t *plaintext, size_t plaintext_length,
+         uint8_t *ciphertext, size_t ciphertext_size, size_t *ciphertext_length),
+        key, alg, nonce, nonce_length, additional_data, additional_data_length,
+        plaintext, plaintext_length, ciphertext, ciphertext_size, ciphertext_length)
+{
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    const uint8_t *key_buffer;
+    size_t key_buffer_size;
+    psa_status_t status;
+
+    assert(ciphertext_length != NULL);
+    assert(nonce_length == 0 || nonce != NULL);
+    assert(additional_data_length == 0 || additional_data != NULL);
+    assert(plaintext_length == 0 || plaintext != NULL);
+    assert(ciphertext_size == 0 || ciphertext != NULL);
+    *ciphertext_length = 0;
+
+    if (!PSA_ALG_IS_AEAD(alg)) {
+        FIH_RET(PSA_ERROR_INVALID_ARGUMENT);
+    }
+
+    status = get_key_attributes_and_buffer(key, alg, &attributes,
+                                            &key_buffer, &key_buffer_size);
+    if (status != PSA_SUCCESS) {
+        FIH_RET(status);
+    }
+
+    status = psa_driver_wrapper_aead_encrypt(&attributes, key_buffer,
+                                              key_buffer_size, alg,
+                                              nonce, nonce_length,
+                                              additional_data, additional_data_length,
+                                              plaintext, plaintext_length,
+                                              ciphertext, ciphertext_size,
+                                              ciphertext_length);
+    if (status != PSA_SUCCESS) {
+        *ciphertext_length = 0;
+    }
+
+    FIH_RET(status);
+}
+
+EXTERNAL_PSA_API(psa_aead_decrypt,
+        (mbedtls_svc_key_id_t key, psa_algorithm_t alg,
+         const uint8_t *nonce, size_t nonce_length,
+         const uint8_t *additional_data, size_t additional_data_length,
+         const uint8_t *ciphertext, size_t ciphertext_length,
+         uint8_t *plaintext, size_t plaintext_size, size_t *plaintext_length),
+        key, alg, nonce, nonce_length, additional_data, additional_data_length,
+        ciphertext, ciphertext_length, plaintext, plaintext_size, plaintext_length)
+{
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    const uint8_t *key_buffer;
+    size_t key_buffer_size;
+    psa_status_t status;
+
+    assert(plaintext_length != NULL);
+    assert(nonce_length == 0 || nonce != NULL);
+    assert(additional_data_length == 0 || additional_data != NULL);
+    assert(ciphertext_length == 0 || ciphertext != NULL);
+    assert(plaintext_size == 0 || plaintext != NULL);
+    *plaintext_length = 0;
+
+    if (!PSA_ALG_IS_AEAD(alg)) {
+        FIH_RET(PSA_ERROR_INVALID_ARGUMENT);
+    }
+
+    status = get_key_attributes_and_buffer(key, alg, &attributes,
+                                            &key_buffer, &key_buffer_size);
+    if (status != PSA_SUCCESS) {
+        FIH_RET(status);
+    }
+
+    status = psa_driver_wrapper_aead_decrypt(&attributes, key_buffer,
+                                              key_buffer_size, alg,
+                                              nonce, nonce_length,
+                                              additional_data, additional_data_length,
+                                              ciphertext, ciphertext_length,
+                                              plaintext, plaintext_size,
+                                              plaintext_length);
+    if (status != PSA_SUCCESS) {
+        *plaintext_length = 0;
+    }
+
+    FIH_RET(status);
+}
+
 /* Set the key for a multipart authenticated encryption operation. */
 EXTERNAL_PSA_API(psa_aead_encrypt_setup,
         (psa_aead_operation_t *operation, psa_key_id_t key_id, psa_algorithm_t alg),
