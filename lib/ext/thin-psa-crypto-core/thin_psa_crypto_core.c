@@ -1571,6 +1571,49 @@ EXTERNAL_PSA_API(psa_cipher_decrypt_setup,
 
 }
 
+EXTERNAL_PSA_API(psa_cipher_decrypt,
+        (mbedtls_svc_key_id_t key, psa_algorithm_t alg,
+         const uint8_t *input, size_t input_length,
+         uint8_t *output, size_t output_size, size_t *output_length),
+        key, alg, input, input_length, output, output_size, output_length)
+{
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    const uint8_t *key_buffer;
+    size_t key_buffer_size;
+    psa_status_t status;
+
+    assert(output_length != NULL);
+    assert(input_length == 0 || input != NULL);
+    assert(output_size == 0 || output != NULL);
+    *output_length = 0;
+
+    if (!PSA_ALG_IS_CIPHER(alg)) {
+        FIH_RET(PSA_ERROR_INVALID_ARGUMENT);
+    }
+
+    status = get_key_attributes_and_buffer(key, alg, &attributes,
+                                            &key_buffer, &key_buffer_size);
+    if (status != PSA_SUCCESS) {
+        FIH_RET(status);
+    }
+
+    /* The one-shot input includes the IV, if the algorithm needs one. */
+    if (input_length < PSA_CIPHER_IV_LENGTH(psa_get_key_type(&attributes), alg)) {
+        FIH_RET(PSA_ERROR_INVALID_ARGUMENT);
+    }
+
+    status = psa_driver_wrapper_cipher_decrypt(&attributes, key_buffer,
+                                                key_buffer_size, alg,
+                                                input, input_length,
+                                                output, output_size,
+                                                output_length);
+    if (status != PSA_SUCCESS) {
+        *output_length = 0;
+    }
+
+    FIH_RET(status);
+}
+
 EXTERNAL_PSA_API(psa_cipher_set_iv,
         (psa_cipher_operation_t *operation, const uint8_t *iv_external, size_t iv_length),
         operation, iv_external, iv_length)
