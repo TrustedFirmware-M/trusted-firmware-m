@@ -1518,7 +1518,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
         psa_cipher_abort(operation);
     }
 
-    return PSA_SUCCESS;
+    return status;
 }
 #endif /* PSA_WANT_ALG_CTR || PSA_WANT_ALG_ECB_NO_PADDING */
 
