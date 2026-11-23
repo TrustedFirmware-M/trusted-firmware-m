@@ -7,6 +7,7 @@
 
 #include <assert.h>
 #include "tfm_hal_device_header.h"
+#include "tfm_hal_platform.h"
 #include "rse_persistent_data.h"
 #ifdef RSE_PERSISTENT_DATA_FLAG_REG_ADDR
 #include "device_definition.h"
@@ -46,7 +47,13 @@ static void ack_dma_trigger(uint32_t trigger_number)
 static void ack_all_dma_triggers(void)
 {
     struct dma350_dev_t *dev = &DMA350_DMA0_DEV_S;
+    const size_t num_channels = dma350_get_num_channels(dev);
     enum lcm_lcs_t lcs;
+
+    /* Do not enter retention if the driver cannot stop every channel. */
+    if (num_channels > DMA350_MAX_NUM_CH) {
+        tfm_hal_system_halt();
+    }
 
     /*Poll until lcs is valid */
     while (lcm_get_lcs(&LCM_DEV_S, &lcs) != LCM_ERROR_NONE);
@@ -55,7 +62,7 @@ static void ack_all_dma_triggers(void)
      *
      * TODO: use dma350_stop_all_channels() when FVP supports init
      */
-    for(size_t idx=0; idx<dma350_get_num_channels(dev); idx++) {
+    for (size_t idx = 0; idx < num_channels; idx++) {
         struct dma350_ch_dev_t ch = {
             .cfg = {.ch_base = (DMACH_TypeDef*) (DMA_350_BASE_S + 0x1000UL + 0x100*idx),
                     .channel = idx},
