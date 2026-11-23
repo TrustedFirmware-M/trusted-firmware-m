@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Arm Limited. All rights reserved.
+ * Copyright (c) 2025-2026, Arm Limited. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -24,45 +24,57 @@ inline size_t cc3xx_get_opaque_key_buffer_size(psa_key_id_t key)
 }
 
 /**
- * @brief           translate they key id of an opaque key to its corresponding
- *                  HW key ID. The latter makes sense to actual consumer of
- *                  they key.
+ * @brief Translate an opaque key ID to its hardware key slot.
  *
- * @param[in] psa_key_id_t              The opaque key ID.
- * @return uint32_t                     The HW key slot ID.
+ * @param[in]  key_id     Opaque key ID.
+ * @param[out] hw_key_id  Hardware key slot, unchanged on failure.
+ * @return PSA_SUCCESS or PSA_ERROR_INVALID_ARGUMENT.
  */
-inline uint32_t cc3xx_get_builtin_key(psa_key_id_t key_id)
+inline psa_status_t cc3xx_get_builtin_key(psa_key_id_t key_id, uint32_t *hw_key_id)
 {
+    if (hw_key_id == NULL) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+
     if ((key_id >= PSA_OPAQUE_KEY_ID_USER_SLOT_MIN) &&
         (key_id <= PSA_OPAQUE_KEY_ID_USER_SLOT_MAX)) {
-        return KMU_USER_SLOT_MIN + (key_id - PSA_OPAQUE_KEY_ID_USER_SLOT_MIN);
+        *hw_key_id = KMU_USER_SLOT_MIN + (key_id - PSA_OPAQUE_KEY_ID_USER_SLOT_MIN);
+        return PSA_SUCCESS;
     }
 
     switch (key_id) {
     case PSA_OPAQUE_KEY_ID_KRTL:
-        return KMU_HW_SLOT_KRTL;
+        *hw_key_id = KMU_HW_SLOT_KRTL;
+        break;
 
     case PSA_OPAQUE_KEY_ID_HUK:
-        return KMU_HW_SLOT_HUK;
+        *hw_key_id = KMU_HW_SLOT_HUK;
+        break;
 
     case PSA_OPAQUE_KEY_ID_GUK:
-        return KMU_HW_SLOT_GUK;
+        *hw_key_id = KMU_HW_SLOT_GUK;
+        break;
 
     case PSA_OPAQUE_KEY_ID_KP_CM:
-        return KMU_HW_SLOT_KP_CM;
+        *hw_key_id = KMU_HW_SLOT_KP_CM;
+        break;
 
     case PSA_OPAQUE_KEY_ID_KCE_CM:
-        return KMU_HW_SLOT_KCE_CM;
+        *hw_key_id = KMU_HW_SLOT_KCE_CM;
+        break;
 
     case PSA_OPAQUE_KEY_ID_KP_DM:
-        return KMU_HW_SLOT_KP_DM;
+        *hw_key_id = KMU_HW_SLOT_KP_DM;
+        break;
 
     case PSA_OPAQUE_KEY_ID_KCE_DM:
-        return KMU_HW_SLOT_KCE_DM;
+        *hw_key_id = KMU_HW_SLOT_KCE_DM;
+        break;
     default:
-        FATAL_ERR(PSA_ERROR_INVALID_ARGUMENT);
-        return 0;
+        return PSA_ERROR_INVALID_ARGUMENT;
     }
+
+    return PSA_SUCCESS;
 }
 
 /**

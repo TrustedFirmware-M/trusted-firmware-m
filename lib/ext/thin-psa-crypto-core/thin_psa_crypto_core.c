@@ -244,7 +244,10 @@ static psa_status_t cc3xx_init_opaque_key(psa_key_attributes_t *attributes,
         return status;
     }
 
-    g_key_data[0] = cc3xx_get_builtin_key(key);
+    status = cc3xx_get_builtin_key(key, &g_key_data[0]);
+    if (status != PSA_SUCCESS) {
+        return status;
+    }
 
     *key_buffer = (const uint8_t *)g_key_data;
     *key_buffer_size = PSA_BITS_TO_BYTES(psa_get_key_bits(attributes));

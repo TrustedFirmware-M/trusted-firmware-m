@@ -1,4 +1,4 @@
-From f2dd600445cd7139f8847e5af6db945aeddd01cc Mon Sep 17 00:00:00 2001
+From 00873ae83ef00e694b0ec46981cb814b6fdb8eb1 Mon Sep 17 00:00:00 2001
 From: Hugues KAMBA MPIANA <hugueskambampiana@arm.com>
 Date: Fri, 8 May 2026 10:17:04 +0100
 Subject: [PATCH 1/2] cc3xx: handle unaligned HMAC keys in low-level HMAC
@@ -20,7 +20,7 @@ Signed-off-by: Hugues KAMBA MPIANA <hugueskambampiana@arm.com>
  1 file changed, 25 insertions(+), 4 deletions(-)
 
 diff --git a/vendor/arm/cc3xx/low_level_driver/src/cc3xx_hmac.c b/vendor/arm/cc3xx/low_level_driver/src/cc3xx_hmac.c
-index 898b456..c2e60ff 100644
+index 8776f97..d7f72a6 100644
 --- a/vendor/arm/cc3xx/low_level_driver/src/cc3xx_hmac.c
 +++ b/vendor/arm/cc3xx/low_level_driver/src/cc3xx_hmac.c
 @@ -14,6 +14,29 @@
@@ -50,10 +50,10 @@ index 898b456..c2e60ff 100644
 +    }
 +}
 +
- cc3xx_err_t cc3xx_lowlevel_hmac_compute(
-     size_t tag_len,
-     const uint8_t *key,
-@@ -49,8 +72,7 @@ cc3xx_err_t cc3xx_lowlevel_hmac_compute(
+ /* CC310 seems not to support xoring in HW, so we do this in software instead */
+ static inline void apply_xor_to_buffer(uint32_t *buf, size_t buf_len, uint32_t val)
+ {
+@@ -57,8 +80,7 @@ cc3xx_err_t cc3xx_lowlevel_hmac_compute(
  
          cc3xx_lowlevel_hash_finish(block, CC3XX_HASH_LENGTH(alg));
      } else if (key_size) {
@@ -63,7 +63,7 @@ index 898b456..c2e60ff 100644
      }
  
      /* H(K ^ ipad) */
-@@ -137,8 +159,7 @@ cc3xx_err_t cc3xx_lowlevel_hmac_set_key(
+@@ -159,8 +181,7 @@ cc3xx_err_t cc3xx_lowlevel_hmac_set_key(
  
          cc3xx_lowlevel_hash_finish(state->key, CC3XX_HASH_LENGTH(alg));
      } else if (key_size) {
@@ -74,5 +74,5 @@ index 898b456..c2e60ff 100644
  
      /* H(K ^ ipad) */
 -- 
-2.53.0
+2.43.0
 

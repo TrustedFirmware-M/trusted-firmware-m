@@ -248,9 +248,15 @@ enum sfcp_error_t sfcp_encryption_hal_rekey_session_key(uint8_t *seed, size_t se
     enum tfm_plat_err_t plat_err;
     psa_key_id_t output_psa_key_id;
     psa_status_t status;
+    uint32_t input_builtin_key_id;
+
+    status = cc3xx_get_builtin_key(input_key_id, &input_builtin_key_id);
+    if (status != PSA_SUCCESS) {
+        return SFCP_ERROR_HANDSHAKE_REKEY_SESSION_KEY_FAILURE;
+    }
 
     plat_err =
-        rse_rekey_session_key(seed, seed_len, cc3xx_get_builtin_key(input_key_id), output_key_id);
+        rse_rekey_session_key(seed, seed_len, input_builtin_key_id, output_key_id);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return SFCP_ERROR_HANDSHAKE_REKEY_SESSION_KEY_FAILURE;
     }
@@ -267,8 +273,15 @@ enum sfcp_error_t sfcp_encryption_hal_rekey_session_key(uint8_t *seed, size_t se
 enum sfcp_error_t sfcp_encryption_hal_invalidate_session_key(uint32_t key_id)
 {
     enum tfm_plat_err_t plat_err;
+    psa_status_t status;
+    uint32_t builtin_key_id;
 
-    plat_err = rse_invalidate_session_key(cc3xx_get_builtin_key(key_id));
+    status = cc3xx_get_builtin_key(key_id, &builtin_key_id);
+    if (status != PSA_SUCCESS) {
+        return SFCP_ERROR_HANDSHAKE_INVALIDATE_SESSION_KEY_FAILURE;
+    }
+
+    plat_err = rse_invalidate_session_key(builtin_key_id);
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
         return SFCP_ERROR_HANDSHAKE_INVALIDATE_SESSION_KEY_FAILURE;
     }
