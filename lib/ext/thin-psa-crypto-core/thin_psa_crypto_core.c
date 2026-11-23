@@ -2065,7 +2065,7 @@ EXTERNAL_PSA_API(psa_aead_update_ad,
 
     assert(operation != NULL);
     assert(operation->id != 0);
-    assert((!input_length) ^ (input != NULL));
+    assert(input_length == 0 || input != NULL);
 
     status = psa_driver_wrapper_aead_update_ad(operation,
                                                input,
@@ -2088,8 +2088,8 @@ EXTERNAL_PSA_API(psa_aead_update,
 
     assert(operation != NULL);
     assert(operation->id != 0);
-    assert((!input_length) ^ (input != NULL));
-    assert((!output_size) ^ (output != NULL));
+    assert(input_length == 0 || input != NULL);
+    assert(output_size == 0 || output != NULL);
 
     status = psa_driver_wrapper_aead_update(operation,
                                             input,
@@ -2116,7 +2116,7 @@ EXTERNAL_PSA_API(psa_aead_finish,
     assert(operation != NULL);
     assert(operation->id != 0);
     assert(ciphertext_length != NULL);
-    assert((!ciphertext_size) ^ (ciphertext != NULL));
+    assert(ciphertext_size == 0 || ciphertext != NULL);
     assert(tag != NULL);
     assert(tag_length != NULL);
 
@@ -2146,7 +2146,7 @@ EXTERNAL_PSA_API(psa_aead_verify,
     assert(operation != NULL);
     assert(operation->id != 0);
     assert(plaintext_length != NULL);
-    assert((!plaintext_size) ^ (plaintext != NULL));
+    assert(plaintext_size == 0 || plaintext != NULL);
     assert(tag != NULL);
     assert(tag_length != 0);
 
