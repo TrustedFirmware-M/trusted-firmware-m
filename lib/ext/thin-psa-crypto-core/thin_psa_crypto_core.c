@@ -669,7 +669,25 @@ psa_status_t psa_mac_sign_finish(psa_mac_operation_t *operation,
                                  size_t mac_size,
                                  size_t *mac_length)
 {
-    return psa_driver_wrapper_mac_sign_finish(operation, mac, mac_size, mac_length);
+    psa_status_t status;
+    psa_status_t abort_status;
+
+    assert(operation != NULL);
+    assert(mac_length != NULL);
+    assert(mac_size == 0 || mac != NULL);
+    *mac_length = 0;
+
+    if (operation->id == 0 || !operation->is_sign || operation->mac_size == 0) {
+        status = PSA_ERROR_BAD_STATE;
+    } else if (mac_size < operation->mac_size) {
+        status = PSA_ERROR_BUFFER_TOO_SMALL;
+    } else {
+        status = psa_driver_wrapper_mac_sign_finish(operation, mac,
+                                                     operation->mac_size, mac_length);
+    }
+
+    abort_status = psa_mac_abort(operation);
+    return status == PSA_SUCCESS ? abort_status : status;
 }
 
 psa_status_t psa_mac_abort(psa_mac_operation_t *operation)
@@ -703,6 +721,7 @@ EXTERNAL_PSA_API(psa_mac_compute,
     assert(mac != NULL);
     assert(!!mac_size);
     assert(mac_length != NULL);
+    *mac_length = 0;
 
     status = get_key_attributes_and_buffer(key, alg, &attributes,
                                             &key_buffer, &key_buffer_size);
@@ -714,7 +733,9 @@ EXTERNAL_PSA_API(psa_mac_compute,
     operation_mac_size = PSA_MAC_LENGTH(psa_get_key_type(&attributes),
                                         psa_get_key_bits(&attributes),
                                         alg);
-    assert(mac_size >= operation_mac_size);
+    if (mac_size < operation_mac_size) {
+        FIH_RET(PSA_ERROR_BUFFER_TOO_SMALL);
+    }
 
     FIH_RET(psa_driver_wrapper_mac_compute(
                         &attributes,
@@ -724,7 +745,7 @@ EXTERNAL_PSA_API(psa_mac_compute,
                         input,
                         input_length,
                         mac,
-                        mac_size,
+                        operation_mac_size,
                         mac_length));
 }
 
