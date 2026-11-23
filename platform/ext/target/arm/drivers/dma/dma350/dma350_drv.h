@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Arm Limited. All rights reserved.
+ * Copyright (c) 2022-2026 Arm Limited. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@
 
 #include "dma350_regdef.h"
 
-/* For __STATIC_INLINE */
-#include "cmsis_compiler.h"
+/* For __STATIC_INLINE and _FLD2VAL */
+#include "cmsis.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -140,7 +140,8 @@ uint8_t dma350_is_init(const struct dma350_dev_t *dev);
  *
  * \param[in] dev         DMA350 device struct \ref dma350_dev_t
  *
- * \return Returns number of channels
+ * \return Number of implemented channels, decoded from NUM_CHANNELS + 1.
+ *         This is not limited to the driver's DMA350_MAX_NUM_CH capacity.
  *
  * \note This function doesn't check if dev is NULL or if it has been init.
  */
@@ -361,9 +362,10 @@ enum dma350_error_t dma350_set_trigout_nonsecure(struct dma350_dev_t *dev,
 __STATIC_INLINE
 uint8_t dma350_get_num_ch(const struct dma350_dev_t *dev)
 {
-    return (union dma350_dmainfo_buildcfg0_t) {
-        .w = dev->cfg->dma_info->DMA_BUILDCFG0
-    }.b.NUM_CHANNELS;
+    uint32_t val = dev->cfg->dma_info->DMA_BUILDCFG0;
+
+    /* NUM_CHANNELS encodes the implemented channel count minus one. */
+    return _FLD2VAL(DMA_DMA_BUILDCFG0_NUM_CHANNELS, val) + 1U;
 }
 
 __STATIC_INLINE
@@ -375,10 +377,7 @@ uint8_t dma350_is_init(const struct dma350_dev_t *dev)
 __STATIC_INLINE
 size_t dma350_get_num_channels(const struct dma350_dev_t *dev)
 {
-    uint32_t val = dev->cfg->dma_info->DMA_BUILDCFG0;
-    size_t num_channels = (val & DMA_DMA_BUILDCFG0_NUM_CHANNELS_Msk) >>
-                            DMA_DMA_BUILDCFG0_NUM_CHANNELS_Pos;
-    return num_channels;
+    return dma350_get_num_ch(dev);
 }
 
 __STATIC_INLINE
