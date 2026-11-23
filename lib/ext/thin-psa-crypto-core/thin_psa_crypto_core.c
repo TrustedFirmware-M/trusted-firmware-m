@@ -147,7 +147,12 @@
  * @note  The buffer is rounded to a 4-byte size to match the requirements on the
  *        alignment for the underlying OTP memory
  */
-static uint32_t g_pubkey_data[ROUND_UP(PSA_EXPORT_PUBLIC_KEY_MAX_SIZE,  sizeof(uint32_t)) / sizeof(uint32_t)];
+#define THINCORE_SLOT_DATA_MAX_BYTES \
+    ((PSA_EXPORT_PUBLIC_KEY_MAX_SIZE) > (PSA_CIPHER_MAX_KEY_LENGTH) ? \
+     (PSA_EXPORT_PUBLIC_KEY_MAX_SIZE) : (PSA_CIPHER_MAX_KEY_LENGTH))
+
+static uint32_t g_key_data[ROUND_UP(THINCORE_SLOT_DATA_MAX_BYTES,
+                                     sizeof(uint32_t)) / sizeof(uint32_t)];
 #if defined(MCUBOOT_ENC_IMAGES)
 static uint8_t g_symkey_data[PSA_CIPHER_MAX_KEY_LENGTH];
 #endif
@@ -175,6 +180,17 @@ static struct thin_key_slot_s g_key_slot =  {
     .key_id = PSA_KEY_ID_NULL,
     .is_valid = false,
 };
+
+static void thin_core_zeroize(void *buf, size_t size)
+{
+    volatile unsigned char *p = buf;
+
+    /* Volatile stores prevent removal of erasure after the buffer's last use. */
+    while (size > 0) {
+        *p++ = 0;
+        size--;
+    }
+}
 
 #ifdef MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
 /**
@@ -228,9 +244,9 @@ static psa_status_t cc3xx_init_opaque_key(psa_key_attributes_t *attributes,
         return status;
     }
 
-    g_pubkey_data[0] = cc3xx_get_builtin_key(key);
+    g_key_data[0] = cc3xx_get_builtin_key(key);
 
-    *key_buffer = (const uint8_t*)g_pubkey_data;
+    *key_buffer = (const uint8_t *)g_key_data;
     *key_buffer_size = PSA_BITS_TO_BYTES(psa_get_key_bits(attributes));
 
     return PSA_SUCCESS;
@@ -265,11 +281,12 @@ static psa_status_t get_builtin_key(psa_key_id_t key_id)
             enum tfm_plat_err_t plat_err;
 
             /* Bind the local storage to the key slot */
-            g_key_slot.buf = (uint8_t *)g_pubkey_data;
+            g_key_slot.buf = (uint8_t *)g_key_data;
 
             /* Load key */
             plat_err = desc_table[idx].loader_key_func(
-                desc_table[idx].loader_key_ctx, g_key_slot.buf, sizeof(g_pubkey_data), &g_key_slot.len, &key_bits, &alg, &key_type);
+                desc_table[idx].loader_key_ctx, g_key_slot.buf,
+                sizeof(g_key_data), &g_key_slot.len, &key_bits, &alg, &key_type);
 
             if (plat_err != TFM_PLAT_ERR_SUCCESS) {
                 return PSA_ERROR_GENERIC_ERROR;
@@ -1011,6 +1028,67 @@ EXTERNAL_PSA_API(psa_key_derivation_output_bytes,
     FIH_RET(status);
 }
 
+psa_status_t psa_key_derivation_output_key(const psa_key_attributes_t *attributes,
+                                           psa_key_derivation_operation_t *operation,
+                                           mbedtls_svc_key_id_t *key)
+{
+    assert(attributes != NULL);
+    assert(operation != NULL);
+    assert(key != NULL);
+    *key = PSA_KEY_ID_NULL;
+
+#if defined(PSA_WANT_ALG_SP800_108_COUNTER_CMAC)
+    /* Keep the seed key intact until derivation has completed. */
+    uint32_t output_key_data[ROUND_UP(THINCORE_SLOT_DATA_MAX_BYTES,
+                                      sizeof(uint32_t)) / sizeof(uint32_t)];
+    const size_t key_bits = psa_get_key_bits(attributes);
+    const size_t key_bytes = PSA_BITS_TO_BYTES(key_bits);
+    psa_status_t status;
+
+    if (operation->alg != PSA_ALG_SP800_108_COUNTER_CMAC) {
+        return PSA_ERROR_BAD_STATE;
+    }
+    /* The thin core supports derivation of byte-aligned raw keys only. */
+    if (!PSA_KEY_TYPE_IS_UNSTRUCTURED(psa_get_key_type(attributes)) ||
+        key_bits == 0 || (key_bits % 8) != 0) {
+        return PSA_ERROR_INVALID_ARGUMENT;
+    }
+    if (key_bytes > sizeof(output_key_data)) {
+        return PSA_ERROR_NOT_SUPPORTED;
+    }
+    if (key_bytes > operation->capacity) {
+        return PSA_ERROR_INSUFFICIENT_DATA;
+    }
+
+    status = psa_key_derivation_output_bytes(operation,
+                                              (uint8_t *)output_key_data,
+                                              key_bytes);
+    if (status != PSA_SUCCESS) {
+        goto cleanup;
+    }
+
+    if (g_key_slot.is_valid) {
+        status = psa_destroy_key(g_key_slot.key_id);
+        if (status != PSA_SUCCESS) {
+            goto cleanup;
+        }
+    }
+
+    memcpy(g_key_data, output_key_data, key_bytes);
+    status = psa_import_key(attributes, (const uint8_t *)g_key_data,
+                            key_bytes, key);
+
+cleanup:
+    thin_core_zeroize(output_key_data, sizeof(output_key_data));
+    if (status != PSA_SUCCESS) {
+        psa_key_derivation_abort(operation);
+    }
+    return status;
+#else
+    return PSA_ERROR_NOT_SUPPORTED;
+#endif /* PSA_WANT_ALG_SP800_108_COUNTER_CMAC */
+}
+
 psa_status_t psa_key_derivation_abort(psa_key_derivation_operation_t *operation)
 {
     assert(operation != NULL);
@@ -1182,9 +1260,7 @@ psa_status_t psa_get_key_attributes(psa_key_id_t key,
 
 psa_status_t psa_destroy_key(psa_key_id_t key)
 {
-    if (is_key_builtin(key)) {
-        memset(g_pubkey_data, 0, sizeof(g_pubkey_data));
-    } else {
+    if (!is_key_builtin(key)) {
         /* This will keep the value of the key_id so that a new import will
          * just use the next key_id. This allows to keep track of potential
          * clients trying to reuse a deleted key ID
@@ -1192,6 +1268,8 @@ psa_status_t psa_destroy_key(psa_key_id_t key)
         assert(g_key_slot.is_valid && (g_key_slot.key_id == key));
     }
 
+    /* Erase owned storage without modifying a caller's imported buffer. */
+    thin_core_zeroize(g_key_data, sizeof(g_key_data));
     g_key_slot.buf = NULL;
     g_key_slot.len = 0;
     g_key_slot.attr = psa_key_attributes_init();
