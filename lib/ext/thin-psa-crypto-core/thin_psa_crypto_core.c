@@ -1414,6 +1414,11 @@ void mbedtls_psa_crypto_free(void)
 
 psa_status_t mbedtls_to_psa_error(int ret)
 {
+    /* Newer software drivers already return PSA errors in this range. */
+    if (ret > -0x1000 && ret < -0x80) {
+        return (psa_status_t)ret;
+    }
+
     switch (ret) {
     case 0:
         return PSA_SUCCESS;
