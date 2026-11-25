@@ -14,6 +14,7 @@ This document contains SOC and boards supported by NXP.
     MCIMX93-EVK <mcimx93evk/README.rst>
     FRDM-MCXA577 <frdmmcxa577/README.rst>
     FRDM-KW43 <frdmkw43/README.rst>
+    FRDM-MCXW70 <frdmmcxw70/README.rst>
 
 --------------
 
