@@ -919,6 +919,7 @@ if (RSE_XIP)
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/bl2/ext/mcuboot/scripts/wrapper.py
             -v ${MCUBOOT_IMAGE_VERSION_S}
             --layout $<TARGET_OBJECTS:signing_layout_s>
+            --image-type SPE
             -k ${MCUBOOT_KEY_S}
             --public-key-format $<IF:$<BOOL:${MCUBOOT_HW_KEY}>,full,hash>
             --align ${MCUBOOT_ALIGN_VAL}

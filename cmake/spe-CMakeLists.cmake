@@ -218,6 +218,7 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
         set(wrapper_args
             --version ${MCUBOOT_IMAGE_VERSION_NS}
             --layout ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/layout_files/signing_layout_ns.o
+            --image-type NSPE
             --key ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/keys/image_ns_signing_private_key.pem
             --public-key-format $<IF:$<BOOL:${MCUBOOT_HW_KEY}>,full,hash>
             --align ${MCUBOOT_ALIGN_VAL}
@@ -306,6 +307,7 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
         set(wrapper_args
             --version    ${MCUBOOT_IMAGE_VERSION_S}
             --layout     ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/layout_files/signing_layout_s_ns.o
+            --image-type NSPE_SPE
             --key        ${CMAKE_CURRENT_SOURCE_DIR}/image_signing/keys/image_s_signing_private_key.pem
             --public-key-format  $<IF:$<BOOL:${MCUBOOT_HW_KEY}>,full,hash>
             --align      ${MCUBOOT_ALIGN_VAL}

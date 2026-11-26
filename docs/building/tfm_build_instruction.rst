@@ -338,6 +338,27 @@ The content of ``<Artifact Dir>`` is an exported directory for integration with 
     Attempting to change any file in ``<Artifact Dir>`` may cause incompatibility issues.
     Instead, please change the corresponding file in the ``<TF-M source dir>``.
 
+Measured boot image type
+========================
+
+The installed ``mcuboot_imagesign_wrapper`` command accepts ``--image-type`` to
+set the software component type in the measured boot record independently of
+the layout filename. The accepted values are:
+
+- ``SPE``: secure processing environment image.
+- ``NSPE``: non-secure processing environment image.
+- ``NSPE_SPE``: combined secure and non-secure image.
+
+This option applies when ``--measured-boot-record`` is enabled. For example, add
+``--measured-boot-record --image-type SPE`` to the signing command for a secure
+image. ``--image-type`` alone does not enable a measured boot record.
+
+When the option is omitted, the wrapper retains the filename-based fallback:
+it selects ``SPE`` if the layout path contains ``_s.o``, otherwise ``NSPE`` if it
+contains ``_ns.o``, and ``NSPE_SPE`` otherwise. Use an explicit image type when
+signing with hashed or custom layout filenames. The in-tree CMake signing
+commands already pass the image type explicitly.
+
 .. _NSPE toolchains:
 
 NSPE toolchains
@@ -355,5 +376,5 @@ of TF-M applications in **tf-m-extras** repository.
 
 --------------
 
-*Copyright (c) 2017-2024, Arm Limited. All rights reserved.*
+*Copyright (c) 2017-2026, Arm Limited. All rights reserved.*
 *Copyright (c) 2022, Cypress Semiconductor Corporation. All rights reserved.*

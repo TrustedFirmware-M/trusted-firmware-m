@@ -44,6 +44,9 @@ os.environ['LANG'] = 'C.UTF-8'
               required=False, help='Adjust address in hex output file.')
 @click.option('--measured-boot-record', default=False, is_flag=True, help='Add '
               'CBOR encoded measured boot record to the image manifest.')
+@click.option('--image-type', type=click.Choice(['SPE', 'NSPE', 'NSPE_SPE']),
+              help='Software component type for the measured boot record. '
+                   'Overrides the type inferred from the layout filename.')
 @click.option('--save-enctlv', default=False, is_flag=True,
               help='When upgrading, save encrypted key TLVs instead of plain '
                    'keys. Enable when BOOT_SWAP_SAVE_ENCTLV config option '
@@ -103,14 +106,16 @@ def wrap(key, align, version, header_size, pad_header, layout, pad, confirm,
          max_sectors, overwrite_only, endian, encrypt, infile, outfile,
          dependencies, hex_addr, erased_val, save_enctlv, public_key_format,
          security_counter, encrypt_keylen, measured_boot_record, psa_key_ids,
-         extra_tlv):
+         extra_tlv, image_type):
 
     slot_size = macro_parser.evaluate_macro(layout, sign_bin_size_re, 0, 1)
     load_addr = macro_parser.evaluate_macro(layout, load_addr_re, 0, 1)
     rom_fixed = macro_parser.evaluate_macro(layout, rom_fixed_re, 0, 1)
 
     if measured_boot_record:
-        if "_s.o" in layout:
+        if image_type is not None:
+            record_sw_type = image_type
+        elif "_s.o" in layout:
             record_sw_type = "SPE"
         elif "_ns.o" in layout:
             record_sw_type = "NSPE"

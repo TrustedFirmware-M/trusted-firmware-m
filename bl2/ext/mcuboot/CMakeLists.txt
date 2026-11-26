@@ -238,11 +238,12 @@ if (PLATFORM_DEFAULT_IMAGE_SIGNING)
     set(IMAGE_TYPE "S_IMAGE")
     set(FLASH_AREA_NUM ${MCUBOOT_S_IMAGE_FLASH_AREA_NUM})
     if (TFM_NS_INDEPENDENT_SIG)
+        set(signing_image_type SPE)
         configure_file(signing_layout.c.in signing_layout_s.c @ONLY)
         add_library(signing_layout_s OBJECT ${CMAKE_CURRENT_BINARY_DIR}/signing_layout_s.c)
     else()
-        # Imgtool script requires the s_ns sufix. Since only one sigining layout is
-        # used in this mode the signing_layout_s target's source file is renamed.
+        # Keep the combined layout name used by exported NS builds.
+        set(signing_image_type NSPE_SPE)
         configure_file(signing_layout.c.in signing_layout_s_ns.c @ONLY)
         add_library(signing_layout_s OBJECT ${CMAKE_CURRENT_BINARY_DIR}/signing_layout_s_ns.c)
     endif()
@@ -271,6 +272,7 @@ if (PLATFORM_DEFAULT_IMAGE_SIGNING)
     set(wrapper_args
         -v ${MCUBOOT_IMAGE_VERSION_S}
         --layout $<TARGET_OBJECTS:signing_layout_s>
+        --image-type ${signing_image_type}
         -k ${MCUBOOT_KEY_S}
         --public-key-format $<IF:$<BOOL:${MCUBOOT_HW_KEY}>,full,hash>
         --align ${MCUBOOT_ALIGN_VAL}

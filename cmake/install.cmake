@@ -273,8 +273,16 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
                 DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/keys)
     endif()
 
+    # Keep the exported names independent of CMake's intermediate file strategy.
+    # The NS build consumes these files using the names in spe-CMakeLists.cmake.
+    if(TFM_NS_INDEPENDENT_SIG)
+        set(signing_layout_s_name signing_layout_s.o)
+    else()
+        set(signing_layout_s_name signing_layout_s_ns.o)
+    endif()
     install(FILES $<TARGET_OBJECTS:signing_layout_s>
-            DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/layout_files)
+            DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/layout_files
+            RENAME ${signing_layout_s_name})
     install(FILES ${MCUBOOT_KEY_S}
             RENAME image_s_signing_private_key.pem
             DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/keys)
@@ -286,7 +294,8 @@ if(BL2 AND PLATFORM_DEFAULT_IMAGE_SIGNING)
 
     if(TFM_NS_INDEPENDENT_SIG OR MCUBOOT_IMAGE_MULTI_SIG_SUPPORT)
         install(FILES $<TARGET_OBJECTS:signing_layout_ns>
-                DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/layout_files)
+                DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/layout_files
+                RENAME signing_layout_ns.o)
         install(FILES ${MCUBOOT_KEY_NS}
                 RENAME image_ns_signing_private_key.pem
                 DESTINATION ${INSTALL_IMAGE_SIGNING_DIR}/keys)

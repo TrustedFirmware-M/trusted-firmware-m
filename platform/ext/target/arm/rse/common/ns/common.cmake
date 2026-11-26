@@ -120,6 +120,7 @@ if (RSE_XIP)
         COMMAND mcuboot_imagesign_wrapper
             -v ${MCUBOOT_IMAGE_VERSION_NS}
             --layout $<TARGET_OBJECTS:signing_layout_ns>
+            --image-type NSPE
             --key ${CMAKE_CURRENT_SOURCE_DIR}/../image_signing/keys/image_ns_signing_private_key.pem
             --public-key-format $<IF:$<BOOL:${MCUBOOT_HW_KEY}>,full,hash>
             --align ${MCUBOOT_ALIGN_VAL}
