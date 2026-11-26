@@ -38,6 +38,7 @@ The additional building materials you can find in the following links:TF-M sourc
     Run TF-M tests and applications <run_tfm_examples_on_arm_platforms>
     Building the documentation <documentation_generation>
     IAR toolchain <tfm_build_instruction_iar>
+    HEX generation <hex_generation>
 
 .. _Building SPE:
 

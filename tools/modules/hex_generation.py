@@ -22,9 +22,15 @@ def add_arguments(parser: argparse.ArgumentParser,
     arg_utils.add_prefixed_argument(
         parser, "image_layout_h_file", help="path to region_defs.h", required=True)
     arg_utils.add_prefixed_argument(
-        parser, "file_to_mirror", help="path to mirror file", required=True)
+        parser, "file_to_mirror",
+        help="CMake compilation output path (for example, a preprocessed linker-script object), "
+             "not a source filename. Relative paths are resolved from the directory "
+             "containing compile_commands.json. For a semicolon-separated list, only "
+             "the first path is used.",
+        required=True)
     arg_utils.add_prefixed_argument(
-        parser, "compile_commands_file", help="path to compile_commands.json", required=True)
+        parser, "compile_commands_file",
+        help="TF-M/RSE CMake-generated compile_commands.json", required=True)
     arg_utils.add_prefixed_argument(
         parser, "macro_name", help="macro name to evaluate", required=True)
     arg_utils.add_prefixed_argument(
@@ -38,19 +44,23 @@ def add_arguments(parser: argparse.ArgumentParser,
 def main(args: list = []) -> None:
     parser = argparse.ArgumentParser(allow_abbrev=False,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                     description="Hex generator")
+                                     description="Generate HEX using TF-M/RSE CMake layout metadata")
 
     add_arguments(parser, "", True)
 
     args = parser.parse_args()
 
     paths = args.file_to_mirror.split(";")
-    mirror_filename = os.path.basename(paths[0])
-
-    includes = c_include.get_includes(
-        args.compile_commands_file, mirror_filename)
-    defines = c_include.get_defines(
-        args.compile_commands_file, mirror_filename)
+    # CMake supplies a preprocessed linker-script object. SHORT intermediate
+    # paths hash its filename, so identify its compilation by the full output
+    # path rather than trying to recover the source filename.
+    try:
+        includes = c_include.get_includes(
+            args.compile_commands_file, output_file=paths[0])
+        defines = c_include.get_defines(
+            args.compile_commands_file, output_file=paths[0])
+    except ValueError as error:
+        parser.error(str(error))
 
     config = C_macro.from_h_file(args.image_layout_h_file, includes, defines)
 
