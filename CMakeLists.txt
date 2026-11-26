@@ -8,7 +8,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 # This workaround is for long paths in TF-M under Windows issues.
-if(WIN32 AND CMAKE_VERSION VERSION_GREATER_EQUAL "VERSION 4.2.1")
+if(WIN32 AND CMAKE_VERSION VERSION_GREATER_EQUAL "4.2.1")
     set(CMAKE_INTERMEDIATE_DIR_STRATEGY "SHORT"  CACHE STRING
         "Strategy for target intermediate directories.")
 endif()
