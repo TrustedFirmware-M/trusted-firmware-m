@@ -35,8 +35,10 @@ def _absolute_path(path, directory):
     return path_module.normpath(path_module.join(directory, path))
 
 
-def _path_key(path):
+def _path_key(path, directory):
+    """Return an absolute lexical path key for output comparisons."""
     # Do not resolve symlinks: compilation database paths are lexical paths.
+    path = _absolute_path(path, directory)
     return ntpath.normcase(path) if _windows_path(path) else path
 
 
@@ -109,32 +111,35 @@ def _option_values(arguments, options):
                 break
 
 
-def _output_paths(entry, database_dir):
-    """Return normalized output candidates for matching the requested full path."""
-    # The compiler output is relative to the command's working directory.
-    # CMake's Makefile generator can instead make the optional output field
-    # relative to the build root, so prefer an explicit compiler output option.
-    arguments = _arguments(entry)
-    directory = _absolute_path(entry['directory'], database_dir)
+def _compiler_output(arguments):
+    """Read the single '-o <object>' pair emitted by TF-M/RSE's CMake rules."""
     # The module's input contract lets us find this token without interpreting
     # arbitrary compiler options or their operands.
     positions = [index for index, value in enumerate(arguments[1:], 1) if value == '-o']
-    output = None
-    if len(positions) > 1:
+    if not positions:
+        return None
+    if len(positions) != 1:
         raise ValueError("Expected a single '-o <object>' in the CMake compile command")
-    if positions:
-        index = positions[0] + 1
-        if index == len(arguments) or not arguments[index]:
-            raise ValueError("Missing output filename after '-o' in the CMake compile command")
-        output = arguments[index]
+    index = positions[0] + 1
+    if index == len(arguments) or not arguments[index]:
+        raise ValueError("Missing output filename after '-o' in the CMake compile command")
+    return arguments[index]
+
+
+def _output_paths(entry, database_dir):
+    """Resolve the compiler output or fall back to optional output metadata."""
+    arguments = _arguments(entry)
+    directory = _absolute_path(entry['directory'], database_dir)
+    output = _compiler_output(arguments)
 
     if output is not None:
-        # The CMake command's output takes precedence over optional metadata.
-        return {_path_key(_absolute_path(output, directory))}
+        # Compiler outputs are relative to the working directory and take
+        # precedence over metadata, which can be stale.
+        return {_path_key(output, directory)}
     if 'output' in entry:
-        # Without an output option, allow either metadata path convention,
-        # including compiler-derived filenames.
-        return {_path_key(_absolute_path(entry['output'], base))
+        # CMake's Makefile generator can record metadata relative to the build
+        # root instead of the working directory. Allow either convention.
+        return {_path_key(entry['output'], base)
                 for base in (directory, database_dir)}
     return set()
 
@@ -151,7 +156,7 @@ def _get_compile_entry(compile_commands_file, c_file=None, *, output_file=None):
         matches = [entry for entry in compile_commands if os.fspath(c_file) in entry['file']]
     else:
         database_dir = os.path.dirname(os.path.abspath(compile_commands_file))
-        requested = _path_key(_absolute_path(output_file, database_dir))
+        requested = _path_key(output_file, database_dir)
         matches = []
         for entry in compile_commands:
             if requested in _output_paths(entry, database_dir):
